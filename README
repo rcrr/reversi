@@ -1,0 +1,10 @@
+This is a COMMON LISP and hopefully Clojure project.
+
+The aim is to use the PAIP (Paradigm of Artificial Intelligence Programming. Case Studies in Common Lisp) examples
+that describe how to write an AI strategy to play the board game named REVERSI.
+
+First objective is to make the code working with a current version of SBCL under Linux.
+
+Then I have two goals, play around the code and port it to Clojure.
+
+Roberto
