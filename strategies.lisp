@@ -49,25 +49,24 @@
 ;;; along with this program; if not, write to the Free Software
 ;;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 
-(defpackage #:reversi (:use :cl :asdf))
-
 (in-package :reversi)
 
-(defsystem reversi
-  :name "reversi"
-  :version "0.0.0"
-  :maintainer "Roberto Corradini <rob_corradini@yahoo.it>"
-  :author "Roberto Corradini <rob_corradini@yahoo.it>"
-  :licence "GNU Gpl v3"
-  :description "Reversi Board Game"
-  :long-description "Common Lisp implementation of the Reversi Board Game"
-  :serial nil
-  :depends-on ()
-  :components ((:file "constants")
-	       (:file "auxfns")
-	       (:file "reversi"
-		      :depends-on ("auxfns"
-				   "constants"))
-	       (:file "strategies"
-		      :depends-on ("auxfns"
-				   "constants"))))
+(defun maximize-difference (player board)
+  "A strategy that maximize the differences in pieces."
+  (funcall (maximizer #'count-difference) player board))
+
+(defun maximizer (eval-fn)
+  "Return a strategy that will consider every legal move,
+   apply ENVAL-FN to each resulting board, and choose
+   the move for which EVAL-FN returns the best score.
+   FN takes two arguments: the player-to-move and board."
+  #'(lambda (player board)
+      (let* ((moves (legal-moves player board))
+	     (scores (mapcar #'(lambda (move)
+				 (funcall
+				  eval-fn
+				  player
+				  (make-move move player (copy-board board))))
+			     moves))
+	     (best (apply #'max scores)))
+	(elt moves (position best scores)))))
