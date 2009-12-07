@@ -5,6 +5,17 @@ that describe how to write an AI strategy to play the board game named REVERSI.
 
 First objective is to make the code working with a current version of SBCL under Linux.
 
-Then I have two goals, play around the code and port it to Clojure.
+Then I have two goals, play around with the code and port it to Clojure.
 
-Roberto
+The project environment is as follow:
+
+ - Ubuntu 9.10
+ - SBCL compiled from source, downloaded from  git://sbcl.boinkor.net/sbcl.git
+ - Emacs compiled from source, downloaded from git://git.savannah.gnu.org/emacs.git
+ - Slime downloaded from the official cvs repository
+
+To operate the program:
+From the SLIME PROMPT type:
+
+     (asdf:operate 'asdf:load-op 'reversi)
+     (in-package :reversi)
