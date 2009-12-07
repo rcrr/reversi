@@ -70,3 +70,67 @@
 			     moves))
 	     (best (apply #'max scores)))
 	(elt moves (position best scores)))))
+
+(defparameter *weights*
+  '#(0   0   0   0  0  0   0   0   0 0
+     0 120 -20  20  5  5  20 -20 120 0
+     0 -20 -40  -5 -5 -5  -5 -40 -20 0
+     0  20  -5  15  3  3  15  -5  20 0
+     0   5  -5   3  3  3   3  -5   5 0
+     0   5  -5   3  3  3   3  -5   5 0
+     0  20  -5  15  3  3  15  -5  20 0
+     0 -20 -40  -5 -5 -5  -5 -40 -20 0
+     0 120 -20  20  5  5  20 -20 120 0
+     0   0   0   0  0  0   0   0   0 0))
+
+(defun weighted-squares (player board)
+  "Sum of the weights of player's squares minus opponents's."
+  (let ((opp (opponent player)))
+    (loop for i in all-squares
+	 when (eql (bref board i) player)
+	 sum (aref *weights* i)
+	 when (eql (bref board i) opp)
+	 sum (- (aref *weights* i)))))
+
+(defparameter *winning-value* most-positive-fixnum)
+(defparameter *losing-value* most-negative-fixnum)
+
+(defun final-value (player board)
+  "Is ths a win, loss, or a draw for player?"
+  (case (signum (count-difference player board))
+    (-1 *losing-value*)
+    (0 0)
+    (+1 *winning-value*)))
+
+(defun minimax (player board ply eval-fn)
+  "Find the best move, for PLAYER, according to EVAL-FN,
+   searching PLY levels deep and backing up values."
+  (if (= ply 0)
+      (funcall eval-fn player board)
+      (let ((moves (legal-moves player board)))
+	(if (null moves)
+	    (if (any-legal-move? (opponent player) board)
+		(- (minimax (opponent player) board
+			    (- ply 1) eval-fn))
+		(final-value player board))
+	    (let ((best-move nil)
+		  (best-val nil))
+	      (dolist (move moves)
+		(let* ((board2 (make-move move player
+					  (copy-board board)))
+		       (val (- (minimax
+				(opponent player) board2
+				(- ply 1) eval-fn))))
+		  (when (or (null best-val)
+			    (> val best-val))
+		    (setf best-val val)
+		    (setf best-move move))))
+	      (values best-val best-move))))))
+
+(defun minimax-searcher (ply eval-fn)
+  "A strategy that searches PLY levels and then uses EVAL-FN."
+  #'(lambda (player board)
+      (multiple-value-bind (value move)
+	  (minimax player board ply eval-fn)
+	(declare (ignore value))
+	move)))
