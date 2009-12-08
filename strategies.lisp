@@ -134,3 +134,39 @@
 	  (minimax player board ply eval-fn)
 	(declare (ignore value))
 	move)))
+
+(defun alpha-beta (player board achievable cutoff ply eval-fn)
+  "Find the best move, for PLAYER, according to EVAL-FN,
+   searching PLY levels deep and backing up values,
+   using cutoff whenever possible."
+  (if (= ply 0)
+      (funcall eval-fn player board)
+      (let ((moves (legal-moves player board)))
+	(if (null moves)
+	    (if (any-legal-move? (opponent player) board)
+		(- (alpha-beta (opponent player) board
+			       (- cutoff) (- achievable)
+			       (- ply 1) eval-fn))
+		(final-value player board))
+	    (let ((best-move (first moves)))
+	      (loop for move in moves do
+		   (let* ((board2 (make-move move player
+					     (copy-board board)))
+			  (val (- (alpha-beta
+				   (opponent player) board2
+				   (- cutoff) (- achievable)
+				   (- ply 1) eval-fn))))
+		     (when (> val achievable)
+		       (setf achievable val)
+		       (setf best-move move)))
+		   until (>= achievable cutoff))
+	      (values achievable best-move))))))
+
+(defun alpha-beta-searcher (depth eval-fn)
+  "A strategy that searches to DEPTH and then uses EVAL-FN."
+  #'(lambda (player board)
+      (multiple-value-bind (value move)
+	  (alpha-beta player board *losing-value* *winning-value*
+		      depth eval-fn)
+	(declare (ignore value))
+	move)))
