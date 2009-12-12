@@ -201,7 +201,7 @@
     (cond
       ((and (valid-p move) (legal-p move player board))
        (when print
-	 (format t "~&~c moves to ~d." (name-of player) move))
+	 (format t "~&~c moves to ~a." (name-of player) (88->h8 move)))
        (make-move move player board))
       (t (warn "illegal move: ~d" move)
 	 (get-move strategy player board print)))))
