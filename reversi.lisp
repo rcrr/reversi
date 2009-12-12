@@ -161,21 +161,29 @@
 	 (find-bracketing-piece (+ square dir) player board dir))
 	(t nil)))
 
-(defun reversi (bl-strategy wh-strategy &optional (print t))
+(defvar *move-number* 1 "The number of the move to be played")
+
+(defun reversi (bl-strategy wh-strategy &optional (print t) (minutes 30))
   "Play a game of Reversi. Return the score, where a positive
    difference means black (the first player) wins."
-  (let ((board (initial-board)))
-    (loop for player = black
+  (let ((board (initial-board))
+	(clock (make-array (+ 1 (max black white))
+			   :initial-element
+			   (* minutes 60
+			      internal-time-units-per-second))))
+    (catch 'game-over
+      (loop for *move-number* from 1
+	 for player = black
 	 then (next-to-play board player print)
 	 for strategy = (if (eql player black)
 			    bl-strategy
 			    wh-strategy)
 	 until (null player)
-	 do (get-move strategy player board print))
-    (when print
-      (format t "~&The game is over. Final result:")
-      (print-board board))
-    (count-difference black board)))
+	 do (get-move strategy player board print clock))
+      (when print
+	(format t "~&The game is over. Final result:")
+	(print-board board))
+      (count-difference black board))))
 
 (defun next-to-play (board previous-player print)
   "Compute the player to move next, or nil if nobady can move."
@@ -193,18 +201,27 @@
   (some #'(lambda (move) (legal-p move player board))
 	all-squares))
 
-(defun get-move (strategy player board print)
+(defun get-move (strategy player board print clock)
   "Call the player's strategy function to get move.
    Keep calling until a legal move is made."
-  (when print (print-board board))
-  (let ((move (funcall strategy player (copy-board board))))
+  (when print (print-board board clock))
+  (replace *clock* clock)
+  (let* ((t0 (get-internal-real-time))
+	 (move (funcall strategy player (replace *board* board)))
+	 (t1 (get-internal-real-time)))
+    (decf (elt clock player) (- t1 t0))
     (cond
+      ((< (elt clock player) 0)
+       (format t "~&~c has no time left and forteits." (name-of player))
+       (throw 'game-over (if (eql player black) -64 64)))
+      ((eq move 'resign)
+       (throw 'game-over (if (eql player black) -64 64)))
       ((and (valid-p move) (legal-p move player board))
        (when print
 	 (format t "~&~c moves to ~a." (name-of player) (88->h8 move)))
        (make-move move player board))
-      (t (warn "illegal move: ~d" move)
-	 (get-move strategy player board print)))))
+      (t (warn "illegal move: ~a" (88->h8 move))
+	 (get-move strategy player board print clock)))))
 
 (defun human (player board)
   "A human player for the game of Reversi."
