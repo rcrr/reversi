@@ -220,3 +220,26 @@
   "Returns a list of legal moves for player"
   (loop for move in all-squares
      when (legal-p move player board) collect move))
+
+(let ((square-names
+       (cross-product #'i-symb
+		      '(? a b c d e f g h ?)
+		      '(? 1 2 3 4 5 6 7 8 ?))))
+
+  (defun h8->88 (str)
+    "Convert from alphanumeric to numeric square notation."
+    (or (position (string str) square-names :test #'string-equal)
+	str))
+
+  (defun 88->h8 (num)
+    "Convert from numeric to alphanumeric square notation."
+    (if (valid-p num)
+	(elt square-names num)
+	num)))
+
+(defun cross-product (fn xlist ylist)
+  "Return a list of all (fn x y) values"
+  (mappend #'(lambda (y)
+	       (mapcar #'(lambda (x) (funcall fn x y))
+		       xlist))
+	   ylist))
