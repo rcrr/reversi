@@ -1,0 +1,79 @@
+
+			       Glossary table for the Reversi Program
+
+	       	       	       ------------------
+			       Top Level Function
+			       ------------------
+
+reversi			       Play a game of Reversi. Return the score.
+
+
+			       ---------
+			       Constants
+			       ---------
+
+empty			       0 represents an empty square.
+black			       1 represents a black piece.
+white			       2 represents a white piece.
+outer			       3 represents a piece outside the 8 x 8 board.
+all-directions		       A list of integers representing the eight directions.
+all-squares		       A list af all legal squares.
+winning-value		       The best possible evaluation.
+losing-value		       The worst possible evaluation.
+
+
+			       ----------
+			       Data Types
+			       ----------
+
+piece			       An integer from empty to outer.
+board			       A vector of 100 pieces.
+
+			       ---------------
+			       Major Functions
+			       ---------------
+
+get-move		       Call the player's strategy function to get a move.
+make-move		       Update board to reflect move by player.
+human			       A strategy that prompts a human player.
+random-strategy		       Make any legal move.
+maximize-difference	       A strategy that maximizes the difference in pieces.
+maximizer		       Return a strategy that maximizes some measure.
+weighted-squares	       Sum the weights of player's squares minus opponent's.
+modified-weighted-squares      Like above, but treating corners better.
+minimax			       Find the best move according to EVAL-FN, searching PLY levels.
+minimax-searcher	       Return a strategy that uses minimax to search.
+alpha-beta		       Find the best move according to EVAL-FN, searching PLY levels.
+alpha-beta-searcher	       Return a strategy thta uses alpha-beta to search.
+
+
+			       -------------------
+			       Auxiliary Functions
+			       -------------------
+
+bref			       Reference to a position on the board.
+copy-board		       Make a new board.
+initial-board		       Return a board, empty except for four pieces in the middle.
+print-board		       Print a board, along with some statistics.
+count-difference	       Count player's pieces minus opponent's pieces.
+name-of			       A character used to print a piece.
+opponent		       The opponent of black is white, and vice-versa.
+valid-p			       A syntactically valid square.
+legal-p			       A legal move on the board.
+make-flips		       Make any flips in the given direction.
+would-flip?		       Would this move result in any flips in this direction?
+find-bracketing-piece	       Return the square number of the bracketing piece.
+any-legal-move?		       Does player have any legal moves in this position?
+next-to-play		       Compute the player to move next, or NIL if nobody can move.
+legal-moves		       Returns a list of legal moves for player.
+find-value		       Is this a win, loss, or draw for player?
+neighbors		       Return a list of all squares adjacent to a square.
+switch-strategies	       Play one strategy for a while, then switch.
+
+			       -----------------
+			       Library Functions
+			       -----------------
+
+random-elt		       Pick a random element out of a sequence.
+i-symb			       Concatenate symbols or strings to form an interned symbol.
+mappend			       Append the results of calling fn on each element of list.
