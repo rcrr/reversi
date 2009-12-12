@@ -55,3 +55,13 @@
   "Pick a random element out of a sequence."
   (elt seq (random (length seq))))
 
+(defun i-symb (&rest args)
+  "Concatenate symbols or strings to form an interned symbol"
+  (intern (format nil "~{~a~}" args)))
+
+(defun mappend (fn list)
+  "Append the results of calling fn on each element of list.
+  Like mapcon, but uses append instead of nconc."
+  (apply #'append (mapcar fn list)))
+
+
