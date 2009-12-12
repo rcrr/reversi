@@ -208,9 +208,9 @@
 
 (defun human (player board)
   "A human player for the game of Reversi."
-  (declare (ignore board))
-  (format t "~&~c to move: " (name-of player))
-  (read))
+  (format t "~&~c to move ~a: " (name-of player)
+	  (mapcar #'88->h8 (legal-moves player board)))
+  (h8->88 (read)))
 
 (defun random-strategy (player board)
   "Make any legal move."
