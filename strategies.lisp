@@ -92,15 +92,12 @@
 	 when (eql (bref board i) opp)
 	 sum (- (aref *weights* i)))))
 
-(defparameter *winning-value* most-positive-fixnum)
-(defparameter *losing-value* most-negative-fixnum)
-
 (defun final-value (player board)
   "Is ths a win, loss, or a draw for player?"
   (case (signum (count-difference player board))
-    (-1 *losing-value*)
+    (-1 losing-value)
     (0 0)
-    (+1 *winning-value*)))
+    (+1 winning-value)))
 
 (defun minimax (player board ply eval-fn)
   "Find the best move, for PLAYER, according to EVAL-FN,
@@ -166,7 +163,7 @@
   "A strategy that searches to DEPTH and then uses EVAL-FN."
   #'(lambda (player board)
       (multiple-value-bind (value move)
-	  (alpha-beta player board *losing-value* *winning-value*
+	  (alpha-beta player board losing-value winning-value
 		      depth eval-fn)
 	(declare (ignore value))
 	move)))
@@ -195,3 +192,184 @@
   (defun neighbors (square)
     "Return a list of all squares adjacent to a square."
     (aref neighbor-table square)))
+
+(defvar *edge-table* (make-array (expt 3 10))
+  "Array of values to player-to-move for edge positions.")
+
+(defvar *ply-boards*
+  (apply #'vector (loop repeat 40 collect (initial-board))))
+
+(defun edge-index (player board squares)
+  "The index counts 1 for player; 2 for opponent,
+   on each square--summed as a base 3 number."
+  (let ((index 0))
+    (dolist (sq squares)
+      (setq index (+ (* index 3)
+		     (cond ((eql (bref board sq) empty) 0)
+			   ((eql (bref board sq) player) 1)
+			   (t 2)))))
+    index))
+
+(defun edge-stability (player board)
+  "Total edge evaluation for player to move on board"
+  (loop for edge-list in edge-and-x-lists
+       sum (aref *edge-table*
+		 (edge-index player board edge-list))))
+
+(defun init-edge-table ()
+  "Initialize *edge-table*, starting from the empty board."
+  ;; Initialize the static values
+  (loop for n-pieces from 0 to 10 do
+       (map-edge-n-pieces
+	#'(lambda (board index)
+	    (setf (aref *edge-table* index)
+		  (static-edge-stability black board)))
+	black (initial-board) n-pieces top-edge 0))
+  ;; Now iterate five times trying to improve:
+  (dotimes (i 5)
+    ;; Do the indexes with most pieces first
+    (loop for n-pieces from 9 downto 1 do
+	 (map-edge-n-pieces
+	  #'(lambda (board index)
+	      (setf (aref *edge-table* index)
+		    (possible-edge-moves-value
+		     black board index)))
+	  black (initial-board) n-pieces top-edge 0))))
+
+(defun map-edge-n-pieces (fn player board n squares index)
+  "Call fn on all edges with n pieces."
+  ;; Index counts 1 for player; 2 for opponent
+  (cond
+    ((< (length squares) n) nil)
+    ((null squares) (funcall fn board index))
+    (t (let ((index3 (* 3 index))
+	     (sq (first squares)))
+	 (map-edge-n-pieces fn player board n (rest squares) index3)
+	 (when (and (> n 0) (eql (bref board sq) empty))
+	   (setf (bref board sq) player)
+	   (map-edge-n-pieces fn player board (- n 1) (rest squares)
+			      (+ 1 index3))
+	   (setf (bref board sq) (opponent player))
+	   (map-edge-n-pieces fn player board (- n 1) (rest squares)
+			      (+ 2 index3))
+	   (setf (bref board sq) empty))))))
+
+(defun possible-edge-moves-value (player board index)
+  "Consider all possible edge moves.
+   Combine their values into a single number."
+  (combine-edge-moves
+   (cons
+    (list 1.0 (aref *edge-table* index)) ;; no move
+    (loop for sq in top-edge             ;; possible moves
+       when (eql (bref board sq) empty)
+       collect (possible-edge-move player board sq)))
+   player))
+
+(defun possible-edge-move (player board sq)
+  "Return a (prob val) pair for a possible edge move."
+  (let ((new-board (replace (aref *ply-boards* player) board)))
+    (make-move sq player new-board)
+    (list (edge-move-probability player board sq)
+	  (- (aref *edge-table*
+		   (edge-index (opponent player)
+			       new-board top-edge))))))
+
+(defun combine-edge-moves (possibilities player)
+  "Combines the best moves."
+  (let ((prob 1.0)
+	(val 0.0)
+	(fn (if (eql player black) #'> #'<)))
+    (loop for pair in (sort possibilities fn :key #'second)
+       while (>= prob 0.0)
+       do (incf val (* prob (first pair) (second pair)))
+       (decf prob (* prob (first pair))))
+    (round val)))
+
+(let ((corner/xsqs '((11 . 22) (18 . 27) (81 . 72) (88 . 77))))
+  (defun corner-p (sq) (assoc sq corner/xsqs))
+  (defun x-square-p (sq) (rassoc sq corner/xsqs))
+  (defun x-square-for (corner) (cdr (assoc corner corner/xsqs)))
+  (defun corner-for (xsq) (car (rassoc xsq corner/xsqs))))
+
+(defun edge-move-probability (player board square)
+  "What's the probability that player can move to this square?"
+  (cond
+    ((x-square-p square) .5)		;; X-squares
+    ((legal-p square player board) 1.0) ;; immediate capture
+    ((corner-p square) ;; move to corner depends on X-square
+     (let ((x-sq (x-square-for square)))
+       (cond
+	 ((eql (bref board x-sq) empty) .1)
+	 ((eql (bref board x-sq) player) 0.001)
+	 (t .9))))
+    (t (/ (aref
+	   '#2A((.10 .4 .7)
+		(.05 .3  *)
+		(.01  *  *))
+	   (count-edge-neighbors player board square)
+	   (count-edge-neighbors (opponent player) board square))
+	  (if (legal-p square (opponent player) board) 2 1)))))
+
+(defun count-edge-neighbors (player board square)
+  "Count the neighbors of this square occupied by player."
+  (count-if #'(lambda (inc)
+		(eql (bref board (+ square inc)) player))
+	    '(+1 -1)))
+
+(defparameter *static-edge-table*
+  '#2A(					;stable semi-stable unstable
+       (   *   0 -2000)			; X
+       ( 700   *     *)			; corner
+       (1200 200   -25)			; C
+       (1000 200    75)			; A
+       (1000 200    50)			; B
+       (1000 200    50)			; B
+       (1000 200    75)			; A
+       (1200 200   -25)			; C
+       ( 700   *     *)			; corner
+       (   *   0 -2000)			; X
+       ))
+
+(defun static-edge-stability (player board)
+  "Compute this edge's static stability."
+  (loop for sq in top-edge
+     for i from 0
+     sum (cond
+	   ((eql (bref board sq) empty) 0)
+	   ((eql (bref board sq) player)
+	    (aref *static-edge-table* i
+		  (piece-stability board sq)))
+	   (t (- (aref *static-edge-table* i
+		       (piece-stability board sq)))))))
+
+(let ((stable 0) (semi-stable 1) (unstable 2))  
+  (defun piece-stability (board sq)
+    (cond
+      ((corner-p sq) stable)
+      ((x-square-p sq)
+       (if (eql (bref board (corner-for sq)) empty)
+	   unstable semi-stable))
+      (t (let* ((player (bref board sq))
+		(opp (opponent player))
+		(p1 (find player board :test-not #'eql
+			  :start sq :end 19))
+		(p2 (find player board :test-not #'eql
+			  :start 11 :end sq
+			  :from-end t)))
+	   (cond
+	     ;; unstable pieces can be captured immediately
+	     ;; by playing in the empty square
+	     ((or (and (eql p1 empty) (eql p2 opp))
+		  (and (eql p2 empty) (eql p2 opp)))
+	      unstable)
+	     ;; semi-stable pieces might be captured
+	     ((and (eql p1 opp) (eql p2 opp)
+		   (find empty board :start 11 :end 19))
+	      semi-stable)
+	     ((and (eql p1 empty) (eql p2 empty))
+	      semi-stable)
+	     ;; stable pieces can never be captured
+	     (t stable)))))))
+
+;;; #. is a read macro. Is to be verified how it works under sbcl.
+;;; (setf *edge-table* '#.*edge-table*)
