@@ -193,6 +193,51 @@
     "Return a list of all squares adjacent to a square."
     (aref neighbor-table square)))
 
+;;;
+;;; 18.9 - More Efficient Searching
+;;;
+
+;;;
+;;; 18.10 - It Pays to Precycle
+;;;
+
+;;;
+;;; 18.11 - Killer Moves
+;;;
+
+;;;
+;;; 18.12 - Championship Programs: Iago and Bill
+;;;
+
+;;;
+;;; Mobility - Section Begin
+;;;
+
+(defun mobility (player board)
+  "Current mobility is the number of legal moves.
+   Potential mobility is the number of blank squares
+   adiacent to an opponent that are not legal moves.
+   Returns current potential mobility for player."
+  (let ((opp (opponent player))
+	(current 0)			; player's current mobility
+	(potential 0))			; player's potential mobility
+    (dolist (square all-squares)
+      (when (eql (bref board square) empty)
+	(cond ((legal-p square player board)
+	       (incf current))
+	      ((some #'(lambda (sq) (eql (bref board sq) opp))
+		     (neighbors square))
+	       (incf potential)))))
+    (values current (+ current potential))))
+
+;;;
+;;; Mobility - Section Begin
+;;;
+
+;;;
+;;; Edge Stability - Section Begin
+;;;
+
 (defvar *edge-table* (make-array (expt 3 10))
   "Array of values to player-to-move for edge positions.")
 
@@ -373,3 +418,38 @@
 
 ;;; #. is a read macro. Is to be verified how it works under sbcl.
 ;;; (setf *edge-table* '#.*edge-table*)
+
+;;;
+;;; Edge Stability - Section End
+;;;
+
+;;;
+;;; Combining the Factors - Section Begin
+;;;
+
+(defun iago-eval (player board)
+  "Combine edge-stability, current mobility and
+   potential mobility to arrive at an evaluation."
+  ;; The three factors are multiplied by coefficients
+  ;; that vary by move number:
+  (let ((c-edg (+ 312000 (* 6240 *move-number*)))
+	(c-cur (if (< *move-number* 25)
+		   (+ 50000 (* 2000 *move-number*))
+		   (+ 75000 (* 1000 *move-number*))))
+	(c-pot 20000))
+    (multiple-value-bind (p-cur p-pot)
+	(mobility player board)
+      (multiple-value-bind (o-cur o-pot)
+	  (mobility (opponent player) board)
+	;; Combine the three factors into one sum:
+	(+ (round (* c-edg (edge-stability player board)) 32000)
+	   (round (* c-cur (- p-cur o-cur)) (+ p-cur o-cur 2))
+	   (round (* c-pot (- p-pot o-pot)) (+ p-pot o-pot 2)))))))
+
+(defun iago (depth)
+  "Use an approximation of Iago's evaluation function."
+  (alpha-beta-searcher3 depth #'iago-eval))
+
+;;;
+;;; Combining the Factors - Section Begin
+;;;
