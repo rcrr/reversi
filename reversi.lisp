@@ -238,6 +238,13 @@
   (loop for move in all-squares
      when (legal-p move player board) collect move))
 
+(defun cross-product (fn xlist ylist)
+  "Return a list of all (fn x y) values"
+  (mappend #'(lambda (y)
+	       (mapcar #'(lambda (x) (funcall fn x y))
+		       xlist))
+	   ylist))
+
 (let ((square-names
        (cross-product #'i-symb
 		      '(? a b c d e f g h ?)
@@ -253,10 +260,3 @@
     (if (valid-p num)
 	(elt square-names num)
 	num)))
-
-(defun cross-product (fn xlist ylist)
-  "Return a list of all (fn x y) values"
-  (mappend #'(lambda (y)
-	       (mapcar #'(lambda (x) (funcall fn x y))
-		       xlist))
-	   ylist))
