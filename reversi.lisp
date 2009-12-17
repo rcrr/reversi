@@ -260,3 +260,16 @@
     (if (valid-p num)
 	(elt square-names num)
 	num)))
+
+(defun reversi-series (strategy1 strategy2 n-pairs)
+  "Play a series of 2*n-pairs games, swapping sides."
+  (let ((scores (loop repeat n-pairs
+		   collect (reversi strategy1 strategy2 nil)
+		   collect (- (reversi strategy2 strategy1 nil)))))
+    ;; Return the number of wins. (1/2 for a tie),
+    ;; the total of the point differences, and the
+    ;; scores themselves, all from strategy1's point of view.
+    (values (+ (count-if #'plusp scores)
+	       (/ (count-if #'zerop scores) 2))
+	    (apply #'+ scores)
+	    scores)))
