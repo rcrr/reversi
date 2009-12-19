@@ -66,7 +66,7 @@
      ,@(when doc (list doc))))
 
 
-(defconstant-equal all-directions '(-11 -10 -9 -1 1 9 10 11))
+(defconstant +all-directions+ '(-11 -10 -9 -1 1 9 10 11))
 
 (defconstant-equal empty 0 "An empty square")
 (defconstant-equal black 1 "A black piece")
@@ -74,7 +74,9 @@
 (defconstant-equal outer 3 "Marks squares outside the board")
 
 (defconstant-equal all-squares
-  (loop for i from 11 to 88 when (<= 1 (mod i 10) 8) collect i))
+    (sort (loop for i from 11 to 88
+	     when (<= 1 (mod i 10) 8) collect i)
+	  #'> :key #'(lambda (sq) (elt *weights* sq))))
 
 (defconstant-equal winning-value most-positive-fixnum)
 (defconstant-equal losing-value most-negative-fixnum)

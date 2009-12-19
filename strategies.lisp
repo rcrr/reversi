@@ -71,28 +71,6 @@
 	     (best (apply #'max scores)))
 	(elt moves (position best scores)))))
 
-;;; The reversi game board
-;;;
-;;;     a   b   c   d   e   f   g   h
-;;;   =================================
-;;; 1 =   =   =   =   =   =   =   =   =
-;;;   =================================
-;;; 2 =   =   =   =   =   =   =   =   =
-;;;   =================================
-;;; 3 =   =   =   =   =   =   =   =   =
-;;;   =================================
-;;; 4 =   =   =   =   =   =   =   =   =
-;;;   =================================
-;;; 5 =   =   =   =   =   =   =   =   =
-;;;   =================================
-;;; 6 =   =   =   =   =   =   =   =   =
-;;;   =================================
-;;; 7 =   =   =   =   =   =   =   =   =
-;;;   =================================
-;;; 8 =   =   =   =   =   =   =   =   =
-;;;   =================================
-;;;
-
 (defparameter *weights*
   '#(0   0   0   0  0  0   0   0   0 0
      0 120 -20  20  5  5  20 -20 120 0
@@ -219,18 +197,138 @@
 ;;; 18.9 - More Efficient Searching
 ;;;
 
+(defparameter *all-squares-static-ordered*
+  (sort all-squares #'> :key #'(lambda (sq) (elt *weights* sq))))
+
+(defun legal-moves-optimized (player board)
+  "Returns a list of legal moves for player"
+  (loop for move in *all-squares-static-ordered*
+     when (legal-p move player board) collect move))
+
+(defstruct (node) square board value)
+
+(defun alpha-beta-searcher2 (depth eval-fn)
+  "Return a strategy that doas A-B search with sorted moves."
+  #'(lambda (player board)
+      (multiple-value-bind (value node)
+	  (alpha-beta2
+	   player (make-node :board board
+			     :value (funcall eval-fn player board))
+	   losing-value winning-value depth eval-fn)
+	(declare (ignore value))
+	(node-square node))))
+
+(defun alpha-beta2 (player node achievable cutoff ply eval-fn)
+  "A-B search, sorting moves by eval-fn."
+  ;; Returns two values: achievable-value and move-to-make
+  (if (= ply 0)
+      (values (node-value node) node)
+      (let* ((board (node-board node))
+	     (nodes (legal-nodes player board eval-fn)))
+	(if (null nodes)
+	    (if (any-legal-move? (opponent player) board)
+		(values (- (alpha-beta2 (opponent player)
+					(negate-value node)
+					(- cutoff) (- achievable)
+					(- ply 1) eval-fn))
+			nil)
+		(values (final-value player board) nil))
+	    (let ((best-node (first nodes)))
+	      (loop for move in nodes
+		 for val = (- (alpha-beta2
+			       (opponent player)
+			       (negate-value move)
+			       (- cutoff) (- achievable)
+			       (- ply 1) eval-fn))
+		 do (when (> val achievable)
+		      (setf achievable val)
+		      (setf best-node move))
+		 until (>= achievable cutoff))
+	      (values achievable best-node))))))
+
+(defun negate-value (node)
+  "Set the value of a node to its negative."
+  (setf (node-value node) (- (node-value node)))
+  node)
+
+(defun legal-nodes (player board eval-fn)
+  "Return a list of legal moves, each one packed into a node."
+  (let ((moves (legal-moves-optimized player board)))
+    (sort (map-into
+	   moves
+	   #'(lambda (move)
+	       (let ((new-board (make-move move player
+					   (copy-board board))))
+		 (make-node
+		  :square move :board new-board
+		  :value (funcall eval-fn player new-board))))
+	   moves)
+	  #'> :key #'node-value)))
+
 ;;;
 ;;; 18.10 - It Pays to Precycle
 ;;;
+
+(defvar *ply-boards*
+  (apply #'vector (loop repeat 40 collect (initial-board))))
 
 ;;;
 ;;; 18.11 - Killer Moves
 ;;;
 
+(defun alpha-beta3 (player board achievable cutoff ply eval-fn
+		    killer)
+  "A-B search, putting killer moves first."
+  (if (= ply 0)
+      (funcall eval-fn player board)
+      (let ((moves (put-first killer (legal-moves-optimized player board))))
+	(if (null moves)
+	    (if (any-legal-move? (opponent player) board)
+		(- (alpha-beta3 (opponent player) board
+				(- cutoff) (- achievable)
+				(- ply 1) eval-fn nil))
+		(final-value player board))
+	    (let ((best-move (first moves))
+		  (new-board (aref *ply-boards* ply))
+		  (killer2 nil)
+		  (killer2-val winning-value))
+	      (loop for move in moves
+		   do (multiple-value-bind (val reply)
+			  (alpha-beta3
+			   (opponent player)
+			   (make-move move player
+				      (replace new-board board))
+			   (- cutoff) (- achievable)
+			   (- ply 1) eval-fn killer2)
+			(setf val (- val))
+			(when (> val achievable)
+			  (setf achievable val)
+			  (setf best-move move))
+			(when (and reply (< val killer2-val))
+			  (setf killer2 reply)
+			  (setf killer2-val val)))
+		   until (>= achievable cutoff))
+	      (values achievable best-move))))))
+
+(defun alpha-beta-searcher3 (depth eval-fn)
+  "Return a strategy that does A-B search with killer moves."
+  #'(lambda (player board)
+      (multiple-value-bind (value move)
+	  (alpha-beta3 player board losing-value winning-value
+		       depth eval-fn nil)
+	(declare (ignore value))
+	move)))
+
+(defun put-first (killer moves)
+  "Move the killer move to the front of the moves,
+   if the killer move is in fact a legal move."
+  (if (member killer moves)
+      (cons killer (delete killer moves))
+      moves))
+
 ;;;
 ;;; 18.12 - Championship Programs: Iago and Bill
 ;;;
-
 ;;;
 ;;; Mobility - Section Begin
 ;;;
@@ -262,9 +360,6 @@
 
 (defvar *edge-table* (make-array (expt 3 10))
   "Array of values to player-to-move for edge positions.")
-
-(defvar *ply-boards*
-  (apply #'vector (loop repeat 40 collect (initial-board))))
 
 (defun edge-index (player board squares)
   "The index counts 1 for player; 2 for opponent,
