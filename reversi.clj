@@ -58,6 +58,10 @@
   (with-local-vars [board (create-board)]
     (doseq [i (range 100)]
       (var-set board (board-set (var-get board) i outer)))
-    (doseq [i (all-squares)]
+    (doseq [i all-squares]
       (var-set board (board-set (var-get board) i empty-square)))
+    (var-set board (board-set (var-get board) 44 white))
+    (var-set board (board-set (var-get board) 45 black))
+    (var-set board (board-set (var-get board) 54 black))
+    (var-set board (board-set (var-get board) 55 white))
     (var-get board)))
