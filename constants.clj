@@ -43,7 +43,7 @@ white 2)
 outer 3)
 
 (def all-squares 
-     (count (filter (fn [i] (<= 1(mod i 10) 8)) (range 11 89))))
+     (filter (fn [i] (<= 1(mod i 10) 8)) (range 11 89)))
 
 (def winning-value
      (last (for [elt (iterate (fn [i] (* 10 i)) 1) :while (instance? Integer elt)] elt)))
