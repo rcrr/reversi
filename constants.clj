@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2009 Roberto Corradini
+;;; Copyright (c) 2009-2010 Roberto Corradini
 
 ;;; This file is part of the reversi program
 ;;; http://github.com/rcrr/reversi
@@ -22,7 +22,7 @@
 ;;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 
 
-(ns rcrr.reversi)
+(ns reversi)
 
 (def all-directions '(-11 -10 -9 -1 1 9 10 11))
 
