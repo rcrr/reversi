@@ -86,12 +86,26 @@
   (- (count-pieces board player)
      (count-pieces board (opponent player))))
 
+;; to complete it I have to add the optional clock,
+;; the optionality of board and the default board
 (defn
   #^{:doc "Print a board, along with some statistics."}
   print-board [board]
-  (pprint/cl-format true "~2&    1 2 3 4 5 6 7 8   [~c=~2a ~c=~2a (~@d)]"
+  ;; First print the header and the current score
+  (pprint/cl-format true "~2&    a b c d e f g h   [~c=~2a ~c=~2a (~@d)]"
 		    (name-of black) (count-pieces board black)
 		    (name-of white) (count-pieces board white)
 		    (count-difference black board))
-  ;; TO-DO insert the row / col loops.
-  (pprint/cl-format true "~2&"))
+  ;; Print the board itself
+  (doseq [row (range 1 9)]
+    (pprint/cl-format true "~2&~& ~d " row)
+    (doseq [col (range 1 9)]
+      (let [piece (board-ref board (+ col (* 10 row)))]
+	(pprint/cl-format true " ~c" (name-of piece)))))
+  ;; Finally print the time remaining for each player
+  (pprint/cl-format true "~2&~2&"))
+
+(defn
+  #^{:doc "Valid moves are a number in the range 11-88 that end in 1-8"}
+  valid? [move]
+  (and (integer? move) (<= 11 move 88) (<= 1 (mod move 10) 8)))
