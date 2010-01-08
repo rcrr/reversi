@@ -109,3 +109,33 @@
   #^{:doc "Valid moves are a number in the range 11-88 that end in 1-8"}
   valid? [move]
   (and (integer? move) (<= 11 move 88) (<= 1 (mod move 10) 8)))
+
+;;; TRE FUNZIONI DA COMPLETARE E TESTARE
+
+(defn
+ #^{:doc "A legal move must be into an empty square, and it must
+   flip at least one opponent piece."}
+ legal? [move player board]
+ (and (= (board-ref board move) empty)
+      ;; da completare ......
+      (true)))
+
+(defn
+ #^{:doc "Would this move result in any flips in this direction?
+   If so, return the square number of the bracketing piece."}
+ would-flip? [move player board dir]
+  ;; A flip occours if, starting at the adjacent square, c, there
+  ;; is a string of at least one opponent pieces, braketed by
+  ;; one of player's pieces.
+  (let [c (+ move dir)]
+    (and (= (board-ref board c) (opponent player))
+	 (find-bracketing-piece (+ c dir) player board dir))))
+
+(defn
+  #^{:doc "Return the square number of the bracketing piece."}
+  find-bracketing-piece [square player board dir]
+  ;; cond non va bene, va "tradotto".
+  (cond ((= (board-ref board square) player) square)
+	((= (board-ref board square) (opponent player))
+	 (find-bracketing-piece (+ square dir) player board dir))
+	(t nil)))
