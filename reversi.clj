@@ -136,3 +136,24 @@
 	(= (board-ref board square) (opponent player))
 	(find-bracketing-piece (+ square dir) player board dir)
 	true nil))
+
+(defn
+  #^{:doc "Return a new board to reflect move by player."}
+  make-move [move player board]
+  (let [b (transient (copy-board board))
+	m move
+	p player]
+    ;; First make the move, then make any flips.
+    (assoc! b m p)
+    ;; Make any flips in the given direction.
+    (letfn [(make-flips [dir]
+			(let [bracketer (would-flip? m p b dir)]
+			  (when bracketer
+			    (loop [c (+ m dir)]
+			      ;;(println "flipping:" c)
+			      (assoc! b c p)
+			      (if (not (= c (- bracketer dir)))
+				(recur (+ c dir)))))))] 
+      (doseq [dir all-directions]
+	(make-flips dir)))
+    (persistent! b)))
