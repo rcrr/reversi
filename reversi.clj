@@ -114,7 +114,7 @@
  #^{:doc "A legal move must be into an empty square, and it must
    flip at least one opponent piece."}
  legal? [move player board]
- (and (= (board-ref board move) empty)
+ (and (= (board-ref board move) empty-square)
       (some (fn [dir] (would-flip? move player board dir))
 	    all-directions)))
 
@@ -157,3 +157,24 @@
       (doseq [dir all-directions]
 	(make-flips dir)))
     (persistent! b)))
+
+
+(defn
+  #^{:doc "Does player have any legal moves in this position?"}
+  any-legal-move? [player board]
+  (some (fn [move] (legal? move player board))
+	all-squares))
+
+
+(defn
+  #^{:doc "Compute the player to move next, or nil if nobady can move."}
+  next-to-play [board previous-player print]
+  (let [opp (opponent previous-player)]
+    (cond (any-legal-move? opp board) opp
+	  (any-legal-move? previous-player board)
+	  (do
+	    (when print
+	      (pprint/cl-format true "~&~c has no moves and must pass."
+		      (name-of opp)))
+	    previous-player)
+	  true nil)))
