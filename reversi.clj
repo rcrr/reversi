@@ -178,3 +178,58 @@
 		      (name-of opp)))
 	    previous-player)
 	  true nil)))
+
+(defn
+  #^{:doc "Returns a list of legal moves for player."}
+  legal-moves [player board]
+  (filter (fn [move] (legal? move player board)) all-squares))
+
+(def col-numbers [ 0  1  2  3  4  5  6  7  8  9])
+(def row-numbers [ 0  1  2  3  4  5  6  7  8  9])
+(def col-names   [:? :a :b :c :d :e :f :g :h :&])
+(def row-names   [:0 :1 :2 :3 :4 :5 :6 :7 :8 :9])
+(defstruct square :name :number :col-name :col-number :row-name :row-number)
+(def reversi-board (vec (for [x col-numbers y row-numbers]
+			  (struct square
+				  (keyword (str (name (get col-names x)) (name (get row-names y))))
+				  (+ (* 10 x) y)
+				  (get col-names x)
+				  x
+				  (get row-names y)
+				  y))))
+
+(defn
+  #^{:doc "Convert from alphanumeric to numeric square notation."}
+  conv-h8->88 [val]
+  (first (for [sq reversi-board :when (= (:name sq) (keyword val))] (:number sq))))
+
+(defn
+  #^{:doc "Convert from numeric to alphanumeric square notation."}
+  conv-88->h8 [val]
+  (name ((get reversi-board val) :name)))
+
+(defn
+  #^{:doc "Call the player's strategy function to get move.
+   Keep calling until a legal move is made."}
+  get-move [strategy player board print]
+  (when print (print-board board))
+  (let [move (strategy player (copy-board board))]
+	(cond
+	  ((and (valid? move) (legal? move player board))
+	   (when print
+	     (pprint/cl-format true "~&~c moves to ~a." (name-of player) (conv-88->h8 move)))
+	   (make-move move player board))
+	  (true (pprint/cl-format true "warn: illegal move: ~a" (conv-88->h8 move))
+	     (get-move strategy player board print)))))
+
+(defn
+  #^{:doc "Play a game of Reversi. Return the score, where a positive
+   difference means black (the first player) wins."}
+  reversi [bl-strategy wh-startegy print]
+  ;; first optional is print
+  (let [board (initial-board)]
+    (for [move-number (iterate inc 0) :while (< move-number 20)] move-number)
+    (when print
+      (pprint/cl-format true "~&The game is over. Final result:~&")
+      (print-board board))
+    (count-difference black board)))
