@@ -215,13 +215,16 @@
   get-move [strategy player board print]
   (when print (print-board board))
   (let [move (strategy player (copy-board board))]
-	(cond
-	  ((and (valid? move) (legal? move player board))
-	   (when print
-	     (pprint/cl-format true "~&~c moves to ~a." (name-of player) (conv-88->h8 move)))
-	   (make-move move player board))
-	  (true (pprint/cl-format true "warn: illegal move: ~a" (conv-88->h8 move))
-	     (get-move strategy player board print)))))
+    (cond
+      (and (valid? move) (legal? move player board))
+      (do
+	(when print
+	  (pprint/cl-format true "~&~c moves to ~a." (name-of player) (conv-88->h8 move)))
+	(make-move move player board))
+      true 
+      (do
+	(pprint/cl-format true "warn: illegal move: ~a" (conv-88->h8 move))
+	(get-move strategy player board print)))))
 
 (defn
   #^{:doc "Play a game of Reversi. Return the score, where a positive
@@ -233,7 +236,14 @@
     (loop [board (initial-board)
 	   moves ()
 	   player black]
-      (if (next-to-play)))
+      (let [ntp (next-to-play board player true)]
+	(if ntp
+	  (recur
+	   ()
+	   ()
+	   ntp)
+	  ))
+      )
     (when print
       (pprint/cl-format true "~&The game is over. Final result:~&")
       (print-board board))
