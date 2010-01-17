@@ -25,7 +25,8 @@
 (ns reversi
   (:load "reversi/constants"
 	 "reversi/auxfns")
-  (:require [clojure.contrib [pprint :as pprint]]))
+  (:require [clojure.contrib [pprint :as pprint]])
+  (:require [clojure.contrib [seq-utils :as seq-utils]]))
 
 (defn
   #^{:doc "Return a specific character foreach valid piece value."}
@@ -111,12 +112,12 @@
   (and (integer? move) (<= 11 move 88) (<= 1 (mod move 10) 8)))
 
 (defn
- #^{:doc "A legal move must be into an empty square, and it must
-   flip at least one opponent piece."}
- legal? [move player board]
- (and (= (board-ref board move) empty-square)
-      (some (fn [dir] (would-flip? move player board dir))
-	    all-directions)))
+  #^{:doc "Return the square number of the bracketing piece."}
+  find-bracketing-piece [square player board dir]
+  (cond (= (board-ref board square) player) square
+	(= (board-ref board square) (opponent player))
+	(find-bracketing-piece (+ square dir) player board dir)
+	true nil))
 
 (defn
  #^{:doc "Would this move result in any flips in this direction?
@@ -130,12 +131,12 @@
 	 (find-bracketing-piece (+ c dir) player board dir))))
 
 (defn
-  #^{:doc "Return the square number of the bracketing piece."}
-  find-bracketing-piece [square player board dir]
-  (cond (= (board-ref board square) player) square
-	(= (board-ref board square) (opponent player))
-	(find-bracketing-piece (+ square dir) player board dir)
-	true nil))
+ #^{:doc "A legal move must be into an empty square, and it must
+   flip at least one opponent piece."}
+ legal? [move player board]
+ (and (= (board-ref board move) empty-square)
+      (some (fn [dir] (would-flip? move player board dir))
+	    all-directions)))
 
 (defn
   #^{:doc "Return a new board to reflect move by player."}
@@ -174,7 +175,7 @@
 	  (any-legal-move? previous-player board)
 	  (do
 	    (when print
-	      (pprint/cl-format true "~&~c has no moves and must pass."
+	      (pprint/cl-format true "~&~c has no moves and must pass.~&"
 		      (name-of opp)))
 	    previous-player)
 	  true nil)))
@@ -189,10 +190,10 @@
 (def col-names   [:? :a :b :c :d :e :f :g :h :&])
 (def row-names   [:0 :1 :2 :3 :4 :5 :6 :7 :8 :9])
 (defstruct square :name :number :col-name :col-number :row-name :row-number)
-(def reversi-board (vec (for [x col-numbers y row-numbers]
+(def reversi-board (vec (for [y row-numbers x col-numbers]
 			  (struct square
 				  (keyword (str (name (get col-names x)) (name (get row-names y))))
-				  (+ (* 10 x) y)
+				  (+ (* 10 y) x)
 				  (get col-names x)
 				  x
 				  (get row-names y)
@@ -229,7 +230,23 @@
   ;; first optional is print
   (let [board (initial-board)]
     (for [move-number (iterate inc 0) :while (< move-number 20)] move-number)
+    (loop [board (initial-board)
+	   moves ()
+	   player black]
+      (if (next-to-play)))
     (when print
       (pprint/cl-format true "~&The game is over. Final result:~&")
       (print-board board))
     (count-difference black board)))
+
+(defn
+  #^{:doc "A human player for the game of reversi."}
+  human [player board]
+  (pprint/cl-format true "~&~c to move ~a: " (name-of player)
+		    (map conv-88->h8 (legal-moves player board)))
+  (conv-h8->88 (read)))
+
+(defn
+  #^{:doc "Make any legal move."}
+  random-strategy [player board]
+  (seq-utils/rand-elt (legal-moves player board)))

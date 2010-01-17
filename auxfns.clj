@@ -21,7 +21,8 @@
 ;;; along with this program; if not, write to the Free Software
 ;;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 
-(ns reversi)
+(ns reversi
+  (:require [clojure.contrib [pprint :as pprint]]))
 
 (defn rand-elt
   "Return a random element of this seq"
