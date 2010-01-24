@@ -229,7 +229,7 @@
 (defn
   #^{:doc "Play a game of Reversi. Return the score, where a positive
    difference means black (the first player) wins."}
-  reversi [bl-strategy wh-startegy print]
+  reversi [bl-strategy wh-strategy print]
   ;; first optional is print
   (let [board (initial-board)]
     (for [move-number (iterate inc 0) :while (< move-number 20)] move-number)
@@ -239,15 +239,14 @@
       (let [ntp (next-to-play board player true)]
 	(if ntp
 	  (recur
-	   ()
+	   (get-move (if (= ntp black) bl-strategy wh-strategy) ntp board print)
 	   ()
 	   ntp)
-	  ))
-      )
-    (when print
-      (pprint/cl-format true "~&The game is over. Final result:~&")
-      (print-board board))
-    (count-difference black board)))
+	  (do
+	    (when print
+	      (pprint/cl-format true "~2&The game is over. Final result:~&")
+	      (print-board board))
+	    (count-difference black board)))))))
 
 (defn
   #^{:doc "A human player for the game of reversi."}
