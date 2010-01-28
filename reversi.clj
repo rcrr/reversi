@@ -231,22 +231,20 @@
    difference means black (the first player) wins."}
   reversi [bl-strategy wh-strategy print]
   ;; first optional is print
-  (let [board (initial-board)]
-    (for [move-number (iterate inc 0) :while (< move-number 20)] move-number)
-    (loop [board (initial-board)
-	   moves ()
-	   player black]
-      (let [ntp (next-to-play board player true)]
-	(if ntp
-	  (recur
-	   (get-move (if (= ntp black) bl-strategy wh-strategy) ntp board print)
-	   ()
-	   ntp)
-	  (do
-	    (when print
-	      (pprint/cl-format true "~2&The game is over. Final result:~&")
-	      (print-board board))
-	    (count-difference black board)))))))
+  (loop [board (initial-board)
+	 moves () ;; bisogna usare la tecnica del destructuring con un let dentro il loop e far tornare sia la board che la move da get-move
+	 player black]
+    (let [ntp (next-to-play board player true)]
+      (if ntp
+	(recur
+	 (get-move (if (= player black) bl-strategy wh-strategy) player board print)
+	 () ;; multi values has to be passed by get-move ....
+	 ntp)
+	(do
+	  (when print
+	    (pprint/cl-format true "~2&The game is over. Final result:~&")
+	    (print-board board))
+	  (count-difference black board))))))
 
 (defn
   #^{:doc "A human player for the game of reversi."}
