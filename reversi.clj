@@ -220,8 +220,8 @@
       (do
 	(when print
 	  (pprint/cl-format true "~&~c moves to ~a." (name-of player) (conv-88->h8 move)))
-	(make-move move player board))
-      true 
+	[(make-move move player board) move])
+      true
       (do
 	(pprint/cl-format true "warn: illegal move: ~a" (conv-88->h8 move))
 	(get-move strategy player board print)))))
@@ -230,20 +230,21 @@
   #^{:doc "Play a game of Reversi. Return the score, where a positive
    difference means black (the first player) wins."}
   reversi [bl-strategy wh-strategy print]
-  ;; first optional is print
   (loop [board (initial-board)
-	 moves () ;; bisogna usare la tecnica del destructuring con un let dentro il loop e far tornare sia la board che la move da get-move
+	 moves ()
 	 player black]
     (let [ntp (next-to-play board player true)]
       (if ntp
-	(recur
-	 (get-move (if (= player black) bl-strategy wh-strategy) player board print)
-	 () ;; multi values has to be passed by get-move ....
-	 ntp)
+	(let [[board move] (get-move (if (= player black) bl-strategy wh-strategy) player board print)]
+	  (recur
+	   board
+	   (cons move moves)
+	   ntp))
 	(do
 	  (when print
 	    (pprint/cl-format true "~2&The game is over. Final result:~&")
-	    (print-board board))
+	    (print-board board)
+	    (println "Game moves: " (map conv-88->h8 (reverse moves))))
 	  (count-difference black board))))))
 
 (defn
