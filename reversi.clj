@@ -233,19 +233,18 @@
   (loop [board (initial-board)
 	 moves ()
 	 player black]
-    (let [ntp (next-to-play board player true)]
-      (if ntp
-	(let [[board move] (get-move (if (= player black) bl-strategy wh-strategy) player board print)]
-	  (recur
-	   board
-	   (cons move moves)
-	   ntp))
-	(do
-	  (when print
-	    (pprint/cl-format true "~2&The game is over. Final result:~&")
-	    (print-board board)
-	    (println "Game moves: " (map conv-88->h8 (reverse moves))))
-	  (count-difference black board))))))
+    (if player
+      (let [[board move] (get-move (if (= player black) bl-strategy wh-strategy) player board print)]
+	(recur
+	 board
+	 (cons move moves)
+	 (next-to-play board player true)))
+      (do
+	(when print
+	  (pprint/cl-format true "~2&The game is over. Final result:~&")
+	  (print-board board)
+	  (println "Game moves: " (map conv-88->h8 (reverse moves))))
+	(count-difference black board)))))
 
 (defn
   #^{:doc "A human player for the game of reversi."}
