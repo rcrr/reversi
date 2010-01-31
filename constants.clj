@@ -36,11 +36,11 @@
 
 (def
  #^{:doc "A white piece."}
-white 2)
+ white 2)
 
 (def
  #^{:doc "Marks squares outside the board."}
-outer 3)
+ outer 3)
 
 (def all-squares 
      (filter (fn [i] (<= 1(mod i 10) 8)) (range 11 89)))
@@ -52,10 +52,10 @@ outer 3)
 
 (def
  #^{:doc "The four edges (with their X-squares)"}
-edge-and-x-lists
-    '((22 11 12 13 14 15 16 17 18 27)
-      (72 81 82 83 84 85 86 87 88 77)
-      (22 11 21 31 41 51 61 71 81 72)
-      (27 18 28 38 48 58 68 78 88 77)))
+ edge-and-x-lists
+ '((22 11 12 13 14 15 16 17 18 27)
+   (72 81 82 83 84 85 86 87 88 77)
+   (22 11 21 31 41 51 61 71 81 72)
+   (27 18 28 38 48 58 68 78 88 77)))
 
 (def top-edge (first edge-and-x-lists))
