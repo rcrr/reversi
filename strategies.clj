@@ -136,3 +136,50 @@
 ;;; (def rand-maxwei (take 1000 (repeatedly (fn [] (reversi random-strategy (maximizer weighted-squares) false)))))
 ;;; rand-maxwei
 ;;; around 3% are draws, 14% are black wins, 83% are white ones.
+
+
+(defn
+  #^{:doc "Is tihs a win, loss, or a draw for player?"}
+  final-value [player board]
+  (fcase/case (Integer/signum (count-difference player board))
+	      -1 losing-value
+	      0 0
+	      +1 winning-value))
+
+(defn
+  #^{:doc "Find the best move, for PLAYER, according to EVAL-FN,
+   searching PLY levels deep and backing up values.
+   The function return a vector of two values:
+   the best move value, the best move"}
+  minimax [player board ply eval-fn]
+  [100 11])
+
+(defn
+  #^{:doc "A strategy that searches PLY levels and then uses EVAL-FN."}
+  minimax-searcher [ply eval-fn]
+  (fn [player board]
+    (let [[value move] (minimax player board ply eval-fn)]
+      move)))
+
+;;; minimax lisp function body to be translated into the clojure version
+(if (= ply 0)
+    (funcall eval-fn player board)
+    (let ((moves (legal-moves player board)))
+      (if (null moves)
+	(if (any-legal-move? (opponent player) board)
+	  (- (minimax (opponent player) board
+		      (- ply 1) eval-fn))
+	  (final-value player board))
+	(let ((best-move nil)
+	      (best-val nil))
+	  (dolist (move moves)
+		  (let* ((board2 (make-move move player
+					    (copy-board board)))
+			 (val (- (minimax
+				  (opponent player) board2
+				  (- ply 1) eval-fn))))
+			(when (or (null best-val)
+				  (> val best-val))
+			  (setf best-val val)
+			  (setf best-move move))))
+	  (values best-val best-move)))))
