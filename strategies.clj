@@ -68,7 +68,7 @@
 			 (make-move move player board)))
 		      moves)
 	  best (index-of-max scores)]
-      (println "moves, scores, best: " moves scores best)
+      (when *print* (println "moves, scores, best: " moves scores best))
       (nth moves best))))
 
 
@@ -97,3 +97,42 @@
 			       outer 0
 			       empty-square 0))))))
 
+;;; Running a few test:
+;;; (reversi random-strategy random-strategy true)
+;;; (reversi maximize-difference random-strategy true)
+;;; (reversi random-strategy maximize-difference true)
+;;; (reversi random-strategy (maximizer weighted-squares) true)
+;;; (reversi (maximizer weighted-squares) random-strategy true)
+
+;;; A few statistics:
+;;;
+;;; random-strategy (black) vs random-srategy (white)
+;;; (def rand-rand (take 1000 (repeatedly (fn [] (reversi random-strategy random-strategy false)))))
+;;; rand-rand
+;;; (count (filter (fn [x] (= x 0)) rand-rand))
+;;; (count (filter (fn [x] (> x 0)) rand-rand))
+;;; (count (filter (fn [x] (< x 0)) rand-rand))
+;;; around 5% are draws, 50% are black wins, 45% are white ones.
+;;;
+;;; random-strategy (black) vs maximize-difference (white)
+;;; (def rand-maxdiff (take 1000 (repeatedly (fn [] (reversi random-strategy maximize-difference false)))))
+;;; rand-maxdiff
+;;; around 3% are draws, 60% are black wins, 37% are white ones.
+;;;
+;;; maximize-difference (black) vs random-strategy (white)
+;;; (def maxdiff-rand (take 1000 (repeatedly (fn [] (reversi maximize-difference random-strategy false)))))
+;;; maxdiff-rand
+;;; around 3% are draws, 64% are black wins, 33% are white ones.
+;;;
+;;; maximize-difference (black) vs maximize-difference (white)
+;;; being two "deterministic" strategies the outcam in always the same: -26, the white wins.
+;;;
+;;; (maximizer weighted-squares) (black) vs random-strategy (white)
+;;; (def maxwei-rand (take 1000 (repeatedly (fn [] (reversi (maximizer weighted-squares) random-strategy false)))))
+;;; maxwei-rand
+;;; around 3% are draws, 79% are black wins, 18% are white ones.
+;;;
+;;; random-strategy (black) vs (maximizer weighted-squares) (white)
+;;; (def rand-maxwei (take 1000 (repeatedly (fn [] (reversi random-strategy (maximizer weighted-squares) false)))))
+;;; rand-maxwei
+;;; around 3% are draws, 14% are black wins, 83% are white ones.
