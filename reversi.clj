@@ -28,6 +28,8 @@
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]]))
 
+(def *print* false)
+
 (defn
   #^{:doc "Return a specific character foreach valid piece value."}
   name-of [piece]
@@ -238,7 +240,7 @@
 	(recur
 	 board
 	 (cons move moves)
-	 (next-to-play board player true)))
+	 (next-to-play board player print)))
       (do
 	(when print
 	  (pprint/cl-format true "~2&The game is over. Final result:~&")
