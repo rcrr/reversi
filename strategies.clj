@@ -27,7 +27,8 @@
 	 "reversi/auxfns"
 	 "reversi/reversi")
   (:require [clojure.contrib [pprint :as pprint]])
-  (:require [clojure.contrib [seq-utils :as seq-utils]]))
+  (:require [clojure.contrib [seq-utils :as seq-utils]])
+  (:require [clojure.contrib [fcase :as fcase]]))
 
 (defn
   #^{:doc "A strategy that maximize the differences in pieces."}
@@ -69,4 +70,30 @@
 	  best (index-of-max scores)]
       (println "moves, scores, best: " moves scores best)
       (nth moves best))))
+
+
+(def *weights*
+     [0   0   0   0  0  0   0   0   0 0
+      0 120 -20  20  5  5  20 -20 120 0
+      0 -20 -40  -5 -5 -5  -5 -40 -20 0
+      0  20  -5  15  3  3  15  -5  20 0
+      0   5  -5   3  3  3   3  -5   5 0
+      0   5  -5   3  3  3   3  -5   5 0
+      0  20  -5  15  3  3  15  -5  20 0
+      0 -20 -40  -5 -5 -5  -5 -40 -20 0
+      0 120 -20  20  5  5  20 -20 120 0
+      0   0   0   0  0  0   0   0   0 0])
+
+(defn
+  #^{:doc "Sum of the weights of player's squares minus opponents's."}
+  weighted-squares [player board]
+  (let [opp (opponent player)]
+    (reduce +
+	    (map * *weights*
+		 (for [sq board]
+		   (fcase/case sq
+			       player 1
+			       opp -1
+			       outer 0
+			       empty-square 0))))))
 
