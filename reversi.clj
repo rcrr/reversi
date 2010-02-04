@@ -24,7 +24,8 @@
 
 (ns reversi
   (:load "reversi/constants"
-	 "reversi/auxfns")
+	 "reversi/auxfns"
+	 "reversi/strategies")
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]]))
 
