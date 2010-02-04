@@ -31,11 +31,6 @@
   (:require [clojure.contrib [fcase :as fcase]]))
 
 (defn
-  #^{:doc "A strategy that maximize the differences in pieces."}
-  maximize-difference [player board]
-  ((maximizer count-difference) player board))
-
-(defn
   #^{:doc "Given a sequence composed by numbers, return the index
    of the maximum value."}
   index-of-max [x]
@@ -71,6 +66,10 @@
       (when *print* (println "moves, scores, best: " moves scores best))
       (nth moves best))))
 
+(defn
+  #^{:doc "A strategy that maximize the differences in pieces."}
+  maximize-difference [player board]
+  ((maximizer count-difference) player board))
 
 (def *weights*
      [0   0   0   0  0  0   0   0   0 0
@@ -146,13 +145,44 @@
 	      0 0
 	      +1 winning-value))
 
+
+;;; Is it correct? It is slow! It is a bit ugly. Why not generate a complete lazy game tree?
 (defn
-  #^{:doc "Find the best move, for PLAYER, according to EVAL-FN,
+  #^{:doc "Being a given BOARD,
+   find the best move, for PLAYER, according to EVAL-FN,
    searching PLY levels deep and backing up values.
    The function return a vector of two values:
    the best move value, the best move"}
   minimax [player board ply eval-fn]
-  [100 11])
+  (println "player: " player)
+  (println "ply: " ply)
+  (if (= ply 0)
+    [(eval-fn player board) nil]
+    (let [moves (legal-moves player board)]
+      (println "moves: " moves)
+      (if (empty? moves)
+	(if (any-legal-move? (opponent player) board)
+	  (let [[v _] (minimax (opponent player) board
+		       (- ply 1) eval-fn)]
+	    [(- v) nil])
+	  [(final-value player board) nil])
+	(let [best-move (atom nil)
+	      best-val (atom nil)]
+	  (println "option b")
+	  (doseq [move moves]
+	    (println "move: " move)
+	    (let [board2 (make-move move player
+				    (copy-board board))
+		  [v _] (minimax
+			 (opponent player) board2
+			 (- ply 1) eval-fn)
+		  val (- v)]
+	      (println "val: " val)
+	      (when (or (nil? @best-val)
+			(> val @best-val))
+		(reset! best-val val)
+		(reset! best-move move))))
+	  [@best-val @best-move])))))
 
 (defn
   #^{:doc "A strategy that searches PLY levels and then uses EVAL-FN."}
@@ -161,25 +191,3 @@
     (let [[value move] (minimax player board ply eval-fn)]
       move)))
 
-;;; minimax lisp function body to be translated into the clojure version
-(if (= ply 0)
-    (funcall eval-fn player board)
-    (let ((moves (legal-moves player board)))
-      (if (null moves)
-	(if (any-legal-move? (opponent player) board)
-	  (- (minimax (opponent player) board
-		      (- ply 1) eval-fn))
-	  (final-value player board))
-	(let ((best-move nil)
-	      (best-val nil))
-	  (dolist (move moves)
-		  (let* ((board2 (make-move move player
-					    (copy-board board)))
-			 (val (- (minimax
-				  (opponent player) board2
-				  (- ply 1) eval-fn))))
-			(when (or (null best-val)
-				  (> val best-val))
-			  (setf best-val val)
-			  (setf best-move move))))
-	  (values best-val best-move)))))
