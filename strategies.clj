@@ -63,7 +63,7 @@
 			 (make-move move player board)))
 		      moves)
 	  best (index-of-max scores)]
-      (when *print* (println "moves, scores, best: " moves scores best))
+      (when *print* (println "maximizer: player, moves, scores, best: " player moves scores best))
       (nth moves best))))
 
 (defn
@@ -140,10 +140,11 @@
 (defn
   #^{:doc "Is tihs a win, loss, or a draw for player?"}
   final-value [player board]
-  (fcase/case (Integer/signum (count-difference player board))
-	      -1 losing-value
+  (let [cd (count-difference player board)]
+    (fcase/case (Integer/signum cd)
+	      -1 (+ losing-value 0)
 	      0 0
-	      +1 winning-value))
+	      +1 (+ winning-value 0))))
 
 
 ;;; Is it correct? It is slow! It is a bit ugly. Why not generate a complete lazy game tree?
@@ -154,12 +155,12 @@
    The function return a vector of two values:
    the best move value, the best move"}
   minimax [player board ply eval-fn]
-  (println "player: " player)
-  (println "ply: " ply)
+  ;; (println "minimax - player: " player)
+  ;; (println "minimax - ply: " ply)
   (if (= ply 0)
     [(eval-fn player board) nil]
     (let [moves (legal-moves player board)]
-      (println "moves: " moves)
+      ;; (println "minimax - moves: " moves)
       (if (empty? moves)
 	(if (any-legal-move? (opponent player) board)
 	  (let [[v _] (minimax (opponent player) board
@@ -168,16 +169,15 @@
 	  [(final-value player board) nil])
 	(let [best-move (atom nil)
 	      best-val (atom nil)]
-	  (println "option b")
 	  (doseq [move moves]
-	    (println "move: " move)
+	    ;; (println "minimax - move: " move)
 	    (let [board2 (make-move move player
 				    (copy-board board))
 		  [v _] (minimax
 			 (opponent player) board2
 			 (- ply 1) eval-fn)
 		  val (- v)]
-	      (println "val: " val)
+	      ;; (println "minimax - val: " val)
 	      (when (or (nil? @best-val)
 			(> val @best-val))
 		(reset! best-val val)
@@ -191,3 +191,114 @@
     (let [[value move] (minimax player board ply eval-fn)]
       move)))
 
+(defn
+  #^{:doc "Find the best move, for PLAYER, according to EVAL-FN,
+   searching PLY levels deep and backing up values,
+   using cutoff whenever possible."}
+  alpha-beta [player board achievable cutoff ply eval-fn]
+  ;; (println "alpha-beta: player=" player ", achievable=" achievable ", cutoff=" cutoff ", ply=" ply ", eval-fn=" eval-fn ", board=" board)
+  (if (= ply 0)
+    [(eval-fn player board) nil]
+    (let [moves (legal-moves player board)]
+      ;; (println "alpha-beta: moves=" moves)
+      (if (empty? moves)
+	(if (any-legal-move? (opponent player) board)
+	  (let [[v _] (alpha-beta (opponent player) board
+				  (- cutoff) (- achievable)
+				  (- ply 1) eval-fn)]
+	    [(- v) nil])
+	  [(final-value player board) nil])
+	(let [best-move (atom (first moves))
+	      ac (atom achievable)]
+	  (loop [xmoves moves]
+	    (when (not (empty? xmoves))
+	      (let [move (first xmoves)
+		    board2 (make-move move player board)
+		    [v _] (alpha-beta
+			   (opponent player) board2
+			   (- cutoff) (- @ac)
+			   (- ply 1) eval-fn)
+		    val (- v)]
+		(when (> val @ac)
+		    (reset! ac val)
+		    (reset! best-move move))
+		(when (< @ac cutoff)
+		  (recur (rest xmoves))))))
+	  ;;(println "alpha-beta: ac=" @ac ", best-move=" @best-move)
+	  [@ac @best-move])))))
+
+(defn
+  #^{:doc "A strategy that searches to DEPTH and then uses EVAL-FN."}
+  alpha-beta-searcher [depth eval-fn]
+  (fn [player board]
+    (let [[value move]
+	  (alpha-beta player board losing-value winning-value
+		      depth eval-fn)]
+      ;;(println "alpha-beta-searcher: value=" value ", move=" move)
+      move)))
+
+(let [neighbor-table
+      (let [nt (transient (vec (repeat 100 nil)))]
+	;; Initialize the nieghbor table
+	(doseq [square all-squares]
+	  (doseq [dir all-directions]
+	    (if (valid? (+ square dir))
+	      (assoc! nt square
+		      (conj (get nt square)
+			    (+ square dir))))))
+	(persistent! nt))]
+  
+  (defn
+    #^{:doc "Return a list of all squares adjacent to a square."}
+    neighbors [square]
+    (get neighbor-table square)))
+
+
+(defn
+  #^{:doc "Like WEIGHTED-SQUARES, but don't take off for moving
+   near an occupied corner."}
+  modified-weighted-squares [player board]
+  (let [w (atom (weighted-squares player board))]
+    (doseq [corner '(11 18 81 88)]
+      (when (not (= (board-ref board corner) empty-square))
+	(doseq [c (neighbors corner)]
+	  (when (not (= (board-ref board c) empty-square))
+	    (reset! w (+ @w (* (- 5 (get *weights* c))
+			      (if (= (board-ref board c) player)
+				+1 -1))))))))
+    @w))
+
+
+;;;
+;;; A few tests. The alpha-beta function is able (like the minimax one to reproduce exactly the sample match as reported into paragraph 18.6 of the paip book.
+;;;
+;;; reversi> (reversi (alpha-beta-searcher 4 count-difference) (alpha-beta-searcher 4 weighted-squares) true)
+;;; The game is over. Final result:
+;;; 
+;;;     a b c d e f g h   [@=24 O=40 (-16)]
+;;;  1  O O O O @ @ O O
+;;;  2  @ @ O O @ @ @ O
+;;;  3  @ @ O O O @ @ O
+;;;  4  O @ O O O @ @ O
+;;;  5  O @ O @ O @ @ O
+;;;  6  O @ O @ O @ O O
+;;;  7  O @ @ O @ O O O
+;;;  8  O O O O O O O O
+;;; 
+;;; Game moves:  (d3 c5 b6 c3 f5 e3 f2 f3 b2 b3 g2 a1 a3 b4 a5 b5 b1 f6 c1 e2 f1 h1 g3 h3 e6 c6 f4 d1 h2 g4 c4 a6 d7 d6 h4 g1 e7 d2 e1 c2 a7 a4 a2 a8 b7 c8 g5 c7 b8 h6 d8 h5 g6 h7 g7 h8 f7 e8 f8 g8)
+;;; -16
+;;;
+;;; The alpha-beta pruning function is a lot faster ....
+;;;
+;;; reversi> (time (loop [i 10 result ()](if (= i 0) result (recur (- i 1) (conj result (reversi random-strategy (minimax-searcher 2 weighted-squares) false))))))
+;;; "Elapsed time: 1604.021254 msecs"
+;;; (-32 -22 -18 -20 -24 -32 -4 -8 -22 -10)
+;;; reversi> (time (loop [i 10 result ()](if (= i 0) result (recur (- i 1) (conj result (reversi random-strategy (minimax-searcher 4 weighted-squares) false))))))
+;;; "Elapsed time: 148990.264899 msecs"
+;;; (-6 -10 -26 -26 20 -26 -12 -12 6 -20)
+;;; reversi> (time (loop [i 10 result ()](if (= i 0) result (recur (- i 1) (conj result (reversi random-strategy (alpha-beta-searcher 2 weighted-squares) false))))))
+;;; "Elapsed time: 953.401627 msecs"
+;;; (-6 -16 0 -6 -32 -10 -10 -8 6 -28)
+;;; reversi> (time (loop [i 10 result ()](if (= i 0) result (recur (- i 1) (conj result (reversi random-strategy (alpha-beta-searcher 4 weighted-squares) false))))))
+;;; "Elapsed time: 24385.574285 msecs"
+;;; (-28 -6 -32 -20 -30 -32 -16 -38 -22 -12)
