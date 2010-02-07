@@ -191,6 +191,24 @@
     (let [[value move] (minimax player board ply eval-fn)]
       move)))
 
+;;;
+;;; from wikipedia: http://en.wikipedia.org/wiki/Alpha-beta_pruning
+;;; 
+;;; function alphabeta(node, depth, α, β)         
+;;;     (* β represents previous player best choice - doesn't want it if α would worsen it *)
+;;;     if  depth = 0 "or" node is a terminal node
+;;;         return the heuristic value of node
+;;;     foreach child of node
+;;;         α := max(α, -alphabeta(child, depth-1, -β, -α))     
+;;;         (* use symmetry, -β becomes subsequently pruned α *)
+;;;         if β≤α
+;;;             break                             (* Beta cut-off *)
+;;;     return α
+;;; 
+;;; (* Initial call *)
+;;; alphabeta(origin, depth, -infinity, +infinity)
+;;; 
+
 (defn
   #^{:doc "Find the best move, for PLAYER, according to EVAL-FN,
    searching PLY levels deep and backing up values,
