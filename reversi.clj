@@ -260,3 +260,5 @@
   #^{:doc "Make any legal move."}
   random-strategy [player board]
   (seq-utils/rand-elt (legal-moves player board)))
+
+
