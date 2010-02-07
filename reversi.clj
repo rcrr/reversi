@@ -27,7 +27,8 @@
 	 "reversi/auxfns"
 	 "reversi/strategies")
   (:require [clojure.contrib [pprint :as pprint]])
-  (:require [clojure.contrib [seq-utils :as seq-utils]]))
+  (:require [clojure.contrib [seq-utils :as seq-utils]])
+  (:require [clojure.contrib [math :as math]]))
 
 (def *print* false)
 
@@ -261,4 +262,12 @@
   random-strategy [player board]
   (seq-utils/rand-elt (legal-moves player board)))
 
+(defn
+  #^{:doc "Return a string representing this internal time
+   expressed in millisecond in min:secs."}
+  time-string [time]
+  (let [t (math/round (/ time 1000000.0))
+	min (quot t 60)
+	sec (rem t 60)]
+    (pprint/cl-format nil "~2d:~2,'0d" min sec)))
 
