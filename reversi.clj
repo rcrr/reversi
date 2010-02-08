@@ -26,6 +26,7 @@
   (:load "reversi/constants"
 	 "reversi/auxfns"
 	 "reversi/strategies")
+  (:use clojure.test)
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]])
   (:require [clojure.contrib [math :as math]]))
@@ -42,7 +43,10 @@
 	true \E))
 
 (defn
-  #^{:doc "Return the player opponent."}
+  #^{:doc "Return the player opponent."
+     :test (fn []
+	     (is (= (opponent black) white) "black's opponent is white.")
+	     (is (= (opponent white) black) "white's opponent is black."))}
   opponent [player]
   (if (= player black) white black))
 
