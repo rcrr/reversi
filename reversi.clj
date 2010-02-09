@@ -52,7 +52,7 @@
 
 ;;; The game board is implemented as a Vector (clojure.lang.PersistentVector).
 ;;; The 100 squares are plain integer.
-;;; A board structure does not appeare as required.
+;;; A board structure does not appear as required.
 
 (defn
   #^{:doc "Query a board for a given square."}
@@ -85,12 +85,18 @@
     (persistent! b)))
 
 (defn
-  #^{:doc "Count the player pieces."}
+  #^{:doc "Count the player pieces."
+     :test (fn []
+	     (is (= (count-pieces (initial-board) black) 2)
+		 "An initial board should have two black pieces."))}
   count-pieces [board player]
   (count (filter (fn [piece] (= piece player)) board)))
 
 (defn
-  #^{:doc "Count player's pieces minus opponent's pieces."}
+  #^{:doc "Count player's pieces minus opponent's pieces."
+     :test (fn []
+	     (is (= (count-difference black (initial-board)) 0)
+		 "An initial board has no piece's difference."))}
   count-difference [player board]
   (- (count-pieces board player)
      (count-pieces board (opponent player))))
