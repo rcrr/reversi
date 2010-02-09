@@ -33,6 +33,9 @@
 
 (def *print* false)
 
+;;; Test fixtures
+(declare ib eb)
+
 (defn
   #^{:doc "Return a specific character foreach valid piece value."}
   name-of [piece]
@@ -101,6 +104,7 @@
   (- (count-pieces board player)
      (count-pieces board (opponent player))))
 
+
 ;; to complete it I have to add the optional clock,
 ;; the optionality of board and the default board
 (defn
@@ -121,7 +125,13 @@
   (pprint/cl-format true "~2&~2&"))
 
 (defn
-  #^{:doc "Valid moves are a number in the range 11-88 that end in 1-8"}
+  #^{:doc "Valid moves are a number in the range 11-88 that end in 1-8"
+     :test (fn []
+	     (is (not (valid? 0)) "0 is not a valid move.")
+	     (is (valid? 11) "The upper left corner is valid.")
+	     (is (not (valid? 19)) "19 is in the board but is not valid.")
+	     (is (not (valid? 100)) "100 is outside the board.")
+	     (is (not (valid? "a-string")) "A string is not a valid move"))}
   valid? [move]
   (and (integer? move) (<= 11 move 88) (<= 1 (mod move 10) 8)))
 
@@ -195,7 +205,10 @@
 	  true nil)))
 
 (defn
-  #^{:doc "Returns a list of legal moves for player."}
+  #^{:doc "Returns a list of legal moves for player."
+     :test (fn []
+	     (is (= (legal-moves black ib) '(34 43 56 65))
+		 "Black's initial legal moves are d3, c4, f5, e6"))}
   legal-moves [player board]
   (filter (fn [move] (legal? move player board)) all-squares))
 
@@ -281,3 +294,25 @@
 	sec (rem t 60)]
     (pprint/cl-format nil "~2d:~2,'0d" min sec)))
 
+
+;;; Test env: fixtures
+
+(defn
+  #^{:doc "Prepare a fiew board used by tests."}
+  basic-test-fixture [f]
+  (binding [ib (initial-board)
+	    eb
+	    [3 3 3 3 3 3 3 3 3 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 3 3 3 3 3 3 3 3 3]
+	    ]
+    (f)))
+
+(use-fixtures :each basic-test-fixture)
