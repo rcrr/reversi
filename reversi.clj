@@ -34,7 +34,7 @@
 (def *print* false)
 
 ;;; Test fixtures
-(declare ib eb)
+(declare *fixt-ib* *fixt-eb* *fixt-board-a*)
 
 (defn
   #^{:doc "Return a specific character foreach valid piece value."}
@@ -207,8 +207,10 @@
 (defn
   #^{:doc "Returns a list of legal moves for player."
      :test (fn []
-	     (is (= (legal-moves black ib) '(34 43 56 65))
-		 "Black's initial legal moves are d3, c4, f5, e6"))}
+	     (is (= (legal-moves black *fixt-ib*) '(34 43 56 65))
+		 "Black's initial legal moves are d3, c4, f5, e6")
+	     (is (= (legal-moves white *fixt-board-a*) '(33 35 53))
+		 "White's valid moves are c3, e3, c5"))}
   legal-moves [player board]
   (filter (fn [move] (legal? move player board)) all-squares))
 
@@ -227,12 +229,20 @@
 				  y))))
 
 (defn
-  #^{:doc "Convert from alphanumeric to numeric square notation."}
+  #^{:doc "Convert from alphanumeric to numeric square notation."
+     :test (fn []
+	     (is (= (conv-h8->88 'a1) 11) "Corner a1 is square 11.")
+	     (is (= (conv-h8->88 'h8) 88) "Corner h8 is square 88.")
+	     (is (= (conv-h8->88 'c2) 23) "Corner c2 is square 23."))}
   conv-h8->88 [val]
   (first (for [sq reversi-board :when (= (:name sq) (keyword val))] (:number sq))))
 
 (defn
-  #^{:doc "Convert from numeric to alphanumeric square notation."}
+  #^{:doc "Convert from numeric to alphanumeric square notation."
+     :test (fn []
+	     (is (= (conv-88->h8 11) "a1") "Corner a1 is square 11.")
+	     (is (= (conv-88->h8 88) "h8") "Corner h8 is square 88.")
+	     (is (= (conv-88->h8 23) "c2") "Corner c2 is square 23."))}
   conv-88->h8 [val]
   (name ((get reversi-board val) :name)))
 
@@ -300,14 +310,25 @@
 (defn
   #^{:doc "Prepare a fiew board used by tests."}
   basic-test-fixture [f]
-  (binding [ib (initial-board)
-	    eb
+  (binding [*fixt-ib* (initial-board)
+	    *fixt-eb* 
 	    [3 3 3 3 3 3 3 3 3 3
 	     3 0 0 0 0 0 0 0 0 3
 	     3 0 0 0 0 0 0 0 0 3
 	     3 0 0 0 0 0 0 0 0 3
 	     3 0 0 0 0 0 0 0 0 3
 	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 3 3 3 3 3 3 3 3 3]
+	    *fixt-board-a*
+	    [3 3 3 3 3 3 3 3 3 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 1 0 0 0 0 3
+	     3 0 0 0 1 1 0 0 0 3
+	     3 0 0 0 1 2 0 0 0 3
 	     3 0 0 0 0 0 0 0 0 3
 	     3 0 0 0 0 0 0 0 0 3
 	     3 0 0 0 0 0 0 0 0 3
