@@ -44,13 +44,13 @@
 	     (is (= (name-of empty-square) \.)
 		 "The empty square is represented as \".\".")
 	     (is (= (name-of black) \@)
-		 "The empty square is represented as \"@\".")
+		 "The black square is represented as \"@\".")
 	     (is (= (name-of white) \O)
-		 "The empty square is represented as \"O\".")
+		 "The white square is represented as \"O\".")
 	     (is (= (name-of outer) \?)
-		 "The empty square is represented as \"?\".")
+		 "The out of board square is represented as \"?\".")
 	     (is (= (name-of 100) \E)
-		 "The empty square is represented as \"E\"."))}
+		 "Errors (values other than above) are represented as \"E\"."))}
   name-of [piece]
   (cond (= piece 0) \.
 	(= piece 1) \@
@@ -73,7 +73,11 @@
 (defn
   #^{:doc "Query a board for a given square."
      :test (fn []
-	     (is (= (board-ref *fixt-ib* 0) outer) ""))}
+	     (is (= (board-ref *fixt-ib* 0) outer) "")
+	     (is (= (board-ref *fixt-ib* 100) nil) "")
+	     (is (= (board-ref *fixt-ib* 11) empty-square) "")
+	     (is (= (board-ref *fixt-ib* 45) black) "")
+	     (is (= (board-ref *fixt-ib* 44) white) ""))}
   board-ref [board square]
   (get board square))
 
