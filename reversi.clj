@@ -187,7 +187,9 @@
    If so, return the square number of the bracketing piece."
     :test (fn []
 	    (is (= (would-flip? 78 white *fixt-board-black-has-to-pass* -1) 73)
-		"The white move to 78 flips pieces up to 73 following the -1 dir."))}
+		"The white move to 78 flips pieces up to 73 following the -1 dir.")
+	    (is (= (would-flip? 78 white *fixt-board-black-has-to-pass* -10) false)
+		"The white move to 78 does'nt flip anything following the -10 dir."))}
  would-flip? [move player board dir]
   ;; A flip occours if, starting at the adjacent square, c, there
   ;; is a string of at least one opponent pieces, braketed by
@@ -198,7 +200,12 @@
 
 (defn
  #^{:doc "A legal move must be into an empty square, and it must
-   flip at least one opponent piece."}
+   flip at least one opponent piece."
+    :test (fn []
+	    (is (not (legal? 78 black *fixt-board-black-has-to-pass*))
+		"78 is not a legal move for black.")
+	    (is (not (not (legal? 78 white *fixt-board-black-has-to-pass*)))
+		"78 is a legal move for white."))}
  legal? [move player board]
  (and (= (board-ref board move) empty-square)
       (some (fn [dir] (would-flip? move player board dir))
