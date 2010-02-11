@@ -82,14 +82,24 @@
   (get board square))
 
 (defn
-  #^{:doc "Set the value of a given board square pairs."}
+  #^{:doc "Set the value of a given board square pairs.
+   Return a new board. It is not destructive."
+     :test (fn []
+	     (let [sq 11
+		   player black]
+	       (is (= (board-ref (board-set *fixt-eb* sq player) sq) player)
+		   "Set the a1 square to black")))}
   board-set [board square val]
   (assoc board square val))
 
-(defn create-board []
+(defn
+  #^{:doc "Create a new completely emty board."}
+  create-board []
   (vec (repeat 100 empty-square)))
 
-(defn copy-board [board]
+(defn
+  #^{:doc "Create a new copy of the given board."}
+  copy-board [board]
   (vec board))
 
 (defn
@@ -155,7 +165,17 @@
   (and (integer? move) (<= 11 move 88) (<= 1 (mod move 10) 8)))
 
 (defn
-  #^{:doc "Return the square number of the bracketing piece."}
+  #^{:doc "Return the square number of the bracketing piece."
+     :test (fn []
+	     (let [dir -1
+		   move 'h7
+		   b1 (+ (conv-h8->88 move) dir)
+		   b2 (conv-h8->88 'c7)]
+	       (is (= (find-bracketing-piece
+		       b1 white 
+		       *fixt-board-black-has-to-pass* dir) b2)
+		   "Moving to g8, the white player, identify c7 
+                    following the -1 (west) direction.")))}
   find-bracketing-piece [square player board dir]
   (cond (= (board-ref board square) player) square
 	(= (board-ref board square) (opponent player))
@@ -164,7 +184,10 @@
 
 (defn
  #^{:doc "Would this move result in any flips in this direction?
-   If so, return the square number of the bracketing piece."}
+   If so, return the square number of the bracketing piece."
+    :test (fn []
+	    (is (= (would-flip? 78 white *fixt-board-black-has-to-pass* -1) 73)
+		"The white move to 78 flips pieces up to 73 following the -1 dir."))}
  would-flip? [move player board dir]
   ;; A flip occours if, starting at the adjacent square, c, there
   ;; is a string of at least one opponent pieces, braketed by
