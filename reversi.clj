@@ -34,10 +34,23 @@
 (def *print* false)
 
 ;;; Test fixtures
-(declare *fixt-ib* *fixt-eb* *fixt-board-a*)
+(declare *fixt-ib* *fixt-eb* *fixt-board-a* *fixt-board-b*
+	 *fixt-board-black-has-to-pass*
+	 *fixt-game-black-has-to-pass*)
 
 (defn
-  #^{:doc "Return a specific character foreach valid piece value."}
+  #^{:doc "Return a specific character foreach valid piece value."
+     :test (fn []
+	     (is (= (name-of empty-square) \.)
+		 "The empty square is represented as \".\".")
+	     (is (= (name-of black) \@)
+		 "The empty square is represented as \"@\".")
+	     (is (= (name-of white) \O)
+		 "The empty square is represented as \"O\".")
+	     (is (= (name-of outer) \?)
+		 "The empty square is represented as \"?\".")
+	     (is (= (name-of 100) \E)
+		 "The empty square is represented as \"E\"."))}
   name-of [piece]
   (cond (= piece 0) \.
 	(= piece 1) \@
@@ -58,7 +71,9 @@
 ;;; A board structure does not appear as required.
 
 (defn
-  #^{:doc "Query a board for a given square."}
+  #^{:doc "Query a board for a given square."
+     :test (fn []
+	     (is (= (board-ref *fixt-ib* 0) outer) ""))}
   board-ref [board square]
   (get board square))
 
@@ -333,6 +348,33 @@
 	     3 0 0 0 0 0 0 0 0 3
 	     3 0 0 0 0 0 0 0 0 3
 	     3 3 3 3 3 3 3 3 3 3]
+	    *fixt-board-b*
+	    [3 3 3 3 3 3 3 3 3 3
+	     3 0 0 0 1 1 1 0 0 3
+	     3 0 0 0 0 1 0 0 0 3
+	     3 0 0 0 1 1 2 2 0 3
+	     3 0 0 0 1 1 0 0 0 3
+	     3 0 0 0 1 1 0 0 0 3
+	     3 0 0 0 0 1 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 3 3 3 3 3 3 3 3 3]
+	    *fixt-board-black-has-to-pass*
+	    [3 3 3 3 3 3 3 3 3 3
+	     3 2 1 0 1 0 2 0 0 3
+	     3 1 1 1 1 1 1 1 2 3
+	     3 0 1 2 2 1 1 2 2 3
+	     3 0 1 2 1 2 2 2 2 3
+	     3 0 1 2 1 2 2 2 2 3
+	     3 0 1 2 1 1 2 1 2 3
+	     3 0 1 2 1 1 1 1 0 3
+	     3 2 2 2 2 2 2 1 2 3
+	     3 3 3 3 3 3 3 3 3 3]
+	    *fixt-game-black-has-to-pass*
+	    '(e6 f4 f3 f6 g4 h4 g6 e7 h5 h6 d3 c6 d6 c5 b6 b5 b7 
+		 e2 c4 a8 g7 c3 d8 e3 b2 b3 g3 a1 b4 g5 f7 h3 f2 
+		 f1 a2 h8 b1 f8 d2 e8 b8 c8 g8 c7 g2 f5 d7 c2 d1 
+		 h2 h1 g1 a3 a4 e1 c1 a5 a6 a7 h7)
 	    ]
     (f)))
 
