@@ -68,6 +68,38 @@
 ;;; The 100 squares are plain integer.
 ;;; A board structure does not appear as required.
 
+(def col-numbers [ 0  1  2  3  4  5  6  7  8  9])
+(def row-numbers [ 0  1  2  3  4  5  6  7  8  9])
+(def col-names   [:? :a :b :c :d :e :f :g :h :&])
+(def row-names   [:0 :1 :2 :3 :4 :5 :6 :7 :8 :9])
+(defstruct square :name :number :col-name :col-number :row-name :row-number)
+(def reversi-board (vec (for [y row-numbers x col-numbers]
+			  (struct square
+				  (keyword (str (name (get col-names x)) (name (get row-names y))))
+				  (+ (* 10 y) x)
+				  (get col-names x)
+				  x
+				  (get row-names y)
+				  y))))
+
+(defn
+  #^{:doc "Convert from alphanumeric to numeric square notation."
+     :test (fn []
+	     (is (= (conv-h8->88 'a1) 11) "Corner a1 is square 11.")
+	     (is (= (conv-h8->88 'h8) 88) "Corner h8 is square 88.")
+	     (is (= (conv-h8->88 'c2) 23) "Corner c2 is square 23."))}
+  conv-h8->88 [val]
+  (first (for [sq reversi-board :when (= (:name sq) (keyword val))] (:number sq))))
+
+(defn
+  #^{:doc "Convert from numeric to alphanumeric square notation."
+     :test (fn []
+	     (is (= (conv-88->h8 11) "a1") "Corner a1 is square 11.")
+	     (is (= (conv-88->h8 88) "h8") "Corner h8 is square 88.")
+	     (is (= (conv-88->h8 23) "c2") "Corner c2 is square 23."))}
+  conv-88->h8 [val]
+  (name ((get reversi-board val) :name)))
+
 (defn
   #^{:doc "Query a board for a given square."
      :test (fn []
@@ -260,38 +292,6 @@
 		 "White's valid moves are c3, e3, c5"))}
   legal-moves [player board]
   (filter (fn [move] (legal? move player board)) all-squares))
-
-(def col-numbers [ 0  1  2  3  4  5  6  7  8  9])
-(def row-numbers [ 0  1  2  3  4  5  6  7  8  9])
-(def col-names   [:? :a :b :c :d :e :f :g :h :&])
-(def row-names   [:0 :1 :2 :3 :4 :5 :6 :7 :8 :9])
-(defstruct square :name :number :col-name :col-number :row-name :row-number)
-(def reversi-board (vec (for [y row-numbers x col-numbers]
-			  (struct square
-				  (keyword (str (name (get col-names x)) (name (get row-names y))))
-				  (+ (* 10 y) x)
-				  (get col-names x)
-				  x
-				  (get row-names y)
-				  y))))
-
-(defn
-  #^{:doc "Convert from alphanumeric to numeric square notation."
-     :test (fn []
-	     (is (= (conv-h8->88 'a1) 11) "Corner a1 is square 11.")
-	     (is (= (conv-h8->88 'h8) 88) "Corner h8 is square 88.")
-	     (is (= (conv-h8->88 'c2) 23) "Corner c2 is square 23."))}
-  conv-h8->88 [val]
-  (first (for [sq reversi-board :when (= (:name sq) (keyword val))] (:number sq))))
-
-(defn
-  #^{:doc "Convert from numeric to alphanumeric square notation."
-     :test (fn []
-	     (is (= (conv-88->h8 11) "a1") "Corner a1 is square 11.")
-	     (is (= (conv-88->h8 88) "h8") "Corner h8 is square 88.")
-	     (is (= (conv-88->h8 23) "c2") "Corner c2 is square 23."))}
-  conv-88->h8 [val]
-  (name ((get reversi-board val) :name)))
 
 (defn
   #^{:doc "Call the player's strategy function to get move.
