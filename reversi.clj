@@ -4,9 +4,6 @@
 ;;; This file is part of the reversi program
 ;;; http://github.com/rcrr/reversi
 
-;;; As stated in the original license, the modified version, this file, is
-;;; distributed under the GNU GPL v3 license.
-
 ;;; This program is free software; you can redistribute it and/or modify it
 ;;; under the terms of the GNU General Public License as published by the
 ;;; Free Software Foundation; either version 3, or (at your option) any
@@ -20,6 +17,7 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program; if not, write to the Free Software
 ;;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+;;; or visit the site <http://www.gnu.org/licenses/>.
 
 
 (ns reversi
