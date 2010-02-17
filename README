@@ -16,8 +16,8 @@ The step followed are:
       To operate the program:
       From the SLIME PROMPT type:
 
-      	   (asdf:operate 'asdf:load-op 'reversi)
-     	   (in-package :reversi)
+           (asdf:operate 'asdf:load-op 'reversi)
+           (in-package :reversi)
 
     The aim is to use the PAIP (Paradigm of Artificial Intelligence Programming. Case Studies in Common Lisp) examples
     that describe how to write an AI strategy to play the board game named REVERSI.
