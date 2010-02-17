@@ -34,7 +34,9 @@
 ;;; Test fixtures
 (declare *fixt-ib* *fixt-eb* *fixt-board-a* *fixt-board-b*
 	 *fixt-board-black-has-to-pass*
-	 *fixt-game-black-has-to-pass*)
+	 *fixt-game-black-has-to-pass*
+	 *fixt-board-end-game-x*
+	 *fixt-game-x*)
 
 (defn
   #^{:doc "Return a specific character foreach valid piece value."
@@ -242,8 +244,17 @@
 	    all-directions)))
 
 (defn
-  #^{:doc "Return a new board to reflect move by player."}
+  #^{:doc "Return a new board to reflect move by player."
+     :test (fn []
+	     (is (= (make-move 34 black (initial-board)) *fixt-board-a*)
+		 "black does first move to 34, *fixt-board-a* is the resulting board."))}
   make-move [move player board]
+  ;; make-move does't check if the move is legal. make-move is
+  ;; used only by get-move, get move does check that the move
+  ;; is legal before calling.
+  ;; get-move is used only by reversi.
+  ;;
+  ;; There is space for improvenment.
   (let [b (transient (copy-board board))
 	m move
 	p player]
@@ -264,7 +275,18 @@
 
 
 (defn
-  #^{:doc "Does player have any legal moves in this position?"}
+  #^{:doc "Does player have any legal moves in this position?"
+     :test (fn []
+	     (is (not (not (any-legal-move? black (initial-board))))
+		 "black has some legal moves as first move!")
+	     (is (not (any-legal-move? black *fixt-board-black-has-to-pass*))
+		 "black has no legal moves given the board *fixt-board-black-has-to-pass*.")
+	     (is (not (not (any-legal-move? white *fixt-board-black-has-to-pass*)))
+		 "white has some legal moves given the board *fixt-board-black-has-to-pass*.")
+	     (is (not (any-legal-move? black *fixt-board-end-game-x*))
+		 "given board *fixt-board-end-game-x* the game is over, black has no move.")
+	     (is (not (any-legal-move? white *fixt-board-end-game-x*))
+		 "given board *fixt-board-end-game-x* the game is over, white has no move."))}
   any-legal-move? [player board]
   (some (fn [move] (legal? move player board))
 	all-squares))
@@ -343,6 +365,25 @@
   (seq-utils/rand-elt (legal-moves player board)))
 
 (defn
+  #^{:doc "Given a MOVES list, a BOARD, and the PLAYER that has to move,
+   the function returns the resulting board. MOVES are in the h8 style.
+   MOVES legality is not enforced. The function checks if a player has to pass
+   one or more moves."}
+  play-moves [moves board player]
+  (if (or (empty? moves) (nil? player))
+    board
+    (let [next-board (make-move (conv-h8->88 (first moves)) player board)]
+      (recur (rest moves)
+	     next-board
+	     (next-to-play next-board player false)))))
+
+(defn
+  #^{:doc "Given a MOVES list, a game is played returning the resulting board."}
+  play-game [moves]
+  (play-moves moves (initial-board) black))
+
+
+(defn
   #^{:doc "Return a string representing this internal time
    expressed in millisecond in min:secs."}
   time-string [time]
@@ -407,6 +448,22 @@
 		 e2 c4 a8 g7 c3 d8 e3 b2 b3 g3 a1 b4 g5 f7 h3 f2 
 		 f1 a2 h8 b1 f8 d2 e8 b8 c8 g8 c7 g2 f5 d7 c2 d1 
 		 h2 h1 g1 a3 a4 e1 c1 a5 a6 a7 h7)
+	    *fixt-board-end-game-x*
+	    [3 3 3 3 3 3 3 3 3 3
+	     3 2 2 2 2 2 1 1 1 3
+	     3 2 2 2 1 1 1 1 1 3
+	     3 2 2 2 1 1 1 2 1 3
+	     3 2 2 1 2 1 1 2 1 3
+	     3 1 1 2 1 2 1 2 1 3
+	     3 1 2 1 2 1 2 1 1 3
+	     3 1 1 1 1 1 1 2 1 3
+	     3 1 1 1 1 2 2 2 2 3
+	     3 3 3 3 3 3 3 3 3 3]
+	    *fixt-game-x*
+	    '(c4 e3 f5 b4 e2 f4 c3 d2 c2 c1 b3 c6 b2 g5 f2 e1 f6 
+		 d6 d3 f7 g6 f3 f8 g7 a5 g3 h6 a2 c5 e8 e7 b6 h3 
+		 c7 b7 e6 a3 g4 g1 h2 d1 g8 h4 a7 b1 g2 d7 h5 h7 
+		 b5 h1 h8 a8 a1 d8 a4 a6 b8 c8 f1)
 	    ]
     (f)))
 
