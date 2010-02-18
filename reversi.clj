@@ -31,12 +31,14 @@
 
 (def *print* false)
 
-;;; Test fixtures
+;;; Unit test fixtures
 (declare *fixt-ib* *fixt-eb* *fixt-board-a* *fixt-board-b*
 	 *fixt-board-black-has-to-pass*
 	 *fixt-game-black-has-to-pass*
 	 *fixt-board-end-game-x*
-	 *fixt-game-x*)
+	 *fixt-game-x*
+	 *fixt-board-34* *fixt-board-43*
+	 *fixt-board-56* *fixt-board-65*)
 
 (defn
   #^{:doc "Return a specific character foreach valid piece value."
@@ -130,12 +132,26 @@
   (vec (repeat 100 empty-square)))
 
 (defn
-  #^{:doc "Create a new copy of the given board."}
+  #^{:doc "Create a new copy of the given board."
+     :test (fn []
+	     (is (= *fixt-ib* (copy-board *fixt-ib*)) 
+		 "copy-board has to return a new equal board"))}
   copy-board [board]
   (vec board))
 
 (defn
-  #^{:doc "Return a board, empty except for four pieced in the middle."}
+  #^{:doc "Return a board, empty except for four pieced in the middle."
+     :test (fn []
+	     (let [b (initial-board)]
+	       (is (= (board-ref b  0) outer) "")
+	       (is (= (board-ref b  6) outer) "")
+	       (is (= (board-ref b 11) empty-square) "")
+	       (is (= (board-ref b 60) outer) "")
+	       (is (= (board-ref b 69) outer) "")
+	       (is (= (board-ref b 44) white) "")
+	       (is (= (board-ref b 45) black) "")
+	       (is (= (board-ref b 88) empty-square) "")
+	       (is (= (board-ref b 93) outer) "")))}
   initial-board []
   ;; Boards are 100-element vectors (clojure.lang.PersistentVector),
   ;; with elements 11-88 used,
@@ -160,7 +176,13 @@
   #^{:doc "Count player's pieces minus opponent's pieces."
      :test (fn []
 	     (is (= (count-difference black (initial-board)) 0)
-		 "An initial board has no piece's difference."))}
+		 "An initial board has no piece's difference.")
+	     (is (= (count-difference black *fixt-board-end-game-x*) 10) 
+		 "on *fixt-board-end-game-x* board black has 10 pieces 
+                  more than white.")
+	     (is (= (count-difference white *fixt-board-end-game-x*) -10) 
+		 "on *fixt-board-end-game-x* board white has 10 pieces 
+                  less than black."))}
   count-difference [player board]
   (- (count-pieces board player)
      (count-pieces board (opponent player))))
@@ -293,7 +315,18 @@
 
 
 (defn
-  #^{:doc "Compute the player to move next, or nil if nobady can move."}
+  #^{:doc "Compute the player to move next, or nil if nobady can move."
+     :test (fn []
+	     (is (= (next-to-play *fixt-ib* white false) black)
+		 "black has to move first.")
+	     (is (= (next-to-play *fixt-board-end-game-x* white false) nil)
+		 "The game is over nobady has to move.")
+	     (is (= (next-to-play *fixt-board-end-game-x* black false) nil)
+		 "The game is over nobady has to move.")
+	     (is (= (next-to-play *fixt-board-black-has-to-pass* white false) white)
+		 "black shold move, but has to pass.")
+	     (is (= (next-to-play *fixt-board-black-has-to-pass* black false) white)
+		 "white has to move."))}
   next-to-play [board previous-player print]
   (let [opp (opponent previous-player)]
     (cond (any-legal-move? opp board) opp
@@ -317,7 +350,18 @@
 
 (defn
   #^{:doc "Call the player's strategy function to get move.
-   Keep calling until a legal move is made."}
+   Keep calling until a legal move is made."
+     :test (fn []
+	     (dotimes [i 10]
+	       (let [[board move] (get-move (fn [_ _] (rand-elt (range 0 100)))
+					  black (initial-board) false)]
+	       (cond
+		 (= move 34) (is (= board *fixt-board-34*))
+		 (= move 43) (is (= board *fixt-board-43*))
+		 (= move 56) (is (= board *fixt-board-56*))
+		 (= move 65) (is (= board *fixt-board-65*))
+		 true (is (contains? '(34 43 56 65) move)
+			  "The black first move must be into (34 43 56 65).")))))}
   get-move [strategy player board print]
   (when print (print-board board))
   (let [move (strategy player (copy-board board))]
@@ -329,7 +373,8 @@
 	[(make-move move player board) move])
       true
       (do
-	(pprint/cl-format true "warn: illegal move: ~a" (conv-88->h8 move))
+	(when print
+	  (pprint/cl-format true "warn: illegal move: ~a" (conv-88->h8 move)))
 	(get-move strategy player board print)))))
 
 (defn
@@ -472,6 +517,50 @@
 		 d6 d3 f7 g6 f3 f8 g7 a5 g3 h6 a2 c5 e8 e7 b6 h3 
 		 c7 b7 e6 a3 g4 g1 h2 d1 g8 h4 a7 b1 g2 d7 h5 h7 
 		 b5 h1 h8 a8 a1 d8 a4 a6 b8 c8 f1)
+	    *fixt-board-34*
+	    [3 3 3 3 3 3 3 3 3 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 1 0 0 0 0 3
+	     3 0 0 0 1 1 0 0 0 3
+	     3 0 0 0 1 2 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 3 3 3 3 3 3 3 3 3]
+	    *fixt-board-43*
+	    [3 3 3 3 3 3 3 3 3 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 1 1 1 0 0 0 3
+	     3 0 0 0 1 2 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 3 3 3 3 3 3 3 3 3]
+	    *fixt-board-56*
+	    [3 3 3 3 3 3 3 3 3 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 2 1 0 0 0 3
+	     3 0 0 0 1 1 1 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 3 3 3 3 3 3 3 3 3]
+	    *fixt-board-65*
+	    [3 3 3 3 3 3 3 3 3 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 2 1 0 0 0 3
+	     3 0 0 0 1 1 0 0 0 3
+	     3 0 0 0 0 1 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 0 0 0 0 0 0 0 0 3
+	     3 3 3 3 3 3 3 3 3 3]
 	    ]
     (f)))
 
