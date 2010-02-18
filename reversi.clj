@@ -368,7 +368,11 @@
   #^{:doc "Given a MOVES list, a BOARD, and the PLAYER that has to move,
    the function returns the resulting board. MOVES are in the h8 style.
    MOVES legality is not enforced. The function checks if a player has to pass
-   one or more moves."}
+   one or more moves."
+     :test (fn []
+	     (is (= (play-moves *fixt-game-x* *fixt-ib* black) *fixt-board-end-game-x*)
+		 "Following move by move the *fixt-game-x* sequence should result 
+                  into the *fixt-board-end-game-x* final board."))}
   play-moves [moves board player]
   (if (or (empty? moves) (nil? player))
     board
@@ -378,7 +382,11 @@
 	     (next-to-play next-board player false)))))
 
 (defn
-  #^{:doc "Given a MOVES list, a game is played returning the resulting board."}
+  #^{:doc "Given a MOVES list, a game is played returning the resulting board."
+     :test (fn []
+	     (is (= (play-game *fixt-game-x*) *fixt-board-end-game-x*)
+		 "Following move by move the *fixt-game-x* sequence should result 
+                  into the *fixt-board-end-game-x* final board."))}
   play-game [moves]
   (play-moves moves (initial-board) black))
 
