@@ -28,12 +28,14 @@ The step followed are:
 
       - This is work in progress. The basic game rules are working. The minimax and alpha-beta functions are ok.
       - Unit tests are under construction.
-      - The complete translation of advanced tecniques is not started (Reversi tournament, and Iago strategy)
+      - The complete translation of advanced tecniques is not started (Reversi tournament, and Iago strategy).
+      - Files has to be rearranged.
+      - More documnetation on the translation is needed.
 
  (3) Future steps could be:
 
       - Develop a complete analysis suite.
-      - Develop a graphical UI
-      - Further enhance advanced strategies
-      - Develop a neural net evaluetion function
-      - Develop a genetic algorithm that iterate the evaluation function evolution 
+      - Develop a graphical UI.
+      - Further enhance advanced strategies.
+      - Develop a neural net evaluetion function.
+      - Develop a genetic algorithm that iterate the evaluation function evolution.
