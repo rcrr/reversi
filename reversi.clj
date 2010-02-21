@@ -23,12 +23,15 @@
 (ns reversi
   (:load "reversi/constants"
 	 "reversi/auxfns"
-	 "reversi/strategies")
+	 "reversi/strategies"
+	 "reversi/GameOverException")
   (:use clojure.test)
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]])
   (:require [clojure.contrib [math :as math]]))
 
+;;; It is a global switch to turn on/off the verbose printing.
+;;; It is not very polished.
 (def *print* false)
 
 ;;; Unit test fixtures
@@ -38,7 +41,8 @@
 	 *fixt-board-end-game-x*
 	 *fixt-game-x*
 	 *fixt-board-34* *fixt-board-43*
-	 *fixt-board-56* *fixt-board-65*)
+	 *fixt-board-56* *fixt-board-65*
+	 *fixt-game-y*)
 
 (defn
   #^{:doc "Return a specific character foreach valid piece value."
@@ -164,6 +168,23 @@
     (assoc! b 44 white 45 black 54 black 55 white)
     (persistent! b)))
 
+;;: *move-number* *board*, and *clock* are three global variables
+;;; defined by PAIP 18.7. According to the fully functional,
+;;; side effect free paradigm proposed by Clojure, them should
+;;; not be used at all .... 
+
+(def 
+ #^{:doc "The number of the move to be played."}
+ *move-number* 1)
+
+(def 
+ #^{:doc "A copy of the game clock."}
+ *clock* [0.0 0.0 0.0])
+
+(def 
+ #^{:doc "A copy of the game board."}
+ *board* (initial-board))
+
 (defn
   #^{:doc "Count the player pieces."
      :test (fn []
@@ -187,12 +208,20 @@
   (- (count-pieces board player)
      (count-pieces board (opponent player))))
 
+(defn
+  #^{:doc "Return a string representing this internal time
+   expressed in millisecond in min:secs."}
+  time-string [time]
+  (let [t (math/round (/ time internal-time-units-per-second))
+	min (quot t 60)
+	sec (rem t 60)]
+    (pprint/cl-format nil "~2d:~2,'0d" min sec)))
 
-;; to complete it I have to add the optional clock,
-;; the optionality of board and the default board
 (defn
   #^{:doc "Print a board, along with some statistics."}
-  print-board [board]
+  print-board
+  ([clock] (print-board *board* clock))
+  ([board clock]
   ;; First print the header and the current score
   (pprint/cl-format true "~2&    a b c d e f g h   [~c=~2a ~c=~2a (~@d)]"
 		    (name-of black) (count-pieces board black)
@@ -205,7 +234,11 @@
       (let [piece (board-ref board (+ col (* 10 row)))]
 	(pprint/cl-format true " ~c" (name-of piece)))))
   ;; Finally print the time remaining for each player
-  (pprint/cl-format true "~2&~2&"))
+  (when clock
+    (pprint/cl-format true "~2&~2&Time remaining: [~c=~a ~c=~a]"
+		      (name-of black) (time-string (get clock black))
+		      (name-of white) (time-string (get clock white))))
+  (pprint/cl-format true "~2&~2&")))
 
 (defn
   #^{:doc "Valid moves are a number in the range 11-88 that end in 1-8"
@@ -333,7 +366,7 @@
 	  (any-legal-move? previous-player board)
 	  (do
 	    (when print
-	      (pprint/cl-format true "~&~c has no moves and must pass.~&"
+	      (pprint/cl-format true "~2&~&~c has no moves and must pass.~&"
 		      (name-of opp)))
 	    previous-player)
 	  true nil)))
@@ -353,8 +386,9 @@
    Keep calling until a legal move is made."
      :test (fn []
 	     (dotimes [i 10]
-	       (let [[board move] (get-move (fn [_ _] (rand-elt (range 0 100)))
-					  black (initial-board) false)]
+	       (let [[board move clock] (get-move (fn [_ _] (rand-elt (range 0 100)))
+					  black (initial-board) false 
+					  (vec (repeat 3 (* 30. internal-time-units-per-second))))]
 	       (cond
 		 (= move 34) (is (= board *fixt-board-34*))
 		 (= move 43) (is (= board *fixt-board-43*))
@@ -362,40 +396,56 @@
 		 (= move 65) (is (= board *fixt-board-65*))
 		 true (is (contains? '(34 43 56 65) move)
 			  "The black first move must be into (34 43 56 65).")))))}
-  get-move [strategy player board print]
-  (when print (print-board board))
-  (let [move (strategy player (copy-board board))]
+  get-move [strategy player board print clock]
+  (when print (print-board board clock))
+  (let [t0 (get-internal-real-time)
+	move (strategy player (copy-board board))
+	t1 (get-internal-real-time)
+	delta-t (- t1 t0)
+	delta-clock (if (= player black) [0 delta-t 0] [0 0 delta-t])
+	clock (vec (map - clock delta-clock))]
     (cond
+      (< (get clock player) 0.)
+      (do
+	(pprint/cl-format true "~&~c has no time left and forfeits." (name-of player))
+	(throw (new reversi.GameOverException {:game-over-value (if (= player black) -64 64)} "Player has no time left.")))
+      (= move 'resign)
+      (throw (new reversi.GameOverException {:game-over-value (if (= player black) -64 64)} "Player resigns."))
       (and (valid? move) (legal? move player board))
       (do
 	(when print
 	  (pprint/cl-format true "~&~c moves to ~a." (name-of player) (conv-88->h8 move)))
-	[(make-move move player board) move])
+	[(make-move move player board) move clock])
       true
       (do
 	(when print
 	  (pprint/cl-format true "warn: illegal move: ~a" (conv-88->h8 move)))
-	(get-move strategy player board print)))))
+	(get-move strategy player board print clock)))))
 
 (defn
   #^{:doc "Play a game of Reversi. Return the score, where a positive
    difference means black (the first player) wins."}
-  reversi [bl-strategy wh-strategy print]
+  reversi [bl-strategy wh-strategy print minutes]
   (loop [board (initial-board)
 	 moves ()
-	 player black]
-    (if player
-      (let [[board move] (get-move (if (= player black) bl-strategy wh-strategy) player board print)]
-	(recur
-	 board
-	 (cons move moves)
-	 (next-to-play board player print)))
-      (do
-	(when print
-	  (pprint/cl-format true "~2&The game is over. Final result:~&")
-	  (print-board board)
-	  (println "Game moves: " (map conv-88->h8 (reverse moves))))
-	(count-difference black board)))))
+	 player black
+	 clock (vec (repeat 3 (* 60 minutes internal-time-units-per-second)))]
+    (try
+     (if player
+       (let [[board move clock] (get-move (if (= player black) bl-strategy wh-strategy) player board print clock)]
+	 (recur
+	  board
+	  (cons move moves)
+	  (next-to-play board player print)
+	  clock))
+       (throw (new reversi.GameOverException {:game-over-value (count-difference black board)} "No more moves left.")))
+     (catch reversi.GameOverException goe 
+       (do
+	 (when print
+	   (pprint/cl-format true "~2&The game is over. Final result:~&")
+	   (print-board board clock)
+	   (println "Game moves: " (map conv-88->h8 (reverse moves)))
+	   (:game-over-value @goe)))))))
 
 (defn
   #^{:doc "A human player for the game of reversi."}
@@ -434,17 +484,6 @@
                   into the *fixt-board-end-game-x* final board."))}
   play-game [moves]
   (play-moves moves (initial-board) black))
-
-
-(defn
-  #^{:doc "Return a string representing this internal time
-   expressed in millisecond in min:secs."}
-  time-string [time]
-  (let [t (math/round (/ time 1000000.0))
-	min (quot t 60)
-	sec (rem t 60)]
-    (pprint/cl-format nil "~2d:~2,'0d" min sec)))
-
 
 ;;; Test env: fixtures
 
@@ -561,7 +600,10 @@
 	     3 0 0 0 0 0 0 0 0 3
 	     3 0 0 0 0 0 0 0 0 3
 	     3 3 3 3 3 3 3 3 3 3]
-	    ]
+	    *fixt-game-y*
+	    '(d3 c3 b3 b2 c4 e3 f3 e2 d1 a3 a1 b4 b5 a4 a5 c2 a2 
+		 c5 e6 f5 c1 e1 f1 b1 f4 g1 h1 f2 d2 d7 g2 g3 h3 
+		 h2 g5 d6 g4 h5 g6 h4 h6 e7 f7 f8 f6 g7 e8 h7 c6)]
     (f)))
 
 (use-fixtures :each basic-test-fixture)

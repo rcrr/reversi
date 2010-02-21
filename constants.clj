@@ -57,3 +57,10 @@
    (27 18 28 38 48 58 68 78 88 77)))
 
 (def top-edge (first edge-and-x-lists))
+
+(def
+  #^{:doc "The number of internal time units in one second.
+   Using the jvm call to the System class:
+   public static long nanoTime()
+   the value is 1,000,000,000."}
+  internal-time-units-per-second 1000000000)

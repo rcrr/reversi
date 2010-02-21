@@ -28,6 +28,7 @@
   [s]
   (nth s (rand-int (count s))))
 
+(defn get-internal-real-time [] (System/nanoTime))
 
 ;;; The utility and correctess of these following three functions is not sure.
 
