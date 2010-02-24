@@ -444,8 +444,8 @@
 	 (when print
 	   (pprint/cl-format true "~2&The game is over. Final result:~&")
 	   (print-board board clock)
-	   (println "Game moves: " (map conv-88->h8 (reverse moves)))
-	   (:game-over-value @goe)))))))
+	   (println "Game moves: " (map conv-88->h8 (reverse moves))))
+	 (:game-over-value @goe))))))
 
 (defn
   #^{:doc "A human player for the game of reversi."}
