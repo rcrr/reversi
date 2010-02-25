@@ -28,7 +28,8 @@
   (:use clojure.test)
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]])
-  (:require [clojure.contrib [math :as math]]))
+  (:require [clojure.contrib [math :as math]])
+  (:import (reversi GameOverException)))
 
 ;;; It is a global switch to turn on/off the verbose printing.
 ;;; It is not very polished.
@@ -408,9 +409,9 @@
       (< (get clock player) 0.)
       (do
 	(pprint/cl-format true "~&~c has no time left and forfeits." (name-of player))
-	(throw (new reversi.GameOverException {:game-over-value (if (= player black) -64 64)} "Player has no time left.")))
+	(throw (new GameOverException {:game-over-value (if (= player black) -64 64)} "Player has no time left.")))
       (= move 'resign)
-      (throw (new reversi.GameOverException {:game-over-value (if (= player black) -64 64)} "Player resigns."))
+      (throw (new GameOverException {:game-over-value (if (= player black) -64 64)} "Player resigns."))
       (and (valid? move) (legal? move player board))
       (do
 	(when print
@@ -438,8 +439,8 @@
 	  (cons move moves)
 	  (next-to-play board player print)
 	  clock))
-       (throw (new reversi.GameOverException {:game-over-value (count-difference black board)} "No more moves left.")))
-     (catch reversi.GameOverException goe 
+       (throw (new GameOverException {:game-over-value (count-difference black board)} "No more moves left.")))
+     (catch GameOverException goe 
        (do
 	 (when print
 	   (pprint/cl-format true "~2&The game is over. Final result:~&")
