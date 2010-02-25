@@ -408,7 +408,7 @@
     (cond
       (< (get clock player) 0.)
       (do
-	(pprint/cl-format true "~&~c has no time left and forfeits." (name-of player))
+	(when print (pprint/cl-format true "~&~c has no time left and forfeits.~&" (name-of player)))
 	(throw (new GameOverException {:game-over-value (if (= player black) -64 64)} "Player has no time left.")))
       (= move 'resign)
       (throw (new GameOverException {:game-over-value (if (= player black) -64 64)} "Player resigns."))
@@ -425,7 +425,14 @@
 
 (defn
   #^{:doc "Play a game of Reversi. Return the score, where a positive
-   difference means black (the first player) wins."}
+   difference means black (the first player) wins."
+     :test (fn []
+	     (is (= (reversi random-strategy random-strategy false 0.) -64)
+		 "With no time the black starts and forfaits.")
+	     (dotimes [i 100]
+	       (let [result (reversi random-strategy random-strategy false 1.)]
+		 (is (and (>= result -64) (<= result 64))
+		 "A random game must have the result in between -64 and 64."))))}
   reversi [bl-strategy wh-strategy print minutes]
   (loop [board (initial-board)
 	 moves ()
