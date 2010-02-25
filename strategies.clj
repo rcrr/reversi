@@ -30,7 +30,16 @@
 
 (defn
   #^{:doc "Given a sequence composed by numbers, return the index
-   of the maximum value."}
+   of the maximum value."
+     :test (fn []
+	     (is (= 0 (index-of-max [7])) "Has to return 0.")
+	     (is (= 0 (index-of-max [7 1])) "Has to return 0.")
+	     (is (= 1 (index-of-max [1 7])) "Has to return 1.")
+	     (is (= 1 (index-of-max [-2 7 5])) "Has to return 1.")
+	     (is (= 1 (index-of-max '(-2 7 5))) "Has to return 1.")
+	     (is (= 3 (index-of-max [-2 1 7 8 -12])) "Has to return 3.")
+	     (is (= -1 (index-of-max [])) "Has to return -1.")
+	     (is (thrown? ClassCastException (index-of-max ['x])) "HAs to throws an exception."))}
   index-of-max [x]
   (if (empty? x)
       -1
@@ -144,8 +153,6 @@
 	      0 0
 	      +1 (+ winning-value 0))))
 
-
-;;; Is it correct? It is slow! It is a bit ugly. Why not generate a complete lazy game tree?
 (defn
   #^{:doc "Being a given BOARD,
    find the best move, for PLAYER, according to EVAL-FN,
@@ -153,12 +160,9 @@
    The function return a vector of two values:
    the best move value, the best move"}
   minimax [player board ply eval-fn]
-  ;; (println "minimax - player: " player)
-  ;; (println "minimax - ply: " ply)
   (if (= ply 0)
     [(eval-fn player board) nil]
     (let [moves (legal-moves player board)]
-      ;; (println "minimax - moves: " moves)
       (if (empty? moves)
 	(if (any-legal-move? (opponent player) board)
 	  (let [[v _] (minimax (opponent player) board
@@ -168,14 +172,12 @@
 	(let [best-move (atom nil)
 	      best-val (atom nil)]
 	  (doseq [move moves]
-	    ;; (println "minimax - move: " move)
 	    (let [board2 (make-move move player
 				    (copy-board board))
 		  [v _] (minimax
 			 (opponent player) board2
 			 (- ply 1) eval-fn)
 		  val (- v)]
-	      ;; (println "minimax - val: " val)
 	      (when (or (nil? @best-val)
 			(> val @best-val))
 		(reset! best-val val)
