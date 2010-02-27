@@ -39,7 +39,7 @@
 	     (is (= 1 (index-of-max '(-2 7 5))) "Has to return 1.")
 	     (is (= 3 (index-of-max [-2 1 7 8 -12])) "Has to return 3.")
 	     (is (= -1 (index-of-max [])) "Has to return -1.")
-	     (is (thrown? ClassCastException (index-of-max ['x])) "HAs to throws an exception."))}
+	     (is (thrown? ClassCastException (index-of-max ['x])) "Has to throws an exception."))}
   index-of-max [x]
   (if (empty? x)
       -1
