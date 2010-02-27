@@ -2,11 +2,30 @@
 			       Glossary table for the Reversi Program
 
 	       	       	       ------------------
-			       Top Level Function
+			       Top Level Functions
 			       ------------------
 
 reversi			       Play a game of Reversi. Return the score.
+reversi-series		       Play a series of N games.
+random-reversi-series	       Play a series of games, starting from a random position.
+round-robin		       Play a tournament among strategies.
 
+
+	       	       	       ------------------
+			       Special Variables
+			       ------------------
+
+*clock*			       A copy of the game clock (tournament version only).
+*board*			       A copy of the game board (tournament version only).
+*move-number*		       Number of moves made (tournament version only).
+*ply-boards*		       A vector of boards; used as a resource to avoid consing.
+
+
+	       	       	       ------------------
+			       Data Structures
+			       ------------------
+
+node			       Holds a board and its evaluation.
 
 			       ---------
 			       Constants
@@ -45,6 +64,12 @@ minimax			       Find the best move according to EVAL-FN, searching PLY levels.
 minimax-searcher	       Return a strategy that uses minimax to search.
 alpha-beta		       Find the best move according to EVAL-FN, searching PLY levels.
 alpha-beta-searcher	       Return a strategy thta uses alpha-beta to search.
+alpha-beta2		       Sorts moves by static evaluation.
+alpha-beta-searcher2	       Strategy using alpha-beta2.
+alpha-beta3		       Uses the killer heuristic.
+alpha-beta-searcher3	       Strategy using alpha-beta3.
+iago-eval		       Evaluation function based on Rosenbloom's program.
+iago			       Strategy using iago-eval.
 
 
 			       -------------------
@@ -69,6 +94,14 @@ legal-moves		       Returns a list of legal moves for player.
 find-value		       Is this a win, loss, or draw for player?
 neighbors		       Return a list of all squares adjacent to a square.
 switch-strategies	       Play one strategy for a while, then switch.
+h88->88			       Convert from alphanumeric to numeric square notation.
+88->h8			       Convert from numeric to alphanumenric square notation.
+time-string		       Convert internal time units to mm:ss string.
+mobility		       A strategy that counts the number of legal moves.
+legal-nodes		       A list of legal moves sorted by their evaluation.
+negate-node		       Set the value of a node to its negative.
+put-first		       Put the killer move first, if it is legal.
+
 
 			       -----------------
 			       Library Functions
@@ -77,3 +110,4 @@ switch-strategies	       Play one strategy for a while, then switch.
 random-elt		       Pick a random element out of a sequence.
 i-symb			       Concatenate symbols or strings to form an interned symbol.
 mappend			       Append the results of calling fn on each element of list.
+cross-product		       Apply fn to all pairs of arguments.
