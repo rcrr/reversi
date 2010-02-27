@@ -359,7 +359,7 @@
     ;; Return the number of wins. (1/2 for a tie),
     ;; the total of the point differences, and the
     ;; scores themselves, all from strategy1's point of view.
-    (values (+ (count-if #'plusp scores)
+    (values (+ (count-if #'plusp scores) ;;; this seams to be a bug, the function counts just the strategy1 wins.
 	       (/ (count-if #'zerop scores) 2))
 	    (apply #'+ scores)
 	    scores)))

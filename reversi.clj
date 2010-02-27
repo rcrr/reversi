@@ -29,6 +29,7 @@
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]])
   (:require [clojure.contrib [math :as math]])
+  (:require [clojure.contrib.generic [math-functions :as math-f]])
   (:import (reversi GameOverException)))
 
 ;;; It is a global switch to turn on/off the verbose printing.
@@ -445,7 +446,12 @@
 	       (let [result (reversi random-strategy random-strategy false 1.)]
 		 (is (and (>= result -64) (<= result 64))
 		 "A random game must have the result in between -64 and 64."))))}
-  reversi [bl-strategy wh-strategy print minutes]
+  reversi
+  ([bl-strategy wh-strategy]
+     (reversi bl-strategy wh-strategy true))
+  ([bl-strategy wh-strategy print]
+     (reversi bl-strategy wh-strategy print 30.))
+  ([bl-strategy wh-strategy print minutes]
   (loop [board (initial-board)
 	 moves ()
 	 player black
@@ -465,7 +471,7 @@
 	   (pprint/cl-format true "~2&The game is over. Final result:~&")
 	   (print-board board clock)
 	   (println "Game moves: " (map conv-88->h8 (reverse moves))))
-	 (:game-over-value @goe))))))
+	 (:game-over-value @goe)))))))
 
 (defn
   #^{:doc "Given a MOVES list, a BOARD, and the PLAYER that has to move,
@@ -492,6 +498,33 @@
                   into the *fixt-board-end-game-x* final board."))}
   play-game [moves]
   (play-moves moves (initial-board) black))
+
+(defn
+  #^{:doc "Play a series of 2*n-pairs games, swapping sides."
+     :test (fn []
+	     (is ()
+		 ""))}
+  reversi-series [strategy1 strategy2 n-pairs]
+  (let [scores (loop [i n-pairs
+		      scores1 []
+		      scores2 []]
+		 (if (= i 0)
+		   (vec (interleave scores1 scores2))
+		   (recur
+		    (dec i)
+		    (conj scores1 (reversi strategy1 strategy2 nil))
+		    (conj scores2 (- (reversi strategy2 strategy1 nil))))))]
+    ;; Return: 
+    ;; the difference between wins and losses, 
+    ;; the number of wins. (1/2 for a tie),
+    ;; the total of the point differences, and the
+    ;; scores themselves, all from strategy1's point of view.
+    [(reduce + (for [i scores] (math-f/sgn i)))  ; this version is more intuitive.
+     (+ (reduce + (for [i scores :when (> i 0)] 1)) ; this version is a literal transcslation of the PAIP version.
+	(reduce + (for [i scores :when (= i 0)] 0.5)))
+     (reduce + scores)
+     scores]))
+
 
 ;;; Test env: fixtures
 
