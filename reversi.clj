@@ -424,6 +424,18 @@
 	(get-move strategy player board print clock)))))
 
 (defn
+  #^{:doc "A human player for the game of reversi."}
+  human [player board]
+  (pprint/cl-format true "~&~c to move ~a: " (name-of player)
+		    (map conv-88->h8 (legal-moves player board)))
+  (conv-h8->88 (read)))
+
+(defn
+  #^{:doc "Make any legal move."}
+  random-strategy [player board]
+  (seq-utils/rand-elt (legal-moves player board)))
+
+(defn
   #^{:doc "Play a game of Reversi. Return the score, where a positive
    difference means black (the first player) wins."
      :test (fn []
@@ -454,18 +466,6 @@
 	   (print-board board clock)
 	   (println "Game moves: " (map conv-88->h8 (reverse moves))))
 	 (:game-over-value @goe))))))
-
-(defn
-  #^{:doc "A human player for the game of reversi."}
-  human [player board]
-  (pprint/cl-format true "~&~c to move ~a: " (name-of player)
-		    (map conv-88->h8 (legal-moves player board)))
-  (conv-h8->88 (read)))
-
-(defn
-  #^{:doc "Make any legal move."}
-  random-strategy [player board]
-  (seq-utils/rand-elt (legal-moves player board)))
 
 (defn
   #^{:doc "Given a MOVES list, a BOARD, and the PLAYER that has to move,
