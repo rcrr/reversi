@@ -120,10 +120,11 @@
 ;;;
 ;;; fig 4: Board names for edge squares
 
-
+;;; PAIP 18.2 - Representation Choices (p. 601)
 (deftype piece () `(integer ,empty ,outer))
 
 (defun name-of (piece) (char ".@O?" piece))
+
 (defun opponent (player) (if (eql player black) white black))
 
 (deftype board () '(simple-array piece (100)))
@@ -132,11 +133,11 @@
 (defsetf bref (board square) (val)
   `(setf (aref ,board ,square) ,val))
 
-(defvar *clock* (make-array 3) "A copy of the game clock")
-
+;;; PAIP 18.2 - Representation Choices (p. 603)
 (defun copy-board (board)
   (copy-seq board))
 
+;;; PAIP 18.2 - Representation Choices (p. 603)
 (defun initial-board ()
   "Return a board, empty except for four pieced in the middle."
   ;; Boards are 100-element vectors, with elements 11-88 used,
@@ -150,8 +151,13 @@
 	  (bref board 54) black (bref board 55) white)
     board))
 
+;;; PAIP 18.7 - The Tournament Version of Othello (p. 624)
 (defvar *board* (initial-board) "A copy of the game board")
+(defvar *move-number* 1 "The number of the move to be played")
+(defvar *clock* (make-array 3) "A copy of the game clock")
 
+;;; PAIP 18.2 - Representation Choices (p. 603)
+;;; PAIP 18.7 - The Tournament Version of Othello (p. 625)
 (defun print-board (&optional (board *board*) clock)
   "Print a board, along with some statistics."
   ;; First print the header and the current score
@@ -171,17 +177,20 @@
             (name-of black) (time-string (elt clock black))
             (name-of white) (time-string (elt clock white)))))
 
+;;; PAIP 18.2 - Representation Choices (p. 603)
 (defun count-difference (player board)
   "Count player's pieces minus opponent's pieces."
   (- (count player board)
      (count (opponent player) board)))
 
+;;; PAIP 18.7 - The Tournament Version of Othello (p. 626)
 (defun time-string (time)
   "Return a string representing this internal time in min:secs."
   (multiple-value-bind (min sec)
       (floor (round time internal-time-units-per-second) 60)
     (format nil "~2d:~2,'0d" min sec)))
 
+;;; PAIP 18.2 - Representation Choices (p. 604)
 (defun valid-p (move)
   "Valid moves are number in the range 11-88 that end in 1-8."
   (and (integerp move) (<= 11 move 88) (<= 1 (mod move 10) 8)))
@@ -193,6 +202,7 @@
        (some #'(lambda (dir) (would-flip? move player board dir))
 	     all-directions)))
 
+;;; PAIP 18.2 - Representation Choices (p. 604)
 (defun make-move (move player board)
   "Update board to reflect move by player."
   ;; First make the move, then make any flips.
@@ -201,6 +211,7 @@
     (make-flips move player board dir))
   board)
 
+;;; PAIP 18.2 - Representation Choices (p. 605)
 (defun make-flips (move player board dir)
   "Make any flips in the given direction."
   (let ((bracketer (would-flip? move player board dir)))
@@ -214,6 +225,7 @@
 	   from (+ c-from f-dir) by f-dir until (eql c c-to)
 	   do (setf (bref board c) player))))))
 
+;;; PAIP 18.2 - Representation Choices (p. 605)
 (defun would-flip? (move player board dir)
   "Would this move result in any flips in this direction?
    If so, return the square number of the bracketing piece."
@@ -224,6 +236,7 @@
     (and (eql (bref board c) (opponent player))
 	 (find-bracketing-piece (+ c dir) player board dir))))
 
+;;; PAIP 18.2 - Representation Choices (p. 605)
 (defun find-bracketing-piece (square player board dir)
   "Return the square number of the bracketing piece."
   (cond ((eql (bref board square) player) square)
@@ -231,8 +244,8 @@
 	 (find-bracketing-piece (+ square dir) player board dir))
 	(t nil)))
 
-(defvar *move-number* 1 "The number of the move to be played")
-
+;;; PAIP 18.2 - Representation Choices (p. 605)
+;;; PAIP 18.7 - The Tournament Version of Othello (p. 624)
 (defun reversi (bl-strategy wh-strategy &optional (print t) (minutes 30))
   "Play a game of Reversi. Return the score, where a positive
    difference means black (the first player) wins."
@@ -255,6 +268,7 @@
 	(print-board board))
       (count-difference black board))))
 
+;;; PAIP 18.2 - Representation Choices (p. 606)
 (defun next-to-play (board previous-player print)
   "Compute the player to move next, or nil if nobady can move."
   (let ((opp (opponent previous-player)))
@@ -266,11 +280,14 @@
 	   previous-player)
 	  (t nil))))
 
+;;; PAIP 18.2 - Representation Choices (p. 606)
 (defun any-legal-move? (player board)
   "Does player have any legal moves in this position?"
   (some #'(lambda (move) (legal-p move player board))
 	all-squares))
 
+;;; PAIP 18.2 - Representation Choices (p. 607)
+;;; PAIP 18.7 - The Tournament Version of Othello (p. 625)
 (defun get-move (strategy player board print clock)
   "Call the player's strategy function to get move.
    Keep calling until a legal move is made."
@@ -293,28 +310,26 @@
       (t (warn "illegal move: ~a" (88->h8 move))
 	 (get-move strategy player board print clock)))))
 
+;;; PAIP 18.2 - Representation Choices (p. 607)
+;;; PAIP 18.7 - The Tournament Version of Othello (p. 622)
 (defun human (player board)
   "A human player for the game of Reversi."
   (format t "~&~c to move ~a: " (name-of player)
 	  (mapcar #'88->h8 (legal-moves player board)))
   (h8->88 (read)))
 
+;;; PAIP 18.2 - Representation Choices (p. 607)
 (defun random-strategy (player board)
   "Make any legal move."
   (random-elt (legal-moves player board)))
 
+;;; PAIP 18.2 - Representation Choices (p. 607)
 (defun legal-moves (player board)
   "Returns a list of legal moves for player"
   (loop for move in all-squares
      when (legal-p move player board) collect move))
 
-(defun cross-product (fn xlist ylist)
-  "Return a list of all (fn x y) values"
-  (mappend #'(lambda (y)
-	       (mapcar #'(lambda (x) (funcall fn x y))
-		       xlist))
-	   ylist))
-
+;;; PAIP 18.7 - The Tournament Version of Othello (p. 622)
 (let ((square-names
        (cross-product #'i-symb
 		      '(? a b c d e f g h ?)
@@ -331,7 +346,8 @@
 	(elt square-names num)
 	num)))
 
-;;; PAIP 18.8 - Playing a Series of Games (p. 626, 628)
+;;; PAIP 18.8 - Playing a Series of Games (p. 626)
+;;; PAIP 18.8 - Playing a Series of Games (p. 628)
 (defun reversi-series (strategy1 strategy2 n-pairs)
   "Play a series of 2*n-pairs games, swapping sides."
   (let ((scores
@@ -397,7 +413,7 @@
       (format t "~&"))))
 
 ;;; PAIP 18.8 - Playing a Series of Games (p. 629)
-(defun mobility (player board)
+(defun basic-mobility (player board)
   "The number of moves a player has."
   (length (legal-moves player board)))
 
@@ -407,7 +423,7 @@
 ;;;
 ;;; REVERSI> (round-robin
 ;;; 	      (list (maximizer #'count-difference)
-;;;    	    	    (maximizer #'mobility)
+;;;    	    	    (maximizer #'basic-mobility)
 ;;; 		    (maximizer #'weighted-squares)
 ;;; 		    (maximizer #'modified-weighted-squares)
 ;;; 		    #'random-strategy)

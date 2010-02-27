@@ -51,10 +51,12 @@
 
 (in-package :reversi)
 
+;;; PAIP 18.3 - Evaluating Positions (p. 608)
 (defun maximize-difference (player board)
   "A strategy that maximize the differences in pieces."
   (funcall (maximizer #'count-difference) player board))
 
+;;; PAIP 18.3 - Evaluating Positions (p. 608)
 (defun maximizer (eval-fn)
   "Return a strategy that will consider every legal move,
    apply ENVAL-FN to each resulting board, and choose
@@ -71,6 +73,7 @@
 	     (best (apply #'max scores)))
 	(elt moves (position best scores)))))
 
+;;; PAIP 18.3 - Evaluating Positions (p. 609)
 (defparameter *weights*
   '#(0   0   0   0  0  0   0   0   0 0
      0 120 -20  20  5  5  20 -20 120 0
@@ -83,6 +86,7 @@
      0 120 -20  20  5  5  20 -20 120 0
      0   0   0   0  0  0   0   0   0 0))
 
+;;; PAIP 18.3 - Evaluating Positions (p. 609)
 (defun weighted-squares (player board)
   "Sum of the weights of player's squares minus opponents's."
   (let ((opp (opponent player)))
@@ -92,6 +96,7 @@
 	 when (eql (bref board i) opp)
 	 sum (- (aref *weights* i)))))
 
+;;; PAIP 18.4 - Searching Ahead: Minimax (p. 613)
 (defun final-value (player board)
   "Is ths a win, loss, or a draw for player?"
   (case (signum (count-difference player board))
@@ -99,6 +104,7 @@
     (0 0)
     (+1 winning-value)))
 
+;;; PAIP 18.4 - Searching Ahead: Minimax (p. 613)
 (defun minimax (player board ply eval-fn)
   "Find the best move, for PLAYER, according to EVAL-FN,
    searching PLY levels deep and backing up values."
@@ -124,6 +130,7 @@
 		    (setf best-move move))))
 	      (values best-val best-move))))))
 
+;;; PAIP 18.4 - Searching Ahead: Minimax (p. 614)
 (defun minimax-searcher (ply eval-fn)
   "A strategy that searches PLY levels and then uses EVAL-FN."
   #'(lambda (player board)
@@ -132,6 +139,7 @@
 	(declare (ignore value))
 	move)))
 
+;;; PAIP 18.5 - Smarter Searching: Alpha-Beta Search (p. 616)
 (defun alpha-beta (player board achievable cutoff ply eval-fn)
   "Find the best move, for PLAYER, according to EVAL-FN,
    searching PLY levels deep and backing up values,
@@ -159,6 +167,7 @@
 		   until (>= achievable cutoff))
 	      (values achievable best-move))))))
 
+;;; PAIP 18.5 - Smarter Searching: Alpha-Beta Search (p. 616)
 (defun alpha-beta-searcher (depth eval-fn)
   "A strategy that searches to DEPTH and then uses EVAL-FN."
   #'(lambda (player board)
@@ -168,6 +177,7 @@
 	(declare (ignore value))
 	move)))
 
+;;; PAIP 18.6 - An Analysis of Some Games (p. 621)
 (defun modified-weighted-squares (player board)
   "Like WEIGHTED-SQUARES, but don't take off for moving
    near an occupied corner."
@@ -181,6 +191,7 @@
 			   +1 -1)))))))
     w))
 
+;;; PAIP 18.6 - An Analysis of Some Games (p. 621)
 (let ((neighbor-table (make-array 100 :initial-element nil)))
   ;; Initialize the nieghbor table
   (dolist (square all-squares)

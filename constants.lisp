@@ -51,40 +51,37 @@
 
 (in-package :reversi)
 
-(defmacro defconstant-equal (var value &optional doc)
-  `(defconstant ,var
-     (if (not (boundp ',var))
-	 ,value
-	 (let ((old (symbol-value ',var))
-	       (new ,value))
-	   (if (equal old new)
-	       old
-	       (prog1 new
-		 (cerror "Redefine it anyway"
-			 "New value ~S for constant ~S is not equal to old value ~S"
-			 new ',var old)))))
+;;; As stated into the SBCL manual (ref. 2.3.4 Defining Constants)
+;;; the compiler is quite strict in enforcing at compile time
+;;; that the new value assigned to the constant has to be eql to
+;;; the old one.
+;;; The macro definition is taken from the manual itself
+(defmacro define-constant (name value &optional doc)
+  `(defconstant ,name (if (boundp ',name) (symbol-value ',name) ,value)
      ,@(when doc (list doc))))
 
+;;; PAIP 18.2 - Representation Choices (p. 601)
+(define-constant all-directions '(-11 -10 -9 -1 1 9 10 11))
 
-(defconstant-equal all-directions '(-11 -10 -9 -1 1 9 10 11))
+(define-constant empty 0 "An empty square")
+(define-constant black 1 "A black piece")
+(define-constant white 2 "A white piece")
+(define-constant outer 3 "Marks squares outside the board")
 
-(defconstant-equal empty 0 "An empty square")
-(defconstant-equal black 1 "A black piece")
-(defconstant-equal white 2 "A white piece")
-(defconstant-equal outer 3 "Marks squares outside the board")
-
-(defconstant-equal all-squares
+;;; PAIP 18.2 - Representation Choices (p. 603)
+(define-constant all-squares
     (loop for i from 11 to 88
        when (<= 1 (mod i 10) 8) collect i))
 
-(defconstant-equal winning-value most-positive-fixnum)
-(defconstant-equal losing-value most-negative-fixnum)
+;;; PAIP 18.4 - Searching Ahead: Minimax (p. 613)
+(define-constant winning-value most-positive-fixnum)
+(define-constant losing-value most-negative-fixnum)
 
-(defconstant-equal edge-and-x-lists
+(define-constant edge-and-x-lists
     '((22 11 12 13 14 15 16 17 18 27)
       (72 81 82 83 84 85 86 87 88 77)
       (22 11 21 31 41 51 61 71 81 72)
       (27 18 28 38 48 58 68 78 88 77))
   "The four edges (with their X-squares)")
 
-(defconstant-equal top-edge (first edge-and-x-lists))
+(define-constant top-edge (first edge-and-x-lists))

@@ -55,6 +55,7 @@
   "Pick a random element out of a sequence."
   (elt seq (random (length seq))))
 
+;;; symbol is a registered symbol, so the function has been renamed as i-symb
 (defun i-symb (&rest args)
   "Concatenate symbols or strings to form an interned symbol"
   (intern (format nil "~{~a~}" args)))
@@ -63,5 +64,12 @@
   "Append the results of calling fn on each element of list.
   Like mapcon, but uses append instead of nconc."
   (apply #'append (mapcar fn list)))
+
+(defun cross-product (fn xlist ylist)
+  "Return a list of all (fn x y) values"
+  (mappend #'(lambda (y)
+	       (mapcar #'(lambda (x) (funcall fn x y))
+		       xlist))
+	   ylist))
 
 
