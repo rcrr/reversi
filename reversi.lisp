@@ -331,11 +331,15 @@
 	(elt square-names num)
 	num)))
 
+;;; PAIP 18.8 - Playing a Series of Games (p. 626, 628)
 (defun reversi-series (strategy1 strategy2 n-pairs)
   "Play a series of 2*n-pairs games, swapping sides."
-  (let ((scores (loop repeat n-pairs
-		   collect (reversi strategy1 strategy2 nil)
-		   collect (- (reversi strategy2 strategy1 nil)))))
+  (let ((scores
+	 (loop repeat n-pairs
+	    for random-state = (make-random-state)
+	    collect (reversi strategy1 strategy2 nil)
+	    do (setf *random-state* random-state)
+	    collect (- (reversi strategy2 strategy1 nil)))))
     ;; Return the number of wins. (1/2 for a tie),
     ;; the total of the point differences, and the
     ;; scores themselves, all from strategy1's point of view.
@@ -343,3 +347,126 @@
 	       (/ (count-if #'zerop scores) 2))
 	    (apply #'+ scores)
 	    scores)))
+
+;;; PAIP 18.8 - Playing a Series of Games (p. 627)
+(defun random-reversi-series (strategy1 strategy2
+					n-pairs &optional (n-random 10))
+  "Play a series of 2*n games, starting from a random position."
+  (reversi-series
+   (switch-strategies #'random-strategy n-random strategy1)
+   (switch-strategies #'random-strategy n-random strategy2)
+   n-pairs))
+
+;;; PAIP 18.8 - Playing a Series of Games (p. 627)
+(defun switch-strategies (strategy1 m strategy2)
+  "Make a new strategy that plays strategy1 for m moves,
+  then plays according to strategy2."
+  #'(lambda (player board)
+      (funcall (if (<= *move-number* m) strategy1 strategy2)
+	       player board)))
+
+;;; PAIP 18.8 - Playing a Series of Games (p. 628)
+(defun round-robin (strategies n-pairs &optional
+		    (n-random 10) (names strategies))
+  "Play a tournament among the strategies.
+  N-PAIRS = games each strategy plays as each color against
+  each opponent. So with N strategies, a total of
+  N*(N-1)*N-PAIRS games are played."
+  (let* ((N (length strategies))
+	 (totals (make-array N :initial-element 0))
+	 (scores (make-array (list N N)
+			     :initial-element 0)))
+    ;; Play the games
+    (dotimes (i N)
+      (loop for j from (+ i 1) to (- N 1) do
+	   (let* ((wins (random-reversi-series
+			 (elt strategies i)
+			 (elt strategies j)
+			 n-pairs n-random))
+		  (losses (- (* 2 n-pairs) wins)))
+	     (incf (aref scores i j) wins)
+	     (incf (aref scores j i) losses)
+	     (incf (aref totals i) wins)
+	     (incf (aref totals j) losses))))
+    ;; Print the results
+    (dotimes (i N)
+      (format t "~&~a~20T ~4f: " (elt names i) (elt totals i))
+      (dotimes (j N)
+	(format t "~4f " (if (= i j) '---
+			 (aref scores i j))))
+      (format t "~&"))))
+
+;;; PAIP 18.8 - Playing a Series of Games (p. 629)
+(defun mobility (player board)
+  "The number of moves a player has."
+  (length (legal-moves player board)))
+
+;;; PAIP 18.8 - Playing a Series of Games (p. 629, 630)
+;;;
+;;; round-robin test run 500 n-pairs
+;;;
+;;; REVERSI> (round-robin
+;;; 	      (list (maximizer #'count-difference)
+;;;    	    	    (maximizer #'mobility)
+;;; 		    (maximizer #'weighted-squares)
+;;; 		    (maximizer #'modified-weighted-squares)
+;;; 		    #'random-strategy)
+;;; 	      500 6
+;;; 	      '(count-difference mobility weighted modified-weighted random))
+;;; COUNT-DIFFERENCE     1547.: ---  463. 172. 146. 767. 
+;;; MOBILITY             1835.: 537. ---  266. 179. 854. 
+;;; WEIGHTED             2774.: 829. 735. ---  390. 821. 
+;;; MODIFIED-WEIGHTED    3162.: 855. 821. 610. ---  877. 
+;;; RANDOM                683.: 234. 147. 179. 124. ---  
+;;; NIL
+;;;
+;;; REVERSI> (round-robin
+;;; 	      (list (alpha-beta-searcher 4 #'count-difference)
+;;; 	 	    (alpha-beta-searcher 4 #'weighted-squares)
+;;; 		    (alpha-beta-searcher 4 #'modified-weighted-squares)
+;;; 		    #'random-strategy)
+;;; 	      50 6
+;;; 	      '(count-difference weighted modified-weighted random))
+;;; COUNT-DIFFERENCE     115.: ---  14.5  6.0 94.5 
+;;; WEIGHTED             217.: 85.5 ---  41.5 90.0 
+;;; MODIFIED-WEIGHTED    253.: 94.0 58.5 ---  100. 
+;;; RANDOM               15.5:  5.5 10.0  0.0 ---  
+;;;
+;;;REVERSI> (round-robin
+;;;	     (list (alpha-beta-searcher 4 #'count-difference)
+;;;	   	   (alpha-beta-searcher 4 #'weighted-squares)
+;;;		   (alpha-beta-searcher 4 #'modified-weighted-squares)
+;;;		   #'random-strategy)
+;;;	     5 10
+;;;	     '(count-difference weighted modified-weighted random))
+;;; COUNT-DIFFERENCE     10.5: ---   1.5  0.0  9.0 
+;;; WEIGHTED             21.0:  8.5 ---   3.0  9.5 
+;;; MODIFIED-WEIGHTED    27.0: 10.0  7.0 ---  10.0 
+;;; RANDOM                1.5:  1.0  0.5  0.0 ---  
+;;; NIL
+;;; REVERSI> (round-robin
+;;; 	      (list (alpha-beta-searcher 4 #'count-difference)
+;;; 	 	    (alpha-beta-searcher 4 #'weighted-squares)
+;;; 		    (alpha-beta-searcher 6 #'modified-weighted-squares)
+;;; 		    #'random-strategy)
+;;; 	      5 10
+;;; 	      '(count-difference weighted modified-weighted random))
+;;; COUNT-DIFFERENCE     12.0: ---   2.0  0.0 10.0 
+;;; WEIGHTED             17.5:  8.0 ---   1.5  8.0 
+;;; MODIFIED-WEIGHTED    28.5: 10.0  8.5 ---  10.0 
+;;; RANDOM                2.0:  0.0  2.0  0.0 ---  
+;;; NIL
+;;; REVERSI> (round-robin
+;;; 	      (list (alpha-beta-searcher 4 #'count-difference)
+;;; 		    (alpha-beta-searcher 4 #'weighted-squares)
+;;; 		    (alpha-beta-searcher 8 #'modified-weighted-squares)
+;;; 		    #'random-strategy)
+;;; 	      5 10
+;;; 	      '(count-difference weighted modified-weighted random))
+;;; COUNT-DIFFERENCE     10.5: ---   0.5  0.0 10.0 
+;;; WEIGHTED             20.0:  9.5 ---   1.0  9.5 
+;;; MODIFIED-WEIGHTED    29.0: 10.0  9.0 ---  10.0 
+;;; RANDOM                0.5:  0.0  0.5  0.0 ---  
+;;; NIL
+
+
