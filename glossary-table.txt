@@ -108,6 +108,6 @@ put-first		       Put the killer move first, if it is legal.
 			       -----------------
 
 random-elt		       Pick a random element out of a sequence.
-i-symb			       Concatenate symbols or strings to form an interned symbol.
+i-symb (it was symbol)	       Concatenate symbols or strings to form an interned symbol.
 mappend			       Append the results of calling fn on each element of list.
 cross-product		       Apply fn to all pairs of arguments.
