@@ -177,7 +177,7 @@
 
 (def 
  #^{:doc "The number of the move to be played."}
- *move-number* 1)
+ *move-number* (atom 0))
 
 (def 
  #^{:doc "A copy of the game clock."}
@@ -445,33 +445,35 @@
 	     (dotimes [i 100]
 	       (let [result (reversi random-strategy random-strategy false 1.)]
 		 (is (and (>= result -64) (<= result 64))
-		 "A random game must have the result in between -64 and 64."))))}
+		     "A random game must have the result in between -64 and 64."))))}
   reversi
   ([bl-strategy wh-strategy]
      (reversi bl-strategy wh-strategy true))
   ([bl-strategy wh-strategy print]
      (reversi bl-strategy wh-strategy print 30.))
   ([bl-strategy wh-strategy print minutes]
-  (loop [board (initial-board)
-	 moves ()
-	 player black
-	 clock (vec (repeat 3 (* 60 minutes internal-time-units-per-second)))]
-    (try
-     (if player
-       (let [[board move clock] (get-move (if (= player black) bl-strategy wh-strategy) player board print clock)]
-	 (recur
-	  board
-	  (cons move moves)
-	  (next-to-play board player print)
-	  clock))
-       (throw (new GameOverException {:game-over-value (count-difference black board)} "No more moves left.")))
-     (catch GameOverException goe 
-       (do
-	 (when print
-	   (pprint/cl-format true "~2&The game is over. Final result:~&")
-	   (print-board board clock)
-	   (println "Game moves: " (map conv-88->h8 (reverse moves))))
-	 (:game-over-value @goe)))))))
+     (reset! *move-number* 0)
+     (loop [board (initial-board)
+	    moves ()
+	    player black
+	    clock (vec (repeat 3 (* 60 minutes internal-time-units-per-second)))]
+       (try
+	(if player
+	  (let [[board move clock] (get-move (if (= player black) bl-strategy wh-strategy) player board print clock)]
+	    (reset! *move-number* (inc @*move-number*))
+	    (recur
+	     board
+	     (cons move moves)
+	     (next-to-play board player print)
+	     clock))
+	  (throw (new GameOverException {:game-over-value (count-difference black board)} "No more moves left.")))
+	(catch GameOverException goe 
+	  (do
+	    (when print
+	      (pprint/cl-format true "~2&The game is over. Final result:~&")
+	      (print-board board clock)
+	      (println "Game moves: " (map conv-88->h8 (reverse moves))))
+	    (:game-over-value @goe)))))))
 
 (defn
   #^{:doc "Given a MOVES list, a BOARD, and the PLAYER that has to move,
@@ -525,6 +527,22 @@
      (reduce + scores)
      scores]))
 
+(defn
+  #^{:doc "Make a new strategy that plays strategy1 for m moves,
+   then plays according to strategy2."}
+  switch-strategies [strategy1 m strategy2]
+  (fn [player board]
+    (apply (if (<= @*move-number* m) strategy1 strategy2) [player board])))
+
+(defn
+  #^{:doc "Play a series of 2*n games, starting from a random position."}
+  random-reversi-series
+  ([strategy1 strategy2 n-pairs] (random-reversi-series strategy1 strategy2 n-pairs 10))
+  ([strategy1 strategy2 n-pairs n-random]
+     (reversi-series
+      (switch-strategies random-strategy n-random strategy1)
+      (switch-strategies random-strategy n-random strategy2)
+      n-pairs)))
 
 ;;; Test env: fixtures
 
