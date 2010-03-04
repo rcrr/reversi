@@ -175,13 +175,20 @@
 ;;; side effect free paradigm proposed by Clojure, them should
 ;;; not be used at all .... 
 
+(defn
+  #^{:doc "Make a new game clock."}
+  make-clock
+  ([] (make-clock 30.))
+  ([minutes]
+     (vec (repeat 3 (* minutes 60 internal-time-units-per-second)))))
+
 (def 
  #^{:doc "The number of the move to be played."}
  *move-number* (atom 0))
 
 (def 
  #^{:doc "A copy of the game clock."}
- *clock* [0.0 0.0 0.0])
+ *clock* (atom (make-clock 0.)))
 
 (def 
  #^{:doc "A copy of the game board."}
@@ -390,7 +397,7 @@
 	     (dotimes [i 10]
 	       (let [[board move clock] (get-move (fn [_ _] (rand-elt (range 0 100)))
 					  black (initial-board) false 
-					  (vec (repeat 3 (* 30. internal-time-units-per-second))))]
+					  (make-clock 30.))]
 	       (cond
 		 (= move 34) (is (= board *fixt-board-34*))
 		 (= move 43) (is (= board *fixt-board-43*))
@@ -436,6 +443,45 @@
   random-strategy [player board]
   (seq-utils/rand-elt (legal-moves player board)))
 
+;;; random-game is used by the random-reversi-series function.
+;;; the function should be a special case of reversi itself.
+(defn
+  #^{:doc "Return a RANDOM game."}
+  random-game []
+  (let [bl-strategy random-strategy
+	wh-strategy random-strategy]
+    (loop [board (initial-board)
+	   moves ()
+	   player black]
+      (try
+       (if player
+	 (let [[board move _] (get-move (if (= player black) bl-strategy wh-strategy) player board false (make-clock))]
+	   (recur
+	    board
+	    (cons move moves)
+	    (next-to-play board player false)))
+	 (throw (new GameOverException {:game-over-value (count-difference black board)} "No more moves left.")))
+       (catch GameOverException goe
+	 [(:game-over-value @goe) board (reverse moves)])))))
+
+;;; The two function wrapped by the let are a way to work around
+;;; the absence of the make-random-state function
+;;; The design is strongly based on "side effects" and does not allow any
+;;; concurrence in its usage.
+(let [index (atom 0)
+      random-seq-of-moves (atom nil)]
+  (defn new-random-seg-of-moves []
+    (reset! index 0)
+    (reset! random-seq-of-moves
+	    (let [[_ _ moves] (random-game)]
+	      moves)))
+  (defn pre-computed-random-strategy
+    [player board]
+    (reset! index (inc @index))
+    (nth @random-seq-of-moves (- @index 1)))
+  (defn rewind-pre-computed-random-strategy []
+    (reset! index 0)))
+
 (defn
   #^{:doc "Play a game of Reversi. Return the score, where a positive
    difference means black (the first player) wins."
@@ -456,7 +502,7 @@
      (loop [board (initial-board)
 	    moves ()
 	    player black
-	    clock (vec (repeat 3 (* 60 minutes internal-time-units-per-second)))]
+	    clock (make-clock minutes)]
        (try
 	(if player
 	  (let [[board move clock] (get-move (if (= player black) bl-strategy wh-strategy) player board print clock)]
@@ -512,10 +558,16 @@
 		      scores2 []]
 		 (if (= i 0)
 		   (vec (interleave scores1 scores2))
-		   (recur
-		    (dec i)
-		    (conj scores1 (reversi strategy1 strategy2 nil))
-		    (conj scores2 (- (reversi strategy2 strategy1 nil))))))]
+		   (do
+		     (new-random-seg-of-moves)
+		     (recur
+		      (dec i)
+		      (do
+			(rewind-pre-computed-random-strategy)
+			(conj scores1 (reversi strategy1 strategy2 nil)))
+		      (do
+			(rewind-pre-computed-random-strategy)
+			(conj scores2 (- (reversi strategy2 strategy1 nil))))))))]
     ;; Return: 
     ;; the difference between wins and losses, 
     ;; the number of wins. (1/2 for a tie),
@@ -540,9 +592,9 @@
   ([strategy1 strategy2 n-pairs] (random-reversi-series strategy1 strategy2 n-pairs 10))
   ([strategy1 strategy2 n-pairs n-random]
      (reversi-series
-      (switch-strategies random-strategy n-random strategy1)
-      (switch-strategies random-strategy n-random strategy2)
-      n-pairs)))
+	(switch-strategies pre-computed-random-strategy n-random strategy1)
+	(switch-strategies pre-computed-random-strategy n-random strategy2)
+	n-pairs)))
 
 ;;; Test env: fixtures
 
