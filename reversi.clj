@@ -597,9 +597,6 @@
 	(switch-strategies pre-computed-random-strategy n-random strategy2)
 	n-pairs)))
 
-(defn incf [vector index value]
-  ())
-
 (defn
   #^{:doc "Play a tournament among the strategies.
    N-PAIRS = games each strategy plays as each color against
