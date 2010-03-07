@@ -329,7 +329,6 @@
 			(let [bracketer (would-flip? m p b dir)]
 			  (when bracketer
 			    (loop [c (+ m dir)]
-			      ;;(println "flipping:" c)
 			      (assoc! b c p)
 			      (if (not (= c (- bracketer dir)))
 				(recur (+ c dir)))))))] 
@@ -396,15 +395,15 @@
      :test (fn []
 	     (dotimes [i 10]
 	       (let [[board move clock] (get-move (fn [_ _] (rand-elt (range 0 100)))
-					  black (initial-board) false 
-					  (make-clock 30.))]
-	       (cond
-		 (= move 34) (is (= board *fixt-board-34*))
-		 (= move 43) (is (= board *fixt-board-43*))
-		 (= move 56) (is (= board *fixt-board-56*))
-		 (= move 65) (is (= board *fixt-board-65*))
-		 true (is (contains? '(34 43 56 65) move)
-			  "The black first move must be into (34 43 56 65).")))))}
+						  black (initial-board) false 
+						  (make-clock 30.))]
+		 (cond
+		  (= move 34) (is (= board *fixt-board-34*))
+		  (= move 43) (is (= board *fixt-board-43*))
+		  (= move 56) (is (= board *fixt-board-56*))
+		  (= move 65) (is (= board *fixt-board-65*))
+		  true (is (contains? '(34 43 56 65) move)
+			   "The black first move must be into (34 43 56 65).")))))}
   get-move [strategy player board print clock]
   (when print (print-board board clock))
   (let [t0 (get-internal-real-time)
@@ -414,22 +413,22 @@
 	delta-clock (if (= player black) [0 delta-t 0] [0 0 delta-t])
 	clock (vec (map - clock delta-clock))]
     (cond
-      (< (get clock player) 0.)
-      (do
-	(when print (pprint/cl-format true "~&~c has no time left and forfeits.~&" (name-of player)))
-	(throw (new GameOverException {:game-over-value (if (= player black) -64 64)} "Player has no time left.")))
-      (= move 'resign)
-      (throw (new GameOverException {:game-over-value (if (= player black) -64 64)} "Player resigns."))
-      (and (valid? move) (legal? move player board))
-      (do
-	(when print
-	  (pprint/cl-format true "~&~c moves to ~a." (name-of player) (conv-88->h8 move)))
-	[(make-move move player board) move clock])
-      true
-      (do
-	(when print
-	  (pprint/cl-format true "warn: illegal move: ~a" (conv-88->h8 move)))
-	(get-move strategy player board print clock)))))
+     (< (get clock player) 0.)
+     (do
+       (when print (pprint/cl-format true "~&~c has no time left and forfeits.~&" (name-of player)))
+       (throw (new GameOverException {:game-over-value (if (= player black) -64 64)} "Player has no time left.")))
+     (= move 'resign)
+     (throw (new GameOverException {:game-over-value (if (= player black) -64 64)} "Player resigns."))
+     (and (valid? move) (legal? move player board))
+     (do
+       (when print
+	 (pprint/cl-format true "~&~c moves to ~a." (name-of player) (conv-88->h8 move)))
+       [(make-move move player board) move clock])
+     true
+     (do
+       (when print
+	 (pprint/cl-format true "warn: illegal move: ~a" (conv-88->h8 move)))
+       (get-move strategy player board print clock)))))
 
 (defn
   #^{:doc "A human player for the game of reversi."}
@@ -470,7 +469,7 @@
 ;;; concurrence in its usage.
 (let [index (atom 0)
       random-seq-of-moves (atom nil)]
-  (defn new-random-seg-of-moves []
+  (defn new-random-seq-of-moves []
     (reset! index 0)
     (reset! random-seq-of-moves
 	    (let [[_ _ moves] (random-game)]
@@ -559,7 +558,7 @@
 		 (if (= i 0)
 		   (vec (interleave scores1 scores2))
 		   (do
-		     (new-random-seg-of-moves)
+		     (new-random-seq-of-moves)
 		     (recur
 		      (dec i)
 		      (do
@@ -583,6 +582,8 @@
   #^{:doc "Make a new strategy that plays strategy1 for m moves,
    then plays according to strategy2."}
   switch-strategies [strategy1 m strategy2]
+  (println "switch-strategies: strategy1=" strategy1 ", m=" m ", strategy2=" strategy2)
+  (println "--- --- --- (class strategy2) = " (class strategy2))
   (fn [player board]
     (apply (if (<= @*move-number* m) strategy1 strategy2) [player board])))
 
@@ -595,6 +596,55 @@
 	(switch-strategies pre-computed-random-strategy n-random strategy1)
 	(switch-strategies pre-computed-random-strategy n-random strategy2)
 	n-pairs)))
+
+(defn incf [vector index value]
+  ())
+
+(defn
+  #^{:doc "Play a tournament among the strategies.
+   N-PAIRS = games each strategy plays as each color against
+   each opponent. So with N strategies, a total of
+   N*(N-1)*N-PAIRS games are played."}
+  round-robin
+  ([strategies n-pairs] (round-robin strategies n-pairs 10 strategies))
+  ([strategies n-pairs n-random] (round-robin strategies n-pairs n-random strategies))
+  ([strategies n-pairs n-random names]
+     (let [n (count strategies)
+	   totals (make-array Integer n)
+	   scores (make-array Integer n n)]
+       (println "n:" n " ,strategies:" strategies)
+       (dotimes [i n] (aset totals i 0) (dotimes [j n] (aset scores i j 0)))
+       ;; Play the games
+       (dotimes [i n]
+	 (println "i=" i)
+	 (loop [j (+ i 1)]
+	   (println "...j=" j)
+	   (println "...strategy-1=" (nth strategies i))
+	   (println "...strategy-2=" (nth strategies j))
+	   (println "...n-pairs=" n-pairs ", n-random" n-random)
+	   (let [[_ wins _ _] (random-reversi-series
+			       (nth strategies i)
+			       (nth strategies j)
+			       n-pairs n-random)
+		 losses (- (* 2 n-pairs) wins)]
+	     (aset scores i j (+ (aget scores i j) wins))
+	     (aset scores i j (+ (aget scores j i) losses))
+	     (aset totals i (+ (aget totals i) wins))
+	     (aset totals i (+ (aget totals j) losses))
+	     (when (< j n)
+	       (recur (inc j))))))
+       ;; Print the results
+       (dotimes [i n]
+	 (pprint/cl-format true "~&~a~20T ~4f: " (nth names i) (aget totals i))
+	 (dotimes [j n]
+	   (if (= i j)
+	     (pprint/cl-format true " ---- ")
+	     (pprint/cl-format true "~4f " (aget scores i j))))
+	 (pprint/cl-format true "~2&")))))
+
+(defn basic-mobility [player board]
+  "The number of moves a player has."
+  (count (legal-moves player board)))
 
 ;;; Test env: fixtures
 
