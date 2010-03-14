@@ -623,8 +623,10 @@
 	       (aset totals j (+ (aget totals j) losses))
 	       (recur (inc j))))))
        ;; Print the results
+       (println "------------------------------")
        (dotimes [i n]
-	 (pprint/cl-format true "~&~a~20T ~6,2,0f: " (nth names i) (/ (* (aget totals i) 100) (* 2 n-pairs (binomial n 2))))
+	 (println "%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+	 (pprint/cl-format nil "~&~a~20T ~6,2,0f: " (nth names i) (/ (* (aget totals i) 100) (* 2 n-pairs (binomial n 2))))
 	 (dotimes [j n]
 	   (if (= i j)
 	     (pprint/cl-format true " ----- ")

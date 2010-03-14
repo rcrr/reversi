@@ -242,7 +242,7 @@
 		    (reset! best-move move))
 		(when (< @ac cutoff)
 		  (recur (rest xmoves))))))
-	  ;;(println "alpha-beta: ac=" @ac ", best-move=" @best-move)
+	  ;;(println "alpha-beta: ac=" @ac ", best-move=" @best-move ", ply=" ply)
 	  [@ac @best-move])))))
 
 (defn
@@ -251,8 +251,10 @@
   (fn [player board]
     (let [[value move]
 	  (alpha-beta player board losing-value winning-value
-		      depth eval-fn)]
-      ;;(println "alpha-beta-searcher: value=" value ", move=" move)
+		      depth eval-fn)
+	  [mm-v mm-m] (minimax player board depth eval-fn)]
+      (println "alpha-beta-searcher: player =" player ", value = " value ", move = " move)
+      (println "alpha-beta-searcher: player =" player ", mm-v  = " value ", mm-m = " move)
       move)))
 
 (let [neighbor-table
