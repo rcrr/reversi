@@ -582,8 +582,6 @@
   #^{:doc "Make a new strategy that plays strategy1 for m moves,
    then plays according to strategy2."}
   switch-strategies [strategy1 m strategy2]
-  (println "switch-strategies: strategy1=" strategy1 ", m=" m ", strategy2=" strategy2)
-  (println "--- --- --- (class strategy2) = " (class strategy2))
   (fn [player board]
     (apply (if (<= @*move-number* m) strategy1 strategy2) [player board])))
 
@@ -610,36 +608,30 @@
   ([strategies n-pairs n-random] (round-robin strategies n-pairs n-random strategies))
   ([strategies n-pairs n-random names]
      (let [n (count strategies)
-	   totals (make-array Integer n)
-	   scores (make-array Integer n n)]
-       (println "n:" n " ,strategies:" strategies)
-       (dotimes [i n] (aset totals i 0) (dotimes [j n] (aset scores i j 0)))
+	   totals (make-array Double n)
+	   scores (make-array Double n n)]
+       (dotimes [i n] (aset totals i 0.) (dotimes [j n] (aset scores i j 0.)))
        ;; Play the games
        (dotimes [i n]
-	 (println "i=" i)
 	 (loop [j (+ i 1)]
-	   (println "...j=" j)
-	   (println "...strategy-1=" (nth strategies i))
-	   (println "...strategy-2=" (nth strategies j))
-	   (println "...n-pairs=" n-pairs ", n-random" n-random)
-	   (let [[_ wins _ _] (random-reversi-series
-			       (nth strategies i)
-			       (nth strategies j)
-			       n-pairs n-random)
-		 losses (- (* 2 n-pairs) wins)]
-	     (aset scores i j (+ (aget scores i j) wins))
-	     (aset scores i j (+ (aget scores j i) losses))
-	     (aset totals i (+ (aget totals i) wins))
-	     (aset totals i (+ (aget totals j) losses))
-	     (when (< j n)
+	   (when (< j n)
+	     (let [[_ wins _ _] (random-reversi-series
+				 (nth strategies i)
+				 (nth strategies j)
+				 n-pairs n-random)
+		   losses (- (* 2 n-pairs) wins)]
+	       (aset scores i j (+ (aget scores i j) wins))
+	       (aset scores j i (+ (aget scores j i) losses))
+	       (aset totals i (+ (aget totals i) wins))
+	       (aset totals j (+ (aget totals j) losses))
 	       (recur (inc j))))))
        ;; Print the results
        (dotimes [i n]
-	 (pprint/cl-format true "~&~a~20T ~4f: " (nth names i) (aget totals i))
+	 (pprint/cl-format true "~&~a~20T ~6,2,0f: " (nth names i) (aget totals i))
 	 (dotimes [j n]
 	   (if (= i j)
-	     (pprint/cl-format true " ---- ")
-	     (pprint/cl-format true "~4f " (aget scores i j))))
+	     (pprint/cl-format true " ----- ")
+	     (pprint/cl-format true "~6,2,0f " (aget scores i j))))
 	 (pprint/cl-format true "~2&")))))
 
 (defn basic-mobility [player board]
