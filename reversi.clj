@@ -624,12 +624,45 @@
 	       (recur (inc j))))))
        ;; Print the results
        (dotimes [i n]
-	 (pprint/cl-format true "~&~a~20T ~6,2,0f: " (nth names i) (aget totals i))
+	 (pprint/cl-format true "~&~a~20T ~6,2,0f: " (nth names i) (/ (* (aget totals i) 100) (* 2 n-pairs (binomial n 2))))
 	 (dotimes [j n]
 	   (if (= i j)
 	     (pprint/cl-format true " ----- ")
-	     (pprint/cl-format true "~6,2,0f " (aget scores i j))))
+	     (pprint/cl-format true "~6,1,0f " (aget scores i j))))
 	 (pprint/cl-format true "~2&")))))
+
+;;; Here you see the comparison of some strategies that do not search more than one ply.
+;;; Compare the results with "PAIP 18.8 - Playing a Series of Games (p. 629)".
+;;; Totals are here calculated as a percentage of wins among the total number of games played.
+;;;
+;;; reversi> (round-robin
+;;; 	      (list (maximizer count-difference)
+;;;		    (maximizer basic-mobility)
+;;;		    (maximizer weighted-squares)
+;;;		    (maximizer modified-weighted-squares)
+;;;		    random-strategy)
+;;;	      700 10
+;;;	      '(count-difference mobility weighted modified-weighted random))
+;;; count-difference      13.95:  -----  687.5  229.0  173.0  863.5 
+;;; mobility              16.39:  712.5  -----  367.5  238.5  976.0 
+;;; weighted              28.60: 1171.0 1032.5  -----  598.0 1203.0 
+;;; modified-weighted     31.78: 1227.0 1161.5  802.0  ----- 1258.5 
+;;; random                 9.28:  536.5  424.0  197.0  141.5  ----- 
+;;; nil
+;;;
+;;; reversi> (round-robin
+;;;	  (list (minimax-searcher 4 count-difference)
+;;;		(minimax-searcher 4 weighted-squares)
+;;;		(minimax-searcher 4 modified-weighted-squares)
+;;;		random-strategy)
+;;;	  5 10
+;;;	  '(count-difference weighted modified-weighted random))
+;;; count-difference      20.00:  -----    2.0   00.0   10.0 
+;;; weighted              38.33:    8.0  -----    5.0   10.0 
+;;; modified-weighted     41.67:   10.0    5.0  -----   10.0 
+;;; random                00.00:   00.0   00.0   00.0  ----- 
+;;; nil
+
 
 (defn basic-mobility [player board]
   "The number of moves a player has."
