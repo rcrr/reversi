@@ -251,10 +251,7 @@
   (fn [player board]
     (let [[value move]
 	  (alpha-beta player board losing-value winning-value
-		      depth eval-fn)
-	  [mm-v mm-m] (minimax player board depth eval-fn)]
-      (println "alpha-beta-searcher: player =" player ", value = " value ", move = " move)
-      (println "alpha-beta-searcher: player =" player ", mm-v  = " value ", mm-m = " move)
+		      depth eval-fn)]
       move)))
 
 (let [neighbor-table
@@ -287,6 +284,92 @@
 			      (if (= (board-ref board c) player)
 				+1 -1))))))))
     @w))
+
+;;;
+;;; 18.9 - More Efficient Searching
+;;;
+
+(def *all-squares-static-ordered*
+     (let [m (apply sorted-map (interleave (range 0 99) *weights*))]
+       (sort (fn [x y] (if (> (m x) (m y)) true false)) all-squares)))
+
+(defn
+  #^{:doc "Returns an ordered list of legal moves for player."
+     :test (fn []
+	     (is (= (legal-moves-optimized black *fixt-ib*) '(34 43 56 65))
+		 "Black's initial legal moves are d3, c4, f5, e6")
+	     (is (= (legal-moves-optimized white *fixt-board-a*) '(33 35 53))
+		 "White's valid moves are c3, e3, c5"))}
+  legal-moves-optimized [player board]
+  (filter (fn [move] (legal? move player board)) *all-squares-static-ordered*))
+
+(defstruct node :square :board :value)
+
+(defn
+  #^{:doc "Set the value of a node to its negative."}
+  negate-value [n]
+  (struct-map node
+    :square (n :square) :board (n :board) :value (- (n :value))))
+
+(defn
+  #^{:doc "Return a list of legal moves, each one packed into a node."}
+  legal-nodes [player board eval-fn]
+  (sort
+   (fn [x y] (if (> (:value x) (:value y)) true false))
+   (let [moves (legal-moves-optimized player board)]
+     (for [move moves] (let [new-board (make-move move player board)]
+			 (struct-map node
+			   :square move
+			   :board new-board
+			   :value (eval-fn player new-board)))))))
+
+(defn
+  #^{:doc "A-B search, sorting moves by eval-fn."}
+  alpha-beta2 [player node achievable cutoff ply eval-fn]
+  ;; Returns two values: achievable-value and move-to-make
+  (if (= ply 0)
+    [(:value node) node]
+    (let [board (:board node)
+	  nodes (legal-nodes player board eval-fn)]
+      (if (empty? nodes)
+	(if (any-legal-move? (opponent player) board)
+	  (let [[v _] (alpha-beta2 (opponent player)
+				   (negate-value node)
+				   (- cutoff) (- achievable)
+				   (- ply 1) eval-fn)]
+	    [(- v) nil])
+	  [(final-value player board) nil])
+	(let [best-node (atom (first nodes))
+	      ac (atom achievable)]
+	  (loop [xnodes nodes]
+	    (when (not (empty? xnodes))
+	      (let [move (first xnodes)
+		    [v _] (alpha-beta2
+			   (opponent player)
+			   (negate-value move)
+			   (- cutoff) (- @ac)
+			   (- ply 1) eval-fn)
+		    val (- v)]
+		(when (> val @ac)
+		  (reset! ac val)
+		  (reset! best-node move))
+		(when (< @ac cutoff)
+		  (recur (rest xnodes))))))
+	  [@ac @best-node])))))
+
+(defn
+  #^{:doc "Return a strategy that doas A-B search with sorted moves."}
+  alpha-beta-searcher2 [depth eval-fn]
+  (fn [player board]
+    (let [[value node]
+	  (alpha-beta2 player
+		       (struct-map node
+			 :square nil
+			 :board board
+			 :value (eval-fn player board))
+		       losing-value winning-value depth eval-fn)]
+      (:square node))))
+
 
 
 ;;;
