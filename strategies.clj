@@ -405,3 +405,25 @@
 ;;; reversi> (time (loop [i 10 result ()](if (= i 0) result (recur (- i 1) (conj result (reversi random-strategy (alpha-beta-searcher 4 weighted-squares) false))))))
 ;;; "Elapsed time: 24385.574285 msecs"
 ;;; (-28 -6 -32 -20 -30 -32 -16 -38 -22 -12)
+;;;
+;;; Running the following test fully demostrate the power of searching deply ahead.
+;;;
+;;; reversi> (round-robin  (list
+;;;			    (maximizer modified-weighted-squares)
+;;;			    (alpha-beta-searcher  2 modified-weighted-squares)
+;;;			    (alpha-beta-searcher2 2 modified-weighted-squares)
+;;;			    (alpha-beta-searcher2 4 modified-weighted-squares)
+;;;			    (alpha-beta-searcher2 6 modified-weighted-squares)
+;;;			    (alpha-beta-searcher2 8 modified-weighted-squares)
+;;;			    random-strategy)
+;;;		           10 10
+;;;		           '(MW AB-2-MW AB2-2-MW AB2-4-MW AB2-6-MW AB2-8-MW RANDOM))
+;;; MW                     8.57:  -----    6.0    4.5    2.5    2.5    2.0   18.5 
+;;; AB-2-MW               12.50:   14.0  -----   10.5    5.5    1.0    1.5   20.0 
+;;; AB2-2-MW              13.21:   15.5    9.5  -----    6.0    2.5    3.0   19.0 
+;;; AB2-4-MW              17.98:   17.5   14.5   14.0  -----    8.0    2.0   19.5 
+;;; AB2-6-MW              21.07:   17.5   19.0   17.5   12.0  -----    2.5   20.0 
+;;; AB2-8-MW              25.95:   18.0   18.5   17.0   18.0   17.5  -----   20.0 
+;;; RANDOM                 0.71:    1.5   00.0    1.0    0.5   00.0   00.0  ----- 
+;;; nil
+;;; reversi> 
