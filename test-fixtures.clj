@@ -21,10 +21,8 @@
 
 
 (ns reversi
-  (:load "reversi/reversi"
-	 "reversi/constants"
+  (:load "reversi/constants"
 	 "reversi/auxfns"
-	 "reversi/strategies"
 	 "reversi/GameOverException")
   (:use clojure.test)
   (:import (reversi GameOverException)))

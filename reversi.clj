@@ -23,9 +23,9 @@
 (ns reversi
   (:load "reversi/constants"
 	 "reversi/auxfns"
-	 "reversi/strategies"
 	 "reversi/GameOverException"
-	 "reversi/test-fixtures")
+	 "reversi/test-fixtures"
+	 "reversi/strategies")
   (:use clojure.test)
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]])
@@ -148,7 +148,8 @@
 	       (is (= (board-ref b 44) white) "")
 	       (is (= (board-ref b 45) black) "")
 	       (is (= (board-ref b 88) empty-square) "")
-	       (is (= (board-ref b 93) outer) "")))}
+	       (is (= (board-ref b 93) outer) "")
+	       (is (= (initial-board) *fixt-ib*))))}
   initial-board []
   ;; Boards are 100-element vectors (clojure.lang.PersistentVector),
   ;; with elements 11-88 used,

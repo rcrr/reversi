@@ -23,10 +23,13 @@
 (ns reversi
   (:load "reversi/constants"
 	 "reversi/auxfns"
+	 "reversi/GameOverException"
 	 "reversi/reversi")
+  (:use clojure.test)
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]])
-  (:require [clojure.contrib [fcase :as fcase]]))
+  (:require [clojure.contrib [fcase :as fcase]])
+  (:import (reversi GameOverException)))
 
 (defn
   #^{:doc "Given a sequence composed by numbers, return the index
