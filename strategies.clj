@@ -451,6 +451,16 @@
 
 
 ;;;
+;;; 18.10 - It Pays to Precycle
+;;;
+
+;;; Still not clear how to translate the board caching machinery.
+(comment
+  (defvar *ply-boards*
+    (apply #'vector (loop repeat 40 collect (initial-board)))))
+
+
+;;;
 ;;; 18.11 - Killer Moves
 ;;;
 
@@ -465,20 +475,16 @@
     (cons killer (remove (fn [item] (if (= item killer) true false)) moves))
     moves))
 
+(defn
+  #^{:doc "A-B search, putting killer moves first."}
+  alpha-beta3 [player board achievable cutoff ply eval-fn killer]
+  (if (= ply 0)
+    [(eval-fn player board) nil]
+    true)) ;;; to be continued ...
+
 ;;; still to be translated .....
 (comment
-  (defn alpha-beta-searcher3 [depth eval-fn]
-    "Return a strategy that does A-B search with killer moves."
-    #'(lambda (player board)
-	      (multiple-value-bind (value move)
-				   (alpha-beta3 player board losing-value winning-value
-						depth eval-fn nil)
-				   (declare (ignore value))
-				   move)))
-
-
-  (defun alpha-beta3 (player board achievable cutoff ply eval-fn
-			     killer)
+  (defun alpha-beta3 (player board achievable cutoff ply eval-fn killer)
     "A-B search, putting killer moves first."
     (if (= ply 0)
       (funcall eval-fn player board)
@@ -510,4 +516,85 @@
 					    (setf killer2-val val)))
 		  until (>= achievable cutoff))
 	    (values achievable best-move))))))
+
+  (defn
+    #^{:doc "Find the best move, for PLAYER, according to EVAL-FN,
+   searching PLY levels deep and backing up values,
+   using cutoff whenever possible."}
+    alpha-beta [player board achievable cutoff ply eval-fn]
+    ;; (println "alpha-beta: player=" player ", achievable=" achievable ", cutoff=" cutoff ", ply=" ply ", eval-fn=" eval-fn ", board=" board)
+    (if (= ply 0)
+      [(eval-fn player board) nil]
+      (let [moves (legal-moves player board)]
+	;; (println "alpha-beta: moves=" moves)
+	(if (empty? moves)
+	  (if (any-legal-move? (opponent player) board)
+	    (let [[v _] (alpha-beta (opponent player) board
+				    (- cutoff) (- achievable)
+				    (- ply 1) eval-fn)]
+	      [(- v) nil])
+	    [(final-value player board) nil])
+	  (let [best-move (atom (first moves))
+		ac (atom achievable)]
+	    (loop [xmoves moves]
+	      (when (not (empty? xmoves))
+		(let [move (first xmoves)
+		      board2 (make-move move player board)
+		      [v _] (alpha-beta
+			     (opponent player) board2
+			     (- cutoff) (- @ac)
+			     (- ply 1) eval-fn)
+		      val (- v)]
+		  (when (> val @ac)
+		    (reset! ac val)
+		    (reset! best-move move))
+		  (when (< @ac cutoff)
+		    (recur (rest xmoves))))))
+	    ;;(println "alpha-beta: ac=" @ac ", best-move=" @best-move ", ply=" ply)
+	    [@ac @best-move])))))
+
+  (defn
+    #^{:doc "A-B search, sorting moves by eval-fn."}
+    alpha-beta2 [player node achievable cutoff ply eval-fn]
+    ;; Returns two values: achievable-value and move-to-make
+    (if (= ply 0)
+      [(:value node) node]
+      (let [board (:board node)
+	    nodes (legal-nodes player board eval-fn)]
+	(if (empty? nodes)
+	  (if (any-legal-move? (opponent player) board)
+	    (let [[v _] (alpha-beta2 (opponent player)
+				     (negate-value node)
+				     (- cutoff) (- achievable)
+				     (- ply 1) eval-fn)]
+	      [(- v) nil])
+	    [(final-value player board) nil])
+	  (let [best-node (atom (first nodes))
+		ac (atom achievable)]
+	    (loop [xnodes nodes]
+	      (when (not (empty? xnodes))
+		(let [move (first xnodes)
+		      [v _] (alpha-beta2
+			     (opponent player)
+			     (negate-value move)
+			     (- cutoff) (- @ac)
+			     (- ply 1) eval-fn)
+		      val (- v)]
+		  (when (> val @ac)
+		    (reset! ac val)
+		    (reset! best-node move))
+		  (when (< @ac cutoff)
+		    (recur (rest xnodes))))))
+	    [@ac @best-node])))))
+  
   )
+
+
+(defn
+  #^{:doc "Return a strategy that does A-B search with killer moves."}
+  alpha-beta-searcher3 [depth eval-fn]
+  (fn [player board]
+    (let [[value move]
+	  (alpha-beta3 player board losing-value winning-value
+		       depth eval-fn nil)]
+      move)))
