@@ -30,25 +30,6 @@
 
 (defn get-internal-real-time [] (System/nanoTime))
 
-;;; The utility and correctess of these following three functions is not sure.
-
-(defn
-  #^{:doc "Concatenate a map and an append (conj) functions."}
-  mappend [f seq]
-  (apply conj (map f seq)))
-
-(defn
-  #^{:doc "Concatenate symbols or strings to form an interned symbol."}
-  i-symb [& args]
-  (intern *ns* (symbol (pprint/cl-format nil "~{~a~}" args))))
-
-(defn
-  #^{:doc "Return a list of all (f x y) values."}
-  cross-product [f xlist ylist]
-  (mappend (fn [y] (map (fn [x] (f x y))
-			xlist))
-	   ylist))
-
 (defn binomial
   "Calculate the binomial coefficient."
   [n k]

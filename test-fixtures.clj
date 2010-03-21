@@ -35,7 +35,8 @@
 	 *fixt-game-x*
 	 *fixt-board-34* *fixt-board-43*
 	 *fixt-board-56* *fixt-board-65*
-	 *fixt-game-y*)
+	 *fixt-game-y*
+	 *fixt-board-c*)
 
 (defn
   #^{:doc "Prepare a fiew board used by tests."}
@@ -153,7 +154,17 @@
 	    *fixt-game-y*
 	    '(d3 c3 b3 b2 c4 e3 f3 e2 d1 a3 a1 b4 b5 a4 a5 c2 a2 
 		 c5 e6 f5 c1 e1 f1 b1 f4 g1 h1 f2 d2 d7 g2 g3 h3 
-		 h2 g5 d6 g4 h5 g6 h4 h6 e7 f7 f8 f6 g7 e8 h7 c6)]
+		 h2 g5 d6 g4 h5 g6 h4 h6 e7 f7 f8 f6 g7 e8 h7 c6)
+	    *fixt-board-c* [3 3 3 3 3 3 3 3 3 3
+			    3 0 0 0 0 0 0 0 0 3
+			    3 0 0 0 0 0 0 0 0 3
+			    3 2 1 1 1 0 0 2 0 3
+			    3 0 2 0 2 1 2 0 0 3
+			    3 0 2 2 1 2 0 0 0 3
+			    3 0 0 1 1 0 2 0 0 3
+			    3 0 0 0 0 0 0 0 0 3
+			    3 0 0 0 0 0 0 0 0 3
+			    3 3 3 3 3 3 3 3 3 3]]
     (f)))
 
 (use-fixtures :each basic-test-fixture)

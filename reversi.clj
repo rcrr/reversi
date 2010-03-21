@@ -204,6 +204,9 @@
                   more than white.")
 	     (is (= (count-difference white *fixt-board-end-game-x*) -10) 
 		 "on *fixt-board-end-game-x* board white has 10 pieces 
+                  less than black.")
+	     (is (= (count-difference black *fixt-board-c*) -2) 
+		 "on *fixt-board-end-game-c* board black has -2 pieces 
                   less than black."))}
   count-difference [player board]
   (- (count-pieces board player)
@@ -377,7 +380,9 @@
 	     (is (= (legal-moves black *fixt-ib*) '(34 43 56 65))
 		 "Black's initial legal moves are d3, c4, f5, e6")
 	     (is (= (legal-moves white *fixt-board-a*) '(33 35 53))
-		 "White's valid moves are c3, e3, c5"))}
+		 "White's valid moves are c3, e3, c5")
+	     (is (= (legal-moves black *fixt-board-c*) '(28 41 43 47 51 56 62 65 77))
+		 "Black's valid moves are h2, a4, c4, g4, a5, f5, b6, e6, g7"))}
   legal-moves [player board]
   (filter (fn [move] (legal? move player board)) all-squares))
 

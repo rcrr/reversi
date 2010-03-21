@@ -94,7 +94,25 @@
       0   0   0   0  0  0   0   0   0 0])
 
 (defn
-  #^{:doc "Sum of the weights of player's squares minus opponents's."}
+  #^{:doc "Sum of the weights of player's squares minus opponents's."
+     :test (fn []
+	     (is (= (weighted-squares black *fixt-board-c*) 5))
+	     (letfn
+		 [(test-f 
+		   [move]
+		   (weighted-squares black
+				     (make-move move black
+						*fixt-board-c*)))]
+	       (are [x y] (= x y)
+		    (test-f 28) -13
+		    (test-f 41)   0
+		    (test-f 43)  20
+		    (test-f 47)   6
+		    (test-f 51)  -4
+		    (test-f 56)  14
+		    (test-f 62) -20
+		    (test-f 65)  14
+		    (test-f 77)   7)))}
   weighted-squares [player board]
   (let [opp (opponent player)]
     (reduce +
