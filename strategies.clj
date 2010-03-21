@@ -447,4 +447,67 @@
 ;;; AB2-8-MW              25.95:   18.0   18.5   17.0   18.0   17.5  -----   20.0 
 ;;; RANDOM                 0.71:    1.5   00.0    1.0    0.5   00.0   00.0  ----- 
 ;;; nil
-;;; reversi> 
+;;; reversi>
+
+
+;;;
+;;; 18.11 - Killer Moves
+;;;
+
+(defn
+  #^{:doc "Move the killer move to the front of the moves,
+   if the killer move is in fact a legal move."
+     :test (fn []
+	     (is (= (put-first 5 '(0 1 2 3 4 5 6 7 8)) '(5 0 1 2 3 4 6 7 8)))
+	     (is (= (put-first 9 '(0 1 2 3 4 5 6 7 8)) '(0 1 2 3 4 5 6 7 8))))}
+  put-first [killer moves]
+  (if (seq-utils/includes? moves killer)
+    (cons killer (remove (fn [item] (if (= item killer) true false)) moves))
+    moves))
+
+;;; still to be translated .....
+(comment
+  (defn alpha-beta-searcher3 [depth eval-fn]
+    "Return a strategy that does A-B search with killer moves."
+    #'(lambda (player board)
+	      (multiple-value-bind (value move)
+				   (alpha-beta3 player board losing-value winning-value
+						depth eval-fn nil)
+				   (declare (ignore value))
+				   move)))
+
+
+  (defun alpha-beta3 (player board achievable cutoff ply eval-fn
+			     killer)
+    "A-B search, putting killer moves first."
+    (if (= ply 0)
+      (funcall eval-fn player board)
+      (let ((moves (put-first killer (legal-moves-optimized player board))))
+	(if (null moves)
+	  (if (any-legal-move? (opponent player) board)
+	    (- (alpha-beta3 (opponent player) board
+			    (- cutoff) (- achievable)
+			    (- ply 1) eval-fn nil))
+	    (final-value player board))
+	  (let ((best-move (first moves))
+		(new-board (aref *ply-boards* ply))
+		(killer2 nil)
+		(killer2-val winning-value))
+	    (loop for move in moves
+		  do (multiple-value-bind (val reply)
+					  (alpha-beta3
+					   (opponent player)
+					   (make-move move player
+						      (replace new-board board))
+					   (- cutoff) (- achievable)
+					   (- ply 1) eval-fn killer2)
+					  (setf val (- val))
+					  (when (> val achievable)
+					    (setf achievable val)
+					    (setf best-move move))
+					  (when (and reply (< val killer2-val))
+					    (setf killer2 reply)
+					    (setf killer2-val val)))
+		  until (>= achievable cutoff))
+	    (values achievable best-move))))))
+  )
