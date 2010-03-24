@@ -480,7 +480,37 @@
   alpha-beta3 [player board achievable cutoff ply eval-fn killer]
   (if (= ply 0)
     [(eval-fn player board) nil]
-    true)) ;;; to be continued ...
+    (let [moves (put-first killer (legal-moves-optimized player board))]
+      (if (empty? moves)
+	(if (any-legal-move? (opponent player) board)
+	  (let [[v _] (alpha-beta3 (opponent player) board
+				   (- cutoff) (- achievable)
+				   (- ply 1) eval-fn nil)]
+	    [(- v) nil])
+	  [(final-value player board) nil])
+	(let [best-move (atom (first moves))
+	      new-board (create-board) ;;; should use the prepared vector ...
+	      killer2 (atom nil)
+	      killer2-val (atom winning-value)
+	      ac (atom achievable)]
+	  (loop [xmoves moves]
+	    (when (not (empty? xmoves))
+	      (let [move (first xmoves)
+		    board2 (make-move move player board)
+		    [v reply] (alpha-beta3
+			       (opponent player) board2
+			       (- cutoff) (- @ac)
+			       (- ply 1) eval-fn @killer2)
+		    val (- v)]
+		(when (> val @ac)
+		  (reset! ac val)
+		  (reset! best-move move))
+		(when (and reply (< val @killer2-val))
+		  (reset! killer2 reply)
+		  (reset! killer2-val val))
+		(when (< @ac cutoff)
+		  (recur (rest xmoves))))))
+	  [@ac @best-move])))))
 
 ;;; still to be translated .....
 (comment
