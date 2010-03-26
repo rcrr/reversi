@@ -480,7 +480,8 @@
   alpha-beta3 [player board achievable cutoff ply eval-fn killer]
   (if (= ply 0)
     [(eval-fn player board) nil]
-    (let [moves (put-first killer (legal-moves-optimized player board))]
+    (let [moves (put-first killer (legal-moves player board))] ;;; legal-moves-optimized
+      ;;(println "alpha-beta3 - moves: " moves)
       (if (empty? moves)
 	(if (any-legal-move? (opponent player) board)
 	  (let [[v _] (alpha-beta3 (opponent player) board
@@ -493,6 +494,7 @@
 	      killer2 (atom nil)
 	      killer2-val (atom winning-value)
 	      ac (atom achievable)]
+	  ;;(println "alpha-beta3 - best-move: " @best-move)
 	  (loop [xmoves moves]
 	    (when (not (empty? xmoves))
 	      (let [move (first xmoves)
@@ -502,6 +504,7 @@
 			       (- cutoff) (- @ac)
 			       (- ply 1) eval-fn @killer2)
 		    val (- v)]
+		;;(println "alpha-beta3 - val: " val ", move: " move)
 		(when (> val @ac)
 		  (reset! ac val)
 		  (reset! best-move move))
