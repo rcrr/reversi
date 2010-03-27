@@ -63,7 +63,9 @@
   #^{:doc "Return a strategy that will consider every legal move,
    apply ENVAL-FN to each resulting board, and choose
    the move for which EVAL-FN returns the best score.
-   FN takes two arguments: the player-to-move and board."}
+   FN takes two arguments: the player-to-move and board."
+     :test (fn []
+	     )}
   maximizer [eval-fn]
   (fn [player board]
     (let [moves (legal-moves player board)
@@ -631,3 +633,29 @@
 	  (alpha-beta3 player board losing-value winning-value
 		       depth eval-fn nil)]
       move)))
+
+(defn
+  #^{:doc "Current mobility is the number of legal moves.
+   Potential mobility is the number of blank squares
+   adiacent to an opponent that are not legal moves.
+   Returns current potential mobility for player."
+     :test (fn []
+	     (is (= (mobility black (initial-board)) [4 10]))
+	     (is (= (mobility white (initial-board)) [4 10]))
+	     (is (= (mobility black *fixt-board-c*) [9 22]))
+	     (is (= (mobility white *fixt-board-c*) [6 16]))
+	     (is (= (mobility black *fixt-board-black-has-to-pass*) [0 5]))
+	     (is (= (mobility black *fixt-board-end-game-x*) [0 0]))
+	     (is (= (mobility white *fixt-board-end-game-x*) [0 0])))}
+  mobility [player board]
+  (let [opp (opponent player)
+	current (atom 0)		; player's current mobility
+	potential (atom 0)]		; player's potential mobility
+    (doseq [square all-squares]
+      (when (= (board-ref board square) empty-square)
+	(cond (legal? square player board)
+	      (reset! current (inc @current))
+	      (some (fn [sq] (= (board-ref board sq) opp))
+		    (neighbors square))
+	      (reset! potential (inc @potential)))))
+    [@current (+ @current @potential)]))
