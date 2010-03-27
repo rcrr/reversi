@@ -362,7 +362,7 @@
     (values current (+ current potential))))
 
 ;;;
-;;; Mobility - Section Begin
+;;; Mobility - Section End
 ;;;
 
 ;;;
