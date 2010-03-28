@@ -83,4 +83,42 @@
 		   (if is-max val max)
 		   (if is-max index max-index)))))))
 
-
+(defn test-maximizer []
+  (let [test-weighted-squares
+	(fn [player board weights]
+	  (let [opp (opponent player)]
+	    (reduce + (map * weights
+			   (for [sq board]
+			     (fcase/case sq
+					 player 1
+					 opp -1
+					 outer 0
+					 empty-square 0))))))
+	*fixt-board-c* [3 3 3 3 3 3 3 3 3 3
+			3 0 0 0 0 0 0 0 0 3
+			3 0 0 0 0 0 0 0 0 3
+			3 2 1 1 1 0 0 2 0 3
+			3 0 2 0 2 1 2 0 0 3
+			3 0 2 2 1 2 0 0 0 3
+			3 0 0 1 1 0 2 0 0 3
+			3 0 0 0 0 0 0 0 0 3
+			3 0 0 0 0 0 0 0 0 3
+			3 3 3 3 3 3 3 3 3 3]
+	*fixt-weights-1* [0   0   0   0  0  0   0   0   0 0
+			  0   0   0   0  0  0   0   0   0 0
+			  0   0   0   0  0  0   0   0   0 0
+			  0   0   0   0  0  0   0   0   0 0
+			  0   0   0   0  0  0   1   1   0 0
+			  0   0   0   0  0  0   0   0   0 0
+			  0   0   0   0  0  0   0   0   0 0
+			  0   0   0   0  0  0   0   0   0 0
+			  0   0   0   0  0  0   0   0   0 0
+			  0   0   0   0  0  0   0   0   0 0]
+	tws-1 (fn [player0 board0] (test-weighted-squares player0 board0 *fixt-weights-1*))
+	max-tws-1 (fn [player1 board1] ((maximizer tws-1) player1 board1))
+	]
+    (println "(tws-1 black *fixt-board-c*): " (tws-1 black *fixt-board-c*))
+    (println "(max-tws-1 black *fixt-board-c*): " (max-tws-1 black *fixt-board-c*))
+    (println "(tws-1 black (make-move (max-tws-1 black *fixt-board-c*) black *fixt-board-c*)): " (tws-1 black (make-move (max-tws-1 black *fixt-board-c*) black *fixt-board-c*)))
+    
+    ))

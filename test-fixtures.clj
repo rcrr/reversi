@@ -27,6 +27,9 @@
   (:use clojure.test)
   (:import (reversi GameOverException)))
 
+;;; Test functions
+(declare test-weighted-squares)
+
 ;;; Unit test fixtures
 (declare *fixt-ib* *fixt-eb* *fixt-board-a* *fixt-board-b*
 	 *fixt-board-black-has-to-pass*
@@ -41,7 +44,20 @@
 (defn
   #^{:doc "Prepare a fiew board used by tests."}
   basic-test-fixture [f]
-  (binding [*fixt-ib* [3 3 3 3 3 3 3 3 3 3
+  (binding [
+	    ;;; Test functions
+	    test-weighted-squares
+	    (fn [player board weights]
+	      (let [opp (opponent player)]
+		(reduce + (map * weights
+			       (for [sq board]
+				 (fcase/case sq
+					     player 1
+					     opp -1
+					     outer 0
+					     empty-square 0))))))
+	    ;;; Fixtures
+	    *fixt-ib* [3 3 3 3 3 3 3 3 3 3
 		       3 0 0 0 0 0 0 0 0 3
 		       3 0 0 0 0 0 0 0 0 3
 		       3 0 0 0 0 0 0 0 0 3
@@ -164,7 +180,18 @@
 			    3 0 0 1 1 0 2 0 0 3
 			    3 0 0 0 0 0 0 0 0 3
 			    3 0 0 0 0 0 0 0 0 3
-			    3 3 3 3 3 3 3 3 3 3]]
+			    3 3 3 3 3 3 3 3 3 3]
+	    *fixt-weights-1* [0 0 0 0 0 0 0 0 0 0
+			      0 0 0 0 0 0 0 0 0 0
+			      0 0 0 0 0 0 0 0 0 0
+			      0 0 0 0 0 0 0 0 0 0
+			      0 0 0 0 0 0 1 1 0 0
+			      0 0 0 0 0 0 0 0 0 0
+			      0 0 0 0 0 0 0 0 0 0
+			      0 0 0 0 0 0 0 0 0 0
+			      0 0 0 0 0 0 0 0 0 0
+			      0 0 0 0 0 0 0 0 0 0]
+	    ]
     (f)))
 
 (use-fixtures :each basic-test-fixture)

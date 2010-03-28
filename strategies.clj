@@ -65,7 +65,16 @@
    the move for which EVAL-FN returns the best score.
    FN takes two arguments: the player-to-move and board."
      :test (fn []
-	     )}
+	     (let [weights *fixt-weights-1*
+		   board *fixt-board-c*
+		   tws (fn [p b] (test-weighted-squares p b weights))
+		   max-tws (fn [p b] ((maximizer tws) p b))
+		   value (tws black board)
+		   move (max-tws black board)
+		   next-value (tws black (make-move move black board))]
+	       (is (= value -1))
+	       (is (= move 47))
+	       (is (= next-value 2))))}
   maximizer [eval-fn]
   (fn [player board]
     (let [moves (legal-moves player board)
@@ -75,7 +84,6 @@
 			 (make-move move player board)))
 		      moves)
 	  best (index-of-max scores)]
-      (when *print* (println "maximizer: player, moves, scores, best: " player moves scores best))
       (nth moves best))))
 
 (defn
