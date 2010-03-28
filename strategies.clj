@@ -176,7 +176,13 @@
 
 
 (defn
-  #^{:doc "Is tihs a win, loss, or a draw for player?"}
+  #^{:doc "Is tihs a win, loss, or a draw for player?
+   The function doesn't check that the board doesn't have further moves."
+     :test (fn []
+	     (is (= (final-value black *fixt-board-end-game-x*) winning-value))
+	     (is (= (final-value white *fixt-board-end-game-x*) losing-value))
+	     (is (= (final-value black *fixt-ib*) 0))
+	     (is (= (final-value white *fixt-ib*) 0)))}
   final-value [player board]
   (let [cd (count-difference player board)]
     (fcase/case (Integer/signum cd)
