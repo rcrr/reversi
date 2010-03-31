@@ -23,9 +23,14 @@
 (ns reversi
   (:load "reversi/constants"
 	 "reversi/auxfns"
-	 "reversi/GameOverException")
+	 "reversi/GameOverException"
+	 "reversi/reversi")
+  (:require [clojure.contrib [fcase :as fcase]])
   (:use clojure.test)
   (:import (reversi GameOverException)))
+
+;;; Cross dependencies
+(declare opponent)
 
 ;;; Test functions
 (declare test-weighted-squares)
@@ -39,7 +44,8 @@
 	 *fixt-board-34* *fixt-board-43*
 	 *fixt-board-56* *fixt-board-65*
 	 *fixt-game-y*
-	 *fixt-board-c*)
+	 *fixt-board-c*
+	 *fixt-weights-1*)
 
 (defn
   #^{:doc "Prepare a fiew board used by tests."}

@@ -24,18 +24,13 @@
   (:load "reversi/constants"
 	 "reversi/auxfns"
 	 "reversi/GameOverException"
-	 "reversi/test-fixtures"
-	 "reversi/strategies")
+	 "reversi/test-fixtures")
   (:use clojure.test)
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]])
   (:require [clojure.contrib [math :as math]])
   (:require [clojure.contrib.generic [math-functions :as math-f]])
   (:import (reversi GameOverException)))
-
-;;; It is a global switch to turn on/off the verbose printing.
-;;; It is not very polished.
-(def *print* false)
 
 (defn
   #^{:doc "Return a specific character foreach valid piece value."
