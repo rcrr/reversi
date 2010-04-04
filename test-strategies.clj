@@ -28,39 +28,63 @@
   (:use clojure.test)
   (:import (reversi GameOverException)))
 
+;;; game-state fully identify a gama state.
+;;;  :player is the player that has to move
+;;;  :clock is the game clock
+;;;  :board is the game board 
 (defstruct game-state :player :clock :board)
-(defstruct game-node :game-state :previous-player :value)
-(defstruct game-branch :game-node :level :branches)
+
+;;; game-node add the board value to the game-state.
+;;;  :game-state is a game-state struct
+;;;  :value is the board evaluation
+(defstruct game-node :game-state :value)
+
+;;; game-branch adds the level and the list of branches to the node definition
+;;;  :move the move that originated the branch
+;;;  :game-node is a game-node struct
+;;;  :level is the branch level (0 is a leaf node)
+;;;  :branches is the list of further game-branche structures
+(defstruct game-branch :move :game-node :level :branches)
 
 ;;; This function finds its hown reason to exist because
 ;;; testing minimax further is really complex without it.
 ;;;
 ;;; (def b *fixt-board-c*)
 ;;; (def s (struct game-state black nil b))
-;;; (def n (struct game-node s white nil))
-;;; (game-tree n 0)
-;;; (game-tree n 1)
+;;; (game-tree n 0 nil)
+;;; (game-tree n 0 count-difference)
+;;; (game-tree n 1 count-difference)
 ;;;
-;;; value calculation is missing.
 ;;; pretty printing is missing.
 ;;; end of game is not handled.
 ;;; move passing is not handled.
 ;;; value roll-up is not considered.
 ;;; surely a unit test will be mandatory also for game-tree itself 
 (defn game-tree
-  [node level]
+  [state level eval-fn]
+  (let [e-fn (if (nil? eval-fn)
+	       (fn [_] nil)
+	       (fn [state] (eval-fn (:player state) (:board state))))
+	node (struct game-node state (e-fn state))]
+    (game-tree-walker node level nil e-fn)))
+
+(defn game-tree-walker
+  [node level move e-fn]
   (let [state (:game-state node)
 	p (:player state)
 	c (:clock state)
 	b (:board state)
-	pp (:previous-player node)
 	lm (legal-moves p b)
 	o (opponent p)
 	value (:value node)]
     (when (>= level 0)
-      (struct game-branch node level
+      (struct game-branch move node level
 	      (for [move lm]
-		(game-tree (struct game-node (struct game-state o c b) p value) (- level 1)))))))
+		(let [b (make-move move p b)
+		      state (struct game-state o c b)
+		      value (e-fn state)
+		      node (struct game-node state value)]
+		  (game-tree-walker node (- level 1) move e-fn)))))))
 
 (deftest test-minimax
   ;;; The following tests are not really checked.
