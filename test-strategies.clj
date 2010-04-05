@@ -64,18 +64,18 @@
 	lm (legal-moves p b)
 	o (opponent p)
 	value (:value node)]
-    (if (false? (game-over? state))
-      (when (>= level 0)
-	(struct game-branch move node level
-		(let [make-move (fn [m p b] (if (nil? m) b (make-move m p b)))
-		      lm (if (empty? lm) '(nil) lm)]
+    (when (>= level 0)
+      (struct game-branch move node level
+	      (let [make-move (fn [m p b] (if (nil? m) b (make-move m p b)))
+		    lm (if (empty? lm) '(nil) lm)]
+		(if (game-over? state)
+		  'game-over
 		  (for [move lm]
 		    (let [b (make-move move p b)
 			  state (struct game-state o c b)
 			  value (e-fn state)
 			  node (struct game-node state value)]
-		      (game-tree-walker move node (- level 1) e-fn))))))
-      'game-over)))
+		      (game-tree-walker move node (- level 1) e-fn)))))))))
 
 ;;; This function finds its hown reason to exist because
 ;;; testing minimax further is really complex without it.
@@ -87,7 +87,7 @@
 ;;; (game-tree n 1 count-difference)
 ;;;
 ;;; pretty printing is missing.
-;;; end of game is not handled.
+;;; end of game is not handled, but not the final value.
 ;;; value roll-up is not considered.
 ;;; surely a unit test will be mandatory also for game-tree itself 
 (defn game-tree
