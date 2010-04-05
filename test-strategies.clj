@@ -46,6 +46,37 @@
 ;;;  :branches is the list of further game-branche structures
 (defstruct game-branch :move :game-node :level :branches)
 
+
+;;; A few auxiliaries functions ....
+(defn game-over?
+  [state]
+  (if (and (nil? (any-legal-move? (:player state) (:board state)))
+	   (nil? (any-legal-move? (opponent (:player state)) (:board state))))
+    true
+    false))
+
+(defn game-tree-walker
+  [move node level e-fn]
+  (let [state (:game-state node)
+	p (:player state)
+	c (:clock state)
+	b (:board state)
+	lm (legal-moves p b)
+	o (opponent p)
+	value (:value node)]
+    (if (false? (game-over? state))
+      (when (>= level 0)
+	(struct game-branch move node level
+		(let [make-move (fn [m p b] (if (nil? m) b (make-move m p b)))
+		      lm (if (empty? lm) '(nil) lm)]
+		  (for [move lm]
+		    (let [b (make-move move p b)
+			  state (struct game-state o c b)
+			  value (e-fn state)
+			  node (struct game-node state value)]
+		      (game-tree-walker move node (- level 1) e-fn))))))
+      'game-over)))
+
 ;;; This function finds its hown reason to exist because
 ;;; testing minimax further is really complex without it.
 ;;;
@@ -57,7 +88,6 @@
 ;;;
 ;;; pretty printing is missing.
 ;;; end of game is not handled.
-;;; move passing is not handled.
 ;;; value roll-up is not considered.
 ;;; surely a unit test will be mandatory also for game-tree itself 
 (defn game-tree
@@ -66,25 +96,7 @@
 	       (fn [_] nil)
 	       (fn [state] (eval-fn (:player state) (:board state))))
 	node (struct game-node state (e-fn state))]
-    (game-tree-walker node level nil e-fn)))
-
-(defn game-tree-walker
-  [node level move e-fn]
-  (let [state (:game-state node)
-	p (:player state)
-	c (:clock state)
-	b (:board state)
-	lm (legal-moves p b)
-	o (opponent p)
-	value (:value node)]
-    (when (>= level 0)
-      (struct game-branch move node level
-	      (for [move lm]
-		(let [b (make-move move p b)
-		      state (struct game-state o c b)
-		      value (e-fn state)
-		      node (struct game-node state value)]
-		  (game-tree-walker node (- level 1) move e-fn)))))))
+    (game-tree-walker nil node level e-fn)))
 
 (deftest test-minimax
   ;;; The following tests are not really checked.
