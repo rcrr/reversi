@@ -87,16 +87,25 @@
 ;;; (game-tree n 1 count-difference)
 ;;;
 ;;; pretty printing is missing.
-;;; end of game is not handled, but not the final value.
 ;;; value roll-up is not considered.
 ;;; surely a unit test will be mandatory also for game-tree itself 
 (defn game-tree
   [state level eval-fn]
-  (let [e-fn (if (nil? eval-fn)
-	       (fn [_] nil)
-	       (fn [state] (eval-fn (:player state) (:board state))))
+  (let [e-fn (fn [state]
+	       (if (game-over? state)
+		 (final-value (:player state) (:board state))
+		 (if (nil? eval-fn)
+		   nil
+		   (eval-fn (:player state) (:board state)))))
 	node (struct game-node state (e-fn state))]
     (game-tree-walker nil node level e-fn)))
+
+;;; DFS (Depth-first search) Print game-tree function.
+(defn print-game-tree [branch]
+  (println "tree: " branch)
+  (when (not (empty? (:branches branch)))
+      (for [x (:branches branch)] (:move x))
+      (for [x (:branches branch)] (print-game-tree x))))
 
 (deftest test-minimax
   ;;; The following tests are not really checked.
