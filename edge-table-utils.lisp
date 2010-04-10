@@ -52,6 +52,9 @@
 
 (in-package :reversi)
 
+(defparameter *edge-table* (make-array (expt 3 10))
+  "Array of values to player-to-move for edge positions.")
+
 (let* ((tmp-dir (ensure-directories-exist
 		 (make-pathname :directory '(:relative "tmp"))))
        (tmp-reversi-dir (ensure-directories-exist
@@ -62,18 +65,19 @@
 					  :name "edge-table"
 					  :type "dat") tmp-reversi-dir)))
   
-  (defun persist-edge-table (edge-table)
-    (with-open-file (file (ensure-directories-exist edge-table-file)
+  (defun persist-edge-table (&optional (etf edge-table-file))
+    (with-open-file (file (ensure-directories-exist etf)
 			  :direction :output :if-exists :supersede)
       (format file "# Written by persist-edge-table function, in edge-table-utils.lisp file.")
-      (print (length edge-table) file)
-      (dotimes (value (length edge-table))
-	(print (aref edge-table value) file))))
+      (let ((len (length *edge-table*)))
+	(print len file)
+	(dotimes (value len)
+	  (print (aref *edge-table* value) file)))))
 
-  (defun retrieve-edge-table ()
-    (when (probe-file edge-table-file)
-      (format t "Reading file: ~a~&" edge-table-file)
-      (with-open-file (file edge-table-file :direction :input)
+  (defun retrieve-edge-table (&optional (etf edge-table-file))
+    (when (probe-file etf)
+      (format t "Reading file: ~a~&" etf)
+      (with-open-file (file etf :direction :input)
 	(format t "File header: ~a~&" (read-line file))
 	(let* ((len (read file))
 	       (edge-table (make-array len)))
@@ -82,8 +86,15 @@
 	    (setf (aref edge-table value) (read file)))
 	  edge-table))))
 
-  (defun delete-edge-table () nil)
+  (defun delete-edge-table (&optional (etf edge-table-file))
+    (when (probe-file etf)
+      (delete-file etf)))
 
-  (defun regenerate-edge-table () nil)
+  (defun regenerate-edge-table (&optional (etf edge-table-file))
+    (init-edge-table)
+    (persist-edge-table etf))
 
-  )
+  (defun load-edge-table (&optional (etf edge-table-file))
+    (if (not (probe-file etf))
+	(regenerate-edge-table etf)
+	(setf *edge-table* (retrieve-edge-table etf)))))

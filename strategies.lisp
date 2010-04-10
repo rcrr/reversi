@@ -369,9 +369,6 @@
 ;;; Edge Stability - Section Begin
 ;;;
 
-(defvar *edge-table* (make-array (expt 3 10))
-  "Array of values to player-to-move for edge positions.")
-
 (defun edge-index (player board squares)
   "The index counts 1 for player; 2 for opponent,
    on each square--summed as a base 3 number."
@@ -546,6 +543,8 @@
 
 ;;; #. is a read macro. Is to be verified how it works under sbcl.
 ;;; (setf *edge-table* '#.*edge-table*)
+(eval-when (:load-toplevel :execute)
+  (load-edge-table))
 
 ;;;
 ;;; Edge Stability - Section End

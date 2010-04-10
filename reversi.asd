@@ -70,7 +70,8 @@
 				   "constants"))
 	       (:file "strategies"
 		      :depends-on ("auxfns"
-				   "constants"))
+				   "constants"
+				   "edge-table-utils"))
 	       (:file "edge-table-utils"
 		      :depends-on ("auxfns"
 				   "constants"))))
