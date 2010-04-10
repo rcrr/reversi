@@ -29,6 +29,8 @@
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]])
   (:require [clojure.contrib [fcase :as fcase]])
+  (:require [clojure.contrib [math :as math]])
+  (:require [clojure.contrib.generic [math-functions :as math-f]])
   (:import (reversi GameOverException)))
 
 (defn
@@ -673,3 +675,64 @@
 		    (neighbors square))
 	      (reset! potential (inc @potential)))))
     [@current (+ @current @potential)]))
+
+;;;
+;;; Edge Stability - Section Begin
+;;;
+
+(def
+ #^{:doc "Array of values to player-to-move for edge positions."}
+ *edge-table* (make-array Integer (math/expt 3 10)))
+
+(def
+ #^{:doc "The four edges (with their X-squares)"}
+ edge-and-x-lists
+     '((22 11 12 13 14 15 16 17 18 27)
+       (72 81 82 83 84 85 86 87 88 77)
+       (22 11 21 31 41 51 61 71 81 72)
+       (27 18 28 38 48 58 68 78 88 77)))
+
+(defn
+  #^{:doc "The index counts 1 for player; 2 for opponent,
+   on each square--summed as a base 3 number."}
+  edge-index [player board squares]
+  (loop [index 0
+	 sqs squares]
+    (if (empty? sqs)
+      index
+      (recur
+       (+ (* index 3)
+	  (cond (= (board-ref board (first sqs)) empty-square) 0
+		(= (board-ref board (first sqs)) player) 1
+		true 2))
+       (rest sqs)))))
+
+
+(defn
+  #^{:doc "Total edge evaluation for player to move on board"}
+  edge-stability [player board]
+  (dotimes [i (count *edge-table*)] (aset *edge-table* i 0)) ;;; it has to be removed!!!
+  (reduce + (for [edge-list edge-and-x-lists]
+	      (aget *edge-table* (edge-index player board edge-list)))))
+
+
+;;; still to be added:
+;;;  -1- top-edge
+;;;  -2- init-edge-table
+;;;  -3- map-edge-n-pieces
+;;;  -4- possible-edge-moves-value
+;;;  -5- possibe-edge-move
+;;;  -6- combine-edge-moves
+;;;  -7- corner-p ....
+;;;  -8- edge-move-probability
+;;;  -9- count-edge-neighbors
+;;;  -10- *static-edge-table*
+;;;  -11- static-edge-stability
+;;;  -12- piece-stability
+;;;  -13- setf *edge-table*
+;;;
+;;; *edge-table* calculation, store, and retrieve functions has to be organized.
+
+;;;
+;;; Edge Stability - Section End
+;;;
