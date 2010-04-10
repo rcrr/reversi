@@ -1,6 +1,6 @@
 ;;;
 ;;; Copyright (c) 1998-2002 Peter Norvig
-;;; Copyright (c) 2009-2010 Roberto Corradini
+;;; Copyright (c) 2010 Roberto Corradini
 
 ;;; This file is part of the reversi program
 ;;; http://github.com/rcrr/reversi
@@ -49,28 +49,41 @@
 ;;; along with this program; if not, write to the Free Software
 ;;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 
-(defpackage #:reversi (:use :cl :asdf))
 
 (in-package :reversi)
 
-(defsystem reversi
-  :name "reversi"
-  :version "0.0.0"
-  :maintainer "Roberto Corradini <rob_corradini@yahoo.it>"
-  :author "Roberto Corradini <rob_corradini@yahoo.it>"
-  :licence "GNU Gpl v3"
-  :description "Reversi Board Game"
-  :long-description "Common Lisp implementation of the Reversi Board Game"
-  :serial nil
-  :depends-on ()
-  :components ((:file "constants")
-	       (:file "auxfns")
-	       (:file "reversi"
-		      :depends-on ("auxfns"
-				   "constants"))
-	       (:file "strategies"
-		      :depends-on ("auxfns"
-				   "constants"))
-	       (:file "edge-table-utils"
-		      :depends-on ("auxfns"
-				   "constants"))))
+(let* ((tmp-dir (ensure-directories-exist
+		 (make-pathname :directory '(:relative "tmp"))))
+       (tmp-reversi-dir (ensure-directories-exist
+			 (merge-pathnames (make-pathname
+					   :directory
+					   '(:relative "reversi")) tmp-dir)))
+       (edge-table-file (merge-pathnames (make-pathname
+					  :name "edge-table"
+					  :type "dat") tmp-reversi-dir)))
+  
+  (defun persist-edge-table (edge-table)
+    (with-open-file (file (ensure-directories-exist edge-table-file)
+			  :direction :output :if-exists :supersede)
+      (format file "# Written by persist-edge-table function, in edge-table-utils.lisp file.")
+      (print (length edge-table) file)
+      (dotimes (value (length edge-table))
+	(print (aref edge-table value) file))))
+
+  (defun retrieve-edge-table ()
+    (when (probe-file edge-table-file)
+      (format t "Reading file: ~a~&" edge-table-file)
+      (with-open-file (file edge-table-file :direction :input)
+	(format t "File header: ~a~&" (read-line file))
+	(let* ((len (read file))
+	       (edge-table (make-array len)))
+	  (format t "File length: ~a~&" len)
+	  (dotimes (value len)
+	    (setf (aref edge-table value) (read file)))
+	  edge-table))))
+
+  (defun delete-edge-table () nil)
+
+  (defun regenerate-edge-table () nil)
+
+  )
