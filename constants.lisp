@@ -77,6 +77,7 @@
 (define-constant winning-value most-positive-fixnum)
 (define-constant losing-value most-negative-fixnum)
 
+;;; PAIP 18.4 - Championship Programs: Iago and Bill - Edge Stability (p. 639)
 (define-constant edge-and-x-lists
     '((22 11 12 13 14 15 16 17 18 27)
       (72 81 82 83 84 85 86 87 88 77)
