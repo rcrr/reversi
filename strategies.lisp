@@ -530,7 +530,7 @@
 	     ;; unstable pieces can be captured immediately
 	     ;; by playing in the empty square
 	     ((or (and (eql p1 empty) (eql p2 opp))
-		  (and (eql p2 empty) (eql p2 opp)))
+		  (and (eql p2 empty) (eql p1 opp)))
 	      unstable)
 	     ;; semi-stable pieces might be captured
 	     ((and (eql p1 opp) (eql p2 opp)
