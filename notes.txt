@@ -1,0 +1,67 @@
+# 2010-04-10 (April 10th, 2010) - Running the CL round-robin tournament
+After "completing" the edge-table management utilities for the iago strategy, and fixing a typo into the function piece-stability, the Common Lisp codebase is working as expected.
+There is no Unit Testing, but the ability to reproduce the PAIP cases, and the result obtained below seams credible.
+
+Iago-8 (running at an 8 ply depth) won 39, among 40, games, losing once against Iago-4. Iago-4 is well positioned between Iago-8 and Modified-Weighted-Squares-8.
+Mod-Weigheted-8 is consistently beating Mod-Weighted-4, Random-Strategy was able to win just one game again Mod-Weighted-4.
+
+It is quite clear that the two strategies Iago, and Modified-Weighted-Squares (MSW) are doing a quite accetpable work, winning almost every match against the random player.
+It is also clear that the Iago strategy is superior to the MWS, and it is also proved that a "good strategy" (meaning a strategy that employee an heuristic board 
+evaluation that is able to discriminate two alternative boards with a some precedence of value) behave better searching more deeply.
+
+The case has been run into a time form, retaining some row performance indicators.
+Below are reported the PC specs.
+
+REVERSI> (time (round-robin
+		(list (iago 8)
+		      (iago 4)
+		      (alpha-beta-searcher3 8 #'modified-weighted-squares)
+		      (alpha-beta-searcher3 4 #'modified-weighted-squares)
+		      #'random-strategy)
+		5 10
+		'(iago-8 iago-4 mod-weighted-8 mod-weighted-4 random)))
+IAGO-8               39.0: ---   9.0 10.0 10.0 10.0 
+IAGO-4               27.0:  1.0 ---   6.0 10.0 10.0 
+MOD-WEIGHTED-8       24.0:  0.0  4.0 ---  10.0 10.0 
+MOD-WEIGHTED-4        9.0:  0.0  0.0  0.0 ---   9.0 
+RANDOM                1.0:  0.0  0.0  0.0  1.0 ---  
+Evaluation took:
+  4151.522 seconds of real time
+  4153.260000 seconds of total run time (4144.300000 user, 8.960000 system)
+  [ Run times consist of 62.400 seconds GC time, and 4090.860 seconds non-GC time. ]
+  100.04% CPU
+  9,964,005,341,016 processor cycles
+  1 page fault
+  267,407,000,784 bytes consed
+  
+NIL
+
+This is the output taken from /proc/cpuinfo:
+
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 23
+model name	: Intel(R) Core(TM)2 Duo CPU     T8300  @ 2.40GHz
+stepping	: 6
+cpu MHz		: 2401.000
+cache size	: 3072 KB
+physical id	: 0
+siblings	: 2
+core id		: 0
+cpu cores	: 2
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 10
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm 
+		  constant_tsc arch_perfmon pebs bts rep_good pni dtes64 monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr pdcm sse4_1 lahf_lm ida tpr_shadow vnmi flexpriority
+bogomips	: 4799.52
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 36 bits physical, 48 bits virtual
+power management:
+
+The PC has two cores, but the program is only using one thread, and so one core.
