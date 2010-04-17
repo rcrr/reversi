@@ -715,9 +715,141 @@
   (reduce + (for [edge-list edge-and-x-lists]
 	      (aget *edge-table* (edge-index player board edge-list)))))
 
+(def top-edge (first edge-and-x-lists))
 
-;;; still to be added:
-;;;  -1- top-edge
+(defn
+  #^{:doc "Initialize *edge-table*, starting from the empty board."}
+  init-edge-table []
+  ;; Initialize the static values
+  (comment
+    (loop for n-pieces from 0 to 10 do
+	  (map-edge-n-pieces
+	   #'(lambda (board index)
+		     (setf (aref *edge-table* index)
+			   (static-edge-stability black board)))
+	   black (initial-board) n-pieces top-edge 0)))
+  (comment
+    ;; Now iterate five times trying to improve:
+    (dotimes (i 5)
+      ;; Do the indexes with most pieces first
+      (loop for n-pieces from 9 downto 1 do
+	    (map-edge-n-pieces
+	     #'(lambda (board index)
+		       (setf (aref *edge-table* index)
+			     (possible-edge-moves-value
+			      black board index)))
+	     black (initial-board) n-pieces top-edge 0)))))
+
+(defn map-edge-n-pieces [fn player board n squares index] ())
+
+(defn possible-edge-moves-value [player board index] ())
+
+(defn possible-edge-move [player board sq] ())
+
+(defn
+  #^{:doc "Combines the best moves."}
+  combine-edge-moves [possibilities player]
+  (let [comparator-fn (if (== player black) > <)]
+    (loop [pairs (sort-by second comparator-fn possibilities)
+	   prob 1.0
+	   val 0.0]
+      (if (and (not (empty? pairs)) (>= prob 0.0))
+	(let [pair (first pairs)]
+	  (recur
+	   (rest pairs)
+	   (+ val (* prob (first pair) (second pair)))
+	   (- prob (* prob (first pair)))))
+	(math/round val)))))
+
+(let [corner_xsqs nil]
+  (defn corner? [sq] ())
+  (defn x-square? [sq] ())
+  (defn x-square-for [corner] ())
+  (defn corner-for [xsq] ()))
+
+(defn edge-move-probability [player board square] ())
+
+(defn
+  #^{:doc "Count the neighbors of this square occupied by player."
+     :test (fn []
+	     (are [p sq n] (= (count-edge-neighbors
+			    p *fixt-board-black-has-to-pass* sq) n)
+		  black 13 2
+		  white 13 0
+		  black 15 1
+		  white 15 1
+		  black 17 0
+		  white 17 1
+		  black 18 0
+		  white 18 0))}
+  count-edge-neighbors [player board square]
+  (count
+   (filter
+    (fn [inc] (= (board-ref board (+ square inc)) player)) [+1 -1])))
+
+(def *static-edge-table*
+     (to-array-2d [
+		   [  'x   0 -2000]	; X
+		   [ 700  'x    'x]	; corner
+		   [1200 200   -25]	; C
+		   [1000 200    75]	; A
+		   [1000 200    50]	; B
+		   [1000 200    50]	; B
+		   [1000 200    75]	; A
+		   [1200 200   -25]	; C
+		   [ 700  'x    'x]	; corner
+		   [  'x   0 -2000]	; X
+		   ]))
+
+(defn
+  #^{:doc "Compute this edge's static stability."}
+  static-edge-stability [player board]
+  (loop [squares top-edge
+	 i 0
+	 sum 0]
+    (if (empty? squares)
+      sum
+      (let [sq (first squares)
+	    p (board-ref board sq)
+	    x (aget *static-edge-table* i (piece-stability board sq))]
+	(recur
+	 (rest squares)
+	 (inc i)
+	 (+ sum (cond
+		 (= p empty-square) 0
+		 (= p player) x
+		 true (- x))))))))
+
+(let [stable 0
+      semi-stable 1
+      unstable 2]
+  (defn piece-stability [board sq]
+    (cond
+     (corner? sq) stable
+     (x-square? sq) (if (= (board-ref board (corner-for sq)) empty-square)
+		      unstable semi-stable)
+     true (let [player (board-ref board sq)
+		opp (opponent player)
+		p1 (first (filter #(not (== player %)) (subvec board sq 19)))
+		p2 (first (filter #(not (== player %)) (reverse (subvec board 11 sq))))]
+	    (cond
+	     ;; unstable pieces can be captured immediately
+	     ;; by playing in the empty square
+	     (or (and (= p1 empty-square) (= p2 opp))
+		 (and (= p2 empty-square) (= p1 opp)))
+	     unstable
+	     ;; semi-stable pieces might be captured
+	     (and (= p1 opp) (= p2 opp)
+		  (first (filter #(== empty-square %) (subvec board 11 19))))
+	     semi-stable
+	     (and (= p1 empty-square) (= p2 empty-square))
+	     semi-stable
+	     ;; stable pieces can never be captured
+	     true stable)))))
+
+;;; (setf *edge-table* ...)
+
+;;;
 ;;;  -2- init-edge-table
 ;;;  -3- map-edge-n-pieces
 ;;;  -4- possible-edge-moves-value
