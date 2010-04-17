@@ -801,24 +801,6 @@
 		   [  'x   0 -2000]	; X
 		   ]))
 
-(defn
-  #^{:doc "Compute this edge's static stability."}
-  static-edge-stability [player board]
-  (loop [squares top-edge
-	 i 0
-	 sum 0]
-    (if (empty? squares)
-      sum
-      (let [sq (first squares)
-	    p (board-ref board sq)
-	    x (aget *static-edge-table* i (piece-stability board sq))]
-	(recur
-	 (rest squares)
-	 (inc i)
-	 (+ sum (cond
-		 (= p empty-square) 0
-		 (= p player) x
-		 true (- x))))))))
 
 (let [stable 0
       semi-stable 1
@@ -846,6 +828,27 @@
 	     semi-stable
 	     ;; stable pieces can never be captured
 	     true stable)))))
+
+(defn
+  #^{:doc "Compute this edge's static stability."}
+  static-edge-stability [player board]
+  (loop [squares top-edge
+	 i 0
+	 sum 0]
+    (if (empty? squares)
+      sum
+      (let [sq (first squares)
+	    p (board-ref board sq)
+	    x (aget *static-edge-table* i (piece-stability board sq))]
+	(recur
+	 (rest squares)
+	 (inc i)
+	 (+ sum (cond
+		 (= p empty-square) 0
+		 (= p player) x
+		 true (- x))))))))
+
+
 
 ;;; (setf *edge-table* ...)
 
