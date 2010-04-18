@@ -866,6 +866,7 @@
    (filter
     (fn [inc] (= (board-ref board (+ square inc)) player)) [+1 -1])))
 
+;;; OK
 (def *static-edge-table*
      (to-array-2d [
 		   [  'x   0 -2000]	; X
@@ -880,11 +881,20 @@
 		   [  'x   0 -2000]	; X
 		   ]))
 
-;;; KO!!!
+;;; OK
 (let [stable 0
       semi-stable 1
       unstable 2]
-  (defn piece-stability [board sq]
+  (defn
+    #^{:doc "Computes piece stability. It works only applyed to the top edge.
+     Returns a ten values sequence containing the piece stability for the edge.
+     Values are: 0 for stable, 1 for semi-stable, and 2 for unstable."
+       :test (fn []
+	       (are [board ps] (= (for [sq top-edge] (piece-stability board sq)) ps)
+		    *fixt-board-black-has-to-pass* '(1 0 2 1 1 0 1 0 0 2)
+		    (initial-board) '(2 0 0 0 0 0 0 0 0 2)
+		    *fixt-board-edge-index* '(1 0 0 0 0 0 0 0 0 1)))}
+    piece-stability [board sq]
     (cond
      (corner? sq) stable
      (x-square? sq) (if (= (board-ref board (corner-for sq)) empty-square)
@@ -908,9 +918,16 @@
 	     ;; stable pieces can never be captured
 	     true stable)))))
 
-;;; KO!!!
+;;; OK
 (defn
-  #^{:doc "Compute this edge's static stability."}
+  #^{:doc "Compute this edge's static stability."
+     :test (fn []
+	     (are [player board ses] (= (static-edge-stability player board) ses)
+		  black *fixt-board-edge-index* 7800
+		  white *fixt-board-edge-index* -7800
+		  black (initial-board) 0
+		  white (initial-board) 0
+		  black *fixt-board-black-has-to-pass* -2725))}
   static-edge-stability [player board]
   (loop [squares top-edge
 	 i 0
@@ -932,6 +949,8 @@
 
 ;;; (setf *edge-table* ...)
 
+;;;   
+;;;  --- To be completed and tested:
 ;;;
 ;;;  -2- init-edge-table
 ;;;  -3- map-edge-n-pieces
@@ -940,10 +959,6 @@
 ;;;  -6- combine-edge-moves
 ;;;  -7- corner-p ....
 ;;;  -8- edge-move-probability
-;;;  -9- count-edge-neighbors
-;;;  -10- *static-edge-table*
-;;;  -11- static-edge-stability
-;;;  -12- piece-stability
 ;;;  -13- setf *edge-table*
 ;;;
 ;;; *edge-table* calculation, store, and retrieve functions has to be organized.
