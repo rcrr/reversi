@@ -45,7 +45,8 @@
 	 *fixt-board-56* *fixt-board-65*
 	 *fixt-game-y*
 	 *fixt-board-c*
-	 *fixt-weights-1*)
+	 *fixt-weights-1*
+	 *fixt-board-edge-index*)
 
 (defn
   #^{:doc "Prepare a fiew board used by tests."}
@@ -197,6 +198,16 @@
 			      0 0 0 0 0 0 0 0 0 0
 			      0 0 0 0 0 0 0 0 0 0
 			      0 0 0 0 0 0 0 0 0 0]
+	    *fixt-board-edge-index* [3 3 3 3 3 3 3 3 3 3
+				     3 1 1 1 1 1 1 1 1 3
+				     3 0 1 0 0 0 0 1 0 3
+				     3 0 0 0 0 0 0 0 0 3
+				     3 0 0 0 0 0 0 0 0 3
+				     3 0 0 0 0 0 0 0 0 3
+				     3 0 0 0 0 0 0 0 0 3
+				     3 0 0 0 0 0 0 0 0 3
+				     3 0 0 0 0 0 0 0 0 3
+				     3 3 3 3 3 3 3 3 3 3]
 	    ]
     (f)))
 

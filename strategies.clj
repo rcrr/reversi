@@ -680,10 +680,12 @@
 ;;; Edge Stability - Section Begin
 ;;;
 
+;;; OK
 (def
  #^{:doc "Array of values to player-to-move for edge positions."}
  *edge-table* (make-array Integer (math/expt 3 10)))
 
+;;; OK
 (def
  #^{:doc "The four edges (with their X-squares)"}
  edge-and-x-lists
@@ -692,9 +694,25 @@
        (22 11 21 31 41 51 61 71 81 72)
        (27 18 28 38 48 58 68 78 88 77)))
 
+;;; OK
+(def top-edge (first edge-and-x-lists))
+(def bottom-edge (second edge-and-x-lists))
+(def left-edge (nth edge-and-x-lists 2))
+(def right-edge (nth edge-and-x-lists 3))
+
+;;; OK
 (defn
   #^{:doc "The index counts 1 for player; 2 for opponent,
-   on each square--summed as a base 3 number."}
+   on each square--summed as a base 3 number."
+     :test (fn []
+	     (are [p b squares idx] (= (edge-index p b squares) idx)
+		  white *fixt-board-black-has-to-pass* top-edge 50816
+		  black *fixt-board-black-has-to-pass* top-edge 35290
+		  white *fixt-board-end-game-x* top-edge 29564
+		  black *fixt-board-end-game-x* top-edge 59008
+		  white (initial-board) top-edge 0
+		  white *fixt-board-edge-index* top-edge 59048
+		  black *fixt-board-edge-index* top-edge 29524))}
   edge-index [player board squares]
   (loop [index 0
 	 sqs squares]
@@ -708,6 +726,7 @@
        (rest sqs)))))
 
 
+;;; KO!!!
 (defn
   #^{:doc "Total edge evaluation for player to move on board"}
   edge-stability [player board]
@@ -715,8 +734,7 @@
   (reduce + (for [edge-list edge-and-x-lists]
 	      (aget *edge-table* (edge-index player board edge-list)))))
 
-(def top-edge (first edge-and-x-lists))
-
+;;; KO!!!
 (defn
   #^{:doc "Initialize *edge-table*, starting from the empty board."}
   init-edge-table []
@@ -740,12 +758,52 @@
 			      black board index)))
 	     black (initial-board) n-pieces top-edge 0)))))
 
-(defn map-edge-n-pieces [fn player board n squares index] ())
+;;; KO!!!
+(defn
+  #^{:doc "Call fun on all edges with n pieces."}
+  map-edge-n-pieces [fun player board n squares index]
+  ;; Index counts 1 for player; 2 for opponent
+  (cond
+   (< (count squares) n) nil
+   (empty? squares) (fun board index)
+   true (let [index3 (* 3 index)
+	      sq (first squares)]
+	  (map-edge-n-pieces fun player board n (rest squares) index3)
+	  (when (and (> n 0) (== (board-ref board sq) empty-square))
+	    (map-edge-n-pieces fun player
+			       (board-set board sq player)
+			       (- n 1) (rest squares)
+			       (+ 1 index3))
+	    (map-edge-n-pieces fun player
+			       (board-set board sq (opponent player))
+			       (- n 1) (rest squares)
+			       (+ 2 index3))
+	    board))))
 
-(defn possible-edge-moves-value [player board index] ())
 
-(defn possible-edge-move [player board sq] ())
+;;; KO!!!
+(defn
+  #^{:doc "Consider all possible edge moves.
+   Combine their values into a single number."}
+  possible-edge-moves-value [player board index]
+  (combine-edge-moves
+   (cons
+    (list 1.0 (aget *edge-table* index)) ;; no move
+    (for [sq top-edge :when (== (board-ref board sq) empty-square)]
+      (possible-edge-move player board sq)))
+   player))
 
+;;; KO!!!
+(defn
+  #^{:doc "Return a (prob val) pair for a possible edge move."}
+  possible-edge-move [player board sq]
+  (let [new-board (make-move sq player board)]
+    (list (edge-move-probability player board sq)
+	  (- (aget *edge-table*
+		   (edge-index (opponent player)
+			       new-board top-edge))))))
+
+;;; KO!!!
 (defn
   #^{:doc "Combines the best moves."}
   combine-edge-moves [possibilities player]
@@ -761,14 +819,35 @@
 	   (- prob (* prob (first pair)))))
 	(math/round val)))))
 
-(let [corner_xsqs nil]
-  (defn corner? [sq] ())
-  (defn x-square? [sq] ())
-  (defn x-square-for [corner] ())
-  (defn corner-for [xsq] ()))
+;;; KO!!!
+(let [corner_xsqs [{:c 11 :x 22} {:c 18 :x 27} {:c 81 :x 72} {:c 88 :x 77}]]
+  (defn corner? [sq] (first (for [cx corner_xsqs :when (== (:c cx) sq)] cx)))
+  (defn x-square? [sq] (first (for [cx corner_xsqs :when (== (:x cx) sq)] cx)))
+  (defn x-square-for [corner] (first (for [cx corner_xsqs :when (== (:c cx) corner)] (:x cx))))
+  (defn corner-for [xsq] (first (for [cx corner_xsqs :when (== (:x cx) xsq)] (:c cx)))))
 
-(defn edge-move-probability [player board square] ())
+;;; KO!!!
+(defn
+  #^{:doc "What's the probability that player can move to this square?"}
+  edge-move-probability [player board square]
+  (cond
+   (x-square? square) 0.5		; X-squares
+   (legal? square player board) 1.0	; immediate capture
+   (corner? square)		  ; move to corner depends on X-square
+   (let [x-sq (x-square-for square)]
+     (cond
+      (== (board-ref board x-sq) empty) 0.1
+      (== (board-ref board x-sq) player) 0.001
+      true 0.9))
+   true (/ (aget
+	    (to-array-2d [[0.10 0.40 0.70]
+			  [0.05 0.30   'x]
+			  [0.01   'x   'x]])
+	    (count-edge-neighbors player board square)
+	    (count-edge-neighbors (opponent player) board square))
+	   (if (legal? square (opponent player) board) 2 1))))
 
+;;; OK
 (defn
   #^{:doc "Count the neighbors of this square occupied by player."
      :test (fn []
@@ -801,7 +880,7 @@
 		   [  'x   0 -2000]	; X
 		   ]))
 
-
+;;; KO!!!
 (let [stable 0
       semi-stable 1
       unstable 2]
@@ -829,6 +908,7 @@
 	     ;; stable pieces can never be captured
 	     true stable)))))
 
+;;; KO!!!
 (defn
   #^{:doc "Compute this edge's static stability."}
   static-edge-stability [player board]
