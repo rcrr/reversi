@@ -826,9 +826,19 @@
   (defn x-square-for [corner] (first (for [cx corner_xsqs :when (== (:c cx) corner)] (:x cx))))
   (defn corner-for [xsq] (first (for [cx corner_xsqs :when (== (:x cx) xsq)] (:c cx)))))
 
-;;; KO!!!
+;;; OK
+;;; It has the same result given by the CL version.
+;;; A bit more of investigation should be done.
 (defn
-  #^{:doc "What's the probability that player can move to this square?"}
+  #^{:doc "What's the probability that player can move to this square?"
+     :test (fn []
+	     (is (= (for [sq all-squares]
+		      (edge-move-probability white *fixt-board-black-has-to-pass* sq))
+		    '(0.9 0.05 1.0 0.1 1.0 0.1 1.0 1.0 0.4 0.5 0.7 0.7 0.7 0.7 0.5
+			  0.4 1.0 0.05 0.3 0.3 0.3 0.3 0.3 0.05 1.0 0.05 0.7 0.01 0.3 
+			  0.01 0.01 0.05 1.0 0.05 0.7 0.01 0.3 0.01 0.01 0.05 1.0 0.05 
+			  0.7 0.3 0.3 0.7 0.01 0.4 1.0 0.5 0.7 0.3 0.7 0.7 0.5 1.0 0.9 
+			  0.01 0.01 0.01 0.01 0.3 0.01 0.9))))}
   edge-move-probability [player board square]
   (cond
    (x-square? square) 0.5		; X-squares
@@ -836,7 +846,7 @@
    (corner? square)		  ; move to corner depends on X-square
    (let [x-sq (x-square-for square)]
      (cond
-      (== (board-ref board x-sq) empty) 0.1
+      (== (board-ref board x-sq) empty-square) 0.1
       (== (board-ref board x-sq) player) 0.001
       true 0.9))
    true (/ (aget
