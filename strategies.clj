@@ -821,10 +821,30 @@
 
 ;;; KO!!!
 (let [corner_xsqs [{:c 11 :x 22} {:c 18 :x 27} {:c 81 :x 72} {:c 88 :x 77}]]
-  (defn corner? [sq] (first (for [cx corner_xsqs :when (== (:c cx) sq)] cx)))
-  (defn x-square? [sq] (first (for [cx corner_xsqs :when (== (:x cx) sq)] cx)))
-  (defn x-square-for [corner] (first (for [cx corner_xsqs :when (== (:c cx) corner)] (:x cx))))
-  (defn corner-for [xsq] (first (for [cx corner_xsqs :when (== (:x cx) xsq)] (:c cx)))))
+  (defn
+    #^{:doc "Is the square a corner? If yes the corner map is returned, otherwise nil."
+       :test (fn []
+	       (is (= (corner? 11) {:c 11 :x 22}))
+	       (are [sq] (if (corner? sq) true false)
+		    11 18 81 88)
+	       (are [sq] (not (if (corner? sq) true false))
+		    0 10 12 21 22 68 100))}
+    corner? [sq] (first (for [cx corner_xsqs :when (== (:c cx) sq)] cx)))
+  (defn
+    #^{:doc "Is the square an x square? If yes the corner map is returned, otherwise nil."
+       :test (fn []
+	       (is (= (x-square? 77) {:c 88 :x 77}))
+	       (are [sq] (if (x-square? sq) true false)
+		    22 27 72 77)
+	       (are [sq] (not (if (x-square? sq) true false))
+		    0 10 12 21 23 68 100))}
+    x-square? [sq] (first (for [cx corner_xsqs :when (== (:x cx) sq)] cx)))
+  (defn
+    #^{:doc ""}
+    x-square-for [corner] (first (for [cx corner_xsqs :when (== (:c cx) corner)] (:x cx))))
+  (defn
+    #^{:doc ""}
+    corner-for [xsq] (first (for [cx corner_xsqs :when (== (:x cx) xsq)] (:c cx)))))
 
 ;;; OK
 ;;; It has the same result given by the CL version.
