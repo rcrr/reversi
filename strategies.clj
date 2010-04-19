@@ -803,9 +803,15 @@
 		   (edge-index (opponent player)
 			       new-board top-edge))))))
 
-;;; KO!!!
+;;; OK
 (defn
-  #^{:doc "Combines the best moves."}
+  #^{:doc "Combines the best moves."
+     :test (fn []
+	     (are [poss player value] (= (combine-edge-moves poss player) value)
+		  '((1.0 5800) (0.5 5800)) black 5800
+		  '((1.0 5800) (0.5 5800)) white 5800
+		  '((1.0 2075) (0.005 4000)) black 2085
+		  '((1.0 2075) (0.005 4000)) white 2075))}
   combine-edge-moves [possibilities player]
   (let [comparator-fn (if (== player black) > <)]
     (loop [pairs (sort-by second comparator-fn possibilities)
@@ -815,11 +821,11 @@
 	(let [pair (first pairs)]
 	  (recur
 	   (rest pairs)
-	   (+ val (* prob (first pair) (second pair)))
-	   (- prob (* prob (first pair)))))
+	   (- prob (* prob (first pair)))
+	   (+ val (* prob (first pair) (second pair)))))
 	(math/round val)))))
 
-;;; KO!!!
+;;; OK
 (let [corner_xsqs [{:c 11 :x 22} {:c 18 :x 27} {:c 81 :x 72} {:c 88 :x 77}]]
   (defn
     #^{:doc "Is the square a corner? If yes the corner map is returned, otherwise nil."
@@ -840,10 +846,20 @@
 		    0 10 12 21 23 68 100))}
     x-square? [sq] (first (for [cx corner_xsqs :when (== (:x cx) sq)] cx)))
   (defn
-    #^{:doc ""}
+    #^{:doc "Returns the x-square's corner, otherwise nil."
+       :test (fn []
+	       (are [corner x-sq] (== (x-square-for corner) x-sq)
+		    11 22, 18 27, 81 72, 88 77)
+	       (are [corner] (= (x-square-for corner) nil)
+		    0 10 12 21 22 67))}
     x-square-for [corner] (first (for [cx corner_xsqs :when (== (:c cx) corner)] (:x cx))))
   (defn
-    #^{:doc ""}
+    #^{:doc "Returns the corner's x-square, otherwise nil."
+       :test (fn []
+	       (are [corner x-sq] (== (corner-for x-sq) corner)
+		    11 22, 18 27, 81 72, 88 77)
+	       (are [x-sq] (= (corner-for x-sq) nil)
+		    0 10 11 21 66 100))}
     corner-for [xsq] (first (for [cx corner_xsqs :when (== (:x cx) xsq)] (:c cx)))))
 
 ;;; OK
