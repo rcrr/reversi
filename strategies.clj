@@ -793,9 +793,18 @@
       (possible-edge-move player board sq)))
    player))
 
-;;; KO!!!
+;;; OK
 (defn
-  #^{:doc "Return a (prob val) pair for a possible edge move."}
+  #^{:doc "Return a (prob val) pair for a possible edge move."
+     :test (fn []
+	     (binding [*edge-table* (make-array Integer (math/expt 3 10))]
+	       (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
+	       (are [player sq pem]
+		    (=
+		     (possible-edge-move player *fixt-board-black-has-to-pass* sq)
+		     pem)
+		    black 71 '(0.025 -50816)
+		    white 13 '(1.0 -38935))))}
   possible-edge-move [player board sq]
   (let [new-board (make-move sq player board)]
     (list (edge-move-probability player board sq)
