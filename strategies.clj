@@ -726,11 +726,18 @@
        (rest sqs)))))
 
 
-;;; KO!!!
+;;; OK
 (defn
-  #^{:doc "Total edge evaluation for player to move on board"}
+  #^{:doc "Total edge evaluation for player to move on board"
+     :test (fn []
+	     (binding [*edge-table* (make-array Integer (math/expt 3 10))]
+	       (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
+	       (are [player es]
+		    (= (edge-stability player *fixt-board-black-has-to-pass*) es)
+		    white 192977
+		    black 135868)))}
   edge-stability [player board]
-  (dotimes [i (count *edge-table*)] (aset *edge-table* i 0)) ;;; it has to be removed!!!
+  ;;; (dotimes [i (count *edge-table*)] (aset *edge-table* i 0)) ;;; it has to be removed!!!
   (reduce + (for [edge-list edge-and-x-lists]
 	      (aget *edge-table* (edge-index player board edge-list)))))
 
@@ -781,10 +788,18 @@
 	    board))))
 
 
-;;; KO!!!
+;;; OK (but not sure!)
 (defn
   #^{:doc "Consider all possible edge moves.
-   Combine their values into a single number."}
+   Combine their values into a single number."
+     :test (fn []
+	     (binding [*edge-table* (make-array Integer (math/expt 3 10))]
+	       (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
+	       (are [player index pem]
+		    (=
+		     (possible-edge-moves-value player *fixt-board-black-has-to-pass* index)
+		     pem)
+		    white 13 -38935)))}
   possible-edge-moves-value [player board index]
   (combine-edge-moves
    (cons
