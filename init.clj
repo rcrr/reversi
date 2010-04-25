@@ -27,5 +27,6 @@
 (clojure.core/load "reversi/test-fixtures")
 (clojure.core/load "reversi/strategies")
 (clojure.core/load "reversi/test-strategies")
+(clojure.core/load "reversi/edge-table-utils")
 
 (run-tests 'reversi)

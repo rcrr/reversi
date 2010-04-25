@@ -26,14 +26,12 @@
 	 "reversi/GameOverException"
 	 "reversi/reversi")
   (:use clojure.test)
-  (:require [clojure.contrib [duck-streams :as duck-streams]])
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]])
   (:require [clojure.contrib [fcase :as fcase]])
   (:require [clojure.contrib [math :as math]])
   (:require [clojure.contrib.generic [math-functions :as math-f]])
-  (:import (reversi GameOverException))
-  (:import (java.io PrintWriter)))
+  (:import (reversi GameOverException)))
 
 (defn
   #^{:doc "Given a sequence composed by numbers, return the index
@@ -569,9 +567,7 @@
 ;;;
 
 ;;; OK
-(def
- #^{:doc "Array of values to player-to-move for edge positions."}
- *edge-table* (make-array Integer (math/expt 3 10)))
+(declare *edge-table*)
 
 ;;; OK
 (def
@@ -906,30 +902,6 @@
 	 (aset *edge-table* index
 	       (possible-edge-moves-value black board index)))
        black (initial-board) n-pieces top-edge 0))))
-
-(comment
-  (with-open [#^PrintWriter w (duck-streams/writer "init-edge-table-out-clj.txt")]
-    (dotimes [i (count *edge-table*)]
-      (.print w i)
-      (.print w ", ")
-      (.print w (aget *edge-table* i))
-      (.println w))))
-
-;;; (setf *edge-table* ...)
-
-;;;   
-;;;  --- To be completed and tested:
-;;;
-;;;  -2- init-edge-table
-;;;  -3- map-edge-n-pieces
-;;;  -4- possible-edge-moves-value
-;;;  -5- possibe-edge-move
-;;;  -6- combine-edge-moves
-;;;  -7- corner-p ....
-;;;  -8- edge-move-probability
-;;;  -13- setf *edge-table*
-;;;
-;;; *edge-table* calculation, store, and retrieve functions has to be organized.
 
 ;;;
 ;;; Edge Stability - Section End
