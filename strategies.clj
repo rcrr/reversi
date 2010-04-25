@@ -26,12 +26,14 @@
 	 "reversi/GameOverException"
 	 "reversi/reversi")
   (:use clojure.test)
+  (:require [clojure.contrib [duck-streams :as duck-streams]])
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]])
   (:require [clojure.contrib [fcase :as fcase]])
   (:require [clojure.contrib [math :as math]])
   (:require [clojure.contrib.generic [math-functions :as math-f]])
-  (:import (reversi GameOverException)))
+  (:import (reversi GameOverException))
+  (:import (java.io PrintWriter)))
 
 (defn
   #^{:doc "Given a sequence composed by numbers, return the index
@@ -253,11 +255,9 @@
    searching PLY levels deep and backing up values,
    using cutoff whenever possible."}
   alpha-beta [player board achievable cutoff ply eval-fn]
-  ;; (println "alpha-beta: player=" player ", achievable=" achievable ", cutoff=" cutoff ", ply=" ply ", eval-fn=" eval-fn ", board=" board)
   (if (= ply 0)
     [(eval-fn player board) nil]
     (let [moves (legal-moves player board)]
-      ;; (println "alpha-beta: moves=" moves)
       (if (empty? moves)
 	(if (any-legal-move? (opponent player) board)
 	  (let [[v _] (alpha-beta (opponent player) board
@@ -277,11 +277,10 @@
 			   (- ply 1) eval-fn)
 		    val (- v)]
 		(when (> val @ac)
-		    (reset! ac val)
-		    (reset! best-move move))
+		  (reset! ac val)
+		  (reset! best-move move))
 		(when (< @ac cutoff)
 		  (recur (rest xmoves))))))
-	  ;;(println "alpha-beta: ac=" @ac ", best-move=" @best-move ", ply=" ply)
 	  [@ac @best-move])))))
 
 (defn
@@ -499,7 +498,6 @@
   (if (= ply 0)
     [(eval-fn player board) nil]
     (let [moves (put-first killer (legal-moves player board))] ;;; legal-moves-optimized
-      ;;(println "alpha-beta3 - moves: " moves)
       (if (empty? moves)
 	(if (any-legal-move? (opponent player) board)
 	  (let [[v _] (alpha-beta3 (opponent player) board
@@ -512,7 +510,6 @@
 	      killer2 (atom nil)
 	      killer2-val (atom winning-value)
 	      ac (atom achievable)]
-	  ;;(println "alpha-beta3 - best-move: " @best-move)
 	  (loop [xmoves moves]
 	    (when (not (empty? xmoves))
 	      (let [move (first xmoves)
@@ -522,7 +519,6 @@
 			       (- cutoff) (- @ac)
 			       (- ply 1) eval-fn @killer2)
 		    val (- v)]
-		;;(println "alpha-beta3 - val: " val ", move: " move)
 		(when (> val @ac)
 		  (reset! ac val)
 		  (reset! best-move move))
@@ -532,114 +528,6 @@
 		(when (< @ac cutoff)
 		  (recur (rest xmoves))))))
 	  [@ac @best-move])))))
-
-;;; still to be translated .....
-(comment
-  (defun alpha-beta3 (player board achievable cutoff ply eval-fn killer)
-    "A-B search, putting killer moves first."
-    (if (= ply 0)
-      (funcall eval-fn player board)
-      (let ((moves (put-first killer (legal-moves-optimized player board))))
-	(if (null moves)
-	  (if (any-legal-move? (opponent player) board)
-	    (- (alpha-beta3 (opponent player) board
-			    (- cutoff) (- achievable)
-			    (- ply 1) eval-fn nil))
-	    (final-value player board))
-	  (let ((best-move (first moves))
-		(new-board (aref *ply-boards* ply))
-		(killer2 nil)
-		(killer2-val winning-value))
-	    (loop for move in moves
-		  do (multiple-value-bind (val reply)
-					  (alpha-beta3
-					   (opponent player)
-					   (make-move move player
-						      (replace new-board board))
-					   (- cutoff) (- achievable)
-					   (- ply 1) eval-fn killer2)
-					  (setf val (- val))
-					  (when (> val achievable)
-					    (setf achievable val)
-					    (setf best-move move))
-					  (when (and reply (< val killer2-val))
-					    (setf killer2 reply)
-					    (setf killer2-val val)))
-		  until (>= achievable cutoff))
-	    (values achievable best-move))))))
-
-  (defn
-    #^{:doc "Find the best move, for PLAYER, according to EVAL-FN,
-   searching PLY levels deep and backing up values,
-   using cutoff whenever possible."}
-    alpha-beta [player board achievable cutoff ply eval-fn]
-    ;; (println "alpha-beta: player=" player ", achievable=" achievable ", cutoff=" cutoff ", ply=" ply ", eval-fn=" eval-fn ", board=" board)
-    (if (= ply 0)
-      [(eval-fn player board) nil]
-      (let [moves (legal-moves player board)]
-	;; (println "alpha-beta: moves=" moves)
-	(if (empty? moves)
-	  (if (any-legal-move? (opponent player) board)
-	    (let [[v _] (alpha-beta (opponent player) board
-				    (- cutoff) (- achievable)
-				    (- ply 1) eval-fn)]
-	      [(- v) nil])
-	    [(final-value player board) nil])
-	  (let [best-move (atom (first moves))
-		ac (atom achievable)]
-	    (loop [xmoves moves]
-	      (when (not (empty? xmoves))
-		(let [move (first xmoves)
-		      board2 (make-move move player board)
-		      [v _] (alpha-beta
-			     (opponent player) board2
-			     (- cutoff) (- @ac)
-			     (- ply 1) eval-fn)
-		      val (- v)]
-		  (when (> val @ac)
-		    (reset! ac val)
-		    (reset! best-move move))
-		  (when (< @ac cutoff)
-		    (recur (rest xmoves))))))
-	    ;;(println "alpha-beta: ac=" @ac ", best-move=" @best-move ", ply=" ply)
-	    [@ac @best-move])))))
-
-  (defn
-    #^{:doc "A-B search, sorting moves by eval-fn."}
-    alpha-beta2 [player node achievable cutoff ply eval-fn]
-    ;; Returns two values: achievable-value and move-to-make
-    (if (= ply 0)
-      [(:value node) node]
-      (let [board (:board node)
-	    nodes (legal-nodes player board eval-fn)]
-	(if (empty? nodes)
-	  (if (any-legal-move? (opponent player) board)
-	    (let [[v _] (alpha-beta2 (opponent player)
-				     (negate-value node)
-				     (- cutoff) (- achievable)
-				     (- ply 1) eval-fn)]
-	      [(- v) nil])
-	    [(final-value player board) nil])
-	  (let [best-node (atom (first nodes))
-		ac (atom achievable)]
-	    (loop [xnodes nodes]
-	      (when (not (empty? xnodes))
-		(let [move (first xnodes)
-		      [v _] (alpha-beta2
-			     (opponent player)
-			     (negate-value move)
-			     (- cutoff) (- @ac)
-			     (- ply 1) eval-fn)
-		      val (- v)]
-		  (when (> val @ac)
-		    (reset! ac val)
-		    (reset! best-node move))
-		  (when (< @ac cutoff)
-		    (recur (rest xnodes))))))
-	    [@ac @best-node])))))
-  
-  )
-
 
 (defn
   #^{:doc "Return a strategy that does A-B search with killer moves."}
@@ -737,37 +625,23 @@
 		    white 192977
 		    black 135868)))}
   edge-stability [player board]
-  ;;; (dotimes [i (count *edge-table*)] (aset *edge-table* i 0)) ;;; it has to be removed!!!
   (reduce + (for [edge-list edge-and-x-lists]
 	      (aget *edge-table* (edge-index player board edge-list)))))
 
-;;; KO!!!
+;;; OK
 (defn
-  #^{:doc "Initialize *edge-table*, starting from the empty board."}
-  init-edge-table []
-  ;; Initialize the static values
-  (comment
-    (loop for n-pieces from 0 to 10 do
-	  (map-edge-n-pieces
-	   #'(lambda (board index)
-		     (setf (aref *edge-table* index)
-			   (static-edge-stability black board)))
-	   black (initial-board) n-pieces top-edge 0)))
-  (comment
-    ;; Now iterate five times trying to improve:
-    (dotimes (i 5)
-      ;; Do the indexes with most pieces first
-      (loop for n-pieces from 9 downto 1 do
-	    (map-edge-n-pieces
-	     #'(lambda (board index)
-		       (setf (aref *edge-table* index)
-			     (possible-edge-moves-value
-			      black board index)))
-	     black (initial-board) n-pieces top-edge 0)))))
-
-;;; KO!!!
-(defn
-  #^{:doc "Call fun on all edges with n pieces."}
+  #^{:doc "Call fun on all edges with n pieces."
+     :test (fn []
+	     (binding [*edge-table* (make-array Integer (math/expt 3 10))]
+	       (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
+	       (are [player index]
+		    (=
+		     (map-edge-n-pieces
+		      (fn [b i] nil)
+		      player *fixt-board-black-has-to-pass* 1 '(11 12 13 14) index)
+		     nil)
+		    white 10
+		    white 300)))}
   map-edge-n-pieces [fun player board n squares index]
   ;; Index counts 1 for player; 2 for opponent
   (cond
@@ -786,46 +660,6 @@
 			       (- n 1) (rest squares)
 			       (+ 2 index3))
 	    board))))
-
-
-;;; OK (but not sure!)
-(defn
-  #^{:doc "Consider all possible edge moves.
-   Combine their values into a single number."
-     :test (fn []
-	     (binding [*edge-table* (make-array Integer (math/expt 3 10))]
-	       (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
-	       (are [player index pem]
-		    (=
-		     (possible-edge-moves-value player *fixt-board-black-has-to-pass* index)
-		     pem)
-		    white 13 -38935)))}
-  possible-edge-moves-value [player board index]
-  (combine-edge-moves
-   (cons
-    (list 1.0 (aget *edge-table* index)) ;; no move
-    (for [sq top-edge :when (== (board-ref board sq) empty-square)]
-      (possible-edge-move player board sq)))
-   player))
-
-;;; OK
-(defn
-  #^{:doc "Return a (prob val) pair for a possible edge move."
-     :test (fn []
-	     (binding [*edge-table* (make-array Integer (math/expt 3 10))]
-	       (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
-	       (are [player sq pem]
-		    (=
-		     (possible-edge-move player *fixt-board-black-has-to-pass* sq)
-		     pem)
-		    black 71 '(0.025 -50816)
-		    white 13 '(1.0 -38935))))}
-  possible-edge-move [player board sq]
-  (let [new-board (make-move sq player board)]
-    (list (edge-move-probability player board sq)
-	  (- (aget *edge-table*
-		   (edge-index (opponent player)
-			       new-board top-edge))))))
 
 ;;; OK
 (defn
@@ -847,7 +681,7 @@
 	   (rest pairs)
 	   (- prob (* prob (first pair)))
 	   (+ val (* prob (first pair) (second pair)))))
-	(math/round val)))))
+	(int (math/round val))))))
 
 ;;; OK
 (let [corner_xsqs [{:c 11 :x 22} {:c 18 :x 27} {:c 81 :x 72} {:c 88 :x 77}]]
@@ -887,8 +721,25 @@
     corner-for [xsq] (first (for [cx corner_xsqs :when (== (:x cx) xsq)] (:c cx)))))
 
 ;;; OK
-;;; It has the same result given by the CL version.
-;;; A bit more of investigation should be done.
+(defn
+  #^{:doc "Count the neighbors of this square occupied by player."
+     :test (fn []
+	     (are [p sq n] (= (count-edge-neighbors
+			    p *fixt-board-black-has-to-pass* sq) n)
+		  black 13 2
+		  white 13 0
+		  black 15 1
+		  white 15 1
+		  black 17 0
+		  white 17 1
+		  black 18 0
+		  white 18 0))}
+  count-edge-neighbors [player board square]
+  (count
+   (filter
+    (fn [inc] (= (board-ref board (+ square inc)) player)) [+1 -1])))
+
+;;; OK
 (defn
   #^{:doc "What's the probability that player can move to this square?"
      :test (fn []
@@ -916,25 +767,6 @@
 	    (count-edge-neighbors player board square)
 	    (count-edge-neighbors (opponent player) board square))
 	   (if (legal? square (opponent player) board) 2 1))))
-
-;;; OK
-(defn
-  #^{:doc "Count the neighbors of this square occupied by player."
-     :test (fn []
-	     (are [p sq n] (= (count-edge-neighbors
-			    p *fixt-board-black-has-to-pass* sq) n)
-		  black 13 2
-		  white 13 0
-		  black 15 1
-		  white 15 1
-		  black 17 0
-		  white 17 1
-		  black 18 0
-		  white 18 0))}
-  count-edge-neighbors [player board square]
-  (count
-   (filter
-    (fn [inc] (= (board-ref board (+ square inc)) player)) [+1 -1])))
 
 ;;; OK
 (def *static-edge-table*
@@ -1015,7 +847,73 @@
 		 (= p player) x
 		 true (- x))))))))
 
+;;; OK
+(defn
+  #^{:doc "Return a (prob val) pair for a possible edge move."
+     :test (fn []
+	     (binding [*edge-table* (make-array Integer (math/expt 3 10))]
+	       (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
+	       (are [player sq pem]
+		    (=
+		     (possible-edge-move player *fixt-board-black-has-to-pass* sq)
+		     pem)
+		    black 71 '(0.025 -50816)
+		    white 13 '(1.0 -38935))))}
+  possible-edge-move [player board sq]
+  (let [new-board (make-move sq player board)]
+    (list (edge-move-probability player board sq)
+	  (- (aget *edge-table*
+		   (edge-index (opponent player)
+			       new-board top-edge))))))
 
+;;; OK
+(defn
+  #^{:doc "Consider all possible edge moves.
+   Combine their values into a single number."
+     :test (fn []
+	     (binding [*edge-table* (make-array Integer (math/expt 3 10))]
+	       (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
+	       (are [player index pem]
+		    (=
+		     (possible-edge-moves-value player *fixt-board-black-has-to-pass* index)
+		     pem)
+		    white 13 -38935)))}
+  possible-edge-moves-value [player board index]
+  (combine-edge-moves
+   (cons
+    (list 1.0 (aget *edge-table* index)) ;; no move
+    (for [sq top-edge :when (== (board-ref board sq) empty-square)]
+      (possible-edge-move player board sq)))
+   player))
+
+;;; OK
+(defn
+  #^{:doc "Initialize *edge-table*, starting from the empty board."}
+  init-edge-table []
+  ;; Initialize to zero the array
+  (dotimes [i (count *edge-table*)] (aset *edge-table* i 0))
+  ;; Initialize the static values
+  (doseq [n-pieces (range 0 11)]
+    (map-edge-n-pieces
+     (fn [board index]
+       (aset *edge-table* index
+	     (static-edge-stability black board)))
+     black (initial-board) n-pieces top-edge 0))
+  (dotimes [i 5]
+    (doseq [n-pieces (reverse (range 1 10))]
+      (map-edge-n-pieces
+       (fn [board index]
+	 (aset *edge-table* index
+	       (possible-edge-moves-value black board index)))
+       black (initial-board) n-pieces top-edge 0))))
+
+(comment
+  (with-open [#^PrintWriter w (duck-streams/writer "init-edge-table-out-clj.txt")]
+    (dotimes [i (count *edge-table*)]
+      (.print w i)
+      (.print w ", ")
+      (.print w (aget *edge-table* i))
+      (.println w))))
 
 ;;; (setf *edge-table* ...)
 
