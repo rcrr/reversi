@@ -906,3 +906,53 @@
 ;;;
 ;;; Edge Stability - Section End
 ;;;
+
+;;;
+;;; Combining the Factors - Section Begin
+;;;
+
+(defn
+  #^{:doc "Combine edge-stability, current mobility and
+   potential mobility to arrive at an evaluation."}
+  iago-eval [player board]
+  ;; The three factors are multiplied by coefficients
+  ;; that vary by move number:
+  (let [c-edg (+ 312000 (* 6240 @*move-number*))
+	c-cur (if (< @*move-number* 25)
+		(+ 50000 (* 2000 @*move-number*))
+		(+ 75000 (* 1000 @*move-number*)))
+	c-pot 20000]
+    (let [[p-cur p-pot] (mobility player board)
+	  [o-cur o-pot] (mobility (opponent player) board)]
+      ;; Combine the three factors into one sum:
+      (+ (math/round (/ (* c-edg (edge-stability player board)) 32000))
+	 (math/round (/ (* c-cur (- p-cur o-cur)) (+ p-cur o-cur 2)))
+	 (math/round (/ (* c-pot (- p-pot o-pot)) (+ p-pot o-pot 2)))))))
+
+(defn
+  #^{:doc "Use an approximation of Iago's evaluation function."}
+  iago [depth]
+  (alpha-beta-searcher3 depth iago-eval))
+
+;;;
+;;; A round-robin tournament testing iago against modified-weighted-square:
+;;;
+;;; reversi> (round-robin
+;;; 	  (list (alpha-beta-searcher3 4 modified-weighted-squares)
+;;; 		(alpha-beta-searcher3 6 modified-weighted-squares)
+;;; 		(iago 2)
+;;; 		(iago 4)
+;;;		(iago 6))
+;;;	  5 10
+;;;	  '(mws-4 mws-6 iago-2 iago-4 iago-6))
+;;; mws-4                  6.50:  -----    1.0    5.5   00.0   00.0 
+;;; mws-6                 20.50:    9.0  -----    7.0    4.5   00.0 
+;;; iago-2                 9.50:    4.5    3.0  -----    1.0    1.0 
+;;; iago-4                25.50:   10.0    5.5    9.0  -----    1.0 
+;;; iago-6                38.00:   10.0   10.0    9.0    9.0  ----- 
+;;;
+
+
+;;;
+;;; Combining the Factors - Section End
+;;;
