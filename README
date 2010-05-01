@@ -4,7 +4,7 @@ The source code is written in Clojure.
 
 The program is distributed under the GNU GPLv3 license.
 
-The step followed are:
+The step that had been followed are:
 
  (1) Adapt the COMMON LISP programs taken from the PAIP book to run smoothly in the following env:
 
@@ -13,7 +13,7 @@ The step followed are:
       - Emacs compiled from source, downloaded from git://git.savannah.gnu.org/emacs.git
       - Slime downloaded from the official cvs repository
 
-      To operate the program:
+      To operate the CL program:
       From the SLIME PROMPT type:
 
            (asdf:operate 'asdf:load-op 'reversi)
@@ -26,16 +26,33 @@ The step followed are:
 
  (2) Translate the CL code into Clojure.
 
-      - This is work in progress. The basic game rules are working. The minimax and alpha-beta functions are ok.
-      - Unit tests are under construction.
-      - The complete translation of advanced tecniques is not started (Reversi tournament, and Iago strategy).
-      - Files has to be rearranged.
-      - More documnetation on the translation is needed.
+      - This work is almost complete.
+         The basic game rules are working. The minimax and alpha-beta functions are ok.
+	 Unit tests are close to be complete, minimax test function is under construction.
+	 The complete translation of advanced tecniques is complete (Reversi tournament, and Iago strategy).
 
- (3) Future steps could be:
+      - The Emacs/Slime/Clojure env is prepared installing the components with ELPA
 
-      - Develop a complete analysis suite.
-      - Develop a graphical UI.
-      - Further enhance advanced strategies.
-      - Develop a neural net evaluetion function.
+      To operate the Clojure program:
+      From the SLIME PROMPT type:
+
+      	   (load "reversi/init")
+	   (in-ns 'reversi)
+ 
+ (2.1) Document the translation
+
+      - Prepare a GitHub Markdown mini-book.
+      - Source File inline documentation.
+
+ (3) Future lines of development that currently are appealing, could be:
+
+      - Profile the CL and Clojure versions. Optimize for speed the critical components.
+      - Port the program to more languages (Java, Scala, Jython, JRuby).
+      - Prepare a build process using either ant, maven, lancet, leiningen, or a conbination.
+      - Develop a graphical UI using Java Swing.
+      - Redesign the Clojure implementation to be fully functional.
+      - Develop a complete game analysis suite.
+      - Further enhance advanced strategies, following the paper written by Rosenbloom, Lee & Mahajan, Buro.
+      - Make the program leverage the multi core processors thru a redesign for parallel computing.
+      - Develop a neural net evaluation function.
       - Develop a genetic algorithm that iterate the evaluation function evolution.
