@@ -22,3 +22,5 @@ Articles
 - Lee, Kay-Fu, and Mahajan, Sanjoy. (1990). The Development of a World Class Othello Program. <i>Artificial Intelligence, 43.</i> pp. 21-36.
 
 - Buro, Michael. (2002). The Evolution of Strong Othello Programs. <i>Proceedings of the IWEC-2002 Workshop on Entertainment Computing.</i>
+
+- Buro, Michael. (). ProbCut: An Effective Selective Extension of the alpha-beta Algorithm. <i>ICCA Journal, 18(2)</i> pp. 71-76.
