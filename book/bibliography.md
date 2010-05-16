@@ -23,4 +23,4 @@ Articles
 
 - Buro, Michael. (2002). The Evolution of Strong Othello Programs. <i>Proceedings of the IWEC-2002 Workshop on Entertainment Computing.</i>
 
-- Buro, Michael. (). ProbCut: An Effective Selective Extension of the alpha-beta Algorithm. <i>ICCA Journal, 18(2)</i> pp. 71-76.
+- Buro, Michael. (1995). ProbCut: An Effective Selective Extension of the alpha-beta Algorithm. <i>ICCA Journal, 18(2)</i> pp. 71-76.
