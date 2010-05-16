@@ -12,6 +12,18 @@ Books
 
 - Stuart Halloway. <i>Programming Clojure.</i> Pragmatic Bookshelf, 2009.
 
+- Guy L. Steele. <i>Common LISP. The Language. Second Edition.</i> Digital Press, 1990.
+
+- Peter Seibel. <i>Practical Common Lisp.</i> Apress, 2005.
+
+- Paul Graham. <i>ANSI Common Lisp.</i> Prentice Hall, 1995.
+
+- Paul Graham. <i>On Lisp: Advanced Techniques for Common Lisp.</i> Prentice Hall, 1993.
+
+- David B. Lamkins. <i>Successful Lisp: How to Understand and Use Common Lisp.</i> bookfix.com, 2004.
+
+- Harold Abelson, and Gerald J. Sussman. <i>Structure and Interpretation of Computer Programs (2nd Edition).</i> The MIT Press, 1996.
+
 
 
 Articles
