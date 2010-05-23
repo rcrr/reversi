@@ -27,3 +27,13 @@ A move consists of taking a disc from the compartment and placing it on the boar
 Time
 ----
 Each player has a fixed amount of time, usually thirty minutes, to complete his moves. A player running out of time forfeits the game.
+
+
+
+---
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png"/></a><br/> This <span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" rel="dc:type">work</span> by <a xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName" rel="cc:attributionURL" href="http://github.com/rcrr">Roberto Corradini</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License</a>
+
+<div class="footer">
+ Copyright &copy; 2010 Roberto Corradini
+</div>
