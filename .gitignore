@@ -2,4 +2,4 @@
 \#*
 .#*
 *.fasl
-src
+*.class
