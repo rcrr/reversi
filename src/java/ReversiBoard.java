@@ -30,6 +30,9 @@ import java.net.URL;
 
 enum SquareColor {EMPTY, BLACK, WHITE}
 
+enum BoardRowKey {R1, R2, R3, R4, R5, R6, R7, R8}
+enum BoardColKey {CA, CB, CC, CD, CE, CF, CG, CH}
+
 enum BoardSquareKey {A1, A2, A3, A4, A5, A6, A7, A8,
 	B1, B2, B3, B4, B5, B6, B7, B8,
 	C1, C2, C3, C4, C5, C6, C7, C8,
@@ -42,7 +45,8 @@ enum BoardSquareKey {A1, A2, A3, A4, A5, A6, A7, A8,
  
 public class ReversiBoard {
 
-    private static final Color BACKGROUD_COLOR = new Color(0, 0, 0);
+    private static final Color BACKGROUND_COLOR = new Color(0, 0, 0);
+    private static final Color LABEL_TEXT_COLOR = new Color(220, 220, 220);
     protected static final Color BASE_COLOR = new Color(32, 142, 32);
     
     private static final String WHITE_DISK_ICON_FILE = "images/reversi-white-disk.png";
@@ -51,7 +55,11 @@ public class ReversiBoard {
 
     private static final int squareSize = 70;
     private static final int dotSize = 16;
-    private static final int squaresGap = 2; 
+    private static final int squaresGap = 2;
+    private static final int labelsHeight = 20; 
+    private static final int labelsGap = 8;
+
+    private static final Font labelsFont = new Font("Courier New", Font.ITALIC, 14);
  
     protected static final URL whiteIconURL = ReversiBoard.class.getResource(WHITE_DISK_ICON_FILE);
     protected static final URL blackIconURL = ReversiBoard.class.getResource(BLACK_DISK_ICON_FILE);
@@ -62,34 +70,93 @@ public class ReversiBoard {
     JLayeredPane layp;
     JPanel grid;
     JPanel dots;
- 
-    public ReversiBoard() {
+    JPanel labels;
+    JPanel labelsCorner;
+    JPanel rowLabels;
+    JPanel colLabels;
 
+    public ReversiBoard() {
+	
 	frm = new JFrame("Reversi Board");
 	frm.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	
-        Dimension boardSize = new Dimension(8 * squareSize, 8 * squareSize);
- 
+	final int gsd = 8 * squareSize;
+	final int lsd = gsd + (labelsHeight + (2 * labelsGap) + squaresGap);
+        final Dimension gridSize = new Dimension(gsd, gsd);
+        final Dimension labelsSize = new Dimension(lsd, lsd);
+	final int gs = labelsHeight + labelsGap + squaresGap;
+	
         // Use a Layered Pane for this application.
 	layp = new JLayeredPane();
         frm.getContentPane().add(layp);
-        layp.setPreferredSize(boardSize);
+        layp.setPreferredSize(labelsSize);
+	
+	// Add the labels panel to the Layered Pane.
+	labels = new JPanel();
+	layp.add(labels, new Integer(10));
+        labels.setLayout(null);
+        labels.setPreferredSize(labelsSize);
+        labels.setBounds(0, 0, labelsSize.width, labelsSize.height);
+	labels.setBackground(BACKGROUND_COLOR);
+	labels.setOpaque(true);
+	
+	// Add the North-West corner to the Labels Panel.
+	labelsCorner = new JPanel();
+	labels.add(labelsCorner);
+	labelsCorner.setLayout(new GridLayout(1, 1, 0, 0));
+	labelsCorner.setBackground(Color.white);
+        labelsCorner.setBounds(labelsGap, labelsGap, labelsHeight, labelsHeight);
+	JPanel jplc = new JPanel(new BorderLayout());
+	labelsCorner.add(jplc);
+	jplc.setBackground(BASE_COLOR);
+	
+	// Add the Row-List to the Label Panel.
+	rowLabels = new JPanel();
+	labels.add(rowLabels);
+	rowLabels.setLayout(new GridLayout(8, 1, 0, squaresGap));
+        rowLabels.setBounds(labelsGap, gs, labelsHeight, gsd);
+	rowLabels.setBackground(BACKGROUND_COLOR);
+	for (BoardRowKey brk : BoardRowKey.values()) {
+	    JPanel jp = new JPanel(new BorderLayout());
+	    jp.setBackground(ReversiBoard.BASE_COLOR);
+            rowLabels.add(jp);
+	    JLabel jl = new JLabel(brk.toString().substring(1, 2), JLabel.CENTER);
+	    jl.setFont(labelsFont);
+	    jl.setForeground(LABEL_TEXT_COLOR);
+	    jp.add(jl);
+	}
+	
+	// Add the Column-List to the Label Panel.
+	colLabels = new JPanel();
+	labels.add(colLabels);
+	colLabels.setLayout(new GridLayout(1, 8, squaresGap, 0));
+        colLabels.setBounds(gs, labelsGap, gsd, labelsHeight);
+	colLabels.setBackground(BACKGROUND_COLOR);
+	for (BoardColKey bck : BoardColKey.values()) {
+	    JPanel jp = new JPanel(new BorderLayout());
+	    jp.setBackground(ReversiBoard.BASE_COLOR);
+            colLabels.add(jp);
+	    JLabel jl = new JLabel(bck.toString().substring(1, 2), JLabel.CENTER);
+	    jl.setFont(labelsFont);
+	    jl.setForeground(LABEL_TEXT_COLOR);
+	    jp.add(jl);
+	}
 
         // Add the grid panel to the Layered Pane. 
         grid = new JPanel();
-        layp.add(grid, JLayeredPane.DEFAULT_LAYER);
+        layp.add(grid, new Integer(20));
         grid.setLayout(new GridLayout(8, 8, squaresGap, squaresGap));
-        grid.setPreferredSize(boardSize);
-        grid.setBounds(0, 0, boardSize.width, boardSize.height);
-	grid.setBackground(BACKGROUD_COLOR);
+        grid.setPreferredSize(gridSize);
+        grid.setBounds(gs, gs, gridSize.width, gridSize.height);
+	grid.setBackground(BACKGROUND_COLOR);
 
 	// Ad the dots panel to the Layered Pane.
 	dots = new JPanel();
-        layp.add(dots, new Integer(10));
+        layp.add(dots, new Integer(30));
         dots.setLayout(null);
-        dots.setPreferredSize(boardSize);
-        dots.setBounds(0, 0, boardSize.width, boardSize.height);
-	dots.setBackground(BACKGROUD_COLOR);
+        dots.setPreferredSize(gridSize);
+        dots.setBounds(gs, gs, gridSize.width, gridSize.height);
+	dots.setBackground(BACKGROUND_COLOR);
 	dots.setOpaque(false);
 	setDot(2, 2);
 	setDot(6, 2);
