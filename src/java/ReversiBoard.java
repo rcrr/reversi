@@ -40,7 +40,7 @@ enum BoardSquareKey {A1, A2, A3, A4, A5, A6, A7, A8,
 	H1, H2, H3, H4, H5, H6, H7, H8;
 }
  
-public class ReversiBoard implements MouseListener, MouseMotionListener {
+public class ReversiBoard {
 
     private static final Color BACKGROUD_COLOR = new Color(0, 0, 0);
     protected static final Color BASE_COLOR = new Color(32, 142, 32);
@@ -74,8 +74,6 @@ public class ReversiBoard implements MouseListener, MouseMotionListener {
 	layp = new JLayeredPane();
         frm.getContentPane().add(layp);
         layp.setPreferredSize(boardSize);
-        layp.addMouseListener(this);
-        layp.addMouseMotionListener(this);
 
         // Add the grid panel to the Layered Pane. 
         grid = new JPanel();
@@ -123,28 +121,7 @@ public class ReversiBoard implements MouseListener, MouseMotionListener {
 	setSquareColor(BoardSquareKey.D5, SquareColor.BLACK);
 	setSquareColor(BoardSquareKey.E4, SquareColor.BLACK);
     }
-    
-    public void mousePressed(MouseEvent e) {
-    }
-    
-    public void mouseDragged(MouseEvent me) {
-    }
-    
-    public void mouseReleased(MouseEvent e) {
-    }
-    
-    public void mouseClicked(MouseEvent e) {
-    }
 
-    public void mouseMoved(MouseEvent e) {
-    }
-
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    public void mouseExited(MouseEvent e) {	
-    }
-    
     private void setDot(int x, int y) {
 	JLabel dot = new JLabel(new ImageIcon(gridDotIconURL));
         dots.add(dot);
