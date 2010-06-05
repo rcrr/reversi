@@ -20,6 +20,8 @@
     or visit the site <http://www.gnu.org/licenses/>.
 */
 
+package rcrr.reversi.ui;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -65,15 +67,15 @@ public class ReversiBoard {
     protected static final URL blackIconURL = ReversiBoard.class.getResource(BLACK_DISK_ICON_FILE);
     private static final URL gridDotIconURL = ReversiBoard.class.getResource(GRID_DOT_ICON_FILE);
 
-    Map<BoardSquareKey, Square> squares = new EnumMap<BoardSquareKey, Square>(BoardSquareKey.class);
-    JFrame frm;
-    JLayeredPane layp;
-    JPanel grid;
-    JPanel dots;
-    JPanel labels;
-    JPanel labelsCorner;
-    JPanel rowLabels;
-    JPanel colLabels;
+    private Map<BoardSquareKey, Square> squares = new EnumMap<BoardSquareKey, Square>(BoardSquareKey.class);
+    private JFrame frm;
+    private JLayeredPane layp;
+    private JPanel grid;
+    private JPanel dots;
+    private JPanel labels;
+    private JPanel labelsCorner;
+    private JPanel rowLabels;
+    private JPanel colLabels;
 
     public ReversiBoard() {
 	
@@ -175,8 +177,13 @@ public class ReversiBoard {
 	frm.setVisible(true);
     }
 
-    public void setSquareColor(BoardSquareKey sk, SquareColor c) {
+    public void setSquareColor(String sk, String c) {
+	setSquareColor(BoardSquareKey.valueOf(sk), SquareColor.valueOf(c));
+    }
+
+    protected void setSquareColor(final BoardSquareKey sk, final SquareColor c) {
 	squares.get(sk).setSc(c);
+	frm.repaint();
     }
 
     public void resetBoard() {
@@ -196,13 +203,14 @@ public class ReversiBoard {
 	int yDotCenter = (squareSize * y) - dotSize / 2;
 	dot.setBounds(xDotCenter, yDotCenter, dotSize, dotSize);    
     }
-    
+
     public static void main(String[] args) {
 	// Create the frame on the event dispatching thread.
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
-		    ReversiBoard b = new ReversiBoard();
-		    b.resetBoard();
+		    ReversiBoard board = new ReversiBoard();
+		    board.resetBoard();
+		    board.setSquareColor("A2", "WHITE");
 		}
 	    });
     }
