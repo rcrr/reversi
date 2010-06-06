@@ -29,12 +29,16 @@ import java.awt.Dimension;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import javax.swing.JPanel;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.SwingUtilities;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import java.net.URL;
  
@@ -205,8 +209,59 @@ public class ReversiBoard {
     }
 
     public static void main(String[] args) {
+
+	String line = "";
+       
+	System.out.println("Enter a command (type 'quit' to exit): ");
+
+	InputStreamReader isr = new InputStreamReader(System.in);
+	BufferedReader in = new BufferedReader(isr);
+
 	ReversiBoard rb = ReversiBoard.initDisplay();
-	rb.drawInitialBoard();
+   
+	while (!(line.equals("quit"))){
+	    try {
+		line = in.readLine();
+            } catch (Exception e) {
+		System.out.println("Error in reading the input line, exiting.");
+		System.exit(1);
+	    }
+
+	    if (!(line.equals("quit"))){
+		System.out.println("You typed: " + line);
+		rb.execCommand(line);
+	    } else {
+		System.exit(0);
+	    }
+	}
+    }
+
+    private void execCommand(String command) {
+	StringTokenizer st = new StringTokenizer(command);
+	int words = st.countTokens();
+	BoardSquareKey bsk = null;
+	SquareColor sc = null;
+	if (words == 2) {
+	    String w0 = st.nextToken();
+	    String w1 = st.nextToken();
+	    try {
+		bsk = BoardSquareKey.valueOf(w0);
+	    } catch (IllegalArgumentException iae) {
+		System.out.println("Wrong value " + w0 + ". It is not a valid BoardSquareKey.");
+	    }
+	    try {
+		sc = SquareColor.valueOf(w1);
+	    } catch (IllegalArgumentException iae) {
+		System.out.println("Wrong value " + w1 + ". It is not a valid SquareColor.");
+	    }
+	    if (bsk != null && sc != null) {
+		System.out.println("Setting board square " + bsk + " to color " + sc + ".");
+		setSquareColor(bsk, sc);
+		System.out.println("Still not working!");
+	    }
+	} else {
+	    System.out.println("Not a command: " + command);
+	}
     }
 
 }
