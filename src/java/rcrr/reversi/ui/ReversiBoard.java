@@ -257,7 +257,6 @@ public class ReversiBoard {
 	    if (bsk != null && sc != null) {
 		System.out.println("Setting board square " + bsk + " to color " + sc + ".");
 		setSquareColor(bsk, sc);
-		System.out.println("Still not working!");
 	    }
 	} else {
 	    System.out.println("Not a command: " + command);

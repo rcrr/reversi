@@ -22,103 +22,13 @@
 
 (ns reversi)
 
-;;; Not thread safe!
-(let [counter (to-array [0])]
-  (defn new-id [] (aset counter 0 (inc (aget counter 0))))
-  (defn reset-id [] (aset counter 0 0))
-  (defn set-id [x] (aset counter 0 x)))
+(import '(rcrr.reversi.ui ReversiBoard BoardSquareKey SquareColor))
+(def board (atom nil))
+(reset! board (. ReversiBoard initDisplay))
+(. @board setSquareColor (. BoardSquareKey A1) (. SquareColor WHITE))
 
-
-(defn make-100-ids [id-fun]
-  (doall (take 100 (repeatedly id-fun))))
-
-(defn test-c [nthreads id-fun]
-  (reset-id)
-  (apply max (apply concat
-    (apply pcalls (repeat nthreads #(make-100-ids id-fun))))))
-
-(test-c 100 new-id)
-
-;;; Thread safe but slow
-(let [counter (ref 0)]
-  (defn new-id [] (dosync (ref-set counter (inc @counter))))
-  (defn reset-id [] (dosync (ref-set counter 0)))
-  (defn set-id [x] (dosync (ref-set counter x))))
-
-;;; Best solution
-(let [counter (atom 0)]
-  (defn new-id [] (swap! counter inc))
-  (defn reset-id [] (reset! counter 0))
-  (defn set-id [x] (reset! counter x))
-  (defn get-id [] @counter))
-
-;;; This is a board "template"
-(def *bb*
-     [3 3 3 3 3 3 3 3 3 3
-      3 0 0 0 0 0 0 0 0 3
-      3 0 0 0 0 0 0 0 0 3
-      3 0 0 0 0 0 0 0 0 3
-      3 0 0 0 0 0 0 0 0 3
-      3 0 0 0 0 0 0 0 0 3
-      3 0 0 0 0 0 0 0 0 3
-      3 0 0 0 0 0 0 0 0 3
-      3 0 0 0 0 0 0 0 0 3
-      3 3 3 3 3 3 3 3 3 3])
-
-;;; loop example
-(defn
-  my-loop [x]
-  (if (empty? x)
-      nil
-      (loop [coll x
-	     index 0
-	     max (first x)
-	     max-index 0]
-	(if (empty? coll)
-	  max-index
-	  (let [val (first coll)
-		is-max (if (> val max) true false)]
-	    (recur (rest coll)
-		   (inc index)
-		   (if is-max val max)
-		   (if is-max index max-index)))))))
-
-(defn test-maximizer []
-  (let [test-weighted-squares
-	(fn [player board weights]
-	  (let [opp (opponent player)]
-	    (reduce + (map * weights
-			   (for [sq board]
-			     (fcase/case sq
-					 player 1
-					 opp -1
-					 outer 0
-					 empty-square 0))))))
-	*fixt-board-c* [3 3 3 3 3 3 3 3 3 3
-			3 0 0 0 0 0 0 0 0 3
-			3 0 0 0 0 0 0 0 0 3
-			3 2 1 1 1 0 0 2 0 3
-			3 0 2 0 2 1 2 0 0 3
-			3 0 2 2 1 2 0 0 0 3
-			3 0 0 1 1 0 2 0 0 3
-			3 0 0 0 0 0 0 0 0 3
-			3 0 0 0 0 0 0 0 0 3
-			3 3 3 3 3 3 3 3 3 3]
-	*fixt-weights-1* [0   0   0   0  0  0   0   0   0 0
-			  0   0   0   0  0  0   0   0   0 0
-			  0   0   0   0  0  0   0   0   0 0
-			  0   0   0   0  0  0   0   0   0 0
-			  0   0   0   0  0  0   1   1   0 0
-			  0   0   0   0  0  0   0   0   0 0
-			  0   0   0   0  0  0   0   0   0 0
-			  0   0   0   0  0  0   0   0   0 0
-			  0   0   0   0  0  0   0   0   0 0
-			  0   0   0   0  0  0   0   0   0 0]
-	tws-1 (fn [player0 board0] (test-weighted-squares player0 board0 *fixt-weights-1*))
-	max-tws-1 (fn [player1 board1] ((maximizer tws-1) player1 board1))
-	]
-    (println "(tws-1 black *fixt-board-c*): " (tws-1 black *fixt-board-c*))
-    (println "(max-tws-1 black *fixt-board-c*): " (max-tws-1 black *fixt-board-c*))
-    (println "(tws-1 black (make-move (max-tws-1 black *fixt-board-c*) black *fixt-board-c*)): " (tws-1 black (make-move (max-tws-1 black *fixt-board-c*) black *fixt-board-c*)))
-    
-    ))
+(defn show-board [board swing-board]
+  (doseq [row (range 1 9)]
+    (doseq [col (range 1 9)]
+      (let [piece (board-ref board (+ col (* 10 row)))]
+	(println "piece: " piece)))))

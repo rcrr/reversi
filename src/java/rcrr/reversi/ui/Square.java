@@ -26,6 +26,7 @@ import java.awt.BorderLayout;
 
 import javax.swing.JPanel;
 import javax.swing.JLabel;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import java.net.URL;
@@ -34,42 +35,38 @@ class Square {
 
     private JPanel jp;
     private BoardSquareKey bs;
-    private SquareColor c;
+    private SquareColor color;
 
     private JLabel piece;
+    private Icon ico;
 
     public Square(BoardSquareKey bs) {
 	this.bs = bs;
 	this.jp = new JPanel(new BorderLayout());
 	jp.setBackground(Constants.BASE_COLOR);
-	this.c = SquareColor.EMPTY;
-	this.piece = null;
+	this.color = SquareColor.EMPTY;
+	this.ico = null;
+	this.piece = new JLabel(ico);
+	jp.add(piece);
     }
 
     public JPanel getJp() {return jp;}
     public BoardSquareKey getBs() {return bs;}
-    public SquareColor getSc() {return c;}
+    public SquareColor getSc() {return color;}
 
     public void setSc(SquareColor c) {
-	if (this.c != c) {
-	    if (piece != null) {
-		jp.remove(piece);
-		this.piece = null;
-	    }
-	    URL iconURL = null;
+
+	if (color != c) {
 	    switch (c) {
-	    case WHITE: iconURL = Constants.WHITE_DISK_ICON_URL;
+	    case WHITE: ico = Constants.WHITE_DISK_ICON;
 		break;
-	    case BLACK: iconURL = Constants.BLACK_DISK_ICON_URL;
+	    case BLACK: ico = Constants.BLACK_DISK_ICON;
 		break;
-	    case EMPTY:
+	    case EMPTY: ico = null;
 		break;
 	    }
-	    if (c != SquareColor.EMPTY) {
-		this.piece = new JLabel(new ImageIcon(iconURL));
-		jp.add(this.piece);
-	    }
-	    this.c = c;
+	    piece.setIcon(ico);
+	    this.color = c;
 	}
     }
 }

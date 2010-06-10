@@ -29,8 +29,10 @@
   (:require [clojure.contrib [pprint :as pprint]])
   (:require [clojure.contrib [seq-utils :as seq-utils]])
   (:require [clojure.contrib [math :as math]])
+  (:require [clojure.contrib [str-utils2 :as string]])
   (:require [clojure.contrib.generic [math-functions :as math-f]])
-  (:import (reversi GameOverException)))
+  (:import (reversi GameOverException))
+  (:import (rcrr.reversi.ui ReversiBoard BoardSquareKey SquareColor)))
 
 (defn
   #^{:doc "Return a specific character foreach valid piece value."
@@ -661,3 +663,22 @@
   (count (legal-moves player board)))
 
 
+;;; Swing Graphical User Interface
+
+(def square-color-map {empty-square "EMPTY", black "BLACK", white "WHITE"})
+
+(defn up-case-symb2 [s]
+  (symbol (string/upper-case (name s))))
+
+(defn show-board
+  ([board] (let [sgui (. ReversiBoard initDisplay)]
+	     (show-board board sgui)))
+  ([board sgui]
+     (doseq [row (range 1 9)]
+       (doseq [col (range 1 9)]
+	 (let [square (+ col (* 10 row))
+	       square-name (string/upper-case (conv-88->h8 square))
+	       piece (board-ref board square)]
+	   (. sgui setSquareColor
+	      (BoardSquareKey/valueOf square-name)
+	      (SquareColor/valueOf (square-color-map piece))))))))
