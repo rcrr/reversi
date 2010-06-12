@@ -30,7 +30,7 @@ Books
 
 - Matthew Robinson, and Pavel Vorobiev. <i>Swing (2nd Edition).</i> Manning, 2003.
 
-- Herbert Schildt.<i>Swing: A Beginner's Guide.</i> McGraw-Hill, 2007.
+- Herbert Schildt. <i>Swing: A Beginner's Guide.</i> McGraw-Hill, 2007.
 
 - Brian Goetz, Tim Peierls, Joshua Bloch, et al. <i>Java Concurrency in Practice.</i> Addison-Wesley, 2006.
 
