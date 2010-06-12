@@ -24,6 +24,16 @@ Books
 
 - Harold Abelson, and Gerald J. Sussman. <i>Structure and Interpretation of Computer Programs (2nd Edition).</i> The MIT Press, 1996.
 
+- Ken Arnold, James Gosling, and David Holmes. <i>The Java Programming Language, Fourth Edition.</i> Addison-Wesley, 2006.
+
+- James Gosling, Bill Joy, Guy Steele, and Gilad Bracha. <i>The Java Language Specification, Third Edition.</i> Addison-Wesley, 2005.
+
+- Matthew Robinson, and Pavel Vorobiev. <i>Swing (2nd Edition).</i> Manning Publications Co., 2003.
+
+- Herbert Schildt.<i>Swing. A Beginner's Guide.</i> The McGraw-Hill Companies, 2007.
+
+- Brian Goetz, Tim Peierls, Joshua Bloch, et al. <i>Java Concurrency in Practice.</i> Addison-Wesley, 2006.
+
 
 
 Articles
