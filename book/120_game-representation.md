@@ -9,6 +9,8 @@ Here you see a coomon graphical way, these are the first ten moves from <i>"31st
 
 [Game Transcript](120/120_GameTranscription.png "Nicolet 35-29 Tominaga K.")
 
+![ABCD](http://github.com/rcrr/reversi/raw/master/book/120/120_GameTranscription.png)
+
 
 ---
 
