@@ -7,7 +7,7 @@ Game Transcription
 A game could be represented applying different transcription format.
 Here you see a coomon graphical way, these are the first ten moves from <i>"31st World Othello Championship: Athens 2007 - final: first game":</i>
 
-![Alt Game Transcript](120/120_GameTranscription.png "Nicolet 35-29 Tominaga K.")
+[Game Transcript](120/120_GameTranscription.png "Nicolet 35-29 Tominaga K.")
 
 
 ---
