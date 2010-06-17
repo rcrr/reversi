@@ -8,9 +8,10 @@ A game can be represented applying different transcription format. Let's take a 
 The simpliest way to save the game is using a row string chaining the game moves:
 
 `F5D6C5F4E3C6D3F6E6D7G4G3G6H3G5H4E7F7H5H6E8F3C4C7D8C8B8B4B6B5A4A5A6E2A3D2D1C1B1C2C3B2F2F1A1B3E1A2G1G2H1H2H7G7H8B7A8A7F8G8`
+
 <i>"31st World Othello Championship: Athens 2007 - final: first game. Nicolet 35-29 Tominaga K."</i>
 
-Here you see a common graphical way, these are the first ten moves from 
+Here you see a common graphical way, to present the same information. These are the first ten moves from the game: 
 
 ![Game Transcript](http://github.com/rcrr/reversi/raw/master/book/120/120_GameTranscription.png)
 
