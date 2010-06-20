@@ -20,6 +20,20 @@
     or visit the site <http://www.gnu.org/licenses/>.
 */
 
+/*
+
+Still missing:
+ - get-move
+ - human
+ - random-strategy
+ - reversi
+
+Then the connection with the swing GUI and the printing facility.
+And then refactoring, documentation, javadocs.
+
+*/
+
+
 package rcrr.reversi;
 
 import java.util.List;
@@ -115,14 +129,13 @@ public class BoardState {
 	ps.print("\n\n");
     }
 
-    public Boolean wouldFlip(Integer move, SquareState player, Direction dir) {
+    public Integer wouldFlip(Integer move, SquareState player, Direction dir) {
 	int c = move + dir.delta();
-	if (get(c) == SquareState.opponent(player) &&
-	    null != findBracketingPiece(c + dir.delta(), player, dir)) {
-	    return true;
-	} else {
-	    return false;
+	Integer bp = null;
+	if (get(c) == SquareState.opponent(player)) {
+	    bp = findBracketingPiece(c + dir.delta(), player, dir);
 	}
+	return bp;
     }
 
     public Integer findBracketingPiece(Integer square, SquareState player, Direction dir) {
@@ -143,9 +156,52 @@ public class BoardState {
 	if (squares.get(move) != SquareState.EMPTY) return false;
 	if (!(player == SquareState.BLACK || player == SquareState.WHITE)) return false;
 	for (Direction dir : Direction.values()) {
-	    if (wouldFlip(move, player, dir)) return true;
+	    if (wouldFlip(move, player, dir) != null) return true;
 	}
  	return false;
+    }
+
+    public void makeMove(Integer move, SquareState player) {
+	set(move, player);
+	for (Direction dir : Direction.values()) {
+	    makeFlips(move, player, dir);
+	}
+    }
+
+    public void makeFlips(Integer move, SquareState player, Direction dir) {
+	Integer bracketer = wouldFlip(move, player, dir);
+	if (bracketer != null) {
+	    for (int c = move + dir.delta(); true; c = c + dir.delta()) {
+		if (c == bracketer) break;
+		set(c, player);
+	    }
+	}
+    }
+
+    public SquareState nextToPlay(SquareState previousPlayer, PrintStream ps) {
+	SquareState opponent = SquareState.opponent(previousPlayer);
+	SquareState next = null;
+	if (anyLegalMove(opponent)) {
+	    next = opponent;
+	}
+	if (anyLegalMove(previousPlayer)) {
+	    next = previousPlayer;
+	    if (ps != null) {
+		ps.print(opponent + " has no moves and must pass.");
+	    }
+	}
+	return next;
+    }
+
+    public Boolean anyLegalMove (SquareState player) {
+	Boolean b = false;
+	for (Integer move : allSquares) {
+	    if (isLegal(move, player)) {
+		b = true;
+		break;
+	    }
+	}
+	return b;
     }
 
     public List<Integer> legalMoves(SquareState player) {
@@ -175,6 +231,11 @@ public class BoardState {
 
 	List<Integer> lm = bs1.legalMoves(SquareState.WHITE);
 	System.out.println("lm: " + lm);
+
+	bs1.makeMove(33, SquareState.WHITE);
+	bs1.makeMove(34, SquareState.BLACK);
+	bs1.makeMove(35, SquareState.WHITE);
+	bs1.print();
         
 	System.out.println("BoardState: Stop.");
     }
