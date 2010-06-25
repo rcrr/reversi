@@ -23,9 +23,6 @@
 /*
 
 Still missing:
- - get-move
- - human
- - random-strategy
  - reversi
 
 Then the connection with the swing GUI and the printing facility.
@@ -183,11 +180,10 @@ public class BoardState {
 	SquareState next = null;
 	if (anyLegalMove(opponent)) {
 	    next = opponent;
-	}
-	if (anyLegalMove(previousPlayer)) {
+	} else if (anyLegalMove(previousPlayer)) {
 	    next = previousPlayer;
 	    if (ps != null) {
-		ps.print(opponent + " has no moves and must pass.");
+		ps.print("\n" + opponent + " has no moves and must pass.\n");
 	    }
 	}
 	return next;
@@ -202,6 +198,42 @@ public class BoardState {
 	    }
 	}
 	return b;
+    }
+
+    public Integer getMove(Strategy strategy, SquareState player, PrintStream ps) {
+	if (ps != null) print(ps);
+	Integer move = strategy.move(player, copyBoard());
+	if (isValid(move) && isLegal(move, player)) {
+	    if (ps != null) {
+		ps.print("\n" + player.name() + " moves to " + move + "\n");
+		makeMove(move, player);
+	    }
+	    return move;
+	} else {
+	    if (ps != null) ps.print("Illegal move: " + move);
+	    return getMove(strategy, player, ps);
+	}
+    }
+
+    public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps) {
+	BoardState board = initialBoard();
+	Strategy strategy = null;
+	Boolean gameOver = false;
+	for (SquareState player = SquareState.BLACK;
+	     player != null;
+	     player = board.nextToPlay(player, ps)) {
+	    if (player == SquareState.BLACK) {
+		strategy = blStrategy;
+	    } else {
+		strategy = whStrategy;
+	    }
+	    board.getMove(strategy, player, ps);
+	}
+	if (ps != null) {
+	    ps.print("\nThe Game is over. Final result:\n\n");
+	    board.print(ps);
+	}
+	return board.countDifference(SquareState.BLACK);
     }
 
     public List<Integer> legalMoves(SquareState player) {
@@ -236,6 +268,8 @@ public class BoardState {
 	bs1.makeMove(34, SquareState.BLACK);
 	bs1.makeMove(35, SquareState.WHITE);
 	bs1.print();
+
+	reversi(new RandomStrategy(), new RandomStrategy(), System.out);
         
 	System.out.println("BoardState: Stop.");
     }
