@@ -33,11 +33,11 @@ public class HumanStrategy implements Strategy {
     
     public HumanStrategy() {
 	InputStreamReader isr = new InputStreamReader(System.in);
- 	BufferedReader in = new BufferedReader(isr);
+ 	in = new BufferedReader(isr);
     }
     
     public Integer move(SquareState player, BoardState board) {
-	System.out.println(player.toString() + " to move: ");
+	System.out.print(player.toString() + " to move: ");
 	String s = null;
 	try {
 	    s = in.readLine();

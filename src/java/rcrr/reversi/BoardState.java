@@ -210,7 +210,7 @@ public class BoardState {
 	    }
 	    return move;
 	} else {
-	    if (ps != null) ps.print("Illegal move: " + move);
+	    if (ps != null) ps.print("Illegal move: " + move + "\n");
 	    return getMove(strategy, player, ps);
 	}
     }
@@ -245,33 +245,34 @@ public class BoardState {
     }
 	
     public static void main(String[] args) {
-	System.out.println("BoardState: Start.");
-	BoardState bs = BoardState.emptyBoard();
-	System.out.println("BoardState: bs = " + bs);
-	for (Integer i : allSquares) {
-	    System.out.println("square[" + i + "]: " + bs.get(i));
+	if (args == null || args.length != 2) {
+	    System.out.println("Argument list error ...");
+	    System.exit(1);
 	}
-	
-	bs = BoardState.initialBoard();
-	bs.set(43, SquareState.BLACK);
-	bs.set(44, SquareState.BLACK);
-	BoardState bs1 = bs.copyBoard();
-	for (int i = 0; i<100; i++) {
-	    System.out.println("square[" + i + "]: " + bs1.get(i));
+	Strategy s[] = new Strategy[]{null, null};
+	for (int i=0; i<2; i++) {
+	    Object o = null;
+	    try {
+		Class<?> c = Class.forName(args[i]);
+		o = c.newInstance();
+	    } catch (ClassNotFoundException e) {
+		System.out.println("Exception e: " + e);
+		System.exit(2);
+	    } catch (InstantiationException e) {
+		System.out.println("Exception e: " + e);
+		System.exit(3);
+	    } catch (IllegalAccessException e) {
+		System.out.println("Exception e: " + e);
+		System.exit(4);
+	    }
+	    try {
+		s[i] = (Strategy) o;
+	    } catch (ClassCastException e) {
+		System.out.println("Exception e: " + e);
+		System.exit(5);
+	    }
 	}
-	bs1.print();
-
-	List<Integer> lm = bs1.legalMoves(SquareState.WHITE);
-	System.out.println("lm: " + lm);
-
-	bs1.makeMove(33, SquareState.WHITE);
-	bs1.makeMove(34, SquareState.BLACK);
-	bs1.makeMove(35, SquareState.WHITE);
-	bs1.print();
-
-	reversi(new RandomStrategy(), new RandomStrategy(), System.out);
-        
-	System.out.println("BoardState: Stop.");
+	reversi(s[0], s[1], System.out);
     }
 
 }
