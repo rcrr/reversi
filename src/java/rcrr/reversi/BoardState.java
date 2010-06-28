@@ -36,6 +36,9 @@ package rcrr.reversi;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collections;
 
 import java.io.PrintStream;
 
@@ -243,10 +246,34 @@ public class BoardState {
 	}
 	return legalMoves;
     }
+
+    public static Strategy maximizer(final EvalFunction ef) {
+	return new Strategy() {
+		public Integer move(SquareState player, BoardState board) {
+		    List<Integer> moves = board.legalMoves(player);
+		    List<Integer> scores = new ArrayList<Integer>();
+		    for (Integer move : moves) {
+			BoardState newBoard = board.copyBoard();
+			newBoard.makeMove(move, player);
+			Integer score = ef.eval(player, newBoard);
+			scores.add(score);
+		    }
+		    Integer best = Collections.max(scores);
+		    return moves.get(scores.indexOf(best));
+		}
+	    };
+    }
+
+    private static void usage() {
+	System.out.println("usage: java rcrr.reversi.BoardState blackStrategy whiteStrategy");
+	System.out.println("\t Where blackStrategy and whiteStrategy are two classes");
+	System.out.println("\t that implements the rcrr.reversi.Strategy interface.");
+    }
 	
     public static void main(String[] args) {
 	if (args == null || args.length != 2) {
-	    System.out.println("Argument list error ...");
+	    System.out.println("Argument list error: blackStrategy and whiteStrategy must be provided.");
+	    usage();
 	    System.exit(1);
 	}
 	Strategy s[] = new Strategy[]{null, null};
@@ -257,18 +284,22 @@ public class BoardState {
 		o = c.newInstance();
 	    } catch (ClassNotFoundException e) {
 		System.out.println("Exception e: " + e);
+		usage();
 		System.exit(2);
 	    } catch (InstantiationException e) {
 		System.out.println("Exception e: " + e);
+		usage();
 		System.exit(3);
 	    } catch (IllegalAccessException e) {
 		System.out.println("Exception e: " + e);
+		usage();
 		System.exit(4);
 	    }
 	    try {
 		s[i] = (Strategy) o;
 	    } catch (ClassCastException e) {
 		System.out.println("Exception e: " + e);
+		usage();
 		System.exit(5);
 	    }
 	}
