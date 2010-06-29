@@ -53,6 +53,9 @@ public class BoardState {
 								 71,72,73,74,75,76,77,78,
 								 81,82,83,84,85,86,87,88);
 
+    public static final int winningValue = Integer.MAX_VALUE;
+    public static final int losingValue = Integer.MIN_VALUE;
+
     private List<SquareState> squares;
 
     private BoardState() {
@@ -249,19 +252,29 @@ public class BoardState {
 
     public static Strategy maximizer(final EvalFunction ef) {
 	return new Strategy() {
-		public Integer move(SquareState player, BoardState board) {
-		    List<Integer> moves = board.legalMoves(player);
-		    List<Integer> scores = new ArrayList<Integer>();
-		    for (Integer move : moves) {
-			BoardState newBoard = board.copyBoard();
-			newBoard.makeMove(move, player);
-			Integer score = ef.eval(player, newBoard);
-			scores.add(score);
-		    }
-		    Integer best = Collections.max(scores);
-		    return moves.get(scores.indexOf(best));
+	    public Integer move(SquareState player, BoardState board) {
+		List<Integer> moves = board.legalMoves(player);
+		List<Integer> scores = new ArrayList<Integer>();
+		for (Integer move : moves) {
+		    BoardState newBoard = board.copyBoard();
+		    newBoard.makeMove(move, player);
+		    Integer score = ef.eval(player, newBoard);
+		    scores.add(score);
 		}
-	    };
+		Integer best = Collections.max(scores);
+		return moves.get(scores.indexOf(best));
+	    }
+	};
+    }
+
+    public Integer finalValue(SquareState player) {
+	Integer value = null;
+	switch (Integer.signum(countDifference(player))) {
+	case -1: value = losingValue; break;
+	case  0: value = 0; break;
+	case +1: value = winningValue; break;
+	}
+	return value;
     }
 
     private static void usage() {
