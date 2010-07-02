@@ -83,5 +83,45 @@ public class Minimax {
 	};
     }
 
+    public static Minimax alphabeta(SquareState player, BoardState board, Integer achievable, Integer cutoff, Integer ply, EvalFunction ef) {
+	Minimax ab = null;
+	SquareState opponent = SquareState.opponent(player);
+	if (ply == 0) {
+	    ab = new Minimax(null, ef.eval(player, board));
+	} else {
+	    List<Integer> moves = board.legalMoves(player);
+	    if (moves.isEmpty()) {
+		if (board.anyLegalMove(opponent)) {
+		    ab = alphabeta(opponent, board, - cutoff, - achievable, ply - 1, ef).minus();
+		} else {
+		    ab = new Minimax(null, board.finalValue(player));
+		}
+	    } else {
+		ab = new Minimax(moves.get(0), achievable);
+		outer:
+		for (Integer move : moves) {
+		    BoardState board2 = board.copyBoard();
+		    board2.makeMove(move, player);
+		    int val = alphabeta(opponent, board2, - cutoff, - achievable, ply - 1, ef).minus().getValue();
+		    if (ab.getValue() == null || val > ab.getValue()) {
+			ab.setValue(val);
+			ab.setMove(move);
+		    }
+		    if (ab.getValue() >= cutoff) break outer;
+		}
+	    }
+	}
+	return ab;
+    }
+
+    public static Strategy alphabetaSearcher(final Integer ply, final EvalFunction ef) {
+	return new Strategy() {
+	    public Integer move(SquareState player, BoardState board) {
+		Minimax ab = alphabeta(player, board, BoardState.winningValue, BoardState.losingValue, ply, ef);
+		return ab.getMove();
+	    }
+	};
+    }
+
 
 }
