@@ -54,7 +54,7 @@ public class BoardState {
 								 81,82,83,84,85,86,87,88);
 
     public static final int winningValue = Integer.MAX_VALUE;
-    public static final int losingValue = Integer.MIN_VALUE;
+    public static final int losingValue = - Integer.MAX_VALUE;
 
     private List<SquareState> squares;
 

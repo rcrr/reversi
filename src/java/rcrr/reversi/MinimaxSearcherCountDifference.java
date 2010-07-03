@@ -24,12 +24,14 @@ package rcrr.reversi;
 
 import java.util.List;
 
-public class MinimaxSearcher3CountDifference implements Strategy {
+public class MinimaxSearcherCountDifference implements Strategy {
 
-    Strategy s;
+    private final int PLY = 3;
+
+    private Strategy s;
     
-    public MinimaxSearcher3CountDifference() {
-	s = Minimax.minimaxSearcher(3, new CountDifference());
+    public MinimaxSearcherCountDifference() {
+	s = Minimax.minimaxSearcher(PLY, new CountDifference());
     }
 
     public Integer move(SquareState player, BoardState board) {

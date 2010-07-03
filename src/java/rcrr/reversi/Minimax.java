@@ -44,6 +44,20 @@ public class Minimax {
     public Minimax minus() {
 	return new Minimax(getMove(), - getValue());
     }
+    
+    public String toString() {
+	return new String("[move=" + move + ", value=" + value + "]");
+    }
+
+    
+    private static String plyLevel(Integer ply) {
+	if (ply < 0) return new String("-");
+	StringBuffer sb = new StringBuffer(ply);
+	for (int i=0; i<ply; i++) {
+	    sb.append('.');
+	}
+	return sb.toString();
+    }
 
     public static Minimax minimax(SquareState player, BoardState board, Integer ply, EvalFunction ef) {
 	Minimax mm = null;
@@ -98,12 +112,11 @@ public class Minimax {
 		}
 	    } else {
 		ab = new Minimax(moves.get(0), achievable);
-		outer:
-		for (Integer move : moves) {
+		outer: for (Integer move : moves) {
 		    BoardState board2 = board.copyBoard();
 		    board2.makeMove(move, player);
-		    int val = alphabeta(opponent, board2, - cutoff, - achievable, ply - 1, ef).minus().getValue();
-		    if (ab.getValue() == null || val > ab.getValue()) {
+		    int val = alphabeta(opponent, board2, - cutoff, - ab.getValue(), ply - 1, ef).minus().getValue();
+		    if (val > ab.getValue()) {
 			ab.setValue(val);
 			ab.setMove(move);
 		    }
@@ -117,7 +130,7 @@ public class Minimax {
     public static Strategy alphabetaSearcher(final Integer ply, final EvalFunction ef) {
 	return new Strategy() {
 	    public Integer move(SquareState player, BoardState board) {
-		Minimax ab = alphabeta(player, board, BoardState.winningValue, BoardState.losingValue, ply, ef);
+		Minimax ab = alphabeta(player, board, BoardState.losingValue, BoardState.winningValue, ply, ef);
 		return ab.getMove();
 	    }
 	};
