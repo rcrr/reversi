@@ -125,7 +125,7 @@ public class BoardState {
 	Integer cb = count(SquareState.BLACK);
 	Integer cw = count(SquareState.WHITE);
 	Integer cd = cb - cw;
-	ps.print("    1 2 3 4 5 6 7 8 [@=" + cb + " 0=" + cw + " (" + cd + ")]");
+	ps.print("    a b c d e f g h [@=" + cb + " 0=" + cw + " (" + cd + ")]");
 	for (int row=1; row<9; row++) {
 	    ps.print("\n " + row + "  ");
 	    for (int col=1; col<9; col++) {
@@ -214,9 +214,10 @@ public class BoardState {
     public Integer getMove(Strategy strategy, SquareState player, PrintStream ps) {
 	if (ps != null) print(ps);
 	Integer move = strategy.move(player, copyBoard());
+	String strMove = Square.getSquare(move).getDisplayName();
 	if (isValid(move) && isLegal(move, player)) {
 	    if (ps != null) {
-		ps.print("\n" + player.name() + " moves to " + move + "\n");
+		ps.print("\n" + player.name() + " moves to " + strMove + "\n");
 		makeMove(move, player);
 	    }
 	    return move;

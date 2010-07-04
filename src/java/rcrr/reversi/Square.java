@@ -125,12 +125,20 @@ public enum Square {
 	return corners.contains(this);
     }
 
+    public static Square getSquare(Integer i) {
+	return ONE_HUNDRED_SQUARES.get(i);	
+    }
+
+    public static Square getSquare(String s) {
+	return Square.valueOf(s.toUpperCase());	
+    }
+
     public static Integer strToInt(String s) {
-	return Square.valueOf(s.toUpperCase()).getPos();
+	return getSquare(s).getPos();
     }
 
     public static String intToString(Integer i) {
-	return ONE_HUNDRED_SQUARES.get(i).getDisplayName();
+	return getSquare(i).getDisplayName();
     }
 
 

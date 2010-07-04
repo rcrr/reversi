@@ -25,6 +25,9 @@
 
 package rcrr.reversi;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -39,15 +42,26 @@ public class HumanStrategy implements Strategy {
     }
     
     public Integer move(SquareState player, BoardState board) {
-	System.out.print(player.toString() + " to move: ");
-	String s = null;
-	try {
-	    s = in.readLine();
-	} catch (Exception e) {
-	    System.out.println("Error in reading the input command, exiting.");
-	    System.exit(1);
+	Integer move = null;
+	while (move == null) {
+	    List<String> moves = new ArrayList<String>();
+	    for (Integer mv : board.legalMoves(player)) {
+		moves.add(Square.getSquare(mv).getDisplayName());
+	    }
+	    System.out.print(player.toString() + " to move " + moves + ": ");
+	    String s = null;
+	    try {
+		s = in.readLine();
+	    } catch (Exception e) {
+		System.out.println("Error in reading the input command, exiting.");
+		System.exit(1);
+	    }
+	    try {
+		move = Square.getSquare(s).getPos();
+	    } catch (Exception e) {
+		System.out.println(s + " is not a move. Retry:");
+	    }
 	}
-	Integer move = Integer.valueOf(s);	
 	return move;
     }
 
