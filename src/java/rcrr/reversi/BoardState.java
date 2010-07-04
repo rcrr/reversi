@@ -36,7 +36,7 @@ import java.io.PrintStream;
 
 public class BoardState {
 
-    public static final List<Integer> ALL_SQUARES = Square.allSquares();
+    public static final List<Integer> ALL_SQUARES = Square.ALL_SQUARES;
 
     public static final List<List<Integer>> NEIGHBOR_TABLE = neighborTable();
 

@@ -63,6 +63,24 @@ public enum Square {
 	return as;
     }
 
+    public static final List<Integer> ALL_SQUARES = allSquares();
+
+    public static List<Square> oneHundredSquares() {
+	List<Square> oneh = new ArrayList<Square>();
+	for (int i=0; i<100; i++) {
+	    Square square = null;
+	    for (Square sq : Square.values()) {
+		if (sq.getPos() == i) square = sq;
+	    }
+	    oneh.add(square);
+	}
+	return oneh;
+    }
+    
+    public static final List<Square> ONE_HUNDRED_SQUARES = oneHundredSquares();
+    
+    
+    
     public Character getHasegawaLabel() {
 	switch (this) {
 	case B1:
@@ -106,6 +124,16 @@ public enum Square {
     public Boolean isCorner() {
 	return corners.contains(this);
     }
+
+    public static Integer strToInt(String s) {
+	return Square.valueOf(s.toUpperCase()).getPos();
+    }
+
+    public static String intToString(Integer i) {
+	return ONE_HUNDRED_SQUARES.get(i).getDisplayName();
+    }
+
+
     public static void main(String[] args) {
 	System.out.println(A1);
 	System.out.println(A1.name());
@@ -115,6 +143,9 @@ public enum Square {
 	System.out.println(C8.getHasegawaLabel());
 	System.out.println("isCorner A1: " + A1.isCorner());
 	System.out.println("isCorner B1: " + B1.isCorner());
+
+	System.out.println("strToInt c7: " + strToInt("c7"));
+	System.out.println("intToString 73: " + intToString(73));
 	
     }
 
