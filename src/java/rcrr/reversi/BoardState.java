@@ -1,34 +1,26 @@
- /*
-    Copyright (c) 2010 Roberto Corradini
-
-    This file is part of the reversi program
-    http://github.com/rcrr/reversi
-
-    This program is free software; you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the
-    Free Software Foundation; either version 3, or (at your option) any
-    later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
-    or visit the site <http://www.gnu.org/licenses/>.
-*/
-
 /*
-
-Still missing:
- - reversi
-
-Then the connection with the swing GUI and the printing facility.
-And then refactoring, documentation, javadocs.
-
-*/
+ *  BoardState.java
+ *
+ *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *
+ *  This file is part of the reversi program
+ *  http://github.com/rcrr/reversi
+ *
+ *  This program is free software; you can redistribute it and/or modify it
+ *  under the terms of the GNU General Public License as published by the
+ *  Free Software Foundation; either version 3, or (at your option) any
+ *  later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ *  or visit the site <http://www.gnu.org/licenses/>.
+ */
 
 
 package rcrr.reversi;
@@ -44,7 +36,7 @@ import java.io.PrintStream;
 
 public class BoardState {
 
-    public static final List<Integer> allSquares = Arrays.asList(11,12,13,14,15,16,17,18,
+    public static final List<Integer> ALL_SQUARES = Arrays.asList(11,12,13,14,15,16,17,18,
 								 21,22,23,24,25,26,27,28,
 								 31,32,33,34,35,36,37,38,
 								 41,42,43,44,45,46,47,48,
@@ -53,15 +45,35 @@ public class BoardState {
 								 71,72,73,74,75,76,77,78,
 								 81,82,83,84,85,86,87,88);
 
-    public static final int winningValue = Integer.MAX_VALUE;
-    public static final int losingValue = - Integer.MAX_VALUE;
+    public static final List<List<Integer>> NEIGHBOR_TABLE = neighborTable();
+
+    private static List<List<Integer>> neighborTable() {
+	List<List<Integer>> nt = new ArrayList<List<Integer>>(100);
+	for (int i=0; i<100; i++) nt.add(new ArrayList<Integer>());
+	for (Integer square : ALL_SQUARES) {
+	    List<Integer> nl = new ArrayList<Integer>();
+	    for (Direction dir : Direction.values()) {
+		Integer neighbor = square + dir.delta();
+		if (isValid(neighbor)) nl.add(neighbor);
+	    }
+	    nt.set(square, nl);
+	}
+	return nt;
+    }
+
+    public static List<Integer> neighbors(Integer square) {
+	return NEIGHBOR_TABLE.get(square);
+    }
+
+    public static final int WINNING_VALUE = Integer.MAX_VALUE;
+    public static final int LOSING_VALUE = - Integer.MAX_VALUE;
 
     private List<SquareState> squares;
 
     private BoardState() {
 	this.squares = new ArrayList<SquareState>();
 	for (int i=0; i<100; i++) {
-	    if (allSquares.contains(i)) {
+	    if (ALL_SQUARES.contains(i)) {
 		squares.add(SquareState.EMPTY);
 	    } else {
 		squares.add(SquareState.OUTER);
@@ -71,7 +83,7 @@ public class BoardState {
 
     public BoardState copyBoard() {
 	BoardState bs = emptyBoard();
-	for (Integer i : allSquares) {
+	for (Integer i : ALL_SQUARES) {
 	    bs.set(i, squares.get(i));
 	}
 	return bs;
@@ -151,8 +163,8 @@ public class BoardState {
 	}
     }
 
-    public Boolean isValid(Integer move) {
-	return allSquares.contains(move);
+    public static Boolean isValid(Integer move) {
+	return ALL_SQUARES.contains(move);
     }
 
     public Boolean isLegal(Integer move, SquareState player) {
@@ -197,7 +209,7 @@ public class BoardState {
 
     public Boolean anyLegalMove (SquareState player) {
 	Boolean b = false;
-	for (Integer move : allSquares) {
+	for (Integer move : ALL_SQUARES) {
 	    if (isLegal(move, player)) {
 		b = true;
 		break;
@@ -244,7 +256,7 @@ public class BoardState {
 
     public List<Integer> legalMoves(SquareState player) {
 	List<Integer> legalMoves = new ArrayList<Integer>();
-	for (Integer move : allSquares) {
+	for (Integer move : ALL_SQUARES) {
 	    if (isLegal(move, player)) legalMoves.add(move);
 	}
 	return legalMoves;
@@ -270,9 +282,9 @@ public class BoardState {
     public Integer finalValue(SquareState player) {
 	Integer value = null;
 	switch (Integer.signum(countDifference(player))) {
-	case -1: value = losingValue; break;
+	case -1: value = LOSING_VALUE; break;
 	case  0: value = 0; break;
-	case +1: value = winningValue; break;
+	case +1: value = WINNING_VALUE; break;
 	}
 	return value;
     }
