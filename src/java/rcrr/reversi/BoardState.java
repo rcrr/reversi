@@ -169,6 +169,16 @@ public class BoardState {
  	return false;
     }
 
+    /**
+     * Update board to reflect move by player.
+     * <p>
+     * This method executes the board update during the game development. The board
+     * is mutable and this method relates on side effects to change it. It is a sort
+     * of set method to change a board according to the game rules.
+     *
+     * @param  move   an integer that points to the board square where to put the disk
+     * @param  player the disk color to put on the board
+     */
     public void makeMove(Integer move, SquareState player) {
 	set(move, player);
 	for (Direction dir : Direction.values()) {
@@ -227,26 +237,6 @@ public class BoardState {
 	}
     }
 
-    public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps) {
-	BoardState board = initialBoard();
-	Strategy strategy = null;
-	Boolean gameOver = false;
-	for (SquareState player = SquareState.BLACK;
-	     player != null;
-	     player = board.nextToPlay(player, ps)) {
-	    if (player == SquareState.BLACK) {
-		strategy = blStrategy;
-	    } else {
-		strategy = whStrategy;
-	    }
-	    board.getMove(strategy, player, ps);
-	}
-	if (ps != null) {
-	    ps.print("\nThe Game is over. Final result:\n\n");
-	    board.print(ps);
-	}
-	return board.countDifference(SquareState.BLACK);
-    }
 
     public List<Integer> legalMoves(SquareState player) {
 	List<Integer> legalMoves = new ArrayList<Integer>();
@@ -281,48 +271,6 @@ public class BoardState {
 	case +1: value = WINNING_VALUE; break;
 	}
 	return value;
-    }
-
-    private static void usage() {
-	System.out.println("usage: java rcrr.reversi.BoardState blackStrategy whiteStrategy");
-	System.out.println("\t Where blackStrategy and whiteStrategy are two classes");
-	System.out.println("\t that implements the rcrr.reversi.Strategy interface.");
-    }
-	
-    public static void main(String[] args) {
-	if (args == null || args.length != 2) {
-	    System.out.println("Argument list error: blackStrategy and whiteStrategy must be provided.");
-	    usage();
-	    System.exit(1);
-	}
-	Strategy s[] = new Strategy[]{null, null};
-	for (int i=0; i<2; i++) {
-	    Object o = null;
-	    try {
-		Class<?> c = Class.forName(args[i]);
-		o = c.newInstance();
-	    } catch (ClassNotFoundException e) {
-		System.out.println("Exception e: " + e);
-		usage();
-		System.exit(2);
-	    } catch (InstantiationException e) {
-		System.out.println("Exception e: " + e);
-		usage();
-		System.exit(3);
-	    } catch (IllegalAccessException e) {
-		System.out.println("Exception e: " + e);
-		usage();
-		System.exit(4);
-	    }
-	    try {
-		s[i] = (Strategy) o;
-	    } catch (ClassCastException e) {
-		System.out.println("Exception e: " + e);
-		usage();
-		System.exit(5);
-	    }
-	}
-	reversi(s[0], s[1], System.out);
     }
 
 }
