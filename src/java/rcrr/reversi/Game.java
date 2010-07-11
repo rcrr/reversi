@@ -25,6 +25,8 @@
 
 package rcrr.reversi;
 
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.io.PrintStream;
 
@@ -32,25 +34,30 @@ public class Game {
 
     private Game() {}
 
-    public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps) {
+    private Clock clock;
+
+    public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Long minutes) {
 	BoardState board = BoardState.initialBoard();
-	Strategy strategy = null;
-	Boolean gameOver = false;
-	for (SquareState player = SquareState.BLACK;
-	     player != null;
-	     player = board.nextToPlay(player, ps)) {
-	    if (player == SquareState.BLACK) {
-		strategy = blStrategy;
-	    } else {
-		strategy = whStrategy;
+	Clock clock = Clock.initialClock(minutes);
+	try {
+	    for (SquareState player = SquareState.BLACK;
+		 player != null;
+		 player = board.nextToPlay(player, ps)) {
+		Strategy strategy;
+		if (player == SquareState.BLACK) {
+		    strategy = blStrategy;
+		} else {
+		    strategy = whStrategy;
+		}
+		board.getMove(strategy, player, ps, clock);
 	    }
-	    board.getMove(strategy, player, ps);
+	} catch (Exception e) {
 	}
-	if (ps != null) {
-	    ps.print("\nThe Game is over. Final result:\n\n");
-	    board.print(ps);
-	}
-	return board.countDifference(SquareState.BLACK);
+	    if (ps != null) {
+		ps.print("\nThe Game is over. Final result:\n\n");
+		board.print(ps, clock);
+	    }
+	    return board.countDifference(SquareState.BLACK);
     }
 
 
@@ -94,7 +101,7 @@ public class Game {
 		System.exit(5);
 	    }
 	}
-	reversi(s[0], s[1], System.out);
+	reversi(s[0], s[1], System.out, null);
     }
 
 

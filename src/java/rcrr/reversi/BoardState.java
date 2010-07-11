@@ -118,10 +118,10 @@ public class BoardState {
     }
 
     public void print() {
-	print(System.out);
+	print(System.out, null);
     }
 
-    public void print(PrintStream ps) {
+    public void print(PrintStream ps, Clock clock) {
 	Integer cb = count(SquareState.BLACK);
 	Integer cw = count(SquareState.WHITE);
 	Integer cd = cb - cw;
@@ -133,6 +133,10 @@ public class BoardState {
 		String p = squares.get(idx).toString();
 		ps.print(p + " ");
 	    }
+	}
+	if (clock != null) {
+	    ps.print("\n");
+	    ps.print("\tClock: " + clock);
 	}
 	ps.print("\n\n");
     }
@@ -221,8 +225,8 @@ public class BoardState {
 	return b;
     }
 
-    public Integer getMove(Strategy strategy, SquareState player, PrintStream ps) {
-	if (ps != null) print(ps);
+    public Integer getMove(Strategy strategy, SquareState player, PrintStream ps, Clock clock) {
+	if (ps != null) print(ps, clock);
 	Integer move = strategy.move(player, copyBoard());
 	String strMove = Square.getSquare(move).getDisplayName();
 	if (isValid(move) && isLegal(move, player)) {
@@ -233,10 +237,9 @@ public class BoardState {
 	    return move;
 	} else {
 	    if (ps != null) ps.print("Illegal move: " + move + "\n");
-	    return getMove(strategy, player, ps);
+	    return getMove(strategy, player, ps, clock);
 	}
     }
-
 
     public List<Integer> legalMoves(SquareState player) {
 	List<Integer> legalMoves = new ArrayList<Integer>();
