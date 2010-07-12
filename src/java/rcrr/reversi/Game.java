@@ -51,7 +51,7 @@ public class Game {
 		}
 		board.getMove(strategy, player, ps, clock);
 	    }
-	} catch (Exception e) {
+	} catch (GameOverException goe) {
 	}
 	    if (ps != null) {
 		ps.print("\nThe Game is over. Final result:\n\n");

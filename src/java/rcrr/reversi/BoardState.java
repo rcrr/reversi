@@ -225,13 +225,15 @@ public class BoardState {
 	return b;
     }
 
-    public Integer getMove(Strategy strategy, SquareState player, PrintStream ps, Clock clock) {
+    public Integer getMove(Strategy strategy, SquareState player, PrintStream ps, Clock clock) throws GameOverException {
 	if (ps != null) print(ps, clock);
+	long t0 = System.currentTimeMillis();
 	Integer move = strategy.move(player, copyBoard());
-	String strMove = Square.getSquare(move).getDisplayName();
+	long t1 = System.currentTimeMillis();
+	clock = clock.setTime(player, t1 - t0);
 	if (isValid(move) && isLegal(move, player)) {
 	    if (ps != null) {
-		ps.print("\n" + player.name() + " moves to " + strMove + "\n");
+		ps.print("\n" + player.name() + " moves to " + Square.getSquare(move).getDisplayName() + "\n");
 		makeMove(move, player);
 	    }
 	    return move;

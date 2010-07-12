@@ -45,18 +45,21 @@ public class Clock {
 	return new Clock (t, t);
     }
 
-    public Clock setTime(SquareState player, long deltaTime) throws Exception {
+    public Clock setTime(SquareState player, long deltaTime) throws GameOverException {
 	switch(player) {
 	case BLACK:
 	    final long bRemainingTime = blackTime - deltaTime;
-	    if (bRemainingTime < 0) throw new Exception("BLACK player exceded his game time limit.");
+	    if (bRemainingTime < 0) throw new GameOverException("BLACK player exceded his game time limit.");
 	    return new Clock(bRemainingTime, whiteTime);
 	case WHITE:
 	    final long wRemainingTime = whiteTime - deltaTime;
-	    if (wRemainingTime < 0) throw new Exception("WHITE player exceded his game time limit.");
+	    if (wRemainingTime < 0) throw new GameOverException("WHITE player exceded his game time limit.");
 	    return new Clock(blackTime, wRemainingTime);
 	}
-	throw new Exception("Only BLACK and WHITE players are supported by Clock.");
+	// throw new Exception("Only BLACK and WHITE players are supported by Clock.");
+	System.out.println("Only BLACK and WHITE players are supported by Clock.");
+	System.exit(1);
+	return null;
     }
 
     private static String timeString(long time) {
