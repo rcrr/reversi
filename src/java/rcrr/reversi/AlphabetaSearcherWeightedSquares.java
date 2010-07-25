@@ -28,7 +28,7 @@ import java.util.List;
 
 public class AlphabetaSearcherWeightedSquares implements Strategy {
 
-    private final int PLY = 8;
+    private final int PLY = 4;
 
     private Strategy s;
     

@@ -25,23 +25,65 @@
 
 package rcrr.reversi;
 
-public class Clock {
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
+/**
+ * Clock Class defines the Game Clock. It has two values, the
+ * Black's remaining time, and the White's one, expressed in
+ * milliseconds.
+ * Clock is an immutable class, since there is no way to change
+ * its state after construction.
+ */
+public final class Clock {
 
     private static final long DEFAULT_GAME_TIME_IN_MINUTES = 30;
     private static final long TIME_UNITS_PER_SECOND = 1000;
     private static final long SECONDS_PER_MINUTE = 60;
 
+    private static final NumberFormat TIME_FORMATTER = new DecimalFormat("##00");
+
     private final long blackTime;
     private final long whiteTime;
 
+    /**
+     * Class constructor.
+     * <p>
+     * This constructur creates a Clock object given the Black's time and the White's
+     * one.
+     *
+     * @param  blackTime the Black's remaining time
+     * @param  whiteTime the White's remaining time
+     */
     private Clock(final long blackTime, final long whiteTime) {
 	this.blackTime = blackTime;
 	this.whiteTime = whiteTime;
     }
 
-    public static Clock initialClock(Long gameTimeInMinutes) {
-	if (gameTimeInMinutes == null) gameTimeInMinutes = DEFAULT_GAME_TIME_IN_MINUTES;
-	final long t = SECONDS_PER_MINUTE * TIME_UNITS_PER_SECOND * gameTimeInMinutes;
+    /**
+     * Class static factory. Returns a new Clock with the given initial values
+     * assigned to each individual player.
+     *
+     * @param  blackTime the game's time assigned to the Black player in milliseconds
+     * @param  whiteTime the game's time assigned to the White player in milliseconds
+     * @return           a new Clock having Black's and White's time set to the
+     *                   given parameters
+     */
+    public static Clock valueOf(final Long blackTime, final Long whiteTime) {
+	return new Clock (blackTime, whiteTime);
+    }
+
+    /**
+     * Class static factory. Returns a new Clock with the given initial value
+     * assigned to both players.
+     *
+     * @param  gameTimeInMinutes the game's time in minutes assigned to the two players
+     * @return                   a new Clock having Black's and White's time set to
+     *                           the same given value
+     */
+    public static Clock initialClock(final Long gameTimeInMinutes) {
+	final long tm = (gameTimeInMinutes == null) ? DEFAULT_GAME_TIME_IN_MINUTES : gameTimeInMinutes;
+	final long t = SECONDS_PER_MINUTE * TIME_UNITS_PER_SECOND * tm;
 	return new Clock (t, t);
     }
 
@@ -62,16 +104,27 @@ public class Clock {
 	return null;
     }
 
+    public Long getTime(SquareState player) {
+	return (player == SquareState.BLACK) ? blackTime : whiteTime;
+    }
+
     private static String timeString(long time) {
 	long rTime = Math.round(time / TIME_UNITS_PER_SECOND);
 	long minutes = (long) Math.floor(rTime / SECONDS_PER_MINUTE);
 	long seconds = rTime - (minutes * SECONDS_PER_MINUTE);
-	return minutes + ":" + seconds;
+	return TIME_FORMATTER.format(minutes) + ":" + TIME_FORMATTER.format(seconds);
     }
 
     @Override public String toString() {
 	return "[ " + SquareState.BLACK + "=" + timeString(blackTime) + ", " + 
 	    SquareState.WHITE + "=" + timeString(whiteTime) + " ]";
+    }
+
+    public static void main(String[] args) {
+	System.out.println("Clock .... init.");
+	Clock c = Clock.valueOf( 1000L * 60L * 30L, 4000L );
+	Long time = c.getTime(SquareState.BLACK);
+	System.out.println("time=" + time + ", c=" + c);
     }
 
 }
