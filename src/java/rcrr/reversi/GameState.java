@@ -1,5 +1,5 @@
 /*
- *  AlphabetaSearcherCountDifference.java
+ *  GameState.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -22,22 +22,41 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
+
 package rcrr.reversi;
 
-import java.util.List;
+import java.io.PrintStream;
 
-public class AlphabetaSearcherCountDifference implements Strategy {
+public class GameState {
+    private final Clock clock;
+    private final BoardState board;
+    private final SquareState player;
 
-    private final int PLY = 4;
-
-    private final Strategy s;
-    
-    public AlphabetaSearcherCountDifference() {
-	s = Minimax.alphabetaSearcher(PLY, new CountDifference());
+    private GameState(BoardState board, SquareState player, Clock clock) {
+	this.clock = clock;
+	this.board = board;
+	this.player = player;
     }
 
-    public Integer move(SquareState player, BoardState board) {
-	return s.move(player, board);
+    static GameState valueOf(BoardState board, SquareState player, Clock clock) {
+	GameState gs = new GameState(board, player, clock);
+	return gs;
+    }
+
+    Clock getClock() {
+	return clock;
+    }
+
+    BoardState getBoard() {
+	return board;
+    }
+
+    SquareState getPlayer() {
+	return player;
+    }
+
+    GameState getMove(Strategy strategy, PrintStream ps) throws GameOverException {
+	return BoardState.getMove(board, strategy, player, ps, clock);
     }
 
 }

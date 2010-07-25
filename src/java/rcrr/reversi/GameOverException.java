@@ -1,5 +1,5 @@
 /*
- *  AlphabetaSearcherCountDifference.java
+ *  GameOverException.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -22,22 +22,14 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
+
 package rcrr.reversi;
 
-import java.util.List;
+public class GameOverException extends Exception {
 
-public class AlphabetaSearcherCountDifference implements Strategy {
+    public GameOverException() {}
 
-    private final int PLY = 4;
-
-    private final Strategy s;
-    
-    public AlphabetaSearcherCountDifference() {
-	s = Minimax.alphabetaSearcher(PLY, new CountDifference());
+    public GameOverException(String msg) {
+	super(msg);
     }
-
-    public Integer move(SquareState player, BoardState board) {
-	return s.move(player, board);
-    }
-
 }

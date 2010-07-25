@@ -46,6 +46,7 @@ public class Minimax {
 	setMove(move);
 	setValue(value);
     }
+
     public Minimax minus() {
 	return new Minimax(getMove(), - getValue());
     }
@@ -53,7 +54,6 @@ public class Minimax {
     public String toString() {
 	return new String("[move=" + move + ", value=" + value + "]");
     }
-
     
     private static String plyLevel(Integer ply) {
 	if (ply < 0) return new String("-");
@@ -118,8 +118,7 @@ public class Minimax {
 	    } else {
 		ab = new Minimax(moves.get(0), achievable);
 		outer: for (Integer move : moves) {
-		    BoardState board2 = board.copyBoard();
-		    board2.makeMove(move, player);
+		    BoardState board2 = board.makeMove(move, player);
 		    int val = alphabeta(opponent, board2, - cutoff, - ab.getValue(), ply - 1, ef).minus().getValue();
 		    if (val > ab.getValue()) {
 			ab.setValue(val);

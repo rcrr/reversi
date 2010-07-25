@@ -50,7 +50,7 @@ public class WeightedSquares implements EvalFunction, Strategy {
 
     public Integer eval(SquareState player, BoardState board) {
 	SquareState opp = SquareState.opponent(player);
-	int value = 0;
+	Integer value = 0;
 	for (int i=0; i<100; i++) {
 	    int p;
 	    SquareState color = board.get(i);

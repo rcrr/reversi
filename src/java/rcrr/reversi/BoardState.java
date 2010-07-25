@@ -183,11 +183,23 @@ public class BoardState {
      * @param  move   an integer that points to the board square where to put the disk
      * @param  player the disk color to put on the board
      */
-    public void makeMove(Integer move, SquareState player) {
+    private void makeMoveDestructive(Integer move, SquareState player) {
 	set(move, player);
 	for (Direction dir : Direction.values()) {
 	    makeFlips(move, player, dir);
 	}
+    }
+
+    /**
+     * Returns a new updated board to reflect move by player.
+     *
+     * @param  move   an integer that points to the board square where to put the disk
+     * @param  player the disk color to put on the board
+     */
+    public BoardState makeMove(Integer move, SquareState player) {
+	BoardState newBoard = copyBoard();
+	newBoard.makeMoveDestructive(move, player);
+	return newBoard;
     }
 
     public void makeFlips(Integer move, SquareState player, Direction dir) {
@@ -225,21 +237,21 @@ public class BoardState {
 	return b;
     }
 
-    public Integer getMove(Strategy strategy, SquareState player, PrintStream ps, Clock clock) throws GameOverException {
-	if (ps != null) print(ps, clock);
+    public static GameState getMove(BoardState b, Strategy strategy, SquareState player, PrintStream ps, Clock clock) throws GameOverException {
+	if (ps != null) b.print(ps, clock);
 	long t0 = System.currentTimeMillis();
-	Integer move = strategy.move(player, copyBoard());
+	Integer move = strategy.move(player, b.copyBoard());
 	long t1 = System.currentTimeMillis();
 	clock = clock.setTime(player, t1 - t0);
-	if (isValid(move) && isLegal(move, player)) {
+	if (b.isValid(move) && b.isLegal(move, player)) {
 	    if (ps != null) {
 		ps.print("\n" + player.name() + " moves to " + Square.getSquare(move).getDisplayName() + "\n");
-		makeMove(move, player);
 	    }
-	    return move;
+	    BoardState b1 = b.makeMove(move, player);
+	    return GameState.valueOf(b1, b1.nextToPlay(player, null), clock);
 	} else {
 	    if (ps != null) ps.print("Illegal move: " + move + "\n");
-	    return getMove(strategy, player, ps, clock);
+	    return getMove(b, strategy, player, ps, clock);
 	}
     }
 
