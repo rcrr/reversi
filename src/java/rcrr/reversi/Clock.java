@@ -49,7 +49,7 @@ public final class Clock {
     /**
      * Class constructor.
      * <p>
-     * This constructur creates a Clock object given the Black's time and the White's
+     * This constructor creates a Clock object given the Black's time and the White's
      * one.
      *
      * @param  blackTime the Black's remaining time
@@ -87,7 +87,16 @@ public final class Clock {
 	return new Clock (t, t);
     }
 
-    public Clock setTime(SquareState player, long deltaTime) throws GameOverException {
+    /**
+     * Returns a new Clock object generated subtracting the deltaTime value from
+     * the specified player remaining clock time.
+     *
+     * @param  player    the player from which to take away the specified time
+     * @param  deltaTime the amount of time in milliseconds to subtract from the 
+     *                   player's clock time
+     * @return           a new updated Clock
+     */
+    public Clock setTime(final SquareState player, final Long deltaTime) throws GameOverException {
 	switch(player) {
 	case BLACK:
 	    final long bRemainingTime = blackTime - deltaTime;
@@ -104,10 +113,26 @@ public final class Clock {
 	return null;
     }
 
+    /**
+     * Returns a Long value that represents the Clock time remaining to
+     * the specified player parameter.
+     *
+     * @param  player the player for which the remaining time is queried 
+     * @return        the player remaining time in milliseconds
+     */
     public Long getTime(SquareState player) {
 	return (player == SquareState.BLACK) ? blackTime : whiteTime;
     }
 
+    /**
+     * Returns a String in the format mm:ss corresponding to
+     * the given time in milliseconds, where:
+     *  mm is the amount of minuts
+     *  ss is the amount of seconds
+     *
+     * @param  time time in milliseconds 
+     * @return      a formatted string with minutes and seconds
+     */
     private static String timeString(long time) {
 	long rTime = Math.round(time / TIME_UNITS_PER_SECOND);
 	long minutes = (long) Math.floor(rTime / SECONDS_PER_MINUTE);
@@ -115,6 +140,11 @@ public final class Clock {
 	return TIME_FORMATTER.format(minutes) + ":" + TIME_FORMATTER.format(seconds);
     }
 
+    /**
+     * Returns a String representing the Clock object.
+     *
+     * @return a String representing the clock
+     */
     @Override public String toString() {
 	return "[ " + SquareState.BLACK + "=" + timeString(blackTime) + ", " + 
 	    SquareState.WHITE + "=" + timeString(whiteTime) + " ]";
