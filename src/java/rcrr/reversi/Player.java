@@ -1,5 +1,5 @@
 /*
- *  SquareState.java
+ *  Player.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -25,44 +25,25 @@
 
 package rcrr.reversi;
 
-import java.util.Map;
-import java.util.HashMap;
-
-public enum SquareState {
-    EMPTY("An empty square", "."),
-	BLACK("A black piece", "@"),
-	WHITE("A white piece", "O"),
-	OUTER("Marks squares outside the 8x8 board", "?");
-
+public enum Player {
+    BLACK("The Black player", "Black", SquareState.BLACK),
+	WHITE("The White player", "White", SquareState.WHITE);
+    
     private String description;
     private String name;
-
-    private static final Map<String, SquareState> stringToEnum
-	= new HashMap<String, SquareState>();
-
-    static {
-	for (SquareState ss : values())
-	    stringToEnum.put(ss.toString(), ss);
-    }
-
-    public static SquareState fromString(String symbol) {
-	return stringToEnum.get(symbol);
-    }
-
-    SquareState(String description, String name) {
+    private SquareState color;
+    
+    Player(String description, String name, SquareState color) {
 	this.description = description;
 	this.name = name;
+	this.color = color;
     }
-
-    @Override public String toString() { return name; }
-
-    public static SquareState opponent(SquareState player) {
-	switch (player) {
-	case EMPTY: return null;
-	case BLACK: return WHITE;
-	case WHITE: return BLACK;
-	case OUTER: return null;
-	}
-	return null;
+    
+    public String getDescription() { return description; }
+    public String getName() { return name; }
+    public SquareState getColor() { return color; }
+    
+    public Player opponent() {
+	return (this == BLACK) ? WHITE : BLACK;
     }
 }
