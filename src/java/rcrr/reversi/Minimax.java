@@ -64,9 +64,9 @@ public class Minimax {
 	return sb.toString();
     }
 
-    public static Minimax minimax(SquareState player, BoardState board, Integer ply, EvalFunction ef) {
+    public static Minimax minimax(Player player, BoardState board, Integer ply, EvalFunction ef) {
 	Minimax mm = null;
-	SquareState opponent = SquareState.opponent(player);
+	Player opponent = player.opponent();
 	if (ply == 0) {
 	    mm = new Minimax(null, ef.eval(player, board));
 	} else {
@@ -95,16 +95,16 @@ public class Minimax {
 
     public static Strategy minimaxSearcher(final Integer ply, final EvalFunction ef) {
 	return new Strategy() {
-	    public Integer move(SquareState player, BoardState board) {
+	    public Integer move(Player player, BoardState board) {
 		Minimax mm = minimax(player, board, ply, ef);
 		return mm.getMove();
 	    }
 	};
     }
 
-    public static Minimax alphabeta(SquareState player, BoardState board, Integer achievable, Integer cutoff, Integer ply, EvalFunction ef) {
+    public static Minimax alphabeta(Player player, BoardState board, Integer achievable, Integer cutoff, Integer ply, EvalFunction ef) {
 	Minimax ab = null;
-	SquareState opponent = SquareState.opponent(player);
+	Player opponent = player.opponent();
 	if (ply == 0) {
 	    ab = new Minimax(null, ef.eval(player, board));
 	} else {
@@ -133,7 +133,7 @@ public class Minimax {
 
     public static Strategy alphabetaSearcher(final Integer ply, final EvalFunction ef) {
 	return new Strategy() {
-	    public Integer move(SquareState player, BoardState board) {
+	    public Integer move(Player player, BoardState board) {
 		Minimax ab = alphabeta(player, board, LOSING_VALUE, WINNING_VALUE, ply, ef);
 		return ab.getMove();
 	    }

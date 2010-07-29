@@ -35,12 +35,12 @@ public class Game {
     private Game() {}
 
     public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Long minutes) {
-	GameState game = GameState.valueOf(BoardState.initialBoard(), SquareState.BLACK, Clock.initialClock(minutes));
+	GameState game = GameState.valueOf(BoardState.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
 	try {
-	    for (SquareState player = game.getPlayer();
+	    for (Player player = game.getPlayer();
 		 player != null;
 		 player = game.getBoard().nextToPlay(player, ps)) {
-		game = BoardState.getMove(game.getBoard(), ((player == SquareState.BLACK) ? blStrategy : whStrategy), player, ps, game.getClock());
+		game = BoardState.getMove(game.getBoard(), ((player == Player.BLACK) ? blStrategy : whStrategy), player, ps, game.getClock());
 	    }
 	} catch (GameOverException goe) {
 	    // to be completed .....
@@ -49,7 +49,7 @@ public class Game {
 	    ps.print("\nThe Game is over. Final result:\n\n");
 	    game.getBoard().print(ps, game.getClock());
 	}
-	return game.getBoard().countDifference(SquareState.BLACK);
+	return game.getBoard().countDifference(Player.BLACK);
     }
 
 

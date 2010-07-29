@@ -34,14 +34,14 @@ public enum Direction {
 	S(10, "South"),
 	SE(11, "South-East");
 
-	private Integer delta;
-	private String name;
+	private final Integer delta;
+	private final String description;
 
-	Direction(Integer delta, String name) {
+	Direction(Integer delta, String description) {
 	    this.delta = delta;
-	    this.name = name;
+	    this.description = description;
 	}
 
 	public Integer delta() { return delta; }
-	public String toString() { return name; }
+	public String getDescription() { return description; }
 }

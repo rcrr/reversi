@@ -105,16 +105,16 @@ public class BoardState {
 	    squares.set(index, ss);
     }
 
-    public Integer count(SquareState player) {
+    public Integer count(SquareState color) {
 	int count = 0;
 	for (int i=0; i<100; i++) {
-	    if (squares.get(i) == player) count++;
+	    if (squares.get(i) == color) count++;
 	}
 	return new Integer(count);
     }
 
-    public Integer countDifference(SquareState player) {
-	return count(player) - count(SquareState.opponent(player));
+    public Integer countDifference(Player player) {
+	return count(player.getColor()) - count(player.opponent().getColor());
     }
 
     public void print() {
@@ -141,19 +141,19 @@ public class BoardState {
 	ps.print("\n\n");
     }
 
-    public Integer wouldFlip(Integer move, SquareState player, Direction dir) {
+    public Integer wouldFlip(Integer move, Player player, Direction dir) {
 	int c = move + dir.delta();
 	Integer bp = null;
-	if (get(c) == SquareState.opponent(player)) {
+	if (get(c) == player.opponent().getColor()) {
 	    bp = findBracketingPiece(c + dir.delta(), player, dir);
 	}
 	return bp;
     }
 
-    public Integer findBracketingPiece(Integer square, SquareState player, Direction dir) {
-	if (get(square) == player) {
+    public Integer findBracketingPiece(Integer square, Player player, Direction dir) {
+	if (get(square) == player.getColor()) {
 	    return square;
-	} else if (get(square) == SquareState.opponent(player)) {
+	} else if (get(square) == player.opponent().getColor()) {
 	    return findBracketingPiece(square + dir.delta(), player, dir);
 	} else {
 	    return null;
@@ -164,9 +164,9 @@ public class BoardState {
 	return ALL_SQUARES.contains(move);
     }
 
-    public Boolean isLegal(Integer move, SquareState player) {
+    public Boolean isLegal(Integer move, Player player) {
 	if (squares.get(move) != SquareState.EMPTY) return false;
-	if (!(player == SquareState.BLACK || player == SquareState.WHITE)) return false;
+	if (!(player.getColor() == SquareState.BLACK || player.getColor() == SquareState.WHITE)) return false;
 	for (Direction dir : Direction.values()) {
 	    if (wouldFlip(move, player, dir) != null) return true;
 	}
@@ -183,8 +183,8 @@ public class BoardState {
      * @param  move   an integer that points to the board square where to put the disk
      * @param  player the disk color to put on the board
      */
-    private void makeMoveDestructive(Integer move, SquareState player) {
-	set(move, player);
+    private void makeMoveDestructive(Integer move, Player player) {
+	set(move, player.getColor());
 	for (Direction dir : Direction.values()) {
 	    makeFlips(move, player, dir);
 	}
@@ -196,25 +196,25 @@ public class BoardState {
      * @param  move   an integer that points to the board square where to put the disk
      * @param  player the disk color to put on the board
      */
-    public BoardState makeMove(Integer move, SquareState player) {
+    public BoardState makeMove(Integer move, Player player) {
 	BoardState newBoard = copyBoard();
 	newBoard.makeMoveDestructive(move, player);
 	return newBoard;
     }
 
-    public void makeFlips(Integer move, SquareState player, Direction dir) {
+    public void makeFlips(Integer move, Player player, Direction dir) {
 	Integer bracketer = wouldFlip(move, player, dir);
 	if (bracketer != null) {
 	    for (int c = move + dir.delta(); true; c = c + dir.delta()) {
 		if (c == bracketer) break;
-		set(c, player);
+		set(c, player.getColor());
 	    }
 	}
     }
 
-    public SquareState nextToPlay(SquareState previousPlayer, PrintStream ps) {
-	SquareState opponent = SquareState.opponent(previousPlayer);
-	SquareState next = null;
+    public Player nextToPlay(Player previousPlayer, PrintStream ps) {
+	Player opponent = previousPlayer.opponent();
+	Player next = null;
 	if (anyLegalMove(opponent)) {
 	    next = opponent;
 	} else if (anyLegalMove(previousPlayer)) {
@@ -226,7 +226,7 @@ public class BoardState {
 	return next;
     }
 
-    public Boolean anyLegalMove (SquareState player) {
+    public Boolean anyLegalMove (Player player) {
 	Boolean b = false;
 	for (Integer move : ALL_SQUARES) {
 	    if (isLegal(move, player)) {
@@ -237,7 +237,7 @@ public class BoardState {
 	return b;
     }
 
-    public static GameState getMove(BoardState b, Strategy strategy, SquareState player, PrintStream ps, Clock clock) throws GameOverException {
+    public static GameState getMove(BoardState b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
 	if (ps != null) b.print(ps, clock);
 	long t0 = System.currentTimeMillis();
 	Integer move = strategy.move(player, b.copyBoard());
@@ -255,7 +255,7 @@ public class BoardState {
 	}
     }
 
-    public List<Integer> legalMoves(SquareState player) {
+    public List<Integer> legalMoves(Player player) {
 	List<Integer> legalMoves = new ArrayList<Integer>();
 	for (Integer move : ALL_SQUARES) {
 	    if (isLegal(move, player)) legalMoves.add(move);
@@ -265,7 +265,7 @@ public class BoardState {
 
     public static Strategy maximizer(final EvalFunction ef) {
 	return new Strategy() {
-	    public Integer move(SquareState player, BoardState board) {
+	    public Integer move(Player player, BoardState board) {
 		List<Integer> moves = board.legalMoves(player);
 		List<Integer> scores = new ArrayList<Integer>();
 		for (Integer move : moves) {
@@ -280,7 +280,7 @@ public class BoardState {
 	};
     }
 
-    public Integer finalValue(SquareState player) {
+    public Integer finalValue(Player player) {
 	Integer value = null;
 	switch (Integer.signum(countDifference(player))) {
 	case -1: value = LOSING_VALUE; break;

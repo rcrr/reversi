@@ -26,5 +26,5 @@
 package rcrr.reversi;
 
 public interface Strategy {
-    Integer move(SquareState player, BoardState board);
+    Integer move(Player player, BoardState board);
 }

@@ -48,21 +48,21 @@ public class WeightedSquares implements EvalFunction, Strategy {
 	maximizeWeightedCount = BoardState.maximizer(this);
     }
 
-    public Integer eval(SquareState player, BoardState board) {
-	SquareState opp = SquareState.opponent(player);
+    public Integer eval(Player player, BoardState board) {
+	Player opp = player.opponent();
 	Integer value = 0;
 	for (int i=0; i<100; i++) {
 	    int p;
 	    SquareState color = board.get(i);
-	    if (color == player) p = 1;
-	    else if (color == opp) p = -1;
+	    if (color == player.getColor()) p = 1;
+	    else if (color == opp.getColor()) p = -1;
 	    else p = 0;
 	    value += p * WEIGHTS.get(i);
 	}
 	return value;
     }
 
-    public Integer move(SquareState player, BoardState board) {
+    public Integer move(Player player, BoardState board) {
 	return maximizeWeightedCount.move(player, board);
     }
 

@@ -30,15 +30,15 @@ import java.io.PrintStream;
 public class GameState {
     private final Clock clock;
     private final BoardState board;
-    private final SquareState player;
+    private final Player player;
 
-    private GameState(BoardState board, SquareState player, Clock clock) {
+    private GameState(BoardState board, Player player, Clock clock) {
 	this.clock = clock;
 	this.board = board;
 	this.player = player;
     }
 
-    static GameState valueOf(BoardState board, SquareState player, Clock clock) {
+    static GameState valueOf(BoardState board, Player player, Clock clock) {
 	GameState gs = new GameState(board, player, clock);
 	return gs;
     }
@@ -51,7 +51,7 @@ public class GameState {
 	return board;
     }
 
-    SquareState getPlayer() {
+    Player getPlayer() {
 	return player;
     }
 

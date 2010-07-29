@@ -28,6 +28,7 @@ package rcrr.reversi;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 public enum Square {
     A1("a1", 11), B1("b1", 12), C1("c1", 13), D1("d1", 14), E1("e1", 15), F1("f1", 16), G1("g1", 17), H1("h1", 18),
@@ -55,17 +56,17 @@ public enum Square {
 	return pos;
     }
 
-    public static List<Integer> allSquares() {
+    private static List<Integer> allSquares() {
 	List<Integer> as = new ArrayList<Integer>();
 	for (Square sq : Square.values()) {
 	    as.add(sq.getPos());
 	}
-	return as;
+	return Collections.unmodifiableList(as);
     }
 
     public static final List<Integer> ALL_SQUARES = allSquares();
 
-    public static List<Square> oneHundredSquares() {
+    private static List<Square> oneHundredSquares() {
 	List<Square> oneh = new ArrayList<Square>();
 	for (int i=0; i<100; i++) {
 	    Square square = null;
@@ -74,12 +75,10 @@ public enum Square {
 	    }
 	    oneh.add(square);
 	}
-	return oneh;
+	return Collections.unmodifiableList(oneh);
     }
     
     public static final List<Square> ONE_HUNDRED_SQUARES = oneHundredSquares();
-    
-    
     
     public Character getHasegawaLabel() {
 	switch (this) {
@@ -119,7 +118,7 @@ public enum Square {
 	return null;
     }
 
-    public static List<Square> corners = Arrays.asList(A1, H1, H8, A8);
+    public static final List<Square> corners = Collections.unmodifiableList(Arrays.asList(A1, H1, H8, A8));
 
     public Boolean isCorner() {
 	return corners.contains(this);

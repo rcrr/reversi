@@ -42,13 +42,13 @@ public class ModifiedWeightedSquares implements EvalFunction, Strategy {
 	ws = new WeightedSquares();
     }
 
-    public Integer eval(SquareState player, BoardState board) {
+    public Integer eval(Player player, BoardState board) {
 	int w = ws.eval(player, board);
 	for (Integer corner : CORNERS) {
 	    if (board.get(corner) != SquareState.EMPTY) {
 		for (Integer c : BoardState.neighbors(corner)) {
 		    if (board.get(c) != SquareState.EMPTY) {
-			int j = (board.get(c) == player) ? 1 : -1;
+			int j = (board.get(c) == player.getColor()) ? 1 : -1;
 			w += (j * (5 - WEIGHTS.get(c)));
 		    }
 		}
@@ -57,7 +57,7 @@ public class ModifiedWeightedSquares implements EvalFunction, Strategy {
 	return w;
     }
 
-    public Integer move(SquareState player, BoardState board) {
+    public Integer move(Player player, BoardState board) {
 	return s.move(player, board);
     }
 

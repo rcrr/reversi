@@ -55,14 +55,4 @@ public enum SquareState {
     }
 
     @Override public String toString() { return name; }
-
-    public static SquareState opponent(SquareState player) {
-	switch (player) {
-	case EMPTY: return null;
-	case BLACK: return WHITE;
-	case WHITE: return BLACK;
-	case OUTER: return null;
-	}
-	return null;
-    }
 }

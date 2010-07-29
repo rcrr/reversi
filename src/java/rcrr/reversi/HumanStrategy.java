@@ -41,7 +41,7 @@ public class HumanStrategy implements Strategy {
  	in = new BufferedReader(isr);
     }
     
-    public Integer move(SquareState player, BoardState board) {
+    public Integer move(Player player, BoardState board) {
 	Integer move = null;
 	while (move == null) {
 	    List<String> moves = new ArrayList<String>();

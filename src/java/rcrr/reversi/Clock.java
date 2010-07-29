@@ -96,7 +96,7 @@ public final class Clock {
      *                   player's clock time
      * @return           a new updated Clock
      */
-    public Clock setTime(final SquareState player, final Long deltaTime) throws GameOverException {
+    public Clock setTime(final Player player, final Long deltaTime) throws GameOverException {
 	switch(player) {
 	case BLACK:
 	    final long bRemainingTime = blackTime - deltaTime;
@@ -120,8 +120,8 @@ public final class Clock {
      * @param  player the player for which the remaining time is queried 
      * @return        the player remaining time in milliseconds
      */
-    public Long getTime(SquareState player) {
-	return (player == SquareState.BLACK) ? blackTime : whiteTime;
+    public Long getTime(Player player) {
+	return (player == Player.BLACK) ? blackTime : whiteTime;
     }
 
     /**
@@ -146,14 +146,14 @@ public final class Clock {
      * @return a String representing the clock
      */
     @Override public String toString() {
-	return "[ " + SquareState.BLACK + "=" + timeString(blackTime) + ", " + 
-	    SquareState.WHITE + "=" + timeString(whiteTime) + " ]";
+	return "[ " + Player.BLACK + "=" + timeString(blackTime) + ", " + 
+	    Player.WHITE + "=" + timeString(whiteTime) + " ]";
     }
 
     public static void main(String[] args) {
 	System.out.println("Clock .... init.");
 	Clock c = Clock.valueOf( 1000L * 60L * 30L, 4000L );
-	Long time = c.getTime(SquareState.BLACK);
+	Long time = c.getTime(Player.BLACK);
 	System.out.println("time=" + time + ", c=" + c);
     }
 
