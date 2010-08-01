@@ -22,7 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-
 package rcrr.reversi;
 
 import java.util.List;
@@ -34,160 +33,41 @@ import java.util.Collections;
 
 import java.io.PrintStream;
 
-public class BoardState {
+// To do:
+// - change the List into an EnumMap
+// - verify if feasible to complete hide the MutableBoard
+// - remove the copyBoard() method (BoardState is now immutable ...)
+// - javadoc ....
+// - polish, polish, polish ....
 
-    public static final List<Integer> ALL_SQUARES = Square.ALL_SQUARES;
+public final class BoardState extends Board {
 
-    public static final List<List<Integer>> NEIGHBOR_TABLE = neighborTable();
+    private final List<SquareState> squares;
 
-    private static List<List<Integer>> neighborTable() {
-	List<List<Integer>> nt = new ArrayList<List<Integer>>(100);
-	for (int i=0; i<100; i++) nt.add(new ArrayList<Integer>());
-	for (Integer square : ALL_SQUARES) {
-	    List<Integer> nl = new ArrayList<Integer>();
-	    for (Direction dir : Direction.values()) {
-		Integer neighbor = square + dir.delta();
-		if (isValid(neighbor)) nl.add(neighbor);
-	    }
-	    nt.set(square, nl);
-	}
-	return nt;
-    }
-
-    public static List<Integer> neighbors(Integer square) {
-	return NEIGHBOR_TABLE.get(square);
-    }
-
-    public static final int WINNING_VALUE = Integer.MAX_VALUE;
-    public static final int LOSING_VALUE = - Integer.MAX_VALUE;
-
-    private List<SquareState> squares;
-
-    private BoardState() {
-	this.squares = new ArrayList<SquareState>();
-	for (int i=0; i<100; i++) {
-	    if (ALL_SQUARES.contains(i)) {
-		squares.add(SquareState.EMPTY);
-	    } else {
-		squares.add(SquareState.OUTER);
-	    }
-	}
-    }
-
-    public BoardState copyBoard() {
-	BoardState bs = emptyBoard();
-	for (Integer i : ALL_SQUARES) {
-	    bs.set(i, squares.get(i));
-	}
-	return bs;
-    }
-
-    private void setInitialDisks() {
-	squares.set(44, SquareState.WHITE);
-	squares.set(45, SquareState.BLACK);
-	squares.set(54, SquareState.BLACK);
-	squares.set(55, SquareState.WHITE);
-    }
-
-    public static BoardState emptyBoard() { return new BoardState(); }
-
-    public static BoardState initialBoard() {
-	BoardState ib = new BoardState();
-	ib.setInitialDisks();
-	return ib;
-    }
+    List<SquareState> getSquares() { throw new IllegalArgumentException(); }
 
     public SquareState get(Integer index) {
 	return squares.get(index);
     }
 
-    public void set(Integer index, SquareState ss) {
-	    squares.set(index, ss);
+    private BoardState(MutableBoard mb) {
+	this.squares = Collections.unmodifiableList(new ArrayList<SquareState>(mb.getSquares()));
     }
 
-    public Integer count(SquareState color) {
-	int count = 0;
-	for (int i=0; i<100; i++) {
-	    if (squares.get(i) == color) count++;
-	}
-	return new Integer(count);
+    public static BoardState valueOf(MutableBoard mb) {
+	return new BoardState(mb);
     }
 
-    public Integer countDifference(Player player) {
-	return count(player.getColor()) - count(player.opponent().getColor());
+    public static BoardState emptyBoard() {
+	return valueOf(MutableBoard.emptyBoard());
     }
 
-    public void print() {
-	print(System.out, null);
+    public static BoardState initialBoard() {
+	return valueOf(MutableBoard.initialBoard());
     }
-
-    public void print(PrintStream ps, Clock clock) {
-	Integer cb = count(SquareState.BLACK);
-	Integer cw = count(SquareState.WHITE);
-	Integer cd = cb - cw;
-	ps.print("    a b c d e f g h [@=" + cb + " 0=" + cw + " (" + cd + ")]");
-	for (int row=1; row<9; row++) {
-	    ps.print("\n " + row + "  ");
-	    for (int col=1; col<9; col++) {
-		int idx = (row * 10) + col;
-		String p = squares.get(idx).toString();
-		ps.print(p + " ");
-	    }
-	}
-	if (clock != null) {
-	    ps.print("\n");
-	    ps.print("\tClock: " + clock);
-	}
-	ps.print("\n\n");
-    }
-
-    public Integer wouldFlip(Integer move, Player player, Direction dir) {
-	int c = move + dir.delta();
-	Integer bp = null;
-	if (get(c) == player.opponent().getColor()) {
-	    bp = findBracketingPiece(c + dir.delta(), player, dir);
-	}
-	return bp;
-    }
-
-    public Integer findBracketingPiece(Integer square, Player player, Direction dir) {
-	if (get(square) == player.getColor()) {
-	    return square;
-	} else if (get(square) == player.opponent().getColor()) {
-	    return findBracketingPiece(square + dir.delta(), player, dir);
-	} else {
-	    return null;
-	}
-    }
-
-    public static Boolean isValid(Integer move) {
-	return ALL_SQUARES.contains(move);
-    }
-
-    public Boolean isLegal(Integer move, Player player) {
-	if (squares.get(move) != SquareState.EMPTY) return false;
-	if (!(player.getColor() == SquareState.BLACK || player.getColor() == SquareState.WHITE)) return false;
-	for (Direction dir : Direction.values()) {
-	    if (wouldFlip(move, player, dir) != null) return true;
-	}
- 	return false;
-    }
-
-    /**
-     * Update board to reflect move by player.
-     * <p>
-     * This method executes the board update during the game development. The board
-     * is mutable and this method relates on side effects to change it. It is a sort
-     * of set method to change a board according to the game rules.
-     *
-     * @param  move   an integer that points to the board square where to put the disk
-     * @param  player the disk color to put on the board
-     */
-    private void makeMoveDestructive(Integer move, Player player) {
-	set(move, player.getColor());
-	for (Direction dir : Direction.values()) {
-	    makeFlips(move, player, dir);
-	}
+    
+    public BoardState copyBoard() {
+	return valueOf(MutableBoard.copyBoard(this));
     }
 
     /**
@@ -197,97 +77,9 @@ public class BoardState {
      * @param  player the disk color to put on the board
      */
     public BoardState makeMove(Integer move, Player player) {
-	BoardState newBoard = copyBoard();
-	newBoard.makeMoveDestructive(move, player);
-	return newBoard;
-    }
-
-    public void makeFlips(Integer move, Player player, Direction dir) {
-	Integer bracketer = wouldFlip(move, player, dir);
-	if (bracketer != null) {
-	    for (int c = move + dir.delta(); true; c = c + dir.delta()) {
-		if (c == bracketer) break;
-		set(c, player.getColor());
-	    }
-	}
-    }
-
-    public Player nextToPlay(Player previousPlayer, PrintStream ps) {
-	Player opponent = previousPlayer.opponent();
-	Player next = null;
-	if (anyLegalMove(opponent)) {
-	    next = opponent;
-	} else if (anyLegalMove(previousPlayer)) {
-	    next = previousPlayer;
-	    if (ps != null) {
-		ps.print("\n" + opponent + " has no moves and must pass.\n");
-	    }
-	}
-	return next;
-    }
-
-    public Boolean anyLegalMove (Player player) {
-	Boolean b = false;
-	for (Integer move : ALL_SQUARES) {
-	    if (isLegal(move, player)) {
-		b = true;
-		break;
-	    }
-	}
-	return b;
-    }
-
-    public static GameState getMove(BoardState b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
-	if (ps != null) b.print(ps, clock);
-	long t0 = System.currentTimeMillis();
-	Integer move = strategy.move(player, b.copyBoard());
-	long t1 = System.currentTimeMillis();
-	clock = clock.setTime(player, t1 - t0);
-	if (b.isValid(move) && b.isLegal(move, player)) {
-	    if (ps != null) {
-		ps.print("\n" + player.name() + " moves to " + Square.getSquare(move).getDisplayName() + "\n");
-	    }
-	    BoardState b1 = b.makeMove(move, player);
-	    return GameState.valueOf(b1, b1.nextToPlay(player, null), clock);
-	} else {
-	    if (ps != null) ps.print("Illegal move: " + move + "\n");
-	    return getMove(b, strategy, player, ps, clock);
-	}
-    }
-
-    public List<Integer> legalMoves(Player player) {
-	List<Integer> legalMoves = new ArrayList<Integer>();
-	for (Integer move : ALL_SQUARES) {
-	    if (isLegal(move, player)) legalMoves.add(move);
-	}
-	return legalMoves;
-    }
-
-    public static Strategy maximizer(final EvalFunction ef) {
-	return new Strategy() {
-	    public Integer move(Player player, BoardState board) {
-		List<Integer> moves = board.legalMoves(player);
-		List<Integer> scores = new ArrayList<Integer>();
-		for (Integer move : moves) {
-		    BoardState newBoard = board.copyBoard();
-		    newBoard.makeMove(move, player);
-		    Integer score = ef.eval(player, newBoard);
-		    scores.add(score);
-		}
-		Integer best = Collections.max(scores);
-		return moves.get(scores.indexOf(best));
-	    }
-	};
-    }
-
-    public Integer finalValue(Player player) {
-	Integer value = null;
-	switch (Integer.signum(countDifference(player))) {
-	case -1: value = LOSING_VALUE; break;
-	case  0: value = 0; break;
-	case +1: value = WINNING_VALUE; break;
-	}
-	return value;
+	MutableBoard mb = MutableBoard.copyBoard(this);
+	mb.makeMove(move, player);
+	return valueOf(mb);
     }
 
 }

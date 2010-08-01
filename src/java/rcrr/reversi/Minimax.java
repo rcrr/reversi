@@ -34,9 +34,6 @@ public class Minimax {
     Integer move;
     Integer value;
 
-    private static final int LOSING_VALUE = BoardState.LOSING_VALUE;
-    private static final int WINNING_VALUE = BoardState.WINNING_VALUE;
-
     public Integer getMove() {return move;}
     public void setMove(Integer move) {this.move = move;}
     public Integer getValue() {return value;}
@@ -134,7 +131,7 @@ public class Minimax {
     public static Strategy alphabetaSearcher(final Integer ply, final EvalFunction ef) {
 	return new Strategy() {
 	    public Integer move(Player player, BoardState board) {
-		Minimax ab = alphabeta(player, board, LOSING_VALUE, WINNING_VALUE, ply, ef);
+		Minimax ab = alphabeta(player, board, Game.LOSING_VALUE, Game.WINNING_VALUE, ply, ef);
 		return ab.getMove();
 	    }
 	};

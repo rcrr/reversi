@@ -40,26 +40,26 @@ public enum Square {
 	A7("a7", 71), B7("b7", 72), C7("c7", 73), D7("d7", 74), E7("e7", 75), F7("f7", 76), G7("g7", 77), H7("h7", 78),
 	A8("a8", 81), B8("b8", 82), C8("c8", 83), D8("d8", 84), E8("e8", 85), F8("f8", 86), G8("g8", 87), H8("h8", 88);
 
-    private String displayName;
-    private Integer pos;
+    private final String displayName;
+    private final Integer position;
 
-    private Square(String displayName, Integer pos) {
+    private Square(String displayName, Integer position) {
 	this.displayName = displayName;
-	this.pos = pos;
+	this.position = position;
     }
 
     public String getDisplayName() {
 	return displayName;
     }
 
-    public Integer getPos() {
-	return pos;
+    public Integer position() {
+	return position;
     }
 
     private static List<Integer> allSquares() {
 	List<Integer> as = new ArrayList<Integer>();
 	for (Square sq : Square.values()) {
-	    as.add(sq.getPos());
+	    as.add(sq.position());
 	}
 	return Collections.unmodifiableList(as);
     }
@@ -71,7 +71,7 @@ public enum Square {
 	for (int i=0; i<100; i++) {
 	    Square square = null;
 	    for (Square sq : Square.values()) {
-		if (sq.getPos() == i) square = sq;
+		if (sq.position() == i) square = sq;
 	    }
 	    oneh.add(square);
 	}
@@ -80,6 +80,26 @@ public enum Square {
     
     public static final List<Square> ONE_HUNDRED_SQUARES = oneHundredSquares();
     
+    private static final List<List<Integer>> NEIGHBOR_TABLE = neighborTable();
+
+    private static List<List<Integer>> neighborTable() {
+	List<List<Integer>> nt = new ArrayList<List<Integer>>(100);
+	for (int i=0; i<100; i++) nt.add(new ArrayList<Integer>());
+	for (Integer square : ALL_SQUARES) {
+	    List<Integer> nl = new ArrayList<Integer>();
+	    for (Direction dir : Direction.values()) {
+		Integer neighbor = square + dir.delta();
+		if (BoardState.isValid(neighbor)) nl.add(neighbor);
+	    }
+	    nt.set(square, nl);
+	}
+	return nt;
+    }
+
+    public static List<Integer> neighbors(Integer square) {
+	return NEIGHBOR_TABLE.get(square);
+    }
+
     public Character getHasegawaLabel() {
 	switch (this) {
 	case B1:
@@ -133,7 +153,7 @@ public enum Square {
     }
 
     public static Integer strToInt(String s) {
-	return getSquare(s).getPos();
+	return getSquare(s).position();
     }
 
     public static String intToString(Integer i) {

@@ -32,6 +32,9 @@ import java.io.PrintStream;
 
 public class Game {
 
+    public static final int WINNING_VALUE = Integer.MAX_VALUE;
+    public static final int LOSING_VALUE = - Integer.MAX_VALUE;
+
     private Game() {}
 
     public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Long minutes) {
