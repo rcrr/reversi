@@ -95,7 +95,7 @@ final class MutableBoard extends Board {
      * @param  player the disk color to put on the board
      */
     void makeMove(Integer move, Player player) {
-	set(move, player.getColor());
+	set(move, player.color());
 	for (Direction dir : Direction.values()) {
 	    makeFlips(move, player, dir);
 	}
@@ -106,7 +106,7 @@ final class MutableBoard extends Board {
 	if (bracketer != null) {
 	    for (int c = move + dir.delta(); true; c = c + dir.delta()) {
 		if (c == bracketer) break;
-		set(c, player.getColor());
+		set(c, player.color());
 	    }
 	}
     }

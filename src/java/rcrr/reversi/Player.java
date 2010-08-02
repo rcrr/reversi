@@ -41,7 +41,7 @@ public enum Player {
     
     public String getDescription() { return description; }
     public String getName() { return name; }
-    public SquareState getColor() { return color; }
+    public SquareState color() { return color; }
     
     public Player opponent() {
 	return (this == BLACK) ? WHITE : BLACK;

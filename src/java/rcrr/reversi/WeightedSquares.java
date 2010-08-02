@@ -49,13 +49,13 @@ public class WeightedSquares implements EvalFunction, Strategy {
     }
 
     public Integer eval(Player player, BoardState board) {
-	Player opp = player.opponent();
+	Player opponent = player.opponent();
 	Integer value = 0;
 	for (int i=0; i<100; i++) {
 	    int p;
 	    SquareState color = board.get(i);
-	    if (color == player.getColor()) p = 1;
-	    else if (color == opp.getColor()) p = -1;
+	    if (color == player.color()) p = 1;
+	    else if (color == opponent.color()) p = -1;
 	    else p = 0;
 	    value += p * WEIGHTS.get(i);
 	}

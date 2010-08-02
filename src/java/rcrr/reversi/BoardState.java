@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
+import java.util.EnumMap;
 
 import java.io.PrintStream;
 
@@ -44,7 +45,9 @@ public final class BoardState extends Board {
 
     private final List<SquareState> squares;
 
-    List<SquareState> getSquares() { throw new IllegalArgumentException(); }
+    //private final EnumMap<Square, SquareState> _squares;
+
+    List<SquareState> getSquares() { throw new UnsupportedOperationException(); }
 
     public SquareState get(Integer index) {
 	return squares.get(index);

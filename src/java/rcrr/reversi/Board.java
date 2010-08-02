@@ -42,16 +42,16 @@ abstract class Board {
     public Integer wouldFlip(Integer move, Player player, Direction dir) {
 	int c = move + dir.delta();
 	Integer bp = null;
-	if (get(c) == player.opponent().getColor()) {
+	if (get(c) == player.opponent().color()) {
 	    bp = findBracketingPiece(c + dir.delta(), player, dir);
 	}
 	return bp;
     }
 
     public Integer findBracketingPiece(Integer square, Player player, Direction dir) {
-	if (get(square) == player.getColor()) {
+	if (get(square) == player.color()) {
 	    return square;
-	} else if (get(square) == player.opponent().getColor()) {
+	} else if (get(square) == player.opponent().color()) {
 	    return findBracketingPiece(square + dir.delta(), player, dir);
 	} else {
 	    return null;
@@ -67,7 +67,7 @@ abstract class Board {
     }
 
     public Integer countDifference(Player player) {
-	return count(player.getColor()) - count(player.opponent().getColor());
+	return count(player.color()) - count(player.opponent().color());
     }
 
     public void print() {
@@ -100,7 +100,7 @@ abstract class Board {
 
     public Boolean isLegal(Integer move, Player player) {
 	if (get(move) != SquareState.EMPTY) return false;
-	if (!(player.getColor() == SquareState.BLACK || player.getColor() == SquareState.WHITE)) return false;
+	if (!(player.color() == SquareState.BLACK || player.color() == SquareState.WHITE)) return false;
 	for (Direction dir : Direction.values()) {
 	    if (wouldFlip(move, player, dir) != null) return true;
 	}
