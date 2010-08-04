@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
 
-final class MutableBoard extends Board {
+final class MutableBoard extends AbstractBoard {
 
     private final List<SquareState> squares;
 
@@ -43,7 +43,7 @@ final class MutableBoard extends Board {
 	this.squares = new ArrayList<SquareState>();
     }
     
-    List<SquareState> getSquares() { return this.squares; }
+    List<SquareState> squares() { return this.squares; }
 
     void set(Integer index, SquareState ss) {
 	squares.set(index, ss);
@@ -51,7 +51,7 @@ final class MutableBoard extends Board {
 
     static MutableBoard emptyBoard() {
 	MutableBoard mb = new MutableBoard();
-	List<SquareState> s = mb.getSquares();
+	List<SquareState> s = mb.squares();
 	for (int i=0; i<100; i++) {
 	    if (Square.ALL_SQUARES.contains(i)) {
 		s.add(SquareState.EMPTY);
@@ -70,7 +70,7 @@ final class MutableBoard extends Board {
 
     static MutableBoard copyBoard(BoardState bs) {
 	MutableBoard mb = new MutableBoard();
-	List<SquareState> s = mb.getSquares();	
+	List<SquareState> s = mb.squares();	
 	for (int i=0; i<100; i++) {
 	    s.add(bs.get(i));
 	}

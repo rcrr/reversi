@@ -41,20 +41,20 @@ import java.io.PrintStream;
 // - javadoc ....
 // - polish, polish, polish ....
 
-public final class BoardState extends Board {
+public final class BoardState extends AbstractBoard {
 
     private final List<SquareState> squares;
 
     //private final EnumMap<Square, SquareState> _squares;
 
-    List<SquareState> getSquares() { throw new UnsupportedOperationException(); }
+    List<SquareState> squares() { throw new UnsupportedOperationException(); }
 
     public SquareState get(Integer index) {
 	return squares.get(index);
     }
 
     private BoardState(MutableBoard mb) {
-	this.squares = Collections.unmodifiableList(new ArrayList<SquareState>(mb.getSquares()));
+	this.squares = Collections.unmodifiableList(new ArrayList<SquareState>(mb.squares()));
     }
 
     public static BoardState valueOf(MutableBoard mb) {
