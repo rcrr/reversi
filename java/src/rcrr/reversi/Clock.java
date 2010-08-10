@@ -150,11 +150,4 @@ public final class Clock {
 	    Player.WHITE + "=" + timeString(whiteTime) + " ]";
     }
 
-    public static void main(String[] args) {
-	System.out.println("Clock .... init.");
-	Clock c = Clock.valueOf( 1000L * 60L * 30L, 4000L );
-	Long time = c.getTime(Player.BLACK);
-	System.out.println("time=" + time + ", c=" + c);
-    }
-
 }

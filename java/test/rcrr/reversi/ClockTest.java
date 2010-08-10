@@ -29,9 +29,39 @@ import static org.junit.Assert.*;
 
 public class ClockTest {
 
-    @Test public void testBasic() {
-	Clock c = Clock.valueOf(Long.valueOf(1), Long.valueOf(1));
-        assertTrue("Basic test!", c == c);
+    private static Long MILLISECOND_PER_MINUTE = 60000L;
+
+    @Test public void valueOf() {
+	Long lb = Long.valueOf(1);
+	Long lw = Long.valueOf(1000*30*60+1);
+	Clock c = Clock.valueOf(lb, lw);
+	Long tb = c.getTime(Player.BLACK);
+	Long tw = c.getTime(Player.WHITE);
+        assertEquals(lb, tb);
+        assertEquals(lw, tw);
+    }
+
+    @Test public void initialClock() {
+	Long time = Long.valueOf(1);
+	Clock c = Clock.initialClock(time);
+	Long tb = c.getTime(Player.BLACK);
+	Long tw = c.getTime(Player.WHITE);
+        assertEquals(Long.valueOf(time * MILLISECOND_PER_MINUTE), tb);
+	assertEquals(Long.valueOf(time * MILLISECOND_PER_MINUTE), tw);
+    }
+
+    @Test public void setTime() {
+	Long tb = Long.valueOf(100);
+	Long tw = Long.valueOf(100);
+	Long delta = Long.valueOf(10);
+	Clock c = Clock.valueOf(tb, tw);
+	Clock updated = null;
+	try {
+	    updated = c.setTime(Player.BLACK, delta);
+	} catch (GameOverException goe) {
+	}
+        assertEquals(c.getTime(Player.WHITE), updated.getTime(Player.WHITE));
+	assertEquals(delta, Long.valueOf(c.getTime(Player.BLACK) - updated.getTime(Player.BLACK)));
     }
     
 }
