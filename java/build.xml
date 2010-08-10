@@ -1,0 +1,111 @@
+<!--
+    build.xml
+    
+    Copyright (c) 2010 Roberto Corradini. All rights reserved.
+  
+    This file is part of the reversi program
+    http://github.com/rcrr/reversi
+  
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 3, or (at your option) any
+    later version.
+  
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
+  
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+    or visit the site <http://www.gnu.org/licenses/>.
+-->
+
+<project name="JavaReversi" basedir="." default="main">
+
+  <property name="src.dir" value="src"/>
+
+  <property name="build.dir" value="build"/>
+  <property name="classes.dir" value="${build.dir}/classes"/>
+  <property name="jar.dir" value="${build.dir}/jar"/>
+
+  <property name="test.src.dir" value="test"/>
+  <property name="test.classes.dir" value="${build.dir}/test/classes"/>
+  <property name="test.data.dir" value="${build.dir}/test/data"/>
+
+  <property name="lib.dir" value="lib"/>
+
+  <path id="lib.classpath">
+    <fileset dir="${lib.dir}" includes="**/*.jar"/>
+  </path>
+
+  <property name="main-class" value="rcrr.reversi.Game"/>
+
+  <target name="clean">
+    <delete dir="${build.dir}"/>
+  </target>
+  
+  <target name="compile">
+    <mkdir dir="${classes.dir}"/>
+    <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="lib.classpath"/>
+  </target>
+
+  <target name="jar" depends="compile">
+    <mkdir dir="${jar.dir}"/>
+    <jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}">
+      <manifest>
+	<attribute name="Main-Class" value="${main-class}"/>
+	<!-- Who is building this jar? -->
+	<attribute name="Built-By" value="Roberto Corradini"/>
+	<!-- Information about the program itself -->
+	<attribute name="Implementation-Vendor" value="Roberto Corradini"/>
+	<attribute name="Implementation-Title" value="Java Reversi"/>
+	<attribute name="Implementation-Version" value="0.0.1"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="run" depends="jar">
+    <java fork="true" classname="${main-class}">
+      <classpath>
+	<pathelement location="${jar.dir}/${ant.project.name}.jar"/>
+	<path refid="lib.classpath"/>
+      </classpath>
+    </java>
+  </target>
+
+  <target name="test.compile" depends="jar">
+    <mkdir dir="${test.classes.dir}"/>
+    <javac srcdir="${test.src.dir}" destdir="${test.classes.dir}">
+      <classpath>
+	<pathelement location="${jar.dir}/${ant.project.name}.jar"/>
+	<path refid="lib.classpath"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="test" depends="test.compile">
+    <mkdir dir="${test.data.dir}"/>
+    <junit fork="yes" haltonfailure="yes">
+      <formatter type="brief" usefile="false"/>
+      <formatter type="xml"/>
+      <!-- In case of testing a single class use: -->
+      <!-- ant test -Dtest.class.name qualified classname -->
+      <test name="${test.class.name}" todir="${test.data.dir}" if="test.class.name"/>
+      <batchtest todir="${test.data.dir}" unless="test.class.name">
+	<fileset dir="${test.classes.dir}" includes="**/*Test.class"/>
+      </batchtest>
+      <classpath>
+	<pathelement path="${test.classes.dir}"/>
+	<pathelement location="${jar.dir}/${ant.project.name}.jar"/>
+	<path refid="lib.classpath"/>
+      </classpath>
+    </junit>
+  </target>
+  
+  <target name="clean-build" depends="clean,jar"/>
+  
+  <target name="main" depends="clean,test,run"/>
+  
+</project>
