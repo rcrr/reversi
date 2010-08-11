@@ -30,9 +30,12 @@
   <property name="classes.dir" value="${build.dir}/classes"/>
   <property name="jar.dir" value="${build.dir}/jar"/>
 
+  <property name="javadoc.dir" value="${build.dir}/javadoc"/>
+
   <property name="test.src.dir" value="test"/>
   <property name="test.classes.dir" value="${build.dir}/test/classes"/>
   <property name="test.data.dir" value="${build.dir}/test/data"/>
+  <property name="test.reports.dir" value="${build.dir}/test/reports"/>
 
   <property name="lib.dir" value="lib"/>
 
@@ -76,6 +79,7 @@
   </target>
 
   <target name="test.compile" depends="jar">
+    <delete dir="${test.classes.dir}"/>
     <mkdir dir="${test.classes.dir}"/>
     <javac srcdir="${test.src.dir}" destdir="${test.classes.dir}">
       <classpath>
@@ -86,8 +90,13 @@
   </target>
 
   <target name="test" depends="test.compile">
+    <delete dir="${test.data.dir}"/>
     <mkdir dir="${test.data.dir}"/>
-    <junit fork="yes" haltonfailure="yes">
+    <delete dir="${test.reports.dir}"/>
+    <mkdir dir="${test.reports.dir}"/>
+    <junit fork="yes" printsummary="withOutAndErr"
+	   errorProperty="test.failed"
+	   failureProperty="test.failed">
       <formatter type="brief" usefile="false"/>
       <formatter type="xml"/>
       <!-- In case of testing a single class use: -->
@@ -102,6 +111,28 @@
 	<path refid="lib.classpath"/>
       </classpath>
     </junit>
+    <junitreport todir="${test.data.dir}">
+      <fileset dir="${test.data.dir}">
+	<include name="TEST-*.xml"/>
+      </fileset>
+      <report format="frames" todir="${test.reports.dir}"/>
+    </junitreport>
+    <fail message="Test failed. Check log and/or reports." if="test.failed"/>
+  </target>
+
+  <target name="javadocs" depends="compile">
+    <delete dir="${javadoc.dir}"/>
+    <mkdir dir="${javadoc.dir}"/>
+    <javadoc author="true"
+	     destdir="${javadoc.dir}"
+	     packagenames="rcrr.*"
+	     sourcepath="${src.dir}"
+	     use="true"
+	     version="true"
+	     windowtitle="documentation"
+	     private="true">
+      <classpath refid="lib.classpath"/>
+    </javadoc>
   </target>
   
   <target name="clean-build" depends="clean,jar"/>
