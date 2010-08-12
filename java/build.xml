@@ -130,7 +130,7 @@
 	     use="true"
 	     version="true"
 	     windowtitle="documentation"
-	     private="true">
+	     private="false">
       <classpath refid="lib.classpath"/>
     </javadoc>
   </target>
