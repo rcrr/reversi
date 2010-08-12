@@ -22,28 +22,74 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-
 package rcrr.reversi;
 
+/**
+ * A <code>Player</code> is either one among the Black and the White opponents.
+ */
 public enum Player {
+    /**
+     * The Black player.
+     */
     BLACK("The Black player", "Black", SquareState.BLACK),
+	/**
+	 * The White player.
+	 */
 	WHITE("The White player", "White", SquareState.WHITE);
     
     private String description;
     private String name;
     private SquareState color;
     
+    /**
+     * Class constructor.
+     *
+     * @param  description the <code>Player</code> description
+     * @param  name        the <code>Player</code> name
+     * @param  color       the <code>SquareState</code> or "color" relative to the <code>Player</code>
+     */
     Player(String description, String name, SquareState color) {
 	this.description = description;
 	this.name = name;
 	this.color = color;
     }
     
+    /**
+     * Returns a <code>String</code> value that is the player's description.
+     *
+     * @return        the <code>Player</code> description
+     */
     public String getDescription() { return description; }
+    
+    /**
+     * Returns a <code>String</code> value that is the player's name.
+     *
+     * @return        the <code>Player</code> name
+     */
     public String getName() { return name; }
+    
+    /**
+     * Returns a <code>SquareState</code> value that is the player's color.
+     *
+     * @return        the <code>Player</code> color
+     */
     public SquareState color() { return color; }
     
+    /**
+     * Returns a <code>String</code> value that is the player's color symbol.
+     *
+     * @return        the <code>Player</code> symbol
+     */
+    public String symbol() { return color().toString(); }
+    
+    /**
+     * Returns the <code>Player</code> opponent. The Black for the White,
+     * while the White for the Black.
+     *
+     * @return        the <code>Player</code> opponent
+     */
     public Player opponent() {
 	return (this == BLACK) ? WHITE : BLACK;
     }
+
 }
