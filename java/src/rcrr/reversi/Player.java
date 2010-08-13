@@ -32,10 +32,10 @@ public enum Player {
      * The Black player.
      */
     BLACK("The Black player", "Black", SquareState.BLACK),
-	/**
-	 * The White player.
-	 */
-	WHITE("The White player", "White", SquareState.WHITE);
+    /**
+     * The White player.
+     */
+    WHITE("The White player", "White", SquareState.WHITE);
     
     private String description;
     private String name;

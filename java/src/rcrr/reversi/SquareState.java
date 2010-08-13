@@ -22,7 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-
 package rcrr.reversi;
 
 import java.util.Map;
@@ -30,29 +29,30 @@ import java.util.HashMap;
 
 public enum SquareState {
     EMPTY("An empty square", "."),
-	BLACK("A black piece", "@"),
-	WHITE("A white piece", "O"),
-	OUTER("Marks squares outside the 8x8 board", "?");
+    BLACK("A black piece", "@"),
+    WHITE("A white piece", "O"),
+    OUTER("Marks squares outside the 8x8 board", "?");
 
     private String description;
     private String name;
-
-    private static final Map<String, SquareState> stringToEnum
-	= new HashMap<String, SquareState>();
+    
+    private static final Map<String, SquareState> stringToEnum 
+    = new HashMap<String, SquareState>();
 
     static {
 	for (SquareState ss : values())
 	    stringToEnum.put(ss.toString(), ss);
     }
-
+    
     public static SquareState fromString(String symbol) {
 	return stringToEnum.get(symbol);
     }
-
+    
     SquareState(String description, String name) {
 	this.description = description;
 	this.name = name;
     }
 
-    @Override public String toString() { return name; }
+    @Override
+    public String toString() { return name; }
 }

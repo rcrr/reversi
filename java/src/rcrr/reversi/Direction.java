@@ -26,22 +26,22 @@ package rcrr.reversi;
 
 public enum Direction {
     NE(-11, "North-West"),
-	N(-10, "North"),
-	NW(-9, "North-East"),
-	W(-1, "West"),
-	E(1, "East"),
-	SW(9, "South-West"),
-	S(10, "South"),
-	SE(11, "South-East");
+    N(-10, "North"),
+    NW(-9, "North-East"),
+    W(-1, "West"),
+    E(1, "East"),
+    SW(9, "South-West"),
+    S(10, "South"),
+    SE(11, "South-East");
+    
+    private final Integer delta;
+    private final String description;
+    
+    Direction(Integer delta, String description) {
+	this.delta = delta;
+	this.description = description;
+    }
 
-	private final Integer delta;
-	private final String description;
-
-	Direction(Integer delta, String description) {
-	    this.delta = delta;
-	    this.description = description;
-	}
-
-	public Integer delta() { return delta; }
-	public String getDescription() { return description; }
+    public Integer delta() { return delta; }
+    public String getDescription() { return description; }
 }

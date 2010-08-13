@@ -31,7 +31,8 @@ public class ClockTest {
 
     private static Long MILLISECOND_PER_MINUTE = 60000L;
 
-    @Test public void testValueOf() {
+    @Test
+    public void testValueOf() {
 	Long lb = Long.valueOf(1);
 	Long lw = Long.valueOf(1000*30*60+1);
 	Clock c = Clock.valueOf(lb, lw);
@@ -41,7 +42,8 @@ public class ClockTest {
         assertEquals(lw, tw);
     }
 
-    @Test public void testInitialClock() {
+    @Test
+    public void testInitialClock() {
 	Long time = Long.valueOf(1);
 	Clock c = Clock.initialClock(time);
 	Long tb = c.getTime(Player.BLACK);
@@ -50,7 +52,8 @@ public class ClockTest {
 	assertEquals(Long.valueOf(time * MILLISECOND_PER_MINUTE), tw);
     }
 
-    @Test public void testSetTime() {
+    @Test
+    public void testSetTime() {
 	Long tb = Long.valueOf(100);
 	Long tw = Long.valueOf(100);
 	Long delta = Long.valueOf(10);
@@ -64,12 +67,14 @@ public class ClockTest {
 	assertEquals(delta, Long.valueOf(c.getTime(Player.BLACK) - updated.getTime(Player.BLACK)));
     }
 
-    @Test public void testGetTime() {
+    @Test
+    public void testGetTime() {
 	Clock c = Clock.valueOf(900000L, 1L);
 	assertEquals(Long.valueOf(1), c.getTime(Player.WHITE));
     }
 
-    @Test public void testToString() {
+    @Test
+    public void testToString() {
 	Clock c = Clock.valueOf(900000L, 1L);
 	assertEquals("[ BLACK=15:00, WHITE=00:00 ]", c.toString());
     }
