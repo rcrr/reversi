@@ -24,14 +24,48 @@
 
 package rcrr.reversi;
 
+/**
+ * The directions that are available in a "standard" board square are
+ * eight, Up, Down, Left, Right, and the four diagonal between them.
+ * Each square has eight neighbor ones, if not on the border of the board,
+ * the direction identify them.
+ * <code>Direction</code> is identified by the respective cardinal point,
+ * for instance the Left is associated with <code>W</code>. Each direction
+ * has also an <code>Integer</code> value that is returned by the 
+ * <code>delta</code> method.
+ */
 public enum Direction {
-    NE(-11, "North-West"),
+    /**
+     * North-West direction.
+     */
+    NW(-11, "North-West"),
+    /**
+     * North direction.
+     */
     N(-10, "North"),
-    NW(-9, "North-East"),
+    /**
+     * North-East direction.
+     */
+    NE(-9, "North-East"),
+    /**
+     * West direction.
+     */
     W(-1, "West"),
+    /**
+     * East direction.
+     */
     E(1, "East"),
+    /**
+     * South-West direction.
+     */
     SW(9, "South-West"),
+    /**
+     * South direction.
+     */
     S(10, "South"),
+    /**
+     * South-East direction.
+     */
     SE(11, "South-East");
     
     private final Integer delta;
@@ -42,6 +76,23 @@ public enum Direction {
 	this.description = description;
     }
 
+    /**
+     * Returns an <code>Integer</code> that represents the direction's
+     * value to be added to the proper square index in order to obtain 
+     * its neighbor square index value. 
+     *
+     * @return the index delta value associated with the <code>Direction</code>
+     */
     public Integer delta() { return delta; }
+
+    /**
+     * Returns a <code>String</code> value that represents the direction's
+     * cardinal point.
+     * For instance <code>North</code> for <code>N</code>, 
+     * or <code>South-West</code> for <code>SW</code>. 
+     *
+     * @return the direction's cardinal point
+     */
     public String getDescription() { return description; }
+
 }

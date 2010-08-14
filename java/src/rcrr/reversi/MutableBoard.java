@@ -42,6 +42,11 @@ final class MutableBoard extends AbstractBoard {
     private MutableBoard() {
 	this.squares = new ArrayList<SquareState>();
     }
+
+    public MutableBoard(List<SquareState> ssl) {
+	// has o check that the List has size 100.
+	this.squares = ssl;
+    }
     
     List<SquareState> squares() { return this.squares; }
 

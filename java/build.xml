@@ -75,6 +75,8 @@
 	<pathelement location="${jar.dir}/${ant.project.name}.jar"/>
 	<path refid="lib.classpath"/>
       </classpath>
+      <arg value="rcrr.reversi.AlphabetaSearcherCountDifference"/>
+      <arg value="rcrr.reversi.AlphabetaSearcherWeightedSquares"/>
     </java>
   </target>
 

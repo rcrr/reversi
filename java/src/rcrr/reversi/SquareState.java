@@ -24,35 +24,67 @@
 
 package rcrr.reversi;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 
+/**
+ * The {@code SquareState} identifies the state, or as a synonym the "color",
+ * of each board square.
+ * <p>
+ * Each {@code SquareState} has a {@code symbol} assigned to it that is used
+ * by the game text (or terminal) user interface.
+ */
 public enum SquareState {
-    EMPTY("An empty square", "."),
-    BLACK("A black piece", "@"),
-    WHITE("A white piece", "O"),
-    OUTER("Marks squares outside the 8x8 board", "?");
+    /** An empty square. Its {@code symbol} is ".". */
+    EMPTY("."),
 
-    private String description;
-    private String name;
+    /** A black piece. Its {@code symbol} is "@". */
+    BLACK("@"),
+
+    /** A white piece. Its {@code symbol} is "O". */
+    WHITE("O"),
+
+    /** Marks squares outside the 8x8 board. Its {@code symbol} is "?". */
+    OUTER("?");
     
-    private static final Map<String, SquareState> stringToEnum 
-    = new HashMap<String, SquareState>();
+    /** A static Map to speed up reverse look-up used by 
+	the {@code valueOfSymbol} method. */
+    private static final Map<String, SquareState> SYMBOL_TABLE;
 
+    /** Computes the SYMBOL_TABLE static Map.*/
     static {
+	Map<String, SquareState> m = new HashMap<String, SquareState>();
 	for (SquareState ss : values())
-	    stringToEnum.put(ss.toString(), ss);
-    }
-    
-    public static SquareState fromString(String symbol) {
-	return stringToEnum.get(symbol);
-    }
-    
-    SquareState(String description, String name) {
-	this.description = description;
-	this.name = name;
+	    m.put(ss.toString(), ss);
+	SYMBOL_TABLE = Collections.unmodifiableMap(m);
     }
 
+    /** The color symbol ({@literal e.g.} "@" for BLACK). */
+    private final String symbol;
+
+    /** The {@code enum} constructor. */
+    SquareState(String symbol) {
+	this.symbol = symbol;
+    }
+    
+    /**
+     * Returns the appropriate {@code SquareState} object given
+     * its {@code symbol}. In case of no match returns {@code null}.
+     *
+     * @param symbol the {@code SquareState}'s {@code symbol}
+     * @return       the relative <code>SquareState</code>
+     */    
+    public static SquareState valueOfSymbol(String symbol) {
+	return SYMBOL_TABLE.get(symbol);
+    }
+
+    /**
+     * Returns the {@code SquareState} printable rapresentation.
+     * It returns the {@code symbol} field.
+     *
+     * @return the {@code SquareState}'s {@code symbol}
+     */
     @Override
-    public String toString() { return name; }
+    public String toString() { return symbol; }
 }

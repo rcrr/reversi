@@ -132,6 +132,7 @@ abstract class AbstractBoard implements Board {
 	return b;
     }
 
+    // Should be moved in another class.
     public static GameState getMove(BoardState b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
 	if (ps != null) b.print(ps, clock);
 	long t0 = System.currentTimeMillis();
@@ -158,6 +159,7 @@ abstract class AbstractBoard implements Board {
 	return legalMoves;
     }
 
+    // Should be moved in another class.
     public static Strategy maximizer(final EvalFunction ef) {
 	return new Strategy() {
 	    public Integer move(Player player, BoardState board) {
@@ -184,7 +186,5 @@ abstract class AbstractBoard implements Board {
 	}
 	return value;
     }
-
-
 
 }
