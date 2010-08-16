@@ -58,7 +58,7 @@ abstract class AbstractBoard implements Board {
 	}
     }
 
-    public Integer count(SquareState color) {
+    public Integer countPieces(SquareState color) {
 	int count = 0;
 	for (int i=0; i<100; i++) {
 	    if (get(i) == color) count++;
@@ -67,7 +67,7 @@ abstract class AbstractBoard implements Board {
     }
 
     public Integer countDifference(Player player) {
-	return count(player.color()) - count(player.opponent().color());
+	return countPieces(player.color()) - countPieces(player.opponent().color());
     }
 
     public void print() {
@@ -75,8 +75,8 @@ abstract class AbstractBoard implements Board {
     }
 
     public void print(PrintStream ps, Clock clock) {
-	Integer cb = count(SquareState.BLACK);
-	Integer cw = count(SquareState.WHITE);
+	Integer cb = countPieces(SquareState.BLACK);
+	Integer cw = countPieces(SquareState.WHITE);
 	Integer cd = cb - cw;
 	ps.print("    a b c d e f g h [@=" + cb + " 0=" + cw + " (" + cd + ")]");
 	for (int row=1; row<9; row++) {

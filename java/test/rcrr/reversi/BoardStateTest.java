@@ -33,42 +33,116 @@ import static org.junit.Assert.*;
 
 public class BoardStateTest {
 
+    private BoardState fixtBoardInitial;
+    private BoardState fixtBoardEmpty;
     private BoardState fixtBoardBlackHasToPass;
-    /**
-       3 3 3 3 3 3 3 3 3 3
-       3 2 1 0 1 0 2 0 0 3
-       3 1 1 1 1 1 1 1 2 3
-       3 0 1 2 2 1 1 2 2 3
-       3 0 1 2 1 2 2 2 2 3
-       3 0 1 2 1 2 2 2 2 3
-       3 0 1 2 1 1 2 1 2 3
-       3 0 1 2 1 1 1 1 0 3
-       3 2 2 2 2 2 2 1 2 3
-       3 3 3 3 3 3 3 3 3 3
-    */
+    private BoardState fixtBoardEndGameX;
+    private BoardState fixtBoardA;
+    private BoardState fixtBoardB;
+    private BoardState fixtBoardC;
 
-    @Before
-    public void setUp() {
-	List<Integer> iBoard = Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-					     3, 2, 1, 0, 1, 0, 2, 0, 0, 3,
-					     3, 1, 1, 1, 1, 1, 1, 1, 2, 3,
-					     3, 0, 1, 2, 2, 1, 1, 2, 2, 3,
-					     3, 0, 1, 2, 1, 2, 2, 2, 2, 3,
-					     3, 0, 1, 2, 1, 2, 2, 2, 2, 3,
-					     3, 0, 1, 2, 1, 1, 2, 1, 2, 3,
-					     3, 0, 1, 2, 1, 1, 1, 1, 0, 3,
-					     3, 2, 2, 2, 2, 2, 2, 1, 2, 3,
-					     3, 3, 3, 3, 3, 3, 3, 3, 3, 3);
-	List<SquareState> ssBoard = new ArrayList<SquareState>();
-	for (Integer i : iBoard) {
+    private static BoardState boardFromList(List<Integer> il) {
+	if (il == null) return null;
+	if (il.size() != 100) throw new IllegalArgumentException();
+	List<SquareState> ssl = new ArrayList<SquareState>();
+	for (Integer i : il) {
 	    SquareState ss = null;
-	    if (i == 0) ss = SquareState.EMPTY;
+	    if (i == null || i < 0 || i > 3) throw new IllegalArgumentException();
+	    else if (i == 0) ss = SquareState.EMPTY;
 	    else if (i == 1) ss = SquareState.BLACK;
 	    else if (i == 2) ss = SquareState.WHITE;
 	    else if (i == 3) ss = SquareState.OUTER;
-	    ssBoard.add(ss);
+	    ssl.add(ss);
 	}	
-	fixtBoardBlackHasToPass = BoardState.valueOf(new MutableBoard(ssBoard));
+	return BoardState.valueOf(ssl);
+    }
+
+    @Before
+    public void setUp() {
+	fixtBoardInitial = 
+	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 1, 2, 0, 0, 0, 3,
+					3, 0, 0, 0, 2, 1, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+
+	fixtBoardEmpty = 
+	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+
+	fixtBoardBlackHasToPass = 
+	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+					3, 2, 1, 0, 1, 0, 2, 0, 0, 3,
+					3, 1, 1, 1, 1, 1, 1, 1, 2, 3,
+					3, 0, 1, 2, 2, 1, 1, 2, 2, 3,
+					3, 0, 1, 2, 1, 2, 2, 2, 2, 3,
+					3, 0, 1, 2, 1, 2, 2, 2, 2, 3,
+					3, 0, 1, 2, 1, 1, 2, 1, 2, 3,
+					3, 0, 1, 2, 1, 1, 1, 1, 0, 3,
+					3, 2, 2, 2, 2, 2, 2, 1, 2, 3,
+					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+
+	fixtBoardEndGameX = 
+	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+					3, 2, 2, 2, 2, 2, 1, 1, 1, 3,
+					3, 2, 2, 2, 1, 1, 1, 1, 1, 3,
+					3, 2, 2, 2, 1, 1, 1, 2, 1, 3,
+					3, 2, 2, 1, 2, 1, 1, 2, 1, 3,
+					3, 1, 1, 2, 1, 2, 1, 2, 1, 3,
+					3, 1, 2, 1, 2, 1, 2, 1, 1, 3,
+					3, 1, 1, 1, 1, 1, 1, 2, 1, 3,
+					3, 1, 1, 1, 1, 2, 2, 2, 2, 3,
+					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+
+	fixtBoardA = 
+	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 1, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 1, 1, 0, 0, 0, 3,
+					3, 0, 0, 0, 1, 2, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+
+	fixtBoardB = 
+	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+					3, 0, 0, 0, 1, 1, 1, 0, 0, 3,
+					3, 0, 0, 0, 0, 1, 0, 0, 0, 3,
+					3, 0, 0, 0, 1, 1, 2, 2, 0, 3,
+					3, 0, 0, 0, 1, 1, 0, 0, 0, 3,
+					3, 0, 0, 0, 1, 1, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 1, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+
+	fixtBoardC = 
+	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 2, 1, 1, 1, 0, 0, 2, 0, 3,
+					3, 0, 2, 0, 2, 1, 2, 0, 0, 3,
+					3, 0, 2, 2, 1, 2, 0, 0, 0, 3,
+					3, 0, 0, 1, 1, 0, 2, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+
     }
 
     @Test
@@ -81,17 +155,44 @@ public class BoardStateTest {
 
     @Test
     public void testFindBracketingPiece() {
-	assertTrue(true);
+	Integer move = Square.H7.position();
+
+	Direction dir = Direction.W;
+	Integer b1 = move + dir.delta();
+	Integer b2 = Square.C7.position();
+	assertEquals(b2, fixtBoardBlackHasToPass.
+		     findBracketingPiece(b1, Player.WHITE, dir));
+	
+	dir = Direction.NW;
+	b1 = move + dir.delta();
+	b2 = Square.F5.position();
+	assertEquals(b2, fixtBoardBlackHasToPass.
+		     findBracketingPiece(b1, Player.WHITE, dir));
+	
+	dir = Direction.SW;
+	b1 = move + dir.delta();
+	b2 = null;
+	assertEquals(b2, fixtBoardBlackHasToPass.
+		     findBracketingPiece(b1, Player.WHITE, dir));
+
     }
 
     @Test
-    public void testCount() {
-	assertTrue(true);
+    public void testCountPieces() {
+	assertEquals(Integer.valueOf(2),
+		     BoardState.initialBoard().countPieces(SquareState.BLACK));
     }
 
     @Test
     public void testCountDifference() {
-	assertTrue(true);
+	assertEquals(Integer.valueOf(0),
+		     BoardState.initialBoard().countDifference(Player.BLACK));
+	assertEquals(Integer.valueOf(+10),
+		     fixtBoardEndGameX.countDifference(Player.BLACK));
+	assertEquals(Integer.valueOf(-10),
+		     fixtBoardEndGameX.countDifference(Player.WHITE));
+	assertEquals(Integer.valueOf(-2),
+		     fixtBoardC.countDifference(Player.BLACK));	
     }
 
     @Test
@@ -101,27 +202,49 @@ public class BoardStateTest {
 
     @Test
     public void testIsValid() {
-	assertTrue(true);
+	assertTrue(!BoardState.isValid(0));
+	assertTrue(BoardState.isValid(11));
+	assertTrue(!BoardState.isValid(19));
+	assertTrue(!BoardState.isValid(100));
     }
 
     @Test
     public void testIsLegal() {
-	assertTrue(true);
+	assertFalse(fixtBoardBlackHasToPass.isLegal(78, Player.BLACK));
+	assertTrue(fixtBoardBlackHasToPass.isLegal(78, Player.WHITE));
     }
 
     @Test
     public void testNextToPlay() {
-	assertTrue(true);
+	assertEquals(Player.BLACK, fixtBoardInitial.nextToPlay(Player.WHITE, null));
+	assertEquals(Player.WHITE, fixtBoardInitial.nextToPlay(Player.BLACK, null));
+	assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.WHITE, null));
+	assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.BLACK, null));
+	assertEquals(Player.WHITE, fixtBoardBlackHasToPass.nextToPlay(Player.WHITE, null));
+	assertEquals(Player.WHITE, fixtBoardBlackHasToPass.nextToPlay(Player.BLACK, null));
     }
 
     @Test
     public void testAnyLegalMove() {
-	assertTrue(true);
+	assertTrue(fixtBoardInitial.anyLegalMove(Player.BLACK));
+	assertFalse(fixtBoardBlackHasToPass.anyLegalMove(Player.BLACK));
+	assertTrue(fixtBoardBlackHasToPass.anyLegalMove(Player.WHITE));
+	assertFalse(fixtBoardEndGameX.anyLegalMove(Player.WHITE));
+	assertFalse(fixtBoardEndGameX.anyLegalMove(Player.BLACK));
     }
 
     @Test
     public void testLegalMoves() {
-	assertTrue(true);
+	List<Integer> lm;
+
+	lm = Arrays.asList(35, 46, 53, 64);
+	assertEquals(lm, fixtBoardInitial.legalMoves(Player.BLACK));
+
+	lm = Arrays.asList(33, 35, 53);
+	assertEquals(lm, fixtBoardA.legalMoves(Player.WHITE));
+
+	lm = Arrays.asList(28, 41, 43, 47, 51, 56, 62, 65, 77);
+	assertEquals(lm, fixtBoardC.legalMoves(Player.BLACK));
     }
 
     @Test

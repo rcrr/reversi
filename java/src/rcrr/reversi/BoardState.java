@@ -45,8 +45,6 @@ public final class BoardState extends AbstractBoard {
 
     private final List<SquareState> squares;
 
-    //private final EnumMap<Square, SquareState> _squares;
-
     List<SquareState> squares() { throw new UnsupportedOperationException(); }
 
     public SquareState get(Integer index) {
@@ -57,20 +55,20 @@ public final class BoardState extends AbstractBoard {
 	this.squares = Collections.unmodifiableList(new ArrayList<SquareState>(mb.squares()));
     }
 
-    public static BoardState valueOf(MutableBoard mb) {
-	return new BoardState(mb);
+    public static BoardState valueOf(List<SquareState> b) {
+	return new BoardState(new MutableBoard(b));
     }
 
     public static BoardState emptyBoard() {
-	return valueOf(MutableBoard.emptyBoard());
+	return new BoardState(MutableBoard.emptyBoard());
     }
 
     public static BoardState initialBoard() {
-	return valueOf(MutableBoard.initialBoard());
+	return new BoardState(MutableBoard.initialBoard());
     }
     
     public BoardState copyBoard() {
-	return valueOf(MutableBoard.copyBoard(this));
+	return new BoardState(MutableBoard.copyBoard(this));
     }
 
     /**
@@ -82,7 +80,7 @@ public final class BoardState extends AbstractBoard {
     public BoardState makeMove(Integer move, Player player) {
 	MutableBoard mb = MutableBoard.copyBoard(this);
 	mb.makeMove(move, player);
-	return valueOf(mb);
+	return new BoardState(mb);
     }
 
 }
