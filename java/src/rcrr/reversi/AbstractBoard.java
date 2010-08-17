@@ -38,7 +38,8 @@ abstract class AbstractBoard implements Board {
     abstract public SquareState get(Integer index);
 
     abstract List<SquareState> squares();
-
+ 
+   /** Test ok*/
     public Integer wouldFlip(Integer move, Player player, Direction dir) {
 	int c = move + dir.delta();
 	Integer bp = null;
@@ -48,6 +49,7 @@ abstract class AbstractBoard implements Board {
 	return bp;
     }
 
+   /** Test ok*/
     public Integer findBracketingPiece(Integer square, Player player, Direction dir) {
 	if (get(square) == player.color()) {
 	    return square;
@@ -58,6 +60,7 @@ abstract class AbstractBoard implements Board {
 	}
     }
 
+   /** Test ok*/
     public Integer countPieces(SquareState color) {
 	int count = 0;
 	for (int i=0; i<100; i++) {
@@ -66,14 +69,17 @@ abstract class AbstractBoard implements Board {
 	return new Integer(count);
     }
 
+   /** Test ok*/
     public Integer countDifference(Player player) {
 	return countPieces(player.color()) - countPieces(player.opponent().color());
     }
 
+   /** Should go out of Board Class*/
     public void print() {
 	print(System.out, null);
     }
 
+   /** Should go out of Board Class*/
     public void print(PrintStream ps, Clock clock) {
 	Integer cb = countPieces(SquareState.BLACK);
 	Integer cw = countPieces(SquareState.WHITE);
@@ -94,10 +100,12 @@ abstract class AbstractBoard implements Board {
 	ps.print("\n\n");
     }
 
+   /** Test ok*/
     public static Boolean isValid(Integer move) {
 	return Square.ALL_SQUARES.contains(move);
     }
 
+   /** Test ok*/
     public Boolean isLegal(Integer move, Player player) {
 	if (get(move) != SquareState.EMPTY) return false;
 	if (!(player.color() == SquareState.BLACK || player.color() == SquareState.WHITE)) return false;
@@ -107,6 +115,7 @@ abstract class AbstractBoard implements Board {
  	return false;
     }
 
+   /** Test ok*/
     public Player nextToPlay(Player previousPlayer, PrintStream ps) {
 	Player opponent = previousPlayer.opponent();
 	Player next = null;
@@ -121,6 +130,7 @@ abstract class AbstractBoard implements Board {
 	return next;
     }
 
+   /** Test ok*/
     public Boolean anyLegalMove (Player player) {
 	Boolean b = false;
 	for (Integer move : Square.ALL_SQUARES) {
@@ -151,6 +161,7 @@ abstract class AbstractBoard implements Board {
 	}
     }
 
+   /** Test ok*/
     public List<Integer> legalMoves(Player player) {
 	List<Integer> legalMoves = new ArrayList<Integer>();
 	for (Integer move : Square.ALL_SQUARES) {
@@ -177,6 +188,7 @@ abstract class AbstractBoard implements Board {
 	};
     }
 
+   /** Should be moved out of Board Class*/
     public Integer finalValue(Player player) {
 	Integer value = null;
 	switch (Integer.signum(countDifference(player))) {

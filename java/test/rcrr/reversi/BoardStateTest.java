@@ -196,11 +196,6 @@ public class BoardStateTest {
     }
 
     @Test
-    public void testPrint() {
-	assertTrue(true);
-    }
-
-    @Test
     public void testIsValid() {
 	assertTrue(!BoardState.isValid(0));
 	assertTrue(BoardState.isValid(11));
@@ -248,8 +243,23 @@ public class BoardStateTest {
     }
 
     @Test
-    public void testFinalValue() {
-	assertTrue(true);
+    public void testGet() {
+	assertEquals(SquareState.BLACK, fixtBoardC.get(32));
+	assertEquals(SquareState.WHITE, fixtBoardC.get(42));
+	assertEquals(SquareState.OUTER, fixtBoardC.get(40));
+	assertEquals(SquareState.EMPTY, fixtBoardC.get(11));
+    }
+
+    @Test
+    public void testValueOf() {
+	List<SquareState> ssl = new ArrayList<SquareState>();
+	for (int i=0; i<100; i++) {
+	    ssl.add(fixtBoardC.get(i));
+	}
+	BoardState boardC = BoardState.valueOf(ssl);
+	for (int i=0; i<100; i++) {
+	    assertEquals(fixtBoardC.get(i), boardC.get(i));
+	}
     }
    
 }
