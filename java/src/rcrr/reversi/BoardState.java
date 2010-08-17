@@ -35,10 +35,12 @@ import java.util.EnumMap;
 import java.io.PrintStream;
 
 // To do:
-// - change the List into an EnumMap
-// - verify if feasible to complete hide the MutableBoard
+// - change the List into an Map<Square, SquareState>
+// - remove MutableBoard
+// - Remove the Abstract Class and the Interface. Move all the code into a Board Class.
 // - remove the copyBoard() method (BoardState is now immutable ...)
 // - javadoc ....
+// - complete an exhaustive test suite
 // - polish, polish, polish ....
 
 public final class BoardState extends AbstractBoard {
@@ -47,24 +49,51 @@ public final class BoardState extends AbstractBoard {
 
     List<SquareState> squares() { throw new UnsupportedOperationException(); }
 
+    /** Test ok */
     public SquareState get(Integer index) {
 	return squares.get(index);
     }
 
+    private BoardState(List<SquareState> ssl) {
+	this.squares = Collections.unmodifiableList(new ArrayList<SquareState>(ssl));
+    }
+
+    // to be removed ....
     private BoardState(MutableBoard mb) {
 	this.squares = Collections.unmodifiableList(new ArrayList<SquareState>(mb.squares()));
     }
 
-    public static BoardState valueOf(List<SquareState> b) {
-	return new BoardState(new MutableBoard(b));
+    /** Test ok */
+    public static BoardState valueOf(List<SquareState> ssl) {
+	return new BoardState(ssl);
     }
 
     public static BoardState emptyBoard() {
-	return new BoardState(MutableBoard.emptyBoard());
+	List<SquareState> ssl = new ArrayList<SquareState>();
+	for (int i=0; i<100; i++) {
+	    if (Square.ALL_SQUARES.contains(i)) {
+		ssl.add(SquareState.EMPTY);
+	    } else {
+		ssl.add(SquareState.OUTER);
+	    }
+	}
+	return new BoardState(ssl);
     }
 
     public static BoardState initialBoard() {
-	return new BoardState(MutableBoard.initialBoard());
+	List<SquareState> ssl = new ArrayList<SquareState>();
+	for (int i=0; i<100; i++) {
+	    if (Square.ALL_SQUARES.contains(i)) {
+		ssl.add(SquareState.EMPTY);
+	    } else {
+		ssl.add(SquareState.OUTER);
+	    }
+	}
+	ssl.set(44, SquareState.WHITE);
+	ssl.set(45, SquareState.BLACK);
+	ssl.set(54, SquareState.BLACK);
+	ssl.set(55, SquareState.WHITE);
+	return new BoardState(ssl);
     }
     
     public BoardState copyBoard() {

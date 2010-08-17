@@ -54,25 +54,6 @@ final class MutableBoard extends AbstractBoard {
 	squares.set(index, ss);
     }
 
-    static MutableBoard emptyBoard() {
-	MutableBoard mb = new MutableBoard();
-	List<SquareState> s = mb.squares();
-	for (int i=0; i<100; i++) {
-	    if (Square.ALL_SQUARES.contains(i)) {
-		s.add(SquareState.EMPTY);
-	    } else {
-		s.add(SquareState.OUTER);
-	    }
-	}
-	return mb;
-    }
-
-    static MutableBoard initialBoard() {
-	MutableBoard mb = emptyBoard();
-	mb.setInitialDisks();
-	return mb;
-    }
-
     static MutableBoard copyBoard(BoardState bs) {
 	MutableBoard mb = new MutableBoard();
 	List<SquareState> s = mb.squares();	
@@ -82,12 +63,6 @@ final class MutableBoard extends AbstractBoard {
 	return mb;
     }
 
-    private void setInitialDisks() {
-	squares.set(44, SquareState.WHITE);
-	squares.set(45, SquareState.BLACK);
-	squares.set(54, SquareState.BLACK);
-	squares.set(55, SquareState.WHITE);
-    }
 
     /**
      * Updates board to reflect move by player.
