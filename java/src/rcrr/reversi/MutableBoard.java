@@ -54,43 +54,4 @@ final class MutableBoard extends AbstractBoard {
 	squares.set(index, ss);
     }
 
-    static MutableBoard copyBoard(BoardState bs) {
-	MutableBoard mb = new MutableBoard();
-	List<SquareState> s = mb.squares();	
-	for (int i=0; i<100; i++) {
-	    s.add(bs.get(i));
-	}
-	return mb;
-    }
-
-
-    /**
-     * Updates board to reflect move by player.
-     * <p>
-     * This method executes the board update during the game development. The board
-     * is mutable and this method relates on side effects to change it. It is a sort
-     * of set method to change a board according to the game rules.
-     *
-     * @param  move   an integer that points to the board square where to put the disk
-     * @param  player the disk color to put on the board
-     */
-    void makeMove(Integer move, Player player) {
-	set(move, player.color());
-	for (Direction dir : Direction.values()) {
-	    makeFlips(move, player, dir);
-	}
-    }
-
-    private void makeFlips(Integer move, Player player, Direction dir) {
-	Integer bracketer = wouldFlip(move, player, dir);
-	if (bracketer != null) {
-	    for (int c = move + dir.delta(); true; c = c + dir.delta()) {
-		if (c == bracketer) break;
-		set(c, player.color());
-	    }
-	}
-    }
-
-
-    
 }

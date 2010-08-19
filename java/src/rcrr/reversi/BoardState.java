@@ -36,7 +36,6 @@ import java.io.PrintStream;
 
 // To do:
 // - change the List into an Map<Square, SquareState>
-// - remove MutableBoard
 // - Remove the Abstract Class and the Interface. Move all the code into a Board Class.
 // - remove the copyBoard() method (BoardState is now immutable ...)
 // - javadoc ....
@@ -56,11 +55,6 @@ public final class BoardState extends AbstractBoard {
 
     private BoardState(List<SquareState> ssl) {
 	this.squares = Collections.unmodifiableList(new ArrayList<SquareState>(ssl));
-    }
-
-    // to be removed ....
-    private BoardState(MutableBoard mb) {
-	this.squares = Collections.unmodifiableList(new ArrayList<SquareState>(mb.squares()));
     }
 
     /** Test ok */
@@ -96,20 +90,33 @@ public final class BoardState extends AbstractBoard {
 	return new BoardState(ssl);
     }
     
+    /** Why not just return this!*/
     public BoardState copyBoard() {
-	return new BoardState(MutableBoard.copyBoard(this));
+	return valueOf(squares);
     }
 
     /**
-     * Returns a new updated board to reflect move by player.
+     * Returns a new updated board to reflect move by player. This static
+     * factory executes a game move to the board and returns a new one, reflecting
+     * the move. The original board is not modified.
      *
      * @param  move   an integer that points to the board square where to put the disk
      * @param  player the disk color to put on the board
+     * @return a new {@code BoardState} reflecting the move made.
      */
     public BoardState makeMove(Integer move, Player player) {
-	MutableBoard mb = MutableBoard.copyBoard(this);
-	mb.makeMove(move, player);
-	return new BoardState(mb);
+	List<SquareState> ssl = new ArrayList<SquareState>(squares);
+	ssl.set(move, player.color());
+	for (Direction dir : Direction.values()) {
+	    Integer bracketer = wouldFlip(move, player, dir);
+	    if (bracketer != null) {
+		for (int c = move + dir.delta(); true; c = c + dir.delta()) {
+		    if (c == bracketer) break;
+		    ssl.set(c, player.color());
+		}
+	    }
+	}
+	return valueOf(ssl);
     }
 
 }
