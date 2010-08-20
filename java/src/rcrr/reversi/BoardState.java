@@ -42,7 +42,7 @@ import java.io.PrintStream;
 // - complete an exhaustive test suite
 // - polish, polish, polish ....
 
-public final class BoardState extends AbstractBoard {
+public final class BoardState {
 
     private final List<SquareState> squares;
 
@@ -114,6 +114,118 @@ public final class BoardState extends AbstractBoard {
 	    }
 	}
 	return valueOf(ssl);
+    }
+    
+    /** Test ok*/
+    Integer wouldFlip(Integer move, Player player, Direction dir) {
+	int c = move + dir.delta();
+	Integer bp = null;
+	if (get(c) == player.opponent().color()) {
+	    bp = findBracketingPiece(c + dir.delta(), player, dir);
+	}
+	return bp;
+    }
+
+    /** Test ok*/
+    public Boolean isLegal(Integer move, Player player) {
+	if (get(move) != SquareState.EMPTY) return false;
+	if (!(player.color() == SquareState.BLACK || player.color() == SquareState.WHITE)) return false;
+	for (Direction dir : Direction.values()) {
+	    if (wouldFlip(move, player, dir) != null) return true;
+	}
+ 	return false;
+    }
+
+    /** Test ok*/
+    public Integer findBracketingPiece(Integer square, Player player, Direction dir) {
+	if (get(square) == player.color()) {
+	    return square;
+	} else if (get(square) == player.opponent().color()) {
+	    return findBracketingPiece(square + dir.delta(), player, dir);
+	} else {
+	    return null;
+	}
+    }
+
+    /** Test ok*/
+    public Integer countPieces(SquareState color) {
+	int count = 0;
+	for (int i=0; i<100; i++) {
+	    if (get(i) == color) count++;
+	}
+	return new Integer(count);
+    }
+
+    /** Test ok*/
+    public Integer countDifference(Player player) {
+	return countPieces(player.color()) - countPieces(player.opponent().color());
+    }
+
+    /** Should go out of Board Class*/
+    public void print() {
+	print(System.out, null);
+    }
+
+    /** Should go out of Board Class*/
+    public void print(PrintStream ps, Clock clock) {
+	Integer cb = countPieces(SquareState.BLACK);
+	Integer cw = countPieces(SquareState.WHITE);
+	Integer cd = cb - cw;
+	ps.print("    a b c d e f g h [@=" + cb + " 0=" + cw + " (" + cd + ")]");
+	for (int row=1; row<9; row++) {
+	    ps.print("\n " + row + "  ");
+	    for (int col=1; col<9; col++) {
+		int idx = (row * 10) + col;
+		String p = get(idx).toString();
+		ps.print(p + " ");
+	    }
+	}
+	if (clock != null) {
+	    ps.print("\n");
+	    ps.print("\tClock: " + clock);
+	}
+	ps.print("\n\n");
+    }
+
+    /** Test ok*/
+    public static Boolean isValid(Integer move) {
+	return Square.ALL_SQUARES.contains(move);
+    }
+
+    /** Test ok*/
+    public Player nextToPlay(Player previousPlayer, PrintStream ps) {
+	Player opponent = previousPlayer.opponent();
+	Player next = null;
+	if (anyLegalMove(opponent)) {
+	    next = opponent;
+	} else if (anyLegalMove(previousPlayer)) {
+	    next = previousPlayer;
+	    if (ps != null) {
+		ps.print("\n" + opponent + " has no moves and must pass.\n");
+	    }
+	}
+	return next;
+    }
+
+    /** Test ok*/
+    public Boolean anyLegalMove (Player player) {
+	Boolean b = false;
+	for (Integer move : Square.ALL_SQUARES) {
+	    if (isLegal(move, player)) {
+		b = true;
+		break;
+	    }
+	}
+	return b;
+    }
+
+    /** Test ok*/
+    public List<Integer> legalMoves(Player player) {
+	List<Integer> legalMoves = new ArrayList<Integer>();
+	for (Integer move : Square.ALL_SQUARES) {
+	    if (isLegal(move, player)) legalMoves.add(move);
+	}
+	return legalMoves;
     }
 
 }
