@@ -62,7 +62,7 @@ public final class BoardState extends AbstractBoard {
 	return new BoardState(ssl);
     }
 
-    public static BoardState emptyBoard() {
+    private static List<SquareState> emptyBoardList() {
 	List<SquareState> ssl = new ArrayList<SquareState>();
 	for (int i=0; i<100; i++) {
 	    if (Square.ALL_SQUARES.contains(i)) {
@@ -71,23 +71,20 @@ public final class BoardState extends AbstractBoard {
 		ssl.add(SquareState.OUTER);
 	    }
 	}
-	return new BoardState(ssl);
+	return ssl;
+    }
+
+    public static BoardState emptyBoard() {
+	return valueOf(emptyBoardList());
     }
 
     public static BoardState initialBoard() {
-	List<SquareState> ssl = new ArrayList<SquareState>();
-	for (int i=0; i<100; i++) {
-	    if (Square.ALL_SQUARES.contains(i)) {
-		ssl.add(SquareState.EMPTY);
-	    } else {
-		ssl.add(SquareState.OUTER);
-	    }
-	}
+	List<SquareState> ssl = emptyBoardList();
 	ssl.set(44, SquareState.WHITE);
 	ssl.set(45, SquareState.BLACK);
 	ssl.set(54, SquareState.BLACK);
 	ssl.set(55, SquareState.WHITE);
-	return new BoardState(ssl);
+	return valueOf(ssl);
     }
     
     /** Why not just return this!*/
