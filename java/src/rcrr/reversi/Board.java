@@ -129,7 +129,6 @@ public final class Board {
     /** Test ok*/
     public Boolean isLegal(Integer move, Player player) {
 	if (get(move) != SquareState.EMPTY) return false;
-	if (!(player.color() == SquareState.BLACK || player.color() == SquareState.WHITE)) return false;
 	for (Direction dir : Direction.values()) {
 	    if (wouldFlip(move, player, dir) != null) return true;
 	}
