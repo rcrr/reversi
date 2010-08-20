@@ -43,7 +43,7 @@
     <fileset dir="${lib.dir}" includes="**/*.jar"/>
   </path>
 
-  <property name="main-class" value="rcrr.reversi.Game"/>
+  <property name="main-class" value="rcrr.reversi.Reversi"/>
 
   <target name="clean">
     <delete dir="${build.dir}"/>

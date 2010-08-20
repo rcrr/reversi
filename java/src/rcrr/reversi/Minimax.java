@@ -131,7 +131,7 @@ public class Minimax {
     public static Strategy alphabetaSearcher(final Integer ply, final EvalFunction ef) {
 	return new Strategy() {
 	    public Integer move(Player player, BoardState board) {
-		Minimax ab = alphabeta(player, board, Game.LOSING_VALUE, Game.WINNING_VALUE, ply, ef);
+		Minimax ab = alphabeta(player, board, Reversi.LOSING_VALUE, Reversi.WINNING_VALUE, ply, ef);
 		return ab.getMove();
 	    }
 	};

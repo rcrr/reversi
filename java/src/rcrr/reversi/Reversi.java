@@ -1,5 +1,5 @@
 /*
- *  Game.java
+ *  Reversi.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -22,7 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-
 package rcrr.reversi;
 
 import java.util.Map;
@@ -30,12 +29,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.io.PrintStream;
 
-public class Game {
+public class Reversi {
 
     public static final int WINNING_VALUE = Integer.MAX_VALUE;
     public static final int LOSING_VALUE = - Integer.MAX_VALUE;
 
-    private Game() {}
+    private Reversi() {}
 
     public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Long minutes) {
 	GameState game = GameState.valueOf(BoardState.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
@@ -57,7 +56,7 @@ public class Game {
 
 
     private static void usage() {
-	System.out.println("usage: java rcrr.reversi.BoardState blackStrategy whiteStrategy");
+	System.out.println("usage: java rcrr.reversi.Reversi blackStrategy whiteStrategy");
 	System.out.println("\t Where blackStrategy and whiteStrategy are two classes");
 	System.out.println("\t that implements the rcrr.reversi.Strategy interface.");
     }

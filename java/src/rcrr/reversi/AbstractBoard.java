@@ -192,9 +192,9 @@ abstract class AbstractBoard implements Board {
     public Integer finalValue(Player player) {
 	Integer value = null;
 	switch (Integer.signum(countDifference(player))) {
-	case -1: value = Game.LOSING_VALUE; break;
+	case -1: value = Reversi.LOSING_VALUE; break;
 	case  0: value = 0; break;
-	case +1: value = Game.WINNING_VALUE; break;
+	case +1: value = Reversi.WINNING_VALUE; break;
 	}
 	return value;
     }
