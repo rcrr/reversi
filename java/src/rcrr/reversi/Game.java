@@ -1,5 +1,5 @@
 /*
- *  GameState.java
+ *  Game.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -27,19 +27,19 @@ package rcrr.reversi;
 
 import java.io.PrintStream;
 
-public class GameState {
+public class Game {
     private final Clock clock;
     private final BoardState board;
     private final Player player;
 
-    private GameState(BoardState board, Player player, Clock clock) {
+    private Game(BoardState board, Player player, Clock clock) {
 	this.clock = clock;
 	this.board = board;
 	this.player = player;
     }
 
-    static GameState valueOf(BoardState board, Player player, Clock clock) {
-	GameState gs = new GameState(board, player, clock);
+    static Game valueOf(BoardState board, Player player, Clock clock) {
+	Game gs = new Game(board, player, clock);
 	return gs;
     }
 
@@ -55,7 +55,7 @@ public class GameState {
 	return player;
     }
 
-    GameState getMove(Strategy strategy, PrintStream ps) throws GameOverException {
+    Game getMove(Strategy strategy, PrintStream ps) throws GameOverException {
 	return BoardState.getMove(board, strategy, player, ps, clock);
     }
 

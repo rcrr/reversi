@@ -143,7 +143,7 @@ abstract class AbstractBoard implements Board {
     }
 
     // Should be moved in another class.
-    public static GameState getMove(BoardState b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
+    public static Game getMove(BoardState b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
 	if (ps != null) b.print(ps, clock);
 	long t0 = System.currentTimeMillis();
 	Integer move = strategy.move(player, b.copyBoard());
@@ -154,7 +154,7 @@ abstract class AbstractBoard implements Board {
 		ps.print("\n" + player.name() + " moves to " + Square.getSquare(move).getDisplayName() + "\n");
 	    }
 	    BoardState b1 = b.makeMove(move, player);
-	    return GameState.valueOf(b1, b1.nextToPlay(player, null), clock);
+	    return Game.valueOf(b1, b1.nextToPlay(player, null), clock);
 	} else {
 	    if (ps != null) ps.print("Illegal move: " + move + "\n");
 	    return getMove(b, strategy, player, ps, clock);
