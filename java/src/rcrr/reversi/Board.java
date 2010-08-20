@@ -87,9 +87,17 @@ public final class Board {
 	return valueOf(ssl);
     }
     
-    /** Why not just return this!*/
+    /**
+     * Returns a copy of the object.
+     *<p>
+     * Being the {@code Board} object immutable, the method returns a reference
+     * of the object itself. The method does not appear a lot useful, but it helps
+     * to remain consistent with the implementation of some clients.
+     *
+     * @return a copy of the {@code Board}
+     */
     public Board copyBoard() {
-	return valueOf(squares);
+	return this;
     }
 
     /**
@@ -99,7 +107,7 @@ public final class Board {
      *
      * @param  move   an integer that points to the board square where to put the disk
      * @param  player the disk color to put on the board
-     * @return a new {@code Board} reflecting the move made.
+     * @return a new {@code Board} reflecting the move made
      */
     public Board makeMove(Integer move, Player player) {
 	List<SquareState> ssl = new ArrayList<SquareState>(squares);
