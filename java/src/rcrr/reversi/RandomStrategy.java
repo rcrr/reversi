@@ -37,7 +37,7 @@ public class RandomStrategy implements Strategy {
 	r = new Random();
     }
 
-    public Integer move(Player player, BoardState board) {
+    public Integer move(Player player, Board board) {
 	List<Integer> moves = board.legalMoves(player);
 	int index = r.nextInt(moves.size());
 	return moves.get(index);

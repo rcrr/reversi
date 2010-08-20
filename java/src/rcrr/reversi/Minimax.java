@@ -62,7 +62,7 @@ public class Minimax {
 	return sb.toString();
     }
 
-    public static Minimax minimax(Player player, BoardState board, Integer ply, EvalFunction ef) {
+    public static Minimax minimax(Player player, Board board, Integer ply, EvalFunction ef) {
 	Minimax mm = null;
 	Player opponent = player.opponent();
 	if (ply == 0) {
@@ -78,7 +78,7 @@ public class Minimax {
 	    } else {
 		mm = new Minimax(null, null);
 		for (Integer move : moves) {
-		    BoardState board2 = board.copyBoard();
+		    Board board2 = board.copyBoard();
 		    board2.makeMove(move, player);
 		    int val = minimax(opponent, board2, ply - 1, ef).minus().getValue();
 		    if (mm.getValue() == null || val > mm.getValue()) {
@@ -93,14 +93,14 @@ public class Minimax {
 
     public static Strategy minimaxSearcher(final Integer ply, final EvalFunction ef) {
 	return new Strategy() {
-	    public Integer move(Player player, BoardState board) {
+	    public Integer move(Player player, Board board) {
 		Minimax mm = minimax(player, board, ply, ef);
 		return mm.getMove();
 	    }
 	};
     }
 
-    public static Minimax alphabeta(Player player, BoardState board, Integer achievable, Integer cutoff, Integer ply, EvalFunction ef) {
+    public static Minimax alphabeta(Player player, Board board, Integer achievable, Integer cutoff, Integer ply, EvalFunction ef) {
 	Minimax ab = null;
 	Player opponent = player.opponent();
 	if (ply == 0) {
@@ -116,7 +116,7 @@ public class Minimax {
 	    } else {
 		ab = new Minimax(moves.get(0), achievable);
 		outer: for (Integer move : moves) {
-		    BoardState board2 = board.makeMove(move, player);
+		    Board board2 = board.makeMove(move, player);
 		    int val = alphabeta(opponent, board2, - cutoff, - ab.getValue(), ply - 1, ef).minus().getValue();
 		    if (val > ab.getValue()) {
 			ab.setValue(val);
@@ -131,14 +131,14 @@ public class Minimax {
 
     public static Strategy alphabetaSearcher(final Integer ply, final EvalFunction ef) {
 	return new Strategy() {
-	    public Integer move(Player player, BoardState board) {
+	    public Integer move(Player player, Board board) {
 		Minimax ab = alphabeta(player, board, Reversi.LOSING_VALUE, Reversi.WINNING_VALUE, ply, ef);
 		return ab.getMove();
 	    }
 	};
     }
 
-    public static Integer finalValue(BoardState board, Player player) {
+    public static Integer finalValue(Board board, Player player) {
 	Integer value = null;
 	switch (Integer.signum(board.countDifference(player))) {
 	case -1: value = Reversi.LOSING_VALUE; break;
@@ -149,14 +149,14 @@ public class Minimax {
     }
 
     // Should be moved into a StrategyUtils ideal class.
-    // This is anyhow a better place than BoardState.
+    // This is anyhow a better place than Board.
     public static Strategy maximizer(final EvalFunction ef) {
 	return new Strategy() {
-	    public Integer move(Player player, BoardState board) {
+	    public Integer move(Player player, Board board) {
 		List<Integer> moves = board.legalMoves(player);
 		List<Integer> scores = new ArrayList<Integer>();
 		for (Integer move : moves) {
-		    BoardState newBoard = board.copyBoard();
+		    Board newBoard = board.copyBoard();
 		    newBoard.makeMove(move, player);
 		    Integer score = ef.eval(player, newBoard);
 		    scores.add(score);
@@ -166,7 +166,5 @@ public class Minimax {
 	    }
 	};
     }
-
-
 
 }

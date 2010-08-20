@@ -48,7 +48,7 @@ public class WeightedSquares implements EvalFunction, Strategy {
 	maximizeWeightedCount = Minimax.maximizer(this);
     }
 
-    public Integer eval(Player player, BoardState board) {
+    public Integer eval(Player player, Board board) {
 	Player opponent = player.opponent();
 	Integer value = 0;
 	for (int i=0; i<100; i++) {
@@ -62,7 +62,7 @@ public class WeightedSquares implements EvalFunction, Strategy {
 	return value;
     }
 
-    public Integer move(Player player, BoardState board) {
+    public Integer move(Player player, Board board) {
 	return maximizeWeightedCount.move(player, board);
     }
 

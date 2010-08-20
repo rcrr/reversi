@@ -26,5 +26,5 @@
 package rcrr.reversi;
 
 public interface EvalFunction {
-    Integer eval(Player player, BoardState board);
+    Integer eval(Player player, Board board);
 }

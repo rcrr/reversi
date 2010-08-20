@@ -28,16 +28,16 @@ import java.io.PrintStream;
 
 public class Game {
     private final Clock clock;
-    private final BoardState board;
+    private final Board board;
     private final Player player;
 
-    private Game(BoardState board, Player player, Clock clock) {
+    private Game(Board board, Player player, Clock clock) {
 	this.clock = clock;
 	this.board = board;
 	this.player = player;
     }
 
-    static Game valueOf(BoardState board, Player player, Clock clock) {
+    static Game valueOf(Board board, Player player, Clock clock) {
 	Game gs = new Game(board, player, clock);
 	return gs;
     }
@@ -46,7 +46,7 @@ public class Game {
 	return clock;
     }
 
-    public BoardState getBoard() {
+    public Board getBoard() {
 	return board;
     }
 
@@ -63,7 +63,7 @@ public class Game {
       game g;
       g.getMove();
      */
-    public static Game getMoveX(BoardState b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
+    public static Game getMoveX(Board b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
 	if (ps != null) b.print(ps, clock);
 	long t0 = System.currentTimeMillis();
 	Integer move = strategy.move(player, b.copyBoard());
@@ -73,7 +73,7 @@ public class Game {
 	    if (ps != null) {
 		ps.print("\n" + player.name() + " moves to " + Square.getSquare(move).getDisplayName() + "\n");
 	    }
-	    BoardState b1 = b.makeMove(move, player);
+	    Board b1 = b.makeMove(move, player);
 	    return Game.valueOf(b1, b1.nextToPlay(player, null), clock);
 	} else {
 	    if (ps != null) ps.print("Illegal move: " + move + "\n");

@@ -37,7 +37,7 @@ public class Reversi {
     private Reversi() {}
 
     public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Long minutes) {
-	Game game = Game.valueOf(BoardState.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
+	Game game = Game.valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
 	try {
 	    for (Player player = game.getPlayer();
 		 player != null;

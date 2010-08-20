@@ -26,7 +26,7 @@ package rcrr.reversi;
 
 public class CountDifference implements EvalFunction {
 
-    public Integer eval(Player player, BoardState board) {
+    public Integer eval(Player player, Board board) {
 	return board.countDifference(player);
     }
 

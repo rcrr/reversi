@@ -1,5 +1,5 @@
 /*
- *  BoardState.java
+ *  Board.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -37,12 +37,12 @@ import java.io.PrintStream;
 // To do:
 // - change the List into an Map<Square, SquareState>
 // - Remove the Abstract Class and the Interface. Move all the code into a Board Class.
-// - remove the copyBoard() method (BoardState is now immutable ...)
+// - remove the copyBoard() method (Board is now immutable ...)
 // - javadoc ....
 // - complete an exhaustive test suite
 // - polish, polish, polish ....
 
-public final class BoardState {
+public final class Board {
 
     private final List<SquareState> squares;
 
@@ -53,13 +53,13 @@ public final class BoardState {
 	return squares.get(index);
     }
 
-    private BoardState(List<SquareState> ssl) {
+    private Board(List<SquareState> ssl) {
 	this.squares = Collections.unmodifiableList(new ArrayList<SquareState>(ssl));
     }
 
     /** Test ok */
-    public static BoardState valueOf(List<SquareState> ssl) {
-	return new BoardState(ssl);
+    public static Board valueOf(List<SquareState> ssl) {
+	return new Board(ssl);
     }
 
     private static List<SquareState> emptyBoardList() {
@@ -74,11 +74,11 @@ public final class BoardState {
 	return ssl;
     }
 
-    public static BoardState emptyBoard() {
+    public static Board emptyBoard() {
 	return valueOf(emptyBoardList());
     }
 
-    public static BoardState initialBoard() {
+    public static Board initialBoard() {
 	List<SquareState> ssl = emptyBoardList();
 	ssl.set(44, SquareState.WHITE);
 	ssl.set(45, SquareState.BLACK);
@@ -88,7 +88,7 @@ public final class BoardState {
     }
     
     /** Why not just return this!*/
-    public BoardState copyBoard() {
+    public Board copyBoard() {
 	return valueOf(squares);
     }
 
@@ -99,9 +99,9 @@ public final class BoardState {
      *
      * @param  move   an integer that points to the board square where to put the disk
      * @param  player the disk color to put on the board
-     * @return a new {@code BoardState} reflecting the move made.
+     * @return a new {@code Board} reflecting the move made.
      */
-    public BoardState makeMove(Integer move, Player player) {
+    public Board makeMove(Integer move, Player player) {
 	List<SquareState> ssl = new ArrayList<SquareState>(squares);
 	ssl.set(move, player.color());
 	for (Direction dir : Direction.values()) {

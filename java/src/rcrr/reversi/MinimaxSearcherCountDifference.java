@@ -36,7 +36,7 @@ public class MinimaxSearcherCountDifference implements Strategy {
 	s = Minimax.minimaxSearcher(PLY, new CountDifference());
     }
 
-    public Integer move(Player player, BoardState board) {
+    public Integer move(Player player, Board board) {
 	return s.move(player, board);
     }
 

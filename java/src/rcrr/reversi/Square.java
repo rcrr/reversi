@@ -88,7 +88,7 @@ public enum Square {
 	    List<Integer> nl = new ArrayList<Integer>();
 	    for (Direction dir : Direction.values()) {
 		Integer neighbor = square + dir.delta();
-		if (BoardState.isValid(neighbor)) nl.add(neighbor);
+		if (Board.isValid(neighbor)) nl.add(neighbor);
 	    }
 	    nt.set(square, nl);
 	}

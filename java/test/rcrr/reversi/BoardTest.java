@@ -1,5 +1,5 @@
 /*
- *  BoardStateTest.java
+ *  BoardTest.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -31,17 +31,17 @@ import java.util.Arrays;
 import org.junit.*;
 import static org.junit.Assert.*;
 
-public class BoardStateTest {
+public class BoardTest {
 
-    private BoardState fixtBoardInitial;
-    private BoardState fixtBoardEmpty;
-    private BoardState fixtBoardBlackHasToPass;
-    private BoardState fixtBoardEndGameX;
-    private BoardState fixtBoardA;
-    private BoardState fixtBoardB;
-    private BoardState fixtBoardC;
+    private Board fixtBoardInitial;
+    private Board fixtBoardEmpty;
+    private Board fixtBoardBlackHasToPass;
+    private Board fixtBoardEndGameX;
+    private Board fixtBoardA;
+    private Board fixtBoardB;
+    private Board fixtBoardC;
 
-    private static BoardState boardFromList(List<Integer> il) {
+    private static Board boardFromList(List<Integer> il) {
 	if (il == null) return null;
 	if (il.size() != 100) throw new IllegalArgumentException();
 	List<SquareState> ssl = new ArrayList<SquareState>();
@@ -54,7 +54,7 @@ public class BoardStateTest {
 	    else if (i == 3) ss = SquareState.OUTER;
 	    ssl.add(ss);
 	}	
-	return BoardState.valueOf(ssl);
+	return Board.valueOf(ssl);
     }
 
     @Before
@@ -180,13 +180,13 @@ public class BoardStateTest {
     @Test
     public void testCountPieces() {
 	assertEquals(Integer.valueOf(2),
-		     BoardState.initialBoard().countPieces(SquareState.BLACK));
+		     Board.initialBoard().countPieces(SquareState.BLACK));
     }
 
     @Test
     public void testCountDifference() {
 	assertEquals(Integer.valueOf(0),
-		     BoardState.initialBoard().countDifference(Player.BLACK));
+		     Board.initialBoard().countDifference(Player.BLACK));
 	assertEquals(Integer.valueOf(+10),
 		     fixtBoardEndGameX.countDifference(Player.BLACK));
 	assertEquals(Integer.valueOf(-10),
@@ -197,10 +197,10 @@ public class BoardStateTest {
 
     @Test
     public void testIsValid() {
-	assertTrue(!BoardState.isValid(0));
-	assertTrue(BoardState.isValid(11));
-	assertTrue(!BoardState.isValid(19));
-	assertTrue(!BoardState.isValid(100));
+	assertTrue(!Board.isValid(0));
+	assertTrue(Board.isValid(11));
+	assertTrue(!Board.isValid(19));
+	assertTrue(!Board.isValid(100));
     }
 
     @Test
@@ -256,7 +256,7 @@ public class BoardStateTest {
 	for (int i=0; i<100; i++) {
 	    ssl.add(fixtBoardC.get(i));
 	}
-	BoardState boardC = BoardState.valueOf(ssl);
+	Board boardC = Board.valueOf(ssl);
 	for (int i=0; i<100; i++) {
 	    assertEquals(fixtBoardC.get(i), boardC.get(i));
 	}
