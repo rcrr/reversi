@@ -45,7 +45,7 @@ public class WeightedSquares implements EvalFunction, Strategy {
     Strategy maximizeWeightedCount;
 
     public WeightedSquares() {
-	maximizeWeightedCount = BoardState.maximizer(this);
+	maximizeWeightedCount = Minimax.maximizer(this);
     }
 
     public Integer eval(Player player, BoardState board) {

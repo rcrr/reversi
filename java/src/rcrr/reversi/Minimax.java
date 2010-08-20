@@ -28,6 +28,7 @@ package rcrr.reversi;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class Minimax {
 
@@ -146,6 +147,26 @@ public class Minimax {
 	}
 	return value;
     }
+
+    // Should be moved into a StrategyUtils ideal class.
+    // This is anyhow a better place than BoardState.
+    public static Strategy maximizer(final EvalFunction ef) {
+	return new Strategy() {
+	    public Integer move(Player player, BoardState board) {
+		List<Integer> moves = board.legalMoves(player);
+		List<Integer> scores = new ArrayList<Integer>();
+		for (Integer move : moves) {
+		    BoardState newBoard = board.copyBoard();
+		    newBoard.makeMove(move, player);
+		    Integer score = ef.eval(player, newBoard);
+		    scores.add(score);
+		}
+		Integer best = Collections.max(scores);
+		return moves.get(scores.indexOf(best));
+	    }
+	};
+    }
+
 
 
 }

@@ -151,22 +151,4 @@ abstract class AbstractBoard implements Board {
 	return legalMoves;
     }
 
-    // Should be moved in another class.
-    public static Strategy maximizer(final EvalFunction ef) {
-	return new Strategy() {
-	    public Integer move(Player player, BoardState board) {
-		List<Integer> moves = board.legalMoves(player);
-		List<Integer> scores = new ArrayList<Integer>();
-		for (Integer move : moves) {
-		    BoardState newBoard = board.copyBoard();
-		    newBoard.makeMove(move, player);
-		    Integer score = ef.eval(player, newBoard);
-		    scores.add(score);
-		}
-		Integer best = Collections.max(scores);
-		return moves.get(scores.indexOf(best));
-	    }
-	};
-    }
-
 }

@@ -38,7 +38,7 @@ public class ModifiedWeightedSquares implements EvalFunction, Strategy {
     private EvalFunction ws;
 
     public ModifiedWeightedSquares() {
-	s = BoardState.maximizer(this);
+	s = Minimax.maximizer(this);
 	ws = new WeightedSquares();
     }
 
