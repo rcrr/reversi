@@ -42,7 +42,7 @@ public class Reversi {
 	    for (Player player = game.getPlayer();
 		 player != null;
 		 player = game.getBoard().nextToPlay(player, ps)) {
-		game = BoardState.getMove(game.getBoard(), ((player == Player.BLACK) ? blStrategy : whStrategy), player, ps, game.getClock());
+		game = Game.getMoveX(game.getBoard(), ((player == Player.BLACK) ? blStrategy : whStrategy), player, ps, game.getClock());
 	    }
 	} catch (GameOverException goe) {
 	    // to be completed .....

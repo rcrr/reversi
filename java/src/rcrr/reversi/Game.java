@@ -22,7 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-
 package rcrr.reversi;
 
 import java.io.PrintStream;
@@ -43,20 +42,44 @@ public class Game {
 	return gs;
     }
 
-    Clock getClock() {
+    public Clock getClock() {
 	return clock;
     }
 
-    BoardState getBoard() {
+    public BoardState getBoard() {
 	return board;
     }
 
-    Player getPlayer() {
+    public Player getPlayer() {
 	return player;
     }
 
-    Game getMove(Strategy strategy, PrintStream ps) throws GameOverException {
-	return BoardState.getMove(board, strategy, player, ps, clock);
+    /*
+      Has to be copletely rewritten!
+      Player should be renamed into Color (or PlayerColor to avoid collision with the java Color class)
+      Player should then be a new class having all the Player attribute, mostly the Strategy ....
+      All the printing shold be eradicated from the base data classes
+      the new API shold be somthing like:
+      game g;
+      g.getMove();
+     */
+    public static Game getMoveX(BoardState b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
+	if (ps != null) b.print(ps, clock);
+	long t0 = System.currentTimeMillis();
+	Integer move = strategy.move(player, b.copyBoard());
+	long t1 = System.currentTimeMillis();
+	clock = clock.setTime(player, t1 - t0);
+	if (b.isValid(move) && b.isLegal(move, player)) {
+	    if (ps != null) {
+		ps.print("\n" + player.name() + " moves to " + Square.getSquare(move).getDisplayName() + "\n");
+	    }
+	    BoardState b1 = b.makeMove(move, player);
+	    return Game.valueOf(b1, b1.nextToPlay(player, null), clock);
+	} else {
+	    if (ps != null) ps.print("Illegal move: " + move + "\n");
+	    return getMoveX(b, strategy, player, ps, clock);
+	}
     }
+
 
 }

@@ -142,25 +142,6 @@ abstract class AbstractBoard implements Board {
 	return b;
     }
 
-    // Should be moved in another class.
-    public static Game getMove(BoardState b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
-	if (ps != null) b.print(ps, clock);
-	long t0 = System.currentTimeMillis();
-	Integer move = strategy.move(player, b.copyBoard());
-	long t1 = System.currentTimeMillis();
-	clock = clock.setTime(player, t1 - t0);
-	if (b.isValid(move) && b.isLegal(move, player)) {
-	    if (ps != null) {
-		ps.print("\n" + player.name() + " moves to " + Square.getSquare(move).getDisplayName() + "\n");
-	    }
-	    BoardState b1 = b.makeMove(move, player);
-	    return Game.valueOf(b1, b1.nextToPlay(player, null), clock);
-	} else {
-	    if (ps != null) ps.print("Illegal move: " + move + "\n");
-	    return getMove(b, strategy, player, ps, clock);
-	}
-    }
-
    /** Test ok*/
     public List<Integer> legalMoves(Player player) {
 	List<Integer> legalMoves = new ArrayList<Integer>();
@@ -186,17 +167,6 @@ abstract class AbstractBoard implements Board {
 		return moves.get(scores.indexOf(best));
 	    }
 	};
-    }
-
-   /** Should be moved out of Board Class*/
-    public Integer finalValue(Player player) {
-	Integer value = null;
-	switch (Integer.signum(countDifference(player))) {
-	case -1: value = Reversi.LOSING_VALUE; break;
-	case  0: value = 0; break;
-	case +1: value = Reversi.WINNING_VALUE; break;
-	}
-	return value;
     }
 
 }

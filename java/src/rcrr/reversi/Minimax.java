@@ -72,7 +72,7 @@ public class Minimax {
 		if (board.anyLegalMove(opponent)) {
 		    mm = minimax(opponent, board, ply - 1, ef).minus();
 		} else {
-		    mm = new Minimax(null, board.finalValue(player));
+		    mm = new Minimax(null, finalValue(board, player));
 		}
 	    } else {
 		mm = new Minimax(null, null);
@@ -110,7 +110,7 @@ public class Minimax {
 		if (board.anyLegalMove(opponent)) {
 		    ab = alphabeta(opponent, board, - cutoff, - achievable, ply - 1, ef).minus();
 		} else {
-		    ab = new Minimax(null, board.finalValue(player));
+		    ab = new Minimax(null, finalValue(board, player));
 		}
 	    } else {
 		ab = new Minimax(moves.get(0), achievable);
@@ -135,6 +135,16 @@ public class Minimax {
 		return ab.getMove();
 	    }
 	};
+    }
+
+    public static Integer finalValue(BoardState board, Player player) {
+	Integer value = null;
+	switch (Integer.signum(board.countDifference(player))) {
+	case -1: value = Reversi.LOSING_VALUE; break;
+	case  0: value = 0; break;
+	case +1: value = Reversi.WINNING_VALUE; break;
+	}
+	return value;
     }
 
 
