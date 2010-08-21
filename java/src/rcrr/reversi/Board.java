@@ -36,8 +36,6 @@ import java.io.PrintStream;
 
 // To do:
 // - change the List into an Map<Square, SquareState>
-// - Remove the Abstract Class and the Interface. Move all the code into a Board Class.
-// - remove the copyBoard() method (Board is now immutable ...)
 // - javadoc ....
 // - complete an exhaustive test suite
 // - polish, polish, polish ....
