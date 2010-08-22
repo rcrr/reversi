@@ -147,14 +147,6 @@ public enum Square {
 	return Square.valueOf(s.toUpperCase());	
     }
 
-    public static Integer strToInt(String s) {
-	return getSquare(s).position();
-    }
-
-    public static String intToString(Integer i) {
-	return getSquare(i).getDisplayName();
-    }
-
     public static void main(String[] args) {
 	System.out.println(A1);
 	System.out.println(A1.name());
@@ -165,8 +157,6 @@ public enum Square {
 	System.out.println("isCorner A1: " + A1.isCorner());
 	System.out.println("isCorner B1: " + B1.isCorner());
 
-	System.out.println("strToInt c7: " + strToInt("c7"));
-	System.out.println("intToString 73: " + intToString(73));	
     }
 
 }
