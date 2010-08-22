@@ -63,6 +63,16 @@ public enum Square {
 	return position;
     }
 
+    private static List<Square> SQUARES = squares();
+
+    private static List<Square> squares() {
+	List<Square> sl = new ArrayList<Square>(64);
+	for (Square sq : values()) sl.add(sq);
+	return sl;
+    }
+
+    public static Square index(int i) { return SQUARES.get(i); }
+
     // TO BE REMOVED!!!!
     private static Map<Integer, Square> oneHundredSquares() {
 	Map<Integer, Square> oneh = new Hashtable<Integer, Square>();
@@ -138,25 +148,16 @@ public enum Square {
 	return corners.contains(this);
     }
 
+
     // Check if it returns null for OUTER lookups ...... 
+    /*
     public static Square getSquare(Integer i) {
 	return ONE_HUNDRED_SQUARES.get(i);	
     }
+    */
 
     public static Square getSquare(String s) {
 	return Square.valueOf(s.toUpperCase());	
-    }
-
-    public static void main(String[] args) {
-	System.out.println(A1);
-	System.out.println(A1.name());
-	System.out.println(A1.getDisplayName());
-	System.out.println(A1.getHasegawaLabel());
-	System.out.println(A2.getHasegawaLabel());
-	System.out.println(C8.getHasegawaLabel());
-	System.out.println("isCorner A1: " + A1.isCorner());
-	System.out.println("isCorner B1: " + B1.isCorner());
-
     }
 
 }

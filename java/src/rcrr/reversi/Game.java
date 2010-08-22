@@ -69,7 +69,7 @@ public class Game {
 	Square move = strategy.move(player, b.copyBoard());
 	long t1 = System.currentTimeMillis();
 	clock = clock.setTime(player, t1 - t0);
-	if (b.isValid(move) && b.isLegal(move, player)) {
+	if (b.isLegal(move, player)) {
 	    if (ps != null) {
 		ps.print("\n" + player.name() + " moves to " + move.getDisplayName() + "\n");
 	    }
@@ -80,6 +80,5 @@ public class Game {
 	    return getMoveX(b, strategy, player, ps, clock);
 	}
     }
-
 
 }

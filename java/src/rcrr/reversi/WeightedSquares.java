@@ -25,22 +25,33 @@
 
 package rcrr.reversi;
 
+import java.util.Map;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class WeightedSquares implements EvalFunction, Strategy {
 
-    public final static List<Integer> WEIGHTS = Arrays.asList(0,   0,   0,   0,  0,  0,   0,   0,   0, 0,
-							      0, 120, -20,  20,  5,  5,  20, -20, 120, 0,
-							      0, -20, -40,  -5, -5, -5,  -5, -40, -20, 0,
-							      0,  20,  -5,  15,  3,  3,  15,  -5,  20, 0,
-							      0,   5,  -5,   3,  3,  3,   3,  -5,   5, 0,
-							      0,   5,  -5,   3,  3,  3,   3,  -5,   5, 0,
-							      0,  20,  -5,  15,  3,  3,  15,  -5,  20, 0,
-							      0, -20, -40,  -5, -5, -5,  -5, -40, -20, 0,
-							      0, 120, -20,  20,  5,  5,  20, -20, 120, 0,
-							      0,   0,   0,   0,  0,  0,   0,   0,   0, 0);
+    final static Map<Square, Integer> WEIGHTS = weights();
+
+    private final static Map<Square, Integer> weights() {
+	List<Integer> w = Arrays.asList(120, -20,  20,  5,  5,  20, -20, 120,
+					-20, -40,  -5, -5, -5,  -5, -40, -20,
+					 20,  -5,  15,  3,  3,  15,  -5,  20,
+					  5,  -5,   3,  3,  3,   3,  -5,   5,
+					  5,  -5,   3,  3,  3,   3,  -5,   5,
+					 20,  -5,  15,  3,  3,  15,  -5,  20,
+					-20, -40,  -5, -5, -5,  -5, -40, -20,
+					120, -20,  20,  5,  5,  20, -20, 120);
+
+	Map<Square, Integer> wm = new Hashtable<Square, Integer>(Board.size());
+	for (int idx=0; idx<Board.size(); idx++) {
+	    wm.put(Square.index(idx), w.get(idx));
+	}	
+	return Collections.unmodifiableMap(wm);
+    }
 
     Strategy maximizeWeightedCount;
 
@@ -51,13 +62,13 @@ public class WeightedSquares implements EvalFunction, Strategy {
     public Integer eval(Player player, Board board) {
 	Player opponent = player.opponent();
 	Integer value = 0;
-	for (int i=0; i<100; i++) {
+	for (Square sq : Square.values()) {
 	    int p;
-	    SquareState color = board.get(Square.getSquare(i));
+	    SquareState color = board.get(sq);
 	    if (color == player.color()) p = 1;
 	    else if (color == opponent.color()) p = -1;
 	    else p = 0;
-	    value += p * WEIGHTS.get(i);
+	    value += p * WEIGHTS.get(sq);
 	}
 	return value;
     }

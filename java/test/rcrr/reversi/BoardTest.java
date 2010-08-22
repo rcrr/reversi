@@ -45,18 +45,17 @@ public class BoardTest {
 
     private static Board boardFromList(List<Integer> il) {
 	if (il == null) return null;
-	if (il.size() != 100) throw new IllegalArgumentException();
+	if (il.size() != Board.size()) throw new IllegalArgumentException();
 	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
-	for (int index=0; index<100; index++) {
-	    Integer i = il.get(index);
+	for (int idx=0; idx<Board.size(); idx++) {
+	    Integer iss = il.get(idx);
 	    SquareState ss = null;
-	    if (i == null || i < 0 || i > 3) throw new IllegalArgumentException();
-	    else if (i == 0) ss = SquareState.EMPTY;
-	    else if (i == 1) ss = SquareState.BLACK;
-	    else if (i == 2) ss = SquareState.WHITE;
-	    else if (i == 3) ss = SquareState.OUTER;
-	    Square sq = Square.getSquare(index);
-	    if (sq != null) sm.put(sq, ss);
+	    if (iss == null || iss < 0 || iss > 3) throw new IllegalArgumentException();
+	    else if (iss == 0) ss = SquareState.EMPTY;
+	    else if (iss == 1) ss = SquareState.BLACK;
+	    else if (iss == 2) ss = SquareState.WHITE;
+	    else if (iss == 3) ss = SquareState.OUTER;
+	    sm.put(Square.index(idx), ss);
 	}	
 	return Board.valueOf(sm);
     }
@@ -64,88 +63,74 @@ public class BoardTest {
     @Before
     public void setUp() {
 	fixtBoardInitial = 
-	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 2, 1, 0, 0, 0, 3,
-					3, 0, 0, 0, 1, 2, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+	    boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 2, 1, 0, 0, 0,
+					0, 0, 0, 1, 2, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0));
 
 	fixtBoardEmpty = 
-	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+	    boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0));
 
 	fixtBoardBlackHasToPass = 
-	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-					3, 2, 1, 0, 1, 0, 2, 0, 0, 3,
-					3, 1, 1, 1, 1, 1, 1, 1, 2, 3,
-					3, 0, 1, 2, 2, 1, 1, 2, 2, 3,
-					3, 0, 1, 2, 1, 2, 2, 2, 2, 3,
-					3, 0, 1, 2, 1, 2, 2, 2, 2, 3,
-					3, 0, 1, 2, 1, 1, 2, 1, 2, 3,
-					3, 0, 1, 2, 1, 1, 1, 1, 0, 3,
-					3, 2, 2, 2, 2, 2, 2, 1, 2, 3,
-					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+	    boardFromList(Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
+					1, 1, 1, 1, 1, 1, 1, 2,
+					0, 1, 2, 2, 1, 1, 2, 2,
+					0, 1, 2, 1, 2, 2, 2, 2,
+					0, 1, 2, 1, 2, 2, 2, 2,
+					0, 1, 2, 1, 1, 2, 1, 2,
+					0, 1, 2, 1, 1, 1, 1, 0,
+					2, 2, 2, 2, 2, 2, 1, 2));
 
 	fixtBoardEndGameX = 
-	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-					3, 2, 2, 2, 2, 2, 1, 1, 1, 3,
-					3, 2, 2, 2, 1, 1, 1, 1, 1, 3,
-					3, 2, 2, 2, 1, 1, 1, 2, 1, 3,
-					3, 2, 2, 1, 2, 1, 1, 2, 1, 3,
-					3, 1, 1, 2, 1, 2, 1, 2, 1, 3,
-					3, 1, 2, 1, 2, 1, 2, 1, 1, 3,
-					3, 1, 1, 1, 1, 1, 1, 2, 1, 3,
-					3, 1, 1, 1, 1, 2, 2, 2, 2, 3,
-					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+	    boardFromList(Arrays.asList(2, 2, 2, 2, 2, 1, 1, 1,
+					2, 2, 2, 1, 1, 1, 1, 1,
+					2, 2, 2, 1, 1, 1, 2, 1,
+					2, 2, 1, 2, 1, 1, 2, 1,
+					1, 1, 2, 1, 2, 1, 2, 1,
+					1, 2, 1, 2, 1, 2, 1, 1,
+					1, 1, 1, 1, 1, 1, 2, 1,
+					1, 1, 1, 1, 2, 2, 2, 2));
 
 	fixtBoardA = 
-	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 1, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 1, 1, 0, 0, 0, 3,
-					3, 0, 0, 0, 1, 2, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+	    boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 1, 0, 0, 0, 0,
+					0, 0, 0, 1, 1, 0, 0, 0,
+					0, 0, 0, 1, 2, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0));
 
 	fixtBoardB = 
-	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-					3, 0, 0, 0, 1, 1, 1, 0, 0, 3,
-					3, 0, 0, 0, 0, 1, 0, 0, 0, 3,
-					3, 0, 0, 0, 1, 1, 2, 2, 0, 3,
-					3, 0, 0, 0, 1, 1, 0, 0, 0, 3,
-					3, 0, 0, 0, 1, 1, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 1, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+	    boardFromList(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
+					0, 0, 0, 0, 1, 0, 0, 0,
+					0, 0, 0, 1, 1, 2, 2, 0,
+					0, 0, 0, 1, 1, 0, 0, 0,
+					0, 0, 0, 1, 1, 0, 0, 0,
+					0, 0, 0, 0, 1, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0));
 
 	fixtBoardC = 
-	    boardFromList(Arrays.asList(3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 2, 1, 1, 1, 0, 0, 2, 0, 3,
-					3, 0, 2, 0, 2, 1, 2, 0, 0, 3,
-					3, 0, 2, 2, 1, 2, 0, 0, 0, 3,
-					3, 0, 0, 1, 1, 0, 2, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+	    boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					2, 1, 1, 1, 0, 0, 2, 0,
+					0, 2, 0, 2, 1, 2, 0, 0,
+					0, 2, 2, 1, 2, 0, 0, 0,
+					0, 0, 1, 1, 0, 2, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0));
 
     }
 
@@ -157,23 +142,24 @@ public class BoardTest {
     @Test
     public void testFindBracketingPiece() {
 	Square move = Square.H7;
+	Direction dir;
+	Square b1;
+	Square b2;
 
-	Direction dir = Direction.W;
-	Square b1 = Square.getSquare(move.position() + dir.delta());
-	Square b2 = Square.C7;
-	Square b3 = fixtBoardBlackHasToPass.
-	    findBracketingPiece(b1, Player.WHITE, dir);
+	dir = Direction.W;
+	b1 = Square.neighbors(move).get(dir);
+	b2 = Square.C7;
 	assertEquals(b2, fixtBoardBlackHasToPass.
 		     findBracketingPiece(b1, Player.WHITE, dir));
 
 	dir = Direction.NW;
-	b1 = Square.getSquare(move.position() + dir.delta());
+	b1 = Square.neighbors(move).get(dir);
 	b2 = Square.F5;
 	assertEquals(b2, fixtBoardBlackHasToPass.
 		     findBracketingPiece(b1, Player.WHITE, dir));
 	
 	dir = Direction.SW;
-	b1 = Square.getSquare(move.position() + dir.delta());
+	b1 = Square.neighbors(move).get(dir);
 	b2 = null;
 	assertEquals(b2, fixtBoardBlackHasToPass.
 		     findBracketingPiece(b1, Player.WHITE, dir));
@@ -233,14 +219,6 @@ public class BoardTest {
 		     fixtBoardEndGameX.countDifference(Player.WHITE));
 	assertEquals(Integer.valueOf(-2),
 		     fixtBoardC.countDifference(Player.BLACK));	
-    }
-
-    @Test
-    public void testIsValid() {
-	//assertTrue(!Board.isValid(Square.getSquare(0)));
-	assertTrue(Board.isValid(Square.getSquare(11)));
-	assertTrue(!Board.isValid(Square.getSquare(19)));
-	assertTrue(!Board.isValid(Square.getSquare(100)));
     }
 
     @Test

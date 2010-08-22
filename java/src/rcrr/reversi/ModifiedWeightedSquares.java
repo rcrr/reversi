@@ -25,6 +25,7 @@
 
 package rcrr.reversi;
 
+import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +33,7 @@ import java.util.Arrays;
 public class ModifiedWeightedSquares implements EvalFunction, Strategy {
 
     // has to be trasformed into a Map .....
-    public final static List<Integer> WEIGHTS = WeightedSquares.WEIGHTS;
+    public final static Map<Square, Integer> WEIGHTS = WeightedSquares.WEIGHTS;
     public final static List<Square> CORNERS = 
 	Arrays.asList(Square.A1, Square.H1, Square.A8, Square.H8);
 
@@ -51,7 +52,7 @@ public class ModifiedWeightedSquares implements EvalFunction, Strategy {
 		for (Square c : Square.neighbors(corner).values()) {
 		    if (board.get(c) != SquareState.EMPTY) {
 			int j = (board.get(c) == player.color()) ? 1 : -1;
-			w += (j * (5 - WEIGHTS.get(c.position())));
+			w += (j * (5 - WEIGHTS.get(c)));
 		    }
 		}
 	    }

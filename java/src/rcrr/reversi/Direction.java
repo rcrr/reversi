@@ -79,7 +79,7 @@ public enum Direction {
     /**
      * Returns an <code>Integer</code> that represents the direction's
      * value to be added to the proper square index in order to obtain 
-     * its neighbor square index value. 
+     * its neighbor square index value.
      *
      * @return the index delta value associated with the <code>Direction</code>
      */

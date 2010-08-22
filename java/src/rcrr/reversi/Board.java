@@ -35,7 +35,6 @@ import java.util.EnumMap;
 import java.io.PrintStream;
 
 // To do:
-// - change the List into an Map<Square, SquareState>
 // - javadoc ....
 // - complete an exhaustive test suite
 // - polish, polish, polish ....
@@ -46,7 +45,7 @@ import java.io.PrintStream;
 
 // makeMove, isLegal, legalMoves need an extensive test suit
 
-// equal and hash method has to be written
+// equal and hashCode() method has to be written
 
 public final class Board {
 
@@ -83,10 +82,10 @@ public final class Board {
 
     public static Board initialBoard() {
 	Map<Square, SquareState> sm = emptyBoardSquares();
-	sm.put(Square.getSquare(44), SquareState.WHITE);
-	sm.put(Square.getSquare(45), SquareState.BLACK);
-	sm.put(Square.getSquare(54), SquareState.BLACK);
-	sm.put(Square.getSquare(55), SquareState.WHITE);
+	sm.put(Square.D4, SquareState.WHITE);
+	sm.put(Square.E4, SquareState.BLACK);
+	sm.put(Square.D5, SquareState.BLACK);
+	sm.put(Square.E5, SquareState.WHITE);
 	return valueOf(sm);
     }
     
@@ -120,9 +119,9 @@ public final class Board {
 	for (Direction dir : Direction.values()) {
 	    Square bracketer = wouldFlip(move, player, dir);
 	    if (bracketer != null) {
-		for (int c = move.position() + dir.delta(); true; c = c + dir.delta()) {
-		    if (c == bracketer.position()) break;
-		    sm.put(Square.getSquare(c), player.color());
+		for (Square c = Square.neighbors(move).get(dir); true; c = Square.neighbors(c).get(dir)) {
+		    if (c == bracketer) break;
+		    sm.put(c, player.color());
 		}
 	    }
 	}
@@ -131,13 +130,10 @@ public final class Board {
     
     /** Test ok*/
     Square wouldFlip(Square move, Player player, Direction dir) {
-	//System.out.println("wouldFlip: move=" + move + ", player=" + player + ", dir=" + dir);
-	int c = move.position() + dir.delta();
-	Square sc = Square.getSquare(c);
-	//System.out.println("sc=" + sc);
+	Square c = Square.neighbors(move).get(dir);
 	Square bp = null;
-	if (get(sc) == player.opponent().color()) {
-	    bp = findBracketingPiece(Square.getSquare(c + dir.delta()), player, dir);
+	if (get(c) == player.opponent().color()) {
+	    bp = findBracketingPiece(Square.neighbors(c).get(dir), player, dir);
 	}
 	return bp;
     }
@@ -153,11 +149,10 @@ public final class Board {
 
     /** Test ok*/
     Square findBracketingPiece(Square square, Player player, Direction dir) {
-	//System.out.println("findBracketingPiece: square=" + square + ", player=" + player + ", dir=" + dir);
 	if (get(square) == player.color()) {
 	    return square;
 	} else if (get(square) == player.opponent().color()) {
-	    return findBracketingPiece(Square.getSquare(square.position() + dir.delta()), player, dir);
+	    return findBracketingPiece(Square.neighbors(square).get(dir), player, dir);
 	} else {
 	    return null;
 	}
@@ -188,25 +183,21 @@ public final class Board {
 	Integer cw = countPieces(SquareState.WHITE);
 	Integer cd = cb - cw;
 	ps.print("    a b c d e f g h [@=" + cb + " 0=" + cw + " (" + cd + ")]");
-	for (int row=1; row<9; row++) {
-	    ps.print("\n " + row + "  ");
-	    for (int col=1; col<9; col++) {
-		int idx = (row * 10) + col;
-		String p = get(Square.getSquare(idx)).toString();
+	
+	for (Row r : Row.values()) {
+	    ps.print("\n " + r.label() + "  ");
+	    for (Column c : Column.values()) {
+		int idx = (r.ordinal() * 8) + c.ordinal();
+		String p = get(Square.index(idx)).toString();
 		ps.print(p + " ");
 	    }
 	}
+
 	if (clock != null) {
 	    ps.print("\n");
 	    ps.print("\tClock: " + clock);
 	}
 	ps.print("\n\n");
-    }
-
-    // should be removed!
-    /** Test ok*/
-    public static Boolean isValid(Square move) {
-	if (move != null) { return true; } else { return false; }
     }
 
     /** Test ok*/
@@ -244,5 +235,7 @@ public final class Board {
 	}
 	return legalMoves;
     }
+
+    public static int size() { return 64; }
 
 }
