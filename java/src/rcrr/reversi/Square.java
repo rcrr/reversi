@@ -148,13 +148,11 @@ public enum Square {
 	return corners.contains(this);
     }
 
-
-    // Check if it returns null for OUTER lookups ...... 
-    /*
+    // TO BE DELETED !!!! Used just by the neighbors method.
+    // delta method in Directon class has to be rewritten.
     public static Square getSquare(Integer i) {
 	return ONE_HUNDRED_SQUARES.get(i);	
     }
-    */
 
     public static Square getSquare(String s) {
 	return Square.valueOf(s.toUpperCase());	
