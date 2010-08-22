@@ -261,7 +261,7 @@
 	       (is (= (find-bracketing-piece
 		       b1 white 
 		       *fixt-board-black-has-to-pass* dir) b2)
-		   "Moving to g8, the white player, identify c7 
+		   "Moving to h7, the white player, identify c7 
                     following the -1 (west) direction.")))}
   find-bracketing-piece [square player board dir]
   (cond (= (board-ref board square) player) square
