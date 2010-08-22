@@ -31,8 +31,10 @@ import java.util.Arrays;
 
 public class ModifiedWeightedSquares implements EvalFunction, Strategy {
 
+    // has to be trasformed into a Map .....
     public final static List<Integer> WEIGHTS = WeightedSquares.WEIGHTS;
-    public final static List<Integer> CORNERS = Arrays.asList(11, 18, 81, 88);
+    public final static List<Square> CORNERS = 
+	Arrays.asList(Square.A1, Square.H1, Square.A8, Square.H8);
 
     private Strategy s;
     private EvalFunction ws;
@@ -44,12 +46,12 @@ public class ModifiedWeightedSquares implements EvalFunction, Strategy {
 
     public Integer eval(Player player, Board board) {
 	int w = ws.eval(player, board);
-	for (Integer corner : CORNERS) {
+	for (Square corner : CORNERS) {
 	    if (board.get(corner) != SquareState.EMPTY) {
-		for (Integer c : Square.neighbors(corner)) {
+		for (Square c : Square.neighbors(corner).values()) {
 		    if (board.get(c) != SquareState.EMPTY) {
 			int j = (board.get(c) == player.color()) ? 1 : -1;
-			w += (j * (5 - WEIGHTS.get(c)));
+			w += (j * (5 - WEIGHTS.get(c.position())));
 		    }
 		}
 	    }
@@ -57,7 +59,7 @@ public class ModifiedWeightedSquares implements EvalFunction, Strategy {
 	return w;
     }
 
-    public Integer move(Player player, Board board) {
+    public Square move(Player player, Board board) {
 	return s.move(player, board);
     }
 

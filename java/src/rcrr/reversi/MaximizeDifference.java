@@ -34,7 +34,7 @@ public class MaximizeDifference implements Strategy {
 	md = Minimax.maximizer(new CountDifference());
     }
 
-    public Integer move(Player player, Board board) {
+    public Square move(Player player, Board board) {
 	return md.move(player, board);
     }
 

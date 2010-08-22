@@ -66,12 +66,12 @@ public class Game {
     public static Game getMoveX(Board b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
 	if (ps != null) b.print(ps, clock);
 	long t0 = System.currentTimeMillis();
-	Integer move = strategy.move(player, b.copyBoard());
+	Square move = strategy.move(player, b.copyBoard());
 	long t1 = System.currentTimeMillis();
 	clock = clock.setTime(player, t1 - t0);
 	if (b.isValid(move) && b.isLegal(move, player)) {
 	    if (ps != null) {
-		ps.print("\n" + player.name() + " moves to " + Square.getSquare(move).getDisplayName() + "\n");
+		ps.print("\n" + player.name() + " moves to " + move.getDisplayName() + "\n");
 	    }
 	    Board b1 = b.makeMove(move, player);
 	    return Game.valueOf(b1, b1.nextToPlay(player, null), clock);

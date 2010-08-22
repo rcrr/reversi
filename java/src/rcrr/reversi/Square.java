@@ -28,6 +28,15 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
+import java.util.EnumMap;
+import java.util.Hashtable;
+
+// to-do list:
+// introduce the enum Column and Row
+// eliminate position
+// eliminate getSquare()
+// make the class a "non standard Enum", calculated by a static block.
 
 public enum Square {
     A1("a1", 11), B1("b1", 12), C1("c1", 13), D1("d1", 14), E1("e1", 15), F1("f1", 16), G1("g1", 17), H1("h1", 18),
@@ -41,7 +50,6 @@ public enum Square {
 
     private final String displayName;
     private final Integer position;
-
     private Square(String displayName, Integer position) {
 	this.displayName = displayName;
 	this.position = position;
@@ -55,48 +63,35 @@ public enum Square {
 	return position;
     }
 
-    private static List<Integer> allSquares() {
-	List<Integer> as = new ArrayList<Integer>();
-	for (Square sq : Square.values()) {
-	    as.add(sq.position());
+    // TO BE REMOVED!!!!
+    private static Map<Integer, Square> oneHundredSquares() {
+	Map<Integer, Square> oneh = new Hashtable<Integer, Square>();
+	for (Square sq : values()) {
+	    oneh.put(sq.position(), sq);
 	}
-	return Collections.unmodifiableList(as);
-    }
-
-    public static final List<Integer> ALL_SQUARES = allSquares();
-
-    private static List<Square> oneHundredSquares() {
-	List<Square> oneh = new ArrayList<Square>();
-	for (int i=0; i<100; i++) {
-	    Square square = null;
-	    for (Square sq : Square.values()) {
-		if (sq.position() == i) square = sq;
-	    }
-	    oneh.add(square);
-	}
-	return Collections.unmodifiableList(oneh);
+	return Collections.unmodifiableMap(oneh);
     }
     
-    public static final List<Square> ONE_HUNDRED_SQUARES = oneHundredSquares();
-    
-    private static final List<List<Integer>> NEIGHBOR_TABLE = neighborTable();
+    // TO BE REMOVED!!!
+    private static final Map<Integer, Square> ONE_HUNDRED_SQUARES = oneHundredSquares();    
 
-    private static List<List<Integer>> neighborTable() {
-	List<List<Integer>> nt = new ArrayList<List<Integer>>(100);
-	for (int i=0; i<100; i++) nt.add(new ArrayList<Integer>());
-	for (Integer square : ALL_SQUARES) {
-	    List<Integer> nl = new ArrayList<Integer>();
+    private static final Map<Square, Map<Direction, Square>> NEIGHBOR_TABLE = neighborTable();
+
+    private static Map<Square, Map<Direction, Square>> neighborTable() {
+	Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
+	for (Square sq : values()) {
+	    Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
 	    for (Direction dir : Direction.values()) {
-		Integer neighbor = square + dir.delta();
-		if (Board.isValid(neighbor)) nl.add(neighbor);
+		Integer iNeighbor = sq.position() + dir.delta();
+		snt.put(dir, getSquare(iNeighbor));
 	    }
-	    nt.set(square, nl);
+	    nt.put(sq, Collections.unmodifiableMap(snt));
 	}
-	return nt;
+	return Collections.unmodifiableMap(nt);
     }
 
-    public static List<Integer> neighbors(Integer square) {
-	return NEIGHBOR_TABLE.get(square);
+    public static Map<Direction, Square> neighbors(Square sq) {
+	return NEIGHBOR_TABLE.get(sq);
     }
 
     public Character getHasegawaLabel() {
@@ -143,6 +138,7 @@ public enum Square {
 	return corners.contains(this);
     }
 
+    // Check if it returns null for OUTER lookups ...... 
     public static Square getSquare(Integer i) {
 	return ONE_HUNDRED_SQUARES.get(i);	
     }

@@ -36,7 +36,7 @@ public class AlphabetaSearcherModifiedWeightedSquares implements Strategy {
 	s = Minimax.alphabetaSearcher(PLY, new ModifiedWeightedSquares());
     }
 
-    public Integer move(Player player, Board board) {
+    public Square move(Player player, Board board) {
 	return s.move(player, board);
     }
 

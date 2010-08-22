@@ -25,6 +25,8 @@
 package rcrr.reversi;
 
 import java.util.List;
+import java.util.Map;
+import java.util.EnumMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -44,17 +46,19 @@ public class BoardTest {
     private static Board boardFromList(List<Integer> il) {
 	if (il == null) return null;
 	if (il.size() != 100) throw new IllegalArgumentException();
-	List<SquareState> ssl = new ArrayList<SquareState>();
-	for (Integer i : il) {
+	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
+	for (int index=0; index<100; index++) {
+	    Integer i = il.get(index);
 	    SquareState ss = null;
 	    if (i == null || i < 0 || i > 3) throw new IllegalArgumentException();
 	    else if (i == 0) ss = SquareState.EMPTY;
 	    else if (i == 1) ss = SquareState.BLACK;
 	    else if (i == 2) ss = SquareState.WHITE;
 	    else if (i == 3) ss = SquareState.OUTER;
-	    ssl.add(ss);
+	    Square sq = Square.getSquare(index);
+	    if (sq != null) sm.put(sq, ss);
 	}	
-	return Board.valueOf(ssl);
+	return Board.valueOf(sm);
     }
 
     @Before
@@ -64,8 +68,8 @@ public class BoardTest {
 					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
 					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
 					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-					3, 0, 0, 0, 1, 2, 0, 0, 0, 3,
 					3, 0, 0, 0, 2, 1, 0, 0, 0, 3,
+					3, 0, 0, 0, 1, 2, 0, 0, 0, 3,
 					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
 					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
 					3, 0, 0, 0, 0, 0, 0, 0, 0, 3,
@@ -145,36 +149,72 @@ public class BoardTest {
 
     }
 
-    @Test
-    public void testWouldFlip() {
-	assertEquals(Integer.valueOf(73),
-		     fixtBoardBlackHasToPass.wouldFlip(78, Player.WHITE, Direction.W));
-	assertEquals(null,
-		     fixtBoardBlackHasToPass.wouldFlip(78, Player.WHITE, Direction.S));
-    }
-
+    /** 
+     * findBracketingPiece is a "private" method in Board class.
+     * It is used by only one "client":
+     * - wouldFlip
+     */
     @Test
     public void testFindBracketingPiece() {
-	Integer move = Square.H7.position();
+	Square move = Square.H7;
 
 	Direction dir = Direction.W;
-	Integer b1 = move + dir.delta();
-	Integer b2 = Square.C7.position();
+	Square b1 = Square.getSquare(move.position() + dir.delta());
+	Square b2 = Square.C7;
+	Square b3 = fixtBoardBlackHasToPass.
+	    findBracketingPiece(b1, Player.WHITE, dir);
 	assertEquals(b2, fixtBoardBlackHasToPass.
 		     findBracketingPiece(b1, Player.WHITE, dir));
-	
+
 	dir = Direction.NW;
-	b1 = move + dir.delta();
-	b2 = Square.F5.position();
+	b1 = Square.getSquare(move.position() + dir.delta());
+	b2 = Square.F5;
 	assertEquals(b2, fixtBoardBlackHasToPass.
 		     findBracketingPiece(b1, Player.WHITE, dir));
 	
 	dir = Direction.SW;
-	b1 = move + dir.delta();
+	b1 = Square.getSquare(move.position() + dir.delta());
 	b2 = null;
 	assertEquals(b2, fixtBoardBlackHasToPass.
 		     findBracketingPiece(b1, Player.WHITE, dir));
 
+    }
+
+    /** 
+     * wouldFlip is a "private" method in Board class.
+     * It is used by two "clients":
+     * - makeMove
+     * - isLegal
+     */
+    @Test
+    public void testWouldFlip() {
+	assertEquals(Square.C7,
+		     fixtBoardBlackHasToPass.wouldFlip(Square.H7, Player.WHITE, Direction.W));
+	assertEquals(null,
+		     fixtBoardBlackHasToPass.wouldFlip(Square.H7, Player.WHITE, Direction.S));
+    }
+
+    /**
+     *
+     */
+    @Test
+    public void testIsLegal() {
+	assertTrue(fixtBoardInitial.isLegal(Square.D3, Player.BLACK));
+	assertFalse(fixtBoardInitial.isLegal(Square.E3, Player.BLACK));
+
+	assertFalse(fixtBoardBlackHasToPass.isLegal(Square.H7, Player.BLACK));
+	assertTrue(fixtBoardBlackHasToPass.isLegal(Square.H7, Player.WHITE));
+    }
+
+    /**
+     *
+     */
+    @Test
+    public void testMakeMove() {
+	Board b = fixtBoardInitial.makeMove(Square.D3, Player.BLACK);
+	for (Square sq : Square.values()) {
+	    assertEquals(fixtBoardA.get(sq), b.get(sq));
+	}
     }
 
     @Test
@@ -197,16 +237,10 @@ public class BoardTest {
 
     @Test
     public void testIsValid() {
-	assertTrue(!Board.isValid(0));
-	assertTrue(Board.isValid(11));
-	assertTrue(!Board.isValid(19));
-	assertTrue(!Board.isValid(100));
-    }
-
-    @Test
-    public void testIsLegal() {
-	assertFalse(fixtBoardBlackHasToPass.isLegal(78, Player.BLACK));
-	assertTrue(fixtBoardBlackHasToPass.isLegal(78, Player.WHITE));
+	//assertTrue(!Board.isValid(Square.getSquare(0)));
+	assertTrue(Board.isValid(Square.getSquare(11)));
+	assertTrue(!Board.isValid(Square.getSquare(19)));
+	assertTrue(!Board.isValid(Square.getSquare(100)));
     }
 
     @Test
@@ -230,36 +264,38 @@ public class BoardTest {
 
     @Test
     public void testLegalMoves() {
-	List<Integer> lm;
+	List<Square> lm;
 
-	lm = Arrays.asList(35, 46, 53, 64);
+	lm = Arrays.asList(Square.D3, Square.C4, Square.F5, Square.E6);
 	assertEquals(lm, fixtBoardInitial.legalMoves(Player.BLACK));
 
-	lm = Arrays.asList(33, 35, 53);
+	lm = Arrays.asList(Square.C3, Square.E3, Square.C5);
 	assertEquals(lm, fixtBoardA.legalMoves(Player.WHITE));
 
-	lm = Arrays.asList(28, 41, 43, 47, 51, 56, 62, 65, 77);
+	lm = Arrays.asList(Square.H2, Square.A4, Square.C4, 
+			   Square.G4, Square.A5, Square.F5, 
+			   Square.B6, Square.E6, Square.G7);
 	assertEquals(lm, fixtBoardC.legalMoves(Player.BLACK));
     }
 
     @Test
     public void testGet() {
-	assertEquals(SquareState.BLACK, fixtBoardC.get(32));
-	assertEquals(SquareState.WHITE, fixtBoardC.get(42));
-	assertEquals(SquareState.OUTER, fixtBoardC.get(40));
-	assertEquals(SquareState.EMPTY, fixtBoardC.get(11));
+	assertEquals(SquareState.BLACK, fixtBoardC.get(Square.B3));
+	assertEquals(SquareState.WHITE, fixtBoardC.get(Square.B4));
+	assertEquals(SquareState.OUTER, fixtBoardC.get(null));
+	assertEquals(SquareState.EMPTY, fixtBoardC.get(Square.A1));
     }
 
     @Test
     public void testValueOf() {
-	List<SquareState> ssl = new ArrayList<SquareState>();
-	for (int i=0; i<100; i++) {
-	    ssl.add(fixtBoardC.get(i));
+	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
+	for (Square sq : Square.values()) {
+	    sm.put(sq, fixtBoardC.get(sq));
 	}
-	Board boardC = Board.valueOf(ssl);
-	for (int i=0; i<100; i++) {
-	    assertEquals(fixtBoardC.get(i), boardC.get(i));
+	Board boardC = Board.valueOf(sm);
+	for (Square sq : Square.values()) {
+	    assertEquals(fixtBoardC.get(sq), boardC.get(sq));
 	}
     }
-   
+
 }

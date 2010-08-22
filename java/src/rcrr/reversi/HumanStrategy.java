@@ -41,12 +41,12 @@ public class HumanStrategy implements Strategy {
  	in = new BufferedReader(isr);
     }
     
-    public Integer move(Player player, Board board) {
-	Integer move = null;
+    public Square move(Player player, Board board) {
+	Square move = null;
 	while (move == null) {
 	    List<String> moves = new ArrayList<String>();
-	    for (Integer mv : board.legalMoves(player)) {
-		moves.add(Square.getSquare(mv).getDisplayName());
+	    for (Square mv : board.legalMoves(player)) {
+		moves.add(mv.getDisplayName());
 	    }
 	    System.out.print(player.toString() + " to move " + moves + ": ");
 	    String s = null;
@@ -57,7 +57,7 @@ public class HumanStrategy implements Strategy {
 		System.exit(1);
 	    }
 	    try {
-		move = Square.getSquare(s).position();
+		move = Square.getSquare(s);
 	    } catch (Exception e) {
 		System.out.println(s + " is not a move. Retry:");
 	    }

@@ -40,49 +40,54 @@ import java.io.PrintStream;
 // - complete an exhaustive test suite
 // - polish, polish, polish ....
 
+// makeMove has to check that the move is legal.
+// findBracketingPiece must be private
+// wouldFlip must be private
+
+// makeMove, isLegal, legalMoves need an extensive test suit
+
+// equal and hash method has to be written
+
 public final class Board {
 
-    private final List<SquareState> squares;
+    private final Map<Square, SquareState> squares;
 
-    List<SquareState> squares() { throw new UnsupportedOperationException(); }
+    // Has to be verified that returning OUTER on null is ok.
+    /** Test ok */
+    public SquareState get(Square sq) {
+	if (sq == null) return SquareState.OUTER;
+	return squares.get(sq);
+    }
+
+    // must be verified if the Map object is copied too much!
+    private Board(Map<Square, SquareState> sm) {
+	this.squares = Collections.unmodifiableMap(new EnumMap<Square, SquareState>(sm));
+    }
 
     /** Test ok */
-    public SquareState get(Integer index) {
-	return squares.get(index);
+    public static Board valueOf(Map<Square, SquareState> sm) {
+	return new Board(sm);
     }
 
-    private Board(List<SquareState> ssl) {
-	this.squares = Collections.unmodifiableList(new ArrayList<SquareState>(ssl));
-    }
-
-    /** Test ok */
-    public static Board valueOf(List<SquareState> ssl) {
-	return new Board(ssl);
-    }
-
-    private static List<SquareState> emptyBoardList() {
-	List<SquareState> ssl = new ArrayList<SquareState>();
-	for (int i=0; i<100; i++) {
-	    if (Square.ALL_SQUARES.contains(i)) {
-		ssl.add(SquareState.EMPTY);
-	    } else {
-		ssl.add(SquareState.OUTER);
-	    }
+    private static Map<Square, SquareState> emptyBoardSquares() {
+	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
+	for (Square sq : Square.values()) {
+	    sm.put(sq, SquareState.EMPTY);   
 	}
-	return ssl;
+	return sm;
     }
 
     public static Board emptyBoard() {
-	return valueOf(emptyBoardList());
+	return valueOf(emptyBoardSquares());
     }
 
     public static Board initialBoard() {
-	List<SquareState> ssl = emptyBoardList();
-	ssl.set(44, SquareState.WHITE);
-	ssl.set(45, SquareState.BLACK);
-	ssl.set(54, SquareState.BLACK);
-	ssl.set(55, SquareState.WHITE);
-	return valueOf(ssl);
+	Map<Square, SquareState> sm = emptyBoardSquares();
+	sm.put(Square.getSquare(44), SquareState.WHITE);
+	sm.put(Square.getSquare(45), SquareState.BLACK);
+	sm.put(Square.getSquare(54), SquareState.BLACK);
+	sm.put(Square.getSquare(55), SquareState.WHITE);
+	return valueOf(sm);
     }
     
     /**
@@ -102,38 +107,43 @@ public final class Board {
      * Returns a new updated board to reflect move by player. This static
      * factory executes a game move to the board and returns a new one, reflecting
      * the move. The original board is not modified.
+     * Currently it does not check if the move is legal. It must do it, and
+     * throw an IllegalArgumentValue in case it is not.
      *
-     * @param  move   an integer that points to the board square where to put the disk
+     * @param  move   the board square where to put the disk
      * @param  player the disk color to put on the board
      * @return a new {@code Board} reflecting the move made
      */
-    public Board makeMove(Integer move, Player player) {
-	List<SquareState> ssl = new ArrayList<SquareState>(squares);
-	ssl.set(move, player.color());
+    public Board makeMove(Square move, Player player) {
+	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(squares);
+	sm.put(move, player.color());
 	for (Direction dir : Direction.values()) {
-	    Integer bracketer = wouldFlip(move, player, dir);
+	    Square bracketer = wouldFlip(move, player, dir);
 	    if (bracketer != null) {
-		for (int c = move + dir.delta(); true; c = c + dir.delta()) {
-		    if (c == bracketer) break;
-		    ssl.set(c, player.color());
+		for (int c = move.position() + dir.delta(); true; c = c + dir.delta()) {
+		    if (c == bracketer.position()) break;
+		    sm.put(Square.getSquare(c), player.color());
 		}
 	    }
 	}
-	return valueOf(ssl);
+	return valueOf(sm);
     }
     
     /** Test ok*/
-    Integer wouldFlip(Integer move, Player player, Direction dir) {
-	int c = move + dir.delta();
-	Integer bp = null;
-	if (get(c) == player.opponent().color()) {
-	    bp = findBracketingPiece(c + dir.delta(), player, dir);
+    Square wouldFlip(Square move, Player player, Direction dir) {
+	//System.out.println("wouldFlip: move=" + move + ", player=" + player + ", dir=" + dir);
+	int c = move.position() + dir.delta();
+	Square sc = Square.getSquare(c);
+	//System.out.println("sc=" + sc);
+	Square bp = null;
+	if (get(sc) == player.opponent().color()) {
+	    bp = findBracketingPiece(Square.getSquare(c + dir.delta()), player, dir);
 	}
 	return bp;
     }
-
+    
     /** Test ok*/
-    public Boolean isLegal(Integer move, Player player) {
+    public Boolean isLegal(Square move, Player player) {
 	if (get(move) != SquareState.EMPTY) return false;
 	for (Direction dir : Direction.values()) {
 	    if (wouldFlip(move, player, dir) != null) return true;
@@ -142,11 +152,12 @@ public final class Board {
     }
 
     /** Test ok*/
-    public Integer findBracketingPiece(Integer square, Player player, Direction dir) {
+    Square findBracketingPiece(Square square, Player player, Direction dir) {
+	//System.out.println("findBracketingPiece: square=" + square + ", player=" + player + ", dir=" + dir);
 	if (get(square) == player.color()) {
 	    return square;
 	} else if (get(square) == player.opponent().color()) {
-	    return findBracketingPiece(square + dir.delta(), player, dir);
+	    return findBracketingPiece(Square.getSquare(square.position() + dir.delta()), player, dir);
 	} else {
 	    return null;
 	}
@@ -155,8 +166,8 @@ public final class Board {
     /** Test ok*/
     public Integer countPieces(SquareState color) {
 	int count = 0;
-	for (int i=0; i<100; i++) {
-	    if (get(i) == color) count++;
+	for (SquareState ss : squares.values()) {
+	    if (ss == color) count++;
 	}
 	return new Integer(count);
     }
@@ -181,7 +192,7 @@ public final class Board {
 	    ps.print("\n " + row + "  ");
 	    for (int col=1; col<9; col++) {
 		int idx = (row * 10) + col;
-		String p = get(idx).toString();
+		String p = get(Square.getSquare(idx)).toString();
 		ps.print(p + " ");
 	    }
 	}
@@ -192,9 +203,10 @@ public final class Board {
 	ps.print("\n\n");
     }
 
+    // should be removed!
     /** Test ok*/
-    public static Boolean isValid(Integer move) {
-	return Square.ALL_SQUARES.contains(move);
+    public static Boolean isValid(Square move) {
+	if (move != null) { return true; } else { return false; }
     }
 
     /** Test ok*/
@@ -215,7 +227,7 @@ public final class Board {
     /** Test ok*/
     public Boolean anyLegalMove (Player player) {
 	Boolean b = false;
-	for (Integer move : Square.ALL_SQUARES) {
+	for (Square move : Square.values()) {
 	    if (isLegal(move, player)) {
 		b = true;
 		break;
@@ -225,9 +237,9 @@ public final class Board {
     }
 
     /** Test ok*/
-    public List<Integer> legalMoves(Player player) {
-	List<Integer> legalMoves = new ArrayList<Integer>();
-	for (Integer move : Square.ALL_SQUARES) {
+    public List<Square> legalMoves(Player player) {
+	List<Square> legalMoves = new ArrayList<Square>();
+	for (Square move : Square.values()) {
 	    if (isLegal(move, player)) legalMoves.add(move);
 	}
 	return legalMoves;

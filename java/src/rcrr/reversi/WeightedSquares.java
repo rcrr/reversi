@@ -53,7 +53,7 @@ public class WeightedSquares implements EvalFunction, Strategy {
 	Integer value = 0;
 	for (int i=0; i<100; i++) {
 	    int p;
-	    SquareState color = board.get(i);
+	    SquareState color = board.get(Square.getSquare(i));
 	    if (color == player.color()) p = 1;
 	    else if (color == opponent.color()) p = -1;
 	    else p = 0;
@@ -62,7 +62,7 @@ public class WeightedSquares implements EvalFunction, Strategy {
 	return value;
     }
 
-    public Integer move(Player player, Board board) {
+    public Square move(Player player, Board board) {
 	return maximizeWeightedCount.move(player, board);
     }
 
