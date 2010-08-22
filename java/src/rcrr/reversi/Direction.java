@@ -24,6 +24,12 @@
 
 package rcrr.reversi;
 
+// to-do
+// change the delta values.
+// change getDescription into description
+// complete the tests .....
+// the delta values should be related to the Row.size() value.
+
 /**
  * The directions that are available in a "standard" board square are
  * eight, Up, Down, Left, Right, and the four diagonal between them.
