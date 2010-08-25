@@ -71,7 +71,7 @@ public class Game {
 	clock = clock.setTime(player, t1 - t0);
 	if (b.isLegal(move, player)) {
 	    if (ps != null) {
-		ps.print("\n" + player.name() + " moves to " + move.getDisplayName() + "\n");
+		ps.print("\n" + player.name() + " moves to " + move.label() + "\n");
 	    }
 	    Board b1 = b.makeMove(move, player);
 	    return Game.valueOf(b1, b1.nextToPlay(player, null), clock);

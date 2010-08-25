@@ -46,7 +46,7 @@ public class HumanStrategy implements Strategy {
 	while (move == null) {
 	    List<String> moves = new ArrayList<String>();
 	    for (Square mv : board.legalMoves(player)) {
-		moves.add(mv.getDisplayName());
+		moves.add(mv.label());
 	    }
 	    System.out.print(player.toString() + " to move " + moves + ": ");
 	    String s = null;

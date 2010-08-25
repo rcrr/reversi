@@ -49,7 +49,7 @@ public class ModifiedWeightedSquares implements EvalFunction, Strategy {
 	int w = ws.eval(player, board);
 	for (Square corner : CORNERS) {
 	    if (board.get(corner) != SquareState.EMPTY) {
-		for (Square c : Square.neighbors(corner).values()) {
+		for (Square c : corner.neighbors().values()) {
 		    if (board.get(c) != SquareState.EMPTY) {
 			int j = (board.get(c) == player.color()) ? 1 : -1;
 			w += (j * (5 - WEIGHTS.get(c)));

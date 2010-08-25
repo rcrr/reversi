@@ -55,7 +55,7 @@ public class BoardTest {
 	    else if (iss == 1) ss = SquareState.BLACK;
 	    else if (iss == 2) ss = SquareState.WHITE;
 	    else if (iss == 3) ss = SquareState.OUTER;
-	    sm.put(Square.index(idx), ss);
+	    sm.put(Square.getInstance(idx), ss);
 	}	
 	return Board.valueOf(sm);
     }
@@ -147,19 +147,19 @@ public class BoardTest {
 	Square b2;
 
 	dir = Direction.W;
-	b1 = Square.neighbors(move).get(dir);
+	b1 = move.neighbors().get(dir);
 	b2 = Square.C7;
 	assertEquals(b2, fixtBoardBlackHasToPass.
 		     findBracketingPiece(b1, Player.WHITE, dir));
 
 	dir = Direction.NW;
-	b1 = Square.neighbors(move).get(dir);
+	b1 = move.neighbors().get(dir);
 	b2 = Square.F5;
 	assertEquals(b2, fixtBoardBlackHasToPass.
 		     findBracketingPiece(b1, Player.WHITE, dir));
 	
 	dir = Direction.SW;
-	b1 = Square.neighbors(move).get(dir);
+	b1 = move.neighbors().get(dir);
 	b2 = null;
 	assertEquals(b2, fixtBoardBlackHasToPass.
 		     findBracketingPiece(b1, Player.WHITE, dir));

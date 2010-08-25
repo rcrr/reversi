@@ -1,5 +1,5 @@
 /*
- *  DirectionTest.java
+ *  ColumnTest.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -24,33 +24,39 @@
 
 package rcrr.reversi;
 
+import java.util.Map;
+
 import org.junit.*;
 import static org.junit.Assert.*;
 
-public class DirectionTest {
+public class ColumnTest {
 
     @Test
-    public void testDelta() {
-	assertEquals(Integer.valueOf(-8), Direction.N.delta());
-	assertEquals(Integer.valueOf(-7), Direction.NE.delta());
-	assertEquals(Integer.valueOf(+1), Direction.E.delta());
-	assertEquals(Integer.valueOf(+9), Direction.SE.delta());
-	assertEquals(Integer.valueOf(+8), Direction.S.delta());
-	assertEquals(Integer.valueOf(+7), Direction.SW.delta());
-	assertEquals(Integer.valueOf(-1), Direction.W.delta());
-	assertEquals(Integer.valueOf(-9), Direction.NW.delta());
+    public void testLabel() {
+	assertEquals("e", Column.E.label());
     }
 
     @Test
-    public void testGetDescription() {
-	assertEquals("North", Direction.N.description());
-	assertEquals("South", Direction.S.description());
-	assertEquals("East", Direction.E.description());
-	assertEquals("West", Direction.W.description());
-	assertEquals("North-West", Direction.NW.description());
-	assertEquals("South-West", Direction.SW.description());
-	assertEquals("North-East", Direction.NE.description());
-	assertEquals("South-East", Direction.SE.description());
+    public void testSize() {
+	assertEquals(8, Column.size());
     }
-   
+
+    @Test
+    public void testGetInstance() {
+	assertEquals(Column.C, Column.getInstance(2));
+    }
+
+    @Test
+    public void testShift() {
+	assertEquals(null, Column.A.shift(-1));
+	assertEquals(Column.A, Column.A.shift(0));
+	assertEquals(Column.B, Column.A.shift(+1));
+	assertEquals(Column.D, Column.E.shift(-1));
+	assertEquals(Column.E, Column.E.shift(0));
+	assertEquals(Column.F, Column.E.shift(+1));
+	assertEquals(Column.G, Column.H.shift(-1));
+	assertEquals(Column.H, Column.H.shift(0));
+	assertEquals(null, Column.H.shift(+1));
+    }
+
 }

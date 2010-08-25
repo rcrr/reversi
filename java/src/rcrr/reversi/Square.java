@@ -32,6 +32,9 @@ import java.util.Map;
 import java.util.EnumMap;
 import java.util.Hashtable;
 
+import static rcrr.reversi.Row.*;
+import static rcrr.reversi.Column.*;
+
 // to-do list:
 // introduce the enum Column and Row
 // eliminate position
@@ -39,28 +42,56 @@ import java.util.Hashtable;
 // make the class a "non standard Enum", calculated by a static block.
 
 public enum Square {
-    A1("a1", 11), B1("b1", 12), C1("c1", 13), D1("d1", 14), E1("e1", 15), F1("f1", 16), G1("g1", 17), H1("h1", 18),
-    A2("a2", 21), B2("b2", 22), C2("c2", 23), D2("d2", 24), E2("e2", 25), F2("f2", 26), G2("g2", 27), H2("h2", 28),
-    A3("a3", 31), B3("b3", 32), C3("c3", 33), D3("d3", 34), E3("e3", 35), F3("f3", 36), G3("g3", 37), H3("h3", 38),
-    A4("a4", 41), B4("b4", 42), C4("c4", 43), D4("d4", 44), E4("e4", 45), F4("f4", 46), G4("g4", 47), H4("h4", 48),
-    A5("a5", 51), B5("b5", 52), C5("c5", 53), D5("d5", 54), E5("e5", 55), F5("f5", 56), G5("g5", 57), H5("h5", 58),
-    A6("a6", 61), B6("b6", 62), C6("c6", 63), D6("d6", 64), E6("e6", 65), F6("f6", 66), G6("g6", 67), H6("h6", 68),
-    A7("a7", 71), B7("b7", 72), C7("c7", 73), D7("d7", 74), E7("e7", 75), F7("f7", 76), G7("g7", 77), H7("h7", 78),
-    A8("a8", 81), B8("b8", 82), C8("c8", 83), D8("d8", 84), E8("e8", 85), F8("f8", 86), G8("g8", 87), H8("h8", 88);
+    A1(R1, A), B1(R1, B), C1(R1, C), D1(R1, D), E1(R1, E), F1(R1, F), G1(R1, G), H1(R1, H),
+    A2(R2, A), B2(R2, B), C2(R2, C), D2(R2, D), E2(R2, E), F2(R2, F), G2(R2, G), H2(R2, H),
+    A3(R3, A), B3(R3, B), C3(R3, C), D3(R3, D), E3(R3, E), F3(R3, F), G3(R3, G), H3(R3, H),
+    A4(R4, A), B4(R4, B), C4(R4, C), D4(R4, D), E4(R4, E), F4(R4, F), G4(R4, G), H4(R4, H),
+    A5(R5, A), B5(R5, B), C5(R5, C), D5(R5, D), E5(R5, E), F5(R5, F), G5(R5, G), H5(R5, H),
+    A6(R6, A), B6(R6, B), C6(R6, C), D6(R6, D), E6(R6, E), F6(R6, F), G6(R6, G), H6(R6, H),
+    A7(R7, A), B7(R7, B), C7(R7, C), D7(R7, D), E7(R7, E), F7(R7, F), G7(R7, G), H7(R7, H),
+    A8(R8, A), B8(R8, B), C8(R8, C), D8(R8, D), E8(R8, E), F8(R8, F), G8(R8, G), H8(R8, H);
 
-    private final String displayName;
-    private final Integer position;
-    private Square(String displayName, Integer position) {
-	this.displayName = displayName;
-	this.position = position;
+    private final Row row;
+    private final Column column;
+
+    private Square(Row row, Column column) {
+	this.row = row;
+	this.column = column;
     }
 
-    public String getDisplayName() {
-	return displayName;
+    private static final Map<Square, String> LABELS = labelTable();
+
+    private static Map<Square, String> labelTable() {
+	Map<Square, String> labelMap = new Hashtable<Square, String>();
+	for (Square sq : values()) {
+	    labelMap.put(sq, sq.column.label() + sq.row.label());
+	}
+	return Collections.unmodifiableMap(labelMap);
     }
 
-    public Integer position() {
-	return position;
+    /** 
+     * Returns the Square instance matching the row and column parameters.
+     **/
+    public static Square instanceOf(Row row, Column column) {
+	if (row == null || column == null) return null;
+	else return SQUARES.get(row.size() * row.ordinal() + column.ordinal());
+    }
+
+    /** 
+     * Returns the Square's Row.
+     **/
+    public Row row() { return row; }
+
+    /** 
+     * Returns the Square's Column.
+     **/
+    public Column column() { return column; }
+
+    /** 
+     * Returns the Square's label.
+     **/
+    public String label() {
+	return LABELS.get(this);
     }
 
     private static List<Square> SQUARES = squares();
@@ -68,22 +99,20 @@ public enum Square {
     private static List<Square> squares() {
 	List<Square> sl = new ArrayList<Square>(64);
 	for (Square sq : values()) sl.add(sq);
-	return sl;
+	return Collections.unmodifiableList(sl);
     }
 
-    public static Square index(int i) { return SQUARES.get(i); }
+    private static int NUMEROSITY = SQUARES.size();
 
-    // TO BE REMOVED!!!!
-    private static Map<Integer, Square> oneHundredSquares() {
-	Map<Integer, Square> oneh = new Hashtable<Integer, Square>();
-	for (Square sq : values()) {
-	    oneh.put(sq.position(), sq);
-	}
-	return Collections.unmodifiableMap(oneh);
-    }
-    
-    // TO BE REMOVED!!!
-    private static final Map<Integer, Square> ONE_HUNDRED_SQUARES = oneHundredSquares();    
+    /** 
+     * Returns the number of squares.
+     **/
+    public static int numerosity() { return NUMEROSITY; }
+
+    /** 
+     * Returns the Square instance given its ordinal index.
+     **/
+    public static Square getInstance(int i) { return SQUARES.get(i); }
 
     private static final Map<Square, Map<Direction, Square>> NEIGHBOR_TABLE = neighborTable();
 
@@ -92,16 +121,19 @@ public enum Square {
 	for (Square sq : values()) {
 	    Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
 	    for (Direction dir : Direction.values()) {
-		Integer iNeighbor = sq.position() + dir.delta();
-		snt.put(dir, getSquare(iNeighbor));
+		Square n = instanceOf(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
+		snt.put(dir, n);
 	    }
 	    nt.put(sq, Collections.unmodifiableMap(snt));
 	}
 	return Collections.unmodifiableMap(nt);
     }
 
-    public static Map<Direction, Square> neighbors(Square sq) {
-	return NEIGHBOR_TABLE.get(sq);
+    /** 
+     * Returns a Map that has the Direction has key and the associated neighbor square as value.
+     **/
+    public Map<Direction, Square> neighbors() {
+	return NEIGHBOR_TABLE.get(this);
     }
 
     public Character getHasegawaLabel() {
@@ -146,12 +178,6 @@ public enum Square {
 
     public Boolean isCorner() {
 	return corners.contains(this);
-    }
-
-    // TO BE DELETED !!!! Used just by the neighbors method.
-    // delta method in Directon class has to be rewritten.
-    public static Square getSquare(Integer i) {
-	return ONE_HUNDRED_SQUARES.get(i);	
     }
 
     public static Square getSquare(String s) {

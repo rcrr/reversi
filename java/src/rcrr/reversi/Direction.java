@@ -44,43 +44,49 @@ public enum Direction {
     /**
      * North-West direction.
      */
-    NW(-11, "North-West"),
+    NW(-1, -1, "North-West"),
     /**
      * North direction.
      */
-    N(-10, "North"),
+    N(-1, 0, "North"),
     /**
      * North-East direction.
      */
-    NE(-9, "North-East"),
+    NE(-1, +1, "North-East"),
     /**
      * West direction.
      */
-    W(-1, "West"),
+    W(0, -1, "West"),
     /**
      * East direction.
      */
-    E(1, "East"),
+    E(0, +1, "East"),
     /**
      * South-West direction.
      */
-    SW(9, "South-West"),
+    SW(+1, -1, "South-West"),
     /**
      * South direction.
      */
-    S(10, "South"),
+    S(+1, 0, "South"),
     /**
      * South-East direction.
      */
-    SE(11, "South-East");
+    SE(+1, +1, "South-East");
     
-    private final Integer delta;
+    private final Integer deltaRow;
+    private final Integer deltaColumn;
     private final String description;
     
-    Direction(Integer delta, String description) {
-	this.delta = delta;
+    Direction(int deltaRow, int deltaColumn, String description) {
+	this.deltaRow = deltaRow;
+	this.deltaColumn = deltaColumn;
 	this.description = description;
     }
+
+    public int deltaRow() { return deltaRow; }
+
+    public int deltaColumn() { return deltaColumn; }
 
     /**
      * Returns an <code>Integer</code> that represents the direction's
@@ -89,7 +95,7 @@ public enum Direction {
      *
      * @return the index delta value associated with the <code>Direction</code>
      */
-    public Integer delta() { return delta; }
+    public Integer delta() { return (deltaRow * Row.size()) + deltaColumn; }
 
     /**
      * Returns a <code>String</code> value that represents the direction's
@@ -99,6 +105,6 @@ public enum Direction {
      *
      * @return the direction's cardinal point
      */
-    public String getDescription() { return description; }
+    public String description() { return description; }
 
 }

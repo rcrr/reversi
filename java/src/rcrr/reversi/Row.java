@@ -24,6 +24,9 @@
 
 package rcrr.reversi;
 
+import java.util.List;
+import java.util.ArrayList;
+
 /**
  * The board row.
  */
@@ -73,5 +76,30 @@ public enum Row {
      * @return the row's label
      */
     public String label() { return label; }
+
+    private static List<Row> rows() {
+	List<Row> rows = new ArrayList<Row>();
+	for (Row r : Row.values()) {
+	    rows.add(r);
+	}
+	return rows;
+    }
+
+    private static List<Row> ROWS = rows();
+
+    private static int SIZE = ROWS.size();
+
+    public static int size() { return SIZE; }
+
+    public static Row getInstance(int index) { return ROWS.get(index); }
+
+    public Row shift(int delta) {
+	Row r;
+	int index = ROWS.indexOf(this) + delta;
+	if (index < 0 || index >= SIZE) r = null;
+	else r = ROWS.get(index);
+	return r;
+    }
+
 
 }

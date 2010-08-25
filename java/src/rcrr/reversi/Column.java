@@ -24,6 +24,11 @@
 
 package rcrr.reversi;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Hashtable;
+
 /**
  * The board column.
  */
@@ -73,5 +78,46 @@ public enum Column {
      * @return the column's label
      */
     public String label() { return label; }
+
+    private static List<Column> columns() {
+	List<Column> columns = new ArrayList<Column>();
+	for (Column c : Column.values()) {
+	    columns.add(c);
+	}
+	return columns;
+    }
+
+    private static List<Column> COLUMNS = columns();
+
+    private static int SIZE = COLUMNS.size();
+
+    public static int size() { return SIZE; }
+
+    private static Map<Column, List<Square>> SQUARES_BY_COLUMN = squaresByColumn();
+
+    // to be completed
+    private static Map<Column, List<Square>> squaresByColumn() {
+	Map<Column, List<Square>> map = new Hashtable<Column, List<Square>>();
+	for (Column c : values()) {
+	    List<Square> lst = new ArrayList<Square>();
+	    map.put(c, lst);
+	}
+	return map;
+    }
+
+    public List<Square> getSquares() {
+	return SQUARES_BY_COLUMN.get(this);
+    }
+
+    public static Column getInstance(int index) { return COLUMNS.get(index); }
+
+    public Column shift(int delta) {
+	Column c;
+	int index = COLUMNS.indexOf(this) + delta;
+	if (index < 0 || index >= SIZE) c = null;
+	else c = COLUMNS.get(index);
+	return c;
+    }
+
 
 }

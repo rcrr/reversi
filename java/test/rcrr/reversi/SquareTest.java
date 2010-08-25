@@ -41,7 +41,7 @@ public class SquareTest {
 	Map n;
 	
 	/* Testing the Upper-Left corner (A1) neighbor table. */
-	n = Square.neighbors(Square.A1);
+	n = Square.A1.neighbors();
 	assertEquals(null, n.get(Direction.N));
 	assertEquals(null, n.get(Direction.NE));
 	assertEquals(Square.B1, n.get(Direction.E));
@@ -52,7 +52,7 @@ public class SquareTest {
 	assertEquals(null, n.get(Direction.NW));
 
 	/* Testing a common square (D6) neighbor table. */
-	n = Square.neighbors(Square.D6);
+	n = Square.D6.neighbors();
 	assertEquals(Square.D5, n.get(Direction.N));
 	assertEquals(Square.E5, n.get(Direction.NE));
 	assertEquals(Square.E6, n.get(Direction.E));
@@ -63,7 +63,7 @@ public class SquareTest {
 	assertEquals(Square.C5, n.get(Direction.NW));
 
 	/* Testing the border square (B8) neighbor table. */
-	n = Square.neighbors(Square.B8);
+	n = Square.B8.neighbors();
 	assertEquals(Square.B7, n.get(Direction.N));
 	assertEquals(Square.C7, n.get(Direction.NE));
 	assertEquals(Square.C8, n.get(Direction.E));
@@ -73,5 +73,57 @@ public class SquareTest {
 	assertEquals(Square.A8, n.get(Direction.W));
 	assertEquals(Square.A7, n.get(Direction.NW));
     }
+
+    @Test
+    public void testInstanceOf() {
+	assertEquals(Square.A1, Square.instanceOf(Row.R1, Column.A));
+	assertEquals(Square.C6, Square.instanceOf(Row.R6, Column.C));
+	assertEquals(Square.H7, Square.instanceOf(Row.R7, Column.H));
+
+	assertEquals(null, Square.instanceOf(null, Column.H));
+	assertEquals(null, Square.instanceOf(Row.R7, null));
+    }
+
+    @Test
+    public void testRow() {
+	assertEquals(Row.R1, Square.A1.row());
+	assertEquals(Row.R6, Square.C6.row());
+	assertEquals(Row.R7, Square.H7.row());
+    }
+
+    @Test
+    public void testColumn() {
+	assertEquals(Column.A, Square.A1.column());
+	assertEquals(Column.C, Square.C6.column());
+	assertEquals(Column.H, Square.H7.column());
+    }
+
+    @Test
+    public void testLabel() {
+	assertEquals("a1", Square.A1.label());
+	assertEquals("c6", Square.C6.label());
+	assertEquals("h7", Square.H7.label());
+    }
+
+    @Test
+    public void testGetInstance() {
+	assertEquals(Square.A1, Square.getInstance(0));
+	assertEquals(Square.C6, Square.getInstance(42));
+	assertEquals(Square.H7, Square.getInstance(55));
+
+	boolean thrown = false;
+	try {
+	    Square.getInstance(64);
+	} catch (IndexOutOfBoundsException e) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
+    }
+
+    @Test
+    public void testNumerosity() {
+	assertEquals(64, Square.numerosity());
+    }
+
    
 }

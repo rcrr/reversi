@@ -48,7 +48,7 @@ public class WeightedSquares implements EvalFunction, Strategy {
 
 	Map<Square, Integer> wm = new Hashtable<Square, Integer>(Board.size());
 	for (int idx=0; idx<Board.size(); idx++) {
-	    wm.put(Square.index(idx), w.get(idx));
+	    wm.put(Square.getInstance(idx), w.get(idx));
 	}	
 	return Collections.unmodifiableMap(wm);
     }

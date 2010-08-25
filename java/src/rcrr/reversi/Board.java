@@ -119,7 +119,7 @@ public final class Board {
 	for (Direction dir : Direction.values()) {
 	    Square bracketer = wouldFlip(move, player, dir);
 	    if (bracketer != null) {
-		for (Square c = Square.neighbors(move).get(dir); true; c = Square.neighbors(c).get(dir)) {
+		for (Square c = move.neighbors().get(dir); true; c = c.neighbors().get(dir)) {
 		    if (c == bracketer) break;
 		    sm.put(c, player.color());
 		}
@@ -130,10 +130,10 @@ public final class Board {
     
     /** Test ok*/
     Square wouldFlip(Square move, Player player, Direction dir) {
-	Square c = Square.neighbors(move).get(dir);
+	Square c = move.neighbors().get(dir);
 	Square bp = null;
 	if (get(c) == player.opponent().color()) {
-	    bp = findBracketingPiece(Square.neighbors(c).get(dir), player, dir);
+	    bp = findBracketingPiece(c.neighbors().get(dir), player, dir);
 	}
 	return bp;
     }
@@ -152,7 +152,7 @@ public final class Board {
 	if (get(square) == player.color()) {
 	    return square;
 	} else if (get(square) == player.opponent().color()) {
-	    return findBracketingPiece(Square.neighbors(square).get(dir), player, dir);
+	    return findBracketingPiece(square.neighbors().get(dir), player, dir);
 	} else {
 	    return null;
 	}
@@ -188,7 +188,7 @@ public final class Board {
 	    ps.print("\n " + r.label() + "  ");
 	    for (Column c : Column.values()) {
 		int idx = (r.ordinal() * 8) + c.ordinal();
-		String p = get(Square.index(idx)).toString();
+		String p = get(Square.getInstance(idx)).toString();
 		ps.print(p + " ");
 	    }
 	}
