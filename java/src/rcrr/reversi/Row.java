@@ -89,10 +89,35 @@ public enum Row {
 
     private static int SIZE = ROWS.size();
 
+    /**
+     * Returns the number of rows.
+     *
+     * @return the number of rows
+     */
     public static int size() { return SIZE; }
 
+    /**
+     * Returns the row at the specified position.
+     *
+     * @return the identified row
+     *
+     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Row.size())} 
+     */
     public static Row getInstance(int index) { return ROWS.get(index); }
 
+    /**
+     * Returns the row obtained moving by a {@code delta} number of shift, counted with the proper sign.
+     * Returns {@code null} if the shift leads outside the row boundaries.
+     * For instance:
+     * <pre>
+     * {@code 
+     * Row r0 = Row.R1;
+     * Row r1 =r0.shift(+1); // r1 is equal to R2 
+     * }
+     *</pre>
+     *
+     * @return the row identified by the delta shift
+     */
     public Row shift(int delta) {
 	Row r;
 	int index = ROWS.indexOf(this) + delta;
