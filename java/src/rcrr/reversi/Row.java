@@ -24,6 +24,8 @@
 
 package rcrr.reversi;
 
+import java.util.Map;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -95,6 +97,26 @@ public enum Row {
      * @return the number of rows
      */
     public static int size() { return SIZE; }
+
+    private static Map<Row, List<Square>> SQUARES_BY_ROW = squaresByRow();
+
+    private static Map<Row, List<Square>> squaresByRow() {
+	Map<Row, List<Square>> map = new Hashtable<Row, List<Square>>();
+	for (Row r : values()) {
+	    List<Square> lst = new ArrayList<Square>();
+	    map.put(r, lst);
+	}
+	return map;
+    }
+
+    /**
+     * Returns the list of squares belonging to the row.
+     *
+     * @return the row's squares
+     */
+    public List<Square> getSquares() {
+	return SQUARES_BY_ROW.get(this);
+    }
 
     /**
      * Returns the row at the specified position.

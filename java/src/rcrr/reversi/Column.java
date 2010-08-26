@@ -24,10 +24,10 @@
 
 package rcrr.reversi;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * The board column.
@@ -91,26 +91,35 @@ public enum Column {
 
     private static int SIZE = COLUMNS.size();
 
+    /**
+     * Returns the number of columns.
+     *
+     * @return the number of columns
+     */
     public static int size() { return SIZE; }
 
-    private static Map<Column, List<Square>> SQUARES_BY_COLUMN = squaresByColumn();
-
-    // to be completed
-    private static Map<Column, List<Square>> squaresByColumn() {
-	Map<Column, List<Square>> map = new Hashtable<Column, List<Square>>();
-	for (Column c : values()) {
-	    List<Square> lst = new ArrayList<Square>();
-	    map.put(c, lst);
-	}
-	return map;
-    }
-
-    public List<Square> getSquares() {
-	return SQUARES_BY_COLUMN.get(this);
-    }
-
+    /**
+     * Returns the column at the specified position.
+     *
+     * @return the identified column
+     *
+     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Column.size())} 
+     */
     public static Column getInstance(int index) { return COLUMNS.get(index); }
 
+    /**
+     * Returns the column obtained moving by a {@code delta} number of shift, counted with the proper sign.
+     * Returns {@code null} if the shift leads outside the column boundaries.
+     * For instance:
+     * <pre>
+     * {@code 
+     * Column c0 = Column.A;
+     * Column c1 =c0.shift(+1); // c1 is equal to B 
+     * }
+     *</pre>
+     *
+     * @return the column identified by the delta shift
+     */
     public Column shift(int delta) {
 	Column c;
 	int index = COLUMNS.indexOf(this) + delta;
