@@ -40,8 +40,11 @@ public class SquareStateTest {
     }
 
     @Test
-    public void testToString() {
-	assertTrue(true);
+    public void testSymbol() {
+	assertEquals("@", SquareState.BLACK.symbol());
+	assertEquals("O", SquareState.WHITE.symbol());
+	assertEquals(".", SquareState.EMPTY.symbol());
+	assertEquals("?", SquareState.OUTER.symbol());
     }
    
 }

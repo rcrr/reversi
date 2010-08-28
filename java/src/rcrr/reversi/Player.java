@@ -71,7 +71,7 @@ public enum Player {
      *
      * @return the {@code Player}'s color symbol
      */
-    public String symbol() { return color().toString(); }
+    public String symbol() { return color().symbol(); }
     
     /**
      * Returns the {@code Player} opponent. The Black for the White,

@@ -188,7 +188,7 @@ public final class Board {
 	    ps.print("\n " + r.label() + "  ");
 	    for (Column c : Column.values()) {
 		int idx = (r.ordinal() * 8) + c.ordinal();
-		String p = get(Square.getInstance(idx)).toString();
+		String p = get(Square.getInstance(idx)).symbol();
 		ps.print(p + " ");
 	    }
 	}

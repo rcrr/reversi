@@ -56,7 +56,7 @@ public enum SquareState {
     static {
 	Map<String, SquareState> m = new HashMap<String, SquareState>();
 	for (SquareState ss : values())
-	    m.put(ss.toString(), ss);
+	    m.put(ss.symbol(), ss);
 	SYMBOL_TABLE = Collections.unmodifiableMap(m);
     }
 
@@ -85,6 +85,5 @@ public enum SquareState {
      *
      * @return the {@code SquareState}'s {@code symbol}
      */
-    @Override
-    public String toString() { return symbol; }
+    public String symbol() { return symbol; }
 }
