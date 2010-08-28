@@ -24,6 +24,7 @@
 
 package rcrr.reversi;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.*;
@@ -32,8 +33,36 @@ import static org.junit.Assert.*;
 public class SquareTest {
 
     @Test
-    public void testBase() {
-	assertTrue(true);
+    public void testInstanceOf() {
+	assertEquals(Square.A1, Square.instanceOf(Row.R1, Column.A));
+	assertEquals(Square.C6, Square.instanceOf(Row.R6, Column.C));
+	assertEquals(Square.H7, Square.instanceOf(Row.R7, Column.H));
+	assertEquals(Square.E8, Square.instanceOf(Row.R8, Column.E));
+	assertEquals(Square.H8, Square.instanceOf(Row.R8, Column.H));
+
+	assertEquals(null, Square.instanceOf(null, Column.H));
+	assertEquals(null, Square.instanceOf(Row.R7, null));
+    }
+
+    @Test
+    public void testRow() {
+	assertEquals(Row.R1, Square.A1.row());
+	assertEquals(Row.R6, Square.C6.row());
+	assertEquals(Row.R7, Square.H7.row());
+    }
+
+    @Test
+    public void testColumn() {
+	assertEquals(Column.A, Square.A1.column());
+	assertEquals(Column.C, Square.C6.column());
+	assertEquals(Column.H, Square.H7.column());
+    }
+
+    @Test
+    public void testLabel() {
+	assertEquals("a1", Square.A1.label());
+	assertEquals("c6", Square.C6.label());
+	assertEquals("h7", Square.H7.label());
     }
 
     @Test
@@ -75,49 +104,59 @@ public class SquareTest {
     }
 
     @Test
-    public void testInstanceOf() {
-	assertEquals(Square.A1, Square.instanceOf(Row.R1, Column.A));
-	assertEquals(Square.C6, Square.instanceOf(Row.R6, Column.C));
-	assertEquals(Square.H7, Square.instanceOf(Row.R7, Column.H));
-
-	assertEquals(null, Square.instanceOf(null, Column.H));
-	assertEquals(null, Square.instanceOf(Row.R7, null));
-    }
-
-    @Test
-    public void testRow() {
-	assertEquals(Row.R1, Square.A1.row());
-	assertEquals(Row.R6, Square.C6.row());
-	assertEquals(Row.R7, Square.H7.row());
-    }
-
-    @Test
-    public void testColumn() {
-	assertEquals(Column.A, Square.A1.column());
-	assertEquals(Column.C, Square.C6.column());
-	assertEquals(Column.H, Square.H7.column());
-    }
-
-    @Test
-    public void testLabel() {
-	assertEquals("a1", Square.A1.label());
-	assertEquals("c6", Square.C6.label());
-	assertEquals("h7", Square.H7.label());
-    }
-
-    @Test
     public void testGetInstance() {
+
+	boolean thrown;
+
 	assertEquals(Square.A1, Square.getInstance(0));
 	assertEquals(Square.C6, Square.getInstance(42));
 	assertEquals(Square.H7, Square.getInstance(55));
 
-	boolean thrown = false;
+	thrown = false;
 	try {
 	    Square.getInstance(64);
-	} catch (IndexOutOfBoundsException e) {
+	} catch (IndexOutOfBoundsException ioobe) {
 	    thrown = true;
 	}
 	assertTrue(thrown);
+
+	assertEquals(Square.A1, Square.getInstance("a1"));
+	assertEquals(Square.C6, Square.getInstance("c6"));
+	assertEquals(Square.H7, Square.getInstance("h7"));
+
+	thrown = false;
+	try {
+	    Square.getInstance("w0");
+	} catch (IllegalArgumentException iae) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
+    }
+
+    @Test
+    public void testGetHasegawaLabel() {
+	assertEquals(Character.valueOf('C'), Square.A2.getHasegawaLabel());
+	assertEquals(Character.valueOf('X'), Square.B2.getHasegawaLabel());
+	assertEquals(null, Square.C3.getHasegawaLabel());
+    }
+
+    @Test
+    public void testCorners() {
+	List<Square> corners = Square.corners();
+	assertEquals(true, corners.contains(Square.A1));
+	assertEquals(true, corners.contains(Square.A8));
+	assertEquals(true, corners.contains(Square.H1));
+	assertEquals(true, corners.contains(Square.H8));
+	assertEquals(4, corners.size());
+    }
+
+    @Test
+    public void testIsCorner() {
+	assertEquals(true, Square.A1.isCorner());
+	assertEquals(true, Square.H1.isCorner());
+	assertEquals(true, Square.A8.isCorner());
+	assertEquals(true, Square.H8.isCorner());
+	assertEquals(false, Square.C2.isCorner());
     }
 
     @Test

@@ -57,7 +57,7 @@ public class HumanStrategy implements Strategy {
 		System.exit(1);
 	    }
 	    try {
-		move = Square.getSquare(s);
+		move = Square.getInstance(s);
 	    } catch (Exception e) {
 		System.out.println(s + " is not a move. Retry:");
 	    }

@@ -45,8 +45,8 @@ import static rcrr.reversi.Column.*;
  * Sqare is an Enum type that realize the base unit of the game board.
  * Squares are represented by two characters, a letter and a numeric digit.
  * <p>
- * For instance, tet's take a square: D4.
- * This symbol identifies the sqare at the cross of column d and row 4.
+ * For instance, let's take a square: D4.
+ * This symbol identifies the square at the cross of column d and row 4.
  * Here is represented the collection of the 64 Square as them are
  * organized in the game board.
  * <pre>
@@ -86,26 +86,41 @@ public enum Square {
     A7(R7, A), B7(R7, B), C7(R7, C), D7(R7, D), E7(R7, E), F7(R7, F), G7(R7, G), H7(R7, H),
     A8(R8, A), B8(R8, B), C8(R8, C), D8(R8, D), E8(R8, E), F8(R8, F), G8(R8, G), H8(R8, H);
 
+    /** The labels map. It is computed and initialized by the static block. */
+    private static final Map<Square, String> LABELS;
+
+    /** The inverse labels map. It is computed and initialized by the static block. */
+    private static final Map<String, Square> INVERSE_LABELS;
+
+    /** The list of the four corners. */
+    private static final List<Square> CORNERS = Collections.unmodifiableList(Arrays.asList(A1, H1, H8, A8));
+
+    /** The sqares list. */
+    private static List<Square> SQUARES = squares();
+
+    /** The number of squares. */
+    private static int NUMEROSITY = SQUARES.size();
+
+    /** The neighbor table. */
+    private static final Map<Square, Map<Direction, Square>> NEIGHBOR_TABLE = neighborTable();
+
+    /** The row containing the square. */
     private final Row row;
+
+    /** The column containing the square. */
     private final Column column;
 
+    /** The enum constructor. */
     private Square(Row row, Column column) {
 	this.row = row;
 	this.column = column;
     }
 
-    private static final Map<Square, String> LABELS = labelTable();
-
-    private static Map<Square, String> labelTable() {
-	Map<Square, String> labelMap = new HashMap<Square, String>();
-	for (Square sq : values()) {
-	    labelMap.put(sq, sq.column.label() + sq.row.label());
-	}
-	return Collections.unmodifiableMap(labelMap);
-    }
-
     /** 
-     * Returns the Square instance matching the row and column parameters.
+     * Returns the square instance matching the row and column parameters. Returns
+     * null is either the row or the column parameters are null.
+     *
+     * @return the square pointed by row and column, or null in case row or column are themself null
      **/
     public static Square instanceOf(Row row, Column column) {
 	if (row == null || column == null) return null;
@@ -113,64 +128,67 @@ public enum Square {
     }
 
     /** 
-     * Returns the Square's Row.
+     * Returns the square's row.
+     *
+     * @return the square's row
      **/
     public Row row() { return row; }
 
     /** 
-     * Returns the Square's Column.
+     * Returns the square's column.
+     *
+     * @return the square's column
      **/
     public Column column() { return column; }
 
     /** 
-     * Returns the Square's label.
+     * Returns the square's label.
+     *
+     * @return the square's label
      **/
     public String label() {
 	return LABELS.get(this);
     }
 
-    private static List<Square> SQUARES = squares();
-
-    private static List<Square> squares() {
-	List<Square> sl = new ArrayList<Square>(64);
-	for (Square sq : values()) sl.add(sq);
-	return Collections.unmodifiableList(sl);
-    }
-
-    private static int NUMEROSITY = SQUARES.size();
-
     /** 
-     * Returns the number of squares.
-     **/
-    public static int numerosity() { return NUMEROSITY; }
-
-    /** 
-     * Returns the Square instance given its ordinal index.
-     **/
-    public static Square getInstance(int i) { return SQUARES.get(i); }
-
-    private static final Map<Square, Map<Direction, Square>> NEIGHBOR_TABLE = neighborTable();
-
-    private static Map<Square, Map<Direction, Square>> neighborTable() {
-	Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
-	for (Square sq : values()) {
-	    Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
-	    for (Direction dir : Direction.values()) {
-		Square n = instanceOf(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
-		snt.put(dir, n);
-	    }
-	    nt.put(sq, Collections.unmodifiableMap(snt));
-	}
-	return Collections.unmodifiableMap(nt);
-    }
-
-    /** 
-     * Returns a Map that has the Direction has key and the associated neighbor square as value.
+     * Returns a Map that has the direction has key and the associated neighbor square as value.
+     *
+     * @return the square's neighbor map
      **/
     public Map<Direction, Square> neighbors() {
 	return NEIGHBOR_TABLE.get(this);
     }
 
+    /**
+     * Returns the square at the specified position.
+     *
+     * @return the identified square
+     *
+     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Square.numerosity())} 
+     */
+    public static Square getInstance(int index) { return SQUARES.get(index); }
+
+    /**
+     * Returns the square matching the specified label. Throws
+     * an exception in case the label is not associated with a square.
+     *
+     * @return the identified square
+     *
+     * @throws IllegalArgumentException if the label is not valid 
+     */
+    public static Square getInstance(String label) {
+	Square sq = INVERSE_LABELS.get(label);
+	if (sq == null) throw new IllegalArgumentException("The specified label: <" +
+							   label + ">, does not match any square's label.");
+	else return sq;
+    }
+
+    /** 
+     * Returns the Hasegawa's naming for the edge squares. Returns
+     * null if the square is not one of the identified squares.
+     *
+     * @return the Hasegawa square name, or null if the value is not defined
+     **/    
     public Character getHasegawaLabel() {
 	switch (this) {
 	case B1:
@@ -209,14 +227,71 @@ public enum Square {
 	return null;
     }
 
-    public static final List<Square> corners = Collections.unmodifiableList(Arrays.asList(A1, H1, H8, A8));
+    /**
+     * Returns the list of the four corner squares.
+     *
+     * @return the four corners
+     */    
+    public static List<Square> corners() { return CORNERS; }
 
-    public Boolean isCorner() {
-	return corners.contains(this);
+    /** 
+     * Returns true if the square is a corner, otherwise false.
+     *
+     * @return true or false if the square is either a corner or not
+     */
+    public boolean isCorner() {
+	return CORNERS.contains(this);
     }
 
-    public static Square getSquare(String s) {
-	return Square.valueOf(s.toUpperCase());	
+    /**
+     * Returns the number of squares in the {@code Square enum} definition.
+     * It returns the same value given by the length of the array
+     * implementation hidden by the enum interface.
+     * <p>
+     * The following statement returns always {@code true}:
+     * <p>
+     * {@code Square.values().lenght == Square.numerosity()}
+     *
+     * @return the number of squares
+     */
+    public static int numerosity() { return NUMEROSITY; }
+
+    /** Computes the squares list. */
+    private static List<Square> squares() {
+	List<Square> sl = new ArrayList<Square>(64);
+	for (Square sq : values()) sl.add(sq);
+	return Collections.unmodifiableList(sl);
+    }
+
+    /** Computes the neighborTable. */
+    private static Map<Square, Map<Direction, Square>> neighborTable() {
+	Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
+	for (Square sq : values()) {
+	    Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
+	    for (Direction dir : Direction.values()) {
+		Square n = instanceOf(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
+		snt.put(dir, n);
+	    }
+	    nt.put(sq, Collections.unmodifiableMap(snt));
+	}
+	return Collections.unmodifiableMap(nt);
+    }
+
+    /**
+     * Initialization block:
+     * . - sets and initializes {@code LABELS} map
+     * . - sets and initializes {@code INVERSE_LABELS} map
+     */
+    static {
+	Map<Square, String> labelMap = new HashMap<Square, String>();
+	Map<String, Square> inverseLabelMap = new HashMap<String, Square>();
+	for (Square sq : values()) {
+	    String label = sq.column.label() + sq.row.label();
+	    labelMap.put(sq, label);
+	    inverseLabelMap.put(label, sq);
+	}
+	LABELS = Collections.unmodifiableMap(labelMap);
+	INVERSE_LABELS = Collections.unmodifiableMap(inverseLabelMap);
     }
 
 }
