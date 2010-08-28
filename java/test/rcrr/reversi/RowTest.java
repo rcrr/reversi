@@ -39,11 +39,22 @@ public class RowTest {
     @Test
     public void testSize() {
 	assertEquals(8, Row.size());
+	assertEquals(Row.values().length, Row.size());
     }
 
     @Test
     public void testGetInstance() {
+	assertEquals(Row.R1, Row.getInstance(0));
 	assertEquals(Row.R3, Row.getInstance(2));
+	assertEquals(Row.R8, Row.getInstance(7));
+
+	boolean thrown = false;
+	try {
+	    Row.getInstance(8);
+	} catch (IndexOutOfBoundsException e) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
     }
 
     @Test
@@ -53,6 +64,14 @@ public class RowTest {
 	assertEquals(Row.R8, Row.R2.shift(6));
 	assertEquals(null, Row.R2.shift(7));
 	assertEquals(null, Row.R2.shift(-2));
+
+	assertEquals(null, Row.R1.shift(-1));
+	assertEquals(Row.R1, Row.R1.shift(0));
+	assertEquals(Row.R2, Row.R1.shift(+1));
+
+	assertEquals(Row.R7, Row.R8.shift(-1));
+	assertEquals(Row.R8, Row.R8.shift(0));
+	assertEquals(null, Row.R8.shift(+1));
     }
 
 }

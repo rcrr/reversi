@@ -24,13 +24,12 @@
 
 package rcrr.reversi;
 
-import java.util.Map;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
- * The board row.
+ * The {@code Row} enum defines a row of the board game.
  */
 public enum Row {
     /**
@@ -66,6 +65,7 @@ public enum Row {
      */
     R8("8");
     
+    /** The row label. */
     private final String label;
     
     Row(String label) {
@@ -84,39 +84,27 @@ public enum Row {
 	for (Row r : Row.values()) {
 	    rows.add(r);
 	}
-	return rows;
+	return Collections.unmodifiableList(rows);
     }
 
+    /** A list containing all the rows ordered. */
     private static List<Row> ROWS = rows();
 
+    /** The number of rows. */
     private static int SIZE = ROWS.size();
 
     /**
-     * Returns the number of rows.
+     * Returns the number of rows in the {@code Row enum} definition.
+     * It returns the same value given by the length of the array
+     * implementation hidden by the enum interface.
+     * <p>
+     * The following statement returns always {@code true}:
+     * <p>
+     * {@code Row.values().lenght == Row.size()}
      *
      * @return the number of rows
      */
     public static int size() { return SIZE; }
-
-    private static Map<Row, List<Square>> SQUARES_BY_ROW = squaresByRow();
-
-    private static Map<Row, List<Square>> squaresByRow() {
-	Map<Row, List<Square>> map = new Hashtable<Row, List<Square>>();
-	for (Row r : values()) {
-	    List<Square> lst = new ArrayList<Square>();
-	    map.put(r, lst);
-	}
-	return map;
-    }
-
-    /**
-     * Returns the list of squares belonging to the row.
-     *
-     * @return the row's squares
-     */
-    public List<Square> getSquares() {
-	return SQUARES_BY_ROW.get(this);
-    }
 
     /**
      * Returns the row at the specified position.
@@ -133,10 +121,10 @@ public enum Row {
      * For instance:
      * <pre>
      * {@code 
-     * Row r0 = Row.R1;
-     * Row r1 =r0.shift(+1); // r1 is equal to R2 
+     * Row r0 = Row.R3;
+     * Row r1 =r0.shift(+1); // r1 is equal to R4 
      * }
-     *</pre>
+     * </pre>
      *
      * @return the row identified by the delta shift
      */
@@ -147,6 +135,5 @@ public enum Row {
 	else r = ROWS.get(index);
 	return r;
     }
-
 
 }

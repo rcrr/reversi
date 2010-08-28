@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.EnumMap;
-import java.util.Hashtable;
+import java.util.HashMap;
 
 import static rcrr.reversi.Row.*;
 import static rcrr.reversi.Column.*;
@@ -97,7 +97,7 @@ public enum Square {
     private static final Map<Square, String> LABELS = labelTable();
 
     private static Map<Square, String> labelTable() {
-	Map<Square, String> labelMap = new Hashtable<Square, String>();
+	Map<Square, String> labelMap = new HashMap<Square, String>();
 	for (Square sq : values()) {
 	    labelMap.put(sq, sq.column.label() + sq.row.label());
 	}

@@ -23,14 +23,12 @@
  */
 
 package rcrr.reversi;
-
-import java.util.Map;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
- * The board column.
+ * The {@code Column} enum defines a column of the board game.
  */
 public enum Column {
     /**
@@ -66,6 +64,7 @@ public enum Column {
      */
     H("h");
     
+    /** The column label. */
     private final String label;
     
     Column(String label) {
@@ -84,15 +83,23 @@ public enum Column {
 	for (Column c : Column.values()) {
 	    columns.add(c);
 	}
-	return columns;
+	return Collections.unmodifiableList(columns);
     }
 
+    /** A list containing all the columns ordered. */
     private static List<Column> COLUMNS = columns();
 
+    /** The number of columns. */
     private static int SIZE = COLUMNS.size();
 
     /**
-     * Returns the number of columns.
+     * Returns the number of columns in the {@code Column enum} definition.
+     * It returns the same value given by the length of the array
+     * implementation hidden by the enum interface.
+     * <p>
+     * The following statement returns always {@code true}:
+     * <p>
+     * {@code Column.values().lenght == Column.size()}
      *
      * @return the number of columns
      */
@@ -116,7 +123,7 @@ public enum Column {
      * Column c0 = Column.A;
      * Column c1 =c0.shift(+1); // c1 is equal to B 
      * }
-     *</pre>
+     * </pre>
      *
      * @return the column identified by the delta shift
      */
@@ -127,6 +134,5 @@ public enum Column {
 	else c = COLUMNS.get(index);
 	return c;
     }
-
 
 }

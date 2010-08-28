@@ -39,11 +39,22 @@ public class ColumnTest {
     @Test
     public void testSize() {
 	assertEquals(8, Column.size());
+	assertEquals(Column.values().length, Column.size());
     }
 
     @Test
     public void testGetInstance() {
+	assertEquals(Column.A, Column.getInstance(0));
 	assertEquals(Column.C, Column.getInstance(2));
+	assertEquals(Column.H, Column.getInstance(7));
+
+	boolean thrown = false;
+	try {
+	    Row.getInstance(8);
+	} catch (IndexOutOfBoundsException e) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
     }
 
     @Test
