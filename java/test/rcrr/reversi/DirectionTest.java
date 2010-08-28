@@ -30,17 +30,27 @@ import static org.junit.Assert.*;
 public class DirectionTest {
 
     @Test
-    public void testDelta() {
-	assertEquals(Integer.valueOf(-8), Direction.N.delta());
-	assertEquals(Integer.valueOf(-7), Direction.NE.delta());
-	assertEquals(Integer.valueOf(+1), Direction.E.delta());
-	assertEquals(Integer.valueOf(+9), Direction.SE.delta());
-	assertEquals(Integer.valueOf(+8), Direction.S.delta());
-	assertEquals(Integer.valueOf(+7), Direction.SW.delta());
-	assertEquals(Integer.valueOf(-1), Direction.W.delta());
-	assertEquals(Integer.valueOf(-9), Direction.NW.delta());
+    public void testDeltaColumn() {
+	assertEquals( 0, Direction.N.deltaColumn());
+	assertEquals( 0, Direction.S.deltaColumn());
+	assertEquals(+1, Direction.E.deltaColumn());
+	assertEquals(+1, Direction.SE.deltaColumn());
+	assertEquals(+1, Direction.NE.deltaColumn());
+	assertEquals(-1, Direction.W.deltaColumn());
+	assertEquals(-1, Direction.SW.deltaColumn());
+	assertEquals(-1, Direction.NW.deltaColumn());
     }
-
+    @Test
+    public void testDeltaRow() {
+	assertEquals(-1, Direction.N.deltaRow());
+	assertEquals(-1, Direction.NE.deltaRow());
+	assertEquals(-1, Direction.NW.deltaRow());
+	assertEquals(+1, Direction.S.deltaRow());
+	assertEquals(+1, Direction.SE.deltaRow());
+	assertEquals(+1, Direction.SW.deltaRow());
+	assertEquals( 0, Direction.E.deltaRow());
+	assertEquals( 0, Direction.W.deltaRow());
+    }
     @Test
     public void testGetDescription() {
 	assertEquals("North", Direction.N.description());

@@ -24,21 +24,25 @@
 
 package rcrr.reversi;
 
-// to-do
-// change the delta values.
-// change getDescription into description
-// complete the tests .....
-// the delta values should be related to the Row.size() value.
-
 /**
- * The directions that are available in a "standard" board square are
+ * The directions that are available in a regular board's square are
  * eight, Up, Down, Left, Right, and the four diagonal between them.
- * Each square has eight neighbor ones, if not on the border of the board,
- * the direction identify them.
- * <code>Direction</code> is identified by the respective cardinal point,
- * for instance the Left is associated with <code>W</code>. Each direction
- * has also an <code>Integer</code> value that is returned by the 
- * <code>delta</code> method.
+ * <pre>
+ * {@code
+ * .   NW    N     NE
+ *       \___|____/
+ *       |        |
+ *     W-| Square |-E
+ *       |________|
+ *       /   |     \
+ *     SW    S     SE
+ * }
+ * </pre>
+ * Each regular {@link Square} has eight neighbor ones,
+ * each identified by the proper direction. Boundary squares have fewer neighbors.
+ * <p>
+ * The {@code Direction enum} is represented by the respective cardinal point literal,
+ * for instance the Left is associated with {@code W}.
  */
 public enum Direction {
     /**
@@ -74,8 +78,13 @@ public enum Direction {
      */
     SE(+1, +1, "South-East");
     
-    private final Integer deltaRow;
-    private final Integer deltaColumn;
+    /** deltaRow field. */
+    private final int deltaRow;
+
+    /** deltaColumn field. */
+    private final int deltaColumn;
+
+    /** description field. */
     private final String description;
     
     Direction(int deltaRow, int deltaColumn, String description) {
@@ -84,24 +93,47 @@ public enum Direction {
 	this.description = description;
     }
 
+    /**
+     * Returns an {@code int} value that quantify the row shift associated with the direction.
+     * The return can have three values:
+     * <pre>
+     * {@code
+     * -1 // stands for "go back one row"
+     *  0 // stands for "stay on the same row"
+     * +1 // stands for "go to the next row"
+     * }
+     * </pre>
+     * The value can then be used as the navigation unit between adiacent columns.
+     *
+     * @return the delta value to apply as the shift go obtain the target column
+     *
+     * @see Row
+     */
     public int deltaRow() { return deltaRow; }
 
+    /**
+     * Returns an {@code int} value that quantify the column shift associated with the direction.
+     * The return can have three values:
+     * <pre>
+     * {@code
+     * -1 // stands for "go back one column"
+     *  0 // stands for "stay on the same column"
+     * +1 // stands for "go to the next column"
+     * }
+     * </pre>
+     * The value can then be used as the navigation unit between adiacent rows.
+     *
+     * @return the delta value to apply as the shift go obtain the target row
+     *
+     * @see Column
+     */
     public int deltaColumn() { return deltaColumn; }
 
     /**
-     * Returns an <code>Integer</code> that represents the direction's
-     * value to be added to the proper square index in order to obtain 
-     * its neighbor square index value.
-     *
-     * @return the index delta value associated with the <code>Direction</code>
-     */
-    public Integer delta() { return (deltaRow * Row.size()) + deltaColumn; }
-
-    /**
-     * Returns a <code>String</code> value that represents the direction's
-     * cardinal point.
-     * For instance <code>North</code> for <code>N</code>, 
-     * or <code>South-West</code> for <code>SW</code>. 
+     * Returns a {@code String} description for the direction.
+     * <p>
+     * For instance {@code North} for {@code N}, 
+     * or {@code South-West} for {@code SW}. 
      *
      * @return the direction's cardinal point
      */
