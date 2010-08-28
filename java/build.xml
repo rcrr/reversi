@@ -80,6 +80,17 @@
     </java>
   </target>
 
+  <target name="human" depends="jar">
+    <java fork="true" classname="${main-class}">
+      <classpath>
+	<pathelement location="${jar.dir}/${ant.project.name}.jar"/>
+	<path refid="lib.classpath"/>
+      </classpath>
+      <arg value="rcrr.reversi.HumanStrategy"/>
+      <arg value="rcrr.reversi.AlphabetaSearcherWeightedSquares"/>
+    </java>
+  </target>
+
   <target name="test.compile" depends="jar">
     <delete dir="${test.classes.dir}"/>
     <mkdir dir="${test.classes.dir}"/>
