@@ -30,37 +30,26 @@ import static org.junit.Assert.*;
 public class PlayerTest {
 
     @Test
-    public void testGetDescription() {
-        Player b = Player.BLACK;
-	assertEquals("The Black player", b.getDescription());
-	assertEquals("The White player", Player.WHITE.getDescription());
-    }
-
-    @Test
-    public void testGetName() {
-        Player b = Player.BLACK;
-	assertEquals("Black", b.getName());
-	assertEquals("White", Player.WHITE.getName());
+    public void testDescription() {
+	assertEquals("The Black player", Player.BLACK.description());
+	assertEquals("The White player", Player.WHITE.description());
     }
 
     @Test
     public void testColor() {
-        Player b = Player.BLACK;
-	assertEquals(SquareState.BLACK, b.color());
+	assertEquals(SquareState.BLACK, Player.BLACK.color());
 	assertEquals(SquareState.WHITE, Player.WHITE.color());
     }
 
     @Test
     public void testSymbol() {
-        Player b = Player.BLACK;
-	assertEquals("@", b.symbol());
+	assertEquals("@", Player.BLACK.symbol());
 	assertEquals("O", Player.WHITE.symbol());
     }
 
     @Test
     public void testOpponent() {
-        Player b = Player.BLACK;
-	assertEquals(Player.WHITE, b.opponent());
+	assertEquals(Player.WHITE, Player.BLACK.opponent());
 	assertEquals(Player.BLACK, Player.WHITE.opponent());
     }
     
