@@ -47,20 +47,35 @@ import java.io.PrintStream;
 
 // equal and hashCode() method has to be written
 
+/**
+ * An instance of a board game position, or state.
+ * <p>
+ * A {@code Board} object holds the information of the state of each board's square.
+ * <p>
+ * {@code Board} is immutable.
+ */
 public final class Board {
 
+    /** The squares field. */
     private final Map<Square, SquareState> squares;
-
-    // Has to be verified that returning OUTER on null is ok.
-    /** Test ok */
-    public SquareState get(Square sq) {
-	if (sq == null) return SquareState.OUTER;
-	return squares.get(sq);
-    }
 
     // must be verified if the Map object is copied too much!
     private Board(Map<Square, SquareState> sm) {
 	this.squares = Collections.unmodifiableMap(new EnumMap<Square, SquareState>(sm));
+    }
+
+    /**
+     * Returns the {@code SquareState} value for the given board's square.
+     * <p>
+     * When {@code square} is {@code null} the method returns {@code SquareState.OUTER} value.
+     *
+     * @return the square state
+     */
+    public SquareState get(Square square) {
+	SquareState ss;
+	if (square == null) ss = SquareState.OUTER;
+	else ss = squares.get(square);
+	return ss;
     }
 
     /** Test ok */
@@ -90,13 +105,13 @@ public final class Board {
     }
     
     /**
-     * Returns a copy of the object.
-     *<p>
+     * Returns a copy of the board object.
+     * <p>
      * Being the {@code Board} object immutable, the method returns a reference
      * of the object itself. The method does not appear a lot useful, but it helps
      * to remain consistent with the implementation of some clients.
      *
-     * @return a copy of the {@code Board}
+     * @return a copy of the board
      */
     public Board copyBoard() {
 	return this;
@@ -200,14 +215,23 @@ public final class Board {
 	ps.print("\n\n");
     }
 
-    /** Test ok*/
-    public Player nextToPlay(Player previousPlayer, PrintStream ps) {
-	Player opponent = previousPlayer.opponent();
+    /**
+     * Returns the next player that has to play given the current.
+     * When the opponent player has at last a legal move he is
+     * the next player. When she does't have it, the method checks if
+     * the current has a legal moves, if the checks succed current is 
+     * the next player. When neither player has a legal move the method
+     * returns null.
+     *
+     * @return the next player that has to play a move
+     */
+    public Player nextToPlay(Player current, PrintStream ps) {
+	Player opponent = current.opponent();
 	Player next = null;
-	if (anyLegalMove(opponent)) {
+	if (hasAnyLegalMove(opponent)) {
 	    next = opponent;
-	} else if (anyLegalMove(previousPlayer)) {
-	    next = previousPlayer;
+	} else if (hasAnyLegalMove(current)) {
+	    next = current;
 	    if (ps != null) {
 		ps.print("\n" + opponent + " has no moves and must pass.\n");
 	    }
@@ -215,9 +239,13 @@ public final class Board {
 	return next;
     }
 
-    /** Test ok*/
-    public Boolean anyLegalMove (Player player) {
-	Boolean b = false;
+    /**
+     * Returns if the player has any legal move given the board state.
+     *
+     * @return {@code true} if the player has any legal move, otherwise {@code false}
+     */
+    public boolean hasAnyLegalMove (Player player) {
+	boolean b = false;
 	for (Square move : Square.values()) {
 	    if (isLegal(move, player)) {
 		b = true;
@@ -227,7 +255,12 @@ public final class Board {
 	return b;
     }
 
-    /** Test ok*/
+    /**
+     * Returns a list holding the legal moves that the {@code player} can
+     * do at the board position.
+     *
+     * @return the moves available to the player
+     */
     public List<Square> legalMoves(Player player) {
 	List<Square> legalMoves = new ArrayList<Square>();
 	for (Square move : Square.values()) {
@@ -235,7 +268,5 @@ public final class Board {
 	}
 	return legalMoves;
     }
-
-    public static int size() { return 64; }
 
 }

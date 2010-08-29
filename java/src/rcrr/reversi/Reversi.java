@@ -37,21 +37,24 @@ public class Reversi {
     private Reversi() {}
 
     public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Long minutes) {
-	Game game = Game.valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
+	GameState gs = GameState.valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
 	try {
-	    for (Player player = game.getPlayer();
+	    for (Player player = gs.getPlayer();
 		 player != null;
-		 player = game.getBoard().nextToPlay(player, ps)) {
-		game = Game.getMoveX(game.getBoard(), ((player == Player.BLACK) ? blStrategy : whStrategy), player, ps, game.getClock());
+		 player = gs.getBoard().nextToPlay(player, ps)) {
+		if (ps != null) {
+		    if (false) ;
+		}
+		gs = GameState.getMoveX(gs.getBoard(), ((player == Player.BLACK) ? blStrategy : whStrategy), player, ps, gs.getClock());
 	    }
 	} catch (GameOverException goe) {
 	    // to be completed .....
 	}
 	if (ps != null) {
 	    ps.print("\nThe Game is over. Final result:\n\n");
-	    game.getBoard().print(ps, game.getClock());
+	    gs.getBoard().print(ps, gs.getClock());
 	}
-	return game.getBoard().countDifference(Player.BLACK);
+	return gs.getBoard().countDifference(Player.BLACK);
     }
 
 

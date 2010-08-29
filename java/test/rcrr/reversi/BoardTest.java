@@ -45,9 +45,9 @@ public class BoardTest {
 
     private static Board boardFromList(List<Integer> il) {
 	if (il == null) return null;
-	if (il.size() != Board.size()) throw new IllegalArgumentException();
+	if (il.size() != Square.values().length) throw new IllegalArgumentException();
 	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
-	for (int idx=0; idx<Board.size(); idx++) {
+	for (int idx=0; idx<Square.values().length; idx++) {
 	    Integer iss = il.get(idx);
 	    SquareState ss = null;
 	    if (iss == null || iss < 0 || iss > 3) throw new IllegalArgumentException();
@@ -232,12 +232,12 @@ public class BoardTest {
     }
 
     @Test
-    public void testAnyLegalMove() {
-	assertTrue(fixtBoardInitial.anyLegalMove(Player.BLACK));
-	assertFalse(fixtBoardBlackHasToPass.anyLegalMove(Player.BLACK));
-	assertTrue(fixtBoardBlackHasToPass.anyLegalMove(Player.WHITE));
-	assertFalse(fixtBoardEndGameX.anyLegalMove(Player.WHITE));
-	assertFalse(fixtBoardEndGameX.anyLegalMove(Player.BLACK));
+    public void testHasAnyLegalMove() {
+	assertTrue(fixtBoardInitial.hasAnyLegalMove(Player.BLACK));
+	assertFalse(fixtBoardBlackHasToPass.hasAnyLegalMove(Player.BLACK));
+	assertTrue(fixtBoardBlackHasToPass.hasAnyLegalMove(Player.WHITE));
+	assertFalse(fixtBoardEndGameX.hasAnyLegalMove(Player.WHITE));
+	assertFalse(fixtBoardEndGameX.hasAnyLegalMove(Player.BLACK));
     }
 
     @Test

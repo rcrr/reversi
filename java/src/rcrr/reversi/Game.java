@@ -24,61 +24,22 @@
 
 package rcrr.reversi;
 
-import java.io.PrintStream;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class Game {
-    private final Clock clock;
-    private final Board board;
-    private final Player player;
 
-    private Game(Board board, Player player, Clock clock) {
-	this.clock = clock;
-	this.board = board;
-	this.player = player;
+    private final List<GameState> sequence;
+
+    private Game(List<GameState> seq) {
+	sequence = Collections.unmodifiableList(seq);
     }
 
-    static Game valueOf(Board board, Player player, Clock clock) {
-	Game gs = new Game(board, player, clock);
-	return gs;
-    }
-
-    public Clock getClock() {
-	return clock;
-    }
-
-    public Board getBoard() {
-	return board;
-    }
-
-    public Player getPlayer() {
-	return player;
-    }
-
-    /*
-      Has to be copletely rewritten!
-      Player should be renamed into Color (or PlayerColor to avoid collision with the java Color class)
-      Player should then be a new class having all the Player attribute, mostly the Strategy ....
-      All the printing shold be eradicated from the base data classes
-      the new API shold be somthing like:
-      game g;
-      g.getMove();
-     */
-    public static Game getMoveX(Board b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
-	if (ps != null) b.print(ps, clock);
-	long t0 = System.currentTimeMillis();
-	Square move = strategy.move(player, b.copyBoard());
-	long t1 = System.currentTimeMillis();
-	clock = clock.setTime(player, t1 - t0);
-	if (b.isLegal(move, player)) {
-	    if (ps != null) {
-		ps.print("\n" + player.name() + " moves to " + move.label() + "\n");
-	    }
-	    Board b1 = b.makeMove(move, player);
-	    return Game.valueOf(b1, b1.nextToPlay(player, null), clock);
-	} else {
-	    if (ps != null) ps.print("Illegal move: " + move + "\n");
-	    return getMoveX(b, strategy, player, ps, clock);
-	}
+    static Game valueOf(Game game, GameState gameState) {
+	List<GameState> seq = new ArrayList<GameState>(game.sequence);
+	seq.add(gameState);
+	return new Game(seq);
     }
 
 }

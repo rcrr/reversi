@@ -70,7 +70,7 @@ public class Minimax {
 	} else {
 	    List<Square> moves = board.legalMoves(player);
 	    if (moves.isEmpty()) {
-		if (board.anyLegalMove(opponent)) {
+		if (board.hasAnyLegalMove(opponent)) {
 		    mm = minimax(opponent, board, ply - 1, ef).minus();
 		} else {
 		    mm = new Minimax(null, finalValue(board, player));
@@ -108,7 +108,7 @@ public class Minimax {
 	} else {
 	    List<Square> moves = board.legalMoves(player);
 	    if (moves.isEmpty()) {
-		if (board.anyLegalMove(opponent)) {
+		if (board.hasAnyLegalMove(opponent)) {
 		    ab = alphabeta(opponent, board, - cutoff, - achievable, ply - 1, ef).minus();
 		} else {
 		    ab = new Minimax(null, finalValue(board, player));
