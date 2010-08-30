@@ -30,16 +30,28 @@ import java.util.Collections;
 
 public class Game {
 
-    private final List<GameState> sequence;
+    private final List<GameState> game;
 
-    private Game(List<GameState> seq) {
-	sequence = Collections.unmodifiableList(seq);
+    private Game(List<GameState> gameSequence) {
+	game = Collections.unmodifiableList(gameSequence);
     }
 
-    static Game valueOf(Game game, GameState gameState) {
-	List<GameState> seq = new ArrayList<GameState>(game.sequence);
-	seq.add(gameState);
-	return new Game(seq);
+    public static Game valueOf(List<GameState> gameSequence) {
+	return new Game(gameSequence);
+    }
+
+    public Game add(GameState gameState) {
+	List<GameState> gameSequence = new ArrayList<GameState>(game);
+	gameSequence.add(gameState);
+	return valueOf(gameSequence);
+    }
+
+    public int size() {
+	return game.size();
+    }
+
+    public GameState get(int index) {
+	return game.get(index);
     }
 
 }

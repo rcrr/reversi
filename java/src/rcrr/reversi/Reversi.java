@@ -24,6 +24,7 @@
 
 package rcrr.reversi;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -38,14 +39,16 @@ public class Reversi {
 
     public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Long minutes) {
 	GameState gs = GameState.valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
+	Game game = Game.valueOf(Arrays.asList(gs));
 	try {
 	    for (Player player = gs.getPlayer();
 		 player != null;
 		 player = gs.getBoard().nextToPlay(player, ps)) {
-		if (ps != null) {
-		    if (false) ;
-		}
 		gs = GameState.getMoveX(gs.getBoard(), ((player == Player.BLACK) ? blStrategy : whStrategy), player, ps, gs.getClock());
+		game.add(gs);
+		if (ps != null) {
+		    if (gs.getBoard().nextToPlay(player, null) == player) System.out.println("PLAYER HAS PASSED #####################################");
+		}
 	    }
 	} catch (GameOverException goe) {
 	    // to be completed .....
