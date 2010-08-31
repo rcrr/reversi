@@ -225,16 +225,13 @@ public final class Board {
      *
      * @return the next player that has to play a move
      */
-    public Player nextToPlay(Player current, PrintStream ps) {
+    public Player nextToPlay(Player current) {
 	Player opponent = current.opponent();
 	Player next = null;
 	if (hasAnyLegalMove(opponent)) {
 	    next = opponent;
 	} else if (hasAnyLegalMove(current)) {
 	    next = current;
-	    if (ps != null) {
-		ps.print("\n" + opponent + " has no moves and must pass.\n");
-	    }
 	}
 	return next;
     }

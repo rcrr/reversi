@@ -223,12 +223,12 @@ public class BoardTest {
 
     @Test
     public void testNextToPlay() {
-	assertEquals(Player.BLACK, fixtBoardInitial.nextToPlay(Player.WHITE, null));
-	assertEquals(Player.WHITE, fixtBoardInitial.nextToPlay(Player.BLACK, null));
-	assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.WHITE, null));
-	assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.BLACK, null));
-	assertEquals(Player.WHITE, fixtBoardBlackHasToPass.nextToPlay(Player.WHITE, null));
-	assertEquals(Player.WHITE, fixtBoardBlackHasToPass.nextToPlay(Player.BLACK, null));
+	assertEquals(Player.BLACK, fixtBoardInitial.nextToPlay(Player.WHITE));
+	assertEquals(Player.WHITE, fixtBoardInitial.nextToPlay(Player.BLACK));
+	assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.WHITE));
+	assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.BLACK));
+	assertEquals(Player.WHITE, fixtBoardBlackHasToPass.nextToPlay(Player.WHITE));
+	assertEquals(Player.WHITE, fixtBoardBlackHasToPass.nextToPlay(Player.BLACK));
     }
 
     @Test

@@ -75,7 +75,7 @@ public class GameState {
 		ps.print("\n" + player.name() + " moves to " + move.label() + "\n");
 	    }
 	    Board b1 = b.makeMove(move, player);
-	    return GameState.valueOf(b1, b1.nextToPlay(player, null), clock);
+	    return GameState.valueOf(b1, b1.nextToPlay(player), clock);
 	} else {
 	    if (ps != null) ps.print("Illegal move: " + move + "\n");
 	    return getMoveX(b, strategy, player, ps, clock);

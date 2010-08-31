@@ -43,11 +43,11 @@ public class Reversi {
 	try {
 	    for (Player player = gs.getPlayer();
 		 player != null;
-		 player = gs.getBoard().nextToPlay(player, ps)) {
+		 player = gs.getBoard().nextToPlay(player)) {
 		gs = GameState.getMoveX(gs.getBoard(), ((player == Player.BLACK) ? blStrategy : whStrategy), player, ps, gs.getClock());
 		game.add(gs);
 		if (ps != null) {
-		    if (gs.getBoard().nextToPlay(player, null) == player) System.out.println("PLAYER HAS PASSED #####################################");
+		    if (gs.getBoard().nextToPlay(player) == player) ps.print("\n" + player.opponent() + " has no moves and must pass.\n");
 		}
 	    }
 	} catch (GameOverException goe) {
