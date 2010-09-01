@@ -154,7 +154,7 @@ public final class Board {
     }
     
     /** Test ok*/
-    public Boolean isLegal(Square move, Player player) {
+    public boolean isLegal(Square move, Player player) {
 	if (get(move) != SquareState.EMPTY) return false;
 	for (Direction dir : Direction.values()) {
 	    if (wouldFlip(move, player, dir) != null) return true;
@@ -162,7 +162,18 @@ public final class Board {
  	return false;
     }
 
-    /** Test ok*/
+    /**
+     * Returns the bracketing square or null if it is missing.
+     * The method does not check that the move is legal and that the square parameter
+     * is one step from move in the given direction.
+     * <p>
+     * The method should be private. It is not for unit testing.
+     *
+     * @param square the square obtained moving by one from the move in the given direction
+     * @param player the player
+     * @param dir    the direction
+     * @return       the bracketing square, or null if it is not found
+     */
     Square findBracketingPiece(Square square, Player player, Direction dir) {
 	if (get(square) == player.color()) {
 	    return square;
@@ -173,26 +184,34 @@ public final class Board {
 	}
     }
 
-    /** Test ok*/
-    public Integer countPieces(SquareState color) {
+    /**
+     * Returns the disk count for player.
+     *
+     * @return the disk count for player
+     */
+    public int countPieces(SquareState color) {
 	int count = 0;
 	for (SquareState ss : squares.values()) {
 	    if (ss == color) count++;
 	}
-	return new Integer(count);
+	return count;
     }
 
-    /** Test ok*/
-    public Integer countDifference(Player player) {
+    /**
+     * Returns the disk difference between the player and her opponent.
+     *
+     * @return the disk count difference
+     */
+    public int countDifference(Player player) {
 	return countPieces(player.color()) - countPieces(player.opponent().color());
     }
 
-    /** Should go out of Board Class*/
+    /** Should go out of Board Class. */
     public void print() {
 	print(System.out, null);
     }
 
-    /** Should go out of Board Class*/
+    /** Should go out of Board Class. */
     public void print(PrintStream ps, Clock clock) {
 	Integer cb = countPieces(SquareState.BLACK);
 	Integer cw = countPieces(SquareState.WHITE);

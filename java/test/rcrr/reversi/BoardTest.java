@@ -205,20 +205,15 @@ public class BoardTest {
 
     @Test
     public void testCountPieces() {
-	assertEquals(Integer.valueOf(2),
-		     Board.initialBoard().countPieces(SquareState.BLACK));
+	assertEquals(2, Board.initialBoard().countPieces(SquareState.BLACK));
     }
 
     @Test
     public void testCountDifference() {
-	assertEquals(Integer.valueOf(0),
-		     Board.initialBoard().countDifference(Player.BLACK));
-	assertEquals(Integer.valueOf(+10),
-		     fixtBoardEndGameX.countDifference(Player.BLACK));
-	assertEquals(Integer.valueOf(-10),
-		     fixtBoardEndGameX.countDifference(Player.WHITE));
-	assertEquals(Integer.valueOf(-2),
-		     fixtBoardC.countDifference(Player.BLACK));	
+	assertEquals(0, Board.initialBoard().countDifference(Player.BLACK));
+	assertEquals(+10, fixtBoardEndGameX.countDifference(Player.BLACK));
+	assertEquals(-10, fixtBoardEndGameX.countDifference(Player.WHITE));
+	assertEquals(-2, fixtBoardC.countDifference(Player.BLACK));	
     }
 
     @Test
