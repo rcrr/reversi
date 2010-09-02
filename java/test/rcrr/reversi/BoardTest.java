@@ -185,6 +185,25 @@ public class BoardTest {
      */
     @Test
     public void testIsLegal() {
+
+	boolean thrown;
+
+	thrown = false;
+	try {
+	    fixtBoardInitial.isLegal(null, Player.BLACK);
+	} catch (NullPointerException npe) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
+
+	thrown = false;
+	try {
+	    fixtBoardInitial.isLegal(Square.D3, null);
+	} catch (NullPointerException npe) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
+
 	assertTrue(fixtBoardInitial.isLegal(Square.D3, Player.BLACK));
 	assertFalse(fixtBoardInitial.isLegal(Square.E3, Player.BLACK));
 

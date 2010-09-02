@@ -153,8 +153,20 @@ public final class Board {
 	return bp;
     }
     
-    /** Test ok*/
+    /**
+     * Returns the boolean value telling if the move, done by the
+     * specified player, is legal.
+     *
+     * @param square the square where to put the new disk
+     * @param player the player moving
+     * @return       true if the move is legal, otherwise false
+     */
     public boolean isLegal(Square move, Player player) {
+	if (move == null || player == null) {
+	    throw new NullPointerException("Parameters move and " +
+					       "player must be not null. player=" +
+					       player + ", move=" + move);
+	}
 	if (get(move) != SquareState.EMPTY) return false;
 	for (Direction dir : Direction.values()) {
 	    if (wouldFlip(move, player, dir) != null) return true;
@@ -175,6 +187,9 @@ public final class Board {
      * @return       the bracketing square, or null if it is not found
      */
     Square findBracketingPiece(Square square, Player player, Direction dir) {
+	assert (square != null) : "Argument square must be not null";
+	assert (player != null) : "Argument player must be not null";
+	assert (dir != null) : "Argument dir must be not null";
 	if (get(square) == player.color()) {
 	    return square;
 	} else if (get(square) == player.opponent().color()) {
