@@ -145,10 +145,14 @@ public final class Board {
     
     /** Test ok*/
     Square wouldFlip(Square move, Player player, Direction dir) {
+	assert (move != null) : "Argument square must be not null";
+	assert (player != null) : "Argument player must be not null";
+	assert (dir != null) : "Argument dir must be not null";
 	Square c = move.neighbors().get(dir);
 	Square bp = null;
 	if (get(c) == player.opponent().color()) {
-	    bp = findBracketingPiece(c.neighbors().get(dir), player, dir);
+	    Square c1 = c.neighbors().get(dir);
+	    if (c1 != null) bp = findBracketingPiece(c1, player, dir);
 	}
 	return bp;
     }
@@ -193,10 +197,10 @@ public final class Board {
 	if (get(square) == player.color()) {
 	    return square;
 	} else if (get(square) == player.opponent().color()) {
-	    return findBracketingPiece(square.neighbors().get(dir), player, dir);
-	} else {
-	    return null;
+	    Square c1 = square.neighbors().get(dir);
+	    if (c1 != null) return findBracketingPiece(c1, player, dir);
 	}
+	return null;
     }
 
     /**

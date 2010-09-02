@@ -110,6 +110,7 @@
     <junit fork="yes" printsummary="withOutAndErr"
 	   errorProperty="test.failed"
 	   failureProperty="test.failed">
+      <jvmarg value="-ea"/>
       <formatter type="brief" usefile="false"/>
       <formatter type="xml"/>
       <!-- In case of testing a single class use: -->
