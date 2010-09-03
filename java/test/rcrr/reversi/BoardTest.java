@@ -240,6 +240,14 @@ public class BoardTest {
 	}
 	assertTrue(thrown);
 
+	thrown = false;
+	try {
+	    fixtBoardInitial.makeMove(Square.A1, Player.BLACK);
+	} catch (IllegalArgumentException iae) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
+
 	Board b = fixtBoardInitial.makeMove(Square.D3, Player.BLACK);
 	for (Square sq : Square.values()) {
 	    assertEquals(fixtBoardA.get(sq), b.get(sq));

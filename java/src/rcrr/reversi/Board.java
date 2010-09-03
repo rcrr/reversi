@@ -28,10 +28,10 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Collections;
 import java.util.EnumMap;
 
+// to be removed
 import java.io.PrintStream;
 
 // To do:
@@ -39,13 +39,11 @@ import java.io.PrintStream;
 // - complete an exhaustive test suite
 // - polish, polish, polish ....
 
-// makeMove has to check that the move is legal.
-// findBracketingPiece must be private
-// wouldFlip must be private
-
 // makeMove, isLegal, legalMoves need an extensive test suit
 
-// equal and hashCode() method has to be written
+// equal() and hashCode() methods has to be written
+
+// complete the class description
 
 /**
  * An instance of a board game position, or state.
@@ -78,11 +76,17 @@ public final class Board {
 	return ss;
     }
 
-    /** Test ok */
-    public static Board valueOf(Map<Square, SquareState> sm) {
-	return new Board(sm);
+    /** Tests are not complete. Illegal parameter values has to be tested. */
+    public static Board valueOf(Map<Square, SquareState> squareMap) {
+	if (squareMap == null) throw new NullPointerException("Parameter squareMap cannot be null. squareMap=" + squareMap);
+	if (squareMap.size() != Square.values().length)
+	    throw new IllegalArgumentException("Parameter squareMap size is not consistent." + 
+					       " squareMap.size()=" + squareMap.size() +
+					       " expected value: " + Square.values().length);
+	return new Board(squareMap);
     }
 
+    // write a static block that generate an EMPTY_BOARD_MAP
     private static Map<Square, SquareState> emptyBoardSquares() {
 	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
 	for (Square sq : Square.values()) {
@@ -121,13 +125,16 @@ public final class Board {
      * Returns a new updated board to reflect move by player. This static
      * factory executes a game move to the board and returns a new one, reflecting
      * the move. The original board is not modified.
-     * Currently it does not check if the move is legal. It must do it, and
-     * throw an IllegalArgumentValue in case it is not.
+     * Null values as move or player are not allowed, a NullPointerException
+     * is thrown in such a case.
+     * The method does check if the move is legal. It throws an 
+     * IllegalArgumentException in case it is not.
      *
      * @param  move   the board square where to put the disk
      * @param  player the disk color to put on the board
      * @return        a new {@code Board} reflecting the move made
-     * @throws NullPointerException if parameter {@code move} or {@code player} is null
+     * @throws NullPointerException     if parameter {@code move} or {@code player} is null
+     * @throws IllegalArgumentException if the {@code move} by {@code player} is illegal
      */
     public Board makeMove(Square move, Player player) {
 	if (move == null || player == null) {
@@ -135,6 +142,9 @@ public final class Board {
 					       "player must be not null. player=" +
 					       player + ", move=" + move);
 	}
+	if (!isLegal(move, player))
+	    throw new IllegalArgumentException("The move<" +
+					       move + "> by player<" + player + "> is illegal.");
 	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(squares);
 	sm.put(move, player.color());
 	for (Direction dir : Direction.values()) {
