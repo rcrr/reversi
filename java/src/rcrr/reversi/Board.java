@@ -126,9 +126,15 @@ public final class Board {
      *
      * @param  move   the board square where to put the disk
      * @param  player the disk color to put on the board
-     * @return a new {@code Board} reflecting the move made
+     * @return        a new {@code Board} reflecting the move made
+     * @throws NullPointerException if parameter {@code move} or {@code player} is null
      */
     public Board makeMove(Square move, Player player) {
+	if (move == null || player == null) {
+	    throw new NullPointerException("Parameters move and " +
+					       "player must be not null. player=" +
+					       player + ", move=" + move);
+	}
 	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(squares);
 	sm.put(move, player.color());
 	for (Direction dir : Direction.values()) {
@@ -148,6 +154,9 @@ public final class Board {
      * The method does not check that the move is legal.
      * <p>
      * The method should be private. It is not private to enable unit testing.
+     * <p>
+     * Parameters move, player, and dir must be not null. Java assert statements check
+     * against this case to occur.
      *
      * @param move   the square where to move
      * @param player the player
@@ -158,20 +167,20 @@ public final class Board {
 	assert (move != null) : "Argument square must be not null";
 	assert (player != null) : "Argument player must be not null";
 	assert (dir != null) : "Argument dir must be not null";
-	Square c = move.neighbors().get(dir);
-	Square bp = null;
-	if (get(c) == player.opponent().color()) {
-	    Square c1 = c.neighbors().get(dir);
-	    if (c1 != null) bp = findBracketingPiece(c1, player, dir);
+	Square neighbor = move.neighbors().get(dir);
+	Square bracketing = null;
+	if (get(neighbor) == player.opponent().color()) {
+	    Square next = neighbor.neighbors().get(dir);
+	    if (next != null) bracketing = findBracketingPiece(next, player, dir);
 	}
-	return bp;
+	return bracketing;
     }
     
     /**
      * Returns the boolean value telling if the move, done by the
      * specified player, is legal.
      *
-     * @param square the square where to put the new disk
+     * @param move   the square where to put the new disk
      * @param player the player moving
      * @return       true if the move is legal, otherwise false
      * @throws NullPointerException if parameter {@code move} or {@code player} is null
@@ -195,6 +204,9 @@ public final class Board {
      * is one step from move in the given direction.
      * <p>
      * The method should be private. It is not private to enable unit testing.
+     * <p>
+     * Parameters square, player, and dir must be not null. Java assert statements check
+     * against this case to occur.
      *
      * @param square the square obtained moving by one from the move in the given direction
      * @param player the player
@@ -208,18 +220,21 @@ public final class Board {
 	if (get(square) == player.color()) {
 	    return square;
 	} else if (get(square) == player.opponent().color()) {
-	    Square c1 = square.neighbors().get(dir);
-	    if (c1 != null) return findBracketingPiece(c1, player, dir);
+	    Square next = square.neighbors().get(dir);
+	    if (next != null) return findBracketingPiece(next, player, dir);
 	}
 	return null;
     }
 
     /**
-     * Returns the disk count for player.
+     * Returns the disk count for the color.
      *
-     * @return the disk count for player
+     * @param color the color for which the disk count is computed
+     * @return the disk count
+     * @throws NullPointerException if parameter {@code color} is null
      */
     public int countPieces(SquareState color) {
+	if (color == null) throw new NullPointerException("parameter color must be not null. color=" + color);
 	int count = 0;
 	for (SquareState ss : squares.values()) {
 	    if (ss == color) count++;
@@ -230,9 +245,12 @@ public final class Board {
     /**
      * Returns the disk difference between the player and her opponent.
      *
-     * @return the disk count difference
+     * @param player the player
+     * @return       the disk count difference
+     * @throws NullPointerException if parameter {@code player} is null
      */
     public int countDifference(Player player) {
+	if (player == null) throw new NullPointerException("parameter player must be not null. player=" + player);
 	return countPieces(player.color()) - countPieces(player.opponent().color());
     }
 
@@ -265,16 +283,19 @@ public final class Board {
     }
 
     /**
-     * Returns the next player that has to play given the current.
-     * When the opponent player has at last a legal move he is
+     * Returns the next player: the one that has to play next, given the current one.
+     * When the opponent player has at last one legal move she is
      * the next player. When she does't have it, the method checks if
-     * the current has a legal moves, if the checks succed current is 
-     * the next player. When neither player has a legal move the method
+     * the current has at last one legal move, if the check is positive, the current player is 
+     * also the next one. When neither player has a legal move the method
      * returns null.
      *
-     * @return the next player that has to play a move
+     * @param current the current player
+     * @return        the next player that has to play a move
+     * @throws NullPointerException if parameter {@code current} is null
      */
     public Player nextToPlay(Player current) {
+	if (current == null) throw new NullPointerException("parameter current must be not null. current=" + current);
 	Player opponent = current.opponent();
 	Player next = null;
 	if (hasAnyLegalMove(opponent)) {
@@ -288,9 +309,12 @@ public final class Board {
     /**
      * Returns if the player has any legal move given the board state.
      *
-     * @return {@code true} if the player has any legal move, otherwise {@code false}
+     * @param player the player
+     * @return       {@code true} if the player has any legal move, otherwise {@code false}
+     * @throws NullPointerException if parameter {@code player} is null
      */
     public boolean hasAnyLegalMove (Player player) {
+	if (player == null) throw new NullPointerException("parameter player must be not null. player=" + player);
 	boolean b = false;
 	for (Square move : Square.values()) {
 	    if (isLegal(move, player)) {
@@ -303,10 +327,12 @@ public final class Board {
 
     /**
      * Returns a list holding the legal moves that the {@code player} can
-     * do at the board position.
+     * do at the board position. When no moves are available to the player
+     * the method returns an empty list.
      *
-     * @return the moves available to the player
-     * @throws NullPointerException if parameter {@code move} or {@code player} is null
+     * @param player the player
+     * @return       the moves available to the player
+     * @throws NullPointerException if parameter {@code player} is null
      */
     public List<Square> legalMoves(Player player) {
 	if (player == null) throw new NullPointerException("parameter player must be not null. player=" + player);

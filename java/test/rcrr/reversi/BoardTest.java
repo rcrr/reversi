@@ -204,6 +204,12 @@ public class BoardTest {
 	}
 	assertTrue(thrown);
 
+	assertFalse(fixtBoardInitial.isLegal(Square.D4, Player.BLACK));
+	assertFalse(fixtBoardInitial.isLegal(Square.D4, Player.WHITE));
+
+	assertFalse(fixtBoardInitial.isLegal(Square.A1, Player.BLACK));
+	assertFalse(fixtBoardInitial.isLegal(Square.A1, Player.WHITE));
+
 	assertTrue(fixtBoardInitial.isLegal(Square.D3, Player.BLACK));
 	assertFalse(fixtBoardInitial.isLegal(Square.E3, Player.BLACK));
 
@@ -216,6 +222,24 @@ public class BoardTest {
      */
     @Test
     public void testMakeMove() {
+	boolean thrown;
+
+	thrown = false;
+	try {
+	    fixtBoardInitial.makeMove(null, Player.BLACK);
+	} catch (NullPointerException npe) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
+
+	thrown = false;
+	try {
+	    fixtBoardInitial.makeMove(Square.D3, null);
+	} catch (NullPointerException npe) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
+
 	Board b = fixtBoardInitial.makeMove(Square.D3, Player.BLACK);
 	for (Square sq : Square.values()) {
 	    assertEquals(fixtBoardA.get(sq), b.get(sq));
@@ -224,11 +248,34 @@ public class BoardTest {
 
     @Test
     public void testCountPieces() {
+	boolean thrown;
+
+	thrown = false;
+	try {
+	    fixtBoardInitial.countPieces(null);
+	} catch (NullPointerException npe) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
+
 	assertEquals(2, Board.initialBoard().countPieces(SquareState.BLACK));
+	assertEquals(2, Board.initialBoard().countPieces(SquareState.WHITE));
+	assertEquals(60, Board.initialBoard().countPieces(SquareState.EMPTY));
+	assertEquals(0, Board.initialBoard().countPieces(SquareState.OUTER));
     }
 
     @Test
     public void testCountDifference() {
+	boolean thrown;
+
+	thrown = false;
+	try {
+	    fixtBoardInitial.countDifference(null);
+	} catch (NullPointerException npe) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
+
 	assertEquals(0, Board.initialBoard().countDifference(Player.BLACK));
 	assertEquals(+10, fixtBoardEndGameX.countDifference(Player.BLACK));
 	assertEquals(-10, fixtBoardEndGameX.countDifference(Player.WHITE));
@@ -237,6 +284,16 @@ public class BoardTest {
 
     @Test
     public void testNextToPlay() {
+	boolean thrown;
+
+	thrown = false;
+	try {
+	    fixtBoardInitial.nextToPlay(null);
+	} catch (NullPointerException npe) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
+
 	assertEquals(Player.BLACK, fixtBoardInitial.nextToPlay(Player.WHITE));
 	assertEquals(Player.WHITE, fixtBoardInitial.nextToPlay(Player.BLACK));
 	assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.WHITE));
