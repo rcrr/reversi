@@ -257,6 +257,15 @@ public class BoardTest {
     @Test
     public void testLegalMoves() {
 	List<Square> lm;
+	boolean thrown;
+
+	thrown = false;
+	try {
+	    fixtBoardInitial.legalMoves(null);
+	} catch (NullPointerException npe) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
 
 	lm = Arrays.asList(Square.D3, Square.C4, Square.F5, Square.E6);
 	assertEquals(lm, fixtBoardInitial.legalMoves(Player.BLACK));
@@ -268,6 +277,9 @@ public class BoardTest {
 			   Square.G4, Square.A5, Square.F5, 
 			   Square.B6, Square.E6, Square.G7);
 	assertEquals(lm, fixtBoardC.legalMoves(Player.BLACK));
+
+	lm = new ArrayList<Square>();
+	assertEquals(lm, fixtBoardBlackHasToPass.legalMoves(Player.BLACK));
     }
 
     @Test

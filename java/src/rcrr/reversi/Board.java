@@ -143,7 +143,17 @@ public final class Board {
 	return valueOf(sm);
     }
     
-    /** Test ok*/
+    /**
+     * Returns the bracketing square or null if it is not found.
+     * The method does not check that the move is legal.
+     * <p>
+     * The method should be private. It is not private to enable unit testing.
+     *
+     * @param move   the square where to move
+     * @param player the player
+     * @param dir    the direction
+     * @return       the bracketing square, or null if it is not found
+     */
     Square wouldFlip(Square move, Player player, Direction dir) {
 	assert (move != null) : "Argument square must be not null";
 	assert (player != null) : "Argument player must be not null";
@@ -164,6 +174,7 @@ public final class Board {
      * @param square the square where to put the new disk
      * @param player the player moving
      * @return       true if the move is legal, otherwise false
+     * @throws NullPointerException if parameter {@code move} or {@code player} is null
      */
     public boolean isLegal(Square move, Player player) {
 	if (move == null || player == null) {
@@ -183,7 +194,7 @@ public final class Board {
      * The method does not check that the move is legal and that the square parameter
      * is one step from move in the given direction.
      * <p>
-     * The method should be private. It is not for unit testing.
+     * The method should be private. It is not private to enable unit testing.
      *
      * @param square the square obtained moving by one from the move in the given direction
      * @param player the player
@@ -295,8 +306,10 @@ public final class Board {
      * do at the board position.
      *
      * @return the moves available to the player
+     * @throws NullPointerException if parameter {@code move} or {@code player} is null
      */
     public List<Square> legalMoves(Player player) {
+	if (player == null) throw new NullPointerException("parameter player must be not null. player=" + player);
 	List<Square> legalMoves = new ArrayList<Square>();
 	for (Square move : Square.values()) {
 	    if (isLegal(move, player)) legalMoves.add(move);
