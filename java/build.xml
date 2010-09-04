@@ -51,7 +51,9 @@
   
   <target name="compile">
     <mkdir dir="${classes.dir}"/>
-    <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="lib.classpath"/>
+    <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="lib.classpath">
+      <compilerarg value="-Xlint:unchecked"/>
+    </javac>
   </target>
 
   <target name="jar" depends="compile">
