@@ -357,6 +357,21 @@ public class BoardTest {
     }
 
     @Test
+    public void testPrintBoard() {
+	StringBuilder initialBoard = new StringBuilder();
+	initialBoard.append("    a b c d e f g h \n");
+	initialBoard.append(" 1  . . . . . . . . \n");
+	initialBoard.append(" 2  . . . . . . . . \n");
+	initialBoard.append(" 3  . . . . . . . . \n");
+	initialBoard.append(" 4  . . . O @ . . . \n");
+	initialBoard.append(" 5  . . . @ O . . . \n");
+	initialBoard.append(" 6  . . . . . . . . \n");
+	initialBoard.append(" 7  . . . . . . . . \n");
+	initialBoard.append(" 8  . . . . . . . . ");
+	assertEquals(initialBoard.toString(), fixtBoardInitial.printBoard());
+    }
+
+    @Test
     public void testValueOf() {
 	boolean thrown;
 

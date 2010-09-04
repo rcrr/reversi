@@ -301,9 +301,23 @@ public final class Board {
 	return countPieces(player.color()) - countPieces(player.opponent().color());
     }
 
-    /** Should go out of Board Class. */
-    public void print() {
-	print(System.out, null);
+    /**
+     * Returns a string, 2d graphical, represention of the board.
+     *
+     * @return a string being a 2d representation of the board
+     */
+    public String printBoard() {
+	StringBuilder sb = new StringBuilder();
+	sb.append("    a b c d e f g h ");
+	for (Row r : Row.values()) {
+	    sb.append("\n " + r.label() + "  ");
+	    for (Column c : Column.values()) {
+		int idx = (r.ordinal() * 8) + c.ordinal();
+		String p = get(Square.getInstance(idx)).symbol();
+		sb.append(p + " ");
+	    }
+	}
+	return sb.toString();
     }
 
     /** Should go out of Board Class. */
