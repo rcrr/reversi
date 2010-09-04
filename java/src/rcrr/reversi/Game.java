@@ -54,4 +54,8 @@ public class Game {
 	return game.get(index);
     }
 
+    public boolean isEmpty() {
+	return game.isEmpty();
+    }
+
 }
