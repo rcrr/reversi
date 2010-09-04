@@ -57,9 +57,22 @@ public final class Board {
     /** The squares field. */
     private final Map<Square, SquareState> squares;
 
-    // must be verified if the Map object is copied too much!
-    private Board(Map<Square, SquareState> sm) {
-	this.squares = Collections.unmodifiableMap(new EnumMap<Square, SquareState>(sm));
+    /**
+     * Private constructor.
+     * <p>
+     * {@code squareMap} must be not null, and must have a size equal to
+     * the number of squares, as defined by the {@code Square} enum.
+     *
+     * @param  squareMap the sqares field
+     */
+    private Board(Map<Square, SquareState> squareMap) {
+	assert (squareMap != null) : "Parameter squareMap cannot be null. squareMap=" + squareMap;
+	assert (squareMap.size() == Square.values().length) : "Parameter squareMap size is not consistent." + 
+	    " squareMap.size()=" + squareMap.size() +
+	    " expected value: " + Square.values().length;
+	EnumMap<Square, SquareState> squareEnumMap = (squareMap instanceof EnumMap) ? 
+	    (EnumMap<Square, SquareState>) squareMap : new EnumMap<Square, SquareState>(squareMap);
+	this.squares = Collections.unmodifiableMap(squareEnumMap);
     }
 
     /**
@@ -67,7 +80,8 @@ public final class Board {
      * <p>
      * When {@code square} is {@code null} the method returns {@code SquareState.OUTER} value.
      *
-     * @return the square state
+     * @param  square the board square to retrieve the state value
+     * @return        the square state
      */
     public SquareState get(Square square) {
 	SquareState ss;
@@ -76,17 +90,30 @@ public final class Board {
 	return ss;
     }
 
-    /** Tests are not complete. Illegal parameter values has to be tested. */
+    /**
+     * Base static factory for the class.
+     * <p>
+     * {@code squareMap} must be not null, and must have an entry for every board square.
+     * Given that the map cannot have duplicate keys, its size must be equal to the number
+     * of class instances defined by the {@code Square} enum.
+     *
+     * @param  squareMap the map of squares
+     * @return           a new board having as state the given square map
+     * @throws NullPointerException     if parameter {@code squareMap} is null
+     * @throws IllegalArgumentException if the {@code squareMap} is not complete
+     */
     public static Board valueOf(Map<Square, SquareState> squareMap) {
 	if (squareMap == null) throw new NullPointerException("Parameter squareMap cannot be null. squareMap=" + squareMap);
 	if (squareMap.size() != Square.values().length)
 	    throw new IllegalArgumentException("Parameter squareMap size is not consistent." + 
 					       " squareMap.size()=" + squareMap.size() +
 					       " expected value: " + Square.values().length);
+	if (squareMap.containsKey(null))
+	    throw new NullPointerException("Parameter squareMap cannot have null keys. squareMap=" + squareMap);
 	return new Board(squareMap);
     }
 
-    // write a static block that generate an EMPTY_BOARD_MAP
+    /** Returns a new squares map being filled by empty values. */
     private static Map<Square, SquareState> emptyBoardSquares() {
 	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
 	for (Square sq : Square.values()) {
@@ -95,10 +122,20 @@ public final class Board {
 	return sm;
     }
 
+    /**
+     * A static factory for the class that returns a new empty board.
+     *
+     * @return a new empty board
+     */
     public static Board emptyBoard() {
 	return valueOf(emptyBoardSquares());
     }
 
+    /**
+     * A static factory for the class that returns a new initial board.
+     *
+     * @return a new initial board
+     */
     public static Board initialBoard() {
 	Map<Square, SquareState> sm = emptyBoardSquares();
 	sm.put(Square.D4, SquareState.WHITE);

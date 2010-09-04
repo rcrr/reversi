@@ -26,6 +26,7 @@ package rcrr.reversi;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.EnumMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -357,14 +358,79 @@ public class BoardTest {
 
     @Test
     public void testValueOf() {
-	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
-	for (Square sq : Square.values()) {
-	    sm.put(sq, fixtBoardC.get(sq));
+	boolean thrown;
+
+	/**
+	 * Tests if the valueOf method throws a NullPointerException when
+	 * the passed map is null.
+	 */
+	thrown = false;
+	try {
+	    Board.valueOf(null);
+	} catch (NullPointerException npe) {
+	    thrown = true;
 	}
-	Board boardC = Board.valueOf(sm);
-	for (Square sq : Square.values()) {
-	    assertEquals(fixtBoardC.get(sq), boardC.get(sq));
+	assertTrue(thrown);
+
+	/**
+	 * Tests if the valueOf method throws an IllegalArgumentException when
+	 * the passed map has one or more missing keys.
+	 */
+	thrown = false;
+	Map<Square, SquareState> notCompleteSquareMap = new EnumMap<Square, SquareState>(Square.class);
+	notCompleteSquareMap.put(Square.A1, SquareState.EMPTY);
+	try {
+	    Board.valueOf(notCompleteSquareMap);
+	} catch (IllegalArgumentException iae) {
+	    thrown = true;
 	}
+	assertTrue(thrown);
+ 
+	/**
+	 * Tests if the valueOf method throws a NullPointerException when
+	 * the passed map has a null key.
+	 */
+	thrown = false;
+	Map<Square, SquareState> corruptedSquareHashMap = new HashMap<Square, SquareState>();
+	for (Square sq : Square.values()) {
+	    corruptedSquareHashMap.put(sq, SquareState.EMPTY);
+	}
+	corruptedSquareHashMap.remove(Square.H8);
+	corruptedSquareHashMap.put(null, SquareState.EMPTY);
+	try {
+	    Board corruptedBoard = Board.valueOf(corruptedSquareHashMap);
+	} catch (NullPointerException npe) {
+	    thrown = true;
+	}
+	assertTrue(thrown);
+ 
+	/**
+	 * Tests if the valueOf method returns the supposed Board. It is the
+	 * standard usage under expected behavior.
+	 */
+	Map<Square, SquareState> squareMap = new EnumMap<Square, SquareState>(Square.class);
+	for (Square sq : Square.values()) {
+	    squareMap.put(sq, fixtBoardC.get(sq));
+	}
+	Board boardC0 = Board.valueOf(squareMap);
+	for (Square sq : Square.values()) {
+	    assertEquals(fixtBoardC.get(sq), boardC0.get(sq));
+	}
+
+ 	/**
+	 * Tests if the valueOf method returns the supposed Board. It is the
+	 * standard usage under expected behavior.
+	 * In this test the passed map is an HashMap instead of the "standard" EnumMap.
+	 */
+	Map<Square, SquareState> squareHashMap = new HashMap<Square, SquareState>();
+	for (Square sq : Square.values()) {
+	    squareHashMap.put(sq, fixtBoardC.get(sq));
+	}
+	Board boardC1 = Board.valueOf(squareHashMap);
+	for (Square sq : Square.values()) {
+	    assertEquals(fixtBoardC.get(sq), boardC1.get(sq));
+	}
+	
     }
 
 }
