@@ -320,6 +320,18 @@ public final class Board {
 	return sb.toString();
     }
 
+    /**
+     * Returns a formatted string, giving the two player disk count and their difference.
+     *
+     * @return a string showing the two player's count
+     */
+    public String printCount() {
+	int cb = countPieces(SquareState.BLACK);
+	int cw = countPieces(SquareState.WHITE);
+	int cd = cb - cw;
+	return "[@=" + cb + " 0=" + cw + " (" + cd + ")]";	
+    }
+
     /** Should go out of Board Class. */
     public void print(PrintStream ps, Clock clock) {
 	Integer cb = countPieces(SquareState.BLACK);

@@ -372,6 +372,12 @@ public class BoardTest {
     }
 
     @Test
+    public void testPrintCount() {
+	assertEquals("[@=2 0=2 (0)]", fixtBoardInitial.printCount());
+	assertEquals("[@=26 0=28 (-2)]", fixtBoardBlackHasToPass.printCount());
+    }
+
+    @Test
     public void testValueOf() {
 	boolean thrown;
 
