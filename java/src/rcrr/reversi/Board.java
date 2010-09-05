@@ -302,7 +302,7 @@ public final class Board {
     }
 
     /**
-     * Returns a string, 2d graphical, represention of the board.
+     * Returns a formatted string showing a 2d graphical represention of the board.
      *
      * @return a string being a 2d representation of the board
      */
@@ -317,6 +317,7 @@ public final class Board {
 		sb.append(p + " ");
 	    }
 	}
+	sb.append("\n");
 	return sb.toString();
     }
 
@@ -331,6 +332,30 @@ public final class Board {
 	int cd = cb - cw;
 	return "[@=" + cb + " 0=" + cw + " (" + cd + ")]";	
     }
+
+    /**
+     * Returns a formatted string showing a 2d graphical composed view
+     * of the board and the disk count.
+     * <p>
+     * The method joins the printBoard() and the printCount() output,
+     * setting the second on the right of the first board's row.
+     *
+     * @return a string being a 2d representation of the board with the disk count
+     */
+    public String printBoardWithCount() {
+	StringBuilder sbBoardWithCount = new StringBuilder();
+	String sBoard = printBoard();
+	String sCount = printCount();
+	String[] lines = sBoard.split("\n");
+	for (int i=0; i<lines.length; i++) {
+	    String line = lines[i];
+	    sbBoardWithCount.append(line);
+	    if (i == 0) sbBoardWithCount.append(sCount);
+	    sbBoardWithCount.append("\n");
+	}
+	return (sbBoardWithCount.toString());
+    }
+
 
     /** Should go out of Board Class. */
     public void print(PrintStream ps, Clock clock) {

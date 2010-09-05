@@ -367,7 +367,7 @@ public class BoardTest {
 	initialBoard.append(" 5  . . . @ O . . . \n");
 	initialBoard.append(" 6  . . . . . . . . \n");
 	initialBoard.append(" 7  . . . . . . . . \n");
-	initialBoard.append(" 8  . . . . . . . . ");
+	initialBoard.append(" 8  . . . . . . . . \n");
 	assertEquals(initialBoard.toString(), fixtBoardInitial.printBoard());
     }
 
@@ -375,6 +375,21 @@ public class BoardTest {
     public void testPrintCount() {
 	assertEquals("[@=2 0=2 (0)]", fixtBoardInitial.printCount());
 	assertEquals("[@=26 0=28 (-2)]", fixtBoardBlackHasToPass.printCount());
+    }
+
+    @Test
+    public void testPrintBoardWithCount() {
+	StringBuilder initialBoard = new StringBuilder();
+	initialBoard.append("    a b c d e f g h [@=2 0=2 (0)]\n");
+	initialBoard.append(" 1  . . . . . . . . \n");
+	initialBoard.append(" 2  . . . . . . . . \n");
+	initialBoard.append(" 3  . . . . . . . . \n");
+	initialBoard.append(" 4  . . . O @ . . . \n");
+	initialBoard.append(" 5  . . . @ O . . . \n");
+	initialBoard.append(" 6  . . . . . . . . \n");
+	initialBoard.append(" 7  . . . . . . . . \n");
+	initialBoard.append(" 8  . . . . . . . . \n");
+	assertEquals(initialBoard.toString(), fixtBoardInitial.printBoardWithCount());
     }
 
     @Test

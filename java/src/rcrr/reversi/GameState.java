@@ -65,7 +65,7 @@ public class GameState {
       g.getMove();
      */
     public static GameState getMoveX(Board b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
-	if (ps != null) b.print(ps, clock);
+	if (ps != null) ps.print(b.printBoardWithCount());
 	long t0 = System.currentTimeMillis();
 	Square move = strategy.move(player, b.copyBoard());
 	long t1 = System.currentTimeMillis();
