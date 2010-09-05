@@ -84,5 +84,10 @@ public class ClockTest {
 	Clock c = Clock.valueOf(900000L, 1L);
 	assertEquals("[BLACK=15:00, WHITE=00:00]", c.toString());
     }
+
+    @Test
+    public void testDefaultGameTimeInMinutes() {
+	assertEquals(30L, Clock.defaultGameTimeInMinutes());
+    }
     
 }

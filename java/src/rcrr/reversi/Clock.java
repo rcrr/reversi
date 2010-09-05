@@ -22,6 +22,12 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
+// To do:
+// move the two long fields into an EnumMap having the Players as keys.
+// remove the Long API in favour of long.
+// parameters boundaries are not tested.
+// complete the tests checking for null values.
+
 package rcrr.reversi;
 
 import java.text.DecimalFormat;
@@ -37,22 +43,24 @@ import java.text.NumberFormat;
  * To create a new {@code Clock} there are two static factories
  * available. The first is:
  * <pre>
+ * {@code
  * Clock c = Clock.valueOf(1000L, 1000L);
+ * }
  * </pre>
  * while the second is:
  * <pre>
+ * {@code
  * Clock c = Clock.initialClock(10L);
+ * }
  * </pre>
  * Another way to get a new {@code Clock} is to call the {@code setTime}
  * method. For instance let say that we have already a {@code Clock} and we want to
  * subtract one full second from the Black player:
  * <pre>
- * Clock updated = c.setTime(Player.BLACK, 1000L)
+ * {@code
+ * Clock updated = c.setTime(Player.BLACK, 1000L);
+ * }
  * </pre>
- *
- * @todo parameters boundaries are not tested.
- * @todo setTime do not handle the game over case.
- * @todo move the two long fields into an EnumMap having the Players as keys.
  */
 public final class Clock {
     

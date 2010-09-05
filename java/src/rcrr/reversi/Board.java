@@ -22,6 +22,11 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
+// To do:
+// makeMove, isLegal, legalMoves need a more extensive test suit
+// equal() and hashCode() methods has to be written
+// complete the class description
+
 package rcrr.reversi;
 
 import java.util.List;
@@ -30,17 +35,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Collections;
 import java.util.EnumMap;
-
-// To do:
-// - javadoc ....
-// - complete an exhaustive test suite
-// - polish, polish, polish ....
-
-// makeMove, isLegal, legalMoves need an extensive test suit
-
-// equal() and hashCode() methods has to be written
-
-// complete the class description
 
 /**
  * An instance of a board game position, or state.
