@@ -55,7 +55,8 @@ public class Reversi {
 	}
 	if (ps != null) {
 	    ps.print("\nThe Game is over. Final result:\n\n");
-	    gs.getBoard().print(ps, gs.getClock());
+	    // gs.getBoard().print(ps, gs.getClock());
+	    ps.print(gs.printGameState());
 	}
 	return gs.getBoard().countDifference(Player.BLACK);
     }

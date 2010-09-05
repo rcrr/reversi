@@ -55,6 +55,29 @@ public class GameState {
 	return player;
     }
 
+    /**
+     * Returns a formatted string showing a 2d graphical composed view
+     * of the game state. It shows the board, the disk count, and the clock.
+     * <p>
+     * The method joins the printBoardWithCount() and the printClock() output,
+     * setting the second on the right of the last board's row.
+     *
+     * @return a string being a 2d representation of the game
+     */
+    public String printGameState() {
+	StringBuilder sbGameState = new StringBuilder();
+	String sBoard = board.printBoardWithCount();
+	String sClock = clock.printClock();
+	String[] lines = sBoard.split("\n");
+	for (int i=0; i<lines.length; i++) {
+	    String line = lines[i];
+	    sbGameState.append(line);
+	    if (i == 8) sbGameState.append(sClock);
+	    sbGameState.append("\n");
+	}
+	return (sbGameState.toString());
+    }
+
     /*
       Has to be copletely rewritten!
       Player should be renamed into Color (or PlayerColor to avoid collision with the java Color class)

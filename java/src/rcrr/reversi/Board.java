@@ -31,9 +31,6 @@ import java.util.Map;
 import java.util.Collections;
 import java.util.EnumMap;
 
-// to be removed
-import java.io.PrintStream;
-
 // To do:
 // - javadoc ....
 // - complete an exhaustive test suite
@@ -113,15 +110,6 @@ public final class Board {
 	return new Board(squareMap);
     }
 
-    /** Returns a new squares map being filled by empty values. */
-    private static Map<Square, SquareState> emptyBoardSquares() {
-	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
-	for (Square sq : Square.values()) {
-	    sm.put(sq, SquareState.EMPTY);   
-	}
-	return sm;
-    }
-
     /**
      * A static factory for the class that returns a new empty board.
      *
@@ -197,33 +185,6 @@ public final class Board {
     }
     
     /**
-     * Returns the bracketing square or null if it is not found.
-     * The method does not check that the move is legal.
-     * <p>
-     * The method should be private. It is not private to enable unit testing.
-     * <p>
-     * Parameters move, player, and dir must be not null. Java assert statements check
-     * against this case to occur.
-     *
-     * @param move   the square where to move
-     * @param player the player
-     * @param dir    the direction
-     * @return       the bracketing square, or null if it is not found
-     */
-    Square wouldFlip(Square move, Player player, Direction dir) {
-	assert (move != null) : "Argument square must be not null";
-	assert (player != null) : "Argument player must be not null";
-	assert (dir != null) : "Argument dir must be not null";
-	Square neighbor = move.neighbors().get(dir);
-	Square bracketing = null;
-	if (get(neighbor) == player.opponent().color()) {
-	    Square next = neighbor.neighbors().get(dir);
-	    if (next != null) bracketing = findBracketingPiece(next, player, dir);
-	}
-	return bracketing;
-    }
-    
-    /**
      * Returns the boolean value telling if the move, done by the
      * specified player, is legal.
      *
@@ -243,34 +204,6 @@ public final class Board {
 	    if (wouldFlip(move, player, dir) != null) return true;
 	}
  	return false;
-    }
-
-    /**
-     * Returns the bracketing square or null if it is missing.
-     * The method does not check that the move is legal and that the square parameter
-     * is one step from move in the given direction.
-     * <p>
-     * The method should be private. It is not private to enable unit testing.
-     * <p>
-     * Parameters square, player, and dir must be not null. Java assert statements check
-     * against this case to occur.
-     *
-     * @param square the square obtained moving by one from the move in the given direction
-     * @param player the player
-     * @param dir    the direction
-     * @return       the bracketing square, or null if it is not found
-     */
-    Square findBracketingPiece(Square square, Player player, Direction dir) {
-	assert (square != null) : "Argument square must be not null";
-	assert (player != null) : "Argument player must be not null";
-	assert (dir != null) : "Argument dir must be not null";
-	if (get(square) == player.color()) {
-	    return square;
-	} else if (get(square) == player.opponent().color()) {
-	    Square next = square.neighbors().get(dir);
-	    if (next != null) return findBracketingPiece(next, player, dir);
-	}
-	return null;
     }
 
     /**
@@ -356,30 +289,6 @@ public final class Board {
 	return (sbBoardWithCount.toString());
     }
 
-
-    /** Should go out of Board Class. */
-    public void print(PrintStream ps, Clock clock) {
-	Integer cb = countPieces(SquareState.BLACK);
-	Integer cw = countPieces(SquareState.WHITE);
-	Integer cd = cb - cw;
-	ps.print("    a b c d e f g h [@=" + cb + " 0=" + cw + " (" + cd + ")]");
-	
-	for (Row r : Row.values()) {
-	    ps.print("\n " + r.label() + "  ");
-	    for (Column c : Column.values()) {
-		int idx = (r.ordinal() * 8) + c.ordinal();
-		String p = get(Square.getInstance(idx)).symbol();
-		ps.print(p + " ");
-	    }
-	}
-
-	if (clock != null) {
-	    ps.print("\n");
-	    ps.print("\tClock: " + clock);
-	}
-	ps.print("\n\n");
-    }
-
     /**
      * Returns the next player: the one that has to play next, given the current one.
      * When the opponent player has at last one legal move she is
@@ -439,6 +348,70 @@ public final class Board {
 	    if (isLegal(move, player)) legalMoves.add(move);
 	}
 	return legalMoves;
+    }
+    
+    /**
+     * Returns the bracketing square or null if it is not found.
+     * The method does not check that the move is legal.
+     * <p>
+     * The method should be private. It is not private to enable unit testing.
+     * <p>
+     * Parameters move, player, and dir must be not null. Java assert statements check
+     * against this case to occur.
+     *
+     * @param move   the square where to move
+     * @param player the player
+     * @param dir    the direction
+     * @return       the bracketing square, or null if it is not found
+     */
+    Square wouldFlip(Square move, Player player, Direction dir) {
+	assert (move != null) : "Argument square must be not null";
+	assert (player != null) : "Argument player must be not null";
+	assert (dir != null) : "Argument dir must be not null";
+	Square neighbor = move.neighbors().get(dir);
+	Square bracketing = null;
+	if (get(neighbor) == player.opponent().color()) {
+	    Square next = neighbor.neighbors().get(dir);
+	    if (next != null) bracketing = findBracketingPiece(next, player, dir);
+	}
+	return bracketing;
+    }
+
+    /**
+     * Returns the bracketing square or null if it is missing.
+     * The method does not check that the move is legal and that the square parameter
+     * is one step from move in the given direction.
+     * <p>
+     * The method should be private. It is not private to enable unit testing.
+     * <p>
+     * Parameters square, player, and dir must be not null. Java assert statements check
+     * against this case to occur.
+     *
+     * @param square the square obtained moving by one from the move in the given direction
+     * @param player the player
+     * @param dir    the direction
+     * @return       the bracketing square, or null if it is not found
+     */
+    Square findBracketingPiece(Square square, Player player, Direction dir) {
+	assert (square != null) : "Argument square must be not null";
+	assert (player != null) : "Argument player must be not null";
+	assert (dir != null) : "Argument dir must be not null";
+	if (get(square) == player.color()) {
+	    return square;
+	} else if (get(square) == player.opponent().color()) {
+	    Square next = square.neighbors().get(dir);
+	    if (next != null) return findBracketingPiece(next, player, dir);
+	}
+	return null;
+    }
+
+    /** Returns a new squares map being filled by empty values. */
+    private static Map<Square, SquareState> emptyBoardSquares() {
+	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
+	for (Square sq : Square.values()) {
+	    sm.put(sq, SquareState.EMPTY);   
+	}
+	return sm;
     }
 
 }

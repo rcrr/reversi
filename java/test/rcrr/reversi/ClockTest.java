@@ -53,6 +53,12 @@ public class ClockTest {
     }
 
     @Test
+    public void testPrintClock() {
+	Clock c = Clock.valueOf(900000L, 1L);
+	assertEquals("[@=15:00, O=00:00]", c.printClock());
+    }
+
+    @Test
     public void testSetTime() {
 	Long tb = Long.valueOf(100);
 	Long tw = Long.valueOf(100);
@@ -76,7 +82,7 @@ public class ClockTest {
     @Test
     public void testToString() {
 	Clock c = Clock.valueOf(900000L, 1L);
-	assertEquals("[ BLACK=15:00, WHITE=00:00 ]", c.toString());
+	assertEquals("[BLACK=15:00, WHITE=00:00]", c.toString());
     }
     
 }
