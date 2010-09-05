@@ -30,30 +30,60 @@ import java.util.Collections;
 
 public class Game {
 
+    /** The game state sequence field. */
     private final List<GameState> game;
 
+    /** Private constructor. */
     private Game(List<GameState> gameSequence) {
 	game = Collections.unmodifiableList(gameSequence);
     }
 
+   /**
+     * A static factory.
+     *
+     * @return the game built with the given sequence
+     */
     public static Game valueOf(List<GameState> gameSequence) {
 	return new Game(gameSequence);
     }
 
+   /**
+     * Returns a new game having the new state added to the current sequence.
+     *
+     * @return a new game modified by adding the game state parameter
+     */
     public Game add(GameState gameState) {
 	List<GameState> gameSequence = new ArrayList<GameState>(game);
 	gameSequence.add(gameState);
 	return valueOf(gameSequence);
     }
 
+    /**
+     * Returns the number of game states recordered.
+     * <p>
+     * When the game starts from the initial position the size is
+     * equal to the number of moves already played plus one.
+     *
+     * @return the size of the sequence of the game's states recordered
+     */
     public int size() {
 	return game.size();
     }
 
+   /**
+     * Returns the game state identified by {@code index}.
+     *
+     * @return the game state identified by the index parameter
+     */
     public GameState get(int index) {
 	return game.get(index);
     }
 
+   /**
+     * Returns true if the game state sequence is empty.
+     *
+     * @return if the game sequence is empty
+     */
     public boolean isEmpty() {
 	return game.isEmpty();
     }

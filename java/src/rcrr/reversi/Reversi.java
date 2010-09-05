@@ -43,13 +43,40 @@ import java.util.HashMap;
 import java.util.List;
 import java.io.PrintStream;
 
+
+/**
+ * {@code Reversi} is the main entry point for the program.
+ * <p>
+ * Documentation has to be completed.
+ * Testing has to be completed.
+ */
 public class Reversi {
 
+    /** This field should go out of the Reversi class. */
     public static final int WINNING_VALUE = Integer.MAX_VALUE;
+
+    /** This field should go out of the Reversi class. */
     public static final int LOSING_VALUE = - Integer.MAX_VALUE;
 
-    private Reversi() {}
+    /** Private constructor. Not used so far. */
+    private Reversi() {
+	throw new UnsupportedOperationException();
+    }
 
+    /**
+     * Plays a game returning the score.
+     * <p>
+     * Documentation has to be completed.
+     * Testing has to be completed.
+     * It has to be fully refactored.
+     *
+     * @param blStrategy ...
+     * @param whStrategy
+     * @param ps
+     * @param minutes
+     * 
+     * @return           the game score
+     */
     public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Long minutes) {
 	GameState gs = GameState.valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
 	Game game = Game.valueOf(Arrays.asList(gs));
@@ -68,20 +95,16 @@ public class Reversi {
 	}
 	if (ps != null) {
 	    ps.print("\nThe Game is over. Final result:\n\n");
-	    // gs.getBoard().print(ps, gs.getClock());
 	    ps.print(gs.printGameState());
 	}
 	return gs.getBoard().countDifference(Player.BLACK);
     }
 
-
-    private static void usage() {
-	System.out.println("usage: java rcrr.reversi.Reversi blackStrategy whiteStrategy");
-	System.out.println("\t Where blackStrategy and whiteStrategy are two classes");
-	System.out.println("\t that implements the rcrr.reversi.Strategy interface.");
-    }
-
-	
+    /**
+     * The main entry point for the Reversi Program.
+     *
+     * @param args an array having two elements: [black's strategy, white's strategy]
+     */
     public static void main(String[] args) {
 	if (args == null || args.length != 2) {
 	    System.out.println("Argument list error: blackStrategy and whiteStrategy must be provided.");
@@ -118,5 +141,11 @@ public class Reversi {
 	reversi(s[0], s[1], System.out, null);
     }
 
+    /** returns the usage message */
+    private static void usage() {
+	System.out.println("usage: java rcrr.reversi.Reversi blackStrategy whiteStrategy");
+	System.out.println("\t Where blackStrategy and whiteStrategy are two classes");
+	System.out.println("\t that implements the rcrr.reversi.Strategy interface.");
+    }
 
 }
