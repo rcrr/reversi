@@ -124,7 +124,7 @@ public enum Square {
      **/
     public static Square instanceOf(Row row, Column column) {
 	if (row == null || column == null) return null;
-	else return SQUARES.get(Row.size() * row.ordinal() + column.ordinal());
+	else return SQUARES.get(Row.values().length * row.ordinal() + column.ordinal());
     }
 
     /** 

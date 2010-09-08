@@ -90,28 +90,12 @@ public enum Row {
     /** A list containing all the rows ordered. */
     private static List<Row> ROWS = rows();
 
-    /** The number of rows. */
-    private static int SIZE = ROWS.size();
-
-    /**
-     * Returns the number of rows in the {@code Row enum} definition.
-     * It returns the same value given by the length of the array
-     * implementation hidden by the enum interface.
-     * <p>
-     * The following statement returns always {@code true}:
-     * <p>
-     * {@code Row.values().lenght == Row.size()}
-     *
-     * @return the number of rows
-     */
-    public static int size() { return SIZE; }
-
     /**
      * Returns the row at the specified position.
      *
      * @return the identified row
      *
-     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Row.size())} 
+     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Row.values().length)} 
      */
     public static Row getInstance(int index) { return ROWS.get(index); }
 
@@ -131,7 +115,7 @@ public enum Row {
     public Row shift(int delta) {
 	Row r;
 	int index = ROWS.indexOf(this) + delta;
-	if (index < 0 || index >= SIZE) r = null;
+	if (index < 0 || index >= Row.values().length) r = null;
 	else r = ROWS.get(index);
 	return r;
     }

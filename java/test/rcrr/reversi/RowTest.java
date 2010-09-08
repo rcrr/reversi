@@ -37,12 +37,6 @@ public class RowTest {
     }
 
     @Test
-    public void testSize() {
-	assertEquals(8, Row.size());
-	assertEquals(Row.values().length, Row.size());
-    }
-
-    @Test
     public void testGetInstance() {
 	assertEquals(Row.R1, Row.getInstance(0));
 	assertEquals(Row.R3, Row.getInstance(2));
