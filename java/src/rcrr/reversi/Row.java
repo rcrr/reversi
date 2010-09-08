@@ -27,6 +27,7 @@ package rcrr.reversi;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Arrays;
 
 /**
  * The {@code Row} enum defines a row of the board game.
@@ -79,17 +80,6 @@ public enum Row {
      */
     public String label() { return label; }
 
-    private static List<Row> rows() {
-	List<Row> rows = new ArrayList<Row>();
-	for (Row r : Row.values()) {
-	    rows.add(r);
-	}
-	return Collections.unmodifiableList(rows);
-    }
-
-    /** A list containing all the rows ordered. */
-    private static List<Row> ROWS = rows();
-
     /**
      * Returns the row at the specified position.
      *
@@ -97,7 +87,7 @@ public enum Row {
      *
      * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Row.values().length)} 
      */
-    public static Row getInstance(int index) { return ROWS.get(index); }
+    public static Row getInstance(int index) { return values()[index]; }
 
     /**
      * Returns the row obtained moving by a {@code delta} number of shift, counted with the proper sign.
@@ -114,9 +104,9 @@ public enum Row {
      */
     public Row shift(int delta) {
 	Row r;
-	int index = ROWS.indexOf(this) + delta;
+	int index = ordinal() + delta;
 	if (index < 0 || index >= Row.values().length) r = null;
-	else r = ROWS.get(index);
+	else r = values()[index];
 	return r;
     }
 
