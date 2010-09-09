@@ -23,9 +23,11 @@
  */
 
 package rcrr.reversi;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Arrays;
 
 /**
  * The {@code Column} enum defines a column of the board game.
@@ -78,33 +80,6 @@ public enum Column {
      */
     public String label() { return label; }
 
-    private static List<Column> columns() {
-	List<Column> columns = new ArrayList<Column>();
-	for (Column c : Column.values()) {
-	    columns.add(c);
-	}
-	return Collections.unmodifiableList(columns);
-    }
-
-    /** A list containing all the columns ordered. */
-    private static List<Column> COLUMNS = columns();
-
-    /** The number of columns. */
-    private static int SIZE = COLUMNS.size();
-
-    /**
-     * Returns the number of columns in the {@code Column enum} definition.
-     * It returns the same value given by the length of the array
-     * implementation hidden by the enum interface.
-     * <p>
-     * The following statement returns always {@code true}:
-     * <p>
-     * {@code Column.values().lenght == Column.size()}
-     *
-     * @return the number of columns
-     */
-    public static int size() { return SIZE; }
-
     /**
      * Returns the column at the specified position.
      *
@@ -112,7 +87,7 @@ public enum Column {
      *
      * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Column.size())} 
      */
-    public static Column getInstance(int index) { return COLUMNS.get(index); }
+    public static Column getInstance(int index) { return values()[index]; }
 
     /**
      * Returns the column obtained moving by a {@code delta} number of shift, counted with the proper sign.
@@ -129,9 +104,9 @@ public enum Column {
      */
     public Column shift(int delta) {
 	Column c;
-	int index = COLUMNS.indexOf(this) + delta;
-	if (index < 0 || index >= SIZE) c = null;
-	else c = COLUMNS.get(index);
+	int index = ordinal() + delta;
+	if (index < 0 || index >= Column.values().length) c = null;
+	else c = values()[index];
 	return c;
     }
 
