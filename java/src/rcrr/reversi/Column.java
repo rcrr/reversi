@@ -102,7 +102,7 @@ public enum Column {
      *
      * @return the column identified by the delta shift
      */
-    public Column shift(int delta) {
+    Column shift(int delta) {
 	Column c;
 	int index = ordinal() + delta;
 	if (index < 0 || index >= Column.values().length) c = null;

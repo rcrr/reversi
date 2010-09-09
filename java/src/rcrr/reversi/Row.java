@@ -102,7 +102,7 @@ public enum Row {
      *
      * @return the row identified by the delta shift
      */
-    public Row shift(int delta) {
+    Row shift(int delta) {
 	Row r;
 	int index = ordinal() + delta;
 	if (index < 0 || index >= Row.values().length) r = null;

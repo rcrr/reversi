@@ -44,7 +44,7 @@ public class ColumnTest {
 
 	boolean thrown = false;
 	try {
-	    Row.getInstance(8);
+	    Column.getInstance(8);
 	} catch (IndexOutOfBoundsException e) {
 	    thrown = true;
 	}
