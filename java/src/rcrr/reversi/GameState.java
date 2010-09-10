@@ -87,8 +87,11 @@ public class GameState {
       game g;
       g.getMove();
      */
-    public static GameState getMoveX(Board b, Strategy strategy, Player player, PrintStream ps, Clock clock) throws GameOverException {
-	if (ps != null) ps.print(b.printBoardWithCount());
+    public static GameState getMoveY(GameState gs, Strategy strategy, PrintStream ps) throws GameOverException {
+	Player player = gs.getPlayer();
+	Board b = gs.getBoard();
+	Clock clock = gs.getClock();
+	if (ps != null) ps.print(gs.printGameState());
 	long t0 = System.currentTimeMillis();
 	Square move = strategy.move(player, b.copyBoard());
 	long t1 = System.currentTimeMillis();
@@ -101,7 +104,7 @@ public class GameState {
 	    return GameState.valueOf(b1, b1.nextToPlay(player), clock);
 	} else {
 	    if (ps != null) ps.print("Illegal move: " + move + "\n");
-	    return getMoveX(b, strategy, player, ps, clock);
+	    return getMoveY(gs, strategy, ps);
 	}
     }
 

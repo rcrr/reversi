@@ -84,7 +84,8 @@ public class Reversi {
 	    for (Player player = gs.getPlayer();
 		 player != null;
 		 player = gs.getBoard().nextToPlay(player)) {
-		gs = GameState.getMoveX(gs.getBoard(), ((player == Player.BLACK) ? blStrategy : whStrategy), player, ps, gs.getClock());
+		// gs = GameState.getMoveX(gs.getBoard(), ((player == Player.BLACK) ? blStrategy : whStrategy), player, ps, gs.getClock());
+		gs = GameState.getMoveY(gs, ((player == Player.BLACK) ? blStrategy : whStrategy), ps);
 		game.add(gs);
 		if (ps != null) {
 		    if (gs.getBoard().nextToPlay(player) == player) ps.print("\n" + player.opponent() + " has no moves and must pass.\n");
