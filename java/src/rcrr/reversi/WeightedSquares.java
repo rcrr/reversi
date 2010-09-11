@@ -58,9 +58,9 @@ public class WeightedSquares implements EvalFunction, Strategy {
 	maximizeWeightedCount = Minimax.maximizer(this);
     }
 
-    public Integer eval(Player player, Board board) {
+    public int eval(Player player, Board board) {
 	Player opponent = player.opponent();
-	Integer value = 0;
+	int value = 0;
 	for (Square sq : Square.values()) {
 	    int p;
 	    SquareState color = board.get(sq);

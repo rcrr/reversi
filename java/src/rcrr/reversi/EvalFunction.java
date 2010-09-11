@@ -22,9 +22,14 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-
 package rcrr.reversi;
 
+/**
+ * An eval function receives a board and the player thta has to move
+ * and returns an integer value that represents the evaluation of the
+ * game position.
+ * It represents the position euristic value.
+ */
 public interface EvalFunction {
-    Integer eval(Player player, Board board);
+    int eval(Player player, Board board);
 }
