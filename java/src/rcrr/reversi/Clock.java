@@ -142,8 +142,12 @@ public final class Clock {
      * @param  deltaTime the amount of time in milliseconds to subtract from the 
      *                   player's clock time
      * @return           a new updated {@code Clock}
+     * @throws NullPointerException     if the player parameter is null 
+     * @throws GameOverException        if the clock run out of time
+     * @throws IllegalArgumentException if a player different from BLACK or WHITE is passed as parameter
      */
-    public Clock setTime(final Player player, final Long deltaTime) throws GameOverException {
+    public Clock setTime(final Player player, final long deltaTime) throws GameOverException {
+	if (player == null) throw new NullPointerException("Parameter player connot be null. player=" + player);
 	switch(player) {
 	case BLACK:
 	    final long bRemainingTime = blackTime - deltaTime;
