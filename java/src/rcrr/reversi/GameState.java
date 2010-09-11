@@ -91,7 +91,6 @@ public class GameState {
 	Player player = gs.getPlayer();
 	Board b = gs.getBoard();
 	Clock clock = gs.getClock();
-	if (ps != null) ps.print(gs.printGameState());
 	long t0 = System.currentTimeMillis();
 	Square move = strategy.move(player, b.copyBoard());
 	long t1 = System.currentTimeMillis();

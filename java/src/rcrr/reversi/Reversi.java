@@ -84,6 +84,7 @@ public class Reversi {
 	    for (Player player = gs.getPlayer();
 		 player != null;
 		 player = gs.getBoard().nextToPlay(player)) {
+		if (ps != null) ps.print(gs.printGameState());
 		gs = GameState.getMoveY(gs, ((player == Player.BLACK) ? blStrategy : whStrategy), ps);
 		game.add(gs);
 		if (ps != null) {
