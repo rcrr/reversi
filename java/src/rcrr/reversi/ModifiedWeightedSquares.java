@@ -60,8 +60,8 @@ public class ModifiedWeightedSquares implements EvalFunction, Strategy {
 	return w;
     }
 
-    public Square move(Player player, Board board) {
-	return s.move(player, board);
+    public Square move(GameState gameState) {
+	return s.move(gameState);
     }
 
 }

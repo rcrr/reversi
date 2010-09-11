@@ -93,8 +93,8 @@ public class Minimax {
 
     public static Strategy minimaxSearcher(final Integer ply, final EvalFunction ef) {
 	return new Strategy() {
-	    public Square move(Player player, Board board) {
-		Minimax mm = minimax(player, board, ply, ef);
+	    public Square move(GameState gameState) {
+		Minimax mm = minimax(gameState.getPlayer(), gameState.getBoard(), ply, ef);
 		return mm.getMove();
 	    }
 	};
@@ -131,8 +131,8 @@ public class Minimax {
 
     public static Strategy alphabetaSearcher(final Integer ply, final EvalFunction ef) {
 	return new Strategy() {
-	    public Square move(Player player, Board board) {
-		Minimax ab = alphabeta(player, board, Reversi.LOSING_VALUE, Reversi.WINNING_VALUE, ply, ef);
+	    public Square move(GameState gameState) {
+		Minimax ab = alphabeta(gameState.getPlayer(), gameState.getBoard(), Reversi.LOSING_VALUE, Reversi.WINNING_VALUE, ply, ef);
 		return ab.getMove();
 	    }
 	};
@@ -152,7 +152,9 @@ public class Minimax {
     // This is anyhow a better place than Board.
     public static Strategy maximizer(final EvalFunction ef) {
 	return new Strategy() {
-	    public Square move(Player player, Board board) {
+	    public Square move(GameState gameState) {
+		Player player = gameState.getPlayer();
+		Board board = gameState.getBoard();
 		List<Square> moves = board.legalMoves(player);
 		List<Integer> scores = new ArrayList<Integer>();
 		for (Square move : moves) {

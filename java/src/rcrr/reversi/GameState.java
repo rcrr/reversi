@@ -92,7 +92,7 @@ public class GameState {
 	Board b = gs.getBoard();
 	Clock clock = gs.getClock();
 	long t0 = System.currentTimeMillis();
-	Square move = strategy.move(player, b.copyBoard());
+	Square move = strategy.move(gs);
 	long t1 = System.currentTimeMillis();
 	clock = clock.setTime(player, t1 - t0);
 	if (b.isLegal(move, player)) {

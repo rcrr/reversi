@@ -72,8 +72,8 @@ public class WeightedSquares implements EvalFunction, Strategy {
 	return value;
     }
 
-    public Square move(Player player, Board board) {
-	return maximizeWeightedCount.move(player, board);
+    public Square move(GameState gameState) {
+	return maximizeWeightedCount.move(gameState);
     }
 
 }
