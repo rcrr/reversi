@@ -45,10 +45,10 @@ public class HumanStrategy implements Strategy {
 	Square move = null;
 	while (move == null) {
 	    List<String> moves = new ArrayList<String>();
-	    for (Square mv : gameState.getBoard().legalMoves(gameState.getPlayer())) {
+	    for (Square mv : gameState.board().legalMoves(gameState.player())) {
 		moves.add(mv.label());
 	    }
-	    System.out.print(gameState.getPlayer().toString() + " to move " + moves + ": ");
+	    System.out.print(gameState.player().toString() + " to move " + moves + ": ");
 	    String s = null;
 	    try {
 		s = in.readLine();

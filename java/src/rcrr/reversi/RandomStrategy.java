@@ -38,8 +38,8 @@ public class RandomStrategy implements Strategy {
     }
 
     public Square move(GameState gameState) {
-	Player player = gameState.getPlayer(); 
-	Board board = gameState.getBoard();
+	Player player = gameState.player(); 
+	Board board = gameState.board();
 	List<Square> moves = board.legalMoves(player);
 	int index = r.nextInt(moves.size());
 	return moves.get(index);

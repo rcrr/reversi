@@ -43,15 +43,15 @@ public class GameState {
 	return gs;
     }
 
-    public Clock getClock() {
+    public Clock clock() {
 	return clock;
     }
 
-    public Board getBoard() {
+    public Board board() {
 	return board;
     }
 
-    public Player getPlayer() {
+    public Player player() {
 	return player;
     }
 

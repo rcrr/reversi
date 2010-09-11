@@ -81,14 +81,14 @@ public class Reversi {
 	GameState gs = GameState.valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
 	Game game = Game.valueOf(Arrays.asList(gs));
 	try {
-	    for (Player player = gs.getPlayer();
+	    for (Player player = gs.player();
 		 player != null;
-		 player = gs.getBoard().nextToPlay(player)) {
+		 player = gs.board().nextToPlay(player)) {
 		if (ps != null) ps.print(gs.printGameState());
 		gs = getMoveY(gs, ((player == Player.BLACK) ? blStrategy : whStrategy), ps);
 		game.add(gs);
 		if (ps != null) {
-		    if (gs.getBoard().nextToPlay(player) == player) ps.print("\n" + player.opponent() + " has no moves and must pass.\n");
+		    if (gs.board().nextToPlay(player) == player) ps.print("\n" + player.opponent() + " has no moves and must pass.\n");
 		}
 	    }
 	} catch (GameOverException goe) {
@@ -98,7 +98,7 @@ public class Reversi {
 	    ps.print("\nThe Game is over. Final result:\n\n");
 	    ps.print(gs.printGameState());
 	}
-	return gs.getBoard().countDifference(Player.BLACK);
+	return gs.board().countDifference(Player.BLACK);
     }
 
     /*
@@ -111,9 +111,9 @@ public class Reversi {
       g.getMove();
      */
     public static GameState getMoveY(GameState gs, Strategy strategy, PrintStream ps) throws GameOverException {
-	Player player = gs.getPlayer();
-	Board b = gs.getBoard();
-	Clock clock = gs.getClock();
+	Player player = gs.player();
+	Board b = gs.board();
+	Clock clock = gs.clock();
 	long t0 = System.currentTimeMillis();
 	Square move = strategy.move(gs);
 	long t1 = System.currentTimeMillis();
