@@ -153,11 +153,8 @@ public final class Clock {
 	    final long wRemainingTime = whiteTime - deltaTime;
 	    if (wRemainingTime < 0) throw new GameOverException("WHITE player exceded his game time limit.");
 	    return new Clock(blackTime, wRemainingTime);
+	default: throw new IllegalArgumentException("Only BLACK and WHITE players are supported by setTime().");
 	}
-	// throw new Exception("Only BLACK and WHITE players are supported by Clock.");
-	System.out.println("Only BLACK and WHITE players are supported by Clock.");
-	System.exit(1);
-	return null;
     }
 
     /**
