@@ -78,33 +78,4 @@ public class GameState {
 	return (sbGameState.toString());
     }
 
-    /*
-      Has to be copletely rewritten!
-      Player should be renamed into Color (or PlayerColor to avoid collision with the java Color class)
-      Player should then be a new class having all the Player attribute, mostly the Strategy ....
-      All the printing should be eradicated from the base data classes
-      the new API shold be somthing like:
-      game g;
-      g.getMove();
-     */
-    public static GameState getMoveY(GameState gs, Strategy strategy, PrintStream ps) throws GameOverException {
-	Player player = gs.getPlayer();
-	Board b = gs.getBoard();
-	Clock clock = gs.getClock();
-	long t0 = System.currentTimeMillis();
-	Square move = strategy.move(gs);
-	long t1 = System.currentTimeMillis();
-	clock = clock.setTime(player, t1 - t0);
-	if (b.isLegal(move, player)) {
-	    if (ps != null) {
-		ps.print("\n" + player.name() + " moves to " + move.label() + "\n");
-	    }
-	    Board b1 = b.makeMove(move, player);
-	    return GameState.valueOf(b1, b1.nextToPlay(player), clock);
-	} else {
-	    if (ps != null) ps.print("Illegal move: " + move + "\n");
-	    return getMoveY(gs, strategy, ps);
-	}
-    }
-
 }
