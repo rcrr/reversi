@@ -36,6 +36,8 @@ package rcrr.reversi;
  * </ol>
  * <p>
  * {@code Board} is immutable.
+ * <p>
+ * The {@code player} field can be {@code null} only when no legal moves are available to either player.
  */
 public class GameState {
 
@@ -60,6 +62,8 @@ public class GameState {
     private GameState(Board board, Player player, Clock clock) {
 	assert (board != null) : "Parameter board cannot be null. board=" + board;
 	assert (clock != null) : "Parameter clock cannot be null. clock=" + clock;
+	assert ((player != null) ||
+		!board.hasAnyPlayerAnyLegalMove()) : "Parameter player cannot be null when there are still valid moves. player=" + player;
 	this.board = board;
 	this.player = player;
 	this.clock = clock;
@@ -75,7 +79,8 @@ public class GameState {
      * @param  player the player that has to move
      * @param  clock  the current clock
      * @return        a new game state
-     * @throws NullPointerException when board or clock parameters are null
+     * @throws NullPointerException when board or clock parameters are null,
+     *                              or when player is null and legal moves are still there
      */
     public static GameState valueOf(Board board, Player player, Clock clock) {
 	if (board == null) throw new NullPointerException("Parameter board cannot be null. board=" + board);
