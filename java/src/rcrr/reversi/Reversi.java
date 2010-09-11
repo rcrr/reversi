@@ -77,14 +77,13 @@ public class Reversi {
      * 
      * @return           the game score
      */
-    public static Integer reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Long minutes) {
+    public static int reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Long minutes) {
 	GameState gs = GameState.valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
 	Game game = Game.valueOf(Arrays.asList(gs));
 	try {
 	    for (Player player = gs.getPlayer();
 		 player != null;
 		 player = gs.getBoard().nextToPlay(player)) {
-		// gs = GameState.getMoveX(gs.getBoard(), ((player == Player.BLACK) ? blStrategy : whStrategy), player, ps, gs.getClock());
 		gs = GameState.getMoveY(gs, ((player == Player.BLACK) ? blStrategy : whStrategy), ps);
 		game.add(gs);
 		if (ps != null) {
