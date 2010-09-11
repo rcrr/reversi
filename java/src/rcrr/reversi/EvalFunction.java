@@ -25,11 +25,20 @@
 package rcrr.reversi;
 
 /**
- * An eval function receives a board and the player thta has to move
+ * An eval function receives a board and the player that has to move
  * and returns an integer value that represents the evaluation of the
  * game position.
  * It represents the position euristic value.
  */
 public interface EvalFunction {
+
+    /**
+     * Returns the value assesment for the given position.
+     *
+     * @param player the player for which calculate the assessment
+     * @param board  the board to asses
+     * @return       the board value for the given player
+     */
     int eval(Player player, Board board);
+
 }

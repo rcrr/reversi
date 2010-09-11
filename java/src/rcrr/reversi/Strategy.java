@@ -22,9 +22,19 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-
 package rcrr.reversi;
 
+/**
+ * A strategy is an object capable to provide a move
+ * given a game state.
+ */
 public interface Strategy {
+
+    /**
+     * Returns the game move for the strategy.
+     *
+     * @param gameState the game state
+     * @return          the move to play
+     */
     Square move(GameState gameState);
 }
