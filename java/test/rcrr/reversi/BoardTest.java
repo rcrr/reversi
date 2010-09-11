@@ -321,6 +321,14 @@ public class BoardTest {
     }
 
     @Test
+    public void testHasAnyPlayerAnyLegalMove() {
+	assertFalse(fixtBoardEmpty.hasAnyPlayerAnyLegalMove());
+	assertTrue(fixtBoardInitial.hasAnyPlayerAnyLegalMove());
+	assertTrue(fixtBoardBlackHasToPass.hasAnyPlayerAnyLegalMove());
+	assertFalse(fixtBoardEndGameX.hasAnyPlayerAnyLegalMove());
+    }
+
+    @Test
     public void testLegalMoves() {
 	List<Square> lm;
 	boolean thrown;

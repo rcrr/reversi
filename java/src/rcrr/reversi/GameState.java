@@ -80,6 +80,8 @@ public class GameState {
     public static GameState valueOf(Board board, Player player, Clock clock) {
 	if (board == null) throw new NullPointerException("Parameter board cannot be null. board=" + board);
 	if (clock == null) throw new NullPointerException("Parameter clock cannot be null. clock=" + clock);
+	if ((player == null) && board.hasAnyPlayerAnyLegalMove())
+	    throw new NullPointerException("Parameter player cannot be null when there are still valid moves. player=" + player);
 	GameState gs = new GameState(board, player, clock);
 	return gs;
     }

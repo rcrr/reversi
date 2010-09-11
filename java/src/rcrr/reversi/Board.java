@@ -316,14 +316,30 @@ public final class Board {
      */
     public boolean hasAnyLegalMove (Player player) {
 	if (player == null) throw new NullPointerException("parameter player must be not null. player=" + player);
-	boolean b = false;
+	boolean hasAnyLegalMove = false;
 	for (Square move : Square.values()) {
 	    if (isLegal(move, player)) {
-		b = true;
+		hasAnyLegalMove = true;
 		break;
 	    }
 	}
-	return b;
+	return hasAnyLegalMove;
+    }
+
+    /**
+     * Returns true if either black or white player has any legal move.
+     *
+     * @return {@code true} if either player has a legal move
+     */
+    public boolean hasAnyPlayerAnyLegalMove() {
+	boolean hasAnyPlayerAnyLegalMove = false;
+	for (Player player : Player.values()) {
+	    if (hasAnyLegalMove(player)) {
+		hasAnyPlayerAnyLegalMove = true;
+		break;
+	    }
+	}
+	return hasAnyPlayerAnyLegalMove;
     }
 
     /**
