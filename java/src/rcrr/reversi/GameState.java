@@ -24,35 +24,91 @@
 
 package rcrr.reversi;
 
-import java.io.PrintStream;
-
+/**
+ * An instance of a game state.
+ * <p>
+ * A {@code GameState} object holds the information of the state of the game.
+ * It is a value object composed by three fields:
+ * <ol>
+ *   <li>the game board</li>
+ *   <li>the player that has to move</li>
+ *   <li>the current clock</li>
+ * </ol>
+ * <p>
+ * {@code Board} is immutable.
+ */
 public class GameState {
 
-    private final Clock clock;
+    /** The board field. */
     private final Board board;
+
+    /** The player field. */
     private final Player player;
 
+    /** The clock field. */
+    private final Clock clock;
+
+    /**
+     * Private constructor.
+     * <p>
+     * Parameters {@code board} and {@code clock} must be not null.
+     *
+     * @param board  the board state
+     * @param player the player that has to move
+     * @param clock  the current clock
+     */
     private GameState(Board board, Player player, Clock clock) {
-	this.clock = clock;
+	assert (board != null) : "Parameter board cannot be null. board=" + board;
+	assert (clock != null) : "Parameter clock cannot be null. clock=" + clock;
 	this.board = board;
 	this.player = player;
+	this.clock = clock;
     }
 
-    static GameState valueOf(Board board, Player player, Clock clock) {
+    /**
+     * Base static factory for the class.
+     * <p>
+     * Parameters {@code board} and {@code clock} must be not null.
+     * Parameter {@code player} can be null.
+     *
+     * @param  board  the board state
+     * @param  player the player that has to move
+     * @param  clock  the current clock
+     * @return        a new game state
+     * @throws NullPointerException when board or clock parameters are null
+     */
+    public static GameState valueOf(Board board, Player player, Clock clock) {
+	if (board == null) throw new NullPointerException("Parameter board cannot be null. board=" + board);
+	if (clock == null) throw new NullPointerException("Parameter clock cannot be null. clock=" + clock);
 	GameState gs = new GameState(board, player, clock);
 	return gs;
     }
 
-    public Clock clock() {
-	return clock;
-    }
-
+    /**
+     * Returns the board field.
+     *
+     * @return the game state board
+     */
     public Board board() {
 	return board;
     }
 
+    /**
+     * Returns the player field.
+     *
+     * @return the game state player
+     */
     public Player player() {
 	return player;
+    }
+
+    /**
+     * Returns the clock field.
+     *
+     * @return the game state clock
+     */
+    public Clock clock() {
+	return clock;
     }
 
     /**
