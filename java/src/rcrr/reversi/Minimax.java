@@ -31,6 +31,8 @@ import java.util.Collections;
 
 /**
  * Javadocs, Unit tests, and semplification are under construction.
+ * <p>
+ * Must be transformed to be immutable and not instantiable.
  */
 public final class Minimax {
 
@@ -40,7 +42,10 @@ public final class Minimax {
     /** The losing value. */
     private static final int LOSING_VALUE = - Integer.MAX_VALUE;
 
+    /** The move field. */
     private Square move;
+
+    /** The value field. Must be transformed into int. */
     private Integer value;
 
     private Square getMove() { return move; }
@@ -62,6 +67,7 @@ public final class Minimax {
 	return "[move=" + move + ", value=" + value + "]";
     }
     
+    /** Is it used? */
     private static String plyLevel(int ply) {
 	if (ply < 0) return new String("-");
 	StringBuffer sb = new StringBuffer(ply);
@@ -71,7 +77,10 @@ public final class Minimax {
 	return sb.toString();
     }
 
-    public static Minimax minimax(Player player, Board board, Integer ply, EvalFunction ef) {
+    /**
+     * The minimax function.
+     */
+    public static Minimax minimax(Player player, Board board, int ply, EvalFunction ef) {
 	Minimax mm = null;
 	Player opponent = player.opponent();
 	if (ply == 0) {
@@ -100,7 +109,7 @@ public final class Minimax {
 	return mm;
     }
 
-    public static Strategy minimaxSearcher(final Integer ply, final EvalFunction ef) {
+    public static Strategy minimaxSearcher(final int ply, final EvalFunction ef) {
 	return new Strategy() {
 	    public Square move(GameState gameState) {
 		Minimax mm = minimax(gameState.player(), gameState.board(), ply, ef);
@@ -109,7 +118,10 @@ public final class Minimax {
 	};
     }
 
-    public static Minimax alphabeta(Player player, Board board, Integer achievable, Integer cutoff, Integer ply, EvalFunction ef) {
+    /**
+     * The alpha-beta function.
+     */
+    public static Minimax alphabeta(Player player, Board board, int achievable, int cutoff, int ply, EvalFunction ef) {
 	Minimax ab = null;
 	Player opponent = player.opponent();
 	if (ply == 0) {
@@ -138,7 +150,7 @@ public final class Minimax {
 	return ab;
     }
 
-    public static Strategy alphabetaSearcher(final Integer ply, final EvalFunction ef) {
+    public static Strategy alphabetaSearcher(final int ply, final EvalFunction ef) {
 	return new Strategy() {
 	    public Square move(GameState gameState) {
 		Minimax ab = alphabeta(gameState.player(), gameState.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
@@ -156,8 +168,13 @@ public final class Minimax {
 	}
     }
 
-    // Should be moved into a StrategyUtils ideal class.
-    // This is anyhow a better place than Board.
+    /**
+     * Should be moved into a StrategyUtils ideal class.
+     * This is anyhow a better place than Board.
+     *
+     * should be tested. And tested.
+     * Transform the List into an Array.
+     */
     public static Strategy maximizer(final EvalFunction ef) {
 	return new Strategy() {
 	    public Square move(GameState gameState) {
