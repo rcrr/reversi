@@ -103,6 +103,7 @@ public class GameStateTest {
 	initialGameState.append(" 6  . . . . . . . . \n");
 	initialGameState.append(" 7  . . . . . . . . \n");
 	initialGameState.append(" 8  . . . . . . . . [@=30:00, O=30:00]\n");
+	initialGameState.append(" Next to play: BLACK, legal moves: [D3, C4, F5, E6]\n");
 	assertEquals(initialGameState.toString(), gs.printGameState());
     }
 

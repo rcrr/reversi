@@ -138,6 +138,11 @@ public class GameState {
 	    if (i == 8) sbGameState.append(sClock);
 	    sbGameState.append("\n");
 	}
+	if (player() != null ) {
+	    sbGameState.append(" Next to play: " + player() + ", legal moves: " + board().legalMoves(player()) + "\n");
+	} else {
+	    sbGameState.append(" No player has any legal move. The game is over.");
+	}
 	return (sbGameState.toString());
     }
 

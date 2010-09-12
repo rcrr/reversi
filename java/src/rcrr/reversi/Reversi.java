@@ -95,7 +95,6 @@ public class Reversi {
 	    // to be completed .....
 	}
 	if (ps != null) {
-	    ps.print("\nThe Game is over. Final result:\n\n");
 	    ps.print(gs.printGameState());
 	}
 	return gs.board().countDifference(Player.BLACK);
