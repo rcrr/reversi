@@ -52,12 +52,6 @@ import java.io.PrintStream;
  */
 public class Reversi {
 
-    /** This field should go out of the Reversi class. */
-    public static final int WINNING_VALUE = Integer.MAX_VALUE;
-
-    /** This field should go out of the Reversi class. */
-    public static final int LOSING_VALUE = - Integer.MAX_VALUE;
-
     /** Private constructor. Not used so far. */
     private Reversi() {
 	throw new UnsupportedOperationException();

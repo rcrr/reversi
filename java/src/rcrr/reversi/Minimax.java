@@ -22,7 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-
 package rcrr.reversi;
 
 import java.util.List;
@@ -30,30 +29,40 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class Minimax {
+/**
+ * Javadocs, Unit tests, and semplification are under construction.
+ */
+public final class Minimax {
 
-    Square move;
-    Integer value;
+    /** The winning value. */
+    private static final int WINNING_VALUE = Integer.MAX_VALUE;
 
-    public Square getMove() {return move;}
-    public void setMove(Square move) {this.move = move;}
-    public Integer getValue() {return value;}
-    public void setValue(Integer value) {this.value = value;}
+    /** The losing value. */
+    private static final int LOSING_VALUE = - Integer.MAX_VALUE;
 
-    public Minimax(Square move, Integer value) {
+    private Square move;
+    private Integer value;
+
+    private Square getMove() { return move; }
+    private void setMove(Square move) { this.move = move; }
+    private Integer getValue() { return value; }
+    private void setValue(Integer value) { this.value = value; }
+
+    private Minimax(Square move, Integer value) {
 	setMove(move);
 	setValue(value);
     }
 
-    public Minimax minus() {
+    private Minimax minus() {
 	return new Minimax(getMove(), - getValue());
     }
     
+    @Override
     public String toString() {
-	return new String("[move=" + move + ", value=" + value + "]");
+	return "[move=" + move + ", value=" + value + "]";
     }
     
-    private static String plyLevel(Integer ply) {
+    private static String plyLevel(int ply) {
 	if (ply < 0) return new String("-");
 	StringBuffer sb = new StringBuffer(ply);
 	for (int i=0; i<ply; i++) {
@@ -132,20 +141,19 @@ public class Minimax {
     public static Strategy alphabetaSearcher(final Integer ply, final EvalFunction ef) {
 	return new Strategy() {
 	    public Square move(GameState gameState) {
-		Minimax ab = alphabeta(gameState.player(), gameState.board(), Reversi.LOSING_VALUE, Reversi.WINNING_VALUE, ply, ef);
+		Minimax ab = alphabeta(gameState.player(), gameState.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
 		return ab.getMove();
 	    }
 	};
     }
 
-    public static Integer finalValue(Board board, Player player) {
-	Integer value = null;
+    public static int finalValue(final Board board, final Player player) {
 	switch (Integer.signum(board.countDifference(player))) {
-	case -1: value = Reversi.LOSING_VALUE; break;
-	case  0: value = 0; break;
-	case +1: value = Reversi.WINNING_VALUE; break;
+	case -1: return LOSING_VALUE;
+	case  0: return 0;
+	case +1: return WINNING_VALUE;
+	default: throw new RuntimeException("Unreachable condition found. player=" + player + ", board=" + board);
 	}
-	return value;
     }
 
     // Should be moved into a StrategyUtils ideal class.

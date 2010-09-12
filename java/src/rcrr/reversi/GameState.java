@@ -35,7 +35,7 @@ package rcrr.reversi;
  *   <li>the current clock</li>
  * </ol>
  * <p>
- * {@code Board} is immutable.
+ * {@code GameState} is immutable.
  * <p>
  * The {@code player} field can be {@code null} only when no legal moves are available to either player.
  */
@@ -138,10 +138,13 @@ public class GameState {
 	    if (i == 8) sbGameState.append(sClock);
 	    sbGameState.append("\n");
 	}
-	if (player() != null ) {
-	    sbGameState.append(" Next to play: " + player() + ", legal moves: " + board().legalMoves(player()) + "\n");
-	} else {
-	    sbGameState.append(" No player has any legal move. The game is over.");
+	{
+	    Player p = player();
+	    if (p != null) {
+		sbGameState.append(" Next to play: " + p + ", legal moves: " + board().legalMoves(p) + "\n");
+	    } else {
+		sbGameState.append(" No player has any legal move. The game is over.");
+	    }
 	}
 	return (sbGameState.toString());
     }

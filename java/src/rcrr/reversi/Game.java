@@ -28,6 +28,11 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * An instance of a game sequence of game states.
+ * <p>
+ * {@code Game} is immutable.
+ */
 public class Game {
 
     /** The game state sequence field. */
