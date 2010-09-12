@@ -113,25 +113,21 @@ public final class Clock {
      * @return           a new {@code Clock} having Black's and White's time set to the
      *                   given parameters
      */
-    public static Clock valueOf(final Long blackTime, final Long whiteTime) {
-	return new Clock (blackTime, whiteTime);
+    public static Clock valueOf(final long blackTime, final long whiteTime) {
+	return new Clock(blackTime, whiteTime);
     }
 
     /**
      * Class static factory. Returns a new Clock with the given initial value
      * assigned to both players.
-     * <p>
-     * In case the {@code gameTimeInMinutes} parameter is {@code null}, the result
-     * {@code Clock} is set with a standard thirty minutes time.
      *
      * @param  gameTimeInMinutes the game's time in minutes assigned to the two players
      * @return                   a new {@code Clock} having Black's and White's time set to
      *                           the same given value
      */
-    public static Clock initialClock(final Long gameTimeInMinutes) {
-	final long tm = (gameTimeInMinutes == null) ? defaultGameTimeInMinutes() : gameTimeInMinutes;
-	final long t = SECONDS_PER_MINUTE * TIME_UNITS_PER_SECOND * tm;
-	return new Clock (t, t);
+    public static Clock initialClock(final long gameTimeInMinutes) {
+	final long t = SECONDS_PER_MINUTE * TIME_UNITS_PER_SECOND * gameTimeInMinutes;
+	return valueOf(t, t);
     }
 
     /**
@@ -152,11 +148,11 @@ public final class Clock {
 	case BLACK:
 	    final long bRemainingTime = blackTime - deltaTime;
 	    if (bRemainingTime < 0) throw new GameOverException("BLACK player exceded his game time limit.");
-	    return new Clock(bRemainingTime, whiteTime);
+	    return valueOf(bRemainingTime, whiteTime);
 	case WHITE:
 	    final long wRemainingTime = whiteTime - deltaTime;
 	    if (wRemainingTime < 0) throw new GameOverException("WHITE player exceded his game time limit.");
-	    return new Clock(blackTime, wRemainingTime);
+	    return valueOf(blackTime, wRemainingTime);
 	default: throw new IllegalArgumentException("Only BLACK and WHITE players are supported by setTime().");
 	}
     }
