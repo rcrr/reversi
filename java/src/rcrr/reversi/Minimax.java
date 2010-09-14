@@ -61,26 +61,23 @@ public final class Minimax {
     private Minimax minus() {
 	return new Minimax(getMove(), - getValue());
     }
-    
+
+    /**
+     * Returns a String representing the {@code Minimax} object.
+     * <p>
+     * The format is: {@code [move=b4, value=567]}
+     * 
+     * @return a string showing the minimax's node move and value fields
+     */
     @Override
     public String toString() {
 	return "[move=" + move + ", value=" + value + "]";
-    }
-    
-    /** Is it used? */
-    private static String plyLevel(int ply) {
-	if (ply < 0) return new String("-");
-	StringBuffer sb = new StringBuffer(ply);
-	for (int i=0; i<ply; i++) {
-	    sb.append('.');
-	}
-	return sb.toString();
     }
 
     /**
      * The minimax function.
      */
-    public static Minimax minimax(Player player, Board board, int ply, EvalFunction ef) {
+    static Minimax minimax(Player player, Board board, int ply, EvalFunction ef) {
 	Minimax mm = null;
 	Player opponent = player.opponent();
 	if (ply == 0) {
@@ -109,6 +106,9 @@ public final class Minimax {
 	return mm;
     }
 
+    /**
+     * The minimax searcher function.
+     */
     public static Strategy minimaxSearcher(final int ply, final EvalFunction ef) {
 	return new Strategy() {
 	    public Square move(GameState gameState) {
@@ -121,7 +121,7 @@ public final class Minimax {
     /**
      * The alpha-beta function.
      */
-    public static Minimax alphabeta(Player player, Board board, int achievable, int cutoff, int ply, EvalFunction ef) {
+    static Minimax alphabeta(Player player, Board board, int achievable, int cutoff, int ply, EvalFunction ef) {
 	Minimax ab = null;
 	Player opponent = player.opponent();
 	if (ply == 0) {
@@ -150,6 +150,9 @@ public final class Minimax {
 	return ab;
     }
 
+    /**
+     * The alpha-beta searcher function.
+     */
     public static Strategy alphabetaSearcher(final int ply, final EvalFunction ef) {
 	return new Strategy() {
 	    public Square move(GameState gameState) {
@@ -159,7 +162,10 @@ public final class Minimax {
 	};
     }
 
-    public static int finalValue(final Board board, final Player player) {
+    /**
+     * Must check that parameters are not null.
+     */
+    private static int finalValue(final Board board, final Player player) {
 	switch (Integer.signum(board.countDifference(player))) {
 	case -1: return LOSING_VALUE;
 	case  0: return 0;
