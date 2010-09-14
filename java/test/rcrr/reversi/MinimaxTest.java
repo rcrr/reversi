@@ -30,11 +30,25 @@ import static org.junit.Assert.*;
 public class MinimaxTest {
 
     /**
-     * Base test.
+     * Minimax test.
+     * The method is tested using the most straightforward evaluation function,
+     * based on the count difference method.                                
      */
     @Test
-    public void testBase() {
-	assertTrue(true);
+    public void testMinimaxSearcher() {
+
+	// a new initial game method is missing.
+	// a specific board table has to be prepared .....
+	Board b = Board.initialBoard();
+	Player p = Player.BLACK;
+	Clock c = Clock.initialClock(30L);
+	GameState gs = GameState.valueOf(b, p, c);
+
+	// the minimaxSearcher, applyed togheter with the countDifference eval function, is as follow:
+	AlphabetaSearcherCountDifference absCountDifference = new AlphabetaSearcherCountDifference();
+	Square move = absCountDifference.move(gs);
+
+	assertEquals(Square.D3, move);
     }
 
 }
