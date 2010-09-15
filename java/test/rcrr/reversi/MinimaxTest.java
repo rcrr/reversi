@@ -37,16 +37,12 @@ public class MinimaxTest {
     @Test
     public void testMinimaxSearcher() {
 
-	// a new initial game method is missing.
-	// a specific board table has to be prepared .....
-	Board b = Board.initialBoard();
-	Player p = Player.BLACK;
-	Clock c = Clock.initialClock(30L);
-	GameState gs = GameState.valueOf(b, p, c);
+	GameState gs = GameState.initialGameState();
 
-	// the minimaxSearcher, applyed togheter with the countDifference eval function, is as follow:
-	AlphabetaSearcherCountDifference absCountDifference = new AlphabetaSearcherCountDifference();
-	Square move = absCountDifference.move(gs);
+	// PLY = 0 returns null, it should throw an IllegalArgumentException
+	Strategy s = Minimax.minimaxSearcher(1, new CountDifference());
+
+	Square move = s.move(gs);
 
 	assertEquals(Square.D3, move);
     }
