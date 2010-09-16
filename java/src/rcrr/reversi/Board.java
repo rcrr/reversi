@@ -361,6 +361,27 @@ public final class Board {
     }
     
     /**
+     * To be written.
+     */
+    @Override
+    public boolean equals(Object o) {
+	if (o == this) return true;
+	if (o == null) return false;
+	if (!(o instanceof Board)) return false;
+	Board b = (Board) o;
+	for (Square sq : Square.values()) {
+	    if (squares.get(sq) != b.squares.get(sq)) return false;
+	}
+	return true;
+    }
+
+    /**
+     * Has to be implemented !!!!!!!!!!
+     */
+    @Override
+    public int hashCode() { return 17; }
+
+    /**
      * Returns the bracketing square or null if it is not found.
      * The method does not check that the move is legal.
      * <p>

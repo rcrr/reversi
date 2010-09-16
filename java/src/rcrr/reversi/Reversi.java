@@ -72,7 +72,7 @@ public class Reversi {
      * @return           the game score
      */
     public static int reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, long minutes) {
-	GameState gs = GameState.valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
+	GameState gs = GameState.initialGameState(minutes);
 	Game game = Game.valueOf(Arrays.asList(gs));
 	try {
 	    for (Player player = gs.player();

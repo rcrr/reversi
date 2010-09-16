@@ -122,5 +122,13 @@ public class GameStateTest {
 	assertEquals(c, gs.clock());
     }
 
+    /**
+     * Has to be written.
+     */
+    @Test
+    public void testInitialGameState() {
+	assertEquals(true, true);
+    }
+
 
 }

@@ -43,6 +43,8 @@ public class BoardTest {
     private Board fixtBoardA;
     private Board fixtBoardB;
     private Board fixtBoardC;
+    private Board fixtBoardEqlA;
+    private Board fixtBoardEqlB;
 
     private static Board boardFromList(List<Integer> il) {
 	if (il == null) return null;
@@ -133,6 +135,35 @@ public class BoardTest {
 					0, 0, 0, 0, 0, 0, 0, 0,
 					0, 0, 0, 0, 0, 0, 0, 0));
 
+	List<Integer> listFixtBoardEql = 
+	    Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
+			  1, 1, 1, 1, 1, 1, 1, 2,
+			  0, 1, 2, 2, 1, 1, 2, 2,
+			  0, 1, 2, 1, 2, 2, 2, 2,
+			  0, 1, 2, 1, 2, 2, 2, 2,
+			  0, 1, 2, 1, 1, 2, 1, 2,
+			  0, 1, 2, 1, 1, 1, 1, 0,
+			  2, 2, 2, 2, 2, 2, 1, 2);
+	fixtBoardEqlA = boardFromList(listFixtBoardEql);
+	fixtBoardEqlB = boardFromList(listFixtBoardEql);
+
+    }
+
+    @Test
+    public void testEquals() {
+
+	assertFalse(fixtBoardInitial.equals(null));
+	assertFalse(fixtBoardInitial.equals(new Object()));
+	assertFalse(fixtBoardInitial.equals(fixtBoardA));
+
+	assertTrue(fixtBoardInitial.equals(fixtBoardInitial));
+	assertTrue(fixtBoardInitial.equals(Board.initialBoard()));
+	assertTrue(Board.initialBoard().equals(fixtBoardInitial));
+
+	assertTrue(fixtBoardEqlA.equals(fixtBoardEqlA));
+
+	assertTrue(fixtBoardEqlA.equals(fixtBoardEqlB));
+	assertTrue(fixtBoardEqlB.equals(fixtBoardEqlA));
     }
 
     /** 

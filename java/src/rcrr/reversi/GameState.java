@@ -95,13 +95,14 @@ public class GameState {
      * Static factory that returns a new initial game's state.
      * <p>
      * The returned game's state has the board set with the four central
-     * disk, the black player has to move, and each player has thirty minuts
-     * in their own clock.
+     * disk, the black player has to move, and each player has the assigned 
+     * time in minutes in their own clock.
      *
-     * @return a new initial game as required by international game's rures
+     * @param minutes the time assigned to each player in minutes
+     * @return        a new initial game as required by international game's rures
      */
-    public static GameState initialGameState() {
-	return valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(30L));
+    public static GameState initialGameState(long minutes) {
+	return valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
     }
 
     /**
