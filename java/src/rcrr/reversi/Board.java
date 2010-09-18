@@ -45,6 +45,9 @@ import java.util.EnumMap;
  */
 public final class Board {
 
+    /** Lazily initialized, cached hashCode. */
+    private volatile int hashCode = 0;
+
     /** The squares field. */
     private final Map<Square, SquareState> squares;
 
@@ -361,25 +364,48 @@ public final class Board {
     }
     
     /**
-     * To be written.
+     * Returns true if the specified object is equal to this board.
+     * Two boards are equal when they have the same disk's configuration.
+     *
+     * @return {@code true} when the {@code object} parameter is an instance of
+     *         the {@code Board} class and when the disks' position are the same.
      */
     @Override
-    public boolean equals(Object o) {
-	if (o == this) return true;
-	if (o == null) return false;
-	if (!(o instanceof Board)) return false;
-	Board b = (Board) o;
+    public boolean equals(Object object) {
+	if (object == this) return true;
+	if (!(object instanceof Board)) return false;
+	Board board = (Board) object;
 	for (Square sq : Square.values()) {
-	    if (squares.get(sq) != b.squares.get(sq)) return false;
+	    if (squares.get(sq) != board.squares.get(sq)) return false;
 	}
 	return true;
     }
 
     /**
-     * Has to be implemented !!!!!!!!!!
+     * Returns a hash code for this board.
+     *
+     * @return a hash code for this board
      */
     @Override
-    public int hashCode() { return 17; }
+    public int hashCode() {
+	if (hashCode == 0) {
+	    int result = 17;
+	    Square[] squareArray = Square.values(); 
+	    for (int i = 0; i < squareArray.length; i++) {
+		SquareState ss = squares.get(squareArray[i]);
+		int k = 0;
+		switch (ss) {
+		case EMPTY: k = 0; break;
+		case BLACK: k = 1; break;
+		case WHITE: k = 2; break;
+		default: k = 0; // this should never happens.
+		}
+		result = 37 * result + k;
+	    }
+	    hashCode = result;
+	}
+	return hashCode;
+    }
 
     /**
      * Returns the bracketing square or null if it is not found.

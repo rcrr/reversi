@@ -151,7 +151,6 @@ public class BoardTest {
 
     @Test
     public void testEquals() {
-
 	assertFalse(fixtBoardInitial.equals(null));
 	assertFalse(fixtBoardInitial.equals(new Object()));
 	assertFalse(fixtBoardInitial.equals(fixtBoardA));
@@ -164,6 +163,22 @@ public class BoardTest {
 
 	assertTrue(fixtBoardEqlA.equals(fixtBoardEqlB));
 	assertTrue(fixtBoardEqlB.equals(fixtBoardEqlA));
+    }
+
+    @Test
+    public void testHashCode() {
+	assertEquals(fixtBoardInitial.hashCode(), fixtBoardInitial.hashCode());
+	assertEquals(fixtBoardEmpty.hashCode(), fixtBoardEmpty.hashCode());
+	assertEquals(fixtBoardBlackHasToPass.hashCode(), fixtBoardBlackHasToPass.hashCode());
+	assertEquals(fixtBoardEndGameX.hashCode(), fixtBoardEndGameX.hashCode());
+	assertEquals(fixtBoardA.hashCode(), fixtBoardA.hashCode());
+	assertEquals(fixtBoardB.hashCode(), fixtBoardB.hashCode());
+	assertEquals(fixtBoardC.hashCode(), fixtBoardC.hashCode());
+	assertEquals(fixtBoardEqlA.hashCode(), fixtBoardEqlA.hashCode());
+	assertEquals(fixtBoardEqlB.hashCode(), fixtBoardEqlB.hashCode());
+
+	assertEquals(fixtBoardEqlA.hashCode(), fixtBoardEqlB.hashCode());
+	assertEquals(fixtBoardEqlB.hashCode(), fixtBoardEqlA.hashCode());
     }
 
     /** 
