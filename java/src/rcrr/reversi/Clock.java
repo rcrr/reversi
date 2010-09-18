@@ -24,7 +24,6 @@
 
 // To do:
 // move the two long fields into an EnumMap having the Players as keys.
-// remove the Long API in favour of long.
 // parameters boundaries are not tested.
 // complete the tests checking for null values.
 
@@ -44,7 +43,7 @@ import java.text.NumberFormat;
  * available. The first is:
  * <pre>
  * {@code
- * Clock c = Clock.valueOf(1000L, 1000L);
+ * Clock c = Clock.valueOf(1000, 1000);
  * }
  * </pre>
  * while the second is:
@@ -58,7 +57,7 @@ import java.text.NumberFormat;
  * subtract one full second from the Black player:
  * <pre>
  * {@code
- * Clock updated = c.setTime(Player.BLACK, 1000L);
+ * Clock updated = c.setTime(Player.BLACK, 1000);
  * }
  * </pre>
  */
@@ -168,13 +167,13 @@ public final class Clock {
     }
 
     /**
-     * Returns a {@code Long} value that represents the player's remaining time
+     * Returns a {@code long} value that represents the player's remaining time
      * in milliseconds as registered by the {@code Clock} instance. 
      *
      * @param  player the player for which the remaining time is queried 
      * @return        the player remaining time in milliseconds
      */
-    public Long getTime(Player player) {
+    public long getTime(Player player) {
 	return (player == Player.BLACK) ? blackTime : whiteTime;
     }
 
