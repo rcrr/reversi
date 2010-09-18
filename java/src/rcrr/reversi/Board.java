@@ -24,7 +24,6 @@
 
 // To do:
 // makeMove, isLegal, legalMoves need a more extensive test suit
-// equal() and hashCode() methods has to be written
 // complete the class description
 
 package rcrr.reversi;

@@ -25,7 +25,6 @@
 // To do:
 // move the two long fields into an EnumMap having the Players as keys.
 // parameters boundaries are not tested.
-// complete the tests checking for null values.
 
 package rcrr.reversi;
 

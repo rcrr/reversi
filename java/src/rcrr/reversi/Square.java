@@ -35,12 +35,6 @@ import java.util.HashMap;
 import static rcrr.reversi.Row.*;
 import static rcrr.reversi.Column.*;
 
-// to-do list:
-// introduce the enum Column and Row
-// eliminate position
-// eliminate getSquare()
-// make the class a "non standard Enum", calculated by a static block.
-
 /**
  * Sqare is an Enum type that realize the base unit of the game board.
  * Squares are represented by two characters, a letter and a numeric digit.
