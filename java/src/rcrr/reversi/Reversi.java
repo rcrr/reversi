@@ -71,7 +71,7 @@ public class Reversi {
      * 
      * @return           the game score
      */
-    public static int reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, long minutes) {
+    public static int reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, int minutes) {
 	GameState gs = GameState.initialGameState(minutes);
 	Game game = Game.valueOf(Arrays.asList(gs));
 	try {
@@ -161,7 +161,7 @@ public class Reversi {
 		System.exit(5);
 	    }
 	}
-	reversi(s[0], s[1], System.out, 30L);
+	reversi(s[0], s[1], System.out, 30);
     }
 
     /** returns the usage message */

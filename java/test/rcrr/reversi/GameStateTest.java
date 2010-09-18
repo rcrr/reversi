@@ -42,7 +42,7 @@ public class GameStateTest {
 	 */
 	thrown = false;
 	try {
-	    GameState.valueOf(null, Player.BLACK, Clock.initialClock(1L));
+	    GameState.valueOf(null, Player.BLACK, Clock.initialClock(1));
 	} catch (NullPointerException npe) {
 	    thrown = true;
 	}
@@ -54,7 +54,7 @@ public class GameStateTest {
 	 */
 	thrown = false;
 	try {
-	    GameState.valueOf(Board.initialBoard(), null, Clock.initialClock(1L));
+	    GameState.valueOf(Board.initialBoard(), null, Clock.initialClock(1));
 	} catch (NullPointerException npe) {
 	    thrown = true;
 	}
@@ -64,7 +64,7 @@ public class GameStateTest {
 	 * Tests if the valueOf method doesn't throw a NullPointerException when
 	 * the passed player is null, but no player has legal moves.
 	 */
-	GameState.valueOf(Board.emptyBoard(), null, Clock.initialClock(1L));
+	GameState.valueOf(Board.emptyBoard(), null, Clock.initialClock(1));
 
 	/**
 	 * Tests if the valueOf method throws a NullPointerException when
@@ -80,7 +80,7 @@ public class GameStateTest {
 
 	Board b = Board.initialBoard();
 	Player p = Player.BLACK;
-	Clock c = Clock.initialClock(30L);
+	Clock c = Clock.initialClock(30);
 	GameState gs = GameState.valueOf(b, p, c);
 	assertEquals(b, gs.board());
 	assertEquals(p, gs.player());
@@ -91,7 +91,7 @@ public class GameStateTest {
     public void testPrintGameState() {
 	Board b = Board.initialBoard();
 	Player p = Player.BLACK;
-	Clock c = Clock.initialClock(30L);
+	Clock c = Clock.initialClock(30);
 	GameState gs = GameState.valueOf(b, p, c);
 	StringBuilder initialGameState = new StringBuilder();
 	initialGameState.append("    a b c d e f g h [@=2 0=2 (0)]\n");
@@ -115,7 +115,7 @@ public class GameStateTest {
     public void testGetters() {
 	Board b = Board.initialBoard();
 	Player p = Player.BLACK;
-	Clock c = Clock.initialClock(30L);
+	Clock c = Clock.initialClock(30);
 	GameState gs = GameState.valueOf(b, p, c);
 	assertEquals(b, gs.board());
 	assertEquals(p, gs.player());

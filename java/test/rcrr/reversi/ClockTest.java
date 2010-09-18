@@ -29,65 +29,66 @@ import static org.junit.Assert.*;
 
 public class ClockTest {
 
-    private static Long MILLISECOND_PER_MINUTE = 60000L;
+    private static long MILLISECOND_PER_MINUTE = 60000;
 
     @Test
     public void testValueOf() {
-	Long lb = Long.valueOf(1);
-	Long lw = Long.valueOf(1000*30*60+1);
+	long lb = 1;
+	long lw = 1000*30*60+1;
 	Clock c = Clock.valueOf(lb, lw);
-	Long tb = c.getTime(Player.BLACK);
-	Long tw = c.getTime(Player.WHITE);
+	long tb = c.getTime(Player.BLACK);
+	long tw = c.getTime(Player.WHITE);
         assertEquals(lb, tb);
         assertEquals(lw, tw);
     }
 
     @Test
     public void testInitialClock() {
-	Long time = Long.valueOf(1);
-	Clock c = Clock.initialClock(time);
-	Long tb = c.getTime(Player.BLACK);
-	Long tw = c.getTime(Player.WHITE);
-        assertEquals(Long.valueOf(time * MILLISECOND_PER_MINUTE), tb);
-	assertEquals(Long.valueOf(time * MILLISECOND_PER_MINUTE), tw);
+	int seconds = 1;
+	Clock c = Clock.initialClock(seconds);
+	long tb = c.getTime(Player.BLACK);
+	long tw = c.getTime(Player.WHITE);
+        assertEquals(seconds * MILLISECOND_PER_MINUTE, tb);
+	assertEquals(seconds * MILLISECOND_PER_MINUTE, tw);
     }
 
     @Test
     public void testPrintClock() {
-	Clock c = Clock.valueOf(900000L, 1L);
+	Clock c = Clock.valueOf(900000, 1);
 	assertEquals("[@=15:00, O=00:00]", c.printClock());
     }
 
     @Test
     public void testSetTime() {
-	Long tb = Long.valueOf(100);
-	Long tw = Long.valueOf(100);
-	Long delta = Long.valueOf(10);
+	long tb = 100;
+	long tw = 100;
+	long delta = 10;
 	Clock c = Clock.valueOf(tb, tw);
 	Clock updated = null;
 	try {
 	    updated = c.setTime(Player.BLACK, delta);
 	} catch (GameOverException goe) {
+	    fail(); // TODO: has to be changed.
 	}
         assertEquals(c.getTime(Player.WHITE), updated.getTime(Player.WHITE));
-	assertEquals(delta, Long.valueOf(c.getTime(Player.BLACK) - updated.getTime(Player.BLACK)));
+	assertEquals(delta, c.getTime(Player.BLACK) - updated.getTime(Player.BLACK));
     }
 
     @Test
     public void testGetTime() {
-	Clock c = Clock.valueOf(900000L, 1L);
-	assertEquals(Long.valueOf(1), c.getTime(Player.WHITE));
+	Clock c = Clock.valueOf(900000, 1);
+	assertEquals(Long.valueOf(1L), c.getTime(Player.WHITE));
     }
 
     @Test
     public void testToString() {
-	Clock c = Clock.valueOf(900000L, 1L);
+	Clock c = Clock.valueOf(900000, 1);
 	assertEquals("[BLACK=15:00, WHITE=00:00]", c.toString());
     }
 
     @Test
     public void testDefaultGameTimeInMinutes() {
-	assertEquals(30L, Clock.defaultGameTimeInMinutes());
+	assertEquals(30, Clock.defaultGameTimeInMinutes());
     }
     
 }

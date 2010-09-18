@@ -37,7 +37,7 @@ public class MinimaxTest {
     @Test
     public void testMinimaxSearcher() {
 
-	GameState gs = GameState.initialGameState(1L);
+	GameState gs = GameState.initialGameState(1);
 
 	// PLY = 0 returns null, it should throw an IllegalArgumentException
 	Strategy s = Minimax.minimaxSearcher(1, new CountDifference());

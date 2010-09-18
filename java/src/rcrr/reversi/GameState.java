@@ -101,7 +101,7 @@ public class GameState {
      * @param minutes the time assigned to each player in minutes
      * @return        a new initial game as required by international game's rures
      */
-    public static GameState initialGameState(long minutes) {
+    public static GameState initialGameState(int minutes) {
 	return valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
     }
 

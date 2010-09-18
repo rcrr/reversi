@@ -50,7 +50,7 @@ import java.text.NumberFormat;
  * while the second is:
  * <pre>
  * {@code
- * Clock c = Clock.initialClock(10L);
+ * Clock c = Clock.initialClock(10);
  * }
  * </pre>
  * Another way to get a new {@code Clock} is to call the {@code setTime}
@@ -125,7 +125,7 @@ public final class Clock {
      * @return                   a new {@code Clock} having Black's and White's time set to
      *                           the same given value
      */
-    public static Clock initialClock(final long gameTimeInMinutes) {
+    public static Clock initialClock(final int gameTimeInMinutes) {
 	final long t = SECONDS_PER_MINUTE * TIME_UNITS_PER_SECOND * gameTimeInMinutes;
 	return valueOf(t, t);
     }
