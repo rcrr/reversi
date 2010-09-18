@@ -45,6 +45,8 @@ public class BoardTest {
     private Board fixtBoardC;
     private Board fixtBoardEqlA;
     private Board fixtBoardEqlB;
+    public Board fixtBoardMinimaxA;
+    public Board fixtBoardMinimaxB;
 
     private static Board boardFromList(List<Integer> il) {
 	if (il == null) return null;
@@ -147,6 +149,25 @@ public class BoardTest {
 	fixtBoardEqlA = boardFromList(listFixtBoardEql);
 	fixtBoardEqlB = boardFromList(listFixtBoardEql);
 
+	fixtBoardMinimaxA = 
+	    boardFromList(Arrays.asList(2, 0, 2, 0, 2, 0, 2, 0,
+					1, 0, 1, 0, 1, 0, 1, 0,
+					0, 0, 1, 0, 1, 0, 1, 0,
+					0, 0, 0, 0, 1, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0));
+
+	fixtBoardMinimaxB = 
+	    boardFromList(Arrays.asList(2, 1, 2, 0, 0, 0, 0, 0,
+					1, 0, 1, 0, 0, 0, 0, 0,
+					0, 0, 1, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0));
     }
 
     @Test
@@ -358,8 +379,6 @@ public class BoardTest {
 
     @Test
     public void testLegalMoves() {
-	List<Square> lm;
-
 	try {
 	    fixtBoardInitial.legalMoves(null);
 	    fail("An exception must be risen.");
@@ -367,19 +386,32 @@ public class BoardTest {
 	    assertTrue(true);
 	}
 
-	lm = Arrays.asList(Square.D3, Square.C4, Square.F5, Square.E6);
-	assertEquals(lm, fixtBoardInitial.legalMoves(Player.BLACK));
+	{
+	    List<Square> lm = Arrays.asList(Square.D3, Square.C4, Square.F5, Square.E6);
+	    assertEquals(lm, fixtBoardInitial.legalMoves(Player.BLACK));
+	}
 
-	lm = Arrays.asList(Square.C3, Square.E3, Square.C5);
-	assertEquals(lm, fixtBoardA.legalMoves(Player.WHITE));
+	{
+	    List<Square> lm = Arrays.asList(Square.C3, Square.E3, Square.C5);
+	    assertEquals(lm, fixtBoardA.legalMoves(Player.WHITE));
+	}
 
-	lm = Arrays.asList(Square.H2, Square.A4, Square.C4, 
-			   Square.G4, Square.A5, Square.F5, 
-			   Square.B6, Square.E6, Square.G7);
-	assertEquals(lm, fixtBoardC.legalMoves(Player.BLACK));
+	{
+	    List<Square> lm = Arrays.asList(Square.H2, Square.A4, Square.C4, 
+					    Square.G4, Square.A5, Square.F5, 
+					    Square.B6, Square.E6, Square.G7);
+	    assertEquals(lm, fixtBoardC.legalMoves(Player.BLACK));
+	}
 
-	lm = new ArrayList<Square>();
-	assertEquals(lm, fixtBoardBlackHasToPass.legalMoves(Player.BLACK));
+	{
+	    List<Square> lm = new ArrayList<Square>();
+	    assertEquals(lm, fixtBoardBlackHasToPass.legalMoves(Player.BLACK));
+	}
+
+	{
+	    List<Square> lm = Arrays.asList(Square.A3, Square.C4, Square.G4, Square.E5);
+	    assertEquals(lm, fixtBoardMinimaxA.legalMoves(Player.WHITE));
+	}
     }
 
     @Test

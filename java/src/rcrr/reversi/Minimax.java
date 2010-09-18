@@ -36,11 +36,16 @@ import java.util.Collections;
  */
 public final class Minimax {
 
-    /** The winning value. */
-    private static final int WINNING_VALUE = Integer.MAX_VALUE;
+    /** 
+     * The winning value.
+     * Integer.MAX_VALUE = 2^31-1 = 2,147,483,647
+     * Leaving enough space and having an easy to recognize 
+     * number leads to a value of 2000000032.
+     */
+    private static final int WINNING_VALUE = + 2000000032;
 
     /** The losing value. */
-    private static final int LOSING_VALUE = - Integer.MAX_VALUE;
+    private static final int LOSING_VALUE = - 2000000032;
 
     /** The move field. */
     private Square move;
@@ -77,7 +82,7 @@ public final class Minimax {
     /**
      * The minimax function.
      */
-    static Minimax minimax(Player player, Board board, int ply, EvalFunction ef) {
+    static Minimax minimax(final Player player, final Board board, final int ply, final EvalFunction ef) {
 	Minimax mm = null;
 	Player opponent = player.opponent();
 	if (ply == 0) {
@@ -93,9 +98,7 @@ public final class Minimax {
 	    } else {
 		mm = new Minimax(null, null);
 		for (Square move : moves) {
-		    Board board2 = board.copyBoard();
-		    board2.makeMove(move, player);
-		    int val = minimax(opponent, board2, ply - 1, ef).minus().getValue();
+		    int val = minimax(opponent, board.makeMove(move, player), ply - 1, ef).minus().getValue();
 		    if (mm.getValue() == null || val > mm.getValue()) {
 			mm.setValue(val);
 			mm.setMove(move);
@@ -108,8 +111,15 @@ public final class Minimax {
 
     /**
      * The minimax searcher function.
+     *
+     * @param ply the depth of the search
+     * @param ef  the evaluation function
+     * @return    a new {@code Strategy} instance
+     * @throws    IllegalArgumentException when the parameter ply is less that one
      */
     public static Strategy minimaxSearcher(final int ply, final EvalFunction ef) {
+	if (ply <= 0) throw new IllegalArgumentException("Parameter ply must be greather than zero. ply=" + ply);
+	if (ef == null) throw new NullPointerException("Parameter ef must not null. ef=" + ef);
 	return new Strategy() {
 	    public Square move(GameState gameState) {
 		Minimax mm = minimax(gameState.player(), gameState.board(), ply, ef);
