@@ -94,31 +94,27 @@ public class SquareTest {
     @Test
     public void testGetInstance() {
 
-	boolean thrown;
-
 	assertEquals(Square.A1, Square.getInstance(0));
 	assertEquals(Square.C6, Square.getInstance(42));
 	assertEquals(Square.H7, Square.getInstance(55));
 
-	thrown = false;
 	try {
 	    Square.getInstance(64);
+	    fail("An exception must be risen.");
 	} catch (IndexOutOfBoundsException ioobe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
 	assertEquals(Square.A1, Square.getInstance("a1"));
 	assertEquals(Square.C6, Square.getInstance("c6"));
 	assertEquals(Square.H7, Square.getInstance("h7"));
 
-	thrown = false;
 	try {
 	    Square.getInstance("w0");
+	    fail("An exception must be risen.");
 	} catch (IllegalArgumentException iae) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
     }
 
     @Test

@@ -233,23 +233,19 @@ public class BoardTest {
     @Test
     public void testIsLegal() {
 
-	boolean thrown;
-
-	thrown = false;
 	try {
 	    fixtBoardInitial.isLegal(null, Player.BLACK);
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
-	thrown = false;
 	try {
 	    fixtBoardInitial.isLegal(Square.D3, null);
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
 	assertFalse(fixtBoardInitial.isLegal(Square.D4, Player.BLACK));
 	assertFalse(fixtBoardInitial.isLegal(Square.D4, Player.WHITE));
@@ -269,31 +265,26 @@ public class BoardTest {
      */
     @Test
     public void testMakeMove() {
-	boolean thrown;
-
-	thrown = false;
 	try {
 	    fixtBoardInitial.makeMove(null, Player.BLACK);
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
-	thrown = false;
 	try {
 	    fixtBoardInitial.makeMove(Square.D3, null);
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
-	thrown = false;
 	try {
 	    fixtBoardInitial.makeMove(Square.A1, Player.BLACK);
+	    fail("An exception must be risen.");
 	} catch (IllegalArgumentException iae) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
 	Board b = fixtBoardInitial.makeMove(Square.D3, Player.BLACK);
 	for (Square sq : Square.values()) {
@@ -303,15 +294,12 @@ public class BoardTest {
 
     @Test
     public void testCountPieces() {
-	boolean thrown;
-
-	thrown = false;
 	try {
 	    fixtBoardInitial.countPieces(null);
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
 	assertEquals(2, Board.initialBoard().countPieces(SquareState.BLACK));
 	assertEquals(2, Board.initialBoard().countPieces(SquareState.WHITE));
@@ -321,15 +309,12 @@ public class BoardTest {
 
     @Test
     public void testCountDifference() {
-	boolean thrown;
-
-	thrown = false;
 	try {
 	    fixtBoardInitial.countDifference(null);
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
 	assertEquals(0, Board.initialBoard().countDifference(Player.BLACK));
 	assertEquals(+10, fixtBoardEndGameX.countDifference(Player.BLACK));
@@ -339,15 +324,12 @@ public class BoardTest {
 
     @Test
     public void testNextToPlay() {
-	boolean thrown;
-
-	thrown = false;
 	try {
 	    fixtBoardInitial.nextToPlay(null);
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
 	assertEquals(Player.BLACK, fixtBoardInitial.nextToPlay(Player.WHITE));
 	assertEquals(Player.WHITE, fixtBoardInitial.nextToPlay(Player.BLACK));
@@ -377,15 +359,13 @@ public class BoardTest {
     @Test
     public void testLegalMoves() {
 	List<Square> lm;
-	boolean thrown;
 
-	thrown = false;
 	try {
 	    fixtBoardInitial.legalMoves(null);
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
 	lm = Arrays.asList(Square.D3, Square.C4, Square.F5, Square.E6);
 	assertEquals(lm, fixtBoardInitial.legalMoves(Player.BLACK));
@@ -448,39 +428,34 @@ public class BoardTest {
 
     @Test
     public void testValueOf() {
-	boolean thrown;
-
 	/**
 	 * Tests if the valueOf method throws a NullPointerException when
 	 * the passed map is null.
 	 */
-	thrown = false;
 	try {
 	    Board.valueOf(null);
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
 	/**
 	 * Tests if the valueOf method throws an IllegalArgumentException when
 	 * the passed map has one or more missing keys.
 	 */
-	thrown = false;
 	Map<Square, SquareState> notCompleteSquareMap = new EnumMap<Square, SquareState>(Square.class);
 	notCompleteSquareMap.put(Square.A1, SquareState.EMPTY);
 	try {
 	    Board.valueOf(notCompleteSquareMap);
+	    fail("An exception must be risen.");
 	} catch (IllegalArgumentException iae) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
  
 	/**
 	 * Tests if the valueOf method throws a NullPointerException when
 	 * the passed map has a null key.
 	 */
-	thrown = false;
 	Map<Square, SquareState> corruptedSquareHashMap = new HashMap<Square, SquareState>();
 	for (Square sq : Square.values()) {
 	    corruptedSquareHashMap.put(sq, SquareState.EMPTY);
@@ -489,10 +464,10 @@ public class BoardTest {
 	corruptedSquareHashMap.put(null, SquareState.EMPTY);
 	try {
 	    Board corruptedBoard = Board.valueOf(corruptedSquareHashMap);
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
  
 	/**
 	 * Tests if the valueOf method returns the supposed Board. It is the

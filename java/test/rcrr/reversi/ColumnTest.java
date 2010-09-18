@@ -42,13 +42,12 @@ public class ColumnTest {
 	assertEquals(Column.C, Column.getInstance(2));
 	assertEquals(Column.H, Column.getInstance(7));
 
-	boolean thrown = false;
 	try {
 	    Column.getInstance(8);
+	    fail("An exception must be risen.");
 	} catch (IndexOutOfBoundsException e) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
     }
 
     @Test

@@ -34,32 +34,29 @@ public class GameStateTest {
 
     @Test
     public void testValueOf() {
-	boolean thrown;
 
 	/**
 	 * Tests if the valueOf method throws a NullPointerException when
 	 * the passed board is null.
 	 */
-	thrown = false;
 	try {
 	    GameState.valueOf(null, Player.BLACK, Clock.initialClock(1));
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
 	/**
 	 * Tests if the valueOf method throws a NullPointerException when
 	 * the passed player is null, and there are available moves.
 	 */
-	thrown = false;
 	try {
 	    GameState.valueOf(Board.initialBoard(), null, Clock.initialClock(1));
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
-
+ 
 	/**
 	 * Tests if the valueOf method doesn't throw a NullPointerException when
 	 * the passed player is null, but no player has legal moves.
@@ -70,13 +67,12 @@ public class GameStateTest {
 	 * Tests if the valueOf method throws a NullPointerException when
 	 * the passed clock is null.
 	 */
-	thrown = false;
 	try {
 	    GameState.valueOf(Board.emptyBoard(), Player.BLACK, null);
+	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
-	    thrown = true;
+	    assertTrue(true);
 	}
-	assertTrue(thrown);
 
 	Board b = Board.initialBoard();
 	Player p = Player.BLACK;
