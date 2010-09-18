@@ -95,12 +95,6 @@ public enum Square {
     /** The list of the four corners. */
     private static final List<Square> CORNERS = Collections.unmodifiableList(Arrays.asList(A1, H1, H8, A8));
 
-    /** The sqares list. */
-    private static List<Square> SQUARES = squares();
-
-    /** The number of squares. */
-    private static int NUMEROSITY = SQUARES.size();
-
     /** The neighbor table. */
     private static final Map<Square, Map<Direction, Square>> NEIGHBOR_TABLE = neighborTable();
 
@@ -122,9 +116,9 @@ public enum Square {
      *
      * @return the square pointed by row and column, or null in case row or column are themself null
      **/
-    public static Square instanceOf(Row row, Column column) {
+    public static Square getInstance(Row row, Column column) {
 	if (row == null || column == null) return null;
-	else return SQUARES.get(Row.values().length * row.ordinal() + column.ordinal());
+	else return Square.values()[Row.values().length * row.ordinal() + column.ordinal()];
     }
 
     /** 
@@ -164,9 +158,9 @@ public enum Square {
      *
      * @return the identified square
      *
-     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Square.numerosity())} 
+     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Square.values().length)} 
      */
-    public static Square getInstance(int index) { return SQUARES.get(index); }
+    public static Square getInstance(int index) { return Square.values()[index]; }
 
     /**
      * Returns the square matching the specified label. Throws
@@ -189,7 +183,7 @@ public enum Square {
      *
      * @return the Hasegawa square name, or null if the value is not defined
      **/    
-    public Character getHasegawaLabel() {
+    public char getHasegawaLabel() {
 	switch (this) {
 	case B1:
 	case G1:
@@ -224,7 +218,7 @@ public enum Square {
 	case B7:
 	    return 'X';
 	}
-	return null;
+	return ' ';
     }
 
     /**
@@ -243,33 +237,13 @@ public enum Square {
 	return CORNERS.contains(this);
     }
 
-    /**
-     * Returns the number of squares in the {@code Square enum} definition.
-     * It returns the same value given by the length of the array
-     * implementation hidden by the enum interface.
-     * <p>
-     * The following statement returns always {@code true}:
-     * <p>
-     * {@code Square.values().lenght == Square.numerosity()}
-     *
-     * @return the number of squares
-     */
-    public static int numerosity() { return NUMEROSITY; }
-
-    /** Computes the squares list. */
-    private static List<Square> squares() {
-	List<Square> sl = new ArrayList<Square>(64);
-	for (Square sq : values()) sl.add(sq);
-	return Collections.unmodifiableList(sl);
-    }
-
     /** Computes the neighborTable. */
     private static Map<Square, Map<Direction, Square>> neighborTable() {
 	Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
 	for (Square sq : values()) {
 	    Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
 	    for (Direction dir : Direction.values()) {
-		Square n = instanceOf(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
+		Square n = getInstance(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
 		snt.put(dir, n);
 	    }
 	    nt.put(sq, Collections.unmodifiableMap(snt));

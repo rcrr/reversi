@@ -33,18 +33,6 @@ import static org.junit.Assert.*;
 public class SquareTest {
 
     @Test
-    public void testInstanceOf() {
-	assertEquals(Square.A1, Square.instanceOf(Row.R1, Column.A));
-	assertEquals(Square.C6, Square.instanceOf(Row.R6, Column.C));
-	assertEquals(Square.H7, Square.instanceOf(Row.R7, Column.H));
-	assertEquals(Square.E8, Square.instanceOf(Row.R8, Column.E));
-	assertEquals(Square.H8, Square.instanceOf(Row.R8, Column.H));
-
-	assertEquals(null, Square.instanceOf(null, Column.H));
-	assertEquals(null, Square.instanceOf(Row.R7, null));
-    }
-
-    @Test
     public void testRow() {
 	assertEquals(Row.R1, Square.A1.row());
 	assertEquals(Row.R6, Square.C6.row());
@@ -134,10 +122,22 @@ public class SquareTest {
     }
 
     @Test
+    public void testGetInstanceRC() {
+	assertEquals(Square.A1, Square.getInstance(Row.R1, Column.A));
+	assertEquals(Square.C6, Square.getInstance(Row.R6, Column.C));
+	assertEquals(Square.H7, Square.getInstance(Row.R7, Column.H));
+	assertEquals(Square.E8, Square.getInstance(Row.R8, Column.E));
+	assertEquals(Square.H8, Square.getInstance(Row.R8, Column.H));
+
+	assertEquals(null, Square.getInstance(null, Column.H));
+	assertEquals(null, Square.getInstance(Row.R7, null));
+    }
+
+    @Test
     public void testGetHasegawaLabel() {
-	assertEquals(Character.valueOf('C'), Square.A2.getHasegawaLabel());
-	assertEquals(Character.valueOf('X'), Square.B2.getHasegawaLabel());
-	assertEquals(null, Square.C3.getHasegawaLabel());
+	assertEquals('C', Square.A2.getHasegawaLabel());
+	assertEquals('X', Square.B2.getHasegawaLabel());
+	assertEquals(' ', Square.C3.getHasegawaLabel());
     }
 
     @Test
@@ -158,11 +158,5 @@ public class SquareTest {
 	assertEquals(true, Square.H8.isCorner());
 	assertEquals(false, Square.C2.isCorner());
     }
-
-    @Test
-    public void testNumerosity() {
-	assertEquals(64, Square.numerosity());
-    }
-
    
 }
