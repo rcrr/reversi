@@ -111,7 +111,7 @@ public class MinimaxTest {
      * The test run from depth 1 to 8. The White has to move.
      * The Black doesn't have any move. The white has four legal moves.
      * The move sequence is not changing the result in any way.
-     * If the minimax searchs depth enough the moves are all equal, leading
+     * If the minimax searches depth enough the moves are all equal, leading
      * to the same forced position. Given that searching one ply returns the
      * move with the higher result, searching eight ply returns the the first
      * legal move.
@@ -157,7 +157,7 @@ public class MinimaxTest {
      * The board fixtBoardB, prepared in BoardTest is here analyzed.
      * The white has to move, and has two choices: C3 and C6.
      * The two moves lead respectively to two boards: BC3 and BC6.
-     * One ply analsys select C3 because the value of the two moves
+     * One ply analysis select C3 because the value of the two moves
      * is the same, and then the first is selected.
      * Two ply analysis select again C3, because the value is higher.
      * One ply analysis is checked to the black player for both BC3

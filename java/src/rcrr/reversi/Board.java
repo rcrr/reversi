@@ -287,7 +287,7 @@ public final class Board {
     /**
      * Returns the next player: the one that has to play next, given the current one.
      * When the opponent player has at last one legal move she is
-     * the next player. When she does't have it, the method checks if
+     * the next player. When she doesn't have it, the method checks if
      * the current has at last one legal move, if the check is positive, the current player is 
      * also the next one. When neither player has a legal move the method
      * returns null.
