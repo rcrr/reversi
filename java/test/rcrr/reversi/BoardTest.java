@@ -41,7 +41,7 @@ public class BoardTest {
     private Board fixtBoardBlackHasToPass;
     private Board fixtBoardEndGameX;
     private Board fixtBoardA;
-    private Board fixtBoardB;
+    public Board fixtBoardB;
     private Board fixtBoardC;
     private Board fixtBoardEqlA;
     private Board fixtBoardEqlB;
@@ -209,29 +209,32 @@ public class BoardTest {
      */
     @Test
     public void testFindBracketingPiece() {
-	Square move = Square.H7;
-	Direction dir;
-	Square b1;
-	Square b2;
+	{
+	    Square move = Square.H7;
+	    Direction dir = Direction.W;
+	    Square b1 = move.neighbors().get(dir);
+	    Square b2 = Square.C7;
+	    assertEquals(b2, fixtBoardBlackHasToPass.
+			 findBracketingPiece(b1, Player.WHITE, dir));
+	}
 
-	dir = Direction.W;
-	b1 = move.neighbors().get(dir);
-	b2 = Square.C7;
-	assertEquals(b2, fixtBoardBlackHasToPass.
-		     findBracketingPiece(b1, Player.WHITE, dir));
+	{
+	    Square move = Square.H7;
+	    Direction dir = Direction.NW;
+	    Square b1 = move.neighbors().get(dir);
+	    Square b2 = Square.F5;
+	    assertEquals(b2, fixtBoardBlackHasToPass.
+			 findBracketingPiece(b1, Player.WHITE, dir));
+	}
 
-	dir = Direction.NW;
-	b1 = move.neighbors().get(dir);
-	b2 = Square.F5;
-	assertEquals(b2, fixtBoardBlackHasToPass.
-		     findBracketingPiece(b1, Player.WHITE, dir));
-	
-	dir = Direction.SW;
-	b1 = move.neighbors().get(dir);
-	b2 = null;
-	assertEquals(b2, fixtBoardBlackHasToPass.
-		     findBracketingPiece(b1, Player.WHITE, dir));
-
+	{	
+	    Square move = Square.H7;
+	    Direction dir = Direction.SW;
+	    Square b1 = move.neighbors().get(dir);
+	    Square b2 = null;
+	    assertEquals(b2, fixtBoardBlackHasToPass.
+			 findBracketingPiece(b1, Player.WHITE, dir));
+	}
     }
 
     /** 
