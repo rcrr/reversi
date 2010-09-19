@@ -29,10 +29,15 @@ import static org.junit.Assert.*;
 
 public class MinimaxTest {
 
+    /** Game state fixtures. */
     private GameState fixtGameStateInitial;
     private GameState fixtGameStateMinimaxA;
     private GameState fixtGameStateMinimaxB;
+    private GameState fixtGameStateB;
+    private GameState fixtGameStateBC3;
+    private GameState fixtGameStateBC6;
 
+    /** Strategy fixtures. */
     private Strategy fixtStrategyA = Minimax.minimaxSearcher(1, new CountDifference());
     private Strategy fixtStrategyB = Minimax.minimaxSearcher(2, new CountDifference());
     private Strategy fixtStrategyC = Minimax.minimaxSearcher(3, new CountDifference());
@@ -42,6 +47,9 @@ public class MinimaxTest {
     private Strategy fixtStrategyG = Minimax.minimaxSearcher(7, new CountDifference());
     private Strategy fixtStrategyH = Minimax.minimaxSearcher(8, new CountDifference());
     
+    /**
+     * Prepares the GameState fixtures. It depends on the public BoardTest fixtures.
+     */
     @Before
     public void setUp() {
 	BoardTest bt = new BoardTest();
@@ -53,6 +61,15 @@ public class MinimaxTest {
 	fixtGameStateMinimaxB = GameState.valueOf(bt.fixtBoardMinimaxB,
 						  Player.WHITE,
 						  Clock.initialClock(1));
+	fixtGameStateB = GameState.valueOf(bt.fixtBoardB,
+					   Player.WHITE,
+					   Clock.initialClock(1));
+	fixtGameStateBC3 = GameState.valueOf(bt.fixtBoardBC3,
+					     Player.BLACK,
+					     Clock.initialClock(1));
+	fixtGameStateBC6 = GameState.valueOf(bt.fixtBoardBC6,
+					     Player.BLACK,
+					     Clock.initialClock(1));
     }
 
     /**
@@ -115,6 +132,12 @@ public class MinimaxTest {
     /**
      * minimaxSearcher test.
      * <p>
+     * The test run from depth 1 to 8. The white has to move.
+     * The black can now reply.
+     * The white has two options: C4 or A3, C4 is more aggressive, but open
+     * the game. A3 flips less in the short term, but forces a win in the
+     * following two moves. The minimax recognizes it, and searching three
+     * ply change the selected move to A3.
      */
     @Test
     public void testMinimaxSearcherB() {
@@ -126,6 +149,37 @@ public class MinimaxTest {
 	assertEquals(Square.A3, fixtStrategyF.move(fixtGameStateMinimaxB));
 	assertEquals(Square.A3, fixtStrategyG.move(fixtGameStateMinimaxB));
 	assertEquals(Square.A3, fixtStrategyH.move(fixtGameStateMinimaxB));
+    }
+
+    /**
+     * minimaxSearcher test.
+     * <p>
+     * The board fixtBoardB, prepared in BoardTest is here analyzed.
+     * The white has to move, and has two choices: C3 and C6.
+     * The two moves lead respectively to two boards: BC3 and BC6.
+     * One ply analsys select C3 because the value of the two moves
+     * is the same, and then the first is selected.
+     * Two ply analysis select again C3, because the value is higher.
+     * One ply analysis is checked to the black player for both BC3
+     * and BC6 game boards.
+     * <p>
+     * Searching deeper, the minimax stays on the C3 selection. Those
+     * cases have not been verified.
+     */
+    @Test
+    public void testMinimaxSearcherC() {
+
+	/** Manually verified. */
+	assertEquals(Square.C3, fixtStrategyA.move(fixtGameStateB));
+	assertEquals(Square.B2, fixtStrategyA.move(fixtGameStateBC3));
+	assertEquals(Square.H3, fixtStrategyA.move(fixtGameStateBC6));
+	assertEquals(Square.C3, fixtStrategyB.move(fixtGameStateB));
+
+	/** Not "manually" verified. */
+	assertEquals(Square.C3, fixtStrategyC.move(fixtGameStateB));
+	assertEquals(Square.C3, fixtStrategyD.move(fixtGameStateB));
+	assertEquals(Square.C3, fixtStrategyE.move(fixtGameStateB));
+	assertEquals(Square.C3, fixtStrategyF.move(fixtGameStateB));
     }
 
 }

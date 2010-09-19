@@ -23,7 +23,6 @@
  */
 
 // To do:
-// makeMove, isLegal, legalMoves need a more extensive test suit
 // complete the class description
 
 package rcrr.reversi;
