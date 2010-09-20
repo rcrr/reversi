@@ -57,42 +57,10 @@ public final class Minimax {
     /** The losing value. */
     private static final int LOSING_VALUE = - 2000000032;
 
-    /** The move field. */
-    private Square move;
-
-    /** The value field. Must be transformed into int. */
-    private int value;
-
-    private Square getMove() { return move; }
-    private void setMove(Square move) { this.move = move; }
-    private int getValue() { return value; }
-    private void setValue(int value) { this.value = value; }
-
-    private Minimax(Square move, Integer value) {
-	setMove(move);
-	setValue(value);
-    }
-
-    private Minimax minus() {
-	return new Minimax(getMove(), - getValue());
-    }
-
-    /**
-     * Returns a String representing the {@code Minimax} object.
-     * <p>
-     * The format is: {@code [move=b4, value=567]}
-     * 
-     * @return a string showing the minimax's node move and value fields
-     */
-    @Override
-    public String toString() {
-	return "[move=" + move + ", value=" + value + "]";
-    }
-
     /**
      * The minimax function.
      */
-    static Node minimax(final Player player, final Board board, final int ply, final EvalFunction ef) {
+    private static Node minimax(final Player player, final Board board, final int ply, final EvalFunction ef) {
 	Node node;
 	final Player opponent = player.opponent();
 	if (ply == 0) {
@@ -140,29 +108,28 @@ public final class Minimax {
     /**
      * The alpha-beta function.
      */
-    static Minimax alphabeta(Player player, Board board, int achievable, int cutoff, int ply, EvalFunction ef) {
-	Minimax ab = null;
+    private static Node alphabeta(Player player, Board board, int achievable, int cutoff, int ply, EvalFunction ef) {
+	Node ab;
 	Player opponent = player.opponent();
 	if (ply == 0) {
-	    ab = new Minimax(null, ef.eval(player, board));
+	    ab = new Node(null, ef.eval(player, board));
 	} else {
 	    List<Square> moves = board.legalMoves(player);
 	    if (moves.isEmpty()) {
 		if (board.hasAnyLegalMove(opponent)) {
 		    ab = alphabeta(opponent, board, - cutoff, - achievable, ply - 1, ef).minus();
 		} else {
-		    ab = new Minimax(null, finalValue(board, player));
+		    ab = new Node(null, finalValue(board, player));
 		}
 	    } else {
-		ab = new Minimax(moves.get(0), achievable);
+		ab = new Node(moves.get(0), achievable);
 		outer: for (Square move : moves) {
 		    Board board2 = board.makeMove(move, player);
-		    int val = alphabeta(opponent, board2, - cutoff, - ab.getValue(), ply - 1, ef).minus().getValue();
-		    if (val > ab.getValue()) {
-			ab.setValue(val);
-			ab.setMove(move);
+		    int val = alphabeta(opponent, board2, - cutoff, - ab.value(), ply - 1, ef).minus().value();
+		    if (val > ab.value()) {
+			ab = new Node(move, val);
 		    }
-		    if (ab.getValue() >= cutoff) break outer;
+		    if (ab.value() >= cutoff) break outer;
 		}
 	    }
 	}
@@ -175,8 +142,8 @@ public final class Minimax {
     public static Strategy alphabetaSearcher(final int ply, final EvalFunction ef) {
 	return new Strategy() {
 	    public Square move(GameState gameState) {
-		Minimax ab = alphabeta(gameState.player(), gameState.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
-		return ab.getMove();
+		Node ab = alphabeta(gameState.player(), gameState.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
+		return ab.move();
 	    }
 	};
     }
@@ -222,13 +189,26 @@ public final class Minimax {
     private static class Node {
 	private final Square move;
 	private final int value;
-	Node(final Square move, final int value) {
+	private Node(final Square move, final int value) {
 	    this.move = move;
 	    this.value = value;
 	}
-	Square move() { return move; }
-	int value() { return value; }
-	Node minus() { return new Node(move, - value); }
+	private Square move() { return move; }
+	private int value() { return value; }
+	private Node minus() { return new Node(move, - value); }
+	
+	/**
+	 * Returns a String representing the {@code Node} object.
+	 * <p>
+	 * The format is: {@code [move=b4, value=567]}
+	 * 
+	 * @return a string showing the minimax's node move and value fields
+	 */
+	@Override
+	public String toString() {
+	    return "[move=" + move + ", value=" + value + "]";
+	}
+
     } 
 
 }
