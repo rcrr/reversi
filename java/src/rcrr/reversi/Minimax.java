@@ -30,6 +30,16 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
+ * Minimax provides some static methods that return {@code Strategy}
+ * objects. These searcher methods differ for the algorithm implementation.
+ * <p>
+ * The Minimax family of algorithms is described by the wikipedia
+ * page: <a href="http://en.wikipedia.org/wiki/Minimax">Minimax</a>.
+ * <p>
+ * <ul>
+ *   <li>{@code minimaxSearcher}</li>
+ *   <li>{@code alphabetaSearcher}</li>
+ * </ul>
  * Javadocs, Unit tests, and semplification are under construction.
  * <p>
  * Must be transformed to be immutable and not instantiable.
@@ -51,12 +61,12 @@ public final class Minimax {
     private Square move;
 
     /** The value field. Must be transformed into int. */
-    private Integer value;
+    private int value;
 
     private Square getMove() { return move; }
     private void setMove(Square move) { this.move = move; }
-    private Integer getValue() { return value; }
-    private void setValue(Integer value) { this.value = value; }
+    private int getValue() { return value; }
+    private void setValue(int value) { this.value = value; }
 
     private Minimax(Square move, Integer value) {
 	setMove(move);
@@ -82,31 +92,30 @@ public final class Minimax {
     /**
      * The minimax function.
      */
-    static Minimax minimax(final Player player, final Board board, final int ply, final EvalFunction ef) {
-	Minimax mm = null;
-	Player opponent = player.opponent();
+    static Node minimax(final Player player, final Board board, final int ply, final EvalFunction ef) {
+	Node node;
+	final Player opponent = player.opponent();
 	if (ply == 0) {
-	    mm = new Minimax(null, ef.eval(player, board));
+	    node = new Node(null, ef.eval(player, board));
 	} else {
 	    List<Square> moves = board.legalMoves(player);
 	    if (moves.isEmpty()) {
 		if (board.hasAnyLegalMove(opponent)) {
-		    mm = minimax(opponent, board, ply - 1, ef).minus();
+		    node = minimax(opponent, board, ply - 1, ef).minus();
 		} else {
-		    mm = new Minimax(null, finalValue(board, player));
+		    node = new Node(null, finalValue(board, player));
 		}
 	    } else {
-		mm = new Minimax(null, null);
+		node = new Node(null, Integer.MIN_VALUE);
 		for (Square move : moves) {
-		    int val = minimax(opponent, board.makeMove(move, player), ply - 1, ef).minus().getValue();
-		    if (mm.getValue() == null || val > mm.getValue()) {
-			mm.setValue(val);
-			mm.setMove(move);
+		    int value = minimax(opponent, board.makeMove(move, player), ply - 1, ef).minus().value();
+		    if (value > node.value()) {
+			node = new Node(move, value);
 		    }
 		}
 	    }
 	}
-	return mm;
+	return node;
     }
 
     /**
@@ -122,8 +131,8 @@ public final class Minimax {
 	if (ef == null) throw new NullPointerException("Parameter ef must not null. ef=" + ef);
 	return new Strategy() {
 	    public Square move(GameState gameState) {
-		Minimax mm = minimax(gameState.player(), gameState.board(), ply, ef);
-		return mm.getMove();
+		Node node = minimax(gameState.player(), gameState.board(), ply, ef);
+		return node.move();
 	    }
 	};
     }
@@ -209,5 +218,17 @@ public final class Minimax {
 	    }
 	};
     }
+
+    private static class Node {
+	private final Square move;
+	private final int value;
+	Node(final Square move, final int value) {
+	    this.move = move;
+	    this.value = value;
+	}
+	Square move() { return move; }
+	int value() { return value; }
+	Node minus() { return new Node(move, - value); }
+    } 
 
 }

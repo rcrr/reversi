@@ -28,7 +28,7 @@ import java.util.List;
 
 public class MinimaxSearcherCountDifference implements Strategy {
 
-    private final int PLY = 3;
+    private final int PLY = 4;
 
     private Strategy s;
     
