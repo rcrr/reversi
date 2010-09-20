@@ -22,6 +22,12 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
+// To do:
+// - move has to be a full object having: "put disk", "pass", and "resign".
+// - searcher should be a single method receiving a minimax object ....
+// - Board + Player should be enclosed into a compound GameNode Object. Node should become SearchNode
+// - The final value should be calculated by the eval function. 
+
 package rcrr.reversi;
 
 import java.util.List;
