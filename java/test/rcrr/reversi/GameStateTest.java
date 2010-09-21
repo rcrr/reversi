@@ -22,9 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-// To do:
-// write all tests
-
 package rcrr.reversi;
 
 import org.junit.*;

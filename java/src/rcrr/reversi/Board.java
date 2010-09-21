@@ -22,9 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-// To do:
-// complete the class description
-
 package rcrr.reversi;
 
 import java.util.List;

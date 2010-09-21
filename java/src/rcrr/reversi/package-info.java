@@ -29,15 +29,44 @@ Main algorithm and structural classes.
 To do:
 <p>
 <ul>
-  <li>Complete the Minimax unit test.</li>
-  <li>Write the Eval Functions test.</li>
+  <li>Minimax: Complete the Minimax unit test.</li>
+  <li>Write the Eval Function tests.</li>
   <li>Javadoc has to be completed.</li>
   <li>Reversi class has no tests. Do it.</li>
-  <li>Board and Player shoul be grouped into a compound object.
+  <li>Board and Player should be grouped into a compound object.
       It is not GameState, because the Clock is too volatile.</li>
   <li>The end of time is not handled correctly.</li>
-  <li>The game should start an "indipendent" Clock using a timer thread.
+  <li>The game should start an "independent" Clock using a timer thread.
       The GameState Clock should be just a transcription value.</li>
+  <li>Move has to be a full object having: "put disk", "pass", and "resign".</li>
+  <li>Minimax searcher should be a single method receiving a minimax object ....</li>
+  <li>Board + Player should be enclosed into a compound GameNode Object.
+      Node should become SearchNode.</li>
+  <li>Minimax: The final value should be calculated by the eval function.</li>
+  <li>Minimax: maximizer method should be put into a StrategyUtils or StrategyCollection class.</li>
+  <li>Board: complete the class description.</li>
+  <li>Clock: move the two long fields into an EnumMap having the Players as keys.</li>
+  <li>Clock: parameters boundaries are not tested.</li>
+  <li>CountDifference: complete javadocs</li>
+  <li>Direction: ok</li>
+  <li>Game: write junit tests.</li>
+  <li>Game: review javadocs.</li>
+  <li>GameOverException: delete it.</li>
+  <li>GameState: review test completenes.</li>
+  <li>HumanStrategy: review input and output streams usage. Review the prompt management.</li>
+  <li>MaximizeDifference: write tests and javadocs.</li>
+  <li>MinimaxSearcherCountDifference: write javadocs and tests.</li>
+  <li>Reversi: Strategies should receive a configuration structure (XML or properties).</li>
+  <li>Brainstorming on a strategy builder class.</li>
+  <li>ModifiedWeightedSquares: javadocs and tests.</li>
+  <li>Player: ok</li>
+  <li>RandomStrategy: javadocs and tests.</li>
+  <li>Square: ok</li>
+  <li>SquareState: ok</li>
+  <li>Strategy: ok</li>
+  <li>WeightedSquares: javadocs and tests.</li>
+  <li>....</li>
+
 </ul>
 
 @author Roberto Corradini

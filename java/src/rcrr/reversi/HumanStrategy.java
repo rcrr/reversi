@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-
 public class HumanStrategy implements Strategy {
 
     private BufferedReader in;

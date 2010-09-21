@@ -22,10 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-// To do:
-// move the two long fields into an EnumMap having the Players as keys.
-// parameters boundaries are not tested.
-
 package rcrr.reversi;
 
 import java.text.DecimalFormat;
