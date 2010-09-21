@@ -46,6 +46,16 @@ public class MinimaxTest {
     private Strategy fixtStrategyF = Minimax.minimaxSearcher(6, new CountDifference());
     private Strategy fixtStrategyG = Minimax.minimaxSearcher(7, new CountDifference());
     private Strategy fixtStrategyH = Minimax.minimaxSearcher(8, new CountDifference());
+
+    /** Strategy fixtures. */
+    private Strategy fixtStrategyAab = Minimax.alphabetaSearcher(1, new CountDifference());
+    private Strategy fixtStrategyBab = Minimax.alphabetaSearcher(2, new CountDifference());
+    private Strategy fixtStrategyCab = Minimax.alphabetaSearcher(3, new CountDifference());
+    private Strategy fixtStrategyDab = Minimax.alphabetaSearcher(4, new CountDifference());
+    private Strategy fixtStrategyEab = Minimax.alphabetaSearcher(5, new CountDifference());
+    private Strategy fixtStrategyFab = Minimax.alphabetaSearcher(6, new CountDifference());
+    private Strategy fixtStrategyGab = Minimax.alphabetaSearcher(7, new CountDifference());
+    private Strategy fixtStrategyHab = Minimax.alphabetaSearcher(8, new CountDifference());
     
     /**
      * Prepares the GameState fixtures. It depends on the public BoardTest fixtures.
@@ -180,6 +190,75 @@ public class MinimaxTest {
 	assertEquals(Square.C3, fixtStrategyD.move(fixtGameStateB));
 	assertEquals(Square.C3, fixtStrategyE.move(fixtGameStateB));
 	assertEquals(Square.C3, fixtStrategyF.move(fixtGameStateB));
+    }
+
+    /**
+     * Tests the alphabetaSearcher ply parameter range.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testAlphabetaSearcherPlyRange() {
+	Strategy s = Minimax.alphabetaSearcher(0, new CountDifference());
+    }
+
+    /**
+     * Tests the alphabetaSearcher ef parameter.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testAlphabetaSearcherEfNotNull() {
+	Strategy s = Minimax.alphabetaSearcher(1, null);
+    }
+
+    /** See above. */
+    @Test
+    public void testAlphabetaSearcher() {
+	assertEquals(Square.D3, fixtStrategyAab.move(fixtGameStateInitial));
+	assertEquals(Square.D3, fixtStrategyBab.move(fixtGameStateInitial));
+	assertEquals(Square.D3, fixtStrategyCab.move(fixtGameStateInitial));
+	assertEquals(Square.D3, fixtStrategyDab.move(fixtGameStateInitial));
+    }
+
+    /** See above. */
+    @Test
+    public void testAlphabetaSearcherA() {
+	assertEquals(Square.E5, fixtStrategyAab.move(fixtGameStateMinimaxA));
+	assertEquals(Square.E5, fixtStrategyBab.move(fixtGameStateMinimaxA));
+	assertEquals(Square.C4, fixtStrategyCab.move(fixtGameStateMinimaxA));
+	assertEquals(Square.C4, fixtStrategyDab.move(fixtGameStateMinimaxA));
+	assertEquals(Square.C4, fixtStrategyEab.move(fixtGameStateMinimaxA));
+	assertEquals(Square.C4, fixtStrategyFab.move(fixtGameStateMinimaxA));
+	assertEquals(Square.A3, fixtStrategyGab.move(fixtGameStateMinimaxA));
+	assertEquals(Square.A3, fixtStrategyHab.move(fixtGameStateMinimaxA));
+
+    }
+
+    /** See above. */
+    @Test
+    public void testAlphabetaSearcherB() {
+	assertEquals(Square.C4, fixtStrategyAab.move(fixtGameStateMinimaxB));
+	assertEquals(Square.C4, fixtStrategyBab.move(fixtGameStateMinimaxB));
+	assertEquals(Square.A3, fixtStrategyCab.move(fixtGameStateMinimaxB));
+	assertEquals(Square.A3, fixtStrategyDab.move(fixtGameStateMinimaxB));
+	assertEquals(Square.A3, fixtStrategyEab.move(fixtGameStateMinimaxB));
+	assertEquals(Square.A3, fixtStrategyFab.move(fixtGameStateMinimaxB));
+	assertEquals(Square.A3, fixtStrategyGab.move(fixtGameStateMinimaxB));
+	assertEquals(Square.A3, fixtStrategyHab.move(fixtGameStateMinimaxB));
+    }
+
+    /** See above. */
+    @Test
+    public void testAlphabetaSearcherC() {
+
+	/** Manually verified. */
+	assertEquals(Square.C3, fixtStrategyAab.move(fixtGameStateB));
+	assertEquals(Square.B2, fixtStrategyAab.move(fixtGameStateBC3));
+	assertEquals(Square.H3, fixtStrategyAab.move(fixtGameStateBC6));
+	assertEquals(Square.C3, fixtStrategyBab.move(fixtGameStateB));
+
+	/** Not "manually" verified. */
+	assertEquals(Square.C3, fixtStrategyCab.move(fixtGameStateB));
+	assertEquals(Square.C3, fixtStrategyDab.move(fixtGameStateB));
+	assertEquals(Square.C3, fixtStrategyEab.move(fixtGameStateB));
+	assertEquals(Square.C3, fixtStrategyFab.move(fixtGameStateB));
     }
 
 }

@@ -140,6 +140,8 @@ public final class Minimax {
      * The alpha-beta searcher function.
      */
     public static Strategy alphabetaSearcher(final int ply, final EvalFunction ef) {
+	if (ply <= 0) throw new IllegalArgumentException("Parameter ply must be greather than zero. ply=" + ply);
+	if (ef == null) throw new NullPointerException("Parameter ef must not null. ef=" + ef);
 	return new Strategy() {
 	    public Square move(GameState gameState) {
 		Node ab = alphabeta(gameState.player(), gameState.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
