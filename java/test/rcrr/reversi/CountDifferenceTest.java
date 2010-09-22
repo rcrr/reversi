@@ -24,23 +24,15 @@
 
 package rcrr.reversi;
 
-/**
- * An {@code EvalFunction} implementation that counts the
- * difference between the player's disks and the opponent's ones.
- */
-public class CountDifference implements EvalFunction {
+import org.junit.*;
+import static org.junit.Assert.*;
 
+public class CountDifferenceTest {
     /**
-     * Public constructor.
+     *
      */
-    public CountDifference() {}
-
-    /**
-     * Implements the {@code EvalFunction} contract returning
-     * the difference between the player'sdisks and the opponent's ones.
-     */
-    public int eval(Player player, Board board) {
-	return board.countDifference(player);
+    @Test
+    public void testEval() {
+	assertEquals(0, (new CountDifference()).eval(Player.BLACK, Board.initialBoard()));
     }
-
 }

@@ -29,7 +29,6 @@ Main algorithm and structural classes.
 To do:
 <p>
 <ul>
-  <li>Minimax: Complete the Minimax unit test.</li>
   <li>Write the Eval Function tests.</li>
   <li>Javadoc has to be completed.</li>
   <li>Reversi class has no tests. Do it.</li>
@@ -47,7 +46,7 @@ To do:
   <li>Board: complete the class description.</li>
   <li>Clock: move the two long fields into an EnumMap having the Players as keys.</li>
   <li>Clock: parameters boundaries are not tested.</li>
-  <li>CountDifference: complete javadocs</li>
+  <li>CountDifference: ok</li>
   <li>Direction: ok</li>
   <li>Game: write junit tests.</li>
   <li>Game: review javadocs.</li>
