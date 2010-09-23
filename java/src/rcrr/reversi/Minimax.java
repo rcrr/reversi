@@ -154,6 +154,8 @@ public final class Minimax {
      * Must check that parameters are not null.
      */
     private static int finalValue(final Board board, final Player player) {
+	assert (board != null) : "Parameter board must be not null";
+	assert (player != null) : "Parameter player must be not null";
 	switch (Integer.signum(board.countDifference(player))) {
 	case -1: return LOSING_VALUE;
 	case  0: return 0;
