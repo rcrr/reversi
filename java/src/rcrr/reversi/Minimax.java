@@ -151,7 +151,13 @@ public final class Minimax {
     }
 
     /**
-     * Must check that parameters are not null.
+     * Returns the board final value.
+     * <p>
+     * Should be part of any eval function (or a service).
+     *
+     * @param board  the final board
+     * @param player the player for wich the value is calulated
+     * @return       the game final value
      */
     private static int finalValue(final Board board, final Player player) {
 	assert (board != null) : "Parameter board must be not null";

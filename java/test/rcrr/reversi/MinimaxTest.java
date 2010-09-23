@@ -261,4 +261,12 @@ public class MinimaxTest {
 	assertEquals(Square.C3, fixtStrategyFab.move(fixtGameStateB));
     }
 
+    /** Test the maximizer method. */
+    @Test
+    public void testMaximizer() {
+	
+	/** The maximixer method is equivalent to a minimax search one ply deep. */
+	assertEquals(Square.H3, Minimax.maximizer(new CountDifference()).move(fixtGameStateBC6));
+    }
+
 }
