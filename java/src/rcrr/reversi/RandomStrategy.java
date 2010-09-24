@@ -22,7 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-
 package rcrr.reversi;
 
 import java.util.Random;

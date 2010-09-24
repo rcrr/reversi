@@ -28,11 +28,25 @@ import org.junit.*;
 import static org.junit.Assert.*;
 
 public class CountDifferenceTest {
+
+    private BoardTest boardTest;
+    
     /**
-     *
+     * Prepares the Board fixtures. It depends on the public BoardTest fixtures.
      */
+    @Before
+    public void setUp() {
+	boardTest = new BoardTest();
+	boardTest.setUp();
+    }
+
     @Test
     public void testEval() {
+
+	/** Tests that he initial game state returns 0. */
 	assertEquals(0, (new CountDifference()).eval(Player.BLACK, Board.initialBoard()));
+
+	/** Tests that he fixtBoardA game state returns +3 for the white. */
+	assertEquals(-3, (new CountDifference()).eval(Player.WHITE, boardTest.fixtBoardA));
     }
 }

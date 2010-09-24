@@ -41,7 +41,7 @@ public class BoardTest {
     private Board fixtBoardEmpty;
     private Board fixtBoardBlackHasToPass;
     private Board fixtBoardEndGameX;
-    private Board fixtBoardA;
+    public Board fixtBoardA;
     public Board fixtBoardB;
     public Board fixtBoardBC3;
     public Board fixtBoardBC6;
