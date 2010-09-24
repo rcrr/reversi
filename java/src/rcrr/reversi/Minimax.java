@@ -59,6 +59,11 @@ public final class Minimax {
 
     /**
      * The minimax function.
+     * <p>
+     * Polishing:
+     * - ply == 0 and finalState cases has to be merged.
+     * - standard case is a bit ugly.
+     * - pass should be included into the standard case.
      */
     private static Node minimax(final Player player, final Board board, final int ply, final EvalFunction ef) {
 	Node node;
@@ -107,6 +112,8 @@ public final class Minimax {
 
     /**
      * The alpha-beta function.
+     * <p>
+     * Polish as per the minimax method, and write a complete javadoc.
      */
     private static Node alphabeta(Player player, Board board, int achievable, int cutoff, int ply, EvalFunction ef) {
 	Node ab;
@@ -138,6 +145,8 @@ public final class Minimax {
 
     /**
      * The alpha-beta searcher function.
+     * <p>
+     * It has to be refactor merging alphabetaSearcher and minimaxSearcher into one single searcher interface.
      */
     public static Strategy alphabetaSearcher(final int ply, final EvalFunction ef) {
 	if (ply <= 0) throw new IllegalArgumentException("Parameter ply must be greather than zero. ply=" + ply);
@@ -171,11 +180,14 @@ public final class Minimax {
     }
 
     /**
-     * Should be moved into a StrategyUtils ideal class.
-     * This is anyhow a better place than Board.
-     *
-     * should be tested. And tested.
-     * Transform the List into an Array.
+     * Returns a {@code Strategy} that maximixes the value obtained
+     * applying the evaluation function to the avalilable legal moves.
+     * <p>
+     * The method is equivalent to call a searcher giving a one ply depth
+     * search.
+     * 
+     * @param ef evaluation function
+     * @return   a strategy maximizing the value of the legal moves
      */
     public static Strategy maximizer(final EvalFunction ef) {
 	return new Strategy() {
@@ -196,15 +208,38 @@ public final class Minimax {
 	};
     }
 
+    /**
+     * A static inner class of Minimax, representing one node into the
+     * search tree.
+     * <p>
+     * {@code Node} is immutable.
+     * <p>
+     * Has to be fully investigated if:
+     * - register also the (board, player) tuple.
+     * - organize nodes into a real tree (taken from a library or here developed).
+     * - organize the value field as a "stack" of values obtained deepening the search.
+     */
     private static class Node {
+
+	/** The move field. */
 	private final Square move;
+
+	/** The value field. */
 	private final int value;
+
+	/** Private constructor. */
 	private Node(final Square move, final int value) {
 	    this.move = move;
 	    this.value = value;
 	}
+	
+	/** Getter method for move field. */
 	private Square move() { return move; }
+
+	/** Getter method for value field. */
 	private int value() { return value; }
+
+	/** Returns a new node having the value sign changed. */
 	private Node minus() { return new Node(move, - value); }
 	
 	/**
