@@ -37,15 +37,15 @@ import static org.junit.Assert.*;
 public class BoardTest {
 
     /** public fixtures are used also in other test classes. */
-    private Board fixtBoardInitial;
-    private Board fixtBoardEmpty;
-    private Board fixtBoardBlackHasToPass;
-    private Board fixtBoardEndGameX;
+    public Board fixtBoardInitial;
+    public Board fixtBoardEmpty;
+    public Board fixtBoardBlackHasToPass;
+    public Board fixtBoardEndGameX;
     public Board fixtBoardA;
     public Board fixtBoardB;
     public Board fixtBoardBC3;
     public Board fixtBoardBC6;
-    private Board fixtBoardC;
+    public Board fixtBoardC;
     private Board fixtBoardEqlA;
     private Board fixtBoardEqlB;
     public Board fixtBoardMinimaxA;

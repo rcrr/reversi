@@ -43,10 +43,22 @@ public class CountDifferenceTest {
     @Test
     public void testEval() {
 
-	/** Tests that he initial game state returns 0. */
-	assertEquals(0, (new CountDifference()).eval(Player.BLACK, Board.initialBoard()));
+	/** Tests that the empty board returns 0. */
+	assertEquals(0, (new CountDifference()).eval(Player.BLACK, boardTest.fixtBoardEmpty));
+	assertEquals(0, (new CountDifference()).eval(Player.WHITE, boardTest.fixtBoardEmpty));
 
-	/** Tests that he fixtBoardA game state returns +3 for the white. */
+	/** Tests that the initial game state returns 0. */
+	assertEquals(0, (new CountDifference()).eval(Player.BLACK, Board.initialBoard()));
+	assertEquals(0, (new CountDifference()).eval(Player.WHITE, Board.initialBoard()));
+
+	/** Tests that the fixtBoardA game state returns -3 for the white. */
 	assertEquals(-3, (new CountDifference()).eval(Player.WHITE, boardTest.fixtBoardA));
+
+	/** Tests that the fixtBoardA game state returns +3 for the black. */
+	assertEquals(+3, (new CountDifference()).eval(Player.BLACK, boardTest.fixtBoardA));
+
+	/** Tests that the fixtBoardEndGameX game state returns +10 for the black. */
+	assertEquals(+10, (new CountDifference()).eval(Player.BLACK, boardTest.fixtBoardEndGameX));
+
     }
 }
