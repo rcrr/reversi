@@ -65,7 +65,57 @@ To do:
   <li>Strategy: ok</li>
   <li>WeightedSquares: javadocs and tests.</li>
   <li>....</li>
+</ul>
 
+<p>
+Java source files:
+<p>
+<ul>
+  <li>AlphabetaSearcherCountDifference</li>
+  <li>AlphabetaSearcherModifiedWeightedSquares</li>
+  <li>AlphabetaSearcherWeightedSquares</li>
+  <li>Board</li>
+  <li>Clock</li>
+  <li>Column</li>
+  <li>CountDifference</li>
+  <li>Direction</li>
+  <li>EvalFunction</li>
+  <li>Game</li>
+  <li>GameOverException</li>
+  <li>GameState</li>
+  <li>HumanStrategy</li>
+  <li>MaximizeDifference</li>
+  <li>Minimax</li>
+  <li>MinimaxSearcherCountDifference</li>
+  <li>ModifiedWeightedSquares</li>
+  <li>package-info</li>
+  <li>Player</li>
+  <li>RandomStrategy</li>
+  <li>Reversi</li>
+  <li>Row</li>
+  <li>Square</li>
+  <li>SquareState</li>
+  <li>Strategy</li>
+  <li>WeightedSquares</li>
+</ul>
+
+<p>
+JUnit source files:
+<p>
+<ul>
+  <li>BoardTest</li>
+  <li>ClockTest</li>
+  <li>ColumnTest</li>
+  <li>CountDifferenceTest</li>
+  <li>DirectionTest</li>
+  <li>GameStateTest</li>
+  <li>GameTest</li>
+  <li>MinimaxTest</li>
+  <li>PlayerTest</li>
+  <li>ReversiTest</li>
+  <li>RowTest</li>
+  <li>SquareStateTest</li>
+  <li>SquareTest</li>
 </ul>
 
 @author Roberto Corradini
