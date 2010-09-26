@@ -62,7 +62,7 @@ public class BoardTest {
     private Board fixtBoardMakeMoveDm;
 
     /** Static Factory for the board class. */
-    private static Board boardFromList(List<Integer> il) {
+    static Board boardFromList(List<Integer> il) {
 	if (il == null) return null;
 	if (il.size() != Square.values().length) throw new IllegalArgumentException();
 	Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);

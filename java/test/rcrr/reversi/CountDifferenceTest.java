@@ -1,5 +1,5 @@
 /*
- *  CountDifference.java
+ *  CountDifferenceTest.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *

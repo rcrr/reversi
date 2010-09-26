@@ -116,6 +116,7 @@ JUnit source files:
   <li>RowTest</li>
   <li>SquareStateTest</li>
   <li>SquareTest</li>
+  <li>WeightedSquaresTest</li>
 </ul>
 
 @author Roberto Corradini
