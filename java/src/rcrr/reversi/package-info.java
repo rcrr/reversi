@@ -37,19 +37,17 @@ To do:
   <li>The game should start an "independent" Clock using a timer thread.
       The GameState Clock should be just a transcription value.</li>
   <li>Move has to be a full object having: "put disk", "pass", and "resign".</li>
-  <li>Minimax searcher should be a single method receiving a minimax object ....</li>
+  <li>Minimax: searcher should be a single method receiving a minimax object ....</li>
   <li>Board + Player should be enclosed into a compound GameNode Object.
       Node should become SearchNode.</li>
   <li>Minimax: The final value should be calculated by the eval function.</li>
-  <li>Minimax: maximizer method should be put into a StrategyUtils or StrategyCollection class.</li>
   <li>Clock: move the two long fields into an EnumMap having the Players as keys.</li>
   <li>Clock: parameters boundaries are not tested.</li>
   <li>CountDifference: ok</li>
-  <li>Direction: ok</li>
   <li>Game: write junit tests.</li>
   <li>Game: review javadocs.</li>
   <li>GameOverException: delete it.</li>
-  <li>GameState: review test completenes.</li>
+  <li>GameState: review test completeness.</li>
   <li>HumanStrategy: review input and output streams usage. Review the prompt management.</li>
   <li>MaximizeDifference: write tests and javadocs.</li>
   <li>MinimaxSearcherCountDifference: write javadocs and tests.</li>
@@ -58,9 +56,7 @@ To do:
   <li>ModifiedWeightedSquares: javadocs and tests.</li>
   <li>Player: ok</li>
   <li>RandomStrategy: javadocs and tests.</li>
-  <li>Square: ok</li>
   <li>SquareState: ok</li>
-  <li>Strategy: ok</li>
   <li>WeightedSquares: javadocs and tests.</li>
   <li>....</li>
 </ul>
@@ -74,10 +70,12 @@ Java source files:
   <li>AlphabetaSearcherWeightedSquares</li>
   <li>Board: ok. Javadocs complete. Tests complete.</li>
   <li>Clock</li>
-  <li>Column</li>
+  <li>Column: ok. Javadocs complete. Tests complete. Notes: see Row.</li>
   <li>CountDifference: ok. Javadocs complete. Tests complete.</li>
-  <li>Direction</li>
-  <li>EvalFunction</li>
+  <li>Direction: ok. Javadocs complete. Tests complete.
+      Notes: (1) deltaRow and deltaColumn are int, could be better having an enum Shift UP, NEUTRAL, DOWN...?
+             (2) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
+  <li>EvalFunction: ok. Javadocs complete.</li>
   <li>Game</li>
   <li>GameOverException</li>
   <li>GameState</li>
@@ -90,10 +88,12 @@ Java source files:
   <li>Player</li>
   <li>RandomStrategy</li>
   <li>Reversi</li>
-  <li>Row</li>
-  <li>Square</li>
+  <li>Row: ok. Javadocs complete. Tests complete.
+      Notes: (1) getInstance(int index) is redundant.
+             (2) shift(int delta) is used just in the neighbor table calculation. It is a bit ugly.</li>
+  <li>Square: ok. Javadocs complete. Tests complete.</li>
   <li>SquareState</li>
-  <li>Strategy</li>
+  <li>Strategy: ok. Javadocs complete.</li>
   <li>WeightedSquares: ok. Javadocs complete. Tests complete.</li>
 </ul>
 

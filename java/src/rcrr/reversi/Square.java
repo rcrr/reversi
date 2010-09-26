@@ -41,6 +41,7 @@ import static rcrr.reversi.Column.*;
  * <p>
  * For instance, let's take a square: D4.
  * This symbol identifies the square at the cross of column d and row 4.
+ * <p>
  * Here is represented the collection of the 64 Square as them are
  * organized in the game board.
  * <pre>
