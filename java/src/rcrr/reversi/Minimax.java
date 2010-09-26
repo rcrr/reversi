@@ -104,6 +104,7 @@ public final class Minimax {
 	if (ef == null) throw new NullPointerException("Parameter ef must not null. ef=" + ef);
 	return new Strategy() {
 	    public Square move(GameState gameState) {
+		if (!gameState.hasAnyLegalMove()) return null;
 		Node node = minimax(gameState.player(), gameState.board(), ply, ef);
 		return node.move();
 	    }
@@ -153,6 +154,7 @@ public final class Minimax {
 	if (ef == null) throw new NullPointerException("Parameter ef must not null. ef=" + ef);
 	return new Strategy() {
 	    public Square move(GameState gameState) {
+		if (!gameState.hasAnyLegalMove()) return null;
 		Node ab = alphabeta(gameState.player(), gameState.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
 		return ab.move();
 	    }
@@ -192,16 +194,18 @@ public final class Minimax {
     public static Strategy maximizer(final EvalFunction ef) {
 	return new Strategy() {
 	    public Square move(GameState gameState) {
+		int value = LOSING_VALUE;
+		Square move = null;
 		Player player = gameState.player();
 		Board board = gameState.board();
-		List<Square> moves = board.legalMoves(player);
-		List<Integer> scores = new ArrayList<Integer>();
-		for (Square move : moves) {
-		    Integer score = ef.eval(player, board.makeMove(move, player));
-		    scores.add(score);
+		for (Square tentativeMove : board.legalMoves(player)) {
+		    int moveValue = ef.eval(player, board.makeMove(tentativeMove, player));
+		    if (moveValue > value) {
+			value = moveValue;
+			move = tentativeMove;
+		    }
 		}
-		Integer best = Collections.max(scores);
-		return moves.get(scores.indexOf(best));
+		return move;
 	    }
 	};
     }

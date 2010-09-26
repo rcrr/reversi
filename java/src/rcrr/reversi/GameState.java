@@ -106,6 +106,24 @@ public class GameState {
     }
 
     /**
+     * Returns if the game state admit one or more legal moves.
+     *
+     * @return {@code true} if the player has at last one legal move
+     */
+    public boolean hasAnyLegalMove() {
+	return board.hasAnyLegalMove(player);
+    }
+
+    /**
+     * Returns if either one of the two players has any legal move.
+     *
+     * @return {@code true} if anyone can play a move.
+     */
+    public boolean hasAnyPlayerAnyLegalMove() {
+	return board.hasAnyPlayerAnyLegalMove();
+    }
+
+    /**
      * Returns the board field.
      *
      * @return the game state board

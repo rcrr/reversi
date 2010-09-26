@@ -123,5 +123,20 @@ public class GameStateTest {
 	assertEquals(true, true);
     }
 
+    /**
+     * Has to be written.
+     */
+    @Test
+    public void testHasAnyLegalMove() {
+	assertEquals(true, true);
+    }
+
+    /**
+     * Has to be written.
+     */
+    @Test
+    public void testHasAnyPlayerAnyLegalMove() {
+	assertEquals(true, true);
+    }
 
 }

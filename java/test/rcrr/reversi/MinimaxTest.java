@@ -36,6 +36,7 @@ public class MinimaxTest {
     private GameState fixtGameStateB;
     private GameState fixtGameStateBC3;
     private GameState fixtGameStateBC6;
+    private GameState fixtGameStateBlackHasToPass;
 
     /** Strategy fixtures. */
     private Strategy fixtStrategyA = Minimax.minimaxSearcher(1, new CountDifference());
@@ -80,6 +81,10 @@ public class MinimaxTest {
 	fixtGameStateBC6 = GameState.valueOf(bt.fixtBoardBC6,
 					     Player.BLACK,
 					     Clock.initialClock(1));
+	fixtGameStateBlackHasToPass = GameState.valueOf(bt.fixtBoardBlackHasToPass,
+							Player.BLACK,
+							Clock.initialClock(1));
+
     }
 
     /**
@@ -267,6 +272,31 @@ public class MinimaxTest {
 	
 	/** The maximixer method is equivalent to a minimax search one ply deep. */
 	assertEquals(Square.H3, Minimax.maximizer(new CountDifference()).move(fixtGameStateBC6));
+	assertEquals(Square.E5, Minimax.maximizer(new CountDifference()).move(fixtGameStateMinimaxA));
+    }
+
+    /** Test the maximizer when no legal move is available. */
+    @Test
+    public void testMaximizerWhenNoLegalMoveIsAvailable() {	
+	assertEquals(null, Minimax.maximizer(new CountDifference()).move(fixtGameStateBlackHasToPass));
+    }
+
+    /** Test the minimax searcher when no legal move is available. */
+    @Test
+    public void testMinimaxSearcherWhenNoLegalMoveIsAvailable() {	
+	assertEquals(null, fixtStrategyA.move(fixtGameStateBlackHasToPass));
+	assertEquals(null, fixtStrategyB.move(fixtGameStateBlackHasToPass));
+	assertEquals(null, fixtStrategyC.move(fixtGameStateBlackHasToPass));
+	assertEquals(null, fixtStrategyD.move(fixtGameStateBlackHasToPass));
+    }
+
+    /** Test the alphabeta searcher when no legal move is available. */
+    @Test
+    public void testAlphabetaSearcherWhenNoLegalMoveIsAvailable() {	
+	assertEquals(null, fixtStrategyAab.move(fixtGameStateBlackHasToPass));
+	assertEquals(null, fixtStrategyBab.move(fixtGameStateBlackHasToPass));
+	assertEquals(null, fixtStrategyCab.move(fixtGameStateBlackHasToPass));
+	assertEquals(null, fixtStrategyDab.move(fixtGameStateBlackHasToPass));
     }
 
 }

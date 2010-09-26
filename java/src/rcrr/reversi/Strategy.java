@@ -32,6 +32,11 @@ public interface Strategy {
 
     /**
      * Returns the game move for the strategy.
+     * <p>
+     * When the {@code gameState} doesn't offer a legal move to the player
+     * the strategy has to return a {@code null} value.
+     * When otherwise a legal move is available the {@code null} return
+     * value is not allowed.
      *
      * @param gameState the game state
      * @return          the move to play
