@@ -124,19 +124,6 @@ public final class Board {
 	sm.put(Square.E5, SquareState.WHITE);
 	return valueOf(sm);
     }
-    
-    /**
-     * Returns a copy of the board object.
-     * <p>
-     * Being the {@code Board} object immutable, the method returns a reference
-     * of the object itself. The method does not appear a lot useful, but it helps
-     * to remain consistent with the implementation of some clients.
-     *
-     * @return a copy of the board
-     */
-    public Board copyBoard() {
-	return this;
-    }
 
     /**
      * Returns a new updated board to reflect move by player. This static

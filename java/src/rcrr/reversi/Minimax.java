@@ -197,9 +197,7 @@ public final class Minimax {
 		List<Square> moves = board.legalMoves(player);
 		List<Integer> scores = new ArrayList<Integer>();
 		for (Square move : moves) {
-		    Board newBoard = board.copyBoard();
-		    newBoard.makeMove(move, player);
-		    Integer score = ef.eval(player, newBoard);
+		    Integer score = ef.eval(player, board.makeMove(move, player));
 		    scores.add(score);
 		}
 		Integer best = Collections.max(scores);
