@@ -25,9 +25,8 @@
 package rcrr.reversi;
 
 import java.util.Map;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -35,7 +34,7 @@ import java.util.Collections;
  * An {@code EvalFunction} implementation that weights the value 
  * of each square owned by a color applying a static parameter.
  * <p>
- * The parameters are valued as follow:
+ * The parameter table is valued as follow:
  *
  * <pre>
  * {@code
@@ -60,35 +59,35 @@ import java.util.Collections;
  * }
  * </pre>
  *
+ * The evaluation is performed summing all the player's squares
+ * multiplied by the appropriete weight, and subtracting the
+ * opponent's squares weighted the same way.
+ *
  */
-public class WeightedSquares implements EvalFunction, Strategy {
+public class WeightedSquares implements EvalFunction {
 
-    final static Map<Square, Integer> WEIGHTS = weights();
+    /** The static WEIGHTS map. */
+    private final static Map<Square, Integer> WEIGHTS;
 
-    private final static Map<Square, Integer> weights() {
-	List<Integer> w = Arrays.asList(120, -20,  20,  5,  5,  20, -20, 120,
-					-20, -40,  -5, -5, -5,  -5, -40, -20,
-					 20,  -5,  15,  3,  3,  15,  -5,  20,
-					  5,  -5,   3,  3,  3,   3,  -5,   5,
-					  5,  -5,   3,  3,  3,   3,  -5,   5,
-					 20,  -5,  15,  3,  3,  15,  -5,  20,
-					-20, -40,  -5, -5, -5,  -5, -40, -20,
-					120, -20,  20,  5,  5,  20, -20, 120);
+    /** Public constructor. */
+    public WeightedSquares() {}
 
-	Map<Square, Integer> wm = new HashMap<Square, Integer>(Square.values().length);
-	for (int idx=0; idx<Square.values().length; idx++) {
-	    wm.put(Square.getInstance(idx), w.get(idx));
-	}	
-	return Collections.unmodifiableMap(wm);
+    /**
+     * Returns the weights map.
+     *
+     * @return the weights map
+     */
+    public final static Map<Square, Integer> weights() {
+	return new EnumMap<Square, Integer>(WEIGHTS);
     }
 
-    Strategy maximizeWeightedCount;
-
-    public WeightedSquares() {
-	maximizeWeightedCount = Minimax.maximizer(this);
-    }
-
+    /** 
+     * Computes the position evaluation according to the {@code WeightedSquares}
+     * implementation of the {@link EvalFunction} interface.
+     */
     public int eval(Player player, Board board) {
+	if (player == null) throw new NullPointerException ("Parameter player cannot be null."); 
+	if (board == null) throw new NullPointerException ("Parameter board cannot be null."); 
 	Player opponent = player.opponent();
 	int value = 0;
 	for (Square sq : Square.values()) {
@@ -102,8 +101,25 @@ public class WeightedSquares implements EvalFunction, Strategy {
 	return value;
     }
 
-    public Square move(GameState gameState) {
-	return maximizeWeightedCount.move(gameState);
+    /**
+     * Initialization block:
+     * . - sets and initializes {@code WEIGHTS} map
+     */
+    static {
+	List<Integer> w = Arrays.asList(120, -20,  20,  5,  5,  20, -20, 120,
+					-20, -40,  -5, -5, -5,  -5, -40, -20,
+					 20,  -5,  15,  3,  3,  15,  -5,  20,
+					  5,  -5,   3,  3,  3,   3,  -5,   5,
+					  5,  -5,   3,  3,  3,   3,  -5,   5,
+					 20,  -5,  15,  3,  3,  15,  -5,  20,
+					-20, -40,  -5, -5, -5,  -5, -40, -20,
+					120, -20,  20,  5,  5,  20, -20, 120);
+
+	Map<Square, Integer> wm = new EnumMap<Square, Integer>(Square.class);
+	for (int idx=0; idx<Square.values().length; idx++) {
+	    wm.put(Square.getInstance(idx), w.get(idx));
+	}	
+	WEIGHTS = Collections.unmodifiableMap(wm);
     }
 
 }

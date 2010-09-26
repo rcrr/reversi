@@ -29,7 +29,6 @@ Main algorithm and structural classes.
 To do:
 <p>
 <ul>
-  <li>Write the Eval Function tests.</li>
   <li>Javadoc has to be completed.</li>
   <li>Reversi class has no tests. Do it.</li>
   <li>Board and Player should be grouped into a compound object.
@@ -77,7 +76,7 @@ Java source files:
   <li>Board</li>
   <li>Clock</li>
   <li>Column</li>
-  <li>CountDifference</li>
+  <li>CountDifference: ok. Javadocs complete. Tests complete.</li>
   <li>Direction</li>
   <li>EvalFunction</li>
   <li>Game</li>
@@ -87,7 +86,7 @@ Java source files:
   <li>MaximizeDifference</li>
   <li>Minimax</li>
   <li>MinimaxSearcherCountDifference</li>
-  <li>ModifiedWeightedSquares</li>
+  <li>ModifiedWeightedSquares: ok. Javadocs complete. Tests complete.</li>
   <li>package-info</li>
   <li>Player</li>
   <li>RandomStrategy</li>
@@ -96,7 +95,7 @@ Java source files:
   <li>Square</li>
   <li>SquareState</li>
   <li>Strategy</li>
-  <li>WeightedSquares</li>
+  <li>WeightedSquares: ok. Javadocs complete. Tests complete.</li>
 </ul>
 
 <p>
@@ -106,17 +105,18 @@ JUnit source files:
   <li>BoardTest</li>
   <li>ClockTest</li>
   <li>ColumnTest</li>
-  <li>CountDifferenceTest</li>
+  <li>CountDifferenceTest: tests complete</li>
   <li>DirectionTest</li>
   <li>GameStateTest</li>
   <li>GameTest</li>
   <li>MinimaxTest</li>
+  <li>ModifiedWeightedSquaresTest: tests complete</li>
   <li>PlayerTest</li>
   <li>ReversiTest</li>
   <li>RowTest</li>
   <li>SquareStateTest</li>
   <li>SquareTest</li>
-  <li>WeightedSquaresTest</li>
+  <li>WeightedSquaresTest: tests complete</li>
 </ul>
 
 @author Roberto Corradini

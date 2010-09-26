@@ -40,6 +40,8 @@ public class CountDifference implements EvalFunction {
      * the difference between the player'sdisks and the opponent's ones.
      */
     public int eval(Player player, Board board) {
+	if (player == null) throw new NullPointerException ("Parameter player cannot be null."); 
+	if (board == null) throw new NullPointerException ("Parameter board cannot be null."); 
 	return board.countDifference(player);
     }
 

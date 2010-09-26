@@ -22,46 +22,59 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-
 package rcrr.reversi;
 
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
-public class ModifiedWeightedSquares implements EvalFunction, Strategy {
+/**
+ * An {@code EvalFunction} implementation that weights the value 
+ * of each square owned by a color applying a static parameter.
+ * <p>
+ * The parameter table is taken from the corresponding one defined in
+ * the {@link WeightedSquares} class, but is then modified as follow:
+ * every time a corner is occupied, its three neighbor square weights
+ * are recalculated, assigning a value of +5 to each one.
+ * This setting is done with the underlying idea that the penalty
+ * associated with the X and C squares has to be removed when
+ * the corner is captured by either one of the two players.
+ */
+public class ModifiedWeightedSquares implements EvalFunction {
 
-    // has to be trasformed into a Map .....
-    public final static Map<Square, Integer> WEIGHTS = WeightedSquares.WEIGHTS;
-    public final static List<Square> CORNERS = 
-	Arrays.asList(Square.A1, Square.H1, Square.A8, Square.H8);
+    /** The basic unmodified weights received from WeightedSquares. */
+    private final static Map<Square, Integer> WEIGHTS = 
+	Collections.unmodifiableMap(WeightedSquares.weights());
 
-    private Strategy s;
-    private EvalFunction ws;
+    /** The reference to the WeightedSquares evaluation function. */
+    private final EvalFunction ws;
 
+    /** Public constructor. */
     public ModifiedWeightedSquares() {
-	s = Minimax.maximizer(this);
 	ws = new WeightedSquares();
     }
 
+    /** 
+     * Computes the position evaluation according to the {@code ModifiedWeightedSquares}
+     * implementation of the {@link EvalFunction} interface.
+     */
     public int eval(Player player, Board board) {
-	int w = ws.eval(player, board);
-	for (Square corner : CORNERS) {
+	if (player == null) throw new NullPointerException ("Parameter player cannot be null."); 
+	if (board == null) throw new NullPointerException ("Parameter board cannot be null."); 
+	int value = ws.eval(player, board);
+	for (Square corner : Square.corners()) {
 	    if (board.get(corner) != SquareState.EMPTY) {
 		for (Square c : corner.neighbors().values()) {
-		    if (board.get(c) != SquareState.EMPTY) {
+		    if (c != null && board.get(c) != SquareState.EMPTY) {
 			int j = (board.get(c) == player.color()) ? 1 : -1;
-			w += (j * (5 - WEIGHTS.get(c)));
+			value += (j * (5 - WEIGHTS.get(c)));
 		    }
 		}
 	    }
 	}
-	return w;
-    }
-
-    public Square move(GameState gameState) {
-	return s.move(gameState);
+	return value;
     }
 
 }
