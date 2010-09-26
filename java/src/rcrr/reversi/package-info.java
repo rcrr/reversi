@@ -42,7 +42,6 @@ To do:
       Node should become SearchNode.</li>
   <li>Minimax: The final value should be calculated by the eval function.</li>
   <li>Minimax: maximizer method should be put into a StrategyUtils or StrategyCollection class.</li>
-  <li>Board: complete the class description.</li>
   <li>Clock: move the two long fields into an EnumMap having the Players as keys.</li>
   <li>Clock: parameters boundaries are not tested.</li>
   <li>CountDifference: ok</li>
@@ -73,7 +72,7 @@ Java source files:
   <li>AlphabetaSearcherCountDifference</li>
   <li>AlphabetaSearcherModifiedWeightedSquares</li>
   <li>AlphabetaSearcherWeightedSquares</li>
-  <li>Board</li>
+  <li>Board: ok. Javadocs complete. Tests complete.</li>
   <li>Clock</li>
   <li>Column</li>
   <li>CountDifference: ok. Javadocs complete. Tests complete.</li>
@@ -102,21 +101,21 @@ Java source files:
 JUnit source files:
 <p>
 <ul>
-  <li>BoardTest</li>
+  <li>BoardTest: tests complete.</li>
   <li>ClockTest</li>
   <li>ColumnTest</li>
-  <li>CountDifferenceTest: tests complete</li>
+  <li>CountDifferenceTest: tests complete.</li>
   <li>DirectionTest</li>
   <li>GameStateTest</li>
   <li>GameTest</li>
   <li>MinimaxTest</li>
-  <li>ModifiedWeightedSquaresTest: tests complete</li>
+  <li>ModifiedWeightedSquaresTest: tests complete.</li>
   <li>PlayerTest</li>
   <li>ReversiTest</li>
   <li>RowTest</li>
   <li>SquareStateTest</li>
   <li>SquareTest</li>
-  <li>WeightedSquaresTest: tests complete</li>
+  <li>WeightedSquaresTest: tests complete.</li>
 </ul>
 
 @author Roberto Corradini

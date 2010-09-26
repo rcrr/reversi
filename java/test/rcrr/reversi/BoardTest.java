@@ -412,14 +412,6 @@ public class BoardTest {
     @Test
     public void testMakeMove() {
 
-	/** Tests that a null move cannot be passed to makeMove. */
-	try {
-	    fixtBoardInitial.makeMove(null, Player.BLACK);
-	    fail("An exception must be risen.");
-	} catch (NullPointerException npe) {
-	    assertTrue(true);
-	}
-
 	/** Tests that a null player cannot be passed to makeMove. */
 	try {
 	    fixtBoardInitial.makeMove(Square.D3, null);
@@ -427,6 +419,20 @@ public class BoardTest {
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
 	}
+
+	/** Tests that a null move cannot be passed to makeMove when a legal one is there. */
+	try {
+	    fixtBoardInitial.makeMove(null, Player.BLACK);
+	    fail("An exception must be risen.");
+	} catch (NullPointerException npe) {
+	    assertTrue(true);
+	}
+	
+	/** 
+	 * Tests that a null move can be a valid parameter when no legal moves are available to the player.
+	 * Tests also that the return value is the board itself.
+	 */
+	assertEquals(fixtBoardBlackHasToPass, fixtBoardBlackHasToPass.makeMove(null, Player.BLACK));
 
 	/** Tests that an illegal move cannot be passed to makeMove. */
 	try {
@@ -449,6 +455,33 @@ public class BoardTest {
 	assertTrue(fixtBoardMakeMoveCm.equals(fixtBoardMakeMoveC.makeMove(Square.D4, Player.WHITE)));
 	assertTrue(fixtBoardMakeMoveDm.equals(fixtBoardMakeMoveD.makeMove(Square.B4, Player.WHITE)));
 
+    }
+
+    @Test
+    public void testEmptyBoard() {
+	assertEquals(fixtBoardEmpty, Board.emptyBoard());
+	Board empty = Board.emptyBoard();
+	for (Square square : Square.values()) {
+	    assertEquals(SquareState.EMPTY, empty.get(square));
+	}
+    }
+
+    @Test
+    public void testInitialBoard() {
+	assertEquals(fixtBoardInitial, Board.initialBoard());
+	Board initial = Board.initialBoard();
+	for (Square square : Square.values()) {
+	    SquareState actual = initial.get(square);
+	    SquareState expected;
+	    switch (square) {
+	    case D4: expected = SquareState.WHITE; break;
+	    case E4: expected = SquareState.BLACK; break;
+	    case D5: expected = SquareState.BLACK; break;
+	    case E5: expected = SquareState.WHITE; break;
+	    default: expected = SquareState.EMPTY; break;
+	    }
+	    assertEquals(expected, actual);
+	}
     }
 
     @Test
@@ -618,6 +651,7 @@ public class BoardTest {
 
     @Test
     public void testValueOf() {
+
 	/**
 	 * Tests if the valueOf method throws a NullPointerException when
 	 * the passed map is null.

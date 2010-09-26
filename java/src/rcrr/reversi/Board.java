@@ -129,10 +129,16 @@ public final class Board {
      * Returns a new updated board to reflect move by player. This static
      * factory executes a game move to the board and returns a new one, reflecting
      * the move. The original board is not modified.
-     * Null values as move or player are not allowed, a NullPointerException
+     * <p>
+     * A null value for player is not allowed, a {@code NullPointerException}
      * is thrown in such a case.
+     * <p>
+     * A null value for move is allowed, and moreover is the only valid value
+     * acceptable by the method, when the player has not any legal move. Otherwise
+     * a null move is forbidden, and a {@code NullPointerException} is risen.
+     * <p>
      * The method does check if the move is legal. It throws an 
-     * IllegalArgumentException in case it is not.
+     * {@code IllegalArgumentException} in case it is not.
      *
      * @param  move   the board square where to put the disk
      * @param  player the disk color to put on the board
@@ -141,10 +147,15 @@ public final class Board {
      * @throws IllegalArgumentException if the {@code move} by {@code player} is illegal
      */
     public Board makeMove(Square move, Player player) {
-	if (move == null || player == null) {
-	    throw new NullPointerException("Parameters move and " +
-					       "player must be not null. player=" +
-					       player + ", move=" + move);
+	if (player == null) {
+	    throw new NullPointerException("Parameter player must be not null. player=" + player);
+	}
+	if (move == null) {
+	    if (hasAnyLegalMove(player)) {
+		throw new NullPointerException("Parameter move must be not null when a legal one is available.");
+	    } else {
+		return this;
+	    }
 	}
 	if (!isLegal(move, player))
 	    throw new IllegalArgumentException("The move<" +
