@@ -54,7 +54,6 @@ To do:
   <li>Reversi: Strategies should receive a configuration structure (XML or properties).</li>
   <li>Brainstorming on a strategy builder class.</li>
   <li>ModifiedWeightedSquares: javadocs and tests.</li>
-  <li>Player: ok</li>
   <li>RandomStrategy: javadocs and tests.</li>
   <li>SquareState: ok</li>
   <li>WeightedSquares: javadocs and tests.</li>
@@ -84,8 +83,8 @@ Java source files:
   <li>Minimax</li>
   <li>MinimaxSearcherCountDifference</li>
   <li>ModifiedWeightedSquares: ok. Javadocs complete. Tests complete.</li>
-  <li>package-info</li>
-  <li>Player</li>
+  <li>package-info: ok</li>
+  <li>Player: ok. Javadocs complete. Tests complete.</li>
   <li>RandomStrategy</li>
   <li>Reversi</li>
   <li>Row: ok. Javadocs complete. Tests complete.
@@ -110,7 +109,7 @@ JUnit source files:
   <li>GameTest</li>
   <li>MinimaxTest</li>
   <li>ModifiedWeightedSquaresTest: tests complete.</li>
-  <li>PlayerTest</li>
+  <li>PlayerTest: tests complete.</li>
   <li>ReversiTest</li>
   <li>RowTest</li>
   <li>SquareStateTest</li>

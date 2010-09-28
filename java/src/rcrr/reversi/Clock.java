@@ -118,8 +118,12 @@ public final class Clock {
      * @param  gameTimeInMinutes the game's time in minutes assigned to the two players
      * @return                   a new {@code Clock} having Black's and White's time set to
      *                           the same given value
+     * @throws IllegalArgumentException if gameTimeInMinutes is lesser than 1, or greather than 60. 
      */
     public static Clock initialClock(final int gameTimeInMinutes) {
+	if (gameTimeInMinutes <= 0 || gameTimeInMinutes > 60)
+	    throw new IllegalArgumentException("Parameter gameTimeInMinutes must be between 1 and 60. value=" + 
+					       gameTimeInMinutes);
 	final long t = SECONDS_PER_MINUTE * TIME_UNITS_PER_SECOND * gameTimeInMinutes;
 	return valueOf(t, t);
     }
@@ -167,8 +171,10 @@ public final class Clock {
      *
      * @param  player the player for which the remaining time is queried 
      * @return        the player remaining time in milliseconds
+     * @throws NullPointerException if the player parameter is null
      */
     public long getTime(Player player) {
+	if (player == null) throw new NullPointerException("Parameter player connot be null. player=" + player);
 	return (player == Player.BLACK) ? blackTime : whiteTime;
     }
 

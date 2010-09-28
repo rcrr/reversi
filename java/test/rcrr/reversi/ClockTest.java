@@ -77,6 +77,12 @@ public class ClockTest {
     @Test
     public void testGetTime() {
 	Clock c = Clock.valueOf(900000, 1);
+	try {
+	    c.getTime(null);
+	    fail("An exception must be risen.");
+	} catch (NullPointerException npe) {
+	    assertTrue(true);
+	}
 	assertEquals(1, c.getTime(Player.WHITE));
     }
 
