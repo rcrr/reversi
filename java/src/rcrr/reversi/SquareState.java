@@ -80,7 +80,7 @@ public enum SquareState {
     }
 
     /**
-     * Returns the {@code SquareState} printable rapresentation.
+     * Returns the {@code SquareState} printable representation.
      * It returns the {@code symbol} field.
      *
      * @return the {@code SquareState}'s {@code symbol}

@@ -31,18 +31,22 @@ To do:
 <ul>
   <li>Javadoc has to be completed.</li>
   <li>Reversi class has no tests. Do it.</li>
-  <li>Board and Player should be grouped into a compound object.
-      It is not GameState, because the Clock is too volatile.</li>
-  <li>The end of time is not handled correctly.</li>
-  <li>The game should start an "independent" Clock using a timer thread.
-      The GameState Clock should be just a transcription value.</li>
   <li>Move has to be a full object having: "put disk", "pass", and "resign".</li>
   <li>Minimax: searcher should be a single method receiving a minimax object ....</li>
   <li>Board + Player should be enclosed into a compound GameNode Object.
       Node should become SearchNode.</li>
   <li>Minimax: The final value should be calculated by the eval function.</li>
+  <li>Clock: Rewrite the class using the Joda-Time library.</li>
   <li>Clock: move the two long fields into an EnumMap having the Players as keys.</li>
   <li>Clock: parameters boundaries are not tested.</li>
+  <li>Clock: create a GameClock class that accept start(), pause(), stop() and creates the Clocks to
+      be distributed to clients. Clients are GameSates and so the Strategies.
+      Use java.lang.Timer to schedule the GameClock refresh.
+      GameClock has to be a mutable field of Game.
+      May be just a class is enough. The Clock (immutable) could have two roles GameState's Clock and Game's Clock.</li>
+  <li>Game, Clock: The end of time is not handled correctly.</li>
+  <li>Game: Game should have two fields: the GameHistory (the sequence of game states),
+      and the GameClock.</li>
   <li>CountDifference: ok</li>
   <li>Game: write junit tests.</li>
   <li>Game: review javadocs.</li>
@@ -55,7 +59,6 @@ To do:
   <li>Brainstorming on a strategy builder class.</li>
   <li>ModifiedWeightedSquares: javadocs and tests.</li>
   <li>RandomStrategy: javadocs and tests.</li>
-  <li>SquareState: ok</li>
   <li>WeightedSquares: javadocs and tests.</li>
   <li>....</li>
 </ul>
@@ -91,7 +94,7 @@ Java source files:
       Notes: (1) getInstance(int index) is redundant.
              (2) shift(int delta) is used just in the neighbor table calculation. It is a bit ugly.</li>
   <li>Square: ok. Javadocs complete. Tests complete.</li>
-  <li>SquareState</li>
+  <li>SquareState: ok. Javadocs complete. Tests complete.</li>
   <li>Strategy: ok. Javadocs complete.</li>
   <li>WeightedSquares: ok. Javadocs complete. Tests complete.</li>
 </ul>
