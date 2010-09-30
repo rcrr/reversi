@@ -71,7 +71,7 @@ Java source files:
   <li>AlphabetaSearcherModifiedWeightedSquares</li>
   <li>AlphabetaSearcherWeightedSquares</li>
   <li>Board: ok. Javadocs complete. Tests complete.</li>
-  <li>Clock</li>
+  <li>Clock: changes are pending. Javadocs complete. Tests complete.</li>
   <li>Column: ok. Javadocs complete. Tests complete. Notes: see Row.</li>
   <li>CountDifference: ok. Javadocs complete. Tests complete.</li>
   <li>Direction: ok. Javadocs complete. Tests complete.
@@ -79,11 +79,11 @@ Java source files:
              (2) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
   <li>EvalFunction: ok. Javadocs complete.</li>
   <li>Game</li>
-  <li>GameOverException</li>
+  <li>GameOverException: to be removed.</li>
   <li>GameState</li>
   <li>HumanStrategy</li>
   <li>MaximizeDifference</li>
-  <li>Minimax</li>
+  <li>Minimax: changes pending.</li>
   <li>MinimaxSearcherCountDifference</li>
   <li>ModifiedWeightedSquares: ok. Javadocs complete. Tests complete.</li>
   <li>package-info: ok</li>
@@ -104,19 +104,19 @@ JUnit source files:
 <p>
 <ul>
   <li>BoardTest: tests complete.</li>
-  <li>ClockTest</li>
-  <li>ColumnTest</li>
+  <li>ClockTest: tests under construction.</li>
+  <li>ColumnTest: tests complete.</li>
   <li>CountDifferenceTest: tests complete.</li>
-  <li>DirectionTest</li>
+  <li>DirectionTest: tests complete.</li>
   <li>GameStateTest</li>
   <li>GameTest</li>
   <li>MinimaxTest</li>
   <li>ModifiedWeightedSquaresTest: tests complete.</li>
   <li>PlayerTest: tests complete.</li>
   <li>ReversiTest</li>
-  <li>RowTest</li>
-  <li>SquareStateTest</li>
-  <li>SquareTest</li>
+  <li>RowTest: tests complete.</li>
+  <li>SquareStateTest: tests complete.</li>
+  <li>SquareTest: tests complete.</li>
   <li>WeightedSquaresTest: tests complete.</li>
 </ul>
 
