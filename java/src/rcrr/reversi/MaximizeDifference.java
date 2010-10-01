@@ -26,6 +26,14 @@ package rcrr.reversi;
 
 import java.util.List;
 
+/**
+ * A basic strategy that chooses the move maximizing the
+ * disk count for the player.
+ * It doesn't search.
+ * When the higher score is shared by more than one move,
+ * the move coming first, ordered by the table natural order
+ * returned by Square.values(), is selected.
+ */
 public class MaximizeDifference implements Strategy {
 
     Strategy md;

@@ -26,6 +26,13 @@ package rcrr.reversi;
 
 import java.util.List;
 
+/**
+ * The class should be deleted.
+ * Something like a Builder should take care of creating the
+ * strategies like this one.
+ * Parameters are the searcher tipe (minimax, alphabeta, ...),
+ * the EvaluationFunction, and the PLY search depth.
+ */
 public class MinimaxSearcherCountDifference implements Strategy {
 
     private final int PLY = 4;

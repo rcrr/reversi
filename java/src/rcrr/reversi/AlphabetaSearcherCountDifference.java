@@ -26,6 +26,11 @@ package rcrr.reversi;
 
 import java.util.List;
 
+/**
+ * The class should be deleted.
+ * <p>
+ * See class {@link MinimaxSearcherCountDifference} documentation.
+ */
 public class AlphabetaSearcherCountDifference implements Strategy {
 
     private final int PLY = 4;

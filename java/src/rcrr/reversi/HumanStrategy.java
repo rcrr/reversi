@@ -22,7 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-
 package rcrr.reversi;
 
 import java.util.List;
@@ -31,6 +30,9 @@ import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+/**
+ * An interacting strategy.
+ */
 public class HumanStrategy implements Strategy {
 
     private BufferedReader in;

@@ -28,6 +28,9 @@ import java.util.Random;
 import java.util.List;
 import java.util.Arrays;
 
+/**
+ * A strategy that selects randomly a move among the legal ones.
+ */
 public class RandomStrategy implements Strategy {
 
     private Random r;

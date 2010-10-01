@@ -29,8 +29,6 @@ Main algorithm and structural classes.
 To do:
 <p>
 <ul>
-  <li>Javadoc has to be completed.</li>
-  <li>Reversi class has no tests. Do it.</li>
   <li>Move has to be a full object having: "put disk", "pass", and "resign".</li>
   <li>Minimax: searcher should be a single method receiving a minimax object ....</li>
   <li>Board + Player should be enclosed into a compound GameNode Object.
@@ -47,19 +45,15 @@ To do:
   <li>Game, Clock: The end of time is not handled correctly.</li>
   <li>Game: Game should have two fields: the GameHistory (the sequence of game states),
       and the GameClock.</li>
-  <li>CountDifference: ok</li>
   <li>Game: write junit tests.</li>
   <li>Game: review javadocs.</li>
   <li>GameOverException: delete it.</li>
-  <li>GameState: review test completeness.</li>
   <li>HumanStrategy: review input and output streams usage. Review the prompt management.</li>
   <li>MaximizeDifference: write tests and javadocs.</li>
-  <li>MinimaxSearcherCountDifference: write javadocs and tests.</li>
   <li>Reversi: Strategies should receive a configuration structure (XML or properties).</li>
-  <li>Brainstorming on a strategy builder class.</li>
-  <li>ModifiedWeightedSquares: javadocs and tests.</li>
-  <li>RandomStrategy: javadocs and tests.</li>
-  <li>WeightedSquares: javadocs and tests.</li>
+  <li>Reversi: the class has no tests. Do it.</li>
+  <li>Minimax: Brainstorming on a strategy builder class.</li>
+  <li>RandomStrategy: write javadocs and tests.</li>
   <li>....</li>
 </ul>
 
@@ -67,9 +61,9 @@ To do:
 Java source files:
 <p>
 <ul>
-  <li>AlphabetaSearcherCountDifference</li>
-  <li>AlphabetaSearcherModifiedWeightedSquares</li>
-  <li>AlphabetaSearcherWeightedSquares</li>
+  <li>AlphabetaSearcherCountDifference: to be deleted.</li>
+  <li>AlphabetaSearcherModifiedWeightedSquares: to be deleted.</li>
+  <li>AlphabetaSearcherWeightedSquares: to be deleted.</li>
   <li>Board: ok. Javadocs complete. Tests complete.</li>
   <li>Clock: changes are pending. Javadocs complete. Tests complete.</li>
   <li>Column: ok. Javadocs complete. Tests complete. Notes: see Row.</li>
@@ -78,18 +72,18 @@ Java source files:
       Notes: (1) deltaRow and deltaColumn are int, could be better having an enum Shift UP, NEUTRAL, DOWN...?
              (2) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
   <li>EvalFunction: ok. Javadocs complete.</li>
-  <li>Game</li>
+  <li>Game: class design is unclear. Tests are on hold.</li>
   <li>GameOverException: to be removed.</li>
-  <li>GameState</li>
-  <li>HumanStrategy</li>
-  <li>MaximizeDifference</li>
+  <li>GameState: ok. Javadocs complete. Tests complete.</li>
+  <li>HumanStrategy: Javadocs and junit test missing.</li>
+  <li>MaximizeDifference: Javadocs and junit test missing.</li>
   <li>Minimax: changes pending.</li>
-  <li>MinimaxSearcherCountDifference</li>
+  <li>MinimaxSearcherCountDifference: to be deleted.</li>
   <li>ModifiedWeightedSquares: ok. Javadocs complete. Tests complete.</li>
   <li>package-info: ok</li>
   <li>Player: ok. Javadocs complete. Tests complete.</li>
-  <li>RandomStrategy</li>
-  <li>Reversi</li>
+  <li>RandomStrategy: Javadocs and junit test missing..</li>
+  <li>Reversi: under review.</li>
   <li>Row: ok. Javadocs complete. Tests complete.
       Notes: (1) getInstance(int index) is redundant.
              (2) shift(int delta) is used just in the neighbor table calculation. It is a bit ugly.</li>
@@ -108,12 +102,12 @@ JUnit source files:
   <li>ColumnTest: tests complete.</li>
   <li>CountDifferenceTest: tests complete.</li>
   <li>DirectionTest: tests complete.</li>
-  <li>GameStateTest</li>
-  <li>GameTest</li>
-  <li>MinimaxTest</li>
+  <li>GameStateTest: to be written.</li>
+  <li>GameTest: tests complete.</li>
+  <li>MinimaxTest: under review.</li>
   <li>ModifiedWeightedSquaresTest: tests complete.</li>
   <li>PlayerTest: tests complete.</li>
-  <li>ReversiTest</li>
+  <li>ReversiTest: to be written.</li>
   <li>RowTest: tests complete.</li>
   <li>SquareStateTest: tests complete.</li>
   <li>SquareTest: tests complete.</li>
