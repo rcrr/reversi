@@ -64,22 +64,14 @@ import org.joda.time.Duration;
  */
 public final class Clock {
     
-    private static final long DEFAULT_GAME_TIME_IN_MINUTES = 30;
     private static final long TIME_UNITS_PER_SECOND = 1000;
     private static final long SECONDS_PER_MINUTE = 60;
 
     private static final NumberFormat TIME_FORMATTER = new DecimalFormat("##00");
 
     /**
-     * Black's clock time in milliseconds
+     * Players' clock time in milliseconds
      */
-    private final long blackTime;
-
-    /**
-     * White's clock time in milliseconds
-     */
-    private final long whiteTime;
-
     private final Map<Player, Duration> playersGameDuration;
 
     /**
@@ -91,24 +83,14 @@ public final class Clock {
      * @param  blackTime the Black's remaining time
      * @param  whiteTime the White's remaining time
      */
-    private Clock(final long blackTime, final long whiteTime) {
-	this.blackTime = blackTime;
-	this.whiteTime = whiteTime;
-
-	EnumMap<Player, Duration> map = new EnumMap<Player, Duration>(Player.class);
-	map.put(Player.BLACK, new Duration(blackTime));
-	map.put(Player.WHITE, new Duration(whiteTime));
-	this.playersGameDuration = Collections.unmodifiableMap(map);
-    }
-
-    /**
-     * Returns the default amount of time assigned to each player. The value is
-     * returned in minutes.
-     *
-     * @return the value in minutes assigned by default to each player
-     */
-    public static long defaultGameTimeInMinutes() {
-	return DEFAULT_GAME_TIME_IN_MINUTES;
+    private Clock(final Map<Player, Duration> durationMap) {
+	assert (durationMap != null) : "Parameter durationMap cannot be null. durationMap=" + durationMap;
+	assert (durationMap.size() == Player.values().length) : "Parameter durationMap size is not consistent." +
+	    " durationMap.size()=" + durationMap.size() +
+	    ", expected value: " + Player.values().length;
+	EnumMap<Player, Duration> durationEnumMap = (durationMap instanceof EnumMap) ?
+	    (EnumMap<Player, Duration>) durationMap : new EnumMap<Player, Duration>(durationMap);
+	this.playersGameDuration = Collections.unmodifiableMap(durationEnumMap);
     }
 
     /**
@@ -120,8 +102,15 @@ public final class Clock {
      * @return           a new {@code Clock} having Black's and White's time set to the
      *                   given parameters
      */
-    public static Clock valueOf(final long blackTime, final long whiteTime) {
-	return new Clock(blackTime, whiteTime);
+    public static Clock valueOf(final Map<Player, Duration> durationMap) {
+	if (durationMap == null) throw new NullPointerException("Parameter durationMap cannot be null. durationMap=" + durationMap);
+	if (durationMap.size() != Player.values().length)
+	    throw new IllegalArgumentException("Parameter durationMap size is not consistent." +
+					       " durationMap.size()=" + durationMap.size() +
+					       " expected value: " + Player.values().length);
+	if (durationMap.containsKey(null))
+	    throw new NullPointerException("Parameter durationMap cannot have null keys. durationMap=" + durationMap);
+	return new Clock(durationMap);
     }
 
     /**
@@ -138,7 +127,10 @@ public final class Clock {
 	    throw new IllegalArgumentException("Parameter gameTimeInMinutes must be between 1 and 60. value=" + 
 					       gameTimeInMinutes);
 	final long t = SECONDS_PER_MINUTE * TIME_UNITS_PER_SECOND * gameTimeInMinutes;
-	return valueOf(t, t);
+	Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
+	m.put(Player.BLACK, new Duration(t));
+	m.put(Player.WHITE, new Duration(t));
+	return valueOf(m);
     }
 
     /**
@@ -150,22 +142,18 @@ public final class Clock {
      *                   player's clock time
      * @return           a new updated {@code Clock}
      * @throws NullPointerException     if the player parameter is null 
-     * @throws GameOverException        if the clock run out of time
      * @throws IllegalArgumentException if a player different from BLACK or WHITE is passed as parameter
      */
-    public Clock setTime(final Player player, final long deltaTime) throws GameOverException {
+    public Clock setTime(final Player player, final Duration delta) {
 	if (player == null) throw new NullPointerException("Parameter player connot be null. player=" + player);
-	switch(player) {
-	case BLACK:
-	    final long bRemainingTime = blackTime - deltaTime;
-	    if (bRemainingTime < 0) throw new GameOverException("BLACK player exceded his game time limit.");
-	    return valueOf(bRemainingTime, whiteTime);
-	case WHITE:
-	    final long wRemainingTime = whiteTime - deltaTime;
-	    if (wRemainingTime < 0) throw new GameOverException("WHITE player exceded his game time limit.");
-	    return valueOf(blackTime, wRemainingTime);
-	default: throw new IllegalArgumentException("Only BLACK and WHITE players are supported by setTime().");
-	}
+	if (delta == null) throw new NullPointerException("Parameter delta connot be null. delta=" + delta);
+	if (delta.isShorterThan(Duration.ZERO)) throw new IllegalArgumentException("Parameter delta cannot be negative. delta=" + delta);
+	final Duration actual = playersGameDuration.get(player);
+	final Duration tmp = actual.minus(delta);
+	final Duration remaining = (tmp.isLongerThan(Duration.ZERO)) ? tmp : Duration.ZERO;
+	final Map<Player, Duration> m = new EnumMap<Player, Duration>(playersGameDuration);
+	m.put(player, remaining);
+	return valueOf(m);
     }
 
     /**
@@ -174,8 +162,8 @@ public final class Clock {
      * @return a string showing the two player's clocks
      */
     public String printClock() {
-	return "[" + Player.BLACK.symbol() + "=" + timeString(blackTime) + ", " + 
-	    Player.WHITE.symbol() + "=" + timeString(whiteTime) + "]";
+	return "[" + Player.BLACK.symbol() + "=" + timeString(getTime(Player.BLACK)) + ", " + 
+	    Player.WHITE.symbol() + "=" + timeString(getTime(Player.WHITE)) + "]";
     }
 
     /**
@@ -186,9 +174,9 @@ public final class Clock {
      * @return        the player remaining time in milliseconds
      * @throws NullPointerException if the player parameter is null
      */
-    public long getTime(Player player) {
+    public Duration getTime(Player player) {
 	if (player == null) throw new NullPointerException("Parameter player connot be null. player=" + player);
-	return (player == Player.BLACK) ? blackTime : whiteTime;
+	return playersGameDuration.get(player);
     }
 
     /**
@@ -197,8 +185,8 @@ public final class Clock {
      * @return a {@code String} representing the clock
      */
     @Override public String toString() {
-	return "[" + Player.BLACK + "=" + timeString(blackTime) + ", " + 
-	    Player.WHITE + "=" + timeString(whiteTime) + "]";
+	return "[" + Player.BLACK + "=" + timeString(getTime(Player.BLACK)) + ", " + 
+	    Player.WHITE + "=" + timeString(getTime(Player.WHITE)) + "]";
     }
 
     /**
@@ -210,7 +198,8 @@ public final class Clock {
      * @param  time time in milliseconds 
      * @return      a formatted {@code String} with minutes and seconds
      */
-    private static String timeString(long time) {
+    private static String timeString(Duration duration) {
+	long time = duration.getMillis();
 	long rTime = Math.round(time / TIME_UNITS_PER_SECOND);
 	long minutes = (long) Math.floor(rTime / SECONDS_PER_MINUTE);
 	long seconds = rTime - (minutes * SECONDS_PER_MINUTE);

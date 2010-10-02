@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.io.PrintStream;
 
+import org.joda.time.Duration;
 
 /**
  * {@code Reversi} is the main entry point for the program.
@@ -110,7 +111,7 @@ public class Reversi {
 	long t0 = System.currentTimeMillis();
 	Square move = strategy.move(gs);
 	long t1 = System.currentTimeMillis();
-	clock = clock.setTime(player, t1 - t0);
+	clock = clock.setTime(player, new Duration(t0, t1));
 	if (b.isLegal(move, player)) {
 	    if (ps != null) {
 		ps.print("\n" + player.name() + " moves to " + move.label() + "\n");

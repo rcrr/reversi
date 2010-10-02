@@ -27,17 +27,25 @@ package rcrr.reversi;
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import java.util.Map;
+import java.util.EnumMap;
+
+import org.joda.time.Duration;
+
 public class ClockTest {
 
     private static long MILLISECOND_PER_MINUTE = 60000;
 
     @Test
     public void testValueOf() {
-	long lb = 1;
-	long lw = 1000*30*60+1;
-	Clock c = Clock.valueOf(lb, lw);
-	long tb = c.getTime(Player.BLACK);
-	long tw = c.getTime(Player.WHITE);
+	Duration lb = new Duration(1);
+	Duration lw = new Duration(1000*30*60+1);
+	Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
+	m.put(Player.BLACK, lb);
+	m.put(Player.WHITE, lw);
+	Clock c = Clock.valueOf(m);
+	Duration tb = c.getTime(Player.BLACK);
+	Duration tw = c.getTime(Player.WHITE);
         assertEquals(lb, tb);
         assertEquals(lw, tw);
     }
@@ -46,55 +54,55 @@ public class ClockTest {
     public void testInitialClock() {
 	int seconds = 1;
 	Clock c = Clock.initialClock(seconds);
-	long tb = c.getTime(Player.BLACK);
-	long tw = c.getTime(Player.WHITE);
-        assertEquals(seconds * MILLISECOND_PER_MINUTE, tb);
-	assertEquals(seconds * MILLISECOND_PER_MINUTE, tw);
+	Duration tb = c.getTime(Player.BLACK);
+	Duration tw = c.getTime(Player.WHITE);
+        assertEquals(new Duration(seconds * MILLISECOND_PER_MINUTE), tb);
+	assertEquals(new Duration(seconds * MILLISECOND_PER_MINUTE), tw);
     }
 
     @Test
     public void testPrintClock() {
-	Clock c = Clock.valueOf(900000, 1);
+	Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
+	m.put(Player.BLACK, new Duration(900000));
+	m.put(Player.WHITE, new Duration(1));
+	Clock c = Clock.valueOf(m);
 	assertEquals("[@=15:00, O=00:00]", c.printClock());
     }
 
     @Test
     public void testSetTime() {
-	long tb = 100;
-	long tw = 100;
-	long delta = 10;
-	Clock c = Clock.valueOf(tb, tw);
-	Clock updated = null;
-	try {
-	    updated = c.setTime(Player.BLACK, delta);
-	} catch (GameOverException goe) {
-	    fail(); // TODO: has to be changed.
-	}
+	Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
+	m.put(Player.BLACK, new Duration(100));
+	m.put(Player.WHITE, new Duration(100));
+	Clock c = Clock.valueOf(m);
+	Duration delta = new Duration(10);
+	Clock updated = c.setTime(Player.BLACK, delta);
         assertEquals(c.getTime(Player.WHITE), updated.getTime(Player.WHITE));
-	assertEquals(delta, c.getTime(Player.BLACK) - updated.getTime(Player.BLACK));
+	assertEquals(delta, c.getTime(Player.BLACK).minus(updated.getTime(Player.BLACK)));
     }
 
     @Test
     public void testGetTime() {
-	Clock c = Clock.valueOf(900000, 1);
+	Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
+	m.put(Player.BLACK, new Duration(900000));
+	m.put(Player.WHITE, new Duration(1));
+	Clock c = Clock.valueOf(m);
 	try {
 	    c.getTime(null);
 	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
 	}
-	assertEquals(1, c.getTime(Player.WHITE));
+	assertEquals(new Duration(1), c.getTime(Player.WHITE));
     }
 
     @Test
     public void testToString() {
-	Clock c = Clock.valueOf(900000, 1);
+	Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
+	m.put(Player.BLACK, new Duration(900000));
+	m.put(Player.WHITE, new Duration(1));
+	Clock c = Clock.valueOf(m);
 	assertEquals("[BLACK=15:00, WHITE=00:00]", c.toString());
-    }
-
-    @Test
-    public void testDefaultGameTimeInMinutes() {
-	assertEquals(30, Clock.defaultGameTimeInMinutes());
     }
     
 }
