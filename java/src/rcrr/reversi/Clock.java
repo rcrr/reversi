@@ -24,8 +24,14 @@
 
 package rcrr.reversi;
 
+import java.util.Map;
+import java.util.EnumMap;
+import java.util.Collections;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+
+import org.joda.time.Duration;
 
 /**
  * The {@code Clock} class defines the game clock. It has two values, the
@@ -74,6 +80,8 @@ public final class Clock {
      */
     private final long whiteTime;
 
+    private final Map<Player, Duration> playersGameDuration;
+
     /**
      * Class constructor.
      * <p>
@@ -86,6 +94,11 @@ public final class Clock {
     private Clock(final long blackTime, final long whiteTime) {
 	this.blackTime = blackTime;
 	this.whiteTime = whiteTime;
+
+	EnumMap<Player, Duration> map = new EnumMap<Player, Duration>(Player.class);
+	map.put(Player.BLACK, new Duration(blackTime));
+	map.put(Player.WHITE, new Duration(whiteTime));
+	this.playersGameDuration = Collections.unmodifiableMap(map);
     }
 
     /**
