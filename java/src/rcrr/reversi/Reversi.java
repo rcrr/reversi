@@ -76,19 +76,15 @@ public class Reversi {
     public static int reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Duration gameDuration) {
 	GameState gs = GameState.initialGameState(gameDuration);
 	Game game = Game.valueOf(Arrays.asList(gs));
-	try {
-	    for (Player player = gs.player();
-		 player != null;
-		 player = gs.board().nextToPlay(player)) {
-		if (ps != null) ps.print(gs.printGameState());
-		gs = getMoveY(gs, ((player == Player.BLACK) ? blStrategy : whStrategy), ps);
-		game.add(gs);
-		if (ps != null) {
-		    if (gs.board().nextToPlay(player) == player) ps.print("\n" + player.opponent() + " has no moves and must pass.\n");
-		}
+	for (Player player = gs.player();
+	     player != null;
+	     player = gs.board().nextToPlay(player)) {
+	    if (ps != null) ps.print(gs.printGameState());
+	    gs = getMoveY(gs, ((player == Player.BLACK) ? blStrategy : whStrategy), ps);
+	    game.add(gs);
+	    if (ps != null) {
+		if (gs.board().nextToPlay(player) == player) ps.print("\n" + player.opponent() + " has no moves and must pass.\n");
 	    }
-	} catch (GameOverException goe) {
-	    // to be completed .....
 	}
 	if (ps != null) {
 	    ps.print(gs.printGameState());
@@ -105,7 +101,7 @@ public class Reversi {
       game g;
       g.getMove();
      */
-    public static GameState getMoveY(GameState gs, Strategy strategy, PrintStream ps) throws GameOverException {
+    public static GameState getMoveY(GameState gs, Strategy strategy, PrintStream ps) {
 	Player player = gs.player();
 	Board b = gs.board();
 	Clock clock = gs.clock();
