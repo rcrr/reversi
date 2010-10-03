@@ -35,36 +35,51 @@ import org.joda.time.DateTimeConstants;
 import org.joda.time.Duration;
 
 /**
- * The {@code Clock} class defines the game clock. It has two values, the
- * Black's remaining time, and the White's one, expressed in
- * milliseconds.
+ * The {@code Clock} class defines the different clocks used in the game.
+ * It has two values, the Black's remaining time, and the White's one.
+ * The remaining times are received and returned by clock's methods by
+ * means of duration objects, as defined by the Joda-Time {@code Duration} class.
  * <p>
  * {@code Clock} is immutable.
  * <p>
- * To create a new {@code Clock} there are two static factories
+ * To create a new {@code Clock} there are three static factories
  * available. The first is:
  * <pre>
  * {@code
- * Clock c = Clock.valueOf(1000, 1000);
+ * Clock c = Clock.valueOf(blackDuration, whiteDuration);
  * }
  * </pre>
- * while the second is:
+ * where the parameters {@code blackDuration} and {@code whiteDuration} are of type {@code Duration}.
+ * The second factory is:
  * <pre>
  * {@code
- * Clock c = Clock.initialClock(10);
+ * Clock c = Clock.valueOf(durationMap);
  * }
  * </pre>
+ * where the {@code durationMap} parameter is defined having objects of the {@code Player} class as keys 
+ * and objects of the {@code Duration} class as values.
+ * And the third factory is:
+ * <pre>
+ * {@code
+ * Clock c = Clock.initialClock(gameDuration);
+ * }
+ * </pre>
+ * where the {@code gameDuration} parameter is assigned equally to both players.
+ * <p>
  * Another way to get a new {@code Clock} is to call the {@code set}
- * method. For instance let say that we have already a {@code Clock} and we want to
+ * method. It returns a new clock subtracting the provided delta time
+ * to the specified player. For instance let say that we have already a {@code Clock} and we want to
  * subtract one full second from the Black player:
  * <pre>
  * {@code
- * Clock updated = c.set(Player.BLACK, 1000);
+ * Clock updated = c.set(Player.BLACK, oneSecondDuration);
  * }
  * </pre>
+ * where {@code oneSecondDuration} parameter is a one second duration object belonging to the {@code Duration} class.
  */
 public final class Clock {
 
+    /** It is really needed? */
     private static final NumberFormat TIME_FORMATTER = new DecimalFormat("##00");
 
     /**
@@ -91,8 +106,7 @@ public final class Clock {
     }
 
     /**
-     * Class static factory. Returns a new Clock with the given initial values
-     * assigned to each individual player.
+     * Class static factory that returns a new {@code Clock} object constructed using the given map.
      *
      * @param  durationMap the game's time assigned to the players
      * @return             a new {@code Clock} having Black's and White's time set to the
@@ -112,7 +126,7 @@ public final class Clock {
     }
 
     /**
-     * Class static factory. Returns a new Clock with the given initial values
+     * Class static factory that returns a new {@code Clock} object with the given initial values
      * assigned to each individual player.
      *
      * @param  blackDuration the game's time assigned to the Black player
@@ -136,8 +150,8 @@ public final class Clock {
     }
 
     /**
-     * Class static factory. Returns a new Clock with the given initial value
-     * assigned to both players.
+     * Class static factory that returns a new {@code Clock} object with the given initial value
+     * assigned equally to both players.
      *
      * @param  initialDuration the game's duration assigned to the two players
      * @return                 a new {@code Clock} having Black's and White's time duration
@@ -152,7 +166,7 @@ public final class Clock {
     }
 
     /**
-     * Returns a new Clock object generated subtracting the delta value from
+     * Returns a new {@code Clock} object generated subtracting the delta value from
      * the specified player remaining clock time.
      * <p>
      * When the delta parameter is greather than the player's actual time
@@ -179,11 +193,11 @@ public final class Clock {
     }
 
     /**
-     * Returns a {@code long} value that represents the player's remaining time
-     * in milliseconds as registered by the {@code Clock} instance. 
+     * Returns a {@code Duration} value that represents the player's remaining time
+     * as registered by the {@code Clock} instance. 
      *
      * @param  player the player for which the remaining time is queried 
-     * @return        the player remaining time in milliseconds
+     * @return        the player remaining duration
      * @throws NullPointerException if the player parameter is null
      */
     public Duration get(Player player) {
@@ -214,11 +228,11 @@ public final class Clock {
     /**
      * Returns a String in the format mm:ss corresponding to
      * the given time in milliseconds, where:
-     *  - mm is the amount of minuts
+     *  - mm is the amount of minutes
      *  - ss is the amount of seconds
      *
-     * @param  time time in milliseconds 
-     * @return      a formatted {@code String} with minutes and seconds
+     * @param  duration time in milliseconds 
+     * @return          a formatted {@code String} with minutes and seconds
      */
     private static String timeString(Duration duration) {
 	long time = duration.getMillis();
