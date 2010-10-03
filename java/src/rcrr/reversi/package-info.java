@@ -34,20 +34,19 @@ To do:
   <li>Board + Player should be enclosed into a compound GameNode Object.
       Node should become SearchNode.</li>
   <li>Minimax: The final value should be calculated by the eval function.</li>
-  <li>Clock: Rewrite the class using the Joda-Time library.</li>
-  <li>Clock: move the two long fields into an EnumMap having the Players as keys.</li>
-  <li>Clock: parameters boundaries are not tested.</li>
+  <li>Clock: tests are a bit ugly.</li>
+  <li>Clock: parameters boundaries are not fully tested.</li>
   <li>Clock: create a GameClock class that accept start(), pause(), stop() and creates the Clocks to
       be distributed to clients. Clients are GameSates and so the Strategies.
-      Use java.lang.Timer to schedule the GameClock refresh.
+      Use java.lang.Timer (or ScheduledThreadPoolExecutor) to schedule the GameClock refresh.
       GameClock has to be a mutable field of Game.
       May be just a class is enough. The Clock (immutable) could have two roles GameState's Clock and Game's Clock.</li>
-  <li>Game, Clock: The end of time is not handled correctly.</li>
+  <li>Game, Clock: The end of time is not handled correctly, after adding the Timer thread for updating the clock,
+      also the two strategies must have a dedicated thread.</li>
   <li>Game: Game should have two fields: the GameHistory (the sequence of game states),
       and the GameClock.</li>
   <li>Game: write junit tests.</li>
   <li>Game: review javadocs.</li>
-  <li>GameOverException: delete it.</li>
   <li>HumanStrategy: review input and output streams usage. Review the prompt management.</li>
   <li>MaximizeDifference: write tests and javadocs.</li>
   <li>Reversi: Strategies should receive a configuration structure (XML or properties).</li>
@@ -73,7 +72,6 @@ Java source files:
              (2) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
   <li>EvalFunction: ok. Javadocs complete.</li>
   <li>Game: class design is unclear. Tests are on hold.</li>
-  <li>GameOverException: to be removed.</li>
   <li>GameState: ok. Javadocs complete. Tests complete.</li>
   <li>HumanStrategy: Javadocs and junit test missing.</li>
   <li>MaximizeDifference: Javadocs and junit test missing.</li>

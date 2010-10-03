@@ -26,14 +26,7 @@
 // - Which practice is best when it comes to write unit test for UI?
 //   After a brief search on google the best so far tool to investigate
 //   on is UISpec4J (http://www.uispec4j.org).
-
-// To do:
-// move away the WINNING and LOSING values.
-// javadocs
-// junit tests
-// run the two strategy with an object having a flexible collection of settings
-//   this is close to rewrite the Strategy-Player association ....
-//   The Strategy as designed so far is not able to persist between moves.
+// - The clock should run asynchronously. See ScheduledThreadPoolExecutor.
 
 package rcrr.reversi;
 
