@@ -27,6 +27,9 @@ package rcrr.reversi;
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import org.joda.time.Duration;
+import org.joda.time.Period;
+
 public class MinimaxTest {
 
     /** Game state fixtures. */
@@ -65,25 +68,25 @@ public class MinimaxTest {
     public void setUp() {
 	BoardTest bt = new BoardTest();
 	bt.setUp();
-	fixtGameStateInitial = GameState.initialGameState(1);
+	fixtGameStateInitial = GameState.initialGameState(Period.minutes(1).toStandardDuration());
 	fixtGameStateMinimaxA = GameState.valueOf(bt.fixtBoardMinimaxA,
 						  Player.WHITE,
-						  Clock.initialClock(1));
+						  Clock.initialClock(Period.minutes(1).toStandardDuration()));
 	fixtGameStateMinimaxB = GameState.valueOf(bt.fixtBoardMinimaxB,
 						  Player.WHITE,
-						  Clock.initialClock(1));
+						  Clock.initialClock(Period.minutes(1).toStandardDuration()));
 	fixtGameStateB = GameState.valueOf(bt.fixtBoardB,
 					   Player.WHITE,
-					   Clock.initialClock(1));
+					   Clock.initialClock(Period.minutes(1).toStandardDuration()));
 	fixtGameStateBC3 = GameState.valueOf(bt.fixtBoardBC3,
 					     Player.BLACK,
-					     Clock.initialClock(1));
+					     Clock.initialClock(Period.minutes(1).toStandardDuration()));
 	fixtGameStateBC6 = GameState.valueOf(bt.fixtBoardBC6,
 					     Player.BLACK,
-					     Clock.initialClock(1));
+					     Clock.initialClock(Period.minutes(1).toStandardDuration()));
 	fixtGameStateBlackHasToPass = GameState.valueOf(bt.fixtBoardBlackHasToPass,
 							Player.BLACK,
-							Clock.initialClock(1));
+							Clock.initialClock(Period.minutes(1).toStandardDuration()));
 
     }
 

@@ -80,8 +80,7 @@ public final class Clock {
      * This constructor creates a Clock object given the Black's time and the White's
      * one.
      *
-     * @param  blackTime the Black's remaining time
-     * @param  whiteTime the White's remaining time
+     * @param durationMap a map having the remaining time duration assigned to each player.
      */
     private Clock(final Map<Player, Duration> durationMap) {
 	assert (durationMap != null) : "Parameter durationMap cannot be null. durationMap=" + durationMap;
@@ -97,10 +96,11 @@ public final class Clock {
      * Class static factory. Returns a new Clock with the given initial values
      * assigned to each individual player.
      *
-     * @param  blackTime the game's time assigned to the Black player in milliseconds
-     * @param  whiteTime the game's time assigned to the White player in milliseconds
-     * @return           a new {@code Clock} having Black's and White's time set to the
-     *                   given parameters
+     * @param  durationMap the game's time assigned to the players
+     * @return             a new {@code Clock} having Black's and White's time set to the
+     *                     given parameters
+     * @throws NullPointerException     when blackDuration or whiteDuration is null
+     * @throws IllegalArgumentException when blackDuration or whiteDuration is negative
      */
     public static Clock valueOf(final Map<Player, Duration> durationMap) {
 	if (durationMap == null) throw new NullPointerException("Parameter durationMap cannot be null. durationMap=" + durationMap);
@@ -114,46 +114,70 @@ public final class Clock {
     }
 
     /**
-     * Class static factory. Returns a new Clock with the given initial value
-     * assigned to both players.
+     * Class static factory. Returns a new Clock with the given initial values
+     * assigned to each individual player.
      *
-     * @param  gameTimeInMinutes the game's time in minutes assigned to the two players
-     * @return                   a new {@code Clock} having Black's and White's time set to
-     *                           the same given value
-     * @throws IllegalArgumentException if gameTimeInMinutes is lesser than 1, or greather than 60. 
+     * @param  blackDuration the game's time assigned to the Black player
+     * @param  whiteDuration the game's time assigned to the White player
+     * @return               a new {@code Clock} having Black's and White's time set to the
+     *                       given parameters
+     * @throws NullPointerException     when blackDuration or whiteDuration is null
+     * @throws IllegalArgumentException when blackDuration or whiteDuration is negative
      */
-    public static Clock initialClock(final int gameTimeInMinutes) {
-	if (gameTimeInMinutes <= 0 || gameTimeInMinutes > 60)
-	    throw new IllegalArgumentException("Parameter gameTimeInMinutes must be between 1 and 60. value=" + 
-					       gameTimeInMinutes);
-	final long t = SECONDS_PER_MINUTE * TIME_UNITS_PER_SECOND * gameTimeInMinutes;
-	Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
-	m.put(Player.BLACK, new Duration(t));
-	m.put(Player.WHITE, new Duration(t));
-	return valueOf(m);
+    public static Clock valueOf(final Duration blackDuration, final Duration whiteDuration) {
+	if (blackDuration == null) throw new NullPointerException("Parameter blackDuration cannot be null.");
+	if (whiteDuration == null) throw new NullPointerException("Parameter blackDuration cannot be null.");
+	if (blackDuration.isShorterThan(Duration.ZERO)) 
+	    throw new IllegalArgumentException("Parameter blackDuration cannot be negative. blackDuration=" + blackDuration);
+	if (whiteDuration.isShorterThan(Duration.ZERO)) 
+	    throw new IllegalArgumentException("Parameter blackDuration cannot be negative. whiteDuration=" + whiteDuration);
+	Map<Player, Duration> mutableDurationMap = new EnumMap<Player, Duration>(Player.class);
+	mutableDurationMap.put(Player.BLACK, blackDuration);
+	mutableDurationMap.put(Player.WHITE, whiteDuration);
+	return valueOf(mutableDurationMap);
     }
 
     /**
-     * Returns a new Clock object generated subtracting the deltaTime value from
-     * the specified player remaining clock time.
+     * Class static factory. Returns a new Clock with the given initial value
+     * assigned to both players.
      *
-     * @param  player    the player from which to take away the specified time
-     * @param  deltaTime the amount of time in milliseconds to subtract from the 
-     *                   player's clock time
-     * @return           a new updated {@code Clock}
-     * @throws NullPointerException     if the player parameter is null 
-     * @throws IllegalArgumentException if a player different from BLACK or WHITE is passed as parameter
+     * @param  initialDuration the game's duration assigned to the two players
+     * @return                 a new {@code Clock} having Black's and White's time duration
+     *                         set to the same given value
+     * @throws IllegalArgumentException if gameTimeInMinutes is lesser than 1, or greather than 60. 
+     */
+    public static Clock initialClock(final Duration initialDuration) {
+	if (initialDuration == null) throw new NullPointerException("Parameter initialDuration cannot be null.");
+	if (initialDuration.isShorterThan(Duration.ZERO)) 
+	    throw new IllegalArgumentException("Parameter initialDuration cannot be negative. initialDuration=" + initialDuration);
+	return valueOf(initialDuration, initialDuration);
+    }
+
+    /**
+     * Returns a new Clock object generated subtracting the delta value from
+     * the specified player remaining clock time.
+     * <p>
+     * When the delta parameter is greather than the player's actual time
+     * the updated value is set to zero.
+     *
+     * @param  player the player from which to take away the specified time
+     * @param  delta  the amount of time in milliseconds to subtract from the 
+     *                player's clock time
+     * @return        a new updated {@code Clock}
+     * @throws NullPointerException     if the player or delta parameter is null 
+     * @throws IllegalArgumentException if the delta parameter is negative.
      */
     public Clock setTime(final Player player, final Duration delta) {
 	if (player == null) throw new NullPointerException("Parameter player connot be null. player=" + player);
 	if (delta == null) throw new NullPointerException("Parameter delta connot be null. delta=" + delta);
 	if (delta.isShorterThan(Duration.ZERO)) throw new IllegalArgumentException("Parameter delta cannot be negative. delta=" + delta);
+
 	final Duration actual = playersGameDuration.get(player);
-	final Duration tmp = actual.minus(delta);
-	final Duration remaining = (tmp.isLongerThan(Duration.ZERO)) ? tmp : Duration.ZERO;
-	final Map<Player, Duration> m = new EnumMap<Player, Duration>(playersGameDuration);
-	m.put(player, remaining);
-	return valueOf(m);
+	final Duration updated = (actual.isLongerThan(delta)) ? actual.minus(delta) : Duration.ZERO;
+
+	final Map<Player, Duration> mutableDurationMap = new EnumMap<Player, Duration>(playersGameDuration);
+	mutableDurationMap.put(player, updated);
+	return valueOf(mutableDurationMap);
     }
 
     /**

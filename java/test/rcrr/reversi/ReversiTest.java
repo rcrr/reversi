@@ -30,7 +30,12 @@ package rcrr.reversi;
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import org.joda.time.Duration;
+import org.joda.time.Period;
+
 public class ReversiTest {
+
+    static final Duration standardGameDuration = Period.minutes(30).toStandardDuration();
 
     @Test
     public void testReversi() {
@@ -38,12 +43,12 @@ public class ReversiTest {
 	assertEquals(-16, Reversi.reversi(new AlphabetaSearcherCountDifference(),
 					  new AlphabetaSearcherWeightedSquares(),
 					  null,
-					  30));
+					  standardGameDuration));
 
 	assertEquals(-16, Reversi.reversi(new MinimaxSearcherCountDifference(),
 					  new AlphabetaSearcherWeightedSquares(),
 					  null,
-					  30));
+					  standardGameDuration));
     }
     
 }

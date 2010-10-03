@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.io.PrintStream;
 
+import org.joda.time.Period;
 import org.joda.time.Duration;
 
 /**
@@ -68,12 +69,12 @@ public class Reversi {
      * @param blStrategy ...
      * @param whStrategy
      * @param ps
-     * @param minutes
+     * @param gameDuration
      * 
      * @return           the game score
      */
-    public static int reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, int minutes) {
-	GameState gs = GameState.initialGameState(minutes);
+    public static int reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Duration gameDuration) {
+	GameState gs = GameState.initialGameState(gameDuration);
 	Game game = Game.valueOf(Arrays.asList(gs));
 	try {
 	    for (Player player = gs.player();
@@ -162,7 +163,7 @@ public class Reversi {
 		System.exit(5);
 	    }
 	}
-	reversi(s[0], s[1], System.out, 30);
+	reversi(s[0], s[1], System.out, Period.minutes(30).toStandardDuration());
     }
 
     /** returns the usage message */

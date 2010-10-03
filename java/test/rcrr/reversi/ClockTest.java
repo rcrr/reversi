@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.EnumMap;
 
 import org.joda.time.Duration;
+import org.joda.time.Period;
+import org.joda.time.PeriodType;
 
 public class ClockTest {
 
@@ -52,12 +54,13 @@ public class ClockTest {
 
     @Test
     public void testInitialClock() {
-	int seconds = 1;
-	Clock c = Clock.initialClock(seconds);
-	Duration tb = c.getTime(Player.BLACK);
-	Duration tw = c.getTime(Player.WHITE);
-        assertEquals(new Duration(seconds * MILLISECOND_PER_MINUTE), tb);
-	assertEquals(new Duration(seconds * MILLISECOND_PER_MINUTE), tw);
+	int minutes = 1;
+	Duration d = Period.minutes(minutes).toStandardDuration();
+	Clock c = Clock.initialClock(d);
+	Duration bd = c.getTime(Player.BLACK);
+	Duration wd = c.getTime(Player.WHITE);
+        assertEquals(bd.toPeriod(PeriodType.time()).toStandardMinutes().getMinutes(), minutes);
+	assertEquals(wd.toPeriod(PeriodType.time()).toStandardMinutes().getMinutes(), minutes);
     }
 
     @Test

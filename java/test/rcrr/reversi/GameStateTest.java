@@ -27,6 +27,9 @@ package rcrr.reversi;
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import org.joda.time.Duration;
+import org.joda.time.Period;
+
 public class GameStateTest {
 
     @Test
@@ -37,7 +40,7 @@ public class GameStateTest {
 	 * the passed board is null.
 	 */
 	try {
-	    GameState.valueOf(null, Player.BLACK, Clock.initialClock(1));
+	    GameState.valueOf(null, Player.BLACK, Clock.initialClock(Period.minutes(1).toStandardDuration()));
 	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
@@ -48,7 +51,7 @@ public class GameStateTest {
 	 * the passed player is null, and there are available moves.
 	 */
 	try {
-	    GameState.valueOf(Board.initialBoard(), null, Clock.initialClock(1));
+	    GameState.valueOf(Board.initialBoard(), null, Clock.initialClock(Period.minutes(1).toStandardDuration()));
 	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
@@ -58,7 +61,7 @@ public class GameStateTest {
 	 * Tests if the valueOf method doesn't throw a NullPointerException when
 	 * the passed player is null, but no player has legal moves.
 	 */
-	GameState.valueOf(Board.emptyBoard(), null, Clock.initialClock(1));
+	GameState.valueOf(Board.emptyBoard(), null, Clock.initialClock(Period.minutes(1).toStandardDuration()));
 
 	/**
 	 * Tests if the valueOf method throws a NullPointerException when
@@ -73,7 +76,7 @@ public class GameStateTest {
 
 	Board b = Board.initialBoard();
 	Player p = Player.BLACK;
-	Clock c = Clock.initialClock(30);
+	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
 	GameState gs = GameState.valueOf(b, p, c);
 	assertEquals(b, gs.board());
 	assertEquals(p, gs.player());
@@ -84,7 +87,7 @@ public class GameStateTest {
     public void testPrintGameState() {
 	Board b = Board.initialBoard();
 	Player p = Player.BLACK;
-	Clock c = Clock.initialClock(30);
+	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
 	GameState gs = GameState.valueOf(b, p, c);
 	StringBuilder initialGameState = new StringBuilder();
 	initialGameState.append("    a b c d e f g h [@=2 0=2 (0)]\n");
@@ -108,7 +111,7 @@ public class GameStateTest {
     public void testGetters() {
 	Board b = Board.initialBoard();
 	Player p = Player.BLACK;
-	Clock c = Clock.initialClock(30);
+	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
 	GameState gs = GameState.valueOf(b, p, c);
 	assertEquals(b, gs.board());
 	assertEquals(p, gs.player());

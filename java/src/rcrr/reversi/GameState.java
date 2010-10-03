@@ -24,6 +24,8 @@
 
 package rcrr.reversi;
 
+import org.joda.time.Duration;
+
 /**
  * An instance of a game state.
  * <p>
@@ -96,13 +98,13 @@ public class GameState {
      * <p>
      * The returned game's state has the board set with the four central
      * disk, the black player has to move, and each player has the assigned 
-     * time in minutes in their own clock.
+     * time duration in her own clock.
      *
-     * @param minutes the time assigned to each player in minutes
-     * @return        a new initial game as required by international game's rures
+     * @param gameDuration the time duration assigned to each player
+     * @return             a new initial game as required by international game's rules
      */
-    public static GameState initialGameState(int minutes) {
-	return valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(minutes));
+    public static GameState initialGameState(Duration gameDuration) {
+	return valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(gameDuration));
     }
 
     /**
