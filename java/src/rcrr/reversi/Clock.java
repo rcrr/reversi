@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import org.joda.time.DateTimeConstants;
 import org.joda.time.Duration;
 
 /**
@@ -53,19 +54,16 @@ import org.joda.time.Duration;
  * Clock c = Clock.initialClock(10);
  * }
  * </pre>
- * Another way to get a new {@code Clock} is to call the {@code setTime}
+ * Another way to get a new {@code Clock} is to call the {@code set}
  * method. For instance let say that we have already a {@code Clock} and we want to
  * subtract one full second from the Black player:
  * <pre>
  * {@code
- * Clock updated = c.setTime(Player.BLACK, 1000);
+ * Clock updated = c.set(Player.BLACK, 1000);
  * }
  * </pre>
  */
 public final class Clock {
-    
-    private static final long TIME_UNITS_PER_SECOND = 1000;
-    private static final long SECONDS_PER_MINUTE = 60;
 
     private static final NumberFormat TIME_FORMATTER = new DecimalFormat("##00");
 
@@ -167,7 +165,7 @@ public final class Clock {
      * @throws NullPointerException     if the player or delta parameter is null 
      * @throws IllegalArgumentException if the delta parameter is negative.
      */
-    public Clock setTime(final Player player, final Duration delta) {
+    public Clock set(final Player player, final Duration delta) {
 	if (player == null) throw new NullPointerException("Parameter player connot be null. player=" + player);
 	if (delta == null) throw new NullPointerException("Parameter delta connot be null. delta=" + delta);
 	if (delta.isShorterThan(Duration.ZERO)) throw new IllegalArgumentException("Parameter delta cannot be negative. delta=" + delta);
@@ -181,16 +179,6 @@ public final class Clock {
     }
 
     /**
-     * Returns a formatted string, showing the two player clocks.
-     *
-     * @return a string showing the two player's clocks
-     */
-    public String printClock() {
-	return "[" + Player.BLACK.symbol() + "=" + timeString(getTime(Player.BLACK)) + ", " + 
-	    Player.WHITE.symbol() + "=" + timeString(getTime(Player.WHITE)) + "]";
-    }
-
-    /**
      * Returns a {@code long} value that represents the player's remaining time
      * in milliseconds as registered by the {@code Clock} instance. 
      *
@@ -198,9 +186,19 @@ public final class Clock {
      * @return        the player remaining time in milliseconds
      * @throws NullPointerException if the player parameter is null
      */
-    public Duration getTime(Player player) {
+    public Duration get(Player player) {
 	if (player == null) throw new NullPointerException("Parameter player connot be null. player=" + player);
 	return playersGameDuration.get(player);
+    }
+
+    /**
+     * Returns a formatted string, showing the two player clocks.
+     *
+     * @return a string showing the two player's clocks
+     */
+    public String printClock() {
+	return "[" + Player.BLACK.symbol() + "=" + timeString(get(Player.BLACK)) + ", " + 
+	    Player.WHITE.symbol() + "=" + timeString(get(Player.WHITE)) + "]";
     }
 
     /**
@@ -209,8 +207,8 @@ public final class Clock {
      * @return a {@code String} representing the clock
      */
     @Override public String toString() {
-	return "[" + Player.BLACK + "=" + timeString(getTime(Player.BLACK)) + ", " + 
-	    Player.WHITE + "=" + timeString(getTime(Player.WHITE)) + "]";
+	return "[" + Player.BLACK + "=" + timeString(get(Player.BLACK)) + ", " + 
+	    Player.WHITE + "=" + timeString(get(Player.WHITE)) + "]";
     }
 
     /**
@@ -224,9 +222,9 @@ public final class Clock {
      */
     private static String timeString(Duration duration) {
 	long time = duration.getMillis();
-	long rTime = Math.round(time / TIME_UNITS_PER_SECOND);
-	long minutes = (long) Math.floor(rTime / SECONDS_PER_MINUTE);
-	long seconds = rTime - (minutes * SECONDS_PER_MINUTE);
+	long rTime = Math.round(time / DateTimeConstants.MILLIS_PER_SECOND);
+	long minutes = (long) Math.floor(rTime / DateTimeConstants.SECONDS_PER_MINUTE);
+	long seconds = rTime - (minutes * DateTimeConstants.SECONDS_PER_MINUTE);
 	return TIME_FORMATTER.format(minutes) + ":" + TIME_FORMATTER.format(seconds);
     }
 

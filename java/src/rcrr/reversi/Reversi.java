@@ -112,7 +112,7 @@ public class Reversi {
 	long t0 = System.currentTimeMillis();
 	Square move = strategy.move(gs);
 	long t1 = System.currentTimeMillis();
-	clock = clock.setTime(player, new Duration(t0, t1));
+	clock = clock.set(player, new Duration(t0, t1));
 	if (b.isLegal(move, player)) {
 	    if (ps != null) {
 		ps.print("\n" + player.name() + " moves to " + move.label() + "\n");

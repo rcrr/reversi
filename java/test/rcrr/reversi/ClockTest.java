@@ -46,8 +46,8 @@ public class ClockTest {
 	m.put(Player.BLACK, lb);
 	m.put(Player.WHITE, lw);
 	Clock c = Clock.valueOf(m);
-	Duration tb = c.getTime(Player.BLACK);
-	Duration tw = c.getTime(Player.WHITE);
+	Duration tb = c.get(Player.BLACK);
+	Duration tw = c.get(Player.WHITE);
         assertEquals(lb, tb);
         assertEquals(lw, tw);
     }
@@ -57,8 +57,8 @@ public class ClockTest {
 	int minutes = 1;
 	Duration d = Period.minutes(minutes).toStandardDuration();
 	Clock c = Clock.initialClock(d);
-	Duration bd = c.getTime(Player.BLACK);
-	Duration wd = c.getTime(Player.WHITE);
+	Duration bd = c.get(Player.BLACK);
+	Duration wd = c.get(Player.WHITE);
         assertEquals(bd.toPeriod(PeriodType.time()).toStandardMinutes().getMinutes(), minutes);
 	assertEquals(wd.toPeriod(PeriodType.time()).toStandardMinutes().getMinutes(), minutes);
     }
@@ -79,9 +79,9 @@ public class ClockTest {
 	m.put(Player.WHITE, new Duration(100));
 	Clock c = Clock.valueOf(m);
 	Duration delta = new Duration(10);
-	Clock updated = c.setTime(Player.BLACK, delta);
-        assertEquals(c.getTime(Player.WHITE), updated.getTime(Player.WHITE));
-	assertEquals(delta, c.getTime(Player.BLACK).minus(updated.getTime(Player.BLACK)));
+	Clock updated = c.set(Player.BLACK, delta);
+        assertEquals(c.get(Player.WHITE), updated.get(Player.WHITE));
+	assertEquals(delta, c.get(Player.BLACK).minus(updated.get(Player.BLACK)));
     }
 
     @Test
@@ -91,12 +91,12 @@ public class ClockTest {
 	m.put(Player.WHITE, new Duration(1));
 	Clock c = Clock.valueOf(m);
 	try {
-	    c.getTime(null);
+	    c.get(null);
 	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
 	}
-	assertEquals(new Duration(1), c.getTime(Player.WHITE));
+	assertEquals(new Duration(1), c.get(Player.WHITE));
     }
 
     @Test
