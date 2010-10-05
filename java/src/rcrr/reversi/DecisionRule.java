@@ -1,5 +1,5 @@
 /*
- *  MinimaxSearcherCountDifference.java
+ *  DecisionRule.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -24,30 +24,19 @@
 
 package rcrr.reversi;
 
-import java.util.List;
-
 /**
- * The class should be deleted.
- * Something like a Builder should take care of creating the
- * strategies like this one.
- * Parameters are the searcher tipe (minimax, alphabeta, ...),
- * the EvaluationFunction, and the PLY search depth.
+ * A decision rule is an object capable to provide a search function.
  */
-public class MinimaxSearcherCountDifference implements Strategy {
+public interface DecisionRule {
 
-    private final int PLY = 4;
-
-    private Strategy s;
-    
-    public MinimaxSearcherCountDifference() {
-	// s = Minimax.minimaxSearcher(PLY, new CountDifference());
-	DecisionRule dr = Minimax.getInstance();
-	s = DecisionRuleAbstract.searcher(PLY, new CountDifference(), dr);
-
-    }
-
-    public Square move(GameState gameState) {
-	return s.move(gameState);
-    }
-
+    /**
+     * The decision rule algorithm.
+     *
+     * @param player the player that has the move
+     * @param board  the reached board
+     * @param ply    the search depth reached
+     * @param ef     the evaluation function
+     * @return       a node in the search tree
+     */
+    SearchNode search(Player player, Board board, int ply, EvalFunction ef);
 }
