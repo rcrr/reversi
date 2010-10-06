@@ -1,5 +1,5 @@
 /*
- *  Minimax.java
+ *  AbstractDecisionRule.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -24,7 +24,7 @@
 
 package rcrr.reversi;
 
-public abstract class DecisionRuleAbstract implements DecisionRule {
+public abstract class AbstractDecisionRule implements DecisionRule {
 
     /** 
      * The winning value.

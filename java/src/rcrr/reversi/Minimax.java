@@ -44,7 +44,7 @@ import java.util.Collections;
  * <p>
  * Must be transformed to be immutable and not instantiable.
  */
-public final class Minimax extends DecisionRuleAbstract {
+public final class Minimax extends AbstractDecisionRule {
 
     private Minimax(){};
 
