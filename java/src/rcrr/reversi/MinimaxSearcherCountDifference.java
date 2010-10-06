@@ -41,7 +41,7 @@ public class MinimaxSearcherCountDifference implements Strategy {
     
     public MinimaxSearcherCountDifference() {
 	DecisionRule dr = Minimax.getInstance();
-	s = AbstractDecisionRule.searcher(PLY, new CountDifference(), dr);
+	s = dr.searcher(PLY, new CountDifference());
 
     }
 

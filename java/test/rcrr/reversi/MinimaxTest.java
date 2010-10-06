@@ -44,14 +44,14 @@ public class MinimaxTest {
     private DecisionRule minimax = Minimax.getInstance();
 
     /** Strategy fixtures. */
-    private Strategy fixtStrategyA = Minimax.searcher(1, new CountDifference(), minimax);
-    private Strategy fixtStrategyB = Minimax.searcher(2, new CountDifference(), minimax);
-    private Strategy fixtStrategyC = Minimax.searcher(3, new CountDifference(), minimax);
-    private Strategy fixtStrategyD = Minimax.searcher(4, new CountDifference(), minimax);
-    private Strategy fixtStrategyE = Minimax.searcher(5, new CountDifference(), minimax);
-    private Strategy fixtStrategyF = Minimax.searcher(6, new CountDifference(), minimax);
-    private Strategy fixtStrategyG = Minimax.searcher(7, new CountDifference(), minimax);
-    private Strategy fixtStrategyH = Minimax.searcher(8, new CountDifference(), minimax);
+    private Strategy fixtStrategyA = minimax.searcher(1, new CountDifference());
+    private Strategy fixtStrategyB = minimax.searcher(2, new CountDifference());
+    private Strategy fixtStrategyC = minimax.searcher(3, new CountDifference());
+    private Strategy fixtStrategyD = minimax.searcher(4, new CountDifference());
+    private Strategy fixtStrategyE = minimax.searcher(5, new CountDifference());
+    private Strategy fixtStrategyF = minimax.searcher(6, new CountDifference());
+    private Strategy fixtStrategyG = minimax.searcher(7, new CountDifference());
+    private Strategy fixtStrategyH = minimax.searcher(8, new CountDifference());
 
     /** Strategy fixtures. */
     private Strategy fixtStrategyAab = Minimax.alphabetaSearcher(1, new CountDifference());
@@ -97,7 +97,7 @@ public class MinimaxTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testMinimaxSearcherPlyRange() {
-	Strategy s = Minimax.searcher(0, new CountDifference(), minimax);
+	Strategy s = minimax.searcher(0, new CountDifference());
     }
 
     /**
@@ -105,7 +105,7 @@ public class MinimaxTest {
      */
     @Test(expected = NullPointerException.class)
     public void testMinimaxSearcherEfNotNull() {
-	Strategy s = Minimax.searcher(1, null, minimax);
+	Strategy s = minimax.searcher(1, null);
     }
 
     /**
