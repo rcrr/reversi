@@ -38,7 +38,8 @@ public class AlphabetaSearcherModifiedWeightedSquares implements Strategy {
     private Strategy s;
     
     public AlphabetaSearcherModifiedWeightedSquares() {
-	s = Minimax.alphabetaSearcher(PLY, new ModifiedWeightedSquares());
+	DecisionRule dr = AlphaBeta.getInstance();
+	s = dr.searcher(PLY, new ModifiedWeightedSquares());
     }
 
     public Square move(GameState gameState) {

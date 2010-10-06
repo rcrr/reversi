@@ -64,7 +64,7 @@ public abstract class AbstractDecisionRule implements DecisionRule {
 	return new Strategy() {
 	    public Square move(GameState gameState) {
 		if (!gameState.hasAnyLegalMove()) return null;
-		SearchNode node = search(gameState.player(), gameState.board(), ply, ef);
+		SearchNode node = search(gameState.player(), gameState.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
 		return node.move();		
 	    }
 	};

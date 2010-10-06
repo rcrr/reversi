@@ -46,7 +46,7 @@ import java.util.Collections;
  */
 public final class Minimax extends AbstractDecisionRule {
 
-    private Minimax(){};
+    private Minimax() {};
 
     public static Minimax getInstance() {
 	return new Minimax();
@@ -60,7 +60,7 @@ public final class Minimax extends AbstractDecisionRule {
      * - standard case is a bit ugly.
      * - pass should be included into the standard case.
      */
-    public SearchNode search(final Player player, final Board board, final int ply, final EvalFunction ef) {
+    public SearchNode search(final Player player, final Board board, final int achievable, final int cutoff, final int ply, final EvalFunction ef) {
 	SearchNode node;
 	final Player opponent = player.opponent();
 	if (ply == 0) {
@@ -69,14 +69,14 @@ public final class Minimax extends AbstractDecisionRule {
 	    List<Square> moves = board.legalMoves(player);
 	    if (moves.isEmpty()) {
 		if (board.hasAnyLegalMove(opponent)) {
-		    node = search(opponent, board, ply - 1, ef).negated();
+		    node = search(opponent, board, 0, 0, ply - 1, ef).negated();
 		} else {
 		    node = new SearchNode(null, finalValue(board, player));
 		}
 	    } else {
 		node = new SearchNode(null, Integer.MIN_VALUE);
 		for (Square move : moves) {
-		    int value = search(opponent, board.makeMove(move, player), ply - 1, ef).negated().value();
+		    int value = search(opponent, board.makeMove(move, player), 0, 0, ply - 1, ef).negated().value();
 		    if (value > node.value()) {
 			node = new SearchNode(move, value);
 		    }
@@ -84,57 +84,6 @@ public final class Minimax extends AbstractDecisionRule {
 	    }
 	}
 	return node;
-    }
-
-
-    /**
-     * The alpha-beta function.
-     * <p>
-     * Polish as per the minimax method, and write a complete javadoc.
-     */
-    private static SearchNode alphabeta(Player player, Board board, int achievable, int cutoff, int ply, EvalFunction ef) {
-	SearchNode ab;
-	Player opponent = player.opponent();
-	if (ply == 0) {
-	    ab = new SearchNode(null, ef.eval(player, board));
-	} else {
-	    List<Square> moves = board.legalMoves(player);
-	    if (moves.isEmpty()) {
-		if (board.hasAnyLegalMove(opponent)) {
-		    ab = alphabeta(opponent, board, - cutoff, - achievable, ply - 1, ef).negated();
-		} else {
-		    ab = new SearchNode(null, finalValue(board, player));
-		}
-	    } else {
-		ab = new SearchNode(moves.get(0), achievable);
-		outer: for (Square move : moves) {
-		    Board board2 = board.makeMove(move, player);
-		    int val = alphabeta(opponent, board2, - cutoff, - ab.value(), ply - 1, ef).negated().value();
-		    if (val > ab.value()) {
-			ab = new SearchNode(move, val);
-		    }
-		    if (ab.value() >= cutoff) break outer;
-		}
-	    }
-	}
-	return ab;
-    }
-
-    /**
-     * The alpha-beta searcher function.
-     * <p>
-     * It has to be refactor merging alphabetaSearcher and minimaxSearcher into one single searcher interface.
-     */
-    public static Strategy alphabetaSearcher(final int ply, final EvalFunction ef) {
-	if (ply <= 0) throw new IllegalArgumentException("Parameter ply must be greather than zero. ply=" + ply);
-	if (ef == null) throw new NullPointerException("Parameter ef must not null. ef=" + ef);
-	return new Strategy() {
-	    public Square move(GameState gameState) {
-		if (!gameState.hasAnyLegalMove()) return null;
-		SearchNode ab = alphabeta(gameState.player(), gameState.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
-		return ab.move();
-	    }
-	};
     }
 
 }

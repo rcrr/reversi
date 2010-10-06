@@ -38,7 +38,7 @@ public interface DecisionRule {
      * @param ef     the evaluation function
      * @return       a node in the search tree
      */
-    SearchNode search(Player player, Board board, int ply, EvalFunction ef);
+    SearchNode search(Player player, Board board, int achievable, int cutoff, int ply, EvalFunction ef);
 
     Strategy searcher(int ply, EvalFunction ef);
 }

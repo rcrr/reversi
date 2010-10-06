@@ -42,6 +42,7 @@ public class MinimaxTest {
     private GameState fixtGameStateBlackHasToPass;
 
     private DecisionRule minimax = Minimax.getInstance();
+    private DecisionRule alphabeta = AlphaBeta.getInstance();
 
     /** Strategy fixtures. */
     private Strategy fixtStrategyA = minimax.searcher(1, new CountDifference());
@@ -54,14 +55,14 @@ public class MinimaxTest {
     private Strategy fixtStrategyH = minimax.searcher(8, new CountDifference());
 
     /** Strategy fixtures. */
-    private Strategy fixtStrategyAab = Minimax.alphabetaSearcher(1, new CountDifference());
-    private Strategy fixtStrategyBab = Minimax.alphabetaSearcher(2, new CountDifference());
-    private Strategy fixtStrategyCab = Minimax.alphabetaSearcher(3, new CountDifference());
-    private Strategy fixtStrategyDab = Minimax.alphabetaSearcher(4, new CountDifference());
-    private Strategy fixtStrategyEab = Minimax.alphabetaSearcher(5, new CountDifference());
-    private Strategy fixtStrategyFab = Minimax.alphabetaSearcher(6, new CountDifference());
-    private Strategy fixtStrategyGab = Minimax.alphabetaSearcher(7, new CountDifference());
-    private Strategy fixtStrategyHab = Minimax.alphabetaSearcher(8, new CountDifference());
+    private Strategy fixtStrategyAab = alphabeta.searcher(1, new CountDifference());
+    private Strategy fixtStrategyBab = alphabeta.searcher(2, new CountDifference());
+    private Strategy fixtStrategyCab = alphabeta.searcher(3, new CountDifference());
+    private Strategy fixtStrategyDab = alphabeta.searcher(4, new CountDifference());
+    private Strategy fixtStrategyEab = alphabeta.searcher(5, new CountDifference());
+    private Strategy fixtStrategyFab = alphabeta.searcher(6, new CountDifference());
+    private Strategy fixtStrategyGab = alphabeta.searcher(7, new CountDifference());
+    private Strategy fixtStrategyHab = alphabeta.searcher(8, new CountDifference());
     
     /**
      * Prepares the GameState fixtures. It depends on the public BoardTest fixtures.
@@ -207,7 +208,7 @@ public class MinimaxTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testAlphabetaSearcherPlyRange() {
-	Strategy s = Minimax.alphabetaSearcher(0, new CountDifference());
+	Strategy s = alphabeta.searcher(0, new CountDifference());
     }
 
     /**
@@ -215,7 +216,7 @@ public class MinimaxTest {
      */
     @Test(expected = NullPointerException.class)
     public void testAlphabetaSearcherEfNotNull() {
-	Strategy s = Minimax.alphabetaSearcher(1, null);
+	Strategy s = alphabeta.searcher(1, null);
     }
 
     /** See above. */

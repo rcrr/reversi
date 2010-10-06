@@ -38,7 +38,8 @@ public class AlphabetaSearcherCountDifference implements Strategy {
     private final Strategy s;
     
     public AlphabetaSearcherCountDifference() {
-	s = Minimax.alphabetaSearcher(PLY, new CountDifference());
+	DecisionRule dr = AlphaBeta.getInstance();
+	s = dr.searcher(PLY, new CountDifference());
     }
 
     public Square move(GameState gameState) {
