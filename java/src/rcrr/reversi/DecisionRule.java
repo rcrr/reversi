@@ -32,13 +32,23 @@ public interface DecisionRule {
     /**
      * The decision rule algorithm.
      *
-     * @param player the player that has the move
-     * @param board  the reached board
-     * @param ply    the search depth reached
-     * @param ef     the evaluation function
-     * @return       a node in the search tree
+     * @param player     the player that has the move
+     * @param board      the reached board
+     * @param achievable the search window lower bound (also know as alpha)
+     * @param cutoff     the search window upper bound (also know as beta)
+     * @param ply        the search depth reached
+     * @param ef         the evaluation function
+     * @return           a node in the search tree
      */
     SearchNode search(Player player, Board board, int achievable, int cutoff, int ply, EvalFunction ef);
 
+    /**
+     * Returns a strategy that searches ply levels deep and 
+     * applies the ef evaluation function..
+     *
+     * @param ply the depth of the search
+     * @param ef  the evaluation function
+     * @return    a strategy
+     */
     Strategy searcher(int ply, EvalFunction ef);
 }
