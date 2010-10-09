@@ -35,38 +35,76 @@ package rcrr.reversi;
  * - organize the value field as a "stack" of values obtained deepening the search.
  */
 public final class SearchNode {
+    
+    /** The move field. */
+    private final Square move;
+    
+    /** The value field. */
+    private final int value;
+    
+    /** The achievable (alpha or lower bound) field. */
+    private final int achievable;
+    
+    /** The cutoff (beta or upper bound) field. */
+    private final int cutoff;
+    
+    /** The ply (depth of the search) field*/
+    private final int ply;
+    
+    /** The player field. */
+    private final Player player;
+    
+    /** The board field. */
+    private final Board board;
+    
+    /** Private constructor. */
+    SearchNode(final Square move, final int value) {
+	this.move = move;
+	this.value = value;
 
-	/** The move field. */
-	private final Square move;
-
-	/** The value field. */
-	private final int value;
-
-	/** Private constructor. */
-	SearchNode(final Square move, final int value) {
-	    this.move = move;
-	    this.value = value;
-	}
+	/** To be fixed ... */
+	this.achievable = 0;
+	this.cutoff = 0;
+	this.ply = 0;
+	this.player = null;
+	this.board = null;
+    }
+    
+    /** Getter method for move field. */
+    Square move() { return move; }
+    
+    /** Getter method for value field. */
+    int value() { return value; }
+    
+    /** Getter method for achievable field. */
+    int achievable() { return achievable; }
+    
+    /** Getter method for cutoff field. */
+    int cutoff() { return cutoff; }
 	
-	/** Getter method for move field. */
-	Square move() { return move; }
+    /** Getter method for ply field. */
+    int ply() { return ply; }
+    
+    /** Getter method for player field. */
+    Player player() { return player; }
+    
+    /** Getter method for board field. */
+    Board board() { return board; }
+    
 
-	/** Getter method for value field. */
-	int value() { return value; }
-
-	/** Returns a new node having the value sign negated. */
-	SearchNode negated() { return new SearchNode(move, - value); }
-	
-	/**
-	 * Returns a String representing the {@code Node} object.
-	 * <p>
-	 * The format is: {@code [move=b4, value=567]}
-	 * 
-	 * @return a string showing the minimax's node move and value fields
-	 */
-	@Override
-	public String toString() {
-	    return "[move=" + move + ", value=" + value + "]";
-	}
-
-    } 
+    /** Returns a new node having the value sign negated. */
+    SearchNode negated() { return new SearchNode(move, - value); }
+    
+    /**
+     * Returns a String representing the {@code Node} object.
+     * <p>
+     * The format is: {@code [move=b4, value=567]}
+     * 
+     * @return a string showing the minimax's node move and value fields
+     */
+    @Override
+    public String toString() {
+	return "[move=" + move + ", value=" + value + "]";
+    }
+    
+} 
