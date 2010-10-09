@@ -30,9 +30,10 @@ To do:
 <p>
 <ul>
   <li>Move has to be a full object having: "put disk", "pass", and "resign".</li>
-  <li>Minimax: searcher should be a single method receiving a minimax object ....</li>
-  <li>Board + Player should be enclosed into a compound GameNode Object.
-      Node should become SearchNode.</li>
+  <li>Board + Player should be enclosed into GameState.
+      GameState has to be renamed to GameSnapshot.
+      GameSnapshot has a GameState field and a Clock field.
+      GameState has a Board and a Player fields.</li>
   <li>Minimax: The final value should be calculated by the eval function.</li>
   <li>Clock: tests are a bit ugly.</li>
   <li>Clock: parameters boundaries are not fully tested.</li>
@@ -60,6 +61,9 @@ To do:
 Java source files:
 <p>
 <ul>
+  <li></li>
+  <li>AbstractDecisionRule: Javadocs missing.</li>
+  <li>AlphaBeta: Javadocs missing. Tests missing.</li>
   <li>AlphabetaSearcherCountDifference: to be deleted.</li>
   <li>AlphabetaSearcherModifiedWeightedSquares: to be deleted.</li>
   <li>AlphabetaSearcherWeightedSquares: to be deleted.</li>
@@ -67,6 +71,7 @@ Java source files:
   <li>Clock: changes are pending. Javadocs complete. Tests complete.</li>
   <li>Column: ok. Javadocs complete. Tests complete. Notes: see Row.</li>
   <li>CountDifference: ok. Javadocs complete. Tests complete.</li>
+  <li>DecisionRule: Javadocs missing.</li>
   <li>Direction: ok. Javadocs complete. Tests complete.
       Notes: (1) deltaRow and deltaColumn are int, could be better having an enum Shift UP, NEUTRAL, DOWN...?
              (2) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
@@ -85,6 +90,7 @@ Java source files:
   <li>Row: ok. Javadocs complete. Tests complete.
       Notes: (1) getInstance(int index) is redundant.
              (2) shift(int delta) is used just in the neighbor table calculation. It is a bit ugly.</li>
+  <li>SearchNode: Javadocs missing. Tests missing.</li>
   <li>Square: ok. Javadocs complete. Tests complete.</li>
   <li>SquareState: ok. Javadocs complete. Tests complete.</li>
   <li>Strategy: ok. Javadocs complete.</li>
