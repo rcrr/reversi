@@ -26,20 +26,20 @@ package rcrr.reversi;
 
 /**
  * A strategy is an object capable to provide a move
- * given a game state.
+ * given a game snapshot.
  */
 public interface Strategy {
 
     /**
      * Returns the game move for the strategy.
      * <p>
-     * When the {@code gameState} doesn't offer a legal move to the player
+     * When the {@code gameSnapshot} doesn't offer a legal move to the player
      * the strategy has to return a {@code null} value.
      * When otherwise a legal move is available the {@code null} return
      * value is not allowed.
      *
-     * @param gameState the game state
-     * @return          the move to play
+     * @param gameSnapshot the game state
+     * @return             the move to play
      */
-    Square move(GameState gameState);
+    Square move(GameSnapshot gameSnapshot);
 }

@@ -42,11 +42,10 @@ public class MinimaxSearcherCountDifference implements Strategy {
     public MinimaxSearcherCountDifference() {
 	DecisionRule dr = Minimax.getInstance();
 	s = dr.searcher(PLY, new CountDifference());
-
     }
 
-    public Square move(GameState gameState) {
-	return s.move(gameState);
+    public Square move(GameSnapshot gameSnapshot) {
+	return s.move(gameSnapshot);
     }
 
 }

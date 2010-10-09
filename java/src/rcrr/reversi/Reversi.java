@@ -67,12 +67,12 @@ public class Reversi {
      * @return           the game score
      */
     public static int reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Duration gameDuration) {
-	GameState gs = GameState.initialGameState(gameDuration);
+	GameSnapshot gs = GameSnapshot.initialGameSnapshot(gameDuration);
 	Game game = Game.valueOf(Arrays.asList(gs));
 	for (Player player = gs.player();
 	     player != null;
 	     player = gs.board().nextToPlay(player)) {
-	    if (ps != null) ps.print(gs.printGameState());
+	    if (ps != null) ps.print(gs.printGameSnapshot());
 	    gs = getMoveY(gs, ((player == Player.BLACK) ? blStrategy : whStrategy), ps);
 	    game.add(gs);
 	    if (ps != null) {
@@ -80,7 +80,7 @@ public class Reversi {
 	    }
 	}
 	if (ps != null) {
-	    ps.print(gs.printGameState());
+	    ps.print(gs.printGameSnapshot());
 	}
 	return gs.board().countDifference(Player.BLACK);
     }
@@ -94,7 +94,7 @@ public class Reversi {
       game g;
       g.getMove();
      */
-    public static GameState getMoveY(GameState gs, Strategy strategy, PrintStream ps) {
+    public static GameSnapshot getMoveY(GameSnapshot gs, Strategy strategy, PrintStream ps) {
 	Player player = gs.player();
 	Board b = gs.board();
 	Clock clock = gs.clock();
@@ -107,7 +107,7 @@ public class Reversi {
 		ps.print("\n" + player.name() + " moves to " + move.label() + "\n");
 	    }
 	    Board b1 = b.makeMove(move, player);
-	    return GameState.valueOf(b1, b1.nextToPlay(player), clock);
+	    return GameSnapshot.valueOf(b1, b1.nextToPlay(player), clock);
 	} else {
 	    if (ps != null) ps.print("Illegal move: " + move + "\n");
 	    return getMoveY(gs, strategy, ps);

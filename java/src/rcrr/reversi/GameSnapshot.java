@@ -1,5 +1,5 @@
 /*
- *  GameState.java
+ *  GameSnapshot.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -29,7 +29,7 @@ import org.joda.time.Duration;
 /**
  * An instance of a game state.
  * <p>
- * A {@code GameState} object holds the information of the state of the game.
+ * A {@code GameSnapshot} object holds the information of the state of the game.
  * It is a value object composed by three fields:
  * <ol>
  *   <li>the game board</li>
@@ -37,11 +37,11 @@ import org.joda.time.Duration;
  *   <li>the current clock</li>
  * </ol>
  * <p>
- * {@code GameState} is immutable.
+ * {@code GameSnapshot} is immutable.
  * <p>
  * The {@code player} field can be {@code null} only when no legal moves are available to either player.
  */
-public class GameState {
+public class GameSnapshot {
 
     /** The board field. */
     private final Board board;
@@ -61,7 +61,7 @@ public class GameState {
      * @param player the player that has to move
      * @param clock  the current clock
      */
-    private GameState(Board board, Player player, Clock clock) {
+    private GameSnapshot(Board board, Player player, Clock clock) {
 	assert (board != null) : "Parameter board cannot be null. board=" + board;
 	assert (clock != null) : "Parameter clock cannot be null. clock=" + clock;
 	assert ((player != null) ||
@@ -84,12 +84,12 @@ public class GameState {
      * @throws NullPointerException when board or clock parameters are null,
      *                              or when player is null and legal moves are still there
      */
-    public static GameState valueOf(Board board, Player player, Clock clock) {
+    public static GameSnapshot valueOf(Board board, Player player, Clock clock) {
 	if (board == null) throw new NullPointerException("Parameter board cannot be null. board=" + board);
 	if (clock == null) throw new NullPointerException("Parameter clock cannot be null. clock=" + clock);
 	if ((player == null) && board.hasAnyPlayerAnyLegalMove())
 	    throw new NullPointerException("Parameter player cannot be null when there are still valid moves. player=" + player);
-	GameState gs = new GameState(board, player, clock);
+	GameSnapshot gs = new GameSnapshot(board, player, clock);
 	return gs;
     }
 
@@ -103,7 +103,7 @@ public class GameState {
      * @param gameDuration the time duration assigned to each player
      * @return             a new initial game as required by international game's rules
      */
-    public static GameState initialGameState(Duration gameDuration) {
+    public static GameSnapshot initialGameSnapshot(Duration gameDuration) {
 	return valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(gameDuration));
     }
 
@@ -161,26 +161,26 @@ public class GameState {
      *
      * @return a string being a 2d representation of the game
      */
-    public String printGameState() {
-	StringBuilder sbGameState = new StringBuilder();
+    public String printGameSnapshot() {
+	StringBuilder sbGameSnapshot = new StringBuilder();
 	String sBoard = board.printBoardWithCount();
 	String sClock = clock.printClock();
 	String[] lines = sBoard.split("\n");
 	for (int i=0; i<lines.length; i++) {
 	    String line = lines[i];
-	    sbGameState.append(line);
-	    if (i == 8) sbGameState.append(sClock);
-	    sbGameState.append("\n");
+	    sbGameSnapshot.append(line);
+	    if (i == 8) sbGameSnapshot.append(sClock);
+	    sbGameSnapshot.append("\n");
 	}
 	{
 	    Player p = player();
 	    if (p != null) {
-		sbGameState.append(" Next to play: " + p + ", legal moves: " + board().legalMoves(p) + "\n");
+		sbGameSnapshot.append(" Next to play: " + p + ", legal moves: " + board().legalMoves(p) + "\n");
 	    } else {
-		sbGameState.append(" No player has any legal move. The game is over.");
+		sbGameSnapshot.append(" No player has any legal move. The game is over.");
 	    }
 	}
-	return (sbGameState.toString());
+	return (sbGameSnapshot.toString());
     }
 
 }

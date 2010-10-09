@@ -36,10 +36,10 @@ import java.util.Collections;
 public class Game {
 
     /** The game state sequence field. */
-    private final List<GameState> game;
+    private final List<GameSnapshot> game;
 
     /** Private constructor. */
-    private Game(List<GameState> gameSequence) {
+    private Game(List<GameSnapshot> gameSequence) {
 	game = Collections.unmodifiableList(gameSequence);
     }
 
@@ -48,7 +48,7 @@ public class Game {
      *
      * @return the game built with the given sequence
      */
-    public static Game valueOf(List<GameState> gameSequence) {
+    public static Game valueOf(List<GameSnapshot> gameSequence) {
 	return new Game(gameSequence);
     }
 
@@ -57,9 +57,9 @@ public class Game {
      *
      * @return a new game modified by adding the game state parameter
      */
-    public Game add(GameState gameState) {
-	List<GameState> gameSequence = new ArrayList<GameState>(game);
-	gameSequence.add(gameState);
+    public Game add(GameSnapshot gameSnapshot) {
+	List<GameSnapshot> gameSequence = new ArrayList<GameSnapshot>(game);
+	gameSequence.add(gameSnapshot);
 	return valueOf(gameSequence);
     }
 
@@ -80,7 +80,7 @@ public class Game {
      *
      * @return the game state identified by the index parameter
      */
-    public GameState get(int index) {
+    public GameSnapshot get(int index) {
 	return game.get(index);
     }
 

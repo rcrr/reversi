@@ -42,8 +42,8 @@ public class AlphabetaSearcherWeightedSquares implements Strategy {
 	s = dr.searcher(PLY, new WeightedSquares());
     }
 
-    public Square move(GameState gameState) {
-	return s.move(gameState);
+    public Square move(GameSnapshot gameSnapshot) {
+	return s.move(gameSnapshot);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- *  GameStateTest.java
+ *  GameSnapshotTest.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
-public class GameStateTest {
+public class GameSnapshotTest {
 
     @Test
     public void testValueOf() {
@@ -40,7 +40,7 @@ public class GameStateTest {
 	 * the passed board is null.
 	 */
 	try {
-	    GameState.valueOf(null, Player.BLACK, Clock.initialClock(Period.minutes(1).toStandardDuration()));
+	    GameSnapshot.valueOf(null, Player.BLACK, Clock.initialClock(Period.minutes(1).toStandardDuration()));
 	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
@@ -51,7 +51,7 @@ public class GameStateTest {
 	 * the passed player is null, and there are available moves.
 	 */
 	try {
-	    GameState.valueOf(Board.initialBoard(), null, Clock.initialClock(Period.minutes(1).toStandardDuration()));
+	    GameSnapshot.valueOf(Board.initialBoard(), null, Clock.initialClock(Period.minutes(1).toStandardDuration()));
 	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
@@ -61,14 +61,14 @@ public class GameStateTest {
 	 * Tests if the valueOf method doesn't throw a NullPointerException when
 	 * the passed player is null, but no player has legal moves.
 	 */
-	GameState.valueOf(Board.emptyBoard(), null, Clock.initialClock(Period.minutes(1).toStandardDuration()));
+	GameSnapshot.valueOf(Board.emptyBoard(), null, Clock.initialClock(Period.minutes(1).toStandardDuration()));
 
 	/**
 	 * Tests if the valueOf method throws a NullPointerException when
 	 * the passed clock is null.
 	 */
 	try {
-	    GameState.valueOf(Board.emptyBoard(), Player.BLACK, null);
+	    GameSnapshot.valueOf(Board.emptyBoard(), Player.BLACK, null);
 	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
@@ -77,30 +77,30 @@ public class GameStateTest {
 	Board b = Board.initialBoard();
 	Player p = Player.BLACK;
 	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	GameState gs = GameState.valueOf(b, p, c);
+	GameSnapshot gs = GameSnapshot.valueOf(b, p, c);
 	assertEquals(b, gs.board());
 	assertEquals(p, gs.player());
 	assertEquals(c, gs.clock());
     }
 
     @Test
-    public void testPrintGameState() {
+    public void testPrintGameSnapshot() {
 	Board b = Board.initialBoard();
 	Player p = Player.BLACK;
 	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	GameState gs = GameState.valueOf(b, p, c);
-	StringBuilder initialGameState = new StringBuilder();
-	initialGameState.append("    a b c d e f g h [@=2 0=2 (0)]\n");
-	initialGameState.append(" 1  . . . . . . . . \n");
-	initialGameState.append(" 2  . . . . . . . . \n");
-	initialGameState.append(" 3  . . . . . . . . \n");
-	initialGameState.append(" 4  . . . O @ . . . \n");
-	initialGameState.append(" 5  . . . @ O . . . \n");
-	initialGameState.append(" 6  . . . . . . . . \n");
-	initialGameState.append(" 7  . . . . . . . . \n");
-	initialGameState.append(" 8  . . . . . . . . [@=30:00, O=30:00]\n");
-	initialGameState.append(" Next to play: BLACK, legal moves: [D3, C4, F5, E6]\n");
-	assertEquals(initialGameState.toString(), gs.printGameState());
+	GameSnapshot gs = GameSnapshot.valueOf(b, p, c);
+	StringBuilder initialGameSnapshot = new StringBuilder();
+	initialGameSnapshot.append("    a b c d e f g h [@=2 0=2 (0)]\n");
+	initialGameSnapshot.append(" 1  . . . . . . . . \n");
+	initialGameSnapshot.append(" 2  . . . . . . . . \n");
+	initialGameSnapshot.append(" 3  . . . . . . . . \n");
+	initialGameSnapshot.append(" 4  . . . O @ . . . \n");
+	initialGameSnapshot.append(" 5  . . . @ O . . . \n");
+	initialGameSnapshot.append(" 6  . . . . . . . . \n");
+	initialGameSnapshot.append(" 7  . . . . . . . . \n");
+	initialGameSnapshot.append(" 8  . . . . . . . . [@=30:00, O=30:00]\n");
+	initialGameSnapshot.append(" Next to play: BLACK, legal moves: [D3, C4, F5, E6]\n");
+	assertEquals(initialGameSnapshot.toString(), gs.printGameSnapshot());
     }
 
     /**
@@ -112,7 +112,7 @@ public class GameStateTest {
 	Board b = Board.initialBoard();
 	Player p = Player.BLACK;
 	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	GameState gs = GameState.valueOf(b, p, c);
+	GameSnapshot gs = GameSnapshot.valueOf(b, p, c);
 	assertEquals(b, gs.board());
 	assertEquals(p, gs.player());
 	assertEquals(c, gs.clock());
@@ -122,7 +122,7 @@ public class GameStateTest {
      * Has to be written.
      */
     @Test
-    public void testInitialGameState() {
+    public void testInitialGameSnapshot() {
 	assertEquals(true, true);
     }
 
