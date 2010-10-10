@@ -35,10 +35,9 @@ public interface EvalFunction {
     /**
      * Returns the value assesment for the given position.
      *
-     * @param player the player for which calculate the assessment
-     * @param board  the board to asses
-     * @return       the board value for the given player
+     * @param position the game position to asses
+     * @return         the board value for the given player
      */
-    int eval(Player player, Board board);
+    int eval(GamePosition position);
 
 }

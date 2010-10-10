@@ -85,10 +85,11 @@ public class WeightedSquares implements EvalFunction {
      * Computes the position evaluation according to the {@code WeightedSquares}
      * implementation of the {@link EvalFunction} interface.
      */
-    public int eval(Player player, Board board) {
-	if (player == null) throw new NullPointerException ("Parameter player cannot be null."); 
-	if (board == null) throw new NullPointerException ("Parameter board cannot be null."); 
-	Player opponent = player.opponent();
+    public int eval(final GamePosition position) {
+	if (position == null) throw new NullPointerException ("Parameter position cannot be null.");
+	final Player player = position.player();
+	final Board board = position.board();
+	final Player opponent = player.opponent();
 	int value = 0;
 	for (Square sq : Square.values()) {
 	    int p;

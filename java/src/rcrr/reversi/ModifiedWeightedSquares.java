@@ -60,10 +60,11 @@ public class ModifiedWeightedSquares implements EvalFunction {
      * Computes the position evaluation according to the {@code ModifiedWeightedSquares}
      * implementation of the {@link EvalFunction} interface.
      */
-    public int eval(Player player, Board board) {
-	if (player == null) throw new NullPointerException ("Parameter player cannot be null."); 
-	if (board == null) throw new NullPointerException ("Parameter board cannot be null."); 
-	int value = ws.eval(player, board);
+    public int eval(final GamePosition position) {
+	if (position == null) throw new NullPointerException ("Parameter position cannot be null.");
+	final Player player = position.player();
+	final Board board = position.board();
+	int value = ws.eval(position);
 	for (Square corner : Square.corners()) {
 	    if (board.get(corner) != SquareState.EMPTY) {
 		for (Square c : corner.neighbors().values()) {

@@ -64,7 +64,7 @@ public final class Minimax extends AbstractDecisionRule {
 	SearchNode node;
 	final Player opponent = player.opponent();
 	if (ply == 0) {
-	    node = new SearchNode(null, ef.eval(player, board));
+	    node = new SearchNode(null, ef.eval(GamePosition.valueOf(board, player)));
 	} else {
 	    List<Square> moves = board.legalMoves(player);
 	    if (moves.isEmpty()) {

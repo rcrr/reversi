@@ -89,7 +89,8 @@ public abstract class AbstractDecisionRule implements DecisionRule {
 		Player player = gameSnapshot.player();
 		Board board = gameSnapshot.board();
 		for (Square tentativeMove : board.legalMoves(player)) {
-		    int moveValue = ef.eval(player, board.makeMove(tentativeMove, player));
+		    GamePosition gp = GamePosition.valueOf(board.makeMove(tentativeMove, player), player);
+		    int moveValue = ef.eval(gp);
 		    if (moveValue > value) {
 			value = moveValue;
 			move = tentativeMove;

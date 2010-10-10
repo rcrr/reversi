@@ -88,22 +88,21 @@ public class ModifiedWeightedSquaresTest {
 
     }
 
-
     @Test
     public void testEvalA() {
 
 	/** The following assertions test the basic cases. */
-	assertEquals(-20, (new ModifiedWeightedSquares()).eval(Player.BLACK, fixtBoardMWS1A));
-	assertEquals(+20, (new ModifiedWeightedSquares()).eval(Player.WHITE, fixtBoardMWS1A));
+	assertEquals(-20, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS1A, Player.BLACK)));
+	assertEquals(+20, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS1A, Player.WHITE)));
 
-	assertEquals(+125, (new ModifiedWeightedSquares()).eval(Player.BLACK, fixtBoardMWS1B));
-	assertEquals(-125, (new ModifiedWeightedSquares()).eval(Player.WHITE, fixtBoardMWS1B));
+	assertEquals(+125, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS1B, Player.BLACK)));
+	assertEquals(-125, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS1B, Player.WHITE)));
 
-	assertEquals(-40, (new ModifiedWeightedSquares()).eval(Player.BLACK, fixtBoardMWS2A));
-	assertEquals(+40, (new ModifiedWeightedSquares()).eval(Player.WHITE, fixtBoardMWS2A));
+	assertEquals(-40, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS2A, Player.BLACK)));
+	assertEquals(+40, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS2A, Player.WHITE)));
 
-	assertEquals(-115, (new ModifiedWeightedSquares()).eval(Player.BLACK, fixtBoardMWS2B));
-	assertEquals(+115, (new ModifiedWeightedSquares()).eval(Player.WHITE, fixtBoardMWS2B));
+	assertEquals(-115, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS2B, Player.BLACK)));
+	assertEquals(+115, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS2B, Player.WHITE)));
 
     }
 
@@ -111,21 +110,21 @@ public class ModifiedWeightedSquaresTest {
     public void testEvalB() {
 
 	/** Tests that the empty board returns 0. */
-	assertEquals(0, (new ModifiedWeightedSquares()).eval(Player.BLACK, boardTest.fixtBoardEmpty));
-	assertEquals(0, (new ModifiedWeightedSquares()).eval(Player.WHITE, boardTest.fixtBoardEmpty));
+	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardEmpty, Player.BLACK)));
+	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardEmpty, Player.WHITE)));
 
 	/** Tests that the initial game state returns 0. */
-	assertEquals(0, (new ModifiedWeightedSquares()).eval(Player.BLACK, Board.initialBoard()));
-	assertEquals(0, (new ModifiedWeightedSquares()).eval(Player.WHITE, Board.initialBoard()));
+	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.BLACK)));
+	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.WHITE)));
 
 	/** Tests that the fixtBoardA game state returns -9 for the white. */
-	assertEquals(-9, (new ModifiedWeightedSquares()).eval(Player.WHITE, boardTest.fixtBoardA));
+	assertEquals(-9, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.WHITE)));
 
 	/** Tests that the fixtBoardA game state returns +9 for the black. */
-	assertEquals(+9, (new ModifiedWeightedSquares()).eval(Player.BLACK, boardTest.fixtBoardA));
+	assertEquals(+9, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.BLACK)));
 
 	/** Tests that the fixtBoardEndGameX game state returns +52 for the black. */
-	assertEquals(+52, (new ModifiedWeightedSquares()).eval(Player.BLACK, boardTest.fixtBoardEndGameX));
+	assertEquals(+52, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardEndGameX, Player.BLACK)));
 
     }
 }

@@ -44,21 +44,21 @@ public class WeightedSquaresTest {
     public void testEval() {
 
 	/** Tests that the empty board returns 0. */
-	assertEquals(0, (new WeightedSquares()).eval(Player.BLACK, boardTest.fixtBoardEmpty));
-	assertEquals(0, (new WeightedSquares()).eval(Player.WHITE, boardTest.fixtBoardEmpty));
+	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardEmpty, Player.BLACK)));
+	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardEmpty, Player.WHITE)));
 
 	/** Tests that the initial game state returns 0. */
-	assertEquals(0, (new WeightedSquares()).eval(Player.BLACK, Board.initialBoard()));
-	assertEquals(0, (new WeightedSquares()).eval(Player.WHITE, Board.initialBoard()));
+	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.BLACK)));
+	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.WHITE)));
 
 	/** Tests that the fixtBoardA game state returns -9 for the white. */
-	assertEquals(-9, (new WeightedSquares()).eval(Player.WHITE, boardTest.fixtBoardA));
+	assertEquals(-9, (new WeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.WHITE)));
 
 	/** Tests that the fixtBoardA game state returns +9 for the black. */
-	assertEquals(+9, (new WeightedSquares()).eval(Player.BLACK, boardTest.fixtBoardA));
+	assertEquals(+9, (new WeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.BLACK)));
 
 	/** Tests that the fixtBoardEndGameX game state returns +2 for the black. */
-	assertEquals(+2, (new WeightedSquares()).eval(Player.BLACK, boardTest.fixtBoardEndGameX));
+	assertEquals(+2, (new WeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardEndGameX, Player.BLACK)));
 
     }
 }

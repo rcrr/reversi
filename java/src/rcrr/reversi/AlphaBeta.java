@@ -61,7 +61,7 @@ public final class AlphaBeta extends AbstractDecisionRule {
 	SearchNode node;
 	Player opponent = player.opponent();
 	if (ply == 0) {
-	    node = new SearchNode(null, ef.eval(player, board));
+	    node = new SearchNode(null, ef.eval(GamePosition.valueOf(board, player)));
 	} else {
 	    List<Square> moves = board.legalMoves(player);
 	    if (moves.isEmpty()) {
