@@ -72,24 +72,25 @@ public class MinimaxTest {
 	BoardTest bt = new BoardTest();
 	bt.setUp();
 	fixtGameSnapshotInitial = GameSnapshot.initialGameSnapshot(Period.minutes(1).toStandardDuration());
-	fixtGameSnapshotMinimaxA = GameSnapshot.valueOf(bt.fixtBoardMinimaxA,
-						  Player.WHITE,
-						  Clock.initialClock(Period.minutes(1).toStandardDuration()));
-	fixtGameSnapshotMinimaxB = GameSnapshot.valueOf(bt.fixtBoardMinimaxB,
-						  Player.WHITE,
-						  Clock.initialClock(Period.minutes(1).toStandardDuration()));
-	fixtGameSnapshotB = GameSnapshot.valueOf(bt.fixtBoardB,
-					   Player.WHITE,
-					   Clock.initialClock(Period.minutes(1).toStandardDuration()));
-	fixtGameSnapshotBC3 = GameSnapshot.valueOf(bt.fixtBoardBC3,
-					     Player.BLACK,
-					     Clock.initialClock(Period.minutes(1).toStandardDuration()));
-	fixtGameSnapshotBC6 = GameSnapshot.valueOf(bt.fixtBoardBC6,
-					     Player.BLACK,
-					     Clock.initialClock(Period.minutes(1).toStandardDuration()));
-	fixtGameSnapshotBlackHasToPass = GameSnapshot.valueOf(bt.fixtBoardBlackHasToPass,
-							Player.BLACK,
+
+	fixtGameSnapshotMinimaxA = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardMinimaxA,
+									     Player.WHITE),
 							Clock.initialClock(Period.minutes(1).toStandardDuration()));
+	fixtGameSnapshotMinimaxB = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardMinimaxB,
+									     Player.WHITE),
+							Clock.initialClock(Period.minutes(1).toStandardDuration()));
+	fixtGameSnapshotB = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardB,
+								      Player.WHITE),
+						 Clock.initialClock(Period.minutes(1).toStandardDuration()));
+	fixtGameSnapshotBC3 = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardBC3,
+									Player.BLACK),
+						   Clock.initialClock(Period.minutes(1).toStandardDuration()));
+	fixtGameSnapshotBC6 = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardBC6,
+									Player.BLACK),
+						   Clock.initialClock(Period.minutes(1).toStandardDuration()));
+	fixtGameSnapshotBlackHasToPass = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardBlackHasToPass,
+										   Player.BLACK),
+							      Clock.initialClock(Period.minutes(1).toStandardDuration()));
 
     }
 

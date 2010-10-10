@@ -107,7 +107,8 @@ public class Reversi {
 		ps.print("\n" + player.name() + " moves to " + move.label() + "\n");
 	    }
 	    Board b1 = b.makeMove(move, player);
-	    return GameSnapshot.valueOf(b1, b1.nextToPlay(player), clock);
+	    Player p1 = b1.nextToPlay(player);
+	    return GameSnapshot.valueOf(GamePosition.valueOf(b1, p1), clock);
 	} else {
 	    if (ps != null) ps.print("Illegal move: " + move + "\n");
 	    return getMoveY(gs, strategy, ps);

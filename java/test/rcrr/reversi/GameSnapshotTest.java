@@ -37,58 +37,38 @@ public class GameSnapshotTest {
 
 	/**
 	 * Tests if the valueOf method throws a NullPointerException when
-	 * the passed board is null.
+	 * the passed position is null.
 	 */
 	try {
-	    GameSnapshot.valueOf(null, Player.BLACK, Clock.initialClock(Period.minutes(1).toStandardDuration()));
+	    GameSnapshot.valueOf(null, Clock.initialClock(Period.minutes(1).toStandardDuration()));
 	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
 	}
-
-	/**
-	 * Tests if the valueOf method throws a NullPointerException when
-	 * the passed player is null, and there are available moves.
-	 */
-	try {
-	    GameSnapshot.valueOf(Board.initialBoard(), null, Clock.initialClock(Period.minutes(1).toStandardDuration()));
-	    fail("An exception must be risen.");
-	} catch (NullPointerException npe) {
-	    assertTrue(true);
-	}
- 
-	/**
-	 * Tests if the valueOf method doesn't throw a NullPointerException when
-	 * the passed player is null, but no player has legal moves.
-	 */
-	GameSnapshot.valueOf(Board.emptyBoard(), null, Clock.initialClock(Period.minutes(1).toStandardDuration()));
 
 	/**
 	 * Tests if the valueOf method throws a NullPointerException when
 	 * the passed clock is null.
 	 */
 	try {
-	    GameSnapshot.valueOf(Board.emptyBoard(), Player.BLACK, null);
+	    GameSnapshot.valueOf(GamePosition.initialGamePosition(), null);
 	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
 	}
 
-	Board b = Board.initialBoard();
-	Player p = Player.BLACK;
+	GamePosition gp = GamePosition.initialGamePosition();
 	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	GameSnapshot gs = GameSnapshot.valueOf(b, p, c);
-	assertEquals(b, gs.board());
-	assertEquals(p, gs.player());
+	GameSnapshot gs = GameSnapshot.valueOf(gp, c);
+	assertEquals(gp, gs.position());
 	assertEquals(c, gs.clock());
     }
 
     @Test
     public void testPrintGameSnapshot() {
-	Board b = Board.initialBoard();
-	Player p = Player.BLACK;
+	GamePosition gp = GamePosition.initialGamePosition();
 	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	GameSnapshot gs = GameSnapshot.valueOf(b, p, c);
+	GameSnapshot gs = GameSnapshot.valueOf(gp, c);
 	StringBuilder initialGameSnapshot = new StringBuilder();
 	initialGameSnapshot.append("    a b c d e f g h [@=2 0=2 (0)]\n");
 	initialGameSnapshot.append(" 1  . . . . . . . . \n");
@@ -109,12 +89,10 @@ public class GameSnapshotTest {
      */
     @Test
     public void testGetters() {
-	Board b = Board.initialBoard();
-	Player p = Player.BLACK;
+	GamePosition gp = GamePosition.initialGamePosition();
 	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	GameSnapshot gs = GameSnapshot.valueOf(b, p, c);
-	assertEquals(b, gs.board());
-	assertEquals(p, gs.player());
+	GameSnapshot gs = GameSnapshot.valueOf(gp, c);
+	assertEquals(gp, gs.position());
 	assertEquals(c, gs.clock());
     }
 

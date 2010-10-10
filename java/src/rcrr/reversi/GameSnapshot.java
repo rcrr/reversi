@@ -44,10 +44,7 @@ import org.joda.time.Duration;
 public class GameSnapshot {
 
     /** The board field. */
-    private final Board board;
-
-    /** The player field. */
-    private final Player player;
+    private final GamePosition position;
 
     /** The clock field. */
     private final Clock clock;
@@ -55,65 +52,55 @@ public class GameSnapshot {
     /**
      * Private constructor.
      * <p>
-     * Parameters {@code board} and {@code clock} must be not null.
+     * Parameters {@code position} and {@code clock} must be not null.
      *
-     * @param board  the board state
-     * @param player the player that has to move
-     * @param clock  the current clock
+     * @param position the game position
+     * @param clock    the current clock
      */
-    private GameSnapshot(Board board, Player player, Clock clock) {
-	assert (board != null) : "Parameter board cannot be null. board=" + board;
-	assert (clock != null) : "Parameter clock cannot be null. clock=" + clock;
-	assert ((player != null) ||
-		!board.hasAnyPlayerAnyLegalMove()) : "Parameter player cannot be null when there are still valid moves. player=" + player;
-	this.board = board;
-	this.player = player;
+    private GameSnapshot(GamePosition position, Clock clock) {
+	assert (position != null) : "Parameter position cannot be null.";
+	assert (clock != null) : "Parameter clock cannot be null.";
+	this.position = position;
 	this.clock = clock;
     }
 
     /**
      * Base static factory for the class.
      * <p>
-     * Parameters {@code board} and {@code clock} must be not null.
-     * Parameter {@code player} can be null.
+     * Parameters {@code position} and {@code clock} must be not null.
      *
-     * @param  board  the board state
-     * @param  player the player that has to move
-     * @param  clock  the current clock
-     * @return        a new game state
-     * @throws NullPointerException when board or clock parameters are null,
-     *                              or when player is null and legal moves are still there
+     * @param  position  the game position
+     * @param  clock     the current clock
+     * @return           a new game snapshot
+     * @throws NullPointerException when position or clock parameters are null,
      */
-    public static GameSnapshot valueOf(Board board, Player player, Clock clock) {
-	if (board == null) throw new NullPointerException("Parameter board cannot be null. board=" + board);
-	if (clock == null) throw new NullPointerException("Parameter clock cannot be null. clock=" + clock);
-	if ((player == null) && board.hasAnyPlayerAnyLegalMove())
-	    throw new NullPointerException("Parameter player cannot be null when there are still valid moves. player=" + player);
-	GameSnapshot gs = new GameSnapshot(board, player, clock);
-	return gs;
+    public static GameSnapshot valueOf(GamePosition position, Clock clock) {
+	if (position == null) throw new NullPointerException("Parameter position cannot be null.");
+	if (clock == null) throw new NullPointerException("Parameter clock cannot be null.");
+	return new GameSnapshot(position, clock);
     }
 
     /**
-     * Static factory that returns a new initial game's state.
+     * Static factory that returns a new initial game snapshot.
      * <p>
-     * The returned game's state has the board set with the four central
+     * The returned game snapshot has the board set with the four central
      * disk, the black player has to move, and each player has the assigned 
      * time duration in her own clock.
      *
      * @param gameDuration the time duration assigned to each player
-     * @return             a new initial game as required by international game's rules
+     * @return             a new initial game snapshot as required by international game's rules
      */
     public static GameSnapshot initialGameSnapshot(Duration gameDuration) {
-	return valueOf(Board.initialBoard(), Player.BLACK, Clock.initialClock(gameDuration));
+	return valueOf(GamePosition.initialGamePosition(), Clock.initialClock(gameDuration));
     }
 
     /**
-     * Returns if the game state admit one or more legal moves.
+     * Returns if the game snapshot admit one or more legal moves.
      *
      * @return {@code true} if the player has at last one legal move
      */
     public boolean hasAnyLegalMove() {
-	return board.hasAnyLegalMove(player);
+	return position.hasAnyLegalMove();
     }
 
     /**
@@ -122,25 +109,16 @@ public class GameSnapshot {
      * @return {@code true} if anyone can play a move.
      */
     public boolean hasAnyPlayerAnyLegalMove() {
-	return board.hasAnyPlayerAnyLegalMove();
+	return position.hasAnyPlayerAnyLegalMove();
     }
 
     /**
-     * Returns the board field.
+     * Returns the position field.
      *
-     * @return the game state board
+     * @return the game position
      */
-    public Board board() {
-	return board;
-    }
-
-    /**
-     * Returns the player field.
-     *
-     * @return the game state player
-     */
-    public Player player() {
-	return player;
+    public GamePosition position() {
+	return position;
     }
 
     /**
@@ -150,6 +128,24 @@ public class GameSnapshot {
      */
     public Clock clock() {
 	return clock;
+    }
+
+    /**
+     * Returns the board field as taken from position.
+     *
+     * @return the game state board
+     */
+    public Board board() {
+	return position().board();
+    }
+
+    /**
+     * Returns the player field as taken from position.
+     *
+     * @return the game player
+     */
+    public Player player() {
+	return position().player();
     }
 
     /**
@@ -163,8 +159,8 @@ public class GameSnapshot {
      */
     public String printGameSnapshot() {
 	StringBuilder sbGameSnapshot = new StringBuilder();
-	String sBoard = board.printBoardWithCount();
-	String sClock = clock.printClock();
+	String sBoard = board().printBoardWithCount();
+	String sClock = clock().printClock();
 	String[] lines = sBoard.split("\n");
 	for (int i=0; i<lines.length; i++) {
 	    String line = lines[i];
