@@ -30,22 +30,17 @@ To do:
 <p>
 <ul>
   <li>Move has to be a full object having: "put disk", "pass", and "resign".</li>
-  <li>Board + Player should be enclosed into GameState.
-      GameState has to be renamed to GameSnapshot.
-      GameSnapshot has a GameState field and a Clock field.
-      GameState has a Board and a Player fields.</li>
   <li>Minimax: The final value should be calculated by the eval function.</li>
   <li>Clock: tests are a bit ugly.</li>
   <li>Clock: parameters boundaries are not fully tested.</li>
-  <li>Clock: create a GameClock class that accept start(), pause(), stop() and creates the Clocks to
-      be distributed to clients. Clients are GameSates and so the Strategies.
-      Use java.lang.Timer (or ScheduledThreadPoolExecutor) to schedule the GameClock refresh.
-      GameClock has to be a mutable field of Game.
-      May be just a class is enough. The Clock (immutable) could have two roles GameState's Clock and Game's Clock.</li>
+  <li>Game: develop a "state machine" and the appropriate transitions.
+      Game objects are mutable. Fields are gameClock, gameHistory, gameState.
+      Each gameState (an inner enum) has the appropriate transitions.
+      State transitions trigger the clock changes. Transitions are based on client/server messages.
+      The server is the game object, clients are the strategies.
+      Use java.lang.Timer (or ScheduledThreadPoolExecutor) to schedule the gameClock refresh.</li>
   <li>Game, Clock: The end of time is not handled correctly, after adding the Timer thread for updating the clock,
       also the two strategies must have a dedicated thread.</li>
-  <li>Game: Game should have two fields: the GameHistory (the sequence of game states),
-      and the GameClock.</li>
   <li>Game: write junit tests.</li>
   <li>Game: review javadocs.</li>
   <li>HumanStrategy: review input and output streams usage. Review the prompt management.</li>
