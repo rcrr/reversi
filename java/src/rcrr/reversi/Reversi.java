@@ -68,13 +68,13 @@ public class Reversi {
      */
     public static int reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Duration gameDuration) {
 	GameSnapshot gs = GameSnapshot.initialGameSnapshot(gameDuration);
-	Game game = Game.valueOf(Arrays.asList(gs));
+	GameSequence sequence = GameSequence.valueOf(Arrays.asList(gs));
 	for (Player player = gs.player();
 	     player != null;
 	     player = gs.board().nextToPlay(player)) {
 	    if (ps != null) ps.print(gs.printGameSnapshot());
 	    gs = getMoveY(gs, ((player == Player.BLACK) ? blStrategy : whStrategy), ps);
-	    game.add(gs);
+	    sequence.add(gs);
 	    if (ps != null) {
 		if (gs.board().nextToPlay(player) == player) ps.print("\n" + player.opponent() + " has no moves and must pass.\n");
 	    }

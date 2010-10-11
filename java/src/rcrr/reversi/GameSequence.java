@@ -1,5 +1,5 @@
 /*
- *  Game.java
+ *  GameSequence.java
  *
  *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
  *
@@ -31,16 +31,16 @@ import java.util.Collections;
 /**
  * An instance of a game sequence of game states.
  * <p>
- * {@code Game} is immutable.
+ * {@code GameSequence} is immutable.
  */
-public class Game {
+public class GameSequence {
 
     /** The game state sequence field. */
-    private final List<GameSnapshot> game;
+    private final List<GameSnapshot> sequence;
 
     /** Private constructor. */
-    private Game(List<GameSnapshot> gameSequence) {
-	game = Collections.unmodifiableList(gameSequence);
+    private GameSequence(List<GameSnapshot> sequence) {
+	this.sequence = Collections.unmodifiableList(sequence);
     }
 
    /**
@@ -48,8 +48,8 @@ public class Game {
      *
      * @return the game built with the given sequence
      */
-    public static Game valueOf(List<GameSnapshot> gameSequence) {
-	return new Game(gameSequence);
+    public static GameSequence valueOf(List<GameSnapshot> sequence) {
+	return new GameSequence(sequence);
     }
 
    /**
@@ -57,10 +57,10 @@ public class Game {
      *
      * @return a new game modified by adding the game state parameter
      */
-    public Game add(GameSnapshot gameSnapshot) {
-	List<GameSnapshot> gameSequence = new ArrayList<GameSnapshot>(game);
-	gameSequence.add(gameSnapshot);
-	return valueOf(gameSequence);
+    public GameSequence add(GameSnapshot gameSnapshot) {
+	List<GameSnapshot> newSequence = new ArrayList<GameSnapshot>(sequence);
+	newSequence.add(gameSnapshot);
+	return valueOf(newSequence);
     }
 
     /**
@@ -72,7 +72,7 @@ public class Game {
      * @return the size of the sequence of the game's states recordered
      */
     public int size() {
-	return game.size();
+	return sequence.size();
     }
 
    /**
@@ -81,7 +81,7 @@ public class Game {
      * @return the game state identified by the index parameter
      */
     public GameSnapshot get(int index) {
-	return game.get(index);
+	return sequence.get(index);
     }
 
    /**
@@ -90,7 +90,7 @@ public class Game {
      * @return if the game sequence is empty
      */
     public boolean isEmpty() {
-	return game.isEmpty();
+	return sequence.isEmpty();
     }
 
 }
