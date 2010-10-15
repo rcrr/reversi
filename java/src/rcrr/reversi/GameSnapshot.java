@@ -148,6 +148,10 @@ public class GameSnapshot {
 	return position().player();
     }
 
+    public int countDiscDifference() {
+	return board().countDifference(Player.BLACK);
+    }
+
     /**
      * Returns a formatted string showing a 2d graphical composed view
      * of the game state. It shows the board, the disk count, and the clock.

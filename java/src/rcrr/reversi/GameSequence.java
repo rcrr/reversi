@@ -84,6 +84,10 @@ public class GameSequence {
 	return sequence.get(index);
     }
 
+    public GameSnapshot last() {
+	return sequence.get(size() -1);
+    }
+
    /**
      * Returns true if the game state sequence is empty.
      *

@@ -122,4 +122,8 @@ public class GamePosition {
 	return board.hasAnyPlayerAnyLegalMove();
     }
 
+    public boolean isLegal(Square move) {
+	return board.isLegal(move, player());
+    }
+
 }
