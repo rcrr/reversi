@@ -26,7 +26,6 @@ package rcrr.reversi;
 
 import java.util.Map;
 
-//import org.joda.time.Period;
 import org.joda.time.Duration;
 
 /**
