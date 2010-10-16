@@ -4,7 +4,7 @@ The source code is written in Clojure.
 
 The program is distributed under the GNU GPLv3 license.
 
-The step that had been followed are:
+The steps that had been followed are:
 
  (1) Adapt the COMMON LISP programs taken from the PAIP book to run smoothly in the following env:
 
