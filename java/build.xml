@@ -51,7 +51,10 @@
   
   <target name="compile">
     <mkdir dir="${classes.dir}"/>
-    <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="lib.classpath">
+    <javac srcdir="${src.dir}" 
+	   destdir="${classes.dir}" 
+	   classpathref="lib.classpath" 
+	   includeAntRuntime="false">
       <compilerarg value="-Xlint:unchecked"/>
     </javac>
   </target>
@@ -107,7 +110,7 @@
   <target name="test.compile" depends="jar">
     <delete dir="${test.classes.dir}"/>
     <mkdir dir="${test.classes.dir}"/>
-    <javac srcdir="${test.src.dir}" destdir="${test.classes.dir}">
+    <javac srcdir="${test.src.dir}" destdir="${test.classes.dir}" includeAntRuntime="false">
       <classpath>
 	<pathelement location="${jar.dir}/${ant.project.name}.jar"/>
 	<path refid="lib.classpath"/>
