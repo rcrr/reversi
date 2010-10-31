@@ -24,9 +24,12 @@
 
 package rcrr.reversi;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import org.joda.time.Duration;
+
 
 /**
  * An instance of a game sequence of game states.
@@ -53,6 +56,15 @@ public class GameSequence {
     }
 
    /**
+     * A static factory that returns an initial game sequence.
+     *
+     * @return a new game sequence initialised with a initial game snapshot
+     */
+    public static GameSequence initialGameSequence(Duration gameDuration) {
+	return valueOf(Arrays.asList(GameSnapshot.initialGameSnapshot(gameDuration)));
+    }
+
+   /**
      * Returns a new game having the new state added to the current sequence.
      *
      * @return a new game modified by adding the game state parameter
@@ -60,6 +72,9 @@ public class GameSequence {
     public GameSequence add(GameSnapshot gameSnapshot) {
 	List<GameSnapshot> newSequence = new ArrayList<GameSnapshot>(sequence);
 	newSequence.add(gameSnapshot);
+	if (last().player() == gameSnapshot.player()) {
+	    System.out.println("Same player, warning.");
+	}
 	return valueOf(newSequence);
     }
 
