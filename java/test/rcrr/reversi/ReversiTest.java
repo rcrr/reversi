@@ -30,25 +30,65 @@ package rcrr.reversi;
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import java.io.PrintStream;
+
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
 public class ReversiTest {
 
-    static final Duration standardGameDuration = Period.minutes(30).toStandardDuration();
-
+    static final Duration STANDARD_GAME_DURATION = Period.minutes(30).toStandardDuration();
+    static final PrintStream NO_PRINT = null;
+    
     @Test
-    public void testReversi() {
+    public void testPAIP_18_6_0() {
+	assertEquals(-16, Reversi.reversi(AlphaBeta.getInstance().searcher(4, new CountDifference()),
+					  AlphaBeta.getInstance().searcher(4, new WeightedSquares()),
+					  NO_PRINT,
+					  STANDARD_GAME_DURATION));
 
-	assertEquals(-16, Reversi.reversi(new AlphabetaSearcherCountDifference(),
-					  new AlphabetaSearcherWeightedSquares(),
-					  null,
-					  standardGameDuration));
+	assertEquals(-16, Reversi.reversi(Minimax.getInstance().searcher(4, new CountDifference()),
+					  Minimax.getInstance().searcher(4, new WeightedSquares()),
+					  NO_PRINT,
+					  STANDARD_GAME_DURATION));
+    }
+    
+    @Test
+    public void testPAIP_18_6_1() {
+	/**
+	 * PAIP pp. 620 ends the game [@=24 O=40 (-16)].
+	 * The test is consistent with the PAIP game till the last position before the end.
+	 * The difference has not fully traced, given the time needed to manually check
+	 * a 6 ply search. Anyhow the CL version obtained porting on SBCL the original PAIP
+	 * source code play the exact same game, ending with a -30 score.
+	 */
+	assertEquals(-30, Reversi.reversi(AlphaBeta.getInstance().searcher(6, new CountDifference()),
+					AlphaBeta.getInstance().searcher(4, new WeightedSquares()),
+					NO_PRINT,
+					STANDARD_GAME_DURATION));
+    }
+    
+    @Test
+    public void testPAIP_18_6_2() {
+	/**
+	 * PAIP pp. 621.
+	 * The WeightedSquares strategy select F6, while the ModifiedWiightedSquare has to select C1.
+	 *
+	 * BLACK moves to b1
+	 *     a b c d e f g h [@=20 0=1 (19)]
+	 *  1  O @ . . . . . . 
+	 *  2  . @ . . . @ @ . 
+	 *  3  @ @ @ @ @ @ . . 
+	 *  4  . @ . @ @ . . . 
+	 *  5  @ @ @ @ @ @ . . 
+	 *  6  . @ . . . . . . 
+	 *  7  . . . . . . . . 
+	 *  8  . . . . . . . . [@=29:59, O=29:59]
+	 *  Next to play: WHITE, legal moves: [C1, F6]
+	 */
 
-	assertEquals(-16, Reversi.reversi(new MinimaxSearcherCountDifference(),
-					  new AlphabetaSearcherWeightedSquares(),
-					  null,
-					  standardGameDuration));
+	/** Test to be written. */
+	assertEquals(0, 0);
     }
     
 }
