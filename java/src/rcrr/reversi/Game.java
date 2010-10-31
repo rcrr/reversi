@@ -25,6 +25,7 @@
 package rcrr.reversi;
 
 import java.util.Map;
+import java.util.EnumMap;
 
 import org.joda.time.Duration;
 
@@ -53,8 +54,15 @@ public class Game {
 	this.sequence = sequence;
     }
 
-    public Game valueOf(Map<Player, Strategy> strategies, GameSequence sequence) {
+    public static Game valueOf(Map<Player, Strategy> strategies, GameSequence sequence) {
 	return new Game(strategies, sequence);
+    }
+
+    public static Game initialGame(Strategy blStrategy, Strategy whStrategy, Duration gameDuration) {
+	Map<Player, Strategy> transientStrategies = new EnumMap<Player, Strategy>(Player.class);
+	transientStrategies.put(Player.BLACK, blStrategy);
+	transientStrategies.put(Player.WHITE, whStrategy);
+	return valueOf(transientStrategies, GameSequence.initialGameSequence(gameDuration));
     }
 
     public int play() {
@@ -77,11 +85,13 @@ public class Game {
 	clock = clock.set(player, new Duration(t0, t1));
 
 	if (validateMove(move)) {
-	    sequence.add(next(move, clock));
+	    sequence = sequence.add(next(move, clock));
+	    // System.out.println("MOVE VALIDATED. sequence=" + sequence);
 	} else {
 	    // clock (snapshot ... ) has to be updated.
 	    move();
 	}
+	return;
     }
 
     public boolean areThereAvailableMoves() {
@@ -93,15 +103,31 @@ public class Game {
     }
 
     public boolean validateMove(Square move) {
+	// System.out.println("validating move=" + move + "; sequence.last().position().isLegal(move)=" + sequence.last().position().isLegal(move));
 	return sequence.last().position().isLegal(move);
     }
 
     public GameSnapshot next(Square move, Clock clock) {
 	Player currentPlayer = sequence.last().player();
 	Board currentBoard = sequence.last().board();
-	Player nextPlayer = currentBoard.nextToPlay(currentPlayer);
+	// Player nextPlayer = currentBoard.nextToPlay(currentPlayer);
 	Board nextBoard = currentBoard.makeMove(move, currentPlayer);
-	return GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock);
+	Player nextPlayer = nextBoard.nextToPlay(currentPlayer);
+	GameSnapshot gs = GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock);
+	// System.out.println(gs.printGameSnapshot());
+	if (currentPlayer == nextPlayer) {
+	    System.out.println("!!! ERROR !!!: currentPlayer=" + currentPlayer + ", nextPlayer=" + nextPlayer);
+	    System.out.println();
+	    System.out.println("currentBoard:\n" + currentBoard.printBoard());
+	    System.out.println("nextBoard:\n" + nextBoard.printBoard());
+	    System.out.println();
+	    System.out.println("!!! ERROR !!!");
+	}
+	return gs;
+    }
+
+    public GameSequence sequence() {
+	return sequence;
     }
 
 }
