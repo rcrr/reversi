@@ -73,29 +73,15 @@ public class Reversi {
 
 	GameSequence sequence = game.sequence();
 	GameSnapshot gs = sequence.last();
-	GameSnapshot gs_old;
 
 	for (Player player = gs.player();
 	     player != null;
 	     player = gs.board().nextToPlay(player)) {
 	    if (ps != null) ps.print(gs.printGameSnapshot());
-	    gs_old = getMoveY(gs, ((player == Player.BLACK) ? blStrategy : whStrategy), ps);
+	    // gs_old = getMoveY(gs, ((player == Player.BLACK) ? blStrategy : whStrategy), ps);
 	    game.move();
 	    sequence = game.sequence();
 	    gs = sequence.last();
-	    String sgs = gs.printGameSnapshot();
-	    String sgs_old = gs_old.printGameSnapshot();
-	    if (!sgs.equals(sgs_old)) {
-		System.out.println("sgs:\n" + sgs);
-		System.out.println("sgs_old:\n" + sgs_old);
-		for (int i = 0; i<game.sequence().size(); i++) {
-		    GameSnapshot gsx = game.sequence().get(i);
-		    System.out.println("gsx("+i+"):\n" + gsx.printGameSnapshot());
-		    System.out.flush();
-		}
-		return 0;
-	    }
-	    // sequence.add(gs);
 	    if (ps != null) {
 		if (gs.board().nextToPlay(player) == player) ps.print("\n" + player.opponent() + " has no moves and must pass.\n");
 	    }

@@ -40,6 +40,18 @@ public class ReversiTest {
     static final Duration STANDARD_GAME_DURATION = Period.minutes(30).toStandardDuration();
     static final PrintStream NO_PRINT = null;
     
+    
+    @Test
+    public void testPAIP_18_4_0() {
+	/**
+	 * PAIP pp. 614 ends the game [@=53 O=0 (+53)].
+	 */
+	assertEquals(+53, Reversi.reversi(Minimax.getInstance().searcher(3, new CountDifference()),
+					  Minimax.maximizer(new CountDifference()),
+					  NO_PRINT,
+					  STANDARD_GAME_DURATION));
+    }
+
     @Test
     public void testPAIP_18_6_0() {
 	assertEquals(-16, Reversi.reversi(AlphaBeta.getInstance().searcher(4, new CountDifference()),
