@@ -88,20 +88,15 @@ public class Game {
     }
 
     public void move() {
-	GameSnapshot gs = sequence.last();
-	Board board = gs.board();
-	Player player = gs.player();
 
-	Clock clock = gs.clock();
 	long t0 = System.currentTimeMillis();
-	Strategy strategy = strategies.get(player);
-	Square move = strategy.move(gs);
+	Square move = strategies.get(player()).move(sequence.last());
 	long t1 = System.currentTimeMillis();
-	clock = clock.set(player, new Duration(t0, t1));
+	Clock clock = clock().set(player(), new Duration(t0, t1));
 
 	if (validateMove(move)) {
 	    if (ps != null) {
-		ps.print("\n" + player.name() + " moves to " + move.label() + "\n");
+		ps.print("\n" + player().name() + " moves to " + move.label() + "\n");
 	    }
 	    sequence = sequence.add(next(move, clock));
 	} else {
@@ -139,6 +134,10 @@ public class Game {
 
     public Player player() {
 	return sequence().last().player();
+    }
+
+    public Clock clock() {
+	return sequence().last().clock();
     }
 
     public boolean opponentPassed() {
