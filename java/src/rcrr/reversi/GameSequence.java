@@ -72,9 +72,6 @@ public class GameSequence {
     public GameSequence add(GameSnapshot gameSnapshot) {
 	List<GameSnapshot> newSequence = new ArrayList<GameSnapshot>(sequence);
 	newSequence.add(gameSnapshot);
-	if (last().player() == gameSnapshot.player()) {
-	    System.out.println("Same player, warning.");
-	}
 	return valueOf(newSequence);
     }
 
