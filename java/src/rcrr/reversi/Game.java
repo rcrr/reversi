@@ -86,7 +86,6 @@ public class Game {
 
 	if (validateMove(move)) {
 	    sequence = sequence.add(next(move, clock));
-	    // System.out.println("MOVE VALIDATED. sequence=" + sequence);
 	} else {
 	    // clock (snapshot ... ) has to be updated.
 	    move();
@@ -103,26 +102,15 @@ public class Game {
     }
 
     public boolean validateMove(Square move) {
-	// System.out.println("validating move=" + move + "; sequence.last().position().isLegal(move)=" + sequence.last().position().isLegal(move));
 	return sequence.last().position().isLegal(move);
     }
 
     public GameSnapshot next(Square move, Clock clock) {
 	Player currentPlayer = sequence.last().player();
 	Board currentBoard = sequence.last().board();
-	// Player nextPlayer = currentBoard.nextToPlay(currentPlayer);
 	Board nextBoard = currentBoard.makeMove(move, currentPlayer);
 	Player nextPlayer = nextBoard.nextToPlay(currentPlayer);
 	GameSnapshot gs = GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock);
-	// System.out.println(gs.printGameSnapshot());
-	if (currentPlayer == nextPlayer) {
-	    System.out.println("!!! ERROR !!!: currentPlayer=" + currentPlayer + ", nextPlayer=" + nextPlayer);
-	    System.out.println();
-	    System.out.println("currentBoard:\n" + currentBoard.printBoard());
-	    System.out.println("nextBoard:\n" + nextBoard.printBoard());
-	    System.out.println();
-	    System.out.println("!!! ERROR !!!");
-	}
 	return gs;
     }
 
