@@ -67,59 +67,9 @@ public class Reversi {
      * @return           the game score
      */
     public static int reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Duration gameDuration) {
-	Game game = Game.initialGame(blStrategy, whStrategy, gameDuration);
-	// game.play();
-	// return game.countDiscDifference();
-
-	GameSequence sequence = game.sequence();
-	GameSnapshot gs = sequence.last();
-
-	for (Player player = gs.player();
-	     player != null;
-	     player = gs.board().nextToPlay(player)) {
-	    if (ps != null) ps.print(gs.printGameSnapshot());
-	    // gs_old = getMoveY(gs, ((player == Player.BLACK) ? blStrategy : whStrategy), ps);
-	    game.move();
-	    sequence = game.sequence();
-	    gs = sequence.last();
-	    if (ps != null) {
-		if (gs.board().nextToPlay(player) == player) ps.print("\n" + player.opponent() + " has no moves and must pass.\n");
-	    }
-	}
-	if (ps != null) {
-	    ps.print(gs.printGameSnapshot());
-	}
-	return gs.board().countDifference(Player.BLACK);
-    }
-
-    /*
-      Has to be copletely rewritten!
-      Player should be renamed into Color (or PlayerColor to avoid collision with the java Color class)
-      Player should then be a new class having all the Player attribute, mostly the Strategy ....
-      All the printing should be eradicated from the base data classes
-      the new API shold be somthing like:
-      game g;
-      g.getMove();
-     */
-    public static GameSnapshot getMoveY(GameSnapshot gs, Strategy strategy, PrintStream ps) {
-	Player player = gs.player();
-	Board b = gs.board();
-	Clock clock = gs.clock();
-	long t0 = System.currentTimeMillis();
-	Square move = strategy.move(gs);
-	long t1 = System.currentTimeMillis();
-	clock = clock.set(player, new Duration(t0, t1));
-	if (b.isLegal(move, player)) {
-	    if (ps != null) {
-		ps.print("\n" + player.name() + " moves to " + move.label() + "\n");
-	    }
-	    Board b1 = b.makeMove(move, player);
-	    Player p1 = b1.nextToPlay(player);
-	    return GameSnapshot.valueOf(GamePosition.valueOf(b1, p1), clock);
-	} else {
-	    if (ps != null) ps.print("Illegal move: " + move + "\n");
-	    return getMoveY(gs, strategy, ps);
-	}
+	Game game = Game.initialGame(blStrategy, whStrategy, gameDuration, ps);
+	game.play();
+	return game.countDiscDifference();
     }
 
     /**
