@@ -27,6 +27,8 @@ package rcrr.reversi;
 import java.util.Map;
 import java.util.EnumMap;
 
+import java.io.PrintStream;
+
 import org.joda.time.Duration;
 
 /**
@@ -46,29 +48,42 @@ public class Game {
 
     private GameSequence sequence;
 
+    private final PrintStream ps;
+
     // not working yet.
     private Clock aClock;
 
-    private Game(Map<Player, Strategy> strategies, GameSequence sequence) {
+    private Game(Map<Player, Strategy> strategies, GameSequence sequence, PrintStream ps) {
 	this.strategies = strategies;
 	this.sequence = sequence;
+	this.ps = ps;
     }
 
-    public static Game valueOf(Map<Player, Strategy> strategies, GameSequence sequence) {
-	return new Game(strategies, sequence);
+    public static Game valueOf(Map<Player, Strategy> strategies, GameSequence sequence, PrintStream ps) {
+	return new Game(strategies, sequence, ps);
     }
 
-    public static Game initialGame(Strategy blStrategy, Strategy whStrategy, Duration gameDuration) {
+    public static Game initialGame(Strategy blStrategy, Strategy whStrategy, Duration gameDuration, PrintStream ps) {
 	Map<Player, Strategy> transientStrategies = new EnumMap<Player, Strategy>(Player.class);
 	transientStrategies.put(Player.BLACK, blStrategy);
 	transientStrategies.put(Player.WHITE, whStrategy);
-	return valueOf(transientStrategies, GameSequence.initialGameSequence(gameDuration));
+	return valueOf(transientStrategies, GameSequence.initialGameSequence(gameDuration), ps);
     }
 
     public int play() {
 	while(areThereAvailableMoves()) {
+	    if (ps != null) ps.print(sequence().last().printGameSnapshot());
 	    move();
+	    if (ps != null) {
+		// to do:
+		// add a print when the player of last snapshot is the same as the previous snapshot
+		if (opponentPassed()) {
+		    ps.print("\n" + player().opponent() + " has no moves and must pass.\n");
+		}
+	    }
+
 	}
+	if (ps != null) ps.print(sequence().last().printGameSnapshot());
 	return countDiscDifference();
     }
 
@@ -85,9 +100,13 @@ public class Game {
 	clock = clock.set(player, new Duration(t0, t1));
 
 	if (validateMove(move)) {
+	    if (ps != null) {
+		ps.print("\n" + player.name() + " moves to " + move.label() + "\n");
+	    }
 	    sequence = sequence.add(next(move, clock));
 	} else {
 	    // clock (snapshot ... ) has to be updated.
+	    if (ps != null) ps.print("Illegal move: " + move + "\n");
 	    move();
 	}
 	return;
@@ -116,6 +135,19 @@ public class Game {
 
     public GameSequence sequence() {
 	return sequence;
+    }
+
+    public Player player() {
+	return sequence().last().player();
+    }
+
+    public boolean opponentPassed() {
+	boolean result = false;
+	if (sequence().size() > 1) {
+	    Player previousPlayer = sequence().get(sequence().size() -2).player();
+	    if (player() == previousPlayer) result = true; 
+	}
+	return result;
     }
 
 }
