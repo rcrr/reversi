@@ -75,9 +75,7 @@ public class Game {
 	    if (ps != null) ps.print(sequence().last().printGameSnapshot());
 	    move();
 	    if (ps != null) {
-		// to do:
-		// add a print when the player of last snapshot is the same as the previous snapshot
-		if (opponentPassed()) {
+		if (hasOpponentPassed()) {
 		    ps.print("\n" + player().opponent() + " has no moves and must pass.\n");
 		}
 	    }
@@ -120,10 +118,8 @@ public class Game {
     }
 
     public GameSnapshot next(Square move, Clock clock) {
-	Player currentPlayer = sequence.last().player();
-	Board currentBoard = sequence.last().board();
-	Board nextBoard = currentBoard.makeMove(move, currentPlayer);
-	Player nextPlayer = nextBoard.nextToPlay(currentPlayer);
+	Board nextBoard = board().makeMove(move, player());
+	Player nextPlayer = nextBoard.nextToPlay(player());
 	GameSnapshot gs = GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock);
 	return gs;
     }
@@ -136,11 +132,15 @@ public class Game {
 	return sequence().last().player();
     }
 
+    public Board board() {
+	return sequence().last().board();
+    }
+
     public Clock clock() {
 	return sequence().last().clock();
     }
 
-    public boolean opponentPassed() {
+    public boolean hasOpponentPassed() {
 	boolean result = false;
 	if (sequence().size() > 1) {
 	    Player previousPlayer = sequence().get(sequence().size() -2).player();
