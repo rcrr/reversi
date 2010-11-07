@@ -41,5 +41,5 @@ public interface Strategy {
      * @param gameSnapshot the game state
      * @return             the move to play
      */
-    Square move(GameSnapshot gameSnapshot);
+    Move move(GameSnapshot gameSnapshot);
 }
