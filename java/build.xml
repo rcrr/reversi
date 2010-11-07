@@ -85,17 +85,6 @@
     </java>
   </target>
 
-  <target name="runb" depends="jar">
-    <java fork="true" classname="${main-class}">
-      <classpath>
-	<pathelement location="${jar.dir}/${ant.project.name}.jar"/>
-	<path refid="lib.classpath"/>
-      </classpath>
-      <arg value="rcrr.reversi.AlphabetaSearcherCountDifference"/>
-      <arg value="rcrr.reversi.AlphabetaSearcherWeightedSquares"/>
-    </java>
-  </target>
-
   <target name="human" depends="jar">
     <java fork="true" classname="${main-class}">
       <classpath>
@@ -167,6 +156,6 @@
   
   <target name="clean-build" depends="clean,jar"/>
   
-  <target name="main" depends="clean,test,run"/>
+  <target name="main" depends="clean,test,javadocs"/>
   
 </project>
