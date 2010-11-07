@@ -88,7 +88,8 @@ public class Game {
     public void move() {
 
 	long t0 = System.currentTimeMillis();
-	Square move = strategies.get(player()).move(sequence.last());
+	Move m = strategies.get(player()).move(sequence.last());
+	Square move = m.square();
 	long t1 = System.currentTimeMillis();
 	Clock clock = clock().set(player(), new Duration(t0, t1));
 

@@ -62,10 +62,10 @@ public abstract class AbstractDecisionRule implements DecisionRule {
 	if (ply <= 0) throw new IllegalArgumentException("Parameter ply must be greather than zero. ply=" + ply);
 	if (ef == null) throw new NullPointerException("Parameter ef must not null. ef=" + ef);
 	return new Strategy() {
-	    public Square move(GameSnapshot gameSnapshot) {
-		if (!gameSnapshot.hasAnyLegalMove()) return null;
+	    public Move move(GameSnapshot gameSnapshot) {
+		if (!gameSnapshot.hasAnyLegalMove()) return Move.valueOf(Move.Action.PASS);
 		SearchNode node = search(gameSnapshot.player(), gameSnapshot.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
-		return node.move();		
+		return Move.valueOf(node.move());		
 	    }
 	};
     }
@@ -83,7 +83,7 @@ public abstract class AbstractDecisionRule implements DecisionRule {
      */
     public static Strategy maximizer(final EvalFunction ef) {
 	return new Strategy() {
-	    public Square move(GameSnapshot gameSnapshot) {
+	    public Move move(GameSnapshot gameSnapshot) {
 		int value = LOSING_VALUE;
 		Square move = null;
 		Player player = gameSnapshot.player();
@@ -96,7 +96,11 @@ public abstract class AbstractDecisionRule implements DecisionRule {
 			move = tentativeMove;
 		    }
 		}
-		return move;
+		if (move == null) {
+		    return Move.valueOf(Move.Action.PASS);
+		} else {
+		    return Move.valueOf(move);
+		}
 	    }
 	};
     }
