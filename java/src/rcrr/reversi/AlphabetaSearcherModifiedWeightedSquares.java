@@ -42,7 +42,7 @@ public class AlphabetaSearcherModifiedWeightedSquares implements Strategy {
 	s = dr.searcher(PLY, new ModifiedWeightedSquares());
     }
 
-    public Square move(GameSnapshot gameSnapshot) {
+    public Move move(GameSnapshot gameSnapshot) {
 	return s.move(gameSnapshot);
     }
 

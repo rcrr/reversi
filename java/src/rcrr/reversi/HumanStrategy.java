@@ -42,7 +42,7 @@ public class HumanStrategy implements Strategy {
  	in = new BufferedReader(isr);
     }
     
-    public Square move(final GameSnapshot gameSnapshot) {
+    public Move move(final GameSnapshot gameSnapshot) {
 	Square move = null;
 	while (move == null) {
 	    List<String> moves = new ArrayList<String>();
@@ -63,7 +63,7 @@ public class HumanStrategy implements Strategy {
 		System.out.println(s + " is not a move. Retry:");
 	    }
 	}
-	return move;
+	return Move.valueOf(move);
     }
 
 }

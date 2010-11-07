@@ -39,12 +39,16 @@ public class RandomStrategy implements Strategy {
 	r = new Random();
     }
 
-    public Square move(final GameSnapshot gameSnapshot) {
+    public Move move(final GameSnapshot gameSnapshot) {
 	Player player = gameSnapshot.player(); 
 	Board board = gameSnapshot.board();
 	List<Square> moves = board.legalMoves(player);
 	int index = r.nextInt(moves.size());
-	return moves.get(index);
+	if (moves.isEmpty()) {
+	    return Move.valueOf(Move.Action.PASS);
+	} else {
+	    return Move.valueOf(moves.get(index));
+	}
     }
 
     public static void main(String[] args) {

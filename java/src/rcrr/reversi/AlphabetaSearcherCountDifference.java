@@ -42,7 +42,7 @@ public class AlphabetaSearcherCountDifference implements Strategy {
 	s = dr.searcher(PLY, new CountDifference());
     }
 
-    public Square move(GameSnapshot gameSnapshot) {
+    public Move move(GameSnapshot gameSnapshot) {
 	return s.move(gameSnapshot);
     }
 
