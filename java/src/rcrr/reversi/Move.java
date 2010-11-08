@@ -38,9 +38,6 @@ public final class Move {
     private static final Map<Action, Move> actionInstanceCache = new EnumMap<Action, Move>(Action.class);
     private static final Map<Square, Move> putDiscInstanceCache = new EnumMap<Square, Move>(Square.class);
 
-    /** Initialized by the constructor, cached hashCode. */
-    private final int hashCode;
-
     private final Action action;
 
     private final Square square;
@@ -52,13 +49,6 @@ public final class Move {
 
 	this.action = action;
 	this.square = square;
-
-	int aFirstPrimeNumber = 17;
-	int aSecondPrimeNumber = 37;
-	int result = aFirstPrimeNumber;
-	result = aSecondPrimeNumber * result + action.ordinal();
-	if (square != null) result = aSecondPrimeNumber * result + square.ordinal();
-	this.hashCode = result;
     }
 
     static {
@@ -99,26 +89,6 @@ public final class Move {
     public Action action() { return action; }
 
     public Square square() { return square; }
-
-    @Override
-    public boolean equals(Object object) {
-	if (object == this) return true;
-	if (!(object instanceof Move)) return false;
-	Move move = (Move) object;
-	if (action() != move.action()) return false;
-	if (square() != move.square()) return false;
-	return true;
-    }
-
-    /**
-     * Returns a hash code for this move.
-     *
-     * @return a hash code for this move
-     */
-    @Override
-    public int hashCode() {
-	return hashCode;
-    }
 
     /**
      * Action is an Enum type that ...
