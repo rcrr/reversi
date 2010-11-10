@@ -33,30 +33,22 @@ import java.util.Arrays;
  */
 public class RandomStrategy implements Strategy {
 
-    private Random r;
+    private final Random r;
     
     public RandomStrategy() {
 	r = new Random();
     }
 
     public Move move(final GameSnapshot gameSnapshot) {
-	Player player = gameSnapshot.player(); 
-	Board board = gameSnapshot.board();
-	List<Square> moves = board.legalMoves(player);
-	int index = r.nextInt(moves.size());
-	if (moves.isEmpty()) {
+	if (!gameSnapshot.hasAnyLegalMove()) {
 	    return Move.valueOf(Move.Action.PASS);
 	} else {
+	    Player player = gameSnapshot.player(); 
+	    Board board = gameSnapshot.board();
+	    List<Square> moves = board.legalMoves(player);
+	    int index = r.nextInt(moves.size());
 	    return Move.valueOf(moves.get(index));
 	}
-    }
-
-    public static void main(String[] args) {
-	Random ra = new Random();
-	List<Integer> list = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
-	int index = ra.nextInt(list.size());
-	int val = list.get(index);
-	System.out.println("index: " + index + ", val: " + val);
     }
 
 }
