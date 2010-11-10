@@ -33,10 +33,12 @@ import java.util.Arrays;
  */
 public class RandomStrategy implements Strategy {
 
-    private final Random r;
+    /** Random field. */
+    private final Random random;
     
+    /** RandomStrategy constructor. */
     public RandomStrategy() {
-	r = new Random();
+	random = new Random();
     }
 
     public Move move(final GameSnapshot gameSnapshot) {
@@ -46,7 +48,7 @@ public class RandomStrategy implements Strategy {
 	    Player player = gameSnapshot.player(); 
 	    Board board = gameSnapshot.board();
 	    List<Square> moves = board.legalMoves(player);
-	    int index = r.nextInt(moves.size());
+	    int index = random.nextInt(moves.size());
 	    return Move.valueOf(moves.get(index));
 	}
     }
