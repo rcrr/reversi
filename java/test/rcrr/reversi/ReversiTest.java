@@ -27,6 +27,9 @@
 
 package rcrr.reversi;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -101,6 +104,59 @@ public class ReversiTest {
 
 	/** Test to be written. */
 	assertEquals(0, 0);
+    }
+    
+    @Test
+    public void testRandomVsRandom() {
+	/**
+	 * The test run a series of a thousand games.
+	 */
+	final int THOUSAND = 1000;
+	int avarage = 0;
+	List<Integer> scores = new ArrayList<Integer>();
+	for (int i=0; i<THOUSAND; i++) {
+	    int score = Reversi.reversi(new RandomStrategy(),
+					new RandomStrategy(),
+					NO_PRINT,
+					STANDARD_GAME_DURATION);
+	    scores.add(score);
+	}
+    }
+    
+    @Test
+    public void testTenGamesRandomVsCountDifference() {
+	/**
+	 * The test run a series of ten games.
+	 */
+	final int TEN = 10;
+	int avarage = 0;
+	List<Integer> scores = new ArrayList<Integer>();
+	for (int i=0; i<TEN; i++) {
+	    int score = Reversi.reversi(new RandomStrategy(),
+					AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
+					NO_PRINT,
+					STANDARD_GAME_DURATION);
+	    assertTrue(score <= +64 && score >= -64);
+	    scores.add(score);
+	}
+    }
+    
+    @Test
+    public void testTenGamesCountDifferenceVsRandom() {
+	/**
+	 * The test run a series of ten games.
+	 */
+	final int TEN = 10;
+	int avarage = 0;
+	List<Integer> scores = new ArrayList<Integer>();
+	for (int i=0; i<TEN; i++) {
+	    int score = Reversi.reversi(AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
+					new RandomStrategy(),
+					NO_PRINT,
+					STANDARD_GAME_DURATION);
+	    assertTrue(score <= +64 && score >= -64);
+	    scores.add(score);
+	}
     }
     
 }
