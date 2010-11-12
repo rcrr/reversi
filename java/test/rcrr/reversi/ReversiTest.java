@@ -111,9 +111,12 @@ public class ReversiTest {
 	/**
 	 * The test run a series of a thousand games.
 	 */
+	final Duration TEST_MAX_DURATION = new Duration(1600); // 1.6 seconds
+	final long NANOSECONDS_PER_MILLISECOND = 1000000;
 	final int THOUSAND = 1000;
 	int avarage = 0;
 	List<Integer> scores = new ArrayList<Integer>();
+	long startTime = System.nanoTime();
 	for (int i=0; i<THOUSAND; i++) {
 	    int score = Reversi.reversi(new RandomStrategy(),
 					new RandomStrategy(),
@@ -121,6 +124,9 @@ public class ReversiTest {
 					STANDARD_GAME_DURATION);
 	    scores.add(score);
 	}
+	long testTime = System.nanoTime() - startTime;
+	Duration d = new Duration(testTime/NANOSECONDS_PER_MILLISECOND);
+	assertTrue("Running the test took longer than: " + TEST_MAX_DURATION, d.isShorterThan(TEST_MAX_DURATION));
     }
     
     @Test
