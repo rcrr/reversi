@@ -94,9 +94,9 @@ public final class Move {
      * Action is an Enum type that ...
      */
     public static enum Action {
-	PUT_DISC(), 
-	PASS(),
-	RESIGN();
+	PUT_DISC,
+	PASS,
+	RESIGN;
     }
 
 }
