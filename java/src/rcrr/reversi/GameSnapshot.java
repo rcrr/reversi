@@ -43,7 +43,7 @@ import org.joda.time.Duration;
  */
 public class GameSnapshot {
 
-    /** The board field. */
+    /** The game position field. */
     private final GamePosition position;
 
     /** The clock field. */

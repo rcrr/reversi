@@ -50,6 +50,8 @@ public class Game {
 
     private final PrintStream ps;
 
+    private State state;
+
     // not working yet.
     private Clock aClock;
 
@@ -79,7 +81,6 @@ public class Game {
 		    ps.print("\n" + player().opponent() + " has no moves and must pass.\n");
 		}
 	    }
-
 	}
 	if (ps != null) ps.print(sequence().last().printGameSnapshot());
 	return countDiscDifference();
@@ -148,6 +149,15 @@ public class Game {
 	    if (player() == previousPlayer) result = true; 
 	}
 	return result;
+    }
+
+    public static enum State {
+	INITIALISING,
+	GAME_PAUSED,
+	PLAYER_MOVING,
+	MOVE_RECEIVED,
+	MOVE_ACCEPTED,
+	UPDATING_HISTORY;	
     }
 
 }

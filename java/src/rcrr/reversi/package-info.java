@@ -29,34 +29,37 @@ Main algorithm and structural classes.
 To do:
 <p>
 <ul>
-  <li>Move has to be a full object having: "put disk", "pass", and "resign".</li>
-  <li>Minimax: The final value should be calculated by the eval function.</li>
-  <li>Clock: tests are a bit ugly.</li>
-  <li>Clock: parameters boundaries are not fully tested.</li>
+  <li>Moves returned from the Strategies must be rocordered. The Sequence structure has to host
+      the moves between each transition. Ideally each adiacent pair should have a list of: [Move, Clock, Status] tuple.
+      The move method has to validate the returned move from the Strategy, record the move with a new clock,
+      recur when the move is not legal.
+      When the move is a STANDARD LEGAL one, the method updates the game sequence, and returns to play method.
+      When the move is LEGAL, like PASS or RESIGN, but is not STANDARD (a real PUT_DISK move), the program logic
+      ha to be designed.</li>
   <li>Game: develop a "state machine" and the appropriate transitions.
       Game objects are mutable. Fields are gameClock, gameHistory, gameState.
       Each gameState (an inner enum) has the appropriate transitions.
       State transitions trigger the clock changes. Transitions are based on client/server messages.
       The server is the game object, clients are the strategies.
       Use java.lang.Timer (or ScheduledThreadPoolExecutor) to schedule the gameClock refresh.</li>
+  <li>Clock: tests are a bit ugly.</li>
+  <li>Clock: parameters boundaries are not fully tested.</li>
   <li>Game, Clock: The end of time is not handled correctly, after adding the Timer thread for updating the clock,
       also the two strategies must have a dedicated thread.</li>
   <li>Game: write junit tests.</li>
   <li>Game: review javadocs.</li>
   <li>HumanStrategy: review input and output streams usage. Review the prompt management.</li>
   <li>MaximizeDifference: write tests and javadocs.</li>
-  <li>Reversi: Strategies should receive a configuration structure (XML or properties).</li>
-  <li>Reversi: the class has no tests. Do it.</li>
-  <li>Minimax: Brainstorming on a strategy builder class.</li>
-  <li>RandomStrategy: write javadocs and tests.</li>
-  <li>....</li>
+  <li>Strategies:
+      - Minimax: The final value should be calculated by the eval function.
+      - Brainstorming on a strategy builder class, that is implemented into an AbstratctStrategy, and that
+        recieve a configuration structure (XML or properties).</li>
 </ul>
 
 <p>
 Java source files:
 <p>
 <ul>
-  <li></li>
   <li>AbstractDecisionRule: Javadocs missing.</li>
   <li>AlphaBeta: Javadocs missing. Tests missing.</li>
   <li>AlphabetaSearcherCountDifference: to be deleted.</li>
