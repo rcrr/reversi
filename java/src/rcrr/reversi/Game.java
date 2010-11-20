@@ -75,7 +75,7 @@ public class Game {
     public int play() {
 	while(areThereAvailableMoves()) {
 	    if (ps != null) ps.print(sequence().last().printGameSnapshot());
-	    move();
+	    move(MoveRegister.empty());
 	    if (ps != null) {
 		if (hasOpponentPassed()) {
 		    ps.print("\n" + player().opponent() + " has no moves and must pass.\n");
@@ -86,23 +86,24 @@ public class Game {
 	return countDiscDifference();
     }
 
-    public void move() {
+    public void move(MoveRegister register) {
 
 	long t0 = System.currentTimeMillis();
-	Move m = strategies.get(player()).move(sequence.last());
-	Square move = m.square();
+	Move move = strategies.get(player()).move(sequence.last());
 	long t1 = System.currentTimeMillis();
 	Clock clock = clock().set(player(), new Duration(t0, t1));
 
-	if (validateMove(move)) {
+	register = register.push(MoveRecord.valueOf(move, clock));
+	Square square = move.square();
+	if (validateMove(square)) {
 	    if (ps != null) {
-		ps.print("\n" + player().name() + " moves to " + move.label() + "\n");
+		ps.print("\n" + player().name() + " moves to " + square.label() + "\n");
 	    }
-	    sequence = sequence.add(next(move, clock));
+	    sequence = sequence.add(next(square, clock));
 	} else {
 	    // clock (snapshot ... ) has to be updated.
-	    if (ps != null) ps.print("Illegal move: " + move + "\n");
-	    move();
+	    if (ps != null) ps.print("Illegal move: " + square + "\n");
+	    move(register);
 	}
 	return;
     }
@@ -122,7 +123,7 @@ public class Game {
     public GameSnapshot next(Square move, Clock clock) {
 	Board nextBoard = board().makeMove(move, player());
 	Player nextPlayer = nextBoard.nextToPlay(player());
-	GameSnapshot gs = GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock);
+	GameSnapshot gs = GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock, MoveRegister.empty()); // move record to be build.
 	return gs;
     }
 
