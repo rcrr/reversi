@@ -32,14 +32,12 @@ import org.joda.time.Duration;
  * A {@code GameSnapshot} object holds the information of the state of the game.
  * It is a value object composed by three fields:
  * <ol>
- *   <li>the game board</li>
- *   <li>the player that has to move</li>
+ *   <li>the game position</li>
  *   <li>the current clock</li>
+ *   <li>the move log</li>
  * </ol>
  * <p>
  * {@code GameSnapshot} is immutable.
- * <p>
- * The {@code player} field can be {@code null} only when no legal moves are available to either player.
  */
 public class GameSnapshot {
 
@@ -49,6 +47,9 @@ public class GameSnapshot {
     /** The clock field. */
     private final Clock clock;
 
+    /** The move register. */
+    private final MoveRegister register;
+
     /**
      * Private constructor.
      * <p>
@@ -56,12 +57,15 @@ public class GameSnapshot {
      *
      * @param position the game position
      * @param clock    the current clock
+     * @param register the register of moves transmitted by the player
      */
-    private GameSnapshot(GamePosition position, Clock clock) {
+    private GameSnapshot(GamePosition position, Clock clock, MoveRegister register) {
 	assert (position != null) : "Parameter position cannot be null.";
 	assert (clock != null) : "Parameter clock cannot be null.";
+	assert (register != null) : "Parameter register cannot be null.";
 	this.position = position;
 	this.clock = clock;
+	this.register = register;
     }
 
     /**
@@ -71,13 +75,15 @@ public class GameSnapshot {
      *
      * @param  position  the game position
      * @param  clock     the current clock
+     * @param  register  the log of moves transmitted by the player
      * @return           a new game snapshot
      * @throws NullPointerException when position or clock parameters are null,
      */
-    public static GameSnapshot valueOf(GamePosition position, Clock clock) {
+    public static GameSnapshot valueOf(GamePosition position, Clock clock, MoveRegister register) {
 	if (position == null) throw new NullPointerException("Parameter position cannot be null.");
 	if (clock == null) throw new NullPointerException("Parameter clock cannot be null.");
-	return new GameSnapshot(position, clock);
+	if (register == null) throw new NullPointerException("Parameter register cannot be null.");
+	return new GameSnapshot(position, clock, register);
     }
 
     /**
@@ -91,7 +97,7 @@ public class GameSnapshot {
      * @return             a new initial game snapshot as required by international game's rules
      */
     public static GameSnapshot initialGameSnapshot(Duration gameDuration) {
-	return valueOf(GamePosition.initialGamePosition(), Clock.initialClock(gameDuration));
+	return valueOf(GamePosition.initialGamePosition(), Clock.initialClock(gameDuration), MoveRegister.empty());
     }
 
     /**
@@ -148,6 +154,12 @@ public class GameSnapshot {
 	return position().player();
     }
 
+    /**
+     * Returns the difference of disc count. It counts the
+     * black's discs and subtract the white's ones.
+     *
+     * @return the disc difference
+     */
     public int countDiscDifference() {
 	return board().countDifference(Player.BLACK);
     }

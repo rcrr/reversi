@@ -111,7 +111,7 @@ public class ReversiTest {
 	/**
 	 * The test run a series of a thousand games.
 	 */
-	final Duration TEST_MAX_DURATION = new Duration(1600); // 1.6 seconds
+	final Duration TEST_MAX_DURATION = new Duration(2000); // 2.0 seconds
 	final long NANOSECONDS_PER_MILLISECOND = 1000000;
 	final int THOUSAND = 1000;
 	int avarage = 0;

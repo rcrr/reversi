@@ -75,22 +75,28 @@ public class MinimaxTest {
 
 	fixtGameSnapshotMinimaxA = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardMinimaxA,
 									     Player.WHITE),
-							Clock.initialClock(Period.minutes(1).toStandardDuration()));
+							Clock.initialClock(Period.minutes(1).toStandardDuration()),
+							MoveRegister.empty());
 	fixtGameSnapshotMinimaxB = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardMinimaxB,
 									     Player.WHITE),
-							Clock.initialClock(Period.minutes(1).toStandardDuration()));
+							Clock.initialClock(Period.minutes(1).toStandardDuration()),
+							MoveRegister.empty());
 	fixtGameSnapshotB = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardB,
 								      Player.WHITE),
-						 Clock.initialClock(Period.minutes(1).toStandardDuration()));
+						 Clock.initialClock(Period.minutes(1).toStandardDuration()),
+						 MoveRegister.empty());
 	fixtGameSnapshotBC3 = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardBC3,
 									Player.BLACK),
-						   Clock.initialClock(Period.minutes(1).toStandardDuration()));
+						   Clock.initialClock(Period.minutes(1).toStandardDuration()),
+						   MoveRegister.empty());
 	fixtGameSnapshotBC6 = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardBC6,
 									Player.BLACK),
-						   Clock.initialClock(Period.minutes(1).toStandardDuration()));
+						   Clock.initialClock(Period.minutes(1).toStandardDuration()),
+						   MoveRegister.empty());
 	fixtGameSnapshotBlackHasToPass = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardBlackHasToPass,
 										   Player.BLACK),
-							      Clock.initialClock(Period.minutes(1).toStandardDuration()));
+							      Clock.initialClock(Period.minutes(1).toStandardDuration()),
+							      MoveRegister.empty());
 
     }
 

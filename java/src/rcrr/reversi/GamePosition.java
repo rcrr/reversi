@@ -42,6 +42,7 @@ public class GamePosition {
      * Private constructor.
      * <p>
      * Parameter {@code board} must be not null.
+     * Parameter {@code player} must be not null when there are still valid moves.
      *
      * @param board  the board state
      * @param player the player that has to move
@@ -116,12 +117,18 @@ public class GamePosition {
     /**
      * Returns if either one of the two players has any legal move.
      *
-     * @return {@code true} if anyone can play a move.
+     * @return {@code true} if anyone can play a move
      */
     public boolean hasAnyPlayerAnyLegalMove() {
 	return board.hasAnyPlayerAnyLegalMove();
     }
 
+    /**
+     * Returns the boolean value telling if the move, done by the position's player, is legal. 
+     *
+     * @param move the square where to put the new disk
+     * @return     {@code true} true if the move is legal, otherwise false
+     */
     public boolean isLegal(Square move) {
 	return board.isLegal(move, player());
     }

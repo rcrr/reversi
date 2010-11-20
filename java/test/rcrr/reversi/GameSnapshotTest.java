@@ -40,7 +40,7 @@ public class GameSnapshotTest {
 	 * the passed position is null.
 	 */
 	try {
-	    GameSnapshot.valueOf(null, Clock.initialClock(Period.minutes(1).toStandardDuration()));
+	    GameSnapshot.valueOf(null, Clock.initialClock(Period.minutes(1).toStandardDuration()), MoveRegister.empty());
 	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
@@ -51,7 +51,18 @@ public class GameSnapshotTest {
 	 * the passed clock is null.
 	 */
 	try {
-	    GameSnapshot.valueOf(GamePosition.initialGamePosition(), null);
+	    GameSnapshot.valueOf(GamePosition.initialGamePosition(), null, MoveRegister.empty());
+	    fail("An exception must be risen.");
+	} catch (NullPointerException npe) {
+	    assertTrue(true);
+	}
+
+	/**
+	 * Tests if the valueOf method throws a NullPointerException when
+	 * the passed move register is null.
+	 */
+	try {
+	    GameSnapshot.valueOf(GamePosition.initialGamePosition(), Clock.initialClock(Period.minutes(1).toStandardDuration()), null);
 	    fail("An exception must be risen.");
 	} catch (NullPointerException npe) {
 	    assertTrue(true);
@@ -59,7 +70,8 @@ public class GameSnapshotTest {
 
 	GamePosition gp = GamePosition.initialGamePosition();
 	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	GameSnapshot gs = GameSnapshot.valueOf(gp, c);
+	MoveRegister reg = MoveRegister.empty();
+	GameSnapshot gs = GameSnapshot.valueOf(gp, c, reg);
 	assertEquals(gp, gs.position());
 	assertEquals(c, gs.clock());
     }
@@ -68,7 +80,8 @@ public class GameSnapshotTest {
     public void testPrintGameSnapshot() {
 	GamePosition gp = GamePosition.initialGamePosition();
 	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	GameSnapshot gs = GameSnapshot.valueOf(gp, c);
+	MoveRegister reg = MoveRegister.empty();
+	GameSnapshot gs = GameSnapshot.valueOf(gp, c, reg);
 	StringBuilder initialGameSnapshot = new StringBuilder();
 	initialGameSnapshot.append("    a b c d e f g h [@=2 0=2 (0)]\n");
 	initialGameSnapshot.append(" 1  . . . . . . . . \n");
@@ -91,7 +104,8 @@ public class GameSnapshotTest {
     public void testGetters() {
 	GamePosition gp = GamePosition.initialGamePosition();
 	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	GameSnapshot gs = GameSnapshot.valueOf(gp, c);
+	MoveRegister reg = MoveRegister.empty();
+	GameSnapshot gs = GameSnapshot.valueOf(gp, c, reg);
 	assertEquals(gp, gs.position());
 	assertEquals(c, gs.clock());
     }
