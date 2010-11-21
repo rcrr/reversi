@@ -94,15 +94,14 @@ public class Game {
 	Clock clock = clock().set(player(), new Duration(t0, t1));
 
 	register = register.push(MoveRecord.valueOf(move, clock));
-	Square square = move.square();
-	if (validateMove(square)) {
+	if (validateMove(move.square())) {
 	    if (ps != null) {
-		ps.print("\n" + player().name() + " moves to " + square.label() + "\n");
+		ps.print("\n" + player().name() + " moves to " + move.square().label() + "\n");
 	    }
-	    sequence = sequence.add(next(square, clock));
+	    sequence = sequence.add(next(move.square(), clock, register));
 	} else {
 	    // clock (snapshot ... ) has to be updated.
-	    if (ps != null) ps.print("Illegal move: " + square + "\n");
+	    if (ps != null) ps.print("Illegal move: " + move.square() + "\n");
 	    move(register);
 	}
 	return;
@@ -120,10 +119,10 @@ public class Game {
 	return sequence.last().position().isLegal(move);
     }
 
-    public GameSnapshot next(Square move, Clock clock) {
+    public GameSnapshot next(Square move, Clock clock, MoveRegister register) {
 	Board nextBoard = board().makeMove(move, player());
 	Player nextPlayer = nextBoard.nextToPlay(player());
-	GameSnapshot gs = GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock, MoveRegister.empty()); // move record to be build.
+	GameSnapshot gs = GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock, register);
 	return gs;
     }
 
