@@ -32,6 +32,7 @@ import java.io.PrintStream;
 import org.joda.time.Duration;
 
 /**
+ * 
  * {@code Game} is mutable. 
  * <p>
  * Develop the mutable object.
@@ -44,27 +45,66 @@ import org.joda.time.Duration;
  */
 public class Game {
 
+    /** The strategies field. Why is it mutable? Why not create a specific wrapper class? */
     private Map<Player, Strategy> strategies;
 
+    /** The game sequence field. It has to be mutable. Synchronization must be developed. Why not name it gameSnapshotSequence? */
     private GameSequence sequence;
 
+    /** The ps field. It is immutable. Why not develop a specific object that handles the IO? */
     private final PrintStream ps;
 
+    /** The state field. Still not clear how to go on with the game-state-machine. */
     private State state;
 
-    // not working yet.
+    /** 
+     * The aClock field. The name is ugly.
+     * The game-clock design is coupled with the game-state-machine,
+     * and need to work into a different Thread compared with the strategies.
+     */
     private Clock aClock;
 
+    /**
+     * Private constructor.
+     * <p>
+     * Parameter {@code strategies} must be not null, and should be checked.
+     * Parameter {@code sequence} must be not null.
+     * Parameter {@code ps} is allowed to be null, meaning that no output is requested for the game.
+     *
+     * @param  strategies the strategies field
+     * @param  sequence   the game snapshot sequence field
+     * @param  ps         the print stream field
+     */
     private Game(Map<Player, Strategy> strategies, GameSequence sequence, PrintStream ps) {
+	assert (strategies != null) : "Parameter strategies cannot be null.";
+	assert (sequence != null) : "Parameter sequence cannot be null.";
 	this.strategies = strategies;
 	this.sequence = sequence;
 	this.ps = ps;
     }
 
+    /**
+     * Base static factory for the class.
+     * <p>
+     * Parameter {@code strategies} must be not null, and should be checked.
+     * Parameter {@code sequence} must be not null.
+     * Parameter {@code ps} is allowed to be null, meaning that no output is requested for the game.
+     *
+     * @param  strategies the strategies field
+     * @param  sequence   the game snapshot sequence field
+     * @param  ps         the print stream field
+     * @throws NullPointerException when either strategies or sequence parameter is null
+     */
     public static Game valueOf(Map<Player, Strategy> strategies, GameSequence sequence, PrintStream ps) {
+	if (strategies == null) throw new NullPointerException("Parameter strategies cannot be null.");
+	if (sequence == null) throw new NullPointerException("Parameter sequence cannot be null.");
 	return new Game(strategies, sequence, ps);
     }
 
+    /**
+     *
+     * @return a new initial game
+     */
     public static Game initialGame(Strategy blStrategy, Strategy whStrategy, Duration gameDuration, PrintStream ps) {
 	Map<Player, Strategy> transientStrategies = new EnumMap<Player, Strategy>(Player.class);
 	transientStrategies.put(Player.BLACK, blStrategy);
@@ -152,12 +192,18 @@ public class Game {
     }
 
     public static enum State {
-	INITIALISING,
-	GAME_PAUSED,
-	PLAYER_MOVING,
-	MOVE_RECEIVED,
-	MOVE_ACCEPTED,
-	UPDATING_HISTORY;	
+
+	/** The game is created but not started. */
+	CREATED,
+
+	/** The game is ongoing, no player has the move assigned. The clock is not running. */
+	PLAYING,
+
+	/** The game is ongoing. The move request has been assigned to one player. The clock is running. */
+	MOVING,
+
+	/** The game is paused. */
+	PAUSED;
     }
 
 }
