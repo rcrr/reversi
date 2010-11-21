@@ -32,11 +32,19 @@ import java.util.Collections;
 import java.util.EnumMap;
 
 /**
- * An instance of a board game position, or state.
+ * A board is an instance of a board game position. It is the state that a board
+ * has regardless of the player that has to move or the time spent or remaining to each player.
  * <p>
  * A {@code Board} object holds the information of the state of each board's square.
+ * The board state is kept into a map holding the state of the sixtyfour squares.
+ * <p>
+ * Two boards are equal when they represent the same position. It is up to the implementation
+ * if leverage the immutability property and to cache the existing boards instead of creating
+ * new ones.
  * <p>
  * {@code Board} is immutable.
+ * <p>
+ * @see Square
  */
 public final class Board {
 

@@ -36,7 +36,7 @@ import static rcrr.reversi.Row.*;
 import static rcrr.reversi.Column.*;
 
 /**
- * Sqare is an Enum type that realize the base unit of the game board.
+ * Square is an Enum type that realize the base unit of the game board.
  * Squares are represented by two characters, a letter and a numeric digit.
  * <p>
  * For instance, let's take a square: D4.
