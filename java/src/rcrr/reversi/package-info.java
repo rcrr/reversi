@@ -47,9 +47,7 @@ To do:
   <li>Clock: parameters boundaries are not fully tested.</li>
   <li>Game, Clock: The end of time is not handled correctly, after adding the Timer thread for updating the clock,
       also the two strategies must have a dedicated thread.</li>
-  <li>Game: strategies are a map defined into Game. A new Actor class is needed. Actors are the identity of players.
-      An Actor has as a minimum an id, a name, a Strategy.
-      A game must have an object (Opponents) having two actors assigned to black and to white.</li>
+  <li>Game: strategies are a map defined into Game. xSubstitute strategies with a field actors .....</li>
   <li>Game: write junit tests.</li>
   <li>Game: review javadocs.</li>
   <li>HumanStrategy: review input and output streams usage. Review the prompt management.</li>
