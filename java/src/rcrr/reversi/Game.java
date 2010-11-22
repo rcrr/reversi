@@ -46,7 +46,8 @@ import org.joda.time.Duration;
 public class Game {
 
     /** The strategies field. Why is it mutable? Why not create a specific wrapper class? */
-    private Map<Player, Strategy> strategies;
+    //private Map<Player, Strategy> strategies;
+    private final ActorsPair actors;
 
     /** The game sequence field. It has to be mutable. Synchronization must be developed. Why not name it gameSnapshotSequence? */
     private GameSequence sequence;
@@ -67,18 +68,18 @@ public class Game {
     /**
      * Private constructor.
      * <p>
-     * Parameter {@code strategies} must be not null, and should be checked.
+     * Parameter {@code actors} must be not null.
      * Parameter {@code sequence} must be not null.
      * Parameter {@code ps} is allowed to be null, meaning that no output is requested for the game.
      *
-     * @param  strategies the strategies field
-     * @param  sequence   the game snapshot sequence field
-     * @param  ps         the print stream field
+     * @param  actors   the actors field
+     * @param  sequence the game snapshot sequence field
+     * @param  ps       the print stream field
      */
-    private Game(Map<Player, Strategy> strategies, GameSequence sequence, PrintStream ps) {
-	assert (strategies != null) : "Parameter strategies cannot be null.";
+    private Game(ActorsPair actors, GameSequence sequence, PrintStream ps) {
+	assert (actors != null) : "Parameter actors cannot be null.";
 	assert (sequence != null) : "Parameter sequence cannot be null.";
-	this.strategies = strategies;
+	this.actors = actors;
 	this.sequence = sequence;
 	this.ps = ps;
     }
@@ -86,30 +87,30 @@ public class Game {
     /**
      * Base static factory for the class.
      * <p>
-     * Parameter {@code strategies} must be not null, and should be checked.
+     * Parameter {@code actors} must be not null.
      * Parameter {@code sequence} must be not null.
      * Parameter {@code ps} is allowed to be null, meaning that no output is requested for the game.
      *
-     * @param  strategies the strategies field
-     * @param  sequence   the game snapshot sequence field
-     * @param  ps         the print stream field
-     * @throws NullPointerException when either strategies or sequence parameter is null
+     * @param  actors   the actors field
+     * @param  sequence the game snapshot sequence field
+     * @param  ps       the print stream field
+     * @throws NullPointerException when either actors or sequence parameter is null
      */
-    public static Game valueOf(Map<Player, Strategy> strategies, GameSequence sequence, PrintStream ps) {
-	if (strategies == null) throw new NullPointerException("Parameter strategies cannot be null.");
+    public static Game valueOf(ActorsPair actors, GameSequence sequence, PrintStream ps) {
+	if (actors == null) throw new NullPointerException("Parameter actors cannot be null.");
 	if (sequence == null) throw new NullPointerException("Parameter sequence cannot be null.");
-	return new Game(strategies, sequence, ps);
+	return new Game(actors, sequence, ps);
     }
 
     /**
      *
      * @return a new initial game
      */
-    public static Game initialGame(Strategy blStrategy, Strategy whStrategy, Duration gameDuration, PrintStream ps) {
-	Map<Player, Strategy> transientStrategies = new EnumMap<Player, Strategy>(Player.class);
-	transientStrategies.put(Player.BLACK, blStrategy);
-	transientStrategies.put(Player.WHITE, whStrategy);
-	return valueOf(transientStrategies, GameSequence.initialGameSequence(gameDuration), ps);
+    public static Game initialGame(Actor black, Actor white, Duration gameDuration, PrintStream ps) {
+	Map<Player, Actor> actorMap = new EnumMap<Player, Actor>(Player.class);
+	actorMap.put(Player.BLACK, black);
+	actorMap.put(Player.WHITE, white);
+	return valueOf(ActorsPair.valueOf(actorMap), GameSequence.initialGameSequence(gameDuration), ps);
     }
 
     public int play() {
@@ -129,7 +130,7 @@ public class Game {
     public void move(MoveRegister register) {
 
 	long t0 = System.currentTimeMillis();
-	Move move = strategies.get(player()).move(sequence.last());
+	Move move = actors.get(player()).strategy().move(sequence.last());
 	long t1 = System.currentTimeMillis();
 	Clock clock = clock().set(player(), new Duration(t0, t1));
 
