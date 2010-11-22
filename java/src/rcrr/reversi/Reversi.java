@@ -67,7 +67,11 @@ public class Reversi {
      * @return           the game score
      */
     public static int reversi(Strategy blStrategy, Strategy whStrategy, PrintStream ps, Duration gameDuration) {
-	Game game = Game.initialGame(blStrategy, whStrategy, gameDuration, ps);
+
+	/** Must be revised!!!! */
+	Actor black = Actor.valueOf("Black Actor", blStrategy);
+	Actor white = Actor.valueOf("White Actor", whStrategy);
+	Game game = Game.initialGame(black, white, gameDuration, ps);
 	game.play();
 	return game.countDiscDifference();
     }
