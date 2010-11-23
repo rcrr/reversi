@@ -29,6 +29,8 @@ Main algorithm and structural classes.
 To do:
 <p>
 <ul>
+  <li>Insert a cloc report into the build process.</li>
+  <li>Implement checkstyle into the build process. <a href="http://checkstyle.sourceforge.net">checkstile</a></li>
   <li>Moves returned from the Strategies must be rocordered. The Sequence structure has to host
       the moves between each transition. Ideally each adiacent pair should have a list of: [Move, Clock, Status] tuple.
       The "record" could be attached to GameSnapshot. null is a valid value, but is not compatible with a valid game sequence.
@@ -47,7 +49,7 @@ To do:
   <li>Clock: parameters boundaries are not fully tested.</li>
   <li>Game, Clock: The end of time is not handled correctly, after adding the Timer thread for updating the clock,
       also the two strategies must have a dedicated thread.</li>
-  <li>Game: strategies are a map defined into Game. xSubstitute strategies with a field actors .....</li>
+  <li>Game: strategies are a map defined into Game. Substitute strategies with a field actors .....</li>
   <li>Game: write junit tests.</li>
   <li>Game: review javadocs.</li>
   <li>HumanStrategy: review input and output streams usage. Review the prompt management.</li>
@@ -55,7 +57,7 @@ To do:
   <li>Strategies:
       - Minimax: The final value should be calculated by the eval function.
       - Brainstorming on a strategy builder class, that is implemented into an AbstratctStrategy, and that
-        recieve a configuration structure (XML or properties).</li>
+        recieves a configuration structure (XML or properties).</li>
 </ul>
 
 <p>
