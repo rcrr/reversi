@@ -41,7 +41,7 @@ import static rcrr.reversi.Square.*;
 
 public class RandomStrategyTest {
 
-    private static final int TIMES = 1000;
+    private static final int TIMES = 2000;
     private static final double DEVIATION = 0.001;
 
     private static final List<Square> INITIAL_LEGAL_MOVES = Arrays.asList(E6, C4, F5, D3);
