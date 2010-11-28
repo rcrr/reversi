@@ -37,6 +37,8 @@
   <property name="test.data.dir" value="${build.dir}/test/data"/>
   <property name="test.reports.dir" value="${build.dir}/test/reports"/>
 
+  <property name="cloc.dir" value="${build.dir}/cloc"/>
+
   <property name="lib.dir" value="lib"/>
 
   <path id="lib.classpath">
@@ -157,5 +159,19 @@
   <target name="clean-build" depends="clean,jar"/>
   
   <target name="main" depends="clean,test,javadocs"/>
+
+  <property name="cloc.executable" value="/usr/bin/cloc"/>  
+  <available file="${cloc.executable}" type="file"
+             property="cloc.present"/>
+
+  <target name="cloc" if="${cloc.present}">
+    <delete dir="${cloc.dir}"/>
+    <mkdir dir="${cloc.dir}"/>
+    <exec executable="cloc">
+      <arg value="--no3"/>
+      <arg value="--out=${cloc.dir}/cloc-java-src-report.txt"/>
+      <arg value="src"/>
+    </exec>
+  </target>
   
 </project>
