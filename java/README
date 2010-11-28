@@ -1,0 +1,7 @@
+The java directory has a lib subfolder having the mandatory java libraries. The lib is taken away from the GIT repo.
+
+Actually the lib included are:
+
+ - joda-time-1.6.2.jar
+ - junit-4.8.2.jar
+ - checkstyle-5.3-all.jar
