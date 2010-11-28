@@ -26,7 +26,6 @@ package rcrr.reversi;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -62,13 +61,14 @@ public final class Board {
      *
      * @param  squareMap the sqares field
      */
-    private Board(Map<Square, SquareState> squareMap) {
-	assert (squareMap != null) : "Parameter squareMap cannot be null. squareMap=" + squareMap;
+    private Board(final Map<Square, SquareState> squareMap) {
+	assert (squareMap != null) : "Parameter squareMap cannot be null.";
 	assert (squareMap.size() == Square.values().length) : "Parameter squareMap size is not consistent." + 
 	    " squareMap.size()=" + squareMap.size() +
 	    " expected value: " + Square.values().length;
-	EnumMap<Square, SquareState> squareEnumMap = (squareMap instanceof EnumMap) ? 
-	    (EnumMap<Square, SquareState>) squareMap : new EnumMap<Square, SquareState>(squareMap);
+	final EnumMap<Square, SquareState> squareEnumMap = (squareMap instanceof EnumMap)
+	    ? (EnumMap<Square, SquareState>) squareMap
+	    : new EnumMap<Square, SquareState>(squareMap);
 	this.squares = Collections.unmodifiableMap(squareEnumMap);
     }
 
@@ -211,8 +211,8 @@ public final class Board {
      * @return the disk count
      * @throws NullPointerException if parameter {@code color} is null
      */
-    public int countPieces(SquareState color) {
-	if (color == null) throw new NullPointerException("parameter color must be not null. color=" + color);
+    public int countPieces(final SquareState color) {
+	if (color == null) { throw new NullPointerException("parameter color must be not null."); }
 	int count = 0;
 	for (SquareState ss : squares.values()) {
 	    if (ss == color) count++;
@@ -227,8 +227,8 @@ public final class Board {
      * @return       the disk count difference
      * @throws NullPointerException if parameter {@code player} is null
      */
-    public int countDifference(Player player) {
-	if (player == null) throw new NullPointerException("parameter player must be not null. player=" + player);
+    public int countDifference(final Player player) {
+	if (player == null) { throw new NullPointerException("parameter player must be not null."); }
 	return countPieces(player.color()) - countPieces(player.opponent().color());
     }
 
@@ -261,7 +261,7 @@ public final class Board {
 	int cb = countPieces(SquareState.BLACK);
 	int cw = countPieces(SquareState.WHITE);
 	int cd = cb - cw;
-	return "[@=" + cb + " 0=" + cw + " (" + cd + ")]";	
+	return "[@=" + cb + " 0=" + cw + " (" + cd + ")]";
     }
 
     /**
@@ -281,7 +281,7 @@ public final class Board {
 	for (int i=0; i<lines.length; i++) {
 	    String line = lines[i];
 	    sbBoardWithCount.append(line);
-	    if (i == 0) sbBoardWithCount.append(sCount);
+	    if (i == 0) { sbBoardWithCount.append(sCount); }
 	    sbBoardWithCount.append("\n");
 	}
 	return (sbBoardWithCount.toString());
@@ -299,8 +299,8 @@ public final class Board {
      * @return        the next player that has to play a move
      * @throws NullPointerException if parameter {@code current} is null
      */
-    public Player nextToPlay(Player current) {
-	if (current == null) throw new NullPointerException("parameter current must be not null. current=" + current);
+    public Player nextToPlay(final Player current) {
+	if (current == null) { throw new NullPointerException("parameter current must be not null."); }
 	Player opponent = current.opponent();
 	Player next = null;
 	if (hasAnyLegalMove(opponent)) {
@@ -318,8 +318,8 @@ public final class Board {
      * @return       {@code true} if the player has any legal move, otherwise {@code false}
      * @throws NullPointerException if parameter {@code player} is null
      */
-    public boolean hasAnyLegalMove (Player player) {
-	if (player == null) throw new NullPointerException("parameter player must be not null. player=" + player);
+    public boolean hasAnyLegalMove(final Player player) {
+	if (player == null) { throw new NullPointerException("parameter player must be not null."); }
 	boolean hasAnyLegalMove = false;
 	for (Square move : Square.values()) {
 	    if (isLegal(move, player)) {

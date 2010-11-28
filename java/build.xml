@@ -39,6 +39,10 @@
 
   <property name="cloc.dir" value="${build.dir}/cloc"/>
 
+  <property name="docs.dir" value="docs"/>
+  <property name="docs.checkstyle.dir" value="${docs.dir}/checkstyle"/>
+  <property name="checkstyle.reports.dir" value="${build.dir}/checkstyle"/>
+
   <property name="lib.dir" value="lib"/>
 
   <path id="lib.classpath">
@@ -173,5 +177,31 @@
       <arg value="src"/>
     </exec>
   </target>
+
+  <taskdef resource="checkstyletask.properties"
+	   classpath="lib/checkstyle-5.3-all.jar"/>
+
+  <target name="checkstyle2">
+    <checkstyle config="docs/sun_checks.xml" file="src/rcrr/reversi/Actor.java"/>
+  </target>
+
+<target name="checkstyle"
+        description="Generates a report of code convention violations.">
+  <delete dir="${checkstyle.reports.dir}"/>
+  <mkdir dir="${checkstyle.reports.dir}"/>
   
+  <checkstyle config="${docs.checkstyle.dir}/sun_checks.xml"
+              failureProperty="checkstyle.failure"
+              failOnViolation="false">
+    <formatter type="xml" tofile="${checkstyle.reports.dir}/checkstyle_report.xml"/>
+    <fileset dir="src" includes="**/*.java"/>
+  </checkstyle>
+
+  <xslt in="${checkstyle.reports.dir}/checkstyle_report.xml"
+	out="${checkstyle.reports.dir}/checkstyle_report.html"
+	style="${docs.checkstyle.dir}/checkstyle-noframes.xsl"/>
+  
+</target>
+
+
 </project>
