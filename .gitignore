@@ -4,3 +4,4 @@
 *.fasl
 *.class
 build
+lib
