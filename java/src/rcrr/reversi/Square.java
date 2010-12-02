@@ -25,7 +25,6 @@
 package rcrr.reversi;
 
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -99,21 +98,28 @@ public enum Square {
     /** The column containing the square. */
     private final Column column;
 
-    /** The enum constructor. */
-    private Square(Row row, Column column) {
-	this.row = row;
-	this.column = column;
+    /**
+     * The enum constructor.
+     *
+     * @param row    square's row
+     * @param column square's column
+     */
+    private Square(final Row row, final Column column) {
+        this.row = row;
+        this.column = column;
     }
 
-    /** 
+    /**
      * Returns the square instance matching the row and column parameters. Returns
      * null is either the row or the column parameters are null.
      *
+     * @param row    square's row
+     * @param column square's column
      * @return the square pointed by row and column, or null in case row or column are themself null
      **/
-    public static Square getInstance(Row row, Column column) {
-	if (row == null || column == null) return null;
-	else return Square.values()[Row.values().length * row.ordinal() + column.ordinal()];
+    public static Square getInstance(final Row row, final Column column) {
+        if (row == null || column == null) { return null; }
+        else { return Square.values()[Row.values().length * row.ordinal() + column.ordinal()]; }
     }
 
     /** 
@@ -136,7 +142,7 @@ public enum Square {
      * @return the square's label
      **/
     public String label() {
-	return LABELS.get(this);
+        return LABELS.get(this);
     }
 
     /** 
@@ -145,7 +151,7 @@ public enum Square {
      * @return the square's neighbor map
      **/
     public Map<Direction, Square> neighbors() {
-	return NEIGHBOR_TABLE.get(this);
+        return NEIGHBOR_TABLE.get(this);
     }
 
     /**
@@ -182,10 +188,10 @@ public enum Square {
      * @throws IllegalArgumentException if the label is not valid 
      */
     public static Square getInstance(String label) {
-	Square sq = INVERSE_LABELS.get(label);
-	if (sq == null) throw new IllegalArgumentException("The specified label: <" +
-							   label + ">, does not match any square's label.");
-	else return sq;
+        Square sq = INVERSE_LABELS.get(label);
+        if (sq == null) throw new IllegalArgumentException("The specified label: <" +
+                                                           label + ">, does not match any square's label.");
+        else return sq;
     }
 
     /** 
@@ -195,41 +201,41 @@ public enum Square {
      * @return the Hasegawa square name, or null if the value is not defined
      **/    
     public char getHasegawaLabel() {
-	switch (this) {
-	case B1:
-	case G1:
-	case H2:
-	case H7:
-	case G8:
-	case B8:
-	case A7:
-	case A2:
-	    return 'C';
-	case C1:
-	case F1:
-	case H3:
-	case H6:
-	case C8:
-	case F8:
-	case A6:
-	case A3:
-	    return 'A';
-	case D1:
-	case E1:
-	case H4:
-	case H5:
-	case E8:
-	case D8:
-	case A5:
-	case A4:
-	    return 'B';
-	case B2:
-	case G2:
-	case G7:
-	case B7:
-	    return 'X';
-	}
-	return ' ';
+        switch (this) {
+        case B1:
+        case G1:
+        case H2:
+        case H7:
+        case G8:
+        case B8:
+        case A7:
+        case A2:
+            return 'C';
+        case C1:
+        case F1:
+        case H3:
+        case H6:
+        case C8:
+        case F8:
+        case A6:
+        case A3:
+            return 'A';
+        case D1:
+        case E1:
+        case H4:
+        case H5:
+        case E8:
+        case D8:
+        case A5:
+        case A4:
+            return 'B';
+        case B2:
+        case G2:
+        case G7:
+        case B7:
+            return 'X';
+        }
+        return ' ';
     }
 
     /**
@@ -245,21 +251,21 @@ public enum Square {
      * @return true or false if the square is either a corner or not
      */
     public boolean isCorner() {
-	return CORNERS.contains(this);
+        return CORNERS.contains(this);
     }
 
     /** Computes the neighborTable. */
     private static Map<Square, Map<Direction, Square>> neighborTable() {
-	Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
-	for (Square sq : values()) {
-	    Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
-	    for (Direction dir : Direction.values()) {
-		Square n = getInstance(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
-		snt.put(dir, n);
-	    }
-	    nt.put(sq, Collections.unmodifiableMap(snt));
-	}
-	return Collections.unmodifiableMap(nt);
+        Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
+        for (Square sq : values()) {
+            Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
+            for (Direction dir : Direction.values()) {
+                Square n = getInstance(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
+                snt.put(dir, n);
+            }
+            nt.put(sq, Collections.unmodifiableMap(snt));
+        }
+        return Collections.unmodifiableMap(nt);
     }
 
     /**
@@ -268,15 +274,15 @@ public enum Square {
      * . - sets and initializes {@code INVERSE_LABELS} map
      */
     static {
-	Map<Square, String> labelMap = new HashMap<Square, String>();
-	Map<String, Square> inverseLabelMap = new HashMap<String, Square>();
-	for (Square sq : values()) {
-	    String label = sq.column.label() + sq.row.label();
-	    labelMap.put(sq, label);
-	    inverseLabelMap.put(label, sq);
-	}
-	LABELS = Collections.unmodifiableMap(labelMap);
-	INVERSE_LABELS = Collections.unmodifiableMap(inverseLabelMap);
+        Map<Square, String> labelMap = new HashMap<Square, String>();
+        Map<String, Square> inverseLabelMap = new HashMap<String, Square>();
+        for (Square sq : values()) {
+            String label = sq.column.label() + sq.row.label();
+            labelMap.put(sq, label);
+            inverseLabelMap.put(label, sq);
+        }
+        LABELS = Collections.unmodifiableMap(labelMap);
+        INVERSE_LABELS = Collections.unmodifiableMap(inverseLabelMap);
     }
 
 }

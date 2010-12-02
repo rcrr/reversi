@@ -38,6 +38,11 @@
       adding: <property name="allowUndeclaredRTE" value="true"/>
   - changed: <module name="LineLength"/>
       adding: <property name="max" value="120"/>
+  - changed: <module name="AvoidStarImport"/>
+      adding: <property name="allowClassImports" value="false"/>
+              <property name="allowStaticMemberImports" value="true"/>
+  - changed: <module name="HiddenField"/>
+      adding: <property name="tokens" value="VARIABLE_DEF"/>
 
 -->
 
@@ -124,7 +129,10 @@
 
         <!-- Checks for imports                              -->
         <!-- See http://checkstyle.sf.net/config_import.html -->
-        <module name="AvoidStarImport"/>
+        <module name="AvoidStarImport">
+          <property name="allowClassImports" value="false"/>
+          <property name="allowStaticMemberImports" value="true"/>
+        </module>
         <module name="IllegalImport"/> <!-- defaults to sun.* packages -->
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
@@ -174,7 +182,9 @@
         <module name="DoubleCheckedLocking"/>    <!-- MY FAVOURITE -->
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
-        <module name="HiddenField"/>
+        <module name="HiddenField">
+          <property name="tokens" value="VARIABLE_DEF"/>
+        </module>  
         <module name="IllegalInstantiation"/>
         <module name="InnerAssignment"/>
         <module name="MagicNumber"/>
