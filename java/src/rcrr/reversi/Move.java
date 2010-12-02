@@ -35,55 +35,55 @@ import java.util.EnumMap;
  */
 public final class Move {
 
-    private static final Map<Action, Move> actionInstanceCache = new EnumMap<Action, Move>(Action.class);
-    private static final Map<Square, Move> putDiscInstanceCache = new EnumMap<Square, Move>(Square.class);
+    private static final Map<Action, Move> ACTION_INSTANCE_CACHE = new EnumMap<Action, Move>(Action.class);
+    private static final Map<Square, Move> PUT_DISC_INSTANCE_CACHE = new EnumMap<Square, Move>(Square.class);
 
     private final Action action;
 
     private final Square square;
 
-    private Move(Action action, Square square) {
-	assert (!(action == null)) : "Parameter action must be not null";
-	assert (!(action == Action.PUT_DISC && square == null)) : "Parameter square cannot be null when action is PUT_DISC";
-	assert (!(action != Action.PUT_DISC && square != null)) : "Parameter square must be null when action is not PUT_DISC";
-
-	this.action = action;
-	this.square = square;
+    private Move(final Action action, final Square square) {
+        assert (!(action == null)) : "Parameter action must be not null";
+        assert (!(action == Action.PUT_DISC && square == null)) : "Parameter square cannot be null when action is PUT_DISC";
+        assert (!(action != Action.PUT_DISC && square != null)) : "Parameter square must be null when action is not PUT_DISC";
+        this.action = action;
+        this.square = square;
     }
 
     static {
-	for (Action action : Action.values()) {
-	    if (action == Action.PUT_DISC) {
-		for (Square square : Square.values()) {
-		    putDiscInstanceCache.put(square, new Move(action, square));
-		}
-	    } else {
-		actionInstanceCache.put(action, new Move(action, null));
-	    }
-	}
+        for (Action action : Action.values()) {
+            if (action == Action.PUT_DISC) {
+                for (Square square : Square.values()) {
+                    PUT_DISC_INSTANCE_CACHE.put(square, new Move(action, square));
+                }
+            } else {
+                ACTION_INSTANCE_CACHE.put(action, new Move(action, null));
+            }
+        }
     }
 
-    private static Move valueOf(Action action, Square square) {
-	if (action == null) throw new NullPointerException("Parameter action cannot be null.");
-	if (action == Action.PUT_DISC) {
-	    if (square == null) throw new NullPointerException("Parameter square cannot be null when parameter action is PUT_DISC");
-	    return putDiscInstanceCache.get(square);
-	} else {
-	    if (square != null) throw new IllegalArgumentException("Parameter action value invalid for this factory.");
-	    return actionInstanceCache.get(action);
-	}
-	
+    private static Move valueOf(final Action action, final Square square) {
+        if (action == null) { throw new NullPointerException("Parameter action cannot be null."); }
+        if (action == Action.PUT_DISC) {
+            if (square == null) {
+                throw new NullPointerException("Parameter square cannot be null when parameter action is PUT_DISC");
+            }
+            return PUT_DISC_INSTANCE_CACHE.get(square);
+        } else {
+            if (square != null) { throw new IllegalArgumentException("Parameter action value invalid for this factory."); }
+            return ACTION_INSTANCE_CACHE.get(action);
+        }
     }
 
-    public static Move valueOf(Action action) {
-	if (action == null) throw new NullPointerException("Parameter action cannot be null.");
-	if (action == Action.PUT_DISC) throw new IllegalArgumentException("Parameter action value invalid for this factory.");
-	return valueOf(action, null);
+    public static Move valueOf(final Action action) {
+        if (action == null) { throw new NullPointerException("Parameter action cannot be null."); }
+        if (action == Action.PUT_DISC) { throw new IllegalArgumentException("Parameter action value invalid for this factory."); }
+        return valueOf(action, null);
     }
 
-    public static Move valueOf(Square square) {
-	if (square == null) throw new NullPointerException("Parameter square cannot be null");
-	return valueOf(Action.PUT_DISC, square);
+    public static Move valueOf(final Square square) {
+        if (square == null) { throw new NullPointerException("Parameter square cannot be null"); }
+        return valueOf(Action.PUT_DISC, square);
     }
 
     public Action action() { return action; }
@@ -94,9 +94,9 @@ public final class Move {
      * Action is an Enum type that ...
      */
     public static enum Action {
-	PUT_DISC,
-	PASS,
-	RESIGN;
+        PUT_DISC,
+        PASS,
+        RESIGN;
     }
 
 }
