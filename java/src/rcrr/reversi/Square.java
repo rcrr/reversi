@@ -158,6 +158,22 @@ public enum Square {
     public static Square getInstance(int index) { return Square.values()[index]; }
 
     /**
+     * Returns the square at the specified position.
+     *
+     * @return the identified square
+     *
+     * @throws IndexOutOfBoundsException if either columnIndex or 
+     *             rowIndex is out of range:
+     *             {@code (columnIndex < 0 || columnIndex >= Column.values().length)} 
+     *             {@code (rowIndex < 0 || rowIndex >= Row.values().length)} 
+     */
+    public static Square getInstance(int rowIndex, int columnIndex) {
+        Row row = Row.values()[rowIndex];
+        Column column = Column.values()[columnIndex];
+        return Square.getInstance(row, column);
+    }
+
+    /**
      * Returns the square matching the specified label. Throws
      * an exception in case the label is not associated with a square.
      *

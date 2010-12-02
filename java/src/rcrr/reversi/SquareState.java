@@ -47,36 +47,41 @@ public enum SquareState {
 
     /** Marks squares outside the 8x8 board. Its {@code symbol} is "?". */
     OUTER("?");
-    
-    /** A static Map to speed up reverse look-up used by 
-	the {@code valueOfSymbol} method. */
+
+    /** A static Map to speed up reverse look-up used by
+        the {@code valueOfSymbol} method. */
     private static final Map<String, SquareState> SYMBOL_TABLE;
 
     /** Computes the SYMBOL_TABLE static Map.*/
     static {
-	Map<String, SquareState> m = new HashMap<String, SquareState>();
-	for (SquareState ss : values())
-	    m.put(ss.symbol(), ss);
-	SYMBOL_TABLE = Collections.unmodifiableMap(m);
+        Map<String, SquareState> m = new HashMap<String, SquareState>();
+        for (SquareState ss : values()) {
+            m.put(ss.symbol(), ss);
+        }
+        SYMBOL_TABLE = Collections.unmodifiableMap(m);
     }
 
     /** The color symbol ({@literal e.g.} "@" for BLACK). */
     private final String symbol;
 
-    /** The {@code enum} constructor. */
-    SquareState(String symbol) {
-	this.symbol = symbol;
+    /**
+     * The {@code enum} constructor.
+     *
+     * @param symbol symbol field
+     */
+    private SquareState(final String symbol) {
+        this.symbol = symbol;
     }
-    
+
     /**
      * Returns the appropriate {@code SquareState} object given
      * its {@code symbol}. In case of no match returns {@code null}.
      *
      * @param symbol the {@code SquareState}'s {@code symbol}
      * @return       the relative <code>SquareState</code>
-     */    
-    public static SquareState valueOfSymbol(String symbol) {
-	return SYMBOL_TABLE.get(symbol);
+     */
+    public static SquareState valueOfSymbol(final String symbol) {
+        return SYMBOL_TABLE.get(symbol);
     }
 
     /**

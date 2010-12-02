@@ -181,16 +181,12 @@
   <taskdef resource="checkstyletask.properties"
 	   classpath="lib/checkstyle-5.3-all.jar"/>
 
-  <target name="checkstyle2">
-    <checkstyle config="docs/sun_checks.xml" file="src/rcrr/reversi/Actor.java"/>
-  </target>
-
 <target name="checkstyle"
         description="Generates a report of code convention violations.">
   <delete dir="${checkstyle.reports.dir}"/>
   <mkdir dir="${checkstyle.reports.dir}"/>
   
-  <checkstyle config="${docs.checkstyle.dir}/sun_checks.xml"
+  <checkstyle config="${docs.checkstyle.dir}/reversi_checks.xml"
               failureProperty="checkstyle.failure"
               failOnViolation="false">
     <formatter type="xml" tofile="${checkstyle.reports.dir}/checkstyle_report.xml"/>
