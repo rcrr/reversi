@@ -35,20 +35,17 @@ import java.util.EnumMap;
  */
 public final class Move {
 
+    /**
+     * Action is an Enum type that ...
+     */
+    public static enum Action {
+        PUT_DISC,
+        PASS,
+        RESIGN;
+    }
+
     private static final Map<Action, Move> ACTION_INSTANCE_CACHE = new EnumMap<Action, Move>(Action.class);
     private static final Map<Square, Move> PUT_DISC_INSTANCE_CACHE = new EnumMap<Square, Move>(Square.class);
-
-    private final Action action;
-
-    private final Square square;
-
-    private Move(final Action action, final Square square) {
-        assert (!(action == null)) : "Parameter action must be not null";
-        assert (!(action == Action.PUT_DISC && square == null)) : "Parameter square cannot be null when action is PUT_DISC";
-        assert (!(action != Action.PUT_DISC && square != null)) : "Parameter square must be null when action is not PUT_DISC";
-        this.action = action;
-        this.square = square;
-    }
 
     static {
         for (Action action : Action.values()) {
@@ -61,6 +58,12 @@ public final class Move {
             }
         }
     }
+
+    /** The action field. */
+    private final Action action;
+
+    /** The square field. */
+    private final Square square;
 
     private static Move valueOf(final Action action, final Square square) {
         if (action == null) { throw new NullPointerException("Parameter action cannot be null."); }
@@ -86,17 +89,26 @@ public final class Move {
         return valueOf(Action.PUT_DISC, square);
     }
 
+    /**
+     * Private constructor.
+     * <p>
+     * {@code action} must be not null.
+     * {@code square} must be not null when {@code action} is {@code PUT_DISC}.
+     * {@code square} must be null when {@code action} is not {@code PUT_DISC}
+     *
+     * @param  action the action field
+     * @param  square the square field
+     */
+    private Move(final Action action, final Square square) {
+        assert (!(action == null)) : "Parameter action must be not null";
+        assert (!(action == Action.PUT_DISC && square == null)) : "Parameter square cannot be null when action is PUT_DISC";
+        assert (!(action != Action.PUT_DISC && square != null)) : "Parameter square must be null when action is not PUT_DISC";
+        this.action = action;
+        this.square = square;
+    }
+
     public Action action() { return action; }
 
     public Square square() { return square; }
-
-    /**
-     * Action is an Enum type that ...
-     */
-    public static enum Action {
-        PUT_DISC,
-        PASS,
-        RESIGN;
-    }
 
 }
