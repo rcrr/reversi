@@ -1,0 +1,21 @@
+Class Structure and Member Sort Order
+
+Java types should have the following member order:
+
+   1. Nested Types (mixing inner and static classes is okay)
+   2. Static Fields
+   3. Static Initializers
+   4. Static Methods
+   5. Instance Fields
+   6. Instance Initializers
+   7. Constructors
+   8. Instance Methods 
+
+Members that fall into the same category (e.g. static methods) should also be sorted in this order based on visibility:
+
+   1. public
+   2. protected
+   3. default
+   4. private 
+
+All methods should be sorted alphabetically. Sorting is optional but recommended for fields.

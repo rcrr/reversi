@@ -29,8 +29,6 @@ Main algorithm and structural classes.
 To do:
 <p>
 <ul>
-  <li>Insert a cloc report into the build process.</li>
-  <li>Implement checkstyle into the build process. <a href="http://checkstyle.sourceforge.net">checkstile</a></li>
   <li>Moves returned from the Strategies must be rocordered. The Sequence structure has to host
       the moves between each transition. Ideally each adiacent pair should have a list of: [Move, Clock, Status] tuple.
       The "record" could be attached to GameSnapshot. null is a valid value, but is not compatible with a valid game sequence.
