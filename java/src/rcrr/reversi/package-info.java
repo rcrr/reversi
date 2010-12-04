@@ -66,9 +66,6 @@ Java source files:
 <ul>
   <li>AbstractDecisionRule: Javadocs missing.</li>
   <li>AlphaBeta: Javadocs missing. Tests missing.</li>
-  <li>AlphabetaSearcherCountDifference: to be deleted.</li>
-  <li>AlphabetaSearcherModifiedWeightedSquares: to be deleted.</li>
-  <li>AlphabetaSearcherWeightedSquares: to be deleted.</li>
   <li>Board: ok. Javadocs complete. Tests complete.</li>
   <li>Clock: changes are pending. Javadocs complete. Tests complete.</li>
   <li>Column: ok. Javadocs complete. Tests complete. Notes: see Row.</li>
