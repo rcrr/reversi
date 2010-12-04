@@ -36,43 +36,50 @@ import org.joda.time.Duration;
  * <p>
  * {@code GameSequence} is immutable.
  */
-public class GameSequence {
-
-    /** The game state sequence field. */
-    private final List<GameSnapshot> sequence;
-
-    /** Private constructor. */
-    private GameSequence(List<GameSnapshot> sequence) {
-	this.sequence = Collections.unmodifiableList(sequence);
-    }
+public final class GameSequence {
 
    /**
-     * A static factory.
+     * The base static factory.
      *
-     * @return the game built with the given sequence
+     * @param sequence the sequence of game snapshot
+     * @return         the game built with the given sequence
      */
-    public static GameSequence valueOf(List<GameSnapshot> sequence) {
-	return new GameSequence(sequence);
+    public static GameSequence valueOf(final List<GameSnapshot> sequence) {
+        return new GameSequence(sequence);
     }
 
    /**
      * A static factory that returns an initial game sequence.
      *
-     * @return a new game sequence initialised with a initial game snapshot
+     * @param gameDuration the initial game time assigned to players
+     * @return             a new game sequence initialised with a initial game snapshot
      */
-    public static GameSequence initialGameSequence(Duration gameDuration) {
-	return valueOf(Arrays.asList(GameSnapshot.initialGameSnapshot(gameDuration)));
+    public static GameSequence initialGameSequence(final Duration gameDuration) {
+        return valueOf(Arrays.asList(GameSnapshot.initialGameSnapshot(gameDuration)));
+    }
+
+    /** The game state sequence field. */
+    private final List<GameSnapshot> sequence;
+
+    /**
+     * Class constructor.
+     *
+     * @param sequence the sequence of game snapshot
+     */
+    private GameSequence(final List<GameSnapshot> sequence) {
+        this.sequence = Collections.unmodifiableList(sequence);
     }
 
    /**
      * Returns a new game having the new state added to the current sequence.
      *
-     * @return a new game modified by adding the game state parameter
+     * @param gameSnapshot the new snapshot to add to the sequence
+     * @return             a new game modified by adding the game snapshot parameter
      */
-    public GameSequence add(GameSnapshot gameSnapshot) {
-	List<GameSnapshot> newSequence = new ArrayList<GameSnapshot>(sequence);
-	newSequence.add(gameSnapshot);
-	return valueOf(newSequence);
+    public GameSequence add(final GameSnapshot gameSnapshot) {
+        List<GameSnapshot> newSequence = new ArrayList<GameSnapshot>(sequence);
+        newSequence.add(gameSnapshot);
+        return valueOf(newSequence);
     }
 
     /**
@@ -84,20 +91,26 @@ public class GameSequence {
      * @return the size of the sequence of the game's states recordered
      */
     public int size() {
-	return sequence.size();
+        return sequence.size();
     }
 
    /**
      * Returns the game state identified by {@code index}.
      *
-     * @return the game state identified by the index parameter
+     * @param index the game snapshot index in the sequence
+     * @return      the game snapshot identified by the index parameter
      */
-    public GameSnapshot get(int index) {
-	return sequence.get(index);
+    public GameSnapshot get(final int index) {
+        return sequence.get(index);
     }
 
+   /**
+     * Returns the last game snapshot.
+     *
+     * @return the last game snapshot
+     */
     public GameSnapshot last() {
-	return sequence.get(size() -1);
+        return sequence.get(size() - 1);
     }
 
    /**
@@ -106,7 +119,7 @@ public class GameSequence {
      * @return if the game sequence is empty
      */
     public boolean isEmpty() {
-	return sequence.isEmpty();
+        return sequence.isEmpty();
     }
 
 }

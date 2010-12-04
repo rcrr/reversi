@@ -35,75 +35,112 @@ package rcrr.reversi;
  * - organize the value field as a "stack" of values obtained deepening the search.
  */
 public final class SearchNode {
-    
+
     /** The move field. */
     private final Square move;
-    
+
     /** The value field. */
     private final int value;
-    
+
     /** The achievable (alpha or lower bound) field. */
     private final int achievable;
-    
+
     /** The cutoff (beta or upper bound) field. */
     private final int cutoff;
-    
-    /** The ply (depth of the search) field*/
+
+    /** The ply (depth of the search) field. */
     private final int ply;
-    
+
     /** The player field. */
     private final Player player;
-    
+
     /** The board field. */
     private final Board board;
-    
-    /** Class constructor. */
-    SearchNode(final Square move, final int value) {
-	this.move = move;
-	this.value = value;
 
-	/** To be fixed ... */
-	this.achievable = 0;
-	this.cutoff = 0;
-	this.ply = 0;
-	this.player = null;
-	this.board = null;
+    /**
+     * Class constructor.
+     *
+     * @param move  the square selected as move
+     * @param value the position value associated with the move
+     **/
+    SearchNode(final Square move, final int value) {
+        this.move = move;
+        this.value = value;
+
+        /** To be fixed ... */
+        this.achievable = 0;
+        this.cutoff = 0;
+        this.ply = 0;
+        this.player = null;
+        this.board = null;
     }
-    
-    /** Getter method for move field. */
+
+    /**
+     * Getter method for move field.
+     *
+     * @return the node's move
+     **/
     public Square move() { return move; }
-    
-    /** Getter method for value field. */
+
+    /**
+     * Getter method for value field.
+     *
+     * @return the node's value
+     **/
     public int value() { return value; }
-    
-    /** Getter method for achievable field. */
+
+    /**
+     * Getter method for achievable field.
+     *
+     * @return the node's achievable field
+     **/
     public int achievable() { return achievable; }
-    
-    /** Getter method for cutoff field. */
+
+    /**
+     * Getter method for cutoff field.
+     *
+     * @return the node's cutoff field
+     */
     public int cutoff() { return cutoff; }
-	
-    /** Getter method for ply field. */
+
+    /**
+     * Getter method for ply field.
+     *
+     * @return the node's ply level
+     */
     public int ply() { return ply; }
-    
-    /** Getter method for player field. */
+
+    /**
+     * Getter method for player field.
+     *
+     * @return the node's player
+     */
     public Player player() { return player; }
-    
-    /** Getter method for board field. */
+
+    /**
+     * Getter method for board field.
+     *
+     * @return the node's board
+     */
     public Board board() { return board; }
-    
-    /** Returns a new node having the value sign negated. */
-    public SearchNode negated() { return new SearchNode(move, - value); }
-    
+
+    /**
+     * Returns a new node having the value sign negated.
+     *
+     * @return the new node negated
+     */
+    public SearchNode negated() { return new SearchNode(move, -value); }
+
     /**
      * Returns a String representing the {@code Node} object.
      * <p>
      * The format is: {@code [move=b4, value=567]}
-     * 
+     *
      * @return a string showing the minimax's node move and value fields
      */
     @Override
     public String toString() {
-	return "[move=" + move + ", value=" + value + "]";
+        return "[move=" + move + ", value=" + value + "]";
     }
-    
-} 
+
+}

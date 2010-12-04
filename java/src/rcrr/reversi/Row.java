@@ -24,11 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Arrays;
-
 /**
  * The {@code Row} enum defines a row of the board game.
  */
@@ -65,12 +60,17 @@ public enum Row {
      * Eighth row.
      */
     R8("8");
-    
+
     /** The row label. */
     private final String label;
-    
-    Row(String label) {
-	this.label = label;
+
+    /**
+     * Enum constructor.
+     *
+     * @param label the tow's label
+     */
+    private Row(String label) {
+        this.label = label;
     }
 
     /**
@@ -85,7 +85,7 @@ public enum Row {
      *
      * @return the identified row
      *
-     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Row.values().length)} 
+     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Row.values().length)}
      */
     public static Row getInstance(int index) { return values()[index]; }
 
@@ -94,20 +94,23 @@ public enum Row {
      * Returns {@code null} if the shift leads outside the row boundaries.
      * For instance:
      * <pre>
-     * {@code 
+     * {@code
      * Row r0 = Row.R3;
-     * Row r1 =r0.shift(+1); // r1 is equal to R4 
+     * Row r1 =r0.shift(+1); // r1 is equal to R4
      * }
      * </pre>
      *
      * @return the row identified by the delta shift
      */
-    Row shift(int delta) {
-	Row r;
-	int index = ordinal() + delta;
-	if (index < 0 || index >= Row.values().length) r = null;
-	else r = values()[index];
-	return r;
+    Row shift(final int delta) {
+        Row r;
+        int index = ordinal() + delta;
+        if (index < 0 || index >= Row.values().length) {
+            r = null;
+        } else {
+            r = values()[index];
+        }
+        return r;
     }
 
 }
