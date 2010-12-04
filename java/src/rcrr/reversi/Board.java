@@ -60,7 +60,7 @@ public final class Board {
     private final Map<Square, SquareState> squares;
 
     /**
-     * Private constructor.
+     * Class constructor.
      * <p>
      * {@code squareMap} must be not null, and must have a size equal to
      * the number of squares, as defined by the {@code Square} enum.

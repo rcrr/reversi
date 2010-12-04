@@ -47,7 +47,7 @@ import org.joda.time.Duration;
  */
 public class Reversi {
 
-    /** Private constructor. Not used so far. */
+    /** Class constructor. Not used so far. */
     private Reversi() {
 	throw new UnsupportedOperationException();
     }

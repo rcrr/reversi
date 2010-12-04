@@ -31,7 +31,7 @@ package rcrr.reversi;
 public class CountDifference implements EvalFunction {
 
     /**
-     * Public constructor.
+     * Class constructor.
      */
     public CountDifference() {}
 

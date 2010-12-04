@@ -32,29 +32,6 @@ package rcrr.reversi;
  */
 public class GamePosition {
 
-    /** The board field. */
-    private final Board board;
-
-    /** The player field. */
-    private final Player player;
-
-    /**
-     * Private constructor.
-     * <p>
-     * Parameter {@code board} must be not null.
-     * Parameter {@code player} must be not null when there are still valid moves.
-     *
-     * @param board  the board state
-     * @param player the player that has to move
-     */
-    private GamePosition(Board board, Player player) {
-	assert (board != null) : "Parameter board cannot be null.";
-	assert ((player != null) ||
-		!board.hasAnyPlayerAnyLegalMove()) : "Parameter player cannot be null when there are still valid moves.";
-	this.board = board;
-	this.player = player;
-    }
-
     /**
      * Base static factory for the class.
      * <p>
@@ -85,6 +62,29 @@ public class GamePosition {
      */
     public static GamePosition initialGamePosition() {
 	return valueOf(Board.initialBoard(), Player.BLACK);
+    }
+
+    /** The board field. */
+    private final Board board;
+
+    /** The player field. */
+    private final Player player;
+
+    /**
+     * Class constructor.
+     * <p>
+     * Parameter {@code board} must be not null.
+     * Parameter {@code player} must be not null when there are still valid moves.
+     *
+     * @param board  the board state
+     * @param player the player that has to move
+     */
+    private GamePosition(Board board, Player player) {
+	assert (board != null) : "Parameter board cannot be null.";
+	assert ((player != null) ||
+		!board.hasAnyPlayerAnyLegalMove()) : "Parameter player cannot be null when there are still valid moves.";
+	this.board = board;
+	this.player = player;
     }
 
     /**
