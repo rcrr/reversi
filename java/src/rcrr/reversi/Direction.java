@@ -77,7 +77,7 @@ public enum Direction {
      * South-East direction.
      */
     SE(+1, +1, "South-East");
-    
+
     /** deltaRow field. */
     private final int deltaRow;
 
@@ -86,11 +86,18 @@ public enum Direction {
 
     /** description field. */
     private final String description;
-    
-    Direction(int deltaRow, int deltaColumn, String description) {
-	this.deltaRow = deltaRow;
-	this.deltaColumn = deltaColumn;
-	this.description = description;
+
+    /**
+     * Enum constructor.
+     *
+     * @param deltaRow    the shift to apply to rows
+     * @param deltaColumn the shift to apply to columns
+     * @param description the direction's description
+     */
+    private Direction(final int deltaRow, final int deltaColumn, final String description) {
+        this.deltaRow = deltaRow;
+        this.deltaColumn = deltaColumn;
+        this.description = description;
     }
 
     /**
@@ -132,8 +139,8 @@ public enum Direction {
     /**
      * Returns a {@code String} description for the direction.
      * <p>
-     * For instance {@code North} for {@code N}, 
-     * or {@code South-West} for {@code SW}. 
+     * For instance {@code North} for {@code N},
+     * or {@code South-West} for {@code SW}.
      *
      * @return the direction's cardinal point
      */

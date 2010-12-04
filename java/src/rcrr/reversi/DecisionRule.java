@@ -43,7 +43,7 @@ public interface DecisionRule {
     SearchNode search(Player player, Board board, int achievable, int cutoff, int ply, EvalFunction ef);
 
     /**
-     * Returns a strategy that searches ply levels deep and 
+     * Returns a strategy that searches ply levels deep and
      * applies the ef evaluation function..
      *
      * @param ply the depth of the search

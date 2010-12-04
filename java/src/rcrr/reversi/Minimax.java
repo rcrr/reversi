@@ -36,13 +36,6 @@ import java.util.Collections;
  * The Minimax family of algorithms is described by the wikipedia
  * page: <a href="http://en.wikipedia.org/wiki/Minimax">Minimax</a>.
  * <p>
- * <ul>
- *   <li>{@code minimaxSearcher}</li>
- *   <li>{@code alphabetaSearcher}</li>
- * </ul>
- * Javadocs, Unit tests, and semplification are under construction.
- * <p>
- * Must be transformed to be immutable and not instantiable.
  */
 public final class Minimax extends AbstractDecisionRule {
 

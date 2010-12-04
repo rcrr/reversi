@@ -30,7 +30,7 @@ package rcrr.reversi;
  * <p>
  * {@code GamePosition} is immutable.
  */
-public class GamePosition {
+public final class GamePosition {
 
     /**
      * Base static factory for the class.
@@ -45,11 +45,12 @@ public class GamePosition {
      * @throws NullPointerException when board parameter is null,
      *                              or when player is null and legal moves are still available
      */
-    public static GamePosition valueOf(Board board, Player player) {
-	if (board == null) throw new NullPointerException("Parameter board cannot be null.");
-	if ((player == null) && board.hasAnyPlayerAnyLegalMove())
-	    throw new NullPointerException("Parameter player cannot be null when there are still valid moves.");
-	return new GamePosition(board, player);
+    public static GamePosition valueOf(final Board board, final Player player) {
+        if (board == null) { throw new NullPointerException("Parameter board cannot be null."); }
+        if ((player == null) && board.hasAnyPlayerAnyLegalMove()) {
+            throw new NullPointerException("Parameter player cannot be null when there are still valid moves.");
+        }
+        return new GamePosition(board, player);
     }
 
     /**
@@ -61,7 +62,7 @@ public class GamePosition {
      * @return a new initial game position as required by international game's rules
      */
     public static GamePosition initialGamePosition() {
-	return valueOf(Board.initialBoard(), Player.BLACK);
+        return valueOf(Board.initialBoard(), Player.BLACK);
     }
 
     /** The board field. */
@@ -79,12 +80,12 @@ public class GamePosition {
      * @param board  the board state
      * @param player the player that has to move
      */
-    private GamePosition(Board board, Player player) {
-	assert (board != null) : "Parameter board cannot be null.";
-	assert ((player != null) ||
-		!board.hasAnyPlayerAnyLegalMove()) : "Parameter player cannot be null when there are still valid moves.";
-	this.board = board;
-	this.player = player;
+    private GamePosition(final Board board, final Player player) {
+        assert (board != null) : "Parameter board cannot be null.";
+        assert ((player != null) || !board.hasAnyPlayerAnyLegalMove())
+            : "Parameter player cannot be null when there are still valid moves.";
+        this.board = board;
+        this.player = player;
     }
 
     /**
@@ -93,7 +94,7 @@ public class GamePosition {
      * @return the game state board
      */
     public Board board() {
-	return board;
+        return board;
     }
 
     /**
@@ -102,7 +103,7 @@ public class GamePosition {
      * @return the game state player
      */
     public Player player() {
-	return player;
+        return player;
     }
 
     /**
@@ -111,7 +112,7 @@ public class GamePosition {
      * @return {@code true} if the player has at last one legal move
      */
     public boolean hasAnyLegalMove() {
-	return board.hasAnyLegalMove(player);
+        return board.hasAnyLegalMove(player);
     }
 
     /**
@@ -120,17 +121,17 @@ public class GamePosition {
      * @return {@code true} if anyone can play a move
      */
     public boolean hasAnyPlayerAnyLegalMove() {
-	return board.hasAnyPlayerAnyLegalMove();
+        return board.hasAnyPlayerAnyLegalMove();
     }
 
     /**
-     * Returns the boolean value telling if the move, done by the position's player, is legal. 
+     * Returns the boolean value telling if the move, done by the position's player, is legal.
      *
      * @param move the square where to put the new disk
      * @return     {@code true} true if the move is legal, otherwise false
      */
-    public boolean isLegal(Square move) {
-	return board.isLegal(move, player());
+    public boolean isLegal(final Square move) {
+        return board.isLegal(move, player());
     }
 
 }

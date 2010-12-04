@@ -33,15 +33,18 @@ public class CountDifference implements EvalFunction {
     /**
      * Class constructor.
      */
-    public CountDifference() {}
+    public CountDifference() { }
 
     /**
      * Implements the {@code EvalFunction} contract returning
      * the difference between the player'sdisks and the opponent's ones.
+     *
+     * @param position the game position to evaluate
+     * @return the position value
      */
-    public int eval(final GamePosition position) {
-	if (position == null) throw new NullPointerException ("Parameter position cannot be null."); 
-	return position.board().countDifference(position.player());
+    public final int eval(final GamePosition position) {
+        if (position == null) { throw new NullPointerException("Parameter position cannot be null."); }
+        return position.board().countDifference(position.player());
     }
 
 }
