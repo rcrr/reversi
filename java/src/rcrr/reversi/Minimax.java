@@ -60,7 +60,9 @@ public final class Minimax extends AbstractDecisionRule {
      * - standard case is a bit ugly.
      * - pass should be included into the standard case.
      */
-    public SearchNode search(final Player player, final Board board, final int achievable, final int cutoff, final int ply, final EvalFunction ef) {
+    public SearchNode search(final Player player, final Board board,
+                             final int achievable, final int cutoff,
+                             final int ply, final EvalFunction ef) {
 	SearchNode node;
 	final Player opponent = player.opponent();
 	if (ply == 0) {
@@ -76,7 +78,9 @@ public final class Minimax extends AbstractDecisionRule {
 	    } else {
 		node = new SearchNode(null, Integer.MIN_VALUE);
 		for (Square move : moves) {
-		    int value = search(opponent, board.makeMove(move, player), 0, 0, ply - 1, ef).negated().value();
+		    int value = search(opponent, board.makeMove(move, player),
+                                       0, 0,
+                                       ply - 1, ef).negated().value();
 		    if (value > node.value()) {
 			node = new SearchNode(move, value);
 		    }

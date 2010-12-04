@@ -36,7 +36,7 @@ public class RandomStrategy implements Strategy {
     /** Random field. */
     private final Random random;
     
-    /** RandomStrategy constructor. */
+    /** Class constructor. */
     public RandomStrategy() {
 	random = new Random();
     }

@@ -69,7 +69,7 @@ public class WeightedSquares implements EvalFunction {
     /** The static WEIGHTS map. */
     private final static Map<Square, Integer> WEIGHTS;
 
-    /** Public constructor. */
+    /** Class constructor. */
     public WeightedSquares() {}
 
     /**

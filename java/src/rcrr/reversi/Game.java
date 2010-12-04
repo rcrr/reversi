@@ -45,8 +45,7 @@ import org.joda.time.Duration;
  */
 public class Game {
 
-    /** The strategies field. Why is it mutable? Why not create a specific wrapper class? */
-    //private Map<Player, Strategy> strategies;
+    /** The actors field. */
     private final ActorsPair actors;
 
     /** The game sequence field. It has to be mutable. Synchronization must be developed. Why not name it gameSnapshotSequence? */
@@ -66,7 +65,7 @@ public class Game {
     private Clock aClock;
 
     /**
-     * Private constructor.
+     * Class constructor.
      * <p>
      * Parameter {@code actors} must be not null.
      * Parameter {@code sequence} must be not null.

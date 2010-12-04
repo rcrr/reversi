@@ -56,6 +56,7 @@ To do:
       - Minimax: The final value should be calculated by the eval function.
       - Brainstorming on a strategy builder class, that is implemented into an AbstratctStrategy, and that
         recieves a configuration structure (XML or properties).</li>
+  <li>SearchNode: valueOf method has to be coded. Constructor is still public. Fields are not managed.</li>
   <li>Develop JUnit performance testing and reports. See: <a href="http://databene.org/contiperf.html">ContiPerf</a></li>
 </ul>
 

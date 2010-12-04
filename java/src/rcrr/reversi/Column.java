@@ -24,11 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Arrays;
-
 /**
  * The {@code Column} enum defines a column of the board game.
  */
@@ -65,12 +60,17 @@ public enum Column {
      * Eighth column.
      */
     H("h");
-    
+
     /** The column label. */
     private final String label;
-    
-    Column(String label) {
-	this.label = label;
+
+    /**
+     * Enum constructor.
+     *
+     * @param label the column label
+     */
+    private Column(final String label) {
+        this.label = label;
     }
 
     /**
@@ -83,31 +83,36 @@ public enum Column {
     /**
      * Returns the column at the specified position.
      *
+     * @param index the column's index
      * @return the identified column
      *
-     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Column.size())} 
+     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Column.size())}
      */
-    public static Column getInstance(int index) { return values()[index]; }
+    public static Column getInstance(final int index) { return values()[index]; }
 
     /**
      * Returns the column obtained moving by a {@code delta} number of shift, counted with the proper sign.
      * Returns {@code null} if the shift leads outside the column boundaries.
      * For instance:
      * <pre>
-     * {@code 
+     * {@code
      * Column c0 = Column.A;
-     * Column c1 =c0.shift(+1); // c1 is equal to B 
+     * Column c1 =c0.shift(+1); // c1 is equal to B
      * }
      * </pre>
      *
+     * @param delta the shift amount
      * @return the column identified by the delta shift
      */
-    Column shift(int delta) {
-	Column c;
-	int index = ordinal() + delta;
-	if (index < 0 || index >= Column.values().length) c = null;
-	else c = values()[index];
-	return c;
+    Column shift(final int delta) {
+        Column c;
+        int index = ordinal() + delta;
+        if (index < 0 || index >= Column.values().length) {
+            c = null;
+        } else {
+            c = values()[index];
+        }
+        return c;
     }
 
 }

@@ -35,31 +35,6 @@ import org.joda.time.Instant;
  */
 public class MoveRecord {
 
-    /** The move field. */
-    private final Move move;
-
-    /** The clock field. */
-    private final Clock clock;
-
-    /** The timestamp field. */
-    private final Instant timestamp;;
-
-    /**
-     * Private constructor.
-     * <p>
-     * Parameters {@code move} and {@code clock} must be not null.
-     *
-     * @param move  the move
-     * @param clock the clock
-     */
-    private MoveRecord(Move move, Clock clock) {
-	assert (move != null) : "Parameter move cannot be null.";
-	assert (clock != null) : "Parameter clock cannot be null.";
-	this.move = move;
-	this.clock = clock;
-	this.timestamp = new Instant(System.currentTimeMillis());
-    }
-
     /**
      * Base static factory for the class.
      * <p>
@@ -71,18 +46,36 @@ public class MoveRecord {
      * @return        a new move record
      * @throws NullPointerException when move or clock parameters are null
      */
-    public static MoveRecord valueOf(Move move, Clock clock) {
-	if (move == null) throw new NullPointerException("Parameter move cannot be null.");
-	if (clock == null) throw new NullPointerException("Parameter clock cannot be null.");
+    public static MoveRecord valueOf(final Move move, final Clock clock) {
+	if (move == null) { throw new NullPointerException("Parameter move cannot be null."); }
+	if (clock == null) { throw new NullPointerException("Parameter clock cannot be null."); }
 	return new MoveRecord(move, clock);
     }
 
+    /** The move field. */
+    private final Move move;
+
+    /** The clock field. */
+    private final Clock clock;
+
+    /** The timestamp field. */
+    private final Instant timestamp;;
+
     /**
-     * Returns the record creation instant.
+     * Class constructor.
+     * <p>
+     * Parameters {@code move} and {@code clock} must be not null.
      *
-     * @return the object creation instant, as registered by the constructor
+     * @param move  the move
+     * @param clock the clock
      */
-    public Instant timestamp() { return timestamp; }
+    private MoveRecord(final Move move, final Clock clock) {
+	assert (move != null) : "Parameter move cannot be null.";
+	assert (clock != null) : "Parameter clock cannot be null.";
+	this.move = move;
+	this.clock = clock;
+	this.timestamp = new Instant(System.currentTimeMillis());
+    }
 
     /**
      * Returns the clock field.
@@ -97,6 +90,13 @@ public class MoveRecord {
      * @return the move field
      */
     public Move move() { return move; }
+
+    /**
+     * Returns the record creation instant.
+     *
+     * @return the object creation instant, as registered by the constructor
+     */
+    public Instant timestamp() { return timestamp; }
 
     /**
      * Returns a {@code String} representing the {@code MoveRecord} object.

@@ -99,7 +99,7 @@ public enum Square {
     private final Column column;
 
     /**
-     * The enum constructor.
+     * Enum constructor.
      *
      * @param row    square's row
      * @param column square's column

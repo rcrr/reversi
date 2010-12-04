@@ -61,18 +61,6 @@ public enum SquareState {
         SYMBOL_TABLE = Collections.unmodifiableMap(m);
     }
 
-    /** The color symbol ({@literal e.g.} "@" for BLACK). */
-    private final String symbol;
-
-    /**
-     * The {@code enum} constructor.
-     *
-     * @param symbol symbol field
-     */
-    private SquareState(final String symbol) {
-        this.symbol = symbol;
-    }
-
     /**
      * Returns the appropriate {@code SquareState} object given
      * its {@code symbol}. In case of no match returns {@code null}.
@@ -84,6 +72,18 @@ public enum SquareState {
         return SYMBOL_TABLE.get(symbol);
     }
 
+    /** The color symbol ({@literal e.g.} "@" for BLACK). */
+    private final String symbol;
+
+    /**
+     * Enum constructor.
+     *
+     * @param symbol symbol field
+     */
+    private SquareState(final String symbol) {
+        this.symbol = symbol;
+    }
+
     /**
      * Returns the {@code SquareState} printable representation.
      * It returns the {@code symbol} field.
@@ -91,4 +91,5 @@ public enum SquareState {
      * @return the {@code SquareState}'s {@code symbol}
      */
     public String symbol() { return symbol; }
+
 }
