@@ -29,29 +29,7 @@ package rcrr.reversi;
  * <p>
  * {@code Actor} is immutable.
  */
-public class Actor {
-
-    /** The name field. */
-    private final String name;
-
-    /** The id field. */
-    private final Strategy strategy;
-
-    /**
-     * Private constructor.
-     * <p>
-     * Parameter {@code name} must be not null.
-     * Parameter {@code strategy} must be not null.
-     *
-     * @param name     the actor's name
-     * @param strategy the actor's strategy
-     */
-    private Actor(final String name, final Strategy strategy) {
-	assert (name != null) : "Parameter name cannot be null.";
-	assert (strategy != null) : "Parameter strategy cannot be null.";
-	this.name = name;
-	this.strategy = strategy;
-    }
+public final class Actor {
 
     /**
      * Base static factory for the class.
@@ -65,9 +43,31 @@ public class Actor {
      * @throws NullPointerException when either name or strategy parameter is null
      */
     public static Actor valueOf(final String name, final Strategy strategy) {
-	if (name == null) throw new NullPointerException("Parameter name cannot be null.");
-	if (strategy == null) throw new NullPointerException("Parameter strategy cannot be null.");
-	return new Actor(name, strategy);
+        if (name == null) { throw new NullPointerException("Parameter name cannot be null."); }
+        if (strategy == null) { throw new NullPointerException("Parameter strategy cannot be null."); }
+        return new Actor(name, strategy);
+    }
+
+    /** The name field. */
+    private final String name;
+
+    /** The strategy field. */
+    private final Strategy strategy;
+
+    /**
+     * Class constructor.
+     * <p>
+     * Parameter {@code name} must be not null.
+     * Parameter {@code strategy} must be not null.
+     *
+     * @param name     the actor's name
+     * @param strategy the actor's strategy
+     */
+    private Actor(final String name, final Strategy strategy) {
+        assert (name != null) : "Parameter name cannot be null.";
+        assert (strategy != null) : "Parameter strategy cannot be null.";
+        this.name = name;
+        this.strategy = strategy;
     }
 
     /**
@@ -76,7 +76,7 @@ public class Actor {
      * @return the actor's name
      */
     public String name() {
-	return name;
+        return name;
     }
 
     /**
@@ -85,7 +85,7 @@ public class Actor {
      * @return the actor's strategy
      */
     public Strategy strategy() {
-	return strategy;
+        return strategy;
     }
 
 }

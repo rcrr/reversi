@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class AlphabetaSearcherCountDifference implements Strategy {
 
-    private final int PLY = 4;
+    static private final int PLY = 4;
 
     private final Strategy s;
     

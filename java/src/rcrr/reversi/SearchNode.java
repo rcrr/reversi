@@ -57,7 +57,7 @@ public final class SearchNode {
     /** The board field. */
     private final Board board;
     
-    /** Private constructor. */
+    /** Class constructor. */
     SearchNode(final Square move, final int value) {
 	this.move = move;
 	this.value = value;
@@ -71,29 +71,28 @@ public final class SearchNode {
     }
     
     /** Getter method for move field. */
-    Square move() { return move; }
+    public Square move() { return move; }
     
     /** Getter method for value field. */
-    int value() { return value; }
+    public int value() { return value; }
     
     /** Getter method for achievable field. */
-    int achievable() { return achievable; }
+    public int achievable() { return achievable; }
     
     /** Getter method for cutoff field. */
-    int cutoff() { return cutoff; }
+    public int cutoff() { return cutoff; }
 	
     /** Getter method for ply field. */
-    int ply() { return ply; }
+    public int ply() { return ply; }
     
     /** Getter method for player field. */
-    Player player() { return player; }
+    public Player player() { return player; }
     
     /** Getter method for board field. */
-    Board board() { return board; }
+    public Board board() { return board; }
     
-
     /** Returns a new node having the value sign negated. */
-    SearchNode negated() { return new SearchNode(move, - value); }
+    public SearchNode negated() { return new SearchNode(move, - value); }
     
     /**
      * Returns a String representing the {@code Node} object.

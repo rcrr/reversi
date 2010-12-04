@@ -37,15 +37,15 @@ import java.util.Collections;
  */
 public class MoveRegister {
     
-    /** move. */
+    /** The register field. */
     private final List<MoveRecord> register;
     
     /**
-     * Private constructor.
+     * Class constructor.
      * <p>
-     * Parameter {@code move} must be not null.
+     * Parameter {@code register} must be not null.
      *
-     * @param move the move
+     * @param register the register field
      */
     private MoveRegister(List<MoveRecord> register) {
 	assert (register != null) : "Parameter register cannot be null.";

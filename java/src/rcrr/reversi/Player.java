@@ -42,12 +42,12 @@ public enum Player {
     private final SquareState color;
     
     /**
-     * Class constructor.
+     * Enum constructor.
      *
      * @param  description the {@code Player}'s description
      * @param  color       the {@code Player}'s {@code SquareState} also named "color"
      */
-    Player(String description, SquareState color) {
+    private Player(String description, SquareState color) {
 	this.description = description;
 	this.color = color;
     }

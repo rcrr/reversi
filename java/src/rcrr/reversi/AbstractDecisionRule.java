@@ -24,18 +24,24 @@
 
 package rcrr.reversi;
 
+/**
+ * This abstract class provide a searcher implementation
+ * as required by the {@code DecisionRule} interface, leaving
+ * to the extending classes the requirement to implement the
+ * other methods defined by the interface (e.g. the search method).
+ */
 public abstract class AbstractDecisionRule implements DecisionRule {
 
-    /** 
+    /**
      * The winning value.
      * Integer.MAX_VALUE = 2^31-1 = 2,147,483,647
-     * Leaving enough space and having an easy to recognize 
+     * Leaving enough space and having an easy to recognize
      * number leads to a value of 2000000032.
      */
-    protected static final int WINNING_VALUE = + 2000000032;
+    protected static final int WINNING_VALUE = +2000000032;
 
     /** The losing value. */
-    protected static final int LOSING_VALUE = - 2000000032;
+    protected static final int LOSING_VALUE = -2000000032;
 
     /**
      * Returns the board final value.
@@ -47,29 +53,15 @@ public abstract class AbstractDecisionRule implements DecisionRule {
      * @return       the game final value
      */
     protected static int finalValue(final Board board, final Player player) {
-	assert (board != null) : "Parameter board must be not null";
-	assert (player != null) : "Parameter player must be not null";
-	switch (Integer.signum(board.countDifference(player))) {
-	case -1: return LOSING_VALUE;
-	case  0: return 0;
-	case +1: return WINNING_VALUE;
-	default: throw new RuntimeException("Unreachable condition found. player=" + player + ", board=" + board);
-	}
+        assert (board != null) : "Parameter board must be not null";
+        assert (player != null) : "Parameter player must be not null";
+        switch (Integer.signum(board.countDifference(player))) {
+        case -1: return LOSING_VALUE;
+        case  0: return 0;
+        case +1: return WINNING_VALUE;
+        default: throw new RuntimeException("Unreachable condition found. player=" + player + ", board=" + board);
+        }
     }
-
-
-    public Strategy searcher(final int ply, final EvalFunction ef) {
-	if (ply <= 0) throw new IllegalArgumentException("Parameter ply must be greather than zero. ply=" + ply);
-	if (ef == null) throw new NullPointerException("Parameter ef must not null. ef=" + ef);
-	return new Strategy() {
-	    public Move move(GameSnapshot gameSnapshot) {
-		if (!gameSnapshot.hasAnyLegalMove()) return Move.valueOf(Move.Action.PASS);
-		SearchNode node = search(gameSnapshot.player(), gameSnapshot.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
-		return Move.valueOf(node.move());		
-	    }
-	};
-    }
-
 
     /**
      * Returns a {@code Strategy} that maximixes the value obtained
@@ -77,33 +69,61 @@ public abstract class AbstractDecisionRule implements DecisionRule {
      * <p>
      * The method is equivalent to call a searcher giving a one ply depth
      * search.
-     * 
+     *
      * @param ef evaluation function
      * @return   a strategy maximizing the value of the legal moves
      */
     public static Strategy maximizer(final EvalFunction ef) {
-	return new Strategy() {
-	    public Move move(GameSnapshot gameSnapshot) {
-		int value = LOSING_VALUE;
-		Square move = null;
-		Player player = gameSnapshot.player();
-		Board board = gameSnapshot.board();
-		for (Square tentativeMove : board.legalMoves(player)) {
-		    GamePosition gp = GamePosition.valueOf(board.makeMove(tentativeMove, player), player);
-		    int moveValue = ef.eval(gp);
-		    if (moveValue > value) {
-			value = moveValue;
-			move = tentativeMove;
-		    }
-		}
-		if (move == null) {
-		    return Move.valueOf(Move.Action.PASS);
-		} else {
-		    return Move.valueOf(move);
-		}
-	    }
-	};
+        return new Strategy() {
+            public Move move(final GameSnapshot gameSnapshot) {
+                int value = LOSING_VALUE;
+                Square move = null;
+                Player player = gameSnapshot.player();
+                Board board = gameSnapshot.board();
+                for (Square tentativeMove : board.legalMoves(player)) {
+                    GamePosition gp = GamePosition.valueOf(board.makeMove(tentativeMove, player), player);
+                    int moveValue = ef.eval(gp);
+                    if (moveValue > value) {
+                        value = moveValue;
+                        move = tentativeMove;
+                    }
+                }
+                if (move == null) {
+                    return Move.valueOf(Move.Action.PASS);
+                } else {
+                    return Move.valueOf(move);
+                }
+            }
+        };
     }
 
+    /** Class constructor. */
+    public AbstractDecisionRule() { }
+
+    /**
+     * Returns a new strategy that searches ply levels deep
+     * applying the ef evaluation function.
+     *
+     * @param ply the search depth reached
+     * @param ef  the evaluation function
+     * @return a strategy
+     */
+    public final Strategy searcher(final int ply, final EvalFunction ef) {
+        if (ply <= 0) { throw new IllegalArgumentException("Parameter ply must be greather than zero. ply=" + ply); }
+        if (ef == null) { throw new NullPointerException("Parameter ef must not null."); }
+        return new Strategy() {
+            public Move move(final GameSnapshot gameSnapshot) {
+                if (!gameSnapshot.hasAnyLegalMove()) {
+                    return Move.valueOf(Move.Action.PASS);
+                }
+                SearchNode node = search(gameSnapshot.player(),
+                                         gameSnapshot.board(),
+                                         LOSING_VALUE, WINNING_VALUE,
+                                         ply,
+                                         ef);
+                return Move.valueOf(node.move());
+            }
+        };
+    }
 
 }

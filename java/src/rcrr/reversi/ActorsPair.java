@@ -41,7 +41,7 @@ public class ActorsPair {
     private final Map<Player, Actor> actors;
 
     /**
-     * Private constructor.
+     * Class constructor.
      * <p>
      * Parameter {@code actors} must be not null.
      * It must contain two entry, null keys are not allowed.

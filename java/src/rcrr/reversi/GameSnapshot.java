@@ -51,7 +51,7 @@ public class GameSnapshot {
     private final MoveRegister register;
 
     /**
-     * Private constructor.
+     * Class constructor.
      * <p>
      * Parameters {@code position} and {@code clock} must be not null.
      *

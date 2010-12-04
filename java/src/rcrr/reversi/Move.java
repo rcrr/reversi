@@ -90,7 +90,7 @@ public final class Move {
     }
 
     /**
-     * Private constructor.
+     * Class constructor.
      * <p>
      * {@code action} must be not null.
      * {@code square} must be not null when {@code action} is {@code PUT_DISC}.
