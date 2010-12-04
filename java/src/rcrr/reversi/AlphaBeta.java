@@ -25,64 +25,68 @@
 package rcrr.reversi;
 
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 /**
- * Minimax provides some static methods that return {@code Strategy}
- * objects. These searcher methods differ for the algorithm implementation.
+ * The {@code AlphaBeta} class implements {@code DecisionRule} and provides
+ * an implementation of the search method applying the alpha-beta pruning
+ * algorithm.
  * <p>
- * The Minimax family of algorithms is described by the wikipedia
- * page: <a href="http://en.wikipedia.org/wiki/Minimax">Minimax</a>.
- * <p>
- * <ul>
- *   <li>{@code minimaxSearcher}</li>
- *   <li>{@code alphabetaSearcher}</li>
- * </ul>
- * Javadocs, Unit tests, and semplification are under construction.
- * <p>
- * Must be transformed to be immutable and not instantiable.
+ * The alpha-beta family of algorithms is described by the wikipedia
+ * page: <a href="http://en.wikipedia.org/wiki/Alpha-beta_pruning">alpha-beta pruning</a>.
  */
 public final class AlphaBeta extends AbstractDecisionRule {
 
-    private AlphaBeta() {};
-
+    /**
+     * Class static factory.
+     *
+     * @return a new alphabeta instance
+     */
     public static AlphaBeta getInstance() {
-	return new AlphaBeta();
+        return new AlphaBeta();
     }
 
+    /** Class constructor. */
+    private AlphaBeta() { };
+
     /**
-     * The alpha-beta function.
-     * <p>
-     * Polish as per the minimax method, and write a complete javadoc.
+     * Implemented by means of the alpha-beta algorithm.
+     *
+     * @param player     the player having the move
+     * @param board      the board
+     * @param achievable the upper bound
+     * @param cutoff     the lower bound
+     * @param ply        the search depth
+     * @param ef         the evaluation function
+     * @return a new search node
      */
-    public SearchNode search(final Player player, final Board board, final int achievable, final int cutoff, final int ply, final EvalFunction ef) {
-	SearchNode node;
-	Player opponent = player.opponent();
-	if (ply == 0) {
-	    node = new SearchNode(null, ef.eval(GamePosition.valueOf(board, player)));
-	} else {
-	    List<Square> moves = board.legalMoves(player);
-	    if (moves.isEmpty()) {
-		if (board.hasAnyLegalMove(opponent)) {
-		    node = search(opponent, board, - cutoff, - achievable, ply - 1, ef).negated();
-		} else {
-		    node = new SearchNode(null, finalValue(board, player));
-		}
-	    } else {
-		node = new SearchNode(moves.get(0), achievable);
-		outer: for (Square move : moves) {
-		    Board board2 = board.makeMove(move, player);
-		    int val = search(opponent, board2, - cutoff, - node.value(), ply - 1, ef).negated().value();
-		    if (val > node.value()) {
-			node = new SearchNode(move, val);
-		    }
-		    if (node.value() >= cutoff) break outer;
-		}
-	    }
-	}
-	return node;
+    public SearchNode search(final Player player, final Board board,
+                             final int achievable, final int cutoff,
+                             final int ply, final EvalFunction ef) {
+        SearchNode node;
+        Player opponent = player.opponent();
+        if (ply == 0) {
+            node = new SearchNode(null, ef.eval(GamePosition.valueOf(board, player)));
+        } else {
+            List<Square> moves = board.legalMoves(player);
+            if (moves.isEmpty()) {
+                if (board.hasAnyLegalMove(opponent)) {
+                    node = search(opponent, board, -cutoff, -achievable, ply - 1, ef).negated();
+                } else {
+                    node = new SearchNode(null, finalValue(board, player));
+                }
+            } else {
+                node = new SearchNode(moves.get(0), achievable);
+                outer: for (Square move : moves) {
+                    Board board2 = board.makeMove(move, player);
+                    int val = search(opponent, board2, -cutoff, -node.value(), ply - 1, ef).negated().value();
+                    if (val > node.value()) {
+                        node = new SearchNode(move, val);
+                    }
+                    if (node.value() >= cutoff) { break outer; }
+                }
+            }
+        }
+        return node;
     }
 
 }
