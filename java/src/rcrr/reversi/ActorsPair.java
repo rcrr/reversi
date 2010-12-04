@@ -35,29 +35,7 @@ import java.util.Collections;
  * <p>
  * @see Actor
  */
-public class ActorsPair {
-
-    /** The actors field. */
-    private final Map<Player, Actor> actors;
-
-    /**
-     * Class constructor.
-     * <p>
-     * Parameter {@code actors} must be not null.
-     * It must contain two entry, null keys are not allowed.
-     * The two actors could be the same, but must be not null.
-     *
-     * @param actors the two actors assigned to black and white players
-     */
-    private ActorsPair(final Map<Player, Actor> actors) {
-	assert (actors != null) : "Parameter actors cannot be null.";
-	assert (actors.size() == Player.values().length) : "Parameter actors size is not consistent." + 
-	    " actors.size()=" + actors.size() +
-	    " expected value: " + Player.values().length;
-	EnumMap<Player, Actor> actorEnumMap = (actors instanceof EnumMap) ? 
-	    (EnumMap<Player, Actor>) actors : new EnumMap<Player, Actor>(actors);
-	this.actors = Collections.unmodifiableMap(actorEnumMap);
-    }
+public final class ActorsPair {
 
     /**
      * Base static factory for the class.
@@ -75,25 +53,52 @@ public class ActorsPair {
      *                                  the Player enum values length
      */
     public static ActorsPair valueOf(final Map<Player, Actor> actors) {
-	if (actors == null) throw new NullPointerException("Parameter actors cannot be null.");
-	if (actors.size() != Player.values().length)
-	    throw new IllegalArgumentException("Parameter actors size is not consistent." + 
-					       " actors.size()=" + actors.size() +
-					       " expected value: " + Player.values().length);
-	if (actors.containsKey(null))
-	    throw new NullPointerException("Parameter actors cannot have null keys. actors=" + actors);
-	if (actors.containsValue(null))
-	    throw new NullPointerException("Parameter actors cannot have a null value. actors=" + actors);
-	return new ActorsPair(actors);
+        if (actors == null) { throw new NullPointerException("Parameter actors cannot be null."); }
+        if (actors.size() != Player.values().length) {
+            throw new IllegalArgumentException("Parameter actors size is not consistent."
+                                               + " actors.size()=" + actors.size()
+                                               + " expected value: " + Player.values().length);
+        }
+        if (actors.containsKey(null)) {
+            throw new NullPointerException("Parameter actors cannot have null keys. actors=" + actors);
+        }
+        if (actors.containsValue(null)) {
+            throw new NullPointerException("Parameter actors cannot have a null value. actors=" + actors);
+        }
+        return new ActorsPair(actors);
+    }
+
+    /** The actors field. */
+    private final Map<Player, Actor> actors;
+
+    /**
+     * Class constructor.
+     * <p>
+     * Parameter {@code actors} must be not null.
+     * It must contain two entry, null keys are not allowed.
+     * The two actors could be the same, but must be not null.
+     *
+     * @param actors the two actors assigned to black and white players
+     */
+    private ActorsPair(final Map<Player, Actor> actors) {
+        assert (actors != null) : "Parameter actors cannot be null.";
+        assert (actors.size() == Player.values().length) : "Parameter actors size is not consistent."
+            + " actors.size()=" + actors.size()
+            + " expected value: " + Player.values().length;
+        EnumMap<Player, Actor> actorEnumMap = (actors instanceof EnumMap)
+            ? (EnumMap<Player, Actor>) actors
+            : new EnumMap<Player, Actor>(actors);
+        this.actors = Collections.unmodifiableMap(actorEnumMap);
     }
 
     /**
      * Returns the actor associated with the given color.
      *
+     * @param color the color for wich query the actor
      * @return the actor playing the given color
      */
-    public Actor get(Player color) {
-	return actors.get(color);
+    public Actor get(final Player color) {
+        return actors.get(color);
     }
 
 }

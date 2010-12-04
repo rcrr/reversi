@@ -71,7 +71,7 @@ public final class Minimax extends AbstractDecisionRule {
 	    List<Square> moves = board.legalMoves(player);
 	    if (moves.isEmpty()) {
 		if (board.hasAnyLegalMove(opponent)) {
-		    node = search(opponent, board, 0, 0, ply - 1, ef).negated();
+		    node = search(opponent, board, 0, 0, ply -1, ef).negated();
 		} else {
 		    node = new SearchNode(null, finalValue(board, player));
 		}
@@ -80,7 +80,7 @@ public final class Minimax extends AbstractDecisionRule {
 		for (Square move : moves) {
 		    int value = search(opponent, board.makeMove(move, player),
                                        0, 0,
-                                       ply - 1, ef).negated().value();
+                                       ply -1, ef).negated().value();
 		    if (value > node.value()) {
 			node = new SearchNode(move, value);
 		    }
