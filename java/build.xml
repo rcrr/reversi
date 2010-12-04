@@ -181,23 +181,47 @@
   <taskdef resource="checkstyletask.properties"
 	   classpath="lib/checkstyle-5.3-all.jar"/>
 
-<target name="checkstyle"
-        description="Generates a report of code convention violations.">
-  <delete dir="${checkstyle.reports.dir}"/>
-  <mkdir dir="${checkstyle.reports.dir}"/>
-  
-  <checkstyle config="${docs.checkstyle.dir}/reversi_checks.xml"
-              failureProperty="checkstyle.failure"
-              failOnViolation="false">
-    <formatter type="xml" tofile="${checkstyle.reports.dir}/checkstyle_report.xml"/>
-    <fileset dir="src" includes="**/*.java"/>
+  <target name="checkstyle"
+          description="Generates a report of code convention violations.">
+    <delete dir="${checkstyle.reports.dir}"/>
+    <mkdir dir="${checkstyle.reports.dir}"/>
+    
+    <checkstyle config="${docs.checkstyle.dir}/reversi_checks.xml"
+                failureProperty="checkstyle.failure"
+                failOnViolation="false">
+      <formatter type="xml" tofile="${checkstyle.reports.dir}/checkstyle_report.xml"/>
+      <fileset dir="src" includes="**/*.java"/>
   </checkstyle>
-
+  
   <xslt in="${checkstyle.reports.dir}/checkstyle_report.xml"
 	out="${checkstyle.reports.dir}/checkstyle_report.html"
 	style="${docs.checkstyle.dir}/checkstyle-noframes.xsl"/>
   
-</target>
+  </target>
 
-
+  <property name="findbugs.reports.dir" value="${build.dir}/findbugs"/>
+  <property name="findbugs.home" value="/home/rcrr/lisp/prj/findbugs-1.3.9"/>
+  <path id="findbugs.classpath">
+    <fileset dir="${findbugs.home}/lib">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+  <taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask">
+    <classpath refid="findbugs.classpath"/>
+  </taskdef>
+  <target name="findbugs" depends="jar">
+    <delete dir="${findbugs.reports.dir}"/>
+    <mkdir dir="${findbugs.reports.dir}"/>
+    <findbugs home="${findbugs.home}"
+              output="xml:withMessages"
+              outputFile="${findbugs.reports.dir}/rcrr.reversi.xml">
+      <auxClasspath refid="lib.classpath"/>
+      <sourcePath path="${src.dir}"/>
+      <class location="${jar.dir}/${ant.project.name}.jar"/>
+    </findbugs>
+    <xslt in="${findbugs.reports.dir}/rcrr.reversi.xml"
+          out="${findbugs.reports.dir}/rcrr.reversi.html"
+          style="${findbugs.home}/src/xsl/fancy-hist.xsl"/>
+  </target>
+  
 </project>
