@@ -26,7 +26,6 @@ package rcrr.reversi;
 
 import java.util.Random;
 import java.util.List;
-import java.util.Arrays;
 
 /**
  * A strategy that selects randomly a move among the legal ones.
@@ -35,22 +34,29 @@ public class RandomStrategy implements Strategy {
 
     /** Random field. */
     private final Random random;
-    
+
     /** Class constructor. */
     public RandomStrategy() {
-	random = new Random();
+        random = new Random();
     }
 
-    public Move move(final GameSnapshot gameSnapshot) {
-	if (!gameSnapshot.hasAnyLegalMove()) {
-	    return Move.valueOf(Move.Action.PASS);
-	} else {
-	    Player player = gameSnapshot.player(); 
-	    Board board = gameSnapshot.board();
-	    List<Square> moves = board.legalMoves(player);
-	    int index = random.nextInt(moves.size());
-	    return Move.valueOf(moves.get(index));
-	}
+    /**
+     * A random move generation. The selection is taken with equal
+     * probability among the set of legal moves.
+     *
+     * @param gameSnapshot the game snapshot
+     * @return             the move
+     */
+    public final Move move(final GameSnapshot gameSnapshot) {
+        if (!gameSnapshot.hasAnyLegalMove()) {
+            return Move.valueOf(Move.Action.PASS);
+        } else {
+            Player player = gameSnapshot.player();
+            Board board = gameSnapshot.board();
+            List<Square> moves = board.legalMoves(player);
+            int index = random.nextInt(moves.size());
+            return Move.valueOf(moves.get(index));
+        }
     }
 
 }

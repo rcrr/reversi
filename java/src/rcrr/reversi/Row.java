@@ -69,7 +69,7 @@ public enum Row {
      *
      * @param label the tow's label
      */
-    private Row(String label) {
+    private Row(final String label) {
         this.label = label;
     }
 
@@ -83,11 +83,12 @@ public enum Row {
     /**
      * Returns the row at the specified position.
      *
-     * @return the identified row
-     *
-     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Row.values().length)}
+     * @param index the row's index
+     * @return      the identified row
+     * @throws IndexOutOfBoundsException if the index is out of range
+     *                                   {@code (index < 0 || index >= Row.values().length)}
      */
-    public static Row getInstance(int index) { return values()[index]; }
+    public static Row getInstance(final int index) { return values()[index]; }
 
     /**
      * Returns the row obtained moving by a {@code delta} number of shift, counted with the proper sign.
@@ -100,7 +101,8 @@ public enum Row {
      * }
      * </pre>
      *
-     * @return the row identified by the delta shift
+     * @param delta the amount to shift
+     * @return      the row identified by the delta shift
      */
     Row shift(final int delta) {
         Row r;
