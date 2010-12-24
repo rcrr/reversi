@@ -25,9 +25,6 @@
 package rcrr.reversi;
 
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * Minimax provides some static methods that return {@code Strategy}
@@ -39,48 +36,64 @@ import java.util.Collections;
  */
 public final class Minimax extends AbstractDecisionRule {
 
-    private Minimax() {};
+    /** Class constructor. */
+    private Minimax() { };
 
+    /**
+     * Class static factory.
+     *
+     * @return a new minimax instance
+     */
     public static Minimax getInstance() {
-	return new Minimax();
+        return new Minimax();
     }
 
     /**
      * The minimax function.
      * <p>
      * Polishing:
-     * - ply == 0 and finalState cases has to be merged.
-     * - standard case is a bit ugly.
-     * - pass should be included into the standard case.
+     * <ul>
+     *   <li>ply == 0 and finalState cases has to be merged.</li>
+     *   <li>standard case is a bit ugly.</li>
+     *   <li>pass should be included into the standard case.</li>
+     * </ul>
+     *
+     * @param player     the player that has the move
+     * @param board      the reached board
+     * @param achievable not used
+     * @param cutoff     not used
+     * @param ply        the search depth reached
+     * @param ef         the evaluation function
+     * @return           a node in the search tree
      */
     public SearchNode search(final Player player, final Board board,
                              final int achievable, final int cutoff,
                              final int ply, final EvalFunction ef) {
-	SearchNode node;
-	final Player opponent = player.opponent();
-	if (ply == 0) {
-	    node = new SearchNode(null, ef.eval(GamePosition.valueOf(board, player)));
-	} else {
-	    List<Square> moves = board.legalMoves(player);
-	    if (moves.isEmpty()) {
-		if (board.hasAnyLegalMove(opponent)) {
-		    node = search(opponent, board, 0, 0, ply -1, ef).negated();
-		} else {
-		    node = new SearchNode(null, finalValue(board, player));
-		}
-	    } else {
-		node = new SearchNode(null, Integer.MIN_VALUE);
-		for (Square move : moves) {
-		    int value = search(opponent, board.makeMove(move, player),
+        SearchNode node;
+        final Player opponent = player.opponent();
+        if (ply == 0) {
+            node = new SearchNode(null, ef.eval(GamePosition.valueOf(board, player)));
+        } else {
+            List<Square> moves = board.legalMoves(player);
+            if (moves.isEmpty()) {
+                if (board.hasAnyLegalMove(opponent)) {
+                    node = search(opponent, board, 0, 0, ply - 1, ef).negated();
+                } else {
+                    node = new SearchNode(null, finalValue(board, player));
+                }
+            } else {
+                node = new SearchNode(null, Integer.MIN_VALUE);
+                for (Square move : moves) {
+                    int value = search(opponent, board.makeMove(move, player),
                                        0, 0,
-                                       ply -1, ef).negated().value();
-		    if (value > node.value()) {
-			node = new SearchNode(move, value);
-		    }
-		}
-	    }
-	}
-	return node;
+                                       ply - 1, ef).negated().value();
+                    if (value > node.value()) {
+                        node = new SearchNode(move, value);
+                    }
+                }
+            }
+        }
+        return node;
     }
 
 }
