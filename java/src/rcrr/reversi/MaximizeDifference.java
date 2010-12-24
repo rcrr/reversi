@@ -24,7 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.List;
 
 /**
  * A basic strategy that chooses the move maximizing the
@@ -36,14 +35,26 @@ import java.util.List;
  */
 public class MaximizeDifference implements Strategy {
 
-    Strategy md;
-    
+    /** The strategy field. */
+    private final Strategy maximizeDifference;
+
+    /** Class constructor. */
     public MaximizeDifference() {
-	md = Minimax.maximizer(new CountDifference());
+
+        /* The maximizer method is defined in AbstractDecisioRule.
+         *   It should be defined into "some StrategyFunction" class.
+         */
+        maximizeDifference = Minimax.maximizer(new CountDifference());
     }
 
-    public Move move(GameSnapshot gameSnapshot) {
-	return md.move(gameSnapshot);
+    /**
+     * The strategy's move method.
+     *
+     * @param gameSnapshot the game snapshot
+     * @return             the strategy's move
+     */
+    public final Move move(final GameSnapshot gameSnapshot) {
+        return maximizeDifference.move(gameSnapshot);
     }
 
 }
