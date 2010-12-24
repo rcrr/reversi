@@ -61,6 +61,9 @@ public enum Row {
      */
     R8("8");
 
+    /** The number of rows. */
+    public static final int SIZE = 8;
+
     /** The row label. */
     private final String label;
 

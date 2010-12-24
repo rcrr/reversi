@@ -53,6 +53,12 @@ import java.util.EnumMap;
  */
 public final class Board {
 
+    /** Prime number 17. */
+    private static final int PRIME_NUMBER_17 = 17;
+
+    /** Prime number 37. */
+    private static final int PRIME_NUMBER_37 = 37;
+
     /** Lazily initialized, cached hashCode. */
     private volatile int hashCode = 0;
 
@@ -256,7 +262,7 @@ public final class Board {
         for (Row r : Row.values()) {
             sb.append("\n " + r.label() + "  ");
             for (Column c : Column.values()) {
-                int idx = (r.ordinal() * 8) + c.ordinal();
+                int idx = (r.ordinal() * Row.SIZE) + c.ordinal();
                 String p = get(Square.getInstance(idx)).symbol();
                 sb.append(p + " ");
             }
@@ -404,7 +410,7 @@ public final class Board {
     @Override
     public int hashCode() {
         if (hashCode == 0) {
-            int result = 17;
+            int result = PRIME_NUMBER_17;
             Square[] squareArray = Square.values();
             for (int i = 0; i < squareArray.length; i++) {
                 SquareState ss = squares.get(squareArray[i]);
@@ -415,7 +421,7 @@ public final class Board {
                 case WHITE: k = 2; break;
                 default: k = 0; // this should never happens.
                 }
-                result = 37 * result + k;
+                result = PRIME_NUMBER_37 * result + k;
             }
             hashCode = result;
         }
