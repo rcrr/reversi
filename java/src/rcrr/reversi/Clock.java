@@ -236,7 +236,7 @@ public final class Clock {
      */
     private static String timeString(Duration duration) {
 	long time = duration.getMillis();
-	long rTime = Math.round(time / DateTimeConstants.MILLIS_PER_SECOND);
+	long rTime = time / DateTimeConstants.MILLIS_PER_SECOND;
 	long minutes = (long) Math.floor(rTime / DateTimeConstants.SECONDS_PER_MINUTE);
 	long seconds = rTime - (minutes * DateTimeConstants.SECONDS_PER_MINUTE);
 	return TIME_FORMATTER.format(minutes) + ":" + TIME_FORMATTER.format(seconds);
