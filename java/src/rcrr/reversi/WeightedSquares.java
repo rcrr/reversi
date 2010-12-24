@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * An {@code EvalFunction} implementation that weights the value 
+ * An {@code EvalFunction} implementation that weights the value
  * of each square owned by a color applying a static parameter.
  * <p>
  * The parameter table is valued as follow:
@@ -67,60 +67,67 @@ import java.util.Collections;
 public class WeightedSquares implements EvalFunction {
 
     /** The static WEIGHTS map. */
-    private final static Map<Square, Integer> WEIGHTS;
+    private static final Map<Square, Integer> WEIGHTS;
 
     /** Class constructor. */
-    public WeightedSquares() {}
+    public WeightedSquares() { }
 
     /**
      * Returns the weights map.
      *
      * @return the weights map
      */
-    public final static Map<Square, Integer> weights() {
-	return new EnumMap<Square, Integer>(WEIGHTS);
+    public static final Map<Square, Integer> weights() {
+        return new EnumMap<Square, Integer>(WEIGHTS);
     }
 
-    /** 
+    /**
      * Computes the position evaluation according to the {@code WeightedSquares}
      * implementation of the {@link EvalFunction} interface.
+     *
+     * @param position the game position to evaluate
+     * @return         the board evaluation
      */
-    public int eval(final GamePosition position) {
-	if (position == null) throw new NullPointerException ("Parameter position cannot be null.");
-	final Player player = position.player();
-	final Board board = position.board();
-	final Player opponent = player.opponent();
-	int value = 0;
-	for (Square sq : Square.values()) {
-	    int p;
-	    SquareState color = board.get(sq);
-	    if (color == player.color()) p = 1;
-	    else if (color == opponent.color()) p = -1;
-	    else p = 0;
-	    value += p * WEIGHTS.get(sq);
-	}
-	return value;
+    public final int eval(final GamePosition position) {
+        if (position == null) { throw new NullPointerException("Parameter position cannot be null."); }
+        final Player player = position.player();
+        final Board board = position.board();
+        final Player opponent = player.opponent();
+        int value = 0;
+        for (Square sq : Square.values()) {
+            int p;
+            SquareState color = board.get(sq);
+            if (color == player.color()) {
+                p = 1;
+            } else if (color == opponent.color()) {
+                p = -1;
+            } else {
+                p = 0;
+            }
+            value += p * WEIGHTS.get(sq);
+        }
+        return value;
     }
 
     /**
      * Initialization block:
-     * . - sets and initializes {@code WEIGHTS} map
+     * . - sets and initializes the {@code WEIGHTS} map
      */
     static {
-	List<Integer> w = Arrays.asList(120, -20,  20,  5,  5,  20, -20, 120,
-					-20, -40,  -5, -5, -5,  -5, -40, -20,
-					 20,  -5,  15,  3,  3,  15,  -5,  20,
-					  5,  -5,   3,  3,  3,   3,  -5,   5,
-					  5,  -5,   3,  3,  3,   3,  -5,   5,
-					 20,  -5,  15,  3,  3,  15,  -5,  20,
-					-20, -40,  -5, -5, -5,  -5, -40, -20,
-					120, -20,  20,  5,  5,  20, -20, 120);
+        final List<Integer> w = Arrays.asList(120, -20,  20,  5,  5,  20, -20, 120,
+                                              -20, -40,  -5, -5, -5,  -5, -40, -20,
+                                               20,  -5,  15,  3,  3,  15,  -5,  20,
+                                                5,  -5,   3,  3,  3,   3,  -5,   5,
+                                                5,  -5,   3,  3,  3,   3,  -5,   5,
+                                               20,  -5,  15,  3,  3,  15,  -5,  20,
+                                              -20, -40,  -5, -5, -5,  -5, -40, -20,
+                                              120, -20,  20,  5,  5,  20, -20, 120);
 
-	Map<Square, Integer> wm = new EnumMap<Square, Integer>(Square.class);
-	for (int idx=0; idx<Square.values().length; idx++) {
-	    wm.put(Square.getInstance(idx), w.get(idx));
-	}	
-	WEIGHTS = Collections.unmodifiableMap(wm);
+        final Map<Square, Integer> wm = new EnumMap<Square, Integer>(Square.class);
+        for (int idx = 0; idx < Square.values().length; idx++) {
+            wm.put(Square.getInstance(idx), w.get(idx));
+        }
+        WEIGHTS = Collections.unmodifiableMap(wm);
     }
 
 }
