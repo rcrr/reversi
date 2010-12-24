@@ -61,6 +61,9 @@ public enum Column {
      */
     H("h");
 
+    /** The number of columns. */
+    public static final int SIZE = 8;
+
     /** The column label. */
     private final String label;
 
