@@ -25,13 +25,10 @@
 package rcrr.reversi;
 
 import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * An {@code EvalFunction} implementation that weights the value 
+ * An {@code EvalFunction} implementation that weights the value
  * of each square owned by a color applying a static parameter.
  * <p>
  * The parameter table is taken from the corresponding one defined in
@@ -44,38 +41,44 @@ import java.util.Collections;
  */
 public class ModifiedWeightedSquares implements EvalFunction {
 
+    /** The weight modifier applyed when the corner is captured. */
+    private static final int WEIGHT_MODIFIER = 5;
+
     /** The basic unmodified weights received from WeightedSquares. */
-    private final static Map<Square, Integer> WEIGHTS = 
-	Collections.unmodifiableMap(WeightedSquares.weights());
+    private static final Map<Square, Integer> WEIGHTS =
+        Collections.unmodifiableMap(WeightedSquares.weights());
 
     /** The reference to the WeightedSquares evaluation function. */
     private final EvalFunction ws;
 
     /** Public constructor. */
     public ModifiedWeightedSquares() {
-	ws = new WeightedSquares();
+        ws = new WeightedSquares();
     }
 
-    /** 
+    /**
      * Computes the position evaluation according to the {@code ModifiedWeightedSquares}
      * implementation of the {@link EvalFunction} interface.
+     *
+     * @param position the game position to evaluate
+     * @return         the position value
      */
-    public int eval(final GamePosition position) {
-	if (position == null) throw new NullPointerException ("Parameter position cannot be null.");
-	final Player player = position.player();
-	final Board board = position.board();
-	int value = ws.eval(position);
-	for (Square corner : Square.corners()) {
-	    if (board.get(corner) != SquareState.EMPTY) {
-		for (Square c : corner.neighbors().values()) {
-		    if (c != null && board.get(c) != SquareState.EMPTY) {
-			int j = (board.get(c) == player.color()) ? 1 : -1;
-			value += (j * (5 - WEIGHTS.get(c)));
-		    }
-		}
-	    }
-	}
-	return value;
+    public final int eval(final GamePosition position) {
+        if (position == null) { throw new NullPointerException("Parameter position cannot be null."); }
+        final Player player = position.player();
+        final Board board = position.board();
+        int value = ws.eval(position);
+        for (Square corner : Square.corners()) {
+            if (board.get(corner) != SquareState.EMPTY) {
+                for (Square c : corner.neighbors().values()) {
+                    if (c != null && board.get(c) != SquareState.EMPTY) {
+                        int j = (board.get(c) == player.color()) ? 1 : -1;
+                        value += (j * (WEIGHT_MODIFIER - WEIGHTS.get(c)));
+                    }
+                }
+            }
+        }
+        return value;
     }
 
 }
