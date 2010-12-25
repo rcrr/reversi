@@ -31,7 +31,8 @@ To do:
 <ul>
   <li>Moves returned from the Strategies must be rocordered. The Sequence structure has to host
       the moves between each transition. Ideally each adiacent pair should have a list of: [Move, Clock, Status] tuple.
-      The "record" could be attached to GameSnapshot. null is a valid value, but is not compatible with a valid game sequence.
+      The "record" could be attached to GameSnapshot.
+      null is a valid value, but is not compatible with a valid game sequence.
       The move method has to validate the returned move from the Strategy, record the move with a new clock,
       recur when the move is not legal.
       When the move is a STANDARD LEGAL one, the method updates the game sequence, and returns to play method.
@@ -57,7 +58,8 @@ To do:
       - Brainstorming on a strategy builder class, that is implemented into an AbstratctStrategy, and that
         recieves a configuration structure (XML or properties).</li>
   <li>SearchNode: valueOf method has to be coded. Constructor is still public. Fields are not managed.</li>
-  <li>Develop JUnit performance testing and reports. See: <a href="http://databene.org/contiperf.html">ContiPerf</a></li>
+  <li>Develop JUnit performance testing and reports.
+      See: <a href="http://databene.org/contiperf.html">ContiPerf</a></li>
 </ul>
 
 <p>
