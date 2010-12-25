@@ -33,7 +33,7 @@ import org.joda.time.Instant;
  * <p>
  * {@code MoveRecord} is immutable.
  */
-public class MoveRecord {
+public final class MoveRecord {
 
     /**
      * Base static factory for the class.
@@ -47,9 +47,9 @@ public class MoveRecord {
      * @throws NullPointerException when move or clock parameters are null
      */
     public static MoveRecord valueOf(final Move move, final Clock clock) {
-	if (move == null) { throw new NullPointerException("Parameter move cannot be null."); }
-	if (clock == null) { throw new NullPointerException("Parameter clock cannot be null."); }
-	return new MoveRecord(move, clock);
+        if (move == null) { throw new NullPointerException("Parameter move cannot be null."); }
+        if (clock == null) { throw new NullPointerException("Parameter clock cannot be null."); }
+        return new MoveRecord(move, clock);
     }
 
     /** The move field. */
@@ -70,11 +70,11 @@ public class MoveRecord {
      * @param clock the clock
      */
     private MoveRecord(final Move move, final Clock clock) {
-	assert (move != null) : "Parameter move cannot be null.";
-	assert (clock != null) : "Parameter clock cannot be null.";
-	this.move = move;
-	this.clock = clock;
-	this.timestamp = new Instant(System.currentTimeMillis());
+        assert (move != null) : "Parameter move cannot be null.";
+        assert (clock != null) : "Parameter clock cannot be null.";
+        this.move = move;
+        this.clock = clock;
+        this.timestamp = new Instant(System.currentTimeMillis());
     }
 
     /**
@@ -104,7 +104,7 @@ public class MoveRecord {
      * @return a {@code String} representing the move string
      */
     @Override public String toString() {
-	return "[" + move() + "; " + clock() + "; " + timestamp + "]";
+        return "[" + move() + "; " + clock() + "; " + timestamp + "]";
     }
 
 }
