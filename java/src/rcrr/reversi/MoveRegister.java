@@ -35,11 +35,11 @@ import java.util.Collections;
  * <p>
  * {@code MoveRegister} is immutable.
  */
-public class MoveRegister {
-    
+public final class MoveRegister {
+
     /** The register field. */
     private final List<MoveRecord> register;
-    
+
     /**
      * Class constructor.
      * <p>
@@ -47,32 +47,59 @@ public class MoveRegister {
      *
      * @param register the register field
      */
-    private MoveRegister(List<MoveRecord> register) {
-	assert (register != null) : "Parameter register cannot be null.";
-	this.register = Collections.unmodifiableList(register);
+    private MoveRegister(final List<MoveRecord> register) {
+        assert (register != null) : "Parameter register cannot be null.";
+        this.register = Collections.unmodifiableList(register);
     }
-    
+
+    /**
+     * Returns an empty move register.
+     *
+     * @return a new empty move register
+     */
     public static MoveRegister empty() {
-	return new MoveRegister(new ArrayList<MoveRecord>());
+        return new MoveRegister(new ArrayList<MoveRecord>());
     }
 
+    /**
+     * Returns true if the registry is empty.
+     *
+     * @return true if the register is empty
+     */
     public boolean isEmpty() {
-	return register.isEmpty();
+        return register.isEmpty();
     }
 
+    /**
+     * Returns the register size.
+     *
+     * @return the register size
+     */
     public int size() {
-	return register.size();
+        return register.size();
     }
-    
+
+    /**
+     * Returns the last move record registered.
+     *
+     * @return the last move record registered
+     */
     public MoveRecord last() {
-	if (isEmpty()) return null;
-	return register.get(register.size() - 1);
+        if (isEmpty()) { return null; }
+        return register.get(size() - 1);
     }
-    
-    public MoveRegister push(MoveRecord record) {
-	List<MoveRecord> tmpRegister = new ArrayList<MoveRecord>(register);
-	tmpRegister.add(record);
-	return new MoveRegister(tmpRegister);
+
+    /**
+     * Returns a new move register having the move record added
+     * as the last one.
+     *
+     * @param record the move record to add as the last one to the register
+     * @return       a new move register having the record added
+     */
+    public MoveRegister push(final MoveRecord record) {
+        List<MoveRecord> tmpRegister = new ArrayList<MoveRecord>(register);
+        tmpRegister.add(record);
+        return new MoveRegister(tmpRegister);
     }
 
 }
