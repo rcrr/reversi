@@ -118,25 +118,28 @@ public enum Square {
      * @return the square pointed by row and column, or null in case row or column are themself null
      **/
     public static Square getInstance(final Row row, final Column column) {
-        if (row == null || column == null) { return null; }
-        else { return Square.values()[Row.values().length * row.ordinal() + column.ordinal()]; }
+        if (row == null || column == null) {
+            return null;
+        } else {
+            return Square.values()[Row.values().length * row.ordinal() + column.ordinal()];
+        }
     }
 
-    /** 
+    /**
      * Returns the square's row.
      *
      * @return the square's row
      **/
     public Row row() { return row; }
 
-    /** 
+    /**
      * Returns the square's column.
      *
      * @return the square's column
      **/
     public Column column() { return column; }
 
-    /** 
+    /**
      * Returns the square's label.
      *
      * @return the square's label
@@ -145,7 +148,7 @@ public enum Square {
         return LABELS.get(this);
     }
 
-    /** 
+    /**
      * Returns a Map that has the direction has key and the associated neighbor square as value.
      *
      * @return the square's neighbor map
@@ -157,25 +160,27 @@ public enum Square {
     /**
      * Returns the square at the specified position.
      *
-     * @return the identified square
-     *
-     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Square.values().length)} 
+     * @param index the square index
+     * @return      the identified square
+     * @throws IndexOutOfBoundsException if the index is
+     *                                   out of range {@code (index < 0 || index >= Square.values().length)}
      */
-    public static Square getInstance(int index) { return Square.values()[index]; }
+    public static Square getInstance(final int index) { return Square.values()[index]; }
 
     /**
      * Returns the square at the specified position.
      *
-     * @return the identified square
-     *
-     * @throws IndexOutOfBoundsException if either columnIndex or 
+     * @param rowIndex    the row index
+     * @param columnIndex the colum index
+     * @return            the identified square
+     * @throws IndexOutOfBoundsException if either columnIndex or
      *             rowIndex is out of range:
-     *             {@code (columnIndex < 0 || columnIndex >= Column.values().length)} 
-     *             {@code (rowIndex < 0 || rowIndex >= Row.values().length)} 
+     *             {@code (columnIndex < 0 || columnIndex >= Column.values().length)}
+     *             {@code (rowIndex < 0 || rowIndex >= Row.values().length)}
      */
-    public static Square getInstance(int rowIndex, int columnIndex) {
-        Row row = Row.values()[rowIndex];
-        Column column = Column.values()[columnIndex];
+    public static Square getInstance(final int rowIndex, final int columnIndex) {
+        final Row row = Row.values()[rowIndex];
+        final Column column = Column.values()[columnIndex];
         return Square.getInstance(row, column);
     }
 
@@ -183,23 +188,26 @@ public enum Square {
      * Returns the square matching the specified label. Throws
      * an exception in case the label is not associated with a square.
      *
-     * @return the identified square
-     *
-     * @throws IllegalArgumentException if the label is not valid 
+     * @param label the square's label
+     * @return      the identified square
+     * @throws IllegalArgumentException if the label is not valid
      */
-    public static Square getInstance(String label) {
-        Square sq = INVERSE_LABELS.get(label);
-        if (sq == null) throw new IllegalArgumentException("The specified label: <" +
-                                                           label + ">, does not match any square's label.");
-        else return sq;
+    public static Square getInstance(final String label) {
+        final Square sq = INVERSE_LABELS.get(label);
+        if (sq == null) {
+            throw new IllegalArgumentException("The specified label: <"
+                                               + label + ">, does not match any square's label.");
+        } else {
+            return sq;
+        }
     }
 
-    /** 
+    /**
      * Returns the Hasegawa's naming for the edge squares. Returns
      * null if the square is not one of the identified squares.
      *
      * @return the Hasegawa square name, or null if the value is not defined
-     **/    
+     **/
     public char getHasegawaLabel() {
         switch (this) {
         case B1:
@@ -234,18 +242,19 @@ public enum Square {
         case G7:
         case B7:
             return 'X';
+        default:
+            return ' ';
         }
-        return ' ';
     }
 
     /**
      * Returns the list of the four corner squares.
      *
      * @return the four corners
-     */    
+     */
     public static List<Square> corners() { return CORNERS; }
 
-    /** 
+    /**
      * Returns true if the square is a corner, otherwise false.
      *
      * @return true or false if the square is either a corner or not
@@ -254,7 +263,11 @@ public enum Square {
         return CORNERS.contains(this);
     }
 
-    /** Computes the neighborTable. */
+    /**
+     * Computes the neighborTable.
+     *
+     * @return the neighbor table
+     */
     private static Map<Square, Map<Direction, Square>> neighborTable() {
         Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
         for (Square sq : values()) {

@@ -34,45 +34,45 @@ public enum Player {
 
     /** The White player. */
     WHITE("The White player", SquareState.WHITE);
-    
+
     /** The {@code Player}'s description field. */
     private final String description;
 
     /** The {@code Player}'s color field. */
     private final SquareState color;
-    
+
     /**
      * Enum constructor.
      *
      * @param  description the {@code Player}'s description
      * @param  color       the {@code Player}'s {@code SquareState} also named "color"
      */
-    private Player(String description, SquareState color) {
-	this.description = description;
-	this.color = color;
+    private Player(final String description, final SquareState color) {
+        this.description = description;
+        this.color = color;
     }
-    
+
     /**
      * Returns the {@code Player}'s description.
      *
      * @return the {@code Player}'s description
      */
     public String description() { return description; }
-    
+
     /**
      * Returns the {@code SquareState} value representing the {@code Player}'s color.
      *
      * @return the {@code Player}'s color
      */
     public SquareState color() { return color; }
-    
+
     /**
      * Returns a {@code String} value that is the {@code Player}'s color symbol.
      *
      * @return the {@code Player}'s color symbol
      */
     public String symbol() { return color().symbol(); }
-    
+
     /**
      * Returns the {@code Player} opponent. The Black for the White,
      * while the White for the Black.
@@ -80,7 +80,7 @@ public enum Player {
      * @return the opponent {@code Player}
      */
     public Player opponent() {
-	return (this == BLACK) ? WHITE : BLACK;
+        return (this == BLACK) ? WHITE : BLACK;
     }
 
 }
