@@ -30,23 +30,44 @@ import java.util.EnumMap;
 /**
  * A move is an action send by a Player/Strategy to the
  * game manager.
+ * The move has two fields, the action and the square.
+ * <p>
+ * Available actions are:
+ * <ul>
+ *   <li>PUT_DISC</li>
+ *   <li>PASS</li>
+ *   <li>RESIGN</li>
+ * </ul>
+ * When the action is PUT_DISC the square must be not null.
+ * Otherwise PASS and RESIGN actions require a null value assigned
+ * to the square field.
  * <p>
  * {@code Move} is immutable.
  */
 public final class Move {
 
     /**
-     * Action is an Enum type that ...
+     * Action is an Enum type that classify the move.
      */
     public static enum Action {
+
+        /** The action of putting a disc on the board. */
         PUT_DISC,
+
+        /** The pass action. */
         PASS,
+
+        /** The resign action. */
         RESIGN;
     }
 
+    /** Generic move instance cache. */
     private static final Map<Action, Move> ACTION_INSTANCE_CACHE = new EnumMap<Action, Move>(Action.class);
+
+    /** Move instance cache dedicated to the PUT_DISC action. */
     private static final Map<Square, Move> PUT_DISC_INSTANCE_CACHE = new EnumMap<Square, Move>(Square.class);
 
+    /** The static block populates the two map used to hold all the possible move instances. */
     static {
         for (Action action : Action.values()) {
             if (action == Action.PUT_DISC) {
@@ -65,7 +86,17 @@ public final class Move {
     /** The square field. */
     private final Square square;
 
-    private static Move valueOf(final Action action, final Square square) {
+    /**
+     * This static factory returns the identified move instance taken from the pre computed
+     * instance caches.
+     * <p>
+     * The factory checks that the two fields satisfy the class invariants.
+     *
+     * @param action the action field
+     * @param square the square field
+     * @return       the identified move instance
+     */
+    public static Move valueOf(final Action action, final Square square) {
         if (action == null) { throw new NullPointerException("Parameter action cannot be null."); }
         if (action == Action.PUT_DISC) {
             if (square == null) {
@@ -73,17 +104,41 @@ public final class Move {
             }
             return PUT_DISC_INSTANCE_CACHE.get(square);
         } else {
-            if (square != null) { throw new IllegalArgumentException("Parameter action value invalid for this factory."); }
+            if (square != null) {
+                throw new IllegalArgumentException("Parameter action value invalid for this factory.");
+            }
             return ACTION_INSTANCE_CACHE.get(action);
         }
     }
 
+    /**
+     * This static factory returns the identified move instance taken from the pre computed
+     * instance caches.
+     * <p>
+     * The factory checks that the action field is not null, and that it is not equal to PUT_DISC.
+     *
+     * @param action the action field
+     * @return       the identified move instance
+     */
     public static Move valueOf(final Action action) {
-        if (action == null) { throw new NullPointerException("Parameter action cannot be null."); }
-        if (action == Action.PUT_DISC) { throw new IllegalArgumentException("Parameter action value invalid for this factory."); }
+        if (action == null) {
+            throw new NullPointerException("Parameter action cannot be null.");
+        }
+        if (action == Action.PUT_DISC) {
+            throw new IllegalArgumentException("Parameter action value invalid for this factory.");
+        }
         return valueOf(action, null);
     }
 
+    /**
+     * This static factory returns the identified move instance taken from the pre computed
+     * instance caches.
+     * <p>
+     * The factory checks that the square field is not null. The action field is set to PUT_DISC.
+     *
+     * @param square the square field
+     * @return       the identified move instance
+     */
     public static Move valueOf(final Square square) {
         if (square == null) { throw new NullPointerException("Parameter square cannot be null"); }
         return valueOf(Action.PUT_DISC, square);
@@ -101,14 +156,26 @@ public final class Move {
      */
     private Move(final Action action, final Square square) {
         assert (!(action == null)) : "Parameter action must be not null";
-        assert (!(action == Action.PUT_DISC && square == null)) : "Parameter square cannot be null when action is PUT_DISC";
-        assert (!(action != Action.PUT_DISC && square != null)) : "Parameter square must be null when action is not PUT_DISC";
+        assert (!(action == Action.PUT_DISC && square == null))
+            : "Parameter square cannot be null when action is PUT_DISC";
+        assert (!(action != Action.PUT_DISC && square != null))
+            : "Parameter square must be null when action is not PUT_DISC";
         this.action = action;
         this.square = square;
     }
 
+    /**
+     * Returns the action field.
+     *
+     * @return the action field
+     */
     public Action action() { return action; }
 
+    /**
+     * Returns the square field.
+     *
+     * @return the square field
+     */
     public Square square() { return square; }
 
 }
