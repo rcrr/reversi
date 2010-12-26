@@ -71,42 +71,251 @@ import static rcrr.reversi.Column.*;
  * {@code (A1, B1, C1, D1, E1, F1, G1, H1, A2, ... H8)}.
  */
 public enum Square {
-    A1(R1, A), B1(R1, B), C1(R1, C), D1(R1, D), E1(R1, E), F1(R1, F), G1(R1, G), H1(R1, H),
-    A2(R2, A), B2(R2, B), C2(R2, C), D2(R2, D), E2(R2, E), F2(R2, F), G2(R2, G), H2(R2, H),
-    A3(R3, A), B3(R3, B), C3(R3, C), D3(R3, D), E3(R3, E), F3(R3, F), G3(R3, G), H3(R3, H),
-    A4(R4, A), B4(R4, B), C4(R4, C), D4(R4, D), E4(R4, E), F4(R4, F), G4(R4, G), H4(R4, H),
-    A5(R5, A), B5(R5, B), C5(R5, C), D5(R5, D), E5(R5, E), F5(R5, F), G5(R5, G), H5(R5, H),
-    A6(R6, A), B6(R6, B), C6(R6, C), D6(R6, D), E6(R6, E), F6(R6, F), G6(R6, G), H6(R6, H),
-    A7(R7, A), B7(R7, B), C7(R7, C), D7(R7, D), E7(R7, E), F7(R7, F), G7(R7, G), H7(R7, H),
-    A8(R8, A), B8(R8, B), C8(R8, C), D8(R8, D), E8(R8, E), F8(R8, F), G8(R8, G), H8(R8, H);
 
-    /** The labels map. It is computed and initialized by the static block. */
-    private static final Map<Square, String> LABELS;
+    /** Square a1. */
+    A1(R1, A),
 
-    /** The inverse labels map. It is computed and initialized by the static block. */
-    private static final Map<String, Square> INVERSE_LABELS;
+    /** Square b1. */
+    B1(R1, B),
+
+    /** Square c1. */
+    C1(R1, C),
+
+    /** Square d1. */
+    D1(R1, D),
+
+    /** Square e1. */
+    E1(R1, E),
+
+    /** Square f1. */
+    F1(R1, F),
+
+    /** Square g1. */
+    G1(R1, G),
+
+    /** Square h1. */
+    H1(R1, H),
+
+    /** Square a2. */
+    A2(R2, A),
+
+    /** Square b2. */
+    B2(R2, B),
+
+    /** Square c2. */
+    C2(R2, C),
+
+    /** Square d2. */
+    D2(R2, D),
+
+    /** Square e2. */
+    E2(R2, E),
+
+    /** Square f2. */
+    F2(R2, F),
+
+    /** Square g2. */
+    G2(R2, G),
+
+    /** Square h2. */
+    H2(R2, H),
+
+    /** Square a3. */
+    A3(R3, A),
+
+    /** Square b3. */
+    B3(R3, B),
+
+    /** Square c3. */
+    C3(R3, C),
+
+    /** Square d3. */
+    D3(R3, D),
+
+    /** Square e3. */
+    E3(R3, E),
+
+    /** Square f3. */
+    F3(R3, F),
+
+    /** Square g3. */
+    G3(R3, G),
+
+    /** Square h3. */
+    H3(R3, H),
+
+    /** Square a4. */
+    A4(R4, A),
+
+    /** Square b4. */
+    B4(R4, B),
+
+    /** Square c4. */
+    C4(R4, C),
+
+    /** Square d4. */
+    D4(R4, D),
+
+    /** Square e4. */
+    E4(R4, E),
+
+    /** Square f4. */
+    F4(R4, F),
+
+    /** Square g4. */
+    G4(R4, G),
+
+    /** Square h4. */
+    H4(R4, H),
+
+    /** Square a5. */
+    A5(R5, A),
+
+    /** Square b5. */
+    B5(R5, B),
+
+    /** Square c5. */
+    C5(R5, C),
+
+    /** Square d5. */
+    D5(R5, D),
+
+    /** Square e5. */
+    E5(R5, E),
+
+    /** Square f5. */
+    F5(R5, F),
+
+    /** Square g5. */
+    G5(R5, G),
+
+    /** Square h5. */
+    H5(R5, H),
+
+    /** Square a6. */
+    A6(R6, A),
+
+    /** Square b6. */
+    B6(R6, B),
+
+    /** Square c6. */
+    C6(R6, C),
+
+    /** Square d6. */
+    D6(R6, D),
+
+    /** Square e6. */
+    E6(R6, E),
+
+    /** Square f6. */
+    F6(R6, F),
+
+    /** Square g6. */
+    G6(R6, G),
+
+    /** Square h6. */
+    H6(R6, H),
+
+    /** Square a7. */
+    A7(R7, A),
+
+    /** Square b7. */
+    B7(R7, B),
+
+    /** Square c7. */
+    C7(R7, C),
+
+    /** Square d7. */
+    D7(R7, D),
+
+    /** Square e7. */
+    E7(R7, E),
+
+    /** Square f7. */
+    F7(R7, F),
+
+    /** Square g7. */
+    G7(R7, G),
+
+    /** Square h7. */
+    H7(R7, H),
+
+    /** Square a8. */
+    A8(R8, A),
+
+    /** Square b8. */
+    B8(R8, B),
+
+    /** Square c8. */
+    C8(R8, C),
+
+    /** Square d8. */
+    D8(R8, D),
+
+    /** Square e8. */
+    E8(R8, E),
+
+    /** Square f8. */
+    F8(R8, F),
+
+    /** Square g8. */
+    G8(R8, G),
+
+    /** Square h8. */
+    H8(R8, H);
 
     /** The list of the four corners. */
     private static final List<Square> CORNERS = Collections.unmodifiableList(Arrays.asList(A1, H1, H8, A8));
 
+    /** The inverse labels map. It is computed and initialized by the static block. */
+    private static final Map<String, Square> INVERSE_LABELS;
+
+    /** The labels map. It is computed and initialized by the static block. */
+    private static final Map<Square, String> LABELS;
+
     /** The neighbor table. */
     private static final Map<Square, Map<Direction, Square>> NEIGHBOR_TABLE = neighborTable();
 
-    /** The row containing the square. */
-    private final Row row;
-
-    /** The column containing the square. */
-    private final Column column;
+    /**
+     * Static initialization block:
+     * . - sets and initializes {@code LABELS} map
+     * . - sets and initializes {@code INVERSE_LABELS} map
+     */
+    static {
+        final Map<Square, String> labelMap = new HashMap<Square, String>();
+        final Map<String, Square> inverseLabelMap = new HashMap<String, Square>();
+        for (Square sq : values()) {
+            String label = sq.column.label() + sq.row.label();
+            labelMap.put(sq, label);
+            inverseLabelMap.put(label, sq);
+        }
+        LABELS = Collections.unmodifiableMap(labelMap);
+        INVERSE_LABELS = Collections.unmodifiableMap(inverseLabelMap);
+    }
 
     /**
-     * Enum constructor.
+     * Returns the list of the four corner squares.
      *
-     * @param row    square's row
-     * @param column square's column
+     * @return the four corners
      */
-    private Square(final Row row, final Column column) {
-        this.row = row;
-        this.column = column;
+    public static List<Square> corners() { return CORNERS; }
+
+    /**
+     * Returns the square matching the specified label. Throws
+     * an exception in case the label is not associated with a square.
+     *
+     * @param label the square's label
+     * @return      the identified square
+     * @throws IllegalArgumentException if the label is not valid
+     */
+    public static Square getInstance(final String label) {
+        final Square sq = INVERSE_LABELS.get(label);
+        if (sq == null) {
+            throw new IllegalArgumentException("The specified label: <"
+                                               + label + ">, does not match any square's label.");
+        } else {
+            return sq;
+        }
     }
 
     /**
@@ -123,38 +332,6 @@ public enum Square {
         } else {
             return Square.values()[Row.values().length * row.ordinal() + column.ordinal()];
         }
-    }
-
-    /**
-     * Returns the square's row.
-     *
-     * @return the square's row
-     **/
-    public Row row() { return row; }
-
-    /**
-     * Returns the square's column.
-     *
-     * @return the square's column
-     **/
-    public Column column() { return column; }
-
-    /**
-     * Returns the square's label.
-     *
-     * @return the square's label
-     **/
-    public String label() {
-        return LABELS.get(this);
-    }
-
-    /**
-     * Returns a Map that has the direction has key and the associated neighbor square as value.
-     *
-     * @return the square's neighbor map
-     **/
-    public Map<Direction, Square> neighbors() {
-        return NEIGHBOR_TABLE.get(this);
     }
 
     /**
@@ -185,22 +362,46 @@ public enum Square {
     }
 
     /**
-     * Returns the square matching the specified label. Throws
-     * an exception in case the label is not associated with a square.
+     * Computes the neighborTable.
      *
-     * @param label the square's label
-     * @return      the identified square
-     * @throws IllegalArgumentException if the label is not valid
+     * @return the neighbor table
      */
-    public static Square getInstance(final String label) {
-        final Square sq = INVERSE_LABELS.get(label);
-        if (sq == null) {
-            throw new IllegalArgumentException("The specified label: <"
-                                               + label + ">, does not match any square's label.");
-        } else {
-            return sq;
+    private static Map<Square, Map<Direction, Square>> neighborTable() {
+        Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
+        for (Square sq : values()) {
+            Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
+            for (Direction dir : Direction.values()) {
+                Square n = getInstance(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
+                snt.put(dir, n);
+            }
+            nt.put(sq, Collections.unmodifiableMap(snt));
         }
+        return Collections.unmodifiableMap(nt);
     }
+
+    /** The row field. */
+    private final Row row;
+
+    /** The column field. */
+    private final Column column;
+
+    /**
+     * Enum constructor.
+     *
+     * @param row    square's row
+     * @param column square's column
+     */
+    private Square(final Row row, final Column column) {
+        this.row = row;
+        this.column = column;
+    }
+
+    /**
+     * Returns the square's column.
+     *
+     * @return the square's column
+     **/
+    public Column column() { return column; }
 
     /**
      * Returns the Hasegawa's naming for the edge squares. Returns
@@ -248,13 +449,6 @@ public enum Square {
     }
 
     /**
-     * Returns the list of the four corner squares.
-     *
-     * @return the four corners
-     */
-    public static List<Square> corners() { return CORNERS; }
-
-    /**
      * Returns true if the square is a corner, otherwise false.
      *
      * @return true or false if the square is either a corner or not
@@ -264,38 +458,28 @@ public enum Square {
     }
 
     /**
-     * Computes the neighborTable.
+     * Returns the square's label.
      *
-     * @return the neighbor table
-     */
-    private static Map<Square, Map<Direction, Square>> neighborTable() {
-        Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
-        for (Square sq : values()) {
-            Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
-            for (Direction dir : Direction.values()) {
-                Square n = getInstance(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
-                snt.put(dir, n);
-            }
-            nt.put(sq, Collections.unmodifiableMap(snt));
-        }
-        return Collections.unmodifiableMap(nt);
+     * @return the square's label
+     **/
+    public String label() {
+        return LABELS.get(this);
     }
 
     /**
-     * Initialization block:
-     * . - sets and initializes {@code LABELS} map
-     * . - sets and initializes {@code INVERSE_LABELS} map
-     */
-    static {
-        Map<Square, String> labelMap = new HashMap<Square, String>();
-        Map<String, Square> inverseLabelMap = new HashMap<String, Square>();
-        for (Square sq : values()) {
-            String label = sq.column.label() + sq.row.label();
-            labelMap.put(sq, label);
-            inverseLabelMap.put(label, sq);
-        }
-        LABELS = Collections.unmodifiableMap(labelMap);
-        INVERSE_LABELS = Collections.unmodifiableMap(inverseLabelMap);
+     * Returns a Map that has the direction has key and the associated neighbor square as value.
+     *
+     * @return the square's neighbor map
+     **/
+    public Map<Direction, Square> neighbors() {
+        return NEIGHBOR_TABLE.get(this);
     }
+
+    /**
+     * Returns the square's row.
+     *
+     * @return the square's row
+     **/
+    public Row row() { return row; }
 
 }
