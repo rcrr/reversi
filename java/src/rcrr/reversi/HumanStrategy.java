@@ -35,35 +35,43 @@ import java.io.InputStreamReader;
  */
 public class HumanStrategy implements Strategy {
 
+    /** Input reader. */
     private BufferedReader in;
-    
+
+    /** Class constructor. */
     public HumanStrategy() {
-	InputStreamReader isr = new InputStreamReader(System.in);
- 	in = new BufferedReader(isr);
+        InputStreamReader isr = new InputStreamReader(System.in);
+        in = new BufferedReader(isr);
     }
-    
-    public Move move(final GameSnapshot gameSnapshot) {
-	Square move = null;
-	while (move == null) {
-	    List<String> moves = new ArrayList<String>();
-	    for (Square mv : gameSnapshot.board().legalMoves(gameSnapshot.player())) {
-		moves.add(mv.label());
-	    }
-	    System.out.print(gameSnapshot.player().toString() + " to move " + moves + ": ");
-	    String s = null;
-	    try {
-		s = in.readLine();
-	    } catch (Exception e) {
-		System.out.println("Error in reading the input command, exiting.");
-		System.exit(1);
-	    }
-	    try {
-		move = Square.getInstance(s);
-	    } catch (Exception e) {
-		System.out.println(s + " is not a move. Retry:");
-	    }
-	}
-	return Move.valueOf(move);
+
+    /**
+     * The move method's implementation.
+     *
+     * @param gameSnapshot the game snapshot
+     * @return             the selected move
+     */
+    public final Move move(final GameSnapshot gameSnapshot) {
+        Square move = null;
+        while (move == null) {
+            List<String> moves = new ArrayList<String>();
+            for (Square mv : gameSnapshot.board().legalMoves(gameSnapshot.player())) {
+                moves.add(mv.label());
+            }
+            System.out.print(gameSnapshot.player().toString() + " to move " + moves + ": ");
+            String s = null;
+            try {
+                s = in.readLine();
+            } catch (Exception e) {
+                System.out.println("Error in reading the input command, exiting.");
+                System.exit(1);
+            }
+            try {
+                move = Square.getInstance(s);
+            } catch (Exception e) {
+                System.out.println(s + " is not a move. Retry:");
+            }
+        }
+        return Move.valueOf(move);
     }
 
 }
