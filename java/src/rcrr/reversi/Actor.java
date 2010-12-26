@@ -39,7 +39,7 @@ public final class Actor {
      *
      * @param name     the actor's name
      * @param strategy the actor's strategy
-     * @return        a new actor
+     * @return         a new actor
      * @throws NullPointerException when either name or strategy parameter is null
      */
     public static Actor valueOf(final String name, final Strategy strategy) {

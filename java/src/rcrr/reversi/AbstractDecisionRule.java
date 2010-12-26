@@ -34,14 +34,22 @@ public abstract class AbstractDecisionRule implements DecisionRule {
 
     /**
      * The winning value.
-     * Integer.MAX_VALUE = 2^31-1 = 2,147,483,647
-     * Leaving enough space and having an easy to recognize
-     * number leads to a value of 2000000032.
+     * <p>
+     * Integer.MAX_VALUE as defined by the java language specification is
+     * equal to {@code 2^31-1}, or {@code 2,147,483,647}.
+     * <p>
+     * {@code WINNING_VALUE} is than set to {@code +2,000,000,000},
+     * that is large enought to leave space for an evaluation function
+     * to have "intermediate" values.
      */
-    protected static final int WINNING_VALUE = +2000000032;
+    protected static final int WINNING_VALUE = +2000000000;
 
-    /** The losing value. */
-    protected static final int LOSING_VALUE = -2000000032;
+    /**
+     * The losing value.
+     * <p>
+     * {@code LOSING_VALUE} is set to {@code -2,000,000,000},
+     */
+    protected static final int LOSING_VALUE = -2000000000;
 
     /**
      * Returns the board final value.
