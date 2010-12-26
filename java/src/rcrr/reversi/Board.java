@@ -59,41 +59,27 @@ public final class Board {
     /** Prime number 37. */
     private static final int PRIME_NUMBER_37 = 37;
 
-    /** Lazily initialized, cached hashCode. */
-    private volatile int hashCode = 0;
-
-    /** The squares field. */
-    private final Map<Square, SquareState> squares;
-
     /**
-     * Class constructor.
-     * <p>
-     * {@code squareMap} must be not null, and must have a size equal to
-     * the number of squares, as defined by the {@code Square} enum.
+     * A static factory for the class that returns a new empty board.
      *
-     * @param  squareMap the sqares field
+     * @return a new empty board
      */
-    private Board(final Map<Square, SquareState> squareMap) {
-        assert (squareMap != null) : "Parameter squareMap cannot be null.";
-        assert (squareMap.size() == Square.values().length) : "Parameter squareMap size is not consistent."
-            + " squareMap.size()=" + squareMap.size()
-            + " expected value: " + Square.values().length;
-        final EnumMap<Square, SquareState> squareEnumMap = (squareMap instanceof EnumMap)
-            ? (EnumMap<Square, SquareState>) squareMap
-            : new EnumMap<Square, SquareState>(squareMap);
-        this.squares = Collections.unmodifiableMap(squareEnumMap);
+    public static Board emptyBoard() {
+        return valueOf(emptyBoardSquares());
     }
 
     /**
-     * Returns the {@code SquareState} value for the given board's square.
-     * <p>
-     * When {@code square} is {@code null} the method returns {@code SquareState.OUTER} value.
+     * A static factory for the class that returns a new initial board.
      *
-     * @param  square the board square to retrieve the state value
-     * @return        the square state
+     * @return a new initial board
      */
-    public SquareState get(final Square square) {
-        return (square == null) ? SquareState.OUTER : squares.get(square);
+    public static Board initialBoard() {
+        Map<Square, SquareState> sm = emptyBoardSquares();
+        sm.put(Square.D4, SquareState.WHITE);
+        sm.put(Square.E4, SquareState.BLACK);
+        sm.put(Square.D5, SquareState.BLACK);
+        sm.put(Square.E5, SquareState.WHITE);
+        return valueOf(sm);
     }
 
     /**
@@ -122,26 +108,205 @@ public final class Board {
     }
 
     /**
-     * A static factory for the class that returns a new empty board.
+     * Returns a new squares map being filled by empty values.
      *
-     * @return a new empty board
+     * @return a new map having and empty square state value for each
+     *         square in the board
      */
-    public static Board emptyBoard() {
-        return valueOf(emptyBoardSquares());
+    private static Map<Square, SquareState> emptyBoardSquares() {
+        Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
+        for (Square sq : Square.values()) {
+            sm.put(sq, SquareState.EMPTY);
+        }
+        return sm;
+    }
+
+    /** Lazily initialized, cached hashCode. */
+    private volatile int hashCode = 0;
+
+    /** The squares field. */
+    private final Map<Square, SquareState> squares;
+
+    /**
+     * Class constructor.
+     * <p>
+     * {@code squareMap} must be not null, and must have a size equal to
+     * the number of squares, as defined by the {@code Square} enum.
+     *
+     * @param  squareMap the sqares field
+     */
+    private Board(final Map<Square, SquareState> squareMap) {
+        assert (squareMap != null) : "Parameter squareMap cannot be null.";
+        assert (squareMap.size() == Square.values().length) : "Parameter squareMap size is not consistent."
+            + " squareMap.size()=" + squareMap.size()
+            + " expected value: " + Square.values().length;
+        final EnumMap<Square, SquareState> squareEnumMap = (squareMap instanceof EnumMap)
+            ? (EnumMap<Square, SquareState>) squareMap
+            : new EnumMap<Square, SquareState>(squareMap);
+        this.squares = Collections.unmodifiableMap(squareEnumMap);
     }
 
     /**
-     * A static factory for the class that returns a new initial board.
+     * Returns the disk difference between the player and her opponent.
      *
-     * @return a new initial board
+     * @param player the player
+     * @return       the disk count difference
+     * @throws NullPointerException if parameter {@code player} is null
      */
-    public static Board initialBoard() {
-        Map<Square, SquareState> sm = emptyBoardSquares();
-        sm.put(Square.D4, SquareState.WHITE);
-        sm.put(Square.E4, SquareState.BLACK);
-        sm.put(Square.D5, SquareState.BLACK);
-        sm.put(Square.E5, SquareState.WHITE);
-        return valueOf(sm);
+    public int countDifference(final Player player) {
+        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
+        return countPieces(player.color()) - countPieces(player.opponent().color());
+    }
+
+    /**
+     * Returns the disk count for the color.
+     *
+     * @param color the color for which the disk count is computed
+     * @return the disk count
+     * @throws NullPointerException if parameter {@code color} is null
+     */
+    public int countPieces(final SquareState color) {
+        if (color == null) {
+            throw new NullPointerException("parameter color must be not null.");
+        }
+        int count = 0;
+        for (SquareState ss : squares.values()) {
+            if (ss == color) { count++; }
+        }
+        return count;
+    }
+
+    /**
+     * Returns true if the specified object is equal to this board.
+     * Two boards are equal when they have the same disk's configuration.
+     *
+     * @param object the object to compare to
+     * @return {@code true} when the {@code object} parameter is an instance of
+     *         the {@code Board} class and when the disks' position are the same.
+     */
+    @Override
+    public boolean equals(final Object object) {
+        if (object == this) { return true; }
+        if (!(object instanceof Board)) { return false; }
+        Board board = (Board) object;
+        for (Square sq : Square.values()) {
+            if (squares.get(sq) != board.squares.get(sq)) { return false; }
+        }
+        return true;
+    }
+
+    /**
+     * Returns the {@code SquareState} value for the given board's square.
+     * <p>
+     * When {@code square} is {@code null} the method returns {@code SquareState.OUTER} value.
+     *
+     * @param  square the board square to retrieve the state value
+     * @return        the square state
+     */
+    public SquareState get(final Square square) {
+        return (square == null) ? SquareState.OUTER : squares.get(square);
+    }
+
+    /**
+     * Returns if the player has any legal move given the board state.
+     *
+     * @param player the player
+     * @return       {@code true} if the player has any legal move, otherwise {@code false}
+     * @throws NullPointerException if parameter {@code player} is null
+     */
+    public boolean hasAnyLegalMove(final Player player) {
+        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
+        boolean hasAnyLegalMove = false;
+        for (Square move : Square.values()) {
+            if (isLegal(move, player)) {
+                hasAnyLegalMove = true;
+                break;
+            }
+        }
+        return hasAnyLegalMove;
+    }
+
+    /**
+     * Returns true if either black or white player has any legal move.
+     *
+     * @return {@code true} if either player has a legal move
+     */
+    public boolean hasAnyPlayerAnyLegalMove() {
+        boolean hasAnyPlayerAnyLegalMove = false;
+        for (Player player : Player.values()) {
+            if (hasAnyLegalMove(player)) {
+                hasAnyPlayerAnyLegalMove = true;
+                break;
+            }
+        }
+        return hasAnyPlayerAnyLegalMove;
+    }
+
+    /**
+     * Returns a hash code for this board.
+     *
+     * @return a hash code for this board
+     */
+    @Override
+    public int hashCode() {
+        if (hashCode == 0) {
+            int result = PRIME_NUMBER_17;
+            Square[] squareArray = Square.values();
+            for (int i = 0; i < squareArray.length; i++) {
+                SquareState ss = squares.get(squareArray[i]);
+                int k = 0;
+                switch (ss) {
+                case EMPTY: k = 0; break;
+                case BLACK: k = 1; break;
+                case WHITE: k = 2; break;
+                default: k = 0; // this should never happens.
+                }
+                result = PRIME_NUMBER_37 * result + k;
+            }
+            hashCode = result;
+        }
+        return hashCode;
+    }
+
+    /**
+     * Returns the boolean value telling if the move, done by the
+     * specified player, is legal.
+     *
+     * @param move   the square where to put the new disk
+     * @param player the player moving
+     * @return       true if the move is legal, otherwise false
+     * @throws NullPointerException if parameter {@code move} or {@code player} is null
+     */
+    public boolean isLegal(final Square move, final Player player) {
+        if (move == null) {
+            throw new NullPointerException("Parameter move must be not null.");
+        }
+        if (player == null) {
+            throw new NullPointerException("Parameter player must be not null.");
+        }
+        if (get(move) != SquareState.EMPTY) { return false; }
+        for (Direction dir : Direction.values()) {
+            if (wouldFlip(move, player, dir) != null) { return true; }
+        }
+        return false;
+    }
+
+    /**
+     * Returns a list holding the legal moves that the {@code player} can
+     * do at the board position. When no moves are available to the player
+     * the method returns an empty list.
+     *
+     * @param player the player
+     * @return       the moves available to the player
+     * @throws NullPointerException if parameter {@code player} is null
+     */
+    public List<Square> legalMoves(final Player player) {
+        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
+        List<Square> legalMoves = new ArrayList<Square>();
+        for (Square move : Square.values()) {
+            if (isLegal(move, player)) { legalMoves.add(move); }
+        }
+        return legalMoves;
     }
 
     /**
@@ -199,56 +364,27 @@ public final class Board {
     }
 
     /**
-     * Returns the boolean value telling if the move, done by the
-     * specified player, is legal.
+     * Returns the next player: the one that has to play next, given the current one.
+     * When the opponent player has at last one legal move she is
+     * the next player. When she doesn't have it, the method checks if
+     * the current has at last one legal move, if the check is positive, the current player is
+     * also the next one. When neither player has a legal move the method
+     * returns null.
      *
-     * @param move   the square where to put the new disk
-     * @param player the player moving
-     * @return       true if the move is legal, otherwise false
-     * @throws NullPointerException if parameter {@code move} or {@code player} is null
+     * @param current the current player
+     * @return        the next player that has to play a move
+     * @throws NullPointerException if parameter {@code current} is null
      */
-    public boolean isLegal(final Square move, final Player player) {
-        if (move == null) {
-            throw new NullPointerException("Parameter move must be not null.");
+    public Player nextToPlay(final Player current) {
+        if (current == null) { throw new NullPointerException("parameter current must be not null."); }
+        Player opponent = current.opponent();
+        Player next = null;
+        if (hasAnyLegalMove(opponent)) {
+            next = opponent;
+        } else if (hasAnyLegalMove(current)) {
+            next = current;
         }
-        if (player == null) {
-            throw new NullPointerException("Parameter player must be not null.");
-        }
-        if (get(move) != SquareState.EMPTY) { return false; }
-        for (Direction dir : Direction.values()) {
-            if (wouldFlip(move, player, dir) != null) { return true; }
-        }
-        return false;
-    }
-
-    /**
-     * Returns the disk count for the color.
-     *
-     * @param color the color for which the disk count is computed
-     * @return the disk count
-     * @throws NullPointerException if parameter {@code color} is null
-     */
-    public int countPieces(final SquareState color) {
-        if (color == null) {
-            throw new NullPointerException("parameter color must be not null.");
-        }
-        int count = 0;
-        for (SquareState ss : squares.values()) {
-            if (ss == color) { count++; }
-        }
-        return count;
-    }
-
-    /**
-     * Returns the disk difference between the player and her opponent.
-     *
-     * @param player the player
-     * @return       the disk count difference
-     * @throws NullPointerException if parameter {@code player} is null
-     */
-    public int countDifference(final Player player) {
-        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
-        return countPieces(player.color()) - countPieces(player.opponent().color());
+        return next;
     }
 
     /**
@@ -307,155 +443,6 @@ public final class Board {
     }
 
     /**
-     * Returns the next player: the one that has to play next, given the current one.
-     * When the opponent player has at last one legal move she is
-     * the next player. When she doesn't have it, the method checks if
-     * the current has at last one legal move, if the check is positive, the current player is
-     * also the next one. When neither player has a legal move the method
-     * returns null.
-     *
-     * @param current the current player
-     * @return        the next player that has to play a move
-     * @throws NullPointerException if parameter {@code current} is null
-     */
-    public Player nextToPlay(final Player current) {
-        if (current == null) { throw new NullPointerException("parameter current must be not null."); }
-        Player opponent = current.opponent();
-        Player next = null;
-        if (hasAnyLegalMove(opponent)) {
-            next = opponent;
-        } else if (hasAnyLegalMove(current)) {
-            next = current;
-        }
-        return next;
-    }
-
-    /**
-     * Returns if the player has any legal move given the board state.
-     *
-     * @param player the player
-     * @return       {@code true} if the player has any legal move, otherwise {@code false}
-     * @throws NullPointerException if parameter {@code player} is null
-     */
-    public boolean hasAnyLegalMove(final Player player) {
-        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
-        boolean hasAnyLegalMove = false;
-        for (Square move : Square.values()) {
-            if (isLegal(move, player)) {
-                hasAnyLegalMove = true;
-                break;
-            }
-        }
-        return hasAnyLegalMove;
-    }
-
-    /**
-     * Returns true if either black or white player has any legal move.
-     *
-     * @return {@code true} if either player has a legal move
-     */
-    public boolean hasAnyPlayerAnyLegalMove() {
-        boolean hasAnyPlayerAnyLegalMove = false;
-        for (Player player : Player.values()) {
-            if (hasAnyLegalMove(player)) {
-                hasAnyPlayerAnyLegalMove = true;
-                break;
-            }
-        }
-        return hasAnyPlayerAnyLegalMove;
-    }
-
-    /**
-     * Returns a list holding the legal moves that the {@code player} can
-     * do at the board position. When no moves are available to the player
-     * the method returns an empty list.
-     *
-     * @param player the player
-     * @return       the moves available to the player
-     * @throws NullPointerException if parameter {@code player} is null
-     */
-    public List<Square> legalMoves(final Player player) {
-        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
-        List<Square> legalMoves = new ArrayList<Square>();
-        for (Square move : Square.values()) {
-            if (isLegal(move, player)) { legalMoves.add(move); }
-        }
-        return legalMoves;
-    }
-
-    /**
-     * Returns true if the specified object is equal to this board.
-     * Two boards are equal when they have the same disk's configuration.
-     *
-     * @param object the object to compare to
-     * @return {@code true} when the {@code object} parameter is an instance of
-     *         the {@code Board} class and when the disks' position are the same.
-     */
-    @Override
-    public boolean equals(final Object object) {
-        if (object == this) { return true; }
-        if (!(object instanceof Board)) { return false; }
-        Board board = (Board) object;
-        for (Square sq : Square.values()) {
-            if (squares.get(sq) != board.squares.get(sq)) { return false; }
-        }
-        return true;
-    }
-
-    /**
-     * Returns a hash code for this board.
-     *
-     * @return a hash code for this board
-     */
-    @Override
-    public int hashCode() {
-        if (hashCode == 0) {
-            int result = PRIME_NUMBER_17;
-            Square[] squareArray = Square.values();
-            for (int i = 0; i < squareArray.length; i++) {
-                SquareState ss = squares.get(squareArray[i]);
-                int k = 0;
-                switch (ss) {
-                case EMPTY: k = 0; break;
-                case BLACK: k = 1; break;
-                case WHITE: k = 2; break;
-                default: k = 0; // this should never happens.
-                }
-                result = PRIME_NUMBER_37 * result + k;
-            }
-            hashCode = result;
-        }
-        return hashCode;
-    }
-
-    /**
-     * Returns the bracketing square or null if it is not found.
-     * The method does not check that the move is legal.
-     * <p>
-     * The method should be private. It is not private to enable unit testing.
-     * <p>
-     * Parameters move, player, and dir must be not null. Java assert statements check
-     * against this case to occur.
-     *
-     * @param move   the square where to move
-     * @param player the player
-     * @param dir    the direction
-     * @return       the bracketing square, or null if it is not found
-     */
-    Square wouldFlip(final Square move, final Player player, final Direction dir) {
-        assert (move != null) : "Argument square must be not null";
-        assert (player != null) : "Argument player must be not null";
-        assert (dir != null) : "Argument dir must be not null";
-        Square neighbor = move.neighbors().get(dir);
-        Square bracketing = null;
-        if (get(neighbor) == player.opponent().color()) {
-            Square next = neighbor.neighbors().get(dir);
-            if (next != null) { bracketing = findBracketingPiece(next, player, dir); }
-        }
-        return bracketing;
-    }
-
-    /**
      * Returns the bracketing square or null if it is missing.
      * The method does not check that the move is legal and that the square parameter
      * is one step from move in the given direction.
@@ -484,17 +471,30 @@ public final class Board {
     }
 
     /**
-     * Returns a new squares map being filled by empty values.
+     * Returns the bracketing square or null if it is not found.
+     * The method does not check that the move is legal.
+     * <p>
+     * The method should be private. It is not private to enable unit testing.
+     * <p>
+     * Parameters move, player, and dir must be not null. Java assert statements check
+     * against this case to occur.
      *
-     * @return a new map having and empty square state value for each
-     *         square in the board
+     * @param move   the square where to move
+     * @param player the player
+     * @param dir    the direction
+     * @return       the bracketing square, or null if it is not found
      */
-    private static Map<Square, SquareState> emptyBoardSquares() {
-        Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
-        for (Square sq : Square.values()) {
-            sm.put(sq, SquareState.EMPTY);
+    Square wouldFlip(final Square move, final Player player, final Direction dir) {
+        assert (move != null) : "Argument square must be not null";
+        assert (player != null) : "Argument player must be not null";
+        assert (dir != null) : "Argument dir must be not null";
+        Square neighbor = move.neighbors().get(dir);
+        Square bracketing = null;
+        if (get(neighbor) == player.opponent().color()) {
+            Square next = neighbor.neighbors().get(dir);
+            if (next != null) { bracketing = findBracketingPiece(next, player, dir); }
         }
-        return sm;
+        return bracketing;
     }
 
 }
