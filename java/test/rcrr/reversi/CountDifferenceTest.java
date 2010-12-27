@@ -30,35 +30,35 @@ import static org.junit.Assert.*;
 public class CountDifferenceTest {
 
     private BoardTest boardTest;
-    
+
     /**
      * Prepares the Board fixtures. It depends on the public BoardTest fixtures.
      */
     @Before
     public void setUp() {
-	boardTest = new BoardTest();
-	boardTest.setUp();
+        boardTest = new BoardTest();
+        boardTest.setUp();
     }
 
     @Test
     public void testEval() {
 
-	/** Tests that the empty board returns 0. */
-	assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardEmpty, Player.BLACK)));
-	assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardEmpty, Player.WHITE)));
+        /** Tests that the empty board returns 0. */
+        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardEmpty, Player.BLACK)));
+        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardEmpty, Player.WHITE)));
 
-	/** Tests that the initial game state returns 0. */
-	assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(Board.initialBoard(), Player.BLACK)));
-	assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(Board.initialBoard(), Player.WHITE)));
+        /** Tests that the initial game state returns 0. */
+        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(Board.initialBoard(), Player.BLACK)));
+        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(Board.initialBoard(), Player.WHITE)));
 
-	/** Tests that the fixtBoardA game state returns -3 for the white. */
-	assertEquals(-3, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.WHITE)));
+        /** Tests that the fixtBoardA game state returns -3 for the white. */
+        assertEquals(-3, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.WHITE)));
 
-	/** Tests that the fixtBoardA game state returns +3 for the black. */
-	assertEquals(+3, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.BLACK)));
+        /** Tests that the fixtBoardA game state returns +3 for the black. */
+        assertEquals(+3, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.BLACK)));
 
-	/** Tests that the fixtBoardEndGameX game state returns +10 for the black. */
-	assertEquals(+10, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardEndGameX, Player.BLACK)));
+        /** Tests that the fixtBoardEndGameX game state returns +10 for the black. */
+        assertEquals(+10, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardEndGameX, Player.BLACK)));
 
     }
 }

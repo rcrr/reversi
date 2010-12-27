@@ -41,6 +41,7 @@ public class CountDifference implements EvalFunction {
      *
      * @param position the game position to evaluate
      * @return the position value
+     * @throws NullPointerException if parameter {@code position} is null
      */
     public final int eval(final GamePosition position) {
         if (position == null) { throw new NullPointerException("Parameter position cannot be null."); }

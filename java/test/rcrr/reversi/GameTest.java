@@ -22,9 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-// To do:
-// write all tests
-
 package rcrr.reversi;
 
 import org.junit.*;
@@ -36,40 +33,104 @@ public class GameTest {
      * To be completed.
      */
     @Test
+    public void testAreThereAvailableMoves() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
+    public void testBoard() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
+    public void testClock() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
+    public void testCountDiscDifference() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
+    public void testHasOpponentPassed() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
+    public void testInitialGame() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
+    public void testLastGameSnapshot() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
+    public void testMove() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
+    public void testPlay() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
+    public void testPlayer() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
+    public void testSequence() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
+    public void testValidateMove() {
+        assertTrue("To be implemented.", false);
+    }
+
+    /**
+     * To be completed.
+     */
+    @Test
     public void testValueOf() {
-	assertEquals(true, true);
-    }
-    
-    /** 
-     * To be completed.
-     */
-    @Test
-    public void testAdd() {
-	assertEquals(true, true);
-    }
-
-    /** 
-     * To be completed.
-     */
-    @Test
-    public void testSize() {
-	assertEquals(true, true);
-    }
-
-    /** 
-     * To be completed.
-     */
-    @Test
-    public void testGet() {
-	assertEquals(true, true);
-    }
-
-    /** 
-     * To be completed.
-     */
-    @Test
-    public void testIsEmpty() {
-	assertEquals(true, true);
+        assertTrue("To be implemented.", false);
     }
 
 }
