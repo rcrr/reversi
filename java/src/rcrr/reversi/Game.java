@@ -45,6 +45,60 @@ import org.joda.time.Duration;
  */
 public final class Game {
 
+    /** Do we really need it? */
+    public static enum State {
+
+        /** The game is created but not started. */
+        CREATED,
+
+        /** The game is ongoing, no player has the move assigned. The clock is not running. */
+        PLAYING,
+
+        /** The game is ongoing. The move request has been assigned to one player. The clock is running. */
+        MOVING,
+
+        /** The game is paused. */
+        PAUSED;
+    }
+
+    /**
+     * A static factory that returns an initial game.
+     *
+     * @param  black        the actor playing as black
+     * @param  white        the actor playing as black
+     * @param  gameDuration the game duration assigned to each player
+     * @param  ps           the print stream field
+     * @return              a new initial game
+     */
+    public static Game initialGame(final Actor black,
+                                   final Actor white,
+                                   final Duration gameDuration,
+                                   final PrintStream ps) {
+        final Map<Player, Actor> actorMap = new EnumMap<Player, Actor>(Player.class);
+        actorMap.put(Player.BLACK, black);
+        actorMap.put(Player.WHITE, white);
+        return valueOf(ActorsPair.valueOf(actorMap), GameSequence.initialGameSequence(gameDuration), ps);
+    }
+
+    /**
+     * Base static factory for the class.
+     * <p>
+     * Parameter {@code actors} must be not null.
+     * Parameter {@code sequence} must be not null.
+     * Parameter {@code ps} is allowed to be null, meaning that no output is requested for the game.
+     *
+     * @param  actors   the actors field
+     * @param  sequence the game snapshot sequence field
+     * @param  ps       the print stream field
+     * @return          a new game instance
+     * @throws NullPointerException when either actors or sequence parameter is null
+     */
+    public static Game valueOf(final ActorsPair actors, final GameSequence sequence, final PrintStream ps) {
+        if (actors == null) { throw new NullPointerException("Parameter actors cannot be null."); }
+        if (sequence == null) { throw new NullPointerException("Parameter sequence cannot be null."); }
+        return new Game(actors, sequence, ps);
+    }
+
     /** The actors field. */
     private final ActorsPair actors;
 
@@ -91,64 +145,64 @@ public final class Game {
     }
 
     /**
-     * Base static factory for the class.
-     * <p>
-     * Parameter {@code actors} must be not null.
-     * Parameter {@code sequence} must be not null.
-     * Parameter {@code ps} is allowed to be null, meaning that no output is requested for the game.
+     * Returns true if there are available moves to either player.
      *
-     * @param  actors   the actors field
-     * @param  sequence the game snapshot sequence field
-     * @param  ps       the print stream field
-     * @return          a new game instance
-     * @throws NullPointerException when either actors or sequence parameter is null
+     * @return true if there are available moves to either player
      */
-    public static Game valueOf(final ActorsPair actors, final GameSequence sequence, final PrintStream ps) {
-        if (actors == null) { throw new NullPointerException("Parameter actors cannot be null."); }
-        if (sequence == null) { throw new NullPointerException("Parameter sequence cannot be null."); }
-        return new Game(actors, sequence, ps);
+    public boolean areThereAvailableMoves() {
+        return lastGameSnapshot().hasAnyPlayerAnyLegalMove();
     }
 
     /**
-     * A static factory that returns an initial game.
+     * Returns the board of the last game snapshot.
      *
-     * @param  black        the actor playing as black
-     * @param  white        the actor playing as black
-     * @param  gameDuration the game duration assigned to each player
-     * @param  ps           the print stream field
-     * @return              a new initial game
+     * @return the last game snapshot board
      */
-    public static Game initialGame(final Actor black,
-                                   final Actor white,
-                                   final Duration gameDuration,
-                                   final PrintStream ps) {
-        final Map<Player, Actor> actorMap = new EnumMap<Player, Actor>(Player.class);
-        actorMap.put(Player.BLACK, black);
-        actorMap.put(Player.WHITE, white);
-        return valueOf(ActorsPair.valueOf(actorMap), GameSequence.initialGameSequence(gameDuration), ps);
+    public Board board() {
+        return lastGameSnapshot().board();
     }
 
     /**
-     * The play method executes the game sequence of moves obtained
-     * by the two players.
-     * <p>
-     * It stops when no moves are left.
-     * It returns the disk difference between the two players.
+     * Returns the clock of the last game snapshot.
      *
-     * @return the disk difference between players
+     * @return the last game snapshot clock
      */
-    public int play() {
-        while (areThereAvailableMoves()) {
-            if (ps != null) { ps.print(lastGameSnapshot().printGameSnapshot()); }
-            move(MoveRegister.empty());
-            if (ps != null) {
-                if (hasOpponentPassed()) {
-                    ps.print("\n" + player().opponent() + " has no moves and must pass.\n");
-                }
+    public Clock clock() {
+        return lastGameSnapshot().clock();
+    }
+
+    /**
+     * Returns the disk difference between the two players.
+     *
+     * @return the disk difference between the two players
+     */
+    public int countDiscDifference() {
+        return lastGameSnapshot().countDiscDifference();
+    }
+
+    /**
+     * Returns true when the opponent passed the previous move.
+     *
+     * @return if the opponent previous move was a pass
+     */
+    public boolean hasOpponentPassed() {
+        boolean result = false;
+        if (sequence().size() > 1) {
+            Player previousPlayer = sequence().get(sequence().size() - 2).player();
+            if (player() == previousPlayer) {
+                result = true;
             }
         }
-        if (ps != null) { ps.print(lastGameSnapshot().printGameSnapshot()); }
-        return countDiscDifference();
+        return result;
+    }
+
+    /**
+     * Returns the last game snapshot of the game sequenze.
+     *
+     * @return the last game snapshot of the game sequence
+     */
+    public GameSnapshot lastGameSnapshot() {
+        return sequence.last();
     }
 
     /**
@@ -186,21 +240,44 @@ public final class Game {
     }
 
     /**
-     * Returns true if there are available moves to either player.
+     * The play method executes the game sequence of moves obtained
+     * by the two players.
+     * <p>
+     * It stops when no moves are left.
+     * It returns the disk difference between the two players.
      *
-     * @return true if there are available moves to either player
+     * @return the disk difference between players
      */
-    public boolean areThereAvailableMoves() {
-        return lastGameSnapshot().hasAnyPlayerAnyLegalMove();
+    public int play() {
+        while (areThereAvailableMoves()) {
+            if (ps != null) { ps.print(lastGameSnapshot().printGameSnapshot()); }
+            move(MoveRegister.empty());
+            if (ps != null) {
+                if (hasOpponentPassed()) {
+                    ps.print("\n" + player().opponent() + " has no moves and must pass.\n");
+                }
+            }
+        }
+        if (ps != null) { ps.print(lastGameSnapshot().printGameSnapshot()); }
+        return countDiscDifference();
     }
 
     /**
-     * Returns the disk difference between the two players.
+     * Returns the player of the last game snapshot.
      *
-     * @return the disk difference between the two players
+     * @return the last game snapshot player
      */
-    public int countDiscDifference() {
-        return lastGameSnapshot().countDiscDifference();
+    public Player player() {
+        return lastGameSnapshot().player();
+    }
+
+    /**
+     * Returns the sequence field.
+     *
+     * @return the sequence field
+     */
+    public GameSequence sequence() {
+        return sequence;
     }
 
     /**
@@ -229,83 +306,6 @@ public final class Game {
         Player nextPlayer = nextBoard.nextToPlay(player());
         GameSnapshot gs = GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock, register);
         return gs;
-    }
-
-    /**
-     * Returns the sequence field.
-     *
-     * @return the sequence field
-     */
-    public GameSequence sequence() {
-        return sequence;
-    }
-
-    /**
-     * Returns the player of the last game snapshot.
-     *
-     * @return the last game snapshot player
-     */
-    public Player player() {
-        return lastGameSnapshot().player();
-    }
-
-    /**
-     * Returns the board of the last game snapshot.
-     *
-     * @return the last game snapshot board
-     */
-    public Board board() {
-        return lastGameSnapshot().board();
-    }
-
-    /**
-     * Returns the clock of the last game snapshot.
-     *
-     * @return the last game snapshot clock
-     */
-    public Clock clock() {
-        return lastGameSnapshot().clock();
-    }
-
-    /**
-     * Returns true when the opponent passed the previous move.
-     *
-     * @return if the opponent previous move was a pass
-     */
-    public boolean hasOpponentPassed() {
-        boolean result = false;
-        if (sequence().size() > 1) {
-            Player previousPlayer = sequence().get(sequence().size() - 2).player();
-            if (player() == previousPlayer) {
-                result = true;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Returns the last game snapshot of the game sequenze.
-     *
-     * @return the last game snapshot of the game sequence
-     */
-    public GameSnapshot lastGameSnapshot() {
-        return sequence.last();
-    }
-
-    /** Do we really need it? */
-    public static enum State {
-
-        /** The game is created but not started. */
-        CREATED,
-
-        /** The game is ongoing, no player has the move assigned. The clock is not running. */
-        PLAYING,
-
-        /** The game is ongoing. The move request has been assigned to one player. The clock is running. */
-        MOVING,
-
-        /** The game is paused. */
-        PAUSED;
     }
 
 }
