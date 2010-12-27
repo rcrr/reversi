@@ -42,8 +42,8 @@ import org.joda.time.Duration;
  * <p>
  * {@code Clock} is immutable.
  * <p>
- * To create a new {@code Clock} there are three static factories
- * available. The first is:
+ * In order to create a new {@code Clock} are available three static factories.
+ * The first is:
  * <pre>
  * {@code
  * Clock c = Clock.valueOf(blackDuration, whiteDuration);
@@ -72,10 +72,12 @@ import org.joda.time.Duration;
  * subtract one full second from the Black player:
  * <pre>
  * {@code
- * Clock updated = c.set(Player.BLACK, oneSecondDuration);
+ * Clock c;
+ * ...
+ * Clock updated = c.set(Player.BLACK, Seconds.ONE.toStandardDuration());
  * }
  * </pre>
- * where {@code oneSecondDuration} parameter is a one second duration object belonging to the {@code Duration} class.
+ * where {@code Seconds.ONE.toStandardDuration()} parameter is a one second duration object belonging to the {@code Duration} class.
  */
 public final class Clock {
 
@@ -83,27 +85,20 @@ public final class Clock {
     private static final NumberFormat TIME_FORMATTER = new DecimalFormat("##00");
 
     /**
-     * Players' clock time in milliseconds.
-     */
-    private final Map<Player, Duration> playersGameDuration;
-
-    /**
-     * Class constructor.
-     * <p>
-     * This constructor creates a Clock object given the Black's time and the White's
-     * one.
+     * Returns a String representing the clock.
+     * The format is mm:ss corresponding to the given time in milliseconds, where:
+     *  - mm is the amount of minutes
+     *  - ss is the amount of seconds
      *
-     * @param durationMap a map having the remaining time duration assigned to each player.
+     * @param  duration time in milliseconds
+     * @return          a formatted {@code String} with minutes and seconds
      */
-    private Clock(final Map<Player, Duration> durationMap) {
-        assert (durationMap != null) : "Parameter durationMap cannot be null.";
-        assert (durationMap.size() == Player.values().length)
-            : "Parameter durationMap size is not consistent."
-            + " durationMap.size()=" + durationMap.size()
-            + ", expected value: " + Player.values().length;
-        final EnumMap<Player, Duration> durationEnumMap = (durationMap instanceof EnumMap)
-            ? (EnumMap<Player, Duration>) durationMap : new EnumMap<Player, Duration>(durationMap);
-        this.playersGameDuration = Collections.unmodifiableMap(durationEnumMap);
+    private static String timeString(final Duration duration) {
+        long time = duration.getMillis();
+        long rTime = time / DateTimeConstants.MILLIS_PER_SECOND;
+        long minutes = (long) Math.floor(rTime / DateTimeConstants.SECONDS_PER_MINUTE);
+        long seconds = rTime - (minutes * DateTimeConstants.SECONDS_PER_MINUTE);
+        return TIME_FORMATTER.format(minutes) + ":" + TIME_FORMATTER.format(seconds);
     }
 
     /**
@@ -177,31 +172,29 @@ public final class Clock {
     }
 
     /**
-     * Returns a new {@code Clock} object generated subtracting the delta value from
-     * the specified player remaining clock time.
-     * <p>
-     * When the delta parameter is greather than the player's actual time
-     * the updated value is set to zero.
-     *
-     * @param  player the player from which to take away the specified time
-     * @param  delta  the amount of time in milliseconds to subtract from the
-     *                player's clock time
-     * @return        a new updated {@code Clock}
-     * @throws NullPointerException     if the player or delta parameter is null
-     * @throws IllegalArgumentException if the delta parameter is negative.
+     * The playersGameDuration field.
+     * It stores each players' clock time as a Joda-Time Duration.
+     * Internally Durations store the time in milliseconds.
      */
-    public Clock set(final Player player, final Duration delta) {
-        if (player == null) { throw new NullPointerException("Parameter player connot be null"); }
-        if (delta == null) { throw new NullPointerException("Parameter delta connot be null."); }
-        if (delta.isShorterThan(Duration.ZERO)) {
-            throw new IllegalArgumentException("Parameter delta cannot be negative. delta=" + delta);
-        }
-        final Duration actual = playersGameDuration.get(player);
-        final Duration updated = (actual.isLongerThan(delta)) ? actual.minus(delta) : Duration.ZERO;
+    private final Map<Player, Duration> playersGameDuration;
 
-        final Map<Player, Duration> mutableDurationMap = new EnumMap<Player, Duration>(playersGameDuration);
-        mutableDurationMap.put(player, updated);
-        return valueOf(mutableDurationMap);
+    /**
+     * Class constructor.
+     * <p>
+     * This constructor creates a Clock object given the Black's time and the White's
+     * one.
+     *
+     * @param durationMap a map having the remaining time duration assigned to each player.
+     */
+    private Clock(final Map<Player, Duration> durationMap) {
+        assert (durationMap != null) : "Parameter durationMap cannot be null.";
+        assert (durationMap.size() == Player.values().length)
+            : "Parameter durationMap size is not consistent."
+            + " durationMap.size()=" + durationMap.size()
+            + ", expected value: " + Player.values().length;
+        final EnumMap<Player, Duration> durationEnumMap = (durationMap instanceof EnumMap)
+            ? (EnumMap<Player, Duration>) durationMap : new EnumMap<Player, Duration>(durationMap);
+        this.playersGameDuration = Collections.unmodifiableMap(durationEnumMap);
     }
 
     /**
@@ -240,20 +233,31 @@ public final class Clock {
     }
 
     /**
-     * Returns a String representing the clock.
-     * The format is mm:ss corresponding to the given time in milliseconds, where:
-     *  - mm is the amount of minutes
-     *  - ss is the amount of seconds
+     * Returns a new {@code Clock} object generated subtracting the delta value from
+     * the specified player remaining clock time.
+     * <p>
+     * When the delta parameter is greather than the player's actual time
+     * the updated value is set to zero.
      *
-     * @param  duration time in milliseconds
-     * @return          a formatted {@code String} with minutes and seconds
+     * @param  player the player from which to take away the specified time
+     * @param  delta  the amount of time in milliseconds to subtract from the
+     *                player's clock time
+     * @return        a new updated {@code Clock}
+     * @throws NullPointerException     if the player or delta parameter is null
+     * @throws IllegalArgumentException if the delta parameter is negative.
      */
-    private static String timeString(final Duration duration) {
-        long time = duration.getMillis();
-        long rTime = time / DateTimeConstants.MILLIS_PER_SECOND;
-        long minutes = (long) Math.floor(rTime / DateTimeConstants.SECONDS_PER_MINUTE);
-        long seconds = rTime - (minutes * DateTimeConstants.SECONDS_PER_MINUTE);
-        return TIME_FORMATTER.format(minutes) + ":" + TIME_FORMATTER.format(seconds);
+    public Clock set(final Player player, final Duration delta) {
+        if (player == null) { throw new NullPointerException("Parameter player connot be null"); }
+        if (delta == null) { throw new NullPointerException("Parameter delta connot be null."); }
+        if (delta.isShorterThan(Duration.ZERO)) {
+            throw new IllegalArgumentException("Parameter delta cannot be negative. delta=" + delta);
+        }
+        final Duration actual = playersGameDuration.get(player);
+        final Duration updated = (actual.isLongerThan(delta)) ? actual.minus(delta) : Duration.ZERO;
+
+        final Map<Player, Duration> mutableDurationMap = new EnumMap<Player, Duration>(playersGameDuration);
+        mutableDurationMap.put(player, updated);
+        return valueOf(mutableDurationMap);
     }
 
 }
