@@ -39,16 +39,6 @@ import org.joda.time.Duration;
 public final class GameSequence {
 
    /**
-     * The base static factory.
-     *
-     * @param sequence the sequence of game snapshot
-     * @return         the game built with the given sequence
-     */
-    public static GameSequence valueOf(final List<GameSnapshot> sequence) {
-        return new GameSequence(sequence);
-    }
-
-   /**
      * A static factory that returns an initial game sequence.
      *
      * @param gameDuration the initial game time assigned to players
@@ -56,6 +46,16 @@ public final class GameSequence {
      */
     public static GameSequence initialGameSequence(final Duration gameDuration) {
         return valueOf(Arrays.asList(GameSnapshot.initialGameSnapshot(gameDuration)));
+    }
+
+   /**
+     * The base static factory.
+     *
+     * @param sequence the sequence of game snapshot
+     * @return         the game built with the given sequence
+     */
+    public static GameSequence valueOf(final List<GameSnapshot> sequence) {
+        return new GameSequence(sequence);
     }
 
     /** The game state sequence field. */
@@ -82,18 +82,6 @@ public final class GameSequence {
         return valueOf(newSequence);
     }
 
-    /**
-     * Returns the number of game states recordered.
-     * <p>
-     * When the game starts from the initial position the size is
-     * equal to the number of moves already played plus one.
-     *
-     * @return the size of the sequence of the game's states recordered
-     */
-    public int size() {
-        return sequence.size();
-    }
-
    /**
      * Returns the game state identified by {@code index}.
      *
@@ -105,6 +93,15 @@ public final class GameSequence {
     }
 
    /**
+     * Returns true if the game state sequence is empty.
+     *
+     * @return if the game sequence is empty
+     */
+    public boolean isEmpty() {
+        return sequence.isEmpty();
+    }
+
+   /**
      * Returns the last game snapshot.
      *
      * @return the last game snapshot
@@ -113,13 +110,16 @@ public final class GameSequence {
         return sequence.get(size() - 1);
     }
 
-   /**
-     * Returns true if the game state sequence is empty.
+    /**
+     * Returns the number of game states recordered.
+     * <p>
+     * When the game starts from the initial position the size is
+     * equal to the number of moves already played plus one.
      *
-     * @return if the game sequence is empty
+     * @return the size of the sequence of the game's states recordered
      */
-    public boolean isEmpty() {
-        return sequence.isEmpty();
+    public int size() {
+        return sequence.size();
     }
 
 }
