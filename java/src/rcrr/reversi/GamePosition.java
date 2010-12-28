@@ -126,12 +126,25 @@ public final class GamePosition {
 
     /**
      * Returns the boolean value telling if the move, done by the position's player, is legal.
+     * If the position has a null player the return value is always false.
+     * A null square parameter is not allowed, in such a case the method throws a
+     * {@code NullPointerException}.
      *
      * @param move the square where to put the new disk
      * @return     {@code true} true if the move is legal, otherwise false
+     * @throws NullPointerException if parameter {@code move} is null
      */
     public boolean isLegal(final Square move) {
-        return board.isLegal(move, player());
+        if (move == null) {
+            throw new NullPointerException("Parameter move must be not null.");
+        }
+        boolean result = false;
+        if (player() == null) {
+            result =  false;
+        } else {
+            result =  board.isLegal(move, player());
+        }
+        return result;
     }
 
 }
