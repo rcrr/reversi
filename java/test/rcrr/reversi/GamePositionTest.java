@@ -29,6 +29,46 @@ import static org.junit.Assert.*;
 
 public class GamePositionTest {
 
+    /**
+     * Test to be written.
+     */
+    @Test
+    public void testHasAnyLegalMove() {
+        assertTrue("Test to be written.",false);
+    }
+
+    /**
+     * Test to be written.
+     */
+    @Test
+    public void testHasAnyPlayerAnyLegalMove() {
+        assertTrue("Test to be written.",false);
+    }
+
+    /**
+     * Test to be written.
+     */
+    @Test
+    public void testInitialGamePosition() {
+        assertTrue("Test to be written.",false);
+    }
+
+    /**
+     * Test to be written.
+     */
+    @Test
+    public void testIsLegal() {
+        assertTrue("Test to be written.",false);
+    }
+
+    /**
+     * Test to be written.
+     */
+    @Test
+    public void testPlayer() {
+        assertTrue("Test to be written.",false);
+    }
+
     @Test
     public void testValueOf() {
 
