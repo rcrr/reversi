@@ -32,6 +32,83 @@ import org.joda.time.Period;
 
 public class GameSnapshotTest {
 
+    /**
+     * Tests the class getter methods. Must be removed.
+     */
+    @Test
+    public void testGetters() {
+	GamePosition gp = GamePosition.initialGamePosition();
+	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
+	MoveRegister reg = MoveRegister.empty();
+	GameSnapshot gs = GameSnapshot.valueOf(gp, c, reg);
+	assertEquals(gp, gs.position());
+	assertEquals(c, gs.clock());
+    }
+
+    /**
+     * Has to be written.
+     */
+    @Test
+    public void testBoard() {
+	assertTrue("Test has to be written.", false);
+    }
+
+    /**
+     * Has to be written.
+     */
+    @Test
+    public void testClock() {
+	assertTrue("Test has to be written.", false);
+    }
+
+    /**
+     * Has to be written.
+     */
+    @Test
+    public void testCountDiscDifference() {
+	assertTrue("Test has to be written.", false);
+    }
+
+    /**
+     * Has to be written.
+     */
+    @Test
+    public void testHasAnyLegalMove() {
+	assertTrue("Test has to be written.", false);
+    }
+
+    /**
+     * Has to be written.
+     */
+    @Test
+    public void testHasAnyPlayerAnyLegalMove() {
+	assertTrue("Test has to be written.", false);
+    }
+
+    /**
+     * Has to be written.
+     */
+    @Test
+    public void testInitialGameSnapshot() {
+	assertTrue("Test has to be written.", false);
+    }
+
+    /**
+     * Has to be written.
+     */
+    @Test
+    public void testPlayer() {
+	assertTrue("Test has to be written.", false);
+    }
+
+    /**
+     * Has to be written.
+     */
+    @Test
+    public void testPosition() {
+	assertTrue("Test has to be written.", false);
+    }
+
     @Test
     public void testValueOf() {
 
@@ -94,44 +171,6 @@ public class GameSnapshotTest {
 	initialGameSnapshot.append(" 8  . . . . . . . . [@=30:00, O=30:00]\n");
 	initialGameSnapshot.append(" Next to play: BLACK, legal moves: [D3, C4, F5, E6]\n");
 	assertEquals(initialGameSnapshot.toString(), gs.printGameSnapshot());
-    }
-
-    /**
-     * Tests the class getter methods.
-     * Same test used in the testValueOf test.
-     */
-    @Test
-    public void testGetters() {
-	GamePosition gp = GamePosition.initialGamePosition();
-	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	MoveRegister reg = MoveRegister.empty();
-	GameSnapshot gs = GameSnapshot.valueOf(gp, c, reg);
-	assertEquals(gp, gs.position());
-	assertEquals(c, gs.clock());
-    }
-
-    /**
-     * Has to be written.
-     */
-    @Test
-    public void testInitialGameSnapshot() {
-	assertEquals(true, true);
-    }
-
-    /**
-     * Has to be written.
-     */
-    @Test
-    public void testHasAnyLegalMove() {
-	assertEquals(true, true);
-    }
-
-    /**
-     * Has to be written.
-     */
-    @Test
-    public void testHasAnyPlayerAnyLegalMove() {
-	assertEquals(true, true);
     }
 
 }
