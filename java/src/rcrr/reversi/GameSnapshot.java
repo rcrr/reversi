@@ -45,24 +45,6 @@ public final class GameSnapshot {
     private static final int BOARD_ROWS = 8;
 
     /**
-     * Base static factory for the class.
-     * <p>
-     * Parameters {@code position}, {@code register}, and {@code clock} must be not null.
-     *
-     * @param  position  the game position
-     * @param  clock     the current clock
-     * @param  register  the log of moves transmitted by the player
-     * @return           a new game snapshot
-     * @throws NullPointerException when position, register, or clock parameters are null,
-     */
-    public static GameSnapshot valueOf(final GamePosition position, final Clock clock, final MoveRegister register) {
-        if (position == null) { throw new NullPointerException("Parameter position cannot be null."); }
-        if (clock == null) { throw new NullPointerException("Parameter clock cannot be null."); }
-        if (register == null) { throw new NullPointerException("Parameter register cannot be null."); }
-        return new GameSnapshot(position, clock, register);
-    }
-
-    /**
      * Static factory that returns a new initial game snapshot.
      * <p>
      * The returned game snapshot has the board set with the four central
@@ -73,11 +55,29 @@ public final class GameSnapshot {
      *
      * @param gameDuration the time duration assigned to each player
      * @return             a new initial game snapshot as required by international game's rules
-     * @throws NullPointerException when gameDuration is null
+     * @throws NullPointerException when {@code gameDuration} is null
      */
     public static GameSnapshot initialGameSnapshot(final Duration gameDuration) {
         if (gameDuration == null) { throw new NullPointerException("Parameter gameDuration cannot be null."); }
         return valueOf(GamePosition.initialGamePosition(), Clock.initialClock(gameDuration), MoveRegister.empty());
+    }
+
+    /**
+     * Base static factory for the class.
+     * <p>
+     * Parameters {@code position}, {@code register}, and {@code clock} must be not null.
+     *
+     * @param  position  the game position
+     * @param  clock     the current clock
+     * @param  register  the log of moves transmitted by the player
+     * @return           a new game snapshot
+     * @throws NullPointerException when {@code position}, {@code register}, or {@code clock} parameters are null
+     */
+    public static GameSnapshot valueOf(final GamePosition position, final Clock clock, final MoveRegister register) {
+        if (position == null) { throw new NullPointerException("Parameter position cannot be null."); }
+        if (clock == null) { throw new NullPointerException("Parameter clock cannot be null."); }
+        if (register == null) { throw new NullPointerException("Parameter register cannot be null."); }
+        return new GameSnapshot(position, clock, register);
     }
 
     /** The game position field. */
