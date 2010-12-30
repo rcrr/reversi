@@ -38,9 +38,20 @@ public class HumanStrategy implements Strategy {
     /** Input reader. */
     private BufferedReader in;
 
-    /** Class constructor. */
+    /**
+     * No parameter class constructor.
+     * The input is defaulted to {@code System.in}
+     */
     public HumanStrategy() {
-        InputStreamReader isr = new InputStreamReader(System.in);
+        this(new InputStreamReader(System.in));
+    }
+
+    /**
+     * Class constructor.
+     *
+     * @param isr the human input stream reader
+     */
+    public HumanStrategy(final InputStreamReader isr) {
         in = new BufferedReader(isr);
     }
 
