@@ -77,7 +77,8 @@ import org.joda.time.Duration;
  * Clock updated = c.set(Player.BLACK, Seconds.ONE.toStandardDuration());
  * }
  * </pre>
- * where {@code Seconds.ONE.toStandardDuration()} parameter is a one second duration object belonging to the {@code Duration} class.
+ * where {@code Seconds.ONE.toStandardDuration()} parameter is
+ * a one second duration object belonging to the {@code Duration} class.
  */
 public final class Clock {
 
