@@ -113,7 +113,7 @@ public final class Board {
      * @return a new map having and empty square state value for each
      *         square in the board
      */
-    private static Map<Square, SquareState> emptyBoardSquares() {
+    static Map<Square, SquareState> emptyBoardSquares() {
         Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
         for (Square sq : Square.values()) {
             sm.put(sq, SquareState.EMPTY);

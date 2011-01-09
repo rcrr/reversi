@@ -37,7 +37,7 @@ import static org.junit.Assert.*;
 public class BoardTest {
 
     /** public fixtures are used also in other test classes. */
-    public Board fixtBoardInitial;
+    // private Board fixtBoardInitial;
     public Board fixtBoardEmpty;
     public Board fixtBoardBlackHasToPass;
     public Board fixtBoardEndGameX;
@@ -61,6 +61,7 @@ public class BoardTest {
     private Board fixtBoardMakeMoveD;
     private Board fixtBoardMakeMoveDm;
 
+    /** REPLACED BY THE BoardBuilder CLASS. Has to be removed. */
     /** Static Factory for the board class. */
     static Board boardFromList(List<Integer> il) {
         if (il == null) return null;
@@ -81,15 +82,6 @@ public class BoardTest {
 
     @Before
     public void setUp() {
-        fixtBoardInitial = 
-            boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 2, 1, 0, 0, 0,
-                                        0, 0, 0, 1, 2, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0));
 
         fixtBoardEmpty = 
             boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
@@ -289,7 +281,7 @@ public class BoardTest {
     @Test
     public void testCountDifference() {
         try {
-            fixtBoardInitial.countDifference(null);
+            BoardFixtures.INITIAL.countDifference(null);
             fail("An exception must be risen.");
         } catch (NullPointerException npe) {
             assertTrue(true);
@@ -304,7 +296,7 @@ public class BoardTest {
     @Test
     public void testCountPieces() {
         try {
-            fixtBoardInitial.countPieces(null);
+            BoardFixtures.INITIAL.countPieces(null);
             fail("An exception must be risen.");
         } catch (NullPointerException npe) {
             assertTrue(true);
@@ -327,13 +319,13 @@ public class BoardTest {
 
     @Test
     public void testEquals() {
-        assertFalse(fixtBoardInitial.equals(null));
-        assertFalse(fixtBoardInitial.equals(new Object()));
-        assertFalse(fixtBoardInitial.equals(fixtBoardA));
+        assertFalse(BoardFixtures.INITIAL.equals(null));
+        assertFalse(BoardFixtures.INITIAL.equals(new Object()));
+        assertFalse(BoardFixtures.INITIAL.equals(fixtBoardA));
 
-        assertTrue(fixtBoardInitial.equals(fixtBoardInitial));
-        assertTrue(fixtBoardInitial.equals(Board.initialBoard()));
-        assertTrue(Board.initialBoard().equals(fixtBoardInitial));
+        assertTrue(BoardFixtures.INITIAL.equals(BoardFixtures.INITIAL));
+        assertTrue(BoardFixtures.INITIAL.equals(Board.initialBoard()));
+        assertTrue(Board.initialBoard().equals(BoardFixtures.INITIAL));
 
         assertTrue(fixtBoardEqlA.equals(fixtBoardEqlA));
 
@@ -351,7 +343,7 @@ public class BoardTest {
 
     @Test
     public void testHasAnyLegalMove() {
-        assertTrue(fixtBoardInitial.hasAnyLegalMove(Player.BLACK));
+        assertTrue(BoardFixtures.INITIAL.hasAnyLegalMove(Player.BLACK));
         assertFalse(fixtBoardBlackHasToPass.hasAnyLegalMove(Player.BLACK));
         assertTrue(fixtBoardBlackHasToPass.hasAnyLegalMove(Player.WHITE));
         assertFalse(fixtBoardEndGameX.hasAnyLegalMove(Player.WHITE));
@@ -361,14 +353,14 @@ public class BoardTest {
     @Test
     public void testHasAnyPlayerAnyLegalMove() {
         assertFalse(fixtBoardEmpty.hasAnyPlayerAnyLegalMove());
-        assertTrue(fixtBoardInitial.hasAnyPlayerAnyLegalMove());
+        assertTrue(BoardFixtures.INITIAL.hasAnyPlayerAnyLegalMove());
         assertTrue(fixtBoardBlackHasToPass.hasAnyPlayerAnyLegalMove());
         assertFalse(fixtBoardEndGameX.hasAnyPlayerAnyLegalMove());
     }
 
     @Test
     public void testHashCode() {
-        assertEquals(fixtBoardInitial.hashCode(), fixtBoardInitial.hashCode());
+        assertEquals(BoardFixtures.INITIAL.hashCode(), BoardFixtures.INITIAL.hashCode());
         assertEquals(fixtBoardEmpty.hashCode(), fixtBoardEmpty.hashCode());
         assertEquals(fixtBoardBlackHasToPass.hashCode(), fixtBoardBlackHasToPass.hashCode());
         assertEquals(fixtBoardEndGameX.hashCode(), fixtBoardEndGameX.hashCode());
@@ -384,7 +376,7 @@ public class BoardTest {
 
     @Test
     public void testInitialBoard() {
-        assertEquals(fixtBoardInitial, Board.initialBoard());
+        assertEquals(BoardFixtures.INITIAL, Board.initialBoard());
         Board initial = Board.initialBoard();
         for (Square square : Square.values()) {
             SquareState actual = initial.get(square);
@@ -404,32 +396,32 @@ public class BoardTest {
     public void testIsLegal() {
 
         try {
-            fixtBoardInitial.isLegal(null, Player.BLACK);
+            BoardFixtures.INITIAL.isLegal(null, Player.BLACK);
             fail("An exception must be risen.");
         } catch (NullPointerException npe) {
             assertTrue(true);
         }
 
         try {
-            fixtBoardInitial.isLegal(Square.D3, null);
+            BoardFixtures.INITIAL.isLegal(Square.D3, null);
             fail("An exception must be risen.");
         } catch (NullPointerException npe) {
             assertTrue(true);
         }
 
         /** D4 is already occupied by a disk in the initial board. */
-        assertFalse(fixtBoardInitial.isLegal(Square.D4, Player.BLACK));
-        assertFalse(fixtBoardInitial.isLegal(Square.D4, Player.WHITE));
+        assertFalse(BoardFixtures.INITIAL.isLegal(Square.D4, Player.BLACK));
+        assertFalse(BoardFixtures.INITIAL.isLegal(Square.D4, Player.WHITE));
 
         /** Corner A1 is not a legal move given the initial board. */
-        assertFalse(fixtBoardInitial.isLegal(Square.A1, Player.BLACK));
-        assertFalse(fixtBoardInitial.isLegal(Square.A1, Player.WHITE));
+        assertFalse(BoardFixtures.INITIAL.isLegal(Square.A1, Player.BLACK));
+        assertFalse(BoardFixtures.INITIAL.isLegal(Square.A1, Player.WHITE));
 
         /** D3 is one of the four legal moves that the black player has in the opening. */
-        assertTrue(fixtBoardInitial.isLegal(Square.D3, Player.BLACK));
+        assertTrue(BoardFixtures.INITIAL.isLegal(Square.D3, Player.BLACK));
 
         /** E3 is not among the legal opening moves. */
-        assertFalse(fixtBoardInitial.isLegal(Square.E3, Player.BLACK));
+        assertFalse(BoardFixtures.INITIAL.isLegal(Square.E3, Player.BLACK));
 
         assertFalse(fixtBoardBlackHasToPass.isLegal(Square.H7, Player.BLACK));
         assertTrue(fixtBoardBlackHasToPass.isLegal(Square.H7, Player.WHITE));
@@ -442,7 +434,7 @@ public class BoardTest {
     @Test
     public void testLegalMoves() {
         try {
-            fixtBoardInitial.legalMoves(null);
+            BoardFixtures.INITIAL.legalMoves(null);
             fail("An exception must be risen.");
         } catch (NullPointerException npe) {
             assertTrue(true);
@@ -450,7 +442,7 @@ public class BoardTest {
 
         {
             List<Square> lm = Arrays.asList(Square.D3, Square.C4, Square.F5, Square.E6);
-            assertEquals(lm, fixtBoardInitial.legalMoves(Player.BLACK));
+            assertEquals(lm, BoardFixtures.INITIAL.legalMoves(Player.BLACK));
         }
 
         {
@@ -504,7 +496,7 @@ public class BoardTest {
 
         /** Tests that a null player cannot be passed to makeMove. */
         try {
-            fixtBoardInitial.makeMove(Square.D3, null);
+            BoardFixtures.INITIAL.makeMove(Square.D3, null);
             fail("An exception must be risen.");
         } catch (NullPointerException npe) {
             assertTrue(true);
@@ -512,7 +504,7 @@ public class BoardTest {
 
         /** Tests that a null move cannot be passed to makeMove when a legal one is there. */
         try {
-            fixtBoardInitial.makeMove(null, Player.BLACK);
+            BoardFixtures.INITIAL.makeMove(null, Player.BLACK);
             fail("An exception must be risen.");
         } catch (NullPointerException npe) {
             assertTrue(true);
@@ -526,14 +518,14 @@ public class BoardTest {
 
         /** Tests that an illegal move cannot be passed to makeMove. */
         try {
-            fixtBoardInitial.makeMove(Square.A1, Player.BLACK);
+            BoardFixtures.INITIAL.makeMove(Square.A1, Player.BLACK);
             fail("An exception must be risen.");
         } catch (IllegalArgumentException iae) {
             assertTrue(true);
         }
 
         /** Move D3 by black sent to the initial board returns the fixtBoardA. */
-        assertTrue(fixtBoardA.equals(fixtBoardInitial.makeMove(Square.D3, Player.BLACK)));
+        assertTrue(fixtBoardA.equals(BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK)));
         /** Move C3 by white sent to the fixtBoardB board returns the fixtBoardBC3. */
         assertTrue(fixtBoardBC3.equals(fixtBoardB.makeMove(Square.C3, Player.WHITE)));
         /** Move C6 by white sent to the fixtBoardB board returns the fixtBoardBC6. */
@@ -550,14 +542,14 @@ public class BoardTest {
     @Test
     public void testNextToPlay() {
         try {
-            fixtBoardInitial.nextToPlay(null);
+            BoardFixtures.INITIAL.nextToPlay(null);
             fail("An exception must be risen.");
         } catch (NullPointerException npe) {
             assertTrue(true);
         }
 
-        assertEquals(Player.BLACK, fixtBoardInitial.nextToPlay(Player.WHITE));
-        assertEquals(Player.WHITE, fixtBoardInitial.nextToPlay(Player.BLACK));
+        assertEquals(Player.BLACK, BoardFixtures.INITIAL.nextToPlay(Player.WHITE));
+        assertEquals(Player.WHITE, BoardFixtures.INITIAL.nextToPlay(Player.BLACK));
         assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.WHITE));
         assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.BLACK));
         assertEquals(Player.WHITE, fixtBoardBlackHasToPass.nextToPlay(Player.WHITE));
@@ -576,7 +568,7 @@ public class BoardTest {
         initialBoard.append(" 6  . . . . . . . . \n");
         initialBoard.append(" 7  . . . . . . . . \n");
         initialBoard.append(" 8  . . . . . . . . \n");
-        assertEquals(initialBoard.toString(), fixtBoardInitial.printBoard());
+        assertEquals(initialBoard.toString(), BoardFixtures.INITIAL.printBoard());
     }
 
     @Test
@@ -591,12 +583,12 @@ public class BoardTest {
         initialBoard.append(" 6  . . . . . . . . \n");
         initialBoard.append(" 7  . . . . . . . . \n");
         initialBoard.append(" 8  . . . . . . . . \n");
-        assertEquals(initialBoard.toString(), fixtBoardInitial.printBoardWithCount());
+        assertEquals(initialBoard.toString(), BoardFixtures.INITIAL.printBoardWithCount());
     }
 
     @Test
     public void testPrintCount() {
-        assertEquals("[@=2 0=2 (0)]", fixtBoardInitial.printCount());
+        assertEquals("[@=2 0=2 (0)]", BoardFixtures.INITIAL.printCount());
         assertEquals("[@=26 0=28 (-2)]", fixtBoardBlackHasToPass.printCount());
     }
 
