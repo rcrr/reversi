@@ -82,7 +82,6 @@ public class BoardTest {
 
     @Before
     public void setUp() {
-
         fixtBoardEmpty = 
             boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
