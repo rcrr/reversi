@@ -44,8 +44,8 @@ public class CountDifferenceTest {
     public void testEval() {
 
         /** Tests that the empty board returns 0. */
-        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardEmpty, Player.BLACK)));
-        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardEmpty, Player.WHITE)));
+        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.BLACK)));
+        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.WHITE)));
 
         /** Tests that the initial game state returns 0. */
         assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(Board.initialBoard(), Player.BLACK)));
