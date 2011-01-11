@@ -57,8 +57,13 @@ public class CountDifferenceTest {
         /** Tests that the fixtBoardA game state returns +3 for the black. */
         assertEquals(+3, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.BLACK)));
 
-        /** Tests that the fixtBoardEndGameX game state returns +10 for the black. */
-        assertEquals(+10, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardEndGameX, Player.BLACK)));
+	/**
+         * Tests that the game state defined by:
+         * - Board  = FINAL_B37_W27 game state 
+         * - Player = BLACK
+         * returns a value of +10.
+         */
+        assertEquals(+10, (new CountDifference()).eval(GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, Player.BLACK)));
 
     }
 }
