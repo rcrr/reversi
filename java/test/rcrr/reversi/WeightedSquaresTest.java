@@ -57,8 +57,13 @@ public class WeightedSquaresTest {
 	/** Tests that the fixtBoardA game state returns +9 for the black. */
 	assertEquals(+9, (new WeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.BLACK)));
 
-	/** Tests that the fixtBoardEndGameX game state returns +2 for the black. */
-	assertEquals(+2, (new WeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardEndGameX, Player.BLACK)));
+	/**
+         * Tests that the game state defined by:
+         * - Board  = FINAL_B37_W27 game state 
+         * - Player = BLACK
+         * returns a value of +2.
+         */
+	assertEquals(+2, (new WeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, Player.BLACK)));
 
     }
 }
