@@ -93,7 +93,7 @@ public class MinimaxTest {
 									Player.BLACK),
 						   Clock.initialClock(Period.minutes(1).toStandardDuration()),
 						   MoveRegister.empty());
-	fixtGameSnapshotBlackHasToPass = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardBlackHasToPass,
+	fixtGameSnapshotBlackHasToPass = GameSnapshot.valueOf(GamePosition.valueOf(BoardFixtures.BLACK_HAS_TO_PASS,
 										   Player.BLACK),
 							      Clock.initialClock(Period.minutes(1).toStandardDuration()),
 							      MoveRegister.empty());

@@ -26,8 +26,55 @@ package rcrr.reversi;
 
 import java.util.Arrays;
 
+/**
+ * The class host a number of predefined boards.
+ * <p>
+ * The {@code Board} class defines immutable objects thus {@code BoardFixtures}
+ * implements board instances as public static shared objects. Tests can
+ * freely share the instances without any modification issue.
+ */
 public class BoardFixtures {
 
+    /** The black player has to pass. */
+    public static Board BLACK_HAS_TO_PASS = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
+                                        1, 1, 1, 1, 1, 1, 1, 2,
+                                        0, 1, 2, 2, 1, 1, 2, 2,
+                                        0, 1, 2, 1, 2, 2, 2, 2,
+                                        0, 1, 2, 1, 2, 2, 2, 2,
+                                        0, 1, 2, 1, 1, 2, 1, 2,
+                                        0, 1, 2, 1, 1, 1, 1, 0,
+                                        2, 2, 2, 2, 2, 2, 1, 2))
+        .build();
+
+    /** The empty board. */
+    public static Board EMPTY = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /**
+     * A final position board. All sixtyfour squares are occupied by a player.
+     * The black counts 37 discs, while the white 27.
+     */
+    public static Board FINAL_B37_W27 = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(2, 2, 2, 2, 2, 1, 1, 1,
+                                        2, 2, 2, 1, 1, 1, 1, 1,
+                                        2, 2, 2, 1, 1, 1, 2, 1,
+                                        2, 2, 1, 2, 1, 1, 2, 1,
+                                        1, 1, 2, 1, 2, 1, 2, 1,
+                                        1, 2, 1, 2, 1, 2, 1, 1,
+                                        1, 1, 1, 1, 1, 1, 2, 1,
+                                        1, 1, 1, 1, 2, 2, 2, 2))
+        .build();
+
+    /** The initial board. */
     public static Board INITIAL = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,

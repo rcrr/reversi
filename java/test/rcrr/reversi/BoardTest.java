@@ -37,9 +37,6 @@ import static org.junit.Assert.*;
 public class BoardTest {
 
     /** public fixtures are used also in other test classes. */
-    // private Board fixtBoardInitial;
-    public Board fixtBoardEmpty;
-    public Board fixtBoardBlackHasToPass;
     public Board fixtBoardEndGameX;
     public Board fixtBoardA;
     public Board fixtBoardB;
@@ -82,26 +79,6 @@ public class BoardTest {
 
     @Before
     public void setUp() {
-        fixtBoardEmpty = 
-            boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0));
-
-        fixtBoardBlackHasToPass = 
-            boardFromList(Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        0, 1, 2, 2, 1, 1, 2, 2,
-                                        0, 1, 2, 1, 2, 2, 2, 2,
-                                        0, 1, 2, 1, 2, 2, 2, 2,
-                                        0, 1, 2, 1, 1, 2, 1, 2,
-                                        0, 1, 2, 1, 1, 1, 1, 0,
-                                        2, 2, 2, 2, 2, 2, 1, 2));
-
         fixtBoardEndGameX = 
             boardFromList(Arrays.asList(2, 2, 2, 2, 2, 1, 1, 1,
                                         2, 2, 2, 1, 1, 1, 1, 1,
@@ -309,7 +286,7 @@ public class BoardTest {
 
     @Test
     public void testEmptyBoard() {
-        assertEquals(fixtBoardEmpty, Board.emptyBoard());
+        assertEquals(BoardFixtures.EMPTY, Board.emptyBoard());
         Board empty = Board.emptyBoard();
         for (Square square : Square.values()) {
             assertEquals(SquareState.EMPTY, empty.get(square));
@@ -343,25 +320,25 @@ public class BoardTest {
     @Test
     public void testHasAnyLegalMove() {
         assertTrue(BoardFixtures.INITIAL.hasAnyLegalMove(Player.BLACK));
-        assertFalse(fixtBoardBlackHasToPass.hasAnyLegalMove(Player.BLACK));
-        assertTrue(fixtBoardBlackHasToPass.hasAnyLegalMove(Player.WHITE));
+        assertFalse(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.BLACK));
+        assertTrue(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.WHITE));
         assertFalse(fixtBoardEndGameX.hasAnyLegalMove(Player.WHITE));
         assertFalse(fixtBoardEndGameX.hasAnyLegalMove(Player.BLACK));
     }
 
     @Test
     public void testHasAnyPlayerAnyLegalMove() {
-        assertFalse(fixtBoardEmpty.hasAnyPlayerAnyLegalMove());
+        assertFalse(BoardFixtures.EMPTY.hasAnyPlayerAnyLegalMove());
         assertTrue(BoardFixtures.INITIAL.hasAnyPlayerAnyLegalMove());
-        assertTrue(fixtBoardBlackHasToPass.hasAnyPlayerAnyLegalMove());
+        assertTrue(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyPlayerAnyLegalMove());
         assertFalse(fixtBoardEndGameX.hasAnyPlayerAnyLegalMove());
     }
 
     @Test
     public void testHashCode() {
         assertEquals(BoardFixtures.INITIAL.hashCode(), BoardFixtures.INITIAL.hashCode());
-        assertEquals(fixtBoardEmpty.hashCode(), fixtBoardEmpty.hashCode());
-        assertEquals(fixtBoardBlackHasToPass.hashCode(), fixtBoardBlackHasToPass.hashCode());
+        assertEquals(BoardFixtures.EMPTY.hashCode(), BoardFixtures.EMPTY.hashCode());
+        assertEquals(BoardFixtures.BLACK_HAS_TO_PASS.hashCode(), BoardFixtures.BLACK_HAS_TO_PASS.hashCode());
         assertEquals(fixtBoardEndGameX.hashCode(), fixtBoardEndGameX.hashCode());
         assertEquals(fixtBoardA.hashCode(), fixtBoardA.hashCode());
         assertEquals(fixtBoardB.hashCode(), fixtBoardB.hashCode());
@@ -422,8 +399,8 @@ public class BoardTest {
         /** E3 is not among the legal opening moves. */
         assertFalse(BoardFixtures.INITIAL.isLegal(Square.E3, Player.BLACK));
 
-        assertFalse(fixtBoardBlackHasToPass.isLegal(Square.H7, Player.BLACK));
-        assertTrue(fixtBoardBlackHasToPass.isLegal(Square.H7, Player.WHITE));
+        assertFalse(BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.BLACK));
+        assertTrue(BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.WHITE));
 
         assertTrue(fixtBoardB.isLegal(Square.C3, Player.WHITE));
         assertTrue(fixtBoardB.isLegal(Square.C6, Player.WHITE));
@@ -458,7 +435,7 @@ public class BoardTest {
 
         {
             List<Square> lm = new ArrayList<Square>();
-            assertEquals(lm, fixtBoardBlackHasToPass.legalMoves(Player.BLACK));
+            assertEquals(lm, BoardFixtures.BLACK_HAS_TO_PASS.legalMoves(Player.BLACK));
         }
 
         {
@@ -513,7 +490,7 @@ public class BoardTest {
          * Tests that a null move can be a valid parameter when no legal moves are available to the player.
          * Tests also that the return value is the board itself.
          */
-        assertEquals(fixtBoardBlackHasToPass, fixtBoardBlackHasToPass.makeMove(null, Player.BLACK));
+        assertEquals(BoardFixtures.BLACK_HAS_TO_PASS, BoardFixtures.BLACK_HAS_TO_PASS.makeMove(null, Player.BLACK));
 
         /** Tests that an illegal move cannot be passed to makeMove. */
         try {
@@ -551,8 +528,8 @@ public class BoardTest {
         assertEquals(Player.WHITE, BoardFixtures.INITIAL.nextToPlay(Player.BLACK));
         assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.WHITE));
         assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.BLACK));
-        assertEquals(Player.WHITE, fixtBoardBlackHasToPass.nextToPlay(Player.WHITE));
-        assertEquals(Player.WHITE, fixtBoardBlackHasToPass.nextToPlay(Player.BLACK));
+        assertEquals(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.WHITE));
+        assertEquals(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.BLACK));
     }
 
     @Test
@@ -588,7 +565,7 @@ public class BoardTest {
     @Test
     public void testPrintCount() {
         assertEquals("[@=2 0=2 (0)]", BoardFixtures.INITIAL.printCount());
-        assertEquals("[@=26 0=28 (-2)]", fixtBoardBlackHasToPass.printCount());
+        assertEquals("[@=26 0=28 (-2)]", BoardFixtures.BLACK_HAS_TO_PASS.printCount());
     }
 
     @Test
@@ -684,7 +661,7 @@ public class BoardTest {
             Direction dir = Direction.W;
             Square b1 = move.neighbors().get(dir);
             Square b2 = Square.C7;
-            assertEquals(b2, fixtBoardBlackHasToPass.
+            assertEquals(b2, BoardFixtures.BLACK_HAS_TO_PASS.
                          findBracketingPiece(b1, Player.WHITE, dir));
         }
 
@@ -693,7 +670,7 @@ public class BoardTest {
             Direction dir = Direction.NW;
             Square b1 = move.neighbors().get(dir);
             Square b2 = Square.F5;
-            assertEquals(b2, fixtBoardBlackHasToPass.
+            assertEquals(b2, BoardFixtures.BLACK_HAS_TO_PASS.
                          findBracketingPiece(b1, Player.WHITE, dir));
         }
 
@@ -702,7 +679,7 @@ public class BoardTest {
             Direction dir = Direction.SW;
             Square b1 = move.neighbors().get(dir);
             Square b2 = null;
-            assertEquals(b2, fixtBoardBlackHasToPass.
+            assertEquals(b2, BoardFixtures.BLACK_HAS_TO_PASS.
                          findBracketingPiece(b1, Player.WHITE, dir));
         }
     }
@@ -717,9 +694,9 @@ public class BoardTest {
     @Test
     public void testWouldFlip() {
         assertEquals(Square.C7,
-                     fixtBoardBlackHasToPass.wouldFlip(Square.H7, Player.WHITE, Direction.W));
+                     BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.W));
         assertEquals(null,
-                     fixtBoardBlackHasToPass.wouldFlip(Square.H7, Player.WHITE, Direction.S));
+                     BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.S));
     }
 
 }
