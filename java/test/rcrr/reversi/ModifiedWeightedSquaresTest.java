@@ -123,8 +123,13 @@ public class ModifiedWeightedSquaresTest {
 	/** Tests that the fixtBoardA game state returns +9 for the black. */
 	assertEquals(+9, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.BLACK)));
 
-	/** Tests that the fixtBoardEndGameX game state returns +52 for the black. */
-	assertEquals(+52, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardEndGameX, Player.BLACK)));
+	/**
+         * Tests that the game state defined by:
+         * - Board  = FINAL_B37_W27 game state 
+         * - Player = BLACK
+         * returns a value of +52 (50 points more than WeightedSquare.
+         */
+	assertEquals(+52, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, Player.BLACK)));
 
     }
 }

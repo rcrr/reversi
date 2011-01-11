@@ -34,10 +34,12 @@ import java.util.Arrays;
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.matchers.JUnitMatchers.*;
+
 public class BoardTest {
 
     /** public fixtures are used also in other test classes. */
-    public Board fixtBoardEndGameX;
     public Board fixtBoardA;
     public Board fixtBoardB;
     public Board fixtBoardBC3;
@@ -79,16 +81,6 @@ public class BoardTest {
 
     @Before
     public void setUp() {
-        fixtBoardEndGameX = 
-            boardFromList(Arrays.asList(2, 2, 2, 2, 2, 1, 1, 1,
-                                        2, 2, 2, 1, 1, 1, 1, 1,
-                                        2, 2, 2, 1, 1, 1, 2, 1,
-                                        2, 2, 1, 2, 1, 1, 2, 1,
-                                        1, 1, 2, 1, 2, 1, 2, 1,
-                                        1, 2, 1, 2, 1, 2, 1, 1,
-                                        1, 1, 1, 1, 1, 1, 2, 1,
-                                        1, 1, 1, 1, 2, 2, 2, 2));
-
         fixtBoardA = 
             boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
@@ -264,8 +256,8 @@ public class BoardTest {
         }
 
         assertEquals(0, Board.initialBoard().countDifference(Player.BLACK));
-        assertEquals(+10, fixtBoardEndGameX.countDifference(Player.BLACK));
-        assertEquals(-10, fixtBoardEndGameX.countDifference(Player.WHITE));
+        assertEquals(+10, BoardFixtures.FINAL_B37_W27.countDifference(Player.BLACK));
+        assertEquals(-10, BoardFixtures.FINAL_B37_W27.countDifference(Player.WHITE));
         assertEquals(-2, fixtBoardC.countDifference(Player.BLACK));     
     }
 
@@ -278,10 +270,10 @@ public class BoardTest {
             assertTrue(true);
         }
 
-        assertEquals(2, Board.initialBoard().countPieces(SquareState.BLACK));
-        assertEquals(2, Board.initialBoard().countPieces(SquareState.WHITE));
-        assertEquals(60, Board.initialBoard().countPieces(SquareState.EMPTY));
-        assertEquals(0, Board.initialBoard().countPieces(SquareState.OUTER));
+        assertThat(BoardFixtures.INITIAL.countPieces(SquareState.BLACK), is(2));
+        assertThat(BoardFixtures.INITIAL.countPieces(SquareState.WHITE), is(2));
+        assertThat(BoardFixtures.INITIAL.countPieces(SquareState.EMPTY), is(60));
+        assertThat(BoardFixtures.INITIAL.countPieces(SquareState.OUTER), is(0));
     }
 
     @Test
@@ -322,8 +314,8 @@ public class BoardTest {
         assertTrue(BoardFixtures.INITIAL.hasAnyLegalMove(Player.BLACK));
         assertFalse(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.BLACK));
         assertTrue(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.WHITE));
-        assertFalse(fixtBoardEndGameX.hasAnyLegalMove(Player.WHITE));
-        assertFalse(fixtBoardEndGameX.hasAnyLegalMove(Player.BLACK));
+        assertFalse(BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.WHITE));
+        assertFalse(BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.BLACK));
     }
 
     @Test
@@ -331,7 +323,7 @@ public class BoardTest {
         assertFalse(BoardFixtures.EMPTY.hasAnyPlayerAnyLegalMove());
         assertTrue(BoardFixtures.INITIAL.hasAnyPlayerAnyLegalMove());
         assertTrue(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyPlayerAnyLegalMove());
-        assertFalse(fixtBoardEndGameX.hasAnyPlayerAnyLegalMove());
+        assertFalse(BoardFixtures.FINAL_B37_W27.hasAnyPlayerAnyLegalMove());
     }
 
     @Test
@@ -339,7 +331,7 @@ public class BoardTest {
         assertEquals(BoardFixtures.INITIAL.hashCode(), BoardFixtures.INITIAL.hashCode());
         assertEquals(BoardFixtures.EMPTY.hashCode(), BoardFixtures.EMPTY.hashCode());
         assertEquals(BoardFixtures.BLACK_HAS_TO_PASS.hashCode(), BoardFixtures.BLACK_HAS_TO_PASS.hashCode());
-        assertEquals(fixtBoardEndGameX.hashCode(), fixtBoardEndGameX.hashCode());
+        assertEquals(BoardFixtures.FINAL_B37_W27.hashCode(), BoardFixtures.FINAL_B37_W27.hashCode());
         assertEquals(fixtBoardA.hashCode(), fixtBoardA.hashCode());
         assertEquals(fixtBoardB.hashCode(), fixtBoardB.hashCode());
         assertEquals(fixtBoardC.hashCode(), fixtBoardC.hashCode());
@@ -526,8 +518,8 @@ public class BoardTest {
 
         assertEquals(Player.BLACK, BoardFixtures.INITIAL.nextToPlay(Player.WHITE));
         assertEquals(Player.WHITE, BoardFixtures.INITIAL.nextToPlay(Player.BLACK));
-        assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.WHITE));
-        assertEquals(null, fixtBoardEndGameX.nextToPlay(Player.BLACK));
+        assertEquals(null, BoardFixtures.FINAL_B37_W27.nextToPlay(Player.WHITE));
+        assertEquals(null, BoardFixtures.FINAL_B37_W27.nextToPlay(Player.BLACK));
         assertEquals(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.WHITE));
         assertEquals(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.BLACK));
     }
