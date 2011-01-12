@@ -29,33 +29,32 @@ import static org.junit.Assert.*;
 
 public class WeightedSquaresTest {
 
-    private BoardTest boardTest;
-    
-    /**
-     * Prepares the Board fixtures. It depends on the public BoardTest fixtures.
-     */
-    @Before
-    public void setUp() {
-	boardTest = new BoardTest();
-	boardTest.setUp();
-    }
-
     @Test
     public void testEval() {
 
-	/** Tests that the empty board returns 0. */
+	/** Tests that the empty board returns a value of 0 for either BLACK and WHITE players. */
 	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.BLACK)));
 	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.WHITE)));
 
-	/** Tests that the initial game state returns 0. */
+	/** Tests that the initial board returns a value of 0 for either BLACK and WHITE players. */
 	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.BLACK)));
 	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.WHITE)));
 
-	/** Tests that the fixtBoardA game state returns -9 for the white. */
-	assertEquals(-9, (new WeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.WHITE)));
+	/**
+         * Tests that the game state defined by:
+         * - Board  = FIRST_MOVE_D3 
+         * - Player = WHITE
+         * returns a value of -9.
+         */
+	assertEquals(-9, (new WeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.WHITE)));
 
-	/** Tests that the fixtBoardA game state returns +9 for the black. */
-	assertEquals(+9, (new WeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.BLACK)));
+	/**
+         * Tests that the game state defined by:
+         * - Board  = FIRST_MOVE_D3 
+         * - Player = BLACK
+         * returns a value of +9.
+         */
+	assertEquals(+9, (new WeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.BLACK)));
 
 	/**
          * Tests that the game state defined by:

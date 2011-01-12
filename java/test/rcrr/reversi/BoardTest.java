@@ -40,7 +40,6 @@ import static org.junit.matchers.JUnitMatchers.*;
 public class BoardTest {
 
     /** public fixtures are used also in other test classes. */
-    public Board fixtBoardA;
     public Board fixtBoardB;
     public Board fixtBoardBC3;
     public Board fixtBoardBC6;
@@ -81,16 +80,6 @@ public class BoardTest {
 
     @Before
     public void setUp() {
-        fixtBoardA = 
-            boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 1, 0, 0, 0, 0,
-                                        0, 0, 0, 1, 1, 0, 0, 0,
-                                        0, 0, 0, 1, 2, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0));
-
         fixtBoardB = 
             boardFromList(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
                                         0, 0, 0, 0, 1, 0, 0, 0,
@@ -265,7 +254,7 @@ public class BoardTest {
     public void testCountPieces() {
         try {
             BoardFixtures.INITIAL.countPieces(null);
-            fail("An exception must be risen.");
+            fail("A NullPointerException must be risen when the parameter player is null.");
         } catch (NullPointerException npe) {
             assertTrue(true);
         }
@@ -293,7 +282,7 @@ public class BoardTest {
     public void testEquals() {
         assertFalse(BoardFixtures.INITIAL.equals(null));
         assertFalse(BoardFixtures.INITIAL.equals(new Object()));
-        assertFalse(BoardFixtures.INITIAL.equals(fixtBoardA));
+        assertFalse(BoardFixtures.INITIAL.equals(BoardFixtures.FIRST_MOVE_D3));
 
         assertTrue(BoardFixtures.INITIAL.equals(BoardFixtures.INITIAL));
         assertTrue(BoardFixtures.INITIAL.equals(Board.initialBoard()));
@@ -336,7 +325,7 @@ public class BoardTest {
         assertEquals(BoardFixtures.EMPTY.hashCode(), BoardFixtures.EMPTY.hashCode());
         assertEquals(BoardFixtures.BLACK_HAS_TO_PASS.hashCode(), BoardFixtures.BLACK_HAS_TO_PASS.hashCode());
         assertEquals(BoardFixtures.FINAL_B37_W27.hashCode(), BoardFixtures.FINAL_B37_W27.hashCode());
-        assertEquals(fixtBoardA.hashCode(), fixtBoardA.hashCode());
+        assertEquals(BoardFixtures.FIRST_MOVE_D3.hashCode(), BoardFixtures.FIRST_MOVE_D3.hashCode());
         assertEquals(fixtBoardB.hashCode(), fixtBoardB.hashCode());
         assertEquals(fixtBoardC.hashCode(), fixtBoardC.hashCode());
         assertEquals(fixtBoardEqlA.hashCode(), fixtBoardEqlA.hashCode());
@@ -419,7 +408,7 @@ public class BoardTest {
 
         {
             List<Square> lm = Arrays.asList(Square.C3, Square.E3, Square.C5);
-            assertEquals(lm, fixtBoardA.legalMoves(Player.WHITE));
+            assertEquals(lm, BoardFixtures.FIRST_MOVE_D3.legalMoves(Player.WHITE));
         }
 
         {
@@ -496,8 +485,8 @@ public class BoardTest {
             assertTrue(true);
         }
 
-        /** Move D3 by black sent to the initial board returns the fixtBoardA. */
-        assertTrue(fixtBoardA.equals(BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK)));
+        /** Move D3 by black sent to the initial board returns the BoardFixtures.FIRST_MOVE_D3. */
+        assertTrue(BoardFixtures.FIRST_MOVE_D3.equals(BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK)));
         /** Move C3 by white sent to the fixtBoardB board returns the fixtBoardBC3. */
         assertTrue(fixtBoardBC3.equals(fixtBoardB.makeMove(Square.C3, Player.WHITE)));
         /** Move C6 by white sent to the fixtBoardB board returns the fixtBoardBC6. */

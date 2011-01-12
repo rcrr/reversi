@@ -86,4 +86,15 @@ public class BoardFixtures {
                                         0, 0, 0, 0, 0, 0, 0, 0))
         .build();
 
+    public static Board FIRST_MOVE_D3 = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 1, 0, 0, 0, 0,
+                                        0, 0, 0, 1, 1, 0, 0, 0,
+                                        0, 0, 0, 1, 2, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
 }
