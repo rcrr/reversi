@@ -51,11 +51,21 @@ public class CountDifferenceTest {
         assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(Board.initialBoard(), Player.BLACK)));
         assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(Board.initialBoard(), Player.WHITE)));
 
-        /** Tests that the fixtBoardA game state returns -3 for the white. */
-        assertEquals(-3, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.WHITE)));
+	/**
+         * Tests that the game state defined by:
+         * - Board  = FIRST_MOVE_D3 game state 
+         * - Player = WHITE
+         * returns a value of -3.
+         */
+        assertEquals(-3, (new CountDifference()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.WHITE)));
 
-        /** Tests that the fixtBoardA game state returns +3 for the black. */
-        assertEquals(+3, (new CountDifference()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.BLACK)));
+	/**
+         * Tests that the game state defined by:
+         * - Board  = FIRST_MOVE_D3 game state 
+         * - Player = BLACK
+         * returns a value of +3.
+         */
+        assertEquals(+3, (new CountDifference()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.BLACK)));
 
 	/**
          * Tests that the game state defined by:
