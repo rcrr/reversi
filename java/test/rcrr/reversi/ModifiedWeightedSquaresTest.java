@@ -107,21 +107,31 @@ public class ModifiedWeightedSquaresTest {
     }
 
     @Test
-    public void testEvalB() {
+    public void testEvalOnBasicGamePositions() {
 
-	/** Tests that the empty board returns 0. */
+	/** Tests that the empty board game state returns a value of 0. */
 	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.BLACK)));
 	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.WHITE)));
 
-	/** Tests that the initial game state returns 0. */
+	/** Tests that the initial game state returns a value of 0. */
 	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.BLACK)));
 	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.WHITE)));
 
-	/** Tests that the fixtBoardA game state returns -9 for the white. */
-	assertEquals(-9, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.WHITE)));
+	/**
+         * Tests that the game state defined by:
+         * - Board  = FIRST_MOVE_D3 
+         * - Player = WHITE
+         * returns a value of -9.
+         */
+	assertEquals(-9, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.WHITE)));
 
-	/** Tests that the fixtBoardA game state returns +9 for the black. */
-	assertEquals(+9, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(boardTest.fixtBoardA, Player.BLACK)));
+	/**
+         * Tests that the game state defined by:
+         * - Board  = FIRST_MOVE_D3 
+         * - Player = BLACK
+         * returns a value of +9.
+         */
+	assertEquals(+9, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.BLACK)));
 
 	/**
          * Tests that the game state defined by:
