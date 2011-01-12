@@ -270,10 +270,14 @@ public class BoardTest {
             assertTrue(true);
         }
 
-        assertThat(BoardFixtures.INITIAL.countPieces(SquareState.BLACK), is(2));
-        assertThat(BoardFixtures.INITIAL.countPieces(SquareState.WHITE), is(2));
-        assertThat(BoardFixtures.INITIAL.countPieces(SquareState.EMPTY), is(60));
-        assertThat(BoardFixtures.INITIAL.countPieces(SquareState.OUTER), is(0));
+        assertThat("Black player has two discs in the initial board configuration.",
+                   BoardFixtures.INITIAL.countPieces(SquareState.BLACK), is(2));
+        assertThat("White player has two discs in the initial board configuration.",
+                   BoardFixtures.INITIAL.countPieces(SquareState.WHITE), is(2));
+        assertThat("There are sixty empty squares in the initial board configuration.",
+                   BoardFixtures.INITIAL.countPieces(SquareState.EMPTY), is(60));
+        assertThat("There are no outer squares in any board configuration.",
+                   BoardFixtures.INITIAL.countPieces(SquareState.OUTER), is(0));
     }
 
     @Test
