@@ -81,15 +81,15 @@ public class MinimaxTest {
 									     Player.WHITE),
 							Clock.initialClock(Period.minutes(1).toStandardDuration()),
 							MoveRegister.empty());
-	fixtGameSnapshotB = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardB,
+	fixtGameSnapshotB = GameSnapshot.valueOf(GamePosition.valueOf(BoardFixtures.EARLY_GAME_B_9_MOVES,
 								      Player.WHITE),
 						 Clock.initialClock(Period.minutes(1).toStandardDuration()),
 						 MoveRegister.empty());
-	fixtGameSnapshotBC3 = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardBC3,
+	fixtGameSnapshotBC3 = GameSnapshot.valueOf(GamePosition.valueOf(BoardFixtures.EARLY_GAME_BC3_10_MOVES,
 									Player.BLACK),
 						   Clock.initialClock(Period.minutes(1).toStandardDuration()),
 						   MoveRegister.empty());
-	fixtGameSnapshotBC6 = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardBC6,
+	fixtGameSnapshotBC6 = GameSnapshot.valueOf(GamePosition.valueOf(BoardFixtures.EARLY_GAME_BC6_10_MOVES,
 									Player.BLACK),
 						   Clock.initialClock(Period.minutes(1).toStandardDuration()),
 						   MoveRegister.empty());
@@ -182,7 +182,7 @@ public class MinimaxTest {
     /**
      * minimaxSearcher test.
      * <p>
-     * The board fixtBoardB, prepared in BoardTest is here analyzed.
+     * The board BoardFixtures.EARLY_GAME_B_9_MOVES is here analyzed.
      * The white has to move, and has two choices: C3 and C6.
      * The two moves lead respectively to two boards: BC3 and BC6.
      * One ply analysis select C3 because the value of the two moves

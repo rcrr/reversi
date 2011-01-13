@@ -65,6 +65,21 @@ public class BoardFixtures {
                                         0, 0, 0, 0, 0, 0, 0, 0))
         .build();
 
+    /**
+     * The board after twelve moves of a generic game. This board position takes
+     * in the tests the name EARLY_GAME_C_12_MOVES.
+     */
+    public static Board EARLY_GAME_C_12_MOVES = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        2, 1, 1, 1, 0, 0, 2, 0,
+                                        0, 2, 0, 2, 1, 2, 0, 0,
+                                        0, 2, 2, 1, 2, 0, 0, 0,
+                                        0, 0, 1, 1, 0, 2, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
     /** The EARLY_GAME_BC3_10_MOVES board. */
     public static Board EARLY_GAME_BC3_10_MOVES = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
