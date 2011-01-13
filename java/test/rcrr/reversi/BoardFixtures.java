@@ -47,6 +47,48 @@ public class BoardFixtures {
                                         2, 2, 2, 2, 2, 2, 1, 2))
         .build();
 
+    /**
+     * The board after nine moves of a generic game. This board position takes
+     * in the tests the name EARLY_GAME_B_9_MOVES.
+     * The white player has to move, and has two legal chances.
+     *  - C3 that leads to the EARLY_GAME_BC3_10_MOVES board
+     *  - C6 that leads to the EARLY_GAME_BC6_10_MOVES board
+     */
+    public static Board EARLY_GAME_B_9_MOVES = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
+                                        0, 0, 0, 0, 1, 0, 0, 0,
+                                        0, 0, 0, 1, 1, 2, 2, 0,
+                                        0, 0, 0, 1, 1, 0, 0, 0,
+                                        0, 0, 0, 1, 1, 0, 0, 0,
+                                        0, 0, 0, 0, 1, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /** The EARLY_GAME_BC3_10_MOVES board. */
+    public static Board EARLY_GAME_BC3_10_MOVES = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
+                                        0, 0, 0, 0, 1, 0, 0, 0,
+                                        0, 0, 2, 2, 2, 2, 2, 0,
+                                        0, 0, 0, 1, 1, 0, 0, 0,
+                                        0, 0, 0, 1, 1, 0, 0, 0,
+                                        0, 0, 0, 0, 1, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /** The EARLY_GAME_BC6_10_MOVES board. */
+    public static Board EARLY_GAME_BC6_10_MOVES = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
+                                        0, 0, 0, 0, 1, 0, 0, 0,
+                                        0, 0, 0, 1, 1, 2, 2, 0,
+                                        0, 0, 0, 1, 2, 0, 0, 0,
+                                        0, 0, 0, 2, 1, 0, 0, 0,
+                                        0, 0, 2, 0, 1, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
     /** The empty board. */
     public static Board EMPTY = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
@@ -74,23 +116,24 @@ public class BoardFixtures {
                                         1, 1, 1, 1, 2, 2, 2, 2))
         .build();
 
-    /** The initial board. */
-    public static Board INITIAL = new BoardBuilder()
+    /** The board after the black's first move in D3. */
+    public static Board FIRST_MOVE_D3 = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 2, 1, 0, 0, 0,
+                                        0, 0, 0, 1, 0, 0, 0, 0,
+                                        0, 0, 0, 1, 1, 0, 0, 0,
                                         0, 0, 0, 1, 2, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0))
         .build();
 
-    public static Board FIRST_MOVE_D3 = new BoardBuilder()
+    /** The initial board. */
+    public static Board INITIAL = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 1, 0, 0, 0, 0,
-                                        0, 0, 0, 1, 1, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 2, 1, 0, 0, 0,
                                         0, 0, 0, 1, 2, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
