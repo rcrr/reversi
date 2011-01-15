@@ -24,56 +24,64 @@
 
 package rcrr.reversi;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+@RunWith(Parameterized.class)
 public class CountDifferenceTest {
 
-    private BoardTest boardTest;
+    private Board board;
+    private Player player;
+    private Integer expectedValue;
 
-    /**
-     * Prepares the Board fixtures. It depends on the public BoardTest fixtures.
-     */
-    @Before
-    public void setUp() {
-        boardTest = new BoardTest();
-        boardTest.setUp();
+    private EvalFunction fn = new CountDifference();
+
+    public CountDifferenceTest(Board board, Player player, Integer expectedValue) {
+        this.board = board;
+        this.player = player;
+        this.expectedValue = expectedValue;
+    }
+
+    @Parameterized.Parameters
+    public static Collection data() {
+        return Arrays.asList(new Object[][] {
+
+                /** Tests that the empty board returns 0. */
+                { BoardFixtures.EMPTY, Player.BLACK, 0 },
+                { BoardFixtures.EMPTY, Player.WHITE, 0 },
+
+                /** Tests that the initial game state returns 0. */
+                { BoardFixtures.INITIAL, Player.BLACK, 0 },
+                { BoardFixtures.INITIAL, Player.WHITE, 0 },
+
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = FIRST_MOVE_D3 game state 
+                 * - Player = BLACK
+                 * returns a value of +3.
+                 */
+                { BoardFixtures.FIRST_MOVE_D3, Player.BLACK, +3 },
+
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = FINAL_B37_W27 game state 
+                 * - Player = BLACK
+                 * returns a value of +10.
+                 */
+                { BoardFixtures.FINAL_B37_W27, Player.BLACK, +10 }
+
+            });
     }
 
     @Test
     public void testEval() {
-
-        /** Tests that the empty board returns 0. */
-        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.BLACK)));
-        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.WHITE)));
-
-        /** Tests that the initial game state returns 0. */
-        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(Board.initialBoard(), Player.BLACK)));
-        assertEquals(0, (new CountDifference()).eval(GamePosition.valueOf(Board.initialBoard(), Player.WHITE)));
-
-	/**
-         * Tests that the game state defined by:
-         * - Board  = FIRST_MOVE_D3 game state 
-         * - Player = WHITE
-         * returns a value of -3.
-         */
-        assertEquals(-3, (new CountDifference()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.WHITE)));
-
-	/**
-         * Tests that the game state defined by:
-         * - Board  = FIRST_MOVE_D3 game state 
-         * - Player = BLACK
-         * returns a value of +3.
-         */
-        assertEquals(+3, (new CountDifference()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.BLACK)));
-
-	/**
-         * Tests that the game state defined by:
-         * - Board  = FINAL_B37_W27 game state 
-         * - Player = BLACK
-         * returns a value of +10.
-         */
-        assertEquals(+10, (new CountDifference()).eval(GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, Player.BLACK)));
-
+        assertEquals(expectedValue.intValue(), fn.eval(GamePosition.valueOf(board, player)));
     }
+
 }
