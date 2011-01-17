@@ -1,7 +1,7 @@
 /*
  *  CountDifferenceTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -34,18 +34,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
-public class CountDifferenceTest {
-
-    private Board board;
-    private Player player;
-    private Integer expectedValue;
-
-    private EvalFunction fn = new CountDifference();
+public class CountDifferenceTest extends EvalFunctionTestUtils {
 
     public CountDifferenceTest(Board board, Player player, Integer expectedValue) {
-        this.board = board;
-        this.player = player;
-        this.expectedValue = expectedValue;
+        super(board, player, expectedValue);
+        this.fn = new CountDifference();
     }
 
     @Parameterized.Parameters
@@ -77,11 +70,6 @@ public class CountDifferenceTest {
                 { BoardFixtures.FINAL_B37_W27, Player.BLACK, +10 }
 
             });
-    }
-
-    @Test
-    public void testEval() {
-        assertEquals(expectedValue.intValue(), fn.eval(GamePosition.valueOf(board, player)));
     }
 
 }
