@@ -1,7 +1,7 @@
 /*
  *  ModifiedWeightedSquaresTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -25,121 +25,119 @@
 package rcrr.reversi;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import org.junit.*;
 import static org.junit.Assert.*;
 
-public class ModifiedWeightedSquaresTest {
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-    private BoardTest boardTest;
+@RunWith(Parameterized.class)
+public class ModifiedWeightedSquaresTest extends EvalFunctionTestUtils {
 
-    private Board fixtBoardMWS1A;
-    private Board fixtBoardMWS1B;
-    private Board fixtBoardMWS2A;
-    private Board fixtBoardMWS2B;
-    
-    /**
-     * Prepares the Board fixtures. It depends on the public BoardTest fixtures.
-     */
-    @Before
-    public void setUp() {
-	boardTest = new BoardTest();
-	boardTest.setUp();
+    /** The CASE_ONE_A board. */
+    private static Board CASE_ONE_A = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+                                        1, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
 
-	fixtBoardMWS1A = 
-	    BoardTest.boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-						  1, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0));
-	
-	fixtBoardMWS1B = 
-	    BoardTest.boardFromList(Arrays.asList(1, 0, 0, 0, 0, 0, 0, 0,
-						  1, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0));
+    /** The CASE_ONE_B board. */
+    private static Board CASE_ONE_B = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(1, 0, 0, 0, 0, 0, 0, 0,
+                                        1, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
 
-	fixtBoardMWS2A = 
-	    BoardTest.boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 1, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0));
-	
-	fixtBoardMWS2B = 
-	    BoardTest.boardFromList(Arrays.asList(2, 0, 0, 0, 0, 0, 0, 0,
-						  0, 1, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0,
-						  0, 0, 0, 0, 0, 0, 0, 0));
+    /** The CASE_TWO_A board. */
+    private static Board CASE_TWO_A = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 1, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
 
+    /** The CASE_TWO_B board. */
+    private static Board CASE_TWO_B = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(2, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 1, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    public ModifiedWeightedSquaresTest(Board board, Player player, Integer expectedValue) {
+        super(board, player, expectedValue);
+        this.fn = new ModifiedWeightedSquares();
     }
 
-    @Test
-    public void testEvalA() {
+    @Parameterized.Parameters
+    public static Collection data() {
+        return Arrays.asList(new Object[][] {
 
-	/** The following assertions test the basic cases. */
-	assertEquals(-20, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS1A, Player.BLACK)));
-	assertEquals(+20, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS1A, Player.WHITE)));
+                /** Tests that the empty board returns 0. */
+                { BoardFixtures.EMPTY, Player.BLACK, 0 },
+                { BoardFixtures.EMPTY, Player.WHITE, 0 },
 
-	assertEquals(+125, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS1B, Player.BLACK)));
-	assertEquals(-125, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS1B, Player.WHITE)));
+                /** Tests that the initial game state returns 0. */
+                { BoardFixtures.INITIAL, Player.BLACK, 0 },
+                { BoardFixtures.INITIAL, Player.WHITE, 0 },
 
-	assertEquals(-40, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS2A, Player.BLACK)));
-	assertEquals(+40, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS2A, Player.WHITE)));
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = FIRST_MOVE_D3 
+                 * - Player = WHITE
+                 * returns a value of -9.
+                 */
+                { BoardFixtures.FIRST_MOVE_D3, Player.WHITE, -9 },
 
-	assertEquals(-115, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS2B, Player.BLACK)));
-	assertEquals(+115, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(fixtBoardMWS2B, Player.WHITE)));
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = FIRST_MOVE_D3 
+                 * - Player = BLACK
+                 * returns a value of +9.
+                 */
+                { BoardFixtures.FIRST_MOVE_D3, Player.BLACK, +9 },
 
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = FINAL_B37_W27 game state 
+                 * - Player = BLACK
+                 * returns a value of +52 (50 points more than WeightedSquare.
+                 */
+                { BoardFixtures.FINAL_B37_W27, Player.BLACK, +52 },
+
+                { CASE_ONE_A, Player.BLACK, -20 },
+                { CASE_ONE_A, Player.WHITE, +20 },
+
+                { CASE_ONE_B, Player.BLACK, +125 },
+                { CASE_ONE_B, Player.WHITE, -125 },
+
+                { CASE_TWO_A, Player.BLACK, -40 },
+                { CASE_TWO_A, Player.WHITE, +40 },
+
+                { CASE_TWO_B, Player.BLACK, -115 },
+                { CASE_TWO_B, Player.WHITE, +115 }
+
+            });
     }
 
-    @Test
-    public void testEvalOnBasicGamePositions() {
-
-	/** Tests that the empty board game state returns a value of 0. */
-	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.BLACK)));
-	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.WHITE)));
-
-	/** Tests that the initial game state returns a value of 0. */
-	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.BLACK)));
-	assertEquals(0, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.WHITE)));
-
-	/**
-         * Tests that the game state defined by:
-         * - Board  = FIRST_MOVE_D3 
-         * - Player = WHITE
-         * returns a value of -9.
-         */
-	assertEquals(-9, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.WHITE)));
-
-	/**
-         * Tests that the game state defined by:
-         * - Board  = FIRST_MOVE_D3 
-         * - Player = BLACK
-         * returns a value of +9.
-         */
-	assertEquals(+9, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.BLACK)));
-
-	/**
-         * Tests that the game state defined by:
-         * - Board  = FINAL_B37_W27 game state 
-         * - Player = BLACK
-         * returns a value of +52 (50 points more than WeightedSquare.
-         */
-	assertEquals(+52, (new ModifiedWeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, Player.BLACK)));
-
-    }
 }

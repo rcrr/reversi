@@ -1,7 +1,7 @@
 /*
  *  WeightedSquaresTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -24,45 +24,60 @@
 
 package rcrr.reversi;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.*;
 import static org.junit.Assert.*;
 
-public class WeightedSquaresTest {
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-    @Test
-    public void testEval() {
+@RunWith(Parameterized.class)
+public class WeightedSquaresTest extends EvalFunctionTestUtils {
 
-	/** Tests that the empty board returns a value of 0 for either BLACK and WHITE players. */
-	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.BLACK)));
-	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.EMPTY, Player.WHITE)));
-
-	/** Tests that the initial board returns a value of 0 for either BLACK and WHITE players. */
-	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.BLACK)));
-	assertEquals(0, (new WeightedSquares()).eval(GamePosition.valueOf(Board.initialBoard(), Player.WHITE)));
-
-	/**
-         * Tests that the game state defined by:
-         * - Board  = FIRST_MOVE_D3 
-         * - Player = WHITE
-         * returns a value of -9.
-         */
-	assertEquals(-9, (new WeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.WHITE)));
-
-	/**
-         * Tests that the game state defined by:
-         * - Board  = FIRST_MOVE_D3 
-         * - Player = BLACK
-         * returns a value of +9.
-         */
-	assertEquals(+9, (new WeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FIRST_MOVE_D3, Player.BLACK)));
-
-	/**
-         * Tests that the game state defined by:
-         * - Board  = FINAL_B37_W27 game state 
-         * - Player = BLACK
-         * returns a value of +2.
-         */
-	assertEquals(+2, (new WeightedSquares()).eval(GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, Player.BLACK)));
-
+    public WeightedSquaresTest(Board board, Player player, Integer expectedValue) {
+        super(board, player, expectedValue);
+        this.fn = new WeightedSquares();
     }
+
+    @Parameterized.Parameters
+    public static Collection data() {
+        return Arrays.asList(new Object[][] {
+
+                /** Tests that the empty board returns 0. */
+                { BoardFixtures.EMPTY, Player.BLACK, 0 },
+                { BoardFixtures.EMPTY, Player.WHITE, 0 },
+
+                /** Tests that the initial game state returns 0. */
+                { BoardFixtures.INITIAL, Player.BLACK, 0 },
+                { BoardFixtures.INITIAL, Player.WHITE, 0 },
+
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = FIRST_MOVE_D3 
+                 * - Player = WHITE
+                 * returns a value of -9.
+                 */
+                { BoardFixtures.FIRST_MOVE_D3, Player.WHITE, -9 },
+
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = FIRST_MOVE_D3 
+                 * - Player = BLACK
+                 * returns a value of +9.
+                 */
+                { BoardFixtures.FIRST_MOVE_D3, Player.BLACK, +9 },
+
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = FINAL_B37_W27 game state 
+                 * - Player = BLACK
+                 * returns a value of +2.
+                 */
+                { BoardFixtures.FINAL_B37_W27, Player.BLACK, +2 }
+
+            });
+    }
+
 }
