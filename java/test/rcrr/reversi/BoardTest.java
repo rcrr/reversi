@@ -40,8 +40,6 @@ import static org.junit.matchers.JUnitMatchers.*;
 public class BoardTest {
 
     /** public fixtures are used also in other test classes. */
-    private Board fixtBoardEqlA;
-    private Board fixtBoardEqlB;
     public Board fixtBoardMinimaxA;
     public Board fixtBoardMinimaxB;
 
@@ -76,18 +74,6 @@ public class BoardTest {
 
     @Before
     public void setUp() {
-        List<Integer> listFixtBoardEql = 
-            Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
-                          1, 1, 1, 1, 1, 1, 1, 2,
-                          0, 1, 2, 2, 1, 1, 2, 2,
-                          0, 1, 2, 1, 2, 2, 2, 2,
-                          0, 1, 2, 1, 2, 2, 2, 2,
-                          0, 1, 2, 1, 1, 2, 1, 2,
-                          0, 1, 2, 1, 1, 1, 1, 0,
-                          2, 2, 2, 2, 2, 2, 1, 2);
-        fixtBoardEqlA = boardFromList(listFixtBoardEql);
-        fixtBoardEqlB = boardFromList(listFixtBoardEql);
-
         fixtBoardMinimaxA = 
             boardFromList(Arrays.asList(2, 0, 2, 0, 2, 0, 2, 0,
                                         1, 0, 1, 0, 1, 0, 1, 0,
@@ -244,10 +230,11 @@ public class BoardTest {
         assertTrue(BoardFixtures.INITIAL.equals(Board.initialBoard()));
         assertTrue(Board.initialBoard().equals(BoardFixtures.INITIAL));
 
-        assertTrue(fixtBoardEqlA.equals(fixtBoardEqlA));
+        assertTrue(BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_A));
+        assertTrue(BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_B));
 
-        assertTrue(fixtBoardEqlA.equals(fixtBoardEqlB));
-        assertTrue(fixtBoardEqlB.equals(fixtBoardEqlA));
+        assertTrue(BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_B));
+        assertTrue(BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_A));
     }
 
     @Test
@@ -284,11 +271,11 @@ public class BoardTest {
         assertEquals(BoardFixtures.FIRST_MOVE_D3.hashCode(), BoardFixtures.FIRST_MOVE_D3.hashCode());
         assertEquals(BoardFixtures.EARLY_GAME_B_9_MOVES.hashCode(), BoardFixtures.EARLY_GAME_B_9_MOVES.hashCode());
         assertEquals(BoardFixtures.EARLY_GAME_C_12_MOVES.hashCode(), BoardFixtures.EARLY_GAME_C_12_MOVES.hashCode());
-        assertEquals(fixtBoardEqlA.hashCode(), fixtBoardEqlA.hashCode());
-        assertEquals(fixtBoardEqlB.hashCode(), fixtBoardEqlB.hashCode());
+        assertEquals(BoardFixtures.EQL_TEST_A.hashCode(), BoardFixtures.EQL_TEST_A.hashCode());
+        assertEquals(BoardFixtures.EQL_TEST_B.hashCode(), BoardFixtures.EQL_TEST_B.hashCode());
 
-        assertEquals(fixtBoardEqlA.hashCode(), fixtBoardEqlB.hashCode());
-        assertEquals(fixtBoardEqlB.hashCode(), fixtBoardEqlA.hashCode());
+        assertEquals(BoardFixtures.EQL_TEST_A.hashCode(), BoardFixtures.EQL_TEST_B.hashCode());
+        assertEquals(BoardFixtures.EQL_TEST_B.hashCode(), BoardFixtures.EQL_TEST_A.hashCode());
     }
 
     @Test

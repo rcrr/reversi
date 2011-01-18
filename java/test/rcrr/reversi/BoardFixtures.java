@@ -25,6 +25,7 @@
 package rcrr.reversi;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * The class host a number of predefined boards.
@@ -114,6 +115,30 @@ public class BoardFixtures {
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /** 
+     * The list used for generating the two board
+     * used for the Equality test.
+     */
+    private static List<Integer> EQL_LIST = 
+        Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
+                      1, 1, 1, 1, 1, 1, 1, 2,
+                      0, 1, 2, 2, 1, 1, 2, 2,
+                      0, 1, 2, 1, 2, 2, 2, 2,
+                      0, 1, 2, 1, 2, 2, 2, 2,
+                      0, 1, 2, 1, 1, 2, 1, 2,
+                      0, 1, 2, 1, 1, 1, 1, 0,
+                      2, 2, 2, 2, 2, 2, 1, 2);
+
+    /** The first board used for Equality test. */
+    public static Board EQL_TEST_A = new BoardBuilder()
+        .withBoardLiteral(EQL_LIST)
+        .build();
+
+    /** The second board used for Equality test. */
+    public static Board EQL_TEST_B = new BoardBuilder()
+        .withBoardLiteral(EQL_LIST)
         .build();
 
     /**
