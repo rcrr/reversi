@@ -36,6 +36,7 @@ import java.util.List;
  */
 public class BoardFixtures {
 
+
     /** The black player has to pass. */
     public static Board BLACK_HAS_TO_PASS = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
@@ -175,6 +176,133 @@ public class BoardFixtures {
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 2, 1, 0, 0, 0,
                                         0, 0, 0, 1, 2, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /**
+     * Fixture boards for testing makeMove method.
+     * Boards come in pairs:
+     * - MAKE_MOVE_TEST_CASE_X_BEFORE is a board configuration
+     * - MAKE_MOVE_TEST_CASE_X_AFTER is the expected configuration after a defined move
+     */
+
+    /** Test case MAKE_MOVE_A: before the move. */
+    public static Board MAKE_MOVE_TEST_CASE_A_BEFORE = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 2, 2, 2, 2, 2, 0, 0,
+                                        0, 2, 1, 1, 1, 2, 0, 0,
+                                        0, 2, 1, 0, 1, 2, 0, 0,
+                                        0, 2, 1, 1, 1, 2, 0, 0,
+                                        0, 2, 2, 2, 2, 2, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /** Test case MAKE_MOVE_A: after the D4 move. */
+    public static Board MAKE_MOVE_TEST_CASE_A_AFTER = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 2, 2, 2, 2, 2, 0, 0,
+                                        0, 2, 2, 2, 2, 2, 0, 0,
+                                        0, 2, 2, 2, 2, 2, 0, 0,
+                                        0, 2, 2, 2, 2, 2, 0, 0,
+                                        0, 2, 2, 2, 2, 2, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /** Test case MAKE_MOVE_A: before the move. */
+    public static Board MAKE_MOVE_TEST_CASE_B_BEFORE = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(2, 2, 2, 2, 2, 2, 2, 0,
+                                        2, 1, 1, 1, 1, 1, 2, 0,
+                                        2, 1, 1, 1, 1, 1, 2, 0,
+                                        2, 1, 1, 0, 1, 1, 2, 0,
+                                        2, 1, 1, 1, 1, 1, 2, 0,
+                                        2, 1, 1, 1, 1, 1, 2, 0,
+                                        2, 2, 2, 2, 2, 2, 2, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /** Test case MAKE_MOVE_A: after the D4 move. */
+    public static Board MAKE_MOVE_TEST_CASE_B_AFTER = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(2, 2, 2, 2, 2, 2, 2, 0,
+                                        2, 2, 1, 2, 1, 2, 2, 0,
+                                        2, 1, 2, 2, 2, 1, 2, 0,
+                                        2, 2, 2, 2, 2, 2, 2, 0,
+                                        2, 1, 2, 2, 2, 1, 2, 0,
+                                        2, 2, 1, 2, 1, 2, 2, 0,
+                                        2, 2, 2, 2, 2, 2, 2, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /** Test case MAKE_MOVE_A: before the move. */
+    public static Board MAKE_MOVE_TEST_CASE_C_BEFORE = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(1, 1, 1, 1, 1, 1, 1, 2,
+                                        1, 1, 1, 1, 1, 1, 1, 2,
+                                        1, 1, 1, 1, 1, 1, 1, 2,
+                                        1, 1, 1, 0, 1, 1, 1, 2,
+                                        1, 1, 1, 1, 1, 1, 1, 2,
+                                        1, 1, 1, 1, 1, 1, 1, 2,
+                                        1, 1, 1, 1, 1, 1, 1, 2,
+                                        2, 2, 2, 2, 2, 2, 2, 2))
+        .build();
+
+    /** Test case MAKE_MOVE_A: after the D4 move. */
+    public static Board MAKE_MOVE_TEST_CASE_C_AFTER = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(1, 1, 1, 1, 1, 1, 1, 2,
+                                        1, 1, 1, 1, 1, 1, 1, 2,
+                                        1, 1, 1, 1, 1, 1, 1, 2,
+                                        1, 1, 1, 2, 2, 2, 2, 2,
+                                        1, 1, 1, 2, 2, 1, 1, 2,
+                                        1, 1, 1, 2, 1, 2, 1, 2,
+                                        1, 1, 1, 2, 1, 1, 2, 2,
+                                        2, 2, 2, 2, 2, 2, 2, 2))
+        .build();
+
+    /** Test case MAKE_MOVE_A: before the move. */
+    public static Board MAKE_MOVE_TEST_CASE_D_BEFORE = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 1, 0, 0, 2, 0, 0, 0,
+                                        0, 2, 0, 2, 0, 0, 0, 0,
+                                        1, 1, 1, 0, 0, 0, 0, 0,
+                                        1, 0, 1, 0, 2, 0, 0, 0,
+                                        1, 1, 1, 0, 0, 0, 0, 0,
+                                        0, 2, 0, 1, 0, 0, 0, 0,
+                                        0, 1, 0, 0, 2, 0, 0, 0,
+                                        0, 2, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /** Test case MAKE_MOVE_A: after the B4 move. */
+    public static Board MAKE_MOVE_TEST_CASE_D_AFTER = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 1, 0, 0, 2, 0, 0, 0,
+                                        0, 2, 0, 2, 0, 0, 0, 0,
+                                        1, 2, 2, 0, 0, 0, 0, 0,
+                                        1, 2, 1, 0, 2, 0, 0, 0,
+                                        1, 2, 2, 0, 0, 0, 0, 0,
+                                        0, 2, 0, 2, 0, 0, 0, 0,
+                                        0, 1, 0, 0, 2, 0, 0, 0,
+                                        0, 2, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /** A board for testing minimax algorithm. */
+    public static Board MINIMAX_TEST_CASE_A = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(2, 0, 2, 0, 2, 0, 2, 0,
+                                        1, 0, 1, 0, 1, 0, 1, 0,
+                                        0, 0, 1, 0, 1, 0, 1, 0,
+                                        0, 0, 0, 0, 1, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .build();
+
+    /** A board for testing minimax algorithm. */
+    public static Board MINIMAX_TEST_CASE_B = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(2, 1, 2, 0, 0, 0, 0, 0,
+                                        1, 0, 1, 0, 0, 0, 0, 0,
+                                        0, 0, 1, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0))

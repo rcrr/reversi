@@ -59,8 +59,6 @@ public class RandomStrategyTest {
      */
     @Before
     public void setUp() {
-	BoardTest bt = new BoardTest();
-	bt.setUp();
 	fixtGameSnapshotInitial = GameSnapshot.initialGameSnapshot(Period.minutes(1).toStandardDuration());
     }
 
