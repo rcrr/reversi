@@ -39,144 +39,6 @@ import static org.junit.matchers.JUnitMatchers.*;
 
 public class BoardTest {
 
-    /** public fixtures are used also in other test classes. */
-    public Board fixtBoardMinimaxA;
-    public Board fixtBoardMinimaxB;
-
-    /** Fixtures used to test the make move function. */
-    private Board fixtBoardMakeMoveA;
-    private Board fixtBoardMakeMoveAm;
-    private Board fixtBoardMakeMoveB;
-    private Board fixtBoardMakeMoveBm;
-    private Board fixtBoardMakeMoveC;
-    private Board fixtBoardMakeMoveCm;
-    private Board fixtBoardMakeMoveD;
-    private Board fixtBoardMakeMoveDm;
-
-    /** REPLACED BY THE BoardBuilder CLASS. Has to be removed. */
-    /** Static Factory for the board class. */
-    static Board boardFromList(List<Integer> il) {
-        if (il == null) return null;
-        if (il.size() != Square.values().length) throw new IllegalArgumentException();
-        Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
-        for (int idx=0; idx<Square.values().length; idx++) {
-            Integer iss = il.get(idx);
-            SquareState ss = null;
-            if (iss == null || iss < 0 || iss > 3) throw new IllegalArgumentException();
-            else if (iss == 0) ss = SquareState.EMPTY;
-            else if (iss == 1) ss = SquareState.BLACK;
-            else if (iss == 2) ss = SquareState.WHITE;
-            else if (iss == 3) ss = SquareState.OUTER;
-            sm.put(Square.getInstance(idx), ss);
-        }       
-        return Board.valueOf(sm);
-    }
-
-    @Before
-    public void setUp() {
-        fixtBoardMinimaxA = 
-            boardFromList(Arrays.asList(2, 0, 2, 0, 2, 0, 2, 0,
-                                        1, 0, 1, 0, 1, 0, 1, 0,
-                                        0, 0, 1, 0, 1, 0, 1, 0,
-                                        0, 0, 0, 0, 1, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0));
-
-        fixtBoardMinimaxB = 
-            boardFromList(Arrays.asList(2, 1, 2, 0, 0, 0, 0, 0,
-                                        1, 0, 1, 0, 0, 0, 0, 0,
-                                        0, 0, 1, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0));
-
-        fixtBoardMakeMoveA = 
-            boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 2, 1, 1, 1, 2, 0, 0,
-                                        0, 2, 1, 0, 1, 2, 0, 0,
-                                        0, 2, 1, 1, 1, 2, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0));
-
-        fixtBoardMakeMoveAm = 
-            boardFromList(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0));
-
-        fixtBoardMakeMoveB = 
-            boardFromList(Arrays.asList(2, 2, 2, 2, 2, 2, 2, 0,
-                                        2, 1, 1, 1, 1, 1, 2, 0,
-                                        2, 1, 1, 1, 1, 1, 2, 0,
-                                        2, 1, 1, 0, 1, 1, 2, 0,
-                                        2, 1, 1, 1, 1, 1, 2, 0,
-                                        2, 1, 1, 1, 1, 1, 2, 0,
-                                        2, 2, 2, 2, 2, 2, 2, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0));
-
-        fixtBoardMakeMoveBm = 
-            boardFromList(Arrays.asList(2, 2, 2, 2, 2, 2, 2, 0,
-                                        2, 2, 1, 2, 1, 2, 2, 0,
-                                        2, 1, 2, 2, 2, 1, 2, 0,
-                                        2, 2, 2, 2, 2, 2, 2, 0,
-                                        2, 1, 2, 2, 2, 1, 2, 0,
-                                        2, 2, 1, 2, 1, 2, 2, 0,
-                                        2, 2, 2, 2, 2, 2, 2, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0));
-
-        fixtBoardMakeMoveC = 
-            boardFromList(Arrays.asList(1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 0, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        2, 2, 2, 2, 2, 2, 2, 2));
-
-
-        fixtBoardMakeMoveCm = 
-            boardFromList(Arrays.asList(1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 2, 2, 2, 2, 2,
-                                        1, 1, 1, 2, 2, 1, 1, 2,
-                                        1, 1, 1, 2, 1, 2, 1, 2,
-                                        1, 1, 1, 2, 1, 1, 2, 2,
-                                        2, 2, 2, 2, 2, 2, 2, 2));
-
-        fixtBoardMakeMoveD = 
-            boardFromList(Arrays.asList(0, 1, 0, 0, 2, 0, 0, 0,
-                                        0, 2, 0, 2, 0, 0, 0, 0,
-                                        1, 1, 1, 0, 0, 0, 0, 0,
-                                        1, 0, 1, 0, 2, 0, 0, 0,
-                                        1, 1, 1, 0, 0, 0, 0, 0,
-                                        0, 2, 0, 1, 0, 0, 0, 0,
-                                        0, 1, 0, 0, 2, 0, 0, 0,
-                                        0, 2, 0, 0, 0, 0, 0, 0));
-
-        fixtBoardMakeMoveDm = 
-            boardFromList(Arrays.asList(0, 1, 0, 0, 2, 0, 0, 0,
-                                        0, 2, 0, 2, 0, 0, 0, 0,
-                                        1, 2, 2, 0, 0, 0, 0, 0,
-                                        1, 2, 1, 0, 2, 0, 0, 0,
-                                        1, 2, 2, 0, 0, 0, 0, 0,
-                                        0, 2, 0, 2, 0, 0, 0, 0,
-                                        0, 1, 0, 0, 2, 0, 0, 0,
-                                        0, 2, 0, 0, 0, 0, 0, 0));
-
-    }
-
     @Test
     public void testCountDifference() {
         try {
@@ -368,7 +230,7 @@ public class BoardTest {
 
         {
             List<Square> lm = Arrays.asList(Square.A3, Square.C4, Square.G4, Square.E5);
-            assertEquals(lm, fixtBoardMinimaxA.legalMoves(Player.WHITE));
+            assertEquals(lm, BoardFixtures.MINIMAX_TEST_CASE_A.legalMoves(Player.WHITE));
         }
 
         {
@@ -436,10 +298,10 @@ public class BoardTest {
         assertTrue(BoardFixtures.EARLY_GAME_BC6_10_MOVES.equals(BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C6, Player.WHITE)));
 
         /** A few basic cases, designed to test the function as much as possible. */
-        assertTrue(fixtBoardMakeMoveAm.equals(fixtBoardMakeMoveA.makeMove(Square.D4, Player.WHITE)));
-        assertTrue(fixtBoardMakeMoveBm.equals(fixtBoardMakeMoveB.makeMove(Square.D4, Player.WHITE)));
-        assertTrue(fixtBoardMakeMoveCm.equals(fixtBoardMakeMoveC.makeMove(Square.D4, Player.WHITE)));
-        assertTrue(fixtBoardMakeMoveDm.equals(fixtBoardMakeMoveD.makeMove(Square.B4, Player.WHITE)));
+        assertTrue(BoardFixtures.MAKE_MOVE_TEST_CASE_A_AFTER.equals(BoardFixtures.MAKE_MOVE_TEST_CASE_A_BEFORE.makeMove(Square.D4, Player.WHITE)));
+        assertTrue(BoardFixtures.MAKE_MOVE_TEST_CASE_B_AFTER.equals(BoardFixtures.MAKE_MOVE_TEST_CASE_B_BEFORE.makeMove(Square.D4, Player.WHITE)));
+        assertTrue(BoardFixtures.MAKE_MOVE_TEST_CASE_C_AFTER.equals(BoardFixtures.MAKE_MOVE_TEST_CASE_C_BEFORE.makeMove(Square.D4, Player.WHITE)));
+        assertTrue(BoardFixtures.MAKE_MOVE_TEST_CASE_D_AFTER.equals(BoardFixtures.MAKE_MOVE_TEST_CASE_D_BEFORE.makeMove(Square.B4, Player.WHITE)));
 
     }
 

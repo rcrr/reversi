@@ -69,15 +69,13 @@ public class MinimaxTest {
      */
     @Before
     public void setUp() {
-	BoardTest bt = new BoardTest();
-	bt.setUp();
 	fixtGameSnapshotInitial = GameSnapshot.initialGameSnapshot(Period.minutes(1).toStandardDuration());
 
-	fixtGameSnapshotMinimaxA = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardMinimaxA,
+	fixtGameSnapshotMinimaxA = GameSnapshot.valueOf(GamePosition.valueOf(BoardFixtures.MINIMAX_TEST_CASE_A,
 									     Player.WHITE),
 							Clock.initialClock(Period.minutes(1).toStandardDuration()),
 							MoveRegister.empty());
-	fixtGameSnapshotMinimaxB = GameSnapshot.valueOf(GamePosition.valueOf(bt.fixtBoardMinimaxB,
+	fixtGameSnapshotMinimaxB = GameSnapshot.valueOf(GamePosition.valueOf(BoardFixtures.MINIMAX_TEST_CASE_B,
 									     Player.WHITE),
 							Clock.initialClock(Period.minutes(1).toStandardDuration()),
 							MoveRegister.empty());
