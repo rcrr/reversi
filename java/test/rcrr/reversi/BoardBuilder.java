@@ -24,12 +24,15 @@
 
 package rcrr.reversi;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.EnumMap;
 
 /**
  * A board builder is a facility to generate board instances for testing.
+ * <p>
+ * Documents thread-safaty ...
  */
 public final class BoardBuilder {
 
@@ -70,6 +73,15 @@ public final class BoardBuilder {
      */
     private void put(final Square square, final SquareState squareState) {
         this.squares.put(square, squareState);
+    }
+
+    /**
+     * The setter method for the squares field.
+     *
+     * @param squares the update for the square field
+     */
+    private void setSquares(final Map<Square, SquareState> squares) {
+        this.squares = squares;
     }
 
     /**
@@ -139,7 +151,7 @@ public final class BoardBuilder {
      * @return        the {@code this} reference
      */
     public BoardBuilder withSquares(final Map<Square, SquareState> squares) {
-        this.squares = squares;
+        setSquares(squares);
         return this;
     }
 }
