@@ -32,7 +32,8 @@ import java.util.EnumMap;
 /**
  * A board builder is a facility to generate board instances for testing.
  * <p>
- * Documents thread-safaty ...
+ * {@code BoardBuilder} is mutable, and it is thread-safe.
+ * The object status is guarded by a lock on {@code this}.
  */
 public final class BoardBuilder {
 
@@ -51,7 +52,7 @@ public final class BoardBuilder {
      *
      * @return the board instance as prepared by the current board's builder
      */
-    public Board build() {
+    public synchronized Board build() {
         return Board.valueOf(squares);
     }
 
@@ -61,7 +62,7 @@ public final class BoardBuilder {
      * @param square the board's square
      * @return       the selected square's state
      */
-    private SquareState get(final Square square) {
+    private synchronized SquareState get(final Square square) {
         return this.squares.get(square);
     }
 
@@ -71,7 +72,7 @@ public final class BoardBuilder {
      * @param square      the board's square
      * @param squareState the square's state value
      */
-    private void put(final Square square, final SquareState squareState) {
+    private synchronized void put(final Square square, final SquareState squareState) {
         this.squares.put(square, squareState);
     }
 
@@ -80,7 +81,7 @@ public final class BoardBuilder {
      *
      * @param squares the update for the square field
      */
-    private void setSquares(final Map<Square, SquareState> squares) {
+    private synchronized void setSquares(final Map<Square, SquareState> squares) {
         this.squares = squares;
     }
 
