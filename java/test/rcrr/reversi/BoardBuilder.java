@@ -24,7 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.EnumMap;
@@ -36,6 +35,18 @@ import java.util.EnumMap;
  * The object status is guarded by a lock on {@code this}.
  */
 public final class BoardBuilder {
+
+    /** Empty square is represented by the 0 integer literal value. */
+    private static final int EMPTY = 0;
+
+    /** Black square is represented by the 1 integer literal value. */
+    private static final int BLACK = 1;
+
+    /** White square is represented by the 2 integer literal value. */
+    private static final int WHITE = 2;
+
+    /** Outer square is represented by the 3 integer literal value. */
+    private static final int OUTER = 3;
 
     /** The squares field. */
     private Map<Square, SquareState> squares;
@@ -104,7 +115,7 @@ public final class BoardBuilder {
      *                     described by a list of integer values
      * @return             the {@code this} reference
      */
-    public BoardBuilder withBoardLiteral(List<Integer> boardLiteral) {
+    public BoardBuilder withBoardLiteral(final List<Integer> boardLiteral) {
         if (boardLiteral == null) {
             throw new NullPointerException("Parameter boardLiteral cannot be null.");
         }
@@ -115,15 +126,15 @@ public final class BoardBuilder {
         for (int index = 0; index < Square.values().length; index++) {
             final Integer integerSquareState = boardLiteral.get(index);
             SquareState squareState = null;
-            if (integerSquareState == null || integerSquareState < 0 || integerSquareState > 3) {
+            if (integerSquareState == null || integerSquareState < EMPTY || integerSquareState > OUTER) {
                 throw new IllegalArgumentException("Parameter boardLiteral contains a wrong value.");
-            } else if (integerSquareState == 0) {
+            } else if (integerSquareState == EMPTY) {
                 squareState = SquareState.EMPTY;
-            } else if (integerSquareState == 1) {
+            } else if (integerSquareState == BLACK) {
                 squareState = SquareState.BLACK;
-            } else if (integerSquareState == 2) {
+            } else if (integerSquareState == WHITE) {
                 squareState = SquareState.WHITE;
-            } else if (integerSquareState == 3) {
+            } else if (integerSquareState == OUTER) {
                 squareState = SquareState.OUTER;
             }
             transientSquares.put(Square.getInstance(index), squareState);
