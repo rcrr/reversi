@@ -1,5 +1,5 @@
 /*
- *  GamePositionFixtures.java
+ *  GameSnapshotFixtures.java
  *
  *  Copyright (c) 2011 Roberto Corradini. All rights reserved.
  *
@@ -27,25 +27,27 @@ package rcrr.reversi;
 import java.util.Arrays;
 import java.util.List;
 
+import org.joda.time.Duration;
+import org.joda.time.Period;
+
 /**
- * The class host a number of predefined game positions.
+ * The class host a number of predefined game snapshots.
  * <p>
- * The {@code GamePosition} class defines immutable objects thus {@code GamePositionFixtures}
- * implements game position instances as public static shared objects. Tests can
+ * The {@code GameSnapshot} class defines immutable objects thus {@code GameSnapshotFixtures}
+ * implements game snapshot instances as public static shared objects. Tests can
  * freely share the instances without any modification issue.
  */
-public class GamePositionFixtures {
+public class GameSnapshotFixtures {
 
-    /** The black player has to pass. */
-    public static GamePosition BLACK_HAS_TO_PASS = new GamePositionBuilder()
-        .withBoard(BoardFixtures.BLACK_HAS_TO_PASS)
-        .withPlayer(Player.BLACK)
-        .build();
+    private static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
+    private static final Clock ONE_MINUTE_LEFT_TO_BOTH_PLAYERS = Clock.initialClock(ONE_MINUTE_DURATION);
+    private static final MoveRegister EMPTY = MoveRegister.empty();
 
-    /** Minimax test case A, white player has to move. */
-    public static GamePosition MINIMAX_TEST_CASE_A = new GamePositionBuilder()
-        .withBoard(BoardFixtures.MINIMAX_TEST_CASE_A)
-        .withPlayer(Player.WHITE)
+    /** Minimax test case A, white player has to move, one minute left to both players. */
+    public static final GameSnapshot MINIMAX_TEST_CASE_A = new GameSnapshotBuilder()
+        .withPosition(GamePositionFixtures.MINIMAX_TEST_CASE_A)
+        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withRegister(EMPTY)
         .build();
 
 }

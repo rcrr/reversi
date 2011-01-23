@@ -25,7 +25,7 @@
 package rcrr.reversi;
 
 /**
- * A board builder is a facility to generate board instances for testing.
+ * A game position builder is a facility to generate game position instances for testing.
  * <p>
  * {@code GamePositionBuilder} is mutable, and it is thread-safe.
  * The object status is guarded by a lock on {@code this}.
@@ -58,7 +58,7 @@ public final class GamePositionBuilder {
     /**
      * The method returns the board field.
      *
-     * @return the board fields
+     * @return the board field
      */
     public synchronized Board getBoard() {
         return this.board;
@@ -67,7 +67,7 @@ public final class GamePositionBuilder {
     /**
      * The method returns the player field.
      *
-     * @return the player fields
+     * @return the player field
      */
     public synchronized Player getPlayer() {
         return this.player;
@@ -107,7 +107,7 @@ public final class GamePositionBuilder {
     /**
      * Returns the {@code this} reference after setting the new {@code player} field.
      *
-     * @param player the board assigned to the player position
+     * @param player the player assigned to the game position
      * @return       the {@code this} reference
      */
     public GamePositionBuilder withPlayer(final Player player) {
