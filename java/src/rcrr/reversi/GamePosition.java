@@ -33,6 +33,18 @@ package rcrr.reversi;
 public final class GamePosition {
 
     /**
+     * Static factory that returns a new initial game position.
+     * <p>
+     * The returned game position has the board set with the four central
+     * disk, and the black player has to move.
+     *
+     * @return a new initial game position as required by international game's rules
+     */
+    public static GamePosition initialGamePosition() {
+        return valueOf(Board.initialBoard(), Player.BLACK);
+    }
+
+    /**
      * Base static factory for the class.
      * <p>
      * Parameter {@code board} cannot be null.
@@ -51,18 +63,6 @@ public final class GamePosition {
             throw new NullPointerException("Parameter player cannot be null when there are still valid moves.");
         }
         return new GamePosition(board, player);
-    }
-
-    /**
-     * Static factory that returns a new initial game position.
-     * <p>
-     * The returned game position has the board set with the four central
-     * disk, and the black player has to move.
-     *
-     * @return a new initial game position as required by international game's rules
-     */
-    public static GamePosition initialGamePosition() {
-        return valueOf(Board.initialBoard(), Player.BLACK);
     }
 
     /** The board field. */
