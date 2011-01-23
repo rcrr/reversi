@@ -37,13 +37,13 @@ import java.util.List;
 public class GamePositionFixtures {
 
     /** The black player has to pass. */
-    public static GamePosition BLACK_HAS_TO_PASS = new GamePositionBuilder()
+    public static final GamePosition BLACK_HAS_TO_PASS = new GamePositionBuilder()
         .withBoard(BoardFixtures.BLACK_HAS_TO_PASS)
         .withPlayer(Player.BLACK)
         .build();
 
     /** Minimax test case A, white player has to move. */
-    public static GamePosition MINIMAX_TEST_CASE_A = new GamePositionBuilder()
+    public static final GamePosition MINIMAX_TEST_CASE_A = new GamePositionBuilder()
         .withBoard(BoardFixtures.MINIMAX_TEST_CASE_A)
         .withPlayer(Player.WHITE)
         .build();

@@ -33,8 +33,6 @@ import org.joda.time.Period;
 public class MinimaxTest {
 
     /** Game state fixtures. */
-    private GameSnapshot fixtGameSnapshotInitial;
-    private GameSnapshot fixtGameSnapshotMinimaxA;
     private GameSnapshot fixtGameSnapshotMinimaxB;
     private GameSnapshot fixtGameSnapshotB;
     private GameSnapshot fixtGameSnapshotBC3;
@@ -69,19 +67,6 @@ public class MinimaxTest {
      */
     @Before
     public void setUp() {
-	fixtGameSnapshotInitial = GameSnapshot.initialGameSnapshot(Period.minutes(1).toStandardDuration());
-
-	fixtGameSnapshotMinimaxA = GameSnapshot.valueOf(GamePositionFixtures.MINIMAX_TEST_CASE_A,
-							Clock.initialClock(Period.minutes(1).toStandardDuration()),
-							MoveRegister.empty());
-
-        /*
-	fixtGameSnapshotMinimaxA = GameSnapshot.valueOf(GamePosition.valueOf(BoardFixtures.MINIMAX_TEST_CASE_A,
-									     Player.WHITE),
-							Clock.initialClock(Period.minutes(1).toStandardDuration()),
-							MoveRegister.empty());
-        */
-
 	fixtGameSnapshotMinimaxB = GameSnapshot.valueOf(GamePosition.valueOf(BoardFixtures.MINIMAX_TEST_CASE_B,
 									     Player.WHITE),
 							Clock.initialClock(Period.minutes(1).toStandardDuration()),
@@ -132,10 +117,10 @@ public class MinimaxTest {
      */
     @Test
     public void testMinimaxSearcher() {
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyA.move(fixtGameSnapshotInitial));
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyB.move(fixtGameSnapshotInitial));
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyC.move(fixtGameSnapshotInitial));
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyD.move(fixtGameSnapshotInitial));
+	assertEquals(Move.valueOf(Square.D3), fixtStrategyA.move(GameSnapshotFixtures.INITIAL));
+	assertEquals(Move.valueOf(Square.D3), fixtStrategyB.move(GameSnapshotFixtures.INITIAL));
+	assertEquals(Move.valueOf(Square.D3), fixtStrategyC.move(GameSnapshotFixtures.INITIAL));
+	assertEquals(Move.valueOf(Square.D3), fixtStrategyD.move(GameSnapshotFixtures.INITIAL));
     }
 
     /**
@@ -151,14 +136,14 @@ public class MinimaxTest {
      */
     @Test
     public void testMinimaxSearcherA() {
-	assertEquals(Move.valueOf(Square.E5), fixtStrategyA.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.E5), fixtStrategyB.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyC.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyD.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyE.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyF.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyG.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyH.move(fixtGameSnapshotMinimaxA));
+	assertEquals(Move.valueOf(Square.E5), fixtStrategyA.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.E5), fixtStrategyB.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.C4), fixtStrategyC.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.C4), fixtStrategyD.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.C4), fixtStrategyE.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.C4), fixtStrategyF.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.A3), fixtStrategyG.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.A3), fixtStrategyH.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
 
     }
 
@@ -234,23 +219,23 @@ public class MinimaxTest {
     /** See above. */
     @Test
     public void testAlphabetaSearcher() {
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyAab.move(fixtGameSnapshotInitial));
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyBab.move(fixtGameSnapshotInitial));
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyCab.move(fixtGameSnapshotInitial));
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyDab.move(fixtGameSnapshotInitial));
+	assertEquals(Move.valueOf(Square.D3), fixtStrategyAab.move(GameSnapshotFixtures.INITIAL));
+	assertEquals(Move.valueOf(Square.D3), fixtStrategyBab.move(GameSnapshotFixtures.INITIAL));
+	assertEquals(Move.valueOf(Square.D3), fixtStrategyCab.move(GameSnapshotFixtures.INITIAL));
+	assertEquals(Move.valueOf(Square.D3), fixtStrategyDab.move(GameSnapshotFixtures.INITIAL));
     }
 
     /** See above. */
     @Test
     public void testAlphabetaSearcherA() {
-	assertEquals(Move.valueOf(Square.E5), fixtStrategyAab.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.E5), fixtStrategyBab.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyCab.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyDab.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyEab.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyFab.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyGab.move(fixtGameSnapshotMinimaxA));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyHab.move(fixtGameSnapshotMinimaxA));
+	assertEquals(Move.valueOf(Square.E5), fixtStrategyAab.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.E5), fixtStrategyBab.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.C4), fixtStrategyCab.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.C4), fixtStrategyDab.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.C4), fixtStrategyEab.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.C4), fixtStrategyFab.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.A3), fixtStrategyGab.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+	assertEquals(Move.valueOf(Square.A3), fixtStrategyHab.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
 
     }
 
@@ -290,7 +275,7 @@ public class MinimaxTest {
 	
 	/** The maximixer method is equivalent to a minimax search one ply deep. */
 	assertEquals(Move.valueOf(Square.H3), Minimax.maximizer(new CountDifference()).move(fixtGameSnapshotBC6));
-	assertEquals(Move.valueOf(Square.E5), Minimax.maximizer(new CountDifference()).move(fixtGameSnapshotMinimaxA));
+	assertEquals(Move.valueOf(Square.E5), Minimax.maximizer(new CountDifference()).move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
     }
 
     /** Test the maximizer when no legal move is available. */
