@@ -36,17 +36,24 @@
   <property name="test.classes.dir" value="${build.dir}/test/classes"/>
   <property name="test.data.dir" value="${build.dir}/test/data"/>
   <property name="test.reports.dir" value="${build.dir}/test/reports"/>
+  <property name="test.javadoc.dir" value="${build.dir}/test/javadoc"/>
 
   <property name="cloc.dir" value="${build.dir}/cloc"/>
 
   <property name="docs.dir" value="docs"/>
   <property name="docs.checkstyle.dir" value="${docs.dir}/checkstyle"/>
   <property name="checkstyle.reports.dir" value="${build.dir}/checkstyle"/>
+  <property name="test.checkstyle.reports.dir" value="${build.dir}/test/checkstyle"/>
 
   <property name="lib.dir" value="lib"/>
 
   <path id="lib.classpath">
     <fileset dir="${lib.dir}" includes="**/*.jar"/>
+  </path>
+
+  <path id="test.classpath">
+    <fileset dir="${lib.dir}" includes="**/*.jar"/>
+    <fileset dir="${jar.dir}" includes="${ant.project.name}.jar"/>
   </path>
 
   <property name="main-class" value="rcrr.reversi.Reversi"/>
@@ -106,10 +113,7 @@
     <delete dir="${test.classes.dir}"/>
     <mkdir dir="${test.classes.dir}"/>
     <javac srcdir="${test.src.dir}" destdir="${test.classes.dir}" includeAntRuntime="false">
-      <classpath>
-	<pathelement location="${jar.dir}/${ant.project.name}.jar"/>
-	<path refid="lib.classpath"/>
-      </classpath>
+      <classpath refid="test.classpath"/>
     </javac>
   </target>
 
@@ -160,9 +164,24 @@
     </javadoc>
   </target>
   
+  <target name="test.javadocs" depends="test.compile">
+    <delete dir="${test.javadoc.dir}"/>
+    <mkdir dir="${test.javadoc.dir}"/>
+    <javadoc author="true"
+	     destdir="${test.javadoc.dir}"
+	     packagenames="rcrr.*"
+	     sourcepath="${test.src.dir}"
+	     use="true"
+	     version="true"
+	     windowtitle="test documentation"
+	     private="false">
+      <classpath refid="test.classpath"/>
+    </javadoc>
+  </target>
+  
   <target name="clean-build" depends="clean,jar"/>
   
-  <target name="main" depends="clean,test,javadocs"/>
+  <target name="main" depends="clean,test,javadocs,test.javadocs"/>
 
   <property name="cloc.executable" value="/usr/bin/cloc"/>  
   <available file="${cloc.executable}" type="file"
@@ -195,6 +214,24 @@
   
   <xslt in="${checkstyle.reports.dir}/checkstyle_report.xml"
 	out="${checkstyle.reports.dir}/checkstyle_report.html"
+	style="${docs.checkstyle.dir}/checkstyle-noframes.xsl"/>
+  
+  </target>
+
+  <target name="test.checkstyle"
+          description="Generates a report of code convention violations for tests.">
+    <delete dir="${test.checkstyle.reports.dir}"/>
+    <mkdir dir="${test.checkstyle.reports.dir}"/>
+    
+    <checkstyle config="${docs.checkstyle.dir}/reversi_checks.xml"
+                failureProperty="checkstyle.failure"
+                failOnViolation="false">
+      <formatter type="xml" tofile="${test.checkstyle.reports.dir}/checkstyle_report.xml"/>
+      <fileset dir="test" includes="**/*.java"/>
+  </checkstyle>
+  
+  <xslt in="${test.checkstyle.reports.dir}/checkstyle_report.xml"
+	out="${test.checkstyle.reports.dir}/checkstyle_report.html"
 	style="${docs.checkstyle.dir}/checkstyle-noframes.xsl"/>
   
   </target>
