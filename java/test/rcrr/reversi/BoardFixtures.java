@@ -34,11 +34,10 @@ import java.util.List;
  * implements board instances as public static shared objects. Tests can
  * freely share the instances without any modification issue.
  */
-public class BoardFixtures {
-
+public final class BoardFixtures {
 
     /** The black player has to pass. */
-    public static Board BLACK_HAS_TO_PASS = new BoardBuilder()
+    public static final Board BLACK_HAS_TO_PASS = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
                                         1, 1, 1, 1, 1, 1, 1, 2,
                                         0, 1, 2, 2, 1, 1, 2, 2,
@@ -56,7 +55,7 @@ public class BoardFixtures {
      *  - C3 that leads to the EARLY_GAME_BC3_10_MOVES board
      *  - C6 that leads to the EARLY_GAME_BC6_10_MOVES board
      */
-    public static Board EARLY_GAME_B_9_MOVES = new BoardBuilder()
+    public static final Board EARLY_GAME_B_9_MOVES = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
                                         0, 0, 0, 0, 1, 0, 0, 0,
                                         0, 0, 0, 1, 1, 2, 2, 0,
@@ -71,7 +70,7 @@ public class BoardFixtures {
      * The board after twelve moves of a generic game. This board position takes
      * in the tests the name EARLY_GAME_C_12_MOVES.
      */
-    public static Board EARLY_GAME_C_12_MOVES = new BoardBuilder()
+    public static final Board EARLY_GAME_C_12_MOVES = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         2, 1, 1, 1, 0, 0, 2, 0,
@@ -83,7 +82,7 @@ public class BoardFixtures {
         .build();
 
     /** The EARLY_GAME_BC3_10_MOVES board. */
-    public static Board EARLY_GAME_BC3_10_MOVES = new BoardBuilder()
+    public static final Board EARLY_GAME_BC3_10_MOVES = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
                                         0, 0, 0, 0, 1, 0, 0, 0,
                                         0, 0, 2, 2, 2, 2, 2, 0,
@@ -95,7 +94,7 @@ public class BoardFixtures {
         .build();
 
     /** The EARLY_GAME_BC6_10_MOVES board. */
-    public static Board EARLY_GAME_BC6_10_MOVES = new BoardBuilder()
+    public static final Board EARLY_GAME_BC6_10_MOVES = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
                                         0, 0, 0, 0, 1, 0, 0, 0,
                                         0, 0, 0, 1, 1, 2, 2, 0,
@@ -107,7 +106,7 @@ public class BoardFixtures {
         .build();
 
     /** The empty board. */
-    public static Board EMPTY = new BoardBuilder()
+    public static final Board EMPTY = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
@@ -118,11 +117,11 @@ public class BoardFixtures {
                                         0, 0, 0, 0, 0, 0, 0, 0))
         .build();
 
-    /** 
+    /**
      * The list used for generating the two board
      * used for the Equality test.
      */
-    private static List<Integer> EQL_LIST = 
+    private static final List<Integer> EQL_LIST =
         Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
                       1, 1, 1, 1, 1, 1, 1, 2,
                       0, 1, 2, 2, 1, 1, 2, 2,
@@ -133,12 +132,12 @@ public class BoardFixtures {
                       2, 2, 2, 2, 2, 2, 1, 2);
 
     /** The first board used for Equality test. */
-    public static Board EQL_TEST_A = new BoardBuilder()
+    public static final Board EQL_TEST_A = new BoardBuilder()
         .withBoardLiteral(EQL_LIST)
         .build();
 
     /** The second board used for Equality test. */
-    public static Board EQL_TEST_B = new BoardBuilder()
+    public static final Board EQL_TEST_B = new BoardBuilder()
         .withBoardLiteral(EQL_LIST)
         .build();
 
@@ -146,7 +145,7 @@ public class BoardFixtures {
      * A final position board. All sixtyfour squares are occupied by a player.
      * The black counts 37 discs, while the white 27.
      */
-    public static Board FINAL_B37_W27 = new BoardBuilder()
+    public static final Board FINAL_B37_W27 = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(2, 2, 2, 2, 2, 1, 1, 1,
                                         2, 2, 2, 1, 1, 1, 1, 1,
                                         2, 2, 2, 1, 1, 1, 2, 1,
@@ -158,7 +157,7 @@ public class BoardFixtures {
         .build();
 
     /** The board after the black's first move in D3. */
-    public static Board FIRST_MOVE_D3 = new BoardBuilder()
+    public static final Board FIRST_MOVE_D3 = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 1, 0, 0, 0, 0,
@@ -170,7 +169,7 @@ public class BoardFixtures {
         .build();
 
     /** The initial board. */
-    public static Board INITIAL = new BoardBuilder()
+    public static final Board INITIAL = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0,
@@ -189,7 +188,7 @@ public class BoardFixtures {
      */
 
     /** Test case MAKE_MOVE_A: before the move. */
-    public static Board MAKE_MOVE_TEST_CASE_A_BEFORE = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_A_BEFORE = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 2, 2, 2, 2, 2, 0, 0,
                                         0, 2, 1, 1, 1, 2, 0, 0,
@@ -201,7 +200,7 @@ public class BoardFixtures {
         .build();
 
     /** Test case MAKE_MOVE_A: after the D4 move. */
-    public static Board MAKE_MOVE_TEST_CASE_A_AFTER = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_A_AFTER = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 2, 2, 2, 2, 2, 0, 0,
                                         0, 2, 2, 2, 2, 2, 0, 0,
@@ -213,7 +212,7 @@ public class BoardFixtures {
         .build();
 
     /** Test case MAKE_MOVE_A: before the move. */
-    public static Board MAKE_MOVE_TEST_CASE_B_BEFORE = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_B_BEFORE = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(2, 2, 2, 2, 2, 2, 2, 0,
                                         2, 1, 1, 1, 1, 1, 2, 0,
                                         2, 1, 1, 1, 1, 1, 2, 0,
@@ -225,7 +224,7 @@ public class BoardFixtures {
         .build();
 
     /** Test case MAKE_MOVE_A: after the D4 move. */
-    public static Board MAKE_MOVE_TEST_CASE_B_AFTER = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_B_AFTER = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(2, 2, 2, 2, 2, 2, 2, 0,
                                         2, 2, 1, 2, 1, 2, 2, 0,
                                         2, 1, 2, 2, 2, 1, 2, 0,
@@ -237,7 +236,7 @@ public class BoardFixtures {
         .build();
 
     /** Test case MAKE_MOVE_A: before the move. */
-    public static Board MAKE_MOVE_TEST_CASE_C_BEFORE = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_C_BEFORE = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(1, 1, 1, 1, 1, 1, 1, 2,
                                         1, 1, 1, 1, 1, 1, 1, 2,
                                         1, 1, 1, 1, 1, 1, 1, 2,
@@ -249,7 +248,7 @@ public class BoardFixtures {
         .build();
 
     /** Test case MAKE_MOVE_A: after the D4 move. */
-    public static Board MAKE_MOVE_TEST_CASE_C_AFTER = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_C_AFTER = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(1, 1, 1, 1, 1, 1, 1, 2,
                                         1, 1, 1, 1, 1, 1, 1, 2,
                                         1, 1, 1, 1, 1, 1, 1, 2,
@@ -261,7 +260,7 @@ public class BoardFixtures {
         .build();
 
     /** Test case MAKE_MOVE_A: before the move. */
-    public static Board MAKE_MOVE_TEST_CASE_D_BEFORE = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_D_BEFORE = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 1, 0, 0, 2, 0, 0, 0,
                                         0, 2, 0, 2, 0, 0, 0, 0,
                                         1, 1, 1, 0, 0, 0, 0, 0,
@@ -273,7 +272,7 @@ public class BoardFixtures {
         .build();
 
     /** Test case MAKE_MOVE_A: after the B4 move. */
-    public static Board MAKE_MOVE_TEST_CASE_D_AFTER = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_D_AFTER = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(0, 1, 0, 0, 2, 0, 0, 0,
                                         0, 2, 0, 2, 0, 0, 0, 0,
                                         1, 2, 2, 0, 0, 0, 0, 0,
@@ -285,7 +284,7 @@ public class BoardFixtures {
         .build();
 
     /** A board for testing minimax algorithm. */
-    public static Board MINIMAX_TEST_CASE_A = new BoardBuilder()
+    public static final Board MINIMAX_TEST_CASE_A = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(2, 0, 2, 0, 2, 0, 2, 0,
                                         1, 0, 1, 0, 1, 0, 1, 0,
                                         0, 0, 1, 0, 1, 0, 1, 0,
@@ -297,7 +296,7 @@ public class BoardFixtures {
         .build();
 
     /** A board for testing minimax algorithm. */
-    public static Board MINIMAX_TEST_CASE_B = new BoardBuilder()
+    public static final Board MINIMAX_TEST_CASE_B = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(2, 1, 2, 0, 0, 0, 0, 0,
                                         1, 0, 1, 0, 0, 0, 0, 0,
                                         0, 0, 1, 0, 0, 0, 0, 0,
@@ -307,5 +306,8 @@ public class BoardFixtures {
                                         0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0))
         .build();
+
+    /** Class constructor. */
+    private BoardFixtures() { }
 
 }
