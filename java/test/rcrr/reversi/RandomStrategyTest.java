@@ -48,24 +48,13 @@ public class RandomStrategyTest {
     private static final int N = INITIAL_LEGAL_MOVES.size();
     private static final double PROBABILITY = 1./N;
 
-    /** Game state fixtures. */
-    private GameSnapshot fixtGameSnapshotInitial;
-
     /** Strategy fixtures. */
     private Strategy randomStrategy = new RandomStrategy();
  
-    /**
-     * Prepares the GameSnapshot fixtures. It depends on the public BoardTest fixtures.
-     */
-    @Before
-    public void setUp() {
-	fixtGameSnapshotInitial = GameSnapshot.initialGameSnapshot(Period.minutes(1).toStandardDuration());
-    }
-
     private List<Square> randomSquareSample(int length) {
 	List<Square> result = new ArrayList<Square>(length);
 	for (int i=0; i<length; i++) {
-	    Square sq = randomStrategy.move(fixtGameSnapshotInitial).square();
+	    Square sq = randomStrategy.move(GameSnapshotFixtures.INITIAL).square();
 	    assertTrue(INITIAL_LEGAL_MOVES.contains(sq));
 	    result.add(sq);
 	}

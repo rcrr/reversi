@@ -43,6 +43,9 @@ public class GameSnapshotFixtures {
     private static final Clock ONE_MINUTE_LEFT_TO_BOTH_PLAYERS = Clock.initialClock(ONE_MINUTE_DURATION);
     private static final MoveRegister EMPTY = MoveRegister.empty();
 
+    /** Initial position, one minute left to both players. */
+    public static final GameSnapshot INITIAL = GameSnapshot.initialGameSnapshot(ONE_MINUTE_DURATION);
+
     /** Minimax test case A, white player has to move, one minute left to both players. */
     public static final GameSnapshot MINIMAX_TEST_CASE_A = new GameSnapshotBuilder()
         .withPosition(GamePositionFixtures.MINIMAX_TEST_CASE_A)
