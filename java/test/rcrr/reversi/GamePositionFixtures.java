@@ -48,4 +48,10 @@ public class GamePositionFixtures {
         .withPlayer(Player.WHITE)
         .build();
 
+    /** Minimax test case B, white player has to move. */
+    public static final GamePosition MINIMAX_TEST_CASE_B = new GamePositionBuilder()
+        .withBoard(BoardFixtures.MINIMAX_TEST_CASE_B)
+        .withPlayer(Player.WHITE)
+        .build();
+
 }
