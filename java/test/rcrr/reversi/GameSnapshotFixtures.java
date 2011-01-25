@@ -53,4 +53,64 @@ public class GameSnapshotFixtures {
         .withRegister(EMPTY)
         .build();
 
+    /** Minimax test case B, white player has to move, one minute left to both players. */
+    public static final GameSnapshot MINIMAX_TEST_CASE_B = new GameSnapshotBuilder()
+        .withPosition(GamePositionFixtures.MINIMAX_TEST_CASE_B)
+        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withRegister(EMPTY)
+        .build();
+
+    /** Black has no legal moves, black player has to move, one minute left to both players. */
+    public static final GameSnapshot BLACK_HAS_TO_PASS = new GameSnapshotBuilder()
+        .withPosition(GamePositionFixtures.BLACK_HAS_TO_PASS)
+        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withRegister(EMPTY)
+        .build();
+
+    /**
+     * Early game snapshot identified by EARLY_GAME_B_9_MOVES.
+     * Nine moves from the beginning.
+     * White player has to move.
+     */
+    public static final GameSnapshot EARLY_GAME_B_9_MOVES = new GameSnapshotBuilder()
+        .withPosition(new GamePositionBuilder()
+                      .withBoard(BoardFixtures.EARLY_GAME_B_9_MOVES)
+                      .withPlayer(Player.WHITE)
+                      .build())
+        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withRegister(EMPTY)
+        .build();
+
+    /**
+     * Game snapshot identified by EARLY_GAME_BC3_10_MOVES.
+     * Ten moves from the beginning.
+     * Black player has to move.
+     * The game position has been generated from EARLY_GAME_B_9_MOVES by
+     * moving the black to c3.
+     */
+    public static final GameSnapshot EARLY_GAME_BC3_10_MOVES = new GameSnapshotBuilder()
+        .withPosition(new GamePositionBuilder()
+                      .withBoard(BoardFixtures.EARLY_GAME_BC3_10_MOVES)
+                      .withPlayer(Player.BLACK)
+                      .build())
+        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withRegister(EMPTY)
+        .build();
+
+    /**
+     * Game snapshot identified by EARLY_GAME_BC6_10_MOVES.
+     * Ten moves from the beginning.
+     * Black player has to move.
+     * The game position has been generated from EARLY_GAME_B_9_MOVES by
+     * moving the black to c6.
+     */
+    public static final GameSnapshot EARLY_GAME_BC6_10_MOVES = new GameSnapshotBuilder()
+        .withPosition(new GamePositionBuilder()
+                      .withBoard(BoardFixtures.EARLY_GAME_BC6_10_MOVES)
+                      .withPlayer(Player.BLACK)
+                      .build())
+        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withRegister(EMPTY)
+        .build();
+
 }
