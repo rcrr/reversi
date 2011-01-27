@@ -24,13 +24,35 @@
 
 package rcrr.reversi;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.*;
 import static org.junit.Assert.*;
 
-public class AlphaBetaTest {
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-    @Test
-    public void testDummy() {
-        assertTrue("Tests must be implemented.",false);
+@RunWith(Parameterized.class)
+public class AlphaBetaTest extends DecisionRuleTestUtils {
+
+    public AlphaBetaTest(GameSnapshot snapshot, Square expectedMove, Integer ply, EvalFunction ef) {
+        super(snapshot, expectedMove, ply, ef);
+        decisionRule = AlphaBeta.getInstance();
+        strategy = decisionRule.searcher(ply, ef);
     }
+
+    @Parameterized.Parameters
+    public static Collection data() {
+        return Arrays.asList(new Object[][] {
+
+                /** ... */
+                { GameSnapshotFixtures.INITIAL, Square.D3, 1, new CountDifference() },
+                { GameSnapshotFixtures.INITIAL, Square.D3, 2, new CountDifference() },
+                { GameSnapshotFixtures.INITIAL, Square.D3, 3, new CountDifference() },
+                { GameSnapshotFixtures.INITIAL, Square.D3, 4, new CountDifference() },
+
+            });
+    }
+
 }
