@@ -1,7 +1,7 @@
 /*
- *  DecisionRuleTestUtils.java
+ *  MinimaxBoundaryConditionsTest.java
  *
- *  Copyright (c) 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -27,26 +27,24 @@ package rcrr.reversi;
 import org.junit.*;
 import static org.junit.Assert.*;
 
-public abstract class DecisionRuleTestUtils {
+public class MinimaxBoundaryConditionsTest {
 
-    protected Move expectedMove;
-    protected Strategy strategy;
-    protected GameSnapshot snapshot;
-    protected DecisionRule decisionRule;
-    protected Integer ply;
-    protected EvalFunction ef;
+    private DecisionRule minimax = Minimax.getInstance();
 
-    public DecisionRuleTestUtils(GameSnapshot snapshot, Move expectedMove, Integer ply, EvalFunction ef) {
-        this.strategy = strategy;
-        this.snapshot = snapshot;
-        this.expectedMove = expectedMove;
-        this.ply = ply;
-        this.ef = ef;
+    /**
+     * Tests the minimaxSearcher ply parameter range.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testMinimaxSearcherPlyRange() {
+	Strategy s = minimax.searcher(0, new CountDifference());
     }
 
-    @Test
-    public void testMove() {
-        assertEquals(expectedMove, strategy.move(snapshot));
+    /**
+     * Tests the minimaxSearcher ef parameter.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testMinimaxSearcherEfNotNull() {
+	Strategy s = minimax.searcher(1, null);
     }
 
 }

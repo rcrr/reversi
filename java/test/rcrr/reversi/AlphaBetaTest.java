@@ -38,7 +38,7 @@ public class AlphaBetaTest extends DecisionRuleTestUtils {
 
     static final EvalFunction COUNT_DIFF = new CountDifference();
 
-    public AlphaBetaTest(GameSnapshot snapshot, Square expectedMove, Integer ply, EvalFunction ef) {
+    public AlphaBetaTest(GameSnapshot snapshot, Move expectedMove, Integer ply, EvalFunction ef) {
         super(snapshot, expectedMove, ply, ef);
         decisionRule = AlphaBeta.getInstance();
         strategy = decisionRule.searcher(ply, ef);
@@ -49,48 +49,48 @@ public class AlphaBetaTest extends DecisionRuleTestUtils {
         return Arrays.asList(new Object[][] {
 
                 /** ... */
-                { GameSnapshotFixtures.INITIAL, Square.D3, 1, COUNT_DIFF },
-                { GameSnapshotFixtures.INITIAL, Square.D3, 2, COUNT_DIFF },
-                { GameSnapshotFixtures.INITIAL, Square.D3, 3, COUNT_DIFF },
-                { GameSnapshotFixtures.INITIAL, Square.D3, 4, COUNT_DIFF },
+                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 2, COUNT_DIFF },
+                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 3, COUNT_DIFF },
+                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 4, COUNT_DIFF },
 
                 /** ... */
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Square.E5, 1, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Square.E5, 2, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Square.C4, 3, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Square.C4, 4, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Square.C4, 5, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Square.C4, 6, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Square.A3, 7, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Square.A3, 8, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.E5), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.E5), 2, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 3, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 4, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 5, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 6, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.A3), 7, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.A3), 8, COUNT_DIFF },
 
                 /** ... */
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Square.C4, 1, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Square.C4, 2, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Square.A3, 3, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Square.A3, 4, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Square.A3, 5, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Square.A3, 6, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Square.A3, 7, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Square.A3, 8, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.C4), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.C4), 2, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 3, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 4, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 5, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 6, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 7, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 8, COUNT_DIFF },
 
                 /** Manually verified. */
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Square.C3, 1, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_BC3_10_MOVES, Square.B2, 1, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_BC6_10_MOVES, Square.H3, 1, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Square.C3, 2, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_BC3_10_MOVES, Move.valueOf(Square.B2), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_BC6_10_MOVES, Move.valueOf(Square.H3), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 2, COUNT_DIFF },
 
                 /** Not "manually" verified. */
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Square.C3, 3, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Square.C3, 4, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Square.C3, 5, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Square.C3, 6, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 3, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 4, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 5, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 6, COUNT_DIFF },
 
                 /** Test the alphabeta searcher when no legal move is available. */
-                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Square.C3, 1, COUNT_DIFF },
-                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Square.C3, 2, COUNT_DIFF },
-                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Square.C3, 3, COUNT_DIFF },
-                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Square.C3, 4, COUNT_DIFF },
+                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 2, COUNT_DIFF },
+                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 3, COUNT_DIFF },
+                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 4, COUNT_DIFF },
 
             });
     }
