@@ -33,7 +33,6 @@ import org.joda.time.Period;
 public class MinimaxTest {
 
     private DecisionRule minimax = Minimax.getInstance();
-    private DecisionRule alphabeta = AlphaBeta.getInstance();
 
     /** Strategy fixtures. */
     private Strategy fixtStrategyA = minimax.searcher(1, new CountDifference());
@@ -44,32 +43,6 @@ public class MinimaxTest {
     private Strategy fixtStrategyF = minimax.searcher(6, new CountDifference());
     private Strategy fixtStrategyG = minimax.searcher(7, new CountDifference());
     private Strategy fixtStrategyH = minimax.searcher(8, new CountDifference());
-
-    /** Strategy fixtures. */
-    private Strategy fixtStrategyAab = alphabeta.searcher(1, new CountDifference());
-    private Strategy fixtStrategyBab = alphabeta.searcher(2, new CountDifference());
-    private Strategy fixtStrategyCab = alphabeta.searcher(3, new CountDifference());
-    private Strategy fixtStrategyDab = alphabeta.searcher(4, new CountDifference());
-    private Strategy fixtStrategyEab = alphabeta.searcher(5, new CountDifference());
-    private Strategy fixtStrategyFab = alphabeta.searcher(6, new CountDifference());
-    private Strategy fixtStrategyGab = alphabeta.searcher(7, new CountDifference());
-    private Strategy fixtStrategyHab = alphabeta.searcher(8, new CountDifference());
-    
-    /**
-     * Tests the minimaxSearcher ply parameter range.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testMinimaxSearcherPlyRange() {
-	Strategy s = minimax.searcher(0, new CountDifference());
-    }
-
-    /**
-     * Tests the minimaxSearcher ef parameter.
-     */
-    @Test(expected = NullPointerException.class)
-    public void testMinimaxSearcherEfNotNull() {
-	Strategy s = minimax.searcher(1, null);
-    }
 
     /**
      * minimaxSearcher test.
@@ -165,37 +138,6 @@ public class MinimaxTest {
 	assertEquals(Move.valueOf(Square.C3), fixtStrategyF.move(GameSnapshotFixtures.EARLY_GAME_B_9_MOVES));
     }
 
-    /**
-     * Tests the alphabetaSearcher ply parameter range.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testAlphabetaSearcherPlyRange() {
-	Strategy s = alphabeta.searcher(0, new CountDifference());
-    }
-
-    /**
-     * Tests the alphabetaSearcher ef parameter.
-     */
-    @Test(expected = NullPointerException.class)
-    public void testAlphabetaSearcherEfNotNull() {
-	Strategy s = alphabeta.searcher(1, null);
-    }
-
-    /** Test the maximizer method. */
-    @Test
-    public void testMaximizer() {
-	
-	/** The maximixer method is equivalent to a minimax search one ply deep. */
-	assertEquals(Move.valueOf(Square.H3), Minimax.maximizer(new CountDifference()).move(GameSnapshotFixtures.EARLY_GAME_BC6_10_MOVES));
-	assertEquals(Move.valueOf(Square.E5), Minimax.maximizer(new CountDifference()).move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
-    }
-
-    /** Test the maximizer when no legal move is available. */
-    @Test
-    public void testMaximizerWhenNoLegalMoveIsAvailable() {	
-	assertEquals(Move.valueOf(Move.Action.PASS), Minimax.maximizer(new CountDifference()).move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
-    }
-
     /** Test the minimax searcher when no legal move is available. */
     @Test
     public void testMinimaxSearcherWhenNoLegalMoveIsAvailable() {	
@@ -203,15 +145,6 @@ public class MinimaxTest {
 	assertEquals(Move.valueOf(Move.Action.PASS), fixtStrategyB.move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
 	assertEquals(Move.valueOf(Move.Action.PASS), fixtStrategyC.move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
 	assertEquals(Move.valueOf(Move.Action.PASS), fixtStrategyD.move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
-    }
-
-    /** Test the alphabeta searcher when no legal move is available. */
-    @Test
-    public void testAlphabetaSearcherWhenNoLegalMoveIsAvailable() {	
-	assertEquals(Move.valueOf(Move.Action.PASS), fixtStrategyAab.move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
-	assertEquals(Move.valueOf(Move.Action.PASS), fixtStrategyBab.move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
-	assertEquals(Move.valueOf(Move.Action.PASS), fixtStrategyCab.move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
-	assertEquals(Move.valueOf(Move.Action.PASS), fixtStrategyDab.move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
     }
 
 }

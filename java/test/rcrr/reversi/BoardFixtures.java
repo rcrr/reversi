@@ -36,7 +36,21 @@ import java.util.List;
  */
 public final class BoardFixtures {
 
-    /** The black player has to pass. */
+    /** The black player has to pass.
+     * <pre>
+     * {@code
+     * . a b c d e f g h
+     * 1 O @ . @ . O . .
+     * 2 @ @ @ @ @ @ @ O
+     * 3 . @ O O @ @ O O
+     * 4 . @ O @ O O O O
+     * 5 . @ O @ O O O O
+     * 6 . @ O @ @ O @ O
+     * 7 . @ O @ @ @ @ .
+     * 8 O O O O O O @ O
+     * }
+     * </pre>
+    */
     public static final Board BLACK_HAS_TO_PASS = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
                                         1, 1, 1, 1, 1, 1, 1, 2,
