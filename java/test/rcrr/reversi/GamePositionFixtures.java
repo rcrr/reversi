@@ -36,7 +36,16 @@ import java.util.List;
  */
 public class GamePositionFixtures {
 
-    /** The black player has to pass. */
+    /**
+     * Black player has to move, and has no legal move.
+     * <p>
+     * The board position is defined by {@code BoardFixtures.BLACK_HAS_TO_PASS}.
+     * <p>
+     * The player that has to move is: {@code Player.BLACK}.
+     *
+     * @see BoardFixtures#BLACK_HAS_TO_PASS
+     * @see Player#BLACK
+     */
     public static final GamePosition BLACK_HAS_TO_PASS = new GamePositionBuilder()
         .withBoard(BoardFixtures.BLACK_HAS_TO_PASS)
         .withPlayer(Player.BLACK)
