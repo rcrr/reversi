@@ -56,6 +56,11 @@
     <fileset dir="${jar.dir}" includes="${ant.project.name}.jar"/>
   </path>
 
+  <path id="test.javadocs.classpath">
+    <pathelement location="${src.dir}"/>
+    <pathelement location="${test.src.dir}"/>
+  </path>
+
   <property name="main-class" value="rcrr.reversi.Reversi"/>
 
   <target name="clean">
@@ -149,7 +154,8 @@
     <fail message="Test failed. Check log and/or reports." if="test.failed"/>
   </target>
 
-  <target name="javadocs" depends="compile">
+  <target name="javadocs" depends="compile"
+          description="Create Javadoc API documentation">
     <delete dir="${javadoc.dir}"/>
     <mkdir dir="${javadoc.dir}"/>
     <javadoc author="true"
@@ -164,13 +170,14 @@
     </javadoc>
   </target>
   
-  <target name="test.javadocs" depends="test.compile">
+  <target name="test.javadocs" depends="test.compile"
+          description="Create Javadoc Test documentation">
     <delete dir="${test.javadoc.dir}"/>
     <mkdir dir="${test.javadoc.dir}"/>
     <javadoc author="true"
 	     destdir="${test.javadoc.dir}"
 	     packagenames="rcrr.*"
-	     sourcepath="${test.src.dir}"
+	     sourcepathref="test.javadocs.classpath"
 	     use="true"
 	     version="true"
 	     windowtitle="test documentation"
