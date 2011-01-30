@@ -47,7 +47,8 @@ To do:
   <li>Clock: tests are a bit ugly.</li>
   <li>Clock: parameters boundaries are not fully tested.</li>
   <li>Game, Clock: The end of time is not handled correctly, after adding the Timer thread for updating the clock,
-      also the two strategies must have a dedicated thread.</li>
+      also the two strategies must have a dedicated thread.
+      The clock should run asynchronously. See ScheduledThreadPoolExecutor.</li>
   <li>Game: strategies are a map defined into Game. Substitute strategies with a field actors .....</li>
   <li>Game: write junit tests.</li>
   <li>Game: review javadocs.</li>
@@ -59,7 +60,18 @@ To do:
         recieves a configuration structure (XML or properties).</li>
   <li>SearchNode: valueOf method has to be coded. Constructor is still public. Fields are not managed.</li>
   <li>Develop JUnit performance testing and reports.
-      See: <a href="http://databene.org/contiperf.html">ContiPerf</a></li>
+      See: <a href="http://databene.org/contiperf.html" target="_blank">ContiPerf</a></li>
+  <li>Develop a client-server architecture that separates carefully the game-server from
+      the two players.
+      Evaluate the option to use an XMPP protocol.
+      A proposed library by the book <i>"Growing Object-Oriented Software, Guided by Tests"</i> is Openfire.
+      See: <a href="http://xmpp.org/" target="_blank">XMPP Standards Foundation</a>
+      See: <a href="http://www.igniterealtime.org/projects/openfire/index.jsp" target="_blank">Openfire</a></li>
+  <li>Which practice is best when it comes to write unit test for UI?
+      After a brief search on google the best so far tool to investigate
+      on is UISpec4J.
+      See: <a href="http://www.uispec4j.org" target="_blank">UISpec4J</a>
+      See: <a href="http://code.google.com/p/windowlicker/" target="_blank">WindowLicker</a></li>
 </ul>
 
 <p>
