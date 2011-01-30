@@ -679,7 +679,24 @@ public final class BoardFixtures {
                                         0, 2, 0, 0, 0, 0, 0, 0))
         .build();
 
-    /** A board for testing minimax algorithm. */
+    /**
+     * A board for testing the minimax algorithm.
+     * <p>
+     * This board position takes the name {@code MINIMAX_TEST_CASE_A}.
+     * <pre>
+     * {@code
+     * . a b c d e f g h
+     * 1 O . O . O . O .
+     * 2 @ . @ . @ . @ .
+     * 3 . . @ . @ . @ .
+     * 4 . . . . @ . . .
+     * 5 . . . . . . . .
+     * 6 . . . . . . . .
+     * 7 . . . . . . . .
+     * 8 . . . . . . . .
+     * }
+     * </pre>
+     */
     public static final Board MINIMAX_TEST_CASE_A = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(2, 0, 2, 0, 2, 0, 2, 0,
                                         1, 0, 1, 0, 1, 0, 1, 0,
@@ -691,7 +708,24 @@ public final class BoardFixtures {
                                         0, 0, 0, 0, 0, 0, 0, 0))
         .build();
 
-    /** A board for testing minimax algorithm. */
+    /**
+     * A board for testing the minimax algorithm.
+     * <p>
+     * This board position takes the name {@code MINIMAX_TEST_CASE_B}.
+     * <pre>
+     * {@code
+     * . a b c d e f g h
+     * 1 O @ O . . . . .
+     * 2 @ . @ . . . . .
+     * 3 . . @ . . . . .
+     * 4 . . . . . . . .
+     * 5 . . . . . . . .
+     * 6 . . . . . . . .
+     * 7 . . . . . . . .
+     * 8 . . . . . . . .
+     * }
+     * </pre>
+     */
     public static final Board MINIMAX_TEST_CASE_B = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(2, 1, 2, 0, 0, 0, 0, 0,
                                         1, 0, 1, 0, 0, 0, 0, 0,
