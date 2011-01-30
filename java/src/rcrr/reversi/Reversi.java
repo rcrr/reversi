@@ -22,12 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-// Notes:
-// - Which practice is best when it comes to write unit test for UI?
-//   After a brief search on google the best so far tool to investigate
-//   on is UISpec4J (http://www.uispec4j.org).
-// - The clock should run asynchronously. See ScheduledThreadPoolExecutor.
-
 package rcrr.reversi;
 
 import java.io.PrintStream;

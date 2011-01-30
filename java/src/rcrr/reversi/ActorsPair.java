@@ -45,7 +45,7 @@ public final class ActorsPair {
      * The two actors could be the same, but must be not null.
      *
      * @param actors the two actors assigned to black and white players
-     * @return        a new actor
+     * @return        a new actors' pair
      * @throws NullPointerException when parameter actors is null,
      *                              when an actors map maps one or more keys to null,
      *                              and when one key is null
