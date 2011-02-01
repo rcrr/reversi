@@ -24,127 +24,116 @@
 
 package rcrr.reversi;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.*;
 import static org.junit.Assert.*;
 
-import org.joda.time.Duration;
-import org.joda.time.Period;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-public class MinimaxTest {
+@RunWith(Parameterized.class)
+public class MinimaxTest extends DecisionRuleTestUtils {
 
-    private DecisionRule minimax = Minimax.getInstance();
+    static final EvalFunction COUNT_DIFF = new CountDifference();
 
-    /** Strategy fixtures. */
-    private Strategy fixtStrategyA = minimax.searcher(1, new CountDifference());
-    private Strategy fixtStrategyB = minimax.searcher(2, new CountDifference());
-    private Strategy fixtStrategyC = minimax.searcher(3, new CountDifference());
-    private Strategy fixtStrategyD = minimax.searcher(4, new CountDifference());
-    private Strategy fixtStrategyE = minimax.searcher(5, new CountDifference());
-    private Strategy fixtStrategyF = minimax.searcher(6, new CountDifference());
-    private Strategy fixtStrategyG = minimax.searcher(7, new CountDifference());
-    private Strategy fixtStrategyH = minimax.searcher(8, new CountDifference());
-
-    /**
-     * minimaxSearcher test.
-     * The method is tested using the most straightforward evaluation function,
-     * based on the count difference method.
-     * <p>
-     * The test run from depth 1 to 4. Given that the first move is fully symmetric
-     * and that when there are legal moves having the same evaluation, the first is
-     * selected, the move d3 is always selected.
-     */
-    @Test
-    public void testMinimaxSearcher() {
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyA.move(GameSnapshotFixtures.INITIAL));
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyB.move(GameSnapshotFixtures.INITIAL));
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyC.move(GameSnapshotFixtures.INITIAL));
-	assertEquals(Move.valueOf(Square.D3), fixtStrategyD.move(GameSnapshotFixtures.INITIAL));
+    public MinimaxTest(GameSnapshot snapshot, Move expectedMove, Integer ply, EvalFunction ef) {
+        super(snapshot, expectedMove, ply, ef);
+        decisionRule = Minimax.getInstance();
+        strategy = decisionRule.searcher(ply, ef);
     }
 
-    /**
-     * minimaxSearcher test.
-     * <p>
-     * The test run from depth 1 to 8. The White has to move.
-     * The Black doesn't have any move. The white has four legal moves.
-     * The move sequence is not changing the result in any way.
-     * If the minimax searches depth enough the moves are all equal, leading
-     * to the same forced position. Given that searching one ply returns the
-     * move with the higher result, searching eight ply returns the the first
-     * legal move.
-     */
-    @Test
-    public void testMinimaxSearcherA() {
-	assertEquals(Move.valueOf(Square.E5), fixtStrategyA.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
-	assertEquals(Move.valueOf(Square.E5), fixtStrategyB.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyC.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyD.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyE.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyF.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyG.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyH.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A));
+    @Parameterized.Parameters
+    public static Collection data() {
+        return Arrays.asList(new Object[][] {
 
-    }
+                /**
+                 * minimaxSearcher INIT test.
+                 * The method is tested using the most straightforward evaluation function,
+                 * based on the count difference method.
+                 * <p>
+                 * The test run from depth 1 to 4. Given that the first move is fully symmetric
+                 * and that when there are legal moves having the same evaluation, the first is
+                 * selected, the move d3 is always selected.
+                 */
+                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 2, COUNT_DIFF },
+                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 3, COUNT_DIFF },
+                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 4, COUNT_DIFF },
 
-    /**
-     * minimaxSearcher test.
-     * <p>
-     * The test run from depth 1 to 8. The white has to move.
-     * The black can now reply.
-     * The white has two options: C4 or A3, C4 is more aggressive, but open
-     * the game. A3 flips less in the short term, but forces a win in the
-     * following two moves. The minimax recognizes it, and searching three
-     * ply change the selected move to A3.
-     */
-    @Test
-    public void testMinimaxSearcherB() {
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyA.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_B));
-	assertEquals(Move.valueOf(Square.C4), fixtStrategyB.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_B));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyC.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_B));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyD.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_B));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyE.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_B));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyF.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_B));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyG.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_B));
-	assertEquals(Move.valueOf(Square.A3), fixtStrategyH.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_B));
-    }
+                /**
+                 * minimaxSearcher A test.
+                 * <p>
+                 * The test run from depth 1 to 8. The White has to move.
+                 * The Black doesn't have any move. The white has four legal moves.
+                 * The move sequence is not changing the result in any way.
+                 * If the minimax searches depth enough the moves are all equal, leading
+                 * to the same forced position. Given that searching one ply returns the
+                 * move with the higher result, searching eight ply returns the the first
+                 * legal move.
+                 */
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.E5), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.E5), 2, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 3, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 4, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 5, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 6, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.A3), 7, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.A3), 8, COUNT_DIFF },
 
-    /**
-     * minimaxSearcher test.
-     * <p>
-     * The board BoardFixtures.EARLY_GAME_B_9_MOVES is here analyzed.
-     * The white has to move, and has two choices: C3 and C6.
-     * The two moves lead respectively to two boards: BC3 and BC6.
-     * One ply analysis select C3 because the value of the two moves
-     * is the same, and then the first is selected.
-     * Two ply analysis select again C3, because the value is higher.
-     * One ply analysis is checked to the black player for both BC3
-     * and BC6 game boards.
-     * <p>
-     * Searching deeper, the minimax stays on the C3 selection. Those
-     * cases have not been verified.
-     */
-    @Test
-    public void testMinimaxSearcherC() {
+                /**
+                 * minimaxSearcher B test.
+                 * <p>
+                 * The test run from depth 1 to 8. The white has to move.
+                 * The black can now reply.
+                 * The white has two options: C4 or A3, C4 is more aggressive, but open
+                 * the game. A3 flips less in the short term, but forces a win in the
+                 * following two moves. The minimax recognizes it, and searching three
+                 * ply change the selected move to A3.
+                 */
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.C4), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.C4), 2, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 3, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 4, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 5, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 6, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 7, COUNT_DIFF },
+                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 8, COUNT_DIFF },
 
-	/** Manually verified. */
-	assertEquals(Move.valueOf(Square.C3), fixtStrategyA.move(GameSnapshotFixtures.EARLY_GAME_B_9_MOVES));
-	assertEquals(Move.valueOf(Square.B2), fixtStrategyA.move(GameSnapshotFixtures.EARLY_GAME_BC3_10_MOVES));
-	assertEquals(Move.valueOf(Square.H3), fixtStrategyA.move(GameSnapshotFixtures.EARLY_GAME_BC6_10_MOVES));
-	assertEquals(Move.valueOf(Square.C3), fixtStrategyB.move(GameSnapshotFixtures.EARLY_GAME_B_9_MOVES));
+                /**
+                 * minimaxSearcher C test.
+                 * <p>
+                 * The board BoardFixtures.EARLY_GAME_B_9_MOVES is here analyzed.
+                 * The white has to move, and has two choices: C3 and C6.
+                 * The two moves lead respectively to two boards: BC3 and BC6.
+                 * One ply analysis select C3 because the value of the two moves
+                 * is the same, and then the first is selected.
+                 * Two ply analysis select again C3, because the value is higher.
+                 * One ply analysis is checked to the black player for both BC3
+                 * and BC6 game boards.
+                 * <p>
+                 * Searching deeper, the minimax stays on the C3 selection. Those
+                 * cases have not been verified (test cases 5, 6, 7, 8).
+                 */
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_BC3_10_MOVES, Move.valueOf(Square.B2), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_BC6_10_MOVES, Move.valueOf(Square.H3), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 2, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 3, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 4, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 5, COUNT_DIFF },
+                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 6, COUNT_DIFF },
 
-	/** Not "manually" verified. */
-	assertEquals(Move.valueOf(Square.C3), fixtStrategyC.move(GameSnapshotFixtures.EARLY_GAME_B_9_MOVES));
-	assertEquals(Move.valueOf(Square.C3), fixtStrategyD.move(GameSnapshotFixtures.EARLY_GAME_B_9_MOVES));
-	assertEquals(Move.valueOf(Square.C3), fixtStrategyE.move(GameSnapshotFixtures.EARLY_GAME_B_9_MOVES));
-	assertEquals(Move.valueOf(Square.C3), fixtStrategyF.move(GameSnapshotFixtures.EARLY_GAME_B_9_MOVES));
-    }
+                /**
+                 * Test the alphabeta searcher when no legal move is available.
+                 */
+                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 1, COUNT_DIFF },
+                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 2, COUNT_DIFF },
+                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 3, COUNT_DIFF },
+                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 4, COUNT_DIFF },
 
-    /** Test the minimax searcher when no legal move is available. */
-    @Test
-    public void testMinimaxSearcherWhenNoLegalMoveIsAvailable() {	
-	assertEquals(Move.valueOf(Move.Action.PASS), fixtStrategyA.move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
-	assertEquals(Move.valueOf(Move.Action.PASS), fixtStrategyB.move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
-	assertEquals(Move.valueOf(Move.Action.PASS), fixtStrategyC.move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
-	assertEquals(Move.valueOf(Move.Action.PASS), fixtStrategyD.move(GameSnapshotFixtures.BLACK_HAS_TO_PASS));
+            });
     }
 
 }
