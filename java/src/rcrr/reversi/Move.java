@@ -105,7 +105,7 @@ public final class Move {
             return PUT_DISC_INSTANCE_CACHE.get(square);
         } else {
             if (square != null) {
-                throw new IllegalArgumentException("Parameter action value invalid for this factory.");
+                throw new IllegalArgumentException("Parameter square invalid for this factory.");
             }
             return ACTION_INSTANCE_CACHE.get(action);
         }
