@@ -1,7 +1,7 @@
 /*
  *  ActorTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -27,10 +27,48 @@ package rcrr.reversi;
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.matchers.JUnitMatchers.*;
+
 public class ActorTest {
 
+    private static final Strategy A_STRATEGY = new RandomStrategy();
+    private static final String ACTOR_NAME = "Random AI";
+    private static final Actor AN_ACTOR = Actor.valueOf(ACTOR_NAME, A_STRATEGY);
+
+    private static final Strategy RANDOM_STRATEGY = new RandomStrategy();
+    private static final String RANDOM_AI = "Random AI";
+    private static final Actor RANDOM_AI_ACTOR = Actor.valueOf(RANDOM_AI, RANDOM_STRATEGY);
+
+    private static final Strategy NULL_STRATEGY = null;
+    private static final String NULL_ACTOR_NAME = null;
+
     @Test
-    public void testDummy() {
-        assertTrue("Tests must be implemented.",false);
+    public final void testName() {
+        assertThat("Actor's name for RANDOM_AI_ACTOR is RANDOM_AI.",
+                   RANDOM_AI_ACTOR.name(), is(RANDOM_AI));
     }
+
+    @Test
+    public final void testStrategy() {
+        assertThat("Actor's strategy for RANDOM_AI_ACTOR is RANDOM_STRATEGY.",
+                   RANDOM_AI_ACTOR.strategy(), is(RANDOM_STRATEGY));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_c1() {
+        Actor.valueOf(NULL_ACTOR_NAME, A_STRATEGY);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_c2() {
+        Actor.valueOf(ACTOR_NAME, NULL_STRATEGY);
+    }
+
+    @Test
+    public final void testValueOf() {
+        assertThat("Actor.valueOf(ACTOR_NAME, A_STRATEGY) must be an instance of Actor class.",
+                   Actor.valueOf(ACTOR_NAME, A_STRATEGY), instanceOf(Actor.class));
+    }
+
 }
