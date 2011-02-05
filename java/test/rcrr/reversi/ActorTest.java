@@ -24,51 +24,100 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
+import static org.junit.Assert.assertThat;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.matchers.JUnitMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
+/**
+ * Test Suite for the {@code Actor} class.
+ *
+ * @see Actor
+ */
 public class ActorTest {
 
+    /** A generic strategy field used by AN_ACTOR actor fixture. */
     private static final Strategy A_STRATEGY = new RandomStrategy();
-    private static final String ACTOR_NAME = "Random AI";
-    private static final Actor AN_ACTOR = Actor.valueOf(ACTOR_NAME, A_STRATEGY);
 
+    /** The field used by AN_ACTOR actor fixture. */
+    private static final String AN_ACTOR_NAME = "An Actor";
+
+    /** A generic actor fixture. */
+    private static final Actor AN_ACTOR = Actor.valueOf(AN_ACTOR_NAME, A_STRATEGY);
+
+
+    /** Random strategy field used by RANDOM AI actor. */
     private static final Strategy RANDOM_STRATEGY = new RandomStrategy();
+
+    /** Random AI name field used by RANDOM AI actor. */
     private static final String RANDOM_AI = "Random AI";
+
+    /** Random AI actor fixture. */
     private static final Actor RANDOM_AI_ACTOR = Actor.valueOf(RANDOM_AI, RANDOM_STRATEGY);
 
+
+    /** The null strategy fixture. */
     private static final Strategy NULL_STRATEGY = null;
+
+    /** The null string fixture. */
     private static final String NULL_ACTOR_NAME = null;
 
+
+    /** Class constructor. */
+    public ActorTest() { }
+
+    /**
+     * Tests the name getter method.
+     *
+     * @see Actor#name()
+     */
     @Test
     public final void testName() {
         assertThat("Actor's name for RANDOM_AI_ACTOR is RANDOM_AI.",
                    RANDOM_AI_ACTOR.name(), is(RANDOM_AI));
     }
 
+    /**
+     * Tests the strategy getter method.
+     *
+     * @see Actor#strategy()
+     */
     @Test
     public final void testStrategy() {
         assertThat("Actor's strategy for RANDOM_AI_ACTOR is RANDOM_STRATEGY.",
                    RANDOM_AI_ACTOR.strategy(), is(RANDOM_STRATEGY));
     }
 
+    /**
+     * Tests the valueOf factory when parameter {@code name} is null.
+     *
+     * @see Actor#valueOf(String, Strategy)
+     */
     @Test(expected = NullPointerException.class)
     public final void testValueOf_boundaryConditions_c1() {
         Actor.valueOf(NULL_ACTOR_NAME, A_STRATEGY);
     }
 
+    /**
+     * Tests the valueOf factory when parameter {@code strategy} is null.
+     *
+     * @see Actor#valueOf(String, Strategy)
+     */
     @Test(expected = NullPointerException.class)
     public final void testValueOf_boundaryConditions_c2() {
-        Actor.valueOf(ACTOR_NAME, NULL_STRATEGY);
+        Actor.valueOf(AN_ACTOR_NAME, NULL_STRATEGY);
     }
 
+    /**
+     * Tests the valueOf factory.
+     *
+     * @see Actor#valueOf(String, Strategy)
+     */
     @Test
     public final void testValueOf() {
-        assertThat("Actor.valueOf(ACTOR_NAME, A_STRATEGY) must be an instance of Actor class.",
-                   Actor.valueOf(ACTOR_NAME, A_STRATEGY), instanceOf(Actor.class));
+        assertThat("Actor.valueOf(AN_ACTOR_NAME, A_STRATEGY) must be an instance of Actor class.",
+                   Actor.valueOf(AN_ACTOR_NAME, A_STRATEGY), instanceOf(Actor.class));
     }
 
 }
