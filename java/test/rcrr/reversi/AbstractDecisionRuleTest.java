@@ -30,13 +30,16 @@ import static org.junit.Assert.assertEquals;
 /**
  * The tests provided by this class verify that
  * the {@code maximizer} static method
- * defined by {@code AbstractDecisionRule} works properly:
- * the method is equivalent to a minimax search that is one ply deep.
+ * defined by {@code AbstractDecisionRule} works properly.
+ * The method is equivalent to a minimax search that is one ply deep.
  */
 public class AbstractDecisionRuleTest {
 
     /** CountDifference is the evaluation function used for testing. */
     private static final EvalFunction COUNT_DIFF = new CountDifference();
+
+    /** Class constructor. */
+    public AbstractDecisionRuleTest() { }
 
     /** Test the maximizer method. */
     @Test

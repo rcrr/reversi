@@ -93,11 +93,14 @@ public final class ActorsPair {
 
     /**
      * Returns the actor associated with the given color.
+     * <p>
+     * Parameter {@code color} cannot be null.
      *
-     * @param color the color for wich query the actor
-     * @return the actor playing the given color
+     * @param color the color for which query the actor
+     * @return      the actor playing the given color
      */
     public Actor get(final Player color) {
+        if (color == null) { throw new NullPointerException("Parameter color cannot be null."); }
         return actors.get(color);
     }
 
