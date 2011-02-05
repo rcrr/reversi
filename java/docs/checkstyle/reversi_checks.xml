@@ -43,6 +43,8 @@
               <property name="allowStaticMemberImports" value="true"/>
   - changed: <module name="HiddenField"/>
       adding: <property name="tokens" value="VARIABLE_DEF"/>
+  - changed: <module name="MethodName"/>
+      adding: <property name="format" value="^[a-z][a-zA-Z0-9_]*$"/>
 
 -->
 
@@ -102,7 +104,9 @@
         <module name="LocalFinalVariableName"/>
         <module name="LocalVariableName"/>
         <module name="MemberName"/>
-        <module name="MethodName"/>
+        <module name="MethodName">
+          <property name="format" value="^[a-z][a-zA-Z0-9]*$|^test[a-zA-Z0-9_]*$"/>
+        </module>
         <module name="PackageName"/>
         <module name="ParameterName"/>
         <module name="StaticVariableName"/>
