@@ -264,6 +264,12 @@ public enum Square {
     /** Square h8. */
     H8(R8, H);
 
+    /** The null square. */
+    static final Square NULL = null;
+
+    /** A generic square instance. */
+    static final Square AN_INSTANCE = B3;
+
     /** The list of the four corners. */
     private static final List<Square> CORNERS = Collections.unmodifiableList(Arrays.asList(A1, H1, H8, A8));
 
