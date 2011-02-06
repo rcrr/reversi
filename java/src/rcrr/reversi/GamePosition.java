@@ -108,10 +108,13 @@ public final class GamePosition {
 
     /**
      * Returns if the game state admit one or more legal moves.
+     * <p>
+     * When the game position has a null player it returns false.
      *
      * @return {@code true} if the player has at last one legal move
      */
     public boolean hasAnyLegalMove() {
+        if (player() == null) return false;
         return board.hasAnyLegalMove(player);
     }
 

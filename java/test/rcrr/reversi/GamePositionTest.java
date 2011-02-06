@@ -1,7 +1,7 @@
 /*
  *  GamePositionTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -24,92 +24,238 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
+
+/**
+ * Test Suite for the {@code GamePosition} class.
+ *
+ * @see GamePosition
+ */
 public class GamePositionTest {
 
+    /** The null board. */
+    private static final Board NULL_BOARD = null;
+
+    /** A generic board. */
+    private static final Board A_BOARD = BoardFixtures.INITIAL;
+
+    /** The null player. */
+    private static final Player NULL_PLAYER = null;
+
+    /** A generic player. */
+    private static final Player A_PLAYER = Player.BLACK;
+
+    /** The initial game position. */
+    private static final GamePosition INITIAL = GamePositionFixtures.INITIAL; 
+
+    /** The null square. */
+    private static final Square NULL_SQUARE = null;
+
+    /** A generic square. */
+    private static final Square A_SQUARE = Square.B3;
+
+    /** A generic game position. */
+    private static final GamePosition A_GAME_POSITION = GamePositionFixtures.INITIAL;
+
+    /** Class constructor. */
+    public GamePositionTest() { }
+
     /**
-     * Test to be written.
+     * Tests the board getter method.
+     *
+     * @see GamePosition#board()
+     */
+    @Test
+    public final void testBoard() {
+        assertThat("GamePosition's board for INITIAL is BoardFixtures.INITIAL",
+                   INITIAL.board(), is(BoardFixtures.INITIAL));
+    }
+
+    /**
+     * Tests the hasAnyLegalMove method.
+     *
+     * @see GamePosition#hasAnyLegalMove()
      */
     @Test
     public void testHasAnyLegalMove() {
-        assertTrue("Test to be written.",false);
+        assertThat("INITIAL must return true, black player has four legal moves.",
+                   INITIAL.hasAnyLegalMove(),
+                   is(true));
+        assertThat("GamePositionFixtures.BLACK_HAS_TO_PASS must return false, black player has no legal moves.",
+                   GamePositionFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(),
+                   is(false));
+        assertThat("GamePositionFixtures.FINAL_B37_W27_N must return false, the game is over.",
+                   GamePositionFixtures.FINAL_B37_W27_N.hasAnyLegalMove(),
+                   is(false));
+        assertThat("GamePositionFixtures.FINAL_B37_W27_B must return false, the game is over.",
+                   GamePositionFixtures.FINAL_B37_W27_B.hasAnyLegalMove(),
+                   is(false));
+        assertThat("GamePositionFixtures.FINAL_B37_W27_W must return false, the game is over.",
+                   GamePositionFixtures.FINAL_B37_W27_W.hasAnyLegalMove(),
+                   is(false));
     }
 
     /**
-     * Test to be written.
+     * Tests the hasAnyPlayerAnyLegalMove method.
+     *
+     * @see GamePosition#hasAnyPlayerAnyLegalMove()
      */
     @Test
     public void testHasAnyPlayerAnyLegalMove() {
-        assertTrue("Test to be written.",false);
+        assertThat("INITIAL must return true, black & white players have legal moves.",
+                   INITIAL.hasAnyPlayerAnyLegalMove(),
+                   is(true));
+        assertThat("GamePositionFixtures.BLACK_HAS_TO_PASS must return true, white player has legal moves.",
+                   GamePositionFixtures.BLACK_HAS_TO_PASS.hasAnyPlayerAnyLegalMove(),
+                   is(true));
+        assertThat("GamePositionFixtures.FINAL_B37_W27_N must return false, the game is over.",
+                   GamePositionFixtures.FINAL_B37_W27_N.hasAnyPlayerAnyLegalMove(),
+                   is(false));
+        assertThat("GamePositionFixtures.FINAL_B37_W27_B must return false, the game is over.",
+                   GamePositionFixtures.FINAL_B37_W27_B.hasAnyPlayerAnyLegalMove(),
+                   is(false));
+        assertThat("GamePositionFixtures.FINAL_B37_W27_W must return false, the game is over.",
+                   GamePositionFixtures.FINAL_B37_W27_W.hasAnyPlayerAnyLegalMove(),
+                   is(false));
     }
 
     /**
-     * Test to be written.
+     * Tests the initialGamePosition factory.
+     *
+     * @see GamePosition#initialGamePosition()
      */
     @Test
     public void testInitialGamePosition() {
-        assertTrue("Test to be written.",false);
+        GamePosition initialGamePosition = GamePosition.initialGamePosition();
+
+        assertThat("GamePosition.initialGamePosition()"
+                   + " must return an instance of GamePosition class.",
+                   initialGamePosition,
+                   instanceOf(GamePosition.class));
+
+        assertThat("GamePosition.initialGamePosition()"
+                   + " must have an INITIAL board.",
+                   initialGamePosition.board(),
+                   is(BoardFixtures.INITIAL));
+
+        assertThat("GamePosition.initialGamePosition()"
+                   + " must have a black player.",
+                   initialGamePosition.player(),
+                   is(Player.BLACK));
+
     }
 
     /**
-     * Test to be written.
+     * Tests the isLegat method when parameter {@code square} is null.
+     *
+     * @see GamePosition#isLegal(Square)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testIsLegal_boundaryConditions_checkNullParameter() {
+        A_GAME_POSITION.isLegal(NULL_SQUARE);
+    }
+
+    /**
+     * Tests the isLegal method.
+     *
+     * @see GamePosition#isLegal(Square)
      */
     @Test
     public void testIsLegal() {
-        assertTrue("Test to be written.",false);
+        assertThat("Initial game has D3 as a legal move.",
+                   GamePositionFixtures.INITIAL.isLegal(Square.D3),
+                   is(true));
+        assertThat("Initial game has E3 as an illegal move.",
+                   GamePositionFixtures.INITIAL.isLegal(Square.E3),
+                   is(false));
+        assertThat("Initial game has D4 as an illegal move.",
+                   GamePositionFixtures.INITIAL.isLegal(Square.D4),
+                   is(false));
+
+        assertThat("A final game position must return always false.",
+                   GamePositionFixtures.FINAL_B37_W27_B.isLegal(A_SQUARE),
+                   is(false));
+        assertThat("A final game position having a null player must return always false.",
+                   GamePositionFixtures.FINAL_B37_W27_N.isLegal(A_SQUARE),
+                   is(false));
     }
 
     /**
-     * Test to be written.
+     * Tests the player getter method.
+     *
+     * @see GamePosition#player()
      */
     @Test
-    public void testPlayer() {
-        assertTrue("Test to be written.",false);
+    public final void testPlayer() {
+        assertThat("GamePosition's player for INITIAL is Player.BLACK.",
+                   INITIAL.player(), is(Player.BLACK));
     }
 
+    /**
+     * Tests if the {@code valueOf} method throws a {@code NullPointerException} when
+     * the passed {@code board} is null.
+     *
+     * @see GamePosition#valueOf(Board, Player)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_boardIsNull() {
+        GamePosition.valueOf(NULL_BOARD, A_PLAYER);
+    }
+
+    /**
+     * Tests if the {@code valueOf} method throws a {@code NullPointerException} when
+     * the passed {@code player} is null, in case there are legal moves for
+     * either player.
+     *
+     * @see GamePosition#valueOf(Board, Player)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_playerIsNull_c1() {
+        GamePosition.valueOf(BoardFixtures.INITIAL, NULL_PLAYER);
+    }
+
+    /**
+     * Tests if the {@code valueOf} method doesn't throw a {@code NullPointerException} when
+     * the passed {@code player} is null, in case there aren't legal moves for
+     * either player.
+     * <p>
+     * Said it in another way, when the game is over the player is allowed to be null.
+     *
+     * @see GamePosition#valueOf(Board, Player)
+     */
+    @Test
+    public final void testValueOf_boundaryConditions_playerIsNull_c2() {
+	try {
+            assertThat("GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, NULL_PLAYER)"
+                       + " must return an instance of GamePosition class.",
+                       GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, NULL_PLAYER),
+                       instanceOf(GamePosition.class));
+	} catch (NullPointerException npe) {
+	    fail("GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, NULL_PLAYER)"
+                 + " must not rise a NullPointerException exception.");
+	}
+
+    }
+
+    /**
+     * Tests if the {@code valueOf} method return an instance of
+     * {@code GamePosition} class.
+     *
+     * @see GamePosition#valueOf(Board, Player)
+     */
     @Test
     public void testValueOf() {
-
-	/**
-	 * Tests if the valueOf method throws a NullPointerException when
-	 * the passed board is null.
-	 */
-	try {
-	    GamePosition.valueOf(null, Player.BLACK);
-	    fail("An exception must be risen.");
-	} catch (NullPointerException npe) {
-	    assertTrue(true);
-	}
-
-	/**
-	 * Tests if the valueOf method throws a NullPointerException when
-	 * the passed player is null, and there are available moves.
-	 */
-	try {
-	    GamePosition.valueOf(Board.initialBoard(), null);
-	    fail("An exception must be risen.");
-	} catch (NullPointerException npe) {
-	    assertTrue(true);
-	}
- 
-	/**
-	 * Tests if the valueOf method doesn't throw a NullPointerException when
-	 * the passed player is null, but no player has legal moves.
-	 */
-	try {
-	    GamePosition.valueOf(Board.emptyBoard(), null);
-	    assertTrue(true);
-	} catch (NullPointerException npe) {
-	    fail("An exception must not be risen.");
-	}
-
-	Board b = Board.initialBoard();
-	Player p = Player.BLACK;
-	GamePosition gs = GamePosition.valueOf(b, p);
-	assertEquals(b, gs.board());
-	assertEquals(p, gs.player());
+        assertThat("GamePosition.valueOf(A_BOARD, A_PLAYER)"
+                   + " must return an instance of GamePosition class.",
+                   GamePosition.valueOf(A_BOARD, A_PLAYER),
+                   instanceOf(GamePosition.class));
     }
 
 }

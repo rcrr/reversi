@@ -340,7 +340,7 @@ public final class BoardFixtures {
      * A final position board. All sixtyfour squares are occupied by a player.
      * The black counts 37 discs, while the white 27.
      * <p>
-     * This board position takes the name {@code EQL_TEST_B}.
+     * This board position takes the name {@code FINAL_B37_W27}.
      * <pre>
      * {@code
      * . a b c d e f g h

@@ -1,7 +1,7 @@
 /*
  *  BoardTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -37,6 +37,17 @@ import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.matchers.JUnitMatchers.*;
 
+/**
+ * Test Suite for Board class.
+ * <p>
+ * Several thing to do:
+ * <ul>
+ *   <li>Comment assert statement.</li>
+ *   <li>Rewrite Exception checking.</li>
+ *   <li>Split tests into more granular methods.</li>
+ *   <li>Complete javadocs and style.</li>
+ * </ul>
+ */
 public class BoardTest {
 
     @Test
