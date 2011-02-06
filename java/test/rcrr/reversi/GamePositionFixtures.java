@@ -24,9 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * The class host a number of predefined game positions.
  * <p>
@@ -34,10 +31,25 @@ import java.util.List;
  * implements game position instances as public static shared objects. Tests can
  * freely share the instances without any modification issue.
  */
-public class GamePositionFixtures {
+public final class GamePositionFixtures {
 
     /** The null player. */
     private static final Player NULL_PLAYER = null;
+
+    /**
+     * A generic instance, black player has to move.
+     * <p>
+     * The board position is defined by {@code BoardFixtures.AN_INSTANCE}.
+     * <p>
+     * The player that has to move is: {@code Player.BLACK}.
+     *
+     * @see BoardFixtures#AN_INSTANCE
+     * @see Player#BLACK
+     */
+    public static final GamePosition AN_INSTANCE = new GamePositionBuilder()
+        .withBoard(BoardFixtures.AN_INSTANCE)
+        .withPlayer(Player.BLACK)
+        .build();
 
     /**
      * Black player has to move, and has no legal move.
@@ -124,5 +136,8 @@ public class GamePositionFixtures {
         .withBoard(BoardFixtures.MINIMAX_TEST_CASE_B)
         .withPlayer(Player.WHITE)
         .build();
+
+    /** Class constructor. */
+    private GamePositionFixtures() { }
 
 }
