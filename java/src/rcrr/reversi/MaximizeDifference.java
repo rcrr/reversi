@@ -24,7 +24,6 @@
 
 package rcrr.reversi;
 
-
 /**
  * A basic strategy that chooses the move maximizing the
  * disk count for the player.
@@ -40,20 +39,22 @@ public class MaximizeDifference implements Strategy {
 
     /** Class constructor. */
     public MaximizeDifference() {
-
-        /* The maximizer method is defined in AbstractDecisioRule.
-         *   It should be defined into "some StrategyFunction" class.
-         */
-        maximizeDifference = Minimax.maximizer(new CountDifference());
+        maximizeDifference = AbstractDecisionRule.maximizer(new CountDifference());
     }
 
     /**
      * The strategy's move method.
+     * <p>
+     * Parameter {@code gameSnapshot} must be not null.
      *
      * @param gameSnapshot the game snapshot
      * @return             the strategy's move
+     * @throws NullPointerException when the gameSnapshot parameter is null
      */
-    public final Move move(final GameSnapshot gameSnapshot) {
+    public final Move move(final GameSnapshot gameSnapshot) { 
+        if (gameSnapshot == null) {
+            throw new NullPointerException("Parameter gameSnapshot cannot be null.");
+        }
         return maximizeDifference.move(gameSnapshot);
     }
 
