@@ -36,6 +36,9 @@ import java.util.List;
  */
 public class GamePositionFixtures {
 
+    /** The null player. */
+    private static final Player NULL_PLAYER = null;
+
     /**
      * Black player has to move, and has no legal move.
      * <p>
@@ -49,6 +52,65 @@ public class GamePositionFixtures {
     public static final GamePosition BLACK_HAS_TO_PASS = new GamePositionBuilder()
         .withBoard(BoardFixtures.BLACK_HAS_TO_PASS)
         .withPlayer(Player.BLACK)
+        .build();
+
+    /**
+     * Initial game position.
+     * <p>
+     * The board position is defined by {@code BoardFixtures.INITIAL}.
+     * <p>
+     * The player that has to move is: {@code Player.BLACK}.
+     *
+     * @see BoardFixtures#INITIAL
+     * @see Player#BLACK
+     */
+    public static final GamePosition INITIAL = new GamePositionBuilder()
+        .withBoard(BoardFixtures.INITIAL)
+        .withPlayer(Player.BLACK)
+        .build();
+
+    /**
+     * Final game position.
+     * <p>
+     * The board position is defined by {@code BoardFixtures.FINAL_B37_W27}.
+     * <p>
+     * The player that has to move is: {@code null}.
+     *
+     * @see BoardFixtures#FINAL_B37_W27
+     */
+    public static final GamePosition FINAL_B37_W27_N = new GamePositionBuilder()
+        .withBoard(BoardFixtures.FINAL_B37_W27)
+        .withPlayer(NULL_PLAYER)
+        .build();
+
+    /**
+     * Final game position.
+     * <p>
+     * The board position is defined by {@code BoardFixtures.FINAL_B37_W27}.
+     * <p>
+     * The player that has to move is: {@code Player.BLACK}.
+     *
+     * @see BoardFixtures#FINAL_B37_W27
+     * @see Player#BLACK
+     */
+    public static final GamePosition FINAL_B37_W27_B = new GamePositionBuilder()
+        .withBoard(BoardFixtures.FINAL_B37_W27)
+        .withPlayer(Player.BLACK)
+        .build();
+
+    /**
+     * Final game position.
+     * <p>
+     * The board position is defined by {@code BoardFixtures.FINAL_B37_W27}.
+     * <p>
+     * The player that has to move is: {@code Player.WHITE}.
+     *
+     * @see BoardFixtures#FINAL_B37_W27
+     * @see Player#WHITE
+     */
+    public static final GamePosition FINAL_B37_W27_W = new GamePositionBuilder()
+        .withBoard(BoardFixtures.FINAL_B37_W27)
+        .withPlayer(Player.WHITE)
         .build();
 
     /** Minimax test case A, white player has to move. */
