@@ -29,7 +29,8 @@ Main algorithm and structural classes.
 To do:
 <p>
 <ul>
-  <li>Moves returned from the Strategies must be rocordered. The Sequence structure has to host
+  <li>Complete tests, javadocs, checkstyle, and refactoring to current codabase.</li>
+  <li>Moves returned from the Strategies must be recordered. The Sequence structure has to host
       the moves between each transition. Ideally each adiacent pair should have a list of: [Move, Clock, Status] tuple.
       The "record" could be attached to GameSnapshot.
       null is a valid value, but is not compatible with a valid game sequence.
@@ -49,87 +50,43 @@ To do:
   <li>Game, Clock: The end of time is not handled correctly, after adding the Timer thread for updating the clock,
       also the two strategies must have a dedicated thread.
       The clock should run asynchronously. See ScheduledThreadPoolExecutor.</li>
-  <li>Game: strategies are a map defined into Game. Substitute strategies with a field actors .....</li>
-  <li>Game: write junit tests.</li>
-  <li>Game: review javadocs.</li>
-  <li>HumanStrategy: review input and output streams usage. Review the prompt management.</li>
-  <li>MaximizeDifference: write tests and javadocs.</li>
   <li>Strategies:
       - Minimax: The final value should be calculated by the eval function.
       - Brainstorming on a strategy builder class, that is implemented into an AbstratctStrategy, and that
         recieves a configuration structure (XML or properties).</li>
+  <li>Row: ok. Javadocs complete. Tests complete.
+      Notes: (1) getInstance(int index) is redundant.
+             (2) shift(int delta) is used just in the neighbor table calculation. It is a bit ugly.</li>
+  <li>Direction: ok. Javadocs complete. Tests complete.
+      Notes: (1) deltaRow and deltaColumn are int, could be better having an enum Shift UP, NEUTRAL, DOWN...?
+             (2) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
   <li>SearchNode: valueOf method has to be coded. Constructor is still public. Fields are not managed.</li>
+  <li>Complete the PAIP roadmap. Tournaments and IAGO AI player are missing.</li>
+  <li>Prepare a "<i>Literate Paper</i>" that describes the software architecture of the java version.</li>
+  <li>Replace Ant with Maven.</li>
   <li>Develop JUnit performance testing and reports.
       See: <a href="http://databene.org/contiperf.html" target="_blank">ContiPerf</a></li>
+  <li>Introduce a unit test coverage kpi.
+      See: <a href="http://cobertura.sourceforge.net/introduction.html" target="_blank">Coberdura</a></li>
+  <li>Develop a simple Java SWING front end. Prepare the build so that a java web start distribution is possible.
+      See:<a href=" http://download.oracle.com/javase/tutorial/uiswing/" target="_blank">SWING Tutorial</a></li>
+  <li>Which practice is best when it comes to write unit test for UI?
+      After a brief search on google the best so far tool to investigate
+      on is UISpec4J.
+      See: <a href="http://www.uispec4j.org" target="_blank">UISpec4J</a>
+      See: <a href="http://code.google.com/p/windowlicker/" target="_blank">WindowLicker</a></li>
+  <li>Organize consistently the common lisp and clojure codebases.</li>
+  <li>Publish the "<i>Reversi Web Site</i>" on GitHub.</li>
   <li>Develop a client-server architecture that separates carefully the game-server from
       the two players.
       Evaluate the option to use an XMPP protocol.
       A proposed library by the book <i>"Growing Object-Oriented Software, Guided by Tests"</i> is Openfire.
       See: <a href="http://xmpp.org/" target="_blank">XMPP Standards Foundation</a>
       See: <a href="http://www.igniterealtime.org/projects/openfire/index.jsp" target="_blank">Openfire</a></li>
-  <li>Which practice is best when it comes to write unit test for UI?
-      After a brief search on google the best so far tool to investigate
-      on is UISpec4J.
-      See: <a href="http://www.uispec4j.org" target="_blank">UISpec4J</a>
-      See: <a href="http://code.google.com/p/windowlicker/" target="_blank">WindowLicker</a></li>
+  <li>Develop a concurrent search algorithm.</li>
 </ul>
 
 <p>
-Java source files:
-<p>
-<ul>
-  <li>AbstractDecisionRule: Javadocs missing.</li>
-  <li>AlphaBeta: Javadocs missing. Tests missing.</li>
-  <li>Board: ok. Javadocs complete. Tests complete.</li>
-  <li>Clock: changes are pending. Javadocs complete. Tests complete.</li>
-  <li>Column: ok. Javadocs complete. Tests complete. Notes: see Row.</li>
-  <li>CountDifference: ok. Javadocs complete. Tests complete.</li>
-  <li>DecisionRule: Javadocs missing.</li>
-  <li>Direction: ok. Javadocs complete. Tests complete.
-      Notes: (1) deltaRow and deltaColumn are int, could be better having an enum Shift UP, NEUTRAL, DOWN...?
-             (2) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
-  <li>EvalFunction: ok. Javadocs complete.</li>
-  <li>Game: class design is unclear. Tests are on hold.</li>
-  <li>GameState: ok. Javadocs complete. Tests complete.</li>
-  <li>HumanStrategy: Javadocs and junit test missing.</li>
-  <li>MaximizeDifference: Javadocs and junit test missing.</li>
-  <li>Minimax: changes pending.</li>
-  <li>MinimaxSearcherCountDifference: to be deleted.</li>
-  <li>ModifiedWeightedSquares: ok. Javadocs complete. Tests complete.</li>
-  <li>package-info: ok</li>
-  <li>Player: ok. Javadocs complete. Tests complete.</li>
-  <li>RandomStrategy: Javadocs and junit test missing..</li>
-  <li>Reversi: under review.</li>
-  <li>Row: ok. Javadocs complete. Tests complete.
-      Notes: (1) getInstance(int index) is redundant.
-             (2) shift(int delta) is used just in the neighbor table calculation. It is a bit ugly.</li>
-  <li>SearchNode: Javadocs missing. Tests missing.</li>
-  <li>Square: ok. Javadocs complete. Tests complete.</li>
-  <li>SquareState: ok. Javadocs complete. Tests complete.</li>
-  <li>Strategy: ok. Javadocs complete.</li>
-  <li>WeightedSquares: ok. Javadocs complete. Tests complete.</li>
-</ul>
-
-<p>
-JUnit source files:
-<p>
-<ul>
-  <li>BoardTest: tests complete.</li>
-  <li>ClockTest: tests under construction.</li>
-  <li>ColumnTest: tests complete.</li>
-  <li>CountDifferenceTest: tests complete.</li>
-  <li>DirectionTest: tests complete.</li>
-  <li>GameStateTest: to be written.</li>
-  <li>GameTest: tests complete.</li>
-  <li>MinimaxTest: under review.</li>
-  <li>ModifiedWeightedSquaresTest: tests complete.</li>
-  <li>PlayerTest: tests complete.</li>
-  <li>ReversiTest: to be written.</li>
-  <li>RowTest: tests complete.</li>
-  <li>SquareStateTest: tests complete.</li>
-  <li>SquareTest: tests complete.</li>
-  <li>WeightedSquaresTest: tests complete.</li>
-</ul>
 
 @author Roberto Corradini
 @version 0.1
