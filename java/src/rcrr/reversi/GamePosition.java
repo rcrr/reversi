@@ -114,7 +114,7 @@ public final class GamePosition {
      * @return {@code true} if the player has at last one legal move
      */
     public boolean hasAnyLegalMove() {
-        if (player() == null) return false;
+        if (player() == null) { return false; }
         return board.hasAnyLegalMove(player);
     }
 

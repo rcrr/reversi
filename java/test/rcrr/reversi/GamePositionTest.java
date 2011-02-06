@@ -26,12 +26,13 @@ package rcrr.reversi;
 
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
+
+import static rcrr.reversi.GamePositionFixtures.INITIAL;
+import static rcrr.reversi.GamePositionFixtures.AN_INSTANCE;
 
 /**
  * Test Suite for the {@code GamePosition} class.
@@ -40,29 +41,17 @@ import static org.hamcrest.CoreMatchers.instanceOf;
  */
 public class GamePositionTest {
 
-    /** The null board. */
-    private static final Board NULL_BOARD = null;
-
-    /** A generic board. */
-    private static final Board A_BOARD = BoardFixtures.INITIAL;
-
     /** The null player. */
     private static final Player NULL_PLAYER = null;
 
     /** A generic player. */
     private static final Player A_PLAYER = Player.BLACK;
 
-    /** The initial game position. */
-    private static final GamePosition INITIAL = GamePositionFixtures.INITIAL; 
-
     /** The null square. */
     private static final Square NULL_SQUARE = null;
 
     /** A generic square. */
     private static final Square A_SQUARE = Square.B3;
-
-    /** A generic game position. */
-    private static final GamePosition A_GAME_POSITION = GamePositionFixtures.INITIAL;
 
     /** Class constructor. */
     public GamePositionTest() { }
@@ -84,7 +73,7 @@ public class GamePositionTest {
      * @see GamePosition#hasAnyLegalMove()
      */
     @Test
-    public void testHasAnyLegalMove() {
+    public final void testHasAnyLegalMove() {
         assertThat("INITIAL must return true, black player has four legal moves.",
                    INITIAL.hasAnyLegalMove(),
                    is(true));
@@ -108,7 +97,7 @@ public class GamePositionTest {
      * @see GamePosition#hasAnyPlayerAnyLegalMove()
      */
     @Test
-    public void testHasAnyPlayerAnyLegalMove() {
+    public final void testHasAnyPlayerAnyLegalMove() {
         assertThat("INITIAL must return true, black & white players have legal moves.",
                    INITIAL.hasAnyPlayerAnyLegalMove(),
                    is(true));
@@ -132,7 +121,7 @@ public class GamePositionTest {
      * @see GamePosition#initialGamePosition()
      */
     @Test
-    public void testInitialGamePosition() {
+    public final void testInitialGamePosition() {
         GamePosition initialGamePosition = GamePosition.initialGamePosition();
 
         assertThat("GamePosition.initialGamePosition()"
@@ -159,7 +148,7 @@ public class GamePositionTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testIsLegal_boundaryConditions_checkNullParameter() {
-        A_GAME_POSITION.isLegal(NULL_SQUARE);
+        AN_INSTANCE.isLegal(NULL_SQUARE);
     }
 
     /**
@@ -168,7 +157,7 @@ public class GamePositionTest {
      * @see GamePosition#isLegal(Square)
      */
     @Test
-    public void testIsLegal() {
+    public final void testIsLegal() {
         assertThat("Initial game has D3 as a legal move.",
                    GamePositionFixtures.INITIAL.isLegal(Square.D3),
                    is(true));
@@ -206,7 +195,7 @@ public class GamePositionTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testValueOf_boundaryConditions_boardIsNull() {
-        GamePosition.valueOf(NULL_BOARD, A_PLAYER);
+        GamePosition.valueOf(BoardFixtures.NULL, A_PLAYER);
     }
 
     /**
@@ -232,15 +221,15 @@ public class GamePositionTest {
      */
     @Test
     public final void testValueOf_boundaryConditions_playerIsNull_c2() {
-	try {
+        try {
             assertThat("GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, NULL_PLAYER)"
                        + " must return an instance of GamePosition class.",
                        GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, NULL_PLAYER),
                        instanceOf(GamePosition.class));
-	} catch (NullPointerException npe) {
-	    fail("GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, NULL_PLAYER)"
+        } catch (NullPointerException npe) {
+            fail("GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, NULL_PLAYER)"
                  + " must not rise a NullPointerException exception.");
-	}
+        }
 
     }
 
@@ -251,10 +240,10 @@ public class GamePositionTest {
      * @see GamePosition#valueOf(Board, Player)
      */
     @Test
-    public void testValueOf() {
-        assertThat("GamePosition.valueOf(A_BOARD, A_PLAYER)"
+    public final void testValueOf() {
+        assertThat("GamePosition.valueOf(BoardFixtures.AN_INSTANCE, A_PLAYER)"
                    + " must return an instance of GamePosition class.",
-                   GamePosition.valueOf(A_BOARD, A_PLAYER),
+                   GamePosition.valueOf(BoardFixtures.AN_INSTANCE, A_PLAYER),
                    instanceOf(GamePosition.class));
     }
 

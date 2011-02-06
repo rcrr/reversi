@@ -1,7 +1,7 @@
 /*
  *  MaximizeDifferenceTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -27,13 +27,60 @@ package rcrr.reversi;
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import org.hamcrest.Matcher;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.anyOf;
+
 public class MaximizeDifferenceTest {
 
+    private static final MaximizeDifference A_MAXIMIZE_DIFFERENCE = new MaximizeDifference();
+
+    /** Class constructor. */
+    public MaximizeDifferenceTest() { }
+
     /**
-     * Has to be written.
+     * Tests if the {@code MaximizeDifference()} constructor return an instance of
+     * {@code MaximizeDifference} class.
+     *
+     * @see MaximizeDifference#MaximizeDifference()
      */
     @Test
-    public void testMove() {
-        assertTrue("Test has to be written.", false);
+    public final void testMaximizeDifference() {
+        assertThat("new MaximizeDifference()"
+                   + " must return an instance of MaximizeDifference class.",
+                   new MaximizeDifference(),
+                   instanceOf(MaximizeDifference.class));
     }
+
+    /**
+     * Tests the move method when parameter {@code gameSnapshot} is null.
+     *
+     * @see MaximizeDifference#move(GameSnapshot)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testMove_boundaryConditions_checkNullParameter() {
+        A_MAXIMIZE_DIFFERENCE.move(GameSnapshotFixtures.NULL_GAME_SNAPSHOT);
+    }
+
+    /**
+     * Tests the move method.
+     *
+     * @see MaximizeDifference#move(GameSnapshot)
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public final void testMove() {
+        assertThat("Given the initial position all the moves are equal.",
+                   A_MAXIMIZE_DIFFERENCE.move(GameSnapshotFixtures.INITIAL),
+                   anyOf(is(Move.valueOf(Square.D3)),
+                         is(Move.valueOf(Square.F5)),
+                         is(Move.valueOf(Square.E6)),
+                         is(Move.valueOf(Square.C4))));
+
+        fail("A real case must be added.");
+
+    }
+
 }
