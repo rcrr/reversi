@@ -43,6 +43,25 @@ public class GameSnapshotFixtures {
     private static final Clock ONE_MINUTE_LEFT_TO_BOTH_PLAYERS = Clock.initialClock(ONE_MINUTE_DURATION);
     private static final MoveRegister EMPTY = MoveRegister.empty();
 
+    /** A generic game snapshot. */
+    public static final GameSnapshot A_GAME_SNAPSHOT = new GameSnapshotBuilder()
+        .withPosition(new GamePositionBuilder()
+                      .withBoard(new BoardBuilder()
+                                 .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 1, 0, 0, 0, 0,
+                                                                 0, 0, 0, 1, 1, 0, 1, 0,
+                                                                 0, 0, 2, 2, 2, 2, 2, 2,
+                                                                 0, 0, 0, 0, 1, 0, 1, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0))
+                                 .build())
+                      .withPlayer(Player.BLACK)
+                      .build())
+        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withRegister(EMPTY)
+        .build();
+
     /** Initial position, one minute left to both players. */
     public static final GameSnapshot INITIAL = GameSnapshot.initialGameSnapshot(ONE_MINUTE_DURATION);
 
@@ -112,5 +131,11 @@ public class GameSnapshotFixtures {
         .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withRegister(EMPTY)
         .build();
+
+    /** The null game snapshot. */
+    public static final GameSnapshot NULL_GAME_SNAPSHOT = null;
+
+    /** Class constructor. */
+    private GameSnapshotFixtures() { }
 
 }

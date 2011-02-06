@@ -38,7 +38,7 @@ import java.util.List;
  * a literal representation organized as an array of integers. The conversion
  * from the literal definition to a {@code Board} object is carried out applying
  * the facilities given by {@code BoardBuilder}.
- * 
+ *
  * The square colors are translated as follow:
  * <pre>
  * <table border="0" cellpadding="6">
@@ -74,6 +74,35 @@ import java.util.List;
  * @see SquareState
  */
 public final class BoardFixtures {
+
+    /**
+     * A generic board.
+     * <p>
+     * This board position takes the name {@code AN_INSTANCE}.
+     * <pre>
+     * {@code
+     * . a b c d e f g h
+     * 1 . . . . . . . .
+     * 2 . . . . . . . .
+     * 3 . . . . . . . .
+     * 4 . . . O @ . . .
+     * 5 . . . O @ @ . .
+     * 6 . . . O @ O . .
+     * 7 . . . . O . . .
+     * 8 . . . . . O . .
+     * }
+     * </pre>
+     */
+    public static final Board AN_INSTANCE = new BoardBuilder()
+        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 2, 1, 0, 0, 0,
+                                        0, 0, 0, 2, 1, 1, 0, 0,
+                                        0, 0, 0, 2, 1, 2, 0, 0,
+                                        0, 0, 0, 0, 2, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 2, 0, 0))
+        .build();
 
     /** The black player has to pass.
      * <pre>
@@ -739,5 +768,8 @@ public final class BoardFixtures {
 
     /** Class constructor. */
     private BoardFixtures() { }
+
+    /** The null board. */
+    public static final Board NULL = null;
 
 }
