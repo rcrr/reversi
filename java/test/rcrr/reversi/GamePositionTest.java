@@ -41,18 +41,6 @@ import static rcrr.reversi.GamePositionFixtures.AN_INSTANCE;
  */
 public class GamePositionTest {
 
-    /** The null player. */
-    private static final Player NULL_PLAYER = null;
-
-    /** A generic player. */
-    private static final Player A_PLAYER = Player.BLACK;
-
-    /** The null square. */
-    private static final Square NULL_SQUARE = null;
-
-    /** A generic square. */
-    private static final Square A_SQUARE = Square.B3;
-
     /** Class constructor. */
     public GamePositionTest() { }
 
@@ -148,7 +136,7 @@ public class GamePositionTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testIsLegal_boundaryConditions_checkNullParameter() {
-        AN_INSTANCE.isLegal(NULL_SQUARE);
+        AN_INSTANCE.isLegal(Square.NULL);
     }
 
     /**
@@ -169,10 +157,10 @@ public class GamePositionTest {
                    is(false));
 
         assertThat("A final game position must return always false.",
-                   GamePositionFixtures.FINAL_B37_W27_B.isLegal(A_SQUARE),
+                   GamePositionFixtures.FINAL_B37_W27_B.isLegal(Square.AN_INSTANCE),
                    is(false));
         assertThat("A final game position having a null player must return always false.",
-                   GamePositionFixtures.FINAL_B37_W27_N.isLegal(A_SQUARE),
+                   GamePositionFixtures.FINAL_B37_W27_N.isLegal(Square.AN_INSTANCE),
                    is(false));
     }
 
@@ -195,7 +183,7 @@ public class GamePositionTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testValueOf_boundaryConditions_boardIsNull() {
-        GamePosition.valueOf(BoardFixtures.NULL, A_PLAYER);
+        GamePosition.valueOf(BoardFixtures.NULL, Player.AN_INSTANCE);
     }
 
     /**
@@ -207,7 +195,7 @@ public class GamePositionTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testValueOf_boundaryConditions_playerIsNull_c1() {
-        GamePosition.valueOf(BoardFixtures.INITIAL, NULL_PLAYER);
+        GamePosition.valueOf(BoardFixtures.INITIAL, Player.NULL);
     }
 
     /**
@@ -222,12 +210,12 @@ public class GamePositionTest {
     @Test
     public final void testValueOf_boundaryConditions_playerIsNull_c2() {
         try {
-            assertThat("GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, NULL_PLAYER)"
+            assertThat("GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, Player.NULL)"
                        + " must return an instance of GamePosition class.",
-                       GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, NULL_PLAYER),
+                       GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, Player.NULL),
                        instanceOf(GamePosition.class));
         } catch (NullPointerException npe) {
-            fail("GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, NULL_PLAYER)"
+            fail("GamePosition.valueOf(BoardFixtures.FINAL_B37_W27, Player.NULL)"
                  + " must not rise a NullPointerException exception.");
         }
 
@@ -241,9 +229,9 @@ public class GamePositionTest {
      */
     @Test
     public final void testValueOf() {
-        assertThat("GamePosition.valueOf(BoardFixtures.AN_INSTANCE, A_PLAYER)"
+        assertThat("GamePosition.valueOf(BoardFixtures.AN_INSTANCE, Player.AN_INSTANCE)"
                    + " must return an instance of GamePosition class.",
-                   GamePosition.valueOf(BoardFixtures.AN_INSTANCE, A_PLAYER),
+                   GamePosition.valueOf(BoardFixtures.AN_INSTANCE, Player.AN_INSTANCE),
                    instanceOf(GamePosition.class));
     }
 

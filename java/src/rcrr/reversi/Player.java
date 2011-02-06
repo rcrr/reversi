@@ -35,6 +35,12 @@ public enum Player {
     /** The White player. */
     WHITE("The White player", SquareState.WHITE);
 
+    /** The null player. */
+    static final Player NULL = null;
+
+    /** A generic player. */
+    static final Player AN_INSTANCE = Player.BLACK;
+
     /** The {@code Player}'s description field. */
     private final String description;
 
