@@ -119,6 +119,7 @@
     <mkdir dir="${test.classes.dir}"/>
     <javac srcdir="${test.src.dir}" destdir="${test.classes.dir}" includeAntRuntime="false">
       <classpath refid="test.classpath"/>
+      <compilerarg value="-Xlint:unchecked"/>
     </javac>
   </target>
 
