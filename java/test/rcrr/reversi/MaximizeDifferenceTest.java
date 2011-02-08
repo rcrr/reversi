@@ -33,6 +33,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.anyOf;
 
+/**
+ * Test Suite for {@code MaximizeDifference} class.
+ */
 public class MaximizeDifferenceTest {
 
     /** An instance of {@code MaximixeDifference}. */
