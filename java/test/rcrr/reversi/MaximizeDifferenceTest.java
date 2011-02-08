@@ -35,6 +35,7 @@ import static org.hamcrest.CoreMatchers.anyOf;
 
 public class MaximizeDifferenceTest {
 
+    /** An instance of {@code MaximixeDifference}. */
     private static final MaximizeDifference A_MAXIMIZE_DIFFERENCE = new MaximizeDifference();
 
     /** Class constructor. */
@@ -71,7 +72,7 @@ public class MaximizeDifferenceTest {
      */
     @Test
     @SuppressWarnings("unchecked")
-    public final void testMove() {
+    public final void testMove() { 
         assertThat("Given the initial position all the moves are equal.",
                    A_MAXIMIZE_DIFFERENCE.move(GameSnapshotFixtures.INITIAL),
                    anyOf(is(Move.valueOf(Square.D3)),
@@ -79,7 +80,9 @@ public class MaximizeDifferenceTest {
                          is(Move.valueOf(Square.E6)),
                          is(Move.valueOf(Square.C4))));
 
-        fail("A real case must be added.");
+        assertThat("Given the MINIMAX_TEST_CASE_A the expected move is E5.",
+                   A_MAXIMIZE_DIFFERENCE.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A),
+                   is(Move.valueOf(Square.E5)));
 
     }
 

@@ -38,7 +38,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.matchers.JUnitMatchers.*;
 
 /**
- * Test Suite for Board class.
+ * Test Suite for {@code Board} class.
  * <p>
  * Several thing to do:
  * <ul>
@@ -49,6 +49,11 @@ import static org.junit.matchers.JUnitMatchers.*;
  * </ul>
  */
 public class BoardTest {
+
+    @Test
+    public final void testReviewReminder() {
+        fail("The Test Suite must be reviewed!");
+    }
 
     @Test
     public void testCountDifference() {
