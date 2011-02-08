@@ -39,7 +39,22 @@ import static org.junit.Assert.*;
 
 import static rcrr.reversi.Square.*;
 
+/**
+ * <i>Must be reviewed!</i> Test Suite for {@code RandomStrategy} class.
+ * <p>
+ * Tests should verify that {@code RandomStrategy} returns
+ * a statistical distribution of moves that is equally distributed
+ * among the legal moves.
+ * <p>
+ * It should be proved that standard deviation is alvays bounded
+ * by a value that is function of the number of runs.
+ */
 public class RandomStrategyTest {
+
+    @Test
+    public final void testReviewReminder() {
+        fail("The Test Suite must be reviewed!");
+    }
 
     private static final int TIMES = 2000;
     private static final double DEVIATION = 0.001;

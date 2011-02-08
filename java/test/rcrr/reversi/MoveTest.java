@@ -35,8 +35,6 @@ public class MoveTest {
     private static final Move.Action AN_ACTION = Move.Action.PASS;
     private static final Move.Action PUT_DISC_ACTION = Move.Action.PUT_DISC;
     private static final Move.Action NULL_ACTION = null;
-    private static final Square A_SQUARE = Square.A1;
-    private static final Square NULL_SQUARE = null;
 
     private static final Move MOVE_PUT_DISC_A1 = Move.valueOf(PUT_DISC_ACTION, Square.A1);
     private static final Move MOVE_PASS = Move.valueOf(Move.Action.PASS, null);
@@ -52,7 +50,7 @@ public class MoveTest {
     }
 
     /**
-     * Tests thta the square method returns the square field.
+     * Tests that the square method returns the square field.
      */
     @Test
     public void testSquare() {
@@ -62,13 +60,13 @@ public class MoveTest {
 
     @Test
     public void testValueOf_withSquareParameter() {
-        assertThat("Move.valueOf(Square.A1) is an instance of Move class.",
-                   Move.valueOf(Square.A1), instanceOf(Move.class));
+        assertThat("Move.valueOf(Square.AN_INSTANCE) is an instance of Move class.",
+                   Move.valueOf(Square.AN_INSTANCE), instanceOf(Move.class));
     }
 
     @Test(expected = NullPointerException.class)
     public void testValueOf_boundaryConditions_withSquareParameter() {
-        Move.valueOf(NULL_SQUARE);
+        Move.valueOf(Square.NULL);
     }
 
     @Test
@@ -90,17 +88,17 @@ public class MoveTest {
 
     @Test(expected = NullPointerException.class)
     public void testValueOf_boundaryConditions_c1_withActionAndSquareParameters() {
-        Move.valueOf(NULL_ACTION, A_SQUARE);
+        Move.valueOf(NULL_ACTION, Square.AN_INSTANCE);
     }
 
     @Test(expected = NullPointerException.class)
     public void testValueOf_boundaryConditions_c2_withActionAndSquareParameters() {
-        Move.valueOf(PUT_DISC_ACTION, NULL_SQUARE);
+        Move.valueOf(PUT_DISC_ACTION, Square.NULL);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testValueOf_boundaryConditions_c3_withActionAndSquareParameters() {
-        Move.valueOf(AN_ACTION, A_SQUARE);
+        Move.valueOf(AN_ACTION, Square.AN_INSTANCE);
     }
 
 }

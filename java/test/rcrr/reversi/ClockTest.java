@@ -34,9 +34,25 @@ import org.joda.time.Duration;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 
+/**
+ * Test Suite for {@code Clock} class.
+ * <p>
+ * Several thing to do:
+ * <ul>
+ *   <li>Comment assert statement.</li>
+ *   <li>Boundary conditions are not checked.</li>
+ *   <li>Make a Builder and Fixtures.</li>
+ *   <li>Complete javadocs and style.</li>
+ * </ul>
+ */
 public class ClockTest {
 
     private static long MILLISECOND_PER_MINUTE = 60000;
+
+    @Test
+    public final void testReviewReminder() {
+        fail("The Test Suite must be reviewed!");
+    }
 
     @Test
     public void testGet() {

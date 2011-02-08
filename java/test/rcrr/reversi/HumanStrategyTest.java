@@ -27,6 +27,9 @@ package rcrr.reversi;
 import org.junit.*;
 import static org.junit.Assert.*;
 
+/**
+ * <i>Must be completely written!</i> Test Suite for {@code HumanStrategy} class.
+ */
 public class HumanStrategyTest {
 
     /**
