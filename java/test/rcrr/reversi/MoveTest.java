@@ -30,15 +30,10 @@ import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.matchers.JUnitMatchers.*;
 
+/**
+ * Test Suite for {@code Move} class.
+ */
 public class MoveTest {
-
-    private static final Move.Action AN_ACTION = Move.Action.PASS;
-    private static final Move.Action PUT_DISC_ACTION = Move.Action.PUT_DISC;
-    private static final Move.Action NULL_ACTION = null;
-
-    private static final Move MOVE_PUT_DISC_A1 = Move.valueOf(PUT_DISC_ACTION, Square.A1);
-    private static final Move MOVE_PASS = Move.valueOf(Move.Action.PASS, null);
-    private static final Move MOVE_RESIGN = Move.valueOf(Move.Action.RESIGN, null);
 
     /**
      * Tests that the action method returns the action field.
@@ -46,7 +41,7 @@ public class MoveTest {
     @Test
     public void testAction() {
         assertThat("Move's Action for MOVE_PUT_DISC_A1 is PUT_DISC.",
-                   MOVE_PUT_DISC_A1.action(), is(Move.Action.PUT_DISC));
+                   Move.A_REGULAR_INSTANCE.action(), is(Move.Action.PUT_DISC));
     }
 
     /**
@@ -54,8 +49,9 @@ public class MoveTest {
      */
     @Test
     public void testSquare() {
-        assertThat("Move's Action for MOVE_PUT_DISC_A1 is PUT_DISC.",
-                   MOVE_PUT_DISC_A1.square(), is(Square.A1));
+        assertThat("Move's square for (PUT_DISC, A1) is PUT_DISC.",
+                   Move.valueOf(Move.Action.PUT_DISC, Square.A1).square(),
+                   is(Square.A1));
     }
 
     @Test
@@ -77,7 +73,7 @@ public class MoveTest {
 
     @Test(expected = NullPointerException.class)
     public void testValueOf_boundaryConditions_withActionParameter() {
-        Move.valueOf(NULL_ACTION);
+        Move.valueOf(Move.Action.NULL);
     }
 
     @Test
@@ -88,17 +84,17 @@ public class MoveTest {
 
     @Test(expected = NullPointerException.class)
     public void testValueOf_boundaryConditions_c1_withActionAndSquareParameters() {
-        Move.valueOf(NULL_ACTION, Square.AN_INSTANCE);
+        Move.valueOf(Move.Action.NULL, Square.AN_INSTANCE);
     }
 
     @Test(expected = NullPointerException.class)
     public void testValueOf_boundaryConditions_c2_withActionAndSquareParameters() {
-        Move.valueOf(PUT_DISC_ACTION, Square.NULL);
+        Move.valueOf(Move.Action.PUT_DISC, Square.NULL);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testValueOf_boundaryConditions_c3_withActionAndSquareParameters() {
-        Move.valueOf(AN_ACTION, Square.AN_INSTANCE);
+        Move.valueOf(Move.Action.AN_INSTANCE, Square.AN_INSTANCE);
     }
 
 }

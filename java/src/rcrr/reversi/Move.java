@@ -59,7 +59,23 @@ public final class Move {
 
         /** The resign action. */
         RESIGN;
+
+        /** The null action. */
+        static final Action NULL = null;
+
+        /** A generic action. */
+        static final Action AN_INSTANCE = PASS;
+
     }
+
+    /** The null move. */
+    static final Move NULL = null;
+
+    /** A generic move instance. */
+    static final Move AN_INSTANCE = new Move(Action.AN_INSTANCE, Square.NULL);
+
+    /** A regular move instance. */
+    static final Move A_REGULAR_INSTANCE = new Move(Action.PUT_DISC, Square.AN_INSTANCE);
 
     /** Generic move instance cache. */
     private static final Map<Action, Move> ACTION_INSTANCE_CACHE = new EnumMap<Action, Move>(Action.class);
@@ -79,12 +95,6 @@ public final class Move {
             }
         }
     }
-
-    /** The action field. */
-    private final Action action;
-
-    /** The square field. */
-    private final Square square;
 
     /**
      * This static factory returns the identified move instance taken from the pre computed
@@ -143,6 +153,12 @@ public final class Move {
         if (square == null) { throw new NullPointerException("Parameter square cannot be null"); }
         return valueOf(Action.PUT_DISC, square);
     }
+
+    /** The action field. */
+    private final Action action;
+
+    /** The square field. */
+    private final Square square;
 
     /**
      * Class constructor.
