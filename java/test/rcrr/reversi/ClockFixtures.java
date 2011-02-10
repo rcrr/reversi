@@ -1,5 +1,5 @@
 /*
- *  MoveRecordTest.java
+ *  ClockFixtures.java
  *
  *  Copyright (c) 2011 Roberto Corradini. All rights reserved.
  *
@@ -24,38 +24,19 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.matchers.JUnitMatchers.*;
-
-
 /**
- * Test Suite for the {@code MoveRecord} class.
- *
- * @see MoveRecord
+ * The class host a number of predefined clocks.
+ * <p>
+ * The {@code Clock} class defines immutable objects thus {@code ClockFixtures}
+ * implements clock instances as public static shared objects. Tests can
+ * freely share the instances without any modification issue.
  */
-public class MoveRecordTest {
+public final class ClockFixtures {
 
-    /**
-     * Remainds that all tests are missing.
-     */
-    @Test
-    public void testReminder() {
-        fail("Tests for this class are all missing.");
-    }
+    /** The null clock. */
+    public static final Clock NULL = null;
 
-    /**
-     * Tests the clock getter method.
-     *
-     * @see MoveRecord#clock()
-     */
-    @Test
-    public final void testClock() {
-        assertThat("MoveRecord's clock for ",
-                   MoveRecordFixtures.AN_INSTANCE.clock(),
-                   is(ClockFixtures.NULL));
-    }
+    /** Class constructor. */
+    private ClockFixtures() { }
 
 }
