@@ -225,7 +225,7 @@ public final class Game {
         long t1 = System.currentTimeMillis();
         final Clock clock = clock().set(player(), new Duration(t0, t1));
 
-        final MoveRegister register = previousRegister.push(MoveRecord.valueOf(move, clock));
+        final MoveRegister register = previousRegister.push(MoveRecord.valueOfAtCurrentTime(move, clock));
         if (validateMove(move.square())) {
             if (ps != null) {
                 ps.print("\n" + player().name() + " moves to " + move.square().label() + "\n");
