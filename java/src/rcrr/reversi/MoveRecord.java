@@ -36,7 +36,7 @@ import org.joda.time.Instant;
 public final class MoveRecord {
 
     /**
-     * Base static factory for the class.
+     * Static factory that set the timestamp to the current time.
      * <p>
      * Parameter {@code move} cannot be null.
      * Parameter {@code clock} cannnot be null.
@@ -46,10 +46,29 @@ public final class MoveRecord {
      * @return        a new move record
      * @throws NullPointerException when move or clock parameters are null
      */
-    public static MoveRecord valueOf(final Move move, final Clock clock) {
+    public static MoveRecord valueOfAtCurrentTime(final Move move, final Clock clock) {
         if (move == null) { throw new NullPointerException("Parameter move cannot be null."); }
         if (clock == null) { throw new NullPointerException("Parameter clock cannot be null."); }
-        return new MoveRecord(move, clock);
+        return new MoveRecord(move, clock, new Instant(System.currentTimeMillis()));
+    }
+
+    /**
+     * Base static factory for the class.
+     * <p>
+     * Parameter {@code move} cannot be null.
+     * Parameter {@code clock} cannnot be null.
+     *
+     * @param  move      the move send by the player's strategy
+     * @param  clock     the new clock after the move
+     * @param  timestamp the timestamp of the record transaction
+     * @return           a new move record
+     * @throws NullPointerException when move, clock, or timestamp parameters are null
+     */
+    public static MoveRecord valueOf(final Move move, final Clock clock, final Instant timestamp) {
+        if (move == null) { throw new NullPointerException("Parameter move cannot be null."); }
+        if (clock == null) { throw new NullPointerException("Parameter clock cannot be null."); }
+        if (timestamp == null) { throw new NullPointerException("Parameter timastamp cannot be null."); }
+        return new MoveRecord(move, clock, timestamp);
     }
 
     /** The move field. */
@@ -64,17 +83,19 @@ public final class MoveRecord {
     /**
      * Class constructor.
      * <p>
-     * Parameters {@code move} and {@code clock} must be not null.
+     * Parameters {@code move}, {@code clock}, and {@code timestamp} must be not null.
      *
-     * @param move  the move
-     * @param clock the clock
+     * @param move      the move
+     * @param clock     the clock
+     * @param timestamp the timestamp
      */
-    private MoveRecord(final Move move, final Clock clock) {
+    private MoveRecord(final Move move, final Clock clock, final Instant timestamp) {
         assert (move != null) : "Parameter move cannot be null.";
         assert (clock != null) : "Parameter clock cannot be null.";
+        assert (timestamp != null) : "Parameter timestamp cannot be null.";
         this.move = move;
         this.clock = clock;
-        this.timestamp = new Instant(System.currentTimeMillis());
+        this.timestamp = timestamp;
     }
 
     /**
