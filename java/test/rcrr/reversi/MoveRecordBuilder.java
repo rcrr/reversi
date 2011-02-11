@@ -39,9 +39,6 @@ public final class MoveRecordBuilder {
     /** A one minute duration. */
     private static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
 
-    /** A clock sample. */
-    private static final Clock ONE_MINUTE_LEFT_TO_BOTH_PLAYERS = Clock.initialClock(ONE_MINUTE_DURATION);
-
     /** The move field. */
     private Move move;
 
@@ -56,7 +53,7 @@ public final class MoveRecordBuilder {
      */
     public MoveRecordBuilder() {
         this.move = Move.A_REGULAR_INSTANCE;
-        this.clock = ONE_MINUTE_LEFT_TO_BOTH_PLAYERS;
+        this.clock = ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS;
         this.timestamp = new Instant(System.currentTimeMillis());
     }
 
