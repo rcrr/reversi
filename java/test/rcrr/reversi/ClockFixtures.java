@@ -24,6 +24,9 @@
 
 package rcrr.reversi;
 
+import org.joda.time.Duration;
+import org.joda.time.Period;
+
 /**
  * The class host a number of predefined clocks.
  * <p>
@@ -33,8 +36,14 @@ package rcrr.reversi;
  */
 public final class ClockFixtures {
 
+    /** One minute duration. */
+    private static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
+
     /** The null clock. */
     public static final Clock NULL = null;
+
+    /** Both players have one minute left. */
+    public static final Clock ONE_MINUTE_LEFT_TO_BOTH_PLAYERS = Clock.initialClock(ONE_MINUTE_DURATION);
 
     /** Class constructor. */
     private ClockFixtures() { }

@@ -40,7 +40,6 @@ import org.joda.time.Period;
 public class GameSnapshotFixtures {
 
     private static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
-    private static final Clock ONE_MINUTE_LEFT_TO_BOTH_PLAYERS = Clock.initialClock(ONE_MINUTE_DURATION);
     private static final MoveRegister EMPTY = MoveRegister.empty();
 
     /** A generic game snapshot. */
@@ -58,7 +57,7 @@ public class GameSnapshotFixtures {
                                  .build())
                       .withPlayer(Player.BLACK)
                       .build())
-        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withRegister(EMPTY)
         .build();
 
@@ -68,21 +67,21 @@ public class GameSnapshotFixtures {
     /** Minimax test case A, white player has to move, one minute left to both players. */
     public static final GameSnapshot MINIMAX_TEST_CASE_A = new GameSnapshotBuilder()
         .withPosition(GamePositionFixtures.MINIMAX_TEST_CASE_A)
-        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withRegister(EMPTY)
         .build();
 
     /** Minimax test case B, white player has to move, one minute left to both players. */
     public static final GameSnapshot MINIMAX_TEST_CASE_B = new GameSnapshotBuilder()
         .withPosition(GamePositionFixtures.MINIMAX_TEST_CASE_B)
-        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withRegister(EMPTY)
         .build();
 
     /** Black has no legal moves, black player has to move, one minute left to both players. */
     public static final GameSnapshot BLACK_HAS_TO_PASS = new GameSnapshotBuilder()
         .withPosition(GamePositionFixtures.BLACK_HAS_TO_PASS)
-        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withRegister(EMPTY)
         .build();
 
@@ -96,7 +95,7 @@ public class GameSnapshotFixtures {
                       .withBoard(BoardFixtures.EARLY_GAME_B_9_MOVES)
                       .withPlayer(Player.WHITE)
                       .build())
-        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withRegister(EMPTY)
         .build();
 
@@ -112,7 +111,7 @@ public class GameSnapshotFixtures {
                       .withBoard(BoardFixtures.EARLY_GAME_BC3_10_MOVES)
                       .withPlayer(Player.BLACK)
                       .build())
-        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withRegister(EMPTY)
         .build();
 
@@ -128,7 +127,7 @@ public class GameSnapshotFixtures {
                       .withBoard(BoardFixtures.EARLY_GAME_BC6_10_MOVES)
                       .withPlayer(Player.BLACK)
                       .build())
-        .withClock(ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withRegister(EMPTY)
         .build();
 
