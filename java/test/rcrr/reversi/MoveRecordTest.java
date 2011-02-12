@@ -39,23 +39,130 @@ import static org.junit.matchers.JUnitMatchers.*;
 public class MoveRecordTest {
 
     /**
-     * Remainds that all tests are missing.
-     */
-    @Test
-    public void testReminder() {
-        fail("Tests for this class are all missing.");
-    }
-
-    /**
      * Tests the clock getter method.
      *
      * @see MoveRecord#clock()
      */
     @Test
     public final void testClock() {
-        assertThat("MoveRecord's clock for ",
-                   MoveRecordFixtures.AN_INSTANCE.clock(),
-                   is(ClockFixtures.NULL));
+        assertThat("MoveRecord's clock for MoveRecordFixtures.GETTER_TEST_CASES",
+                   MoveRecordFixtures.GETTER_TEST_CASES.clock(),
+                   is(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS));
+    }
+
+    /**
+     * Tests the move getter method.
+     *
+     * @see MoveRecord#move()
+     */
+    @Test
+    public final void testMove() {
+        assertThat("MoveRecord's move for MoveRecordFixtures.GETTER_TEST_CASES",
+                   MoveRecordFixtures.GETTER_TEST_CASES.move(),
+                   is(MoveFixtures.A1));
+    }
+
+    /**
+     * Tests the timestamp getter method.
+     *
+     * @see MoveRecord#timestamp()
+     */
+    @Test
+    public final void testTimestamp() {
+        assertThat("MoveRecord's timestamp for MoveRecordFixtures.GETTER_TEST_CASES",
+                   MoveRecordFixtures.GETTER_TEST_CASES.timestamp(),
+                   is(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011));
+    }
+
+    /**
+     * Tests the toString method.
+     *
+     * @see MoveRecord#toString()
+     */
+    @Test
+    public final void testToString() {
+        assertThat("MoveRecord's toString for MoveRecordFixtures.GETTER_TEST_CASES",
+                   MoveRecordFixtures.GETTER_TEST_CASES.toString(),
+                   is("[[PUT_DISC; A1]; [BLACK=01:00, WHITE=01:00]; 2011-01-01T00:00:00.001Z]"));
+    }
+
+    /**
+     * Tests the valueOfAtCurrentTime factory when parameter {@code move} is null.
+     *
+     * @see MoveRecord#valueOfAtCurrentTime(Move, Clock)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOfAtCurrentTime_boundaryConditions_c1() {
+        MoveRecord.valueOfAtCurrentTime(MoveFixtures.NULL, ClockFixtures.AN_INSTANCE);
+    }
+
+    /**
+     * Tests the valueOfAtCurrentTime factory when parameter {@code clock} is null.
+     *
+     * @see MoveRecord#valueOfAtCurrentTime(Move, Clock)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOfAtCurrentTime_boundaryConditions_c2() {
+        MoveRecord.valueOfAtCurrentTime(MoveFixtures.AN_INSTANCE, ClockFixtures.NULL);
+    }
+
+    /**
+     * Tests the valueOfAtCurrentTime creation method.
+     *
+     * @see MoveRecord#valueOfAtCurrentTime()
+     */
+    @Test
+    public void testValueOfAtCurrentTime() {
+        assertThat("MoveRecord.valueOfAtCurrentTime(MoveFixtures.AN_INSTANCE,"
+                   + " ClockFixtures.AN_INSTANCE) must be an instance of MoveRecord class.",
+                   MoveRecord.valueOfAtCurrentTime(MoveFixtures.AN_INSTANCE,
+                                                   ClockFixtures.AN_INSTANCE),
+                   instanceOf(MoveRecord.class));
+    }
+
+    /**
+     * Tests the valueOf factory when parameter {@code move} is null.
+     *
+     * @see MoveRecord#valueOf(Move, Clock, Instant)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_c1() {
+        MoveRecord.valueOf(MoveFixtures.NULL, ClockFixtures.AN_INSTANCE, CommonFixtures.AN_INSTANT);
+    }
+
+    /**
+     * Tests the valueOf factory when parameter {@code clock} is null.
+     *
+     * @see MoveRecord#valueOf(Move, Clock, Instant)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_c2() {
+        MoveRecord.valueOf(MoveFixtures.AN_INSTANCE, ClockFixtures.NULL, CommonFixtures.AN_INSTANT);
+    }
+
+    /**
+     * Tests the valueOf factory when parameter {@code timestamp} is null.
+     *
+     * @see MoveRecord#valueOf(Move, Clock, Instant)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_c3() {
+        MoveRecord.valueOf(MoveFixtures.AN_INSTANCE, ClockFixtures.AN_INSTANCE, CommonFixtures.NULL_INSTANT);
+    }
+
+    /**
+     * Tests the valueOf creation method.
+     *
+     * @see MoveRecord#valueOf(Move, Clock, Instant)
+     */
+    @Test
+    public void testValueOf() {
+        assertThat("MoveRecord.valueOf(MoveFixtures.AN_INSTANCE, ClockFixtures.AN_INSTANCE, CommonFixtures.AN_INSTANT)"
+                   + " must be an instance of MoveRecord class.",
+                   MoveRecord.valueOf(MoveFixtures.AN_INSTANCE,
+                                      ClockFixtures.AN_INSTANCE,
+                                      CommonFixtures.AN_INSTANT),
+                   instanceOf(MoveRecord.class));
     }
 
 }

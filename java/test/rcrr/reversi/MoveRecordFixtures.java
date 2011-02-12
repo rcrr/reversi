@@ -24,6 +24,8 @@
 
 package rcrr.reversi;
 
+import org.joda.time.Instant;
+
 /**
  * The class host a number of predefined move records.
  * <p>
@@ -37,6 +39,25 @@ public final class MoveRecordFixtures {
      * A generic instance.
      */
     public static final MoveRecord AN_INSTANCE = new MoveRecordBuilder()
+        .build();
+
+    /**
+     * An instance used to test the getter methods. It is build as follow:
+     * <p>
+     * The move is {@code MoveFixtures.A1}.
+     * <p>
+     * The clock is {@code ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS}.
+     * <p>
+     * The timestamp is {@code CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011}.
+     *
+     * @see MoveFixtures#A1
+     * @see ClockFixtures#ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
+     * @see CommonFixtures#INSTANT_FIRST_MILLISEC_OF_YEAR_2011
+     */
+    public static final MoveRecord GETTER_TEST_CASES = new MoveRecordBuilder()
+        .withMove(MoveFixtures.A1)
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)
         .build();
 
     /** Class constructor. */
