@@ -33,9 +33,19 @@ import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+/**
+ * Test Suite for the {@code AlphaBeta} class.
+ * <p>
+ * The test cases given by the data method are the same used by
+ * {@code MinimaxTest}.
+ */
 @RunWith(Parameterized.class)
 public class AlphaBetaTest extends DecisionRuleTestUtils {
 
+    /**
+     * The evaluation function used for testing the {@code AlphaBeta}
+     * search algorithm is the most simple at our disposal.
+     */
     static final EvalFunction COUNT_DIFF = new CountDifference();
 
     public AlphaBetaTest(GameSnapshot snapshot, Move expectedMove, Integer ply, EvalFunction ef) {

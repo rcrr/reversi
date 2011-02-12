@@ -1,7 +1,7 @@
 /*
  *  MoveRecord.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -120,12 +120,12 @@ public final class MoveRecord {
     public Instant timestamp() { return timestamp; }
 
     /**
-     * Returns a {@code String} representing the {@code MoveRecord} object.
+     * Returns a string representing the {@code MoveRecord} object.
      *
-     * @return a {@code String} representing the move string
+     * @return a string representing the move record
      */
     @Override public String toString() {
-        return "[" + move() + "; " + clock() + "; " + timestamp + "]";
+        return "[" + move() + "; " + clock() + "; " + timestamp() + "]";
     }
 
 }

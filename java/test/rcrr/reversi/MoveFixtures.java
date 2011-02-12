@@ -1,5 +1,5 @@
 /*
- *  ClockFixtures.java
+ *  MoveFixtures.java
  *
  *  Copyright (c) 2011 Roberto Corradini. All rights reserved.
  *
@@ -24,31 +24,36 @@
 
 package rcrr.reversi;
 
-import org.joda.time.Duration;
-import org.joda.time.Period;
-
 /**
- * The class host a number of predefined clocks.
+ * The class host a number of predefined move.
  * <p>
- * The {@code Clock} class defines immutable objects thus {@code ClockFixtures}
- * implements clock instances as public static shared objects. Tests can
+ * The {@code Move} class defines immutable objects thus {@code MoveFixtures}
+ * implements move instances as public static shared objects. Tests can
  * freely share the instances without any modification issue.
  */
-public final class ClockFixtures {
+public final class MoveFixtures {
 
-    /** One minute duration. */
-    private static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
+    /** The null move. */
+    public static final Move NULL = null;
 
-    /** A generic clock instance. */
-    public static final Clock AN_INSTANCE = Clock.initialClock(ONE_MINUTE_DURATION);
+    /** A generic move instance. */
+    public static final Move AN_INSTANCE = Move.valueOf(Move.Action.AN_INSTANCE, Square.NULL);
 
-    /** The null clock. */
-    public static final Clock NULL = null;
+    /** A regular move instance. */
+    public static final Move A_REGULAR_INSTANCE = Move.valueOf(Move.Action.PUT_DISC, Square.AN_INSTANCE);
 
-    /** Both players have one minute left. */
-    public static final Clock ONE_MINUTE_LEFT_TO_BOTH_PLAYERS = Clock.initialClock(ONE_MINUTE_DURATION);
+    /**
+     * A regular move instance that put disc on square A1.
+     * <p>
+     * The move instance is defined as follow:
+     * <p>
+     * The action getter method returns {@link Move.Action#PUT_DISC}
+     * <p>
+     * The square getter method returns {@link Square#A1}
+     **/
+    public static final Move A1 = Move.valueOf(Move.Action.PUT_DISC, Square.A1);
 
     /** Class constructor. */
-    private ClockFixtures() { }
+    private MoveFixtures() { }
 
 }

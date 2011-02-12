@@ -194,4 +194,13 @@ public final class Move {
      */
     public Square square() { return square; }
 
+    /**
+     * Returns a string representing the {@code Move} object.
+     *
+     * @return a string representing the move
+     */
+    @Override public String toString() {
+        return "[" + action() + "; " + square() + "]";
+    }
+
 }
