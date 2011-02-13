@@ -36,10 +36,16 @@ public final class MoveFixtures {
     /** The null move. */
     public static final Move NULL = null;
 
-    /** A generic move instance. */
+    /** A generic move instance, it doesn't execute a put disc action. */
     public static final Move AN_INSTANCE = Move.valueOf(Move.Action.AN_INSTANCE, Square.NULL);
 
-    /** A regular move instance. */
+    /** A pass move. */
+    public static final Move PASS = Move.valueOf(Move.Action.PASS, Square.NULL);
+
+    /** A resign move. */
+    public static final Move RESIGN = Move.valueOf(Move.Action.RESIGN, Square.NULL);
+
+    /** A regular move instance, it is defined by executing a put disc action. */
     public static final Move A_REGULAR_INSTANCE = Move.valueOf(Move.Action.PUT_DISC, Square.AN_INSTANCE);
 
     /**
@@ -52,6 +58,17 @@ public final class MoveFixtures {
      * The square getter method returns {@link Square#A1}
      **/
     public static final Move A1 = Move.valueOf(Move.Action.PUT_DISC, Square.A1);
+
+    /**
+     * A regular move instance that put disc on square B3.
+     * <p>
+     * The move instance is defined as follow:
+     * <p>
+     * The action getter method returns {@link Move.Action#PUT_DISC}
+     * <p>
+     * The square getter method returns {@link Square#B3}
+     **/
+    public static final Move B3 = Move.valueOf(Move.Action.PUT_DISC, Square.B3);
 
     /** Class constructor. */
     private MoveFixtures() { }

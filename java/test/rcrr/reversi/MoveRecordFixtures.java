@@ -42,6 +42,11 @@ public final class MoveRecordFixtures {
         .build();
 
     /**
+     * The null instance.
+     */
+    public static final MoveRecord NULL = null;
+
+    /**
      * An instance used to test the getter methods. It is build as follow:
      * <p>
      * The move is {@code MoveFixtures.A1}.

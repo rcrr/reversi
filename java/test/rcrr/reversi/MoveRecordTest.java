@@ -30,13 +30,15 @@ import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.matchers.JUnitMatchers.*;
 
-
 /**
  * Test Suite for the {@code MoveRecord} class.
  *
  * @see MoveRecord
  */
 public class MoveRecordTest {
+
+    /** Class constructor. */
+    public MoveRecordTest() { }
 
     /**
      * Tests the clock getter method.
@@ -109,7 +111,7 @@ public class MoveRecordTest {
     /**
      * Tests the valueOfAtCurrentTime creation method.
      *
-     * @see MoveRecord#valueOfAtCurrentTime()
+     * @see MoveRecord#valueOfAtCurrentTime(Move, Clock)
      */
     @Test
     public void testValueOfAtCurrentTime() {

@@ -37,6 +37,15 @@ import java.util.Collections;
  */
 public final class MoveRegister {
 
+    /**
+     * Returns an empty move register.
+     *
+     * @return a new empty move register
+     */
+    public static MoveRegister empty() {
+        return new MoveRegister(new ArrayList<MoveRecord>());
+    }
+
     /** The register field. */
     private final List<MoveRecord> register;
 
@@ -53,30 +62,12 @@ public final class MoveRegister {
     }
 
     /**
-     * Returns an empty move register.
-     *
-     * @return a new empty move register
-     */
-    public static MoveRegister empty() {
-        return new MoveRegister(new ArrayList<MoveRecord>());
-    }
-
-    /**
      * Returns true if the registry is empty.
      *
      * @return true if the register is empty
      */
     public boolean isEmpty() {
         return register.isEmpty();
-    }
-
-    /**
-     * Returns the register size.
-     *
-     * @return the register size
-     */
-    public int size() {
-        return register.size();
     }
 
     /**
@@ -92,14 +83,41 @@ public final class MoveRegister {
     /**
      * Returns a new move register having the move record added
      * as the last one.
+     * <p>
+     * Parameter {@code record} cannot be null.
      *
      * @param record the move record to add as the last one to the register
      * @return       a new move register having the record added
      */
     public MoveRegister push(final MoveRecord record) {
+        if (record == null) { throw new NullPointerException("Parameter record cannot be null."); }
         List<MoveRecord> tmpRegister = new ArrayList<MoveRecord>(register);
         tmpRegister.add(record);
         return new MoveRegister(tmpRegister);
     }
 
+    /**
+     * Returns the register size.
+     *
+     * @return the register size
+     */
+    public int size() {
+        return register.size();
+    }
+
+    /**
+     * Returns a string representing the {@code MoveRegister} object.
+     *
+     * @return a string representing the move register
+     */
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        for (MoveRecord record : register) {
+            result = result.append(record.toString()).append("\n");
+        }
+        if (isEmpty()) { result = result.append("[EMPTY MoveRegister]\n"); }
+        return result.toString();
+    }
+    
 }
