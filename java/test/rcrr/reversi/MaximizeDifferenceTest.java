@@ -65,7 +65,7 @@ public class MaximizeDifferenceTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testMove_boundaryConditions_checkNullParameter() {
-        A_MAXIMIZE_DIFFERENCE.move(GameSnapshotFixtures.NULL_GAME_SNAPSHOT);
+        A_MAXIMIZE_DIFFERENCE.move(GameSnapshotFixtures.NULL);
     }
 
     /**
