@@ -203,6 +203,11 @@
       <arg value="--out=${cloc.dir}/cloc-java-src-report.txt"/>
       <arg value="src"/>
     </exec>
+    <exec executable="cloc">
+      <arg value="--no3"/>
+      <arg value="--out=${cloc.dir}/cloc-java-test-report.txt"/>
+      <arg value="test"/>
+    </exec>
   </target>
 
   <taskdef resource="checkstyletask.properties"
