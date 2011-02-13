@@ -39,6 +39,12 @@ public final class ClockFixtures {
     /** One minute duration. */
     private static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
 
+    /** Fiftynine seconds duration. */
+    private static final Duration FIFTYNINE_SECONDS_DURATION = Period.seconds(59).toStandardDuration();
+
+    /** One second duration. */
+    private static final Duration ONE_SECOND_DURATION = Period.seconds(1).toStandardDuration();
+
     /** A generic clock instance. */
     public static final Clock AN_INSTANCE = Clock.initialClock(ONE_MINUTE_DURATION);
 
@@ -47,6 +53,14 @@ public final class ClockFixtures {
 
     /** Both players have one minute left. */
     public static final Clock ONE_MINUTE_LEFT_TO_BOTH_PLAYERS = Clock.initialClock(ONE_MINUTE_DURATION);
+
+    /** Black has 59 seconds left, while white has 60 ones. */
+    public static final Clock BLACK_HAS_59_SECONDS_WHITE_60
+        = Clock.valueOf(FIFTYNINE_SECONDS_DURATION, ONE_MINUTE_DURATION);
+
+    /** Black has 1 second left, while white has 60 ones. */
+    public static final Clock BLACK_HAS_1_SECOND_WHITE_60
+        = Clock.valueOf(ONE_SECOND_DURATION, ONE_MINUTE_DURATION);
 
     /** Class constructor. */
     private ClockFixtures() { }

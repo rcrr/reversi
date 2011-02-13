@@ -40,6 +40,9 @@ public final class CommonFixtures {
     private static final int SECOND_OF_MINUTE_00 = 0;
     private static final int MILLIS_OF_SECOND_001 = 1;
 
+    private static final int MINUTE_OF_HOUR_01 = 1;
+    private static final int SECOND_OF_MINUTE_01 = 1;
+
     /**
      * The null instant. 
      */
@@ -66,6 +69,32 @@ public final class CommonFixtures {
                        DAY_OF_MONTH_01,
                        HOUR_OF_DAY_01,
                        MINUTE_OF_HOUR_00,
+                       SECOND_OF_MINUTE_00,
+                       MILLIS_OF_SECOND_001).toInstant();
+
+    /**
+     * An instant corresponding to the first millisecond of year 2011,
+     * plus a second. 
+     */
+    public static final Instant INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_SECOND
+        = new DateTime(YEAR_2011,
+                       MONTH_JAN,
+                       DAY_OF_MONTH_01,
+                       HOUR_OF_DAY_01,
+                       MINUTE_OF_HOUR_00,
+                       SECOND_OF_MINUTE_01,
+                       MILLIS_OF_SECOND_001).toInstant();
+
+    /**
+     * An instant corresponding to the first millisecond of year 2011,
+     * plus a minute. 
+     */
+    public static final Instant INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_MINUTE
+        = new DateTime(YEAR_2011,
+                       MONTH_JAN,
+                       DAY_OF_MONTH_01,
+                       HOUR_OF_DAY_01,
+                       MINUTE_OF_HOUR_01,
                        SECOND_OF_MINUTE_00,
                        MILLIS_OF_SECOND_001).toInstant();
 
