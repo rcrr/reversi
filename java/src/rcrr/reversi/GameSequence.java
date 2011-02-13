@@ -32,7 +32,9 @@ import org.joda.time.Duration;
 
 
 /**
- * An instance of a game sequence of game states.
+ * An game sequence instance collects an ordered list of game snapshots.
+ * <p>
+ * Null parameters and out of bound indexes are not checked!
  * <p>
  * {@code GameSequence} is immutable.
  */
@@ -58,7 +60,7 @@ public final class GameSequence {
         return new GameSequence(sequence);
     }
 
-    /** The game state sequence field. */
+    /** The game snapshot sequence field. */
     private final List<GameSnapshot> sequence;
 
     /**
@@ -83,7 +85,7 @@ public final class GameSequence {
     }
 
    /**
-     * Returns the game state identified by {@code index}.
+     * Returns the game snapshot identified by {@code index}.
      *
      * @param index the game snapshot index in the sequence
      * @return      the game snapshot identified by the index parameter
@@ -93,9 +95,9 @@ public final class GameSequence {
     }
 
    /**
-     * Returns true if the game state sequence is empty.
+     * Returns true if the game snapshot sequence is empty.
      *
-     * @return if the game sequence is empty
+     * @return true if the sequence is empty
      */
     public boolean isEmpty() {
         return sequence.isEmpty();
@@ -111,12 +113,12 @@ public final class GameSequence {
     }
 
     /**
-     * Returns the number of game states recordered.
+     * Returns the number of game snapshot recordered.
      * <p>
-     * When the game starts from the initial position the size is
+     * When the game starts from the initial game snapshot the size is
      * equal to the number of moves already played plus one.
      *
-     * @return the size of the sequence of the game's states recordered
+     * @return the size of the sequence of the game snapshot recordered
      */
     public int size() {
         return sequence.size();

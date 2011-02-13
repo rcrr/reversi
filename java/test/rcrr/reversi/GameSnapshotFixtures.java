@@ -43,7 +43,7 @@ public class GameSnapshotFixtures {
     private static final MoveRegister EMPTY = MoveRegister.empty();
 
     /** A generic game snapshot. */
-    public static final GameSnapshot A_GAME_SNAPSHOT = new GameSnapshotBuilder()
+    public static final GameSnapshot AN_INSTANCE = new GameSnapshotBuilder()
         .withPosition(new GamePositionBuilder()
                       .withBoard(new BoardBuilder()
                                  .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
@@ -132,7 +132,7 @@ public class GameSnapshotFixtures {
         .build();
 
     /** The null game snapshot. */
-    public static final GameSnapshot NULL_GAME_SNAPSHOT = null;
+    public static final GameSnapshot NULL = null;
 
     /** Class constructor. */
     private GameSnapshotFixtures() { }
