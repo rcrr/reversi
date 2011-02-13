@@ -1,7 +1,7 @@
 /*
  *  GameSequenceTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -26,6 +26,9 @@ package rcrr.reversi;
 
 import org.junit.*;
 import static org.junit.Assert.*;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.matchers.JUnitMatchers.*;
 
 public class GameSequenceTest {
 
@@ -54,11 +57,31 @@ public class GameSequenceTest {
     }
 
     /**
-     * Test to be written.
+     * Test the isEmpty method when the sequence is empty.
+     * <p>
+     * Runs against the {@link GameSequenceFixtures#EMPTY} fixture.
+     *
+     * @see GameSequence#isEmpty()
      */
     @Test
-    public void testIsEmpty() {
-        assertTrue("Test to be written.", false);
+    public void testIsEmpty_whenItIs() {
+        assertThat("GameSequenceFixtures.EMPTY is empty.",
+                   GameSequenceFixtures.EMPTY.isEmpty(),
+                   is(true));
+    }
+
+    /**
+     * Test the isEmpty method when the sequence is not empty.
+     * <p>
+     * Runs against the {@link GameSequenceFixtures#AN_INSTANCE} fixture.
+     *
+     * @see GameSequence#isEmpty()
+     */
+    @Test
+    public void testIsEmpty_whenItIsNot() {
+        assertThat("GameSequenceFixtures.AN_INSTANCE is not empty.",
+                   GameSequenceFixtures.AN_INSTANCE.isEmpty(),
+                   is(false));
     }
 
     /**
