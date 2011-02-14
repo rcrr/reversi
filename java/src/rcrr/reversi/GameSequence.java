@@ -1,7 +1,7 @@
 /*
  *  GameSequence.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -52,11 +52,21 @@ public final class GameSequence {
 
    /**
      * The base static factory.
+     * <p>
+     * Parameter {@code sequence} cannot be null, and cannot contain null values.
      *
      * @param sequence the sequence of game snapshot
      * @return         the game built with the given sequence
+     * @throws NullPointerException if parameter {@code sequence} is null
+     * @throws NullPointerException if parameter {@code sequence} contains null values
      */
     public static GameSequence valueOf(final List<GameSnapshot> sequence) {
+        if (sequence == null) {
+            throw new NullPointerException("Parameter sequence cannot be null.");
+        }
+        if (sequence.contains(null)) {
+            throw new NullPointerException("Parameter sequence cannot contain null values.");
+        }
         return new GameSequence(sequence);
     }
 

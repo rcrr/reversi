@@ -24,6 +24,8 @@
 
 package rcrr.reversi;
 
+import java.util.List;
+
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -31,6 +33,8 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.matchers.JUnitMatchers.*;
 
 public class GameSequenceTest {
+
+    private static final List<GameSnapshot> NULL_SEQUENCE = null;
 
     /**
      * Test to be written.
@@ -98,6 +102,16 @@ public class GameSequenceTest {
     @Test
     public void testSize() {
         assertTrue("Test to be written.", false);
+    }
+
+    /**
+     * Tests the valueOf factory when parameter {@code sequence} is null.
+     *
+     * @see GameSequence#valueOf(List)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_c1() {
+        GameSequence.valueOf(NULL_SEQUENCE);
     }
 
     /**
