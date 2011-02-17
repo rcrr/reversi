@@ -25,6 +25,7 @@
 package rcrr.reversi;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import org.junit.*;
 import static org.junit.Assert.*;
@@ -35,6 +36,16 @@ import static org.junit.matchers.JUnitMatchers.*;
 public class GameSequenceTest {
 
     private static final List<GameSnapshot> NULL_SEQUENCE = null;
+
+    private static final List<GameSnapshot> EMPTY_SEQUENCE = new ArrayList<GameSnapshot>();
+
+    private static final List<GameSnapshot> NULL_KEY_SEQUENCE;
+
+    static {
+        GameSnapshot NULL_GAME_SNAPSHOT = null;
+        NULL_KEY_SEQUENCE = new ArrayList<GameSnapshot>();
+        NULL_KEY_SEQUENCE.add(NULL_GAME_SNAPSHOT);
+    }
 
     /**
      * Test to be written.
@@ -61,34 +72,6 @@ public class GameSequenceTest {
     }
 
     /**
-     * Test the isEmpty method when the sequence is empty.
-     * <p>
-     * Runs against the {@link GameSequenceFixtures#EMPTY} fixture.
-     *
-     * @see GameSequence#isEmpty()
-     */
-    @Test
-    public void testIsEmpty_whenItIs() {
-        assertThat("GameSequenceFixtures.EMPTY is empty.",
-                   GameSequenceFixtures.EMPTY.isEmpty(),
-                   is(true));
-    }
-
-    /**
-     * Test the isEmpty method when the sequence is not empty.
-     * <p>
-     * Runs against the {@link GameSequenceFixtures#AN_INSTANCE} fixture.
-     *
-     * @see GameSequence#isEmpty()
-     */
-    @Test
-    public void testIsEmpty_whenItIsNot() {
-        assertThat("GameSequenceFixtures.AN_INSTANCE is not empty.",
-                   GameSequenceFixtures.AN_INSTANCE.isEmpty(),
-                   is(false));
-    }
-
-    /**
      * Test to be written.
      */
     @Test
@@ -110,8 +93,28 @@ public class GameSequenceTest {
      * @see GameSequence#valueOf(List)
      */
     @Test(expected = NullPointerException.class)
-    public final void testValueOf_boundaryConditions_c1() {
+    public final void testValueOf_boundaryConditions_null() {
         GameSequence.valueOf(NULL_SEQUENCE);
+    }
+
+    /**
+     * Tests the valueOf factory when parameter {@code sequence} is null.
+     *
+     * @see GameSequence#valueOf(List)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_nullKey() {
+        GameSequence.valueOf(NULL_KEY_SEQUENCE);
+    }
+
+    /**
+     * Tests the valueOf factory when parameter {@code sequence} is null.
+     *
+     * @see GameSequence#valueOf(List)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public final void testValueOf_boundaryConditions_empty() {
+        GameSequence.valueOf(EMPTY_SEQUENCE);
     }
 
     /**

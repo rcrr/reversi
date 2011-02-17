@@ -35,6 +35,7 @@ import org.joda.time.Duration;
  * An game sequence instance collects an ordered list of game snapshots.
  * <p>
  * Null parameters and out of bound indexes are not checked!
+ * The sequence must have at last one element.
  * <p>
  * {@code GameSequence} is immutable.
  */
@@ -53,12 +54,14 @@ public final class GameSequence {
    /**
      * The base static factory.
      * <p>
-     * Parameter {@code sequence} cannot be null, and cannot contain null values.
+     * Parameter {@code sequence} cannot be null, cannot contain null values,
+     * and cannot be empty.
      *
      * @param sequence the sequence of game snapshot
      * @return         the game built with the given sequence
      * @throws NullPointerException if parameter {@code sequence} is null
      * @throws NullPointerException if parameter {@code sequence} contains null values
+     * @throws IllegalArgumentException if parameter {@code sequence} is empty
      */
     public static GameSequence valueOf(final List<GameSnapshot> sequence) {
         if (sequence == null) {
@@ -66,6 +69,9 @@ public final class GameSequence {
         }
         if (sequence.contains(null)) {
             throw new NullPointerException("Parameter sequence cannot contain null values.");
+        }
+        if (sequence.isEmpty()) {
+            throw new IllegalArgumentException("Parameter sequence cannot be empty.");
         }
         return new GameSequence(sequence);
     }
@@ -75,21 +81,33 @@ public final class GameSequence {
 
     /**
      * Class constructor.
+     * <p>
+     * Parameter {@code sequence} cannot be null, cannot contain null values,
+     * and cannot be empty.
      *
      * @param sequence the sequence of game snapshot
      */
     private GameSequence(final List<GameSnapshot> sequence) {
+        assert (sequence != null) : "Parameter sequence cannot be null.";
+        assert (!sequence.contains(null)) : "Parameter sequence cannot contain null values.";
+        assert (!sequence.isEmpty()) : "Parameter sequence cannot be empty.";
         this.sequence = Collections.unmodifiableList(sequence);
     }
 
    /**
      * Returns a new game having the new state added to the current sequence.
+     * <p>
+     * Parameter {@code gameSnapshot} cannot be null.
      *
      * @param gameSnapshot the new snapshot to add to the sequence
      * @return             a new game modified by adding the game snapshot parameter
+     * @throws NullPointerException if parameter {@code gameSnapshot} is null
      */
     public GameSequence add(final GameSnapshot gameSnapshot) {
-        List<GameSnapshot> newSequence = new ArrayList<GameSnapshot>(sequence);
+        if (gameSnapshot == null) {
+            throw new NullPointerException("Parameter gameSnapshot cannot be null.");
+        }
+        final List<GameSnapshot> newSequence = new ArrayList<GameSnapshot>(sequence);
         newSequence.add(gameSnapshot);
         return valueOf(newSequence);
     }
@@ -99,18 +117,15 @@ public final class GameSequence {
      *
      * @param index the game snapshot index in the sequence
      * @return      the game snapshot identified by the index parameter
+     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 1 || index >= size())}
      */
     public GameSnapshot get(final int index) {
+        if (index < 1 || index >= size()) {
+            throw new IndexOutOfBoundsException("Parameter index must be greather than 1,"
+                                                + " and less or equal to size."
+                                                + " index=" + index + ", size=" + size() + ".");
+        }
         return sequence.get(index);
-    }
-
-   /**
-     * Returns true if the game snapshot sequence is empty.
-     *
-     * @return true if the sequence is empty
-     */
-    public boolean isEmpty() {
-        return sequence.isEmpty();
     }
 
    /**
