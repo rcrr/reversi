@@ -57,11 +57,6 @@ public final class GameSequenceFixtures {
      */
     public static final GameSequence THREE_SNAPSHOTS = threeSnapshots();
 
-    /**
-     * An empty instance.
-     */
-    public static final GameSequence EMPTY = GameSequence.valueOf(new ArrayList<GameSnapshot>());
-
     /** Class constructor. */
     private GameSequenceFixtures() { }
 
@@ -75,6 +70,7 @@ public final class GameSequenceFixtures {
     /** Returns the THREE_SNAPSHOTS game sequence instance. */
     private static final GameSequence threeSnapshots() {
         GameSequence instance = GameSequence.valueOf(new ArrayList<GameSnapshot>());
+        instance = instance.add(GameSnapshotFixtures.AN_INSTANCE);
         return instance;
     }
 
