@@ -26,6 +26,7 @@ package rcrr.reversi;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.junit.*;
 import static org.junit.Assert.*;
@@ -39,13 +40,9 @@ public class GameSequenceTest {
 
     private static final List<GameSnapshot> EMPTY_SEQUENCE = new ArrayList<GameSnapshot>();
 
-    private static final List<GameSnapshot> NULL_KEY_SEQUENCE;
-
-    static {
-        GameSnapshot NULL_GAME_SNAPSHOT = null;
-        NULL_KEY_SEQUENCE = new ArrayList<GameSnapshot>();
-        NULL_KEY_SEQUENCE.add(NULL_GAME_SNAPSHOT);
-    }
+    private static final List<GameSnapshot> NULL_KEY_SEQUENCE
+        = Arrays.asList(GameSnapshotFixtures.NULL,
+                        GameSnapshotFixtures.AN_INSTANCE);
 
     /**
      * Test to be written.
@@ -119,6 +116,8 @@ public class GameSequenceTest {
 
     /**
      * Test to be written.
+     *
+     * @see GameSequence#valueOf(List)
      */
     @Test
     public void testValueOf() {
