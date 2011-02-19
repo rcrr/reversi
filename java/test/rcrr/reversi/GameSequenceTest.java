@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.joda.time.Duration;
+
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -41,8 +43,12 @@ public class GameSequenceTest {
     private static final List<GameSnapshot> EMPTY_SEQUENCE = new ArrayList<GameSnapshot>();
 
     private static final List<GameSnapshot> NULL_KEY_SEQUENCE
-        = Arrays.asList(GameSnapshotFixtures.NULL,
+        = Arrays.asList(GameSnapshotFixtures.AN_INSTANCE,
+                        GameSnapshotFixtures.NULL,
                         GameSnapshotFixtures.AN_INSTANCE);
+
+    private static final List<GameSnapshot> A_SEQUENCE
+        = Arrays.asList(GameSnapshotFixtures.AN_INSTANCE);
 
     /**
      * Test to be written.
@@ -61,11 +67,25 @@ public class GameSequenceTest {
     }
 
     /**
-     * Test to be written.
+     * Tests the initialGameSequence method when parameter {@code gameDuration} is null.
+     *
+     * @see GameSequence#initialGame(Duration)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testInitialGameSequence_boundaryConditions_null() {
+        GameSequence.initialGameSequence(CommonFixtures.NULL_DURATION);
+    }
+
+    /**
+     * Tests the initialGameSequence method.
+     *
+     * @see GameSequence#initialGame(Duration)
      */
     @Test
     public void testInitialGameSequence() {
-        assertTrue("Test to be written.", false);
+        assertThat("GameSequence.initialGameSequence(CommonFixtures.ONE_MINUTE_DURATION) must be an instance of GameSequence class.",
+                   GameSequence.initialGameSequence(CommonFixtures.ONE_MINUTE_DURATION),
+                   instanceOf(GameSequence.class));
     }
 
     /**
@@ -73,15 +93,20 @@ public class GameSequenceTest {
      */
     @Test
     public void testLast() {
+        System.out.println("GameSequenceFixtures.THREE_SNAPSHOTS=" + GameSequenceFixtures.THREE_SNAPSHOTS);
         assertTrue("Test to be written.", false);
     }
 
     /**
-     * Test to be written.
+     * Tests the size method.
+     *
+     * @see GameSequence#size()
      */
     @Test
     public void testSize() {
-        assertTrue("Test to be written.", false);
+        assertThat("GameSequenceFixtures.THREE_SNAPSHOTS has three game snapshots.",
+                   GameSequenceFixtures.THREE_SNAPSHOTS.size(),
+                   is(3));
     }
 
     /**
@@ -115,13 +140,14 @@ public class GameSequenceTest {
     }
 
     /**
-     * Test to be written.
+     * Test the valueOf factory.
      *
      * @see GameSequence#valueOf(List)
      */
     @Test
     public void testValueOf() {
-        assertTrue("Test to be written.", false);
+        assertThat("GameSequence.valueOf(A_SEQUENCE) must be an instance of GameSequence class.",
+                   GameSequence.valueOf(A_SEQUENCE), instanceOf(GameSequence.class));
     }
 
 }

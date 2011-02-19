@@ -85,6 +85,12 @@ public final class Clock {
     /** It is really needed? */
     private static final NumberFormat TIME_FORMATTER = new DecimalFormat("##00");
 
+    /** Prime number 17. */
+    private static final int PRIME_NUMBER_17 = 17;
+
+    /** Prime number 37. */
+    private static final int PRIME_NUMBER_37 = 37;
+
     /**
      * Returns a String representing the clock.
      * The format is mm:ss corresponding to the given time in milliseconds, where:
@@ -172,6 +178,9 @@ public final class Clock {
         return valueOf(initialDuration, initialDuration);
     }
 
+    /** Lazily initialized, cached hashCode. */
+    private volatile int hashCode = 0;
+
     /**
      * The playersGameDuration field.
      * It stores each players' clock time as a Joda-Time Duration.
@@ -199,6 +208,26 @@ public final class Clock {
     }
 
     /**
+     * Returns true if the specified object is equal to this clock.
+     * Two clockss are equal when they have the same remaining times.
+     *
+     * @param object the object to compare to
+     * @return {@code true} when the {@code object} parameter is an instance of
+     *         the {@code Clock} class and when the time remaining to both
+     *         players is equal.
+     */
+    @Override
+    public boolean equals(final Object object) {
+        if (object == this) { return true; }
+        if (!(object instanceof Clock)) { return false; }
+        Clock clock = (Clock) object;
+        for (Player player : Player.values()) {
+            if (!get(player).equals(clock.get(player))) { return false; }
+        }
+        return true;
+    }
+
+    /**
      * Returns a {@code Duration} value that represents the player's remaining time
      * as registered by the {@code Clock} instance.
      *
@@ -211,6 +240,24 @@ public final class Clock {
             throw new NullPointerException("Parameter player connot be null.");
         }
         return playersGameDuration.get(player);
+    }
+
+    /**
+     * Returns a hash code for this clock.
+     *
+     * @return a hash code for this clock
+     */
+    @Override
+    public int hashCode() {
+        if (hashCode == 0) {
+            int result = PRIME_NUMBER_17;
+            for (Duration duration : playersGameDuration.values()) {
+                int k = duration.hashCode();
+                result = PRIME_NUMBER_37 * result + k;
+            }
+            hashCode = result;
+        }
+        return hashCode;
     }
 
     /**
