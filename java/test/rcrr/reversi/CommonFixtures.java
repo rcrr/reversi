@@ -26,6 +26,8 @@ package rcrr.reversi;
 
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
+import org.joda.time.Duration;
+import org.joda.time.Period;
 
 /**
  * The class host a number of predefined common immutable objects.
@@ -42,6 +44,12 @@ public final class CommonFixtures {
 
     private static final int MINUTE_OF_HOUR_01 = 1;
     private static final int SECOND_OF_MINUTE_01 = 1;
+
+    /** The null duration. */
+    public static final Duration NULL_DURATION = null;
+
+    /** A one minute duration. */
+    public static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
 
     /**
      * The null instant. 
