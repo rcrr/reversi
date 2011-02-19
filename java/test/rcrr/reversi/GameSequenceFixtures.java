@@ -24,7 +24,9 @@
 
 package rcrr.reversi;
 
+import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * The class host a number of predefined game sequences.
@@ -62,15 +64,14 @@ public final class GameSequenceFixtures {
 
     /** Returns a game sequence generic instance. */
     private static final GameSequence anInstance() {
-        GameSequence anInstance = GameSequence.valueOf(new ArrayList<GameSnapshot>());
-        anInstance = anInstance.add(GameSnapshotFixtures.AN_INSTANCE);
-        return anInstance;
+        return GameSequence.valueOf(Arrays.asList(GameSnapshotFixtures.AN_INSTANCE));
     }
 
     /** Returns the THREE_SNAPSHOTS game sequence instance. */
     private static final GameSequence threeSnapshots() {
-        GameSequence instance = GameSequence.valueOf(new ArrayList<GameSnapshot>());
-        instance = instance.add(GameSnapshotFixtures.AN_INSTANCE);
+        GameSequence instance = GameSequence.valueOf(Arrays.asList(GameSnapshotFixtures.AN_INSTANCE,
+                                                                   GameSnapshotFixtures.AN_INSTANCE,
+                                                                   GameSnapshotFixtures.AN_INSTANCE));
         return instance;
     }
 

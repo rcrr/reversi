@@ -27,6 +27,9 @@ package rcrr.reversi;
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
+
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
@@ -86,11 +89,43 @@ public class GameSnapshotTest {
     }
 
     /**
-     * Has to be written.
+     * Tests the initialGameSnapshot method when parameter {@code gameDuration} is null.
+     *
+     * @see GameSnapshot#initialGameSnapshot(Duration)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testInitialGameSnapshot_boundaryConditions_checkNullParameter() {
+        GameSnapshot.initialGameSnapshot(CommonFixtures.NULL_DURATION);
+    }
+
+    /**
+     * Tests the initialGameSnapshot factory.
+     *
+     * @see GameSnapshot#initialGameSnapshot(Duration)
      */
     @Test
     public void testInitialGameSnapshot() {
-	assertTrue("Test has to be written.", false);
+        GameSnapshot initialGameSnapshot = GameSnapshot.initialGameSnapshot(CommonFixtures.ONE_MINUTE_DURATION);
+
+        assertThat("GameSnapshot.initialGameSnapshot()"
+                   + " must return an instance of GameSnapshot class.",
+                   initialGameSnapshot,
+                   instanceOf(GameSnapshot.class));
+
+        assertThat("GameSnapshot.initialGameSnapshot()"
+                   + " must have an INITIAL board.",
+                   initialGameSnapshot.position().board(),
+                   is(BoardFixtures.INITIAL));
+
+        assertThat("GameSnapshot.initialGameSnapshot()"
+                   + " must have a black player.",
+                   initialGameSnapshot.position().player(),
+                   is(Player.BLACK));
+
+        assertThat("GameSnapshot.initialGameSnapshot()"
+                   + " must have a clock having one minute for each player.",
+                   initialGameSnapshot.clock(),
+                   is(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS));
     }
 
     /**
