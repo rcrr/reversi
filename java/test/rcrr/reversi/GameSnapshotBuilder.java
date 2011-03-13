@@ -24,18 +24,13 @@
 
 package rcrr.reversi;
 
-import org.joda.time.Duration;
-import org.joda.time.Period;
-
 /**
- * A game snapshot builder is a facility to generate game snapshot instances for testing.
+ * A game snapshot builder is a facility that generates game snapshot instances for testing.
  * <p>
  * {@code GameSnapshotBuilder} is mutable, and it is thread-safe.
  * The object status is guarded by a lock on {@code this}.
  */
 public final class GameSnapshotBuilder {
-
-    private static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
 
     /** The game position field. */
     private GamePosition position;
@@ -51,7 +46,7 @@ public final class GameSnapshotBuilder {
      */
     public GameSnapshotBuilder() {
         this.position = GamePosition.initialGamePosition();
-        this.clock = Clock.initialClock(ONE_MINUTE_DURATION);
+        this.clock = Clock.initialClock(CommonFixtures.ONE_MINUTE_DURATION);
         this.register = MoveRegister.empty();
     }
 

@@ -1,7 +1,7 @@
 /*
  *  GameSnapshot.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -32,9 +32,9 @@ import org.joda.time.Duration;
  * A {@code GameSnapshot} object holds the information of the state of the game.
  * It is a value object composed by three fields:
  * <ol>
- *   <li>the game position</li>
- *   <li>the current clock</li>
- *   <li>the move log</li>
+ *   <li>The game position, returned by the {@code position()} method.</li>
+ *   <li>The current clock, returned by the {@code clock()} method.</li>
+ *   <li>The move log, returned by the {@code position()} method.</li>
  * </ol>
  * <p>
  * {@code GameSnapshot} is immutable.
@@ -198,6 +198,15 @@ public final class GameSnapshot {
             sbGameSnapshot.append(" No player has any legal move. The game is over.");
         }
         return (sbGameSnapshot.toString());
+    }
+
+    /**
+     * Returns the register field.
+     *
+     * @return the move register
+     */
+    public MoveRegister register() {
+        return register;
     }
 
 }

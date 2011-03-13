@@ -69,7 +69,7 @@ public class GameSequenceTest {
     /**
      * Tests the initialGameSequence method when parameter {@code gameDuration} is null.
      *
-     * @see GameSequence#initialGame(Duration)
+     * @see GameSequence#initialGameSequence(Duration)
      */
     @Test(expected = NullPointerException.class)
     public final void testInitialGameSequence_boundaryConditions_null() {
@@ -79,7 +79,7 @@ public class GameSequenceTest {
     /**
      * Tests the initialGameSequence method.
      *
-     * @see GameSequence#initialGame(Duration)
+     * @see GameSequence#initialGameSequence(Duration)
      */
     @Test
     public void testInitialGameSequence() {
