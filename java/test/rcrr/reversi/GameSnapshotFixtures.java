@@ -27,9 +27,6 @@ package rcrr.reversi;
 import java.util.Arrays;
 import java.util.List;
 
-import org.joda.time.Duration;
-import org.joda.time.Period;
-
 /**
  * The class host a number of predefined game snapshots.
  * <p>
@@ -39,7 +36,6 @@ import org.joda.time.Period;
  */
 public class GameSnapshotFixtures {
 
-    private static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
     private static final MoveRegister EMPTY = MoveRegister.empty();
 
     /** A generic game snapshot. */
@@ -61,8 +57,46 @@ public class GameSnapshotFixtures {
         .withRegister(EMPTY)
         .build();
 
+    /** Game snapshot S0. */
+    public static final GameSnapshot S0 = new GameSnapshotBuilder()
+        .withPosition(new GamePositionBuilder()
+                      .withBoard(new BoardBuilder()
+                                 .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 2, 1, 0, 0, 0,
+                                                                 0, 0, 0, 1, 2, 0, 0, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0))
+                                 .build())
+                      .withPlayer(Player.BLACK)
+                      .build())
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withRegister(MoveRegisterFixtures.EMPTY)
+        .build();
+
+    /** Game snapshot S1. */
+    public static final GameSnapshot S1 = new GameSnapshotBuilder()
+        .withPosition(new GamePositionBuilder()
+                      .withBoard(new BoardBuilder()
+                                 .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 1, 0, 0, 0, 0,
+                                                                 0, 0, 0, 1, 1, 0, 0, 0,
+                                                                 0, 0, 0, 1, 2, 0, 0, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                                 0, 0, 0, 0, 0, 0, 0, 0))
+                                 .build())
+                      .withPlayer(Player.WHITE)
+                      .build())
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withRegister(MoveRegisterFixtures.EMPTY)
+        .build();
+
     /** Initial position, one minute left to both players. */
-    public static final GameSnapshot INITIAL = GameSnapshot.initialGameSnapshot(ONE_MINUTE_DURATION);
+    public static final GameSnapshot INITIAL = GameSnapshot.initialGameSnapshot(CommonFixtures.ONE_MINUTE_DURATION);
 
     /** Minimax test case A, white player has to move, one minute left to both players. */
     public static final GameSnapshot MINIMAX_TEST_CASE_A = new GameSnapshotBuilder()

@@ -37,6 +37,9 @@ import java.util.Collections;
  */
 public final class MoveRegister {
 
+    /** The null move record. */
+    private static MoveRecord NULL_MOVE_RECORD = null;
+
     /**
      * Returns an empty move register.
      *
@@ -118,6 +121,23 @@ public final class MoveRegister {
         }
         if (isEmpty()) { result = result.append("[EMPTY MoveRegister]\n"); }
         return result.toString();
+    }
+
+    /**
+     * Base static factory for the class.
+     * <p>
+     * Parameter {@code register} cannot be null.
+     *
+     * @param register the list of move records
+     * @return         a new move register
+     * @throws NullPointerException when register parameter is null
+     */
+    public static MoveRegister valueOf(final List<MoveRecord> register) {
+        if (register == null) { throw new NullPointerException("Parameter register cannot be null."); }
+        if (register.contains(NULL_MOVE_RECORD)) {
+            throw new NullPointerException("Parameter register cannot contain null objects.");
+        }
+        return new MoveRegister(register);
     }
     
 }
