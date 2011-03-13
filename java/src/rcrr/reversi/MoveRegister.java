@@ -38,7 +38,7 @@ import java.util.Collections;
 public final class MoveRegister {
 
     /** The null move record. */
-    private static MoveRecord NULL_MOVE_RECORD = null;
+    private static final MoveRecord NULL_MOVE_RECORD = null;
 
     /**
      * Returns an empty move register.
@@ -62,6 +62,22 @@ public final class MoveRegister {
     private MoveRegister(final List<MoveRecord> register) {
         assert (register != null) : "Parameter register cannot be null.";
         this.register = Collections.unmodifiableList(register);
+    }
+
+    /**
+     * Returns the move record element at the specified position in this move register.
+     *
+     * @param index index of the element to return
+     * @return      the specified move record
+     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= size())}
+     */
+    public MoveRecord get(final int index) {
+        if (index < 0 || index >= size()) {
+            throw new IndexOutOfBoundsException("Parameter index is out of range."
+                                                + "index=" + index
+                                                + "; size()=" + size() + ".");
+        }
+        return register.get(index);
     }
 
     /**
@@ -139,5 +155,5 @@ public final class MoveRegister {
         }
         return new MoveRegister(register);
     }
-    
+
 }
