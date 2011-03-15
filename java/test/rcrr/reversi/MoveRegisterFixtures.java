@@ -24,6 +24,8 @@
 
 package rcrr.reversi;
 
+import java.util.Arrays;
+
 /**
  * The class host a number of predefined move registers.
  * <p>
@@ -41,7 +43,9 @@ public final class MoveRegisterFixtures {
     /**
      * A generic instance.
      */
-    public static final MoveRegister AN_INSTANCE = anInstance();
+    public static final MoveRegister AN_INSTANCE = new MoveRegisterBuilder()
+        .withRegister(Arrays.asList(MoveRecordFixtures.AN_INSTANCE))
+        .build();
 
     /**
      * An instance having three records.
@@ -53,7 +57,23 @@ public final class MoveRegisterFixtures {
      *  <li><i>3rd move record</i> {@code [[PUT_DISC; B3]; [BLACK=00:01, WHITE=01:00]; 2011-01-01T00:01:00.001Z]}</li>
      * </ul>
      */
-    public static final MoveRegister THREE_RECORDS = threeRecords();
+    public static final MoveRegister THREE_RECORDS = new MoveRegisterBuilder()
+        .withRegister(Arrays.asList(new MoveRecordBuilder()
+                                    .withMove(MoveFixtures.A1)
+                                    .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+                                    .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)
+                                    .build(),
+                                    new MoveRecordBuilder()
+                                    .withMove(MoveFixtures.PASS)
+                                    .withClock(ClockFixtures.BLACK_HAS_59_SECONDS_WHITE_60)
+                                    .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_SECOND)
+                                    .build(),
+                                    new MoveRecordBuilder()
+                                    .withMove(MoveFixtures.B3)
+                                    .withClock(ClockFixtures.BLACK_HAS_1_SECOND_WHITE_60)
+                                    .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_MINUTE)
+                                    .build()))
+        .build();
 
     /**
      * An empty instance.
@@ -62,33 +82,5 @@ public final class MoveRegisterFixtures {
 
     /** Class constructor. */
     private MoveRegisterFixtures() { }
-
-    /** Returns move register generic instance. */
-    private static final MoveRegister anInstance() {
-        MoveRegister anInstance = MoveRegister.empty();
-        anInstance = anInstance.push(MoveRecordFixtures.AN_INSTANCE);
-        return anInstance;
-    }
-
-    /** Returns the THREE_RECORDS move register instance. */
-    private static final MoveRegister threeRecords() {
-        MoveRegister instance = MoveRegister.empty();
-        instance = instance.push(new MoveRecordBuilder()
-                                 .withMove(MoveFixtures.A1)
-                                 .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
-                                 .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)
-                                 .build());
-        instance = instance.push(new MoveRecordBuilder()
-                                 .withMove(MoveFixtures.PASS)
-                                 .withClock(ClockFixtures.BLACK_HAS_59_SECONDS_WHITE_60)
-                                 .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_SECOND)
-                                 .build());
-        instance = instance.push(new MoveRecordBuilder()
-                                 .withMove(MoveFixtures.B3)
-                                 .withClock(ClockFixtures.BLACK_HAS_1_SECOND_WHITE_60)
-                                 .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_MINUTE)
-                                 .build());
-        return instance;
-    }
 
 }
