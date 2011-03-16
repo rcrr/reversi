@@ -25,6 +25,7 @@
 package rcrr.reversi;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -86,6 +87,23 @@ public final class MoveRegisterBuilder {
         }
         setRegister(register);
         return this;
+    }
+
+    /**
+     * Returns the {@code this} reference after setting the new {@code register} field,
+     * the {@code register} value is constructed by building the list
+     * from the {@code records} array.
+     * <p>
+     * The {@code records} parameter cannot be null.
+     *
+     * @param records the array of records assigned to the move register
+     * @return         the {@code this} reference
+     */
+    public MoveRegisterBuilder withRecords(final MoveRecord... records) {
+        if (records == null) {
+            throw new NullPointerException("Parameter records cannot be null.");
+        }
+        return withRegister(Arrays.asList(records));
     }
 
 }
