@@ -24,6 +24,7 @@
 
 package rcrr.reversi;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.EnumMap;
@@ -140,6 +141,29 @@ public final class BoardBuilder {
             transientSquares.put(Square.getInstance(index), squareState);
         }
         return withSquares(transientSquares);
+    }
+
+    /**
+     * Returns the {@code this} reference after setting the new {@code squares} field
+     * as described by the {@code squaresLiteral} parameter.
+     * <p>
+     * The squares litearal is a variable length argument used to build
+     * the {@code <Integer>List boardLiteral} argument that is then passed to the
+     * {@code withBoardLiteral(<Integer>List)} method.
+     * <p>
+     * The {@code squaresLiteral} parameter cannot be null.
+     *
+     * @param squaresLiteral a literal representation of the board
+     *                       described by a variable length integer values
+     * @return               the {@code this} reference
+     *
+     * @see #withBoardLiteral(List)
+     */
+    public BoardBuilder withSquaresLiteral(final Integer... squaresLiteral) {
+        if (squaresLiteral == null) {
+            throw new NullPointerException("Parameter squaresLiteral cannot be null.");
+        }
+        return (withBoardLiteral(Arrays.asList(squaresLiteral)));
     }
 
     /**
