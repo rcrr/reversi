@@ -44,7 +44,7 @@ public final class MoveRegisterFixtures {
      * A generic instance.
      */
     public static final MoveRegister AN_INSTANCE = new MoveRegisterBuilder()
-        .withRegister(Arrays.asList(MoveRecordFixtures.AN_INSTANCE))
+        .withRecords(MoveRecordFixtures.AN_INSTANCE)
         .build();
 
     /**
@@ -58,21 +58,21 @@ public final class MoveRegisterFixtures {
      * </ul>
      */
     public static final MoveRegister THREE_RECORDS = new MoveRegisterBuilder()
-        .withRegister(Arrays.asList(new MoveRecordBuilder()
-                                    .withMove(MoveFixtures.A1)
-                                    .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
-                                    .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)
-                                    .build(),
-                                    new MoveRecordBuilder()
-                                    .withMove(MoveFixtures.PASS)
-                                    .withClock(ClockFixtures.BLACK_HAS_59_SECONDS_WHITE_60)
-                                    .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_SECOND)
-                                    .build(),
-                                    new MoveRecordBuilder()
-                                    .withMove(MoveFixtures.B3)
-                                    .withClock(ClockFixtures.BLACK_HAS_1_SECOND_WHITE_60)
-                                    .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_MINUTE)
-                                    .build()))
+        .withRecords(new MoveRecordBuilder()
+                     .withMove(MoveFixtures.A1)
+                     .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+                     .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)
+                     .build(),
+                     new MoveRecordBuilder()
+                     .withMove(MoveFixtures.PASS)
+                     .withClock(ClockFixtures.BLACK_HAS_59_SECONDS_WHITE_60)
+                     .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_SECOND)
+                     .build(),
+                     new MoveRecordBuilder()
+                     .withMove(MoveFixtures.B3)
+                     .withClock(ClockFixtures.BLACK_HAS_1_SECOND_WHITE_60)
+                     .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_MINUTE)
+                     .build())
         .build();
 
     /**
