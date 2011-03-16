@@ -36,39 +36,37 @@ import java.util.List;
  */
 public class GameSnapshotFixtures {
 
-    private static final MoveRegister EMPTY = MoveRegister.empty();
-
     /** A generic game snapshot. */
     public static final GameSnapshot AN_INSTANCE = new GameSnapshotBuilder()
         .withPosition(new GamePositionBuilder()
                       .withBoard(new BoardBuilder()
-                                 .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 1, 0, 0, 0, 0,
-                                                                 0, 0, 0, 1, 1, 0, 1, 0,
-                                                                 0, 0, 2, 2, 2, 2, 2, 2,
-                                                                 0, 0, 0, 0, 1, 0, 1, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0))
+                                 .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 1, 0, 0, 0, 0,
+                                                     0, 0, 0, 1, 1, 0, 1, 0,
+                                                     0, 0, 2, 2, 2, 2, 2, 2,
+                                                     0, 0, 0, 0, 1, 0, 1, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0)
                                  .build())
                       .withPlayer(Player.BLACK)
                       .build())
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
-        .withRegister(EMPTY)
+        .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
     /** Game snapshot S0. */
     public static final GameSnapshot S0 = new GameSnapshotBuilder()
         .withPosition(new GamePositionBuilder()
                       .withBoard(new BoardBuilder()
-                                 .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 2, 1, 0, 0, 0,
-                                                                 0, 0, 0, 1, 2, 0, 0, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0))
+                                 .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 2, 1, 0, 0, 0,
+                                                     0, 0, 0, 1, 2, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0)
                                  .build())
                       .withPlayer(Player.BLACK)
                       .build())
@@ -80,14 +78,14 @@ public class GameSnapshotFixtures {
     public static final GameSnapshot S1 = new GameSnapshotBuilder()
         .withPosition(new GamePositionBuilder()
                       .withBoard(new BoardBuilder()
-                                 .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 1, 0, 0, 0, 0,
-                                                                 0, 0, 0, 1, 1, 0, 0, 0,
-                                                                 0, 0, 0, 1, 2, 0, 0, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0,
-                                                                 0, 0, 0, 0, 0, 0, 0, 0))
+                                 .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 1, 0, 0, 0, 0,
+                                                     0, 0, 0, 1, 1, 0, 0, 0,
+                                                     0, 0, 0, 1, 2, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0)
                                  .build())
                       .withPlayer(Player.WHITE)
                       .build())
@@ -102,21 +100,21 @@ public class GameSnapshotFixtures {
     public static final GameSnapshot MINIMAX_TEST_CASE_A = new GameSnapshotBuilder()
         .withPosition(GamePositionFixtures.MINIMAX_TEST_CASE_A)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
-        .withRegister(EMPTY)
+        .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
     /** Minimax test case B, white player has to move, one minute left to both players. */
     public static final GameSnapshot MINIMAX_TEST_CASE_B = new GameSnapshotBuilder()
         .withPosition(GamePositionFixtures.MINIMAX_TEST_CASE_B)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
-        .withRegister(EMPTY)
+        .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
     /** Black has no legal moves, black player has to move, one minute left to both players. */
     public static final GameSnapshot BLACK_HAS_TO_PASS = new GameSnapshotBuilder()
         .withPosition(GamePositionFixtures.BLACK_HAS_TO_PASS)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
-        .withRegister(EMPTY)
+        .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
     /**
@@ -130,7 +128,7 @@ public class GameSnapshotFixtures {
                       .withPlayer(Player.WHITE)
                       .build())
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
-        .withRegister(EMPTY)
+        .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
     /**
@@ -146,7 +144,7 @@ public class GameSnapshotFixtures {
                       .withPlayer(Player.BLACK)
                       .build())
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
-        .withRegister(EMPTY)
+        .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
     /**
@@ -162,7 +160,7 @@ public class GameSnapshotFixtures {
                       .withPlayer(Player.BLACK)
                       .build())
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
-        .withRegister(EMPTY)
+        .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
     /** The null game snapshot. */
