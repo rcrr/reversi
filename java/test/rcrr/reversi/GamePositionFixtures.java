@@ -137,6 +137,9 @@ public final class GamePositionFixtures {
         .withPlayer(Player.WHITE)
         .build();
 
+    /** The null game position. */
+    public static final GamePosition NULL = null;
+
     /** Class constructor. */
     private GamePositionFixtures() { }
 

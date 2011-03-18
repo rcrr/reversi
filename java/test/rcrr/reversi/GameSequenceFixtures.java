@@ -52,12 +52,15 @@ public final class GameSequenceFixtures {
      * <p>
      * The instance is described as follow:
      * <ul>
-     *  <li><i>1st move record</i> {@code [[PUT_DISC; A1]; [BLACK=01:00, WHITE=01:00]; 2011-01-01T00:00:00.001Z]}</li>
-     *  <li><i>2nd move record</i> {@code [[PASS; null];   [BLACK=00:59, WHITE=01:00]; 2011-01-01T00:00:01.001Z]}</li>
-     *  <li><i>3rd move record</i> {@code [[PUT_DISC; B3]; [BLACK=00:01, WHITE=01:00]; 2011-01-01T00:01:00.001Z]}</li>
+     *  <li><i>1st game snapshot</i> {@code GameSnapshotFixtures.G00_S00}</li>
+     *  <li><i>2nd game snapshot</i> {@code GameSnapshotFixtures.G00_S01}</li>
+     *  <li><i>3rd game snapshot</i> {@code GameSnapshotFixtures.G00_S02}</li>
      * </ul>
      */
-    public static final GameSequence THREE_SNAPSHOTS = threeSnapshots();
+    public static final GameSequence THREE_SNAPSHOTS
+        = GameSequence.valueOf(Arrays.asList(GameSnapshotFixtures.G00_S00,
+                                             GameSnapshotFixtures.G00_S01,
+                                             GameSnapshotFixtures.G00_S02));
 
     /** Class constructor. */
     private GameSequenceFixtures() { }
@@ -65,14 +68,6 @@ public final class GameSequenceFixtures {
     /** Returns a game sequence generic instance. */
     private static final GameSequence anInstance() {
         return GameSequence.valueOf(Arrays.asList(GameSnapshotFixtures.AN_INSTANCE));
-    }
-
-    /** Returns the THREE_SNAPSHOTS game sequence instance. */
-    private static final GameSequence threeSnapshots() {
-        GameSequence instance = GameSequence.valueOf(Arrays.asList(GameSnapshotFixtures.AN_INSTANCE,
-                                                                   GameSnapshotFixtures.AN_INSTANCE,
-                                                                   GameSnapshotFixtures.AN_INSTANCE));
-        return instance;
     }
 
 }

@@ -48,6 +48,9 @@ public final class CommonFixtures {
     /** The null duration. */
     public static final Duration NULL_DURATION = null;
 
+    /** A generic duration. */
+    public static final Duration A_DURATION = Period.minutes(1).toStandardDuration();
+
     /** A one minute duration. */
     public static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
 
