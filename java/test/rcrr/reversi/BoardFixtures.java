@@ -118,6 +118,9 @@ public final class BoardFixtures {
      * 8 O O O O O O @ O
      * }
      * </pre>
+     * The black player has 26 discs.
+     * The white player has 28 discs.
+     * There are 10 empty squares.
      */
     public static final Board BLACK_HAS_TO_PASS = new BoardBuilder()
         .withBoardLiteral(Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,

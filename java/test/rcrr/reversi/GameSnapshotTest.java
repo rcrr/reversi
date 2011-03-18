@@ -1,7 +1,7 @@
 /*
  *  GameSnapshotTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -24,72 +24,172 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
+
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
-import org.joda.time.Duration;
 import org.joda.time.Period;
 
+/**
+ * Test Suite for the {@code GameSnapshot} class.
+ *
+ * @see GameSnapshot
+ */
 public class GameSnapshotTest {
 
+    /** Class constructor. */
+    public GameSnapshotTest() { }
+
     /**
-     * Tests the class getter methods. Must be removed.
+     * Tests that the board used to assemble the GamePosition instance,
+     * then used by the GamePosition constructor, is equal to
+     * the one returned by the board method.
      */
     @Test
-    public void testGetters() {
-	GamePosition gp = GamePosition.initialGamePosition();
-	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	MoveRegister reg = MoveRegister.empty();
-	GameSnapshot gs = GameSnapshot.valueOf(gp, c, reg);
-	assertEquals(gp, gs.position());
-	assertEquals(c, gs.clock());
+    public final void testBoard() {
+        assertThat("The board used to assemble the GamePosition,"
+                   + " then used into the GameSnapshot, must be equal"
+                   + " to the one returned by the board method.",
+                   new GameSnapshotBuilder()
+                   .withPosition(new GamePositionBuilder()
+                                 .withBoard(BoardFixtures.AN_INSTANCE)
+                                 .build())
+                   .build()
+                   .board(),
+                   is(BoardFixtures.AN_INSTANCE));
     }
 
     /**
-     * Has to be written.
+     * Tests the {@code clock()} method.
      */
     @Test
-    public void testBoard() {
-	assertTrue("Test has to be written.", false);
+    public final void testClock() {
+        assertThat("The clock used by the constructor of the"
+                   + " GameSnapshot instance, must be equal"
+                   + " to the one returned by the clock method.",
+                   new GameSnapshotBuilder()
+                   .withClock(ClockFixtures.AN_INSTANCE)
+                   .build()
+                   .clock(),
+                   is(ClockFixtures.AN_INSTANCE));
     }
 
     /**
-     * Has to be written.
+     * Tests the {@code countDiscDifference()} method.
+     * <p>
+     * The method run on {@code GameSnapshotFixtures.BLACK_HAS_TO_PASS}
+     * must return a count of {@code -2}.
+     *
+     * @see GameSnapshotFixtures#BLACK_HAS_TO_PASS
      */
     @Test
-    public void testClock() {
-	assertTrue("Test has to be written.", false);
+    public final void testCountDiscDifference() {
+        assertThat("The disc count returned by CountDiscDifference on"
+                   + " GameSnapshotFixtures.BLACK_HAS_TO_PASS must be -2.",
+                   GameSnapshotFixtures.BLACK_HAS_TO_PASS.countDiscDifference(),
+                   is(-2));
     }
 
     /**
-     * Has to be written.
+     * Tests the {@code hasAnyLegalMove()} method.
+     * <p>
+     * The method run on {@code GameSnapshotFixtures.BLACK_HAS_TO_PASS}
+     * must return {@code false}.
+     *
+     * @see GameSnapshotFixtures#BLACK_HAS_TO_PASS
      */
     @Test
-    public void testCountDiscDifference() {
-	assertTrue("Test has to be written.", false);
+    public final void testHasAnyLegalMove_on_BLACK_HAS_TO_PASS() {
+        assertThat("GameSnapshotFixtures.BLACK_HAS_TO_PASS has no legal moves.",
+                   GameSnapshotFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(),
+                   is(false));
     }
 
     /**
-     * Has to be written.
+     * Tests the {@code hasAnyLegalMove()} method.
+     * <p>
+     * The method run on {@code GameSnapshotFixtures.EARLY_GAME_B_9_MOVES}
+     * must return {@code true}.
+     *
+     * @see GameSnapshotFixtures#EARLY_GAME_B_9_MOVES
      */
     @Test
-    public void testHasAnyLegalMove() {
-	assertTrue("Test has to be written.", false);
+    public final void testHasAnyLegalMove_on_EARLY_GAME_B_9_MOVES() {
+        assertThat("GameSnapshotFixtures.EARLY_GAME_B_9_MOVES has legal moves.",
+                   GameSnapshotFixtures.EARLY_GAME_B_9_MOVES.hasAnyLegalMove(),
+                   is(true));
     }
 
     /**
-     * Has to be written.
+     * Tests the {@code hasAnyPlayerAnyLegalMove()} method.
+     * <p>
+     * The method run on {@code GameSnapshotFixtures.BLACK_HAS_TO_PASS}
+     * must return {@code true}.
+     *
+     * @see GameSnapshotFixtures#BLACK_HAS_TO_PASS
      */
     @Test
-    public void testHasAnyPlayerAnyLegalMove() {
-	assertTrue("Test has to be written.", false);
+    public final void testHasAnyPlayerAnyLegalMove_on_BLACK_HAS_TO_PASS() {
+        assertThat("GameSnapshotFixtures.BLACK_HAS_TO_PASS has no legal moves,"
+                   + " but the other player, the white, has ones.",
+                   GameSnapshotFixtures.BLACK_HAS_TO_PASS.hasAnyPlayerAnyLegalMove(),
+                   is(true));
     }
 
     /**
-     * Tests the initialGameSnapshot method when parameter {@code gameDuration} is null.
+     * Tests the {@code hasAnyPlayerAnyLegalMove()} method.
+     * <p>
+     * The method run on {@code GameSnapshotFixtures.EARLY_GAME_B_9_MOVES}
+     * must return {@code true}.
+     *
+     * @see GameSnapshotFixtures#EARLY_GAME_B_9_MOVES
+     */
+    @Test
+    public final void testHasAnyPlayerAnyLegalMove_on_EARLY_GAME_B_9_MOVES() {
+        assertThat("GameSnapshotFixtures.EARLY_GAME_B_9_MOVES has legal moves.",
+                   GameSnapshotFixtures.EARLY_GAME_B_9_MOVES.hasAnyPlayerAnyLegalMove(),
+                   is(true));
+    }
+
+    /**
+     * Tests the {@code hasAnyPlayerAnyLegalMove()} method.
+     * <p>
+     * The method run on a complete board and must return {@code false}.
+     * The board is tested associated with the black, the white and the null player.
+     *
+     * @see GamePositionFixtures#FINAL_B37_W27_N
+     * @see GamePositionFixtures#FINAL_B37_W27_B
+     * @see GamePositionFixtures#FINAL_B37_W27_W
+     */
+    @Test
+    public final void testHasAnyPlayerAnyLegalMove_on_FINAL_B37_W27() {
+        assertThat("GameSnapshotFixtures.FINAL_B37_W27_N has no legal moves.",
+                   new GameSnapshotBuilder()
+                   .withPosition(GamePositionFixtures.FINAL_B37_W27_N)
+                   .build()
+                   .hasAnyPlayerAnyLegalMove(),
+                   is(false));
+        assertThat("GameSnapshotFixtures.FINAL_B37_W27_B has no legal moves.",
+                   new GameSnapshotBuilder()
+                   .withPosition(GamePositionFixtures.FINAL_B37_W27_B)
+                   .build()
+                   .hasAnyPlayerAnyLegalMove(),
+                   is(false));
+        assertThat("GameSnapshotFixtures.FINAL_B37_W27_W has no legal moves.",
+                   new GameSnapshotBuilder()
+                   .withPosition(GamePositionFixtures.FINAL_B37_W27_W)
+                   .build()
+                   .hasAnyPlayerAnyLegalMove(),
+                   is(false));
+    }
+
+    /**
+     * Tests the {@code initialGameSnapshot(Duration)} method when parameter
+     * {@code gameDuration} is {@code null}.
      *
      * @see GameSnapshot#initialGameSnapshot(Duration)
      */
@@ -99,113 +199,193 @@ public class GameSnapshotTest {
     }
 
     /**
-     * Tests the initialGameSnapshot factory.
+     * Tests that the {@code initialGameSnapshot(Duration)} factory returns
+     * a {@code GameSnapshot} object.
      *
      * @see GameSnapshot#initialGameSnapshot(Duration)
      */
     @Test
-    public void testInitialGameSnapshot() {
-        GameSnapshot initialGameSnapshot = GameSnapshot.initialGameSnapshot(CommonFixtures.ONE_MINUTE_DURATION);
+    public final void testInitialGameSnapshot_returnsAnInstanceOfGameSnapshot() {
+        GameSnapshot initialGameSnapshot = GameSnapshot.initialGameSnapshot(CommonFixtures.A_DURATION);
 
-        assertThat("GameSnapshot.initialGameSnapshot()"
+        assertThat("GameSnapshot.initialGameSnapshot(Duration)"
                    + " must return an instance of GameSnapshot class.",
                    initialGameSnapshot,
                    instanceOf(GameSnapshot.class));
+    }
 
-        assertThat("GameSnapshot.initialGameSnapshot()"
-                   + " must have an INITIAL board.",
-                   initialGameSnapshot.position().board(),
-                   is(BoardFixtures.INITIAL));
+    /**
+     * Tests that the {@code initialGameSnapshot(Duration)} factory returns
+     * an instance having as player the black one.
+     *
+     * @see GameSnapshot#initialGameSnapshot(Duration)
+     */
+    @Test
+    public final void testInitialGameSnapshot_returnsAnObjectHavingTheBlackPlayer() {
+        GameSnapshot initialGameSnapshot = GameSnapshot.initialGameSnapshot(CommonFixtures.A_DURATION);
 
-        assertThat("GameSnapshot.initialGameSnapshot()"
-                   + " must have a black player.",
-                   initialGameSnapshot.position().player(),
+        assertThat("GameSnapshot.initialGameSnapshot(Duration)"
+                   + " must have the black player.",
+                   initialGameSnapshot.player(),
                    is(Player.BLACK));
+    }
 
-        assertThat("GameSnapshot.initialGameSnapshot()"
+    /**
+     * Tests that the {@code initialGameSnapshot(Duration)} factory returns
+     * an instance having a board equal to the initial board.
+     *
+     * @see GameSnapshot#initialGameSnapshot(Duration)
+     */
+    @Test
+    public final void testInitialGameSnapshot_returnsAnObjectHavingTheInitialBoard() {
+        GameSnapshot initialGameSnapshot = GameSnapshot.initialGameSnapshot(CommonFixtures.A_DURATION);
+
+        assertThat("GameSnapshot.initialGameSnapshot(Duration)"
+                   + " must have an INITIAL board.",
+                   initialGameSnapshot.board(),
+                   is(BoardFixtures.INITIAL));
+    }
+
+    /**
+     * Tests that the {@code initialGameSnapshot(Duration)} factory returns
+     * an instance having a clock defined by the {@code gameDuration} parameter.
+     *
+     * @see GameSnapshot#initialGameSnapshot(Duration)
+     */
+    @Test
+    public final void testInitialGameSnapshot_returnsAnInstanceHavingAppropriateClock() {
+        GameSnapshot initialGameSnapshot = GameSnapshot.initialGameSnapshot(CommonFixtures.ONE_MINUTE_DURATION);
+
+        assertThat("GameSnapshot.initialGameSnapshot(CommonFixtures.ONE_MINUTE_DURATION)"
                    + " must have a clock having one minute for each player.",
                    initialGameSnapshot.clock(),
                    is(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS));
     }
 
     /**
-     * Has to be written.
+     * Tests that the {@code initialGameSnapshot(Duration)} factory returns
+     * an instance having an empty move register.
+     *
+     * @see GameSnapshot#initialGameSnapshot(Duration)
      */
     @Test
-    public void testPlayer() {
-	assertTrue("Test has to be written.", false);
+    public final void testInitialGameSnapshot_returnsAnInstanceHavingAnEmptyMoveRegister() {
+        GameSnapshot initialGameSnapshot = GameSnapshot.initialGameSnapshot(CommonFixtures.A_DURATION);
+
+        assertThat("GameSnapshot.initialGameSnapshot(Duration)"
+                   + " must have an empty move register",
+                   initialGameSnapshot.register()
+                   .isEmpty(),
+                   is(true));
     }
 
     /**
-     * Has to be written.
+     * Tests the {@code player()} method.
      */
     @Test
-    public void testPosition() {
-	assertTrue("Test has to be written.", false);
+    public final void testPlayer() {
+        assertThat("The player returned by the player method must be equal"
+                   + " to the one used to build the referred game position.",
+                   new GameSnapshotBuilder()
+                   .withPosition(new GamePositionBuilder()
+                                 .withPlayer(Player.WHITE)
+                                 .build())
+                   .build()
+                   .player(),
+                   is(Player.WHITE));
     }
 
+    /**
+     * Tests the {@code position()} method.
+     */
     @Test
-    public void testValueOf() {
-
-	/**
-	 * Tests if the valueOf method throws a NullPointerException when
-	 * the passed position is null.
-	 */
-	try {
-	    GameSnapshot.valueOf(null, Clock.initialClock(Period.minutes(1).toStandardDuration()), MoveRegister.empty());
-	    fail("An exception must be risen.");
-	} catch (NullPointerException npe) {
-	    assertTrue(true);
-	}
-
-	/**
-	 * Tests if the valueOf method throws a NullPointerException when
-	 * the passed clock is null.
-	 */
-	try {
-	    GameSnapshot.valueOf(GamePosition.initialGamePosition(), null, MoveRegister.empty());
-	    fail("An exception must be risen.");
-	} catch (NullPointerException npe) {
-	    assertTrue(true);
-	}
-
-	/**
-	 * Tests if the valueOf method throws a NullPointerException when
-	 * the passed move register is null.
-	 */
-	try {
-	    GameSnapshot.valueOf(GamePosition.initialGamePosition(), Clock.initialClock(Period.minutes(1).toStandardDuration()), null);
-	    fail("An exception must be risen.");
-	} catch (NullPointerException npe) {
-	    assertTrue(true);
-	}
-
-	GamePosition gp = GamePosition.initialGamePosition();
-	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	MoveRegister reg = MoveRegister.empty();
-	GameSnapshot gs = GameSnapshot.valueOf(gp, c, reg);
-	assertEquals(gp, gs.position());
-	assertEquals(c, gs.clock());
+    public final void testPosition() {
+        assertThat("The game position returned by the position method"
+                   + " must be equal to the one passed to the constructor.",
+                   new GameSnapshotBuilder()
+                   .withPosition(GamePositionFixtures.AN_INSTANCE)
+                   .build()
+                   .position(),
+                   is(GamePositionFixtures.AN_INSTANCE));
     }
 
+    /**
+     * Tests the {@code valueOf(GamePosition, Clock, MoveRegister)} factory when
+     * parameter {@code position} is {@code null}.
+     *
+     * @see GameSnapshot#valueOf(GamePosition, Clock, MoveRegister)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_c1() {
+        GameSnapshot.valueOf(GamePositionFixtures.NULL,
+                             ClockFixtures.AN_INSTANCE,
+                             MoveRegisterFixtures.AN_INSTANCE);
+    }
+
+    /**
+     * Tests the {@code valueOf(GamePosition, Clock, MoveRegister)} factory when
+     * parameter {@code clock} is {@code null}.
+     *
+     * @see GameSnapshot#valueOf(GamePosition, Clock, MoveRegister)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_c2() {
+        GameSnapshot.valueOf(GamePositionFixtures.AN_INSTANCE,
+                             ClockFixtures.NULL,
+                             MoveRegisterFixtures.AN_INSTANCE);
+    }
+
+    /**
+     * Tests the {@code valueOf(GamePosition, Clock, MoveRegister)} factory when
+     * parameter {@code register} is {@code null}.
+     *
+     * @see GameSnapshot#valueOf(GamePosition, Clock, MoveRegister)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_c3() {
+        GameSnapshot.valueOf(GamePositionFixtures.AN_INSTANCE,
+                             ClockFixtures.AN_INSTANCE,
+                             MoveRegisterFixtures.NULL);
+    }
+
+    /**
+     * Tests the {@code valueOf(GamePosition, Clock, MoveRegister)} factory.
+     * It tests if the factory returns an instance of {@code GameSnapshot}.
+     *
+     * @see GameSnapshot#valueOf(GamePosition, Clock, MoveRegister)
+     */
     @Test
-    public void testPrintGameSnapshot() {
-	GamePosition gp = GamePosition.initialGamePosition();
-	Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-	MoveRegister reg = MoveRegister.empty();
-	GameSnapshot gs = GameSnapshot.valueOf(gp, c, reg);
-	StringBuilder initialGameSnapshot = new StringBuilder();
-	initialGameSnapshot.append("    a b c d e f g h [@=2 0=2 (0)]\n");
-	initialGameSnapshot.append(" 1  . . . . . . . . \n");
-	initialGameSnapshot.append(" 2  . . . . . . . . \n");
-	initialGameSnapshot.append(" 3  . . . . . . . . \n");
-	initialGameSnapshot.append(" 4  . . . O @ . . . \n");
-	initialGameSnapshot.append(" 5  . . . @ O . . . \n");
-	initialGameSnapshot.append(" 6  . . . . . . . . \n");
-	initialGameSnapshot.append(" 7  . . . . . . . . \n");
-	initialGameSnapshot.append(" 8  . . . . . . . . [@=30:00, O=30:00]\n");
-	initialGameSnapshot.append(" Next to play: BLACK, legal moves: [D3, C4, F5, E6]\n");
-	assertEquals(initialGameSnapshot.toString(), gs.printGameSnapshot());
+    public final void testValueOf() {
+        assertThat("GameSnapshot.valueOf(GamePositionFixtures.AN_INSTANCE,"
+                   + " ClockFixtures.AN_INSTANCE, MoveRegisterFixtures.AN_INSTANCE)"
+                   + " must return an instance of GameSnapshot class.",
+                   GameSnapshot.valueOf(GamePositionFixtures.AN_INSTANCE,
+                                        ClockFixtures.AN_INSTANCE,
+                                        MoveRegisterFixtures.AN_INSTANCE),
+                   instanceOf(GameSnapshot.class));
+    }
+
+    /**
+     * Tests the {@code printGameSnapshot()} method.
+     */
+    @Test
+    public final void testPrintGameSnapshot() {
+        GamePosition gp = GamePosition.initialGamePosition();
+        Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
+        MoveRegister reg = MoveRegister.empty();
+        GameSnapshot gs = GameSnapshot.valueOf(gp, c, reg);
+        StringBuilder initialGameSnapshot = new StringBuilder();
+        initialGameSnapshot.append("    a b c d e f g h [@=2 0=2 (0)]\n");
+        initialGameSnapshot.append(" 1  . . . . . . . . \n");
+        initialGameSnapshot.append(" 2  . . . . . . . . \n");
+        initialGameSnapshot.append(" 3  . . . . . . . . \n");
+        initialGameSnapshot.append(" 4  . . . O @ . . . \n");
+        initialGameSnapshot.append(" 5  . . . @ O . . . \n");
+        initialGameSnapshot.append(" 6  . . . . . . . . \n");
+        initialGameSnapshot.append(" 7  . . . . . . . . \n");
+        initialGameSnapshot.append(" 8  . . . . . . . . [@=30:00, O=30:00]\n");
+        initialGameSnapshot.append(" Next to play: BLACK, legal moves: [D3, C4, F5, E6]\n");
+        assertEquals(initialGameSnapshot.toString(), gs.printGameSnapshot());
     }
 
 }
