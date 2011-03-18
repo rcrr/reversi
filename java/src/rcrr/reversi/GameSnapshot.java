@@ -182,6 +182,7 @@ public final class GameSnapshot {
      */
     public String printGameSnapshot() {
         StringBuilder sbGameSnapshot = new StringBuilder();
+        sbGameSnapshot.append(register().toString());
         String sBoard = board().printBoardWithCount();
         String sClock = clock().printClock();
         String[] lines = sBoard.split("\n");

@@ -24,8 +24,8 @@
 
 package rcrr.reversi;
 
-import java.util.Arrays;
-import java.util.List;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 /**
  * The class host a number of predefined game snapshots.
@@ -34,7 +34,7 @@ import java.util.List;
  * implements game snapshot instances as public static shared objects. Tests can
  * freely share the instances without any modification issue.
  */
-public class GameSnapshotFixtures {
+public final class GameSnapshotFixtures {
 
     /** A generic game snapshot. */
     public static final GameSnapshot AN_INSTANCE = new GameSnapshotBuilder()
@@ -55,8 +55,11 @@ public class GameSnapshotFixtures {
         .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
-    /** Game snapshot S0. */
-    public static final GameSnapshot S0 = new GameSnapshotBuilder()
+    /** Initial position, one minute left to both players. */
+    public static final GameSnapshot INITIAL = GameSnapshot.initialGameSnapshot(CommonFixtures.ONE_MINUTE_DURATION);
+
+    /** Game snapshot S00 taken from a game named G00. */
+    public static final GameSnapshot G00_S00 = new GameSnapshotBuilder()
         .withPosition(new GamePositionBuilder()
                       .withBoard(new BoardBuilder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
@@ -74,8 +77,8 @@ public class GameSnapshotFixtures {
         .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
-    /** Game snapshot S1. */
-    public static final GameSnapshot S1 = new GameSnapshotBuilder()
+    /** Game snapshot S01 taken from a game named G00. */
+    public static final GameSnapshot G00_S01 = new GameSnapshotBuilder()
         .withPosition(new GamePositionBuilder()
                       .withBoard(new BoardBuilder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
@@ -89,12 +92,80 @@ public class GameSnapshotFixtures {
                                  .build())
                       .withPlayer(Player.WHITE)
                       .build())
-        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
-        .withRegister(MoveRegisterFixtures.EMPTY)
+        .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
+                                 Period.seconds(60).toStandardDuration()))
+        .withRegister(new MoveRegisterBuilder()
+                      .withRecords(new MoveRecordBuilder()
+                                   .withMove(Move.valueOf(Move.Action.PUT_DISC, Square.D3))
+                                   .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
+                                                            Period.seconds(60).toStandardDuration()))
+                                   .withTimestamp(new DateTime(2011,
+                                                               03,
+                                                               17,
+                                                               9,
+                                                               03,
+                                                               0,
+                                                               1).toInstant())
+                                   .build())
+                      .build())
         .build();
 
-    /** Initial position, one minute left to both players. */
-    public static final GameSnapshot INITIAL = GameSnapshot.initialGameSnapshot(CommonFixtures.ONE_MINUTE_DURATION);
+    /** Game snapshot S02 taken from a game named G00. */
+    public static final GameSnapshot G00_S02 = new GameSnapshotBuilder()
+        .withPosition(new GamePositionBuilder()
+                      .withBoard(new BoardBuilder()
+                                 .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 1, 0, 0, 0, 0,
+                                                     0, 0, 0, 1, 1, 0, 0, 0,
+                                                     0, 0, 2, 2, 2, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                                     0, 0, 0, 0, 0, 0, 0, 0)
+                                 .build())
+                      .withPlayer(Player.BLACK)
+                      .build())
+        .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
+                                 Period.seconds(55).toStandardDuration()))
+        .withRegister(new MoveRegisterBuilder()
+                      .withRecords(new MoveRecordBuilder()
+                                   .withMove(Move.valueOf(Move.Action.PUT_DISC, Square.A1))
+                                   .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
+                                                            Period.seconds(59).toStandardDuration()))
+                                   .withTimestamp(new DateTime(2011,
+                                                               03,
+                                                               17,
+                                                               9,
+                                                               03,
+                                                               10,
+                                                               1).toInstant())
+                                   .build(),
+                                   new MoveRecordBuilder()
+                                   .withMove(Move.valueOf(Move.Action.PASS, Square.NULL))
+                                   .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
+                                                            Period.seconds(58).toStandardDuration()))
+                                   .withTimestamp(new DateTime(2011,
+                                                               03,
+                                                               17,
+                                                               9,
+                                                               03,
+                                                               11,
+                                                               1).toInstant())
+                                   .build(),
+                                   new MoveRecordBuilder()
+                                   .withMove(Move.valueOf(Move.Action.PUT_DISC, Square.C5))
+                                   .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
+                                                            Period.seconds(55).toStandardDuration()))
+                                   .withTimestamp(new DateTime(2011,
+                                                               03,
+                                                               17,
+                                                               9,
+                                                               03,
+                                                               15,
+                                                               1).toInstant())
+                                   .build())
+                      .build())
+        .build();
 
     /** Minimax test case A, white player has to move, one minute left to both players. */
     public static final GameSnapshot MINIMAX_TEST_CASE_A = new GameSnapshotBuilder()
@@ -110,7 +181,13 @@ public class GameSnapshotFixtures {
         .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
-    /** Black has no legal moves, black player has to move, one minute left to both players. */
+    /**
+     * Black has no legal moves, black player has to move, one minute left to both players.
+     *
+     * @see GamePositionFixtures#BLACK_HAS_TO_PASS
+     * @see ClockFixtures#ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
+     * @see MoveRegisterFixtures#EMPTY
+     */
     public static final GameSnapshot BLACK_HAS_TO_PASS = new GameSnapshotBuilder()
         .withPosition(GamePositionFixtures.BLACK_HAS_TO_PASS)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
