@@ -99,7 +99,7 @@ public class ReversiTest {
 	 *  6  . @ . . . . . . 
 	 *  7  . . . . . . . . 
 	 *  8  . . . . . . . . [@=29:59, O=29:59]
-	 *  Next to play: WHITE, legal moves: [C1, F6]
+	 *  Next to play: WHITE, legal moves: [c1, f6]
 	 */
 
 	/** Test to be written. */

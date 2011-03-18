@@ -93,7 +93,6 @@ public class GameSequenceTest {
      */
     @Test
     public void testLast() {
-        System.out.println("GameSequenceFixtures.THREE_SNAPSHOTS=" + GameSequenceFixtures.THREE_SNAPSHOTS);
         assertTrue("Test to be written.", false);
     }
 

@@ -24,6 +24,9 @@
 
 package rcrr.reversi;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import org.joda.time.Duration;
 
 /**
@@ -194,7 +197,11 @@ public final class GameSnapshot {
         }
         final Player p = player();
         if (p != null) {
-            sbGameSnapshot.append(" Next to play: " + p + ", legal moves: " + board().legalMoves(p) + "\n");
+            List<String> legalMoveLabels = new ArrayList<String>();
+            for (Square square : board().legalMoves(p)) {
+                legalMoveLabels.add(square.label());
+            }
+            sbGameSnapshot.append(" Next to play: " + p + ", legal moves: " + legalMoveLabels + "\n");
         } else {
             sbGameSnapshot.append(" No player has any legal move. The game is over.");
         }

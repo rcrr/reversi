@@ -375,6 +375,7 @@ public class GameSnapshotTest {
         MoveRegister reg = MoveRegister.empty();
         GameSnapshot gs = GameSnapshot.valueOf(gp, c, reg);
         StringBuilder initialGameSnapshot = new StringBuilder();
+        initialGameSnapshot.append("[EMPTY MoveRegister]\n");
         initialGameSnapshot.append("    a b c d e f g h [@=2 0=2 (0)]\n");
         initialGameSnapshot.append(" 1  . . . . . . . . \n");
         initialGameSnapshot.append(" 2  . . . . . . . . \n");
@@ -384,7 +385,7 @@ public class GameSnapshotTest {
         initialGameSnapshot.append(" 6  . . . . . . . . \n");
         initialGameSnapshot.append(" 7  . . . . . . . . \n");
         initialGameSnapshot.append(" 8  . . . . . . . . [@=30:00, O=30:00]\n");
-        initialGameSnapshot.append(" Next to play: BLACK, legal moves: [D3, C4, F5, E6]\n");
+        initialGameSnapshot.append(" Next to play: BLACK, legal moves: [d3, c4, f5, e6]\n");
         assertEquals(initialGameSnapshot.toString(), gs.printGameSnapshot());
     }
 
