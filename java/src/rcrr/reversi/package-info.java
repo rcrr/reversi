@@ -1,7 +1,7 @@
 /*
  *  package-info.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -30,6 +30,8 @@ To do:
 <p>
 <ul>
   <li>Complete tests, javadocs, checkstyle, and refactoring to current codabase.</li>
+  <li>Prepare some tests (ReversiTest suite) that repeat selected tests but print the game to a file.
+      Some part of the Game class are used only when the PrintStream ps field is not null.</li>
   <li>Moves returned from the Strategies must be recordered. The Sequence structure has to host
       the moves between each transition. Ideally each adiacent pair should have a list of: [Move, Clock, Status] tuple.
       The "record" could be attached to GameSnapshot.
