@@ -117,11 +117,11 @@ public final class GameSequence {
      *
      * @param index the game snapshot index in the sequence
      * @return      the game snapshot identified by the index parameter
-     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 1 || index >= size())}
+     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= size())}
      */
     public GameSnapshot get(final int index) {
-        if (index < 1 || index >= size()) {
-            throw new IndexOutOfBoundsException("Parameter index must be greather than 1,"
+        if (index < 0 || index >= size()) {
+            throw new IndexOutOfBoundsException("Parameter index must be greather than 0,"
                                                 + " and less or equal to size."
                                                 + " index=" + index + ", size=" + size() + ".");
         }

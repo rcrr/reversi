@@ -233,7 +233,7 @@ public final class Game {
             sequence = sequence.add(next(move.square(), clock, register));
         } else {
             // clock (snapshot ... ) has to be updated.
-            if (ps != null) { ps.print("Illegal move: " + move.square() + "\n"); }
+            if (ps != null) { ps.print("Illegal move: " + move.square().label() + "\n"); }
             move(register);
         }
         return;
