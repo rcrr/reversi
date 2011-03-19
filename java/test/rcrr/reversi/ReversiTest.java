@@ -1,7 +1,7 @@
 /*
  *  ReversiTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -22,9 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-// To do:
-// write all tests
-
 package rcrr.reversi;
 
 import java.util.List;
@@ -38,9 +35,14 @@ import java.io.PrintStream;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
+
+/**
+ * Must be tested also some cases that print the output to a file. Some program paths are not tested without printing.
+ */
 public class ReversiTest {
 
     static final Duration STANDARD_GAME_DURATION = Period.minutes(30).toStandardDuration();
+    static final PrintStream PRINT = System.out;
     static final PrintStream NO_PRINT = null;
     
     
