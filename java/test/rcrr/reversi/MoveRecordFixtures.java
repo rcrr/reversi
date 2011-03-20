@@ -24,8 +24,6 @@
 
 package rcrr.reversi;
 
-import org.joda.time.Instant;
-
 /**
  * The class host a number of predefined move records.
  * <p>
@@ -60,6 +58,63 @@ public final class MoveRecordFixtures {
      * @see CommonFixtures#INSTANT_FIRST_MILLISEC_OF_YEAR_2011
      */
     public static final MoveRecord GETTER_TEST_CASES = new MoveRecordBuilder()
+        .withMove(MoveFixtures.A1)
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)
+        .build();
+
+    /**
+     * An instance used to test the getter methods. It is build as follow:
+     * <p>
+     * The move is {@code MoveFixtures.B3}.
+     * <p>
+     * The clock is {@code ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS}.
+     * <p>
+     * The timestamp is {@code CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011}.
+     *
+     * @see MoveFixtures#B3
+     * @see ClockFixtures#ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
+     * @see CommonFixtures#INSTANT_FIRST_MILLISEC_OF_YEAR_2011
+     */
+    public static final MoveRecord R00 = new MoveRecordBuilder()
+        .withMove(MoveFixtures.B3)
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)
+        .build();
+
+    /**
+     * An instance used to test the getter methods. It is build as follow:
+     * <p>
+     * The move is {@code MoveFixtures.PASS}.
+     * <p>
+     * The clock is {@code ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS}.
+     * <p>
+     * The timestamp is {@code CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011}.
+     *
+     * @see MoveFixtures#PASS
+     * @see ClockFixtures#ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
+     * @see CommonFixtures#INSTANT_FIRST_MILLISEC_OF_YEAR_2011
+     */
+    public static final MoveRecord R01 = new MoveRecordBuilder()
+        .withMove(MoveFixtures.PASS)
+        .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+        .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)
+        .build();
+
+    /**
+     * An instance used to test the getter methods. It is build as follow:
+     * <p>
+     * The move is {@code MoveFixtures.A1}.
+     * <p>
+     * The clock is {@code ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS}.
+     * <p>
+     * The timestamp is {@code CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011}.
+     *
+     * @see MoveFixtures#A1
+     * @see ClockFixtures#ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
+     * @see CommonFixtures#INSTANT_FIRST_MILLISEC_OF_YEAR_2011
+     */
+    public static final MoveRecord R02 = new MoveRecordBuilder()
         .withMove(MoveFixtures.A1)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)

@@ -1,7 +1,7 @@
 /*
  *  MoveRegister.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -153,7 +153,7 @@ public final class MoveRegister {
         if (register.contains(NULL_MOVE_RECORD)) {
             throw new NullPointerException("Parameter register cannot contain null objects.");
         }
-        return new MoveRegister(register);
+        return new MoveRegister(new ArrayList<MoveRecord>(register));
     }
 
 }

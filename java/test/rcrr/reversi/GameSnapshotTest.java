@@ -367,6 +367,8 @@ public class GameSnapshotTest {
 
     /**
      * Tests the {@code printGameSnapshot()} method.
+     *
+     * @see GameSnapshot#printGameSnapshot()
      */
     @Test
     public final void testPrintGameSnapshot() {
