@@ -1,7 +1,7 @@
 /*
  *  Board.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -104,6 +104,9 @@ public final class Board {
         if (squareMap.containsKey(null)) {
             throw new NullPointerException("Parameter squareMap cannot have null keys. squareMap=" + squareMap);
         }
+        if (squareMap.containsValue(null)) {
+            throw new NullPointerException("Parameter squareMap cannot have null values. squareMap=" + squareMap);
+        }
         return new Board(squareMap);
     }
 
@@ -140,10 +143,9 @@ public final class Board {
         assert (squareMap.size() == Square.values().length) : "Parameter squareMap size is not consistent."
             + " squareMap.size()=" + squareMap.size()
             + " expected value: " + Square.values().length;
-        final EnumMap<Square, SquareState> squareEnumMap = (squareMap instanceof EnumMap)
-            ? (EnumMap<Square, SquareState>) squareMap
-            : new EnumMap<Square, SquareState>(squareMap);
-        this.squares = Collections.unmodifiableMap(squareEnumMap);
+        assert (!squareMap.containsKey(null)) : "Parameter squareMap cannot contains null keys.";
+        assert (!squareMap.containsValue(null)) : "Parameter squareMap cannot contains null values.";
+        this.squares = Collections.unmodifiableMap(new EnumMap<Square, SquareState>(squareMap));
     }
 
     /**
