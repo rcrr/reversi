@@ -24,11 +24,11 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
+import static org.junit.Assert.assertThat;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.matchers.JUnitMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
 /**
  * Test Suite for the {@code MoveRecord} class.
@@ -114,7 +114,7 @@ public class MoveRecordTest {
      * @see MoveRecord#valueOfAtCurrentTime(Move, Clock)
      */
     @Test
-    public void testValueOfAtCurrentTime() {
+    public final void testValueOfAtCurrentTime() {
         assertThat("MoveRecord.valueOfAtCurrentTime(MoveFixtures.AN_INSTANCE,"
                    + " ClockFixtures.AN_INSTANCE) must be an instance of MoveRecord class.",
                    MoveRecord.valueOfAtCurrentTime(MoveFixtures.AN_INSTANCE,
@@ -158,7 +158,7 @@ public class MoveRecordTest {
      * @see MoveRecord#valueOf(Move, Clock, Instant)
      */
     @Test
-    public void testValueOf() {
+    public final void testValueOf() {
         assertThat("MoveRecord.valueOf(MoveFixtures.AN_INSTANCE, ClockFixtures.AN_INSTANCE, CommonFixtures.AN_INSTANT)"
                    + " must be an instance of MoveRecord class.",
                    MoveRecord.valueOf(MoveFixtures.AN_INSTANCE,

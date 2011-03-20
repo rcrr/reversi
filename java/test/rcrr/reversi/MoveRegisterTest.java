@@ -24,11 +24,14 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import java.util.List;
+import java.util.ArrayList;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.matchers.JUnitMatchers.*;
+import org.junit.Test;
+import static org.junit.Assert.assertThat;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
 /**
  * Test Suite for the {@code MoveRegister} class.
@@ -37,11 +40,14 @@ import static org.junit.matchers.JUnitMatchers.*;
  */
 public class MoveRegisterTest {
 
+    /** The null register field value. */
+    private static final List<MoveRecord> NULL_RECORD_LIST = null;
+
     /** Class constructor. */
     public MoveRegisterTest() { }
 
     /**
-     * Tests the last method.
+     * Tests the {@code last()} method.
      *
      * @see MoveRegister#last()
      */
@@ -54,7 +60,7 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests the push method when parameter {@code record} is null.
+     * Tests the {@code push(MoveRecord)} method when parameter {@code record} is {@code null}.
      *
      * @see MoveRegister#push(MoveRecord)
      */
@@ -64,7 +70,7 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests that the push method returns a {@code MoveRegister} instance.
+     * Tests that the {@code push(MoveRecord)} method returns a {@code MoveRegister} instance.
      *
      * @see MoveRegister#push(MoveRecord)
      */
@@ -77,7 +83,7 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests that the push method returns a {@code MoveRegister} instance having
+     * Tests that the {@code push(MoveRecord)} method returns a {@code MoveRegister} instance having
      * a size incremented by one.
      *
      * @see MoveRegister#push(MoveRecord)
@@ -91,7 +97,7 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests that the push method returns a {@code MoveRegister} instance having
+     * Tests that the {@code push(MoveRecord)} method returns a {@code MoveRegister} instance having
      * as last element the pushed record.
      *
      * @see MoveRegister#push(MoveRecord)
@@ -105,7 +111,7 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests the size method when the move register is empty.
+     * Tests the {@code size()} method when the move register is empty.
      *
      * @see MoveRegister#size()
      */
@@ -117,7 +123,7 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests the size method when the move register is not empty.
+     * Tests the {@code size()} method when the move register is not empty.
      *
      * @see MoveRegister#size()
      */
@@ -129,7 +135,7 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests the toString method when the move register is not empty.
+     * Tests the {@code toString()} method when the move register is not empty.
      *
      * @see MoveRegister#toString()
      */
@@ -143,7 +149,7 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests the toString method when the move register is empty.
+     * Tests the {@code toString()} method when the move register is empty.
      *
      * @see MoveRegister#toString()
      */
@@ -155,7 +161,7 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests the isEmpty method when the move record is empty.
+     * Tests the {@code isEmpty()} method when the move record is empty.
      * <p>
      * The test runs against the {@link MoveRegisterFixtures#EMPTY} fixture.
      *
@@ -169,7 +175,7 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests the isEmpty method when the move record is not empty.
+     * Tests the {@code isEmpty()} method when the move record is not empty.
      * <p>
      * The test runs against the {@link MoveRegisterFixtures#THREE_RECORDS} fixture.
      *
@@ -183,7 +189,7 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests the empty creation method.
+     * Tests the {@code empty()} factory.
      *
      * @see MoveRegister#empty()
      */
@@ -191,6 +197,58 @@ public class MoveRegisterTest {
     public final void testEmpty() {
         assertThat("MoveRegister.empty() must return an instance of MoveRegister class.",
                    MoveRegister.empty(), instanceOf(MoveRegister.class));
+    }
+
+    /**
+     * Tests the {@code valueOf(List<MoveRecord>)} factory when
+     * parameter {@code register} is {@code null}.
+     *
+     * @see MoveRegister#valueOf(List)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_c1() {
+        MoveRegister.valueOf(NULL_RECORD_LIST);
+    }
+
+    /**
+     * Tests the {@code valueOf(List<MoveRecord>)} factory.
+     * It tests if the factory returns an instance of {@code MoveRegister}.
+     *
+     * @see MoveRegister#valueOf(List)
+     */
+    @Test
+    public final void testValueOf() {
+        final List<MoveRecord> records = new ArrayList<MoveRecord>();
+        records.add(MoveRecordFixtures.AN_INSTANCE);
+        assertThat("MoveRegister.valueOf(records)"
+                   + " must return an instance of MoveRegister class.",
+                   MoveRegister.valueOf(records),
+                   instanceOf(MoveRegister.class));
+    }
+
+    /**
+     * Test the {@code valueOf(List<MoveRecord>)} factory.
+     * <p>
+     * The factory receives the register parameter, and any further change to it
+     * must not be reflected to the returned move register instance.
+     *
+     * @see MoveRegister#valueOf(List)
+     */
+    @Test
+    public final void testValueOf_registerMustBeUnchangeable() {
+
+        final List<MoveRecord> changeable = new ArrayList<MoveRecord>();
+        changeable.add(MoveRecordFixtures.R00);
+        final MoveRegister instance = MoveRegister.valueOf(changeable);
+        changeable.add(MoveRecordFixtures.R01);
+
+        assertThat("The move register instance must be not affected by a"
+                   + " change in the register parameter.",
+                   instance.last(), is(MoveRecordFixtures.R00));
+
+        assertThat("The move register instance must be not affected by a"
+                   + " change in the register parameter.",
+                   instance.size(), is(1));
     }
 
 }

@@ -24,8 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.Arrays;
-
 /**
  * The class host a number of predefined move registers.
  * <p>

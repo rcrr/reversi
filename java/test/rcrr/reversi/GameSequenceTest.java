@@ -28,21 +28,25 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.joda.time.Duration;
+import org.junit.Test;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.matchers.JUnitMatchers.*;
-
+/**
+ * Test Suite for the {@code GameSequence} class.
+ *
+ * @see GameSequence
+ */
 public class GameSequenceTest {
 
     private static final List<GameSnapshot> NULL_SEQUENCE = null;
 
     private static final List<GameSnapshot> EMPTY_SEQUENCE = new ArrayList<GameSnapshot>();
 
-    private static final List<GameSnapshot> NULL_KEY_SEQUENCE
+    private static final List<GameSnapshot> NULL_VALUE_SEQUENCE
         = Arrays.asList(GameSnapshotFixtures.AN_INSTANCE,
                         GameSnapshotFixtures.NULL,
                         GameSnapshotFixtures.AN_INSTANCE);
@@ -54,7 +58,7 @@ public class GameSequenceTest {
      * Test to be written.
      */
     @Test
-    public void testAdd() {
+    public final void testAdd() {
         assertTrue("Test to be written.", false);
     }
 
@@ -62,12 +66,13 @@ public class GameSequenceTest {
      * Test to be written.
      */
     @Test
-    public void testGet() {
+    public final void testGet() {
         assertTrue("Test to be written.", false);
     }
 
     /**
-     * Tests the initialGameSequence method when parameter {@code gameDuration} is null.
+     * Tests the {@code initialGameSequence(Duration)} factory when
+     * parameter {@code gameDuration} is {@code null}.
      *
      * @see GameSequence#initialGameSequence(Duration)
      */
@@ -77,39 +82,46 @@ public class GameSequenceTest {
     }
 
     /**
-     * Tests the initialGameSequence method.
+     * Tests the {@code initialGameSequence(Duration)} factory.
      *
      * @see GameSequence#initialGameSequence(Duration)
      */
     @Test
-    public void testInitialGameSequence() {
-        assertThat("GameSequence.initialGameSequence(CommonFixtures.ONE_MINUTE_DURATION) must be an instance of GameSequence class.",
-                   GameSequence.initialGameSequence(CommonFixtures.ONE_MINUTE_DURATION),
+    public final void testInitialGameSequence() {
+        assertThat("GameSequence.initialGameSequence(CommonFixtures.A_DURATION)"
+                   + " must be an instance of GameSequence class.",
+                   GameSequence.initialGameSequence(CommonFixtures.A_DURATION),
                    instanceOf(GameSequence.class));
     }
 
     /**
-     * Test to be written.
+     * Tests the {@code last()} method.
+     *
+     * @see GameSequence#last()
      */
     @Test
-    public void testLast() {
-        assertTrue("Test to be written.", false);
+    public final void testLast() {
+        assertThat("GameSequenceFixtures.THREE_SNAPSHOTS last game snapshot"
+                   + " must be GameSnapshotFixtures.G00_S02.",
+                   GameSequenceFixtures.THREE_SNAPSHOTS.last(),
+                   is(GameSnapshotFixtures.G00_S02));
     }
 
     /**
-     * Tests the size method.
+     * Tests the {@code size()} method.
      *
      * @see GameSequence#size()
      */
     @Test
-    public void testSize() {
+    public final void testSize() {
         assertThat("GameSequenceFixtures.THREE_SNAPSHOTS has three game snapshots.",
                    GameSequenceFixtures.THREE_SNAPSHOTS.size(),
                    is(3));
     }
 
     /**
-     * Tests the valueOf factory when parameter {@code sequence} is null.
+     * Tests the {@code valueOf(List<GameSnapshot>)} factory when parameter
+     * {@code sequence} is {@code null}.
      *
      * @see GameSequence#valueOf(List)
      */
@@ -119,17 +131,19 @@ public class GameSequenceTest {
     }
 
     /**
-     * Tests the valueOf factory when parameter {@code sequence} is null.
+     * Tests the {@code valueOf(List<GameSnapshot>)} factory when parameter
+     * {@code sequence} contains a null value.
      *
      * @see GameSequence#valueOf(List)
      */
     @Test(expected = NullPointerException.class)
-    public final void testValueOf_boundaryConditions_nullKey() {
-        GameSequence.valueOf(NULL_KEY_SEQUENCE);
+    public final void testValueOf_boundaryConditions_nullValue() {
+        GameSequence.valueOf(NULL_VALUE_SEQUENCE);
     }
 
     /**
-     * Tests the valueOf factory when parameter {@code sequence} is null.
+     * Tests the {@code valueOf(List<GameSnapshot>)} factory when parameter
+     * {@code sequence} is empty.
      *
      * @see GameSequence#valueOf(List)
      */
@@ -139,14 +153,35 @@ public class GameSequenceTest {
     }
 
     /**
-     * Test the valueOf factory.
+     * Test the {@code valueOf(List<GameSnapshot>)} factory.
      *
      * @see GameSequence#valueOf(List)
      */
     @Test
-    public void testValueOf() {
+    public final void testValueOf() {
         assertThat("GameSequence.valueOf(A_SEQUENCE) must be an instance of GameSequence class.",
                    GameSequence.valueOf(A_SEQUENCE), instanceOf(GameSequence.class));
+    }
+
+    /**
+     * Test the {@code valueOf(List<GameSnapshot>)} factory.
+     * <p>
+     * The factory receives the sequence parameter, and any further change to it
+     * must not be reflected to the returned game sequence instance.
+     *
+     * @see GameSequence#valueOf(List)
+     */
+    @Test
+    public final void testValueOf_sequenceMustBeUnchanceable() {
+
+        final List<GameSnapshot> changeable = new ArrayList<GameSnapshot>();
+        changeable.add(GameSnapshotFixtures.G00_S00);
+        final GameSequence instance = GameSequence.valueOf(changeable);
+        changeable.add(GameSnapshotFixtures.G00_S01);
+
+        assertThat("The game snapshot instance must be not affected by a"
+                   + " change in the sequence parameter.",
+                   instance.last(), is(GameSnapshotFixtures.G00_S00));
     }
 
 }
