@@ -45,7 +45,10 @@ public final class GameSequenceFixtures {
     /**
      * A generic instance.
      */
-    public static final GameSequence AN_INSTANCE = anInstance();
+    public static final GameSequence AN_INSTANCE
+        = new GameSequenceBuilder()
+        .withSnapshots(GameSnapshotFixtures.AN_INSTANCE)
+        .build();
 
     /**
      * An instance having three game snapshot.
@@ -58,16 +61,13 @@ public final class GameSequenceFixtures {
      * </ul>
      */
     public static final GameSequence THREE_SNAPSHOTS
-        = GameSequence.valueOf(Arrays.asList(GameSnapshotFixtures.G00_S00,
-                                             GameSnapshotFixtures.G00_S01,
-                                             GameSnapshotFixtures.G00_S02));
+        = new GameSequenceBuilder()
+        .withSnapshots(GameSnapshotFixtures.G00_S00,
+                       GameSnapshotFixtures.G00_S01,
+                       GameSnapshotFixtures.G00_S02)
+        .build();
 
     /** Class constructor. */
     private GameSequenceFixtures() { }
-
-    /** Returns a game sequence generic instance. */
-    private static final GameSequence anInstance() {
-        return GameSequence.valueOf(Arrays.asList(GameSnapshotFixtures.AN_INSTANCE));
-    }
 
 }

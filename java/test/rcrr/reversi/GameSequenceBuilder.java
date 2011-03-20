@@ -24,6 +24,7 @@
 
 package rcrr.reversi;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -57,8 +58,8 @@ public final class GameSequenceBuilder {
     /**
      * The method returns the square's state to the given board's square.
      *
-     * @param square the board's square
-     * @return       the selected square's state
+     * @param index index of the game snapshot to return from the sequence
+     * @return       the selected game snapshot
      */
     private synchronized GameSnapshot get(final int index) {
         return this.snapshots.get(index);
@@ -106,7 +107,7 @@ public final class GameSequenceBuilder {
     /**
      * The setter method for the squares field.
      *
-     * @param squares the update for the square field
+     * @param snapshots the update for the snapshots field
      */
     private synchronized void setSnapshots(final List<GameSnapshot> snapshots) {
         this.snapshots = snapshots;
@@ -126,7 +127,7 @@ public final class GameSequenceBuilder {
     }
 
     /**
-     * Returns the {@code this} reference after setting the new {@code squares}
+     * Returns the {@code this} reference after setting the new {@code snapshots}
      * field value.
      *
      * @param snapshots the game snapshot sequence
@@ -134,6 +135,18 @@ public final class GameSequenceBuilder {
      */
     public GameSequenceBuilder withSnapshots(final List<GameSnapshot> snapshots) {
         setSnapshots(snapshots);
+        return this;
+    }
+
+    /**
+     * Returns the {@code this} reference after setting the new {@code snapshots}
+     * field value.
+     *
+     * @param snapshots the game snapshot sequence
+     * @return          the {@code this} reference
+     */
+    public GameSequenceBuilder withSnapshots(final GameSnapshot... snapshots) {
+        setSnapshots(Arrays.asList(snapshots));
         return this;
     }
 }
