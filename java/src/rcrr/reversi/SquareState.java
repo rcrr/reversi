@@ -48,6 +48,9 @@ public enum SquareState {
     /** Marks squares outside the 8x8 board. Its {@code symbol} is "?". */
     OUTER("?");
 
+    /** The null square state. */
+    static final SquareState NULL = null;
+
     /** A static Map to speed up reverse look-up used by
         the {@code valueOfSymbol} method. */
     private static final Map<String, SquareState> SYMBOL_TABLE;

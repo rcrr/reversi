@@ -374,6 +374,64 @@ public class BoardTest {
         assertEquals("[@=26 0=28 (-2)]", BoardFixtures.BLACK_HAS_TO_PASS.printCount());
     }
 
+    /**
+     * Test the {@code valueOf(Map<Square, SquareState)} factory.
+     * <p>
+     * The factory receives the squareMap parameter, and any further change to it
+     * must not be reflected to the returned board instance.
+     *
+     * @see Board#valueOf(Map)
+     */
+    @Test
+    public final void testValueOf_squareMapMustBeUnchangeable() {
+
+        final Map<Square, SquareState> changeable = new EnumMap<Square, SquareState>(Square.class);
+        for (Square sq : Square.values()) {
+            changeable.put(sq, BoardFixtures.INITIAL.get(sq));
+        }
+        final Board instance = Board.valueOf(changeable);
+        changeable.put(Square.A1, SquareState.BLACK);
+
+        assertThat("The board instance must be not affected by a"
+                   + " change in the squareMap parameter.",
+                   instance.get(Square.A1), is(SquareState.EMPTY));
+    }
+
+    /**
+     * Test the {@code valueOf(Map<Square, SquareState)} factory.
+     * <p>
+     * The factory receives the squareMap parameter, it cannot contains null values.
+     *
+     * @see Board#valueOf(Map)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_squareMapMustNotContainNullValues() {
+        final Map<Square, SquareState> corruptedSquares = new HashMap<Square, SquareState>();
+        for (Square sq : Square.values()) {
+            corruptedSquares.put(sq, BoardFixtures.INITIAL.get(sq));
+        }
+        corruptedSquares.put(Square.B3, SquareState.NULL);
+        Board.valueOf(corruptedSquares);
+    }
+
+    /**
+     * Test the {@code valueOf(Map<Square, SquareState)} factory.
+     * <p>
+     * The factory receives the squareMap parameter, it cannot contains null keys.
+     *
+     * @see Board#valueOf(Map)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_squareMapMustNotContainNullKeys() {
+        final Map<Square, SquareState> corruptedSquares = new HashMap<Square, SquareState>();
+        for (Square sq : Square.values()) {
+            corruptedSquares.put(sq, BoardFixtures.INITIAL.get(sq));
+        }
+        corruptedSquares.remove(Square.H8);
+        corruptedSquares.put(Square.NULL, SquareState.EMPTY);
+        Board.valueOf(corruptedSquares);
+    }
+
     @Test
     public void testValueOf() {
 

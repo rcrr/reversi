@@ -1,7 +1,7 @@
 /*
  *  ClockTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -26,6 +26,8 @@ package rcrr.reversi;
 
 import org.junit.*;
 import static org.junit.Assert.*;
+
+import static org.hamcrest.CoreMatchers.*;
 
 import java.util.Map;
 import java.util.EnumMap;
@@ -108,6 +110,28 @@ public class ClockTest {
         m.put(Player.WHITE, new Duration(1));
         Clock c = Clock.valueOf(m);
         assertEquals("[BLACK=15:00, WHITE=00:00]", c.toString());
+    }
+
+    /**
+     * Test the {@code valueOf(Map<Player, Duration)} factory.
+     * <p>
+     * The factory receives the durationMap parameter, and any further change to it
+     * must not be reflected to the returned clock instance.
+     *
+     * @see Clock#valueOf(Map)
+     */
+    @Test
+    public final void testValueOf_durationMapMustBeUnchangeable() {
+
+        final Map<Player, Duration> changeable = new EnumMap<Player, Duration>(Player.class);
+        changeable.put(Player.BLACK, CommonFixtures.A_DURATION);
+        changeable.put(Player.WHITE, CommonFixtures.TEN_MINUTES_DURATION);
+        final Clock instance = Clock.valueOf(changeable);
+        changeable.put(Player.WHITE, CommonFixtures.A_DURATION);
+
+        assertThat("The clock instance must be not affected by a"
+                   + " change in the durationMap parameter.",
+                   instance.get(Player.WHITE), is(CommonFixtures.TEN_MINUTES_DURATION));
     }
 
     @Test

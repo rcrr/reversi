@@ -1,7 +1,7 @@
 /*
  *  Clock.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -202,9 +202,9 @@ public final class Clock {
             : "Parameter durationMap size is not consistent."
             + " durationMap.size()=" + durationMap.size()
             + ", expected value: " + Player.values().length;
-        final EnumMap<Player, Duration> durationEnumMap = (durationMap instanceof EnumMap)
-            ? (EnumMap<Player, Duration>) durationMap : new EnumMap<Player, Duration>(durationMap);
-        this.playersGameDuration = Collections.unmodifiableMap(durationEnumMap);
+        assert (!durationMap.containsKey(null)) : "Parameter durationMap cannot contains null keys.";
+        assert (!durationMap.containsValue(null)) : "Parameter durationMap cannot contains null values.";
+        this.playersGameDuration = Collections.unmodifiableMap(new EnumMap<Player, Duration>(durationMap));
     }
 
     /**
