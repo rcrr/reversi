@@ -53,10 +53,10 @@ import org.joda.time.Duration;
  * The second factory is:
  * <pre>
  * {@code
- * Clock c = Clock.valueOf(durationMap);
+ * Clock c = Clock.valueOf(durations);
  * }
  * </pre>
- * where the {@code durationMap} parameter is defined having objects of the {@code Player} class as keys
+ * where the {@code durations} parameter is defined having objects of the {@code Player} class as keys
  * and objects of the {@code Duration} class as values.
  * And the third factory is:
  * <pre>
@@ -111,25 +111,28 @@ public final class Clock {
     /**
      * Class static factory that returns a new {@code Clock} object constructed using the given map.
      *
-     * @param  durationMap the game's time assigned to the players
-     * @return             a new {@code Clock} having Black's and White's time set to the
-     *                     given parameters
+     * @param  durations the game's time assigned to the players
+     * @return           a new {@code Clock} having Black's and White's time set to the
+     *                   given parameters
      * @throws NullPointerException     when blackDuration or whiteDuration is null
      * @throws IllegalArgumentException when blackDuration or whiteDuration is negative
      */
-    public static Clock valueOf(final Map<Player, Duration> durationMap) {
-        if (durationMap == null) {
-            throw new NullPointerException("Parameter durationMap cannot be null.");
+    public static Clock valueOf(final Map<Player, Duration> durations) {
+        if (durations == null) {
+            throw new NullPointerException("Parameter durations cannot be null.");
         }
-        if (durationMap.size() != Player.values().length) {
-            throw new IllegalArgumentException("Parameter durationMap size is not consistent."
-                                               + " durationMap.size()=" + durationMap.size()
+        if (durations.size() != Player.values().length) {
+            throw new IllegalArgumentException("Parameter durations size is not consistent."
+                                               + " durations.size()=" + durations.size()
                                                + " expected value: " + Player.values().length);
         }
-        if (durationMap.containsKey(null)) {
-            throw new NullPointerException("Parameter durationMap cannot have null keys.");
+        if (durations.containsKey(null)) {
+            throw new NullPointerException("Parameter durations cannot have null keys.");
         }
-        return new Clock(durationMap);
+        if (durations.containsValue(null)) {
+            throw new NullPointerException("Parameter durations cannot have null values.");
+        }
+        return new Clock(durations);
     }
 
     /**
@@ -182,11 +185,11 @@ public final class Clock {
     private volatile int hashCode = 0;
 
     /**
-     * The playersGameDuration field.
+     * The durations field.
      * It stores each players' clock time as a Joda-Time Duration.
      * Internally Durations store the time in milliseconds.
      */
-    private final Map<Player, Duration> playersGameDuration;
+    private final Map<Player, Duration> durations;
 
     /**
      * Class constructor.
@@ -194,17 +197,17 @@ public final class Clock {
      * This constructor creates a Clock object given the Black's time and the White's
      * one.
      *
-     * @param durationMap a map having the remaining time duration assigned to each player.
+     * @param durations a map having the remaining time duration assigned to each player.
      */
-    private Clock(final Map<Player, Duration> durationMap) {
-        assert (durationMap != null) : "Parameter durationMap cannot be null.";
-        assert (durationMap.size() == Player.values().length)
-            : "Parameter durationMap size is not consistent."
-            + " durationMap.size()=" + durationMap.size()
+    private Clock(final Map<Player, Duration> durations) {
+        assert (durations != null) : "Parameter durations cannot be null.";
+        assert (durations.size() == Player.values().length)
+            : "Parameter durations size is not consistent."
+            + " durations.size()=" + durations.size()
             + ", expected value: " + Player.values().length;
-        assert (!durationMap.containsKey(null)) : "Parameter durationMap cannot contains null keys.";
-        assert (!durationMap.containsValue(null)) : "Parameter durationMap cannot contains null values.";
-        this.playersGameDuration = Collections.unmodifiableMap(new EnumMap<Player, Duration>(durationMap));
+        assert (!durations.containsKey(null)) : "Parameter durations cannot contains null keys.";
+        assert (!durations.containsValue(null)) : "Parameter durations cannot contains null values.";
+        this.durations = Collections.unmodifiableMap(new EnumMap<Player, Duration>(durations));
     }
 
     /**
@@ -239,7 +242,7 @@ public final class Clock {
         if (player == null) {
             throw new NullPointerException("Parameter player connot be null.");
         }
-        return playersGameDuration.get(player);
+        return this.durations.get(player);
     }
 
     /**
@@ -251,7 +254,7 @@ public final class Clock {
     public int hashCode() {
         if (hashCode == 0) {
             int result = PRIME_NUMBER_17;
-            for (Duration duration : playersGameDuration.values()) {
+            for (Duration duration : this.durations.values()) {
                 int k = duration.hashCode();
                 result = PRIME_NUMBER_37 * result + k;
             }
@@ -300,10 +303,10 @@ public final class Clock {
         if (delta.isShorterThan(Duration.ZERO)) {
             throw new IllegalArgumentException("Parameter delta cannot be negative. delta=" + delta);
         }
-        final Duration actual = playersGameDuration.get(player);
+        final Duration actual = this.durations.get(player);
         final Duration updated = (actual.isLongerThan(delta)) ? actual.minus(delta) : Duration.ZERO;
 
-        final Map<Player, Duration> mutableDurationMap = new EnumMap<Player, Duration>(playersGameDuration);
+        final Map<Player, Duration> mutableDurationMap = new EnumMap<Player, Duration>(this.durations);
         mutableDurationMap.put(player, updated);
         return valueOf(mutableDurationMap);
     }
