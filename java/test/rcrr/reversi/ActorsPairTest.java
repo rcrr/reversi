@@ -171,7 +171,7 @@ public class ActorsPairTest {
     }
 
     /**
-     * Tests the valueOf factory.
+     * Tests the {@code valueOf(Map<Player, Actor>)} factory.
      *
      * @see ActorsPair#valueOf(Map)
      */
@@ -179,6 +179,28 @@ public class ActorsPairTest {
     public final void testValueOf() {
         assertThat("ActorsPair.valueOf(AN_ACTOR_MAP) must be an instance of Actors class.",
                    ActorsPair.valueOf(AN_ACTOR_MAP), instanceOf(ActorsPair.class));
+    }
+
+    /**
+     * Test the {@code valueOf(Map<Player, Actor>)} factory.
+     * <p>
+     * The factory receives the actors parameter, and any further change to it
+     * must not be reflected to the returned move register instance.
+     *
+     * @see ActorsPair#valueOf(Map)
+     */
+    @Test
+    public final void testValueOf_actorsMustBeUnchangeable() {
+
+        final Map<Player, Actor> changeable = new EnumMap<Player, Actor>(Player.class);
+        changeable.put(Player.BLACK, AN_ACTOR);
+        changeable.put(Player.WHITE, C3PO);
+        final ActorsPair instance = ActorsPair.valueOf(changeable);
+        changeable.put(Player.WHITE, R2D2);
+
+        assertThat("The actors pair instance must be not affected by a"
+                   + " change in the actors parameter.",
+                   instance.get(Player.WHITE), is(C3PO));
     }
 
 }

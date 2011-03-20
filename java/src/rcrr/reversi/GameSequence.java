@@ -34,8 +34,7 @@ import org.joda.time.Duration;
 /**
  * An game sequence instance collects an ordered list of game snapshots.
  * <p>
- * Null parameters and out of bound indexes are not checked!
- * The sequence must have at last one element.
+ * The sequence must have at last one element, and cannot have null values.
  * <p>
  * {@code GameSequence} is immutable.
  */
@@ -43,11 +42,21 @@ public final class GameSequence {
 
    /**
      * A static factory that returns an initial game sequence.
+     * <p>
+     * The game sequence is composed by one game snapshot. It has a clock
+     * valued by the {@code gameDuration} parameter, and an initial game position.
+     * <p>
+     * Parameter {@code gameDuration} cannot be {@code null}.
      *
      * @param gameDuration the initial game time assigned to players
      * @return             a new game sequence initialised with a initial game snapshot
+     *
+     * @throws NullPointerException if parameter {@code gameDuration} is null
      */
     public static GameSequence initialGameSequence(final Duration gameDuration) {
+        if (gameDuration == null) {
+            throw new NullPointerException("Parameter gameDuration cannot be null.");
+        }
         return valueOf(Arrays.asList(GameSnapshot.initialGameSnapshot(gameDuration)));
     }
 
@@ -59,6 +68,7 @@ public final class GameSequence {
      *
      * @param sequence the sequence of game snapshot
      * @return         the game built with the given sequence
+     *
      * @throws NullPointerException if parameter {@code sequence} is null
      * @throws NullPointerException if parameter {@code sequence} contains null values
      * @throws IllegalArgumentException if parameter {@code sequence} is empty
@@ -73,7 +83,7 @@ public final class GameSequence {
         if (sequence.isEmpty()) {
             throw new IllegalArgumentException("Parameter sequence cannot be empty.");
         }
-        return new GameSequence(sequence);
+        return new GameSequence(new ArrayList<GameSnapshot>(sequence));
     }
 
     /** The game snapshot sequence field. */
@@ -101,6 +111,7 @@ public final class GameSequence {
      *
      * @param gameSnapshot the new snapshot to add to the sequence
      * @return             a new game modified by adding the game snapshot parameter
+     *
      * @throws NullPointerException if parameter {@code gameSnapshot} is null
      */
     public GameSequence add(final GameSnapshot gameSnapshot) {
@@ -117,6 +128,7 @@ public final class GameSequence {
      *
      * @param index the game snapshot index in the sequence
      * @return      the game snapshot identified by the index parameter
+     *
      * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= size())}
      */
     public GameSnapshot get(final int index) {
