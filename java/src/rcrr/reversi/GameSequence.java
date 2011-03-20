@@ -83,7 +83,7 @@ public final class GameSequence {
         if (sequence.isEmpty()) {
             throw new IllegalArgumentException("Parameter sequence cannot be empty.");
         }
-        return new GameSequence(new ArrayList<GameSnapshot>(sequence));
+        return new GameSequence(sequence);
     }
 
     /** The game snapshot sequence field. */
@@ -101,7 +101,7 @@ public final class GameSequence {
         assert (sequence != null) : "Parameter sequence cannot be null.";
         assert (!sequence.contains(null)) : "Parameter sequence cannot contain null values.";
         assert (!sequence.isEmpty()) : "Parameter sequence cannot be empty.";
-        this.sequence = Collections.unmodifiableList(sequence);
+        this.sequence = Collections.unmodifiableList(new ArrayList<GameSnapshot>(sequence));
     }
 
    /**

@@ -1,7 +1,7 @@
 /*
  *  ActorsPair.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -85,10 +85,7 @@ public final class ActorsPair {
         assert (actors.size() == Player.values().length) : "Parameter actors size is not consistent."
             + " actors.size()=" + actors.size()
             + " expected value: " + Player.values().length;
-        EnumMap<Player, Actor> actorEnumMap = (actors instanceof EnumMap)
-            ? (EnumMap<Player, Actor>) actors
-            : new EnumMap<Player, Actor>(actors);
-        this.actors = Collections.unmodifiableMap(actorEnumMap);
+        this.actors = Collections.unmodifiableMap(new EnumMap<Player, Actor>(actors));
     }
 
     /**
