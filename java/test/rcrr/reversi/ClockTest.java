@@ -31,6 +31,7 @@ import static org.hamcrest.CoreMatchers.*;
 
 import java.util.Map;
 import java.util.EnumMap;
+import java.util.HashMap;
 
 import org.joda.time.Duration;
 import org.joda.time.Period;
@@ -115,13 +116,13 @@ public class ClockTest {
     /**
      * Test the {@code valueOf(Map<Player, Duration)} factory.
      * <p>
-     * The factory receives the durationMap parameter, and any further change to it
+     * The factory receives the durations parameter, and any further change to it
      * must not be reflected to the returned clock instance.
      *
      * @see Clock#valueOf(Map)
      */
     @Test
-    public final void testValueOf_durationMapMustBeUnchangeable() {
+    public final void testValueOf_durationsMustBeUnchangeable() {
 
         final Map<Player, Duration> changeable = new EnumMap<Player, Duration>(Player.class);
         changeable.put(Player.BLACK, CommonFixtures.A_DURATION);
@@ -130,8 +131,39 @@ public class ClockTest {
         changeable.put(Player.WHITE, CommonFixtures.A_DURATION);
 
         assertThat("The clock instance must be not affected by a"
-                   + " change in the durationMap parameter.",
+                   + " change in the duratioons parameter.",
                    instance.get(Player.WHITE), is(CommonFixtures.TEN_MINUTES_DURATION));
+    }
+
+
+    /**
+     * Test the {@code valueOf(Map<Player, Duration)} factory.
+     * <p>
+     * The factory receives the durations parameter, it cannot contains null values.
+     *
+     * @see Clock#valueOf(Map)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_durationsMustNotContainNullValues() {
+        final Map<Player, Duration> corruptedDurations = new HashMap<Player, Duration>();
+        corruptedDurations.put(Player.BLACK, CommonFixtures.A_DURATION);
+        corruptedDurations.put(Player.WHITE, CommonFixtures.NULL_DURATION);
+        Clock.valueOf(corruptedDurations);
+    }
+
+    /**
+     * Test the {@code valueOf(Map<Player, Duartion>)} factory.
+     * <p>
+     * The factory receives the durations parameter, it cannot contains null keys.
+     *
+     * @see Clock#valueOf(Map)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_durationsMustNotContainNullKeys() {
+        final Map<Player, Duration> corruptedDurations = new HashMap<Player, Duration>();
+        corruptedDurations.put(Player.BLACK, CommonFixtures.A_DURATION);
+        corruptedDurations.put(Player.NULL, CommonFixtures.A_DURATION);
+        Clock.valueOf(corruptedDurations);
     }
 
     @Test
