@@ -55,15 +55,50 @@ public class GameSequenceTest {
         = Arrays.asList(GameSnapshotFixtures.AN_INSTANCE);
 
     /**
-     * Test to be written.
+     * Tests the {@code add()} method.
+     * It tests that adding a game snapshot to the sequence must return
+     * a new game sequence having as last element the added one.
+     * <p>
+     * The test leveragges the {@code last()} method to execute the test.
+     *
+     * @see GameSequence#add(GameSnapshot)
      */
     @Test
     public final void testAdd() {
-        assertTrue("Test to be written.", false);
+        assertThat("Adding a game snapshot to the sequence must return"
+                   + " a new game sequence having as last element the added one.",
+                   new GameSequenceBuilder()
+                   .build()
+                   .add(GameSnapshotFixtures.AN_INSTANCE).last(),
+                   is(GameSnapshotFixtures.AN_INSTANCE));
     }
 
     /**
-     * Test to be written.
+     * Tests the {@code add()} method when parameter {@code gamSnapshot} is {@code null}.
+     *
+     * @see GameSequence#add(GameSnapshot)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testAdd_boundaryConditions_null() {
+        new GameSequenceBuilder()
+            .build()
+            .add(GameSnapshotFixtures.NULL);
+    }
+
+    /**
+     * Tests the {@code get()} method when parameter {@code index} is {@code null}.
+     *
+     * @see GameSequence#get(int)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testGet_boundaryConditions_null() {
+        ;
+    }
+
+    /**
+     * Tests the {@code get()} method.
+     *
+     * @see GameSequence#get(int)
      */
     @Test
     public final void testGet() {

@@ -63,7 +63,6 @@ public class ActorTest {
     /** The null string fixture. */
     private static final String NULL_ACTOR_NAME = null;
 
-
     /** Class constructor. */
     public ActorTest() { }
 
