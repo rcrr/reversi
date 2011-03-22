@@ -27,6 +27,7 @@ package rcrr.reversi;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
@@ -42,17 +43,25 @@ import static org.hamcrest.CoreMatchers.instanceOf;
  */
 public class GameSequenceTest {
 
+    /** A null sequence. */
     private static final List<GameSnapshot> NULL_SEQUENCE = null;
 
-    private static final List<GameSnapshot> EMPTY_SEQUENCE = new ArrayList<GameSnapshot>();
+    /** An empty sequence */
+    private static final List<GameSnapshot> EMPTY_SEQUENCE
+        = Collections.unmodifiableList(new ArrayList<GameSnapshot>());
 
+    /** A sequence having a null value. */
     private static final List<GameSnapshot> NULL_VALUE_SEQUENCE
-        = Arrays.asList(GameSnapshotFixtures.AN_INSTANCE,
-                        GameSnapshotFixtures.NULL,
-                        GameSnapshotFixtures.AN_INSTANCE);
+        = Collections.unmodifiableList(Arrays.asList(GameSnapshotFixtures.AN_INSTANCE,
+                                                     GameSnapshotFixtures.NULL,
+                                                     GameSnapshotFixtures.AN_INSTANCE));
 
+    /** A generic sequence. */
     private static final List<GameSnapshot> A_SEQUENCE
-        = Arrays.asList(GameSnapshotFixtures.AN_INSTANCE);
+        = Collections.unmodifiableList(Arrays.asList(GameSnapshotFixtures.AN_INSTANCE));
+
+    /** Class constructor. */
+    public GameSequenceTest() { }
 
     /**
      * Tests the {@code add()} method.
@@ -86,13 +95,17 @@ public class GameSequenceTest {
     }
 
     /**
-     * Tests the {@code get()} method when parameter {@code index} is {@code null}.
+     * Tests the {@code get()} method when parameter {@code index} is out of bounds.
      *
      * @see GameSequence#get(int)
      */
-    @Test(expected = NullPointerException.class)
-    public final void testGet_boundaryConditions_null() {
-        ;
+    @Test(expected = IndexOutOfBoundsException.class)
+    public final void testGet_boundaryConditions_indexOutOfBounds() {
+        new GameSequenceBuilder()
+            .withSnapshots(new GameSnapshotBuilder()
+                           .build())
+            .build()
+            .get(1);
     }
 
     /**
@@ -102,7 +115,12 @@ public class GameSequenceTest {
      */
     @Test
     public final void testGet() {
-        assertTrue("Test to be written.", false);
+        assertThat("It must return GameSnapshotFixtures.AN_INSTANCE.",
+                   new GameSequenceBuilder()
+                   .withSnapshots(GameSnapshotFixtures.AN_INSTANCE)
+                   .build()
+                   .get(0),
+                   is(GameSnapshotFixtures.AN_INSTANCE));
     }
 
     /**

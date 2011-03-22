@@ -115,12 +115,11 @@ public final class GameSequenceBuilder {
     }
 
     /**
-     * Returns the {@code this} reference after setting the new {@code squareState}
-     * value to the {@code square} entry.
+     * Returns the {@code this} reference after setting the new {@code snapshot}
+     * field value.
      *
-     * @param square      the board's square
-     * @param squareState the board's square assigned state
-     * @return            the {@code this} reference
+     * @param snapshot the added game snapshot
+     * @return         the {@code this} reference
      */
     public GameSequenceBuilder withSnapshot(final GameSnapshot snapshot) {
         add(snapshot);
