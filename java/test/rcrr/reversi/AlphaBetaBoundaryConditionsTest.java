@@ -24,27 +24,30 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
+/**
+ * Test suite dedicated to the boundary conditions experienced by the {@code AlphaBeta} class.
+ */
 public class AlphaBetaBoundaryConditionsTest {
 
+    /** The alphabeta decion rule to test. */
     private final DecisionRule alphabeta = AlphaBeta.getInstance();
 
     /**
-     * Tests the alphabetaSearcher ply parameter range.
+     * Tests the alphabetaSearcher {@code ply} parameter range.
      */
     @Test(expected = IllegalArgumentException.class)
-    public void testAlphabetaSearcherPlyRange() {
-	Strategy s = alphabeta.searcher(0, new CountDifference());
+    public final void testAlphabetaSearcherPlyRange() {
+        Strategy s = alphabeta.searcher(0, new CountDifference());
     }
 
     /**
-     * Tests the alphabetaSearcher ef parameter.
+     * Tests the alphabetaSearcher {@code ef} parameter when it is {@code null}.
      */
     @Test(expected = NullPointerException.class)
-    public void testAlphabetaSearcherEfNotNull() {
-	Strategy s = alphabeta.searcher(1, null);
+    public final void testAlphabetaSearcherEfNotNull() {
+        Strategy s = alphabeta.searcher(1, null);
     }
 
 }
