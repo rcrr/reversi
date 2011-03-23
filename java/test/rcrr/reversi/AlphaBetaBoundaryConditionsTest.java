@@ -34,8 +34,13 @@ public class AlphaBetaBoundaryConditionsTest {
     /** The alphabeta decion rule to test. */
     private final DecisionRule alphabeta = AlphaBeta.getInstance();
 
+    /** Class constructor. */
+    public AlphaBetaBoundaryConditionsTest() { }
+
     /**
      * Tests the alphabetaSearcher {@code ply} parameter range.
+     *
+     * @see AlphaBeta#searcher(int, EvalFunction)
      */
     @Test(expected = IllegalArgumentException.class)
     public final void testAlphabetaSearcherPlyRange() {
@@ -44,6 +49,8 @@ public class AlphaBetaBoundaryConditionsTest {
 
     /**
      * Tests the alphabetaSearcher {@code ef} parameter when it is {@code null}.
+     *
+     * @see AlphaBeta#searcher(int, EvalFunction)
      */
     @Test(expected = NullPointerException.class)
     public final void testAlphabetaSearcherEfNotNull() {
