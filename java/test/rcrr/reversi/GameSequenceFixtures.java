@@ -53,12 +53,16 @@ public final class GameSequenceFixtures {
     /**
      * An instance having three game snapshot.
      * <p>
-     * The instance is described as follow:
-     * <ul>
-     *  <li><i>1st game snapshot</i> {@code GameSnapshotFixtures.G00_S00}</li>
-     *  <li><i>2nd game snapshot</i> {@code GameSnapshotFixtures.G00_S01}</li>
-     *  <li><i>3rd game snapshot</i> {@code GameSnapshotFixtures.G00_S02}</li>
-     * </ul>
+     * The instance is described by the following list:
+     * <ol>
+     *  <li>{@code GameSnapshotFixtures.G00_S00}</li>
+     *  <li>{@code GameSnapshotFixtures.G00_S01}</li>
+     *  <li>{@code GameSnapshotFixtures.G00_S02}</li>
+     * </ol>
+     *
+     * @see GameSnapshotFixtures#G00_S00
+     * @see GameSnapshotFixtures#G00_S01
+     * @see GameSnapshotFixtures#G00_S02
      */
     public static final GameSequence THREE_SNAPSHOTS
         = new GameSequenceBuilder()

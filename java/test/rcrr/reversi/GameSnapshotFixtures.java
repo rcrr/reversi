@@ -77,7 +77,30 @@ public final class GameSnapshotFixtures {
         .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
-    /** Game snapshot S01 taken from a game named G00. */
+    /**
+     * Game snapshot <i>S01</i> taken from a game named <i>G00</i>.
+     * <p>
+     * {@code G00_S01.board()} returns a board described by:
+     * <pre>
+     * {@code
+     * . a b c d e f g h
+     * 1 . . . . . . . .
+     * 2 . . . . . . . .
+     * 3 . . . @ . . . .
+     * 4 . . . @ @ . . .
+     * 5 . . . @ O . . .
+     * 6 . . . . . . . .
+     * 7 . . . . . . . .
+     * 8 . . . . . . . .
+     * }
+     * </pre>
+     * {@code G00_S01.player()} returns: {@code Player.WHITE}.
+     * <p>
+     * {@code G00_S01.clock()} returns a clock described by: {@code [BLACK=00:59, WHITE=00:55]}.
+     * <p>
+     * {@code G00_S01.register()} returns a register described by:
+     * {@code [[PUT_DISC; D3]; [BLACK=00:59, WHITE=01:00]; 2011-03-17T08:03:00.001Z]}.
+     **/
     public static final GameSnapshot G00_S01 = new GameSnapshotBuilder()
         .withPosition(new GamePositionBuilder()
                       .withBoard(new BoardBuilder()
