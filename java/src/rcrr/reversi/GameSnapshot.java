@@ -37,7 +37,7 @@ import org.joda.time.Duration;
  * <ol>
  *   <li>The game position, returned by the {@code position()} method.</li>
  *   <li>The current clock, returned by the {@code clock()} method.</li>
- *   <li>The move log, returned by the {@code position()} method.</li>
+ *   <li>The move log, returned by the {@code register()} method.</li>
  * </ol>
  * <p>
  * {@code GameSnapshot} is immutable.
