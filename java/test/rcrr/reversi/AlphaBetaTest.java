@@ -42,6 +42,8 @@ public class AlphaBetaTest extends DecisionRuleTestUtils {
     /**
      * The evaluation function used for testing the {@code AlphaBeta}
      * search algorithm is the most simple at our disposal.
+     * <p>
+     * It has no state and can be shared and reused.
      */
     static final EvalFunction COUNT_DIFF = new CountDifference();
 
