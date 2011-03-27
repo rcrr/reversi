@@ -38,7 +38,10 @@ public class MinimaxTest extends DecisionRuleTestUtils {
 
     static final EvalFunction COUNT_DIFF = new CountDifference();
 
-    public MinimaxTest(GameSnapshot snapshot, Move expectedMove, Integer ply, EvalFunction ef) {
+    public MinimaxTest(final GameSnapshot snapshot,
+                       final Move expectedMove,
+                       final Integer ply,
+                       final EvalFunction ef) {
         super(snapshot, expectedMove, ply, ef);
         decisionRule = Minimax.getInstance();
         strategy = decisionRule.searcher(ply, ef);

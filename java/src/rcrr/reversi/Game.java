@@ -1,7 +1,7 @@
 /*
  *  Game.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -206,10 +206,24 @@ public final class Game {
     }
 
     /**
-     * The method execute one move from the moving player.
+     * The method execute one move requesting it to the moving player.
+     * <p>
      * When the move is legal the method set the game sequence and returns.
      * When the move is not legal the method update the move register and
      * recursevely calls itself.
+     * <p>
+     * The method alter the game instance recording the new sequence, being
+     * created adding to the actual sequence the new game snapshot obtained by
+     * executing the move to the actual board and registering the new clock
+     * and the move register.
+     */
+    public void move() {
+        move(MoveRegister.empty());
+    }
+
+    /**
+     * The method implements the {@code move()} method, passind as parameter
+     * the move register so far collected.
      * <p>
      * The clock is not handled correctly when the player send an
      * illegal move.
@@ -217,8 +231,8 @@ public final class Game {
      * @param previousRegister the move register taken from the previous attempt
      *                         or an empty one.
      */
-    public void move(final MoveRegister previousRegister) {
-        if (previousRegister == null) { throw new NullPointerException("Parameter previousRegister cannot be null."); }
+    private void move(final MoveRegister previousRegister) {
+        assert (previousRegister != null) : "Parameter previousRegister cannot be null.";
 
         long t0 = System.currentTimeMillis();
         Move move = actors.get(player()).strategy().move(sequence.last());
@@ -251,7 +265,7 @@ public final class Game {
     public int play() {
         while (areThereAvailableMoves()) {
             if (ps != null) { ps.print(lastGameSnapshot().printGameSnapshot()); }
-            move(MoveRegister.empty());
+            move();
             if (ps != null) {
                 if (hasOpponentPassed()) {
                     ps.print("\n" + player().opponent() + " has no moves and must pass.\n");
