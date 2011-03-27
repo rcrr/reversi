@@ -24,20 +24,27 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
+
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.is;
 
 public abstract class DecisionRuleTestUtils {
 
-    protected Move expectedMove;
+    /** Fields set by the concrete subclass constructor. */
     protected Strategy strategy;
-    protected GameSnapshot snapshot;
     protected DecisionRule decisionRule;
-    protected Integer ply;
-    protected EvalFunction ef;
 
-    public DecisionRuleTestUtils(GameSnapshot snapshot, Move expectedMove, Integer ply, EvalFunction ef) {
-        this.strategy = strategy;
+    /** Fields set by the abstract constructor. */
+    protected final GameSnapshot snapshot;
+    protected final Move expectedMove;
+    protected final Integer ply;
+    protected final EvalFunction ef;
+
+    public DecisionRuleTestUtils(final GameSnapshot snapshot,
+                                 final Move expectedMove,
+                                 final Integer ply,
+                                 final EvalFunction ef) {
         this.snapshot = snapshot;
         this.expectedMove = expectedMove;
         this.ply = ply;
@@ -46,7 +53,9 @@ public abstract class DecisionRuleTestUtils {
 
     @Test
     public void testMove() {
-        assertEquals(expectedMove, strategy.move(snapshot));
+        assertThat("",
+                   strategy.move(snapshot),
+                   is(expectedMove));
     }
 
 }

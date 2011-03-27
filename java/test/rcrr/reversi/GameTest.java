@@ -1,7 +1,7 @@
 /*
  *  GameTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -24,8 +24,12 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
 public class GameTest {
 
@@ -38,11 +42,25 @@ public class GameTest {
     }
 
     /**
-     * To be completed.
+     * Tests the {@code board()} method.
+     *
+     * @see Game#board()
      */
     @Test
-    public void testBoard() {
-        assertTrue("To be implemented.", false);
+    public final void testBoard() {
+        assertThat("GameFixtureFactoriess.threeSnapshots().board()"
+                   + " must be equal to the here built board.",
+                   GameFixtureFactories.threeSnapshots().board(),
+                   is(new BoardBuilder()
+                      .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                                          0, 0, 0, 0, 0, 0, 0, 0,
+                                          0, 0, 0, 1, 0, 0, 0, 0,
+                                          0, 0, 0, 1, 1, 0, 0, 0,
+                                          0, 0, 2, 2, 2, 0, 0, 0,
+                                          0, 0, 0, 0, 0, 0, 0, 0,
+                                          0, 0, 0, 0, 0, 0, 0, 0,
+                                          0, 0, 0, 0, 0, 0, 0, 0)
+                      .build()));
     }
 
     /**
