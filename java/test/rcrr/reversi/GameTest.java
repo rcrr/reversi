@@ -31,7 +31,20 @@ import static org.junit.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
+import org.joda.time.Duration;
+import org.joda.time.Period;
+
+import org.joda.time.DateTime;
+
+/**
+ * Test Suite for the {@code Game} class.
+ *
+ * @see Game
+ */
 public class GameTest {
+
+    /** Class constructor. */
+    public GameTest() { }
 
     /**
      * To be completed.
@@ -64,11 +77,24 @@ public class GameTest {
     }
 
     /**
-     * To be completed.
+     * Tests the {@code clock()} method.
+     * <p>
+     * The clock returned by {@code GameFixtureFactories.threeSnapshots().clock()}
+     * must be equal to a clock having the following representation:
+     * {@code [BLACK=00:59, WHITE=00:55]}.
+     *
+     * @see Game#clock()
+     * @see GameFixtureFactories#threeSnapshots()
      */
     @Test
     public void testClock() {
-        assertTrue("To be implemented.", false);
+        assertThat("GameFixtureFactoriess.threeSnapshots().clock()"
+                   + " must be equal to the here built clock.",
+                   GameFixtureFactories.threeSnapshots().clock(),
+                   is(new ClockBuilder()
+                      .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
+                      .withDuration(Player.WHITE, Period.seconds(55).toStandardDuration())
+                      .build()));
     }
 
     /**

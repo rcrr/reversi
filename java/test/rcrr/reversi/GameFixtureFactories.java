@@ -54,9 +54,12 @@ public final class GameFixtureFactories {
     }
 
     /**
-     * Returns a generic instance.
+     * Returns a game instance that is characterized by having a
+     * {@code GameSequenceFixtures.THREE_SNAPSHOTS} sequence.
      *
-     * @return a generic game instance
+     * @return a threeSnapshots game instance
+     *
+     * @see GameSequenceFixtures#THREE_SNAPSHOTS
      */
     public static final Game threeSnapshots() {
         return  new GameBuilder()
