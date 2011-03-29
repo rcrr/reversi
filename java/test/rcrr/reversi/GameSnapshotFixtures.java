@@ -58,7 +58,30 @@ public final class GameSnapshotFixtures {
     /** Initial position, one minute left to both players. */
     public static final GameSnapshot INITIAL = GameSnapshot.initialGameSnapshot(CommonFixtures.ONE_MINUTE_DURATION);
 
-    /** Game snapshot S00 taken from a game named G00. */
+    /**
+     * Game snapshot <i>S00</i> taken from a game named <i>G00</i>.
+     * <p>
+     * {@code G00_S00.board()} returns a board described by:
+     * <pre>
+     * {@code
+     * . a b c d e f g h
+     * 1 . . . . . . . .
+     * 2 . . . . . . . .
+     * 3 . . . . . . . .
+     * 4 . . . O @ . . .
+     * 5 . . . @ O . . .
+     * 6 . . . . . . . .
+     * 7 . . . . . . . .
+     * 8 . . . . . . . .
+     * }
+     * </pre>
+     * {@code G00_S00.player()} returns: {@code Player.BLACK}.
+     * <p>
+     * {@code G00_S00.clock()} returns a clock described by: {@code [BLACK=01:00, WHITE=01:00]}.
+     * <p>
+     * {@code G00_S00.register()} returns a register described by:
+     * {@code [EMPTY MoveRegister]}.
+     **/
     public static final GameSnapshot G00_S00 = new GameSnapshotBuilder()
         .withPosition(new GamePositionBuilder()
                       .withBoard(new BoardBuilder()
@@ -96,7 +119,7 @@ public final class GameSnapshotFixtures {
      * </pre>
      * {@code G00_S01.player()} returns: {@code Player.WHITE}.
      * <p>
-     * {@code G00_S01.clock()} returns a clock described by: {@code [BLACK=00:59, WHITE=00:55]}.
+     * {@code G00_S01.clock()} returns a clock described by: {@code [BLACK=00:59, WHITE=01:00]}.
      * <p>
      * {@code G00_S01.register()} returns a register described by:
      * {@code [[PUT_DISC; D3]; [BLACK=00:59, WHITE=01:00]; 2011-03-17T08:03:00.001Z]}.
@@ -133,7 +156,36 @@ public final class GameSnapshotFixtures {
                       .build())
         .build();
 
-    /** Game snapshot S02 taken from a game named G00. */
+    /**
+     * Game snapshot <i>S02</i> taken from a game named <i>G00</i>.
+     * <p>
+     * {@code G00_S02.board()} returns a board described by:
+     * <pre>
+     * {@code
+     * . a b c d e f g h
+     * 1 . . . . . . . .
+     * 2 . . . . . . . .
+     * 3 . . . @ . . . .
+     * 4 . . . @ @ . . .
+     * 5 . . O O O . . .
+     * 6 . . . . . . . .
+     * 7 . . . . . . . .
+     * 8 . . . . . . . .
+     * }
+     * </pre>
+     * {@code G00_S02.player()} returns: {@code Player.BLACK}.
+     * <p>
+     * {@code G00_S02.clock()} returns a clock described by: {@code [BLACK=00:59, WHITE=00:55]}.
+     * <p>
+     * {@code G00_S02.register()} returns a register described by:
+     * <pre>
+     * {@code
+     * [[PUT_DISC; C5]; [BLACK=00:59, WHITE=00:55]; 2011-03-17T08:03:15.001Z]
+     * [[PASS; null]; [BLACK=00:59, WHITE=00:58]; 2011-03-17T08:03:11.001Z]
+     * [[PUT_DISC; A1]; [BLACK=00:59, WHITE=00:59]; 2011-03-17T08:03:10.001Z]
+     * }.
+     * </pre>
+     **/
     public static final GameSnapshot G00_S02 = new GameSnapshotBuilder()
         .withPosition(new GamePositionBuilder()
                       .withBoard(new BoardBuilder()
