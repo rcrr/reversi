@@ -166,6 +166,12 @@ public class GameTest {
      */
     @Test
     public void testValidateMove() {
+
+        System.out.println(GameSnapshotFixtures.G00_S00.printGameSnapshot());
+        System.out.println(GameSnapshotFixtures.G00_S01.printGameSnapshot());
+        System.out.println(GameSnapshotFixtures.G00_S02.printGameSnapshot());
+
+
         assertTrue("To be implemented.", false);
     }
 
