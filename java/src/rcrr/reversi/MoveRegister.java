@@ -49,19 +49,19 @@ public final class MoveRegister {
         return new MoveRegister(new ArrayList<MoveRecord>());
     }
 
-    /** The register field. */
-    private final List<MoveRecord> register;
+    /** The records field. */
+    private final List<MoveRecord> records;
 
     /**
      * Class constructor.
      * <p>
-     * Parameter {@code register} must be not null.
+     * Parameter {@code records} must be not null.
      *
-     * @param register the register field
+     * @param records the register field
      */
-    private MoveRegister(final List<MoveRecord> register) {
-        assert (register != null) : "Parameter register cannot be null.";
-        this.register = Collections.unmodifiableList(register);
+    private MoveRegister(final List<MoveRecord> records) {
+        assert (records != null) : "Parameter records cannot be null.";
+        this.records = Collections.unmodifiableList(records);
     }
 
     /**
@@ -77,7 +77,7 @@ public final class MoveRegister {
                                                 + "index=" + index
                                                 + "; size()=" + size() + ".");
         }
-        return register.get(index);
+        return records.get(index);
     }
 
     /**
@@ -86,7 +86,7 @@ public final class MoveRegister {
      * @return true if the register is empty
      */
     public boolean isEmpty() {
-        return register.isEmpty();
+        return records.isEmpty();
     }
 
     /**
@@ -96,7 +96,7 @@ public final class MoveRegister {
      */
     public MoveRecord last() {
         if (isEmpty()) { return null; }
-        return register.get(size() - 1);
+        return records.get(size() - 1);
     }
 
     /**
@@ -110,9 +110,9 @@ public final class MoveRegister {
      */
     public MoveRegister push(final MoveRecord record) {
         if (record == null) { throw new NullPointerException("Parameter record cannot be null."); }
-        List<MoveRecord> tmpRegister = new ArrayList<MoveRecord>(register);
-        tmpRegister.add(record);
-        return new MoveRegister(tmpRegister);
+        List<MoveRecord> transientRecords = new ArrayList<MoveRecord>(this.records);
+        transientRecords.add(record);
+        return new MoveRegister(transientRecords);
     }
 
     /**
@@ -121,7 +121,7 @@ public final class MoveRegister {
      * @return the register size
      */
     public int size() {
-        return register.size();
+        return this.records.size();
     }
 
     /**
@@ -132,7 +132,7 @@ public final class MoveRegister {
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
-        for (MoveRecord record : register) {
+        for (MoveRecord record : this.records) {
             result = result.append(record.toString()).append("\n");
         }
         if (isEmpty()) { result = result.append("[EMPTY MoveRegister]\n"); }
@@ -142,18 +142,18 @@ public final class MoveRegister {
     /**
      * Base static factory for the class.
      * <p>
-     * Parameter {@code register} cannot be null.
+     * Parameter {@code records} cannot be null.
      *
-     * @param register the list of move records
-     * @return         a new move register
-     * @throws NullPointerException when register parameter is null
+     * @param records the list of move records
+     * @return        a new move register
+     * @throws NullPointerException when records parameter is null
      */
-    public static MoveRegister valueOf(final List<MoveRecord> register) {
-        if (register == null) { throw new NullPointerException("Parameter register cannot be null."); }
-        if (register.contains(NULL_MOVE_RECORD)) {
-            throw new NullPointerException("Parameter register cannot contain null objects.");
+    public static MoveRegister valueOf(final List<MoveRecord> records) {
+        if (records == null) { throw new NullPointerException("Parameter records cannot be null."); }
+        if (records.contains(NULL_MOVE_RECORD)) {
+            throw new NullPointerException("Parameter records cannot contain null objects.");
         }
-        return new MoveRegister(new ArrayList<MoveRecord>(register));
+        return new MoveRegister(new ArrayList<MoveRecord>(records));
     }
 
 }
