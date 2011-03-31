@@ -41,7 +41,7 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 public class MoveRegisterTest {
 
     /** The null register field value. */
-    private static final List<MoveRecord> NULL_RECORD_LIST = null;
+    private static final List<MoveRecord> NULL_RECORDS = null;
 
     /** Class constructor. */
     public MoveRegisterTest() { }
@@ -65,7 +65,7 @@ public class MoveRegisterTest {
      * @see MoveRegister#push(MoveRecord)
      */
     @Test(expected = NullPointerException.class)
-    public final void testPush_boundaryConditions_c1() {
+    public final void testPush_boundaryConditions_nullParameter() {
         MoveRegisterFixtures.EMPTY.push(MoveRecordFixtures.NULL);
     }
 
@@ -206,8 +206,8 @@ public class MoveRegisterTest {
      * @see MoveRegister#valueOf(List)
      */
     @Test(expected = NullPointerException.class)
-    public final void testValueOf_boundaryConditions_c1() {
-        MoveRegister.valueOf(NULL_RECORD_LIST);
+    public final void testValueOf_boundaryConditions_nullParameter() {
+        MoveRegister.valueOf(NULL_RECORDS);
     }
 
     /**
@@ -243,11 +243,11 @@ public class MoveRegisterTest {
         changeable.add(MoveRecordFixtures.R01);
 
         assertThat("The move register instance must be not affected by a"
-                   + " change in the register parameter.",
+                   + " change in the records parameter.",
                    instance.last(), is(MoveRecordFixtures.R00));
 
         assertThat("The move register instance must be not affected by a"
-                   + " change in the register parameter.",
+                   + " change in the records parameter.",
                    instance.size(), is(1));
     }
 
