@@ -63,45 +63,45 @@ public final class GameSequence {
    /**
      * The base static factory.
      * <p>
-     * Parameter {@code sequence} cannot be null, cannot contain null values,
+     * Parameter {@code snapshots} cannot be null, cannot contain null values,
      * and cannot be empty.
      *
-     * @param sequence the sequence of game snapshot
-     * @return         the game built with the given sequence
+     * @param snapshots the sequence of game snapshot
+     * @return          the game built with the given sequence
      *
-     * @throws NullPointerException if parameter {@code sequence} is null
-     * @throws NullPointerException if parameter {@code sequence} contains null values
-     * @throws IllegalArgumentException if parameter {@code sequence} is empty
+     * @throws NullPointerException if parameter {@code snapshots} is null
+     * @throws NullPointerException if parameter {@code snapshots} contains null values
+     * @throws IllegalArgumentException if parameter {@code snapshots} is empty
      */
-    public static GameSequence valueOf(final List<GameSnapshot> sequence) {
-        if (sequence == null) {
-            throw new NullPointerException("Parameter sequence cannot be null.");
+    public static GameSequence valueOf(final List<GameSnapshot> snapshots) {
+        if (snapshots == null) {
+            throw new NullPointerException("Parameter snapshots cannot be null.");
         }
-        if (sequence.contains(null)) {
-            throw new NullPointerException("Parameter sequence cannot contain null values.");
+        if (snapshots.contains(null)) {
+            throw new NullPointerException("Parameter snapshots cannot contain null values.");
         }
-        if (sequence.isEmpty()) {
-            throw new IllegalArgumentException("Parameter sequence cannot be empty.");
+        if (snapshots.isEmpty()) {
+            throw new IllegalArgumentException("Parameter snapshots cannot be empty.");
         }
-        return new GameSequence(sequence);
+        return new GameSequence(snapshots);
     }
 
     /** The game snapshot sequence field. */
-    private final List<GameSnapshot> sequence;
+    private final List<GameSnapshot> snapshots;
 
     /**
      * Class constructor.
      * <p>
-     * Parameter {@code sequence} cannot be null, cannot contain null values,
+     * Parameter {@code snapshots} cannot be null, cannot contain null values,
      * and cannot be empty.
      *
-     * @param sequence the sequence of game snapshot
+     * @param snapshots the sequence of game snapshot
      */
-    private GameSequence(final List<GameSnapshot> sequence) {
-        assert (sequence != null) : "Parameter sequence cannot be null.";
-        assert (!sequence.contains(null)) : "Parameter sequence cannot contain null values.";
-        assert (!sequence.isEmpty()) : "Parameter sequence cannot be empty.";
-        this.sequence = Collections.unmodifiableList(new ArrayList<GameSnapshot>(sequence));
+    private GameSequence(final List<GameSnapshot> snapshots) {
+        assert (snapshots != null) : "Parameter snapshots cannot be null.";
+        assert (!snapshots.contains(null)) : "Parameter snapshots cannot contain null values.";
+        assert (!snapshots.isEmpty()) : "Parameter snapshots cannot be empty.";
+        this.snapshots = Collections.unmodifiableList(new ArrayList<GameSnapshot>(snapshots));
     }
 
    /**
@@ -118,9 +118,9 @@ public final class GameSequence {
         if (gameSnapshot == null) {
             throw new NullPointerException("Parameter gameSnapshot cannot be null.");
         }
-        final List<GameSnapshot> newSequence = new ArrayList<GameSnapshot>(sequence);
-        newSequence.add(gameSnapshot);
-        return valueOf(newSequence);
+        final List<GameSnapshot> transientSnapshots = new ArrayList<GameSnapshot>(snapshots);
+        transientSnapshots.add(gameSnapshot);
+        return valueOf(transientSnapshots);
     }
 
    /**
@@ -137,7 +137,7 @@ public final class GameSequence {
                                                 + " and less or equal to size."
                                                 + " index=" + index + ", size=" + size() + ".");
         }
-        return sequence.get(index);
+        return snapshots.get(index);
     }
 
    /**
@@ -146,7 +146,7 @@ public final class GameSequence {
      * @return the last game snapshot
      */
     public GameSnapshot last() {
-        return sequence.get(size() - 1);
+        return snapshots.get(size() - 1);
     }
 
     /**
@@ -158,7 +158,7 @@ public final class GameSequence {
      * @return the size of the sequence of the game snapshot recordered
      */
     public int size() {
-        return sequence.size();
+        return snapshots.size();
     }
 
 }
