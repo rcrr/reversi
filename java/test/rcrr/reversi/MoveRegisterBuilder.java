@@ -36,14 +36,14 @@ import java.util.List;
  */
 public final class MoveRegisterBuilder {
 
-    /** The register field. */
-    private List<MoveRecord> register;
+    /** The records field. */
+    private List<MoveRecord> records;
 
     /**
      * The class constructor.
      */
     public MoveRegisterBuilder() {
-        this.register = new ArrayList<MoveRecord>();
+        this.records = new ArrayList<MoveRecord>();
     }
 
     /**
@@ -52,58 +52,54 @@ public final class MoveRegisterBuilder {
      * @return the move record instance as prepared by the current move record's builder
      */
     public synchronized MoveRegister build() {
-        return MoveRegister.valueOf(register);
+        return MoveRegister.valueOf(this.records);
     }
 
     /**
-     * The method returns the register field.
+     * The method returns the records field.
      *
-     * @return the register field
+     * @return the records field
      */
-    public synchronized List<MoveRecord> getRegister() {
-        return this.register;
+    public synchronized List<MoveRecord> getRecords() {
+        return this.records;
     }
 
     /**
-     * The method sets the register field.
+     * The method sets the records field.
      *
-     * @param register the update value for the register field
+     * @param records the update value for the records field
      */
-    private synchronized void setRegister(final List<MoveRecord> register) {
-        this.register = register;
+    private synchronized void setRecords(final List<MoveRecord> records) {
+        this.records = records;
     }
 
     /**
-     * Returns the {@code this} reference after setting the new {@code register} field.
-     * <p>
-     * The {@code register} parameter cannot be null.
+     * Returns the {@code this} reference after setting the new {@code records} field.
      *
-     * @param register the register assigned to the move register
-     * @return         the {@code this} reference
+     * @param records the register assigned to the move register
+     * @return        the {@code this} reference
      */
-    public MoveRegisterBuilder withRegister(final List<MoveRecord> register) {
-        if (register == null) {
-            throw new NullPointerException("Parameter register cannot be null.");
-        }
-        setRegister(register);
+    public MoveRegisterBuilder withRecords(final List<MoveRecord> records) {
+        setRecords(records);
         return this;
     }
 
     /**
-     * Returns the {@code this} reference after setting the new {@code register} field,
-     * the {@code register} value is constructed by building the list
+     * Returns the {@code this} reference after setting the new {@code records} field,
+     * the {@code records} value is constructed by building the list
      * from the {@code records} array.
      * <p>
      * The {@code records} parameter cannot be null.
      *
-     * @param records the array of records assigned to the move register
-     * @return         the {@code this} reference
+     * @param records the array of records assigned to the move records
+     * @return        the {@code this} reference
+     * @throws NullPointerException when parameter records is null
      */
     public MoveRegisterBuilder withRecords(final MoveRecord... records) {
         if (records == null) {
             throw new NullPointerException("Parameter records cannot be null.");
         }
-        return withRegister(Arrays.asList(records));
+        return withRecords(Arrays.asList(records));
     }
 
 }
