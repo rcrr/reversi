@@ -47,7 +47,6 @@ public final class GameSequenceFixtures {
      */
     public static final GameSequence AN_INSTANCE
         = new GameSequenceBuilder()
-        .withSnapshots(GameSnapshotFixtures.AN_INSTANCE)
         .build();
 
     /**
