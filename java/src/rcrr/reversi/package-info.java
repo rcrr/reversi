@@ -30,6 +30,8 @@ To do:
 <p>
 <ul>
   <li>Complete tests, javadocs, checkstyle, and refactoring to current codabase.</li>
+  <li>Veryfy that the Builder classes are really thread-safe. Be careful about accessor methods that publish a reference
+      of a collection, or in general a mutable object reference. It must be copied. Could be that builder should have a unit test.</li>
   <li>Prepare some tests (ReversiTest suite) that repeat selected tests but print the game to a file.
       Some part of the Game class are used only when the PrintStream ps field is not null.</li>
   <li>Moves returned from the Strategies must be recordered. The Sequence structure has to host
