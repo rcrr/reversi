@@ -44,7 +44,7 @@ public final class GameSequenceBuilder {
      */
     public GameSequenceBuilder() {
         this.snapshots = new ArrayList<GameSnapshot>();
-        this.snapshots.add(GameSnapshotFixtures.AN_INSTANCE);
+        add(new GameSnapshotBuilder().build());
     }
 
     /**
