@@ -62,7 +62,7 @@ public final class GameBuilder {
      * @return the game instance as prepared by the current game's builder
      */
     public synchronized Game build() {
-        return Game.valueOf(actors, sequence, ps);
+        return Game.newInstance(actors, sequence, ps);
     }
 
     /**
