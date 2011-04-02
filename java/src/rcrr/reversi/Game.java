@@ -91,7 +91,7 @@ public final class Game {
         final Map<Player, Actor> actorMap = new EnumMap<Player, Actor>(Player.class);
         actorMap.put(Player.BLACK, black);
         actorMap.put(Player.WHITE, white);
-        return valueOf(ActorsPair.valueOf(actorMap), GameSequence.initialGameSequence(gameDuration), ps);
+        return newInstance(ActorsPair.valueOf(actorMap), GameSequence.initialGameSequence(gameDuration), ps);
     }
 
     /**
@@ -107,7 +107,7 @@ public final class Game {
      * @return          a new game instance
      * @throws NullPointerException when either actors or sequence parameter is null
      */
-    public static Game valueOf(final ActorsPair actors, final GameSequence sequence, final PrintStream ps) {
+    public static Game newInstance(final ActorsPair actors, final GameSequence sequence, final PrintStream ps) {
         if (actors == null) { throw new NullPointerException("Parameter actors cannot be null."); }
         if (sequence == null) { throw new NullPointerException("Parameter sequence cannot be null."); }
         return new Game(actors, sequence, ps);
