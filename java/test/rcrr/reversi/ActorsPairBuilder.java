@@ -40,15 +40,6 @@ import java.util.Collections;
  */
 public final class ActorsPairBuilder {
 
-    /** A generic strategy field used by AN_ACTOR actor fixture. */
-    private static final Strategy A_STRATEGY = new RandomStrategy();
-
-    /** The field used by AN_ACTOR actor fixture. */
-    private static final String AN_ACTOR_NAME = "An Actor";
-
-    /** A generic actor fixture. */
-    private static final Actor AN_ACTOR = Actor.valueOf(AN_ACTOR_NAME, A_STRATEGY);
-
     /** The actors field. */
     private Map<Player, Actor> actors;
 
@@ -57,8 +48,8 @@ public final class ActorsPairBuilder {
      */
     public ActorsPairBuilder() {
         this.actors = new EnumMap<Player, Actor>(Player.class);
-        this.actors.put(Player.BLACK, AN_ACTOR);
-        this.actors.put(Player.WHITE, AN_ACTOR);
+        this.actors.put(Player.BLACK, new ActorBuilder().build());
+        this.actors.put(Player.WHITE, new ActorBuilder().build());
     }
 
     /**
