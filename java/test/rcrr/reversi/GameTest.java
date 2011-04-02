@@ -114,11 +114,66 @@ public class GameTest {
     }
 
     /**
-     * To be completed.
+     * Tests the {@code initialGame(Actor, Actor, Duration, PrintStream)} method when parameter
+     * {@code black} is {@code null}.
+     *
+     * @see Game#initialGame(Actor, Actor, Duration, PrintStream)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testInitialGame_boundaryConditions_checkNullParameter_black() {
+        Game.initialGame(ActorFixtures.NULL,
+                         new ActorBuilder().build(),
+                         CommonFixtures.A_DURATION,
+                         CommonFixtures.NULL_PRINT_STREAM);
+    }
+
+    /**
+     * Tests the {@code initialGame(Actor, Actor, Duration, PrintStream)} method when parameter
+     * {@code white} is {@code null}.
+     *
+     * @see Game#initialGame(Actor, Actor, Duration, PrintStream)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testInitialGame_boundaryConditions_checkNullParameter_white() {
+        Game.initialGame(new ActorBuilder().build(),
+                         ActorFixtures.NULL,
+                         CommonFixtures.A_DURATION,
+                         CommonFixtures.NULL_PRINT_STREAM);
+    }
+
+    /**
+     * Tests the {@code initialGame(Actor, Actor, Duration, PrintStream)} method when parameter
+     * {@code gameDuration} is {@code null}.
+     *
+     * @see Game#initialGame(Actor, Actor, Duration, PrintStream)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testInitialGame_boundaryConditions_checkNullParameter_gameDuration() {
+        Game.initialGame(new ActorBuilder().build(),
+                         new ActorBuilder().build(),
+                         CommonFixtures.NULL_DURATION,
+                         CommonFixtures.NULL_PRINT_STREAM);
+    }
+
+    /**
+     * Tests the {@code initialGame(Actor, Actor, Duration, PrintStream)} method.
+     * <p>
+     * The game returned by {@code initialGame(Actor, Actor, Duration, PrintStream)}
+     * must be an object of class {@code Game}
+     *
+     * @see Game#initialGame(Actor, Actor, Duration, PrintStream)
      */
     @Test
     public void testInitialGame() {
-        assertTrue("To be implemented.", false);
+        Game initialGame = Game.initialGame(new ActorBuilder().build(),
+                                            new ActorBuilder().build(),
+                                            CommonFixtures.A_DURATION,
+                                            CommonFixtures.NULL_PRINT_STREAM);
+
+        assertThat("Game.initialGame(Actor, Actor, Duration, PrintStream)"
+                   + " must return an instance of Game class.",
+                   initialGame,
+                   instanceOf(Game.class));
     }
 
     /**
@@ -176,11 +231,49 @@ public class GameTest {
     }
 
     /**
-     * To be completed.
+     * Tests the {@code valueOf(ActorsPair, GameSequence, PrintStream)} method when parameter
+     * {@code actors} is {@code null}.
+     *
+     * @see Game#valueOf(ActorsPair, GameSequence, PrintStream)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_checkNullParameter_actors() {
+        Game.valueOf(ActorsPairFixtures.NULL,
+                     new GameSequenceBuilder().build(),
+                     CommonFixtures.NULL_PRINT_STREAM);
+    }
+
+    /**
+     * Tests the {@code valueOf(ActorsPair, GameSequence, PrintStream)} method when parameter
+     * {@code sequence} is {@code null}.
+     *
+     * @see Game#valueOf(ActorsPair, GameSequence, PrintStream)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_checkNullParameter_sequence() {
+        Game.valueOf(new ActorsPairBuilder().build(),
+                     GameSequenceFixtures.NULL,
+                     CommonFixtures.NULL_PRINT_STREAM);
+    }
+
+    /**
+     * Tests the {@code valueOf(ActorsPair, GameSequence, PrintStream)} method.
+     * <p>
+     * The game returned by {@code valueOf(ActorsPair, GameSequence, PrintStream)}
+     * must be an object of class {@code Game}
+     *
+     * @see Game#valueOf(ActorsPair, GameSequence, PrintStream)
      */
     @Test
     public void testValueOf() {
-        assertTrue("To be implemented.", false);
+        Game instance = Game.valueOf(new ActorsPairBuilder().build(),
+                                     new GameSequenceBuilder().build(),
+                                     CommonFixtures.NULL_PRINT_STREAM);
+
+        assertThat("Game.valueOf(ActorsPair, GameSequence, PrintStream)"
+                   + " must return an instance of Game class.",
+                   instance,
+                   instanceOf(Game.class));
     }
 
 }

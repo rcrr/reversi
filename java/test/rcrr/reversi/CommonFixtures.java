@@ -24,6 +24,8 @@
 
 package rcrr.reversi;
 
+import java.io.PrintStream;
+
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.joda.time.Duration;
@@ -111,6 +113,9 @@ public final class CommonFixtures {
                        MINUTE_OF_HOUR_01,
                        SECOND_OF_MINUTE_00,
                        MILLIS_OF_SECOND_001).toInstant();
+
+    /** The null print stream. */
+    public static final PrintStream NULL_PRINT_STREAM = null;
 
     /** Class constructor. */
     private CommonFixtures() { }
