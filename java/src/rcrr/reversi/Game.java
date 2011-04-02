@@ -62,18 +62,32 @@ public final class Game {
     }
 
     /**
-     * A static factory that returns an initial game.
+     * A static factory that returns an initial game. The {@code black} and {@code white} parameters
+     * define the two actors playing the game. The {@code gameDuration} parameter sets the clock time
+     * assigned equally to players.
+     * The {@code ps} paratemer receives the print stream where the game logging text output is directed.
+     * An initial game sequence (see {@link GameSequence#initialGameSequence(Duration)})
+     * is generated and assigned to the game.
+     * <p>
+     * Parameter {@code black} must be not {@code null}.
+     * Parameter {@code white} must be not {@code null}.
+     * Parameter {@code gameDuration} must be not {@code null}.
+     * Parameter {@code ps} is allowed to be {@code null}, meaning that no output is requested for the game.
      *
      * @param  black        the actor playing as black
      * @param  white        the actor playing as black
      * @param  gameDuration the game duration assigned to each player
      * @param  ps           the print stream field
      * @return              a new initial game
+     * @throws NullPointerException when either white, or black, or gameDuration parameter is null
      */
     public static Game initialGame(final Actor black,
                                    final Actor white,
                                    final Duration gameDuration,
                                    final PrintStream ps) {
+        if (black == null) { throw new NullPointerException("Parameter black cannot be null."); }
+        if (white == null) { throw new NullPointerException("Parameter white cannot be null."); }
+        if (gameDuration == null) { throw new NullPointerException("Parameter gameDuration cannot be null."); }
         final Map<Player, Actor> actorMap = new EnumMap<Player, Actor>(Player.class);
         actorMap.put(Player.BLACK, black);
         actorMap.put(Player.WHITE, white);
@@ -128,9 +142,9 @@ public final class Game {
     /**
      * Class constructor.
      * <p>
-     * Parameter {@code actors} must be not null.
-     * Parameter {@code sequence} must be not null.
-     * Parameter {@code ps} is allowed to be null, meaning that no output is requested for the game.
+     * Parameter {@code actors} must be not {@code null}.
+     * Parameter {@code sequence} must be not {@code null}.
+     * Parameter {@code ps} is allowed to be {@code null}, meaning that no output is requested for the game.
      *
      * @param  actors   the actors field
      * @param  sequence the game snapshot sequence field
