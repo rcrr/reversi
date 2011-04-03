@@ -27,6 +27,7 @@ package rcrr.reversi;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 import java.io.PrintStream;
 
@@ -72,6 +73,27 @@ public final class GameBuilder {
      */
     private synchronized void setSequence(final GameSequence sequence) {
         this.sequence = sequence;
+    }
+
+    /**
+     * The setter method for the actors field.
+     *
+     * @param actors the update for the actors field
+     */
+    private synchronized void setActors(final ActorsPair actors) {
+        this.actors = actors;
+    }
+
+    /**
+     * Returns the {@code this} reference after setting the new {@code actors}
+     * field value.
+     *
+     * @param actors the actors field
+     * @return       the {@code this} reference
+     */
+    public GameBuilder withActors(final ActorsPair actors) {
+        setActors(actors);
+        return this;
     }
 
     /**
