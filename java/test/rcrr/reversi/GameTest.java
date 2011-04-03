@@ -47,11 +47,27 @@ public class GameTest {
     public GameTest() { }
 
     /**
-     * To be completed.
+     * Tests the {@code areThereAvailableMoves()} method.
+     * <p>
+     * The value returned by sending the {@code areThereAvailableMoves()} message
+     * to a game object having,
+     * a sequence field having as last element,
+     * a game snapshot defined by {@code GameSnapshotFixtures.BLACK_HAS_TO_PASS}
+     * must be equal to true.
+     *
+     * @see Game#countDiscDifference()
+     * @see GameSnapshotFixtures#BLACK_HAS_TO_PASS
      */
     @Test
     public void testAreThereAvailableMoves() {
-        assertTrue("To be implemented.", false);
+        assertThat("",
+                   new GameBuilder()
+                   .withSequence(new GameSequenceBuilder()
+                                 .withSnapshots(GameSnapshotFixtures.BLACK_HAS_TO_PASS)
+                                 .build())
+                   .build()
+                   .areThereAvailableMoves(),
+                   is(true));
     }
 
     /**
@@ -98,11 +114,33 @@ public class GameTest {
     }
 
     /**
-     * To be completed.
+     * Tests the {@code countDiscDifference()} method.
+     * <p>
+     * The value returned by sending the {@code countDiscDifference()} message
+     * to a game object having,
+     * a sequence field having as last element,
+     * a game snapshot having as position field,
+     * a game position having as board field,
+     * a board defined by {@code BoardFixtures.FINAL_B37_W27}
+     * must be equal to +10.
+     *
+     * @see Game#countDiscDifference()
+     * @see BoardFixtures#FINAL_B37_W27
      */
     @Test
     public void testCountDiscDifference() {
-        assertTrue("To be implemented.", false);
+        assertThat("",
+                   new GameBuilder()
+                   .withSequence(new GameSequenceBuilder()
+                                 .withSnapshots(new GameSnapshotBuilder()
+                                                .withPosition(new GamePositionBuilder()
+                                                              .withBoard(BoardFixtures.FINAL_B37_W27)
+                                                              .build())
+                                                .build())
+                                 .build())
+                   .build()
+                   .countDiscDifference(),
+                   is(+10));
     }
 
     /**
@@ -177,11 +215,24 @@ public class GameTest {
     }
 
     /**
-     * To be completed.
+     * Tests the {@code lastGameSnapshot()} method.
+     *
+     * @see Game#lastGameSnapshot()
      */
     @Test
-    public void testLastGameSnapshot() {
-        assertTrue("To be implemented.", false);
+    public final void testLastGameSnapshot() {
+        assertThat("The game snapshot last added to game sequence set into"
+                   + " the sequence field in the Game instance, must be equal"
+                   + " to the one returned by the lastGameSnapshot method.",
+                   new GameBuilder()
+                   .withSequence(new GameSequenceBuilder()
+                                 .withSnapshots(new GameSnapshotBuilder().build(),
+                                                new GameSnapshotBuilder().build(),
+                                                GameSnapshotFixtures.AN_INSTANCE)
+                                 .build())
+                   .build()
+                   .lastGameSnapshot(),
+                   is(GameSnapshotFixtures.AN_INSTANCE));
     }
 
     /**
@@ -201,19 +252,43 @@ public class GameTest {
     }
 
     /**
-     * To be completed.
+     * Tests the {@code player()} method.
+     *
+     * @see Game#player()
      */
     @Test
-    public void testPlayer() {
-        assertTrue("To be implemented.", false);
+    public final void testPlayer() {
+        assertThat("The game snapshot last added to game sequence set into"
+                   + " the sequence field in the Game instance, must be equal"
+                   + " to the one returned by the lastGameSnapshot method.",
+                   new GameBuilder()
+                   .withSequence(new GameSequenceBuilder()
+                                 .withSnapshots(new GameSnapshotBuilder()
+                                                .withPosition(new GamePositionBuilder()
+                                                              .withPlayer(Player.WHITE)
+                                                              .build())
+                                                .build())
+                                 .build())
+                   .build()
+                   .player(),
+                   is(Player.WHITE));
     }
 
     /**
-     * To be completed.
+     * Tests the {@code sequence()} method.
+     *
+     * @see Game#sequence()
      */
     @Test
-    public void testSequence() {
-        assertTrue("To be implemented.", false);
+    public final void testSequence() {
+        assertThat("The sequence used by the constructor of the"
+                   + " Game instance, must be equal"
+                   + " to the one returned by the sequence method.",
+                   new GameBuilder()
+                   .withSequence(GameSequenceFixtures.AN_INSTANCE)
+                   .build()
+                   .sequence(),
+                   is(GameSequenceFixtures.AN_INSTANCE));
     }
 
     /**
@@ -237,7 +312,7 @@ public class GameTest {
      * @see Game#newInstance(ActorsPair, GameSequence, PrintStream)
      */
     @Test(expected = NullPointerException.class)
-    public final void testValueOf_boundaryConditions_checkNullParameter_actors() {
+    public final void testNewInstance_boundaryConditions_checkNullParameter_actors() {
         Game.newInstance(ActorsPairFixtures.NULL,
                          new GameSequenceBuilder().build(),
                          CommonFixtures.NULL_PRINT_STREAM);
@@ -250,7 +325,7 @@ public class GameTest {
      * @see Game#newInstance(ActorsPair, GameSequence, PrintStream)
      */
     @Test(expected = NullPointerException.class)
-    public final void testValueOf_boundaryConditions_checkNullParameter_sequence() {
+    public final void testNewInstance_boundaryConditions_checkNullParameter_sequence() {
         Game.newInstance(new ActorsPairBuilder().build(),
                          GameSequenceFixtures.NULL,
                          CommonFixtures.NULL_PRINT_STREAM);
@@ -265,7 +340,7 @@ public class GameTest {
      * @see Game#newInstance(ActorsPair, GameSequence, PrintStream)
      */
     @Test
-    public void testValueOf() {
+    public void testNewInstance() {
         Game instance = Game.newInstance(new ActorsPairBuilder().build(),
                                          new GameSequenceBuilder().build(),
                                          CommonFixtures.NULL_PRINT_STREAM);

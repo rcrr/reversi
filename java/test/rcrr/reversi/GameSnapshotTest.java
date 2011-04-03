@@ -65,6 +65,8 @@ public class GameSnapshotTest {
 
     /**
      * Tests the {@code clock()} method.
+     *
+     * @see GameSnapshot#clock()
      */
     @Test
     public final void testClock() {
