@@ -236,11 +236,39 @@ public class GameTest {
     }
 
     /**
-     * To be completed.
+     * Tests the {@code move()} method.
+     * <p>
+     * The strategy and the game must be put into dedicate auxiliary methods.
+     * Several condition must be tested.
+     * The strategy must return moves by mean of an hardcoded list.
+     * When assigned an illegal move, result is a stack overflow.
+     *
+     * @see Game#move()
      */
     @Test
     public void testMove() {
-        assertTrue("To be implemented.", false);
+
+        Strategy strategy = new Strategy() {
+                public Move move(final GameSnapshot snapshot) {
+                    return Move.valueOf(Square.E6);
+                }
+            };
+
+        Game game = new GameBuilder()
+            .withSequence(GameSequenceFixtures.THREE_SNAPSHOTS)
+            .withActors(new ActorsPairBuilder()
+                        .withActor(Player.BLACK,
+                                   new ActorBuilder()
+                                   .withStrategy(strategy)
+                                   .build())
+                        .build())
+            .build();
+        
+        game.move();
+
+        assertThat("The game ..... must have the WHITE player.",
+                   game.player(),
+                   is(Player.WHITE));
     }
 
     /**
@@ -292,17 +320,42 @@ public class GameTest {
     }
 
     /**
-     * To be completed.
+     * Tests the {@code validateMove(Square)} method when parameter
+     * {@code square} is {@code null}.
+     *
+     * @see Game#validateMove(Square)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValidateMove_boundaryConditions_checkNullParameter_square() {
+        new GameBuilder().build().validateMove(Square.NULL);
+    }
+
+    /**
+     * Tests the {@code validateMove(Square)} method.
+     *
+     * @see Game#validateMove(Square)
      */
     @Test
-    public void testValidateMove() {
+    public void testValidateMove_threeSnapshots_E6() {
+        assertThat("The move to square E6 is allowed."
+                   + " GameFixtureFactories.threeSnapshots().validateMove(Square.E6)"
+                   + " must return true.",
+                   GameFixtureFactories.threeSnapshots().validateMove(Square.E6),
+                   is(true));
+    }
 
-        System.out.println(GameSnapshotFixtures.G00_S00.printGameSnapshot());
-        System.out.println(GameSnapshotFixtures.G00_S01.printGameSnapshot());
-        System.out.println(GameSnapshotFixtures.G00_S02.printGameSnapshot());
-
-
-        assertTrue("To be implemented.", false);
+    /**
+     * Tests the {@code validateMove(Square)} method.
+     *
+     * @see Game#validateMove(Square)
+     */
+    @Test
+    public void testValidateMove_threeSnapshots_A1() {
+        assertThat("The move to square A1 is not allowed."
+                   + " GameFixtureFactories.threeSnapshots().validateMove(Square.A1)"
+                   + " must return false.",
+                   GameFixtureFactories.threeSnapshots().validateMove(Square.A1),
+                   is(false));
     }
 
     /**

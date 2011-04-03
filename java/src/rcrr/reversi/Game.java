@@ -310,11 +310,15 @@ public final class Game {
 
     /**
      * Returns true if the move is legal.
+     * <p>
+     * Parameter {@code move} must be not {@code null}.
      *
      * @param move the move to be validated
      * @return     if the move is legal
+     * @throws NullPointerException when move parameter is null
      */
     public boolean validateMove(final Square move) {
+        if (move == null) { throw new NullPointerException("Parameter move cannot be null."); }
         return lastGameSnapshot().position().isLegal(move);
     }
 
