@@ -27,6 +27,7 @@ package rcrr.reversi;
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -144,11 +145,14 @@ public class GameTest {
     }
 
     /**
-     * To be completed.
+     * The test return always a fail. The PASS use case must be handled differently.
      */
     @Test
     public void testHasOpponentPassed() {
-        assertTrue("To be implemented.", false);
+        fail("The method hasOpponentPassed must relate on the MoveRegister last MoveRecord."
+             + " It instead releates to the comparison with the previous player."
+             + " It happens because passing moves are not part of the game sequence."
+             + " This happens because the PAIP design was so conceived. It must be fixed.");
     }
 
     /**
@@ -272,11 +276,15 @@ public class GameTest {
     }
 
     /**
-     * To be completed.
+     * The test has to be written. It must be split into several cases.
+     * Before moving forward two changes should be prepared:
+     *  (1) the proper game clock management
+     *  (2) the PASS and FORFAIT use cases. 
      */
     @Test
     public void testPlay() {
-        assertTrue("To be implemented.", false);
+        fail("The method play must take into consideration the proper management"
+             + " of the game clock and the PASS use case.");
     }
 
     /**
