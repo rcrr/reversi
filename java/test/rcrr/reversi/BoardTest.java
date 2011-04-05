@@ -31,11 +31,15 @@ import java.util.EnumMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.matchers.JUnitMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
 /**
  * Test Suite for {@code Board} class.
@@ -55,19 +59,51 @@ public class BoardTest {
         fail("The Test Suite must be reviewed!");
     }
 
+    /**
+     * Tests the {@code countDifference(Player)} method when parameter
+     * {@code player} is {@code null}.
+     *
+     * @see Board#countDifference(Player)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testCountDifference_boundaryConditions_checkNullParameter_player() {
+        new BoardBuilder().build()
+            .countDifference(Player.NULL);
+    }
+
+    /**
+     * Tests the {@code countDifference(Player)} method.
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.countDifference(Player.BLACK)} must return a count equal to 0.</li>
+     *   <li>{@code BoardFixtures.FINAL_B37_W27.countDifference(Player.BLACK)} must return a count equal to +10.</li>
+     *   <li>{@code BoardFixtures.FINAL_B37_W27.countDifference(Player.WHITE)} must return a count equal to -10.</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.countDifference(Player.BLACK)} must return a count equal to -2.</li>
+     * </ul>
+     *
+     * @see Board#countDifference(Player)
+     * @see BoardFixtures#INITIAL
+     * @see BoardFixtures#FINAL_B37_W27
+     * @see BoardFixtures#EARLY_GAME_C_12_MOVES
+     */
     @Test
     public void testCountDifference() {
-        try {
-            BoardFixtures.INITIAL.countDifference(null);
-            fail("An exception must be risen.");
-        } catch (NullPointerException npe) {
-            assertTrue(true);
-        }
-
-        assertEquals(0, Board.initialBoard().countDifference(Player.BLACK));
-        assertEquals(+10, BoardFixtures.FINAL_B37_W27.countDifference(Player.BLACK));
-        assertEquals(-10, BoardFixtures.FINAL_B37_W27.countDifference(Player.WHITE));
-        assertEquals(-2, BoardFixtures.EARLY_GAME_C_12_MOVES.countDifference(Player.BLACK));     
+        assertThat("BoardFixtures.INITIAL.countDifference(Player.BLACK)"
+                   + " must return a count equal to 0.",
+                   BoardFixtures.INITIAL.countDifference(Player.BLACK),
+                   is(0));
+        assertThat("BoardFixtures.INITIAL.countDifference(Player.BLACK)"
+                   + " must return a count equal to +10.",
+                   BoardFixtures.FINAL_B37_W27.countDifference(Player.BLACK),
+                   is(+10));
+        assertThat("BoardFixtures.INITIAL.countDifference(Player.WHITE)"
+                   + " must return a count equal to -10.",
+                   BoardFixtures.FINAL_B37_W27.countDifference(Player.WHITE),
+                   is(-10));
+        assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.countDifference(Player.BLACK)"
+                   + " must return a count equal to -2.",
+                   BoardFixtures.EARLY_GAME_C_12_MOVES.countDifference(Player.BLACK),
+                   is(-2));
     }
 
     @Test
