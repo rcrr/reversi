@@ -150,10 +150,12 @@ public final class Board {
 
     /**
      * Returns the disk difference between the player and her opponent.
+     * <p>
+     * Parameter {@code player} must be not {@code null}.
      *
      * @param player the player
      * @return       the disk count difference
-     * @throws NullPointerException if parameter {@code player} is null
+     * @throws NullPointerException if parameter {@code player} is {@code null}
      */
     public int countDifference(final Player player) {
         if (player == null) { throw new NullPointerException("parameter player must be not null."); }
