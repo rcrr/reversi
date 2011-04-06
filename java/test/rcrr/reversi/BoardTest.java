@@ -59,6 +59,9 @@ public class BoardTest {
         fail("The Test Suite must be reviewed!");
     }
 
+    /** Class constructor. */
+    public BoardTest() { }
+
     /**
      * Tests the {@code countDifference(Player)} method when parameter
      * {@code player} is {@code null}.
@@ -106,31 +109,74 @@ public class BoardTest {
                    is(-2));
     }
 
-    @Test
-    public void testCountPieces() {
-        try {
-            BoardFixtures.INITIAL.countPieces(null);
-            fail("A NullPointerException must be risen when the parameter player is null.");
-        } catch (NullPointerException npe) {
-            assertTrue(true);
-        }
-
-        assertThat("Black player has two discs in the initial board configuration.",
-                   BoardFixtures.INITIAL.countPieces(SquareState.BLACK), is(2));
-        assertThat("White player has two discs in the initial board configuration.",
-                   BoardFixtures.INITIAL.countPieces(SquareState.WHITE), is(2));
-        assertThat("There are sixty empty squares in the initial board configuration.",
-                   BoardFixtures.INITIAL.countPieces(SquareState.EMPTY), is(60));
-        assertThat("There are no outer squares in any board configuration.",
-                   BoardFixtures.INITIAL.countPieces(SquareState.OUTER), is(0));
+    /**
+     * Tests the {@code countPieces(SquareState)} method when parameter
+     * {@code color} is {@code null}.
+     *
+     * @see Board#countPieces(SquareState)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testCountPieces_boundaryConditions_checkNullParameter_color() {
+        new BoardBuilder().build()
+            .countPieces(SquareState.NULL);
     }
 
+    /**
+     * Tests the {@code countPieces(SquareState)} method.
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.countPieces(SquareState.BLACK)} must return a count equal to 2.</li>
+     *   <li>{@code BoardFixtures.INITIAL.countPieces(SquareState.WHITE)} must return a count equal to 2.</li>
+     *   <li>{@code BoardFixtures.INITIAL.countPieces(SquareState.EMPTY)} must return a count equal to 60.</li>
+     *   <li>{@code BoardFixtures.INITIAL.countPieces(SquareState.OUTER)} must return a count equal to 0.</li>
+     * </ul>
+     *
+     * @see Board#countPieces(SquareState)
+     * @see BoardFixtures#INITIAL
+     */
+    @Test
+    public void testCountPieces() {
+        assertThat("Black player has two discs in the initial board configuration.",
+                   BoardFixtures.INITIAL.countPieces(SquareState.BLACK),
+                   is(2));
+        assertThat("White player has two discs in the initial board configuration.",
+                   BoardFixtures.INITIAL.countPieces(SquareState.WHITE),
+                   is(2));
+        assertThat("There are sixty empty squares in the initial board configuration.",
+                   BoardFixtures.INITIAL.countPieces(SquareState.EMPTY),
+                   is(60));
+        assertThat("There are no outer squares in any board configuration.",
+                   BoardFixtures.INITIAL.countPieces(SquareState.OUTER),
+                   is(0));
+    }
+
+    /**
+     * Tests the {@code emptyBoard()} factory.
+     * <p>
+     * The test run two types of assertion.
+     * The first relates to the {@code equals(Object)} method and checks that
+     * the returned board is equal to {@code BoardFixtures.EMPTY}.
+     * The second relates on the {@code get(Square)} method and checks that all
+     * the squares of the returned board have a {@code SquereState.EMPTY} value.
+     *
+     * @see Board#emptyBoard()
+     * @see BoardFixtures#EMPTY
+     * @see Board#equals(Object)
+     * @see Board#get(Square)
+     */
     @Test
     public void testEmptyBoard() {
-        assertEquals(BoardFixtures.EMPTY, Board.emptyBoard());
+        assertThat("Board.emptyBoard() must return a board being equal to BoardFixtures.EMPTY.",
+                   Board.emptyBoard(),
+                   is(BoardFixtures.EMPTY));
+
         Board empty = Board.emptyBoard();
         for (Square square : Square.values()) {
-            assertEquals(SquareState.EMPTY, empty.get(square));
+            assertThat("Each square state returned by the get method iterating on"
+                       + " the squares of a board returned by Board.emptyBoard()"
+                       + " must return a SquareState.EMPTY value.",
+                       empty.get(square),
+                       is(SquareState.EMPTY));
         }
     }
 
