@@ -24,13 +24,8 @@
 
 package rcrr.reversi;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import java.util.Map;
 import java.util.EnumMap;
-import java.util.Collections;
 
 /**
  * An actors pair builder is a facility to generate {@code ActorsPair} instances for testing.
@@ -73,7 +68,8 @@ public final class ActorsPairBuilder {
     /**
      * The method sets the actors field.
      *
-     * @param actors the update value for the actors field
+     * @param player the player selected for the update
+     * @param actor  the actor assigned to the player key
      */
     private synchronized void setActor(final Player player, final Actor actor) {
         this.actors.put(player, actor);
