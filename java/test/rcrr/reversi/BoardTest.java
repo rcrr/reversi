@@ -31,6 +31,9 @@ import java.util.EnumMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
+
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -90,7 +93,7 @@ public class BoardTest {
      * @see BoardFixtures#EARLY_GAME_C_12_MOVES
      */
     @Test
-    public void testCountDifference() {
+    public final void testCountDifference() {
         assertThat("BoardFixtures.INITIAL.countDifference(Player.BLACK)"
                    + " must return a count equal to 0.",
                    BoardFixtures.INITIAL.countDifference(Player.BLACK),
@@ -135,7 +138,7 @@ public class BoardTest {
      * @see BoardFixtures#INITIAL
      */
     @Test
-    public void testCountPieces() {
+    public final void testCountPieces() {
         assertThat("Black player has two discs in the initial board configuration.",
                    BoardFixtures.INITIAL.countPieces(SquareState.BLACK),
                    is(2));
@@ -165,7 +168,7 @@ public class BoardTest {
      * @see Board#get(Square)
      */
     @Test
-    public void testEmptyBoard() {
+    public final void testEmptyBoard() {
         assertThat("Board.emptyBoard() must return a board being equal to BoardFixtures.EMPTY.",
                    Board.emptyBoard(),
                    is(BoardFixtures.EMPTY));
@@ -181,7 +184,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testEquals() {
+    public final void testEquals() {
         assertFalse(BoardFixtures.INITIAL.equals(null));
         assertFalse(BoardFixtures.INITIAL.equals(new Object()));
         assertFalse(BoardFixtures.INITIAL.equals(BoardFixtures.FIRST_MOVE_D3));
@@ -198,7 +201,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testGet() {
+    public final void testGet() {
         assertEquals(SquareState.BLACK, BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B3));
         assertEquals(SquareState.WHITE, BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B4));
         assertEquals(SquareState.OUTER, BoardFixtures.EARLY_GAME_C_12_MOVES.get(null));
@@ -206,7 +209,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testHasAnyLegalMove() {
+    public final void testHasAnyLegalMove() {
         assertTrue(BoardFixtures.INITIAL.hasAnyLegalMove(Player.BLACK));
         assertFalse(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.BLACK));
         assertTrue(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.WHITE));
@@ -215,7 +218,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testHasAnyPlayerAnyLegalMove() {
+    public final void testHasAnyPlayerAnyLegalMove() {
         assertFalse(BoardFixtures.EMPTY.hasAnyPlayerAnyLegalMove());
         assertTrue(BoardFixtures.INITIAL.hasAnyPlayerAnyLegalMove());
         assertTrue(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyPlayerAnyLegalMove());
@@ -223,7 +226,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testHashCode() {
+    public final void testHashCode() {
         assertEquals(BoardFixtures.INITIAL.hashCode(), BoardFixtures.INITIAL.hashCode());
         assertEquals(BoardFixtures.EMPTY.hashCode(), BoardFixtures.EMPTY.hashCode());
         assertEquals(BoardFixtures.BLACK_HAS_TO_PASS.hashCode(), BoardFixtures.BLACK_HAS_TO_PASS.hashCode());
@@ -239,7 +242,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testInitialBoard() {
+    public final void testInitialBoard() {
         assertEquals(BoardFixtures.INITIAL, Board.initialBoard());
         Board initial = Board.initialBoard();
         for (Square square : Square.values()) {
@@ -257,7 +260,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testIsLegal() {
+    public final void testIsLegal() {
 
         try {
             BoardFixtures.INITIAL.isLegal(null, Player.BLACK);
@@ -296,7 +299,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testLegalMoves() {
+    public final void testLegalMoves() {
         try {
             BoardFixtures.INITIAL.legalMoves(null);
             fail("An exception must be risen.");
@@ -356,7 +359,7 @@ public class BoardTest {
      * Tests the mechanics of the makeMove() method.
      */
     @Test
-    public void testMakeMove() {
+    public final void testMakeMove() {
 
         /** Tests that a null player cannot be passed to makeMove. */
         try {
@@ -404,7 +407,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testNextToPlay() {
+    public final void testNextToPlay() {
         try {
             BoardFixtures.INITIAL.nextToPlay(null);
             fail("An exception must be risen.");
@@ -421,7 +424,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testPrintBoard() {
+    public final void testPrintBoard() {
         StringBuilder initialBoard = new StringBuilder();
         initialBoard.append("    a b c d e f g h \n");
         initialBoard.append(" 1  . . . . . . . . \n");
@@ -436,7 +439,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testPrintBoardWithCount() {
+    public final void testPrintBoardWithCount() {
         StringBuilder initialBoard = new StringBuilder();
         initialBoard.append("    a b c d e f g h [@=2 0=2 (0)]\n");
         initialBoard.append(" 1  . . . . . . . . \n");
@@ -451,7 +454,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testPrintCount() {
+    public final void testPrintCount() {
         assertEquals("[@=2 0=2 (0)]", BoardFixtures.INITIAL.printCount());
         assertEquals("[@=26 0=28 (-2)]", BoardFixtures.BLACK_HAS_TO_PASS.printCount());
     }
@@ -515,7 +518,7 @@ public class BoardTest {
     }
 
     @Test
-    public void testValueOf() {
+    public final void testValueOf() {
 
         /**
          * Tests if the valueOf method throws a NullPointerException when
@@ -601,7 +604,7 @@ public class BoardTest {
      * - the wouldFlip method
      */
     @Test
-    public void testFindBracketingPiece() {
+    public final void testFindBracketingPiece() {
         {
             Square move = Square.H7;
             Direction dir = Direction.W;
@@ -637,12 +640,46 @@ public class BoardTest {
      * - the isLegal methid
      * both defined in the class itself.
      */
+    /**
+     * Tests the {@code wouldFlip(Square, Player, Direction)} private method.
+     * <p>
+     * {@code wouldFlip(Square, Player, Direction)} is a "private" method in Board class.
+     * The {@code wouldFlip(Square, Player, Direction)} method is called by only two "client methods":
+     * <ul>
+     *   <li>{@code makeMove(Square, Player)}</li>
+     *   <li>{@code isLegal(Square, Player)}</li>
+     * </ul>
+     * <p>
+     * that are both defined in the board class itself.
+     * The test applies reflection to access the private method.
+     * <p>
+     * The test run the following checks:
+     * <ul>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.W)} must return {@code Square.C7}.</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.S)} must return {@code Square.NULL}.</li>
+     * </ul>
+     *
+     * @see Board#makeMove(Square, Player)
+     * @see Board#isLegal(Square, Player)
+     */
     @Test
-    public void testWouldFlip() {
-        assertEquals(Square.C7,
-                     BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.W));
-        assertEquals(null,
-                     BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.S));
+    public final void testWouldFlip()
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
+
+        Method method = Board.class.getDeclaredMethod("wouldFlip", Square.class, Player.class, Direction.class);
+        method.setAccessible(true);
+
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.W)"
+                   + " must return Square.C7.",
+                   (Square)method.invoke(BoardFixtures.BLACK_HAS_TO_PASS, Square.H7, Player.WHITE, Direction.W),
+                   is(Square.C7));
+
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.S)"
+                   + " must return Square.NULL.",
+                   (Square)method.invoke(BoardFixtures.BLACK_HAS_TO_PASS, Square.H7, Player.WHITE, Direction.S),
+                   is(Square.NULL));
     }
 
 }
