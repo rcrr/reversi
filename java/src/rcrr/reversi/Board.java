@@ -488,7 +488,7 @@ public final class Board {
      * @param dir    the direction
      * @return       the bracketing square, or null if it is not found
      */
-    Square wouldFlip(final Square move, final Player player, final Direction dir) {
+    private Square wouldFlip(final Square move, final Player player, final Direction dir) {
         assert (move != null) : "Argument square must be not null";
         assert (player != null) : "Argument player must be not null";
         assert (dir != null) : "Argument dir must be not null";
