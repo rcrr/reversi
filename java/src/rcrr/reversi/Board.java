@@ -461,7 +461,7 @@ public final class Board {
      * @param dir    the direction
      * @return       the bracketing square, or null if it is not found
      */
-    Square findBracketingPiece(final Square square, final Player player, final Direction dir) {
+    private Square findBracketingPiece(final Square square, final Player player, final Direction dir) {
         assert (square != null) : "Argument square must be not null";
         assert (player != null) : "Argument player must be not null";
         assert (dir != null) : "Argument dir must be not null";
