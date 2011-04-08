@@ -598,48 +598,91 @@ public class BoardTest {
         
     }
 
-    /** 
-     * findBracketingPiece is a "private" method in Board class.
-     * It is used by only one "client":
-     * - the wouldFlip method
+    /**
+     * Tests the {@code findBracketingPiece(Square, Player, Direction)} private method.
+     * <p>
+     * {@code wouldFlip(Square, Player, Direction)} is a "private" method in Board class.
+     * The {@code wouldFlip(Square, Player, Direction)} method is called by only one "client method":
+     * <ul>
+     *   <li>{@code wouldFlip(Square, Player, Direction)}</li>
+     * </ul>
+     * <p>
+     * that is defined in the board class itself.
+     * The test applies reflection to access the private method.
+     * <p>
+     * The test run the following checks:
+     * <ul>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.findBracketingPiece(Square.H7, Player.WHITE, Direction.W)} must return {@code Square.C7}.</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.findBracketingPiece(Square.H7, Player.WHITE, Direction.NW)} must return {@code Square.F5}.</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.findBracketingPiece(Square.H7, Player.WHITE, Direction.SW)} must return {@code Square.NULL}.</li>
+     * </ul>
      */
     @Test
-    public final void testFindBracketingPiece() {
-        {
-            Square move = Square.H7;
-            Direction dir = Direction.W;
-            Square b1 = move.neighbors().get(dir);
-            Square b2 = Square.C7;
-            assertEquals(b2, BoardFixtures.BLACK_HAS_TO_PASS.
-                         findBracketingPiece(b1, Player.WHITE, dir));
-        }
+    public final void testFindBracketingPiece()
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
 
-        {
-            Square move = Square.H7;
-            Direction dir = Direction.NW;
-            Square b1 = move.neighbors().get(dir);
-            Square b2 = Square.F5;
-            assertEquals(b2, BoardFixtures.BLACK_HAS_TO_PASS.
-                         findBracketingPiece(b1, Player.WHITE, dir));
-        }
+        assertThat("Given that"
+                   + " board is BoardFixtures.BLACK_HAS_TO_PASS,"
+                   + " player is Player.WHITE,"
+                   + " move is Square.H7,"
+                   + " direction is Direction.W"
+                   + " findBracketingPiece must return Square.C7",
+                   utilFindBracketingPiece(BoardFixtures.BLACK_HAS_TO_PASS,
+                                           Player.WHITE,
+                                           Square.H7,
+                                           Direction.W),
+                   is(Square.C7));
 
-        {       
-            Square move = Square.H7;
-            Direction dir = Direction.SW;
-            Square b1 = move.neighbors().get(dir);
-            Square b2 = null;
-            assertEquals(b2, BoardFixtures.BLACK_HAS_TO_PASS.
-                         findBracketingPiece(b1, Player.WHITE, dir));
-        }
+        assertThat("Given that"
+                   + " board is BoardFixtures.BLACK_HAS_TO_PASS,"
+                   + " player is Player.WHITE,"
+                   + " move is Square.H7,"
+                   + " direction is Direction.NW"
+                   + " findBracketingPiece must return Square.F5",
+                   utilFindBracketingPiece(BoardFixtures.BLACK_HAS_TO_PASS,
+                                           Player.WHITE,
+                                           Square.H7,
+                                           Direction.NW),
+                   is(Square.F5));
+
+        assertThat("Given that"
+                   + " board is BoardFixtures.BLACK_HAS_TO_PASS,"
+                   + " player is Player.WHITE,"
+                   + " move is Square.H7,"
+                   + " direction is Direction.SW"
+                   + " findBracketingPiece must return Square.NULL",
+                   utilFindBracketingPiece(BoardFixtures.BLACK_HAS_TO_PASS,
+                                           Player.WHITE,
+                                           Square.H7,
+                                           Direction.SW),
+                   is(Square.NULL));
     }
 
-    /** 
-     * wouldFlip is a "private" method in Board class.
-     * It is used by only two "clients":
-     * - the makeMove method
-     * - the isLegal methid
-     * both defined in the class itself.
+    /**
+     * Util method used by testFindBracketingPiece.
+     *
+     * @param board  the board
+     * @param player the player that has to move
+     * @param move   the player's move
+     * @param dir    the board direction
+     * @return       the bracketing square
      */
+    private final Square utilFindBracketingPiece(Board board, Player player, Square move, Direction dir)
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
+
+        Method method = Board.class.getDeclaredMethod("findBracketingPiece", Square.class, Player.class, Direction.class);
+        method.setAccessible(true);
+
+        Square firstStepInTheGivenDirection = move.neighbors().get(dir);
+        Square bracketing = (Square)method.invoke(board, firstStepInTheGivenDirection, player, dir);
+
+        return bracketing;
+    }
+
     /**
      * Tests the {@code wouldFlip(Square, Player, Direction)} private method.
      * <p>
