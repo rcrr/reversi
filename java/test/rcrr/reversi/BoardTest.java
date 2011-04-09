@@ -696,40 +696,88 @@ public class BoardTest {
     }
 
     /**
-     * Tests the mechanics of the makeMove() method.
+     * Tests the {@code makeMove(Square, Player)} method when parameter
+     * {@code move} is {@code null} and the player has legal moves.
+     * <p>
+     * The {@code BoardFixtures.INITIAL} board is used by this test given
+     * that both players have legal moves in such a case.
+     *
+     * @see Board#makeMove(Square, Player)
+     * @see BoardFixtures#INITIAL
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testMakeMove_boundaryConditions_checkNullParameter_move() {
+        BoardFixtures.INITIAL.makeMove(Square.NULL, Player.AN_INSTANCE);
+    }
+
+    /**
+     * Tests the {@code makeMove(Square, Player)} method when parameter
+     * {@code player} is {@code null}.
+     *
+     * @see Board#makeMove(Square, Player)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testMakeMove_boundaryConditions_checkNullParameter_player() {
+        new BoardBuilder().build()
+            .makeMove(Square.AN_INSTANCE, Player.NULL);
+    }
+
+    /**
+     * Tests the {@code makeMove(Square, Player)} method when parameter
+     * {@code move} is not legal.
+     * <p>
+     * The test run the following code:
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.makeMove(Square.A1, Player.BLACK)}</li>
+     * </ul>
+     * expecting that an {@code IllegalArgumentException} is rised.
+     *
+     * @see Board#makeMove(Square, Player)
+     * @see BoardFixtures#INITIAL
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public final void testMakeMove_boundaryConditions_checkIllegalMove() {
+        BoardFixtures.INITIAL.makeMove(Square.A1, Player.BLACK);
+    }
+
+    /**
+     * Tests the {@code makeMove(Square, Player)} factory method when the player
+     * does not have a legal move.
+     * <p>
+     * Tests that the following case does not rise an exception:
+     * <ul>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK)}</li>
+     * </ul>
+     * <p>
+     * Tests also that the return value is the board itself.
+     *
+     * @see Board#makeMove(Square, Player)
+     * @see BoardFixtures#BLACK_HAS_TO_PASS
+     */
+    @Test
+    public final void testMakeMove_whenNoLegalMoveIsAvailableToThePlayer() {
+
+        Board result = null;
+        try {
+            result = BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK);
+        } catch (Exception e) {
+            fail("BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK) should't rise an exception."
+                 + " e.getMessage()=" +e.getMessage());
+        }
+
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK)"
+                   + " must be equal to BoardFixtures.BLACK_HAS_TO_PASS.",
+                   result,
+                   is(BoardFixtures.BLACK_HAS_TO_PASS));
+    }
+
+    /**
+     * Tests the mechanics of the {@code makeMove(Square, Player)} factory method.
+     *
+     * @see Board#makeMove(Square, Player)
      */
     @Test
     public final void testMakeMove() {
-
-        /** Tests that a null player cannot be passed to makeMove. */
-        try {
-            BoardFixtures.INITIAL.makeMove(Square.D3, null);
-            fail("An exception must be risen.");
-        } catch (NullPointerException npe) {
-            assertTrue(true);
-        }
-
-        /** Tests that a null move cannot be passed to makeMove when a legal one is there. */
-        try {
-            BoardFixtures.INITIAL.makeMove(null, Player.BLACK);
-            fail("An exception must be risen.");
-        } catch (NullPointerException npe) {
-            assertTrue(true);
-        }
-        
-        /** 
-         * Tests that a null move can be a valid parameter when no legal moves are available to the player.
-         * Tests also that the return value is the board itself.
-         */
-        assertEquals(BoardFixtures.BLACK_HAS_TO_PASS, BoardFixtures.BLACK_HAS_TO_PASS.makeMove(null, Player.BLACK));
-
-        /** Tests that an illegal move cannot be passed to makeMove. */
-        try {
-            BoardFixtures.INITIAL.makeMove(Square.A1, Player.BLACK);
-            fail("An exception must be risen.");
-        } catch (IllegalArgumentException iae) {
-            assertTrue(true);
-        }
 
         /** Move D3 by black sent to the initial board returns the BoardFixtures.FIRST_MOVE_D3. */
         assertTrue(BoardFixtures.FIRST_MOVE_D3.equals(BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK)));
