@@ -213,6 +213,8 @@ public final class Board {
 
     /**
      * Returns if the player has any legal move given the board state.
+     * <p>
+     * Parameter {@code player} must be not {@code null}.
      *
      * @param player the player
      * @return       {@code true} if the player has any legal move, otherwise {@code false}
@@ -275,6 +277,9 @@ public final class Board {
     /**
      * Returns the boolean value telling if the move, done by the
      * specified player, is legal.
+     * <p>
+     * Parameter {@code move} must be not {@code null}.
+     * Parameter {@code player} must be not {@code null}.
      *
      * @param move   the square where to put the new disk
      * @param player the player moving
