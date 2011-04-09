@@ -42,6 +42,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 /**
@@ -156,7 +157,7 @@ public class BoardTest {
     /**
      * Tests the {@code emptyBoard()} factory.
      * <p>
-     * The test run two types of assertion.
+     * The test runs two types of assertion.
      * The first relates to the {@code equals(Object)} method and checks that
      * the returned board is equal to {@code BoardFixtures.EMPTY}.
      * The second relates on the {@code get(Square)} method and checks that all
@@ -183,29 +184,132 @@ public class BoardTest {
         }
     }
 
+    /**
+     * Tests the {@code equals(Object)} method when the objects are different.
+     * <p>
+     * The test runs three assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL is not BoardFixtures.NULL}</li>
+     *   <li>{@code BoardFixtures.INITIAL is not new Object()}</li>
+     *   <li>{@code BoardFixtures.INITIAL is not BoardFixtures.FIRST_MOVE_D3}</li>
+     * </ul>
+     *
+     * @see Board#equals(Object)
+     */
     @Test
-    public final void testEquals() {
-        assertFalse(BoardFixtures.INITIAL.equals(null));
-        assertFalse(BoardFixtures.INITIAL.equals(new Object()));
-        assertFalse(BoardFixtures.INITIAL.equals(BoardFixtures.FIRST_MOVE_D3));
-
-        assertTrue(BoardFixtures.INITIAL.equals(BoardFixtures.INITIAL));
-        assertTrue(BoardFixtures.INITIAL.equals(Board.initialBoard()));
-        assertTrue(Board.initialBoard().equals(BoardFixtures.INITIAL));
-
-        assertTrue(BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_A));
-        assertTrue(BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_B));
-
-        assertTrue(BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_B));
-        assertTrue(BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_A));
+    public final void testEquals_whenAreDifferent() {
+        assertThat("BoardFixtures.INITIAL must not be equal to BoardFixtures.NULL.",
+                   BoardFixtures.INITIAL,
+                   is(not(BoardFixtures.NULL)));
+        assertThat("BoardFixtures.INITIAL must not be equal to a new Object().",
+                   BoardFixtures.INITIAL,
+                   is(not(new Object())));
+        assertThat("BoardFixtures.INITIAL must not be equal to BoardFixtures.FIRST_MOVE_D3.",
+                   BoardFixtures.INITIAL,
+                   is(not(BoardFixtures.FIRST_MOVE_D3)));
     }
 
+
+    /**
+     * Tests the {@code equals(Object)} method when the two objects are the same.
+     * <p>
+     * The test runs three assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL is BoardFixtures.INITIAL}</li>
+     *   <li>{@code BoardFixtures.EQL_TEST_A is EQL_TEST_A}</li>
+     *   <li>{@code BoardFixtures.EQL_TEST_B is EQL_TEST_B}</li>
+     * </ul>
+     *
+     * @see Board#equals(Object)
+     */
+    @Test
+    public final void testEquals_whenAreTheSameObject() {
+        assertThat("BoardFixtures.INITIAL must be equal to BoardFixtures.INITIAL.",
+                   BoardFixtures.INITIAL,
+                   is(BoardFixtures.INITIAL));
+        assertThat("BoardFixtures.EQL_TEST_A must be equal to BoardFixtures.EQL_TEST_A.",
+                   BoardFixtures.EQL_TEST_A,
+                   is(BoardFixtures.EQL_TEST_A));
+        assertThat("BoardFixtures.EQL_TEST_B must be equal to BoardFixtures.EQL_TEST_B.",
+                   BoardFixtures.EQL_TEST_B,
+                   is(BoardFixtures.EQL_TEST_B));
+    }
+
+    /**
+     * Tests the {@code equals(Object)} method.
+     * <p>
+     * The test runs six assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL is Board.initialBoard()}</li>
+     *   <li>{@code Board.initialBoard() is BoardFixtures.INITIAL}</li>
+     *   <li>{@code BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_A)} is true.</li>
+     *   <li>{@code BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_B)} is true.</li>
+     *   <li>{@code BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_B)} is true.</li>
+     *   <li>{@code BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_A)} is true.</li>
+     * </ul>
+     *
+     * @see Board#equals(Object)
+     * @see BoardFixtures#EQL_TEST_A
+     * @see BoardFixtures#EQL_TEST_B
+     */
+    @Test
+    public final void testEquals_whenAreNotTheSameObject_butAreEqual() {
+        assertThat("BoardFixtures.INITIAL must be equal to Board.initialBoard().",
+                   BoardFixtures.INITIAL,
+                   is(Board.initialBoard()));
+        assertThat("Board.initialBoard() must be equal to BoardFixtures.INITIAL.",
+                   Board.initialBoard(),
+                   is(BoardFixtures.INITIAL));
+        assertTrue("BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_A)"
+                   + " must return true.",
+                   BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_A));
+        assertTrue("BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_B)"
+                   + " must return true.",
+                   BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_B));
+        assertTrue("BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_B)"
+                   + " must return true.",
+                   BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_B));
+        assertTrue("BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_A)"
+                   + " must return true.",
+                   BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_A));
+    }
+
+    /**
+     * Tests the {@code get(Square)} method.
+     * <p>
+     * The test runs four assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B3)} is {@code SquareState.BLACK}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B4)} is {@code SquareState.WHITE}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.NULL)} is {@code SquareState.OUTER}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.A1)} is {@code SquareState.EMPTY}</li>
+     * </ul>
+     *
+     * @see Board#get(Square)
+     * @see BoardFixtures#EARLY_GAME_C_12_MOVES
+     */
     @Test
     public final void testGet() {
-        assertEquals(SquareState.BLACK, BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B3));
-        assertEquals(SquareState.WHITE, BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B4));
-        assertEquals(SquareState.OUTER, BoardFixtures.EARLY_GAME_C_12_MOVES.get(null));
-        assertEquals(SquareState.EMPTY, BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.A1));
+        assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B3)"
+                   + " must be SquareState.BLACK.",
+                   BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B3),
+                   is(SquareState.BLACK));
+        assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B4)"
+                   + " must be SquareState.WHITE.",
+                   BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B4),
+                   is(SquareState.WHITE));
+        assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.NULL)"
+                   + " must be SquareState.OUTER.",
+                   BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.NULL),
+                   is(SquareState.OUTER));
+        assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.A1)"
+                   + " must be SquareState.EMPTY.",
+                   BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.A1),
+                   is(SquareState.EMPTY));
     }
 
     @Test
@@ -616,6 +720,10 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.findBracketingPiece(Square.H7, Player.WHITE, Direction.NW)} must return {@code Square.F5}.</li>
      *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.findBracketingPiece(Square.H7, Player.WHITE, Direction.SW)} must return {@code Square.NULL}.</li>
      * </ul>
+     *
+     * @throws NoSuchMethodException     if findBracketingPiece method is not found
+     * @throws IllegalAccessException    if findBracketingPiece method invocation done by reflection rises a security exception
+     * @throws InvocationTargetException if findBracketingPiece method invocation rises execution exceptions
      */
     @Test
     public final void testFindBracketingPiece()
@@ -668,8 +776,12 @@ public class BoardTest {
      * @param move   the player's move
      * @param dir    the board direction
      * @return       the bracketing square
+     *
+     * @throws NoSuchMethodException     if findBracketingPiece method is not found
+     * @throws IllegalAccessException    if findBracketingPiece method invocation done by reflection rises a security exception
+     * @throws InvocationTargetException if findBracketingPiece method invocation rises execution exceptions
      */
-    private final Square utilFindBracketingPiece(Board board, Player player, Square move, Direction dir)
+    private Square utilFindBracketingPiece(final Board board, final Player player, final Square move, final Direction dir)
         throws NoSuchMethodException,
                IllegalAccessException,
                InvocationTargetException {
@@ -678,7 +790,7 @@ public class BoardTest {
         method.setAccessible(true);
 
         Square firstStepInTheGivenDirection = move.neighbors().get(dir);
-        Square bracketing = (Square)method.invoke(board, firstStepInTheGivenDirection, player, dir);
+        Square bracketing = (Square) method.invoke(board, firstStepInTheGivenDirection, player, dir);
 
         return bracketing;
     }
@@ -702,6 +814,10 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.S)} must return {@code Square.NULL}.</li>
      * </ul>
      *
+     * @throws NoSuchMethodException     if wouldFlip method is not found
+     * @throws IllegalAccessException    if wouldFlip method invocation done by reflection rises a security exception
+     * @throws InvocationTargetException if wouldFlip method invocation rises execution exceptions
+     *
      * @see Board#makeMove(Square, Player)
      * @see Board#isLegal(Square, Player)
      */
@@ -716,12 +832,12 @@ public class BoardTest {
 
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.W)"
                    + " must return Square.C7.",
-                   (Square)method.invoke(BoardFixtures.BLACK_HAS_TO_PASS, Square.H7, Player.WHITE, Direction.W),
+                   (Square) method.invoke(BoardFixtures.BLACK_HAS_TO_PASS, Square.H7, Player.WHITE, Direction.W),
                    is(Square.C7));
 
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.S)"
                    + " must return Square.NULL.",
-                   (Square)method.invoke(BoardFixtures.BLACK_HAS_TO_PASS, Square.H7, Player.WHITE, Direction.S),
+                   (Square) method.invoke(BoardFixtures.BLACK_HAS_TO_PASS, Square.H7, Player.WHITE, Direction.S),
                    is(Square.NULL));
     }
 
