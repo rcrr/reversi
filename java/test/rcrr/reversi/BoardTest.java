@@ -312,42 +312,168 @@ public class BoardTest {
                    is(SquareState.EMPTY));
     }
 
+    /**
+     * Tests the {@code hasAnyLegalMove(Player)} method when parameter
+     * {@code player} is {@code null}.
+     *
+     * @see Board#hasAnyLegalMove(Player)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testHasAnyLegalMove_boundaryConditions_checkNullParameter_player() {
+        new BoardBuilder().build()
+            .hasAnyLegalMove(Player.NULL);
+    }
+
+    /**
+     * Tests the {@code hasAnyLegalMove(Player)} method.
+     * <p>
+     * The test runs five assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.hasAnyLegalMove(Player.BLACK)} is {@code true}</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.BLACK)} is {@code false}</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.WHITE)} is {@code true}</li>
+     *   <li>{@code BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.WHITE)} is {@code false}</li>
+     *   <li>{@code BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.BLACK)} is {@code false}</li>
+     * </ul>
+     *
+     * @see Board#hasAnyLegalMove(Player)
+     * @see BoardFixtures#INITIAL
+     * @see BoardFixtures#BLACK_HAS_TO_PASS
+     * @see BoardFixtures#FINAL_B37_W27
+     */
     @Test
     public final void testHasAnyLegalMove() {
-        assertTrue(BoardFixtures.INITIAL.hasAnyLegalMove(Player.BLACK));
-        assertFalse(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.BLACK));
-        assertTrue(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.WHITE));
-        assertFalse(BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.WHITE));
-        assertFalse(BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.BLACK));
+        assertThat("BoardFixtures.INITIAL.hasAnyLegalMove(Player.BLACK)"
+                   + " must be true.",
+                   BoardFixtures.INITIAL.hasAnyLegalMove(Player.BLACK),
+                   is(true));
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.BLACK)"
+                    + " must be false.",
+                   BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.BLACK),
+                    is(false));
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.WHITE)"
+                   + " must be true",
+                   BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.WHITE),
+                   is(true));
+        assertThat("BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.WHITE)"
+                    + " must be false.",
+                   BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.WHITE),
+                   is(false));
+        assertThat("BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.BLACK)"
+                    + " must be false.",
+                   BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.BLACK),
+                   is(false));
     }
 
+    /**
+     * Tests the {@code hasAnyPlayerAnyLegalMove()} method.
+     * <p>
+     * The test runs four assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.EMPTY.hasAnyPlayerAnyLegalMove()} is {@code false}</li>
+     *   <li>{@code BoardFixtures.INITIAL.hasAnyPlayerAnyLegalMove()} is {@code true}</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.hasAnyPlayerAnyLegalMove()} is {@code true}</li>
+     *   <li>{@code BoardFixtures.FINAL_B37_W27.hasAnyPlayerAnyLegalMove()} is {@code false}</li>
+     * </ul>
+     *
+     * @see Board#hasAnyPlayerAnyLegalMove()
+     * @see BoardFixtures#EMPTY
+     * @see BoardFixtures#INITIAL
+     * @see BoardFixtures#BLACK_HAS_TO_PASS
+     * @see BoardFixtures#FINAL_B37_W27
+     */
     @Test
     public final void testHasAnyPlayerAnyLegalMove() {
-        assertFalse(BoardFixtures.EMPTY.hasAnyPlayerAnyLegalMove());
-        assertTrue(BoardFixtures.INITIAL.hasAnyPlayerAnyLegalMove());
-        assertTrue(BoardFixtures.BLACK_HAS_TO_PASS.hasAnyPlayerAnyLegalMove());
-        assertFalse(BoardFixtures.FINAL_B37_W27.hasAnyPlayerAnyLegalMove());
+        assertThat("BoardFixtures.EMPTY.hasAnyPlayerAnyLegalMove()"
+                   + " must be false.",
+                   BoardFixtures.EMPTY.hasAnyPlayerAnyLegalMove(),
+                   is(false));
+        assertThat("BoardFixtures.INITIAL.hasAnyPlayerAnyLegalMove()"
+                   + " must be true.",
+                   BoardFixtures.INITIAL.hasAnyPlayerAnyLegalMove(),
+                   is(true));
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.hasAnyPlayerAnyLegalMove()"
+                   + " must be true.",
+                   BoardFixtures.BLACK_HAS_TO_PASS.hasAnyPlayerAnyLegalMove(),
+                   is(true));
+        assertThat("BoardFixtures.FINAL_B37_W27.hasAnyPlayerAnyLegalMove()"
+                    + " must be false.",
+                    BoardFixtures.FINAL_B37_W27.hasAnyPlayerAnyLegalMove(),
+                    is(false));
     }
 
+    /**
+     * Tests the {@code hashCode()} method.
+     * <p>
+     * The test runs nine assertions on different boards. The test verify that calling twice the method on
+     * a given board the returned value is the same.
+     *
+     * @see Board#hashCode()
+     */
     @Test
-    public final void testHashCode() {
-        assertEquals(BoardFixtures.INITIAL.hashCode(), BoardFixtures.INITIAL.hashCode());
-        assertEquals(BoardFixtures.EMPTY.hashCode(), BoardFixtures.EMPTY.hashCode());
-        assertEquals(BoardFixtures.BLACK_HAS_TO_PASS.hashCode(), BoardFixtures.BLACK_HAS_TO_PASS.hashCode());
-        assertEquals(BoardFixtures.FINAL_B37_W27.hashCode(), BoardFixtures.FINAL_B37_W27.hashCode());
-        assertEquals(BoardFixtures.FIRST_MOVE_D3.hashCode(), BoardFixtures.FIRST_MOVE_D3.hashCode());
-        assertEquals(BoardFixtures.EARLY_GAME_B_9_MOVES.hashCode(), BoardFixtures.EARLY_GAME_B_9_MOVES.hashCode());
-        assertEquals(BoardFixtures.EARLY_GAME_C_12_MOVES.hashCode(), BoardFixtures.EARLY_GAME_C_12_MOVES.hashCode());
-        assertEquals(BoardFixtures.EQL_TEST_A.hashCode(), BoardFixtures.EQL_TEST_A.hashCode());
-        assertEquals(BoardFixtures.EQL_TEST_B.hashCode(), BoardFixtures.EQL_TEST_B.hashCode());
-
-        assertEquals(BoardFixtures.EQL_TEST_A.hashCode(), BoardFixtures.EQL_TEST_B.hashCode());
-        assertEquals(BoardFixtures.EQL_TEST_B.hashCode(), BoardFixtures.EQL_TEST_A.hashCode());
+    public final void testHashCode_isConsistentWhenCalledMoreThanOnce() {
+        utilHashCode(BoardFixtures.INITIAL, "BoardFixtures.INITIAL");
+        utilHashCode(BoardFixtures.EMPTY, "BoardFixtures.EMPTY");
+        utilHashCode(BoardFixtures.BLACK_HAS_TO_PASS, "BoardFixtures.BLACK_HAS_TO_PASS");
+        utilHashCode(BoardFixtures.FINAL_B37_W27, "BoardFixtures.FINAL_B37_W27");
+        utilHashCode(BoardFixtures.FIRST_MOVE_D3, "BoardFixtures.FIRST_MOVE_D3");
+        utilHashCode(BoardFixtures.EARLY_GAME_B_9_MOVES, "BoardFixtures.EARLY_GAME_B_9_MOVES");
+        utilHashCode(BoardFixtures.EARLY_GAME_C_12_MOVES, "BoardFixtures.EARLY_GAME_C_12_MOVES");
+        utilHashCode(BoardFixtures.EQL_TEST_A, "BoardFixtures.EQL_TEST_A");
+        utilHashCode(BoardFixtures.EQL_TEST_B, "BoardFixtures.EQL_TEST_B");
     }
 
+    /**
+     * Util method used by testHashCode_isConsistentWhenCalledMoreThanOnce.
+     *
+     * @param board  the board
+     * @param symbol the board literal
+     */
+    private void utilHashCode(final Board board, final String symbol) {
+        assertEquals(symbol + " must have a consistent hash code.", board.hashCode(), board.hashCode());
+    }
+
+    /**
+     * Tests the {@code hashCode()} method.
+     * <p>
+     * The test runs two assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.EQL_TEST_A.hashCode()} is equal to {@code BoardFixtures.EQL_TEST_B.hashCode()}</li>
+     *   <li>{@code BoardFixtures.EQL_TEST_B.hashCode()} is equal to {@code BoardFixtures.EQL_TEST_A.hashCode()}</li>
+     * </ul>
+     *
+     * @see Board#hashCode()
+     * @see BoardFixtures#EQL_TEST_A
+     * @see BoardFixtures#EQL_TEST_B
+     */
+    @Test
+    public final void testHashCode_isConsistentWhenCalledOnEqualObjects() {
+        assertEquals("BoardFixtures.EQL_TEST_A and BoardFixtures.EQL_TEST_B must have the same hash.",
+                     BoardFixtures.EQL_TEST_A.hashCode(), BoardFixtures.EQL_TEST_B.hashCode());
+        assertEquals("BoardFixtures.EQL_TEST_B and BoardFixtures.EQL_TEST_A must have the same hash.",
+                     BoardFixtures.EQL_TEST_B.hashCode(), BoardFixtures.EQL_TEST_A.hashCode());
+    }
+
+    /**
+     * Tests the {@code initialBoard()} method.
+     * <p>
+     * The test runs two kind of assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code Board.initialBoard()} is equal to {@code BoardFixtures.INITIAL}</li>
+     *   <li>For each board square the state is checked against the expected one</li>
+     * </ul>
+     *
+     * @see Board#initialBoard()
+     * @see BoardFixtures#INITIAL
+     */
     @Test
     public final void testInitialBoard() {
-        assertEquals(BoardFixtures.INITIAL, Board.initialBoard());
+        assertEquals("Board.initialBoard() must be equal to BoardFixtures.INITIAL.",
+                     BoardFixtures.INITIAL, Board.initialBoard());
         Board initial = Board.initialBoard();
         for (Square square : Square.values()) {
             SquareState actual = initial.get(square);
@@ -359,104 +485,214 @@ public class BoardTest {
             case E5: expected = SquareState.WHITE; break;
             default: expected = SquareState.EMPTY; break;
             }
-            assertEquals(expected, actual);
+            assertEquals("Square:" + actual + " must be equal to " + expected + ".",
+                         expected, actual);
         }
     }
 
+    /**
+     * Tests the {@code isLegal(Square, Player)} method when parameter
+     * {@code move} is {@code null}.
+     *
+     * @see Board#isLegal(Square, Player)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testIsLegal_boundaryConditions_checkNullParameter_move() {
+        new BoardBuilder().build()
+            .isLegal(Square.NULL, Player.AN_INSTANCE);
+    }
+
+    /**
+     * Tests the {@code isLegal(Square, Player)} method when parameter
+     * {@code player} is {@code null}.
+     *
+     * @see Board#isLegal(Square, Player)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testIsLegal_boundaryConditions_checkNullParameter_player() {
+        new BoardBuilder().build()
+            .isLegal(Square.AN_INSTANCE, Player.NULL);
+    }
+
+    /**
+     * Tests the {@code isLegal(Square, Player)} method when the target square
+     * for the move is already occupied.
+     * <p>
+     * The test runs two assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.isLegal(Square.D4, Player.BLACK)} is false.</li>
+     *   <li>{@code BoardFixtures.INITIAL.isLegal(Square.D4, Player.WHITE)} is false.</li>
+     * </ul>
+     *
+     * @see Board#isLegal(Square, Player)
+     * @see BoardFixtures#INITIAL
+     */
     @Test
-    public final void testIsLegal() {
+    public final void testIsLegal_whenAlreadyOccupied() {
+        assertThat("BoardFixtures.INITIAL.isLegal(Square.D4, Player.BLACK)"
+                   + " must be false.",
+                   BoardFixtures.INITIAL.isLegal(Square.D4, Player.BLACK),
+                   is(false));
+        assertThat("BoardFixtures.INITIAL.isLegal(Square.D4, Player.WHITE)"
+                   + " must be false.",
+                   BoardFixtures.INITIAL.isLegal(Square.D4, Player.WHITE),
+                   is(false));
+    }
 
-        try {
-            BoardFixtures.INITIAL.isLegal(null, Player.BLACK);
-            fail("An exception must be risen.");
-        } catch (NullPointerException npe) {
-            assertTrue(true);
-        }
+    /**
+     * Tests the {@code isLegal(Square, Player)} method when no disc would be flipped.
+     * <p>
+     * The test runs four assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.isLegal(Square.A1, Player.BLACK)} is false.</li>
+     *   <li>{@code BoardFixtures.INITIAL.isLegal(Square.A1, Player.WHITE)} is false.</li>
+     *   <li>{@code BoardFixtures.INITIAL.isLegal(Square.E3, Player.BLACK)} is false.</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.BLACK)} is false.</li>
+     * </ul>
+     *
+     * @see Board#isLegal(Square, Player)
+     * @see BoardFixtures#INITIAL
+     * @see BoardFixtures#BLACK_HAS_TO_PASS
+     */
+    @Test
+    public final void testIsLegal_whenNoDiscWouldBeFlipped() {
+        assertThat("BoardFixtures.INITIAL.isLegal(Square.A1, Player.BLACK)"
+                   + " must return false.",
+                   BoardFixtures.INITIAL.isLegal(Square.A1, Player.BLACK),
+                    is(false));
+        assertThat("BoardFixtures.INITIAL.isLegal(Square.A1, Player.WHITE)"
+                   + " must return false.",
+                   BoardFixtures.INITIAL.isLegal(Square.A1, Player.WHITE),
+                    is(false));
+        assertThat("BoardFixtures.INITIAL.isLegal(Square.E3, Player.BLACK)"
+                    + " must be false.",
+                   BoardFixtures.INITIAL.isLegal(Square.E3, Player.BLACK),
+                   is(false));
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.BLACK)"
+                   + " must be false.",
+                   BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.BLACK),
+                   is(false));
+    }
 
-        try {
-            BoardFixtures.INITIAL.isLegal(Square.D3, null);
-            fail("An exception must be risen.");
-        } catch (NullPointerException npe) {
-            assertTrue(true);
-        }
-
-        /** D4 is already occupied by a disk in the initial board. */
-        assertFalse(BoardFixtures.INITIAL.isLegal(Square.D4, Player.BLACK));
-        assertFalse(BoardFixtures.INITIAL.isLegal(Square.D4, Player.WHITE));
-
-        /** Corner A1 is not a legal move given the initial board. */
-        assertFalse(BoardFixtures.INITIAL.isLegal(Square.A1, Player.BLACK));
-        assertFalse(BoardFixtures.INITIAL.isLegal(Square.A1, Player.WHITE));
-
-        /** D3 is one of the four legal moves that the black player has in the opening. */
-        assertTrue(BoardFixtures.INITIAL.isLegal(Square.D3, Player.BLACK));
-
-        /** E3 is not among the legal opening moves. */
-        assertFalse(BoardFixtures.INITIAL.isLegal(Square.E3, Player.BLACK));
-
-        assertFalse(BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.BLACK));
-        assertTrue(BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.WHITE));
-
-        assertTrue(BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C3, Player.WHITE));
-        assertTrue(BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C6, Player.WHITE));
+    /**
+     * Tests the {@code isLegal(Square, Player)} method when the move is legal.
+     * <p>
+     * The test runs four assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.isLegal(Square.D3, Player.BLACK)} is true.</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.WHITE)} is true.</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C3, Player.WHITE)} is true.</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C6, Player.WHITE)} is true.</li>
+     * </ul>
+     *
+     * @see Board#isLegal(Square, Player)
+     * @see BoardFixtures#INITIAL
+     * @see BoardFixtures#BLACK_HAS_TO_PASS
+     * @see BoardFixtures#EARLY_GAME_B_9_MOVES
+     */
+    @Test
+    public final void testIsLegal_whenItIs() {
+        assertThat("BoardFixtures.INITIAL.isLegal(Square.D3, Player.BLACK)"
+                   + " must be true.",
+                   BoardFixtures.INITIAL.isLegal(Square.D3, Player.BLACK),
+                   is(true));
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.WHITE)"
+                   + " must be true.",
+                   BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.WHITE),
+                   is(true));
+        assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C3, Player.WHITE)"
+                   + " must be true.",
+                   BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C3, Player.WHITE),
+                   is(true));
+        assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C6, Player.WHITE)"
+                   + " must be true.",
+                   BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C6, Player.WHITE),
+                   is(true));
 
     }
 
+    /**
+     * Tests the {@code legalMoves(Player)} method when parameter
+     * {@code player} is {@code null}.
+     *
+     * @see Board#legalMoves(Player)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testLegalMoves_boundaryConditions_checkNullParameter_player() {
+        new BoardBuilder().build()
+            .legalMoves(Player.NULL);
+    }
+
+    /**
+     * Tests the {@code legalMoves(Player)} method.
+     * <p>
+     * The test runs the following assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.legalMoves(Player.BLACK)} must return {@code [D3 C4 F5 E6]}</li>
+     *   <li>{@code BoardFixtures.FIRST_MOVE_D3.legalMoves(Player.WHITE)} must return {@code [C3 E3 C5]}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.legalMoves(Player.BLACK)} must return {@code [H2 A4 C4 G4 A5 F5 B6 E6 G7]}</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.legalMoves(Player.BLACK)} must return {@code []}</li>
+     *   <li>{@code BoardFixtures.MINIMAX_TEST_CASE_A.legalMoves(Player.WHITE)} must return {@code [A3 C4 G4 E5]}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.legalMoves(Player.WHITE)} must return {@code [C3 C6]}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_BC3_10_MOVES.legalMoves(Player.BLACK)} must return {@code [B2 C2 D2 F2 G2 C4 G4]}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_BC6_10_MOVES.legalMoves(Player.BLACK)} must return {@code [H3 C4 F4 G4 C5 F5 D6]}</li>
+     * </ul>
+     *
+     * @see Board#legalMoves(Player)
+     * @see BoardFixtures#INITIAL
+     * @see BoardFixtures#FIRST_MOVE_D3
+     * @see BoardFixtures#EARLY_GAME_C_12_MOVES
+     * @see BoardFixtures#BLACK_HAS_TO_PASS
+     * @see BoardFixtures#MINIMAX_TEST_CASE_A
+     * @see BoardFixtures#EARLY_GAME_B_9_MOVES
+     * @see BoardFixtures#EARLY_GAME_BC3_10_MOVES
+     * @see BoardFixtures#EARLY_GAME_BC6_10_MOVES
+     */
     @Test
     public final void testLegalMoves() {
-        try {
-            BoardFixtures.INITIAL.legalMoves(null);
-            fail("An exception must be risen.");
-        } catch (NullPointerException npe) {
-            assertTrue(true);
-        }
-
-        {
-            List<Square> lm = Arrays.asList(Square.D3, Square.C4, Square.F5, Square.E6);
-            assertEquals(lm, BoardFixtures.INITIAL.legalMoves(Player.BLACK));
-        }
-
-        {
-            List<Square> lm = Arrays.asList(Square.C3, Square.E3, Square.C5);
-            assertEquals(lm, BoardFixtures.FIRST_MOVE_D3.legalMoves(Player.WHITE));
-        }
-
-        {
-            List<Square> lm = Arrays.asList(Square.H2, Square.A4, Square.C4, 
-                                            Square.G4, Square.A5, Square.F5, 
-                                            Square.B6, Square.E6, Square.G7);
-            assertEquals(lm, BoardFixtures.EARLY_GAME_C_12_MOVES.legalMoves(Player.BLACK));
-        }
-
-        {
-            List<Square> lm = new ArrayList<Square>();
-            assertEquals(lm, BoardFixtures.BLACK_HAS_TO_PASS.legalMoves(Player.BLACK));
-        }
-
-        {
-            List<Square> lm = Arrays.asList(Square.A3, Square.C4, Square.G4, Square.E5);
-            assertEquals(lm, BoardFixtures.MINIMAX_TEST_CASE_A.legalMoves(Player.WHITE));
-        }
-
-        {
-            List<Square> lm = Arrays.asList(Square.C3, Square.C6);
-            assertEquals(lm, BoardFixtures.EARLY_GAME_B_9_MOVES.legalMoves(Player.WHITE));
-        }
-
-        {
-            List<Square> lm = Arrays.asList(Square.B2, Square.C2, Square.D2,
-                                            Square.F2, Square.G2, Square.C4,
-                                            Square.G4);
-            assertEquals(lm, BoardFixtures.EARLY_GAME_BC3_10_MOVES.legalMoves(Player.BLACK));
-        }
-
-        {
-            List<Square> lm = Arrays.asList(Square.H3, Square.C4, Square.F4,
+        assertThat("BoardFixtures.INITIAL.legalMoves(Player.BLACK)"
+                   + " must return [D3 C4 F5 E6]",
+                   BoardFixtures.INITIAL.legalMoves(Player.BLACK),
+                   is(Arrays.asList(Square.D3, Square.C4, Square.F5, Square.E6)));
+        assertThat("BoardFixtures.FIRST_MOVE_D3.legalMoves(Player.WHITE)"
+                   + " must return [C3 E3 C5]",
+                   BoardFixtures.FIRST_MOVE_D3.legalMoves(Player.WHITE),
+                   is(Arrays.asList(Square.C3, Square.E3, Square.C5)));
+        assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.legalMoves(Player.BLACK)"
+                   + " must return [H2 A4 C4 G4 A5 F5 B6 E6 G7]",
+                   BoardFixtures.EARLY_GAME_C_12_MOVES.legalMoves(Player.BLACK),
+                   is(Arrays.asList(Square.H2, Square.A4, Square.C4, 
+                                    Square.G4, Square.A5, Square.F5, 
+                                    Square.B6, Square.E6, Square.G7)));
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.legalMoves(Player.BLACK)"
+                   + " must return []",
+                   BoardFixtures.BLACK_HAS_TO_PASS.legalMoves(Player.BLACK)
+                   .isEmpty(),
+                   is(true));
+        assertThat("BoardFixtures.MINIMAX_TEST_CASE_A.legalMoves(Player.WHITE)"
+                   + " must return [A3 C4 G4 E5]",
+                   BoardFixtures.MINIMAX_TEST_CASE_A.legalMoves(Player.WHITE),
+                   is(Arrays.asList(Square.A3, Square.C4, Square.G4, Square.E5)));
+        assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.legalMoves(Player.WHITE)"
+                   + " must return [C3 C6]",
+                   BoardFixtures.EARLY_GAME_B_9_MOVES.legalMoves(Player.WHITE),
+                   is(Arrays.asList(Square.C3, Square.C6)));
+        assertThat("BoardFixtures.EARLY_GAME_BC3_10_MOVES.legalMoves(Player.BLACK)"
+                   + " must return [B2 C2 D2 F2 G2 C4 G4]",
+                   BoardFixtures.EARLY_GAME_BC3_10_MOVES.legalMoves(Player.BLACK),
+                   is(Arrays.asList(Square.B2, Square.C2, Square.D2,
+                                    Square.F2, Square.G2, Square.C4,
+                                    Square.G4)));
+        assertThat("BoardFixtures.EARLY_GAME_BC6_10_MOVES.legalMoves(Player.BLACK)"
+                   + " must return [H3 C4 F4 G4 C5 F5 D6]",
+                   BoardFixtures.EARLY_GAME_BC6_10_MOVES.legalMoves(Player.BLACK),
+                   is(Arrays.asList(Square.H3, Square.C4, Square.F4,
                                             Square.G4, Square.C5, Square.F5,
-                                            Square.D6);
-            assertEquals(lm, BoardFixtures.EARLY_GAME_BC6_10_MOVES.legalMoves(Player.BLACK));
-        }
-
+                                            Square.D6)));
     }
 
     /**
