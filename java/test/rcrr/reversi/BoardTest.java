@@ -24,11 +24,9 @@
 
 package rcrr.reversi;
 
-import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.EnumMap;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import java.lang.reflect.Method;
@@ -38,7 +36,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -47,21 +44,8 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 
 /**
  * Test Suite for {@code Board} class.
- * <p>
- * Several thing to do:
- * <ul>
- *   <li>Comment assert statement.</li>
- *   <li>Rewrite Exception checking.</li>
- *   <li>Split tests into more granular methods.</li>
- *   <li>Complete javadocs and style.</li>
- * </ul>
  */
 public class BoardTest {
-
-    @Test
-    public final void testReviewReminder() {
-        fail("The Test Suite must be reviewed!");
-    }
 
     /** Class constructor. */
     public BoardTest() { }
@@ -85,7 +69,8 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.INITIAL.countDifference(Player.BLACK)} must return a count equal to 0.</li>
      *   <li>{@code BoardFixtures.FINAL_B37_W27.countDifference(Player.BLACK)} must return a count equal to +10.</li>
      *   <li>{@code BoardFixtures.FINAL_B37_W27.countDifference(Player.WHITE)} must return a count equal to -10.</li>
-     *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.countDifference(Player.BLACK)} must return a count equal to -2.</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.countDifference(Player.BLACK)}
+     *       must return a count equal to -2.</li>
      * </ul>
      *
      * @see Board#countDifference(Player)
@@ -634,12 +619,15 @@ public class BoardTest {
      * <ul>
      *   <li>{@code BoardFixtures.INITIAL.legalMoves(Player.BLACK)} must return {@code [D3 C4 F5 E6]}</li>
      *   <li>{@code BoardFixtures.FIRST_MOVE_D3.legalMoves(Player.WHITE)} must return {@code [C3 E3 C5]}</li>
-     *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.legalMoves(Player.BLACK)} must return {@code [H2 A4 C4 G4 A5 F5 B6 E6 G7]}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.legalMoves(Player.BLACK)}
+     *       must return {@code [H2 A4 C4 G4 A5 F5 B6 E6 G7]}</li>
      *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.legalMoves(Player.BLACK)} must return {@code []}</li>
      *   <li>{@code BoardFixtures.MINIMAX_TEST_CASE_A.legalMoves(Player.WHITE)} must return {@code [A3 C4 G4 E5]}</li>
      *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.legalMoves(Player.WHITE)} must return {@code [C3 C6]}</li>
-     *   <li>{@code BoardFixtures.EARLY_GAME_BC3_10_MOVES.legalMoves(Player.BLACK)} must return {@code [B2 C2 D2 F2 G2 C4 G4]}</li>
-     *   <li>{@code BoardFixtures.EARLY_GAME_BC6_10_MOVES.legalMoves(Player.BLACK)} must return {@code [H3 C4 F4 G4 C5 F5 D6]}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_BC3_10_MOVES.legalMoves(Player.BLACK)}
+     *       must return {@code [B2 C2 D2 F2 G2 C4 G4]}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_BC6_10_MOVES.legalMoves(Player.BLACK)}
+     *       must return {@code [H3 C4 F4 G4 C5 F5 D6]}</li>
      * </ul>
      *
      * @see Board#legalMoves(Player)
@@ -665,8 +653,8 @@ public class BoardTest {
         assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.legalMoves(Player.BLACK)"
                    + " must return [H2 A4 C4 G4 A5 F5 B6 E6 G7]",
                    BoardFixtures.EARLY_GAME_C_12_MOVES.legalMoves(Player.BLACK),
-                   is(Arrays.asList(Square.H2, Square.A4, Square.C4, 
-                                    Square.G4, Square.A5, Square.F5, 
+                   is(Arrays.asList(Square.H2, Square.A4, Square.C4,
+                                    Square.G4, Square.A5, Square.F5,
                                     Square.B6, Square.E6, Square.G7)));
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.legalMoves(Player.BLACK)"
                    + " must return []",
@@ -762,7 +750,7 @@ public class BoardTest {
             result = BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK);
         } catch (Exception e) {
             fail("BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK) should't rise an exception."
-                 + " e.getMessage()=" +e.getMessage());
+                 + " e.getMessage()=" + e.getMessage());
         }
 
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK)"
@@ -776,13 +764,20 @@ public class BoardTest {
      * <p>
      * The test run the following assertions:
      * <ul>
-     *   <li>{@code BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK) is BoardFixtures.FIRST_MOVE_D3}</li>
-     *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C3, Player.WHITE) is BoardFixtures.EARLY_GAME_BC3_10_MOVES}</li>
-     *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C6, Player.WHITE) is BoardFixtures.EARLY_GAME_BC6_10_MOVES}</li>
-     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_A_BEFORE.makeMove(Square.D4, Player.WHITE) is BoardFixtures.MAKE_MOVE_TEST_CASE_A_AFTER}</li>
-     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_B_BEFORE.makeMove(Square.D4, Player.WHITE) is BoardFixtures.MAKE_MOVE_TEST_CASE_B_AFTER}</li>
-     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_C_BEFORE.makeMove(Square.D4, Player.WHITE) is BoardFixtures.MAKE_MOVE_TEST_CASE_C_AFTER}</li>
-     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_D_BEFORE.makeMove(Square.B4, Player.WHITE) is BoardFixtures.MAKE_MOVE_TEST_CASE_D_AFTER}</li>
+     *   <li>{@code BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK)}
+     *       is {@code BoardFixtures.FIRST_MOVE_D3}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C3, Player.WHITE)}
+     *       is {@code BoardFixtures.EARLY_GAME_BC3_10_MOVES}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C6, Player.WHITE)}
+     *       is {@code BoardFixtures.EARLY_GAME_BC6_10_MOVES}</li>
+     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_A_BEFORE.makeMove(Square.D4, Player.WHITE)}
+     *       is {@code BoardFixtures.MAKE_MOVE_TEST_CASE_A_AFTER}</li>
+     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_B_BEFORE.makeMove(Square.D4, Player.WHITE)}
+     *       is {@code BoardFixtures.MAKE_MOVE_TEST_CASE_B_AFTER}</li>
+     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_C_BEFORE.makeMove(Square.D4, Player.WHITE)}
+     *       is {@code BoardFixtures.MAKE_MOVE_TEST_CASE_C_AFTER}</li>
+     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_D_BEFORE.makeMove(Square.B4, Player.WHITE)}
+     *       is {@code BoardFixtures.MAKE_MOVE_TEST_CASE_D_AFTER}</li>
      * </ul>
      *
      * @see Board#makeMove(Square, Player)
@@ -803,19 +798,27 @@ public class BoardTest {
     @Test
     public final void testMakeMove() {
 
-        /** Move D3 by black sent to the initial board returns the BoardFixtures.FIRST_MOVE_D3. */
+        /**
+         * Move D3 by black sent to the initial board returns the BoardFixtures.FIRST_MOVE_D3.
+         */
         assertThat("BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK)"
                    + "must return BoardFixtures.FIRST_MOVE_D3.",
                    BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK),
                    is(BoardFixtures.FIRST_MOVE_D3));
 
-        /** Move C3 by white sent to the BoardFixtures.EARLY_GAME_B_9_MOVES board returns the BoardFixtures.EARLY_GAME_BC3_10_MOVES. */
+        /**
+         * Move C3 by white sent to the BoardFixtures.EARLY_GAME_B_9_MOVES board returns
+         * the BoardFixtures.EARLY_GAME_BC3_10_MOVES.
+         */
         assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C3, Player.WHITE)"
                    + " must return BoardFixtures.EARLY_GAME_BC3_10_MOVES.",
                    BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C3, Player.WHITE),
                    is(BoardFixtures.EARLY_GAME_BC3_10_MOVES));
 
-        /** Move C6 by white sent to the BoardFixtures.EARLY_GAME_B_9_MOVES board returns the BoardFixtures.EARLY_GAME_BC6_10_MOVES. */
+        /**
+         * Move C6 by white sent to the BoardFixtures.EARLY_GAME_B_9_MOVES board returns
+         * the BoardFixtures.EARLY_GAME_BC6_10_MOVES.
+         */
         assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C6, Player.WHITE)"
                    + " must return BoardFixtures.EARLY_GAME_BC6_10_MOVES.",
                    BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C6, Player.WHITE),
@@ -1031,7 +1034,7 @@ public class BoardTest {
     }
 
     /**
-     * Test the {@code valueOf(Map<Square, SquareState)} factory.
+     * Test the {@code valueOf(Map<Square, SquareState>)} factory.
      * <p>
      * The factory receives the squares parameter, it cannot contains null keys.
      *
@@ -1048,85 +1051,64 @@ public class BoardTest {
         Board.valueOf(corruptedSquares);
     }
 
+    /**
+     * Tests the {@code valueOf(Map<Square, SquareState>)} factory when parameter
+     * {@code squares} is {@code null}.
+     *
+     * @see Board#valueOf(Map)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_checkNullParameter_squares() {
+        Map<Square, SquareState> nullSquares = null;
+        Board.valueOf(nullSquares);
+    }
+
+    /**
+     * Tests the {@code valueOf(Map<Square, SquareState>)} factory when parameter
+     * {@code squares} is missing one or more key.
+     *
+     * @see Board#valueOf(Map)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public final void testValueOf_boundaryConditions_checkMissingKey_squares() {
+        Map<Square, SquareState> incompleteSquares = new EnumMap<Square, SquareState>(Square.class);
+        incompleteSquares.put(Square.A1, SquareState.EMPTY);
+        Board.valueOf(incompleteSquares);
+    }
+
+    /**
+     * Tests the {@code valueOf(Map<Square, SquareState>)} factory.
+     * <p>
+     * After preparing the {@code Map<Square, SquareState> squares} parameter by taking the square values
+     * from {@code BoardFixtures.EARLY_GAME_C_12_MOVES}, the test run the following assertions:
+     * <ul>
+     *   <li>{@code Board.valueOf(squares)} is a member of the {@code Board} class</li>
+     *   <li>{@code Board.valueOf(squares)} is equal to {@code BoardFixtures.EARLY_GAME_C_12_MOVES}</li>
+     * </ul>
+     *
+     * @see Board#valueOf(Map)
+     * @see BoardFixtures#EARLY_GAME_C_12_MOVES
+     */
     @Test
     public final void testValueOf() {
-
-        /**
-         * Tests if the valueOf method throws a NullPointerException when
-         * the passed map is null.
-         */
-        try {
-            Board.valueOf(null);
-            fail("An exception must be risen.");
-        } catch (NullPointerException npe) {
-            assertTrue(true);
+        Map<Square, SquareState> squares = new HashMap<Square, SquareState>();
+        for (Square sq : Square.values()) {
+            squares.put(sq, BoardFixtures.EARLY_GAME_C_12_MOVES.get(sq));
         }
 
-        /**
-         * Tests if the valueOf method throws an IllegalArgumentException when
-         * the passed map has one or more missing keys.
-         */
-        {
-            Map<Square, SquareState> notCompleteSquareMap = new EnumMap<Square, SquareState>(Square.class);
-            notCompleteSquareMap.put(Square.A1, SquareState.EMPTY);
-            try {
-                Board.valueOf(notCompleteSquareMap);
-                fail("An exception must be risen.");
-            } catch (IllegalArgumentException iae) {
-                assertTrue(true);
-            }
-        }
- 
-        /**
-         * Tests if the valueOf method throws a NullPointerException when
-         * the passed map has a null key.
-         */
-        {
-            Map<Square, SquareState> corruptedSquareHashMap = new HashMap<Square, SquareState>();
-            for (Square sq : Square.values()) {
-                corruptedSquareHashMap.put(sq, SquareState.EMPTY);
-            }
-            corruptedSquareHashMap.remove(Square.H8);
-            corruptedSquareHashMap.put(null, SquareState.EMPTY);
-            try {
-                Board corruptedBoard = Board.valueOf(corruptedSquareHashMap);
-                fail("An exception must be risen.");
-            } catch (NullPointerException npe) {
-                assertTrue(true);
-            }
-        }
- 
-        /**
-         * Tests if the valueOf method returns the supposed Board. It is the
-         * standard usage under expected behavior.
-         */
-        {
-            Map<Square, SquareState> squares = new EnumMap<Square, SquareState>(Square.class);
-            for (Square sq : Square.values()) {
-                squares.put(sq, BoardFixtures.EARLY_GAME_C_12_MOVES.get(sq));
-            }
-            Board boardC0 = Board.valueOf(squares);
-            for (Square sq : Square.values()) {
-                assertEquals(BoardFixtures.EARLY_GAME_C_12_MOVES.get(sq), boardC0.get(sq));
-            }
-        }
+        assertThat("After preparing the Map<Square, SquareState> squares parameter by"
+                   + " taking the square values from BoardFixtures.EARLY_GAME_C_12_MOVES,"
+                   + " Board.valueOf(squares)"
+                   + " must return an instance of the Board class.",
+                   Board.valueOf(squares),
+                   instanceOf(Board.class));
 
-        /**
-         * Tests if the valueOf method returns the supposed Board. It is the
-         * standard usage under expected behavior.
-         * In this test the passed map is an HashMap instead of the "standard" EnumMap.
-         */
-        {
-            Map<Square, SquareState> squareHashMap = new HashMap<Square, SquareState>();
-            for (Square sq : Square.values()) {
-                squareHashMap.put(sq, BoardFixtures.EARLY_GAME_C_12_MOVES.get(sq));
-            }
-            Board boardC1 = Board.valueOf(squareHashMap);
-            for (Square sq : Square.values()) {
-                assertEquals(BoardFixtures.EARLY_GAME_C_12_MOVES.get(sq), boardC1.get(sq));
-            }
-        }
-        
+        assertThat("After preparing the Map<Square, SquareState> squares parameter by"
+                   + " taking the square values from BoardFixtures.EARLY_GAME_C_12_MOVES,"
+                   + " Board.valueOf(squares)"
+                   + " must be equal to BoardFixtures.EARLY_GAME_C_12_MOVES.",
+                   Board.valueOf(squares),
+                   is(BoardFixtures.EARLY_GAME_C_12_MOVES));
     }
 
     /**
@@ -1143,13 +1125,17 @@ public class BoardTest {
      * <p>
      * The test run the following checks:
      * <ul>
-     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.findBracketingPiece(Square.H7, Player.WHITE, Direction.W)} must return {@code Square.C7}.</li>
-     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.findBracketingPiece(Square.H7, Player.WHITE, Direction.NW)} must return {@code Square.F5}.</li>
-     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.findBracketingPiece(Square.H7, Player.WHITE, Direction.SW)} must return {@code Square.NULL}.</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.findBracketingPiece(Square.H7, Player.WHITE, Direction.W)}
+     *       must return {@code Square.C7}.</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.findBracketingPiece(Square.H7, Player.WHITE, Direction.NW)}
+     *       must return {@code Square.F5}.</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.findBracketingPiece(Square.H7, Player.WHITE, Direction.SW)}
+     *       must return {@code Square.NULL}.</li>
      * </ul>
      *
      * @throws NoSuchMethodException     if findBracketingPiece method is not found
-     * @throws IllegalAccessException    if findBracketingPiece method invocation done by reflection rises a security exception
+     * @throws IllegalAccessException    if findBracketingPiece method invocation
+     *                                   done by reflection rises a security exception
      * @throws InvocationTargetException if findBracketingPiece method invocation rises execution exceptions
      */
     @Test
@@ -1205,15 +1191,22 @@ public class BoardTest {
      * @return       the bracketing square
      *
      * @throws NoSuchMethodException     if findBracketingPiece method is not found
-     * @throws IllegalAccessException    if findBracketingPiece method invocation done by reflection rises a security exception
+     * @throws IllegalAccessException    if findBracketingPiece method invocation done by reflection
+     *                                   rises a security exception
      * @throws InvocationTargetException if findBracketingPiece method invocation rises execution exceptions
      */
-    private Square utilFindBracketingPiece(final Board board, final Player player, final Square move, final Direction dir)
+    private Square utilFindBracketingPiece(final Board board,
+                                           final Player player,
+                                           final Square move,
+                                           final Direction dir)
         throws NoSuchMethodException,
                IllegalAccessException,
                InvocationTargetException {
 
-        Method method = Board.class.getDeclaredMethod("findBracketingPiece", Square.class, Player.class, Direction.class);
+        Method method = Board.class.getDeclaredMethod("findBracketingPiece",
+                                                      Square.class,
+                                                      Player.class,
+                                                      Direction.class);
         method.setAccessible(true);
 
         Square firstStepInTheGivenDirection = move.neighbors().get(dir);
@@ -1237,8 +1230,10 @@ public class BoardTest {
      * <p>
      * The test run the following checks:
      * <ul>
-     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.W)} must return {@code Square.C7}.</li>
-     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.S)} must return {@code Square.NULL}.</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.W)}
+     *       must return {@code Square.C7}.</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.S)}
+     *       must return {@code Square.NULL}.</li>
      * </ul>
      *
      * @throws NoSuchMethodException     if wouldFlip method is not found

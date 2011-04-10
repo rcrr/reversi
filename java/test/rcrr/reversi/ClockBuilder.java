@@ -24,8 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.EnumMap;
 
@@ -106,7 +104,7 @@ public final class ClockBuilder {
      * Returns the {@code this} reference after setting the new {@code durations}
      * field value.
      *
-     * @param durations the field hosting the two players remaning durations 
+     * @param durations the field hosting the two players remaning durations
      * @return          the {@code this} reference
      */
     public ClockBuilder withDurations(final Map<Player, Duration> durations) {
