@@ -773,78 +773,221 @@ public class BoardTest {
 
     /**
      * Tests the mechanics of the {@code makeMove(Square, Player)} factory method.
+     * <p>
+     * The test run the following assertions:
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK) is BoardFixtures.FIRST_MOVE_D3}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C3, Player.WHITE) is BoardFixtures.EARLY_GAME_BC3_10_MOVES}</li>
+     *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C6, Player.WHITE) is BoardFixtures.EARLY_GAME_BC6_10_MOVES}</li>
+     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_A_BEFORE.makeMove(Square.D4, Player.WHITE) is BoardFixtures.MAKE_MOVE_TEST_CASE_A_AFTER}</li>
+     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_B_BEFORE.makeMove(Square.D4, Player.WHITE) is BoardFixtures.MAKE_MOVE_TEST_CASE_B_AFTER}</li>
+     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_C_BEFORE.makeMove(Square.D4, Player.WHITE) is BoardFixtures.MAKE_MOVE_TEST_CASE_C_AFTER}</li>
+     *   <li>{@code BoardFixtures.MAKE_MOVE_TEST_CASE_D_BEFORE.makeMove(Square.B4, Player.WHITE) is BoardFixtures.MAKE_MOVE_TEST_CASE_D_AFTER}</li>
+     * </ul>
      *
      * @see Board#makeMove(Square, Player)
+     * @see BoardFixtures#INITIAL
+     * @see BoardFixtures#FIRST_MOVE_D3
+     * @see BoardFixtures#EARLY_GAME_B_9_MOVES
+     * @see BoardFixtures#EARLY_GAME_BC3_10_MOVES
+     * @see BoardFixtures#EARLY_GAME_BC6_10_MOVES
+     * @see BoardFixtures#MAKE_MOVE_TEST_CASE_A_BEFORE
+     * @see BoardFixtures#MAKE_MOVE_TEST_CASE_A_AFTER
+     * @see BoardFixtures#MAKE_MOVE_TEST_CASE_B_BEFORE
+     * @see BoardFixtures#MAKE_MOVE_TEST_CASE_B_AFTER
+     * @see BoardFixtures#MAKE_MOVE_TEST_CASE_C_BEFORE
+     * @see BoardFixtures#MAKE_MOVE_TEST_CASE_C_AFTER
+     * @see BoardFixtures#MAKE_MOVE_TEST_CASE_D_BEFORE
+     * @see BoardFixtures#MAKE_MOVE_TEST_CASE_D_AFTER
      */
     @Test
     public final void testMakeMove() {
 
         /** Move D3 by black sent to the initial board returns the BoardFixtures.FIRST_MOVE_D3. */
-        assertTrue(BoardFixtures.FIRST_MOVE_D3.equals(BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK)));
-        /** Move C3 by white sent to the BoardFixtures.EARLY_GAME_B_9_MOVES board returns the BoardFixtures.EARLY_GAME_BC3_10_MOVES. */
-        assertTrue(BoardFixtures.EARLY_GAME_BC3_10_MOVES.equals(BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C3, Player.WHITE)));
-        /** Move C6 by white sent to the BoardFixtures.EARLY_GAME_B_9_MOVES board returns the BoardFixtures.EARLY_GAME_BC6_10_MOVES. */
-        assertTrue(BoardFixtures.EARLY_GAME_BC6_10_MOVES.equals(BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C6, Player.WHITE)));
+        assertThat("BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK)"
+                   + "must return BoardFixtures.FIRST_MOVE_D3.",
+                   BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK),
+                   is(BoardFixtures.FIRST_MOVE_D3));
 
-        /** A few basic cases, designed to test the function as much as possible. */
-        assertTrue(BoardFixtures.MAKE_MOVE_TEST_CASE_A_AFTER.equals(BoardFixtures.MAKE_MOVE_TEST_CASE_A_BEFORE.makeMove(Square.D4, Player.WHITE)));
-        assertTrue(BoardFixtures.MAKE_MOVE_TEST_CASE_B_AFTER.equals(BoardFixtures.MAKE_MOVE_TEST_CASE_B_BEFORE.makeMove(Square.D4, Player.WHITE)));
-        assertTrue(BoardFixtures.MAKE_MOVE_TEST_CASE_C_AFTER.equals(BoardFixtures.MAKE_MOVE_TEST_CASE_C_BEFORE.makeMove(Square.D4, Player.WHITE)));
-        assertTrue(BoardFixtures.MAKE_MOVE_TEST_CASE_D_AFTER.equals(BoardFixtures.MAKE_MOVE_TEST_CASE_D_BEFORE.makeMove(Square.B4, Player.WHITE)));
+        /** Move C3 by white sent to the BoardFixtures.EARLY_GAME_B_9_MOVES board returns the BoardFixtures.EARLY_GAME_BC3_10_MOVES. */
+        assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C3, Player.WHITE)"
+                   + " must return BoardFixtures.EARLY_GAME_BC3_10_MOVES.",
+                   BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C3, Player.WHITE),
+                   is(BoardFixtures.EARLY_GAME_BC3_10_MOVES));
+
+        /** Move C6 by white sent to the BoardFixtures.EARLY_GAME_B_9_MOVES board returns the BoardFixtures.EARLY_GAME_BC6_10_MOVES. */
+        assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C6, Player.WHITE)"
+                   + " must return BoardFixtures.EARLY_GAME_BC6_10_MOVES.",
+                   BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C6, Player.WHITE),
+                   is(BoardFixtures.EARLY_GAME_BC6_10_MOVES));
+
+        assertThat("BoardFixtures.MAKE_MOVE_TEST_CASE_A_BEFORE.makeMove(Square.D4, Player.WHITE)"
+                   + " must return BoardFixtures.MAKE_MOVE_TEST_CASE_A_AFTER.",
+                   BoardFixtures.MAKE_MOVE_TEST_CASE_A_BEFORE.makeMove(Square.D4, Player.WHITE),
+                   is(BoardFixtures.MAKE_MOVE_TEST_CASE_A_AFTER));
+
+        assertThat("BoardFixtures.MAKE_MOVE_TEST_CASE_B_BEFORE.makeMove(Square.D4, Player.WHITE)"
+                   + " must return BoardFixtures.MAKE_MOVE_TEST_CASE_B_AFTER.",
+                   BoardFixtures.MAKE_MOVE_TEST_CASE_B_BEFORE.makeMove(Square.D4, Player.WHITE),
+                   is(BoardFixtures.MAKE_MOVE_TEST_CASE_B_AFTER));
+
+        assertThat("BoardFixtures.MAKE_MOVE_TEST_CASE_C_BEFORE.makeMove(Square.D4, Player.WHITE)"
+                   + " must return BoardFixtures.MAKE_MOVE_TEST_CASE_C_AFTER.",
+                   BoardFixtures.MAKE_MOVE_TEST_CASE_C_BEFORE.makeMove(Square.D4, Player.WHITE),
+                   is(BoardFixtures.MAKE_MOVE_TEST_CASE_C_AFTER));
+
+        assertThat("BoardFixtures.MAKE_MOVE_TEST_CASE_D_BEFORE.makeMove(Square.B4, Player.WHITE)"
+                   + " must return BoardFixtures.MAKE_MOVE_TEST_CASE_D_AFTER.",
+                   BoardFixtures.MAKE_MOVE_TEST_CASE_D_BEFORE.makeMove(Square.B4, Player.WHITE),
+                   is(BoardFixtures.MAKE_MOVE_TEST_CASE_D_AFTER));
 
     }
 
+    /**
+     * Tests the {@code nextToPlay(Player)} method when parameter
+     * {@code current} is {@code null}.
+     *
+     * @see Board#nextToPlay(Player)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testNextToPlay_boundaryConditions_checkNullParameter_current() {
+        new BoardBuilder().build()
+            .nextToPlay(Player.NULL);
+    }
+
+    /**
+     * Tests the {@code nextToPlay(Player)} method.
+     * <p>
+     * The test run the following assertions:
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.nextToPlay(Player.WHITE) is Player.BLACK}</li>
+     *   <li>{@code BoardFixtures.INITIAL.nextToPlay(Player.BLACK) is Player.WHITE}</li>
+     *   <li>{@code BoardFixtures.FINAL_B37_W27.nextToPlay(Player.WHITE) is Player.NULL}</li>
+     *   <li>{@code BoardFixtures.FINAL_B37_W27.nextToPlay(Player.BLACK) is Player.NULL}</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.WHITE) is Player.WHITE}</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.BLACK) is Player.WHITE}</li>
+     * </ul>
+     *
+     * @see Board#nextToPlay(Player)
+     * @see BoardFixtures#INITIAL
+     * @see BoardFixtures#FINAL_B37_W27
+     * @see BoardFixtures#BLACK_HAS_TO_PASS
+     */
     @Test
     public final void testNextToPlay() {
-        try {
-            BoardFixtures.INITIAL.nextToPlay(null);
-            fail("An exception must be risen.");
-        } catch (NullPointerException npe) {
-            assertTrue(true);
-        }
-
-        assertEquals(Player.BLACK, BoardFixtures.INITIAL.nextToPlay(Player.WHITE));
-        assertEquals(Player.WHITE, BoardFixtures.INITIAL.nextToPlay(Player.BLACK));
-        assertEquals(null, BoardFixtures.FINAL_B37_W27.nextToPlay(Player.WHITE));
-        assertEquals(null, BoardFixtures.FINAL_B37_W27.nextToPlay(Player.BLACK));
-        assertEquals(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.WHITE));
-        assertEquals(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.BLACK));
+        assertThat("BoardFixtures.INITIAL.nextToPlay(Player.WHITE)"
+                   + " must return Player.BLACK.",
+                   BoardFixtures.INITIAL.nextToPlay(Player.WHITE),
+                   is(Player.BLACK));
+        assertThat("BoardFixtures.INITIAL.nextToPlay(Player.BLACK)"
+                   + " must return Player.WHITE.",
+                   BoardFixtures.INITIAL.nextToPlay(Player.BLACK),
+                   is(Player.WHITE));
+        assertThat("BoardFixtures.FINAL_B37_W27.nextToPlay(Player.WHITE)"
+                   + " must return Player.NULL.",
+                   BoardFixtures.FINAL_B37_W27.nextToPlay(Player.WHITE),
+                   is(Player.NULL));
+        assertThat("BoardFixtures.FINAL_B37_W27.nextToPlay(Player.BLACK)"
+                   + " must return Player.NULL.",
+                   BoardFixtures.FINAL_B37_W27.nextToPlay(Player.BLACK),
+                   is(Player.NULL));
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.WHITE)"
+                   + " must return Player.WHITE.",
+                   BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.WHITE),
+                   is(Player.WHITE));
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.BLACK)"
+                   + " must return Player.WHITE.",
+                   BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.BLACK),
+                   is(Player.WHITE));
     }
 
+    /**
+     * Tests the {@code printBoard()} method.
+     * <p>
+     * The test run the following assertion:
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.printBoard()} is equal to
+     *       the output of {@code printBuffer.toString()}</li>
+     * </ul>
+     * <p>
+     * where {@code printBuffer} is a properly prepared {@code StringBuilder}.
+     *
+     * @see Board#printBoard()
+     * @see BoardFixtures#INITIAL
+     */
     @Test
     public final void testPrintBoard() {
-        StringBuilder initialBoard = new StringBuilder();
-        initialBoard.append("    a b c d e f g h \n");
-        initialBoard.append(" 1  . . . . . . . . \n");
-        initialBoard.append(" 2  . . . . . . . . \n");
-        initialBoard.append(" 3  . . . . . . . . \n");
-        initialBoard.append(" 4  . . . O @ . . . \n");
-        initialBoard.append(" 5  . . . @ O . . . \n");
-        initialBoard.append(" 6  . . . . . . . . \n");
-        initialBoard.append(" 7  . . . . . . . . \n");
-        initialBoard.append(" 8  . . . . . . . . \n");
-        assertEquals(initialBoard.toString(), BoardFixtures.INITIAL.printBoard());
+        StringBuilder printBuffer = new StringBuilder();
+        printBuffer.append("    a b c d e f g h \n");
+        printBuffer.append(" 1  . . . . . . . . \n");
+        printBuffer.append(" 2  . . . . . . . . \n");
+        printBuffer.append(" 3  . . . . . . . . \n");
+        printBuffer.append(" 4  . . . O @ . . . \n");
+        printBuffer.append(" 5  . . . @ O . . . \n");
+        printBuffer.append(" 6  . . . . . . . . \n");
+        printBuffer.append(" 7  . . . . . . . . \n");
+        printBuffer.append(" 8  . . . . . . . . \n");
+        assertThat("BoardFixtures.INITIAL.printBoard()"
+                   + " must be equal to the output of printBuffer.toString()",
+                   BoardFixtures.INITIAL.printBoard(),
+                   is(printBuffer.toString()));
     }
 
+    /**
+     * Tests the {@code printBoardWithCount()} method.
+     * <p>
+     * The test run the following assertion:
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.printBoardWithCount()} is equal to
+     *       the output of {@code printBuffer.toString()}</li>
+     * </ul>
+     * <p>
+     * where {@code printBuffer} is a properly prepared {@code StringBuilder}.
+     *
+     * @see Board#printBoardWithCount()
+     * @see BoardFixtures#INITIAL
+     */
     @Test
     public final void testPrintBoardWithCount() {
-        StringBuilder initialBoard = new StringBuilder();
-        initialBoard.append("    a b c d e f g h [@=2 0=2 (0)]\n");
-        initialBoard.append(" 1  . . . . . . . . \n");
-        initialBoard.append(" 2  . . . . . . . . \n");
-        initialBoard.append(" 3  . . . . . . . . \n");
-        initialBoard.append(" 4  . . . O @ . . . \n");
-        initialBoard.append(" 5  . . . @ O . . . \n");
-        initialBoard.append(" 6  . . . . . . . . \n");
-        initialBoard.append(" 7  . . . . . . . . \n");
-        initialBoard.append(" 8  . . . . . . . . \n");
-        assertEquals(initialBoard.toString(), BoardFixtures.INITIAL.printBoardWithCount());
+        StringBuilder printBuffer = new StringBuilder();
+        printBuffer.append("    a b c d e f g h [@=2 0=2 (0)]\n");
+        printBuffer.append(" 1  . . . . . . . . \n");
+        printBuffer.append(" 2  . . . . . . . . \n");
+        printBuffer.append(" 3  . . . . . . . . \n");
+        printBuffer.append(" 4  . . . O @ . . . \n");
+        printBuffer.append(" 5  . . . @ O . . . \n");
+        printBuffer.append(" 6  . . . . . . . . \n");
+        printBuffer.append(" 7  . . . . . . . . \n");
+        printBuffer.append(" 8  . . . . . . . . \n");
+        assertThat("BoardFixtures.INITIAL.printBoardWithCount()"
+                   + " must be equal to the output of printBuffer.toString()",
+                   BoardFixtures.INITIAL.printBoardWithCount(),
+                   is(printBuffer.toString()));
     }
 
+    /**
+     * Tests the {@code printCount()} method.
+     * <p>
+     * The test run the following assertions:
+     * <ul>
+     *   <li>{@code BoardFixtures.INITIAL.printCount() is [@=2 0=2 (0)]}</li>
+     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.printCount() is [@=26 0=28 (-2)]}</li>
+     * </ul>
+     *
+     * @see Board#printCount()
+     * @see BoardFixtures#INITIAL
+     * @see BoardFixtures#BLACK_HAS_TO_PASS
+     */
     @Test
     public final void testPrintCount() {
-        assertEquals("[@=2 0=2 (0)]", BoardFixtures.INITIAL.printCount());
-        assertEquals("[@=26 0=28 (-2)]", BoardFixtures.BLACK_HAS_TO_PASS.printCount());
+        assertThat("BoardFixtures.INITIAL.printCount()"
+                   + " must return [@=2 0=2 (0)].",
+                   BoardFixtures.INITIAL.printCount(),
+                   is("[@=2 0=2 (0)]"));
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.printCount()"
+                   + " must return [@=26 0=28 (-2)].",
+                   BoardFixtures.BLACK_HAS_TO_PASS.printCount(),
+                   is("[@=26 0=28 (-2)]"));
     }
 
     /**
