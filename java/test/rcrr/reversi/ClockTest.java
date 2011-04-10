@@ -50,26 +50,156 @@ import org.joda.time.PeriodType;
  */
 public class ClockTest {
 
-    private static long MILLISECOND_PER_MINUTE = 60000;
+    /** Number of milliseconds equivalent to a minute. */
+    private static final long MILLISECOND_PER_MINUTE = 60000;
+
+    /** Class constructor. */
+    public ClockTest() { }
 
     @Test
     public final void testReviewReminder() {
         fail("The Test Suite must be reviewed!");
     }
 
+    /**
+     * Tests the {@code equals(Object)} method when the objects are different.
+     * <p>
+     * The test runs the following assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS}
+     *       is not {@code ClockFixtures.NULL}</li>
+     *   <li>{@code ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS}
+     *       is not {@code new Object()}</li>
+     *   <li>{@code ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS}
+     *       is not {@code ClockFixtures.BLACK_HAS_1_SECOND_WHITE_60}</li>
+     * </ul>
+     *
+     * @see Clock#equals(Object)
+     */
+    @Test
+    public final void testEquals_whenAreDifferent() {
+        assertThat("ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS"
+                   + " must not be equal to ClockFixtures.NULL.",
+                   ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS,
+                   is(not(ClockFixtures.NULL)));
+        assertThat("ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS must not be equal to a new Object().",
+                   ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS,
+                   is(not(new Object())));
+        assertThat("ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS"
+                   + " must not be equal to ClockFixtures.BLACK_HAS_1_SECOND_WHITE_60.",
+                   ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS,
+                   is(not(ClockFixtures.BLACK_HAS_1_SECOND_WHITE_60)));
+    }
+
+    /**
+     * Tests the {@code equals(Object)} method when the two objects are the same.
+     * <p>
+     * The test runs the following assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS}
+     *       is equal to {@code ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS}</li>
+     *   <li>{@code ClockFixtures.EQL_TEST_A}
+     *       is equal to {@code ClockFixtures.EQL_TEST_A}</li>
+     *   <li>{@code ClockFixtures.EQL_TEST_B}
+     *       is equal to {@code ClockFixtures.EQL_TEST_B}</li>
+     * </ul>
+     *
+     * @see Clock#equals(Object)
+     * @see ClockFixtures#ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
+     * @see ClockFixtures#EQL_TEST_A
+     * @see ClockFixtures#EQL_TEST_B
+     */
+    @Test
+    public final void testEquals_whenAreTheSameObject() {
+        assertThat("ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS"
+                   + " must be equal to ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS.",
+                   ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS,
+                   is(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS));
+        assertThat("ClockFixtures.EQL_TEST_A must be equal to ClockFixtures.EQL_TEST_A.",
+                   ClockFixtures.EQL_TEST_A,
+                   is(ClockFixtures.EQL_TEST_A));
+        assertThat("ClockFixtures.EQL_TEST_B must be equal to ClockFixtures.EQL_TEST_B.",
+                   ClockFixtures.EQL_TEST_B,
+                   is(ClockFixtures.EQL_TEST_B));
+    }
+
+    /**
+     * Tests the {@code equals(Object)} method.
+     * <p>
+     * The test checks that the two clocks have not the seme identity,
+     * then it runs the following assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code ClockFixtures.EQL_TEST_A.equals(ClockFixtures.EQL_TEST_A)} is true.</li>
+     *   <li>{@code ClockFixtures.EQL_TEST_B.equals(ClockFixtures.EQL_TEST_B)} is true.</li>
+     *   <li>{@code ClockFixtures.EQL_TEST_A.equals(ClockFixtures.EQL_TEST_B)} is true.</li>
+     *   <li>{@code ClockFixtures.EQL_TEST_B.equals(ClockFixtures.EQL_TEST_A)} is true.</li>
+     * </ul>
+     *
+     * @see Board#equals(Object)
+     * @see ClockFixtures#EQL_TEST_A
+     * @see ClockFixtures#EQL_TEST_B
+     */
+    @Test
+    public final void testEquals_whenAreNotTheSameObject_andAreEqual() {
+
+        /** Checks that the two object are really not the same. */
+        assertFalse("ClockFixtures.EQL_TEST_A and ClockFixtures.EQL_TEST_B"
+                    + " must be two different object, otherwise the test is fouled.",
+                    ClockFixtures.EQL_TEST_A == ClockFixtures.EQL_TEST_B);
+
+        assertTrue("ClockFixtures.EQL_TEST_A.equals(ClockFixtures.EQL_TEST_A)"
+                   + " must return true.",
+                   ClockFixtures.EQL_TEST_A.equals(ClockFixtures.EQL_TEST_A));
+        assertTrue("ClockFixtures.EQL_TEST_B.equals(ClockFixtures.EQL_TEST_B)"
+                   + " must return true.",
+                   ClockFixtures.EQL_TEST_B.equals(ClockFixtures.EQL_TEST_B));
+        assertTrue("ClockFixtures.EQL_TEST_A.equals(ClockFixtures.EQL_TEST_B)"
+                   + " must return true.",
+                   ClockFixtures.EQL_TEST_A.equals(ClockFixtures.EQL_TEST_B));
+        assertTrue("ClockFixtures.EQL_TEST_B.equals(ClockFixtures.EQL_TEST_A)"
+                   + " must return true.",
+                   ClockFixtures.EQL_TEST_B.equals(ClockFixtures.EQL_TEST_A));
+    }
+
+    /**
+     * Tests the {@code get(Player)} method when parameter
+     * {@code player} is {@code null}.
+     *
+     * @see Clock#get(Player)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testGet_boundaryConditions_checkNullParameter_player() {
+        new ClockBuilder().build()
+            .get(Player.NULL);
+    }
+
+    /**
+     * Tests the {@code get(Player)} method.
+     * <p>
+     * <p>
+     * The test runs the following assertion:
+     * <ul>
+     *   <li>{@code new ClockBuilder().withDuration(Player.BLACK, new Duration(3)).build().get(Player.BLACK)}
+     *       must return an object equal to {@code new Duration(3)}.</li>
+     * </ul>
+     *
+     * @see Clock#get(Player)
+     */
     @Test
     public void testGet() {
-        Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
-        m.put(Player.BLACK, new Duration(900000));
-        m.put(Player.WHITE, new Duration(1));
-        Clock c = Clock.valueOf(m);
-        try {
-            c.get(null);
-            fail("An exception must be risen.");
-        } catch (NullPointerException npe) {
-            assertTrue(true);
-        }
-        assertEquals(new Duration(1), c.get(Player.WHITE));
+        assertThat("new ClockBuilder()"
+                   + ".withDuration(Player.BLACK, new Duration(3))"
+                   + ".build()"
+                   + ".get(Player.BLACK)"
+                   + " must return an object equal to a new Duration(3) instance.",
+                   new ClockBuilder()
+                   .withDuration(Player.BLACK, new Duration(3))
+                   .build()
+                   .get(Player.BLACK),
+                   is(new Duration(3)));
     }
 
     @Test

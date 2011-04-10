@@ -45,7 +45,18 @@ public final class ClockFixtures {
     /** One second duration. */
     private static final Duration ONE_SECOND_DURATION = durationValueOfSeconds(1);
 
-    /** Returns a duration object corresponding to the value of the {@code seconds} parameter. */
+    /** Twenty one seconds duration. */
+    private static final Duration TWENTYONE_SECONDS_DURATION = durationValueOfSeconds(21);
+
+    /** Sixteen seconds duration. */
+    private static final Duration SIXTEEN_SECONDS_DURATION = durationValueOfSeconds(16);
+
+    /**
+     * Returns a duration object corresponding to the value of the {@code seconds} parameter.
+     *
+     * @param seconds the number of seconds given to the duration object
+     * @return        the corresponding duration object
+     */
     private static Duration durationValueOfSeconds(final int seconds) {
         return Period.seconds(seconds).toStandardDuration();
     }
@@ -87,6 +98,36 @@ public final class ClockFixtures {
         = new ClockBuilder()
         .withDuration(Player.BLACK, ONE_SECOND_DURATION)
         .withDuration(Player.WHITE, ONE_MINUTE_DURATION)
+        .build();
+
+    /**
+     * Black has 21 seconds left, while white has 16 ones.
+     * <p>
+     * {@code [BLACK=00:21, WHITE=00:16]}
+     * <p>
+     * This clock fixture is equal to {@code EQL_TEST_B}
+     *
+     * @see ClockFixtures#EQL_TEST_B
+     */
+    public static final Clock EQL_TEST_A
+        = new ClockBuilder()
+        .withDuration(Player.BLACK, TWENTYONE_SECONDS_DURATION)
+        .withDuration(Player.WHITE, SIXTEEN_SECONDS_DURATION)
+        .build();
+
+    /**
+     * Black has 21 seconds left, while white has 16 ones.
+     * <p>
+     * {@code [BLACK=00:21, WHITE=00:16]}
+     * <p>
+     * This clock fixture is equal to {@code EQL_TEST_A}
+     *
+     * @see ClockFixtures#EQL_TEST_A
+     */
+    public static final Clock EQL_TEST_B
+        = new ClockBuilder()
+        .withDuration(Player.BLACK, TWENTYONE_SECONDS_DURATION)
+        .withDuration(Player.WHITE, SIXTEEN_SECONDS_DURATION)
         .build();
 
     /** Class constructor. */
