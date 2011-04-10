@@ -35,14 +35,14 @@ import org.joda.time.DateTimeConstants;
 import org.joda.time.Duration;
 
 /**
- * The {@code Clock} class defines the different clocks used in the game.
- * It has two values, the Black's remaining time, and the White's one.
+ * The {@code Clock} class defines the different clocks used in the Reversi game.
+ * It has two properties, the black's remaining time, and the white's one.
  * The remaining times are received and returned by clock's methods by
  * means of duration objects, as defined by the Joda-Time {@code Duration} class.
  * <p>
  * {@code Clock} is immutable.
  * <p>
- * In order to create a new {@code Clock} are available three static factories.
+ * Three static factories are available In order to create a new clock instance.
  * The first is:
  * <pre>
  * {@code
@@ -56,7 +56,7 @@ import org.joda.time.Duration;
  * Clock c = Clock.valueOf(durations);
  * }
  * </pre>
- * where the {@code durations} parameter is defined having objects of the {@code Player} class as keys
+ * where the {@code durations} parameter is a map defined having objects of the {@code Player} class as keys
  * and objects of the {@code Duration} class as values.
  * And the third factory is:
  * <pre>
@@ -64,17 +64,18 @@ import org.joda.time.Duration;
  * Clock c = Clock.initialClock(gameDuration);
  * }
  * </pre>
- * where the {@code gameDuration} parameter is assigned equally to both players.
+ * where the {@code gameDuration} parameter is the time assigned equally to both players.
  * <p>
- * Another way to get a new {@code Clock} is to call the {@code set}
+ * Another way to create a new clock instance is by calling the {@code set}
  * method. It returns a new clock subtracting the provided delta time
- * to the specified player. For instance let say that we have already a {@code Clock} and we want to
- * subtract one full second from the Black player:
+ * to the specified player. For instance let say that we have already a {@code Clock c} and that we want to
+ * subtract one full second from the black player:
  * <pre>
  * {@code
  * Clock c;
  * ...
- * Clock updated = c.set(Player.BLACK, Seconds.ONE.toStandardDuration());
+ * Duration amount = Seconds.ONE.toStandardDuration();
+ * Clock updated = c.set(Player.BLACK, amount);
  * }
  * </pre>
  * where {@code Seconds.ONE.toStandardDuration()} parameter is
@@ -109,13 +110,24 @@ public final class Clock {
     }
 
     /**
-     * Class static factory that returns a new {@code Clock} object constructed using the given map.
+     * Class static factory that returns a new clock object constructed using the given map.
+     * <p>
+     * Parameter {@code durations} must satisfy some conditions:
+     * <ul>
+     *   <li>Must be not {@code null}</li>
+     *   <li>Must have a number of entries equal to the players' count</li>
+     *   <li>Must not have {@code null} keys</li>
+     *   <li>Must not have {@code null} values</li>
+     *   <li>Must not have negative duration values</li>
+     * </ul>
      *
-     * @param  durations the game's time assigned to the players
-     * @return           a new {@code Clock} having Black's and White's time set to the
-     *                   given parameters
-     * @throws NullPointerException     when blackDuration or whiteDuration is null
-     * @throws IllegalArgumentException when blackDuration or whiteDuration is negative
+     * @param durations the game's time assigned to the players
+     * @return          a new clock having black's and white's time set to the
+     *                  given durations
+     * @throws NullPointerException     when durations is null, or it have a null key,
+     *                                  or have a null value
+     * @throws IllegalArgumentException when durations size is different from the number
+     *                                  of players, or duration values are negative
      */
     public static Clock valueOf(final Map<Player, Duration> durations) {
         if (durations == null) {
@@ -131,6 +143,11 @@ public final class Clock {
         }
         if (durations.containsValue(null)) {
             throw new NullPointerException("Parameter durations cannot have null values.");
+        }
+        for (Duration duration : durations.values()) {
+            if (duration.isShorterThan(Duration.ZERO))
+                throw new IllegalArgumentException("Parameter durations cannot have negative values."
+                                                   + " durations=" + durations);
         }
         return new Clock(durations);
     }
@@ -232,7 +249,9 @@ public final class Clock {
 
     /**
      * Returns a {@code Duration} value that represents the player's remaining time
-     * as registered by the {@code Clock} instance.
+     * as registered by the clock instance.
+     * <p>
+     * Parameter {@code player} must be not {@code null}.
      *
      * @param  player the player for which the remaining time is queried
      * @return        the player remaining duration
@@ -246,9 +265,9 @@ public final class Clock {
     }
 
     /**
-     * Returns a hash code for this clock.
+     * Returns a hash code value for the clock object.
      *
-     * @return a hash code for this clock
+     * @return a hash code value for this clock
      */
     @Override
     public int hashCode() {

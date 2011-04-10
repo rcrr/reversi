@@ -35,6 +35,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -195,7 +196,6 @@ public class BoardTest {
                    is(not(BoardFixtures.FIRST_MOVE_D3)));
     }
 
-
     /**
      * Tests the {@code equals(Object)} method when the two objects are the same.
      * <p>
@@ -241,13 +241,20 @@ public class BoardTest {
      * @see BoardFixtures#EQL_TEST_B
      */
     @Test
-    public final void testEquals_whenAreNotTheSameObject_butAreEqual() {
+    public final void testEquals_whenAreNotTheSameObject_andAreEqual() {
+
         assertThat("BoardFixtures.INITIAL must be equal to Board.initialBoard().",
                    BoardFixtures.INITIAL,
                    is(Board.initialBoard()));
         assertThat("Board.initialBoard() must be equal to BoardFixtures.INITIAL.",
                    Board.initialBoard(),
                    is(BoardFixtures.INITIAL));
+
+        /** Checks that the two object are really not the same. */
+        assertFalse("BoardFixtures.EQL_TEST_A and BoardFixtures.EQL_TEST_B"
+                    + " must be two different object, otherwise the test is fouled.",
+                    BoardFixtures.EQL_TEST_A == BoardFixtures.EQL_TEST_B);
+
         assertTrue("BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_A)"
                    + " must return true.",
                    BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_A));
