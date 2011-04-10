@@ -37,30 +37,57 @@ import org.joda.time.Period;
 public final class ClockFixtures {
 
     /** One minute duration. */
-    private static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
+    private static final Duration ONE_MINUTE_DURATION = durationValueOfSeconds(60);
 
     /** Fiftynine seconds duration. */
-    private static final Duration FIFTYNINE_SECONDS_DURATION = Period.seconds(59).toStandardDuration();
+    private static final Duration FIFTYNINE_SECONDS_DURATION = durationValueOfSeconds(59);
 
     /** One second duration. */
-    private static final Duration ONE_SECOND_DURATION = Period.seconds(1).toStandardDuration();
+    private static final Duration ONE_SECOND_DURATION = durationValueOfSeconds(1);
+
+    /** Returns a duration object corresponding to the value of the {@code seconds} parameter. */
+    private static Duration durationValueOfSeconds(final int seconds) {
+        return Period.seconds(seconds).toStandardDuration();
+    }
 
     /** A generic clock instance. */
-    public static final Clock AN_INSTANCE = Clock.initialClock(ONE_MINUTE_DURATION);
+    public static final Clock AN_INSTANCE = new ClockBuilder().build();
 
-    /** The null clock. */
+    /** The {@code null} clock. */
     public static final Clock NULL = null;
 
-    /** Both players have one minute left. */
-    public static final Clock ONE_MINUTE_LEFT_TO_BOTH_PLAYERS = Clock.initialClock(ONE_MINUTE_DURATION);
+    /**
+     * Both players have one minute left.
+     * <p>
+     * {@code [BLACK=01:00, WHITE=01:00]}
+     */
+    public static final Clock ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
+        = new ClockBuilder()
+        .withDuration(Player.BLACK, ONE_MINUTE_DURATION)
+        .withDuration(Player.WHITE, ONE_MINUTE_DURATION)
+        .build();
 
-    /** Black has 59 seconds left, while white has 60 ones. */
+    /**
+     * Black has 59 seconds left, while white has 60 ones.
+     * <p>
+     * {@code [BLACK=00:59, WHITE=01:00]}
+     */
     public static final Clock BLACK_HAS_59_SECONDS_WHITE_60
-        = Clock.valueOf(FIFTYNINE_SECONDS_DURATION, ONE_MINUTE_DURATION);
+        = new ClockBuilder()
+        .withDuration(Player.BLACK, FIFTYNINE_SECONDS_DURATION)
+        .withDuration(Player.WHITE, ONE_MINUTE_DURATION)
+        .build();
 
-    /** Black has 1 second left, while white has 60 ones. */
+    /**
+     * Black has 1 second left, while white has 60 ones.
+     * <p>
+     * {@code [BLACK=00:01, WHITE=01:00]}
+     */
     public static final Clock BLACK_HAS_1_SECOND_WHITE_60
-        = Clock.valueOf(ONE_SECOND_DURATION, ONE_MINUTE_DURATION);
+        = new ClockBuilder()
+        .withDuration(Player.BLACK, ONE_SECOND_DURATION)
+        .withDuration(Player.WHITE, ONE_MINUTE_DURATION)
+        .build();
 
     /** Class constructor. */
     private ClockFixtures() { }
