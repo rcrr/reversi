@@ -993,13 +993,13 @@ public class BoardTest {
     /**
      * Test the {@code valueOf(Map<Square, SquareState)} factory.
      * <p>
-     * The factory receives the squareMap parameter, and any further change to it
+     * The factory receives the squares parameter, and any further change to it
      * must not be reflected to the returned board instance.
      *
      * @see Board#valueOf(Map)
      */
     @Test
-    public final void testValueOf_squareMapMustBeUnchangeable() {
+    public final void testValueOf_squaresMustBeUnchangeable() {
 
         final Map<Square, SquareState> changeable = new EnumMap<Square, SquareState>(Square.class);
         for (Square sq : Square.values()) {
@@ -1009,19 +1009,19 @@ public class BoardTest {
         changeable.put(Square.A1, SquareState.BLACK);
 
         assertThat("The board instance must be not affected by a"
-                   + " change in the squareMap parameter.",
+                   + " change in the squares parameter.",
                    instance.get(Square.A1), is(SquareState.EMPTY));
     }
 
     /**
      * Test the {@code valueOf(Map<Square, SquareState)} factory.
      * <p>
-     * The factory receives the squareMap parameter, it cannot contains null values.
+     * The factory receives the squares parameter, it cannot contains null values.
      *
      * @see Board#valueOf(Map)
      */
     @Test(expected = NullPointerException.class)
-    public final void testValueOf_squareMapMustNotContainNullValues() {
+    public final void testValueOf_squaresMustNotContainNullValues() {
         final Map<Square, SquareState> corruptedSquares = new HashMap<Square, SquareState>();
         for (Square sq : Square.values()) {
             corruptedSquares.put(sq, BoardFixtures.INITIAL.get(sq));
@@ -1033,12 +1033,12 @@ public class BoardTest {
     /**
      * Test the {@code valueOf(Map<Square, SquareState)} factory.
      * <p>
-     * The factory receives the squareMap parameter, it cannot contains null keys.
+     * The factory receives the squares parameter, it cannot contains null keys.
      *
      * @see Board#valueOf(Map)
      */
     @Test(expected = NullPointerException.class)
-    public final void testValueOf_squareMapMustNotContainNullKeys() {
+    public final void testValueOf_squaresMustNotContainNullKeys() {
         final Map<Square, SquareState> corruptedSquares = new HashMap<Square, SquareState>();
         for (Square sq : Square.values()) {
             corruptedSquares.put(sq, BoardFixtures.INITIAL.get(sq));
@@ -1101,11 +1101,11 @@ public class BoardTest {
          * standard usage under expected behavior.
          */
         {
-            Map<Square, SquareState> squareMap = new EnumMap<Square, SquareState>(Square.class);
+            Map<Square, SquareState> squares = new EnumMap<Square, SquareState>(Square.class);
             for (Square sq : Square.values()) {
-                squareMap.put(sq, BoardFixtures.EARLY_GAME_C_12_MOVES.get(sq));
+                squares.put(sq, BoardFixtures.EARLY_GAME_C_12_MOVES.get(sq));
             }
-            Board boardC0 = Board.valueOf(squareMap);
+            Board boardC0 = Board.valueOf(squares);
             for (Square sq : Square.values()) {
                 assertEquals(BoardFixtures.EARLY_GAME_C_12_MOVES.get(sq), boardC0.get(sq));
             }
