@@ -85,29 +85,29 @@ public final class Board {
     /**
      * Base static factory for the class.
      * <p>
-     * {@code squareMap} must be not null, and must have an entry for every board square.
+     * {@code squares} must be not null, and must have an entry for every board square.
      * Given that the map cannot have duplicate keys, its size must be equal to the number
      * of class instances defined by the {@code Square} enum.
      *
-     * @param  squareMap the map of squares
-     * @return           a new board having as state the given square map
-     * @throws NullPointerException     if parameter {@code squareMap} is null
-     * @throws IllegalArgumentException if the {@code squareMap} is not complete
+     * @param  squares the map of squares
+     * @return         a new board having as state the given square map
+     * @throws NullPointerException     if parameter {@code squares} is null
+     * @throws IllegalArgumentException if the {@code squares} is not complete
      */
-    public static Board valueOf(final Map<Square, SquareState> squareMap) {
-        if (squareMap == null) { throw new NullPointerException("Parameter squareMap cannot be null."); }
-        if (squareMap.size() != Square.values().length) {
-            throw new IllegalArgumentException("Parameter squareMap size is not consistent."
-                                               + " squareMap.size()=" + squareMap.size()
+    public static Board valueOf(final Map<Square, SquareState> squares) {
+        if (squares == null) { throw new NullPointerException("Parameter squares cannot be null."); }
+        if (squares.size() != Square.values().length) {
+            throw new IllegalArgumentException("Parameter squares size is not consistent."
+                                               + " squares.size()=" + squares.size()
                                                + " expected value: " + Square.values().length);
         }
-        if (squareMap.containsKey(null)) {
-            throw new NullPointerException("Parameter squareMap cannot have null keys. squareMap=" + squareMap);
+        if (squares.containsKey(null)) {
+            throw new NullPointerException("Parameter squares cannot have null keys. squares=" + squares);
         }
-        if (squareMap.containsValue(null)) {
-            throw new NullPointerException("Parameter squareMap cannot have null values. squareMap=" + squareMap);
+        if (squares.containsValue(null)) {
+            throw new NullPointerException("Parameter squares cannot have null values. squares=" + squares);
         }
-        return new Board(squareMap);
+        return new Board(squares);
     }
 
     /**
@@ -133,19 +133,19 @@ public final class Board {
     /**
      * Class constructor.
      * <p>
-     * {@code squareMap} must be not null, and must have a size equal to
+     * {@code squares} must be not null, and must have a size equal to
      * the number of squares, as defined by the {@code Square} enum.
      *
-     * @param  squareMap the sqares field
+     * @param  squares the squares field
      */
-    private Board(final Map<Square, SquareState> squareMap) {
-        assert (squareMap != null) : "Parameter squareMap cannot be null.";
-        assert (squareMap.size() == Square.values().length) : "Parameter squareMap size is not consistent."
-            + " squareMap.size()=" + squareMap.size()
+    private Board(final Map<Square, SquareState> squares) {
+        assert (squares != null) : "Parameter squares cannot be null.";
+        assert (squares.size() == Square.values().length) : "Parameter squares size is not consistent."
+            + " squares.size()=" + squares.size()
             + " expected value: " + Square.values().length;
-        assert (!squareMap.containsKey(null)) : "Parameter squareMap cannot contains null keys.";
-        assert (!squareMap.containsValue(null)) : "Parameter squareMap cannot contains null values.";
-        this.squares = Collections.unmodifiableMap(new EnumMap<Square, SquareState>(squareMap));
+        assert (!squares.containsKey(null)) : "Parameter squares cannot contains null keys.";
+        assert (!squares.containsValue(null)) : "Parameter squares cannot contains null values.";
+        this.squares = Collections.unmodifiableMap(new EnumMap<Square, SquareState>(squares));
     }
 
     /**
