@@ -47,6 +47,14 @@ public class AlphaBetaTest extends DecisionRuleTestUtils {
      */
     static final EvalFunction COUNT_DIFF = new CountDifference();
 
+    /**
+     * Class constructor.
+     *
+     * @param snapshot     the game snapshot
+     * @param expectedMove the expected move
+     * @param ply          the search depth
+     * @param ef           the evaluation function
+     */
     public AlphaBetaTest(final GameSnapshot snapshot,
                          final Move expectedMove,
                          final Integer ply,
@@ -56,6 +64,11 @@ public class AlphaBetaTest extends DecisionRuleTestUtils {
         strategy = decisionRule.searcher(ply, ef);
     }
 
+    /**
+     * Returns the data set.
+     *
+     * @return the data set used to run the tests
+     */
     @Parameterized.Parameters
     public static Collection data() {
         return Arrays.asList(new Object[][] {
