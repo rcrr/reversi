@@ -296,6 +296,49 @@ public class ClockTest {
         Clock.valueOf(corruptedDurations);
     }
 
+    /**
+     * Test the {@code valueOf(Map<Player, Duartion>)} factory.
+     * <p>
+     * The factory receives the durations parameter, it cannot contain negative values.
+     *
+     * @see Clock#valueOf(Map)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public final void testValueOf_durationsMustNotContainNegativeValues() {
+        final Map<Player, Duration> corruptedDurations = new HashMap<Player, Duration>();
+        corruptedDurations.put(Player.BLACK, new Duration(-1L));
+        corruptedDurations.put(Player.WHITE, CommonFixtures.A_DURATION);
+        Clock.valueOf(corruptedDurations);
+    }
+
+    /**
+     * Test the {@code valueOf(Map<Player, Duartion>)} factory.
+     * <p>
+     * The factory receives the durations parameter, it must have a number
+     * of entries equal to the players count.
+     *
+     * @see Clock#valueOf(Map)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public final void testValueOf_durationsMustHaveTwoEntries() {
+        final Map<Player, Duration> corruptedDurations = new HashMap<Player, Duration>();
+        corruptedDurations.put(Player.BLACK, CommonFixtures.A_DURATION);
+        Clock.valueOf(corruptedDurations);
+    }
+
+    /**
+     * Test the {@code valueOf(Map<Player, Duartion>)} factory.
+     * <p>
+     * The factory receives the durations parameter, it cannot be null.
+     *
+     * @see Clock#valueOf(Map)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_durationsCannotBeNull() {
+        final Map<Player, Duration> nullDurations = null;
+        Clock.valueOf(nullDurations);
+    }
+
     @Test
     public void testValueOf() {
         final Duration lb = new Duration(1);
