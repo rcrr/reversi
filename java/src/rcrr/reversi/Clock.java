@@ -110,9 +110,26 @@ public final class Clock {
     }
 
     /**
+     * Returns a new map object with the given duaration values
+     * assigned to each individual player.
+     *
+     * @param  blackDuration the game's time assigned to the Black player
+     * @param  whiteDuration the game's time assigned to the White player
+     * @return               a new map having black's and white's time set to the
+     *                       given parameters
+     */
+    private static Map<Player, Duration> transientDurations(final Duration blackDuration,
+                                                            final Duration whiteDuration) {
+        Map<Player, Duration> transientDurations = new EnumMap<Player, Duration>(Player.class);
+        transientDurations.put(Player.BLACK, blackDuration);
+        transientDurations.put(Player.WHITE, whiteDuration);
+        return transientDurations;        
+    }
+
+    /**
      * Class static factory that returns a new clock object constructed using the given map.
      * <p>
-     * Parameter {@code durations} must satisfy some conditions:
+     * Parameter {@code durations} must satisfy the following conditions:
      * <ul>
      *   <li>Must be not {@code null}</li>
      *   <li>Must have a number of entries equal to the players' count</li>
@@ -124,9 +141,10 @@ public final class Clock {
      * @param durations the game's time assigned to the players
      * @return          a new clock having black's and white's time set to the
      *                  given durations
-     * @throws NullPointerException     when durations is null, or it have a null key,
-     *                                  or have a null value
-     * @throws IllegalArgumentException when durations size is different from the number
+     * @throws NullPointerException     when parameter {@code durations} is {@code null},
+     *                                  or it has a {@code null} key,
+     *                                  or it has a {@code null} value
+     * @throws IllegalArgumentException when parameter {@code durations} size is different from the number
      *                                  of players, or duration values are negative
      */
     public static Clock valueOf(final Map<Player, Duration> durations) {
@@ -153,49 +171,21 @@ public final class Clock {
     }
 
     /**
-     * Class static factory that returns a new {@code Clock} object with the given initial values
-     * assigned to each individual player.
-     *
-     * @param  blackDuration the game's time assigned to the Black player
-     * @param  whiteDuration the game's time assigned to the White player
-     * @return               a new {@code Clock} having Black's and White's time set to the
-     *                       given parameters
-     * @throws NullPointerException     when blackDuration or whiteDuration is null
-     * @throws IllegalArgumentException when blackDuration or whiteDuration is negative
-     */
-    public static Clock valueOf(final Duration blackDuration, final Duration whiteDuration) {
-        if (blackDuration == null) { throw new NullPointerException("Parameter blackDuration cannot be null."); }
-        if (whiteDuration == null) { throw new NullPointerException("Parameter blackDuration cannot be null."); }
-        if (blackDuration.isShorterThan(Duration.ZERO)) {
-            throw new IllegalArgumentException("Parameter blackDuration cannot be negative. blackDuration="
-                                               + blackDuration);
-        }
-        if (whiteDuration.isShorterThan(Duration.ZERO)) {
-            throw new IllegalArgumentException("Parameter whiteDuration cannot be negative. whiteDuration="
-                                               + whiteDuration);
-        }
-        final Map<Player, Duration> mutableDurationMap = new EnumMap<Player, Duration>(Player.class);
-        mutableDurationMap.put(Player.BLACK, blackDuration);
-        mutableDurationMap.put(Player.WHITE, whiteDuration);
-        return valueOf(mutableDurationMap);
-    }
-
-    /**
-     * Class static factory that returns a new {@code Clock} object with the given initial value
+     * Class static factory that returns a new clock object with the given initial value
      * assigned equally to both players.
      *
      * @param  initialDuration the game's duration assigned to the two players
-     * @return                 a new {@code Clock} having Black's and White's time duration
+     * @return                 a new clock having black's and white's time duration
      *                         set to the same given value
-     * @throws IllegalArgumentException if gameTimeInMinutes is lesser than 1, or greather than 60.
+     * @throws NullPointerException     if parameter {@code initialDuration} is {@code null}
+     * @throws IllegalArgumentException if parameter {@code initialDuration} is shorter than a zero duration
      */
     public static Clock initialClock(final Duration initialDuration) {
         if (initialDuration == null) { throw new NullPointerException("Parameter initialDuration cannot be null."); }
         if (initialDuration.isShorterThan(Duration.ZERO)) {
-            throw new IllegalArgumentException("Parameter initialDuration cannot be negative. initialDuration="
-                                               + initialDuration);
+            throw new IllegalArgumentException("Parameter initialDuration cannot be negative.");
         }
-        return valueOf(initialDuration, initialDuration);
+        return valueOf(transientDurations(initialDuration, initialDuration));
     }
 
     /** Lazily initialized, cached hashCode. */

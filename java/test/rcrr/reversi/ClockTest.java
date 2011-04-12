@@ -357,12 +357,6 @@ public class ClockTest {
         assertEquals(lb, tb);
         assertEquals(lw, tw);
 
-        /** Tests the second static factory. */
-        final Clock c2 = Clock.valueOf(lb, lw);
-        tb = c2.get(Player.BLACK);
-        tw = c2.get(Player.WHITE);
-        assertEquals(lb, tb);
-        assertEquals(lw, tw);
     }
     
 }
