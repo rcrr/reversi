@@ -251,7 +251,7 @@ public final class Game {
         long t0 = System.currentTimeMillis();
         Move move = actors.get(player()).strategy().move(sequence.last());
         long t1 = System.currentTimeMillis();
-        final Clock clock = clock().set(player(), new Duration(t0, t1));
+        final Clock clock = clock().decrement(player(), new Duration(t0, t1));
 
         final MoveRegister register = previousRegister.push(MoveRecord.valueOfAtCurrentTime(move, clock));
         if (validateMove(move.square())) {
