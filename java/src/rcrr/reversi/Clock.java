@@ -93,37 +93,21 @@ public final class Clock {
     private static final int PRIME_NUMBER_37 = 37;
 
     /**
-     * Returns a String representing the clock.
-     * The format is mm:ss corresponding to the given time in milliseconds, where:
-     *  - mm is the amount of minutes
-     *  - ss is the amount of seconds
+     * Class static factory that returns a new clock object with the given initial value
+     * assigned equally to both players.
      *
-     * @param  duration time in milliseconds
-     * @return          a formatted {@code String} with minutes and seconds
+     * @param  initialDuration the game's duration assigned to the two players
+     * @return                 a new clock having black's and white's time duration
+     *                         set to the same given value
+     * @throws NullPointerException     if parameter {@code initialDuration} is {@code null}
+     * @throws IllegalArgumentException if parameter {@code initialDuration} is shorter than a zero duration
      */
-    private static String timeString(final Duration duration) {
-        long time = duration.getMillis();
-        long rTime = time / DateTimeConstants.MILLIS_PER_SECOND;
-        long minutes = (long) Math.floor(rTime / DateTimeConstants.SECONDS_PER_MINUTE);
-        long seconds = rTime - (minutes * DateTimeConstants.SECONDS_PER_MINUTE);
-        return TIME_FORMATTER.format(minutes) + ":" + TIME_FORMATTER.format(seconds);
-    }
-
-    /**
-     * Returns a new map object with the given duaration values
-     * assigned to each individual player.
-     *
-     * @param  blackDuration the game's time assigned to the Black player
-     * @param  whiteDuration the game's time assigned to the White player
-     * @return               a new map having black's and white's time set to the
-     *                       given parameters
-     */
-    private static Map<Player, Duration> transientDurations(final Duration blackDuration,
-                                                            final Duration whiteDuration) {
-        Map<Player, Duration> transientDurations = new EnumMap<Player, Duration>(Player.class);
-        transientDurations.put(Player.BLACK, blackDuration);
-        transientDurations.put(Player.WHITE, whiteDuration);
-        return transientDurations;        
+    public static Clock initialClock(final Duration initialDuration) {
+        if (initialDuration == null) { throw new NullPointerException("Parameter initialDuration cannot be null."); }
+        if (initialDuration.isShorterThan(Duration.ZERO)) {
+            throw new IllegalArgumentException("Parameter initialDuration cannot be negative.");
+        }
+        return valueOf(transientDurations(initialDuration, initialDuration));
     }
 
     /**
@@ -171,25 +155,38 @@ public final class Clock {
     }
 
     /**
-     * Class static factory that returns a new clock object with the given initial value
-     * assigned equally to both players.
+     * Returns a String representing the clock.
+     * The format is mm:ss corresponding to the given time in milliseconds, where:
+     *  - mm is the amount of minutes
+     *  - ss is the amount of seconds
      *
-     * @param  initialDuration the game's duration assigned to the two players
-     * @return                 a new clock having black's and white's time duration
-     *                         set to the same given value
-     * @throws NullPointerException     if parameter {@code initialDuration} is {@code null}
-     * @throws IllegalArgumentException if parameter {@code initialDuration} is shorter than a zero duration
+     * @param  duration time in milliseconds
+     * @return          a formatted {@code String} with minutes and seconds
      */
-    public static Clock initialClock(final Duration initialDuration) {
-        if (initialDuration == null) { throw new NullPointerException("Parameter initialDuration cannot be null."); }
-        if (initialDuration.isShorterThan(Duration.ZERO)) {
-            throw new IllegalArgumentException("Parameter initialDuration cannot be negative.");
-        }
-        return valueOf(transientDurations(initialDuration, initialDuration));
+    private static String timeString(final Duration duration) {
+        long time = duration.getMillis();
+        long rTime = time / DateTimeConstants.MILLIS_PER_SECOND;
+        long minutes = (long) Math.floor(rTime / DateTimeConstants.SECONDS_PER_MINUTE);
+        long seconds = rTime - (minutes * DateTimeConstants.SECONDS_PER_MINUTE);
+        return TIME_FORMATTER.format(minutes) + ":" + TIME_FORMATTER.format(seconds);
     }
 
-    /** Lazily initialized, cached hashCode. */
-    private volatile int hashCode = 0;
+    /**
+     * Returns a new map object with the given duaration values
+     * assigned to each individual player.
+     *
+     * @param  blackDuration the game's time assigned to the Black player
+     * @param  whiteDuration the game's time assigned to the White player
+     * @return               a new map having black's and white's time set to the
+     *                       given parameters
+     */
+    private static Map<Player, Duration> transientDurations(final Duration blackDuration,
+                                                            final Duration whiteDuration) {
+        Map<Player, Duration> transientDurations = new EnumMap<Player, Duration>(Player.class);
+        transientDurations.put(Player.BLACK, blackDuration);
+        transientDurations.put(Player.WHITE, whiteDuration);
+        return transientDurations;        
+    }
 
     /**
      * The durations field.
@@ -197,6 +194,9 @@ public final class Clock {
      * Internally Durations store the time in milliseconds.
      */
     private final Map<Player, Duration> durations;
+
+    /** Lazily initialized, cached hashCode. */
+    private volatile int hashCode = 0;
 
     /**
      * Class constructor.
@@ -215,6 +215,34 @@ public final class Clock {
         assert (!durations.containsKey(null)) : "Parameter durations cannot contains null keys.";
         assert (!durations.containsValue(null)) : "Parameter durations cannot contains null values.";
         this.durations = Collections.unmodifiableMap(new EnumMap<Player, Duration>(durations));
+    }
+
+    /**
+     * Returns a new clock object generated subtracting the delta value from
+     * the specified player remaining clock time.
+     * <p>
+     * When the delta parameter is greather than the player's actual time
+     * the updated value is set to zero.
+     *
+     * @param  player the player from which to take away the specified time
+     * @param  delta  the amount of time in milliseconds to subtract from the
+     *                player's clock time
+     * @return        a new updated {@code Clock}
+     * @throws NullPointerException     if the player or delta parameter is null
+     * @throws IllegalArgumentException if the delta parameter is negative.
+     */
+    public Clock decrement(final Player player, final Duration delta) {
+        if (player == null) { throw new NullPointerException("Parameter player connot be null"); }
+        if (delta == null) { throw new NullPointerException("Parameter delta connot be null."); }
+        if (delta.isShorterThan(Duration.ZERO)) {
+            throw new IllegalArgumentException("Parameter delta cannot be negative. delta=" + delta);
+        }
+        final Duration actual = this.durations.get(player);
+        final Duration updated = (actual.isLongerThan(delta)) ? actual.minus(delta) : Duration.ZERO;
+
+        final Map<Player, Duration> mutableDurationMap = new EnumMap<Player, Duration>(this.durations);
+        mutableDurationMap.put(player, updated);
+        return valueOf(mutableDurationMap);
     }
 
     /**
@@ -273,16 +301,6 @@ public final class Clock {
     }
 
     /**
-     * Returns a formatted string, showing the two player clocks.
-     *
-     * @return a string showing the two player's clocks
-     */
-    public String printClock() {
-        return "[" + Player.BLACK.symbol() + "=" + timeString(get(Player.BLACK)) + ", "
-            + Player.WHITE.symbol() + "=" + timeString(get(Player.WHITE)) + "]";
-    }
-
-    /**
      * Returns a {@code String} representing the {@code Clock} object.
      *
      * @return a {@code String} representing the clock
@@ -293,31 +311,13 @@ public final class Clock {
     }
 
     /**
-     * Returns a new clock object generated subtracting the delta value from
-     * the specified player remaining clock time.
-     * <p>
-     * When the delta parameter is greather than the player's actual time
-     * the updated value is set to zero.
+     * Returns a formatted string, showing the two player clocks.
      *
-     * @param  player the player from which to take away the specified time
-     * @param  delta  the amount of time in milliseconds to subtract from the
-     *                player's clock time
-     * @return        a new updated {@code Clock}
-     * @throws NullPointerException     if the player or delta parameter is null
-     * @throws IllegalArgumentException if the delta parameter is negative.
+     * @return a string showing the two player's clocks
      */
-    public Clock decrement(final Player player, final Duration delta) {
-        if (player == null) { throw new NullPointerException("Parameter player connot be null"); }
-        if (delta == null) { throw new NullPointerException("Parameter delta connot be null."); }
-        if (delta.isShorterThan(Duration.ZERO)) {
-            throw new IllegalArgumentException("Parameter delta cannot be negative. delta=" + delta);
-        }
-        final Duration actual = this.durations.get(player);
-        final Duration updated = (actual.isLongerThan(delta)) ? actual.minus(delta) : Duration.ZERO;
-
-        final Map<Player, Duration> mutableDurationMap = new EnumMap<Player, Duration>(this.durations);
-        mutableDurationMap.put(player, updated);
-        return valueOf(mutableDurationMap);
+    public String printClock() {
+        return "[" + Player.BLACK.symbol() + "=" + timeString(get(Player.BLACK)) + ", "
+            + Player.WHITE.symbol() + "=" + timeString(get(Player.WHITE)) + "]";
     }
 
 }
