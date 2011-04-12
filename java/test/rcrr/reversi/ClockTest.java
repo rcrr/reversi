@@ -24,10 +24,16 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
 import java.util.Map;
 import java.util.EnumMap;
@@ -59,6 +65,104 @@ public class ClockTest {
     @Test
     public final void testReviewReminder() {
         fail("The Test Suite must be reviewed!");
+    }
+
+    /**
+     * Tests the {@code decrement(Player, Duration)} method when parameter
+     * {@code player} is {@code null}.
+     *
+     * @see Clock#decrement(Player, Duration)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testDecrement_boundaryConditions_checkNullParameter_player() {
+        new ClockBuilder().build()
+            .decrement(Player.NULL, CommonFixtures.A_DURATION);
+    }
+
+    /**
+     * Tests the {@code decrement(Player, Duration)} method when parameter
+     * {@code delta} is {@code null}.
+     *
+     * @see Clock#decrement(Player, Duration)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testDecrement_boundaryConditions_checkNullParameter_delta() {
+        new ClockBuilder().build()
+            .decrement(Player.AN_INSTANCE, CommonFixtures.NULL_DURATION);
+    }
+
+    /**
+     * Tests the {@code decrement(Player, Duration)} method when parameter
+     * {@code delta} is negative.
+     *
+     * @see Clock#decrement(Player, Duration)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public final void testDecrement_boundaryConditions_checkNegativeParameter_delta() {
+        new ClockBuilder().build()
+            .decrement(Player.AN_INSTANCE, new Duration(-1L));
+    }
+
+    /**
+     * Tests the {@code decrement(Player, Duration)} method.
+     * <p>
+     * It test the method when the delta duration is shorter than the
+     * available time.
+     *
+     * @see Clock#decrement(Player, Duration)
+     */
+    @Test
+    public void testDecrement() {
+
+        Player player = Player.AN_INSTANCE;
+        Duration before = new Duration(300L);
+        Duration delta = new Duration(100L);
+        Duration after = new Duration(200L);
+
+        assertThat("Starting from a player having 300L, subtracting 100L,"
+                   + " the returned clock must have a duration of 200L left to the player.",
+                   new ClockBuilder()
+                   .withDuration(player, before)
+                   .build()
+                   .decrement(player, delta)
+                   .get(player),
+                   is(after));
+
+        assertThat("Starting from a both players having 300L, subtracting 100L from one,"
+                   + " the returned clock must have a duration of 200L left to the other player.",
+                   new ClockBuilder()
+                   .withDuration(player, before)
+                   .withDuration(player.opponent(), before)
+                   .build()
+                   .decrement(player, delta)
+                   .get(player.opponent()),
+                   is(before));
+    }
+
+    /**
+     * Tests the {@code decrement(Player, Duration)} method.
+     * <p>
+     * It test the method when the delta duration is longer than the
+     * available time.
+     *
+     * @see Clock#decrement(Player, Duration)
+     */
+    @Test
+    public void testDecrement_whenDeltaIsLongerThanTheAvailableTime() {
+
+        Player player = Player.AN_INSTANCE;
+        Duration before = new Duration(300L);
+        Duration delta = new Duration(500L);
+        Duration after = Duration.ZERO;
+
+        assertThat("Starting from a player having 300L, subtracting 500L,"
+                   + " the returned clock must have a duration of 0L left to the player.",
+                   new ClockBuilder()
+                   .withDuration(player, before)
+                   .build()
+                   .decrement(player, delta)
+                   .get(player),
+                   is(after));
     }
 
     /**
@@ -220,18 +324,6 @@ public class ClockTest {
         m.put(Player.WHITE, new Duration(1));
         Clock c = Clock.valueOf(m);
         assertEquals("[@=15:00, O=00:00]", c.printClock());
-    }
-
-    @Test
-    public void testDecrement() {
-        Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
-        m.put(Player.BLACK, new Duration(100));
-        m.put(Player.WHITE, new Duration(100));
-        Clock c = Clock.valueOf(m);
-        Duration delta = new Duration(10);
-        Clock updated = c.decrement(Player.BLACK, delta);
-        assertEquals(c.get(Player.WHITE), updated.get(Player.WHITE));
-        assertEquals(delta, c.get(Player.BLACK).minus(updated.get(Player.BLACK)));
     }
 
     @Test
