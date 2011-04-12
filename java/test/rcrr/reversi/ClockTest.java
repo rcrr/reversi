@@ -223,13 +223,13 @@ public class ClockTest {
     }
 
     @Test
-    public void testSet() {
+    public void testDecrement() {
         Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
         m.put(Player.BLACK, new Duration(100));
         m.put(Player.WHITE, new Duration(100));
         Clock c = Clock.valueOf(m);
         Duration delta = new Duration(10);
-        Clock updated = c.set(Player.BLACK, delta);
+        Clock updated = c.decrement(Player.BLACK, delta);
         assertEquals(c.get(Player.WHITE), updated.get(Player.WHITE));
         assertEquals(delta, c.get(Player.BLACK).minus(updated.get(Player.BLACK)));
     }

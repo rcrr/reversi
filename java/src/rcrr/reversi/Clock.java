@@ -293,7 +293,7 @@ public final class Clock {
     }
 
     /**
-     * Returns a new {@code Clock} object generated subtracting the delta value from
+     * Returns a new clock object generated subtracting the delta value from
      * the specified player remaining clock time.
      * <p>
      * When the delta parameter is greather than the player's actual time
@@ -306,7 +306,7 @@ public final class Clock {
      * @throws NullPointerException     if the player or delta parameter is null
      * @throws IllegalArgumentException if the delta parameter is negative.
      */
-    public Clock set(final Player player, final Duration delta) {
+    public Clock decrement(final Player player, final Duration delta) {
         if (player == null) { throw new NullPointerException("Parameter player connot be null"); }
         if (delta == null) { throw new NullPointerException("Parameter delta connot be null."); }
         if (delta.isShorterThan(Duration.ZERO)) {
