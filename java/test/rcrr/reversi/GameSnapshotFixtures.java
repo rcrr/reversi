@@ -138,13 +138,17 @@ public final class GameSnapshotFixtures {
                                  .build())
                       .withPlayer(Player.WHITE)
                       .build())
-        .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
-                                 Period.seconds(60).toStandardDuration()))
+        .withClock(new ClockBuilder()
+                   .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
+                   .withDuration(Player.WHITE, Period.seconds(60).toStandardDuration())
+                   .build())
         .withRegister(new MoveRegisterBuilder()
                       .withRecords(new MoveRecordBuilder()
                                    .withMove(Move.valueOf(Move.Action.PUT_DISC, Square.D3))
-                                   .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
-                                                            Period.seconds(60).toStandardDuration()))
+                                   .withClock(new ClockBuilder()
+                                              .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
+                                              .withDuration(Player.WHITE, Period.seconds(60).toStandardDuration())
+                                              .build())
                                    .withTimestamp(new DateTime(2011,
                                                                03,
                                                                17,
@@ -200,13 +204,17 @@ public final class GameSnapshotFixtures {
                                  .build())
                       .withPlayer(Player.BLACK)
                       .build())
-        .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
-                                 Period.seconds(55).toStandardDuration()))
+        .withClock(new ClockBuilder()
+                   .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
+                   .withDuration(Player.WHITE, Period.seconds(55).toStandardDuration())
+                   .build())
         .withRegister(new MoveRegisterBuilder()
                       .withRecords(new MoveRecordBuilder()
                                    .withMove(Move.valueOf(Move.Action.PUT_DISC, Square.A1))
-                                   .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
-                                                            Period.seconds(59).toStandardDuration()))
+                                   .withClock(new ClockBuilder()
+                                              .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
+                                              .withDuration(Player.WHITE, Period.seconds(59).toStandardDuration())
+                                              .build())
                                    .withTimestamp(new DateTime(2011,
                                                                03,
                                                                17,
@@ -217,8 +225,10 @@ public final class GameSnapshotFixtures {
                                    .build(),
                                    new MoveRecordBuilder()
                                    .withMove(Move.valueOf(Move.Action.PASS, Square.NULL))
-                                   .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
-                                                            Period.seconds(58).toStandardDuration()))
+                                   .withClock(new ClockBuilder()
+                                              .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
+                                              .withDuration(Player.WHITE, Period.seconds(58).toStandardDuration())
+                                              .build())
                                    .withTimestamp(new DateTime(2011,
                                                                03,
                                                                17,
@@ -229,8 +239,10 @@ public final class GameSnapshotFixtures {
                                    .build(),
                                    new MoveRecordBuilder()
                                    .withMove(Move.valueOf(Move.Action.PUT_DISC, Square.C5))
-                                   .withClock(Clock.valueOf(Period.seconds(59).toStandardDuration(),
-                                                            Period.seconds(55).toStandardDuration()))
+                                   .withClock(new ClockBuilder()
+                                              .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
+                                              .withDuration(Player.WHITE, Period.seconds(55).toStandardDuration())
+                                              .build())
                                    .withTimestamp(new DateTime(2011,
                                                                03,
                                                                17,
