@@ -333,6 +333,23 @@ public class ClockTest {
     }
 
     /**
+     * Tests the {@code hashCode()} method.
+     * <p>
+     * Calling twice the method on a given clock returns the same hash value.
+     *
+     * @see Clock#hashCode()
+     */
+    @Test
+    public final void testHashCode_isConsistentWhenCalledMoreThanOnce() {
+
+        Clock clock = new ClockBuilder().build();
+
+        assertEquals("Calling clock.hashCode() twice must return tha same hash.",
+                     clock.hashCode(),
+                     clock.hashCode());
+    }
+
+    /**
      * Tests the {@code initialClock(Duration)} factory when parameter
      * {@code initialDuration} is {@code null}.
      *
