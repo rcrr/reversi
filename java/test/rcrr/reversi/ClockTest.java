@@ -350,10 +350,33 @@ public class ClockTest {
     }
 
     /**
+     * Tests the {@code hashCode()} method.
+     * <p>
+     * The test runs two assertions:
+     * <p>
+     * <ul>
+     *   <li>{@code BoardFixtures.EQL_TEST_A.hashCode()} is equal to {@code BoardFixtures.EQL_TEST_B.hashCode()}</li>
+     *   <li>{@code BoardFixtures.EQL_TEST_B.hashCode()} is equal to {@code BoardFixtures.EQL_TEST_A.hashCode()}</li>
+     * </ul>
+     *
+     * @see Clock#hashCode()
+     */
+    @Test
+    public final void testHashCode_isConsistentWhenCalledOnEqualObjects() {
+
+        ClockBuilder builder = new ClockBuilder();
+        Clock a = builder.build();
+        Clock b = builder.build();
+
+        assertEquals("Clocks a and b must have the same hash.",
+                     a.hashCode(), b.hashCode());
+    }
+
+    /**
      * Tests the {@code initialClock(Duration)} factory when parameter
      * {@code initialDuration} is {@code null}.
      *
-     * @see initialClock#get(Duration)
+     * @see Clock#initialClock(Duration)
      */
     @Test(expected = NullPointerException.class)
     public final void testInitialClock_boundaryConditions_checkNullParameter_initialDuration() {
@@ -363,7 +386,7 @@ public class ClockTest {
     /**
      * Tests the {@code initialClock(Duration)} factory.
      *
-     * @see initialClock#get(Duration)
+     * @see Clock#initialClock(Duration)
      */
     @Test
     public void testInitialClock() {
@@ -380,6 +403,11 @@ public class ClockTest {
                       .build()));
     }
 
+    /**
+     * Tests the {@code printClock()} method.
+     *
+     * @see Clock#printClock()
+     */
     @Test
     public void testPrintClock() {
         Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
@@ -389,13 +417,23 @@ public class ClockTest {
         assertEquals("[@=15:00, O=00:00]", c.printClock());
     }
 
+    /**
+     * Tests the {@code toString()} method.
+     *
+     * @see Clock#toString()
+     */
     @Test
     public void testToString() {
-        Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
-        m.put(Player.BLACK, new Duration(900000));
-        m.put(Player.WHITE, new Duration(1));
-        Clock c = Clock.valueOf(m);
-        assertEquals("[BLACK=15:00, WHITE=00:00]", c.toString());
+        assertThat("When calling toString() on a clock having"
+                   + " a new Duration(15 * 60 * 1000L) assigned to black"
+                   + " and a new Duration(0L) assigned to white must return"
+                   + " [BLACK=15:00, WHITE=00:00].",
+                   new ClockBuilder()
+                   .withDuration(Player.BLACK, new Duration(15 * 60 * 1000L))
+                   .withDuration(Player.WHITE, new Duration(0L))
+                   .build()
+                   .toString(),
+                   is("[BLACK=15:00, WHITE=00:00]"));
     }
 
     /**

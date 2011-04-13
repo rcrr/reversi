@@ -445,8 +445,6 @@ public class BoardTest {
     public final void testHashCode_isConsistentWhenCalledOnEqualObjects() {
         assertEquals("BoardFixtures.EQL_TEST_A and BoardFixtures.EQL_TEST_B must have the same hash.",
                      BoardFixtures.EQL_TEST_A.hashCode(), BoardFixtures.EQL_TEST_B.hashCode());
-        assertEquals("BoardFixtures.EQL_TEST_B and BoardFixtures.EQL_TEST_A must have the same hash.",
-                     BoardFixtures.EQL_TEST_B.hashCode(), BoardFixtures.EQL_TEST_A.hashCode());
     }
 
     /**
