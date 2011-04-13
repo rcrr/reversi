@@ -166,6 +166,32 @@ public class ClockTest {
     }
 
     /**
+     * Tests the {@code decrement(Player, Duration)} method.
+     * <p>
+     * It test the method when the delta duration is equal to the
+     * available time.
+     *
+     * @see Clock#decrement(Player, Duration)
+     */
+    @Test
+    public void testDecrement_whenDeltaIsEqualToTheAvailableTime() {
+
+        Player player = Player.AN_INSTANCE;
+        Duration before = new Duration(300L);
+        Duration delta = new Duration(300L);
+        Duration after = Duration.ZERO;
+
+        assertThat("Starting from a player having 300L, subtracting 300L,"
+                   + " the returned clock must have a duration of 0L left to the player.",
+                   new ClockBuilder()
+                   .withDuration(player, before)
+                   .build()
+                   .decrement(player, delta)
+                   .get(player),
+                   is(after));
+    }
+
+    /**
      * Tests the {@code equals(Object)} method when the objects are different.
      * <p>
      * The test runs the following assertions:
@@ -182,7 +208,7 @@ public class ClockTest {
      * @see Clock#equals(Object)
      */
     @Test
-    public final void testEquals_whenAreDifferent() {
+    public final void testEquals_whenObjectIsDifferent() {
         assertThat("ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS"
                    + " must not be equal to ClockFixtures.NULL.",
                    ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS,
@@ -216,7 +242,7 @@ public class ClockTest {
      * @see ClockFixtures#EQL_TEST_B
      */
     @Test
-    public final void testEquals_whenAreTheSameObject() {
+    public final void testEquals_whenObjectIsTheSameObject() {
         assertThat("ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS"
                    + " must be equal to ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS.",
                    ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS,
@@ -247,7 +273,7 @@ public class ClockTest {
      * @see ClockFixtures#EQL_TEST_B
      */
     @Test
-    public final void testEquals_whenAreNotTheSameObject_andAreEqual() {
+    public final void testEquals_whenObjectIsNotTheSameObject_andIsEqual() {
 
         /** Checks that the two object are really not the same. */
         assertFalse("ClockFixtures.EQL_TEST_A and ClockFixtures.EQL_TEST_B"
@@ -306,15 +332,35 @@ public class ClockTest {
                    is(new Duration(3)));
     }
 
+    /**
+     * Tests the {@code initialClock(Duration)} factory when parameter
+     * {@code initialDuration} is {@code null}.
+     *
+     * @see initialClock#get(Duration)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testInitialClock_boundaryConditions_checkNullParameter_initialDuration() {
+        Clock.initialClock(CommonFixtures.NULL_DURATION);
+    }
+
+    /**
+     * Tests the {@code initialClock(Duration)} factory.
+     *
+     * @see initialClock#get(Duration)
+     */
     @Test
     public void testInitialClock() {
-        int minutes = 1;
-        Duration d = Period.minutes(minutes).toStandardDuration();
-        Clock c = Clock.initialClock(d);
-        Duration bd = c.get(Player.BLACK);
-        Duration wd = c.get(Player.WHITE);
-        assertEquals(bd.toPeriod(PeriodType.time()).toStandardMinutes().getMinutes(), minutes);
-        assertEquals(wd.toPeriod(PeriodType.time()).toStandardMinutes().getMinutes(), minutes);
+
+        final Duration duration = new Duration(300L);
+
+        assertThat("The clock created using Clock.initialClock(duration)"
+                   + " must be equal to the one created assigning to black and white"
+                   + " players the same duration amounts.",
+                   Clock.initialClock(duration),
+                   is(new ClockBuilder()
+                      .withDuration(Player.BLACK, duration)
+                      .withDuration(Player.WHITE, duration)
+                      .build()));
     }
 
     @Test
