@@ -95,6 +95,8 @@ public final class Clock {
     /**
      * Class static factory that returns a new clock object with the given initial value
      * assigned equally to both players.
+     * <p>
+     * Parameter {@code initialDuration} must be not {@code null}, and must be not negative.
      *
      * @param  initialDuration the game's duration assigned to the two players
      * @return                 a new clock having black's and white's time duration
@@ -223,11 +225,14 @@ public final class Clock {
      * <p>
      * When the delta parameter is greather than the player's actual time
      * the updated value is set to zero.
+     * <p>
+     * Parameter {@code player} must be not {@code null}.
+     * Parameter {@code delta} must be not {@code null}, and must be not negative.
      *
      * @param  player the player from which to take away the specified time
      * @param  delta  the amount of time in milliseconds to subtract from the
      *                player's clock time
-     * @return        a new updated {@code Clock}
+     * @return        a new updated clock
      * @throws NullPointerException     if the player or delta parameter is null
      * @throws IllegalArgumentException if the delta parameter is negative.
      */
@@ -235,14 +240,11 @@ public final class Clock {
         if (player == null) { throw new NullPointerException("Parameter player connot be null"); }
         if (delta == null) { throw new NullPointerException("Parameter delta connot be null."); }
         if (delta.isShorterThan(Duration.ZERO)) {
-            throw new IllegalArgumentException("Parameter delta cannot be negative. delta=" + delta);
+            throw new IllegalArgumentException("Parameter delta cannot be negative.");
         }
         final Duration actual = this.durations.get(player);
         final Duration updated = (actual.isLongerThan(delta)) ? actual.minus(delta) : Duration.ZERO;
-
-        final Map<Player, Duration> mutableDurationMap = new EnumMap<Player, Duration>(this.durations);
-        mutableDurationMap.put(player, updated);
-        return valueOf(mutableDurationMap);
+        return valueOf(set(player, updated));
     }
 
     /**
@@ -318,6 +320,22 @@ public final class Clock {
     public String printClock() {
         return "[" + Player.BLACK.symbol() + "=" + timeString(get(Player.BLACK)) + ", "
             + Player.WHITE.symbol() + "=" + timeString(get(Player.WHITE)) + "]";
+    }
+
+    /**
+     * Returns a new durations map, having the duration associated to player updated
+     * with the given value.
+     *
+     * @param player the player to apply the update
+     * @param update the new duration value
+     * @return       a new durations map
+     */
+    private Map<Player, Duration> set(final Player player, final Duration updated) {
+        assert (player != null) : "Parameter player cannot be null.";
+        assert (updated != null) : "Parameter updated cannot be null.";
+        final Map<Player, Duration> transientDurations = new EnumMap<Player, Duration>(this.durations);
+        transientDurations.put(player, updated);
+        return transientDurations;
     }
 
 }
