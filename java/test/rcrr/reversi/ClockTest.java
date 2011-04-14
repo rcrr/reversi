@@ -29,7 +29,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -40,8 +39,6 @@ import java.util.EnumMap;
 import java.util.HashMap;
 
 import org.joda.time.Duration;
-import org.joda.time.Period;
-import org.joda.time.PeriodType;
 
 /**
  * Test Suite for {@code Clock} class.
@@ -61,11 +58,6 @@ public class ClockTest {
 
     /** Class constructor. */
     public ClockTest() { }
-
-    @Test
-    public final void testReviewReminder() {
-        fail("The Test Suite must be reviewed!");
-    }
 
     /**
      * Tests the {@code decrement(Player, Duration)} method when parameter
@@ -112,7 +104,7 @@ public class ClockTest {
      * @see Clock#decrement(Player, Duration)
      */
     @Test
-    public void testDecrement() {
+    public final void testDecrement() {
 
         Player player = Player.AN_INSTANCE;
         Duration before = new Duration(300L);
@@ -148,7 +140,7 @@ public class ClockTest {
      * @see Clock#decrement(Player, Duration)
      */
     @Test
-    public void testDecrement_whenDeltaIsLongerThanTheAvailableTime() {
+    public final void testDecrement_whenDeltaIsLongerThanTheAvailableTime() {
 
         Player player = Player.AN_INSTANCE;
         Duration before = new Duration(300L);
@@ -174,7 +166,7 @@ public class ClockTest {
      * @see Clock#decrement(Player, Duration)
      */
     @Test
-    public void testDecrement_whenDeltaIsEqualToTheAvailableTime() {
+    public final void testDecrement_whenDeltaIsEqualToTheAvailableTime() {
 
         Player player = Player.AN_INSTANCE;
         Duration before = new Duration(300L);
@@ -319,7 +311,7 @@ public class ClockTest {
      * @see Clock#get(Player)
      */
     @Test
-    public void testGet() {
+    public final void testGet() {
         assertThat("new ClockBuilder()"
                    + ".withDuration(Player.BLACK, new Duration(3))"
                    + ".build()"
@@ -389,7 +381,7 @@ public class ClockTest {
      * @see Clock#initialClock(Duration)
      */
     @Test
-    public void testInitialClock() {
+    public final void testInitialClock() {
 
         final Duration duration = new Duration(300L);
 
@@ -409,12 +401,17 @@ public class ClockTest {
      * @see Clock#printClock()
      */
     @Test
-    public void testPrintClock() {
-        Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
-        m.put(Player.BLACK, new Duration(900000));
-        m.put(Player.WHITE, new Duration(1));
-        Clock c = Clock.valueOf(m);
-        assertEquals("[@=15:00, O=00:00]", c.printClock());
+    public final void testPrintClock() {
+        assertThat("When calling printClock() on a clock having"
+                   + " a new Duration(15 * 60 * 1000L) assigned to black"
+                   + " and a new Duration(0L) assigned to white must return"
+                   + " [@=15:00, O=00:00].",
+                   new ClockBuilder()
+                   .withDuration(Player.BLACK, CommonFixtures.TEN_MINUTES_DURATION)
+                   .withDuration(Player.WHITE, Duration.ZERO)
+                   .build()
+                   .printClock(),
+                   is("[@=10:00, O=00:00]"));
     }
 
     /**
@@ -423,17 +420,17 @@ public class ClockTest {
      * @see Clock#toString()
      */
     @Test
-    public void testToString() {
+    public final void testToString() {
         assertThat("When calling toString() on a clock having"
                    + " a new Duration(15 * 60 * 1000L) assigned to black"
                    + " and a new Duration(0L) assigned to white must return"
                    + " [BLACK=15:00, WHITE=00:00].",
                    new ClockBuilder()
-                   .withDuration(Player.BLACK, new Duration(15 * 60 * 1000L))
-                   .withDuration(Player.WHITE, new Duration(0L))
+                   .withDuration(Player.BLACK, CommonFixtures.TEN_MINUTES_DURATION)
+                   .withDuration(Player.WHITE, Duration.ZERO)
                    .build()
                    .toString(),
-                   is("[BLACK=15:00, WHITE=00:00]"));
+                   is("[BLACK=10:00, WHITE=00:00]"));
     }
 
     /**
@@ -532,24 +529,31 @@ public class ClockTest {
         Clock.valueOf(nullDurations);
     }
 
+    /**
+     * Tests the {@code valueOf(Map<Player, Duration>)} factory.
+     * <p>
+     * After preparing the {@code Map<Player, Duration> duration} parameter, the test
+     * run the following assertion:
+     * <ul>
+     *   <li>{@code Clock.valueOf(durations)} is a member of the {@code Clock} class</li>
+     * </ul>
+     *
+     * @see Clock#valueOf(Map)
+     */
     @Test
-    public void testValueOf() {
-        final Duration lb = new Duration(1);
-        final Duration lw = new Duration(1000*30*60+1);
-        Map<Player, Duration> m = new EnumMap<Player, Duration>(Player.class);
-        m.put(Player.BLACK, lb);
-        m.put(Player.WHITE, lw);
+    public final void testValueOf() {
 
-        Duration tb;
-        Duration tw;
+        final Map<Player, Duration> durations = new EnumMap<Player, Duration>(Player.class);
+        durations.put(Player.BLACK, CommonFixtures.A_DURATION);
+        durations.put(Player.WHITE, CommonFixtures.A_DURATION);
 
-        /** Tests the first static factory. */
-        final Clock c1 = Clock.valueOf(m);
-        tb = c1.get(Player.BLACK);
-        tw = c1.get(Player.WHITE);
-        assertEquals(lb, tb);
-        assertEquals(lw, tw);
-
+        assertThat("After preparing the Map<Player, Duration> durations parameter by"
+                   + " assigning to black CommonFixtures.ONE_MINUTE_DURATION,"
+                   + " and to white CommonFixtures.TEN_MINUTES_DURATION,"
+                   + " Clock.valueOf(durations)"
+                   + " must return an instance of the Clock class.",
+                   Clock.valueOf(durations),
+                   instanceOf(Clock.class));
     }
-    
+
 }

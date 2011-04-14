@@ -49,8 +49,6 @@ To do:
       State transitions trigger the clock changes. Transitions are based on client/server messages.
       The server is the game object, clients are the strategies.
       Use java.lang.Timer (or ScheduledThreadPoolExecutor) to schedule the gameClock refresh.</li>
-  <li>Clock: tests are a bit ugly.</li>
-  <li>Clock: parameters boundaries are not fully tested.</li>
   <li>Game, Clock: The end of time is not handled correctly, after adding the Timer thread for updating the clock,
       also the two strategies must have a dedicated thread.
       The clock should run asynchronously. See ScheduledThreadPoolExecutor.</li>
