@@ -30,6 +30,9 @@ import org.joda.time.Period;
 import java.util.Map;
 import java.util.HashMap;
 
+import java.util.Set;
+import java.util.HashSet;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,12 +67,12 @@ public class RandomStrategyTest {
     private static final double PROBABILITY = 1./N;
 
     /** Strategy fixtures. */
-    private Strategy randomStrategy = new RandomStrategy();
+    private Strategy strategy = new RandomStrategy();
  
     private List<Square> randomSquareSample(int length) {
 	List<Square> result = new ArrayList<Square>(length);
 	for (int i=0; i<length; i++) {
-	    Square sq = randomStrategy.move(GameSnapshotFixtures.INITIAL).square();
+	    Square sq = strategy.move(GameSnapshotFixtures.INITIAL).square();
 	    assertTrue(INITIAL_LEGAL_MOVES.contains(sq));
 	    result.add(sq);
 	}
@@ -82,6 +85,20 @@ public class RandomStrategyTest {
 	    if (sample == sq) count++;
 	}
 	return count;
+    }
+
+    private Set<Square> sampleSpace(final GameSnapshot snapshot) {
+        return new HashSet<Square>(snapshot.board().legalMoves(snapshot.player()));
+    }
+
+    private List<Square> sample(final GameSnapshot snapshot, int size) {
+	List<Square> sample = new ArrayList<Square>(size);
+	for (int i=0; i<size; i++) {
+	    Square sq = strategy.move(snapshot).square();
+	    assertTrue(INITIAL_LEGAL_MOVES.contains(sq));
+	    sample.add(sq);
+	}
+	return sample;
     }
 
     /**
