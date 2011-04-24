@@ -24,9 +24,6 @@
 
 package rcrr.reversi;
 
-import org.joda.time.Duration;
-import org.joda.time.Period;
-
 import java.util.Map;
 import java.util.HashMap;
 
@@ -35,16 +32,9 @@ import java.util.HashSet;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-import org.junit.*;
-import static org.junit.Assert.*;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.instanceOf;
-
-import static rcrr.reversi.Square.*;
+import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test Suite for {@code RandomStrategy} class.
@@ -72,7 +62,7 @@ import static rcrr.reversi.Square.*;
  * </ul>
  * <p>
  * Let now consider a population <i>q</i> of <i>j</i> members build taking the mean value
- * <i>mk</i> of <i>j</i> populations <i>p</i>, let be: 
+ * <i>mk</i> of <i>j</i> populations <i>p</i>, let be:
  * <ul>
  *  <li><i>vmk</i> the variance of the population <i>q</i></li>
  * </ul>
@@ -104,18 +94,31 @@ public class RandomStrategyTest {
      * <p>
      * It is used to compute the main statistical properties for the given snapshot.
      */
-    static private class StatisticalModel {
+    private static class StatisticalModel {
 
         /** The random strategy generating the sample populations. */
         private Strategy strategy = new RandomStrategy();
 
-        private final GameSnapshot snapshot; /** The game snapshot representing the statistical environment. */
-        private final Set<Square> legalMovesSpace; /** The set of all possible values. */
-        private final int enne; /** The numorosity of the legal moves space. */
-        private final double mean; /** The theoretical probability to receive a given value from a random selection. */
-        private final double variance; /** The theoretical statistical variance of a sample population of random selection. */
+        /** The game snapshot representing the statistical environment. */
+        private final GameSnapshot snapshot;
 
-        /** Class constructor. */
+        /** The set of all possible values. */
+        private final Set<Square> legalMovesSpace;
+
+        /** The numorosity of the legal moves space. */
+        private final int enne;
+
+        /** The theoretical probability to receive a given value from a random selection. */
+        private final double mean;
+
+        /** The theoretical statistical variance of a sample population of random selection. */
+        private final double variance;
+
+        /**
+         * Class constructor.
+         *
+         * @param snapshot the game snapshot used to define the statistical model
+         */
         StatisticalModel(final GameSnapshot snapshot) {
             this.snapshot = snapshot;
             this.legalMovesSpace = new HashSet<Square>(snapshot.board().legalMoves(snapshot.player()));
@@ -124,11 +127,50 @@ public class RandomStrategyTest {
             this.variance = (double) (enne - 1) / (double) Math.pow((double) enne, 2.);
         }
 
-        int enne() { return this.enne; }
-        double mean() { return this.mean; }
-        double variance() { return this.variance; }
-        GameSnapshot snapshot() { return this.snapshot; }
-        Set<Square> legalMovesSpace() { return this.legalMovesSpace; }
+        /**
+         * Returns the enne field.
+         *
+         * @return the enne field
+         */
+        int enne() {
+            return this.enne;
+        }
+
+        /**
+         * Returns the mean field.
+         *
+         * @return the mean field
+         */
+        double mean() {
+            return this.mean;
+        }
+
+        /**
+         * Returns the variance field.
+         *
+         * @return the variance field
+         */
+        double variance() {
+            return this.variance;
+        }
+
+        /**
+         * Returns the snapshot field.
+         *
+         * @return the snapshot field
+         */
+        GameSnapshot snapshot() {
+            return this.snapshot;
+        }
+
+        /**
+         * Returns the set of square that are available as legal moves.
+         *
+         * @return the available legal moves set
+         */
+        Set<Square> legalMovesSpace() {
+            return this.legalMovesSpace;
+        }
 
         /**
          * Returns a new sample related to the model.
@@ -138,7 +180,7 @@ public class RandomStrategyTest {
          */
         Sample sample(final int sampleSize) {
             List<Square> squares = new ArrayList<Square>(sampleSize);
-            for (int i=0; i<sampleSize; i++) {
+            for (int i = 0; i < sampleSize; i++) {
                 Square sq = strategy.move(snapshot).square();
                 assertTrue(legalMovesSpace.contains(sq));
                 squares.add(sq);
@@ -149,7 +191,7 @@ public class RandomStrategyTest {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            sb.append("{legalMovesSpate=" + legalMovesSpace + ", ");
+            sb.append("{legalMovesSpace=" + legalMovesSpace + ", ");
             sb.append("enne=" + enne + ", ");
             sb.append("mean=" + mean + ", ");
             sb.append("variance=" + variance + "}");
@@ -158,18 +200,39 @@ public class RandomStrategyTest {
 
     }
 
+    /**
+     * A semple set is a collection of sample associated with a model.
+     */
     private static class SampleSet {
 
+        /** The model field. */
         private final StatisticalModel model;
+
+        /** The samples field. */
         private final Set<Sample> samples;
 
+        /** The sampleSize field. */
         private final int sampleSize;
+
+        /** The setSize field. */
         private final int setSize;
 
-        private final Map<Square, Double> meanOfMeans;
-        private final Map<Square, Double> meanOfVariances;
-        private final Map<Square, Double> varianceOfMeans;
+        /** The meansOfMeans field. */
+        private final Map<Square, Double> meansOfMeans;
 
+        /** The meansOfVariances field. */
+        private final Map<Square, Double> meansOfVariances;
+
+        /** The variancesOfMeans field. */
+        private final Map<Square, Double> variancesOfMeans;
+
+        /**
+         * Class constructor.
+         *
+         * @param sampleSize the number of squares per sample
+         * @param setSize    the number of samples
+         * @param model      the reference statistical model
+         */
         SampleSet(final int sampleSize, final int setSize, final StatisticalModel model) {
             this.model = model;
             this.sampleSize = sampleSize;
@@ -180,46 +243,46 @@ public class RandomStrategyTest {
             }
 
             /** Calculates the means of the means. */
-            this.meanOfMeans = new HashMap<Square, Double>(model.enne());
+            this.meansOfMeans = new HashMap<Square, Double>(model.enne());
             for (Square sq : model.legalMovesSpace()) {
-                meanOfMeans.put(sq, (double) 0.);
+                meansOfMeans.put(sq, (double) 0.);
             }
             for (Sample sample : this.samples) {
                 for (Square sq : model.legalMovesSpace()) {
-                    meanOfMeans.put(sq, meanOfMeans.get(sq) + sample.means().get(sq));
+                    meansOfMeans.put(sq, meansOfMeans.get(sq) + sample.means().get(sq));
                 }
             }
             for (Square sq : model.legalMovesSpace()) {
-                meanOfMeans.put(sq, meanOfMeans.get(sq) / (double) setSize);
+                meansOfMeans.put(sq, meansOfMeans.get(sq) / (double) setSize);
             }
 
             /** Calculates the means of the variances. */
-            this.meanOfVariances = new HashMap<Square, Double>(model.enne());
+            this.meansOfVariances = new HashMap<Square, Double>(model.enne());
             for (Square sq : model.legalMovesSpace()) {
-                meanOfVariances.put(sq, (double) 0.);
+                meansOfVariances.put(sq, (double) 0.);
             }
             for (Sample sample : this.samples) {
                 for (Square sq : model.legalMovesSpace()) {
-                    meanOfVariances.put(sq, meanOfVariances.get(sq) + sample.variances().get(sq));
+                    meansOfVariances.put(sq, meansOfVariances.get(sq) + sample.variances().get(sq));
                 }
             }
             for (Square sq : model.legalMovesSpace()) {
-                meanOfVariances.put(sq, meanOfVariances.get(sq) / (double) setSize);
+                meansOfVariances.put(sq, meansOfVariances.get(sq) / (double) setSize);
             }
 
             /** Calculates the variances of the means. */
-            this.varianceOfMeans = new HashMap<Square, Double>(model.enne());
+            this.variancesOfMeans = new HashMap<Square, Double>(model.enne());
             for (Square sq : model.legalMovesSpace()) {
-                varianceOfMeans.put(sq, (double) 0.);
+                variancesOfMeans.put(sq, (double) 0.);
             }
             for (Sample sample : this.samples) {
                 for (Square sq : model.legalMovesSpace()) {
-                    double deviation = sample.means().get(sq) - meanOfMeans.get(sq);
-                    varianceOfMeans.put(sq, varianceOfMeans.get(sq) + deviation * deviation);
+                    double deviation = sample.means().get(sq) - meansOfMeans.get(sq);
+                    variancesOfMeans.put(sq, variancesOfMeans.get(sq) + deviation * deviation);
                 }
             }
             for (Square sq : model.legalMovesSpace()) {
-                varianceOfMeans.put(sq, varianceOfMeans.get(sq) / (double) setSize);
+                variancesOfMeans.put(sq, variancesOfMeans.get(sq) / (double) setSize);
             }
 
         }
@@ -229,30 +292,77 @@ public class RandomStrategyTest {
             StringBuilder sb = new StringBuilder();
             sb.append("{#SampleSet# model=" + model + ", ");
             sb.append("size=" + setSize + ", ");
-            sb.append("sampleSize=" + sampleSize+ ", ");
-            sb.append("meanOfMeans=" + meanOfMeans() + ", ");
-            sb.append("meanOfVariances=" + meanOfVariances() + ", ");
-            sb.append("varianceOfMeans=" + varianceOfMeans() + "}");
+            sb.append("sampleSize=" + sampleSize + ", ");
+            sb.append("meansOfMeans=" + meansOfMeans() + ", ");
+            sb.append("meansOfVariances=" + meansOfVariances() + ", ");
+            sb.append("variancesOfMeans=" + variancesOfMeans() + "}");
             return sb.toString();
         }
 
-        public Map<Square, Double> meanOfMeans() { return meanOfMeans; }
-        public Map<Square, Double> meanOfVariances() { return meanOfVariances; }
-        public Map<Square, Double> varianceOfMeans() { return varianceOfMeans; }
-        public Set<Sample> samples() { return samples; }
+        /**
+         * Returns the mean map of the means obtained from the samples contained into the sample set.
+         *
+         * @return the meansOfMeans field
+         */
+        public Map<Square, Double> meansOfMeans() {
+            return meansOfMeans;
+        }
+
+        /**
+         * Returns the mean map of the variances obtained from the samples contained into the sample set.
+         *
+         * @return the meansOfVariances field
+         */
+        public Map<Square, Double> meansOfVariances() {
+            return meansOfVariances;
+        }
+
+        /**
+         * Returns the variance map of the meanss obtained from the samples contained into the sample set.
+         *
+         * @return the variancesOfMeans field
+         */
+        public Map<Square, Double> variancesOfMeans() {
+            return variancesOfMeans;
+        }
+
+        /**
+         * Returns the samples field.
+         *
+         * @return the samples field
+         */
+        public Set<Sample> samples() {
+            return samples;
+        }
 
     }
 
+    /**
+     * A sample is a wrapper for a list of moves (squares) associated with a statistical model.
+     */
     private static class Sample {
 
+        /** the squares field. */
         private List<Square> squares;
+
+        /** The model field. */
         private StatisticalModel model;
 
-        /** Calculated fields. */
+        /** Calculated field occurrences. */
         private Map<Square, Integer> occurrences;
+
+        /** Calculated field means. */
         private Map<Square, Double> means;
+
+        /** Calculated field variances. */
         private Map<Square, Double> variances;
 
+        /**
+         * Class constructor.
+         *
+         * @param squares the list of moves (squares)
+         * @param model   the reference statistical model
+         */
         Sample(final List<Square> squares, final StatisticalModel model) {
             this.squares = squares;
             this.model = model;
@@ -277,7 +387,7 @@ public class RandomStrategyTest {
                 }
                 this.means.put(sq0, this.means.get(sq0) / squares.size());
             }
-            
+
             /** Calculates variances. */
             this.variances = new HashMap<Square, Double>(model.enne());
             for (Square sq0 : model.legalMovesSpace()) {
@@ -293,14 +403,52 @@ public class RandomStrategyTest {
                 }
                 this.variances.put(sq0, this.variances.get(sq0) / squares.size());
             }
-            
         }
 
-        StatisticalModel model() { return this.model; }
-        List<Square> squares() { return this.squares; }
-        Map<Square, Integer> occurrences() { return this.occurrences; }
-        Map<Square, Double> means() { return this.means; }
-        Map<Square, Double> variances() { return this.variances; }
+        /**
+         * Returns the model field.
+         *
+         * @return the model field.
+         */
+        StatisticalModel model() {
+            return this.model;
+        }
+
+        /**
+         * Returns the squares field.
+         *
+         * @return the squares field.
+         */
+        List<Square> squares() {
+            return this.squares;
+        }
+
+        /**
+         * Returns the occurrences field.
+         *
+         * @return the occurrences field.
+         */
+        Map<Square, Integer> occurrences() {
+            return this.occurrences;
+        }
+
+        /**
+         * Returns the means field.
+         *
+         * @return the means field.
+         */
+        Map<Square, Double> means() {
+            return this.means;
+        }
+
+        /**
+         * Returns the variances field.
+         *
+         * @return the variances field.
+         */
+        Map<Square, Double> variances() {
+            return this.variances;
+        }
 
         @Override
         public String toString() {
@@ -318,6 +466,17 @@ public class RandomStrategyTest {
     /** Tolerance factor to apply to the variance estimation. */
     static final double TOLERANCE_FACTOR = 2;
 
+    /**
+     * Tests the {@code move(GameSnapshot)} method.
+     * <p>
+     * The test verify on different game snapshot that the move provided
+     * by the random strategy satisfies the statistical properties required by
+     * the "<i>Central Limit Theorem</i>".
+     *
+     * @see GameSnapshotFixtures#INITIAL
+     * @see GameSnapshotFixtures#EARLY_GAME_BC3_10_MOVES
+     * @see GameSnapshotFixtures#G00_S01
+     */
     @Test
     public final void testMove() {
 
@@ -345,13 +504,15 @@ public class RandomStrategyTest {
                     SampleSet sampleSet = new SampleSet(sampleSize, setSize, model);
 
                     for (Square sq : model.legalMovesSpace()) {
-                        double value = sampleSet.varianceOfMeans().get(sq);
+                        double value = sampleSet.variancesOfMeans().get(sq);
                         assertTrue("sampleSet:" + sampleSet + "\n"
-                                   + "sampleSet.varianceOfMeans().get(sq) is " + sampleSet.varianceOfMeans().get(sq) + "\n"
+                                   + "sampleSet.variancesOfMeans().get(sq) is "
+                                   + sampleSet.variancesOfMeans().get(sq) + "\n"
                                    + "expectedVarianceOfMeans is " + expectedVarianceOfMeans + "\n"
                                    + "TOLERANCE_FACTOR is " + TOLERANCE_FACTOR + "\n"
-                                   + "It must be satisfied that: (sampleSet.varianceOfMeans().get(sq) >= 0 && "
-                                   + "sampleSet.varianceOfMeans().get(sq) <= TOLERANCE_FACTOR * expectedVarianceOfMeans)",
+                                   + "It must be satisfied that: (sampleSet.variancesOfMeans().get(sq) >= 0 && "
+                                   + "sampleSet.variancesOfMeans().get(sq) <="
+                                   + " TOLERANCE_FACTOR * expectedVarianceOfMeans)",
                                    value >= 0 && value <= TOLERANCE_FACTOR * expectedVarianceOfMeans);
                     }
                 }
