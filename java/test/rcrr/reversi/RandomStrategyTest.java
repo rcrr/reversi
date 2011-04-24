@@ -40,6 +40,10 @@ import java.util.Arrays;
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.instanceOf;
+
 import static rcrr.reversi.Square.*;
 
 /**
@@ -95,34 +99,48 @@ public class RandomStrategyTest {
     /** Class constructor. */
     public RandomStrategyTest() { }
 
+    /**
+     * A statistical model is a wrapper for a game snapshot.
+     * <p>
+     * It is used to compute the main statistical properties for the given snapshot.
+     */
     static private class StatisticalModel {
 
-        /** Strategy fixtures. */
+        /** The random strategy generating the sample populations. */
         private Strategy strategy = new RandomStrategy();
 
-        private final GameSnapshot snapshot;
-        private final Set<Square> sampleSpace;
-        private final int enne;
-        private final double mean;
-        private final double variance;
+        private final GameSnapshot snapshot; /** The game snapshot representing the statistical environment. */
+        private final Set<Square> legalMovesSpace; /** The set of all possible values. */
+        private final int enne; /** The numorosity of the legal moves space. */
+        private final double mean; /** The theoretical probability to receive a given value from a random selection. */
+        private final double variance; /** The theoretical statistical variance of a sample population of random selection. */
 
+        /** Class constructor. */
         StatisticalModel(final GameSnapshot snapshot) {
             this.snapshot = snapshot;
-            this.sampleSpace = new HashSet<Square>(snapshot.board().legalMoves(snapshot.player()));
-            this.enne = sampleSpace.size();
+            this.legalMovesSpace = new HashSet<Square>(snapshot.board().legalMoves(snapshot.player()));
+            this.enne = legalMovesSpace.size();
             this.mean = (double) 1. / (double) enne;
             this.variance = (double) (enne - 1) / (double) Math.pow((double) enne, 2.);
         }
 
         int enne() { return this.enne; }
+        double mean() { return this.mean; }
+        double variance() { return this.variance; }
+        GameSnapshot snapshot() { return this.snapshot; }
+        Set<Square> legalMovesSpace() { return this.legalMovesSpace; }
 
-        Set<Square> sampleSpace() { return this.sampleSpace; }
-
-        Sample sample(final int kappa) {
-            List<Square> squares = new ArrayList<Square>(kappa);
-            for (int i=0; i<kappa; i++) {
+        /**
+         * Returns a new sample related to the model.
+         *
+         * @param sampleSize the number of moves componing the sample
+         * @return           a new sample
+         */
+        Sample sample(final int sampleSize) {
+            List<Square> squares = new ArrayList<Square>(sampleSize);
+            for (int i=0; i<sampleSize; i++) {
                 Square sq = strategy.move(snapshot).square();
-                assertTrue(sampleSpace.contains(sq));
+                assertTrue(legalMovesSpace.contains(sq));
                 squares.add(sq);
             }
             return new Sample(squares, this);
@@ -131,12 +149,97 @@ public class RandomStrategyTest {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            sb.append("Sample Space: " + sampleSpace + "\n");
-            sb.append("N: " + enne + "\n");
-            sb.append("m: " + mean + "\n");
-            sb.append("v: " + variance + "\n");
+            sb.append("{legalMovesSpate=" + legalMovesSpace + ", ");
+            sb.append("enne=" + enne + ", ");
+            sb.append("mean=" + mean + ", ");
+            sb.append("variance=" + variance + "}");
             return sb.toString();
         }
+
+    }
+
+    private static class SampleSet {
+
+        private final StatisticalModel model;
+        private final Set<Sample> samples;
+
+        private final int sampleSize;
+        private final int setSize;
+
+        private final Map<Square, Double> meanOfMeans;
+        private final Map<Square, Double> meanOfVariances;
+        private final Map<Square, Double> varianceOfMeans;
+
+        SampleSet(final int sampleSize, final int setSize, final StatisticalModel model) {
+            this.model = model;
+            this.sampleSize = sampleSize;
+            this.setSize = setSize;
+            this.samples = new HashSet<Sample>(setSize);
+            for (int k = 0; k < setSize; k++) {
+                samples.add(model.sample(sampleSize));
+            }
+
+            /** Calculates the means of the means. */
+            this.meanOfMeans = new HashMap<Square, Double>(model.enne());
+            for (Square sq : model.legalMovesSpace()) {
+                meanOfMeans.put(sq, (double) 0.);
+            }
+            for (Sample sample : this.samples) {
+                for (Square sq : model.legalMovesSpace()) {
+                    meanOfMeans.put(sq, meanOfMeans.get(sq) + sample.means().get(sq));
+                }
+            }
+            for (Square sq : model.legalMovesSpace()) {
+                meanOfMeans.put(sq, meanOfMeans.get(sq) / (double) setSize);
+            }
+
+            /** Calculates the means of the variances. */
+            this.meanOfVariances = new HashMap<Square, Double>(model.enne());
+            for (Square sq : model.legalMovesSpace()) {
+                meanOfVariances.put(sq, (double) 0.);
+            }
+            for (Sample sample : this.samples) {
+                for (Square sq : model.legalMovesSpace()) {
+                    meanOfVariances.put(sq, meanOfVariances.get(sq) + sample.variances().get(sq));
+                }
+            }
+            for (Square sq : model.legalMovesSpace()) {
+                meanOfVariances.put(sq, meanOfVariances.get(sq) / (double) setSize);
+            }
+
+            /** Calculates the variances of the means. */
+            this.varianceOfMeans = new HashMap<Square, Double>(model.enne());
+            for (Square sq : model.legalMovesSpace()) {
+                varianceOfMeans.put(sq, (double) 0.);
+            }
+            for (Sample sample : this.samples) {
+                for (Square sq : model.legalMovesSpace()) {
+                    double deviation = sample.means().get(sq) - meanOfMeans.get(sq);
+                    varianceOfMeans.put(sq, varianceOfMeans.get(sq) + deviation * deviation);
+                }
+            }
+            for (Square sq : model.legalMovesSpace()) {
+                varianceOfMeans.put(sq, varianceOfMeans.get(sq) / (double) setSize);
+            }
+
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{#SampleSet# model=" + model + ", ");
+            sb.append("size=" + setSize + ", ");
+            sb.append("sampleSize=" + sampleSize+ ", ");
+            sb.append("meanOfMeans=" + meanOfMeans() + ", ");
+            sb.append("meanOfVariances=" + meanOfVariances() + ", ");
+            sb.append("varianceOfMeans=" + varianceOfMeans() + "}");
+            return sb.toString();
+        }
+
+        public Map<Square, Double> meanOfMeans() { return meanOfMeans; }
+        public Map<Square, Double> meanOfVariances() { return meanOfVariances; }
+        public Map<Square, Double> varianceOfMeans() { return varianceOfMeans; }
+        public Set<Sample> samples() { return samples; }
 
     }
 
@@ -147,208 +250,113 @@ public class RandomStrategyTest {
 
         /** Calculated fields. */
         private Map<Square, Integer> occurrences;
+        private Map<Square, Double> means;
+        private Map<Square, Double> variances;
 
         Sample(final List<Square> squares, final StatisticalModel model) {
             this.squares = squares;
             this.model = model;
 
+            /** Calculates occurrences. */
             this.occurrences = new HashMap<Square, Integer>(model.enne());
-            for (Square sq : model.sampleSpace()) {
+            for (Square sq : model.legalMovesSpace()) {
                 occurrences.put(sq, 0);
             }
             for (Square sq : squares) {
                 occurrences.put(sq, occurrences.get(sq) + 1);
             }
+
+            /** Calculates means. */
+            this.means = new HashMap<Square, Double>(model.enne());
+            for (Square sq0 : model.legalMovesSpace()) {
+                this.means.put(sq0, (double) 0.);
+                for (Square sq1 : this.squares) {
+                    if (sq0.equals(sq1)) {
+                        this.means.put(sq0, this.means.get(sq0) + (double) 1.);
+                    }
+                }
+                this.means.put(sq0, this.means.get(sq0) / squares.size());
+            }
+            
+            /** Calculates variances. */
+            this.variances = new HashMap<Square, Double>(model.enne());
+            for (Square sq0 : model.legalMovesSpace()) {
+                this.variances.put(sq0, (double) 0.);
+                for (Square sq1 : this.squares) {
+                    double deviation;
+                    if (sq0.equals(sq1)) {
+                        deviation = 1. - this.means.get(sq0);
+                    } else {
+                        deviation = 0. - this.means.get(sq0);
+                    }
+                    this.variances.put(sq0, this.variances.get(sq0) + deviation * deviation);
+                }
+                this.variances.put(sq0, this.variances.get(sq0) / squares.size());
+            }
             
         }
 
-        List<Square> squares() {
-            return this.squares;
-        }
+        StatisticalModel model() { return this.model; }
+        List<Square> squares() { return this.squares; }
+        Map<Square, Integer> occurrences() { return this.occurrences; }
+        Map<Square, Double> means() { return this.means; }
+        Map<Square, Double> variances() { return this.variances; }
 
-        Map<Square, Integer> occurrences() {
-            return this.occurrences;
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{model=" + model + ", ");
+            sb.append("size=" + squares.size() + ", ");
+            sb.append("occurrences=" + occurrences + ", ");
+            sb.append("means=" + means + ", ");
+            sb.append("variances=" + variances + "}");
+            return sb.toString();
         }
 
     }
+
+    /** Tolerance factor to apply to the variance estimation. */
+    static final double TOLERANCE_FACTOR = 2;
 
     @Test
-    public final void testReviewReminder() {
-        fail("The Test Suite must be reviewed!");
-    }
+    public final void testMove() {
 
-    private static final int TIMES = 2000;
-    private static final double DEVIATION = 0.001;
+        StatisticalModel[] models = {
+            new StatisticalModel(GameSnapshotFixtures.INITIAL),
+            new StatisticalModel(GameSnapshotFixtures.EARLY_GAME_BC3_10_MOVES),
+            new StatisticalModel(GameSnapshotFixtures.G00_S01)
+        };
 
-    private static final List<Square> INITIAL_LEGAL_MOVES = Arrays.asList(E6, C4, F5, D3);
-    private static final int N = INITIAL_LEGAL_MOVES.size();
-    private static final double PROBABILITY = 1./N;
+        int[] sampleSizeArray = {10, 20, 40};
+        int[] setSizeArray = {1, 100};
 
-    /** Strategy fixtures. */
-    private Strategy strategy = new RandomStrategy();
- 
-    private List<Square> randomSquareSample(int length) {
-	List<Square> result = new ArrayList<Square>(length);
-	for (int i=0; i<length; i++) {
-	    Square sq = strategy.move(GameSnapshotFixtures.INITIAL).square();
-	    assertTrue(INITIAL_LEGAL_MOVES.contains(sq));
-	    result.add(sq);
-	}
-	return result;
-    }
+        for (StatisticalModel model : models) {
+            for (int j = 0; j < sampleSizeArray.length; j++) {
+                for (int i = 0; i < setSizeArray.length; i++) {
 
-    private int count(Square sample, List<Square> distribution) {
-	int count = 0;
-	for (Square sq : distribution) {
-	    if (sample == sq) count++;
-	}
-	return count;
-    }
+                    int sampleSize = sampleSizeArray[j];
+                    int setSize = setSizeArray[i];
+                    double expectedVarianceOfMeans;
+                    if (setSize == 1) {
+                        expectedVarianceOfMeans = 0.;
+                    } else {
+                        expectedVarianceOfMeans = model.variance() / (double) sampleSize;
+                    }
+                    SampleSet sampleSet = new SampleSet(sampleSize, setSize, model);
 
-    private Set<Square> sampleSpace(final GameSnapshot snapshot) {
-        return new HashSet<Square>(snapshot.board().legalMoves(snapshot.player()));
-    }
-
-    private List<Square> sample(final GameSnapshot snapshot, int size) {
-	List<Square> sample = new ArrayList<Square>(size);
-	for (int i=0; i<size; i++) {
-	    Square sq = strategy.move(snapshot).square();
-	    assertTrue(INITIAL_LEGAL_MOVES.contains(sq));
-	    sample.add(sq);
-	}
-	return sample;
-    }
-
-    private Map<Square, Integer> occurrences(final Set<Square> sampleSpace, final List<Square> sample) {
-        Map<Square, Integer> occurrences = new HashMap<Square, Integer>(sampleSpace.size());
-        for (Square sq : sampleSpace) {
-            occurrences.put(sq, 0);
-        }
-        for (Square sq : sample) {
-            occurrences.put(sq, occurrences.get(sq) + 1);
-        }
-        return occurrences;
-    }
-
-    private Map<Square, Double> variances(final Set<Square> sampleSpace, final List<Square> sample) {
-        Map<Square, Double> result = new HashMap<Square, Double>();
-        int n = sampleSpace.size();
-        int k = sample.size();
-        double p1 = (double) 1 / n;
-        double p2 = (double) (n - 1) / n;
-        for (Square key : sampleSpace) {
-            double variance = 0.;
-            for (Square sq : sample) {
-                if (sq.equals(key)) {
-                    variance += (1-p1)*(1-p1);
-                } else {
-                    variance += (0-p1)*(0-p1);
+                    for (Square sq : model.legalMovesSpace()) {
+                        double value = sampleSet.varianceOfMeans().get(sq);
+                        assertTrue("sampleSet:" + sampleSet + "\n"
+                                   + "sampleSet.varianceOfMeans().get(sq) is " + sampleSet.varianceOfMeans().get(sq) + "\n"
+                                   + "expectedVarianceOfMeans is " + expectedVarianceOfMeans + "\n"
+                                   + "TOLERANCE_FACTOR is " + TOLERANCE_FACTOR + "\n"
+                                   + "It must be satisfied that: (sampleSet.varianceOfMeans().get(sq) >= 0 && "
+                                   + "sampleSet.varianceOfMeans().get(sq) <= TOLERANCE_FACTOR * expectedVarianceOfMeans)",
+                                   value >= 0 && value <= TOLERANCE_FACTOR * expectedVarianceOfMeans);
+                    }
                 }
             }
-            variance = variance / k;
-            result.put(key, variance);
         }
-        return result;
     }
-
-    private Map<Square, Double> frequencies(final Map<Square, Integer> occurrences) {
-        double sampleSpaceSize = occurrences.size();
-        Map<Square, Double> frequencies = new HashMap<Square, Double>(occurrences.size());
-        double sampleSize = 0.;
-        for (Square sq : occurrences.keySet()) {
-            sampleSize += (double) occurrences.get(sq);
-        }
-        for (Square sq : occurrences.keySet()) {
-            frequencies.put(sq, (double) occurrences.get(sq) / sampleSize);
-        }
-        return frequencies;
-    }
-
-    private List<Map<Square, Double>> frequenciesSample(final GameSnapshot snapshot, final int kappa, final int size) {
-        List<Map<Square, Double>> frequenciesSample = new ArrayList<Map<Square, Double>>();
-
-        Set<Square> sampleSpace = sampleSpace(snapshot);
-        for (int i = 0; i < kappa; i++) {
-            List<Square> sample = sample(snapshot, size);
-            Map<Square, Integer> occurrences = occurrences(sampleSpace, sample);
-            Map<Square, Double> frequencies = frequencies(occurrences);
-            //Map<Square, Double> variances = variances(sampleSpace, sample);
-            frequenciesSample.add(frequencies);
-        }
-        return frequenciesSample;
-    }
-
-    @Test
-    public final void testUnderConstruction() {
-
-        System.out.println("Under Construction START");
-
-        GameSnapshot env = GameSnapshotFixtures.INITIAL;
-        Set<Square> sampleSpace = sampleSpace(env);
-        System.out.println("sampleSpace = " + sampleSpace);
-
-        int sampleSpaceSize = sampleSpace.size();
-        System.out.println("sampleSpaceSize = " + sampleSpaceSize);
-
-        double mean = (double) 1 / (double) sampleSpaceSize;
-
-        int sampleSize = 1000 * sampleSpaceSize;
-        System.out.println("sampleSize = " + sampleSize);
-
-        List<Square> sample = sample(env, sampleSize);
-        //System.out.println("sample = " + sample);
-
-        Map<Square, Integer> occurrences = occurrences(sampleSpace, sample);
-        System.out.println("occurrences = " + occurrences);
-
-        Map<Square, Double> frequencies = frequencies(occurrences);
-        System.out.println("frequencies = " + frequencies);
-
-        Map<Square, Double> variances = variances(sampleSpace, sample);
-        System.out.println("variances = " + variances);
-
-        int kappa = 10000;
-        int enne = 10;
-        List<Map<Square, Double>> frequenciesSample = frequenciesSample(env, kappa, enne);
-        //System.out.println("frequenciesSample = " + frequenciesSample);
-
-        Map<Square, Double> meanVariances = new HashMap<Square, Double>();
-        for (Square key : sampleSpace) {
-            meanVariances.put(key, 0.);
-        }
-        for (Map<Square, Double> f : frequenciesSample) {
-            for (Square key : sampleSpace) {
-                meanVariances.put(key, meanVariances.get(key) + (f.get(key) - mean) * (f.get(key) - mean));
-            }
-        }
-        for(Square key : meanVariances.keySet()) {
-            meanVariances.put(key, meanVariances.get(key) / (double) kappa);            
-        }
-        System.out.println("meanVariances = " + meanVariances);
-
-
-        StatisticalModel model = new StatisticalModel(GameSnapshotFixtures.INITIAL);
-        System.out.println("model = " + model);
-
-        System.out.println("Under Construction STOP");
-
-
-    }
-
-    /**
-     * Binomial Coefficient: see http://en.wikipedia.org/wiki/Binomial_distribution
-     */
-    @Test
-    public void testMove() {
-	List<Square> distribution = randomSquareSample(TIMES);
-	Map<Square, Double> result = new HashMap<Square, Double>(N);
-	for (Square sq : INITIAL_LEGAL_MOVES) {
-	    result.put(sq, Math.pow(count(sq, distribution)/Float.valueOf(TIMES)-PROBABILITY, 2));
-	}
-	for (Square sq : INITIAL_LEGAL_MOVES) {
-	    assertTrue(result.get(sq) < DEVIATION);
-	}
-    }
-    
 
 }
