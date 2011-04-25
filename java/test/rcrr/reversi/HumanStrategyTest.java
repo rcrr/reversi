@@ -1,7 +1,7 @@
 /*
  *  HumanStrategyTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -24,8 +24,8 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
+import static org.junit.Assert.fail;
 
 /**
  * <i>Must be completely written!</i> Test Suite for {@code HumanStrategy} class.
@@ -33,10 +33,10 @@ import static org.junit.Assert.*;
 public class HumanStrategyTest {
 
     /**
-     * Has to be written.
+     * Test has to be written.
      */
     @Test
-    public void testMove() {
-        assertTrue("Test has to be written.", false);
+    public final void testMove() {
+        fail("Test has to be written.");
     }
 }

@@ -1,7 +1,7 @@
 /*
  *  Move.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -105,6 +105,12 @@ public final class Move {
      * @param action the action field
      * @param square the square field
      * @return       the identified move instance
+     * @throws NullPointerException     if parameter {@code action} is {@code null},
+     *                                  or if parameter {@code square} is {@code null}
+     *                                  and the {@code action} parameter is {@code PUT_DISC}
+     * @throws IllegalArgumentException if parameter {@code action} is not {@code PUT_DISC}
+     *                                  and the {@code square} parameter is different
+     *                                  from the {@code null} value
      */
     public static Move valueOf(final Action action, final Square square) {
         if (action == null) { throw new NullPointerException("Parameter action cannot be null."); }
@@ -129,6 +135,8 @@ public final class Move {
      *
      * @param action the action field
      * @return       the identified move instance
+     * @throws NullPointerException     if parameter {@code action} is {@code null}
+     * @throws IllegalArgumentException if parameter {@code action} is {@code PUT_DISC}
      */
     public static Move valueOf(final Action action) {
         if (action == null) {
@@ -148,6 +156,7 @@ public final class Move {
      *
      * @param square the square field
      * @return       the identified move instance
+     * @throws NullPointerException if parameter {@code square} is {@code null}
      */
     public static Move valueOf(final Square square) {
         if (square == null) { throw new NullPointerException("Parameter square cannot be null"); }
@@ -163,9 +172,9 @@ public final class Move {
     /**
      * Class constructor.
      * <p>
-     * {@code action} must be not null.
-     * {@code square} must be not null when {@code action} is {@code PUT_DISC}.
-     * {@code square} must be null when {@code action} is not {@code PUT_DISC}
+     * {@code action} must be not {@code null}.
+     * {@code square} must be not {@code null} when {@code action} is {@code PUT_DISC}.
+     * {@code square} must be {@code null} when {@code action} is not {@code PUT_DISC}
      *
      * @param  action the action field
      * @param  square the square field

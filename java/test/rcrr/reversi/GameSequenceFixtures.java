@@ -24,10 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 /**
  * The class host a number of predefined game sequences.
  * <p>

@@ -24,10 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 /**
  * The class host a number of predefined game instance factories.
  * <p>
@@ -48,7 +44,7 @@ public final class GameFixtureFactories {
      *
      * @return a generic game instance
      */
-    public static final Game anInstance() {
+    public static Game anInstance() {
         return  new GameBuilder()
             .build();
     }
@@ -61,7 +57,7 @@ public final class GameFixtureFactories {
      *
      * @see GameSequenceFixtures#THREE_SNAPSHOTS
      */
-    public static final Game threeSnapshots() {
+    public static Game threeSnapshots() {
         return  new GameBuilder()
             .withSequence(GameSequenceFixtures.THREE_SNAPSHOTS)
             .build();
