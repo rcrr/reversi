@@ -26,16 +26,12 @@ package rcrr.reversi;
 
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
-import org.joda.time.Duration;
 import org.joda.time.Period;
-
-import org.joda.time.DateTime;
 
 /**
  * Test Suite for the {@code Game} class.
@@ -60,7 +56,7 @@ public class GameTest {
      * @see GameSnapshotFixtures#BLACK_HAS_TO_PASS
      */
     @Test
-    public void testAreThereAvailableMoves() {
+    public final void testAreThereAvailableMoves() {
         assertThat("",
                    new GameBuilder()
                    .withSequence(new GameSequenceBuilder()
@@ -104,7 +100,7 @@ public class GameTest {
      * @see GameFixtureFactories#threeSnapshots()
      */
     @Test
-    public void testClock() {
+    public final void testClock() {
         assertThat("GameFixtureFactoriess.threeSnapshots().clock()"
                    + " must be equal to the here built clock.",
                    GameFixtureFactories.threeSnapshots().clock(),
@@ -129,7 +125,7 @@ public class GameTest {
      * @see BoardFixtures#FINAL_B37_W27
      */
     @Test
-    public void testCountDiscDifference() {
+    public final void testCountDiscDifference() {
         assertThat("",
                    new GameBuilder()
                    .withSequence(new GameSequenceBuilder()
@@ -148,7 +144,7 @@ public class GameTest {
      * The test return always a fail. The PASS use case must be handled differently.
      */
     @Test
-    public void testHasOpponentPassed() {
+    public final void testHasOpponentPassed() {
         fail("The method hasOpponentPassed must relate on the MoveRegister last MoveRecord."
              + " It instead releates to the comparison with the previous player."
              + " It happens because passing moves are not part of the game sequence."
@@ -206,7 +202,7 @@ public class GameTest {
      * @see Game#initialGame(Actor, Actor, Duration, PrintStream)
      */
     @Test
-    public void testInitialGame() {
+    public final void testInitialGame() {
         Game initialGame = Game.initialGame(new ActorBuilder().build(),
                                             new ActorBuilder().build(),
                                             CommonFixtures.A_DURATION,
@@ -250,7 +246,7 @@ public class GameTest {
      * @see Game#move()
      */
     @Test
-    public void testMove() {
+    public final void testMove() {
 
         Strategy strategy = new Strategy() {
                 public Move move(final GameSnapshot snapshot) {
@@ -267,7 +263,7 @@ public class GameTest {
                                    .build())
                         .build())
             .build();
-        
+
         game.move();
 
         assertThat("The game ..... must have the WHITE player.",
@@ -279,10 +275,10 @@ public class GameTest {
      * The test has to be written. It must be split into several cases.
      * Before moving forward two changes should be prepared:
      *  (1) the proper game clock management
-     *  (2) the PASS and FORFAIT use cases. 
+     *  (2) the PASS and FORFAIT use cases.
      */
     @Test
-    public void testPlay() {
+    public final void testPlay() {
         fail("The method play must take into consideration the proper management"
              + " of the game clock and the PASS use case.");
     }
@@ -344,7 +340,7 @@ public class GameTest {
      * @see Game#validateMove(Square)
      */
     @Test
-    public void testValidateMove_threeSnapshots_E6() {
+    public final void testValidateMove_threeSnapshots_E6() {
         assertThat("The move to square E6 is allowed."
                    + " GameFixtureFactories.threeSnapshots().validateMove(Square.E6)"
                    + " must return true.",
@@ -358,7 +354,7 @@ public class GameTest {
      * @see Game#validateMove(Square)
      */
     @Test
-    public void testValidateMove_threeSnapshots_A1() {
+    public final void testValidateMove_threeSnapshots_A1() {
         assertThat("The move to square A1 is not allowed."
                    + " GameFixtureFactories.threeSnapshots().validateMove(Square.A1)"
                    + " must return false.",
@@ -401,7 +397,7 @@ public class GameTest {
      * @see Game#newInstance(ActorsPair, GameSequence, PrintStream)
      */
     @Test
-    public void testNewInstance() {
+    public final void testNewInstance() {
         Game instance = Game.newInstance(new ActorsPairBuilder().build(),
                                          new GameSequenceBuilder().build(),
                                          CommonFixtures.NULL_PRINT_STREAM);
