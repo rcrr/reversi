@@ -1,7 +1,7 @@
 /*
  *  PlayerTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -24,33 +24,80 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
+import static org.junit.Assert.assertThat;
+
+import static org.hamcrest.CoreMatchers.is;
+
+/**
+ * Test Suite for {@code Player} enum.
+ *
+ * @see Player
+ */
 public class PlayerTest {
 
+    /** Class constructor. */
+    public PlayerTest() { }
+
+    /**
+     * Tests the {@code description()} method.
+     *
+     * @see Player#description()
+     */
     @Test
-    public void testDescription() {
-	assertEquals("The Black player", Player.BLACK.description());
-	assertEquals("The White player", Player.WHITE.description());
+    public final void testDescription() {
+        assertThat("Player.BLACK.description() must return The Black player.",
+                   Player.BLACK.description(),
+                   is("The Black player"));
+        assertThat("Player.WHITE.description() must return The White player.",
+                   Player.WHITE.description(),
+                   is("The White player"));
     }
 
+    /**
+     * Tests the {@code color()} method.
+     *
+     * @see Player#color()
+     */
     @Test
-    public void testColor() {
-	assertEquals(SquareState.BLACK, Player.BLACK.color());
-	assertEquals(SquareState.WHITE, Player.WHITE.color());
+    public final void testColor() {
+        assertThat("Player.BLACK.color() is SquareState.BLACK.",
+                   Player.BLACK.color(),
+                   is(SquareState.BLACK));
+        assertThat("Player.WHITE.color() is SquareState.WHITE.",
+                   Player.WHITE.color(),
+                   is(SquareState.WHITE));
     }
 
+    /**
+     * Tests the {@code symbol()} method.
+     *
+     * @see Player#symbol()
+     */
     @Test
-    public void testSymbol() {
-	assertEquals("@", Player.BLACK.symbol());
-	assertEquals("O", Player.WHITE.symbol());
+    public final void testSymbol() {
+        assertThat("Player.BLACK.symbol() is @.",
+                   Player.BLACK.symbol(),
+                   is("@"));
+        assertThat("Player.WHITE.symbol() is O.",
+                   Player.WHITE.symbol(),
+                   is("O"));
     }
 
+    /**
+     * Tests the {@code opponent()} method.
+     *
+     * @see Player#opponent()
+     */
     @Test
-    public void testOpponent() {
-	assertEquals(Player.WHITE, Player.BLACK.opponent());
-	assertEquals(Player.BLACK, Player.WHITE.opponent());
+    public final void testOpponent() {
+        assertThat("Player.BLACK.opponent() is Player.WHITE.",
+                   Player.BLACK.opponent(),
+                   is(Player.WHITE));
+        assertThat("Player.WHITE.opponent() is Player.BLACK.",
+                   Player.WHITE.opponent(),
+                   is(Player.BLACK));
     }
-    
+
 }
