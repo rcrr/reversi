@@ -1,7 +1,7 @@
 /*
  *  Player.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -25,7 +25,7 @@
 package rcrr.reversi;
 
 /**
- * The {@code Player} is one of the two competitors in the game.
+ * The player is one of the two competitors in the game.
  * She is either one among the Black and the White opponents.
  */
 public enum Player {
@@ -50,8 +50,8 @@ public enum Player {
     /**
      * Enum constructor.
      *
-     * @param  description the {@code Player}'s description
-     * @param  color       the {@code Player}'s {@code SquareState} also named "color"
+     * @param  description the player's description
+     * @param  color       the player's square state also named "color"
      */
     private Player(final String description, final SquareState color) {
         this.description = description;
@@ -59,31 +59,31 @@ public enum Player {
     }
 
     /**
-     * Returns the {@code Player}'s description.
+     * Returns the player's description.
      *
-     * @return the {@code Player}'s description
+     * @return the player's description
      */
     public String description() { return description; }
 
     /**
-     * Returns the {@code SquareState} value representing the {@code Player}'s color.
+     * Returns the square state value representing the player's color.
      *
-     * @return the {@code Player}'s color
+     * @return the player's color
      */
     public SquareState color() { return color; }
 
     /**
-     * Returns a {@code String} value that is the {@code Player}'s color symbol.
+     * Returns a string value that is the player's color symbol.
      *
-     * @return the {@code Player}'s color symbol
+     * @return the player's color symbol
      */
     public String symbol() { return color().symbol(); }
 
     /**
-     * Returns the {@code Player} opponent. The Black for the White,
+     * Returns the player's opponent. The Black for the White,
      * while the White for the Black.
      *
-     * @return the opponent {@code Player}
+     * @return the opponent player
      */
     public Player opponent() {
         return (this == BLACK) ? WHITE : BLACK;
