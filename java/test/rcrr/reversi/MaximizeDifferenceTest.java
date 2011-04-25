@@ -24,10 +24,8 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
-
-import org.hamcrest.Matcher;
+import org.junit.Test;
+import static org.junit.Assert.assertThat;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -37,9 +35,6 @@ import static org.hamcrest.CoreMatchers.anyOf;
  * Test Suite for {@code MaximizeDifference} class.
  */
 public class MaximizeDifferenceTest {
-
-    /** An instance of {@code MaximixeDifference}. */
-    private static final MaximizeDifference A_MAXIMIZE_DIFFERENCE = new MaximizeDifference();
 
     /** Class constructor. */
     public MaximizeDifferenceTest() { }
@@ -59,32 +54,33 @@ public class MaximizeDifferenceTest {
     }
 
     /**
-     * Tests the move method when parameter {@code gameSnapshot} is null.
+     * Tests the {@code move(GameSnapshot)} method when parameter {@code gameSnapshot}
+     * is {@code null}.
      *
      * @see MaximizeDifference#move(GameSnapshot)
      */
     @Test(expected = NullPointerException.class)
     public final void testMove_boundaryConditions_checkNullParameter() {
-        A_MAXIMIZE_DIFFERENCE.move(GameSnapshotFixtures.NULL);
+        new MaximizeDifference().move(GameSnapshotFixtures.NULL);
     }
 
     /**
-     * Tests the move method.
+     * Tests the {@code move(GameSnapshot)} method.
      *
      * @see MaximizeDifference#move(GameSnapshot)
      */
     @Test
     @SuppressWarnings("unchecked")
-    public final void testMove() { 
+    public final void testMove() {
         assertThat("Given the initial position all the moves are equal.",
-                   A_MAXIMIZE_DIFFERENCE.move(GameSnapshotFixtures.INITIAL),
+                   new MaximizeDifference().move(GameSnapshotFixtures.INITIAL),
                    anyOf(is(Move.valueOf(Square.D3)),
                          is(Move.valueOf(Square.F5)),
                          is(Move.valueOf(Square.E6)),
                          is(Move.valueOf(Square.C4))));
 
         assertThat("Given the MINIMAX_TEST_CASE_A the expected move is E5.",
-                   A_MAXIMIZE_DIFFERENCE.move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A),
+                   new MaximizeDifference().move(GameSnapshotFixtures.MINIMAX_TEST_CASE_A),
                    is(Move.valueOf(Square.E5)));
 
     }
