@@ -403,9 +403,9 @@ public class ClockTest {
     @Test
     public final void testPrintClock() {
         assertThat("When calling printClock() on a clock having"
-                   + " a new Duration(15 * 60 * 1000L) assigned to black"
-                   + " and a new Duration(0L) assigned to white must return"
-                   + " [@=15:00, O=00:00].",
+                   + " a CommonFixtures.TEN_MINUTES_DURATION assigned to black"
+                   + " and a Duration.ZERO assigned to white must return"
+                   + " [@=10:00, O=00:00].",
                    new ClockBuilder()
                    .withDuration(Player.BLACK, CommonFixtures.TEN_MINUTES_DURATION)
                    .withDuration(Player.WHITE, Duration.ZERO)
@@ -422,15 +422,26 @@ public class ClockTest {
     @Test
     public final void testToString() {
         assertThat("When calling toString() on a clock having"
-                   + " a new Duration(15 * 60 * 1000L) assigned to black"
-                   + " and a new Duration(0L) assigned to white must return"
-                   + " [BLACK=15:00, WHITE=00:00].",
+                   + " a CommonFixtures.TEN_MINUTES_DURATION assigned to black"
+                   + " and a Duration.ZERO assigned to white must return"
+                   + " [BLACK=10:00, WHITE=00:00].",
                    new ClockBuilder()
                    .withDuration(Player.BLACK, CommonFixtures.TEN_MINUTES_DURATION)
                    .withDuration(Player.WHITE, Duration.ZERO)
                    .build()
                    .toString(),
                    is("[BLACK=10:00, WHITE=00:00]"));
+
+        assertThat("When calling toString() on a clock having"
+                   + " a new Duration(1001L) assigned to black"
+                   + " and new Duration(999L) assigned to white must return"
+                   + " [BLACK=00:01, WHITE=00:00].",
+                   new ClockBuilder()
+                   .withDuration(Player.BLACK, new Duration(1001L))
+                   .withDuration(Player.WHITE, new Duration(999L))
+                   .build()
+                   .toString(),
+                   is("[BLACK=00:01, WHITE=00:00]"));
     }
 
     /**

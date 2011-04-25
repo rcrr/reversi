@@ -167,10 +167,10 @@ public final class Clock {
      * @return          a formatted {@code String} with minutes and seconds
      */
     private static String timeString(final Duration duration) {
-        long time = duration.getMillis();
-        long rTime = time / DateTimeConstants.MILLIS_PER_SECOND;
-        long minutes = (long) Math.floor(rTime / DateTimeConstants.SECONDS_PER_MINUTE);
-        long seconds = rTime - (minutes * DateTimeConstants.SECONDS_PER_MINUTE);
+        final long durationAsMilliseconds = duration.getMillis();
+        final long durationAsSeconds = durationAsMilliseconds / DateTimeConstants.MILLIS_PER_SECOND;
+        final long minutes = durationAsSeconds / DateTimeConstants.SECONDS_PER_MINUTE;
+        final long seconds = durationAsSeconds - (minutes * DateTimeConstants.SECONDS_PER_MINUTE);
         return TIME_FORMATTER.format(minutes) + ":" + TIME_FORMATTER.format(seconds);
     }
 
