@@ -61,6 +61,9 @@ public enum Column {
      */
     H("h");
 
+    /** The null instance. */
+    public static final Column NULL = null;
+
     /** The number of columns. */
     public static final int SIZE = 8;
 
@@ -105,13 +108,13 @@ public enum Column {
      * </pre>
      *
      * @param delta the shift amount
-     * @return the column identified by the delta shift
+     * @return      the column identified by the delta shift
      */
     Column shift(final int delta) {
         Column c;
         int index = ordinal() + delta;
         if (index < 0 || index >= Column.values().length) {
-            c = null;
+            c = Column.NULL;
         } else {
             c = values()[index];
         }

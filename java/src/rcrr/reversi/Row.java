@@ -61,6 +61,9 @@ public enum Row {
      */
     R8("8");
 
+    /** The null instance. */
+    public static final Row NULL = null;
+
     /** The number of rows. */
     public static final int SIZE = 8;
 
@@ -111,7 +114,7 @@ public enum Row {
         Row r;
         int index = ordinal() + delta;
         if (index < 0 || index >= Row.values().length) {
-            r = null;
+            r = Row.NULL;
         } else {
             r = values()[index];
         }
