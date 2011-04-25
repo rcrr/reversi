@@ -149,9 +149,10 @@ public final class Clock {
             throw new NullPointerException("Parameter durations cannot have null values.");
         }
         for (Duration duration : durations.values()) {
-            if (duration.isShorterThan(Duration.ZERO))
+            if (duration.isShorterThan(Duration.ZERO)) {
                 throw new IllegalArgumentException("Parameter durations cannot have negative values."
                                                    + " durations=" + durations);
+            }
         }
         return new Clock(durations);
     }
@@ -187,7 +188,7 @@ public final class Clock {
         Map<Player, Duration> transientDurations = new EnumMap<Player, Duration>(Player.class);
         transientDurations.put(Player.BLACK, blackDuration);
         transientDurations.put(Player.WHITE, whiteDuration);
-        return transientDurations;        
+        return transientDurations;
     }
 
     /**
@@ -326,9 +327,9 @@ public final class Clock {
      * Returns a new durations map, having the duration associated to player updated
      * with the given value.
      *
-     * @param player the player to apply the update
-     * @param update the new duration value
-     * @return       a new durations map
+     * @param player  the player to apply the update
+     * @param updated the new duration value
+     * @return        a new durations map
      */
     private Map<Player, Duration> set(final Player player, final Duration updated) {
         assert (player != null) : "Parameter player cannot be null.";
