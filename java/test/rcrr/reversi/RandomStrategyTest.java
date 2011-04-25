@@ -469,7 +469,7 @@ public class RandomStrategyTest {
     /**
      * Tests the {@code move(GameSnapshot)} method.
      * <p>
-     * The test verify on different game snapshot that the move provided
+     * The test verify on different game snapshots that the move provided
      * by the random strategy satisfies the statistical properties required by
      * the "<i>Central Limit Theorem</i>".
      *
