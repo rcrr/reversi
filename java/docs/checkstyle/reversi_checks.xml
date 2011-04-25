@@ -4,6 +4,30 @@
     "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 
 <!--
+    reversi_checks.xml
+    
+    Copyright (c) 2011 Roberto Corradini. All rights reserved.
+  
+    This file is part of the reversi program
+    http://github.com/rcrr/reversi
+  
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 3, or (at your option) any
+    later version.
+  
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
+  
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+    or visit the site <http://www.gnu.org/licenses/>.
+-->
+
+<!--
 
   Checkstyle configuration that checks the sun coding conventions from:
 
@@ -45,7 +69,7 @@
       adding: <property name="tokens" value="VARIABLE_DEF"/>
   - changed: <module name="MethodName"/>
       adding: <property name="format" value="^[a-z][a-zA-Z0-9_]*$"/>
-
+  - added:   <module name="SuppressionFilter">
 -->
 
 <module name="Checker">
@@ -56,6 +80,11 @@
 
         <property name="basedir" value="${basedir}"/>
     -->
+
+    <!-- rcrr -->
+    <module name="SuppressionFilter">
+      <property name="file" value="./docs/checkstyle/checkstyle_suppressions.xml"/>
+    </module> 
 
     <!-- Checks that a package-info.java file exists for each package.     -->
     <!-- See http://checkstyle.sf.net/config_javadoc.html#JavadocPackage -->
@@ -116,15 +145,15 @@
         <!-- Checks for Headers                                -->
         <!-- See http://checkstyle.sf.net/config_header.html   -->
         <!-- <module name="Header">                            -->
-            <!-- The follow property value demonstrates the ability     -->
-            <!-- to have access to ANT properties. In this case it uses -->
-            <!-- the ${basedir} property to allow Checkstyle to be run  -->
-            <!-- from any directory within a project. See property      -->
-            <!-- expansion,                                             -->
-            <!-- http://checkstyle.sf.net/config.html#properties        -->
-            <!-- <property                                              -->
-            <!--     name="headerFile"                                  -->
-            <!--     value="${basedir}/java.header"/>                   -->
+        <!-- The follow property value demonstrates the ability     -->
+        <!-- to have access to ANT properties. In this case it uses -->
+        <!-- the ${basedir} property to allow Checkstyle to be run  -->
+        <!-- from any directory within a project. See property      -->
+        <!-- expansion,                                             -->
+        <!-- http://checkstyle.sf.net/config.html#properties        -->
+        <!-- <property                                              -->
+        <!--     name="headerFile"                                  -->
+        <!--     value="${basedir}/java.header"/>                   -->
         <!-- </module> -->
 
         <!-- Following interprets the header file as regular expressions. -->
