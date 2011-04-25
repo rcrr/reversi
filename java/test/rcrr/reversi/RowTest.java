@@ -1,7 +1,7 @@
 /*
  *  RowTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -24,49 +24,104 @@
 
 package rcrr.reversi;
 
-import java.util.Map;
+import org.junit.Test;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
+import static org.hamcrest.CoreMatchers.is;
+
+/**
+ * Test Suite for {@code Row} enum.
+ */
 public class RowTest {
 
+    /** Class constructor. */
+    public RowTest() { }
+
+    /**
+     * Tests the {@code label()} method.
+     *
+     * @see Row#label()
+     */
     @Test
-    public void testLabel() {
-	assertEquals("5", Row.R5.label());
+    public final void testLabel() {
+        assertThat("Row.R5.label() must return 5.",
+                     Row.R5.label(),
+                     is("5"));
     }
 
-    @Test
-    public void testGetInstance() {
-	assertEquals(Row.R1, Row.getInstance(0));
-	assertEquals(Row.R3, Row.getInstance(2));
-	assertEquals(Row.R8, Row.getInstance(7));
+    /**
+     * Tests the {@code getInstance(int)} method when parameter
+     * {@code index} is out of bound.
+     *
+     * @see Row#getInstance(int)
+     */
+    @Test(expected = IndexOutOfBoundsException.class)
+    public final void testGetInstance_boundaryConditions_checkIndexOutOfBounds_index() {
+        Row.getInstance(Row.values().length);
 
-	try {
-	    Row.getInstance(8);
-	    fail("An exception must be risen.");
-	} catch (IndexOutOfBoundsException e) {
-	    assertTrue(true);
-	}
+        /** This statement is never reached, but if it would be, an exception must be risen. */
+        Row.getInstance(-1);
     }
 
+    /**
+     * Tests the {@code getInstance(int)} method.
+     *
+     * @see Row#getInstance(int)
+     */
     @Test
-    public void testShift() {
-	assertEquals(Row.R3, Row.R2.shift(1));
-	assertEquals(Row.R4, Row.R2.shift(2));
-	assertEquals(Row.R8, Row.R2.shift(6));
-	assertEquals(null, Row.R2.shift(7));
-	assertEquals(null, Row.R2.shift(-2));
+    public final void testGetInstance() {
+        assertThat("Row.getInstance(0) must return Row.R1.",
+                   Row.getInstance(0),
+                   is(Row.R1));
+        assertThat("Row.getInstance(2) must return Row.R3.",
+                   Row.getInstance(2),
+                   is(Row.R3));
+        assertThat("Row.getInstance(7) must return Row.R8.",
+                   Row.getInstance(7),
+                   is(Row.R8));
+    }
 
-	assertEquals(null, Row.R1.shift(-1));
-	assertEquals(Row.R1, Row.R1.shift(0));
-	assertEquals(Row.R2, Row.R1.shift(+1));
-
-	assertEquals(Row.R7, Row.R8.shift(-1));
-	assertEquals(Row.R8, Row.R8.shift(0));
-	assertEquals(null, Row.R8.shift(+1));
+    /**
+     * Tests the {@code shift(int)} method.
+     *
+     * @see Row#shift(int)
+     */
+    @Test
+    public final void testShift() {
+        assertThat("Row.R2.shift(1) must be Row.R3.",
+                   Row.R2.shift(1),
+                   is(Row.R3));
+        assertThat("Row.R2.shift(2) must be Row.R4.",
+                   Row.R2.shift(2),
+                   is(Row.R4));
+        assertThat("Row.R2.shift(6) must be Row.R8.",
+                   Row.R2.shift(6),
+                   is(Row.R8));
+        assertThat("Row.R2.shift(7) must be Row.NULL.",
+                   Row.R2.shift(7),
+                   is(Row.NULL));
+        assertThat("Row.R2.shift(-2) must be Row.NULL.",
+                   Row.R2.shift(-2),
+                   is(Row.NULL));
+        assertThat("Row.R1.shift(-1) must be Row.NULL.",
+                   Row.R1.shift(-1),
+                   is(Row.NULL));
+        assertThat("Row.R1.shift(0) must be Row.R1.",
+                   Row.R1.shift(0),
+                   is(Row.R1));
+        assertThat("Row.R1.shift(+1) must be Row.R2.",
+                   Row.R1.shift(+1),
+                   is(Row.R2));
+        assertThat("Row.R8.shift(-1) must be Row.R7.",
+                   Row.R8.shift(-1),
+                   is(Row.R7));
+        assertThat("Row.R8.shift(0) must be Row.R8.",
+                   Row.R8.shift(0),
+                   is(Row.R8));
+        assertThat("Row.R8.shift(+1) must be Row.NULL.",
+                   Row.R8.shift(+1),
+                   is(Row.NULL));
     }
 
 }
-
-
