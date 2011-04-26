@@ -32,19 +32,35 @@ import org.joda.time.Duration;
 import org.joda.time.Period;
 
 /**
- * The class host a number of predefined common immutable objects.
+ * The class hosts a number of predefined common immutable objects.
  */
 public final class CommonFixtures {
 
+    /** Year 2011. */
     private static final int YEAR_2011 = 2011;
+
+    /** January, as the first month of the year. */
     private static final int MONTH_JAN = 1;
+
+    /** The first day of the month. */
     private static final int DAY_OF_MONTH_01 = 1;
+
+    /** The first hour of the day. */
     private static final int HOUR_OF_DAY_01 = 1;
+
+    /** The minute zero of the hour. */
     private static final int MINUTE_OF_HOUR_00 = 0;
+
+    /** The second zero of the minute. */
     private static final int SECOND_OF_MINUTE_00 = 0;
+
+    /** The first millisecond of the second. */
     private static final int MILLIS_OF_SECOND_001 = 1;
 
+    /** The first minute of the hour. */
     private static final int MINUTE_OF_HOUR_01 = 1;
+
+    /** The first second of the minute. */
     private static final int SECOND_OF_MINUTE_01 = 1;
 
     /** The null duration. */
@@ -60,12 +76,12 @@ public final class CommonFixtures {
     public static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
 
     /**
-     * The null instant. 
+     * The null instant.
      */
     public static final Instant NULL_INSTANT = null;
 
     /**
-     * A generic instant. 
+     * A generic instant.
      */
     public static final Instant AN_INSTANT
         = new DateTime(1969,
@@ -77,7 +93,7 @@ public final class CommonFixtures {
                        1).toInstant();
 
     /**
-     * An instant corresponding to the first millisecond of year 2011. 
+     * An instant corresponding to the first millisecond of year 2011.
      */
     public static final Instant INSTANT_FIRST_MILLISEC_OF_YEAR_2011
         = new DateTime(YEAR_2011,
@@ -90,7 +106,7 @@ public final class CommonFixtures {
 
     /**
      * An instant corresponding to the first millisecond of year 2011,
-     * plus a second. 
+     * plus a second.
      */
     public static final Instant INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_SECOND
         = new DateTime(YEAR_2011,
@@ -103,7 +119,7 @@ public final class CommonFixtures {
 
     /**
      * An instant corresponding to the first millisecond of year 2011,
-     * plus a minute. 
+     * plus a minute.
      */
     public static final Instant INSTANT_FIRST_MILLISEC_OF_YEAR_2011_PLUS_A_MINUTE
         = new DateTime(YEAR_2011,

@@ -27,16 +27,15 @@ package rcrr.reversi;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.junit.*;
-import static org.junit.Assert.*;
-
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
 public class CountDifferenceTest extends EvalFunctionTestUtils {
 
-    public CountDifferenceTest(Board board, Player player, Integer expectedValue) {
+    public CountDifferenceTest(final Board board,
+                               final Player player,
+                               final Integer expectedValue) {
         super(board, player, expectedValue);
         this.fn = new CountDifference();
     }
@@ -46,28 +45,28 @@ public class CountDifferenceTest extends EvalFunctionTestUtils {
         return Arrays.asList(new Object[][] {
 
                 /** Tests that the empty board returns 0. */
-                { BoardFixtures.EMPTY, Player.BLACK, 0 },
-                { BoardFixtures.EMPTY, Player.WHITE, 0 },
+                {BoardFixtures.EMPTY, Player.BLACK, 0},
+                {BoardFixtures.EMPTY, Player.WHITE, 0},
 
                 /** Tests that the initial game state returns 0. */
-                { BoardFixtures.INITIAL, Player.BLACK, 0 },
-                { BoardFixtures.INITIAL, Player.WHITE, 0 },
+                {BoardFixtures.INITIAL, Player.BLACK, 0},
+                {BoardFixtures.INITIAL, Player.WHITE, 0},
 
                 /**
                  * Tests that the game state defined by:
-                 * - Board  = FIRST_MOVE_D3 game state 
+                 * - Board  = FIRST_MOVE_D3 game state
                  * - Player = BLACK
                  * returns a value of +3.
                  */
-                { BoardFixtures.FIRST_MOVE_D3, Player.BLACK, +3 },
+                {BoardFixtures.FIRST_MOVE_D3, Player.BLACK, +3},
 
                 /**
                  * Tests that the game state defined by:
-                 * - Board  = FINAL_B37_W27 game state 
+                 * - Board  = FINAL_B37_W27 game state
                  * - Player = BLACK
                  * returns a value of +10.
                  */
-                { BoardFixtures.FINAL_B37_W27, Player.BLACK, +10 }
+                {BoardFixtures.FINAL_B37_W27, Player.BLACK, +10}
 
             });
     }
