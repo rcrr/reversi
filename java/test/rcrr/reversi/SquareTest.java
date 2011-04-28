@@ -100,58 +100,106 @@ public class SquareTest {
                    is("h7"));
     }
 
+    /**
+     * Tests the {@code neighbors()} method.
+     * <p>
+     * The test verifies for three board squares that the returned
+     * map from the {@code neighbors(}) method has the six appropriate
+     * entries.
+     * <p>
+     * The test applies the assertThat assertion, it would be more "elegant" if
+     * the {@code org.hamcrest.collection.IsMapContaining.hasEntry} would have been used
+     * instead. It would have beed required to add a new jar library to the
+     * unit test dependencies.
+     *
+     * @see Square#neighbors()
+     */
     @Test
     public final void testNeighbors() {
-        Map n;
 
-        /* Testing the Upper-Left corner (A1) neighbor table. */
-        n = Square.A1.neighbors();
-        assertEquals(null, n.get(Direction.N));
-        assertEquals(null, n.get(Direction.NE));
-        assertEquals(Square.B1, n.get(Direction.E));
-        assertEquals(Square.B2, n.get(Direction.SE));
-        assertEquals(Square.A2, n.get(Direction.S));
-        assertEquals(null, n.get(Direction.SW));
-        assertEquals(null, n.get(Direction.W));
-        assertEquals(null, n.get(Direction.NW));
+        /** Testing the Upper-Left corner (A1) neighbor table. */
+        assertThat("Square.A1.neighbors().get(Direction.N) is Square.NULL",
+                   Square.A1.neighbors().get(Direction.N),
+                   is(Square.NULL));
+        assertThat("Square.A1.neighbors().get(Direction.NE) is Square.NULL",
+                   Square.A1.neighbors().get(Direction.NE),
+                   is(Square.NULL));
+        assertThat("Square.A1.neighbors().get(Direction.E) is Square.B1",
+                   Square.A1.neighbors().get(Direction.E),
+                   is(Square.B1));
+        assertThat("Square.A1.neighbors().get(Direction.SE) is Square.B2",
+                   Square.A1.neighbors().get(Direction.SE),
+                   is(Square.B2));
+        assertThat("Square.A1.neighbors().get(Direction.S) is Square.A2",
+                   Square.A1.neighbors().get(Direction.S),
+                   is(Square.A2));
+        assertThat("Square.A1.neighbors().get(Direction.SW) is Square.NULL",
+                   Square.A1.neighbors().get(Direction.SW),
+                   is(Square.NULL));
+        assertThat("Square.A1.neighbors().get(Direction.W) is Square.NULL",
+                   Square.A1.neighbors().get(Direction.W),
+                   is(Square.NULL));
+        assertThat("Square.A1.neighbors().get(Direction.NW) is Square.NULL",
+                   Square.A1.neighbors().get(Direction.NW),
+                   is(Square.NULL));
 
-        /* Testing a common square (D6) neighbor table. */
-        n = Square.D6.neighbors();
-        assertEquals(Square.D5, n.get(Direction.N));
-        assertEquals(Square.E5, n.get(Direction.NE));
-        assertEquals(Square.E6, n.get(Direction.E));
-        assertEquals(Square.E7, n.get(Direction.SE));
-        assertEquals(Square.D7, n.get(Direction.S));
-        assertEquals(Square.C7, n.get(Direction.SW));
-        assertEquals(Square.C6, n.get(Direction.W));
-        assertEquals(Square.C5, n.get(Direction.NW));
+        /** Testing a regular square (D6) neighbor table. */
+        Map<Direction, Square> d6Neighbors = Square.D6.neighbors();
+        assertThat("d6Neighbors.get(Direction.N) is D5.",
+                   d6Neighbors.get(Direction.N),
+                   is(Square.D5));
+        assertThat("d6Neighbors.get(Direction.NE) is E5.",
+                   d6Neighbors.get(Direction.NE),
+                   is(Square.E5));
+        assertThat("d6Neighbors.get(Direction.E) is E6.",
+                   d6Neighbors.get(Direction.E),
+                   is(Square.E6));
+        assertThat("d6Neighbors.get(Direction.SE) is E7.",
+                   d6Neighbors.get(Direction.SE),
+                   is(Square.E7));
+        assertThat("d6Neighbors.get(Direction.S) is D7.",
+                   d6Neighbors.get(Direction.S),
+                   is(Square.D7));
+        assertThat("d6Neighbors.get(Direction.SW) is C7.",
+                   d6Neighbors.get(Direction.SW),
+                   is(Square.C7));
+        assertThat("d6Neighbors.get(Direction.W) is C6.",
+                   d6Neighbors.get(Direction.W),
+                   is(Square.C6));
+        assertThat("d6Neighbors.get(Direction.NW) is C5.",
+                   d6Neighbors.get(Direction.NW),
+                   is(Square.C5));
 
-        /* Testing the border square (B8) neighbor table. */
-        n = Square.B8.neighbors();
-        assertEquals(Square.B7, n.get(Direction.N));
-        assertEquals(Square.C7, n.get(Direction.NE));
-        assertEquals(Square.C8, n.get(Direction.E));
-        assertEquals(null, n.get(Direction.SE));
-        assertEquals(null, n.get(Direction.S));
-        assertEquals(null, n.get(Direction.SW));
-        assertEquals(Square.A8, n.get(Direction.W));
-        assertEquals(Square.A7, n.get(Direction.NW));
+        /** Testing the border square (B8) neighbor table. */
+        Map<Direction, Square> b8Neighbors = Square.B8.neighbors();
+        assertThat("b8Neighbors.get(Direction.N) is B7.",
+                   b8Neighbors.get(Direction.N),
+                   is(Square.B7));
+        assertThat("b8Neighbors.get(Direction.NE) is C7.",
+                   b8Neighbors.get(Direction.NE),
+                   is(Square.C7));
+        assertThat("b8Neighbors.get(Direction.E) is C8.",
+                   b8Neighbors.get(Direction.E),
+                   is(Square.C8));
+        assertThat("b8Neighbors.get(Direction.SE) is null.",
+                   b8Neighbors.get(Direction.SE),
+                   is(Square.NULL));
+        assertThat("b8Neighbors.get(Direction.S) is null.",
+                   b8Neighbors.get(Direction.S),
+                   is(Square.NULL));
+        assertThat("b8Neighbors.get(Direction.SW) is null.",
+                   b8Neighbors.get(Direction.SW),
+                   is(Square.NULL));
+        assertThat("b8Neighbors.get(Direction.W) is A8.",
+                   b8Neighbors.get(Direction.W),
+                   is(Square.A8));
+        assertThat("b8Neighbors.get(Direction.NW) is A7.",
+                   b8Neighbors.get(Direction.NW),
+                   is(Square.A7));
     }
 
     @Test
     public final void testGetInstance() {
-
-        assertEquals(Square.A1, Square.getInstance(0));
-        assertEquals(Square.C6, Square.getInstance(42));
-        assertEquals(Square.H7, Square.getInstance(55));
-
-        try {
-            Square.getInstance(64);
-            fail("An exception must be risen.");
-        } catch (IndexOutOfBoundsException ioobe) {
-            assertTrue(true);
-        }
-
         assertEquals(Square.A1, Square.getInstance("a1"));
         assertEquals(Square.C6, Square.getInstance("c6"));
         assertEquals(Square.H7, Square.getInstance("h7"));

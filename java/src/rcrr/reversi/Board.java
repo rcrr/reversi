@@ -407,8 +407,7 @@ public final class Board {
         for (Row r : Row.values()) {
             sb.append("\n " + r.label() + "  ");
             for (Column c : Column.values()) {
-                int idx = (r.ordinal() * Row.SIZE) + c.ordinal();
-                String p = get(Square.getInstance(idx)).symbol();
+                String p = get(Square.getInstance(r, c)).symbol();
                 sb.append(p + " ");
             }
         }
