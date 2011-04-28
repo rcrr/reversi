@@ -1,7 +1,7 @@
 /*
  *  Square.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -343,16 +343,6 @@ public enum Square {
     /**
      * Returns the square at the specified position.
      *
-     * @param index the square index
-     * @return      the identified square
-     * @throws IndexOutOfBoundsException if the index is
-     *                                   out of range {@code (index < 0 || index >= Square.values().length)}
-     */
-    public static Square getInstance(final int index) { return Square.values()[index]; }
-
-    /**
-     * Returns the square at the specified position.
-     *
      * @param rowIndex    the row index
      * @param columnIndex the colum index
      * @return            the identified square
@@ -473,7 +463,7 @@ public enum Square {
     }
 
     /**
-     * Returns a Map that has the direction has key and the associated neighbor square as value.
+     * Returns a map that has the directions as keys and the associated neighbor square as values.
      *
      * @return the square's neighbor map
      **/

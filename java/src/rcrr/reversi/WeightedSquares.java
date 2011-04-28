@@ -1,7 +1,7 @@
 /*
  *  WeightedSquares.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -69,8 +69,26 @@ public class WeightedSquares implements EvalFunction {
     /** The static WEIGHTS map. */
     private static final Map<Square, Integer> WEIGHTS;
 
-    /** Class constructor. */
-    public WeightedSquares() { }
+    /**
+     * Initialization block:
+     * . - sets and initializes the {@code WEIGHTS} map
+     */
+    static {
+        final List<Integer> w = Arrays.asList(120, -20,  20,  5,  5,  20, -20, 120,
+                                              -20, -40,  -5, -5, -5,  -5, -40, -20,
+                                               20,  -5,  15,  3,  3,  15,  -5,  20,
+                                                5,  -5,   3,  3,  3,   3,  -5,   5,
+                                                5,  -5,   3,  3,  3,   3,  -5,   5,
+                                               20,  -5,  15,  3,  3,  15,  -5,  20,
+                                              -20, -40,  -5, -5, -5,  -5, -40, -20,
+                                              120, -20,  20,  5,  5,  20, -20, 120);
+
+        final Map<Square, Integer> wm = new EnumMap<Square, Integer>(Square.class);
+        for (int idx = 0; idx < Square.values().length; idx++) {
+            wm.put(Square.values()[idx], w.get(idx));
+        }
+        WEIGHTS = Collections.unmodifiableMap(wm);
+    }
 
     /**
      * Returns the weights map.
@@ -80,6 +98,9 @@ public class WeightedSquares implements EvalFunction {
     public static final Map<Square, Integer> weights() {
         return new EnumMap<Square, Integer>(WEIGHTS);
     }
+
+    /** Class constructor. */
+    public WeightedSquares() { }
 
     /**
      * Computes the position evaluation according to the {@code WeightedSquares}
@@ -107,27 +128,6 @@ public class WeightedSquares implements EvalFunction {
             value += p * WEIGHTS.get(sq);
         }
         return value;
-    }
-
-    /**
-     * Initialization block:
-     * . - sets and initializes the {@code WEIGHTS} map
-     */
-    static {
-        final List<Integer> w = Arrays.asList(120, -20,  20,  5,  5,  20, -20, 120,
-                                              -20, -40,  -5, -5, -5,  -5, -40, -20,
-                                               20,  -5,  15,  3,  3,  15,  -5,  20,
-                                                5,  -5,   3,  3,  3,   3,  -5,   5,
-                                                5,  -5,   3,  3,  3,   3,  -5,   5,
-                                               20,  -5,  15,  3,  3,  15,  -5,  20,
-                                              -20, -40,  -5, -5, -5,  -5, -40, -20,
-                                              120, -20,  20,  5,  5,  20, -20, 120);
-
-        final Map<Square, Integer> wm = new EnumMap<Square, Integer>(Square.class);
-        for (int idx = 0; idx < Square.values().length; idx++) {
-            wm.put(Square.getInstance(idx), w.get(idx));
-        }
-        WEIGHTS = Collections.unmodifiableMap(wm);
     }
 
 }

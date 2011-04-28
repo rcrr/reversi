@@ -138,7 +138,7 @@ public final class BoardBuilder {
             } else if (integerSquareState == OUTER) {
                 squareState = SquareState.OUTER;
             }
-            transientSquares.put(Square.getInstance(index), squareState);
+            transientSquares.put(Square.values()[index], squareState);
         }
         return withSquares(transientSquares);
     }
