@@ -32,7 +32,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import static org.junit.matchers.JUnitMatchers.hasItems;
 
@@ -42,6 +41,9 @@ import static org.hamcrest.CoreMatchers.is;
  * Test Suite for {@code Square} enum.
  */
 public class SquareTest {
+
+    /** The null string. */
+    private static final String NULL_STRING = null;
 
     /** Class constructor. */
     public SquareTest() { }
@@ -198,18 +200,44 @@ public class SquareTest {
                    is(Square.A7));
     }
 
-    @Test
-    public final void testGetInstance() {
-        assertEquals(Square.A1, Square.getInstance("a1"));
-        assertEquals(Square.C6, Square.getInstance("c6"));
-        assertEquals(Square.H7, Square.getInstance("h7"));
+    /**
+     * Tests the {@code getInstance(String)} method when parameter
+     * {@code label} is {@code null}.
+     *
+     * @see Square#getInstance(String)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testGetInstance_withLabel_boundaryConditions_checkNullParameter_label() {
+        Square.getInstance(NULL_STRING);
+    }
 
-        try {
-            Square.getInstance("w0");
-            fail("An exception must be risen.");
-        } catch (IllegalArgumentException iae) {
-            assertTrue(true);
-        }
+    /**
+     * Tests the {@code getInstance(String)} method when parameter
+     * {@code label} is not a string representing a valid label.
+     *
+     * @see Square#getInstance(String)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public final void testGetInstance_withLabel_boundaryConditions_checkIllegalArgument_label() {
+        Square.getInstance("wrong label");
+    }
+
+    /**
+     * Tests the {@code getInstance(String)} method.
+     *
+     * @see Square#getInstance(String)
+     */
+    @Test
+    public final void testGetInstance_withLabel() {
+        assertThat("Square.getInstance(\"a1\") is Square.A1.",
+                   Square.getInstance("a1"),
+                   is(Square.A1));
+        assertThat("Square.getInstance(\"c6\") is Square.C6.",
+                   Square.getInstance("c6"),
+                   is(Square.C6));
+        assertThat("Square.getInstance(\"h7\") is Square.H7.",
+                   Square.getInstance("h7"),
+                   is(Square.H7));
     }
 
     @Test
