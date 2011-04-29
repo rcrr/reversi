@@ -307,14 +307,20 @@ public enum Square {
     public static List<Square> corners() { return CORNERS; }
 
     /**
-     * Returns the square matching the specified label. Throws
-     * an exception in case the label is not associated with a square.
+     * Returns the square matching the specified label.
+     * <p>
+     * Parameter label cannot be null.
+     * Throws an exception in case the label is not associated with a square.
      *
      * @param label the square's label
      * @return      the identified square
      * @throws IllegalArgumentException if the label is not valid
+     * @throws IllegalArgumentException if the label is not valid
      */
     public static Square getInstance(final String label) {
+        if (label == null) {
+            throw new NullPointerException("Parameter label cannot be null.");
+        }
         final Square sq = INVERSE_LABELS.get(label);
         if (sq == null) {
             throw new IllegalArgumentException("The specified label: <"
@@ -338,23 +344,6 @@ public enum Square {
         } else {
             return Square.values()[Row.values().length * row.ordinal() + column.ordinal()];
         }
-    }
-
-    /**
-     * Returns the square at the specified position.
-     *
-     * @param rowIndex    the row index
-     * @param columnIndex the colum index
-     * @return            the identified square
-     * @throws IndexOutOfBoundsException if either columnIndex or
-     *             rowIndex is out of range:
-     *             {@code (columnIndex < 0 || columnIndex >= Column.values().length)}
-     *             {@code (rowIndex < 0 || rowIndex >= Row.values().length)}
-     */
-    public static Square getInstance(final int rowIndex, final int columnIndex) {
-        final Row row = Row.values()[rowIndex];
-        final Column column = Column.values()[columnIndex];
-        return Square.getInstance(row, column);
     }
 
     /**
