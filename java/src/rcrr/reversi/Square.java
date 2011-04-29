@@ -331,12 +331,14 @@ public enum Square {
     }
 
     /**
-     * Returns the square instance matching the row and column parameters. Returns
-     * null is either the row or the column parameters are null.
+     * Returns the square instance matching the row and column parameters.
+     * <p>
+     * Returns {@code null} if either the row or the column parameters are {@code null}.
      *
      * @param row    square's row
      * @param column square's column
-     * @return the square pointed by row and column, or null in case row or column are themself null
+     * @return       the square pointed by row and column,
+     *               or {@code null} in case row or column are themself {@code null}
      **/
     public static Square getInstance(final Row row, final Column column) {
         if (row == null || column == null) {
