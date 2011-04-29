@@ -29,13 +29,13 @@ import java.util.Map;
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import static org.junit.matchers.JUnitMatchers.hasItems;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 
 /**
  * Test Suite for {@code Square} enum.
@@ -207,7 +207,7 @@ public class SquareTest {
      * @see Square#getInstance(String)
      */
     @Test(expected = NullPointerException.class)
-    public final void testGetInstance_withLabel_boundaryConditions_checkNullParameter_label() {
+    public final void testGetInstance_byLabel_boundaryConditions_checkNullParameter_label() {
         Square.getInstance(NULL_STRING);
     }
 
@@ -218,7 +218,7 @@ public class SquareTest {
      * @see Square#getInstance(String)
      */
     @Test(expected = IllegalArgumentException.class)
-    public final void testGetInstance_withLabel_boundaryConditions_checkIllegalArgument_label() {
+    public final void testGetInstance_byLabel_boundaryConditions_checkIllegalArgument_label() {
         Square.getInstance("wrong label");
     }
 
@@ -228,7 +228,7 @@ public class SquareTest {
      * @see Square#getInstance(String)
      */
     @Test
-    public final void testGetInstance_withLabel() {
+    public final void testGetInstance_byLabel() {
         assertThat("Square.getInstance(\"a1\") is Square.A1.",
                    Square.getInstance("a1"),
                    is(Square.A1));
@@ -240,16 +240,35 @@ public class SquareTest {
                    is(Square.H7));
     }
 
+    /**
+     * Tests the {@code getInstance(Row, Column)} method when one between the
+     * two parameter is {@code null}.
+     *
+     * @see Square#getInstance(Row, Column)
+     */
     @Test
-    public final void testGetInstanceRC() {
-        assertEquals(Square.A1, Square.getInstance(Row.R1, Column.A));
-        assertEquals(Square.C6, Square.getInstance(Row.R6, Column.C));
-        assertEquals(Square.H7, Square.getInstance(Row.R7, Column.H));
-        assertEquals(Square.E8, Square.getInstance(Row.R8, Column.E));
-        assertEquals(Square.H8, Square.getInstance(Row.R8, Column.H));
+    public final void testGetInstance_byRowAndColumn_whenOneParameterIsNull() {
+        assertThat("Square.getInstance(Row.NULL, Column.H) must return a null value.",
+                   Square.getInstance(Row.NULL, Column.H),
+                   nullValue());
+        assertThat("Square.getInstance(Row.R7, Column.NULL must return a null value.",
+                   Square.getInstance(Row.R7, Column.NULL),
+                   nullValue());
+    }
 
-        assertEquals(null, Square.getInstance(null, Column.H));
-        assertEquals(null, Square.getInstance(Row.R7, null));
+    /**
+     * Tests the {@code getInstance(Row, Column)} method.
+     *
+     * @see Square#getInstance(Row, Column)
+     */
+    @Test
+    public final void testGetInstance_byRowAndColumn() {
+        assertThat("Square.getInstance(Row.R1, Column.A) is A1.",
+                   Square.getInstance(Row.R1, Column.A),
+                   is(Square.A1));
+        assertThat("Square.getInstance(Row.R6, Column.C) is C6.",
+                   Square.getInstance(Row.R6, Column.C),
+                   is(Square.C6));
     }
 
     /**
