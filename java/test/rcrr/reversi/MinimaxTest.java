@@ -60,10 +60,10 @@ public class MinimaxTest extends DecisionRuleTestUtils {
                  * and that when there are legal moves having the same evaluation, the first is
                  * selected, the move d3 is always selected.
                  */
-                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 1, COUNT_DIFF },
-                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 2, COUNT_DIFF },
-                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 3, COUNT_DIFF },
-                { GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 4, COUNT_DIFF },
+                {GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 1, COUNT_DIFF},
+                {GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 2, COUNT_DIFF},
+                {GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 3, COUNT_DIFF},
+                {GameSnapshotFixtures.INITIAL, Move.valueOf(Square.D3), 4, COUNT_DIFF},
 
                 /**
                  * minimaxSearcher A test.
@@ -76,14 +76,14 @@ public class MinimaxTest extends DecisionRuleTestUtils {
                  * move with the higher result, searching eight ply returns the the first
                  * legal move.
                  */
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.E5), 1, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.E5), 2, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 3, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 4, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 5, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 6, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.A3), 7, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.A3), 8, COUNT_DIFF },
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.E5), 1, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.E5), 2, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 3, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 4, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 5, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.C4), 6, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.A3), 7, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_A, Move.valueOf(Square.A3), 8, COUNT_DIFF},
 
                 /**
                  * minimaxSearcher B test.
@@ -95,14 +95,14 @@ public class MinimaxTest extends DecisionRuleTestUtils {
                  * following two moves. The minimax recognizes it, and searching three
                  * ply change the selected move to A3.
                  */
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.C4), 1, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.C4), 2, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 3, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 4, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 5, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 6, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 7, COUNT_DIFF },
-                { GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 8, COUNT_DIFF },
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.C4), 1, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.C4), 2, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 3, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 4, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 5, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 6, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 7, COUNT_DIFF},
+                {GameSnapshotFixtures.MINIMAX_TEST_CASE_B, Move.valueOf(Square.A3), 8, COUNT_DIFF},
 
                 /**
                  * minimaxSearcher C test.
@@ -119,22 +119,22 @@ public class MinimaxTest extends DecisionRuleTestUtils {
                  * Searching deeper, the minimax stays on the C3 selection. Those
                  * cases have not been verified (test cases 5, 6, 7, 8).
                  */
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 1, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_BC3_10_MOVES, Move.valueOf(Square.B2), 1, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_BC6_10_MOVES, Move.valueOf(Square.H3), 1, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 2, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 3, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 4, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 5, COUNT_DIFF },
-                { GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 6, COUNT_DIFF },
+                {GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 1, COUNT_DIFF},
+                {GameSnapshotFixtures.EARLY_GAME_BC3_10_MOVES, Move.valueOf(Square.B2), 1, COUNT_DIFF},
+                {GameSnapshotFixtures.EARLY_GAME_BC6_10_MOVES, Move.valueOf(Square.H3), 1, COUNT_DIFF},
+                {GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 2, COUNT_DIFF},
+                {GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 3, COUNT_DIFF},
+                {GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 4, COUNT_DIFF},
+                {GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 5, COUNT_DIFF},
+                {GameSnapshotFixtures.EARLY_GAME_B_9_MOVES, Move.valueOf(Square.C3), 6, COUNT_DIFF},
 
                 /**
                  * Test the alphabeta searcher when no legal move is available.
                  */
-                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 1, COUNT_DIFF },
-                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 2, COUNT_DIFF },
-                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 3, COUNT_DIFF },
-                { GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 4, COUNT_DIFF },
+                {GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 1, COUNT_DIFF},
+                {GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 2, COUNT_DIFF},
+                {GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 3, COUNT_DIFF},
+                {GameSnapshotFixtures.BLACK_HAS_TO_PASS, Move.valueOf(Move.Action.PASS), 4, COUNT_DIFF},
 
             });
     }

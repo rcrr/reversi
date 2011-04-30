@@ -24,8 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.EnumMap;
 
@@ -99,9 +97,10 @@ public final class BoardBuilder {
 
     /**
      * Returns the {@code this} reference after setting the new {@code squares} field
-     * as described by the {@code boardLiteral} parameter.
+     * as described by the {@code squaresLiteral} parameter.
      * <p>
-     * The board litearal is a list of integers where the assignements are as follow:
+     * The squares litearal is a variable length argument composed by integers
+     * where the assignements are as follow:
      * <ul>
      *  <li>0 --> EMPTY</li>
      *  <li>1 --> BLACK</li>
@@ -110,25 +109,27 @@ public final class BoardBuilder {
      * </ul>
      * Values less than zero or greater than three are not allowed.
      * <p>
-     * The {@code boardLiteral} parameter cannot be null.
+     * The {@code squaresLiteral} parameter cannot be null.
+     * The {@code squaresLiteral} lenght must be equal to the number of
+     * squares that compose a board.
      *
-     * @param boardLiteral a literal representation of the board
-     *                     described by a list of integer values
-     * @return             the {@code this} reference
+     * @param squaresLiteral a literal representation of the board
+     *                       described by a variable length integer values
+     * @return               the {@code this} reference
      */
-    public BoardBuilder withBoardLiteral(final List<Integer> boardLiteral) {
-        if (boardLiteral == null) {
-            throw new NullPointerException("Parameter boardLiteral cannot be null.");
+    public BoardBuilder withSquaresLiteral(final Integer... squaresLiteral) {
+        if (squaresLiteral == null) {
+            throw new NullPointerException("Parameter squaresLiteral cannot be null.");
         }
-        if (boardLiteral.size() != Square.values().length) {
-            throw new IllegalArgumentException("Parameter boardLiteral has the wrong length.");
+        if (squaresLiteral.length != Square.values().length) {
+            throw new IllegalArgumentException("Parameter squaresLiteral has the wrong length.");
         }
         final Map<Square, SquareState> transientSquares = new EnumMap<Square, SquareState>(Square.class);
         for (int index = 0; index < Square.values().length; index++) {
-            final Integer integerSquareState = boardLiteral.get(index);
+            final Integer integerSquareState = squaresLiteral[index];
             SquareState squareState = null;
             if (integerSquareState == null || integerSquareState < EMPTY || integerSquareState > OUTER) {
-                throw new IllegalArgumentException("Parameter boardLiteral contains a wrong value.");
+                throw new IllegalArgumentException("Parameter squaresLiteral contains a wrong value.");
             } else if (integerSquareState == EMPTY) {
                 squareState = SquareState.EMPTY;
             } else if (integerSquareState == BLACK) {
@@ -141,29 +142,8 @@ public final class BoardBuilder {
             transientSquares.put(Square.values()[index], squareState);
         }
         return withSquares(transientSquares);
-    }
 
-    /**
-     * Returns the {@code this} reference after setting the new {@code squares} field
-     * as described by the {@code squaresLiteral} parameter.
-     * <p>
-     * The squares litearal is a variable length argument used to build
-     * the {@code <Integer>List boardLiteral} argument that is then passed to the
-     * {@code withBoardLiteral(<Integer>List)} method.
-     * <p>
-     * The {@code squaresLiteral} parameter cannot be null.
-     *
-     * @param squaresLiteral a literal representation of the board
-     *                       described by a variable length integer values
-     * @return               the {@code this} reference
-     *
-     * @see #withBoardLiteral(List)
-     */
-    public BoardBuilder withSquaresLiteral(final Integer... squaresLiteral) {
-        if (squaresLiteral == null) {
-            throw new NullPointerException("Parameter squaresLiteral cannot be null.");
-        }
-        return (withBoardLiteral(Arrays.asList(squaresLiteral)));
+
     }
 
     /**
