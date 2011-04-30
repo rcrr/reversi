@@ -25,15 +25,23 @@
 package rcrr.reversi;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 
+import static org.junit.Assert.assertThat;
+
+import static org.hamcrest.CoreMatchers.is;
+
+/**
+ * Abstract Test for the {@code EvalFunction} interface.
+ *
+ * @see EvalFunction
+ */
 public abstract class EvalFunctionTestUtils {
 
-    /** The board field. */
-    private final Board board;
+    /** The testFailureMessage field. */
+    private final String testFailureMessage;
 
-    /** The player field. */
-    private final Player player;
+    /** The gamePosition field. */
+    private final GamePosition gamePosition;
 
     /** The expected value field. */
     private final Integer expectedValue;
@@ -41,19 +49,34 @@ public abstract class EvalFunctionTestUtils {
     /** The eval function field. */
     private final EvalFunction fn;
 
-    public EvalFunctionTestUtils(final Board board,
-                                 final Player player,
+    /**
+     * Class constructor.
+     *
+     * @param testFailureMessage the test failure message
+     * @param gamePosition       the gamePosition parameter passed to the evaluation function
+     * @param fn                 the evaluation function
+     * @param expectedValue      the expected value used by the unit test assertion
+     */
+    public EvalFunctionTestUtils(final String testFailureMessage,
+                                 final GamePosition gamePosition,
                                  final EvalFunction fn,
                                  final Integer expectedValue) {
-        this.board = board;
-        this.player = player;
+        this.testFailureMessage = testFailureMessage;
+        this.gamePosition = gamePosition;
         this.fn = fn;
         this.expectedValue = expectedValue;
     }
 
+    /**
+     * Tests the {@code eval(GamePosition)} method.
+     *
+     * @see EvalFunction#eval(GamePosition)
+     */
     @Test
     public final void testEval() {
-        assertEquals(expectedValue.intValue(), fn.eval(GamePosition.valueOf(board, player)));
+        assertThat(testFailureMessage,
+                   fn.eval(gamePosition),
+                   is(expectedValue));
     }
 
 }

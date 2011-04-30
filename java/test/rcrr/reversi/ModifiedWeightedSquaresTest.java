@@ -91,14 +91,19 @@ public class ModifiedWeightedSquaresTest extends EvalFunctionTestUtils {
      * <p>
      * The evaluation function parameter is set to {@code new ModifiedWeightedSquares()}.
      *
-     * @param board         the board parameter passed to the evaluation function
-     * @param player        the player parameter passed to the evaluation function
-     * @param expectedValue is the expected value used by the unit test assertion
+     * @param testFailureMessage the test failure message
+     * @param board              the board parameter passed to the evaluation function
+     * @param player             the player parameter passed to the evaluation function
+     * @param expectedValue      the expected value used by the unit test assertion
      */
-    public ModifiedWeightedSquaresTest(final Board board,
+    public ModifiedWeightedSquaresTest(final String testFailureMessage,
+                                       final Board board,
                                        final Player player,
                                        final Integer expectedValue) {
-        super(board, player, new ModifiedWeightedSquares(), expectedValue);
+        super(testFailureMessage,
+              GamePosition.valueOf(board, player),
+              new ModifiedWeightedSquares(),
+              expectedValue);
     }
 
     /**
@@ -110,73 +115,64 @@ public class ModifiedWeightedSquaresTest extends EvalFunctionTestUtils {
     public static Collection data() {
         return Arrays.asList(new Object[][] {
 
-                /** Tests that the empty board returns 0. */
-                {BoardFixtures.EMPTY, Player.BLACK, 0},
-                {BoardFixtures.EMPTY, Player.WHITE, 0},
+                {"The empty board must return 0.",
+                 BoardFixtures.EMPTY, Player.BLACK,
+                 0},
 
-                /** Tests that the initial game state returns 0. */
-                {BoardFixtures.INITIAL, Player.BLACK, 0},
-                {BoardFixtures.INITIAL, Player.WHITE, 0},
+                {"The empty board must return 0.",
+                 BoardFixtures.EMPTY, Player.WHITE,
+                 0},
 
-                /**
-                 * Tests that the game state defined by:
-                 * - Board  = FIRST_MOVE_D3
-                 * - Player = WHITE
-                 * returns a value of -9.
-                 */
-                {BoardFixtures.FIRST_MOVE_D3, Player.WHITE, -9 },
+                {"The initial board must retun 0.",
+                 BoardFixtures.INITIAL, Player.BLACK,
+                 0},
 
-                /**
-                 * Tests that the game state defined by:
-                 * - Board  = FIRST_MOVE_D3
-                 * - Player = BLACK
-                 * returns a value of +9.
-                 */
-                {BoardFixtures.FIRST_MOVE_D3, Player.BLACK, +9},
+                {"The initial board must retun 0.",
+                 BoardFixtures.INITIAL, Player.WHITE,
+                 0},
 
-                /**
-                 * Tests that the game state defined by:
-                 * - Board  = FINAL_B37_W27 game state
-                 * - Player = BLACK
-                 * returns a value of +52 (50 points more than WeightedSquare.
-                 */
-                {BoardFixtures.FINAL_B37_W27, Player.BLACK, +52},
+                {"BoardFixtures.FIRST_MOVE_D3, Player.WHITE must return -9.",
+                 BoardFixtures.FIRST_MOVE_D3, Player.WHITE,
+                 -9 },
 
-                /**
-                 * Tests that the game state defined by:
-                 * - Board  = CASE_ONE_A
-                 * - Player = {BLACK, WHITE}
-                 * returns a value of {-20, +20}.
-                 */
-                {CASE_ONE_A, Player.BLACK, -20},
-                {CASE_ONE_A, Player.WHITE, +20},
+                {"BoardFixtures.FIRST_MOVE_D3, Player.BLACK must return +9.",
+                 BoardFixtures.FIRST_MOVE_D3, Player.BLACK,
+                 +9},
 
-                /**
-                 * Tests that the game state defined by:
-                 * - Board  = CASE_ONE_B
-                 * - Player = {BLACK, WHITE}
-                 * returns a value of {+125, -125}.
-                 */
-                {CASE_ONE_B, Player.BLACK, +125},
-                {CASE_ONE_B, Player.WHITE, -125},
+                {"BoardFixtures.FINAL_B37_W27, Player.BLACK must return +52.",
+                 BoardFixtures.FINAL_B37_W27, Player.BLACK,
+                 +52},
 
-                /**
-                 * Tests that the game state defined by:
-                 * - Board  = CASE_TWO_A
-                 * - Player = {BLACK, WHITE}
-                 * returns a value of {-40, +40}.
-                 */
-                {CASE_TWO_A, Player.BLACK, -40},
-                {CASE_TWO_A, Player.WHITE, +40},
+                {"CASE_ONE_A, Player.BLACK must return -20.",
+                 CASE_ONE_A, Player.BLACK,
+                 -20},
 
-                /**
-                 * Tests that the game state defined by:
-                 * - Board  = CASE_TWO_B
-                 * - Player = {BLACK, WHITE}
-                 * returns a value of {-115, +115}.
-                 */
-                {CASE_TWO_B, Player.BLACK, -115},
-                {CASE_TWO_B, Player.WHITE, +115}
+                {"CASE_ONE_A, Player.WHITE must return +20.",
+                 CASE_ONE_A, Player.WHITE,
+                 +20},
+
+                {"CASE_ONE_B, Player.BLACK must return -125.",
+                 CASE_ONE_B, Player.BLACK,
+                 +125},
+
+                {"", CASE_ONE_B, Player.WHITE,
+                 -125},
+
+                {"CASE_TWO_A, Player.BLACK must return -40.",
+                 CASE_TWO_A, Player.BLACK,
+                 -40},
+
+                {"CASE_TWO_A, Player.WHITE must return +40.",
+                 CASE_TWO_A, Player.WHITE,
+                 +40},
+
+                {"CASE_TWO_B, Player.BLACK must return -115.",
+                 CASE_TWO_B, Player.BLACK,
+                 -115},
+
+                {"CASE_TWO_B, Player.WHITE must return +115.",
+                 CASE_TWO_B, Player.WHITE,
+                 +115}
 
             });
     }

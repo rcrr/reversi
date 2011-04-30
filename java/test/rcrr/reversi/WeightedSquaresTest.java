@@ -43,14 +43,19 @@ public class WeightedSquaresTest extends EvalFunctionTestUtils {
      * <p>
      * The evaluation function parameter is set to {@code new WeightedSquares()}.
      *
-     * @param board         the board parameter passed to the evaluation function
-     * @param player        the player parameter passed to the evaluation function
-     * @param expectedValue is the expected value used by the unit test assertion
+     * @param testFailureMessage the test failure message
+     * @param board              the board parameter passed to the evaluation function
+     * @param player             the player parameter passed to the evaluation function
+     * @param expectedValue      the expected value used by the unit test assertion
      */
-    public WeightedSquaresTest(final Board board,
+    public WeightedSquaresTest(final String testFailureMessage,
+                               final Board board,
                                final Player player,
                                final Integer expectedValue) {
-        super(board, player, new WeightedSquares(), expectedValue);
+        super(testFailureMessage,
+              GamePosition.valueOf(board, player),
+              new WeightedSquares(),
+              expectedValue);
     }
 
     /**
@@ -62,37 +67,33 @@ public class WeightedSquaresTest extends EvalFunctionTestUtils {
     public static Collection data() {
         return Arrays.asList(new Object[][] {
 
-                /** Tests that the empty board returns 0. */
-                {BoardFixtures.EMPTY, Player.BLACK, 0},
-                {BoardFixtures.EMPTY, Player.WHITE, 0},
+                {"The empty board must return 0.",
+                 BoardFixtures.EMPTY, Player.BLACK,
+                 0},
 
-                /** Tests that the initial game state returns 0. */
-                {BoardFixtures.INITIAL, Player.BLACK, 0},
-                {BoardFixtures.INITIAL, Player.WHITE, 0},
+                {"The empty board must return 0.",
+                 BoardFixtures.EMPTY, Player.WHITE,
+                 0},
 
-                /**
-                 * Tests that the game state defined by:
-                 * - Board  = FIRST_MOVE_D3
-                 * - Player = WHITE
-                 * returns a value of -9.
-                 */
-                {BoardFixtures.FIRST_MOVE_D3, Player.WHITE, -9},
+                {"The initial board must return 0.",
+                 BoardFixtures.INITIAL, Player.BLACK,
+                 0},
 
-                /**
-                 * Tests that the game state defined by:
-                 * - Board  = FIRST_MOVE_D3
-                 * - Player = BLACK
-                 * returns a value of +9.
-                 */
-                {BoardFixtures.FIRST_MOVE_D3, Player.BLACK, +9},
+                {"The initial board must return 0.",
+                 BoardFixtures.INITIAL, Player.WHITE,
+                 0},
 
-                /**
-                 * Tests that the game state defined by:
-                 * - Board  = FINAL_B37_W27 game state
-                 * - Player = BLACK
-                 * returns a value of +2.
-                 */
-                {BoardFixtures.FINAL_B37_W27, Player.BLACK, +2}
+                {"BoardFixtures.FIRST_MOVE_D3, Player.WHITE must return -9.",
+                 BoardFixtures.FIRST_MOVE_D3, Player.WHITE,
+                 -9},
+
+                {"BoardFixtures.FIRST_MOVE_D3, Player.BLACK must return +9.",
+                 BoardFixtures.FIRST_MOVE_D3, Player.BLACK,
+                 +9},
+
+                {"BoardFixtures.FINAL_B37_W27, Player.BLACK must return +2.",
+                 BoardFixtures.FINAL_B37_W27, Player.BLACK,
+                 +2}
 
             });
     }
