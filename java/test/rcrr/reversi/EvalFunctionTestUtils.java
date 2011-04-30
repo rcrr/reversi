@@ -24,24 +24,35 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
+import org.junit.Test;
 import static org.junit.Assert.*;
 
 public abstract class EvalFunctionTestUtils {
 
-    protected Board board;
-    protected Player player;
-    protected Integer expectedValue;
-    protected EvalFunction fn;
+    /** The board field. */
+    private final Board board;
 
-    public EvalFunctionTestUtils(Board board, Player player, Integer expectedValue) {
+    /** The player field. */
+    private final Player player;
+
+    /** The expected value field. */
+    private final Integer expectedValue;
+
+    /** The eval function field. */
+    private final EvalFunction fn;
+
+    public EvalFunctionTestUtils(final Board board,
+                                 final Player player,
+                                 final EvalFunction fn,
+                                 final Integer expectedValue) {
         this.board = board;
         this.player = player;
+        this.fn = fn;
         this.expectedValue = expectedValue;
     }
 
     @Test
-    public void testEval() {
+    public final void testEval() {
         assertEquals(expectedValue.intValue(), fn.eval(GamePosition.valueOf(board, player)));
     }
 
