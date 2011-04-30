@@ -24,9 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * The class host a number of predefined boards.
  * <p>
@@ -94,14 +91,14 @@ public final class BoardFixtures {
      * </pre>
      */
     public static final Board AN_INSTANCE = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 2, 1, 0, 0, 0,
-                                        0, 0, 0, 2, 1, 1, 0, 0,
-                                        0, 0, 0, 2, 1, 2, 0, 0,
-                                        0, 0, 0, 0, 2, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 2, 0, 0))
+        .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 2, 1, 0, 0, 0,
+                            0, 0, 0, 2, 1, 1, 0, 0,
+                            0, 0, 0, 2, 1, 2, 0, 0,
+                            0, 0, 0, 0, 2, 0, 0, 0,
+                            0, 0, 0, 0, 0, 2, 0, 0)
         .build();
 
     /** The black player has to pass.
@@ -123,14 +120,14 @@ public final class BoardFixtures {
      * There are 10 empty squares.
      */
     public static final Board BLACK_HAS_TO_PASS = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        0, 1, 2, 2, 1, 1, 2, 2,
-                                        0, 1, 2, 1, 2, 2, 2, 2,
-                                        0, 1, 2, 1, 2, 2, 2, 2,
-                                        0, 1, 2, 1, 1, 2, 1, 2,
-                                        0, 1, 2, 1, 1, 1, 1, 0,
-                                        2, 2, 2, 2, 2, 2, 1, 2))
+        .withSquaresLiteral(2, 1, 0, 1, 0, 2, 0, 0,
+                            1, 1, 1, 1, 1, 1, 1, 2,
+                            0, 1, 2, 2, 1, 1, 2, 2,
+                            0, 1, 2, 1, 2, 2, 2, 2,
+                            0, 1, 2, 1, 2, 2, 2, 2,
+                            0, 1, 2, 1, 1, 2, 1, 2,
+                            0, 1, 2, 1, 1, 1, 1, 0,
+                            2, 2, 2, 2, 2, 2, 1, 2)
         .build();
 
     /**
@@ -160,14 +157,14 @@ public final class BoardFixtures {
      * @see BoardFixtures#EARLY_GAME_BC6_10_MOVES
      */
     public static final Board EARLY_GAME_B_9_MOVES = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
-                                        0, 0, 0, 0, 1, 0, 0, 0,
-                                        0, 0, 0, 1, 1, 2, 2, 0,
-                                        0, 0, 0, 1, 1, 0, 0, 0,
-                                        0, 0, 0, 1, 1, 0, 0, 0,
-                                        0, 0, 0, 0, 1, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(0, 0, 0, 1, 1, 1, 0, 0,
+                            0, 0, 0, 0, 1, 0, 0, 0,
+                            0, 0, 0, 1, 1, 2, 2, 0,
+                            0, 0, 0, 1, 1, 0, 0, 0,
+                            0, 0, 0, 1, 1, 0, 0, 0,
+                            0, 0, 0, 0, 1, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -195,14 +192,14 @@ public final class BoardFixtures {
      * @see BoardFixtures#EARLY_GAME_B_9_MOVES
      */
     public static final Board EARLY_GAME_BC3_10_MOVES = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
-                                        0, 0, 0, 0, 1, 0, 0, 0,
-                                        0, 0, 2, 2, 2, 2, 2, 0,
-                                        0, 0, 0, 1, 1, 0, 0, 0,
-                                        0, 0, 0, 1, 1, 0, 0, 0,
-                                        0, 0, 0, 0, 1, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(0, 0, 0, 1, 1, 1, 0, 0,
+                            0, 0, 0, 0, 1, 0, 0, 0,
+                            0, 0, 2, 2, 2, 2, 2, 0,
+                            0, 0, 0, 1, 1, 0, 0, 0,
+                            0, 0, 0, 1, 1, 0, 0, 0,
+                            0, 0, 0, 0, 1, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -230,14 +227,14 @@ public final class BoardFixtures {
      * @see BoardFixtures#EARLY_GAME_B_9_MOVES
      */
     public static final Board EARLY_GAME_BC6_10_MOVES = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 1, 1, 1, 0, 0,
-                                        0, 0, 0, 0, 1, 0, 0, 0,
-                                        0, 0, 0, 1, 1, 2, 2, 0,
-                                        0, 0, 0, 1, 2, 0, 0, 0,
-                                        0, 0, 0, 2, 1, 0, 0, 0,
-                                        0, 0, 2, 0, 1, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(0, 0, 0, 1, 1, 1, 0, 0,
+                            0, 0, 0, 0, 1, 0, 0, 0,
+                            0, 0, 0, 1, 1, 2, 2, 0,
+                            0, 0, 0, 1, 2, 0, 0, 0,
+                            0, 0, 0, 2, 1, 0, 0, 0,
+                            0, 0, 2, 0, 1, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -259,14 +256,14 @@ public final class BoardFixtures {
      * </pre>
      */
     public static final Board EARLY_GAME_C_12_MOVES = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        2, 1, 1, 1, 0, 0, 2, 0,
-                                        0, 2, 0, 2, 1, 2, 0, 0,
-                                        0, 2, 2, 1, 2, 0, 0, 0,
-                                        0, 0, 1, 1, 0, 2, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            2, 1, 1, 1, 0, 0, 2, 0,
+                            0, 2, 0, 2, 1, 2, 0, 0,
+                            0, 2, 2, 1, 2, 0, 0, 0,
+                            0, 0, 1, 1, 0, 2, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -288,14 +285,14 @@ public final class BoardFixtures {
      * </pre>
      */
     public static final Board EMPTY = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -306,15 +303,14 @@ public final class BoardFixtures {
      *   <li>{@code EQL_TEST_B}</li>
      * </ul>
      */
-    private static final List<Integer> EQL_LIST =
-        Arrays.asList(2, 1, 0, 1, 0, 2, 0, 0,
-                      1, 1, 1, 1, 1, 1, 1, 2,
-                      0, 1, 2, 2, 1, 1, 2, 2,
-                      0, 1, 2, 1, 2, 2, 2, 2,
-                      0, 1, 2, 1, 2, 2, 2, 2,
-                      0, 1, 2, 1, 1, 2, 1, 2,
-                      0, 1, 2, 1, 1, 1, 1, 0,
-                      2, 2, 2, 2, 2, 2, 1, 2);
+    private static final Integer[] EQL_LIST = {2, 1, 0, 1, 0, 2, 0, 0,
+                                               1, 1, 1, 1, 1, 1, 1, 2,
+                                               0, 1, 2, 2, 1, 1, 2, 2,
+                                               0, 1, 2, 1, 2, 2, 2, 2,
+                                               0, 1, 2, 1, 2, 2, 2, 2,
+                                               0, 1, 2, 1, 1, 2, 1, 2,
+                                               0, 1, 2, 1, 1, 1, 1, 0,
+                                               2, 2, 2, 2, 2, 2, 1, 2};
 
     /**
      * The first board used for Equality test.
@@ -339,7 +335,7 @@ public final class BoardFixtures {
      * @see BoardFixtures#EQL_TEST_B
      */
     public static final Board EQL_TEST_A = new BoardBuilder()
-        .withBoardLiteral(EQL_LIST)
+        .withSquaresLiteral(EQL_LIST)
         .build();
 
     /**
@@ -365,7 +361,7 @@ public final class BoardFixtures {
      * @see BoardFixtures#EQL_TEST_A
      */
     public static final Board EQL_TEST_B = new BoardBuilder()
-        .withBoardLiteral(EQL_LIST)
+        .withSquaresLiteral(EQL_LIST)
         .build();
 
     /**
@@ -388,14 +384,14 @@ public final class BoardFixtures {
      * </pre>
      */
     public static final Board FINAL_B37_W27 = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(2, 2, 2, 2, 2, 1, 1, 1,
-                                        2, 2, 2, 1, 1, 1, 1, 1,
-                                        2, 2, 2, 1, 1, 1, 2, 1,
-                                        2, 2, 1, 2, 1, 1, 2, 1,
-                                        1, 1, 2, 1, 2, 1, 2, 1,
-                                        1, 2, 1, 2, 1, 2, 1, 1,
-                                        1, 1, 1, 1, 1, 1, 2, 1,
-                                        1, 1, 1, 1, 2, 2, 2, 2))
+        .withSquaresLiteral(2, 2, 2, 2, 2, 1, 1, 1,
+                            2, 2, 2, 1, 1, 1, 1, 1,
+                            2, 2, 2, 1, 1, 1, 2, 1,
+                            2, 2, 1, 2, 1, 1, 2, 1,
+                            1, 1, 2, 1, 2, 1, 2, 1,
+                            1, 2, 1, 2, 1, 2, 1, 1,
+                            1, 1, 1, 1, 1, 1, 2, 1,
+                            1, 1, 1, 1, 2, 2, 2, 2)
         .build();
 
     /**
@@ -417,14 +413,14 @@ public final class BoardFixtures {
      * </pre>
      */
     public static final Board FIRST_MOVE_D3 = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 1, 0, 0, 0, 0,
-                                        0, 0, 0, 1, 1, 0, 0, 0,
-                                        0, 0, 0, 1, 2, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 1, 0, 0, 0, 0,
+                            0, 0, 0, 1, 1, 0, 0, 0,
+                            0, 0, 0, 1, 2, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -446,14 +442,14 @@ public final class BoardFixtures {
      * </pre>
      */
     public static final Board INITIAL = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 2, 1, 0, 0, 0,
-                                        0, 0, 0, 1, 2, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 2, 1, 0, 0, 0,
+                            0, 0, 0, 1, 2, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -484,14 +480,14 @@ public final class BoardFixtures {
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_A_AFTER
      */
     public static final Board MAKE_MOVE_TEST_CASE_A_BEFORE = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 2, 1, 1, 1, 2, 0, 0,
-                                        0, 2, 1, 0, 1, 2, 0, 0,
-                                        0, 2, 1, 1, 1, 2, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 2, 2, 2, 2, 2, 0, 0,
+                            0, 2, 1, 1, 1, 2, 0, 0,
+                            0, 2, 1, 0, 1, 2, 0, 0,
+                            0, 2, 1, 1, 1, 2, 0, 0,
+                            0, 2, 2, 2, 2, 2, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -515,14 +511,14 @@ public final class BoardFixtures {
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_A_BEFORE
      */
     public static final Board MAKE_MOVE_TEST_CASE_A_AFTER = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 2, 2, 2, 2, 2, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 2, 2, 2, 2, 2, 0, 0,
+                            0, 2, 2, 2, 2, 2, 0, 0,
+                            0, 2, 2, 2, 2, 2, 0, 0,
+                            0, 2, 2, 2, 2, 2, 0, 0,
+                            0, 2, 2, 2, 2, 2, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -546,14 +542,14 @@ public final class BoardFixtures {
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_B_AFTER
      */
     public static final Board MAKE_MOVE_TEST_CASE_B_BEFORE = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(2, 2, 2, 2, 2, 2, 2, 0,
-                                        2, 1, 1, 1, 1, 1, 2, 0,
-                                        2, 1, 1, 1, 1, 1, 2, 0,
-                                        2, 1, 1, 0, 1, 1, 2, 0,
-                                        2, 1, 1, 1, 1, 1, 2, 0,
-                                        2, 1, 1, 1, 1, 1, 2, 0,
-                                        2, 2, 2, 2, 2, 2, 2, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(2, 2, 2, 2, 2, 2, 2, 0,
+                            2, 1, 1, 1, 1, 1, 2, 0,
+                            2, 1, 1, 1, 1, 1, 2, 0,
+                            2, 1, 1, 0, 1, 1, 2, 0,
+                            2, 1, 1, 1, 1, 1, 2, 0,
+                            2, 1, 1, 1, 1, 1, 2, 0,
+                            2, 2, 2, 2, 2, 2, 2, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -577,14 +573,14 @@ public final class BoardFixtures {
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_B_BEFORE
      */
     public static final Board MAKE_MOVE_TEST_CASE_B_AFTER = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(2, 2, 2, 2, 2, 2, 2, 0,
-                                        2, 2, 1, 2, 1, 2, 2, 0,
-                                        2, 1, 2, 2, 2, 1, 2, 0,
-                                        2, 2, 2, 2, 2, 2, 2, 0,
-                                        2, 1, 2, 2, 2, 1, 2, 0,
-                                        2, 2, 1, 2, 1, 2, 2, 0,
-                                        2, 2, 2, 2, 2, 2, 2, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(2, 2, 2, 2, 2, 2, 2, 0,
+                            2, 2, 1, 2, 1, 2, 2, 0,
+                            2, 1, 2, 2, 2, 1, 2, 0,
+                            2, 2, 2, 2, 2, 2, 2, 0,
+                            2, 1, 2, 2, 2, 1, 2, 0,
+                            2, 2, 1, 2, 1, 2, 2, 0,
+                            2, 2, 2, 2, 2, 2, 2, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -608,14 +604,14 @@ public final class BoardFixtures {
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_C_AFTER
      */
     public static final Board MAKE_MOVE_TEST_CASE_C_BEFORE = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 0, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        2, 2, 2, 2, 2, 2, 2, 2))
+        .withSquaresLiteral(1, 1, 1, 1, 1, 1, 1, 2,
+                            1, 1, 1, 1, 1, 1, 1, 2,
+                            1, 1, 1, 1, 1, 1, 1, 2,
+                            1, 1, 1, 0, 1, 1, 1, 2,
+                            1, 1, 1, 1, 1, 1, 1, 2,
+                            1, 1, 1, 1, 1, 1, 1, 2,
+                            1, 1, 1, 1, 1, 1, 1, 2,
+                            2, 2, 2, 2, 2, 2, 2, 2)
         .build();
 
     /**
@@ -639,14 +635,14 @@ public final class BoardFixtures {
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_C_BEFORE
      */
     public static final Board MAKE_MOVE_TEST_CASE_C_AFTER = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 1, 1, 1, 1, 2,
-                                        1, 1, 1, 2, 2, 2, 2, 2,
-                                        1, 1, 1, 2, 2, 1, 1, 2,
-                                        1, 1, 1, 2, 1, 2, 1, 2,
-                                        1, 1, 1, 2, 1, 1, 2, 2,
-                                        2, 2, 2, 2, 2, 2, 2, 2))
+        .withSquaresLiteral(1, 1, 1, 1, 1, 1, 1, 2,
+                            1, 1, 1, 1, 1, 1, 1, 2,
+                            1, 1, 1, 1, 1, 1, 1, 2,
+                            1, 1, 1, 2, 2, 2, 2, 2,
+                            1, 1, 1, 2, 2, 1, 1, 2,
+                            1, 1, 1, 2, 1, 2, 1, 2,
+                            1, 1, 1, 2, 1, 1, 2, 2,
+                            2, 2, 2, 2, 2, 2, 2, 2)
         .build();
 
     /**
@@ -670,14 +666,14 @@ public final class BoardFixtures {
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_D_AFTER
      */
     public static final Board MAKE_MOVE_TEST_CASE_D_BEFORE = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 1, 0, 0, 2, 0, 0, 0,
-                                        0, 2, 0, 2, 0, 0, 0, 0,
-                                        1, 1, 1, 0, 0, 0, 0, 0,
-                                        1, 0, 1, 0, 2, 0, 0, 0,
-                                        1, 1, 1, 0, 0, 0, 0, 0,
-                                        0, 2, 0, 1, 0, 0, 0, 0,
-                                        0, 1, 0, 0, 2, 0, 0, 0,
-                                        0, 2, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(0, 1, 0, 0, 2, 0, 0, 0,
+                            0, 2, 0, 2, 0, 0, 0, 0,
+                            1, 1, 1, 0, 0, 0, 0, 0,
+                            1, 0, 1, 0, 2, 0, 0, 0,
+                            1, 1, 1, 0, 0, 0, 0, 0,
+                            0, 2, 0, 1, 0, 0, 0, 0,
+                            0, 1, 0, 0, 2, 0, 0, 0,
+                            0, 2, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -701,14 +697,14 @@ public final class BoardFixtures {
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_D_BEFORE
      */
     public static final Board MAKE_MOVE_TEST_CASE_D_AFTER = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 1, 0, 0, 2, 0, 0, 0,
-                                        0, 2, 0, 2, 0, 0, 0, 0,
-                                        1, 2, 2, 0, 0, 0, 0, 0,
-                                        1, 2, 1, 0, 2, 0, 0, 0,
-                                        1, 2, 2, 0, 0, 0, 0, 0,
-                                        0, 2, 0, 2, 0, 0, 0, 0,
-                                        0, 1, 0, 0, 2, 0, 0, 0,
-                                        0, 2, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(0, 1, 0, 0, 2, 0, 0, 0,
+                            0, 2, 0, 2, 0, 0, 0, 0,
+                            1, 2, 2, 0, 0, 0, 0, 0,
+                            1, 2, 1, 0, 2, 0, 0, 0,
+                            1, 2, 2, 0, 0, 0, 0, 0,
+                            0, 2, 0, 2, 0, 0, 0, 0,
+                            0, 1, 0, 0, 2, 0, 0, 0,
+                            0, 2, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -730,14 +726,14 @@ public final class BoardFixtures {
      * </pre>
      */
     public static final Board MINIMAX_TEST_CASE_A = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(2, 0, 2, 0, 2, 0, 2, 0,
-                                        1, 0, 1, 0, 1, 0, 1, 0,
-                                        0, 0, 1, 0, 1, 0, 1, 0,
-                                        0, 0, 0, 0, 1, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(2, 0, 2, 0, 2, 0, 2, 0,
+                            1, 0, 1, 0, 1, 0, 1, 0,
+                            0, 0, 1, 0, 1, 0, 1, 0,
+                            0, 0, 0, 0, 1, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /**
@@ -759,14 +755,14 @@ public final class BoardFixtures {
      * </pre>
      */
     public static final Board MINIMAX_TEST_CASE_B = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(2, 1, 2, 0, 0, 0, 0, 0,
-                                        1, 0, 1, 0, 0, 0, 0, 0,
-                                        0, 0, 1, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+        .withSquaresLiteral(2, 1, 2, 0, 0, 0, 0, 0,
+                            1, 0, 1, 0, 0, 0, 0, 0,
+                            0, 0, 1, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /** Class constructor. */

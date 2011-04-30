@@ -30,16 +30,34 @@ import java.util.Collection;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+/**
+ * Test Suite for the {@code CountDifference} class.
+ *
+ * @see CountDifference
+ */
 @RunWith(Parameterized.class)
 public class CountDifferenceTest extends EvalFunctionTestUtils {
 
+    /**
+     * Class constructor.
+     * <p>
+     * The evaluation function parameter is set to {@code new CountDifference()}.
+     *
+     * @param board         the board parameter passed to the evaluation function
+     * @param player        the player parameter passed to the evaluation function
+     * @param expectedValue is the expected value used by the unit test assertion
+     */
     public CountDifferenceTest(final Board board,
                                final Player player,
                                final Integer expectedValue) {
-        super(board, player, expectedValue);
-        this.fn = new CountDifference();
+        super(board, player, new CountDifference(), expectedValue);
     }
 
+    /**
+     * Returns the data set used by the parameterized test.
+     *
+     * @return the data set used to run the tests
+     */
     @Parameterized.Parameters
     public static Collection data() {
         return Arrays.asList(new Object[][] {

@@ -27,115 +27,156 @@ package rcrr.reversi;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.junit.*;
-import static org.junit.Assert.*;
-
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+/**
+ * Test Suite for the {@code ModifiedWeightedSquares} class.
+ *
+ * @see ModifiedWeightedSquares
+ */
 @RunWith(Parameterized.class)
 public class ModifiedWeightedSquaresTest extends EvalFunctionTestUtils {
 
     /** The CASE_ONE_A board. */
-    private static Board CASE_ONE_A = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        1, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+    private static final Board CASE_ONE_A = new BoardBuilder()
+        .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                            1, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /** The CASE_ONE_B board. */
-    private static Board CASE_ONE_B = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(1, 0, 0, 0, 0, 0, 0, 0,
-                                        1, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+    private static final Board CASE_ONE_B = new BoardBuilder()
+        .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
+                            1, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /** The CASE_TWO_A board. */
-    private static Board CASE_TWO_A = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 1, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+    private static final Board CASE_TWO_A = new BoardBuilder()
+        .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 1, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
     /** The CASE_TWO_B board. */
-    private static Board CASE_TWO_B = new BoardBuilder()
-        .withBoardLiteral(Arrays.asList(2, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 1, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                        0, 0, 0, 0, 0, 0, 0, 0))
+    private static final Board CASE_TWO_B = new BoardBuilder()
+        .withSquaresLiteral(2, 0, 0, 0, 0, 0, 0, 0,
+                            0, 1, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
-    public ModifiedWeightedSquaresTest(Board board, Player player, Integer expectedValue) {
-        super(board, player, expectedValue);
-        this.fn = new ModifiedWeightedSquares();
+    /**
+     * Class constructor.
+     * <p>
+     * The evaluation function parameter is set to {@code new ModifiedWeightedSquares()}.
+     *
+     * @param board         the board parameter passed to the evaluation function
+     * @param player        the player parameter passed to the evaluation function
+     * @param expectedValue is the expected value used by the unit test assertion
+     */
+    public ModifiedWeightedSquaresTest(final Board board,
+                                       final Player player,
+                                       final Integer expectedValue) {
+        super(board, player, new ModifiedWeightedSquares(), expectedValue);
     }
 
+    /**
+     * Returns the data set used by the parameterized test.
+     *
+     * @return the data set used to run the tests
+     */
     @Parameterized.Parameters
     public static Collection data() {
         return Arrays.asList(new Object[][] {
 
                 /** Tests that the empty board returns 0. */
-                { BoardFixtures.EMPTY, Player.BLACK, 0 },
-                { BoardFixtures.EMPTY, Player.WHITE, 0 },
+                {BoardFixtures.EMPTY, Player.BLACK, 0},
+                {BoardFixtures.EMPTY, Player.WHITE, 0},
 
                 /** Tests that the initial game state returns 0. */
-                { BoardFixtures.INITIAL, Player.BLACK, 0 },
-                { BoardFixtures.INITIAL, Player.WHITE, 0 },
+                {BoardFixtures.INITIAL, Player.BLACK, 0},
+                {BoardFixtures.INITIAL, Player.WHITE, 0},
 
                 /**
                  * Tests that the game state defined by:
-                 * - Board  = FIRST_MOVE_D3 
+                 * - Board  = FIRST_MOVE_D3
                  * - Player = WHITE
                  * returns a value of -9.
                  */
-                { BoardFixtures.FIRST_MOVE_D3, Player.WHITE, -9 },
+                {BoardFixtures.FIRST_MOVE_D3, Player.WHITE, -9 },
 
                 /**
                  * Tests that the game state defined by:
-                 * - Board  = FIRST_MOVE_D3 
+                 * - Board  = FIRST_MOVE_D3
                  * - Player = BLACK
                  * returns a value of +9.
                  */
-                { BoardFixtures.FIRST_MOVE_D3, Player.BLACK, +9 },
+                {BoardFixtures.FIRST_MOVE_D3, Player.BLACK, +9},
 
                 /**
                  * Tests that the game state defined by:
-                 * - Board  = FINAL_B37_W27 game state 
+                 * - Board  = FINAL_B37_W27 game state
                  * - Player = BLACK
                  * returns a value of +52 (50 points more than WeightedSquare.
                  */
-                { BoardFixtures.FINAL_B37_W27, Player.BLACK, +52 },
+                {BoardFixtures.FINAL_B37_W27, Player.BLACK, +52},
 
-                { CASE_ONE_A, Player.BLACK, -20 },
-                { CASE_ONE_A, Player.WHITE, +20 },
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = CASE_ONE_A
+                 * - Player = {BLACK, WHITE}
+                 * returns a value of {-20, +20}.
+                 */
+                {CASE_ONE_A, Player.BLACK, -20},
+                {CASE_ONE_A, Player.WHITE, +20},
 
-                { CASE_ONE_B, Player.BLACK, +125 },
-                { CASE_ONE_B, Player.WHITE, -125 },
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = CASE_ONE_B
+                 * - Player = {BLACK, WHITE}
+                 * returns a value of {+125, -125}.
+                 */
+                {CASE_ONE_B, Player.BLACK, +125},
+                {CASE_ONE_B, Player.WHITE, -125},
 
-                { CASE_TWO_A, Player.BLACK, -40 },
-                { CASE_TWO_A, Player.WHITE, +40 },
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = CASE_TWO_A
+                 * - Player = {BLACK, WHITE}
+                 * returns a value of {-40, +40}.
+                 */
+                {CASE_TWO_A, Player.BLACK, -40},
+                {CASE_TWO_A, Player.WHITE, +40},
 
-                { CASE_TWO_B, Player.BLACK, -115 },
-                { CASE_TWO_B, Player.WHITE, +115 }
+                /**
+                 * Tests that the game state defined by:
+                 * - Board  = CASE_TWO_B
+                 * - Player = {BLACK, WHITE}
+                 * returns a value of {-115, +115}.
+                 */
+                {CASE_TWO_B, Player.BLACK, -115},
+                {CASE_TWO_B, Player.WHITE, +115}
 
             });
     }

@@ -27,55 +27,72 @@ package rcrr.reversi;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.junit.*;
-import static org.junit.Assert.*;
-
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+/**
+ * Test Suite for the {@code WeightedSquares} class.
+ *
+ * @see WeightedSquares
+ */
 @RunWith(Parameterized.class)
 public class WeightedSquaresTest extends EvalFunctionTestUtils {
 
-    public WeightedSquaresTest(Board board, Player player, Integer expectedValue) {
-        super(board, player, expectedValue);
-        this.fn = new WeightedSquares();
+    /**
+     * Class constructor.
+     * <p>
+     * The evaluation function parameter is set to {@code new WeightedSquares()}.
+     *
+     * @param board         the board parameter passed to the evaluation function
+     * @param player        the player parameter passed to the evaluation function
+     * @param expectedValue is the expected value used by the unit test assertion
+     */
+    public WeightedSquaresTest(final Board board,
+                               final Player player,
+                               final Integer expectedValue) {
+        super(board, player, new WeightedSquares(), expectedValue);
     }
 
+    /**
+     * Returns the data set used by the parameterized test.
+     *
+     * @return the data set used to run the tests
+     */
     @Parameterized.Parameters
     public static Collection data() {
         return Arrays.asList(new Object[][] {
 
                 /** Tests that the empty board returns 0. */
-                { BoardFixtures.EMPTY, Player.BLACK, 0 },
-                { BoardFixtures.EMPTY, Player.WHITE, 0 },
+                {BoardFixtures.EMPTY, Player.BLACK, 0},
+                {BoardFixtures.EMPTY, Player.WHITE, 0},
 
                 /** Tests that the initial game state returns 0. */
-                { BoardFixtures.INITIAL, Player.BLACK, 0 },
-                { BoardFixtures.INITIAL, Player.WHITE, 0 },
+                {BoardFixtures.INITIAL, Player.BLACK, 0},
+                {BoardFixtures.INITIAL, Player.WHITE, 0},
 
                 /**
                  * Tests that the game state defined by:
-                 * - Board  = FIRST_MOVE_D3 
+                 * - Board  = FIRST_MOVE_D3
                  * - Player = WHITE
                  * returns a value of -9.
                  */
-                { BoardFixtures.FIRST_MOVE_D3, Player.WHITE, -9 },
+                {BoardFixtures.FIRST_MOVE_D3, Player.WHITE, -9},
 
                 /**
                  * Tests that the game state defined by:
-                 * - Board  = FIRST_MOVE_D3 
+                 * - Board  = FIRST_MOVE_D3
                  * - Player = BLACK
                  * returns a value of +9.
                  */
-                { BoardFixtures.FIRST_MOVE_D3, Player.BLACK, +9 },
+                {BoardFixtures.FIRST_MOVE_D3, Player.BLACK, +9},
 
                 /**
                  * Tests that the game state defined by:
-                 * - Board  = FINAL_B37_W27 game state 
+                 * - Board  = FINAL_B37_W27 game state
                  * - Player = BLACK
                  * returns a value of +2.
                  */
-                { BoardFixtures.FINAL_B37_W27, Player.BLACK, +2 }
+                {BoardFixtures.FINAL_B37_W27, Player.BLACK, +2}
 
             });
     }
