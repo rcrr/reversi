@@ -1,7 +1,7 @@
 /*
  *  SquareStateTest.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -24,27 +24,66 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
+import static org.junit.Assert.assertThat;
+
+import static org.hamcrest.CoreMatchers.is;
+
+/**
+ * Test Suite for {@code SquareTest} class.
+ */
 public class SquareStateTest {
 
+    /** Class constructor. */
+    public SquareStateTest() { }
+
+    /**
+     * Tests the {@code valueOfSymbol(String)} method.
+     *
+     * @see SquareState#valueOfSymbol(String)
+     */
     @Test
-    public void testValueOfSymbol() {
-	assertEquals(SquareState.BLACK, SquareState.valueOfSymbol("@"));
-	assertEquals(SquareState.WHITE, SquareState.valueOfSymbol("O"));
-	assertEquals(SquareState.EMPTY, SquareState.valueOfSymbol("."));
-	assertEquals(SquareState.OUTER, SquareState.valueOfSymbol("?"));
-	assertEquals(null, SquareState.valueOfSymbol("foo"));
-	assertEquals(null, SquareState.valueOfSymbol(null));
+    public final void testValueOfSymbol() {
+        assertThat("SquareState.valueOfSymbol(\"@\") is SquareState.BLACK.",
+                   SquareState.valueOfSymbol("@"),
+                   is(SquareState.BLACK));
+        assertThat("SquareState.valueOfSymbol(\"O\") is SquareState.WHITE.",
+                   SquareState.valueOfSymbol("O"),
+                   is(SquareState.WHITE));
+        assertThat("SquareState.valueOfSymbol(\".\") is SquareState.EMPTY.",
+                   SquareState.valueOfSymbol("."),
+                   is(SquareState.EMPTY));
+        assertThat("SquareState.valueOfSymbol(\"?\") is SquareState.OUTER.",
+                   SquareState.valueOfSymbol("?"),
+                   is(SquareState.OUTER));
+        assertThat("SquareState.valueOfSymbol(\"foo\") is SquareState.NULL.",
+                   SquareState.valueOfSymbol("foo"),
+                   is(SquareState.NULL));
+        assertThat("SquareState.valueOfSymbol(null) is SquareState.NULL.",
+                   SquareState.valueOfSymbol(null),
+                   is(SquareState.NULL));
     }
 
+    /**
+     * Tests the {@code symbol()} method.
+     *
+     * @see SquareState#symbol()
+     */
     @Test
-    public void testSymbol() {
-	assertEquals("@", SquareState.BLACK.symbol());
-	assertEquals("O", SquareState.WHITE.symbol());
-	assertEquals(".", SquareState.EMPTY.symbol());
-	assertEquals("?", SquareState.OUTER.symbol());
+    public final void testSymbol() {
+        assertThat("SquareState.BLACK.symbol() is @.",
+                   SquareState.BLACK.symbol(),
+                   is("@"));
+        assertThat("SquareState.WHITE.symbol() is O.",
+                   SquareState.WHITE.symbol(),
+                   is("O"));
+        assertThat("SquareState.EMPTY.symbol() is ..",
+                   SquareState.EMPTY.symbol(),
+                   is("."));
+        assertThat("SquareState.OUTER.symbol() is ?.",
+                   SquareState.OUTER.symbol(),
+                   is("?"));
     }
-   
+
 }
