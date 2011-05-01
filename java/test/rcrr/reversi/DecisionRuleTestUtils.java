@@ -35,7 +35,7 @@ import static org.hamcrest.CoreMatchers.is;
 import org.junit.runners.Parameterized;
 
 /**
- * Abstract Test for the {@code DecisionRule} interface.
+ * Abstract Test Suite for the {@code DecisionRule} interface.
  *
  * @see DecisionRule
  */

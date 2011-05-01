@@ -24,27 +24,13 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+/**
+ * Test Suite for {@code Minimax} class dedicated to check boundary conditions.
+ */
+public class MinimaxBoundaryConditionsTest extends DecisionRuleBoundaryConditionsTestUtils {
 
-public class MinimaxBoundaryConditionsTest {
-
-    private DecisionRule minimax = Minimax.getInstance();
-
-    /**
-     * Tests the minimaxSearcher ply parameter range.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testMinimaxSearcherPlyRange() {
-	Strategy s = minimax.searcher(0, new CountDifference());
+    /** Class constructor. */
+    public MinimaxBoundaryConditionsTest() {
+        super(Minimax.getInstance());
     }
-
-    /**
-     * Tests the minimaxSearcher ef parameter.
-     */
-    @Test(expected = NullPointerException.class)
-    public void testMinimaxSearcherEfNotNull() {
-	Strategy s = minimax.searcher(1, null);
-    }
-
 }
