@@ -1,7 +1,7 @@
 /*
  *  DecisionRule.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -44,7 +44,7 @@ public interface DecisionRule {
 
     /**
      * Returns a strategy that searches ply levels deep and
-     * applies the ef evaluation function..
+     * applies the ef evaluation function.
      *
      * @param ply the depth of the search
      * @param ef  the evaluation function

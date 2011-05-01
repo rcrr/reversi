@@ -32,6 +32,9 @@
   <!-- Removes magic number checks from JUnit test files. -->
   <suppress checks="MagicNumber" files=".*Test.java"/>
 
+  <!-- Removes magic number checks from JUnit test util files. -->
+  <suppress checks="MagicNumber" files=".*TestUtils.java"/>
+
   <!-- Removes magic number checks from fixture files. -->
   <suppress checks="MagicNumber" files=".*Fixtures.java"/>
 
