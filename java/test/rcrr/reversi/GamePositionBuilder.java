@@ -93,8 +93,6 @@ public final class GamePositionBuilder {
 
     /**
      * Returns the {@code this} reference after setting the new {@code board} field.
-     * <p>
-     * The {@code board} parameter cannot be null.
      *
      * @param board the board assigned to the game position
      * @return      the {@code this} reference
