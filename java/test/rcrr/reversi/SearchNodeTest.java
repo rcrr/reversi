@@ -24,14 +24,18 @@
 
 package rcrr.reversi;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.matchers.JUnitMatchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
 /**
- * Class interface tests.
+ * Test Suite for the {@code SearchNode} class.
+ *
+ * @see SearchNode
  */
 public class SearchNodeTest {
 
@@ -44,6 +48,36 @@ public class SearchNodeTest {
     @Test
     public final void testReminder() {
         fail("Tests for this class are all missing.");
+    }
+
+    /**
+     * Tests the {@code move()} getter method.
+     *
+     * @see SearchNode#move()
+     */
+    @Test
+    public final void testMove() {
+        assertThat("new SearchNodeBuilder().withMove(Square.B5).build().move() is Square.B5.",
+                   new SearchNodeBuilder()
+                   .withMove(Square.B5)
+                   .build()
+                   .move(),
+                   is(Square.B5));
+    }
+
+    /**
+     * Tests the {@code value()} getter method.
+     *
+     * @see SearchNode#value()
+     */
+    @Test
+    public final void testValue() {
+        assertThat("new SearchNodeBuilder().withValue(19).build().value() is 19.",
+                   new SearchNodeBuilder()
+                   .withValue(19)
+                   .build()
+                   .value(),
+                   is(19));
     }
 
 }

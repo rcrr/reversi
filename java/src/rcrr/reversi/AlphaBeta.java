@@ -1,7 +1,7 @@
 /*
  *  AlphaBeta.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -68,22 +68,22 @@ public final class AlphaBeta extends AbstractDecisionRule {
         SearchNode node;
         final Player opponent = player.opponent();
         if (ply == 0) {
-            node = new SearchNode(null, ef.eval(GamePosition.valueOf(board, player)));
+            node = SearchNode.valueOf(null, ef.eval(GamePosition.valueOf(board, player)));
         } else {
             List<Square> moves = board.legalMoves(player);
             if (moves.isEmpty()) {
                 if (board.hasAnyLegalMove(opponent)) {
                     node = search(opponent, board, -cutoff, -achievable, ply - 1, ef).negated();
                 } else {
-                    node = new SearchNode(null, finalValue(board, player));
+                    node = SearchNode.valueOf(null, finalValue(board, player));
                 }
             } else {
-                node = new SearchNode(moves.get(0), achievable);
+                node = SearchNode.valueOf(moves.get(0), achievable);
                 outer: for (Square move : moves) {
                     Board board2 = board.makeMove(move, player);
                     int val = search(opponent, board2, -cutoff, -node.value(), ply - 1, ef).negated().value();
                     if (val > node.value()) {
-                        node = new SearchNode(move, val);
+                        node = SearchNode.valueOf(move, val);
                     }
                     if (node.value() >= cutoff) { break outer; }
                 }

@@ -1,7 +1,7 @@
 /*
  *  Minimax.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -75,23 +75,23 @@ public final class Minimax extends AbstractDecisionRule {
         SearchNode node;
         final Player opponent = player.opponent();
         if (ply == 0) {
-            node = new SearchNode(null, ef.eval(GamePosition.valueOf(board, player)));
+            node = SearchNode.valueOf(null, ef.eval(GamePosition.valueOf(board, player)));
         } else {
             List<Square> moves = board.legalMoves(player);
             if (moves.isEmpty()) {
                 if (board.hasAnyLegalMove(opponent)) {
                     node = search(opponent, board, 0, 0, ply - 1, ef).negated();
                 } else {
-                    node = new SearchNode(null, finalValue(board, player));
+                    node = SearchNode.valueOf(null, finalValue(board, player));
                 }
             } else {
-                node = new SearchNode(null, Integer.MIN_VALUE);
+                node = SearchNode.valueOf(null, Integer.MIN_VALUE);
                 for (Square move : moves) {
                     int value = search(opponent, board.makeMove(move, player),
                                        0, 0,
                                        ply - 1, ef).negated().value();
                     if (value > node.value()) {
-                        node = new SearchNode(move, value);
+                        node = SearchNode.valueOf(move, value);
                     }
                 }
             }
