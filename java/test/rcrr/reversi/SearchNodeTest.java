@@ -27,7 +27,6 @@ package rcrr.reversi;
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -41,14 +40,6 @@ public class SearchNodeTest {
 
     /** Class constructor. */
     public SearchNodeTest() { }
-
-    /**
-     * Remainds that all tests are missing.
-     */
-    @Test
-    public final void testReminder() {
-        fail("Tests for this class are all missing.");
-    }
 
     /**
      * Tests the {@code move()} getter method.
@@ -78,6 +69,55 @@ public class SearchNodeTest {
                    .build()
                    .value(),
                    is(19));
+    }
+
+    /**
+     * Tests the {@code negated()} method.
+     *
+     * @see SearchNode#negated()
+     */
+    @Test
+    public final void testNegated() {
+        assertThat("new SearchNodeBuilder().withValue(19).build().negated().value() is -19.",
+                   new SearchNodeBuilder()
+                   .withValue(19)
+                   .build()
+                   .negated()
+                   .value(),
+                   is(-19));
+    }
+
+    /**
+     * Tests the {@code toString()} method.
+     *
+     * @see SearchNode#toString()
+     */
+    @Test
+    public final void testToString() {
+        assertThat("When calling toString() on a search node having"
+                   + " a Square.F7 assigned to move"
+                   + " and a 37 assigned to value must return"
+                   + " [move=F7, value=37].",
+                   new SearchNodeBuilder()
+                   .withMove(Square.F7)
+                   .withValue(37)
+                   .build()
+                   .toString(),
+                   is("[move=F7, value=37]"));
+    }
+
+    /**
+     * Tests if the {@code valueOf} method return an instance of
+     * {@code SearchNode} class.
+     *
+     * @see SearchNode#valueOf(Square, int)
+     */
+    @Test
+    public final void testValueOf() {
+        assertThat("SearchNode.valueOf(Square.A1, 7)"
+                   + " must return an instance of SearchNode class.",
+                   SearchNode.valueOf(Square.A1, 7),
+                   instanceOf(SearchNode.class));
     }
 
 }
