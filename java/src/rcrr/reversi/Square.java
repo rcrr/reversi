@@ -309,13 +309,14 @@ public enum Square {
     /**
      * Returns the square matching the specified label.
      * <p>
-     * Parameter label cannot be null.
+     * Parameter {@code label} cannot be {@code null}.
+     * <p>
      * Throws an exception in case the label is not associated with a square.
      *
      * @param label the square's label
      * @return      the identified square
-     * @throws IllegalArgumentException if the label is not valid
-     * @throws IllegalArgumentException if the label is not valid
+     * @throws NullPointerException     if the label parameter is null
+     * @throws IllegalArgumentException if the label parameter is not valid
      */
     public static Square getInstance(final String label) {
         if (label == null) {
