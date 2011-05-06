@@ -24,19 +24,38 @@
 
 package rcrr.reversi;
 
+import java.io.StringReader;
+import java.io.OutputStreamWriter;
+
 import org.junit.Test;
+
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThat;
+
+import static org.hamcrest.CoreMatchers.is;
 
 /**
- * <i>Must be completely written!</i> Test Suite for {@code HumanStrategy} class.
+ * Test Suite for {@code HumanStrategy} class.
  */
 public class HumanStrategyTest {
 
+    /** Class constructor. */
+    public HumanStrategyTest() { }
+
     /**
-     * Test has to be written.
+     * Tests the {@code move(GameSnapshot)} method.
+     *
+     * @see HumanStrategy#move(GameSnapshot)
      */
     @Test
     public final void testMove() {
-        fail("Test has to be written.");
+
+        Strategy hs = new HumanStrategy(new StringReader("a1"),
+                                        new OutputStreamWriter(System.out));
+
+        assertThat("",
+                   hs.move(GameSnapshotFixtures.INITIAL),
+                   is(Move.valueOf(Square.A1)));
     }
+
 }
