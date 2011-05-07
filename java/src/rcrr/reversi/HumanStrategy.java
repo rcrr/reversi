@@ -27,13 +27,11 @@ package rcrr.reversi;
 import java.util.List;
 import java.util.ArrayList;
 
-import java.io.Reader;
-import java.io.BufferedReader;
+import java.io.OutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import java.io.Writer;
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
+import java.io.BufferedReader;
 
 import java.io.IOException;
 
@@ -42,11 +40,11 @@ import java.io.IOException;
  */
 public class HumanStrategy implements Strategy {
 
-    /** The buffered reader field. */
-    private final BufferedReader bufferedReader;
-
     /** The buffered writer field. */
-    private final BufferedWriter bufferedWriter;
+    private final OutputStream out;
+
+    /** The reader field. */
+    private final BufferedReader reader;
 
     /**
      * No parameter class constructor.
@@ -55,19 +53,18 @@ public class HumanStrategy implements Strategy {
      * the output is defaulted to {@code System.out}.
      */
     public HumanStrategy() {
-        this(new InputStreamReader(System.in),
-             new OutputStreamWriter(System.out));
+        this(System.in, System.out);
     }
 
     /**
      * Class constructor.
      *
-     * @param reader the human input stream reader
-     * @param writer the human output stream writer
+     * @param in  the human input stream reader
+     * @param out the human output stream writer
      */
-    public HumanStrategy(final Reader reader, final Writer writer) {
-        this.bufferedReader = new BufferedReader(reader);
-        this.bufferedWriter = new BufferedWriter(writer);
+    public HumanStrategy(final InputStream in, final OutputStream out) {
+        this.out = out;
+        this.reader = new BufferedReader(new InputStreamReader(in));
     }
 
     /**
@@ -91,26 +88,25 @@ public class HumanStrategy implements Strategy {
                 moves.add(mv.label());
             }
             try {
-                bufferedWriter.write(gameSnapshot.player().toString() + " to move " + moves + ": ");
-                bufferedWriter.flush();
+                out.write((gameSnapshot.player() + " has to move. Available moves are: "
+                           + moves + ". Enter a move:\n").getBytes());
             } catch (IOException ioe) {
-                throw new RuntimeException("Error in writing to the output writer.");
+                throw new RuntimeException(ioe);
             }
             String inputLine = null;
             try {
-                inputLine = bufferedReader.readLine();
+                inputLine = reader.readLine();
             } catch (IOException ioe) {
-                throw new RuntimeException("Error in writing to the output writer.");
+                throw new RuntimeException(ioe);
             }
             if (inputLine != null) {
                 try {
                     move = Square.getInstance(inputLine);
                 } catch (IllegalArgumentException iae) {
                     try {
-                        bufferedWriter.write(inputLine + " is not a move. Retry:");
-                        bufferedWriter.flush();
+                        out.write((inputLine + " is not a move. Retry: ").getBytes());
                     } catch (IOException ioe) {
-                        throw new RuntimeException("Error in writing to the output writer.");
+                        throw new RuntimeException(ioe);
                     }
                 }
             }
