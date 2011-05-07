@@ -24,12 +24,11 @@
 
 package rcrr.reversi;
 
-import java.io.StringReader;
-import java.io.OutputStreamWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 import org.junit.Test;
 
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertThat;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -43,19 +42,45 @@ public class HumanStrategyTest {
     public HumanStrategyTest() { }
 
     /**
-     * Tests the {@code move(GameSnapshot)} method.
+     * Tests the {@code move(GameSnapshot)} method when the input move is not legal.
      *
      * @see HumanStrategy#move(GameSnapshot)
      */
     @Test
-    public final void testMove() {
-
-        Strategy hs = new HumanStrategy(new StringReader("a1"),
-                                        new OutputStreamWriter(System.out));
-
-        assertThat("",
-                   hs.move(GameSnapshotFixtures.INITIAL),
+    public final void testMove_whenTheMoveIsIllegal() {
+        assertThat("The expected move is Move.valueOf(Square.A1)).",
+                   new HumanStrategy(new ByteArrayInputStream("a1".getBytes()),
+                                     new ByteArrayOutputStream())
+                   .move(GameSnapshotFixtures.INITIAL),
                    is(Move.valueOf(Square.A1)));
+    }
+
+    /**
+     * Tests the {@code move(GameSnapshot)} method when the input move is legal.
+     *
+     * @see HumanStrategy#move(GameSnapshot)
+     */
+    @Test
+    public final void testMove_whenTheMoveIsLegal() {
+        assertThat("The expected move is Move.valueOf(Square.D3)).",
+                   new HumanStrategy(new ByteArrayInputStream("d3".getBytes()),
+                                     new ByteArrayOutputStream())
+                   .move(GameSnapshotFixtures.INITIAL),
+                   is(Move.valueOf(Square.D3)));
+    }
+
+    /**
+     * Tests the {@code move(GameSnapshot)} method when the input move is not a move.
+     *
+     * @see HumanStrategy#move(GameSnapshot)
+     */
+    @Test
+    public final void testMove_whenTheMoveIsNotASquareLabel() {
+        assertThat("The expected move is Move.valueOf(Square.D3)).",
+                   new HumanStrategy(new ByteArrayInputStream("ax\nd3".getBytes()),
+                                     new ByteArrayOutputStream())
+                   .move(GameSnapshotFixtures.INITIAL),
+                   is(Move.valueOf(Square.D3)));
     }
 
 }
