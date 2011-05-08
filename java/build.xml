@@ -37,6 +37,7 @@
   <property name="test.data.dir" value="${build.dir}/test/data"/>
   <property name="test.reports.dir" value="${build.dir}/test/reports"/>
   <property name="test.javadoc.dir" value="${build.dir}/test/javadoc"/>
+  <property name="test.output-files.dir" value="${build.dir}/test/output-files"/>
 
   <property name="cloc.dir" value="${build.dir}/cloc"/>
 
@@ -128,10 +129,13 @@
     <mkdir dir="${test.data.dir}"/>
     <delete dir="${test.reports.dir}"/>
     <mkdir dir="${test.reports.dir}"/>
+    <delete dir="${test.output-files.dir}"/>
+    <mkdir dir="${test.output-files.dir}"/>
     <junit fork="yes" printsummary="withOutAndErr"
 	   errorProperty="test.failed"
 	   failureProperty="test.failed">
       <jvmarg value="-ea"/>
+      <jvmarg value="-Dtest.output-files.dir=${test.output-files.dir}"/>
       <formatter type="brief" usefile="false"/>
       <formatter type="xml"/>
       <!-- In case of testing a single class use: -->
