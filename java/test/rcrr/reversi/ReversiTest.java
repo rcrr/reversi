@@ -25,42 +25,96 @@
 package rcrr.reversi;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.PrintStream;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.FileNotFoundException;
 
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
-
 /**
- * Must be tested also some cases that print the output to a file. Some program paths are not tested without printing.
+ * Test Suite for {@code Reversi} class.
  */
 public class ReversiTest {
 
+    /** The standard game duration is thirty minutes. */
     private static final Duration STANDARD_GAME_DURATION = Period.minutes(30).toStandardDuration();
+
+    /** Print to the console. */
     private static final PrintStream PRINT = System.out;
+
+    /** A null print stram. */
     private static final PrintStream NO_PRINT = null;
 
+    /** Ten times. */
     private static final int TEN_TIMES = 10;
+
+    /** A thousand times. */
     private static final int A_THOUSAND_TIMES = 1000;
 
+    /** The number of nanosecond contained by a millisecond. */
+    private static final long NANOSECONDS_PER_MILLISECOND = 1000000;
+
+    /** Class constructor. */
+    public ReversiTest() { }
+
+    /**
+     * Tests that the game played as described by <i>PAIP 18.4 (pg 614)</i> is reproduced
+     * accurately running the {@code reversi(Strategy, Strategy, PrintStream, Duration)} method.
+     * <p>
+     * The method is run assigning the following values to invocation parameters:
+     * <ul>
+     *   <li>{@code blStrategy} is {@code Minimax.getInstance().searcher(3, new CountDifference())}</li>
+     *   <li>{@code whStrategy} is {@code Minimax.maximizer(new CountDifference())}</li>
+     *   <li>{@code ps} is {@code null}</li>
+     *   <li>{@code gameDuration} is 30 minutes</li>
+     * </ul>
+     * <p>
+     * The method must return a value of +53. The game ends [@=53 O=0 (+53)].
+     *
+     * @see Reversi#reversi(Strategy, Strategy, PrintStream, Duration)
+     */
     @Test
     public final void testPAIP_18_4_0() {
-        /**
-         * PAIP pp. 614 ends the game [@=53 O=0 (+53)].
-         */
         assertEquals(+53, Reversi.reversi(Minimax.getInstance().searcher(3, new CountDifference()),
                                           Minimax.maximizer(new CountDifference()),
                                           NO_PRINT,
                                           STANDARD_GAME_DURATION));
     }
 
+    /**
+     * Tests that the game played as described by <i>PAIP 18.6 (pg 617)</i> is reproduced
+     * accurately running the {@code reversi(Strategy, Strategy, PrintStream, Duration)} method.
+     * <p>
+     * The method is run assigning the following values to invocation parameters:
+     * <ul>
+     *   <li>{@code blStrategy} is {@code AlphaBeta.getInstance().searcher(4, new CountDifference())}</li>
+     *   <li>{@code whStrategy} is {@code AlphaBeta.getInstance().searcher(4, new WeightedSquares())}</li>
+     *   <li>{@code ps} is {@code null}</li>
+     *   <li>{@code gameDuration} is 30 minutes</li>
+     * </ul>
+     * <p>
+     * The method must return a value of -16. The game ends [@=24 O=40 (-16)].
+     * <p>
+     * The test than verifies that running the two strategies using the minimax algorithm instead
+     * of the alpha-beta search generates the same result.
+     *
+     * @see Reversi#reversi(Strategy, Strategy, PrintStream, Duration)
+     */
     @Test
     public final void testPAIP_18_6_0() {
         assertEquals(-16, Reversi.reversi(AlphaBeta.getInstance().searcher(4, new CountDifference()),
@@ -68,31 +122,90 @@ public class ReversiTest {
                                           NO_PRINT,
                                           STANDARD_GAME_DURATION));
 
+        /** Verifies that the minimax algorithm plays the same game. */
         assertEquals(-16, Reversi.reversi(Minimax.getInstance().searcher(4, new CountDifference()),
                                           Minimax.getInstance().searcher(4, new WeightedSquares()),
                                           NO_PRINT,
                                           STANDARD_GAME_DURATION));
     }
 
+    /**
+     * Tests that the game played as described by <i>PAIP 18.6 (pg 619)</i> is reproduced
+     * accurately running the {@code reversi(Strategy, Strategy, PrintStream, Duration)} method.
+     * <p>
+     * The method is run assigning the following values to invocation parameters:
+     * <ul>
+     *   <li>{@code blStrategy} is {@code AlphaBeta.getInstance().searcher(6, new CountDifference())}</li>
+     *   <li>{@code whStrategy} is {@code AlphaBeta.getInstance().searcher(4, new WeightedSquares())}</li>
+     *   <li>{@code ps} is {@code null}</li>
+     *   <li>{@code gameDuration} is 30 minutes</li>
+     * </ul>
+     * <p>
+     * PAIP pg. 620 ends the game [@=24 O=40 (-16)].
+     * The test is consistent with the PAIP game till the last position before the end.
+     * The difference has not fully traced, given the time needed to manually check
+     * a 6 ply search. Anyhow the CL version obtained porting on SBCL the original PAIP
+     * source code play the exact same game, ending with a -30 score.
+     * <p>
+     * The method must return a value of -30.
+     * <p>
+     * The test than should verify that running the two strategies using the minimax algorithm instead
+     * of the alpha-beta search generates the same result. It takes around one munute, and it is skipped.
+     *
+     * @see Reversi#reversi(Strategy, Strategy, PrintStream, Duration)
+     */
     @Test
     public final void testPAIP_18_6_1() {
         /**
-         * PAIP pp. 620 ends the game [@=24 O=40 (-16)].
+         * PAIP pg. 620 ends the game [@=24 O=40 (-16)].
          * The test is consistent with the PAIP game till the last position before the end.
          * The difference has not fully traced, given the time needed to manually check
          * a 6 ply search. Anyhow the CL version obtained porting on SBCL the original PAIP
          * source code play the exact same game, ending with a -30 score.
          */
         assertEquals(-30, Reversi.reversi(AlphaBeta.getInstance().searcher(6, new CountDifference()),
-                                        AlphaBeta.getInstance().searcher(4, new WeightedSquares()),
-                                        NO_PRINT,
-                                        STANDARD_GAME_DURATION));
+                                          AlphaBeta.getInstance().searcher(4, new WeightedSquares()),
+                                          NO_PRINT,
+                                          STANDARD_GAME_DURATION));
+
+        /** Verifing that the minimax algorithm plays the same game takes far too long. */
+        /*
+        assertEquals(-30, Reversi.reversi(Minimax.getInstance().searcher(6, new CountDifference()),
+                                          Minimax.getInstance().searcher(4, new WeightedSquares()),
+                                          NO_PRINT,
+                                          STANDARD_GAME_DURATION));
+        */
     }
 
+    /**
+     * Tests that the game played as described by <i>PAIP 18.6 (pg 621)</i> is reproduced
+     * accurately by substituiting the WeightedSquares strategy with the modified one.
+     * <p>
+     * The {@code WeightedSquares} strategy select F6, while the {@code ModifiedWiightedSquare} has
+     * to select C1.
+     * <pre>
+     * {@code
+     * BLACK moves to b1
+     *     a b c d e f g h [@=20 0=1 (19)]
+     *  1  O @ . . . . . .
+     *  2  . @ . . . @ @ .
+     *  3  @ @ @ @ @ @ . .
+     *  4  . @ . @ @ . . .
+     *  5  @ @ @ @ @ @ . .
+     *  6  . @ . . . . . .
+     *  7  . . . . . . . .
+     *  8  . . . . . . . . [@=29:59, O=29:59]
+     *  Next to play: WHITE, legal moves: [c1, f6]
+     * }
+     * </pre>
+     *
+     * @see WeightedSquares
+     * @see ModifiedWeightedSquares
+     */
     @Test
     public final void testPAIP_18_6_2() {
         /**
-         * PAIP pp. 621.
+         * PAIP pg. 621.
          * The WeightedSquares strategy select F6, while the ModifiedWiightedSquare has to select C1.
          *
          * BLACK moves to b1
@@ -109,63 +222,279 @@ public class ReversiTest {
          */
 
         /** Test to be written. */
-        assertEquals(0, 0);
+        fail("The test has to be written.");
     }
 
+    /**
+     * Tests the {@code reversi(Strategy, Strategy, PrintStream, Duration)} method.
+     * <p>
+     * The test runs a number of games (actualy one thousand) opposing two random strategies.
+     * <p>
+     * Results are then written to a file named <i>ReversiTest.testRandomVsRandom.txt</i>, it
+     * is saved under a properly configured directory as prepared by the build process, or
+     * in the system tmp dir when the first is not found.
+     * <p>
+     * Results should be simalar to:
+     * <ul>
+     *   <li>{@code mean = -0.9}</li>
+     *   <li>{@code variance = 330}</li>
+     *   <li>{@code black wins = 45%}</li>
+     *   <li>{@code white wins = 50%}</li>
+     *   <li>{@code draws = 5%}</li>
+     * </ul>
+     * <p>
+     *
+     * @see Reversi#reversi(Strategy, Strategy, PrintStream, Duration)
+     */
     @Test
-    public final void testRandomVsRandom() {
-        /**
-         * The test run a series of a thousand games.
-         */
-        final Duration TEST_MAX_DURATION = new Duration(2000); // 2.0 seconds
-        final long NANOSECONDS_PER_MILLISECOND = 1000000;
-        int avarage = 0;
-        List<Integer> scores = new ArrayList<Integer>();
+    public final void testReversi_runsASeriesOfRandomVsRandom() {
+
+        /** Env variables. */
+        final PrintStream out = testOutputStream("ReversiTest.testReversi_runsASeriesOfRandomVsRandom");
+        final Calendar c = Calendar.getInstance();
+        final int numberOfGames = 1000;
+        final List<Integer> scores = new ArrayList<Integer>();
+        final Duration testDuration;
+
+        /** Statistical values. */
+        double mean = 0.;
+        double variance = 0.;
+        int blackWins = 0;
+        int whiteWins = 0;
+        int draws = 0;
+
+        /** Running games. */
         long startTime = System.nanoTime();
-        for (int i = 0; i < A_THOUSAND_TIMES; i++) {
+        for (int i = 0; i < numberOfGames; i++) {
             int score = Reversi.reversi(new RandomStrategy(),
-                                        new RandomStrategy(),
-                                        NO_PRINT,
-                                        STANDARD_GAME_DURATION);
-            scores.add(score);
-        }
-        long testTime = System.nanoTime() - startTime;
-        Duration d = new Duration(testTime / NANOSECONDS_PER_MILLISECOND);
-        assertTrue("Running the test took longer than: " + TEST_MAX_DURATION, d.isShorterThan(TEST_MAX_DURATION));
-    }
-
-    @Test
-    public final void testTenGamesRandomVsCountDifference() {
-        /**
-         * The test run a series of ten games.
-         */
-        int avarage = 0;
-        List<Integer> scores = new ArrayList<Integer>();
-        for (int i = 0; i < TEN_TIMES; i++) {
-            int score = Reversi.reversi(new RandomStrategy(),
-                                        AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
-                                        NO_PRINT,
-                                        STANDARD_GAME_DURATION);
-            assertTrue(score <= +64 && score >= -64);
-            scores.add(score);
-        }
-    }
-
-    @Test
-    public final void testTenGamesCountDifferenceVsRandom() {
-        /**
-         * The test run a series of ten games.
-         */
-        int avarage = 0;
-        List<Integer> scores = new ArrayList<Integer>();
-        for (int i = 0; i < TEN_TIMES; i++) {
-            int score = Reversi.reversi(AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
                                         new RandomStrategy(),
                                         NO_PRINT,
                                         STANDARD_GAME_DURATION);
             assertTrue(score <= +64 && score >= -64);
             scores.add(score);
         }
+        long endTime = System.nanoTime() - startTime;
+        testDuration = new Duration(endTime / NANOSECONDS_PER_MILLISECOND);
+
+        /** Statistical calculations. */
+        for (Integer value : scores) {
+            if (value > 0) {
+                blackWins++;
+            } else if (value < 0) {
+                whiteWins++;
+            } else {
+                draws++;
+            }
+            mean = mean + value;
+        }
+        mean = mean / (double) numberOfGames;
+        for (Integer value : scores) {
+            variance = variance + (value - mean) * (value - mean);
+        }
+        variance = variance / (double) numberOfGames;
+
+        /** Output of the test. */
+        try {
+            out.printf("File: ReversiTest.java. Method: testReversi_runsASeriesOfRandomVsRandom%n");
+            out.printf("Date & time:\t%tB %te, %tY - %tl:%tM %tp%n", c, c, c, c, c, c);
+            out.printf("Number of games:\t%d%n", scores.size());
+            out.printf("Test duration:\t%s%n", testDuration);
+
+            out.printf("Mean of scores:\t%1.2f%n", mean);
+            out.printf("Variance of scores:\t%1.2f%n", variance);
+
+            out.printf("Black wins:\t\t%d\t[%4.2f%%]%n",
+                       blackWins, 100.0 * (double) blackWins / (double) numberOfGames);
+            out.printf("White wins:\t\t%d\t[%4.2f%%]%n",
+                       whiteWins, 100.0 * (double) whiteWins / (double) numberOfGames);
+            out.printf("Draws:\t\t\t%d\t[%4.2f%%]%n",
+                       draws, 100.0 * (double) draws / (double) numberOfGames);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            out.close();
+        }
+
+        assertTrue("The test must run without exceptions.", true);
+
+    }
+
+    /**
+     * Output the test must go in a dedicated method.
+     * Complete the refactoring to the others methods.
+     */
+    @Test
+    public final void testReversi_runsASeriesOfRandomVs2PlyCountDifference() {
+
+        Map<String, Object> results
+            = runSeriesOfGames(new RandomStrategy(),
+                               AlphaBeta.getInstance().searcher(2, new CountDifference()),
+                               NO_PRINT,
+                               STANDARD_GAME_DURATION,
+                               TEN_TIMES);
+
+        /** Output of the test. */
+        final PrintStream out = testOutputStream("testReversi_runsASeriesOfRandomVs2PlyCountDifference");
+        try {
+            out.printf("File: ReversiTest.java. Method: testReversi_runsASeriesOfRandomVs2PlyCountDifference%n");
+            out.printf((String) results.get("output"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            out.close();
+        }
+
+        assertTrue("The test must run without exceptions.", true);
+
+    }
+
+    @Test
+    public final void testReversi_runsASeriesOf2PlyCountDifferenceVsRandom() {
+
+        runSeriesOfGames(AlphaBeta.getInstance().searcher(2, new CountDifference()),
+                         new RandomStrategy(),
+                         NO_PRINT,
+                         STANDARD_GAME_DURATION,
+                         TEN_TIMES);
+
+        assertTrue("The test must run without exceptions.", true);
+
+    }
+
+    @Test
+    public final void testReversi_runsASeriesOfRandomVs2PlyWeightedSquares() {
+
+        runSeriesOfGames(new RandomStrategy(),
+                         AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
+                         NO_PRINT,
+                         STANDARD_GAME_DURATION,
+                         TEN_TIMES);
+
+        assertTrue("The test must run without exceptions.", true);
+
+    }
+
+    @Test
+    public final void testReversi_runsASeriesOf2PlyWeightedSquaresVsRandom() {
+
+        runSeriesOfGames(AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
+                         new RandomStrategy(),
+                         NO_PRINT,
+                         STANDARD_GAME_DURATION,
+                         TEN_TIMES);
+
+        assertTrue("The test must run without exceptions.", true);
+
+    }
+
+    private Map<String, Object> runSeriesOfGames(final Strategy blStrategy,
+                                                 final Strategy whStrategy,
+                                                 final PrintStream ps,
+                                                 final Duration gameDuration,
+                                                 final int numberOfGames) {
+
+        Map<String, Object> results = new HashMap<String, Object>();
+
+        /** Statistical values. */
+        double mean = 0.;
+        double variance = 0.;
+        int blackWins = 0;
+        int whiteWins = 0;
+        int draws = 0;
+
+        final Calendar c = Calendar.getInstance();
+        final Duration testDuration;
+        final List<Integer> scores = new ArrayList<Integer>(numberOfGames);
+
+        /** Running games. */
+        long startTime = System.nanoTime();
+        for (int i = 0; i < numberOfGames; i++) {
+            int score = Reversi.reversi(blStrategy,
+                                        whStrategy,
+                                        ps,
+                                        gameDuration);
+            assertTrue(score <= +64 && score >= -64);
+            scores.add(score);
+        }
+        long endTime = System.nanoTime() - startTime;
+        testDuration = new Duration(endTime / NANOSECONDS_PER_MILLISECOND);
+        results.put("scores", scores);
+        results.put("testDuration", testDuration);
+
+        /** Statistical calculations. */
+        for (Integer value : scores) {
+            if (value > 0) {
+                blackWins++;
+            } else if (value < 0) {
+                whiteWins++;
+            } else {
+                draws++;
+            }
+            mean = mean + value;
+        }
+        mean = mean / (double) numberOfGames;
+        for (Integer value : scores) {
+            variance = variance + (value - mean) * (value - mean);
+        }
+        variance = variance / (double) numberOfGames;
+
+        results.put("mean", mean);
+        results.put("variance", variance);
+        results.put("blackWins", blackWins);
+        results.put("whiteWins", whiteWins);
+        results.put("draws", draws);
+
+        StringBuffer sb = new StringBuffer();
+        sb.append(String.format("Date & time:\t\t%tB %te, %tY - %tl:%tM %tp%n", c, c, c, c, c, c));
+        sb.append(String.format("Number of games:\t%d%n", scores.size()));
+        sb.append(String.format("Test duration:\t\t%s%n", testDuration));
+
+        sb.append(String.format("Mean of scores:\t\t%1.2f%n", mean));
+        sb.append(String.format("Variance of scores:\t%1.2f%n", variance));
+
+        sb.append(String.format("Black wins:\t\t%d\t[%4.2f percent]%n",
+                                blackWins, 100.0 * (double) blackWins / (double) numberOfGames));
+        sb.append(String.format("White wins:\t\t%d\t[%4.2f percent]%n",
+                                whiteWins, 100.0 * (double) whiteWins / (double) numberOfGames));
+        sb.append(String.format("Draws:\t\t\t%d\t[%4.2f percent]%n",
+                       draws, 100.0 * (double) draws / (double) numberOfGames));
+
+        results.put("output", sb.toString());
+
+        return results;
+    }
+
+    /**
+     * Provides a print stream given a filename.
+     * The method try to open the file into a properly configured directory.
+     * The directory is identified using a system property. If the directory
+     * is not found a tmp dir is then used.
+     * The filename is obtained chaining the filename parameter with a txt file suffix.
+     *
+     * @param filename the filename used for the print stream construction
+     * @return         a new print stream
+     */
+    private PrintStream testOutputStream(final String filename) {
+        OutputStream out;
+        File fOut = null;
+        String sTestOutputFileDir = System.getProperty("test.output-files.dir");
+        File testOutputFileDir = new File(sTestOutputFileDir);
+        if (testOutputFileDir.exists() && testOutputFileDir.isDirectory()) {
+            fOut = new File(testOutputFileDir, filename + ".txt");
+        }
+        if (fOut == null || (fOut.exists() && !fOut.canWrite())) {
+            try {
+                fOut = File.createTempFile(filename, "txt");
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
+            }
+        }
+        try {
+            out = new FileOutputStream(fOut);
+        } catch (FileNotFoundException fnfe) {
+                throw new RuntimeException(fnfe);
+        }
+        return new PrintStream(out);
     }
 
 }
