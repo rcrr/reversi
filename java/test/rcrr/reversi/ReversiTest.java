@@ -249,83 +249,30 @@ public class ReversiTest {
     @Test
     public final void testReversi_runsASeriesOfRandomVsRandom() {
 
-        /** Env variables. */
-        final PrintStream out = testOutputStream("ReversiTest.testReversi_runsASeriesOfRandomVsRandom");
-        final Calendar c = Calendar.getInstance();
-        final int numberOfGames = 1000;
-        final List<Integer> scores = new ArrayList<Integer>();
-        final Duration testDuration;
-
-        /** Statistical values. */
-        double mean = 0.;
-        double variance = 0.;
-        int blackWins = 0;
-        int whiteWins = 0;
-        int draws = 0;
-
-        /** Running games. */
-        long startTime = System.nanoTime();
-        for (int i = 0; i < numberOfGames; i++) {
-            int score = Reversi.reversi(new RandomStrategy(),
-                                        new RandomStrategy(),
-                                        NO_PRINT,
-                                        STANDARD_GAME_DURATION);
-            assertTrue(score <= +64 && score >= -64);
-            scores.add(score);
-        }
-        long endTime = System.nanoTime() - startTime;
-        testDuration = new Duration(endTime / NANOSECONDS_PER_MILLISECOND);
-
-        /** Statistical calculations. */
-        for (Integer value : scores) {
-            if (value > 0) {
-                blackWins++;
-            } else if (value < 0) {
-                whiteWins++;
-            } else {
-                draws++;
-            }
-            mean = mean + value;
-        }
-        mean = mean / (double) numberOfGames;
-        for (Integer value : scores) {
-            variance = variance + (value - mean) * (value - mean);
-        }
-        variance = variance / (double) numberOfGames;
+        /** Runs the game series. */
+        Map<String, Object> results
+            = runSeriesOfGames(new RandomStrategy(),
+                               new RandomStrategy(),
+                               NO_PRINT,
+                               STANDARD_GAME_DURATION,
+                               A_THOUSAND_TIMES);
 
         /** Output of the test. */
-        try {
-            out.printf("File: ReversiTest.java. Method: testReversi_runsASeriesOfRandomVsRandom%n");
-            out.printf("Date & time:\t%tB %te, %tY - %tl:%tM %tp%n", c, c, c, c, c, c);
-            out.printf("Number of games:\t%d%n", scores.size());
-            out.printf("Test duration:\t%s%n", testDuration);
-
-            out.printf("Mean of scores:\t%1.2f%n", mean);
-            out.printf("Variance of scores:\t%1.2f%n", variance);
-
-            out.printf("Black wins:\t\t%d\t[%4.2f%%]%n",
-                       blackWins, 100.0 * (double) blackWins / (double) numberOfGames);
-            out.printf("White wins:\t\t%d\t[%4.2f%%]%n",
-                       whiteWins, 100.0 * (double) whiteWins / (double) numberOfGames);
-            out.printf("Draws:\t\t\t%d\t[%4.2f%%]%n",
-                       draws, 100.0 * (double) draws / (double) numberOfGames);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            out.close();
-        }
+        write((String) results.get("output"),
+              "ReversiTest",
+              "Method=testReversi_runsASeriesOfRandomVsRandom");
 
         assertTrue("The test must run without exceptions.", true);
 
     }
 
     /**
-     * Output the test must go in a dedicated method.
-     * Complete the refactoring to the others methods.
+     * Runs ten games between the Random and the 2PlyCountDifference strategies.
      */
     @Test
     public final void testReversi_runsASeriesOfRandomVs2PlyCountDifference() {
 
+        /** Runs the game series. */
         Map<String, Object> results
             = runSeriesOfGames(new RandomStrategy(),
                                AlphaBeta.getInstance().searcher(2, new CountDifference()),
@@ -334,59 +281,94 @@ public class ReversiTest {
                                TEN_TIMES);
 
         /** Output of the test. */
-        final PrintStream out = testOutputStream("testReversi_runsASeriesOfRandomVs2PlyCountDifference");
-        try {
-            out.printf("File: ReversiTest.java. Method: testReversi_runsASeriesOfRandomVs2PlyCountDifference%n");
-            out.printf((String) results.get("output"));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            out.close();
-        }
+        write((String) results.get("output"),
+              "ReversiTest",
+              "Method=testReversi_runsASeriesOfRandomVs2PlyCountDifference");
 
         assertTrue("The test must run without exceptions.", true);
 
     }
 
+    /**
+     * Runs ten games between the 2PlyCountDifference and the Random strategies.
+     */
     @Test
     public final void testReversi_runsASeriesOf2PlyCountDifferenceVsRandom() {
 
-        runSeriesOfGames(AlphaBeta.getInstance().searcher(2, new CountDifference()),
-                         new RandomStrategy(),
-                         NO_PRINT,
-                         STANDARD_GAME_DURATION,
-                         TEN_TIMES);
+        /** Runs the game series. */
+        Map<String, Object> results
+            = runSeriesOfGames(AlphaBeta.getInstance().searcher(2, new CountDifference()),
+                               new RandomStrategy(),
+                               NO_PRINT,
+                               STANDARD_GAME_DURATION,
+                               TEN_TIMES);
+
+        /** Output of the test. */
+        write((String) results.get("output"),
+              "ReversiTest",
+              "Method=testReversi_runsASeriesOf2PlyCountDifferenceVsRandom");
 
         assertTrue("The test must run without exceptions.", true);
 
     }
 
+    /**
+     * Runs ten games between the Random and the 2PlyWeightedSquares strategies.
+     */
     @Test
     public final void testReversi_runsASeriesOfRandomVs2PlyWeightedSquares() {
 
-        runSeriesOfGames(new RandomStrategy(),
-                         AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
-                         NO_PRINT,
-                         STANDARD_GAME_DURATION,
-                         TEN_TIMES);
+        /** Runs the game series. */
+        Map<String, Object> results
+            = runSeriesOfGames(new RandomStrategy(),
+                               AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
+                               NO_PRINT,
+                               STANDARD_GAME_DURATION,
+                               TEN_TIMES);
+
+        /** Output of the test. */
+        write((String) results.get("output"),
+              "ReversiTest",
+              "Method=testReversi_runsASeriesOfRandomVs2PlyWeightedSquares");
 
         assertTrue("The test must run without exceptions.", true);
 
     }
 
+    /**
+     * Runs ten games between the 2PlyWeightedSquares and the Random strategies.
+     */
     @Test
     public final void testReversi_runsASeriesOf2PlyWeightedSquaresVsRandom() {
 
-        runSeriesOfGames(AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
-                         new RandomStrategy(),
-                         NO_PRINT,
-                         STANDARD_GAME_DURATION,
-                         TEN_TIMES);
+        /** Runs the game series. */
+        Map<String, Object> results
+            = runSeriesOfGames(AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
+                               new RandomStrategy(),
+                               NO_PRINT,
+                               STANDARD_GAME_DURATION,
+                               TEN_TIMES);
+
+        /** Output of the test. */
+        write((String) results.get("output"),
+              "ReversiTest",
+              "Method=testReversi_runsASeriesOf2PlyWeightedSquaresVsRandom");
 
         assertTrue("The test must run without exceptions.", true);
 
     }
 
+
+    /**
+     * Runs a series of games, than returns a map collecting the results.
+     *
+     * @param blStrategy    the black strategy passed to the reversi method
+     * @param whStrategy    the white strategy passed to the reversi method
+     * @param ps            the print stream passed to the reversi method
+     * @param gameDuration  the game duration passed to the reversi method
+     * @param numberOfGames the number of games played
+     * @return              a map hosting the results
+     */
     private Map<String, Object> runSeriesOfGames(final Strategy blStrategy,
                                                  final Strategy whStrategy,
                                                  final PrintStream ps,
@@ -465,6 +447,26 @@ public class ReversiTest {
     }
 
     /**
+     * Writes the content to the specified filename.
+     *
+     * @param content  the content to be written to the file.
+     * @param filename the nane of the file.
+     * @param header   the header written before the content.
+     */
+    private void write(final String content, final String filename, final String header) {
+        final PrintStream out = testOutputStream(filename);
+        try {
+            out.println(header);
+            out.printf(content);
+            out.println();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            out.close();
+        }
+    }
+
+    /**
      * Provides a print stream given a filename.
      * The method try to open the file into a properly configured directory.
      * The directory is identified using a system property. If the directory
@@ -490,7 +492,7 @@ public class ReversiTest {
             }
         }
         try {
-            out = new FileOutputStream(fOut);
+            out = new FileOutputStream(fOut, true);
         } catch (FileNotFoundException fnfe) {
                 throw new RuntimeException(fnfe);
         }
