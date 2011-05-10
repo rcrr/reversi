@@ -32,9 +32,12 @@ import java.util.Calendar;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import static org.hamcrest.CoreMatchers.is;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -204,25 +207,37 @@ public class ReversiTest {
      */
     @Test
     public final void testPAIP_18_6_2() {
-        /**
-         * PAIP pg. 621.
-         * The WeightedSquares strategy select F6, while the ModifiedWiightedSquare has to select C1.
-         *
-         * BLACK moves to b1
-         *     a b c d e f g h [@=20 0=1 (19)]
-         *  1  O @ . . . . . .
-         *  2  . @ . . . @ @ .
-         *  3  @ @ @ @ @ @ . .
-         *  4  . @ . @ @ . . .
-         *  5  @ @ @ @ @ @ . .
-         *  6  . @ . . . . . .
-         *  7  . . . . . . . .
-         *  8  . . . . . . . . [@=29:59, O=29:59]
-         *  Next to play: WHITE, legal moves: [c1, f6]
-         */
 
-        /** Test to be written. */
-        fail("The test has to be written.");
+        final GameSnapshot paip1862 = new GameSnapshotBuilder()
+            .withPosition(new GamePositionBuilder()
+                          .withBoard(new BoardBuilder()
+                                     .withSquaresLiteral(2, 1, 0, 0, 0, 0, 0, 0,
+                                                         0, 1, 0, 0, 0, 1, 1, 0,
+                                                         1, 1, 1, 1, 1, 1, 0, 0,
+                                                         0, 1, 0, 1, 1, 0, 0, 0,
+                                                         1, 1, 1, 1, 1, 1, 0, 0,
+                                                         0, 1, 0, 0, 0, 0, 0, 0,
+                                                         0, 0, 0, 0, 0, 0, 0, 0,
+                                                         0, 0, 0, 0, 0, 0, 0, 0)
+                                     .build())
+                          .withPlayer(Player.WHITE)
+                          .build())
+            .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+            .withRegister(MoveRegisterFixtures.EMPTY)
+            .build();
+
+        assertThat("AbstractDecisionRule.maximizer(new WeightedSquares())"
+                   + ".move(paip1862) must return F6.",
+                   AbstractDecisionRule.maximizer(new WeightedSquares())
+                   .move(paip1862),
+                   is(Move.valueOf(Square.F6)));
+
+        assertThat("AbstractDecisionRule.maximizer(new ModifiedWeightedSquares())"
+                   + ".move(paip1862) must return C1.",
+                   AbstractDecisionRule.maximizer(new ModifiedWeightedSquares())
+                   .move(paip1862),
+                   is(Move.valueOf(Square.C1)));
+
     }
 
     /**
@@ -230,7 +245,7 @@ public class ReversiTest {
      * <p>
      * The test runs a number of games (actualy one thousand) opposing two random strategies.
      * <p>
-     * Results are then written to a file named <i>ReversiTest.testRandomVsRandom.txt</i>, it
+     * Results are then written to a file named <i>ReversiTest.txt</i> that
      * is saved under a properly configured directory as prepared by the build process, or
      * in the system tmp dir when the first is not found.
      * <p>
@@ -267,7 +282,15 @@ public class ReversiTest {
     }
 
     /**
+     * Tests the {@code reversi(Strategy, Strategy, PrintStream, Duration)} method.
+     * <p>
      * Runs ten games between the Random and the 2PlyCountDifference strategies.
+     * <p>
+     * Results are then written to a file named <i>ReversiTest.txt</i> that
+     * is saved under a properly configured directory as prepared by the build process, or
+     * in the system tmp dir when the first is not found.
+     *
+     * @see Reversi#reversi(Strategy, Strategy, PrintStream, Duration)
      */
     @Test
     public final void testReversi_runsASeriesOfRandomVs2PlyCountDifference() {
@@ -290,7 +313,15 @@ public class ReversiTest {
     }
 
     /**
+     * Tests the {@code reversi(Strategy, Strategy, PrintStream, Duration)} method.
+     * <p>
      * Runs ten games between the 2PlyCountDifference and the Random strategies.
+     * <p>
+     * Results are then written to a file named <i>ReversiTest.txt</i> that
+     * is saved under a properly configured directory as prepared by the build process, or
+     * in the system tmp dir when the first is not found.
+     *
+     * @see Reversi#reversi(Strategy, Strategy, PrintStream, Duration)
      */
     @Test
     public final void testReversi_runsASeriesOf2PlyCountDifferenceVsRandom() {
@@ -313,7 +344,15 @@ public class ReversiTest {
     }
 
     /**
+     * Tests the {@code reversi(Strategy, Strategy, PrintStream, Duration)} method.
+     * <p>
      * Runs ten games between the Random and the 2PlyWeightedSquares strategies.
+     * <p>
+     * Results are then written to a file named <i>ReversiTest.txt</i> that
+     * is saved under a properly configured directory as prepared by the build process, or
+     * in the system tmp dir when the first is not found.
+     *
+     * @see Reversi#reversi(Strategy, Strategy, PrintStream, Duration)
      */
     @Test
     public final void testReversi_runsASeriesOfRandomVs2PlyWeightedSquares() {
@@ -336,7 +375,15 @@ public class ReversiTest {
     }
 
     /**
+     * Tests the {@code reversi(Strategy, Strategy, PrintStream, Duration)} method.
+     * <p>
      * Runs ten games between the 2PlyWeightedSquares and the Random strategies.
+     * <p>
+     * Results are then written to a file named <i>ReversiTest.txt</i> that
+     * is saved under a properly configured directory as prepared by the build process, or
+     * in the system tmp dir when the first is not found.
+     *
+     * @see Reversi#reversi(Strategy, Strategy, PrintStream, Duration)
      */
     @Test
     public final void testReversi_runsASeriesOf2PlyWeightedSquaresVsRandom() {
