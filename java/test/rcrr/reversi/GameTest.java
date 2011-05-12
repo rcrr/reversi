@@ -26,6 +26,7 @@ package rcrr.reversi;
 
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -269,6 +270,74 @@ public class GameTest {
         assertThat("The game ..... must have the WHITE player.",
                    game.player(),
                    is(Player.WHITE));
+    }
+
+    /**
+     * Tests the {@code move()} method, verifying that the game clock is
+     * updated correctly also when a player send illegal moves.
+     *
+     * @see Game#move()
+     */
+    @Test
+    public final void testMove_checksThatTheClockIsUpdatedWhenAnIllegalMoveIsGiven() {
+
+        final long moveTime = 100;
+
+        Strategy strategy = new Strategy() {
+                private int index = -1;
+                private final Square[] moves = {Square.A1, Square.E6};
+                public Move move(final GameSnapshot snapshot) {
+                    try {
+                        Thread.sleep(moveTime);
+                    } catch (java.lang.InterruptedException ie) {
+                        throw new RuntimeException(ie);
+                    }
+                    index++;
+                    return Move.valueOf(moves[index]);
+                }
+            };
+
+        Game game = new GameBuilder()
+            .withSequence(GameSequenceFixtures.THREE_SNAPSHOTS)
+            .withActors(new ActorsPairBuilder()
+                        .withActor(Player.BLACK,
+                                   new ActorBuilder()
+                                   .withStrategy(strategy)
+                                   .build())
+                        .build())
+            .build();
+
+        game.move();
+
+        MoveRegister register = game.lastGameSnapshot().register();
+        long blackClockResidualDurationBeforeMoving
+            = GameSequenceFixtures.THREE_SNAPSHOTS.last().clock().get(Player.BLACK).getMillis();
+        long blackClockResidualDurationHeldByFirstMoveRecord
+            = game.lastGameSnapshot().register().get(0).clock().get(Player.BLACK).getMillis();
+        long blackClockResidualDurationHeldBySecondMoveRecord
+            = game.lastGameSnapshot().register().get(1).clock().get(Player.BLACK).getMillis();
+        long blackClockResidualDurationOnTheNextGameSnapshot
+            = game.clock().get(Player.BLACK).getMillis();
+
+        assertThat("The move register size must be 2.",
+                   register.size(),
+                   is(2));
+
+        assertTrue("The blackClockResidualDurationOnTheNextGameSnapshot must be equal to"
+                   + " blackClockResidualDurationHeldBySecondMoveRecord.",
+                   blackClockResidualDurationOnTheNextGameSnapshot
+                   == blackClockResidualDurationHeldBySecondMoveRecord);
+
+        assertTrue("blackClockResidualDurationHeldBySecondMoveRecord + moveTime"
+                   + " must be less or equal to blackClockResidualDurationHeldByFirstMoveRecord.",
+                   blackClockResidualDurationHeldBySecondMoveRecord + moveTime
+                   <= blackClockResidualDurationHeldByFirstMoveRecord);
+
+        assertTrue("blackClockResidualDurationHeldByFirstMoveRecord + moveTime"
+                   + " must be less or equal to blackClockResidualDurationBeforeMoving.",
+                   blackClockResidualDurationHeldByFirstMoveRecord + moveTime
+                   <= blackClockResidualDurationBeforeMoving);
+
     }
 
     /**

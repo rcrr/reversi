@@ -35,7 +35,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import static org.hamcrest.CoreMatchers.is;
 
@@ -184,8 +183,8 @@ public class ReversiTest {
      * Tests that the game played as described by <i>PAIP 18.6 (pg 621)</i> is reproduced
      * accurately by substituiting the WeightedSquares strategy with the modified one.
      * <p>
-     * The {@code WeightedSquares} strategy select F6, while the {@code ModifiedWiightedSquare} has
-     * to select C1.
+     * The {@code WeightedSquares} strategy running a four ply search selects F6,
+     * the {@code ModifiedWeightedSquares} instead selects F6.
      * <pre>
      * {@code
      * BLACK moves to b1
@@ -226,15 +225,15 @@ public class ReversiTest {
             .withRegister(MoveRegisterFixtures.EMPTY)
             .build();
 
-        assertThat("AbstractDecisionRule.maximizer(new WeightedSquares())"
+        assertThat("AlphaBeta.getInstance().searcher(4, new WeightedSquares())"
                    + ".move(paip1862) must return F6.",
-                   AbstractDecisionRule.maximizer(new WeightedSquares())
+                   AlphaBeta.getInstance().searcher(4, new WeightedSquares())
                    .move(paip1862),
                    is(Move.valueOf(Square.F6)));
 
-        assertThat("AbstractDecisionRule.maximizer(new ModifiedWeightedSquares())"
+        assertThat("AlphaBeta.getInstance().searcher(4, new WeightedSquares())"
                    + ".move(paip1862) must return C1.",
-                   AbstractDecisionRule.maximizer(new ModifiedWeightedSquares())
+                   AlphaBeta.getInstance().searcher(4, new ModifiedWeightedSquares())
                    .move(paip1862),
                    is(Move.valueOf(Square.C1)));
 
@@ -404,7 +403,6 @@ public class ReversiTest {
         assertTrue("The test must run without exceptions.", true);
 
     }
-
 
     /**
      * Runs a series of games, than returns a map collecting the results.
