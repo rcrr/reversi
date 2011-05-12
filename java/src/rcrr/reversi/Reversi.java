@@ -1,7 +1,7 @@
 /*
  *  Reversi.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -30,7 +30,7 @@ import org.joda.time.Period;
 import org.joda.time.Duration;
 
 /**
- * {@code Reversi} is the main entry point for the program.
+ * The reversi class {@code Reversi} is the main entry point for the program.
  * <p>
  * Documentation has to be completed.
  * Testing has to be completed.
