@@ -248,19 +248,26 @@ public final class Game {
     private void move(final MoveRegister previousRegister) {
         assert (previousRegister != null) : "Parameter previousRegister cannot be null.";
 
+        /** These lines of code should become a new method into MoveRegister class. */
+        Clock actualClock;
+        if (previousRegister.isEmpty()) {
+            actualClock = clock();
+        } else {
+            actualClock = previousRegister.last().clock();
+        }
+
         long t0 = System.currentTimeMillis();
         Move move = actors.get(player()).strategy().move(sequence.last());
         long t1 = System.currentTimeMillis();
-        final Clock clock = clock().decrement(player(), new Duration(t0, t1));
+        final Clock updatedClock = actualClock.decrement(player(), new Duration(t0, t1));
 
-        final MoveRegister register = previousRegister.push(MoveRecord.valueOfAtCurrentTime(move, clock));
+        final MoveRegister register = previousRegister.push(MoveRecord.valueOfAtCurrentTime(move, updatedClock));
         if (validateMove(move.square())) {
             if (ps != null) {
                 ps.print("\n" + player().name() + " moves to " + move.square().label() + "\n");
             }
-            sequence = sequence.add(next(move.square(), clock, register));
+            sequence = sequence.add(next(move.square(), updatedClock, register));
         } else {
-            // clock (snapshot ... ) has to be updated.
             if (ps != null) { ps.print("Illegal move: " + move.square().label() + "\n"); }
             move(register);
         }
