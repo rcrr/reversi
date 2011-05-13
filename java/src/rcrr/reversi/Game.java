@@ -124,7 +124,7 @@ public final class Game {
     public static Game newInstance(final ActorsPair actors, final GameSequence sequence, final PrintStream ps) {
         if (actors == null) { throw new NullPointerException("Parameter actors cannot be null."); }
         if (sequence == null) { throw new NullPointerException("Parameter sequence cannot be null."); }
-        return new Game(actors, sequence, ps);
+        return new Game(actors, sequence, (ps == null) ? new NullPrintStream() : ps);
     }
 
     /** The actors field. */
@@ -280,12 +280,10 @@ public final class Game {
         final MoveRegister register = previousRegister.push(MoveRecord.valueOfAtCurrentTime(move, updatedClock));
 
         if (validateMove(move.square())) {
-            if (ps != null) {
-                ps.print("\n" + player().name() + " moves to " + move.square().label() + "\n");
-            }
+            ps.print("\n" + player().name() + " moves to " + move.square().label() + "\n");
             sequence = sequence.add(next(move.square(), updatedClock, register));
         } else {
-            if (ps != null) { ps.print("Illegal move: " + move.square().label() + "\n"); }
+            ps.print("Illegal move: " + move.square().label() + "\n");
             move(register);
         }
         return;
@@ -302,15 +300,13 @@ public final class Game {
      */
     public int play() {
         while (areThereAvailableMoves()) {
-            if (ps != null) { ps.print(lastGameSnapshot().printGameSnapshot()); }
+            ps.print(lastGameSnapshot().printGameSnapshot());
             move();
-            if (ps != null) {
-                if (hasOpponentPassed()) {
-                    ps.print("\n" + player().opponent() + " has no moves and must pass.\n");
-                }
+            if (hasOpponentPassed()) {
+                ps.print("\n" + player().opponent() + " has no moves and must pass.\n");
             }
         }
-        if (ps != null) { ps.print(lastGameSnapshot().printGameSnapshot()); }
+        ps.print(lastGameSnapshot().printGameSnapshot());
         return countDiscDifference();
     }
 
