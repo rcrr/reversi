@@ -45,6 +45,20 @@ import org.joda.time.Duration;
  */
 public final class Game {
 
+    /* Apply the null object pattern to the ps PrintStream
+    class NullOutputStream extends OutputStream {
+        public void write(int b) {
+            // Do nothing
+        }
+    }
+
+    class NullPrintStream extends PrintStream {
+        public NullPrintStream() {
+            super(new NullOutputStream());
+        }
+    }
+    */
+
     /** Do we really need it? */
     public static enum State {
 
@@ -236,6 +250,17 @@ public final class Game {
     }
 
     /**
+     * Returns the actual clock of the game during the move procedure execution.
+     *
+     * @param register the current move register during the move execution
+     * @return         the actual clock
+     */
+    private Clock actualClock(final MoveRegister register) {
+        assert (register != null) : "Parameter register cannot be null.";
+        return (register.isEmpty()) ? clock() : register.last().clock();
+    }
+
+    /**
      * The method implements the {@code move()} method, passind as parameter
      * the move register so far collected.
      * <p>
@@ -248,20 +273,12 @@ public final class Game {
     private void move(final MoveRegister previousRegister) {
         assert (previousRegister != null) : "Parameter previousRegister cannot be null.";
 
-        /** These lines of code should become a new method into MoveRegister class. */
-        Clock actualClock;
-        if (previousRegister.isEmpty()) {
-            actualClock = clock();
-        } else {
-            actualClock = previousRegister.last().clock();
-        }
-
-        long t0 = System.currentTimeMillis();
-        Move move = actors.get(player()).strategy().move(sequence.last());
-        long t1 = System.currentTimeMillis();
-        final Clock updatedClock = actualClock.decrement(player(), new Duration(t0, t1));
-
+        final long t0 = System.currentTimeMillis();
+        final Move move = actors.get(player()).strategy().move(sequence.last());
+        final long t1 = System.currentTimeMillis();
+        final Clock updatedClock = actualClock(previousRegister).decrement(player(), new Duration(t0, t1));
         final MoveRegister register = previousRegister.push(MoveRecord.valueOfAtCurrentTime(move, updatedClock));
+
         if (validateMove(move.square())) {
             if (ps != null) {
                 ps.print("\n" + player().name() + " moves to " + move.square().label() + "\n");
