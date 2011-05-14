@@ -277,7 +277,7 @@ public final class Game {
         MoveRegister register = previousRegister.push(MoveRecord.valueOfAtCurrentTime(move, updatedClock));
 
         if (validateMove(move)) {
-            ps.print("\n" + player().name() + " moves to " + move.square().label() + "\n");
+            ps.print("\n" + player().name() + " moves to " + move + "\n");
             sequence = sequence.add(next(move, updatedClock, register));
         } else {
             ps.print("Illegal move: " + move.square().label() + "\n");
