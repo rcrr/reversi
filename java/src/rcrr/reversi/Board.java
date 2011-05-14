@@ -69,6 +69,24 @@ public final class Board {
     }
 
     /**
+     * A static factory for the class that returns a board filled
+     * by sixtyfour discs having the color set by the {@code player} parameter.
+     * <p>
+     * Parameter {@code player} cannot be {@code null}.
+     *
+     * @param player it selects the color of the sixtyfour discs
+     * @return       a new board filled by sixtyfour discs
+     */
+    public static Board fillWithColor(final Player player) {
+        if (player == null) { throw new NullPointerException("Parameter color cannot be null."); }
+        final Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
+        for (Square sq : Square.values()) {
+            sm.put(sq, player.color());
+        }
+        return valueOf(sm);
+    }
+
+    /**
      * A static factory for the class that returns a new initial board.
      *
      * @return a new initial board

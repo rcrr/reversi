@@ -45,20 +45,6 @@ import org.joda.time.Duration;
  */
 public final class Game {
 
-    /* Apply the null object pattern to the ps PrintStream
-    class NullOutputStream extends OutputStream {
-        public void write(int b) {
-            // Do nothing
-        }
-    }
-
-    class NullPrintStream extends PrintStream {
-        public NullPrintStream() {
-            super(new NullOutputStream());
-        }
-    }
-    */
-
     /** Do we really need it? */
     public static enum State {
 
@@ -74,6 +60,14 @@ public final class Game {
         /** The game is paused. */
         PAUSED;
     }
+
+    /**
+     * This is the maximum number of retries that a strategy is allowed
+     * to send to the game before it is stopped.
+     * <p>
+     * When stopped the move is set to {@code Move.Action.RESIGN}.
+     */
+    public static final int MAX_ALLOWED_NUMBER_OF_ILLEGAL_MOVES = 7;
 
     /**
      * A static factory that returns an initial game. The {@code black} and {@code white} parameters
@@ -244,9 +238,11 @@ public final class Game {
      * created adding to the actual sequence the new game snapshot obtained by
      * executing the move to the actual board and registering the new clock
      * and the move register.
+     *
+     * @return the move
      */
-    public void move() {
-        move(MoveRegister.empty());
+    public Move move() {
+        return move(MoveRegister.empty());
     }
 
     /**
@@ -269,24 +265,32 @@ public final class Game {
      *
      * @param previousRegister the move register taken from the previous attempt
      *                         or an empty one.
+     * @return                 the move
      */
-    private void move(final MoveRegister previousRegister) {
+    private Move move(final MoveRegister previousRegister) {
         assert (previousRegister != null) : "Parameter previousRegister cannot be null.";
 
         final long t0 = System.currentTimeMillis();
-        final Move move = actors.get(player()).strategy().move(sequence.last());
+        Move move = actors.get(player()).strategy().move(sequence.last());
         final long t1 = System.currentTimeMillis();
         final Clock updatedClock = actualClock(previousRegister).decrement(player(), new Duration(t0, t1));
-        final MoveRegister register = previousRegister.push(MoveRecord.valueOfAtCurrentTime(move, updatedClock));
+        MoveRegister register = previousRegister.push(MoveRecord.valueOfAtCurrentTime(move, updatedClock));
 
-        if (validateMove(move.square())) {
+        if (validateMove(move)) {
             ps.print("\n" + player().name() + " moves to " + move.square().label() + "\n");
-            sequence = sequence.add(next(move.square(), updatedClock, register));
+            sequence = sequence.add(next(move, updatedClock, register));
         } else {
             ps.print("Illegal move: " + move.square().label() + "\n");
-            move(register);
+            if (register.size() < MAX_ALLOWED_NUMBER_OF_ILLEGAL_MOVES) {
+                move = move(register);
+            } else {
+                move = Move.valueOf(Move.Action.RESIGN);
+                register = register.push(MoveRecord.valueOfAtCurrentTime(move, updatedClock));
+                ps.print("\n" + player().name() + " RESIGN. Too many illegal moves. " + "\n");
+                sequence = sequence.add(next(move, updatedClock, register));
+            }
         }
-        return;
+        return move;
     }
 
     /**
@@ -320,6 +324,22 @@ public final class Game {
     }
 
     /**
+     * Returns a formatted string showing a 2d graphical composed view
+     * of the game state. It shows the board, the disk count, and the clock.
+     *
+     * @return a string representation of the game
+     */
+    public String print() {
+        final StringBuilder sbGame = new StringBuilder();
+        for (int i = 0; i < sequence().size(); i++) {
+            GameSnapshot snapshot = sequence().get(i);
+            sbGame.append(snapshot.printGameSnapshot());
+            sbGame.append("\n");
+        }
+        return (sbGame.toString());
+    }
+
+    /**
      * Returns the sequence field.
      *
      * @return the sequence field
@@ -337,9 +357,18 @@ public final class Game {
      * @return     if the move is legal
      * @throws NullPointerException when move parameter is null
      */
-    public boolean validateMove(final Square move) {
+    public boolean validateMove(final Move move) {
         if (move == null) { throw new NullPointerException("Parameter move cannot be null."); }
-        return lastGameSnapshot().position().isLegal(move);
+        switch (move.action()) {
+        case PUT_DISC:
+            return lastGameSnapshot().position().isLegal(move.square());
+        case PASS:
+            throw new IllegalArgumentException("Unsopported action type. move.action()=" + move.action());
+        case RESIGN:
+            return true;
+        default:
+            throw new IllegalArgumentException("Unsopported action type. move.action()=" + move.action());
+        }
     }
 
     /**
@@ -353,11 +382,27 @@ public final class Game {
      * @param register the move sequence issued by the player
      * @return         a new game snapshot
      */
-    private GameSnapshot next(final Square move, final Clock clock, final MoveRegister register) {
-        Board nextBoard = board().makeMove(move, player());
-        Player nextPlayer = nextBoard.nextToPlay(player());
-        GameSnapshot gs = GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock, register);
-        return gs;
+    private GameSnapshot next(final Move move, final Clock clock, final MoveRegister register) {
+        assert (move != null) : "Parameter move cannot be null.";
+        assert (clock != null) : "Parameter clock cannot be null.";
+        assert (register != null) : "Parameter clock register be null.";
+        final Board nextBoard;
+        final Player nextPlayer;
+        switch (move.action()) {
+        case PUT_DISC:
+            nextBoard = board().makeMove(move.square(), player());
+            nextPlayer = nextBoard.nextToPlay(player());
+            break;
+        case PASS:
+            throw new IllegalArgumentException("Unsopported action type. move.action()=" + move.action());
+        case RESIGN:
+            nextBoard = Board.fillWithColor(player().opponent());
+            nextPlayer = null;
+            break;
+        default:
+            throw new IllegalArgumentException("Unsopported action type. move.action()=" + move.action());
+        }
+        return GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock, register);
     }
 
 }
