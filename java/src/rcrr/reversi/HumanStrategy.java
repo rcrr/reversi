@@ -81,7 +81,7 @@ public class HumanStrategy implements Strategy {
      */
     public final Move move(final GameSnapshot gameSnapshot) {
         if (gameSnapshot == null) { throw new NullPointerException("Parameter gameSnapshot cannot be null."); }
-        Square move = null;
+        Move move = null;
         while (move == null) {
             List<String> moves = new ArrayList<String>();
             for (Square mv : gameSnapshot.board().legalMoves(gameSnapshot.player())) {
@@ -100,18 +100,22 @@ public class HumanStrategy implements Strategy {
                 throw new RuntimeException(ioe);
             }
             if (inputLine != null) {
-                try {
-                    move = Square.getInstance(inputLine);
-                } catch (IllegalArgumentException iae) {
+                if (inputLine.equalsIgnoreCase("resign")) {
+                    move = Move.valueOf(Move.Action.RESIGN);
+                } else {
                     try {
-                        out.write((inputLine + " is not a move. Retry: ").getBytes());
-                    } catch (IOException ioe) {
-                        throw new RuntimeException(ioe);
+                        move = Move.valueOf(Square.getInstance(inputLine));
+                    } catch (IllegalArgumentException iae) {
+                        try {
+                            out.write((inputLine + " is not a move. Retry: ").getBytes());
+                        } catch (IOException ioe) {
+                            throw new RuntimeException(ioe);
+                        }
                     }
                 }
             }
         }
-        return Move.valueOf(move);
+        return move;
     }
 
 }
