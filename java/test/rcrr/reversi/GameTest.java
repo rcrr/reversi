@@ -237,6 +237,45 @@ public class GameTest {
     }
 
     /**
+     * Tests the {@code move()} method, verifying that the program does not go
+     * out of memory when the provided move is ever illegal.
+     *
+     * @see Game#move()
+     */
+    @Test
+    public final void testMove_preventStackOverflow() {
+
+        Strategy strategy = new Strategy() {
+                public Move move(final GameSnapshot snapshot) {
+                    return Move.valueOf(Square.A1);
+                }
+            };
+
+        Game game = new GameBuilder()
+            .withSequence(GameSequenceFixtures.THREE_SNAPSHOTS)
+            .withActors(new ActorsPairBuilder()
+                        .withActor(Player.BLACK,
+                                   new ActorBuilder()
+                                   .withStrategy(strategy)
+                                   .build())
+                        .build())
+            .build();
+
+        game.move();
+
+        //System.out.println(game.lastGameSnapshot().printGameSnapshot());
+        System.out.println(game.print());
+
+        assertThat("The game ..... must have the NULL player.",
+                   game.player(),
+                   is(Player.NULL));
+
+        assertThat("The game.countDiscDifference() must be -64.",
+                   game.countDiscDifference(),
+                   is(-64));
+    }
+
+    /**
      * Tests the {@code move()} method.
      * <p>
      * The strategy and the game must be put into dedicate auxiliary methods.
@@ -393,41 +432,41 @@ public class GameTest {
     }
 
     /**
-     * Tests the {@code validateMove(Square)} method when parameter
+     * Tests the {@code validateMove(Move)} method when parameter
      * {@code square} is {@code null}.
      *
-     * @see Game#validateMove(Square)
+     * @see Game#validateMove(Move)
      */
     @Test(expected = NullPointerException.class)
-    public final void testValidateMove_boundaryConditions_checkNullParameter_square() {
-        new GameBuilder().build().validateMove(Square.NULL);
+    public final void testValidateMove_boundaryConditions_checkNullParameter_move() {
+        new GameBuilder().build().validateMove(Move.NULL);
     }
 
     /**
-     * Tests the {@code validateMove(Square)} method.
+     * Tests the {@code validateMove(Move)} method.
      *
-     * @see Game#validateMove(Square)
+     * @see Game#validateMove(Move)
      */
     @Test
     public final void testValidateMove_threeSnapshots_E6() {
-        assertThat("The move to square E6 is allowed."
+        assertThat("The PUT_DISC move to square E6 is allowed."
                    + " GameFixtureFactories.threeSnapshots().validateMove(Square.E6)"
                    + " must return true.",
-                   GameFixtureFactories.threeSnapshots().validateMove(Square.E6),
+                   GameFixtureFactories.threeSnapshots().validateMove(Move.valueOf(Square.E6)),
                    is(true));
     }
 
     /**
-     * Tests the {@code validateMove(Square)} method.
+     * Tests the {@code validateMove(Move)} method.
      *
-     * @see Game#validateMove(Square)
+     * @see Game#validateMove(Move)
      */
     @Test
     public final void testValidateMove_threeSnapshots_A1() {
-        assertThat("The move to square A1 is not allowed."
+        assertThat("The PUT_DISC move to square A1 is not allowed."
                    + " GameFixtureFactories.threeSnapshots().validateMove(Square.A1)"
                    + " must return false.",
-                   GameFixtureFactories.threeSnapshots().validateMove(Square.A1),
+                   GameFixtureFactories.threeSnapshots().validateMove(Move.valueOf(Square.A1)),
                    is(false));
     }
 
