@@ -280,7 +280,7 @@ public final class Game {
             ps.print("\n" + player().name() + " moves to " + move + "\n");
             sequence = sequence.add(next(move, updatedClock, register));
         } else {
-            ps.print("Illegal move: " + move.square().label() + "\n");
+            ps.print("Illegal move: " + move + "\n");
             if (register.size() < MAX_ALLOWED_NUMBER_OF_ILLEGAL_MOVES) {
                 move = move(register);
             } else {
@@ -355,7 +355,8 @@ public final class Game {
      *
      * @param move the move to be validated
      * @return     if the move is legal
-     * @throws NullPointerException when move parameter is null
+     * @throws NullPointerException     when move parameter is null
+     * @throws IllegalArgumentException when the move action is not handled
      */
     public boolean validateMove(final Move move) {
         if (move == null) { throw new NullPointerException("Parameter move cannot be null."); }
@@ -363,11 +364,11 @@ public final class Game {
         case PUT_DISC:
             return lastGameSnapshot().position().isLegal(move.square());
         case PASS:
-            throw new IllegalArgumentException("Unsopported action type. move.action()=" + move.action());
+            return !lastGameSnapshot().position().hasAnyLegalMove();
         case RESIGN:
             return true;
         default:
-            throw new IllegalArgumentException("Unsopported action type. move.action()=" + move.action());
+            throw new IllegalArgumentException("Unsupported action type. move.action()=" + move.action());
         }
     }
 
@@ -394,13 +395,13 @@ public final class Game {
             nextPlayer = nextBoard.nextToPlay(player());
             break;
         case PASS:
-            throw new IllegalArgumentException("Unsopported action type. move.action()=" + move.action());
+            throw new IllegalArgumentException("Unsupported action type. move.action()=" + move.action());
         case RESIGN:
             nextBoard = Board.fillWithColor(player().opponent());
             nextPlayer = null;
             break;
         default:
-            throw new IllegalArgumentException("Unsopported action type. move.action()=" + move.action());
+            throw new IllegalArgumentException("Unsupported action type. move.action()=" + move.action());
         }
         return GameSnapshot.valueOf(GamePosition.valueOf(nextBoard, nextPlayer), clock, register);
     }
