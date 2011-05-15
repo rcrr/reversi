@@ -237,6 +237,96 @@ public class GameTest {
     }
 
     /**
+     * Tests the {@code move()} method, verifying that the program handle
+     * the PASS move.
+     *
+     * @see Game#move()
+     */
+    @Test
+    public final void testMove_checkPassActionWhenNotLegal() {
+
+        Strategy strategy = new Strategy() {
+                private int index = -1;
+                private final Move[] moves
+                    = {Move.valueOf(Move.Action.PASS),
+                       Move.valueOf(Square.E6)};
+                public Move move(final GameSnapshot snapshot) {
+                    index++;
+                    return moves[index];
+                }
+            };
+
+        Game game = new GameBuilder()
+            .withSequence(GameSequenceFixtures.THREE_SNAPSHOTS)
+            .withActors(new ActorsPairBuilder()
+                        .withActor(Player.BLACK,
+                                   new ActorBuilder()
+                                   .withStrategy(strategy)
+                                   .build())
+                        .build())
+            .build();
+
+        game.move();
+
+        //System.out.println(game.print());
+
+        assertThat("The game ..... must have the WHITE player.",
+                   game.player(),
+                   is(Player.WHITE));
+
+        assertThat("game.lastGameSnapshot().register().get(0).move()"
+                   + " must be Move.valueOf(Move.Action.PASS)).",
+                   game.lastGameSnapshot().register().get(0).move(),
+                   is(Move.valueOf(Move.Action.PASS)));
+    }
+
+    /**
+     * Tests the {@code move()} method, verifying that the program handle
+     * the PASS move.
+     *
+     * @see Game#move()
+     */
+    @Test
+    public final void testMove_checkPassActionWhenLegal() {
+
+        Strategy strategy = new Strategy() {
+                private int index = -1;
+                private final Move[] moves
+                    = {Move.valueOf(Square.A1),
+                       Move.valueOf(Move.Action.PASS)};
+                public Move move(final GameSnapshot snapshot) {
+                    index++;
+                    return moves[index];
+                }
+            };
+
+        Game game = new GameBuilder()
+            .withSequence(new GameSequenceBuilder()
+                          .withSnapshot(GameSnapshotFixtures.BLACK_HAS_TO_PASS)
+                          .build())
+            .withActors(new ActorsPairBuilder()
+                        .withActor(Player.BLACK,
+                                   new ActorBuilder()
+                                   .withStrategy(strategy)
+                                   .build())
+                        .build())
+            .build();
+
+        game.move();
+
+        //System.out.println(game.print());
+
+        assertThat("The game ..... must have the WHITE player.",
+                   game.player(),
+                   is(Player.WHITE));
+
+        assertThat("game.lastGameSnapshot().register().last().move()"
+                   + " must be Move.valueOf(Move.Action.PASS)).",
+                   game.lastGameSnapshot().register().last().move(),
+                   is(Move.valueOf(Move.Action.PASS)));
+    }
+
+    /**
      * Tests the {@code move()} method, verifying that the program does not go
      * out of memory when the provided move is ever illegal.
      *
@@ -262,9 +352,6 @@ public class GameTest {
             .build();
 
         game.move();
-
-        //System.out.println(game.lastGameSnapshot().printGameSnapshot());
-        System.out.println(game.print());
 
         assertThat("The game ..... must have the NULL player.",
                    game.player(),
