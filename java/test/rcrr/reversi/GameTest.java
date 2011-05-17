@@ -314,8 +314,6 @@ public class GameTest {
 
         game.move();
 
-        //System.out.println(game.print());
-
         assertThat("The game ..... must have the WHITE player.",
                    game.player(),
                    is(Player.WHITE));
