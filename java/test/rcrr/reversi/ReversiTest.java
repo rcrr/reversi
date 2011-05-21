@@ -184,7 +184,7 @@ public class ReversiTest {
      * accurately by substituiting the WeightedSquares strategy with the modified one.
      * <p>
      * The {@code WeightedSquares} strategy running a four ply search selects F6,
-     * the {@code ModifiedWeightedSquares} instead selects F6.
+     * the {@code ModifiedWeightedSquares} instead selects C1.
      * <pre>
      * {@code
      * BLACK moves to b1
@@ -231,7 +231,7 @@ public class ReversiTest {
                    .move(paip1862),
                    is(Move.valueOf(Square.F6)));
 
-        assertThat("AlphaBeta.getInstance().searcher(4, new WeightedSquares())"
+        assertThat("AlphaBeta.getInstance().searcher(4, new ModifiedWeightedSquares())"
                    + ".move(paip1862) must return C1.",
                    AlphaBeta.getInstance().searcher(4, new ModifiedWeightedSquares())
                    .move(paip1862),
