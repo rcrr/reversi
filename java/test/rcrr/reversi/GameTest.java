@@ -296,7 +296,7 @@ public class GameTest {
 
         final Game game = new GameBuilder()
             .withSequence(new GameSequenceBuilder()
-                          .withSnapshot(paip1862)
+                          .withSnapshots(paip1862)
                           .build())
             .withActors(new ActorsPairBuilder()
                         .withActor(Player.BLACK,
@@ -370,7 +370,7 @@ public class GameTest {
 
         Game game = new GameBuilder()
             .withSequence(new GameSequenceBuilder()
-                          .withSnapshot(new GameSnapshotBuilder()
+                          .withSnapshots(new GameSnapshotBuilder()
                                         .withClock(new ClockBuilder()
                                                    .withDuration(Player.BLACK, new Duration(clockTime))
                                                    .build())
@@ -461,7 +461,7 @@ public class GameTest {
 
         Game game = new GameBuilder()
             .withSequence(new GameSequenceBuilder()
-                          .withSnapshot(GameSnapshotFixtures.BLACK_HAS_TO_PASS)
+                          .withSnapshots(GameSnapshotFixtures.BLACK_HAS_TO_PASS)
                           .build())
             .withActors(new ActorsPairBuilder()
                         .withActor(Player.BLACK,
