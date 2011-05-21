@@ -327,8 +327,6 @@ public class GameTest {
 
         game.move();
 
-        System.out.println(game.print());
-
         assertThat("After the following moves: W-C1."
                    + " The game paip1862 ..... must have the BLACK player.",
                    game.player(),
@@ -336,11 +334,25 @@ public class GameTest {
 
         game.move();
 
-
         assertThat("After the following moves: W-C1, B-PASS."
                    + " The game paip1862 ..... must have the WHITE player.",
                    game.player(),
                    is(Player.WHITE));
+
+        game.move();
+
+        assertThat("After the following moves: W-C1, B-PASS, B-B7."
+                   + " The game paip1862 ..... must have the WHITE player.",
+                   game.player(),
+                   is(Player.BLACK));
+
+        game.move();
+
+        assertThat("After the following moves: W-C1, B-PASS, B-B7, C-C7."
+                   + " The game paip1862 ..... must have the WHITE player.",
+                   game.player(),
+                   is(Player.WHITE));
+
 
     }
 

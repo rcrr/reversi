@@ -84,6 +84,12 @@ public abstract class AbstractDecisionRule implements DecisionRule {
     public static Strategy maximizer(final EvalFunction ef) {
         return new Strategy() {
             public Move move(final GameSnapshot gameSnapshot) {
+                if (gameSnapshot == null) {
+                    throw new NullPointerException("Parameter gameSnapshot cannot be null.");
+                }
+                if (!gameSnapshot.hasAnyLegalMove()) {
+                    return Move.valueOf(Move.Action.PASS);
+                }
                 int value = LOSING_VALUE;
                 Square move = null;
                 Player player = gameSnapshot.player();
@@ -121,6 +127,9 @@ public abstract class AbstractDecisionRule implements DecisionRule {
         if (ef == null) { throw new NullPointerException("Parameter ef must not null."); }
         return new Strategy() {
             public Move move(final GameSnapshot gameSnapshot) {
+                if (gameSnapshot == null) {
+                    throw new NullPointerException("Parameter gameSnapshot cannot be null.");
+                }
                 if (!gameSnapshot.hasAnyLegalMove()) {
                     return Move.valueOf(Move.Action.PASS);
                 }
