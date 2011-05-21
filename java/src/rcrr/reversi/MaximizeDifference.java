@@ -55,7 +55,11 @@ public class MaximizeDifference implements Strategy {
         if (gameSnapshot == null) {
             throw new NullPointerException("Parameter gameSnapshot cannot be null.");
         }
-        return maximizeDifference.move(gameSnapshot);
+        if (!gameSnapshot.hasAnyLegalMove()) {
+            return Move.valueOf(Move.Action.PASS);
+        } else {
+            return maximizeDifference.move(gameSnapshot);
+        }
     }
 
 }

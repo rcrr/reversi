@@ -46,8 +46,12 @@ public class RandomStrategy implements Strategy {
      *
      * @param gameSnapshot the game snapshot
      * @return             the move
+     * @throws NullPointerException when the gameSnapshot parameter is null
      */
     public final Move move(final GameSnapshot gameSnapshot) {
+        if (gameSnapshot == null) {
+            throw new NullPointerException("Parameter gameSnapshot cannot be null.");
+        }
         if (!gameSnapshot.hasAnyLegalMove()) {
             return Move.valueOf(Move.Action.PASS);
         } else {
