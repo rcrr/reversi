@@ -62,6 +62,15 @@ public final class GameBuilder {
     }
 
     /**
+     * The setter method for the ps field.
+     *
+     * @param ps the update for the ps field
+     */
+    private synchronized void setPrintStream(final PrintStream ps) {
+        this.ps = ps;
+    }
+
+    /**
      * The setter method for the sequence field.
      *
      * @param sequence the update for the sequence field
@@ -100,6 +109,18 @@ public final class GameBuilder {
      */
     public GameBuilder withSequence(final GameSequence sequence) {
         setSequence(sequence);
+        return this;
+    }
+
+    /**
+     * Returns the {@code this} reference after setting the new {@code ps}
+     * field value.
+     *
+     * @param ps the print stream
+     * @return   the {@code this} reference
+     */
+    public GameBuilder withPrintStream(final PrintStream ps) {
+        setPrintStream(ps);
         return this;
     }
 
