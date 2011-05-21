@@ -33,6 +33,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 import org.joda.time.Period;
+import org.joda.time.Duration;
 
 /**
  * Test Suite for the {@code Game} class.
@@ -236,6 +237,165 @@ public class GameTest {
                    is(GameSnapshotFixtures.AN_INSTANCE));
     }
 
+
+    /**
+     * Tests that the {@code move()} method behave correctly when the game reaches a
+     * position where one of the player has to PASS.
+     * <p>
+     * The game position used is as described by <i>PAIP 18.6 (pg 621)</i> when the
+     * white plays C1 the black has to PASS.
+     * <pre>
+     * {@code
+     * BLACK moves to b1
+     *     a b c d e f g h [@=20 0=1 (19)]
+     *  1  O @ . . . . . .
+     *  2  . @ . . . @ @ .
+     *  3  @ @ @ @ @ @ . .
+     *  4  . @ . @ @ . . .
+     *  5  @ @ @ @ @ @ . .
+     *  6  . @ . . . . . .
+     *  7  . . . . . . . .
+     *  8  . . . . . . . . [@=29:59, O=29:59]
+     *  Next to play: WHITE, legal moves: [c1, f6]
+     * }
+     * </pre>
+     *
+     * @see Game#move
+     */
+    @Test
+    public final void testMove_passUseCase() {
+
+        final GameSnapshot paip1862 = new GameSnapshotBuilder()
+            .withPosition(new GamePositionBuilder()
+                          .withBoard(new BoardBuilder()
+                                     .withSquaresLiteral(2, 1, 0, 0, 0, 0, 0, 0,
+                                                         0, 1, 0, 0, 0, 1, 1, 0,
+                                                         1, 1, 1, 1, 1, 1, 0, 0,
+                                                         0, 1, 0, 1, 1, 0, 0, 0,
+                                                         1, 1, 1, 1, 1, 1, 0, 0,
+                                                         0, 1, 0, 0, 0, 0, 0, 0,
+                                                         0, 0, 0, 0, 0, 0, 0, 0,
+                                                         0, 0, 0, 0, 0, 0, 0, 0)
+                                     .build())
+                          .withPlayer(Player.WHITE)
+                          .build())
+            .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
+            .withRegister(MoveRegisterFixtures.EMPTY)
+            .build();
+
+        final Strategy whStrategy = new Strategy() {
+                private int index = -1;
+                private final Move[] moves
+                    = {Move.valueOf(Square.C1),
+                       Move.valueOf(Square.B7)};
+                public Move move(final GameSnapshot snapshot) {
+                    index++;
+                    return moves[index];
+                }
+            };
+
+        final Strategy blStrategy = new Strategy() {
+                private int index = -1;
+                private final Move[] moves
+                    = {Move.valueOf(Move.Action.PASS),
+                       Move.valueOf(Square.C7)};
+                public Move move(final GameSnapshot snapshot) {
+                    index++;
+                    return moves[index];
+                }
+            };
+
+        final Game game = new GameBuilder()
+            .withSequence(new GameSequenceBuilder()
+                          .withSnapshot(paip1862)
+                          .build())
+            .withActors(new ActorsPairBuilder()
+                        .withActor(Player.BLACK,
+                                   new ActorBuilder()
+                                   .withStrategy(blStrategy)
+                                   .build())
+                        .withActor(Player.WHITE,
+                                   new ActorBuilder()
+                                   .withStrategy(whStrategy)
+                                   .build())
+                        .build())
+            .build();
+
+        assertThat("The game paip1862 ..... must have the WHITE player.",
+                   game.player(),
+                   is(Player.WHITE));
+
+        game.move();
+
+        System.out.println(game.print());
+
+        assertThat("After the following moves: W-C1."
+                   + " The game paip1862 ..... must have the BLACK player.",
+                   game.player(),
+                   is(Player.BLACK));
+
+        game.move();
+
+
+        assertThat("After the following moves: W-C1, B-PASS."
+                   + " The game paip1862 ..... must have the WHITE player.",
+                   game.player(),
+                   is(Player.WHITE));
+
+    }
+
+    /**
+     * Tests the {@code move()} method, verifying that the program handle
+     * the end of the time for the player.
+     *
+     * @see Game#move()
+     */
+    @Test
+    public final void testMove_checkEndOfTimeAfterMove() {
+
+        final long moveTime = 100;
+        final long clockTime = 10;
+
+        Strategy strategy = new Strategy() {
+                public Move move(final GameSnapshot snapshot) {
+                    try {
+                        Thread.sleep(moveTime);
+                    } catch (java.lang.InterruptedException ie) {
+                        throw new RuntimeException(ie);
+                    }
+                    return Move.valueOf(Square.D3);
+                }
+            };
+
+        Game game = new GameBuilder()
+            .withSequence(new GameSequenceBuilder()
+                          .withSnapshot(new GameSnapshotBuilder()
+                                        .withClock(new ClockBuilder()
+                                                   .withDuration(Player.BLACK, new Duration(clockTime))
+                                                   .build())
+                                        .withPosition(GamePositionFixtures.INITIAL)
+                                        .withRegister(MoveRegisterFixtures.EMPTY)
+                                        .build())
+                          .build())
+            .withActors(new ActorsPairBuilder()
+                        .withActor(Player.BLACK,
+                                   new ActorBuilder()
+                                   .withStrategy(strategy)
+                                   .build())
+                        .build())
+            .build();
+
+        game.move();
+
+        assertThat("The game ..... must have the NULL player.",
+                   game.player(),
+                   is(Player.NULL));
+
+         assertThat("The game.countDiscDifference() must be -64.",
+                   game.countDiscDifference(),
+                   is(-64));
+    }
+
     /**
      * Tests the {@code move()} method, verifying that the program handle
      * the PASS move.
@@ -267,8 +427,6 @@ public class GameTest {
             .build();
 
         game.move();
-
-        //System.out.println(game.print());
 
         assertThat("The game ..... must have the WHITE player.",
                    game.player(),
@@ -354,7 +512,7 @@ public class GameTest {
         assertThat("The game ..... must have the NULL player.",
                    game.player(),
                    is(Player.NULL));
-
+ 
         assertThat("The game.countDiscDifference() must be -64.",
                    game.countDiscDifference(),
                    is(-64));

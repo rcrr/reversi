@@ -275,6 +275,12 @@ public final class Game {
         final long t1 = System.currentTimeMillis();
         final Clock updatedClock = actualClock(previousRegister).decrement(player(), new Duration(t0, t1));
         MoveRegister register = previousRegister.push(MoveRecord.valueOfAtCurrentTime(move, updatedClock));
+        if (updatedClock.get(player()).isEqual(Duration.ZERO)) {
+                move = Move.valueOf(Move.Action.RESIGN);
+                register = register.push(MoveRecord.valueOfAtCurrentTime(move, updatedClock));
+                ps.print("\n" + player().name() + " RESIGN. Time is ended. " + "\n");
+                sequence = sequence.add(next(move, updatedClock, register));
+        }
 
         if (validateMove(move)) {
             ps.print("\n" + player().name() + " moves to " + move + "\n");
