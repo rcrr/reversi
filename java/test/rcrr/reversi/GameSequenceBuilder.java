@@ -36,7 +36,7 @@ import java.util.ArrayList;
  */
 public final class GameSequenceBuilder {
 
-    /** The squares field. */
+    /** The snapshots field. */
     private List<GameSnapshot> snapshots;
 
     /**
@@ -101,7 +101,7 @@ public final class GameSequenceBuilder {
      *
      * @param index the index at which remove the game snapshot
      */
-    private synchronized void set(final int index) {
+    private synchronized void remove(final int index) {
         this.snapshots.remove(index);
     }
 
@@ -111,17 +111,17 @@ public final class GameSequenceBuilder {
      * @param snapshots the update for the snapshots field
      */
     private synchronized void setSnapshots(final List<GameSnapshot> snapshots) {
-        this.snapshots = snapshots;
+        this.snapshots = new ArrayList<GameSnapshot>(snapshots);
     }
 
     /**
-     * Returns the {@code this} reference after setting the new {@code snapshot}
-     * field value.
+     * Returns the {@code this} reference after adding the new {@code snapshot}
+     * to the {@code snapshots} field.
      *
      * @param snapshot the added game snapshot
      * @return         the {@code this} reference
      */
-    public GameSequenceBuilder withSnapshot(final GameSnapshot snapshot) {
+    public GameSequenceBuilder withAnAddedSnapshot(final GameSnapshot snapshot) {
         add(snapshot);
         return this;
     }
