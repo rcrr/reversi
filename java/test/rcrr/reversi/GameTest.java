@@ -143,17 +143,6 @@ public class GameTest {
     }
 
     /**
-     * The test return always a fail. The PASS use case must be handled differently.
-     */
-    @Test
-    public final void testHasOpponentPassed() {
-        fail("The method hasOpponentPassed must relate on the MoveRegister last MoveRecord."
-             + " It instead releates to the comparison with the previous player."
-             + " It happens because passing moves are not part of the game sequence."
-             + " This happens because the PAIP design was so conceived. It must be fixed.");
-    }
-
-    /**
      * Tests the {@code initialGame(Actor, Actor, Duration, PrintStream)} method when parameter
      * {@code black} is {@code null}.
      *

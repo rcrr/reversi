@@ -203,22 +203,6 @@ public final class Game {
     }
 
     /**
-     * Returns true when the opponent passed the previous move.
-     *
-     * @return if the opponent previous move was a pass
-     */
-    public boolean hasOpponentPassed() {
-        boolean result = false;
-        if (sequence().size() > 1) {
-            Player previousPlayer = sequence().get(sequence().size() - 2).player();
-            if (player() == previousPlayer) {
-                result = true;
-            }
-        }
-        return result;
-    }
-
-    /**
      * Returns the last game snapshot of the game sequenze.
      *
      * @return the last game snapshot of the game sequence
@@ -313,9 +297,6 @@ public final class Game {
         while (areThereAvailableMoves()) {
             ps.print(lastGameSnapshot().printGameSnapshot());
             move();
-            if (hasOpponentPassed()) {
-                ps.print("\n" + player().opponent() + " has no moves and must pass.\n");
-            }
         }
         ps.print(lastGameSnapshot().printGameSnapshot());
         return countDiscDifference();
