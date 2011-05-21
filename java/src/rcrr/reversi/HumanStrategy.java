@@ -102,6 +102,8 @@ public class HumanStrategy implements Strategy {
             if (inputLine != null) {
                 if (inputLine.equalsIgnoreCase("resign")) {
                     move = Move.valueOf(Move.Action.RESIGN);
+                } else if (inputLine.equalsIgnoreCase("pass")) {
+                    move = Move.valueOf(Move.Action.PASS);
                 } else {
                     try {
                         move = Move.valueOf(Square.getInstance(inputLine));

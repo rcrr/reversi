@@ -280,6 +280,7 @@ public final class Game {
                 register = register.push(MoveRecord.valueOfAtCurrentTime(move, updatedClock));
                 ps.print("\n" + player().name() + " RESIGN. Time is ended. " + "\n");
                 sequence = sequence.add(next(move, updatedClock, register));
+                return move;
         }
 
         if (validateMove(move)) {
@@ -398,29 +399,10 @@ public final class Game {
         switch (move.action()) {
         case PUT_DISC:
             nextBoard = board().makeMove(move.square(), player());
-            /*
-             * How to make the PASS a real step into the game sequence.
-             *
-             * It will be possible to substitute the nextPlayer assignment (see below) when the strategies
-             * will be capable to send a PASS move when there is no available move. In such a case the PASS
-             * would be the only legal move.
-             * Strategies have to send a Move object and not a Square as it is now.
-             * The PASS move message should be a facility written into the AbstractStrategy, then available to
-             * all the implementations.
-             * The Minimax ply search will not be fully compatible with the existing one becouse a PASS move
-             * is not consuming one ply in the as-is implementation, while it will after the change.
-             * Becouse of this PAIP consistency issue, the change will be applied later. The PASS case is not
-             * operative, it is reached only by the appropriate Test. During standard activity the switch statement
-             * never pass the control to the PASS case because the nextToPlay method never assign the move to a
-             * passing player.
-             *
-             * nextPlayer = player().opponent();
-             * nextPlayer = nextBoard.nextToPlay(player());
-             */
-            nextPlayer = nextBoard.nextToPlay(player());
+            nextPlayer = player().opponent();
+            //nextPlayer = nextBoard.nextToPlay(player());
             break;
         case PASS:
-            // throw new IllegalArgumentException("Unsupported action type. move.action()=" + move.action());
             nextBoard = board();
             nextPlayer = player().opponent();
             break;
