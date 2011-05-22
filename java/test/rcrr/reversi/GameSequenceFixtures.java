@@ -46,6 +46,16 @@ public final class GameSequenceFixtures {
         .build();
 
     /**
+     * An initial instance.
+     *
+     * @see GameSnapshotFixtures#INITIAL
+     */
+    public static final GameSequence INITIAL
+        = new GameSequenceBuilder()
+        .withSnapshots(GameSnapshotFixtures.INITIAL)
+        .build();
+
+    /**
      * An instance having three game snapshot.
      * <p>
      * The instance is described by the following list:
