@@ -24,6 +24,11 @@
 
 package rcrr.reversi;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+
 import java.io.PrintStream;
 
 import org.joda.time.Period;
@@ -86,6 +91,59 @@ public final class Reversi {
         game.play();
         return game.countDiscDifference();
     }
+
+    /**
+     * Plays a series of 2*nPairs games, swapping sides. Returns a results map
+     * having as key:
+     * <ul>
+     *   <li>{@code scores}</li>
+     *   <li>{@code numberOfWins}</li>
+     *   <li>{@code totalOfPointDiff}</li>
+     * </ul>
+     * <p>
+     * The {@code scores} key references a {@code List<Integer>} value that contains
+     * the game scores of this series.
+     * <p>
+     * The {@code numberOfWins} key references a {@code double} value where each win
+     * count 1, a loss count -1, and a tie is valued 0.
+     * <p>
+     * The {@code totalOfPointDiff} key references a {@code long} value that sum all
+     * the game scores.
+     * <p>
+     * All the results are calculated from the strategyOne's point of view.
+     *
+     * @param strategyOne  the first strategy
+     * @param strategyTwo  the second strategy
+     * @param nPairs       the number of paired game to play
+     * @param gameDuration the game duration assigned to both players
+     *
+     * @return             a map hosting the scores, the number of wins,
+     *                     the total of point difference
+     */
+    public static Map<String, Object> reversiSeries(final Strategy strategyOne,
+                                                    final Strategy strategyTwo,
+                                                    final int nPairs,
+                                                    final Duration gameDuration) {
+        final Map<String, Object> results = new HashMap<String, Object>();
+        final List<Integer> scores = new ArrayList<Integer>();
+        long totalOfPointDiff = 0;
+        double numberOfWins = 0.;
+        for (int i = 0; i < nPairs; i++) {
+            scores.add(+ reversi(strategyOne, strategyTwo, new NullPrintStream(), gameDuration));
+            scores.add(- reversi(strategyTwo, strategyOne, new NullPrintStream(), gameDuration));
+        }
+        for (int score : scores) {
+            totalOfPointDiff += score;
+            if (score > 0) { numberOfWins++; }
+            else if (score == 0) { numberOfWins += 0.5; }
+            else { }
+        }
+        results.put("scores", scores);
+        results.put("totalOfPointDiff", totalOfPointDiff);
+        results.put("numberOfWins", numberOfWins);
+        return results;
+    }
+    
 
     /**
      * The main entry point for the Reversi Program.
