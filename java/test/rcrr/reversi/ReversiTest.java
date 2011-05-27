@@ -405,6 +405,25 @@ public class ReversiTest {
     }
 
     /**
+     * Tests the {@code reversiSeries(Strategy, Strategy, int, Duration)} method.
+     *
+     * @see Reversi#reversiSeries(Strategy, Strategy, int, Duration)
+     */
+    @Test
+    public final void testReversiSeries() {
+
+        Map<String, Object> results = Reversi.reversiSeries(AlphaBeta.getInstance().searcher(2, new ModifiedWeightedSquares()),
+                                                            AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
+                                                            5,
+                                                            STANDARD_GAME_DURATION);
+
+        System.out.println("results=" + results);
+
+        assertTrue("The test must run without exceptions.", true);
+
+    }
+
+    /**
      * Runs a series of games, than returns a map collecting the results.
      *
      * @param blStrategy    the black strategy passed to the reversi method

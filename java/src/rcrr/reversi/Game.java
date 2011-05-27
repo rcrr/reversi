@@ -30,6 +30,7 @@ import java.util.EnumMap;
 import java.io.PrintStream;
 
 import org.joda.time.Duration;
+import org.joda.time.Period;
 
 /**
  *
@@ -119,6 +120,21 @@ public final class Game {
         if (actors == null) { throw new NullPointerException("Parameter actors cannot be null."); }
         if (sequence == null) { throw new NullPointerException("Parameter sequence cannot be null."); }
         return new Game(actors, sequence, (ps == null) ? new NullPrintStream() : ps);
+    }
+
+    /**
+     * numberOfRandomMoves must be > 0 and must be < 60.
+     * The loop must verify that the game does not end prematurely.
+     */
+    public static Game randomGame(final long numberOfRandomMoves) {
+        final Game randomGame = initialGame(Actor.valueOf("Black Actor", new RandomStrategy()),
+                                            Actor.valueOf("White Actor", new RandomStrategy()),
+                                            Period.minutes(1).toStandardDuration(),
+                                            new NullPrintStream());
+        for (int i = 0; i < numberOfRandomMoves; i++) {
+            randomGame.move();
+        }
+        return randomGame;
     }
 
     /** The actors field. */
