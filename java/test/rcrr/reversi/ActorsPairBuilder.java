@@ -43,8 +43,8 @@ public final class ActorsPairBuilder {
      */
     public ActorsPairBuilder() {
         this.actors = new EnumMap<Player, Actor>(Player.class);
-        this.actors.put(Player.BLACK, new ActorBuilder().build());
-        this.actors.put(Player.WHITE, new ActorBuilder().build());
+        this.actors.put(Player.BLACK, new Actor.Builder().build());
+        this.actors.put(Player.WHITE, new Actor.Builder().build());
     }
 
     /**
@@ -103,9 +103,11 @@ public final class ActorsPairBuilder {
      * @param actors the map of actors assigned to the players
      * @return       the {@code this} reference
      */
+    /*
     public ActorsPairBuilder withActors(final Map<Player, Actor> actors) {
         setActors(actors);
         return this;
     }
+    */
 
 }
