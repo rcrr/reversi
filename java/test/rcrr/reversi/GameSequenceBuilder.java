@@ -44,7 +44,7 @@ public final class GameSequenceBuilder {
      */
     public GameSequenceBuilder() {
         this.snapshots = new ArrayList<GameSnapshot>();
-        add(new GameSnapshotBuilder().build());
+        add(new GameSnapshot.Builder().build());
     }
 
     /**
