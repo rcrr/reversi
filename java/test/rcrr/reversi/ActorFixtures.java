@@ -34,7 +34,7 @@ package rcrr.reversi;
 public final class ActorFixtures {
 
     /** A generic actor instance. */
-    public static final Actor AN_INSTANCE = new ActorBuilder().build();
+    public static final Actor AN_INSTANCE = new Actor.Builder().build();
 
     /** The null actor. */
     public static final Actor NULL = null;

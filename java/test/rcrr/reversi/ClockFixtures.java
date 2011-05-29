@@ -62,7 +62,7 @@ public final class ClockFixtures {
     }
 
     /** A generic clock instance. */
-    public static final Clock AN_INSTANCE = new ClockBuilder().build();
+    public static final Clock AN_INSTANCE = new Clock.Builder().build();
 
     /** The {@code null} clock. */
     public static final Clock NULL = null;
@@ -73,7 +73,7 @@ public final class ClockFixtures {
      * {@code [BLACK=01:00, WHITE=01:00]}
      */
     public static final Clock ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
-        = new ClockBuilder()
+        = new Clock.Builder()
         .withDuration(Player.BLACK, ONE_MINUTE_DURATION)
         .withDuration(Player.WHITE, ONE_MINUTE_DURATION)
         .build();
@@ -84,7 +84,7 @@ public final class ClockFixtures {
      * {@code [BLACK=00:59, WHITE=01:00]}
      */
     public static final Clock BLACK_HAS_59_SECONDS_WHITE_60
-        = new ClockBuilder()
+        = new Clock.Builder()
         .withDuration(Player.BLACK, FIFTYNINE_SECONDS_DURATION)
         .withDuration(Player.WHITE, ONE_MINUTE_DURATION)
         .build();
@@ -95,7 +95,7 @@ public final class ClockFixtures {
      * {@code [BLACK=00:01, WHITE=01:00]}
      */
     public static final Clock BLACK_HAS_1_SECOND_WHITE_60
-        = new ClockBuilder()
+        = new Clock.Builder()
         .withDuration(Player.BLACK, ONE_SECOND_DURATION)
         .withDuration(Player.WHITE, ONE_MINUTE_DURATION)
         .build();
@@ -110,7 +110,7 @@ public final class ClockFixtures {
      * @see ClockFixtures#EQL_TEST_B
      */
     public static final Clock EQL_TEST_A
-        = new ClockBuilder()
+        = new Clock.Builder()
         .withDuration(Player.BLACK, TWENTYONE_SECONDS_DURATION)
         .withDuration(Player.WHITE, SIXTEEN_SECONDS_DURATION)
         .build();
@@ -125,7 +125,7 @@ public final class ClockFixtures {
      * @see ClockFixtures#EQL_TEST_A
      */
     public static final Clock EQL_TEST_B
-        = new ClockBuilder()
+        = new Clock.Builder()
         .withDuration(Player.BLACK, TWENTYONE_SECONDS_DURATION)
         .withDuration(Player.WHITE, SIXTEEN_SECONDS_DURATION)
         .build();

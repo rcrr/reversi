@@ -59,7 +59,7 @@ public class BoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testCountDifference_boundaryConditions_checkNullParameter_player() {
-        new BoardBuilder().build()
+        new Board.Builder().build()
             .countDifference(Player.NULL);
     }
 
@@ -107,7 +107,7 @@ public class BoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testCountPieces_boundaryConditions_checkNullParameter_color() {
-        new BoardBuilder().build()
+        new Board.Builder().build()
             .countPieces(SquareState.NULL);
     }
 
@@ -312,7 +312,7 @@ public class BoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testHasAnyLegalMove_boundaryConditions_checkNullParameter_player() {
-        new BoardBuilder().build()
+        new Board.Builder().build()
             .hasAnyLegalMove(Player.NULL);
     }
 
@@ -488,7 +488,7 @@ public class BoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testIsLegal_boundaryConditions_checkNullParameter_move() {
-        new BoardBuilder().build()
+        new Board.Builder().build()
             .isLegal(Square.NULL, Player.AN_INSTANCE);
     }
 
@@ -500,7 +500,7 @@ public class BoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testIsLegal_boundaryConditions_checkNullParameter_player() {
-        new BoardBuilder().build()
+        new Board.Builder().build()
             .isLegal(Square.AN_INSTANCE, Player.NULL);
     }
 
@@ -612,7 +612,7 @@ public class BoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testLegalMoves_boundaryConditions_checkNullParameter_player() {
-        new BoardBuilder().build()
+        new Board.Builder().build()
             .legalMoves(Player.NULL);
     }
 
@@ -711,7 +711,7 @@ public class BoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testMakeMove_boundaryConditions_checkNullParameter_player() {
-        new BoardBuilder().build()
+        new Board.Builder().build()
             .makeMove(Square.AN_INSTANCE, Player.NULL);
     }
 
@@ -859,7 +859,7 @@ public class BoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testNextToPlay_boundaryConditions_checkNullParameter_current() {
-        new BoardBuilder().build()
+        new Board.Builder().build()
             .nextToPlay(Player.NULL);
     }
 

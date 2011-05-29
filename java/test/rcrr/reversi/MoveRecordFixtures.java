@@ -36,7 +36,7 @@ public final class MoveRecordFixtures {
     /**
      * A generic instance.
      */
-    public static final MoveRecord AN_INSTANCE = new MoveRecordBuilder()
+    public static final MoveRecord AN_INSTANCE = new MoveRecord.Builder()
         .build();
 
     /**
@@ -57,7 +57,7 @@ public final class MoveRecordFixtures {
      * @see ClockFixtures#ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
      * @see CommonFixtures#INSTANT_FIRST_MILLISEC_OF_YEAR_2011
      */
-    public static final MoveRecord GETTER_TEST_CASES = new MoveRecordBuilder()
+    public static final MoveRecord GETTER_TEST_CASES = new MoveRecord.Builder()
         .withMove(MoveFixtures.A1)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)
@@ -76,7 +76,7 @@ public final class MoveRecordFixtures {
      * @see ClockFixtures#ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
      * @see CommonFixtures#INSTANT_FIRST_MILLISEC_OF_YEAR_2011
      */
-    public static final MoveRecord R00 = new MoveRecordBuilder()
+    public static final MoveRecord R00 = new MoveRecord.Builder()
         .withMove(MoveFixtures.B3)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)
@@ -95,7 +95,7 @@ public final class MoveRecordFixtures {
      * @see ClockFixtures#ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
      * @see CommonFixtures#INSTANT_FIRST_MILLISEC_OF_YEAR_2011
      */
-    public static final MoveRecord R01 = new MoveRecordBuilder()
+    public static final MoveRecord R01 = new MoveRecord.Builder()
         .withMove(MoveFixtures.PASS)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)
@@ -114,7 +114,7 @@ public final class MoveRecordFixtures {
      * @see ClockFixtures#ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
      * @see CommonFixtures#INSTANT_FIRST_MILLISEC_OF_YEAR_2011
      */
-    public static final MoveRecord R02 = new MoveRecordBuilder()
+    public static final MoveRecord R02 = new MoveRecord.Builder()
         .withMove(MoveFixtures.A1)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withTimestamp(CommonFixtures.INSTANT_FIRST_MILLISEC_OF_YEAR_2011)

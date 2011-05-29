@@ -33,6 +33,7 @@ import java.text.NumberFormat;
 
 import org.joda.time.DateTimeConstants;
 import org.joda.time.Duration;
+import org.joda.time.Period;
 
 /**
  * The {@code Clock} class defines the different clocks used in the Reversi game.
@@ -82,6 +83,107 @@ import org.joda.time.Duration;
  * a one second duration object belonging to the {@code Duration} class.
  */
 public final class Clock {
+
+    /**
+     * A clock builder is a facility to generate clock instances for testing.
+     * <p>
+     * {@code ClockBuilder} is mutable, and it is thread-safe.
+     * The object status is guarded by a lock on {@code this}.
+     */
+    /**
+     * An instance of this class encapsulates the information needed to instantiate
+     * and initialize a clock object. That process is triggered when the {@code build()}
+     * method is called.
+     * <p>
+     * The builder has one property, the {@code durations} map. It is initialized as follow:
+     * <ul>
+     *   <li>{@code Duration A_DURATION = Period.minutes(1).toStandardDuration();}</li>
+     *   <li>{@code durations.put(Player.BLACK, A_DURATION);}</li>
+     *   <li>{@code durations.put(Player.WHITE, A_DURATION);}</li>
+     * </ul>
+     * <p>
+     * The {@code Builder} class is mutable, and it is thread-safe.
+     * The object status is guarded by a lock on {@code this}.
+     */
+    public static final class Builder {
+
+        private static final Duration A_DURATION = Period.minutes(1).toStandardDuration();
+
+        /** The durations field. */
+        private Map<Player, Duration> durations;
+
+        /**
+         * Construct a new builder.
+         */
+        public Builder() {
+            this.durations = new EnumMap<Player, Duration>(Player.class);
+            this.durations.put(Player.BLACK, A_DURATION);
+            this.durations.put(Player.WHITE, A_DURATION);
+        }
+
+        /**
+         * Returns a new instance of a clock object.
+         *
+         * @return the clock instance as prepared by the current clock's builder
+         */
+        public synchronized Clock build() {
+            return Clock.valueOf(durations);
+        }
+
+        /**
+         * The method returns the player's duration.
+         *
+         * @param player the player to whom get the remaining duration
+         * @return       the remaning duration for the given player
+         */
+        private synchronized Duration get(final Player player) {
+            return this.durations.get(player);
+        }
+
+        /**
+         * The method assigns a duration to the given player.
+         *
+         * @param player   the player to whom set the remaning duration
+         * @param duration the assigning duration
+         */
+        private synchronized void put(final Player player, final Duration duration) {
+            this.durations.put(player, duration);
+        }
+
+        /**
+         * The setter method for the durations field.
+         *
+         * @param durations the update for the durations field
+         */
+        private synchronized void setDurations(final Map<Player, Duration> durations) {
+            this.durations = durations;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code duration}
+         * value to the {@code player} entry.
+         *
+         * @param player   the player to whom assign the remaining duration
+         * @param duration the assigning duration
+         * @return         the {@code this} reference
+         */
+        public Clock.Builder withDuration(final Player player, final Duration duration) {
+            put(player, duration);
+            return this;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code durations}
+         * field value.
+         *
+         * @param durations the field hosting the two players remaning durations
+         * @return          the {@code this} reference
+         */
+        public Clock.Builder withDurations(final Map<Player, Duration> durations) {
+            setDurations(durations);
+            return this;
+        }
+    }
 
     /** It is really needed? */
     private static final NumberFormat TIME_FORMATTER = new DecimalFormat("##00");

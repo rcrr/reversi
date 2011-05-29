@@ -34,15 +34,15 @@ public class PerfCheck {
     @Test
     public final void checkPerfPlay() {
 
-        final GameBuilder builder = new GameBuilder()
+        final Game.Builder builder = new Game.Builder()
             .withSequence(GameSequenceFixtures.INITIAL)
-            .withActors(new ActorsPairBuilder()
+            .withActors(new ActorsPair.Builder()
                         .withActor(Player.BLACK,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(Minimax.getInstance().searcher(6, new CountDifference()))
                                    .build())
                         .withActor(Player.WHITE,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(Minimax.maximizer(new CountDifference()))
                                    .build())
                         .build());

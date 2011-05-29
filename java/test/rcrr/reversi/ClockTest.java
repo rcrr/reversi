@@ -67,7 +67,7 @@ public class ClockTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testDecrement_boundaryConditions_checkNullParameter_player() {
-        new ClockBuilder().build()
+        new Clock.Builder().build()
             .decrement(Player.NULL, CommonFixtures.A_DURATION);
     }
 
@@ -79,7 +79,7 @@ public class ClockTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testDecrement_boundaryConditions_checkNullParameter_delta() {
-        new ClockBuilder().build()
+        new Clock.Builder().build()
             .decrement(Player.AN_INSTANCE, CommonFixtures.NULL_DURATION);
     }
 
@@ -91,7 +91,7 @@ public class ClockTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public final void testDecrement_boundaryConditions_checkNegativeParameter_delta() {
-        new ClockBuilder().build()
+        new Clock.Builder().build()
             .decrement(Player.AN_INSTANCE, new Duration(-1L));
     }
 
@@ -113,7 +113,7 @@ public class ClockTest {
 
         assertThat("Starting from a player having 300L, subtracting 100L,"
                    + " the returned clock must have a duration of 200L left to the player.",
-                   new ClockBuilder()
+                   new Clock.Builder()
                    .withDuration(player, before)
                    .build()
                    .decrement(player, delta)
@@ -122,7 +122,7 @@ public class ClockTest {
 
         assertThat("Starting from a both players having 300L, subtracting 100L from one,"
                    + " the returned clock must have a duration of 200L left to the other player.",
-                   new ClockBuilder()
+                   new Clock.Builder()
                    .withDuration(player, before)
                    .withDuration(player.opponent(), before)
                    .build()
@@ -149,7 +149,7 @@ public class ClockTest {
 
         assertThat("Starting from a player having 300L, subtracting 500L,"
                    + " the returned clock must have a duration of 0L left to the player.",
-                   new ClockBuilder()
+                   new Clock.Builder()
                    .withDuration(player, before)
                    .build()
                    .decrement(player, delta)
@@ -175,7 +175,7 @@ public class ClockTest {
 
         assertThat("Starting from a player having 300L, subtracting 300L,"
                    + " the returned clock must have a duration of 0L left to the player.",
-                   new ClockBuilder()
+                   new Clock.Builder()
                    .withDuration(player, before)
                    .build()
                    .decrement(player, delta)
@@ -294,7 +294,7 @@ public class ClockTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testGet_boundaryConditions_checkNullParameter_player() {
-        new ClockBuilder().build()
+        new Clock.Builder().build()
             .get(Player.NULL);
     }
 
@@ -304,7 +304,7 @@ public class ClockTest {
      * <p>
      * The test runs the following assertion:
      * <ul>
-     *   <li>{@code new ClockBuilder().withDuration(Player.BLACK, new Duration(3)).build().get(Player.BLACK)}
+     *   <li>{@code new Clock.Builder().withDuration(Player.BLACK, new Duration(3)).build().get(Player.BLACK)}
      *       must return an object equal to {@code new Duration(3)}.</li>
      * </ul>
      *
@@ -312,12 +312,12 @@ public class ClockTest {
      */
     @Test
     public final void testGet() {
-        assertThat("new ClockBuilder()"
+        assertThat("new Clock.Builder()"
                    + ".withDuration(Player.BLACK, new Duration(3))"
                    + ".build()"
                    + ".get(Player.BLACK)"
                    + " must return an object equal to a new Duration(3) instance.",
-                   new ClockBuilder()
+                   new Clock.Builder()
                    .withDuration(Player.BLACK, new Duration(3))
                    .build()
                    .get(Player.BLACK),
@@ -334,7 +334,7 @@ public class ClockTest {
     @Test
     public final void testHashCode_isConsistentWhenCalledMoreThanOnce() {
 
-        Clock clock = new ClockBuilder().build();
+        Clock clock = new Clock.Builder().build();
 
         assertEquals("Calling clock.hashCode() twice must return tha same hash.",
                      clock.hashCode(),
@@ -356,7 +356,7 @@ public class ClockTest {
     @Test
     public final void testHashCode_isConsistentWhenCalledOnEqualObjects() {
 
-        ClockBuilder builder = new ClockBuilder();
+        Clock.Builder builder = new Clock.Builder();
         Clock a = builder.build();
         Clock b = builder.build();
 
@@ -389,7 +389,7 @@ public class ClockTest {
                    + " must be equal to the one created assigning to black and white"
                    + " players the same duration amounts.",
                    Clock.initialClock(duration),
-                   is(new ClockBuilder()
+                   is(new Clock.Builder()
                       .withDuration(Player.BLACK, duration)
                       .withDuration(Player.WHITE, duration)
                       .build()));
@@ -406,7 +406,7 @@ public class ClockTest {
                    + " a CommonFixtures.TEN_MINUTES_DURATION assigned to black"
                    + " and a Duration.ZERO assigned to white must return"
                    + " [@=10:00, O=00:00].",
-                   new ClockBuilder()
+                   new Clock.Builder()
                    .withDuration(Player.BLACK, CommonFixtures.TEN_MINUTES_DURATION)
                    .withDuration(Player.WHITE, Duration.ZERO)
                    .build()
@@ -425,7 +425,7 @@ public class ClockTest {
                    + " a CommonFixtures.TEN_MINUTES_DURATION assigned to black"
                    + " and a Duration.ZERO assigned to white must return"
                    + " [BLACK=10:00, WHITE=00:00].",
-                   new ClockBuilder()
+                   new Clock.Builder()
                    .withDuration(Player.BLACK, CommonFixtures.TEN_MINUTES_DURATION)
                    .withDuration(Player.WHITE, Duration.ZERO)
                    .build()
@@ -436,7 +436,7 @@ public class ClockTest {
                    + " a new Duration(1001L) assigned to black"
                    + " and new Duration(999L) assigned to white must return"
                    + " [BLACK=00:01, WHITE=00:00].",
-                   new ClockBuilder()
+                   new Clock.Builder()
                    .withDuration(Player.BLACK, new Duration(1001L))
                    .withDuration(Player.WHITE, new Duration(999L))
                    .build()

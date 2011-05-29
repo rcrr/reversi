@@ -37,9 +37,9 @@ import org.joda.time.Period;
 public final class GameSnapshotFixtures {
 
     /** A generic game snapshot. */
-    public static final GameSnapshot AN_INSTANCE = new GameSnapshotBuilder()
-        .withPosition(new GamePositionBuilder()
-                      .withBoard(new BoardBuilder()
+    public static final GameSnapshot AN_INSTANCE = new GameSnapshot.Builder()
+        .withPosition(new GamePosition.Builder()
+                      .withBoard(new Board.Builder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 1, 0, 0, 0, 0,
@@ -82,9 +82,9 @@ public final class GameSnapshotFixtures {
      * {@code G00_S00.register()} returns a register described by:
      * {@code [EMPTY MoveRegister]}.
      **/
-    public static final GameSnapshot G00_S00 = new GameSnapshotBuilder()
-        .withPosition(new GamePositionBuilder()
-                      .withBoard(new BoardBuilder()
+    public static final GameSnapshot G00_S00 = new GameSnapshot.Builder()
+        .withPosition(new GamePosition.Builder()
+                      .withBoard(new Board.Builder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
@@ -124,9 +124,9 @@ public final class GameSnapshotFixtures {
      * {@code G00_S01.register()} returns a register described by:
      * {@code [[PUT_DISC; D3]; [BLACK=00:59, WHITE=01:00]; 2011-03-17T08:03:00.001Z]}.
      **/
-    public static final GameSnapshot G00_S01 = new GameSnapshotBuilder()
-        .withPosition(new GamePositionBuilder()
-                      .withBoard(new BoardBuilder()
+    public static final GameSnapshot G00_S01 = new GameSnapshot.Builder()
+        .withPosition(new GamePosition.Builder()
+                      .withBoard(new Board.Builder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 1, 0, 0, 0, 0,
@@ -138,14 +138,14 @@ public final class GameSnapshotFixtures {
                                  .build())
                       .withPlayer(Player.WHITE)
                       .build())
-        .withClock(new ClockBuilder()
+        .withClock(new Clock.Builder()
                    .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
                    .withDuration(Player.WHITE, Period.seconds(60).toStandardDuration())
                    .build())
-        .withRegister(new MoveRegisterBuilder()
-                      .withRecords(new MoveRecordBuilder()
+        .withRegister(new MoveRegister.Builder()
+                      .withRecords(new MoveRecord.Builder()
                                    .withMove(Move.valueOf(Move.Action.PUT_DISC, Square.D3))
-                                   .withClock(new ClockBuilder()
+                                   .withClock(new Clock.Builder()
                                               .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
                                               .withDuration(Player.WHITE, Period.seconds(60).toStandardDuration())
                                               .build())
@@ -190,9 +190,9 @@ public final class GameSnapshotFixtures {
      * }.
      * </pre>
      **/
-    public static final GameSnapshot G00_S02 = new GameSnapshotBuilder()
-        .withPosition(new GamePositionBuilder()
-                      .withBoard(new BoardBuilder()
+    public static final GameSnapshot G00_S02 = new GameSnapshot.Builder()
+        .withPosition(new GamePosition.Builder()
+                      .withBoard(new Board.Builder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 1, 0, 0, 0, 0,
@@ -204,14 +204,14 @@ public final class GameSnapshotFixtures {
                                  .build())
                       .withPlayer(Player.BLACK)
                       .build())
-        .withClock(new ClockBuilder()
+        .withClock(new Clock.Builder()
                    .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
                    .withDuration(Player.WHITE, Period.seconds(55).toStandardDuration())
                    .build())
-        .withRegister(new MoveRegisterBuilder()
-                      .withRecords(new MoveRecordBuilder()
+        .withRegister(new MoveRegister.Builder()
+                      .withRecords(new MoveRecord.Builder()
                                    .withMove(Move.valueOf(Move.Action.PUT_DISC, Square.A1))
-                                   .withClock(new ClockBuilder()
+                                   .withClock(new Clock.Builder()
                                               .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
                                               .withDuration(Player.WHITE, Period.seconds(59).toStandardDuration())
                                               .build())
@@ -223,9 +223,9 @@ public final class GameSnapshotFixtures {
                                                                10,
                                                                1).toInstant())
                                    .build(),
-                                   new MoveRecordBuilder()
+                                   new MoveRecord.Builder()
                                    .withMove(Move.valueOf(Move.Action.PASS, Square.NULL))
-                                   .withClock(new ClockBuilder()
+                                   .withClock(new Clock.Builder()
                                               .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
                                               .withDuration(Player.WHITE, Period.seconds(58).toStandardDuration())
                                               .build())
@@ -237,9 +237,9 @@ public final class GameSnapshotFixtures {
                                                                11,
                                                                1).toInstant())
                                    .build(),
-                                   new MoveRecordBuilder()
+                                   new MoveRecord.Builder()
                                    .withMove(Move.valueOf(Move.Action.PUT_DISC, Square.C5))
-                                   .withClock(new ClockBuilder()
+                                   .withClock(new Clock.Builder()
                                               .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
                                               .withDuration(Player.WHITE, Period.seconds(55).toStandardDuration())
                                               .build())
@@ -255,14 +255,14 @@ public final class GameSnapshotFixtures {
         .build();
 
     /** Minimax test case A, white player has to move, one minute left to both players. */
-    public static final GameSnapshot MINIMAX_TEST_CASE_A = new GameSnapshotBuilder()
+    public static final GameSnapshot MINIMAX_TEST_CASE_A = new GameSnapshot.Builder()
         .withPosition(GamePositionFixtures.MINIMAX_TEST_CASE_A)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
     /** Minimax test case B, white player has to move, one minute left to both players. */
-    public static final GameSnapshot MINIMAX_TEST_CASE_B = new GameSnapshotBuilder()
+    public static final GameSnapshot MINIMAX_TEST_CASE_B = new GameSnapshot.Builder()
         .withPosition(GamePositionFixtures.MINIMAX_TEST_CASE_B)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withRegister(MoveRegisterFixtures.EMPTY)
@@ -275,7 +275,7 @@ public final class GameSnapshotFixtures {
      * @see ClockFixtures#ONE_MINUTE_LEFT_TO_BOTH_PLAYERS
      * @see MoveRegisterFixtures#EMPTY
      */
-    public static final GameSnapshot BLACK_HAS_TO_PASS = new GameSnapshotBuilder()
+    public static final GameSnapshot BLACK_HAS_TO_PASS = new GameSnapshot.Builder()
         .withPosition(GamePositionFixtures.BLACK_HAS_TO_PASS)
         .withClock(ClockFixtures.ONE_MINUTE_LEFT_TO_BOTH_PLAYERS)
         .withRegister(MoveRegisterFixtures.EMPTY)
@@ -286,8 +286,8 @@ public final class GameSnapshotFixtures {
      * Nine moves from the beginning.
      * White player has to move.
      */
-    public static final GameSnapshot EARLY_GAME_B_9_MOVES = new GameSnapshotBuilder()
-        .withPosition(new GamePositionBuilder()
+    public static final GameSnapshot EARLY_GAME_B_9_MOVES = new GameSnapshot.Builder()
+        .withPosition(new GamePosition.Builder()
                       .withBoard(BoardFixtures.EARLY_GAME_B_9_MOVES)
                       .withPlayer(Player.WHITE)
                       .build())
@@ -302,8 +302,8 @@ public final class GameSnapshotFixtures {
      * The game position has been generated from EARLY_GAME_B_9_MOVES by
      * moving the black to c3.
      */
-    public static final GameSnapshot EARLY_GAME_BC3_10_MOVES = new GameSnapshotBuilder()
-        .withPosition(new GamePositionBuilder()
+    public static final GameSnapshot EARLY_GAME_BC3_10_MOVES = new GameSnapshot.Builder()
+        .withPosition(new GamePosition.Builder()
                       .withBoard(BoardFixtures.EARLY_GAME_BC3_10_MOVES)
                       .withPlayer(Player.BLACK)
                       .build())
@@ -318,8 +318,8 @@ public final class GameSnapshotFixtures {
      * The game position has been generated from EARLY_GAME_B_9_MOVES by
      * moving the black to c6.
      */
-    public static final GameSnapshot EARLY_GAME_BC6_10_MOVES = new GameSnapshotBuilder()
-        .withPosition(new GamePositionBuilder()
+    public static final GameSnapshot EARLY_GAME_BC6_10_MOVES = new GameSnapshot.Builder()
+        .withPosition(new GamePosition.Builder()
                       .withBoard(BoardFixtures.EARLY_GAME_BC6_10_MOVES)
                       .withPlayer(Player.BLACK)
                       .build())

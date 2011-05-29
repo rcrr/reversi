@@ -54,8 +54,8 @@ public class GameSnapshotTest {
         assertThat("The board used to assemble the GamePosition,"
                    + " then used into the GameSnapshot, must be equal"
                    + " to the one returned by the board method.",
-                   new GameSnapshotBuilder()
-                   .withPosition(new GamePositionBuilder()
+                   new GameSnapshot.Builder()
+                   .withPosition(new GamePosition.Builder()
                                  .withBoard(BoardFixtures.AN_INSTANCE)
                                  .build())
                    .build()
@@ -73,7 +73,7 @@ public class GameSnapshotTest {
         assertThat("The clock used by the constructor of the"
                    + " GameSnapshot instance, must be equal"
                    + " to the one returned by the clock method.",
-                   new GameSnapshotBuilder()
+                   new GameSnapshot.Builder()
                    .withClock(ClockFixtures.AN_INSTANCE)
                    .build()
                    .clock(),
@@ -170,19 +170,19 @@ public class GameSnapshotTest {
     @Test
     public final void testHasAnyPlayerAnyLegalMove_on_FINAL_B37_W27() {
         assertThat("GameSnapshotFixtures.FINAL_B37_W27_N has no legal moves.",
-                   new GameSnapshotBuilder()
+                   new GameSnapshot.Builder()
                    .withPosition(GamePositionFixtures.FINAL_B37_W27_N)
                    .build()
                    .hasAnyPlayerAnyLegalMove(),
                    is(false));
         assertThat("GameSnapshotFixtures.FINAL_B37_W27_B has no legal moves.",
-                   new GameSnapshotBuilder()
+                   new GameSnapshot.Builder()
                    .withPosition(GamePositionFixtures.FINAL_B37_W27_B)
                    .build()
                    .hasAnyPlayerAnyLegalMove(),
                    is(false));
         assertThat("GameSnapshotFixtures.FINAL_B37_W27_W has no legal moves.",
-                   new GameSnapshotBuilder()
+                   new GameSnapshot.Builder()
                    .withPosition(GamePositionFixtures.FINAL_B37_W27_W)
                    .build()
                    .hasAnyPlayerAnyLegalMove(),
@@ -288,8 +288,8 @@ public class GameSnapshotTest {
     public final void testPlayer() {
         assertThat("The player returned by the player method must be equal"
                    + " to the one used to build the referred game position.",
-                   new GameSnapshotBuilder()
-                   .withPosition(new GamePositionBuilder()
+                   new GameSnapshot.Builder()
+                   .withPosition(new GamePosition.Builder()
                                  .withPlayer(Player.WHITE)
                                  .build())
                    .build()
@@ -304,7 +304,7 @@ public class GameSnapshotTest {
     public final void testPosition() {
         assertThat("The game position returned by the position method"
                    + " must be equal to the one passed to the constructor.",
-                   new GameSnapshotBuilder()
+                   new GameSnapshot.Builder()
                    .withPosition(GamePositionFixtures.AN_INSTANCE)
                    .build()
                    .position(),
