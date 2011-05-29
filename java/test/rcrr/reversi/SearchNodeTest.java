@@ -48,8 +48,8 @@ public class SearchNodeTest {
      */
     @Test
     public final void testMove() {
-        assertThat("new SearchNodeBuilder().withMove(Square.B5).build().move() is Square.B5.",
-                   new SearchNodeBuilder()
+        assertThat("new SearchNode.Builder().withMove(Square.B5).build().move() is Square.B5.",
+                   new SearchNode.Builder()
                    .withMove(Square.B5)
                    .build()
                    .move(),
@@ -63,8 +63,8 @@ public class SearchNodeTest {
      */
     @Test
     public final void testValue() {
-        assertThat("new SearchNodeBuilder().withValue(19).build().value() is 19.",
-                   new SearchNodeBuilder()
+        assertThat("new SearchNode.Builder().withValue(19).build().value() is 19.",
+                   new SearchNode.Builder()
                    .withValue(19)
                    .build()
                    .value(),
@@ -78,8 +78,8 @@ public class SearchNodeTest {
      */
     @Test
     public final void testNegated() {
-        assertThat("new SearchNodeBuilder().withValue(19).build().negated().value() is -19.",
-                   new SearchNodeBuilder()
+        assertThat("new SearchNode.Builder().withValue(19).build().negated().value() is -19.",
+                   new SearchNode.Builder()
                    .withValue(19)
                    .build()
                    .negated()
@@ -98,7 +98,7 @@ public class SearchNodeTest {
                    + " a Square.F7 assigned to move"
                    + " and a 37 assigned to value must return"
                    + " [move=F7, value=37].",
-                   new SearchNodeBuilder()
+                   new SearchNode.Builder()
                    .withMove(Square.F7)
                    .withValue(37)
                    .build()

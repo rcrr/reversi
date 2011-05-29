@@ -38,6 +38,88 @@ import java.util.Collections;
 public final class ActorsPair {
 
     /**
+     * An instance of this class encapsulates the information needed to instantiate
+     * and initialize an actors' pair object. That process is triggered when the {@code build()}
+     * method is called.
+     * <p>
+     * The builder unique property is the {@code actors} map
+     * and its initialization is:
+     * <pre>
+     * {@code
+     * actors.put(Player.BLACK, new Actor.Builder().build());
+     * actors.put(Player.WHITE, new Actor.Builder().build());
+     * }
+     * </pre>
+     * The {@code Builder} class is mutable, and it is thread-safe.
+     * The object status is guarded by a lock on {@code this}.
+     */
+    public static final class Builder {
+
+        /** The actors field. */
+        private Map<Player, Actor> actors;
+
+        /**
+         * Construct a new builder.
+         */
+        public Builder() {
+            this.actors = new EnumMap<Player, Actor>(Player.class);
+            this.actors.put(Player.BLACK, new Actor.Builder().build());
+            this.actors.put(Player.WHITE, new Actor.Builder().build());
+        }
+
+        /**
+         * Returns a new instance of an actors pair object.
+         *
+         * @return the actors pair instance as prepared by the current builder
+         */
+        public synchronized ActorsPair build() {
+            return ActorsPair.valueOf(actors);
+        }
+
+        /**
+         * The method returns the actors field.
+         *
+         * @return the actors field
+         */
+        public synchronized Map<Player, Actor> getActors() {
+            return this.actors;
+        }
+
+        /**
+         * The method sets the actors field.
+         *
+         * @param player the player selected for the update
+         * @param actor  the actor assigned to the player key
+         */
+        private synchronized void setActor(final Player player, final Actor actor) {
+            this.actors.put(player, actor);
+        }
+
+        /**
+         * The method sets the actors field.
+         *
+         * @param actors the update value for the actors field
+         */
+        private synchronized void setActors(final Map<Player, Actor> actors) {
+            this.actors = actors;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code actor} value
+         * to the {@code player} key into the {@code actors} map.
+         *
+         * @param player the player selected for the update
+         * @param actor  the actor assigned to the player key
+         * @return         the {@code this} reference
+         */
+        public ActorsPair.Builder withActor(final Player player, final Actor actor) {
+            setActor(player, actor);
+            return this;
+        }
+
+    }
+
+    /**
      * Base static factory for the class.
      * <p>
      * Parameter {@code actors} must be not null.

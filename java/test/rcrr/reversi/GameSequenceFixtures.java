@@ -42,7 +42,7 @@ public final class GameSequenceFixtures {
      * A generic instance.
      */
     public static final GameSequence AN_INSTANCE
-        = new GameSequenceBuilder()
+        = new GameSequence.Builder()
         .build();
 
     /**
@@ -51,7 +51,7 @@ public final class GameSequenceFixtures {
      * @see GameSnapshotFixtures#INITIAL
      */
     public static final GameSequence INITIAL
-        = new GameSequenceBuilder()
+        = new GameSequence.Builder()
         .withSnapshots(GameSnapshotFixtures.INITIAL)
         .build();
 
@@ -70,7 +70,7 @@ public final class GameSequenceFixtures {
      * @see GameSnapshotFixtures#G00_S02
      */
     public static final GameSequence THREE_SNAPSHOTS
-        = new GameSequenceBuilder()
+        = new GameSequence.Builder()
         .withSnapshots(GameSnapshotFixtures.G00_S00,
                        GameSnapshotFixtures.G00_S01,
                        GameSnapshotFixtures.G00_S02)

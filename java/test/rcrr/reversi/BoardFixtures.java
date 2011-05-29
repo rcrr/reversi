@@ -34,7 +34,7 @@ package rcrr.reversi;
  * Boards are represented in the source code of {@code BoardFixtures} by means of
  * a literal representation organized as an array of integers. The conversion
  * from the literal definition to a {@code Board} object is carried out applying
- * the facilities given by {@code BoardBuilder}.
+ * the facilities given by {@code Board.Builder}.
  *
  * The square colors are translated as follow:
  * <pre>
@@ -90,7 +90,7 @@ public final class BoardFixtures {
      * }
      * </pre>
      */
-    public static final Board AN_INSTANCE = new BoardBuilder()
+    public static final Board AN_INSTANCE = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
@@ -119,7 +119,7 @@ public final class BoardFixtures {
      * The white player has 28 discs.
      * There are 10 empty squares.
      */
-    public static final Board BLACK_HAS_TO_PASS = new BoardBuilder()
+    public static final Board BLACK_HAS_TO_PASS = new Board.Builder()
         .withSquaresLiteral(2, 1, 0, 1, 0, 2, 0, 0,
                             1, 1, 1, 1, 1, 1, 1, 2,
                             0, 1, 2, 2, 1, 1, 2, 2,
@@ -156,7 +156,7 @@ public final class BoardFixtures {
      * @see BoardFixtures#EARLY_GAME_BC3_10_MOVES
      * @see BoardFixtures#EARLY_GAME_BC6_10_MOVES
      */
-    public static final Board EARLY_GAME_B_9_MOVES = new BoardBuilder()
+    public static final Board EARLY_GAME_B_9_MOVES = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 1, 1, 1, 0, 0,
                             0, 0, 0, 0, 1, 0, 0, 0,
                             0, 0, 0, 1, 1, 2, 2, 0,
@@ -191,7 +191,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#EARLY_GAME_B_9_MOVES
      */
-    public static final Board EARLY_GAME_BC3_10_MOVES = new BoardBuilder()
+    public static final Board EARLY_GAME_BC3_10_MOVES = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 1, 1, 1, 0, 0,
                             0, 0, 0, 0, 1, 0, 0, 0,
                             0, 0, 2, 2, 2, 2, 2, 0,
@@ -226,7 +226,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#EARLY_GAME_B_9_MOVES
      */
-    public static final Board EARLY_GAME_BC6_10_MOVES = new BoardBuilder()
+    public static final Board EARLY_GAME_BC6_10_MOVES = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 1, 1, 1, 0, 0,
                             0, 0, 0, 0, 1, 0, 0, 0,
                             0, 0, 0, 1, 1, 2, 2, 0,
@@ -255,7 +255,7 @@ public final class BoardFixtures {
      * }
      * </pre>
      */
-    public static final Board EARLY_GAME_C_12_MOVES = new BoardBuilder()
+    public static final Board EARLY_GAME_C_12_MOVES = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
                             2, 1, 1, 1, 0, 0, 2, 0,
@@ -284,7 +284,7 @@ public final class BoardFixtures {
      * }
      * </pre>
      */
-    public static final Board EMPTY = new BoardBuilder()
+    public static final Board EMPTY = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
@@ -334,7 +334,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#EQL_TEST_B
      */
-    public static final Board EQL_TEST_A = new BoardBuilder()
+    public static final Board EQL_TEST_A = new Board.Builder()
         .withSquaresLiteral(EQL_LIST)
         .build();
 
@@ -360,7 +360,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#EQL_TEST_A
      */
-    public static final Board EQL_TEST_B = new BoardBuilder()
+    public static final Board EQL_TEST_B = new Board.Builder()
         .withSquaresLiteral(EQL_LIST)
         .build();
 
@@ -383,7 +383,7 @@ public final class BoardFixtures {
      * }
      * </pre>
      */
-    public static final Board FINAL_B37_W27 = new BoardBuilder()
+    public static final Board FINAL_B37_W27 = new Board.Builder()
         .withSquaresLiteral(2, 2, 2, 2, 2, 1, 1, 1,
                             2, 2, 2, 1, 1, 1, 1, 1,
                             2, 2, 2, 1, 1, 1, 2, 1,
@@ -412,7 +412,7 @@ public final class BoardFixtures {
      * }
      * </pre>
      */
-    public static final Board FIRST_MOVE_D3 = new BoardBuilder()
+    public static final Board FIRST_MOVE_D3 = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 1, 0, 0, 0, 0,
@@ -441,7 +441,7 @@ public final class BoardFixtures {
      * }
      * </pre>
      */
-    public static final Board INITIAL = new BoardBuilder()
+    public static final Board INITIAL = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
@@ -479,7 +479,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_A_AFTER
      */
-    public static final Board MAKE_MOVE_TEST_CASE_A_BEFORE = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_A_BEFORE = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                             0, 2, 2, 2, 2, 2, 0, 0,
                             0, 2, 1, 1, 1, 2, 0, 0,
@@ -510,7 +510,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_A_BEFORE
      */
-    public static final Board MAKE_MOVE_TEST_CASE_A_AFTER = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_A_AFTER = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                             0, 2, 2, 2, 2, 2, 0, 0,
                             0, 2, 2, 2, 2, 2, 0, 0,
@@ -541,7 +541,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_B_AFTER
      */
-    public static final Board MAKE_MOVE_TEST_CASE_B_BEFORE = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_B_BEFORE = new Board.Builder()
         .withSquaresLiteral(2, 2, 2, 2, 2, 2, 2, 0,
                             2, 1, 1, 1, 1, 1, 2, 0,
                             2, 1, 1, 1, 1, 1, 2, 0,
@@ -572,7 +572,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_B_BEFORE
      */
-    public static final Board MAKE_MOVE_TEST_CASE_B_AFTER = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_B_AFTER = new Board.Builder()
         .withSquaresLiteral(2, 2, 2, 2, 2, 2, 2, 0,
                             2, 2, 1, 2, 1, 2, 2, 0,
                             2, 1, 2, 2, 2, 1, 2, 0,
@@ -603,7 +603,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_C_AFTER
      */
-    public static final Board MAKE_MOVE_TEST_CASE_C_BEFORE = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_C_BEFORE = new Board.Builder()
         .withSquaresLiteral(1, 1, 1, 1, 1, 1, 1, 2,
                             1, 1, 1, 1, 1, 1, 1, 2,
                             1, 1, 1, 1, 1, 1, 1, 2,
@@ -634,7 +634,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_C_BEFORE
      */
-    public static final Board MAKE_MOVE_TEST_CASE_C_AFTER = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_C_AFTER = new Board.Builder()
         .withSquaresLiteral(1, 1, 1, 1, 1, 1, 1, 2,
                             1, 1, 1, 1, 1, 1, 1, 2,
                             1, 1, 1, 1, 1, 1, 1, 2,
@@ -665,7 +665,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_D_AFTER
      */
-    public static final Board MAKE_MOVE_TEST_CASE_D_BEFORE = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_D_BEFORE = new Board.Builder()
         .withSquaresLiteral(0, 1, 0, 0, 2, 0, 0, 0,
                             0, 2, 0, 2, 0, 0, 0, 0,
                             1, 1, 1, 0, 0, 0, 0, 0,
@@ -696,7 +696,7 @@ public final class BoardFixtures {
      *
      * @see BoardFixtures#MAKE_MOVE_TEST_CASE_D_BEFORE
      */
-    public static final Board MAKE_MOVE_TEST_CASE_D_AFTER = new BoardBuilder()
+    public static final Board MAKE_MOVE_TEST_CASE_D_AFTER = new Board.Builder()
         .withSquaresLiteral(0, 1, 0, 0, 2, 0, 0, 0,
                             0, 2, 0, 2, 0, 0, 0, 0,
                             1, 2, 2, 0, 0, 0, 0, 0,
@@ -725,7 +725,7 @@ public final class BoardFixtures {
      * }
      * </pre>
      */
-    public static final Board MINIMAX_TEST_CASE_A = new BoardBuilder()
+    public static final Board MINIMAX_TEST_CASE_A = new Board.Builder()
         .withSquaresLiteral(2, 0, 2, 0, 2, 0, 2, 0,
                             1, 0, 1, 0, 1, 0, 1, 0,
                             0, 0, 1, 0, 1, 0, 1, 0,
@@ -754,7 +754,7 @@ public final class BoardFixtures {
      * }
      * </pre>
      */
-    public static final Board MINIMAX_TEST_CASE_B = new BoardBuilder()
+    public static final Board MINIMAX_TEST_CASE_B = new Board.Builder()
         .withSquaresLiteral(2, 1, 2, 0, 0, 0, 0, 0,
                             1, 0, 1, 0, 0, 0, 0, 0,
                             0, 0, 1, 0, 0, 0, 0, 0,

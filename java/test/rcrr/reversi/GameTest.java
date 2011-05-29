@@ -75,8 +75,8 @@ public class GameTest {
     @Test
     public final void testAreThereAvailableMoves() {
         assertThat("",
-                   new GameBuilder()
-                   .withSequence(new GameSequenceBuilder()
+                   new Game.Builder()
+                   .withSequence(new GameSequence.Builder()
                                  .withSnapshots(GameSnapshotFixtures.BLACK_HAS_TO_PASS)
                                  .build())
                    .build()
@@ -94,7 +94,7 @@ public class GameTest {
         assertThat("GameFixtureFactoriess.threeSnapshots().board()"
                    + " must be equal to the here built board.",
                    GameFixtureFactories.threeSnapshots().board(),
-                   is(new BoardBuilder()
+                   is(new Board.Builder()
                       .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 1, 0, 0, 0, 0,
@@ -121,7 +121,7 @@ public class GameTest {
         assertThat("GameFixtureFactoriess.threeSnapshots().clock()"
                    + " must be equal to the here built clock.",
                    GameFixtureFactories.threeSnapshots().clock(),
-                   is(new ClockBuilder()
+                   is(new Clock.Builder()
                       .withDuration(Player.BLACK, Period.seconds(59).toStandardDuration())
                       .withDuration(Player.WHITE, Period.seconds(55).toStandardDuration())
                       .build()));
@@ -144,10 +144,10 @@ public class GameTest {
     @Test
     public final void testCountDiscDifference() {
         assertThat("",
-                   new GameBuilder()
-                   .withSequence(new GameSequenceBuilder()
-                                 .withSnapshots(new GameSnapshotBuilder()
-                                                .withPosition(new GamePositionBuilder()
+                   new Game.Builder()
+                   .withSequence(new GameSequence.Builder()
+                                 .withSnapshots(new GameSnapshot.Builder()
+                                                .withPosition(new GamePosition.Builder()
                                                               .withBoard(BoardFixtures.FINAL_B37_W27)
                                                               .build())
                                                 .build())
@@ -166,7 +166,7 @@ public class GameTest {
     @Test(expected = NullPointerException.class)
     public final void testInitialGame_boundaryConditions_checkNullParameter_black() {
         Game.initialGame(ActorFixtures.NULL,
-                         new ActorBuilder().build(),
+                         new Actor.Builder().build(),
                          CommonFixtures.A_DURATION,
                          CommonFixtures.NULL_PRINT_STREAM);
     }
@@ -179,7 +179,7 @@ public class GameTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testInitialGame_boundaryConditions_checkNullParameter_white() {
-        Game.initialGame(new ActorBuilder().build(),
+        Game.initialGame(new Actor.Builder().build(),
                          ActorFixtures.NULL,
                          CommonFixtures.A_DURATION,
                          CommonFixtures.NULL_PRINT_STREAM);
@@ -193,8 +193,8 @@ public class GameTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testInitialGame_boundaryConditions_checkNullParameter_gameDuration() {
-        Game.initialGame(new ActorBuilder().build(),
-                         new ActorBuilder().build(),
+        Game.initialGame(new Actor.Builder().build(),
+                         new Actor.Builder().build(),
                          CommonFixtures.NULL_DURATION,
                          CommonFixtures.NULL_PRINT_STREAM);
     }
@@ -209,8 +209,8 @@ public class GameTest {
      */
     @Test
     public final void testInitialGame() {
-        Game initialGame = Game.initialGame(new ActorBuilder().build(),
-                                            new ActorBuilder().build(),
+        Game initialGame = Game.initialGame(new Actor.Builder().build(),
+                                            new Actor.Builder().build(),
                                             CommonFixtures.A_DURATION,
                                             CommonFixtures.NULL_PRINT_STREAM);
 
@@ -230,10 +230,10 @@ public class GameTest {
         assertThat("The game snapshot last added to game sequence set into"
                    + " the sequence field in the Game instance, must be equal"
                    + " to the one returned by the lastGameSnapshot method.",
-                   new GameBuilder()
-                   .withSequence(new GameSequenceBuilder()
-                                 .withSnapshots(new GameSnapshotBuilder().build(),
-                                                new GameSnapshotBuilder().build(),
+                   new Game.Builder()
+                   .withSequence(new GameSequence.Builder()
+                                 .withSnapshots(new GameSnapshot.Builder().build(),
+                                                new GameSnapshot.Builder().build(),
                                                 GameSnapshotFixtures.AN_INSTANCE)
                                  .build())
                    .build()
@@ -269,9 +269,9 @@ public class GameTest {
     @Test
     public final void testMove_passUseCase() {
 
-        final GameSnapshot paip1862 = new GameSnapshotBuilder()
-            .withPosition(new GamePositionBuilder()
-                          .withBoard(new BoardBuilder()
+        final GameSnapshot paip1862 = new GameSnapshot.Builder()
+            .withPosition(new GamePosition.Builder()
+                          .withBoard(new Board.Builder()
                                      .withSquaresLiteral(2, 1, 0, 0, 0, 0, 0, 0,
                                                          0, 1, 0, 0, 0, 1, 1, 0,
                                                          1, 1, 1, 1, 1, 1, 0, 0,
@@ -309,17 +309,17 @@ public class GameTest {
                 }
             };
 
-        final Game game = new GameBuilder()
-            .withSequence(new GameSequenceBuilder()
+        final Game game = new Game.Builder()
+            .withSequence(new GameSequence.Builder()
                           .withSnapshots(paip1862)
                           .build())
-            .withActors(new ActorsPairBuilder()
+            .withActors(new ActorsPair.Builder()
                         .withActor(Player.BLACK,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(blStrategy)
                                    .build())
                         .withActor(Player.WHITE,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(whStrategy)
                                    .build())
                         .build())
@@ -383,19 +383,19 @@ public class GameTest {
                 }
             };
 
-        Game game = new GameBuilder()
-            .withSequence(new GameSequenceBuilder()
-                          .withSnapshots(new GameSnapshotBuilder()
-                                        .withClock(new ClockBuilder()
+        Game game = new Game.Builder()
+            .withSequence(new GameSequence.Builder()
+                          .withSnapshots(new GameSnapshot.Builder()
+                                        .withClock(new Clock.Builder()
                                                    .withDuration(Player.BLACK, new Duration(clockTime))
                                                    .build())
                                         .withPosition(GamePositionFixtures.INITIAL)
                                         .withRegister(MoveRegisterFixtures.EMPTY)
                                         .build())
                           .build())
-            .withActors(new ActorsPairBuilder()
+            .withActors(new ActorsPair.Builder()
                         .withActor(Player.BLACK,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(strategy)
                                    .build())
                         .build())
@@ -432,11 +432,11 @@ public class GameTest {
                 }
             };
 
-        Game game = new GameBuilder()
+        Game game = new Game.Builder()
             .withSequence(GameSequenceFixtures.THREE_SNAPSHOTS)
-            .withActors(new ActorsPairBuilder()
+            .withActors(new ActorsPair.Builder()
                         .withActor(Player.BLACK,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(strategy)
                                    .build())
                         .build())
@@ -474,13 +474,13 @@ public class GameTest {
                 }
             };
 
-        Game game = new GameBuilder()
-            .withSequence(new GameSequenceBuilder()
+        Game game = new Game.Builder()
+            .withSequence(new GameSequence.Builder()
                           .withSnapshots(GameSnapshotFixtures.BLACK_HAS_TO_PASS)
                           .build())
-            .withActors(new ActorsPairBuilder()
+            .withActors(new ActorsPair.Builder()
                         .withActor(Player.BLACK,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(strategy)
                                    .build())
                         .build())
@@ -513,11 +513,11 @@ public class GameTest {
                 }
             };
 
-        Game game = new GameBuilder()
+        Game game = new Game.Builder()
             .withSequence(GameSequenceFixtures.THREE_SNAPSHOTS)
-            .withActors(new ActorsPairBuilder()
+            .withActors(new ActorsPair.Builder()
                         .withActor(Player.BLACK,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(strategy)
                                    .build())
                         .build())
@@ -553,11 +553,11 @@ public class GameTest {
                 }
             };
 
-        Game game = new GameBuilder()
+        Game game = new Game.Builder()
             .withSequence(GameSequenceFixtures.THREE_SNAPSHOTS)
-            .withActors(new ActorsPairBuilder()
+            .withActors(new ActorsPair.Builder()
                         .withActor(Player.BLACK,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(strategy)
                                    .build())
                         .build())
@@ -595,11 +595,11 @@ public class GameTest {
                 }
             };
 
-        Game game = new GameBuilder()
+        Game game = new Game.Builder()
             .withSequence(GameSequenceFixtures.THREE_SNAPSHOTS)
-            .withActors(new ActorsPairBuilder()
+            .withActors(new ActorsPair.Builder()
                         .withActor(Player.BLACK,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(strategy)
                                    .build())
                         .build())
@@ -667,15 +667,15 @@ public class GameTest {
     @Test
     public final void testPlay() {
 
-        final Game game = new GameBuilder()
+        final Game game = new Game.Builder()
             .withSequence(GameSequenceFixtures.INITIAL)
-            .withActors(new ActorsPairBuilder()
+            .withActors(new ActorsPair.Builder()
                         .withActor(Player.BLACK,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(Minimax.getInstance().searcher(3, new CountDifference()))
                                    .build())
                         .withActor(Player.WHITE,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(Minimax.maximizer(new CountDifference()))
                                    .build())
                         .build())
@@ -689,7 +689,7 @@ public class GameTest {
 
         assertThat("The game played by the two strategies must have a defined final board.",
                    game.board(),
-                   is(new BoardBuilder()
+                   is(new Board.Builder()
                       .withSquaresLiteral(1, 1, 1, 1, 1, 1, 1, 1,
                                           1, 1, 1, 1, 1, 1, 1, 1,
                                           1, 1, 1, 1, 1, 1, 1, 1,
@@ -700,11 +700,11 @@ public class GameTest {
                                           0, 0, 0, 0, 1, 1, 0, 0)
                       .build()));
 
-        final Game recordedGame = new GameBuilder()
+        final Game recordedGame = new Game.Builder()
             .withSequence(GameSequenceFixtures.INITIAL)
-            .withActors(new ActorsPairBuilder()
+            .withActors(new ActorsPair.Builder()
                         .withActor(Player.BLACK,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(newStrategyValueOfMoveArray(Move.valueOf(Square.D3),
                                                                              Move.valueOf(Square.B3),
                                                                              Move.valueOf(Square.C4),
@@ -734,7 +734,7 @@ public class GameTest {
                                                                              Move.valueOf(Square.C6)))
                                    .build())
                         .withActor(Player.WHITE,
-                                   new ActorBuilder()
+                                   new Actor.Builder()
                                    .withStrategy(newStrategyValueOfMoveArray(Move.valueOf(Square.C3),
                                                                              Move.valueOf(Square.B2),
                                                                              Move.valueOf(Square.E3),
@@ -787,10 +787,10 @@ public class GameTest {
         assertThat("The game snapshot last added to game sequence set into"
                    + " the sequence field in the Game instance, must be equal"
                    + " to the one returned by the lastGameSnapshot method.",
-                   new GameBuilder()
-                   .withSequence(new GameSequenceBuilder()
-                                 .withSnapshots(new GameSnapshotBuilder()
-                                                .withPosition(new GamePositionBuilder()
+                   new Game.Builder()
+                   .withSequence(new GameSequence.Builder()
+                                 .withSnapshots(new GameSnapshot.Builder()
+                                                .withPosition(new GamePosition.Builder()
                                                               .withPlayer(Player.WHITE)
                                                               .build())
                                                 .build())
@@ -810,7 +810,7 @@ public class GameTest {
         assertThat("The sequence used by the constructor of the"
                    + " Game instance, must be equal"
                    + " to the one returned by the sequence method.",
-                   new GameBuilder()
+                   new Game.Builder()
                    .withSequence(GameSequenceFixtures.AN_INSTANCE)
                    .build()
                    .sequence(),
@@ -825,7 +825,7 @@ public class GameTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testValidateMove_boundaryConditions_checkNullParameter_move() {
-        new GameBuilder().build().validateMove(Move.NULL);
+        new Game.Builder().build().validateMove(Move.NULL);
     }
 
     /**
@@ -865,7 +865,7 @@ public class GameTest {
     @Test(expected = NullPointerException.class)
     public final void testNewInstance_boundaryConditions_checkNullParameter_actors() {
         Game.newInstance(ActorsPairFixtures.NULL,
-                         new GameSequenceBuilder().build(),
+                         new GameSequence.Builder().build(),
                          CommonFixtures.NULL_PRINT_STREAM);
     }
 
@@ -877,7 +877,7 @@ public class GameTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testNewInstance_boundaryConditions_checkNullParameter_sequence() {
-        Game.newInstance(new ActorsPairBuilder().build(),
+        Game.newInstance(new ActorsPair.Builder().build(),
                          GameSequenceFixtures.NULL,
                          CommonFixtures.NULL_PRINT_STREAM);
     }
@@ -892,8 +892,8 @@ public class GameTest {
      */
     @Test
     public final void testNewInstance() {
-        Game instance = Game.newInstance(new ActorsPairBuilder().build(),
-                                         new GameSequenceBuilder().build(),
+        Game instance = Game.newInstance(new ActorsPair.Builder().build(),
+                                         new GameSequence.Builder().build(),
                                          CommonFixtures.NULL_PRINT_STREAM);
 
         assertThat("Game.newInstance(ActorsPair, GameSequence, PrintStream)"

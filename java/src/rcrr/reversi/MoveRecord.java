@@ -25,6 +25,8 @@
 package rcrr.reversi;
 
 import org.joda.time.Instant;
+import org.joda.time.Period;
+import org.joda.time.Duration;
 
 /**
  * An instance of a move record.
@@ -34,6 +36,157 @@ import org.joda.time.Instant;
  * {@code MoveRecord} is immutable.
  */
 public final class MoveRecord {
+
+    /**
+     * An instance of this class encapsulates the information needed to instantiate
+     * and initialize a move record object. That process is triggered when the {@code build()}
+     * method is called.
+     * <p>
+     * The builder properties and the respectives initializations are:
+     * <ul>
+     *   <li>{@code move = Move.A_REGULAR_INSTANCE;}</li>
+     *   <li>{@code clock = new Clock.Builder().build();}</li>
+     *   <li>{@code timestamp = new Instant(System.currentTimeMillis());}</li>
+     * </ul>
+     * <p>
+     * The {@code Builder} class is mutable, and it is thread-safe.
+     * The object status is guarded by a lock on {@code this}.
+     */
+    public static final class Builder {
+
+        /** A one minute duration. */
+        private static final Duration ONE_MINUTE_DURATION = Period.minutes(1).toStandardDuration();
+
+        /** The move field. */
+        private Move move;
+
+        /** The clock field. */
+        private Clock clock;
+
+        /** The timestamp field. */
+        private Instant timestamp;;
+
+        /**
+         * Construct a new builder.
+         */
+        public Builder() {
+            this.move = Move.A_REGULAR_INSTANCE;
+            this.clock = new Clock.Builder().build();
+            this.timestamp = new Instant(System.currentTimeMillis());
+        }
+
+        /**
+         * Returns a new instance of a move record object.
+         *
+         * @return the move record instance as prepared by the current move record's builder
+         */
+        public synchronized MoveRecord build() {
+            return MoveRecord.valueOf(move, clock, timestamp);
+        }
+
+        /**
+         * The method returns the move field.
+         *
+         * @return the move field
+         */
+        public synchronized Move getMove() {
+            return this.move;
+        }
+
+        /**
+         * The method returns the clock field.
+         *
+         * @return the clock field
+         */
+        public synchronized Clock getClock() {
+            return this.clock;
+        }
+
+        /**
+         * The method returns the instant field.
+         *
+         * @return the instant field
+         */
+        public synchronized Instant getTimestamp() {
+            return this.timestamp;
+        }
+
+        /**
+         * The method sets the move field.
+         *
+         * @param move the update value for the move field
+         */
+        private synchronized void setMove(final Move move) {
+            this.move = move;
+        }
+
+        /**
+         * The method sets the clock field.
+         *
+         * @param clock the update value for the clock field
+         */
+        private synchronized void setClock(final Clock clock) {
+            this.clock = clock;
+        }
+
+        /**
+         * The method sets the timestamp field.
+         *
+         * @param timestamp the update value for the timestamp field
+         */
+        private synchronized void setTimestamp(final Instant timestamp) {
+            this.timestamp = timestamp;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code move} field.
+         * <p>
+         * The {@code move} parameter cannot be null.
+         *
+         * @param move the move assigned to the move record
+         * @return     the {@code this} reference
+         */
+        public MoveRecord.Builder withMove(final Move move) {
+            if (move == null) {
+                throw new NullPointerException("Parameter move cannot be null.");
+            }
+            setMove(move);
+            return this;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code clock} field.
+         * <p>
+         * The {@code clock} parameter cannot be null.
+         *
+         * @param clock the clock assigned to the move record
+         * @return     the {@code this} reference
+         */
+        public MoveRecord.Builder withClock(final Clock clock) {
+            if (clock == null) {
+                throw new NullPointerException("Parameter clock cannot be null.");
+            }
+            setClock(clock);
+            return this;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code timestamp} field.
+         * <p>
+         * The {@code timestamp} parameter cannot be null.
+         *
+         * @param timestamp the timestamp assigned to the move record
+         * @return          the {@code this} reference
+         */
+        public MoveRecord.Builder withTimestamp(final Instant timestamp) {
+            if (timestamp == null) {
+                throw new NullPointerException("Parameter timestamp cannot be null.");
+            }
+            setTimestamp(timestamp);
+            return this;
+        }
+
+    }
 
     /**
      * Static factory that set the timestamp to the current time.

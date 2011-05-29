@@ -207,9 +207,9 @@ public class ReversiTest {
     @Test
     public final void testPAIP_18_6_2() {
 
-        final GameSnapshot paip1862 = new GameSnapshotBuilder()
-            .withPosition(new GamePositionBuilder()
-                          .withBoard(new BoardBuilder()
+        final GameSnapshot paip1862 = new GameSnapshot.Builder()
+            .withPosition(new GamePosition.Builder()
+                          .withBoard(new Board.Builder()
                                      .withSquaresLiteral(2, 1, 0, 0, 0, 0, 0, 0,
                                                          0, 1, 0, 0, 0, 1, 1, 0,
                                                          1, 1, 1, 1, 1, 1, 0, 0,
