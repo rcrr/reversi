@@ -25,6 +25,7 @@
 package rcrr.reversi;
 
 import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -36,6 +37,89 @@ import java.util.Collections;
  * {@code MoveRegister} is immutable.
  */
 public final class MoveRegister {
+
+    /**
+     * An instance of this class encapsulates the information needed to instantiate
+     * and initialize a move register object. That process is triggered when the {@code build()}
+     * method is called.
+     * <p>
+     * The builder has one property, the {@code records} field. It is initialized as follow:
+     * <ul>
+     *   <li>{@code records = new ArrayList<MoveRecord>()}</li>
+     * </ul>
+     * <p>
+     * The {@code Builder} class is mutable, and it is thread-safe.
+     * The object status is guarded by a lock on {@code this}.
+     */
+    public static final class Builder {
+
+        /** The records field. */
+        private List<MoveRecord> records;
+
+        /**
+         * Construct a new builder.
+         */
+        public Builder() {
+            this.records = new ArrayList<MoveRecord>();
+        }
+
+        /**
+         * Returns a new instance of a move record object.
+         *
+         * @return the move record instance as prepared by the current move record's builder
+         */
+        public synchronized MoveRegister build() {
+            return MoveRegister.valueOf(this.records);
+        }
+
+        /**
+         * The method returns the records field.
+         *
+         * @return the records field
+         */
+        public synchronized List<MoveRecord> getRecords() {
+            return this.records;
+        }
+
+        /**
+         * The method sets the records field.
+         *
+         * @param records the update value for the records field
+         */
+        private synchronized void setRecords(final List<MoveRecord> records) {
+            this.records = records;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code records} field.
+         *
+         * @param records the register assigned to the move register
+         * @return        the {@code this} reference
+         */
+        public MoveRegister.Builder withRecords(final List<MoveRecord> records) {
+            setRecords(records);
+            return this;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code records} field,
+         * the {@code records} value is constructed by building the list
+         * from the {@code records} array.
+         * <p>
+         * The {@code records} parameter cannot be null.
+         *
+         * @param records the array of records assigned to the move records
+         * @return        the {@code this} reference
+         * @throws NullPointerException when parameter records is null
+         */
+        public MoveRegister.Builder withRecords(final MoveRecord... records) {
+            if (records == null) {
+                throw new NullPointerException("Parameter records cannot be null.");
+            }
+            return withRecords(Arrays.asList(records));
+        }
+
+    }
 
     /** The null move record. */
     private static final MoveRecord NULL_MOVE_RECORD = null;

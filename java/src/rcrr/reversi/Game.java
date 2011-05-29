@@ -46,20 +46,113 @@ import org.joda.time.Period;
  */
 public final class Game {
 
-    /** Do we really need it? */
-    public static enum State {
+    /**
+     * An instance of this class encapsulates the information needed to instantiate
+     * and initialize a game object. That process is triggered when the {@code build()}
+     * method is called.
+     * <p>
+     * The builder properties and the respectives initializations are:
+     * <ul>
+     *   <li>{@code actors = new ActorsPair.Builder().build()}</li>
+     *   <li>{@code sequence = new GameSequence.Builder().build()}</li>
+     *   <li>{@code ps = new NullPrintStream()}</li>
+     * </ul>
+     * <p>
+     * The {@code Builder} class is mutable, and it is thread-safe.
+     * The object status is guarded by a lock on {@code this}.
+     */
+    public static final class Builder {
 
-        /** The game is created but not started. */
-        CREATED,
+        /** The actors field. */
+        private ActorsPair actors;
 
-        /** The game is ongoing, no player has the move assigned. The clock is not running. */
-        PLAYING,
+        /** The sequence field. */
+        private GameSequence sequence;
 
-        /** The game is ongoing. The move request has been assigned to one player. The clock is running. */
-        MOVING,
+        /** The print stream field. */
+        private PrintStream ps;
 
-        /** The game is paused. */
-        PAUSED;
+        /**
+         * Construct a new builder.
+         */
+        public Builder() {
+            this.actors = new ActorsPair.Builder().build();
+            this.sequence = new GameSequence.Builder().build();
+            this.ps = new NullPrintStream();
+        }
+
+        /**
+         * Returns a new instance of a game object.
+         *
+         * @return the game instance as prepared by the current game's builder
+         */
+        public synchronized Game build() {
+            return Game.newInstance(actors, sequence, ps);
+        }
+
+        /**
+         * The setter method for the ps field.
+         *
+         * @param ps the update for the ps field
+         */
+        private synchronized void setPrintStream(final PrintStream ps) {
+            this.ps = ps;
+        }
+
+        /**
+         * The setter method for the sequence field.
+         *
+         * @param sequence the update for the sequence field
+         */
+        private synchronized void setSequence(final GameSequence sequence) {
+            this.sequence = sequence;
+        }
+
+        /**
+         * The setter method for the actors field.
+         *
+         * @param actors the update for the actors field
+         */
+        private synchronized void setActors(final ActorsPair actors) {
+            this.actors = actors;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code actors}
+         * field value.
+         *
+         * @param actors the actors field
+         * @return       the {@code this} reference
+         */
+        public Game.Builder withActors(final ActorsPair actors) {
+            setActors(actors);
+            return this;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code sequence}
+         * field value.
+         *
+         * @param sequence the game sequence
+         * @return         the {@code this} reference
+         */
+        public Game.Builder withSequence(final GameSequence sequence) {
+            setSequence(sequence);
+            return this;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code ps}
+         * field value.
+         *
+         * @param ps the print stream
+         * @return   the {@code this} reference
+         */
+        public Game.Builder withPrintStream(final PrintStream ps) {
+            setPrintStream(ps);
+            return this;
+        }
+
     }
 
     /**
@@ -152,9 +245,6 @@ public final class Game {
      * Why not develop a specific object that handles the IO?
      */
     private final PrintStream ps;
-
-    /** The state field. Still not clear how to go on with the game-state-machine. */
-    private State state;
 
     /**
      * The aClock field. The name is ugly.

@@ -39,7 +39,7 @@ import org.junit.runners.Parameterized;
 public class ModifiedWeightedSquaresTest extends EvalFunctionTestUtils {
 
     /** The CASE_ONE_A board. */
-    private static final Board CASE_ONE_A = new BoardBuilder()
+    private static final Board CASE_ONE_A = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                             1, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
@@ -51,7 +51,7 @@ public class ModifiedWeightedSquaresTest extends EvalFunctionTestUtils {
         .build();
 
     /** The CASE_ONE_B board. */
-    private static final Board CASE_ONE_B = new BoardBuilder()
+    private static final Board CASE_ONE_B = new Board.Builder()
         .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
                             1, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
@@ -63,7 +63,7 @@ public class ModifiedWeightedSquaresTest extends EvalFunctionTestUtils {
         .build();
 
     /** The CASE_TWO_A board. */
-    private static final Board CASE_TWO_A = new BoardBuilder()
+    private static final Board CASE_TWO_A = new Board.Builder()
         .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                             0, 1, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
@@ -75,7 +75,7 @@ public class ModifiedWeightedSquaresTest extends EvalFunctionTestUtils {
         .build();
 
     /** The CASE_TWO_B board. */
-    private static final Board CASE_TWO_B = new BoardBuilder()
+    private static final Board CASE_TWO_B = new Board.Builder()
         .withSquaresLiteral(2, 0, 0, 0, 0, 0, 0, 0,
                             0, 1, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,

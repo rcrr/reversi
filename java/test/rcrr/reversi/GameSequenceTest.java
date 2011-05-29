@@ -75,7 +75,7 @@ public class GameSequenceTest {
     public final void testAdd() {
         assertThat("Adding a game snapshot to the sequence must return"
                    + " a new game sequence having as last element the added one.",
-                   new GameSequenceBuilder()
+                   new GameSequence.Builder()
                    .build()
                    .add(GameSnapshotFixtures.AN_INSTANCE).last(),
                    is(GameSnapshotFixtures.AN_INSTANCE));
@@ -88,7 +88,7 @@ public class GameSequenceTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testAdd_boundaryConditions_null() {
-        new GameSequenceBuilder()
+        new GameSequence.Builder()
             .build()
             .add(GameSnapshotFixtures.NULL);
     }
@@ -100,8 +100,8 @@ public class GameSequenceTest {
      */
     @Test(expected = IndexOutOfBoundsException.class)
     public final void testGet_boundaryConditions_indexOutOfBounds() {
-        new GameSequenceBuilder()
-            .withSnapshots(new GameSnapshotBuilder()
+        new GameSequence.Builder()
+            .withSnapshots(new GameSnapshot.Builder()
                            .build())
             .build()
             .get(1);
@@ -115,7 +115,7 @@ public class GameSequenceTest {
     @Test
     public final void testGet() {
         assertThat("It must return GameSnapshotFixtures.AN_INSTANCE.",
-                   new GameSequenceBuilder()
+                   new GameSequence.Builder()
                    .withSnapshots(GameSnapshotFixtures.AN_INSTANCE)
                    .build()
                    .get(0),

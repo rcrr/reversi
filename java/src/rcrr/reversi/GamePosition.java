@@ -33,6 +33,111 @@ package rcrr.reversi;
 public final class GamePosition {
 
     /**
+     * A game position builder is a facility to generate game position instances for testing.
+     * <p>
+     * {@code GamePositionBuilder} is mutable, and it is thread-safe.
+     * The object status is guarded by a lock on {@code this}.
+     */
+    /**
+     * An instance of this class encapsulates the information needed to instantiate
+     * and initialize a game position. That process is triggered when the {@code build()}
+     * method is called.
+     * <p>
+     * The builder properties and the respectives initializations are:
+     * <ul>
+     *   <li>{@code board = Board.emptyBoard()}</li>
+     *   <li>{@code player = Player.BLACK}</li>
+     * </ul>
+     * <p>
+     * The {@code Builder} class is mutable, and it is thread-safe.
+     * The object status is guarded by a lock on {@code this}.
+     */
+    public static final class Builder {
+
+        /** The board field. */
+        private Board board;
+
+        /** The player field. */
+        private Player player;
+
+        /**
+         * Construct a new builder.
+         */
+        public Builder() {
+            this.board = Board.emptyBoard();
+            this.player = Player.BLACK;
+        }
+
+        /**
+         * Returns a new instance of a game position object.
+         *
+         * @return the game position instance as prepared by the current game position's builder
+         */
+        public synchronized GamePosition build() {
+            return GamePosition.valueOf(board, player);
+        }
+
+        /**
+         * The method returns the board field.
+         *
+         * @return the board field
+         */
+        public synchronized Board getBoard() {
+            return this.board;
+        }
+
+        /**
+         * The method returns the player field.
+         *
+         * @return the player field
+         */
+        public synchronized Player getPlayer() {
+            return this.player;
+        }
+
+        /**
+         * The method sets the board field.
+         *
+         * @param board the update value for the board field
+         */
+        private synchronized void setBoard(final Board board) {
+            this.board = board;
+        }
+
+        /**
+         * The method sets the player field.
+         *
+         * @param player the update value for the player field
+         */
+        private synchronized void setPlayer(final Player player) {
+            this.player = player;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code board} field.
+         *
+         * @param board the board assigned to the game position
+         * @return      the {@code this} reference
+         */
+        public GamePosition.Builder withBoard(final Board board) {
+            setBoard(board);
+            return this;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code player} field.
+         *
+         * @param player the player assigned to the game position
+         * @return       the {@code this} reference
+         */
+        public GamePosition.Builder withPlayer(final Player player) {
+            setPlayer(player);
+            return this;
+        }
+
+    }
+
+    /**
      * Static factory that returns a new initial game position.
      * <p>
      * The returned game position has the board set with the four central

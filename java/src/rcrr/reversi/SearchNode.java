@@ -32,6 +32,105 @@ package rcrr.reversi;
 public final class SearchNode {
 
     /**
+     * An instance of this class encapsulates the information needed to instantiate
+     * and initialize a search node object. That process is triggered when the {@code build()}
+     * method is called.
+     * <p>
+     * The builder properties and the respectives initializations are:
+     * <ul>
+     *   <li>{@code move = Square.A1;}</li>
+     *   <li>{@code value = 0;}</li>
+     * </ul>
+     * <p>
+     * The {@code Builder} class is mutable, and it is thread-safe.
+     * The object status is guarded by a lock on {@code this}.
+     */
+    public static final class Builder {
+
+        /** The move field. */
+        private Square move;
+
+        /** The value field. */
+        private int value;
+
+        /**
+         * Construct a new builder.
+         */
+        public Builder() {
+            this.move = Square.A1;
+            this.value = 0;
+        }
+
+        /**
+         * Returns a new instance of a search node object.
+         *
+         * @return the search node instance as prepared by the current search node's builder
+         */
+        public synchronized SearchNode build() {
+            return SearchNode.valueOf(move, value);
+        }
+
+        /**
+         * The method returns the move field.
+         *
+         * @return the move field
+         */
+        public synchronized Square getMove() {
+            return this.move;
+        }
+
+        /**
+         * The method returns the value field.
+         *
+         * @return the value field
+         */
+        public synchronized int getValue() {
+            return this.value;
+        }
+
+        /**
+         * The method sets the move field.
+         *
+         * @param move the update value for the move field
+         */
+        private synchronized void setMove(final Square move) {
+            this.move = move;
+        }
+
+        /**
+         * The method sets the value field.
+         *
+         * @param value the update value for the value field
+         */
+        private synchronized void setValue(final int value) {
+            this.value = value;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code move} field.
+         *
+         * @param move the move assigned to the search node
+         * @return     the {@code this} reference
+         */
+        public SearchNode.Builder withMove(final Square move) {
+            setMove(move);
+            return this;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code value} field.
+         *
+         * @param value the value assigned to the search node
+         * @return      the {@code this} reference
+         */
+        public SearchNode.Builder withValue(final int value) {
+            setValue(value);
+            return this;
+        }
+
+    }
+
+    /**
      * Base static factory for the class.
      * <p>
      * Parameter {@code move} can be null.

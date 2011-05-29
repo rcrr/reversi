@@ -29,9 +29,14 @@ Main algorithm and structural classes.
 To do:
 <p>
 <ul>
+  <li>Some methods receive as parameters the board and the player. Replace them with a GamePosition.</li>
+  <li>Verify that all the factories that receive a mutable object make the appropriate defensive copy.</li>
+  <li>The actor that share the strategy by means of the strategy() method is not safe.
+      The client can get a reference of the strategy object and modify it. It is better to
+      add a move() method to the actor and keep the strategy more schielded.</li>
   <li>Veryfy that the Builder classes are really thread-safe. Be careful about accessor methods that publish a reference
       of a collection, or in general a mutable object reference. It must be copied.
-      Could be that builder should have a unit test.</li>
+      The Builder inner classes must have a unit test.</li>
   <li>Prepare some tests (ReversiTest suite) that repeat selected tests but print the game to a file.
       Some part of the Game class are used only when the PrintStream ps field is not null.</li>
   <li>Row: ok. Javadocs complete. Tests complete.

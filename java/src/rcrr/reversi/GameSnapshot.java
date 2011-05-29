@@ -44,6 +44,147 @@ import org.joda.time.Duration;
  */
 public final class GameSnapshot {
 
+    /**
+     * A game snapshot builder is a facility that generates game snapshot instances for testing.
+     * <p>
+     * {@code GameSnapshot.Builder} is mutable, and it is thread-safe.
+     * The object status is guarded by a lock on {@code this}.
+     */
+    /**
+     * An instance of this class encapsulates the information needed to instantiate
+     * and initialize a game snapshot object. That process is triggered when the {@code build()}
+     * method is called.
+     * <p>
+     * The builder properties and the respectives initializations are:
+     * <ul>
+     *   <li>{@code position = GamePosition.initialGamePosition();}</li>
+     *   <li>{@code clock = new Clock.Builder().build();}</li>
+     *   <li>{@code register = new MoveRegister.Builder.build();}</li>
+     * </ul>
+     * <p>
+     * The {@code Builder} class is mutable, and it is thread-safe.
+     * The object status is guarded by a lock on {@code this}.
+     */
+    public static final class Builder {
+
+        /** The game position field. */
+        private GamePosition position;
+
+        /** The clock field. */
+        private Clock clock;
+
+        /** The move register. */
+        private MoveRegister register;
+
+        /**
+         * Construct a new builder.
+         */
+        public Builder() {
+            this.position = GamePosition.initialGamePosition();
+            this.clock = new Clock.Builder().build();
+            this.register = new MoveRegister.Builder().build();
+        }
+
+        /**
+         * Returns a new instance of a game snapshot object.
+         *
+         * @return the game snapshot instance as prepared by the current game snapshot's builder
+         */
+        public synchronized GameSnapshot build() {
+            return GameSnapshot.valueOf(position, clock, register);
+        }
+
+        /**
+         * The method returns the clock field.
+         *
+         * @return the clock field
+         */
+        public synchronized Clock getClock() {
+            return this.clock;
+        }
+
+        /**
+         * The method returns the position field.
+         *
+         * @return the position field
+         */
+        public synchronized GamePosition getPosition() {
+            return this.position;
+        }
+
+        /**
+         * The method returns the register field.
+         *
+         * @return the register field
+         */
+        public synchronized MoveRegister getRegister() {
+            return this.register;
+        }
+
+        /**
+         * The method sets the clock field.
+         *
+         * @param clock the update value for the clock field
+         */
+        private synchronized void setClock(final Clock clock) {
+            this.clock = clock;
+        }
+
+        /**
+         * The method sets the position field.
+         *
+         * @param position the update value for the position field
+         */
+        private synchronized void setPosition(final GamePosition position) {
+            this.position = position;
+        }
+
+        /**
+         * The method sets the register field.
+         *
+         * @param register the update value for the register field
+         */
+        private synchronized void setRegister(final MoveRegister register) {
+            this.register = register;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code clock} field.
+         * <p>
+         * The {@code clock} parameter cannot be null.
+         *
+         * @param clock the clock assigned to the game snapshot
+         * @return      the {@code this} reference
+         */
+        public GameSnapshot.Builder withClock(final Clock clock) {
+            setClock(clock);
+            return this;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code position} field.
+         *
+         * @param position the game position assigned to the game snapshot
+         * @return         the {@code this} reference
+         */
+        public GameSnapshot.Builder withPosition(final GamePosition position) {
+            setPosition(position);
+            return this;
+        }
+
+        /**
+         * Returns the {@code this} reference after setting the new {@code register} field.
+         *
+         * @param register the move register assigned to the game snapshot
+         * @return         the {@code this} reference
+         */
+        public GameSnapshot.Builder withRegister(final MoveRegister register) {
+            setRegister(register);
+            return this;
+        }
+
+    }
+
     /** ... for printing ... */
     private static final int BOARD_ROWS = 8;
 

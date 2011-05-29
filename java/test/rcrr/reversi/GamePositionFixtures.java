@@ -46,7 +46,7 @@ public final class GamePositionFixtures {
      * @see BoardFixtures#AN_INSTANCE
      * @see Player#BLACK
      */
-    public static final GamePosition AN_INSTANCE = new GamePositionBuilder()
+    public static final GamePosition AN_INSTANCE = new GamePosition.Builder()
         .withBoard(BoardFixtures.AN_INSTANCE)
         .withPlayer(Player.BLACK)
         .build();
@@ -61,7 +61,7 @@ public final class GamePositionFixtures {
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      * @see Player#BLACK
      */
-    public static final GamePosition BLACK_HAS_TO_PASS = new GamePositionBuilder()
+    public static final GamePosition BLACK_HAS_TO_PASS = new GamePosition.Builder()
         .withBoard(BoardFixtures.BLACK_HAS_TO_PASS)
         .withPlayer(Player.BLACK)
         .build();
@@ -76,7 +76,7 @@ public final class GamePositionFixtures {
      * @see BoardFixtures#INITIAL
      * @see Player#BLACK
      */
-    public static final GamePosition INITIAL = new GamePositionBuilder()
+    public static final GamePosition INITIAL = new GamePosition.Builder()
         .withBoard(BoardFixtures.INITIAL)
         .withPlayer(Player.BLACK)
         .build();
@@ -90,7 +90,7 @@ public final class GamePositionFixtures {
      *
      * @see BoardFixtures#FINAL_B37_W27
      */
-    public static final GamePosition FINAL_B37_W27_N = new GamePositionBuilder()
+    public static final GamePosition FINAL_B37_W27_N = new GamePosition.Builder()
         .withBoard(BoardFixtures.FINAL_B37_W27)
         .withPlayer(NULL_PLAYER)
         .build();
@@ -105,7 +105,7 @@ public final class GamePositionFixtures {
      * @see BoardFixtures#FINAL_B37_W27
      * @see Player#BLACK
      */
-    public static final GamePosition FINAL_B37_W27_B = new GamePositionBuilder()
+    public static final GamePosition FINAL_B37_W27_B = new GamePosition.Builder()
         .withBoard(BoardFixtures.FINAL_B37_W27)
         .withPlayer(Player.BLACK)
         .build();
@@ -120,19 +120,19 @@ public final class GamePositionFixtures {
      * @see BoardFixtures#FINAL_B37_W27
      * @see Player#WHITE
      */
-    public static final GamePosition FINAL_B37_W27_W = new GamePositionBuilder()
+    public static final GamePosition FINAL_B37_W27_W = new GamePosition.Builder()
         .withBoard(BoardFixtures.FINAL_B37_W27)
         .withPlayer(Player.WHITE)
         .build();
 
     /** Minimax test case A, white player has to move. */
-    public static final GamePosition MINIMAX_TEST_CASE_A = new GamePositionBuilder()
+    public static final GamePosition MINIMAX_TEST_CASE_A = new GamePosition.Builder()
         .withBoard(BoardFixtures.MINIMAX_TEST_CASE_A)
         .withPlayer(Player.WHITE)
         .build();
 
     /** Minimax test case B, white player has to move. */
-    public static final GamePosition MINIMAX_TEST_CASE_B = new GamePositionBuilder()
+    public static final GamePosition MINIMAX_TEST_CASE_B = new GamePosition.Builder()
         .withBoard(BoardFixtures.MINIMAX_TEST_CASE_B)
         .withPlayer(Player.WHITE)
         .build();

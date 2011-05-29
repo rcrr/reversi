@@ -45,7 +45,7 @@ public final class GameFixtureFactories {
      * @return a generic game instance
      */
     public static Game anInstance() {
-        return  new GameBuilder()
+        return  new Game.Builder()
             .build();
     }
 
@@ -58,7 +58,7 @@ public final class GameFixtureFactories {
      * @see GameSequenceFixtures#THREE_SNAPSHOTS
      */
     public static Game threeSnapshots() {
-        return  new GameBuilder()
+        return  new Game.Builder()
             .withSequence(GameSequenceFixtures.THREE_SNAPSHOTS)
             .build();
     }
