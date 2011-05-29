@@ -47,8 +47,8 @@ public final class GameBuilder {
      * The class constructor.
      */
     public GameBuilder() {
-        this.actors = new ActorsPairBuilder().build();
-        this.sequence = new GameSequenceBuilder().build();
+        this.actors = new ActorsPair.Builder().build();
+        this.sequence = new GameSequence.Builder().build();
         this.ps = null;
     }
 
