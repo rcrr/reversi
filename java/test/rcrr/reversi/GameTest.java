@@ -24,9 +24,15 @@
 
 package rcrr.reversi;
 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
+
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -900,6 +906,87 @@ public class GameTest {
                    + " must return an instance of Game class.",
                    instance,
                    instanceOf(Game.class));
+    }
+
+    /**
+     * Tests the {@code randomGame(long)} method.
+     * <p>
+     * The number of possible position that can be reached from an initial
+     * board running two moves is twelve. The black has four moves (bringing
+     * to the same case) than the white has the three classical openings named
+     * Perpendicular, Diagonal, and Parallel. Composing the two chances the reachable
+     * boards are then twelve.
+     * <p>
+     * By running the test one undred thousand times the maximum number of random
+     * games generated in order to obtain at last one board for each of the twelve
+     * achievable positions is close to two hundred.
+     * <p>
+     * The test run one hundred times and checks that within the limit of two hundred
+     * and fifty random position generated all the twelve cases are obtained. If not
+     * the test fails.
+     * <p>
+     * It is statistically possible that the twelve positions are not filled within
+     * two hundred and fifty chances, but it is really a small probability.  
+     *
+     * @see Game#randomGame(long)
+     */
+    @Test
+    public final void testRandomGame_twoMoves() {
+
+        final int twoMoves = 2;
+        final int twoHundredAndFiftyTimes = 250;
+        final int twelvePositions = 12;
+        final int oneHundredRuns = 100;
+
+        for (int j = 0; j < oneHundredRuns; j++) {
+            Set<Board> boards = new HashSet<Board>();
+
+            for (int i = 0; i < twoHundredAndFiftyTimes; i++) {
+                boards.add(Game.randomGame(twoMoves).board());
+                if (boards.size() == twelvePositions) {
+                    assertTrue(true);
+                    break;
+                }
+            }
+            if (boards.size() != twelvePositions) {
+                fail("The number of possible position reached after two moves is twelve.");
+            }
+        }
+    }
+
+    /**
+     * Tests the {@code randomGame(long)} method.
+     * <p>
+     * When generating ten moves random game, the resulting boards must be all
+     * difefrent. The case that two between one hundred are equal is very very low.
+     *
+     * @see Game#randomGame(long)
+     */
+    @Test
+    public final void testRandomGame_tenMoves() {
+
+        final int tenMoves = 10;
+        final int oneHundredRuns = 100;
+
+        Set<Board> boards = new HashSet<Board>();
+        for (int i = 0; i < oneHundredRuns; i++) {
+            boards.add(Game.randomGame(tenMoves).board());
+        }
+
+        assertThat("Given the very low probability of two boards equal between one"
+                   + " hundred made by running ten random moves, boards.size() must"
+                   + " be equal to is(oneHundredRuns).",
+                   boards.size(),
+                   is(oneHundredRuns));
+    }
+
+    @Test
+    public final void testRandomGame() {
+
+        Game game = Game.randomGame(61);
+        System.out.println(game.print());
+        assertTrue(true);
+
     }
 
 }

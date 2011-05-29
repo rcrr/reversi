@@ -215,16 +215,34 @@ public final class Game {
         return new Game(actors, sequence, (ps == null) ? new NullPrintStream() : ps);
     }
 
+    /** The number of empty squares at the beginning of a standard game. */
+    private static final long MAX_PUT_DISC_MOVES = 60;
+
     /**
-     * numberOfRandomMoves must be > 0 and must be < 60.
-     * The loop must verify that the game does not end prematurely.
+     * Returns a random game instance.
+     * <p>
+     * The parameter {@code numberOfRandomPutDiscMoves} must be non negative and must be
+     * less than sixty.
+     * <p>
+     * In the quite obscure case that the game completes before reaching the number of
+     * requested moves, the method restart from the beginning generating a new case. (NOT DONE YET)
+     *
+     * @param numberOfRandomPutDiscMoves the number of random moves to be played
+     * @return                           a random game instance
+     * @throws IllegalArgumentException when the numberOfRandomPutDiscMoves is out of range
      */
-    public static Game randomGame(final long numberOfRandomMoves) {
+    public static Game randomGame(final long numberOfRandomPutDiscMoves) {
+        if(numberOfRandomPutDiscMoves < 0 || numberOfRandomPutDiscMoves > MAX_PUT_DISC_MOVES) {
+            throw new IllegalArgumentException("Parameter numberOfRandomPutDiscMoves must be non negative,"
+                                               + " and must be less than sixty. Got a value of: "
+                                               + numberOfRandomPutDiscMoves);
+        }
         final Game randomGame = initialGame(Actor.valueOf("Black Actor", new RandomStrategy()),
                                             Actor.valueOf("White Actor", new RandomStrategy()),
                                             Period.minutes(1).toStandardDuration(),
                                             new NullPrintStream());
-        for (int i = 0; i < numberOfRandomMoves; i++) {
+        while(randomGame.areThereAvailableMoves()
+              && MAX_PUT_DISC_MOVES - randomGame.board().countPieces(SquareState.EMPTY) < numberOfRandomPutDiscMoves) {
             randomGame.move();
         }
         return randomGame;
