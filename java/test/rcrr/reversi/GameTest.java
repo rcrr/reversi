@@ -909,6 +909,28 @@ public class GameTest {
     }
 
     /**
+     * Tests the {@code randomGame(long)} method when parameter
+     * {@code numberOfRandomPutDiscMoves} is smaller than 0.
+     *
+     * @see Game#randomGame(long)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public final void testRandomGame_boundaryConditions_negative_numberOfRandomPutDiscMoves() {
+        Game.randomGame(-1);
+    }
+
+    /**
+     * Tests the {@code randomGame(long)} method when parameter
+     * {@code numberOfRandomPutDiscMoves} is greater than 60.
+     *
+     * @see Game#randomGame(long)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public final void testRandomGame_boundaryConditions_greaterThanSixty_numberOfRandomPutDiscMoves() {
+        Game.randomGame(61);
+    }
+
+    /**
      * Tests the {@code randomGame(long)} method.
      * <p>
      * The number of possible position that can be reached from an initial
@@ -980,13 +1002,35 @@ public class GameTest {
                    is(oneHundredRuns));
     }
 
+    /**
+     * Tests the {@code randomGame(long)} method.
+     * <p>
+     * When generating a zero moves random game, the resulting board must be an initial board.
+     *
+     * @see Game#randomGame(long)
+     */
     @Test
-    public final void testRandomGame() {
+    public final void testRandomGame_zeroMoves() {
+        assertThat("Game.randomGame(0).board() must be BoardFixtures.INITIAL.",
+                   Game.randomGame(0).board(),
+                   is(BoardFixtures.INITIAL));
 
-        Game game = Game.randomGame(61);
-        System.out.println(game.print());
-        assertTrue(true);
+    }
 
+    /**
+     * Tests the {@code randomGame(long)} method.
+     * <p>
+     * When generating a zero moves random game, the resulting board must be an initial board.
+     *
+     * @see Game#randomGame(long)
+     */
+    @Test
+    public final void testRandomGame_sixtyMoves() {
+        for (int i = 0; i < 100; i++) {
+            assertThat("Game.randomGame(60).board().countPieces(SquareState.EMPTY) must be 0.",
+                       Game.randomGame(60).board().countPieces(SquareState.EMPTY),
+                       is(0));
+        }
     }
 
 }
