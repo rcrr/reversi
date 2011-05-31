@@ -225,7 +225,7 @@ public final class Game {
      * less than sixty.
      * <p>
      * In the quite obscure case that the game completes before reaching the number of
-     * requested moves, the method restart from the beginning generating a new case. (NOT DONE YET)
+     * requested moves, the method restart from the beginning generating a new case.
      *
      * @param numberOfRandomPutDiscMoves the number of random moves to be played
      * @return                           a random game instance
@@ -241,9 +241,12 @@ public final class Game {
                                             Actor.valueOf("White Actor", new RandomStrategy()),
                                             Period.minutes(1).toStandardDuration(),
                                             new NullPrintStream());
-        while(randomGame.areThereAvailableMoves()
-              && MAX_PUT_DISC_MOVES - randomGame.board().countPieces(SquareState.EMPTY) < numberOfRandomPutDiscMoves) {
-            randomGame.move();
+        while(MAX_PUT_DISC_MOVES - randomGame.board().countPieces(SquareState.EMPTY) < numberOfRandomPutDiscMoves) {
+            if (randomGame.areThereAvailableMoves()) {
+                randomGame.move();
+            } else {
+                return randomGame(numberOfRandomPutDiscMoves);
+            }
         }
         return randomGame;
     }
