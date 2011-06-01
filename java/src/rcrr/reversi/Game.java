@@ -312,6 +312,24 @@ public final class Game {
     }
 
     /**
+     * Returns the game position of the last game snapshot.
+     *
+     * @return the game position of the last game snapshot
+     */
+    public GamePosition position() {
+        return lastGameSnapshot().position();
+    }
+
+    /**
+     * Returns the game actors' pair.
+     *
+     * @return the game actors' pair
+     */
+    public ActorsPair actors() {
+        return actors;
+    }
+
+    /**
      * Returns the clock of the last game snapshot.
      *
      * @return the last game snapshot clock
