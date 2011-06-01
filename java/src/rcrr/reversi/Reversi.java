@@ -129,6 +129,7 @@ public final class Reversi {
         long totalOfPointDiff = 0;
         double numberOfWins = 0.;
         for (int i = 0; i < nPairs; i++) {
+
             scores.add(+ reversi(strategyOne, strategyTwo, new NullPrintStream(), gameDuration));
             scores.add(- reversi(strategyTwo, strategyOne, new NullPrintStream(), gameDuration));
         }
@@ -143,7 +144,38 @@ public final class Reversi {
         results.put("numberOfWins", numberOfWins);
         return results;
     }
-    
+
+    private static Game.Builder randomInitialization(final Strategy strategyOne,
+                                                     final Strategy strategyTwo,
+                                                     final Duration gameDuration,
+                                                     final int numberOfRandomMoves) {
+        return new Game.Builder()
+            .withActors(new ActorsPair.Builder()
+                        .withActor(Player.BLACK, new Actor.Builder()
+                                   .withStrategy(strategyOne)
+                                   .build())
+                        .withActor(Player.WHITE, new Actor.Builder()
+                                   .withStrategy(strategyTwo)
+                                   .build())
+                        .build())
+            .withPrintStream(new NullPrintStream())
+            .withSequence(new GameSequence.Builder()
+                          .withSnapshots(new GameSnapshot.Builder()
+                                         .withClock(Clock.initialClock(gameDuration))
+                                         .withPosition(Game.randomGame(numberOfRandomMoves).position())
+                                         .withRegister(MoveRegister.empty())
+                                         .build())
+                          .build());
+    }
+
+    private static Game.Builder flipActors(final Game.Builder gb) {
+        Actor one = gb.build().actors().get(Player.BLACK);
+        Actor two = gb.build().actors().get(Player.WHITE);
+        return gb.withActors(new ActorsPair.Builder()
+                             .withActor(Player.BLACK, two)
+                             .withActor(Player.WHITE, one)
+                             .build());
+    }
 
     /**
      * The main entry point for the Reversi Program.
