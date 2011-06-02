@@ -405,19 +405,30 @@ public class ReversiTest {
     }
 
     /**
-     * Tests the {@code reversiSeries(Strategy, Strategy, int, Duration)} method.
+     * Tests the {@code reversiSeries(Actor, Actor, int, Duration)} method.
      *
-     * @see Reversi#reversiSeries(Strategy, Strategy, int, Duration)
+     * @see Reversi#reversiSeries(Actor, Actor, int, Duration)
      */
     @Test
     public final void testReversiSeries() {
 
-        Map<String, Object> results = Reversi.reversiSeries(AlphaBeta.getInstance().searcher(2, new ModifiedWeightedSquares()),
-                                                            AlphaBeta.getInstance().searcher(2, new WeightedSquares()),
+        Map<String, Object> results = Reversi.reversiSeries(new Actor.Builder()
+                                                            .withName("Modified weighted squares, a-b two ply search.")
+                                                            .withStrategy(AlphaBeta.getInstance()
+                                                                          .searcher(2, new ModifiedWeightedSquares()))
+                                                            .build(),
+                                                            new Actor.Builder()
+                                                            .withName("Weighted squares, a-b two ply search.")
+                                                            .withStrategy(AlphaBeta.getInstance()
+                                                                          .searcher(2, new WeightedSquares()))
+                                                            .build(),
                                                             5,
                                                             STANDARD_GAME_DURATION);
 
-        System.out.println("results=" + results);
+        /** Output of the test. */
+        write((String) results.get("scores").toString(),
+              "ReversiTest",
+              "Method=testReversiSeries");
 
         assertTrue("The test must run without exceptions.", true);
 
