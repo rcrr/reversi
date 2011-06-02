@@ -163,6 +163,9 @@ public final class Game {
      */
     public static final int MAX_ALLOWED_NUMBER_OF_ILLEGAL_MOVES = 7;
 
+    /** The number of empty squares at the beginning of a standard game. */
+    private static final long MAX_PUT_DISC_MOVES = 60;
+
     /**
      * A static factory that returns an initial game. The {@code black} and {@code white} parameters
      * define the two actors playing the game. The {@code gameDuration} parameter sets the clock time
@@ -215,9 +218,6 @@ public final class Game {
         return new Game(actors, sequence, (ps == null) ? new NullPrintStream() : ps);
     }
 
-    /** The number of empty squares at the beginning of a standard game. */
-    private static final long MAX_PUT_DISC_MOVES = 60;
-
     /**
      * Returns a random game instance.
      * <p>
@@ -257,7 +257,6 @@ public final class Game {
     /**
      * The game sequence field. It has to be mutable.
      * Synchronization must be developed.
-     * Why not name it gameSnapshotSequence?
      */
     private GameSequence sequence;
 
@@ -266,13 +265,6 @@ public final class Game {
      * Why not develop a specific object that handles the IO?
      */
     private final PrintStream ps;
-
-    /**
-     * The aClock field. The name is ugly.
-     * The game-clock design is coupled with the game-state-machine,
-     * and need to work into a different Thread compared with the strategies.
-     */
-    private Clock aClock;
 
     /**
      * Class constructor.
@@ -464,6 +456,7 @@ public final class Game {
      */
     public String print() {
         final StringBuilder sbGame = new StringBuilder();
+        sbGame.append(actors().print() + "\n");
         for (int i = 0; i < sequence().size(); i++) {
             GameSnapshot snapshot = sequence().get(i);
             sbGame.append(snapshot.printGameSnapshot());
