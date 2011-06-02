@@ -195,4 +195,13 @@ public final class Actor {
         return strategy;
     }
 
+    /**
+     * Returns a formatted string, showing the actor's name.
+     *
+     * @return a string showing the actor's name
+     */
+    public String print() {
+        return "[" + name + "]";
+    }
+
 }

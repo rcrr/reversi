@@ -183,4 +183,13 @@ public final class ActorsPair {
         return actors.get(color);
     }
 
+    /**
+     * Returns a formatted string, showing the actors pair.
+     *
+     * @return a string showing the actors pair
+     */
+    public String print() {
+        return "[Black's actor=" + get(Player.BLACK).print() + ", white's actor=" + get(Player.WHITE).print() + "]";
+    }
+
 }
