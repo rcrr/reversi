@@ -25,14 +25,19 @@
 package rcrr.reversi;
 
 import java.util.List;
+import java.util.ListIterator;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
 
 import java.io.PrintStream;
 
 import org.joda.time.Period;
 import org.joda.time.Duration;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
  * The reversi class {@code Reversi} is the main entry point for the program.
@@ -166,6 +171,87 @@ public final class Reversi {
         results.put("numberOfWins", numberOfWins);
         results.put("pairsOfGames", pairsOfGames);
         return results;
+    }
+
+    public static Map<String, Object> roundRobin(final Set<Actor> actors,
+                                                 final int nPairs,
+                                                 final Duration gameDuration) {
+
+        List<Actor> actorsAsList = new ArrayList<Actor>(actors);
+        final Map<String, Object> results = new HashMap<String, Object>();
+        results.put("actorsAsList", actorsAsList);
+        results.put("nPairs", nPairs);
+
+        ListIterator<Actor> firstCursor = actorsAsList.listIterator();
+        while (firstCursor.hasNext()) {
+            Actor defender = firstCursor.next();
+            ListIterator<Actor> secondCursor = actorsAsList.listIterator(firstCursor.nextIndex());
+            while (secondCursor.hasNext()) {
+                Actor challenger = secondCursor.next();
+                //System.out.println("Play: defender=" + defender.print() + ", challenger=" + challenger.print());
+                results.put("matchResults" + firstCursor.nextIndex() + "-" + secondCursor.nextIndex(),
+                            reversiSeries(defender,
+                                          challenger,
+                                          nPairs,
+                                          gameDuration));
+            }
+            
+        }
+
+        return results;
+    }
+
+    public static void postProcessRoundRobinResults(final Map<String, Object> results) {
+        @SuppressWarnings("unchecked")
+            List<Actor> actorsAsList = (List<Actor>) results.get("actorsAsList");
+        @SuppressWarnings("unchecked")
+            int nPairs = (Integer) results.get("nPairs");
+        int maxActorStringLength = 0;
+        for (Actor actor : actorsAsList) {
+            int tmp = actor.print().length();
+            if (tmp > maxActorStringLength) { maxActorStringLength = tmp; }
+        }
+        String actorFormatter = "%" + maxActorStringLength + "s";
+        for (Actor defender : actorsAsList) {
+            StringWriter swReportLine = new StringWriter();
+            PrintWriter pwReportLine = new PrintWriter(swReportLine); 
+            StringWriter swReportGrid = new StringWriter();
+            PrintWriter pwReportGrid = new PrintWriter(swReportGrid); 
+            pwReportLine.printf(actorFormatter, defender.print());
+            double totalNumberOfWins = 0.;
+            for (Actor challenger : actorsAsList) {
+                int idxDefender = actorsAsList.indexOf(defender) + 1;
+                int idxChallenger = actorsAsList.indexOf(challenger) + 1;
+                double numberOfWins = 0.;
+                if (challenger == defender) {
+                    numberOfWins = 0.;
+                    pwReportGrid.printf(" ===== ");
+                } else if (idxChallenger < idxDefender) {
+                    numberOfWins = (2* nPairs) - numberOfWins(results, idxChallenger, idxDefender);
+                    pwReportGrid.printf(" %5.1f ", numberOfWins);
+                } else {
+                    numberOfWins = numberOfWins(results, idxDefender, idxChallenger);
+                    pwReportGrid.printf(" %5.1f ", numberOfWins);
+                }
+                totalNumberOfWins += numberOfWins;
+            }
+            pwReportLine.printf(" ... %6.1f:", totalNumberOfWins);
+            pwReportLine.printf("%s", swReportGrid.toString());
+            System.out.println(swReportLine.toString());
+        }
+    }
+
+    private static final double numberOfWins(final Map<String, Object> results,
+                                             final int idxDefender,
+                                             final int idxChallenger) {
+        @SuppressWarnings("unchecked")
+            Map<String, Object> matchResults = (Map<String, Object>) results.get("matchResults"
+                                                                                 + idxDefender
+                                                                                 + "-"
+                                                                                 + idxChallenger);
+        @SuppressWarnings("unchecked")
+            double numberOfWins = (Double) matchResults.get("numberOfWins");
+        return numberOfWins;
     }
 
     /**
