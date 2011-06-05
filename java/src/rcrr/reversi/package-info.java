@@ -29,6 +29,8 @@ Main algorithm and structural classes.
 To do:
 <p>
 <ul>
+  <li>Reversi.reversiSeries and Reversi.roundRobin should write results to a binary/ascii file
+      during execution of each game. A post processor has to be developed.</li>
   <li>Some methods receive as parameters the board and the player. Replace them with a GamePosition.</li>
   <li>Verify that all the factories that receive a mutable object make the appropriate defensive copy.</li>
   <li>The actor that share the strategy by means of the strategy() method is not safe.

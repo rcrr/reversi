@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.junit.Test;
 
@@ -429,6 +431,52 @@ public class ReversiTest {
         write((String) results.get("scores").toString(),
               "ReversiTest",
               "Method=testReversiSeries");
+
+        assertTrue("The test must run without exceptions.", true);
+
+    }
+
+    /**
+     * Tests the {@code roundRobin(List, int)} method.
+     *
+     * @see Reversi#roundRobin(List, int)
+     */
+    @Test
+    public final void testRoundRobin_A() {
+
+        Set<Actor> actors = new HashSet<Actor>();
+        actors.add(Actor.valueOf("Maximize Count Difference", AbstractDecisionRule.maximizer(new CountDifference())));
+        actors.add(Actor.valueOf("Maximize Mobility", AbstractDecisionRule.maximizer(new Mobility())));
+        actors.add(Actor.valueOf("Maximize Weighted Squares", AbstractDecisionRule.maximizer(new WeightedSquares())));
+        actors.add(Actor.valueOf("Maximize Mod-Weighted Squares", AbstractDecisionRule.maximizer(new ModifiedWeightedSquares())));
+        actors.add(Actor.valueOf("Random Strategy", new RandomStrategy()));
+
+        Map<String, Object> results = Reversi.roundRobin(actors, 10, STANDARD_GAME_DURATION);
+
+        Reversi.postProcessRoundRobinResults(results);
+
+        assertTrue("The test must run without exceptions.", true);
+
+    }
+
+    /**
+     * Tests the {@code roundRobin(List, int)} method.
+     *
+     * @see Reversi#roundRobin(List, int)
+     */
+    @Test
+    public final void testRoundRobin_B() {
+
+        Set<Actor> actors = new HashSet<Actor>();
+        actors.add(Actor.valueOf("Alpha-Beta 4 ply Count Difference", AlphaBeta.getInstance().searcher(4, new CountDifference())));
+        actors.add(Actor.valueOf("Alpha-Beta 4 ply Mobility", AlphaBeta.getInstance().searcher(4, new Mobility())));
+        actors.add(Actor.valueOf("Alpha-Beta 4 ply Weighted Squares", AlphaBeta.getInstance().searcher(4, new WeightedSquares())));
+        actors.add(Actor.valueOf("Alpha-Beta 4 ply Mod-Weighted Squares", AlphaBeta.getInstance().searcher(6, new ModifiedWeightedSquares())));
+        actors.add(Actor.valueOf("Random Strategy", new RandomStrategy()));
+
+        Map<String, Object> results = Reversi.roundRobin(actors, 10, STANDARD_GAME_DURATION);
+
+        Reversi.postProcessRoundRobinResults(results);
 
         assertTrue("The test must run without exceptions.", true);
 
