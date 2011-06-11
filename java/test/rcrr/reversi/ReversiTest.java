@@ -428,7 +428,7 @@ public class ReversiTest {
                                                             STANDARD_GAME_DURATION);
 
         /** Output of the test. */
-        write((String) results.get("scores").toString(),
+        write((String) results.get("scores").toString() + "\n",
               "ReversiTest",
               "Method=testReversiSeries");
 
@@ -437,12 +437,12 @@ public class ReversiTest {
     }
 
     /**
-     * Tests the {@code roundRobin(List, int)} method.
+     * Tests the {@code roundRobin(Set, int, Duration)} method.
      *
-     * @see Reversi#roundRobin(List, int)
+     * @see Reversi#roundRobin(Set, int, Duration)
      */
     @Test
-    public final void testRoundRobin_A() {
+    public final void testRoundRobin_usesMaximizer() {
 
         Set<Actor> actors = new HashSet<Actor>();
         actors.add(Actor.valueOf("Maximize Count Difference", AbstractDecisionRule.maximizer(new CountDifference())));
@@ -451,32 +451,42 @@ public class ReversiTest {
         actors.add(Actor.valueOf("Maximize Mod-Weighted Squares", AbstractDecisionRule.maximizer(new ModifiedWeightedSquares())));
         actors.add(Actor.valueOf("Random Strategy", new RandomStrategy()));
 
-        Map<String, Object> results = Reversi.roundRobin(actors, 10, STANDARD_GAME_DURATION);
+        Map<String, Object> results = Reversi.roundRobin(actors, 5, STANDARD_GAME_DURATION);
 
-        Reversi.postProcessRoundRobinResults(results);
+        String report = Reversi.postProcessRoundRobinResults(results);
+
+        /** Output of the test. */
+        write(report,
+              "ReversiTest",
+              "Method=testRoundRobin_usesMaximizer");
 
         assertTrue("The test must run without exceptions.", true);
 
     }
 
     /**
-     * Tests the {@code roundRobin(List, int)} method.
+     * Tests the {@code roundRobin(Set, int, Duration)} method.
      *
-     * @see Reversi#roundRobin(List, int)
+     * @see Reversi#roundRobin(Set, int, Duration)
      */
     @Test
-    public final void testRoundRobin_B() {
+    public final void testRoundRobin_usesAlphaBeta() {
 
         Set<Actor> actors = new HashSet<Actor>();
-        actors.add(Actor.valueOf("Alpha-Beta 4 ply Count Difference", AlphaBeta.getInstance().searcher(4, new CountDifference())));
-        actors.add(Actor.valueOf("Alpha-Beta 4 ply Mobility", AlphaBeta.getInstance().searcher(4, new Mobility())));
-        actors.add(Actor.valueOf("Alpha-Beta 4 ply Weighted Squares", AlphaBeta.getInstance().searcher(4, new WeightedSquares())));
-        actors.add(Actor.valueOf("Alpha-Beta 4 ply Mod-Weighted Squares", AlphaBeta.getInstance().searcher(6, new ModifiedWeightedSquares())));
+        actors.add(Actor.valueOf("Alpha-Beta 2 ply Count Difference", AlphaBeta.getInstance().searcher(2, new CountDifference())));
+        actors.add(Actor.valueOf("Alpha-Beta 2 ply Mobility", AlphaBeta.getInstance().searcher(2, new Mobility())));
+        actors.add(Actor.valueOf("Alpha-Beta 2 ply Weighted Squares", AlphaBeta.getInstance().searcher(2, new WeightedSquares())));
+        actors.add(Actor.valueOf("Alpha-Beta 2 ply Mod-Weighted Squares", AlphaBeta.getInstance().searcher(2, new ModifiedWeightedSquares())));
         actors.add(Actor.valueOf("Random Strategy", new RandomStrategy()));
 
-        Map<String, Object> results = Reversi.roundRobin(actors, 10, STANDARD_GAME_DURATION);
+        Map<String, Object> results = Reversi.roundRobin(actors, 2, STANDARD_GAME_DURATION);
 
-        Reversi.postProcessRoundRobinResults(results);
+        String report = Reversi.postProcessRoundRobinResults(results);
+
+        /** Output of the test. */
+        write(report,
+              "ReversiTest",
+              "Method=testRoundRobin_usesAlphaBeta");
 
         assertTrue("The test must run without exceptions.", true);
 
@@ -571,12 +581,14 @@ public class ReversiTest {
 
     /**
      * Writes the content to the specified filename.
+     * <p>
+     * The method should be refacored into a dedicated utility class.
      *
      * @param content  the content to be written to the file.
      * @param filename the nane of the file.
      * @param header   the header written before the content.
      */
-    private void write(final String content, final String filename, final String header) {
+    static final void write(final String content, final String filename, final String header) {
         final PrintStream out = testOutputStream(filename);
         try {
             out.println(header);
@@ -599,7 +611,7 @@ public class ReversiTest {
      * @param filename the filename used for the print stream construction
      * @return         a new print stream
      */
-    private PrintStream testOutputStream(final String filename) {
+    private static final PrintStream testOutputStream(final String filename) {
         OutputStream out;
         File fOut = null;
         String sTestOutputFileDir = System.getProperty("test.output-files.dir");
