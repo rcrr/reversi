@@ -29,6 +29,14 @@ import java.util.HashMap;
 import java.util.EnumMap;
 import java.util.Arrays;
 
+import java.io.IOException;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
@@ -50,6 +58,57 @@ public class BoardTest {
 
     /** Class constructor. */
     public BoardTest() { }
+
+    private static final String byteArrayToString(final byte[] bytes) {
+        final StringBuffer sb = new StringBuffer();
+        int index = 0;
+        for (byte b : bytes) {
+            sb.append(String.format("[%3d]=%02X\n", index, b));
+            index++;
+        }
+        return sb.toString();
+    }
+
+    private static final byte[] serializeToByteArray(final Board board) {
+        byte[] results = null;
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutput out = new ObjectOutputStream(bos);   
+            out.writeObject(board);
+            results = bos.toByteArray();
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+        return results;
+    }
+
+    private static final Board deserializeFromByteArray(final byte[] bytes) {
+        Board result = null;
+        try {
+            ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+            ObjectInput in = new ObjectInputStream(bis);
+            result = (Board) in.readObject();
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        } catch (ClassNotFoundException cnfe) {
+            throw new RuntimeException(cnfe);
+        }
+        return result;
+    }
+
+    private static final Board serializationRoundTrip(final Board board) {
+        return deserializeFromByteArray(serializeToByteArray(board));
+    }
+
+    @Test
+    public final void testSerialization() {
+
+        assertThat("serializationRoundTrip(BoardFixtures.AN_INSTANCE) is"
+                   + " equal to BoardFixtures.AN_INSTANCE.",
+                   serializationRoundTrip(BoardFixtures.AN_INSTANCE),
+                   is(BoardFixtures.AN_INSTANCE));
+
+    }
 
     /**
      * Tests the {@code countDifference(Player)} method when parameter
