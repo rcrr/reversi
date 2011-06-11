@@ -36,6 +36,10 @@ import java.util.Map;
 import java.util.Collections;
 import java.util.EnumMap;
 
+import java.io.Serializable;
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+
 /**
  * A board is an instance of a board game position. It is the state that a board
  * has regardless of the player that has to move or the time spent or remaining to each player.
@@ -51,7 +55,94 @@ import java.util.EnumMap;
  * <p>
  * @see Square
  */
-public final class Board {
+public final class Board implements Serializable {
+
+    private static final class SerializationProxy implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        private static final int BOARD_SQUARES = 64;
+
+        private static final long[] ARRAY_OF_MASKS = new long[BOARD_SQUARES];
+
+        static {
+            for (int position = 0; position < BOARD_SQUARES; position++) {
+                ARRAY_OF_MASKS[position] = 1L << position;
+            }
+        }
+
+        private static long[] mapToBitboard(final Map<Square, SquareState> squares) {
+            assert (squares != null) : "Parameter squares cannot be null.";
+            assert (squares.size() == Square.values().length) : "Parameter squares size is not consistent."
+                + " squares.size()=" + squares.size()
+                + " expected value: " + Square.values().length;
+            assert (!squares.containsKey(null)) : "Parameter squares cannot contains null keys.";
+            assert (!squares.containsValue(null)) : "Parameter squares cannot contains null values.";
+            final long[] bitboard = {0L, 0L};
+            final Square[] keys = Square.values();
+            for (int position = 0; position < BOARD_SQUARES; position++) {
+                Square key = keys[position];
+                switch (squares.get(key)) {
+                case EMPTY: break;
+                case BLACK: bitboard[0] += ARRAY_OF_MASKS[position]; break;
+                case WHITE: bitboard[1] += ARRAY_OF_MASKS[position]; break;
+                default: throw new IllegalArgumentException("Parameter squares contains an unexpected value.");
+                }
+            }
+            return bitboard;
+        }
+
+        private static Map<Square, SquareState> bitboardToMap(final long[] bitboard) {
+            assert (bitboard.length == 2) : "Parameter bitboard must be an array of length two.";
+            final Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
+            final Square[] keys = Square.values();
+            for (int position = 0; position < BOARD_SQUARES; position++) {
+                Square key = keys[position];
+                SquareState value;
+                if ((bitboard[0] & ARRAY_OF_MASKS[position]) != 0L) {
+                    value = SquareState.BLACK;
+                } else if ((bitboard[1] & ARRAY_OF_MASKS[position]) != 0L) {
+                    value = SquareState.WHITE;
+                } else {
+                    value = SquareState.EMPTY;
+                }
+                sm.put(key, value);
+            }
+            return sm;
+        }
+
+        private final long[] bitboard;
+
+        SerializationProxy(final Board board) {
+            this.bitboard = mapToBitboard(board.squares());
+        }
+
+        // readResolve method for Board.SerializationProxy
+        private Object readResolve() {
+            if (this.bitboard.length != 2) {
+                throw new IllegalArgumentException("Class field bitboard has the wrong length.");
+            }
+            if ((bitboard[0] & bitboard[1]) != 0L) {
+                throw new IllegalArgumentException("Class field bitboard has invalid values.");
+            }
+            return Board.valueOf(bitboardToMap(this.bitboard));
+        }
+
+    }
+
+    private Map<Square, SquareState> squares() {
+        return this.squares;
+    }
+
+    // writeReplace method for the serialization proxy pattern
+    private Object writeReplace() {
+        return new SerializationProxy(this);
+    }
+
+    // readObject method for the serialization proxy pattern
+    private void readObject(final ObjectInputStream stream) throws InvalidObjectException {
+        throw new InvalidObjectException("Proxy required");
+    }
 
     /**
      * An instance of this class encapsulates the information needed to instantiate

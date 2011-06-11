@@ -152,8 +152,8 @@ public final class Reversi {
 
             int resOne = gameOne.play();
             int resTwo = gameTwo.play();
-            scores.add( + resOne);
-            scores.add( - resTwo);
+            scores.add(+resOne);
+            scores.add(-resTwo);
 
             details.put("resOne", resOne);
             details.put("resTwo", resTwo);
@@ -162,9 +162,13 @@ public final class Reversi {
         }
         for (int score : scores) {
             totalOfPointDiff += score;
-            if (score > 0) { numberOfWins++; }
-            else if (score == 0) { numberOfWins += 0.5; }
-            else { }
+            if (score > 0) {
+                numberOfWins++;
+            } else if (score == 0) {
+                numberOfWins += 0.5;
+            } else {
+                ;
+            }
         }
         results.put("scores", scores);
         results.put("totalOfPointDiff", totalOfPointDiff);
@@ -195,13 +199,22 @@ public final class Reversi {
                                           nPairs,
                                           gameDuration));
             }
-            
+
         }
 
         return results;
     }
 
-    public static void postProcessRoundRobinResults(final Map<String, Object> results) {
+    /**
+     * The method receives the {@code results} map and post process it formatting a report
+     * returned as a string object.
+     * <p>
+     *
+     * @param results the round robin result map
+     * @return        a string holding the formatted report
+     */
+    public static String postProcessRoundRobinResults(final Map<String, Object> results) {
+        StringBuffer report = new StringBuffer();
         @SuppressWarnings("unchecked")
             List<Actor> actorsAsList = (List<Actor>) results.get("actorsAsList");
         @SuppressWarnings("unchecked")
@@ -214,9 +227,9 @@ public final class Reversi {
         String actorFormatter = "%" + maxActorStringLength + "s";
         for (Actor defender : actorsAsList) {
             StringWriter swReportLine = new StringWriter();
-            PrintWriter pwReportLine = new PrintWriter(swReportLine); 
+            PrintWriter pwReportLine = new PrintWriter(swReportLine);
             StringWriter swReportGrid = new StringWriter();
-            PrintWriter pwReportGrid = new PrintWriter(swReportGrid); 
+            PrintWriter pwReportGrid = new PrintWriter(swReportGrid);
             pwReportLine.printf(actorFormatter, defender.print());
             double totalNumberOfWins = 0.;
             for (Actor challenger : actorsAsList) {
@@ -227,7 +240,7 @@ public final class Reversi {
                     numberOfWins = 0.;
                     pwReportGrid.printf(" ===== ");
                 } else if (idxChallenger < idxDefender) {
-                    numberOfWins = (2* nPairs) - numberOfWins(results, idxChallenger, idxDefender);
+                    numberOfWins = (2 * nPairs) - numberOfWins(results, idxChallenger, idxDefender);
                     pwReportGrid.printf(" %5.1f ", numberOfWins);
                 } else {
                     numberOfWins = numberOfWins(results, idxDefender, idxChallenger);
@@ -237,13 +250,15 @@ public final class Reversi {
             }
             pwReportLine.printf(" ... %6.1f:", totalNumberOfWins);
             pwReportLine.printf("%s", swReportGrid.toString());
-            System.out.println(swReportLine.toString());
+            //System.out.println(swReportLine.toString());
+            report.append(swReportLine.toString() + "\n");
         }
+        return report.toString();
     }
 
-    private static final double numberOfWins(final Map<String, Object> results,
-                                             final int idxDefender,
-                                             final int idxChallenger) {
+    private static double numberOfWins(final Map<String, Object> results,
+                                       final int idxDefender,
+                                       final int idxChallenger) {
         @SuppressWarnings("unchecked")
             Map<String, Object> matchResults = (Map<String, Object>) results.get("matchResults"
                                                                                  + idxDefender
@@ -293,7 +308,8 @@ public final class Reversi {
     /**
      * Modify the provided {@code gb} parameter flipping the two actors, than return it.
      *
-     * @return the reference to the modified game builder {@code gb} parameter
+     * @param gb the game builder to update
+     * @return   the reference to the modified game builder {@code gb} parameter
      */
     private static Game.Builder flipActors(final Game.Builder gb) {
         Actor one = gb.build().actors().get(Player.BLACK);
