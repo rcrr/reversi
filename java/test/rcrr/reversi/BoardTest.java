@@ -56,9 +56,12 @@ import static org.hamcrest.CoreMatchers.instanceOf;
  */
 public class BoardTest {
 
-    /** Class constructor. */
-    public BoardTest() { }
-
+    /**
+     * Returns a string object reporting the content of the {@code bytes} parameter.
+     *
+     * @param bytes a byte array to transform into a printable string
+     * @return      a string describing the {@code bytes} parameter
+     */
     private static final String byteArrayToString(final byte[] bytes) {
         final StringBuffer sb = new StringBuffer();
         int index = 0;
@@ -69,6 +72,12 @@ public class BoardTest {
         return sb.toString();
     }
 
+    /**
+     * Returns a byte array obtained serializing the {@code board} parameter.
+     *
+     * @param board the board to transform
+     * @return      the byte array holding the serialized board
+     */
     private static final byte[] serializeToByteArray(final Board board) {
         byte[] results = null;
         try {
@@ -82,6 +91,12 @@ public class BoardTest {
         return results;
     }
 
+    /**
+     * Returns a new board obtained deserializing the {@code bytes} parameter.
+     *
+     * @param bytes the byte array holding the serialized board
+     * @return      the new board
+     */
     private static final Board deserializeFromByteArray(final byte[] bytes) {
         Board result = null;
         try {
@@ -96,9 +111,20 @@ public class BoardTest {
         return result;
     }
 
+    /**
+     * Returns a new board being a copy of the {@code board} parameter.
+     * The method apply a serialization and a deserialization of the passed
+     * board.
+     *
+     * @param board the board to be copied
+     * @return      the new copied board
+     */
     private static final Board serializationRoundTrip(final Board board) {
         return deserializeFromByteArray(serializeToByteArray(board));
     }
+
+    /** Class constructor. */
+    public BoardTest() { }
 
     @Test
     public final void testSerialization() {
