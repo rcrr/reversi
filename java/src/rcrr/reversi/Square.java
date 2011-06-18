@@ -288,7 +288,7 @@ public enum Square {
      * . - sets and initializes {@code INVERSE_LABELS} map
      */
     static {
-        final Map<Square, String> labelMap = new HashMap<Square, String>();
+        final Map<Square, String> labelMap = new EnumMap<Square, String>(Square.class);
         final Map<String, Square> inverseLabelMap = new HashMap<String, Square>();
         for (Square sq : values()) {
             String label = sq.column.label() + sq.row.label();
