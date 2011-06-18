@@ -692,10 +692,10 @@ public final class Board implements Serializable {
         StringBuilder sb = new StringBuilder();
         sb.append("    a b c d e f g h ");
         for (Row r : Row.values()) {
-            sb.append("\n " + r.label() + "  ");
+            sb.append("\n ").append(r.label()).append("  ");
             for (Column c : Column.values()) {
                 String p = get(Square.getInstance(r, c)).symbol();
-                sb.append(p + " ");
+                sb.append(p).append(" ");
             }
         }
         sb.append("\n");

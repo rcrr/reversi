@@ -592,7 +592,7 @@ public class GameTest {
                 private final Square[] moves = {Square.A1, Square.E6};
                 public Move move(final GameSnapshot snapshot) {
                     try {
-                        Thread.sleep(moveTime);
+                        Thread.sleep(2 * moveTime);
                     } catch (java.lang.InterruptedException ie) {
                         throw new RuntimeException(ie);
                     }
