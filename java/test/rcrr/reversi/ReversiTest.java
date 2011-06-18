@@ -559,7 +559,7 @@ public class ReversiTest {
         results.put("whiteWins", whiteWins);
         results.put("draws", draws);
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(String.format("Date & time:\t\t%tB %te, %tY - %tl:%tM %tp%n", c, c, c, c, c, c));
         sb.append(String.format("Number of games:\t%d%n", scores.size()));
         sb.append(String.format("Test duration:\t\t%s%n", testDuration));
@@ -588,7 +588,7 @@ public class ReversiTest {
      * @param filename the nane of the file.
      * @param header   the header written before the content.
      */
-    static final void write(final String content, final String filename, final String header) {
+    static void write(final String content, final String filename, final String header) {
         final PrintStream out = testOutputStream(filename);
         try {
             out.println(header);
@@ -611,13 +611,15 @@ public class ReversiTest {
      * @param filename the filename used for the print stream construction
      * @return         a new print stream
      */
-    private static final PrintStream testOutputStream(final String filename) {
+    private static PrintStream testOutputStream(final String filename) {
         OutputStream out;
         File fOut = null;
         String sTestOutputFileDir = System.getProperty("test.output-files.dir");
-        File testOutputFileDir = new File(sTestOutputFileDir);
-        if (testOutputFileDir.exists() && testOutputFileDir.isDirectory()) {
-            fOut = new File(testOutputFileDir, filename + ".txt");
+        if (sTestOutputFileDir != null) {
+            File testOutputFileDir = new File(sTestOutputFileDir);
+            if (testOutputFileDir.exists() && testOutputFileDir.isDirectory()) {
+                fOut = new File(testOutputFileDir, filename + ".txt");
+            }
         }
         if (fOut == null || (fOut.exists() && !fOut.canWrite())) {
             try {
