@@ -5,3 +5,6 @@
 *.class
 build
 lib
+manifest.mf
+nbbuild.xml
+nbproject
