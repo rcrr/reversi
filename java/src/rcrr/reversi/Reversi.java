@@ -214,7 +214,7 @@ public final class Reversi {
      * @return        a string holding the formatted report
      */
     public static String postProcessRoundRobinResults(final Map<String, Object> results) {
-        StringBuffer report = new StringBuffer();
+        StringBuilder report = new StringBuilder();
         @SuppressWarnings("unchecked")
             List<Actor> actorsAsList = (List<Actor>) results.get("actorsAsList");
         @SuppressWarnings("unchecked")
@@ -251,7 +251,7 @@ public final class Reversi {
             pwReportLine.printf(" ... %6.1f:", totalNumberOfWins);
             pwReportLine.printf("%s", swReportGrid.toString());
             //System.out.println(swReportLine.toString());
-            report.append(swReportLine.toString() + "\n");
+            report.append(swReportLine.toString()).append("\n");
         }
         return report.toString();
     }

@@ -26,8 +26,6 @@ package rcrr.reversi;
 
 import java.util.Set;
 import java.util.HashSet;
-import java.util.List;
-import java.util.ArrayList;
 
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
