@@ -95,7 +95,7 @@ public class WeightedSquares implements EvalFunction {
      *
      * @return the weights map
      */
-    public static final Map<Square, Integer> weights() {
+    public static Map<Square, Integer> weights() {
         return new EnumMap<Square, Integer>(WEIGHTS);
     }
 

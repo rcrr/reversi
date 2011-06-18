@@ -65,7 +65,7 @@ public final class Actor {
          * Construct a new builder.
          */
         public Builder() {
-            this.name = new String("An actor");
+            this.name = "An actor";
             this.strategy = new RandomStrategy();
         }
 
