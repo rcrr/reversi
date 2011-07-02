@@ -32,7 +32,7 @@ import java.util.List;
  * algorithm.
  * <p>
  * The alpha-beta family of algorithms is described by the wikipedia
- * page: <a href="http://en.wikipedia.org/wiki/Alpha-beta_pruning">alpha-beta pruning</a>.
+ * page: <a href="http://en.wikipedia.org/wiki/Alpha-beta_pruning" target="_blank">alpha-beta pruning</a>.
  */
 public final class AlphaBeta extends AbstractDecisionRule {
 
