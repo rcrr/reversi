@@ -31,7 +31,7 @@ import java.util.List;
  * objects. These searcher methods differ for the algorithm implementation.
  * <p>
  * The Minimax family of algorithms is described by the wikipedia
- * page: <a href="http://en.wikipedia.org/wiki/Minimax">Minimax</a>.
+ * page: <a href="http://en.wikipedia.org/wiki/Minimax" target="_blank">Minimax</a>.
  * <p>
  */
 public final class Minimax extends AbstractDecisionRule {
