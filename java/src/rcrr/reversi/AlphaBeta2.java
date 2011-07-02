@@ -38,6 +38,8 @@ import java.util.List;
  */
 public final class AlphaBeta2 extends AbstractDecisionRule {
 
+    private int efInvokeCount;
+
     /**
      * Class static factory.
      *
@@ -48,7 +50,9 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
     }
 
     /** Class constructor. */
-    private AlphaBeta2() { };
+    private AlphaBeta2() {
+        efInvokeCount = 0;
+    };
 
     /**
      * Implemented by means of the alpha-beta algorithm.
@@ -67,15 +71,86 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
                              final int cutoff,
                              final int ply,
                              final EvalFunction ef) {
+
+        efInvokeCount = 0;
+        SearchNode result = search2(player, board, achievable, cutoff, ply, ef);
+        // System.out.println("efInvokeCount=" + efInvokeCount);
+        return result;
+    }
+
+    /**
+     * The minimax function.
+     *
+     * @param player     the player that has the move
+     * @param board      the reached board
+     * @param achievable not used
+     * @param cutoff     not used
+     * @param ply        the search depth reached
+     * @param ef         the evaluation function
+     * @return           a node in the search tree
+     */
+    public SearchNode search1(final Player player,
+                              final Board board,
+                              final int achievable,
+                              final int cutoff,
+                              final int ply,
+                              final EvalFunction ef) {
         SearchNode node;
         final Player opponent = player.opponent();
         if (ply == 0) {
             node = SearchNode.valueOf(null, ef.eval(GamePosition.valueOf(board, player)));
+            efInvokeCount++;
         } else {
             List<Square> moves = board.legalMoves(player);
             if (moves.isEmpty()) {
                 if (board.hasAnyLegalMove(opponent)) {
-                    node = search(opponent, board, -cutoff, -achievable, ply - 1, ef).negated();
+                    node = search1(opponent, board, 0, 0, ply - 1, ef).negated();
+                } else {
+                    node = SearchNode.valueOf(null, finalValue(board, player));
+                }
+            } else {
+                node = SearchNode.valueOf(null, Integer.MIN_VALUE);
+                for (Square move : moves) {
+                    int value = search1(opponent, board.makeMove(move, player),
+                                       0, 0,
+                                       ply - 1, ef).negated().value();
+                    if (value > node.value()) {
+                        node = SearchNode.valueOf(move, value);
+                    }
+                }
+            }
+        }
+        return node;
+    }
+
+
+    /**
+     * Implemented by means of the alpha-beta algorithm.
+     *
+     * @param player     the player having the move
+     * @param board      the board
+     * @param achievable the upper bound
+     * @param cutoff     the lower bound
+     * @param ply        the search depth
+     * @param ef         the evaluation function
+     * @return a new search node
+     */
+    private SearchNode search2(final Player player,
+                               final Board board,
+                               final int achievable,
+                               final int cutoff,
+                               final int ply,
+                               final EvalFunction ef) {
+        SearchNode node;
+        final Player opponent = player.opponent();
+        if (ply == 0) {
+            node = SearchNode.valueOf(null, ef.eval(GamePosition.valueOf(board, player)));
+            efInvokeCount++;
+        } else {
+            List<Square> moves = board.legalMoves(player);
+            if (moves.isEmpty()) {
+                if (board.hasAnyLegalMove(opponent)) {
+                    node = search2(opponent, board, -cutoff, -achievable, ply - 1, ef).negated();
                 } else {
                     node = SearchNode.valueOf(null, finalValue(board, player));
                 }
@@ -83,7 +158,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
                 node = SearchNode.valueOf(moves.get(0), achievable);
                 outer: for (Square move : moves) {
                     Board board2 = board.makeMove(move, player);
-                    int val = search(opponent, board2, -cutoff, -node.value(), ply - 1, ef).negated().value();
+                    int val = search2(opponent, board2, -cutoff, -node.value(), ply - 1, ef).negated().value();
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
