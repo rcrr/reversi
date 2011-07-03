@@ -24,6 +24,11 @@
 
 package rcrr.reversi;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+
 /**
  * Iago is an advanced strategy, that implements the features described in the PAIP book 18.12.
  * See for reference the paper:
@@ -44,6 +49,73 @@ public class Iago implements EvalFunction {
         }
         public int current() { return this.current; }
         public int potential() { return this.potential; }
+    }
+
+    public enum SquareValue {
+        PLAYER,
+        OPPONENT,
+        EMPTY;
+    }
+
+    public static final int SQUARE_VALUE_LENGTH = SquareValue.values().length;
+
+    public static final List<Square> TOP_EDGE
+        = Collections.unmodifiableList(Arrays.asList(Square.B2, Square.A1, Square.B1, Square.C1, Square.D1,
+                                                     Square.E1, Square.F1, Square.G1, Square.H1, Square.G2));
+
+    public static final List<Square> BOTTOM_EDGE
+        = Collections.unmodifiableList(Arrays.asList(Square.B7, Square.A8, Square.B8, Square.C8, Square.D8,
+                                                     Square.E8, Square.F8, Square.G8, Square.H8, Square.G7));
+
+    public static final List<Square> LEFT_EDGE
+        = Collections.unmodifiableList(Arrays.asList(Square.B2, Square.A1, Square.A2, Square.A3, Square.A4,
+                                                     Square.A5, Square.A6, Square.A7, Square.A8, Square.B7));
+
+    public static final List<Square> RIGHT_EDGE
+        = Collections.unmodifiableList(Arrays.asList(Square.G2, Square.H1, Square.H2, Square.H3, Square.H4,
+                                                     Square.H5, Square.H6, Square.H7, Square.H8, Square.G7));
+
+    public static final int EDGE_SIZE = TOP_EDGE.size();
+
+    public static final List<List<Square>> EDGE_AND_X_LISTS;
+
+    /** The table size have to be 59,049. */
+    private static final int EDGE_TABLE_SIZE = new Double(Math.pow(SQUARE_VALUE_LENGTH,
+                                                                   EDGE_SIZE)).intValue();
+
+
+    private static final List<Integer> EDGE_TABLE;
+
+    static {
+        /** Computes EDGE_AND_X_LISTS. */
+        List<List<Square>> tempEdgeAndXLists = new ArrayList<List<Square>>();
+        tempEdgeAndXLists.add(TOP_EDGE);
+        tempEdgeAndXLists.add(BOTTOM_EDGE);
+        tempEdgeAndXLists.add(LEFT_EDGE);
+        tempEdgeAndXLists.add(RIGHT_EDGE);
+        EDGE_AND_X_LISTS = Collections.unmodifiableList(tempEdgeAndXLists);
+
+        /** Computes EDGE_TABLE. */
+        List<Integer> tempEdgeTable = new ArrayList<Integer>(EDGE_TABLE_SIZE);
+        // EDGE_TABLE must be calculated here ....
+        EDGE_TABLE = Collections.unmodifiableList(tempEdgeTable);
+    }
+
+    public static int edgeIndex(final Player player, final Board board, final List<Square> edge) {
+        int index = 0;
+        for (Square square : edge) {
+            SquareState state = board.get(square);
+            int incr;
+            if (state == SquareState.EMPTY) {
+                incr = 0;
+            } else if (state == player.color()) {
+                incr = 1;
+            } else {
+                incr = 2;
+            }
+            index = (index * SQUARE_VALUE_LENGTH) + incr;
+        }
+        return index;
     }
 
     /**
