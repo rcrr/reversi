@@ -142,7 +142,7 @@ public class Iago implements EvalFunction {
      * See PAIP 18.12 pages 637-638.
      *
      * @param position the game position to evaluate
-     * @return the position mobility evaluation
+     * @return         the position mobility evaluation
      * @throws NullPointerException if parameter {@code position} is null
      */
     public final Mobility mobility(final GamePosition position) {
@@ -165,6 +165,23 @@ public class Iago implements EvalFunction {
             }
         }
         return new Mobility(current, potential);
+    }
+
+    /**
+     * Total edge evaluation for the game position.
+     * <p>
+     * See PAIP 18.12 page 639.
+     *
+     * @param position the game position to evaluate
+     * @return         total edge evaluation for the game position
+     * @throws NullPointerException if parameter {@code position} is null
+     */
+    public final int edgeStability(final GamePosition position) {
+        int evaluation = 0;
+        for (List<Square> edge : EDGE_AND_X_LISTS) {
+            evaluation += EDGE_TABLE.get(edgeIndex(position.player(), position.board(), edge));
+        }
+        return evaluation;
     }
 
     private boolean isPotentialMove(final Board board,
