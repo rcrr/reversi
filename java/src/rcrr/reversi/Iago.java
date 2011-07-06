@@ -96,9 +96,7 @@ public class Iago implements EvalFunction {
         EDGE_AND_X_LISTS = Collections.unmodifiableList(tempEdgeAndXLists);
 
         /** Computes EDGE_TABLE. */
-        List<Integer> tempEdgeTable = new ArrayList<Integer>(EDGE_TABLE_SIZE);
-        // EDGE_TABLE must be calculated here ....
-        EDGE_TABLE = Collections.unmodifiableList(tempEdgeTable);
+        EDGE_TABLE = Collections.unmodifiableList(initEdgeTable());
     }
 
     public static int edgeIndex(final Player player, final Board board, final List<Square> edge) {
@@ -116,6 +114,79 @@ public class Iago implements EvalFunction {
             index = (index * SQUARE_VALUE_LENGTH) + incr;
         }
         return index;
+    }
+
+    private static final int ITERATIONS_FOR_IMPROVING_EDGE_TABLE = 5;
+
+    public static final List<Integer> initEdgeTable() {
+        final List<Integer> edgeTable = new ArrayList<Integer>(EDGE_TABLE_SIZE);
+        /** Initialize the static values. */
+        for (int nPieces = 0; nPieces < 11; nPieces++) {
+            mapEdgeNPieces(new Fn0() {
+                    public void funcall(final Board board, final int index) {
+                        edgeTable.set(index, staticEdgeStability(Player.BLACK, board));
+                    }
+                },
+                Player.BLACK,
+                Board.initialBoard(),
+                nPieces,
+                TOP_EDGE,
+                0);
+        }
+        /** Now iterate five times trying to improve: */
+        for (int i = 0; i < ITERATIONS_FOR_IMPROVING_EDGE_TABLE; i++) {
+            /** Do the indexes with more pieces first. From 9 to 1. */
+            for (int nPieces = 9; nPieces > 0; nPieces--) {
+                mapEdgeNPieces(new Fn0() {
+                        public void funcall(final Board board, final int index) {
+                            edgeTable.set(index, possibleEdgeMovesValue(Player.BLACK,
+                                                                        board,
+                                                                        index));
+                        }
+                    },
+                    Player.BLACK,
+                    Board.initialBoard(),
+                    nPieces,
+                    TOP_EDGE,
+                    0);
+            }
+        }
+        return edgeTable;
+    }
+ 
+    // MUST BE COMPLETED!
+    public static final int staticEdgeStability(final Player player, final Board board) {
+        int result = 0;
+        return result;
+    }
+
+    // MUST BE COMPLETED!
+    public static final int possibleEdgeMovesValue(final Player player, final Board board, final int index) {
+        int result = 0;
+        return result;
+    }
+
+    private static interface Fn0 {
+        public void funcall(final Board board, final int index);
+    }
+
+    /**
+     * Call method fn on all configurations for an edge having n pieces.
+     */
+    // MUST BE COMPLETED!
+    public static final void mapEdgeNPieces(final Fn0 fn,
+                                            final Player player,
+                                            final Board board,
+                                            final int n,
+                                            final List<Square> squares,
+                                            final int index) {
+        /** Index counts 1 for player; 2 for opponent. */
+        if (squares.size() < n) { return; }
+        else if (squares.size() == 0) { fn.funcall(board, index); }
+        else {
+            int index3 = 3 * index;
+            Square sq = squares.get(0);
+        }
     }
 
     /**
