@@ -24,9 +24,12 @@
 
 package rcrr.reversi;
 
+import java.util.List;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import static org.hamcrest.CoreMatchers.is;
 
@@ -39,6 +42,17 @@ public class IagoMethodsTest {
 
     /** Class constructor. */
     public IagoMethodsTest() { }
+
+    /**
+     * Tests the {@code initEdgeTable()} method.
+     *
+     * @see Iago#initEdgeTable()
+     */
+    @Test
+    public final void testInitEdgeTable() {
+        List<Integer> edgeTable = Iago.initEdgeTable();
+        assertTrue(true);
+    }
 
     /**
      * Tests the {@code mobility(GamePosition)} method.
