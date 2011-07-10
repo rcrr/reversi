@@ -273,6 +273,15 @@ public enum Square {
     /** The list of the four corners. */
     private static final List<Square> CORNERS = Collections.unmodifiableList(Arrays.asList(A1, H1, H8, A8));
 
+    /** The list of the four x-squares. */
+    private static final List<Square> X_SQUARES = Collections.unmodifiableList(Arrays.asList(B2, G2, G7, B7));
+
+    /** The map that links a corner with its own x-square. It is computed and initialized by the static block. */
+    private static final Map<Square, Square> CORNER_TO_X_SQUARE_MAP;
+
+    /** The map that links an x-square with its own corner. It is computed and initialized by the static block. */
+    private static final Map<Square, Square> X_SQUARE_TO_CORNER_MAP;
+
     /** The inverse labels map. It is computed and initialized by the static block. */
     private static final Map<String, Square> INVERSE_LABELS;
 
@@ -297,6 +306,15 @@ public enum Square {
         }
         LABELS = Collections.unmodifiableMap(labelMap);
         INVERSE_LABELS = Collections.unmodifiableMap(inverseLabelMap);
+
+	final Map<Square, Square> cornerToXSquareMap = new EnumMap<Square, Square>(Square.class);
+	final Map<Square, Square> xSquareToCornerMap = new EnumMap<Square, Square>(Square.class);
+	for (int idx = 0; idx < CORNERS.size(); idx++) {
+	    cornerToXSquareMap.put(CORNERS.get(idx), X_SQUARES.get(idx));
+	    xSquareToCornerMap.put(X_SQUARES.get(idx), CORNERS.get(idx));
+	}
+	CORNER_TO_X_SQUARE_MAP = Collections.unmodifiableMap(cornerToXSquareMap);
+	X_SQUARE_TO_CORNER_MAP = Collections.unmodifiableMap(xSquareToCornerMap);
     }
 
     /**
@@ -443,6 +461,33 @@ public enum Square {
      */
     public boolean isCorner() {
         return CORNERS.contains(this);
+    }
+
+    /**
+     * Returns true if the square is an X square, otherwise false.
+     *
+     * @return true or false if the square is either an X square or not
+     */
+    public boolean isXSquare() {
+	return X_SQUARES.contains(this);
+    }
+
+    /**
+     * Returns the relative corner when the square is an x-square, otherwise null.
+     *
+     * @return the associated corner, or null when the square is not an x-square
+     */
+    public Square cornerFor() {
+	return X_SQUARE_TO_CORNER_MAP.get(this);
+    }
+
+    /**
+     * Returns the relative x-square when the square is a corner, otherwise null.
+     *
+     * @return the associated x-square, or null when the square is not a corner
+     */
+    public Square xSquareFor() {
+	return CORNER_TO_X_SQUARE_MAP.get(this);
     }
 
     /**

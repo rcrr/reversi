@@ -95,6 +95,16 @@ public final class Board implements Serializable {
         }
 
         /**
+         * Construct a new builder using as starting values the state extracted
+         * from the {@code board} parameter.
+         *
+         * @param board the default state
+         */
+        public Builder(final Board board) {
+            this.squares = new EnumMap<Square, SquareState>(board.squares());
+        }
+
+        /**
          * Returns a new instance of a board object.
          *
          * @return the board instance as prepared by the current board's builder
