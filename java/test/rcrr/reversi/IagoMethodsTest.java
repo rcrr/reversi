@@ -25,6 +25,8 @@
 package rcrr.reversi;
 
 import java.util.List;
+import java.util.Arrays;
+import java.util.ArrayList;
 
 import org.junit.Test;
 
@@ -73,6 +75,50 @@ public class IagoMethodsTest {
         assertThat("new Iago().mobility(GamePositionFixtures.BLACK_HAS_TO_PASS).potential() is 5.",
                    new Iago().mobility(GamePositionFixtures.BLACK_HAS_TO_PASS).potential(),
                    is(5));
+    }
+
+    private final Board topEdgeLiteral(final List<Integer> edge) {
+	if (edge.size() != 10) { throw new IllegalArgumentException("Parameter edge has a wrong size."); }
+	Integer[] board = new Integer[64];
+	for (int idx = 0; idx < 64; idx++) {
+	    board[idx] = 0;
+	}
+	board[9] = edge.get(0);
+	board[14] = edge.get(9);
+	for (int idx = 1; idx < 9; idx++) {
+	    board[idx - 1] = edge.get(idx);
+	}
+	return new Board.Builder().withSquaresLiteral(board).build();
+    }
+
+    private final List<Integer> edgePieceStability(final List<Integer> edge) {
+	List<Integer> result = new ArrayList<Integer>();
+	Board board = topEdgeLiteral(edge);
+	for (Square sq : Iago.TOP_EDGE) {
+	    result.add(Iago.pieceStability(board, sq));
+	}
+	return result;
+    }
+
+    @Test
+    public final void testStaticEdgeStability() {
+	assertThat("Iago.staticEdgeStability(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS) must be -2725.",
+		   Iago.staticEdgeStability(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS),
+		   is(-2725));
+
+    }
+
+    @Test
+    public final void testPieceStability() {
+
+	assertThat("Edge (0, 1, 1, 1, 0, 0, 2, 1, 2, 1), must return (1, 0, 0, 0, 0, 0, 2, 1, 0, 1).",
+		   edgePieceStability(Arrays.asList(0, 1, 1, 1, 0, 0, 2, 1, 2, 1)),
+		   is(Arrays.asList(null, 0, 0, 0, null, null, 2, 1, 0, 1)));
+
+	assertThat("Edge (1, 2, 1, 0, 1, 0, 2, 0, 0, 1), must return (1, 0, 2, 1, 1, 0, 1, 0, 0, 2).",
+		   edgePieceStability(Arrays.asList(1, 2, 1, 0, 1, 0, 2, 0, 0, 1)),
+		   is(Arrays.asList(1, 0, 2, null, 1, null, 1, null, null, 2)));
+
     }
 
     /**
