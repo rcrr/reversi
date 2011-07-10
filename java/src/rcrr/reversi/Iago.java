@@ -179,7 +179,6 @@ public class Iago implements EvalFunction {
         return edgeTable;
     }
  
-    // MUST BE COMPLETED!
     /**
      * Compute this edge's static stability
      */
@@ -201,20 +200,78 @@ public class Iago implements EvalFunction {
         return sum;
     }
 
-    public static final int pieceStability(final Board board, final Square sq) {
+    /**
+     * Computes the piece stability of a disc belonging to an edge.
+     * The stability can assume three values: 0 for stable, 1 for semi stable,
+     * and 2 for unstable.
+     * <p>
+     * Corners are always stable. X squares could be unstable when the related corner is
+     * free, or semi-stable when the corner is taken.
+     * A, B, and C squares (according to Hasegawa's naming) could have all three stability
+     * values subject to the configuration.
+     * The computation is based on identifying the p1 and p2 square states, where p1 is
+     * the first square state reached moving on the right that is different from the evaluated
+     * square, and p2 is the respective state on the left. States p1 and p2 can assume the values
+     * opponent, empty, and outer.
+     * A disc is stable when cannot be flipped, it is unstable when can be flipped by a legal move,
+     * it is semi-stable when could be not promptly flipped but is not stable.
+     * <p>
+     * The computation is not meaningful for empty squares. In such a case the return value is {@code null}.
+     *
+     * @param board the edge configuration
+     * @param sq    the square for which compute stability
+     * @return      the piece stability index
+     */
+    public static final Integer pieceStability(final Board board, final Square sq) {
 	final int stable = 0;
 	final int semiStable = 1;
 	final int unstable = 2;
 
-	int stability = 0;
+	SquareState player = board.get(sq);
+	if (player == SquareState.EMPTY) { return null; }
+
+	int stability;
 	if (sq.isCorner()) {
 	    stability = stable;
 	} else if (sq.isXSquare()) {
 	    stability = (board.get(sq.cornerFor()) == SquareState.EMPTY) ? unstable : semiStable;
 	} else {
-	    stability = 1; // MUST BE CALCULATED
+	    /** The assignement to opp is consistent with a literal translation of the PAIP CL version of this function. */
+	    SquareState opp = (player == SquareState.BLACK) ? SquareState.WHITE : SquareState.BLACK;
+	    SquareState p1 = SquareState.OUTER;
+	    for (int i = TOP_EDGE.indexOf(sq); i < 9; i++) {
+		SquareState s = board.get(TOP_EDGE.get(i));
+		if (s != player) { p1 = s; break; }
+	    }
+	    SquareState p2 = SquareState.OUTER;
+	    for (int i = TOP_EDGE.indexOf(sq); i > 0; i--) {
+		SquareState s = board.get(TOP_EDGE.get(i));
+		if (s != player) { p2 = s; break; }
+	    }
+	    if (((p1 == SquareState.EMPTY) && (p2 == opp))
+		|| ((p2 == SquareState.EMPTY) && (p1 == opp))) {
+		/** Unstable pieces can be captured immediately by playing in the empty square. */
+		stability = unstable;
+	    } else if ((p1 == opp) && (p2 == opp) && (edgeHasEmptySquares(board))) {
+		/** Semi-stable pieces might be captured. */
+		stability = semiStable;
+	    } else if ((p1 == SquareState.EMPTY) && (p2 == SquareState.EMPTY)) {
+		stability = semiStable;
+	    } else {
+		/** Stable pieces can never be captured. */
+		stability = stable;
+	    }
 	}
 	return stability;
+    }
+
+    private static final boolean edgeHasEmptySquares(final Board topEdge) {
+	for (Square sq : TOP_EDGE.subList(1, 9)) {
+	    if (topEdge.get(sq) == SquareState.EMPTY) {
+		return true;
+	    }
+	}
+	return false;
     }
 
     // MUST BE COMPLETED!
