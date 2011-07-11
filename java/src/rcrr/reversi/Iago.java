@@ -287,7 +287,7 @@ public class Iago implements EvalFunction {
 
     // MUST BE COMPLETED!
     public static final PossibilityValue possibleEdgeMove(final Player player, final Board board, final Square sq) {
-	return new PossibilityValue(edgeMoveProbability(),
+	return new PossibilityValue(edgeMoveProbability(player, board, sq),
 				    // edgeTable
 				    0 // a dummy value that must be replaced
 				    );
@@ -299,8 +299,44 @@ public class Iago implements EvalFunction {
         return result;
     }
 
-    public static final double edgeMoveProbability() {
-	double result = 0.0;
+    /**
+     * What's the probability that player can move to this square?
+     */
+    public static final double edgeMoveProbability(final Player player, final Board board, final Square square) {
+	if (square.isXSquare()) {
+	    return 0.5;
+	} else if (board.isLegal(square, player)) {
+	    return 1.0;
+	} else if (square.isCorner()) {
+	    Square xSquare = square.xSquareFor();
+	    if (board.get(xSquare) == SquareState.EMPTY) {
+		return 0.1;
+	    } else if (board.get(xSquare) == player.color()) {
+		return 0.001;
+	    } else {
+		return 0.9;
+	    }
+	} else {
+	    double chancesCoefficient = (board.isLegal(square, player.opponent())) ? 2. : 1.;
+	    return EDGE_STATIC_PROBABILITY[countEdgeNeighbors(player, board, square)]
+		[countEdgeNeighbors(player.opponent(), board, square)] / chancesCoefficient;
+	}
+    }
+
+    public static final Double[][] EDGE_STATIC_PROBABILITY = { { .10,  .40,  .70 },
+							       { .05,  .30, null },
+							       { .01, null, null } };
+
+    /**
+     * Count the neighbors of this square occupied by player.
+     * The function can return 0, 1, or 2.
+     */
+    public static final int countEdgeNeighbors(final Player player,
+					       final Board board,
+					       final Square square) {
+	int result = 0;
+	if (board.get(square.neighbors().get(Direction.W)) == player.color()) { result++; }
+	if (board.get(square.neighbors().get(Direction.E)) == player.color()) { result++; }
 	return result;
     }
 
