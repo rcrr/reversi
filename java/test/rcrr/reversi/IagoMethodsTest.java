@@ -177,4 +177,74 @@ public class IagoMethodsTest {
                    is(42638));
     }
 
+    @Test
+    public final void testCountEdgeNeighbors() {
+
+	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, C1) is 2.",
+		   Iago.countEdgeNeighbors(Player.BLACK,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.C1),
+		   is(2));
+
+	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, C1) is 0.",
+		   Iago.countEdgeNeighbors(Player.WHITE,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.C1),
+		   is(0));
+
+	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, E1) is 1.",
+		   Iago.countEdgeNeighbors(Player.BLACK,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.E1),
+		   is(1));
+
+	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, E1) is 1.",
+		   Iago.countEdgeNeighbors(Player.WHITE,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.E1),
+		   is(1));
+
+	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, G1) is 0.",
+		   Iago.countEdgeNeighbors(Player.BLACK,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.G1),
+		   is(0));
+
+	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, G1) is 1.",
+		   Iago.countEdgeNeighbors(Player.WHITE,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.G1),
+		   is(1));
+
+	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, H1) is 0.",
+		   Iago.countEdgeNeighbors(Player.BLACK,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.H1),
+		   is(0));
+
+	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, H1) is 0.",
+		   Iago.countEdgeNeighbors(Player.WHITE,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.H1),
+		   is(0));
+
+    }
+
+    @Test
+    public final void testEdgeMoveProbability() {
+
+	List<Double> probabilities = new ArrayList<Double>();
+	for (Square sq : Iago.TOP_EDGE) {
+	    probabilities.add(Iago.edgeMoveProbability(Player.WHITE,
+						       BoardFixtures.BLACK_HAS_TO_PASS,
+						       sq));
+	}
+
+	assertThat("Edge move probabilities for Player.WHITE on BoardFixtures.BLACK_HAS_TO_PASS are:"
+		   + " (0.50, 0.90, 0.05, 1.00, 0.10, 1.00, 0.10, 1.00, 1.00, 0.50).",
+		   probabilities,
+		   is(Arrays.asList(0.50, 0.90, 0.05, 1.00, 0.10, 1.00, 0.10, 1.00, 1.00, 0.50)));
+
+    }
+
 }
