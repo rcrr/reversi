@@ -302,7 +302,9 @@ public class Iago implements EvalFunction {
     /**
      * What's the probability that player can move to this square?
      */
-    public static final double edgeMoveProbability(final Player player, final Board board, final Square square) {
+    public static final double edgeMoveProbability(final Player player,
+						   final Board board,
+						   final Square square) {
 	if (square.isXSquare()) {
 	    return 0.5;
 	} else if (board.isLegal(square, player)) {
