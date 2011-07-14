@@ -27,6 +27,7 @@ package rcrr.reversi;
 import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import org.junit.Test;
 
@@ -244,6 +245,88 @@ public class IagoMethodsTest {
 		   + " (0.50, 0.90, 0.05, 1.00, 0.10, 1.00, 0.10, 1.00, 1.00, 0.50).",
 		   probabilities,
 		   is(Arrays.asList(0.50, 0.90, 0.05, 1.00, 0.10, 1.00, 0.10, 1.00, 1.00, 0.50)));
+
+    }
+
+    @Test
+    public final void testSortPossibilities() {
+
+	final Iago.ProbabilityValue one =       new Iago.ProbabilityValue(1.0, 1);
+	final Iago.ProbabilityValue two =       new Iago.ProbabilityValue(2.0, 2);
+	final Iago.ProbabilityValue three =     new Iago.ProbabilityValue(3.0, 3);
+	final Iago.ProbabilityValue four =      new Iago.ProbabilityValue(4.0, 4);
+	final Iago.ProbabilityValue fourAgain = new Iago.ProbabilityValue(4.4, 4);
+	final Iago.ProbabilityValue five =      new Iago.ProbabilityValue(2.0, 5);
+
+	Comparator<Iago.ProbabilityValue> gt = Iago.GREATER_THAN;
+	Comparator<Iago.ProbabilityValue> lt = Iago.LESS_THAN;
+
+	List<Iago.ProbabilityValue> possibilities = Arrays.asList(two,
+								  one,
+								  five,
+								  four,
+								  fourAgain,
+								  three);
+
+	List<Iago.ProbabilityValue> sortedUp = Iago.sortPossibilities(possibilities, gt);
+	List<Iago.ProbabilityValue> sortedDown = Iago.sortPossibilities(possibilities, lt);
+
+	List<Iago.ProbabilityValue> expectedGt = Arrays.asList(one,
+							       two,
+							       three,
+							       four,
+							       fourAgain,
+							       five);
+
+	List<Iago.ProbabilityValue> expectedLt = Arrays.asList(five,
+							       four,
+							       fourAgain,
+							       three,
+							       two,
+							       one);
+
+	assertThat("Sorting from the most valued to the lesser one.",
+		   sortedUp,
+		   is(expectedGt));
+
+	assertThat("Sorting from the lesser valued to the most one.",
+		   sortedDown,
+		   is(expectedLt));
+
+    }
+
+    @Test
+    public final void tesCombineEdgeMoves() {
+
+	assertThat("[(1.0 5800) (0.5 5800)] BLACK must be 5800.",
+		   Iago.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.0, 5800),
+						       new Iago.ProbabilityValue(0.5, 5800)),
+					 Player.BLACK),
+		   is(5800));
+
+	assertThat("[(1.0 5800) (0.5 5800)] WHITE must be 5800.",
+		   Iago.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.0, 5800),
+						       new Iago.ProbabilityValue(0.5, 5800)),
+					 Player.WHITE),
+		   is(5800));
+
+	assertThat("[(1.0 2075) (0.005 4000)] BLACK must be 2085.",
+		   Iago.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 2075),
+						       new Iago.ProbabilityValue(0.005, 4000)),
+					 Player.BLACK),
+		   is(2085));
+
+	assertThat("[(1.0 2075) (0.005 4000)] WHITE must be 2075.",
+		   Iago.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 2075),
+						       new Iago.ProbabilityValue(0.005, 4000)),
+					 Player.WHITE),
+		   is(2075));
+
+	/*
+	     (are [poss player value] (= (combine-edge-moves poss player) value)
+		  '((1.0 2075) (0.005 4000)) black 2085
+		  '((1.0 2075) (0.005 4000)) white 2075))}
+	 */
 
     }
 
