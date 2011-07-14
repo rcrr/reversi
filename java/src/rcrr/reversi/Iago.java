@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Iago is an advanced strategy, that implements the features described in the PAIP book 18.12.
@@ -51,15 +52,20 @@ public class Iago implements EvalFunction {
         public int potential() { return this.potential; }
     }
 
-    public static final class PossibilityValue {
-	private final double possibility;
+    public static final class ProbabilityValue {
+	private final double probability;
 	private final int value;
-	public PossibilityValue(final double possibility, final int value) {
-	    this.possibility = possibility;
+	public ProbabilityValue(final double probability, final int value) {
+	    this.probability = probability;
 	    this.value = value;
 	}
-	public double possibility() { return this.possibility; }
+	public double probability() { return this.probability; }
 	public int value() { return this.value; }
+
+	@Override public String toString() {
+	    return "(" + probability() + " , " + value() + ")";
+    }
+
     }
 
     public enum SquareValue {
@@ -118,7 +124,8 @@ public class Iago implements EvalFunction {
         EDGE_AND_X_LISTS = Collections.unmodifiableList(tempEdgeAndXLists);
 
         /** Computes EDGE_TABLE. */
-        EDGE_TABLE = Collections.unmodifiableList(initEdgeTable());
+        //EDGE_TABLE = Collections.unmodifiableList(initEdgeTable());
+        EDGE_TABLE = null;
     }
 
     public static int edgeIndex(final Player player, final Board board, final List<Square> edge) {
@@ -278,26 +285,88 @@ public class Iago implements EvalFunction {
     /**
      * Consider all possible edge moves.
      * Combine their values into a single number.
+     * <p>
+     * The function searches through all possible moves to determine an edge value that is more accurate
+     * than a static evaluation. It loops through every empty square on the edge, calling possibleEdgeMove
+     * to retur a ProbabilityValue object. Since it is also possible for a player not to make any move
+     * at all on an edge, the pair (1.0 current-value) is also included.
      */
-    public static final int possibleEdgeMovesValue(final Player player, final Board board, final int index) {
-        int result = 0;
-	combineEdgeMoves();
-        return result;
+    public static final int possibleEdgeMovesValue(final Player player,
+						   final Board board,
+						   final int index) {
+	List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
+        return combineEdgeMoves(possibilities, player);
     }
 
     // MUST BE COMPLETED!
-    public static final PossibilityValue possibleEdgeMove(final Player player, final Board board, final Square sq) {
-	return new PossibilityValue(edgeMoveProbability(player, board, sq),
+    public static final ProbabilityValue possibleEdgeMove(final Player player, final Board board, final Square sq) {
+	return new ProbabilityValue(edgeMoveProbability(player, board, sq),
 				    // edgeTable
 				    0 // a dummy value that must be replaced
 				    );
     }
 
-    // MUST BE COMPLETED!
-    public static final int combineEdgeMoves() {
-        int result = 0;
-        return result;
+    /**
+     * Combine the best moves.
+     * <p>
+     * The possible moves are combined with combineEdgeMoves(possibilities, player),
+     * which sorts the moves best-first. We then go down the moves, increasing the total
+     * value by the value of each move times the probability of the move. Since there
+     * will always be a least one move (pass) with probability 1.0, this is guaranteed
+     * to converge.
+     */
+    public static final int combineEdgeMoves(final List<ProbabilityValue> possibilities,
+					     final Player player) {
+	double prob = 1.0;
+	double val = 0.0;
+	List<ProbabilityValue> sortedPossibilities
+	    = sortPossibilities(possibilities,
+				((player == Player.BLACK) ? LESS_THAN : GREATER_THAN));
+	for (ProbabilityValue pair : sortedPossibilities) {
+	    if (prob >= 0.0) {
+		val += prob * pair.probability() * pair.value();
+		prob -= prob * pair.probability();
+	    }
+	}
+        return Math.round((float)val);
     }
+
+    public static final List<ProbabilityValue> sortPossibilities(final List<ProbabilityValue> possibilities,
+								 final Comparator<ProbabilityValue> comparator) {
+	List<ProbabilityValue> result = new ArrayList<ProbabilityValue>(possibilities);
+	Collections.sort(result, comparator);
+	return result;
+    }
+
+    public static final Comparator<ProbabilityValue> GREATER_THAN = new Comparator<ProbabilityValue>() {
+	public int compare(final ProbabilityValue pv0,
+			   final ProbabilityValue pv1) {
+	    final int v0 = pv0.value();
+	    final int v1 = pv1.value();
+	    if (v0 < v1) {
+		return -1;
+	    } else if (v0 == v1) {
+		return 0;
+	    } else {
+		return +1;
+	    }
+	}
+    };
+
+    public static final Comparator<ProbabilityValue> LESS_THAN = new Comparator<ProbabilityValue>() {
+	public int compare(final ProbabilityValue pv0,
+			   final ProbabilityValue pv1) {
+	    final int v0 = pv0.value();
+	    final int v1 = pv1.value();
+	    if (v0 > v1) {
+		return -1;
+	    } else if (v0 == v1) {
+		return 0;
+	    } else {
+		return +1;
+	    }
+	}
+    };
 
     /**
      * What's the probability that player can move to this square?
