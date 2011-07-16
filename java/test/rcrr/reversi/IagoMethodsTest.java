@@ -78,48 +78,69 @@ public class IagoMethodsTest {
                    is(5));
     }
 
-    private final Board topEdgeLiteral(final List<Integer> edge) {
-	if (edge.size() != 10) { throw new IllegalArgumentException("Parameter edge has a wrong size."); }
-	Integer[] board = new Integer[64];
-	for (int idx = 0; idx < 64; idx++) {
-	    board[idx] = 0;
-	}
-	board[9] = edge.get(0);
-	board[14] = edge.get(9);
-	for (int idx = 1; idx < 9; idx++) {
-	    board[idx - 1] = edge.get(idx);
-	}
-	return new Board.Builder().withSquaresLiteral(board).build();
-    }
-
-    private final List<Integer> edgePieceStability(final List<Integer> edge) {
-	List<Integer> result = new ArrayList<Integer>();
-	Board board = topEdgeLiteral(edge);
-	for (Square sq : Iago.TOP_EDGE) {
-	    result.add(Iago.pieceStability(board, sq));
-	}
-	return result;
-    }
-
     @Test
     public final void testStaticEdgeStability() {
 	assertThat("Iago.staticEdgeStability(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS) must be -2725.",
 		   Iago.staticEdgeStability(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS),
 		   is(-2725));
 
+	assertThat("Holding an edge has a value of 700.",
+		   Iago.staticEdgeStability(Player.BLACK,
+					    new Board.Builder()
+					    .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0)					    
+					    .build()),
+		   is(700));
+
+	assertThat("Configuration (0 0 1 1 1 2 1 1 0 0) is valued -50.",
+		   Iago.staticEdgeStability(Player.BLACK,
+					    new Board.Builder()
+					    .withSquaresLiteral(0, 1, 1, 1, 2, 1, 1, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0)					    
+					    .build()),
+		   is(-50));
+
+	assertThat("Configuration (0 0 1 1 1 0 1 1 0 0) is valued 1000.",
+		   Iago.staticEdgeStability(Player.BLACK,
+					    new Board.Builder()
+					    .withSquaresLiteral(0, 1, 1, 1, 0, 1, 1, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0)					    
+					    .build()),
+		   is(1000));
+
     }
 
+    /**
+     * Tests the {@code pieceStability(Board, Square)} method.
+     *
+     * @see Iago#pieceStability(Board, Square)
+     */
     @Test
     public final void testPieceStability() {
-
 	assertThat("Edge (0, 1, 1, 1, 0, 0, 2, 1, 2, 1), must return (1, 0, 0, 0, 0, 0, 2, 1, 0, 1).",
 		   edgePieceStability(Arrays.asList(0, 1, 1, 1, 0, 0, 2, 1, 2, 1)),
 		   is(Arrays.asList(null, 0, 0, 0, null, null, 2, 1, 0, 1)));
-
 	assertThat("Edge (1, 2, 1, 0, 1, 0, 2, 0, 0, 1), must return (1, 0, 2, 1, 1, 0, 1, 0, 0, 2).",
 		   edgePieceStability(Arrays.asList(1, 2, 1, 0, 1, 0, 2, 0, 0, 1)),
 		   is(Arrays.asList(1, 0, 2, null, 1, null, 1, null, null, 2)));
-
     }
 
     /**
@@ -296,7 +317,7 @@ public class IagoMethodsTest {
     }
 
     @Test
-    public final void tesCombineEdgeMoves() {
+    public final void testCombineEdgeMoves() {
 
 	assertThat("[(1.0 5800) (0.5 5800)] BLACK must be 5800.",
 		   Iago.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.0, 5800),
@@ -322,12 +343,71 @@ public class IagoMethodsTest {
 					 Player.WHITE),
 		   is(2075));
 
-	/*
-	     (are [poss player value] (= (combine-edge-moves poss player) value)
-		  '((1.0 2075) (0.005 4000)) black 2085
-		  '((1.0 2075) (0.005 4000)) white 2075))}
-	 */
+    }
 
+    @Test
+    public final void testPossibleEdgeMovesValue() {
+
+        final List<Integer> edgeTable = new ArrayList<Integer>(Iago.EDGE_TABLE_SIZE);
+        for (int idx = 0; idx < Iago.EDGE_TABLE_SIZE; idx++) {
+            edgeTable.add(idx);
+        }
+
+	int value = Iago.possibleEdgeMovesValue(edgeTable,
+						Player.WHITE,
+						BoardFixtures.BLACK_HAS_TO_PASS,
+						13);
+
+	assertThat("This has been tested comparing the common lisp return value.",
+		   value,
+		   is(-38935));
+
+    }
+
+    @Test
+    public final void testPossibleEdgeMove() {
+
+        final List<Integer> edgeTable = new ArrayList<Integer>(Iago.EDGE_TABLE_SIZE);
+        for (int idx = 0; idx < Iago.EDGE_TABLE_SIZE; idx++) {
+            edgeTable.add(idx);
+        }
+
+	Iago.ProbabilityValue pv = Iago.possibleEdgeMove(edgeTable,
+							 Player.WHITE,
+							 BoardFixtures.BLACK_HAS_TO_PASS,
+							 Square.C1);
+
+	assertThat("Iago.possibleEdgeMove(...) must have a return pv.value() of -38935.",
+		   pv.value(),
+		   is(-38935));
+
+	assertThat("Iago.possibleEdgeMove(...) must have a return pv.probability() of 1.0.",
+		   pv.probability(),
+		   is(1.0));
+
+    }
+
+    private final Board topEdgeLiteral(final List<Integer> edge) {
+	if (edge.size() != 10) { throw new IllegalArgumentException("Parameter edge has a wrong size."); }
+	Integer[] board = new Integer[64];
+	for (int idx = 0; idx < 64; idx++) {
+	    board[idx] = 0;
+	}
+	board[9] = edge.get(0);
+	board[14] = edge.get(9);
+	for (int idx = 1; idx < 9; idx++) {
+	    board[idx - 1] = edge.get(idx);
+	}
+	return new Board.Builder().withSquaresLiteral(board).build();
+    }
+
+    private final List<Integer> edgePieceStability(final List<Integer> edge) {
+	List<Integer> result = new ArrayList<Integer>();
+	Board board = topEdgeLiteral(edge);
+	for (Square sq : Iago.TOP_EDGE) {
+	    result.add(Iago.pieceStability(board, sq));
+	}
+	return result;
     }
 
 }
