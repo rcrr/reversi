@@ -29,6 +29,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Map;
+import java.util.EnumMap;
+
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.IOException;
 
 /**
  * Iago is an advanced strategy, that implements the features described in the PAIP book 18.12.
@@ -52,7 +58,7 @@ public class Iago implements EvalFunction {
         public int potential() { return this.potential; }
     }
 
-    public static final class ProbabilityValue {
+    public static final class ProbabilityValue implements Comparable<ProbabilityValue> {
 	private final double probability;
 	private final int value;
 	public ProbabilityValue(final double probability, final int value) {
@@ -61,11 +67,12 @@ public class Iago implements EvalFunction {
 	}
 	public double probability() { return this.probability; }
 	public int value() { return this.value; }
-
+	public int compareTo(final ProbabilityValue pv) {
+	    return Integer.valueOf(value()).compareTo(Integer.valueOf(pv.value()));
+	}
 	@Override public String toString() {
-	    return "(" + probability() + " , " + value() + ")";
-    }
-
+	    return "(" + probability() + " " + value() + ")";
+	}
     }
 
     public enum SquareValue {
@@ -73,6 +80,8 @@ public class Iago implements EvalFunction {
         OPPONENT,
         EMPTY;
     }
+
+    private static final int ITERATIONS_FOR_IMPROVING_EDGE_TABLE = 5;
 
     public static final int SQUARE_VALUE_LENGTH = SquareValue.values().length;
 
@@ -97,22 +106,25 @@ public class Iago implements EvalFunction {
     public static final List<List<Square>> EDGE_AND_X_LISTS;
 
     /** The table size have to be 59,049. */
-    private static final int EDGE_TABLE_SIZE = new Double(Math.pow(SQUARE_VALUE_LENGTH,
+    public static final int EDGE_TABLE_SIZE = new Double(Math.pow(SQUARE_VALUE_LENGTH,
                                                                    EDGE_SIZE)).intValue();
 
-
-    public static final Integer[][] STATIC_EDGE_TABLE = { { null,    0, -2000 },
-							  {  700, null,  null },
-							  { 1200,  200,   -25 },
-							  { 1000,  200,    75 },
-							  { 1000,  200,    50 },
-							  { 1000,  200,    50 },
-							  { 1000,  200,    75 },
-							  { 1200,  200,   -25 },
-							  {  700, null,  null },
-							  { null,    0, -2000 } };
-
     private static final List<Integer> EDGE_TABLE;
+
+    public static final Integer[][] STATIC_EDGE_TABLE = { { null,    0, -2000 },   /** X square. */
+							  {  700, null,  null },   /** Corner.   */
+							  { 1200,  200,   -25 },   /** C square. */
+							  { 1000,  200,    75 },   /** A square. */
+							  { 1000,  200,    50 },   /** B square. */
+							  { 1000,  200,    50 },   /** B square. */
+							  { 1000,  200,    75 },   /** A square. */
+							  { 1200,  200,   -25 },   /** C square. */
+							  {  700, null,  null },   /** Corner.   */
+							  { null,    0, -2000 } }; /** X square. */
+
+    public static final Double[][] EDGE_STATIC_PROBABILITY = { { .10,  .40,  .70 },
+							       { .05,  .30, null },
+							       { .01, null, null } };
 
     static {
         /** Computes EDGE_AND_X_LISTS. */
@@ -124,11 +136,41 @@ public class Iago implements EvalFunction {
         EDGE_AND_X_LISTS = Collections.unmodifiableList(tempEdgeAndXLists);
 
         /** Computes EDGE_TABLE. */
-        //EDGE_TABLE = Collections.unmodifiableList(initEdgeTable());
-        EDGE_TABLE = null;
+        EDGE_TABLE = Collections.unmodifiableList(initEdgeTable());
+	writeEdgeTable("edge-table.dat", EDGE_TABLE);
     }
 
+    public static void writeEdgeTable(final String fileOut, final List<Integer> edgeTable) {
+
+	try {
+	    PrintWriter out = new PrintWriter(new FileWriter(fileOut));
+	    out.println(EDGE_TABLE_SIZE);
+	    for (int i = 0; i < EDGE_TABLE_SIZE; i++) {
+		out.println(edgeTable.get(i));
+	    }
+	    out.close();
+	} catch (IOException ioe) {
+	    throw new RuntimeException(ioe);
+	}
+
+    }
+
+    // Fully tested.
+    /**
+     * Computes the edge index used to execute a lookup into th edge table.
+     * Given a player, a board, and the selected edge, the method returns the index to be
+     * used to query the edge table.
+     *
+     * @param player the player for whom compute the index
+     * @param board  the board configuration
+     * @param edge   one among the four edge
+     * @return       the index value associated to the given configuration and the chosen edge
+     */
     public static int edgeIndex(final Player player, final Board board, final List<Square> edge) {
+	assert (player != null) : "Parameter player cannot be null.";
+	assert (board != null) : "Parameter board cannot be null.";
+	assert (edge != null) : "Parameter edge cannot be null.";
+	assert (edge.size() == 10) : "Parameter edge must have ten entries.";
         int index = 0;
         for (Square square : edge) {
             SquareState state = board.get(square);
@@ -144,8 +186,6 @@ public class Iago implements EvalFunction {
         }
         return index;
     }
-
-    private static final int ITERATIONS_FOR_IMPROVING_EDGE_TABLE = 5;
 
     public static final List<Integer> initEdgeTable() {
         final List<Integer> edgeTable = new ArrayList<Integer>(EDGE_TABLE_SIZE);
@@ -171,9 +211,10 @@ public class Iago implements EvalFunction {
             for (int nPieces = 9; nPieces > 0; nPieces--) {
                 mapEdgeNPieces(new Fn0() {
                         public void funcall(final Board board, final int index) {
-                            edgeTable.set(index, possibleEdgeMovesValue(Player.BLACK,
-                                                                            board,
-                                                                            index));
+                            edgeTable.set(index, possibleEdgeMovesValue(edgeTable,
+									Player.BLACK,
+									board,
+									index));
                         }
                     },
                     Player.BLACK,
@@ -186,20 +227,28 @@ public class Iago implements EvalFunction {
         return edgeTable;
     }
  
+    // Fully tested.
     /**
-     * Compute this edge's static stability
-     */
+     * Compute this edge's static stability. The evaluation sums each piece's value
+     * according to the STATIC_EDGE_TABLE.
+     *
+     * @param player the player for this configuration
+     * @param board  the board for this configuration
+     * @return       the static edge stability value
+     */ 
     public static final int staticEdgeStability(final Player player, final Board board) {
+	assert (player != null) : "Parameter player cannot be null.";
+	assert (board != null) : "Parameter board cannot be null.";
         int sum = 0;
 	int i = 0;
 	for (Square sq : TOP_EDGE) {
 	    int addendum;
 	    if (board.get(sq) == SquareState.EMPTY) {
 		addendum = 0;
-	    } else if (board.get(sq) == player.color()) {
-		addendum = STATIC_EDGE_TABLE[i][pieceStability(board, sq)];
 	    } else {
-		addendum = - STATIC_EDGE_TABLE[i][pieceStability(board, sq)];
+		Integer staticEdgeTable = STATIC_EDGE_TABLE[i][pieceStability(board, sq)];
+		assert (staticEdgeTable != null) : "Parameter staticEdgeTable cannot be null.";
+		addendum = (board.get(sq) == player.color()) ? + staticEdgeTable : - staticEdgeTable;
 	    }
 	    sum += addendum;
 	    i++;
@@ -207,6 +256,7 @@ public class Iago implements EvalFunction {
         return sum;
     }
 
+    // Fully tested.
     /**
      * Computes the piece stability of a disc belonging to an edge.
      * The stability can assume three values: 0 for stable, 1 for semi stable,
@@ -230,6 +280,9 @@ public class Iago implements EvalFunction {
      * @return      the piece stability index
      */
     public static final Integer pieceStability(final Board board, final Square sq) {
+	assert(board != null) : "Parameter board cannot be null.";
+	assert(sq != null) : "Parameter sq cannot be null.";
+
 	final int stable = 0;
 	final int semiStable = 1;
 	final int unstable = 2;
@@ -272,38 +325,48 @@ public class Iago implements EvalFunction {
 	return stability;
     }
 
-    private static final boolean edgeHasEmptySquares(final Board topEdge) {
-	for (Square sq : TOP_EDGE.subList(1, 9)) {
-	    if (topEdge.get(sq) == SquareState.EMPTY) {
-		return true;
-	    }
-	}
-	return false;
-    }
-
-    // MUST BE COMPLETED!
+    // Tested.
     /**
-     * Consider all possible edge moves.
-     * Combine their values into a single number.
+     * Considers all possible edge moves and combines their values into a single number.
      * <p>
      * The function searches through all possible moves to determine an edge value that is more accurate
      * than a static evaluation. It loops through every empty square on the edge, calling possibleEdgeMove
      * to retur a ProbabilityValue object. Since it is also possible for a player not to make any move
      * at all on an edge, the pair (1.0 current-value) is also included.
+     *
+     * @param edgeTable the edge table reference that is under calculation.
+     * @param player    the palyer for whom run the calculation
+     * @param board     the edge configuration
+     * @param index     
+     * @return          an edge value that is more accurate than a static evaluation
      */
-    public static final int possibleEdgeMovesValue(final Player player,
+    public static final int possibleEdgeMovesValue(final List<Integer> edgeTable,
+						   final Player player,
 						   final Board board,
 						   final int index) {
+	assert(edgeTable != null) : "Parameter edgeTable cannot be null.";
+	assert(player != null) : "Parameter player cannot be null.";
+	assert(board != null) : "Parameter board cannot be null.";
 	List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
+	possibilities.add(new ProbabilityValue(1.0, edgeTable.get(index)));
+	for (Square sq : TOP_EDGE) {
+	    if (board.get(sq) == SquareState.EMPTY) {
+		possibilities.add(possibleEdgeMove(edgeTable, player, board, sq));
+	    }
+	}
         return combineEdgeMoves(possibilities, player);
     }
 
-    // MUST BE COMPLETED!
-    public static final ProbabilityValue possibleEdgeMove(final Player player, final Board board, final Square sq) {
+    /**
+     * Return a probability value pair for a possible edge move.
+     */
+    public static final ProbabilityValue possibleEdgeMove(final List<Integer> edgeTable,
+							  final Player player,
+							  final Board board,
+							  final Square sq) {
+	Board newBoard = makeMoveWithoutLegalCheck(board, sq, player);
 	return new ProbabilityValue(edgeMoveProbability(player, board, sq),
-				    // edgeTable
-				    0 // a dummy value that must be replaced
-				    );
+				    - edgeTable.get(edgeIndex(player.opponent(), newBoard, TOP_EDGE)));
     }
 
     /**
@@ -374,29 +437,32 @@ public class Iago implements EvalFunction {
     public static final double edgeMoveProbability(final Player player,
 						   final Board board,
 						   final Square square) {
+        assert (player != null) : "Argument player must be not null";
+        assert (board != null) : "Argument board must be not null";
+        assert (square != null) : "Argument square must be not null";
+	double result;
 	if (square.isXSquare()) {
-	    return 0.5;
+	    result = 0.5;
 	} else if (board.isLegal(square, player)) {
-	    return 1.0;
+	    result = 1.0;
 	} else if (square.isCorner()) {
 	    Square xSquare = square.xSquareFor();
 	    if (board.get(xSquare) == SquareState.EMPTY) {
-		return 0.1;
+		result = 0.1;
 	    } else if (board.get(xSquare) == player.color()) {
-		return 0.001;
+		result = 0.001;
 	    } else {
-		return 0.9;
+		result = 0.9;
 	    }
 	} else {
 	    double chancesCoefficient = (board.isLegal(square, player.opponent())) ? 2. : 1.;
-	    return EDGE_STATIC_PROBABILITY[countEdgeNeighbors(player, board, square)]
-		[countEdgeNeighbors(player.opponent(), board, square)] / chancesCoefficient;
+	    Double edgeStaticProbability = EDGE_STATIC_PROBABILITY[countEdgeNeighbors(player, board, square)]
+		[countEdgeNeighbors(player.opponent(), board, square)];
+	    assert (edgeStaticProbability != null) : "Variable edgeStaticProbability cannot be null.";
+	    result =  edgeStaticProbability / chancesCoefficient;
 	}
+	return result;
     }
-
-    public static final Double[][] EDGE_STATIC_PROBABILITY = { { .10,  .40,  .70 },
-							       { .05,  .30, null },
-							       { .01, null, null } };
 
     /**
      * Count the neighbors of this square occupied by player.
@@ -411,15 +477,10 @@ public class Iago implements EvalFunction {
 	return result;
     }
 
-    private static interface Fn0 {
-        public void funcall(final Board board, final int index);
-    }
-
     /**
      * Call method fn on all configurations for an edge having n pieces.
      * The function 
      */
-    // MUST BE COMPLETED!
     public static final void mapEdgeNPieces(final Fn0 fn,
                                             final Player player,
                                             Board board,
@@ -441,6 +502,36 @@ public class Iago implements EvalFunction {
                 board = new Board.Builder(board).withSquare(sq, SquareState.EMPTY).build();
             }
         }
+    }
+
+    private static interface Fn0 {
+        public void funcall(final Board board, final int index);
+    }
+
+    private static final Board makeMoveWithoutLegalCheck(final Board board,
+							 final Square square,
+							 final Player player) {
+	if (board.isLegal(square, player)) {
+	    return board.makeMove(square, player);
+	} else if (board.get(square) == SquareState.EMPTY) {
+	    Map<Square, SquareState> squares = new EnumMap<Square, SquareState>(Square.class);
+	    for (Square sq : Square.values()) {
+		squares.put(sq, board.get(sq));
+	    }
+	    squares.put(square, player.color());
+	    return Board.valueOf(squares);
+	} else {
+	    return board;
+	}
+    }
+
+    private static final boolean edgeHasEmptySquares(final Board topEdge) {
+	for (Square sq : TOP_EDGE.subList(1, 9)) {
+	    if (topEdge.get(sq) == SquareState.EMPTY) {
+		return true;
+	    }
+	}
+	return false;
     }
 
     /**
