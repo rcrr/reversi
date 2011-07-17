@@ -29,6 +29,11 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import java.io.InputStream;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
@@ -43,6 +48,27 @@ import static org.hamcrest.CoreMatchers.is;
  */
 public class IagoMethodsTest {
 
+    public static String[] readInputStreamAsStringArray(final String resource) {
+	InputStream in = new IagoMethodsTest().getClass().getClassLoader().getResourceAsStream(resource);
+	if (in == null) {
+	    throw new RuntimeException("Resource \"" + resource + "\" cannot be found.");
+	}
+	ByteArrayOutputStream buf;
+	BufferedInputStream bis = new BufferedInputStream(in);
+	try {
+	    buf = new ByteArrayOutputStream();
+	    int result = bis.read();
+	    while(result != -1) {
+		byte b = (byte)result;
+		buf.write(b);
+		result = bis.read();
+	    }
+	} catch (IOException ioe) {
+	    throw new RuntimeException(ioe);
+	}
+	return buf.toString().split("\\n");
+    }
+
     /** Class constructor. */
     public IagoMethodsTest() { }
 
@@ -53,7 +79,40 @@ public class IagoMethodsTest {
      */
     @Test
     public final void testInitEdgeTable() {
-        List<Integer> edgeTable = Iago.initEdgeTable();
+
+	/** Load the static edge table from the file data/edge-table-st.dat. */
+	String[] lines = readInputStreamAsStringArray("rcrr/reversi/data/edge-table-st.dat");
+	int tableLength;
+	int numberOfLines = lines.length;
+	if (numberOfLines > 2) {
+	    try {
+		tableLength = Integer.valueOf(lines[1].trim());
+	    } catch (NumberFormatException nfe) {
+		throw new RuntimeException("Unable to read the number of rows.", nfe);
+	    }
+	} else {
+	    throw new RuntimeException("The file format is wrong.");
+	}
+	System.out.println("file header: " + lines[0]);
+	System.out.println("tableLength: " + tableLength);
+	if (numberOfLines != tableLength + 2) {
+	    throw new RuntimeException("The file length is not consistent. numberOfLines=" + numberOfLines);
+	}
+	if (tableLength != Iago.EDGE_TABLE_SIZE) {
+	    throw new RuntimeException("The declared table length is not consistent with EDGE_TABLE_SIZE.");
+	}
+	List<Integer> edgeTable = new ArrayList<Integer>();
+	for (int i = 2; i < numberOfLines; i++) {
+	    int value;
+	    try {
+		value = Integer.valueOf(lines[i].trim());
+	    } catch (NumberFormatException nfe) {
+		throw new RuntimeException("Unable to parse line " + i + ".", nfe);
+	    }
+	    edgeTable.add(value);
+	}
+
+        //List<Integer> edgeTable = Iago.initEdgeTable();
         assertTrue(true);
     }
 
@@ -342,6 +401,12 @@ public class IagoMethodsTest {
 						       new Iago.ProbabilityValue(0.005, 4000)),
 					 Player.WHITE),
 		   is(2075));
+
+	assertThat("[(1.0 5100) (0.001 7800)] BLACK must be 5103.",
+		   Iago.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 5100),
+						       new Iago.ProbabilityValue(0.001, 7800)),
+					 Player.BLACK),
+		   is(5103));
 
     }
 

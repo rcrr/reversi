@@ -32,6 +32,8 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.EnumMap;
 
+import java.text.DecimalFormat;
+
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
@@ -59,6 +61,7 @@ public class Iago implements EvalFunction {
     }
 
     public static final class ProbabilityValue implements Comparable<ProbabilityValue> {
+	private static final DecimalFormat FOUR_DIGIT_DECIMAL_FORMAT = new DecimalFormat("0.0000");
 	private final double probability;
 	private final int value;
 	public ProbabilityValue(final double probability, final int value) {
@@ -71,9 +74,39 @@ public class Iago implements EvalFunction {
 	    return Integer.valueOf(value()).compareTo(Integer.valueOf(pv.value()));
 	}
 	@Override public String toString() {
-	    return "(" + probability() + " " + value() + ")";
+	    return "(" + FOUR_DIGIT_DECIMAL_FORMAT.format(probability()) + " " + value() + ")";
 	}
     }
+
+    public static final Comparator<ProbabilityValue> GREATER_THAN = new Comparator<ProbabilityValue>() {
+	public int compare(final ProbabilityValue pv0,
+			   final ProbabilityValue pv1) {
+	    final int v0 = pv0.value();
+	    final int v1 = pv1.value();
+	    if (v0 < v1) {
+		return -1;
+	    } else if (v0 == v1) {
+		return 0;
+	    } else {
+		return +1;
+	    }
+	}
+    };
+
+    public static final Comparator<ProbabilityValue> LESS_THAN = new Comparator<ProbabilityValue>() {
+	public int compare(final ProbabilityValue pv0,
+			   final ProbabilityValue pv1) {
+	    final int v0 = pv0.value();
+	    final int v1 = pv1.value();
+	    if (v0 > v1) {
+		return -1;
+	    } else if (v0 == v1) {
+		return 0;
+	    } else {
+		return +1;
+	    }
+	}
+    };
 
     public enum SquareValue {
         PLAYER,
@@ -126,7 +159,17 @@ public class Iago implements EvalFunction {
 							       { .05,  .30, null },
 							       { .01, null, null } };
 
+    private static final PrintWriter DEBUG;
+
     static {
+
+	/** Used to debug. */
+	try {
+	    DEBUG = new PrintWriter(new FileWriter("debug.txt"));
+	} catch (IOException ioe) {
+	    throw new RuntimeException(ioe);
+	}
+
         /** Computes EDGE_AND_X_LISTS. */
         List<List<Square>> tempEdgeAndXLists = new ArrayList<List<Square>>();
         tempEdgeAndXLists.add(TOP_EDGE);
@@ -138,6 +181,7 @@ public class Iago implements EvalFunction {
         /** Computes EDGE_TABLE. */
         EDGE_TABLE = Collections.unmodifiableList(initEdgeTable());
 	writeEdgeTable("edge-table.dat", EDGE_TABLE);
+
     }
 
     public static void writeEdgeTable(final String fileOut, final List<Integer> edgeTable) {
@@ -205,16 +249,20 @@ public class Iago implements EvalFunction {
                 TOP_EDGE,
                 0);
         }
+	// temporary line .....
+	// writeEdgeTable("static-edge-table.dat", edgeTable);
         /** Now iterate five times trying to improve: */
         for (int i = 0; i < ITERATIONS_FOR_IMPROVING_EDGE_TABLE; i++) {
             /** Do the indexes with more pieces first. From 9 to 1. */
             for (int nPieces = 9; nPieces > 0; nPieces--) {
                 mapEdgeNPieces(new Fn0() {
                         public void funcall(final Board board, final int index) {
-                            edgeTable.set(index, possibleEdgeMovesValue(edgeTable,
-									Player.BLACK,
-									board,
-									index));
+			    int tableValue = possibleEdgeMovesValue(edgeTable,
+								    Player.BLACK,
+								    board,
+								    index);
+			    DEBUG.println(index + ";" + tableValue);
+                            edgeTable.set(index, tableValue);
                         }
                     },
                     Player.BLACK,
@@ -223,6 +271,9 @@ public class Iago implements EvalFunction {
                     TOP_EDGE,
                     0);
             }
+	    // temporary line .....
+	    // DEBUG.flush();
+	    writeEdgeTable("edge-table-" + i +".dat", edgeTable);
         }
         return edgeTable;
     }
@@ -347,6 +398,15 @@ public class Iago implements EvalFunction {
 	assert(edgeTable != null) : "Parameter edgeTable cannot be null.";
 	assert(player != null) : "Parameter player cannot be null.";
 	assert(board != null) : "Parameter board cannot be null.";
+	if (edgeIndex(player, board, TOP_EDGE) != index) {
+	    // one test run with the two values not alligned! Why?
+	    // the "regular run" has always the two values alligned. Could be removed from the paramenter list? I guess so!
+	    /*
+	    System.out.println("board=\n" + board.printBoard());
+	    System.out.println("player=" + player);
+	    System.out.println("edgeIndex(player, board, TOP_EDGE)=" + edgeIndex(player, board, TOP_EDGE) + ", index=" + index);
+	    */ ;
+	}
 	List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
 	possibilities.add(new ProbabilityValue(1.0, edgeTable.get(index)));
 	for (Square sq : TOP_EDGE) {
@@ -382,10 +442,8 @@ public class Iago implements EvalFunction {
 					     final Player player) {
 	double prob = 1.0;
 	double val = 0.0;
-	List<ProbabilityValue> sortedPossibilities
-	    = sortPossibilities(possibilities,
-				((player == Player.BLACK) ? LESS_THAN : GREATER_THAN));
-	for (ProbabilityValue pair : sortedPossibilities) {
+	for (ProbabilityValue pair : sortPossibilities(possibilities,
+						       (player == Player.BLACK) ? LESS_THAN : GREATER_THAN)) {
 	    if (prob >= 0.0) {
 		val += prob * pair.probability() * pair.value();
 		prob -= prob * pair.probability();
@@ -396,40 +454,11 @@ public class Iago implements EvalFunction {
 
     public static final List<ProbabilityValue> sortPossibilities(final List<ProbabilityValue> possibilities,
 								 final Comparator<ProbabilityValue> comparator) {
+	assert (comparator != null) : "Parameter comparator cannot be null.";
 	List<ProbabilityValue> result = new ArrayList<ProbabilityValue>(possibilities);
 	Collections.sort(result, comparator);
 	return result;
     }
-
-    public static final Comparator<ProbabilityValue> GREATER_THAN = new Comparator<ProbabilityValue>() {
-	public int compare(final ProbabilityValue pv0,
-			   final ProbabilityValue pv1) {
-	    final int v0 = pv0.value();
-	    final int v1 = pv1.value();
-	    if (v0 < v1) {
-		return -1;
-	    } else if (v0 == v1) {
-		return 0;
-	    } else {
-		return +1;
-	    }
-	}
-    };
-
-    public static final Comparator<ProbabilityValue> LESS_THAN = new Comparator<ProbabilityValue>() {
-	public int compare(final ProbabilityValue pv0,
-			   final ProbabilityValue pv1) {
-	    final int v0 = pv0.value();
-	    final int v1 = pv1.value();
-	    if (v0 > v1) {
-		return -1;
-	    } else if (v0 == v1) {
-		return 0;
-	    } else {
-		return +1;
-	    }
-	}
-    };
 
     /**
      * What's the probability that player can move to this square?

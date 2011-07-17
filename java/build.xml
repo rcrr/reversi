@@ -122,6 +122,11 @@
       <classpath refid="test.classpath"/>
       <compilerarg value="-Xlint:unchecked"/>
     </javac>
+    <copy todir="${test.classes.dir}" overwrite="false">
+      <fileset dir="${test.src.dir}">
+	<include name="**/*.dat" />
+      </fileset>
+    </copy>
   </target>
 
   <target name="test" depends="test.compile">
