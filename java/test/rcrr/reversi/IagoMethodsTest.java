@@ -69,6 +69,53 @@ public class IagoMethodsTest {
 	return buf.toString().split("\\n");
     }
 
+    public static final List<Integer> loadEdgeTable(final String resource) {
+
+	StringBuilder log = new StringBuilder();
+	log.append("Reading the resource: " + resource + "\n");
+	String[] lines = readInputStreamAsStringArray(resource);
+	log.append("The resource has been read." +  "\n");
+	int tableLength;
+	int numberOfLines = lines.length;
+	if (numberOfLines > 2) {
+	    try {
+		tableLength = Integer.valueOf(lines[1].trim());
+	    } catch (NumberFormatException nfe) {
+		log.append("ERROR: Unable to read the number of rows." + "\n");
+		throw new RuntimeException(log.toString(), nfe);
+	    }
+	} else {
+	    log.append("ERROR: The file format is wrong." + "\n");
+	    throw new RuntimeException(log.toString());
+	}
+	log.append("file header: " + lines[0] + "\n");
+	log.append("tableLength: " + tableLength + "\n");
+	if (numberOfLines != tableLength + 2) {
+	    log.append("ERROR: The file length is not consistent. numberOfLines=" + numberOfLines + "\n");
+	    throw new RuntimeException(log.toString());
+	}
+	if (tableLength != Iago.EDGE_TABLE_SIZE) {
+	    log.append("ERROR: The declared table length is not consistent with EDGE_TABLE_SIZE." + "\n");
+	    throw new RuntimeException(log.toString());
+	}
+	List<Integer> edgeTable = new ArrayList<Integer>();
+	log.append("reading the edge table values ..." + "\n");
+	for (int i = 2; i < numberOfLines; i++) {
+	    int value;
+	    try {
+		value = Integer.valueOf(lines[i].trim());
+	    } catch (NumberFormatException nfe) {
+		log.append("ERROR: Unable to parse line " + i + ".\n");
+		throw new RuntimeException(log.toString(), nfe);
+	    }
+	    edgeTable.add(value);
+	}
+	log.append("file reading completed, edge table constructed.");
+	System.out.println(log.toString());
+	return edgeTable;
+
+    }
+
     /** Class constructor. */
     public IagoMethodsTest() { }
 
@@ -80,41 +127,20 @@ public class IagoMethodsTest {
     @Test
     public final void testInitEdgeTable() {
 
-	/** Load the static edge table from the file data/edge-table-st.dat. */
-	String[] lines = readInputStreamAsStringArray("rcrr/reversi/data/edge-table-st.dat");
-	int tableLength;
-	int numberOfLines = lines.length;
-	if (numberOfLines > 2) {
-	    try {
-		tableLength = Integer.valueOf(lines[1].trim());
-	    } catch (NumberFormatException nfe) {
-		throw new RuntimeException("Unable to read the number of rows.", nfe);
-	    }
-	} else {
-	    throw new RuntimeException("The file format is wrong.");
-	}
-	System.out.println("file header: " + lines[0]);
-	System.out.println("tableLength: " + tableLength);
-	if (numberOfLines != tableLength + 2) {
-	    throw new RuntimeException("The file length is not consistent. numberOfLines=" + numberOfLines);
-	}
-	if (tableLength != Iago.EDGE_TABLE_SIZE) {
-	    throw new RuntimeException("The declared table length is not consistent with EDGE_TABLE_SIZE.");
-	}
-	List<Integer> edgeTable = new ArrayList<Integer>();
-	for (int i = 2; i < numberOfLines; i++) {
-	    int value;
-	    try {
-		value = Integer.valueOf(lines[i].trim());
-	    } catch (NumberFormatException nfe) {
-		throw new RuntimeException("Unable to parse line " + i + ".", nfe);
-	    }
-	    edgeTable.add(value);
-	}
-
         //List<Integer> edgeTable = Iago.initEdgeTable();
         assertTrue(true);
     }
+
+    @Test
+    public final void testLoadEdgeTable() {
+
+	/** Load the static edge table from the file data/edge-table-st.dat. */
+	List<Integer> edgeTable = loadEdgeTable("rcrr/reversi/data/edge-table-st.dat");
+
+	assertTrue(true);
+
+    }
+
 
     /**
      * Tests the {@code mobility(GamePosition)} method.
