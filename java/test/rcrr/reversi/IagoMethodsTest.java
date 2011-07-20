@@ -87,6 +87,20 @@ public class IagoMethodsTest {
 
     }
 
+    @Test
+    public final void testRefineEdgeTable() {
+
+	List<Integer> staticTable = Iago.loadEdgeTable("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
+	List<Integer> computed = Iago.refineEdgeTable(staticTable);
+	List<Integer> expected = Iago.loadEdgeTable("rcrr/reversi/data/edge-table-00_Java.dat");
+
+	for (int index = 0; index < expected.size(); index++) {
+	    assertThat("Values computed and values loaded from the reference copy must be equal."
+		       + " At index=" + index + " values differ.",
+		       computed.get(index),
+		       is(expected.get(index)));
+	}
+    }
 
     /**
      * Tests the {@code mobility(GamePosition)} method.

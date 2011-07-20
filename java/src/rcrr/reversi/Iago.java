@@ -175,7 +175,6 @@ public class Iago implements EvalFunction {
 
         /** Computes EDGE_TABLE. */
         EDGE_TABLE = Collections.unmodifiableList(initEdgeTable());
-	writeEdgeTable("edge-table.dat", EDGE_TABLE);
 
     }
 
@@ -341,8 +340,6 @@ public class Iago implements EvalFunction {
         List<Integer> edgeTable = computeStaticEdgeTable();
         for (int i = 0; i < ITERATIONS_FOR_IMPROVING_EDGE_TABLE; i++) {
 	    edgeTable = refineEdgeTable(edgeTable);
-	    // temporary line .....
-	    writeEdgeTable("edge-table-" + i +".dat", edgeTable);
 	}
         return edgeTable;
     }
