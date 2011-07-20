@@ -37,6 +37,10 @@ import java.text.DecimalFormat;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+
 
 /**
  * Iago is an advanced strategy, that implements the features described in the PAIP book 18.12.
@@ -159,16 +163,7 @@ public class Iago implements EvalFunction {
 							       { .05,  .30, null },
 							       { .01, null, null } };
 
-    private static final PrintWriter DEBUG;
-
     static {
-
-	/** Used to debug. */
-	try {
-	    DEBUG = new PrintWriter(new FileWriter("debug.txt"));
-	} catch (IOException ioe) {
-	    throw new RuntimeException(ioe);
-	}
 
         /** Computes EDGE_AND_X_LISTS. */
         List<List<Square>> tempEdgeAndXLists = new ArrayList<List<Square>>();
@@ -184,10 +179,79 @@ public class Iago implements EvalFunction {
 
     }
 
-    public static void writeEdgeTable(final String fileOut, final List<Integer> edgeTable) {
+    public static String[] readInputStreamAsStringArray(final String resource) {
+	InputStream in = new Iago().getClass().getClassLoader().getResourceAsStream(resource);
+	if (in == null) {
+	    throw new RuntimeException("Resource \"" + resource + "\" cannot be found.");
+	}
+	ByteArrayOutputStream buf;
+	BufferedInputStream bis = new BufferedInputStream(in);
+	try {
+	    buf = new ByteArrayOutputStream();
+	    int result = bis.read();
+	    while(result != -1) {
+		byte b = (byte)result;
+		buf.write(b);
+		result = bis.read();
+	    }
+	} catch (IOException ioe) {
+	    throw new RuntimeException(ioe);
+	}
+	return buf.toString().split("\\n");
+    }
+
+    public static final List<Integer> loadEdgeTable(final String resource) {
+
+	StringBuilder log = new StringBuilder();
+	log.append("LOG: Reading the resource: " + resource + "\n");
+	String[] lines = readInputStreamAsStringArray(resource);
+	log.append("LOG: The resource has been read." +  "\n");
+	int tableLength;
+	int numberOfLines = lines.length;
+	if (numberOfLines > 2) {
+	    try {
+		tableLength = Integer.valueOf(lines[1].trim());
+	    } catch (NumberFormatException nfe) {
+		log.append("ERROR: Unable to read the number of rows." + "\n");
+		throw new RuntimeException(log.toString(), nfe);
+	    }
+	} else {
+	    log.append("ERROR: The file format is wrong." + "\n");
+	    throw new RuntimeException(log.toString());
+	}
+	log.append("LOG: File header: " + lines[0] + "\n");
+	log.append("LOG: tableLength: " + tableLength + "\n");
+	if (numberOfLines != tableLength + 2) {
+	    log.append("ERROR: The file length is not consistent. numberOfLines=" + numberOfLines + "\n");
+	    throw new RuntimeException(log.toString());
+	}
+	if (tableLength != Iago.EDGE_TABLE_SIZE) {
+	    log.append("ERROR: The declared table length is not consistent with EDGE_TABLE_SIZE." + "\n");
+	    throw new RuntimeException(log.toString());
+	}
+	List<Integer> edgeTable = new ArrayList<Integer>();
+	log.append("LOG: Reading the edge table values ..." + "\n");
+	for (int i = 2; i < numberOfLines; i++) {
+	    int value;
+	    try {
+		value = Integer.valueOf(lines[i].trim());
+	    } catch (NumberFormatException nfe) {
+		log.append("ERROR: Unable to parse line " + i + ".\n");
+		throw new RuntimeException(log.toString(), nfe);
+	    }
+	    edgeTable.add(value);
+	}
+	log.append("LOG: File reading completed, edge table constructed.");
+	return edgeTable;
+
+    }
+
+    public static void writeEdgeTable(final String fileOut,
+				      final List<Integer> edgeTable) {
 
 	try {
 	    PrintWriter out = new PrintWriter(new FileWriter(fileOut));
+	    out.println("# Written by Iago.writeEdgeTable method.");
 	    out.println(EDGE_TABLE_SIZE);
 	    for (int i = 0; i < EDGE_TABLE_SIZE; i++) {
 		out.println(edgeTable.get(i));
@@ -231,7 +295,7 @@ public class Iago implements EvalFunction {
         return index;
     }
 
-    public static final List<Integer> initEdgeTable() {
+    public static final List<Integer> computeStaticEdgeTable() {
         final List<Integer> edgeTable = new ArrayList<Integer>(EDGE_TABLE_SIZE);
         for (int idx = 0; idx < EDGE_TABLE_SIZE; idx++) {
             edgeTable.add(0);
@@ -249,32 +313,37 @@ public class Iago implements EvalFunction {
                 TOP_EDGE,
                 0);
         }
-	// temporary line .....
-	// writeEdgeTable("static-edge-table.dat", edgeTable);
-        /** Now iterate five times trying to improve: */
+        return edgeTable;	
+    }
+
+    public static final List<Integer> refineEdgeTable(final List<Integer> edgeTable) {
+	/** Do the indexes with more pieces first. From 9 to 1. */
+	for (int nPieces = 9; nPieces > 0; nPieces--) {
+	    mapEdgeNPieces(new Fn0() {
+		    public void funcall(final Board board, final int index) {
+			int tableValue = possibleEdgeMovesValue(edgeTable,
+								Player.BLACK,
+								board,
+								index);
+			edgeTable.set(index, tableValue);
+		    }
+		},
+		Player.BLACK,
+		Board.initialBoard(),
+		nPieces,
+		TOP_EDGE,
+		0);
+	}
+        return edgeTable;
+    }
+
+    public static final List<Integer> initEdgeTable() {
+        List<Integer> edgeTable = computeStaticEdgeTable();
         for (int i = 0; i < ITERATIONS_FOR_IMPROVING_EDGE_TABLE; i++) {
-            /** Do the indexes with more pieces first. From 9 to 1. */
-            for (int nPieces = 9; nPieces > 0; nPieces--) {
-                mapEdgeNPieces(new Fn0() {
-                        public void funcall(final Board board, final int index) {
-			    int tableValue = possibleEdgeMovesValue(edgeTable,
-								    Player.BLACK,
-								    board,
-								    index);
-			    DEBUG.println(index + ";" + tableValue);
-                            edgeTable.set(index, tableValue);
-                        }
-                    },
-                    Player.BLACK,
-                    Board.initialBoard(),
-                    nPieces,
-                    TOP_EDGE,
-                    0);
-            }
+	    edgeTable = refineEdgeTable(edgeTable);
 	    // temporary line .....
-	    // DEBUG.flush();
 	    writeEdgeTable("edge-table-" + i +".dat", edgeTable);
-        }
+	}
         return edgeTable;
     }
  
