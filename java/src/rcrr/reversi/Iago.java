@@ -64,7 +64,7 @@ public class Iago implements EvalFunction {
         public int potential() { return this.potential; }
     }
 
-    public static final class ProbabilityValue implements Comparable<ProbabilityValue> {
+    public static final class ProbabilityValue {
 	private static final DecimalFormat FOUR_DIGIT_DECIMAL_FORMAT = new DecimalFormat("0.0000");
 	private final double probability;
 	private final int value;
@@ -74,9 +74,6 @@ public class Iago implements EvalFunction {
 	}
 	public double probability() { return this.probability; }
 	public int value() { return this.value; }
-	public int compareTo(final ProbabilityValue pv) {
-	    return Integer.valueOf(value()).compareTo(Integer.valueOf(pv.value()));
-	}
 	@Override public String toString() {
 	    return "(" + FOUR_DIGIT_DECIMAL_FORMAT.format(probability()) + " " + value() + ")";
 	}
