@@ -75,7 +75,7 @@ public class IagoMethodsTest {
     @Test
     public final void testComputeStaticEdgeTable() {
 
-	List<Integer> computed = Iago.computeStaticEdgeTable();
+	List<Integer> computed = Iago.EdgeTable.computeStatic();
 	List<Integer> expected = Iago.loadEdgeTable("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
 
 	for (int index = 0; index < expected.size(); index++) {
@@ -91,7 +91,7 @@ public class IagoMethodsTest {
     public final void testRefineEdgeTable() {
 
 	List<Integer> staticTable = Iago.loadEdgeTable("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
-	List<Integer> computed = Iago.refineEdgeTable(staticTable);
+	List<Integer> computed = Iago.EdgeTable.refine(staticTable);
 	List<Integer> expected = Iago.loadEdgeTable("rcrr/reversi/data/edge-table-00_Java.dat");
 
 	for (int index = 0; index < expected.size(); index++) {
