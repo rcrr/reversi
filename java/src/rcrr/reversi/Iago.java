@@ -53,6 +53,12 @@ import java.io.ByteArrayOutputStream;
  */
 public class Iago implements EvalFunction {
 
+    public enum SquareValue {
+        PLAYER,
+        OPPONENT,
+        EMPTY;
+    }
+
     public static final class Mobility {
         private final int current;
         private final int potential;
@@ -77,6 +83,81 @@ public class Iago implements EvalFunction {
 	@Override public String toString() {
 	    return "(" + FOUR_DIGIT_DECIMAL_FORMAT.format(probability()) + " " + value() + ")";
 	}
+    }
+
+    public static final class EdgeTable {
+
+	public static final List<Integer> computeStatic() {
+	    final List<Integer> edgeTable = new ArrayList<Integer>(EDGE_TABLE_SIZE);
+	    for (int idx = 0; idx < EDGE_TABLE_SIZE; idx++) {
+		edgeTable.add(0);
+	    }
+	    /** Initialize the static values. */
+	    for (int nPieces = 0; nPieces < 11; nPieces++) {
+		mapEdgeNPieces(new Fn0() {
+			public void funcall(final Board board, final int index) {
+			    edgeTable.set(index, staticEdgeStability(Player.BLACK, board));
+			}
+		    },
+		    Player.BLACK,
+		    Board.initialBoard(),
+		    nPieces,
+		    TOP_EDGE,
+		    0);
+	    }
+	    return edgeTable;	
+	}
+
+	public static final List<Integer> refine(final List<Integer> edgeTable) {
+	    /** Do the indexes with more pieces first. From 9 to 1. */
+	    for (int nPieces = 9; nPieces > 0; nPieces--) {
+		mapEdgeNPieces(new Fn0() {
+			public void funcall(final Board board, final int index) {
+			    int tableValue = possibleEdgeMovesValue(edgeTable,
+								    Player.BLACK,
+								    board,
+								    index);
+			    edgeTable.set(index, tableValue);
+			}
+		    },
+		    Player.BLACK,
+		    Board.initialBoard(),
+		    nPieces,
+		    TOP_EDGE,
+		    0);
+	    }
+	    return edgeTable;
+	}
+
+	private final List<Integer> table;
+
+	public EdgeTable() {
+	    this.table = new ArrayList<Integer>(EDGE_TABLE_SIZE);
+	    for (int idx = 0; idx < EDGE_TABLE_SIZE; idx++) {
+		this.table.add(0);
+	    }
+	}
+
+	public EdgeTable(final List<Integer> table) {
+	    this.table = new ArrayList<Integer>(table);
+	}
+
+	public final int set(final int index, final int value) {
+	    return table.set(index, Integer.valueOf(value));
+	}
+
+	public final int get (final int index) {
+	    return table.get(index);
+	}
+
+	public static final List<Integer> init() {
+	    List<Integer> edgeTable = EdgeTable.computeStatic();
+	    for (int i = 0; i < ITERATIONS_FOR_IMPROVING_EDGE_TABLE; i++) {
+		edgeTable = EdgeTable.refine(edgeTable);
+	    }
+	    return edgeTable;
+	}
+
     }
 
     public static final Comparator<ProbabilityValue> GREATER_THAN = new Comparator<ProbabilityValue>() {
@@ -108,12 +189,6 @@ public class Iago implements EvalFunction {
 	    }
 	}
     };
-
-    public enum SquareValue {
-        PLAYER,
-        OPPONENT,
-        EMPTY;
-    }
 
     private static final int ITERATIONS_FOR_IMPROVING_EDGE_TABLE = 5;
 
@@ -171,11 +246,11 @@ public class Iago implements EvalFunction {
         EDGE_AND_X_LISTS = Collections.unmodifiableList(tempEdgeAndXLists);
 
         /** Computes EDGE_TABLE. */
-        EDGE_TABLE = Collections.unmodifiableList(initEdgeTable());
+        EDGE_TABLE = Collections.unmodifiableList(EdgeTable.init());
 
     }
 
-    public static String[] readInputStreamAsStringArray(final String resource) {
+    public static final String[] readInputStreamAsStringArray(final String resource) {
 	InputStream in = new Iago().getClass().getClassLoader().getResourceAsStream(resource);
 	if (in == null) {
 	    throw new RuntimeException("Resource \"" + resource + "\" cannot be found.");
@@ -197,7 +272,6 @@ public class Iago implements EvalFunction {
     }
 
     public static final List<Integer> loadEdgeTable(final String resource) {
-
 	StringBuilder log = new StringBuilder();
 	log.append("LOG: Reading the resource: " + resource + "\n");
 	String[] lines = readInputStreamAsStringArray(resource);
@@ -239,12 +313,10 @@ public class Iago implements EvalFunction {
 	}
 	log.append("LOG: File reading completed, edge table constructed.");
 	return edgeTable;
-
     }
 
-    public static void writeEdgeTable(final String fileOut,
-				      final List<Integer> edgeTable) {
-
+    public static final void writeEdgeTable(final String fileOut,
+					   final List<Integer> edgeTable) {
 	try {
 	    PrintWriter out = new PrintWriter(new FileWriter(fileOut));
 	    out.println("# Written by Iago.writeEdgeTable method.");
@@ -256,7 +328,6 @@ public class Iago implements EvalFunction {
 	} catch (IOException ioe) {
 	    throw new RuntimeException(ioe);
 	}
-
     }
 
     // Fully tested.
@@ -289,56 +360,6 @@ public class Iago implements EvalFunction {
             index = (index * SQUARE_VALUE_LENGTH) + incr;
         }
         return index;
-    }
-
-    public static final List<Integer> computeStaticEdgeTable() {
-        final List<Integer> edgeTable = new ArrayList<Integer>(EDGE_TABLE_SIZE);
-        for (int idx = 0; idx < EDGE_TABLE_SIZE; idx++) {
-            edgeTable.add(0);
-        }
-        /** Initialize the static values. */
-        for (int nPieces = 0; nPieces < 11; nPieces++) {
-            mapEdgeNPieces(new Fn0() {
-                    public void funcall(final Board board, final int index) {
-                        edgeTable.set(index, staticEdgeStability(Player.BLACK, board));
-                    }
-                },
-                Player.BLACK,
-                Board.initialBoard(),
-                nPieces,
-                TOP_EDGE,
-                0);
-        }
-        return edgeTable;	
-    }
-
-    public static final List<Integer> refineEdgeTable(final List<Integer> edgeTable) {
-	/** Do the indexes with more pieces first. From 9 to 1. */
-	for (int nPieces = 9; nPieces > 0; nPieces--) {
-	    mapEdgeNPieces(new Fn0() {
-		    public void funcall(final Board board, final int index) {
-			int tableValue = possibleEdgeMovesValue(edgeTable,
-								Player.BLACK,
-								board,
-								index);
-			edgeTable.set(index, tableValue);
-		    }
-		},
-		Player.BLACK,
-		Board.initialBoard(),
-		nPieces,
-		TOP_EDGE,
-		0);
-	}
-        return edgeTable;
-    }
-
-    public static final List<Integer> initEdgeTable() {
-        List<Integer> edgeTable = computeStaticEdgeTable();
-        for (int i = 0; i < ITERATIONS_FOR_IMPROVING_EDGE_TABLE; i++) {
-	    edgeTable = refineEdgeTable(edgeTable);
-	}
-        return edgeTable;
     }
  
     // Fully tested.
