@@ -54,7 +54,7 @@ public class IagoMethodsTest {
     /**
      * Tests the {@code initEdgeTable()} method.
      *
-     * @see Iago#initEdgeTable()
+     * @see Iago.EdgeTable#init()
      */
     @Test
     public final void testInitEdgeTable() {
@@ -67,7 +67,7 @@ public class IagoMethodsTest {
     public final void testLoadEdgeTable() {
 
 	/** Load the static edge table from the file data/edge-table-st.dat. */
-	List<Integer> edgeTable = Iago.loadEdgeTable("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
+	List<Integer> edgeTable = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
 	assertTrue(true);
 
     }
@@ -76,7 +76,7 @@ public class IagoMethodsTest {
     public final void testComputeStaticEdgeTable() {
 
 	List<Integer> computed = Iago.EdgeTable.computeStatic();
-	List<Integer> expected = Iago.loadEdgeTable("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
+	List<Integer> expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
 
 	for (int index = 0; index < expected.size(); index++) {
 	    assertThat("Values computed and values loaded from the reference copy must be equal."
@@ -90,9 +90,9 @@ public class IagoMethodsTest {
     @Test
     public final void testRefineEdgeTable() {
 
-	List<Integer> staticTable = Iago.loadEdgeTable("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
+	List<Integer> staticTable = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
 	List<Integer> computed = Iago.EdgeTable.refine(staticTable);
-	List<Integer> expected = Iago.loadEdgeTable("rcrr/reversi/data/edge-table-00_Java.dat");
+	List<Integer> expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-00_Java.dat");
 
 	for (int index = 0; index < expected.size(); index++) {
 	    assertThat("Values computed and values loaded from the reference copy must be equal."
@@ -126,49 +126,49 @@ public class IagoMethodsTest {
     @Test
     public final void testStaticEdgeStability() {
 	assertThat("Iago.staticEdgeStability(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS) must be -2725.",
-		   Iago.staticEdgeStability(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS),
+		   Iago.EdgeTable.staticEdgeStability(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS),
 		   is(-2725));
 
 	assertThat("Holding an edge has a value of 700.",
-		   Iago.staticEdgeStability(Player.BLACK,
-					    new Board.Builder()
-					    .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0)					    
-					    .build()),
+		   Iago.EdgeTable.staticEdgeStability(Player.BLACK,
+						      new Board.Builder()
+						      .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0)
+						      .build()),
 		   is(700));
 
 	assertThat("Configuration (0 0 1 1 1 2 1 1 0 0) is valued -50.",
-		   Iago.staticEdgeStability(Player.BLACK,
-					    new Board.Builder()
-					    .withSquaresLiteral(0, 1, 1, 1, 2, 1, 1, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0)					    
-					    .build()),
+		   Iago.EdgeTable.staticEdgeStability(Player.BLACK,
+						      new Board.Builder()
+						      .withSquaresLiteral(0, 1, 1, 1, 2, 1, 1, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0)			    
+						      .build()),
 		   is(-50));
 
 	assertThat("Configuration (0 0 1 1 1 0 1 1 0 0) is valued 1000.",
-		   Iago.staticEdgeStability(Player.BLACK,
-					    new Board.Builder()
-					    .withSquaresLiteral(0, 1, 1, 1, 0, 1, 1, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0,
-								0, 0, 0, 0, 0, 0, 0, 0)					    
-					    .build()),
+		   Iago.EdgeTable.staticEdgeStability(Player.BLACK,
+						      new Board.Builder()
+						      .withSquaresLiteral(0, 1, 1, 1, 0, 1, 1, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0,
+									  0, 0, 0, 0, 0, 0, 0, 0)
+						      .build()),
 		   is(1000));
 
     }
