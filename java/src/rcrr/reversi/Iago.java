@@ -169,21 +169,20 @@ public class Iago implements EvalFunction {
 	public static final int SIZE = new Double(Math.pow(SquareValue.LENGTH,
 							   Edge.SQUARES_COUNT)).intValue();
 
-	public static final Integer[][] STATIC_EDGE_TABLE = { { null,    0, -2000 },   /** X square. */
-							      {  700, null,  null },   /** Corner.   */
-							      { 1200,  200,   -25 },   /** C square. */
-							      { 1000,  200,    75 },   /** A square. */
-							      { 1000,  200,    50 },   /** B square. */
-							      { 1000,  200,    50 },   /** B square. */
-							      { 1000,  200,    75 },   /** A square. */
-							      { 1200,  200,   -25 },   /** C square. */
-							      {  700, null,  null },   /** Corner.   */
-							      { null,    0, -2000 } }; /** X square. */
+	private static final Integer[][] STATIC_EDGE_TABLE = { { null,    0, -2000 },   /** X square. */
+							       {  700, null,  null },   /** Corner.   */
+							       { 1200,  200,   -25 },   /** C square. */
+							       { 1000,  200,    75 },   /** A square. */
+							       { 1000,  200,    50 },   /** B square. */
+							       { 1000,  200,    50 },   /** B square. */
+							       { 1000,  200,    75 },   /** A square. */
+							       { 1200,  200,   -25 },   /** C square. */
+							       {  700, null,  null },   /** Corner.   */
+							       { null,    0, -2000 } }; /** X square. */
 
-
-	public static final Double[][] EDGE_STATIC_PROBABILITY = { { .10,  .40,  .70 },
-								   { .05,  .30, null },
-								   { .01, null, null } };
+	private static final Double[][] EDGE_STATIC_PROBABILITY = { { .10,  .40,  .70 },
+								    { .05,  .30, null },
+								    { .01, null, null } };
 	// Fully tested.
 	/**
 	 * Computes the edge index used to execute a lookup into th edge table.
@@ -195,14 +194,14 @@ public class Iago implements EvalFunction {
 	 * @param edge   one among the four edge
 	 * @return       the index value associated to the given configuration and the chosen edge
 	 */
-	public static int index(final Player player, final Board board, final List<Square> edge) {
+	private static int index(final Player player, final Board board, final List<Square> edge) {
 	    assert (player != null) : "Parameter player cannot be null.";
 	    assert (board != null) : "Parameter board cannot be null.";
 	    assert (edge != null) : "Parameter edge cannot be null.";
 	    assert (edge.size() == 10) : "Parameter edge must have ten entries.";
 	    int index = 0;
-	    for (Square square : edge) {
-		SquareState state = board.get(square);
+	    for (final Square square : edge) {
+		final SquareState state = board.get(square);
 		int incr;
 		if (state == SquareState.EMPTY) {
 		    incr = 0;
