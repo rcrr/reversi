@@ -180,6 +180,10 @@ public class Iago implements EvalFunction {
 							      {  700, null,  null },   /** Corner.   */
 							      { null,    0, -2000 } }; /** X square. */
 
+
+	public static final Double[][] EDGE_STATIC_PROBABILITY = { { .10,  .40,  .70 },
+								   { .05,  .30, null },
+								   { .01, null, null } };
 	// Fully tested.
 	/**
 	 * Computes the edge index used to execute a lookup into th edge table.
@@ -213,15 +217,16 @@ public class Iago implements EvalFunction {
 	}
 
 	public static final EdgeTable computeStatic() {
-	    final List<Integer> edgeTable = new ArrayList<Integer>(SIZE);
+	    final List<Integer> values = new ArrayList<Integer>(SIZE);
 	    for (int idx = 0; idx < SIZE; idx++) {
-		edgeTable.add(0);
+		values.add(0);
 	    }
+	    final EdgeTable table = new EdgeTable(values);
 	    /** Initialize the static values. */
 	    for (int nPieces = 0; nPieces < 11; nPieces++) {
 		mapEdgeNPieces(new Fn0() {
 			public void funcall(final Board board, final int index) {
-			    edgeTable.set(index, staticEdgeStability(Player.BLACK, board));
+			    table.set(index, staticEdgeStability(Player.BLACK, board));
 			}
 		    },
 		    Player.BLACK,
@@ -230,19 +235,18 @@ public class Iago implements EvalFunction {
 		    Edge.TOP.squares(),
 		    0);
 	    }
-	    return new EdgeTable(edgeTable);
+	    return table;
 	}
 
-	public static final EdgeTable refine(final EdgeTable edgeTable) {
+	public static final EdgeTable refine(final EdgeTable table) {
 	    /** Do the indexes with more pieces first. From 9 to 1. */
 	    for (int nPieces = 9; nPieces > 0; nPieces--) {
 		mapEdgeNPieces(new Fn0() {
 			public void funcall(final Board board, final int index) {
-			    int tableValue = possibleEdgeMovesValue(edgeTable,
+			    table.set(index, possibleEdgeMovesValue(table,
 								    Player.BLACK,
 								    board,
-								    index);
-			    edgeTable.set(index, tableValue);
+								    index));
 			}
 		    },
 		    Player.BLACK,
@@ -251,7 +255,7 @@ public class Iago implements EvalFunction {
 		    Edge.TOP.squares(),
 		    0);
 	    }
-	    return edgeTable;
+	    return table;
 	}
 
 	/**
@@ -337,7 +341,7 @@ public class Iago implements EvalFunction {
 		log.append("ERROR: The declared table length is not consistent with SIZE." + "\n");
 		throw new RuntimeException(log.toString());
 	    }
-	    List<Integer> edgeTable = new ArrayList<Integer>();
+	    final List<Integer> values = new ArrayList<Integer>();
 	    log.append("LOG: Reading the edge table values ..." + "\n");
 	    for (int i = 2; i < numberOfLines; i++) {
 		int value;
@@ -347,20 +351,20 @@ public class Iago implements EvalFunction {
 		    log.append("ERROR: Unable to parse line " + i + ".\n");
 		    throw new RuntimeException(log.toString(), nfe);
 		}
-		edgeTable.add(value);
+		values.add(value);
 	    }
 	    log.append("LOG: File reading completed, edge table constructed.");
-	    return new EdgeTable(edgeTable);
+	    return new EdgeTable(values);
 	}
 
 	public static final void write(final String fileOut,
-				       final EdgeTable edgeTable) {
+				       final EdgeTable table) {
 	    try {
 		PrintWriter out = new PrintWriter(new FileWriter(fileOut));
 		out.println("# Written by Iago.writeEdgeTable method.");
 		out.println(SIZE);
 		for (int i = 0; i < SIZE; i++) {
-		    out.println(edgeTable.get(i));
+		    out.println(table.get(i));
 		}
 		out.close();
 	    } catch (IOException ioe) {
@@ -446,33 +450,33 @@ public class Iago implements EvalFunction {
 	 * to retur a ProbabilityValue object. Since it is also possible for a player not to make any move
 	 * at all on an edge, the pair (1.0 current-value) is also included.
 	 *
-	 * @param edgeTable the edge table reference that is under calculation.
-	 * @param player    the palyer for whom run the calculation
-	 * @param board     the edge configuration
+	 * @param table  the edge table reference that is under calculation.
+	 * @param player the palyer for whom run the calculation
+	 * @param board  the edge configuration
 	 * @param index     
-	 * @return          an edge value that is more accurate than a static evaluation
+	 * @return       an edge value that is more accurate than a static evaluation
 	 */
-	public static final int possibleEdgeMovesValue(final EdgeTable edgeTable,
+	public static final int possibleEdgeMovesValue(final EdgeTable table,
 						       final Player player,
 						       final Board board,
 						       final int index) {
-	    assert(edgeTable != null) : "Parameter edgeTable cannot be null.";
+	    assert(table != null) : "Parameter table cannot be null.";
 	    assert(player != null) : "Parameter player cannot be null.";
 	    assert(board != null) : "Parameter board cannot be null.";
-	    if (EdgeTable.index(player, board, Edge.TOP.squares()) != index) {
+	    if (index(player, board, Edge.TOP.squares()) != index) {
 		// one test run with the two values not alligned! Why?
 		// the "regular run" has always the two values alligned. Could be removed from the paramenter list? I guess so!
 		/*
 		  System.out.println("board=\n" + board.printBoard());
 		  System.out.println("player=" + player);
-		  System.out.println("EdgeTable.index(player, board, TOP_EDGE)=" + EdgeTable.index(player, board, TOP_EDGE) + ", index=" + index);
+		  System.out.println("index(player, board, TOP_EDGE)=" + .index(player, board, TOP_EDGE) + ", index=" + index);
 		*/ ;
 	    }
 	    List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
-	    possibilities.add(new ProbabilityValue(1.0, edgeTable.get(index)));
+	    possibilities.add(new ProbabilityValue(1.0, table.get(index)));
 	    for (Square sq : Edge.TOP.squares()) {
 		if (board.get(sq) == SquareState.EMPTY) {
-		    possibilities.add(possibleEdgeMove(edgeTable, player, board, sq));
+		    possibilities.add(possibleEdgeMove(table, player, board, sq));
 		}
 	    }
 	    return combineEdgeMoves(possibilities, player);
@@ -481,13 +485,13 @@ public class Iago implements EvalFunction {
 	/**
 	 * Return a probability value pair for a possible edge move.
 	 */
-	public static final ProbabilityValue possibleEdgeMove(final EdgeTable edgeTable,
+	public static final ProbabilityValue possibleEdgeMove(final EdgeTable table,
 							      final Player player,
 							      final Board board,
 							      final Square sq) {
 	    Board newBoard = makeMoveWithoutLegalCheck(board, sq, player);
 	    return new ProbabilityValue(edgeMoveProbability(player, board, sq),
-					- edgeTable.get(EdgeTable.index(player.opponent(), newBoard, Edge.TOP.squares())));
+					- table.get(index(player.opponent(), newBoard, Edge.TOP.squares())));
 	}
 
 	/**
@@ -588,25 +592,25 @@ public class Iago implements EvalFunction {
 	    return false;
 	}
 
-	private final List<Integer> table;
+	private final List<Integer> values;
 
 	public EdgeTable() {
-	    this.table = new ArrayList<Integer>(SIZE);
+	    this.values = new ArrayList<Integer>(SIZE);
 	    for (int idx = 0; idx < SIZE; idx++) {
-		this.table.add(0);
+		this.values.add(0);
 	    }
 	}
 
-	public EdgeTable(final List<Integer> table) {
-	    this.table = new ArrayList<Integer>(table);
+	public EdgeTable(final List<Integer> values) {
+	    this.values = new ArrayList<Integer>(values);
 	}
 
 	public final int set(final int index, final int value) {
-	    return table.set(index, Integer.valueOf(value));
+	    return values.set(index, Integer.valueOf(value));
 	}
 
 	public final int get (final int index) {
-	    return table.get(index);
+	    return values.get(index);
 	}
 
 	public static final EdgeTable init() {
@@ -622,10 +626,6 @@ public class Iago implements EvalFunction {
     public static final List<List<Square>> EDGE_AND_X_LISTS;
 
     private static final EdgeTable TABLE;
-
-    public static final Double[][] EDGE_STATIC_PROBABILITY = { { .10,  .40,  .70 },
-							       { .05,  .30, null },
-							       { .01, null, null } };
 
     static {
 
