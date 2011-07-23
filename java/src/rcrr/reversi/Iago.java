@@ -57,6 +57,37 @@ public class Iago implements EvalFunction {
         PLAYER,
         OPPONENT,
         EMPTY;
+
+	public static final int LENGTH = values().length;
+    }
+
+    public enum Edge {
+	TOP(Square.B2, Square.A1, Square.B1, Square.C1, Square.D1,
+	    Square.E1, Square.F1, Square.G1, Square.H1, Square.G2),
+	BOTTOM(Square.B7, Square.A8, Square.B8, Square.C8, Square.D8,
+	       Square.E8, Square.F8, Square.G8, Square.H8, Square.G7),
+	LEFT(Square.B2, Square.A1, Square.A2, Square.A3, Square.A4,
+	     Square.A5, Square.A6, Square.A7, Square.A8, Square.B7),
+	RIGHT(Square.G2, Square.H1, Square.H2, Square.H3, Square.H4,
+	      Square.H5, Square.H6, Square.H7, Square.H8, Square.G7);
+
+	public static final int SQUARES_COUNT = 10;
+
+	public static final int LENGTH = values().length;
+
+	private final List<Square> squares;
+
+	public final List<Square> squares() { return this.squares; }
+
+	/**
+	 * Enum constructor.
+	 *
+	 * @param squares squares field
+	 */
+	Edge(final Square... squares) {
+	    assert (squares.length == SQUARES_COUNT) : "The number of squares assigned to the edge is wrong.";
+	    this.squares = Collections.unmodifiableList(Arrays.asList(squares));
+	}
     }
 
     public static final class Mobility {
@@ -71,6 +102,37 @@ public class Iago implements EvalFunction {
     }
 
     public static final class ProbabilityValue {
+
+	public static final Comparator<ProbabilityValue> GT = new Comparator<ProbabilityValue>() {
+	    public int compare(final ProbabilityValue pv0,
+			       final ProbabilityValue pv1) {
+		final int v0 = pv0.value();
+		final int v1 = pv1.value();
+		if (v0 < v1) {
+		    return -1;
+		} else if (v0 == v1) {
+		    return 0;
+		} else {
+		    return +1;
+		}
+	    }
+	};
+
+	public static final Comparator<ProbabilityValue> LT = new Comparator<ProbabilityValue>() {
+	    public int compare(final ProbabilityValue pv0,
+			       final ProbabilityValue pv1) {
+		final int v0 = pv0.value();
+		final int v1 = pv1.value();
+		if (v0 > v1) {
+		    return -1;
+		} else if (v0 == v1) {
+		    return 0;
+		} else {
+		    return +1;
+		}
+	    }
+	};
+
 	private static final DecimalFormat FOUR_DIGIT_DECIMAL_FORMAT = new DecimalFormat("0.0000");
 	private final double probability;
 	private final int value;
@@ -91,6 +153,12 @@ public class Iago implements EvalFunction {
 	    public void funcall(final Board board, final int index);
 	}
 
+	private static final int ITERATIONS_FOR_IMPROVING = 5;
+
+	/** The table size have to be 59,049. */
+	public static final int SIZE = new Double(Math.pow(SquareValue.LENGTH,
+							   Edge.SQUARES_COUNT)).intValue();
+
 	public static final Integer[][] STATIC_EDGE_TABLE = { { null,    0, -2000 },   /** X square. */
 							      {  700, null,  null },   /** Corner.   */
 							      { 1200,  200,   -25 },   /** C square. */
@@ -102,9 +170,41 @@ public class Iago implements EvalFunction {
 							      {  700, null,  null },   /** Corner.   */
 							      { null,    0, -2000 } }; /** X square. */
 
+	// Fully tested.
+	/**
+	 * Computes the edge index used to execute a lookup into th edge table.
+	 * Given a player, a board, and the selected edge, the method returns the index to be
+	 * used to query the edge table.
+	 *
+	 * @param player the player for whom compute the index
+	 * @param board  the board configuration
+	 * @param edge   one among the four edge
+	 * @return       the index value associated to the given configuration and the chosen edge
+	 */
+	public static int index(final Player player, final Board board, final List<Square> edge) {
+	    assert (player != null) : "Parameter player cannot be null.";
+	    assert (board != null) : "Parameter board cannot be null.";
+	    assert (edge != null) : "Parameter edge cannot be null.";
+	    assert (edge.size() == 10) : "Parameter edge must have ten entries.";
+	    int index = 0;
+	    for (Square square : edge) {
+		SquareState state = board.get(square);
+		int incr;
+		if (state == SquareState.EMPTY) {
+		    incr = 0;
+		} else if (state == player.color()) {
+		    incr = 1;
+		} else {
+		    incr = 2;
+		}
+		index = (index * SquareValue.LENGTH) + incr;
+	    }
+	    return index;
+	}
+
 	public static final List<Integer> computeStatic() {
-	    final List<Integer> edgeTable = new ArrayList<Integer>(EDGE_TABLE_SIZE);
-	    for (int idx = 0; idx < EDGE_TABLE_SIZE; idx++) {
+	    final List<Integer> edgeTable = new ArrayList<Integer>(SIZE);
+	    for (int idx = 0; idx < SIZE; idx++) {
 		edgeTable.add(0);
 	    }
 	    /** Initialize the static values. */
@@ -117,7 +217,7 @@ public class Iago implements EvalFunction {
 		    Player.BLACK,
 		    Board.initialBoard(),
 		    nPieces,
-		    TOP_EDGE,
+		    Edge.TOP.squares(),
 		    0);
 	    }
 	    return edgeTable;	
@@ -138,7 +238,7 @@ public class Iago implements EvalFunction {
 		    Player.BLACK,
 		    Board.initialBoard(),
 		    nPieces,
-		    TOP_EDGE,
+		    Edge.TOP.squares(),
 		    0);
 	    }
 	    return edgeTable;
@@ -157,7 +257,7 @@ public class Iago implements EvalFunction {
 	    assert (board != null) : "Parameter board cannot be null.";
 	    int sum = 0;
 	    int i = 0;
-	    for (Square sq : TOP_EDGE) {
+	    for (Square sq : Edge.TOP.squares()) {
 		int addendum;
 		if (board.get(sq) == SquareState.EMPTY) {
 		addendum = 0;
@@ -223,8 +323,8 @@ public class Iago implements EvalFunction {
 		log.append("ERROR: The file length is not consistent. numberOfLines=" + numberOfLines + "\n");
 		throw new RuntimeException(log.toString());
 	    }
-	    if (tableLength != Iago.EDGE_TABLE_SIZE) {
-		log.append("ERROR: The declared table length is not consistent with EDGE_TABLE_SIZE." + "\n");
+	    if (tableLength != SIZE) {
+		log.append("ERROR: The declared table length is not consistent with SIZE." + "\n");
 		throw new RuntimeException(log.toString());
 	    }
 	    List<Integer> edgeTable = new ArrayList<Integer>();
@@ -248,8 +348,8 @@ public class Iago implements EvalFunction {
 	    try {
 		PrintWriter out = new PrintWriter(new FileWriter(fileOut));
 		out.println("# Written by Iago.writeEdgeTable method.");
-		out.println(EDGE_TABLE_SIZE);
-		for (int i = 0; i < EDGE_TABLE_SIZE; i++) {
+		out.println(SIZE);
+		for (int i = 0; i < SIZE; i++) {
 		    out.println(edgeTable.get(i));
 		}
 		out.close();
@@ -261,8 +361,8 @@ public class Iago implements EvalFunction {
 	private final List<Integer> table;
 
 	public EdgeTable() {
-	    this.table = new ArrayList<Integer>(EDGE_TABLE_SIZE);
-	    for (int idx = 0; idx < EDGE_TABLE_SIZE; idx++) {
+	    this.table = new ArrayList<Integer>(SIZE);
+	    for (int idx = 0; idx < SIZE; idx++) {
 		this.table.add(0);
 	    }
 	}
@@ -281,7 +381,7 @@ public class Iago implements EvalFunction {
 
 	public static final List<Integer> init() {
 	    List<Integer> edgeTable = EdgeTable.computeStatic();
-	    for (int i = 0; i < ITERATIONS_FOR_IMPROVING_EDGE_TABLE; i++) {
+	    for (int i = 0; i < ITERATIONS_FOR_IMPROVING; i++) {
 		edgeTable = EdgeTable.refine(edgeTable);
 	    }
 	    return edgeTable;
@@ -289,63 +389,7 @@ public class Iago implements EvalFunction {
 
     }
 
-    public static final Comparator<ProbabilityValue> GREATER_THAN = new Comparator<ProbabilityValue>() {
-	public int compare(final ProbabilityValue pv0,
-			   final ProbabilityValue pv1) {
-	    final int v0 = pv0.value();
-	    final int v1 = pv1.value();
-	    if (v0 < v1) {
-		return -1;
-	    } else if (v0 == v1) {
-		return 0;
-	    } else {
-		return +1;
-	    }
-	}
-    };
-
-    public static final Comparator<ProbabilityValue> LESS_THAN = new Comparator<ProbabilityValue>() {
-	public int compare(final ProbabilityValue pv0,
-			   final ProbabilityValue pv1) {
-	    final int v0 = pv0.value();
-	    final int v1 = pv1.value();
-	    if (v0 > v1) {
-		return -1;
-	    } else if (v0 == v1) {
-		return 0;
-	    } else {
-		return +1;
-	    }
-	}
-    };
-
-    private static final int ITERATIONS_FOR_IMPROVING_EDGE_TABLE = 5;
-
-    public static final int SQUARE_VALUE_LENGTH = SquareValue.values().length;
-
-    public static final List<Square> TOP_EDGE
-        = Collections.unmodifiableList(Arrays.asList(Square.B2, Square.A1, Square.B1, Square.C1, Square.D1,
-                                                     Square.E1, Square.F1, Square.G1, Square.H1, Square.G2));
-
-    public static final List<Square> BOTTOM_EDGE
-        = Collections.unmodifiableList(Arrays.asList(Square.B7, Square.A8, Square.B8, Square.C8, Square.D8,
-                                                     Square.E8, Square.F8, Square.G8, Square.H8, Square.G7));
-
-    public static final List<Square> LEFT_EDGE
-        = Collections.unmodifiableList(Arrays.asList(Square.B2, Square.A1, Square.A2, Square.A3, Square.A4,
-                                                     Square.A5, Square.A6, Square.A7, Square.A8, Square.B7));
-
-    public static final List<Square> RIGHT_EDGE
-        = Collections.unmodifiableList(Arrays.asList(Square.G2, Square.H1, Square.H2, Square.H3, Square.H4,
-                                                     Square.H5, Square.H6, Square.H7, Square.H8, Square.G7));
-
-    public static final int EDGE_SIZE = TOP_EDGE.size();
-
     public static final List<List<Square>> EDGE_AND_X_LISTS;
-
-    /** The table size have to be 59,049. */
-    public static final int EDGE_TABLE_SIZE = new Double(Math.pow(SQUARE_VALUE_LENGTH,
-                                                                   EDGE_SIZE)).intValue();
 
     private static final List<Integer> EDGE_TABLE;
 
@@ -357,47 +401,15 @@ public class Iago implements EvalFunction {
 
         /** Computes EDGE_AND_X_LISTS. */
         List<List<Square>> tempEdgeAndXLists = new ArrayList<List<Square>>();
-        tempEdgeAndXLists.add(TOP_EDGE);
-        tempEdgeAndXLists.add(BOTTOM_EDGE);
-        tempEdgeAndXLists.add(LEFT_EDGE);
-        tempEdgeAndXLists.add(RIGHT_EDGE);
+        tempEdgeAndXLists.add(Edge.TOP.squares());
+        tempEdgeAndXLists.add(Edge.BOTTOM.squares());
+        tempEdgeAndXLists.add(Edge.LEFT.squares());
+        tempEdgeAndXLists.add(Edge.RIGHT.squares());
         EDGE_AND_X_LISTS = Collections.unmodifiableList(tempEdgeAndXLists);
 
         /** Computes EDGE_TABLE. */
         EDGE_TABLE = Collections.unmodifiableList(EdgeTable.init());
 
-    }
-
-    // Fully tested.
-    /**
-     * Computes the edge index used to execute a lookup into th edge table.
-     * Given a player, a board, and the selected edge, the method returns the index to be
-     * used to query the edge table.
-     *
-     * @param player the player for whom compute the index
-     * @param board  the board configuration
-     * @param edge   one among the four edge
-     * @return       the index value associated to the given configuration and the chosen edge
-     */
-    public static int edgeIndex(final Player player, final Board board, final List<Square> edge) {
-	assert (player != null) : "Parameter player cannot be null.";
-	assert (board != null) : "Parameter board cannot be null.";
-	assert (edge != null) : "Parameter edge cannot be null.";
-	assert (edge.size() == 10) : "Parameter edge must have ten entries.";
-        int index = 0;
-        for (Square square : edge) {
-            SquareState state = board.get(square);
-            int incr;
-            if (state == SquareState.EMPTY) {
-                incr = 0;
-            } else if (state == player.color()) {
-                incr = 1;
-            } else {
-                incr = 2;
-            }
-            index = (index * SQUARE_VALUE_LENGTH) + incr;
-        }
-        return index;
     }
 
     // Fully tested.
@@ -443,13 +455,13 @@ public class Iago implements EvalFunction {
 	    /** The assignement to opp is consistent with a literal translation of the PAIP CL version of this function. */
 	    SquareState opp = (player == SquareState.BLACK) ? SquareState.WHITE : SquareState.BLACK;
 	    SquareState p1 = SquareState.OUTER;
-	    for (int i = TOP_EDGE.indexOf(sq); i < 9; i++) {
-		SquareState s = board.get(TOP_EDGE.get(i));
+	    for (int i = Edge.TOP.squares().indexOf(sq); i < 9; i++) {
+		SquareState s = board.get(Edge.TOP.squares().get(i));
 		if (s != player) { p1 = s; break; }
 	    }
 	    SquareState p2 = SquareState.OUTER;
-	    for (int i = TOP_EDGE.indexOf(sq); i > 0; i--) {
-		SquareState s = board.get(TOP_EDGE.get(i));
+	    for (int i = Edge.TOP.squares().indexOf(sq); i > 0; i--) {
+		SquareState s = board.get(Edge.TOP.squares().get(i));
 		if (s != player) { p2 = s; break; }
 	    }
 	    if (((p1 == SquareState.EMPTY) && (p2 == opp))
@@ -491,18 +503,18 @@ public class Iago implements EvalFunction {
 	assert(edgeTable != null) : "Parameter edgeTable cannot be null.";
 	assert(player != null) : "Parameter player cannot be null.";
 	assert(board != null) : "Parameter board cannot be null.";
-	if (edgeIndex(player, board, TOP_EDGE) != index) {
+	if (EdgeTable.index(player, board, Edge.TOP.squares()) != index) {
 	    // one test run with the two values not alligned! Why?
 	    // the "regular run" has always the two values alligned. Could be removed from the paramenter list? I guess so!
 	    /*
 	    System.out.println("board=\n" + board.printBoard());
 	    System.out.println("player=" + player);
-	    System.out.println("edgeIndex(player, board, TOP_EDGE)=" + edgeIndex(player, board, TOP_EDGE) + ", index=" + index);
+	    System.out.println("EdgeTable.index(player, board, TOP_EDGE)=" + EdgeTable.index(player, board, TOP_EDGE) + ", index=" + index);
 	    */ ;
 	}
 	List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
 	possibilities.add(new ProbabilityValue(1.0, edgeTable.get(index)));
-	for (Square sq : TOP_EDGE) {
+	for (Square sq : Edge.TOP.squares()) {
 	    if (board.get(sq) == SquareState.EMPTY) {
 		possibilities.add(possibleEdgeMove(edgeTable, player, board, sq));
 	    }
@@ -519,7 +531,7 @@ public class Iago implements EvalFunction {
 							  final Square sq) {
 	Board newBoard = makeMoveWithoutLegalCheck(board, sq, player);
 	return new ProbabilityValue(edgeMoveProbability(player, board, sq),
-				    - edgeTable.get(edgeIndex(player.opponent(), newBoard, TOP_EDGE)));
+				    - edgeTable.get(EdgeTable.index(player.opponent(), newBoard, Edge.TOP.squares())));
     }
 
     /**
@@ -536,7 +548,7 @@ public class Iago implements EvalFunction {
 	double prob = 1.0;
 	double val = 0.0;
 	for (ProbabilityValue pair : sortPossibilities(possibilities,
-						       (player == Player.BLACK) ? LESS_THAN : GREATER_THAN)) {
+						       (player == Player.BLACK) ? ProbabilityValue.LT : ProbabilityValue.GT)) {
 	    if (prob >= 0.0) {
 		val += prob * pair.probability() * pair.value();
 		prob -= prob * pair.probability();
@@ -559,9 +571,9 @@ public class Iago implements EvalFunction {
     public static final double edgeMoveProbability(final Player player,
 						   final Board board,
 						   final Square square) {
-        assert (player != null) : "Argument player must be not null";
-        assert (board != null) : "Argument board must be not null";
-        assert (square != null) : "Argument square must be not null";
+        assert (player != null) : "Argument player must be not null.";
+        assert (board != null) : "Argument board must be not null.";
+        assert (square != null) : "Argument square must be not null.";
 	double result;
 	if (square.isXSquare()) {
 	    result = 0.5;
@@ -617,7 +629,7 @@ public class Iago implements EvalFunction {
     }
 
     private static final boolean edgeHasEmptySquares(final Board topEdge) {
-	for (Square sq : TOP_EDGE.subList(1, 9)) {
+	for (Square sq : Edge.TOP.squares().subList(1, 9)) {
 	    if (topEdge.get(sq) == SquareState.EMPTY) {
 		return true;
 	    }
@@ -686,7 +698,7 @@ public class Iago implements EvalFunction {
     public final int edgeStability(final GamePosition position) {
         int evaluation = 0;
         for (List<Square> edge : EDGE_AND_X_LISTS) {
-            evaluation += EDGE_TABLE.get(edgeIndex(position.player(), position.board(), edge));
+            evaluation += EDGE_TABLE.get(EdgeTable.index(position.player(), position.board(), edge));
         }
         return evaluation;
     }
