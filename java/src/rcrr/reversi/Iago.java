@@ -212,7 +212,7 @@ public class Iago implements EvalFunction {
 	    return index;
 	}
 
-	public static final List<Integer> computeStatic() {
+	public static final EdgeTable computeStatic() {
 	    final List<Integer> edgeTable = new ArrayList<Integer>(SIZE);
 	    for (int idx = 0; idx < SIZE; idx++) {
 		edgeTable.add(0);
@@ -225,15 +225,15 @@ public class Iago implements EvalFunction {
 			}
 		    },
 		    Player.BLACK,
-		    Board.initialBoard(),
+		    Board.emptyBoard(),
 		    nPieces,
 		    Edge.TOP.squares(),
 		    0);
 	    }
-	    return edgeTable;	
+	    return new EdgeTable(edgeTable);
 	}
 
-	public static final List<Integer> refine(final List<Integer> edgeTable) {
+	public static final EdgeTable refine(final EdgeTable edgeTable) {
 	    /** Do the indexes with more pieces first. From 9 to 1. */
 	    for (int nPieces = 9; nPieces > 0; nPieces--) {
 		mapEdgeNPieces(new Fn0() {
@@ -246,7 +246,7 @@ public class Iago implements EvalFunction {
 			}
 		    },
 		    Player.BLACK,
-		    Board.initialBoard(),
+		    Board.emptyBoard(),
 		    nPieces,
 		    Edge.TOP.squares(),
 		    0);
@@ -309,7 +309,7 @@ public class Iago implements EvalFunction {
 	    }
 	}
 
-	public static final List<Integer> load(final String resource) {
+	public static final EdgeTable load(final String resource) {
 	    StringBuilder log = new StringBuilder();
 	    log.append("LOG: Reading the resource: " + resource + "\n");
 	    String[] lines = Utils.readInputStreamAsStringArray(resource);
@@ -350,11 +350,11 @@ public class Iago implements EvalFunction {
 		edgeTable.add(value);
 	    }
 	    log.append("LOG: File reading completed, edge table constructed.");
-	    return edgeTable;
+	    return new EdgeTable(edgeTable);
 	}
 
 	public static final void write(final String fileOut,
-				       final List<Integer> edgeTable) {
+				       final EdgeTable edgeTable) {
 	    try {
 		PrintWriter out = new PrintWriter(new FileWriter(fileOut));
 		out.println("# Written by Iago.writeEdgeTable method.");
@@ -452,7 +452,7 @@ public class Iago implements EvalFunction {
 	 * @param index     
 	 * @return          an edge value that is more accurate than a static evaluation
 	 */
-	public static final int possibleEdgeMovesValue(final List<Integer> edgeTable,
+	public static final int possibleEdgeMovesValue(final EdgeTable edgeTable,
 						       final Player player,
 						       final Board board,
 						       final int index) {
@@ -481,7 +481,7 @@ public class Iago implements EvalFunction {
 	/**
 	 * Return a probability value pair for a possible edge move.
 	 */
-	public static final ProbabilityValue possibleEdgeMove(final List<Integer> edgeTable,
+	public static final ProbabilityValue possibleEdgeMove(final EdgeTable edgeTable,
 							      final Player player,
 							      final Board board,
 							      final Square sq) {
@@ -609,19 +609,19 @@ public class Iago implements EvalFunction {
 	    return table.get(index);
 	}
 
-	public static final List<Integer> init() {
-	    List<Integer> edgeTable = EdgeTable.computeStatic();
+	public static final EdgeTable init() {
+	    EdgeTable table = computeStatic();
 	    for (int i = 0; i < ITERATIONS_FOR_IMPROVING; i++) {
-		edgeTable = EdgeTable.refine(edgeTable);
+		table = refine(table);
 	    }
-	    return edgeTable;
+	    return table;
 	}
 
     }
 
     public static final List<List<Square>> EDGE_AND_X_LISTS;
 
-    private static final List<Integer> EDGE_TABLE;
+    private static final EdgeTable TABLE;
 
     public static final Double[][] EDGE_STATIC_PROBABILITY = { { .10,  .40,  .70 },
 							       { .05,  .30, null },
@@ -638,7 +638,7 @@ public class Iago implements EvalFunction {
         EDGE_AND_X_LISTS = Collections.unmodifiableList(tempEdgeAndXLists);
 
         /** Computes EDGE_TABLE. */
-        EDGE_TABLE = Collections.unmodifiableList(EdgeTable.init());
+	TABLE = EdgeTable.init();
 
     }
 
@@ -703,11 +703,19 @@ public class Iago implements EvalFunction {
     public final int edgeStability(final GamePosition position) {
         int evaluation = 0;
         for (List<Square> edge : EDGE_AND_X_LISTS) {
-            evaluation += EDGE_TABLE.get(EdgeTable.index(position.player(), position.board(), edge));
+            evaluation += TABLE.get(EdgeTable.index(position.player(), position.board(), edge));
         }
         return evaluation;
     }
 
+    /**
+     * Evaluates if the square is a potetial move.
+     *
+     * @param board  the board to assess
+     * @param square the square where to move
+     * @param opp    the opponent player
+     * @return 
+     */
     private boolean isPotentialMove(final Board board,
                                     final Square square,
                                     final Player opp) {

@@ -66,7 +66,7 @@ public class IagoMethodsTest {
     public final void testLoadEdgeTable() {
 
 	/** Load the static edge table from the file data/edge-table-st.dat. */
-	List<Integer> edgeTable = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
+	Iago.EdgeTable table = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
 	assertTrue(true);
 
     }
@@ -74,10 +74,10 @@ public class IagoMethodsTest {
     @Test
     public final void testComputeStaticEdgeTable() {
 
-	List<Integer> computed = Iago.EdgeTable.computeStatic();
-	List<Integer> expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
+	Iago.EdgeTable computed = Iago.EdgeTable.computeStatic();
+	Iago.EdgeTable expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
 
-	for (int index = 0; index < expected.size(); index++) {
+	for (int index = 0; index < Iago.EdgeTable.SIZE; index++) {
 	    assertThat("Values computed and values loaded from the reference copy must be equal."
 		       + " At index=" + index + " values differ.",
 		       computed.get(index),
@@ -89,11 +89,11 @@ public class IagoMethodsTest {
     @Test
     public final void testRefineEdgeTable() {
 
-	List<Integer> staticTable = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
-	List<Integer> computed = Iago.EdgeTable.refine(staticTable);
-	List<Integer> expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-00_Java.dat");
+	Iago.EdgeTable staticTable = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
+	Iago.EdgeTable computed = Iago.EdgeTable.refine(staticTable);
+	Iago.EdgeTable expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-00_Java.dat");
 
-	for (int index = 0; index < expected.size(); index++) {
+	for (int index = 0; index < Iago.EdgeTable.SIZE; index++) {
 	    assertThat("Values computed and values loaded from the reference copy must be equal."
 		       + " At index=" + index + " values differ.",
 		       computed.get(index),
@@ -402,8 +402,9 @@ public class IagoMethodsTest {
         for (int idx = 0; idx < Iago.EdgeTable.SIZE; idx++) {
             edgeTable.add(idx);
         }
+	Iago.EdgeTable table = new Iago.EdgeTable(edgeTable);
 
-	int value = Iago.EdgeTable.possibleEdgeMovesValue(edgeTable,
+	int value = Iago.EdgeTable.possibleEdgeMovesValue(table,
 							  Player.WHITE,
 							  BoardFixtures.BLACK_HAS_TO_PASS,
 							  13);
@@ -421,8 +422,9 @@ public class IagoMethodsTest {
         for (int idx = 0; idx < Iago.EdgeTable.SIZE; idx++) {
             edgeTable.add(idx);
         }
+	Iago.EdgeTable table = new Iago.EdgeTable(edgeTable);
 
-	Iago.ProbabilityValue pv = Iago.EdgeTable.possibleEdgeMove(edgeTable,
+	Iago.ProbabilityValue pv = Iago.EdgeTable.possibleEdgeMove(table,
 								   Player.WHITE,
 								   BoardFixtures.BLACK_HAS_TO_PASS,
 								   Square.C1);
