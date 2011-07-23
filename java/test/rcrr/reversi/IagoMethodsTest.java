@@ -58,6 +58,7 @@ public class IagoMethodsTest {
      */
     @Test
     public final void testInitEdgeTable() {
+	System.out.println("Iago.Edge.TOP.squares()=" + Iago.Edge.TOP.squares());
 
         //List<Integer> edgeTable = Iago.initEdgeTable();
         assertTrue(true);
@@ -189,17 +190,17 @@ public class IagoMethodsTest {
     }
 
     /**
-     * Tests the {@code edgeIndex(Player, Board, List)} method.
+     * Tests the {@code Iago.EdgeTable.index(Player, Board, List)} method.
      *
-     * @see Iago#edgeIndex(Player, Board, List)
+     * @see Iago.EdgeTable#index(Player, Board, List)
      */
     @Test
     public final void testEdgeIndex() {
-        assertThat("Iago.edgeIndex(Player.BLACK, BoardFixtures.INITIAL, Iago.TOP_EDGE) is 0.",
-                   Iago.edgeIndex(Player.BLACK, BoardFixtures.INITIAL, Iago.TOP_EDGE),
+        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.INITIAL, Iago.Edge.TOP.squares()) is 0.",
+                   Iago.EdgeTable.index(Player.BLACK, BoardFixtures.INITIAL, Iago.Edge.TOP.squares()),
                    is(0));
-        assertThat("Iago.edgeIndex(Player.WHITE, BoardFixtures.INITIAL, Iago.TOP_EDGE) is 0.",
-                   Iago.edgeIndex(Player.WHITE, BoardFixtures.INITIAL, Iago.TOP_EDGE),
+        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.INITIAL, Iago.Edge.TOP.squares()) is 0.",
+                   Iago.EdgeTable.index(Player.WHITE, BoardFixtures.INITIAL, Iago.Edge.TOP.squares()),
                    is(0));
 
         final Board fullEdge = new Board.Builder().withSquaresLiteral(1, 1, 1, 1, 1, 1, 1, 1,
@@ -212,35 +213,35 @@ public class IagoMethodsTest {
                                                                       0, 0, 0, 0, 0, 0, 0, 0).build();
 
         assertThat("When all the squares in the edge are occupied by the PLAYER the value must be 29524.",
-                   Iago.edgeIndex(Player.BLACK, fullEdge, Iago.TOP_EDGE),
+                   Iago.EdgeTable.index(Player.BLACK, fullEdge, Iago.Edge.TOP.squares()),
                    is(29524));
         assertThat("When all the squares in the edge are occupied by the OPPONENT the value must be 59048.",
-                   Iago.edgeIndex(Player.WHITE, fullEdge, Iago.TOP_EDGE),
+                   Iago.EdgeTable.index(Player.WHITE, fullEdge, Iago.Edge.TOP.squares()),
                    is(59048));
 
-        assertThat("Iago.edgeIndex(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.TOP_EDGE) is 35290.",
-                   Iago.edgeIndex(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.TOP_EDGE),
+        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP.squares()) is 35290.",
+                   Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP.squares()),
                    is(35290));
-        assertThat("Iago.edgeIndex(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.TOP_EDGE) is 50816.",
-                   Iago.edgeIndex(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.TOP_EDGE),
+        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP.squares()) is 50816.",
+                   Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP.squares()),
                    is(50816));
-        assertThat("Iago.edgeIndex(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.BOTTOM_EDGE) is 39355.",
-                   Iago.edgeIndex(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.BOTTOM_EDGE),
+        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM.squares()) is 39355.",
+                   Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM.squares()),
                    is(39355));
-        assertThat("Iago.edgeIndex(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.BOTTOM_EDGE) is 49217.",
-                   Iago.edgeIndex(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.BOTTOM_EDGE),
+        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM.squares()) is 49217.",
+                   Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM.squares()),
                    is(49217));
-        assertThat("Iago.edgeIndex(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.LEFT_EDGE) is 34999.",
-                   Iago.edgeIndex(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.LEFT_EDGE),
+        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT.squares()) is 34999.",
+                   Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT.squares()),
                    is(34999));
-        assertThat("Iago.edgeIndex(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.LEFT_EDGE) is 50306.",
-                   Iago.edgeIndex(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.LEFT_EDGE),
+        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT.squares()) is 50306.",
+                   Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT.squares()),
                    is(50306));
-        assertThat("Iago.edgeIndex(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.RIGHT_EDGE) is 26224.",
-                   Iago.edgeIndex(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.RIGHT_EDGE),
+        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT.squares()) is 26224.",
+                   Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT.squares()),
                    is(26224));
-        assertThat("Iago.edgeIndex(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.RIGHT_EDGE) is 42638.",
-                   Iago.edgeIndex(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.RIGHT_EDGE),
+        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT.squares()) is 42638.",
+                   Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT.squares()),
                    is(42638));
     }
 
@@ -301,7 +302,7 @@ public class IagoMethodsTest {
     public final void testEdgeMoveProbability() {
 
 	List<Double> probabilities = new ArrayList<Double>();
-	for (Square sq : Iago.TOP_EDGE) {
+	for (Square sq : Iago.Edge.TOP.squares()) {
 	    probabilities.add(Iago.edgeMoveProbability(Player.WHITE,
 						       BoardFixtures.BLACK_HAS_TO_PASS,
 						       sq));
@@ -324,8 +325,8 @@ public class IagoMethodsTest {
 	final Iago.ProbabilityValue fourAgain = new Iago.ProbabilityValue(4.4, 4);
 	final Iago.ProbabilityValue five =      new Iago.ProbabilityValue(2.0, 5);
 
-	Comparator<Iago.ProbabilityValue> gt = Iago.GREATER_THAN;
-	Comparator<Iago.ProbabilityValue> lt = Iago.LESS_THAN;
+	Comparator<Iago.ProbabilityValue> gt = Iago.ProbabilityValue.GT;
+	Comparator<Iago.ProbabilityValue> lt = Iago.ProbabilityValue.LT;
 
 	List<Iago.ProbabilityValue> possibilities = Arrays.asList(two,
 								  one,
@@ -399,8 +400,8 @@ public class IagoMethodsTest {
     @Test
     public final void testPossibleEdgeMovesValue() {
 
-        final List<Integer> edgeTable = new ArrayList<Integer>(Iago.EDGE_TABLE_SIZE);
-        for (int idx = 0; idx < Iago.EDGE_TABLE_SIZE; idx++) {
+        final List<Integer> edgeTable = new ArrayList<Integer>(Iago.EdgeTable.SIZE);
+        for (int idx = 0; idx < Iago.EdgeTable.SIZE; idx++) {
             edgeTable.add(idx);
         }
 
@@ -418,8 +419,8 @@ public class IagoMethodsTest {
     @Test
     public final void testPossibleEdgeMove() {
 
-        final List<Integer> edgeTable = new ArrayList<Integer>(Iago.EDGE_TABLE_SIZE);
-        for (int idx = 0; idx < Iago.EDGE_TABLE_SIZE; idx++) {
+        final List<Integer> edgeTable = new ArrayList<Integer>(Iago.EdgeTable.SIZE);
+        for (int idx = 0; idx < Iago.EdgeTable.SIZE; idx++) {
             edgeTable.add(idx);
         }
 
@@ -455,7 +456,7 @@ public class IagoMethodsTest {
     private final List<Integer> edgePieceStability(final List<Integer> edge) {
 	List<Integer> result = new ArrayList<Integer>();
 	Board board = topEdgeLiteral(edge);
-	for (Square sq : Iago.TOP_EDGE) {
+	for (Square sq : Iago.Edge.TOP.squares()) {
 	    result.add(Iago.pieceStability(board, sq));
 	}
 	return result;
