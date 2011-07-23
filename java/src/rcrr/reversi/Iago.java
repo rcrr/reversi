@@ -134,6 +134,16 @@ public class Iago implements EvalFunction {
 	};
 
 	private static final DecimalFormat FOUR_DIGIT_DECIMAL_FORMAT = new DecimalFormat("0.0000");
+
+	public static final List<ProbabilityValue> sortPossibilities(final List<ProbabilityValue> possibilities,
+								     final Comparator<ProbabilityValue> comparator) {
+	    assert (possibilities != null) : "Parameter possibilities cannot be null.";
+	    assert (comparator != null) : "Parameter comparator cannot be null.";
+	    final List<ProbabilityValue> results = new ArrayList<ProbabilityValue>(possibilities);
+	    Collections.sort(results, comparator);
+	    return results;
+	}
+
 	private final double probability;
 	private final int value;
 	public ProbabilityValue(final double probability, final int value) {
@@ -358,6 +368,226 @@ public class Iago implements EvalFunction {
 	    }
 	}
 
+	// Fully tested.
+	/**
+	 * Computes the piece stability of a disc belonging to an edge.
+	 * The stability can assume three values: 0 for stable, 1 for semi stable,
+	 * and 2 for unstable.
+	 * <p>
+	 * Corners are always stable. X squares could be unstable when the related corner is
+	 * free, or semi-stable when the corner is taken.
+	 * A, B, and C squares (according to Hasegawa's naming) could have all three stability
+	 * values subject to the configuration.
+	 * The computation is based on identifying the p1 and p2 square states, where p1 is
+	 * the first square state reached moving on the right that is different from the evaluated
+	 * square, and p2 is the respective state on the left. States p1 and p2 can assume the values
+	 * opponent, empty, and outer.
+	 * A disc is stable when cannot be flipped, it is unstable when can be flipped by a legal move,
+	 * it is semi-stable when could be not promptly flipped but is not stable.
+	 * <p>
+	 * The computation is not meaningful for empty squares. In such a case the return value is {@code null}.
+	 *
+	 * @param board the edge configuration
+	 * @param sq    the square for which compute stability
+	 * @return      the piece stability index
+	 */
+	public static final Integer pieceStability(final Board board, final Square sq) {
+	    assert(board != null) : "Parameter board cannot be null.";
+	    assert(sq != null) : "Parameter sq cannot be null.";
+
+	    final int stable = 0;
+	    final int semiStable = 1;
+	    final int unstable = 2;
+
+	    SquareState player = board.get(sq);
+	    if (player == SquareState.EMPTY) { return null; }
+
+	    int stability;
+	    if (sq.isCorner()) {
+		stability = stable;
+	    } else if (sq.isXSquare()) {
+		stability = (board.get(sq.cornerFor()) == SquareState.EMPTY) ? unstable : semiStable;
+	    } else {
+		/** The assignement to opp is consistent with a literal translation of the PAIP CL version of this function. */
+		SquareState opp = (player == SquareState.BLACK) ? SquareState.WHITE : SquareState.BLACK;
+		SquareState p1 = SquareState.OUTER;
+		for (int i = Edge.TOP.squares().indexOf(sq); i < 9; i++) {
+		    SquareState s = board.get(Edge.TOP.squares().get(i));
+		    if (s != player) { p1 = s; break; }
+		}
+		SquareState p2 = SquareState.OUTER;
+		for (int i = Edge.TOP.squares().indexOf(sq); i > 0; i--) {
+		    SquareState s = board.get(Edge.TOP.squares().get(i));
+		    if (s != player) { p2 = s; break; }
+		}
+		if (((p1 == SquareState.EMPTY) && (p2 == opp))
+		    || ((p2 == SquareState.EMPTY) && (p1 == opp))) {
+		    /** Unstable pieces can be captured immediately by playing in the empty square. */
+		    stability = unstable;
+		} else if ((p1 == opp) && (p2 == opp) && (edgeHasEmptySquares(board))) {
+		    /** Semi-stable pieces might be captured. */
+		    stability = semiStable;
+		} else if ((p1 == SquareState.EMPTY) && (p2 == SquareState.EMPTY)) {
+		    stability = semiStable;
+		} else {
+		    /** Stable pieces can never be captured. */
+		    stability = stable;
+		}
+	    }
+	    return stability;
+	}
+
+	// Tested.
+	/**
+	 * Considers all possible edge moves and combines their values into a single number.
+	 * <p>
+	 * The function searches through all possible moves to determine an edge value that is more accurate
+	 * than a static evaluation. It loops through every empty square on the edge, calling possibleEdgeMove
+	 * to retur a ProbabilityValue object. Since it is also possible for a player not to make any move
+	 * at all on an edge, the pair (1.0 current-value) is also included.
+	 *
+	 * @param edgeTable the edge table reference that is under calculation.
+	 * @param player    the palyer for whom run the calculation
+	 * @param board     the edge configuration
+	 * @param index     
+	 * @return          an edge value that is more accurate than a static evaluation
+	 */
+	public static final int possibleEdgeMovesValue(final List<Integer> edgeTable,
+						       final Player player,
+						       final Board board,
+						       final int index) {
+	    assert(edgeTable != null) : "Parameter edgeTable cannot be null.";
+	    assert(player != null) : "Parameter player cannot be null.";
+	    assert(board != null) : "Parameter board cannot be null.";
+	    if (EdgeTable.index(player, board, Edge.TOP.squares()) != index) {
+		// one test run with the two values not alligned! Why?
+		// the "regular run" has always the two values alligned. Could be removed from the paramenter list? I guess so!
+		/*
+		  System.out.println("board=\n" + board.printBoard());
+		  System.out.println("player=" + player);
+		  System.out.println("EdgeTable.index(player, board, TOP_EDGE)=" + EdgeTable.index(player, board, TOP_EDGE) + ", index=" + index);
+		*/ ;
+	    }
+	    List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
+	    possibilities.add(new ProbabilityValue(1.0, edgeTable.get(index)));
+	    for (Square sq : Edge.TOP.squares()) {
+		if (board.get(sq) == SquareState.EMPTY) {
+		    possibilities.add(possibleEdgeMove(edgeTable, player, board, sq));
+		}
+	    }
+	    return combineEdgeMoves(possibilities, player);
+	}
+
+	/**
+	 * Return a probability value pair for a possible edge move.
+	 */
+	public static final ProbabilityValue possibleEdgeMove(final List<Integer> edgeTable,
+							      final Player player,
+							      final Board board,
+							      final Square sq) {
+	    Board newBoard = makeMoveWithoutLegalCheck(board, sq, player);
+	    return new ProbabilityValue(edgeMoveProbability(player, board, sq),
+					- edgeTable.get(EdgeTable.index(player.opponent(), newBoard, Edge.TOP.squares())));
+	}
+
+	/**
+	 * Combine the best moves.
+	 * <p>
+	 * The possible moves are combined with combineEdgeMoves(possibilities, player),
+	 * which sorts the moves best-first. We then go down the moves, increasing the total
+	 * value by the value of each move times the probability of the move. Since there
+	 * will always be a least one move (pass) with probability 1.0, this is guaranteed
+	 * to converge.
+	 */
+	public static final int combineEdgeMoves(final List<ProbabilityValue> possibilities,
+						 final Player player) {
+	    double prob = 1.0;
+	    double val = 0.0;
+	    for (ProbabilityValue pair :
+		     ProbabilityValue.sortPossibilities(possibilities,
+							(player == Player.BLACK)
+							? ProbabilityValue.LT
+							: ProbabilityValue.GT)) {
+		if (prob >= 0.0) {
+		    val += prob * pair.probability() * pair.value();
+		    prob -= prob * pair.probability();
+		}
+	    }
+	    return Math.round((float)val);
+	}
+
+	/**
+	 * What's the probability that player can move to this square?
+	 */
+	public static final double edgeMoveProbability(final Player player,
+						       final Board board,
+						       final Square square) {
+	    assert (player != null) : "Argument player must be not null.";
+	    assert (board != null) : "Argument board must be not null.";
+	    assert (square != null) : "Argument square must be not null.";
+	    double result;
+	    if (square.isXSquare()) {
+		result = 0.5;
+	    } else if (board.isLegal(square, player)) {
+		result = 1.0;
+	    } else if (square.isCorner()) {
+		Square xSquare = square.xSquareFor();
+		if (board.get(xSquare) == SquareState.EMPTY) {
+		    result = 0.1;
+		} else if (board.get(xSquare) == player.color()) {
+		    result = 0.001;
+		} else {
+		    result = 0.9;
+		}
+	    } else {
+		double chancesCoefficient = (board.isLegal(square, player.opponent())) ? 2. : 1.;
+		Double edgeStaticProbability = EDGE_STATIC_PROBABILITY[countEdgeNeighbors(player, board, square)]
+		    [countEdgeNeighbors(player.opponent(), board, square)];
+		assert (edgeStaticProbability != null) : "Variable edgeStaticProbability cannot be null.";
+		result =  edgeStaticProbability / chancesCoefficient;
+	    }
+	    return result;
+	}
+
+	/**
+	 * Count the neighbors of this square occupied by player.
+	 * The function can return 0, 1, or 2.
+	 */
+	public static final int countEdgeNeighbors(final Player player,
+						   final Board board,
+						   final Square square) {
+	    int result = 0;
+	    if (board.get(square.neighbors().get(Direction.W)) == player.color()) { result++; }
+	    if (board.get(square.neighbors().get(Direction.E)) == player.color()) { result++; }
+	    return result;
+	}
+
+	private static final Board makeMoveWithoutLegalCheck(final Board board,
+							     final Square square,
+							     final Player player) {
+	    if (board.isLegal(square, player)) {
+		return board.makeMove(square, player);
+	    } else if (board.get(square) == SquareState.EMPTY) {
+		Map<Square, SquareState> squares = new EnumMap<Square, SquareState>(Square.class);
+		for (Square sq : Square.values()) {
+		    squares.put(sq, board.get(sq));
+		}
+		squares.put(square, player.color());
+		return Board.valueOf(squares);
+	    } else {
+		return board;
+	    }
+	}
+
+	private static final boolean edgeHasEmptySquares(final Board topEdge) {
+	    for (Square sq : Edge.TOP.squares().subList(1, 9)) {
+		if (topEdge.get(sq) == SquareState.EMPTY) {
+		    return true;
+		}
+	    }
+	    return false;
+	}
+
 	private final List<Integer> table;
 
 	public EdgeTable() {
@@ -410,231 +640,6 @@ public class Iago implements EvalFunction {
         /** Computes EDGE_TABLE. */
         EDGE_TABLE = Collections.unmodifiableList(EdgeTable.init());
 
-    }
-
-    // Fully tested.
-    /**
-     * Computes the piece stability of a disc belonging to an edge.
-     * The stability can assume three values: 0 for stable, 1 for semi stable,
-     * and 2 for unstable.
-     * <p>
-     * Corners are always stable. X squares could be unstable when the related corner is
-     * free, or semi-stable when the corner is taken.
-     * A, B, and C squares (according to Hasegawa's naming) could have all three stability
-     * values subject to the configuration.
-     * The computation is based on identifying the p1 and p2 square states, where p1 is
-     * the first square state reached moving on the right that is different from the evaluated
-     * square, and p2 is the respective state on the left. States p1 and p2 can assume the values
-     * opponent, empty, and outer.
-     * A disc is stable when cannot be flipped, it is unstable when can be flipped by a legal move,
-     * it is semi-stable when could be not promptly flipped but is not stable.
-     * <p>
-     * The computation is not meaningful for empty squares. In such a case the return value is {@code null}.
-     *
-     * @param board the edge configuration
-     * @param sq    the square for which compute stability
-     * @return      the piece stability index
-     */
-    public static final Integer pieceStability(final Board board, final Square sq) {
-	assert(board != null) : "Parameter board cannot be null.";
-	assert(sq != null) : "Parameter sq cannot be null.";
-
-	final int stable = 0;
-	final int semiStable = 1;
-	final int unstable = 2;
-
-	SquareState player = board.get(sq);
-	if (player == SquareState.EMPTY) { return null; }
-
-	int stability;
-	if (sq.isCorner()) {
-	    stability = stable;
-	} else if (sq.isXSquare()) {
-	    stability = (board.get(sq.cornerFor()) == SquareState.EMPTY) ? unstable : semiStable;
-	} else {
-	    /** The assignement to opp is consistent with a literal translation of the PAIP CL version of this function. */
-	    SquareState opp = (player == SquareState.BLACK) ? SquareState.WHITE : SquareState.BLACK;
-	    SquareState p1 = SquareState.OUTER;
-	    for (int i = Edge.TOP.squares().indexOf(sq); i < 9; i++) {
-		SquareState s = board.get(Edge.TOP.squares().get(i));
-		if (s != player) { p1 = s; break; }
-	    }
-	    SquareState p2 = SquareState.OUTER;
-	    for (int i = Edge.TOP.squares().indexOf(sq); i > 0; i--) {
-		SquareState s = board.get(Edge.TOP.squares().get(i));
-		if (s != player) { p2 = s; break; }
-	    }
-	    if (((p1 == SquareState.EMPTY) && (p2 == opp))
-		|| ((p2 == SquareState.EMPTY) && (p1 == opp))) {
-		/** Unstable pieces can be captured immediately by playing in the empty square. */
-		stability = unstable;
-	    } else if ((p1 == opp) && (p2 == opp) && (edgeHasEmptySquares(board))) {
-		/** Semi-stable pieces might be captured. */
-		stability = semiStable;
-	    } else if ((p1 == SquareState.EMPTY) && (p2 == SquareState.EMPTY)) {
-		stability = semiStable;
-	    } else {
-		/** Stable pieces can never be captured. */
-		stability = stable;
-	    }
-	}
-	return stability;
-    }
-
-    // Tested.
-    /**
-     * Considers all possible edge moves and combines their values into a single number.
-     * <p>
-     * The function searches through all possible moves to determine an edge value that is more accurate
-     * than a static evaluation. It loops through every empty square on the edge, calling possibleEdgeMove
-     * to retur a ProbabilityValue object. Since it is also possible for a player not to make any move
-     * at all on an edge, the pair (1.0 current-value) is also included.
-     *
-     * @param edgeTable the edge table reference that is under calculation.
-     * @param player    the palyer for whom run the calculation
-     * @param board     the edge configuration
-     * @param index     
-     * @return          an edge value that is more accurate than a static evaluation
-     */
-    public static final int possibleEdgeMovesValue(final List<Integer> edgeTable,
-						   final Player player,
-						   final Board board,
-						   final int index) {
-	assert(edgeTable != null) : "Parameter edgeTable cannot be null.";
-	assert(player != null) : "Parameter player cannot be null.";
-	assert(board != null) : "Parameter board cannot be null.";
-	if (EdgeTable.index(player, board, Edge.TOP.squares()) != index) {
-	    // one test run with the two values not alligned! Why?
-	    // the "regular run" has always the two values alligned. Could be removed from the paramenter list? I guess so!
-	    /*
-	    System.out.println("board=\n" + board.printBoard());
-	    System.out.println("player=" + player);
-	    System.out.println("EdgeTable.index(player, board, TOP_EDGE)=" + EdgeTable.index(player, board, TOP_EDGE) + ", index=" + index);
-	    */ ;
-	}
-	List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
-	possibilities.add(new ProbabilityValue(1.0, edgeTable.get(index)));
-	for (Square sq : Edge.TOP.squares()) {
-	    if (board.get(sq) == SquareState.EMPTY) {
-		possibilities.add(possibleEdgeMove(edgeTable, player, board, sq));
-	    }
-	}
-        return combineEdgeMoves(possibilities, player);
-    }
-
-    /**
-     * Return a probability value pair for a possible edge move.
-     */
-    public static final ProbabilityValue possibleEdgeMove(final List<Integer> edgeTable,
-							  final Player player,
-							  final Board board,
-							  final Square sq) {
-	Board newBoard = makeMoveWithoutLegalCheck(board, sq, player);
-	return new ProbabilityValue(edgeMoveProbability(player, board, sq),
-				    - edgeTable.get(EdgeTable.index(player.opponent(), newBoard, Edge.TOP.squares())));
-    }
-
-    /**
-     * Combine the best moves.
-     * <p>
-     * The possible moves are combined with combineEdgeMoves(possibilities, player),
-     * which sorts the moves best-first. We then go down the moves, increasing the total
-     * value by the value of each move times the probability of the move. Since there
-     * will always be a least one move (pass) with probability 1.0, this is guaranteed
-     * to converge.
-     */
-    public static final int combineEdgeMoves(final List<ProbabilityValue> possibilities,
-					     final Player player) {
-	double prob = 1.0;
-	double val = 0.0;
-	for (ProbabilityValue pair : sortPossibilities(possibilities,
-						       (player == Player.BLACK) ? ProbabilityValue.LT : ProbabilityValue.GT)) {
-	    if (prob >= 0.0) {
-		val += prob * pair.probability() * pair.value();
-		prob -= prob * pair.probability();
-	    }
-	}
-        return Math.round((float)val);
-    }
-
-    public static final List<ProbabilityValue> sortPossibilities(final List<ProbabilityValue> possibilities,
-								 final Comparator<ProbabilityValue> comparator) {
-	assert (comparator != null) : "Parameter comparator cannot be null.";
-	List<ProbabilityValue> result = new ArrayList<ProbabilityValue>(possibilities);
-	Collections.sort(result, comparator);
-	return result;
-    }
-
-    /**
-     * What's the probability that player can move to this square?
-     */
-    public static final double edgeMoveProbability(final Player player,
-						   final Board board,
-						   final Square square) {
-        assert (player != null) : "Argument player must be not null.";
-        assert (board != null) : "Argument board must be not null.";
-        assert (square != null) : "Argument square must be not null.";
-	double result;
-	if (square.isXSquare()) {
-	    result = 0.5;
-	} else if (board.isLegal(square, player)) {
-	    result = 1.0;
-	} else if (square.isCorner()) {
-	    Square xSquare = square.xSquareFor();
-	    if (board.get(xSquare) == SquareState.EMPTY) {
-		result = 0.1;
-	    } else if (board.get(xSquare) == player.color()) {
-		result = 0.001;
-	    } else {
-		result = 0.9;
-	    }
-	} else {
-	    double chancesCoefficient = (board.isLegal(square, player.opponent())) ? 2. : 1.;
-	    Double edgeStaticProbability = EDGE_STATIC_PROBABILITY[countEdgeNeighbors(player, board, square)]
-		[countEdgeNeighbors(player.opponent(), board, square)];
-	    assert (edgeStaticProbability != null) : "Variable edgeStaticProbability cannot be null.";
-	    result =  edgeStaticProbability / chancesCoefficient;
-	}
-	return result;
-    }
-
-    /**
-     * Count the neighbors of this square occupied by player.
-     * The function can return 0, 1, or 2.
-     */
-    public static final int countEdgeNeighbors(final Player player,
-					       final Board board,
-					       final Square square) {
-	int result = 0;
-	if (board.get(square.neighbors().get(Direction.W)) == player.color()) { result++; }
-	if (board.get(square.neighbors().get(Direction.E)) == player.color()) { result++; }
-	return result;
-    }
-
-    private static final Board makeMoveWithoutLegalCheck(final Board board,
-							 final Square square,
-							 final Player player) {
-	if (board.isLegal(square, player)) {
-	    return board.makeMove(square, player);
-	} else if (board.get(square) == SquareState.EMPTY) {
-	    Map<Square, SquareState> squares = new EnumMap<Square, SquareState>(Square.class);
-	    for (Square sq : Square.values()) {
-		squares.put(sq, board.get(sq));
-	    }
-	    squares.put(square, player.color());
-	    return Board.valueOf(squares);
-	} else {
-	    return board;
-	}
-    }
-
-    private static final boolean edgeHasEmptySquares(final Board topEdge) {
-	for (Square sq : Edge.TOP.squares().subList(1, 9)) {
-	    if (topEdge.get(sq) == SquareState.EMPTY) {
-		return true;
-	    }
-	}
-	return false;
     }
 
     /**

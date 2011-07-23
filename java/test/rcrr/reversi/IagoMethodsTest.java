@@ -58,8 +58,6 @@ public class IagoMethodsTest {
      */
     @Test
     public final void testInitEdgeTable() {
-	System.out.println("Iago.Edge.TOP.squares()=" + Iago.Edge.TOP.squares());
-
         //List<Integer> edgeTable = Iago.initEdgeTable();
         assertTrue(true);
     }
@@ -177,7 +175,7 @@ public class IagoMethodsTest {
     /**
      * Tests the {@code pieceStability(Board, Square)} method.
      *
-     * @see Iago#pieceStability(Board, Square)
+     * @see Iago.EdgeTable#pieceStability(Board, Square)
      */
     @Test
     public final void testPieceStability() {
@@ -249,51 +247,51 @@ public class IagoMethodsTest {
     public final void testCountEdgeNeighbors() {
 
 	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, C1) is 2.",
-		   Iago.countEdgeNeighbors(Player.BLACK,
-					   BoardFixtures.BLACK_HAS_TO_PASS,
-					   Square.C1),
+		   Iago.EdgeTable.countEdgeNeighbors(Player.BLACK,
+						     BoardFixtures.BLACK_HAS_TO_PASS,
+						     Square.C1),
 		   is(2));
 
 	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, C1) is 0.",
-		   Iago.countEdgeNeighbors(Player.WHITE,
-					   BoardFixtures.BLACK_HAS_TO_PASS,
-					   Square.C1),
+		   Iago.EdgeTable.countEdgeNeighbors(Player.WHITE,
+						     BoardFixtures.BLACK_HAS_TO_PASS,
+						     Square.C1),
 		   is(0));
 
 	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, E1) is 1.",
-		   Iago.countEdgeNeighbors(Player.BLACK,
-					   BoardFixtures.BLACK_HAS_TO_PASS,
-					   Square.E1),
+		   Iago.EdgeTable.countEdgeNeighbors(Player.BLACK,
+						     BoardFixtures.BLACK_HAS_TO_PASS,
+						     Square.E1),
 		   is(1));
 
 	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, E1) is 1.",
-		   Iago.countEdgeNeighbors(Player.WHITE,
-					   BoardFixtures.BLACK_HAS_TO_PASS,
-					   Square.E1),
+		   Iago.EdgeTable.countEdgeNeighbors(Player.WHITE,
+						     BoardFixtures.BLACK_HAS_TO_PASS,
+						     Square.E1),
 		   is(1));
 
 	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, G1) is 0.",
-		   Iago.countEdgeNeighbors(Player.BLACK,
-					   BoardFixtures.BLACK_HAS_TO_PASS,
-					   Square.G1),
+		   Iago.EdgeTable.countEdgeNeighbors(Player.BLACK,
+						     BoardFixtures.BLACK_HAS_TO_PASS,
+						     Square.G1),
 		   is(0));
 
 	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, G1) is 1.",
-		   Iago.countEdgeNeighbors(Player.WHITE,
-					   BoardFixtures.BLACK_HAS_TO_PASS,
-					   Square.G1),
+		   Iago.EdgeTable.countEdgeNeighbors(Player.WHITE,
+						     BoardFixtures.BLACK_HAS_TO_PASS,
+						     Square.G1),
 		   is(1));
 
 	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, H1) is 0.",
-		   Iago.countEdgeNeighbors(Player.BLACK,
-					   BoardFixtures.BLACK_HAS_TO_PASS,
-					   Square.H1),
+		   Iago.EdgeTable.countEdgeNeighbors(Player.BLACK,
+						     BoardFixtures.BLACK_HAS_TO_PASS,
+						     Square.H1),
 		   is(0));
 
 	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, H1) is 0.",
-		   Iago.countEdgeNeighbors(Player.WHITE,
-					   BoardFixtures.BLACK_HAS_TO_PASS,
-					   Square.H1),
+		   Iago.EdgeTable.countEdgeNeighbors(Player.WHITE,
+						     BoardFixtures.BLACK_HAS_TO_PASS,
+						     Square.H1),
 		   is(0));
 
     }
@@ -303,9 +301,9 @@ public class IagoMethodsTest {
 
 	List<Double> probabilities = new ArrayList<Double>();
 	for (Square sq : Iago.Edge.TOP.squares()) {
-	    probabilities.add(Iago.edgeMoveProbability(Player.WHITE,
-						       BoardFixtures.BLACK_HAS_TO_PASS,
-						       sq));
+	    probabilities.add(Iago.EdgeTable.edgeMoveProbability(Player.WHITE,
+								 BoardFixtures.BLACK_HAS_TO_PASS,
+								 sq));
 	}
 
 	assertThat("Edge move probabilities for Player.WHITE on BoardFixtures.BLACK_HAS_TO_PASS are:"
@@ -335,8 +333,8 @@ public class IagoMethodsTest {
 								  fourAgain,
 								  three);
 
-	List<Iago.ProbabilityValue> sortedUp = Iago.sortPossibilities(possibilities, gt);
-	List<Iago.ProbabilityValue> sortedDown = Iago.sortPossibilities(possibilities, lt);
+	List<Iago.ProbabilityValue> sortedUp = Iago.ProbabilityValue.sortPossibilities(possibilities, gt);
+	List<Iago.ProbabilityValue> sortedDown = Iago.ProbabilityValue.sortPossibilities(possibilities, lt);
 
 	List<Iago.ProbabilityValue> expectedGt = Arrays.asList(one,
 							       two,
@@ -366,33 +364,33 @@ public class IagoMethodsTest {
     public final void testCombineEdgeMoves() {
 
 	assertThat("[(1.0 5800) (0.5 5800)] BLACK must be 5800.",
-		   Iago.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.0, 5800),
-						       new Iago.ProbabilityValue(0.5, 5800)),
-					 Player.BLACK),
+		   Iago.EdgeTable.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.0, 5800),
+								 new Iago.ProbabilityValue(0.5, 5800)),
+						   Player.BLACK),
 		   is(5800));
 
 	assertThat("[(1.0 5800) (0.5 5800)] WHITE must be 5800.",
-		   Iago.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.0, 5800),
-						       new Iago.ProbabilityValue(0.5, 5800)),
-					 Player.WHITE),
+		   Iago.EdgeTable.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.0, 5800),
+								 new Iago.ProbabilityValue(0.5, 5800)),
+						   Player.WHITE),
 		   is(5800));
 
 	assertThat("[(1.0 2075) (0.005 4000)] BLACK must be 2085.",
-		   Iago.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 2075),
-						       new Iago.ProbabilityValue(0.005, 4000)),
-					 Player.BLACK),
+		   Iago.EdgeTable.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 2075),
+								 new Iago.ProbabilityValue(0.005, 4000)),
+						   Player.BLACK),
 		   is(2085));
 
 	assertThat("[(1.0 2075) (0.005 4000)] WHITE must be 2075.",
-		   Iago.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 2075),
-						       new Iago.ProbabilityValue(0.005, 4000)),
-					 Player.WHITE),
+		   Iago.EdgeTable.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 2075),
+								 new Iago.ProbabilityValue(0.005, 4000)),
+						   Player.WHITE),
 		   is(2075));
 
 	assertThat("[(1.0 5100) (0.001 7800)] BLACK must be 5103.",
-		   Iago.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 5100),
-						       new Iago.ProbabilityValue(0.001, 7800)),
-					 Player.BLACK),
+		   Iago.EdgeTable.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 5100),
+								 new Iago.ProbabilityValue(0.001, 7800)),
+						   Player.BLACK),
 		   is(5103));
 
     }
@@ -405,10 +403,10 @@ public class IagoMethodsTest {
             edgeTable.add(idx);
         }
 
-	int value = Iago.possibleEdgeMovesValue(edgeTable,
-						Player.WHITE,
-						BoardFixtures.BLACK_HAS_TO_PASS,
-						13);
+	int value = Iago.EdgeTable.possibleEdgeMovesValue(edgeTable,
+							  Player.WHITE,
+							  BoardFixtures.BLACK_HAS_TO_PASS,
+							  13);
 
 	assertThat("This has been tested comparing the common lisp return value.",
 		   value,
@@ -424,16 +422,16 @@ public class IagoMethodsTest {
             edgeTable.add(idx);
         }
 
-	Iago.ProbabilityValue pv = Iago.possibleEdgeMove(edgeTable,
-							 Player.WHITE,
-							 BoardFixtures.BLACK_HAS_TO_PASS,
-							 Square.C1);
+	Iago.ProbabilityValue pv = Iago.EdgeTable.possibleEdgeMove(edgeTable,
+								   Player.WHITE,
+								   BoardFixtures.BLACK_HAS_TO_PASS,
+								   Square.C1);
 
-	assertThat("Iago.possibleEdgeMove(...) must have a return pv.value() of -38935.",
+	assertThat("Iago.EdgeTable.possibleEdgeMove(...) must have a return pv.value() of -38935.",
 		   pv.value(),
 		   is(-38935));
 
-	assertThat("Iago.possibleEdgeMove(...) must have a return pv.probability() of 1.0.",
+	assertThat("Iago.EdgeTable.possibleEdgeMove(...) must have a return pv.probability() of 1.0.",
 		   pv.probability(),
 		   is(1.0));
 
@@ -457,7 +455,7 @@ public class IagoMethodsTest {
 	List<Integer> result = new ArrayList<Integer>();
 	Board board = topEdgeLiteral(edge);
 	for (Square sq : Iago.Edge.TOP.squares()) {
-	    result.add(Iago.pieceStability(board, sq));
+	    result.add(Iago.EdgeTable.pieceStability(board, sq));
 	}
 	return result;
     }
