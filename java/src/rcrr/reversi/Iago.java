@@ -87,6 +87,21 @@ public class Iago implements EvalFunction {
 
     public static final class EdgeTable {
 
+	private static interface Fn0 {
+	    public void funcall(final Board board, final int index);
+	}
+
+	public static final Integer[][] STATIC_EDGE_TABLE = { { null,    0, -2000 },   /** X square. */
+							      {  700, null,  null },   /** Corner.   */
+							      { 1200,  200,   -25 },   /** C square. */
+							      { 1000,  200,    75 },   /** A square. */
+							      { 1000,  200,    50 },   /** B square. */
+							      { 1000,  200,    50 },   /** B square. */
+							      { 1000,  200,    75 },   /** A square. */
+							      { 1200,  200,   -25 },   /** C square. */
+							      {  700, null,  null },   /** Corner.   */
+							      { null,    0, -2000 } }; /** X square. */
+
 	public static final List<Integer> computeStatic() {
 	    final List<Integer> edgeTable = new ArrayList<Integer>(EDGE_TABLE_SIZE);
 	    for (int idx = 0; idx < EDGE_TABLE_SIZE; idx++) {
@@ -127,6 +142,120 @@ public class Iago implements EvalFunction {
 		    0);
 	    }
 	    return edgeTable;
+	}
+
+	/**
+	 * Compute this edge's static stability. The evaluation sums each piece's value
+	 * according to the STATIC_EDGE_TABLE.
+	 *
+	 * @param player the player for this configuration
+	 * @param board  the board for this configuration
+	 * @return       the static edge stability value
+	 */ 
+	public static final int staticEdgeStability(final Player player, final Board board) {
+	    assert (player != null) : "Parameter player cannot be null.";
+	    assert (board != null) : "Parameter board cannot be null.";
+	    int sum = 0;
+	    int i = 0;
+	    for (Square sq : TOP_EDGE) {
+		int addendum;
+		if (board.get(sq) == SquareState.EMPTY) {
+		addendum = 0;
+		} else {
+		    Integer staticEdgeTable = STATIC_EDGE_TABLE[i][pieceStability(board, sq)];
+		    assert (staticEdgeTable != null) : "Parameter staticEdgeTable cannot be null.";
+		    addendum = (board.get(sq) == player.color()) ? + staticEdgeTable : - staticEdgeTable;
+		}
+		sum += addendum;
+		i++;
+	    }
+	    return sum;
+	}
+
+	/**
+	 * Call method fn on all configurations for an edge having n pieces.
+	 * The function 
+	 */
+	public static final void mapEdgeNPieces(final Fn0 fn,
+						final Player player,
+						Board board,
+						final int n,
+						final List<Square> squares,
+						final int index) {
+	    /** Index counts 1 for player; 2 for opponent. */
+	    if (squares.size() < n) { return; }
+	    else if (squares.size() == 0) { fn.funcall(board, index); }
+	    else {
+		int index3 = 3 * index;
+		Square sq = squares.get(0);
+		mapEdgeNPieces(fn, player, board, n, squares.subList(1, squares.size()), index3);
+		if (n > 0 && board.get(sq) == SquareState.EMPTY) {
+		    board = new Board.Builder(board).withSquare(sq, player.color()).build();
+		    mapEdgeNPieces(fn, player, board, n -1, squares.subList(1, squares.size()), index3 + 1);
+		    board = new Board.Builder(board).withSquare(sq, player.opponent().color()).build();
+		    mapEdgeNPieces(fn, player, board, n -1, squares.subList(1, squares.size()), index3 + 2);
+		    board = new Board.Builder(board).withSquare(sq, SquareState.EMPTY).build();
+		}
+	    }
+	}
+
+	public static final List<Integer> load(final String resource) {
+	    StringBuilder log = new StringBuilder();
+	    log.append("LOG: Reading the resource: " + resource + "\n");
+	    String[] lines = Utils.readInputStreamAsStringArray(resource);
+	    log.append("LOG: The resource has been read." +  "\n");
+	    int tableLength;
+	    int numberOfLines = lines.length;
+	    if (numberOfLines > 2) {
+		try {
+		    tableLength = Integer.valueOf(lines[1].trim());
+		} catch (NumberFormatException nfe) {
+		    log.append("ERROR: Unable to read the number of rows." + "\n");
+		    throw new RuntimeException(log.toString(), nfe);
+		}
+	    } else {
+		log.append("ERROR: The file format is wrong." + "\n");
+		throw new RuntimeException(log.toString());
+	    }
+	    log.append("LOG: File header: " + lines[0] + "\n");
+	    log.append("LOG: tableLength: " + tableLength + "\n");
+	    if (numberOfLines != tableLength + 2) {
+		log.append("ERROR: The file length is not consistent. numberOfLines=" + numberOfLines + "\n");
+		throw new RuntimeException(log.toString());
+	    }
+	    if (tableLength != Iago.EDGE_TABLE_SIZE) {
+		log.append("ERROR: The declared table length is not consistent with EDGE_TABLE_SIZE." + "\n");
+		throw new RuntimeException(log.toString());
+	    }
+	    List<Integer> edgeTable = new ArrayList<Integer>();
+	    log.append("LOG: Reading the edge table values ..." + "\n");
+	    for (int i = 2; i < numberOfLines; i++) {
+		int value;
+		try {
+		    value = Integer.valueOf(lines[i].trim());
+		} catch (NumberFormatException nfe) {
+		    log.append("ERROR: Unable to parse line " + i + ".\n");
+		    throw new RuntimeException(log.toString(), nfe);
+		}
+		edgeTable.add(value);
+	    }
+	    log.append("LOG: File reading completed, edge table constructed.");
+	    return edgeTable;
+	}
+
+	public static final void write(final String fileOut,
+				       final List<Integer> edgeTable) {
+	    try {
+		PrintWriter out = new PrintWriter(new FileWriter(fileOut));
+		out.println("# Written by Iago.writeEdgeTable method.");
+		out.println(EDGE_TABLE_SIZE);
+		for (int i = 0; i < EDGE_TABLE_SIZE; i++) {
+		    out.println(edgeTable.get(i));
+		}
+		out.close();
+	    } catch (IOException ioe) {
+		throw new RuntimeException(ioe);
+	    }
 	}
 
 	private final List<Integer> table;
@@ -220,17 +349,6 @@ public class Iago implements EvalFunction {
 
     private static final List<Integer> EDGE_TABLE;
 
-    public static final Integer[][] STATIC_EDGE_TABLE = { { null,    0, -2000 },   /** X square. */
-							  {  700, null,  null },   /** Corner.   */
-							  { 1200,  200,   -25 },   /** C square. */
-							  { 1000,  200,    75 },   /** A square. */
-							  { 1000,  200,    50 },   /** B square. */
-							  { 1000,  200,    50 },   /** B square. */
-							  { 1000,  200,    75 },   /** A square. */
-							  { 1200,  200,   -25 },   /** C square. */
-							  {  700, null,  null },   /** Corner.   */
-							  { null,    0, -2000 } }; /** X square. */
-
     public static final Double[][] EDGE_STATIC_PROBABILITY = { { .10,  .40,  .70 },
 							       { .05,  .30, null },
 							       { .01, null, null } };
@@ -248,86 +366,6 @@ public class Iago implements EvalFunction {
         /** Computes EDGE_TABLE. */
         EDGE_TABLE = Collections.unmodifiableList(EdgeTable.init());
 
-    }
-
-    public static final String[] readInputStreamAsStringArray(final String resource) {
-	InputStream in = new Iago().getClass().getClassLoader().getResourceAsStream(resource);
-	if (in == null) {
-	    throw new RuntimeException("Resource \"" + resource + "\" cannot be found.");
-	}
-	ByteArrayOutputStream buf;
-	BufferedInputStream bis = new BufferedInputStream(in);
-	try {
-	    buf = new ByteArrayOutputStream();
-	    int result = bis.read();
-	    while(result != -1) {
-		byte b = (byte)result;
-		buf.write(b);
-		result = bis.read();
-	    }
-	} catch (IOException ioe) {
-	    throw new RuntimeException(ioe);
-	}
-	return buf.toString().split("\\n");
-    }
-
-    public static final List<Integer> loadEdgeTable(final String resource) {
-	StringBuilder log = new StringBuilder();
-	log.append("LOG: Reading the resource: " + resource + "\n");
-	String[] lines = readInputStreamAsStringArray(resource);
-	log.append("LOG: The resource has been read." +  "\n");
-	int tableLength;
-	int numberOfLines = lines.length;
-	if (numberOfLines > 2) {
-	    try {
-		tableLength = Integer.valueOf(lines[1].trim());
-	    } catch (NumberFormatException nfe) {
-		log.append("ERROR: Unable to read the number of rows." + "\n");
-		throw new RuntimeException(log.toString(), nfe);
-	    }
-	} else {
-	    log.append("ERROR: The file format is wrong." + "\n");
-	    throw new RuntimeException(log.toString());
-	}
-	log.append("LOG: File header: " + lines[0] + "\n");
-	log.append("LOG: tableLength: " + tableLength + "\n");
-	if (numberOfLines != tableLength + 2) {
-	    log.append("ERROR: The file length is not consistent. numberOfLines=" + numberOfLines + "\n");
-	    throw new RuntimeException(log.toString());
-	}
-	if (tableLength != Iago.EDGE_TABLE_SIZE) {
-	    log.append("ERROR: The declared table length is not consistent with EDGE_TABLE_SIZE." + "\n");
-	    throw new RuntimeException(log.toString());
-	}
-	List<Integer> edgeTable = new ArrayList<Integer>();
-	log.append("LOG: Reading the edge table values ..." + "\n");
-	for (int i = 2; i < numberOfLines; i++) {
-	    int value;
-	    try {
-		value = Integer.valueOf(lines[i].trim());
-	    } catch (NumberFormatException nfe) {
-		log.append("ERROR: Unable to parse line " + i + ".\n");
-		throw new RuntimeException(log.toString(), nfe);
-	    }
-	    edgeTable.add(value);
-	}
-	log.append("LOG: File reading completed, edge table constructed.");
-	return edgeTable;
-    }
-
-    public static final void writeEdgeTable(final String fileOut,
-					   final List<Integer> edgeTable) {
-	try {
-	    PrintWriter out = new PrintWriter(new FileWriter(fileOut));
-	    out.println("# Written by Iago.writeEdgeTable method.");
-	    out.println(EDGE_TABLE_SIZE);
-	    for (int i = 0; i < EDGE_TABLE_SIZE; i++) {
-		out.println(edgeTable.get(i));
-	    }
-	    out.close();
-	} catch (IOException ioe) {
-	    throw new RuntimeException(ioe);
-	}
     }
 
     // Fully tested.
@@ -360,35 +398,6 @@ public class Iago implements EvalFunction {
             index = (index * SQUARE_VALUE_LENGTH) + incr;
         }
         return index;
-    }
- 
-    // Fully tested.
-    /**
-     * Compute this edge's static stability. The evaluation sums each piece's value
-     * according to the STATIC_EDGE_TABLE.
-     *
-     * @param player the player for this configuration
-     * @param board  the board for this configuration
-     * @return       the static edge stability value
-     */ 
-    public static final int staticEdgeStability(final Player player, final Board board) {
-	assert (player != null) : "Parameter player cannot be null.";
-	assert (board != null) : "Parameter board cannot be null.";
-        int sum = 0;
-	int i = 0;
-	for (Square sq : TOP_EDGE) {
-	    int addendum;
-	    if (board.get(sq) == SquareState.EMPTY) {
-		addendum = 0;
-	    } else {
-		Integer staticEdgeTable = STATIC_EDGE_TABLE[i][pieceStability(board, sq)];
-		assert (staticEdgeTable != null) : "Parameter staticEdgeTable cannot be null.";
-		addendum = (board.get(sq) == player.color()) ? + staticEdgeTable : - staticEdgeTable;
-	    }
-	    sum += addendum;
-	    i++;
-	}
-        return sum;
     }
 
     // Fully tested.
@@ -588,37 +597,6 @@ public class Iago implements EvalFunction {
 	if (board.get(square.neighbors().get(Direction.W)) == player.color()) { result++; }
 	if (board.get(square.neighbors().get(Direction.E)) == player.color()) { result++; }
 	return result;
-    }
-
-    /**
-     * Call method fn on all configurations for an edge having n pieces.
-     * The function 
-     */
-    public static final void mapEdgeNPieces(final Fn0 fn,
-                                            final Player player,
-                                            Board board,
-                                            final int n,
-                                            final List<Square> squares,
-                                            final int index) {
-        /** Index counts 1 for player; 2 for opponent. */
-        if (squares.size() < n) { return; }
-        else if (squares.size() == 0) { fn.funcall(board, index); }
-        else {
-            int index3 = 3 * index;
-            Square sq = squares.get(0);
-            mapEdgeNPieces(fn, player, board, n, squares.subList(1, squares.size()), index3);
-            if (n > 0 && board.get(sq) == SquareState.EMPTY) {
-                board = new Board.Builder(board).withSquare(sq, player.color()).build();
-                mapEdgeNPieces(fn, player, board, n -1, squares.subList(1, squares.size()), index3 + 1);
-                board = new Board.Builder(board).withSquare(sq, player.opponent().color()).build();
-                mapEdgeNPieces(fn, player, board, n -1, squares.subList(1, squares.size()), index3 + 2);
-                board = new Board.Builder(board).withSquare(sq, SquareState.EMPTY).build();
-            }
-        }
-    }
-
-    private static interface Fn0 {
-        public void funcall(final Board board, final int index);
     }
 
     private static final Board makeMoveWithoutLegalCheck(final Board board,
