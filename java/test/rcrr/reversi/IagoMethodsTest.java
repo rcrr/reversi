@@ -109,9 +109,10 @@ public class IagoMethodsTest {
     @Test
     public final void testEdgeTableRefine() {
 
-	Iago.EdgeTable staticTable = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
-	Iago.EdgeTable computed = staticTable.refine();
-	Iago.EdgeTable expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-00_Java.dat");
+	final Iago.EdgeTable computed = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
+	computed.refine();
+
+	final Iago.EdgeTable expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-00_Java.dat");
 
 	for (int index = 0; index < Iago.EdgeTable.SIZE; index++) {
 	    assertThat("Values computed and values loaded from the reference copy must be equal."
