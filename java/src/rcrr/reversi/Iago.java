@@ -293,8 +293,32 @@ public class Iago implements EvalFunction {
 	}
 
 	/**
-	 * Call method fn on all configurations for an edge having n pieces.
-	 * The function 
+	 * Calls the given fn method on all configurations for an edge having n pieces. It relays
+	 * on side effects delegated to the fn function.
+	 * <p>
+	 * The function iterates through all edge positions with a total of {@code n} not empty squares,
+	 * applying a function {@code fn} to each such position. It also keeps a running count of the
+	 * edge index as it goes.
+	 * <p>
+	 * The {@code fn} parameter is an object that implements the {@code Fn0} interface, that define
+	 * the funcall methods as follow:
+	 * <p>
+	 * {@code public void funcall(final Board board, final int index)}
+	 * <p>
+	 * The {@code mapEdgeNPieces} function has three cases:
+	 * - If the number of squares remaining is less than {@code n}, then it will be impossible to
+	 *   place {@code n} pieces on those squares, so we give up.
+	 * - If there are no more squares then {@code n} must also be zero, so this is a valid position,
+	 *   and the function {@code fn} is called.
+	 * - Otherwise we first try leaving the current square EMPTY, then try filling it with player's piece,
+	 *   and then with the opponent's piece, in each case calling {@code mapEdgeNPieces} recursively.
+	 *
+	 * @param fn
+	 * @param player
+	 * @param board
+	 * @param n
+	 * @param squares
+	 * @param index
 	 */
 	public static final void mapEdgeNPieces(final Fn0 fn,
 						final Player player,
