@@ -479,7 +479,7 @@ public class Iago implements EvalFunction {
 	    possibilities.add(new ProbabilityValue(1.0, get(index)));
 	    for (Square sq : Edge.TOP.squares()) {
 		if (board.get(sq) == SquareState.EMPTY) {
-		    possibilities.add(possibleEdgeMove(this, player, board, sq));
+		    possibilities.add(possibleEdgeMove(player, board, sq));
 		}
 	    }
 	    return combineEdgeMoves(possibilities, player);
@@ -488,13 +488,15 @@ public class Iago implements EvalFunction {
 	/**
 	 * Return a probability value pair for a possible edge move.
 	 */
-	public static final ProbabilityValue possibleEdgeMove(final EdgeTable table,
-							      final Player player,
-							      final Board board,
-							      final Square sq) {
-	    Board newBoard = makeMoveWithoutLegalCheck(board, sq, player);
+	public final ProbabilityValue possibleEdgeMove(final Player player,
+						       final Board board,
+						       final Square sq) {
 	    return new ProbabilityValue(edgeMoveProbability(player, board, sq),
-					- table.get(index(player.opponent(), newBoard, Edge.TOP)));
+					- get(index(player.opponent(),
+						    makeMoveWithoutLegalCheck(board,
+									      sq,
+									      player),
+						    Edge.TOP)));
 	}
 
 	/**
