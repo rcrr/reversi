@@ -244,20 +244,17 @@ public class Iago implements EvalFunction {
 	}
 
 	/**
-	 * The refine method execute one run of the iterative construction process.
-	 * The edge table is modified
-	 *
-	 * @return a refined new edge table
+	 * The refine method execute one run of the iterative process for improvement.
+	 * The edge table is modified.
 	 */
-	public final EdgeTable refine() {
-	    final EdgeTable table = copy();
+	public final void refine() {
 	    /** Do the indexes with more pieces first. From 9 to 1. */
 	    for (int nPieces = 9; nPieces > 0; nPieces--) {
 		mapEdgeNPieces(new Fn0() {
 			public void funcall(final Board board, final int index) {
-			    table.set(index, table.possibleEdgeMovesValue(Player.BLACK,
-									  board,
-									  index));
+			    set(index, possibleEdgeMovesValue(Player.BLACK,
+							      board,
+							      index));
 			}
 		    },
 		    Player.BLACK,
@@ -266,7 +263,6 @@ public class Iago implements EvalFunction {
 		    Edge.TOP.squares(),
 		    0);
 	    }
-	    return table;
 	}
 
 	/**
@@ -461,7 +457,6 @@ public class Iago implements EvalFunction {
 	 * to retur a ProbabilityValue object. Since it is also possible for a player not to make any move
 	 * at all on an edge, the pair (1.0 current-value) is also included.
 	 *
-	 * @param table  the edge table reference that is under calculation.
 	 * @param player the palyer for whom run the calculation
 	 * @param board  the edge configuration
 	 * @param index     
@@ -631,9 +626,9 @@ public class Iago implements EvalFunction {
 	}
 
 	public static final EdgeTable init() {
-	    EdgeTable table = computeStatic();
+	    final EdgeTable table = computeStatic();
 	    for (int i = 0; i < ITERATIONS_FOR_IMPROVING; i++) {
-		table = table.refine();
+		table.refine();
 	    }
 	    return table;
 	}
