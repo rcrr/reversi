@@ -209,19 +209,19 @@ public class IagoMethodsTest {
     }
 
     /**
-     * Tests the {@code Iago.EdgeTable.index(Player, Board, List)} method.
+     * Tests the {@code Iago.EdgeTable.index(Player, Board, Iago.Edge)} method.
      *
-     * @see Iago.EdgeTable#index(Player, Board, List)
+     * @see Iago.EdgeTable#index(Player, Board, Iago.Edge)
      */
     @Test
     public final void testEdgeTableIndex() throws NoSuchMethodException,
 						  IllegalAccessException,
 						  InvocationTargetException {
-        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.INITIAL, Iago.Edge.TOP.squares()) is 0.",
-                   indexProxy(Player.BLACK, BoardFixtures.INITIAL, Iago.Edge.TOP.squares()),
+        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.INITIAL, Iago.Edge.TOP) is 0.",
+                   indexProxy(Player.BLACK, BoardFixtures.INITIAL, Iago.Edge.TOP),
                    is(0));
-        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.INITIAL, Iago.Edge.TOP.squares()) is 0.",
-                   indexProxy(Player.WHITE, BoardFixtures.INITIAL, Iago.Edge.TOP.squares()),
+        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.INITIAL, Iago.Edge.TOP) is 0.",
+                   indexProxy(Player.WHITE, BoardFixtures.INITIAL, Iago.Edge.TOP),
                    is(0));
 
         final Board fullEdge = new Board.Builder().withSquaresLiteral(1, 1, 1, 1, 1, 1, 1, 1,
@@ -234,35 +234,35 @@ public class IagoMethodsTest {
                                                                       0, 0, 0, 0, 0, 0, 0, 0).build();
 
         assertThat("When all the squares in the edge are occupied by the PLAYER the value must be 29524.",
-                   indexProxy(Player.BLACK, fullEdge, Iago.Edge.TOP.squares()),
+                   indexProxy(Player.BLACK, fullEdge, Iago.Edge.TOP),
                    is(29524));
         assertThat("When all the squares in the edge are occupied by the OPPONENT the value must be 59048.",
-                   indexProxy(Player.WHITE, fullEdge, Iago.Edge.TOP.squares()),
+                   indexProxy(Player.WHITE, fullEdge, Iago.Edge.TOP),
                    is(59048));
 
-        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP.squares()) is 35290.",
-                   indexProxy(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP.squares()),
+        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP) is 35290.",
+                   indexProxy(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP),
                    is(35290));
-        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP.squares()) is 50816.",
-                   indexProxy(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP.squares()),
+        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP) is 50816.",
+                   indexProxy(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.TOP),
                    is(50816));
-        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM.squares()) is 39355.",
-                   indexProxy(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM.squares()),
+        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM) is 39355.",
+                   indexProxy(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM),
                    is(39355));
-        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM.squares()) is 49217.",
-                   indexProxy(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM.squares()),
+        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM) is 49217.",
+                   indexProxy(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.BOTTOM),
                    is(49217));
-        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT.squares()) is 34999.",
-                   indexProxy(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT.squares()),
+        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT) is 34999.",
+                   indexProxy(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT),
                    is(34999));
-        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT.squares()) is 50306.",
-                   indexProxy(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT.squares()),
+        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT) is 50306.",
+                   indexProxy(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.LEFT),
                    is(50306));
-        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT.squares()) is 26224.",
-                   indexProxy(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT.squares()),
+        assertThat("Iago.EdgeTable.index(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT) is 26224.",
+                   indexProxy(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT),
                    is(26224));
-        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT.squares()) is 42638.",
-                   indexProxy(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT.squares()),
+        assertThat("Iago.EdgeTable.index(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT) is 42638.",
+                   indexProxy(Player.WHITE, BoardFixtures.BLACK_HAS_TO_PASS, Iago.Edge.RIGHT),
                    is(42638));
     }
 
@@ -486,7 +486,7 @@ public class IagoMethodsTest {
 
     private static int indexProxy(final Player player,
 				  final Board board,
-				  final List<Square> edge)
+				  final Iago.Edge edge)
         throws NoSuchMethodException,
                IllegalAccessException,
                InvocationTargetException {
@@ -494,7 +494,7 @@ public class IagoMethodsTest {
         final Method method = Iago.EdgeTable.class.getDeclaredMethod("index",
 								     Player.class,
 								     Board.class,
-								     List.class);
+								     Iago.Edge.class);
         method.setAccessible(true);
 
 	int value = (Integer) method.invoke(null, player, board, edge);
