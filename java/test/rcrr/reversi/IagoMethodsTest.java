@@ -446,10 +446,9 @@ public class IagoMethodsTest {
         }
 	Iago.EdgeTable table = new Iago.EdgeTable(edgeTable);
 
-	Iago.ProbabilityValue pv = Iago.EdgeTable.possibleEdgeMove(table,
-								   Player.WHITE,
-								   BoardFixtures.BLACK_HAS_TO_PASS,
-								   Square.C1);
+	Iago.ProbabilityValue pv = table.possibleEdgeMove(Player.WHITE,
+							  BoardFixtures.BLACK_HAS_TO_PASS,
+							  Square.C1);
 
 	assertThat("Iago.EdgeTable.possibleEdgeMove(...) must have a return pv.value() of -38935.",
 		   pv.value(),
