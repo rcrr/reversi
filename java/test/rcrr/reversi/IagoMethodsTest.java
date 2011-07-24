@@ -55,18 +55,23 @@ public class IagoMethodsTest {
     public IagoMethodsTest() { }
 
     /**
-     * Tests the {@code initEdgeTable()} method.
+     * Tests the {@code init()} method in class {@code Iago.EdgeTable}.
      *
      * @see Iago.EdgeTable#init()
      */
     @Test
-    public final void testInitEdgeTable() {
-        //List<Integer> edgeTable = Iago.initEdgeTable();
+    public final void testEdgeTableInit() {
+	// to be written.
         assertTrue(true);
     }
 
+    /**
+     * Tests the {@code load(String)} method in class {@code Iago.EdgeTable}.
+     *
+     * @see Iago.EdgeTable#load(String)
+     */
     @Test
-    public final void testLoadEdgeTable() {
+    public final void testEdgeTableLoad() {
 
 	/** Load the static edge table from the file data/edge-table-st.dat. */
 	Iago.EdgeTable table = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
@@ -74,10 +79,17 @@ public class IagoMethodsTest {
 
     }
 
+    /**
+     * Tests the {@code computeStatic()} method in class {@code Iago.EdgeTable}.
+     *
+     * @see Iago.EdgeTable#computeStatic()
+     */
     @Test
-    public final void testComputeStaticEdgeTable() {
+    public final void testEdgeTableComputeStatic() throws NoSuchMethodException,
+							  IllegalAccessException,
+							  InvocationTargetException {
 
-	Iago.EdgeTable computed = Iago.EdgeTable.computeStatic();
+	Iago.EdgeTable computed = computeStaticProxy();
 	Iago.EdgeTable expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
 
 	for (int index = 0; index < Iago.EdgeTable.SIZE; index++) {
@@ -89,11 +101,16 @@ public class IagoMethodsTest {
 
     }
 
+    /**
+     * Tests the {@code refine()} method in class {@code Iago.EdgeTable}.
+     *
+     * @see Iago.EdgeTable#refine()
+     */
     @Test
-    public final void testRefineEdgeTable() {
+    public final void testEdgeTableRefine() {
 
 	Iago.EdgeTable staticTable = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
-	Iago.EdgeTable computed = Iago.EdgeTable.refine(staticTable);
+	Iago.EdgeTable computed = staticTable.refine();
 	Iago.EdgeTable expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-00_Java.dat");
 
 	for (int index = 0; index < Iago.EdgeTable.SIZE; index++) {
@@ -483,6 +500,18 @@ public class IagoMethodsTest {
 	int value = (Integer) method.invoke(null, player, board, edge);
 
         return value;
+    }
+
+    private static Iago.EdgeTable computeStaticProxy() throws NoSuchMethodException,
+							      IllegalAccessException,
+							      InvocationTargetException {
+
+        final Method method = Iago.EdgeTable.class.getDeclaredMethod("computeStatic");
+        method.setAccessible(true);
+
+	Iago.EdgeTable table = (Iago.EdgeTable) method.invoke(null);
+
+        return table;
     }
 
 }
