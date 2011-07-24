@@ -426,10 +426,9 @@ public class IagoMethodsTest {
         }
 	Iago.EdgeTable table = new Iago.EdgeTable(edgeTable);
 
-	int value = Iago.EdgeTable.possibleEdgeMovesValue(table,
-							  Player.WHITE,
-							  BoardFixtures.BLACK_HAS_TO_PASS,
-							  13);
+	int value = table.possibleEdgeMovesValue(Player.WHITE,
+						 BoardFixtures.BLACK_HAS_TO_PASS,
+						 13);
 
 	assertThat("This has been tested comparing the common lisp return value.",
 		   value,

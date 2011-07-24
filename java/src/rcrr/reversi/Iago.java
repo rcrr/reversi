@@ -255,10 +255,9 @@ public class Iago implements EvalFunction {
 	    for (int nPieces = 9; nPieces > 0; nPieces--) {
 		mapEdgeNPieces(new Fn0() {
 			public void funcall(final Board board, final int index) {
-			    table.set(index, possibleEdgeMovesValue(table,
-								    Player.BLACK,
-								    board,
-								    index));
+			    table.set(index, table.possibleEdgeMovesValue(Player.BLACK,
+									  board,
+									  index));
 			}
 		    },
 		    Player.BLACK,
@@ -468,11 +467,9 @@ public class Iago implements EvalFunction {
 	 * @param index     
 	 * @return       an edge value that is more accurate than a static evaluation
 	 */
-	public static final int possibleEdgeMovesValue(final EdgeTable table,
-						       final Player player,
-						       final Board board,
-						       final int index) {
-	    assert(table != null) : "Parameter table cannot be null.";
+	public final int possibleEdgeMovesValue(final Player player,
+						final Board board,
+						final int index) {
 	    assert(player != null) : "Parameter player cannot be null.";
 	    assert(board != null) : "Parameter board cannot be null.";
 	    if (index(player, board, Edge.TOP.squares()) != index) {
@@ -485,10 +482,10 @@ public class Iago implements EvalFunction {
 		*/ ;
 	    }
 	    List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
-	    possibilities.add(new ProbabilityValue(1.0, table.get(index)));
+	    possibilities.add(new ProbabilityValue(1.0, get(index)));
 	    for (Square sq : Edge.TOP.squares()) {
 		if (board.get(sq) == SquareState.EMPTY) {
-		    possibilities.add(possibleEdgeMove(table, player, board, sq));
+		    possibilities.add(possibleEdgeMove(this, player, board, sq));
 		}
 	    }
 	    return combineEdgeMoves(possibilities, player);
