@@ -194,13 +194,12 @@ public class Iago implements EvalFunction {
 	 * @param edge   one among the four edge
 	 * @return       the index value associated to the given configuration and the chosen edge
 	 */
-	private static int index(final Player player, final Board board, final List<Square> edge) {
+	private static int index(final Player player, final Board board, final Edge edge) {
 	    assert (player != null) : "Parameter player cannot be null.";
 	    assert (board != null) : "Parameter board cannot be null.";
 	    assert (edge != null) : "Parameter edge cannot be null.";
-	    assert (edge.size() == 10) : "Parameter edge must have ten entries.";
 	    int index = 0;
-	    for (final Square square : edge) {
+	    for (final Square square : edge.squares()) {
 		final SquareState state = board.get(square);
 		int incr;
 		if (state == SquareState.EMPTY) {
@@ -467,7 +466,7 @@ public class Iago implements EvalFunction {
 						final int index) {
 	    assert(player != null) : "Parameter player cannot be null.";
 	    assert(board != null) : "Parameter board cannot be null.";
-	    if (index(player, board, Edge.TOP.squares()) != index) {
+	    if (index(player, board, Edge.TOP) != index) {
 		// one test run with the two values not alligned! Why?
 		// the "regular run" has always the two values alligned. Could be removed from the paramenter list? I guess so!
 		/*
@@ -495,7 +494,7 @@ public class Iago implements EvalFunction {
 							      final Square sq) {
 	    Board newBoard = makeMoveWithoutLegalCheck(board, sq, player);
 	    return new ProbabilityValue(edgeMoveProbability(player, board, sq),
-					- table.get(index(player.opponent(), newBoard, Edge.TOP.squares())));
+					- table.get(index(player.opponent(), newBoard, Edge.TOP)));
 	}
 
 	/**
@@ -635,18 +634,18 @@ public class Iago implements EvalFunction {
 
     }
 
-    public static final List<List<Square>> EDGE_AND_X_LISTS;
+    public static final List<Edge> EDGE_AND_X_LISTS;
 
     private static final EdgeTable TABLE;
 
     static {
 
         /** Computes EDGE_AND_X_LISTS. */
-        List<List<Square>> tempEdgeAndXLists = new ArrayList<List<Square>>();
-        tempEdgeAndXLists.add(Edge.TOP.squares());
-        tempEdgeAndXLists.add(Edge.BOTTOM.squares());
-        tempEdgeAndXLists.add(Edge.LEFT.squares());
-        tempEdgeAndXLists.add(Edge.RIGHT.squares());
+        List<Edge> tempEdgeAndXLists = new ArrayList<Edge>();
+        tempEdgeAndXLists.add(Edge.TOP);
+        tempEdgeAndXLists.add(Edge.BOTTOM);
+        tempEdgeAndXLists.add(Edge.LEFT);
+        tempEdgeAndXLists.add(Edge.RIGHT);
         EDGE_AND_X_LISTS = Collections.unmodifiableList(tempEdgeAndXLists);
 
         /** Computes EDGE_TABLE. */
@@ -714,7 +713,7 @@ public class Iago implements EvalFunction {
      */
     public final int edgeStability(final GamePosition position) {
         int evaluation = 0;
-        for (List<Square> edge : EDGE_AND_X_LISTS) {
+        for (Edge edge : EDGE_AND_X_LISTS) {
             evaluation += TABLE.get(EdgeTable.index(position.player(), position.board(), edge));
         }
         return evaluation;
