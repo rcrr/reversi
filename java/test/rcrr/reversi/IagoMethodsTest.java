@@ -429,7 +429,7 @@ public class IagoMethodsTest {
 
 	int value = table.possibleEdgeMovesValue(Player.WHITE,
 						 BoardFixtures.BLACK_HAS_TO_PASS,
-						 13);
+						 50816);
 
 	assertThat("This has been tested comparing the common lisp return value.",
 		   value,

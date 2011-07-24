@@ -469,11 +469,11 @@ public class Iago implements EvalFunction {
 	    if (index(player, board, Edge.TOP) != index) {
 		// one test run with the two values not alligned! Why?
 		// the "regular run" has always the two values alligned. Could be removed from the paramenter list? I guess so!
-		/*
+		
 		  System.out.println("board=\n" + board.printBoard());
 		  System.out.println("player=" + player);
-		  System.out.println("index(player, board, TOP_EDGE)=" + .index(player, board, TOP_EDGE) + ", index=" + index);
-		*/ ;
+		  System.out.println("index(player, board, Edge.TOP)=" + index(player, board, Edge.TOP) + ", index=" + index);
+		;
 	    }
 	    List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
 	    possibilities.add(new ProbabilityValue(1.0, get(index)));
@@ -486,11 +486,23 @@ public class Iago implements EvalFunction {
 	}
 
 	/**
-	 * Return a probability value pair for a possible edge move.
+	 * Return a probability value pair for a move that is possible on the edge.
+	 * <p>
+	 * Parameter player cannot be null.
+	 * Parameter board cannot be null.
+	 * Parameter sq cannot be null.
+	 *
+	 * @param player the palyer that has to make the move
+	 * @param board  the board configuration
+	 * @param sq     the square where to move on
+	 * @return       a new probability value pair
 	 */
 	public final ProbabilityValue possibleEdgeMove(final Player player,
 						       final Board board,
 						       final Square sq) {
+	    assert (player != null) : "Parameter player cannot be null.";
+	    assert (board != null) : "Parameter board cannot be null.";
+	    assert (sq != null) : "Parameter sq cannot be null.";
 	    return new ProbabilityValue(edgeMoveProbability(player, board, sq),
 					- get(index(player.opponent(),
 						    makeMoveWithoutLegalCheck(board,
@@ -599,18 +611,18 @@ public class Iago implements EvalFunction {
 
 	private final List<Integer> values;
 
-	public EdgeTable() {
+	private EdgeTable() {
 	    this.values = new ArrayList<Integer>(SIZE);
 	    for (int idx = 0; idx < SIZE; idx++) {
 		this.values.add(0);
 	    }
 	}
 
-	public EdgeTable(final List<Integer> values) {
+	EdgeTable(final List<Integer> values) {
 	    this.values = new ArrayList<Integer>(values);
 	}
 
-	public final int set(final int index, final int value) {
+	private final int set(final int index, final int value) {
 	    return values.set(index, Integer.valueOf(value));
 	}
 
@@ -636,7 +648,7 @@ public class Iago implements EvalFunction {
 
     }
 
-    public static final List<Edge> EDGE_AND_X_LISTS;
+    private static final List<Edge> EDGE_AND_X_LISTS;
 
     private static final EdgeTable TABLE;
 
