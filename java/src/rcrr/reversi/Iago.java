@@ -311,10 +311,10 @@ public class Iago implements EvalFunction {
 		mapEdgeNPieces(fn, player, board, n, squares.subList(1, squares.size()), index3);
 		if (n > 0 && board.get(sq) == SquareState.EMPTY) {
 		    board = new Board.Builder(board).withSquare(sq, player.color()).build();
-		    mapEdgeNPieces(fn, player, board, n -1, squares.subList(1, squares.size()), index3 + 1);
+		    mapEdgeNPieces(fn, player, board, n - 1, squares.subList(1, squares.size()), index3 + 1);
 		    board = new Board.Builder(board).withSquare(sq, player.opponent().color()).build();
-		    mapEdgeNPieces(fn, player, board, n -1, squares.subList(1, squares.size()), index3 + 2);
-		    board = new Board.Builder(board).withSquare(sq, SquareState.EMPTY).build();
+		    mapEdgeNPieces(fn, player, board, n - 1, squares.subList(1, squares.size()), index3 + 2);
+		    // board = new Board.Builder(board).withSquare(sq, SquareState.EMPTY).build(); // this board is not used!!!
 		}
 	    }
 	}
@@ -367,7 +367,7 @@ public class Iago implements EvalFunction {
 				       final EdgeTable table) {
 	    try {
 		PrintWriter out = new PrintWriter(new FileWriter(fileOut));
-		out.println("# Written by Iago.writeEdgeTable method.");
+		out.println("# Written by Iago.EdgeTable.write method.");
 		out.println(SIZE);
 		for (int i = 0; i < SIZE; i++) {
 		    out.println(table.get(i));
@@ -434,7 +434,7 @@ public class Iago implements EvalFunction {
 		    || ((p2 == SquareState.EMPTY) && (p1 == opp))) {
 		    /** Unstable pieces can be captured immediately by playing in the empty square. */
 		    stability = unstable;
-		} else if ((p1 == opp) && (p2 == opp) && (edgeHasEmptySquares(board))) {
+		} else if ((p1 == opp) && (p2 == opp) && (topEdgeHasEmptySquares(board))) {
 		    /** Semi-stable pieces might be captured. */
 		    stability = semiStable;
 		} else if ((p1 == SquareState.EMPTY) && (p2 == SquareState.EMPTY)) {
@@ -583,9 +583,31 @@ public class Iago implements EvalFunction {
 	    return result;
 	}
 
+	/**
+	 * Returns a new board applying a change to the given {@code board} parameter.
+	 * There are three options:
+	 * - The {@code player} move to {@code square} is legal:
+	 *   the move is played as per the game rules.
+	 * - The move is not legal and the square is EMPTY:
+	 *   the square is turned to the color of the {@code player}.
+	 * - The {@code square} is not EMPTY:
+	 *   the returned board is equal to the {@code board} parameter.
+	 * <p>
+	 * Parameter board cannot be null.
+	 * Parameter square cannot be null.
+	 * Parameter player cannot be null.
+	 *
+	 * @param board  the board configuration
+	 * @param square the square where to move on
+	 * @param player the palyer that has to make the move
+	 * @return       a new updated board
+	 */
 	private static final Board makeMoveWithoutLegalCheck(final Board board,
 							     final Square square,
 							     final Player player) {
+	    assert (board != null) : "Argument board must be not null.";
+	    assert (square != null) : "Argument square must be not null.";
+	    assert (player != null) : "Argument player must be not null.";
 	    if (board.isLegal(square, player)) {
 		return board.makeMove(square, player);
 	    } else if (board.get(square) == SquareState.EMPTY) {
@@ -600,9 +622,9 @@ public class Iago implements EvalFunction {
 	    }
 	}
 
-	private static final boolean edgeHasEmptySquares(final Board topEdge) {
+	private static final boolean topEdgeHasEmptySquares(final Board board) {
 	    for (Square sq : Edge.TOP.squares().subList(1, 9)) {
-		if (topEdge.get(sq) == SquareState.EMPTY) {
+		if (board.get(sq) == SquareState.EMPTY) {
 		    return true;
 		}
 	    }
@@ -667,10 +689,25 @@ public class Iago implements EvalFunction {
 
     }
 
+    private final EdgeTable table;
+
+    /**
+     * Stadard class constructor, that load the default edge table.
+     */
+    public Iago() {
+	this.table = TABLE;
+    }
+
     /**
      * Class constructor.
      */
-    public Iago() { }
+    public Iago(final EdgeTable table) {
+	this.table = table;
+    }
+
+    private final EdgeTable table() {
+	return this.table();
+    }
 
     /**
      *
@@ -728,7 +765,7 @@ public class Iago implements EvalFunction {
     public final int edgeStability(final GamePosition position) {
         int evaluation = 0;
         for (Edge edge : EDGE_AND_X_LISTS) {
-            evaluation += TABLE.get(EdgeTable.index(position.player(), position.board(), edge));
+            evaluation += table().get(EdgeTable.index(position.player(), position.board(), edge));
         }
         return evaluation;
     }
