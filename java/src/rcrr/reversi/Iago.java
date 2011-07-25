@@ -245,7 +245,6 @@ public class Iago implements EvalFunction {
 			    table.set(index, staticEdgeStability(Player.BLACK, board));
 			}
 		    },
-		    Player.BLACK,
 		    Board.emptyBoard(),
 		    nPieces,
 		    Edge.TOP.squares(),
@@ -268,7 +267,6 @@ public class Iago implements EvalFunction {
 							      index));
 			}
 		    },
-		    Player.BLACK,
 		    Board.emptyBoard(),
 		    nPieces,
 		    Edge.TOP.squares(),
@@ -326,31 +324,30 @@ public class Iago implements EvalFunction {
 	 *   and then with the opponent's piece, in each case calling {@code mapEdgeNPieces} recursively.
 	 *
 	 * @param fn
-	 * @param player
 	 * @param board
 	 * @param n
 	 * @param squares
 	 * @param index
 	 */
 	public static final void mapEdgeNPieces(final Fn0 fn,
-						final Player player,
 						Board board,
 						final int n,
 						final List<Square> squares,
 						final int index) {
+	    final int squaresSize = squares.size();
 	    /** Index counts 1 for player; 2 for opponent. */
-	    if (squares.size() < n) { return; }
-	    else if (squares.size() == 0) { fn.funcall(board, index); }
+	    if (squaresSize < n) { return; }
+	    else if (squaresSize == 0) { fn.funcall(board, index); }
 	    else {
-		int index3 = 3 * index;
-		Square sq = squares.get(0);
-		mapEdgeNPieces(fn, player, board, n, squares.subList(1, squares.size()), index3);
+		final List<Square> squaresRest = squares.subList(1, squaresSize);
+		final int index3 = 3 * index;
+		final Square sq = squares.get(0);
+		mapEdgeNPieces(fn, board, n, squaresRest, index3);
 		if (n > 0 && board.get(sq) == SquareState.EMPTY) {
-		    board = new Board.Builder(board).withSquare(sq, player.color()).build();
-		    mapEdgeNPieces(fn, player, board, n - 1, squares.subList(1, squares.size()), index3 + 1);
-		    board = new Board.Builder(board).withSquare(sq, player.opponent().color()).build();
-		    mapEdgeNPieces(fn, player, board, n - 1, squares.subList(1, squares.size()), index3 + 2);
-		    // board = new Board.Builder(board).withSquare(sq, SquareState.EMPTY).build(); // this board is not used!!!
+		    board = new Board.Builder(board).withSquare(sq, SquareState.BLACK).build();
+		    mapEdgeNPieces(fn, board, n - 1, squaresRest, index3 + 1);
+		    board = new Board.Builder(board).withSquare(sq, SquareState.WHITE).build();
+		    mapEdgeNPieces(fn, board, n - 1, squaresRest, index3 + 2);
 		}
 	    }
 	}
