@@ -53,23 +53,35 @@ import java.io.ByteArrayOutputStream;
  */
 public class Iago implements EvalFunction {
 
+    /**
+     * Each square can have three values. They are player, opponent, and empty.
+     */
     public enum SquareValue {
+
+	/** Identifies a square occupied by the player. */
         PLAYER,
+
+	/** Identifies a square occupied by the player's opponent. */
         OPPONENT,
+
+	/** Identifies an empty square. */
         EMPTY;
 
 	public static final int LENGTH = values().length;
     }
 
+    /**
+     * It is the set of the squares belonging to a board's edge.
+     */
     public enum Edge {
 	TOP(Square.B2, Square.A1, Square.B1, Square.C1, Square.D1,
 	    Square.E1, Square.F1, Square.G1, Square.H1, Square.G2),
+	RIGHT(Square.G2, Square.H1, Square.H2, Square.H3, Square.H4,
+	      Square.H5, Square.H6, Square.H7, Square.H8, Square.G7),
 	BOTTOM(Square.B7, Square.A8, Square.B8, Square.C8, Square.D8,
 	       Square.E8, Square.F8, Square.G8, Square.H8, Square.G7),
 	LEFT(Square.B2, Square.A1, Square.A2, Square.A3, Square.A4,
-	     Square.A5, Square.A6, Square.A7, Square.A8, Square.B7),
-	RIGHT(Square.G2, Square.H1, Square.H2, Square.H3, Square.H4,
-	      Square.H5, Square.H6, Square.H7, Square.H8, Square.G7);
+	     Square.A5, Square.A6, Square.A7, Square.A8, Square.B7);
 
 	public static final int SQUARES_COUNT = 10;
 
@@ -163,11 +175,11 @@ public class Iago implements EvalFunction {
 	    public void funcall(final Board board, final int index);
 	}
 
-	private static final int ITERATIONS_FOR_IMPROVING = 5;
-
 	/** The table size have to be 59,049. */
 	public static final int SIZE = new Double(Math.pow(SquareValue.LENGTH,
 							   Edge.SQUARES_COUNT)).intValue();
+
+	private static final int ITERATIONS_FOR_IMPROVING = 5;
 
 	private static final Integer[][] STATIC_EDGE_TABLE = { { null,    0, -2000 },   /** X square. */
 							       {  700, null,  null },   /** Corner.   */
@@ -272,7 +284,7 @@ public class Iago implements EvalFunction {
 	 * @param board  the board for this configuration
 	 * @return       the static edge stability value
 	 */ 
-	public static final int staticEdgeStability(final Player player, final Board board) {
+	private static final int staticEdgeStability(final Player player, final Board board) {
 	    assert (player != null) : "Parameter player cannot be null.";
 	    assert (board != null) : "Parameter board cannot be null.";
 	    int sum = 0;

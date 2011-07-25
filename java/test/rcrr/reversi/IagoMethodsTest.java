@@ -144,51 +144,53 @@ public class IagoMethodsTest {
     }
 
     @Test
-    public final void testStaticEdgeStability() {
+    public final void testStaticEdgeStability()  throws NoSuchMethodException,
+							IllegalAccessException,
+							InvocationTargetException {
 	assertThat("Iago.staticEdgeStability(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS) must be -2725.",
-		   Iago.EdgeTable.staticEdgeStability(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS),
+		   staticEdgeStabilityProxy(Player.BLACK, BoardFixtures.BLACK_HAS_TO_PASS),
 		   is(-2725));
 
 	assertThat("Holding an edge has a value of 700.",
-		   Iago.EdgeTable.staticEdgeStability(Player.BLACK,
-						      new Board.Builder()
-						      .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0)
-						      .build()),
+		   staticEdgeStabilityProxy(Player.BLACK,
+					    new Board.Builder()
+					    .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0)
+					    .build()),
 		   is(700));
 
 	assertThat("Configuration (0 0 1 1 1 2 1 1 0 0) is valued -50.",
-		   Iago.EdgeTable.staticEdgeStability(Player.BLACK,
-						      new Board.Builder()
-						      .withSquaresLiteral(0, 1, 1, 1, 2, 1, 1, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0)			    
-						      .build()),
+		   staticEdgeStabilityProxy(Player.BLACK,
+					    new Board.Builder()
+					    .withSquaresLiteral(0, 1, 1, 1, 2, 1, 1, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0)			    
+					    .build()),
 		   is(-50));
 
 	assertThat("Configuration (0 0 1 1 1 0 1 1 0 0) is valued 1000.",
-		   Iago.EdgeTable.staticEdgeStability(Player.BLACK,
-						      new Board.Builder()
-						      .withSquaresLiteral(0, 1, 1, 1, 0, 1, 1, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0,
-									  0, 0, 0, 0, 0, 0, 0, 0)
-						      .build()),
+		   staticEdgeStabilityProxy(Player.BLACK,
+					    new Board.Builder()
+					    .withSquaresLiteral(0, 1, 1, 1, 0, 1, 1, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0,
+								0, 0, 0, 0, 0, 0, 0, 0)
+					    .build()),
 		   is(1000));
 
     }
@@ -495,10 +497,22 @@ public class IagoMethodsTest {
 								     Board.class,
 								     Iago.Edge.class);
         method.setAccessible(true);
+	int result = (Integer) method.invoke(null, player, board, edge);
+        return result;
+    }
 
-	int value = (Integer) method.invoke(null, player, board, edge);
+    private static int staticEdgeStabilityProxy(final Player player,
+						final Board board)
+	throws NoSuchMethodException,
+	       IllegalAccessException,
+	       InvocationTargetException {
 
-        return value;
+        final Method method = Iago.EdgeTable.class.getDeclaredMethod("staticEdgeStability",
+								     Player.class,
+								     Board.class);
+        method.setAccessible(true);
+	int result = (Integer) method.invoke(null, player, board);
+	return result;
     }
 
     private static Iago.EdgeTable computeStaticProxy() throws NoSuchMethodException,
@@ -507,10 +521,7 @@ public class IagoMethodsTest {
 
         final Method method = Iago.EdgeTable.class.getDeclaredMethod("computeStatic");
         method.setAccessible(true);
-
-	Iago.EdgeTable table = (Iago.EdgeTable) method.invoke(null);
-
-        return table;
+        return (Iago.EdgeTable) method.invoke(null);
     }
 
 }
