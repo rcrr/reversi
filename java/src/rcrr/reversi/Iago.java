@@ -329,7 +329,7 @@ public class Iago implements EvalFunction {
 	 * @param index
 	 */
 	public static final void mapEdgeNPieces(final Fn0 fn,
-						Board board,
+						final Board board,
 						final int n,
 						final List<Square> squares,
 						final int index) {
@@ -343,10 +343,17 @@ public class Iago implements EvalFunction {
 		final Square sq = squares.get(0);
 		mapEdgeNPieces(fn, board, n, squaresRest, index3);
 		if (n > 0 && board.get(sq) == SquareState.EMPTY) {
-		    board = new Board.Builder(board).withSquare(sq, SquareState.BLACK).build();
-		    mapEdgeNPieces(fn, board, n - 1, squaresRest, index3 + 1);
-		    board = new Board.Builder(board).withSquare(sq, SquareState.WHITE).build();
-		    mapEdgeNPieces(fn, board, n - 1, squaresRest, index3 + 2);
+		    Board.Builder bb = new Board.Builder(board);
+		    mapEdgeNPieces(fn,
+				   bb.withSquare(sq, SquareState.BLACK).build(),
+				   n - 1,
+				   squaresRest,
+				   index3 + 1);
+		    mapEdgeNPieces(fn,
+				   bb.withSquare(sq, SquareState.WHITE).build(),
+				   n - 1,
+				   squaresRest,
+				   index3 + 2);
 		}
 	    }
 	}
