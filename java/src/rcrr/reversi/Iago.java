@@ -175,7 +175,7 @@ public class Iago implements EvalFunction {
 	    public void funcall(final Board board, final int index);
 	}
 
-	/** The table size have to be 59,049. */
+	/** The size of the edge table has to be equal to 59,049. */
 	public static final int SIZE = new Double(Math.pow(SquareValue.LENGTH,
 							   Edge.SQUARES_COUNT)).intValue();
 
@@ -263,8 +263,7 @@ public class Iago implements EvalFunction {
 		mapEdgeNPieces(new Fn0() {
 			public void funcall(final Board board, final int index) {
 			    set(index, possibleEdgeMovesValue(Player.BLACK,
-							      board,
-							      index));
+							      board));
 			}
 		    },
 		    Board.emptyBoard(),
@@ -494,22 +493,12 @@ public class Iago implements EvalFunction {
 	 * @param index     
 	 * @return       an edge value that is more accurate than a static evaluation
 	 */
-	public final int possibleEdgeMovesValue(final Player player,
-						final Board board,
-						final int index) {
+	private final int possibleEdgeMovesValue(final Player player,
+						 final Board board) {
 	    assert(player != null) : "Parameter player cannot be null.";
 	    assert(board != null) : "Parameter board cannot be null.";
-	    if (index(player, board, Edge.TOP) != index) {
-		// one test run with the two values not alligned! Why?
-		// the "regular run" has always the two values alligned. Could be removed from the paramenter list? I guess so!
-		
-		  System.out.println("board=\n" + board.printBoard());
-		  System.out.println("player=" + player);
-		  System.out.println("index(player, board, Edge.TOP)=" + index(player, board, Edge.TOP) + ", index=" + index);
-		;
-	    }
 	    List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
-	    possibilities.add(new ProbabilityValue(1.0, get(index)));
+	    possibilities.add(new ProbabilityValue(1.0, get(index(player, board, Edge.TOP))));
 	    for (Square sq : Edge.TOP.squares()) {
 		if (board.get(sq) == SquareState.EMPTY) {
 		    possibilities.add(possibleEdgeMove(player, board, sq));
@@ -576,9 +565,9 @@ public class Iago implements EvalFunction {
 	public static final double edgeMoveProbability(final Player player,
 						       final Board board,
 						       final Square square) {
-	    assert (player != null) : "Argument player must be not null.";
-	    assert (board != null) : "Argument board must be not null.";
-	    assert (square != null) : "Argument square must be not null.";
+	    assert (player != null) : "Parameter player must be not null.";
+	    assert (board != null) : "Parameter board must be not null.";
+	    assert (square != null) : "Parameter square must be not null.";
 	    double result;
 	    if (square.isXSquare()) {
 		result = 0.5;
@@ -606,10 +595,25 @@ public class Iago implements EvalFunction {
 	/**
 	 * Count the neighbors of this square occupied by player.
 	 * The function can return 0, 1, or 2.
+	 * It works specifically when the square is part of the top edge only.
+	 * <p>
+	 * Parameter player cannot be null.
+	 * Parameter board cannot be null.
+	 * Parameter square cannot be null.
+	 * <p>
+	 * The method is side effect free.
+	 *
+	 * @param player the player to use for the inquiry
+	 * @param board  the board position 
+	 * @param square the square to check 
+	 * @preturn the number of neighbors occupied by the player
 	 */
-	public static final int countEdgeNeighbors(final Player player,
+	private static final int countEdgeNeighbors(final Player player,
 						   final Board board,
 						   final Square square) {
+	    assert (player != null) : "Parameter player must be not null.";
+	    assert (board != null) : "Parameter board must be not null.";
+	    assert (square != null) : "Parameter square must be not null.";
 	    int result = 0;
 	    if (board.get(square.neighbors().get(Direction.W)) == player.color()) { result++; }
 	    if (board.get(square.neighbors().get(Direction.E)) == player.color()) { result++; }
@@ -629,6 +633,8 @@ public class Iago implements EvalFunction {
 	 * Parameter board cannot be null.
 	 * Parameter square cannot be null.
 	 * Parameter player cannot be null.
+	 * <p>
+	 * The method is side effect free.
 	 *
 	 * @param board  the board configuration
 	 * @param square the square where to move on
@@ -638,9 +644,9 @@ public class Iago implements EvalFunction {
 	private static final Board makeMoveWithoutLegalCheck(final Board board,
 							     final Square square,
 							     final Player player) {
-	    assert (board != null) : "Argument board must be not null.";
-	    assert (square != null) : "Argument square must be not null.";
-	    assert (player != null) : "Argument player must be not null.";
+	    assert (board != null) : "Parameter board must be not null.";
+	    assert (square != null) : "Parameter square must be not null.";
+	    assert (player != null) : "Parameter player must be not null.";
 	    if (board.isLegal(square, player)) {
 		return board.makeMove(square, player);
 	    } else if (board.get(square) == SquareState.EMPTY) {
