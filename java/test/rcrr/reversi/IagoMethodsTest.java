@@ -325,13 +325,16 @@ public class IagoMethodsTest {
     }
 
     @Test
-    public final void testEdgeMoveProbability() {
+    public final void testEdgeMoveProbability()
+	throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
 
 	List<Double> probabilities = new ArrayList<Double>();
 	for (Square sq : Iago.Edge.TOP.squares()) {
-	    probabilities.add(Iago.EdgeTable.edgeMoveProbability(Player.WHITE,
-								 BoardFixtures.BLACK_HAS_TO_PASS,
-								 sq));
+	    probabilities.add(edgeMoveProbabilityProxy(Player.WHITE,
+						       BoardFixtures.BLACK_HAS_TO_PASS,
+						       sq));
 	}
 
 	assertThat("Edge move probabilities for Player.WHITE on BoardFixtures.BLACK_HAS_TO_PASS are:"
@@ -389,34 +392,37 @@ public class IagoMethodsTest {
     }
 
     @Test
-    public final void testCombineEdgeMoves() {
+    public final void testCombineEdgeMoves()
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
 
 	assertThat("[(1.0 5800) (0.5 5800)] BLACK must be 5800.",
-		   Iago.EdgeTable.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.0, 5800),
+		   combineEdgeMovesProxy(Arrays.asList(new Iago.ProbabilityValue(1.0, 5800),
 								 new Iago.ProbabilityValue(0.5, 5800)),
 						   Player.BLACK),
 		   is(5800));
 
 	assertThat("[(1.0 5800) (0.5 5800)] WHITE must be 5800.",
-		   Iago.EdgeTable.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.0, 5800),
+		   combineEdgeMovesProxy(Arrays.asList(new Iago.ProbabilityValue(1.0, 5800),
 								 new Iago.ProbabilityValue(0.5, 5800)),
 						   Player.WHITE),
 		   is(5800));
 
 	assertThat("[(1.0 2075) (0.005 4000)] BLACK must be 2085.",
-		   Iago.EdgeTable.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 2075),
+		   combineEdgeMovesProxy(Arrays.asList(new Iago.ProbabilityValue(1.000, 2075),
 								 new Iago.ProbabilityValue(0.005, 4000)),
 						   Player.BLACK),
 		   is(2085));
 
 	assertThat("[(1.0 2075) (0.005 4000)] WHITE must be 2075.",
-		   Iago.EdgeTable.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 2075),
+		   combineEdgeMovesProxy(Arrays.asList(new Iago.ProbabilityValue(1.000, 2075),
 								 new Iago.ProbabilityValue(0.005, 4000)),
 						   Player.WHITE),
 		   is(2075));
 
 	assertThat("[(1.0 5100) (0.001 7800)] BLACK must be 5103.",
-		   Iago.EdgeTable.combineEdgeMoves(Arrays.asList(new Iago.ProbabilityValue(1.000, 5100),
+		   combineEdgeMovesProxy(Arrays.asList(new Iago.ProbabilityValue(1.000, 5100),
 								 new Iago.ProbabilityValue(0.001, 7800)),
 						   Player.BLACK),
 		   is(5103));
@@ -556,6 +562,34 @@ public class IagoMethodsTest {
 								     Square.class);
         method.setAccessible(true);
 	int result = (Integer) method.invoke(null, player, board, square);
+        return result;
+    }
+
+    private static double edgeMoveProbabilityProxy(final Player player,
+						   final Board board,
+						   final Square square)
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
+        final Method method = Iago.EdgeTable.class.getDeclaredMethod("edgeMoveProbability",
+								     Player.class,
+								     Board.class,
+								     Square.class);
+        method.setAccessible(true);
+	double result = (Double) method.invoke(null, player, board, square);
+        return result;
+    }
+
+    private static int combineEdgeMovesProxy(final List<Iago.ProbabilityValue> possibilities,
+					     final Player player)
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
+        final Method method = Iago.EdgeTable.class.getDeclaredMethod("combineEdgeMoves",
+								     List.class,
+								     Player.class);
+        method.setAccessible(true);
+	int result = (Integer) method.invoke(null, possibilities, player);
         return result;
     }
 

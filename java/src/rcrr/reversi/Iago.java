@@ -448,7 +448,7 @@ public class Iago implements EvalFunction {
 	    final int semiStable = 1;
 	    final int unstable = 2;
 
-	    SquareState player = board.get(sq);
+	    final SquareState player = board.get(sq);
 	    if (player == SquareState.EMPTY) { return null; }
 
 	    int stability;
@@ -458,7 +458,7 @@ public class Iago implements EvalFunction {
 		stability = (board.get(sq.cornerFor()) == SquareState.EMPTY) ? unstable : semiStable;
 	    } else {
 		/** The assignement to opp is consistent with a literal translation of the PAIP CL version of this function. */
-		SquareState opp = (player == SquareState.BLACK) ? SquareState.WHITE : SquareState.BLACK;
+		final SquareState opp = (player == SquareState.BLACK) ? SquareState.WHITE : SquareState.BLACK;
 		SquareState p1 = SquareState.OUTER;
 		for (int i = Edge.TOP.squares().indexOf(sq); i < 9; i++) {
 		    SquareState s = board.get(Edge.TOP.squares().get(i));
@@ -504,9 +504,9 @@ public class Iago implements EvalFunction {
 						 final Board board) {
 	    assert(player != null) : "Parameter player cannot be null.";
 	    assert(board != null) : "Parameter board cannot be null.";
-	    List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
+	    final List<ProbabilityValue> possibilities = new ArrayList<ProbabilityValue>();
 	    possibilities.add(new ProbabilityValue(1.0, get(index(player, board, Edge.TOP))));
-	    for (Square sq : Edge.TOP.squares()) {
+	    for (final Square sq : Edge.TOP.squares()) {
 		if (board.get(sq) == SquareState.EMPTY) {
 		    possibilities.add(possibleEdgeMove(player, board, sq));
 		}
@@ -549,11 +549,13 @@ public class Iago implements EvalFunction {
 	 * will always be a least one move (pass) with probability 1.0, this is guaranteed
 	 * to converge.
 	 */
-	public static final int combineEdgeMoves(final List<ProbabilityValue> possibilities,
-						 final Player player) {
+	private static final int combineEdgeMoves(final List<ProbabilityValue> possibilities,
+						  final Player player) {
+	    assert (possibilities != null) : "Parameter possibilities must be not null.";
+	    assert (player != null) : "Parameter player must be not null.";
 	    double prob = 1.0;
 	    double val = 0.0;
-	    for (ProbabilityValue pair :
+	    for (final ProbabilityValue pair :
 		     ProbabilityValue.sortPossibilities(possibilities,
 							(player == Player.BLACK)
 							? ProbabilityValue.LT
@@ -568,10 +570,21 @@ public class Iago implements EvalFunction {
 
 	/**
 	 * What's the probability that player can move to this square?
+	 * <p>
+	 * Parameter player cannot be null.
+	 * Parameter board cannot be null.
+	 * Parameter square cannot be null.
+	 * <p>
+	 * The method is side effect free.
+	 *
+	 * @param player the player that moves
+	 * @param board  the board position
+	 * @param square the square where to move
+	 * @return       the probability of the move
 	 */
-	public static final double edgeMoveProbability(final Player player,
-						       final Board board,
-						       final Square square) {
+	private static final double edgeMoveProbability(final Player player,
+							final Board board,
+							final Square square) {
 	    assert (player != null) : "Parameter player must be not null.";
 	    assert (board != null) : "Parameter board must be not null.";
 	    assert (square != null) : "Parameter square must be not null.";
@@ -581,7 +594,7 @@ public class Iago implements EvalFunction {
 	    } else if (board.isLegal(square, player)) {
 		result = 1.0;
 	    } else if (square.isCorner()) {
-		Square xSquare = square.xSquareFor();
+		final Square xSquare = square.xSquareFor();
 		if (board.get(xSquare) == SquareState.EMPTY) {
 		    result = 0.1;
 		} else if (board.get(xSquare) == player.color()) {
@@ -590,8 +603,8 @@ public class Iago implements EvalFunction {
 		    result = 0.9;
 		}
 	    } else {
-		double chancesCoefficient = (board.isLegal(square, player.opponent())) ? 2. : 1.;
-		Double edgeStaticProbability = EDGE_STATIC_PROBABILITY[countEdgeNeighbors(player, board, square)]
+		final double chancesCoefficient = (board.isLegal(square, player.opponent())) ? 2. : 1.;
+		final Double edgeStaticProbability = EDGE_STATIC_PROBABILITY[countEdgeNeighbors(player, board, square)]
 		    [countEdgeNeighbors(player.opponent(), board, square)];
 		assert (edgeStaticProbability != null) : "Variable edgeStaticProbability cannot be null.";
 		result =  edgeStaticProbability / chancesCoefficient;
@@ -622,8 +635,10 @@ public class Iago implements EvalFunction {
 	    assert (board != null) : "Parameter board must be not null.";
 	    assert (square != null) : "Parameter square must be not null.";
 	    int result = 0;
-	    if (board.get(square.neighbors().get(Direction.W)) == player.color()) { result++; }
-	    if (board.get(square.neighbors().get(Direction.E)) == player.color()) { result++; }
+	    final SquareState color = player.color();
+	    final Map<Direction, Square> neighbors = square.neighbors();
+	    if (board.get(neighbors.get(Direction.W)) == color) { result++; }
+	    if (board.get(neighbors.get(Direction.E)) == color) { result++; }
 	    return result;
 	}
 
@@ -657,8 +672,8 @@ public class Iago implements EvalFunction {
 	    if (board.isLegal(square, player)) {
 		return board.makeMove(square, player);
 	    } else if (board.get(square) == SquareState.EMPTY) {
-		Map<Square, SquareState> squares = new EnumMap<Square, SquareState>(Square.class);
-		for (Square sq : Square.values()) {
+		final Map<Square, SquareState> squares = new EnumMap<Square, SquareState>(Square.class);
+		for (final Square sq : Square.values()) {
 		    squares.put(sq, board.get(sq));
 		}
 		squares.put(square, player.color());
