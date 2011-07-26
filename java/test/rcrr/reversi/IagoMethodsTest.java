@@ -269,54 +269,57 @@ public class IagoMethodsTest {
     }
 
     @Test
-    public final void testCountEdgeNeighbors() {
+    public final void testCountEdgeNeighbors()
+	throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
 
 	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, C1) is 2.",
-		   Iago.EdgeTable.countEdgeNeighbors(Player.BLACK,
-						     BoardFixtures.BLACK_HAS_TO_PASS,
-						     Square.C1),
+		   countEdgeNeighborsProxy(Player.BLACK,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.C1),
 		   is(2));
 
 	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, C1) is 0.",
-		   Iago.EdgeTable.countEdgeNeighbors(Player.WHITE,
-						     BoardFixtures.BLACK_HAS_TO_PASS,
-						     Square.C1),
+		   countEdgeNeighborsProxy(Player.WHITE,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.C1),
 		   is(0));
 
 	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, E1) is 1.",
-		   Iago.EdgeTable.countEdgeNeighbors(Player.BLACK,
-						     BoardFixtures.BLACK_HAS_TO_PASS,
-						     Square.E1),
+		   countEdgeNeighborsProxy(Player.BLACK,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.E1),
 		   is(1));
 
 	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, E1) is 1.",
-		   Iago.EdgeTable.countEdgeNeighbors(Player.WHITE,
-						     BoardFixtures.BLACK_HAS_TO_PASS,
-						     Square.E1),
+		   countEdgeNeighborsProxy(Player.WHITE,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.E1),
 		   is(1));
 
 	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, G1) is 0.",
-		   Iago.EdgeTable.countEdgeNeighbors(Player.BLACK,
-						     BoardFixtures.BLACK_HAS_TO_PASS,
-						     Square.G1),
+		   countEdgeNeighborsProxy(Player.BLACK,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.G1),
 		   is(0));
 
 	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, G1) is 1.",
-		   Iago.EdgeTable.countEdgeNeighbors(Player.WHITE,
-						     BoardFixtures.BLACK_HAS_TO_PASS,
-						     Square.G1),
+		   countEdgeNeighborsProxy(Player.WHITE,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.G1),
 		   is(1));
 
 	assertThat("countEdgeNeighbors(BLACK, BLACK_HAS_TO_PASS, H1) is 0.",
-		   Iago.EdgeTable.countEdgeNeighbors(Player.BLACK,
-						     BoardFixtures.BLACK_HAS_TO_PASS,
-						     Square.H1),
+		   countEdgeNeighborsProxy(Player.BLACK,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.H1),
 		   is(0));
 
 	assertThat("countEdgeNeighbors(WHITE, BLACK_HAS_TO_PASS, H1) is 0.",
-		   Iago.EdgeTable.countEdgeNeighbors(Player.WHITE,
-						     BoardFixtures.BLACK_HAS_TO_PASS,
-						     Square.H1),
+		   countEdgeNeighborsProxy(Player.WHITE,
+					   BoardFixtures.BLACK_HAS_TO_PASS,
+					   Square.H1),
 		   is(0));
 
     }
@@ -421,7 +424,10 @@ public class IagoMethodsTest {
     }
 
     @Test
-    public final void testPossibleEdgeMovesValue() {
+    public final void testPossibleEdgeMovesValue()
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
 
         final List<Integer> edgeTable = new ArrayList<Integer>(Iago.EdgeTable.SIZE);
         for (int idx = 0; idx < Iago.EdgeTable.SIZE; idx++) {
@@ -429,9 +435,9 @@ public class IagoMethodsTest {
         }
 	Iago.EdgeTable table = new Iago.EdgeTable(edgeTable);
 
-	int value = table.possibleEdgeMovesValue(Player.WHITE,
-						 BoardFixtures.BLACK_HAS_TO_PASS,
-						 50816);
+	int value = possibleEdgeMovesValueProxy(table,
+						Player.WHITE,
+						BoardFixtures.BLACK_HAS_TO_PASS);
 
 	assertThat("This has been tested comparing the common lisp return value.",
 		   value,
@@ -522,6 +528,35 @@ public class IagoMethodsTest {
         final Method method = Iago.EdgeTable.class.getDeclaredMethod("computeStatic");
         method.setAccessible(true);
         return (Iago.EdgeTable) method.invoke(null);
+    }
+
+    private static int possibleEdgeMovesValueProxy(final Iago.EdgeTable table,
+						   final Player player,
+						   final Board board)
+	throws NoSuchMethodException,
+	       IllegalAccessException,
+	       InvocationTargetException {
+        final Method method = Iago.EdgeTable.class.getDeclaredMethod("possibleEdgeMovesValue",
+								     Player.class,
+								     Board.class);
+        method.setAccessible(true);
+	int result = (Integer) method.invoke(table, player, board);
+	return result;
+    }
+
+    private static int countEdgeNeighborsProxy(final Player player,
+					       final Board board,
+					       final Square square)
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
+        final Method method = Iago.EdgeTable.class.getDeclaredMethod("countEdgeNeighbors",
+								     Player.class,
+								     Board.class,
+								     Square.class);
+        method.setAccessible(true);
+	int result = (Integer) method.invoke(null, player, board, square);
+        return result;
     }
 
 }
