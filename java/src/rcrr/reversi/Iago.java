@@ -176,8 +176,8 @@ public class Iago implements EvalFunction {
 	}
 
 	/** The size of the edge table has to be equal to 59,049. */
-	public static final int SIZE = new Double(Math.pow(SquareValue.LENGTH,
-							   Edge.SQUARES_COUNT)).intValue();
+	private static final int SIZE = new Double(Math.pow(SquareValue.LENGTH,
+							    Edge.SQUARES_COUNT)).intValue();
 
 	private static final int ITERATIONS_FOR_IMPROVING = 5;
 
@@ -440,7 +440,7 @@ public class Iago implements EvalFunction {
 	 * @param sq    the square for which compute stability
 	 * @return      the piece stability index
 	 */
-	public static final Integer pieceStability(final Board board, final Square sq) {
+	private static final Integer pieceStability(final Board board, final Square sq) {
 	    assert(board != null) : "Parameter board cannot be null.";
 	    assert(sq != null) : "Parameter sq cannot be null.";
 
@@ -709,7 +709,7 @@ public class Iago implements EvalFunction {
 	    return values.set(index, Integer.valueOf(value));
 	}
 
-	public final int get (final int index) {
+	private final int get(final int index) {
 	    return values.get(index);
 	}
 
@@ -717,11 +717,11 @@ public class Iago implements EvalFunction {
 	    return this.values;
 	}
 
-	public final EdgeTable copy() {
+	private final EdgeTable copy() {
 	    return new EdgeTable(new ArrayList<Integer>(this.values()));
 	}
 
-	public static final EdgeTable init() {
+	private static final EdgeTable init() {
 	    final EdgeTable table = computeStatic();
 	    for (int i = 0; i < ITERATIONS_FOR_IMPROVING; i++) {
 		table.refine();
