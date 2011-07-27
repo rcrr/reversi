@@ -38,10 +38,12 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import static org.hamcrest.CoreMatchers.is;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -50,6 +52,8 @@ import java.lang.reflect.InvocationTargetException;
  * @see Iago
  */
 public class IagoMethodsTest {
+
+    private static final int EDGE_TABLE_SIZE = 59049;
 
     /** Class constructor. */
     public IagoMethodsTest() { }
@@ -92,11 +96,11 @@ public class IagoMethodsTest {
 	Iago.EdgeTable computed = computeStaticProxy();
 	Iago.EdgeTable expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
 
-	for (int index = 0; index < Iago.EdgeTable.SIZE; index++) {
+	for (int index = 0; index < EDGE_TABLE_SIZE; index++) {
 	    assertThat("Values computed and values loaded from the reference copy must be equal."
 		       + " At index=" + index + " values differ.",
-		       computed.get(index),
-		       is(expected.get(index)));
+		       getProxy(computed, index),
+		       is(getProxy(expected, index)));
 	}
 
     }
@@ -107,18 +111,20 @@ public class IagoMethodsTest {
      * @see Iago.EdgeTable#refine()
      */
     @Test
-    public final void testEdgeTableRefine() {
+    public final void testEdgeTableRefine() throws NoSuchMethodException,
+						   IllegalAccessException,
+						   InvocationTargetException {
 
 	final Iago.EdgeTable computed = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
 	computed.refine();
 
 	final Iago.EdgeTable expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-00_Java.dat");
 
-	for (int index = 0; index < Iago.EdgeTable.SIZE; index++) {
+	for (int index = 0; index < EDGE_TABLE_SIZE; index++) {
 	    assertThat("Values computed and values loaded from the reference copy must be equal."
 		       + " At index=" + index + " values differ.",
-		       computed.get(index),
-		       is(expected.get(index)));
+		       getProxy(computed, index),
+		       is(getProxy(expected, index)));
 	}
     }
 
@@ -201,7 +207,10 @@ public class IagoMethodsTest {
      * @see Iago.EdgeTable#pieceStability(Board, Square)
      */
     @Test
-    public final void testPieceStability() {
+    public final void testPieceStability()
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
 	assertThat("Edge (0, 1, 1, 1, 0, 0, 2, 1, 2, 1), must return (1, 0, 0, 0, 0, 0, 2, 1, 0, 1).",
 		   edgePieceStability(Arrays.asList(0, 1, 1, 1, 0, 0, 2, 1, 2, 1)),
 		   is(Arrays.asList(null, 0, 0, 0, null, null, 2, 1, 0, 1)));
@@ -435,8 +444,8 @@ public class IagoMethodsTest {
                IllegalAccessException,
                InvocationTargetException {
 
-        final List<Integer> edgeTable = new ArrayList<Integer>(Iago.EdgeTable.SIZE);
-        for (int idx = 0; idx < Iago.EdgeTable.SIZE; idx++) {
+        final List<Integer> edgeTable = new ArrayList<Integer>(EDGE_TABLE_SIZE);
+        for (int idx = 0; idx < EDGE_TABLE_SIZE; idx++) {
             edgeTable.add(idx);
         }
 	Iago.EdgeTable table = new Iago.EdgeTable(edgeTable);
@@ -454,8 +463,8 @@ public class IagoMethodsTest {
     @Test
     public final void testPossibleEdgeMove() {
 
-        final List<Integer> edgeTable = new ArrayList<Integer>(Iago.EdgeTable.SIZE);
-        for (int idx = 0; idx < Iago.EdgeTable.SIZE; idx++) {
+        final List<Integer> edgeTable = new ArrayList<Integer>(EDGE_TABLE_SIZE);
+        for (int idx = 0; idx < EDGE_TABLE_SIZE; idx++) {
             edgeTable.add(idx);
         }
 	Iago.EdgeTable table = new Iago.EdgeTable(edgeTable);
@@ -488,11 +497,14 @@ public class IagoMethodsTest {
 	return new Board.Builder().withSquaresLiteral(board).build();
     }
 
-    private final List<Integer> edgePieceStability(final List<Integer> edge) {
+    private final List<Integer> edgePieceStability(final List<Integer> edge)
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
 	List<Integer> result = new ArrayList<Integer>();
 	Board board = topEdgeLiteral(edge);
 	for (Square sq : Iago.Edge.TOP.squares()) {
-	    result.add(Iago.EdgeTable.pieceStability(board, sq));
+	    result.add(pieceStabilityProxy(board, sq));
 	}
 	return result;
     }
@@ -591,6 +603,51 @@ public class IagoMethodsTest {
         method.setAccessible(true);
 	int result = (Integer) method.invoke(null, possibilities, player);
         return result;
+    }
+
+    private static Integer pieceStabilityProxy(final Board board,
+					       final Square square)
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
+        final Method method = Iago.EdgeTable.class.getDeclaredMethod("pieceStability",
+								     Board.class,
+								     Square.class);
+        method.setAccessible(true);
+        return (Integer) method.invoke(null, board, square);
+    }
+
+    private static int getProxy(final Iago.EdgeTable table,
+				final int index)
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
+        final Method method = Iago.EdgeTable.class.getDeclaredMethod("get",
+								     new Class[]{Integer.TYPE});
+        method.setAccessible(true);
+	int result = (Integer) method.invoke(table, index);
+        return result;
+    }
+
+    public static Object getPrivateField (Object o, String fieldName) {   
+	assert (o != null) : "Parameter o must be not null.";
+	assert (fieldName != null) : "Parameter fieldName must be not null.";
+    
+	// Go and find the private field... 
+	final Field fields[] = o.getClass().getDeclaredFields();
+	for (int i = 0; i < fields.length; ++i) {
+	    if (fieldName.equals(fields[i].getName())) {
+		try {
+		    fields[i].setAccessible(true);
+		    return fields[i].get(o);
+		} 
+		catch (IllegalAccessException ex) {
+		    fail ("IllegalAccessException accessing " + fieldName);
+		}
+	    }
+	}
+	fail ("Field '" + fieldName +"' not found");
+	return null;
     }
 
 }
