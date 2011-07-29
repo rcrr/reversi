@@ -58,6 +58,28 @@ public class IagoMethodsTest {
     /** Class constructor. */
     public IagoMethodsTest() { }
 
+    @Test
+    public final void testEval() {
+
+	GamePosition position = new GamePosition.Builder()
+	    .withPlayer(Player.BLACK)
+	    .withBoard(new Board.Builder()
+		       .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
+					   0, 0, 0, 0, 0, 0, 0, 0,
+					   0, 0, 0, 0, 0, 0, 0, 0,
+					   0, 0, 0, 1, 2, 0, 0, 0,
+					   0, 0, 0, 2, 1, 0, 0, 0,
+					   0, 0, 0, 0, 0, 0, 0, 0,
+					   0, 0, 0, 0, 0, 0, 0, 0,
+					   0, 0, 0, 0, 0, 0, 0, 0)
+		       .build())
+	    .build();
+
+	assertThat("A corner must be valued 20672.",
+		   new Iago().eval(position),
+		   is(20672));
+    }
+
     /**
      * Tests the {@code init()} method in class {@code Iago.EdgeTable}.
      *
@@ -75,10 +97,12 @@ public class IagoMethodsTest {
      * @see Iago.EdgeTable#load(String)
      */
     @Test
-    public final void testEdgeTableLoad() {
+    public final void testEdgeTableLoad() throws NoSuchMethodException,
+						 IllegalAccessException,
+						 InvocationTargetException {
 
 	/** Load the static edge table from the file data/edge-table-st.dat. */
-	Iago.EdgeTable table = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
+	Iago.EdgeTable table = loadProxy("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
 	assertTrue(true);
 
     }
@@ -94,7 +118,7 @@ public class IagoMethodsTest {
 							  InvocationTargetException {
 
 	Iago.EdgeTable computed = computeStaticProxy();
-	Iago.EdgeTable expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
+	Iago.EdgeTable expected = loadProxy("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
 
 	for (int index = 0; index < EDGE_TABLE_SIZE; index++) {
 	    assertThat("Values computed and values loaded from the reference copy must be equal."
@@ -115,10 +139,10 @@ public class IagoMethodsTest {
 						   IllegalAccessException,
 						   InvocationTargetException {
 
-	final Iago.EdgeTable computed = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
-	computed.refine();
+	final Iago.EdgeTable computed = loadProxy("rcrr/reversi/data/edge-table-st_CL_REFERENCE.dat");
+	refineProxy(computed);
 
-	final Iago.EdgeTable expected = Iago.EdgeTable.load("rcrr/reversi/data/edge-table-00_Java.dat");
+	final Iago.EdgeTable expected = loadProxy("rcrr/reversi/data/edge-table-00_Java.dat");
 
 	for (int index = 0; index < EDGE_TABLE_SIZE; index++) {
 	    assertThat("Values computed and values loaded from the reference copy must be equal."
@@ -628,6 +652,29 @@ public class IagoMethodsTest {
 	int result = (Integer) method.invoke(table, index);
         return result;
     }
+
+    private static void refineProxy(final Iago.EdgeTable table)
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
+        final Method method = Iago.EdgeTable.class.getDeclaredMethod("refine");
+        method.setAccessible(true);
+	method.invoke(table);
+    }
+
+
+    private static Iago.EdgeTable loadProxy(final String resource)
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
+        final Method method = Iago.EdgeTable.class.getDeclaredMethod("load", String.class);
+        method.setAccessible(true);
+	Iago.EdgeTable result = (Iago.EdgeTable) method.invoke(null, resource);
+	return result;
+    }
+
+
+
 
     public static Object getPrivateField (Object o, String fieldName) {   
 	assert (o != null) : "Parameter o must be not null.";

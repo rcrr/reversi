@@ -257,7 +257,7 @@ public class Iago implements EvalFunction {
 	 * The refine method execute one run of the iterative process for improvement.
 	 * The edge table is modified.
 	 */
-	public final void refine() {
+	private final void refine() {
 	    /** Do the indexes with more pieces first. From 9 to 1. */
 	    for (int nPieces = 9; nPieces > 0; nPieces--) {
 		mapEdgeNPieces(new Fn0() {
@@ -358,7 +358,7 @@ public class Iago implements EvalFunction {
 	    }
 	}
 
-	public static final EdgeTable load(final String resource) {
+	private static final EdgeTable load(final String resource) {
 	    StringBuilder log = new StringBuilder();
 	    log.append("LOG: Reading the resource: " + resource + "\n");
 	    String[] lines = Utils.readInputStreamAsStringArray(resource);
@@ -402,14 +402,13 @@ public class Iago implements EvalFunction {
 	    return new EdgeTable(values);
 	}
 
-	public static final void write(final String fileOut,
-				       final EdgeTable table) {
+	private final void write(final String fileOut) {
 	    try {
 		PrintWriter out = new PrintWriter(new FileWriter(fileOut));
 		out.println("# Written by Iago.EdgeTable.write method.");
 		out.println(SIZE);
 		for (int i = 0; i < SIZE; i++) {
-		    out.println(table.get(i));
+		    out.println(get(i));
 		}
 		out.close();
 	    } catch (IOException ioe) {
@@ -767,18 +766,30 @@ public class Iago implements EvalFunction {
     }
 
     private final EdgeTable table() {
-	return this.table();
+	return this.table;
     }
 
     /**
+     * Combine edge stability, current mobility and potential mobility to arrive
+     * at an evaluation.
      *
      * @param position the game position to evaluate
      * @return the position value
      * @throws NullPointerException if parameter {@code position} is null
      */
     public final int eval(final GamePosition position) {
-        int result = 0;
-        return result;
+	/** The three factors are multiplied by coefficients that vary by move number. */
+	final int moveNumber = 60 - position.board().countPieces(SquareState.EMPTY);
+	final int cEdg = 312000 + (6240 * moveNumber);
+	final int cCur = (moveNumber < 25) ? 50000 + (2000 * moveNumber) : 75000 + (1000 * moveNumber);
+	final int cPot = 20000;
+	final Mobility pMob = mobility(position);
+	final Mobility oMob = mobility(GamePosition.valueOf(position.board(), position.player().opponent()));
+	/** Combine the three factors into one value. */
+        int value = (cEdg * edgeStability(position)) / 32000
+	    + (cCur * (pMob.current() - oMob.current())) / (pMob.current() + oMob.current() + 2)
+	    + (cPot * (pMob.potential() - oMob.potential())) / (pMob.potential() + oMob.potential() + 2);
+        return value;
     }
 
     /**
@@ -825,7 +836,7 @@ public class Iago implements EvalFunction {
      */
     public final int edgeStability(final GamePosition position) {
         int evaluation = 0;
-        for (Edge edge : EDGE_AND_X_LISTS) {
+        for (final Edge edge : EDGE_AND_X_LISTS) {
             evaluation += table().get(EdgeTable.index(position.player(), position.board(), edge));
         }
         return evaluation;

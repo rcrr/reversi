@@ -437,6 +437,37 @@ public class ReversiTest {
     }
 
     /**
+     * Tests the {@code reversiSeries(Actor, Actor, int, Duration)} method.
+     * Uses the Iago evaluation function.
+     *
+     * @see Reversi#reversiSeries(Actor, Actor, int, Duration)
+     */
+    @Test
+    public final void testReversiSeries_withIagoEvaluationFunction() {
+
+        Map<String, Object> results = Reversi.reversiSeries(new Actor.Builder()
+                                                            .withName("Modified weighted squares, a-b two ply search.")
+                                                            .withStrategy(AlphaBeta.getInstance()
+                                                                          .searcher(2, new ModifiedWeightedSquares()))
+                                                            .build(),
+                                                            new Actor.Builder()
+                                                            .withName("Iago, a-b two ply search.")
+                                                            .withStrategy(AlphaBeta.getInstance()
+                                                                          .searcher(2, new Iago()))
+                                                            .build(),
+                                                            5,
+                                                            STANDARD_GAME_DURATION);
+
+        /** Output of the test. */
+        write((String) results.get("scores").toString() + "\n",
+              "ReversiTest",
+              "Method=testReversiSeries_withIagoEvaluationFunction");
+
+        assertTrue("The test must run without exceptions.", true);
+
+    }
+
+    /**
      * Tests the {@code roundRobin(Set, int, Duration)} method.
      *
      * @see Reversi#roundRobin(Set, int, Duration)
@@ -477,6 +508,7 @@ public class ReversiTest {
         actors.add(Actor.valueOf("Alpha-Beta 2 ply Mobility", AlphaBeta.getInstance().searcher(2, new Mobility())));
         actors.add(Actor.valueOf("Alpha-Beta 2 ply Weighted Squares", AlphaBeta.getInstance().searcher(2, new WeightedSquares())));
         actors.add(Actor.valueOf("Alpha-Beta 2 ply Mod-Weighted Squares", AlphaBeta.getInstance().searcher(2, new ModifiedWeightedSquares())));
+        actors.add(Actor.valueOf("Alpha-Beta 2 ply Iago", AlphaBeta.getInstance().searcher(2, new Iago())));
         actors.add(Actor.valueOf("Random Strategy", new RandomStrategy()));
 
         Map<String, Object> results = Reversi.roundRobin(actors, 2, STANDARD_GAME_DURATION);
