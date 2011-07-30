@@ -511,7 +511,7 @@ public class ReversiTest {
         actors.add(Actor.valueOf("Alpha-Beta 2 ply Iago", AlphaBeta.getInstance().searcher(2, new Iago())));
         actors.add(Actor.valueOf("Random Strategy", new RandomStrategy()));
 
-        Map<String, Object> results = Reversi.roundRobin(actors, 2, STANDARD_GAME_DURATION);
+        Map<String, Object> results = Reversi.roundRobin(actors, 10, STANDARD_GAME_DURATION);
 
         String report = Reversi.postProcessRoundRobinResults(results);
 

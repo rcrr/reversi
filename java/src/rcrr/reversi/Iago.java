@@ -111,6 +111,9 @@ public class Iago implements EvalFunction {
         }
         public int current() { return this.current; }
         public int potential() { return this.potential; }
+	@Override public String toString() {
+	    return "(C=" + current() + ", P=" + potential() + ")";
+	}
     }
 
     public static final class ProbabilityValue {
@@ -779,17 +782,36 @@ public class Iago implements EvalFunction {
      */
     public final int eval(final GamePosition position) {
 	/** The three factors are multiplied by coefficients that vary by move number. */
-	final int moveNumber = 60 - position.board().countPieces(SquareState.EMPTY);
-	final int cEdg = 312000 + (6240 * moveNumber);
-	final int cCur = (moveNumber < 25) ? 50000 + (2000 * moveNumber) : 75000 + (1000 * moveNumber);
-	final int cPot = 20000;
+	final long moveNumber = 61 - position.board().countPieces(SquareState.EMPTY);
+	final long cEdg = 312000 + (6240 * moveNumber);
+	final long cCur = (moveNumber < 25) ? 50000 + (2000 * moveNumber) : 75000 + (1000 * moveNumber);
+	final long cPot = 20000;
 	final Mobility pMob = mobility(position);
 	final Mobility oMob = mobility(GamePosition.valueOf(position.board(), position.player().opponent()));
+	final long eStab = edgeStability(position);
 	/** Combine the three factors into one value. */
-        int value = (cEdg * edgeStability(position)) / 32000
+        long value = (cEdg * eStab) / 32000
 	    + (cCur * (pMob.current() - oMob.current())) / (pMob.current() + oMob.current() + 2)
 	    + (cPot * (pMob.potential() - oMob.potential())) / (pMob.potential() + oMob.potential() + 2);
-        return value;
+
+	/*
+	System.out.println("--------------------------------------------------------------------------------------------------");
+	System.out.println("(cEdg * eStab) / 32000 = " + (cEdg * eStab) / 32000);
+	System.out.println("(cCur * (pMob.current() - oMob.current())) / (pMob.current() + oMob.current() + 2) = "
+			   + (cCur * (pMob.current() - oMob.current())) / (pMob.current() + oMob.current() + 2));
+	System.out.println("(cPot * (pMob.potential() - oMob.potential())) / (pMob.potential() + oMob.potential() + 2) = "
+			   + (cPot * (pMob.potential() - oMob.potential())) / (pMob.potential() + oMob.potential() + 2));
+	System.out.println("eStab=" + eStab);
+	System.out.println("moveNumber=" + moveNumber);
+	System.out.println("cEdg=" + cEdg);
+	System.out.println("cCur=" + cCur);
+	System.out.println("cPot=" + cPot);
+	System.out.println("pMob=" + pMob);
+	System.out.println("oMob=" + oMob);
+	System.out.println("value=" + value);
+	*/
+
+        return (int) value;
     }
 
     /**
@@ -809,16 +831,17 @@ public class Iago implements EvalFunction {
         int current = 0;
         int potential = 0;
 
-        Board board = position.board();
-        Player player = position.player();
-        Player opp = player.opponent();
+        final Board board = position.board();
+        final Player player = position.player();
+        final Player opp = player.opponent();
 
-        for (Square square : Square.values()) {
+        for (final Square square : Square.values()) {
             if (board.get(square) == SquareState.EMPTY) {
                 if (board.isLegal(square, player)) {
                     current++;
+                    potential++;
                 } else if (isPotentialMove(board, square, opp)) {
-                    potential ++;
+                    potential++;
                 }
             }
         }
