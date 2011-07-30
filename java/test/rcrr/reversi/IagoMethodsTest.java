@@ -61,23 +61,30 @@ public class IagoMethodsTest {
     @Test
     public final void testEval() {
 
-	GamePosition position = new GamePosition.Builder()
-	    .withPlayer(Player.BLACK)
-	    .withBoard(new Board.Builder()
-		       .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
-					   0, 0, 0, 0, 0, 0, 0, 0,
-					   0, 0, 0, 0, 0, 0, 0, 0,
-					   0, 0, 0, 1, 2, 0, 0, 0,
-					   0, 0, 0, 2, 1, 0, 0, 0,
-					   0, 0, 0, 0, 0, 0, 0, 0,
-					   0, 0, 0, 0, 0, 0, 0, 0,
-					   0, 0, 0, 0, 0, 0, 0, 0)
-		       .build())
-	    .build();
+	assertThat("A corner must be valued 21124.",
+		   new Iago().eval(new GamePosition.Builder()
+				   .withPlayer(Player.BLACK)
+				   .withBoard(new Board.Builder()
+					      .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
+								  0, 0, 0, 0, 0, 0, 0, 0,
+								  0, 0, 0, 0, 0, 0, 0, 0,
+								  0, 0, 0, 2, 1, 0, 0, 0,
+								  0, 0, 0, 1, 2, 0, 0, 0,
+								  0, 0, 0, 0, 0, 0, 0, 0,
+								  0, 0, 0, 0, 0, 0, 0, 0,
+								  0, 0, 0, 0, 0, 0, 0, 0)
+					      .build())
+				   .build()),
+		   is(21124));
 
-	assertThat("A corner must be valued 20672.",
-		   new Iago().eval(position),
-		   is(20672));
+
+	assertThat("BLACK_HAS_TO_PASS must be valued 498992.",
+		   new Iago().eval(new GamePosition.Builder()
+				   .withPlayer(Player.WHITE)
+				   .withBoard(BoardFixtures.BLACK_HAS_TO_PASS)
+				   .build()),
+		   is(498991));
+
     }
 
     /**
@@ -162,9 +169,9 @@ public class IagoMethodsTest {
         assertThat("new Iago().mobility(GamePositionFixtures.INITIAL).current() is 4.",
                    new Iago().mobility(GamePositionFixtures.INITIAL).current(),
                    is(4));
-        assertThat("new Iago().mobility(GamePositionFixtures.INITIAL).potential() is 6.",
+        assertThat("new Iago().mobility(GamePositionFixtures.INITIAL).potential() is 10.",
                    new Iago().mobility(GamePositionFixtures.INITIAL).potential(),
-                   is(6));
+                   is(10));
         assertThat("new Iago().mobility(GamePositionFixtures.BLACK_HAS_TO_PASS).current() is 0.",
                    new Iago().mobility(GamePositionFixtures.BLACK_HAS_TO_PASS).current(),
                    is(0));
