@@ -50,19 +50,15 @@ public final class Minimax extends AbstractDecisionRule {
     /**
      * Implemented by mean of the minimax algorithm.
      *
-     * @param player     the player that has the move
-     * @param board      the reached board
-     * @param achievable not used
-     * @param cutoff     not used
+     * @param position   the reached game position
      * @param ply        the search depth reached
      * @param ef         the evaluation function
      * @return           a node in the search tree
      */
-    public SearchNode search(final Player player,
-                             final Board board,
+    public SearchNode search(final GamePosition position,
                              final int ply,
                              final EvalFunction ef) {
-	return searchImpl(player, board, 0, 0, ply, ef);
+	return searchImpl(position.player(), position.board(), 0, 0, ply, ef);
     }
 
     /**
@@ -84,11 +80,11 @@ public final class Minimax extends AbstractDecisionRule {
      * @return           a node in the search tree
      */
     public SearchNode searchImpl(final Player player,
-                             final Board board,
-                             final int achievable,
-                             final int cutoff,
-                             final int ply,
-                             final EvalFunction ef) {
+				 final Board board,
+				 final int achievable,
+				 final int cutoff,
+				 final int ply,
+				 final EvalFunction ef) {
         SearchNode node;
         final Player opponent = player.opponent();
         if (ply == 0) {

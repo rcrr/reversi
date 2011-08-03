@@ -51,19 +51,15 @@ public final class AlphaBeta extends AbstractDecisionRule {
     /**
      * Implemented by means of the alpha-beta algorithm.
      *
-     * @param player     the player having the move
-     * @param board      the board
-     * @param achievable the search window lower bound (also know as alpha)
-     * @param cutoff     the search window upper bound (also know as beta)
-     * @param ply        the search depth
-     * @param ef         the evaluation function
-     * @return a new search node
+     * @param position the reached game position
+     * @param ply      the search depth
+     * @param ef       the evaluation function
+     * @return         a new search node
      */
-    public SearchNode search(final Player player,
-                             final Board board,
+    public SearchNode search(final GamePosition position,
                              final int ply,
                              final EvalFunction ef) {
-	return searchImpl(player, board, LOSING_VALUE, WINNING_VALUE, ply, ef);
+	return searchImpl(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
     }
 
     /**
