@@ -47,6 +47,23 @@ public final class Minimax extends AbstractDecisionRule {
     public static Minimax getInstance() {
         return new Minimax();
     }
+    /**
+     * Implemented by mean of the minimax algorithm.
+     *
+     * @param player     the player that has the move
+     * @param board      the reached board
+     * @param achievable not used
+     * @param cutoff     not used
+     * @param ply        the search depth reached
+     * @param ef         the evaluation function
+     * @return           a node in the search tree
+     */
+    public SearchNode search(final Player player,
+                             final Board board,
+                             final int ply,
+                             final EvalFunction ef) {
+	return searchImpl(player, board, 0, 0, ply, ef);
+    }
 
     /**
      * The minimax function.
@@ -66,7 +83,7 @@ public final class Minimax extends AbstractDecisionRule {
      * @param ef         the evaluation function
      * @return           a node in the search tree
      */
-    public SearchNode search(final Player player,
+    public SearchNode searchImpl(final Player player,
                              final Board board,
                              final int achievable,
                              final int cutoff,
@@ -80,14 +97,14 @@ public final class Minimax extends AbstractDecisionRule {
             List<Square> moves = board.legalMoves(player);
             if (moves.isEmpty()) {
                 if (board.hasAnyLegalMove(opponent)) {
-                    node = search(opponent, board, 0, 0, ply - 1, ef).negated();
+                    node = searchImpl(opponent, board, 0, 0, ply - 1, ef).negated();
                 } else {
                     node = SearchNode.valueOf(null, finalValue(board, player));
                 }
             } else {
                 node = SearchNode.valueOf(null, Integer.MIN_VALUE);
                 for (Square move : moves) {
-                    int value = search(opponent, board.makeMove(move, player),
+                    int value = searchImpl(opponent, board.makeMove(move, player),
                                        0, 0,
                                        ply - 1, ef).negated().value();
                     if (value > node.value()) {
