@@ -133,8 +133,7 @@ public abstract class AbstractDecisionRule implements DecisionRule {
                 if (!gameSnapshot.hasAnyLegalMove()) {
                     return Move.valueOf(Move.Action.PASS);
                 }
-                SearchNode node = search(gameSnapshot.player(),
-                                         gameSnapshot.board(),
+                SearchNode node = search(gameSnapshot.position(),
                                          ply,
                                          ef);
                 return Move.valueOf(node.move());
