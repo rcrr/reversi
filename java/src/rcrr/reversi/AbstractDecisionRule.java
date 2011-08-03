@@ -124,7 +124,7 @@ public abstract class AbstractDecisionRule implements DecisionRule {
      */
     public final Strategy searcher(final int ply, final EvalFunction ef) {
         if (ply <= 0) { throw new IllegalArgumentException("Parameter ply must be greather than zero. ply=" + ply); }
-        if (ef == null) { throw new NullPointerException("Parameter ef must not null."); }
+        if (ef == null) { throw new NullPointerException("Parameter ef must be not null."); }
         return new Strategy() {
             public Move move(final GameSnapshot gameSnapshot) {
                 if (gameSnapshot == null) {
@@ -135,7 +135,6 @@ public abstract class AbstractDecisionRule implements DecisionRule {
                 }
                 SearchNode node = search(gameSnapshot.player(),
                                          gameSnapshot.board(),
-                                         LOSING_VALUE, WINNING_VALUE,
                                          ply,
                                          ef);
                 return Move.valueOf(node.move());
