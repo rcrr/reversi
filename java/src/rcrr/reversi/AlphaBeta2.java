@@ -24,7 +24,12 @@
 
 package rcrr.reversi;
 
+import java.util.Comparator;
+import java.util.Collections;
+import java.util.Map;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 /**
  * The {@code AlphaBeta2} class implements {@code DecisionRule} and provides
@@ -52,6 +57,30 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
     /** Class constructor. */
     private AlphaBeta2() {
         efInvokeCount = 0;
+	// System.out.println("sorted=" + sortedByStaticValue(Arrays.asList(Square.values())));
+    };
+
+    public static final List<Square> sortedByStaticValue(final List<Square> squares) {
+	final List<Square> sortedSquares = new ArrayList<Square>(squares);
+	Collections.sort(sortedSquares, SQUARE_STATIC_COMPARATOR);
+	return sortedSquares;
+    }
+
+    public static final Comparator<Square> SQUARE_STATIC_COMPARATOR
+	= new Comparator<Square>() {
+	public int compare(final Square s0,
+			   final Square s1) {
+	    Map<Square, Integer> weights = WeightedSquares.weights();
+	    final int v0 = weights.get(s0);
+	    final int v1 = weights.get(s1);
+	    if (v0 > v1) {
+		return -1;
+	    } else if (v0 == v1) {
+		return 0;
+	    } else {
+		return +1;
+	    }
+	}
     };
 
     /**
