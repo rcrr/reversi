@@ -58,7 +58,7 @@ public final class Minimax extends AbstractDecisionRule {
     public SearchNode search(final GamePosition position,
                              final int ply,
                              final EvalFunction ef) {
-	return searchImpl(position.player(), position.board(), 0, 0, ply, ef);
+	return searchImpl(position.player(), position.board(), ply, ef);
     }
 
     /**
@@ -73,16 +73,12 @@ public final class Minimax extends AbstractDecisionRule {
      *
      * @param player     the player that has the move
      * @param board      the reached board
-     * @param achievable not used
-     * @param cutoff     not used
      * @param ply        the search depth reached
      * @param ef         the evaluation function
      * @return           a node in the search tree
      */
     public SearchNode searchImpl(final Player player,
 				 final Board board,
-				 final int achievable,
-				 final int cutoff,
 				 final int ply,
 				 final EvalFunction ef) {
         SearchNode node;
@@ -93,7 +89,7 @@ public final class Minimax extends AbstractDecisionRule {
             List<Square> moves = board.legalMoves(player);
             if (moves.isEmpty()) {
                 if (board.hasAnyLegalMove(opponent)) {
-                    node = searchImpl(opponent, board, 0, 0, ply - 1, ef).negated();
+                    node = searchImpl(opponent, board, ply - 1, ef).negated();
                 } else {
                     node = SearchNode.valueOf(null, finalValue(board, player));
                 }
@@ -101,7 +97,6 @@ public final class Minimax extends AbstractDecisionRule {
                 node = SearchNode.valueOf(null, Integer.MIN_VALUE);
                 for (Square move : moves) {
                     int value = searchImpl(opponent, board.makeMove(move, player),
-                                       0, 0,
                                        ply - 1, ef).negated().value();
                     if (value > node.value()) {
                         node = SearchNode.valueOf(move, value);
