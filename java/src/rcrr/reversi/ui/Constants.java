@@ -30,6 +30,7 @@ import java.awt.Font;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+
 public class Constants {
 
     public static final Color BACKGROUND_COLOR = new Color(0, 0, 0);

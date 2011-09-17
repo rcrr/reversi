@@ -76,6 +76,11 @@
 	   includeAntRuntime="false">
       <compilerarg value="-Xlint:unchecked"/>
     </javac>
+    <copy todir="${classes.dir}" overwrite="false">
+      <fileset dir="${src.dir}">
+	<include name="**/*.png"/>
+      </fileset>
+    </copy>
   </target>
 
   <target name="jar" depends="compile">
