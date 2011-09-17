@@ -61,7 +61,7 @@ public class ReversiBoard {
     private synchronized void init() throws Exception {
 
 	if (initialized) throw new Exception("ReversiBoard instance already initialized.");
-	
+
 	frm = new JFrame("Reversi Board");
 	frm.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	
@@ -75,7 +75,7 @@ public class ReversiBoard {
 	layp = new JLayeredPane();
         frm.getContentPane().add(layp);
         layp.setPreferredSize(labelsSize);
-	
+
 	// Add the labels panel to the Layered Pane.
 	labels = new JPanel();
 	layp.add(labels, new Integer(10));
@@ -94,7 +94,7 @@ public class ReversiBoard {
 	JPanel jplc = new JPanel(new BorderLayout());
 	labelsCorner.add(jplc);
 	jplc.setBackground(Constants.BASE_COLOR);
-	
+
 	// Add the Row-List to the Label Panel.
 	rowLabels = new JPanel();
 	labels.add(rowLabels);
@@ -110,7 +110,7 @@ public class ReversiBoard {
 	    jl.setForeground(Constants.LABEL_TEXT_COLOR);
 	    jp.add(jl);
 	}
-	
+
 	// Add the Column-List to the Label Panel.
 	colLabels = new JPanel();
 	labels.add(colLabels);
@@ -160,6 +160,7 @@ public class ReversiBoard {
 	frm.setVisible(true);
 
 	this.initialized = true;
+
     }
 
     public synchronized boolean isInitialized() {
