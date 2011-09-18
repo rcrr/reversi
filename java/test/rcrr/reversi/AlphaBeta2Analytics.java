@@ -24,6 +24,9 @@
 
 package rcrr.reversi;
 
+import java.util.Map;
+import java.util.HashMap;
+
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 
@@ -35,6 +38,8 @@ import static org.hamcrest.CoreMatchers.is;
  * @see AlphaBeta2
  */
 public class AlphaBeta2Analytics {
+
+    private static final Map<String, Object> NO_STATISTICS = null;
 
     /** Class constructor. */
     public AlphaBeta2Analytics() { }
@@ -63,13 +68,46 @@ public class AlphaBeta2Analytics {
         .withRegister(MoveRegisterFixtures.EMPTY)
         .build();
 
-    for (int i = 1; i < 11; i++) {
-        Strategy strategy = AlphaBeta2.getInstance().searcher(i, new ModifiedWeightedSquares());
+    for (int i = 1; i < 5; i++) {
+        Strategy strategy = AlphaBeta2.getInstance(AlphaBeta2.Variant.MINIMAX, NO_STATISTICS).searcher(i, new ModifiedWeightedSquares());
         Move move = strategy.move(snapshot);
-        System.out.println("move=" + move);
     }
 
-        assertThat("Dummy test always succeds.",
+    assertThat("Dummy test always succeds.",
+	       true,
+	       is(true));
+    }
+
+    private static final EvalFunction EF = new ModifiedWeightedSquares();
+    private static final int PLY = 6;
+    private static final int INITIAL_RANDOM_MOVES = 10;
+    private static final int UPPER_END_BOUND = 54;
+
+    @Test
+    public final void testNumberOfBoardEvaluations() {
+
+        final Game game = new Game.Builder()
+            .withActors(new ActorsPair.Builder()
+                        .withActor(Player.BLACK, Actor.valueOf("Random Player A", new RandomStrategy()))
+                        .withActor(Player.WHITE, Actor.valueOf("Random Player B", new RandomStrategy()))
+                        .build())
+            .withPrintStream(new NullPrintStream())
+            .withSequence(Game.randomGame(INITIAL_RANDOM_MOVES).sequence())
+	    .build();
+
+	while ((64 - game.board().countPieces(SquareState.EMPTY)) < UPPER_END_BOUND) {
+	    if (!game.board().hasAnyPlayerAnyLegalMove()) break;
+	    for (AlphaBeta2.Variant v : AlphaBeta2.Variant.values()) {
+		Map<String, Object> statistics = new HashMap<String, Object>();
+		Strategy strategy = AlphaBeta2.getInstance(v, statistics).searcher(PLY, EF);
+		Move move = strategy.move(game.lastGameSnapshot());
+		System.out.println("statistics=" + statistics);
+	    }
+	    Move randomMove = game.move();
+	    System.out.println("--- --- ---");
+	}
+
+        assertThat("The test is used to prepare the analysis table.",
                    true,
                    is(true));
     }
