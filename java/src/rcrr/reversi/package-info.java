@@ -35,7 +35,7 @@ To do:
   <li>Verify that all the factories that receive a mutable object make the appropriate defensive copy.</li>
   <li>The actor that share the strategy by means of the strategy() method is not safe.
       The client can get a reference of the strategy object and modify it. It is better to
-      add a move() method to the actor and keep the strategy more schielded.</li>
+      add a move() method to the actor and keep the strategy more shielded.</li>
   <li>Veryfy that the Builder classes are really thread-safe. Be careful about accessor methods that publish a reference
       of a collection, or in general a mutable object reference. It must be copied.
       The Builder inner classes must have a unit test.</li>

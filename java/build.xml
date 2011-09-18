@@ -116,7 +116,7 @@
 	<path refid="lib.classpath"/>
       </classpath>
       <arg value="rcrr.reversi.HumanStrategy"/>
-      <arg value="rcrr.reversi.MaximizeDifference"/>
+      <arg value="rcrr.reversi.IagoStrategy"/>
     </java>
   </target>
 
