@@ -63,7 +63,7 @@ public final class Reversi {
     private static final int ERROR_CODE_5 = 5;
 
     /** Default game duration in minutes. */
-    private static final int DEFAULT_GAME_DURATION_IN_MINUTES = 30;
+    private static final int DEFAULT_GAME_DURATION_IN_MINUTES = 90;
 
     /** Class constructor. Not used so far. */
     private Reversi() {

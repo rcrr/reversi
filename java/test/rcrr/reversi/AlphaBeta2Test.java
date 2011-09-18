@@ -24,6 +24,8 @@
 
 package rcrr.reversi;
 
+import java.util.Map;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -35,6 +37,8 @@ import org.junit.runners.Parameterized;
  */
 @RunWith(Parameterized.class)
 public class AlphaBeta2Test extends DecisionRuleTestUtils {
+
+    private static final Map<String, Object> NO_STATISTICS = null;
 
     /**
      * Class constructor.
@@ -52,7 +56,7 @@ public class AlphaBeta2Test extends DecisionRuleTestUtils {
                           final EvalFunction fn) {
         super(testFailureMessage,
               snapshot,
-              AlphaBeta2.getInstance(),
+              AlphaBeta2.getInstance(AlphaBeta2.Variant.UNORDERED_ALPHABETA, NO_STATISTICS),
               ply,
               fn,
               expectedMove);

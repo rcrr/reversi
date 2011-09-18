@@ -83,7 +83,6 @@ public final class ReversiGUI {
      *
      * @param blStrategy   the black's strategy
      * @param whStrategy   the white's strategy
-     * @param ps           the output print stream
      * @param gameDuration the game duration assigned to both players
      *
      * @return           the game score
