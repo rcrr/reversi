@@ -80,8 +80,8 @@ public class AlphaBeta2Analytics {
 
     private static final EvalFunction EF = new ModifiedWeightedSquares();
     private static final int PLY = 6;
-    private static final int INITIAL_RANDOM_MOVES = 10;
-    private static final int UPPER_END_BOUND = 54;
+    private static final int INITIAL_RANDOM_MOVES = 20;
+    private static final int UPPER_END_BOUND = 34;
 
     @Test
     public final void testNumberOfBoardEvaluations() {
