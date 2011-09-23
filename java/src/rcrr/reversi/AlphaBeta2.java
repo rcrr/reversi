@@ -62,7 +62,10 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 	STATIC_ORDERED_ALPHABETA,
 
 	/** Moves are sorted using the evaluation function. */
-	EF_ORDERED_ALPHABETA
+	EF_ORDERED_ALPHABETA,
+
+	/** Iterative deepening. */
+	ITERATIVE_DEEPENING
     }
 
     private int efInvokeCount;
@@ -118,7 +121,10 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 	    result = searchImpl3(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
 	    break;
         case EF_ORDERED_ALPHABETA:
-	    result = searchImpl4(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef, true);
+	    result = searchImpl4(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef, false);
+	    break;
+	case ITERATIVE_DEEPENING:
+	    result = searchIterativeDeep(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef, true);
 	    break;
 	default: throw new RuntimeException("Unreachable condition found. variant=" + variant);
 	}
@@ -250,7 +256,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 	    List<Square> moves = staticSortedLegalMoves(player, board);
             if (moves.isEmpty()) {
                 if (board.hasAnyLegalMove(opponent)) {
-                    node = searchImpl2(opponent, board, -cutoff, -achievable, ply - 1, ef).negated();
+                    node = searchImpl3(opponent, board, -cutoff, -achievable, ply - 1, ef).negated();
                 } else {
                     node = SearchNode.valueOf(null, finalValue(board, player));
                 }
@@ -306,7 +312,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 	    }
             if (moves.isEmpty()) {
                 if (board.hasAnyLegalMove(opponent)) {
-                    node = searchImpl2(opponent, board, -cutoff, -achievable, ply - 1, ef).negated();
+                    node = searchImpl4(opponent, board, -cutoff, -achievable, ply - 1, ef, false).negated();
                 } else {
                     node = SearchNode.valueOf(null, finalValue(board, player));
                 }
@@ -316,6 +322,62 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
                     Board board2 = board.makeMove(move, player);
 		    boardConstructionCount++;
                     int val = searchImpl4(opponent, board2, -cutoff, -node.value(), ply - 1, ef, false).negated().value();
+                    if (val > node.value()) {
+                        node = SearchNode.valueOf(move, val);
+                    }
+                    if (node.value() >= cutoff) { break outer; }
+                }
+            }
+        }
+        return node;
+    }
+
+    /**
+     * Implemented by means of the alpha-beta algorithm applying a dynamic ordering
+     * of the moves.
+     *
+     * @param player     the player having the move
+     * @param board      the board
+     * @param achievable the upper bound
+     * @param cutoff     the lower bound
+     * @param ply        the search depth
+     * @param ef         the evaluation function
+     * @return a new search node
+     */
+    private SearchNode searchIterativeDeep(final Player player,
+					   final Board board,
+					   final int achievable,
+					   final int cutoff,
+					   final int ply,
+					   final EvalFunction ef,
+					   final boolean log) {
+        SearchNode node;
+        final Player opponent = player.opponent();
+        if (ply == 0) {
+            node = SearchNode.valueOf(null, ef.eval(GamePosition.valueOf(board, player)));
+            efInvokeCount++;
+        } else {
+	    List<Square> moves = dynamicSortedLegalMoves(player, board, ef, false);
+	    if (log) {
+		List<Square> moves0 = dynamicSortedLegalMoves(player, board, ef, true);
+		List<Square> moves1 = staticSortedLegalMoves(player, board);
+		List<Square> moves2 = board.legalMoves(player);
+		System.out.println("dynamic - moves=" + moves0);
+		System.out.println("static  - moves=" + moves1);
+		System.out.println("basic   - moves=" + moves2);
+	    }
+            if (moves.isEmpty()) {
+                if (board.hasAnyLegalMove(opponent)) {
+                    node = searchIterativeDeep(opponent, board, -cutoff, -achievable, ply - 1, ef, false).negated();
+                } else {
+                    node = SearchNode.valueOf(null, finalValue(board, player));
+                }
+            } else {
+                node = SearchNode.valueOf(moves.get(0), achievable);
+                outer: for (Square move : moves) {
+                    Board board2 = board.makeMove(move, player);
+		    boardConstructionCount++;
+                    int val = searchIterativeDeep(opponent, board2, -cutoff, -node.value(), ply - 1, ef, false).negated().value();
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
