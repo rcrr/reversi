@@ -137,6 +137,12 @@ public final class GamePosition {
 
     }
 
+    /** Prime number 17. */
+    private static final int PRIME_NUMBER_17 = 17;
+
+    /** Prime number 31. */
+    private static final int PRIME_NUMBER_31 = 31;
+
     /**
      * Static factory that returns a new initial game position.
      * <p>
@@ -176,6 +182,9 @@ public final class GamePosition {
     /** The player field. */
     private final Player player;
 
+    /** Lazily initialized, cached hashCode. */
+    private transient volatile int hashCode = 0;
+
     /**
      * Class constructor.
      * <p>
@@ -200,6 +209,41 @@ public final class GamePosition {
      */
     public Board board() {
         return board;
+    }
+
+    /**
+     * Returns true if the specified object is equal to this game position.
+     * Two game positions are equal when they have the same player and two equal boards.
+     *
+     * @param object the object to compare to
+     * @return {@code true} when the {@code object} parameter is an instance of
+     *         the {@code GamePosition} class, when the players are the same, and
+     *         the boards are equal.
+     */
+    @Override
+    public boolean equals(final Object object) {
+        if (object == this) { return true; }
+        if (!(object instanceof GamePosition)) { return false; }
+        final GamePosition position = (GamePosition) object;
+	if (player() != position.player()) { return false; }
+	if (!board().equals(position.board())) { return false; }
+        return true;
+    }
+
+    /**
+     * Returns a hash code for this game position.
+     *
+     * @return a hash code for this game position
+     */
+    @Override
+    public int hashCode() {
+        if (hashCode == 0) {
+            int result = PRIME_NUMBER_17;
+	    result = PRIME_NUMBER_31 * result + board().hashCode();
+	    result = PRIME_NUMBER_31 * result + player().hashCode();
+            hashCode = result;
+        }
+        return hashCode;
     }
 
     /**
