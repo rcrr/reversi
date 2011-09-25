@@ -24,13 +24,19 @@
 
 package rcrr.reversi;
 
+import rcrr.reversi.Square;
+
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * The {@code AlphaBeta2} class implements {@code DecisionRule} and provides
@@ -75,6 +81,8 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 
     private final Variant variant;
 
+    private final Set<GamePosition> gamePositionCache;
+
     /**
      * Class static factory.
      *
@@ -90,6 +98,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 		       final Map<String, Object> statistics) {
 	this.variant = variant;
 	this.statistics = statistics;
+	this.gamePositionCache = new HashSet<GamePosition>();
     };
 
     /**
@@ -121,10 +130,10 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 	    result = searchImpl3(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
 	    break;
         case EF_ORDERED_ALPHABETA:
-	    result = searchImpl4(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef, false);
+	    result = searchImpl4(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef, true);
 	    break;
 	case ITERATIVE_DEEPENING:
-	    result = searchIterativeDeep(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef, true);
+	    result = searchIterativeDeep(position, LOSING_VALUE, WINNING_VALUE, ply, ef, 0, true);
 	    break;
 	default: throw new RuntimeException("Unreachable condition found. variant=" + variant);
 	}
@@ -301,12 +310,11 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
             node = SearchNode.valueOf(null, ef.eval(GamePosition.valueOf(board, player)));
             efInvokeCount++;
         } else {
-	    List<Square> moves = dynamicSortedLegalMoves(player, board, ef, false);
+	    List<Square> moves = new ArrayList<Square>(dynamicSortedLegalMoves(player, board, ef, false).keySet());
 	    if (log) {
-		List<Square> moves0 = dynamicSortedLegalMoves(player, board, ef, true);
 		List<Square> moves1 = staticSortedLegalMoves(player, board);
 		List<Square> moves2 = board.legalMoves(player);
-		System.out.println("dynamic - moves=" + moves0);
+		System.out.println("dynamic - moves=" + moves);
 		System.out.println("static  - moves=" + moves1);
 		System.out.println("basic   - moves=" + moves2);
 	    }
@@ -336,48 +344,45 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
      * Implemented by means of the alpha-beta algorithm applying a dynamic ordering
      * of the moves.
      *
-     * @param player     the player having the move
-     * @param board      the board
+     * @param position   the game position
      * @param achievable the upper bound
      * @param cutoff     the lower bound
      * @param ply        the search depth
      * @param ef         the evaluation function
+     * @param log        activate the function logging
      * @return a new search node
      */
-    private SearchNode searchIterativeDeep(final Player player,
-					   final Board board,
+    private SearchNode searchIterativeDeep(final GamePosition position,
 					   final int achievable,
 					   final int cutoff,
 					   final int ply,
 					   final EvalFunction ef,
+					   final int efNodeValue,
 					   final boolean log) {
         SearchNode node;
+        final Board board = position.board();
+        final Player player = position.player();
         final Player opponent = player.opponent();
         if (ply == 0) {
-            node = SearchNode.valueOf(null, ef.eval(GamePosition.valueOf(board, player)));
-            efInvokeCount++;
+            node = SearchNode.valueOf(null, efNodeValue);
         } else {
-	    List<Square> moves = dynamicSortedLegalMoves(player, board, ef, false);
-	    if (log) {
-		List<Square> moves0 = dynamicSortedLegalMoves(player, board, ef, true);
-		List<Square> moves1 = staticSortedLegalMoves(player, board);
-		List<Square> moves2 = board.legalMoves(player);
-		System.out.println("dynamic - moves=" + moves0);
-		System.out.println("static  - moves=" + moves1);
-		System.out.println("basic   - moves=" + moves2);
-	    }
+	    SortedMap<Square, MoveData> moves = dynamicSortedLegalMoves(player, board, ef, log);
             if (moves.isEmpty()) {
                 if (board.hasAnyLegalMove(opponent)) {
-                    node = searchIterativeDeep(opponent, board, -cutoff, -achievable, ply - 1, ef, false).negated();
+                    node = searchIterativeDeep(GamePosition.valueOf(board, opponent), -cutoff, -achievable, ply - 1, ef, -efNodeValue, false).negated();
                 } else {
                     node = SearchNode.valueOf(null, finalValue(board, player));
                 }
             } else {
-                node = SearchNode.valueOf(moves.get(0), achievable);
-                outer: for (Square move : moves) {
-                    Board board2 = board.makeMove(move, player);
-		    boardConstructionCount++;
-                    int val = searchIterativeDeep(opponent, board2, -cutoff, -node.value(), ply - 1, ef, false).negated().value();
+                node = SearchNode.valueOf(moves.firstKey(), achievable);
+                outer: for (Square move : moves.keySet()) {
+                    int val = searchIterativeDeep(moves.get(move).position(),
+						  -cutoff, -node.value(),
+						  ply - 1,
+						  ef,
+						  - moves.get(move).value(),
+						  false)
+			.negated().value();
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
@@ -411,40 +416,67 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 	return moves;
     }
 
-    private static List<Square> dynamicSortedLegalMoves(final Player player, final Board board, final EvalFunction ef, final boolean log) {
+    private SortedMap<Square, MoveData> dynamicSortedLegalMoves(final Player player, final Board board, final EvalFunction ef, final boolean log) {
 	final List<Square> moves = board.legalMoves(player);
-	final Map<Square, Integer> values = new HashMap<Square, Integer>();
+	final Map<Square, MoveData> values = new HashMap<Square, MoveData>();
 	for (Square move : moves) {
-	    values.put(move, - ef.eval(GamePosition.valueOf(board.makeMove(move, player), player.opponent())));
+	    boardConstructionCount++;
+            efInvokeCount++;
+	    final GamePosition position = GamePosition.valueOf(board.makeMove(move, player), player.opponent());
+	    final MoveData data = new MoveData(position, - ef.eval(position));
+	    values.put(move, data);
 	}
-	if (log) {
-	    System.out.println("values=" + values);
+	final SortedMap<Square, MoveData> results = new TreeMap<Square, MoveData>(new ValueComparator<Square>(values));
+	results.putAll(values);
+	return results;
+    }
+
+    private static final class MoveData {
+	private final int value;
+	private final GamePosition position;
+	MoveData(final GamePosition position, final int value) {
+	    this.value = value;
+	    this.position = position;
 	}
-	Collections.sort(moves, new ValueComparator<Square>(values));
-	return moves;
+	final GamePosition position() { return this.position; }
+	final int value() { return this.value; }
     }
 
     private static final class ValueComparator<Square> implements Comparator<Square> {
 
-	private final Map<Square, Integer> values;
+	private final Map<Square, MoveData> values;
 
-	ValueComparator(final Map<Square, Integer> values) {
+	ValueComparator(final Map<Square, MoveData> values) {
 	    this.values = values;
 	}
 
-	public int compare(final Square sq0,
-			   final Square sq1) {
-	    final int v0 = values.get(sq0);
-	    final int v1 = values.get(sq1);
+	@SuppressWarnings(value = "unchecked")
+	public int compare(final Object object1,
+			   final Object object2) {
+	    if (object1 == object2) { return 0; }
+	    rcrr.reversi.Square sq0 = (rcrr.reversi.Square) object1;
+	    rcrr.reversi.Square sq1 = (rcrr.reversi.Square) object2;
+	    final int v0 = values.get(sq0).value();
+	    final int v1 = values.get(sq1).value();
+	    if (v0 == v1) {
+		final int ordinalSq0 = sq0.ordinal();
+		final int ordinalSq1 = sq1.ordinal();
+		return (ordinalSq0 > ordinalSq1) ? -1: +1;
+	    }
 	    if (v0 > v1) {
 		return -1;
-	    } else if (v0 == v1) {
-		return 0;
 	    } else {
 		return +1;
 	    }
 	}
-    };
+
+	public boolean equals(final Object objectA, final Object objectB) {
+	    if (objectA == objectB) { return true; }
+	    return false;
+	}
+
+
+    }
 
 
 
