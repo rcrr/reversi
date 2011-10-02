@@ -71,17 +71,16 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 	EF_ORDERED_ALPHABETA,
 
 	/** Iterative deepening. */
-	ITERATIVE_DEEPENING
+	MULTI_LEVEL_ORDERING
     }
 
     private int efInvokeCount;
     private int boardConstructionCount;
+    private int[] cutoffCount;
     private long searchTimeInNanosecond;
     private final Map<String, Object> statistics;
 
     private final Variant variant;
-
-    private final Set<GamePosition> gamePositionCache;
 
     /**
      * Class static factory.
@@ -98,7 +97,6 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 		       final Map<String, Object> statistics) {
 	this.variant = variant;
 	this.statistics = statistics;
-	this.gamePositionCache = new HashSet<GamePosition>();
     };
 
     /**
@@ -115,6 +113,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 
         this.efInvokeCount = 0;
 	this.boardConstructionCount = 0;
+	this.cutoffCount = new int[ply];
 
 	long systemTimeBeforeSearch = System.nanoTime();
 
@@ -132,7 +131,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
         case EF_ORDERED_ALPHABETA:
 	    result = searchImpl4(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef, true);
 	    break;
-	case ITERATIVE_DEEPENING:
+	case MULTI_LEVEL_ORDERING:
 	    result = searchIterativeDeep(position, LOSING_VALUE, WINNING_VALUE, ply, ef, 0, true);
 	    break;
 	default: throw new RuntimeException("Unreachable condition found. variant=" + variant);
@@ -142,6 +141,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
 
 	if (this.statistics != null) {
 	    statistics.put("result", result);
+	    statistics.put("cutoffCount", cutoffCount);
 	    statistics.put("variant", variant);
 	    statistics.put("efInvokeCount", efInvokeCount);
 	    statistics.put("boardConstructionCount", boardConstructionCount);
@@ -231,7 +231,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
-                    if (node.value() >= cutoff) { break outer; }
+                    if (node.value() >= cutoff) {  cutoffCount[ply]++; break outer; }
                 }
             }
         }
@@ -278,7 +278,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
-                    if (node.value() >= cutoff) { break outer; }
+                    if (node.value() >= cutoff) {  cutoffCount[ply]++; break outer; }
                 }
             }
         }
@@ -333,7 +333,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
-                    if (node.value() >= cutoff) { break outer; }
+                    if (node.value() >= cutoff) {  cutoffCount[ply]++; break outer; }
                 }
             }
         }
@@ -386,7 +386,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
-                    if (node.value() >= cutoff) { break outer; }
+                    if (node.value() >= cutoff) { cutoffCount[ply]++; break outer; }
                 }
             }
         }
