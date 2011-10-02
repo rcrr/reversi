@@ -24,6 +24,8 @@
 
 package rcrr.reversi;
 
+import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -80,9 +82,20 @@ public class AlphaBeta2Analytics {
 
     //private static final EvalFunction EF = new ModifiedWeightedSquares();
     private static final EvalFunction EF = new Iago();
-    private static final int PLY = 7;
+    private static final int PLY = 10;
     private static final int INITIAL_RANDOM_MOVES = 30;
-    private static final int UPPER_END_BOUND = 38;
+    private static final int UPPER_END_BOUND = 36;
+
+    /*
+    private static final List<AlphaBeta2.Variant> AB_VARIANTS = Arrays.asList(AlphaBeta2.Variant.MINIMAX,
+									      AlphaBeta2.Variant.UNORDERED_ALPHABETA,
+									      AlphaBeta2.Variant.STATIC_ORDERED_ALPHABETA,
+									      AlphaBeta2.Variant.EF_ORDERED_ALPHABETA,
+									      AlphaBeta2.Variant.MULTI_LEVEL_ORDERING);
+    */
+
+    private static final List<AlphaBeta2.Variant> AB_VARIANTS = Arrays.asList(AlphaBeta2.Variant.STATIC_ORDERED_ALPHABETA,
+									      AlphaBeta2.Variant.MULTI_LEVEL_ORDERING);
 
     @Test
     public final void testNumberOfBoardEvaluations() {
@@ -98,11 +111,17 @@ public class AlphaBeta2Analytics {
 
 	while ((64 - game.board().countPieces(SquareState.EMPTY)) < UPPER_END_BOUND) {
 	    if (!game.board().hasAnyPlayerAnyLegalMove()) break;
-	    for (AlphaBeta2.Variant v : AlphaBeta2.Variant.values()) {
+	    for (AlphaBeta2.Variant v : AB_VARIANTS) {
 		Map<String, Object> statistics = new HashMap<String, Object>();
 		Strategy strategy = AlphaBeta2.getInstance(v, statistics).searcher(PLY, EF);
 		Move move = strategy.move(game.lastGameSnapshot());
 		System.out.println("statistics=" + statistics);
+		System.out.print("cutoffCount=[");
+		for (int i = 0; i < PLY; i++) {
+		    int[] cutoffCount = (int[])statistics.get("cutoffCount");
+		    System.out.print("(ply=" + i + ", cc=" + cutoffCount[i] + ")");
+		}
+		System.out.print("]\n");
 	    }
 	    Move randomMove = game.move();
 	    System.out.println("--- --- ---");
