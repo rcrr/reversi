@@ -34,7 +34,7 @@ package rcrr.reversi;
  * The strategy mixes the concepts of mobility and edge stability ...
  */
 public final class IagoStrategy implements Strategy {
-    private static final Strategy IAGO = AlphaBeta.getInstance().searcher(8, new Iago());
+    private static final Strategy IAGO = AlphaBeta3.getInstance().searcher(9, new Iago());
     public Move move(final GameSnapshot gameSnapshot) {
 	return IAGO.move(gameSnapshot);
     }
