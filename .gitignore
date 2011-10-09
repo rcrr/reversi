@@ -9,3 +9,5 @@ manifest.mf
 nbbuild.xml
 nbproject
 dist
+tmp
+*.tmp
