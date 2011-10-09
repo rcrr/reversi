@@ -24,6 +24,7 @@ package rcrr.reversi.ui;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.awt.FlowLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 
@@ -31,11 +32,19 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import javax.swing.JTextField;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.SwingUtilities;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.border.TitledBorder;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -53,6 +62,10 @@ public class ReversiBoard {
     private JPanel labelsCorner;
     private JPanel rowLabels;
     private JPanel colLabels;
+    private JPanel commandPane;
+
+    /** The command text field. */
+    private JTextField ctf;
 
     private boolean initialized = false;
 
@@ -63,6 +76,9 @@ public class ReversiBoard {
 	if (initialized) throw new Exception("ReversiBoard instance already initialized.");
 
 	frm = new JFrame("Reversi Board");
+	frm.getContentPane().setLayout(new GridBagLayout());
+	GridBagConstraints c = new GridBagConstraints();
+	c.fill = GridBagConstraints.HORIZONTAL;
 	frm.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	
 	final int gsd = 8 * Constants.SQUARE_SIZE;
@@ -73,7 +89,9 @@ public class ReversiBoard {
 	
         // Use a Layered Pane for this application.
 	layp = new JLayeredPane();
-        frm.getContentPane().add(layp);
+	c.gridx = 0;
+	c.gridy = 0;
+        frm.getContentPane().add(layp, c);
         layp.setPreferredSize(labelsSize);
 
 	// Add the labels panel to the Layered Pane.
@@ -153,6 +171,23 @@ public class ReversiBoard {
             grid.add(square.getJp());
 	    squares.put(bsk, square);
 	}
+
+	// Add the data entry JTextField
+	TitledBorder commandPaneTitle = BorderFactory.createTitledBorder("Command");;
+	commandPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	commandPane.setBorder(commandPaneTitle);
+	commandPane.setBackground(Constants.BACKGROUND_COLOR);
+	c.gridx = 0;
+	c.gridy = 1;
+	frm.getContentPane().add(commandPane, c);
+	ctf = new JTextField(50);
+	ctf.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent event) {
+		    String command = ctf.getText();
+		    execCommand(command);
+		}
+	    });
+	commandPane.add(ctf);
 
 	frm.pack();
 	frm.setResizable(true);
