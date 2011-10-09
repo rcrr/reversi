@@ -184,7 +184,12 @@ public class ReversiBoard {
 	ctf.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent event) {
 		    String command = ctf.getText();
-		    execCommand(command);
+		    if (!(command.equals("quit"))){
+			System.out.println("You typed: " + command);
+			execCommand(command);
+		    } else {
+			System.exit(0);
+		    }
 		}
 	    });
 	commandPane.add(ctf);
@@ -245,31 +250,7 @@ public class ReversiBoard {
     }
 
     public static void main(String[] args) {
-
-	String line = "";
-       
-	System.out.println("Enter a command (type 'quit' to exit): ");
-
-	InputStreamReader isr = new InputStreamReader(System.in);
-	BufferedReader in = new BufferedReader(isr);
-
 	ReversiBoard rb = ReversiBoard.initDisplay();
-   
-	while (!(line.equals("quit"))){
-	    try {
-		line = in.readLine();
-            } catch (Exception e) {
-		System.out.println("Error in reading the input line, exiting.");
-		System.exit(1);
-	    }
-
-	    if (!(line.equals("quit"))){
-		System.out.println("You typed: " + line);
-		rb.execCommand(line);
-	    } else {
-		System.exit(0);
-	    }
-	}
     }
 
     private void execCommand(String command) {
