@@ -31,13 +31,6 @@ import java.net.URL;
 
 class TestView {
 
-    private static final String WHITE_DISK_ICON_FILE = "rcrr/reversi/ui/images/reversi-white-disk.png";
-    private static final String BLACK_DISK_ICON_FILE = "rcrr/reversi/ui/images/reversi-black-disk.png";
-    private static final URL WHITE_DISK_ICON_URL = TestView.class.getResource(WHITE_DISK_ICON_FILE);
-    private static final URL BLACK_DISK_ICON_URL = TestView.class.getResource(BLACK_DISK_ICON_FILE);
-    private static final Icon WHITE_DISK_ICON = new ImageIcon(WHITE_DISK_ICON_FILE);
-    private static final Icon BLACK_DISK_ICON = new ImageIcon(BLACK_DISK_ICON_FILE);
-
     private static final Color BACKGROUND_COLOR = new Color(0, 0, 0);
     private static final Color LABEL_TEXT_COLOR = new Color(220, 220, 220);
     private static final Color BASE_COLOR = new Color(32, 142, 32);
@@ -176,6 +169,25 @@ class TestView {
 		}
 	    });
 
+	/* Create the menu bar. */
+	JMenuBar jmb = new JMenuBar();
+
+	/* Create the file menu. */
+	JMenu jmFile = new JMenu("File");
+	JMenuItem jmiExit = new JMenuItem("Exit");
+	jmFile.add(jmiExit);
+	jmb.add(jmFile);
+
+	/* Add the action listener to the exit command. */
+	jmiExit.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent ae) {
+		    System.exit(0);
+		}
+	    });
+
+	/* Add the menu bar tothe main frame. */
+	frame.setJMenuBar(jmb);
+
 	frame.pack();
 	frame.setVisible(true);
 
@@ -196,12 +208,12 @@ class TestView {
 		black.setEnabled(true);
 		white.setEnabled(true);		
 	    } else if ("black".equals(sc)) {
-		ico = BLACK_DISK_ICON;
+		ico = Constants.BLACK_DISK_ICON;
 		empty.setEnabled(true);
 		black.setEnabled(false);
 		white.setEnabled(true);		
 	    } else if ("white".equals(sc)) {
-		ico = WHITE_DISK_ICON;
+		ico = Constants.WHITE_DISK_ICON;
 		empty.setEnabled(true);
 		black.setEnabled(true);
 		white.setEnabled(false);		
@@ -236,6 +248,10 @@ class TestView {
 		}
 	    });
 	return tv;
+    }
+
+    public static void main(String args[]) {
+	TestView tv = TestView.initDisplay();    
     }
 
 }

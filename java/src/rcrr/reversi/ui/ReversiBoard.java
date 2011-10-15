@@ -1,5 +1,5 @@
  /*
-    Copyright (c) 2010 Roberto Corradini
+    Copyright (c) 2010, 2011 Roberto Corradini
 
     This file is part of the reversi program
     http://github.com/rcrr/reversi
@@ -22,15 +22,19 @@
 
 package rcrr.reversi.ui;
 
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.StringTokenizer;
+
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.FlowLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JTextField;
 import javax.swing.JPanel;
@@ -38,11 +42,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.SwingUtilities;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.BorderFactory;
 import javax.swing.border.TitledBorder;
 
@@ -54,32 +53,32 @@ import java.net.URL;
 public class ReversiBoard {
 
     private Map<BoardSquareKey, Square> squares = new EnumMap<BoardSquareKey, Square>(BoardSquareKey.class);
-    private JFrame frm;
-    private JLayeredPane layp;
-    private JPanel grid;
-    private JPanel dots;
-    private JPanel labels;
-    private JPanel labelsCorner;
-    private JPanel rowLabels;
-    private JPanel colLabels;
-    private JPanel commandPane;
+    private JFrame mainFrame;
+    private JLayeredPane boardPane;
+    private JPanel gridPanel;
+    private JPanel dotsPanel;
+    private JPanel labelsPanel;
+    private JPanel labelsCornerPanel;
+    private JPanel rowLabelsPanel;
+    private JPanel colLabelsPanel;
+    private JPanel commandPanel;
 
     /** The command text field. */
     private JTextField ctf;
 
     private boolean initialized = false;
 
-    public ReversiBoard() {}
+    public ReversiBoard() { }
 
-    private synchronized void init() throws Exception {
+    private synchronized void init() {
 
-	if (initialized) throw new Exception("ReversiBoard instance already initialized.");
+	if (initialized) throw new RuntimeException("ReversiBoard instance already initialized.");
 
-	frm = new JFrame("Reversi Board");
-	frm.getContentPane().setLayout(new GridBagLayout());
+	mainFrame = new JFrame("Reversi Board");
+	mainFrame.getContentPane().setLayout(new GridBagLayout());
 	GridBagConstraints c = new GridBagConstraints();
 	c.fill = GridBagConstraints.HORIZONTAL;
-	frm.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	
 	final int gsd = 8 * Constants.SQUARE_SIZE;
 	final int lsd = gsd + (Constants.LABELS_HEIGHT + (2 * Constants.LABELS_GAP) + Constants.SQUARES_GAP);
@@ -88,41 +87,41 @@ public class ReversiBoard {
 	final int gs = Constants.LABELS_HEIGHT + Constants.LABELS_GAP + Constants.SQUARES_GAP;
 	
         // Use a Layered Pane for this application.
-	layp = new JLayeredPane();
+	boardPane = new JLayeredPane();
 	c.gridx = 0;
 	c.gridy = 0;
-        frm.getContentPane().add(layp, c);
-        layp.setPreferredSize(labelsSize);
+        mainFrame.getContentPane().add(boardPane, c);
+        boardPane.setPreferredSize(labelsSize);
 
 	// Add the labels panel to the Layered Pane.
-	labels = new JPanel();
-	layp.add(labels, new Integer(10));
-        labels.setLayout(null);
-        labels.setPreferredSize(labelsSize);
-        labels.setBounds(0, 0, labelsSize.width, labelsSize.height);
-	labels.setBackground(Constants.BACKGROUND_COLOR);
-	labels.setOpaque(true);
+	labelsPanel = new JPanel();
+	boardPane.add(labelsPanel, new Integer(10));
+        labelsPanel.setLayout(null);
+        labelsPanel.setPreferredSize(labelsSize);
+        labelsPanel.setBounds(0, 0, labelsSize.width, labelsSize.height);
+	labelsPanel.setBackground(Constants.BACKGROUND_COLOR);
+	labelsPanel.setOpaque(true);
 	
 	// Add the North-West corner to the Labels Panel.
-	labelsCorner = new JPanel();
-	labels.add(labelsCorner);
-	labelsCorner.setLayout(new GridLayout(1, 1, 0, 0));
-	labelsCorner.setBackground(Color.white);
-        labelsCorner.setBounds(Constants.LABELS_GAP, Constants.LABELS_GAP, Constants.LABELS_HEIGHT, Constants.LABELS_HEIGHT);
+	labelsCornerPanel = new JPanel();
+	labelsPanel.add(labelsCornerPanel);
+	labelsCornerPanel.setLayout(new GridLayout(1, 1, 0, 0));
+	labelsCornerPanel.setBackground(Color.white);
+        labelsCornerPanel.setBounds(Constants.LABELS_GAP, Constants.LABELS_GAP, Constants.LABELS_HEIGHT, Constants.LABELS_HEIGHT);
 	JPanel jplc = new JPanel(new BorderLayout());
-	labelsCorner.add(jplc);
+	labelsCornerPanel.add(jplc);
 	jplc.setBackground(Constants.BASE_COLOR);
 
 	// Add the Row-List to the Label Panel.
-	rowLabels = new JPanel();
-	labels.add(rowLabels);
-	rowLabels.setLayout(new GridLayout(8, 1, 0, Constants.SQUARES_GAP));
-        rowLabels.setBounds(Constants.LABELS_GAP, gs, Constants.LABELS_HEIGHT, gsd);
-	rowLabels.setBackground(Constants.BACKGROUND_COLOR);
+	rowLabelsPanel = new JPanel();
+	labelsPanel.add(rowLabelsPanel);
+	rowLabelsPanel.setLayout(new GridLayout(8, 1, 0, Constants.SQUARES_GAP));
+        rowLabelsPanel.setBounds(Constants.LABELS_GAP, gs, Constants.LABELS_HEIGHT, gsd);
+	rowLabelsPanel.setBackground(Constants.BACKGROUND_COLOR);
 	for (BoardRowKey brk : BoardRowKey.values()) {
 	    JPanel jp = new JPanel(new BorderLayout());
 	    jp.setBackground(Constants.BASE_COLOR);
-            rowLabels.add(jp);
+            rowLabelsPanel.add(jp);
 	    JLabel jl = new JLabel(brk.toString().substring(1, 2), JLabel.CENTER);
 	    jl.setFont(Constants.LABELS_FONT);
 	    jl.setForeground(Constants.LABEL_TEXT_COLOR);
@@ -130,15 +129,15 @@ public class ReversiBoard {
 	}
 
 	// Add the Column-List to the Label Panel.
-	colLabels = new JPanel();
-	labels.add(colLabels);
-	colLabels.setLayout(new GridLayout(1, 8, Constants.SQUARES_GAP, 0));
-        colLabels.setBounds(gs, Constants.LABELS_GAP, gsd, Constants.LABELS_HEIGHT);
-	colLabels.setBackground(Constants.BACKGROUND_COLOR);
+	colLabelsPanel = new JPanel();
+	labelsPanel.add(colLabelsPanel);
+	colLabelsPanel.setLayout(new GridLayout(1, 8, Constants.SQUARES_GAP, 0));
+        colLabelsPanel.setBounds(gs, Constants.LABELS_GAP, gsd, Constants.LABELS_HEIGHT);
+	colLabelsPanel.setBackground(Constants.BACKGROUND_COLOR);
 	for (BoardColKey bck : BoardColKey.values()) {
 	    JPanel jp = new JPanel(new BorderLayout());
 	    jp.setBackground(Constants.BASE_COLOR);
-            colLabels.add(jp);
+            colLabelsPanel.add(jp);
 	    JLabel jl = new JLabel(bck.toString().substring(1, 2), JLabel.CENTER);
 	    jl.setFont(Constants.LABELS_FONT);
 	    jl.setForeground(Constants.LABEL_TEXT_COLOR);
@@ -146,21 +145,21 @@ public class ReversiBoard {
 	}
 
         // Add the grid panel to the Layered Pane. 
-        grid = new JPanel();
-        layp.add(grid, new Integer(20));
-        grid.setLayout(new GridLayout(8, 8, Constants.SQUARES_GAP, Constants.SQUARES_GAP));
-        grid.setPreferredSize(gridSize);
-        grid.setBounds(gs, gs, gridSize.width, gridSize.height);
-	grid.setBackground(Constants.BACKGROUND_COLOR);
+        gridPanel = new JPanel();
+        boardPane.add(gridPanel, new Integer(20));
+        gridPanel.setLayout(new GridLayout(8, 8, Constants.SQUARES_GAP, Constants.SQUARES_GAP));
+        gridPanel.setPreferredSize(gridSize);
+        gridPanel.setBounds(gs, gs, gridSize.width, gridSize.height);
+	gridPanel.setBackground(Constants.BACKGROUND_COLOR);
 
 	// Ad the dots panel to the Layered Pane.
-	dots = new JPanel();
-        layp.add(dots, new Integer(30));
-        dots.setLayout(null);
-        dots.setPreferredSize(gridSize);
-        dots.setBounds(gs, gs, gridSize.width, gridSize.height);
-	dots.setBackground(Constants.BACKGROUND_COLOR);
-	dots.setOpaque(false);
+	dotsPanel = new JPanel();
+        boardPane.add(dotsPanel, new Integer(30));
+        dotsPanel.setLayout(null);
+        dotsPanel.setPreferredSize(gridSize);
+        dotsPanel.setBounds(gs, gs, gridSize.width, gridSize.height);
+	dotsPanel.setBackground(Constants.BACKGROUND_COLOR);
+	dotsPanel.setOpaque(false);
 	setDot(2, 2);
 	setDot(6, 2);
 	setDot(6, 6);
@@ -168,18 +167,18 @@ public class ReversiBoard {
 
 	for (BoardSquareKey bsk : BoardSquareKey.values()) {
 	    Square square = new Square(bsk);
-            grid.add(square.getJp());
+            gridPanel.add(square.getJp());
 	    squares.put(bsk, square);
 	}
 
 	// Add the data entry JTextField
-	TitledBorder commandPaneTitle = BorderFactory.createTitledBorder("Command");;
-	commandPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
-	commandPane.setBorder(commandPaneTitle);
-	commandPane.setBackground(Constants.BACKGROUND_COLOR);
+	TitledBorder commandPanelTitle = BorderFactory.createTitledBorder("Command");
+	commandPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	commandPanel.setBorder(commandPanelTitle);
+	commandPanel.setBackground(Constants.BACKGROUND_COLOR);
 	c.gridx = 0;
 	c.gridy = 1;
-	frm.getContentPane().add(commandPane, c);
+	mainFrame.getContentPane().add(commandPanel, c);
 	ctf = new JTextField(50);
 	ctf.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent event) {
@@ -192,12 +191,12 @@ public class ReversiBoard {
 		    }
 		}
 	    });
-	commandPane.add(ctf);
+	commandPanel.add(ctf);
 
-	frm.pack();
-	frm.setResizable(true);
-	frm.setLocationRelativeTo(null);
-	frm.setVisible(true);
+	mainFrame.pack();
+	mainFrame.setResizable(true);
+	mainFrame.setLocationRelativeTo(null);
+	mainFrame.setVisible(true);
 
 	this.initialized = true;
 
@@ -211,12 +210,7 @@ public class ReversiBoard {
 	final ReversiBoard rb = new ReversiBoard();
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
-		    try {
-			rb.init();
-		    } catch (Exception e) {
-			System.out.println("Exiting on exception: " + e);
-			System.exit(1);
-		    }
+		    rb.init();
 		}
 	    });
 	return rb;
@@ -243,7 +237,7 @@ public class ReversiBoard {
 
     private void setDot(int x, int y) {
 	JLabel dot = new JLabel(Constants.GRID_DOT_ICON);
-        dots.add(dot);
+        dotsPanel.add(dot);
 	int xDotCenter = (Constants.SQUARE_SIZE * x) - Constants.DOT_SIZE / 2;
 	int yDotCenter = (Constants.SQUARE_SIZE * y) - Constants.DOT_SIZE / 2;
 	dot.setBounds(xDotCenter, yDotCenter, Constants.DOT_SIZE, Constants.DOT_SIZE);    
