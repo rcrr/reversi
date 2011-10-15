@@ -213,7 +213,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
         final Player opponent = player.opponent();
         if (ply == 0) {
             node = SearchNode.valueOf(null, ef.eval(GamePosition.valueOf(board, player)));
-            efInvokeCount++;
+	    efInvokeCount++;
         } else {
             List<Square> moves = board.legalMoves(player);
             if (moves.isEmpty()) {
@@ -231,7 +231,10 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
-                    if (node.value() >= cutoff) {  cutoffCount[ply]++; break outer; }
+                    if (node.value() >= cutoff) {
+			cutoffCount[ply-1]++;
+			break outer;
+		    }
                 }
             }
         }
@@ -278,7 +281,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
-                    if (node.value() >= cutoff) {  cutoffCount[ply]++; break outer; }
+                    if (node.value() >= cutoff) {  cutoffCount[ply-1]++; break outer; }
                 }
             }
         }
@@ -333,7 +336,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
-                    if (node.value() >= cutoff) {  cutoffCount[ply]++; break outer; }
+                    if (node.value() >= cutoff) {  cutoffCount[ply-1]++; break outer; }
                 }
             }
         }
@@ -386,7 +389,7 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
-                    if (node.value() >= cutoff) { cutoffCount[ply]++; break outer; }
+                    if (node.value() >= cutoff) { cutoffCount[ply-1]++; break outer; }
                 }
             }
         }
