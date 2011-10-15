@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2010 Roberto Corradini
+    Copyright (c) 2010, 2011 Roberto Corradini
 
     This file is part of the reversi program
     http://github.com/rcrr/reversi
@@ -27,15 +27,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
-import java.net.URL;
-
 class TestView {
-
-    private static final Color BACKGROUND_COLOR = new Color(0, 0, 0);
-    private static final Color LABEL_TEXT_COLOR = new Color(220, 220, 220);
-    private static final Color BASE_COLOR = new Color(32, 142, 32);
-    private static final Color BUTTON_COLOR = new Color(30, 30, 30);
-    private static final Color BUTTON_BG_COLOR = new Color(30, 30, 30);
 
     private static final int FRAME_W = 300;
     private static final int FRAME_H = 142;
@@ -45,35 +37,26 @@ class TestView {
     private static final int BUTTON_W = 80;
     private static final int BUTTON_H = 24;
 
-    private static final Font BUTTON_FONT = new Font("Courier New", Font.ITALIC, 12);
+    private String squareColor;
 
-    boolean initialized = false;
-    String squareColor = "";
+    private JFrame frame;
+    private JLayeredPane lp;
+    private JPanel bg;
+    private JPanel square;
+    private JLabel disc;
+    private JPanel commands;
 
-    JFrame frame;
-    JLayeredPane lp;
-    JPanel bg;
-    JPanel square;
-    JLabel disk;
-    JPanel commands;
+    private JButton empty;
+    private JButton black;
+    private JButton white;
 
-    JButton empty;
-    JButton black;
-    JButton white;
-
-    TestView() {}
-
-    private synchronized void init() throws Exception {
-
-	if (initialized) throw new Exception("Object instance already initialized");
+    TestView() {
 
 	squareColor = "empty";
 
-	int w = FRAME_W;
-	int h = FRAME_H;
-	Dimension baseDim = new Dimension (w, h);
+	Dimension baseDim = new Dimension (FRAME_W, FRAME_H);
 
-	frame = new JFrame("Testing the Reversi Board");
+	frame = new JFrame("Testing the Reversi UI");
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	lp = new JLayeredPane();
@@ -85,8 +68,8 @@ class TestView {
 	bg = new JPanel();
 	lp.add(bg, new Integer(0));
 	bg.setLayout(new BorderLayout());
-        bg.setBounds(0, 0, w, h);
-	bg.setBackground(BACKGROUND_COLOR);
+        bg.setBounds(0, 0, FRAME_W, FRAME_H);
+	bg.setBackground(Constants.BACKGROUND_COLOR);
 	bg.setPreferredSize(baseDim);
 	bg.setOpaque(true);
 
@@ -94,28 +77,28 @@ class TestView {
 	square = new JPanel();
 	lp.add(square, new Integer(10));
 	square.setLayout(new BorderLayout());
-        square.setBounds((w - SQUARE_SIDE) / 2, SURROUNDING_GAP, SQUARE_SIDE, SQUARE_SIDE);
-	square.setBackground(BASE_COLOR);
+        square.setBounds((FRAME_W - SQUARE_SIDE) / 2, SURROUNDING_GAP, SQUARE_SIDE, SQUARE_SIDE);
+	square.setBackground(Constants.BASE_COLOR);
 	square.setOpaque(true);
 
-	disk = new JLabel();
-	disk.setHorizontalAlignment(JLabel.CENTER);
-	disk.setVerticalAlignment(JLabel.CENTER);
-	square.add(disk);
+	disc = new JLabel();
+	disc.setHorizontalAlignment(JLabel.CENTER);
+	disc.setVerticalAlignment(JLabel.CENTER);
+	square.add(disc);
 
 
 	int commx = SURROUNDING_GAP;
 	int commy = SQUARE_SIDE + 2 * SURROUNDING_GAP;
-	int commw = w - 2 * SURROUNDING_GAP;
-	int commh = h - (SQUARE_SIDE + 3 * SURROUNDING_GAP);
+	int commw = FRAME_W - 2 * SURROUNDING_GAP;
+	int commh = FRAME_H - (SQUARE_SIDE + 3 * SURROUNDING_GAP);
 	commands = new JPanel();
 	lp.add(commands, new Integer(10));
 	commands.setLayout(null);
         commands.setBounds(commx, commy, commw, commh);
-	commands.setBackground(BUTTON_BG_COLOR);
+	commands.setBackground(Constants.BUTTON_BG_COLOR);
 	commands.setOpaque(true);
-	Border b1 = BorderFactory.createLineBorder(LABEL_TEXT_COLOR, 1);
-	Border b2 = BorderFactory.createLineBorder(BACKGROUND_COLOR, 3);
+	Border b1 = BorderFactory.createLineBorder(Constants.LABEL_TEXT_COLOR, 1);
+	Border b2 = BorderFactory.createLineBorder(Constants.BACKGROUND_COLOR, 3);
 	Border commandsBorder = BorderFactory.createCompoundBorder(b1, b2); 
 	commands.setBorder(commandsBorder);
 
@@ -134,9 +117,9 @@ class TestView {
 	commands.add(empty);
 	empty.setBounds(bex, bey, bw, bh);
 	empty.setOpaque(true);
-	empty.setFont(BUTTON_FONT);
-	empty.setBackground(BACKGROUND_COLOR);
-	empty.setForeground(LABEL_TEXT_COLOR);
+	empty.setFont(Constants.BUTTON_FONT);
+	empty.setBackground(Constants.BACKGROUND_COLOR);
+	empty.setForeground(Constants.LABEL_TEXT_COLOR);
 	empty.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae) {
 		    setSquareColor("empty");
@@ -147,9 +130,9 @@ class TestView {
 	commands.add(black);
 	black.setBounds(bbx, bby, bw, bh);
 	black.setOpaque(true);
-	black.setFont(BUTTON_FONT);
-	black.setBackground(BACKGROUND_COLOR);
-	black.setForeground(LABEL_TEXT_COLOR);
+	black.setFont(Constants.BUTTON_FONT);
+	black.setBackground(Constants.BACKGROUND_COLOR);
+	black.setForeground(Constants.LABEL_TEXT_COLOR);
 	black.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae) {
 		    setSquareColor("black");
@@ -160,9 +143,9 @@ class TestView {
 	commands.add(white);
 	white.setBounds(bwx, bwy, bw, bh);
 	white.setOpaque(true);
-	white.setFont(BUTTON_FONT);
-	white.setBackground(BACKGROUND_COLOR);
-	white.setForeground(LABEL_TEXT_COLOR);
+	white.setFont(Constants.BUTTON_FONT);
+	white.setBackground(Constants.BACKGROUND_COLOR);
+	white.setForeground(Constants.LABEL_TEXT_COLOR);
 	white.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae) {
 		    setSquareColor("white");
@@ -172,13 +155,13 @@ class TestView {
 	/* Create the menu bar. */
 	JMenuBar jmb = new JMenuBar();
 
-	/* Create the file menu. */
+	/* Create the File menu, with the Exit commnad. */
 	JMenu jmFile = new JMenu("File");
 	JMenuItem jmiExit = new JMenuItem("Exit");
 	jmFile.add(jmiExit);
 	jmb.add(jmFile);
 
-	/* Add the action listener to the exit command. */
+	/* Add the action listener to the Exit command. */
 	jmiExit.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae) {
 		    System.exit(0);
@@ -191,8 +174,6 @@ class TestView {
 	frame.pack();
 	frame.setVisible(true);
 
-	initialized = true;
-
     }
 
     public synchronized String getSquareColor() {
@@ -201,19 +182,19 @@ class TestView {
 
     public synchronized void setSquareColor(String sc) {
 	if (this.squareColor != sc) {
-	    Icon ico = disk.getIcon();
+	    Icon ico = disc.getIcon();
 	    if ("empty".equals(sc)) {
 		ico = null;
 		empty.setEnabled(false);
 		black.setEnabled(true);
 		white.setEnabled(true);		
 	    } else if ("black".equals(sc)) {
-		ico = Constants.BLACK_DISK_ICON;
+		ico = Constants.BLACK_DISC_ICON;
 		empty.setEnabled(true);
 		black.setEnabled(false);
 		white.setEnabled(true);		
 	    } else if ("white".equals(sc)) {
-		ico = Constants.WHITE_DISK_ICON;
+		ico = Constants.WHITE_DISC_ICON;
 		empty.setEnabled(true);
 		black.setEnabled(true);
 		white.setEnabled(false);		
@@ -221,37 +202,30 @@ class TestView {
 		System.out.println("Error: invalid square color sc: " + sc);
 		sc = this.squareColor;
 	    }
-	    disk.setIcon(ico);
+	    disc.setIcon(ico);
 	    this.squareColor = sc;
 	}
 	return;
     }
 
-    public void execCommand(final String command) {
+    private void execCommand(final String command) {
 	if (command != null) {
 	    if (command.equals("empty") || command.equals("white") || command.equals("black")) {
-		SwingUtilities.invokeLater(new Runnable() {public void run () {setSquareColor(command);}});
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run () {
+			    setSquareColor(command);
+			}
+		    });
 	    }
 	}
     } 
 
-    public static TestView initDisplay() {
-	final TestView tv = new TestView();
+    public static void main(String args[]) {
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
-		    try {
-			tv.init();
-		    } catch (Exception e) {
-			System.out.println("Exiting on exception: " + e);
-			System.exit(1);
-		    }
+		    new TestView();
 		}
 	    });
-	return tv;
-    }
-
-    public static void main(String args[]) {
-	TestView tv = TestView.initDisplay();    
     }
 
 }

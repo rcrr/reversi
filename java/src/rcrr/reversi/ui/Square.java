@@ -58,9 +58,9 @@ class Square {
 
 	if (color != c) {
 	    switch (c) {
-	    case WHITE: ico = Constants.WHITE_DISK_ICON;
+	    case WHITE: ico = Constants.WHITE_DISC_ICON;
 		break;
-	    case BLACK: ico = Constants.BLACK_DISK_ICON;
+	    case BLACK: ico = Constants.BLACK_DISC_ICON;
 		break;
 	    case EMPTY: ico = null;
 		break;

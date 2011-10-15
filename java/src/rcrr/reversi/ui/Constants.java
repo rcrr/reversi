@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2010 Roberto Corradini
+    Copyright (c) 2010, 2011 Roberto Corradini
 
     This file is part of the reversi program
     http://github.com/rcrr/reversi
@@ -36,17 +36,19 @@ public class Constants {
     public static final Color BACKGROUND_COLOR = new Color(0, 0, 0);
     public static final Color LABEL_TEXT_COLOR = new Color(220, 220, 220);
     public static final Color BASE_COLOR = new Color(32, 142, 32);
+    public static final Color BUTTON_COLOR = new Color(30, 30, 30);
+    public static final Color BUTTON_BG_COLOR = new Color(30, 30, 30);
     
-    public static final String WHITE_DISK_ICON_FILE = "images/reversi-white-disk.png";
-    public static final String BLACK_DISK_ICON_FILE = "images/reversi-black-disk.png";
+    public static final String WHITE_DISC_ICON_FILE = "images/reversi-white-disk.png";
+    public static final String BLACK_DISC_ICON_FILE = "images/reversi-black-disk.png";
     public static final String GRID_DOT_ICON_FILE = "images/reversi-grid-dot.png";
  
-    public static final URL WHITE_DISK_ICON_URL = Constants.class.getResource(WHITE_DISK_ICON_FILE);
-    public static final URL BLACK_DISK_ICON_URL = Constants.class.getResource(BLACK_DISK_ICON_FILE);
+    public static final URL WHITE_DISC_ICON_URL = Constants.class.getResource(WHITE_DISC_ICON_FILE);
+    public static final URL BLACK_DISC_ICON_URL = Constants.class.getResource(BLACK_DISC_ICON_FILE);
     public static final URL GRID_DOT_ICON_URL = Constants.class.getResource(GRID_DOT_ICON_FILE);
 
-    public static final Icon WHITE_DISK_ICON = new ImageIcon(WHITE_DISK_ICON_URL);
-    public static final Icon BLACK_DISK_ICON = new ImageIcon(BLACK_DISK_ICON_URL);
+    public static final Icon WHITE_DISC_ICON = new ImageIcon(WHITE_DISC_ICON_URL);
+    public static final Icon BLACK_DISC_ICON = new ImageIcon(BLACK_DISC_ICON_URL);
     public static final Icon GRID_DOT_ICON = new ImageIcon(GRID_DOT_ICON_URL);
 
     public static final int SQUARE_SIZE = 70;
@@ -56,5 +58,6 @@ public class Constants {
     public static final int LABELS_GAP = 8;
 
     public static final Font LABELS_FONT = new Font("Courier New", Font.ITALIC, 14);
+    public static final Font BUTTON_FONT = new Font("Courier New", Font.ITALIC, 12);
 
 }
