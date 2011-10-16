@@ -313,12 +313,8 @@ public class ReversiUI {
 
     private void drawBoard(final Board board) {
 	for (Square square : Square.values()) {
-	    setSquareState(square, SquareState.EMPTY);
+	    setSquareState(square, board.get(square));
 	}
-	setSquareState(Square.D4, SquareState.WHITE);
-	setSquareState(Square.E5, SquareState.WHITE);
-	setSquareState(Square.D5, SquareState.BLACK);
-	setSquareState(Square.E4, SquareState.BLACK);
     }
 
     private void setDot(int x, int y) {
