@@ -44,15 +44,57 @@ import javax.swing.JLayeredPane;
 import javax.swing.SwingUtilities;
 import javax.swing.BorderFactory;
 import javax.swing.border.TitledBorder;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JTextArea;
+import javax.swing.JScrollPane;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.OutputStream;
+import java.io.IOException;
 
 import java.net.URL;
+
+import org.joda.time.Period;
+import org.joda.time.Duration;
+
+import rcrr.reversi.Board;
+import rcrr.reversi.Square;
+import rcrr.reversi.Game;
+import rcrr.reversi.Actor;
  
 public class ReversiBoard {
 
-    private Map<BoardSquareKey, Square> squares = new EnumMap<BoardSquareKey, Square>(BoardSquareKey.class);
+    private static final class TextAreaOutputStream extends OutputStream {
+
+	private final JTextArea textArea;
+	private final StringBuilder sb = new StringBuilder();
+
+	public TextAreaOutputStream(final JTextArea textArea) {
+	    this.textArea = textArea;
+	}
+
+	@Override
+	public void flush(){ }
+    
+	@Override
+	public void close(){ }
+
+	@Override
+	public void write(int b) throws IOException {		
+	    sb.append((char)b);
+	}
+    }
+
+
+    private static final int DEFAULT_GAME_DURATION_IN_MINUTES = 30;
+
+    private static final String PROMPT = "c> ";
+    private static final String ANSWER = "-> ";
+    private static final String NEW_LINE = "\n";
+
+    private Map<Square, SquarePanel> squares = new EnumMap<Square, SquarePanel>(Square.class);
     private JFrame mainFrame;
     private JLayeredPane boardPane;
     private JPanel gridPanel;
@@ -62,17 +104,19 @@ public class ReversiBoard {
     private JPanel rowLabelsPanel;
     private JPanel colLabelsPanel;
     private JPanel commandPanel;
+    private JPanel consolePanel;
+
+    private JTextArea textArea;
 
     /** The command text field. */
     private JTextField ctf;
 
-    private boolean initialized = false;
+    private Game game;
 
-    public ReversiBoard() { }
+    private PrintStream consolePrintStream;
 
-    private synchronized void init() {
-
-	if (initialized) throw new RuntimeException("ReversiBoard instance already initialized.");
+    public ReversiBoard() {
+	game = null;
 
 	mainFrame = new JFrame("Reversi Board");
 	mainFrame.getContentPane().setLayout(new GridBagLayout());
@@ -165,13 +209,13 @@ public class ReversiBoard {
 	setDot(6, 6);
 	setDot(2, 6);
 
-	for (BoardSquareKey bsk : BoardSquareKey.values()) {
-	    Square square = new Square(bsk);
-            gridPanel.add(square.getJp());
-	    squares.put(bsk, square);
+	for (Square square : Square.values()) {
+	    SquarePanel squarePanel = new SquarePanel(square);
+            gridPanel.add(squarePanel);
+	    squares.put(square, squarePanel);
 	}
 
-	// Add the data entry JTextField
+	// Add the command data entry JTextField
 	TitledBorder commandPanelTitle = BorderFactory.createTitledBorder("Command");
 	commandPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 	commandPanel.setBorder(commandPanelTitle);
@@ -182,57 +226,96 @@ public class ReversiBoard {
 	ctf = new JTextField(50);
 	ctf.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent event) {
-		    String command = ctf.getText();
-		    if (!(command.equals("quit"))){
-			System.out.println("You typed: " + command);
-			execCommand(command);
-		    } else {
-			System.exit(0);
-		    }
+		    execCommand(ctf.getText());
 		}
 	    });
 	commandPanel.add(ctf);
+
+	TitledBorder consolePanelTitle = BorderFactory.createTitledBorder("Console");
+	consolePanel = new JPanel(new GridBagLayout());
+	consolePanel.setBorder(consolePanelTitle);
+	consolePanel.setBackground(Constants.BACKGROUND_COLOR);
+	c.gridx = 1;
+	c.gridy = 0;
+	mainFrame.getContentPane().add(consolePanel, c);
+        textArea = new JTextArea(30, 30);
+        textArea.setEditable(false);
+	textArea.setBackground(Color.GRAY);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        //Add Components to this panel.
+        GridBagConstraints c2 = new GridBagConstraints();
+        c2.fill = GridBagConstraints.BOTH;
+        c2.weightx = 1.0;
+        c2.weighty = 1.0;
+        consolePanel.add(scrollPane, c2);
+
+	consolePrintStream = new PrintStream(new TextAreaOutputStream(textArea));	
+
+	/* Create the menu bar. */
+	JMenuBar jmb = new JMenuBar();
+
+	/* Create the File menu, with the Exit commnad. */
+	JMenu jmFile = new JMenu("File");
+	jmb.add(jmFile);
+
+	/* Add the New game commnad to the File menu. */
+	JMenuItem jmiNewGame = new JMenuItem("New game");
+	jmFile.add(jmiNewGame);
+
+	/* Add the action listener to the New game command. */
+	jmiNewGame.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent ae) {
+
+		    game = Game.initialGame(new Actor.Builder().build(),
+					    new Actor.Builder().build(),
+					    Period.minutes(DEFAULT_GAME_DURATION_IN_MINUTES).toStandardDuration(),
+					    consolePrintStream);
+		    drawGame(game);
+		}
+	    });
+
+	/* Add the Exit commnad to the File menu. */
+	JMenuItem jmiExit = new JMenuItem("Exit");
+	jmFile.add(jmiExit);
+
+	/* Add the action listener to the Exit command. */
+	jmiExit.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent ae) {
+		    System.exit(0);
+		}
+	    });
+
+	/* Add the menu bar tothe main frame. */
+	mainFrame.setJMenuBar(jmb);
 
 	mainFrame.pack();
 	mainFrame.setResizable(true);
 	mainFrame.setLocationRelativeTo(null);
 	mainFrame.setVisible(true);
 
-	this.initialized = true;
-
-    }
-
-    public synchronized boolean isInitialized() {
-	return this.initialized;
-    }
-
-    public static ReversiBoard initDisplay() {
-	final ReversiBoard rb = new ReversiBoard();
-	SwingUtilities.invokeLater(new Runnable() {
-		public void run() {
-		    rb.init();
-		}
-	    });
-	return rb;
     }
     
-    public void setSquareColor(final BoardSquareKey sk, final SquareColor c) {
+    private void setSquareColor(final Square square, final SquareColor c) {
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
-		    Square sq = squares.get(sk);
-		    sq.setSc(c);
+		    SquarePanel sp = squares.get(square);
+		    sp.setSc(c);
 		}
 	    });
     }
 
-    public void drawInitialBoard() {
-	for (BoardSquareKey bsk : BoardSquareKey.values()) {
-	    setSquareColor(bsk, SquareColor.EMPTY);
+    private void drawGame(final Game game) {
+	drawBoard(game.board());
+    }
+
+    private void drawBoard(final Board board) {
+	for (Square square : Square.values()) {
+	    setSquareColor(square, SquareColor.EMPTY);
 	}
-	setSquareColor(BoardSquareKey.D4, SquareColor.WHITE);
-	setSquareColor(BoardSquareKey.E5, SquareColor.WHITE);
-	setSquareColor(BoardSquareKey.D5, SquareColor.BLACK);
-	setSquareColor(BoardSquareKey.E4, SquareColor.BLACK);
+	setSquareColor(Square.D4, SquareColor.WHITE);
+	setSquareColor(Square.E5, SquareColor.WHITE);
+	setSquareColor(Square.D5, SquareColor.BLACK);
+	setSquareColor(Square.E4, SquareColor.BLACK);
     }
 
     private void setDot(int x, int y) {
@@ -244,33 +327,44 @@ public class ReversiBoard {
     }
 
     public static void main(String[] args) {
-	ReversiBoard rb = ReversiBoard.initDisplay();
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    new ReversiBoard();
+		}
+	    });
+    }
+
+    private void appendToConsole(String line) {
+	textArea.append(line + NEW_LINE);
     }
 
     private void execCommand(String command) {
+
+	appendToConsole(PROMPT + command);
+
 	StringTokenizer st = new StringTokenizer(command);
 	int words = st.countTokens();
-	BoardSquareKey bsk = null;
+	Square square = null;
 	SquareColor sc = null;
 	if (words == 2) {
 	    String w0 = st.nextToken();
 	    String w1 = st.nextToken();
 	    try {
-		bsk = BoardSquareKey.valueOf(w0);
+		square = Square.valueOf(w0);
 	    } catch (IllegalArgumentException iae) {
-		System.out.println("Wrong value " + w0 + ". It is not a valid BoardSquareKey.");
+		appendToConsole(ANSWER + "Wrong value " + w0 + ". It is not a valid Square.");
 	    }
 	    try {
 		sc = SquareColor.valueOf(w1);
 	    } catch (IllegalArgumentException iae) {
-		System.out.println("Wrong value " + w1 + ". It is not a valid SquareColor.");
+		appendToConsole(ANSWER + "Wrong value " + w1 + ". It is not a valid SquareColor.");
 	    }
-	    if (bsk != null && sc != null) {
-		System.out.println("Setting board square " + bsk + " to color " + sc + ".");
-		setSquareColor(bsk, sc);
+	    if (square != null && sc != null) {
+		appendToConsole(ANSWER + "Setting board square " + square + " to color " + sc + ".");
+		setSquareColor(square, sc);
 	    }
 	} else {
-	    System.out.println("Not a command: " + command);
+	    appendToConsole(ANSWER + "Not a command: " + command);
 	}
     }
 
