@@ -1,5 +1,5 @@
  /*
-    Copyright (c) 2010 Roberto Corradini
+    Copyright (c) 2010, 2011 Roberto Corradini
 
     This file is part of the reversi program
     http://github.com/rcrr/reversi
@@ -29,43 +29,40 @@ import javax.swing.JLabel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
-import java.net.URL;
+import rcrr.reversi.Square;
 
-class Square {
+class SquarePanel extends JPanel {
 
-    private JPanel jp;
-    private BoardSquareKey bs;
+    private Square square;
     private SquareColor color;
 
-    private JLabel piece;
-    private Icon ico;
+    private JLabel disc;
+    private Icon icon;
 
-    public Square(BoardSquareKey bs) {
-	this.bs = bs;
-	this.jp = new JPanel(new BorderLayout());
-	jp.setBackground(Constants.BASE_COLOR);
+    public SquarePanel(final Square square) {
+	super(new BorderLayout());
+	setBackground(Constants.BASE_COLOR);
+	this.square = square;
 	this.color = SquareColor.EMPTY;
-	this.ico = null;
-	this.piece = new JLabel(ico);
-	jp.add(piece);
+	this.icon = null;
+	this.disc = new JLabel(this.icon);
+	add(this.disc);
     }
 
-    public JPanel getJp() {return jp;}
-    public BoardSquareKey getBs() {return bs;}
-    public SquareColor getSc() {return color;}
+    public Square getSquare() { return square; }
+    public SquareColor getSc() { return color; }
 
-    public void setSc(SquareColor c) {
-
+    public void setSc(final SquareColor c) {
 	if (color != c) {
 	    switch (c) {
-	    case WHITE: ico = Constants.WHITE_DISC_ICON;
+	    case WHITE: this.icon = Constants.WHITE_DISC_ICON;
 		break;
-	    case BLACK: ico = Constants.BLACK_DISC_ICON;
+	    case BLACK: this.icon = Constants.BLACK_DISC_ICON;
 		break;
-	    case EMPTY: ico = null;
+	    case EMPTY: this.icon = null;
 		break;
 	    }
-	    piece.setIcon(ico);
+	    this.disc.setIcon(this.icon);
 	    this.color = c;
 	}
     }
