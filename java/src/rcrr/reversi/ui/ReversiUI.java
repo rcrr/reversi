@@ -67,7 +67,7 @@ import rcrr.reversi.SquareState;
 import rcrr.reversi.Game;
 import rcrr.reversi.Actor;
  
-public class ReversiBoard {
+public class ReversiUI {
 
     private static final class TextAreaOutputStream extends OutputStream {
 
@@ -118,7 +118,7 @@ public class ReversiBoard {
 
     private PrintStream consolePrintStream;
 
-    public ReversiBoard() {
+    public ReversiUI() {
 	game = null;
 
 	mainFrame = new JFrame("Reversi Board");
@@ -332,7 +332,7 @@ public class ReversiBoard {
     public static void main(String[] args) {
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
-		    new ReversiBoard();
+		    new ReversiUI();
 		}
 	    });
     }
