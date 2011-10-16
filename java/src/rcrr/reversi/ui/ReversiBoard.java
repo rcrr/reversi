@@ -61,6 +61,7 @@ import org.joda.time.Duration;
 
 import rcrr.reversi.Board;
 import rcrr.reversi.Square;
+import rcrr.reversi.SquareState;
 import rcrr.reversi.Game;
 import rcrr.reversi.Actor;
  
@@ -295,11 +296,11 @@ public class ReversiBoard {
 
     }
     
-    private void setSquareColor(final Square square, final SquareColor c) {
+    private void setSquareState(final Square square, final SquareState state) {
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
 		    SquarePanel sp = squares.get(square);
-		    sp.setSc(c);
+		    sp.setSquareState(state);
 		}
 	    });
     }
@@ -310,12 +311,12 @@ public class ReversiBoard {
 
     private void drawBoard(final Board board) {
 	for (Square square : Square.values()) {
-	    setSquareColor(square, SquareColor.EMPTY);
+	    setSquareState(square, SquareState.EMPTY);
 	}
-	setSquareColor(Square.D4, SquareColor.WHITE);
-	setSquareColor(Square.E5, SquareColor.WHITE);
-	setSquareColor(Square.D5, SquareColor.BLACK);
-	setSquareColor(Square.E4, SquareColor.BLACK);
+	setSquareState(Square.D4, SquareState.WHITE);
+	setSquareState(Square.E5, SquareState.WHITE);
+	setSquareState(Square.D5, SquareState.BLACK);
+	setSquareState(Square.E4, SquareState.BLACK);
     }
 
     private void setDot(int x, int y) {
@@ -345,7 +346,7 @@ public class ReversiBoard {
 	StringTokenizer st = new StringTokenizer(command);
 	int words = st.countTokens();
 	Square square = null;
-	SquareColor sc = null;
+	SquareState state = null;
 	if (words == 2) {
 	    String w0 = st.nextToken();
 	    String w1 = st.nextToken();
@@ -355,13 +356,13 @@ public class ReversiBoard {
 		appendToConsole(ANSWER + "Wrong value " + w0 + ". It is not a valid Square.");
 	    }
 	    try {
-		sc = SquareColor.valueOf(w1);
+		state = SquareState.valueOf(w1);
 	    } catch (IllegalArgumentException iae) {
-		appendToConsole(ANSWER + "Wrong value " + w1 + ". It is not a valid SquareColor.");
+		appendToConsole(ANSWER + "Wrong value " + w1 + ". It is not a valid SquareState.");
 	    }
-	    if (square != null && sc != null) {
-		appendToConsole(ANSWER + "Setting board square " + square + " to color " + sc + ".");
-		setSquareColor(square, sc);
+	    if (square != null && state != null) {
+		appendToConsole(ANSWER + "Setting board square " + square + " to state " + state + ".");
+		setSquareState(square, state);
 	    }
 	} else {
 	    appendToConsole(ANSWER + "Not a command: " + command);
