@@ -30,11 +30,12 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import rcrr.reversi.Square;
+import rcrr.reversi.SquareState;
 
 class SquarePanel extends JPanel {
 
     private Square square;
-    private SquareColor color;
+    private SquareState state;
 
     private JLabel disc;
     private Icon icon;
@@ -43,27 +44,28 @@ class SquarePanel extends JPanel {
 	super(new BorderLayout());
 	setBackground(Constants.BASE_COLOR);
 	this.square = square;
-	this.color = SquareColor.EMPTY;
+	this.state = SquareState.EMPTY;
 	this.icon = null;
 	this.disc = new JLabel(this.icon);
 	add(this.disc);
     }
 
-    public Square getSquare() { return square; }
-    public SquareColor getSc() { return color; }
+    public Square getSquare() { return this.square; }
+    public SquareState getSquareState() { return this.state; }
 
-    public void setSc(final SquareColor c) {
-	if (color != c) {
-	    switch (c) {
+    public void setSquareState(final SquareState state) {
+	if (this.state != state) {
+	    switch (state) {
 	    case WHITE: this.icon = Constants.WHITE_DISC_ICON;
 		break;
 	    case BLACK: this.icon = Constants.BLACK_DISC_ICON;
 		break;
 	    case EMPTY: this.icon = null;
 		break;
+	    default: throw new RuntimeException("Unsupported SquareState: " + state);
 	    }
 	    this.disc.setIcon(this.icon);
-	    this.color = c;
+	    this.state = state;
 	}
     }
 }
