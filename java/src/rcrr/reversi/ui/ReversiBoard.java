@@ -61,6 +61,8 @@ import org.joda.time.Duration;
 
 import rcrr.reversi.Board;
 import rcrr.reversi.Square;
+import rcrr.reversi.Column;
+import rcrr.reversi.Row;
 import rcrr.reversi.SquareState;
 import rcrr.reversi.Game;
 import rcrr.reversi.Actor;
@@ -163,11 +165,11 @@ public class ReversiBoard {
 	rowLabelsPanel.setLayout(new GridLayout(8, 1, 0, Constants.SQUARES_GAP));
         rowLabelsPanel.setBounds(Constants.LABELS_GAP, gs, Constants.LABELS_HEIGHT, gsd);
 	rowLabelsPanel.setBackground(Constants.BACKGROUND_COLOR);
-	for (BoardRowKey brk : BoardRowKey.values()) {
+	for (Row row : Row.values()) {
 	    JPanel jp = new JPanel(new BorderLayout());
 	    jp.setBackground(Constants.BASE_COLOR);
             rowLabelsPanel.add(jp);
-	    JLabel jl = new JLabel(brk.toString().substring(1, 2), JLabel.CENTER);
+	    JLabel jl = new JLabel(row.toString().substring(1, 2), JLabel.CENTER);
 	    jl.setFont(Constants.LABELS_FONT);
 	    jl.setForeground(Constants.LABEL_TEXT_COLOR);
 	    jp.add(jl);
@@ -179,11 +181,11 @@ public class ReversiBoard {
 	colLabelsPanel.setLayout(new GridLayout(1, 8, Constants.SQUARES_GAP, 0));
         colLabelsPanel.setBounds(gs, Constants.LABELS_GAP, gsd, Constants.LABELS_HEIGHT);
 	colLabelsPanel.setBackground(Constants.BACKGROUND_COLOR);
-	for (BoardColKey bck : BoardColKey.values()) {
+	for (Column column : Column.values()) {
 	    JPanel jp = new JPanel(new BorderLayout());
 	    jp.setBackground(Constants.BASE_COLOR);
             colLabelsPanel.add(jp);
-	    JLabel jl = new JLabel(bck.toString().substring(1, 2), JLabel.CENTER);
+	    JLabel jl = new JLabel(column.toString(), JLabel.CENTER);
 	    jl.setFont(Constants.LABELS_FONT);
 	    jl.setForeground(Constants.LABEL_TEXT_COLOR);
 	    jp.add(jl);
