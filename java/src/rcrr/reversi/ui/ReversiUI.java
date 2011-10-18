@@ -240,6 +240,8 @@ public class ReversiUI {
 	consolePanel.setBackground(Constants.BACKGROUND_COLOR);
 	c.gridx = 1;
 	c.gridy = 0;
+	c.gridheight = 2;
+	c.fill = GridBagConstraints.BOTH;
 	mainFrame.getContentPane().add(consolePanel, c);
         textArea = new JTextArea(30, 30);
         textArea.setEditable(false);
