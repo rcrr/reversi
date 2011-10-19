@@ -30,6 +30,7 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.FlowLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -66,13 +67,14 @@ import rcrr.reversi.Row;
 import rcrr.reversi.SquareState;
 import rcrr.reversi.Game;
 import rcrr.reversi.Actor;
- 
+import rcrr.reversi.IagoStrategy;
+import rcrr.reversi.HumanStrategy;
+
 public class ReversiUI {
 
     private static final class TextAreaOutputStream extends OutputStream {
 
 	private final JTextArea textArea;
-	private final StringBuilder sb = new StringBuilder();
 
 	public TextAreaOutputStream(final JTextArea textArea) {
 	    this.textArea = textArea;
@@ -86,7 +88,7 @@ public class ReversiUI {
 
 	@Override
 	public void write(int b) throws IOException {		
-	    sb.append((char)b);
+	    this.textArea.append(Character.toString((char)b));
 	}
     }
 
@@ -243,9 +245,11 @@ public class ReversiUI {
 	c.gridheight = 2;
 	c.fill = GridBagConstraints.BOTH;
 	mainFrame.getContentPane().add(consolePanel, c);
-        textArea = new JTextArea(30, 30);
+        textArea = new JTextArea(30, 60);
         textArea.setEditable(false);
-	textArea.setBackground(Color.GRAY);
+        textArea.setFont(new Font("Monospaced", Font.PLAIN,11));
+        textArea.setBackground(Color.BLACK);
+        textArea.setForeground(Color.LIGHT_GRAY);
         JScrollPane scrollPane = new JScrollPane(textArea);
         //Add Components to this panel.
         GridBagConstraints c2 = new GridBagConstraints();
@@ -271,10 +275,19 @@ public class ReversiUI {
 	jmiNewGame.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae) {
 
-		    game = Game.initialGame(new Actor.Builder().build(),
-					    new Actor.Builder().build(),
+		    game = Game.initialGame(new Actor.Builder()
+					    .withName("Iago")
+					    .withStrategy(new IagoStrategy())
+					    .build(),
+					    new Actor.Builder()
+					    .withName("Human")
+					    .withStrategy(new HumanStrategy())
+					    .build(),
 					    Period.minutes(DEFAULT_GAME_DURATION_IN_MINUTES).toStandardDuration(),
 					    consolePrintStream);
+		    drawGame(game);
+		    consolePrintStream.print(game.print());
+		    game.move();
 		    drawGame(game);
 		}
 	    });
