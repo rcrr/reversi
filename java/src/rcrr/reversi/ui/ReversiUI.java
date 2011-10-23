@@ -50,6 +50,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
+import javax.swing.SwingWorker;
 
 import java.io.PrintStream;
 import java.io.OutputStream;
@@ -67,37 +68,84 @@ import rcrr.reversi.Row;
 import rcrr.reversi.SquareState;
 import rcrr.reversi.Game;
 import rcrr.reversi.Actor;
+import rcrr.reversi.Move;
+import rcrr.reversi.GameSnapshot;
+import rcrr.reversi.Strategy;
 import rcrr.reversi.IagoStrategy;
 import rcrr.reversi.HumanStrategy;
 
 public class ReversiUI {
 
     private static final class TextAreaOutputStream extends OutputStream {
-
 	private final JTextArea textArea;
-
 	public TextAreaOutputStream(final JTextArea textArea) {
 	    this.textArea = textArea;
 	}
-
 	@Override
-	public void flush(){ }
-    
+	public void flush() { }
 	@Override
-	public void close(){ }
-
+	public void close() { }
 	@Override
-	public void write(int b) throws IOException {		
-	    this.textArea.append(Character.toString((char)b));
+	public void write(final int b) throws IOException {		
+	    SwingUtilities.invokeLater(new Runnable() {
+		    public void run() {
+			textArea.append(Character.toString((char)b));
+			textArea.setCaretPosition(textArea.getText().length());
+		    }
+		});
 	}
     }
 
+    private static class ThreadEvent {
+	private final Object lock = new Object();
+	public void signal() {
+	    synchronized (lock) {
+		lock.notify();
+	    }
+	}
+	public void await() throws InterruptedException {
+	    synchronized (lock) {
+		lock.wait();
+	    }
+	}
+    }
+
+    private final class HumanStrategyUI implements Strategy {
+	public HumanStrategyUI() { }
+	public final Move move(final GameSnapshot gameSnapshot) {
+	    activateCommand();
+	    try {
+		resultsReady.await();
+	    } catch (InterruptedException ie) {
+		throw new RuntimeException(ie);
+	    }
+	    return move;
+	}
+    }
+
+    private final class GameCreator extends SwingWorker<Void, Void> {
+	@Override public Void doInBackground() {
+	    deactivateCommand();
+	    clearConsole();
+	    newGame();
+	    return null;
+	}
+	@Override protected void done() {
+	    drawGame(game);
+	}
+    }
+
+    private final class MoveFinder extends SwingWorker<Void, Void> {
+	@Override public Void doInBackground() {
+	    game.move();
+	    return null;
+	}
+	@Override protected void done() {
+	    drawGame(game);
+	}
+    }
 
     private static final int DEFAULT_GAME_DURATION_IN_MINUTES = 30;
-
-    private static final String PROMPT = "c> ";
-    private static final String ANSWER = "-> ";
-    private static final String NEW_LINE = "\n";
 
     private Map<Square, SquarePanel> squares = new EnumMap<Square, SquarePanel>(Square.class);
     private JFrame mainFrame;
@@ -110,25 +158,40 @@ public class ReversiUI {
     private JPanel colLabelsPanel;
     private JPanel commandPanel;
     private JPanel consolePanel;
+    private JPanel statusPanel;
+    private JPanel messagePanel;
+
+    private JLabel statusLabel;
+    private JLabel messageLabel;
 
     private JTextArea textArea;
 
     /** The command text field. */
-    private JTextField ctf;
+    private JTextField commandTextField;
 
     private Game game;
 
+    private Move move;
+
     private PrintStream consolePrintStream;
+    private ThreadEvent resultsReady;
 
     public ReversiUI() {
 	game = null;
+	move = null;
+	resultsReady = new ThreadEvent();
 
-	mainFrame = new JFrame("Reversi Board");
+	mainFrame = new JFrame("Reversi");
 	mainFrame.getContentPane().setLayout(new GridBagLayout());
 	GridBagConstraints c = new GridBagConstraints();
 	c.fill = GridBagConstraints.HORIZONTAL;
 	mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-	
+
+	JPanel boardPanel = new JPanel();
+	boardPanel.setBackground(Constants.BACKGROUND_COLOR);
+	TitledBorder boardPanelTitle = BorderFactory.createTitledBorder("Board");
+	boardPanel.setBorder(boardPanelTitle);
+
 	final int gsd = 8 * Constants.SQUARE_SIZE;
 	final int lsd = gsd + (Constants.LABELS_HEIGHT + (2 * Constants.LABELS_GAP) + Constants.SQUARES_GAP);
         final Dimension gridSize = new Dimension(gsd, gsd);
@@ -139,7 +202,8 @@ public class ReversiUI {
 	boardPane = new JLayeredPane();
 	c.gridx = 0;
 	c.gridy = 0;
-        mainFrame.getContentPane().add(boardPane, c);
+        boardPanel.add(boardPane);
+        mainFrame.getContentPane().add(boardPanel, c);
         boardPane.setPreferredSize(labelsSize);
 
 	// Add the labels panel to the Layered Pane.
@@ -220,21 +284,61 @@ public class ReversiUI {
 	    squares.put(square, squarePanel);
 	}
 
-	// Add the command data entry JTextField
-	TitledBorder commandPanelTitle = BorderFactory.createTitledBorder("Command");
-	commandPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-	commandPanel.setBorder(commandPanelTitle);
-	commandPanel.setBackground(Constants.BACKGROUND_COLOR);
+	JPanel bottomPanel = new JPanel(new GridBagLayout());
+	bottomPanel.setBackground(Constants.BACKGROUND_COLOR);
+	GridBagConstraints cBottomPanel = new GridBagConstraints();
 	c.gridx = 0;
 	c.gridy = 1;
-	mainFrame.getContentPane().add(commandPanel, c);
-	ctf = new JTextField(50);
-	ctf.addActionListener(new ActionListener() {
+	mainFrame.getContentPane().add(bottomPanel, c);
+
+	// Add the status JPanel
+	TitledBorder statusPanelTitle = BorderFactory.createTitledBorder("Status");
+	statusPanel = new JPanel();
+	statusPanel.setBorder(statusPanelTitle);
+	statusPanel.setBackground(Constants.BACKGROUND_COLOR);
+	cBottomPanel.fill = GridBagConstraints.VERTICAL;
+	cBottomPanel.gridx = 0;
+	cBottomPanel.gridy = 0;
+	cBottomPanel.anchor = GridBagConstraints.PAGE_START;
+	bottomPanel.add(statusPanel, cBottomPanel);
+	statusLabel = new JLabel("Pause");
+	Dimension d = statusLabel.getPreferredSize();
+        statusLabel.setPreferredSize(new Dimension(d.width + 20, d.height));
+        statusLabel.setFont(new Font("Monospaced", Font.PLAIN, 12)); 
+	statusPanel.add(statusLabel);
+
+	// Add the command data entry JTextField
+	TitledBorder commandPanelTitle = BorderFactory.createTitledBorder("Move");
+	commandPanel = new JPanel();
+	commandPanel.setBorder(commandPanelTitle);
+	commandPanel.setBackground(Constants.BACKGROUND_COLOR);
+	cBottomPanel.fill = GridBagConstraints.VERTICAL;
+	cBottomPanel.gridx = 1;
+	cBottomPanel.gridy = 0;
+	bottomPanel.add(commandPanel, cBottomPanel);
+	commandTextField = new JTextField(8);
+        commandTextField.setFont(new Font("Monospaced", Font.PLAIN, 12)); 
+	commandTextField.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent event) {
-		    execCommand(ctf.getText());
+		    move(commandTextField.getText());
 		}
 	    });
-	commandPanel.add(ctf);
+	deactivateCommand();
+	commandPanel.add(commandTextField);
+
+	// Add the message JPanel
+	TitledBorder messagePanelTitle = BorderFactory.createTitledBorder("Message");
+	messagePanel = new JPanel();
+	messagePanel.setBorder(messagePanelTitle);
+	messagePanel.setBackground(Constants.BACKGROUND_COLOR);
+	cBottomPanel.fill = GridBagConstraints.BOTH;
+	cBottomPanel.gridx = 2;
+	cBottomPanel.gridy = 0;
+	cBottomPanel.weightx = 1;
+	bottomPanel.add(messagePanel, cBottomPanel);
+	messageLabel = new JLabel("messages ....");
+        messageLabel.setFont(new Font("Monospaced", Font.PLAIN, 12)); 
+	messagePanel.add(messageLabel);
 
 	TitledBorder consolePanelTitle = BorderFactory.createTitledBorder("Console");
 	consolePanel = new JPanel(new GridBagLayout());
@@ -245,12 +349,14 @@ public class ReversiUI {
 	c.gridheight = 2;
 	c.fill = GridBagConstraints.BOTH;
 	mainFrame.getContentPane().add(consolePanel, c);
-        textArea = new JTextArea(30, 60);
+        textArea = new JTextArea(40, 60);
         textArea.setEditable(false);
-        textArea.setFont(new Font("Monospaced", Font.PLAIN,11));
+        textArea.setFont(new Font("Monospaced", Font.PLAIN,10));
         textArea.setBackground(Color.BLACK);
         textArea.setForeground(Color.LIGHT_GRAY);
         JScrollPane scrollPane = new JScrollPane(textArea);
+	scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+	scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         //Add Components to this panel.
         GridBagConstraints c2 = new GridBagConstraints();
         c2.fill = GridBagConstraints.BOTH;
@@ -274,21 +380,18 @@ public class ReversiUI {
 	/* Add the action listener to the New game command. */
 	jmiNewGame.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae) {
+		    new GameCreator().execute();
+		}
+	    });
 
-		    game = Game.initialGame(new Actor.Builder()
-					    .withName("Iago")
-					    .withStrategy(new IagoStrategy())
-					    .build(),
-					    new Actor.Builder()
-					    .withName("Human")
-					    .withStrategy(new HumanStrategy())
-					    .build(),
-					    Period.minutes(DEFAULT_GAME_DURATION_IN_MINUTES).toStandardDuration(),
-					    consolePrintStream);
-		    drawGame(game);
-		    consolePrintStream.print(game.print());
-		    game.move();
-		    drawGame(game);
+	/* Add the Play commnad to the File menu. */
+	JMenuItem jmiPlay = new JMenuItem("Play");
+	jmFile.add(jmiPlay);
+
+	/* Add the action listener to the Play command. */
+	jmiPlay.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent ae) {
+		    new MoveFinder().execute();
 		}
 	    });
 
@@ -307,12 +410,33 @@ public class ReversiUI {
 	mainFrame.setJMenuBar(jmb);
 
 	mainFrame.pack();
-	mainFrame.setResizable(true);
+	mainFrame.setResizable(false);
 	mainFrame.setLocationRelativeTo(null);
 	mainFrame.setVisible(true);
 
     }
-    
+
+    public static void main(String[] args) {
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    new ReversiUI();
+		}
+	    });
+    }
+
+    private void newGame() {
+	game = Game.initialGame(new Actor.Builder()
+				.withName("Iago")
+				.withStrategy(new IagoStrategy())
+				.build(),
+				new Actor.Builder()
+				.withName("Human")
+				.withStrategy(new HumanStrategyUI())
+				.build(),
+				Period.minutes(DEFAULT_GAME_DURATION_IN_MINUTES).toStandardDuration(),
+				consolePrintStream);
+    }
+
     private void setSquareState(final Square square, final SquareState state) {
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
@@ -324,6 +448,7 @@ public class ReversiUI {
 
     private void drawGame(final Game game) {
 	drawBoard(game.board());
+	consolePrintStream.print(game.lastGameSnapshot().printGameSnapshot());
     }
 
     private void drawBoard(final Board board) {
@@ -340,46 +465,53 @@ public class ReversiUI {
 	dot.setBounds(xDotCenter, yDotCenter, Constants.DOT_SIZE, Constants.DOT_SIZE);    
     }
 
-    public static void main(String[] args) {
+    private void clearConsole() {
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
-		    new ReversiUI();
+		    textArea.setText(null);
 		}
 	    });
     }
 
-    private void appendToConsole(String line) {
-	textArea.append(line + NEW_LINE);
+    private void activateCommand() {
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    commandTextField.setBackground(Color.WHITE);
+		    commandTextField.setForeground(Color.BLACK);
+		    commandTextField.setEditable(true);
+		}
+	    });
     }
 
-    private void execCommand(String command) {
+    private void deactivateCommand() {
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    commandTextField.setEditable(false);
+		    commandTextField.setBackground(Color.BLACK);
+		    commandTextField.setForeground(Color.LIGHT_GRAY);
+		}
+	    });
+    }
 
-	appendToConsole(PROMPT + command);
-
-	StringTokenizer st = new StringTokenizer(command);
-	int words = st.countTokens();
-	Square square = null;
-	SquareState state = null;
-	if (words == 2) {
-	    String w0 = st.nextToken();
-	    String w1 = st.nextToken();
-	    try {
-		square = Square.valueOf(w0);
-	    } catch (IllegalArgumentException iae) {
-		appendToConsole(ANSWER + "Wrong value " + w0 + ". It is not a valid Square.");
+    private void move(final String command) {
+        Move newMove = null;
+	if (command != null) {
+	    if (command.equalsIgnoreCase("resign")) {
+		newMove = Move.valueOf(Move.Action.RESIGN);
+	    } else if (command.equalsIgnoreCase("pass")) {
+		newMove = Move.valueOf(Move.Action.PASS);
+	    } else {
+		try {
+		    newMove = Move.valueOf(Square.getInstance(command));
+		} catch (IllegalArgumentException iae) {
+		    consolePrintStream.println(command + " is not a move.");
+		}
 	    }
-	    try {
-		state = SquareState.valueOf(w1);
-	    } catch (IllegalArgumentException iae) {
-		appendToConsole(ANSWER + "Wrong value " + w1 + ". It is not a valid SquareState.");
-	    }
-	    if (square != null && state != null) {
-		appendToConsole(ANSWER + "Setting board square " + square + " to state " + state + ".");
-		setSquareState(square, state);
-	    }
-	} else {
-	    appendToConsole(ANSWER + "Not a command: " + command);
 	}
+	consolePrintStream.println("move=" + newMove);
+	this.move = newMove;
+	deactivateCommand();
+	resultsReady.signal();
     }
 
 }
