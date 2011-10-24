@@ -51,6 +51,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import javax.swing.SwingWorker;
+import javax.swing.JSeparator;
 
 import java.io.PrintStream;
 import java.io.OutputStream;
@@ -73,8 +74,17 @@ import rcrr.reversi.GameSnapshot;
 import rcrr.reversi.Strategy;
 import rcrr.reversi.IagoStrategy;
 import rcrr.reversi.HumanStrategy;
+import rcrr.reversi.Player;
 
 public class ReversiUI {
+
+    private enum State {
+	INITIALIZING,
+	GAME_PAUSED,
+	BLACK_MOVING,
+	WHITE_MOVING,
+	GAME_OVER
+    }
 
     private static final class TextAreaOutputStream extends OutputStream {
 	private final JTextArea textArea;
@@ -137,13 +147,26 @@ public class ReversiUI {
 
     private final class MoveFinder extends SwingWorker<Void, Void> {
 	@Override public Void doInBackground() {
+	    setMover();
 	    game.move();
+	    setState(State.GAME_PAUSED);
 	    return null;
 	}
 	@Override protected void done() {
 	    drawGame(game);
 	}
     }
+
+    private void setMover() {
+	Player player = game.player();
+	if (player == Player.BLACK) {
+	    setState(State.BLACK_MOVING);
+	} else {
+	    setState(State.WHITE_MOVING);
+	}
+    }
+
+    private State state;
 
     private static final int DEFAULT_GAME_DURATION_IN_MINUTES = 30;
 
@@ -158,10 +181,10 @@ public class ReversiUI {
     private JPanel colLabelsPanel;
     private JPanel commandPanel;
     private JPanel consolePanel;
-    private JPanel statusPanel;
+    private JPanel statePanel;
     private JPanel messagePanel;
 
-    private JLabel statusLabel;
+    private JLabel stateLabel;
     private JLabel messageLabel;
 
     private JTextArea textArea;
@@ -177,6 +200,8 @@ public class ReversiUI {
     private ThreadEvent resultsReady;
 
     public ReversiUI() {
+
+	state = State.INITIALIZING;
 	game = null;
 	move = null;
 	resultsReady = new ThreadEvent();
@@ -291,21 +316,21 @@ public class ReversiUI {
 	c.gridy = 1;
 	mainFrame.getContentPane().add(bottomPanel, c);
 
-	// Add the status JPanel
-	TitledBorder statusPanelTitle = BorderFactory.createTitledBorder("Status");
-	statusPanel = new JPanel();
-	statusPanel.setBorder(statusPanelTitle);
-	statusPanel.setBackground(Constants.BACKGROUND_COLOR);
+	// Add the state JPanel
+	TitledBorder statePanelTitle = BorderFactory.createTitledBorder("State");
+	statePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 8));
+	statePanel.setBorder(statePanelTitle);
+	statePanel.setBackground(Constants.BACKGROUND_COLOR);
 	cBottomPanel.fill = GridBagConstraints.VERTICAL;
 	cBottomPanel.gridx = 0;
 	cBottomPanel.gridy = 0;
 	cBottomPanel.anchor = GridBagConstraints.PAGE_START;
-	bottomPanel.add(statusPanel, cBottomPanel);
-	statusLabel = new JLabel("Pause");
-	Dimension d = statusLabel.getPreferredSize();
-        statusLabel.setPreferredSize(new Dimension(d.width + 20, d.height));
-        statusLabel.setFont(new Font("Monospaced", Font.PLAIN, 12)); 
-	statusPanel.add(statusLabel);
+	bottomPanel.add(statePanel, cBottomPanel);
+	stateLabel = new JLabel(state.toString());
+	Dimension d = stateLabel.getPreferredSize();
+        stateLabel.setPreferredSize(new Dimension(d.width + 20, d.height));
+        stateLabel.setFont(new Font("Monospaced", Font.PLAIN, 12)); 
+	statePanel.add(stateLabel);
 
 	// Add the command data entry JTextField
 	TitledBorder commandPanelTitle = BorderFactory.createTitledBorder("Move");
@@ -328,7 +353,7 @@ public class ReversiUI {
 
 	// Add the message JPanel
 	TitledBorder messagePanelTitle = BorderFactory.createTitledBorder("Message");
-	messagePanel = new JPanel();
+	messagePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 8));
 	messagePanel.setBorder(messagePanelTitle);
 	messagePanel.setBackground(Constants.BACKGROUND_COLOR);
 	cBottomPanel.fill = GridBagConstraints.BOTH;
@@ -369,13 +394,13 @@ public class ReversiUI {
 	/* Create the menu bar. */
 	JMenuBar jmb = new JMenuBar();
 
-	/* Create the File menu, with the Exit commnad. */
-	JMenu jmFile = new JMenu("File");
-	jmb.add(jmFile);
+	/* Create the Game menu, with the Exit commnad. */
+	JMenu jmGame = new JMenu("Game");
+	jmb.add(jmGame);
 
-	/* Add the New game commnad to the File menu. */
+	/* Add the New game commnad to the Game menu. */
 	JMenuItem jmiNewGame = new JMenuItem("New game");
-	jmFile.add(jmiNewGame);
+	jmGame.add(jmiNewGame);
 
 	/* Add the action listener to the New game command. */
 	jmiNewGame.addActionListener(new ActionListener() {
@@ -384,9 +409,9 @@ public class ReversiUI {
 		}
 	    });
 
-	/* Add the Play commnad to the File menu. */
+	/* Add the Play commnad to the Game menu. */
 	JMenuItem jmiPlay = new JMenuItem("Play");
-	jmFile.add(jmiPlay);
+	jmGame.add(jmiPlay);
 
 	/* Add the action listener to the Play command. */
 	jmiPlay.addActionListener(new ActionListener() {
@@ -395,9 +420,10 @@ public class ReversiUI {
 		}
 	    });
 
-	/* Add the Exit commnad to the File menu. */
+	/* Add the Exit commnad to the Game menu. */
 	JMenuItem jmiExit = new JMenuItem("Exit");
-	jmFile.add(jmiExit);
+	jmGame.add(new JSeparator());
+	jmGame.add(jmiExit);
 
 	/* Add the action listener to the Exit command. */
 	jmiExit.addActionListener(new ActionListener() {
@@ -435,6 +461,7 @@ public class ReversiUI {
 				.build(),
 				Period.minutes(DEFAULT_GAME_DURATION_IN_MINUTES).toStandardDuration(),
 				consolePrintStream);
+	setState(State.GAME_PAUSED);
     }
 
     private void setSquareState(final Square square, final SquareState state) {
@@ -444,6 +471,19 @@ public class ReversiUI {
 		    sp.setSquareState(state);
 		}
 	    });
+    }
+
+    private void setState(final State state) {
+	this.state = state;
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    stateLabel.setText(state.toString());
+		}
+	    });
+    }
+
+    private State getState() {
+	return this.state;
     }
 
     private void drawGame(final Game game) {
@@ -479,6 +519,8 @@ public class ReversiUI {
 		    commandTextField.setBackground(Color.WHITE);
 		    commandTextField.setForeground(Color.BLACK);
 		    commandTextField.setEditable(true);
+		    commandTextField.setText(null);
+		    commandTextField.requestFocusInWindow();
 		}
 	    });
     }
