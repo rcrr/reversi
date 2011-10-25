@@ -79,11 +79,34 @@ import rcrr.reversi.Player;
 public class ReversiUI {
 
     private enum State {
-	INITIALIZING,
-	GAME_PAUSED,
-	BLACK_MOVING,
-	WHITE_MOVING,
-	GAME_OVER
+	INITIALIZING("Initializing") {
+	    @Override public void leave() {
+		System.out.println("Leaving state INITIALIZING ....");
+	    }
+	},
+	GAME_PAUSED("Game paused"),
+	BLACK_MOVING("Black's turn"),
+	WHITE_MOVING("White's turn"),
+	GAME_OVER("Game over");
+
+	private String displayName;
+
+	private State(final String displayName) {
+	    this.displayName = displayName;
+	}
+
+	public void leave() { }
+	public void reach() { }
+	public static void transition(final State from, final State to) { } 
+    }
+
+    private void changeState(final State newState) {
+	final State to = newState;
+	final State from = state;
+	from.leave();
+	to.reach();
+	State.transition(from, to);
+	ReversiUI.this.state = newState;
     }
 
     private static final class TextAreaOutputStream extends OutputStream {
@@ -166,6 +189,7 @@ public class ReversiUI {
 	}
     }
 
+    private boolean pauseRequested;
     private State state;
 
     private static final int DEFAULT_GAME_DURATION_IN_MINUTES = 30;
@@ -201,6 +225,7 @@ public class ReversiUI {
 
     public ReversiUI() {
 
+	pauseRequested = false;
 	state = State.INITIALIZING;
 	game = null;
 	move = null;
@@ -361,7 +386,7 @@ public class ReversiUI {
 	cBottomPanel.gridy = 0;
 	cBottomPanel.weightx = 1;
 	bottomPanel.add(messagePanel, cBottomPanel);
-	messageLabel = new JLabel("messages ....");
+	messageLabel = new JLabel("Welcome to the Reversi board, start a new game.");
         messageLabel.setFont(new Font("Monospaced", Font.PLAIN, 12)); 
 	messagePanel.add(messageLabel);
 
@@ -411,12 +436,26 @@ public class ReversiUI {
 
 	/* Add the Play commnad to the Game menu. */
 	JMenuItem jmiPlay = new JMenuItem("Play");
+	jmiPlay.setEnabled(false);
 	jmGame.add(jmiPlay);
 
 	/* Add the action listener to the Play command. */
 	jmiPlay.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae) {
+		    pauseRequested = false;
 		    new MoveFinder().execute();
+		}
+	    });
+
+	/* Add the Pause commnad to the Game menu. */
+	JMenuItem jmiPause = new JMenuItem("Pause");
+	jmiPause.setEnabled(false);
+	jmGame.add(jmiPause);
+
+	/* Add the action listener to the Pause command. */
+	jmiPause.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent ae) {
+		    pauseRequested = true;
 		}
 	    });
 
