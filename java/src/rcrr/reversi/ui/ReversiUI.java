@@ -80,11 +80,18 @@ public class ReversiUI {
 
     private enum State {
 	INITIALIZING("Initializing") {
-	    @Override public void leave() {
+	    @Override public void leave(final ReversiUI ui) {
 		System.out.println("Leaving state INITIALIZING ....");
 	    }
 	},
-	GAME_PAUSED("Game paused"),
+	GAME_PAUSED("Game paused") {
+	    @Override public void reach(final ReversiUI ui) {
+		System.out.println("Reaching state GAME_PAUSED ....");
+		System.out.println("ui=" + ui);
+		System.out.println("ui.jmiPlay=" + ui.jmiPlay);
+		ui.activateMenuItem(ui.jmiPlay);
+	    }
+	},
 	BLACK_MOVING("Black's turn"),
 	WHITE_MOVING("White's turn"),
 	GAME_OVER("Game over");
@@ -95,18 +102,9 @@ public class ReversiUI {
 	    this.displayName = displayName;
 	}
 
-	public void leave() { }
-	public void reach() { }
+	public void leave(final ReversiUI ui) { }
+	public void reach(final ReversiUI ui) { }
 	public static void transition(final State from, final State to) { } 
-    }
-
-    private void changeState(final State newState) {
-	final State to = newState;
-	final State from = state;
-	from.leave();
-	to.reach();
-	State.transition(from, to);
-	ReversiUI.this.state = newState;
     }
 
     private static final class TextAreaOutputStream extends OutputStream {
@@ -212,6 +210,8 @@ public class ReversiUI {
     private JLabel messageLabel;
 
     private JTextArea textArea;
+
+    private JMenuItem jmiPlay;
 
     /** The command text field. */
     private JTextField commandTextField;
@@ -435,7 +435,7 @@ public class ReversiUI {
 	    });
 
 	/* Add the Play commnad to the Game menu. */
-	JMenuItem jmiPlay = new JMenuItem("Play");
+	jmiPlay = new JMenuItem("Play");
 	jmiPlay.setEnabled(false);
 	jmGame.add(jmiPlay);
 
@@ -512,11 +512,16 @@ public class ReversiUI {
 	    });
     }
 
-    private void setState(final State state) {
-	this.state = state;
+    private void setState(final State newState) {
+	final State to = newState;
+	final State from = state;
+	from.leave(this);
+	to.reach(this);
+	State.transition(from, to);
+	ReversiUI.this.state = newState;
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
-		    stateLabel.setText(state.toString());
+		    stateLabel.setText(ReversiUI.this.state.toString());
 		}
 	    });
     }
@@ -548,6 +553,14 @@ public class ReversiUI {
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
 		    textArea.setText(null);
+		}
+	    });
+    }
+
+    private void activateMenuItem(final JMenuItem item) {
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    item.setEnabled(true);
 		}
 	    });
     }
