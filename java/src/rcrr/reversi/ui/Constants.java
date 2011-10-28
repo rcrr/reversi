@@ -42,14 +42,17 @@ public class Constants {
     public static final String WHITE_DISC_ICON_FILE = "images/reversi-white-disk.png";
     public static final String BLACK_DISC_ICON_FILE = "images/reversi-black-disk.png";
     public static final String GRID_DOT_ICON_FILE = "images/reversi-grid-dot.png";
+    public static final String LOGO_128X128_ICON_FILE = "images/reversi-logo-128x128.png";
  
     public static final URL WHITE_DISC_ICON_URL = Constants.class.getResource(WHITE_DISC_ICON_FILE);
     public static final URL BLACK_DISC_ICON_URL = Constants.class.getResource(BLACK_DISC_ICON_FILE);
     public static final URL GRID_DOT_ICON_URL = Constants.class.getResource(GRID_DOT_ICON_FILE);
+    public static final URL LOGO_128X128_ICON_URL = Constants.class.getResource(LOGO_128X128_ICON_FILE);
 
     public static final Icon WHITE_DISC_ICON = new ImageIcon(WHITE_DISC_ICON_URL);
     public static final Icon BLACK_DISC_ICON = new ImageIcon(BLACK_DISC_ICON_URL);
     public static final Icon GRID_DOT_ICON = new ImageIcon(GRID_DOT_ICON_URL);
+    public static final Icon LOGO_128X128_ICON = new ImageIcon(LOGO_128X128_ICON_URL);
 
     public static final int SQUARE_SIZE = 70;
     public static final int DOT_SIZE = 16;
