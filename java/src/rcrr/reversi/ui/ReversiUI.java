@@ -52,6 +52,8 @@ import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import javax.swing.SwingWorker;
 import javax.swing.JSeparator;
+import javax.swing.JButton;
+import javax.swing.Box;
 
 import java.io.PrintStream;
 import java.io.OutputStream;
@@ -78,6 +80,37 @@ import rcrr.reversi.Player;
 
 public class ReversiUI {
 
+    private static final class AboutFrame extends JFrame implements ActionListener {
+	AboutFrame() {
+	    super("About Reversi");
+	    setLayout(new FlowLayout());
+	    add(new JLabel(Constants.LOGO_128X128_ICON));
+	    JLabel programAndVersion = new JLabel("Reversi 0.10");
+	    programAndVersion.setFont(new Font("Courier", Font.BOLD, 24));
+	    add(programAndVersion);
+	    JLabel copyright = new JLabel("Copyright 2010, 2011 Roberto Corradini");
+	    copyright.setFont(new Font("Courier", Font.PLAIN, 10));
+	    add(copyright);
+	    add(Box.createRigidArea(new Dimension(0, 40)));
+	    JButton closeButton = new JButton("Close");
+	    add(closeButton);
+	    closeButton.addActionListener(this);
+	    setSize(260, 280);
+	    //pack();
+	    setResizable(false);
+	    setLocationRelativeTo(null);
+	    setVisible(true);
+	}
+	public void actionPerformed(ActionEvent e) {
+	    SwingUtilities.invokeLater(new Runnable() {
+		    public void run() {
+			dispose();
+		    }
+		});
+	}
+    }
+
+
     private enum State {
 	INITIALIZING("Initializing") {
 	    @Override public void leave(final ReversiUI ui) {
@@ -87,8 +120,6 @@ public class ReversiUI {
 	GAME_PAUSED("Game paused") {
 	    @Override public void reach(final ReversiUI ui) {
 		System.out.println("Reaching state GAME_PAUSED ....");
-		System.out.println("ui=" + ui);
-		System.out.println("ui.jmiPlay=" + ui.jmiPlay);
 		ui.activateMenuItem(ui.jmiPlay);
 	    }
 	},
@@ -473,6 +504,21 @@ public class ReversiUI {
 
 	/* Add the menu bar tothe main frame. */
 	mainFrame.setJMenuBar(jmb);
+
+	/* Create the Help menu, with the About commnad. */
+	JMenu jmHelp = new JMenu("Help");
+	jmb.add(jmHelp);
+
+	/* Add the About commnad to the Help menu. */
+	JMenuItem jmiAbout = new JMenuItem("About");
+	jmHelp.add(jmiAbout);
+
+	/* Add the action listener to the About command. */
+	jmiAbout.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent ae) {
+		    new AboutFrame();
+		}
+	    });
 
 	mainFrame.pack();
 	mainFrame.setResizable(false);
