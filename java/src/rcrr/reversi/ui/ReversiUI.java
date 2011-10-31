@@ -54,6 +54,11 @@ import javax.swing.SwingWorker;
 import javax.swing.JSeparator;
 import javax.swing.JButton;
 import javax.swing.Box;
+import javax.swing.SpinnerListModel;
+import javax.swing.JSpinner;
+
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 import java.io.PrintStream;
 import java.io.OutputStream;
@@ -78,6 +83,8 @@ import rcrr.reversi.IagoStrategy;
 import rcrr.reversi.HumanStrategy;
 import rcrr.reversi.Player;
 
+import java.util.concurrent.ExecutionException;
+
 public class ReversiUI {
 
     private static final class AboutFrame extends JFrame implements ActionListener {
@@ -96,7 +103,6 @@ public class ReversiUI {
 	    add(closeButton);
 	    closeButton.addActionListener(this);
 	    setSize(260, 280);
-	    //pack();
 	    setResizable(false);
 	    setLocationRelativeTo(null);
 	    setVisible(true);
@@ -110,22 +116,103 @@ public class ReversiUI {
 	}
     }
 
+    private static final class PreferencesFrame extends JFrame implements ActionListener {
+
+	private final Integer[] searchDepth = { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+	private final JSpinner jspin;
+
+	PreferencesFrame(final ReversiUI ui) {
+	    super("Preferences");
+	    setLayout(new FlowLayout());
+	    JLabel searchDepthLabel = new JLabel("AI search depth");
+	    add(searchDepthLabel);
+
+	    SpinnerListModel spm = new SpinnerListModel(searchDepth);
+	    jspin = new JSpinner(spm);
+	    jspin.setValue(ui.searchDepth);
+	    jspin.setPreferredSize(new Dimension(60, 20));
+	    jspin.addChangeListener(new ChangeListener() {
+		    public void stateChanged(ChangeEvent ce) {
+			System.out.println("--> jspin.getValue()=" + jspin.getValue());
+			ui.searchDepth = (Integer) jspin.getValue();
+		    };
+		});
+	    add(jspin);
+
+	    JButton discardButton = new JButton("Discard");
+	    add(discardButton);
+	    discardButton.addActionListener(this);
+
+	    JButton applyButton = new JButton("Apply");
+	    add(applyButton);
+	    applyButton.addActionListener(this);
+
+	    setSize(260, 280);
+	    setResizable(false);
+	    setLocationRelativeTo(null);
+	    setVisible(true);
+	}
+
+	public void actionPerformed(final ActionEvent e) {
+	    SwingUtilities.invokeLater(new Runnable() {
+		    public void run() {
+			if (e.getActionCommand().equals("Discard")) {
+			    dispose();
+			} else if (e.getActionCommand().equals("Apply")) {
+			    System.out.println("SAVING searchdepth .... jspin.getValue()=" + jspin.getValue());
+			} else {
+			    throw new RuntimeException("Unknown action command.");
+			}
+		    }
+		});
+	}
+
+    }
 
     private enum State {
+
+	NO_GAME("No game present"),
 	INITIALIZING("Initializing") {
+	    @Override public void reach(final ReversiUI ui) {
+		super.reach(ui);
+		ui.deactivateMenuItem(ui.jmiNewGame);
+	    }
 	    @Override public void leave(final ReversiUI ui) {
-		System.out.println("Leaving state INITIALIZING ....");
+		super.leave(ui);
+		ui.activateMenuItem(ui.jmiNewGame);
+		ui.setMessageLabel("Begin to play activating the Play menu.");
 	    }
 	},
 	GAME_PAUSED("Game paused") {
 	    @Override public void reach(final ReversiUI ui) {
-		System.out.println("Reaching state GAME_PAUSED ....");
+		super.reach(ui);
 		ui.activateMenuItem(ui.jmiPlay);
 	    }
 	},
-	BLACK_MOVING("Black's turn"),
-	WHITE_MOVING("White's turn"),
-	GAME_OVER("Game over");
+	PLAYER_MOVING("Moving") {
+	    @Override public String displayName(final ReversiUI ui) {
+		return ui.game.player() + "'s turn.";
+	    }
+	    @Override public void reach(final ReversiUI ui) {
+		super.reach(ui);
+		ui.deactivateMenuItem(ui.jmiPlay);
+		ui.activateMenuItem(ui.jmiPause);
+	    }
+	    @Override public void leave(final ReversiUI ui) {
+		super.leave(ui);
+		ui.deactivateMenuItem(ui.jmiPause);
+		ui.activateMenuItem(ui.jmiPlay);
+	    }
+	},
+	GAME_OVER("Game over") {
+	    @Override public void reach(final ReversiUI ui) {
+		super.reach(ui);
+		ui.setMessageLabel(ui.gameOverMessage());
+	    }	    
+	};
+
+	private boolean verbose = true;
 
 	private String displayName;
 
@@ -133,8 +220,14 @@ public class ReversiUI {
 	    this.displayName = displayName;
 	}
 
-	public void leave(final ReversiUI ui) { }
-	public void reach(final ReversiUI ui) { }
+	public String displayName(final ReversiUI ui) { return this.displayName; }
+
+	public void leave(final ReversiUI ui) {
+	    if (verbose) System.out.println("Leaving state " + this + "....");
+	}
+	public void reach(final ReversiUI ui) {
+	    if (verbose) System.out.println("Reaching state " + this + "....");
+	}
 	public static void transition(final State from, final State to) { } 
     }
 
@@ -187,9 +280,11 @@ public class ReversiUI {
 
     private final class GameCreator extends SwingWorker<Void, Void> {
 	@Override public Void doInBackground() {
+	    setState(State.INITIALIZING);
 	    deactivateCommand();
 	    clearConsole();
 	    newGame();
+	    setState(State.GAME_PAUSED);
 	    return null;
 	}
 	@Override protected void done() {
@@ -199,8 +294,8 @@ public class ReversiUI {
 
     private final class MoveFinder extends SwingWorker<Void, Void> {
 	@Override public Void doInBackground() {
-	    setMover();
-	    game.move();
+	    setState(State.PLAYER_MOVING);
+	    Move move = game.move();
 	    setState(State.GAME_PAUSED);
 	    return null;
 	}
@@ -209,12 +304,23 @@ public class ReversiUI {
 	}
     }
 
-    private void setMover() {
-	Player player = game.player();
-	if (player == Player.BLACK) {
-	    setState(State.BLACK_MOVING);
-	} else {
-	    setState(State.WHITE_MOVING);
+    private final class GamePlayer extends SwingWorker<Void, Void> {
+	@Override public Void doInBackground() {
+	    while (!pauseRequested && game.areThereAvailableMoves()) {
+		MoveFinder mf = new MoveFinder();
+		mf.execute();
+		try {
+		    mf.get();
+		} catch (InterruptedException ie) {
+		    throw new RuntimeException(ie);
+		} catch (ExecutionException ee) {
+		    throw new RuntimeException(ee);
+		}
+	    }
+	    if (!game.areThereAvailableMoves()) {
+		setState(State.GAME_OVER);
+	    }
+	    return null;
 	}
     }
 
@@ -243,13 +349,15 @@ public class ReversiUI {
     private JTextArea textArea;
 
     private JMenuItem jmiPlay;
+    private JMenuItem jmiNewGame;
+    private JMenuItem jmiPause;
 
     /** The command text field. */
     private JTextField commandTextField;
 
     private Game game;
-
     private Move move;
+    private int searchDepth;
 
     private PrintStream consolePrintStream;
     private ThreadEvent resultsReady;
@@ -257,9 +365,10 @@ public class ReversiUI {
     public ReversiUI() {
 
 	pauseRequested = false;
-	state = State.INITIALIZING;
+	state = State.NO_GAME;
 	game = null;
 	move = null;
+	searchDepth = IagoStrategy.DEFAULT_DEPTH;
 	resultsReady = new ThreadEvent();
 
 	mainFrame = new JFrame("Reversi");
@@ -382,7 +491,7 @@ public class ReversiUI {
 	cBottomPanel.gridy = 0;
 	cBottomPanel.anchor = GridBagConstraints.PAGE_START;
 	bottomPanel.add(statePanel, cBottomPanel);
-	stateLabel = new JLabel(state.toString());
+	stateLabel = new JLabel(state.displayName(this));
 	Dimension d = stateLabel.getPreferredSize();
         stateLabel.setPreferredSize(new Dimension(d.width + 20, d.height));
         stateLabel.setFont(new Font("Monospaced", Font.PLAIN, 12)); 
@@ -455,7 +564,7 @@ public class ReversiUI {
 	jmb.add(jmGame);
 
 	/* Add the New game commnad to the Game menu. */
-	JMenuItem jmiNewGame = new JMenuItem("New game");
+	jmiNewGame = new JMenuItem("New game");
 	jmGame.add(jmiNewGame);
 
 	/* Add the action listener to the New game command. */
@@ -474,12 +583,12 @@ public class ReversiUI {
 	jmiPlay.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae) {
 		    pauseRequested = false;
-		    new MoveFinder().execute();
+		    new GamePlayer().execute();
 		}
 	    });
 
 	/* Add the Pause commnad to the Game menu. */
-	JMenuItem jmiPause = new JMenuItem("Pause");
+	jmiPause = new JMenuItem("Pause");
 	jmiPause.setEnabled(false);
 	jmGame.add(jmiPause);
 
@@ -504,6 +613,21 @@ public class ReversiUI {
 
 	/* Add the menu bar tothe main frame. */
 	mainFrame.setJMenuBar(jmb);
+
+	/* Create the Settings menu, with the Preferences commnad. */
+	JMenu jmSettings = new JMenu("Settings");
+	jmb.add(jmSettings);
+
+	/* Add the Prefernces commnad to the Settings menu. */
+	JMenuItem jmiPreferences = new JMenuItem("Preferences");
+	jmSettings.add(jmiPreferences);
+
+	/* Add the action listener to the Preferences command. */
+	jmiPreferences.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent ae) {
+		    new PreferencesFrame(ReversiUI.this);
+		}
+	    });
 
 	/* Create the Help menu, with the About commnad. */
 	JMenu jmHelp = new JMenu("Help");
@@ -538,7 +662,7 @@ public class ReversiUI {
     private void newGame() {
 	game = Game.initialGame(new Actor.Builder()
 				.withName("Iago")
-				.withStrategy(new IagoStrategy())
+				.withStrategy(new IagoStrategy(searchDepth))
 				.build(),
 				new Actor.Builder()
 				.withName("Human")
@@ -546,7 +670,6 @@ public class ReversiUI {
 				.build(),
 				Period.minutes(DEFAULT_GAME_DURATION_IN_MINUTES).toStandardDuration(),
 				consolePrintStream);
-	setState(State.GAME_PAUSED);
     }
 
     private void setSquareState(final Square square, final SquareState state) {
@@ -554,6 +677,14 @@ public class ReversiUI {
 		public void run() {
 		    SquarePanel sp = squares.get(square);
 		    sp.setSquareState(state);
+		}
+	    });
+    }
+
+    private void setMessageLabel(final String message) {
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    messageLabel.setText(message);
 		}
 	    });
     }
@@ -567,7 +698,7 @@ public class ReversiUI {
 	ReversiUI.this.state = newState;
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
-		    stateLabel.setText(ReversiUI.this.state.toString());
+		    stateLabel.setText(ReversiUI.this.state.displayName(ReversiUI.this));
 		}
 	    });
     }
@@ -577,8 +708,12 @@ public class ReversiUI {
     }
 
     private void drawGame(final Game game) {
-	drawBoard(game.board());
-	consolePrintStream.print(game.lastGameSnapshot().printGameSnapshot());
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    drawBoard(game.board());
+		    consolePrintStream.print(game.lastGameSnapshot().printGameSnapshot());
+		}
+	    });
     }
 
     private void drawBoard(final Board board) {
@@ -611,12 +746,21 @@ public class ReversiUI {
 	    });
     }
 
+    private void deactivateMenuItem(final JMenuItem item) {
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    item.setEnabled(false);
+		}
+	    });
+    }
+
     private void activateCommand() {
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
 		    commandTextField.setBackground(Color.WHITE);
 		    commandTextField.setForeground(Color.BLACK);
 		    commandTextField.setEditable(true);
+		    commandTextField.setEnabled(true);
 		    commandTextField.setText(null);
 		    commandTextField.requestFocusInWindow();
 		}
@@ -626,11 +770,22 @@ public class ReversiUI {
     private void deactivateCommand() {
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
+		    commandTextField.setEnabled(false);
 		    commandTextField.setEditable(false);
 		    commandTextField.setBackground(Color.BLACK);
 		    commandTextField.setForeground(Color.LIGHT_GRAY);
 		}
 	    });
+    }
+
+    private String gameOverMessage() {
+	final int discCount = game.countDiscDifference();
+	if (discCount == 0) return "Game is a draw.";
+	if (discCount > 0) {
+	    return "Black wins by a disc difference of " + discCount + " pieces.";
+	} else {
+	    return "White wins by a disc difference of " + (- discCount) + " pieces.";
+	}
     }
 
     private void move(final String command) {
@@ -648,10 +803,13 @@ public class ReversiUI {
 		}
 	    }
 	}
-	consolePrintStream.println("move=" + newMove);
-	this.move = newMove;
-	deactivateCommand();
-	resultsReady.signal();
+	if (newMove != null && game.validateMove(newMove)) {
+	    this.move = newMove;
+	    deactivateCommand();
+	    resultsReady.signal();
+	} else {
+	    consolePrintStream.println(command + " is not a legal move.");
+	}
     }
 
 }
