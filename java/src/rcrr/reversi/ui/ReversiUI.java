@@ -26,6 +26,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import java.awt.Container;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.FlowLayout;
@@ -37,6 +38,8 @@ import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JComboBox;
+import javax.swing.BoxLayout;
 import javax.swing.JTextField;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
@@ -54,9 +57,8 @@ import javax.swing.SwingWorker;
 import javax.swing.JSeparator;
 import javax.swing.JButton;
 import javax.swing.Box;
-import javax.swing.SpinnerListModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.JSpinner;
-
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
@@ -84,6 +86,7 @@ import rcrr.reversi.HumanStrategy;
 import rcrr.reversi.Player;
 
 import java.util.concurrent.ExecutionException;
+import java.lang.reflect.InvocationTargetException;
 
 public class ReversiUI {
 
@@ -118,39 +121,73 @@ public class ReversiUI {
 
     private static final class PreferencesFrame extends JFrame implements ActionListener {
 
-	private final Integer[] searchDepth = { 1, 2, 3, 4, 5, 6, 7, 8 };
+	private static final int MIN_SEARCH_DEPTH = 1;
+	private static final int MAX_SEARCH_DEPTH = 8;
+	private static final int SEARCH_DEPTH_STEP = 1;
 
+	private final ReversiUI ui;
 	private final JSpinner jspin;
+	private final JComboBox humanPlayerColor;
 
 	PreferencesFrame(final ReversiUI ui) {
 	    super("Preferences");
-	    setLayout(new FlowLayout());
-	    JLabel searchDepthLabel = new JLabel("AI search depth");
-	    add(searchDepthLabel);
+	    this.ui = ui;
 
-	    SpinnerListModel spm = new SpinnerListModel(searchDepth);
-	    jspin = new JSpinner(spm);
-	    jspin.setValue(ui.searchDepth);
+	    JPanel p = new JPanel(new GridLayout(2, 2, 10, 10));
+	    p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+	    JLabel searchDepthLabel = new JLabel("AI search depth");
+	    p.add(searchDepthLabel);
+
+	    SpinnerNumberModel snm = new SpinnerNumberModel(ui.searchDepth, MIN_SEARCH_DEPTH, MAX_SEARCH_DEPTH, SEARCH_DEPTH_STEP);
+	    jspin = new JSpinner(snm);
+	    ((JSpinner.DefaultEditor) jspin.getEditor()).getTextField().setEditable(false);
 	    jspin.setPreferredSize(new Dimension(60, 20));
 	    jspin.addChangeListener(new ChangeListener() {
 		    public void stateChanged(ChangeEvent ce) {
 			System.out.println("--> jspin.getValue()=" + jspin.getValue());
-			ui.searchDepth = (Integer) jspin.getValue();
 		    };
 		});
-	    add(jspin);
+	    p.add(jspin);
+
+	    JLabel humanPlayerColorLabel = new JLabel("Human player color");
+	    p.add(humanPlayerColorLabel);
+	    Player[] colors = { Player.BLACK, Player.WHITE };
+	    humanPlayerColor = new JComboBox(colors);
+	    humanPlayerColor.setSelectedItem(ui.humanPlayer);
+	    p.add(humanPlayerColor);
+	    humanPlayerColor.addActionListener(new ActionListener() {
+		    public void actionPerformed(final ActionEvent ae) {
+			System.out.println("==> (Player) humanPlayerColor.getSelectedItem()=" + (Player) humanPlayerColor.getSelectedItem());
+		    }
+		});
 
 	    JButton discardButton = new JButton("Discard");
-	    add(discardButton);
+	    // add(discardButton);
 	    discardButton.addActionListener(this);
 
 	    JButton applyButton = new JButton("Apply");
-	    add(applyButton);
+	    // add(applyButton);
 	    applyButton.addActionListener(this);
 
-	    setSize(260, 280);
+	    //Lay out the buttons from left to right.
+	    JPanel buttonPane = new JPanel();
+	    buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
+	    buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+	    buttonPane.add(Box.createHorizontalGlue());
+	    buttonPane.add(discardButton);
+	    buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+	    buttonPane.add(applyButton);
+
+	    Container contentPane = getContentPane();
+	    contentPane.add(p, BorderLayout.CENTER);
+	    contentPane.add(buttonPane, BorderLayout.PAGE_END);
+
+
+	    //setSize(260, 280);
 	    setResizable(false);
 	    setLocationRelativeTo(null);
+	    pack();
 	    setVisible(true);
 	}
 
@@ -161,6 +198,9 @@ public class ReversiUI {
 			    dispose();
 			} else if (e.getActionCommand().equals("Apply")) {
 			    System.out.println("SAVING searchdepth .... jspin.getValue()=" + jspin.getValue());
+			    ui.searchDepth = (Integer) jspin.getValue();
+			    ui.humanPlayer = (Player) humanPlayerColor.getSelectedItem();
+			    dispose();
 			} else {
 			    throw new RuntimeException("Unknown action command.");
 			}
@@ -296,11 +336,11 @@ public class ReversiUI {
 	@Override public Void doInBackground() {
 	    setState(State.PLAYER_MOVING);
 	    Move move = game.move();
+	    drawGame(game);
 	    setState(State.GAME_PAUSED);
 	    return null;
 	}
 	@Override protected void done() {
-	    drawGame(game);
 	}
     }
 
@@ -358,6 +398,7 @@ public class ReversiUI {
     private Game game;
     private Move move;
     private int searchDepth;
+    private Player humanPlayer;
 
     private PrintStream consolePrintStream;
     private ThreadEvent resultsReady;
@@ -369,6 +410,7 @@ public class ReversiUI {
 	game = null;
 	move = null;
 	searchDepth = IagoStrategy.DEFAULT_DEPTH;
+	humanPlayer = Player.BLACK;
 	resultsReady = new ThreadEvent();
 
 	mainFrame = new JFrame("Reversi");
@@ -660,14 +702,33 @@ public class ReversiUI {
     }
 
     private void newGame() {
-	game = Game.initialGame(new Actor.Builder()
-				.withName("Iago")
-				.withStrategy(new IagoStrategy(searchDepth))
-				.build(),
-				new Actor.Builder()
-				.withName("Human")
-				.withStrategy(new HumanStrategyUI())
-				.build(),
+
+	this.pauseRequested = false;
+	this.move = null;
+	this.resultsReady = new ThreadEvent();
+
+	Actor black, white;
+
+	final Actor ai = new Actor.Builder()
+	    .withName("Iago")
+	    .withStrategy(new IagoStrategy(searchDepth))
+	    .build();
+
+	final Actor human = new Actor.Builder()
+	    .withName("Human")
+	    .withStrategy(new HumanStrategyUI())
+	    .build();
+
+	if (humanPlayer == Player.BLACK) {
+	    black = human;
+	    white = ai;
+	} else {
+	    black = ai;
+	    white = human;
+	};
+
+	game = Game.initialGame(black,
+				white,
 				Period.minutes(DEFAULT_GAME_DURATION_IN_MINUTES).toStandardDuration(),
 				consolePrintStream);
     }
@@ -708,12 +769,12 @@ public class ReversiUI {
     }
 
     private void drawGame(final Game game) {
-	SwingUtilities.invokeLater(new Runnable() {
+	invokeInDispatchThreadIfNeeded(new Runnable() {
 		public void run() {
 		    drawBoard(game.board());
 		    consolePrintStream.print(game.lastGameSnapshot().printGameSnapshot());
 		}
-	    });
+	    }, WAIT);
     }
 
     private void drawBoard(final Board board) {
@@ -809,6 +870,27 @@ public class ReversiUI {
 	    resultsReady.signal();
 	} else {
 	    consolePrintStream.println(command + " is not a legal move.");
+	}
+    }
+
+    private final static boolean WAIT = true;
+    private final static boolean NO_WAIT = false;
+
+    public static void invokeInDispatchThreadIfNeeded(final Runnable runnable, final boolean wait) {
+	if (SwingUtilities.isEventDispatchThread()) {
+	    runnable.run();
+	} else {
+	    if (wait) {
+		try {
+		    SwingUtilities.invokeAndWait(runnable);
+		} catch (InterruptedException ie) {
+		    throw new RuntimeException(ie);
+		} catch (InvocationTargetException ite) {
+		    throw new RuntimeException(ite);
+		}
+	    } else {
+		SwingUtilities.invokeLater(runnable);
+	    }
 	}
     }
 
