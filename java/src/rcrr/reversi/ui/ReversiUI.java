@@ -423,7 +423,7 @@ public class ReversiUI {
 	mainFrame.getContentPane().setLayout(new GridBagLayout());
 	GridBagConstraints c = new GridBagConstraints();
 	c.fill = GridBagConstraints.HORIZONTAL;
-	mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	JPanel boardPanel = new JPanel();
 	boardPanel.setBackground(Constants.BACKGROUND_COLOR);
