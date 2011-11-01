@@ -274,6 +274,7 @@ class TestPrintPanel extends JPanel {
 	    tl.draw(g2, (float) x, (float) y);
 	}
 
+	// from here must still be inserted into Transcript frame ....
 	for (int idx = 0; idx<100; idx++) {
 	    Integer square = tp.squares.get(idx);
 	    int ix = convCol(idx);
