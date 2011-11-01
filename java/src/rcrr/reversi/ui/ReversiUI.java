@@ -125,30 +125,21 @@ public class ReversiUI {
 	private static final int MAX_SEARCH_DEPTH = 8;
 	private static final int SEARCH_DEPTH_STEP = 1;
 
+	private static final int MIN_GAME_DURATION = 5;
+	private static final int MAX_GAME_DURATION = 60;
+	private static final int GAME_DURATION_STEP = 5;
+
 	private final ReversiUI ui;
-	private final JSpinner jspin;
+	private final JSpinner searchDepthSpinner;
 	private final JComboBox humanPlayerColor;
+	private final JSpinner gameDurationSpinner;
 
 	PreferencesFrame(final ReversiUI ui) {
 	    super("Preferences");
 	    this.ui = ui;
 
-	    JPanel p = new JPanel(new GridLayout(2, 2, 10, 10));
+	    JPanel p = new JPanel(new GridLayout(3, 2, 10, 10));
 	    p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-	    JLabel searchDepthLabel = new JLabel("AI search depth");
-	    p.add(searchDepthLabel);
-
-	    SpinnerNumberModel snm = new SpinnerNumberModel(ui.searchDepth, MIN_SEARCH_DEPTH, MAX_SEARCH_DEPTH, SEARCH_DEPTH_STEP);
-	    jspin = new JSpinner(snm);
-	    ((JSpinner.DefaultEditor) jspin.getEditor()).getTextField().setEditable(false);
-	    jspin.setPreferredSize(new Dimension(60, 20));
-	    jspin.addChangeListener(new ChangeListener() {
-		    public void stateChanged(ChangeEvent ce) {
-			System.out.println("--> jspin.getValue()=" + jspin.getValue());
-		    };
-		});
-	    p.add(jspin);
 
 	    JLabel humanPlayerColorLabel = new JLabel("Human player color");
 	    p.add(humanPlayerColorLabel);
@@ -156,18 +147,31 @@ public class ReversiUI {
 	    humanPlayerColor = new JComboBox(colors);
 	    humanPlayerColor.setSelectedItem(ui.humanPlayer);
 	    p.add(humanPlayerColor);
-	    humanPlayerColor.addActionListener(new ActionListener() {
-		    public void actionPerformed(final ActionEvent ae) {
-			System.out.println("==> (Player) humanPlayerColor.getSelectedItem()=" + (Player) humanPlayerColor.getSelectedItem());
-		    }
-		});
+
+	    JLabel gameDurationLabel = new JLabel("Game duration in minutes");
+	    p.add(gameDurationLabel);
+	    SpinnerNumberModel gameDurationModel = new SpinnerNumberModel(ui.gameDuration,
+									  MIN_GAME_DURATION,
+									  MAX_GAME_DURATION,
+									  GAME_DURATION_STEP);
+	    gameDurationSpinner = new JSpinner(gameDurationModel);
+	    ((JSpinner.DefaultEditor) gameDurationSpinner.getEditor()).getTextField().setEditable(false);
+	    p.add(gameDurationSpinner);
+
+	    JLabel searchDepthLabel = new JLabel("AI search depth");
+	    p.add(searchDepthLabel);
+	    SpinnerNumberModel searchDepthModel = new SpinnerNumberModel(ui.searchDepth,
+									 MIN_SEARCH_DEPTH,
+									 MAX_SEARCH_DEPTH,
+									 SEARCH_DEPTH_STEP);
+	    searchDepthSpinner = new JSpinner(searchDepthModel);
+	    ((JSpinner.DefaultEditor) searchDepthSpinner.getEditor()).getTextField().setEditable(false);
+	    p.add(searchDepthSpinner);
 
 	    JButton discardButton = new JButton("Discard");
-	    // add(discardButton);
 	    discardButton.addActionListener(this);
 
 	    JButton applyButton = new JButton("Apply");
-	    // add(applyButton);
 	    applyButton.addActionListener(this);
 
 	    //Lay out the buttons from left to right.
@@ -183,8 +187,6 @@ public class ReversiUI {
 	    contentPane.add(p, BorderLayout.CENTER);
 	    contentPane.add(buttonPane, BorderLayout.PAGE_END);
 
-
-	    //setSize(260, 280);
 	    setResizable(false);
 	    setLocationRelativeTo(null);
 	    pack();
@@ -197,9 +199,9 @@ public class ReversiUI {
 			if (e.getActionCommand().equals("Discard")) {
 			    dispose();
 			} else if (e.getActionCommand().equals("Apply")) {
-			    System.out.println("SAVING searchdepth .... jspin.getValue()=" + jspin.getValue());
-			    ui.searchDepth = (Integer) jspin.getValue();
+			    ui.searchDepth = (Integer) searchDepthSpinner.getValue();
 			    ui.humanPlayer = (Player) humanPlayerColor.getSelectedItem();
+			    ui.gameDuration = (Integer) gameDurationSpinner.getValue();
 			    dispose();
 			} else {
 			    throw new RuntimeException("Unknown action command.");
@@ -243,6 +245,8 @@ public class ReversiUI {
 		super.leave(ui);
 		ui.deactivateMenuItem(ui.jmiPause);
 		ui.activateMenuItem(ui.jmiPlay);
+		int value = IagoStrategy.IAGO_EVAL_FUNCTION.eval(ui.game.position());
+		ui.setMessageLabel("AI one ply board evaluation is: " + value + ".");
 	    }
 	},
 	GAME_OVER("Game over") {
@@ -252,7 +256,7 @@ public class ReversiUI {
 	    }	    
 	};
 
-	private boolean verbose = true;
+	private boolean verbose = false;
 
 	private String displayName;
 
@@ -398,6 +402,7 @@ public class ReversiUI {
     private Game game;
     private Move move;
     private int searchDepth;
+    private int gameDuration;
     private Player humanPlayer;
 
     private PrintStream consolePrintStream;
@@ -409,6 +414,7 @@ public class ReversiUI {
 	state = State.NO_GAME;
 	game = null;
 	move = null;
+	gameDuration = DEFAULT_GAME_DURATION_IN_MINUTES; 
 	searchDepth = IagoStrategy.DEFAULT_DEPTH;
 	humanPlayer = Player.BLACK;
 	resultsReady = new ThreadEvent();
@@ -631,6 +637,7 @@ public class ReversiUI {
 
 	/* Add the Pause commnad to the Game menu. */
 	jmiPause = new JMenuItem("Pause");
+	jmiPause.setToolTipText("Pause will be entered at the end of this turn.");
 	jmiPause.setEnabled(false);
 	jmGame.add(jmiPause);
 
@@ -729,7 +736,7 @@ public class ReversiUI {
 
 	game = Game.initialGame(black,
 				white,
-				Period.minutes(DEFAULT_GAME_DURATION_IN_MINUTES).toStandardDuration(),
+				Period.minutes(gameDuration).toStandardDuration(),
 				consolePrintStream);
     }
 

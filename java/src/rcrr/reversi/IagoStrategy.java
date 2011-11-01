@@ -37,7 +37,7 @@ public final class IagoStrategy implements Strategy {
 
     public static final int DEFAULT_DEPTH = 6;
 
-    private static final EvalFunction IAGO_EVAL_FUNCTION = new Iago();
+    public static final EvalFunction IAGO_EVAL_FUNCTION = new Iago();
 
     private final Strategy iago;
 
@@ -46,7 +46,7 @@ public final class IagoStrategy implements Strategy {
     }
 
     public IagoStrategy(final int depth) {
-	this.iago  = AlphaBeta3.getInstance().searcher(depth, IAGO_EVAL_FUNCTION);
+	this.iago = AlphaBeta3.getInstance().searcher(depth, IAGO_EVAL_FUNCTION);
     }
 
     public Move move(final GameSnapshot gameSnapshot) {
