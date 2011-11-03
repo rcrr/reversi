@@ -44,11 +44,19 @@ import java.awt.font.TextLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import rcrr.reversi.Game;
+import rcrr.reversi.Square;
+import rcrr.reversi.SquareState;
+
 public class TranscriptFrame extends JFrame {
 
     private final class BoardTranscriptPanel extends JPanel {
 
-	public BoardTranscriptPanel() { }
+	private final Game game;
+
+	public BoardTranscriptPanel(final Game game) {
+	    this.game = game;
+	}
 
 	@Override public void  paint(Graphics g) {
 	    super.paint(g);
@@ -63,6 +71,9 @@ public class TranscriptFrame extends JFrame {
 	    drawBoardHorizontalLines(g2);
 	    drawBoardDots(g2);
 	    drawBoardLabels(g2);
+
+	    // Must be inserted the disc drawing method.
+	    drawGamePosition(g2);
 
 	}
 
@@ -134,6 +145,29 @@ public class TranscriptFrame extends JFrame {
 	    }
 	}
 
+	private void drawGamePosition(final Graphics2D g2) {
+	    for (Square square : Square.values()) {
+		final SquareState color = game.board().get(square);
+		final int ix = square.column().ordinal();
+		final int iy = square.row().ordinal();
+		final Ellipse2D disc = new Ellipse2D.Double(BOARD_GAP + (ix * (SQUARE_SIDE + 1)) + ((SQUARE_SIDE - DISK_R) / 2),
+							    BOARD_GAP + (iy * (SQUARE_SIDE + 1)) + ((SQUARE_SIDE - DISK_R) / 2),
+							    DISK_R,
+							    DISK_R);
+		switch (color) {
+		case BLACK:
+		    g2.draw(disc);
+		    g2.fill(disc);
+		    break;
+		case WHITE:
+		    g2.draw(disc);
+		    break;
+		case EMPTY: break;
+		case OUTER: throw new RuntimeException("Unsopported disc color: OUTER.");
+		}
+	    }
+	}
+
 
 
     }
@@ -167,12 +201,14 @@ public class TranscriptFrame extends JFrame {
     public static final int FRAME_H = (BOARD_GAP * 2) + BOARD_SIZE;
     public static final int FRAME_W = (BOARD_GAP * 2) + BOARD_SIZE;
 
+    private final Game game;
     private final JPanel board;
 
-    public TranscriptFrame() {
+    public TranscriptFrame(final Game game) {
 	super("Game Transcript");
+	this.game = game;
 	setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-	board = new BoardTranscriptPanel();
+	board = new BoardTranscriptPanel(game);
 	getContentPane().add(board);
         final BorderLayout layout = new BorderLayout();
 	final Dimension dim = new Dimension (FRAME_W, FRAME_H);
@@ -184,11 +220,4 @@ public class TranscriptFrame extends JFrame {
         pack();
     }
 
-    public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new  Runnable() {
-            public void run() {
-		new TranscriptFrame();
-            }
-        });
-    }
 }
