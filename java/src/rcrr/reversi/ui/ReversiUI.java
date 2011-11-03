@@ -691,7 +691,7 @@ public class ReversiUI {
 	/* Add the action listener to the Transcript command. */
 	jmiTranscript.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae) {
-		    new TranscriptFrame();
+		    new TranscriptFrame(game);
 		}
 	    });
 
