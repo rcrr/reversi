@@ -225,6 +225,7 @@ public class ReversiUI {
 	    @Override public void leave(final ReversiUI ui) {
 		super.leave(ui);
 		ui.activateMenuItem(ui.jmiNewGame);
+		ui.activateMenuItem(ui.jmiTranscript);
 		ui.setMessageLabel("Begin to play activating the Play menu.");
 	    }
 	},
@@ -397,6 +398,7 @@ public class ReversiUI {
     private JMenuItem jmiPlay;
     private JMenuItem jmiNewGame;
     private JMenuItem jmiPause;
+    private JMenuItem jmiTranscript;
 
     /** The command text field. */
     private JTextField commandTextField;
@@ -685,7 +687,8 @@ public class ReversiUI {
 	jmb.add(jmData);
 
 	/* Add the Transcript commnad to the Data menu. */
-	JMenuItem jmiTranscript = new JMenuItem("Transcript");
+	jmiTranscript = new JMenuItem("Transcript");
+	jmiTranscript.setEnabled(false);
 	jmData.add(jmiTranscript);
 
 	/* Add the action listener to the Transcript command. */
