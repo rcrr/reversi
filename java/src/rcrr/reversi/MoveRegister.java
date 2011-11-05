@@ -53,6 +53,9 @@ public final class MoveRegister {
      */
     public static final class Builder {
 
+        /** The player field. */
+	private Player player;
+
         /** The records field. */
         private List<MoveRecord> records;
 
@@ -61,6 +64,7 @@ public final class MoveRegister {
          */
         public Builder() {
             this.records = new ArrayList<MoveRecord>();
+            this.player = Player.AN_INSTANCE;
         }
 
         /**
@@ -69,8 +73,21 @@ public final class MoveRegister {
          * @return the move record instance as prepared by the current move record's builder
          */
         public synchronized MoveRegister build() {
-            return MoveRegister.valueOf(this.records);
+            return MoveRegister.valueOf(this.records, this.player);
         }
+
+        public synchronized Player getPlayer() {
+            return this.player;
+        }
+
+        private synchronized void setPlayer(final Player player) {
+            this.player = player;
+        }
+
+	public MoveRegister.Builder withPlayer(final Player player) {
+	    setPlayer(player);
+	    return this;
+	}
 
         /**
          * The method returns the records field.
@@ -127,14 +144,19 @@ public final class MoveRegister {
     /**
      * Returns an empty move register.
      *
+     * @param player the player field
+     *
      * @return a new empty move register
      */
-    public static MoveRegister empty() {
-        return new MoveRegister(new ArrayList<MoveRecord>());
+    public static MoveRegister empty(final Player player) {
+        return MoveRegister.valueOf(new ArrayList<MoveRecord>(), player);
     }
 
     /** The records field. */
     private final List<MoveRecord> records;
+
+    /** The player field. */
+    private final Player player;
 
     /**
      * Class constructor.
@@ -142,10 +164,12 @@ public final class MoveRegister {
      * Parameter {@code records} must be not null.
      *
      * @param records the register field
+     * @param player the player field
      */
-    private MoveRegister(final List<MoveRecord> records) {
+    private MoveRegister(final List<MoveRecord> records, final Player player) {
         assert (records != null) : "Parameter records cannot be null.";
         this.records = Collections.unmodifiableList(records);
+        this.player = player;
     }
 
     /**
@@ -162,6 +186,10 @@ public final class MoveRegister {
                                                 + "; size()=" + size() + ".");
         }
         return records.get(index);
+    }
+
+    public Player player() {
+	return this.player;
     }
 
     /**
@@ -194,9 +222,10 @@ public final class MoveRegister {
      */
     public MoveRegister push(final MoveRecord record) {
         if (record == null) { throw new NullPointerException("Parameter record cannot be null."); }
-        List<MoveRecord> transientRecords = new ArrayList<MoveRecord>(this.records);
+        if (this.player == null) { throw new NullPointerException("Push method cannot be invoked when field player is null."); }
+        final List<MoveRecord> transientRecords = new ArrayList<MoveRecord>(this.records);
         transientRecords.add(record);
-        return new MoveRegister(transientRecords);
+        return MoveRegister.valueOf(transientRecords, this.player);
     }
 
     /**
@@ -227,17 +256,22 @@ public final class MoveRegister {
      * Base static factory for the class.
      * <p>
      * Parameter {@code records} cannot be null.
+     * Parameter {@code player} cannot be null.
      *
      * @param records the list of move records
+     * @param player  the acting player
      * @return        a new move register
      * @throws NullPointerException when records parameter is null
      */
-    public static MoveRegister valueOf(final List<MoveRecord> records) {
+    public static MoveRegister valueOf(final List<MoveRecord> records, final Player player) {
         if (records == null) { throw new NullPointerException("Parameter records cannot be null."); }
+        if (player == null && !records.isEmpty()) {
+	    throw new NullPointerException("Parameter player cannot be null when records is not empty.");
+	}
         if (records.contains(NULL_MOVE_RECORD)) {
             throw new NullPointerException("Parameter records cannot contain null objects.");
         }
-        return new MoveRegister(new ArrayList<MoveRecord>(records));
+        return new MoveRegister(new ArrayList<MoveRecord>(records), player);
     }
 
 }

@@ -611,6 +611,9 @@ public class ReversiUI {
 	/* Create the menu bar. */
 	JMenuBar jmb = new JMenuBar();
 
+	/* Add the menu bar tothe main frame. */
+	mainFrame.setJMenuBar(jmb);
+
 	/* Create the Game menu, with the Exit commnad. */
 	JMenu jmGame = new JMenu("Game");
 	jmb.add(jmGame);
@@ -664,9 +667,6 @@ public class ReversiUI {
 		}
 	    });
 
-	/* Add the menu bar tothe main frame. */
-	mainFrame.setJMenuBar(jmb);
-
 	/* Create the Settings menu, with the Preferences commnad. */
 	JMenu jmSettings = new JMenu("Settings");
 	jmb.add(jmSettings);
@@ -694,7 +694,7 @@ public class ReversiUI {
 	/* Add the action listener to the Transcript command. */
 	jmiTranscript.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent ae) {
-		    new TranscriptFrame(game);
+		    new TranscriptFrame(ReversiUI.this);
 		}
 	    });
 
@@ -718,6 +718,10 @@ public class ReversiUI {
 	mainFrame.setLocationRelativeTo(null);
 	mainFrame.setVisible(true);
 
+    }
+
+    Game game() {
+	return this.game;
     }
 
     public static void main(String[] args) {
