@@ -24,7 +24,10 @@
 
 package rcrr.reversi;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.EnumMap;
 
 import java.io.PrintStream;
@@ -303,6 +306,22 @@ public final class Game {
         return lastGameSnapshot().board();
     }
 
+    public List<Map<String, Object>> moveTranscript() {
+	final List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+	final GameSequence seq = sequence();
+	for (int i = 0; i < seq.size(); i++) {
+	    final GameSnapshot snapshot = seq.get(i);
+	    final MoveRegister register = snapshot.register();
+	    if (!register.isEmpty()) {
+		final Map <String, Object> map = new HashMap<String, Object>();
+		map.put("move:", register.last().move());
+		map.put("player:", register.player());
+		result.add(map);
+	    }
+	}
+	return result;
+    }
+
     /**
      * Returns the game position of the last game snapshot.
      *
@@ -363,7 +382,7 @@ public final class Game {
      * @return the move
      */
     public Move move() {
-        return move(MoveRegister.empty());
+        return move(MoveRegister.empty(player()));
     }
 
     /**
