@@ -76,7 +76,7 @@ public final class MoveRegisterFixtures {
     /**
      * An empty instance.
      */
-    public static final MoveRegister EMPTY = MoveRegister.empty();
+    public static final MoveRegister EMPTY = MoveRegister.empty(Player.AN_INSTANCE);
 
     /** Class constructor. */
     private MoveRegisterFixtures() { }

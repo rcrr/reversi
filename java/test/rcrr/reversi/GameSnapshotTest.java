@@ -376,7 +376,7 @@ public class GameSnapshotTest {
     public final void testPrintGameSnapshot() {
         GamePosition gp = GamePosition.initialGamePosition();
         Clock c = Clock.initialClock(Period.minutes(30).toStandardDuration());
-        MoveRegister reg = MoveRegister.empty();
+        MoveRegister reg = MoveRegister.empty(Player.NULL);
         GameSnapshot gs = GameSnapshot.valueOf(gp, c, reg);
         StringBuilder initialGameSnapshot = new StringBuilder();
         initialGameSnapshot.append("[EMPTY MoveRegister]\n");

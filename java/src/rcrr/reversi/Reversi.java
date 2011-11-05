@@ -300,7 +300,7 @@ public final class Reversi {
                           .withSnapshots(new GameSnapshot.Builder()
                                          .withClock(Clock.initialClock(gameDuration))
                                          .withPosition(Game.randomGame(numberOfRandomMoves).position())
-                                         .withRegister(MoveRegister.empty())
+                                         .withRegister(MoveRegister.empty(Player.NULL))
                                          .build())
                           .build());
     }

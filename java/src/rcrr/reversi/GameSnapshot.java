@@ -203,7 +203,7 @@ public final class GameSnapshot {
      */
     public static GameSnapshot initialGameSnapshot(final Duration gameDuration) {
         if (gameDuration == null) { throw new NullPointerException("Parameter gameDuration cannot be null."); }
-        return valueOf(GamePosition.initialGamePosition(), Clock.initialClock(gameDuration), MoveRegister.empty());
+        return valueOf(GamePosition.initialGamePosition(), Clock.initialClock(gameDuration), MoveRegister.empty(Player.NULL));
     }
 
     /**

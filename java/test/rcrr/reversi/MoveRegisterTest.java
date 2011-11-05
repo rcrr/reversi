@@ -196,7 +196,7 @@ public class MoveRegisterTest {
     @Test
     public final void testEmpty() {
         assertThat("MoveRegister.empty() must return an instance of MoveRegister class.",
-                   MoveRegister.empty(), instanceOf(MoveRegister.class));
+                   MoveRegister.empty(Player.AN_INSTANCE), instanceOf(MoveRegister.class));
     }
 
     /**
@@ -207,7 +207,7 @@ public class MoveRegisterTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testValueOf_boundaryConditions_nullParameter() {
-        MoveRegister.valueOf(NULL_RECORDS);
+        MoveRegister.valueOf(NULL_RECORDS, Player.AN_INSTANCE);
     }
 
     /**
@@ -222,7 +222,7 @@ public class MoveRegisterTest {
         records.add(MoveRecordFixtures.AN_INSTANCE);
         assertThat("MoveRegister.valueOf(records)"
                    + " must return an instance of MoveRegister class.",
-                   MoveRegister.valueOf(records),
+                   MoveRegister.valueOf(records, Player.AN_INSTANCE),
                    instanceOf(MoveRegister.class));
     }
 
@@ -239,7 +239,7 @@ public class MoveRegisterTest {
 
         final List<MoveRecord> changeable = new ArrayList<MoveRecord>();
         changeable.add(MoveRecordFixtures.R00);
-        final MoveRegister instance = MoveRegister.valueOf(changeable);
+        final MoveRegister instance = MoveRegister.valueOf(changeable, Player.AN_INSTANCE);
         changeable.add(MoveRecordFixtures.R01);
 
         assertThat("The move register instance must be not affected by a"
