@@ -189,9 +189,9 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests the {@code empty()} factory.
+     * Tests the {@code empty(Player)} factory.
      *
-     * @see MoveRegister#empty()
+     * @see MoveRegister#empty(Player)
      */
     @Test
     public final void testEmpty() {
@@ -200,10 +200,10 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests the {@code valueOf(List<MoveRecord>)} factory when
+     * Tests the {@code valueOf(List<MoveRecord>, Player)} factory when
      * parameter {@code register} is {@code null}.
      *
-     * @see MoveRegister#valueOf(List)
+     * @see MoveRegister#valueOf(List, Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testValueOf_boundaryConditions_nullParameter() {
@@ -211,10 +211,10 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Tests the {@code valueOf(List<MoveRecord>)} factory.
+     * Tests the {@code valueOf(List<MoveRecord>, Player)} factory.
      * It tests if the factory returns an instance of {@code MoveRegister}.
      *
-     * @see MoveRegister#valueOf(List)
+     * @see MoveRegister#valueOf(List, Player)
      */
     @Test
     public final void testValueOf() {
@@ -227,12 +227,12 @@ public class MoveRegisterTest {
     }
 
     /**
-     * Test the {@code valueOf(List<MoveRecord>)} factory.
+     * Test the {@code valueOf(List<MoveRecord>, Player)} factory.
      * <p>
      * The factory receives the register parameter, and any further change to it
      * must not be reflected to the returned move register instance.
      *
-     * @see MoveRegister#valueOf(List)
+     * @see MoveRegister#valueOf(List, Player)
      */
     @Test
     public final void testValueOf_registerMustBeUnchangeable() {
