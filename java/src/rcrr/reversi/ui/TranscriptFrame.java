@@ -168,8 +168,8 @@ public class TranscriptFrame extends JFrame {
 	    List<Map<String, Object>> turnes = game.moveTranscript();
 	    int index = 0;
 	    for (Map<String, Object> turn : turnes) {
-		final Move move = (Move) turn.get("move:");
-		final Player player = (Player) turn.get("player:");
+		final Move move = (Move) turn.get(":move");
+		final Player player = (Player) turn.get(":player");
 		switch (move.action()) {
 		case PUT_DISC:
 		    index++;
