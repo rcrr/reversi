@@ -307,14 +307,14 @@ public enum Square {
         LABELS = Collections.unmodifiableMap(labelMap);
         INVERSE_LABELS = Collections.unmodifiableMap(inverseLabelMap);
 
-	final Map<Square, Square> cornerToXSquareMap = new EnumMap<Square, Square>(Square.class);
-	final Map<Square, Square> xSquareToCornerMap = new EnumMap<Square, Square>(Square.class);
-	for (int idx = 0; idx < CORNERS.size(); idx++) {
-	    cornerToXSquareMap.put(CORNERS.get(idx), X_SQUARES.get(idx));
-	    xSquareToCornerMap.put(X_SQUARES.get(idx), CORNERS.get(idx));
-	}
-	CORNER_TO_X_SQUARE_MAP = Collections.unmodifiableMap(cornerToXSquareMap);
-	X_SQUARE_TO_CORNER_MAP = Collections.unmodifiableMap(xSquareToCornerMap);
+        final Map<Square, Square> cornerToXSquareMap = new EnumMap<Square, Square>(Square.class);
+        final Map<Square, Square> xSquareToCornerMap = new EnumMap<Square, Square>(Square.class);
+        for (int idx = 0; idx < CORNERS.size(); idx++) {
+            cornerToXSquareMap.put(CORNERS.get(idx), X_SQUARES.get(idx));
+            xSquareToCornerMap.put(X_SQUARES.get(idx), CORNERS.get(idx));
+        }
+        CORNER_TO_X_SQUARE_MAP = Collections.unmodifiableMap(cornerToXSquareMap);
+        X_SQUARE_TO_CORNER_MAP = Collections.unmodifiableMap(xSquareToCornerMap);
     }
 
     /**
@@ -469,7 +469,7 @@ public enum Square {
      * @return true or false if the square is either an X square or not
      */
     public boolean isXSquare() {
-	return X_SQUARES.contains(this);
+        return X_SQUARES.contains(this);
     }
 
     /**
@@ -478,7 +478,7 @@ public enum Square {
      * @return the associated corner, or null when the square is not an x-square
      */
     public Square cornerFor() {
-	return X_SQUARE_TO_CORNER_MAP.get(this);
+        return X_SQUARE_TO_CORNER_MAP.get(this);
     }
 
     /**
@@ -487,7 +487,7 @@ public enum Square {
      * @return the associated x-square, or null when the square is not a corner
      */
     public Square xSquareFor() {
-	return CORNER_TO_X_SQUARE_MAP.get(this);
+        return CORNER_TO_X_SQUARE_MAP.get(this);
     }
 
     /**

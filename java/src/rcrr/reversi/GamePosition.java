@@ -225,8 +225,8 @@ public final class GamePosition {
         if (object == this) { return true; }
         if (!(object instanceof GamePosition)) { return false; }
         final GamePosition position = (GamePosition) object;
-	if (player() != position.player()) { return false; }
-	if (!board().equals(position.board())) { return false; }
+        if (player() != position.player()) { return false; }
+        if (!board().equals(position.board())) { return false; }
         return true;
     }
 
@@ -239,8 +239,8 @@ public final class GamePosition {
     public int hashCode() {
         if (hashCode == 0) {
             int result = PRIME_NUMBER_17;
-	    result = PRIME_NUMBER_31 * result + board().hashCode();
-	    result = PRIME_NUMBER_31 * result + player().hashCode();
+            result = PRIME_NUMBER_31 * result + board().hashCode();
+            result = PRIME_NUMBER_31 * result + player().hashCode();
             hashCode = result;
         }
         return hashCode;

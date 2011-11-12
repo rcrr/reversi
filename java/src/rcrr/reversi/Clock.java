@@ -107,6 +107,7 @@ public final class Clock {
      */
     public static final class Builder {
 
+        /** A generic duration. */
         private static final Duration A_DURATION = Period.minutes(1).toStandardDuration();
 
         /** The durations field. */
