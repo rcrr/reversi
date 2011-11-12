@@ -59,7 +59,7 @@ public final class AlphaBeta extends AbstractDecisionRule {
     public SearchNode search(final GamePosition position,
                              final int ply,
                              final EvalFunction ef) {
-	return searchImpl(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
+        return searchImpl(position.player(), position.board(), LOSING_VALUE, WINNING_VALUE, ply, ef);
     }
 
     /**
@@ -74,11 +74,11 @@ public final class AlphaBeta extends AbstractDecisionRule {
      * @return a new search node
      */
     private SearchNode searchImpl(final Player player,
-				  final Board board,
-				  final int achievable,
-				  final int cutoff,
-				  final int ply,
-				  final EvalFunction ef) {
+                                  final Board board,
+                                  final int achievable,
+                                  final int cutoff,
+                                  final int ply,
+                                  final EvalFunction ef) {
         SearchNode node;
         final Player opponent = player.opponent();
         if (ply == 0) {
