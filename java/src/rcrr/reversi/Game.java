@@ -235,7 +235,7 @@ public final class Game {
      * @throws IllegalArgumentException when the numberOfRandomPutDiscMoves is out of range
      */
     public static Game randomGame(final long numberOfRandomPutDiscMoves) {
-        if(numberOfRandomPutDiscMoves < 0 || numberOfRandomPutDiscMoves > MAX_PUT_DISC_MOVES) {
+        if (numberOfRandomPutDiscMoves < 0 || numberOfRandomPutDiscMoves > MAX_PUT_DISC_MOVES) {
             throw new IllegalArgumentException("Parameter numberOfRandomPutDiscMoves must be non negative,"
                                                + " and must be less than sixty. Got a value of: "
                                                + numberOfRandomPutDiscMoves);
@@ -244,7 +244,7 @@ public final class Game {
                                             Actor.valueOf("White Actor", new RandomStrategy()),
                                             Period.minutes(1).toStandardDuration(),
                                             new NullPrintStream());
-        while(MAX_PUT_DISC_MOVES - randomGame.board().countPieces(SquareState.EMPTY) < numberOfRandomPutDiscMoves) {
+        while (MAX_PUT_DISC_MOVES - randomGame.board().countPieces(SquareState.EMPTY) < numberOfRandomPutDiscMoves) {
             if (randomGame.areThereAvailableMoves()) {
                 randomGame.move();
             } else {
@@ -306,20 +306,34 @@ public final class Game {
         return lastGameSnapshot().board();
     }
 
+    /**
+     * Returns the move transcript of the game.
+     * <p>
+     * The form of the transcript is a list where the elements
+     * are a map having as the set of key specific string keywords and
+     * as values the respective objects. The entries are:
+     * <ul>
+     *   <li>Key {@code :move} that identify an object of type {@code Move}</li>
+     *   <li>Key {@code :player} that identify an object of type {@code Player}</li>
+     * </ul>
+     * <p>
+     *
+     * @return the move transcript of the game
+     */
     public List<Map<String, Object>> moveTranscript() {
-	final List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
-	final GameSequence seq = sequence();
-	for (int i = 0; i < seq.size(); i++) {
-	    final GameSnapshot snapshot = seq.get(i);
-	    final MoveRegister register = snapshot.register();
-	    if (!register.isEmpty()) {
-		final Map <String, Object> map = new HashMap<String, Object>();
-		map.put("move:", register.last().move());
-		map.put("player:", register.player());
-		result.add(map);
-	    }
-	}
-	return result;
+        final List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        final GameSequence seq = sequence();
+        for (int i = 0; i < seq.size(); i++) {
+            final GameSnapshot snapshot = seq.get(i);
+            final MoveRegister register = snapshot.register();
+            if (!register.isEmpty()) {
+                final Map<String, Object> map = new HashMap<String, Object>();
+                map.put(":move", register.last().move());
+                map.put(":player", register.player());
+                result.add(map);
+            }
+        }
+        return result;
     }
 
     /**
