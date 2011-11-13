@@ -42,15 +42,15 @@ public final class IagoStrategy implements Strategy {
     private final Strategy iago;
 
     public IagoStrategy() {
-	this(DEFAULT_DEPTH);
+        this(DEFAULT_DEPTH);
     }
 
     public IagoStrategy(final int depth) {
-	this.iago = AlphaBeta3.getInstance().searcher(depth, IAGO_EVAL_FUNCTION);
+        this.iago = AlphaBeta3.getInstance().searcher(depth, IAGO_EVAL_FUNCTION);
     }
 
     public Move move(final GameSnapshot gameSnapshot) {
-	return iago.move(gameSnapshot);
+        return iago.move(gameSnapshot);
     }
 
 }

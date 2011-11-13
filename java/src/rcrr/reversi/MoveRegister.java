@@ -54,7 +54,7 @@ public final class MoveRegister {
     public static final class Builder {
 
         /** The player field. */
-	private Player player;
+        private Player player;
 
         /** The records field. */
         private List<MoveRecord> records;
@@ -84,10 +84,10 @@ public final class MoveRegister {
             this.player = player;
         }
 
-	public MoveRegister.Builder withPlayer(final Player player) {
-	    setPlayer(player);
-	    return this;
-	}
+        public MoveRegister.Builder withPlayer(final Player player) {
+            setPlayer(player);
+            return this;
+        }
 
         /**
          * The method returns the records field.
@@ -189,7 +189,7 @@ public final class MoveRegister {
     }
 
     public Player player() {
-	return this.player;
+        return this.player;
     }
 
     /**
@@ -266,8 +266,8 @@ public final class MoveRegister {
     public static MoveRegister valueOf(final List<MoveRecord> records, final Player player) {
         if (records == null) { throw new NullPointerException("Parameter records cannot be null."); }
         if (player == null && !records.isEmpty()) {
-	    throw new NullPointerException("Parameter player cannot be null when records is not empty.");
-	}
+            throw new NullPointerException("Parameter player cannot be null when records is not empty.");
+        }
         if (records.contains(NULL_MOVE_RECORD)) {
             throw new NullPointerException("Parameter records cannot contain null objects.");
         }

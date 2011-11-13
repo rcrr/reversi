@@ -42,53 +42,53 @@ import java.util.List;
 public final class AlphaBeta3 extends AbstractDecisionRule {
 
     private static final class MoveData {
-	private final int value;
-	private final GamePosition position;
-	MoveData(final GamePosition position, final int value) {
-	    this.value = value;
-	    this.position = position;
-	}
-	final GamePosition position() { return this.position; }
-	final int value() { return this.value; }
+        private final int value;
+        private final GamePosition position;
+        MoveData(final GamePosition position, final int value) {
+            this.value = value;
+            this.position = position;
+        }
+        final GamePosition position() { return this.position; }
+        final int value() { return this.value; }
     }
 
     private static final class ValueComparator<Square> implements Comparator<Square> {
-	private final Map<Square, MoveData> values;
-	ValueComparator(final Map<Square, MoveData> values) {
-	    this.values = values;
-	}
-	@SuppressWarnings(value = "unchecked")
-	public int compare(final Object object1,
-			   final Object object2) {
-	    if (object1 == object2) { return 0; }
-	    rcrr.reversi.Square sq0 = (rcrr.reversi.Square) object1;
-	    rcrr.reversi.Square sq1 = (rcrr.reversi.Square) object2;
-	    final int v0 = values.get(sq0).value();
-	    final int v1 = values.get(sq1).value();
-	    if (v0 == v1) {
-		final int ordinalSq0 = sq0.ordinal();
-		final int ordinalSq1 = sq1.ordinal();
-		return (ordinalSq0 > ordinalSq1) ? -1: +1;
-	    }
-	    if (v0 > v1) {
-		return -1;
-	    } else {
-		return +1;
-	    }
-	}
+        private final Map<Square, MoveData> values;
+        ValueComparator(final Map<Square, MoveData> values) {
+            this.values = values;
+        }
+        @SuppressWarnings(value = "unchecked")
+        public int compare(final Object object1,
+                           final Object object2) {
+            if (object1 == object2) { return 0; }
+            rcrr.reversi.Square sq0 = (rcrr.reversi.Square) object1;
+            rcrr.reversi.Square sq1 = (rcrr.reversi.Square) object2;
+            final int v0 = values.get(sq0).value();
+            final int v1 = values.get(sq1).value();
+            if (v0 == v1) {
+                final int ordinalSq0 = sq0.ordinal();
+                final int ordinalSq1 = sq1.ordinal();
+                return (ordinalSq0 > ordinalSq1) ? -1: +1;
+            }
+            if (v0 > v1) {
+                return -1;
+            } else {
+                return +1;
+            }
+        }
     }
 
     private final SortedMap<Square, MoveData> dynamicSortedLegalMoves(final Player player, final Board board, final EvalFunction ef) {
-	final List<Square> moves = board.legalMoves(player);
-	final Map<Square, MoveData> values = new HashMap<Square, MoveData>();
-	for (Square move : moves) {
-	    final GamePosition position = GamePosition.valueOf(board.makeMove(move, player), player.opponent());
-	    final MoveData data = new MoveData(position, - ef.eval(position));
-	    values.put(move, data);
-	}
-	final SortedMap<Square, MoveData> results = new TreeMap<Square, MoveData>(new ValueComparator<Square>(values));
-	results.putAll(values);
-	return results;
+        final List<Square> moves = board.legalMoves(player);
+        final Map<Square, MoveData> values = new HashMap<Square, MoveData>();
+        for (Square move : moves) {
+            final GamePosition position = GamePosition.valueOf(board.makeMove(move, player), player.opponent());
+            final MoveData data = new MoveData(position, - ef.eval(position));
+            values.put(move, data);
+        }
+        final SortedMap<Square, MoveData> results = new TreeMap<Square, MoveData>(new ValueComparator<Square>(values));
+        results.putAll(values);
+        return results;
     }
 
     /**
@@ -114,7 +114,7 @@ public final class AlphaBeta3 extends AbstractDecisionRule {
     public SearchNode search(final GamePosition position,
                              final int ply,
                              final EvalFunction ef) {
-	return multiLevelOrderingSearch(position, LOSING_VALUE, WINNING_VALUE, ply, ef, 0);
+        return multiLevelOrderingSearch(position, LOSING_VALUE, WINNING_VALUE, ply, ef, 0);
     }
 
 
@@ -131,11 +131,11 @@ public final class AlphaBeta3 extends AbstractDecisionRule {
      * @return a new search node
      */
     private SearchNode multiLevelOrderingSearch(final GamePosition position,
-						final int achievable,
-						final int cutoff,
-						final int ply,
-						final EvalFunction ef,
-						final int efNodeValue) {
+                                                final int achievable,
+                                                final int cutoff,
+                                                final int ply,
+                                                final EvalFunction ef,
+                                                final int efNodeValue) {
         SearchNode node;
         final Board board = position.board();
         final Player player = position.player();
@@ -143,11 +143,11 @@ public final class AlphaBeta3 extends AbstractDecisionRule {
         if (ply == 0) {
             node = SearchNode.valueOf(null, efNodeValue);
         } else {
-	    SortedMap<Square, MoveData> moves = dynamicSortedLegalMoves(player, board, ef);
+            SortedMap<Square, MoveData> moves = dynamicSortedLegalMoves(player, board, ef);
             if (moves.isEmpty()) {
                 if (board.hasAnyLegalMove(opponent)) {
                     node = multiLevelOrderingSearch(GamePosition.valueOf(board, opponent),
-						    -cutoff, -achievable, ply - 1, ef, -efNodeValue).negated();
+                                                    -cutoff, -achievable, ply - 1, ef, -efNodeValue).negated();
                 } else {
                     node = SearchNode.valueOf(null, finalValue(board, player));
                 }
@@ -155,11 +155,11 @@ public final class AlphaBeta3 extends AbstractDecisionRule {
                 node = SearchNode.valueOf(moves.firstKey(), achievable);
                 outer: for (Square move : moves.keySet()) {
                     int val = multiLevelOrderingSearch(moves.get(move).position(),
-						       -cutoff, -node.value(),
-						       ply - 1,
-						       ef,
-						       - moves.get(move).value())
-			.negated().value();
+                                                       -cutoff, -node.value(),
+                                                       ply - 1,
+                                                       ef,
+                                                       - moves.get(move).value())
+                        .negated().value();
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
@@ -169,7 +169,5 @@ public final class AlphaBeta3 extends AbstractDecisionRule {
         }
         return node;
     }
-
-
 
 }
