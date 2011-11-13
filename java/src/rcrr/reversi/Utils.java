@@ -32,9 +32,9 @@ import java.io.BufferedInputStream;
 /**
  * The class is a container for static utility methods.
  */
-public class Utils {
+public final class Utils {
 
-    public static final String[] readInputStreamAsStringArray(final String resource) {
+    public static String[] readInputStreamAsStringArray(final String resource) {
         InputStream in = new Iago().getClass().getClassLoader().getResourceAsStream(resource);
         if (in == null) {
             throw new RuntimeException("Resource \"" + resource + "\" cannot be found.");
@@ -44,8 +44,8 @@ public class Utils {
         try {
             buf = new ByteArrayOutputStream();
             int result = bis.read();
-            while(result != -1) {
-                byte b = (byte)result;
+            while (result != -1) {
+                byte b = (byte) result;
                 buf.write(b);
                 result = bis.read();
             }
@@ -58,6 +58,6 @@ public class Utils {
     /**
      * Class constructor.
      */
-    public Utils() { }
+    private Utils() { }
 
 }
