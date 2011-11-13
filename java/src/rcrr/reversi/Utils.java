@@ -35,24 +35,24 @@ import java.io.BufferedInputStream;
 public class Utils {
 
     public static final String[] readInputStreamAsStringArray(final String resource) {
-	InputStream in = new Iago().getClass().getClassLoader().getResourceAsStream(resource);
-	if (in == null) {
-	    throw new RuntimeException("Resource \"" + resource + "\" cannot be found.");
-	}
-	ByteArrayOutputStream buf;
-	BufferedInputStream bis = new BufferedInputStream(in);
-	try {
-	    buf = new ByteArrayOutputStream();
-	    int result = bis.read();
-	    while(result != -1) {
-		byte b = (byte)result;
-		buf.write(b);
-		result = bis.read();
-	    }
-	} catch (IOException ioe) {
-	    throw new RuntimeException(ioe);
-	}
-	return buf.toString().split("\\n");
+        InputStream in = new Iago().getClass().getClassLoader().getResourceAsStream(resource);
+        if (in == null) {
+            throw new RuntimeException("Resource \"" + resource + "\" cannot be found.");
+        }
+        ByteArrayOutputStream buf;
+        BufferedInputStream bis = new BufferedInputStream(in);
+        try {
+            buf = new ByteArrayOutputStream();
+            int result = bis.read();
+            while(result != -1) {
+                byte b = (byte)result;
+                buf.write(b);
+                result = bis.read();
+            }
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+        return buf.toString().split("\\n");
     }
 
     /**

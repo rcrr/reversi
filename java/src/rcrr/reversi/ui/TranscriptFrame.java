@@ -70,189 +70,189 @@ public class TranscriptFrame extends JFrame {
 
     private final class BoardTranscriptPanel extends JPanel {
 
-	private final Game game;
+        private final Game game;
 
-	public BoardTranscriptPanel(final Game game) {
-	    this.game = game;
-	}
+        public BoardTranscriptPanel(final Game game) {
+            this.game = game;
+        }
 
-	@Override public void  paint(Graphics g) {
-	    super.paint(g);
-	    final Graphics2D g2 = (Graphics2D) g;
-	    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
-	    g2.setRenderingHint(RenderingHints.KEY_RENDERING,
-				RenderingHints.VALUE_RENDER_QUALITY);
+        @Override public void  paint(Graphics g) {
+            super.paint(g);
+            final Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+                                RenderingHints.VALUE_RENDER_QUALITY);
 
-	    drawBoardFrame(g2);
-	    drawBoardVerticalLines(g2);
-	    drawBoardHorizontalLines(g2);
-	    drawBoardDots(g2);
-	    drawBoardLabels(g2);
+            drawBoardFrame(g2);
+            drawBoardVerticalLines(g2);
+            drawBoardHorizontalLines(g2);
+            drawBoardDots(g2);
+            drawBoardLabels(g2);
 
-	    //drawGamePosition(g2);
-	    drawGameTranscript(g2);
+            //drawGamePosition(g2);
+            drawGameTranscript(g2);
 
-	}
+        }
 
-	private void drawBoardFrame(final Graphics2D g2) {
-	    for (int i=0; i<3; i++) {
-		final Rectangle2D rectangle = new Rectangle2D.Double(BOARD_GAP - i,
-								     BOARD_GAP - i,
-								     BOARD_SIZE + (2 * i),
-								     BOARD_SIZE + (2 * i));
-		g2.draw(rectangle);
-	    }
-	}
+        private void drawBoardFrame(final Graphics2D g2) {
+            for (int i=0; i<3; i++) {
+                final Rectangle2D rectangle = new Rectangle2D.Double(BOARD_GAP - i,
+                                                                     BOARD_GAP - i,
+                                                                     BOARD_SIZE + (2 * i),
+                                                                     BOARD_SIZE + (2 * i));
+                g2.draw(rectangle);
+            }
+        }
 
-	private void drawBoardVerticalLines(final Graphics2D g2) {
-	    for (int i=1; i<8; i++) {
-		final Line2D line = new Line2D.Double(BOARD_GAP + (i * (SQUARE_SIDE + 1)),
-						      BOARD_GAP,
-						      BOARD_GAP + (i * (SQUARE_SIDE + 1)),
-						      BOARD_GAP + BOARD_SIZE);
-		g2.draw(line);
-	    }
-	}
+        private void drawBoardVerticalLines(final Graphics2D g2) {
+            for (int i=1; i<8; i++) {
+                final Line2D line = new Line2D.Double(BOARD_GAP + (i * (SQUARE_SIDE + 1)),
+                                                      BOARD_GAP,
+                                                      BOARD_GAP + (i * (SQUARE_SIDE + 1)),
+                                                      BOARD_GAP + BOARD_SIZE);
+                g2.draw(line);
+            }
+        }
 
-	private void drawBoardHorizontalLines(final Graphics2D g2) {
-	    for (int i=1; i<8; i++) {
-		final Line2D line = new Line2D.Double(BOARD_GAP,
-						      BOARD_GAP + (i * (SQUARE_SIDE + 1)),
-						      BOARD_GAP + BOARD_SIZE,
-						      BOARD_GAP + (i * (SQUARE_SIDE + 1)));
-		g2.draw(line);
-	    }
-	}
+        private void drawBoardHorizontalLines(final Graphics2D g2) {
+            for (int i=1; i<8; i++) {
+                final Line2D line = new Line2D.Double(BOARD_GAP,
+                                                      BOARD_GAP + (i * (SQUARE_SIDE + 1)),
+                                                      BOARD_GAP + BOARD_SIZE,
+                                                      BOARD_GAP + (i * (SQUARE_SIDE + 1)));
+                g2.draw(line);
+            }
+        }
 
-	private void drawBoardDots(final Graphics2D g2) {
-	    final float dia = (float) (1. * DOT_DIA);
-	    final int dotP1 = BOARD_GAP + (2 * (SQUARE_SIDE + 1));
-	    final int dotP2 = BOARD_GAP + (6 * (SQUARE_SIDE + 1));
-	    final List<Point> dots = Arrays.asList(new Point(dotP1, dotP1),
-						   new Point(dotP1, dotP2),
-						   new Point(dotP2, dotP2),
-						   new Point(dotP2, dotP1));
-	    for (final Point c : dots) {
-		final Ellipse2D dot = new Ellipse2D.Double((float) (c.getX() - .5 * dia),
-							   (float) (c.getY() - .5 * dia),
-							   (float) dia,
-							   (float) dia);
-		g2.draw(dot);
-		g2.fill(dot);
-	    }
-	}
+        private void drawBoardDots(final Graphics2D g2) {
+            final float dia = (float) (1. * DOT_DIA);
+            final int dotP1 = BOARD_GAP + (2 * (SQUARE_SIDE + 1));
+            final int dotP2 = BOARD_GAP + (6 * (SQUARE_SIDE + 1));
+            final List<Point> dots = Arrays.asList(new Point(dotP1, dotP1),
+                                                   new Point(dotP1, dotP2),
+                                                   new Point(dotP2, dotP2),
+                                                   new Point(dotP2, dotP1));
+            for (final Point c : dots) {
+                final Ellipse2D dot = new Ellipse2D.Double((float) (c.getX() - .5 * dia),
+                                                           (float) (c.getY() - .5 * dia),
+                                                           (float) dia,
+                                                           (float) dia);
+                g2.draw(dot);
+                g2.fill(dot);
+            }
+        }
 
-	private void drawBoardLabels(final Graphics2D g2) {
-	    g2.setColor(LABEL_TEXT_COLOR);
-	    for (String label : COL_LABELS) {
-		final int ix1 = 1 + COL_LABELS.indexOf(label);
-		final FontRenderContext frc = g2.getFontRenderContext();
-		final TextLayout tl = new TextLayout(label, L_FONT, frc);
-		final double x = BOARD_GAP - 0.25 * L_FONT_SIZE + ((ix1 - 0.5) * (LINE_THICKNESS + SQUARE_SIDE));
-		final double y = .75 * BOARD_GAP;
-		tl.draw(g2, (float) x, (float) y);
-	    }
-	    for (String label : ROW_LABELS) {
-		final int iy1 = 1 + ROW_LABELS.indexOf(label);
-		final FontRenderContext frc = g2.getFontRenderContext();
-		final TextLayout tl = new TextLayout(label, L_FONT, frc);
-		final double x = .5 * BOARD_GAP;
-		final double y = BOARD_GAP + 0.20 * L_FONT_SIZE + ((iy1 - 0.5) * (LINE_THICKNESS + SQUARE_SIDE));
-		tl.draw(g2, (float) x, (float) y);
-	    }
-	}
+        private void drawBoardLabels(final Graphics2D g2) {
+            g2.setColor(LABEL_TEXT_COLOR);
+            for (String label : COL_LABELS) {
+                final int ix1 = 1 + COL_LABELS.indexOf(label);
+                final FontRenderContext frc = g2.getFontRenderContext();
+                final TextLayout tl = new TextLayout(label, L_FONT, frc);
+                final double x = BOARD_GAP - 0.25 * L_FONT_SIZE + ((ix1 - 0.5) * (LINE_THICKNESS + SQUARE_SIDE));
+                final double y = .75 * BOARD_GAP;
+                tl.draw(g2, (float) x, (float) y);
+            }
+            for (String label : ROW_LABELS) {
+                final int iy1 = 1 + ROW_LABELS.indexOf(label);
+                final FontRenderContext frc = g2.getFontRenderContext();
+                final TextLayout tl = new TextLayout(label, L_FONT, frc);
+                final double x = .5 * BOARD_GAP;
+                final double y = BOARD_GAP + 0.20 * L_FONT_SIZE + ((iy1 - 0.5) * (LINE_THICKNESS + SQUARE_SIDE));
+                tl.draw(g2, (float) x, (float) y);
+            }
+        }
 
-	private void drawGameTranscript(final Graphics2D g2) {
-	    drawFourInitialDiscs(g2);
-	    List<Map<String, Object>> turnes = game.moveTranscript();
-	    int index = 0;
-	    for (Map<String, Object> turn : turnes) {
-		final Move move = (Move) turn.get(":move");
-		final Player player = (Player) turn.get(":player");
-		switch (move.action()) {
-		case PUT_DISC:
-		    index++;
-		    drawMoveTranscription(g2, player, move.square(), index);
-		    break;
-		case PASS:
-		    break;
-		case RESIGN:
-		    break;
-		}
-	    }
-	}
+        private void drawGameTranscript(final Graphics2D g2) {
+            drawFourInitialDiscs(g2);
+            List<Map<String, Object>> turnes = game.moveTranscript();
+            int index = 0;
+            for (Map<String, Object> turn : turnes) {
+                final Move move = (Move) turn.get(":move");
+                final Player player = (Player) turn.get(":player");
+                switch (move.action()) {
+                case PUT_DISC:
+                    index++;
+                    drawMoveTranscription(g2, player, move.square(), index);
+                    break;
+                case PASS:
+                    break;
+                case RESIGN:
+                    break;
+                }
+            }
+        }
 
-	private void drawFourInitialDiscs(final Graphics2D g2) {
-	    drawDisc(g2, SquareState.WHITE, Square.D4);
-	    drawDisc(g2, SquareState.BLACK, Square.E4);
-	    drawDisc(g2, SquareState.BLACK, Square.D5);	
-	    drawDisc(g2, SquareState.WHITE, Square.E5);
-	}
+        private void drawFourInitialDiscs(final Graphics2D g2) {
+            drawDisc(g2, SquareState.WHITE, Square.D4);
+            drawDisc(g2, SquareState.BLACK, Square.E4);
+            drawDisc(g2, SquareState.BLACK, Square.D5); 
+            drawDisc(g2, SquareState.WHITE, Square.E5);
+        }
 
-	private void drawMoveTranscription(final Graphics2D g2, final Player player, final Square square, final int moveNumber) {
-	    drawDisc(g2, player.color(), square);
-	    drawMoveNumber(g2, square, moveNumber, player.color());
-	}
+        private void drawMoveTranscription(final Graphics2D g2, final Player player, final Square square, final int moveNumber) {
+            drawDisc(g2, player.color(), square);
+            drawMoveNumber(g2, square, moveNumber, player.color());
+        }
 
-	private void drawDisc(final Graphics2D g2, final SquareState color, final Square square) {
-	    final int ix = square.column().ordinal();
-	    final int iy = square.row().ordinal();
-	    final Ellipse2D disc = new Ellipse2D.Double(BOARD_GAP + (ix * (SQUARE_SIDE + 1)) + ((SQUARE_SIDE - DISK_R) / 2),
-							BOARD_GAP + (iy * (SQUARE_SIDE + 1)) + ((SQUARE_SIDE - DISK_R) / 2),
-							DISK_R,
-							DISK_R);
-	    switch (color) {
-	    case BLACK:
-		g2.draw(disc);
-		g2.fill(disc);
-		break;
-	    case WHITE:
-		g2.draw(disc);
-		break;
-	    case EMPTY: break;
-	    case OUTER: throw new RuntimeException("Unsopported disc color: OUTER.");
-	    }
-	}
+        private void drawDisc(final Graphics2D g2, final SquareState color, final Square square) {
+            final int ix = square.column().ordinal();
+            final int iy = square.row().ordinal();
+            final Ellipse2D disc = new Ellipse2D.Double(BOARD_GAP + (ix * (SQUARE_SIDE + 1)) + ((SQUARE_SIDE - DISK_R) / 2),
+                                                        BOARD_GAP + (iy * (SQUARE_SIDE + 1)) + ((SQUARE_SIDE - DISK_R) / 2),
+                                                        DISK_R,
+                                                        DISK_R);
+            switch (color) {
+            case BLACK:
+                g2.draw(disc);
+                g2.fill(disc);
+                break;
+            case WHITE:
+                g2.draw(disc);
+                break;
+            case EMPTY: break;
+            case OUTER: throw new RuntimeException("Unsopported disc color: OUTER.");
+            }
+        }
 
-	private void drawGamePosition(final Graphics2D g2) {
-	    for (Square square : Square.values()) {
-		final SquareState color = game.board().get(square);
-		drawDisc(g2, color, square);
-	    }
-	}
+        private void drawGamePosition(final Graphics2D g2) {
+            for (Square square : Square.values()) {
+                final SquareState color = game.board().get(square);
+                drawDisc(g2, color, square);
+            }
+        }
 
-	private void drawMoveNumber(final Graphics2D g2, final Square square, final int move, final SquareState color) {
-	    final String strMove = String.valueOf(move);
-	    final int nchar = strMove.length();
-	    final FontRenderContext frc = g2.getFontRenderContext();
-	    final TextLayout tl = new TextLayout(strMove, MOVE_FONT, frc);
-	    final int ix = square.column().ordinal();
-	    final int iy = square.row().ordinal();
-	    final double x = BOARD_GAP + ((ix - 0.74 + 1) * (LINE_THICKNESS + SQUARE_SIDE)) - (0.40 * (nchar - 2) * MOVE_FONT_SIZE);
-	    final double y = BOARD_GAP + ((iy - 0.45 + 1) * (LINE_THICKNESS + SQUARE_SIDE));
-	    final Color tmpColor = g2.getColor();
-	    if (color == SquareState.BLACK) {
-		g2.setColor(WHITE_COLOR);
-	    } else {
-		g2.setColor(BLACK_COLOR);
-	    }
-	    tl.draw(g2, (float) x, (float) y);
-	    g2.setColor(tmpColor);
-	}
+        private void drawMoveNumber(final Graphics2D g2, final Square square, final int move, final SquareState color) {
+            final String strMove = String.valueOf(move);
+            final int nchar = strMove.length();
+            final FontRenderContext frc = g2.getFontRenderContext();
+            final TextLayout tl = new TextLayout(strMove, MOVE_FONT, frc);
+            final int ix = square.column().ordinal();
+            final int iy = square.row().ordinal();
+            final double x = BOARD_GAP + ((ix - 0.74 + 1) * (LINE_THICKNESS + SQUARE_SIDE)) - (0.40 * (nchar - 2) * MOVE_FONT_SIZE);
+            final double y = BOARD_GAP + ((iy - 0.45 + 1) * (LINE_THICKNESS + SQUARE_SIDE));
+            final Color tmpColor = g2.getColor();
+            if (color == SquareState.BLACK) {
+                g2.setColor(WHITE_COLOR);
+            } else {
+                g2.setColor(BLACK_COLOR);
+            }
+            tl.draw(g2, (float) x, (float) y);
+            g2.setColor(tmpColor);
+        }
 
 
 
     }
 
     public void saveImage() {
-	final BufferedImage image = new BufferedImage(FRAME_H, FRAME_W, BufferedImage.TYPE_INT_RGB);
-	final Graphics2D imageGraphics2D = (Graphics2D)image.createGraphics();
-	board.paint(imageGraphics2D);
-	try {
-	    File f = new File("/home/rcrr/Desktop/game-transcript.png");
-	    ImageIO.write(image, "png", f);
-	} catch (IOException ioe) {System.out.println("IO error: " + ioe); System.exit(1);}
+        final BufferedImage image = new BufferedImage(FRAME_H, FRAME_W, BufferedImage.TYPE_INT_RGB);
+        final Graphics2D imageGraphics2D = (Graphics2D)image.createGraphics();
+        board.paint(imageGraphics2D);
+        try {
+            File f = new File("/home/rcrr/Desktop/game-transcript.png");
+            ImageIO.write(image, "png", f);
+        } catch (IOException ioe) {System.out.println("IO error: " + ioe); System.exit(1);}
     }
 
     public static final int DISK_R = 32;
@@ -288,64 +288,64 @@ public class TranscriptFrame extends JFrame {
     private final JPanel board;
 
     public TranscriptFrame(final ReversiUI ui) {
-	super("Game Transcript");
-	this.game = ui.game();
-	setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-	board = new BoardTranscriptPanel(game);
-	getContentPane().add(board);
+        super("Game Transcript");
+        this.game = ui.game();
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        board = new BoardTranscriptPanel(game);
+        getContentPane().add(board);
         final BorderLayout layout = new BorderLayout();
-	final Dimension dim = new Dimension (FRAME_W, FRAME_H);
-	board.setBackground(BG_COLOR);
-	board.setPreferredSize(dim);
+        final Dimension dim = new Dimension (FRAME_W, FRAME_H);
+        board.setBackground(BG_COLOR);
+        board.setPreferredSize(dim);
         board.setLayout(layout);
-	board.setOpaque(true);
+        board.setOpaque(true);
 
-	/* Create the menu bar. */
-	JMenuBar jmb = new JMenuBar();
+        /* Create the menu bar. */
+        JMenuBar jmb = new JMenuBar();
 
-	/* Add the menu bar to the frame. */
-	setJMenuBar(jmb);
+        /* Add the menu bar to the frame. */
+        setJMenuBar(jmb);
 
-	/* Create the File menu. */
-	JMenu jmFile = new JMenu("File");
-	jmb.add(jmFile);
+        /* Create the File menu. */
+        JMenu jmFile = new JMenu("File");
+        jmb.add(jmFile);
 
-	/* Add the Reload commnad to the File menu. */
-	JMenuItem jmiReload = new JMenuItem("Reload");
-	jmFile.add(jmiReload);
+        /* Add the Reload commnad to the File menu. */
+        JMenuItem jmiReload = new JMenuItem("Reload");
+        jmFile.add(jmiReload);
 
-	/* Add the action listener to the Reload command. */
-	jmiReload.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent ae) {
-		    TranscriptFrame.this.game = ui.game();
-		    repaint();
-		}
-	    });
+        /* Add the action listener to the Reload command. */
+        jmiReload.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent ae) {
+                    TranscriptFrame.this.game = ui.game();
+                    repaint();
+                }
+            });
 
-	/* Add the Save as commnad to the File menu. */
-	JMenuItem jmiSaveAs = new JMenuItem("Save As...");
-	jmFile.add(jmiSaveAs);
+        /* Add the Save as commnad to the File menu. */
+        JMenuItem jmiSaveAs = new JMenuItem("Save As...");
+        jmFile.add(jmiSaveAs);
 
-	/* Add the action listener to the Save As command. */
-	jmiSaveAs.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent ae) {
-		    saveImage();
-		}
-	    });
+        /* Add the action listener to the Save As command. */
+        jmiSaveAs.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent ae) {
+                    saveImage();
+                }
+            });
 
-	/* Add the Close commnad to the File menu. */
-	JMenuItem jmiClose = new JMenuItem("Close");
-	jmFile.add(new JSeparator());
-	jmFile.add(jmiClose);
+        /* Add the Close commnad to the File menu. */
+        JMenuItem jmiClose = new JMenuItem("Close");
+        jmFile.add(new JSeparator());
+        jmFile.add(jmiClose);
 
-	/* Add the action listener to the Close command. */
-	jmiClose.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent ae) {
-		    dispose();
-		}
-	    });
+        /* Add the action listener to the Close command. */
+        jmiClose.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent ae) {
+                    dispose();
+                }
+            });
 
-	setVisible(true);
+        setVisible(true);
         pack();
     }
 

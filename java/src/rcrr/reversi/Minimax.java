@@ -58,7 +58,7 @@ public final class Minimax extends AbstractDecisionRule {
     public SearchNode search(final GamePosition position,
                              final int ply,
                              final EvalFunction ef) {
-	return searchImpl(position.player(), position.board(), ply, ef);
+        return searchImpl(position.player(), position.board(), ply, ef);
     }
 
     /**
@@ -78,9 +78,9 @@ public final class Minimax extends AbstractDecisionRule {
      * @return           a node in the search tree
      */
     public SearchNode searchImpl(final Player player,
-				 final Board board,
-				 final int ply,
-				 final EvalFunction ef) {
+                                 final Board board,
+                                 final int ply,
+                                 final EvalFunction ef) {
         SearchNode node;
         final Player opponent = player.opponent();
         if (ply == 0) {
