@@ -76,14 +76,30 @@ public final class MoveRegister {
             return MoveRegister.valueOf(this.records, this.player);
         }
 
+        /**
+         * The method returns the player field.
+         *
+         * @return the player field
+         */
         public synchronized Player getPlayer() {
             return this.player;
         }
 
+        /**
+         * The method sets the {@code player} field.
+         *
+         * @param player the update value for the player field
+         */
         private synchronized void setPlayer(final Player player) {
             this.player = player;
         }
 
+        /**
+         * Returns the {@code this} reference after setting the new {@code player} field.
+         *
+         * @param player the player assigned to the move register
+         * @return       the {@code this} reference
+         */
         public MoveRegister.Builder withPlayer(final Player player) {
             setPlayer(player);
             return this;
@@ -188,6 +204,11 @@ public final class MoveRegister {
         return records.get(index);
     }
 
+    /**
+     * Returns the player field.
+     *
+     * @return the player field
+     */
     public Player player() {
         return this.player;
     }
@@ -202,9 +223,9 @@ public final class MoveRegister {
     }
 
     /**
-     * Returns the last move record registered.
+     * Returns the last registered move record.
      *
-     * @return the last move record registered
+     * @return the last registered move record
      */
     public MoveRecord last() {
         if (isEmpty()) { return null; }
@@ -219,10 +240,14 @@ public final class MoveRegister {
      *
      * @param record the move record to add as the last one to the register
      * @return       a new move register having the record added
+     * @throws NullPointerException  when record parameter is null
+     * @throws IllegalStateException when the player field is null
      */
     public MoveRegister push(final MoveRecord record) {
         if (record == null) { throw new NullPointerException("Parameter record cannot be null."); }
-        if (this.player == null) { throw new NullPointerException("Push method cannot be invoked when field player is null."); }
+        if (this.player == null) {
+            throw new IllegalStateException("Push method cannot be invoked when field player is null.");
+        }
         final List<MoveRecord> transientRecords = new ArrayList<MoveRecord>(this.records);
         transientRecords.add(record);
         return MoveRegister.valueOf(transientRecords, this.player);
@@ -255,21 +280,23 @@ public final class MoveRegister {
     /**
      * Base static factory for the class.
      * <p>
-     * Parameter {@code records} cannot be null.
-     * Parameter {@code player} cannot be null.
+     * Parameter {@code records} cannot be null, ant it cannot contains null references.
+     * Parameter {@code player} cannot be null, if parameters records is not empty.
      *
      * @param records the list of move records
      * @param player  the acting player
      * @return        a new move register
-     * @throws NullPointerException when records parameter is null
+     * @throws NullPointerException  when records parameter is null
+     * @throws NullPointerException  when records parameter contains null references
+     * @throws IllegalStateException when player parameter is null, and records parameter is not empty
      */
     public static MoveRegister valueOf(final List<MoveRecord> records, final Player player) {
         if (records == null) { throw new NullPointerException("Parameter records cannot be null."); }
-        if (player == null && !records.isEmpty()) {
-            throw new NullPointerException("Parameter player cannot be null when records is not empty.");
-        }
         if (records.contains(NULL_MOVE_RECORD)) {
             throw new NullPointerException("Parameter records cannot contain null objects.");
+        }
+        if (player == null && !records.isEmpty()) {
+            throw new IllegalStateException("Parameter player cannot be null when records is not empty.");
         }
         return new MoveRegister(new ArrayList<MoveRecord>(records), player);
     }
