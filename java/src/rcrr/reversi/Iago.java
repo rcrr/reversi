@@ -63,6 +63,7 @@ public class Iago implements EvalFunction {
         /** Identifies an empty square. */
         EMPTY;
 
+        /** The number of states that a square can take. */
         public static final int LENGTH = values().length;
     }
 
@@ -70,21 +71,37 @@ public class Iago implements EvalFunction {
      * It is the set of the squares belonging to a board's edge.
      */
     public enum Edge {
+
+        /** The upper edge of the board. */
         TOP(Square.B2, Square.A1, Square.B1, Square.C1, Square.D1,
             Square.E1, Square.F1, Square.G1, Square.H1, Square.G2),
+
+        /** The right edge. */
         RIGHT(Square.G2, Square.H1, Square.H2, Square.H3, Square.H4,
               Square.H5, Square.H6, Square.H7, Square.H8, Square.G7),
+
+        /** The lower edge. */
         BOTTOM(Square.B7, Square.A8, Square.B8, Square.C8, Square.D8,
                Square.E8, Square.F8, Square.G8, Square.H8, Square.G7),
+
+        /** The left edge. */
         LEFT(Square.B2, Square.A1, Square.A2, Square.A3, Square.A4,
              Square.A5, Square.A6, Square.A7, Square.A8, Square.B7);
 
+        /** The number of squares part of an edge. */
         public static final int SQUARES_COUNT = 10;
 
+        /** The number of edges. */
         public static final int LENGTH = values().length;
 
+        /** The squares field. */
         private final List<Square> squares;
 
+        /**
+         * Returns the squared of the edge.
+         *
+         * @return the list of the squares belonging to the edge
+         */
         public final List<Square> squares() { return this.squares; }
 
         /**
@@ -98,20 +115,59 @@ public class Iago implements EvalFunction {
         }
     }
 
+    /**
+     * The class defines value objects that hold the current and potential mobility fields.
+     * <p>
+     * {@code Iago.Mobility} is immutable.
+     */
     public static final class Mobility {
+
+        /** The current field. */
         private final int current;
+
+        /** The potential field. */
         private final int potential;
+
+        /**
+         * Class constructor.
+         *
+         * @param current   current mobility field
+         * @param potential potential mobility field
+         */
         public Mobility(final int current, final int potential) {
             this.current = current;
             this.potential = potential;
         }
+
+        /**
+         * Returns the current field.
+         *
+         * @return the current field
+         */
         public int current() { return this.current; }
+
+        /**
+         * Returns the potential field.
+         *
+         * @return the potential field
+         */
         public int potential() { return this.potential; }
+
+        /**
+         * Returns a {@code String} representing the {@code Iago.Mobility} object.
+         *
+         * @return a {@code String} representing the mobility
+         */
         @Override public String toString() {
             return "(C=" + current() + ", P=" + potential() + ")";
         }
     }
 
+    /**
+     * The class defines value objects that hold the value and the probability.
+     * <p>
+     * {@code Iago.ProbabilityValue} is immutable.
+     */
     public static final class ProbabilityValue {
 
         public static final Comparator<ProbabilityValue> GT = new Comparator<ProbabilityValue>() {
@@ -580,9 +636,9 @@ public class Iago implements EvalFunction {
          * @param square the square where to move
          * @return       the probability of the move
          */
-        private static final double edgeMoveProbability(final Player player,
-                                                        final Board board,
-                                                        final Square square) {
+        private static double edgeMoveProbability(final Player player,
+                                                  final Board board,
+                                                  final Square square) {
             assert (player != null) : "Parameter player must be not null.";
             assert (board != null) : "Parameter board must be not null.";
             assert (square != null) : "Parameter square must be not null.";
