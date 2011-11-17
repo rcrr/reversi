@@ -170,9 +170,27 @@ public class Iago implements EvalFunction {
      */
     public static final class ProbabilityValue {
 
+        /**
+         * Compares two {@code ProbabilityValue} objects sorting them by value, taking first the greather.
+         */
         public static final Comparator<ProbabilityValue> GT = new Comparator<ProbabilityValue>() {
+
+            /**
+             * Required by the {@code Comparator<T>} interface.
+             * Compares its two arguments for order.
+             * Returns a negative integer, zero, or a positive integer as the first argument is less than,
+             * equal to, or greater than the second.
+             *
+             * @param pv0 the first probability value to be compared
+             * @param pv1 the second probability value to be compared
+             * @return    minus one, zero, or one as the first argument is less than, equal to, or greater than the second.
+             * @throws NullPointerException if parameter {@code pv0}, or parameter {@code pv1} are null
+             */
             public int compare(final ProbabilityValue pv0,
                                final ProbabilityValue pv1) {
+                if (pv0 == null || pv1 == null) {
+                    throw new NullPointerException("Parameters pv0 and pv1 cannot be null.");
+                }
                 final int v0 = pv0.value();
                 final int v1 = pv1.value();
                 if (v0 < v1) {
@@ -185,18 +203,13 @@ public class Iago implements EvalFunction {
             }
         };
 
+        /**
+         * Compares two {@code ProbabilityValue} objects sorting them by value, taking first the smaller.
+         */
         public static final Comparator<ProbabilityValue> LT = new Comparator<ProbabilityValue>() {
             public int compare(final ProbabilityValue pv0,
                                final ProbabilityValue pv1) {
-                final int v0 = pv0.value();
-                final int v1 = pv1.value();
-                if (v0 > v1) {
-                    return -1;
-                } else if (v0 == v1) {
-                    return 0;
-                } else {
-                    return +1;
-                }
+                return GT.compare(pv1, pv0);
             }
         };
 
@@ -807,7 +820,7 @@ public class Iago implements EvalFunction {
     private final EdgeTable table;
 
     /**
-     * Stadard class constructor, that load the default edge table.
+     * Standard class constructor, that load the default edge table.
      */
     public Iago() {
         this.table = TABLE;
