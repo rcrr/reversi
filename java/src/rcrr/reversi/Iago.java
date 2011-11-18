@@ -183,7 +183,8 @@ public class Iago implements EvalFunction {
              *
              * @param pv0 the first probability value to be compared
              * @param pv1 the second probability value to be compared
-             * @return    minus one, zero, or one as the first argument is less than, equal to, or greater than the second.
+             * @return    minus one, zero, or one as the first argument is less than, equal to,
+             *            or greater than the second.
              * @throws NullPointerException if parameter {@code pv0}, or parameter {@code pv1} are null
              */
             public int compare(final ProbabilityValue pv0,
@@ -213,32 +214,84 @@ public class Iago implements EvalFunction {
             }
         };
 
+        /** Format used by the toString method. */
         private static final DecimalFormat FOUR_DIGIT_DECIMAL_FORMAT = new DecimalFormat("0.0000");
 
+        /**
+         * Returns a newly constructed sorted list applying the {@code comparator} parameter
+         * to the {@code possibilities} parameter.
+         * <p>
+         * Parameter {@code possibilities} cannot be {@code null}.
+         * Parameter {@code comparator} cannot be {@code null}.
+         *
+         * @param possibilities a list to be sorted
+         * @param comparator    the comarator used for sorting
+         * @return a new sorted list
+         * @throws NullPointerException if parameter {@code possibilities} is null
+         * @throws NullPointerException if parameter {@code comparator} is null
+         */
         public static List<ProbabilityValue> sortPossibilities(final List<ProbabilityValue> possibilities,
                                                                final Comparator<ProbabilityValue> comparator) {
-            assert (possibilities != null) : "Parameter possibilities cannot be null.";
-            assert (comparator != null) : "Parameter comparator cannot be null.";
+            if (possibilities == null) { throw new NullPointerException("Parameter possibilities cannot be null."); }
+            if (comparator == null) { throw new NullPointerException("Parameter comparator cannot be null."); }
             final List<ProbabilityValue> results = new ArrayList<ProbabilityValue>(possibilities);
             Collections.sort(results, comparator);
             return results;
         }
 
+        /** The probability field. */
         private final double probability;
+
+        /** The value field. */
         private final int value;
+
+        /**
+         * Class constructor.
+         *
+         * @param probability the probability field
+         * @param value       the value field
+         */
         public ProbabilityValue(final double probability, final int value) {
             this.probability = probability;
             this.value = value;
         }
+
+        /**
+         * Returns the probability field.
+         *
+         * @return the probability field
+         */
         public double probability() { return this.probability; }
+
+        /**
+         * Returns the value field.
+         *
+         * @return the value field
+         */
         public int value() { return this.value; }
+
+        /**
+         * Returns a {@code String} representing the {@code ProbabilityValue} object.
+         *
+         * @return a {@code String} representing the probability-value object
+         */
         @Override public String toString() {
             return "(" + FOUR_DIGIT_DECIMAL_FORMAT.format(probability()) + " " + value() + ")";
         }
     }
 
+    /**
+     * The class defines the edge table, used to store in an indexed structure the precomputed
+     * edge stability.
+     * <p>
+     * {@code Iago.EdgeTable} is immutable.
+     */
     public static final class EdgeTable {
 
+        /**
+         * The {@code Fn0} interface defines a function object used to be passed as a parameter to
+         * higher order functions.
+         */
         private static interface Fn0 {
             void funcall(final Board board, final int index);
         }
@@ -246,9 +299,18 @@ public class Iago implements EvalFunction {
         /** The size of the edge table has to be equal to 59,049. */
         private static final int SIZE = new Double(Math.pow(SquareValue.LENGTH,
                                                             Edge.SQUARES_COUNT)).intValue();
-
+ 
+        /**
+         * The edge table is refined by an iterative process.
+         * The number of iterations run in order to converge is proposed by PAIP to be equal to 5.
+         * Further analysis is required to verify the real convergence of the process.
+         **/
         private static final int ITERATIONS_FOR_IMPROVING = 5;
 
+        /**
+         * A table of weights assigned to the squares of an edge. Weights are given for three cases:
+         * stable (first column), semi-stable (second), and unstable (third one).
+         */
         private static final Integer[][] STATIC_EDGE_TABLE = {{null,    0, -2000},   /** X square. */
                                                               { 700, null,  null},   /** Corner.   */
                                                               {1200,  200,   -25},   /** C square. */
@@ -260,6 +322,9 @@ public class Iago implements EvalFunction {
                                                               { 700, null,  null},   /** Corner.   */
                                                               {null,    0, -2000}};  /** X square. */
 
+        /**
+         * Static probability that a move can be legal.
+         */
         private static final Double[][] EDGE_STATIC_PROBABILITY = {{.10,  .40,  .70},
                                                                    {.05,  .30, null},
                                                                    {.01, null, null}};
