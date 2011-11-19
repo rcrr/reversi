@@ -52,7 +52,7 @@ public class Iago implements EvalFunction {
     /**
      * Each square can have three values. They are player, opponent, and empty.
      */
-    public enum SquareValue {
+    enum SquareValue {
 
         /** Identifies a square occupied by the player. */
         PLAYER,
@@ -70,7 +70,7 @@ public class Iago implements EvalFunction {
     /**
      * It is the set of the squares belonging to a board's edge.
      */
-    public enum Edge {
+    enum Edge {
 
         /** The upper edge of the board. */
         TOP(Square.B2, Square.A1, Square.B1, Square.C1, Square.D1,
@@ -120,7 +120,7 @@ public class Iago implements EvalFunction {
      * <p>
      * {@code Iago.Mobility} is immutable.
      */
-    public static final class Mobility {
+    static final class Mobility {
 
         /** The current field. */
         private final int current;
@@ -168,7 +168,7 @@ public class Iago implements EvalFunction {
      * <p>
      * {@code Iago.ProbabilityValue} is immutable.
      */
-    public static final class ProbabilityValue {
+    static final class ProbabilityValue {
 
         /**
          * Compares two {@code ProbabilityValue} objects sorting them by value, taking first the greather.
@@ -281,8 +281,8 @@ public class Iago implements EvalFunction {
     }
 
     /**
-     * The class defines the edge table, used to store in an indexed structure the precomputed
-     * edge stability.
+     * The class defines the edge table used by the Iago evaluation function.
+     * The table stores in an indexed structure the precomputed edge stability value.
      * <p>
      * {@code Iago.EdgeTable} is immutable.
      */
@@ -293,13 +293,20 @@ public class Iago implements EvalFunction {
          * higher order functions.
          */
         private static interface Fn0 {
+
+            /**
+             * Function call interface method.
+             *
+             * @param board the board to be elaborated
+             * @param index the table index entry
+             */
             void funcall(final Board board, final int index);
         }
 
         /** The size of the edge table has to be equal to 59,049. */
         private static final int SIZE = new Double(Math.pow(SquareValue.LENGTH,
                                                             Edge.SQUARES_COUNT)).intValue();
- 
+
         /**
          * The edge table is refined by an iterative process.
          * The number of iterations run in order to converge is proposed by PAIP to be equal to 5.
@@ -372,7 +379,7 @@ public class Iago implements EvalFunction {
             }
             final EdgeTable table = new EdgeTable(values);
             /** Initialize the static values. */
-            for (int nPieces = 0; nPieces < 11; nPieces++) {
+            for (int nPieces = 0; nPieces <= Edge.SQUARES_COUNT; nPieces++) {
                 mapEdgeNPieces(new Fn0() {
                         public void funcall(final Board board, final int index) {
                             table.set(index, staticEdgeStability(Player.BLACK, board));
@@ -392,7 +399,7 @@ public class Iago implements EvalFunction {
          */
         private void refine() {
             /** Do the indexes with more pieces first. From 9 to 1. */
-            for (int nPieces = 9; nPieces > 0; nPieces--) {
+            for (int nPieces = Edge.SQUARES_COUNT - 1; nPieces > 0; nPieces--) {
                 mapEdgeNPieces(new Fn0() {
                         public void funcall(final Board board, final int index) {
                             set(index, possibleEdgeMovesValue(Player.BLACK,
@@ -455,22 +462,24 @@ public class Iago implements EvalFunction {
          * - Otherwise we first try leaving the current square EMPTY, then try filling it with player's piece,
          *   and then with the opponent's piece, in each case calling {@code mapEdgeNPieces} recursively.
          *
-         * @param fn
-         * @param board
-         * @param n
-         * @param squares
-         * @param index
+         * @param fn      the function object to be called
+         * @param board   the edge state
+         * @param n       number of pieces that populate the edge
+         * @param squares the list of squares belonging to the edge that have to be elaborated
+         * @param index   the edge configuration index
          */
-        public static void mapEdgeNPieces(final Fn0 fn,
+        private static void mapEdgeNPieces(final Fn0 fn,
                                           final Board board,
                                           final int n,
                                           final List<Square> squares,
                                           final int index) {
             final int squaresSize = squares.size();
             /** Index counts 1 for player; 2 for opponent. */
-            if (squaresSize < n) { return; }
-            else if (squaresSize == 0) { fn.funcall(board, index); }
-            else {
+            if (squaresSize < n) {
+                return;
+            } else if (squaresSize == 0) {
+                fn.funcall(board, index);
+            } else {
                 final List<Square> squaresRest = squares.subList(1, squaresSize);
                 final int index3 = 3 * index;
                 final Square sq = squares.get(0);
@@ -491,6 +500,12 @@ public class Iago implements EvalFunction {
             }
         }
 
+        /**
+         * Returns a new edge table loaded from the {@code resource} parameter.
+         *
+         * @param resource a string that identifies a file
+         * @return         a new edge table
+         */
         private static EdgeTable load(final String resource) {
             StringBuilder log = new StringBuilder();
             log.append("LOG: Reading the resource: " + resource + "\n");
@@ -658,9 +673,9 @@ public class Iago implements EvalFunction {
          * @param sq     the square where to move on
          * @return       a new probability value pair
          */
-        public ProbabilityValue possibleEdgeMove(final Player player,
-                                                 final Board board,
-                                                 final Square sq) {
+        ProbabilityValue possibleEdgeMove(final Player player,
+                                          final Board board,
+                                          final Square sq) {
             assert (player != null) : "Parameter player cannot be null.";
             assert (board != null) : "Parameter board cannot be null.";
             assert (sq != null) : "Parameter sq cannot be null.";
@@ -863,8 +878,10 @@ public class Iago implements EvalFunction {
 
     }
 
+    /** The edge list. It is computed into the static block. */
     private static final List<Edge> EDGE_AND_X_LISTS;
 
+    /** An edge table instance. It is computed into the static block. */
     private static final EdgeTable TABLE;
 
     static {
@@ -882,13 +899,15 @@ public class Iago implements EvalFunction {
 
     }
 
+    /** The table field. */
     private final EdgeTable table;
 
     /**
-     * Standard class constructor, that load the default edge table.
+     * Standard class constructor. It loads the default edge table, calculated
+     * by the class static block during class initialization.
      */
     public Iago() {
-        this.table = TABLE;
+        this(TABLE);
     }
 
     /**
