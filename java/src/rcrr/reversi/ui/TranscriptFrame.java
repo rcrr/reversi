@@ -28,6 +28,9 @@ import java.util.Map;
 import java.util.List;
 import java.util.Arrays;
 
+import java.io.File;
+import java.io.IOException;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -36,6 +39,7 @@ import java.awt.Point;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+
 import java.awt.image.BufferedImage;
 
 import java.awt.geom.Rectangle2D;
@@ -54,17 +58,17 @@ import javax.swing.JSeparator;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JFileChooser;
+
+import javax.swing.filechooser.FileFilter;
+
+import javax.imageio.ImageIO;
 
 import rcrr.reversi.Game;
 import rcrr.reversi.Square;
 import rcrr.reversi.SquareState;
 import rcrr.reversi.Move;
 import rcrr.reversi.Player;
-
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
 
 public class TranscriptFrame extends JFrame {
 
@@ -245,14 +249,30 @@ public class TranscriptFrame extends JFrame {
 
     }
 
+    private class BoardImageFileFilter extends FileFilter {
+
+        public boolean accept(final File file) {
+            if (file.getName().endsWith(".png")) return true;
+            if (file.isDirectory()) return true;
+            return false;
+        }
+
+        public String getDescription() {
+            return "PNG Images";
+        }
+    }
+
     public void saveImage() {
         final BufferedImage image = new BufferedImage(FRAME_H, FRAME_W, BufferedImage.TYPE_INT_RGB);
         final Graphics2D imageGraphics2D = (Graphics2D)image.createGraphics();
         board.paint(imageGraphics2D);
-        try {
-            File f = new File("/home/rcrr/Desktop/game-transcript.png");
-            ImageIO.write(image, "png", f);
-        } catch (IOException ioe) {System.out.println("IO error: " + ioe); System.exit(1);}
+        int result = chooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File f = chooser.getSelectedFile();
+            try {
+                ImageIO.write(image, "png", f);
+            } catch (IOException ioe) { throw new RuntimeException(ioe); }
+        }
     }
 
     public static final int DISK_R = 32;
@@ -286,6 +306,7 @@ public class TranscriptFrame extends JFrame {
 
     private Game game;
     private final JPanel board;
+    private final JFileChooser chooser;
 
     public TranscriptFrame(final ReversiUI ui) {
         super("Game Transcript");
@@ -299,6 +320,10 @@ public class TranscriptFrame extends JFrame {
         board.setPreferredSize(dim);
         board.setLayout(layout);
         board.setOpaque(true);
+
+        chooser = new JFileChooser();
+        chooser.setFileFilter(new BoardImageFileFilter());
+        chooser.setApproveButtonText("Save");
 
         /* Create the menu bar. */
         JMenuBar jmb = new JMenuBar();
