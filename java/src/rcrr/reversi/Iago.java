@@ -321,7 +321,7 @@ public class Iago implements EvalFunction {
      * <p>
      * {@code Iago.EdgeTable} is immutable.
      */
-    public static final class EdgeTable {
+    static final class EdgeTable {
 
         /**
          * The {@code Fn0} interface defines a function object used to be passed as a parameter to
@@ -354,14 +354,14 @@ public class Iago implements EvalFunction {
          * stable (first column), semi-stable (second), and unstable (third one).
          */
         private static final Integer[][] STATIC_EDGE_TABLE = {{null,    0, -2000},   /** X square. */
-                                                              { 700, null,  null},   /** Corner.   */
+                                                              {700 , null,  null},   /** Corner.   */
                                                               {1200,  200,   -25},   /** C square. */
                                                               {1000,  200,    75},   /** A square. */
                                                               {1000,  200,    50},   /** B square. */
                                                               {1000,  200,    50},   /** B square. */
                                                               {1000,  200,    75},   /** A square. */
                                                               {1200,  200,   -25},   /** C square. */
-                                                              { 700, null,  null},   /** Corner.   */
+                                                              {700 , null,  null},   /** Corner.   */
                                                               {null,    0, -2000}};  /** X square. */
 
         /**
@@ -370,6 +370,22 @@ public class Iago implements EvalFunction {
         private static final Double[][] EDGE_STATIC_PROBABILITY = {{.10,  .40,  .70},
                                                                    {.05,  .30, null},
                                                                    {.01, null, null}};
+
+        /** Probability equal to 100%. */
+        private static final double P_1 = 1.0;
+
+        /** Probability equal to 90%. */
+        private static final double P_09 = 0.9;
+
+        /** Probability equal to 50%. */
+        private static final double P_05 = 0.5;
+
+        /** Probability equal to 10%. */
+        private static final double P_01 = 0.1;
+
+        /** Probability equal to 0.1%. */
+        private static final double P_0001 = 0.001;
+
         // Fully tested.
         /**
          * Computes the edge index used to execute a lookup into th edge table.
@@ -781,17 +797,17 @@ public class Iago implements EvalFunction {
             assert (square != null) : "Parameter square must be not null.";
             double result;
             if (square.isXSquare()) {
-                result = 0.5;
+                result = P_05;
             } else if (board.isLegal(square, player)) {
-                result = 1.0;
+                result = P_1;
             } else if (square.isCorner()) {
                 final Square xSquare = square.xSquareFor();
                 if (board.get(xSquare) == SquareState.EMPTY) {
-                    result = 0.1;
+                    result = P_01;
                 } else if (board.get(xSquare) == player.color()) {
-                    result = 0.001;
+                    result = P_0001;
                 } else {
-                    result = 0.9;
+                    result = P_09;
                 }
             } else {
                 final double chancesCoefficient = (board.isLegal(square, player.opponent())) ? 2. : 1.;
@@ -900,26 +916,83 @@ public class Iago implements EvalFunction {
             }
         }
 
+        /**
+         * Class constructor.
+         * <p>
+         * Parameter {@code values} cannot be null.
+         * Parameter {@code values} cannot have null entries.
+         * Parameter {@code values} must have a proper lenght.
+         *
+         * @param values a list having the edge table values
+         * @throws NullPointerException if parameter {@code values} is null
+         * @throws NullPointerException if parameter {@code values} has null entries
+         * @throws IllegalArgumentException if parameter {@code values} has the wrong size
+         */
         EdgeTable(final List<Integer> values) {
-            this.values = new ArrayList<Integer>(values);
+            if (values == null) { throw new NullPointerException("Parameter values cannot be null."); }
+            final ArrayList<Integer> transientValues = new ArrayList<Integer>(values);
+            if (transientValues.size() != SIZE) {
+                throw new IllegalArgumentException("Parameter values must have a proper size.");
+            }
+            for (Integer value : transientValues) {
+                if (value == null) {
+                    throw new NullPointerException("Parameter values cannnot have null entries.");
+                }
+            }
+            this.values = transientValues;
         }
 
+        /**
+         * Replaces the value at the specified position in the table with the value specified
+         * by the {@code value} parameter.
+         * <p>
+         * Parameter {@code index} must be in the range 0, 59,049 - 1.
+         *
+         * @param index the position that identify the element to update
+         * @param value the value to be assigned
+         * @return      the value just assigned
+         */
         private int set(final int index, final int value) {
+            assert (index >= 0 && index < SIZE) : "Parameter index must be in the range 0, SIZE - 1.";
             return values.set(index, Integer.valueOf(value));
         }
 
+        /**
+         * Get the value stored by the edge table at the address specified by {@code index}.
+         * <p>
+         * Parameter {@code index} must be in the range 0, 59,049 - 1.
+         *
+         * @param index the position that identify the element to retrieve
+         * @return      the requested value
+         */
         private int get(final int index) {
+            assert (index >= 0 && index < SIZE) : "Parameter index must be in the range 0, SIZE - 1.";
             return values.get(index);
         }
 
+        /**
+         * Returns the values field.
+         *
+         * @return the values field
+         */
         private List<Integer> values() {
             return this.values;
         }
 
+        /**
+         * Create a new edge table as a copy of the current object.
+         *
+         * @return a new copied edge table
+         */
         private EdgeTable copy() {
             return new EdgeTable(new ArrayList<Integer>(this.values()));
         }
 
+        /**
+         * Create and compute a new edge table.
+         *
+         * @return the new initialized edge table
+         */
         private static EdgeTable init() {
             final EdgeTable table = computeStatic();
             for (int i = 0; i < ITERATIONS_FOR_IMPROVING; i++) {
@@ -935,6 +1008,36 @@ public class Iago implements EvalFunction {
 
     /** An edge table instance. It is computed into the static block. */
     private static final EdgeTable TABLE;
+
+    /** Eval function tuning parameter. */
+    private static final long EVAL_MAGIC_61 = 61;
+
+    /** Eval function tuning parameter. */
+    private static final long EVAL_MAGIC_312000 = 312000;
+
+    /** Eval function tuning parameter. */
+    private static final long EVAL_MAGIC_6240 = 6240;
+
+    /** Eval function tuning parameter. */
+    private static final long EVAL_MAGIC_25 = 25;
+
+    /** Eval function tuning parameter. */
+    private static final long EVAL_MAGIC_20000 = 20000;
+
+    /** Eval function tuning parameter. */
+    private static final long EVAL_MAGIC_1000 = 1000;
+
+    /** Eval function tuning parameter. */
+    private static final long EVAL_MAGIC_2000 = 2000;
+
+    /** Eval function tuning parameter. */
+    private static final long EVAL_MAGIC_50000 = 50000;
+
+    /** Eval function tuning parameter. */
+    private static final long EVAL_MAGIC_75000 = 75000;
+
+    /** Eval function tuning parameter. */
+    private static final long EVAL_MAGIC_32000 = 32000;
 
     static {
 
@@ -967,7 +1070,7 @@ public class Iago implements EvalFunction {
      *
      * @param table assigned to the table field
      */
-    public Iago(final EdgeTable table) {
+    private Iago(final EdgeTable table) {
         this.table = table;
     }
 
@@ -991,15 +1094,17 @@ public class Iago implements EvalFunction {
     public final int eval(final GamePosition position) {
         if (position == null) { throw new NullPointerException("Parameter position cannot be null."); }
         /** The three factors are multiplied by coefficients that vary by move number. */
-        final long moveNumber = 61 - position.board().countPieces(SquareState.EMPTY);
-        final long cEdg = 312000 + (6240 * moveNumber);
-        final long cCur = (moveNumber < 25) ? 50000 + (2000 * moveNumber) : 75000 + (1000 * moveNumber);
-        final long cPot = 20000;
+        final long moveNumber = EVAL_MAGIC_61 - position.board().countPieces(SquareState.EMPTY);
+        final long cEdg = EVAL_MAGIC_312000 + (EVAL_MAGIC_6240 * moveNumber);
+        final long cCur = (moveNumber < EVAL_MAGIC_25)
+            ? EVAL_MAGIC_50000 + (EVAL_MAGIC_2000 * moveNumber)
+            : EVAL_MAGIC_75000 + (EVAL_MAGIC_1000 * moveNumber);
+        final long cPot = EVAL_MAGIC_20000;
         final Mobility pMob = mobility(position);
         final Mobility oMob = mobility(GamePosition.valueOf(position.board(), position.player().opponent()));
         final long eStab = edgeStability(position);
         /** Combine the three factors into one value. */
-        long value = (cEdg * eStab) / 32000
+        long value = (cEdg * eStab) / EVAL_MAGIC_32000
             + (cCur * (pMob.current() - oMob.current())) / (pMob.current() + oMob.current() + 2)
             + (cPot * (pMob.potential() - oMob.potential())) / (pMob.potential() + oMob.potential() + 2);
         return (int) value;
