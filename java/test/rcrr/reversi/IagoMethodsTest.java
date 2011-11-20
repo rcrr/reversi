@@ -78,7 +78,7 @@ public class IagoMethodsTest {
 		   is(21124));
 
 
-	assertThat("BLACK_HAS_TO_PASS must be valued 498992.",
+	assertThat("BLACK_HAS_TO_PASS must be valued 498991.",
 		   new Iago().eval(new GamePosition.Builder()
 				   .withPlayer(Player.WHITE)
 				   .withBoard(BoardFixtures.BLACK_HAS_TO_PASS)
@@ -165,18 +165,21 @@ public class IagoMethodsTest {
      * @see Iago#mobility(GamePosition)
      */
     @Test
-    public final void testMobility() {
+    public final void testMobility() throws NoSuchMethodException,
+                                            IllegalAccessException,
+                                            InvocationTargetException {
+
         assertThat("new Iago().mobility(GamePositionFixtures.INITIAL).current() is 4.",
-                   new Iago().mobility(GamePositionFixtures.INITIAL).current(),
+                   mobilityProxy(new Iago(), GamePositionFixtures.INITIAL).current(),
                    is(4));
         assertThat("new Iago().mobility(GamePositionFixtures.INITIAL).potential() is 10.",
-                   new Iago().mobility(GamePositionFixtures.INITIAL).potential(),
+                   mobilityProxy(new Iago(), GamePositionFixtures.INITIAL).potential(),
                    is(10));
         assertThat("new Iago().mobility(GamePositionFixtures.BLACK_HAS_TO_PASS).current() is 0.",
-                   new Iago().mobility(GamePositionFixtures.BLACK_HAS_TO_PASS).current(),
+                   mobilityProxy(new Iago(), GamePositionFixtures.BLACK_HAS_TO_PASS).current(),
                    is(0));
         assertThat("new Iago().mobility(GamePositionFixtures.BLACK_HAS_TO_PASS).potential() is 5.",
-                   new Iago().mobility(GamePositionFixtures.BLACK_HAS_TO_PASS).potential(),
+                   mobilityProxy(new Iago(), GamePositionFixtures.BLACK_HAS_TO_PASS).potential(),
                    is(5));
     }
 
@@ -669,7 +672,6 @@ public class IagoMethodsTest {
 	method.invoke(table);
     }
 
-
     private static Iago.EdgeTable loadProxy(final String resource)
         throws NoSuchMethodException,
                IllegalAccessException,
@@ -680,8 +682,16 @@ public class IagoMethodsTest {
 	return result;
     }
 
-
-
+    private static Iago.Mobility mobilityProxy(final Iago iago,
+                                               final GamePosition position)
+        throws NoSuchMethodException,
+               IllegalAccessException,
+               InvocationTargetException {
+        final Method method = Iago.class.getDeclaredMethod("mobility", GamePosition.class);
+        method.setAccessible(true);
+	Iago.Mobility result = (Iago.Mobility) method.invoke(iago, position);
+	return result;
+    }
 
     public static Object getPrivateField (Object o, String fieldName) {   
 	assert (o != null) : "Parameter o must be not null.";
