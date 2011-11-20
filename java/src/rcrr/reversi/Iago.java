@@ -39,13 +39,48 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 /**
- * Iago is an advanced strategy, that implements the features described in the PAIP book 18.12.
- * See for reference the paper:
- * <i>"Paul S. Rosenbloom. A World-Championship-Level Othello Program. Artif. Intell., 1982: 279~320"</i>
+ * Iago is an advanced evaluation function, that implements the features described in the <i>"PAIP"</i> book,
+ * paragraph 18.12.
  * <p>
- * <i>"Kay-Fu Lee, S. Mahajan. The development of a world class Othello program. Artif. Intell., 1990: 21~36"</i>
+ * Iago evaluation function mixes the concepts of mobility and edge stability. Mobility is a measure of the ability
+ * to make moves; moves are not weighted by their goodness, simply the more moves a player has, the higher is the
+ * value returned by the mobility evaluation. Mobility is computed as the sum of two factors, current mobility, and
+ * potential mobility. The first is the current number of legal moves available to the player, the second is
+ * computed by counting the empty squares that stands on the neighbor of the opponent's pieces.
+ *
+ * Edge stability is computed by adding the contributes given by each one of the four edges. An edge is a portion
+ * of the board composed by the eight proper edge squares plus the two corresponding x-squares.
+ * The ten squares, having each three possible states, gave a state space of 59,049 positions. Each of them
+ * is pre-computed and stored into an indexed table. The resulting run-time evaluation is then blazing fast.
+ * The table is computed by a quite sophisticate procedure, clearly explained in the above cited "PAIP" paragraph.
+ *
+ * Current mobility, potential mobility, and edge stability are then linearly added with coefficients that change
+ * based on the number of empty disc on the board (a very effective measure of the game stage). The final result
+ * is then the return value of the eval function.
  * <p>
- * The strategy mixes the concepts of mobility and edge stability ...
+ * The Java implementation here proposed is equivalent to the original Common Lisp version
+ * described in the original work. The only very small difference is found in the final edge table values,
+ * where some entries differ by one unit. The reason of this deviation has to be ascribed to the way
+ * floating points values are rounded to integer values, where the Common Lisp version uses ROUND that rounds to
+ * the nearest integer. If the argument is exactly halfway between two integers, it rounds to the nearest even integer.
+ * While the Java version applies the {@code Math.round(float a)} function, where result is
+ * rounded to an integer by adding 1/2, taking the floor of the result, and casting the result to type {@code int}.
+ * <p>
+ * See for reference Chapter 18, <i>"Search and the Game of Othello"</i>, and more in detail
+ * paragraph 18.12, <i>"Championship Programs: Iago and Bill"</i>:
+ * <ul>
+ *   <li><i>"Peter Norvig. Paradigms of Artificial Intelligence Programming: Case Studies in Common Lisp.
+ *           Morgan Kaufmann, 1992: 637~646"</i></li>
+ * </ul>
+ * <p>
+ * See also for reference the two papers:
+ * <ul>
+ *   <li><i>"Paul S. Rosenbloom. A World-Championship-Level Othello Program.
+             Artif. Intell., 1982: 279~320"</i></li>
+ *   <li><i>"Kay-Fu Lee, S. Mahajan. The development of a world class Othello program.
+             Artif. Intell., 1990: 21~36"</i></li>
+ * </ul>
+ * <p>
  */
 public class Iago implements EvalFunction {
 
@@ -89,10 +124,10 @@ public class Iago implements EvalFunction {
              Square.A5, Square.A6, Square.A7, Square.A8, Square.B7);
 
         /** The number of squares part of an edge. */
-        public static final int SQUARES_COUNT = 10;
+        static final int SQUARES_COUNT = 10;
 
         /** The number of edges. */
-        public static final int LENGTH = values().length;
+        static final int LENGTH = values().length;
 
         /** The squares field. */
         private final List<Square> squares;
@@ -102,7 +137,7 @@ public class Iago implements EvalFunction {
          *
          * @return the list of the squares belonging to the edge
          */
-        public final List<Square> squares() { return this.squares; }
+        final List<Square> squares() { return this.squares; }
 
         /**
          * Enum constructor.
@@ -171,7 +206,7 @@ public class Iago implements EvalFunction {
     static final class ProbabilityValue {
 
         /**
-         * Compares two {@code ProbabilityValue} objects sorting them by value, taking first the greather.
+         * Compares two {@code ProbabilityValue} objects sorting them by value, taking first the greater.
          */
         public static final Comparator<ProbabilityValue> GT = new Comparator<ProbabilityValue>() {
 
@@ -225,7 +260,7 @@ public class Iago implements EvalFunction {
          * Parameter {@code comparator} cannot be {@code null}.
          *
          * @param possibilities a list to be sorted
-         * @param comparator    the comarator used for sorting
+         * @param comparator    the comparator used for sorting
          * @return a new sorted list
          * @throws NullPointerException if parameter {@code possibilities} is null
          * @throws NullPointerException if parameter {@code comparator} is null
@@ -550,6 +585,11 @@ public class Iago implements EvalFunction {
             return new EdgeTable(values);
         }
 
+        /**
+         * Writes the edge table to the target file identified by the {@code fileOut} parameter.
+         *
+         * @param fileOut the file where to write the table in
+         */
         private void write(final String fileOut) {
             try {
                 PrintWriter out = new PrintWriter(new FileWriter(fileOut));
@@ -604,11 +644,11 @@ public class Iago implements EvalFunction {
             } else if (sq.isXSquare()) {
                 stability = (board.get(sq.cornerFor()) == SquareState.EMPTY) ? unstable : semiStable;
             } else {
-                /** The assignement to opp is consistent with a literal translation
+                /** The assignment to opp is consistent with a literal translation
                     of the PAIP CL version of this function. */
                 final SquareState opp = (player == SquareState.BLACK) ? SquareState.WHITE : SquareState.BLACK;
                 SquareState p1 = SquareState.OUTER;
-                for (int i = Edge.TOP.squares().indexOf(sq); i < 9; i++) {
+                for (int i = Edge.TOP.squares().indexOf(sq); i < Edge.SQUARES_COUNT - 1; i++) {
                     SquareState s = board.get(Edge.TOP.squares().get(i));
                     if (s != player) { p1 = s; break; }
                 }
@@ -640,10 +680,10 @@ public class Iago implements EvalFunction {
          * <p>
          * The function searches through all possible moves to determine an edge value that is more accurate
          * than a static evaluation. It loops through every empty square on the edge, calling possibleEdgeMove
-         * to retur a ProbabilityValue object. Since it is also possible for a player not to make any move
+         * to return a ProbabilityValue object. Since it is also possible for a player not to make any move
          * at all on an edge, the pair (1.0 current-value) is also included.
          *
-         * @param player the palyer for whom run the calculation
+         * @param player the player for whom run the calculation
          * @param board  the edge configuration
          * @return       an edge value that is more accurate than a static evaluation
          */
@@ -668,7 +708,7 @@ public class Iago implements EvalFunction {
          * Parameter board cannot be null.
          * Parameter sq cannot be null.
          *
-         * @param player the palyer that has to make the move
+         * @param player the player that has to make the move
          * @param board  the board configuration
          * @param sq     the square where to move on
          * @return       a new probability value pair
@@ -695,6 +735,10 @@ public class Iago implements EvalFunction {
          * value by the value of each move times the probability of the move. Since there
          * will always be a least one move (pass) with probability 1.0, this is guaranteed
          * to converge.
+         *
+         * @param possibilities the list of probability-value pairs
+         * @param player        the player that has the move
+         * @return              the combined value of the given possibilities
          */
         private static int combineEdgeMoves(final List<ProbabilityValue> possibilities,
                                             final Player player) {
@@ -773,7 +817,7 @@ public class Iago implements EvalFunction {
          * @param player the player to use for the inquiry
          * @param board  the board position
          * @param square the square to check
-         * @preturn the number of neighbors occupied by the player
+         * @return       the number of neighbors occupied by the player
          */
         private static int countEdgeNeighbors(final Player player,
                                               final Board board,
@@ -807,7 +851,7 @@ public class Iago implements EvalFunction {
          *
          * @param board  the board configuration
          * @param square the square where to move on
-         * @param player the palyer that has to make the move
+         * @param player the player that has to make the move
          * @return       a new updated board
          */
         private static Board makeMoveWithoutLegalCheck(final Board board,
@@ -830,8 +874,14 @@ public class Iago implements EvalFunction {
             }
         }
 
+        /**
+         * Returns true when at last one square being part of the eight top ones is empty.
+         *
+         * @param board the edge configuration to consider
+         * @return      true if one or more squares, parts of the top edge, are empty
+         */
         private static boolean topEdgeHasEmptySquares(final Board board) {
-            for (Square sq : Edge.TOP.squares().subList(1, 9)) {
+            for (Square sq : Edge.TOP.squares().subList(1, Edge.SQUARES_COUNT - 1)) {
                 if (board.get(sq) == SquareState.EMPTY) {
                     return true;
                 }
@@ -839,8 +889,10 @@ public class Iago implements EvalFunction {
             return false;
         }
 
+        /** The values field. */
         private final List<Integer> values;
 
+        /** Class constructor. */
         private EdgeTable() {
             this.values = new ArrayList<Integer>(SIZE);
             for (int idx = 0; idx < SIZE; idx++) {
@@ -912,11 +964,16 @@ public class Iago implements EvalFunction {
 
     /**
      * Class constructor.
+     *
+     * @param table assigned to the table field
      */
     public Iago(final EdgeTable table) {
         this.table = table;
     }
 
+    /**
+     * @return the edge table field.
+     */
     private EdgeTable table() {
         return this.table;
     }
@@ -924,12 +981,15 @@ public class Iago implements EvalFunction {
     /**
      * Combine edge stability, current mobility and potential mobility to arrive
      * at an evaluation.
+     * <p>
+     * Parameter {@code position} cannot be null.
      *
      * @param position the game position to evaluate
      * @return the position value
      * @throws NullPointerException if parameter {@code position} is null
      */
     public final int eval(final GamePosition position) {
+        if (position == null) { throw new NullPointerException("Parameter position cannot be null."); }
         /** The three factors are multiplied by coefficients that vary by move number. */
         final long moveNumber = 61 - position.board().countPieces(SquareState.EMPTY);
         final long cEdg = 312000 + (6240 * moveNumber);
@@ -951,13 +1011,14 @@ public class Iago implements EvalFunction {
      * Returns current and potential mobility for the player.
      * <p>
      * See PAIP 18.12 pages 637-638.
+     * <p>
+     * Parameter {@code position} cannot be null.
      *
      * @param position the game position to evaluate
      * @return         the position mobility evaluation
-     * @throws NullPointerException if parameter {@code position} is null
      */
-    public final Mobility mobility(final GamePosition position) {
-        if (position == null) { throw new NullPointerException("Parameter position cannot be null."); }
+    private Mobility mobility(final GamePosition position) {
+        assert (position != null) : "Parameter position cannot be null.";
 
         int current = 0;
         int potential = 0;
@@ -983,12 +1044,14 @@ public class Iago implements EvalFunction {
      * Total edge evaluation for the game position.
      * <p>
      * See PAIP 18.12 page 639.
+     * <p>
+     * Parameter {@code position} cannot be null.
      *
      * @param position the game position to evaluate
      * @return         total edge evaluation for the game position
-     * @throws NullPointerException if parameter {@code position} is null
      */
-    public final int edgeStability(final GamePosition position) {
+    private int edgeStability(final GamePosition position) {
+        assert (position != null) : "Parameter position cannot be null.";
         int evaluation = 0;
         for (final Edge edge : EDGE_AND_X_LISTS) {
             evaluation += table().get(EdgeTable.index(position.player(), position.board(), edge));
@@ -997,18 +1060,25 @@ public class Iago implements EvalFunction {
     }
 
     /**
-     * Evaluates if the square is a potetial move.
+     * Evaluates if the square is a potential move.
+     * <p>
+     * Parameter {@code board} cannot be null.
+     * Parameter {@code square} cannot be null.
+     * Parameter {@code opponent} cannot be null.
      *
-     * @param board  the board to assess
-     * @param square the square where to move
-     * @param opp    the opponent player
+     * @param board    the board to assess
+     * @param square   the square where to move
+     * @param opponent the opponent player
      * @return       true if the square is a potential move
      */
     private boolean isPotentialMove(final Board board,
                                     final Square square,
-                                    final Player opp) {
+                                    final Player opponent) {
+        assert (board != null) : "Parameter board cannot be null.";
+        assert (square != null) : "Parameter square cannot be null.";
+        assert (opponent != null) : "Parameter board opponent be null.";
         for (Square neighbor : square.neighbors().values()) {
-            if (board.get(neighbor) == opp.color()) {
+            if (board.get(neighbor) == opponent.color()) {
                 return true;
             }
         }
