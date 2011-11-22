@@ -34,13 +34,25 @@ import java.io.BufferedInputStream;
  */
 public final class Utils {
 
+    /**
+     * Open the {@code resource} parameter as an input stream, assign each
+     * line read fron the resource to an entry of the returned array.
+     * <p>
+     * Parameter {@code resource} cannot be null.
+     *
+     * @param resource the java resource to open as an input stream
+     * @return         an array of strings
+     * @throws NullPointerException if parameter {@code resource} is null
+     * @throws RuntimeException     if the resource cannot be found or opened
+     */
     public static String[] readInputStreamAsStringArray(final String resource) {
-        InputStream in = new Iago().getClass().getClassLoader().getResourceAsStream(resource);
+        if (resource == null) { throw new NullPointerException("Parameter resource cannot be null."); }
+        final InputStream in = new Iago().getClass().getClassLoader().getResourceAsStream(resource);
         if (in == null) {
             throw new RuntimeException("Resource \"" + resource + "\" cannot be found.");
         }
-        ByteArrayOutputStream buf;
-        BufferedInputStream bis = new BufferedInputStream(in);
+        final BufferedInputStream bis = new BufferedInputStream(in);
+        final ByteArrayOutputStream buf;
         try {
             buf = new ByteArrayOutputStream();
             int result = bis.read();
