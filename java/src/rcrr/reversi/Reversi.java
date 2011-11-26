@@ -165,9 +165,7 @@ public final class Reversi {
             if (score > 0) {
                 numberOfWins++;
             } else if (score == 0) {
-                numberOfWins += 0.5;
-            } else {
-                ;
+                numberOfWins += 1. / 2;
             }
         }
         results.put("scores", scores);
@@ -177,6 +175,24 @@ public final class Reversi {
         return results;
     }
 
+    /**
+     * !!! MUST BE COMPLETED!!!
+     * Returns a map containing the otcames of the round robin matches.
+     * <p>
+     * The result map has these entries:
+     * - actorsAsList
+     * - nPairs
+     * - matchResults
+     * <p>
+     * Parameter {@code actors} cannot be null.
+     * Parameter {@code nPairs} cannot be null.
+     * Parameter {@code gameDuration} cannot be null.
+     *
+     * @param actors       a set of actors partecipating the round robin
+     * @param nPairs       the numder of pairs of matches
+     * @param gameDuration the duration of each game
+     * @return             a result map
+     */
     public static Map<String, Object> roundRobin(final Set<Actor> actors,
                                                  final int nPairs,
                                                  final Duration gameDuration) {
@@ -192,7 +208,6 @@ public final class Reversi {
             ListIterator<Actor> secondCursor = actorsAsList.listIterator(firstCursor.nextIndex());
             while (secondCursor.hasNext()) {
                 Actor challenger = secondCursor.next();
-                //System.out.println("Play: defender=" + defender.print() + ", challenger=" + challenger.print());
                 results.put("matchResults" + firstCursor.nextIndex() + "-" + secondCursor.nextIndex(),
                             reversiSeries(defender,
                                           challenger,
@@ -250,12 +265,24 @@ public final class Reversi {
             }
             pwReportLine.printf(" ... %6.1f:", totalNumberOfWins);
             pwReportLine.printf("%s", swReportGrid.toString());
-            //System.out.println(swReportLine.toString());
             report.append(swReportLine.toString()).append("\n");
         }
         return report.toString();
     }
 
+    /**
+     * Returns the number of games won by the defender against the challenger.
+     * The data is extracted by a result map.
+     * <p>
+     * Parameter {@code results} results cannot be null and must be structured consistently.
+     * Parameters {@code idxDefender} and {@code idxChallenger} must be bounded
+     * accordingly to the data contained by the {@code results} parameter.
+     *
+     * @param results       the mat having the data to be extracted
+     * @param idxDefender   the index of the first actor
+     * @param idxChallenger the index of the second actor
+     * @return              the number of wins extracted by the {@code result} map.
+     */
     private static double numberOfWins(final Map<String, Object> results,
                                        final int idxDefender,
                                        final int idxChallenger) {
