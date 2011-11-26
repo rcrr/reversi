@@ -559,9 +559,9 @@ public class Iago implements EvalFunction {
          */
         private static EdgeTable load(final String resource) {
             StringBuilder log = new StringBuilder();
-            log.append("LOG: Reading the resource: " + resource + "\n");
+            log.append("LOG: Reading the resource: ").append(resource).append("\n");
             String[] lines = Utils.readInputStreamAsStringArray(resource);
-            log.append("LOG: The resource has been read." +  "\n");
+            log.append("LOG: The resource has been read." + "\n");
             int tableLength;
             int numberOfLines = lines.length;
             if (numberOfLines > 2) {
@@ -575,10 +575,10 @@ public class Iago implements EvalFunction {
                 log.append("ERROR: The file format is wrong." + "\n");
                 throw new RuntimeException(log.toString());
             }
-            log.append("LOG: File header: " + lines[0] + "\n");
-            log.append("LOG: tableLength: " + tableLength + "\n");
+            log.append("LOG: File header: ").append(lines[0]).append("\n");
+            log.append("LOG: tableLength: ").append(tableLength).append("\n");
             if (numberOfLines != tableLength + 2) {
-                log.append("ERROR: The file length is not consistent. numberOfLines=" + numberOfLines + "\n");
+                log.append("ERROR: The file length is not consistent. numberOfLines=").append(numberOfLines).append("\n");
                 throw new RuntimeException(log.toString());
             }
             if (tableLength != SIZE) {
@@ -592,7 +592,7 @@ public class Iago implements EvalFunction {
                 try {
                     value = Integer.valueOf(lines[i].trim());
                 } catch (NumberFormatException nfe) {
-                    log.append("ERROR: Unable to parse line " + i + ".\n");
+                    log.append("ERROR: Unable to parse line ").append(i).append(".\n");
                     throw new RuntimeException(log.toString(), nfe);
                 }
                 values.add(value);
