@@ -559,7 +559,9 @@ public class Iago implements EvalFunction {
          */
         private static EdgeTable load(final String resource) {
             StringBuilder log = new StringBuilder();
-            log.append("LOG: Reading the resource: ").append(resource).append("\n");
+            log.append("LOG: Reading the resource: ")
+                .append(resource)
+                .append("\n");
             String[] lines = Utils.readInputStreamAsStringArray(resource);
             log.append("LOG: The resource has been read." + "\n");
             int tableLength;
@@ -578,15 +580,17 @@ public class Iago implements EvalFunction {
             log.append("LOG: File header: ").append(lines[0]).append("\n");
             log.append("LOG: tableLength: ").append(tableLength).append("\n");
             if (numberOfLines != tableLength + 2) {
-                log.append("ERROR: The file length is not consistent. numberOfLines=").append(numberOfLines).append("\n");
+                log.append("ERROR: The file length is not consistent. numberOfLines=")
+                    .append(numberOfLines)
+                    .append("\n");
                 throw new RuntimeException(log.toString());
             }
             if (tableLength != SIZE) {
-                log.append("ERROR: The declared table length is not consistent with SIZE." + "\n");
+                log.append("ERROR: The declared table length is not consistent with SIZE.\n");
                 throw new RuntimeException(log.toString());
             }
             final List<Integer> values = new ArrayList<Integer>();
-            log.append("LOG: Reading the edge table values ..." + "\n");
+            log.append("LOG: Reading the edge table values ...\n");
             for (int i = 2; i < numberOfLines; i++) {
                 int value;
                 try {
