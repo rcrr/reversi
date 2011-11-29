@@ -168,6 +168,7 @@ public final class AlphaBeta3 extends AbstractDecisionRule {
                 }
             } else {
                 node = SearchNode.valueOf(moves.firstKey(), achievable);
+                // README: Change the keySet into an entrySet .....
                 outer: for (Square move : moves.keySet()) {
                     int val = multiLevelOrderingSearch(moves.get(move).position(),
                                                        -cutoff, -node.value(),
