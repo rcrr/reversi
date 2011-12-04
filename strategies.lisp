@@ -464,21 +464,22 @@
 (defun edge-move-probability (player board square)
   "What's the probability that player can move to this square?"
   (cond
-    ((x-square-p square) .5)		;; X-squares
-    ((legal-p square player board) 1.0) ;; immediate capture
-    ((corner-p square) ;; move to corner depends on X-square
-     (let ((x-sq (x-square-for square)))
-       (cond
-	 ((eql (bref board x-sq) empty) .1)
-	 ((eql (bref board x-sq) player) 0.001)
-	 (t .9))))
-    (t (/ (aref
-	   '#2A((.10 .4 .7)
-		(.05 .3  *)
-		(.01  *  *))
-	   (count-edge-neighbors player board square)
-	   (count-edge-neighbors (opponent player) board square))
-	  (if (legal-p square (opponent player) board) 2 1)))))
+   ((x-square-p square) .5)	       ;; X-squares
+   ((legal-p square player board) 1.0) ;; immediate capture
+   ((corner-p square)                  ;; move to corner depends on X-square
+    (let ((x-sq (x-square-for square)))
+      (cond
+       ((eql (bref board x-sq) empty) .1)
+       ((eql (bref board x-sq) player) 0.001)
+       (t .9))))
+   (t (/ (aref
+	  (make-array '(3 3)
+		      :initial-contents '((.10 .4 .7)
+					  (.05 .3  *)
+					  (.01  *  *)))
+	  (count-edge-neighbors player board square)
+	  (count-edge-neighbors (opponent player) board square))
+	 (if (legal-p square (opponent player) board) 2 1)))))
 
 (defun count-edge-neighbors (player board square)
   "Count the neighbors of this square occupied by player."
