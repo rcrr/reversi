@@ -316,6 +316,7 @@
   "A human player for the game of Reversi."
   (format t "~&~c to move ~a: " (name-of player)
 	  (mapcar #'88->h8 (legal-moves player board)))
+  (finish-output)
   (h8->88 (read)))
 
 ;;; PAIP 18.2 - Representation Choices (p. 607)
