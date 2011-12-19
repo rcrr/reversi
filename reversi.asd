@@ -70,6 +70,7 @@
 				   "constants"))
 	       (:file "strategies"
 		      :depends-on ("auxfns"
+				   "reversi"
 				   "constants"
 				   "edge-table-utils"))
 	       (:file "edge-table-utils"
