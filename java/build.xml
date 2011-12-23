@@ -47,6 +47,7 @@
   <property name="test.checkstyle.reports.dir" value="${build.dir}/test/checkstyle"/>
 
   <property name="lib.dir" value="lib"/>
+  <mkdir dir="${lib.dir}"/>
 
   <path id="lib.classpath">
     <fileset dir="${lib.dir}" includes="**/*.jar"/>
