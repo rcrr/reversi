@@ -48,6 +48,8 @@
 
   <property name="lib.dir" value="lib"/>
   <mkdir dir="${lib.dir}"/>
+  <get src="http://mirrors.ibiblio.org/pub/mirrors/maven/junit/jars/junit-3.8.1.jar"
+       dest="${lib.dir}/." verbose="on" skipexisting="true"/>
 
   <path id="lib.classpath">
     <fileset dir="${lib.dir}" includes="**/*.jar"/>
