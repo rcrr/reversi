@@ -1,7 +1,7 @@
 <!--
     build.xml
     
-    Copyright (c) 2010 Roberto Corradini. All rights reserved.
+    Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
   
     This file is part of the reversi program
     http://github.com/rcrr/reversi
@@ -287,17 +287,23 @@
   
   </target>
 
-  <property name="findbugs.reports.dir" value="${build.dir}/findbugs"/>
+  <!--
+    Findbugs tool http://findbugs.sourceforge.net/
+  -->
   <property name="findbugs.home" value="/home/rcrr/lisp/prj/findbugs-1.3.9"/>
+  <property name="findbugs.reports.dir" value="${build.dir}/findbugs"/>
+  <available file="${findbugs.home}" type="dir"
+             property="findbugs.present"/>
   <path id="findbugs.classpath">
     <fileset dir="${findbugs.home}/lib">
       <include name="**/*.jar"/>
     </fileset>
   </path>
-  <taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask">
-    <classpath refid="findbugs.classpath"/>
-  </taskdef>
-  <target name="findbugs" depends="jar">
+  <target name="findbugs" depends="findbugs.is_there, findbugs.is_not_there"/>
+  <target name="findbugs.is_there" depends="jar" if="${findbugs.present}">
+    <taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask">
+      <classpath refid="findbugs.classpath"/>
+    </taskdef>
     <delete dir="${findbugs.reports.dir}"/>
     <mkdir dir="${findbugs.reports.dir}"/>
     <findbugs home="${findbugs.home}"
@@ -311,5 +317,9 @@
           out="${findbugs.reports.dir}/rcrr.reversi.html"
           style="${findbugs.home}/src/xsl/fancy-hist.xsl"/>
   </target>
+  <target name="findbugs.is_not_there" unless="${findbugs.present}">
+    <echo message="Findbugs has not been found in: ${findbugs.home}"/>
+  </target>
+
   
 </project>
