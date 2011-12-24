@@ -48,8 +48,28 @@
 
   <property name="lib.dir" value="lib"/>
   <mkdir dir="${lib.dir}"/>
-  <get src="http://mirrors.ibiblio.org/pub/mirrors/maven/junit/jars/junit-3.8.1.jar"
-       dest="${lib.dir}/." verbose="on" skipexisting="true"/>
+
+  <!-- The JUnit jar library, used by he test target. -->
+  <get src="http://search.maven.org/remotecontent?filepath=junit/junit/4.10/junit-4.10.jar"
+       dest="${lib.dir}/junit-4.10.jar" verbose="on" skipexisting="true"/>
+
+  <!-- The Joda Time jar library used by the Reversi program. -->
+  <get src="http://search.maven.org/remotecontent?filepath=joda-time/joda-time/2.0/joda-time-2.0.jar"
+       dest="${lib.dir}/joda-time-2.0.jar" verbose="on" skipexisting="true"/>
+
+  <!-- Checkstyle jar library and dependencies. Used by the checkstyle target. -->
+  <get src="http://search.maven.org/remotecontent?filepath=com/puppycrawl/tools/checkstyle/5.5/checkstyle-5.5.jar"
+       dest="${lib.dir}/checkstyle-5.5.jar" verbose="on" skipexisting="true"/>
+  <get src="http://search.maven.org/remotecontent?filepath=antlr/antlrall/2.7.4/antlrall-2.7.4.jar"
+       dest="${lib.dir}/antlr-2.7.4.jar" verbose="on" skipexisting="true"/>
+  <get src="http://search.maven.org/remotecontent?filepath=commons-beanutils/commons-beanutils-core/1.8.3/commons-beanutils-core-1.8.3.jar"
+       dest="${lib.dir}/commons-beanutils-core-1.8.3.jar" verbose="on" skipexisting="true"/>
+  <get src="http://search.maven.org/remotecontent?filepath=commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
+       dest="${lib.dir}/commons-cli-1.2.jar" verbose="on" skipexisting="true"/>
+  <get src="http://search.maven.org/remotecontent?filepath=commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"
+       dest="${lib.dir}/commons-logging-1.1.1.jar" verbose="on" skipexisting="true"/>
+  <get src="http://search.maven.org/remotecontent?filepath=com/google/collections/google-collections/1.0/google-collections-1.0.jar"
+       dest="${lib.dir}/google-collections-1.0.jar" verbose="on" skipexisting="true"/>
 
   <path id="lib.classpath">
     <fileset dir="${lib.dir}" includes="**/*.jar"/>
@@ -227,8 +247,9 @@
     </exec>
   </target>
 
-  <taskdef resource="checkstyletask.properties"
-	   classpath="lib/checkstyle-5.3-all.jar"/>
+  <taskdef resource="checkstyletask.properties">
+    <classpath refid="lib.classpath"/>
+  </taskdef>
 
   <target name="checkstyle"
           description="Generates a report of code convention violations.">
