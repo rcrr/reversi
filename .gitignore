@@ -11,3 +11,10 @@ nbproject
 dist
 tmp
 *.tmp
+*.jar
+/clojure/lib
+/clojure/classes
+.lein-failures
+/clojure/checkouts
+.lein-deps-sum
+.classpath

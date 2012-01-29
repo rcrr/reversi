@@ -1,5 +1,7 @@
 ;;;
-;;; Copyright (c) 2009-2010 Roberto Corradini
+;;; auxfns.clj
+;;;
+;;; Copyright (c) 2009, 2010, 2011, 2012 Roberto Corradini
 
 ;;; This file is part of the reversi program
 ;;; http://github.com/rcrr/reversi
@@ -19,14 +21,22 @@
 ;;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 ;;; or visit the site <http://www.gnu.org/licenses/>.
 
-(in-ns 'reversi)
+(ns rcrr.auxfns
+  (:require [clojure.pprint :as pprint]))
 
-(clojure.core/load "reversi/auxfns")
-(clojure.core/load "reversi/constants")
-(clojure.core/load "reversi/reversi")
-(clojure.core/load "reversi/test-fixtures")
-(clojure.core/load "reversi/strategies")
-(clojure.core/load "reversi/test-strategies")
-(clojure.core/load "reversi/edge-table-utils")
+(defn rand-elt
+  "Return a random element of this seq"
+  [s]
+  (nth s (rand-int (count s))))
 
-(run-tests 'reversi)
+(defn get-internal-real-time [] (System/nanoTime))
+
+(defn binomial
+  "Calculate the binomial coefficient."
+  [n k]
+  (let [a (inc n)]
+    (loop [b 1
+           c 1]
+      (if (> b k)
+        c
+        (recur (inc b) (* (/ (- a b) b) c))))))
