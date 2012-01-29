@@ -47,15 +47,14 @@ To do:
   <li>Direction: ok. Javadocs complete. Tests complete.
       Notes: (1) deltaRow and deltaColumn are int, could be better having an enum Shift UP, NEUTRAL, DOWN...?
              (2) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
-  <li>Complete the PAIP roadmap. Tournaments and IAGO AI player are missing.</li>
   <li>Prepare a "<i>Literate Paper</i>" that describes the software architecture of the java version.</li>
   <li>Replace Ant with Maven.</li>
   <li>Develop JUnit performance testing and reports.
       See: <a href="http://databene.org/contiperf.html" target="_blank">ContiPerf</a></li>
   <li>Introduce a unit test coverage kpi.
       See: <a href="http://cobertura.sourceforge.net/introduction.html" target="_blank">Coberdura</a></li>
-  <li>Develop a simple Java SWING front end. Prepare the build so that a java web start distribution is possible.
-      See:<a href=" http://download.oracle.com/javase/tutorial/uiswing/" target="_blank">SWING Tutorial</a></li>
+      See: <a href="http://emma.sourceforge.net" target="_blank">EMMA</a></li>
+  <li>A simple Java SWING front end is ready. A complete refactor is needed.
   <li>Which practice is best when it comes to write unit test for UI?
       After a brief search on google the best so far tool to investigate
       on is UISpec4J.
