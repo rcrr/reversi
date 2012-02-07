@@ -654,9 +654,9 @@
   ([strategies n-pairs n-random] (round-robin strategies n-pairs n-random strategies))
   ([strategies n-pairs n-random names]
     (let [n (count strategies)
-          totals (make-array Double n)
-          scores (make-array Double n n)]
-      (dotimes [i n] (aset totals i 0.) (dotimes [j n] (aset scores i j 0.)))
+          totals (make-array Double/TYPE n)
+          scores (make-array Double/TYPE n n)]
+      (dotimes [i n] (aset-long totals i 0.) (dotimes [j n] (aset-long scores i j 0.)))
       ;; Play the games
       (dotimes [i n]
         (loop [j (+ i 1)]
@@ -666,15 +666,15 @@
                                  (nth strategies j)
                                  n-pairs n-random)
                   losses (- (* 2 n-pairs) wins)]
-              (aset scores i j (+ (aget scores i j) wins))
-              (aset scores j i (+ (aget scores j i) losses))
-              (aset totals i (+ (aget totals i) wins))
-              (aset totals j (+ (aget totals j) losses))
+              (aset-double scores i j (+ (aget scores i j) wins))
+              (aset-double scores j i (+ (aget scores j i) losses))
+              (aset-double totals i (+ (aget ^doubles totals i) wins))
+              (aset-double totals j (+ (aget ^doubles totals j) losses))
               (recur (inc j))))))
       ;; Print the results
       (dotimes [i n]
         (pprint/cl-format true "~&~a~20T ~6,2,0f: " (nth names i)
-                          (/ (* (aget totals i) 100)
+                          (/ (* (aget ^doubles totals i) 100)
                              (* 2 n-pairs (auxfns/binomial n 2))))
         (dotimes [j n]
           (if (= i j)

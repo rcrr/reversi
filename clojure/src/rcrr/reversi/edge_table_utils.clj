@@ -32,7 +32,7 @@
 (def
   #^{:doc "Array of values to player-to-move for edge positions."}
   ^:dynamic
-  *edge-table* (make-array Long (math/expt 3 10)))
+  *edge-table* (make-array Long/TYPE (math/expt 3 10)))
 
 ;;;
 ;;; Edge Stability - Section Begin
@@ -52,37 +52,37 @@
                   white fixt/board-edge-index top-edge 59048
                   black fixt/board-edge-index top-edge 29524))}
   edge-index [player board squares]
-  (loop [index 0
+  (loop [index (long 0)
          sqs squares]
     (if (empty? sqs)
       index
       (recur
-        (+ (* index 3)
-           (cond (= (board-ref board (first sqs)) empty-square) 0
-                 (= (board-ref board (first sqs)) player) 1
-                 true 2))
+        (long (+ (* index 3)
+                 (cond (= (board-ref board (first sqs)) empty-square) (long 0)
+                       (= (board-ref board (first sqs)) player) (long 1)
+                       true (long 2))))
         (rest sqs)))))
 
 ;;; OK
 (defn
   #^{:doc "Total edge evaluation for player to move on board"
      :test (fn []
-             (binding [*edge-table* (make-array Long (math/expt 3 10))]
-               (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
+             (binding [*edge-table* (make-array Long/TYPE (math/expt 3 10))]
+               (dotimes [i (count *edge-table*)] (aset-long *edge-table* i i))
                (are [player es]
                     (= (edge-stability player fixt/board-black-has-to-pass) es)
                     white 192977
                     black 135868)))}
   edge-stability [player board]
   (reduce + (for [edge-list edge-and-x-lists]
-              (aget *edge-table* (edge-index player board edge-list)))))
+              (aget ^longs *edge-table* (edge-index player board edge-list)))))
 
 ;;; OK
 (defn
   #^{:doc "Call fun on all edges with n pieces."
      :test (fn []
-             (binding [*edge-table* (make-array Long (math/expt 3 10))]
-               (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
+             (binding [*edge-table* (make-array Long/TYPE (math/expt 3 10))]
+               (dotimes [i (count *edge-table*)] (aset-long *edge-table* i i))
                (are [player index]
                     (=
                       (map-edge-n-pieces
@@ -282,26 +282,26 @@
   static-edge-stability [player board]
   (loop [squares top-edge
          i 0
-         sum 0]
+         sum (long 0)]
     (if (empty? squares)
       sum
       (let [sq (first squares)
             p (board-ref board sq)
-            x (aget *static-edge-table* i (piece-stability board sq))]
+            x (long (aget *static-edge-table* i (piece-stability board sq)))]
         (recur
           (rest squares)
           (inc i)
-          (+ sum (cond
-                   (= p empty-square) 0
-                   (= p player) x
-                   true (- x))))))))
+          (long (+ sum (cond
+                         (= p empty-square) (long 0)
+                         (= p player) (long x)
+                         true (- x)))))))))
 
 ;;; OK
 (defn
   #^{:doc "Return a (prob val) pair for a possible edge move."
      :test (fn []
-             (binding [*edge-table* (make-array Long (math/expt 3 10))]
-               (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
+             (binding [*edge-table* (make-array Long/TYPE (math/expt 3 10))]
+               (dotimes [i (count *edge-table*)] (aset-long *edge-table* i i))
                (are [player sq pem]
                     (=
                       (possible-edge-move player fixt/board-black-has-to-pass sq)
@@ -311,7 +311,7 @@
   possible-edge-move [player board sq]
   (let [new-board (make-move sq player board)]
     (list (edge-move-probability player board sq)
-          (- (aget *edge-table*
+          (- (aget ^longs *edge-table*
                    (edge-index (opponent player)
                                new-board top-edge))))))
 
@@ -320,8 +320,8 @@
   #^{:doc "Consider all possible edge moves.
            Combine their values into a single number."
      :test (fn []
-             (binding [*edge-table* (make-array Long (math/expt 3 10))]
-               (dotimes [i (count *edge-table*)] (aset *edge-table* i i))
+             (binding [*edge-table* (make-array Long/TYPE (math/expt 3 10))]
+               (dotimes [i (count *edge-table*)] (aset-long *edge-table* i i))
                (are [player index pem]
                     (=
                       (possible-edge-moves-value player fixt/board-black-has-to-pass index)
@@ -330,7 +330,7 @@
   possible-edge-moves-value [player board index]
   (combine-edge-moves
     (cons
-      (list 1.0 (aget *edge-table* index)) ;; no move
+      (list 1.0 (aget ^longs *edge-table* index)) ;; no move
       (for [sq top-edge :when (== (board-ref board sq) empty-square)]
         (possible-edge-move player board sq)))
     player))
@@ -340,20 +340,20 @@
   #^{:doc "Initialize *edge-table*, starting from the empty board."}
   init-edge-table []
   ;; Initialize to zero the array
-  (dotimes [i (count *edge-table*)] (aset *edge-table* i 0))
+  (dotimes [i (count *edge-table*)] (aset-long *edge-table* i 0))
   ;; Initialize the static values
   (doseq [n-pieces (range 0 11)]
     (map-edge-n-pieces
       (fn [board index]
-        (aset *edge-table* index
-              (static-edge-stability black board)))
+        (aset-long *edge-table* index
+                   (static-edge-stability black board)))
       black (initial-board) n-pieces top-edge 0))
   (dotimes [i 5]
     (doseq [n-pieces (reverse (range 1 10))]
       (map-edge-n-pieces
         (fn [board index]
-          (aset *edge-table* index
-                (possible-edge-moves-value black board index)))
+          (aset-long *edge-table* index
+                     (possible-edge-moves-value black board index)))
         black (initial-board) n-pieces top-edge 0))))
 
 ;;;
@@ -381,36 +381,36 @@
              The file is a plain text human readable document."}
     persist-edge-table
     ([] (persist-edge-table edge-table-file))
-    ([etf]
+    ([^java.io.File etf]
       (with-open [w (io/writer etf)]
-                 (println (str "Writing *dge-table* to file: " (. etf getAbsolutePath)))
+                 (println (str "Writing *edge-table* to file: " (. etf getAbsolutePath)))
                  (pprint/cl-format w "# Written by persist-edge-table function, in edge_table_utils.clj file.~%")
                  (let [len (count *edge-table*)]
                    (pprint/cl-format w "~d~%" len)
                    (dotimes [i len]
-                     (pprint/cl-format w "~d~%" (aget *edge-table* i)))))))
+                     (pprint/cl-format w "~d~%" (aget ^longs *edge-table* i)))))))
   
   (defn
     #^{:doc "Retrieve (load from file) the edge table array
              from a given (or default) file, and return it."}
     retrieve-edge-table
     ([] (retrieve-edge-table edge-table-file))
-    ([etf]
+    ([^java.io.File etf]
       (println (str "Reading edge-table from file: " (. etf getAbsolutePath)))
-      (with-open [r (io/reader (io/file etf))]
+      (with-open [^java.io.BufferedReader r (io/reader (io/file etf))]
                  (println (.readLine r))
                  (let [len (. Long valueOf (.readLine r))
                        edge-table (make-array Long len)]
                    (println (str "edge-table array length: " len))
                    (dotimes [i len]
-                     (aset edge-table i (. Long valueOf (.readLine r))))
+                     (aset-long edge-table i (. Long valueOf (.readLine r))))
                    edge-table))))
   
   (defn
     #^{:doc "Delete the edge table file."}
     delete-edge-table
     ([] (delete-edge-table edge-table-file))
-    ([etf]
+    ([^java.io.File etf]
       (when (and (. etf exists) (. etf isFile))
         (. etf delete))))
   
@@ -418,7 +418,7 @@
     #^{:doc "Regenerate the *dge-table* array and persist it to a file."}
     regenerate-edge-table
     ([] (regenerate-edge-table edge-table-file))
-    ([etf]
+    ([^java.io.File etf]
       (init-edge-table)
       (persist-edge-table etf)))
   
@@ -428,7 +428,7 @@
              Finally assign the loaded array to the special variable *edge-table*."}
     load-edge-table
     ([] (load-edge-table edge-table-file))
-    ([etf]
+    ([^java.io.File etf]
       (if (not (and (. etf exists) (. etf isFile)))
         (regenerate-edge-table etf)
         (def ^:dynamic *edge-table* (retrieve-edge-table etf)))))
