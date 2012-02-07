@@ -58,6 +58,19 @@
                  (if is-max index max-index)))))))
 
 (defn
+  #^{:doc "Calculate the value of a board
+           for a given player when a WEIGHTS vector is assigned."}
+  test-weighted-squares [player board weights]
+  (let [opp (opponent player)]
+    (reduce + (map * weights
+                   (for [sq board]
+                     (condp = sq
+                       player 1
+                       opp -1
+                       outer 0
+                       empty-square 0))))))
+
+(defn
   #^{:doc "Return a strategy that will consider every legal move,
            apply ENVAL-FN to each resulting board, and choose
            the move for which EVAL-FN returns the best score.
@@ -604,16 +617,3 @@
 ;;;
 ;;; Combining the Factors - Section End
 ;;;
-
-(defn
-  #^{:doc "Calculate the value of a board
-           for a given player when a WEIGHTS vector is assigned."}
-  test-weighted-squares [player board weights]
-  (let [opp (opponent player)]
-    (reduce + (map * weights
-                   (for [sq board]
-                     (condp = sq
-                       player 1
-                       opp -1
-                       outer 0
-                       empty-square 0))))))
