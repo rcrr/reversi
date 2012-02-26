@@ -1,7 +1,7 @@
 /*
  *  ReversiUI.java
  *
- *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -97,17 +97,24 @@ public class ReversiUI {
             super("About Reversi");
             setLayout(new FlowLayout());
             add(new JLabel(Constants.LOGO_128X128_ICON));
-            JLabel programAndVersion = new JLabel("Reversi 0.10");
+            JLabel programAndVersion = new JLabel("Reversi 1.0.0");
             programAndVersion.setFont(new Font("Courier", Font.BOLD, 24));
             add(programAndVersion);
-            JLabel copyright = new JLabel("Copyright 2010, 2011 Roberto Corradini");
+            JLabel info = new JLabel("http://github.com/rcrr/reversi");
+            info.setFont(new Font("Courier", Font.PLAIN, 10));
+            add(info);
+            add(Box.createRigidArea(new Dimension(0, 30)));
+            JLabel copyright = new JLabel("Copyright (c) 2010, 2011, 2012");
             copyright.setFont(new Font("Courier", Font.PLAIN, 10));
             add(copyright);
-            add(Box.createRigidArea(new Dimension(0, 40)));
+            JLabel copyright2 = new JLabel("Roberto Corradini, rob_corradini@yahoo.it");
+            copyright2.setFont(new Font("Courier", Font.PLAIN, 10));
+            add(copyright2);
+            add(Box.createRigidArea(new Dimension(0, 30)));
             JButton closeButton = new JButton("Close");
             add(closeButton);
             closeButton.addActionListener(this);
-            setSize(260, 280);
+            setSize(280, 320);
             setResizable(false);
             setLocationRelativeTo(null);
             setVisible(true);
