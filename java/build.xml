@@ -71,6 +71,18 @@
   <get src="http://search.maven.org/remotecontent?filepath=com/google/collections/google-collections/1.0/google-collections-1.0.jar"
        dest="${lib.dir}/google-collections-1.0.jar" verbose="on" skipexisting="true"/>
 
+  <!-- The One-Jar utility. -->
+  <get src="http://sourceforge.net/projects/one-jar/files/one-jar/one-jar-0.97/one-jar-ant-task-0.97.jar/download"
+       dest="${lib.dir}/one-jar-ant-task-0.97.jar" verbose="on" skipexisting="true"/>
+  <property name="one-jar.ant.jar" value="${lib.dir}/one-jar-ant-task-0.97.jar"/>
+  <import>
+    <javaresource name="one-jar-ant-task.xml">
+      <classpath>
+        <pathelement location="${lib.dir}/one-jar-ant-task-0.97.jar"/>
+      </classpath>
+    </javaresource>
+  </import>
+
   <path id="lib.classpath">
     <fileset dir="${lib.dir}" includes="**/*.jar"/>
   </path>
@@ -85,7 +97,7 @@
     <pathelement location="${test.src.dir}"/>
   </path>
 
-  <property name="main-class" value="rcrr.reversi.Reversi"/>
+  <property name="main-class" value="rcrr.reversi.ui.ReversiUI"/>
 
   <target name="clean">
     <delete dir="${build.dir}"/>
@@ -116,9 +128,31 @@
 	<!-- Information about the program itself -->
 	<attribute name="Implementation-Vendor" value="Roberto Corradini"/>
 	<attribute name="Implementation-Title" value="Java Reversi"/>
-	<attribute name="Implementation-Version" value="0.0.1"/>
+	<attribute name="Implementation-Version" value="1.0.0"/>
       </manifest>
     </jar>
+  </target>
+
+  <!-- Construct the One-Jar file -->
+  <target name="one-jar" depends="compile">
+    <one-jar destfile="${jar.dir}/${ant.project.name}-full-1_0_0.jar">
+      <manifest>
+        <attribute name="One-Jar-Main-Class" value="${main-class}"/> 
+	<!-- Who is building this jar? -->
+	<attribute name="Built-By" value="Roberto Corradini"/>
+	<!-- Information about the program itself -->
+	<attribute name="Implementation-Vendor" value="Roberto Corradini"/>
+	<attribute name="Implementation-Title" value="Java Reversi"/>
+	<attribute name="Implementation-Version" value="1.0.0"/>
+      </manifest>
+      <main>
+        <!-- Construct main.jar from classes -->
+        <fileset dir="${classes.dir}"/>
+      </main>
+      <lib>
+        <fileset dir="lib" includes="joda-time-2.0.jar"/>
+      </lib>
+    </one-jar>
   </target>
 
   <target name="run" depends="jar">
@@ -226,7 +260,7 @@
   
   <target name="clean-build" depends="clean,jar"/>
   
-  <target name="main" depends="clean,test,javadocs,test.javadocs"/>
+  <target name="main" depends="clean,test,javadocs,test.javadocs,one-jar"/>
 
   <property name="cloc.executable" value="/usr/bin/cloc"/>  
   <available file="${cloc.executable}" type="file"
