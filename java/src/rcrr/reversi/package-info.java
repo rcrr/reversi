@@ -1,7 +1,7 @@
 /*
  *  package-info.java
  *
- *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -75,7 +75,7 @@ To do:
 <p>
 
 @author Roberto Corradini
-@version 0.1
+@version 1.0.0
 */
 
 package rcrr.reversi;
