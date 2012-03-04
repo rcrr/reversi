@@ -1,7 +1,7 @@
 <!--
     build.xml
     
-    Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
+    Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
   
     This file is part of the reversi program
     http://github.com/rcrr/reversi
@@ -28,6 +28,7 @@
 
   <property name="build.dir" value="build"/>
   <property name="classes.dir" value="${build.dir}/classes"/>
+  <property name="classes-debug.dir" value="${build.dir}/classes-debug"/>
   <property name="jar.dir" value="${build.dir}/jar"/>
 
   <property name="javadoc.dir" value="${build.dir}/javadoc"/>
@@ -38,6 +39,7 @@
   <property name="test.reports.dir" value="${build.dir}/test/reports"/>
   <property name="test.javadoc.dir" value="${build.dir}/test/javadoc"/>
   <property name="test.output-files.dir" value="${build.dir}/test/output-files"/>
+  <property name="test.coverage.dir" value="${build.dir}/test/coverage"/>
 
   <property name="cloc.dir" value="${build.dir}/cloc"/>
 
@@ -48,47 +50,62 @@
 
   <property name="lib.dir" value="lib"/>
   <mkdir dir="${lib.dir}"/>
+  <property name="lib.base.dir" value="${lib.dir}/base"/>
+  <mkdir dir="${lib.base.dir}"/>
 
   <!-- The JUnit jar library, used by he test target. -->
   <get src="http://search.maven.org/remotecontent?filepath=junit/junit/4.10/junit-4.10.jar"
-       dest="${lib.dir}/junit-4.10.jar" verbose="on" skipexisting="true"/>
+       dest="${lib.base.dir}/junit-4.10.jar" verbose="on" skipexisting="true"/>
 
   <!-- The Joda Time jar library used by the Reversi program. -->
   <get src="http://search.maven.org/remotecontent?filepath=joda-time/joda-time/2.0/joda-time-2.0.jar"
-       dest="${lib.dir}/joda-time-2.0.jar" verbose="on" skipexisting="true"/>
+       dest="${lib.base.dir}/joda-time-2.0.jar" verbose="on" skipexisting="true"/>
 
   <!-- Checkstyle jar library and dependencies. Used by the checkstyle target. -->
   <get src="http://search.maven.org/remotecontent?filepath=com/puppycrawl/tools/checkstyle/5.5/checkstyle-5.5.jar"
-       dest="${lib.dir}/checkstyle-5.5.jar" verbose="on" skipexisting="true"/>
+       dest="${lib.base.dir}/checkstyle-5.5.jar" verbose="on" skipexisting="true"/>
   <get src="http://search.maven.org/remotecontent?filepath=antlr/antlrall/2.7.4/antlrall-2.7.4.jar"
-       dest="${lib.dir}/antlr-2.7.4.jar" verbose="on" skipexisting="true"/>
+       dest="${lib.base.dir}/antlr-2.7.4.jar" verbose="on" skipexisting="true"/>
   <get src="http://search.maven.org/remotecontent?filepath=commons-beanutils/commons-beanutils-core/1.8.3/commons-beanutils-core-1.8.3.jar"
-       dest="${lib.dir}/commons-beanutils-core-1.8.3.jar" verbose="on" skipexisting="true"/>
+       dest="${lib.base.dir}/commons-beanutils-core-1.8.3.jar" verbose="on" skipexisting="true"/>
   <get src="http://search.maven.org/remotecontent?filepath=commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
-       dest="${lib.dir}/commons-cli-1.2.jar" verbose="on" skipexisting="true"/>
+       dest="${lib.base.dir}/commons-cli-1.2.jar" verbose="on" skipexisting="true"/>
   <get src="http://search.maven.org/remotecontent?filepath=commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"
-       dest="${lib.dir}/commons-logging-1.1.1.jar" verbose="on" skipexisting="true"/>
+       dest="${lib.base.dir}/commons-logging-1.1.1.jar" verbose="on" skipexisting="true"/>
   <get src="http://search.maven.org/remotecontent?filepath=com/google/collections/google-collections/1.0/google-collections-1.0.jar"
-       dest="${lib.dir}/google-collections-1.0.jar" verbose="on" skipexisting="true"/>
+       dest="${lib.base.dir}/google-collections-1.0.jar" verbose="on" skipexisting="true"/>
 
   <!-- The One-Jar utility. -->
   <get src="http://sourceforge.net/projects/one-jar/files/one-jar/one-jar-0.97/one-jar-ant-task-0.97.jar/download"
-       dest="${lib.dir}/one-jar-ant-task-0.97.jar" verbose="on" skipexisting="true"/>
-  <property name="one-jar.ant.jar" value="${lib.dir}/one-jar-ant-task-0.97.jar"/>
+       dest="${lib.base.dir}/one-jar-ant-task-0.97.jar" verbose="on" skipexisting="true"/>
+  <property name="one-jar.ant.jar" value="${lib.base.dir}/one-jar-ant-task-0.97.jar"/>
   <import>
     <javaresource name="one-jar-ant-task.xml">
       <classpath>
-        <pathelement location="${lib.dir}/one-jar-ant-task-0.97.jar"/>
+        <pathelement location="${lib.base.dir}/one-jar-ant-task-0.97.jar"/>
       </classpath>
     </javaresource>
   </import>
 
-  <path id="lib.classpath">
-    <fileset dir="${lib.dir}" includes="**/*.jar"/>
+  <path id="lib.base.classpath">
+    <fileset dir="${lib.base.dir}" includes="**/*.jar"/>
+  </path>
+
+  <!-- The JMockit tools. -->
+  <property name="lib.jmockit.dir" value="${lib.dir}/jmockit"/>
+  <mkdir dir="${lib.jmockit.dir}"/>
+  <property name="jmockit.jar" value="${lib.jmockit.dir}/jmockit-0.999.13.jar"/>
+  <get src="http://search.maven.org/remotecontent?filepath=com/googlecode/jmockit/jmockit/0.999.13/jmockit-0.999.13.jar"
+       dest="${jmockit.jar}" verbose="on" skipexisting="true"/>
+  <property name="jmockit-coverage.jar" value="${lib.jmockit.dir}/jmockit-coverage-0.999.13.jar"/>
+  <get src="http://search.maven.org/remotecontent?filepath=com/googlecode/jmockit/jmockit-coverage/0.999.13/jmockit-coverage-0.999.13.jar"
+       dest="${jmockit-coverage.jar}" verbose="on" skipexisting="true"/>
+  <path id="lib.jmockit.classpath">
+    <fileset dir="${lib.jmockit.dir}" includes="**/*.jar"/>
   </path>
 
   <path id="test.classpath">
-    <fileset dir="${lib.dir}" includes="**/*.jar"/>
+    <fileset dir="${lib.base.dir}" includes="**/*.jar"/>
     <fileset dir="${jar.dir}" includes="${ant.project.name}.jar"/>
   </path>
 
@@ -107,7 +124,7 @@
     <mkdir dir="${classes.dir}"/>
     <javac srcdir="${src.dir}" 
 	   destdir="${classes.dir}" 
-	   classpathref="lib.classpath" 
+	   classpathref="lib.base.classpath" 
 	   includeAntRuntime="false">
       <compilerarg value="-Xlint:unchecked"/>
     </javac>
@@ -159,7 +176,7 @@
     <java fork="true" classname="${main-class}">
       <classpath>
 	<pathelement location="${jar.dir}/${ant.project.name}.jar"/>
-	<path refid="lib.classpath"/>
+	<path refid="lib.base.classpath"/>
       </classpath>
       <arg value="rcrr.reversi.RandomStrategy"/>
       <arg value="rcrr.reversi.MaximizeDifference"/>
@@ -170,7 +187,7 @@
     <java fork="true" classname="${main-class}">
       <classpath>
 	<pathelement location="${jar.dir}/${ant.project.name}.jar"/>
-	<path refid="lib.classpath"/>
+	<path refid="lib.base.classpath"/>
       </classpath>
       <arg value="rcrr.reversi.HumanStrategy"/>
       <arg value="rcrr.reversi.IagoStrategy"/>
@@ -191,14 +208,52 @@
     </copy>
   </target>
 
-  <target name="test" depends="test.compile">
+  <target name="coverage" depends="test,compile-debug">
+    <delete dir="${test.coverage.dir}"/>
+    <mkdir dir="${test.coverage.dir}"/>
+    <junit fork="yes" forkmode="once" printsummary="withOutAndErr">
+      <!--sysproperty key="jmockit-tools" value="coverage"/-->
+      <sysproperty key="jmockit-coverage-output" value="html"/>
+      <sysproperty key="jmockit-coverage-outputDir" value="${test.coverage.dir}"/>
+      <sysproperty key="jmockit-coverage-srcDirs" value="${src.dir}"/>
+      <sysproperty key="jmockit-coverage-classes" value="${classes.dir}"/>
+      <!--sysproperty key="jmockit-coverage-excludes" value=""/-->
+      <!--sysproperty key="jmockit-coverage-metrics" value="all"/-->
+      <jvmarg value="-javaagent:${jmockit.jar}"/>
+      <jvmarg value="-ea"/>
+      <jvmarg value="-Dtest.output-files.dir=${test.output-files.dir}"/>
+      <formatter type="brief" usefile="false"/>
+      <formatter type="xml"/>
+      <batchtest todir="${test.data.dir}" unless="test.class.name">
+	<fileset dir="${test.classes.dir}"
+                 includes="**/*Test.class"
+                 excludes="**/*AlphaBeta*.class,
+                           **/GameTest.class,
+                           **/IagoMethodsTest.class,
+                           **/IagoTest.class,
+                           **/MinimaxTest.class,
+                           **/RandomStrategyTest.class,
+                           **/ReversiTest.class"
+                 />
+      </batchtest>
+      <classpath path="/usr/lib/jvm/java-6-openjdk/lib/tools.jar"/>
+      <classpath>
+	<path refid="lib.jmockit.classpath"/>
+	<pathelement path="${test.classes.dir}"/>
+	<pathelement path="${classes-debug.dir}"/>
+	<path refid="lib.base.classpath"/>
+      </classpath>
+    </junit>
+  </target>
+
+  <target name="test" depends="jar,test.compile">
     <delete dir="${test.data.dir}"/>
     <mkdir dir="${test.data.dir}"/>
     <delete dir="${test.reports.dir}"/>
     <mkdir dir="${test.reports.dir}"/>
     <delete dir="${test.output-files.dir}"/>
     <mkdir dir="${test.output-files.dir}"/>
-    <junit fork="yes" printsummary="withOutAndErr"
+    <junit fork="yes" forkmode="once" printsummary="withOutAndErr"
 	   errorProperty="test.failed"
 	   failureProperty="test.failed">
       <jvmarg value="-ea"/>
@@ -214,7 +269,7 @@
       <classpath>
 	<pathelement path="${test.classes.dir}"/>
 	<pathelement location="${jar.dir}/${ant.project.name}.jar"/>
-	<path refid="lib.classpath"/>
+	<path refid="lib.base.classpath"/>
       </classpath>
     </junit>
     <junitreport todir="${test.data.dir}">
@@ -224,6 +279,17 @@
       <report format="frames" todir="${test.reports.dir}"/>
     </junitreport>
     <fail message="Test failed. Check log and/or reports." if="test.failed"/>
+  </target>
+
+  <target name="compile-debug">
+    <mkdir dir="${classes-debug.dir}"/>
+    <javac srcdir="${src.dir}" 
+	   destdir="${classes-debug.dir}" 
+	   classpathref="lib.base.classpath" 
+	   includeAntRuntime="false"
+           debug="true">
+      <compilerarg value="-Xlint:unchecked"/>
+    </javac>
   </target>
 
   <target name="javadocs" depends="compile"
@@ -238,7 +304,7 @@
 	     version="true"
 	     windowtitle="documentation"
 	     private="false">
-      <classpath refid="lib.classpath"/>
+      <classpath refid="lib.base.classpath"/>
     </javadoc>
   </target>
   
@@ -282,7 +348,7 @@
   </target>
 
   <taskdef resource="checkstyletask.properties">
-    <classpath refid="lib.classpath"/>
+    <classpath refid="lib.base.classpath"/>
   </taskdef>
 
   <target name="checkstyle"
@@ -343,7 +409,7 @@
     <findbugs home="${findbugs.home}"
               output="xml:withMessages"
               outputFile="${findbugs.reports.dir}/rcrr.reversi.xml">
-      <auxClasspath refid="lib.classpath"/>
+      <auxClasspath refid="lib.base.classpath"/>
       <sourcePath path="${src.dir}"/>
       <class location="${jar.dir}/${ant.project.name}.jar"/>
     </findbugs>
