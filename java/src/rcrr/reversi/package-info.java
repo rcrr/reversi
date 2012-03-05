@@ -36,7 +36,7 @@ To do:
   <li>The actor that share the strategy by means of the strategy() method is not safe.
       The client can get a reference of the strategy object and modify it. It is better to
       add a move() method to the actor and keep the strategy more shielded.</li>
-  <li>Veryfy that the Builder classes are really thread-safe. Be careful about accessor methods that publish a reference
+  <li>Verify that the Builder classes are really thread-safe. Be careful about accessor methods that publish a reference
       of a collection, or in general a mutable object reference. It must be copied.
       The Builder inner classes must have a unit test.</li>
   <li>Prepare some tests (ReversiTest suite) that repeat selected tests but print the game to a file.
@@ -51,9 +51,7 @@ To do:
   <li>Replace Ant with Maven.</li>
   <li>Develop JUnit performance testing and reports.
       See: <a href="http://databene.org/contiperf.html" target="_blank">ContiPerf</a></li>
-  <li>Introduce a unit test coverage kpi.
-      See: <a href="http://cobertura.sourceforge.net/introduction.html" target="_blank">Coberdura</a></li>
-      See: <a href="http://emma.sourceforge.net" target="_blank">EMMA</a></li>
+      See: <a href="http://perf4j.codehaus.org/" target="_blank">Perf4J</a></li>
   <li>A simple Java SWING front end is ready. A complete refactor is needed.
   <li>Which practice is best when it comes to write unit test for UI?
       After a brief search on google the best so far tool to investigate
