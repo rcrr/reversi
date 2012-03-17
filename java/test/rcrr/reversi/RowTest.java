@@ -51,38 +51,6 @@ public class RowTest {
     }
 
     /**
-     * Tests the {@code getInstance(int)} method when parameter
-     * {@code index} is out of bound.
-     *
-     * @see Row#getInstance(int)
-     */
-    @Test(expected = IndexOutOfBoundsException.class)
-    public final void testGetInstance_boundaryConditions_checkIndexOutOfBounds_index() {
-        Row.getInstance(Row.values().length);
-
-        /** This statement is never reached, but if it would be, an exception must be risen. */
-        Row.getInstance(-1);
-    }
-
-    /**
-     * Tests the {@code getInstance(int)} method.
-     *
-     * @see Row#getInstance(int)
-     */
-    @Test
-    public final void testGetInstance() {
-        assertThat("Row.getInstance(0) must return Row.R1.",
-                   Row.getInstance(0),
-                   is(Row.R1));
-        assertThat("Row.getInstance(2) must return Row.R3.",
-                   Row.getInstance(2),
-                   is(Row.R3));
-        assertThat("Row.getInstance(7) must return Row.R8.",
-                   Row.getInstance(7),
-                   is(Row.R8));
-    }
-
-    /**
      * Tests the {@code shift(int)} method.
      *
      * @see Row#shift(int)
