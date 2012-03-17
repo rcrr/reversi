@@ -51,38 +51,6 @@ public class ColumnTest {
     }
 
     /**
-     * Tests the {@code getInstance(int)} method when parameter
-     * {@code index} is out of bound.
-     *
-     * @see Column#getInstance(int)
-     */
-    @Test(expected = IndexOutOfBoundsException.class)
-    public final void testGetInstance_boundaryConditions_checkIndexOutOfBounds_index() {
-        Column.getInstance(-1);
-
-        /** This statement is never reached, but if it would be, an exception must be risen. */
-        Column.getInstance(Column.values().length);
-    }
-
-    /**
-     * Tests the {@code getInstance(int)} method.
-     *
-     * @see Column#getInstance(int)
-     */
-    @Test
-    public final void testGetInstance() {
-        assertThat("Column.getInstance(0) must return Column.A.",
-                   Column.getInstance(0),
-                   is(Column.A));
-        assertThat("Column.getInstance(2) must return Column.C.",
-                   Column.getInstance(2),
-                   is(Column.C));
-        assertThat("Column.getInstance(7) must return Column.H.",
-                   Column.getInstance(7),
-                   is(Column.H));
-    }
-
-    /**
      * Tests the {@code shift(int)} method.
      *
      * @see Column#shift(int)

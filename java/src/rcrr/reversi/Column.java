@@ -87,16 +87,6 @@ public enum Column {
     public String label() { return label; }
 
     /**
-     * Returns the column at the specified position.
-     *
-     * @param index the column's index
-     * @return the identified column
-     *
-     * @throws IndexOutOfBoundsException if the index is out of range {@code (index < 0 || index >= Column.size())}
-     */
-    public static Column getInstance(final int index) { return values()[index]; }
-
-    /**
      * Returns the column obtained moving by a {@code delta} number of shift, counted with the proper sign.
      * Returns {@code null} if the shift leads outside the column boundaries.
      * For instance:
