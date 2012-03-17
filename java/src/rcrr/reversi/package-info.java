@@ -41,12 +41,10 @@ To do:
       The Builder inner classes must have a unit test.</li>
   <li>Prepare some tests (ReversiTest suite) that repeat selected tests but print the game to a file.
       Some part of the Game class are used only when the PrintStream ps field is not null.</li>
-  <li>Row: ok. Javadocs complete. Tests complete.
-      Notes: (1) getInstance(int index) is redundant.
-             (2) shift(int delta) is used just in the neighbor table calculation. It is a bit ugly.</li>
-  <li>Direction: ok. Javadocs complete. Tests complete.
-      Notes: (1) deltaRow and deltaColumn are int, could be better having an enum Shift UP, NEUTRAL, DOWN...?
-             (2) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
+  <li>Row, Column, Direction, and Square:
+      Notes: (1) shift(int delta) in Row and Column classes is used just in the neighbor table calculation. It is a bit ugly.
+             (2a) deltaRow and deltaColumn are int, could be better having an enum Shift UP, NEUTRAL, DOWN...?
+             (2b) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
   <li>Prepare a "<i>Literate Paper</i>" that describes the software architecture of the java version.</li>
   <li>Replace Ant with Maven.</li>
   <li>Develop JUnit performance testing and reports.
