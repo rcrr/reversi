@@ -1,7 +1,7 @@
 /*
  *  IagoMethodsTest.java
  *
- *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -64,7 +64,7 @@ public class IagoMethodsTest {
 	assertThat("A corner must be valued 21124.",
 		   new Iago().eval(new GamePosition.Builder()
 				   .withPlayer(Player.BLACK)
-				   .withBoard(new Board.Builder()
+				   .withBoard(new EnumMapBoard.Builder()
 					      .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
 								  0, 0, 0, 0, 0, 0, 0, 0,
 								  0, 0, 0, 0, 0, 0, 0, 0,
@@ -193,7 +193,7 @@ public class IagoMethodsTest {
 
 	assertThat("Holding an edge has a value of 700.",
 		   staticEdgeStabilityProxy(Player.BLACK,
-					    new Board.Builder()
+					    new EnumMapBoard.Builder()
 					    .withSquaresLiteral(1, 0, 0, 0, 0, 0, 0, 0,
 								0, 0, 0, 0, 0, 0, 0, 0,
 								0, 0, 0, 0, 0, 0, 0, 0,
@@ -207,7 +207,7 @@ public class IagoMethodsTest {
 
 	assertThat("Configuration (0 0 1 1 1 2 1 1 0 0) is valued -50.",
 		   staticEdgeStabilityProxy(Player.BLACK,
-					    new Board.Builder()
+					    new EnumMapBoard.Builder()
 					    .withSquaresLiteral(0, 1, 1, 1, 2, 1, 1, 0,
 								0, 0, 0, 0, 0, 0, 0, 0,
 								0, 0, 0, 0, 0, 0, 0, 0,
@@ -221,7 +221,7 @@ public class IagoMethodsTest {
 
 	assertThat("Configuration (0 0 1 1 1 0 1 1 0 0) is valued 1000.",
 		   staticEdgeStabilityProxy(Player.BLACK,
-					    new Board.Builder()
+					    new EnumMapBoard.Builder()
 					    .withSquaresLiteral(0, 1, 1, 1, 0, 1, 1, 0,
 								0, 0, 0, 0, 0, 0, 0, 0,
 								0, 0, 0, 0, 0, 0, 0, 0,
@@ -269,14 +269,14 @@ public class IagoMethodsTest {
                    indexProxy(Player.WHITE, BoardFixtures.INITIAL, Iago.Edge.TOP),
                    is(0));
 
-        final Board fullEdge = new Board.Builder().withSquaresLiteral(1, 1, 1, 1, 1, 1, 1, 1,
-                                                                      0, 1, 0, 0, 0, 0, 1, 0,
-                                                                      0, 0, 0, 0, 0, 0, 0, 0,
-                                                                      0, 0, 0, 0, 0, 0, 0, 0,
-                                                                      0, 0, 0, 0, 0, 0, 0, 0,
-                                                                      0, 0, 0, 0, 0, 0, 0, 0,
-                                                                      0, 0, 0, 0, 0, 0, 0, 0,
-                                                                      0, 0, 0, 0, 0, 0, 0, 0).build();
+        final Board fullEdge = new EnumMapBoard.Builder().withSquaresLiteral(1, 1, 1, 1, 1, 1, 1, 1,
+                                                                             0, 1, 0, 0, 0, 0, 1, 0,
+                                                                             0, 0, 0, 0, 0, 0, 0, 0,
+                                                                             0, 0, 0, 0, 0, 0, 0, 0,
+                                                                             0, 0, 0, 0, 0, 0, 0, 0,
+                                                                             0, 0, 0, 0, 0, 0, 0, 0,
+                                                                             0, 0, 0, 0, 0, 0, 0, 0,
+                                                                             0, 0, 0, 0, 0, 0, 0, 0).build();
 
         assertThat("When all the squares in the edge are occupied by the PLAYER the value must be 29524.",
                    indexProxy(Player.BLACK, fullEdge, Iago.Edge.TOP),
@@ -528,7 +528,7 @@ public class IagoMethodsTest {
 	for (int idx = 1; idx < 9; idx++) {
 	    board[idx - 1] = edge.get(idx);
 	}
-	return new Board.Builder().withSquaresLiteral(board).build();
+	return new EnumMapBoard.Builder().withSquaresLiteral(board).build();
     }
 
     private final List<Integer> edgePieceStability(final List<Integer> edge)

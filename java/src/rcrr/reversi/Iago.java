@@ -1,7 +1,7 @@
 /*
  *  Iago.java
  *
- *  Copyright (c) 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -436,7 +436,7 @@ public class Iago implements EvalFunction {
                             table.set(index, staticEdgeStability(Player.BLACK, board));
                         }
                     },
-                    Board.emptyBoard(),
+                    EnumMapBoard.emptyBoard(),
                     nPieces,
                     Edge.TOP.squares(),
                     0);
@@ -457,7 +457,7 @@ public class Iago implements EvalFunction {
                                                               board));
                         }
                     },
-                    Board.emptyBoard(),
+                    EnumMapBoard.emptyBoard(),
                     nPieces,
                     Edge.TOP.squares(),
                     0);
@@ -520,10 +520,10 @@ public class Iago implements EvalFunction {
          * @param index   the edge configuration index
          */
         private static void mapEdgeNPieces(final Fn0 fn,
-                                          final Board board,
-                                          final int n,
-                                          final List<Square> squares,
-                                          final int index) {
+                                           final Board board,
+                                           final int n,
+                                           final List<Square> squares,
+                                           final int index) {
             final int squaresSize = squares.size();
             /** Index counts 1 for player; 2 for opponent. */
             if (squaresSize < n) {
@@ -536,7 +536,7 @@ public class Iago implements EvalFunction {
                 final Square sq = squares.get(0);
                 mapEdgeNPieces(fn, board, n, squaresRest, index3);
                 if (n > 0 && board.get(sq) == SquareState.EMPTY) {
-                    Board.Builder bb = new Board.Builder(board);
+                    EnumMapBoard.Builder bb = new EnumMapBoard.Builder(board);
                     mapEdgeNPieces(fn,
                                    bb.withSquare(sq, SquareState.BLACK).build(),
                                    n - 1,
@@ -888,7 +888,7 @@ public class Iago implements EvalFunction {
                     squares.put(sq, board.get(sq));
                 }
                 squares.put(square, player.color());
-                return Board.valueOf(squares);
+                return EnumMapBoard.valueOf(squares);
             } else {
                 return board;
             }

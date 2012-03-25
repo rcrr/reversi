@@ -1,7 +1,7 @@
 /*
  *  GamePosition.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -64,7 +64,7 @@ public final class GamePosition {
          * Construct a new builder.
          */
         public Builder() {
-            this.board = Board.emptyBoard();
+            this.board = EnumMapBoard.emptyBoard();
             this.player = Player.BLACK;
         }
 
@@ -152,7 +152,7 @@ public final class GamePosition {
      * @return a new initial game position as required by international game's rules
      */
     public static GamePosition initialGamePosition() {
-        return valueOf(Board.initialBoard(), Player.BLACK);
+        return valueOf(EnumMapBoard.initialBoard(), Player.BLACK);
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  *  Game.java
  *
- *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -552,14 +552,13 @@ public final class Game {
         case PUT_DISC:
             nextBoard = board().makeMove(move.square(), player());
             nextPlayer = player().opponent();
-            //nextPlayer = nextBoard.nextToPlay(player());
             break;
         case PASS:
             nextBoard = board();
             nextPlayer = player().opponent();
             break;
         case RESIGN:
-            nextBoard = Board.fillWithColor(player().opponent());
+            nextBoard = EnumMapBoard.fillWithColor(player().opponent());
             nextPlayer = null;
             break;
         default:
