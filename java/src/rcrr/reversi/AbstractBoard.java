@@ -35,7 +35,59 @@ public abstract class AbstractBoard implements Board {
     public abstract boolean isLegal(Square move, Player player);
     public abstract boolean hasAnyPlayerAnyLegalMove();
     public abstract int countPieces(SquareState color);
-    public abstract String printBoard();
-    public abstract String printBoardWithCount();
-    public abstract String printCount();
+
+    /**
+     * Returns a formatted string showing a 2d graphical represention of the board.
+     *
+     * @return a string being a 2d representation of the board
+     */
+    public String printBoard() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("    a b c d e f g h ");
+        for (final Row r : Row.values()) {
+            sb.append("\n ").append(r.label()).append("  ");
+            for (final Column c : Column.values()) {
+                String p = get(Square.getInstance(r, c)).symbol();
+                sb.append(p).append(" ");
+            }
+        }
+        sb.append("\n");
+        return sb.toString();
+    }
+
+    /**
+     * Returns a formatted string showing a 2d graphical composed view
+     * of the board and the disk count.
+     * <p>
+     * The method joins the printBoard() and the printCount() output,
+     * setting the second on the right of the first board's row.
+     *
+     * @return a string being a 2d representation of the board with the disk count
+     */
+    public String printBoardWithCount() {
+        final StringBuilder sbBoardWithCount = new StringBuilder();
+        final String sBoard = printBoard();
+        final String sCount = printCount();
+        final String[] lines = sBoard.split("\n");
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            sbBoardWithCount.append(line);
+            if (i == 0) { sbBoardWithCount.append(sCount); }
+            sbBoardWithCount.append("\n");
+        }
+        return (sbBoardWithCount.toString());
+    }
+
+    /**
+     * Returns a formatted string, giving the two player disk count and their difference.
+     *
+     * @return a string showing the two player's count
+     */
+    public String printCount() {
+        final int cb = countPieces(SquareState.BLACK);
+        final int cw = countPieces(SquareState.WHITE);
+        final int cd = cb - cw;
+        return "[@=" + cb + " 0=" + cw + " (" + cd + ")]";
+    }
+
 }
