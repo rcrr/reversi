@@ -1,7 +1,7 @@
 /*
  *  AlphaBeta2Analytics.java
  *
- *  Copyright (c) 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -54,7 +54,7 @@ public class AlphaBeta2Analytics {
 
     GameSnapshot snapshot = new GameSnapshot.Builder()
         .withPosition(new GamePosition.Builder()
-                      .withBoard(new Board.Builder()
+                      .withBoard(new EnumMapBoard.Builder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,

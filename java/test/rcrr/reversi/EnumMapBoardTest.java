@@ -1,7 +1,7 @@
 /*
- *  BoardTest.java
+ *  EnumMapBoardTest.java
  *
- *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -54,7 +54,7 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 /**
  * Test Suite for {@code Board} class.
  */
-public class BoardTest {
+public class EnumMapBoardTest {
 
     /**
      * Returns a string object reporting the content of the {@code bytes} parameter.
@@ -124,7 +124,7 @@ public class BoardTest {
     }
 
     /** Class constructor. */
-    public BoardTest() { }
+    public EnumMapBoardTest() { }
 
     @Test
     public final void testSerialization() {
@@ -144,7 +144,7 @@ public class BoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testCountDifference_boundaryConditions_checkNullParameter_player() {
-        new Board.Builder().build()
+        new EnumMapBoard.Builder().build()
             .countDifference(Player.NULL);
     }
 
@@ -159,7 +159,7 @@ public class BoardTest {
      *       must return a count equal to -2.</li>
      * </ul>
      *
-     * @see Board#countDifference(Player)
+     * @see EnumMapBoard#countDifference(Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#FINAL_B37_W27
      * @see BoardFixtures#EARLY_GAME_C_12_MOVES
@@ -188,11 +188,11 @@ public class BoardTest {
      * Tests the {@code countPieces(SquareState)} method when parameter
      * {@code color} is {@code null}.
      *
-     * @see Board#countPieces(SquareState)
+     * @see EnumMapBoard#countPieces(SquareState)
      */
     @Test(expected = NullPointerException.class)
     public final void testCountPieces_boundaryConditions_checkNullParameter_color() {
-        new Board.Builder().build()
+        new EnumMapBoard.Builder().build()
             .countPieces(SquareState.NULL);
     }
 
@@ -206,7 +206,7 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.INITIAL.countPieces(SquareState.OUTER)} must return a count equal to 0.</li>
      * </ul>
      *
-     * @see Board#countPieces(SquareState)
+     * @see EnumMapBoard#countPieces(SquareState)
      * @see BoardFixtures#INITIAL
      */
     @Test
@@ -234,21 +234,21 @@ public class BoardTest {
      * The second relates on the {@code get(Square)} method and checks that all
      * the squares of the returned board have a {@code SquereState.EMPTY} value.
      *
-     * @see Board#emptyBoard()
+     * @see EnumMapBoard#emptyBoard()
      * @see BoardFixtures#EMPTY
-     * @see Board#equals(Object)
-     * @see Board#get(Square)
+     * @see EnumMapBoard#equals(Object)
+     * @see EnumMapBoard#get(Square)
      */
     @Test
     public final void testEmptyBoard() {
-        assertThat("Board.emptyBoard() must return a board being equal to BoardFixtures.EMPTY.",
-                   Board.emptyBoard(),
+        assertThat("EnumMapBoard.emptyBoard() must return a board being equal to BoardFixtures.EMPTY.",
+                   EnumMapBoard.emptyBoard(),
                    is(BoardFixtures.EMPTY));
 
-        Board empty = Board.emptyBoard();
+        Board empty = EnumMapBoard.emptyBoard();
         for (Square square : Square.values()) {
             assertThat("Each square state returned by the get method iterating on"
-                       + " the squares of a board returned by Board.emptyBoard()"
+                       + " the squares of a board returned by EnumMapBoard.emptyBoard()"
                        + " must return a SquareState.EMPTY value.",
                        empty.get(square),
                        is(SquareState.EMPTY));
@@ -266,7 +266,7 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.INITIAL is not BoardFixtures.FIRST_MOVE_D3}</li>
      * </ul>
      *
-     * @see Board#equals(Object)
+     * @see EnumMapBoard#equals(Object)
      */
     @Test
     public final void testEquals_whenAreDifferent() {
@@ -292,7 +292,7 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.EQL_TEST_B is EQL_TEST_B}</li>
      * </ul>
      *
-     * @see Board#equals(Object)
+     * @see EnumMapBoard#equals(Object)
      */
     @Test
     public final void testEquals_whenAreTheSameObject() {
@@ -321,18 +321,18 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_A)} is true.</li>
      * </ul>
      *
-     * @see Board#equals(Object)
+     * @see EnumMapBoard#equals(Object)
      * @see BoardFixtures#EQL_TEST_A
      * @see BoardFixtures#EQL_TEST_B
      */
     @Test
     public final void testEquals_whenAreNotTheSameObject_andAreEqual() {
 
-        assertThat("BoardFixtures.INITIAL must be equal to Board.initialBoard().",
+        assertThat("BoardFixtures.INITIAL must be equal to EnumMapBoard.initialBoard().",
                    BoardFixtures.INITIAL,
-                   is(Board.initialBoard()));
-        assertThat("Board.initialBoard() must be equal to BoardFixtures.INITIAL.",
-                   Board.initialBoard(),
+                   is(EnumMapBoard.initialBoard()));
+        assertThat("EnumMapBoard.initialBoard() must be equal to BoardFixtures.INITIAL.",
+                   EnumMapBoard.initialBoard(),
                    is(BoardFixtures.INITIAL));
 
         /** Checks that the two object are really not the same. */
@@ -366,7 +366,7 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.A1)} is {@code SquareState.EMPTY}</li>
      * </ul>
      *
-     * @see Board#get(Square)
+     * @see EnumMapBoard#get(Square)
      * @see BoardFixtures#EARLY_GAME_C_12_MOVES
      */
     @Test
@@ -393,11 +393,11 @@ public class BoardTest {
      * Tests the {@code hasAnyLegalMove(Player)} method when parameter
      * {@code player} is {@code null}.
      *
-     * @see Board#hasAnyLegalMove(Player)
+     * @see EnumMapBoard#hasAnyLegalMove(Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testHasAnyLegalMove_boundaryConditions_checkNullParameter_player() {
-        new Board.Builder().build()
+        new EnumMapBoard.Builder().build()
             .hasAnyLegalMove(Player.NULL);
     }
 
@@ -414,7 +414,7 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.BLACK)} is {@code false}</li>
      * </ul>
      *
-     * @see Board#hasAnyLegalMove(Player)
+     * @see EnumMapBoard#hasAnyLegalMove(Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      * @see BoardFixtures#FINAL_B37_W27
@@ -455,7 +455,7 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.FINAL_B37_W27.hasAnyPlayerAnyLegalMove()} is {@code false}</li>
      * </ul>
      *
-     * @see Board#hasAnyPlayerAnyLegalMove()
+     * @see EnumMapBoard#hasAnyPlayerAnyLegalMove()
      * @see BoardFixtures#EMPTY
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#BLACK_HAS_TO_PASS
@@ -487,7 +487,7 @@ public class BoardTest {
      * The test runs nine assertions on different boards. The test verify that calling twice the method on
      * a given board the returned value is the same.
      *
-     * @see Board#hashCode()
+     * @see EnumMapBoard#hashCode()
      */
     @Test
     public final void testHashCode_isConsistentWhenCalledMoreThanOnce() {
@@ -522,7 +522,7 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.EQL_TEST_B.hashCode()} is equal to {@code BoardFixtures.EQL_TEST_A.hashCode()}</li>
      * </ul>
      *
-     * @see Board#hashCode()
+     * @see EnumMapBoard#hashCode()
      * @see BoardFixtures#EQL_TEST_A
      * @see BoardFixtures#EQL_TEST_B
      */
@@ -538,18 +538,18 @@ public class BoardTest {
      * The test runs two kind of assertions:
      * <p>
      * <ul>
-     *   <li>{@code Board.initialBoard()} is equal to {@code BoardFixtures.INITIAL}</li>
+     *   <li>{@code EnumMapBoard.initialBoard()} is equal to {@code BoardFixtures.INITIAL}</li>
      *   <li>For each board square the state is checked against the expected one</li>
      * </ul>
      *
-     * @see Board#initialBoard()
+     * @see EnumMapBoard#initialBoard()
      * @see BoardFixtures#INITIAL
      */
     @Test
     public final void testInitialBoard() {
-        assertEquals("Board.initialBoard() must be equal to BoardFixtures.INITIAL.",
-                     BoardFixtures.INITIAL, Board.initialBoard());
-        Board initial = Board.initialBoard();
+        assertEquals("EnumMapBoard.initialBoard() must be equal to BoardFixtures.INITIAL.",
+                     BoardFixtures.INITIAL, EnumMapBoard.initialBoard());
+        Board initial = EnumMapBoard.initialBoard();
         for (Square square : Square.values()) {
             SquareState actual = initial.get(square);
             SquareState expected;
@@ -569,11 +569,11 @@ public class BoardTest {
      * Tests the {@code isLegal(Square, Player)} method when parameter
      * {@code move} is {@code null}.
      *
-     * @see Board#isLegal(Square, Player)
+     * @see EnumMapBoard#isLegal(Square, Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testIsLegal_boundaryConditions_checkNullParameter_move() {
-        new Board.Builder().build()
+        new EnumMapBoard.Builder().build()
             .isLegal(Square.NULL, Player.AN_INSTANCE);
     }
 
@@ -581,11 +581,11 @@ public class BoardTest {
      * Tests the {@code isLegal(Square, Player)} method when parameter
      * {@code player} is {@code null}.
      *
-     * @see Board#isLegal(Square, Player)
+     * @see EnumMapBoard#isLegal(Square, Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testIsLegal_boundaryConditions_checkNullParameter_player() {
-        new Board.Builder().build()
+        new EnumMapBoard.Builder().build()
             .isLegal(Square.AN_INSTANCE, Player.NULL);
     }
 
@@ -600,7 +600,7 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.INITIAL.isLegal(Square.D4, Player.WHITE)} is false.</li>
      * </ul>
      *
-     * @see Board#isLegal(Square, Player)
+     * @see EnumMapBoard#isLegal(Square, Player)
      * @see BoardFixtures#INITIAL
      */
     @Test
@@ -627,7 +627,7 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.BLACK)} is false.</li>
      * </ul>
      *
-     * @see Board#isLegal(Square, Player)
+     * @see EnumMapBoard#isLegal(Square, Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      */
@@ -663,7 +663,7 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C6, Player.WHITE)} is true.</li>
      * </ul>
      *
-     * @see Board#isLegal(Square, Player)
+     * @see EnumMapBoard#isLegal(Square, Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      * @see BoardFixtures#EARLY_GAME_B_9_MOVES
@@ -693,11 +693,11 @@ public class BoardTest {
      * Tests the {@code legalMoves(Player)} method when parameter
      * {@code player} is {@code null}.
      *
-     * @see Board#legalMoves(Player)
+     * @see EnumMapBoard#legalMoves(Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testLegalMoves_boundaryConditions_checkNullParameter_player() {
-        new Board.Builder().build()
+        new EnumMapBoard.Builder().build()
             .legalMoves(Player.NULL);
     }
 
@@ -720,7 +720,7 @@ public class BoardTest {
      *       must return {@code [H3 C4 F4 G4 C5 F5 D6]}</li>
      * </ul>
      *
-     * @see Board#legalMoves(Player)
+     * @see EnumMapBoard#legalMoves(Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#FIRST_MOVE_D3
      * @see BoardFixtures#EARLY_GAME_C_12_MOVES
@@ -780,7 +780,7 @@ public class BoardTest {
      * The {@code BoardFixtures.INITIAL} board is used by this test given
      * that both players have legal moves in such a case.
      *
-     * @see Board#makeMove(Square, Player)
+     * @see EnumMapBoard#makeMove(Square, Player)
      * @see BoardFixtures#INITIAL
      */
     @Test(expected = NullPointerException.class)
@@ -792,11 +792,11 @@ public class BoardTest {
      * Tests the {@code makeMove(Square, Player)} method when parameter
      * {@code player} is {@code null}.
      *
-     * @see Board#makeMove(Square, Player)
+     * @see EnumMapBoard#makeMove(Square, Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testMakeMove_boundaryConditions_checkNullParameter_player() {
-        new Board.Builder().build()
+        new EnumMapBoard.Builder().build()
             .makeMove(Square.AN_INSTANCE, Player.NULL);
     }
 
@@ -810,7 +810,7 @@ public class BoardTest {
      * </ul>
      * expecting that an {@code IllegalArgumentException} is rised.
      *
-     * @see Board#makeMove(Square, Player)
+     * @see EnumMapBoard#makeMove(Square, Player)
      * @see BoardFixtures#INITIAL
      */
     @Test(expected = IllegalArgumentException.class)
@@ -829,7 +829,7 @@ public class BoardTest {
      * <p>
      * Tests also that the return value is the board itself.
      *
-     * @see Board#makeMove(Square, Player)
+     * @see EnumMapBoard#makeMove(Square, Player)
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      */
     @Test
@@ -870,7 +870,7 @@ public class BoardTest {
      *       is {@code BoardFixtures.MAKE_MOVE_TEST_CASE_D_AFTER}</li>
      * </ul>
      *
-     * @see Board#makeMove(Square, Player)
+     * @see EnumMapBoard#makeMove(Square, Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#FIRST_MOVE_D3
      * @see BoardFixtures#EARLY_GAME_B_9_MOVES
@@ -937,64 +937,6 @@ public class BoardTest {
     }
 
     /**
-     * Tests the {@code nextToPlay(Player)} method when parameter
-     * {@code current} is {@code null}.
-     *
-     * @see Board#nextToPlay(Player)
-     */
-    @Test(expected = NullPointerException.class)
-    public final void testNextToPlay_boundaryConditions_checkNullParameter_current() {
-        new Board.Builder().build()
-            .nextToPlay(Player.NULL);
-    }
-
-    /**
-     * Tests the {@code nextToPlay(Player)} method.
-     * <p>
-     * The test run the following assertions:
-     * <ul>
-     *   <li>{@code BoardFixtures.INITIAL.nextToPlay(Player.WHITE) is Player.BLACK}</li>
-     *   <li>{@code BoardFixtures.INITIAL.nextToPlay(Player.BLACK) is Player.WHITE}</li>
-     *   <li>{@code BoardFixtures.FINAL_B37_W27.nextToPlay(Player.WHITE) is Player.NULL}</li>
-     *   <li>{@code BoardFixtures.FINAL_B37_W27.nextToPlay(Player.BLACK) is Player.NULL}</li>
-     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.WHITE) is Player.WHITE}</li>
-     *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.BLACK) is Player.WHITE}</li>
-     * </ul>
-     *
-     * @see Board#nextToPlay(Player)
-     * @see BoardFixtures#INITIAL
-     * @see BoardFixtures#FINAL_B37_W27
-     * @see BoardFixtures#BLACK_HAS_TO_PASS
-     */
-    @Test
-    public final void testNextToPlay() {
-        assertThat("BoardFixtures.INITIAL.nextToPlay(Player.WHITE)"
-                   + " must return Player.BLACK.",
-                   BoardFixtures.INITIAL.nextToPlay(Player.WHITE),
-                   is(Player.BLACK));
-        assertThat("BoardFixtures.INITIAL.nextToPlay(Player.BLACK)"
-                   + " must return Player.WHITE.",
-                   BoardFixtures.INITIAL.nextToPlay(Player.BLACK),
-                   is(Player.WHITE));
-        assertThat("BoardFixtures.FINAL_B37_W27.nextToPlay(Player.WHITE)"
-                   + " must return Player.NULL.",
-                   BoardFixtures.FINAL_B37_W27.nextToPlay(Player.WHITE),
-                   is(Player.NULL));
-        assertThat("BoardFixtures.FINAL_B37_W27.nextToPlay(Player.BLACK)"
-                   + " must return Player.NULL.",
-                   BoardFixtures.FINAL_B37_W27.nextToPlay(Player.BLACK),
-                   is(Player.NULL));
-        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.WHITE)"
-                   + " must return Player.WHITE.",
-                   BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.WHITE),
-                   is(Player.WHITE));
-        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.BLACK)"
-                   + " must return Player.WHITE.",
-                   BoardFixtures.BLACK_HAS_TO_PASS.nextToPlay(Player.BLACK),
-                   is(Player.WHITE));
-    }
-
-    /**
      * Tests the {@code printBoard()} method.
      * <p>
      * The test run the following assertion:
@@ -1005,7 +947,7 @@ public class BoardTest {
      * <p>
      * where {@code printBuffer} is a properly prepared {@code StringBuilder}.
      *
-     * @see Board#printBoard()
+     * @see EnumMapBoard#printBoard()
      * @see BoardFixtures#INITIAL
      */
     @Test
@@ -1037,7 +979,7 @@ public class BoardTest {
      * <p>
      * where {@code printBuffer} is a properly prepared {@code StringBuilder}.
      *
-     * @see Board#printBoardWithCount()
+     * @see EnumMapBoard#printBoardWithCount()
      * @see BoardFixtures#INITIAL
      */
     @Test
@@ -1067,7 +1009,7 @@ public class BoardTest {
      *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.printCount() is [@=26 0=28 (-2)]}</li>
      * </ul>
      *
-     * @see Board#printCount()
+     * @see EnumMapBoard#printCount()
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      */
@@ -1089,7 +1031,7 @@ public class BoardTest {
      * The factory receives the squares parameter, and any further change to it
      * must not be reflected to the returned board instance.
      *
-     * @see Board#valueOf(Map)
+     * @see EnumMapBoard#valueOf(Map)
      */
     @Test
     public final void testValueOf_squaresMustBeUnchangeable() {
@@ -1098,7 +1040,7 @@ public class BoardTest {
         for (Square sq : Square.values()) {
             changeable.put(sq, BoardFixtures.INITIAL.get(sq));
         }
-        final Board instance = Board.valueOf(changeable);
+        final Board instance = EnumMapBoard.valueOf(changeable);
         changeable.put(Square.A1, SquareState.BLACK);
 
         assertThat("The board instance must be not affected by a"
@@ -1111,7 +1053,7 @@ public class BoardTest {
      * <p>
      * The factory receives the squares parameter, it cannot contains null values.
      *
-     * @see Board#valueOf(Map)
+     * @see EnumMapBoard#valueOf(Map)
      */
     @Test(expected = NullPointerException.class)
     public final void testValueOf_squaresMustNotContainNullValues() {
@@ -1120,7 +1062,7 @@ public class BoardTest {
             corruptedSquares.put(sq, BoardFixtures.INITIAL.get(sq));
         }
         corruptedSquares.put(Square.B3, SquareState.NULL);
-        Board.valueOf(corruptedSquares);
+        EnumMapBoard.valueOf(corruptedSquares);
     }
 
     /**
@@ -1128,7 +1070,7 @@ public class BoardTest {
      * <p>
      * The factory receives the squares parameter, it cannot contains null keys.
      *
-     * @see Board#valueOf(Map)
+     * @see EnumMapBoard#valueOf(Map)
      */
     @Test(expected = NullPointerException.class)
     public final void testValueOf_squaresMustNotContainNullKeys() {
@@ -1138,32 +1080,32 @@ public class BoardTest {
         }
         corruptedSquares.remove(Square.H8);
         corruptedSquares.put(Square.NULL, SquareState.EMPTY);
-        Board.valueOf(corruptedSquares);
+        EnumMapBoard.valueOf(corruptedSquares);
     }
 
     /**
      * Tests the {@code valueOf(Map<Square, SquareState>)} factory when parameter
      * {@code squares} is {@code null}.
      *
-     * @see Board#valueOf(Map)
+     * @see EnumMapBoard#valueOf(Map)
      */
     @Test(expected = NullPointerException.class)
     public final void testValueOf_boundaryConditions_checkNullParameter_squares() {
         Map<Square, SquareState> nullSquares = null;
-        Board.valueOf(nullSquares);
+        EnumMapBoard.valueOf(nullSquares);
     }
 
     /**
      * Tests the {@code valueOf(Map<Square, SquareState>)} factory when parameter
      * {@code squares} is missing one or more key.
      *
-     * @see Board#valueOf(Map)
+     * @see EnumMapBoard#valueOf(Map)
      */
     @Test(expected = IllegalArgumentException.class)
     public final void testValueOf_boundaryConditions_checkMissingKey_squares() {
         Map<Square, SquareState> incompleteSquares = new EnumMap<Square, SquareState>(Square.class);
         incompleteSquares.put(Square.A1, SquareState.EMPTY);
-        Board.valueOf(incompleteSquares);
+        EnumMapBoard.valueOf(incompleteSquares);
     }
 
     /**
@@ -1172,11 +1114,11 @@ public class BoardTest {
      * After preparing the {@code Map<Square, SquareState> squares} parameter by taking the square values
      * from {@code BoardFixtures.EARLY_GAME_C_12_MOVES}, the test run the following assertions:
      * <ul>
-     *   <li>{@code Board.valueOf(squares)} is a member of the {@code Board} class</li>
-     *   <li>{@code Board.valueOf(squares)} is equal to {@code BoardFixtures.EARLY_GAME_C_12_MOVES}</li>
+     *   <li>{@code EnumMapBoard.valueOf(squares)} is a member of the {@code EnumMapBoard} class</li>
+     *   <li>{@code EnumMapBoard.valueOf(squares)} is equal to {@code BoardFixtures.EARLY_GAME_C_12_MOVES}</li>
      * </ul>
      *
-     * @see Board#valueOf(Map)
+     * @see EnumMapBoard#valueOf(Map)
      * @see BoardFixtures#EARLY_GAME_C_12_MOVES
      */
     @Test
@@ -1188,23 +1130,23 @@ public class BoardTest {
 
         assertThat("After preparing the Map<Square, SquareState> squares parameter by"
                    + " taking the square values from BoardFixtures.EARLY_GAME_C_12_MOVES,"
-                   + " Board.valueOf(squares)"
-                   + " must return an instance of the Board class.",
-                   Board.valueOf(squares),
-                   instanceOf(Board.class));
+                   + " EnumMapBoard.valueOf(squares)"
+                   + " must return an instance of the EnumMapBoard class.",
+                   EnumMapBoard.valueOf(squares),
+                   instanceOf(EnumMapBoard.class));
 
         assertThat("After preparing the Map<Square, SquareState> squares parameter by"
                    + " taking the square values from BoardFixtures.EARLY_GAME_C_12_MOVES,"
-                   + " Board.valueOf(squares)"
+                   + " EnumMapBoard.valueOf(squares)"
                    + " must be equal to BoardFixtures.EARLY_GAME_C_12_MOVES.",
-                   Board.valueOf(squares),
+                   EnumMapBoard.valueOf(squares),
                    is(BoardFixtures.EARLY_GAME_C_12_MOVES));
     }
 
     /**
      * Tests the {@code findBracketingPiece(Square, Player, Direction)} private method.
      * <p>
-     * {@code wouldFlip(Square, Player, Direction)} is a "private" method in Board class.
+     * {@code wouldFlip(Square, Player, Direction)} is a "private" method in EnumMapBoard class.
      * The {@code wouldFlip(Square, Player, Direction)} method is called by only one "client method":
      * <ul>
      *   <li>{@code wouldFlip(Square, Player, Direction)}</li>
@@ -1293,14 +1235,14 @@ public class BoardTest {
                IllegalAccessException,
                InvocationTargetException {
 
-        Method method = Board.class.getDeclaredMethod("findBracketingPiece",
-                                                      Square.class,
-                                                      Player.class,
-                                                      Direction.class);
+        final Method method = EnumMapBoard.class.getDeclaredMethod("findBracketingPiece",
+                                                                   Square.class,
+                                                                   Player.class,
+                                                                   Direction.class);
         method.setAccessible(true);
 
-        Square firstStepInTheGivenDirection = move.neighbors().get(dir);
-        Square bracketing = (Square) method.invoke(board, firstStepInTheGivenDirection, player, dir);
+        final Square firstStepInTheGivenDirection = move.neighbors().get(dir);
+        final Square bracketing = (Square) method.invoke(board, firstStepInTheGivenDirection, player, dir);
 
         return bracketing;
     }
@@ -1330,8 +1272,8 @@ public class BoardTest {
      * @throws IllegalAccessException    if wouldFlip method invocation done by reflection rises a security exception
      * @throws InvocationTargetException if wouldFlip method invocation rises execution exceptions
      *
-     * @see Board#makeMove(Square, Player)
-     * @see Board#isLegal(Square, Player)
+     * @see EnumMapBoard#makeMove(Square, Player)
+     * @see EnumMapBoard#isLegal(Square, Player)
      */
     @Test
     public final void testWouldFlip()
@@ -1339,7 +1281,10 @@ public class BoardTest {
                IllegalAccessException,
                InvocationTargetException {
 
-        Method method = Board.class.getDeclaredMethod("wouldFlip", Square.class, Player.class, Direction.class);
+        final Method method = EnumMapBoard.class.getDeclaredMethod("wouldFlip",
+                                                                   Square.class,
+                                                                   Player.class,
+                                                                   Direction.class);
         method.setAccessible(true);
 
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.wouldFlip(Square.H7, Player.WHITE, Direction.W)"

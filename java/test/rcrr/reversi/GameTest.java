@@ -1,7 +1,7 @@
 /*
  *  GameTest.java
  *
- *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -98,7 +98,7 @@ public class GameTest {
         assertThat("GameFixtureFactoriess.threeSnapshots().board()"
                    + " must be equal to the here built board.",
                    GameFixtureFactories.threeSnapshots().board(),
-                   is(new Board.Builder()
+                   is(new EnumMapBoard.Builder()
                       .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 1, 0, 0, 0, 0,
@@ -275,7 +275,7 @@ public class GameTest {
 
         final GameSnapshot paip1862 = new GameSnapshot.Builder()
             .withPosition(new GamePosition.Builder()
-                          .withBoard(new Board.Builder()
+                          .withBoard(new EnumMapBoard.Builder()
                                      .withSquaresLiteral(2, 1, 0, 0, 0, 0, 0, 0,
                                                          0, 1, 0, 0, 0, 1, 1, 0,
                                                          1, 1, 1, 1, 1, 1, 0, 0,
@@ -693,7 +693,7 @@ public class GameTest {
 
         assertThat("The game played by the two strategies must have a defined final board.",
                    game.board(),
-                   is(new Board.Builder()
+                   is(new EnumMapBoard.Builder()
                       .withSquaresLiteral(1, 1, 1, 1, 1, 1, 1, 1,
                                           1, 1, 1, 1, 1, 1, 1, 1,
                                           1, 1, 1, 1, 1, 1, 1, 1,

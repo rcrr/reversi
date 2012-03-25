@@ -1,5 +1,5 @@
 /*
- *  Board.java
+ *  BitBoard.java
  *
  *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
@@ -24,18 +24,6 @@
 
 package rcrr.reversi;
 
-import java.util.List;
+public final class BitBoard {
 
-public interface Board {
-    int countDifference(Player player);
-    SquareState get(Square square);
-    List<Square> legalMoves(Player player);
-    Board makeMove(Square move, Player player);
-    boolean hasAnyLegalMove(Player player);
-    boolean isLegal(Square move, Player player);
-    boolean hasAnyPlayerAnyLegalMove();
-    int countPieces(SquareState color);
-    String printBoard();
-    String printBoardWithCount();
-    String printCount();
 }

@@ -1,7 +1,7 @@
 /*
  *  ClockTest.java
  *
- *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -260,7 +260,7 @@ public class ClockTest {
      *   <li>{@code ClockFixtures.EQL_TEST_B.equals(ClockFixtures.EQL_TEST_A)} is true.</li>
      * </ul>
      *
-     * @see Board#equals(Object)
+     * @see EnumMapBoard#equals(Object)
      * @see ClockFixtures#EQL_TEST_A
      * @see ClockFixtures#EQL_TEST_B
      */
