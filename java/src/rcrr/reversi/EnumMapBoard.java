@@ -604,60 +604,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
     }
 
     /**
-     * Returns a formatted string showing a 2d graphical represention of the board.
-     *
-     * @return a string being a 2d representation of the board
-     */
-    public String printBoard() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("    a b c d e f g h ");
-        for (Row r : Row.values()) {
-            sb.append("\n ").append(r.label()).append("  ");
-            for (Column c : Column.values()) {
-                String p = get(Square.getInstance(r, c)).symbol();
-                sb.append(p).append(" ");
-            }
-        }
-        sb.append("\n");
-        return sb.toString();
-    }
-
-    /**
-     * Returns a formatted string, giving the two player disk count and their difference.
-     *
-     * @return a string showing the two player's count
-     */
-    public String printCount() {
-        int cb = countPieces(SquareState.BLACK);
-        int cw = countPieces(SquareState.WHITE);
-        int cd = cb - cw;
-        return "[@=" + cb + " 0=" + cw + " (" + cd + ")]";
-    }
-
-    /**
-     * Returns a formatted string showing a 2d graphical composed view
-     * of the board and the disk count.
-     * <p>
-     * The method joins the printBoard() and the printCount() output,
-     * setting the second on the right of the first board's row.
-     *
-     * @return a string being a 2d representation of the board with the disk count
-     */
-    public String printBoardWithCount() {
-        StringBuilder sbBoardWithCount = new StringBuilder();
-        String sBoard = printBoard();
-        String sCount = printCount();
-        String[] lines = sBoard.split("\n");
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            sbBoardWithCount.append(line);
-            if (i == 0) { sbBoardWithCount.append(sCount); }
-            sbBoardWithCount.append("\n");
-        }
-        return (sbBoardWithCount.toString());
-    }
-
-    /**
      * Returns the bracketing square or null if it is missing.
      * The method does not check that the move is legal and that the square parameter
      * is one step from move in the given direction.
