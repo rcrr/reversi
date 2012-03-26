@@ -443,43 +443,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
     }
 
     /**
-     * Returns if the player has any legal move given the board state.
-     * <p>
-     * Parameter {@code player} must be not {@code null}.
-     *
-     * @param player the player
-     * @return       {@code true} if the player has any legal move, otherwise {@code false}
-     * @throws NullPointerException if parameter {@code player} is null
-     */
-    public boolean hasAnyLegalMove(final Player player) {
-        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
-        boolean hasAnyLegalMove = false;
-        for (Square move : Square.values()) {
-            if (isLegal(move, player)) {
-                hasAnyLegalMove = true;
-                break;
-            }
-        }
-        return hasAnyLegalMove;
-    }
-
-    /**
-     * Returns true if either black or white player has any legal move.
-     *
-     * @return {@code true} if either player has a legal move
-     */
-    public boolean hasAnyPlayerAnyLegalMove() {
-        boolean hasAnyPlayerAnyLegalMove = false;
-        for (Player player : Player.values()) {
-            if (hasAnyLegalMove(player)) {
-                hasAnyPlayerAnyLegalMove = true;
-                break;
-            }
-        }
-        return hasAnyPlayerAnyLegalMove;
-    }
-
-    /**
      * Returns a hash code for this board.
      *
      * @return a hash code for this board
