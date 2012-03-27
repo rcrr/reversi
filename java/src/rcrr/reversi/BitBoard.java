@@ -24,8 +24,9 @@
 
 package rcrr.reversi;
 
-//public final class BitBoard extends AbstractBoard {
-public final class BitBoard {
+import java.util.Map;
+
+public final class BitBoard extends AbstractBoard {
 
     private static final int BITBOARD_BLACK_INDEX = 0;
     private static final int BITBOARD_WHITE_INDEX = 1;
@@ -34,6 +35,9 @@ public final class BitBoard {
      * The bitboard field.
      */
     private final long[] bitboard;
+
+    /** The squares field ***MUST BE REMOVED****. */
+    private final transient Map<Square, SquareState> squares;
 
     /**
      * Class constructor.
@@ -48,6 +52,84 @@ public final class BitBoard {
         assert (bitboard.length == 2) : "Parameter bitboard must have a lenght equal to two.";
         assert ((bitboard[0] & bitboard[1]) == 0L) : "Parameter bitboard cannot have black and white discs overlapping.";
         this.bitboard = bitboard.clone();
+        this.squares = BoardUtils.bitboardToMap(this.bitboard);
+    }
+
+    /**
+     * Returns the {@code SquareState} value for the given board's square.
+     * <p>
+     * When {@code square} is {@code null} the method returns {@code SquareState.OUTER} value.
+     *
+     * @param  square the board square to retrieve the state value
+     * @return        the square state
+     */
+    public SquareState get(final Square square) {
+        return (square == null) ? SquareState.OUTER : squares.get(square);
+    }
+
+    /**
+     * Returns the boolean value telling if the move, done by the
+     * specified player, is legal.
+     * <p>
+     * Parameter {@code move} must be not {@code null}.
+     * Parameter {@code player} must be not {@code null}.
+     *
+     * @param move   the square where to put the new disk
+     * @param player the player moving
+     * @return       true if the move is legal, otherwise false
+     * @throws NullPointerException if parameter {@code move} or {@code player} is null
+     */
+    public boolean isLegal(final Square move, final Player player) {
+        if (move == null) {
+            throw new NullPointerException("Parameter move must be not null.");
+        }
+        if (player == null) {
+            throw new NullPointerException("Parameter player must be not null.");
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns a new updated board to reflect move by player. This static
+     * factory executes a game move to the board and returns a new one,
+     * reflecting the move. The original board is not modified.
+     * <p>
+     * A null value for player is not allowed, a {@code NullPointerException}
+     * is thrown in such a case.
+     * <p>
+     * A null value for move is allowed, and moreover is the only valid value
+     * acceptable by the method, when the player has not any legal move.
+     * Otherwise a null move is forbidden, and a {@code NullPointerException}
+     * is risen.
+     * <p>
+     * The method does check if the move is legal. It throws an
+     * {@code IllegalArgumentException} in case it is not.
+     *
+     * @param  move   the board square where to put the disk
+     * @param  player the disk color to put on the board
+     * @return        a new {@code Board} reflecting the move made
+     * @throws NullPointerException     if parameter {@code move}
+     *                                  or {@code player} is null
+     * @throws IllegalArgumentException if the {@code move}
+     *                                  by {@code player} is illegal
+     */
+    public Board makeMove(final Square move, final Player player) {
+        if (player == null) {
+            throw new NullPointerException("Parameter player must be not null.");
+        }
+        if (move == null) {
+            if (hasAnyLegalMove(player)) {
+                throw new NullPointerException("Parameter move must be not null when a legal one is available.");
+            } else {
+                return this;
+            }
+        }
+        if (!isLegal(move, player)) {
+            throw new IllegalArgumentException("The move<"
+                                               + move + "> by player<"
+                                               + player + "> is illegal.");
+        }
+        throw new UnsupportedOperationException();
     }
 
     /**
