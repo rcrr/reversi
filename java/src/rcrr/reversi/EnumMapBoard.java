@@ -380,20 +380,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
     }
 
     /**
-     * Returns the disk difference between the player and her opponent.
-     * <p>
-     * Parameter {@code player} must be not {@code null}.
-     *
-     * @param player the player
-     * @return       the disk count difference
-     * @throws NullPointerException if parameter {@code player} is {@code null}
-     */
-    public int countDifference(final Player player) {
-        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
-        return countPieces(player.color()) - countPieces(player.opponent().color());
-    }
-
-    /**
      * Returns the disk count for the color.
      *
      * @param color the color for which the disk count is computed
@@ -492,24 +478,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
             if (wouldFlip(move, player, dir) != null) { return true; }
         }
         return false;
-    }
-
-    /**
-     * Returns a list holding the legal moves that the {@code player} can
-     * do at the board position. When no moves are available to the player
-     * the method returns an empty list.
-     *
-     * @param player the player
-     * @return       the moves available to the player
-     * @throws NullPointerException if parameter {@code player} is null
-     */
-    public List<Square> legalMoves(final Player player) {
-        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
-        List<Square> legalMoves = new ArrayList<Square>();
-        for (Square move : Square.values()) {
-            if (isLegal(move, player)) { legalMoves.add(move); }
-        }
-        return legalMoves;
     }
 
     /**
