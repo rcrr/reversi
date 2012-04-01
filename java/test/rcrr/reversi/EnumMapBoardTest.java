@@ -313,8 +313,8 @@ public class EnumMapBoardTest {
      * The test runs six assertions:
      * <p>
      * <ul>
-     *   <li>{@code BoardFixtures.INITIAL is Board.initialBoard()}</li>
-     *   <li>{@code Board.initialBoard() is BoardFixtures.INITIAL}</li>
+     *   <li>{@code BoardFixtures.INITIAL is BoardFactoryHolder.getInstance().boardFactory().initialBoard()}</li>
+     *   <li>{@code BoardFactoryHolder.getInstance().boardFactory().initialBoard() is BoardFixtures.INITIAL}</li>
      *   <li>{@code BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_A)} is true.</li>
      *   <li>{@code BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_B)} is true.</li>
      *   <li>{@code BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_B)} is true.</li>
@@ -328,11 +328,11 @@ public class EnumMapBoardTest {
     @Test
     public final void testEquals_whenAreNotTheSameObject_andAreEqual() {
 
-        assertThat("BoardFixtures.INITIAL must be equal to EnumMapBoard.initialBoard().",
+        assertThat("BoardFixtures.INITIAL must be equal to BoardFactoryHolder.getInstance().boardFactory().initialBoard().",
                    BoardFixtures.INITIAL,
-                   is(EnumMapBoard.initialBoard()));
-        assertThat("EnumMapBoard.initialBoard() must be equal to BoardFixtures.INITIAL.",
-                   EnumMapBoard.initialBoard(),
+                   is(BoardFactoryHolder.getInstance().boardFactory().initialBoard()));
+        assertThat("BoardFactoryHolder.getInstance().boardFactory().initialBoard() must be equal to BoardFixtures.INITIAL.",
+                   BoardFactoryHolder.getInstance().boardFactory().initialBoard(),
                    is(BoardFixtures.INITIAL));
 
         /** Checks that the two object are really not the same. */
@@ -538,18 +538,18 @@ public class EnumMapBoardTest {
      * The test runs two kind of assertions:
      * <p>
      * <ul>
-     *   <li>{@code EnumMapBoard.initialBoard()} is equal to {@code BoardFixtures.INITIAL}</li>
+     *   <li>{@code BoardFactoryHolder.getInstance().boardFactory().initialBoard()} is equal to {@code BoardFixtures.INITIAL}</li>
      *   <li>For each board square the state is checked against the expected one</li>
      * </ul>
      *
-     * @see EnumMapBoard#initialBoard()
+     * @see EnumMapBoardFactory#initialBoard()
      * @see BoardFixtures#INITIAL
      */
     @Test
     public final void testInitialBoard() {
-        assertEquals("EnumMapBoard.initialBoard() must be equal to BoardFixtures.INITIAL.",
-                     BoardFixtures.INITIAL, EnumMapBoard.initialBoard());
-        Board initial = EnumMapBoard.initialBoard();
+        assertEquals("BoardFactoryHolder.getInstance().boardFactory().initialBoard() must be equal to BoardFixtures.INITIAL.",
+                     BoardFixtures.INITIAL, BoardFactoryHolder.getInstance().boardFactory().initialBoard());
+        final Board initial = BoardFactoryHolder.getInstance().boardFactory().initialBoard();
         for (Square square : Square.values()) {
             SquareState actual = initial.get(square);
             SquareState expected;
