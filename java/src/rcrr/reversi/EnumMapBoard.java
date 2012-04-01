@@ -64,7 +64,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
      * <p>
      * The builder has one property, the {@code squares} field. It is initialized as follow:
      * <ul>
-     *   <li>{@code squares = EnumMapBoard.emptyBoardSquares()}</li>
+     *   <li>{@code squares = BoardUtils.emptyBoardSquares()}</li>
      * </ul>
      * <p>
      * The {@code Builder} class is mutable, and it is thread-safe.
@@ -91,7 +91,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
          * Construct a new builder.
          */
         public Builder() {
-            this.squares = EnumMapBoard.emptyBoardSquares();
+            this.squares = BoardUtils.emptyBoardSquares();
         }
 
         /**
@@ -278,7 +278,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
      * @return a new empty board
      */
     public static Board emptyBoard() {
-        return valueOf(emptyBoardSquares());
+        return valueOf(BoardUtils.emptyBoardSquares());
     }
 
     /**
@@ -296,20 +296,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
         for (Square sq : Square.values()) {
             sm.put(sq, player.color());
         }
-        return valueOf(sm);
-    }
-
-    /**
-     * A static factory for the class that returns a new initial board.
-     *
-     * @return a new initial board
-     */
-    public static Board initialBoard() {
-        Map<Square, SquareState> sm = emptyBoardSquares();
-        sm.put(Square.D4, SquareState.WHITE);
-        sm.put(Square.E4, SquareState.BLACK);
-        sm.put(Square.D5, SquareState.BLACK);
-        sm.put(Square.E5, SquareState.WHITE);
         return valueOf(sm);
     }
 
@@ -339,20 +325,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
             throw new NullPointerException("Parameter squares cannot have null values. squares=" + squares);
         }
         return new EnumMapBoard(squares);
-    }
-
-    /**
-     * Returns a new squares map being filled by empty values.
-     *
-     * @return a new map having and empty square state value for each
-     *         square in the board
-     */
-    static Map<Square, SquareState> emptyBoardSquares() {
-        Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
-        for (Square sq : Square.values()) {
-            sm.put(sq, SquareState.EMPTY);
-        }
-        return sm;
     }
 
     /** Lazily initialized, cached hashCode. */

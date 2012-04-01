@@ -152,7 +152,7 @@ public final class GamePosition {
      * @return a new initial game position as required by international game's rules
      */
     public static GamePosition initialGamePosition() {
-        return valueOf(EnumMapBoard.initialBoard(), Player.BLACK);
+        return valueOf(BoardFactoryHolder.getInstance().boardFactory().initialBoard(), Player.BLACK);
     }
 
     /**

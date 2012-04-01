@@ -1,5 +1,5 @@
 /*
- *  BoardFactory.java
+ *  EnumMapBoardFactory.java
  *
  *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
@@ -24,12 +24,39 @@
 
 package rcrr.reversi;
 
-public interface BoardFactory {
+import java.util.Map;
 
-    public Board emptyBoard();
-    public Board initialBoard();
+public final class EnumMapBoardFactory implements BoardFactory {
+
+    /**
+     * Returns a new empty board.
+     *
+     * @return a new empty board
+     */
+    public final Board emptyBoard() {
+        return valueOf(BoardUtils.emptyBoardSquares());
+    }
+
     /*
     public Board fillWithColor(final Player player);
-    public Board valueOf(final Map<Square, SquareState> squares);
     */
+
+    /**
+     * A static factory for the class that returns a new initial board.
+     *
+     * @return a new initial board
+     */
+    public Board initialBoard() {
+        final Map<Square, SquareState> sm = BoardUtils.emptyBoardSquares();
+        sm.put(Square.D4, SquareState.WHITE);
+        sm.put(Square.E4, SquareState.BLACK);
+        sm.put(Square.D5, SquareState.BLACK);
+        sm.put(Square.E5, SquareState.WHITE);
+        return valueOf(sm);
+    }
+
+    public Board valueOf(final Map<Square, SquareState> squares) {
+        return EnumMapBoard.valueOf(squares);
+    }
+
 }
