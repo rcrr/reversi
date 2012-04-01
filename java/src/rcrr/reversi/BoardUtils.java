@@ -50,6 +50,20 @@ public final class BoardUtils {
     }
 
     /**
+     * Returns a new squares map being filled by empty values.
+     *
+     * @return a new map having and empty square state value for each
+     *         square in the board
+     */
+    public static Map<Square, SquareState> emptyBoardSquares() {
+        Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
+        for (Square sq : Square.values()) {
+            sm.put(sq, SquareState.EMPTY);
+        }
+        return sm;
+    }
+
+    /**
      * Receives the squares map and returns the bitboard representation.
      *
      * @param squares the squares map
