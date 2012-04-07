@@ -83,7 +83,7 @@ public final class BoardFactoryHolder {
             }
         }
         System.out.println("Board FactoryClass = " + boardFactoryClass.getName());
-        if (!InterfaceCheck.isBoardFactory(boardFactoryClass)) {
+        if (!InterfaceCheck.doesImplement(BoardFactory.class, boardFactoryClass)) {
             throw new RuntimeException(boardFactoryClass.getName() + " does not implement the Board interface. Critical Error!");
         }
         try {
