@@ -24,12 +24,13 @@
 
 package rcrr.reversi;
 
+import java.util.Map;
+
 public interface BoardFactory {
 
     public Board emptyBoard();
     public Board initialBoard();
-    /*
     public Board fillWithColor(final Player player);
     public Board valueOf(final Map<Square, SquareState> squares);
-    */
+
 }

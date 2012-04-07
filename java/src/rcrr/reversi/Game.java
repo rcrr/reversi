@@ -558,7 +558,7 @@ public final class Game {
             nextPlayer = player().opponent();
             break;
         case RESIGN:
-            nextBoard = EnumMapBoard.fillWithColor(player().opponent());
+            nextBoard = BoardFactoryHolder.getInstance().boardFactory().fillWithColor(player().opponent());
             nextPlayer = null;
             break;
         default:
