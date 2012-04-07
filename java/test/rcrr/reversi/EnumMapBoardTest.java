@@ -234,18 +234,18 @@ public class EnumMapBoardTest {
      * The second relates on the {@code get(Square)} method and checks that all
      * the squares of the returned board have a {@code SquereState.EMPTY} value.
      *
-     * @see EnumMapBoard#emptyBoard()
+     * @see EnumMapBoardFactory#emptyBoard()
      * @see BoardFixtures#EMPTY
      * @see EnumMapBoard#equals(Object)
      * @see EnumMapBoard#get(Square)
      */
     @Test
     public final void testEmptyBoard() {
-        assertThat("EnumMapBoard.emptyBoard() must return a board being equal to BoardFixtures.EMPTY.",
-                   EnumMapBoard.emptyBoard(),
+        assertThat("BoardFactoryHolder.getInstance().boardFactory().emptyBoard() must return a board being equal to BoardFixtures.EMPTY.",
+                   BoardFactoryHolder.getInstance().boardFactory().emptyBoard(),
                    is(BoardFixtures.EMPTY));
 
-        Board empty = EnumMapBoard.emptyBoard();
+        final Board empty = BoardFactoryHolder.getInstance().boardFactory().emptyBoard();
         for (Square square : Square.values()) {
             assertThat("Each square state returned by the get method iterating on"
                        + " the squares of a board returned by EnumMapBoard.emptyBoard()"

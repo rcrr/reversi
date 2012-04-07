@@ -45,7 +45,7 @@ public final class GamePosition {
      * <p>
      * The builder properties and the respectives initializations are:
      * <ul>
-     *   <li>{@code board = Board.emptyBoard()}</li>
+     *   <li>{@code board = BoardFactoryHolder.getInstance().boardFactory().emptyBoard()}</li>
      *   <li>{@code player = Player.BLACK}</li>
      * </ul>
      * <p>
@@ -64,7 +64,7 @@ public final class GamePosition {
          * Construct a new builder.
          */
         public Builder() {
-            this.board = EnumMapBoard.emptyBoard();
+            this.board = BoardFactoryHolder.getInstance().boardFactory().emptyBoard();
             this.player = Player.BLACK;
         }
 
