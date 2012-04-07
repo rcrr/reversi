@@ -265,12 +265,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
 
     }
 
-    /** Prime number 17. */
-    private static final int PRIME_NUMBER_17 = 17;
-
-    /** Prime number 37. */
-    private static final int PRIME_NUMBER_37 = 37;
-
     /**
      * Base static factory for the class.
      * <p>
@@ -298,9 +292,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
         }
         return new EnumMapBoard(squares);
     }
-
-    /** Lazily initialized, cached hashCode. */
-    private transient volatile int hashCode = 0;
 
     /** The squares field. */
     private final transient Map<Square, SquareState> squares;
@@ -342,25 +333,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
     }
 
     /**
-     * Returns true if the specified object is equal to this board.
-     * Two boards are equal when they have the same disk's configuration.
-     *
-     * @param object the object to compare to
-     * @return {@code true} when the {@code object} parameter is an instance of
-     *         the {@code Board} class and when the disks' position are the same.
-     */
-    @Override
-    public boolean equals(final Object object) {
-        if (object == this) { return true; }
-        if (!(object instanceof Board)) { return false; }
-        final EnumMapBoard board = (EnumMapBoard) object;
-        for (Square sq : Square.values()) {
-            if (squares.get(sq) != board.squares.get(sq)) { return false; }
-        }
-        return true;
-    }
-
-    /**
      * Returns the {@code SquareState} value for the given board's square.
      * <p>
      * When {@code square} is {@code null} the method returns {@code SquareState.OUTER} value.
@@ -370,32 +342,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
      */
     public SquareState get(final Square square) {
         return (square == null) ? SquareState.OUTER : squares.get(square);
-    }
-
-    /**
-     * Returns a hash code for this board.
-     *
-     * @return a hash code for this board
-     */
-    @Override
-    public int hashCode() {
-        if (hashCode == 0) {
-            int result = PRIME_NUMBER_17;
-            Square[] squareArray = Square.values();
-            for (int i = 0; i < squareArray.length; i++) {
-                SquareState ss = squares.get(squareArray[i]);
-                int k = 0;
-                switch (ss) {
-                case EMPTY: k = 0; break;
-                case BLACK: k = 1; break;
-                case WHITE: k = 2; break;
-                default: k = 0; // this should never happens.
-                }
-                result = PRIME_NUMBER_37 * result + k;
-            }
-            hashCode = result;
-        }
-        return hashCode;
     }
 
     /**

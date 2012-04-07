@@ -67,6 +67,9 @@ public final class BitBoard extends AbstractBoard {
     /** The squares field ***MUST BE REMOVED****. */
     private final transient Map<Square, SquareState> squares;
 
+    /** The squares field ***MUST BE REMOVED****. */
+    private final transient Board transientBoard;
+
     /**
      * Class constructor.
      * <p>
@@ -81,6 +84,7 @@ public final class BitBoard extends AbstractBoard {
         assert ((bitboard[0] & bitboard[1]) == 0L) : "Parameter bitboard cannot have black and white discs overlapping.";
         this.bitboard = bitboard.clone();
         this.squares = BoardUtils.bitboardToMap(this.bitboard);
+        this.transientBoard = EnumMapBoard.valueOf(this.squares);
     }
 
     /**
@@ -114,7 +118,9 @@ public final class BitBoard extends AbstractBoard {
         if (player == null) {
             throw new NullPointerException("Parameter player must be not null.");
         }
-        throw new UnsupportedOperationException();
+        /** MUST BE REWRITTEN! */
+        final Board transientBoard = EnumMapBoard.valueOf(BoardUtils.bitboardToMap(this.bitboard));
+        return transientBoard.isLegal(move, player);
     }
 
     /**
@@ -157,7 +163,7 @@ public final class BitBoard extends AbstractBoard {
                                                + move + "> by player<"
                                                + player + "> is illegal.");
         }
-        throw new UnsupportedOperationException();
+        return transientBoard.makeMove(move, player);
     }
 
     /**

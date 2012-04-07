@@ -34,6 +34,15 @@ public abstract class AbstractBoard implements Board {
     public abstract boolean isLegal(Square move, Player player);
     public abstract int countPieces(SquareState color);
 
+    /** Prime number 17. */
+    private static final int PRIME_NUMBER_17 = 17;
+
+    /** Prime number 37. */
+    private static final int PRIME_NUMBER_37 = 37;
+
+    /** Lazily initialized, cached hashCode. */
+    private transient volatile int hashCode = 0;
+
     /**
      * Returns the disk difference between the player and her opponent.
      * <p>
@@ -157,5 +166,40 @@ public abstract class AbstractBoard implements Board {
         return "[@=" + cb + " 0=" + cw + " (" + cd + ")]";
     }
 
+    /**
+     * Returns true if the specified object is equal to this board.
+     * Two boards are equal when they have the same disk's configuration.
+     *
+     * @param object the object to compare to
+     * @return {@code true} when the {@code object} parameter is an instance of
+     *         the {@code Board} class and when the disks' position are the same.
+     */
+    @Override
+    public boolean equals(final Object object) {
+        if (object == this) { return true; }
+        if (!(object instanceof Board)) { return false; }
+        final Board board = (Board) object;
+        for (final Square sq : Square.values()) {
+            if (get(sq) != board.get(sq)) { return false; }
+        }
+        return true;
+    }
+
+    /**
+     * Returns a hash code for this board.
+     *
+     * @return a hash code for this board
+     */
+    @Override
+    public int hashCode() {
+        if (hashCode == 0) {
+            int result = PRIME_NUMBER_17;
+            for (final Square sq : Square.values()) {
+                result = PRIME_NUMBER_37 * result + get(sq).ordinal();
+            }
+            hashCode = result;
+        }
+        return hashCode;
+    }
 
 }
