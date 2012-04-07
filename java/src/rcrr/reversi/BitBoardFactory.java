@@ -1,5 +1,5 @@
 /*
- *  EnumMapBoardFactory.java
+ *  BitBoardFactory.java
  *
  *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
@@ -26,10 +26,10 @@ package rcrr.reversi;
 
 import java.util.Map;
 
-public final class EnumMapBoardFactory extends AbstractBoardFactory {
+public final class BitBoardFactory extends AbstractBoardFactory {
 
     public Board valueOf(final Map<Square, SquareState> squares) {
-        return EnumMapBoard.valueOf(squares);
+        return BitBoard.valueOf(squares);
     }
 
 }
