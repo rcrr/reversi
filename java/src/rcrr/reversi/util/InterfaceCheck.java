@@ -24,69 +24,24 @@
 
 package rcrr.reversi.util;
 
-import java.util.List;
-import java.util.ArrayList;
-
-import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
-import java.lang.reflect.ParameterizedType;
-
-import rcrr.reversi.BoardFactory;
-
 public final class InterfaceCheck {
 
-    // The code is an Utility that has to work not just for Board
-    // Some refctoring is needed.
-    // Tests are missing ....
-    // comments are missing ...
     /**
-     * Returns true if parameter {@code type} is implementing the {@code BoardFactory} interface, false otherwise.
+     * Returns true if parameter {@code objectClass} is implementing the {@code parentInterface} interface, false otherwise.
      *
-     * @param type the type to check.
-     * @return {@code true} if {@code type} is implementing {@code BoardFactory}, {@code false} otherwise.
+     * @param parentInterface the interface that is verified being an anchestor.
+     * @param objectClass      the class to check.
+     * @return {@code true} if {@code objectClass} is implementing {@code parentInterface}, {@code false} otherwise.
      */
-    public static boolean isBoardFactory(final Type type) {
-        if (type instanceof Class && isBoardFactoryClass((Class) type)) {
-            return true;
+    public static boolean doesImplement(final Class<?> parentInterface, final Class objectClass) {
+        if (parentInterface == objectClass) { return true; }
+        final Class<?>[] interfaces = objectClass.getInterfaces();
+        for (final Class<?> anInterface : interfaces) {
+            return doesImplement(parentInterface, anInterface);
         }
-        if (type instanceof ParameterizedType) {
-            return isBoardFactory(((ParameterizedType) type).getRawType());
-        }
-        if (type instanceof WildcardType) {
-            final Type[] upperBounds = ((WildcardType) type).getUpperBounds();
-            return upperBounds.length != 0 && isBoardFactory(upperBounds[0]);
-        }
+        final Class<?> superClass = objectClass.getSuperclass();
+        if (superClass != null) { return doesImplement(parentInterface, superClass); }
         return false;
-    }
-
-    /**
-     * Checks whether the specified class parameter is an instance of a collection class.
-     *
-     * @param clazz {@code Class} to check.
-     * @return {@code true} is {@code clazz} is instance of a collection class, {@code false} otherwise.
-     */
-    private static boolean isBoardFactoryClass(Class<?> clazz) {
-        List<Class<?>> classes = new ArrayList<Class<?>>();
-        computeClassHierarchy(clazz, classes);
-        return classes.contains(BoardFactory.class);
-    }
-
-    /**
-     * Get all superclasses and interfaces recursively.
-     *
-     * @param clazz The class to start the search with.
-     * @param classes List of classes to which to add all found super classes and interfaces.
-     */
-    private static void computeClassHierarchy(Class<?> clazz, List<Class<?>> classes) {
-        for (Class current = clazz; current != null; current = current.getSuperclass()) {
-            if (classes.contains(current)) {
-                return;
-            }
-            classes.add(current);
-            for (Class currentInterface : current.getInterfaces()) {
-                computeClassHierarchy(currentInterface, classes);
-            }
-        }
     }
 
 }
