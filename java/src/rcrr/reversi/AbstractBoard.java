@@ -157,4 +157,5 @@ public abstract class AbstractBoard implements Board {
         return "[@=" + cb + " 0=" + cw + " (" + cd + ")]";
     }
 
+
 }

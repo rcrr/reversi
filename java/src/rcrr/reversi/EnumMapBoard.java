@@ -106,7 +106,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
                 squares.put(sq,board.get(sq));
             }
             this.squares = squares;
-            // this.squares = new EnumMap<Square, SquareState>(board.squares());
         }
 
         /**
@@ -273,33 +272,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
     private static final int PRIME_NUMBER_37 = 37;
 
     /**
-     * A static factory for the class that returns a new empty board.
-     *
-     * @return a new empty board
-     */
-    public static Board emptyBoard() {
-        return valueOf(BoardUtils.emptyBoardSquares());
-    }
-
-    /**
-     * A static factory for the class that returns a board filled
-     * by sixtyfour discs having the color set by the {@code player} parameter.
-     * <p>
-     * Parameter {@code player} cannot be {@code null}.
-     *
-     * @param player it selects the color of the sixtyfour discs
-     * @return       a new board filled by sixtyfour discs
-     */
-    public static Board fillWithColor(final Player player) {
-        if (player == null) { throw new NullPointerException("Parameter color cannot be null."); }
-        final Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
-        for (Square sq : Square.values()) {
-            sm.put(sq, player.color());
-        }
-        return valueOf(sm);
-    }
-
-    /**
      * Base static factory for the class.
      * <p>
      * {@code squares} must be not null, and must have an entry for every board square.
@@ -311,7 +283,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
      * @throws NullPointerException     if parameter {@code squares} is null
      * @throws IllegalArgumentException if the {@code squares} is not complete
      */
-    public static Board valueOf(final Map<Square, SquareState> squares) {
+    static Board valueOf(final Map<Square, SquareState> squares) {
         if (squares == null) { throw new NullPointerException("Parameter squares cannot be null."); }
         if (squares.size() != Square.values().length) {
             throw new IllegalArgumentException("Parameter squares size is not consistent."

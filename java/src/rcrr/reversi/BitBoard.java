@@ -32,6 +32,34 @@ public final class BitBoard extends AbstractBoard {
     private static final int BITBOARD_WHITE_INDEX = 1;
 
     /**
+     * Base static factory for the class.
+     * <p>
+     * {@code squares} must be not null, and must have an entry for every board square.
+     * Given that the map cannot have duplicate keys, its size must be equal to the number
+     * of class instances defined by the {@code Square} enum.
+     *
+     * @param  squares the map of squares
+     * @return         a new board having as state the given square map
+     * @throws NullPointerException     if parameter {@code squares} is null
+     * @throws IllegalArgumentException if the {@code squares} is not complete
+     */
+    static Board valueOf(final Map<Square, SquareState> squares) {
+        if (squares == null) { throw new NullPointerException("Parameter squares cannot be null."); }
+        if (squares.size() != Square.values().length) {
+            throw new IllegalArgumentException("Parameter squares size is not consistent."
+                                               + " squares.size()=" + squares.size()
+                                               + " expected value: " + Square.values().length);
+        }
+        if (squares.containsKey(null)) {
+            throw new NullPointerException("Parameter squares cannot have null keys. squares=" + squares);
+        }
+        if (squares.containsValue(null)) {
+            throw new NullPointerException("Parameter squares cannot have null values. squares=" + squares);
+        }
+        return new BitBoard(BoardUtils.mapToBitboard(squares));
+    }
+
+    /**
      * The bitboard field.
      */
     private final long[] bitboard;

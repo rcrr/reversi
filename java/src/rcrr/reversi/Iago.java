@@ -436,7 +436,7 @@ public class Iago implements EvalFunction {
                             table.set(index, staticEdgeStability(Player.BLACK, board));
                         }
                     },
-                    EnumMapBoard.emptyBoard(),
+                    BoardFactoryHolder.getInstance().boardFactory().emptyBoard(),
                     nPieces,
                     Edge.TOP.squares(),
                     0);
@@ -457,7 +457,7 @@ public class Iago implements EvalFunction {
                                                               board));
                         }
                     },
-                    EnumMapBoard.emptyBoard(),
+                    BoardFactoryHolder.getInstance().boardFactory().emptyBoard(),
                     nPieces,
                     Edge.TOP.squares(),
                     0);
