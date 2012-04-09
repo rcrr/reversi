@@ -25,12 +25,94 @@
 package rcrr.reversi;
 
 import java.util.Map;
+import java.math.BigInteger;
 
 public final class BitBoard extends AbstractBoard {
 
     private static final int BITBOARD_BLACK_INDEX = 0;
     private static final int BITBOARD_WHITE_INDEX = 1;
 
+    private static final int[] FILE_INDEX_COEFFICIENT = new int[8]; 
+
+    private static int index(final byte[] file) {
+        assert (file != null) : "Parameter file cannot be null.";
+        assert (file.length == 2) : "Parameter file must have a lenght equal to two.";
+        assert ((file[0] & file[1]) == (byte) 0) : "Parameter file cannot have black and white discs overlapping.";
+
+        int index = 0;
+        for (int i = 0; i < 8; i++) {
+            int isBlack = (file[BITBOARD_BLACK_INDEX] >>> i) & 1;
+            int isWhite = (file[BITBOARD_WHITE_INDEX] >>> i) & 1;
+            index += (isBlack + 2 * isWhite) * FILE_INDEX_COEFFICIENT[i];
+            System.out.println("i=" + i + ", isBlack=" + isBlack + ", isWhite=" + isWhite);
+        }
+        return index;
+    }
+
+    static {
+        for (int i = 0; i < 8; i++) {
+            FILE_INDEX_COEFFICIENT[i] = BigInteger.valueOf(3).pow(i).intValue();
+        }
+
+        byte[] file = new byte[] {16, 65};
+        System.out.println("index(file) = " + index(file));
+    }
+
+    /** Rows are numbered from 1 to 8. */
+    private static final int FIRST_ROW   = 0; // 0b1001_1001;
+    private static final int SECOND_ROW  = 1;
+    private static final int THIRD_ROW   = 2;
+    private static final int FOURTH_ROW  = 3;
+    private static final int FIFTH_ROW   = 4;
+    private static final int SIXTH_ROW   = 5;
+    private static final int SEVENTH_ROW = 6;
+    private static final int EIGHTH_ROW  = 7;
+
+    /** Columns are numbered from A to H. */
+    private static final int FIRST_COLUMN   =  8;
+    private static final int SECOND_COLUMN  =  9;
+    private static final int THIRD_COLUMN   = 10;
+    private static final int FOURTH_COLUMN  = 11;
+    private static final int FIFTH_COLUMN   = 12;
+    private static final int SIXTH_COLUMN   = 13;
+    private static final int SEVENTH_COLUMN = 14;
+    private static final int EIGHTH_COLUMN  = 15;
+
+    /** Diagonals are identified by first and last squares. */
+    /** Diagonals having three cels. */
+    private static final int A3_C1_DIAG = 16;
+    private static final int F1_H3_DIAG = 17;
+    private static final int H6_F8_DIAG = 18;
+    private static final int C8_A6_DIAG = 19;
+
+    /** Diagonals having four cels. */
+    private static final int A4_D1_DIAG = 20;
+    private static final int E1_H4_DIAG = 21;
+    private static final int H5_E8_DIAG = 22;
+    private static final int D8_A5_DIAG = 23;
+
+    /** Diagonals having five cels. */
+    private static final int A5_E1_DIAG = 24;
+    private static final int D1_H5_DIAG = 25;
+    private static final int H4_D8_DIAG = 26;
+    private static final int E8_A4_DIAG = 27;
+
+    /** Diagonals having six cels. */
+    private static final int A6_F1_DIAG = 28;
+    private static final int C1_H6_DIAG = 29;
+    private static final int H3_C8_DIAG = 30;
+    private static final int F8_A3_DIAG = 31;
+
+    /** Diagonals having seven cels. */
+    private static final int A7_G1_DIAG = 32;
+    private static final int B1_H7_DIAG = 33;
+    private static final int H2_B8_DIAG = 34;
+    private static final int G8_A2_DIAG = 35;
+
+    /** Diagonals having eight cels. */
+    private static final int A8_H1_DIAG = 36;
+    private static final int A1_H8_DIAG = 37;
+ 
     /**
      * Base static factory for the class.
      * <p>
