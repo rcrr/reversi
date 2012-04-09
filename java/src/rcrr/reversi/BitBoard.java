@@ -34,7 +34,10 @@ public final class BitBoard extends AbstractBoard {
 
     private static final int[] FILE_INDEX_COEFFICIENT = new int[8]; 
 
-    private static int index(final byte[] file) {
+    /**
+     * It MUST BE TURNED INTO PRIVATE .....
+     */
+    public static int index(final byte[] file) {
         assert (file != null) : "Parameter file cannot be null.";
         assert (file.length == 2) : "Parameter file must have a lenght equal to two.";
         assert ((file[0] & file[1]) == (byte) 0) : "Parameter file cannot have black and white discs overlapping.";
@@ -44,18 +47,24 @@ public final class BitBoard extends AbstractBoard {
             int isBlack = (file[BITBOARD_BLACK_INDEX] >>> i) & 1;
             int isWhite = (file[BITBOARD_WHITE_INDEX] >>> i) & 1;
             index += (isBlack + 2 * isWhite) * FILE_INDEX_COEFFICIENT[i];
-            System.out.println("i=" + i + ", isBlack=" + isBlack + ", isWhite=" + isWhite);
+            //System.out.println("i=" + i + ", isBlack=" + isBlack + ", isWhite=" + isWhite);
         }
         return index;
+    }
+
+    /**
+     * It MUST BE TURNED INTO PRIVATE .....
+     */
+    public byte[] file(final int index) {
+        byte[] file = new byte[2];
+        // IMPLEMENTATION HERE! 
+        return file;
     }
 
     static {
         for (int i = 0; i < 8; i++) {
             FILE_INDEX_COEFFICIENT[i] = BigInteger.valueOf(3).pow(i).intValue();
         }
-
-        byte[] file = new byte[] {16, 65};
-        System.out.println("index(file) = " + index(file));
     }
 
     /** Rows are numbered from 1 to 8. */
