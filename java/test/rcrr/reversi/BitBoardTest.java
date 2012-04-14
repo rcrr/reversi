@@ -60,6 +60,10 @@ public class BitBoardTest {
                    BitBoard.index(new byte[] {16, 65}),
                    is(1541));
 
+        assertThat("BitBoard.index(new byte[] {0, -1}) is 6560.",
+                   BitBoard.index(new byte[] {0, -1}),
+                   is(6560));
+
     }
 
 }
