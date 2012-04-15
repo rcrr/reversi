@@ -32,7 +32,13 @@ public final class BitBoard extends AbstractBoard {
     private static final int BITBOARD_BLACK_INDEX = 0;
     private static final int BITBOARD_WHITE_INDEX = 1;
 
-    private static final int[] FILE_INDEX_COEFFICIENT = new int[8]; 
+    private static final int FILE_MAX_LENGTH = 8;
+
+    private static final int SQUARE_SIZE = 64;
+
+    private static final long[] SQUARE_LONG_VALUE = new long[SQUARE_SIZE];
+
+    private static final int[] FILE_INDEX_COEFFICIENT = new int[FILE_MAX_LENGTH]; 
 
     /**
      * Is the number of files that are managed.
@@ -43,9 +49,18 @@ public final class BitBoard extends AbstractBoard {
     private static final int FILE_SIZE = 38;
 
     /**
-     * The array contains the mask for each file.
+     * The array contains the mask for each file. Values are assigned in the static class block.
+     * Values are assigned as a long value. In the same line as a comment there is the binary representation
+     * that would require JDK 1.7 or higher.
+     * The long value is calculated with the help of a calc sheet mantained in the file: Reversi-BITBOARD-design.ods
      */
     private static final long[] FILE_MASK_ARRAY = new long[FILE_SIZE];
+
+    /**
+     * The array contains the length of each file (the number of squares).
+     */
+    private static final int[] FILE_LENGTH_ARRAY = new int[FILE_SIZE];
+
 
     /**
      * It MUST BE TURNED INTO PRIVATE .....
@@ -59,7 +74,7 @@ public final class BitBoard extends AbstractBoard {
         // System.out.println("file[1]=" + file[1]);
 
         int index = 0;
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < FILE_MAX_LENGTH; i++) {
             int isBlack = (file[BITBOARD_BLACK_INDEX] >>> i) & 1;
             int isWhite = (file[BITBOARD_WHITE_INDEX] >>> i) & 1;
             index += (isBlack + 2 * isWhite) * FILE_INDEX_COEFFICIENT[i];
@@ -72,100 +87,220 @@ public final class BitBoard extends AbstractBoard {
      * It MUST BE TURNED INTO PRIVATE .....
      */
     public byte[] file(final int index) {
+        assert (index >= 0 || index < FILE_SIZE) : "Parameter index must be in the range 0...FILE_SIZE.";
         byte[] file = new byte[2];
         // IMPLEMENTATION HERE! 
         long mask = FILE_MASK_ARRAY[index];
         return file;
     }
 
+    /** Square index literal. */
+    static final int A1 =  0;
+    static final int B1 =  1;
+    static final int C1 =  2;
+    static final int D1 =  3;
+    static final int E1 =  4;
+    static final int F1 =  5;
+    static final int G1 =  6;
+    static final int H1 =  7;
+
+    static final int A2 =  8;
+    static final int B2 =  9;
+    static final int C2 = 10;
+    static final int D2 = 11;
+    static final int E2 = 12;
+    static final int F2 = 13;
+    static final int G2 = 14;
+    static final int H2 = 15;
+
+    static final int A3 = 16;
+    static final int B3 = 17;
+    static final int C3 = 18;
+    static final int D3 = 19;
+    static final int E3 = 20;
+    static final int F3 = 21;
+    static final int G3 = 22;
+    static final int H3 = 23;
+
+    static final int A4 = 24;
+    static final int B4 = 25;
+    static final int C4 = 26;
+    static final int D4 = 27;
+    static final int E4 = 28;
+    static final int F4 = 29;
+    static final int G4 = 30;
+    static final int H4 = 31;
+
+    static final int A5 = 32;
+    static final int B5 = 33;
+    static final int C5 = 34;
+    static final int D5 = 35;
+    static final int E5 = 36;
+    static final int F5 = 37;
+    static final int G5 = 38;
+    static final int H5 = 39;
+
+    static final int A6 = 40;
+    static final int B6 = 41;
+    static final int C6 = 42;
+    static final int D6 = 43;
+    static final int E6 = 44;
+    static final int F6 = 45;
+    static final int G6 = 46;
+    static final int H6 = 47;
+
+    static final int A7 = 48;
+    static final int B7 = 49;
+    static final int C7 = 50;
+    static final int D7 = 51;
+    static final int E7 = 52;
+    static final int F7 = 53;
+    static final int G7 = 54;
+    static final int H7 = 55;
+
+    static final int A8 = 56;
+    static final int B8 = 57;
+    static final int C8 = 58;
+    static final int D8 = 59;
+    static final int E8 = 60;
+    static final int F8 = 61;
+    static final int G8 = 62;
+    static final int H8 = 63;
+
     /** Rows are numbered from 1 to 8. */
-    private static final int FIRST_ROW   = 0;
-    private static final int SECOND_ROW  = 1;
-    private static final int THIRD_ROW   = 2;
-    private static final int FOURTH_ROW  = 3;
-    private static final int FIFTH_ROW   = 4;
-    private static final int SIXTH_ROW   = 5;
-    private static final int SEVENTH_ROW = 6;
-    private static final int EIGHTH_ROW  = 7;
+    static final int FIRST_ROW   = 0;
+    static final int SECOND_ROW  = 1;
+    static final int THIRD_ROW   = 2;
+    static final int FOURTH_ROW  = 3;
+    static final int FIFTH_ROW   = 4;
+    static final int SIXTH_ROW   = 5;
+    static final int SEVENTH_ROW = 6;
+    static final int EIGHTH_ROW  = 7;
 
     /** Columns are numbered from A to H. */
-    private static final int FIRST_COLUMN   =  8;
-    private static final int SECOND_COLUMN  =  9;
-    private static final int THIRD_COLUMN   = 10;
-    private static final int FOURTH_COLUMN  = 11;
-    private static final int FIFTH_COLUMN   = 12;
-    private static final int SIXTH_COLUMN   = 13;
-    private static final int SEVENTH_COLUMN = 14;
-    private static final int EIGHTH_COLUMN  = 15;
+    static final int FIRST_COLUMN   =  8;
+    static final int SECOND_COLUMN  =  9;
+    static final int THIRD_COLUMN   = 10;
+    static final int FOURTH_COLUMN  = 11;
+    static final int FIFTH_COLUMN   = 12;
+    static final int SIXTH_COLUMN   = 13;
+    static final int SEVENTH_COLUMN = 14;
+    static final int EIGHTH_COLUMN  = 15;
 
     /** Diagonals are identified by first and last squares. */
     /** Diagonals having three cels. */
-    private static final int A3_C1_DIAG = 16;
-    private static final int F1_H3_DIAG = 17;
-    private static final int H6_F8_DIAG = 18;
-    private static final int C8_A6_DIAG = 19;
+    static final int A3_C1_DIAG = 16;
+    static final int F1_H3_DIAG = 17;
+    static final int H6_F8_DIAG = 18;
+    static final int C8_A6_DIAG = 19;
 
     /** Diagonals having four cels. */
-    private static final int A4_D1_DIAG = 20;
-    private static final int E1_H4_DIAG = 21;
-    private static final int H5_E8_DIAG = 22;
-    private static final int D8_A5_DIAG = 23;
+    static final int A4_D1_DIAG = 20;
+    static final int E1_H4_DIAG = 21;
+    static final int H5_E8_DIAG = 22;
+    static final int D8_A5_DIAG = 23;
 
     /** Diagonals having five cels. */
-    private static final int A5_E1_DIAG = 24;
-    private static final int D1_H5_DIAG = 25;
-    private static final int H4_D8_DIAG = 26;
-    private static final int E8_A4_DIAG = 27;
+    static final int A5_E1_DIAG = 24;
+    static final int D1_H5_DIAG = 25;
+    static final int H4_D8_DIAG = 26;
+    static final int E8_A4_DIAG = 27;
 
     /** Diagonals having six cels. */
-    private static final int A6_F1_DIAG = 28;
-    private static final int C1_H6_DIAG = 29;
-    private static final int H3_C8_DIAG = 30;
-    private static final int F8_A3_DIAG = 31;
+    static final int A6_F1_DIAG = 28;
+    static final int C1_H6_DIAG = 29;
+    static final int H3_C8_DIAG = 30;
+    static final int F8_A3_DIAG = 31;
 
     /** Diagonals having seven cels. */
-    private static final int A7_G1_DIAG = 32;
-    private static final int B1_H7_DIAG = 33;
-    private static final int H2_B8_DIAG = 34;
-    private static final int G8_A2_DIAG = 35;
+    static final int A7_G1_DIAG = 32;
+    static final int B1_H7_DIAG = 33;
+    static final int H2_B8_DIAG = 34;
+    static final int G8_A2_DIAG = 35;
 
     /** Diagonals having eight cels. */
-    private static final int A8_H1_DIAG = 36;
-    private static final int A1_H8_DIAG = 37;
+    static final int A8_H1_DIAG = 36;
+    static final int A1_H8_DIAG = 37;
+
+    static final long fileMaskArray(final int file) {
+        if (file < 0 || file > FILE_SIZE) { throw new IllegalArgumentException("Parameter file out of range."); }
+        return FILE_MASK_ARRAY[file];
+    }
+
+    static final long squareLongValue(final int square) {
+        if (square < 0 || square > SQUARE_SIZE) { throw new IllegalArgumentException("Parameter square out of range."); }
+        return SQUARE_LONG_VALUE[square];
+    }
+
+    static final String longToString(final long value) {
+        final StringBuilder sb = new StringBuilder();
+        final String toBinaryString = Long.toBinaryString(value);
+        final int len = toBinaryString.length();
+        final int missingZeroes = SQUARE_SIZE - len;
+        for (int i = SQUARE_SIZE; i > 0; i--) {
+            if ((i != SQUARE_SIZE) && (i % FILE_MAX_LENGTH == 0)) sb.append(".");
+            if ((missingZeroes - (SQUARE_SIZE - i)) > 0) {
+                sb.append('0');
+            } else {
+                sb.append(toBinaryString.charAt(len - i));
+            }
+        }
+        return sb.toString();
+    }
 
     static {
 
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < FILE_MAX_LENGTH; i++) {
             FILE_INDEX_COEFFICIENT[i] = BigInteger.valueOf(3).pow(i).intValue();
         }
 
-        FILE_MASK_ARRAY[FIRST_ROW]      =                  255L; // 0b11111111_00000000_00000000_00000000_00000000_00000000_00000000_00000000
-        FILE_MASK_ARRAY[SECOND_ROW]     =                65280L; // 0b00000000_11111111_00000000_00000000_00000000_00000000_00000000_00000000
-        FILE_MASK_ARRAY[THIRD_ROW]      =             16711680L; // 0b00000000_00000000_11111111_00000000_00000000_00000000_00000000_00000000
-        FILE_MASK_ARRAY[FOURTH_ROW]     =           4278190080L; // 0b00000000_00000000_00000000_11111111_00000000_00000000_00000000_00000000
-        FILE_MASK_ARRAY[FIFTH_ROW]      =        1095216660480L; // 0b00000000_00000000_00000000_00000000_11111111_00000000_00000000_00000000
-        FILE_MASK_ARRAY[SIXTH_ROW]      =      280375465082880L; // 0b00000000_00000000_00000000_00000000_00000000_11111111_00000000_00000000
-        FILE_MASK_ARRAY[SEVENTH_ROW]    =    71776119061217300L; // 0b00000000_00000000_00000000_00000000_00000000_00000000_11111111_00000000
-        FILE_MASK_ARRAY[EIGHTH_ROW]     =   -72057594037927900L; // 0b00000000_00000000_00000000_00000000_00000000_00000000_00000000_11111111
+        for (int i = 0; i < SQUARE_SIZE; i++) {
+            SQUARE_LONG_VALUE[i] = BigInteger.valueOf(2).pow(i).longValue();
+        }
 
-        FILE_MASK_ARRAY[FIRST_COLUMN]   =    72340172838076700L; // 0b10000000_10000000_10000000_10000000_10000000_10000000_10000000_10000000
-        FILE_MASK_ARRAY[SECOND_COLUMN]  =   144680345676153000L; // 0b01000000_01000000_01000000_01000000_01000000_01000000_01000000_01000000
-        FILE_MASK_ARRAY[THIRD_COLUMN]   =   289360691352307000L; // 0b00100000_00100000_00100000_00100000_00100000_00100000_00100000_00100000
-        FILE_MASK_ARRAY[FOURTH_COLUMN]  =   578721382704613000L; // 0b00010000_00010000_00010000_00010000_00010000_00010000_00010000_00010000
-        FILE_MASK_ARRAY[FIFTH_COLUMN]   =  1157442765409230000L; // 0b00001000_00001000_00001000_00001000_00001000_00001000_00001000_00001000
-        FILE_MASK_ARRAY[SIXTH_COLUMN]   =  2314885530818450000L; // 0b00000100_00000100_00000100_00000100_00000100_00000100_00000100_00000100
-        FILE_MASK_ARRAY[SEVENTH_COLUMN] =  4629771061636910000L; // 0b00000010_00000010_00000010_00000010_00000010_00000010_00000010_00000010
-        FILE_MASK_ARRAY[EIGHTH_COLUMN]  = -9187201950435740000L; // 0b00000001_00000001_00000001_00000001_00000001_00000001_00000001_00000001
+        FILE_MASK_ARRAY[FIRST_ROW] = SQUARE_LONG_VALUE[A1] + SQUARE_LONG_VALUE[B1] + SQUARE_LONG_VALUE[C1] + SQUARE_LONG_VALUE[D1] +
+            SQUARE_LONG_VALUE[E1] + SQUARE_LONG_VALUE[F1] + SQUARE_LONG_VALUE[G1] + SQUARE_LONG_VALUE[H1];
+        FILE_MASK_ARRAY[SECOND_ROW] = SQUARE_LONG_VALUE[A2] + SQUARE_LONG_VALUE[B2] + SQUARE_LONG_VALUE[C2] + SQUARE_LONG_VALUE[D2] +
+            SQUARE_LONG_VALUE[E2] + SQUARE_LONG_VALUE[F2] + SQUARE_LONG_VALUE[G2] + SQUARE_LONG_VALUE[H2];
+        FILE_MASK_ARRAY[THIRD_ROW] = SQUARE_LONG_VALUE[A3] + SQUARE_LONG_VALUE[B3] + SQUARE_LONG_VALUE[C3] + SQUARE_LONG_VALUE[D3] +
+            SQUARE_LONG_VALUE[E3] + SQUARE_LONG_VALUE[F3] + SQUARE_LONG_VALUE[G3] + SQUARE_LONG_VALUE[H3];
+        FILE_MASK_ARRAY[FOURTH_ROW] = SQUARE_LONG_VALUE[A4] + SQUARE_LONG_VALUE[B4] + SQUARE_LONG_VALUE[C4] + SQUARE_LONG_VALUE[D4] +
+            SQUARE_LONG_VALUE[E4] + SQUARE_LONG_VALUE[F4] + SQUARE_LONG_VALUE[G4] + SQUARE_LONG_VALUE[H4];
+        FILE_MASK_ARRAY[FIFTH_ROW] = SQUARE_LONG_VALUE[A5] + SQUARE_LONG_VALUE[B5] + SQUARE_LONG_VALUE[C5] + SQUARE_LONG_VALUE[D5] +
+            SQUARE_LONG_VALUE[E5] + SQUARE_LONG_VALUE[F5] + SQUARE_LONG_VALUE[G5] + SQUARE_LONG_VALUE[H5];
+        FILE_MASK_ARRAY[SIXTH_ROW] = SQUARE_LONG_VALUE[A6] + SQUARE_LONG_VALUE[B6] + SQUARE_LONG_VALUE[C6] + SQUARE_LONG_VALUE[D6] +
+            SQUARE_LONG_VALUE[E6] + SQUARE_LONG_VALUE[F6] + SQUARE_LONG_VALUE[G6] + SQUARE_LONG_VALUE[H6];
+        FILE_MASK_ARRAY[SEVENTH_ROW] = SQUARE_LONG_VALUE[A7] + SQUARE_LONG_VALUE[B7] + SQUARE_LONG_VALUE[C7] + SQUARE_LONG_VALUE[D7] +
+            SQUARE_LONG_VALUE[E7] + SQUARE_LONG_VALUE[F7] + SQUARE_LONG_VALUE[G7] + SQUARE_LONG_VALUE[H7];
+        FILE_MASK_ARRAY[EIGHTH_ROW] = SQUARE_LONG_VALUE[A8] + SQUARE_LONG_VALUE[B8] + SQUARE_LONG_VALUE[C8] + SQUARE_LONG_VALUE[D8] +
+            SQUARE_LONG_VALUE[E8] + SQUARE_LONG_VALUE[F8] + SQUARE_LONG_VALUE[G8] + SQUARE_LONG_VALUE[H8];
 
-        FILE_MASK_ARRAY[A3_C1_DIAG]     =                66052L; // 0b00100000_01000000_10000000_00000000_00000000_00000000_00000000_00000000
-        FILE_MASK_ARRAY[F1_H3_DIAG]     =              8405024L; // 0b00000100_00000010_00000001_00000000_00000000_00000000_00000000_00000000
-        FILE_MASK_ARRAY[H6_F8_DIAG]     =  2323998145211530000L; // 0b00000000_00000000_00000000_00000000_00000000_00000001_00000010_00000100
-        FILE_MASK_ARRAY[C8_A6_DIAG]     =   288794425616761000L; // 0b00000000_00000000_00000000_00000000_00000000_10000000_01000000_00100000
+        FILE_MASK_ARRAY[FIRST_COLUMN] = SQUARE_LONG_VALUE[A1] + SQUARE_LONG_VALUE[A2] + SQUARE_LONG_VALUE[A3] + SQUARE_LONG_VALUE[A4] +
+            SQUARE_LONG_VALUE[A5] + SQUARE_LONG_VALUE[A6] + SQUARE_LONG_VALUE[A7] + SQUARE_LONG_VALUE[A8];
+        FILE_MASK_ARRAY[SECOND_COLUMN] = SQUARE_LONG_VALUE[B1] + SQUARE_LONG_VALUE[B2] + SQUARE_LONG_VALUE[B3] + SQUARE_LONG_VALUE[B4] +
+            SQUARE_LONG_VALUE[B5] + SQUARE_LONG_VALUE[B6] + SQUARE_LONG_VALUE[B7] + SQUARE_LONG_VALUE[B8];
+        FILE_MASK_ARRAY[THIRD_COLUMN] = SQUARE_LONG_VALUE[C1] + SQUARE_LONG_VALUE[C2] + SQUARE_LONG_VALUE[C3] + SQUARE_LONG_VALUE[C4] +
+            SQUARE_LONG_VALUE[C5] + SQUARE_LONG_VALUE[C6] + SQUARE_LONG_VALUE[C7] + SQUARE_LONG_VALUE[C8];
+        FILE_MASK_ARRAY[FOURTH_COLUMN] = SQUARE_LONG_VALUE[D1] + SQUARE_LONG_VALUE[D2] + SQUARE_LONG_VALUE[D3] + SQUARE_LONG_VALUE[D4] +
+            SQUARE_LONG_VALUE[D5] + SQUARE_LONG_VALUE[D6] + SQUARE_LONG_VALUE[D7] + SQUARE_LONG_VALUE[D8];
+        FILE_MASK_ARRAY[FIFTH_COLUMN] = SQUARE_LONG_VALUE[E1] + SQUARE_LONG_VALUE[E2] + SQUARE_LONG_VALUE[E3] + SQUARE_LONG_VALUE[E4] +
+            SQUARE_LONG_VALUE[E5] + SQUARE_LONG_VALUE[E6] + SQUARE_LONG_VALUE[E7] + SQUARE_LONG_VALUE[E8];
+        FILE_MASK_ARRAY[SIXTH_COLUMN] = SQUARE_LONG_VALUE[F1] + SQUARE_LONG_VALUE[F2] + SQUARE_LONG_VALUE[F3] + SQUARE_LONG_VALUE[F4] +
+            SQUARE_LONG_VALUE[F5] + SQUARE_LONG_VALUE[F6] + SQUARE_LONG_VALUE[F7] + SQUARE_LONG_VALUE[F8];
+        FILE_MASK_ARRAY[SEVENTH_COLUMN] = SQUARE_LONG_VALUE[G1] + SQUARE_LONG_VALUE[G2] + SQUARE_LONG_VALUE[G3] + SQUARE_LONG_VALUE[G4] +
+            SQUARE_LONG_VALUE[G5] + SQUARE_LONG_VALUE[G6] + SQUARE_LONG_VALUE[G7] + SQUARE_LONG_VALUE[G8];
+        FILE_MASK_ARRAY[EIGHTH_COLUMN] = SQUARE_LONG_VALUE[H1] + SQUARE_LONG_VALUE[H2] + SQUARE_LONG_VALUE[H3] + SQUARE_LONG_VALUE[H4] +
+            SQUARE_LONG_VALUE[H5] + SQUARE_LONG_VALUE[H6] + SQUARE_LONG_VALUE[H7] + SQUARE_LONG_VALUE[H8];
 
-        FILE_MASK_ARRAY[A4_D1_DIAG]     =             16909320L; // 0b00010000_00100000_01000000_10000000_00000000_00000000_00000000_00000000
-        FILE_MASK_ARRAY[E1_H4_DIAG]     =           2151686160L; // 0b00001000_00000100_00000010_00000001_00000000_00000000_00000000_00000000
-        FILE_MASK_ARRAY[H5_E8_DIAG]     =  1161999622361580000L; // 0b00000000_00000000_00000000_00000000_00000001_00000010_00000100_00001000
-        FILE_MASK_ARRAY[D8_A5_DIAG]     =   577588855528489000L; // 0b00000000_00000000_00000000_00000000_10000000_01000000_00100000_00010000
+        FILE_MASK_ARRAY[A3_C1_DIAG] = SQUARE_LONG_VALUE[A3] + SQUARE_LONG_VALUE[B2] + SQUARE_LONG_VALUE[C1];
+        FILE_MASK_ARRAY[F1_H3_DIAG] = SQUARE_LONG_VALUE[F1] + SQUARE_LONG_VALUE[G2] + SQUARE_LONG_VALUE[H3];
+        FILE_MASK_ARRAY[H6_F8_DIAG] = SQUARE_LONG_VALUE[H6] + SQUARE_LONG_VALUE[G7] + SQUARE_LONG_VALUE[F8];
+        FILE_MASK_ARRAY[C8_A6_DIAG] = SQUARE_LONG_VALUE[C8] + SQUARE_LONG_VALUE[B7] + SQUARE_LONG_VALUE[A6];
+
+        FILE_MASK_ARRAY[A4_D1_DIAG] = SQUARE_LONG_VALUE[A4] + SQUARE_LONG_VALUE[B3] + SQUARE_LONG_VALUE[C2] + SQUARE_LONG_VALUE[D1];
+        FILE_MASK_ARRAY[E1_H4_DIAG] = SQUARE_LONG_VALUE[E1] + SQUARE_LONG_VALUE[F2] + SQUARE_LONG_VALUE[G3] + SQUARE_LONG_VALUE[H4];
+        FILE_MASK_ARRAY[H5_E8_DIAG] = SQUARE_LONG_VALUE[H5] + SQUARE_LONG_VALUE[G6] + SQUARE_LONG_VALUE[F7] + SQUARE_LONG_VALUE[E8];
+        FILE_MASK_ARRAY[D8_A5_DIAG] = SQUARE_LONG_VALUE[D8] + SQUARE_LONG_VALUE[C7] + SQUARE_LONG_VALUE[B6] + SQUARE_LONG_VALUE[A5];
 
         FILE_MASK_ARRAY[A5_E1_DIAG]     =           4328785936L; // 0b00001000_00010000_00100000_01000000_10000000_00000000_00000000_00000000
         FILE_MASK_ARRAY[D1_H5_DIAG]     =         550831656968L; // 0b00010000_00001000_00000100_00000010_00000001_00000000_00000000_00000000
@@ -184,6 +319,10 @@ public final class BitBoard extends AbstractBoard {
 
         FILE_MASK_ARRAY[A8_H1_DIAG]     =    72624976668147800L; // 0b00000001_00000010_00000100_00001000_00010000_00100000_01000000_10000000
         FILE_MASK_ARRAY[A1_H8_DIAG]     = -9205322385119250000L; // 0b10000000_01000000_00100000_00010000_00001000_00000100_00000010_00000001
+
+        for (int i = 0; i < FILE_SIZE; i++) {
+            FILE_LENGTH_ARRAY[i] = Long.bitCount(FILE_MASK_ARRAY[i]);
+        }
 
     }
  
