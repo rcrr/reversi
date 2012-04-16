@@ -214,11 +214,30 @@ public class BitBoardTest {
                    BitBoard.longToString(BitBoard.fileMaskArray(BitBoard.D8_A5_DIAG)),
                    is("00001000.00000100.00000010.00000001.00000000.00000000.00000000.00000000"));
 
+        assertThat("BitBoard.longToString(BitBoard.fileMaskArray(BitBoard.A5_E1_DIAG)) is"
+                   + " 00000000.00000000.00000000.00000001.00000010.00000100.00001000.00010000.",
+                   BitBoard.longToString(BitBoard.fileMaskArray(BitBoard.A5_E1_DIAG)),
+                   is("00000000.00000000.00000000.00000001.00000010.00000100.00001000.00010000"));
+
+        assertThat("BitBoard.longToString(BitBoard.fileMaskArray(BitBoard.D1_H5_DIAG)) is"
+                   + " 00000000.00000000.00000000.10000000.01000000.00100000.00010000.00001000.",
+                   BitBoard.longToString(BitBoard.fileMaskArray(BitBoard.D1_H5_DIAG)),
+                   is("00000000.00000000.00000000.10000000.01000000.00100000.00010000.00001000"));
+
+        assertThat("BitBoard.longToString(BitBoard.fileMaskArray(BitBoard.H4_D8_DIAG)) is"
+                   + " 00001000.00010000.00100000.01000000.10000000.00000000.00000000.00000000.",
+                   BitBoard.longToString(BitBoard.fileMaskArray(BitBoard.H4_D8_DIAG)),
+                   is("00001000.00010000.00100000.01000000.10000000.00000000.00000000.00000000"));
+
+        assertThat("BitBoard.longToString(BitBoard.fileMaskArray(BitBoard.E8_A4_DIAG)) is"
+                   + " 00010000.00001000.00000100.00000010.00000001.00000000.00000000.00000000.",
+                   BitBoard.longToString(BitBoard.fileMaskArray(BitBoard.E8_A4_DIAG)),
+                   is("00010000.00001000.00000100.00000010.00000001.00000000.00000000.00000000"));
+
         /**
          *             8        7        6        5        4        3        2        1
          *             HGFEDCBA.HGFEDCBA.HGFEDCBA.HGFEDCBA.HGFEDCBA.HGFEDCBA.HGFEDCBA.HGFEDCBA
          */
-
 
     }
 
