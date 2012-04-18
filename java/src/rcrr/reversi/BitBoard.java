@@ -18,7 +18,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MUST  02111-1307, USA
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
@@ -70,15 +70,11 @@ public final class BitBoard extends AbstractBoard {
         assert (file.length == 2) : "Parameter file must have a lenght equal to two.";
         assert ((file[0] & file[1]) == (byte) 0) : "Parameter file cannot have black and white discs overlapping.";
 
-        // System.out.println("file[0]=" + file[0]);
-        // System.out.println("file[1]=" + file[1]);
-
         int index = 0;
         for (int i = 0; i < FILE_MAX_LENGTH; i++) {
             int isBlack = (file[BITBOARD_BLACK_INDEX] >>> i) & 1;
             int isWhite = (file[BITBOARD_WHITE_INDEX] >>> i) & 1;
             index += (isBlack + 2 * isWhite) * FILE_INDEX_COEFFICIENT[i];
-            // System.out.println("i=" + i + ", isBlack=" + isBlack + ", isWhite=" + isWhite);
         }
         return index;
     }
@@ -86,12 +82,45 @@ public final class BitBoard extends AbstractBoard {
     /**
      * It MUST BE TURNED INTO PRIVATE .....
      */
-    public byte[] file(final int index) {
+    public final byte[] file(final int index) {
         assert (index >= 0 || index < FILE_SIZE) : "Parameter index must be in the range 0...FILE_SIZE.";
         byte[] file = new byte[2];
-        // IMPLEMENTATION HERE! 
         long mask = FILE_MASK_ARRAY[index];
+        int j = 0;
+        file_completed:
+        for (int i = 0; i < SQUARE_SIZE; i++) {
+            if (j > 7) break file_completed;
+            long bit = 1L << i;
+            byte pointInFile = (byte) (1 << j);
+            if ((mask & bit) != 0L) {
+                if ((bitboard[0] & bit) != 0L) { file[0] |= pointInFile; }
+                if ((bitboard[1] & bit) != 0L) { file[1] |= pointInFile; }
+                j++;
+            }
+        }
         return file;
+    }
+
+    public static final String fileToString(final byte file[]) {
+        assert (file != null) : "Parameter file cannot be null.";
+        assert (file.length == 2) : "Parameter file must have a lenght equal to two.";
+        assert ((file[0] & file[1]) == (byte) 0) : "Parameter file cannot have black and white discs overlapping.";
+
+        final StringBuffer sb = new StringBuffer();
+        sb.append("[ ");
+        for (int i = 0; i < FILE_MAX_LENGTH; i++) {
+            byte pointInFile = (byte) (1 << i);
+            if ((file[0] & pointInFile) != 0 ) {
+                sb.append('@');
+            } else if ((file[1] & pointInFile) != 0 ) {
+                sb.append('O');
+            } else {
+                sb.append('.');
+            }
+            sb.append(' ');
+        }
+        sb.append(']');
+        return sb.toString();
     }
 
     /** Square index literal. */
@@ -315,8 +344,6 @@ public final class BitBoard extends AbstractBoard {
         FILE_MASK_ARRAY[D1_H5_DIAG] = sumOfSquareLongValue(D1, E2, F3, G4, H5);
         FILE_MASK_ARRAY[H4_D8_DIAG] = sumOfSquareLongValue(H4, G5, F6, E7, D8);
         FILE_MASK_ARRAY[E8_A4_DIAG] = sumOfSquareLongValue(E8, D7, C6, B5, A4);
-
-        /** From here down to be tested. */
 
         FILE_MASK_ARRAY[A6_F1_DIAG] = sumOfSquareLongValue(A6, B5, C4, D3, E2, F1);
         FILE_MASK_ARRAY[C1_H6_DIAG] = sumOfSquareLongValue(C1, D2, E3, F4, G5, H6);

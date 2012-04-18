@@ -24,6 +24,9 @@
 
 package rcrr.reversi;
 
+import java.util.Map;
+import java.util.HashMap;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
@@ -50,6 +53,30 @@ public class BitBoardTest {
         assertThat("To be developed.",
                    true,
                    is(true));
+
+    }
+
+    @Test
+    public final void testFile() {
+
+        final Map<Square, SquareState> squares = new HashMap<Square, SquareState>();
+        for (final Square sq : Square.values()) {
+            squares.put(sq, BoardFixtures.BLACK_HAS_TO_PASS.get(sq));
+        }
+        final Board board = BitBoard.valueOf(squares);
+        final BitBoard bitboard = (BitBoard) board;
+
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS FIRST_ROW fileToString is [ O @ . @ . O . . ].",
+                   BitBoard.fileToString(bitboard.file(BitBoard.FIRST_ROW)),
+                   is("[ O @ . @ . O . . ]"));
+
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS SECOND_ROW fileToString is [ @ @ @ @ @ @ @ O ].",
+                   BitBoard.fileToString(bitboard.file(BitBoard.SECOND_ROW)),
+                   is("[ @ @ @ @ @ @ @ O ]"));
+
+        assertThat("BoardFixtures.BLACK_HAS_TO_PASS FIRST_ROW fileToString is [ . @ @ O @ O @ O ].",
+                   BitBoard.fileToString(bitboard.file(BitBoard.A8_H1_DIAG)),
+                   is("[ . @ @ O @ O @ O ]"));
 
     }
 
