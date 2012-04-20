@@ -24,6 +24,7 @@
 
 package rcrr.reversi;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.math.BigInteger;
 
@@ -39,6 +40,9 @@ public final class BitBoard extends AbstractBoard {
     private static final long[] SQUARE_LONG_VALUE = new long[SQUARE_SIZE];
 
     private static final int[] FILE_INDEX_COEFFICIENT = new int[FILE_MAX_LENGTH]; 
+
+    //rivate static final int NUMBER_OF_DIRECTIONS = 8;
+    final static int[] DIRECTION =  {-9, -8, -7, -1, +1, +7, +8, +9};
 
     /**
      * Is the number of files that are managed.
@@ -302,7 +306,17 @@ public final class BitBoard extends AbstractBoard {
         return total;
     }
 
+    private static final long[] BIT_MOVE = new long[SQUARE_SIZE];
+
+    static final long bitMove(final Square move) {
+        return BIT_MOVE[move.ordinal()];
+    }
+
     static {
+
+        for (int i = 0; i < SQUARE_SIZE; i++) {
+            BIT_MOVE[i] = 1L << i;
+        }
 
         for (int i = 0; i < FILE_MAX_LENGTH; i++) {
             FILE_INDEX_COEFFICIENT[i] = BigInteger.valueOf(3).pow(i).intValue();
@@ -452,9 +466,37 @@ public final class BitBoard extends AbstractBoard {
             throw new NullPointerException("Parameter player must be not null.");
         }
         /** MUST BE REWRITTEN! */
+        final long bitmove = bitMove(move);
+        if ((bitmove & (bitboard[0] & bitboard[1])) != 0) { return false; }
+
+        for (int dir : DIRECTION) {
+            if(wouldFlip(bitmove, player, dir) != 0L) { return true; }
+        }
+        /*
+        for (Direction dir : Direction.values()) {
+            if (wouldFlip(move, player, dir) != null) { return true; }
+        }
+        */
         final Board transientBoard = EnumMapBoard.valueOf(BoardUtils.bitboardToMap(this.bitboard));
         return transientBoard.isLegal(move, player);
     }
+
+    private long wouldFlip(final long move, final Player player, final int dir) {
+        assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set";
+        assert (player != null) : "Argument player must be not null";
+        assert (Arrays.binarySearch(DIRECTION, dir) >= 0) : "Argument dir must be contained in the DIRECTION array";
+        long bracketing = 0L;
+        /*
+        Square neighbor = move.neighbors().get(dir);
+        Square bracketing = null;
+        if (get(neighbor) == player.opponent().color()) {
+            Square next = neighbor.neighbors().get(dir);
+            if (next != null) { bracketing = findBracketingPiece(next, player, dir); }
+        }
+        */
+        return bracketing;
+    }
+
 
     /**
      * Returns a new updated board to reflect move by player. This static
