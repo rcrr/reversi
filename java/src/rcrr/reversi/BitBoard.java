@@ -26,6 +26,8 @@ package rcrr.reversi;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.math.BigInteger;
 
 public final class BitBoard extends AbstractBoard {
@@ -41,8 +43,18 @@ public final class BitBoard extends AbstractBoard {
 
     private static final int[] FILE_INDEX_COEFFICIENT = new int[FILE_MAX_LENGTH]; 
 
-    //rivate static final int NUMBER_OF_DIRECTIONS = 8;
-    final static int[] DIRECTION =  {-9, -8, -7, -1, +1, +7, +8, +9};
+    static final int DIR_NW = -9;
+    static final int DIR_NN = -8;
+    static final int DIR_NE = -7;
+    static final int DIR_WW = -1;
+    static final int DIR_EE = +1;
+    static final int DIR_SW = +7;
+    static final int DIR_SS = +8;
+    static final int DIR_SE = +9;
+
+    static final int NUMBER_OF_DIRECTIONS = 8;
+    static final int[] DIRECTIONS =  new int [] {DIR_NW, DIR_NN, DIR_NE, DIR_WW, DIR_EE, DIR_SW, DIR_SS, DIR_SE};
+    static final int[][] FLIPPING_DIRECTIONS = new int[SQUARE_SIZE][]; 
 
     /**
      * Is the number of files that are managed.
@@ -265,6 +277,12 @@ public final class BitBoard extends AbstractBoard {
         return SQUARE_LONG_VALUE[square];
     }
 
+    static final int squareIntValue(final long square) {
+        assert (Long.bitCount(square) == 1) : "Parameter square must have one and only one bit set.";
+        if (square == -9223372036854775808L) return 63;
+        return Arrays.binarySearch(BIT_MOVE, 0, 62, square);
+    }
+
     static final String longToString(final long value) {
         final StringBuilder sb = new StringBuilder();
         final String toBinaryString = Long.toBinaryString(value);
@@ -312,10 +330,108 @@ public final class BitBoard extends AbstractBoard {
         return BIT_MOVE[move.ordinal()];
     }
 
+    static final int EDGE_N = 0;
+    static final int EDGE_E = 1;
+    static final int EDGE_S = 2;
+    static final int EDGE_W = 3;
+
+    static final int[] EDGES = new int[] {EDGE_N, EDGE_E, EDGE_S, EDGE_W};
+
+    static final int ROW_1 = 0;
+    static final int ROW_2 = 1;
+    static final int ROW_3 = 2;
+    static final int ROW_4 = 3;
+    static final int ROW_5 = 4;
+    static final int ROW_6 = 5;
+    static final int ROW_7 = 6;
+    static final int ROW_8 = 7;
+
+    static final int COL_A = 0;
+    static final int COL_B = 1;
+    static final int COL_C = 2;
+    static final int COL_D = 3;
+    static final int COL_E = 4;
+    static final int COL_F = 5;
+    static final int COL_G = 6;
+    static final int COL_H = 7;
+
+    static final boolean squareBelongsToEdge(final int square, final int edge) {
+        assert (Arrays.binarySearch(EDGES, edge) >= 0) : "Argument edge must be contained in the EDGES array";
+        final int col = squareColumn(square);
+        final int row = squareRow(square);
+        switch (edge) {
+        case EDGE_N: if (row < ROW_2) { return true; } break;
+        case EDGE_E: if (col > COL_G) { return true; } break;
+        case EDGE_S: if (row > ROW_7) { return true; } break;
+        case EDGE_W: if (col < COL_B) { return true; } break;
+        }
+        return false;
+    }
+
+    private static final List<Integer> asList(final int[] array) {
+        final List<Integer> list = new ArrayList<Integer>(array.length);
+        for (int i = 0; i < array.length; i++) { list.add(array[i]); }
+        return list;
+    }
+
+    private static final int[] asArray(final List<Integer> list) {
+        final int[] array = new int[list.size()];
+        int index = 0;
+        for (final Integer element : list) {
+            array[index] = element.intValue();
+            index++;
+        }
+        return array;
+    }
+
+    static final int squareRow(final int square){
+        return square / FILE_MAX_LENGTH;
+    }
+
+    static final int squareColumn(final int square){
+        return square % FILE_MAX_LENGTH;
+    }
+
     static {
+
+        for (int sq = 0; sq < SQUARE_SIZE; sq++) {
+            final List<Integer> directions = asList(DIRECTIONS);
+            if (squareBelongsToEdge(sq, EDGE_N)) {
+                directions.remove(Integer.valueOf(DIR_NW));
+                directions.remove(Integer.valueOf(DIR_NN));
+                directions.remove(Integer.valueOf(DIR_NE));
+            }
+            if (squareBelongsToEdge(sq, EDGE_E)) {
+                directions.remove(Integer.valueOf(DIR_NE));
+                directions.remove(Integer.valueOf(DIR_EE));
+                directions.remove(Integer.valueOf(DIR_SE));
+            }
+            if (squareBelongsToEdge(sq, EDGE_S)) {
+                directions.remove(Integer.valueOf(DIR_SW));
+                directions.remove(Integer.valueOf(DIR_SS));
+                directions.remove(Integer.valueOf(DIR_SE));
+            }
+            if (squareBelongsToEdge(sq, EDGE_W)) {
+                directions.remove(Integer.valueOf(DIR_NW));
+                directions.remove(Integer.valueOf(DIR_WW));
+                directions.remove(Integer.valueOf(DIR_SW));
+            }
+            FLIPPING_DIRECTIONS[sq] = asArray(directions);
+        }
+
+        /*
+        for (int i = 0; i < FLIPPING_DIRECTIONS.length; i++) {
+            System.out.print("FLIPPING_DIRECTIONS[" + i + "] = " + FLIPPING_DIRECTIONS[i] + " = ");
+            for (int j = 0; j < FLIPPING_DIRECTIONS[i].length; j++) {
+                System.out.print(FLIPPING_DIRECTIONS[i][j] + " ");
+            }
+            System.out.print("\n");
+        }
+        */
 
         for (int i = 0; i < SQUARE_SIZE; i++) {
             BIT_MOVE[i] = 1L << i;
+            //System.out.println("i=" + i + ", BIT_MOVE=" + longToString(BIT_MOVE[i]));
         }
 
         for (int i = 0; i < FILE_MAX_LENGTH; i++) {
@@ -465,38 +581,77 @@ public final class BitBoard extends AbstractBoard {
         if (player == null) {
             throw new NullPointerException("Parameter player must be not null.");
         }
-        /** MUST BE REWRITTEN! */
-        final long bitmove = bitMove(move);
-        if ((bitmove & (bitboard[0] & bitboard[1])) != 0) { return false; }
-
-        for (int dir : DIRECTION) {
-            if(wouldFlip(bitmove, player, dir) != 0L) { return true; }
-        }
-        /*
-        for (Direction dir : Direction.values()) {
-            if (wouldFlip(move, player, dir) != null) { return true; }
-        }
-        */
+        boolean isLegal = false;
         final Board transientBoard = EnumMapBoard.valueOf(BoardUtils.bitboardToMap(this.bitboard));
-        return transientBoard.isLegal(move, player);
+        isLegal = transientBoard.isLegal(move, player);
+        final long bitmove = bitMove(move);
+        if ((bitmove & (bitboard[0] & bitboard[1])) != 0) {
+            if (isLegal =! false) { throw new RuntimeException("isLegal computed wrongly -0-."); }
+            return false;
+        }
+        for (int dir : FLIPPING_DIRECTIONS[move.ordinal()]) {
+            if (wouldFlip(bitmove, player, dir) != 0L) {
+                if (isLegal =! true) { throw new RuntimeException("isLegal computed wrongly -1-."); }
+                return true;
+            }
+        }
+        if (isLegal =! false) {
+            throw new RuntimeException("isLegal computed wrongly -2-.\n" + "move =" + move +  ", player = " + player);
+        }
+        return false;
     }
 
     private long wouldFlip(final long move, final Player player, final int dir) {
         assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set";
         assert (player != null) : "Argument player must be not null";
-        assert (Arrays.binarySearch(DIRECTION, dir) >= 0) : "Argument dir must be contained in the DIRECTION array";
+        final int intMove = squareIntValue(move);
+        assert (intMove >= 0 || intMove < 64) : "Argument move is wrong.";
+        assert (Arrays.binarySearch(FLIPPING_DIRECTIONS[intMove], dir) >= 0) : "Argument dir must be contained in the FLIPPING_DIRECTIONS array";
         long bracketing = 0L;
-        /*
-        Square neighbor = move.neighbors().get(dir);
-        Square bracketing = null;
-        if (get(neighbor) == player.opponent().color()) {
-            Square next = neighbor.neighbors().get(dir);
-            if (next != null) { bracketing = findBracketingPiece(next, player, dir); }
+        long neighbor = neighbor(move, dir);
+        int intPlayer = (player == Player.BLACK) ? BITBOARD_BLACK_INDEX : BITBOARD_WHITE_INDEX;
+        int intOpponent = (intPlayer == BITBOARD_BLACK_INDEX) ?  BITBOARD_WHITE_INDEX : BITBOARD_BLACK_INDEX;
+        if ((intOpponent < 0) || (intOpponent > 1)) { throw new RuntimeException("intOpponent is wrong!"); }
+        if ((neighbor & bitboard[intOpponent]) != 0L) {
+            //System.out.println("wouldFlip: move=" + squareIntValue(move) + ", dir = " + dir);
+            //System.out.println("wouldFlip: neighbor=" + squareIntValue(neighbor));
+            long next = neighbor(neighbor, dir);
+            if (next != 0L) {
+                //System.out.println("wouldFlip: next=" + squareIntValue(next));
+                bracketing = findBracketingPiece(next, player, dir);
+            }
         }
-        */
         return bracketing;
     }
 
+    private long findBracketingPiece(final long square, final Player player, final int dir) {
+        assert (player != null) : "Argument player must be not null";
+        int intPlayer = (player == Player.BLACK) ? BITBOARD_BLACK_INDEX : BITBOARD_WHITE_INDEX;
+        int intOpponent = (intPlayer == BITBOARD_BLACK_INDEX) ?  BITBOARD_WHITE_INDEX : BITBOARD_BLACK_INDEX;
+        if ((square & bitboard[intPlayer]) != 0L) {
+            return square;
+        } else if ((square & bitboard[intOpponent]) != 0L) {
+            //System.out.println("findBracketingPiece: dir=" + dir);
+            long next = neighbor(square, dir);
+            if (next != 0L) {
+                //System.out.println("findBracketingPiece: next=" + squareIntValue(next));
+                return findBracketingPiece(next, player, dir);
+            }
+        }
+        return 0L;
+    }
+
+    static final long neighbor(final long square, final int dir) {
+        assert (Long.bitCount(square) == 1) : "Argument square must be have one and only one bit set";
+        final int intSquare = squareIntValue(square);
+        assert (intSquare >= 0 || intSquare < 64) : "Argument square is wrong.";
+        long neighbor = 0L;
+        if (squareIntValue(square) < 0) { System.out.println("square=" + square + " :: " + longToString(square)); } 
+        if (Arrays.binarySearch(FLIPPING_DIRECTIONS[squareIntValue(square)], dir) >= 0) {
+            neighbor = 1L << (squareIntValue(square) + dir);
+        }
+        return neighbor;
+    }
 
     /**
      * Returns a new updated board to reflect move by player. This static
