@@ -50,11 +50,124 @@ public class BitBoardTest {
     @Test
     public final void testDummy() {
 
+        int shift = 9;
+        long bitmove = BitBoard.squareLongValue(BitBoard.A1);
+        long result = bitmove << shift;
+
+        System.out.println("shift=" + shift);
+        System.out.println("bitmove = " + BitBoard.longToString(bitmove));
+        System.out.println("result  = " + BitBoard.longToString(result));
+
         assertThat("To be developed.",
                    true,
                    is(true));
 
     }
+
+    @Test
+    public final void testIsLegal() {
+
+        final Map<Square, SquareState> squares = new HashMap<Square, SquareState>();
+        for (final Square sq : Square.values()) {
+            squares.put(sq, BoardFixtures.BLACK_HAS_TO_PASS.get(sq));
+        }
+        final Board board = BitBoard.valueOf(squares);
+        final BitBoard bitboard = (BitBoard) board;
+
+        assertThat("bitboard.isLegal(Square.H7, Player.WHITE) is true.",
+                   bitboard.isLegal(Square.H7, Player.WHITE),
+                   is(true));
+
+        assertThat("bitboard.isLegal(Square.A4, Player.WHITE) is true.",
+                   bitboard.isLegal(Square.A4, Player.WHITE),
+                   is(true));
+
+        assertThat("bitboard.isLegal(Square.A1, Player.WHITE) is true.",
+                   bitboard.isLegal(Square.A1, Player.WHITE),
+                   is(false));
+
+        assertThat("bitboard.isLegal(Square.A1, Player.BLACK) is true.",
+                   bitboard.isLegal(Square.A1, Player.BLACK),
+                   is(false));
+
+    }
+
+    @Test
+    public final void testNeighbor() {
+
+        assertThat("BitBoard.neighbor(BitBoard.squareLongValue(BitBoard.A1), BitBoard.DIR_EE) is BitBoard.squareLongValue(BitBoard.B1)).",
+                   BitBoard.neighbor(BitBoard.squareLongValue(BitBoard.A1), BitBoard.DIR_EE),
+                   is(BitBoard.squareLongValue(BitBoard.B1)));
+
+        assertThat("BitBoard.neighbor(BitBoard.squareLongValue(BitBoard.A1), BitBoard.DIR_NN) is 0L.",
+                   BitBoard.neighbor(BitBoard.squareLongValue(BitBoard.A1), BitBoard.DIR_NN),
+                   is(0L));
+
+        assertThat("BitBoard.neighbor(BitBoard.squareLongValue(BitBoard.C4), BitBoard.DIR_NW) is BitBoard.squareLongValue(BitBoard.B3)).",
+                   BitBoard.neighbor(BitBoard.squareLongValue(BitBoard.C4), BitBoard.DIR_NW),
+                   is(BitBoard.squareLongValue(BitBoard.B3)));
+
+    }
+
+    @Test
+    public final void testSquareRow() {
+
+        assertThat("BitBoard.squareRow(BitBoard.A1) is BitBoard.ROW_1.",
+                   BitBoard.squareRow(BitBoard.A1),
+                   is(BitBoard.ROW_1));
+
+        assertThat("BitBoard.squareRow(BitBoard.B3) is BitBoard.ROW_3.",
+                   BitBoard.squareRow(BitBoard.B3),
+                   is(BitBoard.ROW_3));
+
+        assertThat("BitBoard.squareRow(BitBoard.H8) is BitBoard.ROW_8.",
+                   BitBoard.squareRow(BitBoard.H8),
+                   is(BitBoard.ROW_8));
+
+    }
+
+    @Test
+    public final void testSquareColumn() {
+
+        assertThat("BitBoard.squareColumn(BitBoard.A1) is BitBoard.COL_A.",
+                   BitBoard.squareColumn(BitBoard.A1),
+                   is(BitBoard.COL_A));
+
+        assertThat("BitBoard.squareColumn(BitBoard.B3) is BitBoard.COL_B.",
+                   BitBoard.squareColumn(BitBoard.B3),
+                   is(BitBoard.COL_B));
+
+        assertThat("BitBoard.squareColumn(BitBoard.H8) is BitBoard.COL_H.",
+                   BitBoard.squareColumn(BitBoard.H8),
+                   is(BitBoard.COL_H));
+
+    }
+
+
+    @Test
+    public final void testSquareBelongsToEdge() {
+
+        assertThat("BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_N) is true.",
+                   BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_N),
+                   is(true));
+
+        assertThat("BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_W) is true.",
+                   BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_W),
+                   is(true));
+
+        assertThat("BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_S) is false.",
+                   BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_S),
+                   is(false));
+
+        assertThat("BitBoard.squareBelongsToEdge(BitBoard.H4, BitBoard.EDGE_S) is false.",
+                   BitBoard.squareBelongsToEdge(BitBoard.H4, BitBoard.EDGE_S),
+                   is(false));
+
+        assertThat("BitBoard.squareBelongsToEdge(BitBoard.H4, BitBoard.EDGE_E) is true.",
+                   BitBoard.squareBelongsToEdge(BitBoard.H4, BitBoard.EDGE_E),
+                   is(true));
+    }
+
 
     @Test
     public final void testFile() {
