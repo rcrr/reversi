@@ -50,14 +50,6 @@ public class BitBoardTest {
     @Test
     public final void testDummy() {
 
-        int shift = 9;
-        long bitmove = BitBoard.squareLongValue(BitBoard.A1);
-        long result = bitmove << shift;
-
-        System.out.println("shift=" + shift);
-        System.out.println("bitmove = " + BitBoard.longToString(bitmove));
-        System.out.println("result  = " + BitBoard.longToString(result));
-
         assertThat("To be developed.",
                    true,
                    is(true));
@@ -73,6 +65,8 @@ public class BitBoardTest {
         }
         final Board board = BitBoard.valueOf(squares);
         final BitBoard bitboard = (BitBoard) board;
+
+        System.out.println(bitboard.printBoard());
 
         assertThat("bitboard.isLegal(Square.H7, Player.WHITE) is true.",
                    bitboard.isLegal(Square.H7, Player.WHITE),
