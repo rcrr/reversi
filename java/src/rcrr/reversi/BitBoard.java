@@ -280,7 +280,10 @@ public final class BitBoard extends AbstractBoard {
     static final int squareIntValue(final long square) {
         assert (Long.bitCount(square) == 1) : "Parameter square must have one and only one bit set.";
         if (square == -9223372036854775808L) return 63;
-        return Arrays.binarySearch(BIT_MOVE, 0, 62, square);
+        final int result = Arrays.binarySearch(BIT_MOVE, 0, 63, square);
+        if (result < 0 || result > 62) { throw new RuntimeException("Parameter square is out of range. result=" + result
+                                                                    + ", square=" + square + ", longToString=" + longToString(square)); }
+        return result;
     }
 
     static final String longToString(final long value) {
@@ -581,21 +584,21 @@ public final class BitBoard extends AbstractBoard {
         if (player == null) {
             throw new NullPointerException("Parameter player must be not null.");
         }
-        boolean isLegal = false;
         final Board transientBoard = EnumMapBoard.valueOf(BoardUtils.bitboardToMap(this.bitboard));
-        isLegal = transientBoard.isLegal(move, player);
+        final boolean isLegal = transientBoard.isLegal(move, player);
         final long bitmove = bitMove(move);
-        if ((bitmove & (bitboard[0] & bitboard[1])) != 0) {
-            if (isLegal =! false) { throw new RuntimeException("isLegal computed wrongly -0-."); }
+        //System.out.println("bitmove=" + bitmove);
+        if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
+            if (isLegal != false) { throw new RuntimeException("isLegal computed wrongly -0-."); }
             return false;
         }
         for (int dir : FLIPPING_DIRECTIONS[move.ordinal()]) {
             if (wouldFlip(bitmove, player, dir) != 0L) {
-                if (isLegal =! true) { throw new RuntimeException("isLegal computed wrongly -1-."); }
+                if (isLegal != true) { throw new RuntimeException("isLegal computed wrongly -1-. move=" + move + ", player=" + player); }
                 return true;
             }
         }
-        if (isLegal =! false) {
+        if (isLegal != false) {
             throw new RuntimeException("isLegal computed wrongly -2-.\n" + "move =" + move +  ", player = " + player);
         }
         return false;
@@ -605,8 +608,13 @@ public final class BitBoard extends AbstractBoard {
         assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set";
         assert (player != null) : "Argument player must be not null";
         final int intMove = squareIntValue(move);
-        assert (intMove >= 0 || intMove < 64) : "Argument move is wrong.";
-        assert (Arrays.binarySearch(FLIPPING_DIRECTIONS[intMove], dir) >= 0) : "Argument dir must be contained in the FLIPPING_DIRECTIONS array";
+        assert (intMove >= 0 && intMove < 64) : "Argument move is wrong.";
+        try {
+            assert (Arrays.binarySearch(FLIPPING_DIRECTIONS[intMove], dir) >= 0) : "Argument dir must be contained in the FLIPPING_DIRECTIONS array.";
+        } catch (java.lang.ArrayIndexOutOfBoundsException e) {
+            System.out.println("intMove=" + intMove);
+            throw e;
+        }
         long bracketing = 0L;
         long neighbor = neighbor(move, dir);
         int intPlayer = (player == Player.BLACK) ? BITBOARD_BLACK_INDEX : BITBOARD_WHITE_INDEX;
@@ -644,7 +652,7 @@ public final class BitBoard extends AbstractBoard {
     static final long neighbor(final long square, final int dir) {
         assert (Long.bitCount(square) == 1) : "Argument square must be have one and only one bit set";
         final int intSquare = squareIntValue(square);
-        assert (intSquare >= 0 || intSquare < 64) : "Argument square is wrong.";
+        assert (intSquare >= 0 && intSquare < 64) : "Argument square is wrong.";
         long neighbor = 0L;
         if (squareIntValue(square) < 0) { System.out.println("square=" + square + " :: " + longToString(square)); } 
         if (Arrays.binarySearch(FLIPPING_DIRECTIONS[squareIntValue(square)], dir) >= 0) {
