@@ -542,6 +542,10 @@ public final class BitBoard extends AbstractBoard {
         return new BitBoard(bitboard);
     }
 
+    static Board valueOf(final long[] bitboard) {
+        return new BitBoard(bitboard);
+    }
+
     /**
      * The bitboard field.
      */
@@ -712,40 +716,24 @@ public final class BitBoard extends AbstractBoard {
                                                + player + "> is illegal.");
         }
         final Board board = valueOf(transientBoard.makeMove(move, player));
-        return board;
-    }
-
-    /*
-    public Board makeMove(final Square move, final Player player) {
-        if (player == null) {
-            throw new NullPointerException("Parameter player must be not null.");
-        }
-        if (move == null) {
-            if (hasAnyLegalMove(player)) {
-                throw new NullPointerException("Parameter move must be not null when a legal one is available.");
-            } else {
-                return this;
-            }
-        }
-        if (!isLegal(move, player)) {
-            throw new IllegalArgumentException("The move<"
-                                               + move + "> by player<"
-                                               + player + "> is illegal.");
-        }
-        Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(squares);
-        sm.put(move, player.color());
-        for (Direction dir : Direction.values()) {
-            Square bracketer = wouldFlip(move, player, dir);
-            if (bracketer != null) {
-                for (Square c = move.neighbors().get(dir); true; c = c.neighbors().get(dir)) {
+        //
+        long[] newbitboard = new long[] {bitboard[0], bitboard[1]};
+        newbitboard[player.ordinal()] |= bitMove(move);
+        for (int dir : FLIPPING_DIRECTIONS[move.ordinal()]) {
+            long bracketer = wouldFlip(bitMove(move), player, dir);
+            if (bracketer != 0L) {
+                for (long c = neighbor(bitMove(move), dir); true; c = neighbor(c, dir)) {
                     if (c == bracketer) { break; }
-                    sm.put(c, player.color());
+                    newbitboard[player.ordinal()] |= c;
+                    newbitboard[player.opponent().ordinal()] &= ~c;
                 }
             }
         }
-        return valueOf(sm);
+        final Board result = valueOf(newbitboard);
+        if (!result.equals(board)) { throw new RuntimeException("\n" + result.printBoard() + "\n" + board.printBoard()); }
+        //
+        return board;
     }
-     */
 
     /**
      * Returns the disk count for the color.
