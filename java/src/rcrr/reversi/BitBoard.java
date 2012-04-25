@@ -35,6 +35,9 @@ public final class BitBoard extends AbstractBoard {
     private static final int BITBOARD_BLACK_INDEX = 0;
     private static final int BITBOARD_WHITE_INDEX = 1;
 
+    private static final int BLACK = 0;
+    private static final int WHITE = 1;
+
     private static final int FILE_MAX_LENGTH = 8;
 
     private static final int SQUARE_SIZE = 64;
@@ -552,10 +555,10 @@ public final class BitBoard extends AbstractBoard {
     private final long[] bitboard;
 
     /** The squares field ***MUST BE REMOVED****. */
-    private final transient Map<Square, SquareState> squares;
+    //private final transient Map<Square, SquareState> squares;
 
     /** The squares field ***MUST BE REMOVED****. */
-    private final transient Board transientBoard;
+    //private final transient Board transientBoard;
 
     /**
      * Class constructor.
@@ -570,8 +573,8 @@ public final class BitBoard extends AbstractBoard {
         assert (bitboard.length == 2) : "Parameter bitboard must have a lenght equal to two.";
         assert ((bitboard[0] & bitboard[1]) == 0L) : "Parameter bitboard cannot have black and white discs overlapping.";
         this.bitboard = bitboard.clone();
-        this.squares = BoardUtils.bitboardToMap(this.bitboard);
-        this.transientBoard = EnumMapBoard.valueOf(this.squares);
+        //this.squares = BoardUtils.bitboardToMap(this.bitboard);
+        //this.transientBoard = EnumMapBoard.valueOf(this.squares);
     }
 
     /**
@@ -583,7 +586,15 @@ public final class BitBoard extends AbstractBoard {
      * @return        the square state
      */
     public SquareState get(final Square square) {
-        return (square == null) ? SquareState.OUTER : squares.get(square);
+        if (square == null) { return SquareState.OUTER; }
+        final long bitsquare = bitMove(square);
+        if ((bitsquare & bitboard[BLACK]) != 0) {
+            return SquareState.BLACK;
+        } else if ((bitsquare & bitboard[WHITE]) != 0) {
+            return SquareState.WHITE;
+        } else {
+            return SquareState.EMPTY;
+        }
     }
 
     /**
@@ -605,21 +616,23 @@ public final class BitBoard extends AbstractBoard {
         if (player == null) {
             throw new NullPointerException("Parameter player must be not null.");
         }
-        final boolean isLegal = transientBoard.isLegal(move, player);
+        // final boolean isLegal = transientBoard.isLegal(move, player);
         final long bitmove = bitMove(move);
         if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
-            if (isLegal != false) { throw new RuntimeException("isLegal computed wrongly -0-."); }
+            // if (isLegal != false) { throw new RuntimeException("isLegal computed wrongly -0-."); }
             return false;
         }
         for (int dir : FLIPPING_DIRECTIONS[move.ordinal()]) {
             if (wouldFlip(bitmove, player, dir) != 0L) {
-                if (isLegal != true) { throw new RuntimeException("isLegal computed wrongly -1-. move=" + move + ", player=" + player); }
+                // if (isLegal != true) { throw new RuntimeException("isLegal computed wrongly -1-. move=" + move + ", player=" + player); }
                 return true;
             }
         }
+        /*
         if (isLegal != false) {
             throw new RuntimeException("isLegal computed wrongly -2-.\n" + "move =" + move +  ", player = " + player);
         }
+        */
         return false;
     }
 
@@ -715,7 +728,7 @@ public final class BitBoard extends AbstractBoard {
                                                + move + "> by player<"
                                                + player + "> is illegal.");
         }
-        final Board board = valueOf(transientBoard.makeMove(move, player));
+        // final Board board = valueOf(transientBoard.makeMove(move, player));
         //
         long[] newbitboard = new long[] {bitboard[0], bitboard[1]};
         newbitboard[player.ordinal()] |= bitMove(move);
@@ -730,9 +743,9 @@ public final class BitBoard extends AbstractBoard {
             }
         }
         final Board result = valueOf(newbitboard);
-        if (!result.equals(board)) { throw new RuntimeException("\n" + result.printBoard() + "\n" + board.printBoard()); }
+        //if (!result.equals(board)) { throw new RuntimeException("\n" + result.printBoard() + "\n" + board.printBoard()); }
         //
-        return board;
+        return result;
     }
 
     /**
