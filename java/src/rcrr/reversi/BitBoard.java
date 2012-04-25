@@ -525,6 +525,23 @@ public final class BitBoard extends AbstractBoard {
         return new BitBoard(BoardUtils.mapToBitboard(squares));
     }
 
+    static Board valueOf(final Board board) {
+        if (board == null) { throw new NullPointerException("Parameter board cannot be null."); }
+        int i = 0;
+        final long[] bitboard = new long[2];
+        for (final Square sq : Square.values()) {
+            long mask = 1L << i;
+            SquareState color = board.get(sq);
+            if (color == SquareState.BLACK) {
+                bitboard[0] |= mask;
+            } else if (color == SquareState.WHITE) {
+                bitboard[1] |= mask;
+            }
+            i++;
+        }
+        return new BitBoard(bitboard);
+    }
+
     /**
      * The bitboard field.
      */
@@ -584,10 +601,8 @@ public final class BitBoard extends AbstractBoard {
         if (player == null) {
             throw new NullPointerException("Parameter player must be not null.");
         }
-        final Board transientBoard = EnumMapBoard.valueOf(BoardUtils.bitboardToMap(this.bitboard));
         final boolean isLegal = transientBoard.isLegal(move, player);
         final long bitmove = bitMove(move);
-        //System.out.println("bitmove=" + bitmove);
         if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
             if (isLegal != false) { throw new RuntimeException("isLegal computed wrongly -0-."); }
             return false;
@@ -621,11 +636,8 @@ public final class BitBoard extends AbstractBoard {
         int intOpponent = (intPlayer == BITBOARD_BLACK_INDEX) ?  BITBOARD_WHITE_INDEX : BITBOARD_BLACK_INDEX;
         if ((intOpponent < 0) || (intOpponent > 1)) { throw new RuntimeException("intOpponent is wrong!"); }
         if ((neighbor & bitboard[intOpponent]) != 0L) {
-            //System.out.println("wouldFlip: move=" + squareIntValue(move) + ", dir = " + dir);
-            //System.out.println("wouldFlip: neighbor=" + squareIntValue(neighbor));
             long next = neighbor(neighbor, dir);
             if (next != 0L) {
-                //System.out.println("wouldFlip: next=" + squareIntValue(next));
                 bracketing = findBracketingPiece(next, player, dir);
             }
         }
@@ -639,10 +651,8 @@ public final class BitBoard extends AbstractBoard {
         if ((square & bitboard[intPlayer]) != 0L) {
             return square;
         } else if ((square & bitboard[intOpponent]) != 0L) {
-            //System.out.println("findBracketingPiece: dir=" + dir);
             long next = neighbor(square, dir);
             if (next != 0L) {
-                //System.out.println("findBracketingPiece: next=" + squareIntValue(next));
                 return findBracketingPiece(next, player, dir);
             }
         }
@@ -701,8 +711,41 @@ public final class BitBoard extends AbstractBoard {
                                                + move + "> by player<"
                                                + player + "> is illegal.");
         }
-        return transientBoard.makeMove(move, player);
+        final Board board = valueOf(transientBoard.makeMove(move, player));
+        return board;
     }
+
+    /*
+    public Board makeMove(final Square move, final Player player) {
+        if (player == null) {
+            throw new NullPointerException("Parameter player must be not null.");
+        }
+        if (move == null) {
+            if (hasAnyLegalMove(player)) {
+                throw new NullPointerException("Parameter move must be not null when a legal one is available.");
+            } else {
+                return this;
+            }
+        }
+        if (!isLegal(move, player)) {
+            throw new IllegalArgumentException("The move<"
+                                               + move + "> by player<"
+                                               + player + "> is illegal.");
+        }
+        Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(squares);
+        sm.put(move, player.color());
+        for (Direction dir : Direction.values()) {
+            Square bracketer = wouldFlip(move, player, dir);
+            if (bracketer != null) {
+                for (Square c = move.neighbors().get(dir); true; c = c.neighbors().get(dir)) {
+                    if (c == bracketer) { break; }
+                    sm.put(c, player.color());
+                }
+            }
+        }
+        return valueOf(sm);
+    }
+     */
 
     /**
      * Returns the disk count for the color.
