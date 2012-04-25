@@ -57,6 +57,33 @@ public class BitBoardTest {
     }
 
     @Test
+    public final void testMakeMove() {
+
+        final Map<Square, SquareState> squares = new HashMap<Square, SquareState>();
+        for (final Square sq : Square.values()) {
+            squares.put(sq, BoardFixtures.EARLY_GAME_B_9_MOVES.get(sq));
+        }
+        final BitBoard bitboard = (BitBoard) BitBoard.valueOf(squares);
+        
+        //System.out.println(bitboard.printBoard());
+        //System.out.println(bitboard.makeMove(Square.C3, Player.WHITE).printBoard());
+
+        assertThat("bitboard.makeMove(Square.C3, Player.WHITE) is BoardFixtures.EARLY_GAME_BC3_10_MOVES .",
+                   bitboard.makeMove(Square.C3, Player.WHITE),
+                   is(BoardFixtures.EARLY_GAME_BC3_10_MOVES));
+        
+    }
+
+    @Test
+    public final void testValueOf() {
+
+        assertThat("BitBoard.valueOf(BoardFixtures.EARLY_GAME_B_9_MOVES) is BoardFixtures.EARLY_GAME_B_9_MOVES .",
+                   BitBoard.valueOf(BoardFixtures.EARLY_GAME_B_9_MOVES),
+                   is(BoardFixtures.EARLY_GAME_B_9_MOVES));
+
+    }
+
+    @Test
     public final void testIsLegal() {
 
         final Map<Square, SquareState> squares = new HashMap<Square, SquareState>();
@@ -65,8 +92,6 @@ public class BitBoardTest {
         }
         final Board board = BitBoard.valueOf(squares);
         final BitBoard bitboard = (BitBoard) board;
-
-        System.out.println(bitboard.printBoard());
 
         assertThat("bitboard.isLegal(Square.H7, Player.WHITE) is true.",
                    bitboard.isLegal(Square.H7, Player.WHITE),
