@@ -280,13 +280,40 @@ public final class BitBoard extends AbstractBoard {
         return SQUARE_LONG_VALUE[square];
     }
 
-    static final int squareIntValue(final long square) {
-        assert (Long.bitCount(square) == 1) : "Parameter square must have one and only one bit set.";
+    static final int squareIntValue0(final long square) {
+        // assert (Long.bitCount(square) == 1) : "Parameter square must have one and only one bit set.";
         if (square == -9223372036854775808L) return 63;
         final int result = Arrays.binarySearch(BIT_MOVE, 0, 63, square);
+        /*
         if (result < 0 || result > 62) { throw new RuntimeException("Parameter square is out of range. result=" + result
                                                                     + ", square=" + square + ", longToString=" + longToString(square)); }
+        */
+        if (squareIntValue(square) != result) { throw new RuntimeException("result=" + result); }
         return result;
+    }
+
+    static final int squareIntValue1(final long square) {
+        for (int i = 0; i < 64; i++) {
+            if (1L == (square >>> i)) { return i; }
+        }
+        throw new IllegalArgumentException("Parameter square is invalid.");
+    }
+
+    static final int squareIntValue(final long square) {
+        // assert (Long.bitCount(square) == 1) : "Parameter square must have one and only one bit set.";
+        int low = 0;
+        int high = 64;
+        while (low != high) {
+            int bit = (low + high) >>> 1;
+            long window = square >>> bit;
+            if (window == 1L)
+                return bit; // value found
+            else if (window == 0L)
+                high = bit;
+            else
+                low = bit;
+        }
+        throw new IllegalArgumentException("Parameter square is invalid.");
     }
 
     static final String longToString(final long value) {
@@ -640,7 +667,6 @@ public final class BitBoard extends AbstractBoard {
         assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set";
         assert (player != null) : "Argument player must be not null";
         final int intMove = squareIntValue(move);
-        assert (intMove >= 0 && intMove < 64) : "Argument move is wrong.";
         try {
             assert (Arrays.binarySearch(FLIPPING_DIRECTIONS[intMove], dir) >= 0) : "Argument dir must be contained in the FLIPPING_DIRECTIONS array.";
         } catch (java.lang.ArrayIndexOutOfBoundsException e) {
@@ -649,9 +675,8 @@ public final class BitBoard extends AbstractBoard {
         }
         long bracketing = 0L;
         long neighbor = neighbor(move, dir);
-        int intPlayer = (player == Player.BLACK) ? BITBOARD_BLACK_INDEX : BITBOARD_WHITE_INDEX;
-        int intOpponent = (intPlayer == BITBOARD_BLACK_INDEX) ?  BITBOARD_WHITE_INDEX : BITBOARD_BLACK_INDEX;
-        if ((intOpponent < 0) || (intOpponent > 1)) { throw new RuntimeException("intOpponent is wrong!"); }
+        final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
+        final int intOpponent = (intPlayer == BLACK) ?  WHITE : BLACK;
         if ((neighbor & bitboard[intOpponent]) != 0L) {
             long next = neighbor(neighbor, dir);
             if (next != 0L) {
@@ -681,9 +706,9 @@ public final class BitBoard extends AbstractBoard {
         final int intSquare = squareIntValue(square);
         assert (intSquare >= 0 && intSquare < 64) : "Argument square is wrong.";
         long neighbor = 0L;
-        if (squareIntValue(square) < 0) { System.out.println("square=" + square + " :: " + longToString(square)); } 
-        if (Arrays.binarySearch(FLIPPING_DIRECTIONS[squareIntValue(square)], dir) >= 0) {
-            neighbor = 1L << (squareIntValue(square) + dir);
+        //if (squareIntValue(square) < 0) { System.out.println("square=" + square + " :: " + longToString(square)); } 
+        if (Arrays.binarySearch(FLIPPING_DIRECTIONS[intSquare], dir) >= 0) {
+            neighbor = 1L << (intSquare + dir);
         }
         return neighbor;
     }
@@ -730,15 +755,18 @@ public final class BitBoard extends AbstractBoard {
         }
         // final Board board = valueOf(transientBoard.makeMove(move, player));
         //
-        long[] newbitboard = new long[] {bitboard[0], bitboard[1]};
-        newbitboard[player.ordinal()] |= bitMove(move);
+        final long[] newbitboard = bitboard.clone();
+        final int p = player.ordinal();
+        final int o = player.opponent().ordinal(); // switch between BLACK and WHITE should be optimized?
+        final long bitmove = bitMove(move);
+        newbitboard[player.ordinal()] |= bitMove(move); // set the move
         for (int dir : FLIPPING_DIRECTIONS[move.ordinal()]) {
-            long bracketer = wouldFlip(bitMove(move), player, dir);
+            long bracketer = wouldFlip(bitmove, player, dir);
             if (bracketer != 0L) {
-                for (long c = neighbor(bitMove(move), dir); true; c = neighbor(c, dir)) {
+                for (long c = neighbor(bitmove, dir); true; c = neighbor(c, dir)) {
                     if (c == bracketer) { break; }
-                    newbitboard[player.ordinal()] |= c;
-                    newbitboard[player.opponent().ordinal()] &= ~c;
+                    newbitboard[p] |= c;
+                    newbitboard[o] &= ~c;
                 }
             }
         }
