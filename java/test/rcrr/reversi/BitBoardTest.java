@@ -50,6 +50,21 @@ public class BitBoardTest {
     @Test
     public final void testDummy() {
 
+        /*
+        System.out.println("BitBoard.squareIntValue(1L)=" + BitBoard.squareIntValue(1L));
+        System.out.println("BitBoard.squareIntValue(2L)=" + BitBoard.squareIntValue(2L));
+        System.out.println("BitBoard.squareIntValue(4L)=" + BitBoard.squareIntValue(4L));
+        System.out.println("BitBoard.squareIntValue(256L)=" + BitBoard.squareIntValue(256L));
+        System.out.println("BitBoard.squareIntValue(257L)=" + BitBoard.squareIntValue(257L));
+
+        System.out.println("BitBoard.squareIntValue5(1L)=" + BitBoard.squareIntValue5(1L));
+        System.out.println("BitBoard.squareIntValue5(2L)=" + BitBoard.squareIntValue5(2L));
+        System.out.println("BitBoard.squareIntValue5(4L)=" + BitBoard.squareIntValue5(4L));
+        System.out.println("BitBoard.squareIntValue5(256L)=" + BitBoard.squareIntValue5(256L));
+        System.out.println("BitBoard.squareIntValue5(257L)=" + BitBoard.squareIntValue5(257L));
+        System.out.println("BitBoard.squareIntValue5(-9223372036854775808L)=" + BitBoard.squareIntValue5(-9223372036854775808L));
+        */
+
         assertThat("To be developed.",
                    true,
                    is(true));
