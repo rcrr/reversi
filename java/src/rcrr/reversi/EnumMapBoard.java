@@ -373,7 +373,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
             throw new NullPointerException("Parameter player must be not null.");
         }
         if (get(move) != SquareState.EMPTY) { return false; }
-        for (Direction dir : Direction.values()) { // ** could be improved using a capableToFlipDirections(square) like method **
+        for (Direction dir : move.capableToFlipDirections()) { // ** could be improved using a capableToFlipDirections(square) like method **
             if (wouldFlip(move, player, dir) != null) { return true; }
         }
         return false;
@@ -421,7 +421,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
         }
         final Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(squares);
         sm.put(move, player.color());
-        for (final Direction dir : Direction.values()) { // ** could be improved using a capableToFlipDirections(square) like method **
+        for (final Direction dir : move.capableToFlipDirections()) { // ** could be improved using a capableToFlipDirections(square) like method **
             Square bracketer = wouldFlip(move, player, dir);
             if (bracketer != null) {
                 for (Square c = move.neighbors().get(dir); true; c = c.neighbors().get(dir)) {
