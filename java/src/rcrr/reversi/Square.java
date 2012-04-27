@@ -373,11 +373,11 @@ public enum Square {
      * @return the neighbor table
      */
     private static Map<Square, Map<Direction, Square>> neighborTable() {
-        Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
+        final Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
         for (Square sq : values()) {
-            Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
-            for (Direction dir : Direction.values()) {
-                Square n = getInstance(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
+            final Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
+            for (final Direction dir : Direction.values()) {
+                final Square n = getInstance(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
                 snt.put(dir, n);
             }
             nt.put(sq, Collections.unmodifiableMap(snt));

@@ -36,7 +36,7 @@ public final class BoardFactoryHolder {
     /**
      * Name of the default board class.
      */
-    private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.BitBoardFactory";
+    private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.EnumMapBoardFactory";
 
     /**
      * Name of the default board class.
