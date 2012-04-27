@@ -28,6 +28,15 @@
  * 456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
  */
 
+/*
+ * To do:
+ * -1 add a capableToFlipDirections(square) method in Square class used to limit the looping when testing for legal moves.
+ * -2 refactor the Builder and the Serialization machinery aut of the class. Meke the two working also for other implementations.
+ * -3 Develop the precompiuting of the flipping using the FILES prepared in BitBoard.
+ * -4 Cache legalMoves in a transient variable. 
+ * -5 Complete the documentation, testing and refactoring for the two different board implementations.
+ */
+
 package rcrr.reversi;
 
 import java.util.ArrayList;
@@ -364,7 +373,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
             throw new NullPointerException("Parameter player must be not null.");
         }
         if (get(move) != SquareState.EMPTY) { return false; }
-        for (Direction dir : Direction.values()) {
+        for (Direction dir : Direction.values()) { // ** could be improved using a capableToFlipDirections(square) like method **
             if (wouldFlip(move, player, dir) != null) { return true; }
         }
         return false;
@@ -410,9 +419,9 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
                                                + move + "> by player<"
                                                + player + "> is illegal.");
         }
-        Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(squares);
+        final Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(squares);
         sm.put(move, player.color());
-        for (Direction dir : Direction.values()) {
+        for (final Direction dir : Direction.values()) { // ** could be improved using a capableToFlipDirections(square) like method **
             Square bracketer = wouldFlip(move, player, dir);
             if (bracketer != null) {
                 for (Square c = move.neighbors().get(dir); true; c = c.neighbors().get(dir)) {
@@ -446,7 +455,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
         if (get(square) == player.color()) {
             return square;
         } else if (get(square) == player.opponent().color()) {
-            Square next = square.neighbors().get(dir);
+            final Square next = square.neighbors().get(dir);
             if (next != null) { return findBracketingPiece(next, player, dir); }
         }
         return null;
@@ -493,10 +502,10 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
         assert (move != null) : "Argument square must be not null";
         assert (player != null) : "Argument player must be not null";
         assert (dir != null) : "Argument dir must be not null";
-        Square neighbor = move.neighbors().get(dir);
+        final Square neighbor = move.neighbors().get(dir);
         Square bracketing = null;
         if (get(neighbor) == player.opponent().color()) {
-            Square next = neighbor.neighbors().get(dir);
+            final Square next = neighbor.neighbors().get(dir);
             if (next != null) { bracketing = findBracketingPiece(next, player, dir); }
         }
         return bracketing;
