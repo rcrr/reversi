@@ -24,6 +24,7 @@
 
 package rcrr.reversi;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Collections;
@@ -291,6 +292,9 @@ public enum Square {
     /** The neighbor table. */
     private static final Map<Square, Map<Direction, Square>> NEIGHBOR_TABLE = neighborTable();
 
+    /** The capable to flip direction table. */
+    private static final Map<Square, List<Direction>> CAPABLE_TO_FLIP_DIRECTION_TABLE = capableToFlipDirectionTable();
+
     /**
      * Static initialization block:
      * . - sets and initializes {@code LABELS} map
@@ -383,6 +387,24 @@ public enum Square {
             nt.put(sq, Collections.unmodifiableMap(snt));
         }
         return Collections.unmodifiableMap(nt);
+    }
+
+    /**
+     * Computes the capableToFlipDirectionTable.
+     *
+     * @return the capable to flip direction table
+     */
+    private static Map<Square, List<Direction>> capableToFlipDirectionTable() {
+        final Map<Square, List<Direction>> ct = new EnumMap<Square, List<Direction>>(Square.class);
+        for (final Square sq : values()) {
+            final List<Direction> capableToFlipdirections = new ArrayList<Direction>();
+            for (final Direction dir : Direction.values()) {
+                final Square neighbor = sq.neighbors().get(dir);
+                if (neighbor != null && neighbor.neighbors().get(dir) != null) { capableToFlipdirections.add(dir); }
+            }
+            ct.put(sq, Collections.unmodifiableList(capableToFlipdirections));
+        }
+        return Collections.unmodifiableMap(ct);
     }
 
     /** The row field. */
@@ -506,6 +528,15 @@ public enum Square {
      **/
     public Map<Direction, Square> neighbors() {
         return NEIGHBOR_TABLE.get(this);
+    }
+
+    /**
+     * Returns a map that has the directions as keys and the associated neighbor square as values.
+     *
+     * @return the square's neighbor map
+     **/
+    public List<Direction> capableToFlipDirections() {
+        return CAPABLE_TO_FLIP_DIRECTION_TABLE.get(this);
     }
 
     /**

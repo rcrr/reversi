@@ -200,6 +200,23 @@ public class SquareTest {
                    is(Square.A7));
     }
 
+    @Test
+    public final void testCapableToFlipDirections() {
+
+        assertThat("Square.A1.capableToFlipDirections() is E, S, SE",
+                   Square.A1.capableToFlipDirections(),
+                   hasItems(Direction.E,
+                            Direction.S,
+                            Direction.SE));
+
+        assertThat("Square.B2.capableToFlipDirections() is E, S, SE",
+                   Square.B2.capableToFlipDirections(),
+                   hasItems(Direction.E,
+                            Direction.S,
+                            Direction.SE));
+
+    }
+
     /**
      * Tests the {@code getInstance(String)} method when parameter
      * {@code label} is {@code null}.
