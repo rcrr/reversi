@@ -58,6 +58,20 @@ public class IagoMethodsTest {
     /** Class constructor. */
     public IagoMethodsTest() { }
 
+    /**
+     * Tests the {@code init()} method in class {@code Iago.EdgeTable}.
+     *
+     * @see Iago.EdgeTable#init()
+     */
+    @Test
+    public final void testEdgeTableInit() {
+
+        new Iago();
+
+	// to be written.
+        assertTrue(true);
+    }
+
     @Test
     public final void testEval() {
 
@@ -85,17 +99,6 @@ public class IagoMethodsTest {
 				   .build()),
 		   is(498991));
 
-    }
-
-    /**
-     * Tests the {@code init()} method in class {@code Iago.EdgeTable}.
-     *
-     * @see Iago.EdgeTable#init()
-     */
-    @Test
-    public final void testEdgeTableInit() {
-	// to be written.
-        assertTrue(true);
     }
 
     /**
@@ -691,27 +694,6 @@ public class IagoMethodsTest {
         method.setAccessible(true);
 	Iago.Mobility result = (Iago.Mobility) method.invoke(iago, position);
 	return result;
-    }
-
-    public static Object getPrivateField (Object o, String fieldName) {   
-	assert (o != null) : "Parameter o must be not null.";
-	assert (fieldName != null) : "Parameter fieldName must be not null.";
-    
-	// Go and find the private field... 
-	final Field fields[] = o.getClass().getDeclaredFields();
-	for (int i = 0; i < fields.length; ++i) {
-	    if (fieldName.equals(fields[i].getName())) {
-		try {
-		    fields[i].setAccessible(true);
-		    return fields[i].get(o);
-		} 
-		catch (IllegalAccessException ex) {
-		    fail ("IllegalAccessException accessing " + fieldName);
-		}
-	    }
-	}
-	fail ("Field '" + fieldName +"' not found");
-	return null;
     }
 
 }
