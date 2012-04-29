@@ -302,6 +302,12 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
         return new EnumMapBoard(squares);
     }
 
+    /**
+     * Lazily initialized, cached legalMoves.
+     * In case of a multi-threaded use must be applied a ReadWriteLock on this field.
+     */
+    private final transient Map<Player, List<Square>> legalMovesForPlayer = new EnumMap<Player, List<Square>>(Player.class);
+
     /** The squares field. */
     private final transient Map<Square, SquareState> squares;
 
@@ -373,10 +379,36 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
             throw new NullPointerException("Parameter player must be not null.");
         }
         if (get(move) != SquareState.EMPTY) { return false; }
-        for (Direction dir : move.capableToFlipDirections()) { // ** could be improved using a capableToFlipDirections(square) like method **
+        for (Direction dir : move.capableToFlipDirections()) {
             if (wouldFlip(move, player, dir) != null) { return true; }
         }
         return false;
+    }
+
+    /**
+     * Returns a list holding the legal moves that the {@code player} can
+     * do at the board position. When no moves are available to the player
+     * the method returns an empty list.
+     *
+     * This version overrides the method defined by the {@code AbstractBoard} class.
+     * It memoizes the value calculated.
+     *
+     * @param player the player
+     * @return       the moves available to the player
+     * @throws NullPointerException if parameter {@code player} is null
+     */
+    @Override
+    public List<Square> legalMoves(final Player player) {
+        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
+        List<Square> cached = this.legalMovesForPlayer.get(player);
+        if (cached != null) { return cached; }
+        final List<Square> legalMoves = new ArrayList<Square>();
+        for (final Square move : Square.values()) {
+            if (isLegal(move, player)) { legalMoves.add(move); }
+        }
+        cached = Collections.unmodifiableList(legalMoves);
+        this.legalMovesForPlayer.put(player, cached);
+        return cached;
     }
 
     /**
@@ -421,7 +453,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
         }
         final Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(squares);
         sm.put(move, player.color());
-        for (final Direction dir : move.capableToFlipDirections()) { // ** could be improved using a capableToFlipDirections(square) like method **
+        for (final Direction dir : move.capableToFlipDirections()) {
             Square bracketer = wouldFlip(move, player, dir);
             if (bracketer != null) {
                 for (Square c = move.neighbors().get(dir); true; c = c.neighbors().get(dir)) {
