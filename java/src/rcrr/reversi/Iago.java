@@ -536,7 +536,7 @@ public class Iago implements EvalFunction {
                 final Square sq = squares.get(0);
                 mapEdgeNPieces(fn, board, n, squaresRest, index3);
                 if (n > 0 && board.get(sq) == SquareState.EMPTY) {
-                    EnumMapBoard.Builder bb = new EnumMapBoard.Builder(board);
+                    BoardBuilder bb = new BoardBuilder(board);
                     mapEdgeNPieces(fn,
                                    bb.withSquare(sq, SquareState.BLACK).build(),
                                    n - 1,
@@ -1107,6 +1107,7 @@ public class Iago implements EvalFunction {
         final Mobility pMob = mobility(position);
         final Mobility oMob = mobility(GamePosition.valueOf(position.board(), position.player().opponent()));
         final long eStab = edgeStability(position);
+        //System.out.println("eStab=" + eStab + ", ((cEdg * eStab) / EVAL_MAGIC_32000)=" + ((cEdg * eStab) / EVAL_MAGIC_32000) + ", pMob=" + pMob + ", oMob=" + oMob);
         /** Combine the three factors into one value. */
         long value = (cEdg * eStab) / EVAL_MAGIC_32000
             + (cCur * (pMob.current() - oMob.current())) / (pMob.current() + oMob.current() + 2)

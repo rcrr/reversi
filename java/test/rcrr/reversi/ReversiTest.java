@@ -211,7 +211,7 @@ public class ReversiTest {
 
         final GameSnapshot paip1862 = new GameSnapshot.Builder()
             .withPosition(new GamePosition.Builder()
-                          .withBoard(new EnumMapBoard.Builder()
+                          .withBoard(new BoardBuilder()
                                      .withSquaresLiteral(2, 1, 0, 0, 0, 0, 0, 0,
                                                          0, 1, 0, 0, 0, 1, 1, 0,
                                                          1, 1, 1, 1, 1, 1, 0, 0,
