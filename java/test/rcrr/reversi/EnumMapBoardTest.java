@@ -144,7 +144,7 @@ public class EnumMapBoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testCountDifference_boundaryConditions_checkNullParameter_player() {
-        new EnumMapBoard.Builder().build()
+        new BoardBuilder().build()
             .countDifference(Player.NULL);
     }
 
@@ -192,7 +192,7 @@ public class EnumMapBoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testCountPieces_boundaryConditions_checkNullParameter_color() {
-        new EnumMapBoard.Builder().build()
+        new BoardBuilder().build()
             .countPieces(SquareState.NULL);
     }
 
@@ -397,7 +397,7 @@ public class EnumMapBoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testHasAnyLegalMove_boundaryConditions_checkNullParameter_player() {
-        new EnumMapBoard.Builder().build()
+        new BoardBuilder().build()
             .hasAnyLegalMove(Player.NULL);
     }
 
@@ -573,7 +573,7 @@ public class EnumMapBoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testIsLegal_boundaryConditions_checkNullParameter_move() {
-        new EnumMapBoard.Builder().build()
+        new BoardBuilder().build()
             .isLegal(Square.NULL, Player.AN_INSTANCE);
     }
 
@@ -585,7 +585,7 @@ public class EnumMapBoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testIsLegal_boundaryConditions_checkNullParameter_player() {
-        new EnumMapBoard.Builder().build()
+        new BoardBuilder().build()
             .isLegal(Square.AN_INSTANCE, Player.NULL);
     }
 
@@ -697,7 +697,7 @@ public class EnumMapBoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testLegalMoves_boundaryConditions_checkNullParameter_player() {
-        new EnumMapBoard.Builder().build()
+        new BoardBuilder().build()
             .legalMoves(Player.NULL);
     }
 
@@ -796,7 +796,7 @@ public class EnumMapBoardTest {
      */
     @Test(expected = NullPointerException.class)
     public final void testMakeMove_boundaryConditions_checkNullParameter_player() {
-        new EnumMapBoard.Builder().build()
+        new BoardBuilder().build()
             .makeMove(Square.AN_INSTANCE, Player.NULL);
     }
 

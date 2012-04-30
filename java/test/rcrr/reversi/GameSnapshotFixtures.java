@@ -39,7 +39,7 @@ public final class GameSnapshotFixtures {
     /** A generic game snapshot. */
     public static final GameSnapshot AN_INSTANCE = new GameSnapshot.Builder()
         .withPosition(new GamePosition.Builder()
-                      .withBoard(new EnumMapBoard.Builder()
+                      .withBoard(new BoardBuilder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 1, 0, 0, 0, 0,
@@ -84,7 +84,7 @@ public final class GameSnapshotFixtures {
      **/
     public static final GameSnapshot G00_S00 = new GameSnapshot.Builder()
         .withPosition(new GamePosition.Builder()
-                      .withBoard(new EnumMapBoard.Builder()
+                      .withBoard(new BoardBuilder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
@@ -126,7 +126,7 @@ public final class GameSnapshotFixtures {
      **/
     public static final GameSnapshot G00_S01 = new GameSnapshot.Builder()
         .withPosition(new GamePosition.Builder()
-                      .withBoard(new EnumMapBoard.Builder()
+                      .withBoard(new BoardBuilder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 1, 0, 0, 0, 0,
@@ -192,7 +192,7 @@ public final class GameSnapshotFixtures {
      **/
     public static final GameSnapshot G00_S02 = new GameSnapshot.Builder()
         .withPosition(new GamePosition.Builder()
-                      .withBoard(new EnumMapBoard.Builder()
+                      .withBoard(new BoardBuilder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 1, 0, 0, 0, 0,
