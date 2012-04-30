@@ -75,6 +75,21 @@ public class IagoTest extends EvalFunctionTestUtils {
                  BoardFixtures.EMPTY, Player.WHITE,
                  0},
 
+                /** HOW CAN BE THAT A SYMMETRICAL POSITION HAS AN ADVANTAGE FOR WHITE?!!?? */
+                {"This test does't seams correct. It must be investigated.",
+                 new BoardBuilder()
+                 .withSquaresLiteral(2, 2, 2, 2, 1, 1, 1, 1,
+                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                     0, 0, 0, 0, 0, 0, 0, 0)
+                 .build(),
+                 Player.WHITE,
+                 7325},
+
             });
     }
 

@@ -54,7 +54,7 @@ public class AlphaBeta2Analytics {
 
     GameSnapshot snapshot = new GameSnapshot.Builder()
         .withPosition(new GamePosition.Builder()
-                      .withBoard(new EnumMapBoard.Builder()
+                      .withBoard(new BoardBuilder()
                                  .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,
                                                      0, 0, 0, 0, 0, 0, 0, 0,

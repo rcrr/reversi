@@ -98,7 +98,7 @@ public class GameTest {
         assertThat("GameFixtureFactoriess.threeSnapshots().board()"
                    + " must be equal to the here built board.",
                    GameFixtureFactories.threeSnapshots().board(),
-                   is(new EnumMapBoard.Builder()
+                   is(new BoardBuilder()
                       .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 1, 0, 0, 0, 0,
@@ -275,7 +275,7 @@ public class GameTest {
 
         final GameSnapshot paip1862 = new GameSnapshot.Builder()
             .withPosition(new GamePosition.Builder()
-                          .withBoard(new EnumMapBoard.Builder()
+                          .withBoard(new BoardBuilder()
                                      .withSquaresLiteral(2, 1, 0, 0, 0, 0, 0, 0,
                                                          0, 1, 0, 0, 0, 1, 1, 0,
                                                          1, 1, 1, 1, 1, 1, 0, 0,
@@ -693,7 +693,7 @@ public class GameTest {
 
         assertThat("The game played by the two strategies must have a defined final board.",
                    game.board(),
-                   is(new EnumMapBoard.Builder()
+                   is(new BoardBuilder()
                       .withSquaresLiteral(1, 1, 1, 1, 1, 1, 1, 1,
                                           1, 1, 1, 1, 1, 1, 1, 1,
                                           1, 1, 1, 1, 1, 1, 1, 1,
