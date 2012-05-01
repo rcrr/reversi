@@ -32,6 +32,8 @@
  * To do:
  * -1 [DONE] Add a capableToFlipDirections(square) method in Square class used to limit the looping when testing for legal moves.
  * -2 Refactor the Builder and the Serialization machinery aut of the class. Meke the two working also for other implementations.
+ *    Builder is outin a new BoardBuilder class.
+ *    Builder still call a EnumMapBoard.valueOf() instead of using the BoardFactoeyHolder.
  * -3 Develop the precompiuting of the flipping using the FILES prepared in BitBoard.
  * -4 [DONE] Cache legalMoves in a transient variable. 
  * -5 Complete the documentation, testing and refactoring for the two different board implementations.
@@ -45,8 +47,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import java.io.InvalidObjectException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 
 /**
@@ -62,51 +62,13 @@ import java.io.Serializable;
  * <p>
  * {@code EnumMapBoard} is immutable.
  * <p>
- * @see Square
+ * @see Square AbstractBoard Board
  */
 public final class EnumMapBoard extends AbstractBoard implements Serializable {
 
-    /**
-     * An instance of this class is used as the proxy that enable the board serialization.
-     */
-    private static final class SerializationProxy implements Serializable {
-
-        /** The serialVersionUID requested by the specification for serialization. */
-        private static final long serialVersionUID = 2193788367767667846L;;
-
-        /**
-         * The bitboard field.
-         * @serial
-         */
-        private final long[] bitboard;
-
-        /**
-         * Class constructor.
-         *
-         * @param board the board instance to be serialized
-         */
-        SerializationProxy(final EnumMapBoard board) {
-            this.bitboard = BoardUtils.mapToBitboard(board.squares());
-        }
-
-        /**
-         * The method {@code readResolve()} is the real implementation for the board constructor
-         * when it cames to deserialization of boards.
-         * The methods checks that the bitboard array is composed by two entries and that there
-         * are not duplicated one position held by the two entries.
-         *
-         * @return the deserialized board object
-         */
-        private Object readResolve() {
-            if (this.bitboard.length != 2) {
-                throw new IllegalArgumentException("Class field bitboard has the wrong length.");
-            }
-            if ((bitboard[0] & bitboard[1]) != 0L) {
-                throw new IllegalArgumentException("Class field bitboard has invalid values.");
-            }
-            return EnumMapBoard.valueOf(BoardUtils.bitboardToMap(this.bitboard));
-        }
-
+    @Override
+    Object writeReplace() {
+        return super.writeReplace();
     }
 
     /**
@@ -329,20 +291,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
     }
 
     /**
-     * The {@code readObject()} method for the serialization proxy pattern.
-     * <p>
-     * The method cannot be invoked. It always throws a new exception.
-     * <p>
-     * See the book: <i>"Bloch, Joshua. Effective Java Second Edition. Addison-Wesley, 2008"</i>.
-     *
-     * @param stream the object input stream
-     * @throws InvalidObjectException always
-     */
-    private void readObject(final ObjectInputStream stream) throws InvalidObjectException {
-        throw new InvalidObjectException("Proxy required");
-    }
-
-    /**
      * Returns the squares field.
      *
      * @return the map representing the squares of the board
@@ -376,20 +324,6 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
             if (next != null) { bracketing = findBracketingPiece(next, player, dir); }
         }
         return bracketing;
-    }
-
-    /**
-     * The {@code writeReplace()} method for the serialization proxy pattern.
-     * <p>
-     * The method return a newly created instance of the class {@code EnumMapBoard.SerializationProxy}.
-     * This instance is then serialized instead of the actual board object.
-     * <p>
-     * See the book: <i>"Bloch, Joshua. Effective Java Second Edition. Addison-Wesley, 2008"</i>.
-     *
-     * @return a new seialization proxy for the board object
-     */
-    private Object writeReplace() {
-        return new SerializationProxy(this);
     }
 
 }
