@@ -31,9 +31,10 @@
 /*
  * To do:
  * -1 [DONE] Add a capableToFlipDirections(square) method in Square class used to limit the looping when testing for legal moves.
- * -2 Refactor the Builder and the Serialization machinery aut of the class. Meke the two working also for other implementations.
- *    Builder is outin a new BoardBuilder class.
- *    Builder still call a EnumMapBoard.valueOf() instead of using the BoardFactoeyHolder.
+ * -2 Refactor the Builder and the Serialization machinery aut of the class.
+ *    Make the two working also for other implementations. Prepare a tests that cross check the serialization process.
+ *    [DONE] Builder is out in a new BoardBuilder class.
+ *    Builder still call a EnumMapBoard.valueOf() instead of using the BoardFactoryHolder.
  * -3 Develop the precompiuting of the flipping using the FILES prepared in BitBoard.
  * -4 [DONE] Cache legalMoves in a transient variable. 
  * -5 Complete the documentation, testing and refactoring for the two different board implementations.
@@ -65,11 +66,6 @@ import java.io.Serializable;
  * @see Square AbstractBoard Board
  */
 public final class EnumMapBoard extends AbstractBoard implements Serializable {
-
-    @Override
-    Object writeReplace() {
-        return super.writeReplace();
-    }
 
     /**
      * Base static factory for the class.
@@ -127,15 +123,12 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
     }
 
     /**
-     * Returns the disk count for the color.
-     *
-     * @param color the color for which the disk count is computed
-     * @return the disk count
-     * @throws NullPointerException if parameter {@code color} is null
+     * {@inheritDoc}
      */
+    @Override
     public int countPieces(final SquareState color) {
         if (color == null) {
-            throw new NullPointerException("parameter color must be not null.");
+            throw new NullPointerException("Parameter color must be not null.");
         }
         int count = 0;
         for (SquareState ss : squares.values()) {
@@ -152,22 +145,15 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
      * @param  square the board square to retrieve the state value
      * @return        the square state
      */
+    @Override
     public SquareState get(final Square square) {
         return (square == null) ? SquareState.OUTER : squares.get(square);
     }
 
     /**
-     * Returns the boolean value telling if the move, done by the
-     * specified player, is legal.
-     * <p>
-     * Parameter {@code move} must be not {@code null}.
-     * Parameter {@code player} must be not {@code null}.
-     *
-     * @param move   the square where to put the new disk
-     * @param player the player moving
-     * @return       true if the move is legal, otherwise false
-     * @throws NullPointerException if parameter {@code move} or {@code player} is null
+     * {@inheritDoc}
      */
+    @Override
     public boolean isLegal(final Square move, final Player player) {
         if (move == null) {
             throw new NullPointerException("Parameter move must be not null.");
@@ -232,6 +218,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
      * @throws IllegalArgumentException if the {@code move}
      *                                  by {@code player} is illegal
      */
+    @Override
     public Board makeMove(final Square move, final Player player) {
         if (player == null) {
             throw new NullPointerException("Parameter player must be not null.");
@@ -260,6 +247,21 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
             }
         }
         return valueOf(sm);
+    }
+
+    /**
+     * The {@code writeReplace()} method for the serialization proxy pattern.
+     * <p>
+     * The method return a newly created instance of the class {@code AbstractBoard.SerializationProxy}.
+     * This instance is then serialized instead of the actual board object.
+     * <p>
+     * See the book: <i>"Bloch, Joshua. Effective Java Second Edition. Addison-Wesley, 2008"</i>.
+     *
+     * @return a new seialization proxy for the board object
+     */
+    @Override
+    Object writeReplace() {
+        return super.writeReplace();
     }
 
     /**
