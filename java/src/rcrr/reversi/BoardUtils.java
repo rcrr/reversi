@@ -115,4 +115,12 @@ public final class BoardUtils {
         return sm;
     }
 
+    protected static Map<Square, SquareState> squares(final Board board) {
+        final Map<Square, SquareState> squares = new EnumMap<Square, SquareState>(Square.class);
+        for (final Square sq : Square.values()) {
+            squares.put(sq, board.get(sq));
+        }
+        return squares;
+    }
+
 }

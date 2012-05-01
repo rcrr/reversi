@@ -27,12 +27,87 @@ package rcrr.reversi;
 import java.util.List;
 import java.util.ArrayList;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+
 public abstract class AbstractBoard implements Board {
 
     public abstract SquareState get(Square square);
     public abstract Board makeMove(Square move, Player player);
     public abstract boolean isLegal(Square move, Player player);
     public abstract int countPieces(SquareState color);
+
+    /**
+     * An instance of this class is used as the proxy that enable the board serialization.
+     */
+    private static final class SerializationProxy implements Serializable {
+
+        /** The serialVersionUID requested by the specification for serialization. */
+        private static final long serialVersionUID = 2193788367767667846L;;
+
+        /**
+         * The bitboard field.
+         * @serial
+         */
+        private final long[] bitboard;
+
+        /**
+         * Class constructor.
+         *
+         * @param board the board instance to be serialized
+         */
+        SerializationProxy(final Board board) {
+            this.bitboard = BoardUtils.mapToBitboard(BoardUtils.squares(board));
+        }
+
+        /**
+         * The method {@code readResolve()} is the real implementation for the board constructor
+         * when it cames to deserialization of boards.
+         * The methods checks that the bitboard array is composed by two entries and that there
+         * are not duplicated one position held by the two entries.
+         *
+         * @return the deserialized board object
+         */
+        private Object readResolve() {
+            if (this.bitboard.length != 2) {
+                throw new IllegalArgumentException("Class field bitboard has the wrong length.");
+            }
+            if ((bitboard[0] & bitboard[1]) != 0L) {
+                throw new IllegalArgumentException("Class field bitboard has invalid values.");
+            }
+            return EnumMapBoard.valueOf(BoardUtils.bitboardToMap(this.bitboard));
+        }
+
+    }
+
+    /**
+     * The {@code writeReplace()} method for the serialization proxy pattern.
+     * <p>
+     * The method return a newly created instance of the class {@code EnumMapBoard.SerializationProxy}.
+     * This instance is then serialized instead of the actual board object.
+     * <p>
+     * See the book: <i>"Bloch, Joshua. Effective Java Second Edition. Addison-Wesley, 2008"</i>.
+     *
+     * @return a new seialization proxy for the board object
+     */
+    Object writeReplace() {
+        return new SerializationProxy(this);
+    }
+
+    /**
+     * The {@code readObject()} method for the serialization proxy pattern.
+     * <p>
+     * The method cannot be invoked. It always throws a new exception.
+     * <p>
+     * See the book: <i>"Bloch, Joshua. Effective Java Second Edition. Addison-Wesley, 2008"</i>.
+     *
+     * @param stream the object input stream
+     * @throws InvalidObjectException always
+     */
+    private void readObject(final ObjectInputStream stream) throws InvalidObjectException {
+        throw new InvalidObjectException("Proxy required");
+    }
 
     /** Prime number 17. */
     private static final int PRIME_NUMBER_17 = 17;
