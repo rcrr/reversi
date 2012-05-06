@@ -34,8 +34,11 @@ import java.util.List;
  * <p>
  * Two boards are equal when they represent the same position. It is up to the implementation
  * if leverage the immutability property and to cache the existing boards instead of creating new ones.
- * <p>
- * @see Square SquareState Player BoardFactory
+ * 
+ * @see Square
+ * @see SquareState
+ * @see Player
+ * @see BoardFactory
  */
 public interface Board {
 
