@@ -32,8 +32,8 @@
  * To do:
  * -1 [DONE] Add a capableToFlipDirections(square) method in Square class used to limit the looping when testing for legal moves.
  * -2 [DONE] Refactor the Builder and the Serialization machinery aut of the class.
- *    Make BitBoard serializable.
- *    Make BoardFactoryHolder "hot swappable" using a ReadWriteLock to prevent cahos.
+ *    [DONE] Make BitBoard serializable.
+ *    [DONE] Make BoardFactoryHolder "hot swappable" using a ReadWriteLock to prevent cahos.
  *    Rearrange tests distributed in GenericBoard, EnumMapBoard, BitBoard .... or something like this. Verify that board equals works fine wthe the two classes.
  *    Make the two working also for other implementations. Prepare a tests that cross check the serialization process.
  *    [DONE] Builder is out in a new BoardBuilder class.
