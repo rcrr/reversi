@@ -29,14 +29,27 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import rcrr.reversi.util.InterfaceCheck;
 
+/**
+ * A board factory holder is a singleton that holds a reference to an instance of a board's factory.
+ * <p>
+ * {@code BoardFactoryHolder} is mutable, and thread safe.
+ * <p>
+ * The access to the {@code boardFactory} field is protected by a read write lock.
+ * <p>
+ * @see BoardFactory
+ */
 public final class BoardFactoryHolder {
 
     /**
      * Name of the default board class.
      */
-    private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.EnumMapBoardFactory";
+    private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.BitBoardFactory";
+    //private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.EnumMapBoardFactory";
 
     /**
      * Name of the default board class.
@@ -63,9 +76,25 @@ public final class BoardFactoryHolder {
     private BoardFactory boardFactory;
 
     /**
+     * readWriteLock field.
+     */
+    private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
+    /**
+     * The read lock field.
+     */
+    private final Lock read  = readWriteLock.readLock();
+
+    /**
+     * The write lock field.
+     */
+    private final Lock write = readWriteLock.writeLock();
+
+    /**
      * Private constructor prevents instantiation from other classes.
      */
     private BoardFactoryHolder() {
+        BoardFactory transientBoardFactory = null;
         Class boardFactoryClass = null;
         String sBoardFactoryClass = System.getProperty(BOARD_FACTORY_CLASS_KEY);
         if (sBoardFactoryClass == null) { sBoardFactoryClass = DEFAULT_BOARD_FACTORY_CLASS; }
@@ -87,16 +116,31 @@ public final class BoardFactoryHolder {
             throw new RuntimeException(boardFactoryClass.getName() + " does not implement the Board interface. Critical Error!");
         }
         try {
-            boardFactory = (BoardFactory) boardFactoryClass.newInstance();
+            transientBoardFactory = (BoardFactory) boardFactoryClass.newInstance();
         } catch (InstantiationException ie) {
             throw new RuntimeException(ie);
         } catch (IllegalAccessException iae) {
             throw new RuntimeException(iae);
         }
+        setBoardFactory(transientBoardFactory);
     }
 
     public final BoardFactory boardFactory() {
-        return this.boardFactory;
+        read.lock();
+        try{
+            return this.boardFactory;
+        } finally {
+            read.unlock();
+        }
+    }
+
+    public final void setBoardFactory(final BoardFactory boardFactory) {
+        write.lock();
+        try {
+            this.boardFactory = boardFactory;
+        } finally {
+            write.unlock();
+        }
     }
 
 }

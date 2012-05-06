@@ -84,7 +84,8 @@ public final class BoardBuilder {
      * @return the board instance as prepared by the current board's builder
      */
     public synchronized Board build() {
-        return EnumMapBoard.valueOf(squares);
+        //return EnumMapBoard.valueOf(squares);
+        return BoardFactoryHolder.getInstance().boardFactory().valueOf(squares);
     }
 
     /**

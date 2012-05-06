@@ -31,10 +31,13 @@
 /*
  * To do:
  * -1 [DONE] Add a capableToFlipDirections(square) method in Square class used to limit the looping when testing for legal moves.
- * -2 Refactor the Builder and the Serialization machinery aut of the class.
+ * -2 [DONE] Refactor the Builder and the Serialization machinery aut of the class.
+ *    Make BitBoard serializable.
+ *    Make BoardFactoryHolder "hot swappable" using a ReadWriteLock to prevent cahos.
+ *    Rearrange tests distributed in GenericBoard, EnumMapBoard, BitBoard .... or something like this. Verify that board equals works fine wthe the two classes.
  *    Make the two working also for other implementations. Prepare a tests that cross check the serialization process.
  *    [DONE] Builder is out in a new BoardBuilder class.
- *    Builder still call a EnumMapBoard.valueOf() instead of using the BoardFactoryHolder.
+ *    [DONE] Builder still call a EnumMapBoard.valueOf() instead of using the BoardFactoryHolder.
  * -3 Develop the precompiuting of the flipping using the FILES prepared in BitBoard.
  * -4 [DONE] Cache legalMoves in a transient variable. 
  * -5 Complete the documentation, testing and refactoring for the two different board implementations.
@@ -97,7 +100,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
 
     /**
      * Lazily initialized, cached legalMoves.
-     * In case of a multi-threaded use must be applied a ReadWriteLock on this field.
+     * In case of a multi-threadd use must be applied a ReadWriteLock on this field.
      */
     private final transient Map<Player, List<Square>> legalMovesForPlayer = new EnumMap<Player, List<Square>>(Player.class);
 
