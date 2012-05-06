@@ -86,16 +86,10 @@ public abstract class AbstractBoard implements Board {
     private transient volatile int hashCode = 0;
 
     /**
-     * Returns the disk difference between the player and her opponent.
-     * <p>
-     * Parameter {@code player} must be not {@code null}.
-     *
-     * @param player the player
-     * @return       the disk count difference
-     * @throws NullPointerException if parameter {@code player} is {@code null}
+     * {@inheritDoc}
      */
     public int countDifference(final Player player) {
-        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
+        if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
         return countPieces(player.color()) - countPieces(player.opponent().color());
     }
 
