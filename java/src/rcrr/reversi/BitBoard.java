@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.math.BigInteger;
 
-public final class BitBoard extends AbstractBoard {
+import java.io.Serializable;
+
+public final class BitBoard extends AbstractBoard  implements Serializable {
 
     private static final int BLACK = 0;
     private static final int WHITE = 1;
@@ -756,6 +758,11 @@ public final class BitBoard extends AbstractBoard {
         case OUTER: return 0;
         default: throw new IllegalArgumentException("Undefined value for color parameter. color=" + color);
         }
+    }
+
+    @Override
+    Object writeReplace() {
+        return super.writeReplace();
     }
 
 }

@@ -26,8 +26,30 @@ package rcrr.reversi;
 
 import java.util.List;
 
+/**
+ * A board is an instance of a board game position. It is the state that a board
+ * has regardless of the player that has to move or the time spent or remaining to each player.
+ * <p>
+ * A {@code Board} object holds the information of the state of each board's square.
+ * <p>
+ * Two boards are equal when they represent the same position. It is up to the implementation
+ * if leverage the immutability property and to cache the existing boards instead of creating new ones.
+ * <p>
+ * @see Square SquareState Player BoardFactory
+ */
 public interface Board {
+
+    /**
+     * Returns the disk difference between the player and her opponent.
+     * <p>
+     * Parameter {@code player} must be not {@code null}.
+     *
+     * @param player the player
+     * @return       the disk count difference
+     * @throws NullPointerException if parameter {@code player} is {@code null}
+     */
     int countDifference(Player player);
+
     SquareState get(Square square);
     List<Square> legalMoves(Player player);
     Board makeMove(Square move, Player player);
