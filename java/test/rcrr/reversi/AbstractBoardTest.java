@@ -131,8 +131,8 @@ public class AbstractBoardTest {
 
         assertThat("serializationRoundTrip(BoardFixtures.AN_INSTANCE) is"
                    + " equal to BoardFixtures.AN_INSTANCE.",
-                   serializationRoundTrip(BoardFixtures.AN_INSTANCE),
-                   is(BoardFixtures.AN_INSTANCE));
+                   serializationRoundTrip(new BoardBuilder(BoardFixtures.AN_INSTANCE).build()),
+                   is(new BoardBuilder(BoardFixtures.AN_INSTANCE).build()));
 
     }
 

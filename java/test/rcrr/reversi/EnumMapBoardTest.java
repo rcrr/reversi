@@ -58,76 +58,10 @@ import static org.hamcrest.CoreMatchers.instanceOf;
  */
 public class EnumMapBoardTest {
 
-    /**
-     * Returns a string object reporting the content of the {@code bytes} parameter.
-     *
-     * @param bytes a byte array to transform into a printable string
-     * @return      a string describing the {@code bytes} parameter
-     */
-    private static final String byteArrayToString(final byte[] bytes) {
-        final StringBuffer sb = new StringBuffer();
-        int index = 0;
-        for (byte b : bytes) {
-            sb.append(String.format("[%3d]=%02X\n", index, b));
-            index++;
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Returns a byte array obtained serializing the {@code board} parameter.
-     *
-     * @param board the board to transform
-     * @return      the byte array holding the serialized board
-     */
-    private static final byte[] serializeToByteArray(final Board board) {
-        byte[] results = null;
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutput out = new ObjectOutputStream(bos);   
-            out.writeObject(board);
-            results = bos.toByteArray();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        }
-        return results;
-    }
-
-    /**
-     * Returns a new board obtained deserializing the {@code bytes} parameter.
-     *
-     * @param bytes the byte array holding the serialized board
-     * @return      the new board
-     */
-    private static final Board deserializeFromByteArray(final byte[] bytes) {
-        Board result = null;
-        try {
-            ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-            ObjectInput in = new ObjectInputStream(bis);
-            result = (Board) in.readObject();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        } catch (ClassNotFoundException cnfe) {
-            throw new RuntimeException(cnfe);
-        }
-        return result;
-    }
-
-    /**
-     * Returns a new board being a copy of the {@code board} parameter.
-     * The method apply a serialization and a deserialization of the passed
-     * board.
-     *
-     * @param board the board to be copied
-     * @return      the new copied board
-     */
-    private static final Board serializationRoundTrip(final Board board) {
-        return deserializeFromByteArray(serializeToByteArray(board));
-    }
-
     /** Class constructor. */
     public EnumMapBoardTest() { }
 
+    /** The applicationWideBoardFactory field. */
     private BoardFactory applicationWideBoardFactory = null;
 
     @Before
@@ -144,12 +78,7 @@ public class EnumMapBoardTest {
 
     @Test
     public final void testSerialization() {
-
-        assertThat("serializationRoundTrip(BoardFixtures.AN_INSTANCE) is"
-                   + " equal to BoardFixtures.AN_INSTANCE.",
-                   serializationRoundTrip(BoardFixtures.AN_INSTANCE),
-                   is(BoardFixtures.AN_INSTANCE));
-
+        new AbstractBoardTest().testSerialization();
     }
 
     /**
