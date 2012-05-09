@@ -27,6 +27,8 @@ package rcrr.reversi;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
@@ -42,51 +44,24 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 /**
  * Test Suite for {@code BitBoard} class.
  */
-public class BitBoardTest {
+public class BitBoardTest extends AbstractBoardTest {
+
+    /** The applicationWideBoardFactory field. */
+    private BoardFactory applicationWideBoardFactory = null;
 
     /** Class constructor. */
     public BitBoardTest() { }
 
-    @Test
-    public final void testDummy() {
-
-        /*
-        System.out.println("BitBoard.squareIntValue(1L)=" + BitBoard.squareIntValue(1L));
-        System.out.println("BitBoard.squareIntValue(2L)=" + BitBoard.squareIntValue(2L));
-        System.out.println("BitBoard.squareIntValue(4L)=" + BitBoard.squareIntValue(4L));
-        System.out.println("BitBoard.squareIntValue(256L)=" + BitBoard.squareIntValue(256L));
-        System.out.println("BitBoard.squareIntValue(257L)=" + BitBoard.squareIntValue(257L));
-
-        System.out.println("BitBoard.squareIntValue5(1L)=" + BitBoard.squareIntValue5(1L));
-        System.out.println("BitBoard.squareIntValue5(2L)=" + BitBoard.squareIntValue5(2L));
-        System.out.println("BitBoard.squareIntValue5(4L)=" + BitBoard.squareIntValue5(4L));
-        System.out.println("BitBoard.squareIntValue5(256L)=" + BitBoard.squareIntValue5(256L));
-        System.out.println("BitBoard.squareIntValue5(257L)=" + BitBoard.squareIntValue5(257L));
-        System.out.println("BitBoard.squareIntValue5(-9223372036854775808L)=" + BitBoard.squareIntValue5(-9223372036854775808L));
-        */
-
-        assertThat("To be developed.",
-                   true,
-                   is(true));
-
+    @Before
+    public void setBoardFactory() {
+        this.applicationWideBoardFactory = BoardFactoryHolder.getInstance().boardFactory();
+        BoardFactoryHolder.getInstance().setBoardFactory(new BitBoardFactory());
     }
 
-    @Test
-    public final void testMakeMove() {
-
-        final Map<Square, SquareState> squares = new HashMap<Square, SquareState>();
-        for (final Square sq : Square.values()) {
-            squares.put(sq, BoardFixtures.EARLY_GAME_B_9_MOVES.get(sq));
-        }
-        final BitBoard bitboard = (BitBoard) BitBoard.valueOf(squares);
-        
-        //System.out.println(bitboard.printBoard());
-        //System.out.println(bitboard.makeMove(Square.C3, Player.WHITE).printBoard());
-
-        assertThat("bitboard.makeMove(Square.C3, Player.WHITE) is BoardFixtures.EARLY_GAME_BC3_10_MOVES .",
-                   bitboard.makeMove(Square.C3, Player.WHITE),
-                   is(BoardFixtures.EARLY_GAME_BC3_10_MOVES));
-        
+    @After
+    public void unsetBoardFactory() {
+        BoardFactoryHolder.getInstance().setBoardFactory(this.applicationWideBoardFactory);
+        this.applicationWideBoardFactory = null;
     }
 
     @Test
