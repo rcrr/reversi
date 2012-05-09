@@ -42,6 +42,9 @@ import java.io.Serializable;
  *        return super.writeReplace();
  *    }
  * </pre>
+ *
+ * The abstract class ovverides the {@code hashCode()} and {@code equals()} contracts.
+ * Two boards are equal when they have the same {@code SquareState} value for each square.
  */
 public abstract class AbstractBoard implements Board {
 
@@ -141,7 +144,7 @@ public abstract class AbstractBoard implements Board {
      * {@inheritDoc}
      */
     public boolean hasAnyLegalMove(final Player player) {
-        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
+        if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
         boolean hasAnyLegalMove = false;
         for (Square move : Square.values()) {
             if (isLegal(move, player)) {

@@ -126,6 +126,12 @@ public class AbstractBoardTest {
     /** Class constructor. */
     public AbstractBoardTest() { }
 
+    /**
+     * Tests the serialization process.
+     *
+     * @see AbstractBoard
+     * @see BoardFixtures#AN_INSTANCE
+     */
     @Test
     public final void testSerialization() {
 
@@ -140,7 +146,7 @@ public class AbstractBoardTest {
      * Tests the {@code countDifference(Player)} method when parameter
      * {@code player} is {@code null}.
      *
-     * @see Board#countDifference(Player)
+     * @see AbstractBoard#countDifference(Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testCountDifference_boundaryConditions_checkNullParameter_player() {
@@ -206,22 +212,22 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.INITIAL.countPieces(SquareState.OUTER)} must return a count equal to 0.</li>
      * </ul>
      *
-     * @see Board#countPieces(SquareState)
+     * @see AbstractBoard#countPieces(SquareState)
      * @see BoardFixtures#INITIAL
      */
     @Test
     public final void testCountPieces() {
         assertThat("Black player has two discs in the initial board configuration.",
-                   BoardFixtures.INITIAL.countPieces(SquareState.BLACK),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().countPieces(SquareState.BLACK),
                    is(2));
         assertThat("White player has two discs in the initial board configuration.",
-                   BoardFixtures.INITIAL.countPieces(SquareState.WHITE),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().countPieces(SquareState.WHITE),
                    is(2));
         assertThat("There are sixty empty squares in the initial board configuration.",
-                   BoardFixtures.INITIAL.countPieces(SquareState.EMPTY),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().countPieces(SquareState.EMPTY),
                    is(60));
         assertThat("There are no outer squares in any board configuration.",
-                   BoardFixtures.INITIAL.countPieces(SquareState.OUTER),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().countPieces(SquareState.OUTER),
                    is(0));
     }
 
@@ -1023,124 +1029,6 @@ public class AbstractBoardTest {
                    + " must return [@=26 0=28 (-2)].",
                    BoardFixtures.BLACK_HAS_TO_PASS.printCount(),
                    is("[@=26 0=28 (-2)]"));
-    }
-
-    /**
-     * Test the {@code valueOf(Map<Square, SquareState)} factory.
-     * <p>
-     * The factory receives the squares parameter, and any further change to it
-     * must not be reflected to the returned board instance.
-     *
-     * @see EnumMapBoard#valueOf(Map)
-     */
-    @Test
-    public final void testValueOf_squaresMustBeUnchangeable() {
-
-        final Map<Square, SquareState> changeable = new EnumMap<Square, SquareState>(Square.class);
-        for (Square sq : Square.values()) {
-            changeable.put(sq, BoardFixtures.INITIAL.get(sq));
-        }
-        final Board instance = EnumMapBoard.valueOf(changeable);
-        changeable.put(Square.A1, SquareState.BLACK);
-
-        assertThat("The board instance must be not affected by a"
-                   + " change in the squares parameter.",
-                   instance.get(Square.A1), is(SquareState.EMPTY));
-    }
-
-    /**
-     * Test the {@code valueOf(Map<Square, SquareState)} factory.
-     * <p>
-     * The factory receives the squares parameter, it cannot contains null values.
-     *
-     * @see EnumMapBoard#valueOf(Map)
-     */
-    @Test(expected = NullPointerException.class)
-    public final void testValueOf_squaresMustNotContainNullValues() {
-        final Map<Square, SquareState> corruptedSquares = new HashMap<Square, SquareState>();
-        for (Square sq : Square.values()) {
-            corruptedSquares.put(sq, BoardFixtures.INITIAL.get(sq));
-        }
-        corruptedSquares.put(Square.B3, SquareState.NULL);
-        EnumMapBoard.valueOf(corruptedSquares);
-    }
-
-    /**
-     * Test the {@code valueOf(Map<Square, SquareState>)} factory.
-     * <p>
-     * The factory receives the squares parameter, it cannot contains null keys.
-     *
-     * @see EnumMapBoard#valueOf(Map)
-     */
-    @Test(expected = NullPointerException.class)
-    public final void testValueOf_squaresMustNotContainNullKeys() {
-        final Map<Square, SquareState> corruptedSquares = new HashMap<Square, SquareState>();
-        for (Square sq : Square.values()) {
-            corruptedSquares.put(sq, BoardFixtures.INITIAL.get(sq));
-        }
-        corruptedSquares.remove(Square.H8);
-        corruptedSquares.put(Square.NULL, SquareState.EMPTY);
-        EnumMapBoard.valueOf(corruptedSquares);
-    }
-
-    /**
-     * Tests the {@code valueOf(Map<Square, SquareState>)} factory when parameter
-     * {@code squares} is {@code null}.
-     *
-     * @see EnumMapBoard#valueOf(Map)
-     */
-    @Test(expected = NullPointerException.class)
-    public final void testValueOf_boundaryConditions_checkNullParameter_squares() {
-        Map<Square, SquareState> nullSquares = null;
-        EnumMapBoard.valueOf(nullSquares);
-    }
-
-    /**
-     * Tests the {@code valueOf(Map<Square, SquareState>)} factory when parameter
-     * {@code squares} is missing one or more key.
-     *
-     * @see EnumMapBoard#valueOf(Map)
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public final void testValueOf_boundaryConditions_checkMissingKey_squares() {
-        Map<Square, SquareState> incompleteSquares = new EnumMap<Square, SquareState>(Square.class);
-        incompleteSquares.put(Square.A1, SquareState.EMPTY);
-        EnumMapBoard.valueOf(incompleteSquares);
-    }
-
-    /**
-     * Tests the {@code valueOf(Map<Square, SquareState>)} factory.
-     * <p>
-     * After preparing the {@code Map<Square, SquareState> squares} parameter by taking the square values
-     * from {@code BoardFixtures.EARLY_GAME_C_12_MOVES}, the test run the following assertions:
-     * <ul>
-     *   <li>{@code EnumMapBoard.valueOf(squares)} is a member of the {@code EnumMapBoard} class</li>
-     *   <li>{@code EnumMapBoard.valueOf(squares)} is equal to {@code BoardFixtures.EARLY_GAME_C_12_MOVES}</li>
-     * </ul>
-     *
-     * @see EnumMapBoard#valueOf(Map)
-     * @see BoardFixtures#EARLY_GAME_C_12_MOVES
-     */
-    @Test
-    public final void testValueOf() {
-        Map<Square, SquareState> squares = new HashMap<Square, SquareState>();
-        for (Square sq : Square.values()) {
-            squares.put(sq, BoardFixtures.EARLY_GAME_C_12_MOVES.get(sq));
-        }
-
-        assertThat("After preparing the Map<Square, SquareState> squares parameter by"
-                   + " taking the square values from BoardFixtures.EARLY_GAME_C_12_MOVES,"
-                   + " EnumMapBoard.valueOf(squares)"
-                   + " must return an instance of the EnumMapBoard class.",
-                   EnumMapBoard.valueOf(squares),
-                   instanceOf(EnumMapBoard.class));
-
-        assertThat("After preparing the Map<Square, SquareState> squares parameter by"
-                   + " taking the square values from BoardFixtures.EARLY_GAME_C_12_MOVES,"
-                   + " EnumMapBoard.valueOf(squares)"
-                   + " must be equal to BoardFixtures.EARLY_GAME_C_12_MOVES.",
-                   EnumMapBoard.valueOf(squares),
-                   is(BoardFixtures.EARLY_GAME_C_12_MOVES));
     }
 
 }
