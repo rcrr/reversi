@@ -58,11 +58,11 @@ import static org.hamcrest.CoreMatchers.instanceOf;
  */
 public class EnumMapBoardTest {
 
-    /** Class constructor. */
-    public EnumMapBoardTest() { }
-
     /** The applicationWideBoardFactory field. */
     private BoardFactory applicationWideBoardFactory = null;
+
+    /** Class constructor. */
+    public EnumMapBoardTest() { }
 
     @Before
     public void setBoardFactory() {
@@ -84,49 +84,26 @@ public class EnumMapBoardTest {
     /**
      * Tests the {@code countDifference(Player)} method when parameter
      * {@code player} is {@code null}.
+     * <p>
+     * See for reference {@link AbstractBoardTest#testCountDifference_boundaryConditions_checkNullParameter_player()}.
      *
-     * @see Board#countDifference(Player)
+     * @see EnumMapBoard#countDifference(Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testCountDifference_boundaryConditions_checkNullParameter_player() {
-        new BoardBuilder().build()
-            .countDifference(Player.NULL);
+        new AbstractBoardTest().testCountDifference_boundaryConditions_checkNullParameter_player();
     }
 
     /**
      * Tests the {@code countDifference(Player)} method.
      * <p>
-     * <ul>
-     *   <li>{@code BoardFixtures.INITIAL.countDifference(Player.BLACK)} must return a count equal to 0.</li>
-     *   <li>{@code BoardFixtures.FINAL_B37_W27.countDifference(Player.BLACK)} must return a count equal to +10.</li>
-     *   <li>{@code BoardFixtures.FINAL_B37_W27.countDifference(Player.WHITE)} must return a count equal to -10.</li>
-     *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.countDifference(Player.BLACK)}
-     *       must return a count equal to -2.</li>
-     * </ul>
+     * See for reference {@link AbstractBoardTest#testCountDifference()}.
      *
      * @see EnumMapBoard#countDifference(Player)
-     * @see BoardFixtures#INITIAL
-     * @see BoardFixtures#FINAL_B37_W27
-     * @see BoardFixtures#EARLY_GAME_C_12_MOVES
      */
     @Test
     public final void testCountDifference() {
-        assertThat("BoardFixtures.INITIAL.countDifference(Player.BLACK)"
-                   + " must return a count equal to 0.",
-                   BoardFixtures.INITIAL.countDifference(Player.BLACK),
-                   is(0));
-        assertThat("BoardFixtures.INITIAL.countDifference(Player.BLACK)"
-                   + " must return a count equal to +10.",
-                   BoardFixtures.FINAL_B37_W27.countDifference(Player.BLACK),
-                   is(+10));
-        assertThat("BoardFixtures.INITIAL.countDifference(Player.WHITE)"
-                   + " must return a count equal to -10.",
-                   BoardFixtures.FINAL_B37_W27.countDifference(Player.WHITE),
-                   is(-10));
-        assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.countDifference(Player.BLACK)"
-                   + " must return a count equal to -2.",
-                   BoardFixtures.EARLY_GAME_C_12_MOVES.countDifference(Player.BLACK),
-                   is(-2));
+        new AbstractBoardTest().testCountDifference();
     }
 
     /**

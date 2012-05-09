@@ -159,7 +159,7 @@ public class AbstractBoardTest {
      *       must return a count equal to -2.</li>
      * </ul>
      *
-     * @see Board#countDifference(Player)
+     * @see AbstractBoard#countDifference(Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#FINAL_B37_W27
      * @see BoardFixtures#EARLY_GAME_C_12_MOVES
@@ -168,19 +168,19 @@ public class AbstractBoardTest {
     public final void testCountDifference() {
         assertThat("BoardFixtures.INITIAL.countDifference(Player.BLACK)"
                    + " must return a count equal to 0.",
-                   BoardFixtures.INITIAL.countDifference(Player.BLACK),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().countDifference(Player.BLACK),
                    is(0));
         assertThat("BoardFixtures.INITIAL.countDifference(Player.BLACK)"
                    + " must return a count equal to +10.",
-                   BoardFixtures.FINAL_B37_W27.countDifference(Player.BLACK),
+                   new BoardBuilder(BoardFixtures.FINAL_B37_W27).build().countDifference(Player.BLACK),
                    is(+10));
         assertThat("BoardFixtures.INITIAL.countDifference(Player.WHITE)"
                    + " must return a count equal to -10.",
-                   BoardFixtures.FINAL_B37_W27.countDifference(Player.WHITE),
+                   new BoardBuilder(BoardFixtures.FINAL_B37_W27).build().countDifference(Player.WHITE),
                    is(-10));
         assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.countDifference(Player.BLACK)"
                    + " must return a count equal to -2.",
-                   BoardFixtures.EARLY_GAME_C_12_MOVES.countDifference(Player.BLACK),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_C_12_MOVES).build().countDifference(Player.BLACK),
                    is(-2));
     }
 
