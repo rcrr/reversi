@@ -240,10 +240,10 @@ public class AbstractBoardTest {
      * The second relates on the {@code get(Square)} method and checks that all
      * the squares of the returned board have a {@code SquereState.EMPTY} value.
      *
-     * @see EnumMapBoardFactory#emptyBoard()
+     * @see AbstractBoardFactory#emptyBoard()
      * @see BoardFixtures#EMPTY
-     * @see EnumMapBoard#equals(Object)
-     * @see EnumMapBoard#get(Square)
+     * @see AbstractBoard#equals(Object)
+     * @see AbstractBoard#get(Square)
      */
     @Test
     public final void testEmptyBoard() {
@@ -272,19 +272,19 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.INITIAL is not BoardFixtures.FIRST_MOVE_D3}</li>
      * </ul>
      *
-     * @see EnumMapBoard#equals(Object)
+     * @see AbstractBoard#equals(Object)
      */
     @Test
     public final void testEquals_whenAreDifferent() {
         assertThat("BoardFixtures.INITIAL must not be equal to BoardFixtures.NULL.",
-                   BoardFixtures.INITIAL,
+                   new BoardBuilder(BoardFixtures.INITIAL).build(),
                    is(not(BoardFixtures.NULL)));
         assertThat("BoardFixtures.INITIAL must not be equal to a new Object().",
-                   BoardFixtures.INITIAL,
+                   new BoardBuilder(BoardFixtures.INITIAL).build(),
                    is(not(new Object())));
         assertThat("BoardFixtures.INITIAL must not be equal to BoardFixtures.FIRST_MOVE_D3.",
-                   BoardFixtures.INITIAL,
-                   is(not(BoardFixtures.FIRST_MOVE_D3)));
+                   new BoardBuilder(BoardFixtures.INITIAL).build(),
+                   is(not(new BoardBuilder(BoardFixtures.FIRST_MOVE_D3).build())));
     }
 
     /**
@@ -298,19 +298,19 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.EQL_TEST_B is EQL_TEST_B}</li>
      * </ul>
      *
-     * @see EnumMapBoard#equals(Object)
+     * @see AbstractBoard#equals(Object)
      */
     @Test
     public final void testEquals_whenAreTheSameObject() {
         assertThat("BoardFixtures.INITIAL must be equal to BoardFixtures.INITIAL.",
-                   BoardFixtures.INITIAL,
-                   is(BoardFixtures.INITIAL));
+                   new BoardBuilder(BoardFixtures.INITIAL).build(),
+                   is(new BoardBuilder(BoardFixtures.INITIAL).build()));
         assertThat("BoardFixtures.EQL_TEST_A must be equal to BoardFixtures.EQL_TEST_A.",
-                   BoardFixtures.EQL_TEST_A,
-                   is(BoardFixtures.EQL_TEST_A));
+                   new BoardBuilder(BoardFixtures.EQL_TEST_A).build(),
+                   is(new BoardBuilder(BoardFixtures.EQL_TEST_A).build()));
         assertThat("BoardFixtures.EQL_TEST_B must be equal to BoardFixtures.EQL_TEST_B.",
-                   BoardFixtures.EQL_TEST_B,
-                   is(BoardFixtures.EQL_TEST_B));
+                   new BoardBuilder(BoardFixtures.EQL_TEST_B).build(),
+                   is(new BoardBuilder(BoardFixtures.EQL_TEST_B).build()));
     }
 
     /**
@@ -327,7 +327,7 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_A)} is true.</li>
      * </ul>
      *
-     * @see EnumMapBoard#equals(Object)
+     * @see AbstractBoard#equals(Object)
      * @see BoardFixtures#EQL_TEST_A
      * @see BoardFixtures#EQL_TEST_B
      */
@@ -335,29 +335,29 @@ public class AbstractBoardTest {
     public final void testEquals_whenAreNotTheSameObject_andAreEqual() {
 
         assertThat("BoardFixtures.INITIAL must be equal to BoardFactoryHolder.getInstance().boardFactory().initialBoard().",
-                   BoardFixtures.INITIAL,
+                   new BoardBuilder(BoardFixtures.INITIAL).build(),
                    is(BoardFactoryHolder.getInstance().boardFactory().initialBoard()));
         assertThat("BoardFactoryHolder.getInstance().boardFactory().initialBoard() must be equal to BoardFixtures.INITIAL.",
                    BoardFactoryHolder.getInstance().boardFactory().initialBoard(),
-                   is(BoardFixtures.INITIAL));
+                   is(new BoardBuilder(BoardFixtures.INITIAL).build()));
 
         /** Checks that the two object are really not the same. */
         assertFalse("BoardFixtures.EQL_TEST_A and BoardFixtures.EQL_TEST_B"
                     + " must be two different object, otherwise the test is fouled.",
-                    BoardFixtures.EQL_TEST_A == BoardFixtures.EQL_TEST_B);
+                    new BoardBuilder(BoardFixtures.EQL_TEST_A).build() == new BoardBuilder(BoardFixtures.EQL_TEST_B).build());
 
         assertTrue("BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_A)"
                    + " must return true.",
-                   BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_A));
+                   new BoardBuilder(BoardFixtures.EQL_TEST_A).build().equals(BoardFixtures.EQL_TEST_A));
         assertTrue("BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_B)"
                    + " must return true.",
-                   BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_B));
+                   new BoardBuilder(BoardFixtures.EQL_TEST_B).build().equals(BoardFixtures.EQL_TEST_B));
         assertTrue("BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_B)"
                    + " must return true.",
-                   BoardFixtures.EQL_TEST_A.equals(BoardFixtures.EQL_TEST_B));
+                   new BoardBuilder(BoardFixtures.EQL_TEST_A).build().equals(BoardFixtures.EQL_TEST_B));
         assertTrue("BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_A)"
                    + " must return true.",
-                   BoardFixtures.EQL_TEST_B.equals(BoardFixtures.EQL_TEST_A));
+                   new BoardBuilder(BoardFixtures.EQL_TEST_B).build().equals(BoardFixtures.EQL_TEST_A));
     }
 
     /**
@@ -372,26 +372,26 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.A1)} is {@code SquareState.EMPTY}</li>
      * </ul>
      *
-     * @see EnumMapBoard#get(Square)
+     * @see AbstractBoard#get(Square)
      * @see BoardFixtures#EARLY_GAME_C_12_MOVES
      */
     @Test
     public final void testGet() {
         assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B3)"
                    + " must be SquareState.BLACK.",
-                   BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B3),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_C_12_MOVES).build().get(Square.B3),
                    is(SquareState.BLACK));
         assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B4)"
                    + " must be SquareState.WHITE.",
-                   BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.B4),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_C_12_MOVES).build().get(Square.B4),
                    is(SquareState.WHITE));
         assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.NULL)"
                    + " must be SquareState.OUTER.",
-                   BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.NULL),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_C_12_MOVES).build().get(Square.NULL),
                    is(SquareState.OUTER));
         assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.A1)"
                    + " must be SquareState.EMPTY.",
-                   BoardFixtures.EARLY_GAME_C_12_MOVES.get(Square.A1),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_C_12_MOVES).build().get(Square.A1),
                    is(SquareState.EMPTY));
     }
 
@@ -399,7 +399,7 @@ public class AbstractBoardTest {
      * Tests the {@code hasAnyLegalMove(Player)} method when parameter
      * {@code player} is {@code null}.
      *
-     * @see EnumMapBoard#hasAnyLegalMove(Player)
+     * @see AbstractBoard#hasAnyLegalMove(Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testHasAnyLegalMove_boundaryConditions_checkNullParameter_player() {
@@ -420,7 +420,7 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.BLACK)} is {@code false}</li>
      * </ul>
      *
-     * @see EnumMapBoard#hasAnyLegalMove(Player)
+     * @see AbstractBoard#hasAnyLegalMove(Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      * @see BoardFixtures#FINAL_B37_W27
@@ -429,23 +429,23 @@ public class AbstractBoardTest {
     public final void testHasAnyLegalMove() {
         assertThat("BoardFixtures.INITIAL.hasAnyLegalMove(Player.BLACK)"
                    + " must be true.",
-                   BoardFixtures.INITIAL.hasAnyLegalMove(Player.BLACK),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().hasAnyLegalMove(Player.BLACK),
                    is(true));
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.BLACK)"
                     + " must be false.",
-                   BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.BLACK),
+                   new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build().hasAnyLegalMove(Player.BLACK),
                     is(false));
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.WHITE)"
                    + " must be true",
-                   BoardFixtures.BLACK_HAS_TO_PASS.hasAnyLegalMove(Player.WHITE),
+                   new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build().hasAnyLegalMove(Player.WHITE),
                    is(true));
         assertThat("BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.WHITE)"
                     + " must be false.",
-                   BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.WHITE),
+                   new BoardBuilder(BoardFixtures.FINAL_B37_W27).build().hasAnyLegalMove(Player.WHITE),
                    is(false));
         assertThat("BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.BLACK)"
                     + " must be false.",
-                   BoardFixtures.FINAL_B37_W27.hasAnyLegalMove(Player.BLACK),
+                   new BoardBuilder(BoardFixtures.FINAL_B37_W27).build().hasAnyLegalMove(Player.BLACK),
                    is(false));
     }
 
@@ -461,7 +461,7 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.FINAL_B37_W27.hasAnyPlayerAnyLegalMove()} is {@code false}</li>
      * </ul>
      *
-     * @see EnumMapBoard#hasAnyPlayerAnyLegalMove()
+     * @see AbstractBoard#hasAnyPlayerAnyLegalMove()
      * @see BoardFixtures#EMPTY
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#BLACK_HAS_TO_PASS
@@ -471,19 +471,19 @@ public class AbstractBoardTest {
     public final void testHasAnyPlayerAnyLegalMove() {
         assertThat("BoardFixtures.EMPTY.hasAnyPlayerAnyLegalMove()"
                    + " must be false.",
-                   BoardFixtures.EMPTY.hasAnyPlayerAnyLegalMove(),
+                   new BoardBuilder(BoardFixtures.EMPTY).build().hasAnyPlayerAnyLegalMove(),
                    is(false));
         assertThat("BoardFixtures.INITIAL.hasAnyPlayerAnyLegalMove()"
                    + " must be true.",
-                   BoardFixtures.INITIAL.hasAnyPlayerAnyLegalMove(),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().hasAnyPlayerAnyLegalMove(),
                    is(true));
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.hasAnyPlayerAnyLegalMove()"
                    + " must be true.",
-                   BoardFixtures.BLACK_HAS_TO_PASS.hasAnyPlayerAnyLegalMove(),
+                   new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build().hasAnyPlayerAnyLegalMove(),
                    is(true));
         assertThat("BoardFixtures.FINAL_B37_W27.hasAnyPlayerAnyLegalMove()"
                     + " must be false.",
-                    BoardFixtures.FINAL_B37_W27.hasAnyPlayerAnyLegalMove(),
+                   new BoardBuilder(BoardFixtures.FINAL_B37_W27).build().hasAnyPlayerAnyLegalMove(),
                     is(false));
     }
 
@@ -493,7 +493,7 @@ public class AbstractBoardTest {
      * The test runs nine assertions on different boards. The test verify that calling twice the method on
      * a given board the returned value is the same.
      *
-     * @see EnumMapBoard#hashCode()
+     * @see AbstractBoard#hashCode()
      */
     @Test
     public final void testHashCode_isConsistentWhenCalledMoreThanOnce() {
@@ -515,7 +515,8 @@ public class AbstractBoardTest {
      * @param symbol the board literal
      */
     private void utilHashCode(final Board board, final String symbol) {
-        assertEquals(symbol + " must have a consistent hash code.", board.hashCode(), board.hashCode());
+        final Board renewed = new BoardBuilder(board).build();
+        assertEquals(symbol + " must have a consistent hash code.", renewed.hashCode(), renewed.hashCode());
     }
 
     /**
@@ -528,14 +529,15 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.EQL_TEST_B.hashCode()} is equal to {@code BoardFixtures.EQL_TEST_A.hashCode()}</li>
      * </ul>
      *
-     * @see EnumMapBoard#hashCode()
+     * @see AbstractBoard#hashCode()
      * @see BoardFixtures#EQL_TEST_A
      * @see BoardFixtures#EQL_TEST_B
      */
     @Test
     public final void testHashCode_isConsistentWhenCalledOnEqualObjects() {
         assertEquals("BoardFixtures.EQL_TEST_A and BoardFixtures.EQL_TEST_B must have the same hash.",
-                     BoardFixtures.EQL_TEST_A.hashCode(), BoardFixtures.EQL_TEST_B.hashCode());
+                     new BoardBuilder(BoardFixtures.EQL_TEST_A).build().hashCode(),
+                     new BoardBuilder(BoardFixtures.EQL_TEST_B).build().hashCode());
     }
 
     /**
@@ -548,7 +550,7 @@ public class AbstractBoardTest {
      *   <li>For each board square the state is checked against the expected one</li>
      * </ul>
      *
-     * @see EnumMapBoardFactory#initialBoard()
+     * @see AbstractBoardFactory#initialBoard()
      * @see BoardFixtures#INITIAL
      */
     @Test
@@ -575,7 +577,7 @@ public class AbstractBoardTest {
      * Tests the {@code isLegal(Square, Player)} method when parameter
      * {@code move} is {@code null}.
      *
-     * @see EnumMapBoard#isLegal(Square, Player)
+     * @see AbstractBoard#isLegal(Square, Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testIsLegal_boundaryConditions_checkNullParameter_move() {
@@ -587,7 +589,7 @@ public class AbstractBoardTest {
      * Tests the {@code isLegal(Square, Player)} method when parameter
      * {@code player} is {@code null}.
      *
-     * @see EnumMapBoard#isLegal(Square, Player)
+     * @see AbstractBoard#isLegal(Square, Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testIsLegal_boundaryConditions_checkNullParameter_player() {
@@ -606,18 +608,18 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.INITIAL.isLegal(Square.D4, Player.WHITE)} is false.</li>
      * </ul>
      *
-     * @see EnumMapBoard#isLegal(Square, Player)
+     * @see AbstractBoard#isLegal(Square, Player)
      * @see BoardFixtures#INITIAL
      */
     @Test
     public final void testIsLegal_whenAlreadyOccupied() {
         assertThat("BoardFixtures.INITIAL.isLegal(Square.D4, Player.BLACK)"
                    + " must be false.",
-                   BoardFixtures.INITIAL.isLegal(Square.D4, Player.BLACK),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().isLegal(Square.D4, Player.BLACK),
                    is(false));
         assertThat("BoardFixtures.INITIAL.isLegal(Square.D4, Player.WHITE)"
                    + " must be false.",
-                   BoardFixtures.INITIAL.isLegal(Square.D4, Player.WHITE),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().isLegal(Square.D4, Player.WHITE),
                    is(false));
     }
 
@@ -633,7 +635,7 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.BLACK)} is false.</li>
      * </ul>
      *
-     * @see EnumMapBoard#isLegal(Square, Player)
+     * @see AbstractBoard#isLegal(Square, Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      */
@@ -641,19 +643,19 @@ public class AbstractBoardTest {
     public final void testIsLegal_whenNoDiscWouldBeFlipped() {
         assertThat("BoardFixtures.INITIAL.isLegal(Square.A1, Player.BLACK)"
                    + " must return false.",
-                   BoardFixtures.INITIAL.isLegal(Square.A1, Player.BLACK),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().isLegal(Square.A1, Player.BLACK),
                     is(false));
         assertThat("BoardFixtures.INITIAL.isLegal(Square.A1, Player.WHITE)"
                    + " must return false.",
-                   BoardFixtures.INITIAL.isLegal(Square.A1, Player.WHITE),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().isLegal(Square.A1, Player.WHITE),
                     is(false));
         assertThat("BoardFixtures.INITIAL.isLegal(Square.E3, Player.BLACK)"
                     + " must be false.",
-                   BoardFixtures.INITIAL.isLegal(Square.E3, Player.BLACK),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().isLegal(Square.E3, Player.BLACK),
                    is(false));
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.BLACK)"
                    + " must be false.",
-                   BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.BLACK),
+                   new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build().isLegal(Square.H7, Player.BLACK),
                    is(false));
     }
 
@@ -669,7 +671,7 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C6, Player.WHITE)} is true.</li>
      * </ul>
      *
-     * @see EnumMapBoard#isLegal(Square, Player)
+     * @see AbstractBoard#isLegal(Square, Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      * @see BoardFixtures#EARLY_GAME_B_9_MOVES
@@ -678,19 +680,19 @@ public class AbstractBoardTest {
     public final void testIsLegal_whenItIs() {
         assertThat("BoardFixtures.INITIAL.isLegal(Square.D3, Player.BLACK)"
                    + " must be true.",
-                   BoardFixtures.INITIAL.isLegal(Square.D3, Player.BLACK),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().isLegal(Square.D3, Player.BLACK),
                    is(true));
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.WHITE)"
                    + " must be true.",
-                   BoardFixtures.BLACK_HAS_TO_PASS.isLegal(Square.H7, Player.WHITE),
+                   new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build().isLegal(Square.H7, Player.WHITE),
                    is(true));
         assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C3, Player.WHITE)"
                    + " must be true.",
-                   BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C3, Player.WHITE),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_B_9_MOVES).build().isLegal(Square.C3, Player.WHITE),
                    is(true));
         assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C6, Player.WHITE)"
                    + " must be true.",
-                   BoardFixtures.EARLY_GAME_B_9_MOVES.isLegal(Square.C6, Player.WHITE),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_B_9_MOVES).build().isLegal(Square.C6, Player.WHITE),
                    is(true));
 
     }
@@ -699,7 +701,7 @@ public class AbstractBoardTest {
      * Tests the {@code legalMoves(Player)} method when parameter
      * {@code player} is {@code null}.
      *
-     * @see EnumMapBoard#legalMoves(Player)
+     * @see AbstractBoard#legalMoves(Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testLegalMoves_boundaryConditions_checkNullParameter_player() {
@@ -726,7 +728,7 @@ public class AbstractBoardTest {
      *       must return {@code [H3 C4 F4 G4 C5 F5 D6]}</li>
      * </ul>
      *
-     * @see EnumMapBoard#legalMoves(Player)
+     * @see AbstractBoard#legalMoves(Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#FIRST_MOVE_D3
      * @see BoardFixtures#EARLY_GAME_C_12_MOVES
@@ -736,7 +738,7 @@ public class AbstractBoardTest {
      * @see BoardFixtures#EARLY_GAME_BC3_10_MOVES
      * @see BoardFixtures#EARLY_GAME_BC6_10_MOVES
      */
-    @Test
+    @Test // from here on the BoardFixtures has still to be sourrounded by the builder ....
     public final void testLegalMoves() {
         assertThat("BoardFixtures.INITIAL.legalMoves(Player.BLACK)"
                    + " must return [D3 C4 F5 E6]",
