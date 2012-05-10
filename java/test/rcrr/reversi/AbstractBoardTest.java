@@ -738,47 +738,47 @@ public class AbstractBoardTest {
      * @see BoardFixtures#EARLY_GAME_BC3_10_MOVES
      * @see BoardFixtures#EARLY_GAME_BC6_10_MOVES
      */
-    @Test // from here on the BoardFixtures has still to be sourrounded by the builder ....
+    @Test
     public final void testLegalMoves() {
         assertThat("BoardFixtures.INITIAL.legalMoves(Player.BLACK)"
                    + " must return [D3 C4 F5 E6]",
-                   BoardFixtures.INITIAL.legalMoves(Player.BLACK),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().legalMoves(Player.BLACK),
                    is(Arrays.asList(Square.D3, Square.C4, Square.F5, Square.E6)));
         assertThat("BoardFixtures.FIRST_MOVE_D3.legalMoves(Player.WHITE)"
                    + " must return [C3 E3 C5]",
-                   BoardFixtures.FIRST_MOVE_D3.legalMoves(Player.WHITE),
+                   new BoardBuilder(BoardFixtures.FIRST_MOVE_D3).build().legalMoves(Player.WHITE),
                    is(Arrays.asList(Square.C3, Square.E3, Square.C5)));
         assertThat("BoardFixtures.EARLY_GAME_C_12_MOVES.legalMoves(Player.BLACK)"
                    + " must return [H2 A4 C4 G4 A5 F5 B6 E6 G7]",
-                   BoardFixtures.EARLY_GAME_C_12_MOVES.legalMoves(Player.BLACK),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_C_12_MOVES).build().legalMoves(Player.BLACK),
                    is(Arrays.asList(Square.H2, Square.A4, Square.C4,
                                     Square.G4, Square.A5, Square.F5,
                                     Square.B6, Square.E6, Square.G7)));
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.legalMoves(Player.BLACK)"
                    + " must return []",
-                   BoardFixtures.BLACK_HAS_TO_PASS.legalMoves(Player.BLACK)
+                   new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build().legalMoves(Player.BLACK)
                    .isEmpty(),
                    is(true));
         assertThat("BoardFixtures.MINIMAX_TEST_CASE_A.legalMoves(Player.WHITE)"
                    + " must return [A3 C4 G4 E5]",
-                   BoardFixtures.MINIMAX_TEST_CASE_A.legalMoves(Player.WHITE),
+                   new BoardBuilder(BoardFixtures.MINIMAX_TEST_CASE_A).build().legalMoves(Player.WHITE),
                    is(Arrays.asList(Square.A3, Square.C4, Square.G4, Square.E5)));
         assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.legalMoves(Player.WHITE)"
                    + " must return [C3 C6]",
-                   BoardFixtures.EARLY_GAME_B_9_MOVES.legalMoves(Player.WHITE),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_B_9_MOVES).build().legalMoves(Player.WHITE),
                    is(Arrays.asList(Square.C3, Square.C6)));
         assertThat("BoardFixtures.EARLY_GAME_BC3_10_MOVES.legalMoves(Player.BLACK)"
                    + " must return [B2 C2 D2 F2 G2 C4 G4]",
-                   BoardFixtures.EARLY_GAME_BC3_10_MOVES.legalMoves(Player.BLACK),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_BC3_10_MOVES).build().legalMoves(Player.BLACK),
                    is(Arrays.asList(Square.B2, Square.C2, Square.D2,
                                     Square.F2, Square.G2, Square.C4,
                                     Square.G4)));
         assertThat("BoardFixtures.EARLY_GAME_BC6_10_MOVES.legalMoves(Player.BLACK)"
                    + " must return [H3 C4 F4 G4 C5 F5 D6]",
-                   BoardFixtures.EARLY_GAME_BC6_10_MOVES.legalMoves(Player.BLACK),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_BC6_10_MOVES).build().legalMoves(Player.BLACK),
                    is(Arrays.asList(Square.H3, Square.C4, Square.F4,
-                                            Square.G4, Square.C5, Square.F5,
-                                            Square.D6)));
+                                    Square.G4, Square.C5, Square.F5,
+                                    Square.D6)));
     }
 
     /**
@@ -788,19 +788,19 @@ public class AbstractBoardTest {
      * The {@code BoardFixtures.INITIAL} board is used by this test given
      * that both players have legal moves in such a case.
      *
-     * @see EnumMapBoard#makeMove(Square, Player)
+     * @see AbstractBoard#makeMove(Square, Player)
      * @see BoardFixtures#INITIAL
      */
     @Test(expected = NullPointerException.class)
     public final void testMakeMove_boundaryConditions_checkNullParameter_move() {
-        BoardFixtures.INITIAL.makeMove(Square.NULL, Player.AN_INSTANCE);
+        new BoardBuilder(BoardFixtures.INITIAL).build().makeMove(Square.NULL, Player.AN_INSTANCE);
     }
 
     /**
      * Tests the {@code makeMove(Square, Player)} method when parameter
      * {@code player} is {@code null}.
      *
-     * @see EnumMapBoard#makeMove(Square, Player)
+     * @see AbstractBoard#makeMove(Square, Player)
      */
     @Test(expected = NullPointerException.class)
     public final void testMakeMove_boundaryConditions_checkNullParameter_player() {
@@ -818,12 +818,12 @@ public class AbstractBoardTest {
      * </ul>
      * expecting that an {@code IllegalArgumentException} is rised.
      *
-     * @see EnumMapBoard#makeMove(Square, Player)
+     * @see AbstractBoard#makeMove(Square, Player)
      * @see BoardFixtures#INITIAL
      */
     @Test(expected = IllegalArgumentException.class)
     public final void testMakeMove_boundaryConditions_checkIllegalMove() {
-        BoardFixtures.INITIAL.makeMove(Square.A1, Player.BLACK);
+        new BoardBuilder(BoardFixtures.INITIAL).build().makeMove(Square.A1, Player.BLACK);
     }
 
     /**
@@ -837,7 +837,7 @@ public class AbstractBoardTest {
      * <p>
      * Tests also that the return value is the board itself.
      *
-     * @see EnumMapBoard#makeMove(Square, Player)
+     * @see AbstractBoard#makeMove(Square, Player)
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      */
     @Test
@@ -845,7 +845,7 @@ public class AbstractBoardTest {
 
         Board result = null;
         try {
-            result = BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK);
+            result = new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build().makeMove(Square.NULL, Player.BLACK);
         } catch (Exception e) {
             fail("BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK) should't rise an exception."
                  + " e.getMessage()=" + e.getMessage());
@@ -878,7 +878,7 @@ public class AbstractBoardTest {
      *       is {@code BoardFixtures.MAKE_MOVE_TEST_CASE_D_AFTER}</li>
      * </ul>
      *
-     * @see EnumMapBoard#makeMove(Square, Player)
+     * @see AbstractBoard#makeMove(Square, Player)
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#FIRST_MOVE_D3
      * @see BoardFixtures#EARLY_GAME_B_9_MOVES
@@ -901,7 +901,7 @@ public class AbstractBoardTest {
          */
         assertThat("BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK)"
                    + "must return BoardFixtures.FIRST_MOVE_D3.",
-                   BoardFixtures.INITIAL.makeMove(Square.D3, Player.BLACK),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().makeMove(Square.D3, Player.BLACK),
                    is(BoardFixtures.FIRST_MOVE_D3));
 
         /**
@@ -910,7 +910,7 @@ public class AbstractBoardTest {
          */
         assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C3, Player.WHITE)"
                    + " must return BoardFixtures.EARLY_GAME_BC3_10_MOVES.",
-                   BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C3, Player.WHITE),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_B_9_MOVES).build().makeMove(Square.C3, Player.WHITE),
                    is(BoardFixtures.EARLY_GAME_BC3_10_MOVES));
 
         /**
@@ -919,27 +919,27 @@ public class AbstractBoardTest {
          */
         assertThat("BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C6, Player.WHITE)"
                    + " must return BoardFixtures.EARLY_GAME_BC6_10_MOVES.",
-                   BoardFixtures.EARLY_GAME_B_9_MOVES.makeMove(Square.C6, Player.WHITE),
+                   new BoardBuilder(BoardFixtures.EARLY_GAME_B_9_MOVES).build().makeMove(Square.C6, Player.WHITE),
                    is(BoardFixtures.EARLY_GAME_BC6_10_MOVES));
 
         assertThat("BoardFixtures.MAKE_MOVE_TEST_CASE_A_BEFORE.makeMove(Square.D4, Player.WHITE)"
                    + " must return BoardFixtures.MAKE_MOVE_TEST_CASE_A_AFTER.",
-                   BoardFixtures.MAKE_MOVE_TEST_CASE_A_BEFORE.makeMove(Square.D4, Player.WHITE),
+                   new BoardBuilder(BoardFixtures.MAKE_MOVE_TEST_CASE_A_BEFORE).build().makeMove(Square.D4, Player.WHITE),
                    is(BoardFixtures.MAKE_MOVE_TEST_CASE_A_AFTER));
 
         assertThat("BoardFixtures.MAKE_MOVE_TEST_CASE_B_BEFORE.makeMove(Square.D4, Player.WHITE)"
                    + " must return BoardFixtures.MAKE_MOVE_TEST_CASE_B_AFTER.",
-                   BoardFixtures.MAKE_MOVE_TEST_CASE_B_BEFORE.makeMove(Square.D4, Player.WHITE),
+                   new BoardBuilder(BoardFixtures.MAKE_MOVE_TEST_CASE_B_BEFORE).build().makeMove(Square.D4, Player.WHITE),
                    is(BoardFixtures.MAKE_MOVE_TEST_CASE_B_AFTER));
 
         assertThat("BoardFixtures.MAKE_MOVE_TEST_CASE_C_BEFORE.makeMove(Square.D4, Player.WHITE)"
                    + " must return BoardFixtures.MAKE_MOVE_TEST_CASE_C_AFTER.",
-                   BoardFixtures.MAKE_MOVE_TEST_CASE_C_BEFORE.makeMove(Square.D4, Player.WHITE),
+                   new BoardBuilder(BoardFixtures.MAKE_MOVE_TEST_CASE_C_BEFORE).build().makeMove(Square.D4, Player.WHITE),
                    is(BoardFixtures.MAKE_MOVE_TEST_CASE_C_AFTER));
 
         assertThat("BoardFixtures.MAKE_MOVE_TEST_CASE_D_BEFORE.makeMove(Square.B4, Player.WHITE)"
                    + " must return BoardFixtures.MAKE_MOVE_TEST_CASE_D_AFTER.",
-                   BoardFixtures.MAKE_MOVE_TEST_CASE_D_BEFORE.makeMove(Square.B4, Player.WHITE),
+                   new BoardBuilder(BoardFixtures.MAKE_MOVE_TEST_CASE_D_BEFORE).build().makeMove(Square.B4, Player.WHITE),
                    is(BoardFixtures.MAKE_MOVE_TEST_CASE_D_AFTER));
 
     }
@@ -955,7 +955,7 @@ public class AbstractBoardTest {
      * <p>
      * where {@code printBuffer} is a properly prepared {@code StringBuilder}.
      *
-     * @see EnumMapBoard#printBoard()
+     * @see AbstractBoard#printBoard()
      * @see BoardFixtures#INITIAL
      */
     @Test
@@ -972,7 +972,7 @@ public class AbstractBoardTest {
         printBuffer.append(" 8  . . . . . . . . \n");
         assertThat("BoardFixtures.INITIAL.printBoard()"
                    + " must be equal to the output of printBuffer.toString()",
-                   BoardFixtures.INITIAL.printBoard(),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().printBoard(),
                    is(printBuffer.toString()));
     }
 
@@ -987,7 +987,7 @@ public class AbstractBoardTest {
      * <p>
      * where {@code printBuffer} is a properly prepared {@code StringBuilder}.
      *
-     * @see EnumMapBoard#printBoardWithCount()
+     * @see AbstractBoard#printBoardWithCount()
      * @see BoardFixtures#INITIAL
      */
     @Test
@@ -1004,7 +1004,7 @@ public class AbstractBoardTest {
         printBuffer.append(" 8  . . . . . . . . \n");
         assertThat("BoardFixtures.INITIAL.printBoardWithCount()"
                    + " must be equal to the output of printBuffer.toString()",
-                   BoardFixtures.INITIAL.printBoardWithCount(),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().printBoardWithCount(),
                    is(printBuffer.toString()));
     }
 
@@ -1017,7 +1017,7 @@ public class AbstractBoardTest {
      *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.printCount() is [@=26 0=28 (-2)]}</li>
      * </ul>
      *
-     * @see EnumMapBoard#printCount()
+     * @see AbstractBoard#printCount()
      * @see BoardFixtures#INITIAL
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      */
@@ -1025,11 +1025,11 @@ public class AbstractBoardTest {
     public final void testPrintCount() {
         assertThat("BoardFixtures.INITIAL.printCount()"
                    + " must return [@=2 0=2 (0)].",
-                   BoardFixtures.INITIAL.printCount(),
+                   new BoardBuilder(BoardFixtures.INITIAL).build().printCount(),
                    is("[@=2 0=2 (0)]"));
         assertThat("BoardFixtures.BLACK_HAS_TO_PASS.printCount()"
                    + " must return [@=26 0=28 (-2)].",
-                   BoardFixtures.BLACK_HAS_TO_PASS.printCount(),
+                   new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build().printCount(),
                    is("[@=26 0=28 (-2)]"));
     }
 
