@@ -31,8 +31,8 @@ import javax.swing.JLabel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
-import rcrr.reversi.Square;
-import rcrr.reversi.SquareState;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.SquareState;
 
 class SquarePanel extends JPanel {
 

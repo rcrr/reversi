@@ -24,6 +24,10 @@
 
 package rcrr.reversi;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.Player;
+
 /**
  * This abstract class provide a searcher implementation
  * as required by the {@code DecisionRule} interface, leaving

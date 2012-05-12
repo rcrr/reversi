@@ -22,7 +22,7 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-package rcrr.reversi;
+package rcrr.reversi.board;
 
 import java.util.Collections;
 import java.util.Map;

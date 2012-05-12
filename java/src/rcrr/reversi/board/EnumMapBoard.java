@@ -41,9 +41,10 @@
  * -3 Develop the precompiuting of the flipping using the FILES prepared in BitBoard.
  * -4 [DONE] Cache legalMoves in a transient variable. 
  * -5 Complete the documentation, testing and refactoring for the two different board implementations.
+ * -6 Move the Board machinery into a new rcrr.reversi.board package.
  */
 
-package rcrr.reversi;
+package rcrr.reversi.board;
 
 import java.util.ArrayList;
 import java.util.Collections;

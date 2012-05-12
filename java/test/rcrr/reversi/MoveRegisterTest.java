@@ -27,6 +27,13 @@ package rcrr.reversi;
 import java.util.List;
 import java.util.ArrayList;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.BoardFixtures;
+import rcrr.reversi.board.BoardBuilder;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.SquareState;
+
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 

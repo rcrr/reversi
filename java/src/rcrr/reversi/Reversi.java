@@ -39,6 +39,8 @@ import org.joda.time.Duration;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import rcrr.reversi.board.Player;
+
 /**
  * The reversi class {@code Reversi} is the main entry point for the program.
  * <p>

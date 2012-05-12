@@ -65,10 +65,11 @@ import javax.swing.filechooser.FileFilter;
 import javax.imageio.ImageIO;
 
 import rcrr.reversi.Game;
-import rcrr.reversi.Square;
-import rcrr.reversi.SquareState;
 import rcrr.reversi.Move;
-import rcrr.reversi.Player;
+
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.SquareState;
+import rcrr.reversi.board.Player;
 
 public class TranscriptFrame extends JFrame {
 

@@ -22,7 +22,7 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-package rcrr.reversi;
+package rcrr.reversi.board;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -48,8 +48,8 @@ public final class BoardFactoryHolder {
     /**
      * Name of the default board class.
      */
-    private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.BitBoardFactory";
-    //private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.EnumMapBoardFactory";
+    private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.board.BitBoardFactory";
+    //private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.board.EnumMapBoardFactory";
 
     /**
      * Name of the default board class.

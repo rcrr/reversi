@@ -31,6 +31,10 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.List;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+
 /**
  * The {@code AlphaBeta3} class implements {@code DecisionRule} and provides
  * an implementation of the search method applying the alpha-beta pruning

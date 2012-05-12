@@ -1,7 +1,7 @@
 /*
  *  RandomStrategyTest.java
  *
- *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -26,12 +26,17 @@ package rcrr.reversi;
 
 import java.util.Map;
 import java.util.HashMap;
-
 import java.util.Set;
 import java.util.HashSet;
-
 import java.util.List;
 import java.util.ArrayList;
+
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.BoardFixtures;
+import rcrr.reversi.board.BoardBuilder;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.SquareState;
 
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;

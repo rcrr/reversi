@@ -27,6 +27,8 @@ package rcrr.reversi;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
+import rcrr.reversi.board.Square;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;

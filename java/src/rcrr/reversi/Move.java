@@ -27,6 +27,10 @@ package rcrr.reversi;
 import java.util.Map;
 import java.util.EnumMap;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+
 /**
  * A move is an action send by a Player/Strategy to the
  * game manager.

@@ -22,7 +22,7 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-package rcrr.reversi;
+package rcrr.reversi.board;
 
 /**
  * The player is one of the two competitors in the game.
@@ -36,10 +36,10 @@ public enum Player {
     WHITE("The White player", SquareState.WHITE);
 
     /** The null player. */
-    static final Player NULL = null;
+    public static final Player NULL = null;
 
     /** A generic player. */
-    static final Player AN_INSTANCE = Player.BLACK;
+    public static final Player AN_INSTANCE = Player.BLACK;
 
     /** The {@code Player}'s description field. */
     private final String description;

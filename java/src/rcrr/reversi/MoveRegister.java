@@ -29,6 +29,10 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+
 /**
  * An instance of a move register.
  * <p>

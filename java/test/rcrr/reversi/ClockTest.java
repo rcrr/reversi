@@ -24,6 +24,8 @@
 
 package rcrr.reversi;
 
+import rcrr.reversi.board.Player;
+
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -260,7 +262,7 @@ public class ClockTest {
      *   <li>{@code ClockFixtures.EQL_TEST_B.equals(ClockFixtures.EQL_TEST_A)} is true.</li>
      * </ul>
      *
-     * @see EnumMapBoard#equals(Object)
+     * @see Clock#equals(Object)
      * @see ClockFixtures#EQL_TEST_A
      * @see ClockFixtures#EQL_TEST_B
      */

@@ -1,7 +1,7 @@
 /*
  *  MoveFixtures.java
  *
- *  Copyright (c) 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -23,6 +23,13 @@
  */
 
 package rcrr.reversi;
+
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.BoardFixtures;
+import rcrr.reversi.board.BoardBuilder;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.SquareState;
 
 /**
  * The class host a number of predefined move.
