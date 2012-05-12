@@ -28,6 +28,10 @@ import java.util.Map;
 import java.util.EnumMap;
 import java.util.Collections;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+
 /**
  * A pair of actors is a mandatory field of a game object.
  * <p>

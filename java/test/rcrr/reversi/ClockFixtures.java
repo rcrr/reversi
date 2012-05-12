@@ -27,6 +27,8 @@ package rcrr.reversi;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
+import rcrr.reversi.board.Player;
+
 /**
  * The class host a number of predefined clocks.
  * <p>

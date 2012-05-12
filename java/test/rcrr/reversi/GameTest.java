@@ -27,6 +27,13 @@ package rcrr.reversi;
 import java.util.Set;
 import java.util.HashSet;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.BoardFixtures;
+import rcrr.reversi.board.BoardBuilder;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.SquareState;
+
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;

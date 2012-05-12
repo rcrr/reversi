@@ -24,6 +24,8 @@
 
 package rcrr.reversi;
 
+import rcrr.reversi.board.Square;
+
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 

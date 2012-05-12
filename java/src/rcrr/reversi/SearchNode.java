@@ -24,6 +24,10 @@
 
 package rcrr.reversi;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+
 /**
  * An object representing a node part of the search tree.
  * <p>

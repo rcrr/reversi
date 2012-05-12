@@ -35,6 +35,8 @@ import java.io.BufferedReader;
 
 import java.io.IOException;
 
+import rcrr.reversi.board.Square;
+
 /**
  * An interacting strategy.
  */

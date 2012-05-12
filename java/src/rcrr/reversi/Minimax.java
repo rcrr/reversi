@@ -26,6 +26,10 @@ package rcrr.reversi;
 
 import java.util.List;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.Player;
+
 /**
  * Minimax provides some static methods that return {@code Strategy}
  * objects. These searcher methods differ for the algorithm implementation.
