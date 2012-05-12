@@ -26,6 +26,10 @@ package rcrr.reversi;
 
 import java.util.List;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+
 /**
  * The {@code AlphaBeta} class implements {@code DecisionRule} and provides
  * an implementation of the search method applying the alpha-beta pruning

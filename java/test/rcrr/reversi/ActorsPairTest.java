@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.EnumMap;
 import java.util.HashMap;
 
+import rcrr.reversi.board.Player;
+
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 

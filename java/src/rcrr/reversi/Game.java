@@ -35,6 +35,12 @@ import java.io.PrintStream;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.SquareState;
+import rcrr.reversi.board.BoardFactoryHolder;
+
 /**
  *
  * {@code Game} is mutable.

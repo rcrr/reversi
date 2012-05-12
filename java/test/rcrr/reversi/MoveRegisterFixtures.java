@@ -24,6 +24,8 @@
 
 package rcrr.reversi;
 
+import rcrr.reversi.board.Player;
+
 /**
  * The class host a number of predefined move registers.
  * <p>

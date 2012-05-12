@@ -27,6 +27,10 @@ package rcrr.reversi;
 import java.util.Random;
 import java.util.List;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+
 /**
  * A strategy that selects randomly a move among the legal ones.
  */

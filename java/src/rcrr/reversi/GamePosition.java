@@ -24,6 +24,10 @@
 
 package rcrr.reversi;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.BoardFactoryHolder;
 /**
  * A game position is a value object joining the board
  * and the moving player.

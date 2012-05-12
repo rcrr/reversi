@@ -38,6 +38,14 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Direction;
+import rcrr.reversi.board.BoardBuilder;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.SquareState;
+import rcrr.reversi.board.BoardFactoryHolder;
+
 /**
  * Iago is an advanced evaluation function, that implements the features described in the <i>"PAIP"</i> book,
  * paragraph 18.12.
@@ -888,7 +896,7 @@ public class Iago implements EvalFunction {
                     squares.put(sq, board.get(sq));
                 }
                 squares.put(square, player.color());
-                return EnumMapBoard.valueOf(squares);
+                return BoardFactoryHolder.getInstance().boardFactory().valueOf(squares);
             } else {
                 return board;
             }

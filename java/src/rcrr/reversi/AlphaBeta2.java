@@ -33,6 +33,10 @@ import java.util.TreeMap;
 import java.util.ArrayList;
 import java.util.List;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+
 /**
  * The {@code AlphaBeta2} class implements {@code DecisionRule} and provides
  * an implementation of the search method applying the alpha-beta pruning
@@ -452,8 +456,8 @@ public final class AlphaBeta2 extends AbstractDecisionRule {
         public int compare(final Object object1,
                            final Object object2) {
             if (object1 == object2) { return 0; }
-            rcrr.reversi.Square sq0 = (rcrr.reversi.Square) object1;
-            rcrr.reversi.Square sq1 = (rcrr.reversi.Square) object2;
+            rcrr.reversi.board.Square sq0 = (rcrr.reversi.board.Square) object1;
+            rcrr.reversi.board.Square sq1 = (rcrr.reversi.board.Square) object2;
             final int v0 = values.get(sq0).value();
             final int v1 = values.get(sq1).value();
             if (v0 == v1) {

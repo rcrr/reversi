@@ -27,6 +27,13 @@ package rcrr.reversi;
 import java.util.Arrays;
 import java.util.Collection;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.BoardFixtures;
+import rcrr.reversi.board.BoardBuilder;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.SquareState;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 

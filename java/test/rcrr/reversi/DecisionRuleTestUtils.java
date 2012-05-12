@@ -27,6 +27,8 @@ package rcrr.reversi;
 import java.util.Arrays;
 import java.util.Collection;
 
+import rcrr.reversi.board.Square;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;

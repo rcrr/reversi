@@ -22,7 +22,7 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-package rcrr.reversi;
+package rcrr.reversi.board;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +32,8 @@ import java.util.Map;
 import java.util.EnumMap;
 import java.util.HashMap;
 
-import static rcrr.reversi.Row.*;
-import static rcrr.reversi.Column.*;
+import static rcrr.reversi.board.Row.*;
+import static rcrr.reversi.board.Column.*;
 
 /**
  * Square is an Enum type that realize the base unit of the game board.
@@ -266,10 +266,10 @@ public enum Square {
     H8(R8, H);
 
     /** The null square. */
-    static final Square NULL = null;
+    public static final Square NULL = null;
 
     /** A generic square instance. */
-    static final Square AN_INSTANCE = B3;
+    public static final Square AN_INSTANCE = B3;
 
     /** The list of the four corners. */
     private static final List<Square> CORNERS = Collections.unmodifiableList(Arrays.asList(A1, H1, H8, A8));

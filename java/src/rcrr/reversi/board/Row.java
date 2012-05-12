@@ -1,5 +1,5 @@
 /*
- *  Column.java
+ *  Row.java
  *
  *  Copyright (c) 2010, 2012 Roberto Corradini. All rights reserved.
  *
@@ -22,93 +22,93 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-package rcrr.reversi;
+package rcrr.reversi.board;
 
 /**
- * The {@code Column} enum defines a column of the board game.
+ * The {@code Row} enum defines a row of the board game.
  */
-public enum Column {
+public enum Row {
     /**
-     * First column.
+     * First row.
      */
-    A("a"),
+    R1("1"),
     /**
-     * Second column.
+     * Second row.
      */
-    B("b"),
+    R2("2"),
     /**
-     * Third column.
+     * Third row.
      */
-    C("c"),
+    R3("3"),
     /**
-     * Fourth column.
+     * Fourth row.
      */
-    D("d"),
+    R4("4"),
     /**
-     * Fifth column.
+     * Fifth row.
      */
-    E("e"),
+    R5("5"),
     /**
-     * Sixth column.
+     * Sixth row.
      */
-    F("f"),
+    R6("6"),
     /**
-     * Seventh column.
+     * Seventh row.
      */
-    G("g"),
+    R7("7"),
     /**
-     * Eighth column.
+     * Eighth row.
      */
-    H("h");
+    R8("8");
 
     /** The null instance. */
-    public static final Column NULL = null;
+    public static final Row NULL = null;
 
-    /** The number of columns. */
+    /** The number of rows. */
     public static final int SIZE = 8;
 
-    /** The column label. */
+    /** The row label. */
     private final String label;
 
     /**
      * Enum constructor.
      *
-     * @param label the column label
+     * @param label the tow's label
      */
-    private Column(final String label) {
+    private Row(final String label) {
         this.label = label;
     }
 
     /**
-     * Returns a {@code String} that represents the column's label.
+     * Returns a {@code String} that represents the row's label.
      *
-     * @return the column's label
+     * @return the row's label
      */
     public String label() { return label; }
 
     /**
-     * Returns the column obtained moving by a {@code delta} number of shift, counted with the proper sign.
-     * Returns {@code null} if the shift leads outside the column boundaries.
+     * Returns the row obtained moving by a {@code delta} number of shift, counted with the proper sign.
+     * Returns {@code null} if the shift leads outside the row boundaries.
      * For instance:
      * <pre>
      * {@code
-     * Column c0 = Column.A;
-     * Column c1 =c0.shift(+1); // c1 is equal to B
+     * Row r0 = Row.R3;
+     * Row r1 =r0.shift(+1); // r1 is equal to R4
      * }
      * </pre>
      *
-     * @param delta the shift amount
-     * @return      the column identified by the delta shift
+     * @param delta the amount to shift
+     * @return      the row identified by the delta shift
      */
-    Column shift(final int delta) {
-        Column c;
+    Row shift(final int delta) {
+        Row r;
         int index = ordinal() + delta;
-        if (index < 0 || index >= Column.values().length) {
-            c = Column.NULL;
+        if (index < 0 || index >= Row.values().length) {
+            r = Row.NULL;
         } else {
-            c = values()[index];
+            r = values()[index];
         }
-        return c;
+        return r;
     }
 
 }

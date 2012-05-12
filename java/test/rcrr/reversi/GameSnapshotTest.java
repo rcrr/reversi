@@ -24,6 +24,10 @@
 
 package rcrr.reversi;
 
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.BoardBuilder;
+import rcrr.reversi.board.BoardFixtures;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;

@@ -22,7 +22,7 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-package rcrr.reversi;
+package rcrr.reversi.board;
 
 /**
  * The directions that are available in a regular board's square are

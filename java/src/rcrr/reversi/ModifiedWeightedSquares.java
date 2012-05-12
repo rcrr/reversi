@@ -27,6 +27,11 @@ package rcrr.reversi;
 import java.util.Map;
 import java.util.Collections;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.SquareState;
+
 /**
  * An {@code EvalFunction} implementation that weights the value
  * of each square owned by a color applying a static parameter.

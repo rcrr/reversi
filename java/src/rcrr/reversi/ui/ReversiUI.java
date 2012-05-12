@@ -73,11 +73,13 @@ import java.net.URL;
 import org.joda.time.Period;
 import org.joda.time.Duration;
 
-import rcrr.reversi.Board;
-import rcrr.reversi.Square;
-import rcrr.reversi.Column;
-import rcrr.reversi.Row;
-import rcrr.reversi.SquareState;
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.Column;
+import rcrr.reversi.board.Row;
+import rcrr.reversi.board.SquareState;
+
 import rcrr.reversi.Game;
 import rcrr.reversi.Actor;
 import rcrr.reversi.Move;
@@ -85,7 +87,6 @@ import rcrr.reversi.GameSnapshot;
 import rcrr.reversi.Strategy;
 import rcrr.reversi.IagoStrategy;
 import rcrr.reversi.HumanStrategy;
-import rcrr.reversi.Player;
 
 import java.util.concurrent.ExecutionException;
 import java.lang.reflect.InvocationTargetException;

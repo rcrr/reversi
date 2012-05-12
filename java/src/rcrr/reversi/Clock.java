@@ -35,6 +35,10 @@ import org.joda.time.DateTimeConstants;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+
 /**
  * The {@code Clock} class defines the different clocks used in the Reversi game.
  * It has two properties, the black's remaining time, and the white's one.

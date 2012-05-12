@@ -29,6 +29,10 @@ import java.util.ArrayList;
 
 import org.joda.time.Duration;
 
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Square;
+
 /**
  * An instance of a game snapshot.
  * <p>
