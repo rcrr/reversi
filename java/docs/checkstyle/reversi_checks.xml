@@ -6,7 +6,7 @@
 <!--
     reversi_checks.xml
     
-    Copyright (c) 2011 Roberto Corradini. All rights reserved.
+    Copyright (c) 2011, 2012 Roberto Corradini. All rights reserved.
   
     This file is part of the reversi program
     http://github.com/rcrr/reversi
@@ -70,6 +70,7 @@
   - changed: <module name="MethodName"/>
       adding: <property name="format" value="^[a-z][a-zA-Z0-9_]*$"/>
   - added:   <module name="SuppressionFilter">
+  - removed: <module name="DesignForExtension"/>
 -->
 
 <module name="Checker">
@@ -228,7 +229,7 @@
 
         <!-- Checks for class design                         -->
         <!-- See http://checkstyle.sf.net/config_design.html -->
-        <module name="DesignForExtension"/>
+        <!-- <module name="DesignForExtension"/> -->
         <module name="FinalClass"/>
         <module name="HideUtilityClassConstructor"/>
         <module name="InterfaceIsType"/>

@@ -24,14 +24,12 @@
 
 package rcrr.reversi;
 
-import java.util.List;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
-import rcrr.reversi.board.Board;
 import rcrr.reversi.board.Player;
-import rcrr.reversi.board.Square;
 
 /**
  * An instance of a move register.

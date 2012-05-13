@@ -41,14 +41,10 @@ To do:
       The Builder inner classes must have a unit test.</li>
   <li>Prepare some tests (ReversiTest suite) that repeat selected tests but print the game to a file.
       Some part of the Game class are used only when the PrintStream ps field is not null.</li>
-  <li>Row, Column, Direction, and Square:
-      Notes: (1) shift(int delta) in Row and Column classes is used just in the neighbor table calculation. It is a bit ugly.
-             (2a) deltaRow and deltaColumn are int, could be better having an enum Shift UP, NEUTRAL, DOWN...?
-             (2b) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
   <li>Prepare a "<i>Literate Paper</i>" that describes the software architecture of the java version.</li>
   <li>Replace Ant with Maven.</li>
   <li>Develop JUnit performance testing and reports.
-      See: <a href="http://databene.org/contiperf.html" target="_blank">ContiPerf</a></li>
+      See: <a href="http://databene.org/contiperf.html" target="_blank">ContiPerf</a>
       See: <a href="http://perf4j.codehaus.org/" target="_blank">Perf4J</a></li>
   <li>A simple Java SWING front end is ready. A complete refactor is needed.
   <li>Which practice is best when it comes to write unit test for UI?
@@ -71,7 +67,7 @@ To do:
 <p>
 
 @author Roberto Corradini
-@version 1.0.0
+@version 1.1.0
 */
 
 package rcrr.reversi;

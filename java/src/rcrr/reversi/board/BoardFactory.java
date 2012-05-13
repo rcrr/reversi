@@ -26,11 +26,52 @@ package rcrr.reversi.board;
 
 import java.util.Map;
 
+/**
+ * A board factory provides methods that return board objects.
+ * <p>
+ * The factory is stateless.
+ * 
+ * @see Board
+ */
 public interface BoardFactory {
 
+    /**
+     * A factory that returns a new empty board.
+     *
+     * @return a new empty board
+     */
     public Board emptyBoard();
-    public Board initialBoard();
+
+    /**
+     * A factory that returns a board filled
+     * by sixtyfour discs having the color set by the {@code player} parameter.
+     * <p>
+     * Parameter {@code player} cannot be {@code null}.
+     *
+     * @param player it selects the color of the sixtyfour discs
+     * @return       a new board filled by sixtyfour discs
+     */
     public Board fillWithColor(final Player player);
+
+    /**
+     * A factory that returns a new initial board.
+     *
+     * @return a new initial board
+     */
+    public Board initialBoard();
+
+    /**
+     * Base factory for a board.
+     * <p>
+     * {@code squares} must be not null, and must have an entry for every board square.
+     * Given that the map cannot have duplicate keys, its size must be equal to the number
+     * of class instances defined by the {@code Square} enum.
+     *
+     * @param  squares the map of squares
+     * @return         a new board having as state the given square map
+     * @throws NullPointerException     if parameter {@code squares} is null
+     * @throws IllegalArgumentException if the {@code squares} is not complete
+     */
     public Board valueOf(final Map<Square, SquareState> squares);
 
 }
