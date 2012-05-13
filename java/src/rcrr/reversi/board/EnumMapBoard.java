@@ -28,22 +28,6 @@
  * 456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
  */
 
-/*
- * To do:
- * -1 [DONE] Add a capableToFlipDirections(square) method in Square class used to limit the looping when testing for legal moves.
- * -2 [DONE] Refactor the Builder and the Serialization machinery aut of the class.
- *    [DONE] Make BitBoard serializable.
- *    [DONE] Make BoardFactoryHolder "hot swappable" using a ReadWriteLock to prevent cahos.
- *    Rearrange tests distributed in GenericBoard, EnumMapBoard, BitBoard .... or something like this. Verify that board equals works fine wthe the two classes.
- *    Make the two working also for other implementations. Prepare a tests that cross check the serialization process.
- *    [DONE] Builder is out in a new BoardBuilder class.
- *    [DONE] Builder still call a EnumMapBoard.valueOf() instead of using the BoardFactoryHolder.
- * -3 Develop the precompiuting of the flipping using the FILES prepared in BitBoard.
- * -4 [DONE] Cache legalMoves in a transient variable. 
- * -5 Complete the documentation, testing and refactoring for the two different board implementations.
- * -6 Move the Board machinery into a new rcrr.reversi.board package.
- */
-
 package rcrr.reversi.board;
 
 import java.util.ArrayList;

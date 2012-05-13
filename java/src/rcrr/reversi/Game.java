@@ -24,11 +24,11 @@
 
 package rcrr.reversi;
 
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import java.io.PrintStream;
 
@@ -36,10 +36,9 @@ import org.joda.time.Duration;
 import org.joda.time.Period;
 
 import rcrr.reversi.board.Board;
-import rcrr.reversi.board.Player;
-import rcrr.reversi.board.Square;
-import rcrr.reversi.board.SquareState;
 import rcrr.reversi.board.BoardFactoryHolder;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.SquareState;
 
 /**
  *
