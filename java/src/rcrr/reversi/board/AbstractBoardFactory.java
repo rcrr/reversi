@@ -29,22 +29,14 @@ import java.util.Map;
 public abstract class AbstractBoardFactory implements BoardFactory {
 
     /**
-     * Returns a new empty board.
-     *
-     * @return a new empty board
+     * {@inheritDoc}
      */
     public Board emptyBoard() {
         return valueOf(BoardUtils.emptyBoardSquares());
     }
 
     /**
-     * A static factory for the class that returns a board filled
-     * by sixtyfour discs having the color set by the {@code player} parameter.
-     * <p>
-     * Parameter {@code player} cannot be {@code null}.
-     *
-     * @param player it selects the color of the sixtyfour discs
-     * @return       a new board filled by sixtyfour discs
+     * {@inheritDoc}
      */
     public Board fillWithColor(final Player player) {
         if (player == null) { throw new NullPointerException("Parameter color cannot be null."); }
@@ -56,9 +48,7 @@ public abstract class AbstractBoardFactory implements BoardFactory {
     }
 
     /**
-     * A static factory for the class that returns a new initial board.
-     *
-     * @return a new initial board
+     * {@inheritDoc}
      */
     public Board initialBoard() {
         final Map<Square, SquareState> sm = BoardUtils.emptyBoardSquares();

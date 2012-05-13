@@ -24,61 +24,54 @@
 
 package rcrr.reversi.ui;
 
+import java.lang.reflect.InvocationTargetException;
+
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.StringTokenizer;
 
-import java.awt.Container;
+import java.util.concurrent.ExecutionException;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.FlowLayout;
 import java.awt.Color;
-import java.awt.Font;
+import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.GridBagLayout;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.JComboBox;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JTextField;
-import javax.swing.JPanel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
-import javax.swing.SwingUtilities;
-import javax.swing.BorderFactory;
-import javax.swing.border.TitledBorder;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JTextArea;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.SwingWorker;
 import javax.swing.JSeparator;
-import javax.swing.JButton;
-import javax.swing.Box;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.JSpinner;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
-import java.io.PrintStream;
-import java.io.OutputStream;
-import java.io.IOException;
-
-import java.net.URL;
+import javax.swing.border.TitledBorder;
 
 import org.joda.time.Period;
-import org.joda.time.Duration;
-
-import rcrr.reversi.board.Board;
-import rcrr.reversi.board.Player;
-import rcrr.reversi.board.Square;
-import rcrr.reversi.board.Column;
-import rcrr.reversi.board.Row;
-import rcrr.reversi.board.SquareState;
 
 import rcrr.reversi.Game;
 import rcrr.reversi.Actor;
@@ -86,10 +79,13 @@ import rcrr.reversi.Move;
 import rcrr.reversi.GameSnapshot;
 import rcrr.reversi.Strategy;
 import rcrr.reversi.IagoStrategy;
-import rcrr.reversi.HumanStrategy;
 
-import java.util.concurrent.ExecutionException;
-import java.lang.reflect.InvocationTargetException;
+import rcrr.reversi.board.Board;
+import rcrr.reversi.board.Column;
+import rcrr.reversi.board.Player;
+import rcrr.reversi.board.Row;
+import rcrr.reversi.board.Square;
+import rcrr.reversi.board.SquareState;
 
 public class ReversiUI {
 

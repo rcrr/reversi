@@ -25,7 +25,6 @@
 package rcrr.reversi.board;
 
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 
 public final class BoardUtils {
@@ -122,5 +121,7 @@ public final class BoardUtils {
         }
         return squares;
     }
+
+    private BoardUtils() { }
 
 }

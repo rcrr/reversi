@@ -335,7 +335,7 @@ public class Iago implements EvalFunction {
          * The {@code Fn0} interface defines a function object used to be passed as a parameter to
          * higher order functions.
          */
-        private static interface Fn0 {
+        private interface Fn0 {
 
             /**
              * Function call interface method.
@@ -1115,7 +1115,6 @@ public class Iago implements EvalFunction {
         final Mobility pMob = mobility(position);
         final Mobility oMob = mobility(GamePosition.valueOf(position.board(), position.player().opponent()));
         final long eStab = edgeStability(position);
-        //System.out.println("eStab=" + eStab + ", ((cEdg * eStab) / EVAL_MAGIC_32000)=" + ((cEdg * eStab) / EVAL_MAGIC_32000) + ", pMob=" + pMob + ", oMob=" + oMob);
         /** Combine the three factors into one value. */
         long value = (cEdg * eStab) / EVAL_MAGIC_32000
             + (cCur * (pMob.current() - oMob.current())) / (pMob.current() + oMob.current() + 2)

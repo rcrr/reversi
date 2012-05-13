@@ -24,11 +24,6 @@
 
 package rcrr.reversi.board;
 
-import java.util.EnumMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -59,7 +54,7 @@ public final class BoardFactoryHolder {
     /**
      * Singleton pattern.
      */
-    private static final BoardFactoryHolder instance = new BoardFactoryHolder();
+    private static final BoardFactoryHolder INSTANCE = new BoardFactoryHolder();
 
     /**
      * Returns the singleton instange.
@@ -67,7 +62,7 @@ public final class BoardFactoryHolder {
      * @return the singleton instance
      */
     public static BoardFactoryHolder getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     /**

@@ -26,10 +26,9 @@ package rcrr.reversi.ui;
 
 import java.awt.BorderLayout;
 
-import javax.swing.JPanel;
-import javax.swing.JLabel;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import rcrr.reversi.board.Square;
 import rcrr.reversi.board.SquareState;
