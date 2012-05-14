@@ -71,11 +71,11 @@ public final class BoardBuilder {
      * @param board the default state
      */
     public BoardBuilder(final Board board) {
-        final EnumMap<Square, SquareState> squares = new EnumMap<Square, SquareState>(Square.class);
+        final EnumMap<Square, SquareState> transientSquares = new EnumMap<Square, SquareState>(Square.class);
         for (final Square sq : Square.values()) {
-            squares.put(sq,board.get(sq));
+            transientSquares.put(sq, board.get(sq));
         }
-        this.squares = squares;
+        this.squares = transientSquares;
     }
 
     /**

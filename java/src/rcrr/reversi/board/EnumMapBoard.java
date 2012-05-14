@@ -87,7 +87,8 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
      * Lazily initialized, cached legalMoves.
      * In case of a multi-threadd use must be applied a ReadWriteLock on this field.
      */
-    private final transient Map<Player, List<Square>> legalMovesForPlayer = new EnumMap<Player, List<Square>>(Player.class);
+    private final transient Map<Player, List<Square>> legalMovesForPlayer
+        = new EnumMap<Player, List<Square>>(Player.class);
 
     /** The squares field. */
     private final transient Map<Square, SquareState> squares;
