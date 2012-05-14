@@ -30,7 +30,7 @@ import java.util.Map;
  * A board factory provides methods that return board objects.
  * <p>
  * The factory is stateless.
- * 
+ *
  * @see Board
  */
 public interface BoardFactory {
@@ -40,7 +40,7 @@ public interface BoardFactory {
      *
      * @return a new empty board
      */
-    public Board emptyBoard();
+    Board emptyBoard();
 
     /**
      * A factory that returns a board filled
@@ -51,14 +51,14 @@ public interface BoardFactory {
      * @param player it selects the color of the sixtyfour discs
      * @return       a new board filled by sixtyfour discs
      */
-    public Board fillWithColor(final Player player);
+    Board fillWithColor(final Player player);
 
     /**
      * A factory that returns a new initial board.
      *
      * @return a new initial board
      */
-    public Board initialBoard();
+    Board initialBoard();
 
     /**
      * Base factory for a board.
@@ -72,6 +72,6 @@ public interface BoardFactory {
      * @throws NullPointerException     if parameter {@code squares} is null
      * @throws IllegalArgumentException if the {@code squares} is not complete
      */
-    public Board valueOf(final Map<Square, SquareState> squares);
+    Board valueOf(final Map<Square, SquareState> squares);
 
 }
