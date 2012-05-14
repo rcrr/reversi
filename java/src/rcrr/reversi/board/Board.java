@@ -27,8 +27,10 @@ package rcrr.reversi.board;
 import java.util.List;
 
 /**
- * A board is an entity that holds the state of a Reversi's gameboard. The state is expressed as the combination of the individual state of each board's square.
- * It is the state that a board has regardless of the player that has to move or the time spent or remaining to each player.
+ * A board is an entity that holds the state of a Reversi's gameboard.
+ * The state is expressed as the combination of the individual state of each board's square.
+ * It is the state that a board has regardless of the player that has to move or the time spent
+ * or remaining to each player.
  * <p>
  * Four kind of operations are performed having boards as a subject:
  * <ul>
@@ -37,20 +39,25 @@ import java.util.List;
  *   <li>Construct a new board.</li>
  *   <li>Extract elaborated and derived information on the board state.</li>
  * </ul>
- * The first and the second functions are assured respectively by means of the {@code get(Square)} accessor method and {@code makeMove(Square, Player)} procedure.
- * The third function is delegated to two external classes: the {@code BoardFactory} interface and the {@code BoardBuilder} concrete class.
- * The last set of functions are utilities that could be implemented by means of the first one. This approach is carried on by the {@code AbstractBoard} class.
+ * The first and the second functions are assured respectively by means of the {@code get(Square)}
+ * accessor method and {@code makeMove(Square, Player)} procedure.
+ * The third function is delegated to two external classes: the {@code BoardFactory} interface and
+ * the {@code BoardBuilder} concrete class.
+ * The last set of functions are utilities that could be implemented by means of the first one.
+ * This approach is carried on by the {@code AbstractBoard} class.
  * <p>
  * It is up to the implementation to organize the way to hold and manipulate the internal state,
  * from the outside the state is returned by the {@code get(Square)} method, that returns a {@code SqareState} value.
  * <p>
- * The interface does not provide methods that alter the state of the entity. Immutability should be assured by the implementations.
+ * The interface does not provide methods that alter the state of the entity.
+ * Immutability should be assured by the implementations.
  * <p>
  * The implementation of the {@code makeMove(Square, Player)} method has to return a new board.
  * <p>
- * Equality can be redefined by the implementation. From the client point of view two boards are equal if when queried on the
- * state of a square they return the same value for every square. This approach is implemented by the {@code AbstractBoard} class.
- * 
+ * Equality can be redefined by the implementation. From the client point of view
+ * two boards are equal if when queried on the state of a square they return the same value for every square.
+ * This approach is implemented by the {@code AbstractBoard} class.
+ *
  * @see Square
  * @see SquareState
  * @see Player
