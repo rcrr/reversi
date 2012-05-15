@@ -43,10 +43,15 @@ To do:
   <li>Develop JUnit performance testing and reports for different board implementations.
       See: <a href="http://databene.org/contiperf.html" target="_blank">ContiPerf</a>
       See: <a href="http://perf4j.codehaus.org/" target="_blank">Perf4J</a></li>
+  <li>Make the board implementation hot-swappable and selectable within the UI.
+      See: <a href="http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html" target="_blank">
+              ServiceLoader</a> javadoc.
+      See: <a href="http://java.sun.com/developer/technicalArticles/javase/extensible/index.html" target="_blank">
+              Creating Extensible Applications With the Java Platform</a>.
+      </li>
 </ul>
 
 <p>
-
 
 @author Roberto Corradini
 @version 1.1.0
