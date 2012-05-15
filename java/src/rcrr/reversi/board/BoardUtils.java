@@ -27,7 +27,10 @@ package rcrr.reversi.board;
 import java.util.EnumMap;
 import java.util.Map;
 
-public final class BoardUtils {
+/**
+ * Utility methods used by classes defined in the board package.
+ */
+final class BoardUtils {
 
     /** The number of squares hosted by the board. */
     private static final int NUMBER_OF_SQUARES = Square.values().length;
@@ -54,7 +57,7 @@ public final class BoardUtils {
      * @return a new map having and empty square state value for each
      *         square in the board
      */
-    public static Map<Square, SquareState> emptyBoardSquares() {
+    protected static Map<Square, SquareState> emptyBoardSquares() {
         Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
         for (Square sq : Square.values()) {
             sm.put(sq, SquareState.EMPTY);
@@ -114,6 +117,12 @@ public final class BoardUtils {
         return sm;
     }
 
+    /**
+     * Extracts from the board parameter a map having an entry for each square.
+     *
+     * @param board the board from which the map is extracted
+     * @return      a new map representing the internal board state
+     */
     protected static Map<Square, SquareState> squares(final Board board) {
         final Map<Square, SquareState> squares = new EnumMap<Square, SquareState>(Square.class);
         for (final Square sq : Square.values()) {
@@ -122,6 +131,7 @@ public final class BoardUtils {
         return squares;
     }
 
+    /** Class constructor. */
     private BoardUtils() { }
 
 }
