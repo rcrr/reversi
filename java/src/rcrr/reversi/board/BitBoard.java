@@ -32,6 +32,17 @@ import java.math.BigInteger;
 
 import java.io.Serializable;
 
+/**
+ * A board concrete implementation.
+ * <p>
+ * A {@code BitBoard} object holds the information of the state of each board's square.
+ * The board state is kept into a long array having a length equal two.
+ * The first entry keeps the black squares, the second the whites.
+ * <p>
+ * {@code BitBoard} is immutable.
+ * <p>
+ * @see Square
+ */
 public final class BitBoard extends AbstractBoard  implements Serializable {
 
     private static final int BLACK = 0;
