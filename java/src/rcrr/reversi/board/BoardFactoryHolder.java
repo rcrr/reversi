@@ -97,7 +97,8 @@ public final class BoardFactoryHolder {
             boardFactoryClass = Class.forName(sBoardFactoryClass);
         } catch (ClassNotFoundException cnfe) {
             System.out.println("ClassNotFoundException=" + cnfe);
-            System.out.println("Loading default board factory class. DEFAULT_BOARD_FACTORY_CLASS = " + DEFAULT_BOARD_FACTORY_CLASS);
+            System.out.println("Loading default board factory class. DEFAULT_BOARD_FACTORY_CLASS = "
+                               + DEFAULT_BOARD_FACTORY_CLASS);
             try {
                 boardFactoryClass = Class.forName(DEFAULT_BOARD_FACTORY_CLASS);
             } catch (ClassNotFoundException cnfe1) {
@@ -108,7 +109,8 @@ public final class BoardFactoryHolder {
         }
         System.out.println("Board FactoryClass = " + boardFactoryClass.getName());
         if (!InterfaceCheck.doesImplement(BoardFactory.class, boardFactoryClass)) {
-            throw new RuntimeException(boardFactoryClass.getName() + " does not implement the Board interface. Critical Error!");
+            throw new RuntimeException(boardFactoryClass.getName()
+                                       + " does not implement the Board interface. Critical Error!");
         }
         try {
             transientBoardFactory = (BoardFactory) boardFactoryClass.newInstance();
@@ -120,16 +122,26 @@ public final class BoardFactoryHolder {
         setBoardFactory(transientBoardFactory);
     }
 
-    public final BoardFactory boardFactory() {
+    /**
+     * Returns the {@code boardFactory} field.
+     *
+     * @return the {@code boardFactory} field.
+     */
+    public BoardFactory boardFactory() {
         read.lock();
-        try{
+        try {
             return this.boardFactory;
         } finally {
             read.unlock();
         }
     }
 
-    public final void setBoardFactory(final BoardFactory boardFactory) {
+    /**
+     * Set the {@code boardFactory} field.
+     *
+     * @param boardFactory the value set by the method.
+     */
+    public void setBoardFactory(final BoardFactory boardFactory) {
         write.lock();
         try {
             this.boardFactory = boardFactory;
