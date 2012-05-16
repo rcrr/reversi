@@ -24,10 +24,14 @@
 
 package rcrr.reversi.util;
 
+/**
+ * The class hosts an utility method that verify that a class has a given interface as anchestor.
+ */
 public final class InterfaceCheck {
 
     /**
-     * Returns true if parameter {@code objectClass} is implementing the {@code parentInterface} interface, false otherwise.
+     * Returns true if parameter {@code objectClass} is implementing the {@code parentInterface} interface,
+     * false otherwise.
      *
      * @param parentInterface the interface that is verified being an anchestor.
      * @param objectClass      the class to check.
@@ -43,5 +47,8 @@ public final class InterfaceCheck {
         if (superClass != null) { return doesImplement(parentInterface, superClass); }
         return false;
     }
+
+    /** Class constructor. */
+    private InterfaceCheck() { }
 
 }

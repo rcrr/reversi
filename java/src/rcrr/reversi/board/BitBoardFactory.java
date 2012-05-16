@@ -26,8 +26,17 @@ package rcrr.reversi.board;
 
 import java.util.Map;
 
+/**
+ * The class provides a concrete implementation for the board's factory interface returning
+ * board objects of type {@code BitBoard}.
+ *
+ * @see Board
+ */
 public final class BitBoardFactory extends AbstractBoardFactory {
 
+    /**
+     * {@inheritDoc}
+     */
     public Board valueOf(final Map<Square, SquareState> squares) {
         return BitBoard.valueOf(squares);
     }
