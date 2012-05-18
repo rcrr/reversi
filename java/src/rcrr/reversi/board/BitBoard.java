@@ -54,7 +54,7 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
 
     private static final long[] SQUARE_LONG_VALUE = new long[SQUARE_SIZE];
 
-    private static final int[] FILE_INDEX_COEFFICIENT = new int[FILE_MAX_LENGTH]; 
+    private static final int[] FILE_INDEX_COEFFICIENT = new int[FILE_MAX_LENGTH];
 
     static final int DIR_NW = -9;
     static final int DIR_NN = -8;
@@ -67,13 +67,13 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
 
     static final int NUMBER_OF_DIRECTIONS = 8;
     static final int[] DIRECTIONS =  new int [] {DIR_NW, DIR_NN, DIR_NE, DIR_WW, DIR_EE, DIR_SW, DIR_SS, DIR_SE};
-    static final int[][] FLIPPING_DIRECTIONS = new int[SQUARE_SIZE][]; 
+    static final int[][] FLIPPING_DIRECTIONS = new int[SQUARE_SIZE][];
 
     /**
      * Is the number of files that are managed.
      * There are 8 rows, 8 columns, 4 diagonals having 3 cels, 4 ones having 4 cels,
      * another four ones having respectively 4, 6, and 7 cels. Finally there are the two
-     * main diagonals. Summing up 8 + 8 + 4 * 5 + 2 = 38. 
+     * main diagonals. Summing up 8 + 8 + 4 * 5 + 2 = 38.
      */
     private static final int FILE_SIZE = 38;
 
@@ -111,14 +111,14 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
     /**
      * It MUST BE TURNED INTO PRIVATE .....
      */
-    public final byte[] file(final int index) {
+    public byte[] file(final int index) {
         assert (index >= 0 || index < FILE_SIZE) : "Parameter index must be in the range 0...FILE_SIZE.";
         byte[] file = new byte[2];
         long mask = FILE_MASK_ARRAY[index];
         int j = 0;
         file_completed:
         for (int i = 0; i < SQUARE_SIZE; i++) {
-            if (j > 7) break file_completed;
+            if (j > 7) { break file_completed; }
             long bit = 1L << i;
             byte pointInFile = (byte) (1 << j);
             if ((mask & bit) != 0L) {
@@ -130,7 +130,7 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         return file;
     }
 
-    public static final String fileToString(final byte file[]) {
+    public static String fileToString(final byte[] file) {
         assert (file != null) : "Parameter file cannot be null.";
         assert (file.length == 2) : "Parameter file must have a lenght equal to two.";
         assert ((file[0] & file[1]) == (byte) 0) : "Parameter file cannot have black and white discs overlapping.";
@@ -139,9 +139,9 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         sb.append("[ ");
         for (int i = 0; i < FILE_MAX_LENGTH; i++) {
             byte pointInFile = (byte) (1 << i);
-            if ((file[0] & pointInFile) != 0 ) {
+            if ((file[0] & pointInFile) != 0) {
                 sb.append('@');
-            } else if ((file[1] & pointInFile) != 0 ) {
+            } else if ((file[1] & pointInFile) != 0) {
                 sb.append('O');
             } else {
                 sb.append('.');
@@ -280,47 +280,61 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
     static final int A8_H1_DIAG = 36;
     static final int A1_H8_DIAG = 37;
 
-    static final long fileMaskArray(final int file) {
+    static long fileMaskArray(final int file) {
         if (file < 0 || file > FILE_SIZE) { throw new IllegalArgumentException("Parameter file out of range."); }
         return FILE_MASK_ARRAY[file];
     }
 
-    static final long squareLongValue(final int square) {
-        if (square < 0 || square > SQUARE_SIZE) { throw new IllegalArgumentException("Parameter square out of range."); }
+    static long squareLongValue(final int square) {
+        if (square < 0 || square > SQUARE_SIZE) {
+            throw new IllegalArgumentException("Parameter square out of range.");
+        }
         return SQUARE_LONG_VALUE[square];
     }
 
-    static final int squareIntValue_basic(final long square) {
-        for (int i = 0; i < 64; i++) {
-            if (1L == (square >>> i)) { return i; }
-        }
-        throw new IllegalArgumentException("Parameter square is invalid.");
-    }
-
-    static final int squareIntValue(final long square) {
+    /**
+     * Returns an int value corresponding to the ordinal position of the only bit set in the {@code square} parameter.
+     * <p>
+     * The {@code square} parameter must have one and only one bit set to {@code 1}.
+     * <p>
+     * The method is equivalent to the following loop:
+     * <pre>
+     *   for (int i = 0; i < 64; i++) {
+     *       if (1L == (square >>> i)) { return i; }
+     *   }
+     *   throw new IllegalArgumentException("Parameter square is invalid.");
+     * </pre>
+     * The proposed inplementation does a "divide and conqueror" approach instead of the linear access proposed.
+     * The extimation of the iterations is 64/2 = 32 for the linear implementation,
+     * compared with the logarithm base 2 of 64 that is equal to 6.
+     *
+     * @return the ordinal position of the bit set in the {@code square} parameter
+     */
+    static int squareIntValue(final long square) {
         assert (Long.bitCount(square) == 1) : "Parameter square must have one and only one bit set.";
         int low = 0;
         int high = 64;
         while (low != high) {
             int bit = (low + high) >>> 1;
             long window = square >>> bit;
-            if (window == 1L)
+            if (window == 1L) {
                 return bit; // value found
-            else if (window == 0L)
+            } else if (window == 0L) {
                 high = bit;
-            else
+            } else {
                 low = bit;
+            }
         }
         throw new IllegalArgumentException("Parameter square is invalid.");
     }
 
-    static final String longToString(final long value) {
+    static String longToString(final long value) {
         final StringBuilder sb = new StringBuilder();
         final String toBinaryString = Long.toBinaryString(value);
         final int len = toBinaryString.length();
         final int missingZeroes = SQUARE_SIZE - len;
         for (int i = SQUARE_SIZE; i > 0; i--) {
-            if ((i != SQUARE_SIZE) && (i % FILE_MAX_LENGTH == 0)) sb.append(".");
+            if ((i != SQUARE_SIZE) && (i % FILE_MAX_LENGTH == 0)) { sb.append("."); }
             if ((missingZeroes - (SQUARE_SIZE - i)) > 0) {
                 sb.append('0');
             } else {
@@ -330,17 +344,17 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         return sb.toString();
     }
 
-    static final boolean hasDuplicates(final int ... numbers) {
+    static boolean hasDuplicates(final int ... numbers) {
         boolean result = false;
         for (int i = 0; i < numbers.length; i++) {
             for (int j = i + 1; j < numbers.length; j++) {
-                if (numbers[i] == numbers[j]) { result = true;}
+                if (numbers[i] == numbers[j]) { result = true; }
             }
         }
         return result;
     }
 
-    static final long sumOfSquareLongValue(final int ... squares) {
+    static long sumOfSquareLongValue(final int ... squares) {
         if (hasDuplicates(squares)) {
             throw new IllegalArgumentException("Parameter squares has duplicates.");
         }
@@ -357,7 +371,7 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
 
     private static final long[] BIT_MOVE = new long[SQUARE_SIZE];
 
-    static final long bitMove(final Square move) {
+    static long bitMove(final Square move) {
         return BIT_MOVE[move.ordinal()];
     }
 
@@ -386,7 +400,7 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
     static final int COL_G = 6;
     static final int COL_H = 7;
 
-    static final boolean squareBelongsToEdge(final int square, final int edge) {
+    static boolean squareBelongsToEdge(final int square, final int edge) {
         assert (Arrays.binarySearch(EDGES, edge) >= 0) : "Argument edge must be contained in the EDGES array";
         final int col = squareColumn(square);
         final int row = squareRow(square);
@@ -395,17 +409,18 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         case EDGE_E: if (col > COL_G) { return true; } break;
         case EDGE_S: if (row > ROW_7) { return true; } break;
         case EDGE_W: if (col < COL_B) { return true; } break;
+        default: throw new IllegalArgumentException("Parameter edge out of range. edge = " + edge);
         }
         return false;
     }
 
-    private static final List<Integer> asList(final int[] array) {
+    private static List<Integer> asList(final int[] array) {
         final List<Integer> list = new ArrayList<Integer>(array.length);
         for (int i = 0; i < array.length; i++) { list.add(array[i]); }
         return list;
     }
 
-    private static final int[] asArray(final List<Integer> list) {
+    private static int[] asArray(final List<Integer> list) {
         final int[] array = new int[list.size()];
         int index = 0;
         for (final Integer element : list) {
@@ -415,11 +430,11 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         return array;
     }
 
-    static final int squareRow(final int square){
+    static int squareRow(final int square){
         return square / FILE_MAX_LENGTH;
     }
 
-    static final int squareColumn(final int square){
+    static int squareColumn(final int square){
         return square % FILE_MAX_LENGTH;
     }
 
@@ -681,7 +696,7 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         return 0L;
     }
 
-    static final long neighbor(final long square, final int dir) {
+    static long neighbor(final long square, final int dir) {
         assert (Long.bitCount(square) == 1) : "Argument square must be have one and only one bit set";
         final int intSquare = squareIntValue(square);
         long neighbor = 0L;
