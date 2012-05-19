@@ -114,7 +114,16 @@ public abstract class AbstractBoard implements Board {
     /**
      * {@inheritDoc}
      */
-    public abstract int countPieces(SquareState color);
+    public int countPieces(final SquareState color) {
+        if (color == null) {
+            throw new NullPointerException("Parameter color must be not null.");
+        }
+        int count = 0;
+        for (final Square sq : Square.values()) {
+            if (get(sq) == color) { count++; }
+        }
+        return count;
+    }
 
     /**
      * Returns true if the specified object is equal to this board.
