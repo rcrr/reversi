@@ -405,10 +405,14 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         final int col = squareColumn(square);
         final int row = squareRow(square);
         switch (edge) {
-        case EDGE_N: if (row < ROW_2) { return true; } break;
-        case EDGE_E: if (col > COL_G) { return true; } break;
-        case EDGE_S: if (row > ROW_7) { return true; } break;
-        case EDGE_W: if (col < COL_B) { return true; } break;
+        case EDGE_N: if (row < ROW_2) { return true; }
+            break;
+        case EDGE_E: if (col > COL_G) { return true; }
+            break;
+        case EDGE_S: if (row > ROW_7) { return true; }
+            break;
+        case EDGE_W: if (col < COL_B) { return true; }
+            break;
         default: throw new IllegalArgumentException("Parameter edge out of range. edge = " + edge);
         }
         return false;
@@ -430,11 +434,11 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         return array;
     }
 
-    static int squareRow(final int square){
+    static int squareRow(final int square) {
         return square / FILE_MAX_LENGTH;
     }
 
-    static int squareColumn(final int square){
+    static int squareColumn(final int square) {
         return square % FILE_MAX_LENGTH;
     }
 
@@ -490,7 +494,7 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         FILE_MASK_ARRAY[SECOND_COLUMN]  = sumOfSquareLongValue(B1, B2, B3, B4, B5, B6, B7, B8);
         FILE_MASK_ARRAY[THIRD_COLUMN]   = sumOfSquareLongValue(C1, C2, C3, C4, C5, C6, C7, C8);
         FILE_MASK_ARRAY[FOURTH_COLUMN]  = sumOfSquareLongValue(D1, D2, D3, D4, D5, D6, D7, D8);
-        FILE_MASK_ARRAY[FIFTH_COLUMN]   = sumOfSquareLongValue(E1, E2, E3, E4, E5, E6, E7, E8); 
+        FILE_MASK_ARRAY[FIFTH_COLUMN]   = sumOfSquareLongValue(E1, E2, E3, E4, E5, E6, E7, E8);
         FILE_MASK_ARRAY[SIXTH_COLUMN]   = sumOfSquareLongValue(F1, F2, F3, F4, F5, F6, F7, F8);
         FILE_MASK_ARRAY[SEVENTH_COLUMN] = sumOfSquareLongValue(G1, G2, G3, G4, G5, G6, G7, G8);
         FILE_MASK_ARRAY[EIGHTH_COLUMN]  = sumOfSquareLongValue(H1, H2, H3, H4, H5, H6, H7, H8);
@@ -528,7 +532,7 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         }
 
     }
- 
+
     /**
      * Base static factory for the class.
      * <p>
@@ -583,12 +587,6 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
      */
     private final long[] bitboard;
 
-    /** The squares field ***MUST BE REMOVED****. */
-    //private final transient Map<Square, SquareState> squares;
-
-    /** The squares field ***MUST BE REMOVED****. */
-    //private final transient Board transientBoard;
-
     /**
      * Class constructor.
      * <p>
@@ -600,10 +598,9 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
     private BitBoard(final long[] bitboard) {
         assert (bitboard != null) : "Parameter bitboard cannot be null.";
         assert (bitboard.length == 2) : "Parameter bitboard must have a lenght equal to two.";
-        assert ((bitboard[0] & bitboard[1]) == 0L) : "Parameter bitboard cannot have black and white discs overlapping.";
+        assert ((bitboard[0] & bitboard[1]) == 0L)
+            : "Parameter bitboard cannot have black and white discs overlapping.";
         this.bitboard = bitboard.clone();
-        //this.squares = BoardUtils.bitboardToMap(this.bitboard);
-        //this.transientBoard = EnumMapBoard.valueOf(this.squares);
     }
 
     /**
@@ -647,7 +644,6 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         }
         final long bitmove = bitMove(move);
         if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
-            // if (isLegal != false) { throw new RuntimeException("isLegal computed wrongly -0-."); }
             return false;
         }
         for (int dir : FLIPPING_DIRECTIONS[move.ordinal()]) {
@@ -662,12 +658,8 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
         assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set";
         assert (player != null) : "Argument player must be not null";
         final int intMove = squareIntValue(move);
-        try {
-            assert (Arrays.binarySearch(FLIPPING_DIRECTIONS[intMove], dir) >= 0) : "Argument dir must be contained in the FLIPPING_DIRECTIONS array.";
-        } catch (java.lang.ArrayIndexOutOfBoundsException e) {
-            System.out.println("intMove=" + intMove);
-            throw e;
-        }
+        assert (Arrays.binarySearch(FLIPPING_DIRECTIONS[intMove], dir) >= 0)
+            : "Argument dir must be contained in the FLIPPING_DIRECTIONS array.";
         long bracketing = 0L;
         long neighbor = neighbor(move, dir);
         final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
