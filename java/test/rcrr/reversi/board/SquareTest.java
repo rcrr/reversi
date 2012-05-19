@@ -48,22 +48,37 @@ public class SquareTest {
     /** Class constructor. */
     public SquareTest() { }
 
-    /**
-     * Tests the {@code row()} method.
+     /**
+     * Tests the {@code capableToFlipDirections()} method.
      *
-     * @see Square#row()
+     * @see Square#capableToFlipDirections()
      */
     @Test
-    public final void testRow() {
-        assertThat("Square.A1.row() is Row.R1.",
-                   Square.A1.row(),
-                   is(Row.R1));
-        assertThat("Square.C6.row() is Row.R6.",
-                   Square.C6.row(),
-                   is(Row.R6));
-        assertThat("Square.H7.row() is Row.R7.",
-                   Square.H7.row(),
-                   is(Row.R7));
+    public final void testCapableToFlipDirections() {
+
+        assertThat("Square.A1.capableToFlipDirections() is E, S, SE",
+                   Square.A1.capableToFlipDirections(),
+                   hasItems(Direction.E,
+                            Direction.S,
+                            Direction.SE));
+
+        assertThat("Square.B2.capableToFlipDirections() is E, S, SE",
+                   Square.B2.capableToFlipDirections(),
+                   hasItems(Direction.E,
+                            Direction.S,
+                            Direction.SE));
+
+        assertThat("Square.B2.capableToFlipDirections() is E, SE, S, SW, W, NW, N, NE",
+                   Square.C3.capableToFlipDirections(),
+                   hasItems(Direction.E,
+                            Direction.SE,
+                            Direction.S,
+                            Direction.SW,
+                            Direction.W,
+                            Direction.NW,
+                            Direction.N,
+                            Direction.NE));
+
     }
 
     /**
@@ -82,6 +97,165 @@ public class SquareTest {
         assertThat("Square.H7.column() is Column.H.",
                    Square.H7.column(),
                    is(Column.H));
+    }
+
+    /**
+     * Tests the {@code cornerFor()} method.
+     *
+     * @see Square#cornerFor()
+     */
+    @Test
+    public final void testCornerFor() {
+        assertThat("Square.A3.cornerFor() is null.",
+                   Square.A3.cornerFor(),
+                   is(Square.NULL));
+        assertThat("Square.B2.cornerFor() is A1.",
+                   Square.B2.cornerFor(),
+                   is(Square.A1));
+        assertThat("Square.G7.cornerFor() is H8.",
+                   Square.G7.cornerFor(),
+                   is(Square.H8));
+    }
+
+    /**
+     * Tests the {@code corners()} method.
+     *
+     * @see Square#corners()
+     */
+    @Test
+    public final void testCorners() {
+        assertThat("Square.corners() has items: A1, A8, H1, H8.",
+                   Square.corners(),
+                   hasItems(Square.A1,
+                            Square.A8,
+                            Square.H1,
+                            Square.H8));
+
+        assertThat("Square.corners() has 4 elements.",
+                   Square.corners().size(),
+                   is(4));
+    }
+
+    /**
+     * Tests the {@code getHasegawaLabel()} method.
+     *
+     * @see Square#getHasegawaLabel()
+     */
+    @Test
+    public final void testGetHasegawaLabel() {
+        assertThat("Square.A2.getHasegawaLabel() is the C char.",
+                   Square.A2.getHasegawaLabel(),
+                   is('C'));
+        assertThat("Square.B2.getHasegawaLabel() is the X char.",
+                   Square.B2.getHasegawaLabel(),
+                   is('X'));
+        assertThat("Square.C3.getHasegawaLabel() is the blank space char.",
+                   Square.C3.getHasegawaLabel(),
+                   is(' '));
+    }
+
+    /**
+     * Tests the {@code getInstance(String)} method when parameter
+     * {@code label} is {@code null}.
+     *
+     * @see Square#getInstance(String)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testGetInstance_byLabel_boundaryConditions_checkNullParameter_label() {
+        Square.getInstance(NULL_STRING);
+    }
+
+    /**
+     * Tests the {@code getInstance(String)} method when parameter
+     * {@code label} is not a string representing a valid label.
+     *
+     * @see Square#getInstance(String)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public final void testGetInstance_byLabel_boundaryConditions_checkIllegalArgument_label() {
+        Square.getInstance("wrong label");
+    }
+
+    /**
+     * Tests the {@code getInstance(String)} method.
+     *
+     * @see Square#getInstance(String)
+     */
+    @Test
+    public final void testGetInstance_byLabel() {
+        assertThat("Square.getInstance(\"a1\") is Square.A1.",
+                   Square.getInstance("a1"),
+                   is(Square.A1));
+        assertThat("Square.getInstance(\"c6\") is Square.C6.",
+                   Square.getInstance("c6"),
+                   is(Square.C6));
+        assertThat("Square.getInstance(\"h7\") is Square.H7.",
+                   Square.getInstance("h7"),
+                   is(Square.H7));
+    }
+
+    /**
+     * Tests the {@code getInstance(Row, Column)} method when one between the
+     * two parameter is {@code null}.
+     *
+     * @see Square#getInstance(Row, Column)
+     */
+    @Test
+    public final void testGetInstance_byRowAndColumn_whenOneParameterIsNull() {
+        assertThat("Square.getInstance(Row.NULL, Column.H) must return a null value.",
+                   Square.getInstance(Row.NULL, Column.H),
+                   nullValue());
+        assertThat("Square.getInstance(Row.R7, Column.NULL must return a null value.",
+                   Square.getInstance(Row.R7, Column.NULL),
+                   nullValue());
+    }
+
+    /**
+     * Tests the {@code getInstance(Row, Column)} method.
+     *
+     * @see Square#getInstance(Row, Column)
+     */
+    @Test
+    public final void testGetInstance_byRowAndColumn() {
+        assertThat("Square.getInstance(Row.R1, Column.A) is A1.",
+                   Square.getInstance(Row.R1, Column.A),
+                   is(Square.A1));
+        assertThat("Square.getInstance(Row.R6, Column.C) is C6.",
+                   Square.getInstance(Row.R6, Column.C),
+                   is(Square.C6));
+    }
+
+    /**
+     * Tests the {@code isCorner()} method.
+     *
+     * @see Square#isCorner()
+     */
+    @Test
+    public final void testIsCorner() {
+        assertTrue("Square.A1 is a corner.",
+                   Square.A1.isCorner());
+        assertTrue("Square.H1 is a corner.",
+                   Square.H1.isCorner());
+        assertTrue("Square.A8 is a corner.",
+                   Square.A8.isCorner());
+        assertTrue("Square.H8 is a corner.",
+                   Square.H8.isCorner());
+
+        assertFalse("Square.C2 is not a corner.",
+                    Square.C2.isCorner());
+    }
+
+    /**
+     * Tests the {@code isXSquare()} method.
+     *
+     * @see Square#isXSquare()
+     */
+    @Test
+    public final void testIsXSquare() {
+        assertTrue("Square.B2 is an X square.",
+                   Square.B2.isXSquare());
+        assertFalse("Square.C2 is not an X square.",
+                    Square.C2.isXSquare());
     }
 
     /**
@@ -200,149 +374,37 @@ public class SquareTest {
                    is(Square.A7));
     }
 
-    @Test
-    public final void testCapableToFlipDirections() {
-
-        assertThat("Square.A1.capableToFlipDirections() is E, S, SE",
-                   Square.A1.capableToFlipDirections(),
-                   hasItems(Direction.E,
-                            Direction.S,
-                            Direction.SE));
-
-        assertThat("Square.B2.capableToFlipDirections() is E, S, SE",
-                   Square.B2.capableToFlipDirections(),
-                   hasItems(Direction.E,
-                            Direction.S,
-                            Direction.SE));
-
-    }
-
-    /**
-     * Tests the {@code getInstance(String)} method when parameter
-     * {@code label} is {@code null}.
+     /**
+     * Tests the {@code row()} method.
      *
-     * @see Square#getInstance(String)
-     */
-    @Test(expected = NullPointerException.class)
-    public final void testGetInstance_byLabel_boundaryConditions_checkNullParameter_label() {
-        Square.getInstance(NULL_STRING);
-    }
-
-    /**
-     * Tests the {@code getInstance(String)} method when parameter
-     * {@code label} is not a string representing a valid label.
-     *
-     * @see Square#getInstance(String)
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public final void testGetInstance_byLabel_boundaryConditions_checkIllegalArgument_label() {
-        Square.getInstance("wrong label");
-    }
-
-    /**
-     * Tests the {@code getInstance(String)} method.
-     *
-     * @see Square#getInstance(String)
+     * @see Square#row()
      */
     @Test
-    public final void testGetInstance_byLabel() {
-        assertThat("Square.getInstance(\"a1\") is Square.A1.",
-                   Square.getInstance("a1"),
-                   is(Square.A1));
-        assertThat("Square.getInstance(\"c6\") is Square.C6.",
-                   Square.getInstance("c6"),
-                   is(Square.C6));
-        assertThat("Square.getInstance(\"h7\") is Square.H7.",
-                   Square.getInstance("h7"),
-                   is(Square.H7));
+    public final void testRow() {
+        assertThat("Square.A1.row() is Row.R1.",
+                   Square.A1.row(),
+                   is(Row.R1));
+        assertThat("Square.C6.row() is Row.R6.",
+                   Square.C6.row(),
+                   is(Row.R6));
+        assertThat("Square.H7.row() is Row.R7.",
+                   Square.H7.row(),
+                   is(Row.R7));
     }
 
-    /**
-     * Tests the {@code getInstance(Row, Column)} method when one between the
-     * two parameter is {@code null}.
+     /**
+     * Tests the {@code xSquareFor()} method.
      *
-     * @see Square#getInstance(Row, Column)
+     * @see Square#xSquareFor()
      */
     @Test
-    public final void testGetInstance_byRowAndColumn_whenOneParameterIsNull() {
-        assertThat("Square.getInstance(Row.NULL, Column.H) must return a null value.",
-                   Square.getInstance(Row.NULL, Column.H),
-                   nullValue());
-        assertThat("Square.getInstance(Row.R7, Column.NULL must return a null value.",
-                   Square.getInstance(Row.R7, Column.NULL),
-                   nullValue());
-    }
-
-    /**
-     * Tests the {@code getInstance(Row, Column)} method.
-     *
-     * @see Square#getInstance(Row, Column)
-     */
-    @Test
-    public final void testGetInstance_byRowAndColumn() {
-        assertThat("Square.getInstance(Row.R1, Column.A) is A1.",
-                   Square.getInstance(Row.R1, Column.A),
-                   is(Square.A1));
-        assertThat("Square.getInstance(Row.R6, Column.C) is C6.",
-                   Square.getInstance(Row.R6, Column.C),
-                   is(Square.C6));
-    }
-
-    /**
-     * Tests the {@code getHasegawaLabel()} method.
-     *
-     * @see Square#getHasegawaLabel()
-     */
-    @Test
-    public final void testGetHasegawaLabel() {
-        assertThat("Square.A2.getHasegawaLabel() is the C char.",
-                   Square.A2.getHasegawaLabel(),
-                   is('C'));
-        assertThat("Square.B2.getHasegawaLabel() is the X char.",
-                   Square.B2.getHasegawaLabel(),
-                   is('X'));
-        assertThat("Square.C3.getHasegawaLabel() is the blank space char.",
-                   Square.C3.getHasegawaLabel(),
-                   is(' '));
-    }
-
-    /**
-     * Tests the {@code corners()} method.
-     *
-     * @see Square#corners()
-     */
-    @Test
-    public final void testCorners() {
-        assertThat("Square.corners() has items: A1, A8, H1, H8.",
-                   Square.corners(),
-                   hasItems(Square.A1,
-                            Square.A8,
-                            Square.H1,
-                            Square.H8));
-
-        assertThat("Square.corners() has 4 elements.",
-                   Square.corners().size(),
-                   is(4));
-    }
-
-    /**
-     * Tests the {@code isCorner()} method.
-     *
-     * @see Square#isCorner()
-     */
-    @Test
-    public final void testIsCorner() {
-        assertTrue("Square.A1 is a corner.",
-                   Square.A1.isCorner());
-        assertTrue("Square.H1 is a corner.",
-                   Square.H1.isCorner());
-        assertTrue("Square.A8 is a corner.",
-                   Square.A8.isCorner());
-        assertTrue("Square.H8 is a corner.",
-                   Square.H8.isCorner());
-
-        assertFalse("Square.C2 is not a corner.",
-                    Square.C2.isCorner());
+    public final void testXSquareFor() {
+        assertThat("Square.A1.xSquareFor() is Square.B2.",
+                   Square.A1.xSquareFor(),
+                   is(Square.B2));
+        assertThat("Square.C4.xSquareFor() is null.",
+                   Square.C4.xSquareFor(),
+                   is(Square.NULL));
     }
 
 }
