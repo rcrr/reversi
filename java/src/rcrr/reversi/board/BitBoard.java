@@ -24,13 +24,12 @@
 
 package rcrr.reversi.board;
 
+import java.math.BigInteger;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
-import java.math.BigInteger;
-
-import java.io.Serializable;
 
 /**
  * A board concrete implementation.
@@ -43,7 +42,7 @@ import java.io.Serializable;
  * <p>
  * @see Square
  */
-public final class BitBoard extends AbstractBoard  implements Serializable {
+public final class BitBoard extends AbstractBoard {
 
     private static final int BLACK = 0;
     private static final int WHITE = 1;
@@ -764,6 +763,7 @@ public final class BitBoard extends AbstractBoard  implements Serializable {
      * @return the disk count
      * @throws NullPointerException if parameter {@code color} is null
      */
+    @Override
     public int countPieces(final SquareState color) {
         if (color == null) {
             throw new NullPointerException("parameter color must be not null.");

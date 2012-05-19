@@ -31,8 +31,6 @@ To do:
 
 <ul>
   <li>Verify that tests are placed in the right file.</li>
-  <li>Check the serializable design.</li>
-  <li>Extend abstract board to handle more methods.</li>
   <li>Prepare tests for the new classes (BoardBuilder, BoardFactoryHolder, ...).</li>
   <li>Complete the hints given by the checkstyle tool (javadocs, and more).</li>
   <li>Develop the precompiuting of the flipping using the FILES prepared in BitBoard.</li>
