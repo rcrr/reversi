@@ -63,13 +63,15 @@ public interface BoardFactory {
     /**
      * Base factory for a board.
      * <p>
-     * {@code squares} must be not null, and must have an entry for every board square.
+     * The {@code squares} parameter must be not null, and must have an entry for every board square.
+     * Entries must not have {@code null} keys or {@code null} values.
      * Given that the map cannot have duplicate keys, its size must be equal to the number
      * of class instances defined by the {@code Square} enum.
      *
      * @param  squares the map of squares
      * @return         a new board having as state the given square map
-     * @throws NullPointerException     if parameter {@code squares} is null
+     * @throws NullPointerException     if parameter {@code squares} is {@code null} or if it has
+     *                                  {@code null} keys or values
      * @throws IllegalArgumentException if the {@code squares} is not complete
      */
     Board valueOf(final Map<Square, SquareState> squares);
