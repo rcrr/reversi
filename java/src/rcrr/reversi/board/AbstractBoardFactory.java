@@ -29,12 +29,15 @@ import java.util.Map;
 /**
  * This abstract board factory provides implementation methods for all the functions
  * defined by the {@code BoardFactory} interfece with the exception of the
- * {@code valueOf(Map<Square, SquareState>)} method. This is left to the concrete classes as
- * a way to specify he concrete {@code Board} implementation.
+ * {@code valueOf(Map<Square, SquareState>)} method. This last is left to the concrete classes as
+ * a way to specify the concrete {@code Board} implementation.
  *
  * @see Board
  */
 public abstract class AbstractBoardFactory implements BoardFactory {
+
+    /** Class constructor. */
+    public AbstractBoardFactory() { }
 
     /**
      * {@inheritDoc}

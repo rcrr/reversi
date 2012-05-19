@@ -232,36 +232,6 @@ public class AbstractBoardTest {
     }
 
     /**
-     * Tests the {@code emptyBoard()} factory.
-     * <p>
-     * The test runs two types of assertion.
-     * The first relates to the {@code equals(Object)} method and checks that
-     * the returned board is equal to {@code BoardFixtures.EMPTY}.
-     * The second relates on the {@code get(Square)} method and checks that all
-     * the squares of the returned board have a {@code SquereState.EMPTY} value.
-     *
-     * @see AbstractBoardFactory#emptyBoard()
-     * @see BoardFixtures#EMPTY
-     * @see AbstractBoard#equals(Object)
-     * @see AbstractBoard#get(Square)
-     */
-    @Test
-    public final void testEmptyBoard() {
-        assertThat("BoardFactoryHolder.getInstance().boardFactory().emptyBoard() must return a board being equal to BoardFixtures.EMPTY.",
-                   BoardFactoryHolder.getInstance().boardFactory().emptyBoard(),
-                   is(BoardFixtures.EMPTY));
-
-        final Board empty = BoardFactoryHolder.getInstance().boardFactory().emptyBoard();
-        for (Square square : Square.values()) {
-            assertThat("Each square state returned by the get method iterating on"
-                       + " the squares of a board returned by EnumMapBoard.emptyBoard()"
-                       + " must return a SquareState.EMPTY value.",
-                       empty.get(square),
-                       is(SquareState.EMPTY));
-        }
-    }
-
-    /**
      * Tests the {@code equals(Object)} method when the objects are different.
      * <p>
      * The test runs three assertions:
@@ -509,17 +479,6 @@ public class AbstractBoardTest {
     }
 
     /**
-     * Util method used by testHashCode_isConsistentWhenCalledMoreThanOnce.
-     *
-     * @param board  the board
-     * @param symbol the board literal
-     */
-    private void utilHashCode(final Board board, final String symbol) {
-        final Board renewed = new BoardBuilder(board).build();
-        assertEquals(symbol + " must have a consistent hash code.", renewed.hashCode(), renewed.hashCode());
-    }
-
-    /**
      * Tests the {@code hashCode()} method.
      * <p>
      * The test runs two assertions:
@@ -538,39 +497,6 @@ public class AbstractBoardTest {
         assertEquals("BoardFixtures.EQL_TEST_A and BoardFixtures.EQL_TEST_B must have the same hash.",
                      new BoardBuilder(BoardFixtures.EQL_TEST_A).build().hashCode(),
                      new BoardBuilder(BoardFixtures.EQL_TEST_B).build().hashCode());
-    }
-
-    /**
-     * Tests the {@code initialBoard()} method.
-     * <p>
-     * The test runs two kind of assertions:
-     * <p>
-     * <ul>
-     *   <li>{@code BoardFactoryHolder.getInstance().boardFactory().initialBoard()} is equal to {@code BoardFixtures.INITIAL}</li>
-     *   <li>For each board square the state is checked against the expected one</li>
-     * </ul>
-     *
-     * @see AbstractBoardFactory#initialBoard()
-     * @see BoardFixtures#INITIAL
-     */
-    @Test
-    public final void testInitialBoard() {
-        assertEquals("BoardFactoryHolder.getInstance().boardFactory().initialBoard() must be equal to BoardFixtures.INITIAL.",
-                     BoardFixtures.INITIAL, BoardFactoryHolder.getInstance().boardFactory().initialBoard());
-        final Board initial = BoardFactoryHolder.getInstance().boardFactory().initialBoard();
-        for (Square square : Square.values()) {
-            SquareState actual = initial.get(square);
-            SquareState expected;
-            switch (square) {
-            case D4: expected = SquareState.WHITE; break;
-            case E4: expected = SquareState.BLACK; break;
-            case D5: expected = SquareState.BLACK; break;
-            case E5: expected = SquareState.WHITE; break;
-            default: expected = SquareState.EMPTY; break;
-            }
-            assertEquals("Square:" + actual + " must be equal to " + expected + ".",
-                         expected, actual);
-        }
     }
 
     /**
@@ -1031,6 +957,17 @@ public class AbstractBoardTest {
                    + " must return [@=26 0=28 (-2)].",
                    new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build().printCount(),
                    is("[@=26 0=28 (-2)]"));
+    }
+
+    /**
+     * Util method used by testHashCode_isConsistentWhenCalledMoreThanOnce.
+     *
+     * @param board  the board
+     * @param symbol the board literal
+     */
+    private void utilHashCode(final Board board, final String symbol) {
+        final Board renewed = new BoardBuilder(board).build();
+        assertEquals(symbol + " must have a consistent hash code.", renewed.hashCode(), renewed.hashCode());
     }
 
 }

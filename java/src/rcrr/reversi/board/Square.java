@@ -425,11 +425,29 @@ public enum Square {
     }
 
     /**
+     * Returns a map that has the directions as keys and the associated neighbor square as values.
+     *
+     * @return the square's neighbor map
+     **/
+    public List<Direction> capableToFlipDirections() {
+        return CAPABLE_TO_FLIP_DIRECTION_TABLE.get(this);
+    }
+
+    /**
      * Returns the square's column.
      *
      * @return the square's column
      **/
     public Column column() { return column; }
+
+    /**
+     * Returns the relative corner when the square is an x-square, otherwise null.
+     *
+     * @return the associated corner, or null when the square is not an x-square
+     */
+    public Square cornerFor() {
+        return X_SQUARE_TO_CORNER_MAP.get(this);
+    }
 
     /**
      * Returns the Hasegawa's naming for the edge squares. Returns
@@ -495,24 +513,6 @@ public enum Square {
     }
 
     /**
-     * Returns the relative corner when the square is an x-square, otherwise null.
-     *
-     * @return the associated corner, or null when the square is not an x-square
-     */
-    public Square cornerFor() {
-        return X_SQUARE_TO_CORNER_MAP.get(this);
-    }
-
-    /**
-     * Returns the relative x-square when the square is a corner, otherwise null.
-     *
-     * @return the associated x-square, or null when the square is not a corner
-     */
-    public Square xSquareFor() {
-        return CORNER_TO_X_SQUARE_MAP.get(this);
-    }
-
-    /**
      * Returns the square's label.
      *
      * @return the square's label
@@ -531,19 +531,19 @@ public enum Square {
     }
 
     /**
-     * Returns a map that has the directions as keys and the associated neighbor square as values.
-     *
-     * @return the square's neighbor map
-     **/
-    public List<Direction> capableToFlipDirections() {
-        return CAPABLE_TO_FLIP_DIRECTION_TABLE.get(this);
-    }
-
-    /**
      * Returns the square's row.
      *
      * @return the square's row
      **/
     public Row row() { return row; }
+
+    /**
+     * Returns the relative x-square when the square is a corner, otherwise null.
+     *
+     * @return the associated x-square, or null when the square is not a corner
+     */
+    public Square xSquareFor() {
+        return CORNER_TO_X_SQUARE_MAP.get(this);
+    }
 
 }
