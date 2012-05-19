@@ -24,6 +24,8 @@
 
 package rcrr.reversi.board;
 
+import java.io.Serializable;
+
 import java.util.List;
 
 /**
@@ -32,16 +34,17 @@ import java.util.List;
  * It is the state that a board has regardless of the player that has to move or the time spent
  * or remaining to each player.
  * <p>
- * Four kind of operations are performed having boards as a subject:
+ * Five kind of operations are performed having boards as a subject:
  * <ul>
  *   <li>Query the raw board state.</li>
+ *   <li>Query a move by legality.</li>
  *   <li>Derive a new board executing a game move.</li>
  *   <li>Construct a new board.</li>
  *   <li>Extract elaborated and derived information on the board state.</li>
  * </ul>
- * The first and the second functions are assured respectively by means of the {@code get(Square)}
- * accessor method and {@code makeMove(Square, Player)} procedure.
- * The third function is delegated to two external classes: the {@code BoardFactory} interface and
+ * The first, the second, and the third functions are assured respectively by means of the {@code get(Square)}
+ * accessor method, the {@code isLegal(Square, Player)} and {@code makeMove(Square, Player)} procedures.
+ * The fourth function is delegated to two external classes: the {@code BoardFactory} interface and
  * the {@code BoardBuilder} concrete class.
  * The last set of functions are utilities that could be implemented by means of the first one.
  * This approach is carried on by the {@code AbstractBoard} class.
@@ -50,7 +53,7 @@ import java.util.List;
  * from the outside the state is returned by the {@code get(Square)} method, that returns a {@code SqareState} value.
  * <p>
  * The interface does not provide methods that alter the state of the entity.
- * Immutability should be assured by the implementations.
+ * Immutability must be assured by the implementations.
  * <p>
  * The implementation of the {@code makeMove(Square, Player)} method has to return a new board.
  * <p>
@@ -64,7 +67,7 @@ import java.util.List;
  * @see BoardBuilder
  * @see BoardFactory
  */
-public interface Board {
+public interface Board extends Serializable {
 
     /**
      * Returns the disk difference between the player and her opponent.

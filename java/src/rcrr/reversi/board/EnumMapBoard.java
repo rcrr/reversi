@@ -36,8 +36,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import java.io.Serializable;
-
 /**
  * A board concrete implementation.
  * <p>
@@ -48,7 +46,7 @@ import java.io.Serializable;
  * <p>
  * @see Square
  */
-public final class EnumMapBoard extends AbstractBoard implements Serializable {
+public final class EnumMapBoard extends AbstractBoard {
 
     /**
      * Base static factory for the class.
@@ -166,7 +164,7 @@ public final class EnumMapBoard extends AbstractBoard implements Serializable {
      */
     @Override
     public List<Square> legalMoves(final Player player) {
-        if (player == null) { throw new NullPointerException("parameter player must be not null."); }
+        if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
         List<Square> cached = this.legalMovesForPlayer.get(player);
         if (cached != null) { return cached; }
         final List<Square> legalMoves = new ArrayList<Square>();
