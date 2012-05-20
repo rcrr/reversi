@@ -30,15 +30,10 @@ To do:
 <p>
 
 <ul>
-  <li>Prepare tests for the classes BoardUtils and BoardFactoryHolder.</li>
+  <li>Complete tests for the classes BoardUtils and BoardFactoryHolder.</li>
   <li>Substitute System.out statements with a logger in BoardFactoryHolder.</li>
   <li>Complete the hints given by the checkstyle tool (javadocs, and more) on the BitBoard implementation.</li>
   <li>Develop the precompiuting of the flipping using the FILES prepared in BitBoard.</li>
-  <li>Row, Column, Direction, and Square:
-      Notes: (1)  shift(int delta) in Row and Column classes is used just in the neighbor table calculation.
-                  It is a bit ugly.
-             (2a) deltaRow and deltaColumn are int, could be better having an enum Shift UP, NEUTRAL, DOWN...?
-             (2b) shift(int delta) method in Row and Column would be transformed accordingly ....</li>
   <li>Prepare a "<i>Literate Paper</i>" that describes the software architecture of the board package.</li>
   <li>Develop JUnit performance testing and reports for different board implementations.
       See: <a href="http://databene.org/contiperf.html" target="_blank">ContiPerf</a>

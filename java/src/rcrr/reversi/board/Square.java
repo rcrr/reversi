@@ -364,8 +364,8 @@ public enum Square {
      *               or {@code null} in case row or column are themself {@code null}
      **/
     public static Square getInstance(final Row row, final Column column) {
-        if (row == null || column == null) {
-            return null;
+        if (row == Row.NULL || column == Column.NULL) {
+            return Square.NULL;
         } else {
             return Square.values()[Row.values().length * row.ordinal() + column.ordinal()];
         }
@@ -377,16 +377,17 @@ public enum Square {
      * @return the neighbor table
      */
     private static Map<Square, Map<Direction, Square>> neighborTable() {
-        final Map<Square, Map<Direction, Square>> nt = new EnumMap<Square, Map<Direction, Square>>(Square.class);
+        final Map<Square, Map<Direction, Square>> neighborTable = new EnumMap<Square, Map<Direction, Square>>(Square.class);
         for (Square sq : values()) {
             final Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
             for (final Direction dir : Direction.values()) {
-                final Square n = getInstance(sq.row().shift(dir.deltaRow()), sq.column().shift(dir.deltaColumn()));
-                snt.put(dir, n);
+                final Square neighbor = getInstance(sq.row().shift(dir.deltaRow()),
+                                                    sq.column().shift(dir.deltaColumn()));
+                snt.put(dir, neighbor);
             }
-            nt.put(sq, Collections.unmodifiableMap(snt));
+            neighborTable.put(sq, Collections.unmodifiableMap(snt));
         }
-        return Collections.unmodifiableMap(nt);
+        return Collections.unmodifiableMap(neighborTable);
     }
 
     /**
