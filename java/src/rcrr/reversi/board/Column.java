@@ -26,6 +26,12 @@ package rcrr.reversi.board;
 
 /**
  * The {@code Column} enum defines a column of the board game.
+ * <p>
+ * The column and row enums share the same structure and method implementation.
+ * It is handy to have the enum's value as literals, this justify the duplication in the code.
+ * A different approach would be to have an abstract common anchestor, than the row and column
+ * abstract classes, and then one class for each enum value, way too mutch for removing a so
+ * small dode smell.
  */
 public enum Column {
     /**
@@ -65,7 +71,7 @@ public enum Column {
     public static final Column NULL = null;
 
     /** The number of columns. */
-    public static final int SIZE = 8;
+    private static final int SIZE = values().length;
 
     /** The column label. */
     private final String label;
@@ -103,7 +109,7 @@ public enum Column {
     Column shift(final int delta) {
         Column c;
         int index = ordinal() + delta;
-        if (index < 0 || index >= Column.values().length) {
+        if (index < 0 || index >= SIZE) {
             c = Column.NULL;
         } else {
             c = values()[index];

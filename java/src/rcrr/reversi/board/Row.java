@@ -24,10 +24,12 @@
 
 package rcrr.reversi.board;
 
+import java.io.Serializable;
+
 /**
  * The {@code Row} enum defines a row of the board game.
  */
-public enum Row {
+public enum Row implements Serializable {
     /**
      * First row.
      */
@@ -65,7 +67,7 @@ public enum Row {
     public static final Row NULL = null;
 
     /** The number of rows. */
-    public static final int SIZE = 8;
+    private static final int SIZE = values().length;
 
     /** The row label. */
     private final String label;
@@ -103,7 +105,7 @@ public enum Row {
     Row shift(final int delta) {
         Row r;
         int index = ordinal() + delta;
-        if (index < 0 || index >= Row.values().length) {
+        if (index < 0 || index >= SIZE) {
             r = Row.NULL;
         } else {
             r = values()[index];
