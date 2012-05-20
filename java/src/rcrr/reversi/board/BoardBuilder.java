@@ -84,7 +84,6 @@ public final class BoardBuilder {
      * @return the board instance as prepared by the current board's builder
      */
     public synchronized Board build() {
-        //return EnumMapBoard.valueOf(squares);
         return BoardFactoryHolder.getInstance().boardFactory().valueOf(squares);
     }
 
@@ -127,9 +126,8 @@ public final class BoardBuilder {
      *  <li>0 --> EMPTY</li>
      *  <li>1 --> BLACK</li>
      *  <li>2 --> WHITE</li>
-     *  <li>3 --> OUTER</li>
      * </ul>
-     * Values less than zero or greater than three are not allowed.
+     * Values less than zero or greater than two are not allowed.
      * <p>
      * The {@code squaresLiteral} parameter cannot be null.
      * The {@code squaresLiteral} lenght must be equal to the number of
@@ -138,6 +136,9 @@ public final class BoardBuilder {
      * @param squaresLiteral a literal representation of the board
      *                       described by a variable length integer values
      * @return               the {@code this} reference
+     * @throws NullPointerException     if parameter {@code squaresLiteral} is null
+     * @throws IllegalArgumentException if parameter {@code squaresLiteral} has a size different from 64
+     * @throws IllegalArgumentException if parameter {@code squaresLiteral} contains unexpected values
      */
     public BoardBuilder withSquaresLiteral(final Integer... squaresLiteral) {
         if (squaresLiteral == null) {
@@ -150,7 +151,7 @@ public final class BoardBuilder {
         for (int index = 0; index < Square.values().length; index++) {
             final Integer integerSquareState = squaresLiteral[index];
             SquareState squareState = null;
-            if (integerSquareState == null || integerSquareState < EMPTY || integerSquareState > OUTER) {
+            if (integerSquareState == null || integerSquareState < EMPTY || integerSquareState > WHITE) {
                 throw new IllegalArgumentException("Parameter squaresLiteral contains a wrong value.");
             } else if (integerSquareState == EMPTY) {
                 squareState = SquareState.EMPTY;
@@ -158,8 +159,6 @@ public final class BoardBuilder {
                 squareState = SquareState.BLACK;
             } else if (integerSquareState == WHITE) {
                 squareState = SquareState.WHITE;
-            } else if (integerSquareState == OUTER) {
-                squareState = SquareState.OUTER;
             }
             transientSquares.put(Square.values()[index], squareState);
         }
@@ -170,12 +169,18 @@ public final class BoardBuilder {
     /**
      * Returns the {@code this} reference after setting the new {@code squareState}
      * value to the {@code square} entry.
+     * <p>
+     * Parameter {@code square} cannot be {@code null}.
+     * Parameter {@code squareState} cannot be {@code null}.
      *
      * @param square      the board's square
      * @param squareState the board's square assigned state
      * @return            the {@code this} reference
+     * @throws NullPointerException if parameter {@code squares} or parameter {@code squareState} is null
      */
     public BoardBuilder withSquare(final Square square, final SquareState squareState) {
+        if (square == null) { throw new NullPointerException("Parameter square cannot be null."); }
+        if (squareState == null) { throw new NullPointerException("Parameter squareState cannot be null."); }
         put(square, squareState);
         return this;
     }
@@ -186,8 +191,13 @@ public final class BoardBuilder {
      *
      * @param squares the board squares' map
      * @return        the {@code this} reference
+     * @throws NullPointerException     if parameter {@code squares} is null
+     * @throws NullPointerException     if parameter {@code squares} contains null keys
+     * @throws NullPointerException     if parameter {@code squares} contains null values
+     * @throws IllegalArgumentException if the {@code squares} is not complete
      */
     public BoardBuilder withSquares(final Map<Square, SquareState> squares) {
+        BoardUtils.checkForConsistencyTheSquareMap(squares);
         setSquares(squares);
         return this;
     }

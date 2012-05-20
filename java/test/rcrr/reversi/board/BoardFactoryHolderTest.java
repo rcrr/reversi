@@ -26,9 +26,11 @@ package rcrr.reversi.board;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
 /**
  * Test Suite for {@code BoardFactoryHolder} class.
@@ -39,14 +41,42 @@ public class BoardFactoryHolderTest {
     public BoardFactoryHolderTest() { }
 
     /**
-     * Tests the {@code dummy()} method.
+     * Tests the {@code getInstance()} method.
      *
-     * @see BoardFActoryHolder#dummy()
+     * @see BoardFactoryHolder#getInstance()
      */
     @Test
-    public final void testDummy() {
-        assertThat("Test message ...",
-                     true,
+    public final void testGetInstance() {
+        assertThat("The method getInstance() has to return the proper class.",
+                   BoardFactoryHolder.getInstance(),
+                   instanceOf(BoardFactoryHolder.class));
+
+        assertEquals("Calling twice the method it has to return the same reference.",
+                     BoardFactoryHolder.getInstance(),
+                     BoardFactoryHolder.getInstance());
+    }
+
+    /**
+     * Tests the {@code setBoardFactory(BoardFactory)} method.
+     *
+     * @see BoardFactoryHolder#setBoardFactory(BoardFactory)
+     */
+    @Test
+    public final void testSetBoardFactory_hasToBeDeveloped() {
+        assertThat("The test has to be developed.",
+                   true,
+                   is(true));
+    }
+
+    /**
+     * Tests the {@code boardFactory()} method.
+     *
+     * @see BoardFactoryHolder#boardFactory()
+     */
+    @Test
+    public final void testBoardFactory_hasToBeDeveloped() {
+        assertThat("The test has to be developed.",
+                   true,
                    is(true));
     }
 
