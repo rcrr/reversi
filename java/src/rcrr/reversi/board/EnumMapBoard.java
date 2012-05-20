@@ -61,18 +61,7 @@ public final class EnumMapBoard extends AbstractBoard {
      * @throws IllegalArgumentException if the {@code squares} is not complete
      */
     static Board valueOf(final Map<Square, SquareState> squares) {
-        if (squares == null) { throw new NullPointerException("Parameter squares cannot be null."); }
-        if (squares.size() != Square.values().length) {
-            throw new IllegalArgumentException("Parameter squares size is not consistent."
-                                               + " squares.size()=" + squares.size()
-                                               + " expected value: " + Square.values().length);
-        }
-        if (squares.containsKey(null)) {
-            throw new NullPointerException("Parameter squares cannot have null keys. squares=" + squares);
-        }
-        if (squares.containsValue(null)) {
-            throw new NullPointerException("Parameter squares cannot have null values. squares=" + squares);
-        }
+        BoardUtils.checkForConsistencyTheSquareMap(squares);
         return new EnumMapBoard(squares);
     }
 
