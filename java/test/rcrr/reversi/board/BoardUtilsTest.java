@@ -24,6 +24,10 @@
 
 package rcrr.reversi.board;
 
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
@@ -39,15 +43,64 @@ public class BoardUtilsTest {
     public BoardUtilsTest() { }
 
     /**
-     * Tests the {@code dummy()} method.
+     * Test the {@code checkForConsistencyTheSquareMap(Map<Square, SquareState)} method.
+     * <p>
+     * The method receives the {@code squares} parameter, it cannot contains null values.
      *
-     * @see BoardUtils#dummy()
+     * @see BoardUtils#checkForConsistencyTheSquareMap(Map)
      */
-    @Test
-    public final void testDummy() {
-        assertThat("Test message ...",
-                     true,
-                   is(true));
+    @Test(expected = NullPointerException.class)
+    public final void testCheckForConsistencyTheSquareMap_squaresMustNotContainNullValues() {
+        final Map<Square, SquareState> corruptedSquares = new HashMap<Square, SquareState>();
+        for (Square sq : Square.values()) {
+            corruptedSquares.put(sq, BoardFixtures.INITIAL.get(sq));
+        }
+        corruptedSquares.put(Square.B3, SquareState.NULL);
+        BoardUtils.checkForConsistencyTheSquareMap(corruptedSquares);
+    }
+
+
+    /**
+     * Test the {@code checkForConsistencyTheSquareMap(Map<Square, SquareState)} method.
+     * <p>
+     * The method receives the {@code squares} parameter, it cannot contains null keys.
+     *
+     * @see BoardUtils#checkForConsistencyTheSquareMap(Map)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_squaresMustNotContainNullKeys() {
+        final Map<Square, SquareState> corruptedSquares = new HashMap<Square, SquareState>();
+        for (Square sq : Square.values()) {
+            corruptedSquares.put(sq, BoardFixtures.INITIAL.get(sq));
+        }
+        corruptedSquares.remove(Square.H8);
+        corruptedSquares.put(Square.NULL, SquareState.EMPTY);
+        BoardUtils.checkForConsistencyTheSquareMap(corruptedSquares);
+    }
+
+    /**
+     * Tests the {@code checkForConsistencyTheSquareMap(Map<Square, SquareState)} method when parameter
+     * {@code squares} is {@code null}.
+     *
+     * @see BoardUtils#checkForConsistencyTheSquareMap(Map)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testValueOf_boundaryConditions_checkNullParameter_squares() {
+        Map<Square, SquareState> nullSquares = null;
+        BoardUtils.checkForConsistencyTheSquareMap(nullSquares);
+    }
+
+    /**
+     * Tests the {@code checkForConsistencyTheSquareMap(Map<Square, SquareState)} method when parameter
+     * {@code squares} is missing one or more key.
+     *
+     * @see BoardUtils#checkForConsistencyTheSquareMap(Map)
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public final void testValueOf_boundaryConditions_checkMissingKey_squares() {
+        Map<Square, SquareState> incompleteSquares = new EnumMap<Square, SquareState>(Square.class);
+        incompleteSquares.put(Square.A1, SquareState.EMPTY);
+        BoardUtils.checkForConsistencyTheSquareMap(incompleteSquares);
     }
 
 }

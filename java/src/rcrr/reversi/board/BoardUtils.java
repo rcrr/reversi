@@ -131,6 +131,30 @@ final class BoardUtils {
         return squares;
     }
 
+    /**
+     * Checks for consistency the {@code squares} parameter.
+     *
+     * @param squares the map having a square state for each board cell
+     * @throws NullPointerException     if parameter {@code squares} is null, or
+     *                                  if it contains null keys, or
+     *                                  if it contains null values
+     * @throws IllegalArgumentException if the {@code squares} is not complete
+     */
+    protected static void checkForConsistencyTheSquareMap(final Map<Square, SquareState> squares) {
+        if (squares == null) { throw new NullPointerException("Parameter squares cannot be null."); }
+        if (squares.size() != Square.values().length) {
+            throw new IllegalArgumentException("Parameter squares size is not consistent."
+                                               + " squares.size()=" + squares.size()
+                                               + " expected value: " + Square.values().length);
+        }
+        if (squares.containsKey(null)) {
+            throw new NullPointerException("Parameter squares cannot have null keys. squares=" + squares);
+        }
+        if (squares.containsValue(null)) {
+            throw new NullPointerException("Parameter squares cannot have null values. squares=" + squares);
+        }
+    }
+
     /** Class constructor. */
     private BoardUtils() { }
 

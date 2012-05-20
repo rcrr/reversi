@@ -30,23 +30,9 @@ To do:
 <p>
 
 <ul>
-  <li>Verify that tests are placed in the right file.</li>
-  <li>Prepare tests for the new classes (BoardBuilder, BoardFactoryHolder, ...).</li>
-
--rw-r--r-- 1 rcrr rcrr  1491 2012-05-19 13:30 BoardBuilderTest.java
--rw-r--r-- 1 rcrr rcrr  1521 2012-05-19 13:31 BoardFactoryHolderTest.java
--rw-r--r-- 1 rcrr rcrr  1481 2012-05-19 12:43 BoardUtilsTest.java
--rw-r--r-- 1 rcrr rcrr  4989 2012-05-12 15:48 DirectionTest.java
--rw-r--r-- 1 rcrr rcrr  3026 2012-05-12 15:48 PlayerTest.java
-
--rw-r--r-- 1 rcrr rcrr  7078 2012-05-14 19:59 BoardBuilder.java
--rw-r--r-- 1 rcrr rcrr  5060 2012-05-16 07:30 BoardFactoryHolder.java
--rw-r--r-- 1 rcrr rcrr  5141 2012-05-15 07:47 BoardUtils.java
--rw-r--r-- 1 rcrr rcrr  4246 2012-05-12 12:45 Direction.java
--rw-r--r-- 1 rcrr rcrr  2708 2012-05-12 13:21 Player.java
-
-
-  <li>Complete the hints given by the checkstyle tool (javadocs, and more).</li>
+  <li>Prepare tests for the classes BoardUtils and BoardFactoryHolder.</li>
+  <li>Substitute System.out statements with a logger in BoardFactoryHolder.</li>
+  <li>Complete the hints given by the checkstyle tool (javadocs, and more) on the BitBoard implementation.</li>
   <li>Develop the precompiuting of the flipping using the FILES prepared in BitBoard.</li>
   <li>Row, Column, Direction, and Square:
       Notes: (1)  shift(int delta) in Row and Column classes is used just in the neighbor table calculation.
