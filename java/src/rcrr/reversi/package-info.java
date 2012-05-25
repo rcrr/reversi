@@ -31,7 +31,6 @@ To do:
 <ul>
   <li>Reversi.reversiSeries and Reversi.roundRobin should write results to a binary/ascii file
       during execution of each game. A post processor has to be developed.</li>
-  <li>Some methods receive as parameters the board and the player. Replace them with a GamePosition.</li>
   <li>Verify that all the factories that receive a mutable object make the appropriate defensive copy.</li>
   <li>The actor that share the strategy by means of the strategy() method is not safe.
       The client can get a reference of the strategy object and modify it. It is better to
@@ -42,11 +41,11 @@ To do:
   <li>Prepare some tests (ReversiTest suite) that repeat selected tests but print the game to a file.
       Some part of the Game class are used only when the PrintStream ps field is not null.</li>
   <li>Prepare a "<i>Literate Paper</i>" that describes the software architecture of the java version.</li>
-  <li>Replace Ant with Maven.</li>
+  <li>Refactor the Ant script, or replace Ant with Maven.</li>
   <li>Develop JUnit performance testing and reports.
       See: <a href="http://databene.org/contiperf.html" target="_blank">ContiPerf</a>
       See: <a href="http://perf4j.codehaus.org/" target="_blank">Perf4J</a></li>
-  <li>A simple Java SWING front end is ready. A complete refactor is needed.
+  <li>A simple Java SWING front end is ready. A complete refactor is needed.</li>
   <li>Which practice is best when it comes to write unit test for UI?
       After a brief search on google the best so far tool to investigate
       on is UISpec4J.
@@ -62,6 +61,8 @@ To do:
       See: <a href="http://xmpp.org/" target="_blank">XMPP Standards Foundation</a>
       See: <a href="http://www.igniterealtime.org/projects/openfire/index.jsp" target="_blank">Openfire</a></li>
   <li>Develop a concurrent search algorithm.</li>
+  <li>Try the eclipse coverage tool.
+      See: <a href="http://www.eclemma.org/jacoco/" target="_blank">JaCoCo</a></li>
 </ul>
 
 <p>

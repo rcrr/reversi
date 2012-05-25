@@ -1,7 +1,7 @@
 /*
  *  Square.java
  *
- *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -377,7 +377,8 @@ public enum Square {
      * @return the neighbor table
      */
     private static Map<Square, Map<Direction, Square>> neighborTable() {
-        final Map<Square, Map<Direction, Square>> neighborTable = new EnumMap<Square, Map<Direction, Square>>(Square.class);
+        final Map<Square, Map<Direction, Square>> neighborTable
+            = new EnumMap<Square, Map<Direction, Square>>(Square.class);
         for (Square sq : values()) {
             final Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
             for (final Direction dir : Direction.values()) {
