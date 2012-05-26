@@ -65,12 +65,21 @@ public class RandomBoardList {
     }
 
     public static List<Square> randomSquares(final int numberOfSquares) {
-        Random r = new Random();
-        List<Square> squares = new ArrayList<Square>(numberOfSquares);
+        final Random r = new Random();
+        final List<Square> squares = new ArrayList<Square>(numberOfSquares);
         while (squares.size() < numberOfSquares) {
             squares.add(Square.values()[r.nextInt(64)]);
         }
         return Collections.unmodifiableList(squares);
+    }
+
+    public static List<Player> randomPlayers(final int numberOfPlayers) {
+        final Random r = new Random();
+        final List<Player> players = new ArrayList<Player>(numberOfPlayers);
+        while (players.size() < numberOfPlayers) {
+            players.add(Player.values()[r.nextInt(2)]);
+        }
+        return Collections.unmodifiableList(players);
     }
 
     public List<Board> boards() {
