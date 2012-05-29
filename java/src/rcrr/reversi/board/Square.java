@@ -295,10 +295,18 @@ public enum Square {
     /** The capable to flip direction table. */
     private static final Map<Square, List<Direction>> CAPABLE_TO_FLIP_DIRECTION_TABLE = capableToFlipDirectionTable();
 
+    /** The square assignment to column table. */
+    static final Map<Column, List<Square>> SQUARE_ASSIGNMENT_TO_COLUMN_TABLE = squareAssignmentToColumnTable();
+
+    /** The square assignment to row table. */
+    static final Map<Row, List<Square>> SQUARE_ASSIGNMENT_TO_ROW_TABLE = squareAssignmentToRowTable();
+
     /**
      * Static initialization block:
      * . - sets and initializes {@code LABELS} map
      * . - sets and initializes {@code INVERSE_LABELS} map
+     * . - sets and initializes {@code CORNER_TO_X_SQUARE_MAP} map
+     * . - sets and initializes {@code X_SQUARE_TO_CORNER_MAP} map
      */
     static {
         final Map<Square, String> labelMap = new EnumMap<Square, String>(Square.class);
@@ -389,6 +397,46 @@ public enum Square {
             neighborTable.put(sq, Collections.unmodifiableMap(snt));
         }
         return Collections.unmodifiableMap(neighborTable);
+    }
+
+    /**
+     * Computes the squareAssignmentTable for columns.
+     *
+     * @return the square assignment table
+     */
+    private static final Map<Column, List<Square>> squareAssignmentToColumnTable() {
+        final Map<Column, List<Square>> squareAssignmentTable
+            = new EnumMap<Column, List<Square>>(Column.class);
+        for (final Column c : Column.values()) {
+            final List<Square> squares = new ArrayList<Square>();
+            for (final Square sq : Square.values()) {
+                if (sq.column() == c) {
+                    squares.add(sq);
+                }
+            }
+            squareAssignmentTable.put(c, Collections.unmodifiableList(squares));
+        }
+        return Collections.unmodifiableMap(squareAssignmentTable);
+    }
+
+    /**
+     * Computes the squareAssignmentTable for rows.
+     *
+     * @return the square assignment table
+     */
+    private static final Map<Row, List<Square>> squareAssignmentToRowTable() {
+        final Map<Row, List<Square>> squareAssignmentTable
+            = new EnumMap<Row, List<Square>>(Row.class);
+        for (final Row r : Row.values()) {
+            final List<Square> squares = new ArrayList<Square>();
+            for (final Square sq : Square.values()) {
+                if (sq.row() == r) {
+                    squares.add(sq);
+                }
+            }
+            squareAssignmentTable.put(r, Collections.unmodifiableList(squares));
+        }
+        return Collections.unmodifiableMap(squareAssignmentTable);
     }
 
     /**

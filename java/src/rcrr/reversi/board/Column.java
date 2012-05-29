@@ -24,6 +24,12 @@
 
 package rcrr.reversi.board;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.EnumMap;
+import java.util.Collections;
+
 /**
  * The {@code Column} enum defines a column of the board game.
  * <p>
@@ -33,7 +39,7 @@ package rcrr.reversi.board;
  * abstract classes, and then one class for each enum value, way too mutch for removing a so
  * small dode smell.
  */
-public enum Column {
+public enum Column implements File {
     /**
      * First column.
      */
@@ -115,6 +121,14 @@ public enum Column {
             c = values()[index];
         }
         return c;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Square> squares() {
+        return Square.SQUARE_ASSIGNMENT_TO_COLUMN_TABLE.get(this);
     }
 
 }
