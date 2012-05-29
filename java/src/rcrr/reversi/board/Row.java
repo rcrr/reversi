@@ -24,12 +24,13 @@
 
 package rcrr.reversi.board;
 
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The {@code Row} enum defines a row of the board game.
  */
-public enum Row implements Serializable {
+public enum Row implements File {
     /**
      * First row.
      */
@@ -111,6 +112,14 @@ public enum Row implements Serializable {
             r = values()[index];
         }
         return r;
+    } 
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Square> squares() {
+        return Square.SQUARE_ASSIGNMENT_TO_ROW_TABLE.get(this);
     }
 
 }

@@ -28,6 +28,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
 
+import static org.junit.matchers.JUnitMatchers.hasItems;
+
 import static org.hamcrest.CoreMatchers.is;
 
 /**
@@ -48,6 +50,25 @@ public class ColumnTest {
         assertThat("Column.E.label() must return e.",
                    Column.E.label(),
                    is("e"));
+    }
+
+    /**
+     * Tests the {@code squares()} method.
+     *
+     * @see Column#squares()
+     */
+    @Test
+    public final void testSquares() {
+        assertThat("Column.E.squares() must return squares from E1 to E8.",
+                   Column.E.squares(),
+                   hasItems(Square.E1,
+                            Square.E2,
+                            Square.E3,
+                            Square.E4,
+                            Square.E5,
+                            Square.E6,
+                            Square.E7,
+                            Square.E8));
     }
 
     /**
