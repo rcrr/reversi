@@ -90,21 +90,25 @@ public enum Row implements File {
     public String label() { return label; }
 
     /**
-     * Returns the row obtained moving by a {@code delta} number of shift, counted with the proper sign.
-     * Returns {@code null} if the shift leads outside the row boundaries.
-     * For instance:
-     * <pre>
-     * {@code
-     * Row r0 = Row.R3;
-     * Row r1 =r0.shift(+1); // r1 is equal to R4
-     * }
-     * </pre>
+     * Returns the row obtained moving in the direction defined by the {@code dir} parameter.
+     * Returns {@code null} if the neighbor leads outside the row boundaries.
      *
-     * @param delta the amount to shift
-     * @return      the row identified by the delta shift
+     * @param dir the direction to look to
+     * @return    the neighbor row identified by the dir
      */
-    Row shift(final int delta) {
+    Row neighbor(final Direction dir) {
         Row r;
+        int delta = 0;
+        switch (dir.axis()) {
+        case HORIZONTAL:
+            break;
+        case VERTICAL:
+        case DIAGONAL_LR:
+        case DIAGONAL_RL:
+            delta = (dir.versus() == Versus.POSITIVE) ? 1 : -1;
+            break;
+        default: throw new RuntimeException("Switch case not provided. dir.axis()=" + dir.axis());
+        }
         int index = ordinal() + delta;
         if (index < 0 || index >= SIZE) {
             r = Row.NULL;
@@ -112,7 +116,7 @@ public enum Row implements File {
             r = values()[index];
         }
         return r;
-    } 
+    }
 
     /**
      * {@inheritDoc}

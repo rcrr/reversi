@@ -72,45 +72,37 @@ public class RowTest {
     }
 
     /**
-     * Tests the {@code shift(int)} method.
+     * Tests the {@code neighbor(Direction)} method.
      *
-     * @see Row#shift(int)
+     * @see Row#neighbor(Direction)
      */
     @Test
-    public final void testShift() {
-        assertThat("Row.R2.shift(1) must be Row.R3.",
-                   Row.R2.shift(1),
-                   is(Row.R3));
-        assertThat("Row.R2.shift(2) must be Row.R4.",
-                   Row.R2.shift(2),
-                   is(Row.R4));
-        assertThat("Row.R2.shift(6) must be Row.R8.",
-                   Row.R2.shift(6),
-                   is(Row.R8));
-        assertThat("Row.R2.shift(7) must be Row.NULL.",
-                   Row.R2.shift(7),
-                   is(Row.NULL));
-        assertThat("Row.R2.shift(-2) must be Row.NULL.",
-                   Row.R2.shift(-2),
-                   is(Row.NULL));
-        assertThat("Row.R1.shift(-1) must be Row.NULL.",
-                   Row.R1.shift(-1),
-                   is(Row.NULL));
-        assertThat("Row.R1.shift(0) must be Row.R1.",
-                   Row.R1.shift(0),
+    public final void testNeighbor() {
+        assertThat("Row.R1.neighbor(Direction.W) must return Row.R1",
+                   Row.R1.neighbor(Direction.W),
                    is(Row.R1));
-        assertThat("Row.R1.shift(+1) must be Row.R2.",
-                   Row.R1.shift(+1),
-                   is(Row.R2));
-        assertThat("Row.R8.shift(-1) must be Row.R7.",
-                   Row.R8.shift(-1),
+        assertThat("Row.R1.neighbor(Direction.E) must return Row.R1.",
+                   Row.R1.neighbor(Direction.E),
+                   is(Row.R1));
+        assertThat("Row.R5.neighbor(Direction.SW) must return Row.R6.",
+                   Row.R5.neighbor(Direction.SW),
+                   is(Row.R6));
+        assertThat("Row.R5.neighbor(Direction.NE) must return Row.R4.",
+                   Row.R5.neighbor(Direction.NE),
+                   is(Row.R4));
+        assertThat("Row.R8.neighbor(Direction.NW) must return Row.R7.",
+                   Row.R8.neighbor(Direction.NW),
                    is(Row.R7));
-        assertThat("Row.R8.shift(0) must be Row.R8.",
-                   Row.R8.shift(0),
-                   is(Row.R8));
-        assertThat("Row.R8.shift(+1) must be Row.NULL.",
-                   Row.R8.shift(+1),
+        assertThat("Row.R8.neighbor(Direction.N) must return Row.R7.",
+                   Row.R8.neighbor(Direction.N),
+                   is(Row.R7));
+        assertThat("Row.R8.neighbor(Direction.S) must return Row.NULL.",
+                   Row.R8.neighbor(Direction.S),
                    is(Row.NULL));
+        assertThat("Row.R8.neighbor(Direction.E) must return Row.R8.",
+                   Row.R8.neighbor(Direction.E),
+                   is(Row.R8));
     }
+
 
 }

@@ -72,41 +72,35 @@ public class ColumnTest {
     }
 
     /**
-     * Tests the {@code shift(int)} method.
+     * Tests the {@code neighbor(Direction)} method.
      *
-     * @see Column#shift(int)
+     * @see Column#neighbor(Direction)
      */
     @Test
-    public final void testShift() {
-        assertThat("Column.A.shift(-1) must return Column.NULL.",
-                   Column.A.shift(-1),
+    public final void testNeighbor() {
+        assertThat("Column.A.neighbor(Direction.W) must return Column.NULL.",
+                   Column.A.neighbor(Direction.W),
                    is(Column.NULL));
-        assertThat("Column.A.shift(0) must return Column.A.",
-                   Column.A.shift(0),
-                   is(Column.A));
-        assertThat("Column.A.shift(+1) must return Column.B.",
-                   Column.A.shift(+1),
+        assertThat("Column.A.neighbor(Direction.E) must return Column.B.",
+                   Column.A.neighbor(Direction.E),
                    is(Column.B));
-        assertThat("Column.E.shift(-1) must return Column.D.",
-                   Column.E.shift(-1),
+        assertThat("Column.E.neighbor(Direction.SW) must return Column.D.",
+                   Column.E.neighbor(Direction.SW),
                    is(Column.D));
-        assertThat("Column.E.shift(0) must return Column.E.",
-                   Column.E.shift(0),
-                   is(Column.E));
-        assertThat("Column.E.shift(+1) must return Column.F.",
-                   Column.E.shift(+1),
+        assertThat("Column.E.neighbor(Direction.NE) must return Column.F.",
+                   Column.E.neighbor(Direction.NE),
                    is(Column.F));
-        assertThat("Column.H.shift(-1) must return Column.G.",
-                   Column.H.shift(-1),
+        assertThat("Column.H.neighbor(Direction.NW) must return Column.G.",
+                   Column.H.neighbor(Direction.NW),
                    is(Column.G));
-        assertThat("Column.H.shift(0) must return Column.H.",
-                   Column.H.shift(0),
+        assertThat("Column.H.neighbor(Direction.N) must return Column.G.",
+                   Column.H.neighbor(Direction.N),
                    is(Column.H));
-        assertThat("Column.H.shift(+1) must return Column.NULL.",
-                   Column.H.shift(+1),
-                   is(Column.NULL));
-        assertThat("Column.D.shift(+10) must return Column.NULL.",
-                   Column.D.shift(+10),
+        assertThat("Column.H.neighbor(Direction.S) must return Column.G.",
+                   Column.H.neighbor(Direction.S),
+                   is(Column.H));
+        assertThat("Column.H.neighbor(Direction.E) must return Column.NULL.",
+                   Column.H.neighbor(Direction.E),
                    is(Column.NULL));
     }
 
