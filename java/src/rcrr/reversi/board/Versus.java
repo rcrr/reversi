@@ -1,7 +1,7 @@
 /*
- *  DirectionTest.java
+ *  Versus.java
  *
- *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -24,37 +24,22 @@
 
 package rcrr.reversi.board;
 
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
-
-import static org.hamcrest.CoreMatchers.is;
-
 /**
- * Test Suite for {@code Direction} enum.
+ * The versus assigned to an axis gives a direction.
  */
-public class DirectionTest {
-
-    /** Class constructor. */
-    public DirectionTest() { }
+public enum Versus {
+    /**
+     * Positive versus.
+     */
+    POSITIVE,
+    /**
+     * Negative versus.
+     */
+    NEGATIVE;
 
     /**
-     * Tests the {@code versus()} method.
+     * Enum constructor.
      */
-    @Test
-    public final void testVersus() {
-        assertThat("Direction.N.versus() must return Versus.NEGATIVE.",
-                   Direction.N.versus(),
-                   is(Versus.NEGATIVE));
-    }
-
-    /**
-     * Tests the {@code axis()} method.
-     */
-    @Test
-    public final void testAxis() {
-        assertThat("Direction.N.deltaRow() must return Axis.VERTICAL.",
-                   Direction.N.axis(),
-                   is(Axis.VERTICAL));
-    }
+    private Versus() { }
 
 }

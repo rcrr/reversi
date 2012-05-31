@@ -1,7 +1,7 @@
 /*
  *  Direction.java
  *
- *  Copyright (c) 2010 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -48,102 +48,69 @@ public enum Direction {
     /**
      * North-West direction.
      */
-    NW(-1, -1, "North-West"),
+    NW(Axis.DIAGONAL_LR, Versus.NEGATIVE),
     /**
      * North direction.
      */
-    N(-1, 0, "North"),
+    N(Axis.VERTICAL, Versus.NEGATIVE),
     /**
      * North-East direction.
      */
-    NE(-1, +1, "North-East"),
+    NE(Axis.DIAGONAL_RL, Versus.NEGATIVE),
     /**
      * West direction.
      */
-    W(0, -1, "West"),
+    W(Axis.HORIZONTAL, Versus.NEGATIVE),
     /**
      * East direction.
      */
-    E(0, +1, "East"),
+    E(Axis.HORIZONTAL, Versus.POSITIVE),
     /**
      * South-West direction.
      */
-    SW(+1, -1, "South-West"),
+    SW(Axis.DIAGONAL_RL, Versus.POSITIVE),
     /**
      * South direction.
      */
-    S(+1, 0, "South"),
+    S(Axis.VERTICAL, Versus.POSITIVE),
     /**
      * South-East direction.
      */
-    SE(+1, +1, "South-East");
+    SE(Axis.DIAGONAL_LR, Versus.POSITIVE);
 
-    /** deltaRow field. */
-    private final int deltaRow;
+    /** axis field. */
+    private final Axis axis;
 
-    /** deltaColumn field. */
-    private final int deltaColumn;
-
-    /** description field. */
-    private final String description;
+    /** versus field. */
+    private final Versus versus;
 
     /**
      * Enum constructor.
      *
-     * @param deltaRow    the shift to apply to rows
-     * @param deltaColumn the shift to apply to columns
-     * @param description the direction's description
+     * @param axis        the axis that the direction belongs to
+     * @param versus      the versus that identifies the direction
      */
-    private Direction(final int deltaRow, final int deltaColumn, final String description) {
-        this.deltaRow = deltaRow;
-        this.deltaColumn = deltaColumn;
-        this.description = description;
+    private Direction(final Axis axis, final Versus versus) {
+        this.axis = axis;
+        this.versus = versus;
     }
 
     /**
-     * Returns an {@code int} value that quantify the row shift associated with the direction.
-     * The return can have three values:
-     * <pre>
-     * {@code
-     * -1 // stands for "go back one row"
-     *  0 // stands for "stay on the same row"
-     * +1 // stands for "go to the next row"
-     * }
-     * </pre>
-     * The value can then be used as the navigation unit between adiacent columns.
+     * Returns the axis associated with the direction.
      *
-     * @return the delta value to apply as the shift go obtain the target column
+     * @return the axis of the direction
      *
-     * @see Row
+     * @see Axis
      */
-    public int deltaRow() { return deltaRow; }
+    public Axis axis() { return axis; }
 
     /**
-     * Returns an {@code int} value that quantify the column shift associated with the direction.
-     * The return can have three values:
-     * <pre>
-     * {@code
-     * -1 // stands for "go back one column"
-     *  0 // stands for "stay on the same column"
-     * +1 // stands for "go to the next column"
-     * }
-     * </pre>
-     * The value can then be used as the navigation unit between adiacent rows.
+     * Returns the versus defined by the direction on the axis associated with it.
      *
-     * @return the delta value to apply as the shift go obtain the target row
+     * @return the versus of the direction
      *
-     * @see Column
+     * @see Versus
      */
-    public int deltaColumn() { return deltaColumn; }
-
-    /**
-     * Returns a {@code String} description for the direction.
-     * <p>
-     * For instance {@code North} for {@code N},
-     * or {@code South-West} for {@code SW}.
-     *
-     * @return the direction's cardinal point
-     */
-    public String description() { return description; }
+    public Versus versus() { return versus; }
 
 }

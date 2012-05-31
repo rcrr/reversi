@@ -390,8 +390,8 @@ public enum Square {
         for (Square sq : values()) {
             final Map<Direction, Square> snt = new EnumMap<Direction, Square>(Direction.class);
             for (final Direction dir : Direction.values()) {
-                final Square neighbor = getInstance(sq.row().shift(dir.deltaRow()),
-                                                    sq.column().shift(dir.deltaColumn()));
+                final Square neighbor = getInstance(sq.row().neighbor(dir),
+                                                     sq.column().neighbor(dir));
                 snt.put(dir, neighbor);
             }
             neighborTable.put(sq, Collections.unmodifiableMap(snt));

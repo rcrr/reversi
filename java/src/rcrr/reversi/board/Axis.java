@@ -1,7 +1,7 @@
 /*
- *  DirectionTest.java
+ *  Axis.java
  *
- *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -24,37 +24,35 @@
 
 package rcrr.reversi.board;
 
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
-
-import static org.hamcrest.CoreMatchers.is;
-
 /**
- * Test Suite for {@code Direction} enum.
+ * The axes are the lines that pass throw a square. A general
+ * square has four axes.
  */
-public class DirectionTest {
-
-    /** Class constructor. */
-    public DirectionTest() { }
+public enum Axis {
 
     /**
-     * Tests the {@code versus()} method.
+     * Horizontal axis (W-E).
      */
-    @Test
-    public final void testVersus() {
-        assertThat("Direction.N.versus() must return Versus.NEGATIVE.",
-                   Direction.N.versus(),
-                   is(Versus.NEGATIVE));
-    }
+    HORIZONTAL,
 
     /**
-     * Tests the {@code axis()} method.
+     * Diagonal left to right axis (NW-SE).
      */
-    @Test
-    public final void testAxis() {
-        assertThat("Direction.N.deltaRow() must return Axis.VERTICAL.",
-                   Direction.N.axis(),
-                   is(Axis.VERTICAL));
-    }
+    DIAGONAL_LR,
+
+    /**
+     * Vertical axis (N-S).
+     */
+    VERTICAL,
+
+    /**
+     * Diagonal right to left axis (NE-SW).
+     */
+    DIAGONAL_RL;
+
+    /**
+     * Enum constructor.
+     */
+    private Axis() { }
 
 }

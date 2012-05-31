@@ -99,21 +99,27 @@ public enum Column implements File {
     public String label() { return label; }
 
     /**
-     * Returns the column obtained moving by a {@code delta} number of shift, counted with the proper sign.
-     * Returns {@code null} if the shift leads outside the column boundaries.
-     * For instance:
-     * <pre>
-     * {@code
-     * Column c0 = Column.A;
-     * Column c1 =c0.shift(+1); // c1 is equal to B
-     * }
-     * </pre>
+     * Returns the column obtained moving in the direction defined by the {@code dir} parameter.
+     * Returns {@code null} if the neighbor leads outside the row boundaries.
      *
-     * @param delta the shift amount
-     * @return      the column identified by the delta shift
+     * @param dir the direction to look to
+     * @return    the neighbor column identified by the dir
      */
-    Column shift(final int delta) {
+    Column neighbor(final Direction dir) {
         Column c;
+        int delta = 0;
+        switch (dir.axis()) {
+        case VERTICAL:
+            break;
+        case HORIZONTAL:
+        case DIAGONAL_LR:
+            delta = (dir.versus() == Versus.POSITIVE) ? 1 : -1;
+            break;
+        case DIAGONAL_RL:
+            delta = (dir.versus() == Versus.POSITIVE) ? -1 : 1;
+            break;
+        default: throw new RuntimeException("Switch case not provided. dir.axis()=" + dir.axis());
+        }
         int index = ordinal() + delta;
         if (index < 0 || index >= SIZE) {
             c = Column.NULL;
