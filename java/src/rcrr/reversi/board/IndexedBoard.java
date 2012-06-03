@@ -1,5 +1,5 @@
 /*
- *  EnumMapBoard.java
+ *  IndexedBoard.java
  *
  *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
@@ -22,12 +22,6 @@
  *  or visit the site <http://www.gnu.org/licenses/>.
  */
 
-/*
- *                                                                                                 1         1         1
- *       1         2         3         4         5         6         7         8         9         0         1         2
- * 456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
- */
-
 package rcrr.reversi.board;
 
 import java.util.ArrayList;
@@ -39,14 +33,14 @@ import java.util.Map;
 /**
  * A board concrete implementation.
  * <p>
- * A {@code EnumMapBoard} object holds the information of the state of each board's square.
+ * A {@code IndexedBoard} object holds the information of the state of each board's square.
  * The board state is kept into a map holding the state of the sixtyfour squares.
  * <p>
- * {@code EnumMapBoard} is immutable.
+ * {@code IndexedBoard} is immutable.
  * <p>
  * @see Square
  */
-public final class EnumMapBoard extends AbstractBoard {
+public final class IndexedBoard extends AbstractBoard {
 
     /**
      * Base static factory for the class.
@@ -62,7 +56,7 @@ public final class EnumMapBoard extends AbstractBoard {
      */
     static Board valueOf(final Map<Square, SquareState> squares) {
         BoardUtils.checkForConsistencyTheSquareMap(squares);
-        return new EnumMapBoard(squares);
+        return new IndexedBoard(squares);
     }
 
     /**
@@ -83,7 +77,7 @@ public final class EnumMapBoard extends AbstractBoard {
      *
      * @param  squares the squares field
      */
-    private EnumMapBoard(final Map<Square, SquareState> squares) {
+    private IndexedBoard(final Map<Square, SquareState> squares) {
         assert (squares != null) : "Parameter squares cannot be null.";
         assert (squares.size() == Square.values().length) : "Parameter squares size is not consistent."
             + " squares.size()=" + squares.size()
@@ -201,6 +195,7 @@ public final class EnumMapBoard extends AbstractBoard {
                                                + move + "> by player<"
                                                + player + "> is illegal.");
         }
+        //final Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(squares);
         final Map<Square, SquareState> sm = squares.clone();
         sm.put(move, player.color());
         for (final Direction dir : move.capableToFlipDirections()) {
