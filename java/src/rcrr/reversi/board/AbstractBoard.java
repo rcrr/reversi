@@ -86,7 +86,7 @@ public abstract class AbstractBoard implements Board {
             if ((bitboard[0] & bitboard[1]) != 0L) {
                 throw new IllegalArgumentException("Class field bitboard has invalid values.");
             }
-            return EnumMapBoard.valueOf(BoardUtils.bitboardToMap(this.bitboard));
+            return BoardFactoryHolder.getInstance().boardFactory().valueOf(BoardUtils.bitboardToMap(this.bitboard));
         }
 
     }
