@@ -313,9 +313,9 @@ public final class BitBoard extends AbstractBoard {
         assert (Long.bitCount(square) == 1) : "Parameter square must have one and only one bit set.";
         int low = 0;
         int high = 64;
-        while (low != high) {
-            int bit = (low + high) >>> 1;
-            long window = square >>> bit;
+        while (true) {
+            final int bit = (low + high) >>> 1;
+            final long window = square >>> bit;
             if (window == 1L) {
                 return bit; // value found
             } else if (window == 0L) {
@@ -324,7 +324,6 @@ public final class BitBoard extends AbstractBoard {
                 low = bit;
             }
         }
-        throw new IllegalArgumentException("Parameter square is invalid.");
     }
 
     static String longToString(final long value) {

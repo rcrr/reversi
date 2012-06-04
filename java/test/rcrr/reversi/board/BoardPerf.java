@@ -136,8 +136,6 @@ public class BoardPerf {
             final List<Square> squares = SQUARES;
             final List<Player> players = PLAYERS;
 
-            System.gc();
-
             final long start = System.nanoTime();
 
             for (int i = 0; i < NUMBER_OF_BOARDS; i++) {
@@ -162,8 +160,6 @@ public class BoardPerf {
         for (BoardFactory bf : BOARD_FACTORIES) {
 
             final List<Board> boards = loadBoardList(bf, getFileName());
-
-            System.gc();
 
             final long start = System.nanoTime();
 
@@ -205,8 +201,6 @@ public class BoardPerf {
                     moves.add(Square.NULL);
                 }
             }
-
-            System.gc();
 
             final long start = System.nanoTime();
 
