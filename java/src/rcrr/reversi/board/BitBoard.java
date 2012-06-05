@@ -65,11 +65,11 @@ public final class BitBoard extends AbstractBoard {
     static final int DIR_SE = +9;
 
     static final int NUMBER_OF_DIRECTIONS = 8;
-    static final int[] DIRECTIONS =  new int [] {DIR_NW, DIR_NN, DIR_NE, DIR_WW, DIR_EE, DIR_SW, DIR_SS, DIR_SE};
+    static final int[] DIRECTIONS = new int [] {DIR_NW, DIR_NN, DIR_NE, DIR_WW, DIR_EE, DIR_SW, DIR_SS, DIR_SE};
     static final int[][] FLIPPING_DIRECTIONS = new int[SQUARE_SIZE][];
 
     /**
-     * Is the number of files that are managed.
+     * It is the number of files that are managed.
      * There are 8 rows, 8 columns, 4 diagonals having 3 cels, 4 ones having 4 cels,
      * another four ones having respectively 4, 6, and 7 cels. Finally there are the two
      * main diagonals. Summing up 8 + 8 + 4 * 5 + 2 = 38.
@@ -399,7 +399,7 @@ public final class BitBoard extends AbstractBoard {
     static final int COL_H = 7;
 
     static boolean squareBelongsToEdge(final int square, final int edge) {
-        assert (Arrays.binarySearch(EDGES, edge) >= 0) : "Argument edge must be contained in the EDGES array";
+        assert (Arrays.binarySearch(EDGES, edge) >= 0) : "Argument edge must be contained in the EDGES array.";
         final int col = squareColumn(square);
         final int row = squareRow(square);
         switch (edge) {
@@ -642,11 +642,8 @@ public final class BitBoard extends AbstractBoard {
     }
 
     private long wouldFlip(final long move, final Player player, final int dir) {
-        assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set";
-        assert (player != null) : "Argument player must be not null";
-        final int intMove = squareIntValue(move);
-        assert (Arrays.binarySearch(FLIPPING_DIRECTIONS[intMove], dir) >= 0)
-            : "Argument dir must be contained in the FLIPPING_DIRECTIONS array.";
+        assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set.";
+        assert (player != null) : "Argument player must be not null.";
         long bracketing = 0L;
         long neighbor = neighbor(move, dir);
         final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
@@ -661,7 +658,7 @@ public final class BitBoard extends AbstractBoard {
     }
 
     private long findBracketingPiece(final long square, final Player player, final int dir) {
-        assert (player != null) : "Argument player must be not null";
+        assert (player != null) : "Argument player must be not null.";
         final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
         final int intOpponent = (intPlayer == BLACK) ? WHITE : BLACK;
         if ((square & bitboard[intPlayer]) != 0L) {
@@ -676,7 +673,7 @@ public final class BitBoard extends AbstractBoard {
     }
 
     static long neighbor(final long square, final int dir) {
-        assert (Long.bitCount(square) == 1) : "Argument square must be have one and only one bit set";
+        assert (Long.bitCount(square) == 1) : "Argument square must have one and only one bit set.";
         final int intSquare = squareIntValue(square);
         long neighbor = 0L;
         if (Arrays.binarySearch(FLIPPING_DIRECTIONS[intSquare], dir) >= 0) {
