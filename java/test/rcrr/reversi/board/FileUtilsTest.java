@@ -1,5 +1,5 @@
 /*
- *  Axis.java
+ *  FileUtilsTest.java
  *
  *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
@@ -24,40 +24,44 @@
 
 package rcrr.reversi.board;
 
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertThat;
+
+import static org.hamcrest.CoreMatchers.is;
+
+import static org.junit.matchers.JUnitMatchers.hasItems;
+
+
 /**
- * The axes are the lines that pass throw a square. A general
- * square has four axes.
+ * Test Suite for {@code FileUtils} class.
  */
-public enum Axis {
+public class FileUtilsTest {
+
+    /** Class constructor. */
+    public FileUtilsTest() { }
 
     /**
-     * Horizontal axis (W-E).
+     * Test the {@code files(Square)} method.
+     * <p>
+     * The method receives the {@code square} parameter, it cannot contains null values.
+     *
+     * @see FileUtils#files(Square)
      */
-    HORIZONTAL(Row.class),
+    @Test
+    public final void testFiles() {
 
-    /**
-     * Diagonal left to right axis (NW-SE).
-     */
-    DIAGONAL_LR(DiagonalLR.class),
+        assertThat("Square A1 is crossed by column A, row, R1, and diagonal left-up to right-down A1_H8.",
+                   FileUtils.files(Square.A1),
+                   hasItems((File) Column.A,
+                            (File) Row.R1,
+                            (File) DiagonalLR.A1_H8));
 
-    /**
-     * Vertical axis (N-S).
-     */
-    VERTICAL(Column.class),
-
-    /**
-     * Diagonal right to left axis (NE-SW).
-     */
-    DIAGONAL_RL(DiagonalRL.class);
-
-    /** The axis relatedEnumFile field. */
-    private final Class relatedEnumFile;
-
-    /**
-     * Enum constructor.
-     */
-    private Axis(final Class relatedEnumFile) {
-        this.relatedEnumFile = relatedEnumFile;
     }
+
 
 }
