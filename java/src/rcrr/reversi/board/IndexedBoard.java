@@ -289,4 +289,14 @@ public final class IndexedBoard extends AbstractBoard {
         return bracketing;
     }
 
+    private void computeIndexes() {
+
+        for (final Square sq : Square.values()) {
+            for (final File file : FileUtils.files(sq)) {
+                ; // add or remove from the index .....
+            }
+        }
+
+    }
+
 }

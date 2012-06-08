@@ -301,6 +301,12 @@ public enum Square {
     /** The square assignment to row table. */
     static final Map<Row, List<Square>> SQUARE_ASSIGNMENT_TO_ROW_TABLE = squareAssignmentToRowTable();
 
+    /** The square assignment to diagonal lr table. */
+    static final Map<Row, List<Square>> SQUARE_ASSIGNMENT_TO_DIAGONAL_LR_TABLE = null;
+
+    /** The square assignment to diagonal rl table. */
+    static final Map<Row, List<Square>> SQUARE_ASSIGNMENT_TO_DIAGONAL_RL_TABLE = null;
+
     /**
      * Static initialization block:
      * . - sets and initializes {@code LABELS} map
