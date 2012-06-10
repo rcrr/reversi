@@ -88,7 +88,7 @@ public enum DiagonalRL implements File {
      H6_F8("H6-F8");
 
     /** The null instance. */
-    public static final DiagonalLR NULL = null;
+    public static final DiagonalRL NULL = null;
 
     /** The number of diagonals. */
     private static final int SIZE = values().length;
