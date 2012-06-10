@@ -292,7 +292,7 @@ public final class IndexedBoard extends AbstractBoard {
     private void computeIndexes() {
 
         for (final Square sq : Square.values()) {
-            for (final File file : FileUtils.files(sq)) {
+            for (final File file : sq.files()) {
                 ; // add or remove from the index .....
             }
         }

@@ -39,20 +39,12 @@ import java.util.Set;
  */
 final class FileUtils {
 
-    private static final Set<Class> FILE_TYPES
-        = Collections.unmodifiableSet(new HashSet<Class>() {{
-                    add(Row.class);
-                    add(Column.class);
-                    // Diagonals have to be added here.
-                }});
-
     private static final List<File> FILES;
-
-    private static final Map<Square, List<File>> FILES_FOR_SQUARE;
 
     static {
         List<File> files = new ArrayList<File>();
-        for (final Class c : FILE_TYPES) {
+        for (final Axis axis : Axis.values()) {
+            final Class c = axis.relatedEnum();
             try {
                 for (final File file : (File[]) c.getEnumConstants()) {
                     files.add(file);
@@ -62,26 +54,10 @@ final class FileUtils {
             }
         }
         FILES = Collections.unmodifiableList(files);
-
-
-        Map<Square, List<File>> filesForSquare = new EnumMap<Square, List<File>>(Square.class);
-        for (final Square sq : Square.values()) {
-            final List<File> filesCrossingTheSquare = new ArrayList<File>();
-            filesCrossingTheSquare.add(Row.R1);
-            filesCrossingTheSquare.add(Column.A);
-            filesCrossingTheSquare.add(DiagonalLR.A1_H8);
-            // ... has to compute the file list
-            filesForSquare.put(sq, Collections.unmodifiableList(filesCrossingTheSquare));
-        }
-        FILES_FOR_SQUARE = Collections.unmodifiableMap(filesForSquare);
     }
 
-    public static final List<File> files(final Square square) {
-        return FILES_FOR_SQUARE.get(square);
-    }
-
-    public static final Set<Class> fileTypes() {
-        return FILE_TYPES;
+    public static final List<File> files() {
+        return FILES;
     }
 
     /** Class constructor. */
