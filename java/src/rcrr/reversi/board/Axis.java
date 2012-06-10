@@ -36,14 +36,14 @@ public enum Axis {
     HORIZONTAL(Row.class),
 
     /**
-     * Diagonal left to right axis (NW-SE).
-     */
-    DIAGONAL_LR(DiagonalLR.class),
-
-    /**
      * Vertical axis (N-S).
      */
     VERTICAL(Column.class),
+
+    /**
+     * Diagonal left to right axis (NW-SE).
+     */
+    DIAGONAL_LR(DiagonalLR.class),
 
     /**
      * Diagonal right to left axis (NE-SW).
@@ -51,13 +51,20 @@ public enum Axis {
     DIAGONAL_RL(DiagonalRL.class);
 
     /** The axis relatedEnumFile field. */
-    private final Class relatedEnumFile;
+    private final Class relatedEnum;
 
     /**
      * Enum constructor.
      */
-    private Axis(final Class relatedEnumFile) {
-        this.relatedEnumFile = relatedEnumFile;
+    private Axis(final Class relatedEnum) {
+        this.relatedEnum = relatedEnum;
     }
+
+    /**
+     * Returns a {@code Class} that represents the axis' releted enum.
+     *
+     * @return the axis' relatedEnum
+     */
+    public Class relatedEnum() { return this.relatedEnum; }
 
 }
