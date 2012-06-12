@@ -26,6 +26,8 @@ package rcrr.reversi.board;
 
 import java.lang.reflect.Method;
 
+import java.math.BigInteger;
+
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Collections;
@@ -41,7 +43,17 @@ final class FileUtils {
 
     private static final List<File> FILES;
 
+    static final int NUMBER_OF_FILES;
+
+    private static final int FILE_MAX_LENGTH = 8;
+
+    static final int[] FILE_INDEX_COEFFICIENT = new int[FILE_MAX_LENGTH];
+
     static {
+
+        /**
+         * Computes the FILE list.
+         */
         List<File> files = new ArrayList<File>();
         for (final Axis axis : Axis.values()) {
             final Class c = axis.relatedEnum();
@@ -54,6 +66,19 @@ final class FileUtils {
             }
         }
         FILES = Collections.unmodifiableList(files);
+
+        /**
+         * Compute the NUMBER_OF_FILES integer;
+         */
+        NUMBER_OF_FILES = FILES.size();
+
+        /**
+         * Computes the FILE_INDEX_COEFFICIENT array.
+         */
+        for (int i = 0; i < FILE_MAX_LENGTH; i++) {
+            FILE_INDEX_COEFFICIENT[i] = BigInteger.valueOf(3).pow(i).intValue();
+        }
+
     }
 
     public static final List<File> files() {
