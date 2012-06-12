@@ -289,14 +289,36 @@ public final class IndexedBoard extends AbstractBoard {
         return bracketing;
     }
 
+
+
+    private transient int[] indexes = new int[FileUtils.NUMBER_OF_FILES];
+
     private void computeIndexes() {
 
+        /**
+         * The call to indexOf(file) has to be avoided registering the values in an appropriate static array once for all.
+         * The switch has to go away. Option one into a call to SquareState.intValue() or in a board "trasformation".
+         *
+         * squarePosition is the index position of the square in the file.
+         */
         for (final Square sq : Square.values()) {
             for (final File file : sq.files()) {
+                final int color;
+                switch (get(sq)) {
+                case EMPTY: color = 0; break;
+                case BLACK: color = 1; break;
+                case WHITE: color = 2; break;
+                case OUTER: color = 3; break;
+                default: throw new RuntimeException("SquareState out of range.");
+                }
+                // Must be taken fron FileUtils appropriate map.
+                int squarePosition = 0;
+                indexes[FileUtils.files().indexOf(file)] += color * FileUtils.FILE_INDEX_COEFFICIENT[squarePosition];
                 ; // add or remove from the index .....
             }
         }
 
     }
+
 
 }
