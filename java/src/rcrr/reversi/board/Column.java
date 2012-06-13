@@ -77,7 +77,7 @@ public enum Column implements File {
     public static final Column NULL = null;
 
     /** The number of columns. */
-    private static final int SIZE = values().length;
+    private static final int NUMBER_OF = values().length;
 
     /** The column label. */
     private final String label;
@@ -121,7 +121,7 @@ public enum Column implements File {
         default: throw new RuntimeException("Switch case not provided. dir.axis()=" + dir.axis());
         }
         int index = ordinal() + delta;
-        if (index < 0 || index >= SIZE) {
+        if (index < 0 || index >= NUMBER_OF) {
             c = Column.NULL;
         } else {
             c = values()[index];

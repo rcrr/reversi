@@ -273,6 +273,9 @@ public enum Square {
     /** A generic square instance. */
     public static final Square AN_INSTANCE = B3;
 
+    /** The number of squares. */
+    public static final int NUMBER_OF = values().length;
+
     /** The list of the four corners. */
     private static final List<Square> CORNERS = Collections.unmodifiableList(Arrays.asList(A1, H1, H8, A8));
 
@@ -300,6 +303,15 @@ public enum Square {
     /** The list of files crossing each square. */
     private static final Map<Square, List<File>> FILES_FOR_SQUARE;
 
+    /**
+     * Contains the ordinal position of squares in files.
+     * It has a length of the number os squares multiplyied by the number of axes,
+     * so in practice 64 x 4 = 256.
+     * The access is organized by the formula: Axis.NUMBER_OF * square.ordinal() + axis.ordinal()
+     * It is computed in the static block.
+     */
+    private static final int[] SQUARE_ORDINAL_POSITION_IN_FILE = new int[Square.NUMBER_OF * Axis.NUMBER_OF];
+
     /** The square assignment to column table. */
     static final Map<Column, List<Square>> SQUARE_ASSIGNMENT_TO_COLUMN_TABLE = squareAssignmentToColumnTable();
 
@@ -321,6 +333,7 @@ public enum Square {
      * . - sets and initializes {@code FILES_FOR_SQUARE} map
      */
     static {
+        /** Computes the LABELS and the INVERSE_LABELS maps. */
         final Map<Square, String> labelMap = new EnumMap<Square, String>(Square.class);
         final Map<String, Square> inverseLabelMap = new HashMap<String, Square>();
         for (Square sq : values()) {
@@ -331,6 +344,7 @@ public enum Square {
         LABELS = Collections.unmodifiableMap(labelMap);
         INVERSE_LABELS = Collections.unmodifiableMap(inverseLabelMap);
 
+        /** Computes the CORNER_TO_X_SQUARE_MAP and the X_SQUARE_TO_CORNER_MAP maps*/
         final Map<Square, Square> cornerToXSquareMap = new EnumMap<Square, Square>(Square.class);
         final Map<Square, Square> xSquareToCornerMap = new EnumMap<Square, Square>(Square.class);
         for (int idx = 0; idx < CORNERS.size(); idx++) {
@@ -351,6 +365,17 @@ public enum Square {
             filesForSquare.put(sq, Collections.unmodifiableList(filesCrossingTheSquare));
         }
         FILES_FOR_SQUARE = Collections.unmodifiableMap(filesForSquare);
+
+        /** Computes the SQUARE_ORDINAL_POSITION_IN_FILE array. */
+        int[] squareOrdinalPositionInFileCounter = new int[FileUtils.NUMBER_OF_FILES]; // it is initialized to zero.
+        for (final Square sq : values()) {
+            for (final Axis axis : Axis.values()) {
+                // square and axis have to identify a file. A function in FileUtils has to be prepared.
+                SQUARE_ORDINAL_POSITION_IN_FILE[Axis.NUMBER_OF * sq.ordinal() + axis.ordinal()]
+                    = squareOrdinalPositionInFileCounter[0]; // MUST BE COMPLETED !!!!
+                squareOrdinalPositionInFileCounter[0] += 1; // MUST BE COMPLETED
+            }
+        }
     }
 
     /**
@@ -648,6 +673,10 @@ public enum Square {
         default:
             return ' ';
         }
+    }
+
+    public int ordinalPositionInFile(final Axis axis) {
+        return SQUARE_ORDINAL_POSITION_IN_FILE[Axis.NUMBER_OF * this.ordinal() + axis.ordinal()];
     }
 
     /**

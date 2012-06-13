@@ -50,6 +50,9 @@ public enum Axis {
      */
     DIAGONAL_RL(DiagonalRL.class);
 
+    /** The number of axes. */
+    public static final int NUMBER_OF = values().length;
+
     /** The axis relatedEnumFile field. */
     private final Class relatedEnum;
 

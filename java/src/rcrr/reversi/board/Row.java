@@ -68,7 +68,7 @@ public enum Row implements File {
     public static final Row NULL = null;
 
     /** The number of rows. */
-    private static final int SIZE = values().length;
+    private static final int NUMBER_OF = values().length;
 
     /** The row label. */
     private final String label;
@@ -110,7 +110,7 @@ public enum Row implements File {
         default: throw new RuntimeException("Switch case not provided. dir.axis()=" + dir.axis());
         }
         int index = ordinal() + delta;
-        if (index < 0 || index >= SIZE) {
+        if (index < 0 || index >= NUMBER_OF) {
             r = Row.NULL;
         } else {
             r = values()[index];
