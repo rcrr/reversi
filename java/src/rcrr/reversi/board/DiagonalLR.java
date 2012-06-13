@@ -91,7 +91,7 @@ public enum DiagonalLR implements File {
     public static final DiagonalLR NULL = null;
 
     /** The number of rows. */
-    private static final int SIZE = values().length;
+    private static final int NUMBER_OF = values().length;
 
     /** The row label. */
     private final String label;

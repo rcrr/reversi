@@ -91,7 +91,7 @@ public enum DiagonalRL implements File {
     public static final DiagonalRL NULL = null;
 
     /** The number of diagonals. */
-    private static final int SIZE = values().length;
+    private static final int NUMBER_OF = values().length;
 
     /** The diagonal label. */
     private final String label;
