@@ -302,7 +302,7 @@ public final class IndexedBoard extends AbstractBoard {
          * squarePosition is the index position of the square in the file.
          */
         for (final Square sq : Square.values()) {
-            for (final File file : sq.files()) {
+            for (final Map.Entry<Axis, File> entry : sq.files().entrySet()) {
                 final int color;
                 switch (get(sq)) {
                 case EMPTY: color = 0; break;
@@ -313,7 +313,7 @@ public final class IndexedBoard extends AbstractBoard {
                 }
                 // Must be taken fron FileUtils appropriate map.
                 int squarePosition = 0;
-                indexes[FileUtils.files().indexOf(file)] += color * FileUtils.FILE_INDEX_COEFFICIENT[squarePosition];
+                indexes[FileUtils.files().indexOf(entry.getValue())] += color * FileUtils.FILE_INDEX_COEFFICIENT[squarePosition];
                 ; // add or remove from the index .....
             }
         }

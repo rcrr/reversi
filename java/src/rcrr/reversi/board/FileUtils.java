@@ -49,6 +49,8 @@ final class FileUtils {
 
     static final int[] FILE_INDEX_COEFFICIENT = new int[FILE_MAX_LENGTH];
 
+    static final int[] FILE_INDEX_BY_SQUARE_AND_AXIS = new int[Square.NUMBER_OF * Axis.NUMBER_OF];
+
     static {
 
         /**
@@ -79,10 +81,22 @@ final class FileUtils {
             FILE_INDEX_COEFFICIENT[i] = BigInteger.valueOf(3).pow(i).intValue();
         }
 
+        for (final Square sq : Square.values()) {
+            for (final Axis axis : Axis.values()) {
+                // ma non è meglio fare un metodo in square che dato l'axis mi ritorna il file?
+            }
+        }
+        //FILE_INDEX_BY_SQUARE_AND_AXIS
+
     }
 
     public static final List<File> files() {
         return FILES;
+    }
+
+    public static final File valueOf(final Square square, final Axis axis) {
+        final int index = Axis.NUMBER_OF * square.ordinal() + axis.ordinal();
+        return FILES.get(FILE_INDEX_BY_SQUARE_AND_AXIS[index]);
     }
 
     /** Class constructor. */
