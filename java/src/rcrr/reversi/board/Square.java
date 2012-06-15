@@ -301,7 +301,7 @@ public enum Square {
     private static final Map<Square, List<Direction>> CAPABLE_TO_FLIP_DIRECTION_TABLE = capableToFlipDirectionTable();
 
     /** The list of files crossing each square. */
-    private static final Map<Square, List<File>> FILES_FOR_SQUARE;
+    private static final Map<Square, Map<Axis, File>> FILES_FOR_SQUARE;
 
     /**
      * Contains the ordinal position of squares in files.
@@ -355,14 +355,14 @@ public enum Square {
         X_SQUARE_TO_CORNER_MAP = Collections.unmodifiableMap(xSquareToCornerMap);
 
         /** Computes the FILES_FOR_SQUARE map. */
-        Map<Square, List<File>> filesForSquare = new EnumMap<Square, List<File>>(Square.class);
+        Map<Square, Map<Axis, File>> filesForSquare = new EnumMap<Square, Map<Axis, File>>(Square.class);
         for (final Square sq : Square.values()) {
-            final List<File> filesCrossingTheSquare = new ArrayList<File>();
-            filesCrossingTheSquare.add(sq.row());
-            filesCrossingTheSquare.add(sq.column());
-            filesCrossingTheSquare.add(sq.diagonalLR());
-            filesCrossingTheSquare.add(sq.diagonalRL());
-            filesForSquare.put(sq, Collections.unmodifiableList(filesCrossingTheSquare));
+            final Map<Axis, File> filesCrossingTheSquare = new EnumMap<Axis, File>(Axis.class);
+            filesCrossingTheSquare.put(Axis.HORIZONTAL, sq.row());
+            filesCrossingTheSquare.put(Axis.VERTICAL, sq.column());
+            filesCrossingTheSquare.put(Axis.DIAGONAL_LR, sq.diagonalLR());
+            filesCrossingTheSquare.put(Axis.DIAGONAL_RL, sq.diagonalRL());
+            filesForSquare.put(sq, Collections.unmodifiableMap(filesCrossingTheSquare));
         }
         FILES_FOR_SQUARE = Collections.unmodifiableMap(filesForSquare);
 
@@ -626,7 +626,7 @@ public enum Square {
      *
      * @return the four files crossing the square
      */
-    public List<File> files() {
+    public Map<Axis, File> files() {
         return FILES_FOR_SQUARE.get(this);
     }
 
@@ -677,6 +677,16 @@ public enum Square {
 
     public int ordinalPositionInFile(final Axis axis) {
         return SQUARE_ORDINAL_POSITION_IN_FILE[Axis.NUMBER_OF * this.ordinal() + axis.ordinal()];
+    }
+
+    /**
+     * Returns the file identified by the {@code axis} parameter.
+     *
+     * @param axis the axis parameter
+     * @return the axis passing by the square and belonging to the axis parameter
+     **/
+    public File file(final Axis axis) {
+        return FILES_FOR_SQUARE.get(this).get(axis);
     }
 
     /**
