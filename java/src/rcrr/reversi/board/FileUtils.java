@@ -45,7 +45,7 @@ final class FileUtils {
 
     static final int NUMBER_OF_FILES;
 
-    private static final int FILE_MAX_LENGTH = 8;
+    static final int FILE_MAX_LENGTH = 8;
 
     static final int[] FILE_INDEX_COEFFICIENT = new int[FILE_MAX_LENGTH];
 
