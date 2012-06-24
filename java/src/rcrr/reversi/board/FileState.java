@@ -53,7 +53,6 @@ public final class FileState {
      * The maximum order of a file.
      */
     private static final int MAX_ORDER = FileUtils.FILE_MAX_LENGTH;
-    //private static final int MAX_ORDER = 4;
 
     /**
      * For each order, the maximum index reachable.
@@ -79,7 +78,6 @@ public final class FileState {
          */
         for (int i = 0; i < MAX_ORDER + 1; i++) {
             POSITION_COEFFICIENTS[i] = BigInteger.valueOf(3).pow(i).intValue();
-            //System.out.println("i, POSITION_COEFFICIENTS[i] = " + i + ", " + POSITION_COEFFICIENTS[i]);
         }
 
         /**
@@ -87,14 +85,11 @@ public final class FileState {
          */
         for (int i = MIN_ORDER; i < MAX_ORDER + 1; i++) {
             MAX_INDEX[i] = POSITION_COEFFICIENTS[i] - 1;
-            //System.out.println("i, MAX_INDEX[i] = " + i + ", " + MAX_INDEX[i]);
             STATES[i] = new FileState[MAX_INDEX[i] + 1];
             for (int j = 0; j <= MAX_INDEX[i]; j++) {
                 STATES[i][j] = new FileState(i, j);
             }
         }
-
-        //System.out.println("Static block completed.");
 
     }
 
@@ -151,6 +146,25 @@ public final class FileState {
         return index;
     }
 
+    /**
+     * Returns a new configuration array flipping blacks and whites.
+     *
+     * @param configuration the file configuration to be flipped
+     * @return              a new file configuration
+     */
+    private static SquareState[] flipConfiguration(final SquareState[] configuration) {
+        checkConfiguration(configuration);
+        final SquareState[] newConfiguration = configuration.clone();
+        for (int square = 0; square < configuration.length; square++) {
+            switch (configuration[square]) {
+            case BLACK: newConfiguration[square] = SquareState.WHITE; break;
+            case WHITE: newConfiguration[square] = SquareState.BLACK; break;
+            default: break;
+            }
+        }
+        return newConfiguration;
+    }
+
     private static String printConfiguration(final SquareState[] configuration) {
         checkConfiguration(configuration);
         final String separator = " ";
@@ -173,6 +187,9 @@ public final class FileState {
     /** The index field. */
     private final int index;
 
+    /** The flipped field. It is the index of the file state obtained flipping BLACKs with WHITEs and vice-versa. */
+    private final int flipped;
+
     /**
      * Class constructor.
      *
@@ -193,7 +210,6 @@ public final class FileState {
             if (config == 0) { configuration[i] = SquareState.EMPTY; }
             if (config == 1) { configuration[i] = SquareState.BLACK; }
             if (config == 2) { configuration[i] = SquareState.WHITE; }
-            //System.out.println("--> i= " + i + ", remainder=" + remainder + ", config=" + config);
             remainder = remainder % POSITION_COEFFICIENTS[i];
         }
 
@@ -202,8 +218,15 @@ public final class FileState {
          */
         legalMoves = computeLegalMoves();
 
-        //System.out.println("order=" + order + ", index=" + index + ", configuration=" + printConfiguration(configuration) + ", legalMoves=" + legalMoves);
+        /**
+         * Computes the flipped field.
+         */
+        flipped = computeIndex(flipConfiguration(configuration));
 
+    }
+
+    public FileState flip() {
+        return valueOf(this.order, this.flipped);
     }
 
     /**
