@@ -89,5 +89,29 @@ public class FileStateTest {
                    is("[(order=3, index=10) [ @ . @ ]]"));
     }
 
+    @Test
+    public final void testFlip() {
+        assertThat("FileState.valueOf(3, 11).flip() must be FileState.valueOf(3, 19).",
+                   FileState.valueOf(3, 11).flip(),
+                   is(FileState.valueOf(3, 19)));
+        assertThat("Flipping twice has to return the file state itself.",
+                   FileState.valueOf(3, 11).flip().flip(),
+                   is(FileState.valueOf(3, 11)));
+    }
+
+    @Test
+    public final void testIndex() {
+        assertThat("FileState.valueOf(3, 11).index() must be 11.",
+                   FileState.valueOf(3, 11).index(),
+                   is(11));
+    }
+
+    @Test
+    public final void testOrder() {
+        assertThat("FileState.valueOf(3, 11).order() must be 3.",
+                   FileState.valueOf(3, 11).order(),
+                   is(3));
+    }
+
 
 }
