@@ -39,7 +39,15 @@ import java.util.Map;
  */
 public final class FileState {
 
-    private static final int[] DIRECTIONS = { -1, +1};
+    /**
+     * An array of the directions that can be taken moving along the axis.
+     */
+    private static final int[] DIRECTIONS = {-1, +1};
+
+    /**
+     * The minimum order of a file.
+     */
+    private static final int MIN_ORDER = 3;
 
     /**
      * The maximum order of a file.
@@ -52,28 +60,32 @@ public final class FileState {
      */
     private static final int[] MAX_INDEX = new int[MAX_ORDER + 1];
 
+    /**
+     * Each position in the array is computed as the power base three of the position itself (1, 3, 9, 27, ...).
+     */
     private static final int[] POSITION_COEFFICIENTS = new int[MAX_ORDER + 1];
 
     /**
      * Two dimension array that contains all the possible FileState instances.
      * The first dimension is driven by the order. Orders range between 0 and MAX_ORDER + 1.
-     * The second dimension is the index of the file state.
+     * The second dimension is the index of the file state. It ranges between 0 and MAX_INDEX[order].
      */
     private static final FileState[][] STATES = new FileState[MAX_ORDER + 1][];
 
     static {
 
+        /**
+         * Computes the POSITION_COEFFICIENTS array.
+         */
         for (int i = 0; i < MAX_ORDER + 1; i++) {
             POSITION_COEFFICIENTS[i] = BigInteger.valueOf(3).pow(i).intValue();
             //System.out.println("i, POSITION_COEFFICIENTS[i] = " + i + ", " + POSITION_COEFFICIENTS[i]);
         }
 
         /**
-         *
+         * Computes the MAX_IDEX and STATES arrays.
          */
-        MAX_INDEX[0] = 0;
-        STATES[0] = null;
-        for (int i = 1; i < MAX_ORDER + 1; i++) {
+        for (int i = MIN_ORDER; i < MAX_ORDER + 1; i++) {
             MAX_INDEX[i] = POSITION_COEFFICIENTS[i] - 1;
             //System.out.println("i, MAX_INDEX[i] = " + i + ", " + MAX_INDEX[i]);
             STATES[i] = new FileState[MAX_INDEX[i] + 1];
@@ -87,23 +99,86 @@ public final class FileState {
     }
 
     /**
-     * Verify if shifting the arrays by one save the subtraction by one.
+     * Static factory method for the class.
+     * <p>
+     * The {@code index} parameter is a base three encoding of the square sequence.
+     * <p>
+     * All the values are precomputed during class initialization. Two call with equal parameters returns the same object.
+     *
+     * @param order the number of squares of the file
+     * @param index the index corresponding to a file configuration
+     * @return      the file state identified by the two parameters
      */
     public static FileState valueOf(final int order, final int index) {
-        if (order < 1 || order > MAX_ORDER) { throw new IndexOutOfBoundsException("Parameter order is invalid. order = " + order); }
-        if (index < 0 || index > MAX_INDEX[order]) { throw new IndexOutOfBoundsException("Parameter index is invalid. index = " + index); }
+        if (order < MIN_ORDER || order > MAX_ORDER) {
+            throw new IndexOutOfBoundsException("Parameter order is invalid. order = " + order);
+        }
+        if (index < 0 || index > MAX_INDEX[order]) {
+            throw new IndexOutOfBoundsException("Parameter index is invalid. index = " + index);
+        }
         return STATES[order][index];
     }
 
-    private List<FileState> computeConfigurations(final int fileLength) {
-        return new ArrayList<FileState>();
+    /**
+     * Verifies the consistency of the given {@code configuration} parameter.
+     *
+     * @param configuration the file state
+     * @throw NullPointerException     when {@code configuration} parameter is null or contains null values
+     * @throw IllegalArgumentException when {@code configuration} parameter is null or contains OUTER values
+     */
+    private static void checkConfiguration(final SquareState[] configuration) {
+        if (configuration == null) { throw new NullPointerException("PArameter configuration cannot be null."); }
+        for (final SquareState state : configuration) {
+            if (state == null) { throw new NullPointerException("Parameter configuration has null values."); }
+            if (state == SquareState.OUTER) {
+                throw new IllegalArgumentException("Parameter configuration cannot contain OUTER values.");
+            }
+        }
     }
 
+    /**
+     * Returns the index of the given {@code configuration}.
+     *
+     * @param configuration the file state
+     * @return the index of the configuration
+     */
+    private static int computeIndex(final SquareState[] configuration) {
+        checkConfiguration(configuration);
+        int index = 0;
+        for (int i = 0; i < configuration.length; i++) {
+            index += configuration[i].ordinal() * POSITION_COEFFICIENTS[i];
+        }
+        return index;
+    }
+
+    private static String printConfiguration(final SquareState[] configuration) {
+        checkConfiguration(configuration);
+        final String separator = " ";
+        final StringBuffer sb = new StringBuffer(separator);
+        for (int i = 0; i < configuration.length; i++) {
+            sb.append(configuration[i].symbol() + separator);
+        }
+        return sb.toString();
+    }
+
+    /** The configuration field. */
     private final SquareState[] configuration;
+
+    /** The legalMoves field. */
     private final Map<Integer, Integer> legalMoves;
+
+    /** The order field. */
     private final int order;
+
+    /** The index field. */
     private final int index;
 
+    /**
+     * Class constructor.
+     *
+     * @param order the number of squares of the file
+     * @param index the index corresponding to the file configuration
+     */
     private FileState(final int order, final int index) {
         this.order = order;
         this.index = index;
@@ -122,12 +197,40 @@ public final class FileState {
             remainder = remainder % POSITION_COEFFICIENTS[i];
         }
 
+        /**
+         * Computes the legalMoves field.
+         */
         legalMoves = computeLegalMoves();
 
         //System.out.println("order=" + order + ", index=" + index + ", configuration=" + printConfiguration(configuration) + ", legalMoves=" + legalMoves);
 
     }
 
+    /**
+     * Returns the index field.
+     *
+     * @return the index field
+     */
+    public int index() {
+        return this.index;
+    }
+
+    /**
+     * Returns the order field.
+     *
+     * @return the order field
+     */
+    public int order() {
+        return this.order;
+    }
+
+    /**
+     * Returns the legal moves map for the file state. It is used by the constructor to populate the specific field.
+     * The map has an integer as key that represent the move, and anothr integer as value that represent the index of the configuration
+     * reachable executing the move.
+     *
+     * @return a map of legal moves and the corresponding index
+     */
     private Map<Integer, Integer> computeLegalMoves() {
         final Map<Integer, Integer> legalMoves = new HashMap<Integer, Integer>();
         for (int move = 0; move < configuration.length; move++) {
@@ -136,51 +239,6 @@ public final class FileState {
             }
         }
         return legalMoves;
-    }
-
-    private static int computeIndex(final SquareState[] configuration) {
-        int index = 0;
-        for (int i = 0; i < configuration.length; i++) {
-            index += configuration[i].ordinal() * POSITION_COEFFICIENTS[i];
-        }
-        return index;
-    }
-
-    private SquareState[] makeMove(final int move) {
-        SquareState[] newConfiguration = configuration.clone();
-        newConfiguration[move] = SquareState.BLACK;
-        for (final int dir : DIRECTIONS) {
-            int bracketer = wouldFlip(move, dir);
-            if (bracketer != -1) {
-                for (int square = move + dir; true; square = square + dir) {
-                    if (square == bracketer) { break; }
-                    newConfiguration[square] = SquareState.BLACK;
-                }
-            }
-        }
-        return newConfiguration;
-    }
-
-    private boolean isLegal(final int move) {
-        if (configuration[move] != SquareState.EMPTY) { return false; }
-        for (int dir : DIRECTIONS) {
-            if (wouldFlip(move, dir) != -1) { return true; }
-        }
-        return false;
-    }
-
-    private int wouldFlip(final int move, final int dir) {
-        final int neighbor = move + dir;
-        if (neighbor < 0 || neighbor >= configuration.length) { return -1; }
-        final int next = neighbor + dir;
-        if (next < 0 || next >= configuration.length) { return -1; }
-        final SquareState neighborColor = configuration[neighbor];
-        switch (neighborColor) {
-        case EMPTY: return -1;
-        case BLACK: return -1;
-        case WHITE: return findBracketingPiece(next, dir);
-        default: throw new RuntimeException("Unexpected square color. Got " + neighborColor);
-        }
     }
 
     private int findBracketingPiece(final int square, final int dir) {
@@ -196,12 +254,50 @@ public final class FileState {
         }        
     }
 
-    private static String printConfiguration(final SquareState[] configuration) {
-        final StringBuffer sb = new StringBuffer(".");
-        for (int i = 0; i < configuration.length; i++) {
-            sb.append(configuration[i] + ".");
+    private boolean isLegal(final int move) {
+        if (configuration[move] != SquareState.EMPTY) { return false; }
+        for (final int dir : DIRECTIONS) {
+            if (wouldFlip(move, dir) != -1) { return true; }
         }
-        return sb.toString();
+        return false;
+    }
+
+    private SquareState[] makeMove(final int move) {
+        final SquareState[] newConfiguration = configuration.clone();
+        newConfiguration[move] = SquareState.BLACK;
+        for (final int dir : DIRECTIONS) {
+            final int bracketer = wouldFlip(move, dir);
+            if (bracketer != -1) {
+                for (int square = move + dir; true; square = square + dir) {
+                    if (square == bracketer) { break; }
+                    newConfiguration[square] = SquareState.BLACK;
+                }
+            }
+        }
+        return newConfiguration;
+    }
+
+    /**
+     * Returns a {@code String} representing the {@code FileState} object.
+     *
+     * @return a {@code String} representing the file state
+     */
+    @Override public String toString() {
+        return String.format("[(order=%d, index=%d) [%s]]", order, index, printConfiguration(configuration));
+    }
+
+    private int wouldFlip(final int move, final int dir) {
+        final int neighbor = move + dir;
+        if (neighbor < 0 || neighbor >= configuration.length) { return -1; }
+        final int next = neighbor + dir;
+        if (next < 0 || next >= configuration.length) { return -1; }
+        final SquareState neighborColor = configuration[neighbor];
+        switch (neighborColor) {
+        case EMPTY: return -1;
+        case BLACK: return -1;
+        case WHITE: return findBracketingPiece(next, dir);
+        default: throw new RuntimeException("Unexpected square color. Got " + neighborColor);
+        }
     }
 
 }
