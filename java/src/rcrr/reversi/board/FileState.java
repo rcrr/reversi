@@ -28,6 +28,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,11 +39,13 @@ import java.util.Map;
  */
 public final class FileState {
 
+    private static final int[] DIRECTIONS = { -1, +1};
+
     /**
      * The maximum order of a file.
      */
-    //private static final int MAX_ORDER = FileUtils.FILE_MAX_LENGTH;
-    private static final int MAX_ORDER = 3;
+    private static final int MAX_ORDER = FileUtils.FILE_MAX_LENGTH;
+    //private static final int MAX_ORDER = 4;
 
     /**
      * For each order, the maximum index reachable.
@@ -62,7 +65,7 @@ public final class FileState {
 
         for (int i = 0; i < MAX_ORDER + 1; i++) {
             POSITION_COEFFICIENTS[i] = BigInteger.valueOf(3).pow(i).intValue();
-            System.out.println("i, POSITION_COEFFICIENTS[i] = " + i + ", " + POSITION_COEFFICIENTS[i]);
+            //System.out.println("i, POSITION_COEFFICIENTS[i] = " + i + ", " + POSITION_COEFFICIENTS[i]);
         }
 
         /**
@@ -72,14 +75,14 @@ public final class FileState {
         STATES[0] = null;
         for (int i = 1; i < MAX_ORDER + 1; i++) {
             MAX_INDEX[i] = POSITION_COEFFICIENTS[i] - 1;
-            System.out.println("i, MAX_INDEX[i] = " + i + ", " + MAX_INDEX[i]);
+            //System.out.println("i, MAX_INDEX[i] = " + i + ", " + MAX_INDEX[i]);
             STATES[i] = new FileState[MAX_INDEX[i] + 1];
             for (int j = 0; j <= MAX_INDEX[i]; j++) {
                 STATES[i][j] = new FileState(i, j);
             }
         }
 
-        System.out.println("Static block completed.");
+        //System.out.println("Static block completed.");
 
     }
 
@@ -97,6 +100,7 @@ public final class FileState {
     }
 
     private final SquareState[] configuration;
+    private final Map<Integer, Integer> legalMoves;
     private final int order;
     private final int index;
 
@@ -105,18 +109,91 @@ public final class FileState {
         this.index = index;
         this.configuration = new SquareState[order];
 
+        /**
+         * Computes the configuration field.
+         */
         int remainder = index;
         for (int i = order - 1; i >= 0; i--) {
             int config = remainder / POSITION_COEFFICIENTS[i];
             if (config == 0) { configuration[i] = SquareState.EMPTY; }
             if (config == 1) { configuration[i] = SquareState.BLACK; }
             if (config == 2) { configuration[i] = SquareState.WHITE; }
-            System.out.println("--> i= " + i + ", remainder=" + remainder + ", config=" + config);
+            //System.out.println("--> i= " + i + ", remainder=" + remainder + ", config=" + config);
             remainder = remainder % POSITION_COEFFICIENTS[i];
         }
 
-        System.out.println("order=" + order + ", index=" + index + ", configuration=" + printConfiguration(configuration));
+        legalMoves = computeLegalMoves();
 
+        //System.out.println("order=" + order + ", index=" + index + ", configuration=" + printConfiguration(configuration) + ", legalMoves=" + legalMoves);
+
+    }
+
+    private Map<Integer, Integer> computeLegalMoves() {
+        final Map<Integer, Integer> legalMoves = new HashMap<Integer, Integer>();
+        for (int move = 0; move < configuration.length; move++) {
+            if (isLegal(move)) {
+                legalMoves.put(move, computeIndex(makeMove(move)));
+            }
+        }
+        return legalMoves;
+    }
+
+    private static int computeIndex(final SquareState[] configuration) {
+        int index = 0;
+        for (int i = 0; i < configuration.length; i++) {
+            index += configuration[i].ordinal() * POSITION_COEFFICIENTS[i];
+        }
+        return index;
+    }
+
+    private SquareState[] makeMove(final int move) {
+        SquareState[] newConfiguration = configuration.clone();
+        newConfiguration[move] = SquareState.BLACK;
+        for (final int dir : DIRECTIONS) {
+            int bracketer = wouldFlip(move, dir);
+            if (bracketer != -1) {
+                for (int square = move + dir; true; square = square + dir) {
+                    if (square == bracketer) { break; }
+                    newConfiguration[square] = SquareState.BLACK;
+                }
+            }
+        }
+        return newConfiguration;
+    }
+
+    private boolean isLegal(final int move) {
+        if (configuration[move] != SquareState.EMPTY) { return false; }
+        for (int dir : DIRECTIONS) {
+            if (wouldFlip(move, dir) != -1) { return true; }
+        }
+        return false;
+    }
+
+    private int wouldFlip(final int move, final int dir) {
+        final int neighbor = move + dir;
+        if (neighbor < 0 || neighbor >= configuration.length) { return -1; }
+        final int next = neighbor + dir;
+        if (next < 0 || next >= configuration.length) { return -1; }
+        final SquareState neighborColor = configuration[neighbor];
+        switch (neighborColor) {
+        case EMPTY: return -1;
+        case BLACK: return -1;
+        case WHITE: return findBracketingPiece(next, dir);
+        default: throw new RuntimeException("Unexpected square color. Got " + neighborColor);
+        }
+    }
+
+    private int findBracketingPiece(final int square, final int dir) {
+        final SquareState squareColor = configuration[square];
+        switch (squareColor) {
+        case EMPTY: return -1;
+        case BLACK: return square;
+        case WHITE:
+            final int next = square + dir;
+            if (next < 0 || next >= configuration.length) { return -1; }
+            return findBracketingPiece(next, dir);
+        default: throw new RuntimeException("Unexpected square color. Got " + squareColor);
+        }        
     }
 
     private static String printConfiguration(final SquareState[] configuration) {
