@@ -367,13 +367,21 @@ public enum Square {
         FILES_FOR_SQUARE = Collections.unmodifiableMap(filesForSquare);
 
         /** Computes the SQUARE_ORDINAL_POSITION_IN_FILE array. */
-        int[] squareOrdinalPositionInFileCounter = new int[FileUtils.NUMBER_OF_FILES]; // it is initialized to zero.
+        final Map<File, Integer> squareOrdinalPositionInFileCounter = new HashMap<File, Integer>();
+        for (final File file : FileUtils.files()) {
+            squareOrdinalPositionInFileCounter.put(file, 0);
+        }
         for (final Square sq : values()) {
             for (final Axis axis : Axis.values()) {
-                // square and axis have to identify a file. A function in FileUtils has to be prepared.
-                SQUARE_ORDINAL_POSITION_IN_FILE[Axis.NUMBER_OF * sq.ordinal() + axis.ordinal()]
-                    = squareOrdinalPositionInFileCounter[0]; // MUST BE COMPLETED !!!!
-                squareOrdinalPositionInFileCounter[0] += 1; // MUST BE COMPLETED
+                final File file = sq.file(axis);
+                final int index = Axis.NUMBER_OF * sq.ordinal() + axis.ordinal();
+                if (file != null) {
+                    final int position = squareOrdinalPositionInFileCounter.get(file);
+                    SQUARE_ORDINAL_POSITION_IN_FILE[index] = position;
+                    squareOrdinalPositionInFileCounter.put(file, position + 1);
+                } else {
+                    SQUARE_ORDINAL_POSITION_IN_FILE[index] = -1;
+                }
             }
         }
     }
