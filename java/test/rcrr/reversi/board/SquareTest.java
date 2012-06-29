@@ -444,4 +444,34 @@ public class SquareTest {
                    is(Square.NULL));
     }
 
+     /**
+     * Tests the {@code ordinalPositionInFile(Axis)} method.
+     *
+     * @see Square#ordinalPositionInFile(Axis)
+     */
+    @Test
+    public final void testOrdinalPositionInFile() {
+        assertThat("Square.A1.ordinalPositionInFile(Axis.VERTICAL) is 0.",
+                   Square.A1.ordinalPositionInFile(Axis.VERTICAL),
+                   is(0));
+        assertThat("Square.A1.ordinalPositionInFile(Axis.HORIZONTAL) is 0.",
+                   Square.A1.ordinalPositionInFile(Axis.HORIZONTAL),
+                   is(0));
+        assertThat("Square.A1.ordinalPositionInFile(Axis.DIAGONAL_LR) is 0.",
+                   Square.A1.ordinalPositionInFile(Axis.DIAGONAL_LR),
+                   is(0));
+        assertThat("Square.A1.ordinalPositionInFile(Axis.DIAGONAL_RL) is -1.",
+                   Square.A1.ordinalPositionInFile(Axis.DIAGONAL_RL),
+                   is(-1));
+        assertThat("Square.A8.ordinalPositionInFile(Axis.VERTICAL) is 7.",
+                   Square.A8.ordinalPositionInFile(Axis.VERTICAL),
+                   is(7));
+        assertThat("Square.A3.ordinalPositionInFile(Axis.DIAGONAL_RL) is 2.",
+                   Square.A3.ordinalPositionInFile(Axis.DIAGONAL_RL),
+                   is(2));
+        assertThat("Square.E7.ordinalPositionInFile(Axis.DIAGONAL_LR) is 4.",
+                   Square.E7.ordinalPositionInFile(Axis.DIAGONAL_LR),
+                   is(4));
+    }
+
 }

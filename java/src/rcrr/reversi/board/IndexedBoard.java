@@ -60,6 +60,11 @@ public final class IndexedBoard extends AbstractBoard {
     }
 
     /**
+     * Verify that the transient modifier is really neaded.
+     */
+    private final transient int[] indexes;
+
+    /**
      * Lazily initialized, cached legalMoves.
      * In case of a multi-threadd use must be applied a ReadWriteLock on this field.
      */
@@ -85,6 +90,7 @@ public final class IndexedBoard extends AbstractBoard {
         assert (!squares.containsKey(null)) : "Parameter squares cannot contains null keys.";
         assert (!squares.containsValue(null)) : "Parameter squares cannot contains null values.";
         this.squares = new EnumMap<Square, SquareState>(squares);
+        this.indexes = computeIndexes();
     }
 
     /**
@@ -289,12 +295,8 @@ public final class IndexedBoard extends AbstractBoard {
         return bracketing;
     }
 
-
-
-    private transient int[] indexes = new int[FileUtils.NUMBER_OF_FILES];
-
-    private void computeIndexes() {
-
+    public int[] computeIndexes() {
+        final int[] transientIndexes = new int[FileUtils.NUMBER_OF_FILES];
         /**
          * The call to indexOf(file) has to be avoided registering the values in an appropriate static array once for all.
          * The switch has to go away. Option one into a call to SquareState.intValue() or in a board "trasformation".
@@ -303,22 +305,15 @@ public final class IndexedBoard extends AbstractBoard {
          */
         for (final Square sq : Square.values()) {
             for (final Map.Entry<Axis, File> entry : sq.files().entrySet()) {
-                final int color;
-                switch (get(sq)) {
-                case EMPTY: color = 0; break;
-                case BLACK: color = 1; break;
-                case WHITE: color = 2; break;
-                case OUTER: color = 3; break;
-                default: throw new RuntimeException("SquareState out of range.");
+                final int color = sq.ordinal();
+                final int squarePosition = sq.ordinalPositionInFile(entry.getKey());
+                final int index = FileUtils.files().indexOf(entry.getValue());
+                if (index != -1) {
+                    transientIndexes[index] += color * FileUtils.FILE_INDEX_COEFFICIENT[squarePosition];
                 }
-                // Must be taken fron FileUtils appropriate map.
-                int squarePosition = 0;
-                indexes[FileUtils.files().indexOf(entry.getValue())] += color * FileUtils.FILE_INDEX_COEFFICIENT[squarePosition];
-                ; // add or remove from the index .....
             }
         }
-
+        return transientIndexes;
     }
-
 
 }
