@@ -24,6 +24,8 @@
 
 package rcrr.reversi.board;
 
+import java.util.Map;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
@@ -69,6 +71,11 @@ public class FileStateTest {
         FileState.valueOf(2, 0);
     }
 
+    /**
+     * Test the {@code valueOf(int, int} factory.
+     *
+     * @see FileState#valueOf(int, int)
+     */
     @Test
     public final void testValueOf() {
         assertThat("FileState.valueOf(3, 10) has to be an instance of FileState class.",
@@ -80,13 +87,6 @@ public class FileStateTest {
         assertThat("FileState.valueOf(5, 0) has to be an instance of FileState class.",
                    FileState.valueOf(5, 0),
                    instanceOf(FileState.class));
-    }
-
-    @Test
-    public final void testToString() {
-        assertThat("FileState.valueOf(3, 10).toString() has to return the appropriate string.",
-                   FileState.valueOf(3, 10).toString(),
-                   is("[(order=3, index=10) [ @ . @ ]]"));
     }
 
     @Test
@@ -107,11 +107,31 @@ public class FileStateTest {
     }
 
     @Test
+    public final void testLegalMoves() {
+        final Map<Integer, Integer> result = FileState.valueOf(3, 15).legalMoves();
+        assertThat("FileState.valueOf(3, 15).legalMoves() must have ONE entry <0, 13>.",
+                   result.size(),
+                   is(1));
+        assertThat("FileState.valueOf(3, 15).legalMoves() must have one entry <0, 13>, having a 0 key.",
+                   result.containsKey(0),
+                   is(true));
+        assertThat("FileState.valueOf(3, 15).legalMoves() must have one entry <0, 13>, having a 13 value.",
+                   result.get(0),
+                   is(13));
+    }
+
+    @Test
     public final void testOrder() {
         assertThat("FileState.valueOf(3, 11).order() must be 3.",
                    FileState.valueOf(3, 11).order(),
                    is(3));
     }
 
+    @Test
+    public final void testToString() {
+        assertThat("FileState.valueOf(3, 10).toString() has to return the appropriate string.",
+                   FileState.valueOf(3, 10).toString(),
+                   is("[(order=3, index=10) [ @ . @ ]]"));
+    }
 
 }
