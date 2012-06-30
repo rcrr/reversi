@@ -98,11 +98,13 @@ public final class FileState {
      * <p>
      * The {@code index} parameter is a base three encoding of the square sequence.
      * <p>
-     * All the values are precomputed during class initialization. Two call with equal parameters returns the same object.
+     * All the values are precomputed during class initialization.
+     * Two call with equal parameters returns the same object.
      *
      * @param order the number of squares of the file
      * @param index the index corresponding to a file configuration
      * @return      the file state identified by the two parameters
+     * @throw IndexOutOfBoundsException when parameters are out of their boundaries
      */
     public static FileState valueOf(final int order, final int index) {
         if (order < MIN_ORDER || order > MAX_ORDER) {
@@ -165,6 +167,12 @@ public final class FileState {
         return newConfiguration;
     }
 
+    /**
+     * Returns a string describing the {@code configuration} parameter.
+     *
+     * @param configuration the configuration to be printed
+     * @return              a string describing the configuration
+     */
     private static String printConfiguration(final SquareState[] configuration) {
         checkConfiguration(configuration);
         final String separator = " ";
@@ -206,25 +214,35 @@ public final class FileState {
          */
         int remainder = index;
         for (int i = order - 1; i >= 0; i--) {
-            int config = remainder / POSITION_COEFFICIENTS[i];
-            if (config == 0) { configuration[i] = SquareState.EMPTY; }
-            if (config == 1) { configuration[i] = SquareState.BLACK; }
-            if (config == 2) { configuration[i] = SquareState.WHITE; }
+            final int config = remainder / POSITION_COEFFICIENTS[i];
+            final SquareState squareState;
+            switch (config) {
+            case 0: squareState = SquareState.EMPTY; break;
+            case 1: squareState = SquareState.BLACK; break;
+            case 2: squareState = SquareState.WHITE; break;
+            default: throw new RuntimeException("Config value must be in between 0 and 2. config=" + config);
+            }
+            configuration[i] = squareState;
             remainder = remainder % POSITION_COEFFICIENTS[i];
         }
 
         /**
          * Computes the legalMoves field.
          */
-        legalMoves = computeLegalMoves();
+        this.legalMoves = Collections.unmodifiableMap(computeLegalMoves());
 
         /**
          * Computes the flipped field.
          */
-        flipped = computeIndex(flipConfiguration(configuration));
+        this.flipped = computeIndex(flipConfiguration(configuration));
 
     }
 
+    /**
+     * Returns the file state having the black flipped to white and vice-versa.
+     *
+     * @return the flipped file state
+     */
     public FileState flip() {
         return valueOf(this.order, this.flipped);
     }
@@ -239,12 +257,30 @@ public final class FileState {
     }
 
     /**
+     * Returns the legalMoves field.
+     *
+     * @return the legalMoves field
+     */
+    public Map<Integer, Integer> legalMoves() {
+        return this.legalMoves;
+    }
+
+    /**
      * Returns the order field.
      *
      * @return the order field
      */
     public int order() {
         return this.order;
+    }
+
+    /**
+     * Returns a {@code String} representing the {@code FileState} object.
+     *
+     * @return a {@code String} representing the file state
+     */
+    @Override public String toString() {
+        return String.format("[(order=%d, index=%d) [%s]]", order, index, printConfiguration(configuration));
     }
 
     /**
@@ -264,6 +300,14 @@ public final class FileState {
         return legalMoves;
     }
 
+    /**
+     * Returns the position in the file corresponding to the braketing piece.
+     * Returns -1 in case there is no bracketing piece.
+     *
+     * @param square the potential bracketing square
+     * @param dir    the direction to follow
+     * @return       the position of the bracketing piece
+     */
     private int findBracketingPiece(final int square, final int dir) {
         final SquareState squareColor = configuration[square];
         switch (squareColor) {
@@ -277,7 +321,16 @@ public final class FileState {
         }        
     }
 
+    /**
+     * Returns true if the {@code move} is legal.
+     *
+     * @param move the move to be checked for validity
+     * @return     true when the move is legal
+     */
     private boolean isLegal(final int move) {
+        if (move < 0 || move >= configuration.length) {
+            throw new IllegalArgumentException("Parameter move is out of range.");
+        }
         if (configuration[move] != SquareState.EMPTY) { return false; }
         for (final int dir : DIRECTIONS) {
             if (wouldFlip(move, dir) != -1) { return true; }
@@ -285,6 +338,13 @@ public final class FileState {
         return false;
     }
 
+    /**
+     * Returns the configuration obtained applying the {@code move} given as parameter.
+     * The move must be legal, this prerequisite is not enforced.
+     *
+     * @param move the move to be executed
+     * @return     the new configuration obtained by moving
+     */
     private SquareState[] makeMove(final int move) {
         final SquareState[] newConfiguration = configuration.clone();
         newConfiguration[move] = SquareState.BLACK;
@@ -301,14 +361,12 @@ public final class FileState {
     }
 
     /**
-     * Returns a {@code String} representing the {@code FileState} object.
+     * Returns the position that flips or -1 if the move/direction doesn't flip.
      *
-     * @return a {@code String} representing the file state
+     * @param move the potential move to be checked for validity
+     * @param dir  the direction to be investigated
+     * @return     the position that flips or -1
      */
-    @Override public String toString() {
-        return String.format("[(order=%d, index=%d) [%s]]", order, index, printConfiguration(configuration));
-    }
-
     private int wouldFlip(final int move, final int dir) {
         final int neighbor = move + dir;
         if (neighbor < 0 || neighbor >= configuration.length) { return -1; }
