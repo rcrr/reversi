@@ -91,7 +91,7 @@ public enum Square {
     E1(R1, E, E1_H4,           E1_A5),
 
     /** Square f1. */
-    F1(R1, F, DiagonalLR.NULL, F1_A6),
+    F1(R1, F, F1_H3,           F1_A6),
 
     /** Square g1. */
     G1(R1, G, DiagonalLR.NULL, G1_A7),

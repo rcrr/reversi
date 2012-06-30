@@ -472,6 +472,18 @@ public class SquareTest {
         assertThat("Square.E7.ordinalPositionInFile(Axis.DIAGONAL_LR) is 4.",
                    Square.E7.ordinalPositionInFile(Axis.DIAGONAL_LR),
                    is(4));
+
+        assertThat("Square.F1.ordinalPositionInFile(Axis.DIAGONAL_LR) is 0.",
+                   Square.F1.ordinalPositionInFile(Axis.DIAGONAL_LR),
+                   is(0));
+
+        assertThat("Square.G2.ordinalPositionInFile(Axis.DIAGONAL_LR) is 1.",
+                   Square.G2.ordinalPositionInFile(Axis.DIAGONAL_LR),
+                   is(1));
+
+        assertThat("Square.H3.ordinalPositionInFile(Axis.DIAGONAL_LR) is 2.",
+                   Square.H3.ordinalPositionInFile(Axis.DIAGONAL_LR),
+                   is(2));
     }
 
 }
