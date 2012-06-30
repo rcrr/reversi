@@ -296,6 +296,10 @@ public final class IndexedBoard extends AbstractBoard {
     }
 
     public int[] computeIndexes() {
+        return computeIndexes(false);
+    }
+
+    public int[] computeIndexes(final boolean debug) {
         final int[] transientIndexes = new int[FileUtils.NUMBER_OF_FILES];
         /**
          * The call to indexOf(file) has to be avoided registering the values in an appropriate static array once for all.
@@ -305,12 +309,20 @@ public final class IndexedBoard extends AbstractBoard {
          */
         for (final Square sq : Square.values()) {
             for (final Map.Entry<Axis, File> entry : sq.files().entrySet()) {
-                final int color = sq.ordinal();
+                final int color = get(sq).ordinal();
                 final int squarePosition = sq.ordinalPositionInFile(entry.getKey());
                 final int index = FileUtils.files().indexOf(entry.getValue());
                 if (index != -1) {
                     transientIndexes[index] += color * FileUtils.FILE_INDEX_COEFFICIENT[squarePosition];
                 }
+                if (debug) System.out.print("sq=" + sq
+                                            + ", axis=" + entry.getKey()
+                                            + ", file=" + entry.getValue()
+                                            + ", squarePosition=" + squarePosition
+                                            + ", color=" + color
+                                            + ", index=" + index);
+                if (debug && index != -1) System.out.print(", transientIndexes[index]=" + transientIndexes[index]);
+                if (debug) System.out.print("\n");
             }
         }
         return transientIndexes;

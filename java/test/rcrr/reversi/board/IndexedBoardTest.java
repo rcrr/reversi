@@ -76,6 +76,117 @@ public class IndexedBoardTest extends AbstractBoardTest {
         this.applicationWideBoardFactory = null;
     }
 
+    @Test
+    public void testComputeIndexes_blackHasToPass() {
+
+        final IndexedBoard blackHasToPass = (IndexedBoard) new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build();
+
+        final int[] indexes = blackHasToPass.computeIndexes();
+
+        final int[] expectedIndexes = {518,  //  0, R1
+                                       5467, //  1, R2
+                                       6231, //  2, R3
+                                       6528, //  3, R4 
+                                       6528, //  4, R5
+                                       5718, //  5, R6
+                                       1101, //  6, R7
+                                       5831, //  7, R8
+                                       4379, //  8, A
+                                       5467, //  9, B
+                                       6555, // 10, C
+                                       5476, // 11, D
+                                       5574, // 12, E
+                                       5819, // 13, F
+                                       3396, // 14, G
+                                       5100, // 15, H
+                                       21,   // 16, A6_C8
+                                       75,   // 17, A5_D8
+                                       210,  // 18, A4_E8
+                                       615,  // 19, A3_F8
+                                       1102, // 20, A2_G8
+                                       5801, // 21, A1_H8
+                                       481,  // 22, B1_H7
+                                       714,  // 23, C1_H6
+                                       229,  // 24, D1_H5
+                                       75,   // 25, E1_H4
+                                       23,   // 26, F1_H3
+                                       3,    // 27, C1_A3
+                                       13,   // 28, D1_A4
+                                       48,   // 29, E1_A5
+                                       158,  // 30, F1_A6
+                                       444,  // 31, G1_A7
+                                       5736, // 32, H1_A8
+                                       2105, // 33, H2_B8
+                                       620,  // 34, H3_C8
+                                       215,  // 35, H4_D8
+                                       68,   // 36, H5_E8
+                                       23    // 37, H6_F8
+        };
+
+        for (int i = 0; i< indexes.length; i++) {
+            assertThat("Computed index (" + i + ", " + FileUtils.files().get(i) + ") must be equal to expected.",
+                       expectedIndexes[i],
+                       is(indexes[i]));
+        }
+
+    }
+
+
+    @Test
+    public void testComputeIndexes_initial() {
+
+        final IndexedBoard initial = (IndexedBoard) BoardFactoryHolder.getInstance().boardFactory().initialBoard();
+
+        final int[] indexes = initial.computeIndexes();
+
+        final int[] expectedIndexes = {0,   //  0, R1
+                                       0,   //  1, R2
+                                       0,   //  2, R3
+                                       135, //  3, R4 
+                                       189, //  4, R5
+                                       0,   //  5, R6
+                                       0,   //  6, R7
+                                       0,   //  7, R8
+                                       0,   //  8, A
+                                       0,   //  9, B
+                                       0,   // 10, C
+                                       135, // 11, D
+                                       189, // 12, E
+                                       0,   // 13, F
+                                       0,   // 14, G
+                                       0,   // 15, H
+                                       0,   // 16, A6_C8
+                                       0,   // 17, A5_D8
+                                       0,   // 18, A4_E8
+                                       0,   // 19, A3_F8
+                                       27,  // 20, A2_G8
+                                       216, // 21, A1_H8
+                                       27,  // 22, B1_H7
+                                       0,   // 23, C1_H6
+                                       0,   // 24, D1_H5
+                                       0,   // 25, E1_H4
+                                       0,   // 26, F1_H3
+                                       0,   // 27, C1_A3
+                                       0,   // 28, D1_A4
+                                       0,   // 29, E1_A5
+                                       0,   // 30, F1_A6
+                                       54,  // 31, G1_A7
+                                       108, // 32, H1_A8
+                                       54,  // 33, H2_B8
+                                       0,   // 34, H3_C8
+                                       0,   // 35, H4_D8
+                                       0,   // 36, H5_E8
+                                       0    // 37, H6_F8
+        };
+
+        for (int i = 0; i< indexes.length; i++) {
+            assertThat("Computed index (" + i + ", " + FileUtils.files().get(i) + ") must be equal to expected.",
+                       expectedIndexes[i],
+                       is(indexes[i]));
+        }
+
+    }
+
     /**
      * Test the {@code valueOf(Map<Square, SquareState)} factory.
      * <p>
