@@ -47,9 +47,17 @@ final class FileUtils {
 
     static final int FILE_MAX_LENGTH = 8;
 
+    /**
+     * The number of board squares.
+     * Warning: due to a strange init issue Square.NUMBER_OF cannot be used.
+     */
+    static final int NUMBER_OF_BOARD_SQUARES = 64;
+
     static final int[] FILE_INDEX_COEFFICIENT = new int[FILE_MAX_LENGTH];
 
-    static final int[] FILE_INDEX_BY_SQUARE_AND_AXIS = new int[Square.NUMBER_OF * Axis.NUMBER_OF];
+    static final int[] FILE_INDEX_BY_SQUARE_AND_AXIS = new int[NUMBER_OF_BOARD_SQUARES * Axis.NUMBER_OF];
+
+    private static final int[] NUMBER_OF_FILE_SQUARES;
 
     static {
 
@@ -81,17 +89,26 @@ final class FileUtils {
             FILE_INDEX_COEFFICIENT[i] = BigInteger.valueOf(3).pow(i).intValue();
         }
 
-        for (final Square sq : Square.values()) {
-            for (final Axis axis : Axis.values()) {
-                // ma non è meglio fare un metodo in square che dato l'axis mi ritorna il file?
-            }
+        /**
+         * Computes the NUMBER_OF_FILE_SQUARES array.
+         */
+        NUMBER_OF_FILE_SQUARES = new int[NUMBER_OF_FILES];
+        for (final File file : files()) {
+            NUMBER_OF_FILE_SQUARES[ordinal(file)] = -1;
         }
-        //FILE_INDEX_BY_SQUARE_AND_AXIS
 
     }
 
     public static final List<File> files() {
         return FILES;
+    }
+
+    public static final int numberOfSquares(final File file) {
+        return NUMBER_OF_FILE_SQUARES[ordinal(file)];
+    }
+
+    public static final int ordinal(final File file) {
+        return FILES.indexOf(file);
     }
 
     public static final File valueOf(final Square square, final Axis axis) {

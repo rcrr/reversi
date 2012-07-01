@@ -24,6 +24,8 @@
 
 package rcrr.reversi.board;
 
+import java.math.BigInteger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
@@ -267,6 +269,116 @@ public enum Square {
     /** Square h8. */
     H8(R8, H, A1_H8,           DiagonalRL.NULL);
 
+    public static final class FileUtilsZ {
+
+        /** The number of files in the board. */
+        public static final int NUMBER_OF_FILES = initializeNumberOfFiles();
+
+        /** The list of all files of a board. */
+        private static final List<File> FILES = initializeFilesList();
+
+        static final int FILE_MAX_LENGTH = 8;
+
+        /**
+         * The number of board squares.
+         * Warning: due to a strange init issue Square.NUMBER_OF cannot be used.
+         */
+        static final int NUMBER_OF_BOARD_SQUARES = 64;
+
+        static final int[] FILE_INDEX_COEFFICIENT = new int[FILE_MAX_LENGTH];
+
+        static final int[] FILE_INDEX_BY_SQUARE_AND_AXIS = new int[NUMBER_OF_BOARD_SQUARES * Axis.NUMBER_OF];
+
+        private static final int[] NUMBER_OF_FILE_SQUARES;
+
+        /**
+         * Returns the list of files of the board.
+         * The list is unmodifiable.
+         * The sorting is consistenly applyed on every array or list of the class
+         * and is consistent with the method {@code fileOrdinalPosition(File)}.
+         *
+         * @return the list of files
+         */
+        public static final List<File> files() {
+            return FILES;
+        }
+
+        /**
+         * Returns the {@code file} ordinal position.
+         *
+         * @return the index of the file in the files() list 
+         */
+        public static final int fileOrdinalPosition(final File file) {
+            return FILES.indexOf(file);
+        }
+
+        /**
+         * Returns the file identified by {@code square} and {@code axis} parameters.
+         *
+         * @return the file identified by the parameters
+         */
+        public static final File valueOf(final Square square, final Axis axis) {
+            final int index = Axis.NUMBER_OF * square.ordinal() + axis.ordinal();
+            return FILES.get(FILE_INDEX_BY_SQUARE_AND_AXIS[index]);
+        }
+
+        /**
+         * Returns the number of squares for the given {@code file}.
+         *
+         * @return the number of square of the file
+         */
+        public static final int numberOfSquares(final File file) {
+            return NUMBER_OF_FILE_SQUARES[fileOrdinalPosition(file)];
+        }
+
+        /**
+         * Computes the NUMBER_OF_FILES integer.
+         *
+         * @return the NUMBER_OF_FILES int
+         */
+        private static final int initializeNumberOfFiles() {
+            return FILES.size();
+        }
+
+        static {
+            /**
+             * Computes the FILE_INDEX_COEFFICIENT array.
+             */
+            for (int i = 0; i < FILE_MAX_LENGTH; i++) {
+                FILE_INDEX_COEFFICIENT[i] = BigInteger.valueOf(3).pow(i).intValue();
+            }
+
+            /**
+             * Computes the NUMBER_OF_FILE_SQUARES array.
+             */
+            NUMBER_OF_FILE_SQUARES = new int[NUMBER_OF_FILES];
+            for (final File file : files()) {
+                NUMBER_OF_FILE_SQUARES[fileOrdinalPosition(file)] = -1;
+            }
+        }
+
+        /**
+         * Computes the FILE list.
+         *
+         * @return the FILE list
+         */
+        private static final List<File> initializeFilesList() {
+            final List<File> files = new ArrayList<File>();
+            for (final Axis axis : Axis.values()) {
+                final Class c = axis.relatedEnum();
+                try {
+                    for (final File file : (File[]) c.getEnumConstants()) {
+                        files.add(file);
+                    }
+                } catch (Exception e) {
+                throw new RuntimeException(e);
+                }
+            }
+            return Collections.unmodifiableList(files);
+        }
+
+    } // End of inner class FileUtilsZ
+
     /** The null square. */
     public static final Square NULL = null;
 
@@ -384,6 +496,7 @@ public enum Square {
                 }
             }
         }
+
     }
 
     /**
