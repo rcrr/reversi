@@ -499,6 +499,10 @@ public enum Square {
 
     }
 
+    public static Square valueOf(final File file, final int squarePositionInFile) {
+        return Square.A1; //MUST BE IMPLEMENTED!
+    } 
+
     /**
      * Returns the list of the four corner squares.
      *
@@ -798,6 +802,10 @@ public enum Square {
 
     public int ordinalPositionInFile(final Axis axis) {
         return SQUARE_ORDINAL_POSITION_IN_FILE[Axis.NUMBER_OF * this.ordinal() + axis.ordinal()];
+    }
+
+    public int ordinalPositionInFile(final File file) {
+        return ordinalPositionInFile(file.axis());
     }
 
     /**

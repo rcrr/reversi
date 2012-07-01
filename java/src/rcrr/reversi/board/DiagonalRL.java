@@ -116,6 +116,14 @@ public enum DiagonalRL implements File {
      * {@inheritDoc}
      */
     @Override
+    public Axis axis() {
+        return Axis.DIAGONAL_RL;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<Square> squares() {
         return Square.SQUARE_ASSIGNMENT_TO_DIAGONAL_RL_TABLE.get(this);
     }

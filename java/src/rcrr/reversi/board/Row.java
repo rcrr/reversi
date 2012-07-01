@@ -122,6 +122,14 @@ public enum Row implements File {
      * {@inheritDoc}
      */
     @Override
+    public Axis axis() {
+        return Axis.HORIZONTAL;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<Square> squares() {
         return Square.SQUARE_ASSIGNMENT_TO_ROW_TABLE.get(this);
     }

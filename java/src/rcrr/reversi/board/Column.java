@@ -133,6 +133,14 @@ public enum Column implements File {
      * {@inheritDoc}
      */
     @Override
+    public Axis axis() {
+        return Axis.VERTICAL;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<Square> squares() {
         return Square.SQUARE_ASSIGNMENT_TO_COLUMN_TABLE.get(this);
     }
