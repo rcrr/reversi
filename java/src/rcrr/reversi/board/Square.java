@@ -437,6 +437,11 @@ public enum Square {
     static final Map<DiagonalRL, List<Square>> SQUARE_ASSIGNMENT_TO_DIAGONAL_RL_TABLE = squareAssignmentToDiagonalRLTable();
 
     /**
+     * Holds the Square by File amd ordinal position.
+     */
+    private static final Map<File, Map<Integer, Square>> SQUARE_VALUE_OF_BY_FILE_AND_ORDINAL_POSITION;
+
+    /**
      * Static initialization block:
      * . - sets and initializes {@code LABELS} map
      * . - sets and initializes {@code INVERSE_LABELS} map
@@ -497,10 +502,19 @@ public enum Square {
             }
         }
 
+        /**
+         * Computes the SQUARE_VALUE_OF_BY_FILE_AND_ORDINAL_POSITION map.
+         */
+        final Map<File, Map<Integer, Square>> transientSquareValueOfByFileAndOrdinalPosition
+            = new HashMap<File, Map<Integer, Square>>();
+        /** IMPLEMENTATION HERE !!! */
+        SQUARE_VALUE_OF_BY_FILE_AND_ORDINAL_POSITION
+            = Collections.unmodifiableMap(transientSquareValueOfByFileAndOrdinalPosition);
+
     }
 
     public static Square valueOf(final File file, final int squarePositionInFile) {
-        return Square.A1; //MUST BE IMPLEMENTED!
+        return SQUARE_VALUE_OF_BY_FILE_AND_ORDINAL_POSITION.get(file).get(squarePositionInFile);
     } 
 
     /**
