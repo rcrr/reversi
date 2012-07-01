@@ -41,4 +41,11 @@ public interface File {
      */
     List<Square> squares();
 
+    /**
+     * Returns the file axis.
+     *
+     * @return the file axis
+     */
+    Axis axis();
+
 }
