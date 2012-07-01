@@ -39,6 +39,55 @@ import java.util.Map;
  */
 public final class FileState {
 
+    public static class FileIndex {
+
+        private static final Map<File, List<FileIndex>> FILE_INDEX_MAP;
+
+        public static FileIndex valueOf(final File file, final int index) {
+            return FILE_INDEX_MAP.get(file).get(index);
+        }
+
+        static {
+
+            /**
+             * Computes FILE_INDEX_MAP map.
+             */
+            final Map<File, List<FileIndex>> transientFileIndexMap = new HashMap<File, List<FileIndex>>();
+            for (final File file : FileUtils.files()) {
+                final List<FileIndex> transientFileIndexList = new ArrayList<FileIndex>();
+                for (int i = 0; i < FileUtils.numberOfSquares(file); i++) {
+                    ; // Must be added the file list creation
+                }
+                transientFileIndexMap.put(file, Collections.unmodifiableList(transientFileIndexList));
+            }
+            FILE_INDEX_MAP = Collections.unmodifiableMap(transientFileIndexMap);
+
+        }
+
+        private final File file;
+        private final int index;
+        FileIndex(final File file, final int index) {
+            this.file = file;
+            this.index = index;
+        }
+    }
+
+    public static class FileIndexMove {
+        private final FileIndex fileIndex;
+        private final int move;
+        FileIndexMove(final FileIndex fileIndex, final int move) {
+            this.fileIndex = fileIndex;
+            this.move = move;
+        }
+    }
+
+    public static int[] fileIndexDeltasByMove(final File file, final int index, final int move) {
+        if (file == null) { throw new NullPointerException("PArameter file cannot be null."); }
+        // if index ....
+        // if move ....
+        return new int[1]; // MUST BE IMPLEMENTED ....
+    }
+
     /**
      * An array of the directions that can be taken moving along the axis.
      */
@@ -104,7 +153,7 @@ public final class FileState {
      * @param order the number of squares of the file
      * @param index the index corresponding to a file configuration
      * @return      the file state identified by the two parameters
-     * @throw IndexOutOfBoundsException when parameters are out of their boundaries
+     * @throws IndexOutOfBoundsException when parameters are out of their boundaries
      */
     public static FileState valueOf(final int order, final int index) {
         if (order < MIN_ORDER || order > MAX_ORDER) {
@@ -120,11 +169,11 @@ public final class FileState {
      * Verifies the consistency of the given {@code configuration} parameter.
      *
      * @param configuration the file state
-     * @throw NullPointerException     when {@code configuration} parameter is null or contains null values
-     * @throw IllegalArgumentException when {@code configuration} parameter is null or contains OUTER values
+     * @throws NullPointerException     when {@code configuration} parameter is null or contains null values
+     * @throws IllegalArgumentException when {@code configuration} parameter is null or contains OUTER values
      */
     private static void checkConfiguration(final SquareState[] configuration) {
-        if (configuration == null) { throw new NullPointerException("PArameter configuration cannot be null."); }
+        if (configuration == null) { throw new NullPointerException("Parameter configuration cannot be null."); }
         for (final SquareState state : configuration) {
             if (state == null) { throw new NullPointerException("Parameter configuration has null values."); }
             if (state == SquareState.OUTER) {

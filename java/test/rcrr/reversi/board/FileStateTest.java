@@ -29,6 +29,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -133,5 +134,16 @@ public class FileStateTest {
                    FileState.valueOf(3, 10).toString(),
                    is("[(order=3, index=10) [ @ . @ ]]"));
     }
+
+    @Test
+    public final void testPrintLegalMoves() {
+
+        for (final File file : FileUtils.files()) {
+            ;
+        }
+
+        assertTrue(true);
+    }
+
 
 }
