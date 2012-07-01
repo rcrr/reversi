@@ -73,19 +73,46 @@ public final class FileState {
     }
 
     public static class FileIndexMove {
+
+        private static final Map<FileIndex, Map<Integer, FileIndexMove>> FILE_INDEX_MOVE_MAP;
+
+        public static FileIndexMove valueOf(final FileIndex fileIndex, final int move) {
+            return FILE_INDEX_MOVE_MAP.get(fileIndex).get(move);
+        }
+
+        static {
+
+            /**
+             * Computes FILE_INDEX_MOVE_MAP map.
+             */
+            final Map<FileIndex, Map<Integer, FileIndexMove>> transientFileIndexMoveMap = new HashMap<FileIndex, Map<Integer, FileIndexMove>>();
+            ; // Must be added the map creation
+            FILE_INDEX_MOVE_MAP = Collections.unmodifiableMap(transientFileIndexMoveMap);
+
+        }
+
         private final FileIndex fileIndex;
         private final int move;
         FileIndexMove(final FileIndex fileIndex, final int move) {
             this.fileIndex = fileIndex;
             this.move = move;
         }
+
+        public int[] getDeltas() {
+            /// MUST BE IMPLEMENTED !!!!!
+            return new int[1];
+        }
+
     }
 
     public static int[] fileIndexDeltasByMove(final File file, final int index, final int move) {
-        if (file == null) { throw new NullPointerException("PArameter file cannot be null."); }
-        // if index ....
-        // if move ....
-        return new int[1]; // MUST BE IMPLEMENTED ....
+        if (file == null) { throw new NullPointerException("Parameter file cannot be null."); }
+        final int order = file.squares().size();
+        final int boundary = indexBoundary(order);
+        if (index < 0 || index > boundary) { throw new IndexOutOfBoundsException("Parameter index is out of range."); }
+        final FileState fileState = FileState.valueOf(order, index);
+        // check the move validity  ....
+        return FileIndexMove.valueOf(FileIndex.valueOf(file, index), move).getDeltas();
     }
 
     /**
@@ -163,6 +190,13 @@ public final class FileState {
             throw new IndexOutOfBoundsException("Parameter index is invalid. index = " + index);
         }
         return STATES[order][index];
+    }
+
+    public static int indexBoundary(final int order) {
+        if (order < MIN_ORDER || order > MAX_ORDER) {
+            throw new IndexOutOfBoundsException("Parameter order is invalid. order = " + order);
+        }
+        return MAX_INDEX[order];
     }
 
     /**

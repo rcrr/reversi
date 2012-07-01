@@ -25,6 +25,7 @@
 package rcrr.reversi.board;
 
 import java.util.Map;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -137,10 +138,44 @@ public class FileStateTest {
 
     @Test
     public final void testPrintLegalMoves() {
+        /**
+         * Turn the statistic into tests ... 
+         */
+        /*
+        for (int order = 3; order <= 8; order ++) {
+            int moves = 0;
+            int[] moveDistribution = new int[5];
+            final int boundary = FileState.indexBoundary(order);
+            for (int index = 0; index <= boundary; index++) {
+                final FileState fs = FileState.valueOf(order, index);
+                final int moveCount = fs.legalMoves().size();
+                moves += moveCount;
+                switch (moveCount) {
+                case 0: moveDistribution[0] += 1; break;
+                case 1: moveDistribution[1] += 1; break;
+                case 2: moveDistribution[2] += 1; break;
+                case 3: moveDistribution[3] += 1; break;
+                case 4: moveDistribution[4] += 1; break;
+                default: throw new RuntimeException("Too many moves ....");
+                }
+            }
+            System.out.println("order=" + order + ", boundary=" + boundary + ", moves=" + moves
+                               + ", D:["
+                               + moveDistribution[0] + ", "
+                               + moveDistribution[1] + ", "
+                               + moveDistribution[2] + ", "
+                               + moveDistribution[3] + ", "
+                               + moveDistribution[4] + "]");
+        }
+
+        System.out.println();
 
         for (final File file : FileUtils.files()) {
-            ;
+            final List<Square> squares = file.squares();
+            final int order = squares.size();
+            System.out.println("file=" + file + ", order=" + order + ", squares=" + file.squares());
         }
+        */
 
         assertTrue(true);
     }
