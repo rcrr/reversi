@@ -43,6 +43,24 @@ public class FileStateTest {
     /** Class constructor. */
     public FileStateTest() { }
 
+    @Test
+    public final void testFileIndexClass() {
+
+        final FileState.FileIndex fi = FileState.FileIndex.valueOf(Column.A, 0);
+
+        assertTrue(true);
+
+    }
+
+    @Test
+    public final void testFileIndexMoveClass() {
+
+        final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(FileState.FileIndex.valueOf(Column.A, 0), 0);
+
+        assertTrue(true);
+
+    }
+
     @Test(expected = IndexOutOfBoundsException.class)
     public final void testValueOf_when_parameter_index_isInvalid_caseA() {
         FileState.valueOf(8, 6561);

@@ -47,6 +47,10 @@ public final class FileState {
             return FILE_INDEX_MAP.get(file).get(index);
         }
 
+        public static Map<File, List<FileIndex>> fileIndexMap() {
+            return FILE_INDEX_MAP;
+        }
+
         static {
 
             /**
@@ -55,12 +59,18 @@ public final class FileState {
             final Map<File, List<FileIndex>> transientFileIndexMap = new HashMap<File, List<FileIndex>>();
             for (final File file : FileUtils.files()) {
                 final List<FileIndex> transientFileIndexList = new ArrayList<FileIndex>();
-                for (int i = 0; i < FileUtils.numberOfSquares(file); i++) {
-                    ; // Must be added the file list creation
+                for (int index = 0; index <= indexBoundary(file.squares().size()); index++) {
+                    final FileIndex fileIndex = new FileIndex(file, index);
+                    transientFileIndexList.add(fileIndex);
                 }
                 transientFileIndexMap.put(file, Collections.unmodifiableList(transientFileIndexList));
             }
             FILE_INDEX_MAP = Collections.unmodifiableMap(transientFileIndexMap);
+
+            System.out.println("FILE_INDEX_MAP.size()=" + FILE_INDEX_MAP.size());
+            for (final Map.Entry<File, List<FileIndex>> entry : FILE_INDEX_MAP.entrySet()) {
+                System.out.println("entry.getKey()=" + entry.getKey() + ", entry.getValue().size()=" + entry.getValue().size());;
+            }
 
         }
 
@@ -86,8 +96,16 @@ public final class FileState {
              * Computes FILE_INDEX_MOVE_MAP map.
              */
             final Map<FileIndex, Map<Integer, FileIndexMove>> transientFileIndexMoveMap = new HashMap<FileIndex, Map<Integer, FileIndexMove>>();
-            ; // Must be added the map creation
+            for (final Map.Entry<File, List<FileIndex>> entry : FileState.FileIndex.fileIndexMap().entrySet()) {
+                for (final FileIndex fileIndex : entry.getValue()) {
+                    final Map<Integer, FileIndexMove> transientInnerMap = new HashMap<Integer, FileIndexMove>();
+                    ; // Here add the new FileIndexMove to the map .....
+                    transientFileIndexMoveMap.put(fileIndex, Collections.unmodifiableMap(transientInnerMap));
+                }
+            }
             FILE_INDEX_MOVE_MAP = Collections.unmodifiableMap(transientFileIndexMoveMap);
+
+            System.out.println("FILE_INDEX_MOVE_MAP.size()=" + FILE_INDEX_MOVE_MAP.size());
 
         }
 
