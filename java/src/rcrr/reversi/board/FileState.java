@@ -93,6 +93,14 @@ public final class FileState {
             return legalMoves;
         }
 
+        public File file() {
+            return file;
+        }
+
+        public int index() {
+            return index;
+        }
+
     }
 
     public static class FileIndexMove {
@@ -131,6 +139,15 @@ public final class FileState {
             this.move = move;
         }
 
+        /**
+         * MUST BE PRE_COMPUTED ???
+         */
+        public List<SquareTransition> fileTransitions() {
+            final List<SquareTransition> transitions = new ArrayList<SquareTransition>();
+            // IMPLEMENTATION HERE ....
+            return transitions;
+        }
+
         public int[] getDeltas() {
             /// MUST BE IMPLEMENTED !!!!!
             return new int[1];
@@ -162,16 +179,6 @@ public final class FileState {
      * Compute a map of the deltas: for each file --> for each --> Square --> for each transition ==> get delta indexes
      * Compose in a table (the FileIndexMove object) the square delta: for each file --> for each configuration --> for each move ==> get delta indexes
      */
-
-    /**
-     * MUST BE PRE_COMPUTED ??? Could be a method of filestate ??? yes.
-     */
-    public static List<SquareTransition> fileTransition(final FileState from, final int move) {
-        // check that move is a legal move for the FileState ....
-        final List<SquareTransition> transitions = new ArrayList<SquareTransition>();
-        // IMPLEMENTATION HERE ....
-        return transitions;
-    }
 
     // Could be a method of FileIndex ??? Yes!
     public static Map<Square, SquareTransition> fileTransition(final FileIndex from, final int move) {
@@ -273,7 +280,7 @@ public final class FileState {
      * @throws NullPointerException     when {@code configuration} parameter is null or contains null values
      * @throws IllegalArgumentException when {@code configuration} parameter is null or contains OUTER values
      */
-    private static void checkConfiguration(final SquareState[] configuration) {
+    private static void checkConfiguration(final List<SquareState> configuration) {
         if (configuration == null) { throw new NullPointerException("Parameter configuration cannot be null."); }
         for (final SquareState state : configuration) {
             if (state == null) { throw new NullPointerException("Parameter configuration has null values."); }
@@ -289,11 +296,11 @@ public final class FileState {
      * @param configuration the file state
      * @return the index of the configuration
      */
-    private static int computeIndex(final SquareState[] configuration) {
+    private static int computeIndex(final List<SquareState> configuration) {
         checkConfiguration(configuration);
         int index = 0;
-        for (int i = 0; i < configuration.length; i++) {
-            index += configuration[i].ordinal() * POSITION_COEFFICIENTS[i];
+        for (int i = 0; i < configuration.size(); i++) {
+            index += configuration.get(i).ordinal() * POSITION_COEFFICIENTS[i];
         }
         return index;
     }
@@ -304,13 +311,13 @@ public final class FileState {
      * @param configuration the file configuration to be flipped
      * @return              a new file configuration
      */
-    private static SquareState[] flipConfiguration(final SquareState[] configuration) {
+    private static List<SquareState> flipConfiguration(final List<SquareState> configuration) {
         checkConfiguration(configuration);
-        final SquareState[] newConfiguration = configuration.clone();
-        for (int square = 0; square < configuration.length; square++) {
-            switch (configuration[square]) {
-            case BLACK: newConfiguration[square] = SquareState.WHITE; break;
-            case WHITE: newConfiguration[square] = SquareState.BLACK; break;
+        final List<SquareState> newConfiguration = new ArrayList<SquareState>(configuration);
+        for (int square = 0; square < configuration.size(); square++) {
+            switch (configuration.get(square)) {
+            case BLACK: newConfiguration.set(square, SquareState.WHITE); break;
+            case WHITE: newConfiguration.set(square, SquareState.BLACK); break;
             default: break;
             }
         }
@@ -323,18 +330,19 @@ public final class FileState {
      * @param configuration the configuration to be printed
      * @return              a string describing the configuration
      */
-    private static String printConfiguration(final SquareState[] configuration) {
+    private static String printConfiguration(final List<SquareState> configuration) {
         checkConfiguration(configuration);
         final String separator = " ";
         final StringBuffer sb = new StringBuffer(separator);
-        for (int i = 0; i < configuration.length; i++) {
-            sb.append(configuration[i].symbol() + separator);
+        for (int i = 0; i < configuration.size(); i++) {
+            sb.append(configuration.get(i).symbol() + separator);
         }
         return sb.toString();
     }
 
     /** The configuration field. */
-    private final SquareState[] configuration;
+    //private final SquareState[] configuration;
+    private final List<SquareState> configuration;
 
     /** The legalMoves field. */
     private final Map<Integer, Integer> legalMoves;
@@ -357,7 +365,11 @@ public final class FileState {
     private FileState(final int order, final int index) {
         this.order = order;
         this.index = index;
-        this.configuration = new SquareState[order];
+        this.configuration = new ArrayList<SquareState>(order);
+
+        for (int i = 0; i < order; i++) {
+            this.configuration.add(null);
+        }
 
         /**
          * Computes the configuration field.
@@ -372,7 +384,7 @@ public final class FileState {
             case 2: squareState = SquareState.WHITE; break;
             default: throw new RuntimeException("Config value must be in between 0 and 2. config=" + config);
             }
-            configuration[i] = squareState;
+            configuration.set(i, squareState);
             remainder = remainder % POSITION_COEFFICIENTS[i];
         }
 
@@ -442,7 +454,7 @@ public final class FileState {
      */
     private Map<Integer, Integer> computeLegalMoves() {
         final Map<Integer, Integer> legalMoves = new HashMap<Integer, Integer>();
-        for (int move = 0; move < configuration.length; move++) {
+        for (int move = 0; move < configuration.size(); move++) {
             if (isLegal(move)) {
                 legalMoves.put(move, computeIndex(makeMove(move)));
             }
@@ -459,13 +471,13 @@ public final class FileState {
      * @return       the position of the bracketing piece
      */
     private int findBracketingPiece(final int square, final int dir) {
-        final SquareState squareColor = configuration[square];
+        final SquareState squareColor = configuration.get(square);
         switch (squareColor) {
         case EMPTY: return -1;
         case BLACK: return square;
         case WHITE:
             final int next = square + dir;
-            if (next < 0 || next >= configuration.length) { return -1; }
+            if (next < 0 || next >= configuration.size()) { return -1; }
             return findBracketingPiece(next, dir);
         default: throw new RuntimeException("Unexpected square color. Got " + squareColor);
         }        
@@ -478,10 +490,10 @@ public final class FileState {
      * @return     true when the move is legal
      */
     private boolean isLegal(final int move) {
-        if (move < 0 || move >= configuration.length) {
+        if (move < 0 || move >= configuration.size()) {
             throw new IllegalArgumentException("Parameter move is out of range.");
         }
-        if (configuration[move] != SquareState.EMPTY) { return false; }
+        if (configuration.get(move) != SquareState.EMPTY) { return false; }
         for (final int dir : DIRECTIONS) {
             if (wouldFlip(move, dir) != -1) { return true; }
         }
@@ -495,15 +507,15 @@ public final class FileState {
      * @param move the move to be executed
      * @return     the new configuration obtained by moving
      */
-    private SquareState[] makeMove(final int move) {
-        final SquareState[] newConfiguration = configuration.clone();
-        newConfiguration[move] = SquareState.BLACK;
+    private List<SquareState> makeMove(final int move) {
+        final List<SquareState> newConfiguration = new ArrayList<SquareState>(configuration);
+        newConfiguration.set(move, SquareState.BLACK);
         for (final int dir : DIRECTIONS) {
             final int bracketer = wouldFlip(move, dir);
             if (bracketer != -1) {
                 for (int square = move + dir; true; square = square + dir) {
                     if (square == bracketer) { break; }
-                    newConfiguration[square] = SquareState.BLACK;
+                    newConfiguration.set(square, SquareState.BLACK);
                 }
             }
         }
@@ -519,10 +531,10 @@ public final class FileState {
      */
     private int wouldFlip(final int move, final int dir) {
         final int neighbor = move + dir;
-        if (neighbor < 0 || neighbor >= configuration.length) { return -1; }
+        if (neighbor < 0 || neighbor >= configuration.size()) { return -1; }
         final int next = neighbor + dir;
-        if (next < 0 || next >= configuration.length) { return -1; }
-        final SquareState neighborColor = configuration[neighbor];
+        if (next < 0 || next >= configuration.size()) { return -1; }
+        final SquareState neighborColor = configuration.get(neighbor);
         switch (neighborColor) {
         case EMPTY: return -1;
         case BLACK: return -1;
