@@ -80,6 +80,19 @@ public final class FileState {
             this.file = file;
             this.index = index;
         }
+
+        public FileState fileState() {
+            return FileState.valueOf(file.order(), index);
+        }
+
+        public Map <Integer, FileIndex> legalMoves() {
+            final HashMap<Integer, FileIndex> legalMoves = new HashMap<Integer, FileIndex>();
+            for (final Map.Entry<Integer, Integer> entry : fileState().legalMoves().entrySet()) {
+                legalMoves.put(entry.getKey(), valueOf(file, entry.getValue()));
+            }
+            return legalMoves;
+        }
+
     }
 
     public static class FileIndexMove {
@@ -99,7 +112,9 @@ public final class FileState {
             for (final Map.Entry<File, List<FileIndex>> entry : FileState.FileIndex.fileIndexMap().entrySet()) {
                 for (final FileIndex fileIndex : entry.getValue()) {
                     final Map<Integer, FileIndexMove> transientInnerMap = new HashMap<Integer, FileIndexMove>();
-                    ; // Here add the new FileIndexMove to the map .....
+                    for (final Map.Entry<Integer, FileIndex> move : fileIndex.legalMoves().entrySet()) {
+                        transientInnerMap.put(move.getKey(), new FileIndexMove(fileIndex, move.getKey()));
+                    }
                     transientFileIndexMoveMap.put(fileIndex, Collections.unmodifiableMap(transientInnerMap));
                 }
             }
@@ -132,6 +147,40 @@ public final class FileState {
         // check the move validity  ....
         return FileIndexMove.valueOf(FileIndex.valueOf(file, index), move).getDeltas();
     }
+
+    public static enum SquareTransition {
+        NO_TRANSITION,
+        EMPTY_TO_BLACK,
+        EMPTY_TO_WHITE,
+        BLACK_TO_WHITE,
+        WHITE_TO_BLACK;
+    }
+
+    /**
+     * LOGIC:
+     * If I do the move, which transition I am generating (in term of squares)?
+     * Compute a map of the deltas: for each file --> for each --> Square --> for each transition ==> get delta indexes
+     * Compose in a table (the FileIndexMove object) the square delta: for each file --> for each configuration --> for each move ==> get delta indexes
+     */
+
+    /**
+     * MUST BE PRE_COMPUTED ??? Could be a method of filestate ??? yes.
+     */
+    public static List<SquareTransition> fileTransition(final FileState from, final int move) {
+        // check that move is a legal move for the FileState ....
+        final List<SquareTransition> transitions = new ArrayList<SquareTransition>();
+        // IMPLEMENTATION HERE ....
+        return transitions;
+    }
+
+    // Could be a method of FileIndex ??? Yes!
+    public static Map<Square, SquareTransition> fileTransition(final FileIndex from, final int move) {
+        // check that move is a legal move for the FileIndex ....
+        final Map<Square, SquareTransition> transitions = new HashMap<Square, SquareTransition>();
+        // IMPLEMENTATION HERE ....
+        return transitions;
+    }
+
 
     /**
      * An array of the directions that can be taken moving along the axis.

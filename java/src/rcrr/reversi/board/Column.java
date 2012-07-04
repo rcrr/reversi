@@ -79,6 +79,9 @@ public enum Column implements File {
     /** The number of columns. */
     private static final int NUMBER_OF = values().length;
 
+    /** The order of all columns. */
+    private static final int ORDER = 8;
+
     /** The column label. */
     private final String label;
 
@@ -135,6 +138,14 @@ public enum Column implements File {
     @Override
     public Axis axis() {
         return Axis.VERTICAL;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int order() {
+        return ORDER;
     }
 
     /**
