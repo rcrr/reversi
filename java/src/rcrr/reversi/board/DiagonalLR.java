@@ -124,6 +124,14 @@ public enum DiagonalLR implements File {
      * {@inheritDoc}
      */
     @Override
+    public int order() {
+        return squares().size();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<Square> squares() {
         return Square.SQUARE_ASSIGNMENT_TO_DIAGONAL_LR_TABLE.get(this);
     }

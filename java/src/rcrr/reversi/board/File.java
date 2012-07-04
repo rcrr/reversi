@@ -48,4 +48,11 @@ public interface File {
      */
     Axis axis();
 
+    /**
+     * Returns the order of the file. It is the number of squares of the file.
+     *
+     * @return the order of the file
+     */
+    int order();
+
 }

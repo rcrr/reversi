@@ -130,6 +130,14 @@ public enum Row implements File {
      * {@inheritDoc}
      */
     @Override
+    public int order() {
+        return NUMBER_OF;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<Square> squares() {
         return Square.SQUARE_ASSIGNMENT_TO_ROW_TABLE.get(this);
     }
