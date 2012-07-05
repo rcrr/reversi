@@ -85,6 +85,10 @@ public final class FileState {
             return FileState.valueOf(file.order(), index);
         }
 
+        public List<SquareState> configuration() {
+            return fileState().configuration();
+        }
+
         public Map <Integer, FileIndex> legalMoves() {
             final HashMap<Integer, FileIndex> legalMoves = new HashMap<Integer, FileIndex>();
             for (final Map.Entry<Integer, Integer> entry : fileState().legalMoves().entrySet()) {
@@ -144,8 +148,28 @@ public final class FileState {
          */
         public List<SquareTransition> fileTransitions() {
             final List<SquareTransition> transitions = new ArrayList<SquareTransition>();
-            // IMPLEMENTATION HERE ....
-            return transitions;
+            final List<SquareState> from = fileIndex.configuration();
+            final List<SquareState> to = fileIndex.legalMoves().get(move).configuration();
+            for (int i = 0; i < from.size(); i++) {
+                SquareTransition st;
+                final SquareState fss = from.get(i);
+                final SquareState tss = to.get(i);
+                if (fss == tss) {
+                    st = SquareTransition.NO_TRANSITION;
+                } else if (fss == SquareState.EMPTY && tss == SquareState.BLACK) {
+                    st = SquareTransition.EMPTY_TO_BLACK;
+                } else if (fss == SquareState.EMPTY && tss == SquareState.WHITE) {
+                    st = SquareTransition.EMPTY_TO_WHITE;
+                } else if (fss == SquareState.BLACK && tss == SquareState.WHITE) {
+                    st = SquareTransition.BLACK_TO_WHITE;
+                } else if (fss == SquareState.WHITE && tss == SquareState.BLACK) {
+                    st = SquareTransition.WHITE_TO_BLACK;
+                } else {
+                    throw new RuntimeException("Square transition not allowed. from=" + fss + ", to=" + tss);
+                }
+                transitions.add(st);
+            }
+            return Collections.unmodifiableList(transitions);
         }
 
         public int[] getDeltas() {
@@ -341,7 +365,6 @@ public final class FileState {
     }
 
     /** The configuration field. */
-    //private final SquareState[] configuration;
     private final List<SquareState> configuration;
 
     /** The legalMoves field. */
@@ -365,10 +388,11 @@ public final class FileState {
     private FileState(final int order, final int index) {
         this.order = order;
         this.index = index;
-        this.configuration = new ArrayList<SquareState>(order);
+        List<SquareState> transientConfiguration = new ArrayList<SquareState>(order);
 
+        /** Prepares the empy cells in the configuration list. */
         for (int i = 0; i < order; i++) {
-            this.configuration.add(null);
+            transientConfiguration.add(null);
         }
 
         /**
@@ -384,9 +408,10 @@ public final class FileState {
             case 2: squareState = SquareState.WHITE; break;
             default: throw new RuntimeException("Config value must be in between 0 and 2. config=" + config);
             }
-            configuration.set(i, squareState);
+            transientConfiguration.set(i, squareState);
             remainder = remainder % POSITION_COEFFICIENTS[i];
         }
+        this.configuration = Collections.unmodifiableList(transientConfiguration);
 
         /**
          * Computes the legalMoves field.
@@ -398,6 +423,15 @@ public final class FileState {
          */
         this.flipped = computeIndex(flipConfiguration(configuration));
 
+    }
+
+    /**
+     * Returns the configuration field.
+     *
+     * @return the configuration field
+     */
+    public List<SquareState> configuration() {
+        return this.configuration;
     }
 
     /**
