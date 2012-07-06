@@ -179,14 +179,33 @@ public final class FileState {
 
     }
 
+    /**
+     * A table that hosts for each file square the transfer matrix on the other files.
+     * Should be part of the File class ....
+     * The Map has an entry for each file. The entry value is a list corresponding to the squares of the file.
+     * The List contains for each square an inner map that has an entry for each file crossing the square.
+     * The inner map entry has the "target" file as key and an integer value as value.
+     * Remains to be decided if the integer value is the square ordinal position in the file, or to assign it directly the coefficient
+     * obtained by raising 3 to the ordinal position.
+     */
+    Map<File, List<Map<File, Integer>>> FILE_TRANSFER_MATRIX = initializeComputeTheFileTransferMatrix();
+
+    private static final Map<File, List<Map<File, Integer>>> initializeComputeTheFileTransferMatrix() {
+        return new HashMap<File, List<Map<File, Integer>>>();
+    }
+
+    /**
+     * Too many controls that will be removed when debugging and tests will be ready.
+     */
     public static int[] fileIndexDeltasByMove(final File file, final int index, final int move) {
         if (file == null) { throw new NullPointerException("Parameter file cannot be null."); }
         final int order = file.squares().size();
         final int boundary = indexBoundary(order);
         if (index < 0 || index > boundary) { throw new IndexOutOfBoundsException("Parameter index is out of range."); }
         final FileState fileState = FileState.valueOf(order, index);
-        // check the move validity  ....
-        return FileIndexMove.valueOf(FileIndex.valueOf(file, index), move).getDeltas();
+        final FileIndex fileIndex = FileIndex.valueOf(file, index);
+        if(!fileIndex.legalMoves().keySet().contains(move)) { throw new IllegalArgumentException("Parameter move is not valid. move=" + move); }
+        return FileIndexMove.valueOf(fileIndex, move).getDeltas();
     }
 
     public static enum SquareTransition {
