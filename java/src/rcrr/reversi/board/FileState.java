@@ -185,13 +185,29 @@ public final class FileState {
      * The Map has an entry for each file. The entry value is a list corresponding to the squares of the file.
      * The List contains for each square an inner map that has an entry for each file crossing the square.
      * The inner map entry has the "target" file as key and an integer value as value.
-     * Remains to be decided if the integer value is the square ordinal position in the file, or to assign it directly the coefficient
-     * obtained by raising 3 to the ordinal position.
+     * The integer is computed as the integer 3 elevated to the ordinal power ...
      */
     Map<File, List<Map<File, Integer>>> FILE_TRANSFER_MATRIX = initializeComputeTheFileTransferMatrix();
 
     private static final Map<File, List<Map<File, Integer>>> initializeComputeTheFileTransferMatrix() {
-        return new HashMap<File, List<Map<File, Integer>>>();
+        final Map<File, List<Map<File, Integer>>> fileTransferMatrix = new HashMap<File, List<Map<File, Integer>>>();
+        for (final File file: FileUtils.files()) {
+            final List<Map<File, Integer>> squares = new ArrayList<Map<File, Integer>>();
+            for (final Square square: file.squares()) {
+                final Map<File, Integer> transferMap = new HashMap<File, Integer>();
+                for (final File affectedFile : square.files().values()) {
+                    if (file != null) {
+                        //final int ordinalPosition = square.ordinalPositionInFile(affectedFile);
+                        final int ordinalPosition = 0; // square.ordinalPositionInFile(affectedFile) CANNOT BE CALLED BECAUSE OF INITIALIZATION ISSUES!
+                        final int transferCoefficient = BigInteger.valueOf(3).pow(ordinalPosition).intValue();
+                        transferMap.put(file, transferCoefficient);
+                    }
+                }
+                squares.add(transferMap);
+            }
+            fileTransferMatrix.put(file, squares);
+        }
+        return fileTransferMatrix;
     }
 
     /**
