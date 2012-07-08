@@ -70,6 +70,9 @@ public enum Row implements File {
     /** The number of rows. */
     private static final int NUMBER_OF = values().length;
 
+    /** The order of all rows. */
+    private static final int ORDER = 8;
+
     /** The row label. */
     private final String label;
 
@@ -131,7 +134,7 @@ public enum Row implements File {
      */
     @Override
     public int order() {
-        return NUMBER_OF;
+        return ORDER;
     }
 
     /**
