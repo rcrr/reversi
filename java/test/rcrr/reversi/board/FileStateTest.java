@@ -44,6 +44,17 @@ public class FileStateTest {
     public FileStateTest() { }
 
     @Test
+    public final void testFileIndexMoveClass_fileTransitions() {
+
+        final FileState.FileIndex fi = FileState.FileIndex.valueOf(DiagonalRL.C1_A3, 7);
+        final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, 2);
+
+        System.out.println("fim.fileTransitions()=" + fim.fileTransitions());
+
+        assertTrue(true);
+    }
+
+    @Test
     public final void testFileIndexClass() {
 
         final FileState.FileIndex fi = FileState.FileIndex.valueOf(Column.A, 0);

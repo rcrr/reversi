@@ -65,17 +65,6 @@ final class FileUtils {
     static {
 
         /**
-         * Has to be tested if required or usefull ....
-         */
-        try {
-            Class.forName("rcrr.reversi.board.Axis");
-            Class.forName("rcrr.reversi.board.File");
-            Class.forName("rcrr.reversi.board.Square");
-        } catch (ClassNotFoundException cnfe) {
-            throw new RuntimeException(cnfe);
-        }
-
-        /**
          * Computes the FILE list.
          */
         List<File> files = new ArrayList<File>();

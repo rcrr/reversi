@@ -173,8 +173,9 @@ public final class FileState {
         }
 
         public int[] getDeltas() {
+            final int[] deltas = new int[FileUtils.NUMBER_OF_FILES];
             /// MUST BE IMPLEMENTED !!!!!
-            return new int[1];
+            return deltas;
         }
 
     }
@@ -187,7 +188,7 @@ public final class FileState {
      * The inner map entry has the "target" file as key and an integer value as value.
      * The integer is computed as the integer 3 elevated to the ordinal power ...
      */
-    Map<File, List<Map<File, Integer>>> FILE_TRANSFER_MATRIX = initializeComputeTheFileTransferMatrix();
+    private static final Map<File, List<Map<File, Integer>>> FILE_TRANSFER_MATRIX = initializeComputeTheFileTransferMatrix();
 
     private static final Map<File, List<Map<File, Integer>>> initializeComputeTheFileTransferMatrix() {
         final Map<File, List<Map<File, Integer>>> fileTransferMatrix = new HashMap<File, List<Map<File, Integer>>>();
@@ -207,6 +208,10 @@ public final class FileState {
             fileTransferMatrix.put(file, squares);
         }
         return fileTransferMatrix;
+    }
+
+    public static int fileTransferMatrix(final File changed, final File affected, final int move) {
+        return FILE_TRANSFER_MATRIX.get(changed).get(move).get(affected);
     }
 
     /**
