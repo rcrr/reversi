@@ -196,9 +196,8 @@ public final class FileState {
             for (final Square square: file.squares()) {
                 final Map<File, Integer> transferMap = new HashMap<File, Integer>();
                 for (final File affectedFile : square.files().values()) {
-                    if (file != null) {
-                        //final int ordinalPosition = square.ordinalPositionInFile(affectedFile);
-                        final int ordinalPosition = 0; // square.ordinalPositionInFile(affectedFile) CANNOT BE CALLED BECAUSE OF INITIALIZATION ISSUES!
+                    if (affectedFile != null) {
+                        final int ordinalPosition = square.ordinalPositionInFile(affectedFile);
                         final int transferCoefficient = BigInteger.valueOf(3).pow(ordinalPosition).intValue();
                         transferMap.put(file, transferCoefficient);
                     }

@@ -444,13 +444,24 @@ public class SquareTest {
                    is(Square.NULL));
     }
 
+    /**
+     * Tests the {@code ordinalPositionInFile(Axis)} method when parameter
+     * {@code axis} is {@code null}.
+     *
+     * @see Square#ordinalPositionInFile(Axis)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testOrdinalPositionInFile_boundaryConditions_checkNullParameter_axis() {
+        Square.A1.ordinalPositionInFile(Axis.NULL);
+    }
+
      /**
      * Tests the {@code ordinalPositionInFile(Axis)} method.
      *
      * @see Square#ordinalPositionInFile(Axis)
      */
     @Test
-    public final void testOrdinalPositionInFile() {
+    public final void testOrdinalPositionInFile_axisParameter() {
         assertThat("Square.A1.ordinalPositionInFile(Axis.VERTICAL) is 0.",
                    Square.A1.ordinalPositionInFile(Axis.VERTICAL),
                    is(0));
@@ -484,6 +495,36 @@ public class SquareTest {
         assertThat("Square.H3.ordinalPositionInFile(Axis.DIAGONAL_LR) is 2.",
                    Square.H3.ordinalPositionInFile(Axis.DIAGONAL_LR),
                    is(2));
+    }
+
+    /**
+     * Tests the {@code ordinalPositionInFile(File)} method when parameter
+     * {@code file} is {@code null}.
+     *
+     * @see Square#ordinalPositionInFile(File)
+     */
+    @Test(expected = NullPointerException.class)
+    public final void testOrdinalPositionInFile_boundaryConditions_checkNullParameter_file() {
+        Square.A1.ordinalPositionInFile(FileUtils.NULL_FILE);
+    }
+
+
+     /**
+     * Tests the {@code ordinalPositionInFile(File)} method.
+     *
+     * @see Square#ordinalPositionInFile(File)
+     */
+    @Test
+    public final void testOrdinalPositionInFile_fileParameter() {
+        assertThat("Square.A1.ordinalPositionInFile((File) Column.A) is 0.",
+                   Square.A1.ordinalPositionInFile((File) Column.A),
+                   is(0));
+        assertThat("Square.C4.ordinalPositionInFile((File) Column.C) is 3.",
+                   Square.C4.ordinalPositionInFile((File) Column.C),
+                   is(3));
+        assertThat("Square.C4.ordinalPositionInFile((File) Column.A) is -1.",
+                   Square.C4.ordinalPositionInFile((File) Column.A),
+                   is(-1));
     }
 
 }

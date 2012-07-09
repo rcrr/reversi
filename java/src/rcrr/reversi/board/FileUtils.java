@@ -30,6 +30,7 @@ import java.math.BigInteger;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
@@ -47,6 +48,8 @@ final class FileUtils {
 
     static final int FILE_MAX_LENGTH = 8;
 
+    static final File NULL_FILE = null;
+
     /**
      * The number of board squares.
      * Warning: due to a strange init issue Square.NUMBER_OF cannot be used.
@@ -60,6 +63,17 @@ final class FileUtils {
     private static final int[] NUMBER_OF_FILE_SQUARES;
 
     static {
+
+        /**
+         * Has to be tested if required or usefull ....
+         */
+        try {
+            Class.forName("rcrr.reversi.board.Axis");
+            Class.forName("rcrr.reversi.board.File");
+            Class.forName("rcrr.reversi.board.Square");
+        } catch (ClassNotFoundException cnfe) {
+            throw new RuntimeException(cnfe);
+        }
 
         /**
          * Computes the FILE list.

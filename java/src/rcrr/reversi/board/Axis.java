@@ -50,6 +50,9 @@ public enum Axis {
      */
     DIAGONAL_RL(DiagonalRL.class);
 
+    /** The null instance. */
+    public static final Axis NULL = null;
+
     /** The number of axes. */
     public static final int NUMBER_OF = values().length;
 
