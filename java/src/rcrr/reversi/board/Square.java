@@ -488,7 +488,7 @@ public enum Square {
         for (final File file : FileUtils.files()) {
             squareOrdinalPositionInFileCounter.put(file, 0);
         }
-        for (final Square sq : values()) {
+        for (final Square sq : Square.values()) {
             for (final Axis axis : Axis.values()) {
                 final File file = sq.file(axis);
                 final int index = Axis.NUMBER_OF * sq.ordinal() + axis.ordinal();
@@ -814,11 +814,36 @@ public enum Square {
         }
     }
 
+    /**
+     * Returns the ordinal position of the square in the file identified by the {@code axis} parameter.
+     * The returned value is {@code -1} when the {@code axis} parameter doesn't identify a file,
+     * this happens for the corners and the "C" squares for the diagonal axis that wouldn't have a length
+     * of at least three squares.
+     * <p>
+     * The parameter {@code axis} cannot be {@code null}.
+     *
+     * @param axis the axis parameter
+     * @return     the ordinal position of the square in the file identified by the axis
+     * @throws NullPointerException when the parameter axis is null
+     **/
     public int ordinalPositionInFile(final Axis axis) {
+        if (axis == null) { throw new NullPointerException("Parameter axis cannot be null."); }
         return SQUARE_ORDINAL_POSITION_IN_FILE[Axis.NUMBER_OF * this.ordinal() + axis.ordinal()];
     }
 
+    /**
+     * Returns the ordinal position of the square in the {@code file} parameter.
+     * The returned value is {@code -1} when the {@code file} parameter doesn't pass through the square.
+     * <p>
+     * The parameter {@code file} cannot be {@code null}.
+     *
+     * @param file the file parameter
+     * @return     the ordinal position of the square in the file
+     * @throws NullPointerException when the parameter file is null
+     **/
     public int ordinalPositionInFile(final File file) {
+        if (file == null) { throw new NullPointerException("Parameter file cannot be null."); }
+        if (!files().values().contains(file)) { return -1; }
         return ordinalPositionInFile(file.axis());
     }
 
