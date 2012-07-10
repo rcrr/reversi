@@ -26,6 +26,7 @@ package rcrr.reversi.board;
 
 import java.util.Map;
 import java.util.List;
+import java.util.Arrays;
 
 import org.junit.Test;
 
@@ -43,15 +44,48 @@ public class FileStateTest {
     /** Class constructor. */
     public FileStateTest() { }
 
+
+    /**
+     * EARLY_GAME_C_12_MOVES
+     */
+    @Test
+    public final void testGetDeltas() {
+
+        final FileState.FileIndex fi = FileState.FileIndex.valueOf(Column.C, 414);
+        final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, 3);
+
+        System.out.println("fim=" + fim);
+        final int[] deltas = fim.getDeltas();
+        for (int i = 0; i < deltas.length; i++) {
+            System.out.println("fim.getDeltas() [" + i + "] (" + FileUtils.files().get(i) + ") =" + deltas[i]);
+        }
+
+        assertTrue(true);
+    }
+
+    @Test
+    public final void testFileTransferMatrix() {
+        assertThat("File D affects file R3 when squere ordinal 2 changes by a factor of 27.",
+                   FileState.fileTransferMatrix((File) Column.D, 2, (File) Row.R3),
+                   is(27));
+    }
+
+
     @Test
     public final void testFileIndexMoveClass_fileTransitions() {
 
         final FileState.FileIndex fi = FileState.FileIndex.valueOf(DiagonalRL.C1_A3, 7);
         final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, 2);
 
-        System.out.println("fim.fileTransitions()=" + fim.fileTransitions());
+        final List<FileState.SquareTransition> expected = Arrays.asList(FileState.SquareTransition.NO_TRANSITION,
+                                                                        FileState.SquareTransition.WHITE_TO_BLACK,
+                                                                        FileState.SquareTransition.EMPTY_TO_BLACK);
 
-        assertTrue(true);
+        assertThat("Expected transition list is NO_TTRANSITION, WHITE_TO_BLACK, EMPTY_TO_BLACK.",
+                   fim.fileTransitions(),
+                   is(expected));
+
+
     }
 
     @Test
