@@ -174,7 +174,16 @@ public final class FileState {
 
         public int[] getDeltas() {
             final int[] deltas = new int[FileUtils.NUMBER_OF_FILES];
-            /// MUST BE IMPLEMENTED !!!!!
+            final File file = fileIndex.file();
+            int squareOrdinal = 0;
+            for (final SquareTransition st : fileTransitions()) {
+                final Square sq = file.squares().get(squareOrdinal);
+                for (final File affectedFile : sq.files().values()) {
+                    int delta = st.delta() * fileTransferMatrix(fileIndex.file(), squareOrdinal, affectedFile);
+                    deltas[FileUtils.files().indexOf(affectedFile)] += delta;
+                }
+                squareOrdinal++;
+            }
             return deltas;
         }
 
@@ -200,7 +209,7 @@ public final class FileState {
                     if (affectedFile != null) {
                         final int ordinalPosition = square.ordinalPositionInFile(affectedFile);
                         final int transferCoefficient = BigInteger.valueOf(3).pow(ordinalPosition).intValue();
-                        transferMap.put(file, transferCoefficient);
+                        transferMap.put(affectedFile, transferCoefficient);
                     }
                 }
                 squares.add(transferMap);
@@ -210,8 +219,10 @@ public final class FileState {
         return fileTransferMatrix;
     }
 
-    public static int fileTransferMatrix(final File changed, final File affected, final int move) {
-        return FILE_TRANSFER_MATRIX.get(changed).get(move).get(affected);
+    public static int fileTransferMatrix(final File changed, final int square, final File affected) {
+        final List<Map<File, Integer>> squares = FILE_TRANSFER_MATRIX.get(changed);
+        final Map<File, Integer>  transferMatrix = squares.get(square);
+        return transferMatrix.get(affected);
     }
 
     /**
@@ -229,11 +240,21 @@ public final class FileState {
     }
 
     public static enum SquareTransition {
-        NO_TRANSITION,
-        EMPTY_TO_BLACK,
-        EMPTY_TO_WHITE,
-        BLACK_TO_WHITE,
-        WHITE_TO_BLACK;
+
+        NO_TRANSITION(0),
+        EMPTY_TO_BLACK(1),
+        EMPTY_TO_WHITE(2),
+        BLACK_TO_WHITE(1),
+        WHITE_TO_BLACK(-1);
+
+        private final int delta;
+
+        private SquareTransition(final int delta) {
+            this.delta = delta;
+        }
+
+        public final int delta() { return this.delta; }
+
     }
 
     /**

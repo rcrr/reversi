@@ -34,8 +34,6 @@ import static org.junit.Assert.assertTrue;
 
 import static org.junit.matchers.JUnitMatchers.hasItems;
 
-import static org.hamcrest.core.AllOf.allOf;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 
