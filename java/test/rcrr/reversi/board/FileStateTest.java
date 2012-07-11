@@ -54,13 +54,48 @@ public class FileStateTest {
         final FileState.FileIndex fi = FileState.FileIndex.valueOf(Column.C, 414);
         final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, 3);
 
-        System.out.println("fim=" + fim);
-        final int[] deltas = fim.getDeltas();
-        for (int i = 0; i < deltas.length; i++) {
-            System.out.println("fim.getDeltas() [" + i + "] (" + FileUtils.files().get(i) + ") =" + deltas[i]);
-        }
+        final int[] expected = {  0, // [ 0] --> R1
+                                  0, // [ 1] --> R2
+                                  0, // [ 2] --> R3
+                                  9, // [ 3] --> R4
+                                 -9, // [ 4] --> R5
+                                  0, // [ 5] --> R6
+                                  0, // [ 6] --> R7
+                                  0, // [ 7] --> R8
+                                  0, // [ 8] --> A
+                                  0, // [ 9] --> B
+                                -54, // [10] --> C
+                                  0, // [11] --> D
+                                  0, // [12] --> E
+                                  0, // [13] --> F
+                                  0, // [14] --> G
+                                  0, // [15] --> H
+                                  0, // [16] --> A6_C8
+                                  0,
+                                  0,
+                                 -9,
+                                  9,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                 27,
+                                -81,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0};
 
-        assertTrue(true);
+        assertThat("",
+                   fim.getDeltas(),
+                   is(expected));
     }
 
     @Test
