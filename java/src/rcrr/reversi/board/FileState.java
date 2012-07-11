@@ -198,6 +198,15 @@ public final class FileState {
             return deltas;
         }
 
+        /**
+         * Returns a {@code String} representing the {@code FileIndexMove} object.
+         *
+         * @return a {@code String} representing the file index move
+         */
+        @Override public String toString() {
+            return String.format("[move=%d, fileIndex=%s]", move, fileIndex);
+        }
+
     }
 
     /**

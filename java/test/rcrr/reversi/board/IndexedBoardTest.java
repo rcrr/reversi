@@ -81,7 +81,7 @@ public class IndexedBoardTest extends AbstractBoardTest {
     }
 
     @Test
-    public void testLegalMovesRoundTrip() {
+    public void testLegalMovesAndMakeMoveRoundTrip() {
 
         final IndexedBoard earlyGameC12Moves = (IndexedBoard) new BoardBuilder(BoardFixtures.EARLY_GAME_C_12_MOVES).build();
 
@@ -110,6 +110,38 @@ public class IndexedBoardTest extends AbstractBoardTest {
         assertThat("Legal moves computed the old way and by the indexes machinery must be equal.",
                    legalMoves,
                    is(legalMoves2));
+
+        final Square move = Square.C4;
+
+        final IndexedBoard moveToC4 = (IndexedBoard) earlyGameC12Moves.makeMove(move, Player.BLACK);
+
+        final int[] indexesMoveToC4 = moveToC4.computeIndexes();
+
+        final List<FileState.FileIndexMove> moveAddendums = new ArrayList<FileState.FileIndexMove>();
+        for (final File file : move.files().values()) {
+            FileState.FileIndex fi = FileState.FileIndex.valueOf(file, indexes[files.indexOf(file)]);
+            for (final Map.Entry<Integer, FileState.FileIndex> entry : fi.legalMoves().entrySet()) {
+                final int moveOrdinalPosition = entry.getKey();
+                FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, moveOrdinalPosition);
+                final Square sq = entry.getValue().file().squares().get(entry.getKey());
+                System.out.println("fim=" + fim + ", sq=" + sq);
+                if (sq == move) { moveAddendums.add(fim); }
+            }
+            System.out.println("fi=" + fi);
+        }
+
+        final int[] deltas_0 = moveAddendums.get(0).getDeltas();
+        final int[] deltas_1 = moveAddendums.get(1).getDeltas();
+
+        int i = 0;
+        for (final File file : FileUtils.files()) {
+            int checksum = indexesMoveToC4[i] - (indexes[i] + deltas_0[i] + deltas_1[i]);
+            System.out.println("i, file, indexesMoveToC4, indexes, deltas_0, deltas_1: "
+                               + i + ", " + file + ", " + indexesMoveToC4[i] + ", " + indexes[i] + ", " + deltas_0[i] + ", " + deltas_1[i] + ", *** " + checksum);
+            i++;
+        }
+
+
     }
 
     @Test
