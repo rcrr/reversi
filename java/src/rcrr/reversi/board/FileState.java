@@ -67,10 +67,12 @@ public final class FileState {
             }
             FILE_INDEX_MAP = Collections.unmodifiableMap(transientFileIndexMap);
 
+            /*
             System.out.println("FILE_INDEX_MAP.size()=" + FILE_INDEX_MAP.size());
             for (final Map.Entry<File, List<FileIndex>> entry : FILE_INDEX_MAP.entrySet()) {
                 System.out.println("entry.getKey()=" + entry.getKey() + ", entry.getValue().size()=" + entry.getValue().size());;
             }
+            */
 
         }
 
@@ -105,6 +107,15 @@ public final class FileState {
             return index;
         }
 
+        /**
+         * Returns a {@code String} representing the {@code FileIndex} object.
+         *
+         * @return a {@code String} representing the file index
+         */
+        @Override public String toString() {
+            return String.format("[file=%s, index=%d]", file(), index());
+        }
+
     }
 
     public static class FileIndexMove {
@@ -132,7 +143,7 @@ public final class FileState {
             }
             FILE_INDEX_MOVE_MAP = Collections.unmodifiableMap(transientFileIndexMoveMap);
 
-            System.out.println("FILE_INDEX_MOVE_MAP.size()=" + FILE_INDEX_MOVE_MAP.size());
+            //System.out.println("FILE_INDEX_MOVE_MAP.size()=" + FILE_INDEX_MOVE_MAP.size());
 
         }
 

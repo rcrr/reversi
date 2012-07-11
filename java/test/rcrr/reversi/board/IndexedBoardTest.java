@@ -24,9 +24,13 @@
 
 package rcrr.reversi.board;
 
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.EnumMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import java.io.IOException;
@@ -77,6 +81,38 @@ public class IndexedBoardTest extends AbstractBoardTest {
     }
 
     @Test
+    public void testLegalMovesRoundTrip() {
+
+        final IndexedBoard earlyGameC12Moves = (IndexedBoard) new BoardBuilder(BoardFixtures.EARLY_GAME_C_12_MOVES).build();
+
+        final List<Square> legalMoves = earlyGameC12Moves.legalMoves(Player.BLACK);
+
+        //System.out.println("legalMoves=" + legalMoves);
+
+        final int[] indexes = earlyGameC12Moves.computeIndexes();
+
+        final List<File> files = FileUtils.files();
+
+        final List<FileState.FileIndex> fileIndexList = new ArrayList<FileState.FileIndex>(files.size());
+        final Set<Square> legalMoves2AsSet = new TreeSet<Square>();
+        for (int i = 0; i < indexes.length; i++) {
+            final FileState.FileIndex fi = FileState.FileIndex.valueOf(files.get(i), indexes[i]);
+            fileIndexList.add(fi);
+            //System.out.println("i, fi.legalMoves(): " + i + ", " + fi.legalMoves());
+            for (final Map.Entry<Integer, FileState.FileIndex> entry : fi.legalMoves().entrySet()) {
+                final Square move = entry.getValue().file().squares().get(entry.getKey());
+                legalMoves2AsSet.add(move);
+            }
+        }
+        final List<Square> legalMoves2 = new ArrayList<Square>(legalMoves2AsSet);
+        //System.out.println("legalMoves2=" + legalMoves2);
+
+        assertThat("Legal moves computed the old way and by the indexes machinery must be equal.",
+                   legalMoves,
+                   is(legalMoves2));
+    }
+
+    @Test
     public void testComputeIndexes_blackHasToPass() {
 
         final IndexedBoard blackHasToPass = (IndexedBoard) new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build();
@@ -123,7 +159,7 @@ public class IndexedBoardTest extends AbstractBoardTest {
                                        23    // 37, H6_F8
         };
 
-        for (int i = 0; i< indexes.length; i++) {
+        for (int i = 0; i < indexes.length; i++) {
             assertThat("Computed index (" + i + ", " + FileUtils.files().get(i) + ") must be equal to expected.",
                        expectedIndexes[i],
                        is(indexes[i]));
@@ -179,7 +215,7 @@ public class IndexedBoardTest extends AbstractBoardTest {
                                        0    // 37, H6_F8
         };
 
-        for (int i = 0; i< indexes.length; i++) {
+        for (int i = 0; i < indexes.length; i++) {
             assertThat("Computed index (" + i + ", " + FileUtils.files().get(i) + ") must be equal to expected.",
                        expectedIndexes[i],
                        is(indexes[i]));
