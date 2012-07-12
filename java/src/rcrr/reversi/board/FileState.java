@@ -155,7 +155,8 @@ public final class FileState {
         }
 
         /**
-         * MUST BE PRE_COMPUTED ???
+         * Transitions are:
+         * Empty to Black and White to Black .... all the other are not possible because we are evaluating only moves played by the black.
          */
         public List<SquareTransition> fileTransitions() {
             final List<SquareTransition> transitions = new ArrayList<SquareTransition>();
@@ -262,9 +263,9 @@ public final class FileState {
     public static enum SquareTransition {
 
         NO_TRANSITION(0),
-        EMPTY_TO_BLACK(1),
-        EMPTY_TO_WHITE(2),
-        BLACK_TO_WHITE(1),
+        EMPTY_TO_BLACK(0), // This is a transition that happens only to the square where the black's player moves. It is handled by a special factor ....
+        EMPTY_TO_WHITE(2), // Has to be removed ...
+        BLACK_TO_WHITE(1), // Has to be removed ...
         WHITE_TO_BLACK(-1);
 
         private final int delta;
@@ -276,22 +277,6 @@ public final class FileState {
         public final int delta() { return this.delta; }
 
     }
-
-    /**
-     * LOGIC:
-     * If I do the move, which transition I am generating (in term of squares)?
-     * Compute a map of the deltas: for each file --> for each --> Square --> for each transition ==> get delta indexes
-     * Compose in a table (the FileIndexMove object) the square delta: for each file --> for each configuration --> for each move ==> get delta indexes
-     */
-
-    // Could be a method of FileIndex ??? Yes!
-    public static Map<Square, SquareTransition> fileTransition(final FileIndex from, final int move) {
-        // check that move is a legal move for the FileIndex ....
-        final Map<Square, SquareTransition> transitions = new HashMap<Square, SquareTransition>();
-        // IMPLEMENTATION HERE ....
-        return transitions;
-    }
-
 
     /**
      * An array of the directions that can be taken moving along the axis.
