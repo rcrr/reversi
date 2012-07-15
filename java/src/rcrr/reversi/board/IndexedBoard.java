@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * A board concrete implementation.
@@ -38,6 +40,12 @@ import java.util.Map;
  * <p>
  * {@code IndexedBoard} is immutable.
  * <p>
+ * What to do:
+ * move indexes from an array to a List<FileIndex> or better a Map<File, FileIndex>
+ * implements countPieces by means of a precomputed value hosted in the FileIndex object
+ * a method that converts indexes to squares has to be arranged. It will be used to support the get method.
+ * turn compute indexes to return the List or the Map. Remove the debug version. It has to become static ....
+ *
  * @see Square
  */
 public final class IndexedBoard extends AbstractBoard {
@@ -60,16 +68,16 @@ public final class IndexedBoard extends AbstractBoard {
     }
 
     /**
-     * Verify that the transient modifier is really neaded.
-     */
-    private final transient int[] indexes;
-
-    /**
      * Lazily initialized, cached legalMoves.
      * In case of a multi-threadd use must be applied a ReadWriteLock on this field.
      */
-    private final transient Map<Player, List<Square>> legalMovesForPlayer
-        = new EnumMap<Player, List<Square>>(Player.class);
+    private final transient Map<Player, SortedSet<Square>> legalMovesForPlayer
+        = new EnumMap<Player, SortedSet<Square>>(Player.class);
+
+    /**
+     * Verify that the transient modifier is really neaded.
+     */
+    private final transient int[] indexes;
 
     /** The squares field. */
     private final transient EnumMap<Square, SquareState> squares;
@@ -91,21 +99,6 @@ public final class IndexedBoard extends AbstractBoard {
         assert (!squares.containsValue(null)) : "Parameter squares cannot contains null values.";
         this.squares = new EnumMap<Square, SquareState>(squares);
         this.indexes = computeIndexes();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int countPieces(final SquareState color) {
-        if (color == null) {
-            throw new NullPointerException("Parameter color must be not null.");
-        }
-        int count = 0;
-        for (SquareState ss : squares.values()) {
-            if (ss == color) { count++; }
-        }
-        return count;
     }
 
     /**
@@ -149,15 +142,51 @@ public final class IndexedBoard extends AbstractBoard {
     @Override
     public List<Square> legalMoves(final Player player) {
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
-        List<Square> cached = this.legalMovesForPlayer.get(player);
-        if (cached != null) { return cached; }
+        SortedSet<Square> cached = this.legalMovesForPlayer.get(player);
+        if (cached != null) { return new ArrayList<Square>(cached); }
+
+        final List<File> files = FileUtils.files();
+        final List<FileState.FileIndex> fileIndexList = new ArrayList<FileState.FileIndex>(files.size());
+        final SortedSet<Square> legalMovesAsSet = new TreeSet<Square>();
+        for (int i = 0; i < files.size(); i++) {
+            final FileState.FileIndex fi = FileState.FileIndex.valueOf(files.get(i), getIndex(player, i));
+            fileIndexList.add(fi);
+            for (final Map.Entry<Integer, FileState.FileIndex> entry : fi.legalMoves().entrySet()) {
+                final Square move = entry.getValue().file().squares().get(entry.getKey());
+                legalMovesAsSet.add(move);
+            }
+        }
+
+        /*
+        final List<Square> legalMoves = new ArrayList<Square>(legalMovesAsSet);
+        final List<Square> legalMoves_ = legalMoves_(player);
+        if (!legalMoves.equals(legalMoves_)) {
+            System.out.println("board=\n" + printBoard());
+            throw new RuntimeException("Legal Moves are different. A=" + legalMoves + ", B=" + legalMoves_);
+        }
+        */
+
+        cached = Collections.unmodifiableSortedSet(legalMovesAsSet);
+        this.legalMovesForPlayer.put(player, cached);
+        return new ArrayList<Square>(cached);
+    }
+
+    /**
+     * Should be moved in FileIndex .....
+     */
+    private int getIndex(final Player player, final int file) {
+        return (player == Player.BLACK) ? indexes[file]: FileState.FileIndex.valueOf(FileUtils.files().get(file), indexes[file]).flip().index();
+    }
+
+    /**
+     * To be DISCARDED!
+     */
+    private List<Square> legalMoves_(final Player player) {
         final List<Square> legalMoves = new ArrayList<Square>();
         for (final Square move : Square.values()) {
             if (isLegal(move, player)) { legalMoves.add(move); }
         }
-        cached = Collections.unmodifiableList(legalMoves);
-        this.legalMovesForPlayer.put(player, cached);
-        return cached;
+        return Collections.unmodifiableList(legalMoves);
     }
 
     /**
