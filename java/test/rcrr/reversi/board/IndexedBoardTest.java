@@ -126,10 +126,10 @@ public class IndexedBoardTest extends AbstractBoardTest {
                 final int moveOrdinalPosition = entry.getKey();
                 FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, moveOrdinalPosition);
                 final Square sq = entry.getValue().file().squares().get(entry.getKey());
-                System.out.println("fim=" + fim + ", sq=" + sq);
+                ///System.out.println("fim=" + fim + ", sq=" + sq);
                 if (sq == move) { moveAddendums.add(fim); }
             }
-            System.out.println("fi=" + fi);
+            //System.out.println("fi=" + fi);
         }
 
         final int[] addedDiscDeltas = new int[indexes.length];
@@ -138,16 +138,18 @@ public class IndexedBoardTest extends AbstractBoardTest {
             addedDiscDeltas[FileUtils.files().indexOf(file)] = BigInteger.valueOf(3).pow(ordinal).intValue();
         }
 
-        System.out.println("moveAddendums.size()=" + moveAddendums.size());
+        //System.out.println("moveAddendums.size()=" + moveAddendums.size());
         final int[] deltas_0 = moveAddendums.get(0).getDeltas();
         final int[] deltas_1 = moveAddendums.get(1).getDeltas();
 
         int i = 0;
         for (final File file : FileUtils.files()) {
             int checksum = indexesMoveToC4[i] - (indexes[i] + addedDiscDeltas[i] + deltas_0[i] + deltas_1[i]);
+            /*
             System.out.println("i, file, indexesMoveToC4, indexes, addedDiscDeltas, deltas_0, deltas_1: "
                                + i + ", " + file + ", " + indexesMoveToC4[i] + ", " + indexes[i]
                                + ", " + addedDiscDeltas[i] + ", " + deltas_0[i] + ", " + deltas_1[i] + ", *** " + checksum);
+            */
             i++;
         }
 

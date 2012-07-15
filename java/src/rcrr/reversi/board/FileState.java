@@ -107,6 +107,10 @@ public final class FileState {
             return index;
         }
 
+        public FileIndex flip() {
+            return valueOf(file, fileState().flip().index());
+        }
+
         /**
          * Returns a {@code String} representing the {@code FileIndex} object.
          *
