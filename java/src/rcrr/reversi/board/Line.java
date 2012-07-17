@@ -76,4 +76,8 @@ public enum Line {
     /** The number of lines. */
     private static final int NUMBER_OF = values().length;
 
+    public File file() {
+        return FileUtils.files().get(ordinal());
+    }
+
 }
