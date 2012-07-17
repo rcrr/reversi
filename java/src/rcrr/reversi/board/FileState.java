@@ -195,8 +195,10 @@ public final class FileState {
             for (final SquareTransition st : fileTransitions()) {
                 final Square sq = file.squares().get(squareOrdinal);
                 for (final File affectedFile : sq.files().values()) {
-                    int delta = st.delta() * fileTransferMatrix(fileIndex.file(), squareOrdinal, affectedFile);
-                    deltas[FileUtils.files().indexOf(affectedFile)] += delta;
+                    if (affectedFile != null) {
+                        int delta = st.delta() * fileTransferMatrix(fileIndex.file(), squareOrdinal, affectedFile);
+                        deltas[FileUtils.files().indexOf(affectedFile)] += delta;
+                    }
                 }
                 squareOrdinal++;
             }
@@ -245,6 +247,8 @@ public final class FileState {
     }
 
     public static int fileTransferMatrix(final File changed, final int square, final File affected) {
+        if (changed == null) { throw new NullPointerException("Parameter changed cannot be null."); }
+        if (affected == null) { throw new NullPointerException("Parameter affected cannot be null."); }
         final List<Map<File, Integer>> squares = FILE_TRANSFER_MATRIX.get(changed);
         final Map<File, Integer>  transferMatrix = squares.get(square);
         return transferMatrix.get(affected);
