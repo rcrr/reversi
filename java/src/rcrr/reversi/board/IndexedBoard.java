@@ -24,6 +24,9 @@
 
 package rcrr.reversi.board;
 
+import java.math.BigInteger;
+
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -98,7 +101,7 @@ public final class IndexedBoard extends AbstractBoard {
         assert (!squares.containsKey(null)) : "Parameter squares cannot contains null keys.";
         assert (!squares.containsValue(null)) : "Parameter squares cannot contains null values.";
         this.squares = new EnumMap<Square, SquareState>(squares);
-        this.indexes = computeIndexes();
+        this.indexes = computeIndexes(squares);
     }
 
     /**
@@ -242,6 +245,54 @@ public final class IndexedBoard extends AbstractBoard {
                 }
             }
         }
+
+        /**
+         * Black is ok. White is not. Indexes must be accessed using getIndex().
+         * Finally the indexes must be flipped back.
+         *
+         */
+        final int[] newIndexes = new int[indexes.length];
+
+        final List<FileState.FileIndexMove> moveAddendums = new ArrayList<FileState.FileIndexMove>();
+        for (final File file : move.files().values()) {
+            if (file != null) {
+                final FileState.FileIndex fi = FileState.FileIndex.valueOf(file, indexes[FileUtils.files().indexOf(file)]);
+                for (final Map.Entry<Integer, FileState.FileIndex> entry : fi.legalMoves().entrySet()) {
+                    final int moveOrdinalPosition = entry.getKey();
+                    final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, moveOrdinalPosition);
+                    final Square sq = entry.getValue().file().squares().get(entry.getKey());
+                    ///System.out.println("fim=" + fim + ", sq=" + sq);
+                    if (sq == move) { moveAddendums.add(fim); }
+                }
+            }
+            //System.out.println("fi=" + fi);
+        }
+
+        final int[] addedDiscDeltas = new int[indexes.length];
+        for (final File file : move.files().values()) {
+            if (file != null) {
+                final int ordinal = file.squares().indexOf(move);
+                addedDiscDeltas[FileUtils.files().indexOf(file)] = BigInteger.valueOf(3).pow(ordinal).intValue();
+            }
+        }
+
+        int i = 0;
+        for (final File file : FileUtils.files()) {
+            newIndexes[i] = indexes[i] + addedDiscDeltas[i];
+            for (int j = 0; j < moveAddendums.size(); j++) {
+                newIndexes[i] += moveAddendums.get(j).getDeltas()[i];
+            }
+            i++;
+        }
+        /** */
+
+        if (player == Player.BLACK && !Arrays.equals(computeIndexes(sm), newIndexes)) {
+            for (int k = 0; k < FileUtils.files().size(); k++) {
+                System.out.println("k, file, newIndexes, expected: " + k + ", " + FileUtils.files().get(k) + ", " + newIndexes[k] + ", " + computeIndexes(sm)[k]);
+            }
+            throw new RuntimeException("Indexes are wrong .... !!! ...");
+        }
+
         return valueOf(sm);
     }
 
@@ -289,12 +340,12 @@ public final class IndexedBoard extends AbstractBoard {
     }
 
     /**
-     * Returns the squares field.
+     * Returns the indexes field.
      *
-     * @return the map representing the squares of the board
+     * @return the array representing the indexes of the board
      */
-    private Map<Square, SquareState> squares() {
-        return this.squares;
+    public int[] indexes() {
+        return this.indexes;
     }
 
     /**
@@ -324,11 +375,7 @@ public final class IndexedBoard extends AbstractBoard {
         return bracketing;
     }
 
-    public int[] computeIndexes() {
-        return computeIndexes(false);
-    }
-
-    public int[] computeIndexes(final boolean debug) {
+    public static final int[] computeIndexes(final Map<Square, SquareState> squares) {
         final int[] transientIndexes = new int[FileUtils.NUMBER_OF_FILES];
         /**
          * The call to indexOf(file) has to be avoided registering the values in an appropriate static array once for all.
@@ -338,20 +385,12 @@ public final class IndexedBoard extends AbstractBoard {
          */
         for (final Square sq : Square.values()) {
             for (final Map.Entry<Axis, File> entry : sq.files().entrySet()) {
-                final int color = get(sq).ordinal();
+                final int color = squares.get(sq).ordinal();
                 final int squarePosition = sq.ordinalPositionInFile(entry.getKey());
                 final int index = FileUtils.files().indexOf(entry.getValue());
                 if (index != -1) {
                     transientIndexes[index] += color * FileUtils.FILE_INDEX_COEFFICIENT[squarePosition];
                 }
-                if (debug) System.out.print("sq=" + sq
-                                            + ", axis=" + entry.getKey()
-                                            + ", file=" + entry.getValue()
-                                            + ", squarePosition=" + squarePosition
-                                            + ", color=" + color
-                                            + ", index=" + index);
-                if (debug && index != -1) System.out.print(", transientIndexes[index]=" + transientIndexes[index]);
-                if (debug) System.out.print("\n");
             }
         }
         return transientIndexes;

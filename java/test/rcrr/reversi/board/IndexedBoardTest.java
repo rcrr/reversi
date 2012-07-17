@@ -91,7 +91,7 @@ public class IndexedBoardTest extends AbstractBoardTest {
 
         //System.out.println("legalMoves=" + legalMoves);
 
-        final int[] indexes = earlyGameC12Moves.computeIndexes();
+        final int[] indexes = earlyGameC12Moves.indexes();
 
         final List<File> files = FileUtils.files();
 
@@ -117,7 +117,7 @@ public class IndexedBoardTest extends AbstractBoardTest {
 
         final IndexedBoard moveToC4 = (IndexedBoard) earlyGameC12Moves.makeMove(move, Player.BLACK);
 
-        final int[] indexesMoveToC4 = moveToC4.computeIndexes();
+        final int[] indexesMoveToC4 = moveToC4.indexes();
 
         final List<FileState.FileIndexMove> moveAddendums = new ArrayList<FileState.FileIndexMove>();
         for (final File file : move.files().values()) {
@@ -161,7 +161,7 @@ public class IndexedBoardTest extends AbstractBoardTest {
 
         final IndexedBoard blackHasToPass = (IndexedBoard) new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build();
 
-        final int[] indexes = blackHasToPass.computeIndexes();
+        final int[] indexes = blackHasToPass.indexes();
 
         final int[] expectedIndexes = {518,  //  0, R1
                                        5467, //  1, R2
@@ -217,7 +217,7 @@ public class IndexedBoardTest extends AbstractBoardTest {
 
         final IndexedBoard initial = (IndexedBoard) BoardFactoryHolder.getInstance().boardFactory().initialBoard();
 
-        final int[] indexes = initial.computeIndexes();
+        final int[] indexes = initial.indexes();
 
         final int[] expectedIndexes = {0,   //  0, R1
                                        0,   //  1, R2
