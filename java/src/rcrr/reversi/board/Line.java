@@ -24,6 +24,8 @@
 
 package rcrr.reversi.board;
 
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.ArrayList;
@@ -35,22 +37,22 @@ import static rcrr.reversi.board.Square.*;
  * The {@code Line} enum defines a line of the board game.
  */
 public enum Line {
-       R1(squaresAsList(A1, B1, C1, D1, E1, F1, G1, H1)),
-       R2(squaresAsList(A2, B2, C2, D2, E2, F2, G2, H2)),
-       R3(squaresAsList(A3, B3, C3, D3, E3, F3, G3, H3)),
-       R4(squaresAsList(A4, B4, C4, D4, E4, F4, G4, H4)),
-       R5(squaresAsList(A5, B5, C5, D5, E5, F5, G5, H5)),
-       R6(squaresAsList(A6, B6, C6, D6, E6, F6, G6, H6)),
-       R7(squaresAsList(A7, B7, C7, D7, E7, F7, G7, H7)),
-       R8(squaresAsList(A8, B8, C8, D8, E8, F8, G8, H8)),
-        A(squaresAsList(A1, A2, A3, A4, A5, A6, A7, A8)),
-        B(squaresAsList(B1, B2, B3, B4, B5, B6, B7, B8)),
-        C(squaresAsList(C1, C2, C3, C4, C5, C6, C7, C8)),
-        D(squaresAsList(D1, D2, D3, D4, D5, D6, D7, D8)),
-        E(squaresAsList(E1, E2, E3, E4, E5, E6, E7, E8)),
-        F(squaresAsList(F1, F2, F3, F4, F5, F6, F7, F8)),
-        G(squaresAsList(G1, G2, G3, G4, G5, G6, G7, G8)),
-        H(squaresAsList(H1, H2, H3, H4, H5, H6, H7, H8)),
+    R1(   squaresAsList(A1, B1, C1, D1, E1, F1, G1, H1)),
+    R2(   squaresAsList(A2, B2, C2, D2, E2, F2, G2, H2)),
+    R3(   squaresAsList(A3, B3, C3, D3, E3, F3, G3, H3)),
+    R4(   squaresAsList(A4, B4, C4, D4, E4, F4, G4, H4)),
+    R5(   squaresAsList(A5, B5, C5, D5, E5, F5, G5, H5)),
+    R6(   squaresAsList(A6, B6, C6, D6, E6, F6, G6, H6)),
+    R7(   squaresAsList(A7, B7, C7, D7, E7, F7, G7, H7)),
+    R8(   squaresAsList(A8, B8, C8, D8, E8, F8, G8, H8)),
+    A(    squaresAsList(A1, A2, A3, A4, A5, A6, A7, A8)),
+    B(    squaresAsList(B1, B2, B3, B4, B5, B6, B7, B8)),
+    C(    squaresAsList(C1, C2, C3, C4, C5, C6, C7, C8)),
+    D(    squaresAsList(D1, D2, D3, D4, D5, D6, D7, D8)),
+    E(    squaresAsList(E1, E2, E3, E4, E5, E6, E7, E8)),
+    F(    squaresAsList(F1, F2, F3, F4, F5, F6, F7, F8)),
+    G(    squaresAsList(G1, G2, G3, G4, G5, G6, G7, G8)),
+    H(    squaresAsList(H1, H2, H3, H4, H5, H6, H7, H8)),
     A6_C8(squaresAsList(A6, B7, C8)),
     A5_D8(squaresAsList(A5, B6, C7, D8)),
     A4_E8(squaresAsList(A4, B5, C6, D7, E8)),
@@ -78,14 +80,29 @@ public enum Line {
     public static final Line NULL = null;
 
     /** The number of lines. */
-    private static final int NUMBER_OF = values().length;
+    public static final int NUMBER_OF = values().length;
 
     /** A generic line instance. */
     public static final Line AN_INSTANCE = H2_B8;
 
+    private static final Map<File, Line> LINE_TO_FILE_MAP = new HashMap<File, Line>();
+
+    public static final Line getInstance(final File file) {
+        if (file == null) { throw new NullPointerException("Parameter file cannot be null."); }
+        return LINE_TO_FILE_MAP.get(file);
+    }
+
     /** The list of the four corners. */
     private static final List<Square> squaresAsList(Square... squares) {
         return Collections.unmodifiableList(Arrays.asList(squares));
+    }
+
+    static {
+
+        for (int i = 0; i < NUMBER_OF; i++) {
+            LINE_TO_FILE_MAP.put(FileUtils.files().get(i), values()[i]);
+        }
+
     }
 
     /** The squares field. */
