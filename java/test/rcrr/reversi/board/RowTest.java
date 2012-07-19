@@ -53,25 +53,6 @@ public class RowTest {
     }
 
     /**
-     * Tests the {@code squares()} method.
-     *
-     * @see Row#squares()
-     */
-    @Test
-    public final void testSquares() {
-        assertThat("Row.R2.squares() must return squares from A2 to H2.",
-                   Row.R2.squares(),
-                   hasItems(Square.A2,
-                            Square.B2,
-                            Square.C2,
-                            Square.D2,
-                            Square.E2,
-                            Square.F2,
-                            Square.G2,
-                            Square.H2));
-    }
-
-    /**
      * Tests the {@code neighbor(Direction)} method.
      *
      * @see Row#neighbor(Direction)
