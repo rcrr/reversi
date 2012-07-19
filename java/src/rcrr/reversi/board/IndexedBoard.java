@@ -388,7 +388,7 @@ public final class IndexedBoard extends AbstractBoard {
                 final File file = entry.getValue();
                 if (file != null) {
                     final int color = squares.get(sq).ordinal();
-                    final int squarePosition = Line.getInstance(entry.getValue()).squares().indexOf(sq);
+                    final int squarePosition = Line.getInstance(file).squares().indexOf(sq);
                     final int index = FileUtils.files().indexOf(file);
                     transientIndexes[index] += color * FileUtils.FILE_INDEX_COEFFICIENT[squarePosition];
                 }

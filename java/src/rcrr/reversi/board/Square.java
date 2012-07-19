@@ -305,15 +305,6 @@ public enum Square {
     /** The list of files crossing each square. */
     private static final Map<Square, Map<Axis, File>> FILES_FOR_SQUARE;
 
-    /**
-     * Contains the ordinal position of squares in files.
-     * It has a length of the number os squares multiplyied by the number of axes,
-     * so in practice 64 x 4 = 256.
-     * The access is organized by the formula: Axis.NUMBER_OF * square.ordinal() + axis.ordinal()
-     * It is computed in the static block.
-     */
-    private static final int[] SQUARE_ORDINAL_POSITION_IN_FILE = new int[Square.NUMBER_OF * Axis.NUMBER_OF];
-
     /** The square assignment to column table. */
     static final Map<Column, List<Square>> SQUARE_ASSIGNMENT_TO_COLUMN_TABLE = squareAssignmentToColumnTable();
 
@@ -367,25 +358,6 @@ public enum Square {
             filesForSquare.put(sq, Collections.unmodifiableMap(filesCrossingTheSquare));
         }
         FILES_FOR_SQUARE = Collections.unmodifiableMap(filesForSquare);
-
-        /** Computes the SQUARE_ORDINAL_POSITION_IN_FILE array. */
-        final Map<File, Integer> squareOrdinalPositionInFileCounter = new HashMap<File, Integer>();
-        for (final File file : FileUtils.files()) {
-            squareOrdinalPositionInFileCounter.put(file, 0);
-        }
-        for (final Square sq : Square.values()) {
-            for (final Axis axis : Axis.values()) {
-                final File file = sq.file(axis);
-                final int index = Axis.NUMBER_OF * sq.ordinal() + axis.ordinal();
-                if (file != null) {
-                    final int position = squareOrdinalPositionInFileCounter.get(file);
-                    SQUARE_ORDINAL_POSITION_IN_FILE[index] = position;
-                    squareOrdinalPositionInFileCounter.put(file, position + 1);
-                } else {
-                    SQUARE_ORDINAL_POSITION_IN_FILE[index] = -1;
-                }
-            }
-        }
 
     }
 
@@ -684,39 +656,6 @@ public enum Square {
         default:
             return ' ';
         }
-    }
-
-    /**
-     * Returns the ordinal position of the square in the file identified by the {@code axis} parameter.
-     * The returned value is {@code -1} when the {@code axis} parameter doesn't identify a file,
-     * this happens for the corners and the "C" squares for the diagonal axis that wouldn't have a length
-     * of at least three squares.
-     * <p>
-     * The parameter {@code axis} cannot be {@code null}.
-     *
-     * @param axis the axis parameter
-     * @return     the ordinal position of the square in the file identified by the axis
-     * @throws NullPointerException when the parameter axis is null
-     **/
-    public int ordinalPositionInFile(final Axis axis) {
-        if (axis == null) { throw new NullPointerException("Parameter axis cannot be null."); }
-        return SQUARE_ORDINAL_POSITION_IN_FILE[Axis.NUMBER_OF * this.ordinal() + axis.ordinal()];
-    }
-
-    /**
-     * Returns the ordinal position of the square in the {@code file} parameter.
-     * The returned value is {@code -1} when the {@code file} parameter doesn't pass through the square.
-     * <p>
-     * The parameter {@code file} cannot be {@code null}.
-     *
-     * @param file the file parameter
-     * @return     the ordinal position of the square in the file
-     * @throws NullPointerException when the parameter file is null
-     **/
-    public int ordinalPositionInFile(final File file) {
-        if (file == null) { throw new NullPointerException("Parameter file cannot be null."); }
-        if (!files().values().contains(file)) { return -1; }
-        return ordinalPositionInFile(file.axis());
     }
 
     /**
