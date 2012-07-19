@@ -35,24 +35,10 @@ import java.util.List;
 public interface File {
 
     /**
-     * Returns the list of squares belonging to the file.
-     *
-     * @return a list holding a reference to the squares of the file
-     */
-    List<Square> squares();
-
-    /**
      * Returns the file axis.
      *
      * @return the file axis
      */
     Axis axis();
-
-    /**
-     * Returns the order of the file. It is the number of squares of the file.
-     *
-     * @return the order of the file
-     */
-    int order();
 
 }

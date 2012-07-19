@@ -59,7 +59,7 @@ public final class FileState {
             final Map<File, List<FileIndex>> transientFileIndexMap = new HashMap<File, List<FileIndex>>();
             for (final File file : FileUtils.files()) {
                 final List<FileIndex> transientFileIndexList = new ArrayList<FileIndex>();
-                for (int index = 0; index <= indexBoundary(file.squares().size()); index++) {
+                for (int index = 0; index <= indexBoundary(Line.getInstance(file).squares().size()); index++) {
                     final FileIndex fileIndex = new FileIndex(file, index);
                     transientFileIndexList.add(fileIndex);
                 }
@@ -84,7 +84,7 @@ public final class FileState {
         }
 
         public FileState fileState() {
-            return FileState.valueOf(file.order(), index);
+            return FileState.valueOf(Line.getInstance(file).order(), index);
         }
 
         public List<SquareState> configuration() {
@@ -191,7 +191,7 @@ public final class FileState {
             final File file = fileIndex.file();
             int squareOrdinal = 0;
             for (final SquareTransition st : fileTransitions()) {
-                final Square sq = file.squares().get(squareOrdinal);
+                final Square sq = Line.getInstance(file).squares().get(squareOrdinal);
                 for (final Line affectedLine : Line.linesForSquare(sq)) {
                     final File affectedFile = affectedLine.file();
                     if (affectedFile != null) {
@@ -229,7 +229,7 @@ public final class FileState {
         final Map<File, List<Map<File, Integer>>> fileTransferMatrix = new HashMap<File, List<Map<File, Integer>>>();
         for (final File file: FileUtils.files()) {
             final List<Map<File, Integer>> squares = new ArrayList<Map<File, Integer>>();
-            for (final Square square: file.squares()) {
+            for (final Square square: Line.getInstance(file).squares()) {
                 final Map<File, Integer> transferMap = new HashMap<File, Integer>();
                 for (final Line affectedLine : Line.linesForSquare(square)) {
                     final File affectedFile = affectedLine.file();
@@ -259,7 +259,7 @@ public final class FileState {
      */
     public static int[] fileIndexDeltasByMove(final File file, final int index, final int move) {
         if (file == null) { throw new NullPointerException("Parameter file cannot be null."); }
-        final int order = file.squares().size();
+        final int order = Line.getInstance(file).squares().size();
         final int boundary = indexBoundary(order);
         if (index < 0 || index > boundary) { throw new IndexOutOfBoundsException("Parameter index is out of range."); }
         final FileState fileState = FileState.valueOf(order, index);

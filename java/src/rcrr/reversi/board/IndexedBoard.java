@@ -155,19 +155,10 @@ public final class IndexedBoard extends AbstractBoard {
             final FileState.FileIndex fi = FileState.FileIndex.valueOf(files.get(i), getIndex(player, i));
             fileIndexList.add(fi);
             for (final Map.Entry<Integer, FileState.FileIndex> entry : fi.legalMoves().entrySet()) {
-                final Square move = entry.getValue().file().squares().get(entry.getKey());
+                final Square move = Line.getInstance(entry.getValue().file()).squares().get(entry.getKey());
                 legalMovesAsSet.add(move);
             }
         }
-
-        /*
-        final List<Square> legalMoves = new ArrayList<Square>(legalMovesAsSet);
-        final List<Square> legalMoves_ = legalMoves_(player);
-        if (!legalMoves.equals(legalMoves_)) {
-            System.out.println("board=\n" + printBoard());
-            throw new RuntimeException("Legal Moves are different. A=" + legalMoves + ", B=" + legalMoves_);
-        }
-        */
 
         cached = Collections.unmodifiableSortedSet(legalMovesAsSet);
         this.legalMovesForPlayer.put(player, cached);
@@ -255,24 +246,19 @@ public final class IndexedBoard extends AbstractBoard {
         final List<FileState.FileIndexMove> moveAddendums = new ArrayList<FileState.FileIndexMove>();
         for (final Line line : Line.linesForSquare(move)) {
             final File file = line.file();
-            if (file != null) {
-                final FileState.FileIndex fi = FileState.FileIndex.valueOf(file, indexes[FileUtils.files().indexOf(file)]);
-                for (final Map.Entry<Integer, FileState.FileIndex> entry : fi.legalMoves().entrySet()) {
-                    final int moveOrdinalPosition = entry.getKey();
-                    final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, moveOrdinalPosition);
-                    final Square sq = entry.getValue().file().squares().get(entry.getKey());
-                    if (sq == move) { moveAddendums.add(fim); }
-                }
+            final FileState.FileIndex fi = FileState.FileIndex.valueOf(file, indexes[FileUtils.files().indexOf(file)]);
+            for (final Map.Entry<Integer, FileState.FileIndex> entry : fi.legalMoves().entrySet()) {
+                final int moveOrdinalPosition = entry.getKey();
+                final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, moveOrdinalPosition);
+                final Square sq = Line.getInstance(entry.getValue().file()).squares().get(entry.getKey());
+                if (sq == move) { moveAddendums.add(fim); }
             }
         }
 
         final int[] addedDiscDeltas = new int[indexes.length];
         for (final Line line : Line.linesForSquare(move)) {
-            final File file = line.file();
-            if (file != null) {
-                final int ordinal = file.squares().indexOf(move);
-                addedDiscDeltas[FileUtils.files().indexOf(file)] = BigInteger.valueOf(3).pow(ordinal).intValue();
-            }
+            final int ordinal = line.squares().indexOf(move);
+            addedDiscDeltas[line.ordinal()] = BigInteger.valueOf(3).pow(ordinal).intValue();
         }
 
         int i = 0;
