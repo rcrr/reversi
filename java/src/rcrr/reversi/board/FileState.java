@@ -234,8 +234,8 @@ public final class FileState {
                 final Map<File, Integer> transferMap = new HashMap<File, Integer>();
                 for (final File affectedFile : square.files().values()) {
                     if (affectedFile != null) {
-                        final int ordinalPosition = square.ordinalPositionInFile(affectedFile);
-                        final int transferCoefficient = BigInteger.valueOf(3).pow(ordinalPosition).intValue();
+                        final int squarePosition = Line.getInstance(affectedFile).squares().indexOf(square);
+                        final int transferCoefficient = BigInteger.valueOf(3).pow(squarePosition).intValue();
                         transferMap.put(affectedFile, transferCoefficient);
                     }
                 }
