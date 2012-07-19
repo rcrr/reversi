@@ -48,41 +48,6 @@ public class SquareTest {
 
     /** Class constructor. */
     public SquareTest() { }
-
-    /**
-     * Test the {@code files()} method.
-     *
-     * @see FileUtils#files()
-     */
-    @Test
-    public final void testFiles() {
-
-        assertThat("Square A1 is crossed by three files.",
-                   Square.A1.files().size(),
-                   is(4));
-
-        assertThat("Square A1 is crossed by column A, row, R1, and diagonal left-up to right-down A1_H8.",
-                   Square.A1.files().values(),
-                   hasItems((File) Column.A,
-                            (File) Row.R1,
-                            (File) DiagonalLR.A1_H8,
-                            (File) DiagonalRL.NULL));
-
-        assertThat("Square A1 has three active axes: VERTICAL, HORIZONTAL, DIAGONAL_LR.",
-                   Square.A1.files().keySet(),
-                   hasItems(Axis.VERTICAL,
-                            Axis.HORIZONTAL,
-                            Axis.DIAGONAL_LR,
-                            Axis.DIAGONAL_RL));
-
-        assertThat("Square E7 is crossed by column E, row, R7, iagonals A3_F8 and H4_D8.",
-                   Square.E7.files().values(),
-                   hasItems((File) Column.E,
-                            (File) Row.R7,
-                            (File) DiagonalLR.A3_F8,
-                            (File) DiagonalRL.H4_D8));
-    }
-
      /**
      * Tests the {@code capableToFlipDirections()} method.
      *

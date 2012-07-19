@@ -233,7 +233,6 @@ public final class IndexedBoard extends AbstractBoard {
                                                + move + "> by player<"
                                                + player + "> is illegal.");
         }
-        //final Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(squares);
         final Map<Square, SquareState> sm = squares.clone();
         sm.put(move, player.color());
         for (final Direction dir : move.capableToFlipDirections()) {
@@ -254,22 +253,22 @@ public final class IndexedBoard extends AbstractBoard {
         final int[] newIndexes = new int[indexes.length];
 
         final List<FileState.FileIndexMove> moveAddendums = new ArrayList<FileState.FileIndexMove>();
-        for (final File file : move.files().values()) {
+        for (final Line line : Line.linesForSquare(move)) {
+            final File file = line.file();
             if (file != null) {
                 final FileState.FileIndex fi = FileState.FileIndex.valueOf(file, indexes[FileUtils.files().indexOf(file)]);
                 for (final Map.Entry<Integer, FileState.FileIndex> entry : fi.legalMoves().entrySet()) {
                     final int moveOrdinalPosition = entry.getKey();
                     final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, moveOrdinalPosition);
                     final Square sq = entry.getValue().file().squares().get(entry.getKey());
-                    ///System.out.println("fim=" + fim + ", sq=" + sq);
                     if (sq == move) { moveAddendums.add(fim); }
                 }
             }
-            //System.out.println("fi=" + fi);
         }
 
         final int[] addedDiscDeltas = new int[indexes.length];
-        for (final File file : move.files().values()) {
+        for (final Line line : Line.linesForSquare(move)) {
+            final File file = line.file();
             if (file != null) {
                 final int ordinal = file.squares().indexOf(move);
                 addedDiscDeltas[FileUtils.files().indexOf(file)] = BigInteger.valueOf(3).pow(ordinal).intValue();
@@ -384,8 +383,8 @@ public final class IndexedBoard extends AbstractBoard {
          * squarePosition is the index position of the square in the file.
          */
         for (final Square sq : Square.values()) {
-            for (final Map.Entry<Axis, File> entry : sq.files().entrySet()) {
-                final File file = entry.getValue();
+            for (final Line line : Line.linesForSquare(sq)) {
+                final File file = line.file();
                 if (file != null) {
                     final int color = squares.get(sq).ordinal();
                     final int squarePosition = Line.getInstance(file).squares().indexOf(sq);

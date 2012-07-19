@@ -147,8 +147,6 @@ public final class FileState {
             }
             FILE_INDEX_MOVE_MAP = Collections.unmodifiableMap(transientFileIndexMoveMap);
 
-            //System.out.println("FILE_INDEX_MOVE_MAP.size()=" + FILE_INDEX_MOVE_MAP.size());
-
         }
 
         private final FileIndex fileIndex;
@@ -194,7 +192,8 @@ public final class FileState {
             int squareOrdinal = 0;
             for (final SquareTransition st : fileTransitions()) {
                 final Square sq = file.squares().get(squareOrdinal);
-                for (final File affectedFile : sq.files().values()) {
+                for (final Line affectedLine : Line.linesForSquare(sq)) {
+                    final File affectedFile = affectedLine.file();
                     if (affectedFile != null) {
                         int delta = st.delta() * fileTransferMatrix(fileIndex.file(), squareOrdinal, affectedFile);
                         deltas[FileUtils.files().indexOf(affectedFile)] += delta;
@@ -232,7 +231,8 @@ public final class FileState {
             final List<Map<File, Integer>> squares = new ArrayList<Map<File, Integer>>();
             for (final Square square: file.squares()) {
                 final Map<File, Integer> transferMap = new HashMap<File, Integer>();
-                for (final File affectedFile : square.files().values()) {
+                for (final Line affectedLine : Line.linesForSquare(square)) {
+                    final File affectedFile = affectedLine.file();
                     if (affectedFile != null) {
                         final int squarePosition = Line.getInstance(affectedFile).squares().indexOf(square);
                         final int transferCoefficient = BigInteger.valueOf(3).pow(squarePosition).intValue();

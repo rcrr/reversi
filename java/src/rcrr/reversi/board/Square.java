@@ -302,9 +302,6 @@ public enum Square {
     /** The capable to flip direction table. */
     private static final Map<Square, List<Direction>> CAPABLE_TO_FLIP_DIRECTION_TABLE = capableToFlipDirectionTable();
 
-    /** The list of files crossing each square. */
-    private static final Map<Square, Map<Axis, File>> FILES_FOR_SQUARE;
-
     /** The square assignment to column table. */
     static final Map<Column, List<Square>> SQUARE_ASSIGNMENT_TO_COLUMN_TABLE = squareAssignmentToColumnTable();
 
@@ -323,7 +320,6 @@ public enum Square {
      * . - sets and initializes {@code INVERSE_LABELS} map
      * . - sets and initializes {@code CORNER_TO_X_SQUARE_MAP} map
      * . - sets and initializes {@code X_SQUARE_TO_CORNER_MAP} map
-     * . - sets and initializes {@code FILES_FOR_SQUARE} map
      */
     static {
         /** Computes the LABELS and the INVERSE_LABELS maps. */
@@ -346,18 +342,6 @@ public enum Square {
         }
         CORNER_TO_X_SQUARE_MAP = Collections.unmodifiableMap(cornerToXSquareMap);
         X_SQUARE_TO_CORNER_MAP = Collections.unmodifiableMap(xSquareToCornerMap);
-
-        /** Computes the FILES_FOR_SQUARE map. */
-        Map<Square, Map<Axis, File>> filesForSquare = new EnumMap<Square, Map<Axis, File>>(Square.class);
-        for (final Square sq : Square.values()) {
-            final Map<Axis, File> filesCrossingTheSquare = new EnumMap<Axis, File>(Axis.class);
-            filesCrossingTheSquare.put(Axis.HORIZONTAL, sq.row());
-            filesCrossingTheSquare.put(Axis.VERTICAL, sq.column());
-            filesCrossingTheSquare.put(Axis.DIAGONAL_LR, sq.diagonalLR());
-            filesCrossingTheSquare.put(Axis.DIAGONAL_RL, sq.diagonalRL());
-            filesForSquare.put(sq, Collections.unmodifiableMap(filesCrossingTheSquare));
-        }
-        FILES_FOR_SQUARE = Collections.unmodifiableMap(filesForSquare);
 
     }
 
@@ -605,15 +589,6 @@ public enum Square {
     public DiagonalRL diagonalRL() { return this.diagonalRL; }
 
     /**
-     * Returns the list of files crossing the square.
-     *
-     * @return the four files crossing the square
-     */
-    public Map<Axis, File> files() {
-        return FILES_FOR_SQUARE.get(this);
-    }
-
-    /**
      * Returns the Hasegawa's naming for the edge squares. Returns
      * null if the square is not one of the identified squares.
      *
@@ -656,16 +631,6 @@ public enum Square {
         default:
             return ' ';
         }
-    }
-
-    /**
-     * Returns the file identified by the {@code axis} parameter.
-     *
-     * @param axis the axis parameter
-     * @return the axis passing by the square and belonging to the axis parameter
-     **/
-    public File file(final Axis axis) {
-        return FILES_FOR_SQUARE.get(this).get(axis);
     }
 
     /**

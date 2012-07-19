@@ -25,6 +25,7 @@
 package rcrr.reversi.board;
 
 import java.util.Map;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Collections;
@@ -88,9 +89,15 @@ public enum Line {
 
     private static final Map<File, Line> LINE_TO_FILE_MAP = new HashMap<File, Line>();
 
+    private static final Map<Square, List<Line>> LINES_FOR_SQUARE;
+
     public static final Line getInstance(final File file) {
         if (file == null) { throw new NullPointerException("Parameter file cannot be null."); }
         return LINE_TO_FILE_MAP.get(file);
+    }
+
+    public static final List<Line> linesForSquare(final Square square) {
+        return LINES_FOR_SQUARE.get(square);
     }
 
     /** The list of the four corners. */
@@ -103,6 +110,22 @@ public enum Line {
         for (int i = 0; i < NUMBER_OF; i++) {
             LINE_TO_FILE_MAP.put(FileUtils.files().get(i), values()[i]);
         }
+
+        /** Prepares the LINES_FOR_SQUARE map. */
+        final Map<Square, List<Line>> transientLinesForSquare = new EnumMap<Square, List<Line>>(Square.class);
+        for (final Square square : Square.values()) {
+            transientLinesForSquare.put(square, new ArrayList<Line>());
+        }
+        for (final Line line : values()) {
+            for (final Square square : line.squares()) {
+                final List<Line> lines = transientLinesForSquare.get(square);
+                lines.add(line);
+            }
+        }
+        for (final Square square : Square.values()) {
+            transientLinesForSquare.put(square, Collections.unmodifiableList(transientLinesForSquare.get(square)));
+        }
+        LINES_FOR_SQUARE = Collections.unmodifiableMap(transientLinesForSquare);
 
     }
 

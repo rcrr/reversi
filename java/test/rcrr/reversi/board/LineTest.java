@@ -64,4 +64,20 @@ public class LineTest {
                    is(Line.H2_B8));
     }
 
+    /**
+     * Tests the {@code linesForSquare(Square)} method.
+     *
+     * @see Line#linesForSquare(Square)
+     */
+    @Test
+    public final void testLinesForSquare() {
+        assertThat("Line.linesForSquare(Square.C4) has items: C, R3, A2_G8, F1_A6.",
+                   Line.linesForSquare(Square.C4),
+                   hasItems(Line.C,
+                            Line.R4,
+                            Line.A2_G8,
+                            Line.F1_A6));
+    }
+
+
 }
