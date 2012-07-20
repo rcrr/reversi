@@ -39,6 +39,22 @@ import java.util.Map;
  */
 public final class FileState {
 
+    public static enum SquareTransition {
+
+        NO_TRANSITION(0),
+        EMPTY_TO_BLACK(0), // This is a transition that happens only to the square where the black's player moves. It is handled by a special factor ....
+        WHITE_TO_BLACK(-1);
+
+        private final int delta;
+
+        private SquareTransition(final int delta) {
+            this.delta = delta;
+        }
+
+        public final int delta() { return this.delta; }
+
+    }
+
     public static class FileIndex {
 
         private static final Map<File, List<FileIndex>> FILE_INDEX_MAP;
@@ -172,10 +188,6 @@ public final class FileState {
                     st = SquareTransition.NO_TRANSITION;
                 } else if (fss == SquareState.EMPTY && tss == SquareState.BLACK) {
                     st = SquareTransition.EMPTY_TO_BLACK;
-                } else if (fss == SquareState.EMPTY && tss == SquareState.WHITE) {
-                    st = SquareTransition.EMPTY_TO_WHITE;
-                } else if (fss == SquareState.BLACK && tss == SquareState.WHITE) {
-                    st = SquareTransition.BLACK_TO_WHITE;
                 } else if (fss == SquareState.WHITE && tss == SquareState.BLACK) {
                     st = SquareTransition.WHITE_TO_BLACK;
                 } else {
@@ -266,24 +278,6 @@ public final class FileState {
         final FileIndex fileIndex = FileIndex.valueOf(file, index);
         if(!fileIndex.legalMoves().keySet().contains(move)) { throw new IllegalArgumentException("Parameter move is not valid. move=" + move); }
         return FileIndexMove.valueOf(fileIndex, move).getDeltas();
-    }
-
-    public static enum SquareTransition {
-
-        NO_TRANSITION(0),
-        EMPTY_TO_BLACK(0), // This is a transition that happens only to the square where the black's player moves. It is handled by a special factor ....
-        EMPTY_TO_WHITE(2), // Has to be removed ...
-        BLACK_TO_WHITE(1), // Has to be removed ...
-        WHITE_TO_BLACK(-1);
-
-        private final int delta;
-
-        private SquareTransition(final int delta) {
-            this.delta = delta;
-        }
-
-        public final int delta() { return this.delta; }
-
     }
 
     /**
