@@ -118,12 +118,4 @@ public enum Row implements File {
         return r;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Axis axis() {
-        return Axis.HORIZONTAL;
-    }
-
 }

@@ -34,11 +34,4 @@ import java.util.List;
  */
 public interface File {
 
-    /**
-     * Returns the file axis.
-     *
-     * @return the file axis
-     */
-    Axis axis();
-
 }
