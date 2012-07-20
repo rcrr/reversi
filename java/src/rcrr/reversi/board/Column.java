@@ -129,12 +129,4 @@ public enum Column implements File {
         return c;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Axis axis() {
-        return Axis.VERTICAL;
-    }
-
 }

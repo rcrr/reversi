@@ -112,12 +112,4 @@ public enum DiagonalLR implements File {
      */
     public String label() { return label; }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Axis axis() {
-        return Axis.DIAGONAL_LR;
-    }
-
 }

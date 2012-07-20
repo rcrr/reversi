@@ -302,18 +302,6 @@ public enum Square {
     /** The capable to flip direction table. */
     private static final Map<Square, List<Direction>> CAPABLE_TO_FLIP_DIRECTION_TABLE = capableToFlipDirectionTable();
 
-    /** The square assignment to column table. */
-    static final Map<Column, List<Square>> SQUARE_ASSIGNMENT_TO_COLUMN_TABLE = squareAssignmentToColumnTable();
-
-    /** The square assignment to row table. */
-    static final Map<Row, List<Square>> SQUARE_ASSIGNMENT_TO_ROW_TABLE = squareAssignmentToRowTable();
-
-    /** The square assignment to diagonal lr table. */
-    static final Map<DiagonalLR, List<Square>> SQUARE_ASSIGNMENT_TO_DIAGONAL_LR_TABLE = squareAssignmentToDiagonalLRTable();
-
-    /** The square assignment to diagonal rl table. */
-    static final Map<DiagonalRL, List<Square>> SQUARE_ASSIGNMENT_TO_DIAGONAL_RL_TABLE = squareAssignmentToDiagonalRLTable();
-
     /**
      * Static initialization block:
      * . - sets and initializes {@code LABELS} map
@@ -413,97 +401,6 @@ public enum Square {
             neighborTable.put(sq, Collections.unmodifiableMap(snt));
         }
         return Collections.unmodifiableMap(neighborTable);
-    }
-
-    /**
-     * Computes the squareAssignmentTable for columns.
-     * <p>
-     * There are four methods that compute the square assignment to file table for the respective axes.
-     * It is at best not elegant.
-     * <p>
-     * Probably the duplication can be avoided applying some "java generics magick".
-     *
-     * @return the square assignment table
-     */
-    private static final Map<Column, List<Square>> squareAssignmentToColumnTable() {
-        final Map<Column, List<Square>> squareAssignmentTable
-            = new EnumMap<Column, List<Square>>(Column.class);
-        for (final Column c : Column.values()) {
-            final List<Square> squares = new ArrayList<Square>();
-            for (final Square sq : Square.values()) {
-                if (sq.column() == c) {
-                    squares.add(sq);
-                }
-            }
-            squareAssignmentTable.put(c, Collections.unmodifiableList(squares));
-        }
-        return Collections.unmodifiableMap(squareAssignmentTable);
-    }
-
-    /**
-     * Computes the squareAssignmentTable for rows.
-     * <p>
-     * See the comment on the first squareAssignmentTable methods: squareAssignmentToColumnTable().
-     *
-     * @return the square assignment table
-     */
-    private static final Map<Row, List<Square>> squareAssignmentToRowTable() {
-        final Map<Row, List<Square>> squareAssignmentTable
-            = new EnumMap<Row, List<Square>>(Row.class);
-        for (final Row r : Row.values()) {
-            final List<Square> squares = new ArrayList<Square>();
-            for (final Square sq : Square.values()) {
-                if (sq.row() == r) {
-                    squares.add(sq);
-                }
-            }
-            squareAssignmentTable.put(r, Collections.unmodifiableList(squares));
-        }
-        return Collections.unmodifiableMap(squareAssignmentTable);
-    }
-
-    /**
-     * Computes the squareAssignmentTable for diagonals of type lr.
-     * <p>
-     * See the comment on the first squareAssignmentTable methods: squareAssignmentToColumnTable().
-     *
-     * @return the square assignment table
-     */
-    private static final Map<DiagonalLR, List<Square>> squareAssignmentToDiagonalLRTable() {
-        final Map<DiagonalLR, List<Square>> squareAssignmentTable
-            = new EnumMap<DiagonalLR, List<Square>>(DiagonalLR.class);
-        for (final DiagonalLR d : DiagonalLR.values()) {
-            final List<Square> squares = new ArrayList<Square>();
-            for (final Square sq : Square.values()) {
-                if (sq.diagonalLR() == d) {
-                    squares.add(sq);
-                }
-            }
-            squareAssignmentTable.put(d, Collections.unmodifiableList(squares));
-        }
-        return Collections.unmodifiableMap(squareAssignmentTable);
-    }
-
-    /**
-     * Computes the squareAssignmentTable for diagonals of type lr.
-     * <p>
-     * See the comment on the first squareAssignmentTable methods: squareAssignmentToColumnTable().
-     *
-     * @return the square assignment table
-     */
-    private static final Map<DiagonalRL, List<Square>> squareAssignmentToDiagonalRLTable() {
-        final Map<DiagonalRL, List<Square>> squareAssignmentTable
-            = new EnumMap<DiagonalRL, List<Square>>(DiagonalRL.class);
-        for (final DiagonalRL d : DiagonalRL.values()) {
-            final List<Square> squares = new ArrayList<Square>();
-            for (final Square sq : Square.values()) {
-                if (sq.diagonalRL() == d) {
-                    squares.add(sq);
-                }
-            }
-            squareAssignmentTable.put(d, Collections.unmodifiableList(squares));
-        }
-        return Collections.unmodifiableMap(squareAssignmentTable);
     }
 
     /**
