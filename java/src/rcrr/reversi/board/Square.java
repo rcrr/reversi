@@ -78,196 +78,196 @@ import static rcrr.reversi.board.DiagonalRL.*;
 public enum Square {
 
     /** Square a1. */
-    A1(R1, A, A1_H8,           DiagonalRL.NULL),
+    A1(R1, A),
 
     /** Square b1. */
-    B1(R1, B, B1_H7,           DiagonalRL.NULL),
+    B1(R1, B),
 
     /** Square c1. */
-    C1(R1, C, C1_H6,           C1_A3),
+    C1(R1, C),
 
     /** Square d1. */
-    D1(R1, D, D1_H5,           D1_A4),
+    D1(R1, D),
 
     /** Square e1. */
-    E1(R1, E, E1_H4,           E1_A5),
+    E1(R1, E),
 
     /** Square f1. */
-    F1(R1, F, F1_H3,           F1_A6),
+    F1(R1, F),
 
     /** Square g1. */
-    G1(R1, G, DiagonalLR.NULL, G1_A7),
+    G1(R1, G),
 
     /** Square h1. */
-    H1(R1, H, DiagonalLR.NULL, H1_A8),
+    H1(R1, H),
 
     /** Square a2. */
-    A2(R2, A, A2_G8,           DiagonalRL.NULL),
+    A2(R2, A),
 
     /** Square b2. */
-    B2(R2, B, A1_H8,           C1_A3),
+    B2(R2, B),
 
     /** Square c2. */
-    C2(R2, C, B1_H7,           D1_A4),
+    C2(R2, C),
 
     /** Square d2. */
-    D2(R2, D, C1_H6,           E1_A5),
+    D2(R2, D),
 
     /** Square e2. */
-    E2(R2, E, D1_H5,           F1_A6),
+    E2(R2, E),
 
     /** Square f2. */
-    F2(R2, F, E1_H4,           G1_A7),
+    F2(R2, F),
 
     /** Square g2. */
-    G2(R2, G, F1_H3,           H1_A8),
+    G2(R2, G),
 
     /** Square h2. */
-    H2(R2, H, DiagonalLR.NULL, H2_B8),
+    H2(R2, H),
 
     /** Square a3. */
-    A3(R3, A, A3_F8,           C1_A3),
+    A3(R3, A),
 
     /** Square b3. */
-    B3(R3, B, A2_G8,           D1_A4),
+    B3(R3, B),
 
     /** Square c3. */
-    C3(R3, C, A1_H8,           E1_A5),
+    C3(R3, C),
 
     /** Square d3. */
-    D3(R3, D, B1_H7,           F1_A6),
+    D3(R3, D),
 
     /** Square e3. */
-    E3(R3, E, C1_H6,           G1_A7),
+    E3(R3, E),
 
     /** Square f3. */
-    F3(R3, F, D1_H5,           H1_A8),
+    F3(R3, F),
 
     /** Square g3. */
-    G3(R3, G, E1_H4,           H2_B8),
+    G3(R3, G),
 
     /** Square h3. */
-    H3(R3, H, F1_H3,           H3_C8),
+    H3(R3, H),
 
     /** Square a4. */
-    A4(R4, A, A4_E8,           D1_A4),
+    A4(R4, A),
 
     /** Square b4. */
-    B4(R4, B, A3_F8,           E1_A5),
+    B4(R4, B),
 
     /** Square c4. */
-    C4(R4, C, A2_G8,           F1_A6),
+    C4(R4, C),
 
     /** Square d4. */
-    D4(R4, D, A1_H8,           G1_A7),
+    D4(R4, D),
 
     /** Square e4. */
-    E4(R4, E, B1_H7,           H1_A8),
+    E4(R4, E),
 
     /** Square f4. */
-    F4(R4, F, C1_H6,           H2_B8),
+    F4(R4, F),
 
     /** Square g4. */
-    G4(R4, G, D1_H5,           H3_C8),
+    G4(R4, G),
 
     /** Square h4. */
-    H4(R4, H, E1_H4,           H4_D8),
+    H4(R4, H),
 
     /** Square a5. */
-    A5(R5, A, A5_D8,           E1_A5),
+    A5(R5, A),
 
     /** Square b5. */
-    B5(R5, B, A4_E8,           F1_A6),
+    B5(R5, B),
 
     /** Square c5. */
-    C5(R5, C, A3_F8,           G1_A7),
+    C5(R5, C),
 
     /** Square d5. */
-    D5(R5, D, A2_G8,           H1_A8),
+    D5(R5, D),
 
     /** Square e5. */
-    E5(R5, E, A1_H8,           H2_B8),
+    E5(R5, E),
 
     /** Square f5. */
-    F5(R5, F, B1_H7,           H3_C8),
+    F5(R5, F),
 
     /** Square g5. */
-    G5(R5, G, C1_H6,           H4_D8),
+    G5(R5, G),
 
     /** Square h5. */
-    H5(R5, H, D1_H5,           H5_E8),
+    H5(R5, H),
 
     /** Square a6. */
-    A6(R6, A, A6_C8,           F1_A6),
+    A6(R6, A),
 
     /** Square b6. */
-    B6(R6, B, A5_D8,           G1_A7),
+    B6(R6, B),
 
     /** Square c6. */
-    C6(R6, C, A4_E8,           H1_A8),
+    C6(R6, C),
 
     /** Square d6. */
-    D6(R6, D, A3_F8,           H2_B8),
+    D6(R6, D),
 
     /** Square e6. */
-    E6(R6, E, A2_G8,           H3_C8),
+    E6(R6, E),
 
     /** Square f6. */
-    F6(R6, F, A1_H8,           H4_D8),
+    F6(R6, F),
 
     /** Square g6. */
-    G6(R6, G, B1_H7,           H5_E8),
+    G6(R6, G),
 
     /** Square h6. */
-    H6(R6, H, C1_H6,           H6_F8),
+    H6(R6, H),
 
     /** Square a7. */
-    A7(R7, A, DiagonalLR.NULL, G1_A7),
+    A7(R7, A),
 
     /** Square b7. */
-    B7(R7, B, A6_C8,           H1_A8),
+    B7(R7, B),
 
     /** Square c7. */
-    C7(R7, C, A5_D8,           H2_B8),
+    C7(R7, C),
 
     /** Square d7. */
-    D7(R7, D, A4_E8,           H3_C8),
+    D7(R7, D),
 
     /** Square e7. */
-    E7(R7, E, A3_F8,           H4_D8),
+    E7(R7, E),
 
     /** Square f7. */
-    F7(R7, F, A2_G8,           H5_E8),
+    F7(R7, F),
 
     /** Square g7. */
-    G7(R7, G, A1_H8,           H6_F8),
+    G7(R7, G),
 
     /** Square h7. */
-    H7(R7, H, B1_H7,           DiagonalRL.NULL),
+    H7(R7, H),
 
     /** Square a8. */
-    A8(R8, A, DiagonalLR.NULL, H1_A8),
+    A8(R8, A),
 
     /** Square b8. */
-    B8(R8, B, DiagonalLR.NULL, H2_B8),
+    B8(R8, B),
 
     /** Square c8. */
-    C8(R8, C, A6_C8,           H3_C8),
+    C8(R8, C),
 
     /** Square d8. */
-    D8(R8, D, A5_D8,           H4_D8),
+    D8(R8, D),
 
     /** Square e8. */
-    E8(R8, E, A4_E8,           H5_E8),
+    E8(R8, E),
 
     /** Square f8. */
-    F8(R8, F, A3_F8,           H6_F8),
+    F8(R8, F),
 
     /** Square g8. */
-    G8(R8, G, A2_G8,           DiagonalRL.NULL),
+    G8(R8, G),
 
     /** Square h8. */
-    H8(R8, H, A1_H8,           DiagonalRL.NULL);
+    H8(R8, H);
 
     /** The null square. */
     public static final Square NULL = null;
@@ -427,23 +427,15 @@ public enum Square {
     /** The column field. */
     private final Column column;
 
-    /** The diagonalLR field. */
-    private final DiagonalLR diagonalLR;
-
-    /** The diagonalRL field. */
-    private final DiagonalRL diagonalRL;
-
     /**
      * Enum constructor.
      *
      * @param row    square's row
      * @param column square's column
      */
-    private Square(final Row row, final Column column, final DiagonalLR diagonalLR, final DiagonalRL diagonalRL) {
+    private Square(final Row row, final Column column) {
         this.row = row;
         this.column = column;
-        this.diagonalLR = diagonalLR;
-        this.diagonalRL = diagonalRL;
     }
 
     /**
@@ -470,20 +462,6 @@ public enum Square {
     public Square cornerFor() {
         return X_SQUARE_TO_CORNER_MAP.get(this);
     }
-
-    /**
-     * Returns the square's diagonal from left-up to rigth-down.
-     *
-     * @return the square's diagonal lr
-     **/
-    public DiagonalLR diagonalLR() { return this.diagonalLR; }
-
-    /**
-     * Returns the square's diagonal from rigth-up to left-down.
-     *
-     * @return the square's diagonal rl
-     **/
-    public DiagonalRL diagonalRL() { return this.diagonalRL; }
 
     /**
      * Returns the Hasegawa's naming for the edge squares. Returns
