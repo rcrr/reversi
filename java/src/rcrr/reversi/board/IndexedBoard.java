@@ -246,7 +246,7 @@ public final class IndexedBoard extends AbstractBoard {
         final List<FileState.FileIndexMove> moveAddendums = new ArrayList<FileState.FileIndexMove>();
         for (final Line line : Line.linesForSquare(move)) {
             final File file = line.file();
-            final FileState.FileIndex fi = FileState.FileIndex.valueOf(file, indexes[FileUtils.files().indexOf(file)]);
+            final FileState.FileIndex fi = FileState.FileIndex.valueOf(file, getIndex(player, FileUtils.files().indexOf(file)));
             for (final Map.Entry<Integer, FileState.FileIndex> entry : fi.legalMoves().entrySet()) {
                 final int moveOrdinalPosition = entry.getKey();
                 final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, moveOrdinalPosition);
@@ -263,15 +263,24 @@ public final class IndexedBoard extends AbstractBoard {
 
         int i = 0;
         for (final File file : FileUtils.files()) {
-            newIndexes[i] = indexes[i] + addedDiscDeltas[i];
+            newIndexes[i] = getIndex(player, i) + addedDiscDeltas[i];
             for (int j = 0; j < moveAddendums.size(); j++) {
                 newIndexes[i] += moveAddendums.get(j).getDeltas()[i];
             }
             i++;
         }
+
+        /** Flip indexes if player is White */
+        if (player == Player.WHITE) {
+            int k = 0;
+            for (final Line line : Line.values()) {
+                newIndexes[k] = FileState.FileIndex.valueOf(line.file(), newIndexes[k]).flip().index();
+                k++;
+            }
+        }
         /** */
 
-        if (player == Player.BLACK && !Arrays.equals(computeIndexes(sm), newIndexes)) {
+        if (!Arrays.equals(computeIndexes(sm), newIndexes)) {
             for (int k = 0; k < FileUtils.files().size(); k++) {
                 System.out.println("k, file, newIndexes, expected: " + k + ", " + FileUtils.files().get(k) + ", " + newIndexes[k] + ", " + computeIndexes(sm)[k]);
             }
