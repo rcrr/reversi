@@ -36,8 +36,6 @@ import java.util.HashMap;
 
 import static rcrr.reversi.board.Row.*;
 import static rcrr.reversi.board.Column.*;
-import static rcrr.reversi.board.DiagonalLR.*;
-import static rcrr.reversi.board.DiagonalRL.*;
 
 /**
  * Square is an Enum type that realize the base unit of the game board.
