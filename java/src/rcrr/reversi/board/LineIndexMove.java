@@ -36,8 +36,8 @@ class LineIndexMove {
 
     private static final Map<LineIndex, Map<Integer, LineIndexMove>> LINE_INDEX_MOVE_MAP;
 
-    public static LineIndexMove valueOf(final LineIndex fileIndex, final int move) {
-        return LINE_INDEX_MOVE_MAP.get(fileIndex).get(move);
+    public static LineIndexMove valueOf(final LineIndex lineIndex, final int move) {
+        return LINE_INDEX_MOVE_MAP.get(lineIndex).get(move);
     }
 
     static {
@@ -47,22 +47,22 @@ class LineIndexMove {
          */
         final Map<LineIndex, Map<Integer, LineIndexMove>> transientLineIndexMoveMap = new HashMap<LineIndex, Map<Integer, LineIndexMove>>();
         for (final Map.Entry<File, List<LineIndex>> entry : LineIndex.fileIndexMap().entrySet()) {
-            for (final LineIndex fileIndex : entry.getValue()) {
+            for (final LineIndex lineIndex : entry.getValue()) {
                 final Map<Integer, LineIndexMove> transientInnerMap = new HashMap<Integer, LineIndexMove>();
-                for (final Map.Entry<Integer, LineIndex> move : fileIndex.legalMoves().entrySet()) {
-                    transientInnerMap.put(move.getKey(), new LineIndexMove(fileIndex, move.getKey()));
+                for (final Map.Entry<Integer, LineIndex> move : lineIndex.legalMoves().entrySet()) {
+                    transientInnerMap.put(move.getKey(), new LineIndexMove(lineIndex, move.getKey()));
                 }
-                transientLineIndexMoveMap.put(fileIndex, Collections.unmodifiableMap(transientInnerMap));
+                transientLineIndexMoveMap.put(lineIndex, Collections.unmodifiableMap(transientInnerMap));
             }
         }
         LINE_INDEX_MOVE_MAP = Collections.unmodifiableMap(transientLineIndexMoveMap);
 
     }
 
-    private final LineIndex fileIndex;
+    private final LineIndex lineIndex;
     private final int move;
-    LineIndexMove(final LineIndex fileIndex, final int move) {
-        this.fileIndex = fileIndex;
+    LineIndexMove(final LineIndex lineIndex, final int move) {
+        this.lineIndex = lineIndex;
         this.move = move;
     }
 
@@ -72,8 +72,8 @@ class LineIndexMove {
      */
     public List<SquareTransition> fileTransitions() {
         final List<SquareTransition> transitions = new ArrayList<SquareTransition>();
-        final List<SquareState> from = fileIndex.configuration();
-        final List<SquareState> to = fileIndex.legalMoves().get(move).configuration();
+        final List<SquareState> from = lineIndex.configuration();
+        final List<SquareState> to = lineIndex.legalMoves().get(move).configuration();
         for (int i = 0; i < from.size(); i++) {
             SquareTransition st;
             final SquareState fss = from.get(i);
@@ -94,14 +94,14 @@ class LineIndexMove {
 
     public int[] getDeltas() {
         final int[] deltas = new int[FileUtils.NUMBER_OF_FILES];
-        final File file = fileIndex.file();
+        final File file = lineIndex.file();
         int squareOrdinal = 0;
         for (final SquareTransition st : fileTransitions()) {
             final Square sq = Line.getInstance(file).squares().get(squareOrdinal);
             for (final Line affectedLine : Line.linesForSquare(sq)) {
                 final File affectedFile = affectedLine.file();
                 if (affectedFile != null) {
-                    int delta = st.delta() * LineState.fileTransferMatrix(fileIndex.file(), squareOrdinal, affectedFile);
+                    int delta = st.delta() * LineState.fileTransferMatrix(lineIndex.file(), squareOrdinal, affectedFile);
                     deltas[FileUtils.files().indexOf(affectedFile)] += delta;
                 }
             }
@@ -113,10 +113,10 @@ class LineIndexMove {
     /**
      * Returns a {@code String} representing the {@code LineIndexMove} object.
      *
-     * @return a {@code String} representing the file index move
+     * @return a {@code String} representing the line index move
      */
     @Override public String toString() {
-        return String.format("[move=%d, fileIndex=%s]", move, fileIndex);
+        return String.format("[move=%d, lineIndex=%s]", move, lineIndex);
     }
 
 }
