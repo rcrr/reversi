@@ -1,5 +1,5 @@
 /*
- *  FileState.java
+ *  LineState.java
  *
  *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
@@ -37,7 +37,7 @@ import java.util.Map;
  *
  * 
  */
-public final class FileState {
+public final class LineState {
 
     /**
      * A table that hosts for each file square the transfer matrix on the other files.
@@ -86,8 +86,8 @@ public final class FileState {
         final int order = Line.getInstance(file).squares().size();
         final int boundary = indexBoundary(order);
         if (index < 0 || index > boundary) { throw new IndexOutOfBoundsException("Parameter index is out of range."); }
-        final FileState fileState = FileState.valueOf(order, index);
-        final FileIndex fileIndex = FileIndex.valueOf(file, index);
+        final LineState fileState = LineState.valueOf(order, index);
+        final LineIndex fileIndex = LineIndex.valueOf(file, index);
         if(!fileIndex.legalMoves().keySet().contains(move)) { throw new IllegalArgumentException("Parameter move is not valid. move=" + move); }
         return LineIndexMove.valueOf(fileIndex, move).getDeltas();
     }
@@ -118,11 +118,11 @@ public final class FileState {
     private static final int[] POSITION_COEFFICIENTS = new int[MAX_ORDER + 1];
 
     /**
-     * Two dimension array that contains all the possible FileState instances.
+     * Two dimension array that contains all the possible LineState instances.
      * The first dimension is driven by the order. Orders range between 0 and MAX_ORDER + 1.
      * The second dimension is the index of the file state. It ranges between 0 and MAX_INDEX[order].
      */
-    private static final FileState[][] STATES = new FileState[MAX_ORDER + 1][];
+    private static final LineState[][] STATES = new LineState[MAX_ORDER + 1][];
 
     static {
 
@@ -138,9 +138,9 @@ public final class FileState {
          */
         for (int i = MIN_ORDER; i < MAX_ORDER + 1; i++) {
             MAX_INDEX[i] = POSITION_COEFFICIENTS[i] - 1;
-            STATES[i] = new FileState[MAX_INDEX[i] + 1];
+            STATES[i] = new LineState[MAX_INDEX[i] + 1];
             for (int j = 0; j <= MAX_INDEX[i]; j++) {
-                STATES[i][j] = new FileState(i, j);
+                STATES[i][j] = new LineState(i, j);
             }
         }
 
@@ -159,7 +159,7 @@ public final class FileState {
      * @return      the file state identified by the two parameters
      * @throws IndexOutOfBoundsException when parameters are out of their boundaries
      */
-    public static FileState valueOf(final int order, final int index) {
+    public static LineState valueOf(final int order, final int index) {
         if (order < MIN_ORDER || order > MAX_ORDER) {
             throw new IndexOutOfBoundsException("Parameter order is invalid. order = " + order);
         }
@@ -264,7 +264,7 @@ public final class FileState {
      * @param order the number of squares of the file
      * @param index the index corresponding to the file configuration
      */
-    private FileState(final int order, final int index) {
+    private LineState(final int order, final int index) {
         this.order = order;
         this.index = index;
         List<SquareState> transientConfiguration = new ArrayList<SquareState>(order);
@@ -318,7 +318,7 @@ public final class FileState {
      *
      * @return the flipped file state
      */
-    public FileState flip() {
+    public LineState flip() {
         return valueOf(this.order, this.flipped);
     }
 
@@ -350,7 +350,7 @@ public final class FileState {
     }
 
     /**
-     * Returns a {@code String} representing the {@code FileState} object.
+     * Returns a {@code String} representing the {@code LineState} object.
      *
      * @return a {@code String} representing the file state
      */
