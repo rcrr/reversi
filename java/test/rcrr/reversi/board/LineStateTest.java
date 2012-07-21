@@ -1,5 +1,5 @@
 /*
- *  FileStateTest.java
+ *  LineStateTest.java
  *
  *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
@@ -37,12 +37,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 /**
- * Test Suite for {@code FileState} enum.
+ * Test Suite for {@code LineState} enum.
  */
-public class FileStateTest {
+public class LineStateTest {
 
     /** Class constructor. */
-    public FileStateTest() { }
+    public LineStateTest() { }
 
 
     /**
@@ -51,7 +51,7 @@ public class FileStateTest {
     @Test
     public final void testGetDeltas() {
 
-        final FileIndex fi = FileIndex.valueOf(Column.C, 414);
+        final LineIndex fi = LineIndex.valueOf(Column.C, 414);
         final LineIndexMove fim = LineIndexMove.valueOf(fi, 3);
 
         final int[] expected = {  0, // [ 0] --> R1
@@ -101,7 +101,7 @@ public class FileStateTest {
     @Test
     public final void testFileTransferMatrix() {
         assertThat("File D affects file R3 when squere ordinal 2 changes by a factor of 27.",
-                   FileState.fileTransferMatrix((File) Column.D, 2, (File) Row.R3),
+                   LineState.fileTransferMatrix((File) Column.D, 2, (File) Row.R3),
                    is(27));
     }
 
@@ -109,7 +109,7 @@ public class FileStateTest {
     @Test
     public final void testLineIndexMoveClass_fileTransitions() {
 
-        final FileIndex fi = FileIndex.valueOf(DiagonalRL.C1_A3, 7);
+        final LineIndex fi = LineIndex.valueOf(DiagonalRL.C1_A3, 7);
         final LineIndexMove fim = LineIndexMove.valueOf(fi, 2);
 
         final List<SquareTransition> expected = Arrays.asList(SquareTransition.NO_TRANSITION,
@@ -124,9 +124,9 @@ public class FileStateTest {
     }
 
     @Test
-    public final void testFileIndexClass() {
+    public final void testLineIndexClass() {
 
-        final FileIndex fi = FileIndex.valueOf(Column.A, 0);
+        final LineIndex fi = LineIndex.valueOf(Column.A, 0);
 
         assertTrue(true);
 
@@ -135,7 +135,7 @@ public class FileStateTest {
     @Test
     public final void testLineIndexMoveClass() {
 
-        final LineIndexMove fim = LineIndexMove.valueOf(FileIndex.valueOf(Column.A, 0), 0);
+        final LineIndexMove fim = LineIndexMove.valueOf(LineIndex.valueOf(Column.A, 0), 0);
 
         assertTrue(true);
 
@@ -143,94 +143,94 @@ public class FileStateTest {
 
     @Test(expected = IndexOutOfBoundsException.class)
     public final void testValueOf_when_parameter_index_isInvalid_caseA() {
-        FileState.valueOf(8, 6561);
+        LineState.valueOf(8, 6561);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public final void testValueOf_when_parameter_index_isInvalid_caseB() {
-        FileState.valueOf(7, 6560);
+        LineState.valueOf(7, 6560);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public final void testValueOf_when_parameter_index_isInvalid_caseC() {
-        FileState.valueOf(8, -1);
+        LineState.valueOf(8, -1);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public final void testValueOf_when_parameter_order_isInvalid_caseA() {
-        FileState.valueOf(-1, 0);
+        LineState.valueOf(-1, 0);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public final void testValueOf_when_parameter_order_isInvalid_caseB() {
-        FileState.valueOf(9, 0);
+        LineState.valueOf(9, 0);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public final void testValueOf_when_parameter_order_isInvalid_caseC() {
-        FileState.valueOf(2, 0);
+        LineState.valueOf(2, 0);
     }
 
     /**
      * Test the {@code valueOf(int, int} factory.
      *
-     * @see FileState#valueOf(int, int)
+     * @see LineState#valueOf(int, int)
      */
     @Test
     public final void testValueOf() {
-        assertThat("FileState.valueOf(3, 10) has to be an instance of FileState class.",
-                   FileState.valueOf(3, 10),
-                   instanceOf(FileState.class));
-        assertThat("FileState.valueOf(8, 6560) has to be an instance of FileState class.",
-                   FileState.valueOf(8, 6560),
-                   instanceOf(FileState.class));
-        assertThat("FileState.valueOf(5, 0) has to be an instance of FileState class.",
-                   FileState.valueOf(5, 0),
-                   instanceOf(FileState.class));
+        assertThat("LineState.valueOf(3, 10) has to be an instance of LineState class.",
+                   LineState.valueOf(3, 10),
+                   instanceOf(LineState.class));
+        assertThat("LineState.valueOf(8, 6560) has to be an instance of LineState class.",
+                   LineState.valueOf(8, 6560),
+                   instanceOf(LineState.class));
+        assertThat("LineState.valueOf(5, 0) has to be an instance of LineState class.",
+                   LineState.valueOf(5, 0),
+                   instanceOf(LineState.class));
     }
 
     @Test
     public final void testFlip() {
-        assertThat("FileState.valueOf(3, 11).flip() must be FileState.valueOf(3, 19).",
-                   FileState.valueOf(3, 11).flip(),
-                   is(FileState.valueOf(3, 19)));
+        assertThat("LineState.valueOf(3, 11).flip() must be LineState.valueOf(3, 19).",
+                   LineState.valueOf(3, 11).flip(),
+                   is(LineState.valueOf(3, 19)));
         assertThat("Flipping twice has to return the file state itself.",
-                   FileState.valueOf(3, 11).flip().flip(),
-                   is(FileState.valueOf(3, 11)));
+                   LineState.valueOf(3, 11).flip().flip(),
+                   is(LineState.valueOf(3, 11)));
     }
 
     @Test
     public final void testIndex() {
-        assertThat("FileState.valueOf(3, 11).index() must be 11.",
-                   FileState.valueOf(3, 11).index(),
+        assertThat("LineState.valueOf(3, 11).index() must be 11.",
+                   LineState.valueOf(3, 11).index(),
                    is(11));
     }
 
     @Test
     public final void testLegalMoves() {
-        final Map<Integer, Integer> result = FileState.valueOf(3, 15).legalMoves();
-        assertThat("FileState.valueOf(3, 15).legalMoves() must have ONE entry <0, 13>.",
+        final Map<Integer, Integer> result = LineState.valueOf(3, 15).legalMoves();
+        assertThat("LineState.valueOf(3, 15).legalMoves() must have ONE entry <0, 13>.",
                    result.size(),
                    is(1));
-        assertThat("FileState.valueOf(3, 15).legalMoves() must have one entry <0, 13>, having a 0 key.",
+        assertThat("LineState.valueOf(3, 15).legalMoves() must have one entry <0, 13>, having a 0 key.",
                    result.containsKey(0),
                    is(true));
-        assertThat("FileState.valueOf(3, 15).legalMoves() must have one entry <0, 13>, having a 13 value.",
+        assertThat("LineState.valueOf(3, 15).legalMoves() must have one entry <0, 13>, having a 13 value.",
                    result.get(0),
                    is(13));
     }
 
     @Test
     public final void testOrder() {
-        assertThat("FileState.valueOf(3, 11).order() must be 3.",
-                   FileState.valueOf(3, 11).order(),
+        assertThat("LineState.valueOf(3, 11).order() must be 3.",
+                   LineState.valueOf(3, 11).order(),
                    is(3));
     }
 
     @Test
     public final void testToString() {
-        assertThat("FileState.valueOf(3, 10).toString() has to return the appropriate string.",
-                   FileState.valueOf(3, 10).toString(),
+        assertThat("LineState.valueOf(3, 10).toString() has to return the appropriate string.",
+                   LineState.valueOf(3, 10).toString(),
                    is("[(order=3, index=10) [ @ . @ ]]"));
     }
 
@@ -243,9 +243,9 @@ public class FileStateTest {
         for (int order = 3; order <= 8; order ++) {
             int moves = 0;
             int[] moveDistribution = new int[5];
-            final int boundary = FileState.indexBoundary(order);
+            final int boundary = LineState.indexBoundary(order);
             for (int index = 0; index <= boundary; index++) {
-                final FileState fs = FileState.valueOf(order, index);
+                final LineState fs = LineState.valueOf(order, index);
                 final int moveCount = fs.legalMoves().size();
                 moves += moveCount;
                 switch (moveCount) {

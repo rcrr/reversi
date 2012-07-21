@@ -34,9 +34,9 @@ import java.util.List;
 
 class LineIndexMove {
 
-    private static final Map<FileIndex, Map<Integer, LineIndexMove>> LINE_INDEX_MOVE_MAP;
+    private static final Map<LineIndex, Map<Integer, LineIndexMove>> LINE_INDEX_MOVE_MAP;
 
-    public static LineIndexMove valueOf(final FileIndex fileIndex, final int move) {
+    public static LineIndexMove valueOf(final LineIndex fileIndex, final int move) {
         return LINE_INDEX_MOVE_MAP.get(fileIndex).get(move);
     }
 
@@ -45,11 +45,11 @@ class LineIndexMove {
         /**
          * Computes LINE_INDEX_MOVE_MAP map.
          */
-        final Map<FileIndex, Map<Integer, LineIndexMove>> transientLineIndexMoveMap = new HashMap<FileIndex, Map<Integer, LineIndexMove>>();
-        for (final Map.Entry<File, List<FileIndex>> entry : FileIndex.fileIndexMap().entrySet()) {
-            for (final FileIndex fileIndex : entry.getValue()) {
+        final Map<LineIndex, Map<Integer, LineIndexMove>> transientLineIndexMoveMap = new HashMap<LineIndex, Map<Integer, LineIndexMove>>();
+        for (final Map.Entry<File, List<LineIndex>> entry : LineIndex.fileIndexMap().entrySet()) {
+            for (final LineIndex fileIndex : entry.getValue()) {
                 final Map<Integer, LineIndexMove> transientInnerMap = new HashMap<Integer, LineIndexMove>();
-                for (final Map.Entry<Integer, FileIndex> move : fileIndex.legalMoves().entrySet()) {
+                for (final Map.Entry<Integer, LineIndex> move : fileIndex.legalMoves().entrySet()) {
                     transientInnerMap.put(move.getKey(), new LineIndexMove(fileIndex, move.getKey()));
                 }
                 transientLineIndexMoveMap.put(fileIndex, Collections.unmodifiableMap(transientInnerMap));
@@ -59,9 +59,9 @@ class LineIndexMove {
 
     }
 
-    private final FileIndex fileIndex;
+    private final LineIndex fileIndex;
     private final int move;
-    LineIndexMove(final FileIndex fileIndex, final int move) {
+    LineIndexMove(final LineIndex fileIndex, final int move) {
         this.fileIndex = fileIndex;
         this.move = move;
     }
@@ -101,7 +101,7 @@ class LineIndexMove {
             for (final Line affectedLine : Line.linesForSquare(sq)) {
                 final File affectedFile = affectedLine.file();
                 if (affectedFile != null) {
-                    int delta = st.delta() * FileState.fileTransferMatrix(fileIndex.file(), squareOrdinal, affectedFile);
+                    int delta = st.delta() * LineState.fileTransferMatrix(fileIndex.file(), squareOrdinal, affectedFile);
                     deltas[FileUtils.files().indexOf(affectedFile)] += delta;
                 }
             }

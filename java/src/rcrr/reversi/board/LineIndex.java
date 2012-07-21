@@ -1,5 +1,5 @@
 /*
- *  FileIndex.java
+ *  LineIndex.java
  *
  *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
@@ -32,15 +32,15 @@ import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 
-class FileIndex {
+class LineIndex {
 
-    private static final Map<File, List<FileIndex>> FILE_INDEX_MAP;
+    private static final Map<File, List<LineIndex>> FILE_INDEX_MAP;
 
-    public static FileIndex valueOf(final File file, final int index) {
+    public static LineIndex valueOf(final File file, final int index) {
         return FILE_INDEX_MAP.get(file).get(index);
     }
 
-    public static Map<File, List<FileIndex>> fileIndexMap() {
+    public static Map<File, List<LineIndex>> fileIndexMap() {
         return FILE_INDEX_MAP;
     }
 
@@ -49,36 +49,36 @@ class FileIndex {
         /**
          * Computes FILE_INDEX_MAP map.
          */
-        final Map<File, List<FileIndex>> transientFileIndexMap = new HashMap<File, List<FileIndex>>();
+        final Map<File, List<LineIndex>> transientLineIndexMap = new HashMap<File, List<LineIndex>>();
         for (final File file : FileUtils.files()) {
-            final List<FileIndex> transientFileIndexList = new ArrayList<FileIndex>();
-            for (int index = 0; index <= FileState.indexBoundary(Line.getInstance(file).squares().size()); index++) {
-                final FileIndex fileIndex = new FileIndex(file, index);
-                transientFileIndexList.add(fileIndex);
+            final List<LineIndex> transientLineIndexList = new ArrayList<LineIndex>();
+            for (int index = 0; index <= LineState.indexBoundary(Line.getInstance(file).squares().size()); index++) {
+                final LineIndex fileIndex = new LineIndex(file, index);
+                transientLineIndexList.add(fileIndex);
             }
-            transientFileIndexMap.put(file, Collections.unmodifiableList(transientFileIndexList));
+            transientLineIndexMap.put(file, Collections.unmodifiableList(transientLineIndexList));
         }
-        FILE_INDEX_MAP = Collections.unmodifiableMap(transientFileIndexMap);
+        FILE_INDEX_MAP = Collections.unmodifiableMap(transientLineIndexMap);
 
     }
 
     private final File file;
     private final int index;
-    FileIndex(final File file, final int index) {
+    LineIndex(final File file, final int index) {
         this.file = file;
         this.index = index;
     }
 
-    public FileState fileState() {
-        return FileState.valueOf(Line.getInstance(file).order(), index);
+    public LineState fileState() {
+        return LineState.valueOf(Line.getInstance(file).order(), index);
     }
 
     public List<SquareState> configuration() {
         return fileState().configuration();
     }
 
-    public Map <Integer, FileIndex> legalMoves() {
-        final HashMap<Integer, FileIndex> legalMoves = new HashMap<Integer, FileIndex>();
+    public Map <Integer, LineIndex> legalMoves() {
+        final HashMap<Integer, LineIndex> legalMoves = new HashMap<Integer, LineIndex>();
         for (final Map.Entry<Integer, Integer> entry : fileState().legalMoves().entrySet()) {
             legalMoves.put(entry.getKey(), valueOf(file, entry.getValue()));
         }
@@ -93,12 +93,12 @@ class FileIndex {
         return index;
     }
 
-    public FileIndex flip() {
+    public LineIndex flip() {
         return valueOf(file, fileState().flip().index());
     }
 
     /**
-     * Returns a {@code String} representing the {@code FileIndex} object.
+     * Returns a {@code String} representing the {@code LineIndex} object.
      *
      * @return a {@code String} representing the file index
      */
