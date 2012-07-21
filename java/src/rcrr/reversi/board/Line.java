@@ -161,4 +161,188 @@ public enum Line {
         return this.squares;
     }
 
+    static enum SquareTransition {
+
+        NO_TRANSITION(0),
+        EMPTY_TO_BLACK(0), // This is a transition that happens only to the square where the black's player moves. It is handled by a special factor ....
+        WHITE_TO_BLACK(-1);
+
+        private final int delta;
+
+        private SquareTransition(final int delta) {
+            this.delta = delta;
+        }
+
+        public final int delta() { return this.delta; }
+
+    }
+
+
+    static class FileIndex {
+
+        private static final Map<File, List<FileIndex>> FILE_INDEX_MAP;
+
+        public static FileIndex valueOf(final File file, final int index) {
+            return FILE_INDEX_MAP.get(file).get(index);
+        }
+
+        public static Map<File, List<FileIndex>> fileIndexMap() {
+            return FILE_INDEX_MAP;
+        }
+
+        static {
+
+            /**
+             * Computes FILE_INDEX_MAP map.
+             */
+            final Map<File, List<FileIndex>> transientFileIndexMap = new HashMap<File, List<FileIndex>>();
+            for (final File file : FileUtils.files()) {
+                final List<FileIndex> transientFileIndexList = new ArrayList<FileIndex>();
+                for (int index = 0; index <= FileState.indexBoundary(Line.getInstance(file).squares().size()); index++) {
+                    final FileIndex fileIndex = new FileIndex(file, index);
+                    transientFileIndexList.add(fileIndex);
+                }
+                transientFileIndexMap.put(file, Collections.unmodifiableList(transientFileIndexList));
+            }
+            FILE_INDEX_MAP = Collections.unmodifiableMap(transientFileIndexMap);
+
+        }
+
+        private final File file;
+        private final int index;
+        FileIndex(final File file, final int index) {
+            this.file = file;
+            this.index = index;
+        }
+
+        public FileState fileState() {
+            return FileState.valueOf(Line.getInstance(file).order(), index);
+        }
+
+        public List<SquareState> configuration() {
+            return fileState().configuration();
+        }
+
+        public Map <Integer, FileIndex> legalMoves() {
+            final HashMap<Integer, FileIndex> legalMoves = new HashMap<Integer, FileIndex>();
+            for (final Map.Entry<Integer, Integer> entry : fileState().legalMoves().entrySet()) {
+                legalMoves.put(entry.getKey(), valueOf(file, entry.getValue()));
+            }
+            return legalMoves;
+        }
+
+        public File file() {
+            return file;
+        }
+
+        public int index() {
+            return index;
+        }
+
+        public FileIndex flip() {
+            return valueOf(file, fileState().flip().index());
+        }
+
+        /**
+         * Returns a {@code String} representing the {@code FileIndex} object.
+         *
+         * @return a {@code String} representing the file index
+         */
+        @Override public String toString() {
+            return String.format("[file=%s, index=%d]", file(), index());
+        }
+
+    }
+
+
+    static class FileIndexMove {
+
+        private static final Map<FileIndex, Map<Integer, FileIndexMove>> FILE_INDEX_MOVE_MAP;
+
+        public static FileIndexMove valueOf(final FileIndex fileIndex, final int move) {
+            return FILE_INDEX_MOVE_MAP.get(fileIndex).get(move);
+        }
+
+        static {
+
+            /**
+             * Computes FILE_INDEX_MOVE_MAP map.
+             */
+            final Map<FileIndex, Map<Integer, FileIndexMove>> transientFileIndexMoveMap = new HashMap<FileIndex, Map<Integer, FileIndexMove>>();
+            for (final Map.Entry<File, List<FileIndex>> entry : FileIndex.fileIndexMap().entrySet()) {
+                for (final FileIndex fileIndex : entry.getValue()) {
+                    final Map<Integer, FileIndexMove> transientInnerMap = new HashMap<Integer, FileIndexMove>();
+                    for (final Map.Entry<Integer, FileIndex> move : fileIndex.legalMoves().entrySet()) {
+                        transientInnerMap.put(move.getKey(), new FileIndexMove(fileIndex, move.getKey()));
+                    }
+                    transientFileIndexMoveMap.put(fileIndex, Collections.unmodifiableMap(transientInnerMap));
+                }
+            }
+            FILE_INDEX_MOVE_MAP = Collections.unmodifiableMap(transientFileIndexMoveMap);
+
+        }
+
+        private final FileIndex fileIndex;
+        private final int move;
+        FileIndexMove(final FileIndex fileIndex, final int move) {
+            this.fileIndex = fileIndex;
+            this.move = move;
+        }
+
+        /**
+         * Transitions are:
+         * Empty to Black and White to Black .... all the other are not possible because we are evaluating only moves played by the black.
+         */
+        public List<SquareTransition> fileTransitions() {
+            final List<SquareTransition> transitions = new ArrayList<SquareTransition>();
+            final List<SquareState> from = fileIndex.configuration();
+            final List<SquareState> to = fileIndex.legalMoves().get(move).configuration();
+            for (int i = 0; i < from.size(); i++) {
+                SquareTransition st;
+                final SquareState fss = from.get(i);
+                final SquareState tss = to.get(i);
+                if (fss == tss) {
+                    st = SquareTransition.NO_TRANSITION;
+                } else if (fss == SquareState.EMPTY && tss == SquareState.BLACK) {
+                    st = SquareTransition.EMPTY_TO_BLACK;
+                } else if (fss == SquareState.WHITE && tss == SquareState.BLACK) {
+                    st = SquareTransition.WHITE_TO_BLACK;
+                } else {
+                    throw new RuntimeException("Square transition not allowed. from=" + fss + ", to=" + tss);
+                }
+                transitions.add(st);
+            }
+            return Collections.unmodifiableList(transitions);
+        }
+
+        public int[] getDeltas() {
+            final int[] deltas = new int[FileUtils.NUMBER_OF_FILES];
+            final File file = fileIndex.file();
+            int squareOrdinal = 0;
+            for (final SquareTransition st : fileTransitions()) {
+                final Square sq = Line.getInstance(file).squares().get(squareOrdinal);
+                for (final Line affectedLine : Line.linesForSquare(sq)) {
+                    final File affectedFile = affectedLine.file();
+                    if (affectedFile != null) {
+                        int delta = st.delta() * FileState.fileTransferMatrix(fileIndex.file(), squareOrdinal, affectedFile);
+                        deltas[FileUtils.files().indexOf(affectedFile)] += delta;
+                    }
+                }
+                squareOrdinal++;
+            }
+            return deltas;
+        }
+
+        /**
+         * Returns a {@code String} representing the {@code FileIndexMove} object.
+         *
+         * @return a {@code String} representing the file index move
+         */
+        @Override public String toString() {
+            return String.format("[move=%d, fileIndex=%s]", move, fileIndex);
+        }
+
+    }
+
+
 }

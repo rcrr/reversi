@@ -51,8 +51,8 @@ public class FileStateTest {
     @Test
     public final void testGetDeltas() {
 
-        final FileState.FileIndex fi = FileState.FileIndex.valueOf(Column.C, 414);
-        final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, 3);
+        final FileIndex fi = FileIndex.valueOf(Column.C, 414);
+        final FileIndexMove fim = FileIndexMove.valueOf(fi, 3);
 
         final int[] expected = {  0, // [ 0] --> R1
                                   0, // [ 1] --> R2
@@ -109,12 +109,12 @@ public class FileStateTest {
     @Test
     public final void testFileIndexMoveClass_fileTransitions() {
 
-        final FileState.FileIndex fi = FileState.FileIndex.valueOf(DiagonalRL.C1_A3, 7);
-        final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, 2);
+        final FileIndex fi = FileIndex.valueOf(DiagonalRL.C1_A3, 7);
+        final FileIndexMove fim = FileIndexMove.valueOf(fi, 2);
 
-        final List<FileState.SquareTransition> expected = Arrays.asList(FileState.SquareTransition.NO_TRANSITION,
-                                                                        FileState.SquareTransition.WHITE_TO_BLACK,
-                                                                        FileState.SquareTransition.EMPTY_TO_BLACK);
+        final List<SquareTransition> expected = Arrays.asList(SquareTransition.NO_TRANSITION,
+                                                              SquareTransition.WHITE_TO_BLACK,
+                                                              SquareTransition.EMPTY_TO_BLACK);
 
         assertThat("Expected transition list is NO_TTRANSITION, WHITE_TO_BLACK, EMPTY_TO_BLACK.",
                    fim.fileTransitions(),
@@ -126,7 +126,7 @@ public class FileStateTest {
     @Test
     public final void testFileIndexClass() {
 
-        final FileState.FileIndex fi = FileState.FileIndex.valueOf(Column.A, 0);
+        final FileIndex fi = FileIndex.valueOf(Column.A, 0);
 
         assertTrue(true);
 
@@ -135,7 +135,7 @@ public class FileStateTest {
     @Test
     public final void testFileIndexMoveClass() {
 
-        final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(FileState.FileIndex.valueOf(Column.A, 0), 0);
+        final FileIndexMove fim = FileIndexMove.valueOf(FileIndex.valueOf(Column.A, 0), 0);
 
         assertTrue(true);
 
