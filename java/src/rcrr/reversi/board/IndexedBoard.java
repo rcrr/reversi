@@ -232,13 +232,13 @@ public final class IndexedBoard extends AbstractBoard {
          */
         final int[] newIndexes = new int[indexes.length];
 
-        final List<FileIndexMove> moveAddendums = new ArrayList<FileIndexMove>();
+        final List<LineIndexMove> moveAddendums = new ArrayList<LineIndexMove>();
         for (final Line line : Line.linesForSquare(move)) {
             final File file = line.file();
             final FileIndex fi = FileIndex.valueOf(file, getIndex(player, FileUtils.files().indexOf(file)));
             for (final Map.Entry<Integer, FileIndex> entry : fi.legalMoves().entrySet()) {
                 final int moveOrdinalPosition = entry.getKey();
-                final FileIndexMove fim = FileIndexMove.valueOf(fi, moveOrdinalPosition);
+                final LineIndexMove fim = LineIndexMove.valueOf(fi, moveOrdinalPosition);
                 final Square sq = Line.getInstance(entry.getValue().file()).squares().get(entry.getKey());
                 if (sq == move) { moveAddendums.add(fim); }
             }

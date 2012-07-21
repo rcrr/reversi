@@ -52,7 +52,7 @@ public class FileStateTest {
     public final void testGetDeltas() {
 
         final FileIndex fi = FileIndex.valueOf(Column.C, 414);
-        final FileIndexMove fim = FileIndexMove.valueOf(fi, 3);
+        final LineIndexMove fim = LineIndexMove.valueOf(fi, 3);
 
         final int[] expected = {  0, // [ 0] --> R1
                                   0, // [ 1] --> R2
@@ -107,10 +107,10 @@ public class FileStateTest {
 
 
     @Test
-    public final void testFileIndexMoveClass_fileTransitions() {
+    public final void testLineIndexMoveClass_fileTransitions() {
 
         final FileIndex fi = FileIndex.valueOf(DiagonalRL.C1_A3, 7);
-        final FileIndexMove fim = FileIndexMove.valueOf(fi, 2);
+        final LineIndexMove fim = LineIndexMove.valueOf(fi, 2);
 
         final List<SquareTransition> expected = Arrays.asList(SquareTransition.NO_TRANSITION,
                                                               SquareTransition.WHITE_TO_BLACK,
@@ -133,9 +133,9 @@ public class FileStateTest {
     }
 
     @Test
-    public final void testFileIndexMoveClass() {
+    public final void testLineIndexMoveClass() {
 
-        final FileIndexMove fim = FileIndexMove.valueOf(FileIndex.valueOf(Column.A, 0), 0);
+        final LineIndexMove fim = LineIndexMove.valueOf(FileIndex.valueOf(Column.A, 0), 0);
 
         assertTrue(true);
 
