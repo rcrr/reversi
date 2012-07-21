@@ -89,7 +89,7 @@ public final class FileState {
         final FileState fileState = FileState.valueOf(order, index);
         final FileIndex fileIndex = FileIndex.valueOf(file, index);
         if(!fileIndex.legalMoves().keySet().contains(move)) { throw new IllegalArgumentException("Parameter move is not valid. move=" + move); }
-        return FileIndexMove.valueOf(fileIndex, move).getDeltas();
+        return LineIndexMove.valueOf(fileIndex, move).getDeltas();
     }
 
     /**

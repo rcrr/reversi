@@ -1,5 +1,5 @@
 /*
- *  FileIndexMove.java
+ *  LineIndexMove.java
  *
  *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
@@ -32,37 +32,36 @@ import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 
+class LineIndexMove {
 
-class FileIndexMove {
+    private static final Map<FileIndex, Map<Integer, LineIndexMove>> LINE_INDEX_MOVE_MAP;
 
-    private static final Map<FileIndex, Map<Integer, FileIndexMove>> FILE_INDEX_MOVE_MAP;
-
-    public static FileIndexMove valueOf(final FileIndex fileIndex, final int move) {
-        return FILE_INDEX_MOVE_MAP.get(fileIndex).get(move);
+    public static LineIndexMove valueOf(final FileIndex fileIndex, final int move) {
+        return LINE_INDEX_MOVE_MAP.get(fileIndex).get(move);
     }
 
     static {
 
         /**
-         * Computes FILE_INDEX_MOVE_MAP map.
+         * Computes LINE_INDEX_MOVE_MAP map.
          */
-        final Map<FileIndex, Map<Integer, FileIndexMove>> transientFileIndexMoveMap = new HashMap<FileIndex, Map<Integer, FileIndexMove>>();
+        final Map<FileIndex, Map<Integer, LineIndexMove>> transientLineIndexMoveMap = new HashMap<FileIndex, Map<Integer, LineIndexMove>>();
         for (final Map.Entry<File, List<FileIndex>> entry : FileIndex.fileIndexMap().entrySet()) {
             for (final FileIndex fileIndex : entry.getValue()) {
-                final Map<Integer, FileIndexMove> transientInnerMap = new HashMap<Integer, FileIndexMove>();
+                final Map<Integer, LineIndexMove> transientInnerMap = new HashMap<Integer, LineIndexMove>();
                 for (final Map.Entry<Integer, FileIndex> move : fileIndex.legalMoves().entrySet()) {
-                    transientInnerMap.put(move.getKey(), new FileIndexMove(fileIndex, move.getKey()));
+                    transientInnerMap.put(move.getKey(), new LineIndexMove(fileIndex, move.getKey()));
                 }
-                transientFileIndexMoveMap.put(fileIndex, Collections.unmodifiableMap(transientInnerMap));
+                transientLineIndexMoveMap.put(fileIndex, Collections.unmodifiableMap(transientInnerMap));
             }
         }
-        FILE_INDEX_MOVE_MAP = Collections.unmodifiableMap(transientFileIndexMoveMap);
+        LINE_INDEX_MOVE_MAP = Collections.unmodifiableMap(transientLineIndexMoveMap);
 
     }
 
     private final FileIndex fileIndex;
     private final int move;
-    FileIndexMove(final FileIndex fileIndex, final int move) {
+    LineIndexMove(final FileIndex fileIndex, final int move) {
         this.fileIndex = fileIndex;
         this.move = move;
     }
@@ -112,7 +111,7 @@ class FileIndexMove {
     }
 
     /**
-     * Returns a {@code String} representing the {@code FileIndexMove} object.
+     * Returns a {@code String} representing the {@code LineIndexMove} object.
      *
      * @return a {@code String} representing the file index move
      */
