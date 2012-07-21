@@ -149,12 +149,12 @@ public final class IndexedBoard extends AbstractBoard {
         if (cached != null) { return new ArrayList<Square>(cached); }
 
         final List<File> files = FileUtils.files();
-        final List<FileState.FileIndex> fileIndexList = new ArrayList<FileState.FileIndex>(files.size());
+        final List<FileIndex> fileIndexList = new ArrayList<FileIndex>(files.size());
         final SortedSet<Square> legalMovesAsSet = new TreeSet<Square>();
         for (int i = 0; i < files.size(); i++) {
-            final FileState.FileIndex fi = FileState.FileIndex.valueOf(files.get(i), getIndex(player, i));
+            final FileIndex fi = FileIndex.valueOf(files.get(i), getIndex(player, i));
             fileIndexList.add(fi);
-            for (final Map.Entry<Integer, FileState.FileIndex> entry : fi.legalMoves().entrySet()) {
+            for (final Map.Entry<Integer, FileIndex> entry : fi.legalMoves().entrySet()) {
                 final Square move = Line.getInstance(entry.getValue().file()).squares().get(entry.getKey());
                 legalMovesAsSet.add(move);
             }
@@ -169,18 +169,7 @@ public final class IndexedBoard extends AbstractBoard {
      * Should be moved in FileIndex .....
      */
     private int getIndex(final Player player, final int file) {
-        return (player == Player.BLACK) ? indexes[file]: FileState.FileIndex.valueOf(FileUtils.files().get(file), indexes[file]).flip().index();
-    }
-
-    /**
-     * To be DISCARDED!
-     */
-    private List<Square> legalMoves_(final Player player) {
-        final List<Square> legalMoves = new ArrayList<Square>();
-        for (final Square move : Square.values()) {
-            if (isLegal(move, player)) { legalMoves.add(move); }
-        }
-        return Collections.unmodifiableList(legalMoves);
+        return (player == Player.BLACK) ? indexes[file]: FileIndex.valueOf(FileUtils.files().get(file), indexes[file]).flip().index();
     }
 
     /**
@@ -243,13 +232,13 @@ public final class IndexedBoard extends AbstractBoard {
          */
         final int[] newIndexes = new int[indexes.length];
 
-        final List<FileState.FileIndexMove> moveAddendums = new ArrayList<FileState.FileIndexMove>();
+        final List<FileIndexMove> moveAddendums = new ArrayList<FileIndexMove>();
         for (final Line line : Line.linesForSquare(move)) {
             final File file = line.file();
-            final FileState.FileIndex fi = FileState.FileIndex.valueOf(file, getIndex(player, FileUtils.files().indexOf(file)));
-            for (final Map.Entry<Integer, FileState.FileIndex> entry : fi.legalMoves().entrySet()) {
+            final FileIndex fi = FileIndex.valueOf(file, getIndex(player, FileUtils.files().indexOf(file)));
+            for (final Map.Entry<Integer, FileIndex> entry : fi.legalMoves().entrySet()) {
                 final int moveOrdinalPosition = entry.getKey();
-                final FileState.FileIndexMove fim = FileState.FileIndexMove.valueOf(fi, moveOrdinalPosition);
+                final FileIndexMove fim = FileIndexMove.valueOf(fi, moveOrdinalPosition);
                 final Square sq = Line.getInstance(entry.getValue().file()).squares().get(entry.getKey());
                 if (sq == move) { moveAddendums.add(fim); }
             }
@@ -274,7 +263,7 @@ public final class IndexedBoard extends AbstractBoard {
         if (player == Player.WHITE) {
             int k = 0;
             for (final Line line : Line.values()) {
-                newIndexes[k] = FileState.FileIndex.valueOf(line.file(), newIndexes[k]).flip().index();
+                newIndexes[k] = FileIndex.valueOf(line.file(), newIndexes[k]).flip().index();
                 k++;
             }
         }
