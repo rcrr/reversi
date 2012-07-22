@@ -94,17 +94,16 @@ class LineIndexMove {
 
     public int[] getDeltas() {
         final int[] deltas = new int[Line.NUMBER_OF];
-        //final File file = lineIndex.file();
         int squareOrdinal = 0;
         for (final SquareTransition st : transitions()) {
-            //final Square sq = Line.getInstance(file).squares().get(squareOrdinal);
             final Square sq = lineIndex.line().squares().get(squareOrdinal);
             for (final Line affectedLine : Line.linesForSquare(sq)) {
-                final File affectedFile = affectedLine.file();
-                if (affectedFile != null) {
-                    int delta = st.delta() * LineState.fileTransferMatrix(lineIndex.file(), squareOrdinal, affectedFile);
-                    deltas[FileUtils.files().indexOf(affectedFile)] += delta;
-                }
+                //final File affectedFile = affectedLine.file();
+                //if (affectedFile != null) {
+                    int delta = st.delta() * LineState.fileTransferMatrix(lineIndex.file(), squareOrdinal, affectedLine.file());
+                    //deltas[FileUtils.files().indexOf(affectedFile)] += delta;
+                    deltas[affectedLine.ordinal()] += delta;
+                    //}
             }
             squareOrdinal++;
         }
