@@ -69,20 +69,23 @@ class LineIndex {
         this.index = index;
     }
 
-    public LineState fileState() {
+    public LineState lineState() {
         return LineState.valueOf(line.order(), index);
     }
 
     public List<SquareState> configuration() {
-        return fileState().configuration();
+        return lineState().configuration();
     }
 
-    public Map <Integer, LineIndex> legalMoves() {
-        final Map<Integer, LineIndex> legalMoves = new HashMap<Integer, LineIndex>();
-        for (final Map.Entry<Integer, Integer> entry : fileState().legalMoves().entrySet()) {
-            legalMoves.put(entry.getKey(), valueOf(file(), entry.getValue()));
+    public Map <Square, LineIndex> legalMoves() {
+        final Map<Square, LineIndex> legalMoves = new EnumMap<Square, LineIndex>(Square.class);
+        for (final Map.Entry<Integer, Integer> move : lineState().legalMoves().entrySet()) {
+            final int moveOrdinalPositionInLine = move.getKey();
+            final int index = move.getValue();
+            final Square moveSquare = line().squares().get(moveOrdinalPositionInLine);
+            legalMoves.put(moveSquare, valueOf(file(), index));
         }
-        return legalMoves;
+        return Collections.unmodifiableMap(legalMoves);
     }
 
     public File file() {
@@ -98,7 +101,7 @@ class LineIndex {
     }
 
     public LineIndex flip() {
-        return valueOf(file(), fileState().flip().index());
+        return valueOf(file(), lineState().flip().index());
     }
 
     /**
@@ -107,7 +110,7 @@ class LineIndex {
      * @return a {@code String} representing the file index
      */
     @Override public String toString() {
-        return String.format("[file=%s, index=%d]", file(), index());
+        return String.format("[line=%s, index=%d]", line(), index());
     }
 
 }
