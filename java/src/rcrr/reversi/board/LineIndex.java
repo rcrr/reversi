@@ -36,8 +36,8 @@ class LineIndex {
 
     private static final Map<Line, List<LineIndex>> LINE_INDEX_MAP;
 
-    public static LineIndex valueOf(final File file, final int index) {
-        return LINE_INDEX_MAP.get(Line.getInstance(file)).get(index);
+    public static LineIndex valueOf(final Line line, final int index) {
+        return LINE_INDEX_MAP.get(line).get(index);
     }
 
     public static List<LineIndex> lineIndexes(final Line line) {
@@ -81,9 +81,9 @@ class LineIndex {
         final Map<Square, LineIndex> legalMoves = new EnumMap<Square, LineIndex>(Square.class);
         for (final Map.Entry<Integer, Integer> move : lineState().legalMoves().entrySet()) {
             final int moveOrdinalPositionInLine = move.getKey();
-            final int index = move.getValue();
+            final int newIndex = move.getValue();
             final Square moveSquare = line().squares().get(moveOrdinalPositionInLine);
-            legalMoves.put(moveSquare, valueOf(file(), index));
+            legalMoves.put(moveSquare, valueOf(line(), newIndex));
         }
         return Collections.unmodifiableMap(legalMoves);
     }
@@ -101,7 +101,7 @@ class LineIndex {
     }
 
     public LineIndex flip() {
-        return valueOf(file(), lineState().flip().index());
+        return valueOf(line(), lineState().flip().index());
     }
 
     /**
