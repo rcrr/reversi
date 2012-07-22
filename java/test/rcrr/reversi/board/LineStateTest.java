@@ -117,7 +117,7 @@ public class LineStateTest {
                                                               SquareTransition.EMPTY_TO_BLACK);
 
         assertThat("Expected transition list is NO_TTRANSITION, WHITE_TO_BLACK, EMPTY_TO_BLACK.",
-                   fim.fileTransitions(),
+                   fim.transitions(),
                    is(expected));
 
 

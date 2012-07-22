@@ -70,7 +70,7 @@ class LineIndexMove {
      * Transitions are:
      * Empty to Black and White to Black .... all the other are not possible because we are evaluating only moves played by the black.
      */
-    public List<SquareTransition> fileTransitions() {
+    public List<SquareTransition> transitions() {
         final List<SquareTransition> transitions = new ArrayList<SquareTransition>();
         final List<SquareState> from = lineIndex.configuration();
         final List<SquareState> to = lineIndex.legalMoves().get(move).configuration();
@@ -93,11 +93,12 @@ class LineIndexMove {
     }
 
     public int[] getDeltas() {
-        final int[] deltas = new int[FileUtils.NUMBER_OF_FILES];
-        final File file = lineIndex.file();
+        final int[] deltas = new int[Line.NUMBER_OF];
+        //final File file = lineIndex.file();
         int squareOrdinal = 0;
-        for (final SquareTransition st : fileTransitions()) {
-            final Square sq = Line.getInstance(file).squares().get(squareOrdinal);
+        for (final SquareTransition st : transitions()) {
+            //final Square sq = Line.getInstance(file).squares().get(squareOrdinal);
+            final Square sq = lineIndex.line().squares().get(squareOrdinal);
             for (final Line affectedLine : Line.linesForSquare(sq)) {
                 final File affectedFile = affectedLine.file();
                 if (affectedFile != null) {
