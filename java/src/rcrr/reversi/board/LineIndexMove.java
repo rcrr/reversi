@@ -121,7 +121,19 @@ class LineIndexMove {
         for (final SquareTransition st : transitions()) {
             final Square sq = lineIndex.line().squares().get(squareOrdinal);
             for (final Line affectedLine : Line.linesForSquare(sq)) {
-                int delta = st.delta() * LineState.fileTransferMatrix(lineIndex.line().file(), squareOrdinal, affectedLine.file());
+                /* It has to be really understood which strategy to apply .... not clear yet.
+                final Square x = lineIndex.line().cross(affectedLine);
+                final int xOrdinal = affectedLine.squares().indexOf(x);
+                if (xOrdinal != squareOrdinal) { throw new RuntimeException("xOrdinal=" + xOrdinal + ", squareOrdinal=" + squareOrdinal); }
+                */
+                final int indexWeight = Line.squarePositionInLineBase3Coefficient(affectedLine.squares().indexOf(sq));
+                /*
+                if (indexWeight != LineState.fileTransferMatrix(lineIndex.line().file(), squareOrdinal, affectedLine.file())) {
+                    throw new RuntimeException("indexWeight=" + indexWeight);
+                }
+                */
+                //int delta = st.delta() * LineState.fileTransferMatrix(lineIndex.line().file(), squareOrdinal, affectedLine.file());
+                int delta = st.delta() * indexWeight;
                 deltas[affectedLine.ordinal()] += delta;
             }
             squareOrdinal++;
