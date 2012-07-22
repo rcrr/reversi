@@ -40,6 +40,34 @@ public class LineTest {
     /** Class constructor. */
     public LineTest() { }
 
+    @Test(expected = NullPointerException.class)
+    public final void testCross_boundaryConditions_checkNullParameter_cross() {
+        Line.C.cross(Line.NULL);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public final void testCross_boundaryConditions_checkValidParameter_cross() {
+        Line.C.cross(Line.C);
+    }
+
+    /**
+     * Tests the {@code cross(Line)} method.
+     *
+     * @see Line#cross(Line)
+     */
+    @Test
+    public final void testCross() {
+        assertThat("Line.C.cross(Line.R2) is Square.C2.",
+                   Line.C.cross(Line.R2),
+                   is(Square.C2));
+        assertThat("Line.H1_A8.cross(Line.A1_H8 is Square.NULL.",
+                   Line.H1_A8.cross(Line.A1_H8),
+                   is(Square.NULL));
+        assertThat("Line.H1_A8.cross(Line.A1_H8 is Square.E5.",
+                   Line.A1_H8.cross(Line.H2_B8),
+                   is(Square.E5));
+    }
+
     /**
      * Tests the {@code file()} method.
      *
