@@ -58,7 +58,7 @@ public final class LineState {
                     final File affectedFile = affectedLine.file();
                     if (affectedFile != null) {
                         final int squarePosition = Line.getInstance(affectedFile).squares().indexOf(square);
-                        final int transferCoefficient = BigInteger.valueOf(3).pow(squarePosition).intValue();
+                        final int transferCoefficient = Line.squarePositionInLineBase3Coefficient(squarePosition);
                         transferMap.put(affectedFile, transferCoefficient);
                     }
                 }
@@ -102,11 +102,6 @@ public final class LineState {
     private static final int[] MAX_INDEX = new int[Line.MAX_ORDER + 1];
 
     /**
-     * Each position in the array is computed as the power base three of the position itself (1, 3, 9, 27, ...).
-     */
-    private static final int[] POSITION_COEFFICIENTS = new int[Line.MAX_ORDER + 1];
-
-    /**
      * Two dimension array that contains all the possible LineState instances.
      * The first dimension is driven by the order. Orders range between 0 and Line.MAX_ORDER + 1.
      * The second dimension is the index of the file state. It ranges between 0 and MAX_INDEX[order].
@@ -116,17 +111,10 @@ public final class LineState {
     static {
 
         /**
-         * Computes the POSITION_COEFFICIENTS array.
-         */
-        for (int i = 0; i < Line.MAX_ORDER + 1; i++) {
-            POSITION_COEFFICIENTS[i] = BigInteger.valueOf(3).pow(i).intValue();
-        }
-
-        /**
          * Computes the MAX_IDEX and STATES arrays.
          */
         for (int i = Line.MIN_ORDER; i < Line.MAX_ORDER + 1; i++) {
-            MAX_INDEX[i] = POSITION_COEFFICIENTS[i] - 1;
+            MAX_INDEX[i] = Line.squarePositionInLineBase3Coefficient(i) - 1;
             STATES[i] = new LineState[MAX_INDEX[i] + 1];
             for (int j = 0; j <= MAX_INDEX[i]; j++) {
                 STATES[i][j] = new LineState(i, j);
@@ -192,7 +180,7 @@ public final class LineState {
         checkConfiguration(configuration);
         int index = 0;
         for (int i = 0; i < configuration.size(); i++) {
-            index += configuration.get(i).ordinal() * POSITION_COEFFICIENTS[i];
+            index += configuration.get(i).ordinal() * Line.squarePositionInLineBase3Coefficient(i);
         }
         return index;
     }
@@ -268,7 +256,7 @@ public final class LineState {
          */
         int remainder = index;
         for (int i = order - 1; i >= 0; i--) {
-            final int config = remainder / POSITION_COEFFICIENTS[i];
+            final int config = remainder / Line.squarePositionInLineBase3Coefficient(i);
             final SquareState squareState;
             switch (config) {
             case 0: squareState = SquareState.EMPTY; break;
@@ -277,7 +265,7 @@ public final class LineState {
             default: throw new RuntimeException("Config value must be in between 0 and 2. config=" + config);
             }
             transientConfiguration.set(i, squareState);
-            remainder = remainder % POSITION_COEFFICIENTS[i];
+            remainder = remainder % Line.squarePositionInLineBase3Coefficient(i);
         }
         this.configuration = Collections.unmodifiableList(transientConfiguration);
 
