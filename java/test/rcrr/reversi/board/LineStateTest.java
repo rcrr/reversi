@@ -99,14 +99,6 @@ public class LineStateTest {
     }
 
     @Test
-    public final void testFileTransferMatrix() {
-        assertThat("File D affects file R3 when squere ordinal 2 changes by a factor of 27.",
-                   LineState.fileTransferMatrix((File) Column.D, 2, (File) Row.R3),
-                   is(27));
-    }
-
-
-    @Test
     public final void testLineIndexMoveClass_fileTransitions() {
 
         final LineIndex fi = LineIndex.valueOf(Line.C1_A3, 7);

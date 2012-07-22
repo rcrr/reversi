@@ -38,45 +38,6 @@ import java.util.Map;
 public final class LineState {
 
     /**
-     * A table that hosts for each file square the transfer matrix on the other files.
-     * Should be part of the File class ....
-     * The Map has an entry for each file. The entry value is a list corresponding to the squares of the file.
-     * The List contains for each square an inner map that has an entry for each file crossing the square.
-     * The inner map entry has the "target" file as key and an integer value as value.
-     * The integer is computed as the integer 3 elevated to the ordinal power ...
-     */
-    private static final Map<File, List<Map<File, Integer>>> FILE_TRANSFER_MATRIX = initializeComputeTheFileTransferMatrix();
-
-    private static final Map<File, List<Map<File, Integer>>> initializeComputeTheFileTransferMatrix() {
-        final Map<File, List<Map<File, Integer>>> fileTransferMatrix = new HashMap<File, List<Map<File, Integer>>>();
-        for (final File file: FileUtils.files()) {
-            final List<Map<File, Integer>> squares = new ArrayList<Map<File, Integer>>();
-            for (final Square square: Line.getInstance(file).squares()) {
-                final Map<File, Integer> transferMap = new HashMap<File, Integer>();
-                for (final Line affectedLine : Line.linesForSquare(square)) {
-                    final File affectedFile = affectedLine.file();
-                    if (affectedFile != null) {
-                        final int squarePosition = Line.getInstance(affectedFile).squares().indexOf(square);
-                        final int transferCoefficient = Line.squarePositionInLineBase3Coefficient(squarePosition);
-                        transferMap.put(affectedFile, transferCoefficient);
-                    }
-                }
-                squares.add(transferMap);
-            }
-            fileTransferMatrix.put(file, squares);
-        }
-        return fileTransferMatrix;
-    }
-
-    public static int fileTransferMatrix(final File changed, final int square, final File affected) {
-        if (changed == null) { throw new NullPointerException("Parameter changed cannot be null."); }
-        if (affected == null) { throw new NullPointerException("Parameter affected cannot be null."); }
-        final List<Map<File, Integer>> squares = FILE_TRANSFER_MATRIX.get(changed);
-        final Map<File, Integer>  transferMatrix = squares.get(square);
-        return transferMatrix.get(affected);
-    }
-
-    /**
      * Too many controls that will be removed when debugging and tests will be ready.
      */
     public static int[] fileIndexDeltasByMove(final File file, final int index, final int move) {
