@@ -24,6 +24,8 @@
 
 package rcrr.reversi.board;
 
+import java.math.BigInteger;
+
 import java.util.Set;
 import java.util.EnumSet;
 import java.util.Map;
@@ -99,9 +101,18 @@ public enum Line {
      */
     public static final int MAX_ORDER = 8;
 
+    private static final int[] SQUARE_POSITION_IN_LINE_BASE_3_COEFFICIENT = new int[MAX_ORDER + 1];
+
     private static final Map<File, Line> LINE_TO_FILE_MAP = new HashMap<File, Line>();
 
     private static final Map<Square, List<Line>> LINES_FOR_SQUARE;
+
+    /**
+     * Each position is computed as the power base three of the position itself (1, 3, 9, 27, ...).
+     */
+    public static final int squarePositionInLineBase3Coefficient(final int index) {
+        return SQUARE_POSITION_IN_LINE_BASE_3_COEFFICIENT[index];
+    }
 
     public static final Line getInstance(final File file) {
         if (file == null) { throw new NullPointerException("Parameter file cannot be null."); }
@@ -119,6 +130,14 @@ public enum Line {
 
     static {
 
+        /**
+         * Computes the SQUARE_POSITION_IN_LINE_BASE_3_COEFFICIENT array.
+         */
+        for (int index = 0; index < MAX_ORDER + 1; index++) {
+            SQUARE_POSITION_IN_LINE_BASE_3_COEFFICIENT[index] = BigInteger.valueOf(3).pow(index).intValue();
+        }
+
+        /** Finalli has to be removed. */
         for (int i = 0; i < NUMBER_OF; i++) {
             LINE_TO_FILE_MAP.put(FileUtils.files().get(i), values()[i]);
         }
@@ -139,6 +158,9 @@ public enum Line {
         }
         LINES_FOR_SQUARE = Collections.unmodifiableMap(transientLinesForSquare);
 
+        /** Prepares the LINE_CROSSING map. */
+
+
     }
 
     /** The axis field. */
@@ -147,6 +169,7 @@ public enum Line {
     /** The squares field. */
     private final List<Square> squares;
 
+    /** The squareSet field. */
     private final EnumSet<Square> squareSet;
 
     /**
