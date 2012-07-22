@@ -24,6 +24,8 @@
 
 package rcrr.reversi.board;
 
+import java.util.Set;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -145,13 +147,20 @@ public enum Line {
     /** The squares field. */
     private final List<Square> squares;
 
+    private final EnumSet<Square> squareSet;
+
     /**
      * Enum constructor.
      *
      * @param squares the list of squares
      */
     private Line(final List<Square> squares, final Axis axis) {
+
         this.squares = squares;
+
+        this.squareSet = EnumSet.noneOf(Square.class);
+        this.squareSet.addAll(squares);
+
         this.axis = axis;
     }
 
@@ -169,6 +178,10 @@ public enum Line {
 
     public List<Square> squares() {
         return this.squares;
+    }
+
+    public Set<Square> squareSet() {
+        return this.squareSet.clone();
     }
 
 }
