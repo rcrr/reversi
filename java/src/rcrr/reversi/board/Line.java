@@ -203,8 +203,25 @@ public enum Line {
         return this.squares;
     }
 
-    public Set<Square> squareSet() {
+    public EnumSet<Square> squareSet() {
         return this.squareSet.clone();
+    }
+
+    public Square cross(final Line other) {
+        if (other == null) { throw new NullPointerException("Parameter other must be not null."); }
+        if (this.equals(other)) { throw new IllegalArgumentException("Parameter other must be different from this. other=" + other); }
+        final Square intersection;
+        final EnumSet<Square> crossSet = other.squareSet();
+        crossSet.retainAll(this.squareSet);
+        final int crossSetSize = crossSet.size();
+        if (crossSetSize == 0) {
+            intersection = Square.NULL;
+        } else if (crossSetSize == 1) {
+            intersection = (Square) crossSet.toArray()[0];
+        } else {
+            throw new RuntimeException("Line crossing can have zero or one element. crossSet=" + crossSet);
+        }
+        return intersection;
     }
 
 }
