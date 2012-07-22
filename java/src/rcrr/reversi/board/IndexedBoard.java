@@ -134,9 +134,11 @@ public final class IndexedBoard extends AbstractBoard {
      * Returns a list holding the legal moves that the {@code player} can
      * do at the board position. When no moves are available to the player
      * the method returns an empty list.
-     *
+     * <p>
      * This version overrides the method defined by the {@code AbstractBoard} class.
      * It memoizes the value calculated.
+     * <p>
+     * A Read/Write lock is should/could be implemented for the cache management.
      *
      * @param player the player
      * @return       the moves available to the player
@@ -146,20 +148,17 @@ public final class IndexedBoard extends AbstractBoard {
     public List<Square> legalMoves(final Player player) {
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
         SortedSet<Square> cached = this.legalMovesForPlayer.get(player);
-        if (cached != null) { return new ArrayList<Square>(cached); }
-
-        final SortedSet<Square> legalMovesAsSet = new TreeSet<Square>();
-        //for (int i = 0; i < Line.NUMBER_OF; i++) {
-        for (final Line line : Line.values()) {
-            final LineIndex li = LineIndex.valueOf(line, getIndex(player, line));
-            for (final Map.Entry<Square, LineIndex> entry : li.legalMoves().entrySet()) {
-                final Square move = entry.getKey();
-                legalMovesAsSet.add(move);
+        if (cached == null) {
+            final SortedSet<Square> legalMovesAsSet = new TreeSet<Square>();
+            for (final Line line : Line.values()) {
+                final LineIndex li = LineIndex.valueOf(line, getIndex(player, line));
+                for (final Square move : li.legalMoves().keySet()) {
+                    legalMovesAsSet.add(move);
+                }
             }
+            cached = Collections.unmodifiableSortedSet(legalMovesAsSet);
+            this.legalMovesForPlayer.put(player, cached);
         }
-
-        cached = Collections.unmodifiableSortedSet(legalMovesAsSet);
-        this.legalMovesForPlayer.put(player, cached);
         return new ArrayList<Square>(cached);
     }
 
