@@ -34,10 +34,11 @@ import java.util.List;
 
 class LineIndexMove {
 
-    private static final Map<LineIndex, Map<Integer, LineIndexMove>> LINE_INDEX_MOVE_MAP;
+    private static final Map<LineIndex, Map<Square, LineIndexMove>> LINE_INDEX_MOVE_MAP;
 
     public static LineIndexMove valueOf(final LineIndex lineIndex, final int move) {
-        return LINE_INDEX_MOVE_MAP.get(lineIndex).get(move);
+        final Square moveSquare = lineIndex.line().squares().get(move);
+        return LINE_INDEX_MOVE_MAP.get(lineIndex).get(moveSquare);
     }
 
     static {
@@ -45,12 +46,13 @@ class LineIndexMove {
         /**
          * Computes LINE_INDEX_MOVE_MAP map.
          */
-        final Map<LineIndex, Map<Integer, LineIndexMove>> transientLineIndexMoveMap = new HashMap<LineIndex, Map<Integer, LineIndexMove>>();
-        for (final Map.Entry<File, List<LineIndex>> entry : LineIndex.fileIndexMap().entrySet()) {
-            for (final LineIndex lineIndex : entry.getValue()) {
-                final Map<Integer, LineIndexMove> transientInnerMap = new HashMap<Integer, LineIndexMove>();
+        final Map<LineIndex, Map<Square, LineIndexMove>> transientLineIndexMoveMap = new HashMap<LineIndex, Map<Square, LineIndexMove>>();
+        for (final Line line : Line.values()) {
+            for (final LineIndex lineIndex : LineIndex.lineIndexes(line)) {
+                final Map<Square, LineIndexMove> transientInnerMap = new EnumMap<Square, LineIndexMove>(Square.class);
                 for (final Map.Entry<Integer, LineIndex> move : lineIndex.legalMoves().entrySet()) {
-                    transientInnerMap.put(move.getKey(), new LineIndexMove(lineIndex, move.getKey()));
+                    final Square moveSquare = lineIndex.line().squares().get(move.getKey());
+                    transientInnerMap.put(moveSquare, new LineIndexMove(lineIndex, moveSquare));
                 }
                 transientLineIndexMoveMap.put(lineIndex, Collections.unmodifiableMap(transientInnerMap));
             }
@@ -60,20 +62,41 @@ class LineIndexMove {
     }
 
     private final LineIndex lineIndex;
-    private final int move;
-    LineIndexMove(final LineIndex lineIndex, final int move) {
+    private final Square move;
+    private final LineIndex afterMoveLineIndex;
+    private List<SquareTransition> transitions;
+
+    LineIndexMove(final LineIndex lineIndex, final Square move) {
         this.lineIndex = lineIndex;
         this.move = move;
+        this.afterMoveLineIndex = lineIndex.legalMoves().get(moveIndex());
+        this.transitions = computeTransitions();
+    }
+
+    public List<SquareTransition> transitions() {
+        return this.transitions;
+    }
+
+    public LineIndex lineIndex() {
+        return this.lineIndex;
+    }
+
+    public Square move() {
+        return this.move;
+    }
+
+    public int moveIndex() {
+        return lineIndex().line().squares().indexOf(this.move);
     }
 
     /**
      * Transitions are:
      * Empty to Black and White to Black .... all the other are not possible because we are evaluating only moves played by the black.
      */
-    public List<SquareTransition> transitions() {
+    private List<SquareTransition> computeTransitions() {
         final List<SquareTransition> transitions = new ArrayList<SquareTransition>();
         final List<SquareState> from = lineIndex.configuration();
-        final List<SquareState> to = lineIndex.legalMoves().get(move).configuration();
+        final List<SquareState> to = afterMoveLineIndex.configuration();
         for (int i = 0; i < from.size(); i++) {
             SquareTransition st;
             final SquareState fss = from.get(i);
@@ -98,12 +121,8 @@ class LineIndexMove {
         for (final SquareTransition st : transitions()) {
             final Square sq = lineIndex.line().squares().get(squareOrdinal);
             for (final Line affectedLine : Line.linesForSquare(sq)) {
-                //final File affectedFile = affectedLine.file();
-                //if (affectedFile != null) {
-                    int delta = st.delta() * LineState.fileTransferMatrix(lineIndex.file(), squareOrdinal, affectedLine.file());
-                    //deltas[FileUtils.files().indexOf(affectedFile)] += delta;
-                    deltas[affectedLine.ordinal()] += delta;
-                    //}
+                int delta = st.delta() * LineState.fileTransferMatrix(lineIndex.file(), squareOrdinal, affectedLine.file());
+                deltas[affectedLine.ordinal()] += delta;
             }
             squareOrdinal++;
         }

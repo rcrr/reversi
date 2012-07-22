@@ -40,8 +40,8 @@ class LineIndex {
         return FILE_INDEX_MAP.get(file).get(index);
     }
 
-    public static Map<File, List<LineIndex>> fileIndexMap() {
-        return FILE_INDEX_MAP;
+    public static List<LineIndex> lineIndexes(final Line line) {
+        return FILE_INDEX_MAP.get(line.file());
     }
 
     static {
