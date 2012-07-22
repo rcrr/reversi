@@ -62,15 +62,15 @@ class LineIndex {
 
     }
 
-    private final File file;
+    private final Line line;
     private final int index;
     LineIndex(final File file, final int index) {
-        this.file = file;
+        this.line = Line.getInstance(file);
         this.index = index;
     }
 
     public LineState fileState() {
-        return LineState.valueOf(Line.getInstance(file).order(), index);
+        return LineState.valueOf(line.order(), index);
     }
 
     public List<SquareState> configuration() {
@@ -78,15 +78,19 @@ class LineIndex {
     }
 
     public Map <Integer, LineIndex> legalMoves() {
-        final HashMap<Integer, LineIndex> legalMoves = new HashMap<Integer, LineIndex>();
+        final Map<Integer, LineIndex> legalMoves = new HashMap<Integer, LineIndex>();
         for (final Map.Entry<Integer, Integer> entry : fileState().legalMoves().entrySet()) {
-            legalMoves.put(entry.getKey(), valueOf(file, entry.getValue()));
+            legalMoves.put(entry.getKey(), valueOf(file(), entry.getValue()));
         }
         return legalMoves;
     }
 
     public File file() {
-        return file;
+        return line.file();
+    }
+
+    public Line line() {
+        return this.line;
     }
 
     public int index() {
@@ -94,7 +98,7 @@ class LineIndex {
     }
 
     public LineIndex flip() {
-        return valueOf(file, fileState().flip().index());
+        return valueOf(file(), fileState().flip().index());
     }
 
     /**
