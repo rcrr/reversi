@@ -34,38 +34,38 @@ import java.util.List;
 
 class LineIndex {
 
-    private static final Map<File, List<LineIndex>> FILE_INDEX_MAP;
+    private static final Map<Line, List<LineIndex>> LINE_INDEX_MAP;
 
     public static LineIndex valueOf(final File file, final int index) {
-        return FILE_INDEX_MAP.get(file).get(index);
+        return LINE_INDEX_MAP.get(Line.getInstance(file)).get(index);
     }
 
     public static List<LineIndex> lineIndexes(final Line line) {
-        return FILE_INDEX_MAP.get(line.file());
+        return LINE_INDEX_MAP.get(line);
     }
 
     static {
 
         /**
-         * Computes FILE_INDEX_MAP map.
+         * Computes LINE_INDEX_MAP map.
          */
-        final Map<File, List<LineIndex>> transientLineIndexMap = new HashMap<File, List<LineIndex>>();
-        for (final File file : FileUtils.files()) {
+        final Map<Line, List<LineIndex>> transientLineIndexMap = new HashMap<Line, List<LineIndex>>();
+        for (final Line line : Line.values()) {
             final List<LineIndex> transientLineIndexList = new ArrayList<LineIndex>();
-            for (int index = 0; index <= LineState.indexBoundary(Line.getInstance(file).squares().size()); index++) {
-                final LineIndex fileIndex = new LineIndex(file, index);
-                transientLineIndexList.add(fileIndex);
+            for (int index = 0; index <= LineState.indexBoundary(line.order()); index++) {
+                final LineIndex lineIndex = new LineIndex(line, index);
+                transientLineIndexList.add(lineIndex);
             }
-            transientLineIndexMap.put(file, Collections.unmodifiableList(transientLineIndexList));
+            transientLineIndexMap.put(line, Collections.unmodifiableList(transientLineIndexList));
         }
-        FILE_INDEX_MAP = Collections.unmodifiableMap(transientLineIndexMap);
+        LINE_INDEX_MAP = Collections.unmodifiableMap(transientLineIndexMap);
 
     }
 
     private final Line line;
     private final int index;
-    LineIndex(final File file, final int index) {
-        this.line = Line.getInstance(file);
+    LineIndex(final Line line, final int index) {
+        this.line = line;
         this.index = index;
     }
 

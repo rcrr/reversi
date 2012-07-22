@@ -50,8 +50,6 @@ class LineIndexMove {
         for (final Line line : Line.values()) {
             for (final LineIndex lineIndex : LineIndex.lineIndexes(line)) {
                 final Map<Square, LineIndexMove> transientInnerMap = new EnumMap<Square, LineIndexMove>(Square.class);
-                //for (final Map.Entry<Integer, LineIndex> move : lineIndex.legalMoves().entrySet()) {
-                //final Square moveSquare = lineIndex.line().squares().get(move.getKey());
                 for (final Map.Entry<Square, LineIndex> move : lineIndex.legalMoves().entrySet()) {
                     final Square moveSquare = move.getKey();
                     transientInnerMap.put(moveSquare, new LineIndexMove(lineIndex, moveSquare));
