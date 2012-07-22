@@ -32,8 +32,8 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Set;
+import java.util.EnumSet;
 
 /**
  * A board concrete implementation.
@@ -74,8 +74,8 @@ public final class IndexedBoard extends AbstractBoard {
      * Lazily initialized, cached legalMoves.
      * In case of a multi-threadd use must be applied a ReadWriteLock on this field.
      */
-    private final transient Map<Player, SortedSet<Square>> legalMovesForPlayer
-        = new EnumMap<Player, SortedSet<Square>>(Player.class);
+    private final transient Map<Player, Set<Square>> legalMovesForPlayer
+        = new EnumMap<Player, Set<Square>>(Player.class);
 
     /**
      * Verify that the transient modifier is really neaded.
@@ -147,16 +147,14 @@ public final class IndexedBoard extends AbstractBoard {
     @Override
     public List<Square> legalMoves(final Player player) {
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
-        SortedSet<Square> cached = this.legalMovesForPlayer.get(player);
+        Set<Square> cached = this.legalMovesForPlayer.get(player);
         if (cached == null) {
-            final SortedSet<Square> legalMovesAsSet = new TreeSet<Square>();
+            final Set<Square> legalMovesAsSet = EnumSet.noneOf(Square.class);
             for (final Line line : Line.values()) {
                 final LineIndex li = LineIndex.valueOf(line, getIndex(player, line));
-                for (final Square move : li.legalMoves().keySet()) {
-                    legalMovesAsSet.add(move);
-                }
+                legalMovesAsSet.addAll(li.legalMoves().keySet());
             }
-            cached = Collections.unmodifiableSortedSet(legalMovesAsSet);
+            cached = Collections.unmodifiableSet(legalMovesAsSet);
             this.legalMovesForPlayer.put(player, cached);
         }
         return new ArrayList<Square>(cached);
@@ -231,7 +229,6 @@ public final class IndexedBoard extends AbstractBoard {
 
         final List<LineIndexMove> moveAddendums = new ArrayList<LineIndexMove>();
         for (final Line line : Line.linesForSquare(move)) {
-            //final File file = line.file();
             final LineIndex li = LineIndex.valueOf(line, getIndex(player, line));
             for (final Map.Entry<Square, LineIndex> entry : li.legalMoves().entrySet()) {
                 final Square sq = entry.getKey();

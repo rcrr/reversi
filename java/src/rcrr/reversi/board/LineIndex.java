@@ -88,10 +88,6 @@ class LineIndex {
         return Collections.unmodifiableMap(legalMoves);
     }
 
-    public File file() {
-        return line.file();
-    }
-
     public Line line() {
         return this.line;
     }
@@ -107,7 +103,7 @@ class LineIndex {
     /**
      * Returns a {@code String} representing the {@code LineIndex} object.
      *
-     * @return a {@code String} representing the file index
+     * @return a {@code String} representing the line index
      */
     @Override public String toString() {
         return String.format("[line=%s, index=%d]", line(), index());

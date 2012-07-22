@@ -87,6 +87,16 @@ public enum Line {
     /** A generic line instance. */
     public static final Line AN_INSTANCE = H2_B8;
 
+    /**
+     * The minimum order of a line.
+     */
+    public static final int MIN_ORDER = 3;
+
+    /**
+     * The maximum order of a line.
+     */
+    public static final int MAX_ORDER = 8;
+
     private static final Map<File, Line> LINE_TO_FILE_MAP = new HashMap<File, Line>();
 
     private static final Map<Square, List<Line>> LINES_FOR_SQUARE;

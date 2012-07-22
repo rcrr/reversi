@@ -33,8 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A file configuration or state.
- *
+ * A line configuration or state.
  * 
  */
 public final class LineState {
@@ -98,45 +97,35 @@ public final class LineState {
     private static final int[] DIRECTIONS = {-1, +1};
 
     /**
-     * The minimum order of a file.
-     */
-    private static final int MIN_ORDER = 3;
-
-    /**
-     * The maximum order of a file.
-     */
-    private static final int MAX_ORDER = FileUtils.FILE_MAX_LENGTH;
-
-    /**
      * For each order, the maximum index reachable.
      */
-    private static final int[] MAX_INDEX = new int[MAX_ORDER + 1];
+    private static final int[] MAX_INDEX = new int[Line.MAX_ORDER + 1];
 
     /**
      * Each position in the array is computed as the power base three of the position itself (1, 3, 9, 27, ...).
      */
-    private static final int[] POSITION_COEFFICIENTS = new int[MAX_ORDER + 1];
+    private static final int[] POSITION_COEFFICIENTS = new int[Line.MAX_ORDER + 1];
 
     /**
      * Two dimension array that contains all the possible LineState instances.
-     * The first dimension is driven by the order. Orders range between 0 and MAX_ORDER + 1.
+     * The first dimension is driven by the order. Orders range between 0 and Line.MAX_ORDER + 1.
      * The second dimension is the index of the file state. It ranges between 0 and MAX_INDEX[order].
      */
-    private static final LineState[][] STATES = new LineState[MAX_ORDER + 1][];
+    private static final LineState[][] STATES = new LineState[Line.MAX_ORDER + 1][];
 
     static {
 
         /**
          * Computes the POSITION_COEFFICIENTS array.
          */
-        for (int i = 0; i < MAX_ORDER + 1; i++) {
+        for (int i = 0; i < Line.MAX_ORDER + 1; i++) {
             POSITION_COEFFICIENTS[i] = BigInteger.valueOf(3).pow(i).intValue();
         }
 
         /**
          * Computes the MAX_IDEX and STATES arrays.
          */
-        for (int i = MIN_ORDER; i < MAX_ORDER + 1; i++) {
+        for (int i = Line.MIN_ORDER; i < Line.MAX_ORDER + 1; i++) {
             MAX_INDEX[i] = POSITION_COEFFICIENTS[i] - 1;
             STATES[i] = new LineState[MAX_INDEX[i] + 1];
             for (int j = 0; j <= MAX_INDEX[i]; j++) {
@@ -160,7 +149,7 @@ public final class LineState {
      * @throws IndexOutOfBoundsException when parameters are out of their boundaries
      */
     public static LineState valueOf(final int order, final int index) {
-        if (order < MIN_ORDER || order > MAX_ORDER) {
+        if (order < Line.MIN_ORDER || order > Line.MAX_ORDER) {
             throw new IndexOutOfBoundsException("Parameter order is invalid. order = " + order);
         }
         if (index < 0 || index > MAX_INDEX[order]) {
@@ -170,7 +159,7 @@ public final class LineState {
     }
 
     public static int indexBoundary(final int order) {
-        if (order < MIN_ORDER || order > MAX_ORDER) {
+        if (order < Line.MIN_ORDER || order > Line.MAX_ORDER) {
             throw new IndexOutOfBoundsException("Parameter order is invalid. order = " + order);
         }
         return MAX_INDEX[order];
@@ -352,14 +341,14 @@ public final class LineState {
     /**
      * Returns a {@code String} representing the {@code LineState} object.
      *
-     * @return a {@code String} representing the file state
+     * @return a {@code String} representing the line state
      */
     @Override public String toString() {
         return String.format("[(order=%d, index=%d) [%s]]", order, index, printConfiguration(configuration));
     }
 
     /**
-     * Returns the legal moves map for the file state. It is used by the constructor to populate the specific field.
+     * Returns the legal moves map for the line state. It is used by the constructor to populate the specific field.
      * The map has an integer as key that represent the move, and anothr integer as value that represent the index of the configuration
      * reachable executing the move.
      *
