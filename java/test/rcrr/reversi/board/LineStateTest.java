@@ -51,8 +51,8 @@ public class LineStateTest {
     @Test
     public final void testGetDeltas() {
 
-        final LineIndex fi = LineIndex.valueOf(Column.C, 414);
-        final LineIndexMove fim = LineIndexMove.valueOf(fi, 3);
+        final LineIndex li = LineIndex.valueOf(Line.C, 414);
+        final LineIndexMove lim = LineIndexMove.valueOf(li, 3);
 
         final int[] expected = {  0, // [ 0] --> R1
                                   0, // [ 1] --> R2
@@ -94,7 +94,7 @@ public class LineStateTest {
                                   0};
 
         assertThat("",
-                   fim.getDeltas(),
+                   lim.getDeltas(),
                    is(expected));
     }
 
@@ -109,7 +109,7 @@ public class LineStateTest {
     @Test
     public final void testLineIndexMoveClass_fileTransitions() {
 
-        final LineIndex fi = LineIndex.valueOf(DiagonalRL.C1_A3, 7);
+        final LineIndex fi = LineIndex.valueOf(Line.C1_A3, 7);
         final LineIndexMove fim = LineIndexMove.valueOf(fi, 2);
 
         final List<SquareTransition> expected = Arrays.asList(SquareTransition.NO_TRANSITION,
@@ -126,7 +126,7 @@ public class LineStateTest {
     @Test
     public final void testLineIndexClass() {
 
-        final LineIndex fi = LineIndex.valueOf(Column.A, 0);
+        final LineIndex li = LineIndex.valueOf(Line.A, 0);
 
         assertTrue(true);
 
@@ -135,7 +135,7 @@ public class LineStateTest {
     @Test
     public final void testLineIndexMoveClass() {
 
-        final LineIndexMove fim = LineIndexMove.valueOf(LineIndex.valueOf(Column.A, 0), 0);
+        final LineIndexMove lim = LineIndexMove.valueOf(LineIndex.valueOf(Line.A, 0), 0);
 
         assertTrue(true);
 

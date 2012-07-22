@@ -87,7 +87,7 @@ public final class LineState {
         final int boundary = indexBoundary(order);
         if (index < 0 || index > boundary) { throw new IndexOutOfBoundsException("Parameter index is out of range."); }
         final LineState fileState = LineState.valueOf(order, index);
-        final LineIndex fileIndex = LineIndex.valueOf(file, index);
+        final LineIndex fileIndex = LineIndex.valueOf(Line.getInstance(file), index);
         if(!fileIndex.legalMoves().keySet().contains(move)) { throw new IllegalArgumentException("Parameter move is not valid. move=" + move); }
         return LineIndexMove.valueOf(fileIndex, move).getDeltas();
     }
