@@ -154,8 +154,9 @@ public final class IndexedBoard extends AbstractBoard {
         for (int i = 0; i < files.size(); i++) {
             final LineIndex fi = LineIndex.valueOf(files.get(i), getIndex(player, i));
             fileIndexList.add(fi);
-            for (final Map.Entry<Integer, LineIndex> entry : fi.legalMoves().entrySet()) {
-                final Square move = Line.getInstance(entry.getValue().file()).squares().get(entry.getKey());
+            for (final Map.Entry<Square, LineIndex> entry : fi.legalMoves().entrySet()) {
+                //final Square move = Line.getInstance(entry.getValue().file()).squares().get(entry.getKey());
+                final Square move = entry.getKey();
                 legalMovesAsSet.add(move);
             }
         }
@@ -236,10 +237,12 @@ public final class IndexedBoard extends AbstractBoard {
         for (final Line line : Line.linesForSquare(move)) {
             final File file = line.file();
             final LineIndex fi = LineIndex.valueOf(file, getIndex(player, FileUtils.files().indexOf(file)));
-            for (final Map.Entry<Integer, LineIndex> entry : fi.legalMoves().entrySet()) {
-                final int moveOrdinalPosition = entry.getKey();
+            for (final Map.Entry<Square, LineIndex> entry : fi.legalMoves().entrySet()) {
+                final Square sq = entry.getKey();
+                //final int moveOrdinalPosition = entry.getKey();
+                final int moveOrdinalPosition = line.squares().indexOf(sq);
                 final LineIndexMove fim = LineIndexMove.valueOf(fi, moveOrdinalPosition);
-                final Square sq = Line.getInstance(entry.getValue().file()).squares().get(entry.getKey());
+                //final Square sq = Line.getInstance(entry.getValue().file()).squares().get(entry.getKey());
                 if (sq == move) { moveAddendums.add(fim); }
             }
         }
