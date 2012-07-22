@@ -24,8 +24,6 @@
 
 package rcrr.reversi.board;
 
-import java.math.BigInteger;
-
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -241,7 +239,7 @@ public final class IndexedBoard extends AbstractBoard {
         final int[] addedDiscDeltas = new int[indexes.length];
         for (final Line line : Line.linesForSquare(move)) {
             final int ordinal = line.squares().indexOf(move);
-            addedDiscDeltas[line.ordinal()] = BigInteger.valueOf(3).pow(ordinal).intValue();
+            addedDiscDeltas[line.ordinal()] = Line.squarePositionInLineBase3Coefficient(ordinal);
         }
 
         for (final Line line : Line.values()) {
