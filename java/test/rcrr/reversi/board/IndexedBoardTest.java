@@ -130,7 +130,7 @@ public class IndexedBoardTest extends AbstractBoardTest {
         };
 
         for (int i = 0; i < indexes.length; i++) {
-            assertThat("Computed index (" + i + ", " + FileUtils.files().get(i) + ") must be equal to expected.",
+            assertThat("Computed index (" + i + ", " + Line.values()[i] + ") must be equal to expected.",
                        expectedIndexes[i],
                        is(indexes[i]));
         }
@@ -186,7 +186,7 @@ public class IndexedBoardTest extends AbstractBoardTest {
         };
 
         for (int i = 0; i < indexes.length; i++) {
-            assertThat("Computed index (" + i + ", " + FileUtils.files().get(i) + ") must be equal to expected.",
+            assertThat("Computed index (" + i + ", " + Line.values()[i] + ") must be equal to expected.",
                        expectedIndexes[i],
                        is(indexes[i]));
         }
