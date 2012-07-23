@@ -41,11 +41,6 @@ import java.util.EnumSet;
  * <p>
  * {@code IndexedBoard} is immutable.
  * <p>
- * What to do:
- * move indexes from an array to a List<LineIndex> or better a Map<File, LineIndex>
- * implements countPieces by means of a precomputed value hosted in the LineIndex object
- * a method that converts indexes to squares has to be arranged. It will be used to support the get method.
- * turn compute indexes to return the List or the Map. Remove the debug version. It has to become static ....
  *
  * @see Square
  */
