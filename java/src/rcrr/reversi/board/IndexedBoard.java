@@ -261,8 +261,8 @@ public final class IndexedBoard extends AbstractBoard {
         /** */
 
         if (!Arrays.equals(computeIndexes(sm), newIndexes)) {
-            for (int k = 0; k < FileUtils.files().size(); k++) {
-                System.out.println("k, file, newIndexes, expected: " + k + ", " + FileUtils.files().get(k) + ", " + newIndexes[k] + ", " + computeIndexes(sm)[k]);
+            for (int k = 0; k < Line.NUMBER_OF; k++) {
+                System.out.println("k, file, newIndexes, expected: " + k + ", " + Line.values()[k] + ", " + newIndexes[k] + ", " + computeIndexes(sm)[k]);
             }
             throw new RuntimeException("Indexes are wrong .... !!! ...");
         }
@@ -350,22 +350,12 @@ public final class IndexedBoard extends AbstractBoard {
     }
 
     public static final int[] computeIndexes(final Map<Square, SquareState> squares) {
-        final int[] transientIndexes = new int[FileUtils.NUMBER_OF_FILES];
-        /**
-         * The call to indexOf(file) has to be avoided registering the values in an appropriate static array once for all.
-         * The switch has to go away. Option one into a call to SquareState.intValue() or in a board "trasformation".
-         *
-         * squarePosition is the index position of the square in the file.
-         */
+        final int[] transientIndexes = new int[Line.NUMBER_OF];
         for (final Square sq : Square.values()) {
             for (final Line line : Line.linesForSquare(sq)) {
-                final File file = line.file();
-                if (file != null) {
-                    final int color = squares.get(sq).ordinal();
-                    final int squarePosition = Line.getInstance(file).squares().indexOf(sq);
-                    final int index = FileUtils.files().indexOf(file);
-                    transientIndexes[index] += color * FileUtils.FILE_INDEX_COEFFICIENT[squarePosition];
-                }
+                final int color = squares.get(sq).ordinal();
+                final int squarePosition = line.squares().indexOf(sq);
+                transientIndexes[line.ordinal()] += color * Line.squarePositionInLineBase3Coefficient(squarePosition);
             }
         }
         return transientIndexes;
