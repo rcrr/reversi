@@ -69,30 +69,6 @@ public class LineTest {
     }
 
     /**
-     * Tests the {@code file()} method.
-     *
-     * @see Line#file()
-     */
-    @Test
-    public final void testFile() {
-        assertThat("Line.C.file() is Column.C.",
-                   Line.C.file(),
-                   is((File) Column.C));
-    }
-
-    /**
-     * Tests the {@code getInstance(File)} method.
-     *
-     * @see Line#getInstance(File)
-     */
-    @Test
-    public final void testGetInstance() {
-        assertThat("Line.getInstance((File) DiagonalRL.H2_B8) is Line.H2_B8.",
-                   Line.getInstance((File) DiagonalRL.H2_B8),
-                   is(Line.H2_B8));
-    }
-
-    /**
      * Tests the {@code linesForSquare(Square)} method.
      *
      * @see Line#linesForSquare(Square)
