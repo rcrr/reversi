@@ -103,8 +103,6 @@ public enum Line {
 
     private static final int[] SQUARE_POSITION_IN_LINE_BASE_3_COEFFICIENT = new int[MAX_ORDER + 1];
 
-    private static final Map<File, Line> LINE_TO_FILE_MAP = new HashMap<File, Line>();
-
     private static final Map<Square, List<Line>> LINES_FOR_SQUARE;
 
     /**
@@ -112,11 +110,6 @@ public enum Line {
      */
     public static final int squarePositionInLineBase3Coefficient(final int index) {
         return SQUARE_POSITION_IN_LINE_BASE_3_COEFFICIENT[index];
-    }
-
-    public static final Line getInstance(final File file) {
-        if (file == null) { throw new NullPointerException("Parameter file cannot be null."); }
-        return LINE_TO_FILE_MAP.get(file);
     }
 
     public static final List<Line> linesForSquare(final Square square) {
@@ -135,11 +128,6 @@ public enum Line {
          */
         for (int index = 0; index < MAX_ORDER + 1; index++) {
             SQUARE_POSITION_IN_LINE_BASE_3_COEFFICIENT[index] = BigInteger.valueOf(3).pow(index).intValue();
-        }
-
-        /** Finalli has to be removed. */
-        for (int i = 0; i < NUMBER_OF; i++) {
-            LINE_TO_FILE_MAP.put(FileUtils.files().get(i), values()[i]);
         }
 
         /** Prepares the LINES_FOR_SQUARE map. */
@@ -185,10 +173,6 @@ public enum Line {
         this.squareSet.addAll(squares);
 
         this.axis = axis;
-    }
-
-    public File file() {
-        return FileUtils.files().get(ordinal());
     }
 
     public Axis axis() {

@@ -262,7 +262,7 @@ public final class IndexedBoard extends AbstractBoard {
 
         if (!Arrays.equals(computeIndexes(sm), newIndexes)) {
             for (int k = 0; k < Line.NUMBER_OF; k++) {
-                System.out.println("k, file, newIndexes, expected: " + k + ", " + Line.values()[k] + ", " + newIndexes[k] + ", " + computeIndexes(sm)[k]);
+                System.out.println("k, line, newIndexes, expected: " + k + ", " + Line.values()[k] + ", " + newIndexes[k] + ", " + computeIndexes(sm)[k]);
             }
             throw new RuntimeException("Indexes are wrong .... !!! ...");
         }
