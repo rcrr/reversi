@@ -64,13 +64,15 @@ class LineIndex {
 
     private final Line line;
     private final int index;
+    private final LineState lineState;
     LineIndex(final Line line, final int index) {
         this.line = line;
         this.index = index;
+        this.lineState = LineState.valueOf(this.line.order(), index);
     }
 
     public LineState lineState() {
-        return LineState.valueOf(line.order(), index);
+        return this.lineState;
     }
 
     public List<SquareState> configuration() {
