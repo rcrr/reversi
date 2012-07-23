@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * The {@code DiagonalLR} enum defines a diagonal left-up to right-down of the board game.
  */
-public enum DiagonalLR implements File {
+public enum DiagonalLR {
 
     /**
      * Diagonal from A6 to C8.
