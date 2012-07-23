@@ -38,20 +38,6 @@ import java.util.Map;
 public final class LineState {
 
     /**
-     * Too many controls that will be removed when debugging and tests will be ready.
-     */
-    public static int[] fileIndexDeltasByMove(final File file, final int index, final int move) {
-        if (file == null) { throw new NullPointerException("Parameter file cannot be null."); }
-        final int order = Line.getInstance(file).squares().size();
-        final int boundary = indexBoundary(order);
-        if (index < 0 || index > boundary) { throw new IndexOutOfBoundsException("Parameter index is out of range."); }
-        final LineState fileState = LineState.valueOf(order, index);
-        final LineIndex fileIndex = LineIndex.valueOf(Line.getInstance(file), index);
-        if(!fileIndex.legalMoves().keySet().contains(move)) { throw new IllegalArgumentException("Parameter move is not valid. move=" + move); }
-        return LineIndexMove.valueOf(fileIndex, move).getDeltas();
-    }
-
-    /**
      * An array of the directions that can be taken moving along the axis.
      */
     private static final int[] DIRECTIONS = {-1, +1};
