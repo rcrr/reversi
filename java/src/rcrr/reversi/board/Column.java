@@ -39,7 +39,7 @@ import java.util.Collections;
  * abstract classes, and then one class for each enum value, way too mutch for removing a so
  * small dode smell.
  */
-public enum Column implements File {
+public enum Column {
     /**
      * First column.
      */

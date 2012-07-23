@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * The {@code Row} enum defines a row of the board game.
  */
-public enum Row implements File {
+public enum Row {
     /**
      * First row.
      */
