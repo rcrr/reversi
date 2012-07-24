@@ -102,7 +102,20 @@ public final class IndexedBoard extends AbstractBoard {
      */
     @Override
     public SquareState get(final Square square) {
+
+        if (square == null) { return SquareState.OUTER; }
+
+        final int squareOrdinal = square.ordinal();
+        final int rowNumber = squareOrdinal / 8;
+        final int ordinalPositionInRow = squareOrdinal % 8;
+        final LineState lineState = LineState.valueOf(8, indexes[rowNumber]);
+        final SquareState color = lineState.configuration().get(ordinalPositionInRow);
+
+        return color;
+        /*
+        if (squares.get(square) != color) { throw new RuntimeException("AHHHIII: color=" + color); }
         return (square == null) ? SquareState.OUTER : squares.get(square);
+        */
     }
 
     /**
