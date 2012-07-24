@@ -60,11 +60,19 @@ class LineIndex {
         }
         LINE_INDEX_MAP = Collections.unmodifiableMap(transientLineIndexMap);
 
+        /** Sets the legalMoves attribute. */
+        for (final List<LineIndex> lis : LINE_INDEX_MAP.values()) {
+            for (final LineIndex li : lis) {
+                li.legalMoves = initializeLegalMoves(li);
+            }
+        }
+
     }
 
     private final Line line;
     private final int index;
     private final LineState lineState;
+    private Map<Square, LineIndex> legalMoves;
     LineIndex(final Line line, final int index) {
         this.line = line;
         this.index = index;
@@ -79,15 +87,21 @@ class LineIndex {
         return lineState().configuration();
     }
 
+
     public Map <Square, LineIndex> legalMoves() {
+        return this.legalMoves;
+    }
+
+    private static Map <Square, LineIndex> initializeLegalMoves(final LineIndex li) {
         final Map<Square, LineIndex> legalMoves = new EnumMap<Square, LineIndex>(Square.class);
-        for (final Map.Entry<Integer, Integer> move : lineState().legalMoves().entrySet()) {
+        for (final Map.Entry<Integer, Integer> move : li.lineState().legalMoves().entrySet()) {
             final int moveOrdinalPositionInLine = move.getKey();
             final int newIndex = move.getValue();
-            final Square moveSquare = line().squares().get(moveOrdinalPositionInLine);
-            legalMoves.put(moveSquare, valueOf(line(), newIndex));
+            final Square moveSquare = li.line().squares().get(moveOrdinalPositionInLine);
+            legalMoves.put(moveSquare, valueOf(li.line(), newIndex));
         }
         return Collections.unmodifiableMap(legalMoves);
+        //return legalMoves; It seams to be faster .... has to be investigated .....
     }
 
     public Line line() {

@@ -64,7 +64,7 @@ class LineIndexMove {
     private final LineIndex lineIndex;
     private final Square move;
     private final LineIndex afterMoveLineIndex;
-    private List<SquareTransition> transitions;
+    private final List<SquareTransition> transitions;
 
     LineIndexMove(final LineIndex lineIndex, final Square move) {
         this.lineIndex = lineIndex;
@@ -83,10 +83,6 @@ class LineIndexMove {
 
     public Square move() {
         return this.move;
-    }
-
-    public int moveIndex() {
-        return lineIndex().line().squares().indexOf(this.move);
     }
 
     /**
@@ -121,18 +117,7 @@ class LineIndexMove {
         for (final SquareTransition st : transitions()) {
             final Square sq = lineIndex.line().squares().get(squareOrdinal);
             for (final Line affectedLine : Line.linesForSquare(sq)) {
-                /* It has to be really understood which strategy to apply .... not clear yet.
-                final Square x = lineIndex.line().cross(affectedLine);
-                final int xOrdinal = affectedLine.squares().indexOf(x);
-                if (xOrdinal != squareOrdinal) { throw new RuntimeException("xOrdinal=" + xOrdinal + ", squareOrdinal=" + squareOrdinal); }
-                */
                 final int indexWeight = Line.squarePositionInLineBase3Coefficient(affectedLine.squares().indexOf(sq));
-                /*
-                if (indexWeight != LineState.fileTransferMatrix(lineIndex.line().file(), squareOrdinal, affectedLine.file())) {
-                    throw new RuntimeException("indexWeight=" + indexWeight);
-                }
-                */
-                //int delta = st.delta() * LineState.fileTransferMatrix(lineIndex.line().file(), squareOrdinal, affectedLine.file());
                 int delta = st.delta() * indexWeight;
                 deltas[affectedLine.ordinal()] += delta;
             }
