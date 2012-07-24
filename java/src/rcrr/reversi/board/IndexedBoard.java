@@ -63,6 +63,10 @@ public final class IndexedBoard extends AbstractBoard {
         return new IndexedBoard(squares);
     }
 
+    static Board valueOf(final int[] indexes) {
+        return new IndexedBoard(indexes);
+    }
+
     /**
      * Lazily initialized, cached legalMoves.
      * In case of a multi-threadd use must be applied a ReadWriteLock on this field.
@@ -74,9 +78,6 @@ public final class IndexedBoard extends AbstractBoard {
      * Verify that the transient modifier is really neaded.
      */
     private final transient int[] indexes;
-
-    /** The squares field. */
-    private final transient EnumMap<Square, SquareState> squares;
 
     /**
      * Class constructor.
@@ -93,8 +94,11 @@ public final class IndexedBoard extends AbstractBoard {
             + " expected value: " + Square.values().length;
         assert (!squares.containsKey(null)) : "Parameter squares cannot contains null keys.";
         assert (!squares.containsValue(null)) : "Parameter squares cannot contains null values.";
-        this.squares = new EnumMap<Square, SquareState>(squares);
         this.indexes = computeIndexes(squares);
+    }
+
+    private IndexedBoard(final int[] indexes) {
+        this.indexes = indexes;
     }
 
     /**
@@ -102,20 +106,13 @@ public final class IndexedBoard extends AbstractBoard {
      */
     @Override
     public SquareState get(final Square square) {
-
         if (square == null) { return SquareState.OUTER; }
-
         final int squareOrdinal = square.ordinal();
         final int rowNumber = squareOrdinal / 8;
         final int ordinalPositionInRow = squareOrdinal % 8;
         final LineState lineState = LineState.valueOf(8, indexes[rowNumber]);
         final SquareState color = lineState.configuration().get(ordinalPositionInRow);
-
         return color;
-        /*
-        if (squares.get(square) != color) { throw new RuntimeException("AHHHIII: color=" + color); }
-        return (square == null) ? SquareState.OUTER : squares.get(square);
-        */
     }
 
     /**
@@ -129,11 +126,12 @@ public final class IndexedBoard extends AbstractBoard {
         if (player == null) {
             throw new NullPointerException("Parameter player must be not null.");
         }
-        if (get(move) != SquareState.EMPTY) { return false; }
-        for (Direction dir : move.capableToFlipDirections()) {
-            if (wouldFlip(move, player, dir) != null) { return true; }
+
+        Set<Square> cached = this.legalMovesForPlayer.get(player);
+        if (cached == null) {
+            legalMoves(player);
         }
-        return false;
+        return this.legalMovesForPlayer.get(player).contains(move);
     }
 
     /**
@@ -214,17 +212,6 @@ public final class IndexedBoard extends AbstractBoard {
                                                + move + "> by player<"
                                                + player + "> is illegal.");
         }
-        final Map<Square, SquareState> sm = squares.clone();
-        sm.put(move, player.color());
-        for (final Direction dir : move.capableToFlipDirections()) {
-            Square bracketer = wouldFlip(move, player, dir);
-            if (bracketer != null) {
-                for (Square c = move.neighbors().get(dir); true; c = c.neighbors().get(dir)) {
-                    if (c == bracketer) { break; }
-                    sm.put(c, player.color());
-                }
-            }
-        }
 
         /**
          * Black is ok. White is not. Indexes must be accessed using getIndex().
@@ -268,14 +255,7 @@ public final class IndexedBoard extends AbstractBoard {
         }
         /** */
 
-        if (!Arrays.equals(computeIndexes(sm), newIndexes)) {
-            for (int k = 0; k < Line.NUMBER_OF; k++) {
-                System.out.println("k, line, newIndexes, expected: " + k + ", " + Line.values()[k] + ", " + newIndexes[k] + ", " + computeIndexes(sm)[k]);
-            }
-            throw new RuntimeException("Indexes are wrong .... !!! ...");
-        }
-
-        return valueOf(sm);
+        return valueOf(newIndexes);
     }
 
     /**
@@ -294,67 +274,12 @@ public final class IndexedBoard extends AbstractBoard {
     }
 
     /**
-     * Returns the bracketing square or null if it is missing.
-     * The method does not check that the move is legal and that the square parameter
-     * is one step from move in the given direction.
-     * <p>
-     * The method should be private. It is not private to enable unit testing.
-     * <p>
-     * Parameters square, player, and dir must be not null. Java assert statements check
-     * against this case to occur.
-     *
-     * @param square the square obtained moving by one from the move in the given direction
-     * @param player the player
-     * @param dir    the direction
-     * @return       the bracketing square, or null if it is not found
-     */
-    private Square findBracketingPiece(final Square square, final Player player, final Direction dir) {
-        assert (square != null) : "Argument square must be not null";
-        assert (player != null) : "Argument player must be not null";
-        assert (dir != null) : "Argument dir must be not null";
-        if (get(square) == player.color()) {
-            return square;
-        } else if (get(square) == player.opponent().color()) {
-            final Square next = square.neighbors().get(dir);
-            if (next != null) { return findBracketingPiece(next, player, dir); }
-        }
-        return null;
-    }
-
-    /**
      * Returns the indexes field.
      *
      * @return the array representing the indexes of the board
      */
     public int[] indexes() {
         return this.indexes;
-    }
-
-    /**
-     * Returns the bracketing square or null if it is not found.
-     * The method does not check that the move is legal.
-     * <p>
-     * The method should be private. It is not private to enable unit testing.
-     * <p>
-     * Parameters move, player, and dir must be not null. Java assert statements check
-     * against this case to occur.
-     *
-     * @param move   the square where to move
-     * @param player the player
-     * @param dir    the direction
-     * @return       the bracketing square, or null if it is not found
-     */
-    private Square wouldFlip(final Square move, final Player player, final Direction dir) {
-        assert (move != null) : "Argument square must be not null";
-        assert (player != null) : "Argument player must be not null";
-        assert (dir != null) : "Argument dir must be not null";
-        final Square neighbor = move.neighbors().get(dir);
-        Square bracketing = null;
-        if (get(neighbor) == player.opponent().color()) {
-            final Square next = neighbor.neighbors().get(dir);
-            if (next != null) { bracketing = findBracketingPiece(next, player, dir); }
-        }
-        return bracketing;
     }
 
     public static final int[] computeIndexes(final Map<Square, SquareState> squares) {
@@ -367,6 +292,18 @@ public final class IndexedBoard extends AbstractBoard {
             }
         }
         return transientIndexes;
+    }
+
+    public static final EnumMap<Square, SquareState> computeSquares(final int[] indexes) {
+        final EnumMap<Square, SquareState> sqs = new EnumMap<Square, SquareState>(Square.class);
+        for (int iRow = 0; iRow < 8; iRow++) {
+            for (int iSquare = 0; iSquare < 8; iSquare++) {
+                final LineState lineState = LineState.valueOf(8, indexes[iRow]);
+                final SquareState color = lineState.configuration().get(iSquare);
+                sqs.put(Square.values()[(iRow * 8) + iSquare], color);
+            }
+        }
+        return sqs;
     }
 
 }
