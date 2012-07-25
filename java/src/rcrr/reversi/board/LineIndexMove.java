@@ -36,9 +36,9 @@ class LineIndexMove {
 
     private static final Map<LineIndex, Map<Square, LineIndexMove>> LINE_INDEX_MOVE_MAP;
 
-    public static LineIndexMove valueOf(final LineIndex lineIndex, final int move) {
-        final Square moveSquare = lineIndex.line().squares().get(move);
-        return LINE_INDEX_MOVE_MAP.get(lineIndex).get(moveSquare);
+    public static LineIndexMove valueOf(final LineIndex lineIndex, final Square move) {
+        //final Square moveSquare = lineIndex.line().squares().get(move);
+        return LINE_INDEX_MOVE_MAP.get(lineIndex).get(move);
     }
 
     static {

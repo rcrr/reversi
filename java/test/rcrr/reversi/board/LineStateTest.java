@@ -52,7 +52,7 @@ public class LineStateTest {
     public final void testGetDeltas() {
 
         final LineIndex li = LineIndex.valueOf(Line.C, 414);
-        final LineIndexMove lim = LineIndexMove.valueOf(li, 3);
+        final LineIndexMove lim = LineIndexMove.valueOf(li, Square.C4);
 
         final int[] expected = {  0, // [ 0] --> R1
                                   0, // [ 1] --> R2
@@ -102,7 +102,7 @@ public class LineStateTest {
     public final void testLineIndexMoveClass_fileTransitions() {
 
         final LineIndex fi = LineIndex.valueOf(Line.C1_A3, 7);
-        final LineIndexMove fim = LineIndexMove.valueOf(fi, 2);
+        final LineIndexMove fim = LineIndexMove.valueOf(fi, Square.A3);
 
         final List<SquareTransition> expected = Arrays.asList(SquareTransition.NO_TRANSITION,
                                                               SquareTransition.WHITE_TO_BLACK,
@@ -127,7 +127,7 @@ public class LineStateTest {
     @Test
     public final void testLineIndexMoveClass() {
 
-        final LineIndexMove lim = LineIndexMove.valueOf(LineIndex.valueOf(Line.A, 0), 0);
+        final LineIndexMove lim = LineIndexMove.valueOf(LineIndex.valueOf(Line.A, 0), Square.A1);
 
         assertTrue(true);
 
