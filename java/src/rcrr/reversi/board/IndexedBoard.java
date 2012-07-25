@@ -213,38 +213,31 @@ public final class IndexedBoard extends AbstractBoard {
                                                + player + "> is illegal.");
         }
 
-        /**
-         * Black is ok. White is not. Indexes must be accessed using getIndex().
-         * Finally the indexes must be flipped back.
-         *
-         */
-        final int[] newIndexes = new int[indexes.length];
+        final int[] newIndexes = new int[Line.NUMBER_OF];
 
+        // We can think to make an optimized map to square --> Line --> index LineIndexMove .....
         final List<LineIndexMove> moveAddendums = new ArrayList<LineIndexMove>();
         for (final Line line : Line.linesForSquare(move)) {
             final LineIndex li = LineIndex.valueOf(line, getIndex(player, line));
-            for (final Map.Entry<Square, LineIndex> entry : li.legalMoves().entrySet()) {
-                final Square sq = entry.getKey();
-                final int moveOrdinalPosition = line.squares().indexOf(sq);
-                final LineIndexMove lim = LineIndexMove.valueOf(li, moveOrdinalPosition);
-                if (sq == move) { moveAddendums.add(lim); }
+            for (final Square sq : li.legalMoves().keySet()) {
+                if (sq == move) {
+                    final int moveOrdinalPosition = line.squares().indexOf(sq);
+                    final LineIndexMove lim = LineIndexMove.valueOf(li, sq);
+                    moveAddendums.add(lim);
+                }
             }
         }
 
-        final int[] addedDiscDeltas = new int[indexes.length];
-        for (final Line line : Line.linesForSquare(move)) {
-            final int ordinal = line.squares().indexOf(move);
-            addedDiscDeltas[line.ordinal()] = Line.squarePositionInLineBase3Coefficient(ordinal);
-        }
-
+        final int[] moveDiscDeltas = MOVE_DISC_DELTA_MAP.get(move);
         for (final Line line : Line.values()) {
             final int i = line.ordinal();
-            newIndexes[i] = getIndex(player, line) + addedDiscDeltas[i];
+            newIndexes[i] = getIndex(player, line) +  moveDiscDeltas[i];
             for (int j = 0; j < moveAddendums.size(); j++) {
                 newIndexes[i] += moveAddendums.get(j).getDeltas()[i];
             }
         }
 
+        // must be a method ... and LineIndex must have a flip method ...
         /** Flip indexes if player is White */
         if (player == Player.WHITE) {
             int k = 0;
@@ -253,7 +246,6 @@ public final class IndexedBoard extends AbstractBoard {
                 k++;
             }
         }
-        /** */
 
         return valueOf(newIndexes);
     }
@@ -304,6 +296,21 @@ public final class IndexedBoard extends AbstractBoard {
             }
         }
         return sqs;
+    }
+
+    private static final EnumMap<Square, int[]> MOVE_DISC_DELTA_MAP = computeMoveDiscDeltas();
+
+    private static final EnumMap<Square, int[]> computeMoveDiscDeltas() {
+        final EnumMap<Square, int[]> deltaMap = new EnumMap<Square, int[]>(Square.class);
+        for (final Square move : Square.values()) {
+            final int[] deltas = new int[Line.NUMBER_OF];
+            for (final Line line : Line.linesForSquare(move)) {
+                final int ordinal = line.squares().indexOf(move);
+                deltas[line.ordinal()] = Line.squarePositionInLineBase3Coefficient(ordinal);
+            }
+            deltaMap.put(move, deltas);
+        }
+        return deltaMap;
     }
 
 }
