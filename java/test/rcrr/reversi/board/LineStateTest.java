@@ -94,7 +94,7 @@ public class LineStateTest {
                                   0};
 
         assertThat("",
-                   lim.getDeltas(),
+                   lim.deltas(),
                    is(expected));
     }
 

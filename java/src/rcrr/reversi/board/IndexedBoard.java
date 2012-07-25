@@ -46,6 +46,32 @@ import java.util.EnumSet;
  */
 public final class IndexedBoard extends AbstractBoard {
 
+    private static final EnumMap<Square, int[]> MOVE_DISC_DELTA_MAP = computeMoveDiscDeltas();
+
+    public static final int[] computeIndexes(final Map<Square, SquareState> squares) {
+        final int[] transientIndexes = new int[Line.NUMBER_OF];
+        for (final Square sq : Square.values()) {
+            for (final Line line : Line.linesForSquare(sq)) {
+                final int color = squares.get(sq).ordinal();
+                final int squarePosition = line.squares().indexOf(sq);
+                transientIndexes[line.ordinal()] += color * Line.squarePositionInLineBase3Coefficient(squarePosition);
+            }
+        }
+        return transientIndexes;
+    }
+
+    public static final EnumMap<Square, SquareState> computeSquares(final int[] indexes) {
+        final EnumMap<Square, SquareState> sqs = new EnumMap<Square, SquareState>(Square.class);
+        for (int iRow = 0; iRow < 8; iRow++) {
+            for (int iSquare = 0; iSquare < 8; iSquare++) {
+                final LineState lineState = LineState.valueOf(8, indexes[iRow]);
+                final SquareState color = lineState.configuration().get(iSquare);
+                sqs.put(Square.values()[(iRow * 8) + iSquare], color);
+            }
+        }
+        return sqs;
+    }
+
     /**
      * Base static factory for the class.
      * <p>
@@ -60,11 +86,24 @@ public final class IndexedBoard extends AbstractBoard {
      */
     static Board valueOf(final Map<Square, SquareState> squares) {
         BoardUtils.checkForConsistencyTheSquareMap(squares);
-        return new IndexedBoard(squares);
+        return new IndexedBoard(computeIndexes(squares));
     }
 
     static Board valueOf(final int[] indexes) {
         return new IndexedBoard(indexes);
+    }
+
+    private static final EnumMap<Square, int[]> computeMoveDiscDeltas() {
+        final EnumMap<Square, int[]> deltaMap = new EnumMap<Square, int[]>(Square.class);
+        for (final Square move : Square.values()) {
+            final int[] deltas = new int[Line.NUMBER_OF];
+            for (final Line line : Line.linesForSquare(move)) {
+                final int ordinal = line.squares().indexOf(move);
+                deltas[line.ordinal()] = Line.squarePositionInLineBase3Coefficient(ordinal);
+            }
+            deltaMap.put(move, deltas);
+        }
+        return deltaMap;
     }
 
     /**
@@ -82,21 +121,11 @@ public final class IndexedBoard extends AbstractBoard {
     /**
      * Class constructor.
      * <p>
-     * {@code squares} must be not null, and must have a size equal to
-     * the number of squares, as defined by the {@code Square} enum.
+     * {@code indexes} must be not null, and must have a length equal to
+     * the number of indexes, as defined by the {@code Line} enum.
      *
-     * @param  squares the squares field
+     * @param indexes the indexes field
      */
-    private IndexedBoard(final Map<Square, SquareState> squares) {
-        assert (squares != null) : "Parameter squares cannot be null.";
-        assert (squares.size() == Square.values().length) : "Parameter squares size is not consistent."
-            + " squares.size()=" + squares.size()
-            + " expected value: " + Square.values().length;
-        assert (!squares.containsKey(null)) : "Parameter squares cannot contains null keys.";
-        assert (!squares.containsValue(null)) : "Parameter squares cannot contains null values.";
-        this.indexes = computeIndexes(squares);
-    }
-
     private IndexedBoard(final int[] indexes) {
         this.indexes = indexes;
     }
@@ -126,8 +155,7 @@ public final class IndexedBoard extends AbstractBoard {
         if (player == null) {
             throw new NullPointerException("Parameter player must be not null.");
         }
-
-        Set<Square> cached = this.legalMovesForPlayer.get(player);
+        final Set<Square> cached = this.legalMovesForPlayer.get(player);
         if (cached == null) {
             legalMoves(player);
         }
@@ -233,7 +261,7 @@ public final class IndexedBoard extends AbstractBoard {
             final int i = line.ordinal();
             newIndexes[i] = getIndex(player, line) +  moveDiscDeltas[i];
             for (int j = 0; j < moveAddendums.size(); j++) {
-                newIndexes[i] += moveAddendums.get(j).getDeltas()[i];
+                newIndexes[i] += moveAddendums.get(j).deltas()[i];
             }
         }
 
@@ -272,45 +300,6 @@ public final class IndexedBoard extends AbstractBoard {
      */
     public int[] indexes() {
         return this.indexes;
-    }
-
-    public static final int[] computeIndexes(final Map<Square, SquareState> squares) {
-        final int[] transientIndexes = new int[Line.NUMBER_OF];
-        for (final Square sq : Square.values()) {
-            for (final Line line : Line.linesForSquare(sq)) {
-                final int color = squares.get(sq).ordinal();
-                final int squarePosition = line.squares().indexOf(sq);
-                transientIndexes[line.ordinal()] += color * Line.squarePositionInLineBase3Coefficient(squarePosition);
-            }
-        }
-        return transientIndexes;
-    }
-
-    public static final EnumMap<Square, SquareState> computeSquares(final int[] indexes) {
-        final EnumMap<Square, SquareState> sqs = new EnumMap<Square, SquareState>(Square.class);
-        for (int iRow = 0; iRow < 8; iRow++) {
-            for (int iSquare = 0; iSquare < 8; iSquare++) {
-                final LineState lineState = LineState.valueOf(8, indexes[iRow]);
-                final SquareState color = lineState.configuration().get(iSquare);
-                sqs.put(Square.values()[(iRow * 8) + iSquare], color);
-            }
-        }
-        return sqs;
-    }
-
-    private static final EnumMap<Square, int[]> MOVE_DISC_DELTA_MAP = computeMoveDiscDeltas();
-
-    private static final EnumMap<Square, int[]> computeMoveDiscDeltas() {
-        final EnumMap<Square, int[]> deltaMap = new EnumMap<Square, int[]>(Square.class);
-        for (final Square move : Square.values()) {
-            final int[] deltas = new int[Line.NUMBER_OF];
-            for (final Line line : Line.linesForSquare(move)) {
-                final int ordinal = line.squares().indexOf(move);
-                deltas[line.ordinal()] = Line.squarePositionInLineBase3Coefficient(ordinal);
-            }
-            deltaMap.put(move, deltas);
-        }
-        return deltaMap;
     }
 
 }
