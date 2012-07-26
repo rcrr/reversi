@@ -260,8 +260,8 @@ public final class IndexedBoard extends AbstractBoard {
         for (final Line line : Line.values()) {
             final int i = line.ordinal();
             newIndexes[i] = getIndex(player, line) +  moveDiscDeltas[i];
-            for (int j = 0; j < moveAddendums.size(); j++) {
-                newIndexes[i] += moveAddendums.get(j).deltas()[i];
+            for (final LineIndexMove lim : moveAddendums) {
+                newIndexes[i] += lim.deltas()[i];
             }
         }
 

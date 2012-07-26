@@ -49,7 +49,7 @@ class LineIndex {
         /**
          * Computes LINE_INDEX_MAP map.
          */
-        final Map<Line, List<LineIndex>> transientLineIndexMap = new HashMap<Line, List<LineIndex>>();
+        final Map<Line, List<LineIndex>> transientLineIndexMap = new EnumMap<Line, List<LineIndex>>(Line.class);
         for (final Line line : Line.values()) {
             final List<LineIndex> transientLineIndexList = new ArrayList<LineIndex>();
             for (int index = 0; index <= LineState.indexBoundary(line.order()); index++) {
