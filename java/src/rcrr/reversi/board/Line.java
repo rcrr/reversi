@@ -26,11 +26,9 @@ package rcrr.reversi.board;
 
 import java.math.BigInteger;
 
-import java.util.Set;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.ArrayList;
@@ -107,16 +105,16 @@ public enum Line {
     /**
      * Each position is computed as the power base three of the position itself (1, 3, 9, 27, ...).
      */
-    public static final int squarePositionInLineBase3Coefficient(final int index) {
+    public static int squarePositionInLineBase3Coefficient(final int index) {
         return SQUARE_POSITION_IN_LINE_BASE_3_COEFFICIENT[index];
     }
 
-    public static final List<Line> linesForSquare(final Square square) {
+    public static List<Line> linesForSquare(final Square square) {
         return LINES_FOR_SQUARE.get(square);
     }
 
     /** The list of the four corners. */
-    private static final List<Square> squaresAsList(Square... squares) {
+    private static List<Square> squaresAsList(Square... squares) {
         return Collections.unmodifiableList(Arrays.asList(squares));
     }
 
