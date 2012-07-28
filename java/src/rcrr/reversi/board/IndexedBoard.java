@@ -24,7 +24,6 @@
 
 package rcrr.reversi.board;
 
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -48,7 +47,7 @@ public final class IndexedBoard extends AbstractBoard {
 
     private static final EnumMap<Square, int[]> MOVE_DISC_DELTA_MAP = computeMoveDiscDeltas();
 
-    public static final int[] computeIndexes(final Map<Square, SquareState> squares) {
+    public static int[] computeIndexes(final Map<Square, SquareState> squares) {
         final int[] transientIndexes = new int[Line.NUMBER_OF];
         for (final Square sq : Square.values()) {
             for (final Line line : Line.linesForSquare(sq)) {
@@ -60,7 +59,7 @@ public final class IndexedBoard extends AbstractBoard {
         return transientIndexes;
     }
 
-    public static final EnumMap<Square, SquareState> computeSquares(final int[] indexes) {
+    public static EnumMap<Square, SquareState> computeSquares(final int[] indexes) {
         final EnumMap<Square, SquareState> sqs = new EnumMap<Square, SquareState>(Square.class);
         for (int iRow = 0; iRow < 8; iRow++) {
             for (int iSquare = 0; iSquare < 8; iSquare++) {
@@ -93,7 +92,7 @@ public final class IndexedBoard extends AbstractBoard {
         return new IndexedBoard(indexes);
     }
 
-    private static final EnumMap<Square, int[]> computeMoveDiscDeltas() {
+    private static EnumMap<Square, int[]> computeMoveDiscDeltas() {
         final EnumMap<Square, int[]> deltaMap = new EnumMap<Square, int[]>(Square.class);
         for (final Square move : Square.values()) {
             final int[] deltas = new int[Line.NUMBER_OF];
