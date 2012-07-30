@@ -292,6 +292,33 @@ public final class BitBoard extends AbstractBoard {
     }
 
     /**
+     * Returns the square int value.
+     *
+     * @param square the long value for the square
+     * @return       the index of the bit set 
+     */
+    static int squareIntValue(final long square) {
+        long tmp = square;
+        int result = 0;
+        if((tmp & 0xFFFFFFFF00000000L) != 0) { tmp >>>= 32; result = 32; }
+        if(tmp > 0x000000000000FFFFL) { tmp >>>= 16; result|= 16; }
+        if(tmp > 0x00000000000000FFL) { tmp >>>= 8; result|=  8; }
+        result |= LOG2_ARRAY[(int)tmp];
+        return result;
+    }
+
+    static private int LOG2_ARRAY[] = new int[] {
+        0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+        5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
+        6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+        6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
+    };
+
+    /**
      * Returns an int value corresponding to the ordinal position of the only bit set in the {@code square} parameter.
      * <p>
      * The {@code square} parameter must have one and only one bit set to {@code 1}.
@@ -309,7 +336,7 @@ public final class BitBoard extends AbstractBoard {
      *
      * @return the ordinal position of the bit set in the {@code square} parameter
      */
-    static int squareIntValue(final long square) {
+    static int squareIntValue_(final long square) {
         assert (Long.bitCount(square) == 1) : "Parameter square must have one and only one bit set.";
         int low = 0;
         int high = 64;
@@ -317,6 +344,7 @@ public final class BitBoard extends AbstractBoard {
             final int bit = (low + high) >>> 1;
             final long window = square >>> bit;
             if (window == 1L) {
+                //if (bit != ulog2(square)) { throw new RuntimeException("bit=" + bit); }
                 return bit; // value found
             } else if (window == 0L) {
                 high = bit;
@@ -672,6 +700,9 @@ public final class BitBoard extends AbstractBoard {
         return 0L;
     }
 
+    /**
+     * It is the most expensive method ....
+     */
     static long neighbor(final long square, final int dir) {
         assert (Long.bitCount(square) == 1) : "Argument square must have one and only one bit set.";
         final int intSquare = squareIntValue(square);
