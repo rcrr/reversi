@@ -300,9 +300,9 @@ public final class BitBoard extends AbstractBoard {
     static int squareIntValue(final long square) {
         long tmp = square;
         int result = 0;
-        if((tmp & 0xFFFFFFFF00000000L) != 0) { tmp >>>= 32; result = 32; }
-        if(tmp > 0x000000000000FFFFL) { tmp >>>= 16; result|= 16; }
-        if(tmp > 0x00000000000000FFL) { tmp >>>= 8; result|=  8; }
+        if((tmp & 0xFFFFFFFF00000000L) != 0) { tmp >>>= 32; result  = 32; }
+        if(tmp > 0x000000000000FFFFL)        { tmp >>>= 16; result |= 16; }
+        if(tmp > 0x00000000000000FFL)        { tmp >>>=  8; result |=  8; }
         result |= LOG2_ARRAY[(int)tmp];
         return result;
     }
@@ -344,7 +344,6 @@ public final class BitBoard extends AbstractBoard {
             final int bit = (low + high) >>> 1;
             final long window = square >>> bit;
             if (window == 1L) {
-                //if (bit != ulog2(square)) { throw new RuntimeException("bit=" + bit); }
                 return bit; // value found
             } else if (window == 0L) {
                 high = bit;
@@ -703,7 +702,7 @@ public final class BitBoard extends AbstractBoard {
     /**
      * It is the most expensive method ....
      */
-    static long neighbor(final long square, final int dir) {
+    static long neighbor_(final long square, final int dir) {
         assert (Long.bitCount(square) == 1) : "Argument square must have one and only one bit set.";
         final int intSquare = squareIntValue(square);
         long neighbor = 0L;
@@ -711,6 +710,23 @@ public final class BitBoard extends AbstractBoard {
             neighbor = 1L << (intSquare + dir);
         }
         return neighbor;
+    }
+
+    private static final long WW_OUTER_WALL = 0x7F7F7F7F7F7F7F7FL;
+    private static final long EE_OUTER_WALL = 0xFEFEFEFEFEFEFEFEL;
+
+    static long neighbor(final long square, final int dir) {
+        switch (dir) {
+        case DIR_NW: return (square >>> 9) & WW_OUTER_WALL;
+        case DIR_NN: return square >>> 8;
+        case DIR_NE: return (square >>> 7) & EE_OUTER_WALL;
+        case DIR_WW: return (square >>> 1) & WW_OUTER_WALL;
+        case DIR_EE: return (square << 1) & EE_OUTER_WALL;
+        case DIR_SW: return (square << 7) & WW_OUTER_WALL;
+        case DIR_SS: return square << 8;
+        case DIR_SE: return (square << 9) & EE_OUTER_WALL;
+        default: throw new IllegalArgumentException("Undefined value for dir parameter. dir=" + dir);
+        }
     }
 
     /**
