@@ -258,8 +258,11 @@
 	   errorProperty="test.failed"
 	   failureProperty="test.failed">
       <jvmarg value="-Xmx1024m"/>
-      <jvmarg value="-ea"/>
       <jvmarg value="-Dtest.output-files.dir=${test.output-files.dir}"/>
+      <assertions>
+        <enable/>
+        <!-- disable/ -->
+      </assertions>
       <formatter type="brief" usefile="false"/>
       <formatter type="xml"/>
       <!-- In case of testing a single class use: -->
