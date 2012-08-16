@@ -695,32 +695,19 @@ public final class BitBoard extends AbstractBoard {
         return 0L;
     }
 
-    /**
-     * It is the most expensive method ....
-     */
-    static long neighbor_(final long square, final int dir) {
-        assert (Long.bitCount(square) == 1) : "Argument square must have one and only one bit set.";
-        final int intSquare = squareIntValue(square);
-        long neighbor = 0L;
-        if (Arrays.binarySearch(FLIPPING_DIRECTIONS[intSquare], dir) >= 0) {
-            neighbor = 1L << (intSquare + dir);
-        }
-        return neighbor;
-    }
-
-    private static final long WW_OUTER_WALL = 0x7F7F7F7F7F7F7F7FL;
-    private static final long EE_OUTER_WALL = 0xFEFEFEFEFEFEFEFEL;
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
 
     static long neighbor(final long square, final int dir) {
         switch (dir) {
-        case DIR_NW: return (square >>> 9) & WW_OUTER_WALL;
-        case DIR_NN: return square >>> 8;
-        case DIR_NE: return (square >>> 7) & EE_OUTER_WALL;
-        case DIR_WW: return (square >>> 1) & WW_OUTER_WALL;
-        case DIR_EE: return (square << 1) & EE_OUTER_WALL;
-        case DIR_SW: return (square << 7) & WW_OUTER_WALL;
-        case DIR_SS: return square << 8;
-        case DIR_SE: return (square << 9) & EE_OUTER_WALL;
+        case DIR_NW: return (square >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case DIR_NN: return (square >>> 8);
+        case DIR_NE: return (square >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case DIR_WW: return (square >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case DIR_EE: return (square <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case DIR_SW: return (square <<  7) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case DIR_SS: return (square <<  8);
+        case DIR_SE: return (square <<  9) & ALL_SQUARES_EXCEPT_COLUMN_H;
         default: throw new IllegalArgumentException("Undefined value for dir parameter. dir=" + dir);
         }
     }
