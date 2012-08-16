@@ -292,10 +292,41 @@ public final class BitBoard extends AbstractBoard {
     }
 
     /**
-     * Returns the square int value.
+     * Returns an int value corresponding to the ordinal position of the only bit set in the {@code square} parameter.
+     * <p>
+     * The {@code square} parameter must have one and only one bit set to {@code 1}, this assumption is not verified.
+     * <p>
+     * The method is equivalent to the following loop:
+     * <pre>
+     *   for (int i = 0; i < 64; i++) {
+     *       if (1L == (square >>> i)) { return i; }
+     *   }
+     *   throw new IllegalArgumentException("Parameter square is invalid.");
+     * </pre>
+     * Another inplementation follows the "divide and conqueror" approach instead of the linear access proposed.
+     * The extimation of the iterations is 64/2 = 32 for the linear implementation,
+     * compared with the logarithm base 2 of 64 that is equal to 6.
+     * Here the technique:
+     * <pre>
+     *   int low = 0;
+     *   int high = 64;
+     *   while (true) {
+     *       final int bit = (low + high) >>> 1;
+     *       final long window = square >>> bit;
+     *       if (window == 1L) {
+     *           return bit; // value found
+     *       } else if (window == 0L) {
+     *           high = bit;
+     *       } else {
+     *           low = bit;
+     *       }
+     *   }
+     * </pre>
+     * The "real implementation" applyes bitshifts and passes the result to a precomputed table
+     * composed of 256 entries that maps integers to their logarithm. 
      *
      * @param square the long value for the square
-     * @return       the index of the bit set 
+     * @return       the ordinal position of the bit set in the {@code square} parameter
      */
     static int squareIntValue(final long square) {
         long tmp = square;
@@ -317,41 +348,6 @@ public final class BitBoard extends AbstractBoard {
         7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
         7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
     };
-
-    /**
-     * Returns an int value corresponding to the ordinal position of the only bit set in the {@code square} parameter.
-     * <p>
-     * The {@code square} parameter must have one and only one bit set to {@code 1}.
-     * <p>
-     * The method is equivalent to the following loop:
-     * <pre>
-     *   for (int i = 0; i < 64; i++) {
-     *       if (1L == (square >>> i)) { return i; }
-     *   }
-     *   throw new IllegalArgumentException("Parameter square is invalid.");
-     * </pre>
-     * The proposed inplementation does a "divide and conqueror" approach instead of the linear access proposed.
-     * The extimation of the iterations is 64/2 = 32 for the linear implementation,
-     * compared with the logarithm base 2 of 64 that is equal to 6.
-     *
-     * @return the ordinal position of the bit set in the {@code square} parameter
-     */
-    static int squareIntValue_(final long square) {
-        assert (Long.bitCount(square) == 1) : "Parameter square must have one and only one bit set.";
-        int low = 0;
-        int high = 64;
-        while (true) {
-            final int bit = (low + high) >>> 1;
-            final long window = square >>> bit;
-            if (window == 1L) {
-                return bit; // value found
-            } else if (window == 0L) {
-                high = bit;
-            } else {
-                low = bit;
-            }
-        }
-    }
 
     static String longToString(final long value) {
         final StringBuilder sb = new StringBuilder();
@@ -798,7 +794,7 @@ public final class BitBoard extends AbstractBoard {
     @Override
     public int countPieces(final SquareState color) {
         if (color == null) {
-            throw new NullPointerException("parameter color must be not null.");
+            throw new NullPointerException("Parameter color must be not null.");
         }
         switch (color) {
         case BLACK: return Long.bitCount(bitboard[BLACK]);
