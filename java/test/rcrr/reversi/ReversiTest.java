@@ -541,11 +541,11 @@ public class ReversiTest {
      * @param numberOfGames the number of games played
      * @return              a map hosting the results
      */
-    private Map<String, Object> runSeriesOfGames(final Strategy blStrategy,
-                                                 final Strategy whStrategy,
-                                                 final PrintStream ps,
-                                                 final Duration gameDuration,
-                                                 final int numberOfGames) {
+    static Map<String, Object> runSeriesOfGames(final Strategy blStrategy,
+                                                final Strategy whStrategy,
+                                                final PrintStream ps,
+                                                final Duration gameDuration,
+                                                final int numberOfGames) {
 
         Map<String, Object> results = new HashMap<String, Object>();
 
