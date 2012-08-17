@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.EnumSet;
 
 /**
  * A board concrete implementation.
@@ -664,6 +665,83 @@ public final class BitBoard extends AbstractBoard {
         return false;
     }
 
+    static long lowerSquareInBoard(final long bitboard) {
+        return (bitboard & (bitboard - 1)) ^ bitboard;
+    }
+	
+    /**
+     * Returns an 8-bit row representation of the player pieces after applying the move.
+     * 
+     * @param playerRow   8-bit bitboard corrosponding to player pieces
+     * @param opponentRow 8-bit bitboard corrosponding to opponent pieces
+     * @param move        square to move
+     * @return            the new player's row after making the move
+     */
+    private int computeRowEffect(final int playerRow, final int opponentRow, final int move) {
+        return (int)MOVE_EFFECT_ARRAY[playerRow | (opponentRow << 8) | (move << 16)] & 0xFF;
+    }
+
+    /**
+     * This array is an implementation of the precomputed table that contains the effects of moving
+     * a piece in any of the eigth squares in a row.
+     * The size is so computed:
+     *  - there are 256 arrangments of player discs,
+     *  - and 256 arrangements of opponent pieces,
+     *  - the potential moves are 8.
+     * So the array size is 256 * 256 * 8 = 524,288 Bytes = 512kB.
+     * Not all the entries are legal! The first set of eigth bits and the second one (opponent row)
+     * must not set the same position. 
+     * 
+     * The index of the array is computed by this formula:
+     * index = playerRow | (opponentRow << 8) | (move << 16)];
+     */
+    public static byte[] MOVE_EFFECT_ARRAY = initializeMoveEffectArray();
+
+    /** Used to initialize the MOVE_EFFECT_ARRAY. */
+    private static byte[] initializeMoveEffectArray() {
+        final byte[] result = new byte[256 * 256 * 8];
+        // result MUST BE COMPUTED!
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Square> legalMoves(final Player player) {
+
+        final List<Square> legalMoves = super.legalMoves(player); 
+
+        final EnumSet<Square> lm = EnumSet.noneOf(Square.class);
+
+        /** The loop modifies likelyMoves removing the less significative bit set on each iteration. */
+        for (long likelyMoves = generateLikelyMoves(player); likelyMoves != 0; likelyMoves &= likelyMoves - 1) {
+            final int iSquare = squareIntValue(lowerSquareInBoard(likelyMoves));
+            final Square square = Square.values()[iSquare];
+            lm.add(square);
+        }
+
+        if (!lm.containsAll(legalMoves)) { throw new RuntimeException("Error: legalMoves=" + legalMoves + ", lm=" + lm); }
+
+        return legalMoves;
+    }
+
+    public long generateLikelyMoves(final Player player) {
+        final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
+        final int intOpponent = (intPlayer == BLACK) ? WHITE : BLACK;
+        long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
+        return neighbors(bitboard[intOpponent]) & empties;
+    }
+
+    private long neighbors(final long squares) {
+        long neighbors = squares;
+        neighbors |= (neighbors >>> 8);
+        neighbors |= (neighbors >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        neighbors |= (neighbors <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        neighbors |= (neighbors <<  8);
+        return neighbors;
+    }
+
     private long wouldFlip(final long move, final Player player, final int dir) {
         assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set.";
         assert (player != null) : "Argument player must be not null.";
@@ -786,7 +864,7 @@ public final class BitBoard extends AbstractBoard {
         switch (color) {
         case BLACK: return Long.bitCount(bitboard[BLACK]);
         case WHITE: return Long.bitCount(bitboard[WHITE]);
-        case EMPTY: return 64 - Long.bitCount(bitboard[BLACK] | bitboard[WHITE]);
+        case EMPTY: return Long.bitCount(~(bitboard[BLACK] | bitboard[WHITE]));
         case OUTER: return 0;
         default: throw new IllegalArgumentException("Undefined value for color parameter. color=" + color);
         }
