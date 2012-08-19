@@ -646,7 +646,7 @@ public final class BitBoard extends AbstractBoard {
      * @return       true if the move is legal, otherwise false
      * @throws NullPointerException if parameter {@code move} or {@code player} is null
      */
-    public boolean isLegal(final Square move, final Player player) {
+    public boolean isLegal0(final Square move, final Player player) {
         if (move == null) {
             throw new NullPointerException("Parameter move must be not null.");
         }
@@ -665,21 +665,134 @@ public final class BitBoard extends AbstractBoard {
         return false;
     }
 
-    static long lowerSquareInBoard(final long bitboard) {
+    public boolean isLegal(final Square move, final Player player) {
+        final boolean result0 = isLegal0(move, player);
+        final boolean result1 = isLegal1(move, player);
+        if (result0 != result1) {
+            throw new RuntimeException("isLegal FAILURE!");
+        }
+        return result0;
+    }
+
+    public boolean isLegal1(final Square move, final Player player) {
+        final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
+
+        final int x = move.ordinal() % 8;
+        final int y = move.ordinal() / 8;
+
+        final long playerBitboard;
+        final long opponentBitboard;
+
+        if (intPlayer == WHITE) {
+            playerBitboard = bitboard[1];
+            opponentBitboard = bitboard[0];
+        } else {
+            playerBitboard = bitboard[0];
+            opponentBitboard = bitboard[1];
+        }
+
+        int playerBitrow;
+        int opponentBitrow;
+
+        /** Check for capture on row. */
+        playerBitrow = (int)(playerBitboard >>> (8 * y)) & 0xFF;
+        opponentBitrow = (int)(opponentBitboard >>> (8 * y)) & 0xFF;
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, x) != playerBitrow) {
+            return true;
+        }
+
+        /** Check for capture on column. */
+        playerBitrow = trasformColumnAInRow0(playerBitboard >>> x);
+        opponentBitrow = trasformColumnAInRow0(opponentBitboard >>> x);
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, y) != playerBitrow) {
+            return true;
+        }
+
+        /** Check for capture on diagonal having direction H1-A8. */
+        byte shiftDistance = (byte)((x - y) << 3);
+        playerBitrow = trasformDiagonalH1A8InRow0(signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = trasformDiagonalH1A8InRow0(signedLeftShift(opponentBitboard, shiftDistance));
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, x) != playerBitrow) {
+            return true;
+        }
+
+        /** Check for capture on diagonal having direction A1-H8. */
+        shiftDistance = (byte)((7 - x - y) << 3);
+        playerBitrow = trasformDiagonalA1H8InRow0(signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = trasformDiagonalA1H8InRow0(signedLeftShift(opponentBitboard, shiftDistance));
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, x) != playerBitrow) {
+            return true;
+        }
+
+        /** If no capture on the four directions happens, return false. */
+        return false;
+    }
+
+    private static int trasformColumnAInRow0(long x) {
+        x &= 0x0101010101010101L;
+        x |= x >> 28;
+        x |= x >> 14;
+        x |= x >> 7;
+        return (int)x & 0xFF;
+    }
+
+    private static int trasformDiagonalH1A8InRow0(long x) {
+        x &= 0x8040201008040201L;
+        x |= x >> 32;
+        x |= x >> 16;
+        x |= x >> 8;
+        return (int)x & 0xFF;
+    }
+
+    private static int trasformDiagonalA1H8InRow0(long x) {
+        x &= 0x0102040810204080L;
+        x |= x >> 32;
+        x |= x >> 16;
+        x |= x >> 8;
+        return (int)x & 0xFF;
+    }
+
+    static long signedLeftShift(long x, byte signedAmount) {
+        return signedAmount >= 0 ? x << signedAmount : x >>> -signedAmount;
+    }
+
+    static long lowestSquareInBoard(final long bitboard) {
         return (bitboard & (bitboard - 1)) ^ bitboard;
     }
-	
+
+    static int lowestSquareInRow(final int bitrow) {
+        return (bitrow & (bitrow - 1)) ^ bitrow;
+    }
+
+    static int highestSquareInRow(final int bitrow) {
+        if (bitrow == 0) return 0;
+        int result = 1;
+        int tmp = bitrow;
+        if ((tmp & 0xFFFF0000) != 0) { tmp >>>= 16; result = 0x10000; }
+        if (tmp > 0x000000FF) { tmp >>>= 8; result <<= 8; }
+        result <<= LOG2_ARRAY[tmp];
+        return result;
+    }
+
+    static int fillInBetween(final int x) {
+        return ((1 << squareIntValue(x)) - 1) & ((~x & 0xFF) ^ (x - 1));
+    }
+
     /**
      * Returns an 8-bit row representation of the player pieces after applying the move.
      * 
-     * @param playerRow   8-bit bitboard corrosponding to player pieces
-     * @param opponentRow 8-bit bitboard corrosponding to opponent pieces
-     * @param move        square to move
-     * @return            the new player's row after making the move
+     * @param playerRowIndex   8-bit bitboard corrosponding to player pieces
+     * @param opponentRowIndex 8-bit bitboard corrosponding to opponent pieces
+     * @param movePosition     square to move
+     * @return                 the new player's row index after making the move
      */
-    private int computeRowEffect(final int playerRow, final int opponentRow, final int move) {
-        return (int)MOVE_EFFECT_ARRAY[playerRow | (opponentRow << 8) | (move << 16)] & 0xFF;
+    private int bitrowChangesForPlayer(final int playerRowIndex, final int opponentRowIndex, final int movePosition) {
+        final int arrayIndex = playerRowIndex | (opponentRowIndex << 8) | (movePosition << 16);
+        return (int)BITROW_CHANGES_FOR_PLAYER_ARRAY[arrayIndex] & BYTE_MASK_FOR_INT;
     }
+
+    /** Used for masking a byte when using integer values. */
+    private static final int BYTE_MASK_FOR_INT = 0xFF;
 
     /**
      * This array is an implementation of the precomputed table that contains the effects of moving
@@ -693,15 +806,84 @@ public final class BitBoard extends AbstractBoard {
      * must not set the same position. 
      * 
      * The index of the array is computed by this formula:
-     * index = playerRow | (opponentRow << 8) | (move << 16)];
+     * index = playerRowIndex | (opponentRowIndex << 8) | (movePosition << 16);
      */
-    public static byte[] MOVE_EFFECT_ARRAY = initializeMoveEffectArray();
+    public static byte[] BITROW_CHANGES_FOR_PLAYER_ARRAY = initializeBitrowChangesForPlayerArray();
 
-    /** Used to initialize the MOVE_EFFECT_ARRAY. */
-    private static byte[] initializeMoveEffectArray() {
-        final byte[] result = new byte[256 * 256 * 8];
-        // result MUST BE COMPUTED!
-        return result;
+    /** Used to initialize the BITROW_CHANGES_FOR_PLAYER_ARRAY. */
+    private static byte[] initializeBitrowChangesForPlayerArray() {
+
+        final byte[] arrayResult = new byte[256 * 256 * 8];
+        for (int playerRowIndex = 0; playerRowIndex < 256; playerRowIndex++) {
+            for (int opponentRowIndex = 0; opponentRowIndex < 256; opponentRowIndex++) {
+                final int notEmptyRowIndex = playerRowIndex | opponentRowIndex;
+                final int emptyRowIndex = ~(notEmptyRowIndex) & BYTE_MASK_FOR_INT;
+                for (int movePosition = 0; movePosition < 8; movePosition++) {
+                    final int moveIndex = 1 << movePosition;
+                    final int arrayResultIndex = playerRowIndex | (opponentRowIndex << 8) | (movePosition << 16);
+
+                    int playerRowAfterMoveIndex;
+
+                    /**
+                     * It checks two conditions that cannot happen because are illegal.
+                     * First player and opponent cannot have overlapping discs.
+                     * Second the move cannot overlap existing discs.
+                     * When either one of the two condition applys the result is set being equal to the player row index.
+                     * Otherwise when black and white do not overlap, and the move is on an empy square it procede with the else block.
+                     **/
+                    if (((playerRowIndex & opponentRowIndex) != 0) || ((moveIndex & notEmptyRowIndex) != 0)) {
+                        playerRowAfterMoveIndex = playerRowIndex;
+                    } else {
+
+                        /** The square of the move is added to the player configuration of the row after the move. */
+                        playerRowAfterMoveIndex = playerRowIndex | moveIndex;
+
+                        /**
+                         * The potential bracketing disc on the right is the first player disc found moving
+                         * on the left starting from the square of the move.
+                         */
+                        final int potentialBracketingDiscOnTheLeftIndex = highestSquareInRow(playerRowIndex & (moveIndex - 1));
+
+                        /**
+                         * The left rank is the sequence of adiacent discs that start from the bracketing disc and end
+                         * with the move disc. */
+                        final int leftRankIndex = fillInBetween(potentialBracketingDiscOnTheLeftIndex | moveIndex);
+
+                        /**
+                         * If the rank contains empy squares, this is a fake flip, and it doesn't do anything.
+                         * If the rank is full, it cannot be full of anything different than opponent discs, so
+                         * it adds the discs to the after move player configuration.
+                         */
+                        if ((leftRankIndex & emptyRowIndex) == 0) {
+                            playerRowAfterMoveIndex |= leftRankIndex;
+                        }
+
+                        /** Here it does the same computed on the left also on the right. */
+                        final int potentialBracketingDiscOnTheRightIndex = lowestSquareInRow(playerRowIndex & ~(moveIndex - 1));
+                        final int rightRankIndex = fillInBetween(potentialBracketingDiscOnTheRightIndex | moveIndex);
+                        if ((rightRankIndex & emptyRowIndex) == 0) {
+                            playerRowAfterMoveIndex |= rightRankIndex;
+                        }
+
+                        /**
+                         * It checks that the after move configuration is different from the starting one for the player.
+                         * This case can happen because it never checked that the bracketing piece was not adjacent to the move disc,
+                         * on such a case, on both side, the move is illegal, and it is recorded setting
+                         * the result configuation appropriately.
+                         */
+                        if (playerRowAfterMoveIndex == (playerRowIndex | moveIndex)) {
+                            playerRowAfterMoveIndex = playerRowIndex;
+                        }
+                    }
+
+                    /** Asignes the computed player row index to the proper array position. */
+                    arrayResult[arrayResultIndex] = (byte) playerRowAfterMoveIndex;
+
+                }
+            }
+        }
+
+        return arrayResult;
     }
 
     /**
@@ -716,7 +898,7 @@ public final class BitBoard extends AbstractBoard {
 
         /** The loop modifies likelyMoves removing the less significative bit set on each iteration. */
         for (long likelyMoves = generateLikelyMoves(player); likelyMoves != 0; likelyMoves &= likelyMoves - 1) {
-            final int iSquare = squareIntValue(lowerSquareInBoard(likelyMoves));
+            final int iSquare = squareIntValue(lowestSquareInBoard(likelyMoves));
             final Square square = Square.values()[iSquare];
             lm.add(square);
         }

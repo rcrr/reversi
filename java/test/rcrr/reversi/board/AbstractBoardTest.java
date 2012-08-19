@@ -708,6 +708,30 @@ public class AbstractBoardTest {
     }
 
     /**
+     * Tests the {@code legalMoves(Player)} method.
+     * <p>
+     * The test runs the following assertions:
+     */
+    @Test
+    public final void testIsLegal_moreCases() {
+
+        final Board tc0 = new BoardBuilder()
+        .withSquaresLiteral(2, 0, 1, 2, 1, 0, 0, 1,
+                            0, 2, 0, 0, 0, 0, 1, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
+        .build();
+
+        assertThat("Board tc0, move G1, is NOT legal.",
+                   tc0.isLegal(Square.G1, Player.BLACK),
+                   is(false));
+    }
+
+    /**
      * Tests the {@code makeMove(Square, Player)} method when parameter
      * {@code move} is {@code null} and the player has legal moves.
      * <p>
