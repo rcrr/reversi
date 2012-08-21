@@ -646,7 +646,7 @@ public final class BitBoard extends AbstractBoard {
      * @return       true if the move is legal, otherwise false
      * @throws NullPointerException if parameter {@code move} or {@code player} is null
      */
-    public boolean isLegal0(final Square move, final Player player) {
+    public boolean isLegal_(final Square move, final Player player) {
         if (move == null) {
             throw new NullPointerException("Parameter move must be not null.");
         }
@@ -665,20 +665,36 @@ public final class BitBoard extends AbstractBoard {
         return false;
     }
 
+    /**
+     * A few more optimizations are possible:
+     * Precompute the shiftDistance value, remake signedShift using a shift.
+     * Eliminate the check for diagonals shorter than 3 pieces.
+     * Verify that the square is empty. !!!! Eureka! -15%
+     */
     public boolean isLegal(final Square move, final Player player) {
-        final boolean result0 = isLegal0(move, player);
-        final boolean result1 = isLegal1(move, player);
-        if (result0 != result1) {
-            throw new RuntimeException("isLegal FAILURE!");
+        if (move == null) {
+            throw new NullPointerException("Parameter move must be not null.");
         }
-        return result0;
-    }
+        if (player == null) {
+            throw new NullPointerException("Parameter player must be not null.");
+        }
 
-    public boolean isLegal1(final Square move, final Player player) {
+        /** Are almost the same. */
+        //final long bitmove = bitMove(move);
+        final long bitmove = 1L << move.ordinal();
+        if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
+            return false;
+        }
+
         final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
 
+        /** The two alternative seams to be equal for performances. The second is much more clear. */
         final int x = move.ordinal() % 8;
         final int y = move.ordinal() / 8;
+        /*
+        final int x = move.column().ordinal();
+        final int y = move.row().ordinal();
+        */
 
         final long playerBitboard;
         final long opponentBitboard;
@@ -694,21 +710,21 @@ public final class BitBoard extends AbstractBoard {
         int playerBitrow;
         int opponentBitrow;
 
-        /** Check for capture on row. */
+        /** Check for flipping on row. */
         playerBitrow = (int)(playerBitboard >>> (8 * y)) & 0xFF;
         opponentBitrow = (int)(opponentBitboard >>> (8 * y)) & 0xFF;
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, x) != playerBitrow) {
             return true;
         }
 
-        /** Check for capture on column. */
+        /** Check for flipping on column. */
         playerBitrow = trasformColumnAInRow0(playerBitboard >>> x);
         opponentBitrow = trasformColumnAInRow0(opponentBitboard >>> x);
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, y) != playerBitrow) {
             return true;
         }
 
-        /** Check for capture on diagonal having direction H1-A8. */
+        /** Check for flipping on diagonal having direction H1-A8. */
         byte shiftDistance = (byte)((x - y) << 3);
         playerBitrow = trasformDiagonalH1A8InRow0(signedLeftShift(playerBitboard, shiftDistance));
         opponentBitrow = trasformDiagonalH1A8InRow0(signedLeftShift(opponentBitboard, shiftDistance));
@@ -716,7 +732,7 @@ public final class BitBoard extends AbstractBoard {
             return true;
         }
 
-        /** Check for capture on diagonal having direction A1-H8. */
+        /** Check for flipping on diagonal having direction A1-H8. */
         shiftDistance = (byte)((7 - x - y) << 3);
         playerBitrow = trasformDiagonalA1H8InRow0(signedLeftShift(playerBitboard, shiftDistance));
         opponentBitrow = trasformDiagonalA1H8InRow0(signedLeftShift(opponentBitboard, shiftDistance));
@@ -892,25 +908,29 @@ public final class BitBoard extends AbstractBoard {
     @Override
     public List<Square> legalMoves(final Player player) {
 
-        final List<Square> legalMoves = super.legalMoves(player); 
+        //final List<Square> legalMoves = super.legalMoves(player); 
 
-        final EnumSet<Square> lm = EnumSet.noneOf(Square.class);
-
-        /** The loop modifies likelyMoves removing the less significative bit set on each iteration. */
-        for (long likelyMoves = generateLikelyMoves(player); likelyMoves != 0; likelyMoves &= likelyMoves - 1) {
+        
+        if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
+        final List<Square> legalMoves = new ArrayList<Square>(); 
+        // The loop modifies likelyMoves removing the less significative bit set on each iteration.
+        for (long likelyMoves = likelyMoves(player); likelyMoves != 0; likelyMoves &= likelyMoves - 1) {
             final int iSquare = squareIntValue(lowestSquareInBoard(likelyMoves));
             final Square square = Square.values()[iSquare];
-            lm.add(square);
+            if (isLegal(square, player)) {
+                legalMoves.add(square);
+            }
         }
-
-        if (!lm.containsAll(legalMoves)) { throw new RuntimeException("Error: legalMoves=" + legalMoves + ", lm=" + lm); }
+        
 
         return legalMoves;
     }
 
-    public long generateLikelyMoves(final Player player) {
-        final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
-        final int intOpponent = (intPlayer == BLACK) ? WHITE : BLACK;
+    public long likelyMoves(final Player player) {
+        final int intPlayer = player.ordinal(); 
+        final int intOpponent = intPlayer ^ WHITE;
+        //final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
+        //final int intOpponent = (intPlayer == BLACK) ? WHITE : BLACK;
         long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
         return neighbors(bitboard[intOpponent]) & empties;
     }
