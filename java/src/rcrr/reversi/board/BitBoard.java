@@ -90,6 +90,10 @@ public final class BitBoard extends AbstractBoard {
      */
     private static final int[] FILE_LENGTH_ARRAY = new int[FILE_SIZE];
 
+    private static final long CORE_SQUARES                = 0x007E7E7E7E7E7E00L;
+    private static final long EDGES_SQUARES               = 0xFF818181818181FFL;
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
 
     /**
      * It MUST BE TURNED INTO PRIVATE .....
@@ -624,7 +628,7 @@ public final class BitBoard extends AbstractBoard {
      */
     public SquareState get(final Square square) {
         if (square == null) { return SquareState.OUTER; }
-        final long bitsquare = bitMove(square);
+        final long bitsquare = 1L << square.ordinal();
         if ((bitsquare & bitboard[BLACK]) != 0) {
             return SquareState.BLACK;
         } else if ((bitsquare & bitboard[WHITE]) != 0) {
@@ -653,7 +657,7 @@ public final class BitBoard extends AbstractBoard {
         if (player == null) {
             throw new NullPointerException("Parameter player must be not null.");
         }
-        final long bitmove = bitMove(move);
+        final long bitmove = 1L << move.ordinal();
         if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
             return false;
         }
@@ -931,8 +935,10 @@ public final class BitBoard extends AbstractBoard {
         final int intOpponent = intPlayer ^ WHITE;
         //final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
         //final int intOpponent = (intPlayer == BLACK) ? WHITE : BLACK;
-        long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
+        final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
+        // Case 1 is simple. Case 2 removes the likely moves that are on the "second crown" and are neighbor of only edge squares.
         return neighbors(bitboard[intOpponent]) & empties;
+        //return ((neighbors(bitboard[intOpponent]) & EDGES_SQUARES) | neighbors(bitboard[intOpponent] & CORE_SQUARES) & empties);
     }
 
     private long neighbors(final long squares) {
@@ -949,34 +955,29 @@ public final class BitBoard extends AbstractBoard {
         assert (player != null) : "Argument player must be not null.";
         long bracketing = 0L;
         long neighbor = neighbor(move, dir);
-        final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
-        final int intOpponent = (intPlayer == BLACK) ?  WHITE : BLACK;
+        final int intPlayer = player.ordinal(); 
+        final int intOpponent = intPlayer ^ WHITE;
         if ((neighbor & bitboard[intOpponent]) != 0L) {
             long next = neighbor(neighbor, dir);
             if (next != 0L) {
-                bracketing = findBracketingPiece(next, player, dir);
+                bracketing = findBracketingPiece(next, intPlayer, dir);
             }
         }
         return bracketing;
     }
 
-    private long findBracketingPiece(final long square, final Player player, final int dir) {
-        assert (player != null) : "Argument player must be not null.";
-        final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
-        final int intOpponent = (intPlayer == BLACK) ? WHITE : BLACK;
+    private long findBracketingPiece(final long square, final int intPlayer, final int dir) {
+        final int intOpponent = intPlayer ^ WHITE;
         if ((square & bitboard[intPlayer]) != 0L) {
             return square;
         } else if ((square & bitboard[intOpponent]) != 0L) {
             long next = neighbor(square, dir);
             if (next != 0L) {
-                return findBracketingPiece(next, player, dir);
+                return findBracketingPiece(next, intPlayer, dir);
             }
         }
         return 0L;
     }
-
-    private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
-    private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
 
     static long neighbor(final long square, final int dir) {
         switch (dir) {
@@ -1033,11 +1034,12 @@ public final class BitBoard extends AbstractBoard {
                                                + player + "> is illegal.");
         }
         final long[] newbitboard = bitboard.clone();
-        final int p = player.ordinal();
-        final int o = player.opponent().ordinal(); // switch between BLACK and WHITE should be optimized?
-        final long bitmove = bitMove(move);
-        newbitboard[player.ordinal()] |= bitMove(move); // set the move
-        for (int dir : FLIPPING_DIRECTIONS[move.ordinal()]) {
+        final int p = player.ordinal(); 
+        final int o = p ^ WHITE;
+        final int m = move.ordinal();
+        final long bitmove = 1L << m;
+        newbitboard[p] |= bitmove; // set the move
+        for (int dir : FLIPPING_DIRECTIONS[m]) {
             long bracketer = wouldFlip(bitmove, player, dir);
             if (bracketer != 0L) {
                 for (long c = neighbor(bitmove, dir); true; c = neighbor(c, dir)) {

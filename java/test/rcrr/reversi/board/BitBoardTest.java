@@ -73,6 +73,21 @@ public class BitBoardTest extends AbstractBoardTest {
 
     }
 
+
+    @Test
+    public final void testValueOf_withBitboard() {
+
+        final long core  = 0x007E7E7E7E7E7E00L;
+        final long edges = 0xFF818181818181FFL;
+
+        final long[] bitboard = {core, edges}; 
+
+        //System.out.println(BitBoard.valueOf(bitboard).printBoard());
+
+        assertTrue(true);
+
+    }
+
     @Test
     public final void testIsLegal() {
 
