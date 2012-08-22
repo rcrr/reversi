@@ -47,7 +47,7 @@ public class ReversiRoundRobinPerf {
     public static final int PLY = 4;
 
     /** The number of pair games applyed. */
-    public static final int N_PAIRS = 10;
+    public static final int N_PAIRS = 30;
 
     /** Class constructor. */
     public ReversiRoundRobinPerf() { }
