@@ -35,6 +35,8 @@ import static org.junit.Assert.assertTrue;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
+import rcrr.reversi.board.BitBoard;
+
 /**
  * Test Suite for reversi general performances.
  */
@@ -90,6 +92,8 @@ public class ReversiRoundRobinPerf {
         ReversiTest.write(Reversi.postProcessRoundRobinResults(results),
                           "ReversiRoundRobinPerf",
                           "Method=testRoundRobin");
+
+        System.out.println("BitBoard.printLog() = " + BitBoard.printLog());
 
         assertTrue("The test must run without exceptions.", true);
 
