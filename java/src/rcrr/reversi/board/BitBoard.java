@@ -45,6 +45,11 @@ import java.util.EnumSet;
  */
 public final class BitBoard extends AbstractBoard {
 
+    private static final boolean LOG = true;
+    private static int callsTolegalMoves = 0;
+    private static int callsToMakeMove = 0;
+    private static int callsToConstructor = 0;
+
     private static final int BLACK = 0;
     private static final int WHITE = 1;
 
@@ -94,6 +99,11 @@ public final class BitBoard extends AbstractBoard {
     private static final long EDGES_SQUARES               = 0xFF818181818181FFL;
     private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
     private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
+
+    public static String printLog() {
+        String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
+        return ret;
+    }
 
     /**
      * It MUST BE TURNED INTO PRIVATE .....
@@ -615,6 +625,7 @@ public final class BitBoard extends AbstractBoard {
         assert (bitboard.length == 2) : "Parameter bitboard must have a lenght equal to two.";
         assert ((bitboard[0] & bitboard[1]) == 0L)
             : "Parameter bitboard cannot have black and white discs overlapping.";
+        if (LOG) callsToConstructor++;
         this.bitboard = bitboard.clone();
     }
 
@@ -912,6 +923,8 @@ public final class BitBoard extends AbstractBoard {
     @Override
     public List<Square> legalMoves(final Player player) {
 
+        if (LOG) callsTolegalMoves++;
+
         //final List<Square> legalMoves = super.legalMoves(player); 
 
         
@@ -950,6 +963,23 @@ public final class BitBoard extends AbstractBoard {
         return neighbors;
     }
 
+    private long legalMoves(final int player) {
+        long lm = 0L;
+        int opponent = player ^ WHITE;
+        long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
+
+        for (final int dir : DIRECTIONS) {
+            long wave = neighbor(empties, dir) & bitboard[opponent];
+            for (int shift = 2; shift < 8; shift++) {
+                wave = neighbor(wave, dir);
+                lm |= neighbor((wave & bitboard[player]), -dir, shift);
+                wave &= bitboard[opponent];
+            }
+        }
+
+        return lm;
+    }
+
     private long wouldFlip(final long move, final Player player, final int dir) {
         assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set.";
         assert (player != null) : "Argument player must be not null.";
@@ -977,6 +1007,14 @@ public final class BitBoard extends AbstractBoard {
             }
         }
         return 0L;
+    }
+
+    static long neighbor(final long square, final int dir, final int amount) {
+        long result = square;
+        for (int i = 0; i < amount; i++) {
+            result = neighbor(result, dir);
+        }
+        return result;
     }
 
     static long neighbor(final long square, final int dir) {
@@ -1018,6 +1056,9 @@ public final class BitBoard extends AbstractBoard {
      *                                  by {@code player} is illegal
      */
     public Board makeMove(final Square move, final Player player) {
+
+        if (LOG) callsToMakeMove++;
+
         if (player == null) {
             throw new NullPointerException("Parameter player must be not null.");
         }
