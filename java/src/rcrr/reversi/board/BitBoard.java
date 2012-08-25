@@ -251,7 +251,7 @@ public final class BitBoard extends AbstractBoard {
     static final int COL_G = 6;
     static final int COL_H = 7;
 
-    static boolean squareBelongsToEdge(final int square, final int edge) {
+    private static boolean squareBelongsToEdge(final int square, final int edge) {
         assert (Arrays.binarySearch(EDGES, edge) >= 0) : "Argument edge must be contained in the EDGES array.";
         final int col = squareColumn(square);
         final int row = squareRow(square);

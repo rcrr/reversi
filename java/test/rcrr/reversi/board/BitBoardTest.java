@@ -108,30 +108,6 @@ public class BitBoardTest extends AbstractBoardTest {
     }
 
     @Test
-    public final void testSquareBelongsToEdge() {
-
-        assertThat("BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_N) is true.",
-                   BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_N),
-                   is(true));
-
-        assertThat("BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_W) is true.",
-                   BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_W),
-                   is(true));
-
-        assertThat("BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_S) is false.",
-                   BitBoard.squareBelongsToEdge(BitBoard.A1, BitBoard.EDGE_S),
-                   is(false));
-
-        assertThat("BitBoard.squareBelongsToEdge(BitBoard.H4, BitBoard.EDGE_S) is false.",
-                   BitBoard.squareBelongsToEdge(BitBoard.H4, BitBoard.EDGE_S),
-                   is(false));
-
-        assertThat("BitBoard.squareBelongsToEdge(BitBoard.H4, BitBoard.EDGE_E) is true.",
-                   BitBoard.squareBelongsToEdge(BitBoard.H4, BitBoard.EDGE_E),
-                   is(true));
-    }
-
-    @Test
     public final void testLongToString() {
 
         assertThat("BitBoard.longToString(1L) is 00000000.00000000.00000000.00000000.00000000.00000000.00000000.00000000.",
