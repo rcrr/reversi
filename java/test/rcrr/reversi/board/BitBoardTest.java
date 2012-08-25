@@ -64,15 +64,6 @@ public class BitBoardTest extends AbstractBoardTest {
         this.applicationWideBoardFactory = null;
     }
 
-    @Test
-    public final void testValueOf() {
-
-        assertThat("BitBoard.valueOf(BoardFixtures.EARLY_GAME_B_9_MOVES) is BoardFixtures.EARLY_GAME_B_9_MOVES .",
-                   BitBoard.valueOf(BoardFixtures.EARLY_GAME_B_9_MOVES),
-                   is(BoardFixtures.EARLY_GAME_B_9_MOVES));
-
-    }
-
 
     @Test
     public final void testValueOf_withBitboard() {

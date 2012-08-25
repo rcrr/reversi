@@ -339,23 +339,6 @@ public final class BitBoard extends AbstractBoard {
         return new BitBoard(BoardUtils.mapToBitboard(squares));
     }
 
-    static Board valueOf(final Board board) {
-        if (board == null) { throw new NullPointerException("Parameter board cannot be null."); }
-        int i = 0;
-        final long[] bitboard = new long[2];
-        for (final Square sq : Square.values()) {
-            long mask = 1L << i;
-            SquareState color = board.get(sq);
-            if (color == SquareState.BLACK) {
-                bitboard[0] |= mask;
-            } else if (color == SquareState.WHITE) {
-                bitboard[1] |= mask;
-            }
-            i++;
-        }
-        return new BitBoard(bitboard);
-    }
-
     static Board valueOf(final long[] bitboard) {
         return new BitBoard(bitboard);
     }
@@ -447,22 +430,14 @@ public final class BitBoard extends AbstractBoard {
             throw new NullPointerException("Parameter player must be not null.");
         }
 
-        /** Are almost the same. */
-        //final long bitmove = bitMove(move);
         final long bitmove = 1L << move.ordinal();
         if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
             return false;
         }
 
-        final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
-
-        /** The two alternative seams to be equal for performances. The second is much more clear. */
-        final int x = move.ordinal() % 8;
-        final int y = move.ordinal() / 8;
-        /*
-        final int x = move.column().ordinal();
-        final int y = move.row().ordinal();
-        */
+        final int intPlayer = player.ordinal(); 
+        final int column = move.column().ordinal();
+        final int row = move.row().ordinal();
 
         final long playerBitboard;
         final long opponentBitboard;
@@ -479,32 +454,32 @@ public final class BitBoard extends AbstractBoard {
         int opponentBitrow;
 
         /** Check for flipping on row. */
-        playerBitrow = (int)(playerBitboard >>> (8 * y)) & 0xFF;
-        opponentBitrow = (int)(opponentBitboard >>> (8 * y)) & 0xFF;
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, x) != playerBitrow) {
+        playerBitrow = (int)(playerBitboard >>> (8 * row)) & 0xFF;
+        opponentBitrow = (int)(opponentBitboard >>> (8 * row)) & 0xFF;
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
 
         /** Check for flipping on column. */
-        playerBitrow = trasformColumnAInRow0(playerBitboard >>> x);
-        opponentBitrow = trasformColumnAInRow0(opponentBitboard >>> x);
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, y) != playerBitrow) {
+        playerBitrow = trasformColumnAInRow0(playerBitboard >>> column);
+        opponentBitrow = trasformColumnAInRow0(opponentBitboard >>> column);
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, row) != playerBitrow) {
             return true;
         }
 
         /** Check for flipping on diagonal having direction H1-A8. */
-        byte shiftDistance = (byte)((x - y) << 3);
+        byte shiftDistance = (byte)((column - row) << 3);
         playerBitrow = trasformDiagonalH1A8InRow0(signedLeftShift(playerBitboard, shiftDistance));
         opponentBitrow = trasformDiagonalH1A8InRow0(signedLeftShift(opponentBitboard, shiftDistance));
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, x) != playerBitrow) {
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
 
         /** Check for flipping on diagonal having direction A1-H8. */
-        shiftDistance = (byte)((7 - x - y) << 3);
+        shiftDistance = (byte)((7 - column - row) << 3);
         playerBitrow = trasformDiagonalA1H8InRow0(signedLeftShift(playerBitboard, shiftDistance));
         opponentBitrow = trasformDiagonalA1H8InRow0(signedLeftShift(opponentBitboard, shiftDistance));
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, x) != playerBitrow) {
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
 
