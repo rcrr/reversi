@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.EnumSet;
 
 /**
  * A board concrete implementation.
@@ -57,10 +56,6 @@ public final class BitBoard extends AbstractBoard {
 
     private static final int SQUARE_SIZE = 64;
 
-    private static final long[] SQUARE_LONG_VALUE = new long[SQUARE_SIZE];
-
-    private static final int[] FILE_INDEX_COEFFICIENT = new int[FILE_MAX_LENGTH];
-
     static final int DIR_NW = -9;
     static final int DIR_NN = -8;
     static final int DIR_NE = -7;
@@ -74,27 +69,6 @@ public final class BitBoard extends AbstractBoard {
     static final int[] DIRECTIONS = new int [] {DIR_NW, DIR_NN, DIR_NE, DIR_WW, DIR_EE, DIR_SW, DIR_SS, DIR_SE};
     static final int[][] FLIPPING_DIRECTIONS = new int[SQUARE_SIZE][];
 
-    /**
-     * It is the number of files that are managed.
-     * There are 8 rows, 8 columns, 4 diagonals having 3 cels, 4 ones having 4 cels,
-     * another four ones having respectively 4, 6, and 7 cels. Finally there are the two
-     * main diagonals. Summing up 8 + 8 + 4 * 5 + 2 = 38.
-     */
-    private static final int FILE_SIZE = 38;
-
-    /**
-     * The array contains the mask for each file. Values are assigned in the static class block.
-     * Values are assigned as a long value. In the same line as a comment there is the binary representation
-     * that would require JDK 1.7 or higher.
-     * The long value is calculated with the help of a calc sheet mantained in the file: Reversi-BITBOARD-design.ods
-     */
-    private static final long[] FILE_MASK_ARRAY = new long[FILE_SIZE];
-
-    /**
-     * The array contains the length of each file (the number of squares).
-     */
-    private static final int[] FILE_LENGTH_ARRAY = new int[FILE_SIZE];
-
     private static final long CORE_SQUARES                = 0x007E7E7E7E7E7E00L;
     private static final long EDGES_SQUARES               = 0xFF818181818181FFL;
     private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
@@ -103,67 +77,6 @@ public final class BitBoard extends AbstractBoard {
     public static String printLog() {
         String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
         return ret;
-    }
-
-    /**
-     * It MUST BE TURNED INTO PRIVATE .....
-     */
-    public static int index(final byte[] file) {
-        assert (file != null) : "Parameter file cannot be null.";
-        assert (file.length == 2) : "Parameter file must have a lenght equal to two.";
-        assert ((file[0] & file[1]) == (byte) 0) : "Parameter file cannot have black and white discs overlapping.";
-
-        int index = 0;
-        for (int i = 0; i < FILE_MAX_LENGTH; i++) {
-            int isBlack = (file[BLACK] >>> i) & 1;
-            int isWhite = (file[WHITE] >>> i) & 1;
-            index += (isBlack + 2 * isWhite) * FILE_INDEX_COEFFICIENT[i];
-        }
-        return index;
-    }
-
-    /**
-     * It MUST BE TURNED INTO PRIVATE .....
-     */
-    public byte[] file(final int index) {
-        assert (index >= 0 || index < FILE_SIZE) : "Parameter index must be in the range 0...FILE_SIZE.";
-        byte[] file = new byte[2];
-        long mask = FILE_MASK_ARRAY[index];
-        int j = 0;
-        file_completed:
-        for (int i = 0; i < SQUARE_SIZE; i++) {
-            if (j > 7) { break file_completed; }
-            long bit = 1L << i;
-            byte pointInFile = (byte) (1 << j);
-            if ((mask & bit) != 0L) {
-                if ((bitboard[0] & bit) != 0L) { file[0] |= pointInFile; }
-                if ((bitboard[1] & bit) != 0L) { file[1] |= pointInFile; }
-                j++;
-            }
-        }
-        return file;
-    }
-
-    public static String fileToString(final byte[] file) {
-        assert (file != null) : "Parameter file cannot be null.";
-        assert (file.length == 2) : "Parameter file must have a lenght equal to two.";
-        assert ((file[0] & file[1]) == (byte) 0) : "Parameter file cannot have black and white discs overlapping.";
-
-        final StringBuffer sb = new StringBuffer();
-        sb.append("[ ");
-        for (int i = 0; i < FILE_MAX_LENGTH; i++) {
-            byte pointInFile = (byte) (1 << i);
-            if ((file[0] & pointInFile) != 0) {
-                sb.append('@');
-            } else if ((file[1] & pointInFile) != 0) {
-                sb.append('O');
-            } else {
-                sb.append('.');
-            }
-            sb.append(' ');
-        }
-        sb.append(']');
-        return sb.toString();
     }
 
     /** Square index literal. */
@@ -239,73 +152,6 @@ public final class BitBoard extends AbstractBoard {
     static final int G8 = 62;
     static final int H8 = 63;
 
-    /** Rows are numbered from 1 to 8. */
-    static final int FIRST_ROW   = 0;
-    static final int SECOND_ROW  = 1;
-    static final int THIRD_ROW   = 2;
-    static final int FOURTH_ROW  = 3;
-    static final int FIFTH_ROW   = 4;
-    static final int SIXTH_ROW   = 5;
-    static final int SEVENTH_ROW = 6;
-    static final int EIGHTH_ROW  = 7;
-
-    /** Columns are numbered from A to H. */
-    static final int FIRST_COLUMN   =  8;
-    static final int SECOND_COLUMN  =  9;
-    static final int THIRD_COLUMN   = 10;
-    static final int FOURTH_COLUMN  = 11;
-    static final int FIFTH_COLUMN   = 12;
-    static final int SIXTH_COLUMN   = 13;
-    static final int SEVENTH_COLUMN = 14;
-    static final int EIGHTH_COLUMN  = 15;
-
-    /** Diagonals are identified by first and last squares. */
-    /** Diagonals having three cels. */
-    static final int A3_C1_DIAG = 16;
-    static final int F1_H3_DIAG = 17;
-    static final int H6_F8_DIAG = 18;
-    static final int C8_A6_DIAG = 19;
-
-    /** Diagonals having four cels. */
-    static final int A4_D1_DIAG = 20;
-    static final int E1_H4_DIAG = 21;
-    static final int H5_E8_DIAG = 22;
-    static final int D8_A5_DIAG = 23;
-
-    /** Diagonals having five cels. */
-    static final int A5_E1_DIAG = 24;
-    static final int D1_H5_DIAG = 25;
-    static final int H4_D8_DIAG = 26;
-    static final int E8_A4_DIAG = 27;
-
-    /** Diagonals having six cels. */
-    static final int A6_F1_DIAG = 28;
-    static final int C1_H6_DIAG = 29;
-    static final int H3_C8_DIAG = 30;
-    static final int F8_A3_DIAG = 31;
-
-    /** Diagonals having seven cels. */
-    static final int A7_G1_DIAG = 32;
-    static final int B1_H7_DIAG = 33;
-    static final int H2_B8_DIAG = 34;
-    static final int G8_A2_DIAG = 35;
-
-    /** Diagonals having eight cels. */
-    static final int A8_H1_DIAG = 36;
-    static final int A1_H8_DIAG = 37;
-
-    static long fileMaskArray(final int file) {
-        if (file < 0 || file > FILE_SIZE) { throw new IllegalArgumentException("Parameter file out of range."); }
-        return FILE_MASK_ARRAY[file];
-    }
-
-    static long squareLongValue(final int square) {
-        if (square < 0 || square > SQUARE_SIZE) {
-            throw new IllegalArgumentException("Parameter square out of range.");
-        }
-        return SQUARE_LONG_VALUE[square];
-    }
-
     /**
      * Returns an int value corresponding to the ordinal position of the only bit set in the {@code square} parameter.
      * <p>
@@ -380,37 +226,6 @@ public final class BitBoard extends AbstractBoard {
         return sb.toString();
     }
 
-    static boolean hasDuplicates(final int ... numbers) {
-        boolean result = false;
-        for (int i = 0; i < numbers.length; i++) {
-            for (int j = i + 1; j < numbers.length; j++) {
-                if (numbers[i] == numbers[j]) { result = true; }
-            }
-        }
-        return result;
-    }
-
-    static long sumOfSquareLongValue(final int ... squares) {
-        if (hasDuplicates(squares)) {
-            throw new IllegalArgumentException("Parameter squares has duplicates.");
-        }
-        long total = 0L;
-        for (int i = 0; i < squares.length; i++) {
-            final int square = squares[i];
-            if (square < 0 || square > SQUARE_SIZE) {
-                throw new IllegalArgumentException("Parameter squares has a wrong member: " + square);
-            }
-            total += SQUARE_LONG_VALUE[square];
-        }
-        return total;
-    }
-
-    private static final long[] BIT_MOVE = new long[SQUARE_SIZE];
-
-    static long bitMove(final Square move) {
-        return BIT_MOVE[move.ordinal()];
-    }
-
     static final int EDGE_N = 0;
     static final int EDGE_E = 1;
     static final int EDGE_S = 2;
@@ -470,11 +285,11 @@ public final class BitBoard extends AbstractBoard {
         return array;
     }
 
-    static int squareRow(final int square) {
+    private static int squareRow(final int square) {
         return square / FILE_MAX_LENGTH;
     }
 
-    static int squareColumn(final int square) {
+    private static int squareColumn(final int square) {
         return square % FILE_MAX_LENGTH;
     }
 
@@ -503,68 +318,6 @@ public final class BitBoard extends AbstractBoard {
                 directions.remove(Integer.valueOf(DIR_SW));
             }
             FLIPPING_DIRECTIONS[sq] = asArray(directions);
-        }
-
-        for (int i = 0; i < SQUARE_SIZE; i++) {
-            BIT_MOVE[i] = 1L << i;
-        }
-
-        for (int i = 0; i < FILE_MAX_LENGTH; i++) {
-            FILE_INDEX_COEFFICIENT[i] = BigInteger.valueOf(3).pow(i).intValue();
-        }
-
-        for (int i = 0; i < SQUARE_SIZE; i++) {
-            SQUARE_LONG_VALUE[i] = BigInteger.valueOf(2).pow(i).longValue();
-        }
-
-        FILE_MASK_ARRAY[FIRST_ROW]   = sumOfSquareLongValue(A1, B1, C1, D1, E1, F1, G1, H1);
-        FILE_MASK_ARRAY[SECOND_ROW]  = sumOfSquareLongValue(A2, B2, C2, D2, E2, F2, G2, H2);
-        FILE_MASK_ARRAY[THIRD_ROW]   = sumOfSquareLongValue(A3, B3, C3, D3, E3, F3, G3, H3);
-        FILE_MASK_ARRAY[FOURTH_ROW]  = sumOfSquareLongValue(A4, B4, C4, D4, E4, F4, G4, H4);
-        FILE_MASK_ARRAY[FIFTH_ROW]   = sumOfSquareLongValue(A5, B5, C5, D5, E5, F5, G5, H5);
-        FILE_MASK_ARRAY[SIXTH_ROW]   = sumOfSquareLongValue(A6, B6, C6, D6, E6, F6, G6, H6);
-        FILE_MASK_ARRAY[SEVENTH_ROW] = sumOfSquareLongValue(A7, B7, C7, D7, E7, F7, G7, H7);
-        FILE_MASK_ARRAY[EIGHTH_ROW]  = sumOfSquareLongValue(A8, B8, C8, D8, E8, F8, G8, H8);
-
-        FILE_MASK_ARRAY[FIRST_COLUMN]   = sumOfSquareLongValue(A1, A2, A3, A4, A5, A6, A7, A8);
-        FILE_MASK_ARRAY[SECOND_COLUMN]  = sumOfSquareLongValue(B1, B2, B3, B4, B5, B6, B7, B8);
-        FILE_MASK_ARRAY[THIRD_COLUMN]   = sumOfSquareLongValue(C1, C2, C3, C4, C5, C6, C7, C8);
-        FILE_MASK_ARRAY[FOURTH_COLUMN]  = sumOfSquareLongValue(D1, D2, D3, D4, D5, D6, D7, D8);
-        FILE_MASK_ARRAY[FIFTH_COLUMN]   = sumOfSquareLongValue(E1, E2, E3, E4, E5, E6, E7, E8);
-        FILE_MASK_ARRAY[SIXTH_COLUMN]   = sumOfSquareLongValue(F1, F2, F3, F4, F5, F6, F7, F8);
-        FILE_MASK_ARRAY[SEVENTH_COLUMN] = sumOfSquareLongValue(G1, G2, G3, G4, G5, G6, G7, G8);
-        FILE_MASK_ARRAY[EIGHTH_COLUMN]  = sumOfSquareLongValue(H1, H2, H3, H4, H5, H6, H7, H8);
-
-        FILE_MASK_ARRAY[A3_C1_DIAG] = sumOfSquareLongValue(A3, B2, C1);
-        FILE_MASK_ARRAY[F1_H3_DIAG] = sumOfSquareLongValue(F1, G2, H3);
-        FILE_MASK_ARRAY[H6_F8_DIAG] = sumOfSquareLongValue(H6, G7, F8);
-        FILE_MASK_ARRAY[C8_A6_DIAG] = sumOfSquareLongValue(C8, B7, A6);
-
-        FILE_MASK_ARRAY[A4_D1_DIAG] = sumOfSquareLongValue(A4, B3, C2, D1);
-        FILE_MASK_ARRAY[E1_H4_DIAG] = sumOfSquareLongValue(E1, F2, G3, H4);
-        FILE_MASK_ARRAY[H5_E8_DIAG] = sumOfSquareLongValue(H5, G6, F7, E8);
-        FILE_MASK_ARRAY[D8_A5_DIAG] = sumOfSquareLongValue(D8, C7, B6, A5);
-
-        FILE_MASK_ARRAY[A5_E1_DIAG] = sumOfSquareLongValue(A5, B4, C3, D2, E1);
-        FILE_MASK_ARRAY[D1_H5_DIAG] = sumOfSquareLongValue(D1, E2, F3, G4, H5);
-        FILE_MASK_ARRAY[H4_D8_DIAG] = sumOfSquareLongValue(H4, G5, F6, E7, D8);
-        FILE_MASK_ARRAY[E8_A4_DIAG] = sumOfSquareLongValue(E8, D7, C6, B5, A4);
-
-        FILE_MASK_ARRAY[A6_F1_DIAG] = sumOfSquareLongValue(A6, B5, C4, D3, E2, F1);
-        FILE_MASK_ARRAY[C1_H6_DIAG] = sumOfSquareLongValue(C1, D2, E3, F4, G5, H6);
-        FILE_MASK_ARRAY[H3_C8_DIAG] = sumOfSquareLongValue(H3, G4, F5, E6, D7, C8);
-        FILE_MASK_ARRAY[F8_A3_DIAG] = sumOfSquareLongValue(F8, E7, D6, C5, B4, A3);
-
-        FILE_MASK_ARRAY[A7_G1_DIAG] = sumOfSquareLongValue(A7, B6, C5, D4, E3, F2, G1);
-        FILE_MASK_ARRAY[B1_H7_DIAG] = sumOfSquareLongValue(B1, C2, D3, E4, F5, G6, H7);
-        FILE_MASK_ARRAY[H2_B8_DIAG] = sumOfSquareLongValue(H2, G3, F4, E5, D6, C7, B8);
-        FILE_MASK_ARRAY[G8_A2_DIAG] = sumOfSquareLongValue(G8, F7, E6, D5, C4, B3, A2);
-
-        FILE_MASK_ARRAY[A8_H1_DIAG] = sumOfSquareLongValue(A8, B7, C6, D5, E4, F3, G2, H1);
-        FILE_MASK_ARRAY[A1_H8_DIAG] = sumOfSquareLongValue(A1, B2, C3, D4, E5, F6, G7, H8);
-
-        for (int i = 0; i < FILE_SIZE; i++) {
-            FILE_LENGTH_ARRAY[i] = Long.bitCount(FILE_MASK_ARRAY[i]);
         }
 
     }
@@ -964,8 +717,6 @@ public final class BitBoard extends AbstractBoard {
     public long likelyMoves(final Player player) {
         final int intPlayer = player.ordinal(); 
         final int intOpponent = intPlayer ^ WHITE;
-        //final int intPlayer = (player == Player.BLACK) ? BLACK : WHITE;
-        //final int intOpponent = (intPlayer == BLACK) ? WHITE : BLACK;
         final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
         // Case 1 is simple. Case 2 removes the likely moves that are on the "second crown" and are neighbor of only edge squares.
         return neighbors(bitboard[intOpponent]) & empties;
