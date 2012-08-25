@@ -927,7 +927,6 @@ public final class BitBoard extends AbstractBoard {
 
         //final List<Square> legalMoves = super.legalMoves(player); 
 
-        
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
         final List<Square> legalMoves = new ArrayList<Square>(); 
         // The loop modifies likelyMoves removing the less significative bit set on each iteration.
@@ -939,6 +938,25 @@ public final class BitBoard extends AbstractBoard {
             }
         }
         
+        /*
+        final long lm = legalMoves(player.ordinal());
+
+        final List<Square> lmSquares = new ArrayList<Square>();
+
+        long lmEroding = lm;
+        while (lmEroding != 0L) { 
+            final int movePosition = BitWorks.bitscanLS1B(lmEroding);
+            final Square move = Square.values()[movePosition];
+            lmSquares.add(move);
+            lmEroding &= ~(1L << movePosition);
+        }
+        */
+
+        /*
+        if (!legalMoves.equals(lmSquares)) {
+            System.out.println("legalMoves=" + legalMoves + ", lmSquares=" + lmSquares);
+        }
+        */
 
         return legalMoves;
     }
@@ -1080,8 +1098,8 @@ public final class BitBoard extends AbstractBoard {
         final int m = move.ordinal();
         final long bitmove = 1L << m;
         newbitboard[p] |= bitmove; // set the move
-        for (int dir : FLIPPING_DIRECTIONS[m]) {
-            long bracketer = wouldFlip(bitmove, player, dir);
+        for (final int dir : FLIPPING_DIRECTIONS[m]) {
+            final long bracketer = wouldFlip(bitmove, player, dir);
             if (bracketer != 0L) {
                 for (long c = neighbor(bitmove, dir); true; c = neighbor(c, dir)) {
                     if (c == bracketer) { break; }
