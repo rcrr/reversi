@@ -64,31 +64,31 @@ public final class BitWorks {
     };
 
     /**
-     * Returns the index of the least significant bit set in the {@code bitboard} parameter
+     * Returns the index of the least significant bit set in the {@code bitsequence} parameter
      * via de Bruijn's perfect hashing.
      * <p>
-     * Parameter {@code bitboard} must be different from {@code 0L}.
-     * If no bit set is found, meaning that {@code bitboard} is equal to {@code 0L}, {@code 63} is
+     * Parameter {@code bitsequence} must be different from {@code 0L}.
+     * If no bit set is found, meaning that {@code bitsequence} is equal to {@code 0L}, {@code 63} is
      * returned, that is clearly a wrong value.
      * <p>
      * See: <a href="https://chessprogramming.wikispaces.com/Bitscan#DeBruijnMultiplation" target="_blank">
      *      de Bruijn multiplication</a>
      *
-     * @param bitboard long value that is scanned
-     * @return         the index of the least significant bit set
+     * @param bitsequence long value that is scanned
+     * @return            the index of the least significant bit set
      *
      * @see BitWorks#bitscanLS1B0(long)
      */
-    public static int bitscanLS1B(final long bitboard) {
+    public static int bitscanLS1B(final long bitsequence) {
         /** mask isolates the least significant one bit (LS1B). */
-        final long mask = bitboard & (-bitboard);
+        final long mask = bitsequence & (-bitsequence);
         return DEBRUIJN_64_INDEX[(int) ((mask * DEBRUIJN_64_MAGIC_CONSTANT) >>> DEBRUIJN_64_SHIFT_VALUE)];
     }
 
     /**
-     * Returns the index of the least significant bit set in the {@code bitboard} parameter.
+     * Returns the index of the least significant bit set in the {@code bitsequence} parameter.
      * <p>
-     * When parameter {@code bitboard} is {@code 0L} it returns {@code 64}.
+     * When parameter {@code bitsequence} is {@code 0L} it returns {@code 64}.
      * <p>
      * It is here for documentation purposes. The performances of the linear access here proposed are poor,
      * the extimation of the iterations is 64/2 = 32 on avarage.
@@ -96,31 +96,31 @@ public final class BitWorks {
      * <pre>
      *   long mask = 1L;
      *   for (int i = 0; i < 64; i++) {
-     *       if ((bitboard & mask) != 0L) { return i; }
+     *       if ((bitsequence & mask) != 0L) { return i; }
      *       mask <<= 1;
      *   }
      *   return 64;
      * <pre>
      *
-     * @param bitboard long value that is scanned
-     * @return         the index of the least significant bit set
+     * @param bitsequence long value that is scanned
+     * @return            the index of the least significant bit set
      *
      * @see BitWorks#bitscanLS1B(long)
      */
-    public static int bitscanLS1B0(final long bitboard) {
+    public static int bitscanLS1B0(final long bitsequence) {
         long mask = 1L;
         for (int i = 0; i < 64; i++) {
-            if ((bitboard & mask) != 0L) { return i; }
+            if ((bitsequence & mask) != 0L) { return i; }
             mask <<= 1;
         }
         return 64;
     }
 
     /**
-     * Returns the index of the most significant bit set in the {@code bitboard} parameter.
+     * Returns the index of the most significant bit set in the {@code bitsequence} parameter.
      * <p>
-     * Parameter {@code bitboard} must be different from {@code 0L}.
-     * If no bit set is found, meaning that {@code bitboard} is equal to {@code 0L}, {@code 0} is
+     * Parameter {@code bitsequence} must be different from {@code 0L}.
+     * If no bit set is found, meaning that {@code bitsequence} is equal to {@code 0L}, {@code 0} is
      * returned, that is clearly a wrong value.
      * <p>
      * The proposed technique does three divide and conqueror steps, then makes a lookup in a table
@@ -128,13 +128,13 @@ public final class BitWorks {
      * <p>
      * So far it is the preferred choice for the reversi implementation.
      *
-     * @param bitboard long value that is scanned
-     * @return         the index of the most significant bit set
+     * @param bitsequence long value that is scanned
+     * @return            the index of the most significant bit set
      *
      * @see BitWorks#bitscanMS1B0(long)
      */
-    public static int bitscanMS1B(final long bitboard) {
-        long tmp = bitboard;
+    public static int bitscanMS1B(final long bitsequence) {
+        long tmp = bitsequence;
         int result = 0;
         if((tmp & 0xFFFFFFFF00000000L) != 0) { tmp >>>= 32; result  = 32; }
         if(tmp > 0x000000000000FFFFL)        { tmp >>>= 16; result |= 16; }
@@ -144,10 +144,10 @@ public final class BitWorks {
     }
 
     /**
-     * Returns the index of the most significant bit set in the {@code bitboard} parameter.
+     * Returns the index of the most significant bit set in the {@code bitsequence} parameter.
      * <p>
-     * Parameter {@code bitboard} must be different from {@code 0L}.
-     * If no bit set is found, meaning that {@code bitboard} is equal to {@code 0L}, {@code 0} is
+     * Parameter {@code bitsequence} must be different from {@code 0L}.
+     * If no bit set is found, meaning that {@code bitsequence} is equal to {@code 0L}, {@code 0} is
      * returned, that is clearly a wrong value.
      * <p>
      * The inplementation follows the "divide and conqueror" approach that consumes a number
@@ -158,7 +158,7 @@ public final class BitWorks {
      *   int high = 64;
      *   while (true) {
      *       final int bit = (low + high) >>> 1;
-     *       final long window = bitboard >>> bit;
+     *       final long window = bitsequence >>> bit;
      *       if (low == bit) {
      *           return bit;
      *       } else if (window == 0L) {
@@ -169,17 +169,17 @@ public final class BitWorks {
      *   }
      * <pre>
      *
-     * @param bitboard long value that is scanned
-     * @return         the index of the most significant bit set
+     * @param bitsequence long value that is scanned
+     * @return            the index of the most significant bit set
      *
      * @see BitWorks#bitscanMS1B(long)
      */
-    public static int bitscanMS1B0(final long bitboard) {
+    public static int bitscanMS1B0(final long bitsequence) {
         int low = 0;
         int high = 64;
         while (true) {
             final int bit = (low + high) >>> 1;
-            final long window = bitboard >>> bit;
+            final long window = bitsequence >>> bit;
             if (low == bit) {
                 return bit;
             } else if (window == 0L) {
@@ -232,8 +232,8 @@ public final class BitWorks {
         return sb.toString();
     }
 
-    public static long lowestBitSet(final long bitboard) {
-        return (bitboard & (bitboard - 1)) ^ bitboard;
+    public static long lowestBitSet(final long bitsequence) {
+        return (bitsequence & (bitsequence - 1)) ^ bitsequence;
     }
 
     public static int lowestBitSet(final int bitrow) {
@@ -241,8 +241,8 @@ public final class BitWorks {
     }
 
     /** TESTS have to be written .... */
-    public static long signedLeftShift(long x, byte signedAmount) {
-        return signedAmount >= 0 ? x << signedAmount : x >>> -signedAmount;
+    public static long signedLeftShift(final long bitsequence, int signedAmount) {
+        return signedAmount >= 0 ? bitsequence << signedAmount : bitsequence >>> - signedAmount;
     }
 
     /** TESTS have to be written .... */
@@ -250,8 +250,8 @@ public final class BitWorks {
      * bitscan receives a long !!!
      * what happens if the int is not a byte ???
      **/
-    public static int fillInBetween(final int x) {
-        return ((1 << BitWorks.bitscanMS1B(x)) - 1) & ((~x & 0xFF) ^ (x - 1));
+    public static int fillInBetween(final int bitsequence) {
+        return ((1 << BitWorks.bitscanMS1B(bitsequence)) - 1) & ((~bitsequence & 0xFF) ^ (bitsequence - 1));
     }
 
     /** Class constructor. */

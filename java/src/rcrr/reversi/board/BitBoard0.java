@@ -264,7 +264,7 @@ public final class BitBoard0 extends AbstractBoard {
 
     /**
      * A few more optimizations are possible:
-     * Precompute the shiftDistance value, remake signedShift using a shift.
+     * Precompute the shiftDistance value, remake signedhift using a shift.
      * Eliminate the check for diagonals shorter than 3 pieces.
      * Verify that the square is empty. !!!! Eureka! -15%
      */
@@ -298,6 +298,7 @@ public final class BitBoard0 extends AbstractBoard {
 
         int playerBitrow;
         int opponentBitrow;
+        int shiftDistance;
 
         /** Check for flipping on row. */
         playerBitrow = (int)(playerBitboard >>> (8 * row)) & 0xFF;
@@ -314,7 +315,7 @@ public final class BitBoard0 extends AbstractBoard {
         }
 
         /** Check for flipping on diagonal having direction H1-A8. */
-        byte shiftDistance = (byte)((column - row) << 3);
+        shiftDistance = (column - row) << 3;
         playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
         opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
@@ -322,7 +323,7 @@ public final class BitBoard0 extends AbstractBoard {
         }
 
         /** Check for flipping on diagonal having direction A1-H8. */
-        shiftDistance = (byte)((7 - column - row) << 3);
+        shiftDistance = (7 - column - row) << 3;
         playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
         opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
