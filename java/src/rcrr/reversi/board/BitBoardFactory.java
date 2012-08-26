@@ -38,7 +38,7 @@ public final class BitBoardFactory extends AbstractBoardFactory {
      * {@inheritDoc}
      */
     public Board valueOf(final Map<Square, SquareState> squares) {
-        return BitBoard.valueOf(squares);
+        return BitBoard0.valueOf(squares);
     }
 
 }
