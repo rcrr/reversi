@@ -129,7 +129,7 @@ public final class BitWorks {
      * So far it is the preferred choice for the reversi implementation.
      *
      * @param bitsequence long value that is scanned
-     * @return            the index of the most significant bit set
+     * @return            the index (0..63) of the most significant bit set
      *
      * @see BitWorks#bitscanMS1B0(long)
      */
@@ -232,6 +232,15 @@ public final class BitWorks {
         return sb.toString();
     }
 
+    public static String byteToString(final byte bitsequence) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 7; i >= 0; i--) {
+            final char c = ((bitsequence & (1 << i)) != 0) ? '1' : '0';
+            sb.append(c);
+        }
+        return sb.toString();
+    }
+
     public static long lowestBitSet(final long bitsequence) {
         return (bitsequence & (bitsequence - 1)) ^ bitsequence;
     }
@@ -245,11 +254,20 @@ public final class BitWorks {
         return signedAmount >= 0 ? bitsequence << signedAmount : bitsequence >>> - signedAmount;
     }
 
-    /** TESTS have to be written .... */
-    /** DOCUMENTATION ........
-     * bitscan receives a long !!!
-     * what happens if the int is not a byte ???
-     **/
+    /**
+     * The {@code bitsequence} parameter must have one or two bits set.
+     * The bits set have to be positioned among the eight bits on the right.
+     * Returns a bit sequence of 32 bits having set the bits between the two, or zero
+     * when only one bit is set.
+     * <p>
+     * For example:
+     * {@code 00000000.00000000.00000000.00100010} returns {@code 00000000.00000000.00000000.00011100}.
+     * <p>
+     * When the input data doesn't meet the requirements the result is unpredictable.
+     *
+     * @param bitsequence the value to be scanned
+     * @return            a bit sequence having the internal bits set
+     */
     public static int fillInBetween(final int bitsequence) {
         return ((1 << BitWorks.bitscanMS1B(bitsequence)) - 1) & ((~bitsequence & 0xFF) ^ (bitsequence - 1));
     }
