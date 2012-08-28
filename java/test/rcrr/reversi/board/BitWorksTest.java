@@ -254,22 +254,14 @@ public class BitWorksTest {
                    is(0x00000100));
     }
 
-
     @Test
     public final void testFillInBetween() {
-
-        assertThat("BitWorks.fillInBetween(0) is 0.",
-                   BitWorks.fillInBetween(0),
-                   is(0));
-        assertThat("BitWorks.fillInBetween(1) is 0.",
-                   BitWorks.fillInBetween(1),
-                   is(0));
-        assertThat("BitWorks.fillInBetween(0x00000081) is 0x0000007E.",
-                   BitWorks.fillInBetween(0x00000081),
-                   is(0x0000007E));
-        assertThat("BitWorks.fillInBetween(0x000000FF) is 0x0000007E.",
-                   BitWorks.fillInBetween(0x000000FF),
-                   is(0x0000007E));
+        assertThat("BitWorks.fillInBetween(0x81) is 0x7E [10000001 -> 01111110].",
+                   BitWorks.fillInBetween(0x81),
+                   is(0x7E));
+        assertThat("BitWorks.fillInBetween(0x28) is 0x10 [00101000 -> 00010000].",
+                   BitWorks.fillInBetween(0x28),
+                   is(0x10));
     }
 
 }
