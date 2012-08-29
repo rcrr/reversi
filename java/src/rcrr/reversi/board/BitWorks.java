@@ -249,9 +249,16 @@ public final class BitWorks {
         return (bitrow & (bitrow - 1)) ^ bitrow;
     }
 
-    /** TESTS have to be written .... */
-    public static long signedLeftShift(final long bitsequence, int signedAmount) {
-        return signedAmount >= 0 ? bitsequence << signedAmount : bitsequence >>> - signedAmount;
+    /**
+     * Returns a value computed shifting the {@code bitsequence} parameter
+     * to left by a signed amount given by the {@code shift} parameter.
+     *
+     * @param bitsequence the valuo that is shifted
+     * @param shift       the number of position to shift
+     * @return            the shifted value
+     */
+    public static long signedLeftShift(final long bitsequence, final int shift) {
+        return shift >= 0 ? bitsequence << shift : bitsequence >>> - shift;
     }
 
     /**
