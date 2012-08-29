@@ -264,4 +264,55 @@ public class BitWorksTest {
                    is(0x10));
     }
 
+    @Test
+    public final void testSignedLeftShift() {
+
+        /**
+         * 0xFFFFFFFFFFFFFFFFL is 11111111.11111111.11111111.11111111.11111111.11111111.11111111.11111111.
+         * Shifting by 0 gives:   11111111.11111111.11111111.11111111.11111111.11111111.11111111.11111111.
+         * that is 0xFFFFFFFFFFFFFFFFL.
+         */
+        assertThat("BitWorks.signedLeftShift(0xFFFFFFFFFFFFFFFFL, 0) is 0xFFFFFFFFFFFFFFFFL",
+                   BitWorks.signedLeftShift(0xFFFFFFFFFFFFFFFFL, 0),
+                   is(0xFFFFFFFFFFFFFFFFL));
+
+        /**
+         * 0xFFFFFFFFFFFFFFFFL is 11111111.11111111.11111111.11111111.11111111.11111111.11111111.11111111.
+         * Shifting by 1 gives:   11111111.11111111.11111111.11111111.11111111.11111111.11111111.11111110.
+         * that is 0xFFFFFFFFFFFFFFFFL.
+         */
+        assertThat("BitWorks.signedLeftShift(0xFFFFFFFFFFFFFFFFL, 1) is 0xFFFFFFFFFFFFFFFEL",
+                   BitWorks.signedLeftShift(0xFFFFFFFFFFFFFFFFL, 1),
+                   is(0xFFFFFFFFFFFFFFFEL));
+
+        /**
+         * 0xFFFFFFFFFFFFFFFFL is 11111111.11111111.11111111.11111111.11111111.11111111.11111111.11111111.
+         * Shifting by 63 gives:  10000000.00000000.00000000.00000000.00000000.00000000.00000000.00000000.
+         * that is 0x8000000000000000L.
+         */
+        assertThat("BitWorks.signedLeftShift(0xFFFFFFFFFFFFFFFFL, 63) is 0x8000000000000000L",
+                   BitWorks.signedLeftShift(0xFFFFFFFFFFFFFFFFL, 63),
+                   is(0x8000000000000000L));
+
+        /**
+         * 0xFFFFFFFFFFFFFFFFL is 11111111.11111111.11111111.11111111.11111111.11111111.11111111.11111111.
+         * Shifting by 64 gives:  11111111.11111111.11111111.11111111.11111111.11111111.11111111.11111111.
+         * that is 0xFFFFFFFFFFFFFFFFL.
+         * Because shift is masked mod 64 on longs by the java shift operation.
+         */
+        assertThat("BitWorks.signedLeftShift(0xFFFFFFFFFFFFFFFFL, 64) is 0xFFFFFFFFFFFFFFFFL",
+                   BitWorks.signedLeftShift(0xFFFFFFFFFFFFFFFFL, 64),
+                   is(0xFFFFFFFFFFFFFFFFL));
+
+        /**
+         * 0xFFFFFFFFFFFFFFFFL is 11111111.11111111.11111111.11111111.11111111.11111111.11111111.11111111.
+         * Shifting by -1 gives:01111111.11111111.11111111.11111111.11111111.11111111.11111111.11111111.
+         * that is 0x7FFFFFFFFFFFFFFFL.
+         */
+        assertThat("BitWorks.signedLeftShift(0xFFFFFFFFFFFFFFFFL, -1) is 0x7FFFFFFFFFFFFFFFL",
+                   BitWorks.signedLeftShift(0xFFFFFFFFFFFFFFFFL, -1),
+                   is(0x7FFFFFFFFFFFFFFFL));
+    }
+
+
 }
