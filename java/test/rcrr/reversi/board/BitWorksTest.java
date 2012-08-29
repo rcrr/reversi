@@ -47,10 +47,10 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 public class BitWorksTest {
 
     @Test
-    public final void testDummy() {
-
-        assertTrue(true);
-
+    public final void testByteToString() {
+        assertThat("BitWorks.byteToString((byte)0x11) is 00010001.",
+                   BitWorks.byteToString((byte)0x11),
+                   is("00010001"));
     }
 
     @Test
@@ -197,6 +197,16 @@ public class BitWorksTest {
     }
 
     @Test
+    public final void testFillInBetween() {
+        assertThat("BitWorks.fillInBetween(0x81) is 0x7E [10000001 -> 01111110].",
+                   BitWorks.fillInBetween(0x81),
+                   is(0x7E));
+        assertThat("BitWorks.fillInBetween(0x28) is 0x10 [00101000 -> 00010000].",
+                   BitWorks.fillInBetween(0x28),
+                   is(0x10));
+    }
+
+    @Test
     public final void testLowestBitSet_long() {
 
         assertThat("BitWorks.lowestBitSet(0L) is 0L.",
@@ -255,16 +265,6 @@ public class BitWorksTest {
     }
 
     @Test
-    public final void testFillInBetween() {
-        assertThat("BitWorks.fillInBetween(0x81) is 0x7E [10000001 -> 01111110].",
-                   BitWorks.fillInBetween(0x81),
-                   is(0x7E));
-        assertThat("BitWorks.fillInBetween(0x28) is 0x10 [00101000 -> 00010000].",
-                   BitWorks.fillInBetween(0x28),
-                   is(0x10));
-    }
-
-    @Test
     public final void testSignedLeftShift() {
 
         /**
@@ -313,6 +313,5 @@ public class BitWorksTest {
                    BitWorks.signedLeftShift(0xFFFFFFFFFFFFFFFFL, -1),
                    is(0x7FFFFFFFFFFFFFFFL));
     }
-
 
 }

@@ -64,6 +64,21 @@ public final class BitWorks {
     };
 
     /**
+     * Converts a bit sequence in a printable string.
+     *
+     * @param bitsequence the value to be printed
+     * @return            a string representation of the bit sequence
+     */
+    public static String byteToString(final byte bitsequence) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 7; i >= 0; i--) {
+            final char c = ((bitsequence & (1 << i)) != 0) ? '1' : '0';
+            sb.append(c);
+        }
+        return sb.toString();
+    }
+
+    /**
      * Returns the index of the least significant bit set in the {@code bitsequence} parameter
      * via de Bruijn's perfect hashing.
      * <p>
@@ -232,35 +247,6 @@ public final class BitWorks {
         return sb.toString();
     }
 
-    public static String byteToString(final byte bitsequence) {
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 7; i >= 0; i--) {
-            final char c = ((bitsequence & (1 << i)) != 0) ? '1' : '0';
-            sb.append(c);
-        }
-        return sb.toString();
-    }
-
-    public static long lowestBitSet(final long bitsequence) {
-        return (bitsequence & (bitsequence - 1)) ^ bitsequence;
-    }
-
-    public static int lowestBitSet(final int bitrow) {
-        return (bitrow & (bitrow - 1)) ^ bitrow;
-    }
-
-    /**
-     * Returns a value computed shifting the {@code bitsequence} parameter
-     * to left by a signed amount given by the {@code shift} parameter.
-     *
-     * @param bitsequence the valuo that is shifted
-     * @param shift       the number of position to shift
-     * @return            the shifted value
-     */
-    public static long signedLeftShift(final long bitsequence, final int shift) {
-        return shift >= 0 ? bitsequence << shift : bitsequence >>> - shift;
-    }
-
     /**
      * The {@code bitsequence} parameter must have one or two bits set.
      * The bits set have to be positioned among the eight bits on the right.
@@ -277,6 +263,38 @@ public final class BitWorks {
      */
     public static int fillInBetween(final int bitsequence) {
         return ((1 << BitWorks.bitscanMS1B(bitsequence)) - 1) & ((~bitsequence & 0xFF) ^ (bitsequence - 1));
+    }
+
+    /**
+     * Returns a bit sequence having one bit set, the lowest found in the {@code bitsequence} parameter.
+     *
+     * @param bitsequence the input value
+     * @return            the filtered sequence
+     */
+    public static long lowestBitSet(final long bitsequence) {
+        return (bitsequence & (bitsequence - 1)) ^ bitsequence;
+    }
+
+    /**
+     * Returns a bit sequence having one bit set, the lowest found in the {@code bitsequence} parameter.
+     *
+     * @param bitsequence the input value
+     * @return            the filtered sequence
+     */
+    public static int lowestBitSet(final int bitsequence) {
+        return (bitsequence & (bitsequence - 1)) ^ bitsequence;
+    }
+
+    /**
+     * Returns a value computed shifting the {@code bitsequence} parameter
+     * to left by a signed amount given by the {@code shift} parameter.
+     *
+     * @param bitsequence the value that will be shifted
+     * @param shift       the number of position to shift
+     * @return            the shifted value
+     */
+    public static long signedLeftShift(final long bitsequence, final int shift) {
+        return shift >= 0 ? bitsequence << shift : bitsequence >>> - shift;
     }
 
     /** Class constructor. */
