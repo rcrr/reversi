@@ -137,7 +137,7 @@ public class ReversiUI {
 
         private final ReversiUI ui;
         private final JSpinner searchDepthSpinner;
-        private final JComboBox humanPlayerColor;
+        private final JComboBox<Player> humanPlayerColor;
         private final JSpinner gameDurationSpinner;
 
         PreferencesFrame(final ReversiUI ui) {
@@ -150,7 +150,7 @@ public class ReversiUI {
             JLabel humanPlayerColorLabel = new JLabel("Human player color");
             p.add(humanPlayerColorLabel);
             Player[] colors = { Player.BLACK, Player.WHITE };
-            humanPlayerColor = new JComboBox(colors);
+            humanPlayerColor = new JComboBox<Player>(colors);
             humanPlayerColor.setSelectedItem(ui.humanPlayer);
             p.add(humanPlayerColor);
 
