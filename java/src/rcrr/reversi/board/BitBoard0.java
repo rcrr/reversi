@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * A board concrete implementation int bitboard family.
+ * A board concrete implementation in the bitboard family.
  * <p>
  * A {@code BitBoard0} object holds the information of the state of each board's square.
  * The board state is kept into a long array having a length equal two.

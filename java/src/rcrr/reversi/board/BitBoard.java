@@ -32,11 +32,13 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * A board concrete implementation.
+ * A board concrete implementation in the bitboard family.
  * <p>
  * A {@code BitBoard} object holds the information of the state of each board's square.
  * The board state is kept into a long array having a length equal two.
  * The first entry keeps the black squares, the second the whites.
+ * <p>
+ * The board uses wouldFlip ....
  * <p>
  * {@code BitBoard} is immutable.
  * <p>
@@ -52,193 +54,90 @@ public final class BitBoard extends AbstractBoard {
     private static final int BLACK = 0;
     private static final int WHITE = 1;
 
-    private static final int FILE_MAX_LENGTH = 8;
+    private static final int DIR_NW = -9;
+    private static final int DIR_NN = -8;
+    private static final int DIR_NE = -7;
+    private static final int DIR_WW = -1;
+    private static final int DIR_EE = +1;
+    private static final int DIR_SW = +7;
+    private static final int DIR_SS = +8;
+    private static final int DIR_SE = +9;
 
-    private static final int SQUARE_SIZE = 64;
-
-    static final int DIR_NW = -9;
-    static final int DIR_NN = -8;
-    static final int DIR_NE = -7;
-    static final int DIR_WW = -1;
-    static final int DIR_EE = +1;
-    static final int DIR_SW = +7;
-    static final int DIR_SS = +8;
-    static final int DIR_SE = +9;
-
-    static final int NUMBER_OF_DIRECTIONS = 8;
-    static final int[] DIRECTIONS = new int [] {DIR_NW, DIR_NN, DIR_NE, DIR_WW, DIR_EE, DIR_SW, DIR_SS, DIR_SE};
-    static final int[][] FLIPPING_DIRECTIONS = new int[SQUARE_SIZE][];
+    private static final int NUMBER_OF_DIRECTIONS = 8;
+    private static final int[] DIRECTIONS = new int [] {DIR_NW, DIR_NN, DIR_NE, DIR_WW, DIR_EE, DIR_SW, DIR_SS, DIR_SE};
+    private static final int[][] FLIPPING_DIRECTIONS = new int[64][];
 
     private static final long CORE_SQUARES                = 0x007E7E7E7E7E7E00L;
     private static final long EDGES_SQUARES               = 0xFF818181818181FFL;
     private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
     private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
 
+    private static final int EDGE_N = 0;
+    private static final int EDGE_E = 1;
+    private static final int EDGE_S = 2;
+    private static final int EDGE_W = 3;
+
+    private static final int[] EDGES = new int[] {EDGE_N, EDGE_E, EDGE_S, EDGE_W};
+
+    private static final int ROW_1 = 0;
+    private static final int ROW_2 = 1;
+    private static final int ROW_3 = 2;
+    private static final int ROW_4 = 3;
+    private static final int ROW_5 = 4;
+    private static final int ROW_6 = 5;
+    private static final int ROW_7 = 6;
+    private static final int ROW_8 = 7;
+
+    private static final int COL_A = 0;
+    private static final int COL_B = 1;
+    private static final int COL_C = 2;
+    private static final int COL_D = 3;
+    private static final int COL_E = 4;
+    private static final int COL_F = 5;
+    private static final int COL_G = 6;
+    private static final int COL_H = 7;
+
+    /** Used for masking a byte when using integer values. */
+    private static final int BYTE_MASK_FOR_INT = 0xFF;
+
+    static {
+
+        for (int sq = 0; sq < 64; sq++) {
+            final List<Integer> directions = asList(DIRECTIONS);
+            if (squareBelongsToEdge(sq, EDGE_N)) {
+                directions.remove(Integer.valueOf(DIR_NW));
+                directions.remove(Integer.valueOf(DIR_NN));
+                directions.remove(Integer.valueOf(DIR_NE));
+            }
+            if (squareBelongsToEdge(sq, EDGE_E)) {
+                directions.remove(Integer.valueOf(DIR_NE));
+                directions.remove(Integer.valueOf(DIR_EE));
+                directions.remove(Integer.valueOf(DIR_SE));
+            }
+            if (squareBelongsToEdge(sq, EDGE_S)) {
+                directions.remove(Integer.valueOf(DIR_SW));
+                directions.remove(Integer.valueOf(DIR_SS));
+                directions.remove(Integer.valueOf(DIR_SE));
+            }
+            if (squareBelongsToEdge(sq, EDGE_W)) {
+                directions.remove(Integer.valueOf(DIR_NW));
+                directions.remove(Integer.valueOf(DIR_WW));
+                directions.remove(Integer.valueOf(DIR_SW));
+            }
+            FLIPPING_DIRECTIONS[sq] = asArray(directions);
+        }
+
+    }
+
     public static String printLog() {
         String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
         return ret;
     }
 
-    /** Square index literal. */
-    static final int A1 =  0;
-    static final int B1 =  1;
-    static final int C1 =  2;
-    static final int D1 =  3;
-    static final int E1 =  4;
-    static final int F1 =  5;
-    static final int G1 =  6;
-    static final int H1 =  7;
-
-    static final int A2 =  8;
-    static final int B2 =  9;
-    static final int C2 = 10;
-    static final int D2 = 11;
-    static final int E2 = 12;
-    static final int F2 = 13;
-    static final int G2 = 14;
-    static final int H2 = 15;
-
-    static final int A3 = 16;
-    static final int B3 = 17;
-    static final int C3 = 18;
-    static final int D3 = 19;
-    static final int E3 = 20;
-    static final int F3 = 21;
-    static final int G3 = 22;
-    static final int H3 = 23;
-
-    static final int A4 = 24;
-    static final int B4 = 25;
-    static final int C4 = 26;
-    static final int D4 = 27;
-    static final int E4 = 28;
-    static final int F4 = 29;
-    static final int G4 = 30;
-    static final int H4 = 31;
-
-    static final int A5 = 32;
-    static final int B5 = 33;
-    static final int C5 = 34;
-    static final int D5 = 35;
-    static final int E5 = 36;
-    static final int F5 = 37;
-    static final int G5 = 38;
-    static final int H5 = 39;
-
-    static final int A6 = 40;
-    static final int B6 = 41;
-    static final int C6 = 42;
-    static final int D6 = 43;
-    static final int E6 = 44;
-    static final int F6 = 45;
-    static final int G6 = 46;
-    static final int H6 = 47;
-
-    static final int A7 = 48;
-    static final int B7 = 49;
-    static final int C7 = 50;
-    static final int D7 = 51;
-    static final int E7 = 52;
-    static final int F7 = 53;
-    static final int G7 = 54;
-    static final int H7 = 55;
-
-    static final int A8 = 56;
-    static final int B8 = 57;
-    static final int C8 = 58;
-    static final int D8 = 59;
-    static final int E8 = 60;
-    static final int F8 = 61;
-    static final int G8 = 62;
-    static final int H8 = 63;
-
-    /**
-     * Returns an int value corresponding to the ordinal position of the only bit set in the {@code square} parameter.
-     * <p>
-     * The {@code square} parameter must have one and only one bit set to {@code 1}, this assumption is not verified.
-     * <p>
-     * The method is equivalent to the following loop:
-     * <pre>
-     *   for (int i = 0; i < 64; i++) {
-     *       if (1L == (square >>> i)) { return i; }
-     *   }
-     *   throw new IllegalArgumentException("Parameter square is invalid.");
-     * </pre>
-     * Another inplementation follows the "divide and conqueror" approach instead of the linear access proposed.
-     * The extimation of the iterations is 64/2 = 32 for the linear implementation,
-     * compared with the logarithm base 2 of 64 that is equal to 6.
-     * Here the technique:
-     * <pre>
-     *   int low = 0;
-     *   int high = 64;
-     *   while (true) {
-     *       final int bit = (low + high) >>> 1;
-     *       final long window = square >>> bit;
-     *       if (window == 1L) {
-     *           return bit; // value found
-     *       } else if (window == 0L) {
-     *           high = bit;
-     *       } else {
-     *           low = bit;
-     *       }
-     *   }
-     * </pre>
-     * The "real implementation" applyes bitshifts and passes the result to a precomputed table
-     * composed of 256 entries that maps integers to their logarithm. 
-     *
-     * @param square the long value for the square
-     * @return       the ordinal position of the bit set in the {@code square} parameter
-     */
-    static int squareIntValue(final long square) {
-        long tmp = square;
-        int result = 0;
-        if((tmp & 0xFFFFFFFF00000000L) != 0) { tmp >>>= 32; result  = 32; }
-        if(tmp > 0x000000000000FFFFL)        { tmp >>>= 16; result |= 16; }
-        if(tmp > 0x00000000000000FFL)        { tmp >>>=  8; result |=  8; }
-        result |= LOG2_ARRAY[(int)tmp];
-        return result;
-    }
-
-    static private int LOG2_ARRAY[] = new int[] {
-        0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-        5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
-        6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
-        6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
-        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
-    };
-
-    static final int EDGE_N = 0;
-    static final int EDGE_E = 1;
-    static final int EDGE_S = 2;
-    static final int EDGE_W = 3;
-
-    static final int[] EDGES = new int[] {EDGE_N, EDGE_E, EDGE_S, EDGE_W};
-
-    static final int ROW_1 = 0;
-    static final int ROW_2 = 1;
-    static final int ROW_3 = 2;
-    static final int ROW_4 = 3;
-    static final int ROW_5 = 4;
-    static final int ROW_6 = 5;
-    static final int ROW_7 = 6;
-    static final int ROW_8 = 7;
-
-    static final int COL_A = 0;
-    static final int COL_B = 1;
-    static final int COL_C = 2;
-    static final int COL_D = 3;
-    static final int COL_E = 4;
-    static final int COL_F = 5;
-    static final int COL_G = 6;
-    static final int COL_H = 7;
-
     private static boolean squareBelongsToEdge(final int square, final int edge) {
         assert (Arrays.binarySearch(EDGES, edge) >= 0) : "Argument edge must be contained in the EDGES array.";
-        final int col = squareColumn(square);
-        final int row = squareRow(square);
+        final int col = square % 8;
+        final int row = square / 8;
         switch (edge) {
         case EDGE_N: if (row < ROW_2) { return true; }
             break;
@@ -267,43 +166,6 @@ public final class BitBoard extends AbstractBoard {
             index++;
         }
         return array;
-    }
-
-    private static int squareRow(final int square) {
-        return square / FILE_MAX_LENGTH;
-    }
-
-    private static int squareColumn(final int square) {
-        return square % FILE_MAX_LENGTH;
-    }
-
-    static {
-
-        for (int sq = 0; sq < SQUARE_SIZE; sq++) {
-            final List<Integer> directions = asList(DIRECTIONS);
-            if (squareBelongsToEdge(sq, EDGE_N)) {
-                directions.remove(Integer.valueOf(DIR_NW));
-                directions.remove(Integer.valueOf(DIR_NN));
-                directions.remove(Integer.valueOf(DIR_NE));
-            }
-            if (squareBelongsToEdge(sq, EDGE_E)) {
-                directions.remove(Integer.valueOf(DIR_NE));
-                directions.remove(Integer.valueOf(DIR_EE));
-                directions.remove(Integer.valueOf(DIR_SE));
-            }
-            if (squareBelongsToEdge(sq, EDGE_S)) {
-                directions.remove(Integer.valueOf(DIR_SW));
-                directions.remove(Integer.valueOf(DIR_SS));
-                directions.remove(Integer.valueOf(DIR_SE));
-            }
-            if (squareBelongsToEdge(sq, EDGE_W)) {
-                directions.remove(Integer.valueOf(DIR_NW));
-                directions.remove(Integer.valueOf(DIR_WW));
-                directions.remove(Integer.valueOf(DIR_SW));
-            }
-            FLIPPING_DIRECTIONS[sq] = asArray(directions);
-        }
-
     }
 
     /**
@@ -402,7 +264,7 @@ public final class BitBoard extends AbstractBoard {
 
     /**
      * A few more optimizations are possible:
-     * Precompute the shiftDistance value, remake signedShift using a shift.
+     * Precompute the shiftDistance value, remake signedhift using a shift.
      * Eliminate the check for diagonals shorter than 3 pieces.
      * Verify that the square is empty. !!!! Eureka! -15%
      */
@@ -436,6 +298,7 @@ public final class BitBoard extends AbstractBoard {
 
         int playerBitrow;
         int opponentBitrow;
+        int shiftDistance;
 
         /** Check for flipping on row. */
         playerBitrow = (int)(playerBitboard >>> (8 * row)) & 0xFF;
@@ -452,17 +315,17 @@ public final class BitBoard extends AbstractBoard {
         }
 
         /** Check for flipping on diagonal having direction H1-A8. */
-        byte shiftDistance = (byte)((column - row) << 3);
-        playerBitrow = trasformDiagonalH1A8InRow0(signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalH1A8InRow0(signedLeftShift(opponentBitboard, shiftDistance));
+        shiftDistance = (column - row) << 3;
+        playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
 
         /** Check for flipping on diagonal having direction A1-H8. */
-        shiftDistance = (byte)((7 - column - row) << 3);
-        playerBitrow = trasformDiagonalA1H8InRow0(signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalA1H8InRow0(signedLeftShift(opponentBitboard, shiftDistance));
+        shiftDistance = (7 - column - row) << 3;
+        playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
@@ -495,47 +358,18 @@ public final class BitBoard extends AbstractBoard {
         return (int)x & 0xFF;
     }
 
-    static long signedLeftShift(long x, byte signedAmount) {
-        return signedAmount >= 0 ? x << signedAmount : x >>> -signedAmount;
-    }
-
-    static long lowestSquareInBoard(final long bitboard) {
-        return (bitboard & (bitboard - 1)) ^ bitboard;
-    }
-
-    static int lowestSquareInRow(final int bitrow) {
-        return (bitrow & (bitrow - 1)) ^ bitrow;
-    }
-
-    static int highestSquareInRow(final int bitrow) {
-        if (bitrow == 0) return 0;
-        int result = 1;
-        int tmp = bitrow;
-        if ((tmp & 0xFFFF0000) != 0) { tmp >>>= 16; result = 0x10000; }
-        if (tmp > 0x000000FF) { tmp >>>= 8; result <<= 8; }
-        result <<= LOG2_ARRAY[tmp];
-        return result;
-    }
-
-    static int fillInBetween(final int x) {
-        return ((1 << squareIntValue(x)) - 1) & ((~x & 0xFF) ^ (x - 1));
-    }
-
     /**
      * Returns an 8-bit row representation of the player pieces after applying the move.
      * 
-     * @param playerRowIndex   8-bit bitboard corrosponding to player pieces
-     * @param opponentRowIndex 8-bit bitboard corrosponding to opponent pieces
-     * @param movePosition     square to move
-     * @return                 the new player's row index after making the move
+     * @param playerRow    8-bit bitboard corrosponding to player pieces
+     * @param opponentRow  8-bit bitboard corrosponding to opponent pieces
+     * @param movePosition square to move
+     * @return             the new player's row index after making the move
      */
-    private int bitrowChangesForPlayer(final int playerRowIndex, final int opponentRowIndex, final int movePosition) {
-        final int arrayIndex = playerRowIndex | (opponentRowIndex << 8) | (movePosition << 16);
+    private static int bitrowChangesForPlayer(final int playerRow, final int opponentRow, final int movePosition) {
+        final int arrayIndex = playerRow | (opponentRow << 8) | (movePosition << 16);
         return (int)BITROW_CHANGES_FOR_PLAYER_ARRAY[arrayIndex] & BYTE_MASK_FOR_INT;
     }
-
-    /** Used for masking a byte when using integer values. */
-    private static final int BYTE_MASK_FOR_INT = 0xFF;
 
     /**
      * This array is an implementation of the precomputed table that contains the effects of moving
@@ -549,23 +383,23 @@ public final class BitBoard extends AbstractBoard {
      * must not set the same position. 
      * 
      * The index of the array is computed by this formula:
-     * index = playerRowIndex | (opponentRowIndex << 8) | (movePosition << 16);
+     * index = playerRow | (opponentRow << 8) | (movePosition << 16);
      */
-    public static byte[] BITROW_CHANGES_FOR_PLAYER_ARRAY = initializeBitrowChangesForPlayerArray();
+    private static final byte[] BITROW_CHANGES_FOR_PLAYER_ARRAY = initializeBitrowChangesForPlayerArray();
 
     /** Used to initialize the BITROW_CHANGES_FOR_PLAYER_ARRAY. */
     private static byte[] initializeBitrowChangesForPlayerArray() {
 
         final byte[] arrayResult = new byte[256 * 256 * 8];
-        for (int playerRowIndex = 0; playerRowIndex < 256; playerRowIndex++) {
-            for (int opponentRowIndex = 0; opponentRowIndex < 256; opponentRowIndex++) {
-                final int notEmptyRowIndex = playerRowIndex | opponentRowIndex;
-                final int emptyRowIndex = ~(notEmptyRowIndex) & BYTE_MASK_FOR_INT;
+        for (int playerRow = 0; playerRow < 256; playerRow++) {
+            for (int opponentRow = 0; opponentRow < 256; opponentRow++) {
+                final int filledInRow = playerRow | opponentRow;
+                final int emptiesInRow = ~(filledInRow) & BYTE_MASK_FOR_INT;
                 for (int movePosition = 0; movePosition < 8; movePosition++) {
-                    final int moveIndex = 1 << movePosition;
-                    final int arrayResultIndex = playerRowIndex | (opponentRowIndex << 8) | (movePosition << 16);
+                    final int move = 1 << movePosition;
+                    final int arrayResultIndex = playerRow | (opponentRow << 8) | (movePosition << 16);
 
-                    int playerRowAfterMoveIndex;
+                    int playerRowAfterMove;
 
                     /**
                      * It checks two conditions that cannot happen because are illegal.
@@ -574,38 +408,38 @@ public final class BitBoard extends AbstractBoard {
                      * When either one of the two condition applys the result is set being equal to the player row index.
                      * Otherwise when black and white do not overlap, and the move is on an empy square it procede with the else block.
                      **/
-                    if (((playerRowIndex & opponentRowIndex) != 0) || ((moveIndex & notEmptyRowIndex) != 0)) {
-                        playerRowAfterMoveIndex = playerRowIndex;
+                    if (((playerRow & opponentRow) != 0) || ((move & filledInRow) != 0)) {
+                        playerRowAfterMove = playerRow;
                     } else {
 
                         /** The square of the move is added to the player configuration of the row after the move. */
-                        playerRowAfterMoveIndex = playerRowIndex | moveIndex;
+                        playerRowAfterMove = playerRow | move;
 
                         /**
                          * The potential bracketing disc on the right is the first player disc found moving
                          * on the left starting from the square of the move.
                          */
-                        final int potentialBracketingDiscOnTheLeftIndex = highestSquareInRow(playerRowIndex & (moveIndex - 1));
+                        final int potentialBracketingDiscOnTheLeft = BitWorks.highestBitSet(playerRow & (move - 1));
 
                         /**
                          * The left rank is the sequence of adiacent discs that start from the bracketing disc and end
                          * with the move disc. */
-                        final int leftRankIndex = fillInBetween(potentialBracketingDiscOnTheLeftIndex | moveIndex);
+                        final int leftRank = BitWorks.fillInBetween(potentialBracketingDiscOnTheLeft | move);
 
                         /**
                          * If the rank contains empy squares, this is a fake flip, and it doesn't do anything.
                          * If the rank is full, it cannot be full of anything different than opponent discs, so
                          * it adds the discs to the after move player configuration.
                          */
-                        if ((leftRankIndex & emptyRowIndex) == 0) {
-                            playerRowAfterMoveIndex |= leftRankIndex;
+                        if ((leftRank & emptiesInRow) == 0) {
+                            playerRowAfterMove |= leftRank;
                         }
 
                         /** Here it does the same computed on the left also on the right. */
-                        final int potentialBracketingDiscOnTheRightIndex = lowestSquareInRow(playerRowIndex & ~(moveIndex - 1));
-                        final int rightRankIndex = fillInBetween(potentialBracketingDiscOnTheRightIndex | moveIndex);
-                        if ((rightRankIndex & emptyRowIndex) == 0) {
-                            playerRowAfterMoveIndex |= rightRankIndex;
+                        final int potentialBracketingDiscOnTheRight = BitWorks.lowestBitSet(playerRow & ~(move - 1));
+                        final int rightRank = BitWorks.fillInBetween(potentialBracketingDiscOnTheRight | move);
+                        if ((rightRank & emptiesInRow) == 0) {
+                            playerRowAfterMove |= rightRank;
                         }
 
                         /**
@@ -614,13 +448,13 @@ public final class BitBoard extends AbstractBoard {
                          * on such a case, on both side, the move is illegal, and it is recorded setting
                          * the result configuation appropriately.
                          */
-                        if (playerRowAfterMoveIndex == (playerRowIndex | moveIndex)) {
-                            playerRowAfterMoveIndex = playerRowIndex;
+                        if (playerRowAfterMove == (playerRow | move)) {
+                            playerRowAfterMove = playerRow;
                         }
                     }
 
                     /** Asignes the computed player row index to the proper array position. */
-                    arrayResult[arrayResultIndex] = (byte) playerRowAfterMoveIndex;
+                    arrayResult[arrayResultIndex] = (byte) playerRowAfterMove;
 
                 }
             }
@@ -643,7 +477,7 @@ public final class BitBoard extends AbstractBoard {
         final List<Square> legalMoves = new ArrayList<Square>(); 
         // The loop modifies likelyMoves removing the less significative bit set on each iteration.
         for (long likelyMoves = likelyMoves(player); likelyMoves != 0; likelyMoves &= likelyMoves - 1) {
-            final int iSquare = squareIntValue(lowestSquareInBoard(likelyMoves));
+            final int iSquare = BitWorks.bitscanMS1B(BitWorks.lowestBitSet(likelyMoves));
             final Square square = Square.values()[iSquare];
             if (isLegal(square, player)) {
                 legalMoves.add(square);
