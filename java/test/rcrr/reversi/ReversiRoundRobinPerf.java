@@ -36,6 +36,7 @@ import org.joda.time.Duration;
 import org.joda.time.Period;
 
 import rcrr.reversi.board.BitBoard;
+import rcrr.reversi.board.BitBoard0;
 
 /**
  * Test Suite for reversi general performances.
@@ -94,6 +95,7 @@ public class ReversiRoundRobinPerf {
                           "Method=testRoundRobin");
 
         System.out.println("BitBoard.printLog() = " + BitBoard.printLog());
+        System.out.println("BitBoard0.printLog() = " + BitBoard0.printLog());
 
         assertTrue("The test must run without exceptions.", true);
 

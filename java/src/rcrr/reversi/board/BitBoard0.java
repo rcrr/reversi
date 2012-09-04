@@ -243,7 +243,7 @@ public final class BitBoard0 extends AbstractBoard {
      * @return       true if the move is legal, otherwise false
      * @throws NullPointerException if parameter {@code move} or {@code player} is null
      */
-    public boolean isLegal_(final Square move, final Player player) {
+    public boolean isLegal(final Square move, final Player player) {
         if (move == null) {
             throw new NullPointerException("Parameter move must be not null.");
         }
@@ -260,286 +260,6 @@ public final class BitBoard0 extends AbstractBoard {
             }
         }
         return false;
-    }
-
-    /**
-     * A few more optimizations are possible:
-     * Precompute the shiftDistance value, remake signedhift using a shift.
-     * Eliminate the check for diagonals shorter than 3 pieces.
-     * Verify that the square is empty. !!!! Eureka! -15%
-     */
-    public boolean isLegal(final Square move, final Player player) {
-        if (move == null) {
-            throw new NullPointerException("Parameter move must be not null.");
-        }
-        if (player == null) {
-            throw new NullPointerException("Parameter player must be not null.");
-        }
-
-        final long bitmove = 1L << move.ordinal();
-        if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
-            return false;
-        }
-
-        final int intPlayer = player.ordinal(); 
-        final int column = move.column().ordinal();
-        final int row = move.row().ordinal();
-
-        final long playerBitboard;
-        final long opponentBitboard;
-
-        if (intPlayer == WHITE) {
-            playerBitboard = bitboard[1];
-            opponentBitboard = bitboard[0];
-        } else {
-            playerBitboard = bitboard[0];
-            opponentBitboard = bitboard[1];
-        }
-
-        int playerBitrow;
-        int opponentBitrow;
-        int shiftDistance;
-
-        /** Check for flipping on row. */
-        playerBitrow = (int)(playerBitboard >>> (8 * row)) & 0xFF;
-        opponentBitrow = (int)(opponentBitboard >>> (8 * row)) & 0xFF;
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
-            return true;
-        }
-
-        /** Check for flipping on column. */
-        playerBitrow = trasformColumnAInRow0(playerBitboard >>> column);
-        opponentBitrow = trasformColumnAInRow0(opponentBitboard >>> column);
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, row) != playerBitrow) {
-            return true;
-        }
-
-        /** Check for flipping on diagonal having direction H1-A8. */
-        shiftDistance = (column - row) << 3;
-        playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
-            return true;
-        }
-
-        /** Check for flipping on diagonal having direction A1-H8. */
-        shiftDistance = (7 - column - row) << 3;
-        playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
-            return true;
-        }
-
-        /** If no capture on the four directions happens, return false. */
-        return false;
-    }
-
-    private static int trasformColumnAInRow0(long x) {
-        x &= 0x0101010101010101L;
-        x |= x >> 28;
-        x |= x >> 14;
-        x |= x >> 7;
-        return (int)x & 0xFF;
-    }
-
-    private static int trasformDiagonalH1A8InRow0(long x) {
-        x &= 0x8040201008040201L;
-        x |= x >> 32;
-        x |= x >> 16;
-        x |= x >> 8;
-        return (int)x & 0xFF;
-    }
-
-    private static int trasformDiagonalA1H8InRow0(long x) {
-        x &= 0x0102040810204080L;
-        x |= x >> 32;
-        x |= x >> 16;
-        x |= x >> 8;
-        return (int)x & 0xFF;
-    }
-
-    /**
-     * Returns an 8-bit row representation of the player pieces after applying the move.
-     * 
-     * @param playerRow    8-bit bitboard corrosponding to player pieces
-     * @param opponentRow  8-bit bitboard corrosponding to opponent pieces
-     * @param movePosition square to move
-     * @return             the new player's row index after making the move
-     */
-    private static int bitrowChangesForPlayer(final int playerRow, final int opponentRow, final int movePosition) {
-        final int arrayIndex = playerRow | (opponentRow << 8) | (movePosition << 16);
-        return (int)BITROW_CHANGES_FOR_PLAYER_ARRAY[arrayIndex] & BYTE_MASK_FOR_INT;
-    }
-
-    /**
-     * This array is an implementation of the precomputed table that contains the effects of moving
-     * a piece in any of the eigth squares in a row.
-     * The size is so computed:
-     *  - there are 256 arrangments of player discs,
-     *  - and 256 arrangements of opponent pieces,
-     *  - the potential moves are 8.
-     * So the array size is 256 * 256 * 8 = 524,288 Bytes = 512kB.
-     * Not all the entries are legal! The first set of eigth bits and the second one (opponent row)
-     * must not set the same position. 
-     * 
-     * The index of the array is computed by this formula:
-     * index = playerRow | (opponentRow << 8) | (movePosition << 16);
-     */
-    private static final byte[] BITROW_CHANGES_FOR_PLAYER_ARRAY = initializeBitrowChangesForPlayerArray();
-
-    /** Used to initialize the BITROW_CHANGES_FOR_PLAYER_ARRAY. */
-    private static byte[] initializeBitrowChangesForPlayerArray() {
-
-        final byte[] arrayResult = new byte[256 * 256 * 8];
-        for (int playerRow = 0; playerRow < 256; playerRow++) {
-            for (int opponentRow = 0; opponentRow < 256; opponentRow++) {
-                final int filledInRow = playerRow | opponentRow;
-                final int emptiesInRow = ~(filledInRow) & BYTE_MASK_FOR_INT;
-                for (int movePosition = 0; movePosition < 8; movePosition++) {
-                    final int move = 1 << movePosition;
-                    final int arrayResultIndex = playerRow | (opponentRow << 8) | (movePosition << 16);
-
-                    int playerRowAfterMove;
-
-                    /**
-                     * It checks two conditions that cannot happen because are illegal.
-                     * First player and opponent cannot have overlapping discs.
-                     * Second the move cannot overlap existing discs.
-                     * When either one of the two condition applys the result is set being equal to the player row index.
-                     * Otherwise when black and white do not overlap, and the move is on an empy square it procede with the else block.
-                     **/
-                    if (((playerRow & opponentRow) != 0) || ((move & filledInRow) != 0)) {
-                        playerRowAfterMove = playerRow;
-                    } else {
-
-                        /** The square of the move is added to the player configuration of the row after the move. */
-                        playerRowAfterMove = playerRow | move;
-
-                        /**
-                         * The potential bracketing disc on the right is the first player disc found moving
-                         * on the left starting from the square of the move.
-                         */
-                        final int potentialBracketingDiscOnTheLeft = BitWorks.highestBitSet(playerRow & (move - 1));
-
-                        /**
-                         * The left rank is the sequence of adiacent discs that start from the bracketing disc and end
-                         * with the move disc. */
-                        final int leftRank = BitWorks.fillInBetween(potentialBracketingDiscOnTheLeft | move);
-
-                        /**
-                         * If the rank contains empy squares, this is a fake flip, and it doesn't do anything.
-                         * If the rank is full, it cannot be full of anything different than opponent discs, so
-                         * it adds the discs to the after move player configuration.
-                         */
-                        if ((leftRank & emptiesInRow) == 0) {
-                            playerRowAfterMove |= leftRank;
-                        }
-
-                        /** Here it does the same computed on the left also on the right. */
-                        final int potentialBracketingDiscOnTheRight = BitWorks.lowestBitSet(playerRow & ~(move - 1));
-                        final int rightRank = BitWorks.fillInBetween(potentialBracketingDiscOnTheRight | move);
-                        if ((rightRank & emptiesInRow) == 0) {
-                            playerRowAfterMove |= rightRank;
-                        }
-
-                        /**
-                         * It checks that the after move configuration is different from the starting one for the player.
-                         * This case can happen because it never checked that the bracketing piece was not adjacent to the move disc,
-                         * on such a case, on both side, the move is illegal, and it is recorded setting
-                         * the result configuation appropriately.
-                         */
-                        if (playerRowAfterMove == (playerRow | move)) {
-                            playerRowAfterMove = playerRow;
-                        }
-                    }
-
-                    /** Asignes the computed player row index to the proper array position. */
-                    arrayResult[arrayResultIndex] = (byte) playerRowAfterMove;
-
-                }
-            }
-        }
-
-        return arrayResult;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Square> legalMoves(final Player player) {
-
-        if (LOG) callsTolegalMoves++;
-
-        //final List<Square> legalMoves = super.legalMoves(player); 
-
-        if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
-        final List<Square> legalMoves = new ArrayList<Square>(); 
-        // The loop modifies likelyMoves removing the less significative bit set on each iteration.
-        for (long likelyMoves = likelyMoves(player); likelyMoves != 0; likelyMoves &= likelyMoves - 1) {
-            final int iSquare = BitWorks.bitscanMS1B(BitWorks.lowestBitSet(likelyMoves));
-            final Square square = Square.values()[iSquare];
-            if (isLegal(square, player)) {
-                legalMoves.add(square);
-            }
-        }
-        
-        /*
-        final long lm = legalMoves(player.ordinal());
-
-        final List<Square> lmSquares = new ArrayList<Square>();
-
-        long lmEroding = lm;
-        while (lmEroding != 0L) { 
-            final int movePosition = BitWorks.bitscanLS1B(lmEroding);
-            final Square move = Square.values()[movePosition];
-            lmSquares.add(move);
-            lmEroding &= ~(1L << movePosition);
-        }
-        */
-
-        /*
-        if (!legalMoves.equals(lmSquares)) {
-            System.out.println("legalMoves=" + legalMoves + ", lmSquares=" + lmSquares);
-        }
-        */
-
-        return legalMoves;
-    }
-
-    public long likelyMoves(final Player player) {
-        final int intPlayer = player.ordinal(); 
-        final int intOpponent = intPlayer ^ WHITE;
-        final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
-        // Case 1 is simple. Case 2 removes the likely moves that are on the "second crown" and are neighbor of only edge squares.
-        return neighbors(bitboard[intOpponent]) & empties;
-        //return ((neighbors(bitboard[intOpponent]) & EDGES_SQUARES) | neighbors(bitboard[intOpponent] & CORE_SQUARES) & empties);
-    }
-
-    private long neighbors(final long squares) {
-        long neighbors = squares;
-        neighbors |= (neighbors >>> 8);
-        neighbors |= (neighbors >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        neighbors |= (neighbors <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        neighbors |= (neighbors <<  8);
-        return neighbors;
-    }
-
-    private long legalMoves(final int player) {
-        long lm = 0L;
-        int opponent = player ^ WHITE;
-        long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
-
-        for (final int dir : DIRECTIONS) {
-            long wave = neighbor(empties, dir) & bitboard[opponent];
-            for (int shift = 2; shift < 8; shift++) {
-                wave = neighbor(wave, dir);
-                lm |= neighbor((wave & bitboard[player]), -dir, shift);
-                wave &= bitboard[opponent];
-            }
-        }
-
-        return lm;
     }
 
     private long wouldFlip(final long move, final Player player, final int dir) {
@@ -569,14 +289,6 @@ public final class BitBoard0 extends AbstractBoard {
             }
         }
         return 0L;
-    }
-
-    static long neighbor(final long square, final int dir, final int amount) {
-        long result = square;
-        for (int i = 0; i < amount; i++) {
-            result = neighbor(result, dir);
-        }
-        return result;
     }
 
     static long neighbor(final long square, final int dir) {
@@ -677,9 +389,11 @@ public final class BitBoard0 extends AbstractBoard {
         }
     }
 
+    /*
     @Override
     Object writeReplace() {
         return super.writeReplace();
     }
+    */
 
 }
