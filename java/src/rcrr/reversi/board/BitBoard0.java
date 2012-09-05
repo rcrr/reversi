@@ -134,40 +134,6 @@ public final class BitBoard0 extends AbstractBoard {
         return ret;
     }
 
-    private static boolean squareBelongsToEdge(final int square, final int edge) {
-        assert (Arrays.binarySearch(EDGES, edge) >= 0) : "Argument edge must be contained in the EDGES array.";
-        final int col = square % 8;
-        final int row = square / 8;
-        switch (edge) {
-        case EDGE_N: if (row < ROW_2) { return true; }
-            break;
-        case EDGE_E: if (col > COL_G) { return true; }
-            break;
-        case EDGE_S: if (row > ROW_7) { return true; }
-            break;
-        case EDGE_W: if (col < COL_B) { return true; }
-            break;
-        default: throw new IllegalArgumentException("Parameter edge out of range. edge = " + edge);
-        }
-        return false;
-    }
-
-    private static List<Integer> asList(final int[] array) {
-        final List<Integer> list = new ArrayList<Integer>(array.length);
-        for (int i = 0; i < array.length; i++) { list.add(array[i]); }
-        return list;
-    }
-
-    private static int[] asArray(final List<Integer> list) {
-        final int[] array = new int[list.size()];
-        int index = 0;
-        for (final Integer element : list) {
-            array[index] = element.intValue();
-            index++;
-        }
-        return array;
-    }
-
     /**
      * Base static factory for the class.
      * <p>
@@ -189,15 +155,63 @@ public final class BitBoard0 extends AbstractBoard {
         return new BitBoard0(bitboard);
     }
 
+    private static int[] asArray(final List<Integer> list) {
+        final int[] array = new int[list.size()];
+        int index = 0;
+        for (final Integer element : list) {
+            array[index] = element.intValue();
+            index++;
+        }
+        return array;
+    }
+
+    private static List<Integer> asList(final int[] array) {
+        final List<Integer> list = new ArrayList<Integer>(array.length);
+        for (int i = 0; i < array.length; i++) { list.add(array[i]); }
+        return list;
+    }
+
+    private static long neighbor(final long square, final int dir) {
+        switch (dir) {
+        case DIR_NW: return (square >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case DIR_NN: return (square >>> 8);
+        case DIR_NE: return (square >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case DIR_WW: return (square >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case DIR_EE: return (square <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case DIR_SW: return (square <<  7) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case DIR_SS: return (square <<  8);
+        case DIR_SE: return (square <<  9) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        default: throw new IllegalArgumentException("Undefined value for dir parameter. dir=" + dir);
+        }
+    }
+
+    private static boolean squareBelongsToEdge(final int square, final int edge) {
+        assert (Arrays.binarySearch(EDGES, edge) >= 0) : "Argument edge must be contained in the EDGES array.";
+        final int col = square % 8;
+        final int row = square / 8;
+        switch (edge) {
+        case EDGE_N: if (row < ROW_2) { return true; }
+            break;
+        case EDGE_E: if (col > COL_G) { return true; }
+            break;
+        case EDGE_S: if (row > ROW_7) { return true; }
+            break;
+        case EDGE_W: if (col < COL_B) { return true; }
+            break;
+        default: throw new IllegalArgumentException("Parameter edge out of range. edge = " + edge);
+        }
+        return false;
+    }
+
     /**
      * The bitboard field.
      */
-    private final long[] bitboard;
+    private final transient long[] bitboard;
 
     /**
      * Class constructor.
      * <p>
-     * {@code bitboard} must be not null, and must have a size equal to
+     * {@code bitboard} must be not null, and must have a length equal to
      * two. Overlapping bit set to one are not allowed.
      *
      * @param  bitboard the bitboard field
@@ -209,6 +223,27 @@ public final class BitBoard0 extends AbstractBoard {
             : "Parameter bitboard cannot have black and white discs overlapping.";
         if (LOG) callsToConstructor++;
         this.bitboard = bitboard.clone();
+    }
+
+    /**
+     * Returns the disk count for the color.
+     *
+     * @param color the color for which the disk count is computed
+     * @return the disk count
+     * @throws NullPointerException if parameter {@code color} is null
+     */
+    @Override
+    public int countPieces(final SquareState color) {
+        if (color == null) {
+            throw new NullPointerException("Parameter color must be not null.");
+        }
+        switch (color) {
+        case BLACK: return Long.bitCount(bitboard[BLACK]);
+        case WHITE: return Long.bitCount(bitboard[WHITE]);
+        case EMPTY: return Long.bitCount(~(bitboard[BLACK] | bitboard[WHITE]));
+        case OUTER: return 0;
+        default: throw new IllegalArgumentException("Undefined value for color parameter. color=" + color);
+        }
     }
 
     /**
@@ -260,49 +295,6 @@ public final class BitBoard0 extends AbstractBoard {
             }
         }
         return false;
-    }
-
-    private long wouldFlip(final long move, final Player player, final int dir) {
-        assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set.";
-        assert (player != null) : "Argument player must be not null.";
-        long bracketing = 0L;
-        long neighbor = neighbor(move, dir);
-        final int intPlayer = player.ordinal(); 
-        final int intOpponent = intPlayer ^ WHITE;
-        if ((neighbor & bitboard[intOpponent]) != 0L) {
-            long next = neighbor(neighbor, dir);
-            if (next != 0L) {
-                bracketing = findBracketingPiece(next, intPlayer, dir);
-            }
-        }
-        return bracketing;
-    }
-
-    private long findBracketingPiece(final long square, final int intPlayer, final int dir) {
-        final int intOpponent = intPlayer ^ WHITE;
-        if ((square & bitboard[intPlayer]) != 0L) {
-            return square;
-        } else if ((square & bitboard[intOpponent]) != 0L) {
-            long next = neighbor(square, dir);
-            if (next != 0L) {
-                return findBracketingPiece(next, intPlayer, dir);
-            }
-        }
-        return 0L;
-    }
-
-    static long neighbor(final long square, final int dir) {
-        switch (dir) {
-        case DIR_NW: return (square >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_NN: return (square >>> 8);
-        case DIR_NE: return (square >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case DIR_WW: return (square >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_EE: return (square <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case DIR_SW: return (square <<  7) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_SS: return (square <<  8);
-        case DIR_SE: return (square <<  9) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        default: throw new IllegalArgumentException("Undefined value for dir parameter. dir=" + dir);
-        }
     }
 
     /**
@@ -368,25 +360,33 @@ public final class BitBoard0 extends AbstractBoard {
         return result;
     }
 
-    /**
-     * Returns the disk count for the color.
-     *
-     * @param color the color for which the disk count is computed
-     * @return the disk count
-     * @throws NullPointerException if parameter {@code color} is null
-     */
-    @Override
-    public int countPieces(final SquareState color) {
-        if (color == null) {
-            throw new NullPointerException("Parameter color must be not null.");
+    private long wouldFlip(final long move, final Player player, final int dir) {
+        assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set.";
+        assert (player != null) : "Argument player must be not null.";
+        long bracketing = 0L;
+        long neighbor = neighbor(move, dir);
+        final int intPlayer = player.ordinal(); 
+        final int intOpponent = intPlayer ^ WHITE;
+        if ((neighbor & bitboard[intOpponent]) != 0L) {
+            long next = neighbor(neighbor, dir);
+            if (next != 0L) {
+                bracketing = findBracketingPiece(next, intPlayer, dir);
+            }
         }
-        switch (color) {
-        case BLACK: return Long.bitCount(bitboard[BLACK]);
-        case WHITE: return Long.bitCount(bitboard[WHITE]);
-        case EMPTY: return Long.bitCount(~(bitboard[BLACK] | bitboard[WHITE]));
-        case OUTER: return 0;
-        default: throw new IllegalArgumentException("Undefined value for color parameter. color=" + color);
+        return bracketing;
+    }
+
+    private long findBracketingPiece(final long square, final int intPlayer, final int dir) {
+        final int intOpponent = intPlayer ^ WHITE;
+        if ((square & bitboard[intPlayer]) != 0L) {
+            return square;
+        } else if ((square & bitboard[intOpponent]) != 0L) {
+            long next = neighbor(square, dir);
+            if (next != 0L) {
+                return findBracketingPiece(next, intPlayer, dir);
+            }
         }
+        return 0L;
     }
 
 }
