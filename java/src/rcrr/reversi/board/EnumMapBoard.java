@@ -216,21 +216,6 @@ public final class EnumMapBoard extends AbstractBoard {
     }
 
     /**
-     * The {@code writeReplace()} method for the serialization proxy pattern.
-     * <p>
-     * The method return a newly created instance of the class {@code AbstractBoard.SerializationProxy}.
-     * This instance is then serialized instead of the actual board object.
-     * <p>
-     * See the book: <i>"Bloch, Joshua. Effective Java Second Edition. Addison-Wesley, 2008"</i>.
-     *
-     * @return a new seialization proxy for the board object
-     */
-    @Override
-    Object writeReplace() {
-        return super.writeReplace();
-    }
-
-    /**
      * Returns the bracketing square or null if it is missing.
      * The method does not check that the move is legal and that the square parameter
      * is one step from move in the given direction.

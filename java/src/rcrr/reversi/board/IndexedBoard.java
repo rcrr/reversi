@@ -278,21 +278,6 @@ public final class IndexedBoard extends AbstractBoard {
     }
 
     /**
-     * The {@code writeReplace()} method for the serialization proxy pattern.
-     * <p>
-     * The method return a newly created instance of the class {@code AbstractBoard.SerializationProxy}.
-     * This instance is then serialized instead of the actual board object.
-     * <p>
-     * See the book: <i>"Bloch, Joshua. Effective Java Second Edition. Addison-Wesley, 2008"</i>.
-     *
-     * @return a new seialization proxy for the board object
-     */
-    @Override
-    Object writeReplace() {
-        return super.writeReplace();
-    }
-
-    /**
      * Returns the indexes field.
      *
      * @return the array representing the indexes of the board

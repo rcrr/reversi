@@ -389,11 +389,4 @@ public final class BitBoard0 extends AbstractBoard {
         }
     }
 
-    /*
-    @Override
-    Object writeReplace() {
-        return super.writeReplace();
-    }
-    */
-
 }
