@@ -35,14 +35,7 @@ import java.io.Serializable;
  * The class provides an implementation for most methods defined by the {@code Board} interface.
  * <p>
  * It also gives the serialization machinery for a format common for all the class that derive from it.
- * In order to use this service the subclass has to implement the {@code Serializable} interface and
- * to define the {@code writeReplace()} method. For instance a simple implementation is:
- * <pre>
- *    Object writeReplace() {
- *        return super.writeReplace();
- *    }
- * </pre>
- *
+ * <p>
  * The abstract class ovverides the {@code hashCode()} and {@code equals()} contracts.
  * Two boards are equal when they have the same {@code SquareState} value for each square.
  */
