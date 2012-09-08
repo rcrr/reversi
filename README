@@ -13,10 +13,11 @@ The steps so far completed are:
 
  (1) Adapt the COMMON LISP programs taken from the PAIP book to run smoothly in the two following env:
 
-      - Ubuntu 9.10
-      - SBCL compiled from source, downloaded from  git://sbcl.boinkor.net/sbcl.git
-      - Emacs compiled from source, downloaded from git://git.savannah.gnu.org/emacs.git
-      - Slime downloaded from the official cvs repository
+      - Ubuntu 12.04 (x86_64)
+      - SBCL version 1.0.55.0.debian
+      - GNU Emacs 24.1.1 (x86_64-pc-linux-gnu, GTK+ Version 2.24.10) installed from ppa:cassou/emacs
+      - Quicklisp and Slime (2012-08-04) from http://www.quicklisp.org/
+      - Read the README-CL for a detailed configuration
 
       - Microsoft Windows 7
       - ABCL 
@@ -33,15 +34,16 @@ The steps so far completed are:
 
       - This work is almost complete.
          The basic game rules are working. The minimax and alpha-beta functions are ok.
-	 Unit tests are close to be complete, minimax test function is under construction.
+	 Unit tests are complete.
 	 The complete translation of advanced tecniques is complete (Reversi tournament, and Iago strategy).
 
  (3) Revrite the CL code into Java.
 
-      - This work is almost complete.
+      - This work is complete.
          The complete set of function have been developed.
          A very extensive set of test cover the complete codebase.
          A GUI has been added. For it a complete refactoring is needed, as long as a test suite.
+         A completely new set of Board implementation has been prepared.
 
      To build the software follow those steps:
 
@@ -52,13 +54,12 @@ The steps so far completed are:
 
      To operate the program run:
 
-       - java -cp ./lib/joda-time-2.0.jar:./build/jar/JavaReversi.jar rcrr.reversi.ui.ReversiUI
+       - java -jar JavaReversi-full-1_0_0.jar
 
  (4) Future lines of development that currently are appealing, could be:
 
       - Profile the Java, CL and Clojure versions. Optimize for speed the critical components.
       - Port the program to more languages (Scala, Jython, JRuby).
-      - Prepare the build process for the Java version using maven.
       - Refactor the graphical Java Swing UI, write the test suite.
       - Redesign the Clojure implementation to be fully functional.
       - Develop a complete game analysis suite.
@@ -66,4 +67,3 @@ The steps so far completed are:
       - Make the program leverage the multi core processors thru a redesign for parallel computing.
       - Prepare a client/server game version.
       - Write the software documentation and publish it on GitHub and as PDF documents.
-      - Insert a code coverage tool like EMMA.

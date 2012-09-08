@@ -1,0 +1,121 @@
+
+  README-CL
+
+  Copyright (c) 2012 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+This file describes the configuration and settings done to prepare the Common Lisp environment used to develop and execute
+the REVERSI program.
+
+Software components being used are:
+
+ - Ubuntu distribution 12.04 (x86_64)
+ - SBCL version 1.0.55.0.debian
+ - GNU Emacs 24.1.1 (x86_64-pc-linux-gnu, GTK+ Version 2.24.10)
+ - git version 1.7.9.5
+ - Quicklisp
+ - SLIME (2012-08-04)
+
+Steps followed are:
+
+ (1) Prepare the Ubuntu installation.
+
+ (2) Install SBCL using the "Ubuntu Software Centre".
+
+ (3) Install Emacs 24.2 using the "Damien Cassou" repository
+
+Run the following commands in a terminal:
+
+$ sudo add-apt-repository ppa:cassou/emacs
+$ sudo apt-get update
+$ sudo apt-get install emacs24 emacs24-el
+
+ (4) Install Quicklisp.
+
+Go to: http://www.quicklisp.org/beta/ and follow the instruction ... steps are:
+ - Make a new appropriate directory: ~/ql_tmp
+ - Download the quicklisp.lisp file and put it in the ~/ql_tmp dir
+ - Open a terminal in the ~/ql_tmp dir and run "sbcl --load quicklisp.lisp"
+ - Follow the instructions ... at the end you will have ~/.sbclrc file modified and a new ~/quicklisp directory
+
+ (5) Install quicklisp-slime-helper.
+
+Open an sbcl session and run:
+ * (ql:quickload :quicklisp-slime-helper)
+
+Add the "suggested" configurations to your ./~emacs file
+
+Restart emacs.
+
+Run in emacs: M-x slime. Slime should be working ... test it.
+
+ (6) Install git using the "Ubuntu Software Centre".
+
+ (7) Clone the REVERSI project from GitHub.
+
+Make a ~/projects directory. Open a shell there and run: git clone https://github.com/rcrr/reversi.git reversi
+If you are reading this file it is very likely that you already did this operation.
+
+ (8) Configure ASDF
+
+Create a directory ~/lisp and another one ~/lisp/systems
+Open a terminal in ~/lisp/systems and run the following command:
+$ ln -s ~/projects/reversi/reversi.asd reversi.asd
+
+Open the ~/.sbclrc file and add the following lines:
+
+;; asdf configuration
+;; next make a symbolic link as follow: 
+(pushnew #P"~/lisp/systems/" asdf:*central-registry* :test #'equal)
+(push #P"~/lisp/systems/" asdf:*central-registry*)
+
+Restart Emacs, run SLIME. Here a working session to try ....
+
+; SLIME 2012-08-04
+CL-USER> (asdf:operate 'asdf:load-op 'reversi)
+Reading file: tmp/reversi/edge-table.dat
+File header: # Written by persist-edge-table function, in edge-table-utils.lisp file.
+File length: 59049
+#<ASDF:LOAD-OP NIL {10038B9E93}>
+((#<ASDF:LOAD-OP NIL {10038B9E93}>
+  . #<ASDF:CL-SOURCE-FILE "reversi" "constants">)
+ (#<ASDF:LOAD-OP NIL {10038B9E93}> . #<ASDF:CL-SOURCE-FILE "reversi" "auxfns">)
+ (#<ASDF:LOAD-OP NIL {10038B9E93}>
+  . #<ASDF:CL-SOURCE-FILE "reversi" "reversi">)
+ (#<ASDF:LOAD-OP NIL {10038B9E93}>
+  . #<ASDF:CL-SOURCE-FILE "reversi" "edge-table-utils">)
+ (#<ASDF:LOAD-OP NIL {10038B9E93}>
+  . #<ASDF:CL-SOURCE-FILE "reversi" "strategies">)
+ (#<ASDF:LOAD-OP NIL {10038B9E93}> . #<ASDF:SYSTEM "reversi">))
+CL-USER> (in-package :reversi)
+#<PACKAGE "REVERSI">
+REVERSI> (round-robin
+ (list (alpha-beta-searcher 4 #'count-difference)
+       (alpha-beta-searcher 4 #'weighted-squares)
+       (alpha-beta-searcher 4 #'modified-weighted-squares)
+       #'random-strategy)
+ 5 6
+ '(count-difference weighted modified-weighted random))
+COUNT-DIFFERENCE     11.0: ---   1.0  2.0  8.0 
+WEIGHTED             21.0:  9.0 ---   2.0 10.0 
+MODIFIED-WEIGHTED    26.0:  8.0  8.0 ---  10.0 
+RANDOM                2.0:  2.0  0.0  0.0 ---  
+NIL
+REVERSI> 
