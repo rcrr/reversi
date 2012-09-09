@@ -119,3 +119,10 @@ MODIFIED-WEIGHTED    26.0:  8.0  8.0 ---  10.0
 RANDOM                2.0:  2.0  0.0  0.0 ---  
 NIL
 REVERSI> 
+
+Alternatively it is possible to start an SBCL session and start a swank server:
+
+* (ql:quickload "swank")
+* (swank:create-server :port 4006)
+
+then in Emacs start SLIME as follow: M-x slime-connect.
