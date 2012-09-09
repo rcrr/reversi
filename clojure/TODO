@@ -1,5 +1,7 @@
-Write a README-clojure
 Remove dependencies like algo ...
-Use Java 7
 Move all the tests under tests
 Make the clojure SLIME REPL working
+Remove the bug affecting plaing interactively ad the terminal ....
+
+DONE - Write a README-clojure
+DONE - Use Java 7

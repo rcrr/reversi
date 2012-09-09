@@ -27,8 +27,7 @@
             [rcrr.reversi.test-fixtures :as fixt]
             [clojure.pprint :as pprint]
             [clojure.math.numeric-tower :as math]
-            [clojure.algo.generic.math-functions :as math-f]
-            [clojure.contrib.probabilities.finite-distributions :as fi-di])
+            [clojure.algo.generic.math-functions :as math-f])
   (:import (rcrr.reversi GameOverException)))
 
 (def all-directions '(-11 -10 -9 -1 1 9 10 11))
