@@ -47,14 +47,14 @@ The steps so far completed are:
 
      To build the software follow those steps:
 
-       - Make sure you have a JDK 6 or newer installed
-       - Make sure you have ANT installed
-       - cd $REVERSI_PROJECT_HOME/java
+       - Make sure you have a JDK 6 or newer installed (currently I am using OpenJDK 7).
+       - Make sure you have ANT installed.
+       - cd $REVERSI_PROJECT_HOME/java.
        - ant
 
      To operate the program run:
 
-       - java -jar JavaReversi-full-1_0_0.jar
+       - java -jar $REVERSI_PROJECT_HOME/java/build/jar/JavaReversi-full-1_0_0.jar
 
  (4) Future lines of development that currently are appealing, could be:
 

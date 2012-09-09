@@ -1,0 +1,86 @@
+
+  README-clojure
+
+  Copyright (c) 2012 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+This file describes the configuration and settings done to prepare the Clojure environment used to develop and execute
+the REVERSI program.
+
+First we must be sure to have java installed, then install Leiningen (I did it from the Ubuntu Software Center).
+
+Running:
+
+$ lein version
+
+I get:
+
+  Leiningen 1.7.1 on Java 1.7.0_03 OpenJDK 64-Bit Server VM
+
+Then we have to compile the AOT classes:
+
+$ lein compile
+
+I get:
+
+  Compiling rcrr.reversi.GameOverException
+  Compilation succeeded.
+
+We are ready to fire up the test suite:
+
+$ lein test
+
+If everything is ok, we procede.
+
+Now we can start plaing with the clojure REPL:
+
+$ lein repl
+
+I get:
+
+  REPL started; server listening on localhost port 57307
+  user=>
+
+Execute the following commands:
+
+        user=> (use :reload-all 'rcrr.reversi.strategies)
+        nil
+        user=> (use :reload-all 'rcrr.reversi.core)
+        nil
+        user=> (use :reload-all 'rcrr.reversi.edge-table-utils)
+        nil
+        user=> (load-edge-table)
+        Writing *edge-table* to file: /home/rcrr/base/prj/reversi/clojure/tmp/reversi/edge-table-clj.dat
+        nil
+        user=> (round-robin
+                 (list (maximizer count-difference)
+                 (maximizer basic-mobility)
+                 (maximizer weighted-squares)
+                 (maximizer modified-weighted-squares)
+                 random-strategy)
+                10 10
+                 '(count-difference mobility weighted modified-weighted random))
+        count-difference      12.00:  -----    8.0    3.0    2.0   11.0 
+        mobility              17.50:   12.0  -----    6.5    4.5   12.0 
+        weighted              28.00:   17.0   13.5  -----    9.0   16.5 
+        modified-weighted     30.75:   18.0   15.5   11.0  -----   17.0 
+        random                11.75:    9.0    8.0    3.5    3.0  ----- 
+        nil
+        user=>
