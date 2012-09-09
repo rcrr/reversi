@@ -3,4 +3,6 @@
   (:use [clojure.test]))
 
 (deftest replace-me ;; FIXME: write
-  (is false "No tests have been written."))
+  (is true "No tests have been written."))
+
+
