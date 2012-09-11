@@ -682,7 +682,7 @@ public final class BitBoard1 extends AbstractBoard {
 
         //***** rcrr here
 
-        final int bitMove = move.ordinal();
+        final int intMove = move.ordinal();
         final int intPlayer = player.ordinal(); 
         final int column = move.column().ordinal();
         final int row = move.row().ordinal();
@@ -705,10 +705,16 @@ public final class BitBoard1 extends AbstractBoard {
         int opponentBitrow;
         int shiftDistance;
 
-        final long unmodifiedMask = ~BITBOARD_MASK_FOR_ALL_DIRECTIONS[bitMove];
-		
+        final long unmodifiedMask = ~BITBOARD_MASK_FOR_ALL_DIRECTIONS[intMove];		
         finalPBoard = playerBitboard & unmodifiedMask;
         finalOBoard = opponentBitboard & unmodifiedMask;
+
+        /*
+        final long[] tmpBoard = new long[2];
+        tmpBoard[0] = finalOBoard; tmpBoard[1] = finalPBoard;  
+        System.out.println("Step: 0");
+        System.out.println(valueOf(tmpBoard).printBoard());
+        */
 
         /** Compute row changes. */
         playerBitrow = (int)(playerBitboard >>> (8 * row)) & 0xFF;
@@ -718,13 +724,25 @@ public final class BitBoard1 extends AbstractBoard {
         finalPBoard |= ((long)playerBitrow << (8 * row));
         finalOBoard |= ((long)opponentBitrow << (8 * row));
 
+        /*
+        tmpBoard[0] = finalOBoard; tmpBoard[1] = finalPBoard;  
+        System.out.println("Step: row");
+        System.out.println(valueOf(tmpBoard).printBoard());
+        */
+
         /** Compute column changes. */
         playerBitrow = trasformColumnAInRow0(playerBitboard >>> column);
         opponentBitrow = trasformColumnAInRow0(opponentBitboard >>> column);
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, row);
         opponentBitrow &= ~playerBitrow;
         finalPBoard |= reTrasformRow0BackToColumnA(playerBitrow) << column;
-        finalPBoard |= reTrasformRow0BackToColumnA(opponentBitrow) << column;
+        finalOBoard |= reTrasformRow0BackToColumnA(opponentBitrow) << column;
+
+        /*
+        tmpBoard[0] = finalOBoard; tmpBoard[1] = finalPBoard;  
+        System.out.println("Step: column");
+        System.out.println(valueOf(tmpBoard).printBoard());
+        */
 
         /** Compute changes on diagonal having direction H1-A8. */
         shiftDistance = (column - row) << 3;
@@ -733,16 +751,27 @@ public final class BitBoard1 extends AbstractBoard {
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, row);
         opponentBitrow &= ~playerBitrow;
         finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(playerBitrow), - shiftDistance);
-        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), - shiftDistance);
+        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), - shiftDistance);
 
         /** Compute changes on diagonal having direction A1-H8. */
         shiftDistance = (7 - column - row) << 3;
         playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
         opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
-        playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, row);
+        //System.out.println("shiftDistance=" + shiftDistance);
+        //System.out.println("playerBitrow   =" + BitWorks.byteToString((byte)playerBitrow));
+        //System.out.println("opponentBitrow =" + BitWorks.byteToString((byte)opponentBitrow));
+        playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
         finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(playerBitrow), - shiftDistance);
-        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(opponentBitrow), - shiftDistance);
+        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(opponentBitrow), - shiftDistance);
+
+        /*
+        System.out.println("shiftDistance=" + shiftDistance);
+        System.out.println("playerBitrow   =" + BitWorks.byteToString((byte)playerBitrow));
+        System.out.println("opponentBitrow =" + BitWorks.byteToString((byte)opponentBitrow));
+        final long[] tmpBoard = new long[2]; tmpBoard[0] = finalPBoard; tmpBoard[1] = finalOBoard;  
+        System.out.println(valueOf(tmpBoard).printBoard());
+        */
 
         final long[] newbitboard2 = new long[2];
         if (intPlayer == WHITE) {
@@ -755,11 +784,19 @@ public final class BitBoard1 extends AbstractBoard {
 
         if (!((newbitboard[0] == newbitboard2[0]) && (newbitboard[1] == newbitboard2[1]))) {
             System.out.println("AUCH!!!!");
+            System.out.println(printBoard());
+            System.out.println("move=" + move + ", player=" + player);
             System.out.println("newbitboard[0]=" + newbitboard[0]);
             System.out.println("newbitboard[1]=" + newbitboard[1]);
             System.out.println("newbitboard2[0]=" + newbitboard2[0]);
             System.out.println("newbitboard2[1]=" + newbitboard2[1]);
+            System.out.println("Correct Board:");
+            System.out.println(valueOf(newbitboard).printBoard());
+            System.out.println("BitBoard1 Board:");
+            System.out.println(valueOf(newbitboard2).printBoard());
             System.out.println("AUCH!!!! END - - - ");
+
+
         }
 
         //***** rcrr here
