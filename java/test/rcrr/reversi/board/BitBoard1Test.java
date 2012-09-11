@@ -1,5 +1,5 @@
 /*
- *  BitBoardTest.java
+ *  BitBoard1Test.java
  *
  *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
@@ -42,56 +42,43 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 /**
- * Test Suite for {@code BitBoard} class.
+ * Test Suite for {@code BitBoard1} class.
  */
-public class BitBoardTest extends AbstractBoardTest {
+public class BitBoard1Test {
 
-    /** The applicationWideBoardFactory field. */
-    private BoardFactory applicationWideBoardFactory = null;
-
-    /** Class constructor. */
-    public BitBoardTest() { }
-
-    @Before
-    public void setBoardFactory() {
-        this.applicationWideBoardFactory = BoardFactoryHolder.getInstance().boardFactory();
-        BoardFactoryHolder.getInstance().setBoardFactory(new BitBoardFactory());
-    }
-
-    @After
-    public void unsetBoardFactory() {
-        BoardFactoryHolder.getInstance().setBoardFactory(this.applicationWideBoardFactory);
-        this.applicationWideBoardFactory = null;
-    }
+    public static final Board CASE_A = new BoardBuilder()
+        .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 2, 1, 2, 0, 0,
+                            0, 0, 0, 1, 1, 1, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
+        .build();
 
     @Test
-    public final void testValueOf_withBitboard() {
+    public final void testMakeMove() {
 
-        final long core  = 0x007E7E7E7E7E7E00L;
-        final long edges = 0xFF818181818181FFL;
+        final Square move = Square.D6;
+        final Player player = Player.WHITE;
 
-        final long[] bitboard = {core, edges}; 
+        System.out.println("CASE_A class: " + CASE_A.getClass().getName());
 
-        //System.out.println(BitBoard.valueOf(bitboard).printBoard());
+        System.out.println(CASE_A.printBoard());
+
+        System.out.println("move=" + move + ", player=" + player);
+
+        final Board result = CASE_A.makeMove(move, player);
+
+        System.out.println("---> result ::");
+        System.out.println(result.printBoard());
 
         assertTrue(true);
 
     }
 
-    @Test
-    public final void testMakeMove_withBitboard() {
-
-        final long core  = 0x007E7E7E7E7E7E00L;
-        final long edges = 0xFF818181818181FFL;
-
-        final long[] bitboard = {core, edges}; 
-
-        System.out.println(BitBoard.valueOf(bitboard).printBoard());
-
-        assertTrue(true);
-
-    }
-
+    /*
     @Test
     public final void testIsLegal() {
 
@@ -119,5 +106,6 @@ public class BitBoardTest extends AbstractBoardTest {
                    is(false));
 
     }
+    */
 
 }
