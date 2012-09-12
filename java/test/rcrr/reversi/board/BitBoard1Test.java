@@ -57,26 +57,14 @@ public class BitBoard1Test {
                             0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 
-    /*
-    [junit]     a b c d e f g h 
-    [junit]  1  . . . @ @ @ . . 
-    [junit]  2  . . . . @ . . . 
-    [junit]  3  . . . @ @ O O . 
-    [junit]  4  . . . @ O . . . 
-    [junit]  5  . . . O @ . . . 
-    [junit]  6  . . O . @ . . . 
-    [junit]  7  . . . . . . . . 
-    [junit]  8  . . . . . . . . 
-     */
-
     public static final Board CASE_B = new BoardBuilder()
-        .withSquaresLiteral(0, 0, 0, 1, 1, 1, 0, 0,
-                            0, 0, 0, 0, 1, 0, 0, 0,
-                            0, 0, 0, 1, 1, 2, 2, 0,
-                            0, 0, 0, 1, 2, 0, 0, 0,
-                            0, 0, 0, 2, 1, 0, 0, 0,
-                            0, 0, 2, 0, 1, 0, 0, 0,
+        .withSquaresLiteral(0, 1, 0, 0, 0, 0, 0, 0,
+                            0, 0, 2, 0, 0, 0, 0, 0,
+                            0, 0, 0, 2, 0, 0, 0, 0,
+                            0, 0, 0, 0, 2, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 2, 0,
+                            0, 0, 0, 0, 0, 0, 0, 1,
                             0, 0, 0, 0, 0, 0, 0, 0)
         .build();
 

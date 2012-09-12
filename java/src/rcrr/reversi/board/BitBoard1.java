@@ -320,18 +320,18 @@ public final class BitBoard1 extends AbstractBoard {
             return true;
         }
 
-        /** Check for flipping on diagonal having direction H1-A8. */
+        /** Check for flipping on diagonal having direction A1-H8. */
         shiftDistance = (column - row) << 3;
-        playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
 
-        /** Check for flipping on diagonal having direction A1-H8. */
+        /** Check for flipping on diagonal having direction H1-A8. */
         shiftDistance = (7 - column - row) << 3;
-        playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
@@ -348,7 +348,7 @@ public final class BitBoard1 extends AbstractBoard {
         return (int)x & 0xFF;
     }
 
-    private static int trasformDiagonalH1A8InRow0(long x) {
+    private static int trasformDiagonalA1H8InRow0(long x) {
         x &= 0x8040201008040201L;
         x |= x >> 32;
         x |= x >> 16;
@@ -356,7 +356,7 @@ public final class BitBoard1 extends AbstractBoard {
         return (int)x & 0xFF;
     }
 
-    private static int trasformDiagonalA1H8InRow0(long x) {
+    private static int trasformDiagonalH1A8InRow0(long x) {
         x &= 0x0102040810204080L;
         x |= x >> 32;
         x |= x >> 16;
@@ -371,14 +371,14 @@ public final class BitBoard1 extends AbstractBoard {
         return z & 0x0101010101010101L;
     }
 
-    private static long reTrasformRow0BackToDiagonalH1A8(int x) {
+    private static long reTrasformRow0BackToDiagonalA1H8(int x) {
         x |= x << 8;
         long z = (long)x | ((long)x << 16);
         z |= z << 32;
         return z & 0x8040201008040201L;
     }
 
-    private static long reTrasformRow0BackToDiagonalA1H8(int x) {
+    private static long reTrasformRow0BackToDiagonalH1A8(int x) {
         x |= x << 8;
         x |= (x & 0x1122) << 16;
         long z = (long)x | ((long)x << 32);
@@ -709,8 +709,8 @@ public final class BitBoard1 extends AbstractBoard {
         finalPBoard = playerBitboard & unmodifiedMask;
         finalOBoard = opponentBitboard & unmodifiedMask;
 
-        final long[] tmpBoard = new long[2];
         /*
+        final long[] tmpBoard = new long[2];
         tmpBoard[0] = finalPBoard; tmpBoard[1] = finalOBoard;  
         System.out.println("Step: 0");
         System.out.println(valueOf(tmpBoard).printBoard());
@@ -744,10 +744,10 @@ public final class BitBoard1 extends AbstractBoard {
         System.out.println(valueOf(tmpBoard).printBoard());
         */
 
-        /** Compute changes on diagonal having direction H1-A8. */
+        /** Compute changes on diagonal having direction A1-H8. */
         shiftDistance = (column - row) << 3;
-        playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         //System.out.println("shiftDistance=" + shiftDistance);
         //System.out.println("p-playerBitrow   =" + BitWorks.byteToString((byte)playerBitrow));
         //System.out.println("p-opponentBitrow =" + BitWorks.byteToString((byte)opponentBitrow));
@@ -755,35 +755,36 @@ public final class BitBoard1 extends AbstractBoard {
         opponentBitrow &= ~playerBitrow;
         //System.out.println("a-playerBitrow   =" + BitWorks.byteToString((byte)playerBitrow));
         //System.out.println("a-opponentBitrow =" + BitWorks.byteToString((byte)opponentBitrow));
-        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(playerBitrow), - shiftDistance);
-        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), - shiftDistance);
+        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(playerBitrow), - shiftDistance);
+        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(opponentBitrow), - shiftDistance);
 
         /*
         tmpBoard[0] = finalPBoard; tmpBoard[1] = finalOBoard;  
-        System.out.println("Step: diag H1-A8");
+        System.out.println("Step: diag A1-H8");
         System.out.println(valueOf(tmpBoard).printBoard());
         */
 
-        /** Compute changes on diagonal having direction A1-H8. */
+        /** Compute changes on diagonal having direction H1-A8. */
         shiftDistance = (7 - column - row) << 3;
-        playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         //System.out.println("shiftDistance=" + shiftDistance);
         //System.out.println("playerBitrow   =" + BitWorks.byteToString((byte)playerBitrow));
         //System.out.println("opponentBitrow =" + BitWorks.byteToString((byte)opponentBitrow));
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(playerBitrow), - shiftDistance);
-        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(opponentBitrow), - shiftDistance);
+        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(playerBitrow), - shiftDistance);
+        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), - shiftDistance);
 
+        //System.out.println("shiftDistance=" + shiftDistance);
+        //System.out.println("playerBitrow   =" + BitWorks.byteToString((byte)playerBitrow));
+        //System.out.println("opponentBitrow =" + BitWorks.byteToString((byte)opponentBitrow));
         /*
-        System.out.println("shiftDistance=" + shiftDistance);
-        System.out.println("playerBitrow   =" + BitWorks.byteToString((byte)playerBitrow));
-        System.out.println("opponentBitrow =" + BitWorks.byteToString((byte)opponentBitrow));
-        final long[] tmpBoard = new long[2]; tmpBoard[0] = finalPBoard; tmpBoard[1] = finalOBoard;  
+        tmpBoard[0] = finalPBoard; tmpBoard[1] = finalOBoard;  
+        System.out.println("Step: diag H1-A8");
         System.out.println(valueOf(tmpBoard).printBoard());
         */
-
+ 
         final long[] newbitboard2 = new long[2];
         if (intPlayer == WHITE) {
             newbitboard2[0] = finalOBoard;
