@@ -49,10 +49,33 @@ public class BitBoard1Test {
     public static final Board CASE_A = new BoardBuilder()
         .withSquaresLiteral(0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 1, 0, 0, 0, 0,
+                            0, 0, 0, 0, 2, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 2, 1, 2, 0, 0,
-                            0, 0, 0, 1, 1, 1, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0)
+        .build();
+
+    /*
+    [junit]     a b c d e f g h 
+    [junit]  1  . . . @ @ @ . . 
+    [junit]  2  . . . . @ . . . 
+    [junit]  3  . . . @ @ O O . 
+    [junit]  4  . . . @ O . . . 
+    [junit]  5  . . . O @ . . . 
+    [junit]  6  . . O . @ . . . 
+    [junit]  7  . . . . . . . . 
+    [junit]  8  . . . . . . . . 
+     */
+
+    public static final Board CASE_B = new BoardBuilder()
+        .withSquaresLiteral(0, 0, 0, 1, 1, 1, 0, 0,
+                            0, 0, 0, 0, 1, 0, 0, 0,
+                            0, 0, 0, 1, 1, 2, 2, 0,
+                            0, 0, 0, 1, 2, 0, 0, 0,
+                            0, 0, 0, 2, 1, 0, 0, 0,
+                            0, 0, 2, 0, 1, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0)
         .build();
@@ -60,16 +83,17 @@ public class BitBoard1Test {
     @Test
     public final void testMakeMove() {
 
-        final Square move = Square.D6;
-        final Player player = Player.WHITE;
+        final Square move = Square.F5;
+        final Player player = Player.BLACK;
+        final Board board = CASE_B;
 
-        System.out.println("CASE_A class: " + CASE_A.getClass().getName());
+        System.out.println("board class: " + board.getClass().getName());
 
-        System.out.println(CASE_A.printBoard());
+        System.out.println(board.printBoard());
 
         System.out.println("move=" + move + ", player=" + player);
 
-        final Board result = CASE_A.makeMove(move, player);
+        final Board result = board.makeMove(move, player);
 
         System.out.println("---> result ::");
         System.out.println(result.printBoard());
