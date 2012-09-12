@@ -65,7 +65,6 @@ public final class BitBoard1 extends AbstractBoard {
 
     private static final int NUMBER_OF_DIRECTIONS = 8;
     private static final int[] DIRECTIONS = new int [] {DIR_NW, DIR_NN, DIR_NE, DIR_WW, DIR_EE, DIR_SW, DIR_SS, DIR_SE};
-    private static final int[][] FLIPPING_DIRECTIONS = new int[64][];
 
     private static final long CORE_SQUARES                = 0x007E7E7E7E7E7E00L;
     private static final long EDGES_SQUARES               = 0xFF818181818181FFL;
@@ -125,72 +124,9 @@ public final class BitBoard1 extends AbstractBoard {
         0xEF38549211101010L, 0xDF70A82422212020L, 0xBFE0504844424140L, 0x7FC0A09088848281L
     };
 
-    static {
-
-        for (int sq = 0; sq < 64; sq++) {
-            final List<Integer> directions = asList(DIRECTIONS);
-            if (squareBelongsToEdge(sq, EDGE_N)) {
-                directions.remove(Integer.valueOf(DIR_NW));
-                directions.remove(Integer.valueOf(DIR_NN));
-                directions.remove(Integer.valueOf(DIR_NE));
-            }
-            if (squareBelongsToEdge(sq, EDGE_E)) {
-                directions.remove(Integer.valueOf(DIR_NE));
-                directions.remove(Integer.valueOf(DIR_EE));
-                directions.remove(Integer.valueOf(DIR_SE));
-            }
-            if (squareBelongsToEdge(sq, EDGE_S)) {
-                directions.remove(Integer.valueOf(DIR_SW));
-                directions.remove(Integer.valueOf(DIR_SS));
-                directions.remove(Integer.valueOf(DIR_SE));
-            }
-            if (squareBelongsToEdge(sq, EDGE_W)) {
-                directions.remove(Integer.valueOf(DIR_NW));
-                directions.remove(Integer.valueOf(DIR_WW));
-                directions.remove(Integer.valueOf(DIR_SW));
-            }
-            FLIPPING_DIRECTIONS[sq] = asArray(directions);
-        }
-
-    }
-
     public static String printLog() {
         String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
         return ret;
-    }
-
-    private static boolean squareBelongsToEdge(final int square, final int edge) {
-        assert (Arrays.binarySearch(EDGES, edge) >= 0) : "Argument edge must be contained in the EDGES array.";
-        final int col = square % 8;
-        final int row = square / 8;
-        switch (edge) {
-        case EDGE_N: if (row < ROW_2) { return true; }
-            break;
-        case EDGE_E: if (col > COL_G) { return true; }
-            break;
-        case EDGE_S: if (row > ROW_7) { return true; }
-            break;
-        case EDGE_W: if (col < COL_B) { return true; }
-            break;
-        default: throw new IllegalArgumentException("Parameter edge out of range. edge = " + edge);
-        }
-        return false;
-    }
-
-    private static List<Integer> asList(final int[] array) {
-        final List<Integer> list = new ArrayList<Integer>(array.length);
-        for (int i = 0; i < array.length; i++) { list.add(array[i]); }
-        return list;
-    }
-
-    private static int[] asArray(final List<Integer> list) {
-        final int[] array = new int[list.size()];
-        int index = 0;
-        for (final Integer element : list) {
-            array[index] = element.intValue();
-            index++;
-        }
-        return array;
     }
 
     /**
@@ -569,35 +505,6 @@ public final class BitBoard1 extends AbstractBoard {
         return lm;
     }
 
-    private long wouldFlip(final long move, final Player player, final int dir) {
-        assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set.";
-        assert (player != null) : "Argument player must be not null.";
-        long bracketing = 0L;
-        long neighbor = neighbor(move, dir);
-        final int intPlayer = player.ordinal(); 
-        final int intOpponent = intPlayer ^ WHITE;
-        if ((neighbor & bitboard[intOpponent]) != 0L) {
-            long next = neighbor(neighbor, dir);
-            if (next != 0L) {
-                bracketing = findBracketingPiece(next, intPlayer, dir);
-            }
-        }
-        return bracketing;
-    }
-
-    private long findBracketingPiece(final long square, final int intPlayer, final int dir) {
-        final int intOpponent = intPlayer ^ WHITE;
-        if ((square & bitboard[intPlayer]) != 0L) {
-            return square;
-        } else if ((square & bitboard[intOpponent]) != 0L) {
-            long next = neighbor(square, dir);
-            if (next != 0L) {
-                return findBracketingPiece(next, intPlayer, dir);
-            }
-        }
-        return 0L;
-    }
-
     static long neighbor(final long square, final int dir, final int amount) {
         long result = square;
         for (int i = 0; i < amount; i++) {
@@ -663,24 +570,6 @@ public final class BitBoard1 extends AbstractBoard {
                                                + move + "> by player<"
                                                + player + "> is illegal.");
         }
-        final long[] newbitboard = bitboard.clone();
-        final int p = player.ordinal(); 
-        final int o = p ^ WHITE;
-        final int m = move.ordinal();
-        final long bitmove = 1L << m;
-        newbitboard[p] |= bitmove; // set the move
-        for (final int dir : FLIPPING_DIRECTIONS[m]) {
-            final long bracketer = wouldFlip(bitmove, player, dir);
-            if (bracketer != 0L) {
-                for (long c = neighbor(bitmove, dir); true; c = neighbor(c, dir)) {
-                    if (c == bracketer) { break; }
-                    newbitboard[p] |= c;
-                    newbitboard[o] &= ~c;
-                }
-            }
-        }
-
-        //***** rcrr here
 
         final int intMove = move.ordinal();
         final int intPlayer = player.ordinal(); 
@@ -709,13 +598,6 @@ public final class BitBoard1 extends AbstractBoard {
         finalPBoard = playerBitboard & unmodifiedMask;
         finalOBoard = opponentBitboard & unmodifiedMask;
 
-        /*
-        final long[] tmpBoard = new long[2];
-        tmpBoard[0] = finalPBoard; tmpBoard[1] = finalOBoard;  
-        System.out.println("Step: 0");
-        System.out.println(valueOf(tmpBoard).printBoard());
-        */
-
         /** Compute row changes. */
         playerBitrow = (int)(playerBitboard >>> (8 * row)) & 0xFF;
         opponentBitrow = (int)(opponentBitboard >>> (8 * row)) & 0xFF;
@@ -723,12 +605,6 @@ public final class BitBoard1 extends AbstractBoard {
         opponentBitrow &= ~playerBitrow;
         finalPBoard |= ((long)playerBitrow << (8 * row));
         finalOBoard |= ((long)opponentBitrow << (8 * row));
-
-        /*
-        tmpBoard[0] = finalPBoard; tmpBoard[1] = finalOBoard;  
-        System.out.println("Step: row");
-        System.out.println(valueOf(tmpBoard).printBoard());
-        */
 
         /** Compute column changes. */
         playerBitrow = trasformColumnAInRow0(playerBitboard >>> column);
@@ -738,52 +614,23 @@ public final class BitBoard1 extends AbstractBoard {
         finalPBoard |= reTrasformRow0BackToColumnA(playerBitrow) << column;
         finalOBoard |= reTrasformRow0BackToColumnA(opponentBitrow) << column;
 
-        /*
-        tmpBoard[0] = finalPBoard; tmpBoard[1] = finalOBoard;  
-        System.out.println("Step: column");
-        System.out.println(valueOf(tmpBoard).printBoard());
-        */
-
         /** Compute changes on diagonal having direction A1-H8. */
         shiftDistance = (column - row) << 3;
         playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
         opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
-        //System.out.println("shiftDistance=" + shiftDistance);
-        //System.out.println("p-playerBitrow   =" + BitWorks.byteToString((byte)playerBitrow));
-        //System.out.println("p-opponentBitrow =" + BitWorks.byteToString((byte)opponentBitrow));
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        //System.out.println("a-playerBitrow   =" + BitWorks.byteToString((byte)playerBitrow));
-        //System.out.println("a-opponentBitrow =" + BitWorks.byteToString((byte)opponentBitrow));
         finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(playerBitrow), - shiftDistance);
         finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(opponentBitrow), - shiftDistance);
-
-        /*
-        tmpBoard[0] = finalPBoard; tmpBoard[1] = finalOBoard;  
-        System.out.println("Step: diag A1-H8");
-        System.out.println(valueOf(tmpBoard).printBoard());
-        */
 
         /** Compute changes on diagonal having direction H1-A8. */
         shiftDistance = (7 - column - row) << 3;
         playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
         opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
-        //System.out.println("shiftDistance=" + shiftDistance);
-        //System.out.println("playerBitrow   =" + BitWorks.byteToString((byte)playerBitrow));
-        //System.out.println("opponentBitrow =" + BitWorks.byteToString((byte)opponentBitrow));
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
         finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(playerBitrow), - shiftDistance);
         finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), - shiftDistance);
-
-        //System.out.println("shiftDistance=" + shiftDistance);
-        //System.out.println("playerBitrow   =" + BitWorks.byteToString((byte)playerBitrow));
-        //System.out.println("opponentBitrow =" + BitWorks.byteToString((byte)opponentBitrow));
-        /*
-        tmpBoard[0] = finalPBoard; tmpBoard[1] = finalOBoard;  
-        System.out.println("Step: diag H1-A8");
-        System.out.println(valueOf(tmpBoard).printBoard());
-        */
  
         final long[] newbitboard2 = new long[2];
         if (intPlayer == WHITE) {
@@ -794,26 +641,7 @@ public final class BitBoard1 extends AbstractBoard {
             newbitboard2[1] = finalOBoard;
         }
 
-        if (!((newbitboard[0] == newbitboard2[0]) && (newbitboard[1] == newbitboard2[1]))) {
-            System.out.println("AUCH!!!!");
-            System.out.println(printBoard());
-            System.out.println("move=" + move + ", player=" + player);
-            System.out.println("newbitboard[0]=" + newbitboard[0]);
-            System.out.println("newbitboard[1]=" + newbitboard[1]);
-            System.out.println("newbitboard2[0]=" + newbitboard2[0]);
-            System.out.println("newbitboard2[1]=" + newbitboard2[1]);
-            System.out.println("Correct Board:");
-            System.out.println(valueOf(newbitboard).printBoard());
-            System.out.println("BitBoard1 Board:");
-            System.out.println(valueOf(newbitboard2).printBoard());
-            System.out.println("AUCH!!!! END - - - ");
-
-
-        }
-
-        //***** rcrr here
-
-        final Board result = valueOf(newbitboard);
+        final Board result = valueOf(newbitboard2);
         return result;
     }
 
