@@ -63,38 +63,12 @@ public final class BitBoard1 extends AbstractBoard {
     private static final int DIR_SS = +8;
     private static final int DIR_SE = +9;
 
-    private static final int NUMBER_OF_DIRECTIONS = 8;
     private static final int[] DIRECTIONS = new int [] {DIR_NW, DIR_NN, DIR_NE, DIR_WW, DIR_EE, DIR_SW, DIR_SS, DIR_SE};
 
     private static final long CORE_SQUARES                = 0x007E7E7E7E7E7E00L;
     private static final long EDGES_SQUARES               = 0xFF818181818181FFL;
     private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
     private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
-
-    private static final int EDGE_N = 0;
-    private static final int EDGE_E = 1;
-    private static final int EDGE_S = 2;
-    private static final int EDGE_W = 3;
-
-    private static final int[] EDGES = new int[] {EDGE_N, EDGE_E, EDGE_S, EDGE_W};
-
-    private static final int ROW_1 = 0;
-    private static final int ROW_2 = 1;
-    private static final int ROW_3 = 2;
-    private static final int ROW_4 = 3;
-    private static final int ROW_5 = 4;
-    private static final int ROW_6 = 5;
-    private static final int ROW_7 = 6;
-    private static final int ROW_8 = 7;
-
-    private static final int COL_A = 0;
-    private static final int COL_B = 1;
-    private static final int COL_C = 2;
-    private static final int COL_D = 3;
-    private static final int COL_E = 4;
-    private static final int COL_F = 5;
-    private static final int COL_G = 6;
-    private static final int COL_H = 7;
 
     /** Used for masking a byte when using integer values. */
     private static final int BYTE_MASK_FOR_INT = 0xFF;
@@ -104,8 +78,10 @@ public final class BitBoard1 extends AbstractBoard {
      * of the table. Each entry is a bitboard mask having set all the squares that are
      * reachable moving along the eigth directions, when starting from the square identified by
      * the index itself.
+     * <p>
+     * Values do not change.
      */
-    private static long[] BITBOARD_MASK_FOR_ALL_DIRECTIONS = new long[] {
+    private static final long[] BITBOARD_MASK_FOR_ALL_DIRECTIONS = new long[] {
         0x81412111090503FEL, 0x02824222120A07FDL, 0x0404844424150EFBL, 0x08080888492A1CF7L, 
         0x10101011925438EFL, 0x2020212224A870DFL, 0x404142444850E0BFL, 0x8182848890A0C07FL, 
         0x412111090503FE03L, 0x824222120A07FD07L, 0x04844424150EFB0EL, 0x080888492A1CF71CL, 
@@ -426,6 +402,8 @@ public final class BitBoard1 extends AbstractBoard {
         return arrayResult;
     }
 
+    private static final Square[] SQUARE_VALUES = Square.values();
+
     /**
      * {@inheritDoc}
      */
@@ -441,7 +419,7 @@ public final class BitBoard1 extends AbstractBoard {
         // The loop modifies likelyMoves removing the less significative bit set on each iteration.
         for (long likelyMoves = likelyMoves(player); likelyMoves != 0; likelyMoves &= likelyMoves - 1) {
             final int iSquare = BitWorks.bitscanMS1B(BitWorks.lowestBitSet(likelyMoves));
-            final Square square = Square.values()[iSquare];
+            final Square square = SQUARE_VALUES[iSquare];
             if (isLegal(square, player)) {
                 legalMoves.add(square);
             }
@@ -470,7 +448,7 @@ public final class BitBoard1 extends AbstractBoard {
         return legalMoves;
     }
 
-    public long likelyMoves(final Player player) {
+    private long likelyMoves(final Player player) {
         final int intPlayer = player.ordinal(); 
         final int intOpponent = intPlayer ^ WHITE;
         final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
@@ -479,7 +457,7 @@ public final class BitBoard1 extends AbstractBoard {
         //return ((neighbors(bitboard[intOpponent]) & EDGES_SQUARES) | neighbors(bitboard[intOpponent] & CORE_SQUARES) & empties);
     }
 
-    private long neighbors(final long squares) {
+    private static long neighbors(final long squares) {
         long neighbors = squares;
         neighbors |= (neighbors >>> 8);
         neighbors |= (neighbors >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
@@ -505,7 +483,7 @@ public final class BitBoard1 extends AbstractBoard {
         return lm;
     }
 
-    static long neighbor(final long square, final int dir, final int amount) {
+    private static long neighbor(final long square, final int dir, final int amount) {
         long result = square;
         for (int i = 0; i < amount; i++) {
             result = neighbor(result, dir);
@@ -513,7 +491,7 @@ public final class BitBoard1 extends AbstractBoard {
         return result;
     }
 
-    static long neighbor(final long square, final int dir) {
+    private static long neighbor(final long square, final int dir) {
         switch (dir) {
         case DIR_NW: return (square >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
         case DIR_NN: return (square >>> 8);

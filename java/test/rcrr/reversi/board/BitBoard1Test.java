@@ -75,49 +75,19 @@ public class BitBoard1Test {
         final Player player = Player.BLACK;
         final Board board = CASE_B;
 
-        System.out.println("board class: " + board.getClass().getName());
+        //System.out.println("board class: " + board.getClass().getName());
 
-        System.out.println(board.printBoard());
+        //System.out.println(board.printBoard());
 
-        System.out.println("move=" + move + ", player=" + player);
+        //System.out.println("move=" + move + ", player=" + player);
 
         final Board result = board.makeMove(move, player);
 
-        System.out.println("---> result ::");
-        System.out.println(result.printBoard());
+        //System.out.println("---> result ::");
+        //System.out.println(result.printBoard());
 
         assertTrue(true);
 
     }
-
-    /*
-    @Test
-    public final void testIsLegal() {
-
-        final Map<Square, SquareState> squares = new HashMap<Square, SquareState>();
-        for (final Square sq : Square.values()) {
-            squares.put(sq, BoardFixtures.BLACK_HAS_TO_PASS.get(sq));
-        }
-        final Board board = BitBoard.valueOf(squares);
-        final BitBoard bitboard = (BitBoard) board;
-
-        assertThat("bitboard.isLegal(Square.H7, Player.WHITE) is true.",
-                   bitboard.isLegal(Square.H7, Player.WHITE),
-                   is(true));
-
-        assertThat("bitboard.isLegal(Square.A4, Player.WHITE) is true.",
-                   bitboard.isLegal(Square.A4, Player.WHITE),
-                   is(true));
-
-        assertThat("bitboard.isLegal(Square.A1, Player.WHITE) is true.",
-                   bitboard.isLegal(Square.A1, Player.WHITE),
-                   is(false));
-
-        assertThat("bitboard.isLegal(Square.A1, Player.BLACK) is true.",
-                   bitboard.isLegal(Square.A1, Player.BLACK),
-                   is(false));
-
-    }
-    */
 
 }
