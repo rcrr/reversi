@@ -86,7 +86,7 @@ public class BitBoardTest extends AbstractBoardTest {
 
         final long[] bitboard = {core, edges}; 
 
-        System.out.println(BitBoard.valueOf(bitboard).printBoard());
+        //System.out.println(BitBoard.valueOf(bitboard).printBoard());
 
         assertTrue(true);
 
