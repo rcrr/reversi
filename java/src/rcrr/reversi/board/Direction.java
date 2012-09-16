@@ -134,13 +134,23 @@ public enum Direction {
     public Axis axis() { return axis; }
 
     /**
-     * Returns the versus defined by the direction on the axis associated with it.
+     * Returns the opposite direction.
      *
-     * @return the versus of the direction
-     *
-     * @see Versus
+     * @return the opposite direction
      */
-    public Versus versus() { return versus; }
+    public Direction opposite() {
+        switch (this) {
+        case NW: return SE;
+        case N:  return S;
+        case NE: return SW;
+        case W:  return E;
+        case SE: return NW;
+        case S:  return N;
+        case SW: return NE;
+        case E:  return W;
+        default: throw new IllegalArgumentException("Undefined value for direction. this=" + this);
+        }
+    }
 
     /**
      * Returns the shift to apply when moving on the ordered sequence of squares.
@@ -150,5 +160,14 @@ public enum Direction {
      * @see Square
      */
     public int shift() { return shift; }
+
+    /**
+     * Returns the versus defined by the direction on the axis associated with it.
+     *
+     * @return the versus of the direction
+     *
+     * @see Versus
+     */
+    public Versus versus() { return versus; }
 
 }
