@@ -29,8 +29,8 @@ package rcrr.reversi.board;
  */
 public abstract class BitBoard extends AbstractBoard {
 
-    private static final int BLACK = 0;
-    private static final int WHITE = 1;
+    static final int BLACK = 0;
+    static final int WHITE = 1;
 
     /**
      * The bitboard field.

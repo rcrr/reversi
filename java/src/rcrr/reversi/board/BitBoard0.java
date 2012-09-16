@@ -44,15 +44,12 @@ import java.util.ArrayList;
  * <p>
  * @see Square
  */
-public final class BitBoard0 extends AbstractBoard {
+public final class BitBoard0 extends BitBoard {
 
     private static final boolean LOG = true;
     private static int callsTolegalMoves = 0;
     private static int callsToMakeMove = 0;
     private static int callsToConstructor = 0;
-
-    private static final int BLACK = 0;
-    private static final int WHITE = 1;
 
     private static final int DIR_NW = -9;
     private static final int DIR_NN = -8;
@@ -204,11 +201,6 @@ public final class BitBoard0 extends AbstractBoard {
     }
 
     /**
-     * The bitboard field.
-     */
-    private final transient long[] bitboard;
-
-    /**
      * Class constructor.
      * <p>
      * {@code bitboard} must be not null, and must have a length equal to
@@ -217,53 +209,8 @@ public final class BitBoard0 extends AbstractBoard {
      * @param  bitboard the bitboard field
      */
     private BitBoard0(final long[] bitboard) {
-        assert (bitboard != null) : "Parameter bitboard cannot be null.";
-        assert (bitboard.length == 2) : "Parameter bitboard must have a lenght equal to two.";
-        assert ((bitboard[0] & bitboard[1]) == 0L)
-            : "Parameter bitboard cannot have black and white discs overlapping.";
+        super(bitboard);
         if (LOG) callsToConstructor++;
-        this.bitboard = bitboard.clone();
-    }
-
-    /**
-     * Returns the disk count for the color.
-     *
-     * @param color the color for which the disk count is computed
-     * @return the disk count
-     * @throws NullPointerException if parameter {@code color} is null
-     */
-    @Override
-    public int countPieces(final SquareState color) {
-        if (color == null) {
-            throw new NullPointerException("Parameter color must be not null.");
-        }
-        switch (color) {
-        case BLACK: return Long.bitCount(bitboard[BLACK]);
-        case WHITE: return Long.bitCount(bitboard[WHITE]);
-        case EMPTY: return Long.bitCount(~(bitboard[BLACK] | bitboard[WHITE]));
-        case OUTER: return 0;
-        default: throw new IllegalArgumentException("Undefined value for color parameter. color=" + color);
-        }
-    }
-
-    /**
-     * Returns the {@code SquareState} value for the given board's square.
-     * <p>
-     * When {@code square} is {@code null} the method returns {@code SquareState.OUTER} value.
-     *
-     * @param  square the board square to retrieve the state value
-     * @return        the square state
-     */
-    public SquareState get(final Square square) {
-        if (square == null) { return SquareState.OUTER; }
-        final long bitsquare = 1L << square.ordinal();
-        if ((bitsquare & bitboard[BLACK]) != 0) {
-            return SquareState.BLACK;
-        } else if ((bitsquare & bitboard[WHITE]) != 0) {
-            return SquareState.WHITE;
-        } else {
-            return SquareState.EMPTY;
-        }
     }
 
     /**
