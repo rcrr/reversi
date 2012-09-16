@@ -51,9 +51,6 @@ public final class BitBoard1 extends BitBoard {
     private static int callsToMakeMove = 0;
     private static int callsToConstructor = 0;
 
-    private static final int BLACK = 0;
-    private static final int WHITE = 1;
-
     /** Should be moved completely to Direction enum? I think so. */
     private static final int DIR_NW = -9;
     private static final int DIR_NN = -8;
@@ -151,103 +148,6 @@ public final class BitBoard1 extends BitBoard {
      */
     static Board valueOf(final long[] bitboard) {
         return new BitBoard1(bitboard);
-    }
-
-    /**
-     * Class constructor.
-     * <p>
-     * {@code bitboard} must be not null, and must have a size equal to
-     * two. Overlapping bit set to one are not allowed.
-     *
-     * @param  bitboard the bitboard field
-     */
-    private BitBoard1(final long[] bitboard) {
-        super(bitboard);
-        if (LOG) callsToConstructor++;
-    }
-
-    /**
-     * Returns the boolean value telling if the move, done by the
-     * specified player, is legal.
-     * <p>
-     * Parameter {@code move} must be not {@code null}.
-     * Parameter {@code player} must be not {@code null}.
-     *
-     * A few more optimizations are possible:
-     * Precompute the shiftDistance value, remake signedhift using a shift.
-     * Eliminate the check for diagonals shorter than 3 pieces.
-     * Verify that the square is empty. !!!! Eureka! -15%
-     *
-     *
-     * @param move   the square where to put the new disk
-     * @param player the player moving
-     * @return       true if the move is legal, otherwise false
-     * @throws NullPointerException if parameter {@code move} or {@code player} is null
-     */
-    public boolean isLegal(final Square move, final Player player) {
-        if (move == null) {
-            throw new NullPointerException("Parameter move must be not null.");
-        }
-        if (player == null) {
-            throw new NullPointerException("Parameter player must be not null.");
-        }
-
-        final long bitmove = 1L << move.ordinal();
-        if ((bitmove & (bitboard[BLACK] | bitboard[WHITE])) != 0) {
-            return false;
-        }
-
-        final int intPlayer = player.ordinal(); 
-        final int column = move.column().ordinal();
-        final int row = move.row().ordinal();
-
-        final long playerBitboard;
-        final long opponentBitboard;
-
-        if (intPlayer == WHITE) {
-            playerBitboard = bitboard[WHITE];
-            opponentBitboard = bitboard[BLACK];
-        } else {
-            playerBitboard = bitboard[BLACK];
-            opponentBitboard = bitboard[WHITE];
-        }
-
-        int playerBitrow;
-        int opponentBitrow;
-        int shiftDistance;
-
-        /** Check for flipping on row. */
-        playerBitrow = (int)(playerBitboard >>> (8 * row)) & 0xFF;
-        opponentBitrow = (int)(opponentBitboard >>> (8 * row)) & 0xFF;
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
-            return true;
-        }
-
-        /** Check for flipping on column. */
-        playerBitrow = trasformColumnAInRow0(playerBitboard >>> column);
-        opponentBitrow = trasformColumnAInRow0(opponentBitboard >>> column);
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, row) != playerBitrow) {
-            return true;
-        }
-
-        /** Check for flipping on diagonal having direction A1-H8. */
-        shiftDistance = (column - row) << 3;
-        playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
-            return true;
-        }
-
-        /** Check for flipping on diagonal having direction H1-A8. */
-        shiftDistance = (7 - column - row) << 3;
-        playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
-        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
-            return true;
-        }
-
-        /** If no capture on the four directions happens, return false. */
-        return false;
     }
 
     private static int trasformColumnAInRow0(long x) {
@@ -384,6 +284,134 @@ public final class BitBoard1 extends BitBoard {
         return arrayResult;
     }
 
+    private static long neighbors(final long squares) {
+        long neighbors = squares;
+        neighbors |= (neighbors >>> 8);
+        neighbors |= (neighbors >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        neighbors |= (neighbors <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        neighbors |= (neighbors <<  8);
+        return neighbors;
+    }
+
+    private static long neighbor(final long square, final int dir, final int amount) {
+        long result = square;
+        for (int i = 0; i < amount; i++) {
+            result = neighbor(result, dir);
+        }
+        return result;
+    }
+
+    private static long neighbor(final long square, final int dir) {
+        switch (dir) {
+        case DIR_NW: return (square >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case DIR_NN: return (square >>> 8);
+        case DIR_NE: return (square >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case DIR_WW: return (square >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case DIR_EE: return (square <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case DIR_SW: return (square <<  7) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case DIR_SS: return (square <<  8);
+        case DIR_SE: return (square <<  9) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        default: throw new IllegalArgumentException("Undefined value for dir parameter. dir=" + dir);
+        }
+    }
+
+    /**
+     * Class constructor.
+     * <p>
+     * {@code bitboard} must be not null, and must have a size equal to
+     * two. Overlapping bit set to one are not allowed.
+     *
+     * @param  bitboard the bitboard field
+     */
+    private BitBoard1(final long[] bitboard) {
+        super(bitboard);
+        if (LOG) callsToConstructor++;
+    }
+
+    /**
+     * Returns the boolean value telling if the move, done by the
+     * specified player, is legal.
+     * <p>
+     * Parameter {@code move} must be not {@code null}.
+     * Parameter {@code player} must be not {@code null}.
+     *
+     * A few more optimizations are possible:
+     * Precompute the shiftDistance value, remake signedhift using a shift.
+     * Eliminate the check for diagonals shorter than 3 pieces.
+     * Verify that the square is empty. !!!! Eureka! -15%
+     *
+     *
+     * @param move   the square where to put the new disk
+     * @param player the player moving
+     * @return       true if the move is legal, otherwise false
+     * @throws NullPointerException if parameter {@code move} or {@code player} is null
+     */
+    public boolean isLegal(final Square move, final Player player) {
+        if (move == null) {
+            throw new NullPointerException("Parameter move must be not null.");
+        }
+        if (player == null) {
+            throw new NullPointerException("Parameter player must be not null.");
+        }
+
+        final long bitmove = 1L << move.ordinal();
+        if ((bitmove & (bitboard[BLACK] | bitboard[WHITE])) != 0) {
+            return false;
+        }
+
+        final int intPlayer = player.ordinal(); 
+        final int column = move.column().ordinal();
+        final int row = move.row().ordinal();
+
+        final long playerBitboard;
+        final long opponentBitboard;
+
+        if (intPlayer == WHITE) {
+            playerBitboard = bitboard[WHITE];
+            opponentBitboard = bitboard[BLACK];
+        } else {
+            playerBitboard = bitboard[BLACK];
+            opponentBitboard = bitboard[WHITE];
+        }
+
+        int playerBitrow;
+        int opponentBitrow;
+        int shiftDistance;
+
+        /** Check for flipping on row. */
+        playerBitrow = (int)(playerBitboard >>> (8 * row)) & 0xFF;
+        opponentBitrow = (int)(opponentBitboard >>> (8 * row)) & 0xFF;
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
+            return true;
+        }
+
+        /** Check for flipping on column. */
+        playerBitrow = trasformColumnAInRow0(playerBitboard >>> column);
+        opponentBitrow = trasformColumnAInRow0(opponentBitboard >>> column);
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, row) != playerBitrow) {
+            return true;
+        }
+
+        /** Check for flipping on diagonal having direction A1-H8. */
+        shiftDistance = (column - row) << 3;
+        playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
+            return true;
+        }
+
+        /** Check for flipping on diagonal having direction H1-A8. */
+        shiftDistance = (7 - column - row) << 3;
+        playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
+            return true;
+        }
+
+        /** If no capture on the four directions happens, return false. */
+        return false;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -426,63 +454,6 @@ public final class BitBoard1 extends BitBoard {
         */
 
         return legalMoves;
-    }
-
-    private long likelyMoves(final Player player) {
-        final int intPlayer = player.ordinal(); 
-        final int intOpponent = intPlayer ^ WHITE;
-        final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
-        // Case 1 is simple. Case 2 removes the likely moves that are on the "second crown" and are neighbor of only edge squares.
-        return neighbors(bitboard[intOpponent]) & empties;
-        //return ((neighbors(bitboard[intOpponent]) & EDGES_SQUARES) | neighbors(bitboard[intOpponent] & CORE_SQUARES) & empties);
-    }
-
-    private static long neighbors(final long squares) {
-        long neighbors = squares;
-        neighbors |= (neighbors >>> 8);
-        neighbors |= (neighbors >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        neighbors |= (neighbors <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        neighbors |= (neighbors <<  8);
-        return neighbors;
-    }
-
-    private long legalMoves(final int player) {
-        final int opponent = player ^ WHITE;
-        final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
-
-        long lm = 0L;
-        for (final int dir : DIRECTION_SHIFTS) {
-            long wave = neighbor(empties, dir) & bitboard[opponent];
-            for (int shift = 2; shift < 8; shift++) {
-                wave = neighbor(wave, dir);
-                lm |= neighbor((wave & bitboard[player]), -dir, shift);
-                wave &= bitboard[opponent];
-            }
-        }
-
-        return lm;
-    }
-
-    private static long neighbor(final long square, final int dir, final int amount) {
-        long result = square;
-        for (int i = 0; i < amount; i++) {
-            result = neighbor(result, dir);
-        }
-        return result;
-    }
-
-    private static long neighbor(final long square, final int dir) {
-        switch (dir) {
-        case DIR_NW: return (square >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_NN: return (square >>> 8);
-        case DIR_NE: return (square >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case DIR_WW: return (square >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_EE: return (square <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case DIR_SW: return (square <<  7) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_SS: return (square <<  8);
-        case DIR_SE: return (square <<  9) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        default: throw new IllegalArgumentException("Undefined value for dir parameter. dir=" + dir);
-        }
     }
 
     /**
@@ -601,6 +572,32 @@ public final class BitBoard1 extends BitBoard {
 
         final Board result = valueOf(newbitboard);
         return result;
+    }
+
+    private long legalMoves(final int player) {
+        final int opponent = player ^ WHITE;
+        final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
+
+        long lm = 0L;
+        for (final int dir : DIRECTION_SHIFTS) {
+            long wave = neighbor(empties, dir) & bitboard[opponent];
+            for (int shift = 2; shift < 8; shift++) {
+                wave = neighbor(wave, dir);
+                lm |= neighbor((wave & bitboard[player]), -dir, shift);
+                wave &= bitboard[opponent];
+            }
+        }
+
+        return lm;
+    }
+
+    private long likelyMoves(final Player player) {
+        final int intPlayer = player.ordinal(); 
+        final int intOpponent = intPlayer ^ WHITE;
+        final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
+        // Case 1 is simple. Case 2 removes the likely moves that are on the "second crown" and are neighbor of only edge squares.
+        return neighbors(bitboard[intOpponent]) & empties;
+        //return ((neighbors(bitboard[intOpponent]) & EDGES_SQUARES) | neighbors(bitboard[intOpponent] & CORE_SQUARES) & empties);
     }
 
 }
