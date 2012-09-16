@@ -128,7 +128,7 @@ public class ReversiUI {
     private static final class PreferencesFrame extends JFrame implements ActionListener {
 
         private static final int MIN_SEARCH_DEPTH = 1;
-        private static final int MAX_SEARCH_DEPTH = 8;
+        private static final int MAX_SEARCH_DEPTH = 10;
         private static final int SEARCH_DEPTH_STEP = 1;
 
         private static final int MIN_GAME_DURATION = 5;
