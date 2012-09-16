@@ -54,6 +54,7 @@ public final class BitBoard1 extends AbstractBoard {
     private static final int BLACK = 0;
     private static final int WHITE = 1;
 
+    /** Should be moved completely to Direction enum? I think so. */
     private static final int DIR_NW = -9;
     private static final int DIR_NN = -8;
     private static final int DIR_NE = -7;
@@ -63,7 +64,9 @@ public final class BitBoard1 extends AbstractBoard {
     private static final int DIR_SS = +8;
     private static final int DIR_SE = +9;
 
-    private static final int[] DIRECTIONS = new int [] {DIR_NW, DIR_NN, DIR_NE, DIR_WW, DIR_EE, DIR_SW, DIR_SS, DIR_SE};
+    private static final int[] DIRECTION_SHIFTS = Direction.shifts(); 
+
+    private static final Square[] SQUARE_VALUES = Square.values();
 
     private static final long CORE_SQUARES                = 0x007E7E7E7E7E7E00L;
     private static final long EDGES_SQUARES               = 0xFF818181818181FFL;
@@ -402,8 +405,6 @@ public final class BitBoard1 extends AbstractBoard {
         return arrayResult;
     }
 
-    private static final Square[] SQUARE_VALUES = Square.values();
-
     /**
      * {@inheritDoc}
      */
@@ -467,11 +468,11 @@ public final class BitBoard1 extends AbstractBoard {
     }
 
     private long legalMoves(final int player) {
-        long lm = 0L;
-        int opponent = player ^ WHITE;
-        long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
+        final int opponent = player ^ WHITE;
+        final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
 
-        for (final int dir : DIRECTIONS) {
+        long lm = 0L;
+        for (final int dir : DIRECTION_SHIFTS) {
             long wave = neighbor(empties, dir) & bitboard[opponent];
             for (int shift = 2; shift < 8; shift++) {
                 wave = neighbor(wave, dir);
