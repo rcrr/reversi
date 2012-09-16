@@ -140,6 +140,15 @@ public final class BitBoard1 extends BitBoard {
         return new BitBoard1(BoardUtils.mapToBitboard(squares));
     }
 
+    /**
+     * Static factory for the class.
+     * <p>
+     * {@code bitboard} must be not null, and must have a size equal to
+     * two. Overlapping bit set are not valid.
+     * Precondition on the {@code bitboard} parameter are not enforced.
+     *
+     * @param  bitboard the bitboard field
+     */
     static Board valueOf(final long[] bitboard) {
         return new BitBoard1(bitboard);
     }
@@ -184,7 +193,7 @@ public final class BitBoard1 extends BitBoard {
         }
 
         final long bitmove = 1L << move.ordinal();
-        if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
+        if ((bitmove & (bitboard[BLACK] | bitboard[WHITE])) != 0) {
             return false;
         }
 
@@ -196,11 +205,11 @@ public final class BitBoard1 extends BitBoard {
         final long opponentBitboard;
 
         if (intPlayer == WHITE) {
-            playerBitboard = bitboard[1];
-            opponentBitboard = bitboard[0];
+            playerBitboard = bitboard[WHITE];
+            opponentBitboard = bitboard[BLACK];
         } else {
-            playerBitboard = bitboard[0];
-            opponentBitboard = bitboard[1];
+            playerBitboard = bitboard[BLACK];
+            opponentBitboard = bitboard[WHITE];
         }
 
         int playerBitrow;
@@ -529,11 +538,11 @@ public final class BitBoard1 extends BitBoard {
         final long opponentBitboard;
 
         if (intPlayer == WHITE) {
-            playerBitboard = bitboard[1];
-            opponentBitboard = bitboard[0];
+            playerBitboard = bitboard[WHITE];
+            opponentBitboard = bitboard[BLACK];
         } else {
-            playerBitboard = bitboard[0];
-            opponentBitboard = bitboard[1];
+            playerBitboard = bitboard[BLACK];
+            opponentBitboard = bitboard[WHITE];
         }
 
         long finalPBoard;
@@ -581,16 +590,16 @@ public final class BitBoard1 extends BitBoard {
         finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(playerBitrow), - shiftDistance);
         finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), - shiftDistance);
  
-        final long[] newbitboard2 = new long[2];
+        final long[] newbitboard = new long[2];
         if (intPlayer == WHITE) {
-            newbitboard2[0] = finalOBoard;
-            newbitboard2[1] = finalPBoard;
+            newbitboard[BLACK] = finalOBoard;
+            newbitboard[WHITE] = finalPBoard;
         } else {
-            newbitboard2[0] = finalPBoard;
-            newbitboard2[1] = finalOBoard;
+            newbitboard[BLACK] = finalPBoard;
+            newbitboard[WHITE] = finalOBoard;
         }
 
-        final Board result = valueOf(newbitboard2);
+        final Board result = valueOf(newbitboard);
         return result;
     }
 
