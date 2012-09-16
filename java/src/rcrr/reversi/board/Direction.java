@@ -48,35 +48,44 @@ public enum Direction {
     /**
      * North-West direction.
      */
-    NW(Axis.DIAGONAL_LR, Versus.NEGATIVE),
+    NW(Axis.DIAGONAL_LR, Versus.NEGATIVE, -9),
     /**
      * North direction.
      */
-    N(Axis.VERTICAL, Versus.NEGATIVE),
+    N(Axis.VERTICAL, Versus.NEGATIVE, -8),
     /**
      * North-East direction.
      */
-    NE(Axis.DIAGONAL_RL, Versus.NEGATIVE),
+    NE(Axis.DIAGONAL_RL, Versus.NEGATIVE, -7),
     /**
      * West direction.
      */
-    W(Axis.HORIZONTAL, Versus.NEGATIVE),
+    W(Axis.HORIZONTAL, Versus.NEGATIVE, -1),
     /**
      * East direction.
      */
-    E(Axis.HORIZONTAL, Versus.POSITIVE),
+    E(Axis.HORIZONTAL, Versus.POSITIVE, +1),
     /**
      * South-West direction.
      */
-    SW(Axis.DIAGONAL_RL, Versus.POSITIVE),
+    SW(Axis.DIAGONAL_RL, Versus.POSITIVE, +7),
     /**
      * South direction.
      */
-    S(Axis.VERTICAL, Versus.POSITIVE),
+    S(Axis.VERTICAL, Versus.POSITIVE, +8),
     /**
      * South-East direction.
      */
-    SE(Axis.DIAGONAL_LR, Versus.POSITIVE);
+    SE(Axis.DIAGONAL_LR, Versus.POSITIVE, +9);
+
+    /** The null direction. */
+    public static final Direction NULL = null;
+
+    /** A generic direction instance. */
+    public static final Direction AN_INSTANCE = SW;
+
+    /** The number of directions. */
+    public static final int NUMBER_OF = values().length;
 
     /** axis field. */
     private final Axis axis;
@@ -84,15 +93,35 @@ public enum Direction {
     /** versus field. */
     private final Versus versus;
 
+    /** shift field. It is coupled with the ordered sequence defined by the Square enum. */
+    private final int shift;
+
+    /**
+     * Returns an array of integers having the length of the number of directions.
+     * Each position has the value given by the shift method for the corresponding direction.
+     *
+     * @return an array of shift values
+     */
+    public static int[] shifts() {
+        final Direction[] arrayOfDirections = values();
+        final int[] shifts = new int[NUMBER_OF];
+        for (int i = 0; i < NUMBER_OF; i++) {
+            shifts[i] = arrayOfDirections[i].shift();
+        }
+        return shifts;
+    }
+
     /**
      * Enum constructor.
      *
-     * @param axis        the axis that the direction belongs to
-     * @param versus      the versus that identifies the direction
+     * @param axis   the axis that the direction belongs to
+     * @param versus the versus that identifies the direction
+     * @param shift  the number of position to shift when moving on the ordered sequence of squares
      */
-    private Direction(final Axis axis, final Versus versus) {
+    private Direction(final Axis axis, final Versus versus, final int shift) {
         this.axis = axis;
         this.versus = versus;
+        this.shift = shift;
     }
 
     /**
@@ -112,5 +141,14 @@ public enum Direction {
      * @see Versus
      */
     public Versus versus() { return versus; }
+
+    /**
+     * Returns the shift to apply when moving on the ordered sequence of squares.
+     *
+     * @return the shift associated with the direction
+     *
+     * @see Square
+     */
+    public int shift() { return shift; }
 
 }
