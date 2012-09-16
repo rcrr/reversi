@@ -44,7 +44,7 @@ import java.util.ArrayList;
  * <p>
  * @see Square
  */
-public final class BitBoard1 extends AbstractBoard {
+public final class BitBoard1 extends BitBoard {
 
     private static final boolean LOG = true;
     private static int callsTolegalMoves = 0;
@@ -102,6 +102,21 @@ public final class BitBoard1 extends AbstractBoard {
         0xFE03050911214181L, 0xFD070A1222428202L, 0xFB0E152444840404L, 0xF71C2A4988080808L, 
         0xEF38549211101010L, 0xDF70A82422212020L, 0xBFE0504844424140L, 0x7FC0A09088848281L
     };
+    /**
+     * This array is an implementation of the precomputed table that contains the effects of moving
+     * a piece in any of the eigth squares in a row.
+     * The size is so computed:
+     *  - there are 256 arrangments of player discs,
+     *  - and 256 arrangements of opponent pieces,
+     *  - the potential moves are 8.
+     * So the array size is 256 * 256 * 8 = 524,288 Bytes = 512kB.
+     * Not all the entries are legal! The first set of eigth bits and the second one (opponent row)
+     * must not set the same position. 
+     * 
+     * The index of the array is computed by this formula:
+     * index = playerRow | (opponentRow << 8) | (movePosition << 16);
+     */
+    private static final byte[] BITROW_CHANGES_FOR_PLAYER_ARRAY = initializeBitrowChangesForPlayerArray();
 
     public static String printLog() {
         String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
@@ -130,11 +145,6 @@ public final class BitBoard1 extends AbstractBoard {
     }
 
     /**
-     * The bitboard field.
-     */
-    private final transient long[] bitboard;
-
-    /**
      * Class constructor.
      * <p>
      * {@code bitboard} must be not null, and must have a size equal to
@@ -143,32 +153,8 @@ public final class BitBoard1 extends AbstractBoard {
      * @param  bitboard the bitboard field
      */
     private BitBoard1(final long[] bitboard) {
-        assert (bitboard != null) : "Parameter bitboard cannot be null.";
-        assert (bitboard.length == 2) : "Parameter bitboard must have a lenght equal to two.";
-        assert ((bitboard[0] & bitboard[1]) == 0L)
-            : "Parameter bitboard cannot have black and white discs overlapping.";
+        super(bitboard);
         if (LOG) callsToConstructor++;
-        this.bitboard = bitboard.clone();
-    }
-
-    /**
-     * Returns the {@code SquareState} value for the given board's square.
-     * <p>
-     * When {@code square} is {@code null} the method returns {@code SquareState.OUTER} value.
-     *
-     * @param  square the board square to retrieve the state value
-     * @return        the square state
-     */
-    public SquareState get(final Square square) {
-        if (square == null) { return SquareState.OUTER; }
-        final long bitsquare = 1L << square.ordinal();
-        if ((bitsquare & bitboard[BLACK]) != 0) {
-            return SquareState.BLACK;
-        } else if ((bitsquare & bitboard[WHITE]) != 0) {
-            return SquareState.WHITE;
-        } else {
-            return SquareState.EMPTY;
-        }
     }
 
     /**
@@ -312,22 +298,6 @@ public final class BitBoard1 extends AbstractBoard {
         final int arrayIndex = playerRow | (opponentRow << 8) | (movePosition << 16);
         return (int)BITROW_CHANGES_FOR_PLAYER_ARRAY[arrayIndex] & BYTE_MASK_FOR_INT;
     }
-
-    /**
-     * This array is an implementation of the precomputed table that contains the effects of moving
-     * a piece in any of the eigth squares in a row.
-     * The size is so computed:
-     *  - there are 256 arrangments of player discs,
-     *  - and 256 arrangements of opponent pieces,
-     *  - the potential moves are 8.
-     * So the array size is 256 * 256 * 8 = 524,288 Bytes = 512kB.
-     * Not all the entries are legal! The first set of eigth bits and the second one (opponent row)
-     * must not set the same position. 
-     * 
-     * The index of the array is computed by this formula:
-     * index = playerRow | (opponentRow << 8) | (movePosition << 16);
-     */
-    private static final byte[] BITROW_CHANGES_FOR_PLAYER_ARRAY = initializeBitrowChangesForPlayerArray();
 
     /** Used to initialize the BITROW_CHANGES_FOR_PLAYER_ARRAY. */
     private static byte[] initializeBitrowChangesForPlayerArray() {
@@ -622,27 +592,6 @@ public final class BitBoard1 extends AbstractBoard {
 
         final Board result = valueOf(newbitboard2);
         return result;
-    }
-
-    /**
-     * Returns the disk count for the color.
-     *
-     * @param color the color for which the disk count is computed
-     * @return the disk count
-     * @throws NullPointerException if parameter {@code color} is null
-     */
-    @Override
-    public int countPieces(final SquareState color) {
-        if (color == null) {
-            throw new NullPointerException("Parameter color must be not null.");
-        }
-        switch (color) {
-        case BLACK: return Long.bitCount(bitboard[BLACK]);
-        case WHITE: return Long.bitCount(bitboard[WHITE]);
-        case EMPTY: return Long.bitCount(~(bitboard[BLACK] | bitboard[WHITE]));
-        case OUTER: return 0;
-        default: throw new IllegalArgumentException("Undefined value for color parameter. color=" + color);
-        }
     }
 
 }

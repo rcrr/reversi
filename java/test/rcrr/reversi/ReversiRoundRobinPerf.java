@@ -95,7 +95,6 @@ public class ReversiRoundRobinPerf {
                           "ReversiRoundRobinPerf",
                           "Method=testRoundRobin");
 
-        System.out.println("BitBoard.printLog() = " + BitBoard.printLog());
         System.out.println("BitBoard0.printLog() = " + BitBoard0.printLog());
         System.out.println("BitBoard1.printLog() = " + BitBoard1.printLog());
 
