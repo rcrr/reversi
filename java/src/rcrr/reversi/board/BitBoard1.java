@@ -38,7 +38,7 @@ import java.util.ArrayList;
  * The board state is kept into a long array having a length equal two.
  * The first entry keeps the black squares, the second the whites.
  * <p>
- * The board uses wouldFlip ....
+ * The board uses the best machinery so far identified ....
  * <p>
  * {@code BitBoard1} is immutable.
  * <p>
@@ -51,15 +51,7 @@ public final class BitBoard1 extends BitBoard {
     private static int callsToMakeMove = 0;
     private static int callsToConstructor = 0;
 
-    /** Should be moved completely to Direction enum? I think so. */
-    private static final int DIR_NW = -9;
-    private static final int DIR_NN = -8;
-    private static final int DIR_NE = -7;
-    private static final int DIR_WW = -1;
-    private static final int DIR_EE = +1;
-    private static final int DIR_SW = +7;
-    private static final int DIR_SS = +8;
-    private static final int DIR_SE = +9;
+    private static final Direction[] DIRECTION_VALUES = Direction.values();
 
     private static final int[] DIRECTION_SHIFTS = Direction.shifts(); 
 
@@ -293,7 +285,7 @@ public final class BitBoard1 extends BitBoard {
         return neighbors;
     }
 
-    private static long neighbor(final long square, final int dir, final int amount) {
+    private static long neighbor(final long square, final Direction dir, final int amount) {
         long result = square;
         for (int i = 0; i < amount; i++) {
             result = neighbor(result, dir);
@@ -301,17 +293,17 @@ public final class BitBoard1 extends BitBoard {
         return result;
     }
 
-    private static long neighbor(final long square, final int dir) {
+    private static long neighbor(final long square, final Direction dir) {
         switch (dir) {
-        case DIR_NW: return (square >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_NN: return (square >>> 8);
-        case DIR_NE: return (square >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case DIR_WW: return (square >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_EE: return (square <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case DIR_SW: return (square <<  7) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_SS: return (square <<  8);
-        case DIR_SE: return (square <<  9) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        default: throw new IllegalArgumentException("Undefined value for dir parameter. dir=" + dir);
+        case NW: return (square >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case N:  return (square >>> 8);
+        case NE: return (square >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case W:  return (square >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case E:  return (square <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case SW: return (square <<  7) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case S:  return (square <<  8);
+        case SE: return (square <<  9) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
         }
     }
 
@@ -579,11 +571,11 @@ public final class BitBoard1 extends BitBoard {
         final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
 
         long lm = 0L;
-        for (final int dir : DIRECTION_SHIFTS) {
+        for (final Direction dir : DIRECTION_VALUES) {
             long wave = neighbor(empties, dir) & bitboard[opponent];
             for (int shift = 2; shift < 8; shift++) {
                 wave = neighbor(wave, dir);
-                lm |= neighbor((wave & bitboard[player]), -dir, shift);
+                lm |= neighbor((wave & bitboard[player]), dir.opposite(), shift);
                 wave &= bitboard[opponent];
             }
         }
