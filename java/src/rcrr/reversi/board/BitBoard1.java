@@ -44,7 +44,7 @@ import java.util.ArrayList;
  * <p>
  * @see Square
  */
-public final class BitBoard1 extends BitBoard {
+public class BitBoard1 extends BitBoard {
 
     private static final boolean LOG = true;
     private static int callsTolegalMoves = 0;
@@ -57,13 +57,11 @@ public final class BitBoard1 extends BitBoard {
 
     private static final Square[] SQUARE_VALUES = Square.values();
 
-    private static final long CORE_SQUARES                = 0x007E7E7E7E7E7E00L;
-    private static final long EDGES_SQUARES               = 0xFF818181818181FFL;
     private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
     private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
 
     /** Used for masking a byte when using integer values. */
-    private static final int BYTE_MASK_FOR_INT = 0xFF;
+    static final int BYTE_MASK_FOR_INT = 0xFF;
 
     /**
      * This array has sixtyfour entries. The index, having range 0-63, represent one of the squares
@@ -142,48 +140,56 @@ public final class BitBoard1 extends BitBoard {
         return new BitBoard1(bitboard);
     }
 
-    private static int trasformColumnAInRow0(long x) {
-        x &= 0x0101010101010101L;
-        x |= x >> 28;
-        x |= x >> 14;
-        x |= x >> 7;
-        return (int)x & 0xFF;
+    /**
+     * Returns an int having the bits from position 8 to position 31 set to zero,
+     * and the bits from position 0 to position 7, corresponding to Row One in the board,
+     * copied from the Column A of the {@code bitboard} parameter.
+     *
+     * @param bitboard the bitboard representation for one color
+     * @return         colum a copied to row one, all other position are set to zero         
+     */
+    static int trasformColumnAInRow0(long bitboard) {
+        bitboard &= 0x0101010101010101L;
+        bitboard |= bitboard >> 28;
+        bitboard |= bitboard >> 14;
+        bitboard |= bitboard >> 7;
+        return (int)bitboard & BYTE_MASK_FOR_INT;
     }
 
-    private static int trasformDiagonalA1H8InRow0(long x) {
-        x &= 0x8040201008040201L;
-        x |= x >> 32;
-        x |= x >> 16;
-        x |= x >> 8;
-        return (int)x & 0xFF;
+    private static int trasformDiagonalA1H8InRow0(long bitboard) {
+        bitboard &= 0x8040201008040201L;
+        bitboard |= bitboard >> 32;
+        bitboard |= bitboard >> 16;
+        bitboard |= bitboard >> 8;
+        return (int)bitboard & BYTE_MASK_FOR_INT;
     }
 
-    private static int trasformDiagonalH1A8InRow0(long x) {
-        x &= 0x0102040810204080L;
-        x |= x >> 32;
-        x |= x >> 16;
-        x |= x >> 8;
-        return (int)x & 0xFF;
+    private static int trasformDiagonalH1A8InRow0(long bitboard) {
+        bitboard &= 0x0102040810204080L;
+        bitboard |= bitboard >> 32;
+        bitboard |= bitboard >> 16;
+        bitboard |= bitboard >> 8;
+        return (int)bitboard & BYTE_MASK_FOR_INT;
     }
 
-    private static long reTrasformRow0BackToColumnA(int x) {
-        x |= x << 7;
-        x |= x << 14;
-        long z = (long)x | ((long)x << 28);
+    private static long reTrasformRow0BackToColumnA(int bitrow) {
+        bitrow |= bitrow << 7;
+        bitrow |= bitrow << 14;
+        long z = (long)bitrow | ((long)bitrow << 28);
         return z & 0x0101010101010101L;
     }
 
-    private static long reTrasformRow0BackToDiagonalA1H8(int x) {
-        x |= x << 8;
-        long z = (long)x | ((long)x << 16);
+    private static long reTrasformRow0BackToDiagonalA1H8(int bitrow) {
+        bitrow |= bitrow << 8;
+        long z = (long)bitrow | ((long)bitrow << 16);
         z |= z << 32;
         return z & 0x8040201008040201L;
     }
 
-    private static long reTrasformRow0BackToDiagonalH1A8(int x) {
-        x |= x << 8;
-        x |= (x & 0x1122) << 16;
-        long z = (long)x | ((long)x << 32);
+    private static long reTrasformRow0BackToDiagonalH1A8(int bitrow) {
+        bitrow |= bitrow << 8;
+        bitrow |= (bitrow & 0x1122) << 16;
+        long z = (long)bitrow | ((long)bitrow << 32);
         return z & 0x0102040810204080L;
     }
 
@@ -315,7 +321,7 @@ public final class BitBoard1 extends BitBoard {
      *
      * @param  bitboard the bitboard field
      */
-    private BitBoard1(final long[] bitboard) {
+    BitBoard1(final long[] bitboard) {
         super(bitboard);
         if (LOG) callsToConstructor++;
     }
@@ -371,8 +377,8 @@ public final class BitBoard1 extends BitBoard {
         int shiftDistance;
 
         /** Check for flipping on row. */
-        playerBitrow = (int)(playerBitboard >>> (8 * row)) & 0xFF;
-        opponentBitrow = (int)(opponentBitboard >>> (8 * row)) & 0xFF;
+        playerBitrow = (int)(playerBitboard >>> (8 * row)) & BYTE_MASK_FOR_INT;
+        opponentBitrow = (int)(opponentBitboard >>> (8 * row)) & BYTE_MASK_FOR_INT;
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
@@ -492,6 +498,12 @@ public final class BitBoard1 extends BitBoard {
                                                + player + "> is illegal.");
         }
 
+        return valueOf(makeMoveImpl(move, player));
+    }
+
+
+    long[] makeMoveImpl(final Square move, final Player player) {
+
         final int intMove = move.ordinal();
         final int intPlayer = player.ordinal(); 
         final int column = move.column().ordinal();
@@ -520,8 +532,8 @@ public final class BitBoard1 extends BitBoard {
         finalOBoard = opponentBitboard & unmodifiedMask;
 
         /** Compute row changes. */
-        playerBitrow = (int)(playerBitboard >>> (8 * row)) & 0xFF;
-        opponentBitrow = (int)(opponentBitboard >>> (8 * row)) & 0xFF;
+        playerBitrow = (int)(playerBitboard >>> (8 * row)) & BYTE_MASK_FOR_INT;
+        opponentBitrow = (int)(opponentBitboard >>> (8 * row)) & BYTE_MASK_FOR_INT;
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
         finalPBoard |= ((long)playerBitrow << (8 * row));
@@ -562,8 +574,7 @@ public final class BitBoard1 extends BitBoard {
             newbitboard[WHITE] = finalOBoard;
         }
 
-        final Board result = valueOf(newbitboard);
-        return result;
+        return newbitboard;
     }
 
     private long legalMoves(final int player) {
@@ -587,9 +598,7 @@ public final class BitBoard1 extends BitBoard {
         final int intPlayer = player.ordinal(); 
         final int intOpponent = intPlayer ^ WHITE;
         final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
-        // Case 1 is simple. Case 2 removes the likely moves that are on the "second crown" and are neighbor of only edge squares.
         return neighbors(bitboard[intOpponent]) & empties;
-        //return ((neighbors(bitboard[intOpponent]) & EDGES_SQUARES) | neighbors(bitboard[intOpponent] & CORE_SQUARES) & empties);
     }
 
 }

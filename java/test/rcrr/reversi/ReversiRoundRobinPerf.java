@@ -38,6 +38,7 @@ import org.joda.time.Period;
 import rcrr.reversi.board.BitBoard;
 import rcrr.reversi.board.BitBoard0;
 import rcrr.reversi.board.BitBoard1;
+import rcrr.reversi.board.BitBoard2;
 
 /**
  * Test Suite for reversi general performances.
@@ -97,6 +98,7 @@ public class ReversiRoundRobinPerf {
 
         System.out.println("BitBoard0.printLog() = " + BitBoard0.printLog());
         System.out.println("BitBoard1.printLog() = " + BitBoard1.printLog());
+        System.out.println("BitBoard2.printLog() = " + BitBoard2.printLog());
 
         assertTrue("The test must run without exceptions.", true);
 
