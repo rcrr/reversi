@@ -291,28 +291,6 @@ public class BitBoard1 extends BitBoard {
         return neighbors;
     }
 
-    private static long neighbor(final long square, final Direction dir, final int amount) {
-        long result = square;
-        for (int i = 0; i < amount; i++) {
-            result = neighbor(result, dir);
-        }
-        return result;
-    }
-
-    private static long neighbor(final long square, final Direction dir) {
-        switch (dir) {
-        case NW: return (square >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case N:  return (square >>> 8);
-        case NE: return (square >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case W:  return (square >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case E:  return (square <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case SW: return (square <<  7) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case S:  return (square <<  8);
-        case SE: return (square <<  9) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
-        }
-    }
-
     /**
      * Class constructor.
      * <p>
@@ -418,9 +396,8 @@ public class BitBoard1 extends BitBoard {
 
         if (LOG) callsTolegalMoves++;
 
-        //final List<Square> legalMoves = super.legalMoves(player); 
-
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
+
         final List<Square> legalMoves = new ArrayList<Square>(); 
         // The loop modifies likelyMoves removing the less significative bit set on each iteration.
         for (long likelyMoves = likelyMoves(player); likelyMoves != 0; likelyMoves &= likelyMoves - 1) {
@@ -430,27 +407,6 @@ public class BitBoard1 extends BitBoard {
                 legalMoves.add(square);
             }
         }
-        
-        /*
-        final long lm = legalMoves(player.ordinal());
-
-        final List<Square> lmSquares = new ArrayList<Square>();
-
-        long lmEroding = lm;
-        while (lmEroding != 0L) { 
-            final int movePosition = BitWorks.bitscanLS1B(lmEroding);
-            final Square move = Square.values()[movePosition];
-            lmSquares.add(move);
-            lmEroding &= ~(1L << movePosition);
-        }
-        */
-
-        /*
-        if (!legalMoves.equals(lmSquares)) {
-            System.out.println("legalMoves=" + legalMoves + ", lmSquares=" + lmSquares);
-        }
-        */
-
         return legalMoves;
     }
 
@@ -575,23 +531,6 @@ public class BitBoard1 extends BitBoard {
         }
 
         return newbitboard;
-    }
-
-    private long legalMoves(final int player) {
-        final int opponent = player ^ WHITE;
-        final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
-
-        long lm = 0L;
-        for (final Direction dir : DIRECTION_VALUES) {
-            long wave = neighbor(empties, dir) & bitboard[opponent];
-            for (int shift = 2; shift < 8; shift++) {
-                wave = neighbor(wave, dir);
-                lm |= neighbor((wave & bitboard[player]), dir.opposite(), shift);
-                wave &= bitboard[opponent];
-            }
-        }
-
-        return lm;
     }
 
     private long likelyMoves(final Player player) {
