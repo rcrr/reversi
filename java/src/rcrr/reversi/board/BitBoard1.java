@@ -156,7 +156,7 @@ public class BitBoard1 extends BitBoard {
         return (int)bitboard & BYTE_MASK_FOR_INT;
     }
 
-    private static int trasformDiagonalA1H8InRow0(long bitboard) {
+    static int trasformDiagonalA1H8InRow0(long bitboard) {
         bitboard &= 0x8040201008040201L;
         bitboard |= bitboard >> 32;
         bitboard |= bitboard >> 16;
@@ -164,7 +164,7 @@ public class BitBoard1 extends BitBoard {
         return (int)bitboard & BYTE_MASK_FOR_INT;
     }
 
-    private static int trasformDiagonalH1A8InRow0(long bitboard) {
+    static int trasformDiagonalH1A8InRow0(long bitboard) {
         bitboard &= 0x0102040810204080L;
         bitboard |= bitboard >> 32;
         bitboard |= bitboard >> 16;
@@ -172,21 +172,21 @@ public class BitBoard1 extends BitBoard {
         return (int)bitboard & BYTE_MASK_FOR_INT;
     }
 
-    private static long reTrasformRow0BackToColumnA(int bitrow) {
+    static long reTrasformRow0BackToColumnA(int bitrow) {
         bitrow |= bitrow << 7;
         bitrow |= bitrow << 14;
         long z = (long)bitrow | ((long)bitrow << 28);
         return z & 0x0101010101010101L;
     }
 
-    private static long reTrasformRow0BackToDiagonalA1H8(int bitrow) {
+    static long reTrasformRow0BackToDiagonalA1H8(int bitrow) {
         bitrow |= bitrow << 8;
         long z = (long)bitrow | ((long)bitrow << 16);
         z |= z << 32;
         return z & 0x8040201008040201L;
     }
 
-    private static long reTrasformRow0BackToDiagonalH1A8(int bitrow) {
+    static long reTrasformRow0BackToDiagonalH1A8(int bitrow) {
         bitrow |= bitrow << 8;
         bitrow |= (bitrow & 0x1122) << 16;
         long z = (long)bitrow | ((long)bitrow << 32);
