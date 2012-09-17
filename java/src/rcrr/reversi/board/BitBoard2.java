@@ -63,33 +63,6 @@ public final class BitBoard2 extends BitBoard1 {
     /** Used for masking a byte when using integer values. */
     static final int BYTE_MASK_FOR_INT = 0xFF;
 
-    /**
-     * This array has sixtyfour entries. The index, having range 0-63, represent one of the squares
-     * of the table. Each entry is a bitboard mask having set all the squares that are
-     * reachable moving along the eigth directions, when starting from the square identified by
-     * the index itself.
-     * <p>
-     * Values do not change.
-     */
-    private static final long[] BITBOARD_MASK_FOR_ALL_DIRECTIONS = new long[] {
-        0x81412111090503FEL, 0x02824222120A07FDL, 0x0404844424150EFBL, 0x08080888492A1CF7L, 
-        0x10101011925438EFL, 0x2020212224A870DFL, 0x404142444850E0BFL, 0x8182848890A0C07FL, 
-        0x412111090503FE03L, 0x824222120A07FD07L, 0x04844424150EFB0EL, 0x080888492A1CF71CL, 
-        0x101011925438EF38L, 0x20212224A870DF70L, 0x4142444850E0BFE0L, 0x82848890A0C07FC0L, 
-        0x2111090503FE0305L, 0x4222120A07FD070AL, 0x844424150EFB0E15L, 0x0888492A1CF71C2AL, 
-        0x1011925438EF3854L, 0x212224A870DF70A8L, 0x42444850E0BFE050L, 0x848890A0C07FC0A0L, 
-        0x11090503FE030509L, 0x22120A07FD070A12L, 0x4424150EFB0E1524L, 0x88492A1CF71C2A49L, 
-        0x11925438EF385492L, 0x2224A870DF70A824L, 0x444850E0BFE05048L, 0x8890A0C07FC0A090L, 
-        0x090503FE03050911L, 0x120A07FD070A1222L, 0x24150EFB0E152444L, 0x492A1CF71C2A4988L, 
-        0x925438EF38549211L, 0x24A870DF70A82422L, 0x4850E0BFE0504844L, 0x90A0C07FC0A09088L, 
-        0x0503FE0305091121L, 0x0A07FD070A122242L, 0x150EFB0E15244484L, 0x2A1CF71C2A498808L, 
-        0x5438EF3854921110L, 0xA870DF70A8242221L, 0x50E0BFE050484442L, 0xA0C07FC0A0908884L, 
-        0x03FE030509112141L, 0x07FD070A12224282L, 0x0EFB0E1524448404L, 0x1CF71C2A49880808L, 
-        0x38EF385492111010L, 0x70DF70A824222120L, 0xE0BFE05048444241L, 0xC07FC0A090888482L, 
-        0xFE03050911214181L, 0xFD070A1222428202L, 0xFB0E152444840404L, 0xF71C2A4988080808L, 
-        0xEF38549211101010L, 0xDF70A82422212020L, 0xBFE0504844424140L, 0x7FC0A09088848281L
-    };
-
     public static String printLog() {
         String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
         return ret;
@@ -125,59 +98,6 @@ public final class BitBoard2 extends BitBoard1 {
         return new BitBoard2(bitboard);
     }
 
-    /**
-     * Returns an int having the bits from position 8 to position 31 set to zero,
-     * and the bits from position 0 to position 7, corresponding to Row One in the board,
-     * copied from the Column A of the {@code bitboard} parameter.
-     *
-     * @param bitboard the bitboard representation for one color
-     * @return         colum a copied to row one, all other position are set to zero         
-     */
-    static int trasformColumnAInRow0(long bitboard) {
-        bitboard &= 0x0101010101010101L;
-        bitboard |= bitboard >> 28;
-        bitboard |= bitboard >> 14;
-        bitboard |= bitboard >> 7;
-        return (int)bitboard & BYTE_MASK_FOR_INT;
-    }
-
-    private static int trasformDiagonalA1H8InRow0(long bitboard) {
-        bitboard &= 0x8040201008040201L;
-        bitboard |= bitboard >> 32;
-        bitboard |= bitboard >> 16;
-        bitboard |= bitboard >> 8;
-        return (int)bitboard & BYTE_MASK_FOR_INT;
-    }
-
-    private static int trasformDiagonalH1A8InRow0(long bitboard) {
-        bitboard &= 0x0102040810204080L;
-        bitboard |= bitboard >> 32;
-        bitboard |= bitboard >> 16;
-        bitboard |= bitboard >> 8;
-        return (int)bitboard & BYTE_MASK_FOR_INT;
-    }
-
-    private static long reTrasformRow0BackToColumnA(int bitrow) {
-        bitrow |= bitrow << 7;
-        bitrow |= bitrow << 14;
-        long z = (long)bitrow | ((long)bitrow << 28);
-        return z & 0x0101010101010101L;
-    }
-
-    private static long reTrasformRow0BackToDiagonalA1H8(int bitrow) {
-        bitrow |= bitrow << 8;
-        long z = (long)bitrow | ((long)bitrow << 16);
-        z |= z << 32;
-        return z & 0x8040201008040201L;
-    }
-
-    private static long reTrasformRow0BackToDiagonalH1A8(int bitrow) {
-        bitrow |= bitrow << 8;
-        bitrow |= (bitrow & 0x1122) << 16;
-        long z = (long)bitrow | ((long)bitrow << 32);
-        return z & 0x0102040810204080L;
-    }
-
     private static long neighbors(final long squares) {
         long neighbors = squares;
         neighbors |= (neighbors >>> 8);
@@ -187,6 +107,7 @@ public final class BitBoard2 extends BitBoard1 {
         return neighbors;
     }
 
+    /*
     private static long neighbor(final long square, final Direction dir, final int amount) {
         long result = square;
         for (int i = 0; i < amount; i++) {
@@ -208,6 +129,7 @@ public final class BitBoard2 extends BitBoard1 {
         default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
         }
     }
+    */
 
     /**
      * Class constructor.
