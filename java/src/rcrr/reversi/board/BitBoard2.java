@@ -53,15 +53,8 @@ public final class BitBoard2 extends BitBoard1 {
 
     private static final Direction[] DIRECTION_VALUES = Direction.values();
 
-    private static final int[] DIRECTION_SHIFTS = Direction.shifts(); 
-
-    private static final Square[] SQUARE_VALUES = Square.values();
-
     private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
     private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
-
-    /** Used for masking a byte when using integer values. */
-    static final int BYTE_MASK_FOR_INT = 0xFF;
 
     public static String printLog() {
         String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
@@ -98,16 +91,6 @@ public final class BitBoard2 extends BitBoard1 {
         return new BitBoard2(bitboard);
     }
 
-    private static long neighbors(final long squares) {
-        long neighbors = squares;
-        neighbors |= (neighbors >>> 8);
-        neighbors |= (neighbors >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        neighbors |= (neighbors <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        neighbors |= (neighbors <<  8);
-        return neighbors;
-    }
-
-    /*
     private static long neighbor(final long square, final Direction dir, final int amount) {
         long result = square;
         for (int i = 0; i < amount; i++) {
@@ -129,7 +112,15 @@ public final class BitBoard2 extends BitBoard1 {
         default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
         }
     }
-    */
+
+    private static long neighbors(final long squares) {
+        long neighbors = squares;
+        neighbors |= (neighbors >>> 8);
+        neighbors |= (neighbors >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        neighbors |= (neighbors <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        neighbors |= (neighbors <<  8);
+        return neighbors;
+    }
 
     /**
      * Class constructor.
@@ -152,20 +143,8 @@ public final class BitBoard2 extends BitBoard1 {
 
         if (LOG) callsTolegalMoves++;
 
-        //final List<Square> legalMoves = super.legalMoves(player); 
-
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
-        final List<Square> legalMoves = new ArrayList<Square>(); 
-        // The loop modifies likelyMoves removing the less significative bit set on each iteration.
-        for (long likelyMoves = likelyMoves(player); likelyMoves != 0; likelyMoves &= likelyMoves - 1) {
-            final int iSquare = BitWorks.bitscanMS1B(BitWorks.lowestBitSet(likelyMoves));
-            final Square square = SQUARE_VALUES[iSquare];
-            if (isLegal(square, player)) {
-                legalMoves.add(square);
-            }
-        }
         
-        /*
         final long lm = legalMoves(player.ordinal());
 
         final List<Square> lmSquares = new ArrayList<Square>();
@@ -177,15 +156,8 @@ public final class BitBoard2 extends BitBoard1 {
             lmSquares.add(move);
             lmEroding &= ~(1L << movePosition);
         }
-        */
 
-        /*
-        if (!legalMoves.equals(lmSquares)) {
-            System.out.println("legalMoves=" + legalMoves + ", lmSquares=" + lmSquares);
-        }
-        */
-
-        return legalMoves;
+        return lmSquares;
     }
 
     /**
@@ -235,11 +207,21 @@ public final class BitBoard2 extends BitBoard1 {
         return valueOf(makeMoveImpl(move, player));
     }
 
-    private long likelyMoves(final Player player) {
-        final int intPlayer = player.ordinal(); 
-        final int intOpponent = intPlayer ^ WHITE;
+    private long legalMoves(final int player) {
+        final int opponent = player ^ WHITE;
         final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
-        return neighbors(bitboard[intOpponent]) & empties;
+
+        long lm = 0L;
+        for (final Direction dir : DIRECTION_VALUES) {
+            long wave = neighbor(empties, dir) & bitboard[opponent];
+            for (int shift = 2; shift < 8; shift++) {
+                wave = neighbor(wave, dir);
+                lm |= neighbor((wave & bitboard[player]), dir.opposite(), shift);
+                wave &= bitboard[opponent];
+            }
+        }
+
+        return lm;
     }
 
 }
