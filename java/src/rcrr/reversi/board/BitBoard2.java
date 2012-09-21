@@ -50,6 +50,7 @@ public final class BitBoard2 extends BitBoard1 {
     private static int callsTolegalMoves = 0;
     private static int callsToMakeMove = 0;
     private static int callsToConstructor = 0;
+    private static long transformTimeInNanoseconds = 0;
 
     private static final Direction[] DIRECTION_VALUES = Direction.values();
 
@@ -57,7 +58,8 @@ public final class BitBoard2 extends BitBoard1 {
     private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
 
     public static String printLog() {
-        String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
+        String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor
+            + ", transformTime=" + transformTimeInNanoseconds / 1000000;
         return ret;
     }
 
@@ -149,6 +151,8 @@ public final class BitBoard2 extends BitBoard1 {
 
         final List<Square> lmSquares = new ArrayList<Square>();
 
+        //long systemTimeBeforeTransforming = System.nanoTime();
+
         long lmEroding = lm;
         while (lmEroding != 0L) { 
             final int movePosition = BitWorks.bitscanLS1B(lmEroding);
@@ -156,6 +160,8 @@ public final class BitBoard2 extends BitBoard1 {
             lmSquares.add(move);
             lmEroding &= ~(1L << movePosition);
         }
+
+        //transformTimeInNanoseconds += System.nanoTime() - systemTimeBeforeTransforming;
 
         return lmSquares;
     }
