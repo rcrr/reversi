@@ -146,24 +146,8 @@ public final class BitBoard2 extends BitBoard1 {
         if (LOG) callsTolegalMoves++;
 
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
-        
-        final long lm = legalMoves(player.ordinal());
 
-        final List<Square> lmSquares = new ArrayList<Square>();
-
-        //long systemTimeBeforeTransforming = System.nanoTime();
-
-        long lmEroding = lm;
-        while (lmEroding != 0L) { 
-            final int movePosition = BitWorks.bitscanLS1B(lmEroding);
-            final Square move = Square.values()[movePosition];
-            lmSquares.add(move);
-            lmEroding &= ~(1L << movePosition);
-        }
-
-        //transformTimeInNanoseconds += System.nanoTime() - systemTimeBeforeTransforming;
-
-        return lmSquares;
+        return new SquareList(legalMoves(player.ordinal()));
     }
 
     /**
