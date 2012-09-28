@@ -50,6 +50,9 @@ public class BitBoard1 extends BitBoard {
     private static int callsTolegalMoves = 0;
     private static int callsToMakeMove = 0;
     private static int callsToConstructor = 0;
+    private static int callsToIsLegal = 0;
+    private static int numberOflikelyMoves = 0;
+    private static int numberOflegalMoves = 0;
 
     private static final Direction[] DIRECTION_VALUES = Direction.values();
 
@@ -106,7 +109,9 @@ public class BitBoard1 extends BitBoard {
     private static final byte[] BITROW_CHANGES_FOR_PLAYER_ARRAY = initializeBitrowChangesForPlayerArray();
 
     public static String printLog() {
-        String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
+        String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor
+            + ", numberOflikelyMoves=" + numberOflikelyMoves + ", numberOflegalMoves=" + numberOflegalMoves
+            + ", callsToIsLegal=" + callsToIsLegal;
         return ret;
     }
 
@@ -330,6 +335,8 @@ public class BitBoard1 extends BitBoard {
             throw new NullPointerException("Parameter player must be not null.");
         }
 
+        if (LOG) callsToIsLegal++;
+
         final long bitmove = 1L << move.ordinal();
         if ((bitmove & (bitboard[BLACK] | bitboard[WHITE])) != 0) {
             return false;
@@ -401,9 +408,11 @@ public class BitBoard1 extends BitBoard {
         final List<Square> legalMoves = new ArrayList<Square>(); 
         // The loop modifies likelyMoves removing the less significative bit set on each iteration.
         for (long likelyMoves = likelyMoves(player); likelyMoves != 0; likelyMoves &= likelyMoves - 1) {
+            if (LOG) numberOflikelyMoves++;
             final int iSquare = BitWorks.bitscanMS1B(BitWorks.lowestBitSet(likelyMoves));
             final Square square = SQUARE_VALUES[iSquare];
             if (isLegal(square, player)) {
+                if (LOG) numberOflegalMoves++;
                 legalMoves.add(square);
             }
         }
