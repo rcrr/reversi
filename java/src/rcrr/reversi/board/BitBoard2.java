@@ -33,6 +33,9 @@ import java.util.ArrayList;
 
 /**
  * A board concrete implementation in the bitboard family.
+ *
+ * To do:
+ *   put neighbor in the Direction class - remove the loop in the multicell move neighbor
  * <p>
  * A {@code BitBoard2} object holds the information of the state of each board's square.
  * The board state is kept into a long array having a length equal two.
@@ -111,15 +114,6 @@ public final class BitBoard2 extends BitBoard1 {
         case SE: return (square <<  9) & ALL_SQUARES_EXCEPT_COLUMN_H;
         default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
         }
-    }
-
-    private static long neighbors(final long squares) {
-        long neighbors = squares;
-        neighbors |= (neighbors >>> 8);
-        neighbors |= (neighbors >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        neighbors |= (neighbors <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        neighbors |= (neighbors <<  8);
-        return neighbors;
     }
 
     /**
