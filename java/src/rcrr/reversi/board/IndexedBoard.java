@@ -48,6 +48,9 @@ public final class IndexedBoard extends AbstractBoard {
     /** Caches the square enum values in a local array. */
     private static final Square[] SQUARE_VALUES = Square.values();
 
+    /** Caches the line enum values in a local array. */
+    private static final Line[] LINE_VALUES = Line.values();
+
     private static final EnumMap<Square, int[]> MOVE_DISC_DELTA_MAP = computeMoveDiscDeltas();
 
     public static int[] computeIndexes(final Map<Square, SquareState> squares) {
@@ -184,7 +187,7 @@ public final class IndexedBoard extends AbstractBoard {
         Set<Square> cached = this.legalMovesForPlayer.get(player);
         if (cached == null) {
             final Set<Square> legalMovesAsSet = EnumSet.noneOf(Square.class);
-            for (final Line line : Line.values()) {
+            for (final Line line : LINE_VALUES) {
                 final LineIndex li = LineIndex.valueOf(line, getIndex(player, line));
                 legalMovesAsSet.addAll(li.legalMoves().keySet());
             }
@@ -225,7 +228,7 @@ public final class IndexedBoard extends AbstractBoard {
         }
 
         final int[] moveDiscDeltas = MOVE_DISC_DELTA_MAP.get(move);
-        for (final Line line : Line.values()) {
+        for (final Line line : LINE_VALUES) {
             final int i = line.ordinal();
             newIndexes[i] = getIndex(player, line) +  moveDiscDeltas[i];
             for (final LineIndexMove lim : moveAddendums) {
@@ -237,7 +240,7 @@ public final class IndexedBoard extends AbstractBoard {
         /** Flip indexes if player is White */
         if (player == Player.WHITE) {
             int k = 0;
-            for (final Line line : Line.values()) {
+            for (final Line line : LINE_VALUES) {
                 newIndexes[k] = LineIndex.valueOf(line, newIndexes[k]).flip().index();
                 k++;
             }
