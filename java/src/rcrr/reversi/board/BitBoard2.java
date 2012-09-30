@@ -56,8 +56,32 @@ public final class BitBoard2 extends BitBoard1 {
 
     private static final Direction[] DIRECTION_VALUES = Direction.values();
 
-    private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
-    private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0xFEFEFEFEFEFEFEFEL;
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0x7F7F7F7F7F7F7F7FL;
+
+    private static final long[] ALL_SQUARES_EXCEPT_LEFT_COLUMNS = {
+        0xFFFFFFFFFFFFFFFFL,
+        0xFEFEFEFEFEFEFEFEL,
+        0xFCFCFCFCFCFCFCFCL,
+        0xF8F8F8F8F8F8F8F8L,
+        0xF0F0F0F0F0F0F0F0L,
+        0xE0E0E0E0E0E0E0E0L,
+        0xC0C0C0C0C0C0C0C0L,
+        0x8080808080808080L,
+        0x0000000000000000L
+    };
+
+    private static final long[] ALL_SQUARES_EXCEPT_RIGTH_COLUMNS = {
+        0xFFFFFFFFFFFFFFFFL,
+        0x7F7F7F7F7F7F7F7FL,
+        0x3F3F3F3F3F3F3F3FL,
+        0x1F1F1F1F1F1F1F1FL,
+        0x0F0F0F0F0F0F0F0FL,
+        0x0707070707070707L,
+        0x0303030303030303L,
+        0x0101010101010101L,
+        0x0000000000000000L
+    };
 
     public static String printLog() {
         String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
@@ -94,24 +118,30 @@ public final class BitBoard2 extends BitBoard1 {
         return new BitBoard2(bitboard);
     }
 
-    private static long neighbor(final long square, final Direction dir, final int amount) {
-        long result = square;
-        for (int i = 0; i < amount; i++) {
-            result = neighbor(result, dir);
+    private static long shift(final long squares, final Direction dir) {
+        switch (dir) {
+        case NW: return (squares >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case N:  return (squares >>> 8);
+        case NE: return (squares >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case W:  return (squares >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case E:  return (squares <<  1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case SW: return (squares <<  7) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case S:  return (squares <<  8);
+        case SE: return (squares <<  9) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
         }
-        return result;
     }
 
-    private static long neighbor(final long square, final Direction dir) {
+    private static long shift(final long squares, final Direction dir, final int amount) {
         switch (dir) {
-        case NW: return (square >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case N:  return (square >>> 8);
-        case NE: return (square >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case W:  return (square >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case E:  return (square <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case SW: return (square <<  7) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case S:  return (square <<  8);
-        case SE: return (square <<  9) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case NW: return (squares >>> (9 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case N:  return (squares >>> (8 * amount));
+        case NE: return (squares >>> (7 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
+        case W:  return (squares >>> (1 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case E:  return (squares <<  (1 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
+        case SW: return (squares <<  (7 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case S:  return (squares <<  (8 * amount));
+        case SE: return (squares <<  (9 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
         default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
         }
     }
@@ -157,6 +187,7 @@ public final class BitBoard2 extends BitBoard1 {
             if (hasAnyLegalMove(player)) {
                 throw new NullPointerException("Parameter move must be not null when a legal one is available.");
             } else {
+                System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
                 return this;
             }
         }
@@ -175,11 +206,13 @@ public final class BitBoard2 extends BitBoard1 {
 
         long lm = 0L;
         for (final Direction dir : DIRECTION_VALUES) {
-            long wave = neighbor(empties, dir) & bitboard[opponent];
+            final Direction opp = dir.opposite();
+            long wave = shift(empties, dir) & bitboard[opponent];
             for (int shift = 2; shift < 8; shift++) {
-                wave = neighbor(wave, dir);
-                lm |= neighbor((wave & bitboard[player]), dir.opposite(), shift);
+                wave = shift(wave, dir);
+                lm |= shift((wave & bitboard[player]), opp, shift);
                 wave &= bitboard[opponent];
+                if (wave == 0L) { break; }
             }
         }
 
