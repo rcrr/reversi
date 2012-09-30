@@ -54,6 +54,9 @@ public final class BoardBuilder {
     /** Outer square is represented by the 3 integer literal value. */
     private static final int OUTER = 3;
 
+    /** Caches the square enum values in a local array. */
+    private static final Square[] SQUARE_VALUES = Square.values();
+
     /** The squares field. */
     private Map<Square, SquareState> squares;
 
@@ -72,7 +75,7 @@ public final class BoardBuilder {
      */
     public BoardBuilder(final Board board) {
         final EnumMap<Square, SquareState> transientSquares = new EnumMap<Square, SquareState>(Square.class);
-        for (final Square sq : Square.values()) {
+        for (final Square sq : SQUARE_VALUES) {
             transientSquares.put(sq, board.get(sq));
         }
         this.squares = transientSquares;
@@ -144,11 +147,11 @@ public final class BoardBuilder {
         if (squaresLiteral == null) {
             throw new NullPointerException("Parameter squaresLiteral cannot be null.");
         }
-        if (squaresLiteral.length != Square.values().length) {
+        if (squaresLiteral.length != SQUARE_VALUES.length) {
             throw new IllegalArgumentException("Parameter squaresLiteral has the wrong length.");
         }
         final Map<Square, SquareState> transientSquares = new EnumMap<Square, SquareState>(Square.class);
-        for (int index = 0; index < Square.values().length; index++) {
+        for (int index = 0; index < SQUARE_VALUES.length; index++) {
             final Integer integerSquareState = squaresLiteral[index];
             SquareState squareState = null;
             if (integerSquareState == null || integerSquareState < EMPTY || integerSquareState > WHITE) {
@@ -160,7 +163,7 @@ public final class BoardBuilder {
             } else if (integerSquareState == WHITE) {
                 squareState = SquareState.WHITE;
             }
-            transientSquares.put(Square.values()[index], squareState);
+            transientSquares.put(SQUARE_VALUES[index], squareState);
         }
         return withSquares(transientSquares);
 

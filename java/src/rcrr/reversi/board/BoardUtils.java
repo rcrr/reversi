@@ -32,8 +32,11 @@ import java.util.Map;
  */
 final class BoardUtils {
 
+    /** Caches the square enum values in a local array. */
+    private static final Square[] SQUARE_VALUES = Square.values();
+
     /** The number of squares hosted by the board. */
-    private static final int NUMBER_OF_SQUARES = Square.values().length;
+    private static final int NUMBER_OF_SQUARES = SQUARE_VALUES.length;
 
     /**
      * The MASKS array has sixtyfour long value entries.
@@ -59,7 +62,7 @@ final class BoardUtils {
      */
     protected static Map<Square, SquareState> emptyBoardSquares() {
         Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
-        for (Square sq : Square.values()) {
+        for (final Square sq : SQUARE_VALUES) {
             sm.put(sq, SquareState.EMPTY);
         }
         return sm;
@@ -73,13 +76,13 @@ final class BoardUtils {
      */
     protected static long[] mapToBitboard(final Map<Square, SquareState> squares) {
         assert (squares != null) : "Parameter squares cannot be null.";
-        assert (squares.size() == Square.values().length) : "Parameter squares size is not consistent."
+        assert (squares.size() == NUMBER_OF_SQUARES) : "Parameter squares size is not consistent."
             + " squares.size()=" + squares.size()
-            + " expected value: " + Square.values().length;
+            + " expected value: " + NUMBER_OF_SQUARES;
         assert (!squares.containsKey(null)) : "Parameter squares cannot contains null keys.";
         assert (!squares.containsValue(null)) : "Parameter squares cannot contains null values.";
         final long[] bitboard = {0L, 0L};
-        final Square[] keys = Square.values();
+        final Square[] keys = SQUARE_VALUES;
         for (int position = 0; position < NUMBER_OF_SQUARES; position++) {
             Square key = keys[position];
             switch (squares.get(key)) {
@@ -101,7 +104,7 @@ final class BoardUtils {
     protected static Map<Square, SquareState> bitboardToMap(final long[] bitboard) {
         assert (bitboard.length == 2) : "Parameter bitboard must be an array of length two.";
         final Map<Square, SquareState> sm = new EnumMap<Square, SquareState>(Square.class);
-        final Square[] keys = Square.values();
+        final Square[] keys = SQUARE_VALUES;
         for (int position = 0; position < NUMBER_OF_SQUARES; position++) {
             Square key = keys[position];
             SquareState value;
@@ -125,7 +128,7 @@ final class BoardUtils {
      */
     protected static Map<Square, SquareState> squares(final Board board) {
         final Map<Square, SquareState> squares = new EnumMap<Square, SquareState>(Square.class);
-        for (final Square sq : Square.values()) {
+        for (final Square sq : SQUARE_VALUES) {
             squares.put(sq, board.get(sq));
         }
         return squares;
@@ -142,10 +145,10 @@ final class BoardUtils {
      */
     protected static void checkForConsistencyTheSquareMap(final Map<Square, SquareState> squares) {
         if (squares == null) { throw new NullPointerException("Parameter squares cannot be null."); }
-        if (squares.size() != Square.values().length) {
+        if (squares.size() != NUMBER_OF_SQUARES) {
             throw new IllegalArgumentException("Parameter squares size is not consistent."
                                                + " squares.size()=" + squares.size()
-                                               + " expected value: " + Square.values().length);
+                                               + " expected value: " + NUMBER_OF_SQUARES);
         }
         if (squares.containsKey(null)) {
             throw new NullPointerException("Parameter squares cannot have null keys. squares=" + squares);

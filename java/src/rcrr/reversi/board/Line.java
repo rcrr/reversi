@@ -102,6 +102,9 @@ public enum Line {
 
     private static final Map<Square, List<Line>> LINES_FOR_SQUARE;
 
+    /** Caches the square enum values in a local array. */
+    private static final Square[] SQUARE_VALUES = Square.values();
+
     /**
      * Each position is computed as the power base three of the position itself (1, 3, 9, 27, ...).
      */
@@ -129,7 +132,7 @@ public enum Line {
 
         /** Prepares the LINES_FOR_SQUARE map. */
         final Map<Square, List<Line>> transientLinesForSquare = new EnumMap<Square, List<Line>>(Square.class);
-        for (final Square square : Square.values()) {
+        for (final Square square : SQUARE_VALUES) {
             transientLinesForSquare.put(square, new ArrayList<Line>());
         }
         for (final Line line : values()) {
@@ -138,7 +141,7 @@ public enum Line {
                 lines.add(line);
             }
         }
-        for (final Square square : Square.values()) {
+        for (final Square square : SQUARE_VALUES) {
             transientLinesForSquare.put(square, Collections.unmodifiableList(transientLinesForSquare.get(square)));
         }
         LINES_FOR_SQUARE = Collections.unmodifiableMap(transientLinesForSquare);

@@ -45,11 +45,14 @@ import java.util.EnumSet;
  */
 public final class IndexedBoard extends AbstractBoard {
 
+    /** Caches the square enum values in a local array. */
+    private static final Square[] SQUARE_VALUES = Square.values();
+
     private static final EnumMap<Square, int[]> MOVE_DISC_DELTA_MAP = computeMoveDiscDeltas();
 
     public static int[] computeIndexes(final Map<Square, SquareState> squares) {
         final int[] transientIndexes = new int[Line.NUMBER_OF];
-        for (final Square sq : Square.values()) {
+        for (final Square sq : SQUARE_VALUES) {
             for (final Line line : Line.linesForSquare(sq)) {
                 final int color = squares.get(sq).ordinal();
                 final int squarePosition = line.squares().indexOf(sq);
@@ -65,7 +68,7 @@ public final class IndexedBoard extends AbstractBoard {
             for (int iSquare = 0; iSquare < 8; iSquare++) {
                 final LineState lineState = LineState.valueOf(8, indexes[iRow]);
                 final SquareState color = lineState.configuration().get(iSquare);
-                sqs.put(Square.values()[(iRow * 8) + iSquare], color);
+                sqs.put(SQUARE_VALUES[(iRow * 8) + iSquare], color);
             }
         }
         return sqs;
@@ -94,7 +97,7 @@ public final class IndexedBoard extends AbstractBoard {
 
     private static EnumMap<Square, int[]> computeMoveDiscDeltas() {
         final EnumMap<Square, int[]> deltaMap = new EnumMap<Square, int[]>(Square.class);
-        for (final Square move : Square.values()) {
+        for (final Square move : SQUARE_VALUES) {
             final int[] deltas = new int[Line.NUMBER_OF];
             for (final Line line : Line.linesForSquare(move)) {
                 final int ordinal = line.squares().indexOf(move);

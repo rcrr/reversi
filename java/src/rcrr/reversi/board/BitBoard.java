@@ -29,8 +29,80 @@ package rcrr.reversi.board;
  */
 public abstract class BitBoard extends AbstractBoard {
 
+    /** Integer value for the black player. It is equal to Player.BLACK.ordinal(). */
     static final int BLACK = 0;
+
+    /** Integer value for the white player. It is equal to Player.WHITE.ordinal(). */
     static final int WHITE = 1;
+
+    /** Used for masking a byte when using integer values. */
+    static final int BYTE_MASK_FOR_INT = 0xFF;
+
+    /** A bitboard being all set with the exception of column A. */
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0xFEFEFEFEFEFEFEFEL;
+
+    /** A bitboard being all set with the exception of column H. */
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0x7F7F7F7F7F7F7F7FL;
+
+    private static final long[] ALL_SQUARES_EXCEPT_LEFT_COLUMNS = {
+        0xFFFFFFFFFFFFFFFFL, 0xFEFEFEFEFEFEFEFEL, 0xFCFCFCFCFCFCFCFCL,
+        0xF8F8F8F8F8F8F8F8L, 0xF0F0F0F0F0F0F0F0L, 0xE0E0E0E0E0E0E0E0L,
+        0xC0C0C0C0C0C0C0C0L, 0x8080808080808080L, 0x0000000000000000L
+    };
+
+    private static final long[] ALL_SQUARES_EXCEPT_RIGTH_COLUMNS = {
+        0xFFFFFFFFFFFFFFFFL, 0x7F7F7F7F7F7F7F7FL, 0x3F3F3F3F3F3F3F3FL,
+        0x1F1F1F1F1F1F1F1FL, 0x0F0F0F0F0F0F0F0FL, 0x0707070707070707L,
+        0x0303030303030303L, 0x0101010101010101L, 0x0000000000000000L
+    };
+
+    /**
+     * Returns a new long value by shifting the {@code squares} parameter by one position
+     * on the board, following the direction given by the {@code dir} parameter.
+     *
+     * @param squares the squares set on the bitboard
+     * @param dir     the direction along to make the shift
+     * @return        the shifted squares
+     */
+    static long shift(final long squares, final Direction dir) {
+        switch (dir) {
+        case NW: return (squares >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case N:  return (squares >>> 8);
+        case NE: return (squares >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case W:  return (squares >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case E:  return (squares <<  1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case SW: return (squares <<  7) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case S:  return (squares <<  8);
+        case SE: return (squares <<  9) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
+        }
+    }
+
+    /**
+     * Returns a new long value by shifting the {@code squares} parameter on the board, by a number of positions
+     * as given by the {@code amount} parameter, following the direction given by the {@code dir} parameter.
+     * <p>
+     * Amount must be in the 0..8 range, meaning that 0 is equal to no shift, 1 is on position,
+     * and 8 always return an empy squares.
+     *
+     * @param squares the squares set on the bitboard
+     * @param dir     the direction along to make the shift
+     * @param amount  the amount to shift
+     * @return        the shifted squares
+     */
+    static long shift(final long squares, final Direction dir, final int amount) {
+        switch (dir) {
+        case NW: return (squares >>> (9 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case N:  return (squares >>> (8 * amount));
+        case NE: return (squares >>> (7 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
+        case W:  return (squares >>> (1 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case E:  return (squares <<  (1 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
+        case SW: return (squares <<  (7 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case S:  return (squares <<  (8 * amount));
+        case SE: return (squares <<  (9 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
+        default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
+        }
+    }
 
     /**
      * The bitboard field.

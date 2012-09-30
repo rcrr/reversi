@@ -36,6 +36,9 @@ import java.util.Map;
  */
 public abstract class AbstractBoardFactory implements BoardFactory {
 
+    /** Caches the square enum values in a local array. */
+    private static final Square[] SQUARE_VALUES = Square.values();
+
     /** Class constructor. */
     public AbstractBoardFactory() { }
 
@@ -52,7 +55,7 @@ public abstract class AbstractBoardFactory implements BoardFactory {
     public Board fillWithColor(final Player player) {
         if (player == null) { throw new NullPointerException("Parameter color cannot be null."); }
         final Map<Square, SquareState> sm = BoardUtils.emptyBoardSquares();
-        for (Square sq : Square.values()) {
+        for (final Square sq : SQUARE_VALUES) {
             sm.put(sq, player.color());
         }
         return valueOf(sm);
