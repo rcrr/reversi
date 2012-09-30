@@ -87,6 +87,9 @@ public abstract class AbstractBoard implements Board {
     /** Class constructor. */
     AbstractBoard() { }
 
+    /** Caches the square enum values in a local array. */
+    private static final Square[] SQUARE_VALUES = Square.values();
+
     /** Prime number 17. */
     private static final int PRIME_NUMBER_17 = 17;
 
@@ -112,7 +115,7 @@ public abstract class AbstractBoard implements Board {
             throw new NullPointerException("Parameter color must be not null.");
         }
         int count = 0;
-        for (final Square sq : Square.values()) {
+        for (final Square sq : SQUARE_VALUES) {
             if (get(sq) == color) { count++; }
         }
         return count;
@@ -131,7 +134,7 @@ public abstract class AbstractBoard implements Board {
         if (object == this) { return true; }
         if (!(object instanceof Board)) { return false; }
         final Board board = (Board) object;
-        for (final Square sq : Square.values()) {
+        for (final Square sq : SQUARE_VALUES) {
             if (get(sq) != board.get(sq)) { return false; }
         }
         return true;
@@ -148,7 +151,7 @@ public abstract class AbstractBoard implements Board {
     public boolean hasAnyLegalMove(final Player player) {
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
         boolean hasAnyLegalMove = false;
-        for (Square move : Square.values()) {
+        for (final Square move : SQUARE_VALUES) {
             if (isLegal(move, player)) {
                 hasAnyLegalMove = true;
                 break;
@@ -180,7 +183,7 @@ public abstract class AbstractBoard implements Board {
     public int hashCode() {
         if (hashCode == 0) {
             int result = PRIME_NUMBER_17;
-            for (final Square sq : Square.values()) {
+            for (final Square sq : SQUARE_VALUES) {
                 result = PRIME_NUMBER_37 * result + get(sq).ordinal();
             }
             hashCode = result;
@@ -199,7 +202,7 @@ public abstract class AbstractBoard implements Board {
     public List<Square> legalMoves(final Player player) {
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
         final List<Square> legalMoves = new ArrayList<Square>();
-        for (final Square move : Square.values()) {
+        for (final Square move : SQUARE_VALUES) {
             if (isLegal(move, player)) { legalMoves.add(move); }
         }
         return legalMoves;

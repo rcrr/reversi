@@ -33,6 +33,9 @@ import java.util.ArrayList;
 
 /**
  * A board concrete implementation in the bitboard family.
+ *
+ * To do:
+ * replace neighbor with shift. Directions have to be represented by mean of the Direction Enum instead of the integer constants.
  * <p>
  * A {@code BitBoard0} object holds the information of the state of each board's square.
  * The board state is kept into a long array having a length equal two.

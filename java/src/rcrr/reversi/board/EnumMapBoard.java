@@ -48,6 +48,9 @@ import java.util.Map;
  */
 public final class EnumMapBoard extends AbstractBoard {
 
+    /** Caches the square enum values in a local array. */
+    private static final Square[] SQUARE_VALUES = Square.values();
+
     /**
      * Base static factory for the class.
      * <p>
@@ -85,9 +88,9 @@ public final class EnumMapBoard extends AbstractBoard {
      */
     private EnumMapBoard(final Map<Square, SquareState> squares) {
         assert (squares != null) : "Parameter squares cannot be null.";
-        assert (squares.size() == Square.values().length) : "Parameter squares size is not consistent."
+        assert (squares.size() == SQUARE_VALUES.length) : "Parameter squares size is not consistent."
             + " squares.size()=" + squares.size()
-            + " expected value: " + Square.values().length;
+            + " expected value: " + SQUARE_VALUES.length;
         assert (!squares.containsKey(null)) : "Parameter squares cannot contains null keys.";
         assert (!squares.containsValue(null)) : "Parameter squares cannot contains null values.";
         this.squares = new EnumMap<Square, SquareState>(squares);
@@ -152,7 +155,7 @@ public final class EnumMapBoard extends AbstractBoard {
         List<Square> cached = this.legalMovesForPlayer.get(player);
         if (cached != null) { return cached; }
         final List<Square> legalMoves = new ArrayList<Square>();
-        for (final Square move : Square.values()) {
+        for (final Square move : SQUARE_VALUES) {
             if (isLegal(move, player)) { legalMoves.add(move); }
         }
         cached = Collections.unmodifiableList(legalMoves);

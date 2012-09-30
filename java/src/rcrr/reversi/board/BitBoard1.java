@@ -46,25 +46,41 @@ import java.util.ArrayList;
  */
 public class BitBoard1 extends BitBoard {
 
+    /** It turns on or off the class logging for performances. */
     private static final boolean LOG = true;
+
+    /** Collects the number of call to legalMoves method. */
     private static int callsTolegalMoves = 0;
+
+    /** Collects the number of call to makeMove method. */
     private static int callsToMakeMove = 0;
+
+    /** Collects the number of call to the class constructor. */
     private static int callsToConstructor = 0;
+
+    /** Collects the number of call to isLegal method. */
     private static int callsToIsLegal = 0;
+
+    /** Collects the number of likely moves in the legalMoves method. */
     private static int numberOflikelyMoves = 0;
+
+    /** Collects the number of legal moves in the legalMoves method. */
     private static int numberOflegalMoves = 0;
 
+    /** Caches the direction enum values in a local array. */
     private static final Direction[] DIRECTION_VALUES = Direction.values();
 
+    /** Caches the direction's shift values in a local array. */
     private static final int[] DIRECTION_SHIFTS = Direction.shifts(); 
 
+    /** Caches the square enum values in a local array. */
     private static final Square[] SQUARE_VALUES = Square.values();
 
-    private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
-    private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
+    /** A bitboard being all set with the exception of column A. */
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0xFEFEFEFEFEFEFEFEL;
 
-    /** Used for masking a byte when using integer values. */
-    static final int BYTE_MASK_FOR_INT = 0xFF;
+    /** A bitboard being all set with the exception of column H. */
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0x7F7F7F7F7F7F7F7FL;
 
     /**
      * This array has sixtyfour entries. The index, having range 0-63, represent one of the squares
@@ -92,6 +108,7 @@ public class BitBoard1 extends BitBoard {
         0xFE03050911214181L, 0xFD070A1222428202L, 0xFB0E152444840404L, 0xF71C2A4988080808L, 
         0xEF38549211101010L, 0xDF70A82422212020L, 0xBFE0504844424140L, 0x7FC0A09088848281L
     };
+
     /**
      * This array is an implementation of the precomputed table that contains the effects of moving
      * a piece in any of the eigth squares in a row.
@@ -290,8 +307,8 @@ public class BitBoard1 extends BitBoard {
     private static long neighbors(final long squares) {
         long neighbors = squares;
         neighbors |= (neighbors >>> 8);
-        neighbors |= (neighbors >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        neighbors |= (neighbors <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        neighbors |= (neighbors >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        neighbors |= (neighbors <<  1) & ALL_SQUARES_EXCEPT_COLUMN_A;
         neighbors |= (neighbors <<  8);
         return neighbors;
     }

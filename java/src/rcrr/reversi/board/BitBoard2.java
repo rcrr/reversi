@@ -33,15 +33,11 @@ import java.util.ArrayList;
 
 /**
  * A board concrete implementation in the bitboard family.
- *
- * To do:
- *   put neighbor in the Direction class - remove the loop in the multicell move neighbor
  * <p>
- * A {@code BitBoard2} object holds the information of the state of each board's square.
- * The board state is kept into a long array having a length equal two.
- * The first entry keeps the black squares, the second the whites.
- * <p>
- * The board applyes some variants to the {@code BitBoard1} implementation ....
+ * The board applyes some variants to the {@code BitBoard1} implementation,
+ * it differ from the parent implementation because the legalMoves implementation doesn't
+ * relay on the isLegal method. The makeMove method instead works by looping on directions and
+ * finding legal moves by mean of shifting the board as a whole.
  * <p>
  * {@code BitBoard2} is immutable.
  * <p>
@@ -49,40 +45,26 @@ import java.util.ArrayList;
  */
 public final class BitBoard2 extends BitBoard1 {
 
+    /** It turns on or off the class logging for performances. */
     private static final boolean LOG = true;
+
+    /** Collects the number of call to legalMoves method. */
     private static int callsTolegalMoves = 0;
+
+    /** Collects the number of call to makeMove method. */
     private static int callsToMakeMove = 0;
+ 
+    /** Collects the number of call to the class constructor. */
     private static int callsToConstructor = 0;
 
+    /** Caches the direction enum values in a local array. */
     private static final Direction[] DIRECTION_VALUES = Direction.values();
 
-    private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0xFEFEFEFEFEFEFEFEL;
-    private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0x7F7F7F7F7F7F7F7FL;
-
-    private static final long[] ALL_SQUARES_EXCEPT_LEFT_COLUMNS = {
-        0xFFFFFFFFFFFFFFFFL,
-        0xFEFEFEFEFEFEFEFEL,
-        0xFCFCFCFCFCFCFCFCL,
-        0xF8F8F8F8F8F8F8F8L,
-        0xF0F0F0F0F0F0F0F0L,
-        0xE0E0E0E0E0E0E0E0L,
-        0xC0C0C0C0C0C0C0C0L,
-        0x8080808080808080L,
-        0x0000000000000000L
-    };
-
-    private static final long[] ALL_SQUARES_EXCEPT_RIGTH_COLUMNS = {
-        0xFFFFFFFFFFFFFFFFL,
-        0x7F7F7F7F7F7F7F7FL,
-        0x3F3F3F3F3F3F3F3FL,
-        0x1F1F1F1F1F1F1F1FL,
-        0x0F0F0F0F0F0F0F0FL,
-        0x0707070707070707L,
-        0x0303030303030303L,
-        0x0101010101010101L,
-        0x0000000000000000L
-    };
-
+    /**
+     * Returns info for performance statistics.
+     *
+     * @return a string having class performance statistics
+     */
     public static String printLog() {
         String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
         return ret;
@@ -118,34 +100,6 @@ public final class BitBoard2 extends BitBoard1 {
         return new BitBoard2(bitboard);
     }
 
-    private static long shift(final long squares, final Direction dir) {
-        switch (dir) {
-        case NW: return (squares >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case N:  return (squares >>> 8);
-        case NE: return (squares >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case W:  return (squares >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case E:  return (squares <<  1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case SW: return (squares <<  7) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case S:  return (squares <<  8);
-        case SE: return (squares <<  9) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
-        }
-    }
-
-    private static long shift(final long squares, final Direction dir, final int amount) {
-        switch (dir) {
-        case NW: return (squares >>> (9 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
-        case N:  return (squares >>> (8 * amount));
-        case NE: return (squares >>> (7 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
-        case W:  return (squares >>> (1 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
-        case E:  return (squares <<  (1 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
-        case SW: return (squares <<  (7 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
-        case S:  return (squares <<  (8 * amount));
-        case SE: return (squares <<  (9 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
-        default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
-        }
-    }
-
     /**
      * Class constructor.
      * <p>
@@ -164,34 +118,9 @@ public final class BitBoard2 extends BitBoard1 {
      */
     @Override
     public List<Square> legalMoves(final Player player) {
-
         if (LOG) callsTolegalMoves++;
-
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
-
         return new SquareList(legalMoves(player.ordinal()));
-    }
-
-    /**
-     * Returns true if the {@code Board#makeMove(Square, Player)} invariants ae satisfied.
-     *
-     * @param  move   the board square where to put the disk
-     * @param  player the disk color to put on the board
-     * @return        true when invariants are satisfied
-     * @throws NullPointerException     if parameter {@code move} or {@code player} is null
-     * @throws IllegalArgumentException if the {@code move} by {@code player} is illegal
-     */
-    boolean makeMoveInvariantAreSatisfied(final Square move, final Player player) {
-        if (player == null) {
-            throw new NullPointerException("Parameter player must be not null.");
-        }
-        if (move == null) {
-            throw new NullPointerException("Parameter move must be not null when a legal one is available.");
-        }
-        if (!isLegal(move, player)) {
-            throw new IllegalArgumentException("The move<" + move + "> by player<" + player + "> is illegal.");
-        }
-        return true;
     }
 
     /**
@@ -199,14 +128,19 @@ public final class BitBoard2 extends BitBoard1 {
      */
     @Override
     public Board makeMove(final Square move, final Player player) {
-
         if (LOG) callsToMakeMove++;
-
         makeMoveInvariantAreSatisfied(move, player);
-
         return valueOf(makeMoveImpl(move, player));
     }
 
+    /**
+     * The core method of this class. Implements the legal moves call by waveing the potential
+     * legal moves up to the bracketing pieces. Directions are computed one by one, squares work
+     * in parallel.
+     *
+     * @param player the player that has to move
+     * @return       legal moves for the player
+     */
     private long legalMoves(final int player) {
         final int opponent = player ^ WHITE;
         final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
