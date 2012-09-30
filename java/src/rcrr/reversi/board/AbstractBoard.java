@@ -90,6 +90,15 @@ public abstract class AbstractBoard implements Board {
     /** Caches the square enum values in a local array. */
     private static final Square[] SQUARE_VALUES = Square.values();
 
+    /** Caches the row enum values in a local array. */
+    private static final Row[] ROW_VALUES = Row.values();
+
+    /** Caches the column enum values in a local array. */
+    private static final Column[] COLUMN_VALUES = Column.values();
+
+    /** Caches the player enum values in a local array. */
+    private static final Player[] PLAYER_VALUES = Player.values();
+
     /** Prime number 17. */
     private static final int PRIME_NUMBER_17 = 17;
 
@@ -165,7 +174,7 @@ public abstract class AbstractBoard implements Board {
      */
     public boolean hasAnyPlayerAnyLegalMove() {
         boolean hasAnyPlayerAnyLegalMove = false;
-        for (Player player : Player.values()) {
+        for (final Player player : PLAYER_VALUES) {
             if (hasAnyLegalMove(player)) {
                 hasAnyPlayerAnyLegalMove = true;
                 break;
@@ -219,9 +228,9 @@ public abstract class AbstractBoard implements Board {
     public String printBoard() {
         final StringBuilder sb = new StringBuilder();
         sb.append("    a b c d e f g h ");
-        for (final Row r : Row.values()) {
+        for (final Row r : ROW_VALUES) {
             sb.append("\n ").append(r.label()).append("  ");
-            for (final Column c : Column.values()) {
+            for (final Column c : COLUMN_VALUES) {
                 String p = get(Square.getInstance(r, c)).symbol();
                 sb.append(p).append(" ");
             }

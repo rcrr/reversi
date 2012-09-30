@@ -58,7 +58,7 @@ public enum SquareState {
     /** Computes the SYMBOL_TABLE static Map.*/
     static {
         Map<String, SquareState> m = new HashMap<String, SquareState>();
-        for (SquareState ss : values()) {
+        for (final SquareState ss : values()) {
             m.put(ss.symbol(), ss);
         }
         SYMBOL_TABLE = Collections.unmodifiableMap(m);
