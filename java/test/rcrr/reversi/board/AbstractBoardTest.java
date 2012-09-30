@@ -780,31 +780,18 @@ public class AbstractBoardTest {
      * Tests the {@code makeMove(Square, Player)} factory method when the player
      * does not have a legal move.
      * <p>
-     * Tests that the following case does not rise an exception:
+     * Tests that the following case does rise an exception:
      * <ul>
      *   <li>{@code BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK)}</li>
      * </ul>
      * <p>
-     * Tests also that the return value is the board itself.
      *
      * @see AbstractBoard#makeMove(Square, Player)
      * @see BoardFixtures#BLACK_HAS_TO_PASS
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public final void testMakeMove_whenNoLegalMoveIsAvailableToThePlayer() {
-
-        Board result = null;
-        try {
-            result = new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build().makeMove(Square.NULL, Player.BLACK);
-        } catch (Exception e) {
-            fail("BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK) should't rise an exception."
-                 + " e.getMessage()=" + e.getMessage());
-        }
-
-        assertThat("BoardFixtures.BLACK_HAS_TO_PASS.makeMove(Square.NULL, Player.BLACK)"
-                   + " must be equal to BoardFixtures.BLACK_HAS_TO_PASS.",
-                   result,
-                   is(BoardFixtures.BLACK_HAS_TO_PASS));
+        new BoardBuilder(BoardFixtures.BLACK_HAS_TO_PASS).build().makeMove(Square.NULL, Player.BLACK);
     }
 
     /**

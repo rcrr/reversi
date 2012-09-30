@@ -173,6 +173,28 @@ public final class BitBoard2 extends BitBoard1 {
     }
 
     /**
+     * Returns true if the {@code Board#makeMove(Square, Player)} invariants ae satisfied.
+     *
+     * @param  move   the board square where to put the disk
+     * @param  player the disk color to put on the board
+     * @return        true when invariants are satisfied
+     * @throws NullPointerException     if parameter {@code move} or {@code player} is null
+     * @throws IllegalArgumentException if the {@code move} by {@code player} is illegal
+     */
+    boolean makeMoveInvariantAreSatisfied(final Square move, final Player player) {
+        if (player == null) {
+            throw new NullPointerException("Parameter player must be not null.");
+        }
+        if (move == null) {
+            throw new NullPointerException("Parameter move must be not null when a legal one is available.");
+        }
+        if (!isLegal(move, player)) {
+            throw new IllegalArgumentException("The move<" + move + "> by player<" + player + "> is illegal.");
+        }
+        return true;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -180,22 +202,7 @@ public final class BitBoard2 extends BitBoard1 {
 
         if (LOG) callsToMakeMove++;
 
-        if (player == null) {
-            throw new NullPointerException("Parameter player must be not null.");
-        }
-        if (move == null) {
-            if (hasAnyLegalMove(player)) {
-                throw new NullPointerException("Parameter move must be not null when a legal one is available.");
-            } else {
-                System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-                return this;
-            }
-        }
-        if (!isLegal(move, player)) {
-            throw new IllegalArgumentException("The move<"
-                                               + move + "> by player<"
-                                               + player + "> is illegal.");
-        }
+        makeMoveInvariantAreSatisfied(move, player);
 
         return valueOf(makeMoveImpl(move, player));
     }
