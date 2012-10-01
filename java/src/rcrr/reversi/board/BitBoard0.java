@@ -54,81 +54,6 @@ public final class BitBoard0 extends BitBoard {
     private static int callsToMakeMove = 0;
     private static int callsToConstructor = 0;
 
-    private static final int DIR_NW = -9;
-    private static final int DIR_NN = -8;
-    private static final int DIR_NE = -7;
-    private static final int DIR_WW = -1;
-    private static final int DIR_EE = +1;
-    private static final int DIR_SW = +7;
-    private static final int DIR_SS = +8;
-    private static final int DIR_SE = +9;
-
-    private static final int NUMBER_OF_DIRECTIONS = 8;
-    private static final int[] DIRECTIONS = new int [] {DIR_NW, DIR_NN, DIR_NE, DIR_WW, DIR_EE, DIR_SW, DIR_SS, DIR_SE};
-    private static final int[][] FLIPPING_DIRECTIONS = new int[64][];
-
-    private static final long CORE_SQUARES                = 0x007E7E7E7E7E7E00L;
-    private static final long EDGES_SQUARES               = 0xFF818181818181FFL;
-    private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0x7F7F7F7F7F7F7F7FL;
-    private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0xFEFEFEFEFEFEFEFEL;
-
-    private static final int EDGE_N = 0;
-    private static final int EDGE_E = 1;
-    private static final int EDGE_S = 2;
-    private static final int EDGE_W = 3;
-
-    private static final int[] EDGES = new int[] {EDGE_N, EDGE_E, EDGE_S, EDGE_W};
-
-    private static final int ROW_1 = 0;
-    private static final int ROW_2 = 1;
-    private static final int ROW_3 = 2;
-    private static final int ROW_4 = 3;
-    private static final int ROW_5 = 4;
-    private static final int ROW_6 = 5;
-    private static final int ROW_7 = 6;
-    private static final int ROW_8 = 7;
-
-    private static final int COL_A = 0;
-    private static final int COL_B = 1;
-    private static final int COL_C = 2;
-    private static final int COL_D = 3;
-    private static final int COL_E = 4;
-    private static final int COL_F = 5;
-    private static final int COL_G = 6;
-    private static final int COL_H = 7;
-
-    /** Used for masking a byte when using integer values. */
-    private static final int BYTE_MASK_FOR_INT = 0xFF;
-
-    static {
-
-        for (int sq = 0; sq < 64; sq++) {
-            final List<Integer> directions = asList(DIRECTIONS);
-            if (squareBelongsToEdge(sq, EDGE_N)) {
-                directions.remove(Integer.valueOf(DIR_NW));
-                directions.remove(Integer.valueOf(DIR_NN));
-                directions.remove(Integer.valueOf(DIR_NE));
-            }
-            if (squareBelongsToEdge(sq, EDGE_E)) {
-                directions.remove(Integer.valueOf(DIR_NE));
-                directions.remove(Integer.valueOf(DIR_EE));
-                directions.remove(Integer.valueOf(DIR_SE));
-            }
-            if (squareBelongsToEdge(sq, EDGE_S)) {
-                directions.remove(Integer.valueOf(DIR_SW));
-                directions.remove(Integer.valueOf(DIR_SS));
-                directions.remove(Integer.valueOf(DIR_SE));
-            }
-            if (squareBelongsToEdge(sq, EDGE_W)) {
-                directions.remove(Integer.valueOf(DIR_NW));
-                directions.remove(Integer.valueOf(DIR_WW));
-                directions.remove(Integer.valueOf(DIR_SW));
-            }
-            FLIPPING_DIRECTIONS[sq] = asArray(directions);
-        }
-
-    }
-
     public static String printLog() {
         String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
         return ret;
@@ -154,7 +79,7 @@ public final class BitBoard0 extends BitBoard {
     static Board valueOf(final long[] bitboard) {
         return new BitBoard0(bitboard);
     }
-
+    /*
     private static int[] asArray(final List<Integer> list) {
         final int[] array = new int[list.size()];
         int index = 0;
@@ -170,39 +95,7 @@ public final class BitBoard0 extends BitBoard {
         for (int i = 0; i < array.length; i++) { list.add(array[i]); }
         return list;
     }
-
-    private static long neighbor(final long square, final int dir) {
-        switch (dir) {
-        case DIR_NW: return (square >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_NN: return (square >>> 8);
-        case DIR_NE: return (square >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case DIR_WW: return (square >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_EE: return (square <<  1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case DIR_SW: return (square <<  7) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case DIR_SS: return (square <<  8);
-        case DIR_SE: return (square <<  9) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        default: throw new IllegalArgumentException("Undefined value for dir parameter. dir=" + dir);
-        }
-    }
-
-    private static boolean squareBelongsToEdge(final int square, final int edge) {
-        assert (Arrays.binarySearch(EDGES, edge) >= 0) : "Argument edge must be contained in the EDGES array.";
-        final int col = square % 8;
-        final int row = square / 8;
-        switch (edge) {
-        case EDGE_N: if (row < ROW_2) { return true; }
-            break;
-        case EDGE_E: if (col > COL_G) { return true; }
-            break;
-        case EDGE_S: if (row > ROW_7) { return true; }
-            break;
-        case EDGE_W: if (col < COL_B) { return true; }
-            break;
-        default: throw new IllegalArgumentException("Parameter edge out of range. edge = " + edge);
-        }
-        return false;
-    }
-
+    */
     /**
      * Class constructor.
      * <p>
@@ -239,7 +132,7 @@ public final class BitBoard0 extends BitBoard {
         if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
             return false;
         }
-        for (int dir : FLIPPING_DIRECTIONS[move.ordinal()]) {
+        for (final Direction dir : move.capableToFlipDirections()) {
             if (wouldFlip(bitmove, player, dir) != 0L) {
                 return true;
             }
@@ -263,10 +156,10 @@ public final class BitBoard0 extends BitBoard {
         final int m = move.ordinal();
         final long bitmove = 1L << m;
         newbitboard[p] |= bitmove; // set the move
-        for (final int dir : FLIPPING_DIRECTIONS[m]) {
+        for (final Direction dir : move.capableToFlipDirections()) {
             final long bracketer = wouldFlip(bitmove, player, dir);
             if (bracketer != 0L) {
-                for (long c = neighbor(bitmove, dir); true; c = neighbor(c, dir)) {
+                for (long c = shift(bitmove, dir); true; c = shift(c, dir)) {
                     if (c == bracketer) { break; }
                     newbitboard[p] |= c;
                     newbitboard[o] &= ~c;
@@ -276,15 +169,15 @@ public final class BitBoard0 extends BitBoard {
         return valueOf(newbitboard);
     }
 
-    private long wouldFlip(final long move, final Player player, final int dir) {
-        assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set.";
-        assert (player != null) : "Argument player must be not null.";
+    private long wouldFlip(final long move, final Player player, final Direction dir) {
+        //assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set.";
+        //assert (player != null) : "Argument player must be not null.";
         long bracketing = 0L;
-        long neighbor = neighbor(move, dir);
+        long neighbor = shift(move, dir);
         final int intPlayer = player.ordinal(); 
         final int intOpponent = intPlayer ^ WHITE;
         if ((neighbor & bitboard[intOpponent]) != 0L) {
-            long next = neighbor(neighbor, dir);
+            long next = shift(neighbor, dir);
             if (next != 0L) {
                 bracketing = findBracketingPiece(next, intPlayer, dir);
             }
@@ -292,12 +185,12 @@ public final class BitBoard0 extends BitBoard {
         return bracketing;
     }
 
-    private long findBracketingPiece(final long square, final int intPlayer, final int dir) {
+    private long findBracketingPiece(final long square, final int intPlayer, final Direction dir) {
         final int intOpponent = intPlayer ^ WHITE;
         if ((square & bitboard[intPlayer]) != 0L) {
             return square;
         } else if ((square & bitboard[intOpponent]) != 0L) {
-            long next = neighbor(square, dir);
+            long next = shift(square, dir);
             if (next != 0L) {
                 return findBracketingPiece(next, intPlayer, dir);
             }

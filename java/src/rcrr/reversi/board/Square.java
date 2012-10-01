@@ -435,9 +435,9 @@ public enum Square {
     }
 
     /**
-     * Returns a map that has the directions as keys and the associated neighbor square as values.
+     * Returns a list having the directions that have a chance to be a possible flip as elements.
      *
-     * @return the square's neighbor map
+     * @return the list of capable to flip directions
      **/
     public List<Direction> capableToFlipDirections() {
         return CAPABLE_TO_FLIP_DIRECTION_TABLE.get(this);
