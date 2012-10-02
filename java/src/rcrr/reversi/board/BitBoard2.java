@@ -129,7 +129,7 @@ public final class BitBoard2 extends BitBoard1 {
     @Override
     public Board makeMove(final Square move, final Player player) {
         if (LOG) callsToMakeMove++;
-        makeMoveInvariantAreSatisfied(move, player);
+        makeMoveInvariantsAreSatisfied(move, player);
         return valueOf(makeMoveImpl(move, player));
     }
 

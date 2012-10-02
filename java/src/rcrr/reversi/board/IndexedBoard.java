@@ -154,12 +154,7 @@ public final class IndexedBoard extends AbstractBoard {
      */
     @Override
     public boolean isLegal(final Square move, final Player player) {
-        if (move == null) {
-            throw new NullPointerException("Parameter move must be not null.");
-        }
-        if (player == null) {
-            throw new NullPointerException("Parameter player must be not null.");
-        }
+        isLegalInvariantsAreSatisfied(move, player);
         final Set<Square> cached = this.legalMovesForPlayer.get(player);
         if (cached == null) {
             legalMoves(player);
@@ -210,7 +205,7 @@ public final class IndexedBoard extends AbstractBoard {
     @Override
     public Board makeMove(final Square move, final Player player) {
 
-        makeMoveInvariantAreSatisfied(move, player);
+        makeMoveInvariantsAreSatisfied(move, player);
 
         final int[] newIndexes = new int[Line.NUMBER_OF];
 
