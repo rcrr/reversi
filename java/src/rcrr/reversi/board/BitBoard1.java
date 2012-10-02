@@ -345,14 +345,10 @@ public class BitBoard1 extends BitBoard {
      * @throws NullPointerException if parameter {@code move} or {@code player} is null
      */
     public boolean isLegal(final Square move, final Player player) {
-        if (move == null) {
-            throw new NullPointerException("Parameter move must be not null.");
-        }
-        if (player == null) {
-            throw new NullPointerException("Parameter player must be not null.");
-        }
 
         if (LOG) callsToIsLegal++;
+
+        isLegalInvariantsAreSatisfied(move, player);
 
         final long bitmove = 1L << move.ordinal();
         if ((bitmove & (bitboard[BLACK] | bitboard[WHITE])) != 0) {
@@ -444,7 +440,7 @@ public class BitBoard1 extends BitBoard {
 
         if (LOG) callsToMakeMove++;
 
-        makeMoveInvariantAreSatisfied(move, player);
+        makeMoveInvariantsAreSatisfied(move, player);
 
         return valueOf(makeMoveImpl(move, player));
     }

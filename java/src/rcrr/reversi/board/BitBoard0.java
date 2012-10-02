@@ -35,7 +35,7 @@ import java.util.ArrayList;
  * A board concrete implementation in the bitboard family.
  *
  * To do:
- * replace neighbor with shift. Directions have to be represented by mean of the Direction Enum instead of the integer constants.
+ * remove ArrrayList, make cleanup of isLegal, create direct call to method using bitboards.
  * <p>
  * A {@code BitBoard0} object holds the information of the state of each board's square.
  * The board state is kept into a long array having a length equal two.
@@ -79,23 +79,7 @@ public final class BitBoard0 extends BitBoard {
     static Board valueOf(final long[] bitboard) {
         return new BitBoard0(bitboard);
     }
-    /*
-    private static int[] asArray(final List<Integer> list) {
-        final int[] array = new int[list.size()];
-        int index = 0;
-        for (final Integer element : list) {
-            array[index] = element.intValue();
-            index++;
-        }
-        return array;
-    }
 
-    private static List<Integer> asList(final int[] array) {
-        final List<Integer> list = new ArrayList<Integer>(array.length);
-        for (int i = 0; i < array.length; i++) { list.add(array[i]); }
-        return list;
-    }
-    */
     /**
      * Class constructor.
      * <p>
@@ -110,24 +94,11 @@ public final class BitBoard0 extends BitBoard {
     }
 
     /**
-     * Returns the boolean value telling if the move, done by the
-     * specified player, is legal.
-     * <p>
-     * Parameter {@code move} must be not {@code null}.
-     * Parameter {@code player} must be not {@code null}.
-     *
-     * @param move   the square where to put the new disk
-     * @param player the player moving
-     * @return       true if the move is legal, otherwise false
-     * @throws NullPointerException if parameter {@code move} or {@code player} is null
+     * {@inheritDoc}
      */
+    @Override
     public boolean isLegal(final Square move, final Player player) {
-        if (move == null) {
-            throw new NullPointerException("Parameter move must be not null.");
-        }
-        if (player == null) {
-            throw new NullPointerException("Parameter player must be not null.");
-        }
+        isLegalInvariantsAreSatisfied(move, player);
         final long bitmove = 1L << move.ordinal();
         if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
             return false;
@@ -148,7 +119,7 @@ public final class BitBoard0 extends BitBoard {
 
         if (LOG) callsToMakeMove++;
 
-        makeMoveInvariantAreSatisfied(move, player);
+        makeMoveInvariantsAreSatisfied(move, player);
 
         final long[] newbitboard = bitboard.clone();
         final int p = player.ordinal(); 

@@ -267,15 +267,33 @@ public abstract class AbstractBoard implements Board {
     }
 
     /**
-     * Returns true if the {@code Board#makeMove(Square, Player)} invariants ae satisfied.
+     * Returns true if the {@code Board#makeMove(Square, Player)} invariants are satisfied.
      *
-     * @param  move   the board square where to put the disk
-     * @param  player the disk color to put on the board
-     * @return        true when invariants are satisfied
+     * @param move   the square where to put the new disk
+     * @param player the player moving
+     * @return       true when invariants are satisfied
+     * @throws NullPointerException if parameter {@code move} or {@code player} is null
+     */
+    final boolean isLegalInvariantsAreSatisfied(final Square move, final Player player) {
+        if (move == null) {
+            throw new NullPointerException("Parameter move must be not null.");
+        }
+        if (player == null) {
+            throw new NullPointerException("Parameter player must be not null.");
+        }
+        return true;
+    }
+
+    /**
+     * Returns true if the {@code Board#makeMove(Square, Player)} invariants are satisfied.
+     *
+     * @param move   the board square where to put the disk
+     * @param player the disk color to put on the board
+     * @return       true when invariants are satisfied
      * @throws NullPointerException     if parameter {@code move} or {@code player} is null
      * @throws IllegalArgumentException if the {@code move} by {@code player} is illegal
      */
-    boolean makeMoveInvariantAreSatisfied(final Square move, final Player player) {
+    final boolean makeMoveInvariantsAreSatisfied(final Square move, final Player player) {
         if (player == null) {
             throw new NullPointerException("Parameter player must be not null.");
         }

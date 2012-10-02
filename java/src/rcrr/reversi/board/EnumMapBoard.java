@@ -124,14 +124,9 @@ public final class EnumMapBoard extends AbstractBoard {
      */
     @Override
     public boolean isLegal(final Square move, final Player player) {
-        if (move == null) {
-            throw new NullPointerException("Parameter move must be not null.");
-        }
-        if (player == null) {
-            throw new NullPointerException("Parameter player must be not null.");
-        }
+        isLegalInvariantsAreSatisfied(move, player);
         if (get(move) != SquareState.EMPTY) { return false; }
-        for (Direction dir : move.capableToFlipDirections()) {
+        for (final Direction dir : move.capableToFlipDirections()) {
             if (wouldFlip(move, player, dir) != null) { return true; }
         }
         return false;
@@ -168,7 +163,7 @@ public final class EnumMapBoard extends AbstractBoard {
      */
     @Override
     public Board makeMove(final Square move, final Player player) {
-        makeMoveInvariantAreSatisfied(move, player);
+        makeMoveInvariantsAreSatisfied(move, player);
         final Map<Square, SquareState> sm = squares.clone();
         sm.put(move, player.color());
         for (final Direction dir : move.capableToFlipDirections()) {
