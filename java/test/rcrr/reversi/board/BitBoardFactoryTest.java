@@ -44,13 +44,13 @@ public class BitBoardFactoryTest extends AbstractBoardFactoryTest {
     public BitBoardFactoryTest() { }
 
     /**
-     * Returns a board factory instance belonging to the {@code BitBoardFactory} class.
+     * Returns a board factory instance belonging to the {@code BitBoardFactory.Type0} class.
      *
      * @return a new board factory
      */
     @Override
     BoardFactory boardFactory() {
-        return new BitBoardFactory();
+        return new BitBoardFactory.Type0();
     }
 
 }
