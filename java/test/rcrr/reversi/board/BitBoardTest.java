@@ -55,7 +55,7 @@ public class BitBoardTest extends AbstractBoardTest {
     @Before
     public void setBoardFactory() {
         this.applicationWideBoardFactory = BoardFactoryHolder.getInstance().boardFactory();
-        BoardFactoryHolder.getInstance().setBoardFactory(new BitBoardFactory());
+        BoardFactoryHolder.getInstance().setBoardFactory(new BitBoardFactory.Type0());
     }
 
     @After

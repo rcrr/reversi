@@ -114,7 +114,9 @@ public class BoardPerf {
     private static List<BoardFactory> initBoardFactories() {
         final List<BoardFactory> boardFactories = new ArrayList<BoardFactory>();
         boardFactories.add(new EnumMapBoardFactory());
-        boardFactories.add(new BitBoardFactory());
+        boardFactories.add(new BitBoardFactory.Type0());
+        boardFactories.add(new BitBoardFactory.Type1());
+        boardFactories.add(new BitBoardFactory.Type2());
         boardFactories.add(new IndexedBoardFactory());
         return boardFactories;
     }

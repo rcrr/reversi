@@ -25,20 +25,63 @@
 package rcrr.reversi.board;
 
 import java.util.Map;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 
 /**
- * The class provides a concrete implementation for the board's factory interface returning
- * board objects of type {@code BitBoard}.
- *
- * @see Board
+ * The class is an abstract container for board's factories.
  */
-public final class BitBoardFactory extends AbstractBoardFactory {
+public abstract class BitBoardFactory extends AbstractBoardFactory {
 
     /**
-     * {@inheritDoc}
+     * The class provides a concrete implementation for the board's factory interface returning
+     * board objects of type {@code BitBoard0}.
+     *
+     * @see Board
      */
-    public Board valueOf(final Map<Square, SquareState> squares) {
-        return BitBoard0.valueOf(squares);
+    public static final class Type0 extends BitBoardFactory {
+
+        /**
+         * {@inheritDoc}
+         */
+        public Board valueOf(final Map<Square, SquareState> squares) {
+            return BitBoard0.valueOf(squares);
+        }
+
+    }
+
+    /**
+     * The class provides a concrete implementation for the board's factory interface returning
+     * board objects of type {@code BitBoard1}.
+     *
+     * @see Board
+     */
+    public static final class Type1 extends BitBoardFactory {
+
+        /**
+         * {@inheritDoc}
+         */
+        public Board valueOf(final Map<Square, SquareState> squares) {
+            return BitBoard1.valueOf(squares);
+        }
+
+    }
+
+    /**
+     * The class provides a concrete implementation for the board's factory interface returning
+     * board objects of type {@code BitBoard2}.
+     *
+     * @see Board
+     */
+    public static final class Type2 extends BitBoardFactory {
+
+        /**
+         * {@inheritDoc}
+         */
+        public Board valueOf(final Map<Square, SquareState> squares) {
+            return BitBoard2.valueOf(squares);
+        }
+
     }
 
 }

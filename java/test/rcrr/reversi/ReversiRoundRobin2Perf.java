@@ -49,10 +49,10 @@ public class ReversiRoundRobin2Perf {
     private static final Duration STANDARD_GAME_DURATION = Period.minutes(30).toStandardDuration();
 
     /** The search depth. */
-    public static final int PLY = 6;
+    public static final int PLY = 4;
 
     /** The number of pair games applyed. */
-    public static final int N_PAIRS = 10;
+    public static final int N_PAIRS = 50;
 
     /** Class constructor. */
     public ReversiRoundRobin2Perf() { }
