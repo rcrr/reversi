@@ -24,24 +24,16 @@
 
 package rcrr.reversi.board;
 
-import java.math.BigInteger;
-
-import java.util.Arrays;
 import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * A board concrete implementation in the bitboard family.
- *
- * To do:
- * remove ArrrayList, make cleanup of isLegal, create direct call to method using bitboards.
  * <p>
  * A {@code BitBoard0} object holds the information of the state of each board's square.
  * The board state is kept into a long array having a length equal two.
  * The first entry keeps the black squares, the second the whites.
  * <p>
- * The board uses wouldFlip ....
+ * The board uses wouldFlip and findBracketingPiece ideas as described in the PAIP book.
  * <p>
  * {@code BitBoard0} is immutable.
  * <p>
@@ -49,11 +41,23 @@ import java.util.ArrayList;
  */
 public final class BitBoard0 extends BitBoard {
 
+    /** It turns on or off the class logging for performances. */
     private static final boolean LOG = true;
+ 
+    /** Collects the number of call to legalMoves method. */
     private static int callsTolegalMoves = 0;
+
+    /** Collects the number of call to makeMove method. */
     private static int callsToMakeMove = 0;
+
+    /** Collects the number of call to the class constructor. */
     private static int callsToConstructor = 0;
 
+    /**
+     * Returns info for performance statistics.
+     *
+     * @return a string having class performance statistics
+     */
     public static String printLog() {
         String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
         return ret;
@@ -76,6 +80,12 @@ public final class BitBoard0 extends BitBoard {
         return new BitBoard0(BoardUtils.mapToBitboard(squares));
     }
 
+    /**
+     * Static factory for the class.
+     *
+     * @param  bitboard the board configuration as a pair of long values
+     * @return          a new board having as state the given bitboard parameter
+     */
     static Board valueOf(final long[] bitboard) {
         return new BitBoard0(bitboard);
     }
@@ -140,22 +150,16 @@ public final class BitBoard0 extends BitBoard {
         return valueOf(newbitboard);
     }
 
-    private long wouldFlip(final long move, final Player player, final Direction dir) {
-        //assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set.";
-        //assert (player != null) : "Argument player must be not null.";
-        long bracketing = 0L;
-        long neighbor = shift(move, dir);
-        final int intPlayer = player.ordinal(); 
-        final int intOpponent = intPlayer ^ WHITE;
-        if ((neighbor & bitboard[intOpponent]) != 0L) {
-            long next = shift(neighbor, dir);
-            if (next != 0L) {
-                bracketing = findBracketingPiece(next, intPlayer, dir);
-            }
-        }
-        return bracketing;
-    }
-
+    /**
+     * Returns the bracketing square or 0L if it is missing.
+     * The method does not check that the move is legal and that the square parameter
+     * is one step from move in the given direction.
+     *
+     * @param square the square obtained moving by one from the move in the given direction
+     * @param player the player
+     * @param dir    the direction
+     * @return       the bracketing square, or 0L if it is not found
+     */
     private long findBracketingPiece(final long square, final int intPlayer, final Direction dir) {
         final int intOpponent = intPlayer ^ WHITE;
         if ((square & bitboard[intPlayer]) != 0L) {
@@ -167,6 +171,37 @@ public final class BitBoard0 extends BitBoard {
             }
         }
         return 0L;
+    }
+
+    /**
+     * Returns the bracketing square or null if it is not found.
+     * The method does not check that the move is legal.
+     * <p>
+     * Parameters player, and dir must be not null.
+     * Parameter move must have only one bit set.
+     * <p>
+     * Assertion add a 4.56% time increase in the ReversiRoundRobin2Perf benchmark.
+     *
+     * @param move   the square where to move
+     * @param player the player
+     * @param dir    the direction
+     * @return       the bracketing square, or 0L if it is not found
+     */
+    private long wouldFlip(final long move, final Player player, final Direction dir) {
+        //assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set.";
+        //assert (player != null) : "Argument player must be not null.";
+        //assert (dir != null) : "Argument dir must be not null";
+        long bracketing = 0L;
+        long neighbor = shift(move, dir);
+        final int intPlayer = player.ordinal(); 
+        final int intOpponent = intPlayer ^ WHITE;
+        if ((neighbor & bitboard[intOpponent]) != 0L) {
+            long next = shift(neighbor, dir);
+            if (next != 0L) {
+                bracketing = findBracketingPiece(next, intPlayer, dir);
+            }
+        }
+        return bracketing;
     }
 
 }
