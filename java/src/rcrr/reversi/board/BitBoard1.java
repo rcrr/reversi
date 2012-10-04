@@ -125,6 +125,11 @@ public class BitBoard1 extends BitBoard {
      */
     private static final byte[] BITROW_CHANGES_FOR_PLAYER_ARRAY = initializeBitrowChangesForPlayerArray();
 
+    /**
+     * Returns info for performance statistics.
+     *
+     * @return a string having class performance statistics
+     */
     public static String printLog() {
         String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor
             + ", numberOflikelyMoves=" + numberOflikelyMoves + ", numberOflegalMoves=" + numberOflegalMoves
@@ -197,22 +202,22 @@ public class BitBoard1 extends BitBoard {
     static long reTrasformRow0BackToColumnA(int bitrow) {
         bitrow |= bitrow << 7;
         bitrow |= bitrow << 14;
-        long z = (long)bitrow | ((long)bitrow << 28);
-        return z & 0x0101010101010101L;
+        final long bitboard = (long)bitrow | ((long)bitrow << 28);
+        return bitboard & 0x0101010101010101L;
     }
 
     static long reTrasformRow0BackToDiagonalA1H8(int bitrow) {
         bitrow |= bitrow << 8;
-        long z = (long)bitrow | ((long)bitrow << 16);
-        z |= z << 32;
-        return z & 0x8040201008040201L;
+        long bitboard = (long)bitrow | ((long)bitrow << 16);
+        bitboard |= bitboard << 32;
+        return bitboard & 0x8040201008040201L;
     }
 
     static long reTrasformRow0BackToDiagonalH1A8(int bitrow) {
         bitrow |= bitrow << 8;
         bitrow |= (bitrow & 0x1122) << 16;
-        long z = (long)bitrow | ((long)bitrow << 32);
-        return z & 0x0102040810204080L;
+        final long bitboard = (long)bitrow | ((long)bitrow << 32);
+        return bitboard & 0x0102040810204080L;
     }
 
     /**
