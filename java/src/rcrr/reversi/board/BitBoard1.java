@@ -304,6 +304,13 @@ public class BitBoard1 extends BitBoard {
         return arrayResult;
     }
 
+    /**
+     * Returns all the cells surrounding the the squares given as parameter.
+     * It gives back also the original squares.
+     *
+     * @param squares the set of given squares
+     * @return        the union of given and surrounding squares 
+     */
     private static long neighbors(final long squares) {
         long neighbors = squares;
         neighbors |= (neighbors >>> 8);
@@ -521,11 +528,26 @@ public class BitBoard1 extends BitBoard {
         return newbitboard;
     }
 
-    private long likelyMoves(final Player player) {
-        final int intPlayer = player.ordinal(); 
-        final int intOpponent = intPlayer ^ WHITE;
-        final long empties = ~(bitboard[BLACK] | bitboard[WHITE]);
-        return neighbors(bitboard[intOpponent]) & empties;
+    /**
+     * See the overloaded method having the player parameter as an int.
+     *
+     * @param player the player that has to move
+     * @return       the set of likely moves 
+     */
+    private final long likelyMoves(final Player player) {
+        return likelyMoves(player.ordinal());
+    }
+
+    /**
+     * Returns a set of likely moves. It is guaranted that the legal moves set
+     * is fully contained by the likely move set.
+     * On avarage likely moves are 1.7 times the number of legal moves.
+     *
+     * @param player the player that has to move
+     * @return       the set of likely moves 
+     */
+    private final long likelyMoves(final int player) {
+        return neighbors(bitboard[opponent(player)]) & empties();
     }
 
 }
