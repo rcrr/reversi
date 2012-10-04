@@ -57,6 +57,13 @@ public abstract class BitBoard extends AbstractBoard {
     };
 
     /**
+     * Returns the opponent of {@code player} parameter.
+     *
+     * @return the opponent player
+     */
+    static final int opponent(final int player) { return player ^ WHITE; }
+
+    /**
      * Returns a new long value by shifting the {@code squares} parameter by one position
      * on the board, following the direction given by the {@code dir} parameter.
      *
@@ -64,7 +71,7 @@ public abstract class BitBoard extends AbstractBoard {
      * @param dir     the direction along to make the shift
      * @return        the shifted squares
      */
-    static long shift(final long squares, final Direction dir) {
+    static final long shift(final long squares, final Direction dir) {
         switch (dir) {
         case NW: return (squares >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_H;
         case N:  return (squares >>> 8);
@@ -90,7 +97,7 @@ public abstract class BitBoard extends AbstractBoard {
      * @param amount  the amount to shift
      * @return        the shifted squares
      */
-    static long shift(final long squares, final Direction dir, final int amount) {
+    static final long shift(final long squares, final Direction dir, final int amount) {
         switch (dir) {
         case NW: return (squares >>> (9 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
         case N:  return (squares >>> (8 * amount));
@@ -166,5 +173,12 @@ public abstract class BitBoard extends AbstractBoard {
             return SquareState.EMPTY;
         }
     }
+
+    /**
+     * Returns the empty set of squares in the board.
+     *
+     * @return the empy set of squares
+     */
+    final long empties() { return ~(bitboard[BLACK] | bitboard[WHITE]);}
 
 }
