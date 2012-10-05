@@ -24,9 +24,6 @@
 
 package rcrr.reversi.board;
 
-import java.math.BigInteger;
-
-import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
@@ -483,17 +480,17 @@ public class BitBoard1 extends BitBoard {
         int opponentBitrow;
         int shiftDistance;
 
-        final long unmodifiedMask = ~BITBOARD_MASK_FOR_ALL_DIRECTIONS[intMove];		
+        final long unmodifiedMask = ~BITBOARD_MASK_FOR_ALL_DIRECTIONS[intMove];         
         finalPBoard = playerBitboard & unmodifiedMask;
         finalOBoard = opponentBitboard & unmodifiedMask;
 
         /** Compute row changes. */
-        playerBitrow = (int)(playerBitboard >>> (8 * row)) & BYTE_MASK_FOR_INT;
-        opponentBitrow = (int)(opponentBitboard >>> (8 * row)) & BYTE_MASK_FOR_INT;
+        playerBitrow = (int) (playerBitboard >>> (8 * row)) & BYTE_MASK_FOR_INT;
+        opponentBitrow = (int) (opponentBitboard >>> (8 * row)) & BYTE_MASK_FOR_INT;
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        finalPBoard |= ((long)playerBitrow << (8 * row));
-        finalOBoard |= ((long)opponentBitrow << (8 * row));
+        finalPBoard |= ((long) playerBitrow << (8 * row));
+        finalOBoard |= ((long) opponentBitrow << (8 * row));
 
         /** Compute column changes. */
         playerBitrow = trasformColumnAInRow0(playerBitboard >>> column);
@@ -509,8 +506,8 @@ public class BitBoard1 extends BitBoard {
         opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(playerBitrow), - shiftDistance);
-        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(opponentBitrow), - shiftDistance);
+        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(playerBitrow), -shiftDistance);
+        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(opponentBitrow), -shiftDistance);
 
         /** Compute changes on diagonal having direction H1-A8. */
         shiftDistance = (7 - column - row) << 3;
@@ -518,9 +515,9 @@ public class BitBoard1 extends BitBoard {
         opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(playerBitrow), - shiftDistance);
-        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), - shiftDistance);
- 
+        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(playerBitrow), -shiftDistance);
+        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), -shiftDistance);
+
         final long[] newbitboard = new long[2];
         if (intPlayer == WHITE) {
             newbitboard[BLACK] = finalOBoard;
@@ -537,9 +534,9 @@ public class BitBoard1 extends BitBoard {
      * See the overloaded method having the player parameter as an int.
      *
      * @param player the player that has to move
-     * @return       the set of likely moves 
+     * @return       the set of likely moves
      */
-    private final long likelyMoves(final Player player) {
+    private long likelyMoves(final Player player) {
         return likelyMoves(player.ordinal());
     }
 
@@ -549,9 +546,9 @@ public class BitBoard1 extends BitBoard {
      * On avarage likely moves are 1.7 times the number of legal moves.
      *
      * @param player the player that has to move
-     * @return       the set of likely moves 
+     * @return       the set of likely moves
      */
-    private final long likelyMoves(final int player) {
+    private long likelyMoves(final int player) {
         return neighbors(bitboard[opponent(player)]) & empties();
     }
 
