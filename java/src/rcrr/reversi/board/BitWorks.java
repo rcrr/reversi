@@ -34,7 +34,7 @@ package rcrr.reversi.board;
 public final class BitWorks {
 
     /** Array for de Bruijn multiplication. */
-    private static final int DEBRUIJN_64_INDEX[] = {
+    private static final int[] DEBRUIJN_64_INDEX = {
         63,  0, 58,  1, 59, 47, 53,  2,
         60, 39, 48, 27, 54, 33, 42,  3,
         61, 51, 37, 40, 49, 18, 28, 20,
@@ -44,7 +44,7 @@ public final class BitWorks {
         56, 45, 25, 31, 35, 16,  9, 12,
         44, 24, 15,  8, 23,  7,  6,  5
     };
-    
+
     /** 64 bit value for the de Bruijn's "magical" constant. */
     private static final long DEBRUIJN_64_MAGIC_CONSTANT = 0x07EDD5E59A4E28C2L;
 
@@ -52,16 +52,28 @@ public final class BitWorks {
     private static final int DEBRUIJN_64_SHIFT_VALUE = 58;
 
     /** Log2 table. */
-    static private int LOG2_ARRAY[] = new int[] {
-        0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-        5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
-        6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
-        6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
-        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
+    private static final int[] LOG2_ARRAY = new int[] {
+        0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+        5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
     };
+
+    /** Macic number 8. */
+    private static final int MAGIC_NUMBER_8 = 8;
+
+    /** Macic number 16. */
+    private static final int MAGIC_NUMBER_16 = 16;
+
+    /** Macic number 32. */
+    private static final int MAGIC_NUMBER_32 = 32;
+
+    /** Macic number 64. */
+    private static final int MAGIC_NUMBER_64 = 64;
 
     /**
      * Converts a bit sequence in a printable string.
@@ -115,7 +127,7 @@ public final class BitWorks {
      *       mask <<= 1;
      *   }
      *   return 64;
-     * <pre>
+     * </pre>
      *
      * @param bitsequence long value that is scanned
      * @return            the index of the least significant bit set
@@ -124,11 +136,11 @@ public final class BitWorks {
      */
     public static int bitscanLS1B0(final long bitsequence) {
         long mask = 1L;
-        for (int i = 0; i < 64; i++) {
+        for (int i = 0; i < MAGIC_NUMBER_64; i++) {
             if ((bitsequence & mask) != 0L) { return i; }
             mask <<= 1;
         }
-        return 64;
+        return MAGIC_NUMBER_64;
     }
 
     /**
@@ -151,10 +163,10 @@ public final class BitWorks {
     public static int bitscanMS1B(final long bitsequence) {
         long tmp = bitsequence;
         int result = 0;
-        if((tmp & 0xFFFFFFFF00000000L) != 0) { tmp >>>= 32; result  = 32; }
-        if(tmp > 0x000000000000FFFFL)        { tmp >>>= 16; result |= 16; }
-        if(tmp > 0x00000000000000FFL)        { tmp >>>=  8; result |=  8; }
-        result |= LOG2_ARRAY[(int)tmp];
+        if ((tmp & 0xFFFFFFFF00000000L) != 0) { tmp >>>= MAGIC_NUMBER_32; result  = MAGIC_NUMBER_32; }
+        if (tmp > 0x000000000000FFFFL)        { tmp >>>= MAGIC_NUMBER_16; result |= MAGIC_NUMBER_16; }
+        if (tmp > 0x00000000000000FFL)        { tmp >>>= MAGIC_NUMBER_8;  result |=  MAGIC_NUMBER_8; }
+        result |= LOG2_ARRAY[(int) tmp];
         return result;
     }
 
@@ -182,7 +194,7 @@ public final class BitWorks {
      *           low = bit;
      *       }
      *   }
-     * <pre>
+     * </pre>
      *
      * @param bitsequence long value that is scanned
      * @return            the index of the most significant bit set
@@ -191,7 +203,7 @@ public final class BitWorks {
      */
     public static int bitscanMS1B0(final long bitsequence) {
         int low = 0;
-        int high = 64;
+        int high = MAGIC_NUMBER_64;
         while (true) {
             final int bit = (low + high) >>> 1;
             final long window = bitsequence >>> bit;
@@ -216,11 +228,11 @@ public final class BitWorks {
      * @return            an int value having set the bit most significative found in bitsequence
      */
     public static int highestBitSet(final int bitsequence) {
-        if (bitsequence == 0) return 0;
+        if (bitsequence == 0) { return 0; }
         int result = 1;
         int tmp = bitsequence;
-        if ((tmp & 0xFFFF0000) != 0) { tmp >>>= 16; result = 0x10000; }
-        if (tmp > 0x000000FF)        { tmp >>>=  8; result <<= 8; }
+        if ((tmp & 0xFFFF0000) != 0) { tmp >>>= MAGIC_NUMBER_16; result = 0x10000; }
+        if (tmp > 0x000000FF)        { tmp >>>= MAGIC_NUMBER_8;  result <<= MAGIC_NUMBER_8; }
         result <<= LOG2_ARRAY[tmp];
         return result;
     }
@@ -228,17 +240,17 @@ public final class BitWorks {
     /**
      * Returns a string representation of the sequence of bits.
      *
-     * @param bitsequence the value passed to the procedure 
+     * @param bitsequence the value passed to the procedure
      * @return            the string representation of the bitsequence
      */
     public static String longToString(final long bitsequence) {
         final StringBuilder sb = new StringBuilder();
         final String toBinaryString = Long.toBinaryString(bitsequence);
         final int len = toBinaryString.length();
-        final int missingZeroes = 64 - len;
-        for (int i = 64; i > 0; i--) {
-            if ((i != 64) && (i % 8 == 0)) { sb.append("."); }
-            if ((missingZeroes - (64 - i)) > 0) {
+        final int missingZeroes = MAGIC_NUMBER_64 - len;
+        for (int i = MAGIC_NUMBER_64; i > 0; i--) {
+            if ((i != MAGIC_NUMBER_64) && (i % MAGIC_NUMBER_8 == 0)) { sb.append("."); }
+            if ((missingZeroes - (MAGIC_NUMBER_64 - i)) > 0) {
                 sb.append('0');
             } else {
                 sb.append(toBinaryString.charAt(len - i));
@@ -294,7 +306,7 @@ public final class BitWorks {
      * @return            the shifted value
      */
     public static long signedLeftShift(final long bitsequence, final int shift) {
-        return shift >= 0 ? bitsequence << shift : bitsequence >>> - shift;
+        return shift >= 0 ? bitsequence << shift : bitsequence >>> -shift;
     }
 
     /** Class constructor. */
