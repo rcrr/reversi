@@ -151,9 +151,7 @@ public interface Board extends Serializable {
      * <p>
      * A null value for player is not allowed, a {@code NullPointerException} is thrown in such a case.
      * <p>
-     * A null value for move is allowed, and moreover is the only valid value
-     * acceptable by the method, when the player has not any legal move.
-     * Otherwise a null move is forbidden, and a {@code NullPointerException} is risen.
+     * A null value for move is not allowed, a {@code NullPointerException} is risen.
      * <p>
      * The method does check if the move is legal. It throws an {@code IllegalArgumentException} in case it is not.
      *
