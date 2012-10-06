@@ -24,14 +24,6 @@
 
 package rcrr.reversi.board;
 
-import java.util.Map;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.ArrayList;
-import java.util.List;
-
 enum SquareTransition {
 
     NO_TRANSITION(0),
