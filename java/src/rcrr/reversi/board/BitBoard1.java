@@ -202,65 +202,6 @@ public class BitBoard1 extends BitBoard {
     }
 
     /**
-     * Returns an int having the bits from position 8 to position 31 set to zero,
-     * and the bits from position 0 to position 7, corresponding to Row One in the board,
-     * copied from the Column A of the {@code bitboard} parameter.
-     *
-     * @param bitboard the bitboard representation for one color
-     * @return         colum a copied to row one, all other position are set to zero
-     */
-    private static int trasformColumnAInRow0(final long bitboard) {
-        long tmp = bitboard;
-        tmp &= COLUMN_A;
-        tmp |= tmp >> MAGIC_NUMBER_28;
-        tmp |= tmp >> MAGIC_NUMBER_14;
-        tmp |= tmp >> MAGIC_NUMBER_7;
-        return (int) tmp & BYTE_MASK_FOR_INT;
-    }
-
-    private static int trasformDiagonalA1H8InRow0(final long bitboard) {
-        long tmp = bitboard;
-        tmp &= DIAGONAL_A1_H8;
-        tmp |= tmp >> MAGIC_NUMBER_32;
-        tmp |= tmp >> MAGIC_NUMBER_16;
-        tmp |= tmp >> MAGIC_NUMBER_8;
-        return (int) tmp & BYTE_MASK_FOR_INT;
-    }
-
-    private static int trasformDiagonalH1A8InRow0(final long bitboard) {
-        long tmp = bitboard;
-        tmp &= DIAGONAL_H1_A8;
-        tmp |= tmp >> MAGIC_NUMBER_32;
-        tmp |= tmp >> MAGIC_NUMBER_16;
-        tmp |= tmp >> MAGIC_NUMBER_8;
-        return (int) tmp & BYTE_MASK_FOR_INT;
-    }
-
-    private static long reTrasformRow0BackToColumnA(final int bitrow) {
-        int tmp = bitrow;
-        tmp |= tmp << MAGIC_NUMBER_7;
-        tmp |= tmp << MAGIC_NUMBER_14;
-        final long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_28);
-        return bitboard & COLUMN_A;
-    }
-
-    private static long reTrasformRow0BackToDiagonalA1H8(final int bitrow) {
-        int tmp = bitrow;
-        tmp |= tmp << MAGIC_NUMBER_8;
-        long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_16);
-        bitboard |= bitboard << MAGIC_NUMBER_32;
-        return bitboard & DIAGONAL_A1_H8;
-    }
-
-    private static long reTrasformRow0BackToDiagonalH1A8(final int bitrow) {
-        int tmp = bitrow;
-        tmp |= tmp << MAGIC_NUMBER_8;
-        tmp |= (tmp & SQUARES_B1_F1_A2_E2) << MAGIC_NUMBER_16;
-        final long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_32);
-        return bitboard & DIAGONAL_H1_A8;
-    }
-
-    /**
      * Returns an 8-bit row representation of the player pieces after applying the move.
      *
      * @param playerRow    8-bit bitboard corrosponding to player pieces
@@ -372,6 +313,114 @@ public class BitBoard1 extends BitBoard {
         neighbors |= (neighbors <<  1) & ALL_SQUARES_EXCEPT_COLUMN_A;
         neighbors |= (neighbors <<  MAGIC_NUMBER_8);
         return neighbors;
+    }
+
+    /**
+     * Returns an int having the bits from position 8 to position 31 set to zero,
+     * and the bits from position 0 to position 7, corresponding to Row One in the board,
+     * copied from the Column A of the {@code bitboard} parameter.
+     * Bit value corresponding to square A1 is moved to A1, A2 to B1, ... , A8 to H1.
+     *
+     * @param bitboard the bitboard representation for one color
+     * @return         colum a copied to row one, all other position are set to zero
+     */
+    private static int trasformColumnAInRow0(final long bitboard) {
+        long tmp = bitboard;
+        tmp &= COLUMN_A;
+        tmp |= tmp >> MAGIC_NUMBER_28;
+        tmp |= tmp >> MAGIC_NUMBER_14;
+        tmp |= tmp >> MAGIC_NUMBER_7;
+        return (int) tmp & BYTE_MASK_FOR_INT;
+    }
+
+    /**
+     * Returns an int having the bits from position 8 to position 31 set to zero,
+     * and the bits from position 0 to position 7, corresponding to Row One in the board,
+     * copied from the Diagonal A1-H8 of the {@code bitboard} parameter.
+     * Bit value corresponding to square A1 is moved to A1, B2 to B1, ... , H8 to H1.
+     *
+     * @param bitboard the bitboard representation for one color
+     * @return         diagonal A1-H8 copied to row one, all other position are set to zero
+     */
+    private static int trasformDiagonalA1H8InRow0(final long bitboard) {
+        long tmp = bitboard;
+        tmp &= DIAGONAL_A1_H8;
+        tmp |= tmp >> MAGIC_NUMBER_32;
+        tmp |= tmp >> MAGIC_NUMBER_16;
+        tmp |= tmp >> MAGIC_NUMBER_8;
+        return (int) tmp & BYTE_MASK_FOR_INT;
+    }
+
+    /**
+     * Returns an int having the bits from position 8 to position 31 set to zero,
+     * and the bits from position 0 to position 7, corresponding to Row One in the board,
+     * copied from the Diagonal H1-A8 of the {@code bitboard} parameter.
+     * Bit value corresponding to square A8 is moved to A1, B7 to B1, ... , H1 to H1.
+     *
+     * @param bitboard the bitboard representation for one color
+     * @return         diagonal H1-A8 copied to row one, all other position are set to zero
+     */
+    private static int trasformDiagonalH1A8InRow0(final long bitboard) {
+        long tmp = bitboard;
+        tmp &= DIAGONAL_H1_A8;
+        tmp |= tmp >> MAGIC_NUMBER_32;
+        tmp |= tmp >> MAGIC_NUMBER_16;
+        tmp |= tmp >> MAGIC_NUMBER_8;
+        return (int) tmp & BYTE_MASK_FOR_INT;
+    }
+
+    /**
+     * Returns a long having the bits along the colomn A set to the corresponding ones
+     * on the {@code bitrow} parameter.
+     * Bits ranging from 8 to 31 in the {@code bitrow} parameter must be 0.
+     * Bit value corresponding to square A1 is moved to A1, B1 to A2, ... , H1 to A8.
+     *
+     * @param bitrow bits 0 to 7 represents row one, bits forom position 8 to 31 must be 0
+     * @return       a bitboard having column A set as the bitboard parameter,
+     *               all other position are set to zero
+     */
+    private static long reTrasformRow0BackToColumnA(final int bitrow) {
+        int tmp = bitrow;
+        tmp |= tmp << MAGIC_NUMBER_7;
+        tmp |= tmp << MAGIC_NUMBER_14;
+        final long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_28);
+        return bitboard & COLUMN_A;
+    }
+
+    /**
+     * Returns a long having the bits along the diagonal A1-H8 set to the corresponding ones
+     * on the {@code bitrow} parameter.
+     * Bits ranging from 8 to 31 in the {@code bitrow} parameter must be 0.
+     * Bit value corresponding to square A1 is moved to A1, B1 to B2, ... , H1 to H8.
+     *
+     * @param bitrow bits 0 to 7 represents row one, bits forom position 8 to 31 must be 0
+     * @return       a bitboard having diagonal A1-H8 set as the bitboard parameter,
+     *               all other position are set to zero
+     */
+    private static long reTrasformRow0BackToDiagonalA1H8(final int bitrow) {
+        int tmp = bitrow;
+        tmp |= tmp << MAGIC_NUMBER_8;
+        long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_16);
+        bitboard |= bitboard << MAGIC_NUMBER_32;
+        return bitboard & DIAGONAL_A1_H8;
+    }
+
+    /**
+     * Returns a long having the bits along the diagonal H1-A8 set to the corresponding ones
+     * on the {@code bitrow} parameter.
+     * Bits ranging from 8 to 31 in the {@code bitrow} parameter must be 0.
+     * Bit value corresponding to square A1 is moved to A8, B1 to B7, ... , H1 to H1.
+     *
+     * @param bitrow bits 0 to 7 represents row one, bits forom position 8 to 31 must be 0
+     * @return       a bitboard having diagonal H1-A8 set as the bitboard parameter,
+     *               all other position are set to zero
+     */
+    private static long reTrasformRow0BackToDiagonalH1A8(final int bitrow) {
+        int tmp = bitrow;
+        tmp |= tmp << MAGIC_NUMBER_8;
+        tmp |= (tmp & SQUARES_B1_F1_A2_E2) << MAGIC_NUMBER_16;
+        final long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_32);
+        return bitboard & DIAGONAL_H1_A8;
     }
 
     /**
@@ -506,7 +555,17 @@ public class BitBoard1 extends BitBoard {
         return valueOf(makeMoveImpl(move, player));
     }
 
-
+    /**
+     * Returns a new bitboard long array to reflect move by player.
+     * <p>
+     * A null value for player is not allowed, but not checked.
+     * A null value for move is not allowed, but not checked.
+     * The method does not check if the move is legal.
+     *
+     * @param  move   the board square where to put the disk
+     * @param  player the disk color to put on the board
+     * @return        a new bitboard array reflecting the move made
+     */
     long[] makeMoveImpl(final Square move, final Player player) {
 
         final int intMove = move.ordinal();
