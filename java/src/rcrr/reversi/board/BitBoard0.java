@@ -43,7 +43,7 @@ public final class BitBoard0 extends BitBoard {
 
     /** It turns on or off the class logging for performances. */
     private static final boolean LOG = true;
- 
+
     /** Collects the number of call to legalMoves method. */
     private static int callsTolegalMoves = 0;
 
@@ -59,7 +59,8 @@ public final class BitBoard0 extends BitBoard {
      * @return a string having class performance statistics
      */
     public static String printLog() {
-        String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
+        String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove
+            + ", callsToConstructor=" + callsToConstructor;
         return ret;
     }
 
@@ -100,7 +101,7 @@ public final class BitBoard0 extends BitBoard {
      */
     private BitBoard0(final long[] bitboard) {
         super(bitboard);
-        if (LOG) callsToConstructor++;
+        if (LOG) { callsToConstructor++; }
     }
 
     /**
@@ -127,12 +128,12 @@ public final class BitBoard0 extends BitBoard {
     @Override
     public Board makeMove(final Square move, final Player player) {
 
-        if (LOG) callsToMakeMove++;
+        if (LOG) { callsToMakeMove++; }
 
         makeMoveInvariantsAreSatisfied(move, player);
 
         final long[] newbitboard = bitboard.clone();
-        final int p = player.ordinal(); 
+        final int p = player.ordinal();
         final int o = p ^ WHITE;
         final int m = move.ordinal();
         final long bitmove = 1L << m;
@@ -160,14 +161,13 @@ public final class BitBoard0 extends BitBoard {
      * @param dir    the direction
      * @return       the bracketing square, or 0L if it is not found
      */
-    private long findBracketingPiece(final long square, final int intPlayer, final Direction dir) {
-        final int intOpponent = intPlayer ^ WHITE;
-        if ((square & bitboard[intPlayer]) != 0L) {
+    private long findBracketingPiece(final long square, final int player, final Direction dir) {
+        if ((square & bitboard[player]) != 0L) {
             return square;
-        } else if ((square & bitboard[intOpponent]) != 0L) {
+        } else if ((square & bitboard[opponent(player)]) != 0L) {
             long next = shift(square, dir);
             if (next != 0L) {
-                return findBracketingPiece(next, intPlayer, dir);
+                return findBracketingPiece(next, player, dir);
             }
         }
         return 0L;
@@ -188,12 +188,9 @@ public final class BitBoard0 extends BitBoard {
      * @return       the bracketing square, or 0L if it is not found
      */
     private long wouldFlip(final long move, final Player player, final Direction dir) {
-        //assert (Long.bitCount(move) == 1) : "Argument move must be have one and only one bit set.";
-        //assert (player != null) : "Argument player must be not null.";
-        //assert (dir != null) : "Argument dir must be not null";
         long bracketing = 0L;
         long neighbor = shift(move, dir);
-        final int intPlayer = player.ordinal(); 
+        final int intPlayer = player.ordinal();
         final int intOpponent = intPlayer ^ WHITE;
         if ((neighbor & bitboard[intOpponent]) != 0L) {
             long next = shift(neighbor, dir);
