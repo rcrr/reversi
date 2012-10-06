@@ -31,13 +31,25 @@ import java.util.Collection;
 import java.util.NoSuchElementException;
 
 /**
- * A {@code List} implementation.
+ * A {@code List} implementation dedicated for {@code Square} objects.
+ * <p>
+ * The implementation is based on {@code long} field that holds the squares
+ * partecipating to the list. Squares are sorted from A1, B1, C1, ... , to H8.
+ * No duplicates are possible.
+ * <p>
+ * The objects belonging to this class are immutable.
  */
 public final class SquareList implements List<Square> {
 
     /** Square array. */
     private static final Square[] SQUARE_VALUES = Square.values();
 
+    /**
+     * Converts the {@code squares} parameter to an array od squares.
+     *
+     * @param squares the squares collected as a long value
+     * @return        an array of squares
+     */
     private static Square[] toArray(final long squares) {
         final Square[] result = new Square[Long.bitCount(squares)];
         int i = 0;
@@ -50,11 +62,14 @@ public final class SquareList implements List<Square> {
         return result;
     }
 
-    /** squares field. */
-    private final long squares;
+    /** size field. */
+    private final int size;
 
     /** squareArray field. */
     private final Square[] squareArray;
+
+    /** squares field. */
+    private final long squares;
 
     /**
      * Class constructor.
@@ -64,6 +79,7 @@ public final class SquareList implements List<Square> {
     public SquareList(final long squares) {
         this.squares = squares;
         this.squareArray = toArray(squares);
+        this.size = SquareList.this.squareArray.length;
     }
 
     /** Private constructor. Do not use. */
@@ -176,15 +192,26 @@ public final class SquareList implements List<Square> {
      */
     private class Iter implements Iterator<Square> {
 
-        /** Index of the next square element to retorn. */
-        int cursor = 0;
+        /** Index of the next square element to return. */
+        private int cursor = 0;
 
+        /**
+         * Returns {@code true} if the iteration has more elements.
+         *
+         * @return {@code true} if the iteration has more elements
+         */
         public boolean hasNext() {
-            return cursor != SquareList.this.squareArray.length;
+            return cursor != size();
         }
 
+        /**
+         * Returns the next element in the iteration.
+         *
+         * @return the next element in the iteration
+         * @throws NoSuchElementException if the iteration has no more elements
+         */
         public Square next() {
-            if (cursor >= SquareList.this.squareArray.length) {
+            if (cursor >= size()) {
                 throw new NoSuchElementException();
             }
             final Square result = SquareList.this.squareArray[cursor];
@@ -192,9 +219,29 @@ public final class SquareList implements List<Square> {
             return result;
         }
 
+        /**
+         * The operation is not supported by this iterator.
+         *
+         * @throws UnsupportedOperationException always, the remove operation is not supported by this iterator
+         */
         public void remove() {
             throw new UnsupportedOperationException();
         }
+
+        /**
+         * Accessor method for the cursor field.
+         *
+         * @return the accessor field
+         */
+        final int cursor() { return cursor; }
+
+        /**
+         * Setter method for the cursor field.
+         * Use it only in a subclass constructor!
+         *
+         * @param cursor the field new value
+         */
+        final void setCursor(final int cursor) { this.cursor = cursor; }
     }
 
     /**
@@ -215,7 +262,7 @@ public final class SquareList implements List<Square> {
      * {@inheritDoc}
      */
     public ListIterator<Square> listIterator(final int index) {
-        if (index < 0 || index > SquareList.this.squareArray.length) {
+        if (index < 0 || index > size()) {
             throw new IndexOutOfBoundsException("Parameter index=" + index);
         }
         return new ListIter(index);
@@ -226,36 +273,57 @@ public final class SquareList implements List<Square> {
      */
     private class ListIter extends Iter implements ListIterator<Square> {
 
+        /**
+         * Class constructor.
+         *
+         * @param index index value where to set the cursor field
+         */
         ListIter(final int index) {
             super();
-            cursor = index;
+            setCursor(index);
         }
 
+        /** {@inheritDoc} */
         public boolean hasPrevious() {
-            return cursor != 0;
+            return cursor() != 0;
         }
 
+        /** {@inheritDoc} */
         public int nextIndex() {
-            return cursor;
+            return cursor();
         }
 
+        /** {@inheritDoc} */
         public int previousIndex() {
-            return cursor - 1;
+            return cursor() - 1;
         }
 
+        /** {@inheritDoc} */
         public Square previous() {
-            cursor -= 1;
-            if (cursor < 0) {
+            setCursor(cursor() - 1);
+            if (cursor() < 0) {
                 throw new NoSuchElementException();
             }
-            final Square result = SquareList.this.squareArray[cursor];
+            final Square result = SquareList.this.squareArray[cursor()];
             return result;
         }
 
+        /**
+         * The operation is not supported by this iterator.
+         *
+         * @param sq square value to set to the current cursor position
+         * @throws UnsupportedOperationException always, the set operation is not supported by this iterator
+         */
         public void set(final Square sq) {
             throw new UnsupportedOperationException("SquareList is immutable.");
         }
 
+        /**
+         * The operation is not supported by this iterator.
+         *
+         * @param sq square to add to the list
+         * @throws UnsupportedOperationException always, the add operation is not supported by this iterator
+         */
         public void add(final Square sq) {
             throw new UnsupportedOperationException("SquareList is immutable.");
         }
@@ -311,7 +379,7 @@ public final class SquareList implements List<Square> {
      * {@inheritDoc}
      */
     public int size() {
-        return SquareList.this.squareArray.length;
+        return this.size;
     }
 
     /**
@@ -335,8 +403,8 @@ public final class SquareList implements List<Square> {
      *
      * @throws UnsupportedOperationException {@inheritDoc}
      */
-    //@SuppressWarnings("unchecked")
     public <T> T[] toArray(final T[] a) {
+    //@SuppressWarnings("unchecked")
         throw new UnsupportedOperationException("Should be implemented.");
         /*
         final int size = SquareList.this.squareArray.length;
