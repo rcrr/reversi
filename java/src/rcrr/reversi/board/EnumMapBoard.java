@@ -219,8 +219,6 @@ public final class EnumMapBoard extends AbstractBoard {
      * Returns the bracketing square or null if it is not found.
      * The method does not check that the move is legal.
      * <p>
-     * The method should be private. It is not private to enable unit testing.
-     * <p>
      * Parameters move, player, and dir must be not null. Java assert statements check
      * against this case to occur.
      *
