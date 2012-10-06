@@ -24,12 +24,8 @@
 
 package rcrr.reversi.board;
 
-import java.math.BigInteger;
-
-import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * A board concrete implementation in the bitboard family.
@@ -53,12 +49,18 @@ public final class BitBoard2 extends BitBoard1 {
 
     /** Collects the number of call to makeMove method. */
     private static int callsToMakeMove = 0;
- 
+
     /** Collects the number of call to the class constructor. */
     private static int callsToConstructor = 0;
 
     /** Caches the direction enum values in a local array. */
     private static final Direction[] DIRECTION_VALUES = Direction.values();
+
+    /** Macic number 2. */
+    private static final int MAGIC_NUMBER_2 = 2;
+
+    /** Macic number 8. */
+    private static final int MAGIC_NUMBER_8 = 8;
 
     /**
      * Returns info for performance statistics.
@@ -66,7 +68,8 @@ public final class BitBoard2 extends BitBoard1 {
      * @return a string having class performance statistics
      */
     public static String printLog() {
-        String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove + ", callsToConstructor=" + callsToConstructor;
+        String ret = "callsTolegalMoves=" + callsTolegalMoves + ", callsToMakeMove=" + callsToMakeMove
+            + ", callsToConstructor=" + callsToConstructor;
         return ret;
     }
 
@@ -95,6 +98,7 @@ public final class BitBoard2 extends BitBoard1 {
      * Precondition on the {@code bitboard} parameter are not enforced.
      *
      * @param  bitboard the bitboard field
+     * @return          a new board having as state the given bitboard array
      */
     static Board valueOf(final long[] bitboard) {
         return new BitBoard2(bitboard);
@@ -110,7 +114,7 @@ public final class BitBoard2 extends BitBoard1 {
      */
     private BitBoard2(final long[] bitboard) {
         super(bitboard);
-        if (LOG) callsToConstructor++;
+        if (LOG) { callsToConstructor++; }
     }
 
     /**
@@ -118,7 +122,7 @@ public final class BitBoard2 extends BitBoard1 {
      */
     @Override
     public List<Square> legalMoves(final Player player) {
-        if (LOG) callsTolegalMoves++;
+        if (LOG) { callsTolegalMoves++; }
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
         return new SquareList(legalMoves(player.ordinal()));
     }
@@ -128,7 +132,7 @@ public final class BitBoard2 extends BitBoard1 {
      */
     @Override
     public Board makeMove(final Square move, final Player player) {
-        if (LOG) callsToMakeMove++;
+        if (LOG) { callsToMakeMove++; }
         makeMoveInvariantsAreSatisfied(move, player);
         return valueOf(makeMoveImpl(move, player));
     }
@@ -149,7 +153,7 @@ public final class BitBoard2 extends BitBoard1 {
         for (final Direction dir : DIRECTION_VALUES) {
             final Direction opp = dir.opposite();
             long wave = shift(empties, dir) & bitboard[opponent];
-            for (int shift = 2; shift < 8; shift++) {
+            for (int shift = MAGIC_NUMBER_2; shift < MAGIC_NUMBER_8; shift++) {
                 wave = shift(wave, dir);
                 lm |= shift((wave & bitboard[player]), opp, shift);
                 wave &= bitboard[opponent];
