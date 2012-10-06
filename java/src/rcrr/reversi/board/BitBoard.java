@@ -56,6 +56,18 @@ public abstract class BitBoard extends AbstractBoard {
         0x0303030303030303L, 0x0101010101010101L, 0x0000000000000000L
     };
 
+    /** Shifts 1 position. */
+    private static final int SHIFT_1 = 1;
+
+    /** Shifts 9 positions, 8 - 1. */
+    private static final int SHIFT_7 = 7;
+
+    /** Shifts 8 positions. */
+    private static final int SHIFT_8 = 8;
+
+    /** Shifts 9 positions, 8 + 1. */
+    private static final int SHIFT_9 = 9;
+
     /**
      * Returns the opponent of {@code player} parameter.
      *
@@ -73,14 +85,14 @@ public abstract class BitBoard extends AbstractBoard {
      */
     static final long shift(final long squares, final Direction dir) {
         switch (dir) {
-        case NW: return (squares >>> 9) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case N:  return (squares >>> 8);
-        case NE: return (squares >>> 7) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case W:  return (squares >>> 1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case E:  return (squares <<  1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-        case SW: return (squares <<  7) & ALL_SQUARES_EXCEPT_COLUMN_H;
-        case S:  return (squares <<  8);
-        case SE: return (squares <<  9) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case NW: return (squares >>> SHIFT_9) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case N:  return (squares >>> SHIFT_8);
+        case NE: return (squares >>> SHIFT_7) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case W:  return (squares >>> SHIFT_1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case E:  return (squares <<  SHIFT_1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case SW: return (squares <<  SHIFT_7) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case S:  return (squares <<  SHIFT_8);
+        case SE: return (squares <<  SHIFT_9) & ALL_SQUARES_EXCEPT_COLUMN_A;
         default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
         }
     }
@@ -99,14 +111,14 @@ public abstract class BitBoard extends AbstractBoard {
      */
     static final long shift(final long squares, final Direction dir, final int amount) {
         switch (dir) {
-        case NW: return (squares >>> (9 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
-        case N:  return (squares >>> (8 * amount));
-        case NE: return (squares >>> (7 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
-        case W:  return (squares >>> (1 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
-        case E:  return (squares <<  (1 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
-        case SW: return (squares <<  (7 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
-        case S:  return (squares <<  (8 * amount));
-        case SE: return (squares <<  (9 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
+        case NW: return (squares >>> (SHIFT_9 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case N:  return (squares >>> (SHIFT_8 * amount));
+        case NE: return (squares >>> (SHIFT_7 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
+        case W:  return (squares >>> (SHIFT_1 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case E:  return (squares <<  (SHIFT_1 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
+        case SW: return (squares <<  (SHIFT_7 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case S:  return (squares <<  (SHIFT_8 * amount));
+        case SE: return (squares <<  (SHIFT_9 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
         default: throw new IllegalArgumentException("Undefined value for direction. dir=" + dir);
         }
     }
@@ -179,6 +191,6 @@ public abstract class BitBoard extends AbstractBoard {
      *
      * @return the empy set of squares
      */
-    final long empties() { return ~(bitboard[BLACK] | bitboard[WHITE]);}
+    final long empties() { return ~(bitboard[BLACK] | bitboard[WHITE]); }
 
 }

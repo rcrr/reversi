@@ -24,9 +24,6 @@
 
 package rcrr.reversi.board;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * The {@code Row} enum defines a row of the board game.
  */

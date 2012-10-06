@@ -24,12 +24,6 @@
 
 package rcrr.reversi.board;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.EnumMap;
-import java.util.Collections;
-
 /**
  * The {@code Column} enum defines a column of the board game.
  * <p>

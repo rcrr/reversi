@@ -25,8 +25,6 @@
 package rcrr.reversi.board;
 
 import java.util.Map;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * The class is an abstract container for board's factories.
