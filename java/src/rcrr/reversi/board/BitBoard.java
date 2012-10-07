@@ -147,14 +147,11 @@ public abstract class BitBoard extends AbstractBoard {
      * <p>
      * {@code bitboard} must be not null, and must have a size equal to
      * two. Overlapping bit set to one are not allowed.
+     * Invariants are not enforced.
      *
      * @param  bitboard the bitboard field
      */
     BitBoard(final long[] bitboard) {
-        assert (bitboard != null) : "Parameter bitboard cannot be null.";
-        assert (bitboard.length == 2) : "Parameter bitboard must have a lenght equal to two.";
-        assert ((bitboard[0] & bitboard[1]) == 0L)
-            : "Parameter bitboard cannot have black and white discs overlapping.";
         this.bitboard = bitboard.clone();
     }
 
@@ -173,7 +170,7 @@ public abstract class BitBoard extends AbstractBoard {
         switch (color) {
         case BLACK: return Long.bitCount(bitboard[BLACK]);
         case WHITE: return Long.bitCount(bitboard[WHITE]);
-        case EMPTY: return Long.bitCount(~(bitboard[BLACK] | bitboard[WHITE]));
+        case EMPTY: return Long.bitCount(empties());
         case OUTER: return 0;
         default: throw new IllegalArgumentException("Undefined value for color parameter. color=" + color);
         }
