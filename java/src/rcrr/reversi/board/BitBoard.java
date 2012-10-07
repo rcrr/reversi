@@ -44,12 +44,24 @@ public abstract class BitBoard extends AbstractBoard {
     /** A bitboard being all set with the exception of column H. */
     private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0x7F7F7F7F7F7F7F7FL;
 
+    /**
+     * Nine squares configurations arranged in an array. Position 0 is all set.
+     * Position 1 has columns B, C, D, E, F, G, H set, column A is empty.
+     * Position 2 has columns C, D, E, F, G, H set, column A and B are empty.
+     * Positions 3 to 7 follow the same pattern, up to position 8 that has all empies.
+     */
     private static final long[] ALL_SQUARES_EXCEPT_LEFT_COLUMNS = {
         0xFFFFFFFFFFFFFFFFL, 0xFEFEFEFEFEFEFEFEL, 0xFCFCFCFCFCFCFCFCL,
         0xF8F8F8F8F8F8F8F8L, 0xF0F0F0F0F0F0F0F0L, 0xE0E0E0E0E0E0E0E0L,
         0xC0C0C0C0C0C0C0C0L, 0x8080808080808080L, 0x0000000000000000L
     };
 
+    /**
+     * Nine squares configurations arranged in an array. Position 0 is all set.
+     * Position 1 has columns A, B, C, D, E, F, G set, column H is empty.
+     * Position 2 has columns A, B, C, D, E, F, set, column G and H are empty.
+     * Positions 3 to 7 follow the same pattern, up to position 8 that has all empies.
+     */
     private static final long[] ALL_SQUARES_EXCEPT_RIGTH_COLUMNS = {
         0xFFFFFFFFFFFFFFFFL, 0x7F7F7F7F7F7F7F7FL, 0x3F3F3F3F3F3F3F3FL,
         0x1F1F1F1F1F1F1F1FL, 0x0F0F0F0F0F0F0F0FL, 0x0707070707070707L,
@@ -131,17 +143,6 @@ public abstract class BitBoard extends AbstractBoard {
     private final transient long[] bitboard;
 
     /**
-     * Acessor method for the bitboard field.
-     * <p>
-     * Be carefull! Do not change the array values.
-     * It should return a copy of the field, but for
-     * performance reasons a reference of the array is returned.
-     *
-     * @return the bitboard field
-     */
-    long[] bitboard() { return this.bitboard; }
-
-    /**
      * Class constructor.
      * <p>
      * {@code bitboard} must be not null, and must have a size equal to
@@ -204,5 +205,16 @@ public abstract class BitBoard extends AbstractBoard {
      * @return the empy set of squares
      */
     final long empties() { return ~(bitboard[BLACK] | bitboard[WHITE]); }
+
+    /**
+     * Acessor method for the bitboard field.
+     * <p>
+     * Be carefull! Do not change the array values.
+     * It should return a copy of the field, but for
+     * performance reasons a reference of the array is returned.
+     *
+     * @return the bitboard field
+     */
+    long[] bitboard() { return this.bitboard; }
 
 }
