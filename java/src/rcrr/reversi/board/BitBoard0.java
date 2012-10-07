@@ -111,7 +111,7 @@ public final class BitBoard0 extends BitBoard {
     public boolean isLegal(final Square move, final Player player) {
         isLegalInvariantsAreSatisfied(move, player);
         final long bitmove = 1L << move.ordinal();
-        if ((bitmove & (bitboard[0] | bitboard[1])) != 0) {
+        if ((bitmove & (bitboard()[0] | bitboard()[1])) != 0) {
             return false;
         }
         for (final Direction dir : move.capableToFlipDirections()) {
@@ -132,7 +132,7 @@ public final class BitBoard0 extends BitBoard {
 
         makeMoveInvariantsAreSatisfied(move, player);
 
-        final long[] newbitboard = bitboard.clone();
+        final long[] newbitboard = bitboard().clone();
         final int p = player.ordinal();
         final int o = p ^ WHITE;
         final int m = move.ordinal();
@@ -162,9 +162,9 @@ public final class BitBoard0 extends BitBoard {
      * @return       the bracketing square, or 0L if it is not found
      */
     private long findBracketingPiece(final long square, final int player, final Direction dir) {
-        if ((square & bitboard[player]) != 0L) {
+        if ((square & bitboard()[player]) != 0L) {
             return square;
-        } else if ((square & bitboard[opponent(player)]) != 0L) {
+        } else if ((square & bitboard()[opponent(player)]) != 0L) {
             long next = shift(square, dir);
             if (next != 0L) {
                 return findBracketingPiece(next, player, dir);
@@ -192,7 +192,7 @@ public final class BitBoard0 extends BitBoard {
         long neighbor = shift(move, dir);
         final int intPlayer = player.ordinal();
         final int intOpponent = intPlayer ^ WHITE;
-        if ((neighbor & bitboard[intOpponent]) != 0L) {
+        if ((neighbor & bitboard()[intOpponent]) != 0L) {
             long next = shift(neighbor, dir);
             if (next != 0L) {
                 bracketing = findBracketingPiece(next, intPlayer, dir);

@@ -71,7 +71,8 @@ public abstract class BitBoard extends AbstractBoard {
     /**
      * Returns the opponent of {@code player} parameter.
      *
-     * @return the opponent player
+     * @param player a player
+     * @return       the opponent player
      */
     static final int opponent(final int player) { return player ^ WHITE; }
 
@@ -127,7 +128,18 @@ public abstract class BitBoard extends AbstractBoard {
      * The bitboard field.
      * Values can be modified only by the constructor.
      */
-    final transient long[] bitboard;
+    private final transient long[] bitboard;
+
+    /**
+     * Acessor method for the bitboard field.
+     * <p>
+     * Be carefull! Do not change the array values.
+     * It should return a copy of the field, but for
+     * performance reasons a reference of the array is returned.
+     *
+     * @return the bitboard field
+     */
+    long[] bitboard() { return this.bitboard; }
 
     /**
      * Class constructor.
