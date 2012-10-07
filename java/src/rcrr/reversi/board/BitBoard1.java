@@ -461,7 +461,7 @@ public class BitBoard1 extends BitBoard {
         isLegalInvariantsAreSatisfied(move, player);
 
         final long bitmove = 1L << move.ordinal();
-        if ((bitmove & (bitboard[BLACK] | bitboard[WHITE])) != 0) {
+        if ((bitmove & (bitboard()[BLACK] | bitboard()[WHITE])) != 0) {
             return false;
         }
 
@@ -473,11 +473,11 @@ public class BitBoard1 extends BitBoard {
         final long opponentBitboard;
 
         if (intPlayer == WHITE) {
-            playerBitboard = bitboard[WHITE];
-            opponentBitboard = bitboard[BLACK];
+            playerBitboard = bitboard()[WHITE];
+            opponentBitboard = bitboard()[BLACK];
         } else {
-            playerBitboard = bitboard[BLACK];
-            opponentBitboard = bitboard[WHITE];
+            playerBitboard = bitboard()[BLACK];
+            opponentBitboard = bitboard()[WHITE];
         }
 
         int playerBitrow;
@@ -577,11 +577,11 @@ public class BitBoard1 extends BitBoard {
         final long opponentBitboard;
 
         if (intPlayer == WHITE) {
-            playerBitboard = bitboard[WHITE];
-            opponentBitboard = bitboard[BLACK];
+            playerBitboard = bitboard()[WHITE];
+            opponentBitboard = bitboard()[BLACK];
         } else {
-            playerBitboard = bitboard[BLACK];
-            opponentBitboard = bitboard[WHITE];
+            playerBitboard = bitboard()[BLACK];
+            opponentBitboard = bitboard()[WHITE];
         }
 
         long finalPBoard;
@@ -660,7 +660,7 @@ public class BitBoard1 extends BitBoard {
      * @return       the set of likely moves
      */
     private long likelyMoves(final int player) {
-        return neighbors(bitboard[opponent(player)]) & empties();
+        return neighbors(bitboard()[opponent(player)]) & empties();
     }
 
 }
