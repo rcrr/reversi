@@ -573,16 +573,8 @@ public class BitBoard1 extends BitBoard {
         final int column = move.column().ordinal();
         final int row = move.row().ordinal();
 
-        final long playerBitboard;
-        final long opponentBitboard;
-
-        if (intPlayer == WHITE) {
-            playerBitboard = bitboard()[WHITE];
-            opponentBitboard = bitboard()[BLACK];
-        } else {
-            playerBitboard = bitboard()[BLACK];
-            opponentBitboard = bitboard()[WHITE];
-        }
+        final long playerBitboard = bitboard()[intPlayer];
+        final long opponentBitboard = bitboard()[opponent(intPlayer)];
 
         long finalPBoard;
         long finalOBoard;
@@ -630,13 +622,8 @@ public class BitBoard1 extends BitBoard {
         finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), -shiftDistance);
 
         final long[] newbitboard = new long[2];
-        if (intPlayer == WHITE) {
-            newbitboard[BLACK] = finalOBoard;
-            newbitboard[WHITE] = finalPBoard;
-        } else {
-            newbitboard[BLACK] = finalPBoard;
-            newbitboard[WHITE] = finalOBoard;
-        }
+        newbitboard[intPlayer] = finalPBoard;
+        newbitboard[opponent(intPlayer)] = finalOBoard;
 
         return newbitboard;
     }
