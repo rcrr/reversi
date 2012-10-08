@@ -146,21 +146,17 @@ public final class BitBoard2 extends BitBoard1 {
      * @return       legal moves for the player
      */
     private long legalMoves(final int player) {
-        final int opponent = player ^ WHITE;
-        final long empties = ~(bitboard()[BLACK] | bitboard()[WHITE]);
-
         long lm = 0L;
         for (final Direction dir : DIRECTION_VALUES) {
             final Direction opp = dir.opposite();
-            long wave = shift(empties, dir) & bitboard()[opponent];
+            long wave = shift(empties(), dir) & bitboard()[opponent(player)];
             for (int shift = MAGIC_NUMBER_2; shift < MAGIC_NUMBER_8; shift++) {
                 wave = shift(wave, dir);
                 lm |= shift((wave & bitboard()[player]), opp, shift);
-                wave &= bitboard()[opponent];
+                wave &= bitboard()[opponent(player)];
                 if (wave == 0L) { break; }
             }
         }
-
         return lm;
     }
 
