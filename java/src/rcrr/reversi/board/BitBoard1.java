@@ -460,24 +460,35 @@ public class BitBoard1 extends BitBoard {
 
         isLegalInvariantsAreSatisfied(move, player);
 
-        final long bitmove = 1L << move.ordinal();
-        if ((bitmove & (bitboard()[BLACK] | bitboard()[WHITE])) != 0) {
+        return isLegal(1L << move.ordinal(), player.ordinal());
+    }
+
+    /**
+     * column and row MUST be computed from move.
+     * See BitWorks MS1B without LOG2 lookup for row and consider a flipA1H8 new method.
+     */
+    boolean isLegal(final long move, final int player) {
+
+        if ((move & (bitboard()[BLACK] | bitboard()[WHITE])) != 0) {
             return false;
         }
 
-        final int intPlayer = player.ordinal();
-        final int column = move.column().ordinal();
-        final int row = move.row().ordinal();
+        final long playerBitboard = bitboard()[player];
+        final long opponentBitboard = bitboard()[opponent(player)];
 
-        final long playerBitboard;
-        final long opponentBitboard;
+        /** MUST BE IMPROVED! */
+        final int iMove = BitWorks.bitscanLS1B(move);
+        final int row    = iMove / 8;
+        final int column = iMove % 8;
+        final int[] xy = BitWorks.xy(move);
 
-        if (intPlayer == WHITE) {
-            playerBitboard = bitboard()[WHITE];
-            opponentBitboard = bitboard()[BLACK];
-        } else {
-            playerBitboard = bitboard()[BLACK];
-            opponentBitboard = bitboard()[WHITE];
+        boolean error = false;
+        if (xy[0] != column) { error = true; }
+        if (xy[1] != row) { error = true; }
+        if (error) {
+            System.out.println("move=" + move + ", iMove=" + iMove);
+            System.out.println("xy[0]=" + xy[0] + ", column=" + column);
+            System.out.println("xy[1]=" + xy[1] + ", row=" + row);
         }
 
         int playerBitrow;
@@ -515,7 +526,7 @@ public class BitBoard1 extends BitBoard {
         }
 
         /** If no capture on the four directions happens, return false. */
-        return false;
+        return false;        
     }
 
     /**
@@ -528,18 +539,7 @@ public class BitBoard1 extends BitBoard {
 
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
 
-        final List<Square> legalMoves = new ArrayList<Square>();
-        // The loop modifies likelyMoves removing the less significative bit set on each iteration.
-        for (long likelyMoves = likelyMoves(player); likelyMoves != 0; likelyMoves &= likelyMoves - 1) {
-            if (LOG) { numberOflikelyMoves++; }
-            final int iSquare = BitWorks.bitscanMS1B(BitWorks.lowestBitSet(likelyMoves));
-            final Square square = SQUARE_VALUES[iSquare];
-            if (isLegal(square, player)) {
-                if (LOG) { numberOflegalMoves++; }
-                legalMoves.add(square);
-            }
-        }
-        return legalMoves;
+        return legalMoves(player.ordinal());
     }
 
     /**
@@ -553,6 +553,17 @@ public class BitBoard1 extends BitBoard {
         makeMoveInvariantsAreSatisfied(move, player);
 
         return valueOf(makeMoveImpl(move, player));
+    }
+
+    private List<Square> legalMoves(final int player) {
+        long legalMoves = 0L;
+        for (long likelyMoves = likelyMoves(player);
+             likelyMoves != 0L;
+             likelyMoves = BitWorks.unsetLowestBit(likelyMoves)) {
+            final long move = BitWorks.lowestBitSet(likelyMoves);
+            if (isLegal(move, player)) { legalMoves |= move; }
+        }
+        return new SquareList(legalMoves);
     }
 
     /**
