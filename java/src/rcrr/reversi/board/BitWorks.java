@@ -1,5 +1,5 @@
 /*
- *  BitBoard.java
+ *  BitWorks.java
  *
  *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
@@ -163,11 +163,25 @@ public final class BitWorks {
     public static int bitscanMS1B(final long bitsequence) {
         long tmp = bitsequence;
         int result = 0;
-        if ((tmp & 0xFFFFFFFF00000000L) != 0) { tmp >>>= MAGIC_NUMBER_32; result  = MAGIC_NUMBER_32; }
-        if (tmp > 0x000000000000FFFFL)        { tmp >>>= MAGIC_NUMBER_16; result |= MAGIC_NUMBER_16; }
-        if (tmp > 0x00000000000000FFL)        { tmp >>>= MAGIC_NUMBER_8;  result |=  MAGIC_NUMBER_8; }
+        if ((tmp & 0xFFFFFFFF00000000L) != 0L) { tmp >>>= MAGIC_NUMBER_32; result  = MAGIC_NUMBER_32; }
+        if (tmp > 0x000000000000FFFFL)         { tmp >>>= MAGIC_NUMBER_16; result |= MAGIC_NUMBER_16; }
+        if (tmp > 0x00000000000000FFL)         { tmp >>>=  MAGIC_NUMBER_8; result |=  MAGIC_NUMBER_8; }
         result |= LOG2_ARRAY[(int) tmp];
         return result;
+    }
+
+    public static int[] xy(final long move) {
+        int tmp;
+        int row = 0;
+        if ((move & 0xFFFFFFFF00000000L) != 0L) {
+            tmp = (int) (move >>> MAGIC_NUMBER_32); row += 4;
+        } else {
+            tmp = (int) move;
+        }
+        if ((tmp & 0xFFFF0000) != 0) { tmp >>>= MAGIC_NUMBER_16; row += 2; }
+        if ((tmp & 0xFF00) != 0) { tmp >>>= MAGIC_NUMBER_8; row += 1; }
+        final int column = LOG2_ARRAY[tmp];
+        return new int[] {column, row};
     }
 
     /**
@@ -307,6 +321,10 @@ public final class BitWorks {
      */
     public static long signedLeftShift(final long bitsequence, final int shift) {
         return shift >= 0 ? bitsequence << shift : bitsequence >>> -shift;
+    }
+
+    public static long unsetLowestBit(final long bitsequence) {
+        return bitsequence & (bitsequence - 1L);
     }
 
     /** Class constructor. */
