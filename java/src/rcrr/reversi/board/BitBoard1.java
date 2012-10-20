@@ -477,6 +477,7 @@ public class BitBoard1 extends BitBoard {
         final long opponentBitboard = bitboard()[opponent(player)];
 
         /** MUST BE IMPROVED! */
+        /*
         final int iMove = BitWorks.bitscanLS1B(move);
         final int row    = iMove / 8;
         final int column = iMove % 8;
@@ -490,6 +491,11 @@ public class BitBoard1 extends BitBoard {
             System.out.println("xy[0]=" + xy[0] + ", column=" + column);
             System.out.println("xy[1]=" + xy[1] + ", row=" + row);
         }
+        */
+
+        final int[] xy = BitWorks.xy(move);
+        final int column = xy[0];
+        final int row    = xy[1];
 
         int playerBitrow;
         int opponentBitrow;
