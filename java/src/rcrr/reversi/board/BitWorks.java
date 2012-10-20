@@ -170,6 +170,14 @@ public final class BitWorks {
         return result;
     }
 
+    /**
+     * Returns an array of two int having the column and row ordinal positions.
+     * The {@code move} parameter must have one bit set representing a square in the board.
+     * The method does not verify the invariant.
+     *
+     * @param move a square in the board
+     * @return     the column and row ordinal indexes collected in an array
+     */
     public static int[] xy(final long move) {
         int tmp;
         int row = 0;

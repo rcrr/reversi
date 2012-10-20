@@ -463,10 +463,6 @@ public class BitBoard1 extends BitBoard {
         return isLegal(1L << move.ordinal(), player.ordinal());
     }
 
-    /**
-     * column and row MUST be computed from move.
-     * See BitWorks MS1B without LOG2 lookup for row and consider a flipA1H8 new method.
-     */
     boolean isLegal(final long move, final int player) {
 
         if ((move & (bitboard()[BLACK] | bitboard()[WHITE])) != 0) {
@@ -475,23 +471,6 @@ public class BitBoard1 extends BitBoard {
 
         final long playerBitboard = bitboard()[player];
         final long opponentBitboard = bitboard()[opponent(player)];
-
-        /** MUST BE IMPROVED! */
-        /*
-        final int iMove = BitWorks.bitscanLS1B(move);
-        final int row    = iMove / 8;
-        final int column = iMove % 8;
-        final int[] xy = BitWorks.xy(move);
-
-        boolean error = false;
-        if (xy[0] != column) { error = true; }
-        if (xy[1] != row) { error = true; }
-        if (error) {
-            System.out.println("move=" + move + ", iMove=" + iMove);
-            System.out.println("xy[0]=" + xy[0] + ", column=" + column);
-            System.out.println("xy[1]=" + xy[1] + ", row=" + row);
-        }
-        */
 
         final int[] xy = BitWorks.xy(move);
         final int column = xy[0];
