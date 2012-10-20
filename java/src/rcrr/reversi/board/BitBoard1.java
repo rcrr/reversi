@@ -477,7 +477,10 @@ public class BitBoard1 extends BitBoard {
         final long opponentBitboard = bitboard()[opponent(player)];
 
         /** MUST BE IMPROVED! */
+<<<<<<< HEAD
         /*
+=======
+>>>>>>> d9027ab02aadc4dd89ae3f0971992c346ca03925
         final int iMove = BitWorks.bitscanLS1B(move);
         final int row    = iMove / 8;
         final int column = iMove % 8;
