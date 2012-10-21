@@ -118,6 +118,39 @@ public class BitWorksTest {
     }
 
     @Test
+    public final void testBitscanMS1BtoBase8() {
+
+        /** Never send 0L as parameter. */
+        assertThat("BitWorks.bitscanMS1BtoBase8(0L) is {0, 0}.",
+                   BitWorks.bitscanMS1BtoBase8(0L),
+                   is(new int[] {0, 0}));
+
+        assertThat("BitWorks.bitscanMS1BtoBase8(1L) is {0, 0}.",
+                   BitWorks.bitscanMS1BtoBase8(1L),
+                   is(new int[] {0, 0}));
+
+        assertThat("BitWorks.bitscanMS1BtoBase8(2L) is {1, 0}.",
+                   BitWorks.bitscanMS1BtoBase8(2L),
+                   is(new int[] {1, 0}));
+
+        assertThat("BitWorks.bitscanMS1BtoBase8(128L) is {7, 0}.",
+                   BitWorks.bitscanMS1BtoBase8(128L),
+                   is(new int[] {7, 0}));
+
+        assertThat("BitWorks.bitscanMS1BtoBase8(256L) is {0, 1}.",
+                   BitWorks.bitscanMS1BtoBase8(256L),
+                   is(new int[] {0, 1}));
+
+        assertThat("BitWorks.bitscanMS1BtoBase8(0x8000000000000000L) is {7, 7}.",
+                   BitWorks.bitscanMS1BtoBase8(0x8000000000000000L),
+                   is(new int[] {7, 7}));
+
+        assertThat("BitWorks.bitscanMS1BtoBase8(0xFFFFFFFFFFFFFFFFL) is {7, 7}.",
+                   BitWorks.bitscanMS1BtoBase8(0xFFFFFFFFFFFFFFFFL),
+                   is(new int[] {7, 7}));
+    }
+
+    @Test
     public final void testBitscanMS1B0() {
 
         /** Never send 0L as parameter. */
