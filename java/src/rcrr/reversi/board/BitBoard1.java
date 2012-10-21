@@ -472,7 +472,7 @@ public class BitBoard1 extends BitBoard {
         final long playerBitboard = bitboard()[player];
         final long opponentBitboard = bitboard()[opponent(player)];
 
-        final int[] xy = BitWorks.xy(move);
+        final int[] xy = BitWorks.bitscanMS1BtoBase8(move);
         final int column = xy[0];
         final int row    = xy[1];
 

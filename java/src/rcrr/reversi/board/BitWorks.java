@@ -171,25 +171,27 @@ public final class BitWorks {
     }
 
     /**
-     * Returns an array of two int having the column and row ordinal positions.
-     * The {@code move} parameter must have one bit set representing a square in the board.
-     * The method does not verify the invariant.
+     * Returns an array of two int collecting the octal representation of the position of
+     * the most significant bit set in the {@code bitsequence} parameter.
+     * The method does not verify that the {@code bitsequence} parameter must be different from {@code 0L}.
+     * When this happens it returns a value equal to {@code new int {0, 0}} that is the expected
+     * value when the parameter is equal to {@code 1L}.
      *
-     * @param move a square in the board
-     * @return     the column and row ordinal indexes collected in an array
+     * @param bitsequence a long value different from 0L
+     * @return            the octal value of the position of the most significant bit set collected in a two cells array
      */
-    public static int[] xy(final long move) {
+    public static int[] bitscanMS1BtoBase8(final long bitsequence) {
         int tmp;
-        int row = 0;
-        if ((move & 0xFFFFFFFF00000000L) != 0L) {
-            tmp = (int) (move >>> MAGIC_NUMBER_32); row += 4;
+        int hi = 0;
+        if ((bitsequence & 0xFFFFFFFF00000000L) != 0L) {
+            tmp = (int) (bitsequence >>> MAGIC_NUMBER_32); hi += 4;
         } else {
-            tmp = (int) move;
+            tmp = (int) bitsequence;
         }
-        if ((tmp & 0xFFFF0000) != 0) { tmp >>>= MAGIC_NUMBER_16; row += 2; }
-        if ((tmp & 0xFF00) != 0) { tmp >>>= MAGIC_NUMBER_8; row += 1; }
-        final int column = LOG2_ARRAY[tmp];
-        return new int[] {column, row};
+        if ((tmp & 0xFFFF0000) != 0) { tmp >>>= MAGIC_NUMBER_16; hi += 2; }
+        if ((tmp & 0xFF00) != 0) { tmp >>>= MAGIC_NUMBER_8; hi += 1; }
+        final int lo = LOG2_ARRAY[tmp];
+        return new int[] {lo, hi};
     }
 
     /**
