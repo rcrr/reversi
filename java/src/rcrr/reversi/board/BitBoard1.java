@@ -437,37 +437,33 @@ public class BitBoard1 extends BitBoard {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isLegal(final Square move, final Player player) {
+        if (LOG) { callsToIsLegal++; }
+        isLegalInvariantsAreSatisfied(move, player);
+        return isLegal(1L << move.ordinal(), player.ordinal());
+    }
+
+    /**
      * Returns the boolean value telling if the move, done by the
      * specified player, is legal.
      * <p>
-     * Parameter {@code move} must be not {@code null}.
-     * Parameter {@code player} must be not {@code null}.
+     * Parameter {@code move} must have one bit set.
+     * Parameter {@code player} must be either {@code 0} or {@code 1}.
      *
      * A few more optimizations are possible:
      * Precompute the shiftDistance value, remake signedhift using a shift.
      * Eliminate the check for diagonals shorter than 3 pieces.
-     * Verify that the square is empty. !!!! Eureka! -15%
-     *
      *
      * @param move   the square where to put the new disk
      * @param player the player moving
      * @return       true if the move is legal, otherwise false
-     * @throws NullPointerException if parameter {@code move} or {@code player} is null
      */
-    public boolean isLegal(final Square move, final Player player) {
-
-        if (LOG) { callsToIsLegal++; }
-
-        isLegalInvariantsAreSatisfied(move, player);
-
-        return isLegal(1L << move.ordinal(), player.ordinal());
-    }
-
     boolean isLegal(final long move, final int player) {
 
-        if ((move & (bitboard()[BLACK] | bitboard()[WHITE])) != 0) {
-            return false;
-        }
+        if ((move & empties()) == 0L) { return false; }
 
         final long playerBitboard = bitboard()[player];
         final long opponentBitboard = bitboard()[opponent(player)];
@@ -519,11 +515,8 @@ public class BitBoard1 extends BitBoard {
      */
     @Override
     public List<Square> legalMoves(final Player player) {
-
         if (LOG) { callsTolegalMoves++; }
-
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
-
         return legalMoves(player.ordinal());
     }
 
@@ -532,11 +525,8 @@ public class BitBoard1 extends BitBoard {
      */
     @Override
     public Board makeMove(final Square move, final Player player) {
-
         if (LOG) { callsToMakeMove++; }
-
         makeMoveInvariantsAreSatisfied(move, player);
-
         return valueOf(makeMoveImpl(move, player));
     }
 
