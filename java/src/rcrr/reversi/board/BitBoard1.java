@@ -31,11 +31,9 @@ import java.util.ArrayList;
 /**
  * A board concrete implementation in the bitboard family.
  * <p>
- * A {@code BitBoard1} object holds the information of the state of each board's square.
- * The board state is kept into a long array having a length equal two.
- * The first entry keeps the black squares, the second the whites.
- * <p>
- * The board uses the best machinery so far identified ....
+ * The board uses advanced tecniques for computing the isLegal method.
+ * legalMoves relate on a pre computed set of likely moves that reduces the number of isLegal tests.
+ * makeMoves is completely rewritten having a logic thta mimic the isLegal computation.
  * <p>
  * {@code BitBoard1} is immutable.
  * <p>
@@ -447,6 +445,26 @@ public class BitBoard1 extends BitBoard {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Square> legalMoves(final Player player) {
+        if (LOG) { callsTolegalMoves++; }
+        if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
+        return legalMoves(player.ordinal());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Board makeMove(final Square move, final Player player) {
+        if (LOG) { callsToMakeMove++; }
+        makeMoveInvariantsAreSatisfied(move, player);
+        return valueOf(makeMoveImpl(move, player));
+    }
+
+    /**
      * Returns the boolean value telling if the move, done by the
      * specified player, is legal.
      * <p>
@@ -454,7 +472,8 @@ public class BitBoard1 extends BitBoard {
      * Parameter {@code player} must be either {@code 0} or {@code 1}.
      *
      * A few more optimizations are possible:
-     * Precompute the shiftDistance value, remake signedhift using a shift.
+     * Organize the four axis checks into a loop. It is more elegant but saves time?
+     * Precompute the shiftDistance value.
      * Eliminate the check for diagonals shorter than 3 pieces.
      *
      * @param move   the square where to put the new disk
@@ -508,37 +527,6 @@ public class BitBoard1 extends BitBoard {
 
         /** If no capture on the four directions happens, return false. */
         return false;        
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Square> legalMoves(final Player player) {
-        if (LOG) { callsTolegalMoves++; }
-        if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
-        return legalMoves(player.ordinal());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Board makeMove(final Square move, final Player player) {
-        if (LOG) { callsToMakeMove++; }
-        makeMoveInvariantsAreSatisfied(move, player);
-        return valueOf(makeMoveImpl(move, player));
-    }
-
-    private List<Square> legalMoves(final int player) {
-        long legalMoves = 0L;
-        for (long likelyMoves = likelyMoves(player);
-             likelyMoves != 0L;
-             likelyMoves = BitWorks.unsetLowestBit(likelyMoves)) {
-            final long move = BitWorks.lowestBitSet(likelyMoves);
-            if (isLegal(move, player)) { legalMoves |= move; }
-        }
-        return new SquareList(legalMoves);
     }
 
     /**
@@ -612,6 +600,17 @@ public class BitBoard1 extends BitBoard {
         newbitboard[opponent(intPlayer)] = finalOBoard;
 
         return newbitboard;
+    }
+
+    private List<Square> legalMoves(final int player) {
+        long legalMoves = 0L;
+        for (long likelyMoves = likelyMoves(player);
+             likelyMoves != 0L;
+             likelyMoves = BitWorks.unsetLowestBit(likelyMoves)) {
+            final long move = BitWorks.lowestBitSet(likelyMoves);
+            if (isLegal(move, player)) { legalMoves |= move; }
+        }
+        return new SquareList(legalMoves);
     }
 
     /**
