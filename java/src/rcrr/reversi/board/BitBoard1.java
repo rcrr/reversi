@@ -426,9 +426,10 @@ public class BitBoard1 extends BitBoard {
      * Lazily initialized, cached legalMoves.
      * In case of a multi-threaded use must be applied a ReadWriteLock on this field.
      */
-    //private final transient List[] legalMovesForPlayer = new List[] {null, null};
-    private final transient long[] legalMoves = new long[] {0L, 0L};
-    private final transient boolean[] legalMovesIsComputed = new boolean[] {false, false};
+    final transient long[] legalMoves = new long[] {0L, 0L};
+
+    /** Flag for tracking that the legalMoves field has been computed. */
+    final transient boolean[] legalMovesIsComputed = new boolean[] {false, false};
 
     /**
      * Class constructor.
@@ -447,21 +448,9 @@ public class BitBoard1 extends BitBoard {
      * {@inheritDoc}
      */
     @Override
-    @SuppressWarnings("unchecked")
     public boolean isLegal(final Square move, final Player player) {
         if (LOG) { callsToIsLegal++; }
         isLegalInvariantsAreSatisfied(move, player);
-        /*
-        final int p = player.ordinal();
-        final int m = move.ordinal();
-        final boolean result;
-        if (this.legalMovesForPlayer[p] == null) {
-            result = isLegal(1L << m, p);
-        } else {
-            result = ((List<Square>) this.legalMovesForPlayer[p]).contains(move);
-        }
-        return result;
-        */
         return isLegal(1L << move.ordinal(), player.ordinal());
     }
 
@@ -469,22 +458,10 @@ public class BitBoard1 extends BitBoard {
      * {@inheritDoc}
      */
     @Override
-    @SuppressWarnings("unchecked")
     public List<Square> legalMoves(final Player player) {
         if (LOG) { callsTolegalMoves++; }
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
-        /*
-        final int p = player.ordinal();
-        List<Square> cached;
-        if (this.legalMovesForPlayer[p] == null) {
-            cached = legalMoves(p);
-            this.legalMovesForPlayer[p] = cached;
-        } else {
-            cached = (List<Square>) this.legalMovesForPlayer[p];
-        }
-        return cached;
-        */
-        return legalMoves(player.ordinal());
+        return new SquareList(legalMoves(player.ordinal()));
     }
 
     /**
@@ -639,8 +616,13 @@ public class BitBoard1 extends BitBoard {
         return newbitboard;
     }
 
-    private List<Square> legalMoves(final int player) {
-        
+    /**
+     * Implements the legal moves call by testing the likely moves one by one by calling the isLegal method.
+     *
+     * @param player the player that has to move
+     * @return       legal moves for the player
+     */
+    private long legalMoves(final int player) {        
         long cached = 0L;
         if (this.legalMovesIsComputed[player] == false) {
             for (long likelyMoves = likelyMoves(player);
@@ -654,18 +636,7 @@ public class BitBoard1 extends BitBoard {
         } else {
             cached = this.legalMoves[player];
         }
-        return new SquareList(cached);
-        
-        /*
-        long legalMoves = 0L;
-        for (long likelyMoves = likelyMoves(player);
-             likelyMoves != 0L;
-             likelyMoves = BitWorks.unsetLowestBit(likelyMoves)) {
-            final long move = BitWorks.lowestBitSet(likelyMoves);
-            if (isLegal(move, player)) { legalMoves |= move; }
-        }
-        return new SquareList(legalMoves);
-        */
+        return cached;
     }
 
     /**

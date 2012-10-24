@@ -147,15 +147,21 @@ public final class BitBoard2 extends BitBoard1 {
      */
     private long legalMoves(final int player) {
         long lm = 0L;
-        for (final Direction dir : DIRECTION_VALUES) {
-            final Direction opp = dir.opposite();
-            long wave = shift(empties(), dir) & bitboard()[opponent(player)];
-            for (int shift = MAGIC_NUMBER_2; shift < MAGIC_NUMBER_8; shift++) {
-                wave = shift(wave, dir);
-                lm |= shift((wave & bitboard()[player]), opp, shift);
-                wave &= bitboard()[opponent(player)];
-                if (wave == 0L) { break; }
+        if (this.legalMovesIsComputed[player] == false) {
+            for (final Direction dir : DIRECTION_VALUES) {
+                final Direction opp = dir.opposite();
+                long wave = shift(empties(), dir) & bitboard()[opponent(player)];
+                for (int shift = MAGIC_NUMBER_2; shift < MAGIC_NUMBER_8; shift++) {
+                    wave = shift(wave, dir);
+                    lm |= shift((wave & bitboard()[player]), opp, shift);
+                    wave &= bitboard()[opponent(player)];
+                    if (wave == 0L) { break; }
+                }
             }
+            this.legalMoves[player] = lm;
+            this.legalMovesIsComputed[player] = true;
+        } else {
+            lm = this.legalMoves[player];
         }
         return lm;
     }
