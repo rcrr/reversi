@@ -26,6 +26,7 @@ package rcrr.reversi.board;
 
 import java.util.Map;
 import java.util.List;
+import java.util.EnumMap;
 import java.util.ArrayList;
 
 /**
@@ -422,6 +423,14 @@ public class BitBoard1 extends BitBoard {
     }
 
     /**
+     * Lazily initialized, cached legalMoves.
+     * In case of a multi-threaded use must be applied a ReadWriteLock on this field.
+     */
+    //private final transient List[] legalMovesForPlayer = new List[] {null, null};
+    private final transient long[] legalMoves = new long[] {0L, 0L};
+    private final transient boolean[] legalMovesIsComputed = new boolean[] {false, false};
+
+    /**
      * Class constructor.
      * <p>
      * {@code bitboard} must be not null, and must have a size equal to
@@ -438,9 +447,21 @@ public class BitBoard1 extends BitBoard {
      * {@inheritDoc}
      */
     @Override
+    @SuppressWarnings("unchecked")
     public boolean isLegal(final Square move, final Player player) {
         if (LOG) { callsToIsLegal++; }
         isLegalInvariantsAreSatisfied(move, player);
+        /*
+        final int p = player.ordinal();
+        final int m = move.ordinal();
+        final boolean result;
+        if (this.legalMovesForPlayer[p] == null) {
+            result = isLegal(1L << m, p);
+        } else {
+            result = ((List<Square>) this.legalMovesForPlayer[p]).contains(move);
+        }
+        return result;
+        */
         return isLegal(1L << move.ordinal(), player.ordinal());
     }
 
@@ -448,9 +469,21 @@ public class BitBoard1 extends BitBoard {
      * {@inheritDoc}
      */
     @Override
+    @SuppressWarnings("unchecked")
     public List<Square> legalMoves(final Player player) {
         if (LOG) { callsTolegalMoves++; }
         if (player == null) { throw new NullPointerException("Parameter player must be not null."); }
+        /*
+        final int p = player.ordinal();
+        List<Square> cached;
+        if (this.legalMovesForPlayer[p] == null) {
+            cached = legalMoves(p);
+            this.legalMovesForPlayer[p] = cached;
+        } else {
+            cached = (List<Square>) this.legalMovesForPlayer[p];
+        }
+        return cached;
+        */
         return legalMoves(player.ordinal());
     }
 
@@ -483,6 +516,10 @@ public class BitBoard1 extends BitBoard {
     boolean isLegal(final long move, final int player) {
 
         if ((move & empties()) == 0L) { return false; }
+
+        if (this.legalMovesIsComputed[player] == true) {
+            return (move & this.legalMoves[player]) != 0L;
+        }
 
         final long playerBitboard = bitboard()[player];
         final long opponentBitboard = bitboard()[opponent(player)];
@@ -603,6 +640,23 @@ public class BitBoard1 extends BitBoard {
     }
 
     private List<Square> legalMoves(final int player) {
+        
+        long cached = 0L;
+        if (this.legalMovesIsComputed[player] == false) {
+            for (long likelyMoves = likelyMoves(player);
+                 likelyMoves != 0L;
+                 likelyMoves = BitWorks.unsetLowestBit(likelyMoves)) {
+                final long move = BitWorks.lowestBitSet(likelyMoves);
+                if (isLegal(move, player)) { cached |= move; }
+            }
+            this.legalMoves[player] = cached;
+            this.legalMovesIsComputed[player] = true;
+        } else {
+            cached = this.legalMoves[player];
+        }
+        return new SquareList(cached);
+        
+        /*
         long legalMoves = 0L;
         for (long likelyMoves = likelyMoves(player);
              likelyMoves != 0L;
@@ -611,6 +665,7 @@ public class BitBoard1 extends BitBoard {
             if (isLegal(move, player)) { legalMoves |= move; }
         }
         return new SquareList(legalMoves);
+        */
     }
 
     /**
