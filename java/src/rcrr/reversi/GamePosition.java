@@ -41,8 +41,7 @@ public final class GamePosition {
      * <p>
      * {@code GamePositionBuilder} is mutable, and it is thread-safe.
      * The object status is guarded by a lock on {@code this}.
-     */
-    /**
+     *
      * An instance of this class encapsulates the information needed to instantiate
      * and initialize a game position. That process is triggered when the {@code build()}
      * method is called.
