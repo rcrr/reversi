@@ -63,6 +63,12 @@ public final class BitWorks {
         7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
     };
 
+    /** Macic number 4. */
+    private static final int MAGIC_NUMBER_4 = 4;
+
+    /** Macic number 7. */
+    private static final int MAGIC_NUMBER_7 = 7;
+
     /** Macic number 8. */
     private static final int MAGIC_NUMBER_8 = 8;
 
@@ -75,6 +81,27 @@ public final class BitWorks {
     /** Macic number 64. */
     private static final int MAGIC_NUMBER_64 = 64;
 
+    /** Macic number 0x000000FF. */
+    private static final int MAGIC_NUMBER_000000FF = 0x000000FF;
+
+    /** Macic number 0x0000FF00. */
+    private static final int MAGIC_NUMBER_0000FF00 = 0x0000FF00;
+
+    /** Macic number 0xFFFF0000. */
+    private static final int MAGIC_NUMBER_FFFF0000 = 0xFFFF0000;
+
+    /** Macic number 0x00010000. */
+    private static final int MAGIC_NUMBER_00010000 = 0x00010000;
+
+    /** Macic number 0x00000000000000FFL. */
+    private static final long LONG_00000000000000FF = 0x00000000000000FFL;
+
+    /** Macic number 0x000000000000FFFFL. */
+    private static final long LONG_000000000000FFFF = 0x000000000000FFFFL;
+
+    /** Macic number 0xFFFFFFFF00000000L. */
+    private static final long LONG_FFFFFFFF00000000 = 0xFFFFFFFF00000000L;
+
     /**
      * Converts a bit sequence in a printable string.
      *
@@ -83,7 +110,7 @@ public final class BitWorks {
      */
     public static String byteToString(final byte bitsequence) {
         final StringBuilder sb = new StringBuilder();
-        for (int i = 7; i >= 0; i--) {
+        for (int i = MAGIC_NUMBER_7; i >= 0; i--) {
             final char c = ((bitsequence & (1 << i)) != 0) ? '1' : '0';
             sb.append(c);
         }
@@ -163,9 +190,9 @@ public final class BitWorks {
     public static int bitscanMS1B(final long bitsequence) {
         long tmp = bitsequence;
         int result = 0;
-        if ((tmp & 0xFFFFFFFF00000000L) != 0L) { tmp >>>= MAGIC_NUMBER_32; result  = MAGIC_NUMBER_32; }
-        if (tmp > 0x000000000000FFFFL)         { tmp >>>= MAGIC_NUMBER_16; result |= MAGIC_NUMBER_16; }
-        if (tmp > 0x00000000000000FFL)         { tmp >>>=  MAGIC_NUMBER_8; result |=  MAGIC_NUMBER_8; }
+        if ((tmp & LONG_FFFFFFFF00000000) != 0L) { tmp >>>= MAGIC_NUMBER_32; result  = MAGIC_NUMBER_32; }
+        if (tmp > LONG_000000000000FFFF)         { tmp >>>= MAGIC_NUMBER_16; result |= MAGIC_NUMBER_16; }
+        if (tmp > LONG_00000000000000FF)         { tmp >>>=  MAGIC_NUMBER_8; result |=  MAGIC_NUMBER_8; }
         result |= LOG2_ARRAY[(int) tmp];
         return result;
     }
@@ -183,13 +210,13 @@ public final class BitWorks {
     public static int[] bitscanMS1BtoBase8(final long bitsequence) {
         int tmp;
         int hi = 0;
-        if ((bitsequence & 0xFFFFFFFF00000000L) != 0L) {
-            tmp = (int) (bitsequence >>> MAGIC_NUMBER_32); hi += 4;
+        if ((bitsequence & LONG_FFFFFFFF00000000) != 0L) {
+            tmp = (int) (bitsequence >>> MAGIC_NUMBER_32); hi += MAGIC_NUMBER_4;
         } else {
             tmp = (int) bitsequence;
         }
-        if ((tmp & 0xFFFF0000) != 0) { tmp >>>= MAGIC_NUMBER_16; hi += 2; }
-        if ((tmp & 0xFF00) != 0) { tmp >>>= MAGIC_NUMBER_8; hi += 1; }
+        if ((tmp & MAGIC_NUMBER_FFFF0000) != 0) { tmp >>>= MAGIC_NUMBER_16; hi += 2; }
+        if ((tmp & MAGIC_NUMBER_0000FF00) != 0) { tmp >>>= MAGIC_NUMBER_8;  hi += 1; }
         final int lo = LOG2_ARRAY[tmp];
         return new int[] {lo, hi};
     }
@@ -255,8 +282,8 @@ public final class BitWorks {
         if (bitsequence == 0) { return 0; }
         int result = 1;
         int tmp = bitsequence;
-        if ((tmp & 0xFFFF0000) != 0) { tmp >>>= MAGIC_NUMBER_16; result = 0x10000; }
-        if (tmp > 0x000000FF)        { tmp >>>= MAGIC_NUMBER_8;  result <<= MAGIC_NUMBER_8; }
+        if ((tmp & MAGIC_NUMBER_FFFF0000) != 0) { tmp >>>= MAGIC_NUMBER_16; result = MAGIC_NUMBER_00010000; }
+        if  (tmp > MAGIC_NUMBER_000000FF)       { tmp >>>= MAGIC_NUMBER_8;  result <<= MAGIC_NUMBER_8; }
         result <<= LOG2_ARRAY[tmp];
         return result;
     }
@@ -298,7 +325,8 @@ public final class BitWorks {
      * @return            a bit sequence having the internal bits set
      */
     public static int fillInBetween(final int bitsequence) {
-        return ((1 << BitWorks.bitscanMS1B(bitsequence)) - 1) & ((~bitsequence & 0xFF) ^ (bitsequence - 1));
+        return ((1 << BitWorks.bitscanMS1B(bitsequence)) - 1)
+            & ((~bitsequence & MAGIC_NUMBER_000000FF) ^ (bitsequence - 1));
     }
 
     /**
@@ -333,6 +361,13 @@ public final class BitWorks {
         return shift >= 0 ? bitsequence << shift : bitsequence >>> -shift;
     }
 
+    /**
+     * Returns a bit sequence being equal to the {@code bitsequence} parameter with
+     * the exception of the lowest bit set found.
+     *
+     * @param bitsequence the input value
+     * @return            the resulting bitsequence
+     */
     public static long unsetLowestBit(final long bitsequence) {
         return bitsequence & (bitsequence - 1L);
     }
