@@ -26,8 +26,6 @@ package rcrr.reversi.board;
 
 import java.util.Map;
 import java.util.List;
-import java.util.EnumMap;
-import java.util.ArrayList;
 
 /**
  * A board concrete implementation in the bitboard family.
@@ -426,10 +424,10 @@ public class BitBoard1 extends BitBoard {
      * Lazily initialized, cached legalMoves.
      * In case of a multi-threaded use must be applied a ReadWriteLock on this field.
      */
-    final transient long[] legalMoves = new long[] {0L, 0L};
+    private final transient long[] legalMovesCache = new long[] {0L, 0L};
 
-    /** Flag for tracking that the legalMoves field has been computed. */
-    final transient boolean[] legalMovesIsComputed = new boolean[] {false, false};
+    /** Flag for tracking that the legalMovesCache field has been computed. */
+    private final transient boolean[] hasLegalMovesBeenComputed = new boolean[] {false, false};
 
     /**
      * Class constructor.
@@ -475,6 +473,14 @@ public class BitBoard1 extends BitBoard {
     }
 
     /**
+     * Returns the value of the hasLegalMovesBeenComputed field for the {@code player}.
+     *
+     * @param player the player associated vith the legal move list
+     * @return       true if the cached value has been already computed
+     */
+    boolean hasLegalMovesBeenComputed(final int player) { return hasLegalMovesBeenComputed[player]; }
+
+    /**
      * Returns the boolean value telling if the move, done by the
      * specified player, is legal.
      * <p>
@@ -494,8 +500,8 @@ public class BitBoard1 extends BitBoard {
 
         if ((move & empties()) == 0L) { return false; }
 
-        if (this.legalMovesIsComputed[player] == true) {
-            return (move & this.legalMoves[player]) != 0L;
+        if (hasLegalMovesBeenComputed(player)) {
+            return (move & legalMovesCache(player)) != 0L;
         }
 
         final long playerBitboard = bitboard()[player];
@@ -540,8 +546,16 @@ public class BitBoard1 extends BitBoard {
         }
 
         /** If no capture on the four directions happens, return false. */
-        return false;        
+        return false;
     }
+
+    /**
+     * Returns the value of the legalMovesCache field for the player.
+     *
+     * @param player the player associated vith the legal move list
+     * @return       the legal move list for the player
+     */
+    long legalMovesCache(final int player) { return legalMovesCache[player]; }
 
     /**
      * Returns a new bitboard long array to reflect move by player.
@@ -622,21 +636,21 @@ public class BitBoard1 extends BitBoard {
      * @param player the player that has to move
      * @return       legal moves for the player
      */
-    private long legalMoves(final int player) {        
-        long cached = 0L;
-        if (this.legalMovesIsComputed[player] == false) {
+    private long legalMoves(final int player) {
+        long result = 0L;
+        if (hasLegalMovesBeenComputed(player)) {
+            result = legalMovesCache(player);
+        } else {
             for (long likelyMoves = likelyMoves(player);
                  likelyMoves != 0L;
                  likelyMoves = BitWorks.unsetLowestBit(likelyMoves)) {
                 final long move = BitWorks.lowestBitSet(likelyMoves);
-                if (isLegal(move, player)) { cached |= move; }
+                if (isLegal(move, player)) { result |= move; }
             }
-            this.legalMoves[player] = cached;
-            this.legalMovesIsComputed[player] = true;
-        } else {
-            cached = this.legalMoves[player];
+            setLegalMovesCache(player, result);
+            setHasLegalMovesBeenComputed(player, true);
         }
-        return cached;
+        return result;
     }
 
     /**
@@ -659,6 +673,26 @@ public class BitBoard1 extends BitBoard {
      */
     private long likelyMoves(final int player) {
         return neighbors(bitboard()[opponent(player)]) & empties();
+    }
+
+    /**
+     * Sets the value of the hasLegalMovesBeenComputed field for the {@code player}.
+     *
+     * @param player the player associated vith the legal move list
+     * @param value  the value to be assigned to the field
+     */
+    void setHasLegalMovesBeenComputed(final int player, final boolean value) {
+        hasLegalMovesBeenComputed[player] = value;
+    }
+
+    /**
+     * Sets the value of the legalMovesCache field for the {@code player}.
+     *
+     * @param player the player associated vith the legal move list
+     * @param value  the legal move list for the player
+     */
+    void setLegalMovesCache(final int player, final long value) {
+        legalMovesCache[player] = value;
     }
 
 }
