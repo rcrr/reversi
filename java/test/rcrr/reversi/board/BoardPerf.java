@@ -50,7 +50,7 @@ import static org.hamcrest.CoreMatchers.is;
  */
 public class BoardPerf {
 
-    private static final int NUMBER_OF_BOARDS = 100000;
+    private static final int NUMBER_OF_BOARDS = 300000;
     private static final int MIN_NUMBER_OF_DISCS = 10;
     private static final int MAX_NUMBER_OF_DISCS = 60;
 

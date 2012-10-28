@@ -469,7 +469,7 @@ public class BitBoard1 extends BitBoard {
     public Board makeMove(final Square move, final Player player) {
         if (LOG) { callsToMakeMove++; }
         makeMoveInvariantsAreSatisfied(move, player);
-        return valueOf(makeMoveImpl(move, player));
+        return valueOf(makeMoveImpl(move, player.ordinal()));
     }
 
     /**
@@ -568,42 +568,40 @@ public class BitBoard1 extends BitBoard {
      * @param  player the disk color to put on the board
      * @return        a new bitboard array reflecting the move made
      */
-    long[] makeMoveImpl(final Square move, final Player player) {
+    long[] makeMoveImpl(final Square move, final int player) {
 
-        final int intMove = move.ordinal();
-        final int intPlayer = player.ordinal();
+        final int opponent = opponent(player);
         final int column = move.column().ordinal();
         final int row = move.row().ordinal();
 
-        final long playerBitboard = bitboard()[intPlayer];
-        final long opponentBitboard = bitboard()[opponent(intPlayer)];
+        final long[] newbitboard = new long[2];
 
-        long finalPBoard;
-        long finalOBoard;
+        final long playerBitboard = bitboard(player);
+        final long opponentBitboard = bitboard(opponent);
 
         int playerBitrow;
         int opponentBitrow;
         int shiftDistance;
 
-        final long unmodifiedMask = ~BITBOARD_MASK_FOR_ALL_DIRECTIONS[intMove];
-        finalPBoard = playerBitboard & unmodifiedMask;
-        finalOBoard = opponentBitboard & unmodifiedMask;
+        final long unmodifiedMask = ~BITBOARD_MASK_FOR_ALL_DIRECTIONS[move.ordinal()];
+        newbitboard[player]   = playerBitboard & unmodifiedMask;
+        newbitboard[opponent] = opponentBitboard & unmodifiedMask;
 
         /** Compute row changes. */
         playerBitrow = (int) (playerBitboard >>> (MAGIC_NUMBER_8 * row)) & BYTE_MASK_FOR_INT;
         opponentBitrow = (int) (opponentBitboard >>> (MAGIC_NUMBER_8 * row)) & BYTE_MASK_FOR_INT;
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        finalPBoard |= ((long) playerBitrow << (MAGIC_NUMBER_8 * row));
-        finalOBoard |= ((long) opponentBitrow << (MAGIC_NUMBER_8 * row));
+        newbitboard[player]   |= ((long) playerBitrow << (MAGIC_NUMBER_8 * row));
+        newbitboard[opponent] |= ((long) opponentBitrow << (MAGIC_NUMBER_8 * row));
 
         /** Compute column changes. */
         playerBitrow = trasformColumnAInRow0(playerBitboard >>> column);
         opponentBitrow = trasformColumnAInRow0(opponentBitboard >>> column);
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, row);
         opponentBitrow &= ~playerBitrow;
-        finalPBoard |= reTrasformRow0BackToColumnA(playerBitrow) << column;
-        finalOBoard |= reTrasformRow0BackToColumnA(opponentBitrow) << column;
+        newbitboard[player]   |= reTrasformRow0BackToColumnA(playerBitrow) << column;
+        newbitboard[opponent] |= reTrasformRow0BackToColumnA(opponentBitrow) << column;
 
         /** Compute changes on diagonal having direction A1-H8. */
         shiftDistance = (column - row) << MAGIC_NUMBER_3;
@@ -611,8 +609,8 @@ public class BitBoard1 extends BitBoard {
         opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(playerBitrow), -shiftDistance);
-        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(opponentBitrow), -shiftDistance);
+        newbitboard[player]   |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(playerBitrow), -shiftDistance);
+        newbitboard[opponent] |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(opponentBitrow), -shiftDistance);
 
         /** Compute changes on diagonal having direction H1-A8. */
         shiftDistance = (MAGIC_NUMBER_7 - column - row) << MAGIC_NUMBER_3;
@@ -620,12 +618,8 @@ public class BitBoard1 extends BitBoard {
         opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        finalPBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(playerBitrow), -shiftDistance);
-        finalOBoard |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), -shiftDistance);
-
-        final long[] newbitboard = new long[2];
-        newbitboard[intPlayer] = finalPBoard;
-        newbitboard[opponent(intPlayer)] = finalOBoard;
+        newbitboard[player]   |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(playerBitrow), -shiftDistance);
+        newbitboard[opponent] |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), -shiftDistance);
 
         return newbitboard;
     }

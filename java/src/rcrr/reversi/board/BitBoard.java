@@ -212,6 +212,14 @@ public abstract class BitBoard extends AbstractBoard {
      *
      * @return the bitboard field
      */
-    long[] bitboard() { return this.bitboard; }
+    final long[] bitboard() { return this.bitboard; }
+
+    /**
+     * Acessor method for the bitboard field.
+     *
+     * @param  player the player whom bitboard will be retrieved
+     * @return the bitboard field for the palyer
+     */
+    final long bitboard(final int player) { return this.bitboard[player]; }
 
 }

@@ -134,7 +134,7 @@ public final class BitBoard2 extends BitBoard1 {
     public Board makeMove(final Square move, final Player player) {
         if (LOG) { callsToMakeMove++; }
         makeMoveInvariantsAreSatisfied(move, player);
-        return valueOf(makeMoveImpl(move, player));
+        return valueOf(makeMoveImpl(move, player.ordinal()));
     }
 
     /**
