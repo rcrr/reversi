@@ -33,22 +33,22 @@ public enum Axis {
     /**
      * Horizontal axis (W-E).
      */
-    HORIZONTAL,
+    HO,
 
     /**
      * Vertical axis (N-S).
      */
-    VERTICAL,
+    VE,
 
     /**
-     * Diagonal left to right axis (NW-SE).
+     * Diagonal Down axis (NW-SE), A1-H8.
      */
-    DIAGONAL_LR,
+    DD,
 
     /**
-     * Diagonal right to left axis (NE-SW).
+     * Diagonal Up axis (NE-SW), A8-H1.
      */
-    DIAGONAL_RL;
+    DU;
 
     /** The null instance. */
     public static final Axis NULL = null;

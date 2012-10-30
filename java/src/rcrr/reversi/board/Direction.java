@@ -48,35 +48,35 @@ public enum Direction {
     /**
      * North-West direction.
      */
-    NW(Axis.DIAGONAL_LR, Versus.NEGATIVE, -9),
+    NW(Axis.DD, Versus.NEGATIVE, -9),
     /**
      * North direction.
      */
-    N(Axis.VERTICAL, Versus.NEGATIVE, -8),
+    N(Axis.VE, Versus.NEGATIVE, -8),
     /**
      * North-East direction.
      */
-    NE(Axis.DIAGONAL_RL, Versus.NEGATIVE, -7),
+    NE(Axis.DU, Versus.NEGATIVE, -7),
     /**
      * West direction.
      */
-    W(Axis.HORIZONTAL, Versus.NEGATIVE, -1),
+    W(Axis.HO, Versus.NEGATIVE, -1),
     /**
      * East direction.
      */
-    E(Axis.HORIZONTAL, Versus.POSITIVE, +1),
+    E(Axis.HO, Versus.POSITIVE, +1),
     /**
      * South-West direction.
      */
-    SW(Axis.DIAGONAL_RL, Versus.POSITIVE, +7),
+    SW(Axis.DU, Versus.POSITIVE, +7),
     /**
      * South direction.
      */
-    S(Axis.VERTICAL, Versus.POSITIVE, +8),
+    S(Axis.VE, Versus.POSITIVE, +8),
     /**
      * South-East direction.
      */
-    SE(Axis.DIAGONAL_LR, Versus.POSITIVE, +9);
+    SE(Axis.DD, Versus.POSITIVE, +9);
 
     /** The null direction. */
     public static final Direction NULL = null;
