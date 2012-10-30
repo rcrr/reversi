@@ -235,7 +235,7 @@ public class BitBoard1 extends BitBoard {
                      * It checks two conditions that cannot happen because are illegal.
                      * First player and opponent cannot have overlapping discs.
                      * Second the move cannot overlap existing discs.
-                     * When either one of the two condition applys the result is set being equal
+                     * When either one of the two condition applies the result is set being equal
                      * to the player row index. Otherwise when black and white do not overlap,
                      * and the move is on an empy square it procede with the else block.
                      **/
@@ -254,7 +254,8 @@ public class BitBoard1 extends BitBoard {
 
                         /**
                          * The left rank is the sequence of adiacent discs that start from the bracketing disc and end
-                         * with the move disc. */
+                         * with the move disc.
+                         */
                         final int leftRank = BitWorks.fillInBetween(potentialBracketingDiscOnTheLeft | move);
 
                         /**
@@ -286,7 +287,7 @@ public class BitBoard1 extends BitBoard {
                         }
                     }
 
-                    /** Asignes the computed player row index to the proper array position. */
+                    /** Assigns the computed player row index to the proper array position. */
                     arrayResult[arrayResultIndex] = (byte) playerRowAfterMove;
 
                 }
@@ -504,8 +505,8 @@ public class BitBoard1 extends BitBoard {
             return (move & legalMovesCache(player)) != 0L;
         }
 
-        final long playerBitboard = bitboard()[player];
-        final long opponentBitboard = bitboard()[opponent(player)];
+        final long playerBitboard = bitboard(player);
+        final long opponentBitboard = bitboard(opponent(player));
 
         final int[] xy = BitWorks.bitscanMS1BtoBase8(move);
         final int column = xy[0];
@@ -648,16 +649,6 @@ public class BitBoard1 extends BitBoard {
     }
 
     /**
-     * See the overloaded method having the player parameter as an int.
-     *
-     * @param player the player that has to move
-     * @return       the set of likely moves
-     */
-    private long likelyMoves(final Player player) {
-        return likelyMoves(player.ordinal());
-    }
-
-    /**
      * Returns a set of likely moves. It is guaranted that the legal moves set
      * is fully contained by the likely move set.
      * On avarage likely moves are 1.7 times the number of legal moves.
@@ -666,7 +657,7 @@ public class BitBoard1 extends BitBoard {
      * @return       the set of likely moves
      */
     private long likelyMoves(final int player) {
-        return neighbors(bitboard()[opponent(player)]) & empties();
+        return neighbors(bitboard(opponent(player))) & empties();
     }
 
     /**
