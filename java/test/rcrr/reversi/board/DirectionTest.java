@@ -52,9 +52,9 @@ public class DirectionTest {
      */
     @Test
     public final void testAxis() {
-        assertThat("Direction.N.deltaRow() must return Axis.VERTICAL.",
+        assertThat("Direction.N.deltaRow() must return Axis.VE.",
                    Direction.N.axis(),
-                   is(Axis.VERTICAL));
+                   is(Axis.VE));
     }
 
 }

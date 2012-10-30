@@ -97,11 +97,11 @@ public enum Row {
         Row r;
         int delta = 0;
         switch (dir.axis()) {
-        case HORIZONTAL:
+        case HO:
             break;
-        case VERTICAL:
-        case DIAGONAL_LR:
-        case DIAGONAL_RL:
+        case VE:
+        case DD:
+        case DU:
             delta = (dir.versus() == Versus.POSITIVE) ? 1 : -1;
             break;
         default: throw new RuntimeException("Switch case not provided. dir.axis()=" + dir.axis());

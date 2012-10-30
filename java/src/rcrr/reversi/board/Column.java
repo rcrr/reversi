@@ -103,13 +103,13 @@ public enum Column {
         Column c;
         int delta = 0;
         switch (dir.axis()) {
-        case VERTICAL:
+        case VE:
             break;
-        case HORIZONTAL:
-        case DIAGONAL_LR:
+        case HO:
+        case DD:
             delta = (dir.versus() == Versus.POSITIVE) ? 1 : -1;
             break;
-        case DIAGONAL_RL:
+        case DU:
             delta = (dir.versus() == Versus.POSITIVE) ? -1 : 1;
             break;
         default: throw new RuntimeException("Switch case not provided. dir.axis()=" + dir.axis());
