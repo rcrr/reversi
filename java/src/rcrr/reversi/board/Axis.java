@@ -33,27 +33,62 @@ public enum Axis {
     /**
      * Horizontal axis (W-E).
      */
-    HO,
+    HO { @Override public int transformToRow0(final long squares) { return 0; } },
 
     /**
      * Vertical axis (N-S).
      */
-    VE,
+    VE { @Override public int transformToRow0(final long squares) { return 0; } },
 
     /**
      * Diagonal Down axis (NW-SE), A1-H8.
      */
-    DD,
+    DD { @Override public int transformToRow0(final long squares) { return 0; } },
 
     /**
      * Diagonal Up axis (NE-SW), A8-H1.
      */
-    DU;
+    DU { @Override public int transformToRow0(final long squares) { return 0; } };
 
     /** The null instance. */
     public static final Axis NULL = null;
 
     /** The number of axes. */
     public static final int NUMBER_OF = values().length;
+
+    /** Used for masking a byte when using integer values. */
+    static final int BYTE_MASK_FOR_INT = 0xFF;
+
+    /** A bitboard being set on column A. */
+    private static final long COLUMN_A = 0x0101010101010101L;
+
+    /** Macic number 7. */
+    private static final int MAGIC_NUMBER_7 = 7;
+
+    /** Macic number 14. */
+    private static final int MAGIC_NUMBER_14 = 14;
+
+    /** Macic number 28. */
+    private static final int MAGIC_NUMBER_28 = 28;
+
+    /**
+     * Returns an int having the bits from position 8 to position 31 set to zero,
+     * and the bits from position 0 to position 7, corresponding to Row One in the board,
+     * copied from the Column A of the {@code bitboard} parameter.
+     * Bit value corresponding to square A1 is moved to A1, A2 to B1, ... , A8 to H1.
+     *
+     * @param bitboard the bitboard representation for one color
+     * @return         colum a copied to row one, all other position are set to zero
+     */
+    private static int trasformColumnAInRow0(final long bitboard) {
+        long tmp = bitboard;
+        tmp &= COLUMN_A;
+        tmp |= tmp >> MAGIC_NUMBER_28;
+        tmp |= tmp >> MAGIC_NUMBER_14;
+        tmp |= tmp >> MAGIC_NUMBER_7;
+        return (int) tmp & BYTE_MASK_FOR_INT;
+    }
+
+    abstract int transformToRow0(final long squares);
 
 }
