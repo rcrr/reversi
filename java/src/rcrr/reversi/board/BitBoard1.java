@@ -322,7 +322,7 @@ public class BitBoard1 extends BitBoard {
      * @param bitboard the bitboard representation for one color
      * @return         colum a copied to row one, all other position are set to zero
      */
-    private static int trasformColumnAInRow0(final long bitboard) {
+    private static int transformColumnAInRow0(final long bitboard) {
         long tmp = bitboard;
         tmp &= COLUMN_A;
         tmp |= tmp >> MAGIC_NUMBER_28;
@@ -340,7 +340,7 @@ public class BitBoard1 extends BitBoard {
      * @param bitboard the bitboard representation for one color
      * @return         diagonal A1-H8 copied to row one, all other position are set to zero
      */
-    private static int trasformDiagonalA1H8InRow0(final long bitboard) {
+    private static int transformDiagonalA1H8InRow0(final long bitboard) {
         long tmp = bitboard;
         tmp &= DIAGONAL_A1_H8;
         tmp |= tmp >> MAGIC_NUMBER_32;
@@ -358,7 +358,7 @@ public class BitBoard1 extends BitBoard {
      * @param bitboard the bitboard representation for one color
      * @return         diagonal H1-A8 copied to row one, all other position are set to zero
      */
-    private static int trasformDiagonalH1A8InRow0(final long bitboard) {
+    private static int transformDiagonalH1A8InRow0(final long bitboard) {
         long tmp = bitboard;
         tmp &= DIAGONAL_H1_A8;
         tmp |= tmp >> MAGIC_NUMBER_32;
@@ -377,7 +377,7 @@ public class BitBoard1 extends BitBoard {
      * @return       a bitboard having column A set as the bitboard parameter,
      *               all other position are set to zero
      */
-    private static long reTrasformRow0BackToColumnA(final int bitrow) {
+    private static long reTransformRow0BackToColumnA(final int bitrow) {
         int tmp = bitrow;
         tmp |= tmp << MAGIC_NUMBER_7;
         tmp |= tmp << MAGIC_NUMBER_14;
@@ -395,7 +395,7 @@ public class BitBoard1 extends BitBoard {
      * @return       a bitboard having diagonal A1-H8 set as the bitboard parameter,
      *               all other position are set to zero
      */
-    private static long reTrasformRow0BackToDiagonalA1H8(final int bitrow) {
+    private static long reTransformRow0BackToDiagonalA1H8(final int bitrow) {
         int tmp = bitrow;
         tmp |= tmp << MAGIC_NUMBER_8;
         long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_16);
@@ -413,7 +413,7 @@ public class BitBoard1 extends BitBoard {
      * @return       a bitboard having diagonal H1-A8 set as the bitboard parameter,
      *               all other position are set to zero
      */
-    private static long reTrasformRow0BackToDiagonalH1A8(final int bitrow) {
+    private static long reTransformRow0BackToDiagonalH1A8(final int bitrow) {
         int tmp = bitrow;
         tmp |= tmp << MAGIC_NUMBER_8;
         tmp |= (tmp & SQUARES_B1_F1_A2_E2) << MAGIC_NUMBER_16;
@@ -524,24 +524,24 @@ public class BitBoard1 extends BitBoard {
         }
 
         /** Check for flipping on column. */
-        playerBitrow = trasformColumnAInRow0(playerBitboard >>> column);
-        opponentBitrow = trasformColumnAInRow0(opponentBitboard >>> column);
+        playerBitrow = transformColumnAInRow0(playerBitboard >>> column);
+        opponentBitrow = transformColumnAInRow0(opponentBitboard >>> column);
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, row) != playerBitrow) {
             return true;
         }
 
         /** Check for flipping on diagonal having direction A1-H8. */
         shiftDistance = (column - row) << MAGIC_NUMBER_3;
-        playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        playerBitrow = transformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = transformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
 
         /** Check for flipping on diagonal having direction H1-A8. */
         shiftDistance = (MAGIC_NUMBER_7 - column - row) << MAGIC_NUMBER_3;
-        playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        playerBitrow = transformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = transformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
@@ -597,30 +597,30 @@ public class BitBoard1 extends BitBoard {
         newbitboard[opponent] |= ((long) opponentBitrow << (MAGIC_NUMBER_8 * row));
 
         /** Compute column changes. */
-        playerBitrow = trasformColumnAInRow0(playerBitboard >>> column);
-        opponentBitrow = trasformColumnAInRow0(opponentBitboard >>> column);
+        playerBitrow = transformColumnAInRow0(playerBitboard >>> column);
+        opponentBitrow = transformColumnAInRow0(opponentBitboard >>> column);
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, row);
         opponentBitrow &= ~playerBitrow;
-        newbitboard[player]   |= reTrasformRow0BackToColumnA(playerBitrow) << column;
-        newbitboard[opponent] |= reTrasformRow0BackToColumnA(opponentBitrow) << column;
+        newbitboard[player]   |= reTransformRow0BackToColumnA(playerBitrow) << column;
+        newbitboard[opponent] |= reTransformRow0BackToColumnA(opponentBitrow) << column;
 
         /** Compute changes on diagonal having direction A1-H8. */
         shiftDistance = (column - row) << MAGIC_NUMBER_3;
-        playerBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        playerBitrow = transformDiagonalA1H8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = transformDiagonalA1H8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        newbitboard[player]   |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(playerBitrow), -shiftDistance);
-        newbitboard[opponent] |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalA1H8(opponentBitrow), -shiftDistance);
+        newbitboard[player]   |= BitWorks.signedLeftShift(reTransformRow0BackToDiagonalA1H8(playerBitrow), -shiftDistance);
+        newbitboard[opponent] |= BitWorks.signedLeftShift(reTransformRow0BackToDiagonalA1H8(opponentBitrow), -shiftDistance);
 
         /** Compute changes on diagonal having direction H1-A8. */
         shiftDistance = (MAGIC_NUMBER_7 - column - row) << MAGIC_NUMBER_3;
-        playerBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
-        opponentBitrow = trasformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        playerBitrow = transformDiagonalH1A8InRow0(BitWorks.signedLeftShift(playerBitboard, shiftDistance));
+        opponentBitrow = transformDiagonalH1A8InRow0(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        newbitboard[player]   |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(playerBitrow), -shiftDistance);
-        newbitboard[opponent] |= BitWorks.signedLeftShift(reTrasformRow0BackToDiagonalH1A8(opponentBitrow), -shiftDistance);
+        newbitboard[player]   |= BitWorks.signedLeftShift(reTransformRow0BackToDiagonalH1A8(playerBitrow), -shiftDistance);
+        newbitboard[opponent] |= BitWorks.signedLeftShift(reTransformRow0BackToDiagonalH1A8(opponentBitrow), -shiftDistance);
 
         return newbitboard;
     }
