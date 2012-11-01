@@ -33,22 +33,38 @@ public enum Axis {
     /**
      * Horizontal axis (W-E).
      */
-    HO { @Override public int transformToRow0(final long squares) { return 0; } },
+    HO { @Override public int transformToRowOne(final long squares) { return 0; } },
 
     /**
      * Vertical axis (N-S).
      */
-    VE { @Override public int transformToRow0(final long squares) { return 0; } },
+    VE {
+        @Override
+        public int transformToRowOne(final long squares) {
+            return transformColumnAInRow0(squares);
+        }
+    },
 
     /**
      * Diagonal Down axis (NW-SE), A1-H8.
      */
-    DD { @Override public int transformToRow0(final long squares) { return 0; } },
+    DD {
+        @Override
+        public int transformToRowOne(final long squares) {
+            return transformDiagonalA1H8InRow0(squares);
+        }
+    },
 
     /**
      * Diagonal Up axis (NE-SW), A8-H1.
      */
-    DU { @Override public int transformToRow0(final long squares) { return 0; } };
+    DU {
+        @Override
+        public int transformToRowOne(final long squares)
+        {
+            return transformDiagonalH1A8InRow0(squares);
+        }
+    };
 
     /** The null instance. */
     public static final Axis NULL = null;
@@ -57,7 +73,7 @@ public enum Axis {
     public static final int NUMBER_OF = values().length;
 
     /** Used for masking a byte when using integer values. */
-    static final int BYTE_MASK_FOR_INT = 0xFF;
+    private static final int BYTE_MASK_FOR_INT = 0xFF;
 
     /** A bitboard being set on column A. */
     private static final long COLUMN_A = 0x0101010101010101L;
@@ -65,11 +81,26 @@ public enum Axis {
     /** Macic number 7. */
     private static final int MAGIC_NUMBER_7 = 7;
 
+    /** Macic number 8. */
+    private static final int MAGIC_NUMBER_8 = 8;
+
     /** Macic number 14. */
     private static final int MAGIC_NUMBER_14 = 14;
 
+    /** Macic number 16. */
+    private static final int MAGIC_NUMBER_16 = 16;
+
     /** Macic number 28. */
     private static final int MAGIC_NUMBER_28 = 28;
+
+    /** Macic number 32. */
+    private static final int MAGIC_NUMBER_32 = 32;
+
+    /** A bitboard being set on diagonal A1-H8. */
+    private static final long DIAGONAL_A1_H8 = 0x8040201008040201L;
+
+    /** A bitboard being set on diagonal H1-A8. */
+    private static final long DIAGONAL_H1_A8 = 0x0102040810204080L;
 
     /**
      * Returns an int having the bits from position 8 to position 31 set to zero,
@@ -80,7 +111,7 @@ public enum Axis {
      * @param bitboard the bitboard representation for one color
      * @return         colum a copied to row one, all other position are set to zero
      */
-    private static int trasformColumnAInRow0(final long bitboard) {
+    private static int transformColumnAInRow0(final long bitboard) {
         long tmp = bitboard;
         tmp &= COLUMN_A;
         tmp |= tmp >> MAGIC_NUMBER_28;
@@ -89,6 +120,56 @@ public enum Axis {
         return (int) tmp & BYTE_MASK_FOR_INT;
     }
 
-    abstract int transformToRow0(final long squares);
+    /**
+     * Returns an int having the bits from position 8 to position 31 set to zero,
+     * and the bits from position 0 to position 7, corresponding to Row One in the board,
+     * copied from the Diagonal A1-H8 of the {@code bitboard} parameter.
+     * Bit value corresponding to square A1 is moved to A1, B2 to B1, ... , H8 to H1.
+     *
+     * @param bitboard the bitboard representation for one color
+     * @return         diagonal A1-H8 copied to row one, all other position are set to zero
+     */
+    private static int transformDiagonalA1H8InRow0(final long bitboard) {
+        long tmp = bitboard;
+        tmp &= DIAGONAL_A1_H8;
+        tmp |= tmp >> MAGIC_NUMBER_32;
+        tmp |= tmp >> MAGIC_NUMBER_16;
+        tmp |= tmp >> MAGIC_NUMBER_8;
+        return (int) tmp & BYTE_MASK_FOR_INT;
+    }
+
+    /**
+     * Returns an int having the bits from position 8 to position 31 set to zero,
+     * and the bits from position 0 to position 7, corresponding to Row One in the board,
+     * copied from the Diagonal H1-A8 of the {@code bitboard} parameter.
+     * Bit value corresponding to square A8 is moved to A1, B7 to B1, ... , H1 to H1.
+     *
+     * @param bitboard the bitboard representation for one color
+     * @return         diagonal H1-A8 copied to row one, all other position are set to zero
+     */
+    private static int transformDiagonalH1A8InRow0(final long bitboard) {
+        long tmp = bitboard;
+        tmp &= DIAGONAL_H1_A8;
+        tmp |= tmp >> MAGIC_NUMBER_32;
+        tmp |= tmp >> MAGIC_NUMBER_16;
+        tmp |= tmp >> MAGIC_NUMBER_8;
+        return (int) tmp & BYTE_MASK_FOR_INT;
+    }
+
+    /**
+     * Returns an int having the bits from position 8 to position 31 set to zero,
+     * and the bits from position 0 to position 7, corresponding to Row One in the board,
+     * transformed from:
+     * <ul>
+     *   <li>ROW 1 for the HO axis.</li>
+     *   <li>COLUMN A for the VE axis.</li>
+     *   <li>DIAGONAL A1-H8 for the DD axis.</li>
+     *   <li>DIAGONAL A8-H1 for the DU axis.</li>
+     * </ul>
+     *
+     * @param squares the set of board squares packed in a long field
+     * @return        the transformed file
+     */
+    public abstract int transformToRowOne(final long squares);
 
 }
