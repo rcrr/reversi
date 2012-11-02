@@ -64,9 +64,6 @@ public class BitBoard1 extends BitBoard {
     /** Caches the direction enum values in a local array. */
     private static final Direction[] DIRECTION_VALUES = Direction.values();
 
-    /** Caches the direction's shift values in a local array. */
-    private static final int[] DIRECTION_SHIFTS = Direction.shifts();
-
     /** Caches the square enum values in a local array. */
     private static final Square[] SQUARE_VALUES = Square.values();
 
@@ -75,18 +72,6 @@ public class BitBoard1 extends BitBoard {
 
     /** A bitboard being all set with the exception of column H. */
     private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0x7F7F7F7F7F7F7F7FL;
-
-    /** A bitboard being set on column A. */
-    private static final long COLUMN_A = 0x0101010101010101L;
-
-    /** A bitboard being set on diagonal A1-H8. */
-    private static final long DIAGONAL_A1_H8 = 0x8040201008040201L;
-
-    /** A bitboard being set on diagonal H1-A8. */
-    private static final long DIAGONAL_H1_A8 = 0x0102040810204080L;
-
-    /** A bitboard being set on diagonal H1-A8. */
-    private static final long SQUARES_B1_F1_A2_E2 = 0x1122;
 
     /** Macic number 3. */
     private static final int MAGIC_NUMBER_3 = 3;
@@ -97,17 +82,8 @@ public class BitBoard1 extends BitBoard {
     /** Macic number 8. */
     private static final int MAGIC_NUMBER_8 = 8;
 
-    /** Macic number 14. */
-    private static final int MAGIC_NUMBER_14 = 14;
-
     /** Macic number 16. */
     private static final int MAGIC_NUMBER_16 = 16;
-
-    /** Macic number 28. */
-    private static final int MAGIC_NUMBER_28 = 28;
-
-    /** Macic number 32. */
-    private static final int MAGIC_NUMBER_32 = 32;
 
     /** Macic number 256. */
     private static final int MAGIC_NUMBER_256 = 256;
@@ -314,60 +290,6 @@ public class BitBoard1 extends BitBoard {
     }
 
     /**
-     * Returns a long having the bits along the colomn A set to the corresponding ones
-     * on the {@code bitrow} parameter.
-     * Bits ranging from 8 to 31 in the {@code bitrow} parameter must be 0.
-     * Bit value corresponding to square A1 is moved to A1, B1 to A2, ... , H1 to A8.
-     *
-     * @param bitrow bits 0 to 7 represents row one, bits forom position 8 to 31 must be 0
-     * @return       a bitboard having column A set as the bitboard parameter,
-     *               all other position are set to zero
-     */
-    private static long reTransformRow0BackToColumnA(final int bitrow) {
-        int tmp = bitrow;
-        tmp |= tmp << MAGIC_NUMBER_7;
-        tmp |= tmp << MAGIC_NUMBER_14;
-        final long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_28);
-        return bitboard & COLUMN_A;
-    }
-
-    /**
-     * Returns a long having the bits along the diagonal A1-H8 set to the corresponding ones
-     * on the {@code bitrow} parameter.
-     * Bits ranging from 8 to 31 in the {@code bitrow} parameter must be 0.
-     * Bit value corresponding to square A1 is moved to A1, B1 to B2, ... , H1 to H8.
-     *
-     * @param bitrow bits 0 to 7 represents row one, bits forom position 8 to 31 must be 0
-     * @return       a bitboard having diagonal A1-H8 set as the bitboard parameter,
-     *               all other position are set to zero
-     */
-    private static long reTransformRow0BackToDiagonalA1H8(final int bitrow) {
-        int tmp = bitrow;
-        tmp |= tmp << MAGIC_NUMBER_8;
-        long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_16);
-        bitboard |= bitboard << MAGIC_NUMBER_32;
-        return bitboard & DIAGONAL_A1_H8;
-    }
-
-    /**
-     * Returns a long having the bits along the diagonal H1-A8 set to the corresponding ones
-     * on the {@code bitrow} parameter.
-     * Bits ranging from 8 to 31 in the {@code bitrow} parameter must be 0.
-     * Bit value corresponding to square A1 is moved to A8, B1 to B7, ... , H1 to H1.
-     *
-     * @param bitrow bits 0 to 7 represents row one, bits forom position 8 to 31 must be 0
-     * @return       a bitboard having diagonal H1-A8 set as the bitboard parameter,
-     *               all other position are set to zero
-     */
-    private static long reTransformRow0BackToDiagonalH1A8(final int bitrow) {
-        int tmp = bitrow;
-        tmp |= tmp << MAGIC_NUMBER_8;
-        tmp |= (tmp & SQUARES_B1_F1_A2_E2) << MAGIC_NUMBER_16;
-        final long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_32);
-        return bitboard & DIAGONAL_H1_A8;
-    }
-
-    /**
      * Lazily initialized, cached legalMoves.
      * In case of a multi-threaded use must be applied a ReadWriteLock on this field.
      */
@@ -547,8 +469,8 @@ public class BitBoard1 extends BitBoard {
         opponentBitrow = Axis.VE.transformToRowOne(opponentBitboard >>> column);
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, row);
         opponentBitrow &= ~playerBitrow;
-        newbitboard[player]   |= reTransformRow0BackToColumnA(playerBitrow) << column;
-        newbitboard[opponent] |= reTransformRow0BackToColumnA(opponentBitrow) << column;
+        newbitboard[player]   |= Axis.VE.transformBackFromRowOne(playerBitrow)   << column;
+        newbitboard[opponent] |= Axis.VE.transformBackFromRowOne(opponentBitrow) << column;
 
         /** Compute changes on diagonal having direction A1-H8. */
         shiftDistance = (column - row) << MAGIC_NUMBER_3;
@@ -556,8 +478,8 @@ public class BitBoard1 extends BitBoard {
         opponentBitrow = Axis.DD.transformToRowOne(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        newbitboard[player]   |= BitWorks.signedLeftShift(reTransformRow0BackToDiagonalA1H8(playerBitrow), -shiftDistance);
-        newbitboard[opponent] |= BitWorks.signedLeftShift(reTransformRow0BackToDiagonalA1H8(opponentBitrow), -shiftDistance);
+        newbitboard[player]   |= BitWorks.signedLeftShift(Axis.DD.transformBackFromRowOne(playerBitrow),   -shiftDistance);
+        newbitboard[opponent] |= BitWorks.signedLeftShift(Axis.DD.transformBackFromRowOne(opponentBitrow), -shiftDistance);
 
         /** Compute changes on diagonal having direction H1-A8. */
         shiftDistance = (MAGIC_NUMBER_7 - column - row) << MAGIC_NUMBER_3;
@@ -565,8 +487,8 @@ public class BitBoard1 extends BitBoard {
         opponentBitrow = Axis.DU.transformToRowOne(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         playerBitrow = bitrowChangesForPlayer(playerBitrow, opponentBitrow, column);
         opponentBitrow &= ~playerBitrow;
-        newbitboard[player]   |= BitWorks.signedLeftShift(reTransformRow0BackToDiagonalH1A8(playerBitrow), -shiftDistance);
-        newbitboard[opponent] |= BitWorks.signedLeftShift(reTransformRow0BackToDiagonalH1A8(opponentBitrow), -shiftDistance);
+        newbitboard[player]   |= BitWorks.signedLeftShift(Axis.DU.transformBackFromRowOne(playerBitrow),   -shiftDistance);
+        newbitboard[opponent] |= BitWorks.signedLeftShift(Axis.DU.transformBackFromRowOne(opponentBitrow), -shiftDistance);
 
         return newbitboard;
     }
