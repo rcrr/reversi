@@ -33,7 +33,17 @@ public enum Axis {
     /**
      * Horizontal axis (W-E).
      */
-    HO { @Override public int transformToRowOne(final long squares) { return 0; } },
+    HO {
+        @Override
+        public int transformToRowOne(final long squares) {
+            return 0;
+        }
+
+        @Override
+        public long transformBackFromRowOne(final int bitrow) {
+            return 0L;
+        }
+    },
 
     /**
      * Vertical axis (N-S).
@@ -42,6 +52,11 @@ public enum Axis {
         @Override
         public int transformToRowOne(final long squares) {
             return transformColumnAInRow0(squares);
+        }
+
+        @Override
+        public long transformBackFromRowOne(final int bitrow) {
+            return reTransformRow0BackToColumnA(bitrow);
         }
     },
 
@@ -53,6 +68,11 @@ public enum Axis {
         public int transformToRowOne(final long squares) {
             return transformDiagonalA1H8InRow0(squares);
         }
+
+        @Override
+        public long transformBackFromRowOne(final int bitrow) {
+            return reTransformRow0BackToDiagonalA1H8(bitrow);
+        }
     },
 
     /**
@@ -63,6 +83,11 @@ public enum Axis {
         public int transformToRowOne(final long squares)
         {
             return transformDiagonalH1A8InRow0(squares);
+        }
+
+        @Override
+        public long transformBackFromRowOne(final int bitrow) {
+            return reTransformRow0BackToDiagonalH1A8(bitrow);
         }
     };
 
@@ -101,6 +126,63 @@ public enum Axis {
 
     /** A bitboard being set on diagonal H1-A8. */
     private static final long DIAGONAL_H1_A8 = 0x0102040810204080L;
+
+    /** A bitboard being set on diagonal H1-A8. */
+    private static final long SQUARES_B1_F1_A2_E2 = 0x1122;
+
+    /**
+     * Returns a long having the bits along the colomn A set to the corresponding ones
+     * on the {@code bitrow} parameter.
+     * Bits ranging from 8 to 31 in the {@code bitrow} parameter must be 0.
+     * Bit value corresponding to square A1 is moved to A1, B1 to A2, ... , H1 to A8.
+     *
+     * @param bitrow bits 0 to 7 represents row one, bits forom position 8 to 31 must be 0
+     * @return       a bitboard having column A set as the bitboard parameter,
+     *               all other position are set to zero
+     */
+    private static long reTransformRow0BackToColumnA(final int bitrow) {
+        int tmp = bitrow;
+        tmp |= tmp << MAGIC_NUMBER_7;
+        tmp |= tmp << MAGIC_NUMBER_14;
+        final long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_28);
+        return bitboard & COLUMN_A;
+    }
+
+    /**
+     * Returns a long having the bits along the diagonal A1-H8 set to the corresponding ones
+     * on the {@code bitrow} parameter.
+     * Bits ranging from 8 to 31 in the {@code bitrow} parameter must be 0.
+     * Bit value corresponding to square A1 is moved to A1, B1 to B2, ... , H1 to H8.
+     *
+     * @param bitrow bits 0 to 7 represents row one, bits forom position 8 to 31 must be 0
+     * @return       a bitboard having diagonal A1-H8 set as the bitboard parameter,
+     *               all other position are set to zero
+     */
+    private static long reTransformRow0BackToDiagonalA1H8(final int bitrow) {
+        int tmp = bitrow;
+        tmp |= tmp << MAGIC_NUMBER_8;
+        long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_16);
+        bitboard |= bitboard << MAGIC_NUMBER_32;
+        return bitboard & DIAGONAL_A1_H8;
+    }
+
+    /**
+     * Returns a long having the bits along the diagonal H1-A8 set to the corresponding ones
+     * on the {@code bitrow} parameter.
+     * Bits ranging from 8 to 31 in the {@code bitrow} parameter must be 0.
+     * Bit value corresponding to square A1 is moved to A8, B1 to B7, ... , H1 to H1.
+     *
+     * @param bitrow bits 0 to 7 represents row one, bits forom position 8 to 31 must be 0
+     * @return       a bitboard having diagonal H1-A8 set as the bitboard parameter,
+     *               all other position are set to zero
+     */
+    private static long reTransformRow0BackToDiagonalH1A8(final int bitrow) {
+        int tmp = bitrow;
+        tmp |= tmp << MAGIC_NUMBER_8;
+        tmp |= (tmp & SQUARES_B1_F1_A2_E2) << MAGIC_NUMBER_16;
+        final long bitboard = (long) tmp | ((long) tmp << MAGIC_NUMBER_32);
+        return bitboard & DIAGONAL_H1_A8;
+    }
 
     /**
      * Returns an int having the bits from position 8 to position 31 set to zero,
@@ -171,5 +253,7 @@ public enum Axis {
      * @return        the transformed file
      */
     public abstract int transformToRowOne(final long squares);
+
+    public abstract long transformBackFromRowOne(final int bitrow);
 
 }
