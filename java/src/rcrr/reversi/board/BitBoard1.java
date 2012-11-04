@@ -67,6 +67,9 @@ public class BitBoard1 extends BitBoard {
     /** Caches the square enum values in a local array. */
     private static final Square[] SQUARE_VALUES = Square.values();
 
+    /** Caches the axis enum values in a local array. */
+    private static final Axis[] AXIS_VALUES = Axis.values();
+
     /** A bitboard being all set with the exception of column A. */
     private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0xFEFEFEFEFEFEFEFEL;
 
@@ -356,11 +359,6 @@ public class BitBoard1 extends BitBoard {
      * Parameter {@code move} must have one bit set.
      * Parameter {@code player} must be either {@code 0} or {@code 1}.
      *
-     * A few more optimizations are possible:
-     * Organize the four axis checks into a loop. It is more elegant but saves time?
-     * Precompute the shiftDistance value.
-     * Eliminate the check for diagonals shorter than 3 pieces.
-     *
      * @param move   the square where to put the new disk
      * @param player the player moving
      * @return       true if the move is legal, otherwise false
@@ -380,36 +378,57 @@ public class BitBoard1 extends BitBoard {
         final int column = xy[0];
         final int row    = xy[1];
 
+        /**
+         * The following commented loop is the code as it should be.
+         * Unluckly it is 70% slover than the proposed code.
+         * Reasons are:
+         * - The loop introduces overhead.
+         * - The axis methods are fair for DD and DU, introduce a bit of inefficiency for VE,
+         *   are more penalizing for HO, where the explosion of the code locally enable elisions and semplifications.
+         *
+         * Optimizations are:
+         * - Method moveOrdinalPositionInBitrow is "inlined".
+         */
+
+        /**
+        for (final Axis axis : AXIS_VALUES) {
+            final int moveOrdPosition = axis.moveOrdinalPositionInBitrow(column, row);
+            final int shiftDistance   = axis.shiftDistance(column, row);
+            final int playerBitrow    = axis.transformToRowOne(BitWorks.signedLeftShift(playerBitboard,   shiftDistance));
+            final int opponentBitrow  = axis.transformToRowOne(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+            if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, moveOrdPosition) != playerBitrow) {
+                return true;
+            }
+        }
+        */
+
         int playerBitrow;
         int opponentBitrow;
         int shiftDistance;
 
-        /** Check for flipping on row. */
-        playerBitrow = (int) (playerBitboard >>> (MAGIC_NUMBER_8 * row)) & BYTE_MASK_FOR_INT;
-        opponentBitrow = (int) (opponentBitboard >>> (MAGIC_NUMBER_8 * row)) & BYTE_MASK_FOR_INT;
+        final int rightShiftForHO = MAGIC_NUMBER_8 * row;
+        playerBitrow    = Axis.HO.transformToRowOne(playerBitboard   >>> rightShiftForHO);
+        opponentBitrow  = Axis.HO.transformToRowOne(opponentBitboard >>> rightShiftForHO);
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
 
-        /** Check for flipping on column. */
-        playerBitrow   = Axis.VE.transformToRowOne(playerBitboard   >>> column);
-        opponentBitrow = Axis.VE.transformToRowOne(opponentBitboard >>> column);
+        playerBitrow    = Axis.VE.transformToRowOne(playerBitboard   >>> column);
+        opponentBitrow  = Axis.VE.transformToRowOne(opponentBitboard >>> column);
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, row) != playerBitrow) {
             return true;
         }
 
-        /** Check for flipping on diagonal having direction A1-H8. */
-        shiftDistance = (column - row) << MAGIC_NUMBER_3;
-        playerBitrow =   Axis.DD.transformToRowOne(BitWorks.signedLeftShift(playerBitboard,   shiftDistance));
-        opponentBitrow = Axis.DD.transformToRowOne(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        shiftDistance   = Axis.DD.shiftDistance(column, row);
+        playerBitrow    = Axis.DD.transformToRowOne(BitWorks.signedLeftShift(playerBitboard,   shiftDistance));
+        opponentBitrow  = Axis.DD.transformToRowOne(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
 
-        /** Check for flipping on diagonal having direction H1-A8. */
-        shiftDistance = (MAGIC_NUMBER_7 - column - row) << MAGIC_NUMBER_3;
-        playerBitrow =   Axis.DU.transformToRowOne(BitWorks.signedLeftShift(playerBitboard,   shiftDistance));
-        opponentBitrow = Axis.DU.transformToRowOne(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+        shiftDistance   = Axis.DU.shiftDistance(column, row);
+        playerBitrow    = Axis.DU.transformToRowOne(BitWorks.signedLeftShift(playerBitboard,   shiftDistance));
+        opponentBitrow  = Axis.DU.transformToRowOne(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
         if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, column) != playerBitrow) {
             return true;
         }
