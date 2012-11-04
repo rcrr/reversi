@@ -35,13 +35,23 @@ public enum Axis {
      */
     HO {
         @Override
+        public int moveOrdinalPositionInBitrow(final int column, final int row) {
+            return column;
+        };
+
+        @Override
+        public int shiftDistance(final int column, final int row) {
+            return MAGIC_NUMBER_8 * -row;
+        }
+
+        @Override
         public int transformToRowOne(final long squares) {
-            return 0;
+            return ((int) squares) & BYTE_MASK_FOR_INT;
         }
 
         @Override
         public long transformBackFromRowOne(final int bitrow) {
-            return 0L;
+            return (long) bitrow;
         }
     },
 
@@ -49,6 +59,16 @@ public enum Axis {
      * Vertical axis (N-S).
      */
     VE {
+        @Override
+        public int moveOrdinalPositionInBitrow(final int column, final int row) {
+            return row;
+        };
+
+        @Override
+        public int shiftDistance(final int column, final int row) {
+            return -column;
+        }
+
         @Override
         public int transformToRowOne(final long squares) {
             return transformColumnAInRow0(squares);
@@ -65,6 +85,16 @@ public enum Axis {
      */
     DD {
         @Override
+        public int moveOrdinalPositionInBitrow(final int column, final int row) {
+            return column;
+        };
+
+        @Override
+        public int shiftDistance(final int column, final int row) {
+            return (column - row) << MAGIC_NUMBER_3;
+        }
+
+        @Override
         public int transformToRowOne(final long squares) {
             return transformDiagonalA1H8InRow0(squares);
         }
@@ -79,6 +109,16 @@ public enum Axis {
      * Diagonal Up axis (NE-SW), A8-H1.
      */
     DU {
+        @Override
+        public int moveOrdinalPositionInBitrow(final int column, final int row) {
+            return column;
+        };
+
+        @Override
+        public int shiftDistance(final int column, final int row) {
+            return (MAGIC_NUMBER_7 - column - row) << MAGIC_NUMBER_3;
+        }
+
         @Override
         public int transformToRowOne(final long squares)
         {
@@ -102,6 +142,9 @@ public enum Axis {
 
     /** A bitboard being set on column A. */
     private static final long COLUMN_A = 0x0101010101010101L;
+
+    /** Macic number 3. */
+    private static final int MAGIC_NUMBER_3 = 3;
 
     /** Macic number 7. */
     private static final int MAGIC_NUMBER_7 = 7;
@@ -256,4 +299,7 @@ public enum Axis {
 
     public abstract long transformBackFromRowOne(final int bitrow);
 
+    public abstract int shiftDistance(final int column, final int row);
+
+    public abstract int moveOrdinalPositionInBitrow(final int column, final int row);
 }
