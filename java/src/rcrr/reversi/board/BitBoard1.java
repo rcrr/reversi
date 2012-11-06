@@ -388,6 +388,8 @@ public class BitBoard1 extends BitBoard {
          *
          * Optimizations are:
          * - Method moveOrdinalPositionInBitrow is "inlined".
+         * - Method shiftDistance is "inlined" for the HO and VE axes.
+         * - Method signedLeftShift is "inlined" for the HO and VE axes.
          */
 
         /**
