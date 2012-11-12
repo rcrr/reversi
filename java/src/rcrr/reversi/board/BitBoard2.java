@@ -150,13 +150,14 @@ public final class BitBoard2 extends BitBoard1 {
         if (hasLegalMovesBeenComputed(player)) {
             result = legalMovesCache(player);
         } else {
+            final int opponent = opponent(player);
             for (final Direction dir : DIRECTION_VALUES) {
                 final Direction opp = dir.opposite();
-                long wave = shift(empties(), dir) & bitboard()[opponent(player)];
+                long wave = shift(empties(), dir) & bitboard(opponent);
                 for (int shift = MAGIC_NUMBER_2; shift < MAGIC_NUMBER_8; shift++) {
                     wave = shift(wave, dir);
-                    result |= shift((wave & bitboard()[player]), opp, shift);
-                    wave &= bitboard()[opponent(player)];
+                    result |= shift((wave & bitboard(player)), opp, shift);
+                    wave &= bitboard(opponent);
                     if (wave == 0L) { break; }
                 }
             }
