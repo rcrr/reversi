@@ -138,6 +138,17 @@ public final class BitBoard2 extends BitBoard1 {
     }
 
     /**
+     * TODO: Axis.java
+     * - get rid of the trasform and reTrasform methods ...
+     *
+     * TODO: legalMoves
+     * - Shift method has to go into Direction enum.
+     * - Opposite method has to be refactored in Direction.java.
+     * - Outher loop (on Direction) has to be unrolled.
+     * - Inner loop (on shift) has to be smarter, how is not clear.
+     */
+
+    /**
      * The core method of this class. Implements the legal moves call by waveing the potential
      * legal moves up to the bracketing pieces. Directions are computed one by one, squares work
      * in parallel.
