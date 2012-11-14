@@ -48,35 +48,75 @@ public enum Direction {
     /**
      * North-West direction.
      */
-    NW(Axis.DD, Versus.NEGATIVE, -9),
+    NW(Axis.DD, Versus.NEGATIVE, -9) {
+        @Override
+        public Direction opposite() {
+            return SE;
+        };
+    },
     /**
      * North direction.
      */
-    N(Axis.VE, Versus.NEGATIVE, -8),
+    N(Axis.VE, Versus.NEGATIVE, -8) {
+        @Override
+        public Direction opposite() {
+            return S;
+        };
+    },
     /**
      * North-East direction.
      */
-    NE(Axis.DU, Versus.NEGATIVE, -7),
+    NE(Axis.DU, Versus.NEGATIVE, -7) {
+        @Override
+        public Direction opposite() {
+            return SW;
+        };
+    },
     /**
      * West direction.
      */
-    W(Axis.HO, Versus.NEGATIVE, -1),
+    W(Axis.HO, Versus.NEGATIVE, -1) {
+        @Override
+        public Direction opposite() {
+            return E;
+        };
+    },
     /**
      * East direction.
      */
-    E(Axis.HO, Versus.POSITIVE, +1),
+    E(Axis.HO, Versus.POSITIVE, +1) {
+        @Override
+        public Direction opposite() {
+            return W;
+        };
+    },
     /**
      * South-West direction.
      */
-    SW(Axis.DU, Versus.POSITIVE, +7),
+    SW(Axis.DU, Versus.POSITIVE, +7) {
+        @Override
+        public Direction opposite() {
+            return NE;
+        };
+    },
     /**
      * South direction.
      */
-    S(Axis.VE, Versus.POSITIVE, +8),
+    S(Axis.VE, Versus.POSITIVE, +8) {
+        @Override
+        public Direction opposite() {
+            return N;
+        };
+    },
     /**
      * South-East direction.
      */
-    SE(Axis.DD, Versus.POSITIVE, +9);
+    SE(Axis.DD, Versus.POSITIVE, +9) {
+        @Override
+        public Direction opposite() {
+            return NW;
+        };
+    };
 
     /** The null direction. */
     public static final Direction NULL = null;
@@ -138,19 +178,7 @@ public enum Direction {
      *
      * @return the opposite direction
      */
-    public Direction opposite() {
-        switch (this) {
-        case NW: return SE;
-        case N:  return S;
-        case NE: return SW;
-        case W:  return E;
-        case SE: return NW;
-        case S:  return N;
-        case SW: return NE;
-        case E:  return W;
-        default: throw new IllegalArgumentException("Undefined value for direction. this=" + this);
-        }
-    }
+    public abstract Direction opposite();
 
     /**
      * Returns the shift to apply when moving on the ordered sequence of squares.
