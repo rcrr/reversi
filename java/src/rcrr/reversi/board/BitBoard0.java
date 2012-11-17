@@ -141,7 +141,7 @@ public final class BitBoard0 extends BitBoard {
         for (final Direction dir : move.capableToFlipDirections()) {
             final long bracketer = wouldFlip(bitmove, player, dir);
             if (bracketer != 0L) {
-                for (long c = shift(bitmove, dir); true; c = shift(c, dir)) {
+                for (long c = dir.shiftBitboard(bitmove); true; c = dir.shiftBitboard(c)) {
                     if (c == bracketer) { break; }
                     newbitboard[p] |= c;
                     newbitboard[o] &= ~c;
@@ -165,7 +165,7 @@ public final class BitBoard0 extends BitBoard {
         if ((square & bitboard()[player]) != 0L) {
             return square;
         } else if ((square & bitboard()[opponent(player)]) != 0L) {
-            long next = shift(square, dir);
+            long next = dir.shiftBitboard(square);
             if (next != 0L) {
                 return findBracketingPiece(next, player, dir);
             }
@@ -189,11 +189,11 @@ public final class BitBoard0 extends BitBoard {
      */
     private long wouldFlip(final long move, final Player player, final Direction dir) {
         long bracketing = 0L;
-        long neighbor = shift(move, dir);
+        long neighbor = dir.shiftBitboard(move);
         final int intPlayer = player.ordinal();
         final int intOpponent = intPlayer ^ WHITE;
         if ((neighbor & bitboard()[intOpponent]) != 0L) {
-            long next = shift(neighbor, dir);
+            long next = dir.shiftBitboard(neighbor);
             if (next != 0L) {
                 bracketing = findBracketingPiece(next, intPlayer, dir);
             }

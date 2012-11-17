@@ -127,6 +127,48 @@ public enum Direction {
     /** The number of directions. */
     public static final int NUMBER_OF = values().length;
 
+    /** A bitboard being all set with the exception of column A. */
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_A = 0xFEFEFEFEFEFEFEFEL;
+
+    /** A bitboard being all set with the exception of column H. */
+    private static final long ALL_SQUARES_EXCEPT_COLUMN_H = 0x7F7F7F7F7F7F7F7FL;
+
+    /**
+     * Nine squares configurations arranged in an array. Position 0 is all set.
+     * Position 1 has columns B, C, D, E, F, G, H set, column A is empty.
+     * Position 2 has columns C, D, E, F, G, H set, column A and B are empty.
+     * Positions 3 to 7 follow the same pattern, up to position 8 that has all empies.
+     */
+    private static final long[] ALL_SQUARES_EXCEPT_LEFT_COLUMNS = {
+        0xFFFFFFFFFFFFFFFFL, 0xFEFEFEFEFEFEFEFEL, 0xFCFCFCFCFCFCFCFCL,
+        0xF8F8F8F8F8F8F8F8L, 0xF0F0F0F0F0F0F0F0L, 0xE0E0E0E0E0E0E0E0L,
+        0xC0C0C0C0C0C0C0C0L, 0x8080808080808080L, 0x0000000000000000L
+    };
+
+    /**
+     * Nine squares configurations arranged in an array. Position 0 is all set.
+     * Position 1 has columns A, B, C, D, E, F, G set, column H is empty.
+     * Position 2 has columns A, B, C, D, E, F, set, column G and H are empty.
+     * Positions 3 to 7 follow the same pattern, up to position 8 that has all empies.
+     */
+    private static final long[] ALL_SQUARES_EXCEPT_RIGTH_COLUMNS = {
+        0xFFFFFFFFFFFFFFFFL, 0x7F7F7F7F7F7F7F7FL, 0x3F3F3F3F3F3F3F3FL,
+        0x1F1F1F1F1F1F1F1FL, 0x0F0F0F0F0F0F0F0FL, 0x0707070707070707L,
+        0x0303030303030303L, 0x0101010101010101L, 0x0000000000000000L
+    };
+
+    /** Shifts 1 position. */
+    private static final int SHIFT_1 = 1;
+
+    /** Shifts 9 positions, 8 - 1. */
+    private static final int SHIFT_7 = 7;
+
+    /** Shifts 8 positions. */
+    private static final int SHIFT_8 = 8;
+
+    /** Shifts 9 positions, 8 + 1. */
+    private static final int SHIFT_9 = 9;
+
     /** axis field. */
     private final Axis axis;
 
@@ -188,6 +230,52 @@ public enum Direction {
      * @see Square
      */
     public int shift() { return shift; }
+
+    /**
+     * Returns a new long value by shifting the {@code squares} parameter by one position
+     * on the board.
+     *
+     * @param squares the squares set on the bitboard
+     * @return        the shifted squares
+     */
+    public long shiftBitboard(final long squares) {
+        switch (this) {
+        case NW: return (squares >>> SHIFT_9) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case N:  return (squares >>> SHIFT_8);
+        case NE: return (squares >>> SHIFT_7) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case W:  return (squares >>> SHIFT_1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case E:  return (squares <<  SHIFT_1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        case SW: return (squares <<  SHIFT_7) & ALL_SQUARES_EXCEPT_COLUMN_H;
+        case S:  return (squares <<  SHIFT_8);
+        case SE: return (squares <<  SHIFT_9) & ALL_SQUARES_EXCEPT_COLUMN_A;
+        default: throw new IllegalArgumentException("Undefined value for direction. dir=" + this);
+        }
+    }
+
+    /**
+     * Returns a new long value by shifting the {@code squares} parameter on the board, by a number of positions
+     * as given by the {@code amount} parameter.
+     * <p>
+     * Amount must be in the 0..8 range, meaning that 0 is equal to no shift, 1 is on position,
+     * and 8 always return an empy squares.
+     *
+     * @param squares the squares set on the bitboard
+     * @param amount  the amount to shift
+     * @return        the shifted squares
+     */
+    public long shiftBitboard(final long squares, final int amount) {
+        switch (this) {
+        case NW: return (squares >>> (SHIFT_9 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case N:  return (squares >>> (SHIFT_8 * amount));
+        case NE: return (squares >>> (SHIFT_7 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
+        case W:  return (squares >>> (SHIFT_1 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case E:  return (squares <<  (SHIFT_1 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
+        case SW: return (squares <<  (SHIFT_7 * amount)) & ALL_SQUARES_EXCEPT_RIGTH_COLUMNS[amount];
+        case S:  return (squares <<  (SHIFT_8 * amount));
+        case SE: return (squares <<  (SHIFT_9 * amount)) & ALL_SQUARES_EXCEPT_LEFT_COLUMNS[amount];
+        default: throw new IllegalArgumentException("Undefined value for direction. dir=" + this);
+        }
+    }
 
     /**
      * Returns the versus defined by the direction on the axis associated with it.

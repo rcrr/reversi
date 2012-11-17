@@ -142,7 +142,7 @@ public final class BitBoard2 extends BitBoard1 {
      * - DONE - get rid of the trasform and reTrasform methods ...
      *
      * TODO: legalMoves
-     * - Shift method has to go into Direction enum.
+     * - DONE - Shift method has to go into Direction enum.
      * - DONE - Opposite method has to be refactored in Direction.java.
      * - Outher loop (on Direction) has to be unrolled.
      * - Inner loop (on shift) has to be smarter, how is not clear.
@@ -164,10 +164,10 @@ public final class BitBoard2 extends BitBoard1 {
             final int opponent = opponent(player);
             for (final Direction dir : DIRECTION_VALUES) {
                 final Direction opposite = dir.opposite();
-                long wave = shift(empties(), dir) & bitboard(opponent);
+                long wave = dir.shiftBitboard(empties()) & bitboard(opponent);
                 for (int shift = MAGIC_NUMBER_2; shift < MAGIC_NUMBER_8; shift++) {
-                    wave = shift(wave, dir);
-                    result |= shift((wave & bitboard(player)), opposite, shift);
+                    wave = dir.shiftBitboard(wave);
+                    result |= opposite.shiftBitboard((wave & bitboard(player)), shift);
                     wave &= bitboard(opponent);
                     if (wave == 0L) { break; }
                 }
