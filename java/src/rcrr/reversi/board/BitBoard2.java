@@ -162,14 +162,18 @@ public final class BitBoard2 extends BitBoard1 {
             result = legalMovesCache(player);
         } else {
             final int opponent = opponent(player);
+            final long empties = empties();
+            final long pBitboard = bitboard(player);
+            final long oBitboard = bitboard(opponent);
             for (final Direction dir : DIRECTION_VALUES) {
                 final Direction opposite = dir.opposite();
-                long wave = dir.shiftBitboard(empties()) & bitboard(opponent);
-                for (int shift = MAGIC_NUMBER_2; shift < MAGIC_NUMBER_8; shift++) {
+                long wave = dir.shiftBitboard(empties) & oBitboard;
+                int shift = 1;
+                while (wave != 0L) {
                     wave = dir.shiftBitboard(wave);
-                    result |= opposite.shiftBitboard((wave & bitboard(player)), shift);
-                    wave &= bitboard(opponent);
-                    if (wave == 0L) { break; }
+                    shift++;
+                    result |= opposite.shiftBitboard((wave & pBitboard), shift);
+                    wave &= oBitboard;
                 }
             }
             setLegalMovesCache(player, result);
