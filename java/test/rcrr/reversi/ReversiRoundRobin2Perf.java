@@ -39,6 +39,7 @@ import rcrr.reversi.board.BitBoard;
 import rcrr.reversi.board.BitBoard0;
 import rcrr.reversi.board.BitBoard1;
 import rcrr.reversi.board.BitBoard2;
+import rcrr.reversi.board.BitBoard3;
 
 /**
  * Test Suite for reversi general performances, using Minimax and a very simple eval function.
@@ -102,6 +103,7 @@ public class ReversiRoundRobin2Perf {
         System.out.println("BitBoard0.printLog() = " + BitBoard0.printLog());
         System.out.println("BitBoard1.printLog() = " + BitBoard1.printLog());
         System.out.println("BitBoard2.printLog() = " + BitBoard2.printLog());
+        System.out.println("BitBoard3.printLog() = " + BitBoard3.printLog());
 
         assertTrue("The test must run without exceptions.", true);
 
