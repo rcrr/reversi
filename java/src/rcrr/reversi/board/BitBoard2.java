@@ -56,12 +56,6 @@ public final class BitBoard2 extends BitBoard1 {
     /** Caches the direction enum values in a local array. */
     private static final Direction[] DIRECTION_VALUES = Direction.values();
 
-    /** Macic number 2. */
-    private static final int MAGIC_NUMBER_2 = 2;
-
-    /** Macic number 8. */
-    private static final int MAGIC_NUMBER_8 = 8;
-
     /**
      * Returns info for performance statistics.
      *
@@ -136,17 +130,6 @@ public final class BitBoard2 extends BitBoard1 {
         makeMoveInvariantsAreSatisfied(move, player);
         return valueOf(makeMoveImpl(move, player.ordinal()));
     }
-
-    /**
-     * TODO: Axis.java
-     * - DONE - get rid of the trasform and reTrasform methods ...
-     *
-     * TODO: legalMoves
-     * - DONE - Shift method has to go into Direction enum.
-     * - DONE - Opposite method has to be refactored in Direction.java.
-     * - Outher loop (on Direction) has to be unrolled.
-     * - Inner loop (on shift) has to be smarter, how is not clear.
-     */
 
     /**
      * The core method of this class. Implements the legal moves call by waveing the potential
