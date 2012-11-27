@@ -170,8 +170,24 @@ public final class BitBoard3 extends BitBoard1 {
 
     private long legalMoves(final int player) {
         long result = 0L;
-        for (final Line2 line : LINE2_VALUES) {
-            ;
+        if (hasLegalMovesBeenComputed(player)) {
+            result = legalMovesCache(player);
+        } else {
+            final int opponent = opponent(player);
+            final long empties = empties();
+            final long pBitboard = bitboard(player);
+            final long oBitboard = bitboard(opponent);
+            for (final Line2 line : LINE2_VALUES) {
+                ;
+                // compute line index
+                // get legal moves
+                // add legal moves on result
+                ;
+            }
+            /* has to be activated when the result field is computed by the loop
+            setLegalMovesCache(player, result);
+            setHasLegalMovesBeenComputed(player, true);
+            */
         }
         return legalMoves_(player);
     }
