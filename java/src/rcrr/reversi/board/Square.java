@@ -380,6 +380,26 @@ public enum Square {
     }
 
     /**
+     * Returns a mask for the board having set the bits corresponding to the {@code squares} parameter.
+     * <p>
+     * Parameter {@code squares} cannot be {@code null}.
+     *
+     * @param squares a list of squares
+     * @return        a long representation of the squares parameter
+     * @throws NullPointerException if the squares parameter is null
+     **/
+    public static long toBitmask(final List<Square> squares) {
+        if (squares == null) {
+            throw new NullPointerException("Parameter squares cannot be null.");
+        }
+        long result = 0L;
+        for (final Square sq : squares) {
+            result |= 1L << sq.ordinal();
+        }
+        return result;
+    }
+
+    /**
      * Computes the neighborTable.
      *
      * @return the neighbor table
