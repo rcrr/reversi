@@ -180,9 +180,11 @@ public final class BitBoard3 extends BitBoard1 {
             for (final Line2 line : LINE2_VALUES) {
                 ;
                 // compute line index
+                final int lineIndex = line.index(pBitboard, oBitboard);
                 // get legal moves
+                final long lm = line.legalMoves(lineIndex);
                 // add legal moves on result
-                ;
+                result |= lm;
             }
             /* has to be activated when the result field is computed by the loop
             setLegalMovesCache(player, result);

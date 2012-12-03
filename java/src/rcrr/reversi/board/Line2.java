@@ -130,6 +130,18 @@ public enum Line2 {
         */
     }
 
+    /** TO BE IMPLEMENTED. */
+    public long legalMoves(final int index) {
+        return 0L;
+    }
+
+    /** TO BE IMPLEMENTED. */
+    public int index(final long playerBitboard, final long opponentBitboard) {
+        final long p = playerBitboard;
+        final long o = opponentBitboard;
+        return 0;
+    }
+
     public int order() {
         return this.order;
     }
