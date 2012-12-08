@@ -26,6 +26,8 @@ package rcrr.reversi.board;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.assertThat;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -39,15 +41,70 @@ public class Line2Test {
     public Line2Test() { }
 
     /**
-     * Tests the {@code symbol()} method.
+     * Tests the {@code axis()} method.
      *
-     * @see SquareState#symbol()
+     * @see Line2#axis()
      */
     @Test
     public final void testAxis() {
         assertThat("Line2.A1_A8.axis() is VE.",
                    Line2.A1_A8.axis(),
                    is(Axis.VE));
+    }
+
+    /**
+     * Tests the {@code mask()} method.
+     *
+     * @see Line2#mask()
+     */
+    @Test
+    public final void testMask() {
+        assertThat("Line2.F1_H3.mask() is 0x0000000000804020L.",
+                   Line2.F1_H3.mask(),
+                   is(0x0000000000804020L));
+    }
+
+    /**
+     * Tests the {@code order()} method.
+     *
+     * @see Line2#order()
+     */
+    @Test
+    public final void testOrder() {
+        assertThat("Line2.A1_A8.order() is 8.",
+                   Line2.A1_A8.order(),
+                   is(8));
+        assertThat("Line2.F1_H3.order() is 3.",
+                   Line2.F1_H3.order(),
+                   is(3));
+    }
+
+    /**
+     * Tests the {@code shift()} method.
+     *
+     * @see Line2#shift()
+     */
+    @Test
+    public final void testShift() {
+        assertThat("Line2.A1_A8.shift() is 0.",
+                   Line2.A1_A8.shift(),
+                   is(0));
+        assertThat("Line2.B1_B8.shift() is -1.",
+                   Line2.B1_B8.shift(),
+                   is(-1));
+    }
+
+    /**
+     * Tests the {@code squares()} method.
+     *
+     * @see Line2#squares()
+     */
+    @Test
+    public final void testSquares() {
+        assertThat("Line2.A1_A8.squares() is A1...A8.",
+                   Line2.A1_A8.squares(),
+                   is(Arrays.asList(Square.A1, Square.A2, Square.A3, Square.A4,
+                                    Square.A5, Square.A6, Square.A7, Square.A8)));
     }
 
 }
