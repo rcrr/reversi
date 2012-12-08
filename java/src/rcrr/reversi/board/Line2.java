@@ -116,17 +116,62 @@ public enum Line2 {
         return Collections.unmodifiableList(Arrays.asList(squares));
     }
 
-    /** TO BE IMPLEMENTED. */
     private static byte[] initializeBitrowLegalMovesForPlayerArray() {
         final byte[] arrayResult = new byte[MAGIC_NUMBER_256 * MAGIC_NUMBER_256];
         for (int playerRow = 0; playerRow < MAGIC_NUMBER_256; playerRow++) {
             for (int opponentRow = 0; opponentRow < MAGIC_NUMBER_256; opponentRow++) {
-                // MUST BE COMPLETED .....
-                ;
+                final int index = playerRow | (opponentRow << MAGIC_NUMBER_8);
+                byte legalMoves = 0;
+                for (int movePosition = 0; movePosition < MAGIC_NUMBER_8; movePosition++) {
+                    final int move = 1 << movePosition;
+                    legalMoves |= isLegal(playerRow, opponentRow, move);
+                }
+                arrayResult[index] = legalMoves;
             }
         }
         return arrayResult;
     }
+
+    /**
+     * Returns a byte set to zero when the move is not legal, returns the parameter {@code move}
+     * when the move is legal.
+     * The parameter {@code move} must be a power of two.
+     * The parameters {@code playerRow} and {@code opponentRow} fully define the file configuration.
+     * These two parameters have the first eigth bits (0 to 7 from the less significative) representing
+     * the file squares, the other three bytes are meaningles. When a position has no bits set is empty,
+     * when has one bit set is occupied by the respective player, when both bits are set the square is outer.
+     * Files having outer squares can be real or not, real cases are files having order minor than eight
+     * with outer square packed on one of the two sides. 
+     * 
+     *
+     */
+    private static byte isLegal(final int playerRow, final int opponentRow, final int move) {
+        if (Integer.bitCount(move) != 1) { throw new IllegalArgumentException("Parameter move is illegal. move=" + move); }
+        final byte notLegal = (byte) 0;
+        final int po = playerRow   | ~BYTE_MASK_FOR_INT;
+        final int oo = opponentRow | ~BYTE_MASK_FOR_INT;
+        final int m = move;
+        final int filled = po | oo;
+        final int empties = ~filled;
+        final int p = po & ~oo;
+        final int o = oo & ~po;
+        if ((empties & move) == 0) return notLegal; // the square is filled or outer
+        int b;
+        // move right
+        b = (move >>> 1) & o;
+        while (b > 0) {
+            if ((b & p) != 0) return (byte) move;
+            b = (b >>> 1) & o;
+        }
+        // move left
+        b = (move << 1) & o;
+        while ((b > 0) && (b < 256)) {
+            if ((b & p) != 0) return (byte) move;
+            b = (b << 1) & o;
+        }
+        return notLegal;
+    }
+
 
     /** The axis field. */
     private final Axis axis;
@@ -165,7 +210,8 @@ public enum Line2 {
 
     /** Completed. */
     public long legalMoves(final int index) {
-        return (int) BITROW_LEGAL_MOVES_FOR_PLAYER_ARRAY[index] & BYTE_MASK_FOR_INT;
+        final int legalMovesBitrow = (int) BITROW_LEGAL_MOVES_FOR_PLAYER_ARRAY[index] & BYTE_MASK_FOR_INT;
+        return BitWorks.signedLeftShift(axis.transformBackFromRowOne(legalMovesBitrow), -shift());
     }
 
     /** Completed. */
