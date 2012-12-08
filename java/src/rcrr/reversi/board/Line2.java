@@ -173,6 +173,10 @@ public enum Line2 {
         return this.order;
     }
 
+    public long mask() {
+        return this.mask;
+    }
+
     public List<Square> squares() {
         return this.squares;
     }
