@@ -53,6 +53,31 @@ public class Line2Test {
     }
 
     /**
+     * Tests the {@code index()} method.
+     *
+     * @see Line2#index()
+     */
+    @Test
+    public final void testIndex() {
+        assertThat("A board having the ROW 8 filled by player discs has the index E8_H5 equal to 3855+16=3871.",
+                   Line2.E8_H5.index(0xFF00000000000000L,
+                                     0x0000000000000000L),
+                   is(3871));
+        assertThat("F1_H3 filled by player discs has index equal to 7967+224x256=57344.",
+                   Line2.F1_H3.index(0x0000000000000000L,
+                                     0x0000000000804020L),
+                   is(65311));
+        assertThat("F1_H3 filled by player discs has index equal to 7967+224=8191.",
+                   Line2.F1_H3.index(0xFFFFFFFFFFFFFFFFL,
+                                     0x0000000000000000L),
+                   is(8191));
+        assertThat("F1_H3 filled by player discs has index equal to 7967+224=8191.",
+                   Line2.F1_H3.index(0x0000000000804020L,
+                                     0x0000000000000000L),
+                   is(8191));
+    }
+
+    /**
      * Tests the {@code mask()} method.
      *
      * @see Line2#mask()
