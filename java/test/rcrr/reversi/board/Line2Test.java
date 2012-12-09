@@ -78,6 +78,63 @@ public class Line2Test {
     }
 
     /**
+     * Tests the {@code legalMoves()} method.
+     *
+     * @see Line2#legalMoves()
+     */
+    @Test
+    public final void testLegalMoves() {
+
+        /*
+        final long empty = 0x0000000000000000L;
+
+        final Line2 l = Line2.F1_H3;
+        final long p = 0x0000000000800000L;
+        final long o = 0x0000000000004000L;
+
+        final Board b = BitBoard1.valueOf(new long[] {p, o});
+        final int index = l.index(p, o);
+
+        final long lm = l.legalMoves(index);
+        final Board lmb = BitBoard1.valueOf(new long[] {lm, empty});
+
+        System.out.printf("%s, index=%d\n", l, index);
+        System.out.printf("%s\n", b.printBoard());
+        System.out.printf("Legal moves:\n%s\n", lmb.printBoard());
+        */
+
+        assertThat("On line F1_H3, player has H3, opponent has G2, expected result is F1.",
+                   Line2.F1_H3.legalMoves(Line2.F1_H3.index(0x0000000000800000L,
+                                                            0x0000000000004000L)),
+                   is(0x0000000000000020L));
+
+        assertThat("On line F1_H3, player has F1, opponent has G2, expected result is H3.",
+                   Line2.F1_H3.legalMoves(Line2.F1_H3.index(0x0000000000000020L,
+                                                            0x0000000000004000L)),
+                   is(0x0000000000800000L));
+
+        assertThat("On line F1_H3, player has F1, G2, H3, expected result is empty.",
+                   Line2.F1_H3.legalMoves(Line2.F1_H3.index(0x0000000000804020L,
+                                                            0x0000000000000000L)),
+                   is(0x0000000000000000L));
+
+        assertThat("On line F1_H3, player has F1, G2, expected result is empty.",
+                   Line2.F1_H3.legalMoves(Line2.F1_H3.index(0x0000000000004020L,
+                                                            0x0000000000000000L)),
+                   is(0x0000000000000000L));
+
+        assertThat("On line F1_H3, all squares are empty, expected result is empty.",
+                   Line2.F1_H3.legalMoves(Line2.F1_H3.index(0x0000000000000000L,
+                                                            0x0000000000000000L)),
+                   is(0x0000000000000000L));
+
+        assertThat("On line F1_H3, player has no squares, opponent has F1, G2, expected result is empty.",
+                   Line2.F1_H3.legalMoves(Line2.F1_H3.index(0x0000000000000000L,
+                                                            0x0000000000004020L)),
+                   is(0x0000000000000000L));
+    }
+
+    /**
      * Tests the {@code mask()} method.
      *
      * @see Line2#mask()
