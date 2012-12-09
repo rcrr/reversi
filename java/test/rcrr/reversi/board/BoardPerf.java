@@ -117,7 +117,7 @@ public class BoardPerf {
         boardFactories.add(new BitBoardFactory.Type0());
         boardFactories.add(new BitBoardFactory.Type1());
         boardFactories.add(new BitBoardFactory.Type2());
-        boardFactories.add(new IndexedBoardFactory());
+        boardFactories.add(new BitBoardFactory.Type3());
         return boardFactories;
     }
 
