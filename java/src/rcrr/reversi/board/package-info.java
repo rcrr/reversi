@@ -30,14 +30,8 @@ To do:
 <p>
 
 <ul>
-  <li>Complete tests for the classes BoardUtils and BoardFactoryHolder.</li>
-  <li>Substitute System.out statements with a logger in BoardFactoryHolder.</li>
   <li>Complete the hints given by the checkstyle tool (javadocs, and more) on the BitBoard implementation.</li>
-  <li>Develop the precompiuting of the flipping using the FILES prepared in BitBoard.</li>
   <li>Prepare a "<i>Literate Paper</i>" that describes the software architecture of the board package.</li>
-  <li>Develop JUnit performance testing and reports for different board implementations.
-      See: <a href="http://databene.org/contiperf.html" target="_blank">ContiPerf</a>
-      See: <a href="http://perf4j.codehaus.org/" target="_blank">Perf4J</a></li>
   <li>Make the board implementation hot-swappable and selectable within the UI.
       See: <a href="http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html" target="_blank">
               ServiceLoader</a> javadoc.
@@ -49,7 +43,7 @@ To do:
 <p>
 
 @author Roberto Corradini
-@version 1.1.0
+@version 2.0.0
 */
 
 package rcrr.reversi.board;

@@ -94,7 +94,7 @@ public class ReversiUI {
             super("About Reversi");
             setLayout(new FlowLayout());
             add(new JLabel(Constants.LOGO_128X128_ICON));
-            JLabel programAndVersion = new JLabel("Reversi 1.0.0");
+            JLabel programAndVersion = new JLabel("Reversi 2.0.0");
             programAndVersion.setFont(new Font("Courier", Font.BOLD, 24));
             add(programAndVersion);
             JLabel info = new JLabel("http://github.com/rcrr/reversi");

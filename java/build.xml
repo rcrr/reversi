@@ -146,14 +146,14 @@
 	<!-- Information about the program itself -->
 	<attribute name="Implementation-Vendor" value="Roberto Corradini"/>
 	<attribute name="Implementation-Title" value="Java Reversi"/>
-	<attribute name="Implementation-Version" value="1.0.0"/>
+	<attribute name="Implementation-Version" value="2.0.0"/>
       </manifest>
     </jar>
   </target>
 
   <!-- Construct the One-Jar file -->
   <target name="one-jar" depends="compile">
-    <one-jar destfile="${jar.dir}/${ant.project.name}-full-1_0_0.jar">
+    <one-jar destfile="${jar.dir}/${ant.project.name}-full-2_0_0.jar">
       <manifest>
         <attribute name="One-Jar-Main-Class" value="${main-class}"/> 
 	<!-- Who is building this jar? -->
@@ -161,7 +161,7 @@
 	<!-- Information about the program itself -->
 	<attribute name="Implementation-Vendor" value="Roberto Corradini"/>
 	<attribute name="Implementation-Title" value="Java Reversi"/>
-	<attribute name="Implementation-Version" value="1.0.0"/>
+	<attribute name="Implementation-Version" value="2.0.0"/>
       </manifest>
       <main>
         <!-- Construct main.jar from classes -->
