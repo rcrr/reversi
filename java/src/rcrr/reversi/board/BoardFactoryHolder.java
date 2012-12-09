@@ -43,7 +43,6 @@ public final class BoardFactoryHolder {
     /**
      * Name of the default board class.
      */
-    //private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.board.IndexedBoardFactory";
     //private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.board.BitBoardFactory$Type0";
     //private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.board.BitBoardFactory$Type1";
     //private static final String DEFAULT_BOARD_FACTORY_CLASS = "rcrr.reversi.board.BitBoardFactory$Type2";
