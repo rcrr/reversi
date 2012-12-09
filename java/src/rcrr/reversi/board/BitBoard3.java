@@ -32,8 +32,7 @@ import java.util.List;
  * <p>
  * The board applyes some variants to the {@code BitBoard1} implementation,
  * it differ from the parent implementation because the legalMoves implementation doesn't
- * relay on the isLegal method. The makeMove method instead works by looping on directions and
- * finding legal moves by mean of shifting the board as a whole.
+ * relay on the isLegal method.
  * <p>
  * {@code BitBoard3} is immutable.
  * <p>
@@ -178,20 +177,15 @@ public final class BitBoard3 extends BitBoard1 {
             final long pBitboard = bitboard(player);
             final long oBitboard = bitboard(opponent);
             for (final Line2 line : LINE2_VALUES) {
-                ;
-                // compute line index
                 final int lineIndex = line.index(pBitboard, oBitboard);
-                // get legal moves
                 final long lm = line.legalMoves(lineIndex);
-                // add legal moves on result
                 result |= lm;
             }
-            /* has to be activated when the result field is computed by the loop
             setLegalMovesCache(player, result);
             setHasLegalMovesBeenComputed(player, true);
-            */
         }
-        return legalMoves_(player);
+        if (result != legalMoves_(player)) { throw new RuntimeException("result=" + result + ", legalMoves_(player)=" + legalMoves_(player)); }
+        return result;
     }
 
 
