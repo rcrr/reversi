@@ -121,16 +121,10 @@ public enum Line2 {
         for (int playerRow = 0; playerRow < MAGIC_NUMBER_256; playerRow++) {
             for (int opponentRow = 0; opponentRow < MAGIC_NUMBER_256; opponentRow++) {
                 final int index = playerRow | (opponentRow << MAGIC_NUMBER_8);
-                boolean debug = false;
-                //if (index == 24383) { debug = true; }
                 byte legalMoves = 0;
                 for (int movePosition = 0; movePosition < MAGIC_NUMBER_8; movePosition++) {
                     final int move = 1 << movePosition;
-                    if (debug) System.out.printf("movePosition=%d, move=%d\n", movePosition, move);
-                    if (debug) System.out.println("playerRow   = " + Integer.toBinaryString(playerRow));
-                    if (debug) System.out.println("opponentRow = " + Integer.toBinaryString(opponentRow));
-                    if (debug) System.out.println("move        = " + Integer.toBinaryString(move));
-                    legalMoves |= isLegal(playerRow, opponentRow, move, debug);
+                    legalMoves |= isLegal(playerRow, opponentRow, move);
                 }
                 arrayResult[index] = legalMoves;
             }
@@ -151,7 +145,7 @@ public enum Line2 {
      * 
      *
      */
-    private static byte isLegal(final int playerRow, final int opponentRow, final int move, boolean debug) {
+    private static byte isLegal(final int playerRow, final int opponentRow, final int move) {
         if (Integer.bitCount(move) != 1) { throw new IllegalArgumentException("Parameter move is illegal. move=" + move); }
         final byte notLegal = (byte) 0;
         final int po = playerRow   | ~BYTE_MASK_FOR_INT;
@@ -161,45 +155,24 @@ public enum Line2 {
         final int empties = ~filled;
         final int p = po & ~oo;
         final int o = oo & ~po;
-        if (debug) {
-            System.out.println("po      = " + Integer.toBinaryString(po));
-            System.out.println("oo      = " + Integer.toBinaryString(oo));
-            System.out.println("m       = " + Integer.toBinaryString(m));
-            System.out.println("filled  = " + Integer.toBinaryString(filled));
-            System.out.println("empties = " + Integer.toBinaryString(empties));
-            System.out.println("p       = " + Integer.toBinaryString(p));
-            System.out.println("o       = " + Integer.toBinaryString(o));
-        }
         if ((empties & move) == 0) return notLegal; // the square is filled or outer
-        if (debug) System.out.println("IN...");
         int b;
         // move right
         b = (move >>> 1) & o;
-        if (debug) System.out.println("right: b=" + b);
         while (b > 0) {
-            if (debug) System.out.println("rigth loop 0: b=" + b);
             if ((b & p) != 0) return (byte) move;
-            if (debug) System.out.println("rigth loop 1: b=" + b);
             if ((b & o) == 0) break;
-            if (debug) System.out.println("rigth loop 2: b=" + b);
             b = b >>> 1;
-            if (debug) System.out.println("rigth loop 3: b=" + b);
         }
         // move left
         b = (move << 1) & o;
-        if (debug) System.out.println("left: b=" + b);
         while ((b > 0) && (b < 256)) {
-            if (debug) System.out.println("left loop 0: b=" + b);
             if ((b & p) != 0) return (byte) move;
-            if (debug) System.out.println("left loop 1: b=" + b);
             if ((b & o) == 0) break;
-            if (debug) System.out.println("left loop 2: b=" + b);
             b = b << 1;
-            if (debug) System.out.println("left loop 3: b=" + b);
         }
         return notLegal;
     }
-
 
     /** The axis field. */
     private final Axis axis;

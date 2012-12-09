@@ -43,6 +43,9 @@ public final class BitBoard3 extends BitBoard1 {
     /** It turns on or off the class logging for performances. */
     private static final boolean LOG = true;
 
+    /** Caches the direction enum values in a local array. */
+    private static final Line2[] LINE2_VALUES = Line2.values();
+
     /** Collects the number of call to legalMoves method. */
     private static int callsTolegalMoves = 0;
 
@@ -131,42 +134,11 @@ public final class BitBoard3 extends BitBoard1 {
     }
 
     /**
-     * The core method of this class. Implements the legal moves call by waveing the potential
-     * legal moves up to the bracketing pieces. Directions are computed one by one, squares work
-     * in parallel.
+     * The core method of this class. Implements the legal moves call by looping on the thirtyeigth lines.
      *
      * @param player the player that has to move
      * @return       legal moves for the player
      */
-    private long legalMoves_(final int player) {
-        long result = 0L;
-        if (hasLegalMovesBeenComputed(player)) {
-            result = legalMovesCache(player);
-        } else {
-            final int opponent = opponent(player);
-            final long empties = empties();
-            final long pBitboard = bitboard(player);
-            final long oBitboard = bitboard(opponent);
-            for (final Direction dir : DIRECTION_VALUES) {
-                final Direction opposite = dir.opposite();
-                long wave = dir.shiftBitboard(empties) & oBitboard;
-                int shift = 1;
-                while (wave != 0L) {
-                    wave = dir.shiftBitboard(wave);
-                    shift++;
-                    result |= opposite.shiftBitboard((wave & pBitboard), shift);
-                    wave &= oBitboard;
-                }
-            }
-            setLegalMovesCache(player, result);
-            setHasLegalMovesBeenComputed(player, true);
-        }
-        return result;
-    }
-
-    /** Caches the direction enum values in a local array. */
-    private static final Line2[] LINE2_VALUES = Line2.values();
-
     private long legalMoves(final int player) {
         long result = 0L;
         if (hasLegalMovesBeenComputed(player)) {
@@ -184,9 +156,7 @@ public final class BitBoard3 extends BitBoard1 {
             setLegalMovesCache(player, result);
             setHasLegalMovesBeenComputed(player, true);
         }
-        if (result != legalMoves_(player)) { throw new RuntimeException("result=" + result + ", legalMoves_(player)=" + legalMoves_(player)); }
         return result;
     }
-
 
 }

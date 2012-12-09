@@ -55,7 +55,7 @@ public class Line2Test {
     /**
      * Tests the {@code index()} method.
      *
-     * @see Line2#index()
+     * @see Line2#index(long, long)
      */
     @Test
     public final void testIndex() {
@@ -80,28 +80,10 @@ public class Line2Test {
     /**
      * Tests the {@code legalMoves()} method.
      *
-     * @see Line2#legalMoves()
+     * @see Line2#legalMoves(int)
      */
     @Test
     public final void testLegalMoves() {
-
-        /*
-        final long empty = 0x0000000000000000L;
-
-        final Line2 l = Line2.F1_H3;
-        final long p = 0x0000000000800000L;
-        final long o = 0x0000000000004000L;
-
-        final Board b = BitBoard1.valueOf(new long[] {p, o});
-        final int index = l.index(p, o);
-
-        final long lm = l.legalMoves(index);
-        final Board lmb = BitBoard1.valueOf(new long[] {lm, empty});
-
-        System.out.printf("%s, index=%d\n", l, index);
-        System.out.printf("%s\n", b.printBoard());
-        System.out.printf("Legal moves:\n%s\n", lmb.printBoard());
-        */
 
         assertThat("On line F1_H3, player has H3, opponent has G2, expected result is F1.",
                    Line2.F1_H3.legalMoves(Line2.F1_H3.index(0x0000000000800000L,
