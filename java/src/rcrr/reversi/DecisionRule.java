@@ -1,7 +1,7 @@
 /*
  *  DecisionRule.java
  *
- *  Copyright (c) 2010, 2011 Roberto Corradini. All rights reserved.
+ *  Copyright (c) 2010, 2011, 2012 Roberto Corradini. All rights reserved.
  *
  *  This file is part of the reversi program
  *  http://github.com/rcrr/reversi
@@ -32,12 +32,12 @@ public interface DecisionRule {
     /**
      * The decision rule algorithm.
      *
-     * @param position      the reached position
-     * @param ply        the search depth reached
-     * @param ef         the evaluation function
-     * @return           a node in the search tree
+     * @param position the reached position
+     * @param ply      the search depth reached
+     * @param ef       the evaluation function
+     * @return         a node in the search tree
      */
-    SearchNode search(final GamePosition position, int ply, EvalFunction ef);
+    SearchNode search(final GamePosition position, final int ply, final EvalFunction ef);
 
     /**
      * Returns a strategy that searches ply levels deep and
@@ -47,5 +47,5 @@ public interface DecisionRule {
      * @param ef  the evaluation function
      * @return    a strategy
      */
-    Strategy searcher(int ply, EvalFunction ef);
+    Strategy searcher(final int ply, final EvalFunction ef);
 }
