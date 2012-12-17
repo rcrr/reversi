@@ -24,6 +24,7 @@
 
 package rcrr.reversi.endgame;
 
+import rcrr.reversi.SearchNode;
 import rcrr.reversi.GamePosition;
 import rcrr.reversi.board.BoardBuilder;
 import rcrr.reversi.board.Player;
@@ -68,6 +69,25 @@ public class ExactSolverTest {
     public final void testDummy() {
 
         System.out.printf("FF0_40:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40.board().printBoard());
+
+        assertThat("dummy() is true.",
+                   new ExactSolver().dummy(),
+                   is(true));
+    }
+
+    /**
+     * Tests the {@code solve()} method.
+     *
+     * @see ExactSolver#solve()
+     */
+    @Test
+    public final void testSolve() {
+
+        System.out.printf("FF0_40:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40.board().printBoard());
+
+        final SearchNode result = new ExactSolver().solve(FFO_40);
+
+        System.out.printf("%s\n", result);
 
         assertThat("dummy() is true.",
                    new ExactSolver().dummy(),
