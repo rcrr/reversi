@@ -29,6 +29,8 @@ import rcrr.reversi.GamePosition;
 import rcrr.reversi.board.BoardBuilder;
 import rcrr.reversi.board.Player;
 
+import rcrr.reversi.board.BitBoard2;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
@@ -41,7 +43,9 @@ import static org.hamcrest.CoreMatchers.is;
 public class ExactSolverTest {
 
     /**
-     *  FFO position #40, black to move, Turner vs Monnom, Bruxelles 1997.
+     * FFO position #40, black to move, Turner vs Monnom, Bruxelles 1997.
+     * Principal Variation, PV: a2 b1 c1 -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
+     * Final score is +38
      */
     final static GamePosition FFO_40 = new GamePosition.Builder()
         .withBoard(new BoardBuilder()
@@ -88,6 +92,8 @@ public class ExactSolverTest {
         final SearchNode result = new ExactSolver().solve(FFO_40);
 
         System.out.printf("%s\n", result);
+
+        System.out.println("BitBoard2.printLog() = " + BitBoard2.printLog());
 
         assertThat("dummy() is true.",
                    new ExactSolver().dummy(),

@@ -257,7 +257,7 @@
     <junit fork="yes" forkmode="once" printsummary="withOutAndErr"
 	   errorProperty="test.failed"
 	   failureProperty="test.failed">
-      <jvmarg value="-Xmx1024m"/>
+      <jvmarg value="-Xmx4096m"/>
       <jvmarg value="-Dtest.output-files.dir=${test.output-files.dir}"/>
       <assertions>
         <enable/>

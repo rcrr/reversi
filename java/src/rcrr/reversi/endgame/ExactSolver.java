@@ -25,6 +25,8 @@
 package rcrr.reversi.endgame;
 
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 import rcrr.reversi.CountDifference;
 import rcrr.reversi.EvalFunction;
@@ -39,6 +41,8 @@ import rcrr.reversi.board.Square;
  * Exact solver searches the end of the game for an exact outcome.
  */
 public class ExactSolver {
+
+    //final static Set<GamePosition> GAME_POSITION_SET = new HashSet<GamePosition>(55000000, 0.75F); 
 
     /**
      * Returns the board final value.
@@ -57,7 +61,9 @@ public class ExactSolver {
 
     public SearchNode solve(final GamePosition position) {
         final EvalFunction ef = new CountDifference();
-        return solveImpl(position.player(), position.board(), -64, +64, 60, ef);
+        final SearchNode result = solveImpl(position.player(), position.board(), -64, +64, 60, ef);
+        //System.out.printf("Number of different GamePosition reached is: %d", GAME_POSITION_SET.size());
+        return result;
     }
 
     /**
@@ -77,6 +83,8 @@ public class ExactSolver {
                                 final int cutoff,
                                 final int ply,
                                 final EvalFunction ef) {
+        //final GamePosition gp = GamePosition.valueOf(board, player);
+        //GAME_POSITION_SET.add(gp);
         SearchNode node;
         final Player opponent = player.opponent();
         if (ply == 0) {
@@ -91,9 +99,9 @@ public class ExactSolver {
                 }
             } else {
                 node = SearchNode.valueOf(moves.get(0), achievable);
-                outer: for (Square move : moves) {
-                    Board board2 = board.makeMove(move, player);
-                    int val = solveImpl(opponent, board2, -cutoff, -node.value(), ply - 1, ef).negated().value();
+                outer: for (final Square move : moves) {
+                    final Board board2 = board.makeMove(move, player);
+                    final int val = solveImpl(opponent, board2, -cutoff, -node.value(), ply - 1, ef).negated().value();
                     if (val > node.value()) {
                         node = SearchNode.valueOf(move, val);
                     }
