@@ -44,25 +44,37 @@ import rcrr.reversi.board.Square;
 public class ExactSolver {
 
     static class Cache {
+
         final int level;
         final int[][] hits;
+        final Set[][] positions;
+
         Cache(final GamePosition root) {
             level = root.board().countPieces(SquareState.EMPTY);
             hits = new int[2][level+1];
+            positions = new HashSet[2][level+1];
+            for (int i = 0; i <= level; i++) {
+                positions[0][i] = new HashSet(100, .5F);
+                positions[1][i] = new HashSet(100, .5F);
+            }
             System.out.printf("Cache-level: %d\n", level);
         }
+
         void hit(final GamePosition position) {
             hits[position.player().ordinal()][position.board().countPieces(SquareState.EMPTY)]++; 
+            positions[position.player().ordinal()][position.board().countPieces(SquareState.EMPTY)].add(position); 
         }
+
         String print() {
             final StringBuffer sb = new StringBuffer();
             sb.append("Cache:\n");
             for (int i = 0; i <= level; i++) {
-                sb.append(String.format("[%d]: %d, %d\n", i, hits[0][i], hits[1][i]));
+                sb.append(String.format("[%2d]: (%8d, %8d) - [%8d, %8d]\n", i, hits[0][i], hits[1][i], positions[0][i].size(), positions[1][i].size()));
             }
             sb.append("\n");
             return sb.toString();
         }
+
     }
 
     final static Set<GamePosition> GAME_POSITION_SET = new HashSet<GamePosition>(1000000, 0.75F); 
