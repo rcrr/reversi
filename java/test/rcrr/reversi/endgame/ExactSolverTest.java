@@ -30,6 +30,7 @@ import rcrr.reversi.board.BoardBuilder;
 import rcrr.reversi.board.Player;
 
 import rcrr.reversi.board.BitBoard2;
+import rcrr.reversi.board.Square;
 
 import org.junit.Test;
 
@@ -61,23 +62,11 @@ public class ExactSolverTest {
         .withPlayer(Player.BLACK)
         .build();
 
+    final static GamePosition FFO_40_A2 = FFO_40.makeMove(Square.A2);
+    final static GamePosition FFO_40_A2_B1 = FFO_40_A2.makeMove(Square.B1);
+
     /** Class constructor. */
     public ExactSolverTest() { }
-
-    /**
-     * Tests the {@code dummy()} method.
-     *
-     * @see ExactSolver#dummy()
-     */
-    @Test
-    public final void testDummy() {
-
-        System.out.printf("FF0_40:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40.board().printBoard());
-
-        assertThat("dummy() is true.",
-                   new ExactSolver().dummy(),
-                   is(true));
-    }
 
     /**
      * Tests the {@code solve()} method.
@@ -85,19 +74,19 @@ public class ExactSolverTest {
      * @see ExactSolver#solve()
      */
     @Test
-    public final void testSolve() {
+    public final void testSolveFFO_40_A2_B1() {
 
-        System.out.printf("FF0_40:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40.board().printBoard());
+        System.out.printf("FF0_40_A2_B1:\nWhite to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40_A2_B1.board().printBoard());
 
-        final SearchNode result = new ExactSolver().solve(FFO_40);
+        final SearchNode result = new ExactSolver(FFO_40_A2_B1).solve();
 
         System.out.printf("%s\n", result);
 
         System.out.println("BitBoard2.printLog() = " + BitBoard2.printLog());
 
-        assertThat("dummy() is true.",
-                   new ExactSolver().dummy(),
-                   is(true));
+        assertThat("The value is 38.",
+                   result.value(),
+                   is(38));
     }
 
 }

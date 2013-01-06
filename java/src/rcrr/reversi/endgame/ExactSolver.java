@@ -35,6 +35,7 @@ import rcrr.reversi.GamePosition;
 
 import rcrr.reversi.board.Player;
 import rcrr.reversi.board.Board;
+import rcrr.reversi.board.SquareState;
 import rcrr.reversi.board.Square;
 
 /**
@@ -42,7 +43,29 @@ import rcrr.reversi.board.Square;
  */
 public class ExactSolver {
 
-    //final static Set<GamePosition> GAME_POSITION_SET = new HashSet<GamePosition>(55000000, 0.75F); 
+    static class Cache {
+        final int level;
+        final int[][] hits;
+        Cache(final GamePosition root) {
+            level = root.board().countPieces(SquareState.EMPTY);
+            hits = new int[2][level+1];
+            System.out.printf("Cache-level: %d\n", level);
+        }
+        void hit(final GamePosition position) {
+            hits[position.player().ordinal()][position.board().countPieces(SquareState.EMPTY)]++; 
+        }
+        String print() {
+            final StringBuffer sb = new StringBuffer();
+            sb.append("Cache:\n");
+            for (int i = 0; i <= level; i++) {
+                sb.append(String.format("[%d]: %d, %d\n", i, hits[0][i], hits[1][i]));
+            }
+            sb.append("\n");
+            return sb.toString();
+        }
+    }
+
+    final static Set<GamePosition> GAME_POSITION_SET = new HashSet<GamePosition>(1000000, 0.75F); 
 
     /**
      * Returns the board final value.
@@ -55,14 +78,19 @@ public class ExactSolver {
         return board.countDifference(player);
     }
 
-    public ExactSolver() { }
+    final private Cache cache;
+    final private GamePosition root;
 
-    public boolean dummy() { return true; }
+    public ExactSolver(final GamePosition root) {
+        this.root  = root;
+        this.cache = new Cache(root);
+    }
 
-    public SearchNode solve(final GamePosition position) {
+    public SearchNode solve() {
         final EvalFunction ef = new CountDifference();
-        final SearchNode result = solveImpl(position.player(), position.board(), -64, +64, 60, ef);
-        //System.out.printf("Number of different GamePosition reached is: %d", GAME_POSITION_SET.size());
+        final SearchNode result = solveImpl(root.player(), root.board(), -64, +64, 60, ef);
+        System.out.printf("Number of different GamePosition reached is: %d\n", GAME_POSITION_SET.size());
+        System.out.printf("%s", cache.print());
         return result;
     }
 
@@ -83,8 +111,9 @@ public class ExactSolver {
                                 final int cutoff,
                                 final int ply,
                                 final EvalFunction ef) {
-        //final GamePosition gp = GamePosition.valueOf(board, player);
+        final GamePosition gp = GamePosition.valueOf(board, player);
         //GAME_POSITION_SET.add(gp);
+        cache.hit(gp);
         SearchNode node;
         final Player opponent = player.opponent();
         if (ply == 0) {

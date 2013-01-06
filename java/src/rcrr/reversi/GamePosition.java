@@ -280,6 +280,22 @@ public final class GamePosition {
     }
 
     /**
+     * Returns a new game position as the result of the {@code move} parameter.
+     * A null square parameter is not allowed, in such a case the method throws a
+     * {@code NullPointerException}.
+     *
+     * @param move the square where to put the new disk
+     * @return     a new game position resulting from the move
+     * @throws NullPointerException if parameter {@code move} is null
+     */
+    public GamePosition makeMove(final Square move) {
+        if (move == null) {
+            throw new NullPointerException("Parameter move must be not null.");
+        }
+        return valueOf(board().makeMove(move, player()), player().opponent());
+    }
+
+    /**
      * Returns the boolean value telling if the move, done by the position's player, is legal.
      * If the position has a null player the return value is always false.
      * A null square parameter is not allowed, in such a case the method throws a
