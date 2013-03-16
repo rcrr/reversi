@@ -18,3 +18,4 @@ tmp
 /clojure/checkouts
 .lein-deps-sum
 .classpath
+*.dat
