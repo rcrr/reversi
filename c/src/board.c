@@ -34,28 +34,66 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "board.h"
 
+extern int errno;
+
+/**
+ * @brief Returns the square state value representing the player's color.
+ *
+ * Parameter p must be a value belonging to the Player enum, if not the
+ * return value is -1 and the errno is set to EINVAL.
+ *
+ * @param p the player
+ * @return  the square state of the player
+ */
 SquareState color(const Player p)
 {
     switch (p) {
     case BLACK_PLAYER: return BLACK_SQUARE;
     case WHITE_PLAYER: return WHITE_SQUARE;
     default:
+      errno = EINVAL;
       fprintf(stderr, "Argument Player p = %d is invalid.\n", p);
-      abort();
+      return EXIT_FAILURE;
     }
 }
 
+/**
+ * @brief Returns the player's opponent.
+ *
+ * Parameter p must be a value belonging to the Player enum, if not the
+ * BLACK_PLAYER is always returned.
+ *
+ * @param p the player
+ * @return  the player's opponent
+ */
 Player opponent(const Player p)
 {
   return (p == BLACK_PLAYER) ? WHITE_PLAYER : BLACK_PLAYER;
 }
 
+/**
+ * @brief Returns the player's description.
+ *
+ * Parameter p must be a value belonging to the Player enum, if not the
+ * return value is -1 and the errno is set to EINVAL.
+ *
+ * @param p the player
+ * @return  the player's description
+ */
 char *description(const Player p)
 {
-  return "TO BE IMPLEMENTED";
+    switch (p) {
+    case BLACK_PLAYER: return "The Black player";
+    case WHITE_PLAYER: return "The White player";
+    default:
+      errno = EINVAL;
+      fprintf(stderr, "Argument Player p = %d is invalid.\n", p);
+      return "Invalid player as argument.";
+    }
 }
 
 

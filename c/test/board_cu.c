@@ -33,8 +33,12 @@
  */
 
 #include "CUnit/Basic.h"
+#include <stdlib.h>
+#include <errno.h>
 
 #include "board.h"
+
+extern int errno;
 
 /**
  * The suite initialization function.
@@ -63,6 +67,17 @@ void test_color(void)
   Player w = WHITE_PLAYER;
   CU_ASSERT(BLACK_SQUARE == color(b));
   CU_ASSERT(WHITE_SQUARE == color(w));
+
+  /* Wrong parameter value must return EXIT_FAILURE */
+  errno = 0;
+  CU_ASSERT(EXIT_FAILURE == color(3));
+  CU_ASSERT(EINVAL == errno);
+}
+
+void test_description()
+{
+  Player b = BLACK_PLAYER;
+  CU_ASSERT_STRING_EQUAL(description(b), "The Black player");
 }
 
 /**
@@ -98,7 +113,8 @@ int main()
 
    /* Add the tests to the suite */
    if ((NULL == CU_add_test(pSuite, "Player opponent(Player)", test_opponent)) ||
-       (NULL == CU_add_test(pSuite, "SquareState color(Player)", test_color)))
+       (NULL == CU_add_test(pSuite, "SquareState color(Player)", test_color))  ||
+       (NULL == CU_add_test(pSuite, "char *description(Player)", test_description)) )
    {
       CU_cleanup_registry();
       return CU_get_error();
