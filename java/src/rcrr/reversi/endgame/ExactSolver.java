@@ -68,6 +68,7 @@ public class ExactSolver {
         String print() {
             final StringBuffer sb = new StringBuffer();
             sb.append("Cache:\n");
+            sb.append("[level]: (black hits, whites) - [black set entries, whites]\n");
             for (int i = 0; i <= level; i++) {
                 sb.append(String.format("[%2d]: (%8d, %8d) - [%8d, %8d]\n", i, hits[0][i], hits[1][i], positions[0][i].size(), positions[1][i].size()));
             }
