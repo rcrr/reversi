@@ -81,4 +81,6 @@ extern Board *delete_board(Board *b);
 
 extern SquareState board_get_square(const Board *b, const Square sq);
 
+extern int board_count_pieces(const Board *b, const SquareState color);
+
 #endif /* BOARD_H */

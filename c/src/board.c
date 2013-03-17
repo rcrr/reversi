@@ -33,13 +33,11 @@
  */
 
 #include <assert.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "board.h"
-
-extern int errno;
+#include "bit_works.h"
 
 /**
  * @brief Returns the square state value representing the player's color.
@@ -154,4 +152,37 @@ SquareState board_get_square(const Board *b, const Square sq)
     return WHITE_SQUARE;
   else
     return EMPTY_SQUARE;
+}
+
+/**
+ * @brief Returns the disk count for the color.
+ *
+ * Parameter b must be not null.
+ * Parameter color must belongs to the SquareState enum.
+ *
+ * @param b     a pointer to the board structure
+ * @param color the square color
+ * @return      the piece count for the given color
+ */
+int board_count_pieces(const Board *b, const SquareState color)
+{
+  assert(b);
+
+  SquareSet squares;
+
+  switch (color) {
+  case EMPTY_SQUARE:
+    squares = ~(b->blacks | b->whites);
+    break;
+  case BLACK_SQUARE:
+    squares = b->blacks;
+    break;
+  case WHITE_SQUARE:
+    squares = b->whites;
+    break;
+  default:
+    abort();
+  }
+
+  return popcount(squares);
 }
