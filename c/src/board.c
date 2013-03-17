@@ -32,9 +32,10 @@
  * @endcond
  */
 
+#include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
 #include "board.h"
 
@@ -56,7 +57,7 @@ SquareState color(const Player p)
     case WHITE_PLAYER: return WHITE_SQUARE;
     default:
       errno = EINVAL;
-      fprintf(stderr, "Argument Player p = %d is invalid.\n", p);
+      fprintf(stderr, "Function color in board.c: argument Player p = %d is invalid.\n", p);
       return EXIT_FAILURE;
     }
 }
@@ -91,15 +92,41 @@ char *description(const Player p)
     case WHITE_PLAYER: return "The White player";
     default:
       errno = EINVAL;
-      fprintf(stderr, "Argument Player p = %d is invalid.\n", p);
+      fprintf(stderr, "Function description in board.c: argument Player p = %d is invalid.\n", p);
       return "Invalid player as argument.";
     }
 }
 
+Board *new_board(const SquareSet b, const SquareSet w)
+{
+  Board *board;
+  static const size_t size_of_board = sizeof(Board);
+
+  /*
+  if (w & b) {
+    errno = EINVAL;
+    fprintf(stderr, "Function new_board in board.c: argument are invalid.\n");
+    return NULL;
+  }
+  */
+  board = (Board*) malloc(size_of_board);
+  assert(board);
+  board->blacks = b;
+  board->whites = w;
+  return board;
+}
+
+Board *delete_board(Board *b)
+{
+  assert(b);
+  free(b);
+  b = NULL;
+  return b;
+}
 
 SquareState get_square(const Board *b, const Square sq)
 {
-  unsigned long long int bitsquare = 1ULL << sq;
+  SquareSet bitsquare = 1ULL << sq;
   if (bitsquare & b->blacks)
     return BLACK_SQUARE;
   else if (bitsquare & b->whites)
@@ -107,4 +134,3 @@ SquareState get_square(const Board *b, const Square sq)
   else
     return EMPTY_SQUARE;
 }
-

@@ -58,6 +58,17 @@ int clean_board_suite(void)
   return 0;
 }
 
+void test_new_board(void)
+{
+  SquareSet b = 0LLU;
+  SquareSet w = 0LLU;
+  Board *empty_board = new_board(b, w);
+  CU_ASSERT_PTR_NOT_NULL(empty_board);
+
+  empty_board = delete_board(empty_board);
+  CU_ASSERT_PTR_NULL(empty_board)
+}
+
 /**
  * Simple test of function: SquareState color(Player).
  */
@@ -112,9 +123,10 @@ int main()
    }
 
    /* Add the tests to the suite */
-   if ((NULL == CU_add_test(pSuite, "Player opponent(Player)", test_opponent)) ||
-       (NULL == CU_add_test(pSuite, "SquareState color(Player)", test_color))  ||
-       (NULL == CU_add_test(pSuite, "char *description(Player)", test_description)) )
+   if ((NULL == CU_add_test(pSuite, "Player opponent(Player p)", test_opponent))                   ||
+       (NULL == CU_add_test(pSuite, "SquareState color(Player p)", test_color))                    ||
+       (NULL == CU_add_test(pSuite, "char *description(Player p)", test_description))              ||
+       (NULL == CU_add_test(pSuite, "Board *new_board(SquareSet b, SquareSet w)", test_new_board)) )
    {
       CU_cleanup_registry();
       return CU_get_error();

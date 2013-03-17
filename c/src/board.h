@@ -57,6 +57,8 @@ typedef enum {
   A8, B8, C8, D8, E8, F8, G8, H8
 } Square;
 
+typedef unsigned long long int SquareSet;
+
 typedef struct Board {
   unsigned long long int blacks;
   unsigned long long int whites;
@@ -68,6 +70,9 @@ extern Player opponent(const Player p);
 
 extern char *description(const Player p);
 
+extern Board *new_board(const SquareSet b, const SquareSet w);
+
+extern Board *delete_board(Board *b);
 
 extern SquareState get_square(const Board *b, const Square sq);
 
