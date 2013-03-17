@@ -85,4 +85,6 @@ extern int board_count_pieces(const Board *b, const SquareState color);
 
 extern int board_count_difference(const Board *b, const Player p);
 
+extern int board_is_move_legal(const Board *b, const Square move, const Player p);
+
 #endif /* BOARD_H */

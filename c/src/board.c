@@ -211,3 +211,25 @@ int board_count_difference(const Board *b, const Player p)
 
   return pcount - ocount;
 }
+
+/**
+ * @brief Returns 1 if the move, done by the specified player, is legal,
+ * otherwise 0.
+ *
+ * TO BE COMPLETED!
+ *
+ * @param b    a pointer to the board structure
+ * @param move the square where to put the new disk
+ * @param p    the player moving
+ * @return     1 if the move is legal, otherwise 0
+ */
+int board_is_move_legal(const Board *b,
+                        const Square move,
+                        const Player p)
+{
+  assert(b);
+  assert(move >= A1 && move <= H8);
+  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
+  return 0;
+}
