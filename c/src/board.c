@@ -44,89 +44,110 @@ extern int errno;
 /**
  * @brief Returns the square state value representing the player's color.
  *
- * Parameter p must be a value belonging to the Player enum, if not the
- * return value is -1 and the errno is set to EINVAL.
+ * Parameter p must be a value belonging to the Player enum, the invariant
+ * is guarded by an assertion.
  *
  * @param p the player
  * @return  the square state of the player
  */
-SquareState color(const Player p)
+SquareState player_color(const Player p)
 {
-    switch (p) {
-    case BLACK_PLAYER: return BLACK_SQUARE;
-    case WHITE_PLAYER: return WHITE_SQUARE;
-    default:
-      errno = EINVAL;
-      fprintf(stderr, "Function color in board.c: argument Player p = %d is invalid.\n", p);
-      return EXIT_FAILURE;
-    }
+  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  return (p == BLACK_PLAYER) ? BLACK_SQUARE : WHITE_SQUARE;
 }
 
 /**
  * @brief Returns the player's opponent.
  *
- * Parameter p must be a value belonging to the Player enum, if not the
- * BLACK_PLAYER is always returned.
+ * Parameter p must be a value belonging to the Player enum, the invariant
+ * is guarded by an assertion.
  *
  * @param p the player
  * @return  the player's opponent
  */
-Player opponent(const Player p)
+Player player_opponent(const Player p)
 {
+  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
   return (p == BLACK_PLAYER) ? WHITE_PLAYER : BLACK_PLAYER;
 }
 
 /**
  * @brief Returns the player's description.
  *
- * Parameter p must be a value belonging to the Player enum, if not the
- * return value is -1 and the errno is set to EINVAL.
+ * Parameter p must be a value belonging to the Player enum, the invariant
+ * is guarded by an assertion.
  *
  * @param p the player
  * @return  the player's description
  */
-char *description(const Player p)
+char *player_description(const Player p)
 {
-    switch (p) {
-    case BLACK_PLAYER: return "The Black player";
-    case WHITE_PLAYER: return "The White player";
-    default:
-      errno = EINVAL;
-      fprintf(stderr, "Function description in board.c: argument Player p = %d is invalid.\n", p);
-      return "Invalid player as argument.";
-    }
+  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  return (p == BLACK_PLAYER) ? "The Black player" : "The White player";
 }
 
+/**
+ * @brief Board structure constructor.
+ *
+ * Parameters b and w cannot have common square set, the invariant
+ * is guarded by an assertion.
+ *
+ * @param b the set of black squares
+ * @param w the set of white squares
+ * @return  a pointer to a new board structure
+ */
 Board *new_board(const SquareSet b, const SquareSet w)
 {
+  assert((w & b) == 0ULL);
+
   Board *board;
   static const size_t size_of_board = sizeof(Board);
 
-  /*
-  if (w & b) {
-    errno = EINVAL;
-    fprintf(stderr, "Function new_board in board.c: argument are invalid.\n");
-    return NULL;
-  }
-  */
   board = (Board*) malloc(size_of_board);
   assert(board);
+
   board->blacks = b;
   board->whites = w;
+
   return board;
 }
 
+/**
+ * @brief Board structure destructor.
+ *
+ * Parameter b cannot be null.
+ *
+ * @param b the pointer to be deallocated
+ * @return  always the NULL pointer
+ */
 Board *delete_board(Board *b)
 {
   assert(b);
+
   free(b);
   b = NULL;
+
   return b;
 }
 
-SquareState get_square(const Board *b, const Square sq)
+/**
+ * @brief Returns the SquareState value for the given board's square.
+ *
+ * Parameter b must be not null.
+ * Parameter sq must belongs to the Square enum.
+ *
+ * @param b  a pointer to the board structure
+ * @param sq the square to query for
+ * @return   the color of the given square
+ */
+SquareState board_get_square(const Board *b, const Square sq)
 {
-  SquareSet bitsquare = 1ULL << sq;
+  assert(b);
+  assert(sq >= A1 && sq <= H8);
+
+  SquareSet bitsquare;
+
+  bitsquare = 1ULL << sq;
   if (bitsquare & b->blacks)
     return BLACK_SQUARE;
   else if (bitsquare & b->whites)

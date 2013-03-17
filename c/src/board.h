@@ -64,16 +64,21 @@ typedef struct Board {
   unsigned long long int whites;
 } Board;
 
-extern SquareState color(const Player p);
+typedef struct GamePosition {
+  Board board;
+  Player player;
+} GamePosition;
 
-extern Player opponent(const Player p);
+extern SquareState player_color(const Player p);
 
-extern char *description(const Player p);
+extern Player player_opponent(const Player p);
+
+extern char *player_description(const Player p);
 
 extern Board *new_board(const SquareSet b, const SquareSet w);
 
 extern Board *delete_board(Board *b);
 
-extern SquareState get_square(const Board *b, const Square sq);
+extern SquareState board_get_square(const Board *b, const Square sq);
 
 #endif /* BOARD_H */

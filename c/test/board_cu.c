@@ -58,6 +58,17 @@ int clean_board_suite(void)
   return 0;
 }
 
+void test_board_get_square(void)
+{
+  Board *b;
+
+  b = new_board(1LLU, 2LLU);
+
+  CU_ASSERT_EQUAL(board_get_square(b, A1), BLACK_SQUARE);
+  CU_ASSERT_EQUAL(board_get_square(b, B1), WHITE_SQUARE);
+  CU_ASSERT_EQUAL(board_get_square(b, C1), EMPTY_SQUARE);
+}
+
 void test_new_board(void)
 {
   SquareSet b = 0LLU;
@@ -70,36 +81,30 @@ void test_new_board(void)
 }
 
 /**
- * Simple test of function: SquareState color(Player).
+ * Unit test of function: SquareState player_color(Player p).
  */
-void test_color(void)
+void test_player_color(void)
 {
-  Player b = BLACK_PLAYER;
-  Player w = WHITE_PLAYER;
-  CU_ASSERT(BLACK_SQUARE == color(b));
-  CU_ASSERT(WHITE_SQUARE == color(w));
-
-  /* Wrong parameter value must return EXIT_FAILURE */
-  errno = 0;
-  CU_ASSERT(EXIT_FAILURE == color(3));
-  CU_ASSERT(EINVAL == errno);
-}
-
-void test_description()
-{
-  Player b = BLACK_PLAYER;
-  CU_ASSERT_STRING_EQUAL(description(b), "The Black player");
+  CU_ASSERT(BLACK_SQUARE == player_color(BLACK_PLAYER));
+  CU_ASSERT(WHITE_SQUARE == player_color(WHITE_PLAYER));
 }
 
 /**
- * Simple test of function: Player opponent(Player).
+ * Unit test of function: char *player_description(Player p).
  */
-void test_opponent(void)
+void test_player_description()
 {
-  Player b = BLACK_PLAYER;
-  Player w = WHITE_PLAYER;
-  CU_ASSERT(BLACK_PLAYER == opponent(w));
-  CU_ASSERT(WHITE_PLAYER == opponent(b));
+  CU_ASSERT_STRING_EQUAL(player_description(BLACK_PLAYER), "The Black player");
+  CU_ASSERT_STRING_EQUAL(player_description(WHITE_PLAYER), "The White player");
+}
+
+/**
+ * Unit test of function: Player player_opponent(Player p).
+ */
+void test_player_opponent(void)
+{
+  CU_ASSERT(BLACK_PLAYER == player_opponent(WHITE_PLAYER));
+  CU_ASSERT(WHITE_PLAYER == player_opponent(BLACK_PLAYER));
 }
 
 /**
@@ -123,10 +128,11 @@ int main()
    }
 
    /* Add the tests to the suite */
-   if ((NULL == CU_add_test(pSuite, "Player opponent(Player p)", test_opponent))                   ||
-       (NULL == CU_add_test(pSuite, "SquareState color(Player p)", test_color))                    ||
-       (NULL == CU_add_test(pSuite, "char *description(Player p)", test_description))              ||
-       (NULL == CU_add_test(pSuite, "Board *new_board(SquareSet b, SquareSet w)", test_new_board)) )
+   if ((NULL == CU_add_test(pSuite, "Player player_opponent(Player p)", test_player_opponent))                   ||
+       (NULL == CU_add_test(pSuite, "SquareState player_color(Player p)", test_player_color))                    ||
+       (NULL == CU_add_test(pSuite, "char *player_description(Player p)", test_player_description))              ||
+       (NULL == CU_add_test(pSuite, "Board *new_board(SquareSet b, SquareSet w)", test_new_board))               ||
+       (NULL == CU_add_test(pSuite, "SquareState board_get_square(Board *b, Square sq)", test_board_get_square)) )
    {
       CU_cleanup_registry();
       return CU_get_error();
