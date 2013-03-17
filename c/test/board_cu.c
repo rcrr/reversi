@@ -69,6 +69,19 @@ void test_board_get_square(void)
   CU_ASSERT_EQUAL(board_get_square(b, C1), EMPTY_SQUARE);
 }
 
+void test_board_count_difference(void)
+{
+  Board *b;
+  SquareSet blacks, whites;
+
+  blacks = 0xFFFFFFFFFFFFFFFFULL;
+  whites = 0x0000000000000000ULL;
+  b = new_board(blacks, whites);
+
+  CU_ASSERT_EQUAL(board_count_difference(b, BLACK_PLAYER),  64);
+  CU_ASSERT_EQUAL(board_count_difference(b, WHITE_PLAYER), -64);
+}
+
 void test_board_count_pieces(void)
 {
   Board *b;
@@ -145,7 +158,8 @@ int main()
        (NULL == CU_add_test(pSuite, "char *player_description(Player p)", test_player_description))                  ||
        (NULL == CU_add_test(pSuite, "Board *new_board(SquareSet b, SquareSet w)", test_new_board))                   ||
        (NULL == CU_add_test(pSuite, "SquareState board_get_square(Board *b, Square sq)", test_board_get_square))     ||
-       (NULL == CU_add_test(pSuite, "int board_count_pieces(Board *b, SquareState color)", test_board_count_pieces)) )
+       (NULL == CU_add_test(pSuite, "int board_count_pieces(Board *b, SquareState color)", test_board_count_pieces)) ||
+       (NULL == CU_add_test(pSuite, "int board_count_difference(Board *b, Player p)", test_board_count_difference))  )
    {
       CU_cleanup_registry();
       return CU_get_error();

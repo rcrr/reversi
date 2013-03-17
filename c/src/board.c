@@ -186,3 +186,28 @@ int board_count_pieces(const Board *b, const SquareState color)
 
   return popcount(squares);
 }
+
+/**
+ * @brief Returns the disk difference between the player and her opponent.
+ *
+ * Parameter b must be not null.
+ * Parameter p must be a value belonging to the Player enum.
+ *
+ * @param b a pointer to the board structure
+ * @param p the player for whom the difference is computed
+ * @return  the disc count difference
+ */
+int board_count_difference(const Board *b, const Player p)
+{
+  assert(b);
+  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
+  int pcount, ocount;
+  Player o;
+
+  o = player_opponent(p);
+  pcount = board_count_pieces(b, player_color(p));
+  ocount = board_count_pieces(b, player_color(o));
+
+  return pcount - ocount;
+}

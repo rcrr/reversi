@@ -83,4 +83,6 @@ extern SquareState board_get_square(const Board *b, const Square sq);
 
 extern int board_count_pieces(const Board *b, const SquareState color);
 
+extern int board_count_difference(const Board *b, const Player p);
+
 #endif /* BOARD_H */
