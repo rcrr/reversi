@@ -61,7 +61,7 @@ $(OBJS): $(OBJDIR)/%.o: $(SRCDIR)/%.c $(HDRS) | $(OBJDIR)
 .PHONY: test
 test: $(OBJS) | $(BTESTDIR)
 	$(CC) -c -o build/test/board_cu.o test/board_cu.c -I./src
-	$(CC) build/test/board_cu.o build/obj/board.o -o build/test/board_cu $(TEST_LIBS)
+	$(CC) build/test/board_cu.o build/obj/board.o build/obj/bit_works.o -o build/test/board_cu $(TEST_LIBS)
 
 .PHONY: $(BUILDDIR)
 $(BUILDDIR):
