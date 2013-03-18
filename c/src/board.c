@@ -172,7 +172,7 @@ int board_count_pieces(const Board *b, const SquareState color)
 
   switch (color) {
   case EMPTY_SQUARE:
-    squares = ~(b->blacks | b->whites);
+    squares = board_empties(b);
     break;
   case BLACK_SQUARE:
     squares = b->blacks;
@@ -232,4 +232,15 @@ int board_is_move_legal(const Board *b,
   assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
   return 0;
+}
+
+/**
+ * @brief Returns the empty set of squares in the board.
+ *
+ * @param b a pointer to the board structure
+ * @return  the empy set of squares
+ */
+SquareSet board_empties(const Board *b)
+{
+  return ~(b->blacks | b->whites);
 }

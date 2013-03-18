@@ -87,4 +87,6 @@ extern int board_count_difference(const Board *b, const Player p);
 
 extern int board_is_move_legal(const Board *b, const Square move, const Player p);
 
+extern SquareSet board_empties(const Board *b);
+
 #endif /* BOARD_H */
