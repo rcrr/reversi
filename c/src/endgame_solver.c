@@ -49,7 +49,7 @@ int main(void)
   printf("Hello, reversi player!\n");
 
   struct Board b;
-  printf("sizeof Board = %ld\n", sizeof(b));
+  printf("sizeof Board = %zu\n", sizeof(b));
 
   printf("player_opponent(p) = %d\n", player_opponent(p));
 
