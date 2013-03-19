@@ -166,25 +166,7 @@ SquareState board_get_square(const Board *b, const Square sq)
  */
 int board_count_pieces(const Board *b, const SquareState color)
 {
-  assert(b);
-
-  SquareSet squares;
-
-  switch (color) {
-  case EMPTY_SQUARE:
-    squares = board_empties(b);
-    break;
-  case BLACK_SQUARE:
-    squares = b->blacks;
-    break;
-  case WHITE_SQUARE:
-    squares = b->whites;
-    break;
-  default:
-    abort();
-  }
-
-  return popcount(squares);
+  return popcount(board_get_color(b, color));
 }
 
 /**
@@ -243,4 +225,38 @@ int board_is_move_legal(const Board *b,
 SquareSet board_empties(const Board *b)
 {
   return ~(b->blacks | b->whites);
+}
+
+SquareSet board_blacks(const Board *b)
+{
+  return b->blacks;
+}
+
+SquareSet board_whites(const Board *b)
+{
+  return b->whites;
+}
+
+SquareSet board_get_color(const Board *b, const SquareState color)
+{
+  assert(b);
+
+  SquareSet squares;
+
+  switch (color) {
+  case EMPTY_SQUARE:
+    squares = board_empties(b);
+    break;
+  case BLACK_SQUARE:
+    squares = b->blacks;
+    break;
+  case WHITE_SQUARE:
+    squares = b->whites;
+    break;
+  default:
+    abort();
+  }
+
+  return squares;
+
 }
