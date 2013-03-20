@@ -48,8 +48,14 @@ int main(void)
 
   printf("Hello, reversi player!\n");
 
+  SquareSet squares;
+  printf("sizeof SquareSet = %zu\n", sizeof(squares));
+
   struct Board b;
   printf("sizeof Board = %zu\n", sizeof(b));
+
+  struct GamePosition gp;
+  printf("sizeof GamePosition = %zu\n", sizeof(gp));
 
   printf("player_opponent(p) = %d\n", player_opponent(p));
 
