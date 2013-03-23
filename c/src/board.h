@@ -35,17 +35,29 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+/**
+ * @enum Player
+ * @brief The player is one of the two competitors in the game.
+ *
+ * She is either one among the Black and the White opponents.
+ */
 typedef enum {
-  BLACK_PLAYER,
-  WHITE_PLAYER
+  BLACK_PLAYER,   /**< The Black player. */
+  WHITE_PLAYER    /**< The White player. */
 } Player;
 
+/**
+ * @enum SquareState
+ */
 typedef enum {
   EMPTY_SQUARE,
   BLACK_SQUARE,
   WHITE_SQUARE
 } SquareState;
 
+/**
+ * @enum Square
+ */
 typedef enum {
   A1, B1, C1, D1, E1, F1, G1, H1,
   A2, B2, C2, D2, E2, F2, G2, H2,
@@ -57,13 +69,45 @@ typedef enum {
   A8, B8, C8, D8, E8, F8, G8, H8
 } Square;
 
+/**
+ * @enum Direction
+ * @brief The directions that are available in a regular board's square are
+ * eight, Up, Down, Left, Right, and the four diagonal between them.
+ *
+ * Each regular `Square` has eight neighbor ones,
+ * each identified by the proper direction. Boundary squares have fewer neighbors.
+ * 
+ * The `Direction` enum is represented by the respective cardinal point literal.
+ */
+typedef enum {
+  NW,   /**< North-West direction. */
+  N,    /**< North direction. */
+  NE,   /**< North-East direction. */
+  W,    /**< West direction. */
+  E,    /**< East direction. */
+  SW,   /**< South-West direction. */
+  S,    /**< South direction. */
+  SE    /**< South-Est direction. */
+} Direction;
+
 typedef unsigned long long int SquareSet;
 
+/**
+ * @brief A board is an entity that holds the state of a Reversi's gameboard.
+ *
+ * The state is expressed as the combination of the individual state of each board's square.
+ * It is the state that a board has regardless of the player
+ * that has to move or the time spent or remaining to each player. 
+ */
 typedef struct Board {
   unsigned long long int blacks;
   unsigned long long int whites;
 } Board;
 
+/**
+ * @brief A game position is a value object joining the board and the moving player.
+ *
+ */
 typedef struct GamePosition {
   Board board;
   Player player;
@@ -81,18 +125,18 @@ extern Board *delete_board(Board *b);
 
 extern SquareState board_get_square(const Board *b, const Square sq);
 
-extern int board_count_pieces(const Board *b, const SquareState color);
+extern int board_count_pieces(const Board * const b, const SquareState color);
 
-extern int board_count_difference(const Board *b, const Player p);
+extern int board_count_difference(const Board * const b, const Player p);
 
-extern int board_is_move_legal(const Board *b, const Square move, const Player p);
+extern int board_is_move_legal(const Board * const b, const Square move, const Player p);
 
-extern SquareSet board_get_color(const Board *b, const SquareState color);
+extern SquareSet board_get_color(const Board * const b, const SquareState color);
 
-extern SquareSet board_empties(const Board *b);
+extern SquareSet board_empties(const Board * const b);
 
-extern SquareSet board_blacks(const Board *b);
+extern SquareSet board_blacks(const Board * const b);
 
-extern SquareSet board_whites(const Board *b);
+extern SquareSet board_whites(const Board * const b);
 
 #endif /* BOARD_H */

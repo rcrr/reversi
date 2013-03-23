@@ -138,7 +138,7 @@ Board *delete_board(Board *b)
  * @param sq the square to query for
  * @return   the color of the given square
  */
-SquareState board_get_square(const Board *b, const Square sq)
+SquareState board_get_square(const Board * const b, const Square sq)
 {
   assert(b);
   assert(sq >= A1 && sq <= H8);
@@ -164,7 +164,7 @@ SquareState board_get_square(const Board *b, const Square sq)
  * @param color the square color
  * @return      the piece count for the given color
  */
-int board_count_pieces(const Board *b, const SquareState color)
+int board_count_pieces(const Board * const b, const SquareState color)
 {
   return popcount(board_get_color(b, color));
 }
@@ -179,7 +179,7 @@ int board_count_pieces(const Board *b, const SquareState color)
  * @param p the player for whom the difference is computed
  * @return  the disc count difference
  */
-int board_count_difference(const Board *b, const Player p)
+int board_count_difference(const Board * const b, const Player p)
 {
   assert(b);
   assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
@@ -205,7 +205,7 @@ int board_count_difference(const Board *b, const Player p)
  * @param p    the player moving
  * @return     1 if the move is legal, otherwise 0
  */
-int board_is_move_legal(const Board *b,
+int board_is_move_legal(const Board * const b,
                         const Square move,
                         const Player p)
 {
@@ -222,7 +222,7 @@ int board_is_move_legal(const Board *b,
  * @param b a pointer to the board structure
  * @return  the empy set of squares
  */
-SquareSet board_empties(const Board *b)
+SquareSet board_empties(const Board * const b)
 {
   return ~(b->blacks | b->whites);
 }
@@ -232,12 +232,12 @@ SquareSet board_blacks(const Board *b)
   return b->blacks;
 }
 
-SquareSet board_whites(const Board *b)
+SquareSet board_whites(const Board * const b)
 {
   return b->whites;
 }
 
-SquareSet board_get_color(const Board *b, const SquareState color)
+SquareSet board_get_color(const Board * const b, const SquareState color)
 {
   assert(b);
 
@@ -260,3 +260,25 @@ SquareSet board_get_color(const Board *b, const SquareState color)
   return squares;
 
 }
+
+/**
+ * Returns a new long value by shifting the {@code squares} parameter by one position
+ * on the board.
+ *
+ * @param squares the squares set on the bitboard
+ * @return        the shifted squares
+ *
+public long shiftBitboard(final long squares) {
+  switch (this) {
+  case NW: return (squares >>> SHIFT_9) & ALL_SQUARES_EXCEPT_COLUMN_H;
+  case N:  return (squares >>> SHIFT_8);
+  case NE: return (squares >>> SHIFT_7) & ALL_SQUARES_EXCEPT_COLUMN_A;
+  case W:  return (squares >>> SHIFT_1) & ALL_SQUARES_EXCEPT_COLUMN_H;
+  case E:  return (squares <<  SHIFT_1) & ALL_SQUARES_EXCEPT_COLUMN_A;
+  case SW: return (squares <<  SHIFT_7) & ALL_SQUARES_EXCEPT_COLUMN_H;
+  case S:  return (squares <<  SHIFT_8);
+  case SE: return (squares <<  SHIFT_9) & ALL_SQUARES_EXCEPT_COLUMN_A;
+  default: throw new IllegalArgumentException("Undefined value for direction. dir=" + this);
+  }
+}
+*/
