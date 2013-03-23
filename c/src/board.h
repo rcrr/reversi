@@ -119,24 +119,41 @@ extern Player player_opponent(const Player p);
 
 extern char *player_description(const Player p);
 
-extern Board *new_board(const SquareSet b, const SquareSet w);
+extern Board *new_board(const SquareSet b,
+                        const SquareSet w
+                        );
 
 extern Board *delete_board(Board *b);
 
-extern SquareState board_get_square(const Board *b, const Square sq);
+extern SquareState board_get_square(const Board  *const b,
+                                    const Square        sq
+                                    );
 
-extern int board_count_pieces(const Board * const b, const SquareState color);
+extern int board_count_pieces(const Board       *const b,
+                              const SquareState        color
+                              );
 
-extern int board_count_difference(const Board * const b, const Player p);
+extern int board_count_difference(const Board  *const b,
+                                  const Player        p
+                                  );
 
-extern int board_is_move_legal(const Board * const b, const Square move, const Player p);
+extern int board_is_move_legal(const Board *const b,
+                               const Square       move,
+                               const Player       p
+                               );
 
-extern SquareSet board_get_color(const Board * const b, const SquareState color);
+extern SquareSet board_get_color(const Board       *const b,
+                                 const SquareState        color
+                                 );
 
-extern SquareSet board_empties(const Board * const b);
+extern SquareSet board_empties(const Board *const b);
 
-extern SquareSet board_blacks(const Board * const b);
+extern SquareSet board_blacks(const Board *const b);
 
-extern SquareSet board_whites(const Board * const b);
+extern SquareSet board_whites(const Board *const b);
+
+extern SquareSet direction_shift_square_set(const Direction dir,
+                                            const SquareSet squares
+                                            );
 
 #endif /* BOARD_H */

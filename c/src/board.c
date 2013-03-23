@@ -288,9 +288,9 @@ SquareSet board_get_color(const Board       *const b,
  * @param squares the squares set on the bitboard
  * @return        the shifted squares
 */
-SquareSet shiftBitboard(const Direction dir,
-                        const SquareSet squares
-                        )
+SquareSet direction_shift_square_set(const Direction dir,
+                                     const SquareSet squares
+                                     )
 {
   switch (dir) {
   case NW: return (squares >> 9) & ALL_SQUARES_EXCEPT_COLUMN_H;
