@@ -22,7 +22,7 @@
 #  or visit the site <http://www.gnu.org/licenses/>.
 #
 
-MAINS = endgame_solver
+MAINS = endgame_solver db
 
 CC = gcc 
 CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O2
