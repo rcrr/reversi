@@ -85,8 +85,8 @@ $(BTESTDIR): $(BUILDDIR)
 
 .PHONY: doxygen
 doxygen: $(DOCDIR)
-	doxygen
-	(cd build/doc/latex; make)
+	doxygen >build/doxygen.log
+	(cd build/doc/latex; make >make-stdout_and_stderr.log 2>&1)
 
 .PHONY: clean
 clean:

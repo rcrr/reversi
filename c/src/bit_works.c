@@ -1,35 +1,33 @@
 /**
  * @file
  *
- * @brief Reversi C - Bit Works utilities
- */
-
-/**
- * @cond
+ * @brief Bit Works  module implementation.
  *
- * bit_works.c
- *
+ * @par bit_works.c
+ * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
+ * </tt>
+ * @author Roberto Corradini mailto:rob_corradini@yahoo.it
+ * @copyright 2013 Roberto Corradini. All rights reserved.
  *
- * Copyright (c) 2013 Roberto Corradini. All rights reserved.
- *
+ * @par License
+ * <tt>
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation; either version 3, or (at your option) any
  * later version.
- *
+ * \n
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
+ * \n
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  * or visit the site <http://www.gnu.org/licenses/>.
- *
- * @endcond
+ * </tt>
  */
 
 #include "bit_works.h"
@@ -43,7 +41,7 @@ static const uint64 m32 = 0x00000000ffffffff; //binary: 32 zeros, 32 ones
 static const uint64 hff = 0xffffffffffffffff; //binary: all ones
 static const uint64 h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,3...
 
-/**
+/*
  * This is a naive implementation, shown for comparison,
  * and to help in understanding the better functions.
  * It uses 24 arithmetic operations (shift, add, and).
@@ -59,7 +57,7 @@ static int popcount_1(uint64 x) {
 }
 */
 
-/**
+/*
  * This uses fewer arithmetic operations than any other known  
  * implementation on machines with slow multiplication.
  * It uses 17 arithmetic operations.
@@ -76,18 +74,23 @@ static int popcount_2(uint64 x) {
 */
 
 /**
+ * @brief Returns the count of the bit set to 1 in the `x` argument.
+ *
  * This uses fewer arithmetic operations than any other known  
  * implementation on machines with fast multiplication.
  * It uses 12 arithmetic operations, one of which is a multiply.
+ *
+ * @param [in] x the set that has to be counted
+ * @return       the count of bit set in the `x` parameter
  */
 int popcount(uint64 x) {
     x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
     x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
     x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
-    return (x * h01)>>56;           //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ... 
+    return (x * h01) >> 56;         //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ... 
 }
 
-/**
+/*
  * This is better when most bits in x are 0
  * It uses 3 arithmetic operations and one comparison/branch per "1" bit in x.
  *

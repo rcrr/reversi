@@ -1,35 +1,36 @@
 /**
  * @file
  *
- * @brief Reversi C - Board header file
- */
-
-/**
- * @cond
+ * @brief Board module definitions.
+ * @details This module defines the #Player, #SquareState,
+ * #Square, #SquareSet, #Board, #GamePosition, #Direction entities,
+ * and the function prototypes that operate on them.
  *
- * board.h
- *
+ * @par board.h
+ * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
+ * </tt>
+ * @author Roberto Corradini mailto:rob_corradini@yahoo.it
+ * @copyright 2013 Roberto Corradini. All rights reserved.
  *
- * Copyright (c) 2013 Roberto Corradini. All rights reserved.
- *
+ * @par License
+ * <tt>
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation; either version 3, or (at your option) any
  * later version.
- *
+ * \n
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
+ * \n
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  * or visit the site <http://www.gnu.org/licenses/>.
- *
- * @endcond
+ * </tt>
  */
 
 #ifndef BOARD_H
@@ -125,6 +126,10 @@ typedef enum {
   SE    /**< South-Est direction. */
 } Direction;
 
+/**
+ * @typedef SquareSet
+ * @brief The set of sixtyfour squares held by the board.
+ */
 typedef unsigned long long int SquareSet;
 
 /**
@@ -134,32 +139,36 @@ typedef unsigned long long int SquareSet;
  * It is the state that a board has regardless of the player
  * that has to move or the time spent or remaining to each player. 
  */
-typedef struct Board {
-  unsigned long long int blacks;
-  unsigned long long int whites;
+typedef struct {
+  SquareSet blacks;   /**< @brief The set of squares occupied by blank discs. */
+  SquareSet whites;   /**< @brief The set of squares occupied by white discs. */
 } Board;
 
 /**
  * @brief A game position is a value object joining the board and the moving player.
  */
-typedef struct GamePosition {
-  Board *board;
-  Player player;
+typedef struct {
+  Board *board;   /**< @brief Member board contains a pointer to a `Board` structure. */
+  Player player;  /**< @brief Member player contains the next to move. */
 } GamePosition;
 
 
 
-/* player functions. */
+/**************************************************/
+/* Function prototypes for the Player entity. */ 
+/**************************************************/
 
 extern SquareState player_color(const Player p);
 
-extern Player player_opponent(const Player p);
-
 extern char *player_description(const Player p);
 
+extern Player player_opponent(const Player p);
 
 
-/* board functions. */
+
+/**************************************************/
+/* Function prototypes for the Board entity. */ 
+/**************************************************/
 
 extern Board *new_board(const SquareSet b,
                         const SquareSet w
@@ -196,8 +205,9 @@ extern SquareSet board_whites(const Board *const b);
 
 
 
-/* direction functions. */
-
+/**************************************************/
+/* Function prototypes for the Direction entity. */ 
+/**************************************************/
 
 extern SquareSet direction_shift_square_set(const Direction dir,
                                             const SquareSet squares
