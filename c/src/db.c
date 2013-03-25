@@ -1,12 +1,10 @@
 /**
  * @file
  *
- * @brief Bit Works module definitions.
- * @details This module defines the #Player, #SquareState,
- * #Square, #SquareSet, #Board, #GamePosition, #Direction entities,
- * and the function prototypes that operate on them.
+ * @brief Data Base utilities and programs.
+ * @details This executable read and write game position db.
  *
- * @par bit_works.h
+ * @par db.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -33,15 +31,42 @@
  * </tt>
  */
 
-#ifndef BIT_WORKS_H
-#define BIT_WORKS_H
+#include <stdio.h>
+#include "board.h"
 
 /**
- * @typedef uint64
- * @brief Unsigned 64 bits integer.
+ * Data Base main entry.
+ * 
+ * Has to be completly developed.
  */
-typedef unsigned long long int uint64;
+int main(int argc, char *argv[])
+{
 
-extern int popcount(uint64 x);
+  FILE *fp;
+  void filecopy (FILE *, FILE *);
 
-#endif /* BIT_WORKS_H */
+  printf("Hello, db user!\n");
+
+  if (argc == 1)
+    filecopy(stdin, stdout);
+  else
+    while (--argc > 0)
+      if ((fp = fopen(*++argv, "r")) == NULL) {
+        printf("db: can't open %s\n", *argv);
+        return 1;
+      } else {
+        filecopy(fp, stdout);
+        fclose(fp);
+      }
+
+  return 0;
+
+}
+
+void filecopy(FILE *ifp, FILE *ofp)
+{
+  int c;
+
+  while ((c = getc(ifp)) != EOF)
+    putc(c, ofp);
+}

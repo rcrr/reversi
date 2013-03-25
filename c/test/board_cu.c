@@ -58,6 +58,18 @@ int clean_board_suite(void)
   return 0;
 }
 
+void test_direction_shift_square_set(void)
+{
+  CU_ASSERT_EQUAL(direction_shift_square_set(N,  0xFFFFFFFFFFFFFFFFULL), 0x00FFFFFFFFFFFFFFULL);
+  CU_ASSERT_EQUAL(direction_shift_square_set(S,  0xFFFFFFFFFFFFFFFFULL), 0xFFFFFFFFFFFFFF00ULL);
+  CU_ASSERT_EQUAL(direction_shift_square_set(E,  0xFFFFFFFFFFFFFFFFULL), 0xFEFEFEFEFEFEFEFEULL);
+  CU_ASSERT_EQUAL(direction_shift_square_set(W,  0xFFFFFFFFFFFFFFFFULL), 0x7F7F7F7F7F7F7F7FULL);
+  CU_ASSERT_EQUAL(direction_shift_square_set(NE, 0xFFFFFFFFFFFFFFFFULL), 0x00FEFEFEFEFEFEFEULL);
+  CU_ASSERT_EQUAL(direction_shift_square_set(SE, 0xFFFFFFFFFFFFFFFFULL), 0xFEFEFEFEFEFEFE00ULL);
+  CU_ASSERT_EQUAL(direction_shift_square_set(NW, 0xFFFFFFFFFFFFFFFFULL), 0x007F7F7F7F7F7F7FULL);
+  CU_ASSERT_EQUAL(direction_shift_square_set(SW, 0xFFFFFFFFFFFFFFFFULL), 0x7F7F7F7F7F7F7F00ULL);
+}
+
 void test_board_get_square(void)
 {
   Board *b;
@@ -153,13 +165,14 @@ int main()
    }
 
    /* Add the tests to the suite */
-   if ((NULL == CU_add_test(pSuite, "Player player_opponent(Player p)", test_player_opponent))                       ||
-       (NULL == CU_add_test(pSuite, "SquareState player_color(Player p)", test_player_color))                        ||
-       (NULL == CU_add_test(pSuite, "char *player_description(Player p)", test_player_description))                  ||
-       (NULL == CU_add_test(pSuite, "Board *new_board(SquareSet b, SquareSet w)", test_new_board))                   ||
-       (NULL == CU_add_test(pSuite, "SquareState board_get_square(Board *b, Square sq)", test_board_get_square))     ||
-       (NULL == CU_add_test(pSuite, "int board_count_pieces(Board *b, SquareState color)", test_board_count_pieces)) ||
-       (NULL == CU_add_test(pSuite, "int board_count_difference(Board *b, Player p)", test_board_count_difference))  )
+   if ((NULL == CU_add_test(pSuite, "Player player_opponent(Player p)", test_player_opponent))                           ||
+       (NULL == CU_add_test(pSuite, "SquareState player_color(Player p)", test_player_color))                            ||
+       (NULL == CU_add_test(pSuite, "char *player_description(Player p)", test_player_description))                      ||
+       (NULL == CU_add_test(pSuite, "Board *new_board(SquareSet b, SquareSet w)", test_new_board))                       ||
+       (NULL == CU_add_test(pSuite, "SquareState board_get_square(Board *b, Square sq)", test_board_get_square))         ||
+       (NULL == CU_add_test(pSuite, "int board_count_pieces(Board *b, SquareState color)", test_board_count_pieces))     ||
+       (NULL == CU_add_test(pSuite, "int board_count_difference(Board *b, Player p)", test_board_count_difference))      ||
+       (NULL == CU_add_test(pSuite, "SquareSet test_direction_shift_square_set(Direction dir, SquareSet squares)", test_direction_shift_square_set)) )
    {
       CU_cleanup_registry();
       return CU_get_error();
