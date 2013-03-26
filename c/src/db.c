@@ -32,7 +32,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "board.h"
+
+#define MY_BUFSIZ 8;
 
 /**
  * Data Base main entry.
@@ -43,19 +47,24 @@ int main(int argc, char *argv[])
 {
 
   FILE *fp;
-  void filecopy (FILE *, FILE *);
+  char *line;
+
+  char *getline(FILE *);
 
   printf("Hello, db user!\n");
 
   if (argc == 1)
-    filecopy(stdin, stdout);
+    //filecopy(stdin, stdout);
+    line = getline(stdin);
   else
     while (--argc > 0)
       if ((fp = fopen(*++argv, "r")) == NULL) {
         printf("db: can't open %s\n", *argv);
         return 1;
       } else {
-        filecopy(fp, stdout);
+        //filecopy(fp, stdout);
+        line = getline(fp);
+        printf("line = %s", line);
         fclose(fp);
       }
 
@@ -63,6 +72,31 @@ int main(int argc, char *argv[])
 
 }
 
+char *getline(FILE *f)
+{
+  size_t size = 0;
+  char * buf  = NULL;
+
+  int c;
+  int char_counter;
+
+  char_counter = 0;
+  for (;;) {
+    if (char_counter + 1 - size > 0) {
+      size += MY_BUFSIZ;
+      buf = realloc(buf, size);
+    }
+    if (((c = fgetc(f)) != '\n' && c != EOF)) {
+      buf[char_counter++] = c;
+    } else {
+      if (c != EOF) buf[char_counter++] = c;
+      buf[char_counter++] = '\0';
+      return buf;
+    }
+  }
+}
+
+/*
 void filecopy(FILE *ifp, FILE *ofp)
 {
   int c;
@@ -70,3 +104,4 @@ void filecopy(FILE *ifp, FILE *ofp)
   while ((c = getc(ifp)) != EOF)
     putc(c, ofp);
 }
+*/
