@@ -36,7 +36,7 @@
 #include <string.h>
 #include "board.h"
 
-#define MY_BUFSIZ 8;
+#define BUFFER_SIZE 4;
 
 /**
  * Data Base main entry.
@@ -46,62 +46,67 @@
 int main(int argc, char *argv[])
 {
 
-  FILE *fp;
-  char *line;
+  FILE    *fp;
+  char    *line;
+  char   **db;
+  int      line_counter;
+  size_t   db_size;
 
-  char *getline(FILE *);
+  char *get_line(FILE *f);
 
-  printf("Hello, db user!\n");
+  line         = NULL;
+  db           = NULL;
+  line_counter = 0;
+  db_size      = 0;
 
-  if (argc == 1)
-    //filecopy(stdin, stdout);
-    line = getline(stdin);
-  else
+  if (argc == 1) {
+    line = get_line(stdin);
+    printf("%s", line);
+  } else {
     while (--argc > 0)
       if ((fp = fopen(*++argv, "r")) == NULL) {
         printf("db: can't open %s\n", *argv);
         return 1;
       } else {
-        //filecopy(fp, stdout);
-        line = getline(fp);
-        printf("line = %s", line);
+        if (line_counter + 1 - (int) db_size > 0) {
+          db_size += BUFFER_SIZE;
+          while (!feof(fp)) {
+            line = get_line(fp);
+            printf("%s", line);
+          }
+        }
         fclose(fp);
       }
+  }
 
   return 0;
-
 }
 
-char *getline(FILE *f)
+char *get_line(FILE *f)
 {
-  size_t size = 0;
-  char * buf  = NULL;
+  size_t  size;
+  char   *buf;
+  int     char_counter;
+  int     c;
 
-  int c;
-  int char_counter;
-
+  size         = 0;
+  buf          = NULL;
   char_counter = 0;
+
   for (;;) {
-    if (char_counter + 1 - size > 0) {
-      size += MY_BUFSIZ;
+    printf("char_counter: %d, size: %zu, (char_counter + 2 - (int) size): %d", char_counter, size, char_counter + 2 - (int) size);
+    if (char_counter + 2 - (int) size > 0) { // +2 takes into account the next c that will be read and the appended \0.
+      size += BUFFER_SIZE;
+      printf(" ,realloc: new size is %zu", size);
       buf = realloc(buf, size);
     }
-    if (((c = fgetc(f)) != '\n' && c != EOF)) {
+    if (((c = fgetc(f)) != EOF)) {
       buf[char_counter++] = c;
-    } else {
-      if (c != EOF) buf[char_counter++] = c;
+    }
+    printf(" ,c: %c\n", c);
+    if (c == '\n' || c == EOF) {
       buf[char_counter++] = '\0';
       return buf;
     }
   }
 }
-
-/*
-void filecopy(FILE *ifp, FILE *ofp)
-{
-  int c;
-
-  while ((c = getc(ifp)) != EOF)
-    putc(c, ofp);
-}
-*/
