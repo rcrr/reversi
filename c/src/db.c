@@ -36,7 +36,7 @@
 #include <string.h>
 #include "board.h"
 
-#define BUFFER_SIZE 4;
+#define BUFFER_SIZE 64;
 
 /**
  * Data Base main entry.
@@ -81,10 +81,16 @@ int main(int argc, char *argv[])
       }
   }
 
-
+  /* Use the db. */
   for (int i = 0; i < (int) line_counter; i++) {
     printf("line[%d]: %s\n", i, db[i]);
   }
+
+  /* Release the memory allocated. */
+  for (int i = 0; i < (int) line_counter; i++) {
+    free(db[i]);
+  }
+  free(db);
 
 
   return 0;
