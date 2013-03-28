@@ -36,7 +36,7 @@
 #include <string.h>
 #include "board.h"
 
-#define BUFFER_SIZE 4;
+#define BUFFER_SIZE 64;
 
 /**
  * Data Base main entry.
@@ -68,16 +68,30 @@ int main(int argc, char *argv[])
         printf("db: can't open %s\n", *argv);
         return 1;
       } else {
-        if (line_counter + 1 - (int) db_size > 0) {
-          db_size += BUFFER_SIZE;
-          while (!feof(fp)) {
-            line = get_line(fp);
-            printf("%s", line);
+        while (!feof(fp)) {
+          if (line_counter + 1 - (int) db_size > 0) {
+            db_size += BUFFER_SIZE;
+            db = realloc(db, db_size * sizeof(char *));
           }
+          line = get_line(fp);
+          printf("%s", line);
+          db[line_counter++] = line;
         }
         fclose(fp);
       }
   }
+
+  /* Use the db. */
+  for (int i = 0; i < (int) line_counter; i++) {
+    printf("line[%d]: %s\n", i, db[i]);
+  }
+
+  /* Release the memory allocated. */
+  for (int i = 0; i < (int) line_counter; i++) {
+    free(db[i]);
+  }
+  free(db);
+
 
   return 0;
 }
@@ -94,16 +108,13 @@ char *get_line(FILE *f)
   char_counter = 0;
 
   for (;;) {
-    printf("char_counter: %d, size: %zu, (char_counter + 2 - (int) size): %d", char_counter, size, char_counter + 2 - (int) size);
     if (char_counter + 2 - (int) size > 0) { // +2 takes into account the next c that will be read and the appended \0.
       size += BUFFER_SIZE;
-      printf(" ,realloc: new size is %zu", size);
       buf = realloc(buf, size);
     }
     if (((c = fgetc(f)) != EOF)) {
       buf[char_counter++] = c;
     }
-    printf(" ,c: %c\n", c);
     if (c == '\n' || c == EOF) {
       buf[char_counter++] = '\0';
       return buf;
