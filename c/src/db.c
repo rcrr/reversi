@@ -38,6 +38,15 @@
 
 #define BUFFER_SIZE 64;
 
+typedef struct {
+  char   **lines;
+  int      line_counter;
+  size_t   allocated_size;
+} LineList;
+
+char *get_line(FILE *f);
+void  load_line_list(FILE *f, LineList *llp);
+
 /**
  * Data Base main entry.
  * 
@@ -45,55 +54,44 @@
  */
 int main(int argc, char *argv[])
 {
+  LineList *llp;
+  FILE *fp;
 
-  FILE    *fp;
-  char    *line;
-  char   **db;
-  int      line_counter;
-  size_t   db_size;
-
-  char *get_line(FILE *f);
-
-  line         = NULL;
-  db           = NULL;
-  line_counter = 0;
-  db_size      = 0;
+  llp = malloc(sizeof(LineList *));
 
   if (argc == 1) {
-    line = get_line(stdin);
-    printf("%s", line);
+    load_line_list(stdin, llp);
   } else {
     while (--argc > 0)
       if ((fp = fopen(*++argv, "r")) == NULL) {
         printf("db: can't open %s\n", *argv);
         return 1;
       } else {
-        while (!feof(fp)) {
-          if (line_counter + 1 - (int) db_size > 0) {
-            db_size += BUFFER_SIZE;
-            db = realloc(db, db_size * sizeof(char *));
-          }
-          line = get_line(fp);
-          printf("%s", line);
-          db[line_counter++] = line;
-        }
+        load_line_list(fp, llp);
         fclose(fp);
       }
   }
 
   /* Use the db. */
-  for (int i = 0; i < (int) line_counter; i++) {
-    printf("line[%d]: %s\n", i, db[i]);
+  for (int i = 0; i < llp->line_counter; i++) {
+    printf("line[%d]: %s", i, llp->lines[i]);
   }
 
   /* Release the memory allocated. */
-  for (int i = 0; i < (int) line_counter; i++) {
-    free(db[i]);
-  }
-  free(db);
-
+  // to be done ....
 
   return 0;
+}
+
+void load_line_list(FILE *fp, LineList *llp)
+{
+  while (!feof(fp)) {
+    if (llp->line_counter + 1 - (int) llp->allocated_size > 0) {
+      llp->allocated_size += BUFFER_SIZE;
+      llp->lines = realloc(llp->lines, llp->allocated_size * sizeof(char **));
+    }
+    llp->lines[llp->line_counter++] = get_line(fp);;
+  }
 }
 
 char *get_line(FILE *f)
