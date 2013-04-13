@@ -44,6 +44,22 @@ typedef struct {
   size_t   allocated_size;
 } LineList;
 
+typedef struct {
+  char   *id;
+  Board  *board;
+  Player *player;
+  char   *desc;
+} GamePositionDbEntry;
+
+typedef struct {
+  GamePositionDbEntry **positions;
+  int                   number_of_positions;
+  char                 *desc;
+} GamePositionDb;
+
+const static char field_separator = ';'; /* Field separator for records in the game position db. */
+
+int   db_validate(const LineList *const llp);
 char *get_line(FILE *f);
 void  load_line_list(FILE *f, LineList *llp);
 
@@ -72,14 +88,92 @@ int main(int argc, char *argv[])
       }
   }
 
-  /* Use the db. */
-  for (int i = 0; i < llp->line_counter; i++) {
-    printf("line[%d]: %s", i, llp->lines[i]);
-  }
+  db_validate(llp);
 
   /* Release the memory allocated. */
   // to be done ....
 
+  return 0;
+}
+
+int db_validate(const LineList *const llp)
+{
+  char                *line;
+  char                *db_record;
+  char                 c;
+  char                *cp0;
+  char                *cp1;
+  int                  char_counter;
+  int                  line_counter;
+  GamePositionDbEntry *game_position_db_entry;
+  char                 tmp_board[65];
+
+  tmp_board[64] = '\0';
+
+  for (line_counter = 0; line_counter < llp->line_counter; line_counter++) {
+    line = llp->lines[line_counter];
+
+    db_record = NULL;
+    char_counter = 0;
+    while ((c = line[char_counter])) {
+      if (c == '#' || c == '\n') {
+        break;
+      }
+      char_counter++;
+    }
+
+    if (char_counter > 0) {
+      db_record = malloc((char_counter + 1) * sizeof(db_record));
+      sprintf(db_record, "%.*s", char_counter, line);
+      printf("%s\n", db_record);
+
+      game_position_db_entry = malloc(sizeof(game_position_db_entry));
+
+      cp0 = db_record;
+      if ((cp1 = strchr(cp0, field_separator)) != NULL) {
+        strncpy(game_position_db_entry->id = malloc((cp1 - cp0 + 1) * sizeof(game_position_db_entry->id)), cp0, cp1 - cp0);
+        game_position_db_entry->id[cp1 - cp0] = '\0';
+      } else {
+        printf("ERROR!\n\n");
+      }
+      printf("game_position_db_entry->id=%s\n", game_position_db_entry->id);
+      cp0 = cp1 + 1;
+      if ((cp1 = strchr(cp0, field_separator)) != NULL) {
+        if ((cp1 - cp0) != 64) {
+          printf("ERROR: board pieces must be 64! Found %ld\n", cp1 - cp0);
+        }
+        strncpy(tmp_board, cp0, 64);
+        printf("tmp_board=%s\n", tmp_board);
+        SquareSet blacks = 0ULL;
+        SquareSet whites = 0ULL;
+        for (int i = 0; i < 64; i++) {
+          c = tmp_board[i];
+          switch (c) {
+          case 'b':
+            blacks |= 1ULL << i;
+            break;
+          case 'w':
+            whites |= 1ULL << i;
+            break;
+          case '.':
+            break;
+          default:
+            printf("ERROR: board pieces must be in 'b', 'w', or '.' character set. Found %c\n", c);
+          }
+        }
+        game_position_db_entry->board = new_board(blacks, whites);
+        printf("Board:\n%s\n", board_print(game_position_db_entry->board));
+
+      } else {
+        printf("ERROR!\n\n");
+      }
+
+
+    }
+
+    //printf("line %6d:%s", i, line);
+    free(db_record);
+  }
   return 0;
 }
 
@@ -90,7 +184,7 @@ void load_line_list(FILE *fp, LineList *llp)
       llp->allocated_size += BUFFER_SIZE;
       llp->lines = realloc(llp->lines, llp->allocated_size * sizeof(char **));
     }
-    llp->lines[llp->line_counter++] = get_line(fp);;
+    llp->lines[llp->line_counter++] = get_line(fp);
   }
 }
 

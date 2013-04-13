@@ -203,6 +203,8 @@ extern SquareSet board_blacks(const Board *const b);
 
 extern SquareSet board_whites(const Board *const b);
 
+extern char *board_print(const Board const *b);
+
 
 
 /**************************************************/
@@ -212,5 +214,14 @@ extern SquareSet board_whites(const Board *const b);
 extern SquareSet direction_shift_square_set(const Direction dir,
                                             const SquareSet squares
                                             );
+
+
+
+/********************************************************/
+/* Function implementations for the SquareState entity. */ 
+/********************************************************/
+
+extern char square_state_symbol(const SquareState color);
+
 
 #endif /* BOARD_H */
