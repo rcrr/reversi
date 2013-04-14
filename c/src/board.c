@@ -345,6 +345,18 @@ SquareSet board_get_color(const Board       *const b,
   return squares;
 }
 
+/**
+ * @brief Returns a formatted string showing a 2d graphical represention of the board.
+ *
+ * The returned string has a dynamic extent set by a call to malloc. It must then properly
+ * garbage collected by a call to free when no more referenced.
+ *
+ * @invariant Parameter `b` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] b a pointer to the board structure
+ * @return       a string being a 2d representation of the board
+ */
 char *board_print(const Board const *b)
 {
   assert(b);

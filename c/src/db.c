@@ -36,8 +36,6 @@
 #include <string.h>
 #include "board.h"
 
-#define BUFFER_SIZE 64;
-
 typedef struct {
   char   **lines;
   int      line_counter;
@@ -47,7 +45,7 @@ typedef struct {
 typedef struct {
   char   *id;
   Board  *board;
-  Player *player;
+  Player  player;
   char   *desc;
 } GamePositionDbEntry;
 
@@ -58,6 +56,7 @@ typedef struct {
 } GamePositionDb;
 
 const static char field_separator = ';'; /* Field separator for records in the game position db. */
+const static  int buffer_size     = 64;  /* Buffer size for allocating dynamic space. */
 
 int   db_validate(const LineList *const llp);
 char *get_line(FILE *f);
@@ -134,16 +133,18 @@ int db_validate(const LineList *const llp)
         strncpy(game_position_db_entry->id = malloc((cp1 - cp0 + 1) * sizeof(game_position_db_entry->id)), cp0, cp1 - cp0);
         game_position_db_entry->id[cp1 - cp0] = '\0';
       } else {
-        printf("ERROR!\n\n");
+        printf("ERROR! The record is missing the id field.\n");
+        goto error;
       }
       printf("game_position_db_entry->id=%s\n", game_position_db_entry->id);
+
       cp0 = cp1 + 1;
       if ((cp1 = strchr(cp0, field_separator)) != NULL) {
         if ((cp1 - cp0) != 64) {
           printf("ERROR: board pieces must be 64! Found %ld\n", cp1 - cp0);
+          goto error;
         }
         strncpy(tmp_board, cp0, 64);
-        printf("tmp_board=%s\n", tmp_board);
         SquareSet blacks = 0ULL;
         SquareSet whites = 0ULL;
         for (int i = 0; i < 64; i++) {
@@ -159,19 +160,55 @@ int db_validate(const LineList *const llp)
             break;
           default:
             printf("ERROR: board pieces must be in 'b', 'w', or '.' character set. Found %c\n", c);
+            goto error;
           }
         }
         game_position_db_entry->board = new_board(blacks, whites);
         printf("Board:\n%s\n", board_print(game_position_db_entry->board));
-
       } else {
-        printf("ERROR!\n\n");
+        printf("ERROR! The record is missing the board field.\n");
+        goto error;
       }
 
+      cp0 = cp1 + 1;
+      if ((cp1 = strchr(cp0, field_separator)) != NULL) {
+        if ((cp1 - cp0) != 1) {
+          printf("ERROR: player field must be one char! Found %ld\n", cp1 - cp0);
+          goto error;
+        }
+        Player p;
+        c = *cp0;
+        switch (c) {
+        case 'b':
+          p = BLACK_PLAYER;
+          break;
+        case 'w':
+          p = WHITE_PLAYER;
+          break;
+        default:
+          printf("ERROR: player must be in 'b', or 'w' character set. Found %c\n", c);
+          goto error;
+        }
+        game_position_db_entry->player = p;
+        printf("Player: %s\n", player_description(game_position_db_entry->player));
+      } else {
+        printf("ERROR! The record is missing the player field.\n");
+        goto error;
+      }
+
+      cp0 = cp1 + 1;
+      if ((cp1 = strchr(cp0, field_separator)) != NULL) {
+        game_position_db_entry->desc = malloc(((cp1 - cp0) + 1) * sizeof(game_position_db_entry->desc));
+        strncpy(game_position_db_entry->desc, cp0, cp1 - cp0);
+        printf("Description: %s\n", game_position_db_entry->desc);
+      } else {
+        printf("ERROR! The record is missing the description field.\n");
+        goto error;
+      }
 
     }
 
-    //printf("line %6d:%s", i, line);
+  error:
     free(db_record);
   }
   return 0;
@@ -181,7 +218,7 @@ void load_line_list(FILE *fp, LineList *llp)
 {
   while (!feof(fp)) {
     if (llp->line_counter + 1 - (int) llp->allocated_size > 0) {
-      llp->allocated_size += BUFFER_SIZE;
+      llp->allocated_size += buffer_size;
       llp->lines = realloc(llp->lines, llp->allocated_size * sizeof(char **));
     }
     llp->lines[llp->line_counter++] = get_line(fp);
@@ -201,7 +238,7 @@ char *get_line(FILE *f)
 
   for (;;) {
     if (char_counter + 2 - (int) size > 0) { // +2 takes into account the next c that will be read and the appended \0.
-      size += BUFFER_SIZE;
+      size += buffer_size;
       buf = realloc(buf, size);
     }
     if (((c = fgetc(f)) != EOF)) {
