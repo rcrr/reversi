@@ -349,13 +349,13 @@ char *board_print(const Board const *b)
 {
   assert(b);
 
+  /* The string has 9 lines of 21 char per line, plus 10 CR, totalling 199 chars. */
+  const static int board_print_string_size = 200;
+
   char *b_to_string;
   char buf[3];
 
-  b_to_string = malloc(100 * sizeof(b_to_string));
-
-  printf("b->blacks=%llu\n", b->blacks);
-  printf("b->whites=%llu\n", b->whites);
+  b_to_string = malloc(board_print_string_size * sizeof(b_to_string));
 
   strcat(b_to_string, "    a b c d e f g h ");
   for (int row = 0; row < 8; row++) {
@@ -364,7 +364,6 @@ char *board_print(const Board const *b)
     strcat(b_to_string, buf);
     strcat(b_to_string, "  ");
     for (int col = 0; col < 8; col++) {
-      //printf("(8 * row) + col) = %i", (8 * row) + col);
       sprintf(buf, "%c ", square_state_symbol(board_get_square(b, (8 * row) + col)));
       strcat(b_to_string, buf);
     }
