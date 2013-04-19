@@ -35,6 +35,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "board.h"
 #include "bit_works.h"
@@ -344,6 +345,45 @@ SquareSet board_get_color(const Board       *const b,
   return squares;
 }
 
+/**
+ * @brief Returns a formatted string showing a 2d graphical represention of the board.
+ *
+ * The returned string has a dynamic extent set by a call to malloc. It must then properly
+ * garbage collected by a call to free when no more referenced.
+ *
+ * @invariant Parameter `b` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] b a pointer to the board structure
+ * @return       a string being a 2d representation of the board
+ */
+char *board_print(const Board const *b)
+{
+  assert(b);
+
+  /* The string has 9 lines of 21 char per line, plus 10 CR, totalling 199 chars. */
+  const static int board_print_string_size = 200;
+
+  char *b_to_string;
+  char buf[3];
+
+  b_to_string = malloc(board_print_string_size * sizeof(b_to_string));
+
+  strcat(b_to_string, "    a b c d e f g h ");
+  for (int row = 0; row < 8; row++) {
+    strcat(b_to_string, "\n ");
+    sprintf(buf, "%1d", row + 1);
+    strcat(b_to_string, buf);
+    strcat(b_to_string, "  ");
+    for (int col = 0; col < 8; col++) {
+      sprintf(buf, "%c ", square_state_symbol(board_get_square(b, (8 * row) + col)));
+      strcat(b_to_string, buf);
+    }
+  }
+  strcat(b_to_string, "\n");
+  return b_to_string;
+}
+
 
 
 /******************************************************/
@@ -376,6 +416,33 @@ SquareSet direction_shift_square_set(const Direction dir,
   case SW: return (squares << 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
   case S:  return (squares << 8);
   case SE: return (squares << 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
+  default: abort();
+  }
+}
+
+
+
+/********************************************************/
+/* Function implementations for the SquareState entity. */ 
+/********************************************************/
+
+/**
+ * @brief Returns the #SquareState printable representation.
+ *
+ * @invariant Parameter `color` must belong to the #SquareState enum.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] color the given color
+ * @return     the color's `symbol`
+ */
+char square_state_symbol(const SquareState color)
+{
+  assert(color >= EMPTY_SQUARE && color <= WHITE_SQUARE);
+
+  switch (color) {
+  case EMPTY_SQUARE: return '.';
+  case BLACK_SQUARE: return '@';
+  case WHITE_SQUARE: return 'O';
   default: abort();
   }
 }

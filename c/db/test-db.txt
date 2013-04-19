@@ -12,12 +12,16 @@
 # field #3: Player.
 #           Must be one character, 'b' for black player, and 'w' for white one.
 # field #4: Description.
-#           Can be long at will. Any character is allowed except ';'. It is terminated by a new line char '\n'.
+#           Can be long at will. Any character is allowed except ';' that terminates the field.
+#
+# After the fourth field anything is allowed and is not processed.
+# Lines must be a validated record or must start with a dash (#) char. No other case is allowed.
 #
 # The db is read complitely. From STDIN or from one or more files. Then rows are validated.
 # All the offending rows generate a log describing the violation.
 # If one or more row doesn't pass the validation step, the program exit.
 #
-test-one;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;Test position number one
-test-two;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;Test position number two
-test-three;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;.;Test position number three
+test-one;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;Test position number one;
+test-two;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;Test position number two; # This is peculiar!
+test-wrong;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;.;Test wrong position;
+test-three;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;Test position number three;
