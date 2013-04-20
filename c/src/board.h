@@ -170,11 +170,11 @@ extern Player player_opponent(const Player p);
 /* Function prototypes for the Board entity. */ 
 /**************************************************/
 
-extern Board *new_board(const SquareSet b,
+extern Board *board_new(const SquareSet b,
                         const SquareSet w
                         );
 
-extern Board *delete_board(Board *b);
+extern Board *board_delete(Board *b);
 
 extern SquareState board_get_square(const Board  *const b,
                                     const Square        sq

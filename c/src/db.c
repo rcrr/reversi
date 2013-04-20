@@ -177,7 +177,7 @@ int db_validate(const LineList *const llp)
             goto error;
           }
         }
-        game_position_db_entry->board = new_board(blacks, whites);
+        game_position_db_entry->board = board_new(blacks, whites);
         printf("Board:\n%s\n", board_print(game_position_db_entry->board));
       } else {
         printf("ERROR! The record is missing the board field.\n");

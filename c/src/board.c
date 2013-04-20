@@ -117,7 +117,7 @@ Player player_opponent(const Player p)
  * @param [in] w the set of white squares
  * @return     a pointer to a new board structure
  */
-Board *new_board(const SquareSet b,
+Board *board_new(const SquareSet b,
                  const SquareSet w
                  )
 {
@@ -144,7 +144,7 @@ Board *new_board(const SquareSet b,
  * @param [in] b the pointer to be deallocated
  * @return       always the NULL pointer
  */
-Board *delete_board(Board *b)
+Board *board_delete(Board *b)
 {
   assert(b);
 

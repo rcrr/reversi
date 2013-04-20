@@ -72,12 +72,12 @@ void test_board_get_square(void)
 {
   Board *b;
 
-  b = new_board(1LLU, 2LLU);
+  b = board_new(1LLU, 2LLU);
 
   CU_ASSERT_EQUAL(board_get_square(b, A1), BLACK_SQUARE);
   CU_ASSERT_EQUAL(board_get_square(b, B1), WHITE_SQUARE);
   CU_ASSERT_EQUAL(board_get_square(b, C1), EMPTY_SQUARE);
-  b = delete_board(b);
+  b = board_delete(b);
 }
 
 void test_board_count_difference(void)
@@ -87,77 +87,77 @@ void test_board_count_difference(void)
 
   blacks = 0xFFFFFFFFFFFFFFFFULL;
   whites = 0x0000000000000000ULL;
-  b = new_board(blacks, whites);
+  b = board_new(blacks, whites);
 
   CU_ASSERT_EQUAL(board_count_difference(b, BLACK_PLAYER),  64);
   CU_ASSERT_EQUAL(board_count_difference(b, WHITE_PLAYER), -64);
-  b = delete_board(b);
+  b = board_delete(b);
 }
 
 void test_board_compare(void)
 {
   Board *a, *b;
 
-  a = new_board(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
-  b = new_board(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
+  a = board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
+  b = board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
   CU_ASSERT_EQUAL(board_compare(a, b), 0);
-  a = delete_board(a);
-  b = delete_board(b);
+  a = board_delete(a);
+  b = board_delete(b);
 
-  a = new_board(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
-  b = new_board(0x0000000000000000ULL, 0x0000000000000000ULL);
+  a = board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
+  b = board_new(0x0000000000000000ULL, 0x0000000000000000ULL);
   CU_ASSERT_EQUAL(board_compare(a, b), +1);
-  a = delete_board(a);
-  b = delete_board(b);
+  a = board_delete(a);
+  b = board_delete(b);
 
-  a = new_board(0x0000000000000000ULL, 0x0000000000000000ULL);
-  b = new_board(0x0000000000000001ULL, 0x0000000000000000ULL);
+  a = board_new(0x0000000000000000ULL, 0x0000000000000000ULL);
+  b = board_new(0x0000000000000001ULL, 0x0000000000000000ULL);
   CU_ASSERT_EQUAL(board_compare(a, b), -1);
-  a = delete_board(a);
-  b = delete_board(b);
+  a = board_delete(a);
+  b = board_delete(b);
 
-  a = new_board(0x0000000000000007ULL, 0x0000000000000000ULL);
-  b = new_board(0x0000000000000007ULL, 0x0000000000000000ULL);
+  a = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
+  b = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
   CU_ASSERT_EQUAL(board_compare(a, b), 0);
-  a = delete_board(a);
-  b = delete_board(b);
+  a = board_delete(a);
+  b = board_delete(b);
 
-  a = new_board(0x0000000000000007ULL, 0x0100000000000000ULL);
-  b = new_board(0x0000000000000007ULL, 0x0000000000000000ULL);
+  a = board_new(0x0000000000000007ULL, 0x0100000000000000ULL);
+  b = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
   CU_ASSERT_EQUAL(board_compare(a, b), +1);
-  a = delete_board(a);
-  b = delete_board(b);
+  a = board_delete(a);
+  b = board_delete(b);
 
-  a = new_board(0x0000000000000007ULL, 0x0000000000000000ULL);
-  b = new_board(0x0000000000000007ULL, 0x0100000000000000ULL);
+  a = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
+  b = board_new(0x0000000000000007ULL, 0x0100000000000000ULL);
   CU_ASSERT_EQUAL(board_compare(a, b), -1);
-  a = delete_board(a);
-  b = delete_board(b);
+  a = board_delete(a);
+  b = board_delete(b);
 }
 
 void test_board_count_pieces(void)
 {
   Board *b;
 
-  b = new_board(1LLU, 2LLU);
+  b = board_new(1LLU, 2LLU);
 
   CU_ASSERT_EQUAL(board_count_pieces(b, BLACK_SQUARE),  1);
   CU_ASSERT_EQUAL(board_count_pieces(b, WHITE_SQUARE),  1);
   CU_ASSERT_EQUAL(board_count_pieces(b, EMPTY_SQUARE), 62);
-  b = delete_board(b);
+  b = board_delete(b);
 }
 
 
-void test_new_board(void)
+void test_board_new(void)
 {
   SquareSet b, w;
   Board *empty_board;
 
   b = 0LLU;
   w = 0LLU;
-  empty_board = new_board(b, w);
+  empty_board = board_new(b, w);
   CU_ASSERT_PTR_NOT_NULL(empty_board);
-  empty_board = delete_board(empty_board);
+  empty_board = board_delete(empty_board);
 
   CU_ASSERT_PTR_NULL(empty_board)
 }
@@ -213,7 +213,7 @@ int main()
    if ((NULL == CU_add_test(pSuite, "Player player_opponent(Player p)", test_player_opponent))                           ||
        (NULL == CU_add_test(pSuite, "SquareState player_color(Player p)", test_player_color))                            ||
        (NULL == CU_add_test(pSuite, "char *player_description(Player p)", test_player_description))                      ||
-       (NULL == CU_add_test(pSuite, "Board *new_board(SquareSet b, SquareSet w)", test_new_board))                       ||
+       (NULL == CU_add_test(pSuite, "Board *board_new(SquareSet b, SquareSet w)", test_board_new))                       ||
        (NULL == CU_add_test(pSuite, "SquareState board_get_square(Board *b, Square sq)", test_board_get_square))         ||
        (NULL == CU_add_test(pSuite, "int board_count_pieces(Board *b, SquareState color)", test_board_count_pieces))     ||
        (NULL == CU_add_test(pSuite, "int board_count_difference(Board *b, Player p)", test_board_count_difference))      ||
