@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "rb.h"
 #include "board.h"
 
 typedef struct {
@@ -61,6 +62,7 @@ const static  int buffer_size     = 64;  /* Buffer size for allocating dynamic s
 int   db_validate(const LineList *const llp);
 char *get_line(FILE *f);
 void  load_line_list(FILE *f, LineList *llp);
+int compare_entries (const void *pa, const void *pb, void *param);
 
 /**
  * Data Base main entry.
@@ -108,6 +110,18 @@ int db_validate(const LineList *const llp)
   char                 tmp_board[65];
 
   tmp_board[64] = '\0';
+
+  // Has to be passed as function parameter.
+  // Create a new Red-Black Tree used as a dictionary for Game Position Entries.
+  struct rb_table *tree;
+  struct libavl_allocator *allocator = NULL;
+  void *param = NULL;
+  tree = rb_create(compare_entries, param, allocator);
+  if (tree == NULL) {
+    printf ("ERROR! Out of memory creating tree.\n");
+    return 1;
+  }
+
 
   for (line_counter = 0; line_counter < llp->line_counter; line_counter++) {
     line = llp->lines[line_counter];
@@ -206,6 +220,20 @@ int db_validate(const LineList *const llp)
         goto error;
       }
 
+      // Add the game position db entry to the dictionary.
+      // How the dictionary is managed?
+      GamePositionDbEntry *entry;
+      if ((entry = rb_find(tree, game_position_db_entry)) != NULL) {
+        printf("Item already inserted into the tree.\n");
+      } else {
+        printf("Item is new.\n");
+        void **p = rb_probe(tree, game_position_db_entry);
+        if (p == NULL)
+          printf("ERROR! Allocating space for tree entry failed.\n");
+      }
+
+      printf("\n\n");
+
     }
 
   error:
@@ -249,4 +277,13 @@ char *get_line(FILE *f)
       return buf;
     }
   }
+}
+
+/* Comparison function for entries.*/
+int compare_entries(const void *pa, const void *pb, void *param)
+{
+  const GamePositionDbEntry *a = pa;
+  const GamePositionDbEntry *b = pb;
+
+  return strcmp(a->id, b->id);
 }

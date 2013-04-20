@@ -384,6 +384,45 @@ char *board_print(const Board const *b)
   return b_to_string;
 }
 
+/**
+ * @brief Compares board `a` and board `b`.
+ *
+ * When the two board are equal it returns `0`, when `a` is greather then `b` it
+ * returns `+1`, otherwise `-1`.
+ *
+ * Boards are equals when have the same square configuration.
+ *
+ * The returned string has a dynamic extent set by a call to malloc. It must then properly
+ * garbage collected by a call to free when no more referenced.
+ *
+ * @invariant Parameters `a` and `b` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] a a pointer to a board structure
+ * @param [in] b a pointer to another board structure
+ * @return       `-1` when `a < b`, `+1` when `a > b`, or `0` when the two boards are equal
+ */
+int board_compare(const Board * const a,
+                  const Board * const b)
+{
+  assert(a);
+  assert(b);
+
+  if (a->blacks < b->blacks) {
+    return -1;
+  } else if (a->blacks > b->blacks) {
+    return +1;
+  } else {          /* Blacks are equal. */
+    if (a->whites < b->whites) {
+      return -1;
+    } else if (a->whites > b->whites) {
+      return +1;
+    } else {        /* Also whites are equal, and so are a and b boards. */
+      return  0;
+    }
+  }  
+}
+
 
 
 /******************************************************/
@@ -445,4 +484,34 @@ char square_state_symbol(const SquareState color)
   case WHITE_SQUARE: return 'O';
   default: abort();
   }
+}
+
+
+
+/*********************************************************/
+/* Function implementations for the GamePosition entity. */ 
+/*********************************************************/
+
+int game_position_compare(const GamePosition * const a,
+                          const GamePosition * const b)
+{
+  if (a->board->blacks < b->board->blacks) {
+    return -1;
+  } else if (a->board->blacks > b->board->blacks) {
+    return +1;
+  } else {                    /* Blacks are equal. */
+    if (a->board->whites < b->board->whites) {
+      return -1;
+    } else if (a->board->whites > b->board->whites) {
+      return +1;
+    } else {                  /* Also whites are equal. */
+      if (a->player < b->player) {
+        return -1;
+      } else if (a->player > b->player) {
+        return +1;
+      } else {
+        return 0;             /* Players are equal, and so are a and b. */
+      }
+    }
+  }  
 }
