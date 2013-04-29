@@ -1,10 +1,10 @@
 /**
  * @file
  *
- * @brief Data Base utilities and programs.
+ * @brief Data Base utilities and programs for `GamePosition` structures.
  * @details This executable read and write game position db.
  *
- * @par db.c
+ * @par game_position_db.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -35,7 +35,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "rb.h"
-#include "board.h"
+
+#include <glib.h>
+
+#include "game_position_db.h"
 
 typedef struct {
   char   **lines;
@@ -43,26 +46,13 @@ typedef struct {
   size_t   allocated_size;
 } LineList;
 
-typedef struct {
-  char   *id;
-  Board  *board;
-  Player  player;
-  char   *desc;
-} GamePositionDbEntry;
-
-typedef struct {
-  GamePositionDbEntry **positions;
-  int                   number_of_positions;
-  char                 *desc;
-} GamePositionDb;
-
 const static char field_separator = ';'; /* Field separator for records in the game position db. */
 const static  int buffer_size     = 64;  /* Buffer size for allocating dynamic space. */
 
-int   db_validate(const LineList *const llp);
-char *get_line(FILE *f);
-void  load_line_list(FILE *f, LineList *llp);
-int compare_entries (const void *pa, const void *pb, void *param);
+ int   db_validate(const LineList *const llp);
+char * get_line(FILE *f);
+void   load_line_list(FILE *f, LineList *llp);
+ int   compare_entries (const void *pa, const void *pb, void *param);
 
 /**
  * Data Base main entry.
@@ -74,7 +64,22 @@ int main(int argc, char *argv[])
   LineList *llp;
   FILE *fp;
 
+  // *** Test usage of the GLib library.
+  GSList* list = NULL;
+  printf("The list is now %d items long\n", g_slist_length(list));
+  list = g_slist_prepend(list, "first");
+  printf("The list is now %d items long\n", g_slist_length(list));
+  list = g_slist_append(list, "second");
+  printf("The list is now %d items long\n", g_slist_length(list));
+  g_slist_free(list);
+  // ***
+
+
+
   llp = malloc(sizeof(LineList *));
+  llp->line_counter = 0;
+  llp->allocated_size = 0;
+  llp->lines = NULL;
 
   if (argc == 1) {
     load_line_list(stdin, llp);

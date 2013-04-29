@@ -25,11 +25,10 @@
 MAINS = endgame_solver game_position_db
 
 CC = gcc 
-CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O2
+CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0`
 LDFLAGS = 
-LIBS = 
+LIBS = `pkg-config --libs glib-2.0`
 TEST_LIBS = -lcunit
-
 SRCDIR = src
 TESTDIR = test
 
