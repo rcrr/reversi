@@ -99,6 +99,12 @@ int main(int argc, char *argv[])
   /* Release the memory allocated. */
   // to be done ....
 
+
+  // It is a quick-and-dirty test for the GLib file library ....
+  gpdb_load(fp = fopen("./db/test-db.txt", "r"));
+  fclose(fp);
+
+
   return 0;
 }
 
@@ -291,4 +297,27 @@ int compare_entries(const void *pa, const void *pb, void *param)
   const GamePositionDbEntry *b = pb;
 
   return strcmp(a->id, b->id);
+}
+
+void gpdb_load(FILE *fp)
+{
+  GIOChannel *channel;
+  GError     *err;
+  GIOStatus   ret;
+  gchar      *msg;
+  gsize       len;
+
+  channel = NULL;
+  err     = NULL;
+
+  channel = g_io_channel_unix_new(fileno(fp));
+
+  ret = g_io_channel_read_line(channel, &msg, &len, NULL, &err);
+  if (ret == G_IO_STATUS_ERROR)
+    g_error("Error reading: %s\n", err->message);
+
+  printf("Read %lu bytes: %s\n", len, msg);
+  g_free(msg);
+
+  ret = g_io_channel_shutdown(channel, TRUE, &err);
 }

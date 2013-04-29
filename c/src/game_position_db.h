@@ -59,7 +59,7 @@ typedef struct {
 /* Function prototypes for the GamePositionDb entity. */ 
 /******************************************************/
 
-extern void gpdb_load(void);
+extern void gpdb_load(FILE *fp);
 
 
 

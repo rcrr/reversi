@@ -25,7 +25,7 @@
 MAINS = endgame_solver game_position_db
 
 CC = gcc 
-CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0`
+CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LDFLAGS = 
 LIBS = `pkg-config --libs glib-2.0`
 TEST_LIBS = -lcunit
