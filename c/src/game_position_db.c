@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 
 
   // It is a quick-and-dirty test for the GLib file library ....
-  gpdb_load(fp = fopen("./db/test-db.txt", "r"));
+  gpdb_load(fp = fopen("./db/test-db.txt", "r"), NULL);
   fclose(fp);
 
 
@@ -299,7 +299,7 @@ int compare_entries(const void *pa, const void *pb, void *param)
   return strcmp(a->id, b->id);
 }
 
-void gpdb_load(FILE *fp)
+int gpdb_load(FILE *fp, GError **e)
 {
   GIOChannel *channel;
   GError     *err;
@@ -312,12 +312,21 @@ void gpdb_load(FILE *fp)
 
   channel = g_io_channel_unix_new(fileno(fp));
 
-  ret = g_io_channel_read_line(channel, &msg, &len, NULL, &err);
-  if (ret == G_IO_STATUS_ERROR)
-    g_error("Error reading: %s\n", err->message);
+  do {
+    ret = g_io_channel_read_line(channel, &msg, &len, NULL, &err);
+    if (ret == G_IO_STATUS_ERROR)
+      g_error("Error reading: %s\n", err->message);
 
-  printf("Read %lu bytes: %s\n", len, msg);
-  g_free(msg);
+    printf("Read %lu bytes: %s\n", len, msg);
+    g_free(msg);
+  } while (ret != G_IO_STATUS_EOF);
 
-  ret = g_io_channel_shutdown(channel, TRUE, &err);
+  g_io_channel_shutdown(channel, TRUE, &err);
+  if (err) {
+    g_propagate_error(e, err);
+    return EXIT_FAILURE;
+  }
+
+  g_io_channel_unref(channel);
+  return EXIT_SUCCESS;
 }
