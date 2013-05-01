@@ -290,8 +290,66 @@ char *get_line(FILE *f)
   }
 }
 
+gint extract_entry_from_line(gchar *line, GamePositionDbEntry *entry, GError **e)
+{
+  gchar *record;
+  int    record_length;
+  gchar  c;
+  gchar *cp0;
+  gchar *cp1;
+
+  /* If line is null return. */
+  if (!line)
+    return EXIT_SUCCESS;
+
+  /* Variable initialization. */
+  record = NULL;
+  record_length = 0;
+  cp0 = NULL;
+  cp1 = NULL;
+
+  /* Computes the record_length, removing everything following a dash. */
+  while ((c = line[record_length])) {
+    if (c == '#' || c == '\n') {
+      break;
+    }
+    record_length++;
+  }
+
+  /* Prepares the record by stripping the comments, or exit if the line is empty or a comment.*/
+  if (record_length == 0)
+    return EXIT_SUCCESS;
+  record = g_malloc((record_length + 1) * sizeof(record));
+  sprintf(record, "%.*s", record_length, line);
+  entry = g_malloc0(sizeof(GamePositionDbEntry));
+
+  cp0 = record;
+  if ((cp1 = strchr(cp0, field_separator)) != NULL) {
+    strncpy(entry->id = g_malloc((cp1 - cp0 + 1) * sizeof(entry->id)), cp0, cp1 - cp0);
+    entry->id[cp1 - cp0] = '\0';
+  } else {
+    g_free(entry->id);
+    g_free(entry);
+    g_free(record);
+    g_set_error(e, 1, 1, "The record is missing the id field.\n");
+    return EXIT_FAILURE;
+  }
+  printf("entry->id=%s\n", entry->id);
+
+  return EXIT_SUCCESS;
+}
+
 /* Comparison function for entries.*/
 int compare_entries(const void *pa, const void *pb, void *param)
+{
+  const GamePositionDbEntry *a = pa;
+  const GamePositionDbEntry *b = pb;
+
+  return strcmp(a->id, b->id);
+}
+
+/* Comparison function for entries.*/
+gint gpdb_compare_entries(gconstpointer pa, gconstpointer pb)
 {
   const GamePositionDbEntry *a = pa;
   const GamePositionDbEntry *b = pb;
@@ -306,21 +364,31 @@ int gpdb_load(FILE *fp, GError **e)
   GIOStatus   ret;
   gchar      *msg;
   gsize       len;
+  GTree      *db;
 
-  channel = NULL;
-  err     = NULL;
+  db = g_tree_new(gpdb_compare_entries);
 
   channel = g_io_channel_unix_new(fileno(fp));
 
   do {
+    err = NULL;
     ret = g_io_channel_read_line(channel, &msg, &len, NULL, &err);
     if (ret == G_IO_STATUS_ERROR)
       g_error("Error reading: %s\n", err->message);
+
+
+    GamePositionDbEntry *entry = NULL;
+    extract_entry_from_line(msg, entry, &err);
+
+    if (entry) {
+      g_tree_insert(db, entry->id, entry);
+    }
 
     printf("Read %lu bytes: %s\n", len, msg);
     g_free(msg);
   } while (ret != G_IO_STATUS_EOF);
 
+  err = NULL;
   g_io_channel_shutdown(channel, TRUE, &err);
   if (err) {
     g_propagate_error(e, err);
@@ -330,3 +398,4 @@ int gpdb_load(FILE *fp, GError **e)
   g_io_channel_unref(channel);
   return EXIT_SUCCESS;
 }
+
