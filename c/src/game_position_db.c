@@ -59,7 +59,7 @@ void   load_line_list(FILE *f, LineList *llp);
  * 
  * Has to be completly developed.
  */
-int main(int argc, char *argv[])
+int main__(int argc, char *argv[])
 {
   LineList *llp;
   FILE *fp;
