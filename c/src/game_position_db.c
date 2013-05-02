@@ -316,13 +316,14 @@ gint extract_entry_from_line(gchar *line, GamePositionDbEntry *entry, GError **e
     record_length++;
   }
 
-  /* Prepares the record by stripping the comments, or exit if the line is empty or a comment.*/
+  /* Prepares the record by stripping the comments, or exit if the line is empty or a comment. */
   if (record_length == 0)
     return EXIT_SUCCESS;
   record = g_malloc((record_length + 1) * sizeof(record));
   sprintf(record, "%.*s", record_length, line);
   entry = g_malloc0(sizeof(GamePositionDbEntry));
 
+  /* Extracts the key (id field). */
   cp0 = record;
   if ((cp1 = strchr(cp0, field_separator)) != NULL) {
     strncpy(entry->id = g_malloc((cp1 - cp0 + 1) * sizeof(entry->id)), cp0, cp1 - cp0);
@@ -334,7 +335,39 @@ gint extract_entry_from_line(gchar *line, GamePositionDbEntry *entry, GError **e
     g_set_error(e, 1, 1, "The record is missing the id field.\n");
     return EXIT_FAILURE;
   }
-  printf("entry->id=%s\n", entry->id);
+
+  /* Extracts the board field. */
+  cp0 = cp1 + 1;
+  if ((cp1 = strchr(cp0, field_separator)) != NULL) {
+    if ((cp1 - cp0) != 64) {
+      printf("ERROR: board pieces must be 64! Found %ld\n", cp1 - cp0);
+      //goto error;
+    }
+    //strncpy(tmp_board, cp0, 64);
+    SquareSet blacks = 0ULL;
+    SquareSet whites = 0ULL;
+    for (int i = 0; i < 64; i++) {
+      c = cp0[i];
+      switch (c) {
+      case 'b':
+        blacks |= 1ULL << i;
+        break;
+      case 'w':
+        whites |= 1ULL << i;
+        break;
+      case '.':
+        break;
+      default:
+        printf("ERROR: board pieces must be in 'b', 'w', or '.' character set. Found %c\n", c);
+        //goto error;
+        break;
+      }
+    }
+    entry->board = board_new(blacks, whites);
+  } else {
+    printf("ERROR! The record is missing the board field.\n");
+    //goto error;
+  }
 
   return EXIT_SUCCESS;
 }
@@ -384,8 +417,8 @@ int gpdb_load(FILE *fp, GError **e)
       g_tree_insert(db, entry->id, entry);
     }
 
-    printf("Read %lu bytes: %s\n", len, msg);
-    g_free(msg);
+    //printf("Read %lu bytes: %s\n", len, msg);
+    //g_free(msg);
   } while (ret != G_IO_STATUS_EOF);
 
   err = NULL;
