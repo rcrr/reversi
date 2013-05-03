@@ -1,10 +1,10 @@
 /**
  * @file
  *
- * @brief Data Base utilities and programs.
+ * @brief Data Base utilities and programs for `GamePosition` structures.
  * @details This executable read and write game position db.
  *
- * @par db.c
+ * @par game_position_db.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -35,7 +35,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "rb.h"
-#include "board.h"
+
+#include <glib.h>
+
+#include "game_position_db.h"
 
 typedef struct {
   char   **lines;
@@ -43,38 +46,40 @@ typedef struct {
   size_t   allocated_size;
 } LineList;
 
-typedef struct {
-  char   *id;
-  Board  *board;
-  Player  player;
-  char   *desc;
-} GamePositionDbEntry;
-
-typedef struct {
-  GamePositionDbEntry **positions;
-  int                   number_of_positions;
-  char                 *desc;
-} GamePositionDb;
-
 const static char field_separator = ';'; /* Field separator for records in the game position db. */
 const static  int buffer_size     = 64;  /* Buffer size for allocating dynamic space. */
 
-int   db_validate(const LineList *const llp);
-char *get_line(FILE *f);
-void  load_line_list(FILE *f, LineList *llp);
-int compare_entries (const void *pa, const void *pb, void *param);
+ int   db_validate(const LineList *const llp);
+char * get_line(FILE *f);
+void   load_line_list(FILE *f, LineList *llp);
+ int   compare_entries (const void *pa, const void *pb, void *param);
 
 /**
  * Data Base main entry.
  * 
  * Has to be completly developed.
  */
-int main(int argc, char *argv[])
+int main__(int argc, char *argv[])
 {
   LineList *llp;
   FILE *fp;
 
+  // *** Test usage of the GLib library.
+  GSList* list = NULL;
+  printf("The list is now %d items long\n", g_slist_length(list));
+  list = g_slist_prepend(list, "first");
+  printf("The list is now %d items long\n", g_slist_length(list));
+  list = g_slist_append(list, "second");
+  printf("The list is now %d items long\n", g_slist_length(list));
+  g_slist_free(list);
+  // ***
+
+
+
   llp = malloc(sizeof(LineList *));
+  llp->line_counter = 0;
+  llp->allocated_size = 0;
+  llp->lines = NULL;
 
   if (argc == 1) {
     load_line_list(stdin, llp);
@@ -93,6 +98,12 @@ int main(int argc, char *argv[])
 
   /* Release the memory allocated. */
   // to be done ....
+
+
+  // It is a quick-and-dirty test for the GLib file library ....
+  gpdb_load(fp = fopen("./db/test-db.txt", "r"), NULL);
+  fclose(fp);
+
 
   return 0;
 }
@@ -279,6 +290,88 @@ char *get_line(FILE *f)
   }
 }
 
+gint extract_entry_from_line(gchar *line, GamePositionDbEntry *entry, GError **e)
+{
+  gchar *record;
+  int    record_length;
+  gchar  c;
+  gchar *cp0;
+  gchar *cp1;
+
+  /* If line is null return. */
+  if (!line)
+    return EXIT_SUCCESS;
+
+  /* Variable initialization. */
+  record = NULL;
+  record_length = 0;
+  cp0 = NULL;
+  cp1 = NULL;
+
+  /* Computes the record_length, removing everything following a dash. */
+  while ((c = line[record_length])) {
+    if (c == '#' || c == '\n') {
+      break;
+    }
+    record_length++;
+  }
+
+  /* Prepares the record by stripping the comments, or exit if the line is empty or a comment. */
+  if (record_length == 0)
+    return EXIT_SUCCESS;
+  record = g_malloc((record_length + 1) * sizeof(record));
+  sprintf(record, "%.*s", record_length, line);
+  entry = g_malloc0(sizeof(GamePositionDbEntry));
+
+  /* Extracts the key (id field). */
+  cp0 = record;
+  if ((cp1 = strchr(cp0, field_separator)) != NULL) {
+    strncpy(entry->id = g_malloc((cp1 - cp0 + 1) * sizeof(entry->id)), cp0, cp1 - cp0);
+    entry->id[cp1 - cp0] = '\0';
+  } else {
+    g_free(entry->id);
+    g_free(entry);
+    g_free(record);
+    g_set_error(e, 1, 1, "The record is missing the id field.\n");
+    return EXIT_FAILURE;
+  }
+
+  /* Extracts the board field. */
+  cp0 = cp1 + 1;
+  if ((cp1 = strchr(cp0, field_separator)) != NULL) {
+    if ((cp1 - cp0) != 64) {
+      printf("ERROR: board pieces must be 64! Found %ld\n", cp1 - cp0);
+      //goto error;
+    }
+    //strncpy(tmp_board, cp0, 64);
+    SquareSet blacks = 0ULL;
+    SquareSet whites = 0ULL;
+    for (int i = 0; i < 64; i++) {
+      c = cp0[i];
+      switch (c) {
+      case 'b':
+        blacks |= 1ULL << i;
+        break;
+      case 'w':
+        whites |= 1ULL << i;
+        break;
+      case '.':
+        break;
+      default:
+        printf("ERROR: board pieces must be in 'b', 'w', or '.' character set. Found %c\n", c);
+        //goto error;
+        break;
+      }
+    }
+    entry->board = board_new(blacks, whites);
+  } else {
+    printf("ERROR! The record is missing the board field.\n");
+    //goto error;
+  }
+
+  return EXIT_SUCCESS;
+}
+
 /* Comparison function for entries.*/
 int compare_entries(const void *pa, const void *pb, void *param)
 {
@@ -287,3 +380,55 @@ int compare_entries(const void *pa, const void *pb, void *param)
 
   return strcmp(a->id, b->id);
 }
+
+/* Comparison function for entries.*/
+gint gpdb_compare_entries(gconstpointer pa, gconstpointer pb)
+{
+  const GamePositionDbEntry *a = pa;
+  const GamePositionDbEntry *b = pb;
+
+  return strcmp(a->id, b->id);
+}
+
+int gpdb_load(FILE *fp, GError **e)
+{
+  GIOChannel *channel;
+  GError     *err;
+  GIOStatus   ret;
+  gchar      *msg;
+  gsize       len;
+  GTree      *db;
+
+  db = g_tree_new(gpdb_compare_entries);
+
+  channel = g_io_channel_unix_new(fileno(fp));
+
+  do {
+    err = NULL;
+    ret = g_io_channel_read_line(channel, &msg, &len, NULL, &err);
+    if (ret == G_IO_STATUS_ERROR)
+      g_error("Error reading: %s\n", err->message);
+
+
+    GamePositionDbEntry *entry = NULL;
+    extract_entry_from_line(msg, entry, &err);
+
+    if (entry) {
+      g_tree_insert(db, entry->id, entry);
+    }
+
+    //printf("Read %lu bytes: %s\n", len, msg);
+    //g_free(msg);
+  } while (ret != G_IO_STATUS_EOF);
+
+  err = NULL;
+  g_io_channel_shutdown(channel, TRUE, &err);
+  if (err) {
+    g_propagate_error(e, err);
+    return EXIT_FAILURE;
+  }
+
+  g_io_channel_unref(channel);
+  return EXIT_SUCCESS;
+}
+

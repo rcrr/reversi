@@ -22,14 +22,13 @@
 #  or visit the site <http://www.gnu.org/licenses/>.
 #
 
-MAINS = endgame_solver db
+MAINS = endgame_solver
 
 CC = gcc 
-CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O2
+CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LDFLAGS = 
-LIBS = 
+LIBS = `pkg-config --libs glib-2.0`
 TEST_LIBS = -lcunit
-
 SRCDIR = src
 TESTDIR = test
 
@@ -62,6 +61,8 @@ $(OBJS): $(OBJDIR)/%.o: $(SRCDIR)/%.c $(HDRS) | $(OBJDIR)
 test: $(OBJS) | $(BTESTDIR)
 	$(CC) -c -o build/test/board_cu.o test/board_cu.c -I./src
 	$(CC) build/test/board_cu.o build/obj/board.o build/obj/bit_works.o -o build/test/board_cu $(TEST_LIBS)
+	$(CC) $(CFLAGS) -c -o build/test/game_position_db_test.o test/game_position_db_test.c -I./src
+	$(CC) build/test/game_position_db_test.o build/obj/game_position_db.o build/obj/rb.o build/obj/board.o build/obj/bit_works.o -o build/test/game_position_db_test $(LIBS)
 
 .PHONY: $(BUILDDIR)
 $(BUILDDIR):
