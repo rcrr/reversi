@@ -101,7 +101,7 @@ int main__(int argc, char *argv[])
 
 
   // It is a quick-and-dirty test for the GLib file library ....
-  gpdb_load(fp = fopen("./db/test-db.txt", "r"), NULL);
+  gpdb_load(fp = fopen("./db/test-db.txt", "r"), NULL, NULL);
   fclose(fp);
 
 
@@ -390,16 +390,16 @@ gint gpdb_compare_entries(gconstpointer pa, gconstpointer pb)
   return strcmp(a->id, b->id);
 }
 
-int gpdb_load(FILE *fp, GError **e)
+int gpdb_load(FILE *fp,  GamePositionDb *db, GError **e)
 {
   GIOChannel *channel;
   GError     *err;
   GIOStatus   ret;
   gchar      *msg;
   gsize       len;
-  GTree      *db;
+  GTree      *tree;
 
-  db = g_tree_new(gpdb_compare_entries);
+  tree = g_tree_new(gpdb_compare_entries);
 
   channel = g_io_channel_unix_new(fileno(fp));
 
@@ -414,7 +414,7 @@ int gpdb_load(FILE *fp, GError **e)
     extract_entry_from_line(msg, entry, &err);
 
     if (entry) {
-      g_tree_insert(db, entry->id, entry);
+      g_tree_insert(tree, entry->id, entry);
     }
 
     //printf("Read %lu bytes: %s\n", len, msg);

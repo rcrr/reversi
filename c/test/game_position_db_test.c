@@ -10,14 +10,15 @@
 
 static void dummy_test(void)
 {
-  g_assert(1 == 1);
+  g_assert(TRUE == TRUE);
 }
 
 static void gpdb_load_test(void)
 {
   FILE *fp = fopen("./db/test-db.txt", "r");
   GError **error = NULL;
-  gpdb_load(fp, error);
+  GamePositionDb *db = NULL;
+  gpdb_load(fp, db, error);
   g_assert(1 == 1);
 }
 

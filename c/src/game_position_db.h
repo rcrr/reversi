@@ -59,7 +59,7 @@ typedef struct {
 /* Function prototypes for the GamePositionDb entity. */ 
 /******************************************************/
 
-extern int gpdb_load(FILE *fp, GError **e);
+extern int gpdb_load(FILE *fp, GamePositionDb *db, GError **e);
 
 
 
