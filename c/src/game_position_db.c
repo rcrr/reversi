@@ -34,17 +34,134 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "rb.h"
 
 #include <glib.h>
 
 #include "game_position_db.h"
 
+static gint extract_entry_from_line(gchar                           *line,
+                                    GamePositionDbEntry             *entry,
+                                    GamePositionDbEntrySyntaxError **syntax_error);
+
+static gint compare_entries(gconstpointer pa,
+                            gconstpointer pb);
+
 const static char field_separator = ';'; /* Field separator for records in the game position db. */
 
-const gint extract_entry_from_line(gchar *line,
-                                   GamePositionDbEntry *entry,
-                                   GError **e)
+GamePositionDbEntrySyntaxError
+*gpdb_entry_syntax_error_new(GamePositionDbEntrySyntaxErrorType  error_type,
+                             char                               *source,
+                             int                                 line_number,
+                             char                               *line,
+                             char                               *error_message)
+{
+  GamePositionDbEntrySyntaxError *e;
+  static const size_t size_of_e = sizeof(GamePositionDbEntrySyntaxError);
+
+  e = (GamePositionDbEntrySyntaxError*) g_malloc(size_of_e);
+  g_assert(e);
+
+  e->error_type    = error_type;
+  e->source        = source;
+  e->line_number   = line_number;
+  e->line          = line;
+  e->error_message = error_message;
+
+  return e;
+}
+
+/**
+ * @brief GamePositionDb structure constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * game position database structure is not `NULL`.
+ *
+ * @param [in] desc a string descibing the database
+ * @return          a pointer to a new game position database structure
+ */
+GamePositionDb *gpdb_new(char *desc)
+{
+  GamePositionDb *db;
+  static const size_t size_of_db = sizeof(GamePositionDb);
+
+  db = (GamePositionDb*) g_malloc(size_of_db);
+  g_assert(db);
+
+  db->tree = g_tree_new(compare_entries);
+  db->desc = desc;
+
+  return db;
+}
+
+/**
+ * @brief Inserts the entries found in file `fp` into the `db` database.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * game position database structure is not `NULL`.
+ *
+ * @param [in]     fp a pointer to the file that is loaded 
+ * @param [in,out] db a pointer to the data base that is updated
+ * @param [out]    e  a location to return an error reference 
+ * @return            the return code
+ */
+int gpdb_load(FILE *fp,  GamePositionDb *db, GError **e)
+{
+  GIOChannel *channel;
+  GIOStatus   ret;
+  GError     *err;
+  gchar      *line;
+  gsize       line_len;
+  GTree      *tree;
+
+  if (!db)
+    db = gpdb_new(NULL);
+
+  tree = db->tree;
+
+  channel = g_io_channel_unix_new(fileno(fp));
+
+  do {
+    err = NULL;
+    ret = g_io_channel_read_line(channel, &line, &line_len, NULL, &err);
+    if (ret == G_IO_STATUS_ERROR)
+      g_error("Error reading: %s\n", err->message);
+
+    GamePositionDbEntrySyntaxError *syntax_error = NULL;
+    GamePositionDbEntry *entry = NULL;
+    extract_entry_from_line(line, entry, &syntax_error);
+    if (syntax_error)
+      printf("syntax_error->error_message: %s\n", syntax_error->error_message);
+
+    if (entry) {
+      g_tree_insert(tree, entry->id, entry);
+    }
+
+  } while (ret != G_IO_STATUS_EOF);
+
+  err = NULL;
+  g_io_channel_shutdown(channel, TRUE, &err);
+  if (err) {
+    g_propagate_error(e, err);
+    return EXIT_FAILURE;
+  }
+
+  g_io_channel_unref(channel);
+  return EXIT_SUCCESS;
+}
+
+/* Comparison function for entries.*/
+static gint compare_entries(gconstpointer pa,
+                            gconstpointer pb)
+{
+  const GamePositionDbEntry *a = pa;
+  const GamePositionDbEntry *b = pb;
+
+  return strcmp(a->id, b->id);
+}
+
+static gint extract_entry_from_line(gchar *line,
+                                    GamePositionDbEntry *entry,
+                                    GamePositionDbEntrySyntaxError **syntax_error)
 {
   gchar *record;
   int    record_length;
@@ -83,10 +200,14 @@ const gint extract_entry_from_line(gchar *line,
     strncpy(entry->id = g_malloc((cp1 - cp0 + 1) * sizeof(entry->id)), cp0, cp1 - cp0);
     entry->id[cp1 - cp0] = '\0';
   } else {
+    *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_A,
+                                                NULL,
+                                                -1,
+                                                line,
+                                                "The record does't have the proper separator identifying the id field.");
     g_free(entry->id);
     g_free(entry);
     g_free(record);
-    g_set_error(e, 1, 1, "The record is missing the id field.\n");
     return EXIT_FAILURE;
   }
 
@@ -163,53 +284,3 @@ const gint extract_entry_from_line(gchar *line,
 
   return EXIT_SUCCESS;
 }
-
-/* Comparison function for entries.*/
-gint gpdb_compare_entries(gconstpointer pa, gconstpointer pb)
-{
-  const GamePositionDbEntry *a = pa;
-  const GamePositionDbEntry *b = pb;
-
-  return strcmp(a->id, b->id);
-}
-
-int gpdb_load(FILE *fp,  GamePositionDb *db, GError **e)
-{
-  GIOChannel *channel;
-  GError     *err;
-  GIOStatus   ret;
-  gchar      *msg;
-  gsize       len;
-  GTree      *tree;
-
-  tree = g_tree_new(gpdb_compare_entries);
-
-  channel = g_io_channel_unix_new(fileno(fp));
-
-  do {
-    err = NULL;
-    ret = g_io_channel_read_line(channel, &msg, &len, NULL, &err);
-    if (ret == G_IO_STATUS_ERROR)
-      g_error("Error reading: %s\n", err->message);
-
-    err = NULL;
-    GamePositionDbEntry *entry = NULL;
-    extract_entry_from_line(msg, entry, &err);
-
-    if (entry) {
-      g_tree_insert(tree, entry->id, entry);
-    }
-
-  } while (ret != G_IO_STATUS_EOF);
-
-  err = NULL;
-  g_io_channel_shutdown(channel, TRUE, &err);
-  if (err) {
-    g_propagate_error(e, err);
-    return EXIT_FAILURE;
-  }
-
-  g_io_channel_unref(channel);
-  return EXIT_SUCCESS;
-}
-

@@ -38,6 +38,24 @@
 #include "board.h"
 
 /**
+ * @enum GamePositionDbEntrySyntaxErrorType
+ * @brief The classification of errors thta can be found parsing a database entry record.
+ */
+typedef enum {
+  GPDB_ENTRY_SYNTAX_ERROR_A,   /**< Error A. */
+  GPDB_ENTRY_SYNTAX_ERROR_B,   /**< Error B. */
+  GPDB_ENTRY_SYNTAX_ERROR_C    /**< Error C. */
+} GamePositionDbEntrySyntaxErrorType;
+
+typedef struct {
+  GamePositionDbEntrySyntaxErrorType  error_type;
+  char                               *source;
+  int                                 line_number;
+  char                               *line;
+  char                               *error_message;  
+} GamePositionDbEntrySyntaxError;
+
+/**
  * @brief An Entry collects the GamePosition data with a description and an unique key.
  */
 typedef struct {
@@ -48,10 +66,22 @@ typedef struct {
 } GamePositionDbEntry;
 
 typedef struct {
-  GamePositionDbEntry **positions;
-  int                   number_of_positions;
-  char                 *desc;
+  GTree  *tree;
+  gchar  *desc;
 } GamePositionDb;
+
+
+
+/**********************************************************************/
+/* Function prototypes for the GamePositionDbEntrySyntaxError entity. */ 
+/**********************************************************************/
+
+extern GamePositionDbEntrySyntaxError
+*gpdb_entry_syntax_error_new(GamePositionDbEntrySyntaxErrorType  error_type,
+                                                           char *source,
+                                                            int  line_number,
+                                                           char *line,
+                                                           char *error_message);
 
 
 
@@ -60,6 +90,8 @@ typedef struct {
 /******************************************************/
 
 extern int gpdb_load(FILE *fp, GamePositionDb *db, GError **e);
+
+extern GamePositionDb *gpdb_new(char *desc);
 
 
 
