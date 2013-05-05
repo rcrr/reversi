@@ -134,7 +134,6 @@ int gpdb_load(FILE *fp,  GamePositionDb *db, GError **e)
     if (syntax_error) {
       syntax_error->source = "NULL";
       syntax_error->line_number = line_number;
-      printf("%s", gpdb_entry_syntax_error_print(syntax_error)->str);
     }
 
     if (entry) {
@@ -292,12 +291,57 @@ static gint extract_entry_from_line(gchar *line,
 
 GString *gpdb_entry_syntax_error_print(GamePositionDbEntrySyntaxError *syntax_error)
 {
-  GString *msg = g_string_new("\n");
-  g_string_append_printf(msg, "Error type: %d\n", syntax_error->error_type);
-  g_string_append_printf(msg, "Source label: %s\n", syntax_error->source);
-  g_string_append_printf(msg, "Line number: %d\n", syntax_error->line_number);
-  g_string_append_printf(msg, "line: %s\n", syntax_error->line);
-  g_string_append_printf(msg, "Error message: %s\n", syntax_error->error_message);
+  gchar et_string[64];
+
+  GamePositionDbEntrySyntaxErrorType et = syntax_error->error_type;
+
+  gchar *em = syntax_error->error_message;
+  if (!em)
+    strcpy(em, "NULL");
+
+  gchar *sl = syntax_error->source;
+  if (!sl)
+    strcpy(sl, "NULL");
+
+  gchar ln_string[64];
+  int ln = syntax_error->line_number;
+  if (ln > 0) {
+    sprintf(ln_string, "%d", ln);
+  } else {
+    strcpy(ln_string, "UNDEFINED LINE NUMBER");
+  }
+
+  GString *l;
+  gchar *line_end = strchr(syntax_error->line, '\n');
+  if (line_end)
+    l = g_string_new_len(syntax_error->line, line_end - syntax_error->line);
+  else
+    l = g_string_new(syntax_error->line);
+
+  switch (et) {
+  case GPDB_ENTRY_SYNTAX_ERROR_A:
+    strcpy(et_string, "A");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_B:
+    strcpy(et_string, "B");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_C:
+    strcpy(et_string, "C");
+    break;
+  default:
+    abort();
+    break;
+  }
+
+  GString *msg = g_string_new("");
+
+  g_string_append_printf(msg, "Error type:    %s\n", et_string);
+  g_string_append_printf(msg, "Error message: %s\n", em);
+  g_string_append_printf(msg, "Source label:  %s\n", sl);
+  g_string_append_printf(msg, "Line number:   %s\n", ln_string);
+  g_string_append_printf(msg, "Line:          %s\n", l->str);
+
+  g_string_free(l, TRUE);
 
   return msg;
 }
