@@ -83,6 +83,7 @@ extern GamePositionDbEntrySyntaxError
                                                            char *line,
                                                            char *error_message);
 
+extern GString *gpdb_entry_syntax_error_print(GamePositionDbEntrySyntaxError *syntax_error);
 
 
 /******************************************************/

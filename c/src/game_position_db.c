@@ -112,15 +112,17 @@ int gpdb_load(FILE *fp,  GamePositionDb *db, GError **e)
   gchar      *line;
   gsize       line_len;
   GTree      *tree;
+  int         line_number;
 
   if (!db)
     db = gpdb_new(NULL);
-
   tree = db->tree;
-
   channel = g_io_channel_unix_new(fileno(fp));
+  line_number = 0;
 
   do {
+    line_number++;
+
     err = NULL;
     ret = g_io_channel_read_line(channel, &line, &line_len, NULL, &err);
     if (ret == G_IO_STATUS_ERROR)
@@ -129,8 +131,11 @@ int gpdb_load(FILE *fp,  GamePositionDb *db, GError **e)
     GamePositionDbEntrySyntaxError *syntax_error = NULL;
     GamePositionDbEntry *entry = NULL;
     extract_entry_from_line(line, entry, &syntax_error);
-    if (syntax_error)
-      printf("syntax_error->error_message: %s\n", syntax_error->error_message);
+    if (syntax_error) {
+      syntax_error->source = "NULL";
+      syntax_error->line_number = line_number;
+      printf("%s", gpdb_entry_syntax_error_print(syntax_error)->str);
+    }
 
     if (entry) {
       g_tree_insert(tree, entry->id, entry);
@@ -283,4 +288,16 @@ static gint extract_entry_from_line(gchar *line,
   }
 
   return EXIT_SUCCESS;
+}
+
+GString *gpdb_entry_syntax_error_print(GamePositionDbEntrySyntaxError *syntax_error)
+{
+  GString *msg = g_string_new("\n");
+  g_string_append_printf(msg, "Error type: %d\n", syntax_error->error_type);
+  g_string_append_printf(msg, "Source label: %s\n", syntax_error->source);
+  g_string_append_printf(msg, "Line number: %d\n", syntax_error->line_number);
+  g_string_append_printf(msg, "line: %s\n", syntax_error->line);
+  g_string_append_printf(msg, "Error message: %s\n", syntax_error->error_message);
+
+  return msg;
 }
