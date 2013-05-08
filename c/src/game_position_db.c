@@ -196,7 +196,7 @@ static gint extract_entry_from_line(gchar *line,
     return EXIT_SUCCESS;
   record = g_malloc((record_length + 1) * sizeof(record));
   sprintf(record, "%.*s", record_length, line);
-  entry = g_malloc0(sizeof(GamePositionDbEntry));
+  entry = g_malloc0(sizeof(entry));
 
   /* Extracts the key (id field). */
   cp0 = record;
@@ -204,7 +204,7 @@ static gint extract_entry_from_line(gchar *line,
     strncpy(entry->id = g_malloc((cp1 - cp0 + 1) * sizeof(entry->id)), cp0, cp1 - cp0);
     entry->id[cp1 - cp0] = '\0';
   } else {
-    *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_A,
+    *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_ON_ID,
                                                 NULL,
                                                 -1,
                                                 line,
@@ -212,6 +212,7 @@ static gint extract_entry_from_line(gchar *line,
     g_free(entry->id);
     g_free(entry);
     g_free(record);
+    entry = NULL;
     return EXIT_FAILURE;
   }
 
@@ -319,8 +320,8 @@ GString *gpdb_entry_syntax_error_print(GamePositionDbEntrySyntaxError *syntax_er
     l = g_string_new(syntax_error->line);
 
   switch (et) {
-  case GPDB_ENTRY_SYNTAX_ERROR_A:
-    strcpy(et_string, "A");
+  case GPDB_ENTRY_SYNTAX_ERROR_ON_ID:
+    strcpy(et_string, "The id field is not correctly assigned.");
     break;
   case GPDB_ENTRY_SYNTAX_ERROR_B:
     strcpy(et_string, "B");
