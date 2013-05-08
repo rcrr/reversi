@@ -1,8 +1,5 @@
 
 #include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
-//#include "rb.h"
 
 #include <glib.h>
 
@@ -28,12 +25,15 @@ static void gpdb_entry_syntax_error_print_test(void)
   syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_A,
                                              "dummy-source",
                                              123,
-                                             "abcdefgh",
+                                             "a-record-line",
                                              "error-message");
 
   GString *msg = gpdb_entry_syntax_error_print(syntax_error);
-  //printf("\n%s", msg->str);
-  GString *expected = g_string_new("Error type:    A\nError message: error-message\nSource label:  dummy-source\nLine number:   123\nLine:          abcdefgh\n");
+  GString *expected = g_string_new("Error type:    A\n"
+                                   "Error message: error-message\n"
+                                   "Source label:  dummy-source\n"
+                                   "Line number:   123\n"
+                                   "Line:          a-record-line\n");
   g_assert_cmpstr(expected->str, ==, msg->str);
 }
 
