@@ -19,3 +19,4 @@ tmp
 .lein-deps-sum
 .classpath
 *.dat
+valgrind.log
