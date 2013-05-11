@@ -99,12 +99,13 @@ GamePositionDb *gpdb_new(char *desc)
  * An assertion checks that the received pointer to the allocated
  * game position database structure is not `NULL`.
  *
- * @param [in]     fp a pointer to the file that is loaded 
- * @param [in,out] db a pointer to the data base that is updated
- * @param [out]    e  a location to return an error reference 
- * @return            the return code
+ * @param [in]     fp                a pointer to the file that is loaded 
+ * @param [in,out] db                a pointer to the data base that is updated
+ * @param [out]    syntax_error_log  the list of syntax errors 
+ * @param [out]    e                 a location to return an error reference 
+ * @return                           the return code
  */
-int gpdb_load(FILE *fp,  GamePositionDb *db, GError **e)
+int gpdb_load(FILE *fp,  GamePositionDb *db, GSList *syntax_error_log, GError **e)
 {
   GIOChannel *channel;
   GIOStatus   ret;
@@ -134,6 +135,7 @@ int gpdb_load(FILE *fp,  GamePositionDb *db, GError **e)
     if (syntax_error) {
       syntax_error->source = "NULL";
       syntax_error->line_number = line_number;
+      syntax_error_log = g_slist_append(syntax_error_log, syntax_error);
     }
 
     if (entry) {
@@ -302,6 +304,11 @@ GString *gpdb_entry_syntax_error_print(GamePositionDbEntrySyntaxError *syntax_er
 {
   gchar et_string[64];
 
+  GString *msg = g_string_new("");
+
+  if (!syntax_error)
+    return msg;
+
   GamePositionDbEntrySyntaxErrorType et = syntax_error->error_type;
 
   gchar *em = syntax_error->error_message;
@@ -341,8 +348,6 @@ GString *gpdb_entry_syntax_error_print(GamePositionDbEntrySyntaxError *syntax_er
     abort();
     break;
   }
-
-  GString *msg = g_string_new("");
 
   g_string_append_printf(msg, "Error type:    %s\n", et_string);
   g_string_append_printf(msg, "Error message: %s\n", em);

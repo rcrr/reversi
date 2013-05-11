@@ -10,29 +10,46 @@ static void dummy_ok_test(void)
   g_assert(TRUE == TRUE);
 }
 
+void g_delete_sample ( gpointer data, gpointer user_data )
+{
+  GString *error;
+  GamePositionDbEntrySyntaxError *syntax_error = data;
+  error = gpdb_entry_syntax_error_print(syntax_error);
+  printf("%s", error->str);
+  //g_free ( data );
+}
+
 static void gpdb_load_test(void)
 {
-  FILE *fp;
-  GError **error;
-  GamePositionDb *db;
+  FILE            *fp;
+  GError         **error;
+  GamePositionDb  *db;
+  GSList          *syntax_error_log;
 
   /* The list of error returned reading the file has to be implementend .... */
   fp = fopen("./db/test-db-error-on-board-size.txt", "r");
+  syntax_error_log = g_slist_alloc();
   error = NULL;
   db = NULL;
-  gpdb_load(fp, db, error);
+  gpdb_load(fp, db, syntax_error_log, error);
   fclose(fp);
+  printf("Syntax Errors in file \"./db/test-db-error-on-board-size.txt\": %d\n", g_slist_length(syntax_error_log));
+  g_slist_foreach(syntax_error_log, g_delete_sample, NULL);
+  // syntax_errors must be freed ....
+  g_slist_free(syntax_error_log);
 
   fp = fopen("./db/test-db-error-on-id.txt", "r");
+  syntax_error_log = NULL;
   error = NULL;
   db = NULL;
-  gpdb_load(fp, db, error);
+  gpdb_load(fp, db, syntax_error_log, error);
   fclose(fp);
 
   fp = fopen("./db/test-db.txt", "r");
+  syntax_error_log = NULL;
   error = NULL;
   db = NULL;
-  gpdb_load(fp, db, error);
+  gpdb_load(fp, db, syntax_error_log, error);
   fclose(fp);
 
   g_assert(1 == 1);
