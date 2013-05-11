@@ -17,6 +17,12 @@ static void gpdb_load_test(void)
   GamePositionDb *db;
 
   /* The list of error returned reading the file has to be implementend .... */
+  fp = fopen("./db/test-db-error-on-board-size.txt", "r");
+  error = NULL;
+  db = NULL;
+  gpdb_load(fp, db, error);
+  fclose(fp);
+
   fp = fopen("./db/test-db-error-on-id.txt", "r");
   error = NULL;
   db = NULL;

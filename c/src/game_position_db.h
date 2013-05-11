@@ -42,9 +42,9 @@
  * @brief The classification of errors thta can be found parsing a database entry record.
  */
 typedef enum {
-  GPDB_ENTRY_SYNTAX_ERROR_ON_ID,   /**< Error on parsing the id field. */
-  GPDB_ENTRY_SYNTAX_ERROR_B,   /**< Error B. */
-  GPDB_ENTRY_SYNTAX_ERROR_C    /**< Error C. */
+  GPDB_ENTRY_SYNTAX_ERROR_ON_ID,                  /**< Error on parsing the id field. */
+  GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64,   /**< Error on the size of the board field. */
+  GPDB_ENTRY_SYNTAX_ERROR_C                       /**< Error C. */
 } GamePositionDbEntrySyntaxErrorType;
 
 typedef struct {

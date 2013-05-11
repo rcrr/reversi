@@ -220,8 +220,16 @@ static gint extract_entry_from_line(gchar *line,
   cp0 = cp1 + 1;
   if ((cp1 = strchr(cp0, field_separator)) != NULL) {
     if ((cp1 - cp0) != 64) {
-      printf("ERROR: board pieces must be 64! Found %ld\n", cp1 - cp0);
-      //goto error;
+      *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64,
+                                                  NULL,
+                                                  -1,
+                                                  line,
+                                                  "The record has the field board composed by x chars.");
+      g_free(entry->id);
+      g_free(entry);
+      g_free(record);
+      entry = NULL;
+      return EXIT_FAILURE;
     }
     SquareSet blacks = 0ULL;
     SquareSet whites = 0ULL;
@@ -323,8 +331,8 @@ GString *gpdb_entry_syntax_error_print(GamePositionDbEntrySyntaxError *syntax_er
   case GPDB_ENTRY_SYNTAX_ERROR_ON_ID:
     strcpy(et_string, "The id field is not correctly assigned.");
     break;
-  case GPDB_ENTRY_SYNTAX_ERROR_B:
-    strcpy(et_string, "B");
+  case GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64:
+    strcpy(et_string, "The board field must have 64 chars.");
     break;
   case GPDB_ENTRY_SYNTAX_ERROR_C:
     strcpy(et_string, "C");
