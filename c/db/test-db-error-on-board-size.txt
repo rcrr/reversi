@@ -1,0 +1,2 @@
+# test-db-error-on-board-size
+test-error-on-board-size-63;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b.......;b;The board has 63 squares;
