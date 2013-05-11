@@ -10,13 +10,13 @@ static void dummy_ok_test(void)
   g_assert(TRUE == TRUE);
 }
 
-void g_delete_sample ( gpointer data, gpointer user_data )
+void print_error(gpointer data, gpointer user_data)
 {
   GString *error;
   GamePositionDbEntrySyntaxError *syntax_error = data;
   error = gpdb_entry_syntax_error_print(syntax_error);
-  printf("%s", error->str);
-  //g_free ( data );
+  printf("%s\n", error->str);
+  g_string_free(error, TRUE);
 }
 
 static void gpdb_load_test(void)
@@ -33,8 +33,8 @@ static void gpdb_load_test(void)
   db = NULL;
   gpdb_load(fp, db, syntax_error_log, error);
   fclose(fp);
-  printf("Syntax Errors in file \"./db/test-db-error-on-board-size.txt\": %d\n", g_slist_length(syntax_error_log));
-  g_slist_foreach(syntax_error_log, g_delete_sample, NULL);
+  printf("\nSyntax Errors in file \"./db/test-db-error-on-board-size.txt\": %d\n", g_slist_length(syntax_error_log)-1);
+  g_slist_foreach(syntax_error_log, print_error, NULL);
   // syntax_errors must be freed ....
   g_slist_free(syntax_error_log);
 
