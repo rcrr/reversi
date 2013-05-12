@@ -36,44 +36,68 @@ int contains_error(GSList *syntax_error_list,
   return FALSE;
 }
 
-static void gpdb_load_test(void)
+void assert_gpdb_load_logs_error(char *line, GamePositionDbEntrySyntaxErrorType error_type)
 {
-  FILE            *fp;
-  GError         **error;
+  int              tmp_file_handle;
+  gchar           *tmp_file_name;
+  GError          *error;
+  GIOChannel      *channel;
+  gsize            bytes_written;
   GamePositionDb  *db;
   GSList          *syntax_error_log;
+  FILE            *tmp_fp;
 
-  /* The list of error returned reading the file has to be implementend .... */
-  fp = fopen("./db/test-db-error-on-board-size.txt", "r");
+  /* Prepare the new tmp file. */
+  error = NULL;
+  tmp_file_name = NULL;
+  tmp_file_handle = g_file_open_tmp("gpdb_test_XXXXXX.tmp", &tmp_file_name, &error);
+
+  channel = g_io_channel_unix_new(tmp_file_handle);
+
+  /* Writes the database line into the tmp file. */
+  error = NULL;
+  g_io_channel_write_chars(channel, line, strlen(line), &bytes_written, &error);
+
+  error = NULL;
+  g_io_channel_flush(channel, &error);
+
+  /* Closes the open IO stream, removes the file, frees the resources. */
+  error = NULL;
+  g_io_channel_shutdown(channel, TRUE, &error);
+  g_io_channel_unref(channel);
+
+  /* Loads the game position database. */
+  tmp_fp = fopen(tmp_file_name, "r");
+  error = NULL;
+  db = NULL;
   syntax_error_log = g_slist_alloc();
-  error = NULL;
-  db = NULL;
-  gpdb_load(fp, db, syntax_error_log, error);
-  fclose(fp);
-  //printf("\nSyntax Errors in file \"./db/test-db-error-on-board-size.txt\": %d\n", g_slist_length(syntax_error_log)-1);
-  //g_slist_foreach(syntax_error_log, print_error, NULL);
+  gpdb_load(tmp_fp, db, syntax_error_log, &error);
+  fclose(tmp_fp);
+
+  /* Removes the tmp file, frees the resources. */
+  remove(tmp_file_name);
+  g_free(tmp_file_name);
+  g_free(error);
+
   g_assert(contains_error(syntax_error_log,
-                          "test-error-on-board-size-63;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b.......;b;The board has 63 squares;\n",
-                          GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64)
+                          line,
+                          error_type)
            == TRUE);
-  // syntax_errors must be freed ....
-  g_slist_free(syntax_error_log);
 
-  fp = fopen("./db/test-db-error-on-id.txt", "r");
-  syntax_error_log = NULL;
-  error = NULL;
-  db = NULL;
-  gpdb_load(fp, db, syntax_error_log, error);
-  fclose(fp);
+  // syntax_error_log MUST be freed.
+  // db MUST be freed.
 
-  fp = fopen("./db/test-db.txt", "r");
-  syntax_error_log = NULL;
-  error = NULL;
-  db = NULL;
-  gpdb_load(fp, db, syntax_error_log, error);
-  fclose(fp);
+}
 
-  g_assert(1 == 1);
+static void gpdb_load_test(void)
+{
+  assert_gpdb_load_logs_error("test-error-on-board-size-63;"
+                              "ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b.......;"
+                              "b;"
+                              "The board has 63 squares;"
+                              "\n",
+                              GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64);
+
 }
 
 static void gpdb_entry_syntax_error_print_test(void)
