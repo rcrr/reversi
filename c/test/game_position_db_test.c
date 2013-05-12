@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <string.h>
 
 #include <glib.h>
 
@@ -19,6 +20,22 @@ void print_error(gpointer data, gpointer user_data)
   g_string_free(error, TRUE);
 }
 
+int contains_error(GSList *syntax_error_list,
+                   char *line,
+                   GamePositionDbEntrySyntaxErrorType error_type)
+{
+  int len;
+
+  len = g_slist_length(syntax_error_list);
+
+    for (int i = 0; i < len; i++) {
+      GamePositionDbEntrySyntaxError *error = (GamePositionDbEntrySyntaxError *) g_slist_nth_data(syntax_error_list, i);
+      if (error && (strcmp(error->line, line) == 0) && (error->error_type == error_type))
+        return TRUE;
+    }
+  return FALSE;
+}
+
 static void gpdb_load_test(void)
 {
   FILE            *fp;
@@ -33,8 +50,12 @@ static void gpdb_load_test(void)
   db = NULL;
   gpdb_load(fp, db, syntax_error_log, error);
   fclose(fp);
-  printf("\nSyntax Errors in file \"./db/test-db-error-on-board-size.txt\": %d\n", g_slist_length(syntax_error_log)-1);
-  g_slist_foreach(syntax_error_log, print_error, NULL);
+  //printf("\nSyntax Errors in file \"./db/test-db-error-on-board-size.txt\": %d\n", g_slist_length(syntax_error_log)-1);
+  //g_slist_foreach(syntax_error_log, print_error, NULL);
+  g_assert(contains_error(syntax_error_log,
+                          "test-error-on-board-size-63;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b.......;b;The board has 63 squares;\n",
+                          GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64)
+           == TRUE);
   // syntax_errors must be freed ....
   g_slist_free(syntax_error_log);
 
