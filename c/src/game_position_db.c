@@ -155,7 +155,7 @@ int gpdb_load(FILE *fp,  GamePositionDb *db, GSList *syntax_error_log, GError **
   return EXIT_SUCCESS;
 }
 
-/* Comparison function for entries.*/
+/* Comparison function for game position database entries.*/
 static gint compare_entries(gconstpointer pa,
                             gconstpointer pb)
 {
@@ -222,14 +222,17 @@ static gint extract_entry_from_line(gchar *line,
   cp0 = cp1 + 1;
   if ((cp1 = strchr(cp0, field_separator)) != NULL) {
     if ((cp1 - cp0) != 64) {
+      GString *message = g_string_new("");
+      g_string_append_printf(message, "The record has the field board composed by %d chars.", (int) (cp1 - cp0));
       *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64,
                                                   NULL,
                                                   -1,
                                                   line,
-                                                  "The record has the field board composed by x chars.");
+                                                  message->str);
       g_free(entry->id);
       g_free(entry);
       g_free(record);
+      g_string_free(message, FALSE);
       entry = NULL;
       return EXIT_FAILURE;
     }

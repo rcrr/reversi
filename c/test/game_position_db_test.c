@@ -30,6 +30,7 @@ int contains_error(GSList *syntax_error_list,
 
     for (int i = 0; i < len; i++) {
       GamePositionDbEntrySyntaxError *error = (GamePositionDbEntrySyntaxError *) g_slist_nth_data(syntax_error_list, i);
+      // -to be removed- printf("%s\n", gpdb_entry_syntax_error_print(error)->str);
       if (error && (strcmp(error->line, line) == 0) && (error->error_type == error_type))
         return TRUE;
     }
