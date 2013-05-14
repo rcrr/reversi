@@ -226,17 +226,17 @@ static gint extract_entry_from_line(gchar *line,
   cp0 = cp1 + 1;
   if ((cp1 = strchr(cp0, field_separator)) != NULL) {
     if ((cp1 - cp0) != 64) {
-      GString *message = g_string_new("");
-      g_string_append_printf(message, "The record has the field board composed by %d chars.", (int) (cp1 - cp0));
+      error_msg = g_string_new("");
+      g_string_append_printf(error_msg, "The record has the field board composed by %d chars.", (int) (cp1 - cp0));
       *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64,
                                                   NULL,
                                                   -1,
                                                   line,
-                                                  message->str);
+                                                  error_msg->str);
       g_free(entry->id);
       g_free(entry);
       g_free(record);
-      g_string_free(message, FALSE);
+      g_string_free(error_msg, FALSE);
       entry = NULL;
       return EXIT_FAILURE;
     }
@@ -271,16 +271,38 @@ static gint extract_entry_from_line(gchar *line,
     }
     entry->board = board_new(blacks, whites);
   } else {
-    printf("ERROR! The record is missing the board field.\n");
-    //goto error;
+    error_msg = g_string_new("");
+    g_string_append_printf(error_msg, "The record doesn't have a proper terminated board field.");
+    *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_BOARD_FIELD_IS_INVALID,
+                                                NULL,
+                                                -1,
+                                                line,
+                                                error_msg->str);
+    g_free(entry->id);
+    g_free(entry);
+    g_free(record);
+    g_string_free(error_msg, FALSE);
+    entry = NULL;
+    return EXIT_FAILURE;
   }
 
   /* Extracts the player field. */
   cp0 = cp1 + 1;
   if ((cp1 = strchr(cp0, field_separator)) != NULL) {
     if ((cp1 - cp0) != 1) {
-      printf("ERROR: player field must be one char! Found %ld\n", cp1 - cp0);
-      //goto error;
+      error_msg = g_string_new("");
+      g_string_append_printf(error_msg, "The record has the field player composed by %d chars.", (int) (cp1 - cp0));
+      *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_IS_NOT_ONE_CHAR,
+                                                  NULL,
+                                                  -1,
+                                                  line,
+                                                  error_msg->str);
+      g_free(entry->id);
+      g_free(entry);
+      g_free(record);
+      g_string_free(error_msg, FALSE);
+      entry = NULL;
+      return EXIT_FAILURE;
     }
     Player p;
     c = *cp0;
@@ -292,15 +314,36 @@ static gint extract_entry_from_line(gchar *line,
       p = WHITE_PLAYER;
       break;
     default:
-      printf("ERROR: player must be in 'b', or 'w' character set. Found %c\n", c);
-      //goto error;
-      break;
+      error_msg = g_string_new("");
+      g_string_append_printf(error_msg, "Player must be in 'b', or 'w' character set. Found %c", c);
+      *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_CHAR_IS_INVALID,
+                                                  NULL,
+                                                  -1,
+                                                  line,
+                                                  error_msg->str);
+      g_free(entry->id);
+      g_free(entry);
+      g_free(record);
+      g_string_free(error_msg, FALSE);
+      entry = NULL;
+      return EXIT_FAILURE;
     }
     entry->player = p;
     printf("Player: %s\n", player_description(entry->player));
   } else {
-    printf("ERROR! The record is missing the player field.\n");
-    //goto error;
+    error_msg = g_string_new("");
+    g_string_append_printf(error_msg, "The record doesn't have a proper terminated player field.");
+    *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID,
+                                                NULL,
+                                                -1,
+                                                line,
+                                                error_msg->str);
+    g_free(entry->id);
+    g_free(entry);
+    g_free(record);
+    g_string_free(error_msg, FALSE);
+    entry = NULL;
+    return EXIT_FAILURE;
   }
 
   /* Extracts the description field. */
@@ -310,8 +353,19 @@ static gint extract_entry_from_line(gchar *line,
     strncpy(entry->desc, cp0, cp1 - cp0);
     printf("Description: %s\n", entry->desc);
   } else {
-    printf("ERROR! The record is missing the description field.\n");
-    //goto error;
+    error_msg = g_string_new("");
+    g_string_append_printf(error_msg, "The record doesn't have a proper terminated description field.");
+    *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID,
+                                                NULL,
+                                                -1,
+                                                line,
+                                                error_msg->str);
+    g_free(entry->id);
+    g_free(entry);
+    g_free(record);
+    g_string_free(error_msg, FALSE);
+    entry = NULL;
+    return EXIT_FAILURE;
   }
 
   return EXIT_SUCCESS;
@@ -372,8 +426,20 @@ GString *gpdb_entry_syntax_error_print(const GamePositionDbEntrySyntaxError cons
   case GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID:
     strcpy(et_string, "The board field must be composed of 'b', 'w', and '.' chars only.");
     break;
-  case GPDB_ENTRY_SYNTAX_ERROR_C:
-    strcpy(et_string, "C");
+  case GPDB_ENTRY_SYNTAX_ERROR_BOARD_FIELD_IS_INVALID:
+    strcpy(et_string, "The board field is not correctly assigned or terminated.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_PLAYER_IS_NOT_ONE_CHAR:
+    strcpy(et_string, "The player field is not one char.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_PLAYER_CHAR_IS_INVALID:
+    strcpy(et_string, "The player char is not 'b' or 'w'.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID:
+    strcpy(et_string, "The player field is not correctly assigned or terminated.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID:
+    strcpy(et_string, "The description field is not correctly assigned or terminated.");
     break;
   default:
     abort();

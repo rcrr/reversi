@@ -42,10 +42,14 @@
  * @brief The classification of errors thta can be found parsing a database entry record.
  */
 typedef enum {
-  GPDB_ENTRY_SYNTAX_ERROR_ON_ID,                  /**< Error on parsing the id field. */
-  GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64,   /**< Error on the size of the board field. */
-  GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID, /**< Error on the board field, one square char is out of range. */
-  GPDB_ENTRY_SYNTAX_ERROR_C                       /**< Error C. */
+  GPDB_ENTRY_SYNTAX_ERROR_ON_ID,                   /**< Error on parsing the id field. */
+  GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64,    /**< Error on the size of the board field. */
+  GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID,  /**< Error on the board field, one square char is out of range. */
+  GPDB_ENTRY_SYNTAX_ERROR_BOARD_FIELD_IS_INVALID,  /**< Error on parsing the board field. */
+  GPDB_ENTRY_SYNTAX_ERROR_PLAYER_IS_NOT_ONE_CHAR,  /**< Error on player field, it must be composed by one char. */
+  GPDB_ENTRY_SYNTAX_ERROR_PLAYER_CHAR_IS_INVALID,  /**< Error on player field, it must be either b or w. */
+  GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID, /**< Error on parsing the player field. */
+  GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID    /**< Error on parsing the description field. */
 } GamePositionDbEntrySyntaxErrorType;
 
 typedef struct {
