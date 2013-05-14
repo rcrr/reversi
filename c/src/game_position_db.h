@@ -44,6 +44,7 @@
 typedef enum {
   GPDB_ENTRY_SYNTAX_ERROR_ON_ID,                  /**< Error on parsing the id field. */
   GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64,   /**< Error on the size of the board field. */
+  GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID, /**< Error on the board field, one square char is out of range. */
   GPDB_ENTRY_SYNTAX_ERROR_C                       /**< Error C. */
 } GamePositionDbEntrySyntaxErrorType;
 
@@ -84,7 +85,7 @@ extern GamePositionDbEntrySyntaxError
                                                            char *error_message
                              );
 
-extern GString *gpdb_entry_syntax_error_print(GamePositionDbEntrySyntaxError *syntax_error);
+extern GString *gpdb_entry_syntax_error_print(const GamePositionDbEntrySyntaxError const *syntax_error);
 
 
 /******************************************************/

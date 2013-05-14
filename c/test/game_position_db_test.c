@@ -92,12 +92,39 @@ void assert_gpdb_load_logs_error(char *line, GamePositionDbEntrySyntaxErrorType 
 
 static void gpdb_load_test(void)
 {
+  assert_gpdb_load_logs_error("I-am-a-not-a-terminated-id",
+                              GPDB_ENTRY_SYNTAX_ERROR_ON_ID);
+
+  assert_gpdb_load_logs_error("I-am-a-again a-not-terminated-id\n",
+                              GPDB_ENTRY_SYNTAX_ERROR_ON_ID);
+
   assert_gpdb_load_logs_error("test-error-on-board-size-63;"
                               "ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b.......;"
                               "b;"
                               "The board has 63 squares;"
                               "\n",
                               GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64);
+
+  assert_gpdb_load_logs_error("test-error-on-board-size-65;"
+                              "ww.wwwwbbwwbbbbbwwbwwwwbwwbbbwwwbbwwwwwwbb...wwwwb....w..b.......;"
+                              "b;"
+                              "The board has 65 squares;"
+                              "\n",
+                              GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64);
+
+  assert_gpdb_load_logs_error("test-error-on-board-size-0;"
+                              ";"
+                              "b;"
+                              "The board has no squares;"
+                              "\n",
+                              GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64);
+
+  assert_gpdb_load_logs_error("test-error-on-board-wrong-square-char;"
+                              "ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..x........;"
+                              "b;"
+                              "The board has a wrong char as square descriptor;"
+                              "\n",
+                              GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID);
 
 }
 

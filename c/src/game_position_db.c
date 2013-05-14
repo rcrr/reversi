@@ -169,11 +169,12 @@ static gint extract_entry_from_line(gchar *line,
                                     GamePositionDbEntry *entry,
                                     GamePositionDbEntrySyntaxError **syntax_error)
 {
-  gchar *record;
-  int    record_length;
-  gchar  c;
-  gchar *cp0;
-  gchar *cp1;
+  gchar   *record;
+  int      record_length;
+  gchar    c;
+  gchar   *cp0;
+  gchar   *cp1;
+  GString *error_msg;
 
   /* If line is null return. */
   if (!line)
@@ -206,14 +207,17 @@ static gint extract_entry_from_line(gchar *line,
     strncpy(entry->id = g_malloc((cp1 - cp0 + 1) * sizeof(entry->id)), cp0, cp1 - cp0);
     entry->id[cp1 - cp0] = '\0';
   } else {
+    error_msg = g_string_new("");
+    g_string_append_printf(error_msg, "The record does't have the proper separator identifying the id field.");
     *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_ON_ID,
                                                 NULL,
                                                 -1,
                                                 line,
-                                                "The record does't have the proper separator identifying the id field.");
+                                                error_msg->str);
     g_free(entry->id);
     g_free(entry);
     g_free(record);
+    g_string_free(error_msg, FALSE);
     entry = NULL;
     return EXIT_FAILURE;
   }
@@ -250,9 +254,19 @@ static gint extract_entry_from_line(gchar *line,
       case '.':
         break;
       default:
-        printf("ERROR: board pieces must be in 'b', 'w', or '.' character set. Found %c\n", c);
-        //goto error;
-        break;
+        error_msg = g_string_new("");
+        g_string_append_printf(error_msg, "Board pieces must be in 'b', 'w', or '.' character set. Found %c", c);
+        *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID,
+                                                    NULL,
+                                                    -1,
+                                                    line,
+                                                    error_msg->str);
+        g_free(entry->id);
+        g_free(entry);
+        g_free(record);
+        g_string_free(error_msg, FALSE);
+        entry = NULL;
+        return EXIT_FAILURE;
       }
     }
     entry->board = board_new(blacks, whites);
@@ -303,9 +317,20 @@ static gint extract_entry_from_line(gchar *line,
   return EXIT_SUCCESS;
 }
 
-GString *gpdb_entry_syntax_error_print(GamePositionDbEntrySyntaxError *syntax_error)
+/**
+ * @brief Returns a formatted `GString` holding a represention of the syntax error.
+ *
+ * The returned structure has a dynamic extent set by a call to malloc.
+ * It must then properly garbage collected by a call to free when no more referenced.
+ *
+ * Parameter `syntax_error` can be `NULL`, then the returned string is empty.
+ *
+ * @param [in] syntax_error a pointer to the syntax error structure
+ * @return                  a message describing the error structure
+ */
+GString *gpdb_entry_syntax_error_print(const GamePositionDbEntrySyntaxError const *syntax_error)
 {
-  gchar et_string[64];
+  gchar et_string[128];
 
   GString *msg = g_string_new("");
 
@@ -322,7 +347,7 @@ GString *gpdb_entry_syntax_error_print(GamePositionDbEntrySyntaxError *syntax_er
   if (!sl)
     strcpy(sl, "NULL");
 
-  gchar ln_string[64];
+  gchar ln_string[16];
   int ln = syntax_error->line_number;
   if (ln > 0) {
     sprintf(ln_string, "%d", ln);
@@ -343,6 +368,9 @@ GString *gpdb_entry_syntax_error_print(GamePositionDbEntrySyntaxError *syntax_er
     break;
   case GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64:
     strcpy(et_string, "The board field must have 64 chars.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID:
+    strcpy(et_string, "The board field must be composed of 'b', 'w', and '.' chars only.");
     break;
   case GPDB_ENTRY_SYNTAX_ERROR_C:
     strcpy(et_string, "C");
