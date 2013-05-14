@@ -126,6 +126,37 @@ static void gpdb_load_test(void)
                               "\n",
                               GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID);
 
+  assert_gpdb_load_logs_error("test-error-on-board-not-terminated;"
+                              "ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..x........"
+                              "\n",
+                              GPDB_ENTRY_SYNTAX_ERROR_BOARD_FIELD_IS_INVALID);
+
+  assert_gpdb_load_logs_error("test-error-on-player-wrong-size;"
+                              "ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w...........;"
+                              "bb;"
+                              "The player field is made by two chars;"
+                              "\n",
+                              GPDB_ENTRY_SYNTAX_ERROR_PLAYER_IS_NOT_ONE_CHAR);
+
+  assert_gpdb_load_logs_error("test-error-on-player-wrong-char;"
+                              "ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w...........;"
+                              ".;"
+                              "The player char is invalid;"
+                              "\n",
+                              GPDB_ENTRY_SYNTAX_ERROR_PLAYER_CHAR_IS_INVALID);
+
+  assert_gpdb_load_logs_error("test-error-on-player-not-terminated;"
+                              "ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w...........;"
+                              "."
+                              "\n",
+                              GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID);
+
+  assert_gpdb_load_logs_error("test-error-on-player-wrong-char;"
+                              "ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w...........;"
+                              "w;"
+                              "The description is not termianted"
+                              "\n",
+                              GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID);
 }
 
 static void gpdb_entry_syntax_error_print_test(void)

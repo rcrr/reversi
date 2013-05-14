@@ -329,7 +329,6 @@ static gint extract_entry_from_line(gchar *line,
       return EXIT_FAILURE;
     }
     entry->player = p;
-    printf("Player: %s\n", player_description(entry->player));
   } else {
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated player field.");
@@ -351,7 +350,6 @@ static gint extract_entry_from_line(gchar *line,
   if ((cp1 = strchr(cp0, field_separator)) != NULL) {
     entry->desc = g_malloc(((cp1 - cp0) + 1) * sizeof(entry->desc));
     strncpy(entry->desc, cp0, cp1 - cp0);
-    printf("Description: %s\n", entry->desc);
   } else {
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated description field.");
