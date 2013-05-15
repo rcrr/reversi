@@ -6,19 +6,29 @@
 
 #include "game_position_db.h"
 
-static int contains_error(GSList *                           syntax_error_list,
-                          char *                             line,
-                          GamePositionDbEntrySyntaxErrorType error_type);
+static int
+contains_error (GSList                             *syntax_error_list,
+                char                               *line,
+                GamePositionDbEntrySyntaxErrorType  error_type);
 
-static void assert_gpdb_load_logs_error(char *                             line,
-                                        GamePositionDbEntrySyntaxErrorType error_type);
+static void
+assert_gpdb_load_logs_error (char                               *line,
+                             GamePositionDbEntrySyntaxErrorType  error_type);
 
-static void dummy_ok_test(void)
+
+
+/*
+ * Test functions.
+ */
+
+static void
+dummy_ok_test ( void )
 {
   g_assert(TRUE == TRUE);
 }
 
-static void gpdb_load_returned_errors_test(void)
+static void
+gpdb_load_returned_errors_test (void)
 {
   assert_gpdb_load_logs_error("I-am-a-not-a-terminated-id",
                               GPDB_ENTRY_SYNTAX_ERROR_ON_ID);
@@ -87,10 +97,12 @@ static void gpdb_load_returned_errors_test(void)
                               GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID);
 }
 
-static void gpdb_entry_syntax_error_print_test(void)
+static void
+gpdb_entry_syntax_error_print_test (void)
 {
   GamePositionDbEntrySyntaxError *syntax_error;
-  GString *msg, *expected;
+  GString                        *msg;
+  GString                        *expected;
 
   syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_ON_ID,
                                              "dummy-source",
@@ -108,8 +120,9 @@ static void gpdb_entry_syntax_error_print_test(void)
   g_string_free(expected, TRUE);
 }
 
-int main(int   argc,
-         char *argv[])
+int
+main (int   argc,
+      char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
 
@@ -121,13 +134,15 @@ int main(int   argc,
 }
 
 
+
 /*
  * Internal functions.
  */
 
-static int contains_error(GSList *                           syntax_error_list,
-                          char *                             line,
-                          GamePositionDbEntrySyntaxErrorType error_type)
+static int
+contains_error (GSList                             *syntax_error_list,
+                char                               *line,
+                GamePositionDbEntrySyntaxErrorType  error_type)
 {
   int len;
 
@@ -142,7 +157,9 @@ static int contains_error(GSList *                           syntax_error_list,
   return FALSE;
 }
 
-static void assert_gpdb_load_logs_error(char *line, GamePositionDbEntrySyntaxErrorType error_type)
+static void
+assert_gpdb_load_logs_error (char                               *line,
+                             GamePositionDbEntrySyntaxErrorType  error_type)
 {
   int              tmp_file_handle;
   gchar           *tmp_file_name;
