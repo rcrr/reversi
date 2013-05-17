@@ -104,6 +104,7 @@ extern int gpdb_load(FILE *fp,
 
 extern GamePositionDb *gpdb_new(char *desc);
 
+extern GamePositionDb *gpdb_delete(GamePositionDb *db, gboolean free_segment);
 
 
 /***********************************************************/

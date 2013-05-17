@@ -99,11 +99,48 @@ GamePositionDb *gpdb_new(char *desc)
   return db;
 }
 
+static gboolean
+iter_all (gpointer key, gpointer value, gpointer data) {
+  gchar *entry_id = (gchar*) key;
+  printf("AAAAA ---- %s\n", entry_id);
+  return FALSE;
+}
+
+/**
+ * @brief GamePositionDb structure destructor.
+ *
+ * @invariant Parameter `db` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] db the pointer to be deallocated
+ * @return        always the NULL pointer
+ */
+GamePositionDb *gpdb_delete(GamePositionDb *db, gboolean free_segment)
+{
+  g_assert(db);
+
+  if (free_segment) {
+    if (db->desc)
+      g_free(db->desc);
+    if (db->tree) {
+      int n = g_tree_nnodes(db->tree);
+      printf("n=%d", n);
+      g_tree_foreach(db->tree, (GTraverseFunc)iter_all, NULL);
+      g_tree_destroy(db->tree);
+    }
+  }
+
+  g_free(db);
+  db = NULL;
+
+  return db;
+}
+
 /**
  * @brief Inserts the entries found in file `fp` into the `db` database.
  *
- * An assertion checks that the received pointer to the allocated
- * game position database structure is not `NULL`.
+ * When the received pointer to the allocated game position database
+ * structure is `NULL` return code is `EXIT_FAILURE`.
  *
  * @param [in]     fp                a pointer to the file that is loaded 
  * @param [in,out] db                a pointer to the data base that is updated
@@ -122,7 +159,8 @@ int gpdb_load(FILE *fp,  GamePositionDb *db, GSList *syntax_error_log, GError **
   int         line_number;
 
   if (!db)
-    db = gpdb_new(NULL);
+    return EXIT_FAILURE;
+
   tree = db->tree;
   channel = g_io_channel_unix_new(fileno(fp));
   line_number = 0;
@@ -250,7 +288,7 @@ GString *gpdb_entry_syntax_error_print(const GamePositionDbEntrySyntaxError cons
 /**
  * @brief Prints the syntax error log.
  *
- * @todo Complete the functions.
+ * @todo Function implementation must be done! 
  */
 GString *gpdb_print_syntax_error_log(GSList *syntax_error_log)
 {

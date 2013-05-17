@@ -192,7 +192,7 @@ assert_gpdb_load_logs_error (char                               *line,
   /* Loads the game position database. */
   tmp_fp = fopen(tmp_file_name, "r");
   error = NULL;
-  db = NULL;
+  db = gpdb_new(NULL);
   syntax_error_log = g_slist_alloc();
   gpdb_load(tmp_fp, db, syntax_error_log, &error);
   fclose(tmp_fp);
@@ -208,6 +208,9 @@ assert_gpdb_load_logs_error (char                               *line,
            == TRUE);
 
   // syntax_error_log MUST be freed.
+
   // db MUST be freed.
+  // db is null ..... it is wrong the way it is returned ....
+  gpdb_delete(db, TRUE);
 
 }
