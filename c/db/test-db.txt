@@ -22,8 +22,8 @@
 # If one or more row doesn't pass the validation step, the program exit.
 #
 test-one;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;Test position number one;
-test-two;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;Test position number two; # This is peculiar!
+test-two;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;Test position number two; # This is a comment ...
+#
+#
+#
 test-wrong;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;.;Test wrong position;
-test-three;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;Test position number three;
-test-three;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;Test position number three;
-abc

@@ -98,6 +98,27 @@ gpdb_load_returned_errors_test (void)
 }
 
 static void
+gpdb_load_test (void)
+{
+  GamePositionDb  *db;
+  GSList          *syntax_error_log;
+  FILE            *fp;
+  GError          *error;
+
+  /* Loads the game position database. */
+  fp = fopen("db/test-db.txt", "r");
+  error = NULL;
+  db = gpdb_new(NULL);
+  syntax_error_log = g_slist_alloc();
+  gpdb_load(fp, db, syntax_error_log, &error);
+  fclose(fp);
+
+  /* Removes the tmp file, frees the resources. */
+  g_free(error);
+  gpdb_delete(db, TRUE);
+}
+
+static void
 gpdb_entry_syntax_error_print_test (void)
 {
   GamePositionDbEntrySyntaxError *syntax_error;
@@ -129,6 +150,7 @@ main (int   argc,
   g_test_add_func("/game_position_db/dummy_ok", dummy_ok_test);
   g_test_add_func("/game_position_db/gpdb_load-returned_errors", gpdb_load_returned_errors_test);
   g_test_add_func("/game_position_db/gpdb_entry_syntax_error_print", gpdb_entry_syntax_error_print_test);
+  g_test_add_func("/game_position_db/gpdb_load", gpdb_load_test);
 
   return g_test_run();
 }

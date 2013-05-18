@@ -40,7 +40,7 @@
 #include "game_position_db.h"
 
 static gint extract_entry_from_line(gchar                           *line,
-                                    GamePositionDbEntry             *entry,
+                                    GamePositionDbEntry            **pentry,
                                     GamePositionDbEntrySyntaxError **syntax_error);
 
 static gint compare_entries(gconstpointer pa,
@@ -102,7 +102,7 @@ GamePositionDb *gpdb_new(char *desc)
 static gboolean
 iter_all (gpointer key, gpointer value, gpointer data) {
   gchar *entry_id = (gchar*) key;
-  printf("AAAAA ---- %s\n", entry_id);
+  printf("entry_id: %p\n", entry_id);
   return FALSE;
 }
 
@@ -123,8 +123,6 @@ GamePositionDb *gpdb_delete(GamePositionDb *db, gboolean free_segment)
     if (db->desc)
       g_free(db->desc);
     if (db->tree) {
-      int n = g_tree_nnodes(db->tree);
-      printf("n=%d", n);
       g_tree_foreach(db->tree, (GTraverseFunc)iter_all, NULL);
       g_tree_destroy(db->tree);
     }
@@ -174,16 +172,19 @@ int gpdb_load(FILE *fp,  GamePositionDb *db, GSList *syntax_error_log, GError **
       g_error("Error reading: %s\n", err->message);
 
     GamePositionDbEntrySyntaxError *syntax_error = NULL;
-    GamePositionDbEntry *entry = NULL;
-    extract_entry_from_line(line, entry, &syntax_error);
+    GamePositionDbEntry  *entry = NULL;
+    //GamePositionDbEntry **pentry = &entry;
+    //printf("Before: entry=%p, &entry=%p\n", (void *) entry, (void *) &entry);
+    extract_entry_from_line(line, &entry, &syntax_error);
     if (syntax_error) {
       syntax_error->source = "NULL";
       syntax_error->line_number = line_number;
       syntax_error_log = g_slist_append(syntax_error_log, syntax_error);
     }
+    //printf("After : entry=%p, &entry=%p\n", (void *) entry, (void *) &entry);
 
     if (entry) {
-      g_tree_insert(tree, entry->id, entry);
+      g_tree_insert(tree, entry, entry);
     }
 
   } while (ret != G_IO_STATUS_EOF);
@@ -304,14 +305,16 @@ GString *gpdb_print_syntax_error_log(GSList *syntax_error_log)
 static gint compare_entries(gconstpointer pa,
                             gconstpointer pb)
 {
-  const GamePositionDbEntry *a = pa;
-  const GamePositionDbEntry *b = pb;
+  g_assert(pa && pb);
+
+  const GamePositionDbEntry *a = (GamePositionDbEntry *) pa;
+  const GamePositionDbEntry *b = (GamePositionDbEntry *) pb;
 
   return strcmp(a->id, b->id);
 }
 
 static gint extract_entry_from_line(gchar *line,
-                                    GamePositionDbEntry *entry,
+                                    GamePositionDbEntry **pentry,
                                     GamePositionDbEntrySyntaxError **syntax_error)
 {
   gchar   *record;
@@ -320,6 +323,8 @@ static gint extract_entry_from_line(gchar *line,
   gchar   *cp0;
   gchar   *cp1;
   GString *error_msg;
+
+  GamePositionDbEntry *entry;
 
   /* If line is null return. */
   if (!line)
@@ -511,5 +516,6 @@ static gint extract_entry_from_line(gchar *line,
     return EXIT_FAILURE;
   }
 
+  *pentry = entry;
   return EXIT_SUCCESS;
 }
