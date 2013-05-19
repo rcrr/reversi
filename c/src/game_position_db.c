@@ -112,8 +112,9 @@ iter_all (gpointer key, gpointer value, gpointer data) {
  * @invariant Parameter `db` cannot be `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in] db the pointer to be deallocated
- * @return        always the NULL pointer
+ * @param [in] db           the pointer to be deallocated
+ * @param [in] free_segment if yes als free the data stored in the db
+ * @return                  always the NULL pointer
  */
 GamePositionDb *gpdb_delete(GamePositionDb *db, gboolean free_segment)
 {
