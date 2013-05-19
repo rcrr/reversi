@@ -185,7 +185,7 @@ int gpdb_load(FILE *fp,  GamePositionDb *db, GSList *syntax_error_log, GError **
     //printf("After : entry=%p, &entry=%p\n", (void *) entry, (void *) &entry);
 
     if (entry) {
-      g_tree_insert(tree, entry, entry);
+      g_tree_insert(tree, entry->id, entry);
     }
 
   } while (ret != G_IO_STATUS_EOF);
@@ -303,20 +303,22 @@ GString *gpdb_print_syntax_error_log(GSList *syntax_error_log)
  */
 
 /* Comparison function for game position database entries.*/
-static gint compare_entries(gconstpointer pa,
-                            gconstpointer pb)
+static gint
+compare_entries (gconstpointer pa,
+                 gconstpointer pb)
 {
   g_assert(pa && pb);
 
-  const GamePositionDbEntry *a = (GamePositionDbEntry *) pa;
-  const GamePositionDbEntry *b = (GamePositionDbEntry *) pb;
+  const char *a = (char *) pa;
+  const char *b = (char *) pb;
 
-  return strcmp(a->id, b->id);
+  return strcmp(a, b);
 }
 
-static gint extract_entry_from_line(gchar *line,
-                                    GamePositionDbEntry **pentry,
-                                    GamePositionDbEntrySyntaxError **syntax_error)
+static gint
+extract_entry_from_line (gchar                           *line,
+                         GamePositionDbEntry            **pentry,
+                         GamePositionDbEntrySyntaxError **syntax_error)
 {
   gchar   *record;
   int      record_length;
