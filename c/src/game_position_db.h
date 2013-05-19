@@ -81,12 +81,12 @@ typedef struct {
 /* Function prototypes for the GamePositionDbEntrySyntaxError entity. */ 
 /**********************************************************************/
 
-extern GamePositionDbEntrySyntaxError
-*gpdb_entry_syntax_error_new(GamePositionDbEntrySyntaxErrorType  error_type,
-                                                           char *source,
-                                                            int  line_number,
-                                                           char *line,
-                                                           char *error_message
+extern GamePositionDbEntrySyntaxError *
+gpdb_entry_syntax_error_new(GamePositionDbEntrySyntaxErrorType  error_type,
+                            char                               *source,
+                            int                                 line_number,
+                            char                               *line,
+                            char                               *error_message
                              );
 
 extern GString *gpdb_entry_syntax_error_print(const GamePositionDbEntrySyntaxError const *syntax_error);
@@ -96,15 +96,21 @@ extern GString *gpdb_entry_syntax_error_print(const GamePositionDbEntrySyntaxErr
 /* Function prototypes for the GamePositionDb entity. */ 
 /******************************************************/
 
-extern int gpdb_load(FILE *fp,
-                     GamePositionDb *db,
-                     GSList *syntax_error_log,
-                     GError **e
-                     );
+extern int
+gpdb_load (FILE            *fp,
+           gchar           *source,
+           GamePositionDb  *db,
+           GSList          *syntax_error_log,
+           GError          **p_e
+           );
 
-extern GamePositionDb *gpdb_new(char *desc);
+extern GamePositionDb *
+gpdb_new (char *desc);
 
-extern GamePositionDb *gpdb_delete(GamePositionDb *db, gboolean free_segment);
+extern GamePositionDb *
+gpdb_delete (GamePositionDb *db,
+             gboolean        free_segment
+             );
 
 
 /***********************************************************/

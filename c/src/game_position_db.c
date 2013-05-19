@@ -39,23 +39,28 @@
 
 #include "game_position_db.h"
 
-static gint extract_entry_from_line(gchar                           *line,
-                                    GamePositionDbEntry            **pentry,
-                                    GamePositionDbEntrySyntaxError **syntax_error);
+static gint
+extract_entry_from_line (gchar                           *line,
+                         GamePositionDbEntry            **pentry,
+                         GamePositionDbEntrySyntaxError **syntax_error);
 
-static gint compare_entries(gconstpointer pa,
-                            gconstpointer pb);
+static gint
+compare_entries (gconstpointer pa,
+                 gconstpointer pb);
 
-const static char field_separator = ';'; /* Field separator for records in the game position db. */
-
+/**
+ * Field separator for records in the game position db.
+ */
+const static char
+field_separator = ';';
 
 
 /*
  * Public functions.
  */
 
-GamePositionDbEntrySyntaxError
-*gpdb_entry_syntax_error_new(GamePositionDbEntrySyntaxErrorType  error_type,
+GamePositionDbEntrySyntaxError *
+gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
                              char                               *source,
                              int                                 line_number,
                              char                               *line,
@@ -85,7 +90,8 @@ GamePositionDbEntrySyntaxError
  * @param [in] desc a string descibing the database
  * @return          a pointer to a new game position database structure
  */
-GamePositionDb *gpdb_new(char *desc)
+GamePositionDb *
+gpdb_new (char *desc)
 {
   GamePositionDb *db;
   static const size_t size_of_db = sizeof(GamePositionDb);
@@ -100,9 +106,12 @@ GamePositionDb *gpdb_new(char *desc)
 }
 
 static gboolean
-iter_all (gpointer key, gpointer value, gpointer data) {
+iter_all (gpointer key,
+          gpointer value,
+          gpointer data)
+{
   gchar *entry_id = (gchar*) key;
-  printf("entry_id: %p\n", entry_id);
+  printf("entry_id: %s\n", entry_id);
   return FALSE;
 }
 
@@ -116,7 +125,9 @@ iter_all (gpointer key, gpointer value, gpointer data) {
  * @param [in] free_segment if yes als free the data stored in the db
  * @return                  always the NULL pointer
  */
-GamePositionDb *gpdb_delete(GamePositionDb *db, gboolean free_segment)
+GamePositionDb *
+gpdb_delete (GamePositionDb *db,
+             gboolean        free_segment)
 {
   g_assert(db);
 
@@ -124,7 +135,9 @@ GamePositionDb *gpdb_delete(GamePositionDb *db, gboolean free_segment)
     if (db->desc)
       g_free(db->desc);
     if (db->tree) {
+      printf("\nList of entries to be freed:\n");
       g_tree_foreach(db->tree, (GTraverseFunc)iter_all, NULL);
+      printf("\n");
       g_tree_destroy(db->tree);
     }
   }
@@ -142,12 +155,18 @@ GamePositionDb *gpdb_delete(GamePositionDb *db, gboolean free_segment)
  * structure is `NULL` return code is `EXIT_FAILURE`.
  *
  * @param [in]     fp                a pointer to the file that is loaded 
+ * @param [in]     source            a string documenting the source of the loaded records 
  * @param [in,out] db                a pointer to the data base that is updated
  * @param [out]    syntax_error_log  the list of syntax errors 
- * @param [out]    e                 a location to return an error reference 
+ * @param [out]    p_e               a location to return an error reference 
  * @return                           the return code
  */
-int gpdb_load(FILE *fp,  GamePositionDb *db, GSList *syntax_error_log, GError **e)
+int
+gpdb_load (FILE            *fp,
+           gchar           *source,
+           GamePositionDb  *db,
+           GSList          *syntax_error_log,
+           GError         **p_e)
 {
   GIOChannel *channel;
   GIOStatus   ret;
@@ -169,20 +188,19 @@ int gpdb_load(FILE *fp,  GamePositionDb *db, GSList *syntax_error_log, GError **
 
     err = NULL;
     ret = g_io_channel_read_line(channel, &line, &line_len, NULL, &err);
-    if (ret == G_IO_STATUS_ERROR)
-      g_error("Error reading: %s\n", err->message);
+    if (err) {
+      g_propagate_error(p_e, err);
+      return EXIT_FAILURE;
+    }
 
     GamePositionDbEntrySyntaxError *syntax_error = NULL;
-    GamePositionDbEntry  *entry = NULL;
-    //GamePositionDbEntry **pentry = &entry;
-    //printf("Before: entry=%p, &entry=%p\n", (void *) entry, (void *) &entry);
+    GamePositionDbEntry *entry = NULL;
     extract_entry_from_line(line, &entry, &syntax_error);
     if (syntax_error) {
-      syntax_error->source = "NULL";
+      syntax_error->source = source;
       syntax_error->line_number = line_number;
       syntax_error_log = g_slist_append(syntax_error_log, syntax_error);
     }
-    //printf("After : entry=%p, &entry=%p\n", (void *) entry, (void *) &entry);
 
     if (entry) {
       g_tree_insert(tree, entry->id, entry);
@@ -193,11 +211,12 @@ int gpdb_load(FILE *fp,  GamePositionDb *db, GSList *syntax_error_log, GError **
   err = NULL;
   g_io_channel_shutdown(channel, TRUE, &err);
   if (err) {
-    g_propagate_error(e, err);
+    g_propagate_error(p_e, err);
     return EXIT_FAILURE;
   }
 
   g_io_channel_unref(channel);
+
   return EXIT_SUCCESS;
 }
 
@@ -212,7 +231,8 @@ int gpdb_load(FILE *fp,  GamePositionDb *db, GSList *syntax_error_log, GError **
  * @param [in] syntax_error a pointer to the syntax error structure
  * @return                  a message describing the error structure
  */
-GString *gpdb_entry_syntax_error_print(const GamePositionDbEntrySyntaxError const *syntax_error)
+GString *
+gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *syntax_error)
 {
   gchar et_string[128];
 
@@ -292,7 +312,8 @@ GString *gpdb_entry_syntax_error_print(const GamePositionDbEntrySyntaxError cons
  *
  * @todo Function implementation must be done! 
  */
-GString *gpdb_print_syntax_error_log(GSList *syntax_error_log)
+GString *
+gpdb_print_syntax_error_log (GSList *syntax_error_log)
 {
   return g_string_new("");
 }
@@ -302,7 +323,17 @@ GString *gpdb_print_syntax_error_log(GSList *syntax_error_log)
  * Internal functions.
  */
 
-/* Comparison function for game position database entries.*/
+/**
+ * @brief Comparison function for game position database entries.
+ *
+ * @invariant Parameters `pa` and `pb` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param pa the constant pointer to the key of the first structure
+ * @param pb the constant pointer to the key of the second structure
+ * @return   `-1` if `pa` precedes `pb`, `+1` if `pa` is greater than `pb`,
+ *           and `0` if the two object are equal
+ */
 static gint
 compare_entries (gconstpointer pa,
                  gconstpointer pb)

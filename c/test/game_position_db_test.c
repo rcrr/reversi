@@ -110,7 +110,7 @@ gpdb_load_test (void)
   error = NULL;
   db = gpdb_new(NULL);
   syntax_error_log = g_slist_alloc();
-  gpdb_load(fp, db, syntax_error_log, &error);
+  gpdb_load(fp, NULL, db, syntax_error_log, &error);
   fclose(fp);
 
   /* Removes the tmp file, frees the resources. */
@@ -216,7 +216,7 @@ assert_gpdb_load_logs_error (char                               *line,
   error = NULL;
   db = gpdb_new(NULL);
   syntax_error_log = g_slist_alloc();
-  gpdb_load(tmp_fp, db, syntax_error_log, &error);
+  gpdb_load(tmp_fp, NULL, db, syntax_error_log, &error);
   fclose(tmp_fp);
 
   /* Removes the tmp file, frees the resources. */
