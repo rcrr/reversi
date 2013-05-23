@@ -116,6 +116,9 @@ gpdb_load_test (void)
   /* Removes the tmp file, frees the resources. */
   g_free(error);
   gpdb_delete(db, TRUE);
+
+  g_assert(1 == 1);
+
 }
 
 static void
@@ -196,6 +199,8 @@ assert_gpdb_load_logs_error (char                               *line,
   error = NULL;
   tmp_file_name = NULL;
   tmp_file_handle = g_file_open_tmp("gpdb_test_XXXXXX.tmp", &tmp_file_name, &error);
+  if (error)
+    g_free(error);
 
   channel = g_io_channel_unix_new(tmp_file_handle);
 

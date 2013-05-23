@@ -46,7 +46,8 @@ extract_entry_from_line (gchar                           *line,
 
 static gint
 compare_entries (gconstpointer pa,
-                 gconstpointer pb);
+                 gconstpointer pb,
+                 gpointer      user_data);
 
 /**
  * Field separator for records in the game position db.
@@ -81,6 +82,20 @@ gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
   return e;
 }
 
+static void
+value_destroy_function (gpointer data)
+{
+  GamePositionDbEntry *entry = (GamePositionDbEntry *) data;
+  printf("... destroying value ... %s\n", entry->id);
+}
+
+static void
+key_destroy_function (gpointer data)
+{
+  char *id = (char *) data;
+  printf("... destroying key ... %s\n", id);
+}
+
 /**
  * @brief GamePositionDb structure constructor.
  *
@@ -99,20 +114,14 @@ gpdb_new (char *desc)
   db = (GamePositionDb*) g_malloc(size_of_db);
   g_assert(db);
 
-  db->tree = g_tree_new(compare_entries);
+  gpointer key_compare_data = NULL;
+  db->tree = g_tree_new_full((GCompareDataFunc) compare_entries,
+                             key_compare_data,
+                             (GDestroyNotify) key_destroy_function,
+                             (GDestroyNotify) value_destroy_function);
   db->desc = desc;
 
   return db;
-}
-
-static gboolean
-iter_all (gpointer key,
-          gpointer value,
-          gpointer data)
-{
-  gchar *entry_id = (gchar*) key;
-  printf("entry_id: %s\n", entry_id);
-  return FALSE;
 }
 
 /**
@@ -135,9 +144,6 @@ gpdb_delete (GamePositionDb *db,
     if (db->desc)
       g_free(db->desc);
     if (db->tree) {
-      printf("\nList of entries to be freed:\n");
-      g_tree_foreach(db->tree, (GTraverseFunc)iter_all, NULL);
-      printf("\n");
       g_tree_destroy(db->tree);
     }
   }
@@ -336,7 +342,8 @@ gpdb_print_syntax_error_log (GSList *syntax_error_log)
  */
 static gint
 compare_entries (gconstpointer pa,
-                 gconstpointer pb)
+                 gconstpointer pb,
+                 gpointer      user_data)
 {
   g_assert(pa && pb);
 
@@ -383,7 +390,8 @@ extract_entry_from_line (gchar                           *line,
     return EXIT_SUCCESS;
   record = g_malloc((record_length + 1) * sizeof(record));
   sprintf(record, "%.*s", record_length, line);
-  entry = g_malloc0(sizeof(entry));
+  //entry = g_malloc0(sizeof(entry));
+  entry = g_malloc0(sizeof(GamePositionDbEntry));
 
   /* Extracts the key (id field). */
   cp0 = record;
@@ -550,6 +558,7 @@ extract_entry_from_line (gchar                           *line,
     return EXIT_FAILURE;
   }
 
+  g_free(record);
   *pentry = entry;
   return EXIT_SUCCESS;
 }
