@@ -335,10 +335,11 @@ gpdb_print_syntax_error_log (GSList *syntax_error_log)
  * @invariant Parameters `pa` and `pb` cannot be `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param pa the constant pointer to the key of the first structure
- * @param pb the constant pointer to the key of the second structure
- * @return   `-1` if `pa` precedes `pb`, `+1` if `pa` is greater than `pb`,
- *           and `0` if the two object are equal
+ * @param pa        the constant pointer to the key of the first structure
+ * @param pb        the constant pointer to the key of the second structure
+ * @param user_data not used
+ * @return          `-1` if `pa` precedes `pb`, `+1` if `pa` is greater than `pb`,
+ *                  and `0` if the two object are equal
  */
 static gint
 compare_entries (gconstpointer pa,
