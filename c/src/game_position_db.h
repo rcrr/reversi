@@ -89,6 +89,9 @@ gpdb_entry_syntax_error_new(GamePositionDbEntrySyntaxErrorType  error_type,
                             char                               *error_message
                              );
 
+extern GamePositionDbEntrySyntaxError *
+gpdb_entry_syntax_error_delete (GamePositionDbEntrySyntaxError *e);
+
 extern GString *gpdb_entry_syntax_error_print(const GamePositionDbEntrySyntaxError const *syntax_error);
 
 

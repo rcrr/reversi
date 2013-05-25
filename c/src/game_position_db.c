@@ -82,6 +82,26 @@ gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
   return e;
 }
 
+/**
+ * @brief GamePositionDbEntrySyntaxError structure destructor.
+ *
+ * @invariant Parameter `e` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] e the pointer to be deallocated
+ * @return       always the NULL pointer
+ */
+GamePositionDbEntrySyntaxError *
+gpdb_entry_syntax_error_delete (GamePositionDbEntrySyntaxError *e)
+{
+  g_assert(e);
+
+  free(e);
+  e = NULL;
+
+  return e;
+}
+
 static void
 value_destroy_function (gpointer data)
 {

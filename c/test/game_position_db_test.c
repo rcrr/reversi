@@ -15,6 +15,9 @@ static void
 assert_gpdb_load_logs_error (char                               *line,
                              GamePositionDbEntrySyntaxErrorType  error_type);
 
+static void
+syntax_error_log_destroy_function (gpointer data);
+
 
 
 /*
@@ -116,8 +119,6 @@ gpdb_load_test (void)
   /* Removes the tmp file, frees the resources. */
   g_free(error);
   gpdb_delete(db, TRUE);
-
-  g_assert(1 == 1);
 
 }
 
@@ -235,9 +236,18 @@ assert_gpdb_load_logs_error (char                               *line,
            == TRUE);
 
   // syntax_error_log MUST be freed.
+  g_slist_free_full(syntax_error_log, (GDestroyNotify) syntax_error_log_destroy_function);
 
   // db MUST be freed.
-  // db is null ..... it is wrong the way it is returned ....
-  gpdb_delete(db, TRUE);
+  gboolean free_segment = TRUE;
+  gpdb_delete(db, free_segment);
 
+}
+
+static void
+syntax_error_log_destroy_function (gpointer data)
+{
+  GamePositionDbEntrySyntaxError *e = (GamePositionDbEntrySyntaxError *) data;
+  if (e)
+    gpdb_entry_syntax_error_delete(e);
 }
