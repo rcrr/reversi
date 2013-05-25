@@ -15,6 +15,7 @@ valgrind -v --tool=memcheck \
             --track-origins=yes \
             --leak-check=full \
             --show-reachable=yes \
+            --gen-suppressions=all \
             --suppressions=minimal.supp \
               $(which $PROG) $ARGS
 

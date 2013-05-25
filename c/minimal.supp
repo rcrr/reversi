@@ -243,9 +243,13 @@
    fun:g_test_init
    fun:main
 }
-# bookmark-0
+#
+#
+# glib
+# g_test_run_suite
+#
 {
-   <insert_a_suppression_name_here>
+   <glib-g_test_run_suite-000>
    Memcheck:Leak
    fun:malloc
    fun:g_private_get_impl
@@ -259,41 +263,7 @@
    fun:main
 }
 {
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_strdup
-   fun:g_get_any_init_do
-   fun:g_get_tmp_dir
-   fun:g_get_tmp_name
-   fun:g_file_open_tmp
-   fun:assert_gpdb_load_logs_error
-   fun:gpdb_load_returned_errors_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_strjoinv
-   fun:g_get_any_init_do
-   fun:g_get_tmp_dir
-   fun:g_get_tmp_name
-   fun:g_file_open_tmp
-   fun:assert_gpdb_load_logs_error
-   fun:gpdb_load_returned_errors_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
+   <glib-g_test_run_suite-003>
    Memcheck:Leak
    fun:malloc
    fun:g_malloc
@@ -307,7 +277,52 @@
    fun:main
 }
 {
-   <insert_a_suppression_name_here>
+   <glib-g_test_run_suite-004>
+   Memcheck:Leak
+   fun:calloc
+   fun:g_malloc0
+   fun:g_rand_new_with_seed_array
+   fun:test_run_seed
+   fun:g_test_run_suite_internal
+   fun:g_test_run_suite_internal
+   fun:g_test_run_suite
+   fun:main
+}
+{
+   <glib-g_test_run_suite-005>
+   Memcheck:Leak
+   fun:calloc
+   fun:g_malloc0
+   fun:g_get_charset
+   fun:g_print
+   fun:g_test_log
+   fun:g_test_run_suite_internal
+   fun:g_test_run_suite_internal
+   fun:g_test_run_suite
+   fun:main
+}
+{
+   <glib-g_test_run_suite-006>
+   Memcheck:Leak
+   fun:malloc
+   fun:g_mutex_impl_new
+   fun:g_mutex_get_impl
+   fun:g_mutex_lock
+   fun:g_get_charset
+   fun:g_print
+   fun:g_test_log
+   fun:g_test_run_suite_internal
+   fun:g_test_run_suite_internal
+   fun:g_test_run_suite
+   fun:main
+}
+#
+#
+# glib
+# g_file_open_tmp
+#
+{
+   <glib-g_file_open_tmp-000>
    Memcheck:Leak
    fun:malloc
    fun:__nss_lookup_function
@@ -325,62 +340,7 @@
    fun:main
 }
 {
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:board_new
-   fun:extract_entry_from_line
-   fun:gpdb_load
-   fun:assert_gpdb_load_logs_error
-   fun:gpdb_load_returned_errors_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:board_new
-   fun:extract_entry_from_line
-   fun:gpdb_load
-   fun:gpdb_load_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   fun:g_get_charset
-   fun:g_print
-   fun:g_test_log
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_strndup
-   fun:g_io_channel_read_line
-   fun:gpdb_load
-   fun:assert_gpdb_load_logs_error
-   fun:gpdb_load_returned_errors_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
+   <glib-g_file_open_tmp-001>
    Memcheck:Leak
    fun:malloc
    fun:tsearch
@@ -399,22 +359,7 @@
    fun:main
 }
 {
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_mutex_impl_new
-   fun:g_mutex_get_impl
-   fun:g_mutex_lock
-   fun:g_get_charset
-   fun:g_print
-   fun:g_test_log
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
+   <glib-g_file_open_tmp-002>
    Memcheck:Leak
    fun:malloc
    fun:g_mutex_impl_new
@@ -431,108 +376,7 @@
    fun:main
 }
 {
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:gpdb_entry_syntax_error_new
-   fun:extract_entry_from_line
-   fun:gpdb_load
-   fun:assert_gpdb_load_logs_error
-   fun:gpdb_load_returned_errors_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:gpdb_entry_syntax_error_new
-   fun:extract_entry_from_line
-   fun:gpdb_load
-   fun:gpdb_load_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:gpdb_entry_syntax_error_new
-   fun:gpdb_entry_syntax_error_print_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:realloc
-   fun:g_realloc
-   fun:g_string_maybe_expand
-   fun:g_string_append_vprintf
-   fun:g_string_append_printf
-   fun:extract_entry_from_line
-   fun:gpdb_load
-   fun:assert_gpdb_load_logs_error
-   fun:gpdb_load_returned_errors_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:realloc
-   fun:g_realloc
-   fun:g_string_maybe_expand
-   fun:g_string_append_vprintf
-   fun:g_string_append_printf
-   fun:extract_entry_from_line
-   fun:gpdb_load
-   fun:gpdb_load_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_strndup
-   fun:g_io_channel_read_line
-   fun:gpdb_load
-   fun:gpdb_load_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:extract_entry_from_line
-   fun:gpdb_load
-   fun:gpdb_load_test
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite_internal
-   fun:g_test_run_suite
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
+   <glib-g_file_open_tmp-003>
    Memcheck:Leak
    fun:malloc
    fun:nss_parse_service_list
@@ -551,25 +395,34 @@
    fun:main
 }
 {
-   <insert_a_suppression_name_here>
+   <glib-g_file_open_tmp-004>
    Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   fun:extract_entry_from_line
-   fun:gpdb_load
-   fun:gpdb_load_test
+   fun:malloc
+   fun:g_malloc
+   fun:g_strdup
+   fun:g_get_any_init_do
+   fun:g_get_tmp_dir
+   fun:g_get_tmp_name
+   fun:g_file_open_tmp
+   fun:assert_gpdb_load_logs_error
+   fun:gpdb_load_returned_errors_test
    fun:g_test_run_suite_internal
    fun:g_test_run_suite_internal
    fun:g_test_run_suite
    fun:main
 }
 {
-   <insert_a_suppression_name_here>
+   <glib-g_file_open_tmp-005>
    Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   fun:g_rand_new_with_seed_array
-   fun:test_run_seed
+   fun:malloc
+   fun:g_malloc
+   fun:g_strjoinv
+   fun:g_get_any_init_do
+   fun:g_get_tmp_dir
+   fun:g_get_tmp_name
+   fun:g_file_open_tmp
+   fun:assert_gpdb_load_logs_error
+   fun:gpdb_load_returned_errors_test
    fun:g_test_run_suite_internal
    fun:g_test_run_suite_internal
    fun:g_test_run_suite
