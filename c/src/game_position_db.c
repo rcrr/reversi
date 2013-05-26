@@ -226,11 +226,13 @@ gpdb_load (FILE            *fp,
       syntax_error->source = source;
       syntax_error->line_number = line_number;
       syntax_error_log = g_slist_append(syntax_error_log, syntax_error);
+    } else {
+      g_free(line);
+      if (entry) {
+        g_tree_insert(tree, entry->id, entry);
+      }
     }
-
-    if (entry) {
-      g_tree_insert(tree, entry->id, entry);
-    }
+    line = NULL;
 
   } while (ret != G_IO_STATUS_EOF);
 
