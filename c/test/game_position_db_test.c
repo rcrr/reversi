@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <glib.h>
 
@@ -109,7 +110,11 @@ gpdb_load_test (void)
   GError          *error;
 
   /* Loads the game position database. */
-  fp = fopen("db/test-db.txt", "r");
+  fp = fopen("db/gpdb-test-db.txt", "r");
+  if (!fp) {
+    printf("Unable to open database test file \"db/gpdb-test-db.txt\" for reading.\n.");
+    abort();
+  }
   error = NULL;
   db = gpdb_new(NULL);
   syntax_error_log = g_slist_alloc();
@@ -119,7 +124,6 @@ gpdb_load_test (void)
   /* Removes the tmp file, frees the resources. */
   g_free(error);
   gpdb_delete(db, TRUE);
-
 }
 
 static void

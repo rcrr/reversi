@@ -4,6 +4,19 @@
  * @brief Data Base utilities and programs for `GamePosition` structures.
  * @details This executable read and write game position db.
  *
+ * @todo Remove all the valgrind detected errors.
+ * @todo Complete documentation for game_position_db.c
+ * @todo Take a final approach for testing glib vs cunit.
+ * @todo Retrofit board.c and board.h with the new style.
+ * @todo Complete the gpdb_game_samples.txt database.
+ * @todo Write a program that read and validate a database file.
+ * @todo Verify that a new entry is not replacing an existing one.
+ * @todo Write a print function for the GamePosition.
+ * @todo Write a print function for the Entry.
+ * @todo Replace Board and Player with GamePosition in an Entry.
+ * @todo Write al the missing tests.
+ * @todo MAke the makefile more friendly for the tests. 
+ *
  * @par game_position_db.c
  * <tt>
  * This file is part of the reversi program
@@ -38,6 +51,7 @@
 #include <glib.h>
 
 #include "game_position_db.h"
+
 
 static gint
 extract_entry_from_line (gchar                           *line,
@@ -106,7 +120,6 @@ static void
 value_destroy_function (gpointer data)
 {
   GamePositionDbEntry *entry = (GamePositionDbEntry *) data;
-  printf("... destroying value ... %s\n", entry->id);
   gpdb_entry_delete(entry, TRUE);
 }
 
@@ -114,7 +127,7 @@ static void
 key_destroy_function (gpointer data)
 {
   char *id = (char *) data;
-  printf("... destroying key ... %s\n", id);
+  if (id) ; // Nothing to do here.
 }
 
 /**
