@@ -98,8 +98,9 @@ gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
 
 /**
  * @brief GamePositionDbEntrySyntaxError structure destructor.
- * @detail The fields belonging to the error parameter `e` must
- *         be not shared elsewhere. This function frees them all.
+ *
+ * The fields belonging to the error parameter `e` must
+ * be not shared elsewhere. This function frees them all.
  *
  * @invariant Parameter `e` cannot be `NULL`.
  * The invariant is guarded by an assertion.

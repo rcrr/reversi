@@ -52,12 +52,17 @@ typedef enum {
   GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID    /**< Error on parsing the description field. */
 } GamePositionDbEntrySyntaxErrorType;
 
+/**
+ * @brief A syntax error in processing entries in a game position database.
+ *
+ * Fields must be kept private, the delete function frees all them.
+ */
 typedef struct {
   GamePositionDbEntrySyntaxErrorType  error_type;
-  char                               *source;
+  gchar                              *source;
   int                                 line_number;
-  char                               *line;
-  char                               *error_message;  
+  gchar                              *line;
+  gchar                              *error_message;  
 } GamePositionDbEntrySyntaxError;
 
 /**
