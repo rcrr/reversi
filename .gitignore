@@ -20,3 +20,4 @@ tmp
 .classpath
 *.dat
 valgrind.log
+valgrind.*.log
