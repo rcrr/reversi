@@ -64,10 +64,10 @@ typedef struct {
  * @brief An Entry collects the GamePosition data with a description and an unique key.
  */
 typedef struct {
-  char   *id;      /**< @brief id is a string used as key in the dictionary. */
-  Board  *board;
-  Player  player;
-  char   *desc;
+  gchar   *id;      /**< @brief id is a string used as key in the dictionary. */
+  Board   *board;
+  Player   player;
+  gchar   *desc;
 } GamePositionDbEntry;
 
 typedef struct {
@@ -86,13 +86,13 @@ gpdb_entry_syntax_error_new(GamePositionDbEntrySyntaxErrorType  error_type,
                             char                               *source,
                             int                                 line_number,
                             char                               *line,
-                            char                               *error_message
-                             );
+                            char                               *error_message);
 
 extern GamePositionDbEntrySyntaxError *
-gpdb_entry_syntax_error_delete (GamePositionDbEntrySyntaxError *e);
+gpdb_entry_syntax_error_delete (GamePositionDbEntrySyntaxError *syntax_error);
 
-extern GString *gpdb_entry_syntax_error_print(const GamePositionDbEntrySyntaxError const *syntax_error);
+extern GString *
+gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *syntax_error);
 
 
 /******************************************************/
@@ -104,21 +104,26 @@ gpdb_load (FILE            *fp,
            gchar           *source,
            GamePositionDb  *db,
            GSList          *syntax_error_log,
-           GError          **p_e
-           );
+           GError          **p_e);
 
 extern GamePositionDb *
 gpdb_new (char *desc);
 
 extern GamePositionDb *
 gpdb_delete (GamePositionDb *db,
-             gboolean        free_segment
-             );
+             gboolean        free_segment);
 
 
 /***********************************************************/
 /* Function prototypes for the GamePositionDbEntry entity. */ 
 /***********************************************************/
+
+extern GamePositionDbEntry *
+gpdb_entry_new (void);
+
+extern GamePositionDbEntry *
+gpdb_entry_delete (GamePositionDbEntry *entry,
+                   gboolean             free_segment);
 
 
 #endif /* GAME_POSITION_DB_H */

@@ -107,6 +107,7 @@ value_destroy_function (gpointer data)
 {
   GamePositionDbEntry *entry = (GamePositionDbEntry *) data;
   printf("... destroying value ... %s\n", entry->id);
+  gpdb_entry_delete(entry, TRUE);
 }
 
 static void
@@ -246,6 +247,54 @@ gpdb_load (FILE            *fp,
   g_io_channel_unref(channel);
 
   return EXIT_SUCCESS;
+}
+
+/**
+ * @brief GamePositionDbEntry structure constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * game position database entry structure is not `NULL`.
+ *
+ * @return a pointer to a new empty game position database entry structure
+ */
+GamePositionDbEntry *
+gpdb_entry_new (void)
+{
+  GamePositionDbEntry *entry;
+  static const size_t size_of_entry = sizeof(GamePositionDbEntry);
+
+  entry = (GamePositionDbEntry *) g_malloc0(size_of_entry);
+  g_assert(entry);
+
+  return entry;
+}
+
+/**
+ * @brief GamePositionDbEntry structure destructor.
+ *
+ * @invariant Parameter `entry` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] entry        the pointer to be deallocated
+ * @param [in] free_segment if yes also free the data referenced by the entry
+ * @return                  always the NULL pointer
+ */
+GamePositionDbEntry *
+gpdb_entry_delete (GamePositionDbEntry *entry,
+                   gboolean             free_segment)
+{
+  g_assert(entry);
+
+  if (free_segment) {
+    g_free(entry->id);
+    board_delete(entry->board);
+    g_free(entry->desc);
+  }
+
+  g_free(entry);
+  entry = NULL;
+
+  return entry;
 }
 
 /**
@@ -413,8 +462,7 @@ extract_entry_from_line (gchar                           *line,
     return EXIT_SUCCESS;
   record = g_malloc((record_length + 1) * sizeof(record));
   sprintf(record, "%.*s", record_length, line);
-  //entry = g_malloc0(sizeof(entry));
-  entry = g_malloc0(sizeof(GamePositionDbEntry));
+  entry = gpdb_entry_new();
 
   /* Extracts the key (id field). */
   cp0 = record;
