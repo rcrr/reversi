@@ -124,6 +124,7 @@ gpdb_load_test (void)
   /* Removes the tmp file, frees the resources. */
   g_free(error);
   gpdb_delete(db, TRUE);
+  g_slist_free_full(syntax_error_log, (GDestroyNotify) syntax_error_log_destroy_function);
 }
 
 static void
@@ -239,7 +240,7 @@ assert_gpdb_load_logs_error (char                               *line,
                           error_type)
            == TRUE);
 
-  // syntax_error_log MUST be freed.
+  // Free the syntax_error_log.
   g_slist_free_full(syntax_error_log, (GDestroyNotify) syntax_error_log_destroy_function);
 
   // db MUST be freed.
