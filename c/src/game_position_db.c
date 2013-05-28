@@ -581,6 +581,7 @@ extract_entry_from_line (gchar                           *line,
                                                   line,
                                                   error_msg->str);
       g_free(entry->id);
+      board_delete(entry->board);
       g_free(entry);
       g_free(record);
       g_string_free(error_msg, FALSE);
@@ -605,6 +606,7 @@ extract_entry_from_line (gchar                           *line,
                                                   line,
                                                   error_msg->str);
       g_free(entry->id);
+      board_delete(entry->board);
       g_free(entry);
       g_free(record);
       g_string_free(error_msg, FALSE);
@@ -642,6 +644,7 @@ extract_entry_from_line (gchar                           *line,
                                                 line,
                                                 error_msg->str);
     g_free(entry->id);
+    board_delete(entry->board);
     g_free(entry);
     g_free(record);
     g_string_free(error_msg, FALSE);
