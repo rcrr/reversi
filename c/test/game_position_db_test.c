@@ -135,10 +135,10 @@ gpdb_entry_syntax_error_print_test (void)
   GString                        *expected;
 
   syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_ON_ID,
-                                             "dummy-source",
+                                             g_strdup("dummy-source"),
                                              123,
-                                             "a-record-line",
-                                             "error-message");
+                                             g_strdup("a-record-line"),
+                                             g_strdup("error-message"));
   msg = gpdb_entry_syntax_error_print(syntax_error);
   expected = g_string_new("Error type:    The id field is not correctly assigned.\n"
                           "Error message: error-message\n"
@@ -148,6 +148,7 @@ gpdb_entry_syntax_error_print_test (void)
   g_assert_cmpstr(expected->str, ==, msg->str);
   g_string_free(msg,      TRUE);
   g_string_free(expected, TRUE);
+  gpdb_entry_syntax_error_delete(syntax_error);
 }
 
 int
