@@ -93,7 +93,7 @@ gpdb_load_returned_errors_test (void)
                               "\n",
                               GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID);
 
-  assert_gpdb_load_logs_error("test-error-on-player-wrong-char;"
+  assert_gpdb_load_logs_error("test-error-on-description-not-terminated;"
                               "ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w...........;"
                               "w;"
                               "The description is not termianted"
