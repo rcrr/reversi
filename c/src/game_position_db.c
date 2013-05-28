@@ -52,22 +52,30 @@
 
 #include "game_position_db.h"
 
-
-static gint
-extract_entry_from_line (gchar                           *line,
-                         GamePositionDbEntry            **pentry,
-                         GamePositionDbEntrySyntaxError **syntax_error);
-
-static gint
-compare_entries (gconstpointer pa,
-                 gconstpointer pb,
-                 gpointer      user_data);
+/*
+ * Internal variables and constants.
+ */
 
 /**
  * Field separator for records in the game position db.
  */
 const static char
 field_separator = ';';
+
+/*
+ * Prototypes for internal functions.
+ */
+
+static gint
+extract_entry_from_line (gchar                           *line,
+                         GamePositionDbEntry            **p_entry,
+                         GamePositionDbEntrySyntaxError **p_syntax_error);
+
+static gint
+compare_entries (gconstpointer pa,
+                 gconstpointer pb,
+                 gpointer      user_data);
+
 
 
 /*
@@ -445,10 +453,18 @@ compare_entries (gconstpointer pa,
   return strcmp(a, b);
 }
 
+/**
+ * @brief Extracts a game position database entry from the input line.
+ *
+ * @param line
+ * @param p_entry
+ * @param p_syntax_error
+ * @return             the status of the operation
+ */
 static gint
 extract_entry_from_line (gchar                           *line,
-                         GamePositionDbEntry            **pentry,
-                         GamePositionDbEntrySyntaxError **syntax_error)
+                         GamePositionDbEntry            **p_entry,
+                         GamePositionDbEntrySyntaxError **p_syntax_error)
 {
   gchar   *record;
   int      record_length;
@@ -492,11 +508,11 @@ extract_entry_from_line (gchar                           *line,
   } else {
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record does't have the proper separator identifying the id field.");
-    *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_ON_ID,
-                                                NULL,
-                                                -1,
-                                                line,
-                                                error_msg->str);
+    *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_ON_ID,
+                                                  NULL,
+                                                  -1,
+                                                  line,
+                                                  error_msg->str);
     g_free(entry->id);
     g_free(entry);
     g_free(record);
@@ -511,11 +527,11 @@ extract_entry_from_line (gchar                           *line,
     if ((cp1 - cp0) != 64) {
       error_msg = g_string_new("");
       g_string_append_printf(error_msg, "The record has the field board composed by %d chars.", (int) (cp1 - cp0));
-      *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64,
-                                                  NULL,
-                                                  -1,
-                                                  line,
-                                                  error_msg->str);
+      *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64,
+                                                    NULL,
+                                                    -1,
+                                                    line,
+                                                    error_msg->str);
       g_free(entry->id);
       g_free(entry);
       g_free(record);
@@ -539,11 +555,11 @@ extract_entry_from_line (gchar                           *line,
       default:
         error_msg = g_string_new("");
         g_string_append_printf(error_msg, "Board pieces must be in 'b', 'w', or '.' character set. Found %c", c);
-        *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID,
-                                                    NULL,
-                                                    -1,
-                                                    line,
-                                                    error_msg->str);
+        *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID,
+                                                      NULL,
+                                                      -1,
+                                                      line,
+                                                      error_msg->str);
         g_free(entry->id);
         g_free(entry);
         g_free(record);
@@ -556,11 +572,11 @@ extract_entry_from_line (gchar                           *line,
   } else {
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated board field.");
-    *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_BOARD_FIELD_IS_INVALID,
-                                                NULL,
-                                                -1,
-                                                line,
-                                                error_msg->str);
+    *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_BOARD_FIELD_IS_INVALID,
+                                                  NULL,
+                                                  -1,
+                                                  line,
+                                                  error_msg->str);
     g_free(entry->id);
     g_free(entry);
     g_free(record);
@@ -575,11 +591,11 @@ extract_entry_from_line (gchar                           *line,
     if ((cp1 - cp0) != 1) {
       error_msg = g_string_new("");
       g_string_append_printf(error_msg, "The record has the field player composed by %d chars.", (int) (cp1 - cp0));
-      *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_IS_NOT_ONE_CHAR,
-                                                  NULL,
-                                                  -1,
-                                                  line,
-                                                  error_msg->str);
+      *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_IS_NOT_ONE_CHAR,
+                                                    NULL,
+                                                    -1,
+                                                    line,
+                                                    error_msg->str);
       g_free(entry->id);
       board_delete(entry->board);
       g_free(entry);
@@ -600,11 +616,11 @@ extract_entry_from_line (gchar                           *line,
     default:
       error_msg = g_string_new("");
       g_string_append_printf(error_msg, "Player must be in 'b', or 'w' character set. Found %c", c);
-      *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_CHAR_IS_INVALID,
-                                                  NULL,
-                                                  -1,
-                                                  line,
-                                                  error_msg->str);
+      *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_CHAR_IS_INVALID,
+                                                    NULL,
+                                                    -1,
+                                                    line,
+                                                    error_msg->str);
       g_free(entry->id);
       board_delete(entry->board);
       g_free(entry);
@@ -617,11 +633,11 @@ extract_entry_from_line (gchar                           *line,
   } else {
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated player field.");
-    *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID,
-                                                NULL,
-                                                -1,
-                                                line,
-                                                error_msg->str);
+    *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID,
+                                                  NULL,
+                                                  -1,
+                                                  line,
+                                                  error_msg->str);
     g_free(entry->id);
     board_delete(entry->board);
     g_free(entry);
@@ -639,11 +655,11 @@ extract_entry_from_line (gchar                           *line,
   } else {
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated description field.");
-    *syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID,
-                                                NULL,
-                                                -1,
-                                                line,
-                                                error_msg->str);
+    *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID,
+                                                  NULL,
+                                                  -1,
+                                                  line,
+                                                  error_msg->str);
     g_free(entry->id);
     board_delete(entry->board);
     g_free(entry);
@@ -654,6 +670,6 @@ extract_entry_from_line (gchar                           *line,
   }
 
   g_free(record);
-  *pentry = entry;
+  *p_entry = entry;
   return EXIT_SUCCESS;
 }
