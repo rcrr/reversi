@@ -59,8 +59,8 @@ $(OBJS): $(OBJDIR)/%.o: $(SRCDIR)/%.c $(HDRS) | $(OBJDIR)
 # This must be reorganized, made general, and automated.
 .PHONY: test
 test: $(OBJS) | $(BTESTDIR)
-	$(CC) -c -o build/test/board_cu.o test/board_cu.c -I./src
-	$(CC) build/test/board_cu.o build/obj/board.o build/obj/bit_works.o -o build/test/board_cu $(TEST_LIBS)
+	$(CC) $(CFLAGS) -c -o build/test/board_cu.o test/board_cu.c -I./src
+	$(CC) build/test/board_cu.o build/obj/board.o build/obj/bit_works.o -o build/test/board_cu $(TEST_LIBS) $(LIBS)
 	$(CC) $(CFLAGS) -c -o build/test/game_position_db_test.o test/game_position_db_test.c -I./src
 	$(CC) build/test/game_position_db_test.o build/obj/game_position_db.o build/obj/board.o build/obj/bit_works.o -o build/test/game_position_db_test $(LIBS)
 

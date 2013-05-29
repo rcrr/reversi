@@ -37,6 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <glib.h>
+
 #include "board.h"
 #include "bit_works.h"
 
@@ -492,6 +494,41 @@ char square_state_symbol(const SquareState color)
 /* Function implementations for the GamePosition entity. */ 
 /*********************************************************/
 
+/**
+ * @brief GamePosition structure constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * game position structure is not `NULL`.
+ *
+ * @invariant Parameter `b` cannot be null. 
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `p` must belong to the `Player` enum set. 
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] b the board field
+ * @param [in] p the player field
+ * @return     a pointer to a new game position structure
+ */
+GamePosition *
+game_position_new(Board  *b,
+                  Player  p)
+{
+  assert(b);
+  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
+  GamePosition *gp;
+  static const size_t size_of_game_position = sizeof(GamePosition);
+
+  gp = (GamePosition*) malloc(size_of_game_position);
+  assert(gp);
+
+  gp->board = b;
+  gp->player = p;
+
+  return gp;
+}
+
 int game_position_compare(const GamePosition * const a,
                           const GamePosition * const b)
 {
@@ -514,4 +551,30 @@ int game_position_compare(const GamePosition * const a,
       }
     }
   }  
+}
+
+/**
+ * @brief Returns a formatted string showing a 2d graphical represention of the game position.
+ *
+ * The returned string has a dynamic extent set by a call to malloc. It must then properly
+ * garbage collected by a call to free when no more referenced.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp a pointer to the game position structure
+ * @return        a string being a 2d representation of the game position
+ */
+gchar *
+game_position_print (const GamePosition const *gp)
+{
+  assert(gp);
+
+  const gchar *separator = NULL;
+
+  gchar *gp_to_string;
+
+  gp_to_string = g_strjoin(separator, board_print(gp->board), "Player to move: ", "BLACK", "\n", NULL);
+
+  return gp_to_string;
 }

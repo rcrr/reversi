@@ -33,6 +33,8 @@
  * </tt>
  */
 
+#include <glib.h>
+
 #ifndef BOARD_H
 #define BOARD_H
 
@@ -225,6 +227,19 @@ extern SquareSet direction_shift_square_set(const Direction dir,
 /********************************************************/
 
 extern char square_state_symbol(const SquareState color);
+
+
+
+/*********************************************************/
+/* Function implementations for the GamePosition entity. */ 
+/*********************************************************/
+
+extern GamePosition *
+game_position_new (Board  *b,
+                   Player  p);
+
+extern gchar *
+game_position_print (const GamePosition const *gp);
 
 
 #endif /* BOARD_H */

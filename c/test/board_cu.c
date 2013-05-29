@@ -33,6 +33,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "CUnit/Basic.h"
 
@@ -54,6 +55,25 @@ int init_board_suite(void)
 int clean_board_suite(void)
 {
   return 0;
+}
+
+void test_game_position_print(void)
+{
+  Board *b;
+  Player p;
+  GamePosition *gp;
+
+  b = board_new(1LLU, 2LLU);
+  p = WHITE_PLAYER;
+  gp = game_position_new(b, p);
+
+  char *b_to_string = board_print(b);
+  char *gp_to_string = game_position_print(gp);
+
+  printf("\n%s\n", b_to_string);
+  printf("\n%s\n", gp_to_string);
+
+  CU_ASSERT_EQUAL(1, 1);
 }
 
 void test_direction_shift_square_set(void)
@@ -219,7 +239,9 @@ int main()
        (NULL == CU_add_test(pSuite, "int board_count_difference(Board *b, Player p)", test_board_count_difference))      ||
        (NULL == CU_add_test(pSuite, "SquareSet test_direction_shift_square_set(Direction dir, SquareSet squares)",
                             test_direction_shift_square_set))                                                            ||
-       (NULL == CU_add_test(pSuite, "int board_compare(Board *a, Board *b)", test_board_compare)) )
+       (NULL == CU_add_test(pSuite, "int board_compare(Board *a, Board *b)", test_board_compare))                        ||
+       (NULL == CU_add_test(pSuite, "Test game_position_print function", test_game_position_print))
+       )
    {
       CU_cleanup_registry();
       return CU_get_error();
