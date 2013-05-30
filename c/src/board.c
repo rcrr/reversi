@@ -574,7 +574,12 @@ game_position_print (const GamePosition const *gp)
 
   gchar *gp_to_string;
 
-  gp_to_string = g_strjoin(separator, board_print(gp->board), "Player to move: ", "BLACK", "\n", NULL);
+  gp_to_string = g_strjoin(separator,
+                           board_print(gp->board),
+                           "Player to move: ",
+                           (gp->player == BLACK_PLAYER) ? "BLACK" : "WHITE",
+                           "\n",
+                           NULL);
 
   return gp_to_string;
 }
