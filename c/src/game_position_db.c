@@ -4,7 +4,6 @@
  * @brief Data Base utilities and programs for `GamePosition` structures.
  * @details This executable read and write game position db.
  *
- * @todo Remove all the valgrind detected errors.
  * @todo Complete documentation for game_position_db.c
  * @todo Take a final approach for testing glib vs cunit.
  * @todo Retrofit board.c and board.h with the new style.
@@ -15,7 +14,7 @@
  * @todo Write a print function for the Entry.
  * @todo Replace Board and Player with GamePosition in an Entry.
  * @todo Write al the missing tests.
- * @todo MAke the makefile more friendly for the tests. 
+ * @todo Make the makefile more friendly for the tests. 
  *
  * @par game_position_db.c
  * <tt>
@@ -77,11 +76,38 @@ compare_entries (gconstpointer pa,
                  gpointer      user_data);
 
 
+static void
+gpdb_tree_value_destroy_function (gpointer data);
+
+static void
+gpdb_tree_key_destroy_function (gpointer data);
+
 
 /*
  * Public functions.
  */
 
+/***************************************************************************/
+/* Function implementations for the GamePositionDbEntrySyntaxError entity. */ 
+/***************************************************************************/
+
+/**
+ * @brief Game position database syntax error structure constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * game position database syntax error structure is not `NULL`.
+ *
+ * Parameters `source`, `line`, and `error_message` must be dynamically allocated
+ * if the `gpdb_entry_syntax_error_delete` function will be called on the returned
+ * structure's pointer.
+ *
+ * @param [in] error_type    the type of the error
+ * @param [in] source        the label identifying the source input
+ * @param [in] line_number   the line number that rises the error 
+ * @param [in] line          a string holding the line that rises the error 
+ * @param [in] error_message a detailed error message
+ * @return                   a pointer to a new game position database syntax error structure
+ */
 GamePositionDbEntrySyntaxError *
 gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
                              char                               *source,
@@ -105,48 +131,34 @@ gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
 }
 
 /**
- * @brief GamePositionDbEntrySyntaxError structure destructor.
+ * @brief Game position database syntax error structure structure destructor.
  *
- * The fields belonging to the error parameter `e` must
+ * The fields belonging to the error parameter `error` must
  * be not shared elsewhere. This function frees them all.
  *
- * @invariant Parameter `e` cannot be `NULL`.
+ * @invariant Parameter `error` cannot be `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in] e the pointer to be deallocated
- * @return       always the NULL pointer
+ * @param [in] error the pointer to be deallocated
+ * @return           always the NULL pointer
  */
 GamePositionDbEntrySyntaxError *
-gpdb_entry_syntax_error_delete (GamePositionDbEntrySyntaxError *e)
+gpdb_entry_syntax_error_delete (GamePositionDbEntrySyntaxError *error)
 {
-  g_assert(e);
+  g_assert(error);
 
-  g_free(e->source);
-  g_free(e->line);
-  g_free(e->error_message);
+  g_free(error->source);
+  g_free(error->line);
+  g_free(error->error_message);
 
-  g_free(e);
-  e = NULL;
+  g_free(error);
+  error = NULL;
 
-  return e;
-}
-
-static void
-value_destroy_function (gpointer data)
-{
-  GamePositionDbEntry *entry = (GamePositionDbEntry *) data;
-  gpdb_entry_delete(entry, TRUE);
-}
-
-static void
-key_destroy_function (gpointer data)
-{
-  char *id = (char *) data;
-  if (id) ; // Nothing to do here.
+  return error;
 }
 
 /**
- * @brief GamePositionDb structure constructor.
+ * @brief Game position database structure constructor.
  *
  * An assertion checks that the received pointer to the allocated
  * game position database structure is not `NULL`.
@@ -166,21 +178,21 @@ gpdb_new (char *desc)
   gpointer key_compare_data = NULL;
   db->tree = g_tree_new_full((GCompareDataFunc) compare_entries,
                              key_compare_data,
-                             (GDestroyNotify) key_destroy_function,
-                             (GDestroyNotify) value_destroy_function);
+                             (GDestroyNotify) gpdb_tree_key_destroy_function,
+                             (GDestroyNotify) gpdb_tree_value_destroy_function);
   db->desc = desc;
 
   return db;
 }
 
 /**
- * @brief GamePositionDb structure destructor.
+ * @brief Game position database structure destructor.
  *
  * @invariant Parameter `db` cannot be `NULL`.
  * The invariant is guarded by an assertion.
  *
  * @param [in] db           the pointer to be deallocated
- * @param [in] free_segment if yes als free the data stored in the db
+ * @param [in] free_segment if yes also frees the data stored in the db
  * @return                  always the NULL pointer
  */
 GamePositionDb *
@@ -278,7 +290,7 @@ gpdb_load (FILE            *fp,
 }
 
 /**
- * @brief GamePositionDbEntry structure constructor.
+ * @brief Game position database entry structure constructor.
  *
  * An assertion checks that the received pointer to the allocated
  * game position database entry structure is not `NULL`.
@@ -298,7 +310,7 @@ gpdb_entry_new (void)
 }
 
 /**
- * @brief GamePositionDbEntry structure destructor.
+ * @brief Game position database entry structure destructor.
  *
  * @invariant Parameter `entry` cannot be `NULL`.
  * The invariant is guarded by an assertion.
@@ -672,4 +684,32 @@ extract_entry_from_line (gchar                           *line,
   g_free(record);
   *p_entry = entry;
   return EXIT_SUCCESS;
+}
+
+/**
+ * @brief `GDestroyNotify` function used by `g_tree_new_full`
+ *        in `gpdb_new` for the value field.
+ *
+ * @param data a pointer to an entry
+ */
+static void
+gpdb_tree_value_destroy_function (gpointer data)
+{
+  GamePositionDbEntry *entry = (GamePositionDbEntry *) data;
+  gpdb_entry_delete(entry, TRUE);
+}
+
+/**
+ * @brief `GDestroyNotify` function used by `g_tree_new_full`
+ *        in `gpdb_new` for the key field.
+ *
+ * The function does nothing and could be substituted by a null pointer.
+ *
+ * @param data a pointer to the id field of the entry
+ */
+static void
+gpdb_tree_key_destroy_function (gpointer data)
+{
+  char *id = (char *) data;
+  if (id) ; // Nothing to do here.
 }
