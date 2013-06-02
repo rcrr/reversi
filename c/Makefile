@@ -26,7 +26,7 @@
 MAINS = endgame_solver
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
-TEST_PROGS   = board_test game_position_db_test board_cu
+TEST_PROGS = board_test game_position_db_test
 
 #
 # No changes from here to the end, unless a structurar change of the build process happens.
@@ -36,7 +36,7 @@ CC = gcc
 CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LDFLAGS = 
 LIBS = `pkg-config --libs glib-2.0`
-TEST_LIBS = -lcunit
+TEST_LIBS =
 SRCDIR = src
 TESTDIR = test
 
