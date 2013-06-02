@@ -82,7 +82,7 @@ $(TEST_OBJS): $(TEST_OBJDIR)/%.o: $(TESTDIR)/%.c | $(TEST_OBJDIR)
 .PHONY: test_bin
 test_bin: $(OBJS) $(TEST_OBJS) $(TEST_BINS)
 
-$(TEST_BINS): $(TEST_OBJS) | $(TEST_BINDIR)
+$(TEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
 	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(TEST_BINDIR),$(TEST_OBJDIR),$@))))
 	$(CC) $(LDFLAGS) $(OBJECT) $(TEST_OBJS_NO_MAIN) $(OBJS_NO_MAIN) $(LIBS) $(TEST_LIBS) -o $@
 
