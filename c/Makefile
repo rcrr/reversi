@@ -89,9 +89,7 @@ $(TEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
 
 .PHONY: test
 test: $(TEST_BINS)
-	@echo "Running tests ...."
-	gtester --verbose -k build/test/bin/game_position_db_test
-	gtester --verbose -k build/test/bin/board_test
+	gtester --verbose -k $(TEST_BINS)
 
 .PHONY: $(BUILDDIR)
 $(BUILDDIR): $(BUILDDIR)/.dir_sentinel
