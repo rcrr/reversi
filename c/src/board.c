@@ -350,8 +350,8 @@ SquareSet board_get_color(const Board       *const b,
 /**
  * @brief Returns a formatted string showing a 2d graphical represention of the board.
  *
- * The returned string has a dynamic extent set by a call to malloc. It must then properly
- * garbage collected by a call to free when no more referenced.
+ * The returned string has a dynamic extent. It must then properly
+ * garbage collected by a call to `g_free` when no more referenced.
  *
  * @invariant Parameter `b` must be not `NULL`.
  * Invariants are guarded by assertions.
@@ -359,30 +359,27 @@ SquareSet board_get_color(const Board       *const b,
  * @param [in] b a pointer to the board structure
  * @return       a string being a 2d representation of the board
  */
-char *board_print(const Board const *b)
+gchar *
+board_print (const Board const *b)
 {
-  assert(b);
-
-  /* The string has 9 lines of 21 char per line, plus 10 CR, totalling 199 chars. */
-  const static int board_print_string_size = 200;
+  g_assert(b);
 
   char *b_to_string;
-  char buf[3];
+  GString *bs;
 
-  b_to_string = malloc(board_print_string_size * sizeof(b_to_string));
-
-  strcat(b_to_string, "    a b c d e f g h ");
+  bs = g_string_sized_new(220);
+  g_string_append(bs, "    a b c d e f g h ");
   for (int row = 0; row < 8; row++) {
-    strcat(b_to_string, "\n ");
-    sprintf(buf, "%1d", row + 1);
-    strcat(b_to_string, buf);
-    strcat(b_to_string, "  ");
+    g_string_append_printf(bs, "\n %1d  ", row + 1);
     for (int col = 0; col < 8; col++) {
-      sprintf(buf, "%c ", square_state_symbol(board_get_square(b, (8 * row) + col)));
-      strcat(b_to_string, buf);
+      g_string_append_printf(bs, "%c ", square_state_symbol(board_get_square(b, (8 * row) + col)));
     }
   }
-  strcat(b_to_string, "\n");
+  g_string_append(bs, "\n");
+
+  b_to_string = bs->str;
+  g_string_free(bs, FALSE);
+
   return b_to_string;
 }
 
