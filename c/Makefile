@@ -26,7 +26,7 @@
 MAINS = endgame_solver
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
-TEST_PROGS   = game_position_db_test board_cu
+TEST_PROGS   = board_test game_position_db_test board_cu
 
 #
 # No changes from here to the end, unless a structurar change of the build process happens.
@@ -86,6 +86,12 @@ $(TEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
 	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(TEST_BINDIR),$(TEST_OBJDIR),$@))))
 	$(CC) $(LDFLAGS) $(OBJECT) $(TEST_OBJS_NO_MAIN) $(OBJS_NO_MAIN) $(LIBS) $(TEST_LIBS) -o $@
 
+
+.PHONY: test
+test: $(TEST_BINS)
+	@echo "Running tests ...."
+	gtester --verbose -k build/test/bin/game_position_db_test
+	gtester --verbose -k build/test/bin/board_test
 
 .PHONY: $(BUILDDIR)
 $(BUILDDIR): $(BUILDDIR)/.dir_sentinel
