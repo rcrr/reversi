@@ -32,6 +32,12 @@ dummy_ok_test ( void )
 }
 
 static void
+dummy_ko_test ( void )
+{
+  g_assert(TRUE == FALSE);
+}
+
+static void
 gpdb_load_returned_errors_test (void)
 {
   assert_gpdb_load_logs_error("I-am-a-not-a-terminated-id",
@@ -158,6 +164,7 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func("/game_position_db/dummy_ok", dummy_ok_test);
+  g_test_add_func("/game_position_db/dummy_ko", dummy_ko_test);
   g_test_add_func("/game_position_db/gpdb_load-returned_errors", gpdb_load_returned_errors_test);
   g_test_add_func("/game_position_db/gpdb_entry_syntax_error_print", gpdb_entry_syntax_error_print_test);
   g_test_add_func("/game_position_db/gpdb_load", gpdb_load_test);

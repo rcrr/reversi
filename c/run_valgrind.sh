@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROG=./build/test/game_position_db_test
+PROG=./build/test/bin/game_position_db_test
 ARGS=
 
 G_SLICE=always-malloc
