@@ -238,6 +238,9 @@ extern GamePosition *
 game_position_new (Board  *b,
                    Player  p);
 
+extern GamePosition *
+game_position_delete (GamePosition *gp);
+
 extern gchar *
 game_position_print (const GamePosition const *gp);
 

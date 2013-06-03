@@ -38,6 +38,10 @@
 
 #include "board.h"
 
+
+
+/* Test function prototypes. */
+
 static void game_position_print_test (void);
 static void direction_shift_square_set_test (void);
 static void board_get_square_test (void);
@@ -45,9 +49,12 @@ static void board_count_difference_test (void);
 static void board_compare_test (void);
 static void board_count_pieces_test (void);
 static void board_new_test (void);
+static void board_print_test (void);
 static void player_color_test (void);
 static void player_description_test (void);
 static void player_opponent_test (void);
+
+
 
 int
 main (int   argc,
@@ -62,6 +69,7 @@ main (int   argc,
   g_test_add_func("/board/board_compare_test", board_compare_test);
   g_test_add_func("/board/board_count_pieces_test", board_count_pieces_test);
   g_test_add_func("/board/board_new_test", board_new_test);
+  g_test_add_func("/board/board_print_test", board_print_test);
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
   g_test_add_func("/board/player_opponent_test", player_opponent_test);
@@ -99,21 +107,35 @@ player_opponent_test (void)
 static void
 game_position_print_test (void)
 {
-  Board *b;
-  Player p;
+  Board        *b;
+  Player        p;
   GamePosition *gp;
+  char         *gp_to_string;
+  GString      *expected;
 
-  b = board_new(1LLU, 2LLU);
+  b = board_new(1LLU, 4LLU);
   p = WHITE_PLAYER;
   gp = game_position_new(b, p);
 
-  char *b_to_string = board_print(b);
-  char *gp_to_string = game_position_print(gp);
+  gp_to_string = game_position_print(gp);
 
-  printf("\n%s\n", b_to_string);
-  printf("\n%s\n", gp_to_string);
+  expected = g_string_sized_new(220);
+  g_string_append(expected, "    a b c d e f g h \n");
+  g_string_append(expected, " 1  @ . O . . . . . \n");
+  g_string_append(expected, " 2  . . . . . . . . \n");
+  g_string_append(expected, " 3  . . . . . . . . \n");
+  g_string_append(expected, " 4  . . . . . . . . \n");
+  g_string_append(expected, " 5  . . . . . . . . \n");
+  g_string_append(expected, " 6  . . . . . . . . \n");
+  g_string_append(expected, " 7  . . . . . . . . \n");
+  g_string_append(expected, " 8  . . . . . . . . \n");
+  g_string_append(expected, "Player to move: WHITE\n");
 
-  g_assert(TRUE);
+  g_assert(g_strcmp0(expected->str, gp_to_string) == 0);
+
+  game_position_delete(gp);
+  g_free(gp_to_string);
+  g_string_free(expected, TRUE);
 }
 
 static void
@@ -228,4 +250,32 @@ board_new_test (void)
   empty_board = board_delete(empty_board);
 
   g_assert(empty_board == NULL);
+}
+
+static void
+board_print_test (void)
+{
+  Board *b;
+  char *b_to_string;
+  GString *expected;
+
+  b = board_new(1LLU, 2LLU);
+  b_to_string = board_print(b);
+
+  expected = g_string_sized_new(220);
+  g_string_append(expected, "    a b c d e f g h \n");
+  g_string_append(expected, " 1  @ O . . . . . . \n");
+  g_string_append(expected, " 2  . . . . . . . . \n");
+  g_string_append(expected, " 3  . . . . . . . . \n");
+  g_string_append(expected, " 4  . . . . . . . . \n");
+  g_string_append(expected, " 5  . . . . . . . . \n");
+  g_string_append(expected, " 6  . . . . . . . . \n");
+  g_string_append(expected, " 7  . . . . . . . . \n");
+  g_string_append(expected, " 8  . . . . . . . . \n");
+
+  g_assert(g_strcmp0(expected->str, b_to_string) == 0);
+
+  board_delete(b);
+  g_free(b_to_string);
+  g_string_free(expected, TRUE);
 }

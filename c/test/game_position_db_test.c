@@ -1,3 +1,35 @@
+/**
+ * @file
+ *
+ * @brief Game position database module unit test suite.
+ * @details Collects tests and helper methods for the game position database module.
+ *
+ * @par game_position_db_test.c
+ * <tt>
+ * This file is part of the reversi program
+ * http://github.com/rcrr/reversi
+ * </tt>
+ * @author Roberto Corradini mailto:rob_corradini@yahoo.it
+ * @copyright 2013 Roberto Corradini. All rights reserved.
+ *
+ * @par License
+ * <tt>
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3, or (at your option) any
+ * later version.
+ * \n
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * \n
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * or visit the site <http://www.gnu.org/licenses/>.
+ * </tt>
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -6,6 +38,18 @@
 #include <glib.h>
 
 #include "game_position_db.h"
+
+
+
+/* Test function prototypes. */
+
+static void gpdb_load_returned_errors_test (void);
+static void gpdb_load_test (void);
+static void gpdb_entry_syntax_error_print_test (void);
+
+
+
+/* Helper function prototypes. */
 
 static int
 contains_error (GSList                             *syntax_error_list,
@@ -21,21 +65,24 @@ syntax_error_log_destroy_function (gpointer data);
 
 
 
+int
+main (int   argc,
+      char *argv[])
+{
+  g_test_init (&argc, &argv, NULL);
+
+  g_test_add_func("/game_position_db/gpdb_load-returned_errors", gpdb_load_returned_errors_test);
+  g_test_add_func("/game_position_db/gpdb_entry_syntax_error_print", gpdb_entry_syntax_error_print_test);
+  g_test_add_func("/game_position_db/gpdb_load", gpdb_load_test);
+
+  return g_test_run();
+}
+
+
+
 /*
  * Test functions.
  */
-
-static void
-dummy_ok_test (void)
-{
-  g_assert(TRUE == TRUE);
-}
-
-static void
-dummy_ko_test (void)
-{
-  g_assert(TRUE == FALSE);
-}
 
 static void
 gpdb_load_returned_errors_test (void)
@@ -157,21 +204,6 @@ gpdb_entry_syntax_error_print_test (void)
   gpdb_entry_syntax_error_delete(syntax_error);
 }
 
-int
-main (int   argc,
-      char *argv[])
-{
-  g_test_init (&argc, &argv, NULL);
-
-  g_test_add_func("/game_position_db/dummy_ok", dummy_ok_test);
-  //g_test_add_func("/game_position_db/dummy_ko", dummy_ko_test);
-  g_test_add_func("/game_position_db/gpdb_load-returned_errors", gpdb_load_returned_errors_test);
-  g_test_add_func("/game_position_db/gpdb_entry_syntax_error_print", gpdb_entry_syntax_error_print_test);
-  g_test_add_func("/game_position_db/gpdb_load", gpdb_load_test);
-
-  return g_test_run();
-}
-
 
 
 /*
@@ -189,7 +221,6 @@ contains_error (GSList                             *syntax_error_list,
 
     for (int i = 0; i < len; i++) {
       GamePositionDbEntrySyntaxError *error = (GamePositionDbEntrySyntaxError *) g_slist_nth_data(syntax_error_list, i);
-      // -to be removed- printf("%s\n", gpdb_entry_syntax_error_print(error)->str);
       if (error && (strcmp(error->line, line) == 0) && (error->error_type == error_type))
         return TRUE;
     }
