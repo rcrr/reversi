@@ -66,7 +66,7 @@ static const SquareSet ALL_SQUARES_EXCEPT_COLUMN_H = 0x7F7F7F7F7F7F7F7FULL;
 SquareState
 player_color (const Player p)
 {
-  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
   return (p == BLACK_PLAYER) ? BLACK_SQUARE : WHITE_SQUARE;
 }
 
@@ -79,10 +79,10 @@ player_color (const Player p)
  * @param p the player
  * @return  the player's description
  */
-char *
+gchar *
 player_description (const Player p)
 {
-  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
   return (p == BLACK_PLAYER) ? "The Black player" : "The White player";
 }
 
@@ -98,7 +98,7 @@ player_description (const Player p)
 Player
 player_opponent (const Player p)
 {
-  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
   return (p == BLACK_PLAYER) ? WHITE_PLAYER : BLACK_PLAYER;
 }
 
@@ -126,13 +126,13 @@ Board *
 board_new (const SquareSet b,
            const SquareSet w)
 {
-  assert((w & b) == 0ULL);
+  g_assert((w & b) == 0ULL);
 
   Board *board;
   static const size_t size_of_board = sizeof(Board);
 
   board = (Board*) malloc(size_of_board);
-  assert(board);
+  g_assert(board);
 
   board->blacks = b;
   board->whites = w;
@@ -152,7 +152,7 @@ board_new (const SquareSet b,
 Board *
 board_delete (Board *b)
 {
-  assert(b);
+  g_assert(b);
 
   free(b);
   b = NULL;
@@ -175,8 +175,8 @@ SquareState
 board_get_square (const Board  *const b,
                   const Square        sq)
 {
-  assert(b);
-  assert(sq >= A1 && sq <= H8);
+  g_assert(b);
+  g_assert(sq >= A1 && sq <= H8);
 
   SquareSet bitsquare;
 
@@ -204,8 +204,8 @@ int
 board_count_pieces (const Board       *const b,
                     const SquareState        color)
 {
-  assert(b);
-  assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
+  g_assert(b);
+  g_assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
 
   return popcount(board_get_color(b, color));
 }
@@ -225,8 +225,8 @@ int
 board_count_difference (const Board  *const b,
                         const Player        p)
 {
-  assert(b);
-  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
   int pcount, ocount;
   Player o;
@@ -259,9 +259,9 @@ board_is_move_legal (const Board  *const b,
                      const Square        move,
                      const Player        p)
 {
-  assert(b);
-  assert(move >= A1 && move <= H8);
-  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  g_assert(b);
+  g_assert(move >= A1 && move <= H8);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
   return 0;
 }
@@ -278,7 +278,7 @@ board_is_move_legal (const Board  *const b,
 SquareSet
 board_empties (const Board *const b)
 {
-  assert(b);
+  g_assert(b);
 
   return ~(b->blacks | b->whites);
 }
@@ -295,7 +295,7 @@ board_empties (const Board *const b)
 SquareSet
 board_blacks (const Board *const b)
 {
-  assert(b);
+  g_assert(b);
 
   return b->blacks;
 }
@@ -309,9 +309,10 @@ board_blacks (const Board *const b)
  * @param [in] b a pointer to the board structure
  * @return       the set of white squares
  */
-SquareSet board_whites(const Board *const b)
+SquareSet
+board_whites (const Board *const b)
 {
-  assert(b);
+  g_assert(b);
 
   return b->whites;
 }
@@ -332,8 +333,8 @@ SquareSet
 board_get_color (const Board       *const b,
                  const SquareState        color)
 {
-  assert(b);
-  assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
+  g_assert(b);
+  g_assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
 
   SquareSet squares;
 
@@ -412,8 +413,8 @@ int
 board_compare (const Board * const a,
                const Board * const b)
 {
-  assert(a);
-  assert(b);
+  g_assert(a);
+  g_assert(b);
 
   if (a->blacks < b->blacks) {
     return -1;
@@ -451,7 +452,7 @@ SquareSet
 direction_shift_square_set (const Direction dir,
                             const SquareSet squares)
 {
-  assert(dir >= NW && dir <= SE);
+  g_assert(dir >= NW && dir <= SE);
 
   switch (dir) {
   case NW: return (squares >> 9) & ALL_SQUARES_EXCEPT_COLUMN_H;
@@ -481,9 +482,10 @@ direction_shift_square_set (const Direction dir,
  * @param [in] color the given color
  * @return     the color's `symbol`
  */
-char square_state_symbol (const SquareState color)
+char
+square_state_symbol (const SquareState color)
 {
-  assert(color >= EMPTY_SQUARE && color <= WHITE_SQUARE);
+  g_assert(color >= EMPTY_SQUARE && color <= WHITE_SQUARE);
 
   switch (color) {
   case EMPTY_SQUARE: return '.';
@@ -595,7 +597,7 @@ int game_position_compare (const GamePosition * const a,
 gchar *
 game_position_print (const GamePosition const *gp)
 {
-  assert(gp);
+  g_assert(gp);
 
   const gchar *separator = NULL;
 

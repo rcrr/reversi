@@ -4,9 +4,6 @@
  * @brief Data Base utilities and programs for `GamePosition` structures.
  * @details This executable read and write game position db.
  *
- * @todo Complete documentation for game_position_db.c
- * @todo Take a final approach for testing glib vs cunit.
- * @todo Retrofit board.c and board.h with the new style.
  * @todo Complete the gpdb_game_samples.txt database.
  * @todo Write a program that read and validate a database file.
  * @todo Verify that a new entry is not replacing an existing one.
