@@ -548,6 +548,8 @@ game_position_delete (GamePosition *gp)
 {
   g_assert(gp);
 
+  board_delete(gp->board);
+
   g_free(gp);
   gp = NULL;
 
@@ -598,13 +600,18 @@ game_position_print (const GamePosition const *gp)
   const gchar *separator = NULL;
 
   gchar *gp_to_string;
+  gchar *b_to_string;
+
+  b_to_string = board_print(gp->board);
 
   gp_to_string = g_strjoin(separator,
-                           board_print(gp->board),
+                           b_to_string,
                            "Player to move: ",
                            (gp->player == BLACK_PLAYER) ? "BLACK" : "WHITE",
                            "\n",
                            NULL);
+
+  g_free(b_to_string);
 
   return gp_to_string;
 }

@@ -105,40 +105,6 @@ player_opponent_test (void)
 }
 
 static void
-game_position_print_test (void)
-{
-  Board        *b;
-  Player        p;
-  GamePosition *gp;
-  char         *gp_to_string;
-  GString      *expected;
-
-  b = board_new(1LLU, 4LLU);
-  p = WHITE_PLAYER;
-  gp = game_position_new(b, p);
-
-  gp_to_string = game_position_print(gp);
-
-  expected = g_string_sized_new(220);
-  g_string_append(expected, "    a b c d e f g h \n");
-  g_string_append(expected, " 1  @ . O . . . . . \n");
-  g_string_append(expected, " 2  . . . . . . . . \n");
-  g_string_append(expected, " 3  . . . . . . . . \n");
-  g_string_append(expected, " 4  . . . . . . . . \n");
-  g_string_append(expected, " 5  . . . . . . . . \n");
-  g_string_append(expected, " 6  . . . . . . . . \n");
-  g_string_append(expected, " 7  . . . . . . . . \n");
-  g_string_append(expected, " 8  . . . . . . . . \n");
-  g_string_append(expected, "Player to move: WHITE\n");
-
-  g_assert(g_strcmp0(expected->str, gp_to_string) == 0);
-
-  game_position_delete(gp);
-  g_free(gp_to_string);
-  g_string_free(expected, TRUE);
-}
-
-static void
 direction_shift_square_set_test (void)
 {
   g_assert(direction_shift_square_set(N,  0xFFFFFFFFFFFFFFFFULL) == 0x00FFFFFFFFFFFFFFULL);
@@ -168,11 +134,13 @@ board_get_square_test (void)
 static void
 board_count_difference_test (void)
 {
-  Board *b;
-  SquareSet blacks, whites;
+  Board     *b;
+  SquareSet  blacks;
+  SquareSet  whites;
 
   blacks = 0xFFFFFFFFFFFFFFFFULL;
   whites = 0x0000000000000000ULL;
+
   b = board_new(blacks, whites);
 
   g_assert(board_count_difference(b, BLACK_PLAYER) == +64);
@@ -184,7 +152,8 @@ board_count_difference_test (void)
 static void
 board_compare_test (void)
 {
-  Board *a, *b;
+  Board *a;
+  Board *b;
 
   a = board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
   b = board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
@@ -240,15 +209,17 @@ board_count_pieces_test (void)
 static void
 board_new_test (void)
 {
-  SquareSet b, w;
-  Board *empty_board;
+  SquareSet  w;
+  SquareSet  b;
+  Board     *empty_board;
 
   b = 0LLU;
   w = 0LLU;
+
   empty_board = board_new(b, w);
   g_assert(empty_board != NULL);
-  empty_board = board_delete(empty_board);
 
+  empty_board = board_delete(empty_board);
   g_assert(empty_board == NULL);
 }
 
@@ -277,5 +248,39 @@ board_print_test (void)
 
   board_delete(b);
   g_free(b_to_string);
+  g_string_free(expected, TRUE);
+}
+
+static void
+game_position_print_test (void)
+{
+  Board        *b;
+  Player        p;
+  GamePosition *gp;
+  char         *gp_to_string;
+  GString      *expected;
+
+  b = board_new(1LLU, 4LLU);
+  p = WHITE_PLAYER;
+  gp = game_position_new(b, p);
+
+  gp_to_string = game_position_print(gp);
+
+  expected = g_string_sized_new(220);
+  g_string_append(expected, "    a b c d e f g h \n");
+  g_string_append(expected, " 1  @ . O . . . . . \n");
+  g_string_append(expected, " 2  . . . . . . . . \n");
+  g_string_append(expected, " 3  . . . . . . . . \n");
+  g_string_append(expected, " 4  . . . . . . . . \n");
+  g_string_append(expected, " 5  . . . . . . . . \n");
+  g_string_append(expected, " 6  . . . . . . . . \n");
+  g_string_append(expected, " 7  . . . . . . . . \n");
+  g_string_append(expected, " 8  . . . . . . . . \n");
+  g_string_append(expected, "Player to move: WHITE\n");
+
+  g_assert(g_strcmp0(expected->str, gp_to_string) == 0);
+
+  game_position_delete(gp);
+  g_free(gp_to_string);
   g_string_free(expected, TRUE);
 }
