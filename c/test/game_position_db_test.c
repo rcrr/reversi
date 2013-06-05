@@ -4,6 +4,10 @@
  * @brief Game position database module unit test suite.
  * @details Collects tests and helper methods for the game position database module.
  *
+ * @todo Function syntax_error_log_destroy_function must be moved in game_position_db.c module
+ * @todo The statement  db = gpdb_new(NULL); is really bad with this NULL value.
+ * @todo The statement  gpdb_load(fp, NULL, db, syntax_error_log, &error); has the NULL that must be rearranged.
+ *
  * @par game_position_db_test.c
  * <tt>
  * This file is part of the reversi program
@@ -64,6 +68,41 @@ static void
 syntax_error_log_destroy_function (gpointer data);
 
 
+static void
+gpdb_print (void)
+{
+  printf("\ngdb_print: START\n");
+
+  GamePositionDb  *db;
+  GSList          *syntax_error_log;
+  FILE            *fp;
+  GError          *error;
+
+  /* Loads the game position database. */
+  fp = fopen("db/gpdb-sample-games.txt", "r");
+  if (!fp) {
+    printf("Unable to open database test file \"db/gpdb-sample-games.txt\" for reading.\n.");
+    g_test_fail();
+    return;
+  }
+  error = NULL;
+  db = gpdb_new(NULL);
+  syntax_error_log = g_slist_alloc();
+  gpdb_load(fp, NULL, db, syntax_error_log, &error);
+  fclose(fp);
+
+  GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "an-instance");
+  printf("%s", board_print(entry->board));
+
+  /* Removes the tmp file, frees the resources. */
+  g_free(error);
+  gpdb_delete(db, TRUE);
+  g_slist_free_full(syntax_error_log, (GDestroyNotify) syntax_error_log_destroy_function);
+
+  printf("\ngdb_print: END\n");
+
+  g_assert(TRUE);
+}
 
 int
 main (int   argc,
@@ -74,6 +113,8 @@ main (int   argc,
   g_test_add_func("/game_position_db/gpdb_load-returned_errors", gpdb_load_returned_errors_test);
   g_test_add_func("/game_position_db/gpdb_entry_syntax_error_print", gpdb_entry_syntax_error_print_test);
   g_test_add_func("/game_position_db/gpdb_load", gpdb_load_test);
+
+  g_test_add_func("/tmp/gpdb_print", gpdb_print);
 
   return g_test_run();
 }
