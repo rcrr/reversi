@@ -62,3 +62,32 @@ black-has-to-pass;wb.b.w..bbbbbbbw.bwwbbww.bwbwwww.bwbwwww.bwbbwbw.bwbbbb.wwwwww
 #
 #
 #
+# The white player has to move, and has two legal chances:
+#   - C3 that leads to the early-game-bc3-10-moves board
+#   - C6 that leads to the early-game-bc6-10-moves board
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ . . 
+# 2  . . . . @ . . . 
+# 3  . . . @ @ O O . 
+# 4  . . . @ @ . . . 
+# 5  . . . @ @ . . . 
+# 6  . . . . @ . . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#                   |1       2       3       4       5       6       7       8       |
+#                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-b-9-moves;...bbb......b......bbww....bb......bb.......b...................;w;The board after nine moves of a generic game;
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+
