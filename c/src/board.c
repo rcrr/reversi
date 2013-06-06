@@ -37,6 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <glib.h>
+
 #include "board.h"
 #include "bit_works.h"
 
@@ -61,9 +63,10 @@ static const SquareSet ALL_SQUARES_EXCEPT_COLUMN_H = 0x7F7F7F7F7F7F7F7FULL;
  * @param [in] p the player
  * @return     the square state of the player
  */
-SquareState player_color(const Player p)
+SquareState
+player_color (const Player p)
 {
-  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
   return (p == BLACK_PLAYER) ? BLACK_SQUARE : WHITE_SQUARE;
 }
 
@@ -76,9 +79,10 @@ SquareState player_color(const Player p)
  * @param p the player
  * @return  the player's description
  */
-char *player_description(const Player p)
+gchar *
+player_description (const Player p)
 {
-  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
   return (p == BLACK_PLAYER) ? "The Black player" : "The White player";
 }
 
@@ -91,9 +95,10 @@ char *player_description(const Player p)
  * @param [in] p the player
  * @return     the player's opponent
  */
-Player player_opponent(const Player p)
+Player
+player_opponent (const Player p)
 {
-  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
   return (p == BLACK_PLAYER) ? WHITE_PLAYER : BLACK_PLAYER;
 }
 
@@ -117,17 +122,17 @@ Player player_opponent(const Player p)
  * @param [in] w the set of white squares
  * @return     a pointer to a new board structure
  */
-Board *board_new(const SquareSet b,
-                 const SquareSet w
-                 )
+Board *
+board_new (const SquareSet b,
+           const SquareSet w)
 {
-  assert((w & b) == 0ULL);
+  g_assert((w & b) == 0ULL);
 
   Board *board;
   static const size_t size_of_board = sizeof(Board);
 
   board = (Board*) malloc(size_of_board);
-  assert(board);
+  g_assert(board);
 
   board->blacks = b;
   board->whites = w;
@@ -144,9 +149,10 @@ Board *board_new(const SquareSet b,
  * @param [in] b the pointer to be deallocated
  * @return       always the NULL pointer
  */
-Board *board_delete(Board *b)
+Board *
+board_delete (Board *b)
 {
-  assert(b);
+  g_assert(b);
 
   free(b);
   b = NULL;
@@ -165,12 +171,12 @@ Board *board_delete(Board *b)
  * @param [in] sq the square to query for
  * @return        the color of the given square
  */
-SquareState board_get_square(const Board  *const b,
-                             const Square        sq
-                             )
+SquareState
+board_get_square (const Board  *const b,
+                  const Square        sq)
 {
-  assert(b);
-  assert(sq >= A1 && sq <= H8);
+  g_assert(b);
+  g_assert(sq >= A1 && sq <= H8);
 
   SquareSet bitsquare;
 
@@ -194,12 +200,12 @@ SquareState board_get_square(const Board  *const b,
  * @param [in] color the square color
  * @return           the piece count for the given color
  */
-int board_count_pieces(const Board       *const b,
-                       const SquareState        color
-                       )
+int
+board_count_pieces (const Board       *const b,
+                    const SquareState        color)
 {
-  assert(b);
-  assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
+  g_assert(b);
+  g_assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
 
   return popcount(board_get_color(b, color));
 }
@@ -215,12 +221,12 @@ int board_count_pieces(const Board       *const b,
  * @param [in] p the player for whom the difference is computed
  * @return       the disc count difference
  */
-int board_count_difference(const Board  *const b,
-                           const Player        p
-                           )
+int
+board_count_difference (const Board  *const b,
+                        const Player        p)
 {
-  assert(b);
-  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
   int pcount, ocount;
   Player o;
@@ -248,13 +254,14 @@ int board_count_difference(const Board  *const b,
  * @param [in] p    the player moving
  * @return          1 if the move is legal, otherwise 0
  */
-int board_is_move_legal(const Board  *const b,
-                        const Square        move,
-                        const Player        p)
+int
+board_is_move_legal (const Board  *const b,
+                     const Square        move,
+                     const Player        p)
 {
-  assert(b);
-  assert(move >= A1 && move <= H8);
-  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  g_assert(b);
+  g_assert(move >= A1 && move <= H8);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
   return 0;
 }
@@ -268,9 +275,10 @@ int board_is_move_legal(const Board  *const b,
  * @param [in] b a pointer to the board structure
  * @return       the set of empty squares
  */
-SquareSet board_empties(const Board *const b)
+SquareSet
+board_empties (const Board *const b)
 {
-  assert(b);
+  g_assert(b);
 
   return ~(b->blacks | b->whites);
 }
@@ -284,9 +292,10 @@ SquareSet board_empties(const Board *const b)
  * @param [in] b a pointer to the board structure
  * @return       the set of black squares
  */
-SquareSet board_blacks(const Board *const b)
+SquareSet
+board_blacks (const Board *const b)
 {
-  assert(b);
+  g_assert(b);
 
   return b->blacks;
 }
@@ -300,9 +309,10 @@ SquareSet board_blacks(const Board *const b)
  * @param [in] b a pointer to the board structure
  * @return       the set of white squares
  */
-SquareSet board_whites(const Board *const b)
+SquareSet
+board_whites (const Board *const b)
 {
-  assert(b);
+  g_assert(b);
 
   return b->whites;
 }
@@ -319,12 +329,12 @@ SquareSet board_whites(const Board *const b)
  * @param [in] color a given color
  * @return           the set of squares in the board having the given color
  */
-SquareSet board_get_color(const Board       *const b,
-                          const SquareState        color
-                          )
+SquareSet
+board_get_color (const Board       *const b,
+                 const SquareState        color)
 {
-  assert(b);
-  assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
+  g_assert(b);
+  g_assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
 
   SquareSet squares;
 
@@ -348,8 +358,8 @@ SquareSet board_get_color(const Board       *const b,
 /**
  * @brief Returns a formatted string showing a 2d graphical represention of the board.
  *
- * The returned string has a dynamic extent set by a call to malloc. It must then properly
- * garbage collected by a call to free when no more referenced.
+ * The returned string has a dynamic extent. It must then properly
+ * garbage collected by a call to `g_free` when no more referenced.
  *
  * @invariant Parameter `b` must be not `NULL`.
  * Invariants are guarded by assertions.
@@ -357,30 +367,27 @@ SquareSet board_get_color(const Board       *const b,
  * @param [in] b a pointer to the board structure
  * @return       a string being a 2d representation of the board
  */
-char *board_print(const Board const *b)
+gchar *
+board_print (const Board const *b)
 {
-  assert(b);
-
-  /* The string has 9 lines of 21 char per line, plus 10 CR, totalling 199 chars. */
-  const static int board_print_string_size = 200;
+  g_assert(b);
 
   char *b_to_string;
-  char buf[3];
+  GString *bs;
 
-  b_to_string = malloc(board_print_string_size * sizeof(b_to_string));
-
-  strcat(b_to_string, "    a b c d e f g h ");
+  bs = g_string_sized_new(220);
+  g_string_append(bs, "    a b c d e f g h ");
   for (int row = 0; row < 8; row++) {
-    strcat(b_to_string, "\n ");
-    sprintf(buf, "%1d", row + 1);
-    strcat(b_to_string, buf);
-    strcat(b_to_string, "  ");
+    g_string_append_printf(bs, "\n %1d  ", row + 1);
     for (int col = 0; col < 8; col++) {
-      sprintf(buf, "%c ", square_state_symbol(board_get_square(b, (8 * row) + col)));
-      strcat(b_to_string, buf);
+      g_string_append_printf(bs, "%c ", square_state_symbol(board_get_square(b, (8 * row) + col)));
     }
   }
-  strcat(b_to_string, "\n");
+  g_string_append(bs, "\n");
+
+  b_to_string = bs->str;
+  g_string_free(bs, FALSE);
+
   return b_to_string;
 }
 
@@ -402,11 +409,12 @@ char *board_print(const Board const *b)
  * @param [in] b a pointer to another board structure
  * @return       `-1` when `a < b`, `+1` when `a > b`, or `0` when the two boards are equal
  */
-int board_compare(const Board * const a,
-                  const Board * const b)
+int
+board_compare (const Board * const a,
+               const Board * const b)
 {
-  assert(a);
-  assert(b);
+  g_assert(a);
+  g_assert(b);
 
   if (a->blacks < b->blacks) {
     return -1;
@@ -440,11 +448,11 @@ int board_compare(const Board * const a,
  * @param [in] squares the squares set on the bitboard
  * @return             the shifted squares
 */
-SquareSet direction_shift_square_set(const Direction dir,
-                                     const SquareSet squares
-                                     )
+SquareSet
+direction_shift_square_set (const Direction dir,
+                            const SquareSet squares)
 {
-  assert(dir >= NW && dir <= SE);
+  g_assert(dir >= NW && dir <= SE);
 
   switch (dir) {
   case NW: return (squares >> 9) & ALL_SQUARES_EXCEPT_COLUMN_H;
@@ -474,9 +482,10 @@ SquareSet direction_shift_square_set(const Direction dir,
  * @param [in] color the given color
  * @return     the color's `symbol`
  */
-char square_state_symbol(const SquareState color)
+char
+square_state_symbol (const SquareState color)
 {
-  assert(color >= EMPTY_SQUARE && color <= WHITE_SQUARE);
+  g_assert(color >= EMPTY_SQUARE && color <= WHITE_SQUARE);
 
   switch (color) {
   case EMPTY_SQUARE: return '.';
@@ -492,8 +501,65 @@ char square_state_symbol(const SquareState color)
 /* Function implementations for the GamePosition entity. */ 
 /*********************************************************/
 
-int game_position_compare(const GamePosition * const a,
-                          const GamePosition * const b)
+/**
+ * @brief GamePosition structure constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * game position structure is not `NULL`.
+ *
+ * @invariant Parameter `b` cannot be null. 
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `p` must belong to the `Player` enum set. 
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] b the board field
+ * @param [in] p the player field
+ * @return     a pointer to a new game position structure
+ */
+GamePosition *
+game_position_new (Board  *b,
+                   Player  p)
+{
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
+  GamePosition *gp;
+  static const size_t size_of_game_position = sizeof(GamePosition);
+
+  gp = (GamePosition*) malloc(size_of_game_position);
+  g_assert(gp);
+
+  gp->board = b;
+  gp->player = p;
+
+  return gp;
+}
+
+/**
+ * @brief GamePosition structure destructor.
+ *
+ * @invariant Parameter `gp` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gp the pointer to be deallocated
+ * @return        always the NULL pointer
+ */
+GamePosition *
+game_position_delete (GamePosition *gp)
+{
+  g_assert(gp);
+
+  board_delete(gp->board);
+
+  g_free(gp);
+  gp = NULL;
+
+  return gp;
+}
+
+int game_position_compare (const GamePosition * const a,
+                           const GamePosition * const b)
 {
   if (a->board->blacks < b->board->blacks) {
     return -1;
@@ -514,4 +580,40 @@ int game_position_compare(const GamePosition * const a,
       }
     }
   }  
+}
+
+/**
+ * @brief Returns a formatted string showing a 2d graphical represention of the game position.
+ *
+ * The returned string has a dynamic extent set by a call to malloc. It must then properly
+ * garbage collected by a call to free when no more referenced.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp a pointer to the game position structure
+ * @return        a string being a 2d representation of the game position
+ */
+gchar *
+game_position_print (const GamePosition const *gp)
+{
+  g_assert(gp);
+
+  const gchar *separator = NULL;
+
+  gchar *gp_to_string;
+  gchar *b_to_string;
+
+  b_to_string = board_print(gp->board);
+
+  gp_to_string = g_strjoin(separator,
+                           b_to_string,
+                           "Player to move: ",
+                           (gp->player == BLACK_PLAYER) ? "BLACK" : "WHITE",
+                           "\n",
+                           NULL);
+
+  g_free(b_to_string);
+
+  return gp_to_string;
 }

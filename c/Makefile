@@ -22,21 +22,28 @@
 #  or visit the site <http://www.gnu.org/licenses/>.
 #
 
+# Add all the programs that has a main and that will be compiled and linked as a bin executable.
 MAINS = endgame_solver
+
+# Add all the test programs that has a main and that will be compiled and linked as a bin executable.
+TEST_PROGS = board_test game_position_db_test
+
+#
+# No changes from here to the end, unless a structurar change of the build process happens.
+#
 
 CC = gcc 
 CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LDFLAGS = 
 LIBS = `pkg-config --libs glib-2.0`
-TEST_LIBS = -lcunit
+TEST_LIBS =
 SRCDIR = src
 TESTDIR = test
 
 BUILDDIR = build
-
 OBJDIR   = $(BUILDDIR)/obj
 BINDIR   = $(BUILDDIR)/bin
-
+DOCDIR   = $(BUILDDIR)/doc
 BTESTDIR = $(BUILDDIR)/test
 
 SRCS = $(wildcard $(SRCDIR)/*.c)
@@ -47,7 +54,17 @@ BINS = $(addprefix $(BINDIR)/,$(MAINS))
 OBJS_WITH_MAIN = $(addsuffix .o,$(addprefix $(OBJDIR)/,$(MAINS)))
 OBJS_NO_MAIN = $(filter-out $(OBJS_WITH_MAIN),$(OBJS))
 
-all: $(BINS)
+TEST_OBJDIR  = $(BTESTDIR)/obj
+TEST_BINDIR  = $(BTESTDIR)/bin
+TEST_SRCS    = $(wildcard $(TESTDIR)/*.c)
+TEST_OBJS    = $(addsuffix .o,$(basename $(subst $(TESTDIR)/,$(TEST_OBJDIR)/,$(TEST_SRCS))))
+TEST_BINS    = $(addprefix $(TEST_BINDIR)/,$(TEST_PROGS))
+TEST_INCLUDE = -I./src
+
+TEST_OBJS_WITH_MAIN = $(addsuffix .o,$(addprefix $(TEST_OBJDIR)/,$(TEST_PROGS)))
+TEST_OBJS_NO_MAIN = $(filter-out $(TEST_OBJS_WITH_MAIN),$(TEST_OBJS))
+
+all: $(BINS) $(TEST_BINS)
 
 $(BINS): $(OBJS) | $(BINDIR)
 	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(BINDIR),$(OBJDIR),$@))))
@@ -56,38 +73,105 @@ $(BINS): $(OBJS) | $(BINDIR)
 $(OBJS): $(OBJDIR)/%.o: $(SRCDIR)/%.c $(HDRS) | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# This must be reorganized, made general, and automated.
+.PHONY: test_obj
+test_obj: $(TEST_OBJS)
+
+$(TEST_OBJS): $(TEST_OBJDIR)/%.o: $(TESTDIR)/%.c | $(TEST_OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@ $(TEST_INCLUDE)
+
+.PHONY: test_bin
+test_bin: $(OBJS) $(TEST_OBJS) $(TEST_BINS)
+
+$(TEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
+	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(TEST_BINDIR),$(TEST_OBJDIR),$@))))
+	$(CC) $(LDFLAGS) $(OBJECT) $(TEST_OBJS_NO_MAIN) $(OBJS_NO_MAIN) $(LIBS) $(TEST_LIBS) -o $@
+
+
 .PHONY: test
-test: $(OBJS) | $(BTESTDIR)
-	$(CC) -c -o build/test/board_cu.o test/board_cu.c -I./src
-	$(CC) build/test/board_cu.o build/obj/board.o build/obj/bit_works.o -o build/test/board_cu $(TEST_LIBS)
-	$(CC) $(CFLAGS) -c -o build/test/game_position_db_test.o test/game_position_db_test.c -I./src
-	$(CC) build/test/game_position_db_test.o build/obj/game_position_db.o build/obj/rb.o build/obj/board.o build/obj/bit_works.o -o build/test/game_position_db_test $(LIBS)
+test: $(TEST_BINS)
+	gtester --verbose -k $(TEST_BINS)
 
 .PHONY: $(BUILDDIR)
-$(BUILDDIR):
+$(BUILDDIR): $(BUILDDIR)/.dir_sentinel
+
+$(BUILDDIR)/.dir_sentinel:
 	mkdir -p $(BUILDDIR)
+	touch $(BUILDDIR)/.dir_sentinel
+
 
 .PHONY: $(OBJDIR)
-$(OBJDIR): $(BUILDDIR)
+$(OBJDIR): $(OBJDIR)/.dir_sentinel | $(BUILDDIR)
+
+$(OBJDIR)/.dir_sentinel:
 	mkdir -p $(OBJDIR)
+	touch $(OBJDIR)/.dir_sentinel
+
 
 .PHONY: $(BINDIR)
-$(BINDIR): $(BUILDDIR)
+$(BINDIR): $(BINDIR)/.dir_sentinel | $(BUILDDIR)
+
+$(BINDIR)/.dir_sentinel:
 	mkdir -p $(BINDIR)
+	touch $(BINDIR)/.dir_sentinel
+
 
 .PHONY: $(DOCDIR)
-$(DOCDIR): $(BUILDDIR)
+$(DOCDIR): $(DOCDIR)/.dir_sentinel | $(BUILDDIR)
+
+$(DOCDIR)/.dir_sentinel:
 	mkdir -p $(DOCDIR)
+	touch $(DOCDIR)/.dir_sentinel
+
 
 .PHONY: $(BTESTDIR)
-$(BTESTDIR): $(BUILDDIR)
+$(BTESTDIR): $(BTESTDIR)/.dir_sentinel | $(BUILDDIR)
+
+$(BTESTDIR)/.dir_sentinel:
 	mkdir -p $(BTESTDIR)
+	touch $(BTESTDIR)/.dir_sentinel
+
+
+.PHONY: $(TEST_OBJDIR)
+$(TEST_OBJDIR): $(TEST_OBJDIR)/.dir_sentinel | $(BTESTDIR)
+
+$(TEST_OBJDIR)/.dir_sentinel:
+	mkdir -p $(TEST_OBJDIR)
+	touch $(TEST_OBJDIR)/.dir_sentinel
+
+
+.PHONY: $(TEST_BINDIR)
+$(TEST_BINDIR): $(TEST_BINDIR)/.dir_sentinel | $(BTESTDIR)
+
+$(TEST_BINDIR)/.dir_sentinel:
+	mkdir -p $(TEST_BINDIR)
+	touch $(TEST_BINDIR)/.dir_sentinel
+
 
 .PHONY: doxygen
 doxygen: $(DOCDIR)
 	doxygen >build/doxygen.log
 	(cd build/doc/latex; make >make-stdout_and_stderr.log 2>&1)
+
+ABC_DIR = build/abc
+
+.PHONY: $(ABC_DIR)
+$(ABC_DIR): $(BUILDDIR)
+	@if test ! -d $(ABC_DIR); then \
+	  echo "ABC_DIR = " $(ABC_DIR) " does not exist."; \
+	  mkdir -p $(ABC_DIR); \
+	else \
+	  echo "ABC_DIR = " $(ABC_DIR) " does DO  exist."; \
+	fi
+
+ZZZ_DIR = build/zzz
+
+.PHONY: $(ZZZ_DIR)
+$(ZZZ_DIR): $(ZZZ_DIR)/.dir_sentinel
+
+$(ZZZ_DIR)/.dir_sentinel:
+	mkdir -p $(ZZZ_DIR)
+	touch $(ZZZ_DIR)/.dir_sentinel
+
 
 .PHONY: clean
 clean:
@@ -101,3 +185,12 @@ info:
 	@echo "BINS = "$(BINS)
 	@echo "OBJS_WITH_MAIN = "$(OBJS_WITH_MAIN)
 	@echo "OBJS_NO_MAIN = "$(OBJS_NO_MAIN)
+	@echo "TEST_SRCS = "$(TEST_SRCS)
+	@echo "TEST_OBJS = "$(TEST_OBJS)
+	@echo "TEST_BINS = "$(TEST_BINS)
+	@echo "TEST_OBJDIR = "$(TEST_OBJDIR)
+	@echo "TESTDIR = "$(TESTDIR)
+	@echo "TEST_INCLUDE = "$(TEST_INCLUDE)
+	@echo "CFLAGS = "$(CFLAGS)
+	@echo "TEST_OBJS_NO_MAIN = "$(TEST_OBJS_NO_MAIN)
+	@echo "TEST_OBJS_WITH_MAIN = "$(TEST_OBJS_WITH_MAIN)

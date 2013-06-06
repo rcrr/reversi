@@ -38,34 +38,97 @@
 #include "board.h"
 
 /**
+ * @enum GamePositionDbEntrySyntaxErrorType
+ * @brief The classification of errors thta can be found parsing a database entry record.
+ */
+typedef enum {
+  GPDB_ENTRY_SYNTAX_ERROR_ON_ID,                   /**< Error on parsing the id field. */
+  GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64,    /**< Error on the size of the board field. */
+  GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID,  /**< Error on the board field, one square char is out of range. */
+  GPDB_ENTRY_SYNTAX_ERROR_BOARD_FIELD_IS_INVALID,  /**< Error on parsing the board field. */
+  GPDB_ENTRY_SYNTAX_ERROR_PLAYER_IS_NOT_ONE_CHAR,  /**< Error on player field, it must be composed by one char. */
+  GPDB_ENTRY_SYNTAX_ERROR_PLAYER_CHAR_IS_INVALID,  /**< Error on player field, it must be either b or w. */
+  GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID, /**< Error on parsing the player field. */
+  GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID    /**< Error on parsing the description field. */
+} GamePositionDbEntrySyntaxErrorType;
+
+/**
+ * @brief A syntax error in processing entries in a game position database.
+ *
+ * Fields must be kept private, the delete function frees all them.
+ */
+typedef struct {
+  GamePositionDbEntrySyntaxErrorType  error_type;
+  gchar                              *source;
+  int                                 line_number;
+  gchar                              *line;
+  gchar                              *error_message;  
+} GamePositionDbEntrySyntaxError;
+
+/**
  * @brief An Entry collects the GamePosition data with a description and an unique key.
  */
 typedef struct {
-  char   *id;      /**< @brief id is a string used as key in the dictionary. */
-  Board  *board;
-  Player  player;
-  char   *desc;
+  gchar   *id;      /**< @brief id is a string used as key in the dictionary. */
+  Board   *board;
+  Player   player;
+  gchar   *desc;
 } GamePositionDbEntry;
 
 typedef struct {
-  GamePositionDbEntry **positions;
-  int                   number_of_positions;
-  char                 *desc;
+  GTree  *tree;
+  gchar  *desc;
 } GamePositionDb;
 
+
+
+/**********************************************************************/
+/* Function prototypes for the GamePositionDbEntrySyntaxError entity. */ 
+/**********************************************************************/
+
+extern GamePositionDbEntrySyntaxError *
+gpdb_entry_syntax_error_new(GamePositionDbEntrySyntaxErrorType  error_type,
+                            char                               *source,
+                            int                                 line_number,
+                            char                               *line,
+                            char                               *error_message);
+
+extern GamePositionDbEntrySyntaxError *
+gpdb_entry_syntax_error_delete (GamePositionDbEntrySyntaxError *syntax_error);
+
+extern GString *
+gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *syntax_error);
 
 
 /******************************************************/
 /* Function prototypes for the GamePositionDb entity. */ 
 /******************************************************/
 
-extern int gpdb_load(FILE *fp, GError **e);
+extern int
+gpdb_load (FILE            *fp,
+           gchar           *source,
+           GamePositionDb  *db,
+           GSList          *syntax_error_log,
+           GError          **p_e);
 
+extern GamePositionDb *
+gpdb_new (char *desc);
+
+extern GamePositionDb *
+gpdb_delete (GamePositionDb *db,
+             gboolean        free_segment);
 
 
 /***********************************************************/
 /* Function prototypes for the GamePositionDbEntry entity. */ 
 /***********************************************************/
+
+extern GamePositionDbEntry *
+gpdb_entry_new (void);
+
+extern GamePositionDbEntry *
+gpdb_entry_delete (GamePositionDbEntry *entry,
+                   gboolean             free_segment);
 
 
 #endif /* GAME_POSITION_DB_H */
