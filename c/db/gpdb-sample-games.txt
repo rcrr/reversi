@@ -85,9 +85,66 @@ early-game-b-9-moves;...bbb......b......bbww....bb......bb.......b..............
 #
 #
 #
+# The board is obtained taking as baseline the early-game-b-9-moves board and executing the move C3.
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ . . 
+# 2  . . . . @ . . . 
+# 3  . . O O O O O . 
+# 4  . . . @ @ . . . 
+# 5  . . . @ @ . . . 
+# 6  . . . . @ . . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                      |1       2       3       4       5       6       7       8       |
+#                      |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-bc3-10-moves;...bbb......b.....wwwww....bb......bb.......b...................;b;The board after ten moves of a generic game;
 #
 #
 #
 #
 #
-
+# The board is obtained taking as baseline the early-game-b-9-moves board and executing the move C6.
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ . . 
+# 2  . . . . @ . . . 
+# 3  . . . @ @ O O . 
+# 4  . . . @ O . . . 
+# 5  . . . O @ . . . 
+# 6  . . O . @ . . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                      |1       2       3       4       5       6       7       8       |
+#                      |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-bc6-10-moves;...bbb......b......bbww....bw......wb.....w.b...................;b;The board after ten moves of a generic game;
+#
+#
+#
+#
+#
+# The board after twelve moves of a generic game.
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . . . . . . . . 
+# 3  O @ @ @ . . O . 
+# 4  . O . O @ O . . 
+# 5  . O O @ O . . . 
+# 6  . . @ @ . O . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                    |1       2       3       4       5       6       7       8       |
+#                    |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-c-12-moves;................wbbb..w..w.wbw...wwbw.....bb.w..................;b;The board after twelve moves of a generic game;
+#
+#
+#
+#
+#

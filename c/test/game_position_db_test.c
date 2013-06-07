@@ -91,7 +91,7 @@ gpdb_print (void)
   gpdb_load(fp, NULL, db, syntax_error_log, &error);
   fclose(fp);
 
-  GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-b-9-moves");
+  GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-c-12-moves");
   printf("%s", board_print(entry->board));
 
   /* Removes the tmp file, frees the resources. */
