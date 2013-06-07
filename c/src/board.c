@@ -558,8 +558,9 @@ game_position_delete (GamePosition *gp)
   return gp;
 }
 
-int game_position_compare (const GamePosition * const a,
-                           const GamePosition * const b)
+int
+game_position_compare (const GamePosition * const a,
+                       const GamePosition * const b)
 {
   if (a->board->blacks < b->board->blacks) {
     return -1;
