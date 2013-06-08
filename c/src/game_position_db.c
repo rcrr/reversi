@@ -7,7 +7,6 @@
  * @todo Write a program that read and validate a database file.
  * @todo Verify that a new entry is not replacing an existing one.
  * @todo Write a print function for the Entry.
- * @todo Replace Board and Player with GamePosition in an Entry.
  * @todo Write al the missing tests.
  *
  * @par game_position_db.c
@@ -321,7 +320,7 @@ gpdb_entry_delete (GamePositionDbEntry *entry,
 
   if (free_segment) {
     g_free(entry->id);
-    board_delete(entry->board);
+    game_position_delete(entry->game_position);
     g_free(entry->desc);
   }
 
@@ -472,14 +471,14 @@ extract_entry_from_line (gchar                           *line,
                          GamePositionDbEntry            **p_entry,
                          GamePositionDbEntrySyntaxError **p_syntax_error)
 {
-  gchar   *record;
-  int      record_length;
-  gchar    c;
-  gchar   *cp0;
-  gchar   *cp1;
-  GString *error_msg;
-
+  gchar               *record;
+  int                  record_length;
+  gchar                c;
+  gchar               *cp0;
+  gchar               *cp1;
+  GString             *error_msg;
   GamePositionDbEntry *entry;
+  Board               *board;
 
   /* If line is null return. */
   if (!line)
@@ -490,6 +489,8 @@ extract_entry_from_line (gchar                           *line,
   record_length = 0;
   cp0 = NULL;
   cp1 = NULL;
+
+  board = NULL;
 
   /* Computes the record_length, removing everything following a dash. */
   while ((c = line[record_length])) {
@@ -574,7 +575,7 @@ extract_entry_from_line (gchar                           *line,
         return EXIT_FAILURE;
       }
     }
-    entry->board = board_new(blacks, whites);
+    board = board_new(blacks, whites);
   } else {
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated board field.");
@@ -603,7 +604,7 @@ extract_entry_from_line (gchar                           *line,
                                                     line,
                                                     error_msg->str);
       g_free(entry->id);
-      board_delete(entry->board);
+      board_delete(board);
       g_free(entry);
       g_free(record);
       g_string_free(error_msg, FALSE);
@@ -628,14 +629,14 @@ extract_entry_from_line (gchar                           *line,
                                                     line,
                                                     error_msg->str);
       g_free(entry->id);
-      board_delete(entry->board);
+      board_delete(board);
       g_free(entry);
       g_free(record);
       g_string_free(error_msg, FALSE);
       entry = NULL;
       return EXIT_FAILURE;
     }
-    entry->player = p;
+    entry->game_position = game_position_new(board, p);
   } else {
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated player field.");
@@ -645,7 +646,7 @@ extract_entry_from_line (gchar                           *line,
                                                   line,
                                                   error_msg->str);
     g_free(entry->id);
-    board_delete(entry->board);
+    board_delete(board);
     g_free(entry);
     g_free(record);
     g_string_free(error_msg, FALSE);
@@ -667,7 +668,7 @@ extract_entry_from_line (gchar                           *line,
                                                   line,
                                                   error_msg->str);
     g_free(entry->id);
-    board_delete(entry->board);
+    game_position_delete(entry->game_position);
     g_free(entry);
     g_free(record);
     g_string_free(error_msg, FALSE);

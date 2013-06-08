@@ -92,7 +92,7 @@ gpdb_print (void)
   fclose(fp);
 
   GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-c-12-moves");
-  printf("%s", board_print(entry->board));
+  printf("%s", game_position_print(entry->game_position));
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);

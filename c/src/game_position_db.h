@@ -69,10 +69,9 @@ typedef struct {
  * @brief An Entry collects the GamePosition data with a description and an unique key.
  */
 typedef struct {
-  gchar   *id;      /**< @brief id is a string used as key in the dictionary. */
-  Board   *board;
-  Player   player;
-  gchar   *desc;
+  gchar        *id;                /**< @brief id is a string used as key in the dictionary. */
+  GamePosition *game_position;     /**< @brief The game position for this entry. */
+  gchar        *desc;              /**< @brief A description of this entry. */
 } GamePositionDbEntry;
 
 typedef struct {
