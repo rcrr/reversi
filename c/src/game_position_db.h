@@ -99,7 +99,7 @@ gpdb_entry_syntax_error_new(GamePositionDbEntrySyntaxErrorType  error_type,
                             char                               *error_message);
 
 extern GamePositionDbEntrySyntaxError *
-gpdb_entry_syntax_error_delete (GamePositionDbEntrySyntaxError *syntax_error);
+gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *syntax_error);
 
 extern GString *
 gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *syntax_error);
@@ -120,8 +120,8 @@ extern GamePositionDb *
 gpdb_new (char *desc);
 
 extern GamePositionDb *
-gpdb_delete (GamePositionDb *db,
-             gboolean        free_segment);
+gpdb_free (GamePositionDb *db,
+           gboolean        free_segment);
 
 
 /***********************************************************/
@@ -132,8 +132,8 @@ extern GamePositionDbEntry *
 gpdb_entry_new (void);
 
 extern GamePositionDbEntry *
-gpdb_entry_delete (GamePositionDbEntry *entry,
-                   gboolean             free_segment);
+gpdb_entry_free (GamePositionDbEntry *entry,
+                 gboolean             free_segment);
 
 
 #endif /* GAME_POSITION_DB_H */

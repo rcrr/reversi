@@ -96,7 +96,7 @@ gpdb_print (void)
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);
-  gpdb_delete(db, TRUE);
+  gpdb_free(db, TRUE);
   g_slist_free_full(syntax_error_log, (GDestroyNotify) syntax_error_log_destroy_function);
 
   printf("\ngdb_print: END\n");
@@ -217,7 +217,7 @@ gpdb_load_test (void)
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);
-  gpdb_delete(db, TRUE);
+  gpdb_free(db, TRUE);
   g_slist_free_full(syntax_error_log, (GDestroyNotify) syntax_error_log_destroy_function);
 }
 
@@ -242,7 +242,7 @@ gpdb_entry_syntax_error_print_test (void)
   g_assert_cmpstr(expected->str, ==, msg->str);
   g_string_free(msg,      TRUE);
   g_string_free(expected, TRUE);
-  gpdb_entry_syntax_error_delete(syntax_error);
+  gpdb_entry_syntax_error_free(syntax_error);
 }
 
 
@@ -325,7 +325,7 @@ assert_gpdb_load_logs_error (char                               *line,
 
   // db MUST be freed.
   gboolean free_segment = TRUE;
-  gpdb_delete(db, free_segment);
+  gpdb_free(db, free_segment);
 
 }
 
@@ -334,5 +334,5 @@ syntax_error_log_destroy_function (gpointer data)
 {
   GamePositionDbEntrySyntaxError *e = (GamePositionDbEntrySyntaxError *) data;
   if (e)
-    gpdb_entry_syntax_error_delete(e);
+    gpdb_entry_syntax_error_free(e);
 }

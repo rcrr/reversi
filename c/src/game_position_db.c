@@ -91,7 +91,7 @@ gpdb_tree_key_destroy_function (gpointer data);
  * game position database syntax error structure is not `NULL`.
  *
  * Parameters `source`, `line`, and `error_message` must be dynamically allocated
- * if the `gpdb_entry_syntax_error_delete` function will be called on the returned
+ * if the `gpdb_entry_syntax_error_free` function will be called on the returned
  * structure's pointer.
  *
  * @param [in] error_type    the type of the error
@@ -136,7 +136,7 @@ gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
  * @return           always the NULL pointer
  */
 GamePositionDbEntrySyntaxError *
-gpdb_entry_syntax_error_delete (GamePositionDbEntrySyntaxError *error)
+gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *error)
 {
   g_assert(error);
 
@@ -189,7 +189,7 @@ gpdb_new (char *desc)
  * @return                  always the NULL pointer
  */
 GamePositionDb *
-gpdb_delete (GamePositionDb *db,
+gpdb_free (GamePositionDb *db,
              gboolean        free_segment)
 {
   g_assert(db);
@@ -313,14 +313,14 @@ gpdb_entry_new (void)
  * @return                  always the NULL pointer
  */
 GamePositionDbEntry *
-gpdb_entry_delete (GamePositionDbEntry *entry,
+gpdb_entry_free (GamePositionDbEntry *entry,
                    gboolean             free_segment)
 {
   g_assert(entry);
 
   if (free_segment) {
     g_free(entry->id);
-    game_position_delete(entry->game_position);
+    game_position_free(entry->game_position);
     g_free(entry->desc);
   }
 
@@ -604,7 +604,7 @@ extract_entry_from_line (gchar                           *line,
                                                     line,
                                                     error_msg->str);
       g_free(entry->id);
-      board_delete(board);
+      board_free(board);
       g_free(entry);
       g_free(record);
       g_string_free(error_msg, FALSE);
@@ -629,7 +629,7 @@ extract_entry_from_line (gchar                           *line,
                                                     line,
                                                     error_msg->str);
       g_free(entry->id);
-      board_delete(board);
+      board_free(board);
       g_free(entry);
       g_free(record);
       g_string_free(error_msg, FALSE);
@@ -646,7 +646,7 @@ extract_entry_from_line (gchar                           *line,
                                                   line,
                                                   error_msg->str);
     g_free(entry->id);
-    board_delete(board);
+    board_free(board);
     g_free(entry);
     g_free(record);
     g_string_free(error_msg, FALSE);
@@ -668,7 +668,7 @@ extract_entry_from_line (gchar                           *line,
                                                   line,
                                                   error_msg->str);
     g_free(entry->id);
-    game_position_delete(entry->game_position);
+    game_position_free(entry->game_position);
     g_free(entry);
     g_free(record);
     g_string_free(error_msg, FALSE);
@@ -691,7 +691,7 @@ static void
 gpdb_tree_value_destroy_function (gpointer data)
 {
   GamePositionDbEntry *entry = (GamePositionDbEntry *) data;
-  gpdb_entry_delete(entry, TRUE);
+  gpdb_entry_free(entry, TRUE);
 }
 
 /**

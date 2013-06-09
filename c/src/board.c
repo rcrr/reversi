@@ -150,7 +150,7 @@ board_new (const SquareSet b,
  * @return       always the NULL pointer
  */
 Board *
-board_delete (Board *b)
+board_free (Board *b)
 {
   g_assert(b);
 
@@ -546,11 +546,11 @@ game_position_new (Board  *b,
  * @return        always the NULL pointer
  */
 GamePosition *
-game_position_delete (GamePosition *gp)
+game_position_free (GamePosition *gp)
 {
   g_assert(gp);
 
-  board_delete(gp->board);
+  board_free(gp->board);
 
   g_free(gp);
   gp = NULL;

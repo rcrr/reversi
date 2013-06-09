@@ -128,7 +128,7 @@ board_get_square_test (void)
   g_assert(board_get_square(b, B1) == WHITE_SQUARE);
   g_assert(board_get_square(b, C1) == EMPTY_SQUARE);
 
-  b = board_delete(b);
+  b = board_free(b);
 }
 
 static void
@@ -146,7 +146,7 @@ board_count_difference_test (void)
   g_assert(board_count_difference(b, BLACK_PLAYER) == +64);
   g_assert(board_count_difference(b, WHITE_PLAYER) == -64);
 
-  b = board_delete(b);
+  b = board_free(b);
 }
 
 static void
@@ -158,38 +158,38 @@ board_compare_test (void)
   a = board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
   b = board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
   g_assert(board_compare(a, b) == 0);
-  a = board_delete(a);
-  b = board_delete(b);
+  a = board_free(a);
+  b = board_free(b);
 
   a = board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
   b = board_new(0x0000000000000000ULL, 0x0000000000000000ULL);
   g_assert(board_compare(a, b) == +1);
-  a = board_delete(a);
-  b = board_delete(b);
+  a = board_free(a);
+  b = board_free(b);
 
   a = board_new(0x0000000000000000ULL, 0x0000000000000000ULL);
   b = board_new(0x0000000000000001ULL, 0x0000000000000000ULL);
   g_assert(board_compare(a, b) == -1);
-  a = board_delete(a);
-  b = board_delete(b);
+  a = board_free(a);
+  b = board_free(b);
 
   a = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
   b = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
   g_assert(board_compare(a, b) == 0);
-  a = board_delete(a);
-  b = board_delete(b);
+  a = board_free(a);
+  b = board_free(b);
 
   a = board_new(0x0000000000000007ULL, 0x0100000000000000ULL);
   b = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
   g_assert(board_compare(a, b) == +1);
-  a = board_delete(a);
-  b = board_delete(b);
+  a = board_free(a);
+  b = board_free(b);
 
   a = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
   b = board_new(0x0000000000000007ULL, 0x0100000000000000ULL);
   g_assert(board_compare(a, b) == -1);
-  a = board_delete(a);
-  b = board_delete(b);
+  a = board_free(a);
+  b = board_free(b);
 }
 
 static void
@@ -203,7 +203,7 @@ board_count_pieces_test (void)
   g_assert(board_count_pieces(b, WHITE_SQUARE) ==  1);
   g_assert(board_count_pieces(b, EMPTY_SQUARE) == 62);
 
-  b = board_delete(b);
+  b = board_free(b);
 }
 
 static void
@@ -219,7 +219,7 @@ board_new_test (void)
   empty_board = board_new(b, w);
   g_assert(empty_board != NULL);
 
-  empty_board = board_delete(empty_board);
+  empty_board = board_free(empty_board);
   g_assert(empty_board == NULL);
 }
 
@@ -246,7 +246,7 @@ board_print_test (void)
 
   g_assert(g_strcmp0(expected->str, b_to_string) == 0);
 
-  board_delete(b);
+  board_free(b);
   g_free(b_to_string);
   g_string_free(expected, TRUE);
 }
@@ -280,7 +280,7 @@ game_position_print_test (void)
 
   g_assert(g_strcmp0(expected->str, gp_to_string) == 0);
 
-  game_position_delete(gp);
+  game_position_free(gp);
   g_free(gp_to_string);
   g_string_free(expected, TRUE);
 }
