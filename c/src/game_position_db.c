@@ -222,11 +222,11 @@ gpdb_delete (GamePositionDb *db,
  * @return                           the return code
  */
 int
-gpdb_load (FILE            *fp,
-           gchar           *source,
-           GamePositionDb  *db,
-           GSList          *syntax_error_log,
-           GError         **p_e)
+gpdb_load (FILE                               *fp,
+           gchar                              *source,
+           GamePositionDb                     *db,
+           GamePositionDbEntrySyntaxErrorLog  *syntax_error_log,
+           GError                            **p_e)
 {
   GIOChannel *channel;
   GIOStatus   ret;
@@ -423,7 +423,7 @@ gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *synta
  * @todo Function implementation must be done! 
  */
 GString *
-gpdb_print_syntax_error_log (GSList *syntax_error_log)
+gpdb_print_syntax_error_log (GamePositionDbEntrySyntaxErrorLog *syntax_error_log)
 {
   return g_string_new("");
 }
