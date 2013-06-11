@@ -75,10 +75,56 @@ gpdb_tree_value_destroy_function (gpointer data);
 static void
 gpdb_tree_key_destroy_function (gpointer data);
 
+static void
+gpdb_syntax_error_log_destroy_function (gpointer data);
+
 
 /*
  * Public functions.
  */
+
+/******************************************************************************/
+/* Function implementations for the GamePositionDbSyntaxErrorLog entity. */ 
+/******************************************************************************/
+
+/**
+ * @brief Game position database syntax error log constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * syntax error log is not `NULL`.
+ *
+ * @return a pointer to a new syntax error log
+ */
+GamePositionDbSyntaxErrorLog *
+gpdb_syntax_error_log_new (void)
+{
+  GamePositionDbSyntaxErrorLog *syntax_error_log;
+
+  syntax_error_log = g_slist_alloc();
+  g_assert(syntax_error_log);
+
+  return syntax_error_log;
+}
+
+GamePositionDbSyntaxErrorLog *
+gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log)
+{
+  g_assert(syntax_error_log);
+
+  g_slist_free_full(syntax_error_log, (GDestroyNotify) gpdb_syntax_error_log_destroy_function);
+  syntax_error_log = NULL;
+
+  return syntax_error_log;
+}
+
+GString *
+gpdb_syntax_error_log_print (const GamePositionDbSyntaxErrorLog const *syntax_error_log)
+{
+  GString *msg = g_string_new("");
+  return msg;
+}
+
+
 
 /***************************************************************************/
 /* Function implementations for the GamePositionDbEntrySyntaxError entity. */ 
@@ -222,11 +268,11 @@ gpdb_free (GamePositionDb *db,
  * @return                           the return code
  */
 int
-gpdb_load (FILE                               *fp,
-           gchar                              *source,
-           GamePositionDb                     *db,
-           GamePositionDbEntrySyntaxErrorLog  *syntax_error_log,
-           GError                            **p_e)
+gpdb_load (FILE                          *fp,
+           gchar                         *source,
+           GamePositionDb                *db,
+           GamePositionDbSyntaxErrorLog  *syntax_error_log,
+           GError                       **p_e)
 {
   GIOChannel *channel;
   GIOStatus   ret;
@@ -314,7 +360,7 @@ gpdb_entry_new (void)
  */
 GamePositionDbEntry *
 gpdb_entry_free (GamePositionDbEntry *entry,
-                   gboolean             free_segment)
+                 gboolean             free_segment)
 {
   g_assert(entry);
 
@@ -423,7 +469,7 @@ gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *synta
  * @todo Function implementation must be done! 
  */
 GString *
-gpdb_print_syntax_error_log (GamePositionDbEntrySyntaxErrorLog *syntax_error_log)
+gpdb_print_syntax_error_log (GamePositionDbSyntaxErrorLog *syntax_error_log)
 {
   return g_string_new("");
 }
@@ -707,4 +753,20 @@ gpdb_tree_key_destroy_function (gpointer data)
 {
   char *id = (char *) data;
   if (id) ; // Nothing to do here.
+}
+
+/**
+ * @brief `GDestroyNotify` function used by `g_slist_free_full`
+ *        in `gpdb_syntax_error_log_free` for the list content.
+ *
+ * The function frees the content of the list.
+ *
+ * @param data a pointer to the id field of the syntax error
+ */
+static void
+gpdb_syntax_error_log_destroy_function (gpointer data)
+{
+  GamePositionDbEntrySyntaxError *e = (GamePositionDbEntrySyntaxError *) data;
+  if (e)
+    gpdb_entry_syntax_error_free(e);
 }

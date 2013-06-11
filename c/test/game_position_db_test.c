@@ -4,7 +4,6 @@
  * @brief Game position database module unit test suite.
  * @details Collects tests and helper methods for the game position database module.
  *
- * @todo Function syntax_error_log_destroy_function must be moved in game_position_db.c module
  * @todo The statement  db = gpdb_new(NULL); is really bad with this NULL value.
  * @todo The statement  gpdb_load(fp, NULL, db, syntax_error_log, &error); has the NULL that must be rearranged.
  *
@@ -56,7 +55,7 @@ static void gpdb_entry_syntax_error_print_test (void);
 /* Helper function prototypes. */
 
 static int
-contains_error (GSList                             *syntax_error_list,
+contains_error (GamePositionDbSyntaxErrorLog       *syntax_error_log,
                 char                               *line,
                 GamePositionDbEntrySyntaxErrorType  error_type);
 
@@ -64,8 +63,6 @@ static void
 assert_gpdb_load_logs_error (char                               *line,
                              GamePositionDbEntrySyntaxErrorType  error_type);
 
-static void
-syntax_error_log_destroy_function (gpointer data);
 
 
 static void
@@ -73,10 +70,10 @@ gpdb_print (void)
 {
   printf("\ngdb_print: START\n");
 
-  GamePositionDb  *db;
-  GSList          *syntax_error_log;
-  FILE            *fp;
-  GError          *error;
+  GamePositionDb               *db;
+  GamePositionDbSyntaxErrorLog *syntax_error_log;
+  FILE                         *fp;
+  GError                       *error;
 
   /* Loads the game position database. */
   fp = fopen("db/gpdb-sample-games.txt", "r");
@@ -87,7 +84,7 @@ gpdb_print (void)
   }
   error = NULL;
   db = gpdb_new(NULL);
-  syntax_error_log = g_slist_alloc();
+  syntax_error_log = gpdb_syntax_error_log_new();
   gpdb_load(fp, NULL, db, syntax_error_log, &error);
   fclose(fp);
 
@@ -97,7 +94,7 @@ gpdb_print (void)
   /* Removes the tmp file, frees the resources. */
   g_free(error);
   gpdb_free(db, TRUE);
-  g_slist_free_full(syntax_error_log, (GDestroyNotify) syntax_error_log_destroy_function);
+  gpdb_syntax_error_log_free(syntax_error_log);
 
   printf("\ngdb_print: END\n");
 
@@ -198,10 +195,10 @@ gpdb_load_returned_errors_test (void)
 static void
 gpdb_load_test (void)
 {
-  GamePositionDb  *db;
-  GSList          *syntax_error_log;
-  FILE            *fp;
-  GError          *error;
+  GamePositionDb               *db;
+  GamePositionDbSyntaxErrorLog *syntax_error_log;
+  FILE                         *fp;
+  GError                       *error;
 
   /* Loads the game position database. */
   fp = fopen("db/gpdb-test-db.txt", "r");
@@ -211,14 +208,14 @@ gpdb_load_test (void)
   }
   error = NULL;
   db = gpdb_new(NULL);
-  syntax_error_log = g_slist_alloc();
+  syntax_error_log = gpdb_syntax_error_log_new();
   gpdb_load(fp, NULL, db, syntax_error_log, &error);
   fclose(fp);
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);
   gpdb_free(db, TRUE);
-  g_slist_free_full(syntax_error_log, (GDestroyNotify) syntax_error_log_destroy_function);
+  gpdb_syntax_error_log_free(syntax_error_log);
 }
 
 static void
@@ -252,16 +249,16 @@ gpdb_entry_syntax_error_print_test (void)
  */
 
 static int
-contains_error (GSList                             *syntax_error_list,
+contains_error (GamePositionDbSyntaxErrorLog       *syntax_error_log,
                 char                               *line,
                 GamePositionDbEntrySyntaxErrorType  error_type)
 {
   int len;
 
-  len = g_slist_length(syntax_error_list);
+  len = g_slist_length(syntax_error_log);
 
     for (int i = 0; i < len; i++) {
-      GamePositionDbEntrySyntaxError *error = (GamePositionDbEntrySyntaxError *) g_slist_nth_data(syntax_error_list, i);
+      GamePositionDbEntrySyntaxError *error = (GamePositionDbEntrySyntaxError *) g_slist_nth_data(syntax_error_log, i);
       if (error && (strcmp(error->line, line) == 0) && (error->error_type == error_type))
         return TRUE;
     }
@@ -272,14 +269,14 @@ static void
 assert_gpdb_load_logs_error (char                               *line,
                              GamePositionDbEntrySyntaxErrorType  error_type)
 {
-  int              tmp_file_handle;
-  gchar           *tmp_file_name;
-  GError          *error;
-  GIOChannel      *channel;
-  gsize            bytes_written;
-  GamePositionDb  *db;
-  GSList          *syntax_error_log;
-  FILE            *tmp_fp;
+  int                           tmp_file_handle;
+  gchar                        *tmp_file_name;
+  GError                       *error;
+  GIOChannel                   *channel;
+  gsize                         bytes_written;
+  GamePositionDb               *db;
+  GamePositionDbSyntaxErrorLog *syntax_error_log;
+  FILE                         *tmp_fp;
 
   /* Prepare the new tmp file. */
   error = NULL;
@@ -306,7 +303,7 @@ assert_gpdb_load_logs_error (char                               *line,
   tmp_fp = fopen(tmp_file_name, "r");
   error = NULL;
   db = gpdb_new(NULL);
-  syntax_error_log = g_slist_alloc();
+  syntax_error_log = gpdb_syntax_error_log_new();
   gpdb_load(tmp_fp, NULL, db, syntax_error_log, &error);
   fclose(tmp_fp);
 
@@ -321,18 +318,10 @@ assert_gpdb_load_logs_error (char                               *line,
            == TRUE);
 
   // Free the syntax_error_log.
-  g_slist_free_full(syntax_error_log, (GDestroyNotify) syntax_error_log_destroy_function);
+  gpdb_syntax_error_log_free(syntax_error_log);
 
   // db MUST be freed.
   gboolean free_segment = TRUE;
   gpdb_free(db, free_segment);
 
-}
-
-static void
-syntax_error_log_destroy_function (gpointer data)
-{
-  GamePositionDbEntrySyntaxError *e = (GamePositionDbEntrySyntaxError *) data;
-  if (e)
-    gpdb_entry_syntax_error_free(e);
 }
