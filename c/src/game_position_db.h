@@ -117,7 +117,7 @@ extern GamePositionDbSyntaxErrorLog *
 gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log);
 
 extern GString *
-gpdb_syntax_error_log_print (const GamePositionDbSyntaxErrorLog const *syntax_error_log);
+gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log);
 
 
 

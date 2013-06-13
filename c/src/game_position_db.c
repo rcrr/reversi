@@ -106,6 +106,18 @@ gpdb_syntax_error_log_new (void)
   return syntax_error_log;
 }
 
+/**
+ * @brief Game position database syntax error log destructor.
+ *
+ * The error structures, content of the log,  must
+ * be not shared elsewhere. This function frees them all.
+ *
+ * @invariant Parameter `syntax_error_log` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] syntax_error_log the pointer to be deallocated
+ * @return                      always the NULL pointer
+ */
 GamePositionDbSyntaxErrorLog *
 gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log)
 {
@@ -118,9 +130,25 @@ gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log)
 }
 
 GString *
-gpdb_syntax_error_log_print (const GamePositionDbSyntaxErrorLog const *syntax_error_log)
+gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
 {
-  GString *msg = g_string_new("");
+  GString *msg;
+  GSList  *element;
+  GamePositionDbEntrySyntaxError *syntax_error;
+
+  msg = g_string_new("");
+  element = syntax_error_log;
+
+  while ((element = g_slist_next(element)) != NULL) {
+    syntax_error = g_slist_nth_data(syntax_error_log, 0);
+    if (syntax_error != NULL) {
+      GString *s = gpdb_entry_syntax_error_print(syntax_error);
+      printf("%s\n", syntax_error->error_message);
+      msg = g_string_append(msg, "XXX\n");
+      msg = g_string_append(msg, s->str);
+    }
+  }
+
   return msg;
 }
 
@@ -257,6 +285,9 @@ gpdb_free (GamePositionDb *db,
 /**
  * @brief Inserts the entries found in file `fp` into the `db` database.
  *
+ * @todo Syntax_error_log is managed in the wrong way.
+ *       A temp list is mandatory, then reversed and assigned to the parameter.
+ *
  * When the received pointer to the allocated game position database
  * structure is `NULL` return code is `EXIT_FAILURE`.
  *
@@ -281,6 +312,7 @@ gpdb_load (FILE                          *fp,
   gsize       line_len;
   GTree      *tree;
   int         line_number;
+  GSList     *tmp_syntax_error_log;
 
   if (!db)
     return EXIT_FAILURE;
@@ -288,6 +320,7 @@ gpdb_load (FILE                          *fp,
   tree = db->tree;
   channel = g_io_channel_unix_new(fileno(fp));
   line_number = 0;
+  tmp_syntax_error_log = gpdb_syntax_error_log_new();
 
   do {
     line_number++;

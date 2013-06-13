@@ -74,6 +74,7 @@ gpdb_print (void)
   GamePositionDbSyntaxErrorLog *syntax_error_log;
   FILE                         *fp;
   GError                       *error;
+  GString                      *syntax_error_log_to_string;
 
   /* Loads the game position database. */
   fp = fopen("db/gpdb-sample-games.txt", "r");
@@ -90,6 +91,9 @@ gpdb_print (void)
 
   GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-c-12-moves");
   printf("%s", game_position_print(entry->game_position));
+
+  syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
+  printf("%s", syntax_error_log_to_string->str);
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);
