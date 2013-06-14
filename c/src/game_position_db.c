@@ -140,11 +140,9 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
   element = syntax_error_log;
 
   while ((element = g_slist_next(element)) != NULL) {
-    syntax_error = g_slist_nth_data(syntax_error_log, 0);
+    syntax_error = (GamePositionDbEntrySyntaxError *) element->data;
     if (syntax_error != NULL) {
       GString *s = gpdb_entry_syntax_error_print(syntax_error);
-      printf("%s\n", syntax_error->error_message);
-      msg = g_string_append(msg, "XXX\n");
       msg = g_string_append(msg, s->str);
     }
   }
@@ -302,7 +300,7 @@ int
 gpdb_load (FILE                          *fp,
            gchar                         *source,
            GamePositionDb                *db,
-           GamePositionDbSyntaxErrorLog  *syntax_error_log,
+           GamePositionDbSyntaxErrorLog **p_syntax_error_log,
            GError                       **p_e)
 {
   GIOChannel *channel;
@@ -338,7 +336,7 @@ gpdb_load (FILE                          *fp,
     if (syntax_error) {
       syntax_error->source = source;
       syntax_error->line_number = line_number;
-      syntax_error_log = g_slist_append(syntax_error_log, syntax_error);
+      tmp_syntax_error_log = g_slist_prepend(tmp_syntax_error_log, syntax_error);
     } else {
       g_free(line);
       if (entry) {
@@ -355,6 +353,9 @@ gpdb_load (FILE                          *fp,
     g_propagate_error(p_e, err);
     return EXIT_FAILURE;
   }
+
+  *p_syntax_error_log = g_slist_concat(*p_syntax_error_log, g_slist_reverse(tmp_syntax_error_log));
+  //*p_syntax_error_log = tmp_syntax_error_log;
 
   g_io_channel_unref(channel);
 
@@ -434,11 +435,11 @@ gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *synta
 
   gchar *em = syntax_error->error_message;
   if (!em)
-    strcpy(em, "NULL");
+    em = g_strdup("NULL");
 
   gchar *sl = syntax_error->source;
   if (!sl)
-    strcpy(sl, "NULL");
+    sl = g_strdup("NULL");
 
   gchar ln_string[16];
   int ln = syntax_error->line_number;

@@ -129,7 +129,7 @@ extern int
 gpdb_load (FILE                          *fp,
            gchar                         *source,
            GamePositionDb                *db,
-           GamePositionDbSyntaxErrorLog  *syntax_error_log,
+           GamePositionDbSyntaxErrorLog **p_syntax_error_log,
            GError                       **p_e);
 
 extern GamePositionDb *

@@ -329,3 +329,4 @@ make-move-test-case-d-before;.b..w....w.w....bbb.....b.b.w...bbb......w.b.....b.
 make-move-test-case-d-after;.b..w....w.w....bww.....bwb.w...bww......w.w.....b..w....w......;b;Test case MAKE MOVE D: after the b4 move;
 error----------------------;.b..w....w.w....bww.....bwb.w...bww......w.w.....b..w....w......;x;ERROR;
 error----------------------;.b..w....w.w....bww.....bwb.w...bww......w.w.....b..w....w......;x;ERROR;
+error----------------------;.b..w....w.w....bww.....bwb.w...bww......w.w.....b..w....w......;x;ERROR;

@@ -85,8 +85,8 @@ gpdb_print (void)
   }
   error = NULL;
   db = gpdb_new(NULL);
-  syntax_error_log = gpdb_syntax_error_log_new();
-  gpdb_load(fp, NULL, db, syntax_error_log, &error);
+  syntax_error_log = NULL;
+  gpdb_load(fp, NULL, db, &syntax_error_log, &error);
   fclose(fp);
 
   GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-c-12-moves");
@@ -98,7 +98,8 @@ gpdb_print (void)
   /* Removes the tmp file, frees the resources. */
   g_free(error);
   gpdb_free(db, TRUE);
-  gpdb_syntax_error_log_free(syntax_error_log);
+  if (syntax_error_log)
+    gpdb_syntax_error_log_free(syntax_error_log);
 
   printf("\ngdb_print: END\n");
 
@@ -212,14 +213,15 @@ gpdb_load_test (void)
   }
   error = NULL;
   db = gpdb_new(NULL);
-  syntax_error_log = gpdb_syntax_error_log_new();
-  gpdb_load(fp, NULL, db, syntax_error_log, &error);
+  syntax_error_log = NULL;
+  gpdb_load(fp, NULL, db, &syntax_error_log, &error);
   fclose(fp);
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);
   gpdb_free(db, TRUE);
-  gpdb_syntax_error_log_free(syntax_error_log);
+  if (syntax_error_log)
+    gpdb_syntax_error_log_free(syntax_error_log);
 }
 
 static void
@@ -307,8 +309,8 @@ assert_gpdb_load_logs_error (char                               *line,
   tmp_fp = fopen(tmp_file_name, "r");
   error = NULL;
   db = gpdb_new(NULL);
-  syntax_error_log = gpdb_syntax_error_log_new();
-  gpdb_load(tmp_fp, NULL, db, syntax_error_log, &error);
+  syntax_error_log = NULL;
+  gpdb_load(tmp_fp, NULL, db, &syntax_error_log, &error);
   fclose(tmp_fp);
 
   /* Removes the tmp file, frees the resources. */
@@ -322,7 +324,8 @@ assert_gpdb_load_logs_error (char                               *line,
            == TRUE);
 
   // Free the syntax_error_log.
-  gpdb_syntax_error_log_free(syntax_error_log);
+  if (syntax_error_log)
+    gpdb_syntax_error_log_free(syntax_error_log);
 
   // db MUST be freed.
   gboolean free_segment = TRUE;
