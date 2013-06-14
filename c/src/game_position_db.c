@@ -134,16 +134,16 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
 {
   GString *msg;
   GSList  *element;
-  GamePositionDbEntrySyntaxError *syntax_error;
 
   msg = g_string_new("");
   element = syntax_error_log;
 
   while ((element = g_slist_next(element)) != NULL) {
-    syntax_error = (GamePositionDbEntrySyntaxError *) element->data;
+    GamePositionDbEntrySyntaxError *syntax_error = (GamePositionDbEntrySyntaxError *) element->data;
     if (syntax_error != NULL) {
       GString *s = gpdb_entry_syntax_error_print(syntax_error);
       msg = g_string_append(msg, s->str);
+      g_string_free(s, TRUE);
     }
   }
 
@@ -158,6 +158,8 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
 
 /**
  * @brief Game position database syntax error structure constructor.
+ *
+ * @todo Assign N/A to NULL fields.
  *
  * An assertion checks that the received pointer to the allocated
  * game position database syntax error structure is not `NULL`.
@@ -283,18 +285,15 @@ gpdb_free (GamePositionDb *db,
 /**
  * @brief Inserts the entries found in file `fp` into the `db` database.
  *
- * @todo Syntax_error_log is managed in the wrong way.
- *       A temp list is mandatory, then reversed and assigned to the parameter.
- *
  * When the received pointer to the allocated game position database
  * structure is `NULL` return code is `EXIT_FAILURE`.
  *
- * @param [in]     fp                a pointer to the file that is loaded 
- * @param [in]     source            a string documenting the source of the loaded records 
- * @param [in,out] db                a pointer to the data base that is updated
- * @param [out]    syntax_error_log  the list of syntax errors 
- * @param [out]    p_e               a location to return an error reference 
- * @return                           the return code
+ * @param [in]     fp                  a pointer to the file that is loaded 
+ * @param [in]     source              a string documenting the source of the loaded records 
+ * @param [in,out] db                  a pointer to the data base that is updated
+ * @param [out]    p_syntax_error_log  a location to return the list of syntax errors 
+ * @param [out]    p_e                 a location to return an error reference 
+ * @return                             the return code
  */
 int
 gpdb_load (FILE                          *fp,
