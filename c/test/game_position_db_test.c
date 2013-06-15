@@ -90,13 +90,17 @@ gpdb_print (void)
   syntax_error_log = NULL;
   error = NULL;
   gpdb_load(fp, source, db, &syntax_error_log, &error);
+  g_free(source);
   fclose(fp);
 
   GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-c-12-moves");
-  printf("%s", game_position_print(entry->game_position));
+  gchar *gp_to_string = game_position_print(entry->game_position);
+  printf("%s", gp_to_string);
+  g_free(gp_to_string);
 
   syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
   printf("%s", syntax_error_log_to_string->str);
+  g_string_free(syntax_error_log_to_string, TRUE);
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);
@@ -222,6 +226,7 @@ gpdb_load_test (void)
   error = NULL;
   gpdb_load(fp, source, db, &syntax_error_log, &error);
   fclose(fp);
+  g_free(source);
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);
