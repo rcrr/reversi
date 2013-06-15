@@ -60,6 +60,8 @@ field_separator = ';';
 
 static gint
 extract_entry_from_line (gchar                           *line,
+                         int                              line_number,
+                         gchar                           *source,
                          GamePositionDbEntry            **p_entry,
                          GamePositionDbEntrySyntaxError **p_syntax_error);
 
@@ -159,7 +161,8 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
 /**
  * @brief Game position database syntax error structure constructor.
  *
- * @todo Assign N/A to NULL fields.
+ * @invariant Parameter `error_type` must be in the range defined by the enum type.
+ * The invariant is guarded by an assertion.
  *
  * An assertion checks that the received pointer to the allocated
  * game position database syntax error structure is not `NULL`.
@@ -167,6 +170,7 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
  * Parameters `source`, `line`, and `error_message` must be dynamically allocated
  * if the `gpdb_entry_syntax_error_free` function will be called on the returned
  * structure's pointer.
+ * When one of this parameter is `NULL` the value `"N\A"` is assigned.
  *
  * @param [in] error_type    the type of the error
  * @param [in] source        the label identifying the source input
@@ -182,17 +186,35 @@ gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
                              char                               *line,
                              char                               *error_message)
 {
+  g_assert(error_type >= GPDB_ENTRY_SYNTAX_ERROR_ON_ID && 
+           error_type <= GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID);
+
   GamePositionDbEntrySyntaxError *e;
+
   static const size_t size_of_e = sizeof(GamePositionDbEntrySyntaxError);
+  static const gchar *NA = "N/A";
 
   e = (GamePositionDbEntrySyntaxError*) g_malloc(size_of_e);
   g_assert(e);
 
-  e->error_type    = error_type;
-  e->source        = source;
-  e->line_number   = line_number;
-  e->line          = line;
-  e->error_message = error_message;
+  e->error_type = error_type;
+
+  if (source)
+    e->source = source;
+  else
+    e->source = g_strdup(NA);
+
+  e->line_number = line_number;
+
+  if (line)
+    e->line = line;
+  else
+    e->line = g_strdup(NA);
+
+  if (error_message)
+    e->error_message = error_message;
+  else
+    e->error_message = g_strdup(NA);
 
   return e;
 }
@@ -331,10 +353,8 @@ gpdb_load (FILE                          *fp,
 
     GamePositionDbEntrySyntaxError *syntax_error = NULL;
     GamePositionDbEntry *entry = NULL;
-    extract_entry_from_line(line, &entry, &syntax_error);
+    extract_entry_from_line(line, line_number, source, &entry, &syntax_error);
     if (syntax_error) {
-      syntax_error->source = source;
-      syntax_error->line_number = line_number;
       tmp_syntax_error_log = g_slist_prepend(tmp_syntax_error_log, syntax_error);
     } else {
       g_free(line);
@@ -354,7 +374,6 @@ gpdb_load (FILE                          *fp,
   }
 
   *p_syntax_error_log = g_slist_concat(*p_syntax_error_log, g_slist_reverse(tmp_syntax_error_log));
-  //*p_syntax_error_log = tmp_syntax_error_log;
 
   g_io_channel_unref(channel);
 
@@ -540,13 +559,17 @@ compare_entries (gconstpointer pa,
 /**
  * @brief Extracts a game position database entry from the input line.
  *
- * @param line
- * @param p_entry
- * @param p_syntax_error
- * @return             the status of the operation
+ * @param line           a string containing the db line
+ * @param line_number    the line number used for logging in case of error
+ * @param source         a string identifying the source of the line
+ * @param p_entry        a reference to a pointer to the database entry
+ * @param p_syntax_error a reference to a pointer to the syntax error
+ * @return               the status of the operation
  */
 static gint
 extract_entry_from_line (gchar                           *line,
+                         int                              line_number,
+                         gchar                           *source,
                          GamePositionDbEntry            **p_entry,
                          GamePositionDbEntrySyntaxError **p_syntax_error)
 {
@@ -595,8 +618,8 @@ extract_entry_from_line (gchar                           *line,
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record does't have the proper separator identifying the id field.");
     *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_ON_ID,
-                                                  NULL,
-                                                  -1,
+                                                  g_strdup(source),
+                                                  line_number,
                                                   line,
                                                   error_msg->str);
     g_free(entry->id);
@@ -614,8 +637,8 @@ extract_entry_from_line (gchar                           *line,
       error_msg = g_string_new("");
       g_string_append_printf(error_msg, "The record has the field board composed by %d chars.", (int) (cp1 - cp0));
       *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64,
-                                                    NULL,
-                                                    -1,
+                                                    g_strdup(source),
+                                                    line_number,
                                                     line,
                                                     error_msg->str);
       g_free(entry->id);
@@ -642,8 +665,8 @@ extract_entry_from_line (gchar                           *line,
         error_msg = g_string_new("");
         g_string_append_printf(error_msg, "Board pieces must be in 'b', 'w', or '.' character set. Found %c", c);
         *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID,
-                                                      NULL,
-                                                      -1,
+                                                      g_strdup(source),
+                                                      line_number,
                                                       line,
                                                       error_msg->str);
         g_free(entry->id);
@@ -659,8 +682,8 @@ extract_entry_from_line (gchar                           *line,
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated board field.");
     *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_BOARD_FIELD_IS_INVALID,
-                                                  NULL,
-                                                  -1,
+                                                  g_strdup(source),
+                                                  line_number,
                                                   line,
                                                   error_msg->str);
     g_free(entry->id);
@@ -678,8 +701,8 @@ extract_entry_from_line (gchar                           *line,
       error_msg = g_string_new("");
       g_string_append_printf(error_msg, "The record has the field player composed by %d chars.", (int) (cp1 - cp0));
       *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_IS_NOT_ONE_CHAR,
-                                                    NULL,
-                                                    -1,
+                                                    g_strdup(source),
+                                                    line_number,
                                                     line,
                                                     error_msg->str);
       g_free(entry->id);
@@ -703,8 +726,8 @@ extract_entry_from_line (gchar                           *line,
       error_msg = g_string_new("");
       g_string_append_printf(error_msg, "Player must be in 'b', or 'w' character set. Found %c", c);
       *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_CHAR_IS_INVALID,
-                                                    NULL,
-                                                    -1,
+                                                    g_strdup(source),
+                                                    line_number,
                                                     line,
                                                     error_msg->str);
       g_free(entry->id);
@@ -720,8 +743,8 @@ extract_entry_from_line (gchar                           *line,
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated player field.");
     *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID,
-                                                  NULL,
-                                                  -1,
+                                                  g_strdup(source),
+                                                  line_number,
                                                   line,
                                                   error_msg->str);
     g_free(entry->id);
@@ -742,8 +765,8 @@ extract_entry_from_line (gchar                           *line,
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated description field.");
     *p_syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID,
-                                                  NULL,
-                                                  -1,
+                                                  g_strdup(source),
+                                                  line_number,
                                                   line,
                                                   error_msg->str);
     g_free(entry->id);
