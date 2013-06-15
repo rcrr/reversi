@@ -75,18 +75,21 @@ gpdb_print (void)
   FILE                         *fp;
   GError                       *error;
   GString                      *syntax_error_log_to_string;
+  gchar                        *source;
+
+  source = g_strdup("db/gpdb-sample-games.txt");
 
   /* Loads the game position database. */
-  fp = fopen("db/gpdb-sample-games.txt", "r");
+  fp = fopen(source, "r");
   if (!fp) {
     printf("Unable to open database test file \"db/gpdb-sample-games.txt\" for reading.\n.");
     g_test_fail();
     return;
   }
-  error = NULL;
-  db = gpdb_new(NULL);
+  db = gpdb_new(g_strdup("Sample games for teseting database."));
   syntax_error_log = NULL;
-  gpdb_load(fp, NULL, db, &syntax_error_log, &error);
+  error = NULL;
+  gpdb_load(fp, source, db, &syntax_error_log, &error);
   fclose(fp);
 
   GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-c-12-moves");
@@ -204,17 +207,20 @@ gpdb_load_test (void)
   GamePositionDbSyntaxErrorLog *syntax_error_log;
   FILE                         *fp;
   GError                       *error;
+  gchar                        *source;
+
+  source = g_strdup("db/gpdb-test-db.txt");
 
   /* Loads the game position database. */
-  fp = fopen("db/gpdb-test-db.txt", "r");
+  fp = fopen(source, "r");
   if (!fp) {
     printf("Unable to open database test file \"db/gpdb-test-db.txt\" for reading.\n.");
     abort();
   }
-  error = NULL;
-  db = gpdb_new(NULL);
+  db = gpdb_new(g_strdup("Testing Database"));
   syntax_error_log = NULL;
-  gpdb_load(fp, NULL, db, &syntax_error_log, &error);
+  error = NULL;
+  gpdb_load(fp, source, db, &syntax_error_log, &error);
   fclose(fp);
 
   /* Removes the tmp file, frees the resources. */
