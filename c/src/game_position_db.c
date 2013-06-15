@@ -247,6 +247,99 @@ gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *error)
 }
 
 /**
+ * @brief Returns a formatted `GString` holding a represention of the syntax error.
+ *
+ * The returned structure has a dynamic extent set by a call to malloc.
+ * It must then properly garbage collected by a call to free when no more referenced.
+ *
+ * Parameter `syntax_error` can be `NULL`, then the returned string is empty.
+ *
+ * @param [in] syntax_error a pointer to the syntax error structure
+ * @return                  a message describing the error structure
+ */
+GString *
+gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *syntax_error)
+{
+  gchar et_string[128];
+
+  GString *msg = g_string_new("");
+
+  if (!syntax_error)
+    return msg;
+
+  GamePositionDbEntrySyntaxErrorType et = syntax_error->error_type;
+
+  gchar *em = syntax_error->error_message;
+  if (!em)
+    em = g_strdup("NULL");
+
+  gchar *sl = syntax_error->source;
+  if (!sl)
+    sl = g_strdup("NULL");
+
+  gchar ln_string[16];
+  int ln = syntax_error->line_number;
+  if (ln > 0) {
+    sprintf(ln_string, "%d", ln);
+  } else {
+    strcpy(ln_string, "UNDEFINED LINE NUMBER");
+  }
+
+  GString *l;
+  gchar *line_end = strchr(syntax_error->line, '\n');
+  if (line_end)
+    l = g_string_new_len(syntax_error->line, line_end - syntax_error->line);
+  else
+    l = g_string_new(syntax_error->line);
+
+  switch (et) {
+  case GPDB_ENTRY_SYNTAX_ERROR_ON_ID:
+    strcpy(et_string, "The id field is not correctly assigned.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64:
+    strcpy(et_string, "The board field must have 64 chars.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID:
+    strcpy(et_string, "The board field must be composed of 'b', 'w', and '.' chars only.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_BOARD_FIELD_IS_INVALID:
+    strcpy(et_string, "The board field is not correctly assigned or terminated.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_PLAYER_IS_NOT_ONE_CHAR:
+    strcpy(et_string, "The player field is not one char.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_PLAYER_CHAR_IS_INVALID:
+    strcpy(et_string, "The player char is not 'b' or 'w'.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID:
+    strcpy(et_string, "The player field is not correctly assigned or terminated.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID:
+    strcpy(et_string, "The description field is not correctly assigned or terminated.");
+    break;
+  default:
+    abort();
+    break;
+  }
+
+  g_string_append_printf(msg, "Error type:    %s\n", et_string);
+  g_string_append_printf(msg, "Error message: %s\n", em);
+  g_string_append_printf(msg, "Source label:  %s\n", sl);
+  g_string_append_printf(msg, "Line number:   %s\n", ln_string);
+  g_string_append_printf(msg, "Line:          %s\n", l->str);
+
+  g_string_free(l, TRUE);
+
+  return msg;
+}
+
+
+
+/***********************************************************/
+/* Function implementations for the GamePositionDb entity. */ 
+/***********************************************************/
+
+/**
  * @brief Game position database structure constructor.
  *
  * An assertion checks that the received pointer to the allocated
@@ -286,7 +379,7 @@ gpdb_new (char *desc)
  */
 GamePositionDb *
 gpdb_free (GamePositionDb *db,
-             gboolean        free_segment)
+           gboolean        free_segment)
 {
   g_assert(db);
 
@@ -380,6 +473,12 @@ gpdb_load (FILE                          *fp,
   return EXIT_SUCCESS;
 }
 
+
+
+/****************************************************************/
+/* Function implementations for the GamePositionDbEntry entity. */ 
+/****************************************************************/
+
 /**
  * @brief Game position database entry structure constructor.
  *
@@ -426,104 +525,6 @@ gpdb_entry_free (GamePositionDbEntry *entry,
   entry = NULL;
 
   return entry;
-}
-
-/**
- * @brief Returns a formatted `GString` holding a represention of the syntax error.
- *
- * The returned structure has a dynamic extent set by a call to malloc.
- * It must then properly garbage collected by a call to free when no more referenced.
- *
- * Parameter `syntax_error` can be `NULL`, then the returned string is empty.
- *
- * @param [in] syntax_error a pointer to the syntax error structure
- * @return                  a message describing the error structure
- */
-GString *
-gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *syntax_error)
-{
-  gchar et_string[128];
-
-  GString *msg = g_string_new("");
-
-  if (!syntax_error)
-    return msg;
-
-  GamePositionDbEntrySyntaxErrorType et = syntax_error->error_type;
-
-  gchar *em = syntax_error->error_message;
-  if (!em)
-    em = g_strdup("NULL");
-
-  gchar *sl = syntax_error->source;
-  if (!sl)
-    sl = g_strdup("NULL");
-
-  gchar ln_string[16];
-  int ln = syntax_error->line_number;
-  if (ln > 0) {
-    sprintf(ln_string, "%d", ln);
-  } else {
-    strcpy(ln_string, "UNDEFINED LINE NUMBER");
-  }
-
-  GString *l;
-  gchar *line_end = strchr(syntax_error->line, '\n');
-  if (line_end)
-    l = g_string_new_len(syntax_error->line, line_end - syntax_error->line);
-  else
-    l = g_string_new(syntax_error->line);
-
-  switch (et) {
-  case GPDB_ENTRY_SYNTAX_ERROR_ON_ID:
-    strcpy(et_string, "The id field is not correctly assigned.");
-    break;
-  case GPDB_ENTRY_SYNTAX_ERROR_BOARD_SIZE_IS_NOT_64:
-    strcpy(et_string, "The board field must have 64 chars.");
-    break;
-  case GPDB_ENTRY_SYNTAX_ERROR_SQUARE_CHAR_IS_INVALID:
-    strcpy(et_string, "The board field must be composed of 'b', 'w', and '.' chars only.");
-    break;
-  case GPDB_ENTRY_SYNTAX_ERROR_BOARD_FIELD_IS_INVALID:
-    strcpy(et_string, "The board field is not correctly assigned or terminated.");
-    break;
-  case GPDB_ENTRY_SYNTAX_ERROR_PLAYER_IS_NOT_ONE_CHAR:
-    strcpy(et_string, "The player field is not one char.");
-    break;
-  case GPDB_ENTRY_SYNTAX_ERROR_PLAYER_CHAR_IS_INVALID:
-    strcpy(et_string, "The player char is not 'b' or 'w'.");
-    break;
-  case GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID:
-    strcpy(et_string, "The player field is not correctly assigned or terminated.");
-    break;
-  case GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID:
-    strcpy(et_string, "The description field is not correctly assigned or terminated.");
-    break;
-  default:
-    abort();
-    break;
-  }
-
-  g_string_append_printf(msg, "Error type:    %s\n", et_string);
-  g_string_append_printf(msg, "Error message: %s\n", em);
-  g_string_append_printf(msg, "Source label:  %s\n", sl);
-  g_string_append_printf(msg, "Line number:   %s\n", ln_string);
-  g_string_append_printf(msg, "Line:          %s\n", l->str);
-
-  g_string_free(l, TRUE);
-
-  return msg;
-}
-
-/**
- * @brief Prints the syntax error log.
- *
- * @todo Function implementation must be done! 
- */
-GString *
-gpdb_print_syntax_error_log (GamePositionDbSyntaxErrorLog *syntax_error_log)
-{
-  return g_string_new("");
 }
 
 
