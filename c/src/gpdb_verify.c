@@ -1,0 +1,117 @@
+/**
+ * @file
+ *
+ * @brief Verify a game position database.
+ * @details This executable reads a game position db and logs errors.
+ *
+ * @par gpdb_verify.c
+ * <tt>
+ * This file is part of the reversi program
+ * http://github.com/rcrr/reversi
+ * </tt>
+ * @author Roberto Corradini mailto:rob_corradini@yahoo.it
+ * @copyright 2013 Roberto Corradini. All rights reserved.
+ *
+ * @par License
+ * <tt>
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3, or (at your option) any
+ * later version.
+ * \n
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * \n
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * or visit the site <http://www.gnu.org/licenses/>.
+ * </tt>
+ */
+
+#include <stdio.h>
+
+#include <glib.h>
+
+#include "game_position_db.h"
+
+static gchar    *input_file  = NULL;
+static gboolean  log_entries = FALSE;
+static gboolean  log_errors  = FALSE;
+
+static GOptionEntry entries[] =
+  {
+    { "file",        'f', 0, G_OPTION_ARG_FILENAME, &input_file,  "Input file name", NULL }, 
+    { "log-entries", 'l', 0, G_OPTION_ARG_NONE,     &log_entries, "Log entries",     NULL },
+    { "log-errors",  'e', 0, G_OPTION_ARG_NONE,     &log_errors,  "Log errors",      NULL },
+    { NULL }
+  };
+
+/**
+ * Verifies a database file of game positions.
+ */
+int
+main (int argc, char *argv[])
+{
+  GamePositionDb               *db;
+  GamePositionDbSyntaxErrorLog *syntax_error_log;
+  FILE                         *fp;
+  GError                       *error;
+  GString                      *syntax_error_log_to_string;
+  gchar                        *source;
+
+
+  GOptionContext *context;
+  GOptionGroup   *ogroup;
+
+  error = NULL;
+  ogroup = g_option_group_new("name", "description", "help_description", NULL, NULL);
+
+  context = g_option_context_new ("- verify a database of game positions");
+  g_option_context_add_main_entries (context, entries, NULL);
+  g_option_context_add_group (context, ogroup);
+  if (!g_option_context_parse (context, &argc, &argv, &error)) {
+    g_print ("option parsing failed: %s\n", error->message);
+    return 1;
+  }
+
+  /* ... */
+
+
+  source = g_strdup("db/gpdb-sample-games.txt");
+
+  /* Loads the game position database. */
+  fp = fopen(source, "r");
+  if (!fp) {
+    printf("Unable to open database test file \"db/gpdb-sample-games.txt\" for reading.\n.");
+    g_test_fail();
+    return 1;
+  }
+  db = gpdb_new(g_strdup("Sample games for teseting database."));
+  syntax_error_log = NULL;
+  error = NULL;
+  gpdb_load(fp, source, db, &syntax_error_log, &error);
+  g_free(source);
+  fclose(fp);
+
+  GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-c-12-moves");
+  gchar *gp_to_string = game_position_print(entry->game_position);
+  printf("%s", gp_to_string);
+  g_free(gp_to_string);
+
+  syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
+  printf("%s", syntax_error_log_to_string->str);
+  g_string_free(syntax_error_log_to_string, TRUE);
+
+  /* Removes the tmp file, frees the resources. */
+  g_free(error);
+  gpdb_free(db, TRUE);
+  if (syntax_error_log)
+    gpdb_syntax_error_log_free(syntax_error_log);
+
+
+  return 0;
+
+}
