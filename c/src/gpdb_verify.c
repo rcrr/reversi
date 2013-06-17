@@ -64,32 +64,36 @@ main (int argc, char *argv[])
 
 
   GOptionContext *context;
-  GOptionGroup   *ogroup;
+  GOptionGroup   *option_group;
 
   error = NULL;
-  ogroup = g_option_group_new("name", "description", "help_description", NULL, NULL);
+  option_group = g_option_group_new("name", "description", "help_description", NULL, NULL);
 
-  context = g_option_context_new ("- verify a database of game positions");
+  context = g_option_context_new ("- Verify a database of game positions");
   g_option_context_add_main_entries (context, entries, NULL);
-  g_option_context_add_group (context, ogroup);
+  g_option_context_add_group (context, option_group);
   if (!g_option_context_parse (context, &argc, &argv, &error)) {
-    g_print ("option parsing failed: %s\n", error->message);
-    return 1;
+    g_print("Option parsing failed: %s\n", error->message);
+    return -1;
   }
 
-  /* ... */
+  /* Checks command line options for consistency. */
+  if (input_file) {
+    source = g_strdup(input_file);
+  } else {
+    g_print("Option -f, --file is mandatory.\n.");
+    return -2;
+  }
 
-
-  source = g_strdup("db/gpdb-sample-games.txt");
-
-  /* Loads the game position database. */
+  /* Opens the source file for reading. */
   fp = fopen(source, "r");
   if (!fp) {
-    printf("Unable to open database test file \"db/gpdb-sample-games.txt\" for reading.\n.");
-    g_test_fail();
-    return 1;
+    g_print("Unable to open database resource for reading, file \"%s\" does not exist.\n.", source);
+    return -3;
   }
-  db = gpdb_new(g_strdup("Sample games for teseting database."));
+
+  /* Loads the game position database. */
+  db = gpdb_new(g_strdup("Game Position Database under check."));
   syntax_error_log = NULL;
   error = NULL;
   gpdb_load(fp, source, db, &syntax_error_log, &error);
@@ -97,9 +101,11 @@ main (int argc, char *argv[])
   fclose(fp);
 
   GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-c-12-moves");
-  gchar *gp_to_string = game_position_print(entry->game_position);
-  printf("%s", gp_to_string);
-  g_free(gp_to_string);
+  if (entry) {
+    gchar *gp_to_string = game_position_print(entry->game_position);
+    printf("%s", gp_to_string);
+    g_free(gp_to_string);
+  }
 
   syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
   printf("%s", syntax_error_log_to_string->str);
@@ -111,7 +117,5 @@ main (int argc, char *argv[])
   if (syntax_error_log)
     gpdb_syntax_error_log_free(syntax_error_log);
 
-
   return 0;
-
 }
