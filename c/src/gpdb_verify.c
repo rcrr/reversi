@@ -100,7 +100,8 @@ main (int argc, char *argv[])
   g_free(source);
   fclose(fp);
 
-  GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-c-12-moves");
+  GamePositionDbEntry *entry = gpdb_lookup(db, "early-game-c-12-moves");
+  //GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-c-12-moves");
   if (entry) {
     gchar *gp_to_string = game_position_print(entry->game_position);
     printf("%s", gp_to_string);

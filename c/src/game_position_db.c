@@ -398,6 +398,23 @@ gpdb_free (GamePositionDb *db,
 }
 
 /**
+ * @brief Lookups into the `db` database.
+ * It searches for an entry that match with the `entry_id` key.
+ *
+ * @param [in] db       a pointer to the data base that is updated
+ * @param [in] entry_id the entry key to search for 
+ * @return              the matching db entry or null when the query fails
+ */
+GamePositionDbEntry *
+gpdb_lookup (GamePositionDb *db,
+             gchar          *entry_id)
+{
+  GamePositionDbEntry *entry;
+  entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, entry_id);
+  return entry;
+}
+
+/**
  * @brief Inserts the entries found in file `fp` into the `db` database.
  *
  * When the received pointer to the allocated game position database

@@ -139,6 +139,9 @@ extern GamePositionDb *
 gpdb_free (GamePositionDb *db,
            gboolean        free_segment);
 
+extern GamePositionDbEntry *
+gpdb_lookup (GamePositionDb *db,
+             gchar          *entry_id);
 
 /***********************************************************/
 /* Function prototypes for the GamePositionDbEntry entity. */ 
