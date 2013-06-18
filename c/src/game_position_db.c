@@ -544,6 +544,23 @@ gpdb_entry_free (GamePositionDbEntry *entry,
   return entry;
 }
 
+gchar *
+gpdb_entry_print (GamePositionDbEntry *entry)
+{
+  gchar   *result;
+  GString *msg;
+
+  msg = g_string_new("");
+
+  gchar *tmp = "FOR SURE!";
+  g_string_append_printf(msg, "gpdb_entry_print function MUST BE DEVELOPED %s\n", tmp);
+
+  result = msg->str;
+  g_string_free(msg, FALSE);
+  return result;
+}
+
+
 
 /*
  * Internal functions.

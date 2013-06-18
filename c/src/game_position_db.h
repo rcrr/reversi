@@ -154,5 +154,8 @@ extern GamePositionDbEntry *
 gpdb_entry_free (GamePositionDbEntry *entry,
                  gboolean             free_segment);
 
+extern gchar *
+gpdb_entry_print (GamePositionDbEntry *entry);
+
 
 #endif /* GAME_POSITION_DB_H */
