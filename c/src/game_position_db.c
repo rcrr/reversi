@@ -549,14 +549,21 @@ gpdb_entry_print (GamePositionDbEntry *entry)
 {
   gchar   *result;
   GString *msg;
+  gchar   *game_position_to_string;
+
+  game_position_to_string = game_position_print(entry->game_position);
 
   msg = g_string_new("");
 
-  gchar *tmp = "FOR SURE!";
-  g_string_append_printf(msg, "gpdb_entry_print function MUST BE DEVELOPED %s\n", tmp);
+  g_string_append_printf(msg, "Entry id:    %s\n", entry->id);
+  g_string_append_printf(msg, "Description: %s\n", entry->desc);
+  g_string_append_printf(msg, "Game Position:\n%s\n", game_position_to_string);
+
+  g_free(game_position_to_string);
 
   result = msg->str;
   g_string_free(msg, FALSE);
+
   return result;
 }
 
