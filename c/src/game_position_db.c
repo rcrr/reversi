@@ -504,7 +504,8 @@ gpdb_print (GamePositionDb *db)
   entry_count = g_tree_nnodes(t);
 
   //g_tree_foreach();
-  g_string_append_printf(msg, "The Game Position Database has %d entry(es).\n", entry_count);
+  g_string_append_printf(msg, "The Game Position Database has %d entr%s.\n",
+                         entry_count, (entry_count == 1) ? "y" : "ies");
 
   result = msg->str;
   g_string_free(msg, FALSE);
