@@ -490,6 +490,28 @@ gpdb_load (FILE                          *fp,
   return EXIT_SUCCESS;
 }
 
+gchar *
+gpdb_print (GamePositionDb *db)
+{
+  gchar   *result;
+  GTree   *t;
+  int      entry_count;
+  GString *msg;
+
+  msg = g_string_new("");
+
+  t = db->tree;
+  entry_count = g_tree_nnodes(t);
+
+  //g_tree_foreach();
+  g_string_append_printf(msg, "The Game Position Database has %d entry(es).\n", entry_count);
+
+  result = msg->str;
+  g_string_free(msg, FALSE);
+
+  return result;
+}
+
 
 
 /****************************************************************/

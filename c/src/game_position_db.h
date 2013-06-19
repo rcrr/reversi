@@ -143,6 +143,9 @@ extern GamePositionDbEntry *
 gpdb_lookup (GamePositionDb *db,
              gchar          *entry_id);
 
+extern gchar *
+gpdb_print (GamePositionDb *db);
+
 /***********************************************************/
 /* Function prototypes for the GamePositionDbEntry entity. */ 
 /***********************************************************/

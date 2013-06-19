@@ -100,17 +100,19 @@ main (int argc, char *argv[])
   g_free(source);
   fclose(fp);
 
+  gchar *gpdb_to_string = gpdb_print(db);
+  g_print("%s", gpdb_to_string);
+  g_free(gpdb_to_string);
+
   GamePositionDbEntry *entry = gpdb_lookup(db, "early-game-c-12-moves");
   if (entry) {
     gchar *tmp = gpdb_entry_print(entry);
     g_print("%s", tmp);
-    gchar *gp_to_string = game_position_print(entry->game_position);
-    printf("%s", gp_to_string);
-    g_free(gp_to_string);
+    g_free(tmp);
   }
 
   syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
-  printf("%s", syntax_error_log_to_string->str);
+  g_print("%s", syntax_error_log_to_string->str);
   g_string_free(syntax_error_log_to_string, TRUE);
 
   /* Removes the tmp file, frees the resources. */
