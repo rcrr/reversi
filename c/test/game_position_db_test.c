@@ -66,7 +66,7 @@ assert_gpdb_load_logs_error (char                               *line,
 
 
 static void
-gpdb_print (void)
+gpdb_print_x (void)
 {
   printf("\ngdb_print: START\n");
 
@@ -123,7 +123,7 @@ main (int   argc,
   g_test_add_func("/game_position_db/gpdb_entry_syntax_error_print", gpdb_entry_syntax_error_print_test);
   g_test_add_func("/game_position_db/gpdb_load", gpdb_load_test);
 
-  g_test_add_func("/tmp/gpdb_print", gpdb_print);
+  g_test_add_func("/tmp/gpdb_print_x", gpdb_print_x);
 
   return g_test_run();
 }

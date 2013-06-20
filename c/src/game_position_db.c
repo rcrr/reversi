@@ -85,9 +85,9 @@ gpdb_syntax_error_log_destroy_function (gpointer data);
  * Public functions.
  */
 
-/******************************************************************************/
+/*************************************************************************/
 /* Function implementations for the GamePositionDbSyntaxErrorLog entity. */ 
-/******************************************************************************/
+/*************************************************************************/
 
 /**
  * @brief Game position database syntax error log constructor.
@@ -101,10 +101,7 @@ GamePositionDbSyntaxErrorLog *
 gpdb_syntax_error_log_new (void)
 {
   GamePositionDbSyntaxErrorLog *syntax_error_log;
-
-  syntax_error_log = g_slist_alloc();
-  g_assert(syntax_error_log);
-
+  syntax_error_log = NULL;
   return syntax_error_log;
 }
 
@@ -140,19 +137,23 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
   msg = g_string_new("");
   element = syntax_error_log;
 
-  while ((element = g_slist_next(element)) != NULL) {
+  do {
     GamePositionDbEntrySyntaxError *syntax_error = (GamePositionDbEntrySyntaxError *) element->data;
     if (syntax_error != NULL) {
       GString *s = gpdb_entry_syntax_error_print(syntax_error);
       msg = g_string_append(msg, s->str);
       g_string_free(s, TRUE);
     }
-  }
+  } while ((element = g_slist_next(element)) != NULL);
 
   return msg;
 }
 
-
+int
+gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
+{
+  return g_slist_length(syntax_error_log);
+}
 
 /***************************************************************************/
 /* Function implementations for the GamePositionDbEntrySyntaxError entity. */ 
@@ -511,11 +512,28 @@ gpdb_print (GamePositionDb *db)
 {
   gchar   *result;
   GTree   *t;
+  GString *msg;
+
+  msg = g_string_new("");
+  t = db->tree;
+
+  g_tree_foreach(t, (GTraverseFunc) print_entry, &msg);
+
+  result = msg->str;
+  g_string_free(msg, FALSE);
+
+  return result;
+}
+
+gchar *
+gpdb_print_summary (GamePositionDb *db)
+{
+  gchar   *result;
+  GTree   *t;
   int      entry_count;
   GString *msg;
 
   msg = g_string_new("");
-
   t = db->tree;
   entry_count = g_tree_nnodes(t);
 
@@ -523,8 +541,6 @@ gpdb_print (GamePositionDb *db)
                          entry_count, (entry_count == 1) ? "y" : "ies");
 
   g_string_append_printf(msg, "Database Description: %s\n\n", db->desc);
-
-  g_tree_foreach(t, (GTraverseFunc) print_entry, &msg);
 
   result = msg->str;
   g_string_free(msg, FALSE);
