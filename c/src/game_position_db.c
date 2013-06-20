@@ -490,6 +490,22 @@ gpdb_load (FILE                          *fp,
   return EXIT_SUCCESS;
 }
 
+static gboolean
+print_entry (gchar *key, GamePositionDbEntry *entry, GString **p_msg)
+{
+  GString *msg;
+  gchar *entry_to_string;
+
+  msg = *p_msg;
+  entry_to_string = gpdb_entry_print(entry);
+
+  g_string_append_printf(msg, "%s", entry_to_string);
+
+  g_free(entry_to_string);
+
+  return FALSE;
+}
+
 gchar *
 gpdb_print (GamePositionDb *db)
 {
@@ -503,9 +519,12 @@ gpdb_print (GamePositionDb *db)
   t = db->tree;
   entry_count = g_tree_nnodes(t);
 
-  //g_tree_foreach();
   g_string_append_printf(msg, "The Game Position Database has %d entr%s.\n",
                          entry_count, (entry_count == 1) ? "y" : "ies");
+
+  g_string_append_printf(msg, "Database Description: %s\n\n", db->desc);
+
+  g_tree_foreach(t, (GTraverseFunc) print_entry, &msg);
 
   result = msg->str;
   g_string_free(msg, FALSE);

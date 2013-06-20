@@ -93,7 +93,7 @@ main (int argc, char *argv[])
   }
 
   /* Loads the game position database. */
-  db = gpdb_new(g_strdup("Game Position Database under check."));
+  db = gpdb_new(g_strdup(source));
   syntax_error_log = NULL;
   error = NULL;
   gpdb_load(fp, source, db, &syntax_error_log, &error);
