@@ -37,15 +37,17 @@
 
 #include "game_position_db.h"
 
-static gchar    *input_file  = NULL;
-static gboolean  log_entries = FALSE;
-static gboolean  log_errors  = FALSE;
+static gchar    *input_file    = NULL;
+static gboolean  print_summary = FALSE;
+static gboolean  log_entries   = FALSE;
+static gboolean  log_errors    = FALSE;
 
 static GOptionEntry entries[] =
   {
-    { "file",        'f', 0, G_OPTION_ARG_FILENAME, &input_file,  "Input file name", NULL }, 
-    { "log-entries", 'l', 0, G_OPTION_ARG_NONE,     &log_entries, "Log entries",     NULL },
-    { "log-errors",  'e', 0, G_OPTION_ARG_NONE,     &log_errors,  "Log errors",      NULL },
+    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name", NULL }, 
+    { "print-summary", 'p', 0, G_OPTION_ARG_NONE,     &print_summary, "Print summary",   NULL },
+    { "log-entries",   'l', 0, G_OPTION_ARG_NONE,     &log_entries,   "Log entries",     NULL },
+    { "log-errors",    'e', 0, G_OPTION_ARG_NONE,     &log_errors,    "Log errors",      NULL },
     { NULL }
   };
 
@@ -100,9 +102,27 @@ main (int argc, char *argv[])
   g_free(source);
   fclose(fp);
 
-  gchar *gpdb_to_string = gpdb_print(db);
-  g_print("%s", gpdb_to_string);
-  g_free(gpdb_to_string);
+  /* Prints the database summary if the OPTION -p is turned on. */
+  if (print_summary) {
+    ;
+    //syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
+    //g_print("%s", syntax_error_log_to_string->str);
+    //g_string_free(syntax_error_log_to_string, TRUE);
+  }
+
+  /* Prints the error log if the OPTION -e is turned on. */
+  if (log_errors) {
+    syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
+    g_print("%s", syntax_error_log_to_string->str);
+    g_string_free(syntax_error_log_to_string, TRUE);
+  }
+
+  /* Prints the entry list if the OPTION -l is turned on. */
+  if (log_entries) {
+    gchar *gpdb_to_string = gpdb_print(db);
+    g_print("%s", gpdb_to_string);
+    g_free(gpdb_to_string);
+  }
 
   GamePositionDbEntry *entry = gpdb_lookup(db, "early-game-c-12-moves");
   if (entry) {
@@ -110,10 +130,6 @@ main (int argc, char *argv[])
     g_print("%s", tmp);
     g_free(tmp);
   }
-
-  syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
-  g_print("%s", syntax_error_log_to_string->str);
-  g_string_free(syntax_error_log_to_string, TRUE);
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);
