@@ -176,7 +176,7 @@ extern Board *board_new(const SquareSet b,
                         const SquareSet w
                         );
 
-extern Board *board_delete(Board *b);
+extern Board *board_free(Board *b);
 
 extern SquareState board_get_square(const Board  *const b,
                                     const Square        sq
@@ -239,7 +239,7 @@ game_position_new (Board  *b,
                    Player  p);
 
 extern GamePosition *
-game_position_delete (GamePosition *gp);
+game_position_free (GamePosition *gp);
 
 extern gchar *
 game_position_print (const GamePosition const *gp);

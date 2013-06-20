@@ -42,6 +42,7 @@
  */
 typedef unsigned long long int uint64;
 
-extern int popcount(uint64 x);
+extern int
+popcount (uint64 x);
 
 #endif /* BIT_WORKS_H */

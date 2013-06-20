@@ -44,6 +44,44 @@ an-instance;...........................wb......wbb.....wbw......w........w..;b;A
 #
 #
 #    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . . . . . . . . 
+# 3  . . . . . . . . 
+# 4  . . . . . . . . 
+# 5  . . . . . . . . 
+# 6  . . . . . . . . 
+# 7  . . . . . . . .
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#    |1       2       3       4       5       6       7       8       |
+#    |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+empty;................................................................;b;The empty position, black to move;
+#
+#
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . . . . . . . . 
+# 3  . . . . . . . . 
+# 4  . . . O @ . . . 
+# 5  . . . @ O . . . 
+# 6  . . . . . . . . 
+# 7  . . . . . . . .
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#      |1       2       3       4       5       6       7       8       |
+#      |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+initial;...........................wb......bw...........................;b;The initial position;
+#
+#
+#
+#
+#
+#    a b c d e f g h 
 # 1  O @ . @ . O . . 
 # 2  @ @ @ @ @ @ @ O 
 # 3  . @ O O @ @ O O 
@@ -62,3 +100,233 @@ black-has-to-pass;wb.b.w..bbbbbbbw.bwwbbww.bwbwwww.bwbwwww.bwbbwbw.bwbbbb.wwwwww
 #
 #
 #
+# The white player has to move, and has two legal chances:
+#   - C3 that leads to the early-game-bc3-10-moves board
+#   - C6 that leads to the early-game-bc6-10-moves board
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ . . 
+# 2  . . . . @ . . . 
+# 3  . . . @ @ O O . 
+# 4  . . . @ @ . . . 
+# 5  . . . @ @ . . . 
+# 6  . . . . @ . . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#                   |1       2       3       4       5       6       7       8       |
+#                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-b-9-moves;...bbb......b......bbww....bb......bb.......b...................;w;The board after nine moves of a generic game;
+#
+#
+#
+#
+#
+# The board is obtained taking as baseline the early-game-b-9-moves board and executing the move C3.
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ . . 
+# 2  . . . . @ . . . 
+# 3  . . O O O O O . 
+# 4  . . . @ @ . . . 
+# 5  . . . @ @ . . . 
+# 6  . . . . @ . . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                      |1       2       3       4       5       6       7       8       |
+#                      |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-bc3-10-moves;...bbb......b.....wwwww....bb......bb.......b...................;b;The board after ten moves of a generic game;
+#
+#
+#
+#
+#
+# The board is obtained taking as baseline the early-game-b-9-moves board and executing the move C6.
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ . . 
+# 2  . . . . @ . . . 
+# 3  . . . @ @ O O . 
+# 4  . . . @ O . . . 
+# 5  . . . O @ . . . 
+# 6  . . O . @ . . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                      |1       2       3       4       5       6       7       8       |
+#                      |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-bc6-10-moves;...bbb......b......bbww....bw......wb.....w.b...................;b;The board after ten moves of a generic game;
+#
+#
+#
+#
+#
+# The board after twelve moves of a generic game.
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . . . . . . . . 
+# 3  O @ @ @ . . O . 
+# 4  . O . O @ O . . 
+# 5  . O O @ O . . . 
+# 6  . . @ @ . O . . 
+# 7  . . . . . . . . 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                    |1       2       3       4       5       6       7       8       |
+#                    |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+early-game-c-12-moves;................wbbb..w..w.wbw...wwbw.....bb.w..................;b;The board after twelve moves of a generic game;
+#
+#
+#
+#
+# #################################################################################
+# Entries for testing game_position_make_move function.
+# Game positions come in pairs:
+# - make-move-test-case-x-before is a game position configuration
+# - make-move-test-case-x-after is the expected configuration after a defined move
+###################################################################################
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . O O O O O . . 
+# 3  . O @ @ @ O . . 
+# 4  . O @ . @ O . . 
+# 5  . O @ @ @ O . . 
+# 6  . O O O O O . . 
+# 7  . . . . . . . .
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#                           |1       2       3       4       5       6       7       8       |
+#                           |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-a-before;.........wwwww...wbbbw...wb.bw...wbbbw...wwwww..................;w;Test case MAKE MOVE A: before the move;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . . . . . . . 
+# 2  . O O O O O . . 
+# 3  . O O O O O . . 
+# 4  . O O O O O . . 
+# 5  . O O O O O . . 
+# 6  . O O O O O . . 
+# 7  . . . . . . . .
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                          |1       2       3       4       5       6       7       8       |
+#                          |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-a-after;.........wwwww...wwwww...wwwww...wwwww...wwwww..................;b;Test case MAKE MOVE A: after the d4 move;
+#
+#
+#
+#    a b c d e f g h
+# 1  O O O O O O O .
+# 2  O @ @ @ @ @ O .
+# 3  O @ @ @ @ @ O .
+# 4  O @ @ . @ @ O .
+# 5  O @ @ @ @ @ O .
+# 6  O @ @ @ @ @ O .
+# 7  O O O O O O O .
+# 8  . . . . . . . .
+# Player to move: WHITE
+#
+#                           |1       2       3       4       5       6       7       8       |
+#                           |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-b-before;wwwwwww.wbbbbbw.wbbbbbw.wbb.bbw.wbbbbbw.wbbbbbw.wwwwwww.........;w;Test case MAKE MOVE B: before the move;
+#
+#
+#
+#    a b c d e f g h
+# 1  O O O O O O O .
+# 2  O O @ O @ O O .
+# 3  O @ O O O @ O .
+# 4  O O O O O O O .
+# 5  O @ O O O @ O .
+# 6  O O @ O @ O O .
+# 7  O O O O O O O .
+# 8 . . . . . . . .
+# Player to move: BLACK
+#
+#                          |1       2       3       4       5       6       7       8       |
+#                          |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-b-after;wwwwwww.wwbwbww.wbwwwbw.wwwwwww.wbwwwbw.wwbwbww.wwwwwww.........;b;Test case MAKE MOVE B: after the d4 move;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ @ @ @ @ @ @ O
+# 2  @ @ @ @ @ @ @ O
+# 3  @ @ @ @ @ @ @ O
+# 4  @ @ @ . @ @ @ O
+# 5  @ @ @ @ @ @ @ O
+# 6  @ @ @ @ @ @ @ O
+# 7  @ @ @ @ @ @ @ O
+# 8  O O O O O O O O
+# Player to move: WHITE
+#
+#                           |1       2       3       4       5       6       7       8       |
+#                           |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-c-before;bbbbbbbwbbbbbbbwbbbbbbbwbbb.bbbwbbbbbbbwbbbbbbbwbbbbbbbwwwwwwwww;w;Test case MAKE MOVE C: before the move;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ @ @ @ @ @ @ O
+# 2  @ @ @ @ @ @ @ O
+# 3  @ @ @ @ @ @ @ O
+# 4  @ @ @ O O O O O
+# 5  @ @ @ O O @ @ O
+# 6  @ @ @ O @ O @ O
+# 7  @ @ @ O @ @ O O
+# 8  O O O O O O O O
+# Player to move: BLACK
+#
+#                          |1       2       3       4       5       6       7       8       |
+#                          |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-c-after;bbbbbbbwbbbbbbbwbbbbbbbwbbbwwwwwbbbwwbbwbbbwbwbwbbbwbbwwwwwwwwww;b;Test case MAKE MOVE C: after the d4 move;
+#
+#
+#
+#    a b c d e f g h
+# 1  . @ . . O . . .
+# 2  . O . O . . . .
+# 3  @ @ @ . . . . .
+# 4  @ . @ . O . . .
+# 5  @ @ @ . . . . .
+# 6  . O . @ . . . .
+# 7  . @ . . O . . .
+# 8  . O . . . . . .
+# Player to move: WHITE
+#
+#                           |1       2       3       4       5       6       7       8       |
+#                           |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-d-before;.b..w....w.w....bbb.....b.b.w...bbb......w.b.....b..w....w......;w;Test case MAKE MOVE D: before the move;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . @ . . O . . .
+# 2  . O . O . . . .
+# 3  @ O O . . . . .
+# 4  @ O @ . O . . .
+# 5  @ O O . . . . .
+# 6  . O . O . . . .
+# 7  . @ . . O . . .
+# 8  . O . . . . . .
+# Player to move: BLACK
+#
+#                          |1       2       3       4       5       6       7       8       |
+#                          |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+make-move-test-case-d-after;.b..w....w.w....bww.....bwb.w...bww......w.w.....b..w....w......;b;Test case MAKE MOVE D: after the b4 move;
+error----------------------;.b..w....w.w....bww.....bwb.w...bww......w.w.....b..w....w......;x;ERROR;
+error----------------------;.b..w....w.w....bww.....bwb.w...bww......w.w.....b..w....w......;x;ERROR;
+error----------------------;.b..w....w.w....bww.....bwb.w...bww......w.w.....b..w....w......;x;ERROR;
