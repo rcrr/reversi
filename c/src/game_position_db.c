@@ -128,9 +128,10 @@ gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log)
   return syntax_error_log;
 }
 
-GString *
+gchar *
 gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
 {
+  gchar   *result;
   GString *msg;
   GSList  *element;
 
@@ -140,13 +141,15 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
   do {
     GamePositionDbEntrySyntaxError *syntax_error = (GamePositionDbEntrySyntaxError *) element->data;
     if (syntax_error != NULL) {
-      GString *s = gpdb_entry_syntax_error_print(syntax_error);
-      msg = g_string_append(msg, s->str);
-      g_string_free(s, TRUE);
+      gchar *s = gpdb_entry_syntax_error_print(syntax_error);
+      msg = g_string_append(msg, s);
+      g_free(s);
     }
   } while ((element = g_slist_next(element)) != NULL);
 
-  return msg;
+  result = msg->str;
+  g_string_free(msg, FALSE);
+  return result;
 }
 
 int
@@ -248,7 +251,7 @@ gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *error)
 }
 
 /**
- * @brief Returns a formatted `GString` holding a represention of the syntax error.
+ * @brief Returns a formatted string holding a represention of the syntax error.
  *
  * The returned structure has a dynamic extent set by a call to malloc.
  * It must then properly garbage collected by a call to free when no more referenced.
@@ -258,15 +261,20 @@ gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *error)
  * @param [in] syntax_error a pointer to the syntax error structure
  * @return                  a message describing the error structure
  */
-GString *
+gchar *
 gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *syntax_error)
 {
+  gchar *result;
+
   gchar et_string[128];
 
   GString *msg = g_string_new("");
 
-  if (!syntax_error)
-    return msg;
+  if (!syntax_error) {
+    result = msg->str;
+    g_string_free(msg, FALSE);
+    return result;
+  }
 
   GamePositionDbEntrySyntaxErrorType et = syntax_error->error_type;
 
@@ -331,7 +339,9 @@ gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *synta
 
   g_string_free(l, TRUE);
 
-  return msg;
+  result = msg->str;
+  g_string_free(msg, FALSE);
+  return result;
 }
 
 
@@ -540,7 +550,7 @@ gpdb_print_summary (GamePositionDb *db)
   g_string_append_printf(msg, "The Game Position Database has %d entr%s.\n",
                          entry_count, (entry_count == 1) ? "y" : "ies");
 
-  g_string_append_printf(msg, "Database Description: %s\n\n", db->desc);
+  g_string_append_printf(msg, "Database Description: %s\n", db->desc);
 
   result = msg->str;
   g_string_free(msg, FALSE);

@@ -117,9 +117,9 @@ main (int argc, char *argv[])
 
   /* Prints the error log if the OPTION -e is turned on. */
   if (log_errors) {
-    GString *syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
-    g_print("%s", syntax_error_log_to_string->str);
-    g_string_free(syntax_error_log_to_string, TRUE);
+    gchar *syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
+    g_print("%s", syntax_error_log_to_string);
+    g_free(syntax_error_log_to_string);
   }
 
   /* Prints the entry list if the OPTION -l is turned on. */
