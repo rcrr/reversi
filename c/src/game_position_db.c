@@ -4,9 +4,9 @@
  * @brief Data Base utilities and programs for `GamePosition` structures.
  * @details This executable read and write game position db.
  *
- * @todo Write a program that read and validate a database file.
  * @todo Verify that a new entry is not replacing an existing one.
- * @todo Write a print function for the Entry.
+ * @todo Write documentation.
+ * @todo Check memory leaks with valgrind.
  * @todo Write al the missing tests.
  *
  * @par game_position_db.c
