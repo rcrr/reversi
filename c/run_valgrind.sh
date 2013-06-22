@@ -1,13 +1,10 @@
 #!/bin/bash
 
-PROG=./build/test/bin/board_test
-ARGS=
+PROG=./build/bin/gpdb_verify
+ARGS="-f db/gpdb-sample-games.txt"
 
-G_SLICE=always-malloc
-G_DEBUG=gc-friendly
 
-OPTIONS_PLUS=--gen-suppressions=all
-
+G_SLICE=always-malloc G_DEBUG=gc-friendly \
 valgrind -v --tool=memcheck \
             --leak-check=full \
             --num-callers=40 \
