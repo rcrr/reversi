@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PROG=./build/bin/gpdb_verify
-ARGS="-f db/gpdb-sample-games.txt"
+ARGS="-f db/gpdb-sample-games.txt -l"
 
 
 G_SLICE=always-malloc G_DEBUG=gc-friendly \

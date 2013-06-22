@@ -146,7 +146,6 @@ main (int argc, char *argv[])
     gpdb_syntax_error_log_free(syntax_error_log);
 
   g_option_context_free(context);
-  //g_option_group_free(option_group);
 
   return 0;
 }

@@ -6,7 +6,6 @@
  *
  * @todo Verify that a new entry is not replacing an existing one.
  * @todo Write documentation.
- * @todo Check memory leaks with valgrind.
  * @todo Write al the missing tests.
  *
  * @par game_position_db.c
@@ -869,7 +868,7 @@ extract_entry_from_line (gchar                           *line,
   /* Extracts the description field. */
   cp0 = cp1 + 1;
   if ((cp1 = strchr(cp0, field_separator)) != NULL) {
-    entry->desc = g_malloc(((cp1 - cp0) + 1) * sizeof(entry->desc));
+    entry->desc = g_malloc0(((cp1 - cp0) + 1) * sizeof(entry->desc));
     strncpy(entry->desc, cp0, cp1 - cp0);
   } else {
     error_msg = g_string_new("");
