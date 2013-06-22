@@ -55,7 +55,8 @@ typedef enum {
   GPDB_ENTRY_SYNTAX_ERROR_PLAYER_IS_NOT_ONE_CHAR,  /**< Error on player field, it must be composed by one char. */
   GPDB_ENTRY_SYNTAX_ERROR_PLAYER_CHAR_IS_INVALID,  /**< Error on player field, it must be either b or w. */
   GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID, /**< Error on parsing the player field. */
-  GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID    /**< Error on parsing the description field. */
+  GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID,   /**< Error on parsing the description field. */
+  GPDB_ENTRY_SYNTAX_ERROR_DUPLICATE_ENTRY_KEY      /**< Duplicate key error. */
 } GamePositionDbEntrySyntaxErrorType;
 
 /**

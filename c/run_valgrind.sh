@@ -1,7 +1,8 @@
 #!/bin/bash
 
 PROG=./build/bin/gpdb_verify
-ARGS="-f db/gpdb-sample-games.txt -l"
+#ARGS="./build/bin/gpdb_verify -f db/gpdb-test-db.txt -q duplicate-entry"
+ARGS="./build/bin/gpdb_verify -f db/gpdb-sample-games.txt -q empty"
 
 
 G_SLICE=always-malloc G_DEBUG=gc-friendly \

@@ -4,7 +4,6 @@
  * @brief Data Base utilities and programs for `GamePosition` structures.
  * @details This executable read and write game position db.
  *
- * @todo Verify that a new entry is not replacing an existing one.
  * @todo Write documentation.
  * @todo Write al the missing tests.
  *
@@ -190,7 +189,7 @@ gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
                              char                               *error_message)
 {
   g_assert(error_type >= GPDB_ENTRY_SYNTAX_ERROR_ON_ID && 
-           error_type <= GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID);
+           error_type <= GPDB_ENTRY_SYNTAX_ERROR_DUPLICATE_ENTRY_KEY);
 
   GamePositionDbEntrySyntaxError *e;
 
@@ -324,6 +323,9 @@ gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *synta
     break;
   case GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID:
     strcpy(et_string, "The description field is not correctly assigned or terminated.");
+    break;
+  case GPDB_ENTRY_SYNTAX_ERROR_DUPLICATE_ENTRY_KEY:
+    strcpy(et_string, "The key for the entry has been already loaded.");
     break;
   default:
     abort();
@@ -474,14 +476,27 @@ gpdb_load (FILE                          *fp,
     GamePositionDbEntrySyntaxError *syntax_error = NULL;
     GamePositionDbEntry *entry = NULL;
     extract_entry_from_line(line, line_number, source, &entry, &syntax_error);
-    if (syntax_error) {
-      tmp_syntax_error_log = g_slist_prepend(tmp_syntax_error_log, syntax_error);
-    } else {
-      g_free(line);
-      if (entry) {
-        g_tree_insert(tree, entry->id, entry);
+    if (entry) {
+      if (g_tree_lookup(tree, entry->id)) {
+        syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_DUPLICATE_ENTRY_KEY,
+                                                   g_strdup(source),
+                                                   line_number,
+                                                   line,
+                                                   g_strdup_printf("id \"%s\" is duplicated.", entry->id));
+        entry = gpdb_entry_free(entry, TRUE);
+      } else {
+        g_tree_insert(tree, g_strdup(entry->id), entry);
+        g_free(line);
       }
     }
+
+    if (syntax_error) {
+      tmp_syntax_error_log = g_slist_prepend(tmp_syntax_error_log, syntax_error);
+    }
+
+    if (!entry && !syntax_error)
+      g_free(line);
+
     line = NULL;
 
   } while (ret != G_IO_STATUS_EOF);
@@ -917,7 +932,8 @@ static void
 gpdb_tree_key_destroy_function (gpointer data)
 {
   char *id = (char *) data;
-  if (id) ; // Nothing to do here.
+  if (id)
+    g_free(id);
 }
 
 /**
