@@ -101,7 +101,7 @@ gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
 extern GamePositionDbEntrySyntaxError *
 gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *syntax_error);
 
-extern GString *
+extern gchar *
 gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *syntax_error);
 
 
@@ -116,8 +116,11 @@ gpdb_syntax_error_log_new (void);
 extern GamePositionDbSyntaxErrorLog *
 gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log);
 
-extern GString *
+extern gchar *
 gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log);
+
+extern int
+gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log);
 
 
 
@@ -145,6 +148,9 @@ gpdb_lookup (GamePositionDb *db,
 
 extern gchar *
 gpdb_print (GamePositionDb *db);
+
+extern gchar *
+gpdb_print_summary (GamePositionDb *db);
 
 /***********************************************************/
 /* Function prototypes for the GamePositionDbEntry entity. */ 

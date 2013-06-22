@@ -4,9 +4,9 @@
  * @brief Data Base utilities and programs for `GamePosition` structures.
  * @details This executable read and write game position db.
  *
- * @todo Write a program that read and validate a database file.
  * @todo Verify that a new entry is not replacing an existing one.
- * @todo Write a print function for the Entry.
+ * @todo Write documentation.
+ * @todo Check memory leaks with valgrind.
  * @todo Write al the missing tests.
  *
  * @par game_position_db.c
@@ -85,9 +85,9 @@ gpdb_syntax_error_log_destroy_function (gpointer data);
  * Public functions.
  */
 
-/******************************************************************************/
+/*************************************************************************/
 /* Function implementations for the GamePositionDbSyntaxErrorLog entity. */ 
-/******************************************************************************/
+/*************************************************************************/
 
 /**
  * @brief Game position database syntax error log constructor.
@@ -101,10 +101,7 @@ GamePositionDbSyntaxErrorLog *
 gpdb_syntax_error_log_new (void)
 {
   GamePositionDbSyntaxErrorLog *syntax_error_log;
-
-  syntax_error_log = g_slist_alloc();
-  g_assert(syntax_error_log);
-
+  syntax_error_log = NULL;
   return syntax_error_log;
 }
 
@@ -131,28 +128,35 @@ gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log)
   return syntax_error_log;
 }
 
-GString *
+gchar *
 gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
 {
+  gchar   *result;
   GString *msg;
   GSList  *element;
 
   msg = g_string_new("");
   element = syntax_error_log;
 
-  while ((element = g_slist_next(element)) != NULL) {
+  do {
     GamePositionDbEntrySyntaxError *syntax_error = (GamePositionDbEntrySyntaxError *) element->data;
     if (syntax_error != NULL) {
-      GString *s = gpdb_entry_syntax_error_print(syntax_error);
-      msg = g_string_append(msg, s->str);
-      g_string_free(s, TRUE);
+      gchar *s = gpdb_entry_syntax_error_print(syntax_error);
+      msg = g_string_append(msg, s);
+      g_free(s);
     }
-  }
+  } while ((element = g_slist_next(element)) != NULL);
 
-  return msg;
+  result = msg->str;
+  g_string_free(msg, FALSE);
+  return result;
 }
 
-
+int
+gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
+{
+  return g_slist_length(syntax_error_log);
+}
 
 /***************************************************************************/
 /* Function implementations for the GamePositionDbEntrySyntaxError entity. */ 
@@ -247,7 +251,7 @@ gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *error)
 }
 
 /**
- * @brief Returns a formatted `GString` holding a represention of the syntax error.
+ * @brief Returns a formatted string holding a represention of the syntax error.
  *
  * The returned structure has a dynamic extent set by a call to malloc.
  * It must then properly garbage collected by a call to free when no more referenced.
@@ -257,15 +261,20 @@ gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *error)
  * @param [in] syntax_error a pointer to the syntax error structure
  * @return                  a message describing the error structure
  */
-GString *
+gchar *
 gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *syntax_error)
 {
+  gchar *result;
+
   gchar et_string[128];
 
   GString *msg = g_string_new("");
 
-  if (!syntax_error)
-    return msg;
+  if (!syntax_error) {
+    result = msg->str;
+    g_string_free(msg, FALSE);
+    return result;
+  }
 
   GamePositionDbEntrySyntaxErrorType et = syntax_error->error_type;
 
@@ -330,7 +339,9 @@ gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *synta
 
   g_string_free(l, TRUE);
 
-  return msg;
+  result = msg->str;
+  g_string_free(msg, FALSE);
+  return result;
 }
 
 
@@ -511,20 +522,35 @@ gpdb_print (GamePositionDb *db)
 {
   gchar   *result;
   GTree   *t;
+  GString *msg;
+
+  msg = g_string_new("");
+  t = db->tree;
+
+  g_tree_foreach(t, (GTraverseFunc) print_entry, &msg);
+
+  result = msg->str;
+  g_string_free(msg, FALSE);
+
+  return result;
+}
+
+gchar *
+gpdb_print_summary (GamePositionDb *db)
+{
+  gchar   *result;
+  GTree   *t;
   int      entry_count;
   GString *msg;
 
   msg = g_string_new("");
-
   t = db->tree;
   entry_count = g_tree_nnodes(t);
 
   g_string_append_printf(msg, "The Game Position Database has %d entr%s.\n",
                          entry_count, (entry_count == 1) ? "y" : "ies");
 
-  g_string_append_printf(msg, "Database Description: %s\n\n", db->desc);
-
-  g_tree_foreach(t, (GTraverseFunc) print_entry, &msg);
+  g_string_append_printf(msg, "Database Description: %s\n", db->desc);
 
   result = msg->str;
   g_string_free(msg, FALSE);

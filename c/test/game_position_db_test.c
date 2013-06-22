@@ -65,53 +65,6 @@ assert_gpdb_load_logs_error (char                               *line,
 
 
 
-static void
-gpdb_print (void)
-{
-  printf("\ngdb_print: START\n");
-
-  GamePositionDb               *db;
-  GamePositionDbSyntaxErrorLog *syntax_error_log;
-  FILE                         *fp;
-  GError                       *error;
-  GString                      *syntax_error_log_to_string;
-  gchar                        *source;
-
-  source = g_strdup("db/gpdb-sample-games.txt");
-
-  /* Loads the game position database. */
-  fp = fopen(source, "r");
-  if (!fp) {
-    printf("Unable to open database test file \"db/gpdb-sample-games.txt\" for reading.\n.");
-    g_test_fail();
-    return;
-  }
-  db = gpdb_new(g_strdup("Sample games for teseting database."));
-  syntax_error_log = NULL;
-  error = NULL;
-  gpdb_load(fp, source, db, &syntax_error_log, &error);
-  g_free(source);
-  fclose(fp);
-
-  GamePositionDbEntry *entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, "early-game-c-12-moves");
-  gchar *gp_to_string = game_position_print(entry->game_position);
-  printf("%s", gp_to_string);
-  g_free(gp_to_string);
-
-  syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
-  printf("%s", syntax_error_log_to_string->str);
-  g_string_free(syntax_error_log_to_string, TRUE);
-
-  /* Removes the tmp file, frees the resources. */
-  g_free(error);
-  gpdb_free(db, TRUE);
-  if (syntax_error_log)
-    gpdb_syntax_error_log_free(syntax_error_log);
-
-  printf("\ngdb_print: END\n");
-
-  g_assert(TRUE);
-}
 
 int
 main (int   argc,
@@ -122,8 +75,6 @@ main (int   argc,
   g_test_add_func("/game_position_db/gpdb_load-returned_errors", gpdb_load_returned_errors_test);
   g_test_add_func("/game_position_db/gpdb_entry_syntax_error_print", gpdb_entry_syntax_error_print_test);
   g_test_add_func("/game_position_db/gpdb_load", gpdb_load_test);
-
-  g_test_add_func("/tmp/gpdb_print", gpdb_print);
 
   return g_test_run();
 }
@@ -239,7 +190,7 @@ static void
 gpdb_entry_syntax_error_print_test (void)
 {
   GamePositionDbEntrySyntaxError *syntax_error;
-  GString                        *msg;
+  gchar                          *msg;
   GString                        *expected;
 
   syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_ON_ID,
@@ -253,8 +204,8 @@ gpdb_entry_syntax_error_print_test (void)
                           "Source label:  dummy-source\n"
                           "Line number:   123\n"
                           "Line:          a-record-line\n");
-  g_assert_cmpstr(expected->str, ==, msg->str);
-  g_string_free(msg,      TRUE);
+  g_assert_cmpstr(expected->str, ==, msg);
+  g_free(msg);
   g_string_free(expected, TRUE);
   gpdb_entry_syntax_error_free(syntax_error);
 }

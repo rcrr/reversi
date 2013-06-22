@@ -37,15 +37,19 @@
 
 #include "game_position_db.h"
 
-static gchar    *input_file  = NULL;
-static gboolean  log_entries = FALSE;
-static gboolean  log_errors  = FALSE;
+static gchar    *input_file    = NULL;
+static gboolean  print_summary = FALSE;
+static gboolean  log_entries   = FALSE;
+static gboolean  log_errors    = FALSE;
+static gchar    *lookup_entry  = NULL;
 
 static GOptionEntry entries[] =
   {
-    { "file",        'f', 0, G_OPTION_ARG_FILENAME, &input_file,  "Input file name", NULL }, 
-    { "log-entries", 'l', 0, G_OPTION_ARG_NONE,     &log_entries, "Log entries",     NULL },
-    { "log-errors",  'e', 0, G_OPTION_ARG_NONE,     &log_errors,  "Log errors",      NULL },
+    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name", NULL }, 
+    { "print-summary", 'p', 0, G_OPTION_ARG_NONE,     &print_summary, "Print summary",   NULL },
+    { "log-entries",   'l', 0, G_OPTION_ARG_NONE,     &log_entries,   "Log entries",     NULL },
+    { "log-errors",    'e', 0, G_OPTION_ARG_NONE,     &log_errors,    "Log errors",      NULL },
+    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry,  "Lookup entry",    NULL },
     { NULL }
   };
 
@@ -59,16 +63,16 @@ main (int argc, char *argv[])
   GamePositionDbSyntaxErrorLog *syntax_error_log;
   FILE                         *fp;
   GError                       *error;
-  GString                      *syntax_error_log_to_string;
   gchar                        *source;
-
+  int                           number_of_errors;
 
   GOptionContext *context;
   GOptionGroup   *option_group;
 
   error = NULL;
-  option_group = g_option_group_new("name", "description", "help_description", NULL, NULL);
 
+  /* GLib command line options and argument parsing. */
+  option_group = g_option_group_new("name", "description", "help_description", NULL, NULL);
   context = g_option_context_new ("- Verify a database of game positions");
   g_option_context_add_main_entries (context, entries, NULL);
   g_option_context_add_group (context, option_group);
@@ -100,20 +104,40 @@ main (int argc, char *argv[])
   g_free(source);
   fclose(fp);
 
-  gchar *gpdb_to_string = gpdb_print(db);
-  g_print("%s", gpdb_to_string);
-  g_free(gpdb_to_string);
+  /* Compute the number of errors logged. */
+  number_of_errors = gpdb_syntax_error_log_length(syntax_error_log);
 
-  GamePositionDbEntry *entry = gpdb_lookup(db, "early-game-c-12-moves");
-  if (entry) {
-    gchar *tmp = gpdb_entry_print(entry);
-    g_print("%s", tmp);
-    g_free(tmp);
+  /* Prints the database summary if the OPTION -p is turned on. */
+  if (print_summary) {
+    gchar *summary = gpdb_print_summary(db);
+    g_print("%s", summary);
+    g_free(summary);
+    g_print("Number of errors: %d\n", number_of_errors);
   }
 
-  syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
-  g_print("%s", syntax_error_log_to_string->str);
-  g_string_free(syntax_error_log_to_string, TRUE);
+  /* Prints the error log if the OPTION -e is turned on. */
+  if (log_errors) {
+    gchar *syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
+    g_print("%s", syntax_error_log_to_string);
+    g_free(syntax_error_log_to_string);
+  }
+
+  /* Prints the entry list if the OPTION -l is turned on. */
+  if (log_entries) {
+    gchar *gpdb_to_string = gpdb_print(db);
+    g_print("%s", gpdb_to_string);
+    g_free(gpdb_to_string);
+  }
+
+  /* Lookup for a given key. */
+  if (lookup_entry) {
+    GamePositionDbEntry *entry = gpdb_lookup(db, lookup_entry);
+    if (entry) {
+      gchar *tmp = gpdb_entry_print(entry);
+      g_print("%s", tmp);
+      g_free(tmp);
+    }
+  }
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);
