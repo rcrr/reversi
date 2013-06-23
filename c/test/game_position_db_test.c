@@ -46,6 +46,7 @@
 
 /* Test function prototypes. */
 
+static void gpdb_load_duplicate_test (void);
 static void gpdb_load_returned_errors_test (void);
 static void gpdb_load_test (void);
 static void gpdb_entry_syntax_error_print_test (void);
@@ -72,7 +73,8 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
 
-  g_test_add_func("/game_position_db/gpdb_load-returned_errors", gpdb_load_returned_errors_test);
+  g_test_add_func("/game_position_db/gpdb_load_duplicate", gpdb_load_duplicate_test);
+  g_test_add_func("/game_position_db/gpdb_load_returned_errors", gpdb_load_returned_errors_test);
   g_test_add_func("/game_position_db/gpdb_entry_syntax_error_print", gpdb_entry_syntax_error_print_test);
   g_test_add_func("/game_position_db/gpdb_load", gpdb_load_test);
 
@@ -84,6 +86,12 @@ main (int   argc,
 /*
  * Test functions.
  */
+
+static void
+gpdb_load_duplicate_test (void)
+{
+  g_test_fail();
+}
 
 static void
 gpdb_load_returned_errors_test (void)

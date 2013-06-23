@@ -170,9 +170,11 @@ gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
  * game position database syntax error structure is not `NULL`.
  *
  * Parameters `source`, `line`, and `error_message` must be dynamically allocated
- * if the `gpdb_entry_syntax_error_free` function will be called on the returned
- * structure's pointer.
- * When one of this parameter is `NULL` the value `"N\A"` is assigned.
+ * if the #gpdb_entry_syntax_error_free destructor function will be called on the
+ * returnedstructure's pointer.
+ * When one of this parameter is `NULL` the value `"N/A"` is assigned.
+ * These parameters are property of the structure and must be freed only by the
+ * structure destructor.
  *
  * @param [in] error_type    the type of the error
  * @param [in] source        the label identifying the source input
