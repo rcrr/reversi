@@ -442,6 +442,9 @@ gpdb_free (GamePositionDb *db,
  * @brief Lookups into the `db` database.
  * It searches for an entry that match with the `entry_id` key.
  *
+ * @invariant Parameter `db` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
  * @param [in] db       a pointer to the data base that is updated
  * @param [in] entry_id the entry key to search for 
  * @return              the matching db entry or null when the query fails
@@ -450,6 +453,8 @@ GamePositionDbEntry *
 gpdb_lookup (GamePositionDb *db,
              gchar          *entry_id)
 {
+  g_assert(db);
+
   GamePositionDbEntry *entry;
   entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, entry_id);
   return entry;
@@ -550,12 +555,17 @@ gpdb_load (FILE                          *fp,
  * The returned structure has a dynamic extent set by a call to g_malloc.
  * It must then properly garbage collected by a call to g_free when no more referenced.
  *
+ * @invariant Parameter `db` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
  * @param [in] db a pointer to the db structure
  * @return        a message describing the db structure
  */
 gchar *
 gpdb_print (GamePositionDb *db)
 {
+  g_assert(db);
+
   gchar   *result;
   GTree   *t;
   GString *msg;
@@ -577,12 +587,17 @@ gpdb_print (GamePositionDb *db)
  * The returned structure has a dynamic extent set by a call to g_malloc.
  * It must then properly garbage collected by a call to g_free when no more referenced.
  *
+ * @invariant Parameter `db` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
  * @param [in] db a pointer to the db structure
  * @return        a short message describing the db structure
  */
 gchar *
 gpdb_print_summary (GamePositionDb *db)
 {
+  g_assert(db);
+
   gchar   *result;
   GTree   *t;
   int      entry_count;
@@ -601,6 +616,22 @@ gpdb_print_summary (GamePositionDb *db)
   g_string_free(msg, FALSE);
 
   return result;
+}
+
+/**
+ * @brief Returns the number of items contained by db.
+ *
+ * @invariant Parameter `db` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] db a pointer to the db structure
+ * @return        the number of entries in the db
+ */
+int
+gpdb_length (GamePositionDb *db)
+{
+  g_assert(db);
+  return g_tree_nnodes(db->tree);
 }
 
 

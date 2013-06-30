@@ -167,6 +167,9 @@ gpdb_print (GamePositionDb *db);
 extern gchar *
 gpdb_print_summary (GamePositionDb *db);
 
+extern int
+gpdb_length (GamePositionDb *db);
+
 /***********************************************************/
 /* Function prototypes for the GamePositionDbEntry entity. */ 
 /***********************************************************/
