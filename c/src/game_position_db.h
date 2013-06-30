@@ -65,14 +65,14 @@ typedef enum {
 /**
  * @brief A syntax error in processing entries in a game position database.
  *
- * Fields must be kept private, the delete function frees all them.
+ * Fields must be kept private, the #gpdb_entry_syntax_error_free function frees them all.
  */
 typedef struct {
-  GamePositionDbEntrySyntaxErrorType  error_type;      /**< @brief TO BE DEFINED. */
-  gchar                              *source;          /**< @brief TO BE DEFINED. */
-  int                                 line_number;     /**< @brief TO BE DEFINED. */
-  gchar                              *line;            /**< @brief TO BE DEFINED. */
-  gchar                              *error_message;   /**< @brief TO BE DEFINED. */
+  GamePositionDbEntrySyntaxErrorType  error_type;      /**< @brief The type of the error. */
+  gchar                              *source;          /**< @brief A string describing the input stream that is the source of he error. */
+  int                                 line_number;     /**< @brief The line number in the input stream that generated the error. */
+  gchar                              *line;            /**< @brief A string holding the incorrect line. */
+  gchar                              *error_message;   /**< @brief A detailed error message. */
 } GamePositionDbEntrySyntaxError;
 
 /**
@@ -96,8 +96,8 @@ typedef struct {
  * Fields must be kept private, the #gpdb_free function frees them all.
  */
 typedef struct {
-  GTree  *tree;     /**< @brief TO BE DEFINED. */
-  gchar  *desc;     /**< @brief TO BE DEFINED. */
+  GTree  *tree;     /**< @brief The underlaying tree structure. */
+  gchar  *desc;     /**< @brief The description of the datatbase. */
 } GamePositionDb;
 
 

@@ -156,6 +156,8 @@ gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
   return g_slist_length(syntax_error_log);
 }
 
+
+
 /***************************************************************************/
 /* Function implementations for the GamePositionDbEntrySyntaxError entity. */ 
 /***************************************************************************/
