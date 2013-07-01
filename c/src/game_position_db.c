@@ -4,9 +4,6 @@
  * @brief Data Base utilities and programs for `GamePosition` structures.
  * @details This executable read and write game position db.
  *
- * @todo Write documentation.
- * @todo Write al the missing tests.
- *
  * @par game_position_db.c
  * <tt>
  * This file is part of the reversi program
