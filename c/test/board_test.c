@@ -50,6 +50,7 @@ static void board_compare_test (void);
 static void board_count_pieces_test (void);
 static void board_new_test (void);
 static void board_print_test (void);
+static void board_is_move_legal_test (void);
 static void player_color_test (void);
 static void player_description_test (void);
 static void player_opponent_test (void);
@@ -70,6 +71,7 @@ main (int   argc,
   g_test_add_func("/board/board_count_pieces_test", board_count_pieces_test);
   g_test_add_func("/board/board_new_test", board_new_test);
   g_test_add_func("/board/board_print_test", board_print_test);
+  g_test_add_func("/board/board_is_move_legal_test", board_is_move_legal_test);
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
   g_test_add_func("/board/player_opponent_test", player_opponent_test);
@@ -283,4 +285,17 @@ game_position_print_test (void)
   game_position_free(gp);
   g_free(gp_to_string);
   g_string_free(expected, TRUE);
+}
+
+static void
+board_is_move_legal_test (void)
+{
+  Board    *b;
+  gboolean  is_legal;
+
+  b = board_new(1LLU, 2LLU);
+
+  g_assert(FALSE == board_is_move_legal(b, A1, WHITE_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, A1, BLACK_PLAYER));
+  g_assert(TRUE  == board_is_move_legal(b, C1, BLACK_PLAYER));
 }

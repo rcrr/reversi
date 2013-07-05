@@ -263,7 +263,13 @@ board_is_move_legal (const Board  *const b,
   g_assert(move >= A1 && move <= H8);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
-  return 0;
+  SquareSet bitmove;
+
+  bitmove = 1ULL << move;
+
+  if ((board_empties(b) & bitmove) == 0ULL) return FALSE;
+
+  return TRUE;
 }
 
 /**
