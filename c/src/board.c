@@ -48,6 +48,18 @@ static const SquareSet ALL_SQUARES_EXCEPT_COLUMN_A = 0xFEFEFEFEFEFEFEFEULL;
 /* A square set being all set with the exception of column H. */
 static const SquareSet ALL_SQUARES_EXCEPT_COLUMN_H = 0x7F7F7F7F7F7F7F7FULL;
 
+/* A bitboard being set on column A. */
+static const SquareSet column_a = 0x0101010101010101ULL;
+
+/* A bitboard being set on diagonal A1-H8. */
+static const SquareSet diagonal_a1_h8 = 0x8040201008040201ULL;
+
+/* A bitboard being set on diagonal H1-A8. */
+static const SquareSet diagonal_h1_a8 = 0x0102040810204080ULL;
+
+/* A bitboard having set squares B1 F1 A2 E2. */
+static const SquareSet squares_b1_f1_a2_e2 = 0x1122;
+
 
 
 /***************************************************/
@@ -103,6 +115,113 @@ player_opponent (const Player p)
 }
 
 
+
+/**************************************************/
+/* Function implementations for the Board entity. */ 
+/**************************************************/
+
+int
+axis_shift_distance (const Axis          axis,
+                     const unsigned char column,
+                     const unsigned char row)
+{
+  switch (axis) {
+  case HO:
+    return 8 * -row;
+  case VE:
+    return -column;
+  case DD:
+    return (column - row) << 3;
+  case DU:
+    return (7 - column - row) << 3;
+  default:
+    abort();
+    return EXIT_FAILURE;
+  }
+}
+
+unsigned char
+axis_move_ordinal_position_in_bitrow (const Axis          axis,
+                                      const unsigned char column,
+                                      const unsigned char row)
+{
+  switch (axis) {
+  case VE:
+    return row;
+  default:
+    return column;
+  }
+}
+
+uint32
+axis_trasform_to_row_one (const Axis      axis,
+                          const SquareSet squares)
+{
+  SquareSet tmp;
+
+  switch (axis) {
+  case HO:
+    return ((uint32) squares) & 0xFF;
+  case VE:
+    tmp = squares;
+    tmp &= column_a;
+    tmp |= tmp >> 28;
+    tmp |= tmp >> 14;
+    tmp |= tmp >> 7;
+    return (uint32) tmp & 0xFF;
+  case DD:
+    tmp = squares;
+    tmp &= diagonal_a1_h8;
+    tmp |= tmp >> 32;
+    tmp |= tmp >> 16;
+    tmp |= tmp >> 8;
+    return (uint32) tmp & 0xFF;
+  case DU:
+    tmp = squares;
+    tmp &= diagonal_h1_a8;
+    tmp |= tmp >> 32;
+    tmp |= tmp >> 16;
+    tmp |= tmp >> 8;
+    return (uint32) tmp & 0xFF;
+  default:
+    abort();
+    return EXIT_FAILURE;
+  }
+}
+
+SquareSet
+axis_transform_back_from_row_one (const Axis   axis,
+                                  const uint32 bitrow)
+{
+  uint32 tmp;
+  SquareSet bit_board;
+
+  switch (axis) {
+  case HO:
+    return (SquareSet) bitrow;
+  case VE:
+    tmp = bitrow;
+    tmp |= tmp << 7;
+    tmp |= tmp << 14;
+    bit_board = (SquareSet) tmp | ((SquareSet) tmp << 28);
+    return bit_board & column_a;
+  case DD:
+    tmp = bitrow;
+    tmp |= tmp << 8;
+    bit_board = (SquareSet) tmp | ((SquareSet) tmp << 16);
+    bit_board |= bit_board << 32;
+    return bit_board & diagonal_a1_h8;
+  case DU:
+    tmp = bitrow;
+    tmp |= tmp << 8;
+    tmp |= (tmp & squares_b1_f1_a2_e2) << 16;
+    bit_board = (SquareSet) tmp | ((SquareSet) tmp << 32);
+    return bit_board & diagonal_h1_a8;
+  default:
+    abort();
+    return EXIT_FAILURE;
+  }
+}
 
 /**************************************************/
 /* Function implementations for the Board entity. */ 
@@ -263,11 +382,46 @@ board_is_move_legal (const Board  *const b,
   g_assert(move >= A1 && move <= H8);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
-  SquareSet bitmove;
+  SquareSet bit_move;
+  SquareSet p_bit_board;
+  SquareSet o_bit_board;
 
-  bitmove = 1ULL << move;
+  HiLo xy;
+  unsigned char column, row;
 
-  if ((board_empties(b) & bitmove) == 0ULL) return FALSE;
+  bit_move = 1ULL << move;
+
+  if ((board_empties(b) & bit_move) == 0ULL) return FALSE;
+
+  p_bit_board = board_get_player(b, p);
+  o_bit_board = board_get_player(b, player_opponent(p));
+
+  bitscan_MS1B_to_base8(&xy, bit_move);
+  column = xy.lo;
+  row    = xy.hi;
+
+  for (Axis axis = HO; axis <= DU; axis++) {
+    const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
+    const int shift_distance        = axis_shift_distance(axis, column, row);
+    //const int p_bitrow              = axis_transform_to_row_one(axis, ...);
+    //const int o_bitrow              = axis_transform_to_row_one(axis, ...);
+    //if (...) {
+    //  return TRUE;
+    //}
+  }
+
+  /*
+    for (final Axis axis : AXIS_VALUES) {
+      final int moveOrdPosition = axis.moveOrdinalPositionInBitrow(column, row);
+      final int shiftDistance   = axis.shiftDistance(column, row);
+      final int playerBitrow    = axis.transformToRowOne(BitWorks.signedLeftShift(playerBitboard,   shiftDistance));
+      final int opponentBitrow  = axis.transformToRowOne(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
+      if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, moveOrdPosition) != playerBitrow) {
+        return true;
+      }
+    }
+  */
+
 
   return TRUE;
 }
@@ -352,6 +506,41 @@ board_get_color (const Board       *const b,
     squares = b->blacks;
     break;
   case WHITE_SQUARE:
+    squares = b->whites;
+    break;
+  default:
+    abort();
+  }
+
+  return squares;
+}
+
+/**
+ * @brief Returns the #SquareSet of the #Board addressed by `b`
+ * corresponding to the #Player identified by `p`.
+ *
+ * @invariant Parameter `b` must be not `NULL`.
+ * Parameter `p` must belong to the #Player enum.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] b a pointer to the board structure
+ * @param [in] p a given player
+ * @return       the set of squares in the board belonging to the given player
+ */
+SquareSet
+board_get_player (const Board  *const b,
+                  const Player        p)
+{
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
+  SquareSet squares;
+
+  switch (p) {
+  case BLACK_PLAYER:
+    squares = b->blacks;
+    break;
+  case WHITE_PLAYER:
     squares = b->whites;
     break;
   default:

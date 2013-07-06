@@ -41,6 +41,18 @@ static const uint64 m32 = 0x00000000ffffffff; //binary: 32 zeros, 32 ones
 static const uint64 hff = 0xffffffffffffffff; //binary: all ones
 static const uint64 h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,3...
 
+/* Log 2 array */
+static const unsigned char log2_array[] = {
+  0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+};
+
 /*
  * This is a naive implementation, shown for comparison,
  * and to help in understanding the better functions.
@@ -101,3 +113,38 @@ static int popcount_4(uint64 x) {
     return count;
 }
 */
+
+/**
+ * Returns an HiLo struct of two int collecting the octal representation of the position of
+ * the most significant bit set in the `bit_sequence` parameter.
+ * The method does not verify that the `bit_sequence` parameter must be different from `0ULL`.
+ * When this happens it returns a value equal to `{hi=0, lo=0}` that is the expected
+ * value when the parameter is equal to `1ULL`.
+ *
+ * @param [out] result       a reference to the result struct
+ * @param [in]  bit_sequence a long value different from 0L
+ * @return                   the octal value of the position of the most significant bit set
+ *                           collected in a two cells struct
+ */
+void
+bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
+{
+  uint32 tmp;
+  unsigned char hi;
+
+  hi = 0;
+
+  if ((bit_sequence & 0xFFFFFFFF00000000) != 0ULL) {
+    tmp = (uint32) (bit_sequence >> 32);
+    hi += 4;
+  } else {
+    tmp = (uint32) bit_sequence;
+  }
+
+  if ((tmp & 0xFFFF0000) != 0) { tmp >>= 16; hi += 2; }
+  if ((tmp & 0x0000FF00) != 0) { tmp >>=  8; hi += 1; }
+  
+  result->hi = hi;
+  result->lo = log2_array[tmp];
+  return;
+}

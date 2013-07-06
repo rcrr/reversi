@@ -33,6 +33,8 @@
  * </tt>
  */
 
+#include "bit_works.h"
+
 #include <glib.h>
 
 #ifndef BOARD_H
@@ -129,6 +131,18 @@ typedef enum {
 } Direction;
 
 /**
+ * @enum Axis
+ * @brief The axes are the lines that pass throw a square, a general
+ * square has four axes.
+ */
+typedef enum {
+  HO,   /**< Horizontal axis (W-E). */
+  VE,   /**< Vertical axis (N-S). */
+  DD,   /**< Diagonal Down axis (NW-SE), A1-H8. */
+  DU    /**< Diagonal Up axis (NE-SW), A8-H1. */
+} Axis;
+
+/**
  * @typedef SquareSet
  * @brief The set of sixtyfour squares held by the board.
  */
@@ -153,6 +167,30 @@ typedef struct {
   Board *board;   /**< @brief Member board contains a pointer to a `Board` structure. */
   Player player;  /**< @brief Member player contains the next to move. */
 } GamePosition;
+
+
+
+/********************************************/
+/* Function prototypes for the Axis entity. */ 
+/********************************************/
+
+extern int
+axis_shift_distance (const Axis          axis,
+                     const unsigned char column,
+                     const unsigned char row);
+
+extern unsigned char
+axis_move_ordinal_position_in_bitrow (const Axis          axis,
+                                      const unsigned char column,
+                                      const unsigned char row);
+
+extern uint32
+axis_trasform_to_row_one (const Axis      axis,
+                          const SquareSet squares);
+
+extern SquareSet
+axis_transform_back_from_row_one (const Axis   axis,
+                                  const uint32 bitrow);
 
 
 
@@ -198,6 +236,9 @@ extern int board_is_move_legal(const Board *const b,
 extern SquareSet board_get_color(const Board       *const b,
                                  const SquareState        color
                                  );
+
+extern SquareSet board_get_player (const Board  *const b,
+                                   const Player        p);
 
 extern SquareSet board_empties(const Board *const b);
 

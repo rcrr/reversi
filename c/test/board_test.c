@@ -291,7 +291,6 @@ static void
 board_is_move_legal_test (void)
 {
   Board    *b;
-  gboolean  is_legal;
 
   b = board_new(1LLU, 2LLU);
 
