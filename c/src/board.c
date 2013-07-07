@@ -42,6 +42,22 @@
 #include "board.h"
 #include "bit_works.h"
 
+/*
+ * Prototypes for internal functions.
+ */
+
+static void
+initialize_bitrow_changes_for_player_array (unsigned char *array);
+
+static unsigned char
+board_bitrow_changes_for_player(int player_row, int opponent_row, int move_position);
+
+
+
+/*
+ * Internal variables and constants.
+ */
+
 /* A square set being all set with the exception of column A. */
 static const SquareSet ALL_SQUARES_EXCEPT_COLUMN_A = 0xFEFEFEFEFEFEFEFEULL;
 
@@ -59,6 +75,34 @@ static const SquareSet diagonal_h1_a8 = 0x0102040810204080ULL;
 
 /* A bitboard having set squares B1 F1 A2 E2. */
 static const SquareSet squares_b1_f1_a2_e2 = 0x1122;
+
+/*
+ * This array is an implementation of the precomputed table that contains the effects of moving
+ * a piece in any of the eigth squares in a row.
+ * The size is so computed:
+ *  - there are 256 arrangments of player discs,
+ *  - and 256 arrangements of opponent pieces,
+ *  - the potential moves are 8.
+ * So the array size is 256 * 256 * 8 = 524,288 Bytes = 512kB.
+ * Not all the entries are legal! The first set of eigth bits and the second one (opponent row)
+ * must not set the same position.
+ *
+ * The index of the array is computed by this formula:
+ * index = playerRow | (opponentRow << 8) | (movePosition << 16);
+ */
+static unsigned char bitrow_changes_for_player_array[524288]; 
+
+
+
+/************************************/
+/* Module initialization functions. */ 
+/************************************/
+
+void
+board_module_init (void)
+{
+  initialize_bitrow_changes_for_player_array(bitrow_changes_for_player_array);
+}
 
 
 
@@ -812,4 +856,31 @@ game_position_print (const GamePosition const *gp)
   g_free(b_to_string);
 
   return gp_to_string;
+}
+
+
+
+/*
+ * Internal functions.
+ */
+
+void
+initialize_bitrow_changes_for_player_array (unsigned char *array)
+{
+  array[0] = 1;
+  // .... and so on ....
+}
+
+/**
+ * Returns an 8-bit row representation of the player pieces after applying the move.
+ *
+ * @param player_row    8-bit bitboard corrosponding to player pieces
+ * @param opponent_row  8-bit bitboard corrosponding to opponent pieces
+ * @param move_position square to move
+ * @return              the new player's row index after making the move
+ */
+unsigned char
+board_bitrow_changes_for_player (int player_row, int opponent_row, int move_position) {
+  const int array_index = player_row | (opponent_row << 8) | (move_position << 16);
+  return bitrow_changes_for_player_array[array_index];
 }

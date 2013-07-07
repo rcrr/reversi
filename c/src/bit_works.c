@@ -148,3 +148,16 @@ bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
   result->lo = log2_array[tmp];
   return;
 }
+
+/**
+ * Returns a value computed shifting the `bit_sequence` parameter
+ * to left by a signed amount given by the `shift` parameter.
+ *
+ * @param bit_sequence the value that will be shifted
+ * @param shift        the number of position to shift
+ * @return             the shifted value
+ */
+uint64
+signed_left_shift (uint64 bit_sequence, int shift) {
+  return shift >= 0 ? bit_sequence << shift : bit_sequence >> -shift;
+}

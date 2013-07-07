@@ -62,4 +62,7 @@ popcount (uint64 x);
 extern void
 bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence);
 
+extern uint64
+signed_left_shift (uint64 bit_sequence, int shift);
+
 #endif /* BIT_WORKS_H */
