@@ -44,8 +44,29 @@
 
 static void dummy_test (void);
 static void bit_works_type_size_test (void);
-static void bitscan_MS1B_to_base8_test (void);
+static void bit_works_bitscan_MS1B_to_base8_test (void);
+static void bit_works_popcount_test (void);
+static void bit_works_signed_left_shift_test (void);
 
+/*
+extern uint64
+bit_works_signed_left_shift (uint64 bit_sequence, int shift);
+
+extern uint32
+bit_works_highest_bit_set_32 (uint32 bit_sequence);
+
+extern uint8
+bit_works_highest_bit_set_8 (uint8 bit_sequence);
+
+extern uint8
+bit_works_fill_in_between (uint8 bit_sequence);
+
+extern uint8
+bit_works_bitscanMS1B_64 (const uint64 bit_sequence);
+
+extern uint8
+bit_works_bitscanMS1B_8 (const uint8 bit_sequence);
+*/
 
 
 int
@@ -55,8 +76,10 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func("/bit_works/dummy", dummy_test);
+  g_test_add_func("/bit_works/bit_works_signed_left_shift_test", bit_works_signed_left_shift_test);
+  g_test_add_func("/bit_works/bit_works_popcount_test", bit_works_popcount_test);
   g_test_add_func("/bit_works/bit_works_type_size_test", bit_works_type_size_test);
-  g_test_add_func("/bit_works/bitscan_MS1B_to_base8_test", bitscan_MS1B_to_base8_test);
+  g_test_add_func("/bit_works/bit_works_bitscan_MS1B_to_base8_test", bit_works_bitscan_MS1B_to_base8_test);
 
   return g_test_run();
 }
@@ -74,6 +97,27 @@ dummy_test (void)
 }
 
 static void
+bit_works_signed_left_shift_test (void)
+{
+  /* Sanity check. */
+  g_assert(0x0000000000000000 == bit_works_signed_left_shift(0x0000000000000000,  0));
+  g_assert(0x0000000000000001 == bit_works_signed_left_shift(0x0000000000000001,  0));
+  g_assert(0xFFFFFFFFFFFFFFFF == bit_works_signed_left_shift(0xFFFFFFFFFFFFFFFF,  0));
+  g_assert(0xFFFFFFFFFFFFFF00 == bit_works_signed_left_shift(0xFFFFFFFFFFFFFFFF, +8));
+  g_assert(0x00FFFFFFFFFFFFFF == bit_works_signed_left_shift(0xFFFFFFFFFFFFFFFF, -8));
+}
+
+static void
+bit_works_popcount_test (void)
+{
+  g_assert(0  == bit_works_popcount(0x00ULL));
+  g_assert(1  == bit_works_popcount(0x01ULL));
+  g_assert(1  == bit_works_popcount(0x02ULL));
+  g_assert(2  == bit_works_popcount(0x03ULL));
+  g_assert(64 == bit_works_popcount(0xFFFFFFFFFFFFFFFFULL));
+}
+
+static void
 bit_works_type_size_test (void)
 {
   g_assert(8 == sizeof(uint64));
@@ -82,7 +126,7 @@ bit_works_type_size_test (void)
 }
 
 static void
-bitscan_MS1B_to_base8_test (void)
+bit_works_bitscan_MS1B_to_base8_test (void)
 {
   HiLo ret;
   uint64 bit_sequence;
