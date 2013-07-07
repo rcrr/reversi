@@ -95,7 +95,8 @@ static int popcount_2(uint64 x) {
  * @param [in] x the set that has to be counted
  * @return       the count of bit set in the `x` parameter
  */
-int popcount(uint64 x) {
+int
+bit_works_popcount (uint64 x) {
     x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
     x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
     x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
@@ -127,7 +128,7 @@ static int popcount_4(uint64 x) {
  *                           collected in a two cells struct
  */
 void
-bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
+bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
 {
   uint32 tmp;
   unsigned char hi;
@@ -150,7 +151,7 @@ bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
 }
 
 /**
- * Returns a value computed shifting the `bit_sequence` parameter
+ * @brief Returns a value computed shifting the `bit_sequence` parameter
  * to left by a signed amount given by the `shift` parameter.
  *
  * @param bit_sequence the value that will be shifted
@@ -158,6 +159,96 @@ bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
  * @return             the shifted value
  */
 uint64
-signed_left_shift (uint64 bit_sequence, int shift) {
+bit_works_signed_left_shift (uint64 bit_sequence, int shift) {
   return shift >= 0 ? bit_sequence << shift : bit_sequence >> -shift;
+}
+
+/**
+ * @brief Returns an int value having all the bit set in `bit_sequence` turned to `0`
+ * except the most significant one.
+ *
+ * When parameter `bit_sequence` is equal to `0` it returns `0`.
+ *
+ * @param bit_sequence the value analyzed
+ * @return             an value having set the bit most significative found in bit_sequence
+ */
+uint32
+bit_works_highest_bit_set_32 (uint32 bit_sequence) {
+  if (bit_sequence == 0x00000000) { return 0x00000000; }
+  uint32 result = 0x00000001;
+  uint32 tmp = bit_sequence;
+  if ((tmp & 0xFFFF0000) != 0x00000000) { tmp >>= 16; result = 0x00010000; }
+  if  (tmp > 0x000000FF)                { tmp >>=  8; result <<= 8; }
+  result <<= log2_array[tmp];
+  return result;
+}
+
+/**
+ * @brief Returns an int value having all the bit set in `bit_sequence` turned to `0`
+ * except the most significant one.
+ *
+ * When parameter `bit_sequence` is equal to `0` it returns `0`.
+ *
+ * @param bit_sequence the value analyzed
+ * @return             an value having set the bit most significative found in bit_sequence
+ */
+uint8
+bit_works_highest_bit_set_8 (uint8 bit_sequence) {
+  if (bit_sequence == 0x00) { return 0x00; }
+  uint8 result = 0x01;
+  result <<= log2_array[bit_sequence];
+  return result;
+}
+
+/**
+ * @brief The {@code bitsequence} parameter must have one or two bits set.
+ * The bits set have to be positioned among the eight bits on the right.
+ * Returns a bit sequence of 32 bits having set the bits between the two, or zero
+ * when only one bit is set.
+ * <p>
+ * For example:
+ * {@code 00000000.00000000.00000000.00100010} returns {@code 00000000.00000000.00000000.00011100}.
+ * <p>
+ * When the input data doesn't meet the requirements the result is unpredictable.
+ *
+ * @param bit_sequence the value to be scanned
+ * @return             a bit sequence having the internal bits set
+ */
+uint8
+bit_works_fill_in_between (uint8 bit_sequence) {
+  return ((0x01 << bit_works_bitscanMS1B_8(bit_sequence)) - 0x01)
+    & ((~bit_sequence & 0xFF) ^ (bit_sequence - 0x01));
+}
+
+/**
+ * @brief Returns the index of the most significant bit set in the `bit_sequence` parameter.
+ *
+ * Parameter `bit_sequence` must be different from `0`.
+ * If no bit set is found, meaning that `bit_sequence` is equal to `0`, `0` is
+ * returned, that is clearly a wrong value.
+ *
+ * The proposed technique does three divide and conqueror steps, then makes a lookup in a table
+ * hosting the log2 value for integers up to 255.
+ *
+ * So far it is the preferred choice for the reversi implementation.
+ *
+ * @param bit_sequence uint64 value that is scanned
+ * @return             the index `(0..63)` of the most significant bit set
+ */
+uint8
+bit_works_bitscanMS1B_64 (const uint64 bit_sequence) {
+  uint64 tmp = bit_sequence;
+  uint8 result = 0x00;
+  if ((tmp & 0xFFFFFFFF00000000) != 0ULL) { tmp >>= 32; result  = 32; }
+  if  (tmp > 0x000000000000FFFF)          { tmp >>= 16; result |= 16; }
+  if  (tmp > 0x00000000000000FF)          { tmp >>=  8; result |=  8; }
+  result |= log2_array[(int) tmp];
+  return result;
+}
+
+uint8
+bit_works_bitscanMS1B_8 (const uint8 bit_sequence) {
+  uint8 result = 0x00;
+  result |= log2_array[(int) bit_sequence];
+  return result;
 }

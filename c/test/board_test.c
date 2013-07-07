@@ -63,6 +63,8 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
 
+  board_module_init();
+
   g_test_add_func("/board/game_position_print_test", game_position_print_test);
   g_test_add_func("/board/direction_shift_square_set_test", direction_shift_square_set_test);
   g_test_add_func("/board/board_get_square_test", board_get_square_test);

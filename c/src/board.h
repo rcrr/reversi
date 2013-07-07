@@ -170,6 +170,15 @@ typedef struct {
 
 
 
+/**********************************************/
+/* Module initialization prototype functions. */ 
+/**********************************************/
+
+extern void
+board_module_init (void);
+
+
+
 /********************************************/
 /* Function prototypes for the Axis entity. */ 
 /********************************************/
@@ -184,9 +193,9 @@ axis_move_ordinal_position_in_bitrow (const Axis          axis,
                                       const unsigned char column,
                                       const unsigned char row);
 
-extern uint32
-axis_trasform_to_row_one (const Axis      axis,
-                          const SquareSet squares);
+extern uint8
+axis_transform_to_row_one (const Axis      axis,
+                           const SquareSet squares);
 
 extern SquareSet
 axis_transform_back_from_row_one (const Axis   axis,

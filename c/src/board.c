@@ -47,10 +47,10 @@
  */
 
 static void
-initialize_bitrow_changes_for_player_array (unsigned char *array);
+board_initialize_bitrow_changes_for_player_array (uint8 *array);
 
-static unsigned char
-board_bitrow_changes_for_player(int player_row, int opponent_row, int move_position);
+static uint8
+board_bitrow_changes_for_player (int player_row, int opponent_row, int move_position);
 
 
 
@@ -59,10 +59,10 @@ board_bitrow_changes_for_player(int player_row, int opponent_row, int move_posit
  */
 
 /* A square set being all set with the exception of column A. */
-static const SquareSet ALL_SQUARES_EXCEPT_COLUMN_A = 0xFEFEFEFEFEFEFEFEULL;
+static const SquareSet all_squares_except_column_a = 0xFEFEFEFEFEFEFEFEULL;
 
 /* A square set being all set with the exception of column H. */
-static const SquareSet ALL_SQUARES_EXCEPT_COLUMN_H = 0x7F7F7F7F7F7F7F7FULL;
+static const SquareSet all_squares_except_column_h = 0x7F7F7F7F7F7F7F7FULL;
 
 /* A bitboard being set on column A. */
 static const SquareSet column_a = 0x0101010101010101ULL;
@@ -89,8 +89,10 @@ static const SquareSet squares_b1_f1_a2_e2 = 0x1122;
  *
  * The index of the array is computed by this formula:
  * index = playerRow | (opponentRow << 8) | (movePosition << 16);
+ *
+ * After initialization the array is never changed.
  */
-static unsigned char bitrow_changes_for_player_array[524288]; 
+static uint8 bitrow_changes_for_player_array[524288]; 
 
 
 
@@ -98,10 +100,15 @@ static unsigned char bitrow_changes_for_player_array[524288];
 /* Module initialization functions. */ 
 /************************************/
 
+/**
+ * @brief This function must be called before any use of other functions contained in this module.
+ */
 void
 board_module_init (void)
 {
-  initialize_bitrow_changes_for_player_array(bitrow_changes_for_player_array);
+  board_initialize_bitrow_changes_for_player_array(bitrow_changes_for_player_array);
+
+  printf("TABLE bitrow_changes_for_player_array INITIALIZED\n");
 }
 
 
@@ -165,9 +172,9 @@ player_opponent (const Player p)
 /**************************************************/
 
 int
-axis_shift_distance (const Axis          axis,
-                     const unsigned char column,
-                     const unsigned char row)
+axis_shift_distance (const Axis  axis,
+                     const uint8 column,
+                     const uint8 row)
 {
   switch (axis) {
   case HO:
@@ -184,10 +191,10 @@ axis_shift_distance (const Axis          axis,
   }
 }
 
-unsigned char
-axis_move_ordinal_position_in_bitrow (const Axis          axis,
-                                      const unsigned char column,
-                                      const unsigned char row)
+uint8
+axis_move_ordinal_position_in_bitrow (const Axis  axis,
+                                      const uint8 column,
+                                      const uint8 row)
 {
   switch (axis) {
   case VE:
@@ -197,40 +204,38 @@ axis_move_ordinal_position_in_bitrow (const Axis          axis,
   }
 }
 
-uint32
-axis_trasform_to_row_one (const Axis      axis,
-                          const SquareSet squares)
+uint8
+axis_transform_to_row_one (const Axis      axis,
+                           const SquareSet squares)
 {
   SquareSet tmp;
 
+  tmp = squares;
   switch (axis) {
   case HO:
-    return ((uint32) squares) & 0xFF;
+    break;
   case VE:
-    tmp = squares;
     tmp &= column_a;
     tmp |= tmp >> 28;
     tmp |= tmp >> 14;
     tmp |= tmp >> 7;
-    return (uint32) tmp & 0xFF;
+    break;
   case DD:
-    tmp = squares;
     tmp &= diagonal_a1_h8;
     tmp |= tmp >> 32;
     tmp |= tmp >> 16;
     tmp |= tmp >> 8;
-    return (uint32) tmp & 0xFF;
+    break;
   case DU:
-    tmp = squares;
     tmp &= diagonal_h1_a8;
     tmp |= tmp >> 32;
     tmp |= tmp >> 16;
     tmp |= tmp >> 8;
-    return (uint32) tmp & 0xFF;
+    break;
   default:
     abort();
-    return EXIT_FAILURE;
   }
+  return (uint8) tmp;
 }
 
 SquareSet
@@ -370,7 +375,7 @@ board_count_pieces (const Board       *const b,
   g_assert(b);
   g_assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
 
-  return popcount(board_get_color(b, color));
+  return bit_works_popcount(board_get_color(b, color));
 }
 
 /**
@@ -431,7 +436,7 @@ board_is_move_legal (const Board  *const b,
   SquareSet o_bit_board;
 
   HiLo xy;
-  unsigned char column, row;
+  uint8 column, row;
 
   bit_move = 1ULL << move;
 
@@ -440,18 +445,18 @@ board_is_move_legal (const Board  *const b,
   p_bit_board = board_get_player(b, p);
   o_bit_board = board_get_player(b, player_opponent(p));
 
-  bitscan_MS1B_to_base8(&xy, bit_move);
+  bit_works_bitscan_MS1B_to_base8(&xy, bit_move);
   column = xy.lo;
   row    = xy.hi;
 
   for (Axis axis = HO; axis <= DU; axis++) {
     const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
-    const int shift_distance        = axis_shift_distance(axis, column, row);
-    //const int p_bitrow              = axis_transform_to_row_one(axis, ...);
-    //const int o_bitrow              = axis_transform_to_row_one(axis, ...);
-    //if (...) {
-    //  return TRUE;
-    //}
+    const int shift_distance = axis_shift_distance(axis, column, row);
+    const uint8 p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
+    const uint8 o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
+    if (board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position) != p_bitrow) {
+      return TRUE;
+    }
   }
 
   /*
@@ -466,8 +471,8 @@ board_is_move_legal (const Board  *const b,
     }
   */
 
-
-  return TRUE;
+  /* If no capture on the four directions happens, return false. */
+  return FALSE;
 }
 
 /**
@@ -694,14 +699,14 @@ direction_shift_square_set (const Direction dir,
   g_assert(dir >= NW && dir <= SE);
 
   switch (dir) {
-  case NW: return (squares >> 9) & ALL_SQUARES_EXCEPT_COLUMN_H;
+  case NW: return (squares >> 9) & all_squares_except_column_h;
   case N:  return (squares >> 8);
-  case NE: return (squares >> 7) & ALL_SQUARES_EXCEPT_COLUMN_A;
-  case W:  return (squares >> 1) & ALL_SQUARES_EXCEPT_COLUMN_H;
-  case E:  return (squares << 1) & ALL_SQUARES_EXCEPT_COLUMN_A;
-  case SW: return (squares << 7) & ALL_SQUARES_EXCEPT_COLUMN_H;
+  case NE: return (squares >> 7) & all_squares_except_column_a;
+  case W:  return (squares >> 1) & all_squares_except_column_h;
+  case E:  return (squares << 1) & all_squares_except_column_a;
+  case SW: return (squares << 7) & all_squares_except_column_h;
   case S:  return (squares << 8);
-  case SE: return (squares << 9) & ALL_SQUARES_EXCEPT_COLUMN_A;
+  case SE: return (squares << 9) & all_squares_except_column_a;
   default: abort();
   }
 }
@@ -864,11 +869,71 @@ game_position_print (const GamePosition const *gp)
  * Internal functions.
  */
 
+/**
+ * @brief Used to initialize the BITROW_CHANGES_FOR_PLAYER_ARRAY.
+ *
+ * @param array a uint8 array having the row changes for the given index value
+ */
 void
-initialize_bitrow_changes_for_player_array (unsigned char *array)
+board_initialize_bitrow_changes_for_player_array (uint8 *array)
 {
-  array[0] = 1;
-  // .... and so on ....
+  for (int player_row_count = 0; player_row_count < 256; player_row_count++) {
+    const uint8 player_row = (uint8) player_row_count;
+    for (int opponent_row_count = 0; opponent_row_count < 256; opponent_row_count++) {
+      const uint8 opponent_row = (uint8) opponent_row_count;
+      const uint8 filled_in_row = player_row | opponent_row;
+      const uint8 empties_in_row = ~filled_in_row;
+      for (uint8 move_position = 0; move_position < 8; move_position++) {
+        const uint8 move = 1 << move_position;
+        const int array_index = player_row
+          | (opponent_row << 8)
+          | (move_position << 16);
+
+        uint8 player_row_after_move;
+
+        /*
+         * It checks two conditions that cannot happen because are illegal.
+         * First player and opponent cannot have overlapping discs.
+         * Second the move cannot overlap existing discs.
+         * When either one of the two condition applies the result is set being equal
+         * to the player row index. Otherwise when black and white do not overlap,
+         * and the move is on an empy square it procede with the else block.
+         */
+        if (((player_row & opponent_row) != 0) || ((move & filled_in_row) != 0)) {
+          player_row_after_move = player_row;
+        } else {
+
+          /* The square of the move is added to the player configuration of the row after the move. */
+          player_row_after_move = player_row | move;
+
+          /*
+           * The potential bracketing disc on the right is the first player disc found moving
+           * on the left starting from the square of the move.
+           */
+          const uint8 potential_bracketing_disc_on_the_left = bit_works_highest_bit_set_8(player_row & (move - 1));
+
+          /*
+           * The left rank is the sequence of adiacent discs that start from the bracketing disc and end
+           * with the move disc.
+           */
+          const uint8 left_rank = bit_works_fill_in_between(potential_bracketing_disc_on_the_left | move);
+
+          /*
+           * If the rank contains empy squares, this is a fake flip, and it doesn't do anything.
+           * If the rank is full, it cannot be full of anything different than opponent discs, so
+           * it adds the discs to the after move player configuration.
+           */
+            if ((left_rank & empties_in_row) == 0x00) {
+              player_row_after_move |= left_rank;
+            }
+        }
+
+        /* Assigns the computed player row to the proper array position. */
+        array[array_index] = player_row_after_move;
+
+      }
+    }
+  }
 }
 
 /**
@@ -879,7 +944,7 @@ initialize_bitrow_changes_for_player_array (unsigned char *array)
  * @param move_position square to move
  * @return              the new player's row index after making the move
  */
-unsigned char
+uint8
 board_bitrow_changes_for_player (int player_row, int opponent_row, int move_position) {
   const int array_index = player_row | (opponent_row << 8) | (move_position << 16);
   return bitrow_changes_for_player_array[array_index];

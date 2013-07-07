@@ -43,6 +43,7 @@
 /* Test function prototypes. */
 
 static void dummy_test (void);
+static void bit_works_type_size_test (void);
 static void bitscan_MS1B_to_base8_test (void);
 
 
@@ -54,6 +55,7 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func("/bit_works/dummy", dummy_test);
+  g_test_add_func("/bit_works/bit_works_type_size_test", bit_works_type_size_test);
   g_test_add_func("/bit_works/bitscan_MS1B_to_base8_test", bitscan_MS1B_to_base8_test);
 
   return g_test_run();
@@ -72,6 +74,14 @@ dummy_test (void)
 }
 
 static void
+bit_works_type_size_test (void)
+{
+  g_assert(8 == sizeof(uint64));
+  g_assert(4 == sizeof(uint32));
+  g_assert(1 == sizeof(uint8));
+}
+
+static void
 bitscan_MS1B_to_base8_test (void)
 {
   HiLo ret;
@@ -79,27 +89,27 @@ bitscan_MS1B_to_base8_test (void)
 
   ret = (HiLo) { .hi = 0, .lo = 0 };
   bit_sequence = 1ULL << 0;
-  bitscan_MS1B_to_base8 (&ret, bit_sequence);
+  bit_works_bitscan_MS1B_to_base8 (&ret, bit_sequence);
   g_assert((0 == ret.hi) && (0 == ret.lo));
 
   ret = (HiLo) { .hi = 0, .lo = 0 };
   bit_sequence = 1ULL << 1;
-  bitscan_MS1B_to_base8 (&ret, bit_sequence);
+  bit_works_bitscan_MS1B_to_base8 (&ret, bit_sequence);
   g_assert((0 == ret.hi) && (1 == ret.lo));
 
   ret = (HiLo) { .hi = 0, .lo = 0 };
   bit_sequence = 1ULL << 7;
-  bitscan_MS1B_to_base8 (&ret, bit_sequence);
+  bit_works_bitscan_MS1B_to_base8 (&ret, bit_sequence);
   g_assert((0 == ret.hi) && (7 == ret.lo));
 
   ret = (HiLo) { .hi = 0, .lo = 0 };
   bit_sequence = 1ULL << 8;
-  bitscan_MS1B_to_base8 (&ret, bit_sequence);
+  bit_works_bitscan_MS1B_to_base8 (&ret, bit_sequence);
   g_assert((1 == ret.hi) && (0 == ret.lo));
 
   ret = (HiLo) { .hi = 0, .lo = 0 };
   bit_sequence = 1ULL << 63;
-  bitscan_MS1B_to_base8 (&ret, bit_sequence);
+  bit_works_bitscan_MS1B_to_base8 (&ret, bit_sequence);
   g_assert((7 == ret.hi) && (7 == ret.lo));
 
 }
