@@ -196,7 +196,7 @@ public enum Axis {
     /** A bitboard being set on diagonal H1-A8. */
     private static final long DIAGONAL_H1_A8 = 0x0102040810204080L;
 
-    /** A bitboard being set on diagonal H1-A8. */
+    /** A bitboard having set squares B1 F1 A2 E2. */
     private static final long SQUARES_B1_F1_A2_E2 = 0x1122;
 
     /**

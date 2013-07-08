@@ -1,13 +1,11 @@
 #!/bin/bash
 
-PROG=./build/test/bin/board_test
-ARGS=
+PROG=./build/bin/gpdb_verify
+#ARGS="./build/bin/gpdb_verify -f db/gpdb-test-db.txt -q duplicate-entry"
+ARGS="./build/bin/gpdb_verify -f db/gpdb-sample-games.txt -q empty"
 
-G_SLICE=always-malloc
-G_DEBUG=gc-friendly
 
-OPTIONS_PLUS=--gen-suppressions=all
-
+G_SLICE=always-malloc G_DEBUG=gc-friendly \
 valgrind -v --tool=memcheck \
             --leak-check=full \
             --num-callers=40 \

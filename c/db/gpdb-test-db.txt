@@ -20,6 +20,14 @@
 # The input file is read complitely, then rows are validated.
 # All the offending rows generate a log entry describing the violation, the vald rows are loaded in the db.
 #
+#
+#
+# The db has 6 entries.
+# The log of errors has 2 items.
+# Adding or changing entries or errors REQUIRES that the game_position_db_test unit suite has to be updated. 
+#
+#
+#
 test-one;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;Test position number one;
 test-two;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;Test position number two; # This is a comment ...
 #
@@ -27,6 +35,13 @@ test-two;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;Test
 #
 test-wrong;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;.;Test wrong position;
 #
-test-three;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;Test position number 3;
-#test-four;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;Test position number 4;
-#test-five;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;Test position number 5;
+#
+#
+duplicate-entry;................................................................;w;Test inserting a position twice: first time;
+duplicate-entry;b...............................................................;b;Test inserting a position twice: second time;
+#
+#
+#
+all-black;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;b;A full black board;
+all-white;wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww;w;A full white board;
+all-empty;................................................................;b;An empy board, black has to move;

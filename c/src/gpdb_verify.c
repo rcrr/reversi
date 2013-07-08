@@ -139,11 +139,13 @@ main (int argc, char *argv[])
     }
   }
 
-  /* Removes the tmp file, frees the resources. */
+  /* Frees the resources. */
   g_free(error);
   gpdb_free(db, TRUE);
   if (syntax_error_log)
     gpdb_syntax_error_log_free(syntax_error_log);
+
+  g_option_context_free(context);
 
   return 0;
 }

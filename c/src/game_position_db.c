@@ -4,11 +4,6 @@
  * @brief Data Base utilities and programs for `GamePosition` structures.
  * @details This executable read and write game position db.
  *
- * @todo Verify that a new entry is not replacing an existing one.
- * @todo Write documentation.
- * @todo Check memory leaks with valgrind.
- * @todo Write al the missing tests.
- *
  * @par game_position_db.c
  * <tt>
  * This file is part of the reversi program
@@ -59,16 +54,16 @@ field_separator = ';';
  */
 
 static gint
-extract_entry_from_line (gchar                           *line,
-                         int                              line_number,
-                         gchar                           *source,
-                         GamePositionDbEntry            **p_entry,
-                         GamePositionDbEntrySyntaxError **p_syntax_error);
+gpdb_extract_entry_from_line (gchar                           *line,
+                              int                              line_number,
+                              gchar                           *source,
+                              GamePositionDbEntry            **p_entry,
+                              GamePositionDbEntrySyntaxError **p_syntax_error);
 
 static gint
-compare_entries (gconstpointer pa,
-                 gconstpointer pb,
-                 gpointer      user_data);
+gpdb_compare_entries (gconstpointer pa,
+                      gconstpointer pb,
+                      gpointer      user_data);
 
 
 static void
@@ -79,6 +74,12 @@ gpdb_tree_key_destroy_function (gpointer data);
 
 static void
 gpdb_syntax_error_log_destroy_function (gpointer data);
+
+static gboolean
+gpdb_print_entry_helper_fn (gchar                *key,
+                            GamePositionDbEntry  *entry,
+                            GString             **p_msg);
+
 
 
 /*
@@ -128,6 +129,17 @@ gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log)
   return syntax_error_log;
 }
 
+/**
+ * @brief Returns a formatted string holding a represention of the syntax error log.
+ *
+ * The returned structure has a dynamic extent set by a call to g_malloc.
+ * It must then properly garbage collected by a call to g_free when no more referenced.
+ *
+ * Parameter `syntax_error_log` can be `NULL`, then the returned string is empty.
+ *
+ * @param [in] syntax_error_log a pointer to the syntax error log structure
+ * @return                      a message describing the error log structure
+ */
 gchar *
 gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
 {
@@ -152,11 +164,21 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
   return result;
 }
 
+/**
+ * @brief Returns the number of items contained by the error log.
+ *
+ * Parameter `syntax_error_log` can be `NULL`, then the returned length is zero.
+ *
+ * @param [in] syntax_error_log a pointer to the syntax error log structure
+ * @return                      the length of the error log
+ */
 int
 gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
 {
   return g_slist_length(syntax_error_log);
 }
+
+
 
 /***************************************************************************/
 /* Function implementations for the GamePositionDbEntrySyntaxError entity. */ 
@@ -172,9 +194,11 @@ gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
  * game position database syntax error structure is not `NULL`.
  *
  * Parameters `source`, `line`, and `error_message` must be dynamically allocated
- * if the `gpdb_entry_syntax_error_free` function will be called on the returned
- * structure's pointer.
- * When one of this parameter is `NULL` the value `"N\A"` is assigned.
+ * if the #gpdb_entry_syntax_error_free destructor function will be called on the
+ * returnedstructure's pointer.
+ * When one of this parameter is `NULL` the value `"N/A"` is assigned.
+ * These parameters are property of the structure and must be freed only by the
+ * structure destructor.
  *
  * @param [in] error_type    the type of the error
  * @param [in] source        the label identifying the source input
@@ -191,7 +215,7 @@ gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
                              char                               *error_message)
 {
   g_assert(error_type >= GPDB_ENTRY_SYNTAX_ERROR_ON_ID && 
-           error_type <= GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID);
+           error_type <= GPDB_ENTRY_SYNTAX_ERROR_DUPLICATE_ENTRY_KEY);
 
   GamePositionDbEntrySyntaxError *e;
 
@@ -253,8 +277,8 @@ gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *error)
 /**
  * @brief Returns a formatted string holding a represention of the syntax error.
  *
- * The returned structure has a dynamic extent set by a call to malloc.
- * It must then properly garbage collected by a call to free when no more referenced.
+ * The returned structure has a dynamic extent set by a call to g_malloc.
+ * It must then properly garbage collected by a call to g_free when no more referenced.
  *
  * Parameter `syntax_error` can be `NULL`, then the returned string is empty.
  *
@@ -326,6 +350,9 @@ gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *synta
   case GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID:
     strcpy(et_string, "The description field is not correctly assigned or terminated.");
     break;
+  case GPDB_ENTRY_SYNTAX_ERROR_DUPLICATE_ENTRY_KEY:
+    strcpy(et_string, "The key for the entry has been already loaded.");
+    break;
   default:
     abort();
     break;
@@ -368,9 +395,9 @@ gpdb_new (char *desc)
   db = (GamePositionDb*) g_malloc(size_of_db);
   g_assert(db);
 
-  gpointer key_compare_data = NULL;
-  db->tree = g_tree_new_full((GCompareDataFunc) compare_entries,
-                             key_compare_data,
+  gpointer compare_entries_data = NULL;
+  db->tree = g_tree_new_full((GCompareDataFunc) gpdb_compare_entries,
+                             compare_entries_data,
                              (GDestroyNotify) gpdb_tree_key_destroy_function,
                              (GDestroyNotify) gpdb_tree_value_destroy_function);
   db->desc = desc;
@@ -412,6 +439,9 @@ gpdb_free (GamePositionDb *db,
  * @brief Lookups into the `db` database.
  * It searches for an entry that match with the `entry_id` key.
  *
+ * @invariant Parameter `db` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
  * @param [in] db       a pointer to the data base that is updated
  * @param [in] entry_id the entry key to search for 
  * @return              the matching db entry or null when the query fails
@@ -420,6 +450,8 @@ GamePositionDbEntry *
 gpdb_lookup (GamePositionDb *db,
              gchar          *entry_id)
 {
+  g_assert(db);
+
   GamePositionDbEntry *entry;
   entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, entry_id);
   return entry;
@@ -474,15 +506,28 @@ gpdb_load (FILE                          *fp,
 
     GamePositionDbEntrySyntaxError *syntax_error = NULL;
     GamePositionDbEntry *entry = NULL;
-    extract_entry_from_line(line, line_number, source, &entry, &syntax_error);
-    if (syntax_error) {
-      tmp_syntax_error_log = g_slist_prepend(tmp_syntax_error_log, syntax_error);
-    } else {
-      g_free(line);
-      if (entry) {
-        g_tree_insert(tree, entry->id, entry);
+    gpdb_extract_entry_from_line(line, line_number, source, &entry, &syntax_error);
+    if (entry) {
+      if (g_tree_lookup(tree, entry->id)) {
+        syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_DUPLICATE_ENTRY_KEY,
+                                                   g_strdup(source),
+                                                   line_number,
+                                                   line,
+                                                   g_strdup_printf("id \"%s\" is duplicated.", entry->id));
+        entry = gpdb_entry_free(entry, TRUE);
+      } else {
+        g_tree_insert(tree, g_strdup(entry->id), entry);
+        g_free(line);
       }
     }
+
+    if (syntax_error) {
+      tmp_syntax_error_log = g_slist_prepend(tmp_syntax_error_log, syntax_error);
+    }
+
+    if (!entry && !syntax_error)
+      g_free(line);
+
     line = NULL;
 
   } while (ret != G_IO_STATUS_EOF);
@@ -501,25 +546,23 @@ gpdb_load (FILE                          *fp,
   return EXIT_SUCCESS;
 }
 
-static gboolean
-print_entry (gchar *key, GamePositionDbEntry *entry, GString **p_msg)
-{
-  GString *msg;
-  gchar *entry_to_string;
-
-  msg = *p_msg;
-  entry_to_string = gpdb_entry_print(entry);
-
-  g_string_append_printf(msg, "%s", entry_to_string);
-
-  g_free(entry_to_string);
-
-  return FALSE;
-}
-
+/**
+ * @brief Returns a formatted string holding a represention of the game position db.
+ *
+ * The returned structure has a dynamic extent set by a call to g_malloc.
+ * It must then properly garbage collected by a call to g_free when no more referenced.
+ *
+ * @invariant Parameter `db` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] db a pointer to the db structure
+ * @return        a message describing the db structure
+ */
 gchar *
 gpdb_print (GamePositionDb *db)
 {
+  g_assert(db);
+
   gchar   *result;
   GTree   *t;
   GString *msg;
@@ -527,7 +570,7 @@ gpdb_print (GamePositionDb *db)
   msg = g_string_new("");
   t = db->tree;
 
-  g_tree_foreach(t, (GTraverseFunc) print_entry, &msg);
+  g_tree_foreach(t, (GTraverseFunc) gpdb_print_entry_helper_fn, &msg);
 
   result = msg->str;
   g_string_free(msg, FALSE);
@@ -535,9 +578,23 @@ gpdb_print (GamePositionDb *db)
   return result;
 }
 
+/**
+ * @brief Returns a formatted string holding a short represention of the game position db.
+ *
+ * The returned structure has a dynamic extent set by a call to g_malloc.
+ * It must then properly garbage collected by a call to g_free when no more referenced.
+ *
+ * @invariant Parameter `db` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] db a pointer to the db structure
+ * @return        a short message describing the db structure
+ */
 gchar *
 gpdb_print_summary (GamePositionDb *db)
 {
+  g_assert(db);
+
   gchar   *result;
   GTree   *t;
   int      entry_count;
@@ -556,6 +613,22 @@ gpdb_print_summary (GamePositionDb *db)
   g_string_free(msg, FALSE);
 
   return result;
+}
+
+/**
+ * @brief Returns the number of items contained by db.
+ *
+ * @invariant Parameter `db` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] db a pointer to the db structure
+ * @return        the number of entries in the db
+ */
+int
+gpdb_length (GamePositionDb *db)
+{
+  g_assert(db);
+  return g_tree_nnodes(db->tree);
 }
 
 
@@ -612,6 +685,15 @@ gpdb_entry_free (GamePositionDbEntry *entry,
   return entry;
 }
 
+/**
+ * @brief Returns a formatted string holding a represention of the db entry.
+ *
+ * The returned structure has a dynamic extent set by a call to g_malloc.
+ * It must then properly garbage collected by a call to g_free when no more referenced.
+ *
+ * @param [in] entry a pointer to the game position db entry structure
+ * @return           a message describing the entry structure
+ */
 gchar *
 gpdb_entry_print (GamePositionDbEntry *entry)
 {
@@ -647,16 +729,16 @@ gpdb_entry_print (GamePositionDbEntry *entry)
  * @invariant Parameters `pa` and `pb` cannot be `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param pa        the constant pointer to the key of the first structure
- * @param pb        the constant pointer to the key of the second structure
- * @param user_data not used
- * @return          `-1` if `pa` precedes `pb`, `+1` if `pa` is greater than `pb`,
- *                  and `0` if the two object are equal
+ * @param [in] pa        the constant pointer to the key of the first structure
+ * @param [in] pb        the constant pointer to the key of the second structure
+ * @param [in] user_data not used
+ * @return               `-1` if `pa` precedes `pb`, `+1` if `pa` is greater than `pb`,
+ *                       and `0` if the two object are equal
  */
 static gint
-compare_entries (gconstpointer pa,
-                 gconstpointer pb,
-                 gpointer      user_data)
+gpdb_compare_entries (gconstpointer pa,
+                      gconstpointer pb,
+                      gpointer      user_data)
 {
   g_assert(pa && pb);
 
@@ -669,19 +751,19 @@ compare_entries (gconstpointer pa,
 /**
  * @brief Extracts a game position database entry from the input line.
  *
- * @param line           a string containing the db line
- * @param line_number    the line number used for logging in case of error
- * @param source         a string identifying the source of the line
- * @param p_entry        a reference to a pointer to the database entry
- * @param p_syntax_error a reference to a pointer to the syntax error
- * @return               the status of the operation
+ * @param [in]  line           a string containing the db line
+ * @param [in]  line_number    the line number used for logging in case of error
+ * @param [in]  source         a string identifying the source of the line
+ * @param [out] p_entry        a reference to a pointer to the database entry
+ * @param [out] p_syntax_error a reference to a pointer to the syntax error
+ * @return                     the status of the operation
  */
 static gint
-extract_entry_from_line (gchar                           *line,
-                         int                              line_number,
-                         gchar                           *source,
-                         GamePositionDbEntry            **p_entry,
-                         GamePositionDbEntrySyntaxError **p_syntax_error)
+gpdb_extract_entry_from_line (gchar                           *line,
+                              int                              line_number,
+                              gchar                           *source,
+                              GamePositionDbEntry            **p_entry,
+                              GamePositionDbEntrySyntaxError **p_syntax_error)
 {
   gchar               *record;
   int                  record_length;
@@ -869,7 +951,7 @@ extract_entry_from_line (gchar                           *line,
   /* Extracts the description field. */
   cp0 = cp1 + 1;
   if ((cp1 = strchr(cp0, field_separator)) != NULL) {
-    entry->desc = g_malloc(((cp1 - cp0) + 1) * sizeof(entry->desc));
+    entry->desc = g_malloc0(((cp1 - cp0) + 1) * sizeof(entry->desc));
     strncpy(entry->desc, cp0, cp1 - cp0);
   } else {
     error_msg = g_string_new("");
@@ -897,7 +979,9 @@ extract_entry_from_line (gchar                           *line,
  * @brief `GDestroyNotify` function used by `g_tree_new_full`
  *        in `gpdb_new` for the value field.
  *
- * @param data a pointer to an entry
+ * The function frees the tree's entry.
+ *
+ * @param [in,out] data a pointer to an entry
  */
 static void
 gpdb_tree_value_destroy_function (gpointer data)
@@ -910,15 +994,16 @@ gpdb_tree_value_destroy_function (gpointer data)
  * @brief `GDestroyNotify` function used by `g_tree_new_full`
  *        in `gpdb_new` for the key field.
  *
- * The function does nothing and could be substituted by a null pointer.
+ * The function frees the string used as the key for the tree's entry.
  *
- * @param data a pointer to the id field of the entry
+ * @param [in,out] data a pointer to the id field of the entry
  */
 static void
 gpdb_tree_key_destroy_function (gpointer data)
 {
   char *id = (char *) data;
-  if (id) ; // Nothing to do here.
+  if (id)
+    g_free(id);
 }
 
 /**
@@ -927,7 +1012,7 @@ gpdb_tree_key_destroy_function (gpointer data)
  *
  * The function frees the content of the list.
  *
- * @param data a pointer to the id field of the syntax error
+ * @param [in,out] data a pointer to the id field of the syntax error
  */
 static void
 gpdb_syntax_error_log_destroy_function (gpointer data)
@@ -935,4 +1020,31 @@ gpdb_syntax_error_log_destroy_function (gpointer data)
   GamePositionDbEntrySyntaxError *e = (GamePositionDbEntrySyntaxError *) data;
   if (e)
     gpdb_entry_syntax_error_free(e);
+}
+
+/**
+ * @brief `GTraverseFunc` function used by `g_tree_foreach`
+ *        in `gpdb_print` for the list content.
+ *
+ * @param [in]  key   a pointer to the key
+ * @param [in]  entry a pointer to the value
+ * @param [out] p_msg a location to return a pointer for the message
+ * @return            always `FALSE`
+ */
+static gboolean
+gpdb_print_entry_helper_fn (gchar                *key,
+                            GamePositionDbEntry  *entry,
+                            GString             **p_msg)
+{
+  GString *msg;
+  gchar *entry_to_string;
+
+  msg = *p_msg;
+  entry_to_string = gpdb_entry_print(entry);
+
+  g_string_append_printf(msg, "%s", entry_to_string);
+
+  g_free(entry_to_string);
+
+  return FALSE;
 }

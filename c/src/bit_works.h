@@ -42,7 +42,52 @@
  */
 typedef unsigned long long int uint64;
 
+/**
+ * @typedef uint32
+ * @brief Unsigned 32 bits integer.
+ */
+typedef unsigned int uint32;
+
+/**
+ * @typedef uint8
+ * @brief Unsigned 8 bits integer.
+ */
+typedef unsigned char uint8;
+
+/**
+ * @brief Used to return a two digit representation on a given base, for an integer.
+ */
+typedef struct {
+  unsigned char lo;   /**< @brief The low digit. */
+  unsigned char hi;   /**< @brief The high digit. */
+} HiLo;
+
 extern int
-popcount (uint64 x);
+bit_works_popcount (uint64 x);
+
+extern void
+bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence);
+
+extern uint64
+bit_works_signed_left_shift (uint64 bit_sequence, int shift);
+
+extern uint64
+bit_works_signed_left_shift (uint64 bit_sequence, int shift);
+
+extern uint32
+bit_works_highest_bit_set_32 (uint32 bit_sequence);
+
+extern uint8
+bit_works_highest_bit_set_8 (uint8 bit_sequence);
+
+extern uint8
+bit_works_fill_in_between (uint8 bit_sequence);
+
+extern uint8
+bit_works_bitscanMS1B_64 (const uint64 bit_sequence);
+
+extern uint8
+bit_works_bitscanMS1B_8 (const uint8 bit_sequence);
+
 
 #endif /* BIT_WORKS_H */

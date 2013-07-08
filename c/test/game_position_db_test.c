@@ -72,8 +72,8 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
 
-  g_test_add_func("/game_position_db/gpdb_load-returned_errors", gpdb_load_returned_errors_test);
   g_test_add_func("/game_position_db/gpdb_entry_syntax_error_print", gpdb_entry_syntax_error_print_test);
+  g_test_add_func("/game_position_db/gpdb_load_returned_errors", gpdb_load_returned_errors_test);
   g_test_add_func("/game_position_db/gpdb_load", gpdb_load_test);
 
   return g_test_run();
@@ -163,14 +163,22 @@ gpdb_load_test (void)
   FILE                         *fp;
   GError                       *error;
   gchar                        *source;
+  int                           db_length;
+  int                           error_log_length;
+  int                           expected_db_length;
+  int                           expected_error_log_length;
+  GamePositionDbEntry          *entry;
+
 
   source = g_strdup("db/gpdb-test-db.txt");
+  expected_db_length = 6;
+  expected_error_log_length = 2;
 
   /* Loads the game position database. */
   fp = fopen(source, "r");
   if (!fp) {
-    printf("Unable to open database test file \"db/gpdb-test-db.txt\" for reading.\n.");
-    abort();
+    printf("Unable to open database test file \"%s\" for reading.\n", source);
+    g_test_fail();
   }
   db = gpdb_new(g_strdup("Testing Database"));
   syntax_error_log = NULL;
@@ -178,6 +186,44 @@ gpdb_load_test (void)
   gpdb_load(fp, source, db, &syntax_error_log, &error);
   fclose(fp);
   g_free(source);
+
+  /* Verifies the db length. */
+  db_length = gpdb_length(db);
+  g_assert(db_length == expected_db_length);
+
+  /* Verifies the error log length. */
+  error_log_length = gpdb_syntax_error_log_length(syntax_error_log);
+  g_assert(error_log_length == expected_error_log_length);
+
+  /* Verifies that the entry all-black has been properly loaded. */
+  entry = NULL;
+  entry = gpdb_lookup(db, "all-black");
+  g_assert(entry);
+  g_assert(!g_strcmp0("all-black", entry->id));
+  g_assert(!g_strcmp0("A full black board", entry->desc));
+  g_assert(BLACK_PLAYER == entry->game_position->player);
+  g_assert(0xFFFFFFFFFFFFFFFFULL == entry->game_position->board->blacks);
+  g_assert(0x0000000000000000ULL == entry->game_position->board->whites);
+
+  /* Verifies that the entry all-white has been properly loaded. */
+  entry = NULL;
+  entry = gpdb_lookup(db, "all-white");
+  g_assert(entry);
+  g_assert(!g_strcmp0("all-white", entry->id));
+  g_assert(!g_strcmp0("A full white board", entry->desc));
+  g_assert(WHITE_PLAYER == entry->game_position->player);
+  g_assert(0x0000000000000000ULL == entry->game_position->board->blacks);
+  g_assert(0xFFFFFFFFFFFFFFFFULL == entry->game_position->board->whites);
+
+  /* Verifies that the duplicate entry has not been overwritten. */
+  entry = NULL;
+  entry = gpdb_lookup(db, "duplicate-entry");
+  g_assert(entry);
+  g_assert(!g_strcmp0("duplicate-entry", entry->id));
+  g_assert(!g_strcmp0("Test inserting a position twice: first time", entry->desc));
+  g_assert(WHITE_PLAYER == entry->game_position->player);
+  g_assert(0x0000000000000000ULL == entry->game_position->board->blacks);
+  g_assert(0x0000000000000000ULL == entry->game_position->board->whites);
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);
@@ -204,7 +250,9 @@ gpdb_entry_syntax_error_print_test (void)
                           "Source label:  dummy-source\n"
                           "Line number:   123\n"
                           "Line:          a-record-line\n");
+
   g_assert_cmpstr(expected->str, ==, msg);
+
   g_free(msg);
   g_string_free(expected, TRUE);
   gpdb_entry_syntax_error_free(syntax_error);
