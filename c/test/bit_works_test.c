@@ -43,30 +43,16 @@
 /* Test function prototypes. */
 
 static void dummy_test (void);
+static void bit_works_fill_in_between_test (void);
+static void bit_works_bitscanMS1B_8_test (void);
+static void bit_works_bitscanMS1B_64_test (void);
+static void bit_works_highest_bit_set_8_test (void);
+static void bit_works_highest_bit_set_32_test (void);
 static void bit_works_type_size_test (void);
 static void bit_works_bitscan_MS1B_to_base8_test (void);
 static void bit_works_popcount_test (void);
 static void bit_works_signed_left_shift_test (void);
 
-/*
-extern uint64
-bit_works_signed_left_shift (uint64 bit_sequence, int shift);
-
-extern uint32
-bit_works_highest_bit_set_32 (uint32 bit_sequence);
-
-extern uint8
-bit_works_highest_bit_set_8 (uint8 bit_sequence);
-
-extern uint8
-bit_works_fill_in_between (uint8 bit_sequence);
-
-extern uint8
-bit_works_bitscanMS1B_64 (const uint64 bit_sequence);
-
-extern uint8
-bit_works_bitscanMS1B_8 (const uint8 bit_sequence);
-*/
 
 
 int
@@ -76,6 +62,11 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func("/bit_works/dummy", dummy_test);
+  g_test_add_func("/bit_works/bit_works_fill_in_between_test", bit_works_fill_in_between_test);
+  g_test_add_func("/bit_works/bit_works_bitscanMS1B_8_test", bit_works_bitscanMS1B_8_test);
+  g_test_add_func("/bit_works/bit_works_bitscanMS1B_64_test", bit_works_bitscanMS1B_64_test);
+  g_test_add_func("/bit_works/bit_works_highest_bit_set_8_test", bit_works_highest_bit_set_8_test);
+  g_test_add_func("/bit_works/bit_works_highest_bit_set_32_test", bit_works_highest_bit_set_32_test);
   g_test_add_func("/bit_works/bit_works_signed_left_shift_test", bit_works_signed_left_shift_test);
   g_test_add_func("/bit_works/bit_works_popcount_test", bit_works_popcount_test);
   g_test_add_func("/bit_works/bit_works_type_size_test", bit_works_type_size_test);
@@ -94,6 +85,65 @@ static void
 dummy_test (void)
 {
   g_assert(TRUE);
+}
+
+static void
+bit_works_fill_in_between_test (void)
+{
+  g_assert(0x02 == bit_works_fill_in_between(0x05));
+  g_assert(0x06 == bit_works_fill_in_between(0x09));
+  g_assert(0x0E == bit_works_fill_in_between(0x11));
+  g_assert(0x1E == bit_works_fill_in_between(0x21));
+  g_assert(0x3E == bit_works_fill_in_between(0x41));
+  g_assert(0x7E == bit_works_fill_in_between(0x81));
+
+  g_assert(0x60 == bit_works_fill_in_between(0x90));
+
+  g_assert(0x00 == bit_works_fill_in_between(0x01));
+  g_assert(0x00 == bit_works_fill_in_between(0x02));
+  g_assert(0x00 == bit_works_fill_in_between(0x04));
+  g_assert(0x00 == bit_works_fill_in_between(0x08));
+  g_assert(0x00 == bit_works_fill_in_between(0x10));
+  g_assert(0x00 == bit_works_fill_in_between(0x20));
+  g_assert(0x00 == bit_works_fill_in_between(0x40));
+  g_assert(0x00 == bit_works_fill_in_between(0x80));
+}
+
+static void
+bit_works_bitscanMS1B_8_test (void)
+{
+  g_assert(0 == bit_works_bitscanMS1B_8(0x01));
+  g_assert(4 == bit_works_bitscanMS1B_8(0x10));
+  g_assert(7 == bit_works_bitscanMS1B_8(0x80));
+  g_assert(7 == bit_works_bitscanMS1B_8(0xFF));
+}
+
+static void
+bit_works_bitscanMS1B_64_test (void)
+{
+  g_assert( 0 == bit_works_bitscanMS1B_64(0x0000000000000001));
+  g_assert( 4 == bit_works_bitscanMS1B_64(0x0000000000000010));
+  g_assert(63 == bit_works_bitscanMS1B_64(0x8000000000000000));
+}
+
+static void
+bit_works_highest_bit_set_8_test (void)
+{
+  g_assert(0x00 == bit_works_highest_bit_set_8(0x00));
+  g_assert(0x01 == bit_works_highest_bit_set_8(0x01));
+  g_assert(0x02 == bit_works_highest_bit_set_8(0x02));
+  g_assert(0x02 == bit_works_highest_bit_set_8(0x03));
+  g_assert(0x80 == bit_works_highest_bit_set_8(0xFF));
+}
+
+static void
+bit_works_highest_bit_set_32_test (void)
+{
+  g_assert(0x00000000 == bit_works_highest_bit_set_32(0x00000000));
+  g_assert(0x00000001 == bit_works_highest_bit_set_32(0x00000001));
+  g_assert(0x00000002 == bit_works_highest_bit_set_32(0x00000002));
+  g_assert(0x00000002 == bit_works_highest_bit_set_32(0x00000003));
+  g_assert(0x80000000 == bit_works_highest_bit_set_32(0xFFFFFFFF));
 }
 
 static void
