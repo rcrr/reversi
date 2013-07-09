@@ -184,14 +184,14 @@ board_module_init (void);
 /********************************************/
 
 extern int
-axis_shift_distance (const Axis          axis,
-                     const unsigned char column,
-                     const unsigned char row);
+axis_shift_distance (const Axis  axis,
+                     const uint8 column,
+                     const uint8 row);
 
-extern unsigned char
-axis_move_ordinal_position_in_bitrow (const Axis          axis,
-                                      const unsigned char column,
-                                      const unsigned char row);
+extern uint8
+axis_move_ordinal_position_in_bitrow (const Axis  axis,
+                                      const uint8 column,
+                                      const uint8 row);
 
 extern uint8
 axis_transform_to_row_one (const Axis      axis,
