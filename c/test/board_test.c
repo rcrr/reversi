@@ -413,6 +413,8 @@ board_is_move_legal_test (void)
 
   b = board_new(1LLU, 2LLU);
 
+  board_is_move_legal(b, C1, WHITE_PLAYER);
+
   g_assert(FALSE == board_is_move_legal(b, A1, WHITE_PLAYER));
   g_assert(FALSE == board_is_move_legal(b, A1, BLACK_PLAYER));
   g_assert(FALSE == board_is_move_legal(b, B1, WHITE_PLAYER));

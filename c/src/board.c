@@ -501,7 +501,9 @@ board_is_move_legal (const Board  *const b,
     const int shift_distance = axis_shift_distance(axis, column, row);
     const uint8 p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
     const uint8 o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
-    if (board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position) != p_bitrow) {
+    const uint8 new_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position);
+    if (new_bitrow != p_bitrow) {
+      printf("new_bitrow=%u\n", new_bitrow); // morale: la table è sbagliata! Va verificata come è calcolata ...
       return TRUE;
     }
   }
