@@ -167,18 +167,41 @@ player_opponent (const Player p)
 
 
 
-/**************************************************/
-/* Function implementations for the Board entity. */ 
-/**************************************************/
+/*************************************************/
+/* Function implementations for the Axis entity. */ 
+/*************************************************/
 
+/**
+ * @brief Computes the shift quantity.
+ *
+ * The parameter `column` and `row` identify a square, and the `axis`
+ * then select the line passing by the square and parallel to it.
+ * The returned shift quantity is the amount to apply to the bit board
+ * The `bit_works_signed_left_shift` function applyed to a bitboard
+ * with this computed quantity move the selected line to the main line
+ * for the axis.
+ *
+ * @invariant Parameters `axis` must belong to its enum.
+ * Parameters `column` and `row` must stay in the range `0...7`.
+ * The invariants are guarded by assertions.
+ *
+ * @param [in] axis   the selected axis
+ * @param [in] column the square's column
+ * @param [in] row    the square's row
+ * @return     the shift quantity
+ */
 int
 axis_shift_distance (const Axis  axis,
                      const uint8 column,
                      const uint8 row)
 {
+  g_assert(axis >= HO && axis <= DU);
+  g_assert(column >= 0 && column <= 7);
+  g_assert(row >= 0 && row <= 7);
+
   switch (axis) {
   case HO:
-    return 8 * -row;
+    return -row << 3;
   case VE:
     return -column;
   case DD:
@@ -191,11 +214,31 @@ axis_shift_distance (const Axis  axis,
   }
 }
 
+/**
+ * @brief Returns the ordinal position of the move.
+ *
+ * The parameter `column` and `row` identify a move in the bitboard,
+ * given the `axis` the function return the ordinal position of the move
+ * in the selected line.
+ *
+ * @invariant Parameters `axis` must belong to its enum.
+ * Parameters `column` and `row` must stay in the range `0...7`.
+ * The invariants are guarded by assertions.
+ *
+ * @param [in] axis   the selected axis
+ * @param [in] column the move's column
+ * @param [in] row    the move's row
+ * @return     the shift quantity
+ */
 uint8
 axis_move_ordinal_position_in_bitrow (const Axis  axis,
                                       const uint8 column,
                                       const uint8 row)
 {
+  g_assert(axis >= HO && axis <= DU);
+  g_assert(column >= 0 && column <= 7);
+  g_assert(row >= 0 && row <= 7);
+
   switch (axis) {
   case VE:
     return row;
@@ -208,6 +251,8 @@ uint8
 axis_transform_to_row_one (const Axis      axis,
                            const SquareSet squares)
 {
+  g_assert(axis >= HO && axis <= DU);
+
   SquareSet tmp;
 
   tmp = squares;
@@ -242,6 +287,8 @@ SquareSet
 axis_transform_back_from_row_one (const Axis   axis,
                                   const uint32 bitrow)
 {
+  g_assert(axis >= HO && axis <= DU);
+
   uint32 tmp;
   SquareSet bit_board;
 
@@ -454,7 +501,9 @@ board_is_move_legal (const Board  *const b,
     const int shift_distance = axis_shift_distance(axis, column, row);
     const uint8 p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
     const uint8 o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
-    if (board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position) != p_bitrow) {
+    const uint8 new_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position);
+    if (new_bitrow != p_bitrow) {
+      printf("new_bitrow=%u\n", new_bitrow); // morale: la table è sbagliata! Va verificata come è calcolata ...
       return TRUE;
     }
   }

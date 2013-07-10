@@ -42,7 +42,11 @@
 
 /* Test function prototypes. */
 
-static void game_position_print_test (void);
+static void dummy_test (void);
+
+static void player_color_test (void);
+static void player_description_test (void);
+static void player_opponent_test (void);
 static void direction_shift_square_set_test (void);
 static void board_get_square_test (void);
 static void board_count_difference_test (void);
@@ -51,11 +55,24 @@ static void board_count_pieces_test (void);
 static void board_new_test (void);
 static void board_print_test (void);
 static void board_is_move_legal_test (void);
-static void player_color_test (void);
-static void player_description_test (void);
-static void player_opponent_test (void);
+static void game_position_print_test (void);
 
+static void axis_shift_distance_test (void);
+static void axis_move_ordinal_position_in_bitrow_test (void);
+static void axis_transform_to_row_one_test (void);
+static void axis_transform_back_from_row_one_test (void);
 
+/*
+
+extern uint8
+axis_transform_to_row_one (const Axis      axis,
+                           const SquareSet squares);
+
+extern SquareSet
+axis_transform_back_from_row_one (const Axis   axis,
+                                  const uint32 bitrow);
+
+ */
 
 int
 main (int   argc,
@@ -65,7 +82,16 @@ main (int   argc,
 
   board_module_init();
 
-  g_test_add_func("/board/game_position_print_test", game_position_print_test);
+  g_test_add_func("/board/dummy_test", dummy_test);
+
+  g_test_add_func("/board/axis_shift_distance_test", axis_shift_distance_test);
+  g_test_add_func("/board/axis_move_ordinal_position_in_bitrow_test", axis_move_ordinal_position_in_bitrow_test);
+  g_test_add_func("/board/axis_transform_to_row_one_test", axis_transform_to_row_one_test);
+  g_test_add_func("/board/axis_transform_back_from_row_one_test", axis_transform_back_from_row_one_test);
+
+  g_test_add_func("/board/player_color_test", player_color_test);
+  g_test_add_func("/board/player_description_test", player_description_test);
+  g_test_add_func("/board/player_opponent_test", player_opponent_test);
   g_test_add_func("/board/direction_shift_square_set_test", direction_shift_square_set_test);
   g_test_add_func("/board/board_get_square_test", board_get_square_test);
   g_test_add_func("/board/board_count_difference_test", board_count_difference_test);
@@ -74,9 +100,7 @@ main (int   argc,
   g_test_add_func("/board/board_new_test", board_new_test);
   g_test_add_func("/board/board_print_test", board_print_test);
   g_test_add_func("/board/board_is_move_legal_test", board_is_move_legal_test);
-  g_test_add_func("/board/player_color_test", player_color_test);
-  g_test_add_func("/board/player_description_test", player_description_test);
-  g_test_add_func("/board/player_opponent_test", player_opponent_test);
+  g_test_add_func("/board/game_position_print_test", game_position_print_test);
 
   return g_test_run();
 }
@@ -86,6 +110,99 @@ main (int   argc,
 /*
  * Test functions.
  */
+
+
+static void
+dummy_test (void)
+{
+  g_assert(TRUE);
+}
+
+static void
+axis_transform_to_row_one_test (void)
+{
+  /*
+    uint8
+    axis_transform_to_row_one (const Axis      axis,
+                               const SquareSet squares);
+   */
+  g_assert(0x00 == axis_transform_to_row_one(HO, 0x0000000000000000));
+  g_assert(0xFF == axis_transform_to_row_one(HO, 0xFFFFFFFFFFFFFFFF));
+  g_assert(0xFF == axis_transform_to_row_one(HO, 0x00000000000000FF));
+
+  g_assert(0xFF == axis_transform_to_row_one(VE, 0x0101010101010101));
+  g_assert(0x00 == axis_transform_to_row_one(VE, 0x1010101010101010));
+  g_assert(0x88 == axis_transform_to_row_one(VE, 0x0100000001000000));
+
+  g_assert(0x00 == axis_transform_to_row_one(DD, 0x0000000000000000));
+  g_assert(0xFF == axis_transform_to_row_one(DD, 0xFFFFFFFFFFFFFFFF));
+  g_assert(0xFF == axis_transform_to_row_one(DD, 0x8040201008040201));
+
+  g_assert(0x00 == axis_transform_to_row_one(DU, 0x0000000000000000));
+  g_assert(0xFF == axis_transform_to_row_one(DU, 0xFFFFFFFFFFFFFFFF));
+  g_assert(0xFF == axis_transform_to_row_one(DU, 0x0102040810204080));
+}
+
+static void
+axis_transform_back_from_row_one_test (void)
+{
+  /*
+    SquareSet
+    axis_transform_back_from_row_one (const Axis   axis,
+                                      const uint32 bitrow);
+   */
+  g_assert(0x0101010101010101 == axis_transform_back_from_row_one(VE, 0x000000FF));
+}
+
+static void
+axis_move_ordinal_position_in_bitrow_test (void)
+{
+  /*
+    uint8
+    axis_move_ordinal_position_in_bitrow (const Axis  axis,
+                                          const uint8 column,
+                                          const uint8 row);
+
+   */
+  g_assert(0 == axis_move_ordinal_position_in_bitrow(HO, 0, 0));
+  g_assert(3 == axis_move_ordinal_position_in_bitrow(HO, 3, 5));
+
+  g_assert(0 == axis_move_ordinal_position_in_bitrow(VE, 0, 0));
+  g_assert(5 == axis_move_ordinal_position_in_bitrow(VE, 3, 5));
+
+  g_assert(0 == axis_move_ordinal_position_in_bitrow(DD, 0, 0));
+  g_assert(3 == axis_move_ordinal_position_in_bitrow(DD, 3, 5));
+
+  g_assert(0 == axis_move_ordinal_position_in_bitrow(DU, 0, 0));
+  g_assert(3 == axis_move_ordinal_position_in_bitrow(DU, 3, 5));
+}
+
+static void
+axis_shift_distance_test (void)
+{
+  /*
+    int
+    axis_shift_distance (const Axis  axis,
+                         const uint8 column,
+                         const uint8 row);
+  */
+  g_assert(  0 == axis_shift_distance(HO, 0, 0));
+  g_assert( -8 == axis_shift_distance(HO, 5, 1));
+  g_assert(-56 == axis_shift_distance(HO, 5, 7));
+
+  g_assert(  0 == axis_shift_distance(VE, 0, 0));
+  g_assert( -1 == axis_shift_distance(VE, 1, 3));
+  g_assert( -7 == axis_shift_distance(VE, 7, 4));
+
+  g_assert(  0 == axis_shift_distance(DD, 0, 0));
+  g_assert(  0 == axis_shift_distance(DD, 1, 1));
+  g_assert(-16 == axis_shift_distance(DD, 2, 4));
+  g_assert( 16 == axis_shift_distance(DD, 4, 2));
+
+  g_assert( 56 == axis_shift_distance(DU, 0, 0));
+  g_assert( 40 == axis_shift_distance(DU, 1, 1));
+  g_assert(-56 == axis_shift_distance(DU, 7, 7));
+}
 
 static void
 player_color_test (void)
@@ -296,7 +413,14 @@ board_is_move_legal_test (void)
 
   b = board_new(1LLU, 2LLU);
 
+  board_is_move_legal(b, C1, WHITE_PLAYER);
+
   g_assert(FALSE == board_is_move_legal(b, A1, WHITE_PLAYER));
   g_assert(FALSE == board_is_move_legal(b, A1, BLACK_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, B1, WHITE_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, B1, BLACK_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, C1, WHITE_PLAYER));
   g_assert(TRUE  == board_is_move_legal(b, C1, BLACK_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, D1, WHITE_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, D1, BLACK_PLAYER));
 }
