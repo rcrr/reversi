@@ -89,5 +89,13 @@ bit_works_bitscanMS1B_64 (const uint64 bit_sequence);
 extern uint8
 bit_works_bitscanMS1B_8 (const uint8 bit_sequence);
 
+extern uint64
+bit_works_lowest_bit_set_64 (const uint64 bit_sequence);
+
+extern uint32
+bit_works_lowest_bit_set_32 (const uint32 bit_sequence);
+
+extern uint8
+bit_works_lowest_bit_set_8 (const uint8 bit_sequence);
 
 #endif /* BIT_WORKS_H */

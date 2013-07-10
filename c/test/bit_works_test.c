@@ -43,6 +43,7 @@
 /* Test function prototypes. */
 
 static void dummy_test (void);
+static void bit_works_lowest_bit_set_8_test (void);
 static void bit_works_fill_in_between_test (void);
 static void bit_works_bitscanMS1B_8_test (void);
 static void bit_works_bitscanMS1B_64_test (void);
@@ -62,6 +63,7 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func("/bit_works/dummy", dummy_test);
+  g_test_add_func("/bit_works/bit_works_lowest_bit_set_8_test", bit_works_lowest_bit_set_8_test);
   g_test_add_func("/bit_works/bit_works_fill_in_between_test", bit_works_fill_in_between_test);
   g_test_add_func("/bit_works/bit_works_bitscanMS1B_8_test", bit_works_bitscanMS1B_8_test);
   g_test_add_func("/bit_works/bit_works_bitscanMS1B_64_test", bit_works_bitscanMS1B_64_test);
@@ -85,6 +87,15 @@ static void
 dummy_test (void)
 {
   g_assert(TRUE);
+}
+
+static void
+bit_works_lowest_bit_set_8_test (void)
+{
+ g_assert(0x01 == bit_works_lowest_bit_set_8(0xFF));
+ g_assert(0x02 == bit_works_lowest_bit_set_8(0xFE));
+ g_assert(0x80 == bit_works_lowest_bit_set_8(0x80));
+ g_assert(0x40 == bit_works_lowest_bit_set_8(0xC0));
 }
 
 static void

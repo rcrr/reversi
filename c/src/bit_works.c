@@ -252,3 +252,39 @@ bit_works_bitscanMS1B_8 (const uint8 bit_sequence) {
   result |= log2_array[(int) bit_sequence];
   return result;
 }
+
+/**
+ * Returns a bit sequence having one bit set, the lowest found
+ * in the `bit_sequence` parameter.
+ *
+ * @param bit_sequence the input value
+ * @return             the filtered sequence
+ */
+uint64
+bit_works_lowest_bit_set_64 (const uint64 bit_sequence) {
+  return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
+}
+
+/**
+ * Returns a bit sequence having one bit set, the lowest found
+ * in the `bit_sequence` parameter.
+ *
+ * @param bit_sequence the input value
+ * @return             the filtered sequence
+ */
+uint32
+bit_works_lowest_bit_set_32 (const uint32 bit_sequence) {
+  return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
+}
+
+/**
+ * Returns a bit sequence having one bit set, the lowest found
+ * in the `bit_sequence` parameter.
+ *
+ * @param bit_sequence the input value
+ * @return             the filtered sequence
+ */
+uint8
+bit_works_lowest_bit_set_8 (const uint8 bit_sequence) {
+  return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
+}

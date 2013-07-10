@@ -412,9 +412,6 @@ board_is_move_legal_test (void)
   Board    *b;
 
   b = board_new(1LLU, 2LLU);
-
-  board_is_move_legal(b, C1, WHITE_PLAYER);
-
   g_assert(FALSE == board_is_move_legal(b, A1, WHITE_PLAYER));
   g_assert(FALSE == board_is_move_legal(b, A1, BLACK_PLAYER));
   g_assert(FALSE == board_is_move_legal(b, B1, WHITE_PLAYER));
@@ -423,4 +420,15 @@ board_is_move_legal_test (void)
   g_assert(TRUE  == board_is_move_legal(b, C1, BLACK_PLAYER));
   g_assert(FALSE == board_is_move_legal(b, D1, WHITE_PLAYER));
   g_assert(FALSE == board_is_move_legal(b, D1, BLACK_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, A2, WHITE_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, A2, BLACK_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, B2, WHITE_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, B2, BLACK_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, C2, WHITE_PLAYER));
+  g_assert(FALSE == board_is_move_legal(b, C2, BLACK_PLAYER));
+
+  b = board_new(0x0000000000000001, 0x0040201008040200);
+  g_assert(TRUE == board_is_move_legal(b, H8, BLACK_PLAYER));
+  
+
 }
