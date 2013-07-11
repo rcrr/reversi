@@ -501,27 +501,59 @@ board_is_move_legal (const Board  *const b,
     const int shift_distance = axis_shift_distance(axis, column, row);
     const uint8 p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
     const uint8 o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
-    const uint8 new_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position);
-    if (new_bitrow != p_bitrow) {
-      printf("new_bitrow=%u\n", new_bitrow); // morale: la table è sbagliata! Va verificata come è calcolata ...
+    if (board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position) != p_bitrow) {
       return TRUE;
     }
   }
 
-  /*
-    for (final Axis axis : AXIS_VALUES) {
-      final int moveOrdPosition = axis.moveOrdinalPositionInBitrow(column, row);
-      final int shiftDistance   = axis.shiftDistance(column, row);
-      final int playerBitrow    = axis.transformToRowOne(BitWorks.signedLeftShift(playerBitboard,   shiftDistance));
-      final int opponentBitrow  = axis.transformToRowOne(BitWorks.signedLeftShift(opponentBitboard, shiftDistance));
-      if (bitrowChangesForPlayer(playerBitrow, opponentBitrow, moveOrdPosition) != playerBitrow) {
-        return true;
-      }
-    }
-  */
-
   /* If no capture on the four directions happens, return false. */
   return FALSE;
+}
+
+/**
+ * @brief Returns a list holding the legal moves that the player can do at the board position.
+ *        When no moves are available to the player the method returns an empty list.
+ *       
+ * Implements the legal moves call by waveing the potential legal moves up to the bracketing
+ * pieces. Directions are computed one by one, squares work in parallel.
+ *
+ * @param b the given board
+ * @param p the player that has to move
+ * @return  legal moves for the player
+ */
+SquareSet
+board_legal_moves (Board b, Player p)
+{
+  SquareSet result;
+  result = 0ULL;
+/*
+    private long legalMoves(final int player) {
+        long result = 0L;
+        if (hasLegalMovesBeenComputed(player)) {
+            result = legalMovesCache(player);
+        } else {
+            final int opponent = opponent(player);
+            final long empties = empties();
+            final long pBitboard = bitboard(player);
+            final long oBitboard = bitboard(opponent);
+            for (final Direction dir : DIRECTION_VALUES) {
+                final Direction opposite = dir.opposite();
+                long wave = dir.shiftBitboard(empties) & oBitboard;
+                int shift = 1;
+                while (wave != 0L) {
+                    wave = dir.shiftBitboard(wave);
+                    shift++;
+                    result |= opposite.shiftBitboard((wave & pBitboard), shift);
+                    wave &= oBitboard;
+                }
+            }
+            setLegalMovesCache(player, result);
+            setHasLegalMovesBeenComputed(player, true);
+        }
+        return result;
+    }
+*/
+  return result;
 }
 
 /**
@@ -974,6 +1006,25 @@ board_initialize_bitrow_changes_for_player_array (uint8 *array)
            */
             if ((left_rank & empties_in_row) == 0x00) {
               player_row_after_move |= left_rank;
+            }
+
+            /* Here it does the same procedure computed on the left also on the right. */
+            const uint8 potential_bracketing_disc_on_the_right = bit_works_lowest_bit_set_8(player_row & ~(move - 1));
+            const uint8 right_rank = bit_works_fill_in_between(potential_bracketing_disc_on_the_right | move);
+            if ((right_rank & empties_in_row) == 0x00) {
+              player_row_after_move |= right_rank;
+            }
+
+            /*
+             * It checks that the after move configuration is different from
+             * the starting one for the player.
+             * This case can happen because it never checked that
+             * the bracketing piece was not adjacent to the move disc,
+             * on such a case, on both side, the move is illegal, and it is recorded setting
+             * the result configuation appropriately.
+             */
+            if (player_row_after_move == (player_row | move)) {
+              player_row_after_move = player_row;
             }
         }
 
