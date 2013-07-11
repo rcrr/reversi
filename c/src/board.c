@@ -511,6 +511,52 @@ board_is_move_legal (const Board  *const b,
 }
 
 /**
+ * @brief Returns a list holding the legal moves that the player can do at the board position.
+ *        When no moves are available to the player the method returns an empty list.
+ *       
+ * Implements the legal moves call by waveing the potential legal moves up to the bracketing
+ * pieces. Directions are computed one by one, squares work in parallel.
+ *
+ * @param b the given board
+ * @param p the player that has to move
+ * @return  legal moves for the player
+ */
+SquareSet
+board_legal_moves (Board b, Player p)
+{
+  SquareSet result;
+  result = 0ULL;
+/*
+    private long legalMoves(final int player) {
+        long result = 0L;
+        if (hasLegalMovesBeenComputed(player)) {
+            result = legalMovesCache(player);
+        } else {
+            final int opponent = opponent(player);
+            final long empties = empties();
+            final long pBitboard = bitboard(player);
+            final long oBitboard = bitboard(opponent);
+            for (final Direction dir : DIRECTION_VALUES) {
+                final Direction opposite = dir.opposite();
+                long wave = dir.shiftBitboard(empties) & oBitboard;
+                int shift = 1;
+                while (wave != 0L) {
+                    wave = dir.shiftBitboard(wave);
+                    shift++;
+                    result |= opposite.shiftBitboard((wave & pBitboard), shift);
+                    wave &= oBitboard;
+                }
+            }
+            setLegalMovesCache(player, result);
+            setHasLegalMovesBeenComputed(player, true);
+        }
+        return result;
+    }
+*/
+  return result;
+}
+
+/**
  * @brief Returns the set of empty squares in the board.
  *
  * @invariant Parameter `b` must be not `NULL`.

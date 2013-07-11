@@ -242,6 +242,10 @@ extern int board_is_move_legal(const Board *const b,
                                const Player       p
                                );
 
+extern SquareSet
+board_legal_moves (Board  b,
+                   Player p);
+
 extern SquareSet board_get_color(const Board       *const b,
                                  const SquareState        color
                                  );
