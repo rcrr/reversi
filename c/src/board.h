@@ -307,4 +307,16 @@ extern gchar *
 game_position_print (const GamePosition const *gp);
 
 
+extern SquareSet
+game_position_legal_moves(const GamePosition *position);
+
+
+/******************************************************/
+/* Function implementations for the SquareSet entity. */ 
+/******************************************************/
+
+extern gchar *
+square_set_print_as_moves (SquareSet moves);
+
+
 #endif /* BOARD_H */

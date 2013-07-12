@@ -113,6 +113,41 @@ board_module_init (void)
 
 
 
+/******************************************************/
+/* Function implementations for the SquareSet entity. */ 
+/******************************************************/
+
+gchar *
+square_set_print_as_moves (SquareSet moves)
+{
+  char *moves_to_string;
+  GString *tmp;
+
+  tmp = g_string_sized_new(10);  
+
+  Square move = 0;
+  gboolean passed = FALSE;
+  for (SquareSet cursor = 1ULL; cursor != 0ULL; cursor <<= 1) {
+    if ((cursor & moves) != 0ULL) {
+      const char row = '1' + (move / 8);
+      const char col = 'A' + (move % 8);
+      if (passed) {
+        g_string_append_printf(tmp, " ");
+      }
+      g_string_append_printf(tmp, "%c%c", col, row);
+      passed = TRUE;
+    }
+    move++;
+  }
+
+  moves_to_string = tmp->str;
+  g_string_free(tmp, FALSE);
+
+  return moves_to_string;
+}
+
+
+
 /***************************************************/
 /* Function implementations for the Player entity. */ 
 /***************************************************/
@@ -987,6 +1022,11 @@ game_position_print (const GamePosition const *gp)
   return gp_to_string;
 }
 
+SquareSet
+game_position_legal_moves(const GamePosition *position)
+{
+  return board_legal_moves(position->board, position->player);
+}
 
 
 /*
