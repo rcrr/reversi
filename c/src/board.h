@@ -243,8 +243,8 @@ extern int board_is_move_legal(const Board *const b,
                                );
 
 extern SquareSet
-board_legal_moves (Board  b,
-                   Player p);
+board_legal_moves (Board  *b,
+                   Player  p);
 
 extern SquareSet board_get_color(const Board       *const b,
                                  const SquareState        color
@@ -270,9 +270,17 @@ extern int board_compare(const Board * const a,
 /* Function prototypes for the Direction entity. */ 
 /*************************************************/
 
-extern SquareSet direction_shift_square_set(const Direction dir,
-                                            const SquareSet squares
-                                            );
+extern SquareSet
+direction_shift_square_set (const Direction dir,
+                            const SquareSet squares);
+
+extern SquareSet
+direction_shift_square_set_by_amount (const Direction dir,
+                                      const SquareSet squares,
+                                      const int       amount);
+
+extern Direction
+direction_opposite (const Direction dir);
 
 
 

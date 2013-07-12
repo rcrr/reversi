@@ -522,37 +522,29 @@ board_is_move_legal (const Board  *const b,
  * @return  legal moves for the player
  */
 SquareSet
-board_legal_moves (Board b, Player p)
+board_legal_moves (Board *b, Player p)
 {
   SquareSet result;
+  
   result = 0ULL;
-/*
-    private long legalMoves(final int player) {
-        long result = 0L;
-        if (hasLegalMovesBeenComputed(player)) {
-            result = legalMovesCache(player);
-        } else {
-            final int opponent = opponent(player);
-            final long empties = empties();
-            final long pBitboard = bitboard(player);
-            final long oBitboard = bitboard(opponent);
-            for (final Direction dir : DIRECTION_VALUES) {
-                final Direction opposite = dir.opposite();
-                long wave = dir.shiftBitboard(empties) & oBitboard;
-                int shift = 1;
-                while (wave != 0L) {
-                    wave = dir.shiftBitboard(wave);
-                    shift++;
-                    result |= opposite.shiftBitboard((wave & pBitboard), shift);
-                    wave &= oBitboard;
-                }
-            }
-            setLegalMovesCache(player, result);
-            setHasLegalMovesBeenComputed(player, true);
-        }
-        return result;
+
+  const Player o = player_opponent(p);
+  const SquareSet empties = board_empties (b);
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+  
+  for (Direction dir = NW; dir <= SE; dir++) {
+    const Direction opposite = direction_opposite(dir);
+    SquareSet wave = direction_shift_square_set(dir, empties) & o_bit_board;
+    int shift = 1;
+    while (wave != 0ULL) {
+      wave = direction_shift_square_set(dir, wave);
+      shift++;
+      result |= direction_shift_square_set_by_amount(opposite, (wave & p_bit_board), shift);
+      wave &= o_bit_board;
     }
-*/
+  }
+
   return result;
 }
 
@@ -792,7 +784,58 @@ direction_shift_square_set (const Direction dir,
   }
 }
 
+/**
+ * @brief Returns a new #SquareSet value by shifting the `squares` parameter
+ * by a number of positions as given by the `amount` parameter.
+ *
+ * Amount must be in the 0..8 range, meaning that 0 is equal to no shift, 1 is
+ * on position, and 8 always return an empy squares.
+ *
+ * @invariant Parameter `dir` must belong to the #Direction enum.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] dir     the direction to shift to
+ * @param [in] squares the squares set on the bitboard
+ * @param [in] amount  the amount to shift
+ * @return             the shifted squares
+*/
+SquareSet
+direction_shift_square_set_by_amount (const Direction dir,
+                                      const SquareSet squares,
+                                      const int       amount)
+{
+  g_assert(dir >= NW && dir <= SE);
 
+  switch (dir) {
+  case NW: return (squares >> (9 * amount)) & all_squares_except_column_h;
+  case N:  return (squares >> (8 * amount));
+  case NE: return (squares >> (7 * amount)) & all_squares_except_column_a;
+  case W:  return (squares >> (1 * amount)) & all_squares_except_column_h;
+  case E:  return (squares << (1 * amount)) & all_squares_except_column_a;
+  case SW: return (squares << (7 * amount)) & all_squares_except_column_h;
+  case S:  return (squares << (8 * amount));
+  case SE: return (squares << (9 * amount)) & all_squares_except_column_a;
+  default: abort();
+  }
+}
+
+Direction
+direction_opposite (const Direction dir)
+{
+  g_assert(dir >= NW && dir <= SE);
+
+  switch (dir) {
+  case NW: return SE;
+  case N:  return S;
+  case NE: return SW;
+  case W:  return E;
+  case E:  return W;
+  case SW: return NE;
+  case S:  return N;
+  case SE: return NW;
+  default: abort();
+  }
+}
 
 /********************************************************/
 /* Function implementations for the SquareState entity. */ 
