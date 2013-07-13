@@ -46,6 +46,7 @@
 static void dummy_test (void);
 
 static void game_position_legal_moves_test (void);
+static void game_position_make_move_test (void);
 
 
 
@@ -60,6 +61,7 @@ main (int   argc,
   g_test_add_func("/board/dummy_test", dummy_test);
 
   g_test_add_func("/board/game_position_legal_moves_test", game_position_legal_moves_test);
+  g_test_add_func("/board/game_position_make_move_test", game_position_make_move_test);
 
   return g_test_run();
 }
@@ -75,6 +77,47 @@ static void
 dummy_test (void)
 {
   g_assert(TRUE);
+}
+
+static void
+game_position_make_move_test (void)
+{
+  gchar *source = g_strdup("db/gpdb-sample-games.txt");
+
+  GamePositionDb               *db;
+  GamePositionDbSyntaxErrorLog *syntax_error_log;
+  FILE                         *fp;
+  GError                       *error;
+
+  /* Loads the game position database. */
+  fp = fopen(source, "r");
+  if (!fp) {
+    printf("Unable to open database test file \"%s\" for reading.\n", source);
+    g_test_fail();
+  }
+  db = gpdb_new(g_strdup("Testing Database"));
+  syntax_error_log = NULL;
+  error = NULL;
+  gpdb_load(fp, source, db, &syntax_error_log, &error);
+  fclose(fp);
+  g_free(source);
+
+  /* Removes the tmp file, frees the resources. */
+  g_free(error);
+  if (syntax_error_log)
+    gpdb_syntax_error_log_free(syntax_error_log);
+
+  GamePositionDbEntry *entry;
+
+
+  entry = gpdb_lookup(db, "initial");
+  GamePosition *after_make_move = game_position_make_move(entry->game_position, D3);
+  entry = gpdb_lookup(db, "first-move-d3");
+  g_assert(0 == game_position_compare(after_make_move, entry->game_position));
+  game_position_free(after_make_move);
+
+
+  gpdb_free(db, TRUE);
 }
 
 static void

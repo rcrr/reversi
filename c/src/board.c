@@ -94,6 +94,32 @@ static const SquareSet squares_b1_f1_a2_e2 = 0x1122;
  */
 static uint8 bitrow_changes_for_player_array[256 * 256 * 8]; 
 
+/*
+ * This array has sixtyfour entries. The index, having range 0-63, represent one of the squares
+ * of the table. Each entry is a bitboard mask having set all the squares that are
+ * reachable moving along the eigth directions, when starting from the square identified by
+ * the index itself.
+ * 
+ * Values do not change.
+ */
+static SquareSet bitboard_mask_for_all_directions[] = {
+  0x81412111090503FE, 0x02824222120A07FD, 0x0404844424150EFB, 0x08080888492A1CF7,
+  0x10101011925438EF, 0x2020212224A870DF, 0x404142444850E0BF, 0x8182848890A0C07F,
+  0x412111090503FE03, 0x824222120A07FD07, 0x04844424150EFB0E, 0x080888492A1CF71C,
+  0x101011925438EF38, 0x20212224A870DF70, 0x4142444850E0BFE0, 0x82848890A0C07FC0,
+  0x2111090503FE0305, 0x4222120A07FD070A, 0x844424150EFB0E15, 0x0888492A1CF71C2A,
+  0x1011925438EF3854, 0x212224A870DF70A8, 0x42444850E0BFE050, 0x848890A0C07FC0A0,
+  0x11090503FE030509, 0x22120A07FD070A12, 0x4424150EFB0E1524, 0x88492A1CF71C2A49,
+  0x11925438EF385492, 0x2224A870DF70A824, 0x444850E0BFE05048, 0x8890A0C07FC0A090,
+  0x090503FE03050911, 0x120A07FD070A1222, 0x24150EFB0E152444, 0x492A1CF71C2A4988,
+  0x925438EF38549211, 0x24A870DF70A82422, 0x4850E0BFE0504844, 0x90A0C07FC0A09088,
+  0x0503FE0305091121, 0x0A07FD070A122242, 0x150EFB0E15244484, 0x2A1CF71C2A498808,
+  0x5438EF3854921110, 0xA870DF70A8242221, 0x50E0BFE050484442, 0xA0C07FC0A0908884,
+  0x03FE030509112141, 0x07FD070A12224282, 0x0EFB0E1524448404, 0x1CF71C2A49880808,
+  0x38EF385492111010, 0x70DF70A824222120, 0xE0BFE05048444241, 0xC07FC0A090888482,
+  0xFE03050911214181, 0xFD070A1222428202, 0xFB0E152444840404, 0xF71C2A4988080808,
+  0xEF38549211101010, 0xDF70A82422212020, 0xBFE0504844424140, 0x7FC0A09088848281
+};
 
 
 /************************************/
@@ -1153,7 +1179,69 @@ game_position_has_any_player_any_legal_move (const GamePosition * const gp)
   return board_has_any_player_any_legal_move(gp->board);
 }
 
+/**
+ * @brief Returns true if the `move` is legal for the game position.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Parameter `move` must be a value belonging to the `Square` enum.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp   the given game position
+ * @param [in] move the square where to put the new disk
+ * @return          true if the move is legal
+ */
+gboolean
+game_position_is_move_legal (const GamePosition * const gp, const Square move)
+{
+  g_assert(gp);
 
+  return board_is_move_legal(gp->board, move, gp->player);
+}
+
+/**
+ * @brief Executes a game move on the given position.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Parameter `move` must be a value belonging to the `Square` enum.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp   the given game position
+ * @param [in] move the square where to put the new disk
+ * @return          a pointer to a newly created game position as a rusult of the move
+ */
+GamePosition *
+game_position_make_move (const GamePosition * const gp, const Square move)
+{
+  g_assert(gp);
+  g_assert(move >= A1 && move <= H8);
+  g_assert(game_position_is_move_legal(gp, move));
+
+  const Player p = gp->player;
+  const Player o = player_opponent(p);
+  const Board *b = gp->board;
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+  const int column = move % 8;
+  const int row = move / 8;
+
+  SquareSet new_bit_board[2];
+  const SquareSet unmodified_mask = ~bitboard_mask_for_all_directions[move];
+  new_bit_board[p] = p_bit_board & unmodified_mask;
+  new_bit_board[o] = o_bit_board & unmodified_mask;
+
+  for (Axis axis = HO; axis <= DU; axis++) {
+    const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
+    const int shift_distance = axis_shift_distance(axis, column, row);
+    uint8 p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
+    uint8 o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
+    p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position);
+    o_bitrow &= ~p_bitrow;
+    new_bit_board[p] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, p_bitrow), -shift_distance);
+    new_bit_board[o] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, o_bitrow), -shift_distance);
+  }
+
+  return game_position_new(board_new(new_bit_board[0], new_bit_board[1]), o);
+}
 
 /*
  * Internal functions.
