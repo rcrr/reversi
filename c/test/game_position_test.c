@@ -40,6 +40,12 @@
 #include "game_position_db.h"
 
 
+/* GamePositionDb fixture */
+typedef struct {
+  GamePositionDb *db;
+} GamePositionDbFixture;
+
+
 
 /* Test function prototypes. */
 
@@ -47,6 +53,20 @@ static void dummy_test (void);
 
 static void game_position_legal_moves_test (void);
 static void game_position_make_move_test (void);
+static void game_position_abc_test (GamePositionDbFixture *fixture,
+                                    gconstpointer          test_data);
+
+
+
+/* Helper function prototypes. */
+
+static void
+gpdb_fixture_setup (GamePositionDbFixture *fixture,
+                    gconstpointer          test_data);
+
+static void
+gpdb_fixture_teardown (GamePositionDbFixture *fixture,
+                       gconstpointer          test_data);
 
 
 
@@ -58,10 +78,17 @@ main (int   argc,
 
   board_module_init();
 
-  g_test_add_func("/board/dummy_test", dummy_test);
+  g_test_add_func("/game_position/dummy_test", dummy_test);
 
-  g_test_add_func("/board/game_position_legal_moves_test", game_position_legal_moves_test);
-  g_test_add_func("/board/game_position_make_move_test", game_position_make_move_test);
+  g_test_add_func("/game_position/game_position_legal_moves_test", game_position_legal_moves_test);
+  g_test_add_func("/game_position/game_position_make_move_test", game_position_make_move_test);
+
+  g_test_add ("/game_position/game_position_abc_test",
+              GamePositionDbFixture,
+              (gconstpointer) NULL,
+              gpdb_fixture_setup,
+              game_position_abc_test,
+              gpdb_fixture_teardown);
 
   return g_test_run();
 }
@@ -77,6 +104,21 @@ static void
 dummy_test (void)
 {
   g_assert(TRUE);
+}
+
+static void
+game_position_abc_test (GamePositionDbFixture *fixture,
+                        gconstpointer          test_data)
+{
+  GamePositionDbEntry *entry;
+
+  GamePositionDb *db = fixture->db;
+
+  entry = gpdb_lookup(db, "initial");
+  GamePosition *after_make_move = game_position_make_move(entry->game_position, D3);
+  entry = gpdb_lookup(db, "first-move-d3");
+  g_assert(0 == game_position_compare(after_make_move, entry->game_position));
+  game_position_free(after_make_move);
 }
 
 static void
@@ -194,4 +236,51 @@ game_position_legal_moves_test (void)
 
 
   gpdb_free(db, TRUE);
+}
+
+
+
+/*
+ * Internal functions.
+ */
+
+static void
+gpdb_fixture_setup (GamePositionDbFixture *fixture,
+                    gconstpointer          test_data)
+{
+  gchar *source = g_strdup("db/gpdb-sample-games.txt");
+
+  GamePositionDb               *db;
+  GamePositionDbSyntaxErrorLog *syntax_error_log;
+  FILE                         *fp;
+  GError                       *error;
+
+  /* Loads the game position database. */
+  fp = fopen(source, "r");
+  if (!fp) {
+    printf("Unable to open database test file \"%s\" for reading.\n", source);
+    g_test_fail();
+  }
+  db = gpdb_new(g_strdup("Testing Database"));
+  syntax_error_log = NULL;
+  error = NULL;
+  gpdb_load(fp, source, db, &syntax_error_log, &error);
+  fclose(fp);
+  g_free(source);
+
+  /* Removes the tmp file, frees the resources. */
+  g_free(error);
+  if (syntax_error_log)
+    gpdb_syntax_error_log_free(syntax_error_log);
+
+  fixture->db = db;
+  g_assert (fixture->db != NULL);
+}
+
+static void
+gpdb_fixture_teardown (GamePositionDbFixture *fixture,
+                       gconstpointer          test_data)
+{
+  g_assert(fixture->db != NULL);
+  gpdb_free(fixture->db, TRUE);
 }
