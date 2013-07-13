@@ -233,8 +233,7 @@ board_get_square (const Board  *const b,
                   const Square        sq);
 
 extern int board_count_pieces(const Board       *const b,
-                              const SquareState        color
-                              );
+                              const SquareState        color);
 
 extern int
 board_count_difference (const Board  *const b,
@@ -246,8 +245,8 @@ board_is_move_legal (const Board *const b,
                      const Player       p);
 
 extern SquareSet
-board_legal_moves (Board  *b,
-                   Player  p);
+board_legal_moves (const Board  * const b,
+                   const Player         p);
 
 extern SquareSet
 board_get_color (const Board       *const b,
@@ -271,6 +270,9 @@ board_print (const Board const *b);
 extern int
 board_compare (const Board * const a,
                const Board * const b);
+
+extern gboolean
+board_has_any_player_any_legal_move (const Board * const b);
 
 
 
@@ -321,6 +323,12 @@ game_position_legal_moves (const GamePosition *position);
 extern int
 game_position_compare (const GamePosition * const a,
                        const GamePosition * const b);
+
+extern gboolean
+game_position_has_any_legal_move (const GamePosition * const gp);
+
+extern gboolean
+game_position_has_any_player_any_legal_move (const GamePosition * const gp);
 
 
 /******************************************************/

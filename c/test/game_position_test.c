@@ -113,24 +113,40 @@ game_position_legal_moves_test (void)
   legal_moves = game_position_legal_moves(entry->game_position);
   legal_moves_to_string = square_set_print_as_moves(legal_moves);
   g_assert(g_strcmp0("D3 C4 F5 E6", legal_moves_to_string) == 0);
+  g_assert(TRUE == game_position_has_any_legal_move(entry->game_position));
+  g_assert(TRUE == game_position_has_any_player_any_legal_move(entry->game_position));
   g_free(legal_moves_to_string);
 
   entry = gpdb_lookup(db, "early-game-b-9-moves");
   legal_moves = game_position_legal_moves(entry->game_position);
   legal_moves_to_string = square_set_print_as_moves(legal_moves);
   g_assert(g_strcmp0("C3 C6", legal_moves_to_string) == 0);
+  g_assert(TRUE == game_position_has_any_legal_move(entry->game_position));
+  g_assert(TRUE == game_position_has_any_player_any_legal_move(entry->game_position));
   g_free(legal_moves_to_string);
 
   entry = gpdb_lookup(db, "black-has-to-pass");
   legal_moves = game_position_legal_moves(entry->game_position);
   legal_moves_to_string = square_set_print_as_moves(legal_moves);
   g_assert(g_strcmp0("", legal_moves_to_string) == 0);
+  g_assert(FALSE == game_position_has_any_legal_move(entry->game_position));
+  g_assert(TRUE == game_position_has_any_player_any_legal_move(entry->game_position));
   g_free(legal_moves_to_string);
 
   entry = gpdb_lookup(db, "early-game-c-12-moves");
   legal_moves = game_position_legal_moves(entry->game_position);
   legal_moves_to_string = square_set_print_as_moves(legal_moves);
   g_assert(g_strcmp0("H2 A4 C4 G4 A5 F5 B6 E6 G7", legal_moves_to_string) == 0);
+  g_assert(TRUE == game_position_has_any_legal_move(entry->game_position));
+  g_assert(TRUE == game_position_has_any_player_any_legal_move(entry->game_position));
+  g_free(legal_moves_to_string);
+
+  entry = gpdb_lookup(db, "final-b37-w27");
+  legal_moves = game_position_legal_moves(entry->game_position);
+  legal_moves_to_string = square_set_print_as_moves(legal_moves);
+  g_assert(g_strcmp0("", legal_moves_to_string) == 0);
+  g_assert(FALSE == game_position_has_any_legal_move(entry->game_position));
+  g_assert(FALSE == game_position_has_any_player_any_legal_move(entry->game_position));
   g_free(legal_moves_to_string);
 
 

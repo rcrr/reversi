@@ -585,13 +585,20 @@ board_is_move_legal (const Board  *const b,
  * Implements the legal moves call by waveing the potential legal moves up to the bracketing
  * pieces. Directions are computed one by one, squares work in parallel.
  *
- * @param b the given board
- * @param p the player that has to move
- * @return  legal moves for the player
+ * @invariant Parameter `b` must be not `NULL`.
+ * Parameter `p` must be a value belonging to the `Player` enum.
+ * All invariants are guarded by assertions.
+ *
+ * @param [in] b the given board
+ * @param [in] p the player that has to move
+ * @return     legal moves for the player
  */
 SquareSet
-board_legal_moves (Board *b, Player p)
+board_legal_moves (const Board * const b, const Player p)
 {
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
   SquareSet result;
   
   result = 0ULL;
@@ -614,6 +621,24 @@ board_legal_moves (Board *b, Player p)
   }
 
   return result;
+}
+
+/**
+ * @brief Returns `TRUE` if the board is not final.
+ *
+ * @invariant Parameter `b` must be not `NULL`.
+ * All invariants are guarded by assertions.
+ *
+ * @param [in] b the given board
+ * @return     true if one of the player has one or more legal moves
+ */
+gboolean
+board_has_any_player_any_legal_move (const Board * const b)
+{
+  g_assert(b);
+
+  return (0ULL == board_legal_moves(b, BLACK_PLAYER) &&
+          0ULL == board_legal_moves(b, WHITE_PLAYER)) ? FALSE : TRUE;
 }
 
 /**
@@ -1087,12 +1112,47 @@ game_position_print (const GamePosition const *gp)
  * @return        a square set holding the legal moves
  */
 SquareSet
-game_position_legal_moves(const GamePosition *gp)
+game_position_legal_moves (const GamePosition *gp)
 {
   g_assert(gp);
 
   return board_legal_moves(gp->board, gp->player);
 }
+
+/**
+ * @brief Returns if the game state admit one or more legal moves.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp the given game position
+ * @return        true if the game state admit a legal move
+ */
+gboolean
+game_position_has_any_legal_move (const GamePosition * const gp)
+{
+  g_assert(gp);
+
+  return (0ULL == game_position_legal_moves(gp)) ? FALSE : TRUE;
+}
+
+/**
+ * @brief Returns `TRUE` if the game position is not final.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp the given game position
+ * @return        true if the game state admit a legal move for at last one player
+ */
+gboolean
+game_position_has_any_player_any_legal_move (const GamePosition * const gp)
+{
+  g_assert(gp);
+
+  return board_has_any_player_any_legal_move(gp->board);
+}
+
 
 
 /*
