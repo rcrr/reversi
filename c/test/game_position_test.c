@@ -106,13 +106,32 @@ game_position_legal_moves_test (void)
     gpdb_syntax_error_log_free(syntax_error_log);
 
   GamePositionDbEntry *entry;
+  SquareSet            legal_moves;
+  gchar               *legal_moves_to_string;
 
-  entry = NULL;
   entry = gpdb_lookup(db, "initial");
-
-  SquareSet legal_moves = game_position_legal_moves(entry->game_position);
-  gchar *legal_moves_to_string = square_set_print_as_moves(legal_moves);
+  legal_moves = game_position_legal_moves(entry->game_position);
+  legal_moves_to_string = square_set_print_as_moves(legal_moves);
   g_assert(g_strcmp0("D3 C4 F5 E6", legal_moves_to_string) == 0);
+  g_free(legal_moves_to_string);
+
+  entry = gpdb_lookup(db, "early-game-b-9-moves");
+  legal_moves = game_position_legal_moves(entry->game_position);
+  legal_moves_to_string = square_set_print_as_moves(legal_moves);
+  g_assert(g_strcmp0("C3 C6", legal_moves_to_string) == 0);
+  g_free(legal_moves_to_string);
+
+  entry = gpdb_lookup(db, "black-has-to-pass");
+  legal_moves = game_position_legal_moves(entry->game_position);
+  legal_moves_to_string = square_set_print_as_moves(legal_moves);
+  g_assert(g_strcmp0("", legal_moves_to_string) == 0);
+  g_free(legal_moves_to_string);
+
+  entry = gpdb_lookup(db, "early-game-c-12-moves");
+  legal_moves = game_position_legal_moves(entry->game_position);
+  legal_moves_to_string = square_set_print_as_moves(legal_moves);
+  g_assert(g_strcmp0("H2 A4 C4 G4 A5 F5 B6 E6 G7", legal_moves_to_string) == 0);
+  g_free(legal_moves_to_string);
 
 
   gpdb_free(db, TRUE);

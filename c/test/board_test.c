@@ -50,6 +50,11 @@ static void player_opponent_test (void);
 
 static void direction_shift_square_set_test (void);
 
+static void axis_shift_distance_test (void);
+static void axis_move_ordinal_position_in_bitrow_test (void);
+static void axis_transform_to_row_one_test (void);
+static void axis_transform_back_from_row_one_test (void);
+
 static void board_get_square_test (void);
 static void board_count_difference_test (void);
 static void board_compare_test (void);
@@ -57,15 +62,10 @@ static void board_count_pieces_test (void);
 static void board_new_test (void);
 static void board_print_test (void);
 static void board_is_move_legal_test (void);
+static void board_legal_moves_test (void);
 
 static void game_position_print_test (void);
-
-static void axis_shift_distance_test (void);
-static void axis_move_ordinal_position_in_bitrow_test (void);
-static void axis_transform_to_row_one_test (void);
-static void axis_transform_back_from_row_one_test (void);
-
-static void board_legal_moves_test (void);
+static void game_position_compare_test (void);
 
 
 int
@@ -78,15 +78,17 @@ main (int   argc,
 
   g_test_add_func("/board/dummy_test", dummy_test);
 
+  g_test_add_func("/board/player_color_test", player_color_test);
+  g_test_add_func("/board/player_description_test", player_description_test);
+  g_test_add_func("/board/player_opponent_test", player_opponent_test);
+
+  g_test_add_func("/board/direction_shift_square_set_test", direction_shift_square_set_test);
+
   g_test_add_func("/board/axis_shift_distance_test", axis_shift_distance_test);
   g_test_add_func("/board/axis_move_ordinal_position_in_bitrow_test", axis_move_ordinal_position_in_bitrow_test);
   g_test_add_func("/board/axis_transform_to_row_one_test", axis_transform_to_row_one_test);
   g_test_add_func("/board/axis_transform_back_from_row_one_test", axis_transform_back_from_row_one_test);
 
-  g_test_add_func("/board/player_color_test", player_color_test);
-  g_test_add_func("/board/player_description_test", player_description_test);
-  g_test_add_func("/board/player_opponent_test", player_opponent_test);
-  g_test_add_func("/board/direction_shift_square_set_test", direction_shift_square_set_test);
   g_test_add_func("/board/board_get_square_test", board_get_square_test);
   g_test_add_func("/board/board_count_difference_test", board_count_difference_test);
   g_test_add_func("/board/board_compare_test", board_compare_test);
@@ -95,7 +97,9 @@ main (int   argc,
   g_test_add_func("/board/board_print_test", board_print_test);
   g_test_add_func("/board/board_is_move_legal_test", board_is_move_legal_test);
   g_test_add_func("/board/board_legal_moves_test", board_legal_moves_test);
+
   g_test_add_func("/board/game_position_print_test", game_position_print_test);
+  g_test_add_func("/board/game_position_compare_test", game_position_compare_test);
 
   return g_test_run();
 }
@@ -436,4 +440,41 @@ board_legal_moves_test (void)
   b = board_new(0x0000000000000001, 0x0040201008040200);
   g_assert(0x8000000000000000 == board_legal_moves(b, BLACK_PLAYER));
   b = board_free(b);
+}
+
+static void
+game_position_compare_test (void)
+{
+  GamePosition *a;
+  GamePosition *b;
+
+  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
+  b = a;
+  g_assert(game_position_compare(a, b) == 0);
+  a = game_position_free(a);
+  b = a;
+
+  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
+  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
+  g_assert(game_position_compare(a, b) == 0);
+  a = game_position_free(a);
+  b = game_position_free(b);
+
+  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
+  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), WHITE_PLAYER);
+  g_assert(game_position_compare(a, b) < 0);
+  a = game_position_free(a);
+  b = game_position_free(b);
+
+  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), WHITE_PLAYER);
+  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
+  g_assert(game_position_compare(a, b) > 0);
+  a = game_position_free(a);
+  b = game_position_free(b);
+
+  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
+  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFEULL, 0x0000000000000000ULL), BLACK_PLAYER);
+  g_assert(game_position_compare(a, b) > 0);
+  a = game_position_free(a);
+  b = game_position_free(b);
 }
