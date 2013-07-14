@@ -150,15 +150,19 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
   msg = g_string_new("");
   element = syntax_error_log;
 
-  do {
-    GamePositionDbEntrySyntaxError *syntax_error = (GamePositionDbEntrySyntaxError *) element->data;
-    if (syntax_error != NULL) {
-      gchar *s = gpdb_entry_syntax_error_print(syntax_error);
-      msg = g_string_append(msg, s);
-      g_free(s);
-    }
-  } while ((element = g_slist_next(element)) != NULL);
-
+  if (!element) {
+    msg = g_string_append(msg, "No errors detected.\n");    
+  } else {
+    do {
+      GamePositionDbEntrySyntaxError *syntax_error = (GamePositionDbEntrySyntaxError *) element->data;
+      if (syntax_error != NULL) {
+        gchar *s = gpdb_entry_syntax_error_print(syntax_error);
+        msg = g_string_append(msg, s);
+        g_free(s);
+      }
+    } while ((element = g_slist_next(element)) != NULL);
+  }
+  
   result = msg->str;
   g_string_free(msg, FALSE);
   return result;
