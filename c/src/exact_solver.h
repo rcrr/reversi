@@ -68,6 +68,9 @@ search_node_new (const Square move, const int value);
 extern SearchNode *
 search_node_free (SearchNode *sn);
 
+extern SearchNode *
+search_node_negated (SearchNode *sn);
+
 
 
 /**********************************************************/

@@ -52,6 +52,9 @@ game_position_solve_impl (const GamePosition * const gp,
                           const int                  cutoff,
                           const int                  ply);
 
+static int
+final_value (const GamePosition * const gp);
+
 
 
 /*
@@ -110,6 +113,11 @@ search_node_free (SearchNode *sn)
   return sn;
 }
 
+SearchNode *
+search_node_negated (SearchNode *sn)
+{
+  return search_node_new(sn->move, -sn->value);
+}
 
 
 /**********************************************************/
@@ -216,10 +224,41 @@ game_position_solve_impl (const GamePosition * const gp,
                           const int                  ply)
 {
   SearchNode *node;
+  const Player player = gp->player;
+  const Player opponent = player_opponent(player);
+  Board *board = gp->board;
   if (ply == 0) {
     node = search_node_new((Square) -1, game_position_count_difference(gp));
   } else {
-    node = NULL;
+    const SquareSet moves = game_position_legal_moves(gp);
+    if (0ULL == moves) {
+      GamePosition *flipped_players = game_position_new(board_new(board->blacks, board->whites), opponent);
+      if (game_position_has_any_legal_move(flipped_players))
+        node = search_node_negated(game_position_solve_impl(flipped_players, -cutoff, -achievable, ply - 1));
+      else
+        node = search_node_new((Square) -1, final_value(gp));
+    } else {
+      Square first_move = bit_works_bitscanMS1B_64(moves);
+      node = search_node_new(first_move, achievable);
+      Square move = 0;
+      for (SquareSet cursor = 1ULL; cursor != 0ULL; cursor <<= 1) {
+        if ((cursor & moves) != 0ULL) {
+          const GamePosition *gp2 = game_position_make_move(gp, move);
+          const int val = - (game_position_solve_impl(gp2, -cutoff, -node->value, ply - 1))->value;
+          if (val > node->value) {
+            node = search_node_new(move, val);
+          }
+          if (node->value >= cutoff) { break; }
+        }
+        move++;
+      }
+    }
   }
   return node;
+}
+
+int
+final_value (const GamePosition * const gp)
+{
+  return game_position_count_difference(gp);
 }
