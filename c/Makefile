@@ -86,10 +86,15 @@ $(TEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
 	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(TEST_BINDIR),$(TEST_OBJDIR),$@))))
 	$(CC) $(LDFLAGS) $(OBJECT) $(TEST_OBJS_NO_MAIN) $(OBJS_NO_MAIN) $(LIBS) $(TEST_LIBS) -o $@
 
-
 .PHONY: test
 test: $(TEST_BINS)
-	gtester --verbose -k $(TEST_BINS)
+	gtester --verbose -k -o $(BTESTDIR)/gtester-log.xml $(TEST_BINS)
+
+.PHONY: test_report
+test_report: $(BTESTDIR)/gtester-log.html
+
+$(BTESTDIR)/gtester-log.html: $(BTESTDIR)/gtester-log.xml
+	gtester-report $(BTESTDIR)/gtester-log.xml > $(BTESTDIR)/gtester-log.html
 
 .PHONY: $(BUILDDIR)
 $(BUILDDIR): $(BUILDDIR)/.dir_sentinel
