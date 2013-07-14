@@ -49,12 +49,21 @@ typedef struct {
 
 /* Test function prototypes. */
 
-static void dummy_test (void);
+static void
+game_position_legal_moves_test (GamePositionDbFixture *fixture,
+                                gconstpointer          test_data);
 
-static void game_position_legal_moves_test (void);
-static void game_position_make_move_test (void);
-static void game_position_abc_test (GamePositionDbFixture *fixture,
-                                    gconstpointer          test_data);
+static void
+game_position_make_move_test (GamePositionDbFixture *fixture,
+                              gconstpointer          test_data);
+
+static void
+game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
+                                       gconstpointer          test_data);
+
+static void
+game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture,
+                                       gconstpointer          test_data);
 
 
 
@@ -68,6 +77,9 @@ static void
 gpdb_fixture_teardown (GamePositionDbFixture *fixture,
                        gconstpointer          test_data);
 
+static GamePosition *
+get_gp_from_db (GamePositionDb *db, gchar *id);
+
 
 
 int
@@ -78,16 +90,32 @@ main (int   argc,
 
   board_module_init();
 
-  g_test_add_func("/game_position/dummy_test", dummy_test);
-
-  g_test_add_func("/game_position/game_position_legal_moves_test", game_position_legal_moves_test);
-  g_test_add_func("/game_position/game_position_make_move_test", game_position_make_move_test);
-
-  g_test_add ("/game_position/game_position_abc_test",
+  g_test_add ("/game_position/game_position_legal_moves_test",
               GamePositionDbFixture,
               (gconstpointer) NULL,
               gpdb_fixture_setup,
-              game_position_abc_test,
+              game_position_legal_moves_test,
+              gpdb_fixture_teardown);
+
+  g_test_add ("/game_position/game_position_has_any_legal_move_test",
+              GamePositionDbFixture,
+              (gconstpointer) NULL,
+              gpdb_fixture_setup,
+              game_position_has_any_legal_move_test,
+              gpdb_fixture_teardown);
+
+  g_test_add ("/game_position/game_position_has_any_player_any_legal_move_test",
+              GamePositionDbFixture,
+              (gconstpointer) NULL,
+              gpdb_fixture_setup,
+              game_position_has_any_player_any_legal_move_test,
+              gpdb_fixture_teardown);
+
+  g_test_add ("/game_position/game_position_make_move_test",
+              GamePositionDbFixture,
+              (gconstpointer) NULL,
+              gpdb_fixture_setup,
+              game_position_make_move_test,
               gpdb_fixture_teardown);
 
   return g_test_run();
@@ -99,143 +127,116 @@ main (int   argc,
  * Test functions.
  */
 
-
 static void
-dummy_test (void)
+game_position_legal_moves_test (GamePositionDbFixture *fixture,
+                                gconstpointer          test_data)
 {
-  g_assert(TRUE);
-}
-
-static void
-game_position_abc_test (GamePositionDbFixture *fixture,
-                        gconstpointer          test_data)
-{
-  GamePositionDbEntry *entry;
+  gchar *legal_moves_to_string;
 
   GamePositionDb *db = fixture->db;
 
-  entry = gpdb_lookup(db, "initial");
-  GamePosition *after_make_move = game_position_make_move(entry->game_position, D3);
-  entry = gpdb_lookup(db, "first-move-d3");
-  g_assert(0 == game_position_compare(after_make_move, entry->game_position));
-  game_position_free(after_make_move);
+  legal_moves_to_string = square_set_print_as_moves(game_position_legal_moves(get_gp_from_db(db, "initial")));
+  g_assert_cmpstr("D3 C4 F5 E6", ==, legal_moves_to_string);
+  g_free(legal_moves_to_string);
+
+  legal_moves_to_string = square_set_print_as_moves(game_position_legal_moves(get_gp_from_db(db, "early-game-b-9-moves")));
+  g_assert_cmpstr("C3 C6", ==, legal_moves_to_string);
+  g_free(legal_moves_to_string);
+
+  legal_moves_to_string = square_set_print_as_moves(game_position_legal_moves(get_gp_from_db(db, "black-has-to-pass")));
+  g_assert_cmpstr("", ==, legal_moves_to_string);
+  g_free(legal_moves_to_string);
+
+  legal_moves_to_string = square_set_print_as_moves(game_position_legal_moves(get_gp_from_db(db, "early-game-c-12-moves")));
+  g_assert_cmpstr("H2 A4 C4 G4 A5 F5 B6 E6 G7", ==, legal_moves_to_string);
+  g_free(legal_moves_to_string);
+
+  legal_moves_to_string = square_set_print_as_moves(game_position_legal_moves(get_gp_from_db(db, "final-b37-w27")));
+  g_assert_cmpstr("", ==, legal_moves_to_string);
+  g_free(legal_moves_to_string);
+
 }
 
 static void
-game_position_make_move_test (void)
+game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
+                                       gconstpointer          test_data)
 {
-  gchar *source = g_strdup("db/gpdb-sample-games.txt");
+  GamePositionDb *db = fixture->db;
 
-  GamePositionDb               *db;
-  GamePositionDbSyntaxErrorLog *syntax_error_log;
-  FILE                         *fp;
-  GError                       *error;
-
-  /* Loads the game position database. */
-  fp = fopen(source, "r");
-  if (!fp) {
-    printf("Unable to open database test file \"%s\" for reading.\n", source);
-    g_test_fail();
-  }
-  db = gpdb_new(g_strdup("Testing Database"));
-  syntax_error_log = NULL;
-  error = NULL;
-  gpdb_load(fp, source, db, &syntax_error_log, &error);
-  fclose(fp);
-  g_free(source);
-
-  /* Removes the tmp file, frees the resources. */
-  g_free(error);
-  if (syntax_error_log)
-    gpdb_syntax_error_log_free(syntax_error_log);
-
-  GamePositionDbEntry *entry;
-
-
-  entry = gpdb_lookup(db, "initial");
-  GamePosition *after_make_move = game_position_make_move(entry->game_position, D3);
-  entry = gpdb_lookup(db, "first-move-d3");
-  g_assert(0 == game_position_compare(after_make_move, entry->game_position));
-  game_position_free(after_make_move);
-
-
-  gpdb_free(db, TRUE);
+  g_assert(TRUE  == game_position_has_any_legal_move(get_gp_from_db(db, "initial")));
+  g_assert(TRUE  == game_position_has_any_legal_move(get_gp_from_db(db, "early-game-b-9-moves")));
+  g_assert(FALSE == game_position_has_any_legal_move(get_gp_from_db(db, "black-has-to-pass")));
+  g_assert(TRUE  == game_position_has_any_legal_move(get_gp_from_db(db, "early-game-c-12-moves")));
+  g_assert(FALSE == game_position_has_any_legal_move(get_gp_from_db(db, "final-b37-w27")));
 }
 
 static void
-game_position_legal_moves_test (void)
+game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture,
+                                                  gconstpointer          test_data)
 {
-  gchar *source = g_strdup("db/gpdb-sample-games.txt");
+  GamePositionDb *db = fixture->db;
 
-  GamePositionDb               *db;
-  GamePositionDbSyntaxErrorLog *syntax_error_log;
-  FILE                         *fp;
-  GError                       *error;
+  g_assert(TRUE  == game_position_has_any_player_any_legal_move(get_gp_from_db(db, "initial")));
+  g_assert(TRUE  == game_position_has_any_player_any_legal_move(get_gp_from_db(db, "early-game-b-9-moves")));
+  g_assert(TRUE  == game_position_has_any_player_any_legal_move(get_gp_from_db(db, "black-has-to-pass")));
+  g_assert(TRUE  == game_position_has_any_player_any_legal_move(get_gp_from_db(db, "early-game-c-12-moves")));
+  g_assert(FALSE == game_position_has_any_player_any_legal_move(get_gp_from_db(db, "final-b37-w27")));
+}
 
-  /* Loads the game position database. */
-  fp = fopen(source, "r");
-  if (!fp) {
-    printf("Unable to open database test file \"%s\" for reading.\n", source);
-    g_test_fail();
-  }
-  db = gpdb_new(g_strdup("Testing Database"));
-  syntax_error_log = NULL;
-  error = NULL;
-  gpdb_load(fp, source, db, &syntax_error_log, &error);
-  fclose(fp);
-  g_free(source);
+static void
+game_position_make_move_test (GamePositionDbFixture *fixture,
+                              gconstpointer          test_data)
+{
+  GamePositionDb *db = fixture->db;
 
-  /* Removes the tmp file, frees the resources. */
-  g_free(error);
-  if (syntax_error_log)
-    gpdb_syntax_error_log_free(syntax_error_log);
-
-  GamePositionDbEntry *entry;
-  SquareSet            legal_moves;
-  gchar               *legal_moves_to_string;
-
-  entry = gpdb_lookup(db, "initial");
-  legal_moves = game_position_legal_moves(entry->game_position);
-  legal_moves_to_string = square_set_print_as_moves(legal_moves);
-  g_assert(g_strcmp0("D3 C4 F5 E6", legal_moves_to_string) == 0);
-  g_assert(TRUE == game_position_has_any_legal_move(entry->game_position));
-  g_assert(TRUE == game_position_has_any_player_any_legal_move(entry->game_position));
-  g_free(legal_moves_to_string);
-
-  entry = gpdb_lookup(db, "early-game-b-9-moves");
-  legal_moves = game_position_legal_moves(entry->game_position);
-  legal_moves_to_string = square_set_print_as_moves(legal_moves);
-  g_assert(g_strcmp0("C3 C6", legal_moves_to_string) == 0);
-  g_assert(TRUE == game_position_has_any_legal_move(entry->game_position));
-  g_assert(TRUE == game_position_has_any_player_any_legal_move(entry->game_position));
-  g_free(legal_moves_to_string);
-
-  entry = gpdb_lookup(db, "black-has-to-pass");
-  legal_moves = game_position_legal_moves(entry->game_position);
-  legal_moves_to_string = square_set_print_as_moves(legal_moves);
-  g_assert(g_strcmp0("", legal_moves_to_string) == 0);
-  g_assert(FALSE == game_position_has_any_legal_move(entry->game_position));
-  g_assert(TRUE == game_position_has_any_player_any_legal_move(entry->game_position));
-  g_free(legal_moves_to_string);
-
-  entry = gpdb_lookup(db, "early-game-c-12-moves");
-  legal_moves = game_position_legal_moves(entry->game_position);
-  legal_moves_to_string = square_set_print_as_moves(legal_moves);
-  g_assert(g_strcmp0("H2 A4 C4 G4 A5 F5 B6 E6 G7", legal_moves_to_string) == 0);
-  g_assert(TRUE == game_position_has_any_legal_move(entry->game_position));
-  g_assert(TRUE == game_position_has_any_player_any_legal_move(entry->game_position));
-  g_free(legal_moves_to_string);
-
-  entry = gpdb_lookup(db, "final-b37-w27");
-  legal_moves = game_position_legal_moves(entry->game_position);
-  legal_moves_to_string = square_set_print_as_moves(legal_moves);
-  g_assert(g_strcmp0("", legal_moves_to_string) == 0);
-  g_assert(FALSE == game_position_has_any_legal_move(entry->game_position));
-  g_assert(FALSE == game_position_has_any_player_any_legal_move(entry->game_position));
-  g_free(legal_moves_to_string);
+  GamePosition *after_make_move;
 
 
-  gpdb_free(db, TRUE);
+  GamePosition *initial = get_gp_from_db(db, "initial");
+  after_make_move = game_position_make_move(initial, D3);
+  GamePosition *first_move_d3 = get_gp_from_db(db, "first-move-d3");
+  g_assert(0 == game_position_compare(first_move_d3, after_make_move));
+  game_position_free(after_make_move);
+
+
+  GamePosition *early_game_b_9_moves = get_gp_from_db(db, "early-game-b-9-moves");
+  after_make_move = game_position_make_move(early_game_b_9_moves, C3);
+  GamePosition *early_game_bc3_10_moves = get_gp_from_db(db, "early-game-bc3-10-moves");
+  g_assert(0 == game_position_compare(early_game_bc3_10_moves, after_make_move));
+  game_position_free(after_make_move);
+
+  after_make_move = game_position_make_move(early_game_b_9_moves, C6);
+  GamePosition *early_game_bc6_10_moves = get_gp_from_db(db, "early-game-bc6-10-moves");
+  g_assert(0 == game_position_compare(early_game_bc6_10_moves, after_make_move));
+  game_position_free(after_make_move);
+
+
+  GamePosition *before;
+  GamePosition *expected;
+
+  before = get_gp_from_db(db, "make-move-test-case-a-before");
+  after_make_move = game_position_make_move(before, D4);
+  expected = get_gp_from_db(db, "make-move-test-case-a-after");
+  g_assert(0 == game_position_compare(expected, after_make_move));
+  game_position_free(after_make_move);
+
+  before = get_gp_from_db(db, "make-move-test-case-b-before");
+  after_make_move = game_position_make_move(before, D4);
+  expected = get_gp_from_db(db, "make-move-test-case-b-after");
+  g_assert(0 == game_position_compare(expected, after_make_move));
+  game_position_free(after_make_move);
+
+  before = get_gp_from_db(db, "make-move-test-case-c-before");
+  after_make_move = game_position_make_move(before, D4);
+  expected = get_gp_from_db(db, "make-move-test-case-c-after");
+  g_assert(0 == game_position_compare(expected, after_make_move));
+  game_position_free(after_make_move);
+
+  before = get_gp_from_db(db, "make-move-test-case-d-before");
+  after_make_move = game_position_make_move(before, B4);
+  expected = get_gp_from_db(db, "make-move-test-case-d-after");
+  g_assert(0 == game_position_compare(expected, after_make_move));
+  game_position_free(after_make_move);
 }
 
 
@@ -283,4 +284,16 @@ gpdb_fixture_teardown (GamePositionDbFixture *fixture,
 {
   g_assert(fixture->db != NULL);
   gpdb_free(fixture->db, TRUE);
+}
+
+GamePosition *
+get_gp_from_db (GamePositionDb *db, gchar *id)
+{
+  GamePositionDbEntry *entry = gpdb_lookup(db, id);
+  if (!entry) {
+    g_test_message("The entry \"%s\" is missing from game position database.\n", id);
+    g_test_fail();
+  }
+  g_assert(entry);
+  return entry->game_position;
 }
