@@ -116,7 +116,7 @@ public class ExactSolver {
      * @param cutoff     the search window upper bound (also know as beta)
      * @param ply        the search depth
      * @param ef         the evaluation function
-     * @return a new search node
+     * @return           a new search node
      */
     public SearchNode solveImpl(final Player player,
                                 final Board board,
