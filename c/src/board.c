@@ -1129,6 +1129,23 @@ game_position_print (const GamePosition const *gp)
 }
 
 /**
+ * @brief Returns the disk difference between the player and her opponent.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp the given game position
+ * @return        the disc count difference
+ */
+int
+game_position_count_difference (const GamePosition *gp)
+{
+  g_assert(gp);
+
+  return board_count_difference(gp->board, gp->player);
+}
+
+/**
  * @brief Returns a list holding the legal moves for the game position.
  *
  * @invariant Parameter `gp` must be not `NULL`.

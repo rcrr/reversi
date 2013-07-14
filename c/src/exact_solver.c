@@ -38,6 +38,7 @@
 
 #include <glib.h>
 
+#include "exact_solver.h"
 #include "board.h"
 #include "bit_works.h"
 
@@ -45,6 +46,11 @@
  * Prototypes for internal functions.
  */
 
+static SearchNode *
+game_position_solve_impl (const GamePosition * const gp,
+                          const int                  achievable,
+                          const int                  cutoff,
+                          const int                  ply);
 
 
 
@@ -56,49 +62,164 @@
 
 
 
-/*********************************************************/
-/* Function implementations for the GamePosition entity. */ 
-/*********************************************************/
 
+/*******************************************************/
+/* Function implementations for the SearchNode entity. */ 
+/*******************************************************/
 
 /**
- * @brief Returns a formatted string showing a 2d graphical represention of the game position.
+ * @brief Search node structure constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * search node structure is not `NULL`.
+ *
+ * @return a pointer to a new search node structure
+ */
+SearchNode *
+search_node_new (const Square move, const int value)
+{
+  SearchNode * sn;
+  static const size_t size_of_search_node = sizeof(SearchNode);
+
+  sn = (SearchNode*) malloc(size_of_search_node);
+  g_assert(sn);
+
+  sn->move = move;
+  sn->value = value;
+
+  return sn;
+}
+
+/**
+ * @brief Search node structure destructor.
+ *
+ * @invariant Parameter `sn` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] sn the pointer to be deallocated
+ * @return        always the NULL pointer
+ */
+SearchNode *
+search_node_free (SearchNode *sn)
+{
+  g_assert(sn);
+
+  free(sn);
+  sn = NULL;
+
+  return sn;
+}
+
+
+
+/**********************************************************/
+/* Function implementations for the ExactSolution entity. */ 
+/**********************************************************/
+
+/**
+ * @brief Exact solution structure constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * exact solution structure is not `NULL`.
+ *
+ * @return a pointer to a new exact solution structure
+ */
+ExactSolution *
+exact_solution_new (void)
+{
+  ExactSolution * es;
+  static const size_t size_of_exact_solution = sizeof(ExactSolution);
+
+  es = (ExactSolution*) malloc(size_of_exact_solution);
+  g_assert(es);
+
+  return es;
+}
+
+/**
+ * @brief Exact solution structure destructor.
+ *
+ * @invariant Parameter `es` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] es the pointer to be deallocated
+ * @return        always the NULL pointer
+ */
+ExactSolution *
+exact_solution_free (ExactSolution *es)
+{
+  g_assert(es);
+
+  free(es);
+  es = NULL;
+
+  return es;
+}
+
+/**
+ * @brief Returns a formatted string describing the exact solution structure.
+ *
+ * @todo MUST BE COMPLETED!
  *
  * The returned string has a dynamic extent set by a call to malloc. It must then properly
  * garbage collected by a call to free when no more referenced.
  *
- * @invariant Parameter `gp` must be not `NULL`.
+ * @invariant Parameter `es` must be not `NULL`.
  * Invariants are guarded by assertions.
  *
- * @param [in] gp a pointer to the game position structure
- * @return        a string being a 2d representation of the game position
+ * @param [in] es a pointer to the exact solution structure
+ * @return        a string being a representation of the structure
  */
 gchar *
-game_position_print_x (const GamePosition const *gp)
+exact_solution_print (const ExactSolution * const es)
 {
-  g_assert(gp);
+  g_assert(es);
 
-  const gchar *separator = NULL;
+  gchar *es_to_string;
 
-  gchar *gp_to_string;
-  gchar *b_to_string;
+  es_to_string = game_position_print(es->solved_game_position);
 
-  b_to_string = board_print(gp->board);
-
-  gp_to_string = g_strjoin(separator,
-                           b_to_string,
-                           "Player to move: ",
-                           (gp->player == BLACK_PLAYER) ? "BLACK" : "WHITE",
-                           "\n",
-                           NULL);
-
-  g_free(b_to_string);
-
-  return gp_to_string;
+  return es_to_string;
 }
+
+
+
+/*********************************************************/
+/* Function implementations for the GamePosition entity. */ 
+/*********************************************************/
+
+ExactSolution *
+game_position_solve (GamePosition * const root)
+{
+  ExactSolution *result = exact_solution_new();
+
+  result->solved_game_position = root;
+
+  SearchNode *sn = game_position_solve_impl(root, -64, +64, 60);
+
+  if (sn)
+    result->outcome = sn->value;
+
+  return result;
+}
+
 
 
 /*
  * Internal functions.
  */
 
+SearchNode *
+game_position_solve_impl (const GamePosition * const gp,
+                          const int                  achievable,
+                          const int                  cutoff,
+                          const int                  ply)
+{
+  SearchNode *node;
+  if (ply == 0) {
+    node = search_node_new((Square) -1, game_position_count_difference(gp));
+  } else {
+    node = NULL;
+  }
+  return node;
+}

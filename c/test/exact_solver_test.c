@@ -51,8 +51,8 @@ typedef struct {
 /* Test function prototypes. */
 
 static void
-game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
-                                       gconstpointer          test_data);
+game_position_solve_test (GamePositionDbFixture *fixture,
+                          gconstpointer          test_data);
 
 
 
@@ -79,11 +79,11 @@ main (int   argc,
 
   board_module_init();
 
-  g_test_add ("/game_position/game_position_has_any_legal_move_test",
+  g_test_add ("/game_position/game_position_solve_test",
               GamePositionDbFixture,
               (gconstpointer) NULL,
               gpdb_fixture_setup,
-              game_position_has_any_legal_move_test,
+              game_position_solve_test,
               gpdb_fixture_teardown);
 
   return g_test_run();
@@ -96,14 +96,18 @@ main (int   argc,
  */
 
 static void
-game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
-                                       gconstpointer          test_data)
+game_position_solve_test (GamePositionDbFixture *fixture,
+                          gconstpointer          test_data)
 {
   GamePositionDb *db = fixture->db;
 
-  printf("\n%s\n", game_position_print_x(get_gp_from_db(db, "ffo-40")));
+  GamePosition *ffo_40 = get_gp_from_db(db, "ffo-40");
 
-  g_assert(TRUE  == game_position_has_any_legal_move(get_gp_from_db(db, "ffo-40")));
+  g_assert(TRUE  == game_position_has_any_legal_move(ffo_40));
+
+  ExactSolution *solution = game_position_solve(ffo_40);
+  printf("\n%s\n", exact_solution_print(solution));
+
 }
 
 

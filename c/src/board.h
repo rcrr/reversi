@@ -316,6 +316,8 @@ game_position_free (GamePosition *gp);
 extern gchar *
 game_position_print (const GamePosition const *gp);
 
+extern int
+game_position_count_difference (const GamePosition *gp);
 
 extern SquareSet
 game_position_legal_moves (const GamePosition *position);
