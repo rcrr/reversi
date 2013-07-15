@@ -92,8 +92,34 @@ static const SquareSet squares_b1_f1_a2_e2 = 0x1122;
  *
  * After initialization the array is never changed.
  */
-static uint8 bitrow_changes_for_player_array[524288]; 
+static uint8 bitrow_changes_for_player_array[256 * 256 * 8]; 
 
+/*
+ * This array has sixtyfour entries. The index, having range 0-63, represent one of the squares
+ * of the table. Each entry is a bitboard mask having set all the squares that are
+ * reachable moving along the eigth directions, when starting from the square identified by
+ * the index itself.
+ * 
+ * Values do not change.
+ */
+static SquareSet bitboard_mask_for_all_directions[] = {
+  0x81412111090503FE, 0x02824222120A07FD, 0x0404844424150EFB, 0x08080888492A1CF7,
+  0x10101011925438EF, 0x2020212224A870DF, 0x404142444850E0BF, 0x8182848890A0C07F,
+  0x412111090503FE03, 0x824222120A07FD07, 0x04844424150EFB0E, 0x080888492A1CF71C,
+  0x101011925438EF38, 0x20212224A870DF70, 0x4142444850E0BFE0, 0x82848890A0C07FC0,
+  0x2111090503FE0305, 0x4222120A07FD070A, 0x844424150EFB0E15, 0x0888492A1CF71C2A,
+  0x1011925438EF3854, 0x212224A870DF70A8, 0x42444850E0BFE050, 0x848890A0C07FC0A0,
+  0x11090503FE030509, 0x22120A07FD070A12, 0x4424150EFB0E1524, 0x88492A1CF71C2A49,
+  0x11925438EF385492, 0x2224A870DF70A824, 0x444850E0BFE05048, 0x8890A0C07FC0A090,
+  0x090503FE03050911, 0x120A07FD070A1222, 0x24150EFB0E152444, 0x492A1CF71C2A4988,
+  0x925438EF38549211, 0x24A870DF70A82422, 0x4850E0BFE0504844, 0x90A0C07FC0A09088,
+  0x0503FE0305091121, 0x0A07FD070A122242, 0x150EFB0E15244484, 0x2A1CF71C2A498808,
+  0x5438EF3854921110, 0xA870DF70A8242221, 0x50E0BFE050484442, 0xA0C07FC0A0908884,
+  0x03FE030509112141, 0x07FD070A12224282, 0x0EFB0E1524448404, 0x1CF71C2A49880808,
+  0x38EF385492111010, 0x70DF70A824222120, 0xE0BFE05048444241, 0xC07FC0A090888482,
+  0xFE03050911214181, 0xFD070A1222428202, 0xFB0E152444840404, 0xF71C2A4988080808,
+  0xEF38549211101010, 0xDF70A82422212020, 0xBFE0504844424140, 0x7FC0A09088848281
+};
 
 
 /************************************/
@@ -107,8 +133,47 @@ void
 board_module_init (void)
 {
   board_initialize_bitrow_changes_for_player_array(bitrow_changes_for_player_array);
+}
 
-  printf("TABLE bitrow_changes_for_player_array INITIALIZED\n");
+
+
+/******************************************************/
+/* Function implementations for the SquareSet entity. */ 
+/******************************************************/
+
+/**
+ * @brief Returns a string representation for the sqare set.
+ *
+ * @param moves the square set to be converted into a string
+ * @return      a string having the moves sorted as the `Square` enum
+ */
+gchar *
+square_set_print_as_moves (SquareSet moves)
+{
+  char *moves_to_string;
+  GString *tmp;
+
+  tmp = g_string_sized_new(10);  
+
+  Square move = 0;
+  gboolean passed = FALSE;
+  for (SquareSet cursor = 1ULL; cursor != 0ULL; cursor <<= 1) {
+    if ((cursor & moves) != 0ULL) {
+      const char row = '1' + (move / 8);
+      const char col = 'A' + (move % 8);
+      if (passed) {
+        g_string_append_printf(tmp, " ");
+      }
+      g_string_append_printf(tmp, "%c%c", col, row);
+      passed = TRUE;
+    }
+    move++;
+  }
+
+  moves_to_string = tmp->str;
+  g_string_free(tmp, FALSE);
+
+  return moves_to_string;
 }
 
 
@@ -247,6 +312,23 @@ axis_move_ordinal_position_in_bitrow (const Axis  axis,
   }
 }
 
+/**
+ * @brief Maps the principal line of each axis into row one.
+ *
+ * Returns an int having the bits from position 0 to position 7, corresponding to Row One in the board,
+ * transformed from:
+ *  - `ROW 1` for the `HO` axis.
+ *  - `COLUMN A` for the `VE` axis.
+ *  - `DIAGONAL A1-H8` for the `DD` axis.
+ *  - `DIAGONAL A8-H1` for the `DU` axis.
+ *
+ * @invariant Parameters `axis` must belong to its enum.
+ * The invariants are guarded by assertions.
+ *
+ * @param [in] axis    the given axis
+ * @param [in] squares the set of board squares
+ * @return             the transformed line
+ */
 uint8
 axis_transform_to_row_one (const Axis      axis,
                            const SquareSet squares)
@@ -283,6 +365,20 @@ axis_transform_to_row_one (const Axis      axis,
   return (uint8) tmp;
 }
 
+/**
+ * @brief Maps back the principal line of each axis from row one.
+ *
+ * Returns a square set having the bits along the axis reference file set to
+ * the corresponding ones on the `bitrow` parameter.
+ *
+ * @invariant Parameters `axis` must belong to its enum.
+ * The invariants are guarded by assertions.
+ *
+ * @param [in] axis   the given axis
+ * @param [in] bitrow represents row one
+ * @return            a bitboard having the axis reference file set as the bitboard parameter,
+ *                    all other position are set to zero
+ */
 SquareSet
 axis_transform_back_from_row_one (const Axis   axis,
                                   const uint32 bitrow)
@@ -457,8 +553,6 @@ board_count_difference (const Board  *const b,
  * @brief Returns 1 if the move, done by the specified player, is legal,
  * otherwise 0.
  *
- * @todo Function implementation must be completed!
- *
  * @invariant Parameter `b` must be not `NULL`.
  * Parameter `move` must be a value belonging to the `Square` enum.
  * Parameter `p` must be a value belonging to the `Player` enum.
@@ -517,43 +611,60 @@ board_is_move_legal (const Board  *const b,
  * Implements the legal moves call by waveing the potential legal moves up to the bracketing
  * pieces. Directions are computed one by one, squares work in parallel.
  *
- * @param b the given board
- * @param p the player that has to move
- * @return  legal moves for the player
+ * @invariant Parameter `b` must be not `NULL`.
+ * Parameter `p` must be a value belonging to the `Player` enum.
+ * All invariants are guarded by assertions.
+ *
+ * @param [in] b the given board
+ * @param [in] p the player that has to move
+ * @return     legal moves for the player
  */
 SquareSet
-board_legal_moves (Board b, Player p)
+board_legal_moves (const Board * const b, const Player p)
 {
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
   SquareSet result;
+  
   result = 0ULL;
-/*
-    private long legalMoves(final int player) {
-        long result = 0L;
-        if (hasLegalMovesBeenComputed(player)) {
-            result = legalMovesCache(player);
-        } else {
-            final int opponent = opponent(player);
-            final long empties = empties();
-            final long pBitboard = bitboard(player);
-            final long oBitboard = bitboard(opponent);
-            for (final Direction dir : DIRECTION_VALUES) {
-                final Direction opposite = dir.opposite();
-                long wave = dir.shiftBitboard(empties) & oBitboard;
-                int shift = 1;
-                while (wave != 0L) {
-                    wave = dir.shiftBitboard(wave);
-                    shift++;
-                    result |= opposite.shiftBitboard((wave & pBitboard), shift);
-                    wave &= oBitboard;
-                }
-            }
-            setLegalMovesCache(player, result);
-            setHasLegalMovesBeenComputed(player, true);
-        }
-        return result;
+
+  const Player o = player_opponent(p);
+  const SquareSet empties = board_empties (b);
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+  
+  for (Direction dir = NW; dir <= SE; dir++) {
+    const Direction opposite = direction_opposite(dir);
+    SquareSet wave = direction_shift_square_set(dir, empties) & o_bit_board;
+    int shift = 1;
+    while (wave != 0ULL) {
+      wave = direction_shift_square_set(dir, wave);
+      shift++;
+      result |= direction_shift_square_set_by_amount(opposite, (wave & p_bit_board), shift);
+      wave &= o_bit_board;
     }
-*/
+  }
+
   return result;
+}
+
+/**
+ * @brief Returns `TRUE` if the board is not final.
+ *
+ * @invariant Parameter `b` must be not `NULL`.
+ * All invariants are guarded by assertions.
+ *
+ * @param [in] b the given board
+ * @return     true if one of the player has one or more legal moves
+ */
+gboolean
+board_has_any_player_any_legal_move (const Board * const b)
+{
+  g_assert(b);
+
+  return (0ULL == board_legal_moves(b, BLACK_PLAYER) &&
+          0ULL == board_legal_moves(b, WHITE_PLAYER)) ? FALSE : TRUE;
 }
 
 /**
@@ -792,7 +903,67 @@ direction_shift_square_set (const Direction dir,
   }
 }
 
+/**
+ * @brief Returns a new #SquareSet value by shifting the `squares` parameter
+ * by a number of positions as given by the `amount` parameter.
+ *
+ * Amount must be in the 0..8 range, meaning that 0 is equal to no shift, 1 is
+ * on position, and 8 always return an empy squares.
+ *
+ * @invariant Parameter `dir` must belong to the #Direction enum.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] dir     the direction to shift to
+ * @param [in] squares the squares set on the bitboard
+ * @param [in] amount  the amount to shift
+ * @return             the shifted squares
+*/
+SquareSet
+direction_shift_square_set_by_amount (const Direction dir,
+                                      const SquareSet squares,
+                                      const int       amount)
+{
+  g_assert(dir >= NW && dir <= SE);
 
+  switch (dir) {
+  case NW: return (squares >> (9 * amount)) & all_squares_except_column_h;
+  case N:  return (squares >> (8 * amount));
+  case NE: return (squares >> (7 * amount)) & all_squares_except_column_a;
+  case W:  return (squares >> (1 * amount)) & all_squares_except_column_h;
+  case E:  return (squares << (1 * amount)) & all_squares_except_column_a;
+  case SW: return (squares << (7 * amount)) & all_squares_except_column_h;
+  case S:  return (squares << (8 * amount));
+  case SE: return (squares << (9 * amount)) & all_squares_except_column_a;
+  default: abort();
+  }
+}
+
+/**
+ * @brief Returns the opposite direction of the one given by the `dir` parameter.
+ *
+ * @invariant Parameter `dir` must belong to the #Direction enum.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] dir the given direction
+ * @return         the opposite direction
+ */
+Direction
+direction_opposite (const Direction dir)
+{
+  g_assert(dir >= NW && dir <= SE);
+
+  switch (dir) {
+  case NW: return SE;
+  case N:  return S;
+  case NE: return SW;
+  case W:  return E;
+  case E:  return W;
+  case SW: return NE;
+  case S:  return N;
+  case SE: return NW;
+  default: abort();
+  }
+}
 
 /********************************************************/
 /* Function implementations for the SquareState entity. */ 
@@ -883,29 +1054,42 @@ game_position_free (GamePosition *gp)
   return gp;
 }
 
+/**
+ * @brief Compares game positions `a` and board `b`.
+ *
+ * When the two game position are equal it returns `0`, when `a` is greather then `b` it
+ * returns `+1`, otherwise `-1`.
+ *
+ * Game positions are equals when have the same board and player.
+ *
+ * @invariant Parameters `a` and `b` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] a a pointer to a game position structure
+ * @param [in] b a pointer to a second structure
+ * @return       `-1` when `a < b`, `+1` when `a > b`, or `0` when the two game position are equal
+ */
 int
 game_position_compare (const GamePosition * const a,
                        const GamePosition * const b)
 {
-  if (a->board->blacks < b->board->blacks) {
-    return -1;
-  } else if (a->board->blacks > b->board->blacks) {
-    return +1;
-  } else {                    /* Blacks are equal. */
-    if (a->board->whites < b->board->whites) {
+  g_assert(a);
+  g_assert(b);
+
+  if ( a == b) return 0;
+
+  const int board_comp = board_compare(a->board, b->board);
+  if (board_comp != 0) {
+    return board_comp;
+  } else {
+    if (a->player < b->player) {
       return -1;
-    } else if (a->board->whites > b->board->whites) {
+    } else if (a->player > b->player) {
       return +1;
-    } else {                  /* Also whites are equal. */
-      if (a->player < b->player) {
-        return -1;
-      } else if (a->player > b->player) {
-        return +1;
-      } else {
-        return 0;             /* Players are equal, and so are a and b. */
-      }
+    } else {
+      return 0;             /* Players are equal, and so are a and b. */
     }
-  }  
+  }
 }
 
 /**
@@ -944,14 +1128,144 @@ game_position_print (const GamePosition const *gp)
   return gp_to_string;
 }
 
+/**
+ * @brief Returns the disk difference between the player and her opponent.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp the given game position
+ * @return        the disc count difference
+ */
+int
+game_position_count_difference (const GamePosition *gp)
+{
+  g_assert(gp);
 
+  return board_count_difference(gp->board, gp->player);
+}
+
+/**
+ * @brief Returns a list holding the legal moves for the game position.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp the given game position
+ * @return        a square set holding the legal moves
+ */
+SquareSet
+game_position_legal_moves (const GamePosition *gp)
+{
+  g_assert(gp);
+
+  return board_legal_moves(gp->board, gp->player);
+}
+
+/**
+ * @brief Returns if the game state admit one or more legal moves.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp the given game position
+ * @return        true if the game state admit a legal move
+ */
+gboolean
+game_position_has_any_legal_move (const GamePosition * const gp)
+{
+  g_assert(gp);
+
+  return (0ULL == game_position_legal_moves(gp)) ? FALSE : TRUE;
+}
+
+/**
+ * @brief Returns `TRUE` if the game position is not final.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp the given game position
+ * @return        true if the game state admit a legal move for at last one player
+ */
+gboolean
+game_position_has_any_player_any_legal_move (const GamePosition * const gp)
+{
+  g_assert(gp);
+
+  return board_has_any_player_any_legal_move(gp->board);
+}
+
+/**
+ * @brief Returns true if the `move` is legal for the game position.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Parameter `move` must be a value belonging to the `Square` enum.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp   the given game position
+ * @param [in] move the square where to put the new disk
+ * @return          true if the move is legal
+ */
+gboolean
+game_position_is_move_legal (const GamePosition * const gp, const Square move)
+{
+  g_assert(gp);
+
+  return board_is_move_legal(gp->board, move, gp->player);
+}
+
+/**
+ * @brief Executes a game move on the given position.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Parameter `move` must be a value belonging to the `Square` enum.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp   the given game position
+ * @param [in] move the square where to put the new disk
+ * @return          a pointer to a newly created game position as a rusult of the move
+ */
+GamePosition *
+game_position_make_move (const GamePosition * const gp, const Square move)
+{
+  g_assert(gp);
+  g_assert(move >= A1 && move <= H8);
+  g_assert(game_position_is_move_legal(gp, move));
+
+  const Player p = gp->player;
+  const Player o = player_opponent(p);
+  const Board *b = gp->board;
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+  const int column = move % 8;
+  const int row = move / 8;
+
+  SquareSet new_bit_board[2];
+  const SquareSet unmodified_mask = ~bitboard_mask_for_all_directions[move];
+  new_bit_board[p] = p_bit_board & unmodified_mask;
+  new_bit_board[o] = o_bit_board & unmodified_mask;
+
+  for (Axis axis = HO; axis <= DU; axis++) {
+    const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
+    const int shift_distance = axis_shift_distance(axis, column, row);
+    uint8 p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
+    uint8 o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
+    p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position);
+    o_bitrow &= ~p_bitrow;
+    new_bit_board[p] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, p_bitrow), -shift_distance);
+    new_bit_board[o] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, o_bitrow), -shift_distance);
+  }
+
+  return game_position_new(board_new(new_bit_board[0], new_bit_board[1]), o);
+}
 
 /*
  * Internal functions.
  */
 
 /**
- * @brief Used to initialize the BITROW_CHANGES_FOR_PLAYER_ARRAY.
+ * @brief Used to initialize the `bitrow_changes_for_player_array`.
  *
  * @param array a uint8 array having the row changes for the given index value
  */

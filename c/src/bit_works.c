@@ -116,8 +116,9 @@ static int popcount_4(uint64 x) {
 */
 
 /**
- * Returns an HiLo struct of two int collecting the octal representation of the position of
+ * @brief Returns an HiLo struct of two int collecting the octal representation of the position of
  * the most significant bit set in the `bit_sequence` parameter.
+ *
  * The method does not verify that the `bit_sequence` parameter must be different from `0ULL`.
  * When this happens it returns a value equal to `{hi=0, lo=0}` that is the expected
  * value when the parameter is equal to `1ULL`.
@@ -201,18 +202,16 @@ bit_works_highest_bit_set_8 (uint8 bit_sequence) {
 }
 
 /**
- * @brief The {@code bitsequence} parameter must have one or two bits set.
- * The bits set have to be positioned among the eight bits on the right.
- * Returns a bit sequence of 32 bits having set the bits between the two, or zero
+ * @brief The `bitsequence` parameter must have one or two bits set.
+ * Returns a bit sequence having set the bits between the two, or zero
  * when only one bit is set.
- * <p>
- * For example:
- * {@code 00000000.00000000.00000000.00100010} returns {@code 00000000.00000000.00000000.00011100}.
- * <p>
+ *
+ * For example: `00100010` returns `00011100`.
+ *
  * When the input data doesn't meet the requirements the result is unpredictable.
  *
- * @param bit_sequence the value to be scanned
- * @return             a bit sequence having the internal bits set
+ * @param [in] bit_sequence the value to be scanned
+ * @return                  a bit sequence having the internal bits set
  */
 uint8
 bit_works_fill_in_between (uint8 bit_sequence) {
@@ -246,6 +245,12 @@ bit_works_bitscanMS1B_64 (const uint64 bit_sequence) {
   return result;
 }
 
+/**
+ * @brief Returns the index of the most significant bit set in the `bit_sequence` parameter.
+ *
+ * @param bit_sequence uint8 value that is scanned
+ * @return             the index (0..7) of the most significant bit set 
+ */
 uint8
 bit_works_bitscanMS1B_8 (const uint8 bit_sequence) {
   uint8 result = 0x00;
@@ -254,7 +259,7 @@ bit_works_bitscanMS1B_8 (const uint8 bit_sequence) {
 }
 
 /**
- * Returns a bit sequence having one bit set, the lowest found
+ * @brief Returns a bit sequence having one bit set, the lowest found
  * in the `bit_sequence` parameter.
  *
  * @param bit_sequence the input value
@@ -266,7 +271,7 @@ bit_works_lowest_bit_set_64 (const uint64 bit_sequence) {
 }
 
 /**
- * Returns a bit sequence having one bit set, the lowest found
+ * @brief Returns a bit sequence having one bit set, the lowest found
  * in the `bit_sequence` parameter.
  *
  * @param bit_sequence the input value
@@ -278,7 +283,7 @@ bit_works_lowest_bit_set_32 (const uint32 bit_sequence) {
 }
 
 /**
- * Returns a bit sequence having one bit set, the lowest found
+ * @brief Returns a bit sequence having one bit set, the lowest found
  * in the `bit_sequence` parameter.
  *
  * @param bit_sequence the input value

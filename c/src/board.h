@@ -207,11 +207,14 @@ axis_transform_back_from_row_one (const Axis   axis,
 /* Function prototypes for the Player entity. */ 
 /**************************************************/
 
-extern SquareState player_color(const Player p);
+extern SquareState
+player_color (const Player p);
 
-extern char *player_description(const Player p);
+extern char *
+player_description (const Player p);
 
-extern Player player_opponent(const Player p);
+extern Player
+player_opponent (const Player p);
 
 
 
@@ -219,50 +222,57 @@ extern Player player_opponent(const Player p);
 /* Function prototypes for the Board entity. */ 
 /**************************************************/
 
-extern Board *board_new(const SquareSet b,
-                        const SquareSet w
-                        );
+extern Board *
+board_new (const SquareSet b,
+           const SquareSet w);
 
-extern Board *board_free(Board *b);
+extern Board *board_free (Board *b);
 
-extern SquareState board_get_square(const Board  *const b,
-                                    const Square        sq
-                                    );
+extern SquareState
+board_get_square (const Board  *const b,
+                  const Square        sq);
 
 extern int board_count_pieces(const Board       *const b,
-                              const SquareState        color
-                              );
+                              const SquareState        color);
 
-extern int board_count_difference(const Board  *const b,
-                                  const Player        p
-                                  );
+extern int
+board_count_difference (const Board  *const b,
+                        const Player        p);
 
-extern int board_is_move_legal(const Board *const b,
-                               const Square       move,
-                               const Player       p
-                               );
+extern int
+board_is_move_legal (const Board *const b,
+                     const Square       move,
+                     const Player       p);
 
 extern SquareSet
-board_legal_moves (Board  b,
-                   Player p);
+board_legal_moves (const Board  * const b,
+                   const Player         p);
 
-extern SquareSet board_get_color(const Board       *const b,
-                                 const SquareState        color
-                                 );
+extern SquareSet
+board_get_color (const Board       *const b,
+                 const SquareState        color);
 
 extern SquareSet board_get_player (const Board  *const b,
                                    const Player        p);
 
-extern SquareSet board_empties(const Board *const b);
+extern SquareSet
+board_empties (const Board *const b);
 
-extern SquareSet board_blacks(const Board *const b);
+extern SquareSet
+board_blacks (const Board *const b);
 
-extern SquareSet board_whites(const Board *const b);
+extern SquareSet
+board_whites (const Board *const b);
 
-extern char *board_print(const Board const *b);
+extern char *
+board_print (const Board const *b);
 
-extern int board_compare(const Board * const a,
-                         const Board * const b);
+extern int
+board_compare (const Board * const a,
+               const Board * const b);
+
+extern gboolean
+board_has_any_player_any_legal_move (const Board * const b);
 
 
 
@@ -270,9 +280,17 @@ extern int board_compare(const Board * const a,
 /* Function prototypes for the Direction entity. */ 
 /*************************************************/
 
-extern SquareSet direction_shift_square_set(const Direction dir,
-                                            const SquareSet squares
-                                            );
+extern SquareSet
+direction_shift_square_set (const Direction dir,
+                            const SquareSet squares);
+
+extern SquareSet
+direction_shift_square_set_by_amount (const Direction dir,
+                                      const SquareSet squares,
+                                      const int       amount);
+
+extern Direction
+direction_opposite (const Direction dir);
 
 
 
@@ -280,7 +298,7 @@ extern SquareSet direction_shift_square_set(const Direction dir,
 /* Function implementations for the SquareState entity. */ 
 /********************************************************/
 
-extern char square_state_symbol(const SquareState color);
+extern char square_state_symbol (const SquareState color);
 
 
 
@@ -297,6 +315,37 @@ game_position_free (GamePosition *gp);
 
 extern gchar *
 game_position_print (const GamePosition const *gp);
+
+extern int
+game_position_count_difference (const GamePosition *gp);
+
+extern SquareSet
+game_position_legal_moves (const GamePosition *position);
+
+extern int
+game_position_compare (const GamePosition * const a,
+                       const GamePosition * const b);
+
+extern gboolean
+game_position_has_any_legal_move (const GamePosition * const gp);
+
+extern gboolean
+game_position_has_any_player_any_legal_move (const GamePosition * const gp);
+
+extern gboolean
+game_position_is_move_legal (const GamePosition * const gp, const Square move);
+
+extern GamePosition *
+game_position_make_move (const GamePosition * const gp, const Square move);
+
+
+
+/******************************************************/
+/* Function implementations for the SquareSet entity. */ 
+/******************************************************/
+
+extern gchar *
+square_set_print_as_moves (SquareSet moves);
 
 
 #endif /* BOARD_H */
