@@ -196,6 +196,8 @@ exact_solution_print (const ExactSolution * const es)
 /* Function implementations for the GamePosition entity. */ 
 /*********************************************************/
 
+static int leaf_count = 0;
+
 ExactSolution *
 game_position_solve (GamePosition * const root)
 {
@@ -205,8 +207,11 @@ game_position_solve (GamePosition * const root)
 
   SearchNode *sn = game_position_solve_impl(root, -64, +64, 60);
 
+  printf("Final SearchNode sn: move=%d, value=%d\n", sn->move, sn->value);
   if (sn)
     result->outcome = sn->value;
+
+  printf("leaf_count=%d\n", leaf_count);
 
   return result;
 }
@@ -224,36 +229,35 @@ game_position_solve_impl (const GamePosition * const gp,
                           const int                  ply)
 {
   SearchNode *node;
-  const Player player = gp->player;
-  const Player opponent = player_opponent(player);
-  Board *board = gp->board;
-  if (ply == 0) {
-    node = search_node_new((Square) -1, game_position_count_difference(gp));
-  } else {
-    const SquareSet moves = game_position_legal_moves(gp);
-    if (0ULL == moves) {
-      GamePosition *flipped_players = game_position_new(board_new(board->blacks, board->whites), opponent);
-      if (game_position_has_any_legal_move(flipped_players))
-        node = search_node_negated(game_position_solve_impl(flipped_players, -cutoff, -achievable, ply - 1));
-      else
-        node = search_node_new((Square) -1, final_value(gp));
+
+  const SquareSet moves = game_position_legal_moves(gp);
+  if (0ULL == moves) {
+    GamePosition *flipped_players = game_position_pass(gp);
+    if (game_position_has_any_legal_move(flipped_players)) {
+      node = search_node_negated(game_position_solve_impl(flipped_players, -cutoff, -achievable, ply - 1));
     } else {
-      Square first_move = bit_works_bitscanMS1B_64(moves);
-      node = search_node_new(first_move, achievable);
-      Square move = 0;
-      for (SquareSet cursor = 1ULL; cursor != 0ULL; cursor <<= 1) {
-        if ((cursor & moves) != 0ULL) {
-          const GamePosition *gp2 = game_position_make_move(gp, move);
-          const int val = - (game_position_solve_impl(gp2, -cutoff, -node->value, ply - 1))->value;
-          if (val > node->value) {
-            node = search_node_new(move, val);
-          }
-          if (node->value >= cutoff) { break; }
+      leaf_count++;
+      //printf("ply=%d\n", ply);
+      //printf("%s\n", game_position_print(gp));
+      node = search_node_new((Square) -1, final_value(gp));
+    }
+  } else {
+    Square first_move = bit_works_bitscanMS1B_64(moves);
+    node = search_node_new(first_move, achievable);
+    Square move = 63;
+    for (SquareSet cursor = 0x8000000000000000; cursor != 0ULL; cursor >>= 1) {
+      if ((cursor & moves) != 0ULL) {
+        const GamePosition *gp2 = game_position_make_move(gp, move);
+        const int val = - (game_position_solve_impl(gp2, -cutoff, -node->value, ply - 1))->value;
+        if (val > node->value) {
+          node = search_node_new(move, val);
         }
-        move++;
+        if (node->value >= cutoff) { goto out; }
       }
+      move--;
     }
   }
+ out:
   return node;
 }
 

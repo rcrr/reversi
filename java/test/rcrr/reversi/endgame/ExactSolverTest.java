@@ -64,6 +64,12 @@ public class ExactSolverTest {
 
     final static GamePosition FFO_40_A2 = FFO_40.makeMove(Square.A2);
     final static GamePosition FFO_40_A2_B1 = FFO_40_A2.makeMove(Square.B1);
+    final static GamePosition FFO_40_A2_B1_C1 = FFO_40_A2_B1.makeMove(Square.C1);
+    final static GamePosition FFO_40_A2_B1_C1_PASS = GamePosition.valueOf(FFO_40_A2_B1_C1.board(), FFO_40_A2_B1_C1.player().opponent());
+    final static GamePosition FFO_40_A2_B1_C1_PASS_B6 = FFO_40_A2_B1_C1_PASS.makeMove(Square.B6);
+    final static GamePosition FFO_40_A2_B1_C1_PASS_B6_C7 = FFO_40_A2_B1_C1_PASS_B6.makeMove(Square.C7);
+    final static GamePosition FFO_40_A2_B1_C1_PASS_B6_C7_A7 = FFO_40_A2_B1_C1_PASS_B6_C7.makeMove(Square.A7);
+    final static GamePosition FFO_40_A2_B1_C1_PASS_B6_C7_A7_B7 = FFO_40_A2_B1_C1_PASS_B6_C7_A7.makeMove(Square.B7);
 
     /** Class constructor. */
     public ExactSolverTest() { }
@@ -73,16 +79,31 @@ public class ExactSolverTest {
      *
      * @see ExactSolver#solve()
      */
+    /*
     @Test
     public final void testSolveFFO_40_A2_B1() {
 
-        System.out.printf("FF0_40_A2_B1:\nWhite to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40_A2_B1.board().printBoard());
+        System.out.printf("FF0_40_A2_B1:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40_A2_B1.board().printBoard());
 
         final SearchNode result = new ExactSolver(FFO_40_A2_B1).solve();
 
         System.out.printf("%s\n", result);
 
         System.out.println("BitBoard2.printLog() = " + BitBoard2.printLog());
+
+        assertThat("The value is 38.",
+                   result.value(),
+                   is(38));
+    }
+    */
+
+    @Test
+    public final void testSolveFFO_40_A2_B1_C1_PASS_B6_C7() {
+
+        System.out.printf("FFO_40_A2_B1_C1_PASS_B6_C7:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40_A2_B1_C1_PASS_B6_C7.board().printBoard());
+
+        final SearchNode result = new ExactSolver(FFO_40_A2_B1_C1_PASS_B6_C7).solve();
+        System.out.printf("%s\n", result);
 
         assertThat("The value is 38.",
                    result.value(),
