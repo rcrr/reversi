@@ -235,6 +235,7 @@ game_position_solve_impl (const GamePosition * const gp,
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
       node = search_node_negated(game_position_solve_impl(flipped_players, -cutoff, -achievable, ply - 1));
+      flipped_players = game_position_free(flipped_players);
     } else {
       leaf_count++;
       //printf("ply=%d\n", ply);
@@ -247,8 +248,9 @@ game_position_solve_impl (const GamePosition * const gp,
     Square move = 63;
     for (SquareSet cursor = 0x8000000000000000; cursor != 0ULL; cursor >>= 1) {
       if ((cursor & moves) != 0ULL) {
-        const GamePosition *gp2 = game_position_make_move(gp, move);
+        GamePosition *gp2 = game_position_make_move(gp, move);
         const int val = - (game_position_solve_impl(gp2, -cutoff, -node->value, ply - 1))->value;
+        gp2 = game_position_free(gp2);
         if (val > node->value) {
           node = search_node_new(move, val);
         }

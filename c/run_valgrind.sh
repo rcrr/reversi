@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROG=./build/bin/gpdb_verify
+PROG=./build/test/bin/exact_solver_test
 #ARGS="./build/bin/gpdb_verify -f db/gpdb-test-db.txt -q duplicate-entry"
 ARGS="./build/bin/gpdb_verify -f db/gpdb-sample-games.txt -q empty"
 
