@@ -66,6 +66,7 @@ static void board_legal_moves_test (void);
 
 static void game_position_print_test (void);
 static void game_position_compare_test (void);
+static void game_position_count_difference_test (void);
 
 
 int
@@ -100,6 +101,7 @@ main (int   argc,
 
   g_test_add_func("/board/game_position_print_test", game_position_print_test);
   g_test_add_func("/board/game_position_compare_test", game_position_compare_test);
+  g_test_add_func("/board/game_position_count_difference_test", game_position_count_difference_test);
 
   return g_test_run();
 }
@@ -477,4 +479,27 @@ game_position_compare_test (void)
   g_assert(game_position_compare(a, b) > 0);
   a = game_position_free(a);
   b = game_position_free(b);
+}
+
+static void
+game_position_count_difference_test (void)
+{
+  GamePosition *gp;
+  Board        *b;
+  SquareSet     blacks;
+  SquareSet     whites;
+  Player        p;
+
+  blacks = 0xFFFFFFFFFFFFFFFFULL;
+  whites = 0x0000000000000000ULL;
+
+  b = board_new(blacks, whites);
+
+  p = BLACK_PLAYER;
+
+  gp = game_position_new(b, p);
+
+  g_assert(game_position_count_difference(gp) == +64);
+
+  gp = game_position_free(gp);
 }

@@ -35,10 +35,10 @@
 # 4  O O @ O O O @ @ 
 # 5  O O O O O O @ @ 
 # 6  . . . O O O O @ 
-# 7  . . . . @ . . O 
+# 7  . . . . O . . @ 
 # 8  . . . . . . . . 
 # Player to move: BLACK
 #
 #     |1       2       3       4       5       6       7       8       |
 #     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
-ffo-40;w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....b..w........;b;FFO position 40, black to move, Turner vs Monnom, Bruxelles 1997.;
+ffo-40;w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;FFO position 40, black to move, Turner vs Monnom, Bruxelles 1997.;

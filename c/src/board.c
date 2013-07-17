@@ -1260,6 +1260,15 @@ game_position_make_move (const GamePosition * const gp, const Square move)
   return game_position_new(board_new(new_bit_board[0], new_bit_board[1]), o);
 }
 
+GamePosition *
+game_position_pass (const GamePosition * const gp)
+{
+  g_assert(gp);
+  g_assert(TRUE != game_position_has_any_legal_move(gp));
+
+  return game_position_new(board_new(gp->board->blacks, gp->board->whites), player_opponent(gp->player));
+}
+
 /*
  * Internal functions.
  */
