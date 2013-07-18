@@ -235,13 +235,11 @@ game_position_solve_impl (const GamePosition * const gp,
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
       node = search_node_negated(game_position_solve_impl(flipped_players, -cutoff, -achievable, ply - 1));
-      flipped_players = game_position_free(flipped_players);
     } else {
       leaf_count++;
-      //printf("ply=%d\n", ply);
-      //printf("%s\n", game_position_print(gp));
       node = search_node_new((Square) -1, final_value(gp));
     }
+    flipped_players = game_position_free(flipped_players);
   } else {
     Square first_move = bit_works_bitscanMS1B_64(moves);
     node = search_node_new(first_move, achievable);
@@ -252,6 +250,7 @@ game_position_solve_impl (const GamePosition * const gp,
         const int val = - (game_position_solve_impl(gp2, -cutoff, -node->value, ply - 1))->value;
         gp2 = game_position_free(gp2);
         if (val > node->value) {
+          search_node_free(node);
           node = search_node_new(move, val);
         }
         if (node->value >= cutoff) { goto out; }
