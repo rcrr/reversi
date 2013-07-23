@@ -121,6 +121,49 @@ game_position_solve_test (GamePositionDbFixture *fixture,
   GamePosition *ffo_40_a2_b1 = game_position_make_move(ffo_40_a2, B1);
   printf("\nFFO #40: A2 B1\n%s\n", game_position_print(ffo_40_a2_b1));
 
+  SquareSet lm = game_position_legal_moves(ffo_40_a2_b1);
+  printf("ffo_40_a2_b1 legal moves: %s\n", square_set_print_as_moves(lm));
+  // ffo_40_a2_b1 legal moves: C1 A6 B6 C6 C7 D7 F7 G7 D8 E8
+
+  // !!!!!
+  GamePosition *ffo_40_a2_b1_a6 = game_position_make_move(ffo_40_a2_b1, A6);
+  printf("\nFFO #40: A2 B1 A6\n%s\n", game_position_print(ffo_40_a2_b1_a6));
+
+  // !!!!!
+  GamePosition *ffo_40_a2_b1_b6 = game_position_make_move(ffo_40_a2_b1, B6);
+  printf("\nFFO #40: A2 B1 B6\n%s\n", game_position_print(ffo_40_a2_b1_b6));
+
+  // !!!!!
+  GamePosition *ffo_40_a2_b1_c6 = game_position_make_move(ffo_40_a2_b1, C6);
+  printf("\nFFO #40: A2 B1 C6\n%s\n", game_position_print(ffo_40_a2_b1_c6));
+
+  // !!!!!
+  GamePosition *ffo_40_a2_b1_c7 = game_position_make_move(ffo_40_a2_b1, C7);
+  printf("\nFFO #40: A2 B1 C7\n%s\n", game_position_print(ffo_40_a2_b1_c7));
+
+  // !!!!!
+  GamePosition *ffo_40_a2_b1_d7 = game_position_make_move(ffo_40_a2_b1, D7);
+  printf("\nFFO #40: A2 B1 D7\n%s\n", game_position_print(ffo_40_a2_b1_d7));
+
+  // !!!!!
+  GamePosition *ffo_40_a2_b1_f7 = game_position_make_move(ffo_40_a2_b1, F7);
+  printf("\nFFO #40: A2 B1 F7\n%s\n", game_position_print(ffo_40_a2_b1_f7));
+
+  // !!!!!
+  GamePosition *ffo_40_a2_b1_g7 = game_position_make_move(ffo_40_a2_b1, G7);
+  printf("\nFFO #40: A2 B1 G7\n%s\n", game_position_print(ffo_40_a2_b1_g7));
+
+  // !!!!!
+  GamePosition *ffo_40_a2_b1_d8 = game_position_make_move(ffo_40_a2_b1, D8);
+  printf("\nFFO #40: A2 B1 D8\n%s\n", game_position_print(ffo_40_a2_b1_d8));
+
+  GamePosition *ffo_40_a2_b1_e8 = game_position_make_move(ffo_40_a2_b1, E8);
+  printf("\nFFO #40: A2 B1 E8\n%s\n", game_position_print(ffo_40_a2_b1_e8));
+
+
+
+
+
   GamePosition *ffo_40_a2_b1_c1 = game_position_make_move(ffo_40_a2_b1, C1);
   printf("\nFFO #40: A2 B1 C1\n%s\n", game_position_print(ffo_40_a2_b1_c1));
 
@@ -139,7 +182,7 @@ game_position_solve_test (GamePositionDbFixture *fixture,
   GamePosition *ffo_40_a2_b1_c1_pass_b6_c7_a7_b7 = game_position_make_move(ffo_40_a2_b1_c1_pass_b6_c7_a7, B7);
   printf("\nFFO #40: A2 B1 C1 -- B6 C7 A7 B7\n%s\n", game_position_print(ffo_40_a2_b1_c1_pass_b6_c7_a7_b7));
 
-  ExactSolution *solution = game_position_solve(ffo_40_a2_b1_c1_pass_b6_c7);
+  ExactSolution *solution = game_position_solve(ffo_40);
   printf("\n%s\n", exact_solution_print(solution));
   printf("\nsolution outcome: %d\n", solution->outcome);
 

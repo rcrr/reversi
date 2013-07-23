@@ -61,7 +61,8 @@ final_value (const GamePosition * const gp);
  * Internal variables and constants.
  */
 
-
+static uint64 leaf_count = 0;
+static uint64 node_count = 0;
 
 
 
@@ -116,7 +117,10 @@ search_node_free (SearchNode *sn)
 SearchNode *
 search_node_negated (SearchNode *sn)
 {
-  return search_node_new(sn->move, -sn->value);
+  SearchNode *result;
+  result = search_node_new(sn->move, -sn->value);
+  search_node_free(sn);
+  return result;
 }
 
 
@@ -196,8 +200,6 @@ exact_solution_print (const ExactSolution * const es)
 /* Function implementations for the GamePosition entity. */ 
 /*********************************************************/
 
-static int leaf_count = 0;
-
 ExactSolution *
 game_position_solve (GamePosition * const root)
 {
@@ -211,7 +213,7 @@ game_position_solve (GamePosition * const root)
   if (sn)
     result->outcome = sn->value;
 
-  printf("leaf_count=%d\n", leaf_count);
+  printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
 
   return result;
 }
@@ -229,6 +231,9 @@ game_position_solve_impl (const GamePosition * const gp,
                           const int                  ply)
 {
   SearchNode *node;
+  SearchNode *node2;
+
+  node_count++;
 
   const SquareSet moves = game_position_legal_moves(gp);
   if (0ULL == moves) {
@@ -247,11 +252,16 @@ game_position_solve_impl (const GamePosition * const gp,
     for (SquareSet cursor = 0x8000000000000000; cursor != 0ULL; cursor >>= 1) {
       if ((cursor & moves) != 0ULL) {
         GamePosition *gp2 = game_position_make_move(gp, move);
-        const int val = - (game_position_solve_impl(gp2, -cutoff, -node->value, ply - 1))->value;
+        node2 = search_node_negated(game_position_solve_impl(gp2, -cutoff, -node->value, ply - 1));
+        //const int val = node2->value;
         gp2 = game_position_free(gp2);
-        if (val > node->value) {
+        if (node2->value > node->value) {
           search_node_free(node);
-          node = search_node_new(move, val);
+          node = node2;
+          node->move = move;
+          node2 = NULL;
+        } else {
+          node2 = search_node_free(node2);
         }
         if (node->value >= cutoff) { goto out; }
       }
