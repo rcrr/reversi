@@ -492,11 +492,8 @@ game_position_count_difference_test (void)
 
   blacks = 0xFFFFFFFFFFFFFFFFULL;
   whites = 0x0000000000000000ULL;
-
   b = board_new(blacks, whites);
-
   p = BLACK_PLAYER;
-
   gp = game_position_new(b, p);
 
   g_assert(game_position_count_difference(gp) == +64);
