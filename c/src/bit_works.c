@@ -42,7 +42,7 @@ static const uint64 hff = 0xffffffffffffffff; //binary: all ones
 static const uint64 h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,3...
 
 /* Log 2 array */
-static const unsigned char log2_array[] = {
+static const uint8 log2_array[] = {
   0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
   5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
   6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
@@ -52,6 +52,24 @@ static const unsigned char log2_array[] = {
   7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
   7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
 };
+
+/* Array for de Bruijn multiplication. */
+static const uint8 debruijn_64_index[] = {
+  63,  0, 58,  1, 59, 47, 53,  2,
+  60, 39, 48, 27, 54, 33, 42,  3,
+  61, 51, 37, 40, 49, 18, 28, 20,
+  55, 30, 34, 11, 43, 14, 22,  4,
+  62, 57, 46, 52, 38, 26, 32, 41,
+  50, 36, 17, 19, 29, 10, 13, 21,
+  56, 45, 25, 31, 35, 16,  9, 12,
+  44, 24, 15,  8, 23,  7,  6,  5
+};
+
+/* 64 bit value for the de Bruijn's "magical" constant. */
+static const uint64 debruijn_64_magic_constant = 0x07EDD5E59A4E28C2ULL;
+
+/* Right shift for the de Bruijn's algorithm. */
+static const int debruijn_64_shift_value = 58;
 
 /*
  * This is a naive implementation, shown for comparison,
@@ -132,7 +150,7 @@ void
 bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
 {
   uint32 tmp;
-  unsigned char hi;
+  uint8  hi;
 
   hi = 0;
 
@@ -256,6 +274,27 @@ bit_works_bitscanMS1B_8 (const uint8 bit_sequence) {
   uint8 result = 0x00;
   result |= log2_array[(int) bit_sequence];
   return result;
+}
+
+/**
+ * @brief Returns the index of the least significant bit set in the `bit_sequence` parameter
+ * via de Bruijn's perfect hashing.
+ *
+ * Parameter `bit_sequence` must be different from {@code 0L}.
+ * If no bit set is found, meaning that `bit_sequence` is equal to `0ULL`, `63` is
+ * returned, that is clearly a wrong value.
+ *
+ * See: <a href="https://chessprogramming.wikispaces.com/Bitscan#DeBruijnMultiplation" target="_blank">
+ *      de Bruijn multiplication</a>
+ *
+ * @param bit_sequence value that is scanned
+ * @return             the index of the least significant bit set
+ */
+uint8
+bit_works_bitscanLS1B_64 (const uint64 bit_sequence) {
+  /** mask isolates the least significant one bit (LS1B). */
+  const uint64 mask = bit_sequence & (-bit_sequence);
+  return debruijn_64_index[(mask * debruijn_64_magic_constant) >> debruijn_64_shift_value];
 }
 
 /**

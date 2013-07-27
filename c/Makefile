@@ -32,9 +32,13 @@ TEST_PROGS = bit_works_test board_test game_position_db_test game_position_test 
 # No changes from here to the end, unless a structurar change of the build process happens.
 #
 
+#
+# Add -pg to CFLAGS and DFLAGS to profile.
+
 CC = gcc 
-CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
-LDFLAGS = 
+#CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
+CFLAGS = -ansi -std=c99 -pedantic -Wall -g -O4 -DG_DISABLE_ASSERT `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE -pg
+LDFLAGS = -pg
 LIBS = `pkg-config --libs glib-2.0`
 TEST_LIBS =
 SRCDIR = src

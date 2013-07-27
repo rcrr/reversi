@@ -182,7 +182,7 @@ game_position_solve_test (GamePositionDbFixture *fixture,
   GamePosition *ffo_40_a2_b1_c1_pass_b6_c7_a7_b7 = game_position_make_move(ffo_40_a2_b1_c1_pass_b6_c7_a7, B7);
   printf("\nFFO #40: A2 B1 C1 -- B6 C7 A7 B7\n%s\n", game_position_print(ffo_40_a2_b1_c1_pass_b6_c7_a7_b7));
 
-  ExactSolution *solution = game_position_solve(ffo_40);
+  ExactSolution *solution = game_position_solve(ffo_40_a2_b1_c1_pass);
   printf("\n%s\n", exact_solution_print(solution));
   printf("\nsolution outcome: %d\n", solution->outcome);
 

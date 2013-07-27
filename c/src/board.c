@@ -625,7 +625,7 @@ board_legal_moves (const Board * const b, const Player p)
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
-  SquareSet result;
+  register SquareSet result;
   
   result = 0ULL;
 
