@@ -79,13 +79,12 @@ public class ExactSolverTest {
      *
      * @see ExactSolver#solve()
      */
-    /*
     @Test
-    public final void testSolveFFO_40_A2_B1() {
+    public final void testSolveFFO_40() {
 
-        System.out.printf("FF0_40_A2_B1:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40_A2_B1.board().printBoard());
+        System.out.printf("FF0_40:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40.board().printBoard());
 
-        final SearchNode result = new ExactSolver(FFO_40_A2_B1).solve();
+        final SearchNode result = new ExactSolver(FFO_40).solve();
 
         System.out.printf("%s\n", result);
 
@@ -95,8 +94,8 @@ public class ExactSolverTest {
                    result.value(),
                    is(38));
     }
-    */
 
+    /*
     @Test
     public final void testSolveFFO_40_A2_B1_C1_PASS_B6_C7() {
 
@@ -109,5 +108,5 @@ public class ExactSolverTest {
                    result.value(),
                    is(38));
     }
-
+    */
 }
