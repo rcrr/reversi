@@ -21,3 +21,6 @@ tmp
 *.dat
 valgrind.log
 valgrind.*.log
+analysis.txt
+gmon.out
+gprof
