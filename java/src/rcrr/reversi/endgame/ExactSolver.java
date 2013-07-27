@@ -37,11 +37,15 @@ import rcrr.reversi.board.Player;
 import rcrr.reversi.board.Board;
 import rcrr.reversi.board.SquareState;
 import rcrr.reversi.board.Square;
+import rcrr.reversi.board.BoardBuilder;
 
 /**
  * Exact solver searches the end of the game for an exact outcome.
  */
 public class ExactSolver {
+
+    /** Error code 1. */
+    private static final int ERROR_CODE_1 = 1;
 
     private static long nodeCount = 0;
     private static long leafCount = 0;
@@ -112,5 +116,52 @@ public class ExactSolver {
         }
         return node;
     }
+
+    /**
+     * The main entry point for the Exact Solver program.
+     *
+     * @param args an array having two elements: [black's strategy, white's strategy]
+     */
+    public static void main(final String[] args) {
+        if (args == null || args.length != 0) {
+            System.out.println("Argument list error: blackStrategy and whiteStrategy must be provided.");
+            usage();
+            System.exit(ERROR_CODE_1);
+        }
+
+        System.out.printf("FF0_40:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40.board().printBoard());
+
+        final SearchNode result = new ExactSolver(FFO_40).solve();
+
+        System.out.printf("%s\n", result);
+        
+    }
+
+    /**
+     * Print the usage message.
+     */
+    private static void usage() {
+        System.out.println("usage: java rcrr.reversi.endgame.ExactSolver");
+    }
+
+    /**
+     * FFO position #40, black to move, Turner vs Monnom, Bruxelles 1997.
+     * Principal Variation, PV: a2 b1 c1 -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
+     * Final score is +38
+     */
+    final static GamePosition FFO_40 = new GamePosition.Builder()
+        .withBoard(new BoardBuilder()
+                   .withSquaresLiteral(2, 0, 0, 2, 2, 2, 2, 1,
+                                       0, 2, 2, 2, 2, 2, 2, 1,
+                                       2, 2, 1, 1, 2, 2, 2, 1,
+                                       2, 2, 1, 2, 2, 2, 1, 1,
+                                       2, 2, 2, 2, 2, 2, 1, 1,
+                                       0, 0, 0, 2, 2, 2, 2, 1,
+                                       0, 0, 0, 0, 2, 0, 0, 1,
+                                       0, 0, 0, 0, 0, 0, 0, 0)
+                   .build())
+        .withPlayer(Player.BLACK)
+        .build();
+
 
 }
