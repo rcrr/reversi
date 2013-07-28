@@ -41,6 +41,9 @@
 #include "exact_solver.h"
 #include "board.h"
 #include "bit_works.h"
+#include "advanced_square_set.h"
+
+
 
 /*
  * Prototypes for internal functions.
