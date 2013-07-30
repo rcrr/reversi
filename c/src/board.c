@@ -625,7 +625,7 @@ board_legal_moves (const Board * const b, const Player p)
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
-  SquareSet result;
+  register SquareSet result;
   
   result = 0ULL;
 
@@ -1246,6 +1246,7 @@ game_position_make_move (const GamePosition * const gp, const Square move)
   new_bit_board[p] = p_bit_board & unmodified_mask;
   new_bit_board[o] = o_bit_board & unmodified_mask;
 
+  /*
   for (Axis axis = HO; axis <= DU; axis++) {
     const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
     const int shift_distance = axis_shift_distance(axis, column, row);
@@ -1256,6 +1257,46 @@ game_position_make_move (const GamePosition * const gp, const Square move)
     new_bit_board[p] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, p_bitrow), -shift_distance);
     new_bit_board[o] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, o_bitrow), -shift_distance);
   }
+  */
+
+  int shift_distance;
+  uint8 p_bitrow;
+  uint8 o_bitrow;
+
+  /* Axis HO. */
+  const uint8 right_shift_for_HO = 8 * row;
+  p_bitrow = axis_transform_to_row_one(HO, p_bit_board >> right_shift_for_HO);
+  o_bitrow = axis_transform_to_row_one(HO, o_bit_board >> right_shift_for_HO);
+  p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, column);
+  o_bitrow &= ~p_bitrow;
+  new_bit_board[p] |= ((SquareSet) p_bitrow << right_shift_for_HO);
+  new_bit_board[o] |= ((SquareSet) o_bitrow << right_shift_for_HO);
+
+  /* Axis VE. */
+  p_bitrow = axis_transform_to_row_one(VE, p_bit_board >> column);
+  o_bitrow = axis_transform_to_row_one(VE, o_bit_board >> column);
+  p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, row);
+  o_bitrow &= ~p_bitrow;
+  new_bit_board[p] |= axis_transform_back_from_row_one(VE, p_bitrow) << column;
+  new_bit_board[o] |= axis_transform_back_from_row_one(VE, o_bitrow) << column;
+
+  /* Axis DD. */
+  shift_distance = axis_shift_distance(DD, column, row);
+  p_bitrow = axis_transform_to_row_one(DD, bit_works_signed_left_shift(p_bit_board, shift_distance));
+  o_bitrow = axis_transform_to_row_one(DD, bit_works_signed_left_shift(o_bit_board, shift_distance));
+  p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, column);
+  o_bitrow &= ~p_bitrow;
+  new_bit_board[p] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(DD, p_bitrow), -shift_distance);
+  new_bit_board[o] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(DD, o_bitrow), -shift_distance);
+
+  /* Axis DU. */
+  shift_distance = axis_shift_distance(DU, column, row);
+  p_bitrow = axis_transform_to_row_one(DU, bit_works_signed_left_shift(p_bit_board, shift_distance));
+  o_bitrow = axis_transform_to_row_one(DU, bit_works_signed_left_shift(o_bit_board, shift_distance));
+  p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, column);
+  o_bitrow &= ~p_bitrow;
+  new_bit_board[p] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(DU, p_bitrow), -shift_distance);
+  new_bit_board[o] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(DU, o_bitrow), -shift_distance);
 
   return game_position_new(board_new(new_bit_board[0], new_bit_board[1]), o);
 }

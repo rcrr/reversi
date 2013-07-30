@@ -41,6 +41,9 @@
 #include "exact_solver.h"
 #include "board.h"
 #include "bit_works.h"
+#include "advanced_square_set.h"
+
+
 
 /*
  * Prototypes for internal functions.
@@ -246,10 +249,10 @@ game_position_solve_impl (const GamePosition * const gp,
     }
     flipped_players = game_position_free(flipped_players);
   } else {
-    Square first_move = bit_works_bitscanMS1B_64(moves);
+    Square first_move = bit_works_bitscanLS1B_64(moves);
     node = search_node_new(first_move, achievable);
-    Square move = 63;
-    for (SquareSet cursor = 0x8000000000000000; cursor != 0ULL; cursor >>= 1) {
+    Square move = 0;
+    for (SquareSet cursor = 0x0000000000000001; cursor != 0ULL; cursor <<= 1) {
       if ((cursor & moves) != 0ULL) {
         GamePosition *gp2 = game_position_make_move(gp, move);
         node2 = search_node_negated(game_position_solve_impl(gp2, -cutoff, -node->value, ply - 1));
@@ -265,7 +268,7 @@ game_position_solve_impl (const GamePosition * const gp,
         }
         if (node->value >= cutoff) { goto out; }
       }
-      move--;
+      move++;
     }
   }
  out:

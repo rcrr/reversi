@@ -34,31 +34,123 @@
 
 #include <stdio.h>
 #include "board.h"
+#include "game_position_db.h"
+
+
+
+/* Helper function prototypes. */
+
+
+
+
+/* Static variables. */
+
+static gchar    *input_file    = NULL;
+static gchar    *lookup_entry  = NULL;
+
+static GOptionEntry entries[] =
+  {
+    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name", NULL }, 
+    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry,  "Lookup entry",    NULL },
+    { NULL }
+  };
+
+
 
 /**
  * Main entry to the Reversi C implementation.
  * 
  * Has to be completly developed.
  */
-int main(void)
+int
+main (int argc, char *argv[])
 {
+  GamePositionDb               *db;
+  GamePositionDbSyntaxErrorLog *syntax_error_log;
+  FILE                         *fp;
+  GError                       *error;
+  gchar                        *source;
+  int                           number_of_errors;
 
-  Player p = WHITE_PLAYER;
+  GOptionContext *context;
+  GOptionGroup   *option_group;
 
-  printf("Hello, reversi player!\n");
+  GamePositionDbEntry *entry;
 
-  SquareSet squares;
-  printf("sizeof SquareSet = %zu\n", sizeof(squares));
+  error = NULL;
+  entry = NULL;
 
-  Board b;
-  printf("sizeof Board = %zu\n", sizeof(b));
+  /* GLib command line options and argument parsing. */
+  option_group = g_option_group_new("name", "description", "help_description", NULL, NULL);
+  context = g_option_context_new ("- Verify a database of game positions");
+  g_option_context_add_main_entries (context, entries, NULL);
+  g_option_context_add_group (context, option_group);
+  if (!g_option_context_parse (context, &argc, &argv, &error)) {
+    g_print("Option parsing failed: %s\n", error->message);
+    return -1;
+  }
 
-  GamePosition gp;
-  printf("sizeof GamePosition = %zu\n", sizeof(gp));
+  /* Checks command line options for consistency. */
+  if (input_file) {
+    source = g_strdup(input_file);
+  } else {
+    g_print("Option -f, --file is mandatory.\n.");
+    return -2;
+  }
 
-  printf("player_opponent(p) = %d\n", player_opponent(p));
+  /* Opens the source file for reading. */
+  fp = fopen(source, "r");
+  if (!fp) {
+    g_print("Unable to open database resource for reading, file \"%s\" does not exist.\n", source);
+    return -3;
+  }
+
+  /* Loads the game position database. */
+  db = gpdb_new(g_strdup(source));
+  syntax_error_log = NULL;
+  error = NULL;
+  gpdb_load(fp, source, db, &syntax_error_log, &error);
+  fclose(fp);
+
+  /* Compute the number of errors logged. */
+  number_of_errors = gpdb_syntax_error_log_length(syntax_error_log);
+  if (number_of_errors != 0) {
+    g_print("The database resource, file \"%s\" contains errors, debug it using the gpdb_verify utility.\n", source);
+    return -4;
+  }
+
+  /* Lookup for a given key. */
+  if (lookup_entry) {
+    entry = gpdb_lookup(db, lookup_entry);
+    if (entry) {
+      gchar *tmp = gpdb_entry_print(entry);
+      g_print("%s", tmp);
+      g_free(tmp);
+    } else {
+      g_print("Entry %s not found in file %s.\n", lookup_entry, source);
+      return -6;      
+    }
+  } else {
+    g_print("No entry provided.\n");
+    return -6;
+  }
+
+  g_print("Solving the game position %s ...\n", entry->id);
+
+  /* Frees the resources. */
+  g_free(error);
+  gpdb_free(db, TRUE);
+  if (syntax_error_log)
+    gpdb_syntax_error_log_free(syntax_error_log);
+  g_option_context_free(context);
+  g_free(source);
 
   return 0;
-
 }
+
+
+
+/*
+ * Internal functions.
+ */
 

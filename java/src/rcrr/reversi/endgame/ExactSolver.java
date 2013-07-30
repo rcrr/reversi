@@ -37,48 +37,18 @@ import rcrr.reversi.board.Player;
 import rcrr.reversi.board.Board;
 import rcrr.reversi.board.SquareState;
 import rcrr.reversi.board.Square;
+import rcrr.reversi.board.BoardBuilder;
 
 /**
  * Exact solver searches the end of the game for an exact outcome.
  */
 public class ExactSolver {
 
-    static class Cache {
+    /** Error code 1. */
+    private static final int ERROR_CODE_1 = 1;
 
-        final int level;
-        final int[][] hits;
-        final Set[][] positions;
-
-        Cache(final GamePosition root) {
-            level = root.board().countPieces(SquareState.EMPTY);
-            hits = new int[2][level+1];
-            positions = new HashSet[2][level+1];
-            for (int i = 0; i <= level; i++) {
-                positions[0][i] = new HashSet(100, .5F);
-                positions[1][i] = new HashSet(100, .5F);
-            }
-            System.out.printf("Cache-level: %d\n", level);
-        }
-
-        void hit(final GamePosition position) {
-            hits[position.player().ordinal()][position.board().countPieces(SquareState.EMPTY)]++; 
-            positions[position.player().ordinal()][position.board().countPieces(SquareState.EMPTY)].add(position); 
-        }
-
-        String print() {
-            final StringBuffer sb = new StringBuffer();
-            sb.append("Cache:\n");
-            sb.append("[level]: (black hits, whites) - [black set entries, whites]\n");
-            for (int i = 0; i <= level; i++) {
-                sb.append(String.format("[%2d]: (%8d, %8d) - [%8d, %8d]\n", i, hits[0][i], hits[1][i], positions[0][i].size(), positions[1][i].size()));
-            }
-            sb.append("\n");
-            return sb.toString();
-        }
-
-    }
-
-    final static Set<GamePosition> GAME_POSITION_SET = new HashSet<GamePosition>(1000000, 0.75F); 
+    private static long nodeCount = 0;
+    private static long leafCount = 0;
 
     /**
      * Returns the board final value.
@@ -91,19 +61,16 @@ public class ExactSolver {
         return board.countDifference(player);
     }
 
-    final private Cache cache;
     final private GamePosition root;
 
     public ExactSolver(final GamePosition root) {
         this.root  = root;
-        this.cache = new Cache(root);
     }
 
     public SearchNode solve() {
         final EvalFunction ef = new CountDifference();
         final SearchNode result = solveImpl(root.player(), root.board(), -64, +64, 60, ef);
-        System.out.printf("Number of different GamePosition reached is: %d\n", GAME_POSITION_SET.size());
-        System.out.printf("%s", cache.print());
+        System.out.println("[nodeCount=" + nodeCount + ", leafCount=" + leafCount + "]");
         return result;
     }
 
@@ -124,34 +91,77 @@ public class ExactSolver {
                                 final int cutoff,
                                 final int ply,
                                 final EvalFunction ef) {
+        nodeCount++;
         final GamePosition gp = GamePosition.valueOf(board, player);
-        //GAME_POSITION_SET.add(gp);
-        cache.hit(gp);
         SearchNode node;
         final Player opponent = player.opponent();
-        if (ply == 0) {
-            node = SearchNode.valueOf(null, ef.eval(GamePosition.valueOf(board, player)));
-        } else {
-            final List<Square> moves = board.legalMoves(player);
-            if (moves.isEmpty()) {
-                if (board.hasAnyLegalMove(opponent)) {
-                    node = solveImpl(opponent, board, -cutoff, -achievable, ply - 1, ef).negated();
-                } else {
-                    node = SearchNode.valueOf(null, finalValue(board, player));
-                }
+        final List<Square> moves = board.legalMoves(player);
+        if (moves.isEmpty()) {
+            if (board.hasAnyLegalMove(opponent)) {
+                node = solveImpl(opponent, board, -cutoff, -achievable, ply - 1, ef).negated();
             } else {
-                node = SearchNode.valueOf(moves.get(0), achievable);
-                outer: for (final Square move : moves) {
-                    final Board board2 = board.makeMove(move, player);
-                    final int val = solveImpl(opponent, board2, -cutoff, -node.value(), ply - 1, ef).negated().value();
-                    if (val > node.value()) {
-                        node = SearchNode.valueOf(move, val);
-                    }
-                    if (node.value() >= cutoff) { break outer; }
+                leafCount++;
+                node = SearchNode.valueOf(null, finalValue(board, player));
+            }
+        } else {
+            node = SearchNode.valueOf(moves.get(0), achievable);
+            outer: for (final Square move : moves) {
+                final Board board2 = board.makeMove(move, player);
+                final int val = solveImpl(opponent, board2, -cutoff, -node.value(), ply - 1, ef).negated().value();
+                if (val > node.value()) {
+                    node = SearchNode.valueOf(move, val);
                 }
+                    if (node.value() >= cutoff) { break outer; }
             }
         }
         return node;
     }
+
+    /**
+     * The main entry point for the Exact Solver program.
+     *
+     * @param args an array having two elements: [black's strategy, white's strategy]
+     */
+    public static void main(final String[] args) {
+        if (args == null || args.length != 0) {
+            System.out.println("Argument list error: blackStrategy and whiteStrategy must be provided.");
+            usage();
+            System.exit(ERROR_CODE_1);
+        }
+
+        System.out.printf("FF0_40:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40.board().printBoard());
+
+        final SearchNode result = new ExactSolver(FFO_40).solve();
+
+        System.out.printf("%s\n", result);
+        
+    }
+
+    /**
+     * Print the usage message.
+     */
+    private static void usage() {
+        System.out.println("usage: java rcrr.reversi.endgame.ExactSolver");
+    }
+
+    /**
+     * FFO position #40, black to move, Turner vs Monnom, Bruxelles 1997.
+     * Principal Variation, PV: a2 b1 c1 -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
+     * Final score is +38
+     */
+    final static GamePosition FFO_40 = new GamePosition.Builder()
+        .withBoard(new BoardBuilder()
+                   .withSquaresLiteral(2, 0, 0, 2, 2, 2, 2, 1,
+                                       0, 2, 2, 2, 2, 2, 2, 1,
+                                       2, 2, 1, 1, 2, 2, 2, 1,
+                                       2, 2, 1, 2, 2, 2, 1, 1,
+                                       2, 2, 2, 2, 2, 2, 1, 1,
+                                       0, 0, 0, 2, 2, 2, 2, 1,
+                                       0, 0, 0, 0, 2, 0, 0, 1,
+                                       0, 0, 0, 0, 0, 0, 0, 0)
+                   .build())
+        .withPlayer(Player.BLACK)
+        .build();
+
 
 }

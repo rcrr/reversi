@@ -314,7 +314,7 @@ gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *synta
   if (!sl)
     sl = g_strdup("NULL");
 
-  gchar ln_string[16];
+  gchar ln_string[32];
   int ln = syntax_error->line_number;
   if (ln > 0) {
     sprintf(ln_string, "%d", ln);
