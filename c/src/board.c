@@ -1055,6 +1055,25 @@ game_position_free (GamePosition *gp)
 }
 
 /**
+ * @brief Clones a GamePosition structure.
+ *
+ * @invariant Parameter `gp` cannot be null. 
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gp the game position to clone
+ * @return     a pointer to a new game position structure
+ */
+GamePosition *
+game_position_clone (const GamePosition * const gp)
+{
+  g_assert(gp);
+
+  return game_position_new(board_new(gp->board->blacks,
+                                     gp->board->whites),
+                           gp->player);
+}
+
+/**
  * @brief Compares game positions `a` and board `b`.
  *
  * When the two game position are equal it returns `0`, when `a` is greather then `b` it

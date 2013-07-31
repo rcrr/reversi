@@ -45,10 +45,10 @@
  * To be detailed ...
  */
 typedef struct {
-  GamePosition *solved_game_position; /**< @brief The game position given as input. */
-  int outcome;                        /**< @brief The final endgame score. */
-  Square principal_variation[60];     /**< @brief The sequence of best moves, or principal variation. */
-  Board *final_board;                 /**< @brief The final board state. */
+  GamePosition *solved_game_position;        /**< @brief The game position given as input. */
+  int           outcome;                     /**< @brief The final endgame score. */
+  Square        principal_variation[60];     /**< @brief The sequence of best moves, or principal variation. */
+  Board        *final_board;                 /**< @brief The final board state. */
 } ExactSolution;
 
 typedef struct {
@@ -92,11 +92,8 @@ exact_solution_print (const ExactSolution * const es);
 /* Function implementations for the GamePosition entity. */ 
 /*********************************************************/
 
-extern gchar *
-game_position_print_x (const GamePosition * const gp);
-
 extern ExactSolution *
-game_position_solve (GamePosition * const root);
+game_position_solve (const GamePosition * const root);
 
 
 #endif /* EXACT_SOLVER_H */

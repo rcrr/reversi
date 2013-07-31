@@ -148,6 +148,13 @@ exact_solution_new (void)
   es = (ExactSolution*) malloc(size_of_exact_solution);
   g_assert(es);
 
+  es->solved_game_position = NULL;
+  es->outcome = 65;
+  for (int i = 0; i < 60; i++) {
+    es->principal_variation[i] = -1;
+  }
+  es->final_board = NULL;
+
   return es;
 }
 
@@ -164,6 +171,9 @@ ExactSolution *
 exact_solution_free (ExactSolution *es)
 {
   g_assert(es);
+
+  if (es->solved_game_position) game_position_free(es->solved_game_position);
+  if (es->final_board) board_free(es->final_board);
 
   free(es);
   es = NULL;
@@ -204,11 +214,11 @@ exact_solution_print (const ExactSolution * const es)
 /*********************************************************/
 
 ExactSolution *
-game_position_solve (GamePosition * const root)
+game_position_solve (const GamePosition * const root)
 {
   ExactSolution *result = exact_solution_new();
 
-  result->solved_game_position = root;
+  result->solved_game_position = game_position_clone(root);
 
   SearchNode *sn = game_position_solve_impl(root, -64, +64, 60);
 
@@ -217,6 +227,8 @@ game_position_solve (GamePosition * const root)
     result->outcome = sn->value;
 
   printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
+
+  sn = search_node_free(sn);
 
   return result;
 }
@@ -256,7 +268,6 @@ game_position_solve_impl (const GamePosition * const gp,
       if ((cursor & moves) != 0ULL) {
         GamePosition *gp2 = game_position_make_move(gp, move);
         node2 = search_node_negated(game_position_solve_impl(gp2, -cutoff, -node->value, ply - 1));
-        //const int val = node2->value;
         gp2 = game_position_free(gp2);
         if (node2->value > node->value) {
           search_node_free(node);

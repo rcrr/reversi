@@ -1,8 +1,8 @@
 #!/bin/bash
 
-PROG=./build/test/bin/exact_solver_test
+PROG=./build/bin/endgame_solver
 #ARGS="./build/bin/gpdb_verify -f db/gpdb-test-db.txt -q duplicate-entry"
-ARGS="./build/bin/gpdb_verify -f db/gpdb-sample-games.txt -q empty"
+ARGS="-f db/gpdb-ffo.txt -q ffo-40"
 
 
 G_SLICE=always-malloc G_DEBUG=gc-friendly \
