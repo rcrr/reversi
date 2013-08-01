@@ -313,6 +313,9 @@ game_position_new (Board  *b,
 extern GamePosition *
 game_position_free (GamePosition *gp);
 
+extern GamePosition *
+game_position_clone (const GamePosition * const gp);
+
 extern gchar *
 game_position_print (const GamePosition const *gp);
 

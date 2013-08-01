@@ -137,6 +137,7 @@ bit_works_bitscanMS1B_64_test (void)
   g_assert( 0 == bit_works_bitscanMS1B_64(0x0000000000000001));
   g_assert( 4 == bit_works_bitscanMS1B_64(0x0000000000000010));
   g_assert(63 == bit_works_bitscanMS1B_64(0x8000000000000000));
+  g_assert(63 == bit_works_bitscanMS1B_64(0xFFFFFFFFFFFFFFFF));
 
   g_assert( 1 == bit_works_bitscanMS1B_64(0x0000000000000003));
 }
@@ -144,11 +145,12 @@ bit_works_bitscanMS1B_64_test (void)
 static void
 bit_works_bitscanLS1B_64_test (void)
 {
-  g_assert( 0 == bit_works_bitscanMS1B_64(0x0000000000000001));
-  g_assert( 4 == bit_works_bitscanMS1B_64(0x0000000000000010));
-  g_assert(63 == bit_works_bitscanMS1B_64(0x8000000000000000));
+  g_assert( 0 == bit_works_bitscanLS1B_64(0x0000000000000001));
+  g_assert( 4 == bit_works_bitscanLS1B_64(0x0000000000000010));
+  g_assert(63 == bit_works_bitscanLS1B_64(0x8000000000000000));
+  g_assert( 0 == bit_works_bitscanLS1B_64(0xFFFFFFFFFFFFFFFF));
 
-  g_assert( 2 == bit_works_bitscanMS1B_64(0x0000000000000003));
+  g_assert( 0 == bit_works_bitscanLS1B_64(0x0000000000000003));
 }
 
 static void

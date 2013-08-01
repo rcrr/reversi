@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include "board.h"
 #include "game_position_db.h"
+#include "exact_solver.h"
 
 
 
@@ -137,6 +138,20 @@ main (int argc, char *argv[])
 
   g_print("Solving the game position %s ...\n", entry->id);
 
+  GamePosition *gp = entry->game_position;
+  gchar *gp_to_string = game_position_print(gp);
+  g_print("%s\n", gp_to_string);
+  g_free(gp_to_string);
+
+  ExactSolution *solution = game_position_solve(gp);
+
+  gchar *solution_to_string = exact_solution_print(solution);
+  printf("\n%s\n", solution_to_string);
+  g_free(solution_to_string);
+
+  printf("\nsolution outcome: %d\n", solution->outcome);
+
+
   /* Frees the resources. */
   g_free(error);
   gpdb_free(db, TRUE);
@@ -144,6 +159,7 @@ main (int argc, char *argv[])
     gpdb_syntax_error_log_free(syntax_error_log);
   g_option_context_free(context);
   g_free(source);
+  exact_solution_free(solution);
 
   return 0;
 }
