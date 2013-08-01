@@ -137,6 +137,32 @@ board_module_init (void)
 
 
 
+/***************************************************/
+/* Function implementations for the Square entity. */
+/***************************************************/
+
+gchar *
+square_to_string (const Square sq)
+{
+  g_assert(sq >= A1 && sq <= H8);
+
+  gchar *symbol;
+
+  static const size_t size_of_square_to_string = 3 * sizeof(gchar);
+  symbol = (gchar*) malloc(size_of_square_to_string);
+
+  const uint8 col = sq % 8;
+  const uint8 row = sq / 8;
+  
+  *symbol = 'A' + col;
+  *(symbol + 1) = '1' + row;
+  *(symbol + 2) = '\0';
+  
+  return symbol;
+}
+
+
+
 /******************************************************/
 /* Function implementations for the SquareSet entity. */ 
 /******************************************************/
@@ -253,6 +279,7 @@ player_opponent (const Player p)
  * @param [in] axis   the selected axis
  * @param [in] column the square's column
  * @param [in] row    the square's row
+
  * @return     the shift quantity
  */
 int

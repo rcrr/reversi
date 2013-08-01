@@ -179,6 +179,15 @@ board_module_init (void);
 
 
 
+/**********************************************/
+/* Function prototypes for the Square entity. */ 
+/**********************************************/
+
+extern gchar *
+square_to_string (const Square sq);
+
+
+
 /********************************************/
 /* Function prototypes for the Axis entity. */ 
 /********************************************/

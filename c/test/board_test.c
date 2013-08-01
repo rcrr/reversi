@@ -44,6 +44,8 @@
 
 static void dummy_test (void);
 
+static void square_to_string_test (void);
+
 static void player_color_test (void);
 static void player_description_test (void);
 static void player_opponent_test (void);
@@ -78,6 +80,8 @@ main (int   argc,
   board_module_init();
 
   g_test_add_func("/board/dummy_test", dummy_test);
+
+  g_test_add_func("/board/square_to_string_test", square_to_string_test);
 
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
@@ -117,6 +121,23 @@ static void
 dummy_test (void)
 {
   g_assert(TRUE);
+}
+
+static void
+square_to_string_test (void)
+{
+  gchar *symbol;
+  symbol = square_to_string(D5);
+  g_assert(g_strcmp0("D5", symbol) == 0);
+  g_free(symbol);
+
+  symbol = square_to_string(A1);
+  g_assert(g_strcmp0("A1", symbol) == 0);
+  g_free(symbol);
+
+  symbol = square_to_string(H8);
+  g_assert(g_strcmp0("H8", symbol) == 0);
+  g_free(symbol);  
 }
 
 static void
