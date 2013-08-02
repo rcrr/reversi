@@ -36,11 +36,11 @@ TEST_PROGS = bit_works_test board_test game_position_db_test game_position_test 
 # Add -pg to CFLAGS and DFLAGS to profile.
 
 CC = gcc 
-CFLAGS = -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
-LDFLAGS =
-# add -pg for gprof execution.
-#CFLAGS = -std=c99 -pedantic -Wall -g -O4 -DG_DISABLE_ASSERT `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
+#CFLAGS = -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 #LDFLAGS =
+# add -pg for gprof execution.
+CFLAGS = -std=c99 -pedantic -Wall -g -O4 -DG_DISABLE_ASSERT `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
+LDFLAGS =
 LIBS = `pkg-config --libs glib-2.0`
 TEST_LIBS =
 SRCDIR = src

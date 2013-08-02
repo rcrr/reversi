@@ -216,13 +216,19 @@ exact_solution_print (const ExactSolution * const es)
 ExactSolution *
 game_position_solve (const GamePosition * const root)
 {
-  ExactSolution *result = exact_solution_new();
+  ExactSolution *result; 
+  SearchNode    *sn;
+
+  result = exact_solution_new();
 
   result->solved_game_position = game_position_clone(root);
 
-  SearchNode *sn = game_position_solve_impl(root, -64, +64, 60);
+  sn = game_position_solve_impl(result->solved_game_position, -64, +64, 60);
 
-  printf("Final SearchNode sn: move=%d, value=%d\n", sn->move, sn->value);
+  gchar *move_to_s = square_to_string(sn->move);
+  printf("Final SearchNode sn: move=%s, value=%d\n", move_to_s, sn->value);
+  g_free(move_to_s);
+
   if (sn)
     result->outcome = sn->value;
 
@@ -248,6 +254,8 @@ game_position_solve_impl (const GamePosition * const gp,
   SearchNode *node;
   SearchNode *node2;
 
+  node  = NULL;
+  node2 = NULL;
   node_count++;
 
   const SquareSet moves = game_position_legal_moves(gp);

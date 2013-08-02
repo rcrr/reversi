@@ -136,12 +136,12 @@ main (int argc, char *argv[])
     return -6;
   }
 
+  /* Initialize the board module. */
+  board_module_init();
+
   g_print("Solving the game position %s ...\n", entry->id);
 
   GamePosition *gp = entry->game_position;
-  gchar *gp_to_string = game_position_print(gp);
-  g_print("%s\n", gp_to_string);
-  g_free(gp_to_string);
 
   ExactSolution *solution = game_position_solve(gp);
 
