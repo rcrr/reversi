@@ -42,3 +42,187 @@
 #     |1       2       3       4       5       6       7       8       |
 #     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 ffo-40;w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;FFO position 40, black to move, Turner vs Monnom, Bruxelles 1997.;
+#
+#
+#
+#
+#
+# FFO-40_A2, white to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: b1 c1 -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is -38
+#
+#    a b c d e f g h 
+# 1  O . . O O O O @ 
+# 2  @ @ @ @ @ @ @ @ 
+# 3  O @ @ @ O O O @ 
+# 4  O O @ O O O @ @ 
+# 5  O O O O O O @ @ 
+# 6  . . . O O O O @ 
+# 7  . . . . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#        |1       2       3       4       5       6       7       8       |
+#        |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2;w..wwwwbbbbbbbbbwbbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;FFO position 40, a2, white to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1, black to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: c1 -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is +38
+#
+#    a b c d e f g h 
+# 1  O O . O O O O @ 
+# 2  @ O O @ @ @ @ @ 
+# 3  O O @ O O O O @ 
+# 4  O O @ O O O @ @ 
+# 5  O O O O O O @ @ 
+# 6  . . . O O O O @ 
+# 7  . . . . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#           |1       2       3       4       5       6       7       8       |
+#           |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;FFO position 40, a2 b1, black to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1, white to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is -38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O O O O @ 
+# 4  O O @ O O O @ @ 
+# 5  O O O O O O @ @ 
+# 6  . . . O O O O @ 
+# 7  . . . . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1;wwbbbbbbbwbbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;FFO position 40, a2 b1 c1, white to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1_pass, black to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is +38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O O O O @ 
+# 4  O O @ O O O @ @ 
+# 5  O O O O O O @ @ 
+# 6  . . . O O O O @ 
+# 7  . . . . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                   |1       2       3       4       5       6       7       8       |
+#                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1_pass;wwbbbbbbbwbbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;FFO position 40, a2 b1 c1 pass, black to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1_pass_b6, white to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: c7 a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is -38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O @ O O @ 
+# 4  O O @ @ O O @ @ 
+# 5  O O @ O O O @ @ 
+# 6  . @ . O O O O @ 
+# 7  . . . . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#                      |1       2       3       4       5       6       7       8       |
+#                      |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1_pass_b6;wwbbbbbbbwbbbbbbwwbwbwwbwwbbwwbbwwbwwwbb.b.wwwwb....w..b........;w;FFO position 40, a2 b1 c1 pass b6, white to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1_pass_b6_c7, black to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is +38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O @ O O @ 
+# 4  O O @ @ O O @ @ 
+# 5  O O @ O O O @ @ 
+# 6  . O . O O O O @ 
+# 7  . . O . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                         |1       2       3       4       5       6       7       8       |
+#                         |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1_pass_b6_c7;wwbbbbbbbwbbbbbbwwbwbwwbwwbbwwbbwwbwwwbb.w.wwwwb..w.w..b........;b;FFO position 40, a2 b1 c1 pass b6 c7, black to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1_pass_b6_c7_a7, white to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: b7 b8 d7 f8 c6 f7 g7
+# Final score is -38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O @ O O @ 
+# 4  O O @ @ O O @ @ 
+# 5  O O @ O O O @ @ 
+# 6  . @ . O O O O @ 
+# 7  @ . O . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#                            |1       2       3       4       5       6       7       8       |
+#                            |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1_pass_b6_c7_a7;wwbbbbbbbwbbbbbbwwbwbwwbwwbbwwbbwwbwwwbb.b.wwwwbb.w.w..b........;w;FFO position 40, a2 b1 c1 pass b6 c7 a7, white to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1_pass_b6_c7_a7_b7, black to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: b8 d7 f8 c6 f7 g7
+# Final score is +38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O @ O O @ 
+# 4  O O @ @ O O @ @ 
+# 5  O O @ O O O @ @ 
+# 6  . O . O O O O @ 
+# 7  @ O O . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                               |1       2       3       4       5       6       7       8       |
+#                               |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1_pass_b6_c7_a7_b7;wwbbbbbbbwbbbbbbwwbwbwwbwwbbwwbbwwbwwwbb.w.wwwwbbww.w..b........;b;FFO position 40, a2 b1 c1 pass b6 c7 a7 b7, black to move.;
