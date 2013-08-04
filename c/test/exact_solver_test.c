@@ -116,7 +116,7 @@ game_position_solve_test (GamePositionDbFixture *fixture,
   g_assert(TRUE  == game_position_has_any_legal_move(ffo_40_a2_b1_c1_pass_b6_c7_a7_b7));
 
   ExactSolution *solution = game_position_solve(ffo_40_a2_b1_c1_pass_b6_c7_a7_b7);
-  g_assert(+38 == solution->outcame);
+  g_assert(+38 == solution->outcome);
 }
 
 

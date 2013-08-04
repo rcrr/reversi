@@ -41,6 +41,8 @@ CC = gcc
 # add -pg for gprof execution.
 CFLAGS = -std=c99 -pedantic -Wall -g -O4 -DG_DISABLE_ASSERT `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LDFLAGS =
+CFLAGS_TEST = -std=c99 -pedantic -Wall -g -O2 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
+LDFLAGS_TEST =
 LIBS = `pkg-config --libs glib-2.0`
 TEST_LIBS =
 SRCDIR = src
@@ -83,14 +85,14 @@ $(OBJS): $(OBJDIR)/%.o: $(SRCDIR)/%.c $(HDRS) | $(OBJDIR)
 test_obj: $(TEST_OBJS)
 
 $(TEST_OBJS): $(TEST_OBJDIR)/%.o: $(TESTDIR)/%.c | $(TEST_OBJDIR)
-	$(CC) $(CFLAGS) -c $< -o $@ $(TEST_INCLUDE)
+	$(CC) $(CFLAGS_TEST) -c $< -o $@ $(TEST_INCLUDE)
 
 .PHONY: test_bin
 test_bin: $(OBJS) $(TEST_OBJS) $(TEST_BINS)
 
 $(TEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
 	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(TEST_BINDIR),$(TEST_OBJDIR),$@))))
-	$(CC) $(LDFLAGS) $(OBJECT) $(TEST_OBJS_NO_MAIN) $(OBJS_NO_MAIN) $(LIBS) $(TEST_LIBS) -o $@
+	$(CC) $(LDFLAGS_TEST) $(OBJECT) $(TEST_OBJS_NO_MAIN) $(OBJS_NO_MAIN) $(LIBS) $(TEST_LIBS) -o $@
 
 .PHONY: test
 test: $(TEST_BINS)
