@@ -49,6 +49,8 @@ typedef struct {
   int           outcome;                     /**< @brief The final endgame score. */
   Square        principal_variation[60];     /**< @brief The sequence of best moves, or principal variation. */
   Board        *final_board;                 /**< @brief The final board state. */
+  uint64        leaf_count;
+  uint64        node_count;
 } ExactSolution;
 
 typedef struct {

@@ -50,9 +50,10 @@
  */
 
 static SearchNode *
-game_position_solve_impl (const GamePosition * const gp,
-                          const int                  achievable,
-                          const int                  cutoff);
+game_position_solve_impl (      ExactSolution * const result,
+                          const GamePosition  * const gp,
+                          const int                   achievable,
+                          const int                   cutoff);
 
 static int
 final_value (const GamePosition * const gp);
@@ -62,9 +63,6 @@ final_value (const GamePosition * const gp);
 /*
  * Internal variables and constants.
  */
-
-static uint64 leaf_count = 0;
-static uint64 node_count = 0;
 
 
 
@@ -153,6 +151,8 @@ exact_solution_new (void)
     es->principal_variation[i] = -1;
   }
   es->final_board = NULL;
+  es->node_count = 0;
+  es->leaf_count = 0;
 
   return es;
 }
@@ -222,17 +222,12 @@ game_position_solve (const GamePosition * const root)
 
   result->solved_game_position = game_position_clone(root);
 
-  sn = game_position_solve_impl(result->solved_game_position, -64, +64);
+  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64);
 
-  gchar *move_to_s = square_to_string(sn->move);
-  printf("Final SearchNode sn: move=%s, value=%d\n", move_to_s, sn->value);
-  g_free(move_to_s);
-
-  if (sn)
+  if (sn) {
+    result->principal_variation[0] = sn->move;
     result->outcome = sn->value;
-
-  printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
-
+  }
   sn = search_node_free(sn);
 
   return result;
@@ -245,24 +240,25 @@ game_position_solve (const GamePosition * const root)
  */
 
 SearchNode *
-game_position_solve_impl (const GamePosition * const gp,
-                          const int                  achievable,
-                          const int                  cutoff)
+game_position_solve_impl (      ExactSolution * const result,
+                          const GamePosition  * const gp,
+                          const int                   achievable,
+                          const int                   cutoff)
 {
   SearchNode *node;
   SearchNode *node2;
 
   node  = NULL;
   node2 = NULL;
-  node_count++;
+  result->node_count++;
 
   const SquareSet moves = game_position_legal_moves(gp);
   if (0ULL == moves) {
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
-      node = search_node_negated(game_position_solve_impl(flipped_players, -cutoff, -achievable));
+      node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable));
     } else {
-      leaf_count++;
+      result->leaf_count++;
       node = search_node_new((Square) -1, final_value(gp));
     }
     flipped_players = game_position_free(flipped_players);
@@ -273,7 +269,7 @@ game_position_solve_impl (const GamePosition * const gp,
     for (SquareSet cursor = 0x0000000000000001; cursor != 0ULL; cursor <<= 1) {
       if ((cursor & moves) != 0ULL) {
         GamePosition *gp2 = game_position_make_move(gp, move);
-        node2 = search_node_negated(game_position_solve_impl(gp2, -cutoff, -node->value));
+        node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value));
         gp2 = game_position_free(gp2);
         if (node2->value > node->value) {
           search_node_free(node);
