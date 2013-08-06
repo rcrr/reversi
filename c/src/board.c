@@ -657,7 +657,7 @@ board_legal_moves (const Board * const b, const Player p)
   result = 0ULL;
 
   const Player o = player_opponent(p);
-  const SquareSet empties = board_empties (b);
+  const SquareSet empties = board_empties(b);
   const SquareSet p_bit_board = board_get_player(b, p);
   const SquareSet o_bit_board = board_get_player(b, o);
   
