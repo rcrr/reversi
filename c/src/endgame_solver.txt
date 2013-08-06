@@ -1,0 +1,74 @@
+
+This is a diary of the performance evolution of the endgame solver.
+
+Date: August 5th, 2013
+The binary endgame_solver is working fine. It is able to solve position #40, #41, and #42 of the FFO collection.
+
+All the tests ar run with:
+CCFLAGS = -std=c99 -pedantic -Wall -g -O4 -DG_DISABLE_ASSERT `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
+
+DATE             PROGRAM        PROBLEM  NODES             LEAFS            TIME         NPS         Notes
+August 2, 2013   exact_solver   FFO_40       460,529,747      113,304,014      212.916   2,162,964   None
+August 4, 2013   exact_solver   FFO_41   187,815,478,658   49,079,945,579   89,323.340   2,102,647   None
+August 4, 2013   exact_solver   FFO_42    31,360,241,470    8,255,548,073   14,885.600   2,106,750   None
+
+We can notice that the NPS (speed) is constant at 2.1M node/sec (on my PC, whitewater, a Gnu/Linux UBUNTU 12.10
+kernel 3.5.0 running on an Intel(R) Core(TM)2 Duo CPU T8300 @ 2.40GHz, having 4GByte of RAM clocked at 800MHz).
+
+Here we see the report obtained by gprof when running the position FFO_40:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self                self     total           
+ time   seconds   seconds     calls    s/call   s/call  name    
+ 50.17     77.11    77.11 622057109      0.00     0.00  board_legal_moves
+ 20.19    108.14    31.04 412306398      0.00     0.00  game_position_make_move
+ 19.80    138.58    30.44         1     30.44   150.52  game_position_solve_impl
+  3.75    144.34     5.76 3298451184     0.00     0.00  bit_works_signed_left_shift
+  0.89    145.70     1.36                               bit_works_bitscan_MS1B_to_base8
+  0.84    146.99     1.29 573833775      0.00     0.00  game_position_free
+  0.81    148.23     1.24 161527362      0.00     0.00  game_position_pass
+  0.64    149.22     0.99 113304014      0.00     0.00  game_position_count_difference
+  0.54    150.05     0.83 226608028      0.00     0.00  bit_works_popcount
+  0.53    150.86     0.81 161527362      0.00     0.00  game_position_has_any_legal_move
+  0.46    151.57     0.71                               game_position_is_move_legal
+  0.36    152.13     0.56 299002385      0.00     0.00  bit_works_bitscanLS1B_64
+  0.30    152.59     0.46 460529747      0.00     0.00  game_position_legal_moves
+  0.29    153.03     0.44        14      0.03     0.03  game_position_new
+  0.21    153.35     0.32                               board_is_move_legal
+  0.14    153.56     0.21                               bit_works_bitscanMS1B_8
+  0.07    153.67     0.11                               advanced_square_set_is_empty
+  0.06    153.76     0.09         1      0.09     0.09  game_position_print
+  0.00    153.76     0.00     34992      0.00     0.00  bit_works_fill_in_between
+  0.00    153.76     0.00     17496      0.00     0.00  bit_works_highest_bit_set_8
+  0.00    153.76     0.00     17496      0.00     0.00  bit_works_lowest_bit_set_8
+  0.00    153.76     0.00        14      0.00     0.00  board_new
+  0.00    153.76     0.00         2      0.00     0.00  board_print
+  0.00    153.76     0.00         1      0.00     0.00  game_position_clone
+
+half of the time is spent by the board_legal_moves, and another 20% is eaten by the make move process.
+
+Comparing the performances of the actual implementation with scrzebra:
+
+DATE             PROGRAM        PROBLEM  NODES             LEAFS            TIME         NPS         Notes
+July 26, 2013    scrzebra       FFO_40        19,153,313   N/A                   1.906  13,855,257   Precompiled
+August 4, 2013   scrzebra       FFO_41        21,055,628   N/A                   1.700  12,109,781   *
+August 4, 2013   scrzebra       FFO_42        28,573,109   N/A                   2.000  14,244,696   *
+
+We can observe that the NPS speed is six time greather, and even most important, that the number of nodes visited is far smaller.
+The number of nodes is related to the ability of the alpha-beta algorithm to "cut" more. The sorting of the moves is very efficient,
+and it is the major area of improvement where to spend my effort.
+
+Comparing the performances with another solver, taken from the Andersson Gunnar's site (http://www.radagast.se/othello/),
+and compiled on my environment give these result:
+
+DATE             PROGRAM        PROBLEM  NODES             LEAFS            TIME         NPS         Notes
+July 26, 2013    endgame        FFO_40           858,417          475,315       11.857      72,397   None
+August 4, 2013   endgame        FFO_41         7,550,222	4,784,508       83.716      90,189   *
+August 4, 2013   endgame        FFO_42         5,471,816        2,999,282       69.344      78,908   *
+
+Here we see that overall it is not as efficient as scrzebra, but the number of nodes visited is amazingly low!
+
+Again, the legal moves ordering is the first step of this jurney. Let's begin from a static ordering.
+
+
+
