@@ -65,6 +65,10 @@ final_value (const GamePosition * const gp);
  */
 
 static const uint64 legal_moves_priority_mask[] = {
+  0xFFFFFFFFFFFFFFFF,0,0,0,0,0,0,0,0,0
+};
+
+static const uint64 _legal_moves_priority_mask[] = {
   /* D4, E4, E5, D5 */                 0x0000001818000000,
   /* A1, H1, H8, A8 */                 0x8100000000000081,
   /* C1, F1, F8, C8, A3, H3, H6, A6 */ 0x2400810000810024,
@@ -274,25 +278,23 @@ game_position_solve_impl (      ExactSolution * const result,
     }
     flipped_players = game_position_free(flipped_players);
   } else {
-    Square first_move = bit_works_bitscanLS1B_64(moves);
-    node = search_node_new(first_move, achievable);
-    Square move = 0;
-    for (SquareSet cursor = 0x0000000000000001; cursor != 0ULL; cursor <<= 1) {
-      if ((cursor & moves) != 0ULL) {
-        GamePosition *gp2 = game_position_make_move(gp, move);
-        node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value));
-        gp2 = game_position_free(gp2);
-        if (node2->value > node->value) {
-          search_node_free(node);
-          node = node2;
-          node->move = move;
-          node2 = NULL;
-        } else {
-          node2 = search_node_free(node2);
-        }
+    SquareSet moves_to_search = moves;
+    while (moves_to_search) {
+      const Square move = bit_works_bitscanLS1B_64(moves_to_search);
+      if (!node) node = search_node_new(move, achievable);
+      moves_to_search &= ~(1ULL << move);
+      GamePosition *gp2 = game_position_make_move(gp, move);
+      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value));
+      gp2 = game_position_free(gp2);
+      if (node2->value > node->value) {
+        search_node_free(node);
+        node = node2;
+        node->move = move;
+        node2 = NULL;
         if (node->value >= cutoff) { goto out; }
+      } else {
+        node2 = search_node_free(node2);
       }
-      move++;
     }
   }
  out:
