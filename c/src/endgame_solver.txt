@@ -1,7 +1,58 @@
 
 This is a diary of the performance evolution of the endgame solver.
 
+Date: August 9th, 2013
+      git commit e9fb4e105c4d1468e0270de53026260e93f53ced
+
+Two major flows has been identified.
+
+ - The node count for the endgame progam is plain wrong. A new one is under preparation. The nodes are a lot more!
+   leaf_count gives a so small number that it is not credible. Further investigation is needed.
+ - The new alpha-beta implementation introduced on August 7th, introduced a bug. Instead of setting the first_node value to
+   achievable, it set to -65, so negating a very large amount of cutoff.
+   Reintroduced the right value and introducing the optimization for the moves loop brought to a small improvement compared
+   with the version of August 5th.
+
+Anyhow the static move ordering doesn't bring any improvement, moreover it introduce a penalty for the FFO_40 test case.
+
+New kpi (August 9th) are:
+
+DATE             PROGRAM        PROBLEM  NODES             LEAFS            TIME         NPS         Notes
+August 9, 2013   exact_solver   FFO_40       460,529,747      113,304,014      190.325   2,419,702   Instead of cycling on 64 moves it uses LS1B
+August 7, 2013   exact_solver   FFO_40    32,907,329,685    9,350,008,623   14,588.462   2,255,709   Using static ordering for moves (and the described bug!)
+August 2, 2013   exact_solver   FFO_40       460,529,747      113,304,014      212.916   2,162,964   None
+
+
+
+Date: August 7th, 2013
+      git commit 64897c444ba69a3ea8435c1ec8aefc26d3512efb
+
+Introduced static ordering as follow:
+
+static const uint64 legal_moves_priority_mask[] = {
+  /* D4, E4, E5, D5 */                 0x0000001818000000,
+  /* A1, H1, H8, A8 */                 0x8100000000000081,
+  /* C1, F1, F8, C8, A3, H3, H6, A6 */ 0x2400810000810024,
+  /* C3, F3, F6, C6 */                 0x0000240000240000,
+  /* D1, E1, E8, D8, A4, H4, H5, A5 */ 0x1800008181000018,
+  /* D3, E3, E6, D6, C4, F4, F5, C5 */ 0x0000182424180000,
+  /* D2, E2, E7, D7, B4, G4, G5, B5 */ 0x0018004242001800,
+  /* C2, F2, F7, C7, B3, G3, G6, B6 */ 0x0024420000422400,
+  /* B1, G1, G8, B8, A2, H2, H7, A7 */ 0x4281000000008142,
+  /* B2, G2, G7, B7 */                 0x0042000000004200
+};
+
+Results are very bad. NPS is almost constant at 2.2M node/sec, but the number of nodes investigated is 60 times larger!
+
+DATE             PROGRAM        PROBLEM  NODES             LEAFS            TIME         NPS         Notes
+August 7, 2013   exact_solver   FFO_40    32,907,329,685    9,350,008,623   14,588.462   2,255,709   Using static ordering for moves
+
+A2, the first move in the sequence is tryed at the end. Static ordering do not work when the corner is already taken.
+
+
+
 Date: August 5th, 2013
+      git commit 11e21a29653628d092996119be98fa8bf8f9eee3
 The binary endgame_solver is working fine. It is able to solve position #40, #41, and #42 of the FFO collection.
 
 All the tests ar run with:
@@ -69,6 +120,5 @@ August 4, 2013   endgame        FFO_42         5,471,816        2,999,282       
 Here we see that overall it is not as efficient as scrzebra, but the number of nodes visited is amazingly low!
 
 Again, the legal moves ordering is the first step of this jurney. Let's begin from a static ordering.
-
 
 
