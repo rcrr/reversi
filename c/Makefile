@@ -43,6 +43,7 @@ CFLAGS = -std=c99 -pedantic -Wall -g -O4 -DG_DISABLE_ASSERT `pkg-config --cflags
 LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic -Wall -g -O2 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LDFLAGS_TEST =
+ASMFLAGS = -std=c99 -pedantic -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LIBS = `pkg-config --libs glib-2.0`
 TEST_LIBS =
 SRCDIR = src
@@ -53,10 +54,12 @@ OBJDIR   = $(BUILDDIR)/obj
 BINDIR   = $(BUILDDIR)/bin
 DOCDIR   = $(BUILDDIR)/doc
 BTESTDIR = $(BUILDDIR)/test
+ASMDIR   = $(BUILDDIR)/asm
 
 SRCS = $(wildcard $(SRCDIR)/*.c)
 HDRS = $(wildcard $(SRCDIR)/*.h)
 OBJS = $(addsuffix .o,$(basename $(subst $(SRCDIR),$(OBJDIR),$(SRCS))))
+ASMS = $(addsuffix .asm,$(basename $(subst $(SRCDIR),$(ASMDIR),$(SRCS))))
 BINS = $(addprefix $(BINDIR)/,$(MAINS))
 
 OBJS_WITH_MAIN = $(addsuffix .o,$(addprefix $(OBJDIR)/,$(MAINS)))
@@ -80,6 +83,12 @@ $(BINS): $(OBJS) | $(BINDIR)
 
 $(OBJS): $(OBJDIR)/%.o: $(SRCDIR)/%.c $(HDRS) | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+.PHONY: asm
+asm: $(ASMS)
+
+$(ASMS): $(ASMDIR)/%.asm: $(SRCDIR)/%.c $(HDRS) | $(ASMDIR)
+	$(CC) $(ASMFLAGS) -S $< -o $@
 
 .PHONY: test_obj
 test_obj: $(TEST_OBJS)
@@ -134,6 +143,14 @@ $(DOCDIR): $(DOCDIR)/.dir_sentinel | $(BUILDDIR)
 $(DOCDIR)/.dir_sentinel:
 	mkdir -p $(DOCDIR)
 	touch $(DOCDIR)/.dir_sentinel
+
+
+.PHONY: $(ASMDIR)
+$(ASMDIR): $(ASMDIR)/.dir_sentinel | $(BUILDDIR)
+
+$(ASMDIR)/.dir_sentinel:
+	mkdir -p $(ASMDIR)
+	touch $(ASMDIR)/.dir_sentinel
 
 
 .PHONY: $(BTESTDIR)
