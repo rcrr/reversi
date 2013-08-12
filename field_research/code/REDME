@@ -1,0 +1,9 @@
+This directory contains a collection of open source code collected on internet,
+related to the subject of this project: Reversi.
+
+The software is "as-is" and may even do not compile.
+
+(1) improved_fast_endgame_solver
+    A single source file written by Gunnar Andersson and last modified on July 13, 1999.
+    The program, as stated by Gunnar, was created by Warren Smith and later improved by
+    Jean-Christophe Weill.
