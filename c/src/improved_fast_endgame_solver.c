@@ -763,11 +763,6 @@ EndSolve (uchar *board, double alpha, double beta,
   }
 }
 
-/**
- * 2 for full, make 1 if just WLD solve, 0 if WD solve.
- */
-#define FULLSOLVE 2
-
 // FFO-40 w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........
 // FFO-41 .wwwww....wwwwb..wwwwww.bbbbbww..bbwwb..wwbwbb....wbbw...www..w.
 // FFO-42 ..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..
@@ -788,20 +783,12 @@ main (void) {
   }
   PrepareToSolve(board);
 
-#if FULLSOLVE==2
   val = EndSolve(board, -64, 64, BLACK, emp, -wc+bc, 1);
-#else
-#if FULLSOLVE==1
-  val = EndSolve(board,  -1,  1, BLACK, emp, -wc+bc, 1);
-#else
-  val = EndSolve(board,   0,  1, BLACK, emp, -wc+bc, 1);
-#endif
-#endif
 
   printf("%3d (emp=%2d wc=%2d bc=%2d) %s\n", val, emp, wc, bc, bds);
 
-  printf("USE_PARITY=%d. FULLSOLVE=%d. WINNER_GETS_EMPTIES=%d. FASTEST_FIRST=%d.\n",
-         USE_PARITY, FULLSOLVE, WINNER_GETS_EMPTIES, FASTEST_FIRST);
+  printf("USE_PARITY=%d. WINNER_GETS_EMPTIES=%d. FASTEST_FIRST=%d.\n",
+         USE_PARITY, WINNER_GETS_EMPTIES, FASTEST_FIRST);
 
   printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
 
