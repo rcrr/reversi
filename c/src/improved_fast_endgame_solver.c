@@ -40,9 +40,8 @@
 
 /**
  * It is plain alphabeta, no transposition table.  It can be used for
- * WLD solve by setting alpha=-1 and beta=1 (in which case
- * WINNER_GETS_EMPTIES could be turned off to get a tiny speedup...) or
- * for full solve with alpha=-64, beta=64.  It uses a fixed preference
+ * WLD solve by setting alpha=-1 and beta=1 or for full solve with 
+ * alpha=-64, beta=64. It uses a fixed preference
  * ordering of squares. This is not such a bad thing to do when <=10
  * empties, where the demand for speed is paramount. When USE_PARITY=X is
  * turned on (X>0), it also uses parity to help with move ordering,
@@ -56,8 +55,18 @@
  * If WINNER_GETS_EMPTIES is turned on it will do scoring using the
  * winner-gets-empties convention - which never changes who won, but can
  * change the final score.
+ *
+ * From the World Othello Federation, web site:
+ * World Othello Chanpionship Rules
+ * - Soring - 
+ * At the end of the game, if both players have completed their moves in
+ * the allowed time, the winner is the player with the greater number of
+ * discs of his colour on the board at the end. The official score of the
+ * game will be determined by counting up the discs of each colour on the
+ * board, counting empty squares for the winner. In the event of a draw,
+ * the score will always be 32-32.
  */
-#define WINNER_GETS_EMPTIES 1
+//#define WINNER_GETS_EMPTIES 1
 
 /**
  * In positions with <= FASTEST_FIRST empty, fastest first is disabled.
@@ -502,12 +511,8 @@ NoParEndSolve (uchar *board, double alpha, double beta,
             ev += 2 * (j1 + 1);
           }
           else { /* I move then both must pass, so game over */
-#if WINNER_GETS_EMPTIES
             if (ev >= 0)
               ev += 2;
-#else
-            ev++;
-#endif
           }
         }
       }
@@ -535,16 +540,12 @@ NoParEndSolve (uchar *board, double alpha, double beta,
   if (score == -INFINITY) {  /* No legal move */
     if (prevmove == 0) { /* game over: */
       leaf_count++;
-#if WINNER_GETS_EMPTIES
       if (discdiff > 0) return discdiff+empties;
       if (discdiff < 0) return discdiff-empties;
       return 0;
-#else
-      return discdiff;
-#endif
     }
     else /* I pass: */
-      return -NoParEndSolve( board, -beta, -alpha, oppcol, empties, -discdiff, 0);
+      return -NoParEndSolve(board, -beta, -alpha, oppcol, empties, -discdiff, 0);
   }
   return score;
 }
@@ -610,13 +611,9 @@ ParEndSolve (uchar *board, double alpha, double beta,
   if (score == -INFINITY) {  /* No legal move found */
     if (prevmove == 0) { /* game over: */
       leaf_count++;
-#if WINNER_GETS_EMPTIES
       if (discdiff > 0) return discdiff+empties;
       if (discdiff < 0) return discdiff-empties;
       return 0;
-#else
-      return discdiff;
-#endif
     }
     else /* I pass: */
       return -ParEndSolve(board, -beta, -alpha, oppcol, empties, -discdiff, 0);
@@ -787,8 +784,8 @@ main (void) {
 
   printf("%3d (emp=%2d wc=%2d bc=%2d) %s\n", val, emp, wc, bc, bds);
 
-  printf("USE_PARITY=%d. WINNER_GETS_EMPTIES=%d. FASTEST_FIRST=%d.\n",
-         USE_PARITY, WINNER_GETS_EMPTIES, FASTEST_FIRST);
+  printf("USE_PARITY=%d. FASTEST_FIRST=%d.\n",
+         USE_PARITY, FASTEST_FIRST);
 
   printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
 
