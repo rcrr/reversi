@@ -768,17 +768,13 @@ EndSolve (uchar *board, double alpha, double beta,
  */
 #define FULLSOLVE 2
 
-#define MAXTRIES 1
-/* solves each position MAXTRIES times. Note if 2 times is faster than   *
- *  2*(1 time) then that proves the killer tables helped...              */
-
 // FFO-40 w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........
 // FFO-41 .wwwww....wwwwb..wwwwww.bbbbbww..bbwwb..wwbwbb....wbbw...www..w.
 // FFO-42 ..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..
 
 int
 main (void) {
-  int tries, val, emp, wc, bc, j, k, x, y;
+  int val, emp, wc, bc, j, k, x, y;
   char bds[65] = {
     "w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........"
   };
@@ -791,21 +787,21 @@ main (void) {
     else if (bds[j]=='.'){ board[k] = EMPTY; emp++; }
   }
   PrepareToSolve(board);
-  for (tries = 0; tries < MAXTRIES; tries++){
+
 #if FULLSOLVE==2
-    val = EndSolve(board, -64, 64, BLACK, emp, -wc+bc, 1);
+  val = EndSolve(board, -64, 64, BLACK, emp, -wc+bc, 1);
 #else
 #if FULLSOLVE==1
-    val = EndSolve(board,  -1,  1, BLACK, emp, -wc+bc, 1);
+  val = EndSolve(board,  -1,  1, BLACK, emp, -wc+bc, 1);
 #else
-    val = EndSolve(board,   0,  1, BLACK, emp, -wc+bc, 1);
+  val = EndSolve(board,   0,  1, BLACK, emp, -wc+bc, 1);
 #endif
 #endif
-    printf("%3d (emp=%2d wc=%2d bc=%2d) %s\n", val, emp, wc, bc, bds);
-  }
 
-  printf("MAXTRIES=%d. USE_PARITY=%d. FULLSOLVE=%d. WINNER_GETS_EMPTIES=%d. FASTEST_FIRST=%d.\n",
-         MAXTRIES, USE_PARITY, FULLSOLVE, WINNER_GETS_EMPTIES, FASTEST_FIRST);
+  printf("%3d (emp=%2d wc=%2d bc=%2d) %s\n", val, emp, wc, bc, bds);
+
+  printf("USE_PARITY=%d. FULLSOLVE=%d. WINNER_GETS_EMPTIES=%d. FASTEST_FIRST=%d.\n",
+         USE_PARITY, FULLSOLVE, WINNER_GETS_EMPTIES, FASTEST_FIRST);
 
   printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
 
