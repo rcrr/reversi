@@ -578,18 +578,18 @@ board_count_difference (const Board  *const b,
 
 /**
  * @brief Used for the score at the end of the game.
- * Returns the disk difference between the player and her opponent,
+ *
+ * @details Returns the disk difference between the player and her opponent,
  * assigning the empty squares to the player having most discs.
  *
- * From the World Othello Federation, web site:
- * World Othello Chanpionship Rules.
- * Scoring.
- * At the end of the game, if both players have completed their moves in
+ * From the web site of the World Othello Federation,
+ * World Othello Chanpionship Rules, scoring:<br>
+ * <em>"At the end of the game, if both players have completed their moves in
  * the allowed time, the winner is the player with the greater number of
  * discs of his colour on the board at the end. The official score of the
  * game will be determined by counting up the discs of each colour on the
  * board, counting empty squares for the winner. In the event of a draw,
- * the score will always be 32-32.
+ * the score will always be 32-32"</em>.
  *
  * @invariant Parameter `b` must be not `NULL`.
  * Parameter `p` must be a value belonging to the `Player` enum.
@@ -597,7 +597,7 @@ board_count_difference (const Board  *const b,
  *
  * @param [in] b a pointer to the board structure
  * @param [in] p the player for whom the difference is computed
- * @return       the disc count difference
+ * @return       the game score according to the WOF rules
  */
 int
 board_count_diff_winner_get_empties (const Board  *const b,
