@@ -304,5 +304,5 @@ game_position_solve_impl (      ExactSolution * const result,
 int
 final_value (const GamePosition * const gp)
 {
-  return game_position_count_difference(gp);
+  return board_count_diff_winner_get_empties(gp->board, gp->player);
 }
