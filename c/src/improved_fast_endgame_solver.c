@@ -778,32 +778,30 @@ EndSolve (uchar *board, double alpha, double beta,
 
 int
 main (void) {
-  int tries, val, emp, wc, bc, i, j, k, x, y;
-  char bds[1][65] = {
+  int tries, val, emp, wc, bc, j, k, x, y;
+  char bds[65] = {
     "w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........"
   };
-  for (i = 0; i < 1; i++) {
-    for (j = 0; j <= 90; j++) board[j] = DUMMY;
-    wc=bc=emp=0;
-    for (j = 0; j < 64; j++) {
-      x = j&7; y = (j>>3)&7; k = x+10+9*y;
-      if (bds[i][j]=='w'){ board[k] = WHITE; wc++; }
-      else if (bds[i][j]=='b'){ board[k] = BLACK; bc++; }
-      else if (bds[i][j]=='.'){ board[k] = EMPTY; emp++; }
-    }
-    PrepareToSolve(board);
-    for (tries = 0; tries < MAXTRIES; tries++){
+  for (j = 0; j <= 90; j++) board[j] = DUMMY;
+  wc=bc=emp=0;
+  for (j = 0; j < 64; j++) {
+    x = j&7; y = (j>>3)&7; k = x+10+9*y;
+    if (bds[j]=='w'){ board[k] = WHITE; wc++; }
+    else if (bds[j]=='b'){ board[k] = BLACK; bc++; }
+    else if (bds[j]=='.'){ board[k] = EMPTY; emp++; }
+  }
+  PrepareToSolve(board);
+  for (tries = 0; tries < MAXTRIES; tries++){
 #if FULLSOLVE==2
-      val = EndSolve(board, -64, 64, BLACK, emp, -wc+bc, 1);
+    val = EndSolve(board, -64, 64, BLACK, emp, -wc+bc, 1);
 #else
 #if FULLSOLVE==1
-      val = EndSolve(board,  -1,  1, BLACK, emp, -wc+bc, 1);
+    val = EndSolve(board,  -1,  1, BLACK, emp, -wc+bc, 1);
 #else
-      val = EndSolve(board,   0,  1, BLACK, emp, -wc+bc, 1);
+    val = EndSolve(board,   0,  1, BLACK, emp, -wc+bc, 1);
 #endif
 #endif
-    }
-    printf("%3d (emp=%2d wc=%2d bc=%2d) %s\n", val, emp, wc, bc, bds[i]);
+    printf("%3d (emp=%2d wc=%2d bc=%2d) %s\n", val, emp, wc, bc, bds);
   }
 
   printf("MAXTRIES=%d. USE_PARITY=%d. FULLSOLVE=%d. WINNER_GETS_EMPTIES=%d. FASTEST_FIRST=%d.\n",
