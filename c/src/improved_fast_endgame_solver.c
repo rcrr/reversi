@@ -31,31 +31,6 @@
  * </tt>
  */
 
-/**
- * This code is designed to solve positions with <=10 empties (although
- * in principle it will work for any number of empties up to the number
- * of bits in a uint (32 for me).
- */
-#define MAXEMPTIES 32
-
-/**
- * It is plain alphabeta, no transposition table.  It can be used for
- * WLD solve by setting alpha=-1 and beta=1 or for full solve with 
- * alpha=-64, beta=64. It uses a fixed preference
- * ordering of squares. This is not such a bad thing to do when <=10
- * empties, where the demand for speed is paramount. When USE_PARITY=X is
- * turned on (X>0), it also uses parity to help with move ordering,
- * specifically it will consider all moves into odd regions before
- * considering any moves into even regions, in situations with more than
- * X empties.
- */
-#define USE_PARITY 4
-
-/**
- * In positions with <= FASTEST_FIRST empty, fastest first is disabled.
- */
-#define FASTEST_FIRST 7
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -166,8 +141,33 @@ end_solve (uchar *board, double alpha, double beta,
  * Internal constants.
  */
 
+/*
+ * This code is designed to solve positions with <=10 empties (although
+ * in principle it will work for any number of empties up to the number
+ * of bits in a uint (32 for me).
+ */
+static const int max_empties = 32;
+
 /* A square set being all set with the exception of column A. */
 static const int infinity = 30000;
+
+/*
+ * It is plain alphabeta, no transposition table.  It can be used for
+ * WLD solve by setting alpha=-1 and beta=1 or for full solve with 
+ * alpha=-64, beta=64. It uses a fixed preference
+ * ordering of squares. This is not such a bad thing to do when <=10
+ * empties, where the demand for speed is paramount. When use_parity=X is
+ * turned on (X>0), it also uses parity to help with move ordering,
+ * specifically it will consider all moves into odd regions before
+ * considering any moves into even regions, in situations with more than
+ * X empties.
+ */
+static const int use_parity = 4;
+
+/*
+ * In positions with <= fastest_first empty, fastest first is disabled.
+ */
+static const int fastest_first = 7;
 
 /*
  * The 8 legal directions:
@@ -288,8 +288,8 @@ main (void) {
 
   printf("%3d (emp=%2d wc=%2d bc=%2d) %s\n", val, emp, wc, bc, bds);
 
-  printf("USE_PARITY=%d. FASTEST_FIRST=%d.\n",
-         USE_PARITY, FASTEST_FIRST);
+  printf("use_parity=%d. fastest_first=%d.\n",
+         use_parity, fastest_first);
 
   printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
 
@@ -573,13 +573,15 @@ prepare_to_solve (uchar *board)
     }
     else HoleId[i] = 0;
   }
-#define MAXITERS 1
+
   /* In some sense this is wrong, since you
    * ought to keep doing iters until reach fixed point, but in most
    * othello positions with few empties this ought to work, and besides,
    * this is justifiable since the definition of "hole" in othello
    * is somewhat arbitrary anyway. */
-  for (z = MAXITERS; z > 0; z--) {
+  const int max_iters = 1;
+
+  for (z = max_iters; z > 0; z--) {
     for (i = 80; i >= 10; i--) {
       if (board[i] == IFES_EMPTY) {
         k = HoleId[i];
@@ -619,7 +621,7 @@ prepare_to_solve (uchar *board)
     }
   }
   pt->succ = NULL;
-  if (k > MAXEMPTIES) abort(); /* better not have too many empties... */
+  if (k > max_empties) abort(); /* better not have too many empties... */
 }
 
 /**
@@ -730,7 +732,7 @@ parity_end_solve (uchar *board, double alpha, double beta,
           RegionParity ^= holepar;
           /* delete square from empties list: */
 	  old_em->succ = em->succ;
-          if (empties <= 1 + USE_PARITY)
+          if (empties <= 1 + use_parity)
             ev = -no_parity_end_solve(board, -beta, -alpha, 
                                       oppcol, empties-1, -discdiff-2*j-1, sqnum);
           else
@@ -832,7 +834,7 @@ fastest_first_end_solve (uchar *board, double alpha, double beta,
       em->pred->succ = em->succ;
       if (em->succ != NULL)
 	em->succ->pred = em->pred;
-      if (empties <= FASTEST_FIRST + 1)
+      if (empties <= fastest_first + 1)
 	ev = -parity_end_solve(board, -beta, -alpha, oppcol, empties - 1,
                                -discdiff - 2 * j - 1, sqnum);
       else
@@ -887,10 +889,10 @@ static int
 end_solve (uchar *board, double alpha, double beta, 
            int color, int empties, int discdiff, int prevmove)
 {
-  if (empties > FASTEST_FIRST)
+  if (empties > fastest_first)
     return fastest_first_end_solve(board,alpha,beta,color,empties,discdiff,prevmove);
   else {
-    if (empties <= (2>USE_PARITY ? 2 : USE_PARITY))
+    if (empties <= (2 > use_parity ? 2 : use_parity))
       return no_parity_end_solve(board,alpha,beta,color,empties,discdiff,prevmove);
     else
       return parity_end_solve(board,alpha,beta,color,empties,discdiff,prevmove);
