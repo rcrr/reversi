@@ -52,23 +52,6 @@
 #define USE_PARITY 4
 
 /**
- * If WINNER_GETS_EMPTIES is turned on it will do scoring using the
- * winner-gets-empties convention - which never changes who won, but can
- * change the final score.
- *
- * From the World Othello Federation, web site:
- * World Othello Chanpionship Rules
- * - Soring - 
- * At the end of the game, if both players have completed their moves in
- * the allowed time, the winner is the player with the greater number of
- * discs of his colour on the board at the end. The official score of the
- * game will be determined by counting up the discs of each colour on the
- * board, counting empty squares for the winner. In the event of a draw,
- * the score will always be 32-32.
- */
-//#define WINNER_GETS_EMPTIES 1
-
-/**
  * In positions with <= FASTEST_FIRST empty, fastest first is disabled.
  */
 #define FASTEST_FIRST 7
@@ -127,7 +110,90 @@ typedef struct em_list {
 
 
 /*
- * Internal variables and constants.
+ * Prototypes for internal functions.
+ */
+
+inline static void
+directional_flips (uchar *sq, int inc, int color, int oppcol);
+
+static int
+do_flips (uchar *board, int sqnum, int color, int oppcol);
+
+inline static int
+ct_directional_flips (uchar *sq, int inc, int color, int oppcol);
+
+static int
+count_flips (uchar *board, int sqnum, int color, int oppcol);
+
+inline static int
+any_directional_flips (uchar *sq, int inc, int color, int oppcol);
+
+static int
+any_flips (uchar *board, int sqnum, int color, int oppcol);
+
+inline static void
+undo_flips (int FlipCount, int oppcol);
+
+inline static uint
+minu (uint a, uint b);
+
+
+
+/*
+ * Internal constants.
+ */
+
+/* A square set being all set with the exception of column A. */
+static const int infinity = 30000;
+
+/*
+ * The 8 legal directions:
+ */
+static const schar dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
+
+/*
+ * Fixed square ordering:
+ * jcw's order, which is the best of 4 tried:
+ */
+static const int worst2best[64] =
+{
+  /*B2*/      20 , 25 , 65 , 70 ,
+  /*B1*/      11 , 16 , 19 , 26 , 64 , 71 , 74 , 79 ,
+  /*C2*/      21 , 24 , 29 , 34 , 56 , 61 , 66 , 69 ,
+  /*D2*/      22 , 23 , 38 , 43 , 47 , 52 , 67 , 68 ,
+  /*D3*/      31 , 32 , 39 , 42 , 48 , 51 , 58 , 59 ,
+  /*D1*/      13 , 14 , 37 , 44 , 46 , 53 , 76 , 77 ,
+  /*C3*/      30 , 33 , 57 , 60 ,
+  /*C1*/      12 , 15 , 28 , 35 , 55 , 62 , 75 , 78 ,
+  /*A1*/      10 , 17 , 73 , 80 , 
+  /*D4*/      40 , 41 , 49 , 50
+};
+
+/*
+ * The bit mask for direction i is 1<<i
+ *
+ * Bit masks for the directions squares can flip in,
+ * for example dirmask[10]=81=64+16+1=(1<<6)+(1<<4)+(1<<0)
+ * hence square 10 (A1) can flip in directions dirinc[0]=1,
+ * dirinc[4]=9, and dirinc[6]=10:
+ */
+static const uchar dirmask[91] = {
+  0,   0,   0,   0,   0,   0,   0,   0,   0,
+  0,  81,  81,  87,  87,  87,  87,  22,  22,
+  0,  81,  81,  87,  87,  87,  87,  22,  22,
+  0, 121, 121, 255, 255, 255, 255, 182, 182,
+  0, 121, 121, 255, 255, 255, 255, 182, 182,
+  0, 121, 121, 255, 255, 255, 255, 182, 182,
+  0, 121, 121, 255, 255, 255, 255, 182, 182,
+  0,  41,  41, 171, 171, 171, 171, 162, 162,
+  0,  41,  41, 171, 171, 171, 171, 162, 162,
+  0,   0,   0,   0,   0,   0,   0,   0,   0, 0
+};
+
+
+
+/*
+ * Internal variables.
  */
 
 /* leaf count, should be part of the solver. */
@@ -135,9 +201,6 @@ static uint64 leaf_count = 0;
 
 /* node count, should be part of the solver. */
 static uint64 node_count = 0;
-
-/* A square set being all set with the exception of column A. */
-static const int infinity = 30000;
 
 /*
  * Inside this fast endgame solver, the board is represented by
@@ -172,277 +235,11 @@ static EmList EmHead, Ems[64];
 static uint HoleId[91];
 static uint RegionParity;
 
-/*
- * The 8 legal directions:
- */
-static const schar dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
-
-/*
- * The bit mask for direction i is 1<<i
- *
- * Bit masks for the directions squares can flip in,
- * for example dirmask[10]=81=64+16+1=(1<<6)+(1<<4)+(1<<0)
- * hence square 10 (A1) can flip in directions dirinc[0]=1,
- * dirinc[4]=9, and dirinc[6]=10:
- */
-static const uchar dirmask[91] = {
-  0,   0,   0,   0,   0,   0,   0,   0,   0,
-  0,  81,  81,  87,  87,  87,  87,  22,  22,
-  0,  81,  81,  87,  87,  87,  87,  22,  22,
-  0, 121, 121, 255, 255, 255, 255, 182, 182,
-  0, 121, 121, 255, 255, 255, 255, 182, 182,
-  0, 121, 121, 255, 255, 255, 255, 182, 182,
-  0, 121, 121, 255, 255, 255, 255, 182, 182,
-  0,  41,  41, 171, 171, 171, 171, 162, 162,
-  0,  41,  41, 171, 171, 171, 171, 162, 162,
-  0,   0,   0,   0,   0,   0,   0,   0,   0, 0
-};
-
-/*
- * Fixed square ordering:
- * jcw's order, which is the best of 4 tried:
- */
-static const int worst2best[64] =
-{
-  /*B2*/      20 , 25 , 65 , 70 ,
-  /*B1*/      11 , 16 , 19 , 26 , 64 , 71 , 74 , 79 ,
-  /*C2*/      21 , 24 , 29 , 34 , 56 , 61 , 66 , 69 ,
-  /*D2*/      22 , 23 , 38 , 43 , 47 , 52 , 67 , 68 ,
-  /*D3*/      31 , 32 , 39 , 42 , 48 , 51 , 58 , 59 ,
-  /*D1*/      13 , 14 , 37 , 44 , 46 , 53 , 76 , 77 ,
-  /*C3*/      30 , 33 , 57 , 60 ,
-  /*C1*/      12 , 15 , 28 , 35 , 55 , 62 , 75 , 78 ,
-  /*A1*/      10 , 17 , 73 , 80 , 
-  /*D4*/      40 , 41 , 49 , 50
-};
-
+/* Must be documented. */
 static uchar  *GlobalFlipStack[2048];
+
+/* Must be documented. */
 static uchar **FlipStack = &(GlobalFlipStack[0]);
-
-/**
- * sq is a pointer to the square the move is to.
- * inc is the increment to go in some direction.
- * color is the color of the mover.
- * oppcol = 2-color is the opposite color.
- * FlipStack records locations of flipped men so can unflip later.
- * This routine flips in direction inc and returns count of flips it made:
- */
-inline static
-void
-DrctnlFlips (uchar *sq, int inc, int color, int oppcol)
-{
-  uchar *pt = sq + inc;
-  if (*pt == oppcol) {
-    pt += inc;
-    if (*pt == oppcol) {
-      pt += inc;
-      if (*pt == oppcol) {
-        pt += inc;
-        if (*pt == oppcol) {
-          pt += inc;
-          if (*pt == oppcol) {
-            pt += inc;
-            if (*pt == oppcol) {
-              pt += inc;
-            }
-          }
-        }
-      }
-    }
-    if (*pt == color) {
-      pt -= inc;
-      do {
-        *pt = color;
-        *(FlipStack++) = pt;
-        pt -= inc;
-      } while (pt != sq);
-    }
-  }
-}
-
-/*
- * Do all flips involved in making a move to square sqnum of board,
- * and return their count.
- */
-int
-DoFlips (uchar *board, int sqnum,
-         int color, int oppcol)
-{
-  int j = dirmask[sqnum];
-  uchar **OldFlipStack = FlipStack;
-  uchar *sq;
-  sq = sqnum + board;
-  if (j & 128)
-    DrctnlFlips(sq, dirinc[7], color, oppcol);
-  if (j & 64)
-    DrctnlFlips(sq, dirinc[6], color, oppcol);
-  if (j & 32)
-    DrctnlFlips(sq, dirinc[5], color, oppcol);
-  if (j & 16)
-    DrctnlFlips(sq, dirinc[4], color, oppcol);
-  if (j & 8)
-    DrctnlFlips(sq, dirinc[3], color, oppcol);
-  if (j & 4)
-    DrctnlFlips(sq, dirinc[2], color, oppcol);
-  if (j & 2)
-    DrctnlFlips(sq, dirinc[1], color, oppcol);
-  if (j & 1)
-    DrctnlFlips(sq, dirinc[0], color, oppcol);
-
-  return FlipStack - OldFlipStack;
-}
-
-/**
- * For the last move, we compute the score without updating the board:
- */
-inline
-int
-CtDrctnlFlips (uchar *sq, int inc, int color, int oppcol)
-{
-  uchar *pt = sq + inc;
-  if (*pt == oppcol) {
-    int count = 1;
-    pt += inc;
-    if (*pt == oppcol) {
-      count++;                /* 2 */
-      pt += inc;
-      if (*pt == oppcol) {
-        count++;              /* 3 */
-        pt += inc;
-        if (*pt == oppcol) {
-          count++;            /* 4 */
-          pt += inc;
-          if (*pt == oppcol) {
-            count++;          /* 5 */
-            pt += inc;
-            if (*pt == oppcol) {
-              count++;        /* 6 */
-              pt += inc;
-            }
-          }
-        }
-      }
-    }
-    if (*pt == color) return count;
-  }
-  return 0;
-}
-
-int
-CountFlips (uchar *board, int sqnum,
-            int color, int oppcol)
-{
-  int ct = 0;
-  int j = dirmask[sqnum];
-  uchar *sq;
-  sq = sqnum + board;
-  if (j & 128)
-    ct += CtDrctnlFlips(sq, dirinc[7], color, oppcol);
-  if (j & 64)
-    ct += CtDrctnlFlips(sq, dirinc[6], color, oppcol);
-  if (j & 32)
-    ct += CtDrctnlFlips(sq, dirinc[5], color, oppcol);
-  if (j & 16)
-    ct += CtDrctnlFlips(sq, dirinc[4], color, oppcol);
-  if (j & 8)
-    ct += CtDrctnlFlips(sq, dirinc[3], color, oppcol);
-  if (j & 4)
-    ct += CtDrctnlFlips(sq, dirinc[2], color, oppcol);
-  if (j & 2)
-    ct += CtDrctnlFlips(sq, dirinc[1], color, oppcol);
-  if (j & 1)
-    ct += CtDrctnlFlips(sq, dirinc[0], color, oppcol);
-  return(ct);
-}
-
-/**
- * Sometimes we only want to know if a move is legal, not how
- * many discs it flips.
- */
-inline
-int
-AnyDrctnlFlips (uchar *sq, int inc, int color, int oppcol)
-{
-  uchar *pt = sq + inc;
-  if (*pt == oppcol) {
-    pt += inc;
-    if (*pt == oppcol) {
-      pt += inc;
-      if (*pt == oppcol) {
-        pt += inc;
-        if (*pt == oppcol) {
-          pt += inc;
-          if (*pt == oppcol) {
-            pt += inc;
-            if (*pt == oppcol) {
-              pt += inc;
-            }
-          }
-        }
-      }
-    }
-    if(*pt == color) return 1;
-  }
-
-  return 0;
-}
-
-int
-AnyFlips (uchar *board, int sqnum,
-	  int color, int oppcol)
-{
-  int any = 0;
-  int j = dirmask[sqnum];
-  uchar *sq;
-  sq = sqnum + board;
-  if (j & 128)
-    any += AnyDrctnlFlips(sq, dirinc[7], color, oppcol);
-  if (j & 64)
-    any += AnyDrctnlFlips(sq, dirinc[6], color, oppcol);
-  if (j & 32)
-    any += AnyDrctnlFlips(sq, dirinc[5], color, oppcol);
-  if (j & 16)
-    any += AnyDrctnlFlips(sq, dirinc[4], color, oppcol);
-  if (j & 8)
-    any += AnyDrctnlFlips(sq, dirinc[3], color, oppcol);
-  if (j & 4)
-    any += AnyDrctnlFlips(sq, dirinc[2], color, oppcol);
-  if (j & 2)
-    any += AnyDrctnlFlips(sq, dirinc[1], color, oppcol);
-  if (j & 1)
-    any += AnyDrctnlFlips(sq, dirinc[0], color, oppcol);
-  return(any);
-}
-
-/**
- * Call this right after FlipCount=DoFlips() to Undo those flips!
- */
-inline static
-void
-UndoFlips (int FlipCount, int oppcol)
-{
-  /**************************************************************************
-   ** This is functionally equivalent to the simpler but slower code line:  *
-   **   while(FlipCount){ FlipCount--;  *(*(--FlipStack)) = oppcol; }       *
-   **************************************************************************/
-  if (FlipCount & 1) {
-    FlipCount--;
-    * (*(--FlipStack)) = oppcol;
-  }
-  while (FlipCount) {
-    FlipCount -= 2;
-    * (*(--FlipStack)) = oppcol;
-    * (*(--FlipStack)) = oppcol;
-  }
-}
-
-inline
-uint
-minu (uint a, uint b)
-{
-  if(a<b) return a;
-  return b;
-}
 
 /**
  * Set up the data structures, other than board array,
@@ -531,7 +328,7 @@ NoParEndSolve (uchar *board, double alpha, double beta,
       old_em = em, em = em->succ){
     /* go thru list of possible move-squares */
     sqnum = em->square;
-    j = DoFlips( board, sqnum, color, oppcol );
+    j = do_flips(board, sqnum, color, oppcol );
     if (j) { /* legal move */
       /* place your disc: */
       *(board+sqnum) = color;
@@ -539,12 +336,12 @@ NoParEndSolve (uchar *board, double alpha, double beta,
       old_em->succ = em->succ;
       if (empties == 2){ /* So, now filled but for 1 empty: */
         int j1;
-        j1 = CountFlips( board, EmHead.succ->square, oppcol, color);
+        j1 = count_flips(board, EmHead.succ->square, oppcol, color);
         if (j1) { /* I move then he moves */
           ev = discdiff + 2*(j-j1);
         }
         else { /* he will have to pass */
-          j1 = CountFlips(board, EmHead.succ->square, color, oppcol);
+          j1 = count_flips(board, EmHead.succ->square, color, oppcol);
           ev = discdiff + 2*j;
           if (j1) { /* I pass then he passes then I move */
             ev += 2 * (j1 + 1);
@@ -559,7 +356,7 @@ NoParEndSolve (uchar *board, double alpha, double beta,
         ev = -NoParEndSolve(board, -beta, -alpha, 
                             oppcol, empties-1, -discdiff-2*j-1, sqnum);
       }
-      UndoFlips(j, oppcol);
+      undo_flips(j, oppcol);
       /* un-place your disc: */
       *(board+sqnum) = IFES_EMPTY;
       /* restore deleted empty square: */
@@ -611,7 +408,7 @@ ParEndSolve (uchar *board, double alpha, double beta,
       holepar = em->hole_id;
       if (holepar & parity_mask) {
         sqnum = em->square;
-        j = DoFlips(board, sqnum, color, oppcol);
+        j = do_flips(board, sqnum, color, oppcol);
         if (j) { /* legal move */
           /* place your disc: */
           *(board+sqnum) = color;
@@ -625,7 +422,7 @@ ParEndSolve (uchar *board, double alpha, double beta,
           else
             ev = -ParEndSolve(board, -beta, -alpha, 
                               oppcol, empties-1, -discdiff-2*j-1, sqnum);
-          UndoFlips(j, oppcol);
+          undo_flips(j, oppcol);
           /* restore parity of hole */
           RegionParity ^= holepar;
           /* un-place your disc: */
@@ -670,7 +467,7 @@ count_mobility (uchar *board, int color) {
   mobility = 0;
   for (em = EmHead.succ; em != NULL; em = em->succ) {
     square = em->square;
-    if (AnyFlips(board, square, color, oppcol))
+    if (any_flips(board, square, color, oppcol))
       mobility++;
   }
 
@@ -699,13 +496,13 @@ FastestFirstEndSolve (uchar *board, double alpha, double beta,
   for (old_em = &EmHead, em = old_em->succ; em != NULL;
        old_em = em, em = em->succ ) {
     sqnum = em->square;
-    flipped = DoFlips( board, sqnum, color, oppcol );
+    flipped = do_flips(board, sqnum, color, oppcol );
     if (flipped) {
       board[sqnum] = color;
       old_em->succ = em->succ;
       mobility = count_mobility(board, oppcol);
       old_em->succ = em;
-      UndoFlips(flipped, oppcol);
+      undo_flips(flipped, oppcol);
       board[sqnum] = IFES_EMPTY;
       move_ptr[moves] = em;
       goodness[moves] = -mobility;
@@ -728,20 +525,20 @@ FastestFirstEndSolve (uchar *board, double alpha, double beta,
 
       sqnum = em->square;
       holepar = em->hole_id;
-      j = DoFlips( board, sqnum, color, oppcol );
+      j = do_flips(board, sqnum, color, oppcol );
       board[sqnum] = color;
       RegionParity ^= holepar;
       em->pred->succ = em->succ;
       if (em->succ != NULL)
 	em->succ->pred = em->pred;
       if (empties <= FASTEST_FIRST + 1)
-	ev = -ParEndSolve( board, -beta, -alpha, oppcol, empties - 1,
-			   -discdiff - 2 * j - 1, sqnum);
+	ev = -ParEndSolve(board, -beta, -alpha, oppcol, empties - 1,
+                          -discdiff - 2 * j - 1, sqnum);
       else
 	ev = -FastestFirstEndSolve(board, -beta, -alpha, oppcol,
                                    empties - 1, -discdiff - 2 * j - 1,
                                    sqnum);
-      UndoFlips(j, oppcol);
+      undo_flips(j, oppcol);
       RegionParity ^= holepar;
       board[sqnum] = IFES_EMPTY;
       em->pred->succ = em;
@@ -829,4 +626,235 @@ main (void) {
   printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
 
   return EXIT_SUCCESS;
+}
+
+
+
+/*
+ * Internal functions.
+ */
+
+/**
+ * @brief Documentation to be prepared.
+ *
+ * sq is a pointer to the square the move is to.
+ * inc is the increment to go in some direction.
+ * color is the color of the mover.
+ * oppcol = 2-color is the opposite color.
+ * FlipStack records locations of flipped men so can unflip later.
+ * This routine flips in direction inc and returns count of flips it made:
+ */
+inline static void
+directional_flips (uchar *sq, int inc, int color, int oppcol)
+{
+  uchar *pt = sq + inc;
+  if (*pt == oppcol) {
+    pt += inc;
+    if (*pt == oppcol) {
+      pt += inc;
+      if (*pt == oppcol) {
+        pt += inc;
+        if (*pt == oppcol) {
+          pt += inc;
+          if (*pt == oppcol) {
+            pt += inc;
+            if (*pt == oppcol) {
+              pt += inc;
+            }
+          }
+        }
+      }
+    }
+    if (*pt == color) {
+      pt -= inc;
+      do {
+        *pt = color;
+        *(FlipStack++) = pt;
+        pt -= inc;
+      } while (pt != sq);
+    }
+  }
+}
+
+/**
+ * @brief Do all flips involved in making a move to square sqnum of board,
+ * and return their count.
+ */
+static int
+do_flips (uchar *board, int sqnum,
+          int color, int oppcol)
+{
+  int j = dirmask[sqnum];
+  uchar **OldFlipStack = FlipStack;
+  uchar *sq;
+  sq = sqnum + board;
+  if (j & 128)
+    directional_flips(sq, dirinc[7], color, oppcol);
+  if (j & 64)
+    directional_flips(sq, dirinc[6], color, oppcol);
+  if (j & 32)
+    directional_flips(sq, dirinc[5], color, oppcol);
+  if (j & 16)
+    directional_flips(sq, dirinc[4], color, oppcol);
+  if (j & 8)
+    directional_flips(sq, dirinc[3], color, oppcol);
+  if (j & 4)
+    directional_flips(sq, dirinc[2], color, oppcol);
+  if (j & 2)
+    directional_flips(sq, dirinc[1], color, oppcol);
+  if (j & 1)
+    directional_flips(sq, dirinc[0], color, oppcol);
+
+  return FlipStack - OldFlipStack;
+}
+
+/**
+ * @brief For the last move, we compute the score without updating the board:
+ */
+inline static int
+ct_directional_flips (uchar *sq, int inc, int color, int oppcol)
+{
+  uchar *pt = sq + inc;
+  if (*pt == oppcol) {
+    int count = 1;
+    pt += inc;
+    if (*pt == oppcol) {
+      count++;                /* 2 */
+      pt += inc;
+      if (*pt == oppcol) {
+        count++;              /* 3 */
+        pt += inc;
+        if (*pt == oppcol) {
+          count++;            /* 4 */
+          pt += inc;
+          if (*pt == oppcol) {
+            count++;          /* 5 */
+            pt += inc;
+            if (*pt == oppcol) {
+              count++;        /* 6 */
+              pt += inc;
+            }
+          }
+        }
+      }
+    }
+    if (*pt == color) return count;
+  }
+  return 0;
+}
+
+static int
+count_flips (uchar *board, int sqnum, int color, int oppcol)
+{
+  int ct = 0;
+  int j = dirmask[sqnum];
+  uchar *sq;
+  sq = sqnum + board;
+  if (j & 128)
+    ct += ct_directional_flips(sq, dirinc[7], color, oppcol);
+  if (j & 64)
+    ct += ct_directional_flips(sq, dirinc[6], color, oppcol);
+  if (j & 32)
+    ct += ct_directional_flips(sq, dirinc[5], color, oppcol);
+  if (j & 16)
+    ct += ct_directional_flips(sq, dirinc[4], color, oppcol);
+  if (j & 8)
+    ct += ct_directional_flips(sq, dirinc[3], color, oppcol);
+  if (j & 4)
+    ct += ct_directional_flips(sq, dirinc[2], color, oppcol);
+  if (j & 2)
+    ct += ct_directional_flips(sq, dirinc[1], color, oppcol);
+  if (j & 1)
+    ct += ct_directional_flips(sq, dirinc[0], color, oppcol);
+  return(ct);
+}
+
+/**
+ * @brief Sometimes we only want to know if a move is legal, not how
+ * many discs it flips.
+ */
+inline static int
+any_directional_flips (uchar *sq, int inc, int color, int oppcol)
+{
+  uchar *pt = sq + inc;
+  if (*pt == oppcol) {
+    pt += inc;
+    if (*pt == oppcol) {
+      pt += inc;
+      if (*pt == oppcol) {
+        pt += inc;
+        if (*pt == oppcol) {
+          pt += inc;
+          if (*pt == oppcol) {
+            pt += inc;
+            if (*pt == oppcol) {
+              pt += inc;
+            }
+          }
+        }
+      }
+    }
+    if(*pt == color) return 1;
+  }
+  return 0;
+}
+
+/**
+ * @brief To be documented
+ */
+static int
+any_flips (uchar *board, int sqnum, int color, int oppcol)
+{
+  int any = 0;
+  int j = dirmask[sqnum];
+  uchar *sq;
+  sq = sqnum + board;
+  if (j & 128)
+    any += any_directional_flips(sq, dirinc[7], color, oppcol);
+  if (j & 64)
+    any += any_directional_flips(sq, dirinc[6], color, oppcol);
+  if (j & 32)
+    any += any_directional_flips(sq, dirinc[5], color, oppcol);
+  if (j & 16)
+    any += any_directional_flips(sq, dirinc[4], color, oppcol);
+  if (j & 8)
+    any += any_directional_flips(sq, dirinc[3], color, oppcol);
+  if (j & 4)
+    any += any_directional_flips(sq, dirinc[2], color, oppcol);
+  if (j & 2)
+    any += any_directional_flips(sq, dirinc[1], color, oppcol);
+  if (j & 1)
+    any += any_directional_flips(sq, dirinc[0], color, oppcol);
+  return any;
+}
+
+/**
+ * @brief Call this function right after `FlipCount = do_flips()` to undo those flips!
+ */
+inline static void
+undo_flips (int FlipCount, int oppcol)
+{
+  /*
+   * This is functionally equivalent to the simpler but slower code line:
+   * while(FlipCount){ FlipCount--;  *(*(--FlipStack)) = oppcol; }
+   */
+  if (FlipCount & 1) {
+    FlipCount--;
+    * (*(--FlipStack)) = oppcol;
+  }
+  while (FlipCount) {
+    FlipCount -= 2;
+    * (*(--FlipStack)) = oppcol;
+    * (*(--FlipStack)) = oppcol;
+  }
+}
+
+/**
+ * @brief To be documented
+ */
+inline static uint
+minu (uint a, uint b)
+{
+  if(a<b) return a;
+  return b;
 }
