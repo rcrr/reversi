@@ -112,6 +112,17 @@ typedef signed char uint;
  */
 typedef unsigned long long int uint64;
 
+/**
+ * @brief An empty list collects a set of ordered squares.
+ *
+ * Details to be documented.
+ */
+typedef struct em_list {
+  int square;           /**< @brief To be documented. */
+  int hole_id;
+  struct em_list *pred;
+  struct em_list *succ;
+} EmList;
 
 
 
@@ -145,18 +156,12 @@ static const int infinity = 30000;
  */
 static uchar board[91];
 
-/**
+/*
  * Also there is a doubly linked list of the empty squares.
  * EmHead points to the first empty square in the list (or NULL if none).
  * The list in maintained in a fixed best-to-worst order.
  */
-struct EmList
-{
-    int square;
-    int hole_id;
-    struct EmList *pred;
-    struct EmList *succ;
-} EmHead, Ems[64];
+static EmList EmHead, Ems[64];
 
 /**
  * Also, and finally, each empty square knows the region it is in
@@ -197,7 +202,7 @@ static uchar dirmask[91] = {
  * Fixed square ordering:
  * jcw's order, which is the best of 4 tried:
  */
-static int worst2best[64] =
+static const int worst2best[64] =
 {
   /*B2*/      20 , 25 , 65 , 70 ,
   /*B1*/      11 , 16 , 19 , 26 , 64 , 71 , 74 , 79 ,
@@ -449,7 +454,7 @@ PrepareToSolve (uchar *board)
 {
   int i, sqnum;
   uint k;
-  struct EmList *pt;
+  EmList *pt;
   int z;
   /* find hole IDs: */
   k = 1;
@@ -521,7 +526,7 @@ NoParEndSolve (uchar *board, double alpha, double beta,
   int score = -infinity;
   int oppcol = 2-color;
   int sqnum,j,ev;
-  struct EmList *em, *old_em;
+  EmList *em, *old_em;
   for (old_em = &EmHead, em = old_em->succ; em != NULL;
       old_em = em, em = em->succ){
     /* go thru list of possible move-squares */
@@ -593,7 +598,7 @@ ParEndSolve (uchar *board, double alpha, double beta,
   int score = -infinity;
   int oppcol = 2-color;
   int sqnum,j,ev;
-  struct EmList *em, *old_em;
+  EmList *em, *old_em;
   uint parity_mask;
   int par, holepar;
 
@@ -660,7 +665,7 @@ count_mobility (uchar *board, int color) {
   int oppcol = 2 - color;
   int mobility;
   int square;
-  struct EmList *em;
+  EmList *em;
 
   mobility = 0;
   for (em = EmHead.succ; em != NULL; em = em->succ) {
@@ -683,8 +688,8 @@ FastestFirstEndSolve (uchar *board, double alpha, double beta,
   int flipped;
   int moves, mobility;
   int best_value, best_index;
-  struct EmList *em, *old_em;
-  struct EmList *move_ptr[64];
+  EmList *em, *old_em;
+  EmList *move_ptr[64];
   int holepar;
   int goodness[64];
 
