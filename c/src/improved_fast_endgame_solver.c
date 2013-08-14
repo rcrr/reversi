@@ -31,6 +31,7 @@
  * </tt>
  */
 
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -269,7 +270,8 @@ static uchar **FlipStack = &(GlobalFlipStack[0]);
 // FFO-42 ..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..
 
 int
-main (void) {
+main (int argc, char *argv[])
+{
   int val, emp, wc, bc, j, k, x, y;
   char bds[65] = {
     "w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........"
