@@ -163,14 +163,14 @@ static uchar board[91];
  */
 static EmList EmHead, Ems[64];
 
-/**
+/*
  * Also, and finally, each empty square knows the region it is in
  * and knows the directions you can flip in via some bit masks.
  * There are up to 32 regions. The parities of the regions are in
  * the RegionParity bit vector:
  */
-uint HoleId[91];
-uint RegionParity;
+static uint HoleId[91];
+static uint RegionParity;
 
 /*
  * The 8 legal directions:
@@ -185,7 +185,7 @@ static const schar dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
  * hence square 10 (A1) can flip in directions dirinc[0]=1,
  * dirinc[4]=9, and dirinc[6]=10:
  */
-static uchar dirmask[91] = {
+static const uchar dirmask[91] = {
   0,   0,   0,   0,   0,   0,   0,   0,   0,
   0,  81,  81,  87,  87,  87,  87,  22,  22,
   0,  81,  81,  87,  87,  87,  87,  22,  22,
@@ -216,8 +216,8 @@ static const int worst2best[64] =
   /*D4*/      40 , 41 , 49 , 50
 };
 
-uchar * GlobalFlipStack[2048];
-uchar **FlipStack = &(GlobalFlipStack[0]);
+static uchar  *GlobalFlipStack[2048];
+static uchar **FlipStack = &(GlobalFlipStack[0]);
 
 /**
  * sq is a pointer to the square the move is to.
@@ -227,7 +227,7 @@ uchar **FlipStack = &(GlobalFlipStack[0]);
  * FlipStack records locations of flipped men so can unflip later.
  * This routine flips in direction inc and returns count of flips it made:
  */
-inline
+inline static
 void
 DrctnlFlips (uchar *sq, int inc, int color, int oppcol)
 {
@@ -417,7 +417,7 @@ AnyFlips (uchar *board, int sqnum,
 /**
  * Call this right after FlipCount=DoFlips() to Undo those flips!
  */
-inline
+inline static
 void
 UndoFlips (int FlipCount, int oppcol)
 {
