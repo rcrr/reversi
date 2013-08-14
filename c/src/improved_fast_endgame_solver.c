@@ -2,7 +2,7 @@
  * @file
  *
  * @brief Improved fast endgame solver.
- * @details Solver derived from the Gunnar Anderrsson work.
+ * @details Solver derived from the Gunnar Andersson work.
  *
  * @par improved_fast_endgame_solver.c
  * <tt>
@@ -137,6 +137,29 @@ undo_flips (int FlipCount, int oppcol);
 inline static uint
 minu (uint a, uint b);
 
+static int
+count_mobility (uchar *board, int color);
+
+static void
+prepare_to_solve (uchar *board);
+
+static int
+no_parity_end_solve (uchar *board, double alpha, double beta, 
+                     int color, int empties, int discdiff, int prevmove);
+
+static int
+parity_end_solve (uchar *board, double alpha, double beta, 
+                  int color, int empties, int discdiff, int prevmove);
+
+static int
+fastest_first_end_solve (uchar *board, double alpha, double beta, 
+                         int color, int empties, int discdiff,
+                         int prevmove);
+
+static int
+end_solve (uchar *board, double alpha, double beta, 
+           int color, int empties, int discdiff, int prevmove);
+
 
 
 /*
@@ -241,361 +264,6 @@ static uchar  *GlobalFlipStack[2048];
 /* Must be documented. */
 static uchar **FlipStack = &(GlobalFlipStack[0]);
 
-/**
- * Set up the data structures, other than board array,
- * which will be used by solver. Since this routine consumes
- * about 0.0002 of the time needed for a 12-empty solve,
- * I haven't worried about speeding it up. */
-void
-PrepareToSolve (uchar *board)
-{
-  int i, sqnum;
-  uint k;
-  EmList *pt;
-  int z;
-  /* find hole IDs: */
-  k = 1;
-  for (i = 10; i <= 80; i++) {
-    if (board[i] == IFES_EMPTY) {
-      if (board[i-10] == IFES_EMPTY) HoleId[i] = HoleId[i-10];
-      else if (board[i - 9] == IFES_EMPTY) HoleId[i] = HoleId[i - 9];
-      else if (board[i - 8] == IFES_EMPTY) HoleId[i] = HoleId[i - 8];
-      else if (board[i - 1] == IFES_EMPTY) HoleId[i] = HoleId[i - 1];
-      else { HoleId[i] = k; k<<=1; }
-    }
-    else HoleId[i] = 0;
-  }
-#define MAXITERS 1
-  /* In some sense this is wrong, since you
-   * ought to keep doing iters until reach fixed point, but in most
-   * othello positions with few empties this ought to work, and besides,
-   * this is justifiable since the definition of "hole" in othello
-   * is somewhat arbitrary anyway. */
-  for (z = MAXITERS; z > 0; z--) {
-    for (i = 80; i >= 10; i--) {
-      if (board[i] == IFES_EMPTY) {
-        k = HoleId[i];
-        if (board[i +10] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i +10]);
-        if (board[i + 9] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 9]);
-        if (board[i + 8] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 8]);
-        if (board[i + 1] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 1]);
-      }
-    }
-    for (i = 10; i <= 80; i++) {
-      if (board[i] == IFES_EMPTY) {
-        k = HoleId[i];
-        if (board[i - 10] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i - 10]);
-        if (board[i -  9] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  9]);
-        if (board[i -  8] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  8]);
-        if (board[i -  1] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  1]);
-      }
-    }
-  }
-  /* find parity of holes: */
-  RegionParity = 0;
-  for (i = 10; i <= 80; i++){
-    RegionParity ^= HoleId[i];
-  }
-  /* create list of empty squares: */
-  k = 0;
-  pt = &EmHead;
-  for (i = 60-1; i >= 0; i--){
-    sqnum = worst2best[i];
-    if (board[sqnum] == IFES_EMPTY) {
-      pt->succ = &(Ems[k]);
-      Ems[k].pred = pt;
-      k++;
-      pt = pt->succ;
-      pt->square = sqnum;
-      pt->hole_id = HoleId[sqnum];
-    }
-  }
-  pt->succ = NULL;
-  if (k > MAXEMPTIES) abort(); /* better not have too many empties... */
-}
-
-int
-NoParEndSolve (uchar *board, double alpha, double beta, 
-               int color, int empties, int discdiff, int prevmove )
-{
-  node_count++;
-
-  int score = -infinity;
-  int oppcol = 2-color;
-  int sqnum,j,ev;
-  EmList *em, *old_em;
-  for (old_em = &EmHead, em = old_em->succ; em != NULL;
-      old_em = em, em = em->succ){
-    /* go thru list of possible move-squares */
-    sqnum = em->square;
-    j = do_flips(board, sqnum, color, oppcol );
-    if (j) { /* legal move */
-      /* place your disc: */
-      *(board+sqnum) = color;
-      /* delete square from empties list: */
-      old_em->succ = em->succ;
-      if (empties == 2){ /* So, now filled but for 1 empty: */
-        int j1;
-        j1 = count_flips(board, EmHead.succ->square, oppcol, color);
-        if (j1) { /* I move then he moves */
-          ev = discdiff + 2*(j-j1);
-        }
-        else { /* he will have to pass */
-          j1 = count_flips(board, EmHead.succ->square, color, oppcol);
-          ev = discdiff + 2*j;
-          if (j1) { /* I pass then he passes then I move */
-            ev += 2 * (j1 + 1);
-          }
-          else { /* I move then both must pass, so game over */
-            if (ev >= 0)
-              ev += 2;
-          }
-        }
-      }
-      else {
-        ev = -NoParEndSolve(board, -beta, -alpha, 
-                            oppcol, empties-1, -discdiff-2*j-1, sqnum);
-      }
-      undo_flips(j, oppcol);
-      /* un-place your disc: */
-      *(board+sqnum) = IFES_EMPTY;
-      /* restore deleted empty square: */
-      old_em->succ = em;
-
-      if (ev > score) { /* better move: */
-        score = ev;
-        if (ev > alpha) {
-          alpha = ev;
-          if (ev >= beta) { /* cutoff */
-            return score;
-          }
-        }
-      }
-    }
-  }
-  if (score == -infinity) {  /* No legal move */
-    if (prevmove == 0) { /* game over: */
-      leaf_count++;
-      if (discdiff > 0) return discdiff+empties;
-      if (discdiff < 0) return discdiff-empties;
-      return 0;
-    }
-    else /* I pass: */
-      return -NoParEndSolve(board, -beta, -alpha, oppcol, empties, -discdiff, 0);
-  }
-  return score;
-}
-
-int
-ParEndSolve (uchar *board, double alpha, double beta, 
-             int color, int empties, int discdiff, int prevmove )
-{
-  node_count++;
-
-  int score = -infinity;
-  int oppcol = 2-color;
-  int sqnum,j,ev;
-  EmList *em, *old_em;
-  uint parity_mask;
-  int par, holepar;
-
-  for (par = 1, parity_mask = RegionParity; par >= 0;
-       par--, parity_mask = ~parity_mask) {
-
-    for (old_em = &EmHead, em = old_em->succ; em != NULL;
-         old_em = em, em = em->succ){
-      /* go thru list of possible move-squares */
-      holepar = em->hole_id;
-      if (holepar & parity_mask) {
-        sqnum = em->square;
-        j = do_flips(board, sqnum, color, oppcol);
-        if (j) { /* legal move */
-          /* place your disc: */
-          *(board+sqnum) = color;
-          /* update parity: */
-          RegionParity ^= holepar;
-          /* delete square from empties list: */
-	  old_em->succ = em->succ;
-          if (empties <= 1 + USE_PARITY)
-            ev = -NoParEndSolve(board, -beta, -alpha, 
-                                oppcol, empties-1, -discdiff-2*j-1, sqnum);
-          else
-            ev = -ParEndSolve(board, -beta, -alpha, 
-                              oppcol, empties-1, -discdiff-2*j-1, sqnum);
-          undo_flips(j, oppcol);
-          /* restore parity of hole */
-          RegionParity ^= holepar;
-          /* un-place your disc: */
-          *(board+sqnum) = IFES_EMPTY;
-          /* restore deleted empty square: */
-	  old_em->succ = em;
-
-          if(ev > score){ /* better move: */
-            score = ev;
-            if(ev > alpha){
-              alpha = ev;
-              if(ev >= beta){ 
-                return score;
-              }
-	    }
-          }
-        }
-      }
-    }
-  }
-
-  if (score == -infinity) {  /* No legal move found */
-    if (prevmove == 0) { /* game over: */
-      leaf_count++;
-      if (discdiff > 0) return discdiff+empties;
-      if (discdiff < 0) return discdiff-empties;
-      return 0;
-    }
-    else /* I pass: */
-      return -ParEndSolve(board, -beta, -alpha, oppcol, empties, -discdiff, 0);
-  }
-  return score;
-}
-
-int
-count_mobility (uchar *board, int color) {
-  int oppcol = 2 - color;
-  int mobility;
-  int square;
-  EmList *em;
-
-  mobility = 0;
-  for (em = EmHead.succ; em != NULL; em = em->succ) {
-    square = em->square;
-    if (any_flips(board, square, color, oppcol))
-      mobility++;
-  }
-
-  return mobility;
-}
-
-int
-FastestFirstEndSolve (uchar *board, double alpha, double beta, 
-		      int color, int empties, int discdiff,
-		      int prevmove) {
-  int i, j;
-  int score = -infinity;
-  int oppcol = 2 - color;
-  int sqnum, ev;
-  int flipped;
-  int moves, mobility;
-  int best_value, best_index;
-  EmList *em, *old_em;
-  EmList *move_ptr[64];
-  int holepar;
-  int goodness[64];
-
-  node_count++;
-
-  moves = 0;
-  for (old_em = &EmHead, em = old_em->succ; em != NULL;
-       old_em = em, em = em->succ ) {
-    sqnum = em->square;
-    flipped = do_flips(board, sqnum, color, oppcol );
-    if (flipped) {
-      board[sqnum] = color;
-      old_em->succ = em->succ;
-      mobility = count_mobility(board, oppcol);
-      old_em->succ = em;
-      undo_flips(flipped, oppcol);
-      board[sqnum] = IFES_EMPTY;
-      move_ptr[moves] = em;
-      goodness[moves] = -mobility;
-      moves++;
-    }
-  }
-
-  if (moves != 0) {
-    for (i = 0; i < moves; i++) {
-      best_value = goodness[i];
-      best_index = i;
-      for (j = i + 1; j < moves; j++)
-	if (goodness[j] > best_value) {
-	  best_value = goodness[j];
-	  best_index = j;
-	}
-      em = move_ptr[best_index];
-      move_ptr[best_index] = move_ptr[i];
-      goodness[best_index] = goodness[i];
-
-      sqnum = em->square;
-      holepar = em->hole_id;
-      j = do_flips(board, sqnum, color, oppcol );
-      board[sqnum] = color;
-      RegionParity ^= holepar;
-      em->pred->succ = em->succ;
-      if (em->succ != NULL)
-	em->succ->pred = em->pred;
-      if (empties <= FASTEST_FIRST + 1)
-	ev = -ParEndSolve(board, -beta, -alpha, oppcol, empties - 1,
-                          -discdiff - 2 * j - 1, sqnum);
-      else
-	ev = -FastestFirstEndSolve(board, -beta, -alpha, oppcol,
-                                   empties - 1, -discdiff - 2 * j - 1,
-                                   sqnum);
-      undo_flips(j, oppcol);
-      RegionParity ^= holepar;
-      board[sqnum] = IFES_EMPTY;
-      em->pred->succ = em;
-      if (em->succ != NULL)
-	em->succ->pred = em;
-
-      if (ev > score) { /* better move: */
-	score = ev;
-	if (ev > alpha) {
-	  alpha = ev;
-	  if (ev >= beta) {
-	    return score;
-          }
-	}
-      }
-    }
-  }
-  else {
-    if (prevmove == 0) { // game-over
-      leaf_count++;
-      if (discdiff > 0)
-	return discdiff + empties;
-      if (discdiff < 0)
-	return discdiff - empties;
-      return 0;
-    }
-    else { /* I pass: */
-      score = -FastestFirstEndSolve(board, -beta, -alpha, oppcol,
-                                    empties, -discdiff, 0);
-    }
-  }
-
-  return score;
-}
-
-/** 
- * The search itself. Assumes relevant data structures have been set up with
- * PrepareToSolve.
- * color is the color on move. Discdiff is color disc count - opposite
- * color disc count. The value of this at the end of the game is returned.
- * prevmove==0 if previous move was a pass, otherwise non0.
- * empties>0 is number of empty squares.
- */
-int
-EndSolve (uchar *board, double alpha, double beta, 
-          int color, int empties, int discdiff, int prevmove)
-{
-  if (empties > FASTEST_FIRST)
-    return FastestFirstEndSolve(board,alpha,beta,color,empties,discdiff,prevmove);
-  else {
-    if (empties <= (2>USE_PARITY ? 2 : USE_PARITY))
-      return NoParEndSolve(board,alpha,beta,color,empties,discdiff,prevmove);
-    else
-      return ParEndSolve(board,alpha,beta,color,empties,discdiff,prevmove);
-  }
-}
-
 // FFO-40 w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........
 // FFO-41 .wwwww....wwwwb..wwwwww.bbbbbww..bbwwb..wwbwbb....wbbw...www..w.
 // FFO-42 ..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..
@@ -614,9 +282,9 @@ main (void) {
     else if (bds[j]=='b'){ board[k] = IFES_BLACK; bc++; }
     else if (bds[j]=='.'){ board[k] = IFES_EMPTY; emp++; }
   }
-  PrepareToSolve(board);
+  prepare_to_solve(board);
 
-  val = EndSolve(board, -64, 64, IFES_BLACK, emp, -wc+bc, 1);
+  val = end_solve(board, -64, 64, IFES_BLACK, emp, -wc+bc, 1);
 
   printf("%3d (emp=%2d wc=%2d bc=%2d) %s\n", val, emp, wc, bc, bds);
 
@@ -857,4 +525,374 @@ minu (uint a, uint b)
 {
   if(a<b) return a;
   return b;
+}
+
+/**
+ * @brief To be documented
+ */
+static int
+count_mobility (uchar *board, int color)
+{
+  int oppcol = 2 - color;
+  int mobility;
+  int square;
+  EmList *em;
+
+  mobility = 0;
+  for (em = EmHead.succ; em != NULL; em = em->succ) {
+    square = em->square;
+    if (any_flips(board, square, color, oppcol))
+      mobility++;
+  }
+
+  return mobility;
+}
+
+/**
+ * @brief Set up the data structures, other than board array,
+ * which will be used by solver. Since this routine consumes
+ * about 0.0002 of the time needed for a 12-empty solve,
+ * I haven't worried about speeding it up.
+ */
+static void
+prepare_to_solve (uchar *board)
+{
+  int i, sqnum;
+  uint k;
+  EmList *pt;
+  int z;
+  /* find hole IDs: */
+  k = 1;
+  for (i = 10; i <= 80; i++) {
+    if (board[i] == IFES_EMPTY) {
+      if (board[i-10] == IFES_EMPTY) HoleId[i] = HoleId[i-10];
+      else if (board[i - 9] == IFES_EMPTY) HoleId[i] = HoleId[i - 9];
+      else if (board[i - 8] == IFES_EMPTY) HoleId[i] = HoleId[i - 8];
+      else if (board[i - 1] == IFES_EMPTY) HoleId[i] = HoleId[i - 1];
+      else { HoleId[i] = k; k<<=1; }
+    }
+    else HoleId[i] = 0;
+  }
+#define MAXITERS 1
+  /* In some sense this is wrong, since you
+   * ought to keep doing iters until reach fixed point, but in most
+   * othello positions with few empties this ought to work, and besides,
+   * this is justifiable since the definition of "hole" in othello
+   * is somewhat arbitrary anyway. */
+  for (z = MAXITERS; z > 0; z--) {
+    for (i = 80; i >= 10; i--) {
+      if (board[i] == IFES_EMPTY) {
+        k = HoleId[i];
+        if (board[i +10] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i +10]);
+        if (board[i + 9] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 9]);
+        if (board[i + 8] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 8]);
+        if (board[i + 1] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 1]);
+      }
+    }
+    for (i = 10; i <= 80; i++) {
+      if (board[i] == IFES_EMPTY) {
+        k = HoleId[i];
+        if (board[i - 10] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i - 10]);
+        if (board[i -  9] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  9]);
+        if (board[i -  8] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  8]);
+        if (board[i -  1] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  1]);
+      }
+    }
+  }
+  /* find parity of holes: */
+  RegionParity = 0;
+  for (i = 10; i <= 80; i++){
+    RegionParity ^= HoleId[i];
+  }
+  /* create list of empty squares: */
+  k = 0;
+  pt = &EmHead;
+  for (i = 60-1; i >= 0; i--){
+    sqnum = worst2best[i];
+    if (board[sqnum] == IFES_EMPTY) {
+      pt->succ = &(Ems[k]);
+      Ems[k].pred = pt;
+      k++;
+      pt = pt->succ;
+      pt->square = sqnum;
+      pt->hole_id = HoleId[sqnum];
+    }
+  }
+  pt->succ = NULL;
+  if (k > MAXEMPTIES) abort(); /* better not have too many empties... */
+}
+
+/**
+ * @brief To be documented
+ */
+static int
+no_parity_end_solve (uchar *board, double alpha, double beta, 
+                     int color, int empties, int discdiff, int prevmove)
+{
+  node_count++;
+
+  int score = -infinity;
+  int oppcol = 2-color;
+  int sqnum,j,ev;
+  EmList *em, *old_em;
+  for (old_em = &EmHead, em = old_em->succ; em != NULL;
+      old_em = em, em = em->succ){
+    /* go thru list of possible move-squares */
+    sqnum = em->square;
+    j = do_flips(board, sqnum, color, oppcol );
+    if (j) { /* legal move */
+      /* place your disc: */
+      *(board+sqnum) = color;
+      /* delete square from empties list: */
+      old_em->succ = em->succ;
+      if (empties == 2){ /* So, now filled but for 1 empty: */
+        int j1;
+        j1 = count_flips(board, EmHead.succ->square, oppcol, color);
+        if (j1) { /* I move then he moves */
+          ev = discdiff + 2*(j-j1);
+        }
+        else { /* he will have to pass */
+          j1 = count_flips(board, EmHead.succ->square, color, oppcol);
+          ev = discdiff + 2*j;
+          if (j1) { /* I pass then he passes then I move */
+            ev += 2 * (j1 + 1);
+          }
+          else { /* I move then both must pass, so game over */
+            if (ev >= 0)
+              ev += 2;
+          }
+        }
+      }
+      else {
+        ev = -no_parity_end_solve(board, -beta, -alpha, 
+                                  oppcol, empties-1, -discdiff-2*j-1, sqnum);
+      }
+      undo_flips(j, oppcol);
+      /* un-place your disc: */
+      *(board+sqnum) = IFES_EMPTY;
+      /* restore deleted empty square: */
+      old_em->succ = em;
+
+      if (ev > score) { /* better move: */
+        score = ev;
+        if (ev > alpha) {
+          alpha = ev;
+          if (ev >= beta) { /* cutoff */
+            return score;
+          }
+        }
+      }
+    }
+  }
+  if (score == -infinity) {  /* No legal move */
+    if (prevmove == 0) { /* game over: */
+      leaf_count++;
+      if (discdiff > 0) return discdiff+empties;
+      if (discdiff < 0) return discdiff-empties;
+      return 0;
+    }
+    else /* I pass: */
+      return -no_parity_end_solve(board, -beta, -alpha, oppcol, empties, -discdiff, 0);
+  }
+  return score;
+}
+
+/**
+ * @brief To be documented
+ */
+static int
+parity_end_solve (uchar *board, double alpha, double beta, 
+                  int color, int empties, int discdiff, int prevmove)
+{
+  node_count++;
+
+  int score = -infinity;
+  int oppcol = 2-color;
+  int sqnum,j,ev;
+  EmList *em, *old_em;
+  uint parity_mask;
+  int par, holepar;
+
+  for (par = 1, parity_mask = RegionParity; par >= 0;
+       par--, parity_mask = ~parity_mask) {
+
+    for (old_em = &EmHead, em = old_em->succ; em != NULL;
+         old_em = em, em = em->succ){
+      /* go thru list of possible move-squares */
+      holepar = em->hole_id;
+      if (holepar & parity_mask) {
+        sqnum = em->square;
+        j = do_flips(board, sqnum, color, oppcol);
+        if (j) { /* legal move */
+          /* place your disc: */
+          *(board+sqnum) = color;
+          /* update parity: */
+          RegionParity ^= holepar;
+          /* delete square from empties list: */
+	  old_em->succ = em->succ;
+          if (empties <= 1 + USE_PARITY)
+            ev = -no_parity_end_solve(board, -beta, -alpha, 
+                                      oppcol, empties-1, -discdiff-2*j-1, sqnum);
+          else
+            ev = -parity_end_solve(board, -beta, -alpha, 
+                                   oppcol, empties-1, -discdiff-2*j-1, sqnum);
+          undo_flips(j, oppcol);
+          /* restore parity of hole */
+          RegionParity ^= holepar;
+          /* un-place your disc: */
+          *(board+sqnum) = IFES_EMPTY;
+          /* restore deleted empty square: */
+	  old_em->succ = em;
+
+          if(ev > score){ /* better move: */
+            score = ev;
+            if(ev > alpha){
+              alpha = ev;
+              if(ev >= beta){ 
+                return score;
+              }
+	    }
+          }
+        }
+      }
+    }
+  }
+
+  if (score == -infinity) {  /* No legal move found */
+    if (prevmove == 0) { /* game over: */
+      leaf_count++;
+      if (discdiff > 0) return discdiff+empties;
+      if (discdiff < 0) return discdiff-empties;
+      return 0;
+    }
+    else /* I pass: */
+      return -parity_end_solve(board, -beta, -alpha, oppcol, empties, -discdiff, 0);
+  }
+  return score;
+}
+
+/**
+ * @brief To be documented
+ */
+static int
+fastest_first_end_solve (uchar *board, double alpha, double beta, 
+                         int color, int empties, int discdiff,
+                         int prevmove)
+{
+  int i, j;
+  int score = -infinity;
+  int oppcol = 2 - color;
+  int sqnum, ev;
+  int flipped;
+  int moves, mobility;
+  int best_value, best_index;
+  EmList *em, *old_em;
+  EmList *move_ptr[64];
+  int holepar;
+  int goodness[64];
+
+  node_count++;
+
+  moves = 0;
+  for (old_em = &EmHead, em = old_em->succ; em != NULL;
+       old_em = em, em = em->succ ) {
+    sqnum = em->square;
+    flipped = do_flips(board, sqnum, color, oppcol );
+    if (flipped) {
+      board[sqnum] = color;
+      old_em->succ = em->succ;
+      mobility = count_mobility(board, oppcol);
+      old_em->succ = em;
+      undo_flips(flipped, oppcol);
+      board[sqnum] = IFES_EMPTY;
+      move_ptr[moves] = em;
+      goodness[moves] = -mobility;
+      moves++;
+    }
+  }
+
+  if (moves != 0) {
+    for (i = 0; i < moves; i++) {
+      best_value = goodness[i];
+      best_index = i;
+      for (j = i + 1; j < moves; j++)
+	if (goodness[j] > best_value) {
+	  best_value = goodness[j];
+	  best_index = j;
+	}
+      em = move_ptr[best_index];
+      move_ptr[best_index] = move_ptr[i];
+      goodness[best_index] = goodness[i];
+
+      sqnum = em->square;
+      holepar = em->hole_id;
+      j = do_flips(board, sqnum, color, oppcol );
+      board[sqnum] = color;
+      RegionParity ^= holepar;
+      em->pred->succ = em->succ;
+      if (em->succ != NULL)
+	em->succ->pred = em->pred;
+      if (empties <= FASTEST_FIRST + 1)
+	ev = -parity_end_solve(board, -beta, -alpha, oppcol, empties - 1,
+                               -discdiff - 2 * j - 1, sqnum);
+      else
+	ev = -fastest_first_end_solve(board, -beta, -alpha, oppcol,
+                                      empties - 1, -discdiff - 2 * j - 1,
+                                      sqnum);
+      undo_flips(j, oppcol);
+      RegionParity ^= holepar;
+      board[sqnum] = IFES_EMPTY;
+      em->pred->succ = em;
+      if (em->succ != NULL)
+	em->succ->pred = em;
+
+      if (ev > score) { /* better move: */
+	score = ev;
+	if (ev > alpha) {
+	  alpha = ev;
+	  if (ev >= beta) {
+	    return score;
+          }
+	}
+      }
+    }
+  }
+  else {
+    if (prevmove == 0) { // game-over
+      leaf_count++;
+      if (discdiff > 0)
+	return discdiff + empties;
+      if (discdiff < 0)
+	return discdiff - empties;
+      return 0;
+    }
+    else { /* I pass: */
+      score = -fastest_first_end_solve(board, -beta, -alpha, oppcol,
+                                       empties, -discdiff, 0);
+    }
+  }
+
+  return score;
+}
+
+/**
+ * @brief The search itself.
+ * Assumes relevant data structures have been set up with prepare_to_solve().
+ * color is the color on move. Discdiff is color disc count - opposite
+ * color disc count. The value of this at the end of the game is returned.
+ * prevmove==0 if previous move was a pass, otherwise non0.
+ * empties>0 is number of empty squares.
+ */
+static int
+end_solve (uchar *board, double alpha, double beta, 
+           int color, int empties, int discdiff, int prevmove)
+{
+  if (empties > FASTEST_FIRST)
+    return fastest_first_end_solve(board,alpha,beta,color,empties,discdiff,prevmove);
+  else {
+    if (empties <= (2>USE_PARITY ? 2 : USE_PARITY))
+      return no_parity_end_solve(board,alpha,beta,color,empties,discdiff,prevmove);
+    else
+      return parity_end_solve(board,alpha,beta,color,empties,discdiff,prevmove);
+  }
 }
