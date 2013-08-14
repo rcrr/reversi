@@ -73,12 +73,62 @@
  */
 #define FASTEST_FIRST 7
 
-#define INFINITY 30000
-
 #include <stdio.h>
 #include <stdlib.h>
 
 /**
+ * @enum IFES_SquareState
+ * @brief The `IFES_SquareState` identifies the state, or as a synonym the "color",
+ * of each board square.
+ */
+typedef enum {
+  IFES_WHITE,   /**< A white piece. */
+  IFES_EMPTY,   /**< An empty square. */
+  IFES_BLACK,   /**< A black piece. */
+  IFES_DUMMY    /**< A piece out of board. */
+} IFES_SquareState;
+
+/**
+ * @typedef uchar
+ * @brief Unsigned one byte integer.
+ */
+typedef unsigned char uchar;
+
+/**
+ * @typedef schar
+ * @brief Signed one byte integer.
+ */
+typedef signed char schar;
+
+/**
+ * @typedef uint
+ * @brief Unigned four byte integer.
+ */
+typedef signed char uint;
+
+/**
+ * @typedef uint64
+ * @brief Unigned eight byte integer.
+ */
+typedef unsigned long long int uint64;
+
+
+
+
+/*
+ * Internal variables and constants.
+ */
+
+/* leaf count, should be part of the solver. */
+static uint64 leaf_count = 0;
+
+/* node count, should be part of the solver. */
+static uint64 node_count = 0;
+
+/* A square set being all set with the exception of column A. */
+static const int infinity = 30000;
+
+/*
  * Inside this fast endgame solver, the board is represented by
  * a 1D array of 91 uchars board[0..90]:
  * ddddddddd
@@ -93,14 +143,7 @@
  * dddddddddd   
  * where d (dummy) squares contain DUMMY, x are EMPTY, BLACK, or WHITE:
  */
-#define WHITE 0
-#define EMPTY 1
-#define BLACK 2
-#define DUMMY 3
-#define uchar unsigned char
-#define schar signed char
-#define uint unsigned int
-uchar board[91];
+static uchar board[91];
 
 /**
  * Also there is a doubly linked list of the empty squares.
@@ -124,12 +167,12 @@ struct EmList
 uint HoleId[91];
 uint RegionParity;
 
-/**
+/*
  * The 8 legal directions:
  */
-const schar dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
+static const schar dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
 
-/**
+/*
  * The bit mask for direction i is 1<<i
  *
  * Bit masks for the directions squares can flip in,
@@ -137,7 +180,7 @@ const schar dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
  * hence square 10 (A1) can flip in directions dirinc[0]=1,
  * dirinc[4]=9, and dirinc[6]=10:
  */
-uchar dirmask[91] = {
+static uchar dirmask[91] = {
   0,   0,   0,   0,   0,   0,   0,   0,   0,
   0,  81,  81,  87,  87,  87,  87,  22,  22,
   0,  81,  81,  87,  87,  87,  87,  22,  22,
@@ -150,11 +193,11 @@ uchar dirmask[91] = {
   0,   0,   0,   0,   0,   0,   0,   0,   0, 0
 };
 
-/**
+/*
  * Fixed square ordering:
  * jcw's order, which is the best of 4 tried:
  */
-int worst2best[64] =
+static int worst2best[64] =
 {
   /*B2*/      20 , 25 , 65 , 70 ,
   /*B1*/      11 , 16 , 19 , 26 , 64 , 71 , 74 , 79 ,
@@ -170,15 +213,6 @@ int worst2best[64] =
 
 uchar * GlobalFlipStack[2048];
 uchar **FlipStack = &(GlobalFlipStack[0]);
-
-/**
- * Internal variables and constants.
- */
-
-typedef unsigned long long int uint64;
-
-static uint64 leaf_count = 0;
-static uint64 node_count = 0;
 
 /**
  * sq is a pointer to the square the move is to.
@@ -420,11 +454,11 @@ PrepareToSolve (uchar *board)
   /* find hole IDs: */
   k = 1;
   for (i = 10; i <= 80; i++) {
-    if (board[i] == EMPTY) {
-      if (board[i-10] == EMPTY) HoleId[i] = HoleId[i-10];
-      else if (board[i - 9] == EMPTY) HoleId[i] = HoleId[i - 9];
-      else if (board[i - 8] == EMPTY) HoleId[i] = HoleId[i - 8];
-      else if (board[i - 1] == EMPTY) HoleId[i] = HoleId[i - 1];
+    if (board[i] == IFES_EMPTY) {
+      if (board[i-10] == IFES_EMPTY) HoleId[i] = HoleId[i-10];
+      else if (board[i - 9] == IFES_EMPTY) HoleId[i] = HoleId[i - 9];
+      else if (board[i - 8] == IFES_EMPTY) HoleId[i] = HoleId[i - 8];
+      else if (board[i - 1] == IFES_EMPTY) HoleId[i] = HoleId[i - 1];
       else { HoleId[i] = k; k<<=1; }
     }
     else HoleId[i] = 0;
@@ -437,21 +471,21 @@ PrepareToSolve (uchar *board)
    * is somewhat arbitrary anyway. */
   for (z = MAXITERS; z > 0; z--) {
     for (i = 80; i >= 10; i--) {
-      if (board[i] == EMPTY) {
+      if (board[i] == IFES_EMPTY) {
         k = HoleId[i];
-        if (board[i +10] == EMPTY) HoleId[i] = minu(k,HoleId[i +10]);
-        if (board[i + 9] == EMPTY) HoleId[i] = minu(k,HoleId[i + 9]);
-        if (board[i + 8] == EMPTY) HoleId[i] = minu(k,HoleId[i + 8]);
-        if (board[i + 1] == EMPTY) HoleId[i] = minu(k,HoleId[i + 1]);
+        if (board[i +10] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i +10]);
+        if (board[i + 9] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 9]);
+        if (board[i + 8] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 8]);
+        if (board[i + 1] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 1]);
       }
     }
     for (i = 10; i <= 80; i++) {
-      if (board[i] == EMPTY) {
+      if (board[i] == IFES_EMPTY) {
         k = HoleId[i];
-        if (board[i - 10] == EMPTY) HoleId[i] = minu(k,HoleId[i - 10]);
-        if (board[i -  9] == EMPTY) HoleId[i] = minu(k,HoleId[i -  9]);
-        if (board[i -  8] == EMPTY) HoleId[i] = minu(k,HoleId[i -  8]);
-        if (board[i -  1] == EMPTY) HoleId[i] = minu(k,HoleId[i -  1]);
+        if (board[i - 10] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i - 10]);
+        if (board[i -  9] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  9]);
+        if (board[i -  8] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  8]);
+        if (board[i -  1] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  1]);
       }
     }
   }
@@ -465,7 +499,7 @@ PrepareToSolve (uchar *board)
   pt = &EmHead;
   for (i = 60-1; i >= 0; i--){
     sqnum = worst2best[i];
-    if (board[sqnum] == EMPTY) {
+    if (board[sqnum] == IFES_EMPTY) {
       pt->succ = &(Ems[k]);
       Ems[k].pred = pt;
       k++;
@@ -484,7 +518,7 @@ NoParEndSolve (uchar *board, double alpha, double beta,
 {
   node_count++;
 
-  int score = -INFINITY;
+  int score = -infinity;
   int oppcol = 2-color;
   int sqnum,j,ev;
   struct EmList *em, *old_em;
@@ -522,7 +556,7 @@ NoParEndSolve (uchar *board, double alpha, double beta,
       }
       UndoFlips(j, oppcol);
       /* un-place your disc: */
-      *(board+sqnum) = EMPTY;
+      *(board+sqnum) = IFES_EMPTY;
       /* restore deleted empty square: */
       old_em->succ = em;
 
@@ -537,7 +571,7 @@ NoParEndSolve (uchar *board, double alpha, double beta,
       }
     }
   }
-  if (score == -INFINITY) {  /* No legal move */
+  if (score == -infinity) {  /* No legal move */
     if (prevmove == 0) { /* game over: */
       leaf_count++;
       if (discdiff > 0) return discdiff+empties;
@@ -556,7 +590,7 @@ ParEndSolve (uchar *board, double alpha, double beta,
 {
   node_count++;
 
-  int score = -INFINITY;
+  int score = -infinity;
   int oppcol = 2-color;
   int sqnum,j,ev;
   struct EmList *em, *old_em;
@@ -590,7 +624,7 @@ ParEndSolve (uchar *board, double alpha, double beta,
           /* restore parity of hole */
           RegionParity ^= holepar;
           /* un-place your disc: */
-          *(board+sqnum) = EMPTY;
+          *(board+sqnum) = IFES_EMPTY;
           /* restore deleted empty square: */
 	  old_em->succ = em;
 
@@ -608,7 +642,7 @@ ParEndSolve (uchar *board, double alpha, double beta,
     }
   }
 
-  if (score == -INFINITY) {  /* No legal move found */
+  if (score == -infinity) {  /* No legal move found */
     if (prevmove == 0) { /* game over: */
       leaf_count++;
       if (discdiff > 0) return discdiff+empties;
@@ -643,7 +677,7 @@ FastestFirstEndSolve (uchar *board, double alpha, double beta,
 		      int color, int empties, int discdiff,
 		      int prevmove) {
   int i, j;
-  int score = -INFINITY;
+  int score = -infinity;
   int oppcol = 2 - color;
   int sqnum, ev;
   int flipped;
@@ -667,7 +701,7 @@ FastestFirstEndSolve (uchar *board, double alpha, double beta,
       mobility = count_mobility(board, oppcol);
       old_em->succ = em;
       UndoFlips(flipped, oppcol);
-      board[sqnum] = EMPTY;
+      board[sqnum] = IFES_EMPTY;
       move_ptr[moves] = em;
       goodness[moves] = -mobility;
       moves++;
@@ -704,7 +738,7 @@ FastestFirstEndSolve (uchar *board, double alpha, double beta,
                                    sqnum);
       UndoFlips(j, oppcol);
       RegionParity ^= holepar;
-      board[sqnum] = EMPTY;
+      board[sqnum] = IFES_EMPTY;
       em->pred->succ = em;
       if (em->succ != NULL)
 	em->succ->pred = em;
@@ -770,17 +804,17 @@ main (void) {
   char bds[65] = {
     "w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........"
   };
-  for (j = 0; j <= 90; j++) board[j] = DUMMY;
+  for (j = 0; j <= 90; j++) board[j] = IFES_DUMMY;
   wc=bc=emp=0;
   for (j = 0; j < 64; j++) {
     x = j&7; y = (j>>3)&7; k = x+10+9*y;
-    if (bds[j]=='w'){ board[k] = WHITE; wc++; }
-    else if (bds[j]=='b'){ board[k] = BLACK; bc++; }
-    else if (bds[j]=='.'){ board[k] = EMPTY; emp++; }
+    if (bds[j]=='w'){ board[k] = IFES_WHITE; wc++; }
+    else if (bds[j]=='b'){ board[k] = IFES_BLACK; bc++; }
+    else if (bds[j]=='.'){ board[k] = IFES_EMPTY; emp++; }
   }
   PrepareToSolve(board);
 
-  val = EndSolve(board, -64, 64, BLACK, emp, -wc+bc, 1);
+  val = EndSolve(board, -64, 64, IFES_BLACK, emp, -wc+bc, 1);
 
   printf("%3d (emp=%2d wc=%2d bc=%2d) %s\n", val, emp, wc, bc, bds);
 
