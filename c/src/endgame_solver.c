@@ -36,6 +36,7 @@
 #include "board.h"
 #include "game_position_db.h"
 #include "exact_solver.h"
+#include "improved_fast_endgame_solver.h"
 
 
 
@@ -44,24 +45,34 @@
 
 
 
+/* Static constants. */
+
+static const gchar *solvers[] = {"es", "ifes"};
+static const int n_solver = sizeof(solvers) / sizeof(solvers[0]);
+
+
+
+
 /* Static variables. */
 
-static gchar    *input_file    = NULL;
-static gchar    *lookup_entry  = NULL;
+static gchar *input_file   = NULL;
+static gchar *lookup_entry = NULL;
+static gchar *solver       = NULL;
 
 static GOptionEntry entries[] =
   {
-    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name", NULL }, 
-    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry,  "Lookup entry",    NULL },
+    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,   "Input file name - Mandatory",                        NULL },
+    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry    - Mandatory",                        NULL },
+    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver          - Mandatory - Must be in [es|ifes]", NULL },
     { NULL }
   };
 
 
 
 /**
- * Main entry to the Reversi C implementation.
+ * @brief Main entry to the Reversi C endgame solver implementation.
  * 
- * Has to be completly developed.
+ * Documentation has to be completly developed.
  */
 int
 main (int argc, char *argv[])
@@ -77,13 +88,15 @@ main (int argc, char *argv[])
   GOptionGroup   *option_group;
 
   GamePositionDbEntry *entry;
+  int                  solver_index;
 
   error = NULL;
   entry = NULL;
+  solver_index = -1;
 
   /* GLib command line options and argument parsing. */
   option_group = g_option_group_new("name", "description", "help_description", NULL, NULL);
-  context = g_option_context_new ("- Verify a database of game positions");
+  context = g_option_context_new ("- Solve an endgame position");
   g_option_context_add_main_entries (context, entries, NULL);
   g_option_context_add_group (context, option_group);
   if (!g_option_context_parse (context, &argc, &argv, &error)) {
@@ -97,6 +110,19 @@ main (int argc, char *argv[])
   } else {
     g_print("Option -f, --file is mandatory.\n.");
     return -2;
+  }
+  if (solver) {
+    for (int index = 0; index < n_solver; index++) {
+      if (g_strcmp0(solver, solvers[index]) == 0)
+        solver_index = index;
+    }
+    if (solver_index == -1) {
+      g_print("Option -s, --solver is out of range.\n.");
+      return -8;
+    }
+  } else {
+    g_print("Option -s, --solver is mandatory.\n.");
+    return -5;
   }
 
   /* Opens the source file for reading. */
@@ -133,18 +159,29 @@ main (int argc, char *argv[])
     }
   } else {
     g_print("No entry provided.\n");
-    return -6;
+    return -7;
   }
 
   /* Initialize the board module. */
   board_module_init();
 
-  g_print("Solving the game position %s ...\n", entry->id);
-
+  /* Solving the position. */
   GamePosition *gp = entry->game_position;
+  ExactSolution *solution = NULL;
+  g_print("Solving the game position %s using solver %s ...\n", entry->id, solvers[solver_index]);
+  switch (solver_index) {
+  case 0:
+    solution = game_position_solve(gp);
+    break;
+  case 1:
+    solution = game_position_ifes_solve(gp);
+    break;
+  default:
+    g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);
+    return -9;
+  }
 
-  ExactSolution *solution = game_position_solve(gp);
-
+  /* Printing results. */
   gchar *solution_to_string = exact_solution_print(solution);
   printf("\n%s\n", solution_to_string);
   g_free(solution_to_string);

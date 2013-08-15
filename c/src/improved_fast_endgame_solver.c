@@ -35,6 +35,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "improved_fast_endgame_solver.h"
+
 /**
  * @enum IFES_SquareState
  * @brief The `IFES_SquareState` identifies the state, or as a synonym the "color",
@@ -69,7 +71,7 @@ typedef signed char uint;
  * @typedef uint64
  * @brief Unigned eight byte integer.
  */
-typedef unsigned long long int uint64;
+//typedef unsigned long long int uint64;
 
 /**
  * @brief An empty list collects a set of ordered squares.
@@ -135,6 +137,9 @@ fastest_first_end_solve (uchar *board, double alpha, double beta,
 static int
 end_solve (uchar *board, double alpha, double beta, 
            int color, int empties, int discdiff, int prevmove);
+
+static void
+game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_wc, int *p_bc);
 
 
 
@@ -270,7 +275,7 @@ static uchar **FlipStack = &(GlobalFlipStack[0]);
 // FFO-42 ..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..
 
 int
-main (int argc, char *argv[])
+old_main (int argc, char *argv[])
 {
   int val, emp, wc, bc, j, k, x, y;
   char bds[65] = {
@@ -300,9 +305,67 @@ main (int argc, char *argv[])
 
 
 
+/*********************************************************/
+/* Function implementations for the GamePosition entity. */ 
+/*********************************************************/
+
+/**
+ * @brief Documentation to be prepared.
+ */
+ExactSolution *
+game_position_ifes_solve (const GamePosition * const root)
+{
+  ExactSolution *result;
+  int            val;
+  int            emp;
+  int            wc, bc;
+
+  result = exact_solution_new();
+
+  game_position_to_ifes_board(root, &emp, &wc, &bc);
+
+  prepare_to_solve(board);
+
+  val = end_solve(board, -64, 64, IFES_BLACK, emp, -wc+bc, 1);
+
+  printf("val = %3d\n", val);
+
+  printf("use_parity=%d. fastest_first=%d.\n",
+         use_parity, fastest_first);
+
+  printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
+
+  /* To be implemented. */
+  //printf("Function game_position_ifes_solve is not implemented yet!\n");
+
+  return result;
+}
+
+
+
 /*
  * Internal functions.
  */
+
+static void
+game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_wc, int *p_bc)
+{
+  int emp, wc, bc, j, k, x, y;
+  char bds[65] = {
+    "w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........"
+  };
+  for (j = 0; j <= 90; j++) board[j] = IFES_DUMMY;
+  wc = bc = emp = 0;
+  for (j = 0; j < 64; j++) {
+    x = j&7; y = (j>>3)&7; k = x+10+9*y;
+    if (bds[j]=='w'){ board[k] = IFES_WHITE; wc++; }
+    else if (bds[j]=='b'){ board[k] = IFES_BLACK; bc++; }
+    else if (bds[j]=='.'){ board[k] = IFES_EMPTY; emp++; }
+  }
+  *p_emp = emp;
+  *p_wc = wc;
+  *p_bc = bc;
+}
 
 /**
  * @brief Documentation to be prepared.
