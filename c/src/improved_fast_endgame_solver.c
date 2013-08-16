@@ -104,7 +104,7 @@ static int
 any_flips (uchar *board, int sqnum, int color, int oppcol);
 
 inline static void
-undo_flips (int FlipCount, int oppcol);
+undo_flips (int flip_count, int oppcol);
 
 inline static uint
 minu (uint a, uint b);
@@ -251,25 +251,25 @@ static uchar board[91];
 
 /*
  * Also there is a doubly linked list of the empty squares.
- * EmHead points to the first empty square in the list (or NULL if none).
+ * em_head points to the first empty square in the list (or NULL if none).
  * The list in maintained in a fixed best-to-worst order.
  */
-static EmList EmHead, Ems[64];
+static EmList em_head, ems[64];
 
 /*
  * Also, and finally, each empty square knows the region it is in
  * and knows the directions you can flip in via some bit masks.
  * There are up to 32 regions. The parities of the regions are in
- * the RegionParity bit vector:
+ * the region_parity bit vector:
  */
-static uint HoleId[91];
-static uint RegionParity;
+static uint hole_id_map[91];
+static uint region_parity;
 
 /* Must be documented. */
-static uchar  *GlobalFlipStack[2048];
+static uchar  *global_flip_stack[2048];
 
 /* Must be documented. */
-static uchar **FlipStack = &(GlobalFlipStack[0]);
+static uchar **flip_stack = &(global_flip_stack[0]);
 
 
 
@@ -355,7 +355,7 @@ game_position_get_ifes_player(const GamePosition * const gp)
  * inc is the increment to go in some direction.
  * color is the color of the mover.
  * oppcol = 2-color is the opposite color.
- * FlipStack records locations of flipped men so can unflip later.
+ * flip_stack records locations of flipped men so can unflip later.
  * This routine flips in direction inc and returns count of flips it made:
  */
 inline static void
@@ -383,7 +383,7 @@ directional_flips (uchar *sq, int inc, int color, int oppcol)
       pt -= inc;
       do {
         *pt = color;
-        *(FlipStack++) = pt;
+        *(flip_stack++) = pt;
         pt -= inc;
       } while (pt != sq);
     }
@@ -399,7 +399,7 @@ do_flips (uchar *board, int sqnum,
           int color, int oppcol)
 {
   int j = dirmask[sqnum];
-  uchar **OldFlipStack = FlipStack;
+  uchar **old_flip_stack = flip_stack;
   uchar *sq;
   sq = sqnum + board;
   if (j & 128)
@@ -419,7 +419,7 @@ do_flips (uchar *board, int sqnum,
   if (j & 1)
     directional_flips(sq, dirinc[0], color, oppcol);
 
-  return FlipStack - OldFlipStack;
+  return flip_stack - old_flip_stack;
 }
 
 /**
@@ -547,23 +547,23 @@ any_flips (uchar *board, int sqnum, int color, int oppcol)
 }
 
 /**
- * @brief Call this function right after `FlipCount = do_flips()` to undo those flips!
+ * @brief Call this function right after `flip_count = do_flips()` to undo those flips!
  */
 inline static void
-undo_flips (int FlipCount, int oppcol)
+undo_flips (int flip_count, int oppcol)
 {
   /*
    * This is functionally equivalent to the simpler but slower code line:
-   * while(FlipCount){ FlipCount--;  *(*(--FlipStack)) = oppcol; }
+   * while(flip_count){ flip_count--;  *(*(--flip_stack)) = oppcol; }
    */
-  if (FlipCount & 1) {
-    FlipCount--;
-    * (*(--FlipStack)) = oppcol;
+  if (flip_count & 1) {
+    flip_count--;
+    * (*(--flip_stack)) = oppcol;
   }
-  while (FlipCount) {
-    FlipCount -= 2;
-    * (*(--FlipStack)) = oppcol;
-    * (*(--FlipStack)) = oppcol;
+  while (flip_count) {
+    flip_count -= 2;
+    * (*(--flip_stack)) = oppcol;
+    * (*(--flip_stack)) = oppcol;
   }
 }
 
@@ -589,7 +589,7 @@ count_mobility (uchar *board, int color)
   EmList *em;
 
   mobility = 0;
-  for (em = EmHead.succ; em != NULL; em = em->succ) {
+  for (em = em_head.succ; em != NULL; em = em->succ) {
     square = em->square;
     if (any_flips(board, square, color, oppcol))
       mobility++;
@@ -615,13 +615,13 @@ prepare_to_solve (uchar *board)
   k = 1;
   for (i = 10; i <= 80; i++) {
     if (board[i] == IFES_EMPTY) {
-      if (board[i-10] == IFES_EMPTY) HoleId[i] = HoleId[i-10];
-      else if (board[i - 9] == IFES_EMPTY) HoleId[i] = HoleId[i - 9];
-      else if (board[i - 8] == IFES_EMPTY) HoleId[i] = HoleId[i - 8];
-      else if (board[i - 1] == IFES_EMPTY) HoleId[i] = HoleId[i - 1];
-      else { HoleId[i] = k; k<<=1; }
+      if (board[i-10] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i-10];
+      else if (board[i - 9] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i - 9];
+      else if (board[i - 8] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i - 8];
+      else if (board[i - 1] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i - 1];
+      else { hole_id_map[i] = k; k<<=1; }
     }
-    else HoleId[i] = 0;
+    else hole_id_map[i] = 0;
   }
 
   /* In some sense this is wrong, since you
@@ -634,40 +634,40 @@ prepare_to_solve (uchar *board)
   for (z = max_iters; z > 0; z--) {
     for (i = 80; i >= 10; i--) {
       if (board[i] == IFES_EMPTY) {
-        k = HoleId[i];
-        if (board[i +10] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i +10]);
-        if (board[i + 9] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 9]);
-        if (board[i + 8] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 8]);
-        if (board[i + 1] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i + 1]);
+        k = hole_id_map[i];
+        if (board[i +10] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i +10]);
+        if (board[i + 9] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i + 9]);
+        if (board[i + 8] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i + 8]);
+        if (board[i + 1] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i + 1]);
       }
     }
     for (i = 10; i <= 80; i++) {
       if (board[i] == IFES_EMPTY) {
-        k = HoleId[i];
-        if (board[i - 10] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i - 10]);
-        if (board[i -  9] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  9]);
-        if (board[i -  8] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  8]);
-        if (board[i -  1] == IFES_EMPTY) HoleId[i] = minu(k,HoleId[i -  1]);
+        k = hole_id_map[i];
+        if (board[i - 10] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i - 10]);
+        if (board[i -  9] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i -  9]);
+        if (board[i -  8] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i -  8]);
+        if (board[i -  1] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i -  1]);
       }
     }
   }
   /* find parity of holes: */
-  RegionParity = 0;
+  region_parity = 0;
   for (i = 10; i <= 80; i++){
-    RegionParity ^= HoleId[i];
+    region_parity ^= hole_id_map[i];
   }
   /* create list of empty squares: */
   k = 0;
-  pt = &EmHead;
+  pt = &em_head;
   for (i = 60-1; i >= 0; i--){
     sqnum = worst_to_best[i];
     if (board[sqnum] == IFES_EMPTY) {
-      pt->succ = &(Ems[k]);
-      Ems[k].pred = pt;
+      pt->succ = &(ems[k]);
+      ems[k].pred = pt;
       k++;
       pt = pt->succ;
       pt->square = sqnum;
-      pt->hole_id = HoleId[sqnum];
+      pt->hole_id = hole_id_map[sqnum];
     }
   }
   pt->succ = NULL;
@@ -687,7 +687,7 @@ no_parity_end_solve (uchar *board, int alpha, int beta,
   int oppcol = 2 - color;
   int sqnum, j, ev;
   EmList *em, *old_em;
-  for (old_em = &EmHead, em = old_em->succ; em != NULL;
+  for (old_em = &em_head, em = old_em->succ; em != NULL;
       old_em = em, em = em->succ){
     /* go thru list of possible move-squares */
     sqnum = em->square;
@@ -699,12 +699,12 @@ no_parity_end_solve (uchar *board, int alpha, int beta,
       old_em->succ = em->succ;
       if (empties == 2){ /* So, now filled but for 1 empty: */
         int j1;
-        j1 = count_flips(board, EmHead.succ->square, oppcol, color);
+        j1 = count_flips(board, em_head.succ->square, oppcol, color);
         if (j1) { /* I move then he moves */
           ev = discdiff + 2*(j-j1);
         }
         else { /* he will have to pass */
-          j1 = count_flips(board, EmHead.succ->square, color, oppcol);
+          j1 = count_flips(board, em_head.succ->square, color, oppcol);
           ev = discdiff + 2*j;
           if (j1) { /* I pass then he passes then I move */
             ev += 2 * (j1 + 1);
@@ -759,16 +759,16 @@ parity_end_solve (uchar *board, int alpha, int beta,
   node_count++;
 
   int score = -infinity;
-  int oppcol = 2-color;
+  int oppcol = 2 - color;
   int sqnum, j, ev;
   EmList *em, *old_em;
   uint parity_mask;
   int par, holepar;
 
-  for (par = 1, parity_mask = RegionParity; par >= 0;
+  for (par = 1, parity_mask = region_parity; par >= 0;
        par--, parity_mask = ~parity_mask) {
 
-    for (old_em = &EmHead, em = old_em->succ; em != NULL;
+    for (old_em = &em_head, em = old_em->succ; em != NULL;
          old_em = em, em = em->succ){
       /* go thru list of possible move-squares */
       holepar = em->hole_id;
@@ -779,7 +779,7 @@ parity_end_solve (uchar *board, int alpha, int beta,
           /* place your disc: */
           *(board+sqnum) = color;
           /* update parity: */
-          RegionParity ^= holepar;
+          region_parity ^= holepar;
           /* delete square from empties list: */
 	  old_em->succ = em->succ;
           if (empties <= 1 + use_parity)
@@ -790,7 +790,7 @@ parity_end_solve (uchar *board, int alpha, int beta,
                                    oppcol, empties-1, -discdiff-2*j-1, sqnum);
           undo_flips(j, oppcol);
           /* restore parity of hole */
-          RegionParity ^= holepar;
+          region_parity ^= holepar;
           /* un-place your disc: */
           *(board+sqnum) = IFES_EMPTY;
           /* restore deleted empty square: */
@@ -813,8 +813,8 @@ parity_end_solve (uchar *board, int alpha, int beta,
   if (score == -infinity) {  /* No legal move found */
     if (prevmove == 0) { /* game over: */
       leaf_count++;
-      if (discdiff > 0) return discdiff+empties;
-      if (discdiff < 0) return discdiff-empties;
+      if (discdiff > 0) return discdiff + empties;
+      if (discdiff < 0) return discdiff - empties;
       return 0;
     }
     else /* I pass: */
@@ -846,7 +846,7 @@ fastest_first_end_solve (uchar *board, int alpha, int beta,
   node_count++;
 
   moves = 0;
-  for (old_em = &EmHead, em = old_em->succ; em != NULL;
+  for (old_em = &em_head, em = old_em->succ; em != NULL;
        old_em = em, em = em->succ ) {
     sqnum = em->square;
     flipped = do_flips(board, sqnum, color, oppcol );
@@ -880,7 +880,7 @@ fastest_first_end_solve (uchar *board, int alpha, int beta,
       holepar = em->hole_id;
       j = do_flips(board, sqnum, color, oppcol );
       board[sqnum] = color;
-      RegionParity ^= holepar;
+      region_parity ^= holepar;
       em->pred->succ = em->succ;
       if (em->succ != NULL)
 	em->succ->pred = em->pred;
@@ -892,7 +892,7 @@ fastest_first_end_solve (uchar *board, int alpha, int beta,
                                       empties - 1, -discdiff - 2 * j - 1,
                                       sqnum);
       undo_flips(j, oppcol);
-      RegionParity ^= holepar;
+      region_parity ^= holepar;
       board[sqnum] = IFES_EMPTY;
       em->pred->succ = em;
       if (em->succ != NULL)
