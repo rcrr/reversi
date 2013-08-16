@@ -141,6 +141,9 @@ end_solve (uchar *board, double alpha, double beta,
 static void
 game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_wc, int *p_bc);
 
+static IFES_SquareState
+game_position_get_ifes_player(const GamePosition * const gp);
+
 
 
 /*
@@ -321,12 +324,15 @@ game_position_ifes_solve (const GamePosition * const root)
   int            wc, bc;
 
   result = exact_solution_new();
+  result->solved_game_position = game_position_clone(root);
 
   game_position_to_ifes_board(root, &emp, &wc, &bc);
 
+  IFES_SquareState player = game_position_get_ifes_player(root);
+
   prepare_to_solve(board);
 
-  val = end_solve(board, -64, 64, IFES_BLACK, emp, -wc+bc, 1);
+  val = end_solve(board, -64, 64, player, emp, -wc+bc, 1);
 
   printf("val = %3d\n", val);
 
@@ -334,9 +340,6 @@ game_position_ifes_solve (const GamePosition * const root)
          use_parity, fastest_first);
 
   printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
-
-  /* To be implemented. */
-  //printf("Function game_position_ifes_solve is not implemented yet!\n");
 
   return result;
 }
@@ -351,6 +354,7 @@ static void
 game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_wc, int *p_bc)
 {
   int emp, wc, bc, j, k, x, y;
+  // **** TO BE REMOVED !!!
   char bds[65] = {
     "w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........"
   };
@@ -365,6 +369,13 @@ game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_w
   *p_emp = emp;
   *p_wc = wc;
   *p_bc = bc;
+}
+
+static IFES_SquareState
+game_position_get_ifes_player(const GamePosition * const gp)
+{
+  // **** TO BE IMPLEMENTED !!!
+  return IFES_BLACK;
 }
 
 /**
