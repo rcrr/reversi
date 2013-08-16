@@ -116,20 +116,20 @@ static void
 prepare_to_solve (uchar *board);
 
 static int
-no_parity_end_solve (uchar *board, double alpha, double beta, 
+no_parity_end_solve (uchar *board, int alpha, int beta, 
                      int color, int empties, int discdiff, int prevmove);
 
 static int
-parity_end_solve (uchar *board, double alpha, double beta, 
+parity_end_solve (uchar *board, int alpha, int beta, 
                   int color, int empties, int discdiff, int prevmove);
 
 static int
-fastest_first_end_solve (uchar *board, double alpha, double beta, 
+fastest_first_end_solve (uchar *board, int alpha, int beta, 
                          int color, int empties, int discdiff,
                          int prevmove);
 
 static int
-end_solve (uchar *board, double alpha, double beta, 
+end_solve (uchar *board, int alpha, int beta, 
            int color, int empties, int discdiff, int prevmove);
 
 static void
@@ -315,6 +315,10 @@ game_position_ifes_solve (const GamePosition * const root)
  * Internal functions.
  */
 
+/**
+ * @brief Documentation to be prepared.
+ *
+ */
 static void
 game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_wc, int *p_bc)
 {
@@ -332,6 +336,10 @@ game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_w
   *p_bc = bc;
 }
 
+/**
+ * @brief Documentation to be prepared.
+ *
+ */
 static IFES_SquareState
 game_position_get_ifes_player(const GamePosition * const gp)
 {
@@ -449,6 +457,10 @@ ct_directional_flips (uchar *sq, int inc, int color, int oppcol)
   return 0;
 }
 
+/**
+ * @brief Documentation to be prepared.
+ *
+ */
 static int
 count_flips (uchar *board, int sqnum, int color, int oppcol)
 {
@@ -561,7 +573,7 @@ undo_flips (int FlipCount, int oppcol)
 inline static uint
 minu (uint a, uint b)
 {
-  if(a<b) return a;
+  if (a < b) return a;
   return b;
 }
 
@@ -666,14 +678,14 @@ prepare_to_solve (uchar *board)
  * @brief To be documented
  */
 static int
-no_parity_end_solve (uchar *board, double alpha, double beta, 
+no_parity_end_solve (uchar *board, int alpha, int beta, 
                      int color, int empties, int discdiff, int prevmove)
 {
   node_count++;
 
   int score = -infinity;
-  int oppcol = 2-color;
-  int sqnum,j,ev;
+  int oppcol = 2 - color;
+  int sqnum, j, ev;
   EmList *em, *old_em;
   for (old_em = &EmHead, em = old_em->succ; em != NULL;
       old_em = em, em = em->succ){
@@ -741,14 +753,14 @@ no_parity_end_solve (uchar *board, double alpha, double beta,
  * @brief To be documented
  */
 static int
-parity_end_solve (uchar *board, double alpha, double beta, 
+parity_end_solve (uchar *board, int alpha, int beta, 
                   int color, int empties, int discdiff, int prevmove)
 {
   node_count++;
 
   int score = -infinity;
   int oppcol = 2-color;
-  int sqnum,j,ev;
+  int sqnum, j, ev;
   EmList *em, *old_em;
   uint parity_mask;
   int par, holepar;
@@ -815,7 +827,7 @@ parity_end_solve (uchar *board, double alpha, double beta,
  * @brief To be documented
  */
 static int
-fastest_first_end_solve (uchar *board, double alpha, double beta, 
+fastest_first_end_solve (uchar *board, int alpha, int beta, 
                          int color, int empties, int discdiff,
                          int prevmove)
 {
@@ -924,15 +936,15 @@ fastest_first_end_solve (uchar *board, double alpha, double beta,
  * empties>0 is number of empty squares.
  */
 static int
-end_solve (uchar *board, double alpha, double beta, 
+end_solve (uchar *board, int alpha, int beta, 
            int color, int empties, int discdiff, int prevmove)
 {
   if (empties > fastest_first)
-    return fastest_first_end_solve(board,alpha,beta,color,empties,discdiff,prevmove);
+    return fastest_first_end_solve(board, alpha, beta, color, empties, discdiff, prevmove);
   else {
     if (empties <= (2 > use_parity ? 2 : use_parity))
-      return no_parity_end_solve(board,alpha,beta,color,empties,discdiff,prevmove);
+      return no_parity_end_solve(board, alpha, beta, color, empties, discdiff, prevmove);
     else
-      return parity_end_solve(board,alpha,beta,color,empties,discdiff,prevmove);
+      return parity_end_solve(board, alpha, beta, color, empties, discdiff, prevmove);
   }
 }
