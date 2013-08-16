@@ -145,13 +145,18 @@ game_position_get_ifes_player(const GamePosition * const gp);
  */
 
 /*
- * This code is designed to solve positions with <=10 empties (although
- * in principle it will work for any number of empties up to the number
- * of bits in a uint (32 for me).
+ * This code will work for any number of empties up to the number
+ * of bits in a uint (should be 32).
+ *
+ * The function prepare_to_solve aborts if empties are more than max_empties.
  */
 static const int max_empties = 32;
 
-/* A square set being all set with the exception of column A. */
+/*
+ * This is the best/worst case board value.
+ * Any value greather than 64 can be adopted.
+ * The value thirty thousands has an hystorical heritage. 
+ */
 static const int infinity = 30000;
 
 /*
@@ -173,26 +178,25 @@ static const int use_parity = 4;
 static const int fastest_first = 7;
 
 /*
- * The 8 legal directions:
+ * The 8 legal directions, plus no direction an ninth value.
  */
 static const schar dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
 
 /*
- * Fixed square ordering:
- * jcw's order, which is the best of 4 tried:
+ * Fixed square ordering.
  */
-static const int worst2best[64] =
+static const int worst_to_best[64] =
 {
-  /*B2*/      20 , 25 , 65 , 70 ,
-  /*B1*/      11 , 16 , 19 , 26 , 64 , 71 , 74 , 79 ,
-  /*C2*/      21 , 24 , 29 , 34 , 56 , 61 , 66 , 69 ,
-  /*D2*/      22 , 23 , 38 , 43 , 47 , 52 , 67 , 68 ,
-  /*D3*/      31 , 32 , 39 , 42 , 48 , 51 , 58 , 59 ,
-  /*D1*/      13 , 14 , 37 , 44 , 46 , 53 , 76 , 77 ,
-  /*C3*/      30 , 33 , 57 , 60 ,
-  /*C1*/      12 , 15 , 28 , 35 , 55 , 62 , 75 , 78 ,
-  /*A1*/      10 , 17 , 73 , 80 , 
-  /*D4*/      40 , 41 , 49 , 50
+  /*B2*/      20, 25, 65, 70,
+  /*B1*/      11, 16, 19, 26, 64, 71, 74, 79,
+  /*C2*/      21, 24, 29, 34, 56, 61, 66, 69,
+  /*D2*/      22, 23, 38, 43, 47, 52, 67, 68,
+  /*D3*/      31, 32, 39, 42, 48, 51, 58, 59,
+  /*D1*/      13, 14, 37, 44, 46, 53, 76, 77,
+  /*C3*/      30, 33, 57, 60,
+  /*C1*/      12, 15, 28, 35, 55, 62, 75, 78,
+  /*A1*/      10, 17, 73, 80, 
+  /*D4*/      40, 41, 49, 50
 };
 
 /*
@@ -644,7 +648,7 @@ prepare_to_solve (uchar *board)
   k = 0;
   pt = &EmHead;
   for (i = 60-1; i >= 0; i--){
-    sqnum = worst2best[i];
+    sqnum = worst_to_best[i];
     if (board[sqnum] == IFES_EMPTY) {
       pt->succ = &(Ems[k]);
       Ems[k].pred = pt;
