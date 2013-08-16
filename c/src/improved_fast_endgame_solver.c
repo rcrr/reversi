@@ -299,12 +299,12 @@ game_position_ifes_solve (const GamePosition * const root)
 
   val = end_solve(board, -64, 64, player, emp, -wc+bc, 1);
 
-  printf("val = %3d\n", val);
+  result->outcome = val;
+  result->leaf_count = leaf_count;
+  result->node_count = node_count;
 
   printf("use_parity=%d. fastest_first=%d.\n",
          use_parity, fastest_first);
-
-  printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
 
   return result;
 }

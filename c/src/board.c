@@ -144,20 +144,23 @@ board_module_init (void)
 gchar *
 square_to_string (const Square sq)
 {
-  g_assert(sq >= A1 && sq <= H8);
-
   gchar *symbol;
 
   static const size_t size_of_square_to_string = 3 * sizeof(gchar);
   symbol = (gchar*) malloc(size_of_square_to_string);
 
-  const uint8 col = sq % 8;
-  const uint8 row = sq / 8;
-  
-  *symbol = 'A' + col;
-  *(symbol + 1) = '1' + row;
-  *(symbol + 2) = '\0';
-  
+  if (sq >= A1 && sq <= H8) {
+    const uint8 col = sq % 8;
+    const uint8 row = sq / 8;
+    *symbol = 'A' + col;
+    *(symbol + 1) = '1' + row;
+    *(symbol + 2) = '\0';
+  } else {
+    *symbol       = 'N';
+    *(symbol + 1) = 'A';
+    *(symbol + 2) = '\0';
+  }
+
   return symbol;
 }
 
