@@ -68,12 +68,6 @@ typedef signed char schar;
 typedef signed char uint;
 
 /**
- * @typedef uint64
- * @brief Unigned eight byte integer.
- */
-//typedef unsigned long long int uint64;
-
-/**
  * @brief An empty list collects a set of ordered squares.
  *
  * Details to be documented.
@@ -273,39 +267,6 @@ static uchar  *GlobalFlipStack[2048];
 /* Must be documented. */
 static uchar **FlipStack = &(GlobalFlipStack[0]);
 
-// FFO-40 w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........
-// FFO-41 .wwwww....wwwwb..wwwwww.bbbbbww..bbwwb..wwbwbb....wbbw...www..w.
-// FFO-42 ..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..
-
-int
-old_main (int argc, char *argv[])
-{
-  int val, emp, wc, bc, j, k, x, y;
-  char bds[65] = {
-    "w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........"
-  };
-  for (j = 0; j <= 90; j++) board[j] = IFES_DUMMY;
-  wc=bc=emp=0;
-  for (j = 0; j < 64; j++) {
-    x = j&7; y = (j>>3)&7; k = x+10+9*y;
-    if (bds[j]=='w'){ board[k] = IFES_WHITE; wc++; }
-    else if (bds[j]=='b'){ board[k] = IFES_BLACK; bc++; }
-    else if (bds[j]=='.'){ board[k] = IFES_EMPTY; emp++; }
-  }
-  prepare_to_solve(board);
-
-  val = end_solve(board, -64, 64, IFES_BLACK, emp, -wc+bc, 1);
-
-  printf("%3d (emp=%2d wc=%2d bc=%2d) %s\n", val, emp, wc, bc, bds);
-
-  printf("use_parity=%d. fastest_first=%d.\n",
-         use_parity, fastest_first);
-
-  printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
-
-  return EXIT_SUCCESS;
-}
-
 
 
 /*********************************************************/
@@ -354,17 +315,13 @@ static void
 game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_wc, int *p_bc)
 {
   int emp, wc, bc, j, k, x, y;
-  // **** TO BE REMOVED !!!
-  char bds[65] = {
-    "w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........"
-  };
   for (j = 0; j <= 90; j++) board[j] = IFES_DUMMY;
   wc = bc = emp = 0;
   for (j = 0; j < 64; j++) {
     x = j&7; y = (j>>3)&7; k = x+10+9*y;
-    if (bds[j]=='w'){ board[k] = IFES_WHITE; wc++; }
-    else if (bds[j]=='b'){ board[k] = IFES_BLACK; bc++; }
-    else if (bds[j]=='.'){ board[k] = IFES_EMPTY; emp++; }
+    if      ((gp->board->whites & (1ULL << j)) != 0ULL) { board[k] = IFES_WHITE; wc++; }
+    else if ((gp->board->blacks & (1ULL << j)) != 0ULL) { board[k] = IFES_BLACK; bc++; }
+    else                                                { board[k] = IFES_EMPTY; emp++; }
   }
   *p_emp = emp;
   *p_wc = wc;
@@ -374,8 +331,9 @@ game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_w
 static IFES_SquareState
 game_position_get_ifes_player(const GamePosition * const gp)
 {
-  // **** TO BE IMPLEMENTED !!!
-  return IFES_BLACK;
+  IFES_SquareState ifes_player;
+  ifes_player = gp->player == BLACK_PLAYER ? IFES_BLACK : IFES_WHITE;
+  return ifes_player;
 }
 
 /**
