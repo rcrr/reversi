@@ -287,6 +287,7 @@ game_position_ifes_solve (const GamePosition * const root)
   int            val;
   int            emp;
   int            wc, bc;
+  int            discdiff;
 
   result = exact_solution_new();
   result->solved_game_position = game_position_clone(root);
@@ -295,9 +296,11 @@ game_position_ifes_solve (const GamePosition * const root)
 
   IFES_SquareState player = game_position_get_ifes_player(root);
 
+  discdiff = player == IFES_BLACK ? bc - wc : wc - bc;
+
   prepare_to_solve(board);
 
-  val = end_solve(board, -64, 64, player, emp, -wc+bc, 1);
+  val = end_solve(board, -64, 64, player, emp, discdiff, 1);
 
   result->outcome = val;
   result->leaf_count = leaf_count;
