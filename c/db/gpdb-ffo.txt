@@ -299,6 +299,11 @@ ffo-42;..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..;b;FFO po
 ffo-43;..bbbbb...bbbb...wwwbb...wwbbbb..wwbbbw.wwwwbww....bwb....bbbbb.;w;FFO position 43, white to move, Brightwell vs Suekuni, WC 1997 (final).;
 #
 #
+#       |1       2       3       4       5       6       7       8       |
+#       |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-43-r;..wwwww...wwww...bbbww...bbwwww..bbwwwb.bbbbwbb....wbw....wwwww.;b;FFO position 43, b/w reversed, black to move, Brightwell vs Suekuni, WC 1997 (final).;
+#
+#
 #
 #
 #
