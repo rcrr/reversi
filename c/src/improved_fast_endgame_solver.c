@@ -116,20 +116,19 @@ static void
 prepare_to_solve (uchar *board);
 
 static int
-no_parity_end_solve (uchar *board, int alpha, int beta, 
+no_parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
                      int color, int empties, int discdiff, int prevmove);
 
 static int
-parity_end_solve (uchar *board, int alpha, int beta, 
+parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
                   int color, int empties, int discdiff, int prevmove);
 
 static int
-fastest_first_end_solve (uchar *board, int alpha, int beta, 
-                         int color, int empties, int discdiff,
-                         int prevmove);
+fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
+                         int color, int empties, int discdiff, int prevmove);
 
 static int
-end_solve (uchar *board, int alpha, int beta, 
+end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
            int color, int empties, int discdiff, int prevmove);
 
 static void
@@ -226,12 +225,6 @@ static const uchar dirmask[91] = {
  * Internal variables.
  */
 
-/* leaf count, should be part of the solver. */
-static uint64 leaf_count = 0;
-
-/* node count, should be part of the solver. */
-static uint64 node_count = 0;
-
 /*
  * Inside this fast endgame solver, the board is represented by
  * a 1D array of 91 uchars board[0..90]:
@@ -300,11 +293,9 @@ game_position_ifes_solve (const GamePosition * const root)
 
   prepare_to_solve(board);
 
-  val = end_solve(board, -64, 64, player, emp, discdiff, 1);
+  val = end_solve(result, board, -64, 64, player, emp, discdiff, 1);
 
   result->outcome = val;
-  result->leaf_count = leaf_count;
-  result->node_count = node_count;
 
   printf("use_parity=%d. fastest_first=%d.\n",
          use_parity, fastest_first);
@@ -681,26 +672,27 @@ prepare_to_solve (uchar *board)
  * @brief To be documented
  */
 static int
-no_parity_end_solve (uchar *board, int alpha, int beta, 
+no_parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
                      int color, int empties, int discdiff, int prevmove)
 {
-  node_count++;
+  solution->node_count++;
 
   int score = -infinity;
   int oppcol = 2 - color;
   int sqnum, j, ev;
   EmList *em, *old_em;
   for (old_em = &em_head, em = old_em->succ; em != NULL;
-      old_em = em, em = em->succ){
+       old_em = em, em = em->succ) {
     /* go thru list of possible move-squares */
     sqnum = em->square;
-    j = do_flips(board, sqnum, color, oppcol );
+    j = do_flips(board, sqnum, color, oppcol);
     if (j) { /* legal move */
       /* place your disc: */
       *(board+sqnum) = color;
       /* delete square from empties list: */
       old_em->succ = em->succ;
-      if (empties == 2){ /* So, now filled but for 1 empty: */
+      if (empties == 2) { /* So, now filled but for 1 empty: */
+        solution->leaf_count++; /* Could be more than one leaf_node, it cold be one or two!. */
         int j1;
         j1 = count_flips(board, em_head.succ->square, oppcol, color);
         if (j1) { /* I move then he moves */
@@ -709,6 +701,7 @@ no_parity_end_solve (uchar *board, int alpha, int beta,
         else { /* he will have to pass */
           j1 = count_flips(board, em_head.succ->square, color, oppcol);
           ev = discdiff + 2*j;
+
           if (j1) { /* I pass then he passes then I move */
             ev += 2 * (j1 + 1);
           }
@@ -719,7 +712,7 @@ no_parity_end_solve (uchar *board, int alpha, int beta,
         }
       }
       else {
-        ev = -no_parity_end_solve(board, -beta, -alpha, 
+        ev = -no_parity_end_solve(solution, board, -beta, -alpha, 
                                   oppcol, empties-1, -discdiff-2*j-1, sqnum);
       }
       undo_flips(j, oppcol);
@@ -741,13 +734,13 @@ no_parity_end_solve (uchar *board, int alpha, int beta,
   }
   if (score == -infinity) {  /* No legal move */
     if (prevmove == 0) { /* game over: */
-      leaf_count++;
-      if (discdiff > 0) return discdiff+empties;
-      if (discdiff < 0) return discdiff-empties;
+      solution->leaf_count++;
+      if (discdiff > 0) return discdiff + empties;
+      if (discdiff < 0) return discdiff - empties;
       return 0;
     }
     else /* I pass: */
-      return -no_parity_end_solve(board, -beta, -alpha, oppcol, empties, -discdiff, 0);
+      return -no_parity_end_solve(solution, board, -beta, -alpha, oppcol, empties, -discdiff, 0);
   }
   return score;
 }
@@ -756,10 +749,10 @@ no_parity_end_solve (uchar *board, int alpha, int beta,
  * @brief To be documented
  */
 static int
-parity_end_solve (uchar *board, int alpha, int beta, 
+parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
                   int color, int empties, int discdiff, int prevmove)
 {
-  node_count++;
+  solution->node_count++;
 
   int score = -infinity;
   int oppcol = 2 - color;
@@ -786,10 +779,10 @@ parity_end_solve (uchar *board, int alpha, int beta,
           /* delete square from empties list: */
 	  old_em->succ = em->succ;
           if (empties <= 1 + use_parity)
-            ev = -no_parity_end_solve(board, -beta, -alpha, 
+            ev = -no_parity_end_solve(solution, board, -beta, -alpha, 
                                       oppcol, empties-1, -discdiff-2*j-1, sqnum);
           else
-            ev = -parity_end_solve(board, -beta, -alpha, 
+            ev = -parity_end_solve(solution, board, -beta, -alpha, 
                                    oppcol, empties-1, -discdiff-2*j-1, sqnum);
           undo_flips(j, oppcol);
           /* restore parity of hole */
@@ -799,11 +792,11 @@ parity_end_solve (uchar *board, int alpha, int beta,
           /* restore deleted empty square: */
 	  old_em->succ = em;
 
-          if(ev > score){ /* better move: */
+          if (ev > score){ /* better move: */
             score = ev;
-            if(ev > alpha){
+            if (ev > alpha){
               alpha = ev;
-              if(ev >= beta){ 
+              if (ev >= beta){ 
                 return score;
               }
 	    }
@@ -815,13 +808,13 @@ parity_end_solve (uchar *board, int alpha, int beta,
 
   if (score == -infinity) {  /* No legal move found */
     if (prevmove == 0) { /* game over: */
-      leaf_count++;
+      solution->leaf_count++;
       if (discdiff > 0) return discdiff + empties;
       if (discdiff < 0) return discdiff - empties;
       return 0;
     }
     else /* I pass: */
-      return -parity_end_solve(board, -beta, -alpha, oppcol, empties, -discdiff, 0);
+      return -parity_end_solve(solution, board, -beta, -alpha, oppcol, empties, -discdiff, 0);
   }
   return score;
 }
@@ -830,9 +823,8 @@ parity_end_solve (uchar *board, int alpha, int beta,
  * @brief To be documented
  */
 static int
-fastest_first_end_solve (uchar *board, int alpha, int beta, 
-                         int color, int empties, int discdiff,
-                         int prevmove)
+fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
+                         int color, int empties, int discdiff, int prevmove)
 {
   int i, j;
   int score = -infinity;
@@ -846,7 +838,7 @@ fastest_first_end_solve (uchar *board, int alpha, int beta,
   int holepar;
   int goodness[64];
 
-  node_count++;
+  solution->node_count++;
 
   moves = 0;
   for (old_em = &em_head, em = old_em->succ; em != NULL;
@@ -888,10 +880,10 @@ fastest_first_end_solve (uchar *board, int alpha, int beta,
       if (em->succ != NULL)
 	em->succ->pred = em->pred;
       if (empties <= fastest_first + 1)
-	ev = -parity_end_solve(board, -beta, -alpha, oppcol, empties - 1,
+	ev = -parity_end_solve(solution, board, -beta, -alpha, oppcol, empties - 1,
                                -discdiff - 2 * j - 1, sqnum);
       else
-	ev = -fastest_first_end_solve(board, -beta, -alpha, oppcol,
+	ev = -fastest_first_end_solve(solution, board, -beta, -alpha, oppcol,
                                       empties - 1, -discdiff - 2 * j - 1,
                                       sqnum);
       undo_flips(j, oppcol);
@@ -914,7 +906,7 @@ fastest_first_end_solve (uchar *board, int alpha, int beta,
   }
   else {
     if (prevmove == 0) { // game-over
-      leaf_count++;
+      solution->leaf_count++;
       if (discdiff > 0)
 	return discdiff + empties;
       if (discdiff < 0)
@@ -922,7 +914,7 @@ fastest_first_end_solve (uchar *board, int alpha, int beta,
       return 0;
     }
     else { /* I pass: */
-      score = -fastest_first_end_solve(board, -beta, -alpha, oppcol,
+      score = -fastest_first_end_solve(solution, board, -beta, -alpha, oppcol,
                                        empties, -discdiff, 0);
     }
   }
@@ -939,15 +931,15 @@ fastest_first_end_solve (uchar *board, int alpha, int beta,
  * empties>0 is number of empty squares.
  */
 static int
-end_solve (uchar *board, int alpha, int beta, 
+end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
            int color, int empties, int discdiff, int prevmove)
 {
   if (empties > fastest_first)
-    return fastest_first_end_solve(board, alpha, beta, color, empties, discdiff, prevmove);
+    return fastest_first_end_solve(solution, board, alpha, beta, color, empties, discdiff, prevmove);
   else {
     if (empties <= (2 > use_parity ? 2 : use_parity))
-      return no_parity_end_solve(board, alpha, beta, color, empties, discdiff, prevmove);
+      return no_parity_end_solve(solution, board, alpha, beta, color, empties, discdiff, prevmove);
     else
-      return parity_end_solve(board, alpha, beta, color, empties, discdiff, prevmove);
+      return parity_end_solve(solution, board, alpha, beta, color, empties, discdiff, prevmove);
   }
 }
