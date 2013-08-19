@@ -281,6 +281,7 @@ ffo-42;..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..;b;FFO po
 # FFO position #43, white to move, Brightwell vs Suekuni, WC 1997 (final).
 # Principal Variation, PV: c7 h4 h5 b8 b7 a8 a7 a5 h3 a4 g3 h6 a3 h2 g7 a2
 # Final score is -12
+# Variation: c7 and g3 both lead to 26-38.
 #
 #    a b c d e f g h 
 # 1  . . @ @ @ @ @ . 
@@ -310,6 +311,7 @@ ffo-43-r;..wwwww...wwww...bbbww...bbwwww..bbwwwb.bbbbwbb....wbw....wwwww.;b;FFO 
 # FFO position #44, white to move, Shaman vs Tastet, WC 1995.
 # Principal Variation, PV: d2 g5 b8 a3 b7 a8 a7 c8 g7 g8 h6 h5 g6 f1 d1 h1 g2
 # Final score is -14
+# Variation: d2 and d8 both lead to 39-25.
 #
 #    a b c d e f g h 
 # 1  . . O . @ . O . 
@@ -334,6 +336,7 @@ ffo-44;..w.b.w...w.bw.w.wwbbbwwwwwwbbbwwwwwbb..bbwwbw....bbbb.....bbb..;w;FFO po
 # FFO position #45, black to move, Tamenori vs Shaman, WC 1995 (final).
 # Principal Variation, PV: b2 c1 g5 h6 g4 h3 b1 g3 h5 h4 g2 a6 a8 a1 
 # Final score is +6
+#
 #    a b c d e f g h 
 # 1  . . . @ @ @ @ . 
 # 2  @ . @ @ @ O . . 
@@ -349,4 +352,99 @@ ffo-44;..w.b.w...w.bw.w.wwbbbwwwwwwbbbwwwwwbb..bbwwbw....bbbb.....bbb..;w;FFO po
 #     |1       2       3       4       5       6       7       8       |
 #     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 ffo-45;...bbbb.b.bbbw..bbwbww..bbbwbw..bbwbbw...wbbbww.w.wwww......ww..;b;FFO position 45, black to move, Tamenori vs Shaman, WC 1995 (final).;
-
+#
+#
+#
+#
+#
+# FFO position #46, black to move, Caspard vs Juhem, FC 1994.
+# Principal Variation, PV: b3 c1 b1 a3 b2 h3 a5 a4 a2 h7 g7 g2 g1 h1 h2 a1 h8
+# Final score is -8
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ . . 
+# 2  . . O O O @ . . 
+# 3  . . O O O @ @ . 
+# 4  . O O O O @ @ @ 
+# 5  . . O O O O @ @ 
+# 6  . . O @ O @ @ @ 
+# 7  . . @ @ O O . . 
+# 8  . @ @ @ @ . O . 
+# Player to move: BLACK
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-46;...bbb....wwwb....wwwbb..wwwwbbb..wwwwbb..wbwbbb..bbww...bbbb.w.;b;FFO position 46, black to move, Caspard vs Juhem, FC 1994.;
+#
+#
+#
+#
+#
+# FFO position #47, white to move, Brightwell vs Tastet, WC 1997.
+# Principal Variation, PV: g2 b8 b7 a2 a5 b2 g3 h3 a1 a3 h2 h1 g1 g4 h5 h4 g5 a8
+# Final score is +4
+#
+#    a b c d e f g h 
+# 1  . O O O O O . . 
+# 2  . . O O O O . . 
+# 3  . O O O O @ . . 
+# 4  @ @ @ @ @ @ . . 
+# 5  . O @ O O @ . . 
+# 6  O O O @ O @ . . 
+# 7  . . O O @ @ . . 
+# 8  . . @ @ @ @ . . 
+# Player to move: WHITE
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-47;.wwwww....wwww...wwwwb..bbbbbb...wbwwb..wwwbwb....wwbb....bbbb..;w;FFO position 47, white to move, Brightwell vs Tastet, WC 1997.;
+#
+#
+#
+#
+#
+# FFO position #48, white to move, Brightwell vs Tastet, Paris Open 1997.
+# Principal Variation, PV: f6 g5 g3 f2 h4 h5 h3 g6 g2 a7 h6 g7 d1 c1 b1 e1 g1 b7
+# Final score is +28
+#
+#    a b c d e f g h 
+# 1  . . . . . @ . . 
+# 2  @ . @ @ @ . . . 
+# 3  @ @ @ @ O O . . 
+# 4  @ O @ O O @ @ . 
+# 5  @ O O @ @ @ . . 
+# 6  @ O O @ @ . . . 
+# 7  . . O O O @ . . 
+# 8  . @ @ @ @ @ @ . 
+# Player to move: WHITE
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-48;.....b..b.bbb...bbbbww..bwbwwbb.bwwbbb..bwwbb.....wwwb...bbbbbb.;w;FFO position 48, white to move, Brightwell vs Tastet, Paris Open 1997.;
+#
+#
+#
+#
+#
+# FFO position #49, black to move, Lazard vs Cali, FC 1991.
+# Principal Variation, PV: e1 h4 g6 g4 h5 h6 b2 f8 d8 b8 c7 h3 g2 a1 b1 h2 h1 g1 h7
+# Final score is +16
+#
+#    a b c d e f g h 
+# 1  . . O @ . O . . 
+# 2  . . @ @ O O . . 
+# 3  O O O O O @ @ . 
+# 4  O O O O O @ . . 
+# 5  O O O @ O @ @ . 
+# 6  O O O O @ @ . . 
+# 7  . . . O O @ . . 
+# 8  . . @ . O . . . 
+# Player to move: BLACK
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-49;..wb.w....bbww..wwwwwbb.wwwwwb..wwwbwbb.wwwwbb.....wwb....b.w...;b;FFO position 49, black to move, Lazard vs Cali, FC 1991.;
