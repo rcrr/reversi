@@ -256,7 +256,7 @@ Player
 player_opponent (const Player p)
 {
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
-  return (p == BLACK_PLAYER) ? WHITE_PLAYER : BLACK_PLAYER;
+  return 1 - p;
 }
 
 
