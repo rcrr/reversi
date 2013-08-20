@@ -146,6 +146,12 @@ game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_w
 static IFES_SquareState
 game_position_get_ifes_player(const GamePosition * const gp);
 
+static char *
+ifes_square_to_string (const int sq);
+
+static Square
+ifes_square_to_square (const int sq);
+
 
 
 /*
@@ -305,6 +311,7 @@ game_position_ifes_solve (const GamePosition * const root)
   n = end_solve(result, board, -64, 64, player, emp, discdiff, 1);
 
   result->outcome = n.value;
+  result->principal_variation[0] = ifes_square_to_square(n.square);
 
   printf("use_parity=%d. fastest_first=%d.\n",
          use_parity, fastest_first);
@@ -349,6 +356,45 @@ game_position_get_ifes_player(const GamePosition * const gp)
   IFES_SquareState ifes_player;
   ifes_player = gp->player == BLACK_PLAYER ? IFES_BLACK : IFES_WHITE;
   return ifes_player;
+}
+
+/**
+ * @brief Documentation to be prepared.
+ *
+ */
+static Square
+ifes_square_to_square (const int sq)
+{
+  const uchar col = (sq % 9) - 1;
+  const uchar row = (sq / 9) - 1;
+  return row * 8 + col;
+}
+
+/**
+ * @brief Documentation to be prepared.
+ *
+ */
+static char *
+ifes_square_to_string (const int sq)
+{
+  char *symbol;
+
+  static const size_t size_of_square_to_string = 3 * sizeof(char);
+  symbol = (char*) malloc(size_of_square_to_string);
+
+  if (sq < 9 || sq > 80 || (sq % 9) == 0) {
+    *symbol       = 'N';
+    *(symbol + 1) = 'A';
+    *(symbol + 2) = '\0';
+  } else {
+    const uchar col = (sq % 9) - 1;
+    const uchar row = (sq / 9) - 1;
+    *symbol = 'A' + col;
+    *(symbol + 1) = '1' + row;
+    *(symbol + 2) = '\0';
+  }
+
+  return symbol;
 }
 
 /**
@@ -738,6 +784,7 @@ no_parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta,
 
       if (evaluated_n.value > selected_n.value) { /* better move: */
         selected_n.value = evaluated_n.value;
+        selected_n.square = sqnum;
         if (evaluated_n.value > alpha) {
           alpha = evaluated_n.value;
           if (evaluated_n.value >= beta) { /* cutoff */
@@ -821,6 +868,7 @@ parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta,
 
           if (evaluated_n.value > selected_n.value) { /* better move: */
             selected_n.value = evaluated_n.value;
+            selected_n.square = sqnum;
             if (evaluated_n.value > alpha) {
               alpha = evaluated_n.value;
               if (evaluated_n.value >= beta) { 
@@ -934,6 +982,7 @@ fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int b
 
       if (evaluated_n.value > selected_n.value) { /* better move: */
 	selected_n.value = evaluated_n.value;
+        selected_n.square = sqnum;
 	if (evaluated_n.value > alpha) {
 	  alpha = evaluated_n.value;
 	  if (evaluated_n.value >= beta) {
