@@ -308,6 +308,22 @@ game_position_ifes_solve (const GamePosition * const root)
 
   prepare_to_solve(board);
 
+  /** Debug info **/
+  if (TRUE) {
+    printf("\nEmpty Square Doubly linked List debug info:\n");
+    printf("em_head: address=%p [square=%2d (%s), hole_id=%d] pred=%p succ=%p\n",
+           (void*) &em_head, em_head.square, ifes_square_to_string(em_head.square), em_head.hole_id,
+           (void*) em_head.pred, (void*) em_head.succ);
+    for (int k = 0; k < 64; k++) {
+      if (ems[k].square != 0)
+        printf("ems[%2d]: address=%p [square=%2d (%s), hole_id=%d] pred=%p succ=%p\n",
+               k, (void*) &ems[k], ems[k].square, ifes_square_to_string(ems[k].square), ems[k].hole_id,
+               (void*) ems[k].pred, (void*) ems[k].succ);
+    }
+    printf("\n");
+  }
+  /** **/
+
   n = end_solve(result, board, -64, 64, player, emp, discdiff, 1);
 
   result->outcome = n.value;
@@ -664,11 +680,11 @@ prepare_to_solve (uchar *board)
   k = 1;
   for (i = 10; i <= 80; i++) {
     if (board[i] == IFES_EMPTY) {
-      if (board[i-10] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i-10];
-      else if (board[i - 9] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i - 9];
-      else if (board[i - 8] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i - 8];
-      else if (board[i - 1] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i - 1];
-      else { hole_id_map[i] = k; k<<=1; }
+      if      (board[i - 10] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i - 10];
+      else if (board[i -  9] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i -  9];
+      else if (board[i -  8] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i -  8];
+      else if (board[i -  1] == IFES_EMPTY) hole_id_map[i] = hole_id_map[i -  1];
+      else                                { hole_id_map[i] = k; k <<= 1; }
     }
     else hole_id_map[i] = 0;
   }
@@ -708,7 +724,8 @@ prepare_to_solve (uchar *board)
   /* create list of empty squares: */
   k = 0;
   pt = &em_head;
-  for (i = 60-1; i >= 0; i--){
+  pt->pred = NULL;
+  for (i = 60-1; i >= 0; i--) {
     sqnum = worst_to_best[i];
     if (board[sqnum] == IFES_EMPTY) {
       pt->succ = &(ems[k]);
