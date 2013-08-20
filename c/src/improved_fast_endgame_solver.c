@@ -270,7 +270,6 @@ static EmList em_head, ems[64];
  * There are up to 32 regions. The parities of the regions are in
  * the region_parity bit vector:
  */
-static uint hole_id_map[91];
 static uint region_parity;
 
 /* Must be documented. */
@@ -577,7 +576,7 @@ any_directional_flips (uchar *sq, int inc, int color, int oppcol)
         }
       }
     }
-    if(*pt == color) return 1;
+    if (*pt == color) return 1;
   }
   return 0;
 }
@@ -619,7 +618,7 @@ undo_flips (int flip_count, int oppcol)
 {
   /*
    * This is functionally equivalent to the simpler but slower code line:
-   * while(flip_count){ flip_count--;  *(*(--flip_stack)) = oppcol; }
+   * while (flip_count) { flip_count--;  *(*(--flip_stack)) = oppcol; }
    */
   if (flip_count & 1) {
     flip_count--;
@@ -648,10 +647,11 @@ minu (uint a, uint b)
 static int
 count_mobility (uchar *board, int color)
 {
-  int oppcol = 2 - color;
-  int mobility;
-  int square;
+  int     mobility;
+  int     square;
   EmList *em;
+
+  const int oppcol = 2 - color;
 
   mobility = 0;
   for (em = em_head.succ; em != NULL; em = em->succ) {
@@ -672,6 +672,7 @@ count_mobility (uchar *board, int color)
 static void
 prepare_to_solve (uchar *board)
 {
+  uint hole_id_map[91];
   int i, sqnum;
   uint k;
   EmList *pt;
@@ -718,7 +719,7 @@ prepare_to_solve (uchar *board)
   }
   /* find parity of holes: */
   region_parity = 0;
-  for (i = 10; i <= 80; i++){
+  for (i = 10; i <= 80; i++) {
     region_parity ^= hole_id_map[i];
   }
   /* create list of empty squares: */
@@ -855,7 +856,7 @@ parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta,
   for (par = 1, parity_mask = region_parity; par >= 0;
        par--, parity_mask = ~parity_mask) {
     for (old_em = &em_head, em = old_em->succ; em != NULL;
-         old_em = em, em = em->succ){
+         old_em = em, em = em->succ) {
       /* go thru list of possible move-squares */
       holepar = em->hole_id;
       if (holepar & parity_mask) {
