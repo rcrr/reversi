@@ -79,6 +79,15 @@ typedef struct em_list {
   struct em_list *succ;
 } EmList;
 
+/**
+ * @brief A node in the search tree.
+ *
+ * Details to be documented.
+ */
+typedef struct {
+  int square;
+  int value;
+} Node;
 
 
 /*
@@ -675,12 +684,17 @@ static int
 no_parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
                      int color, int empties, int discdiff, int prevmove)
 {
-  solution->node_count++;
-
-  int score = -infinity;
-  int oppcol = 2 - color;
   int sqnum, j, ev;
   EmList *em, *old_em;
+
+  const int oppcol = 2 - color;
+
+  solution->node_count++;
+
+  Node n;
+  n.value = -infinity;
+  n.square = 0;
+
   for (old_em = &em_head, em = old_em->succ; em != NULL;
        old_em = em, em = em->succ) {
     /* go thru list of possible move-squares */
@@ -701,7 +715,6 @@ no_parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta,
         else { /* he will have to pass */
           j1 = count_flips(board, em_head.succ->square, color, oppcol);
           ev = discdiff + 2*j;
-
           if (j1) { /* I pass then he passes then I move */
             ev += 2 * (j1 + 1);
           }
@@ -713,7 +726,7 @@ no_parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta,
       }
       else {
         ev = -no_parity_end_solve(solution, board, -beta, -alpha, 
-                                  oppcol, empties-1, -discdiff-2*j-1, sqnum);
+                                       oppcol, empties-1, -discdiff-2*j-1, sqnum);
       }
       undo_flips(j, oppcol);
       /* un-place your disc: */
@@ -721,28 +734,34 @@ no_parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta,
       /* restore deleted empty square: */
       old_em->succ = em;
 
-      if (ev > score) { /* better move: */
-        score = ev;
+      if (ev > n.value) { /* better move: */
+        n.value = ev;
         if (ev > alpha) {
           alpha = ev;
           if (ev >= beta) { /* cutoff */
-            return score;
+            goto end;
           }
         }
       }
     }
   }
-  if (score == -infinity) {  /* No legal move */
+  if (n.value == -infinity) {  /* No legal move */
     if (prevmove == 0) { /* game over: */
       solution->leaf_count++;
-      if (discdiff > 0) return discdiff + empties;
-      if (discdiff < 0) return discdiff - empties;
-      return 0;
+      if (discdiff > 0) {
+        n.value = discdiff + empties;
+      } else if (discdiff < 0) {
+        n.value = discdiff - empties;
+      } else {
+        n.value = 0;
+      }
     }
-    else /* I pass: */
-      return -no_parity_end_solve(solution, board, -beta, -alpha, oppcol, empties, -discdiff, 0);
+    else { /* I pass: */
+      n.value = -no_parity_end_solve(solution, board, -beta, -alpha, oppcol, empties, -discdiff, 0);
+    }
   }
-  return score;
+ end:
+  return n.value;
 }
 
 /**
@@ -752,18 +771,21 @@ static int
 parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
                   int color, int empties, int discdiff, int prevmove)
 {
-  solution->node_count++;
-
-  int score = -infinity;
-  int oppcol = 2 - color;
   int sqnum, j, ev;
   EmList *em, *old_em;
   uint parity_mask;
   int par, holepar;
 
+  const int oppcol = 2 - color;
+
+  solution->node_count++;
+
+  Node n;
+  n.value = -infinity;
+  n.square = 0;
+
   for (par = 1, parity_mask = region_parity; par >= 0;
        par--, parity_mask = ~parity_mask) {
-
     for (old_em = &em_head, em = old_em->succ; em != NULL;
          old_em = em, em = em->succ){
       /* go thru list of possible move-squares */
@@ -792,12 +814,12 @@ parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta,
           /* restore deleted empty square: */
 	  old_em->succ = em;
 
-          if (ev > score){ /* better move: */
-            score = ev;
-            if (ev > alpha){
+          if (ev > n.value) { /* better move: */
+            n.value = ev;
+            if (ev > alpha) {
               alpha = ev;
-              if (ev >= beta){ 
-                return score;
+              if (ev >= beta) { 
+                goto end;
               }
 	    }
           }
@@ -805,18 +827,23 @@ parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta,
       }
     }
   }
-
-  if (score == -infinity) {  /* No legal move found */
+  if (n.value == -infinity) {  /* No legal move found */
     if (prevmove == 0) { /* game over: */
       solution->leaf_count++;
-      if (discdiff > 0) return discdiff + empties;
-      if (discdiff < 0) return discdiff - empties;
-      return 0;
+      if (discdiff > 0) {
+        n.value = discdiff + empties;
+      } else if (discdiff < 0) {
+        n.value = discdiff - empties;
+      } else {
+        n.value = 0;
+      }
     }
-    else /* I pass: */
-      return -parity_end_solve(solution, board, -beta, -alpha, oppcol, empties, -discdiff, 0);
+    else { /* I pass: */
+      n.value = -parity_end_solve(solution, board, -beta, -alpha, oppcol, empties, -discdiff, 0);
+    }
   }
-  return score;
+ end:
+  return n.value;
 }
 
 /**
@@ -827,8 +854,6 @@ fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int b
                          int color, int empties, int discdiff, int prevmove)
 {
   int i, j;
-  int score = -infinity;
-  int oppcol = 2 - color;
   int sqnum, ev;
   int flipped;
   int moves, mobility;
@@ -838,7 +863,13 @@ fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int b
   int holepar;
   int goodness[64];
 
+  const int oppcol = 2 - color;
+
   solution->node_count++;
+
+  Node n;
+  n.value = -infinity;
+  n.square = 0;
 
   moves = 0;
   for (old_em = &em_head, em = old_em->succ; em != NULL;
@@ -873,7 +904,7 @@ fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int b
 
       sqnum = em->square;
       holepar = em->hole_id;
-      j = do_flips(board, sqnum, color, oppcol );
+      j = do_flips(board, sqnum, color, oppcol);
       board[sqnum] = color;
       region_parity ^= holepar;
       em->pred->succ = em->succ;
@@ -893,12 +924,12 @@ fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int b
       if (em->succ != NULL)
 	em->succ->pred = em;
 
-      if (ev > score) { /* better move: */
-	score = ev;
+      if (ev > n.value) { /* better move: */
+	n.value = ev;
 	if (ev > alpha) {
 	  alpha = ev;
 	  if (ev >= beta) {
-	    return score;
+            goto end;
           }
 	}
       }
@@ -907,19 +938,21 @@ fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int b
   else {
     if (prevmove == 0) { // game-over
       solution->leaf_count++;
-      if (discdiff > 0)
-	return discdiff + empties;
-      if (discdiff < 0)
-	return discdiff - empties;
-      return 0;
+      if (discdiff > 0) {
+        n.value = discdiff + empties;
+      } else if (discdiff < 0) {
+        n.value = discdiff - empties;
+      } else {
+        n.value = 0;
+      }
     }
     else { /* I pass: */
-      score = -fastest_first_end_solve(solution, board, -beta, -alpha, oppcol,
-                                       empties, -discdiff, 0);
+      n.value = -fastest_first_end_solve(solution, board, -beta, -alpha, oppcol,
+                                         empties, -discdiff, 0);
     }
   }
-
-  return score;
+ end:
+  return n.value;
 }
 
 /**
