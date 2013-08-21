@@ -144,20 +144,23 @@ board_module_init (void)
 gchar *
 square_to_string (const Square sq)
 {
-  g_assert(sq >= A1 && sq <= H8);
-
   gchar *symbol;
 
   static const size_t size_of_square_to_string = 3 * sizeof(gchar);
   symbol = (gchar*) malloc(size_of_square_to_string);
 
-  const uint8 col = sq % 8;
-  const uint8 row = sq / 8;
-  
-  *symbol = 'A' + col;
-  *(symbol + 1) = '1' + row;
-  *(symbol + 2) = '\0';
-  
+  if (sq >= A1 && sq <= H8) {
+    const uint8 col = sq % 8;
+    const uint8 row = sq / 8;
+    *symbol = 'A' + col;
+    *(symbol + 1) = '1' + row;
+    *(symbol + 2) = '\0';
+  } else {
+    *symbol       = 'N';
+    *(symbol + 1) = 'A';
+    *(symbol + 2) = '\0';
+  }
+
   return symbol;
 }
 
@@ -253,7 +256,7 @@ Player
 player_opponent (const Player p)
 {
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
-  return (p == BLACK_PLAYER) ? WHITE_PLAYER : BLACK_PLAYER;
+  return 1 - p;
 }
 
 
@@ -577,6 +580,49 @@ board_count_difference (const Board  *const b,
 }
 
 /**
+ * @brief Used for the score at the end of the game.
+ *
+ * @details Returns the disk difference between the player and her opponent,
+ * assigning the empty squares to the player having most discs.
+ *
+ * From the web site of the World Othello Federation,
+ * World Othello Chanpionship Rules, scoring:<br>
+ * <em>"At the end of the game, if both players have completed their moves in
+ * the allowed time, the winner is the player with the greater number of
+ * discs of his colour on the board at the end. The official score of the
+ * game will be determined by counting up the discs of each colour on the
+ * board, counting empty squares for the winner. In the event of a draw,
+ * the score will always be 32-32"</em>.
+ *
+ * @invariant Parameter `b` must be not `NULL`.
+ * Parameter `p` must be a value belonging to the `Player` enum.
+ * Both invariants are guarded by assertions.
+ *
+ * @param [in] b a pointer to the board structure
+ * @param [in] p the player for whom the difference is computed
+ * @return       the game score according to the WOF rules
+ */
+int
+board_count_diff_winner_get_empties (const Board  *const b,
+                                     const Player        p)
+{
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
+  int pcount, ocount, difference, empties;
+  Player o;
+
+  o = player_opponent(p);
+  pcount = board_count_pieces(b, player_color(p));
+  ocount = board_count_pieces(b, player_color(o));
+
+  difference = pcount - ocount; 
+  empties = 64 - (pcount + ocount);
+
+  return difference + ((difference > 0) ? +empties : -empties);
+}
+
+/**
  * @brief Returns 1 if the move, done by the specified player, is legal,
  * otherwise 0.
  *
@@ -657,7 +703,7 @@ board_legal_moves (const Board * const b, const Player p)
   result = 0ULL;
 
   const Player o = player_opponent(p);
-  const SquareSet empties = board_empties (b);
+  const SquareSet empties = board_empties(b);
   const SquareSet p_bit_board = board_get_player(b, p);
   const SquareSet o_bit_board = board_get_player(b, o);
   

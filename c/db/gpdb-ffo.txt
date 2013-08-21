@@ -42,3 +42,409 @@
 #     |1       2       3       4       5       6       7       8       |
 #     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 ffo-40;w..wwwwb.wwwwwwbwwbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;FFO position 40, black to move, Turner vs Monnom, Bruxelles 1997.;
+#
+#
+#
+#
+#
+# FFO-40_A2, white to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: b1 c1 -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is -38
+#
+#    a b c d e f g h 
+# 1  O . . O O O O @ 
+# 2  @ @ @ @ @ @ @ @ 
+# 3  O @ @ @ O O O @ 
+# 4  O O @ O O O @ @ 
+# 5  O O O O O O @ @ 
+# 6  . . . O O O O @ 
+# 7  . . . . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#        |1       2       3       4       5       6       7       8       |
+#        |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2;w..wwwwbbbbbbbbbwbbbwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;FFO position 40, a2, white to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1, black to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: c1 -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is +38
+#
+#    a b c d e f g h 
+# 1  O O . O O O O @ 
+# 2  @ O O @ @ @ @ @ 
+# 3  O O @ O O O O @ 
+# 4  O O @ O O O @ @ 
+# 5  O O O O O O @ @ 
+# 6  . . . O O O O @ 
+# 7  . . . . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#           |1       2       3       4       5       6       7       8       |
+#           |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1;ww.wwwwbbwwbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;FFO position 40, a2 b1, black to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1, white to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is -38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O O O O @ 
+# 4  O O @ O O O @ @ 
+# 5  O O O O O O @ @ 
+# 6  . . . O O O O @ 
+# 7  . . . . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1;wwbbbbbbbwbbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;w;FFO position 40, a2 b1 c1, white to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1_pass, black to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is +38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O O O O @ 
+# 4  O O @ O O O @ @ 
+# 5  O O O O O O @ @ 
+# 6  . . . O O O O @ 
+# 7  . . . . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                   |1       2       3       4       5       6       7       8       |
+#                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1_pass;wwbbbbbbbwbbbbbbwwbwwwwbwwbwwwbbwwwwwwbb...wwwwb....w..b........;b;FFO position 40, a2 b1 c1 pass, black to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1_pass_b6, white to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: c7 a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is -38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O @ O O @ 
+# 4  O O @ @ O O @ @ 
+# 5  O O @ O O O @ @ 
+# 6  . @ . O O O O @ 
+# 7  . . . . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#                      |1       2       3       4       5       6       7       8       |
+#                      |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1_pass_b6;wwbbbbbbbwbbbbbbwwbwbwwbwwbbwwbbwwbwwwbb.b.wwwwb....w..b........;w;FFO position 40, a2 b1 c1 pass b6, white to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1_pass_b6_c7, black to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: a7 b7 b8 d7 f8 c6 f7 g7
+# Final score is +38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O @ O O @ 
+# 4  O O @ @ O O @ @ 
+# 5  O O @ O O O @ @ 
+# 6  . O . O O O O @ 
+# 7  . . O . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                         |1       2       3       4       5       6       7       8       |
+#                         |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1_pass_b6_c7;wwbbbbbbbwbbbbbbwwbwbwwbwwbbwwbbwwbwwwbb.w.wwwwb..w.w..b........;b;FFO position 40, a2 b1 c1 pass b6 c7, black to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1_pass_b6_c7_a7, white to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: b7 b8 d7 f8 c6 f7 g7
+# Final score is -38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O @ O O @ 
+# 4  O O @ @ O O @ @ 
+# 5  O O @ O O O @ @ 
+# 6  . @ . O O O O @ 
+# 7  @ . O . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#                            |1       2       3       4       5       6       7       8       |
+#                            |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1_pass_b6_c7_a7;wwbbbbbbbwbbbbbbwwbwbwwbwwbbwwbbwwbwwwbb.b.wwwwbb.w.w..b........;w;FFO position 40, a2 b1 c1 pass b6 c7 a7, white to move.;
+#
+#
+#
+#
+#
+# FFO-40_A2_B1_C1_pass_b6_c7_a7_b7, black to move, Turner vs Monnom, Bruxelles 1997.
+# Principal Variation, PV: b8 d7 f8 c6 f7 g7
+# Final score is +38
+#
+#    a b c d e f g h 
+# 1  O O @ @ @ @ @ @ 
+# 2  @ O @ @ @ @ @ @ 
+# 3  O O @ O @ O O @ 
+# 4  O O @ @ O O @ @ 
+# 5  O O @ O O O @ @ 
+# 6  . O . O O O O @ 
+# 7  @ O O . O . . @ 
+# 8  . . . . . . . . 
+# Player to move: BLACK
+#
+#                               |1       2       3       4       5       6       7       8       |
+#                               |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-40_a2_b1_c1_pass_b6_c7_a7_b7;wwbbbbbbbwbbbbbbwwbwbwwbwwbbwwbbwwbwwwbb.w.wwwwbbww.w..b........;b;FFO position 40, a2 b1 c1 pass b6 c7 a7 b7, black to move.;
+#
+#
+#
+#
+#
+# FFO position #41, black to move, Eclipse vs Logistello, Internet (7-12) 1996.
+# Principal Variation, PV: h4 a3 a2 g6 g5 h5 f8 e8 h6 g7 h2 a5 a7 h3 h1 g1
+# Final score is +0
+#
+#    a b c d e f g h 
+# 1  . O O O O O . . 
+# 2  . . O O O O @ . 
+# 3  . O O O O O O . 
+# 4  @ @ @ @ @ O O . 
+# 5  . @ @ O O @ . . 
+# 6  O O @ O @ @ . . 
+# 7  . . O @ @ O . . 
+# 8  . O O O . . O . 
+# Player to move: BLACK
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-41;.wwwww....wwwwb..wwwwww.bbbbbww..bbwwb..wwbwbb....wbbw...www..w.;b;FFO position 41, black to move, Eclipse vs Logistello, Internet (7-12) 1996.;
+#
+#
+#
+#
+#
+# FFO position #42, black to move, Penloup vs Shaman, Cambridge 1998.
+# Principal Variation, PV: g2 h1 c2 g1 f1 d2 b2 a2 b6 c6 b5 a4 a6 g8 a1 b1
+# Final score is +6
+#
+#    a b c d e f g h 
+# 1  . . O O O . . . 
+# 2  . . . . @ @ . O 
+# 3  O O O O O @ O O 
+# 4  . O O O O @ O O 
+# 5  @ . O O O @ @ O 
+# 6  . . . O O @ O O 
+# 7  . . . O O O @ O 
+# 8  . . O O O O . . 
+# Player to move: BLACK
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-42;..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..;b;FFO position 42, black to move, Penloup vs Shaman, Cambridge 1998.;
+#
+#
+#
+#
+#
+# FFO position #43, white to move, Brightwell vs Suekuni, WC 1997 (final).
+# Principal Variation, PV: c7 h4 h5 b8 b7 a8 a7 a5 h3 a4 g3 h6 a3 h2 g7 a2
+# Final score is -12
+# Variation: c7 and g3 both lead to 26-38.
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . . @ @ @ @ . . 
+# 3  . O O O @ @ . . 
+# 4  . O O @ @ @ @ . 
+# 5  . O O @ @ @ O . 
+# 6  O O O O @ O O . 
+# 7  . . . @ O @ . . 
+# 8  . . @ @ @ @ @ . 
+# Player to move: WHITE
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-43;..bbbbb...bbbb...wwwbb...wwbbbb..wwbbbw.wwwwbww....bwb....bbbbb.;w;FFO position 43, white to move, Brightwell vs Suekuni, WC 1997 (final).;
+#
+#
+#       |1       2       3       4       5       6       7       8       |
+#       |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-43-r;..wwwww...wwww...bbbww...bbwwww..bbwwwb.bbbbwbb....wbw....wwwww.;b;FFO position 43, b/w reversed, black to move, Brightwell vs Suekuni, WC 1997 (final).;
+#
+#
+#
+#
+#
+# FFO position #44, white to move, Shaman vs Tastet, WC 1995.
+# Principal Variation, PV: d2 g5 b8 a3 b7 a8 a7 c8 g7 g8 h6 h5 g6 f1 d1 h1 g2
+# Final score is -14
+# Variation: d2 and d8 both lead to 39-25.
+#
+#    a b c d e f g h 
+# 1  . . O . @ . O . 
+# 2  . . O . @ O . O 
+# 3  . O O @ @ @ O O 
+# 4  O O O O @ @ @ O 
+# 5  O O O O @ @ . . 
+# 6  @ @ O O @ O . . 
+# 7  . . @ @ @ @ . . 
+# 8  . . . @ @ @ . . 
+# Player to move: WHITE
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-44;..w.b.w...w.bw.w.wwbbbwwwwwwbbbwwwwwbb..bbwwbw....bbbb.....bbb..;w;FFO position 44, white to move, Shaman vs Tastet, WC 1995.;
+#
+#
+#
+#
+#
+# FFO position #45, black to move, Tamenori vs Shaman, WC 1995 (final).
+# Principal Variation, PV: b2 c1 g5 h6 g4 h3 b1 g3 h5 h4 g2 a6 a8 a1 
+# Final score is +6
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ @ . 
+# 2  @ . @ @ @ O . . 
+# 3  @ @ O @ O O . . 
+# 4  @ @ @ O @ O . . 
+# 5  @ @ O @ @ O . . 
+# 6  . O @ @ @ O O . 
+# 7  O . O O O O . . 
+# 8  . . . . O O . . 
+# Player to move: BLACK
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-45;...bbbb.b.bbbw..bbwbww..bbbwbw..bbwbbw...wbbbww.w.wwww......ww..;b;FFO position 45, black to move, Tamenori vs Shaman, WC 1995 (final).;
+#
+#
+#
+#
+#
+# FFO position #46, black to move, Caspard vs Juhem, FC 1994.
+# Principal Variation, PV: b3 c1 b1 a3 b2 h3 a5 a4 a2 h7 g7 g2 g1 h1 h2 a1 h8
+# Final score is -8
+#
+#    a b c d e f g h 
+# 1  . . . @ @ @ . . 
+# 2  . . O O O @ . . 
+# 3  . . O O O @ @ . 
+# 4  . O O O O @ @ @ 
+# 5  . . O O O O @ @ 
+# 6  . . O @ O @ @ @ 
+# 7  . . @ @ O O . . 
+# 8  . @ @ @ @ . O . 
+# Player to move: BLACK
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-46;...bbb....wwwb....wwwbb..wwwwbbb..wwwwbb..wbwbbb..bbww...bbbb.w.;b;FFO position 46, black to move, Caspard vs Juhem, FC 1994.;
+#
+#
+#
+#
+#
+# FFO position #47, white to move, Brightwell vs Tastet, WC 1997.
+# Principal Variation, PV: g2 b8 b7 a2 a5 b2 g3 h3 a1 a3 h2 h1 g1 g4 h5 h4 g5 a8
+# Final score is +4
+#
+#    a b c d e f g h 
+# 1  . O O O O O . . 
+# 2  . . O O O O . . 
+# 3  . O O O O @ . . 
+# 4  @ @ @ @ @ @ . . 
+# 5  . O @ O O @ . . 
+# 6  O O O @ O @ . . 
+# 7  . . O O @ @ . . 
+# 8  . . @ @ @ @ . . 
+# Player to move: WHITE
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-47;.wwwww....wwww...wwwwb..bbbbbb...wbwwb..wwwbwb....wwbb....bbbb..;w;FFO position 47, white to move, Brightwell vs Tastet, WC 1997.;
+#
+#
+#
+#
+#
+# FFO position #48, white to move, Brightwell vs Tastet, Paris Open 1997.
+# Principal Variation, PV: f6 g5 g3 f2 h4 h5 h3 g6 g2 a7 h6 g7 d1 c1 b1 e1 g1 b7
+# Final score is +28
+#
+#    a b c d e f g h 
+# 1  . . . . . @ . . 
+# 2  @ . @ @ @ . . . 
+# 3  @ @ @ @ O O . . 
+# 4  @ O @ O O @ @ . 
+# 5  @ O O @ @ @ . . 
+# 6  @ O O @ @ . . . 
+# 7  . . O O O @ . . 
+# 8  . @ @ @ @ @ @ . 
+# Player to move: WHITE
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-48;.....b..b.bbb...bbbbww..bwbwwbb.bwwbbb..bwwbb.....wwwb...bbbbbb.;w;FFO position 48, white to move, Brightwell vs Tastet, Paris Open 1997.;
+#
+#
+#
+#
+#
+# FFO position #49, black to move, Lazard vs Cali, FC 1991.
+# Principal Variation, PV: e1 h4 g6 g4 h5 h6 b2 f8 d8 b8 c7 h3 g2 a1 b1 h2 h1 g1 h7
+# Final score is +16
+#
+#    a b c d e f g h 
+# 1  . . O @ . O . . 
+# 2  . . @ @ O O . . 
+# 3  O O O O O @ @ . 
+# 4  O O O O O @ . . 
+# 5  O O O @ O @ @ . 
+# 6  O O O O @ @ . . 
+# 7  . . . O O @ . . 
+# 8  . . @ . O . . . 
+# Player to move: BLACK
+#
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-49;..wb.w....bbww..wwwwwbb.wwwwwb..wwwbwbb.wwwwbb.....wwb....b.w...;b;FFO position 49, black to move, Lazard vs Cali, FC 1991.;

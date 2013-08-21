@@ -56,7 +56,25 @@
  * Internal variables and constants.
  */
 
-
+/**
+ * Fixed square ordering:
+ * D4, A1, C1, C3, D1, D3, D2, C2, B1, B2.
+ * Taken by Jean-Christophe Weill's order, which is the same
+ * proposed in the PAIP book for the weighted-square strategy.
+ */
+static const Square square_static_ordering[64] =
+{
+  D4, E4, E5, D5,
+  A1, H1, H8, A8,
+  C1, F1, F8, C8, A3, H3, H6, A6, 
+  C3, F3, F6, C6,
+  D1, E1, E8, D8, A4, H4, H5, A5, 
+  D3, E3, E6, D6, C4, F4, F5, C5, 
+  D2, E2, E7, D7, B4, G4, G5, B5, 
+  C2, F2, F7, C7, B3, G3, G6, B6, 
+  B1, G1, G8, B8, A2, H2, H7, A7,
+  B2, G2, G7, B7
+};
 
 
 

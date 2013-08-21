@@ -249,6 +249,10 @@ board_count_difference (const Board  *const b,
                         const Player        p);
 
 extern int
+board_count_diff_winner_get_empties (const Board  *const b,
+                                     const Player        p);
+
+extern int
 board_is_move_legal (const Board *const b,
                      const Square       move,
                      const Player       p);

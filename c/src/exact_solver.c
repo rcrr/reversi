@@ -50,10 +50,10 @@
  */
 
 static SearchNode *
-game_position_solve_impl (const GamePosition * const gp,
-                          const int                  achievable,
-                          const int                  cutoff,
-                          const int                  ply);
+game_position_solve_impl (      ExactSolution * const result,
+                          const GamePosition  * const gp,
+                          const int                   achievable,
+                          const int                   cutoff);
 
 static int
 final_value (const GamePosition * const gp);
@@ -64,10 +64,22 @@ final_value (const GamePosition * const gp);
  * Internal variables and constants.
  */
 
-static uint64 leaf_count = 0;
-static uint64 node_count = 0;
+static const uint64 legal_moves_priority_mask[] = {
+  0xFFFFFFFFFFFFFFFF,0,0,0,0,0,0,0,0,0
+};
 
-
+static const uint64 _legal_moves_priority_mask[] = {
+  /* D4, E4, E5, D5 */                 0x0000001818000000,
+  /* A1, H1, H8, A8 */                 0x8100000000000081,
+  /* C1, F1, F8, C8, A3, H3, H6, A6 */ 0x2400810000810024,
+  /* C3, F3, F6, C6 */                 0x0000240000240000,
+  /* D1, E1, E8, D8, A4, H4, H5, A5 */ 0x1800008181000018,
+  /* D3, E3, E6, D6, C4, F4, F5, C5 */ 0x0000182424180000,
+  /* D2, E2, E7, D7, B4, G4, G5, B5 */ 0x0018004242001800,
+  /* C2, F2, F7, C7, B3, G3, G6, B6 */ 0x0024420000422400,
+  /* B1, G1, G8, B8, A2, H2, H7, A7 */ 0x4281000000008142,
+  /* B2, G2, G7, B7 */                 0x0042000000004200
+};
 
 
 /*******************************************************/
@@ -154,6 +166,8 @@ exact_solution_new (void)
     es->principal_variation[i] = -1;
   }
   es->final_board = NULL;
+  es->node_count = 0;
+  es->leaf_count = 0;
 
   return es;
 }
@@ -223,17 +237,12 @@ game_position_solve (const GamePosition * const root)
 
   result->solved_game_position = game_position_clone(root);
 
-  sn = game_position_solve_impl(result->solved_game_position, -64, +64, 60);
+  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64);
 
-  gchar *move_to_s = square_to_string(sn->move);
-  printf("Final SearchNode sn: move=%s, value=%d\n", move_to_s, sn->value);
-  g_free(move_to_s);
-
-  if (sn)
+  if (sn) {
+    result->principal_variation[0] = sn->move;
     result->outcome = sn->value;
-
-  printf("[node_count=%llu, leaf_count=%llu]\n", node_count, leaf_count);
-
+  }
   sn = search_node_free(sn);
 
   return result;
@@ -246,48 +255,46 @@ game_position_solve (const GamePosition * const root)
  */
 
 SearchNode *
-game_position_solve_impl (const GamePosition * const gp,
-                          const int                  achievable,
-                          const int                  cutoff,
-                          const int                  ply)
+game_position_solve_impl (      ExactSolution * const result,
+                          const GamePosition  * const gp,
+                          const int                   achievable,
+                          const int                   cutoff)
 {
   SearchNode *node;
   SearchNode *node2;
 
   node  = NULL;
   node2 = NULL;
-  node_count++;
+  result->node_count++;
 
   const SquareSet moves = game_position_legal_moves(gp);
   if (0ULL == moves) {
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
-      node = search_node_negated(game_position_solve_impl(flipped_players, -cutoff, -achievable, ply - 1));
+      node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable));
     } else {
-      leaf_count++;
+      result->leaf_count++;
       node = search_node_new((Square) -1, final_value(gp));
     }
     flipped_players = game_position_free(flipped_players);
   } else {
-    Square first_move = bit_works_bitscanLS1B_64(moves);
-    node = search_node_new(first_move, achievable);
-    Square move = 0;
-    for (SquareSet cursor = 0x0000000000000001; cursor != 0ULL; cursor <<= 1) {
-      if ((cursor & moves) != 0ULL) {
-        GamePosition *gp2 = game_position_make_move(gp, move);
-        node2 = search_node_negated(game_position_solve_impl(gp2, -cutoff, -node->value, ply - 1));
-        gp2 = game_position_free(gp2);
-        if (node2->value > node->value) {
-          search_node_free(node);
-          node = node2;
-          node->move = move;
-          node2 = NULL;
-        } else {
-          node2 = search_node_free(node2);
-        }
+    SquareSet moves_to_search = moves;
+    while (moves_to_search) {
+      const Square move = bit_works_bitscanLS1B_64(moves_to_search);
+      if (!node) node = search_node_new(move, achievable);
+      moves_to_search &= ~(1ULL << move);
+      GamePosition *gp2 = game_position_make_move(gp, move);
+      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value));
+      gp2 = game_position_free(gp2);
+      if (node2->value > node->value) {
+        search_node_free(node);
+        node = node2;
+        node->move = move;
+        node2 = NULL;
         if (node->value >= cutoff) { goto out; }
+      } else {
+        node2 = search_node_free(node2);
       }
-      move++;
     }
   }
  out:
@@ -297,5 +304,5 @@ game_position_solve_impl (const GamePosition * const gp,
 int
 final_value (const GamePosition * const gp)
 {
-  return game_position_count_difference(gp);
+  return board_count_diff_winner_get_empties(gp->board, gp->player);
 }
