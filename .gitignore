@@ -34,3 +34,4 @@ field_research/code/zebra/tune8dbs
 field_research/code/zebra/zebra
 field_research/code/zebra/zebra.err
 field_research/code/zebra/zebra.log
+field_research/code/zebra/ffo/*.out
