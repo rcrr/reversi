@@ -27,3 +27,4 @@ Fatal error: Unable to open coefficient file 'coeffs2.bin'
 
 Fixed by downloading from the site http://radagast.se/othello/download2.html the file coeffs2.bin
 
+The ffo-40 to 59 test suite run fine and takes a total time of 3225.5 seconds.
