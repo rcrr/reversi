@@ -19,3 +19,11 @@ OPTS =		-O3 -s -fomit-frame-pointer
 
 CFLAGS =	$(OPTS) $(WARNINGS) $(DEFS)
 CXXFLAGS =	$(CFLAGS)
+
+(2)
+$ ./scrzebra -script ffo/ffotest.scr ffo/ffotest.out
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Aug 23 2013 at 10:42:48
+Fatal error: Unable to open coefficient file 'coeffs2.bin'
+
+Fixed by downloading from the site http://radagast.se/othello/download2.html the file coeffs2.bin
+
