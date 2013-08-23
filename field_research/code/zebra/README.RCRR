@@ -1,0 +1,4 @@
+Log of changes done by Roberto Corradini to make Zebra compile and build cleanely on my platform:
+
+ - Linux whitewater 3.5.0-39-generic #60-Ubuntu SMP Tue Aug 13 18:33:05 UTC 2013 x86_64 x86_64 x86_64 GNU/Linux
+
