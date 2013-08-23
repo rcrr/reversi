@@ -123,14 +123,10 @@ CXX		= g++
 
 # --- Flags ---
 
-DEFS =		-DINCLUDE_BOOKTOOL -DTEXT_BASED -DUSE_PENTIUM_ASM -DZLIB_STATIC
-#DEFS =		-DUSE_PENTIUM_ASM -DZLIB_STATIC 
+DEFS =		-DINCLUDE_BOOKTOOL -DTEXT_BASED -DZLIB_STATIC
 
 WARNINGS =	-Wall -Wcast-align -Wwrite-strings -Wstrict-prototypes -Winline
-#OPTS =		-O2 -s -fomit-frame-pointer -march=pentium -malign-functions=6 -fschedule-insns2
-OPTS =		-O4 -s -fomit-frame-pointer -mtune=pentium2 -falign-functions=32
-#OPTS =		-O4 -pg -mtune=pentium2 -falign-functions=32
-#OPTS =		-O4 -g -mtune=pentium2
+OPTS =		-O3 -s -fomit-frame-pointer
 
 CFLAGS =	$(OPTS) $(WARNINGS) $(DEFS)
 CXXFLAGS =	$(CFLAGS)

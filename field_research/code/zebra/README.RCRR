@@ -2,3 +2,20 @@ Log of changes done by Roberto Corradini to make Zebra compile and build cleanel
 
  - Linux whitewater 3.5.0-39-generic #60-Ubuntu SMP Tue Aug 13 18:33:05 UTC 2013 x86_64 x86_64 x86_64 GNU/Linux
 
+(1)
+$ make zebra
+gcc -O4 -s -fomit-frame-pointer -mtune=pentium2 -falign-functions=32 -Wall -Wcast-align -Wwrite-strings -Wstrict-prototypes -Winline -DINCLUDE_BOOKTOOL -DTEXT_BASED -DUSE_PENTIUM_ASM -DZLIB_STATIC   -c -o bitbcnt.o bitbcnt.c
+bitbcnt.c:1:0: error: CPU you selected does not support x86-64 instruction set
+make: *** [bitbcnt.o] Error 1
+
+Fixed by changing the Flag section in Makefile to:
+
+# --- Flags ---
+
+DEFS =		-DINCLUDE_BOOKTOOL -DTEXT_BASED -DZLIB_STATIC
+
+WARNINGS =	-Wall -Wcast-align -Wwrite-strings -Wstrict-prototypes -Winline
+OPTS =		-O3 -s -fomit-frame-pointer
+
+CFLAGS =	$(OPTS) $(WARNINGS) $(DEFS)
+CXXFLAGS =	$(CFLAGS)
