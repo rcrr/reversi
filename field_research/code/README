@@ -7,7 +7,14 @@ The software is "as-is" and may even do not compile.
     A single source file written by Gunnar Andersson and last modified on July 13, 1999.
     The program, as stated by Gunnar, was created by Warren Smith and later improved by
     Jean-Christophe Weill.
+    The code compiles and runs fine.
 
 (2) solver
     A single source file written by Richard Delorme, the author of Edax (http://abulmo.perso.neuf.fr).
     The program, released under the GNU General Public License V2+, is an endgame solver, too.
+    The code compiles and runs fine.
+
+(3) zebra
+    The zebra program written by Gunnar Andersson.
+    The software is ditributed by means of the GNU General Public License V2.
+    The code compile and scrzebra, the tool dedicated to endgame solving, run perfectly.
