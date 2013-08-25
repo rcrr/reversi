@@ -48,3 +48,5 @@ The software is "as-is" and may even do not compile.
 
     The package compile fines on Linux and Windows 7 using Cygwin as long as the system is x86_32.
     Adding -m32 to CFLAGS and -m32 -L/usr/lib32 to LDFLAGS it compile fine also on Linux x86_64.
+    Hint: after running ./configure edit Makefile, ios/Makefile, and tables/Makefile adding the flags
+          to the two env variables. Run make, and make clean. the Bill executable is ready and well functioning.
