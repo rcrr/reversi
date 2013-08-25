@@ -1,0 +1,32 @@
+H1	a1	h1
+H2	a2	h2
+H3	a3	h3
+H4	a4	h4
+H5	a5	h5
+H6	a6	h6
+H7	a7	h7
+H8	a8	h8
+Va	a1	a8
+Vb	b1	b8
+Vh	h1	h8
+Vc	c1	c8
+Vd	d1	d8
+Ve	e1	e8
+Vf	f1	f8
+Vg	g1	g8
+D80_1	a1	h8
+D80_2	a8	h1
+D44_1	e1	h4	a5	d8
+D44_2	a4	d1	e8	h5
+D53_1	d1	h5	f1	h3
+D53_2	a5	e1	a3	c1
+D53_3	a4	e8	a6	c8
+D53_4	d8	h4	f8	h6
+D60_1	c1	h6
+D60_2	a6	f1
+D60_3	a3	f8
+D60_4	c8	h3
+D70_1	b1	h7
+D70_2	a7	g1
+D70_3	a2	g8
+D70_4	b8	h2

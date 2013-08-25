@@ -1,0 +1,13 @@
+Moral 1: probably our opening book is weak
+
+Bill opp book?  time
+
+W    OO7    n	19	+ 4 (black wins by 4)
+W    OO7    y	29	+26
+B    OO7    n	 2	-14
+W    OO7    n	 6	+14
+B    OO7    y	19	-20 non-greedy edge table
+W    OO7    n	14	+28
+W    ant+   n	15	 -6 (finally).  ant+ = 1 ply log + 16-ply endgame
+W    Tadpole n   5	 -8
+W      "    y   14	 -6

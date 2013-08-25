@@ -1,0 +1,58 @@
+		 How to run the Othello program Bill.
+
+NOTE: Use -b if Bill is playing White, -w if Bill is playing Black.
+
+The usual way to run Bill is (for a one-hour game):
+    Bill -t 60 -m gameN.mov -b  # or -w if Bill plays black
+Or just:
+    Bill -t 60 -b
+and copy Bill.moves file after the game using 'cp'.
+You may want to replicate stdout with `tee', to create a logfile:
+	Bill [lots of switches] | tee random.log
+
+Basic switches (upper/lowercase is important), in likely order of importance:
+	-t <time>	specifies total time for game, in minutes [default: 10]
+	-t <t1> <t2>	specify times for black & white individually
+			(if only one value is given, as above, then
+			each side gets half the total time.)
+	-b		human (or other program) plays Black
+	-w		human (or other program) plays White
+	-n		program plays both colors [the default]
+	-a		humans play both colors
+
+	-u		use opening book [default]
+	-U    		don't use opening book
+
+	-i <file>	input file to read initial moves in from
+	-m <moves file>	where to write moves  file [default: ./Bill.moves]
+
+	-Q		turn off bell (default is on).  Normally Bill beeps
+			after it prints its move, to alert the operator.
+			Use this if that feature is annoying.
+
+Commands while running the program:
+	t		takes back two half moves (one for each
+			player).  This is useful if you enter a wrong move.
+			May be a bit buggy.
+	q		quit the program
+	^C		force Bill to make a move, or quit the program
+	m		modify time on Bill's clock (in seconds), in
+			case system clock is off.  
+
+If you have 0 or 1 legal moves, Bill will tell you this, and just ask
+you to hit <RETURN> instead of entering a move.  Otherwise, you enter
+the opponent's move in standard Othello notation (e.g. a6, uppper or
+lower case is OK here).
+
+On the board printout,
+	# is a black piece
+	O is a white piece
+
+Bill leaves a record of the moves made during the game in the file
+./Bill.moves, which you can edit, copy and use to restart Bill if it
+crashes for some reason.  For example, suppose Bill was playing Black,
+and it crashes and you wish to restart where you were:
+	cp Bill.moves restart.moves  	# because Bill overwrites Bill.moves
+	Bill -i restart.moves -t 8 7 -w # Bill plays black
+You can use the -t switch to set the time to whatever time the two
+players have on their clocks.  

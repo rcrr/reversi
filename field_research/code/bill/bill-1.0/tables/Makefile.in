@@ -1,0 +1,86 @@
+# makefile for Bill's tables
+# @configure_input@
+
+CC = @CC@
+
+bill_includedir = @top_srcdir@/include
+
+CFLAGS = @CFLAGS@ @CPPFLAGS@ -I@srcdir@ -I$(bill_includedir) @DEFS@
+LDFLAGS = @LDFLAGS@
+LOADLIBES =  @LIBS@
+RANLIB = @RANLIB@
+
+# STUPID_CC is either `yes' or `no', depending whether $(CC) can accept
+# -c and -o together.  If it can't, define a pattern rule that fakes
+# -c and -o together, by moving the generated .o to where it should have
+# been put to begin with.
+STUPID_CC=@STUPID_CC@
+ifeq ($(STUPID_CC),yes)
+MV=@MV@
+%.o: %.c
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< ; $(MV) $(@F) $@
+endif
+
+.PHONY: all clean distclean
+
+all: tables.a
+
+OBJS=count_edge/count_edge.o count_rest/count_rest.o edge_penalty/edge_penalty.o edge_table/edge_table.o other_tables/other_tables.o othnums/othnums.o to_quat/to_quat.o tobyte/tobyte.o toreal/data.o toreal/toreal.o misc/scale.o new_edge_table/new_edge_table.o new_edge_table/new_scale.o
+
+tables.a: tables.a($(OBJS))
+	-if [ $(RANLIB) != ":" ] ; then $(RANLIB) tables.a; else true; fi
+
+count_edge/gen: misc/scale.o misc/sq_map.o misc/sq_weights.o
+count_edge/count_edge.c: count_edge/gen
+	count_edge/gen > count_edge/count_edge.c
+
+count_rest/gen: misc/sq_map.o misc/sq_weights.o
+count_rest/count_rest.c: count_rest/gen
+	count_rest/gen > count_rest/count_rest.c
+
+edge_penalty/gen: edge_table/edge_table.o misc/scale.o
+edge_penalty/edge_penalty.c: edge_penalty/gen
+	edge_penalty/gen > edge_penalty/edge_penalty.c
+
+edge_table/edge_table.c: edge_table/gen
+	edge_table/gen > edge_table/edge_table.c
+
+new_edge_table/new_edge_table.c: new_edge_table/nedge
+	new_edge_table/nedge > /dev/null
+new_edge_table/new_scale.c: new_edge_table/var
+	new_edge_table/var > new_edge_table/new_scale.c
+new_edge_table/var: new_edge_table/new_edge_table.o edge_table/edge_table.o new_edge_table/var.o
+	$(CC) $(LDFLAGS) $^ -o $@ $(LOADLIBES) -lm
+
+move_penalty/gen: move_penalty/data.o
+move_penalty/move_penalty.c: move_penalty/gen
+	move_penalty/gen > move_penalty/move_penalty.c
+
+other_tables/gen: other_tables/pot_val.o move_penalty/move_penalty.o value/value.o
+misc/scale.c other_tables/other_tables.c: other_tables/gen
+	other_tables/gen > other_tables/other_tables.c
+to_quat/to_quat.c: to_quat/gen
+	to_quat/gen > to_quat/to_quat.c
+
+tobyte/tobyte.c: tobyte/gen
+	tobyte/gen > tobyte/tobyte.c
+
+toreal/gen: toreal/data.o misc/sq_map.o
+toreal/toreal.c: toreal/gen
+	toreal/gen > toreal/toreal.c
+
+value/gen: value/data.o
+value/value.c: value/gen
+	value/gen > value/value.c
+
+# header dependencies
+move_penalty/data.o move_penalty/gen.o other_tables/gen.o other_tables/pot_val.o tobyte/gen.o value/data.o value/gen.o: @srcdir@/tables.h
+other_tables/gen.o: $(bill_includedir)/pack.h
+
+# cleanup routines
+
+clean:
+	-rm -f */gen */*.o */*~ count_edge/count_edge.c count_rest/count_rest.c edge_penalty/edge_penalty.c edge_table/edge_table.c move_penalty/move_penalty.c other_tables/other_tables.c to_quat/to_quat.c tobyte/tobyte.c toreal/toreal.c value/value.c new_edge_table/new_edge_table.c new_edge_table/new_scale.c new_edge_table/nedge new_edge_table/var
+
+distclean: clean
+	-rm -f tables.a

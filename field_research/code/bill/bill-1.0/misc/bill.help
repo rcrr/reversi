@@ -1,0 +1,76 @@
+Note : All switches are optional, so casual players can simply copy
+       Bill from "/../sp/usr/kfl/bill/Bill", and type "Bill" to run it.
+ OR:   just execute across super-root. 
+       Bill will prompt for the required information.  Most of the switches 
+       described here are only of interest to Bill's maintainers.
+
+Usage : Bill -[bwa] -[n(bwan)] -[s] -[h] -[t] [Time | BTime WTime]
+             -[i] File -[p] File -[c] File1 File2 -[o] File 
+	     -[v] [bBlLrRsStToOeE]
+
+bwan - Player will play b(lack), w(hite), a(ll), n(either) [No
+       default - You will be prompted if not specifed].  If you
+       specify neither, Bill will play itself, and you must specify
+       which Bill will use the standard evaluation function.  It
+       is specified by typing -na (Standard eval. fn. plays both),
+       -nb (std plays black only), -nw (plays white only), or -nn
+       (plays neither).  See -c and -g option.
+s    - "Scroll", i.e., do NOT use curses.  Default - use curses.
+h    - Prints this help message.
+t    - If one argument : Number of minutes of the whole game.
+       If two arguments : First = Black Time, Second = White Time.
+       [No default - You will be prompted if not specified]
+o    - Output File to save the game in.  
+       Game is saved in Bill.Backup if not specified.
+i    - Input File to read a game from.  Start a new game if not specified.
+       Input and output files contain sequences of move numbers for black
+       and white alternately (-- for no move).  Input file cannot be
+       Bill.Backup.
+p    - Positional Input file to read a game from.  It should contain:
+       (1) color to play now, and (2) the board position (. = blank,
+       * = black, o = white) separated by blanks.
+       Only one of i and p should be used.
+c    - Coefficient read - requires two files, each with 64 numbers for
+       Move_Coeff and 64 for Seq_Coeff.  First file is used with eval,
+       and second with eval2.  Currently disabled to test -g.
+g    - Use the new Gaussian Classifier evaluation function, which
+       returns the probability of winning for Bill.
+r    - Specify opponent's rating.  (1800 = Master; 1600 = Expert;
+       1400 = Advanced; 1200 = Intermediate)  Default = 1400.
+v    - Verbosity : Note : All work with -s (no curses). * indicates
+	not meaningful with curses.
+          B = print board [Default = True]. *
+          L = print legals [Default = True unless Bill plays both]. 
+	      printed with -s, and shown as underscore with curses.
+	  R = print expected response after Bill moves. 
+          S = trace search [Default = True].
+	  O = trace search for opponent [Default = False].
+          T = print time [Default = False]. *
+	  M = Suggest move [Default = False].
+	  E = show evaluation of current and leaf node.
+       Upper case = do ; Lower case = don't.
+
+In the current version, these options cannot be changed once the game
+begins.  Switches are not case-sensitive, but verbosity options are.
+
+When the game is over, the game record will be saved in Bill.Backup
+(unless a different name is specified with the -o option).  A more
+complete transcript will be in Bill.log.  Statistics of the game
+are written to files called Black.Stat and White.Stat depending which
+color Bill played.
+
+
+Responses to the top level commands are (not case-sensitive):
+
+q	Quit the game.
+?	Help.
+t	Take back last two moves.  
+a-h	Followed by 1-8 : make move in square specified.
+m	Modify Bill's time.
+l or ^L	Redisplay screen (curses mode only).
+p	Print board (no curses mode only).
+r	Print expected responses (no curses mode only).
+v	Print evaluation of this board.
+^C	During Bill's time : Interrupts Bill and forces it to make a move.
+	During player's time : trapped.
+

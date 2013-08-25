@@ -28,3 +28,23 @@ The software is "as-is" and may even do not compile.
     data file: eval.dat and book.dat. Those wo large binary files are mandatory to run the program, are
     provided by the archive distributed by the official Edax site and are the database of precompiled info
     used by the evaluation function.
+
+(5) bill
+    Bill 1.0 released under the GPLv2, written by Sanjoy Mahajan (http://web.mit.edu/sanjoy/www/) and Kai-Fu Lee.
+    About 210KB. It was once one of the strongest Othello players in the world (but now far surpassed!).
+    The software is described by three accademic papers:
+
+       1. Kai-Fu Lee and Sanjoy Mahajan.
+          Development of a world-class Othello program.
+          Artificial Intelligence 43:21-36 (1990).
+
+       2. Kai-Fu Lee and Sanjoy Mahajan.
+          A pattern-classification approach to evaluation-function learning.
+          Artificial Intelligence 36:1-25 (1988).
+
+       3. Kai-Fu Lee and Sanjoy Mahajan.
+          BILL: A table-based, knowledge-intensive Othello program.
+          Carnegie Mellon CS Dept Technical Report CMU-CS-86-141 (1986).
+
+    The package compile fines on Linux and Windows 7 using Cygwin as long as the system is x86_32.
+    Adding -m32 to CFLAGS and -m32 -L/usr/lib32 to LDFLAGS it compile fine also on Linux x86_64.

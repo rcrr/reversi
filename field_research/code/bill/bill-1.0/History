@@ -1,0 +1,26 @@
+From distant memory:
+
+- Written in Common Lisp at Carnegie-Mellon (1985).
+- Rewritten from scratch in C [see paper 3] (1986).
+- Automatically trained evaluation function using Bayesian
+  classification [see paper 2] (1987).
+- Selective search experiments, although this code isn't in the
+  distribution (1988).
+
+And see paper 1 for probably more accurate history information!
+
+Papers about BILL
+
+
+  1. Kai-Fu Lee and Sanjoy Mahajan.  Development of a world-class
+  Othello program. Artificial Intelligence 43:21-36 (1990).
+
+  2. Kai-Fu Lee and Sanjoy Mahajan.  A pattern-classification approach
+  to evaluation-function learning.  Artificial Intelligence 36:1-25
+  (1988).
+
+  3. Kai-Fu Lee and Sanjoy Mahajan. BILL: A table-based,
+  knowledge-intensive Othello program.  Carnegie Mellon CS Dept
+  Technical Report CMU-CS-86-141 (1986).
+
+This file written by Sanjoy Mahajan (2005-03-17).
