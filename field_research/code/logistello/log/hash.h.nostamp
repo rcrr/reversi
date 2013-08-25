@@ -1,0 +1,115 @@
+#ifndef HASH_H
+#define HASH_H
+
+#include "board.h"
+#include "sboard.h"
+
+
+#define HASH		TRUE	/* Hashtabelle benutzen? */
+
+
+
+#define VALUE_BITS	22	/* 22 */
+#define DEPTH_BITS	5	/* 5  */
+#define LOCK_BITS	27	/* 27 */
+
+#if LOCK_BITS < 32
+#define LOCK_MASK	((1<<LOCK_BITS)-1)
+#else
+#define LOCK_MASK	(0xffffffff)
+#endif
+
+#if 1
+#define LOCK_EQUAL(x,y)	((((x)-(y)) & LOCK_MASK) == 0)
+#else
+#define LOCK_EQUAL(x,y)	((x)==(y))
+#endif
+
+typedef struct {
+
+#if 1 
+
+  signed   int BesterZug : 8;		/* bester gefundener Zug	   */
+  signed   int Wert	 : VALUE_BITS;	/* Wert der Stellung oder Schranke */
+  unsigned int WertArt   : 2;		/* WERT_ART			   */
+
+  unsigned int Hash2     : LOCK_BITS;	/* lock				   */
+  unsigned int Tiefe     : DEPTH_BITS;	/* Tiefe des darunterliegenden Baums*/
+ 
+#else 
+
+  ULONG Hash2;			/* lock				   */
+  int  Wert;			/* Wert der Stellung oder Schranke */
+  SBYTE BesterZug;		/* bester gefundener Zug	   */
+  UBYTE WertArt;		/* WERT_ART			   */
+  SBYTE Tiefe;			/* Tiefe des darunterliegenden Baums*/
+
+#endif
+ 
+} HASHEINTRAG;
+
+
+typedef struct {
+
+  int           HashBits;               /* length of hashaddress        */
+  int           HashMask;               /* 2^HashBits - 1               */
+  int           HashMaxDepth;
+  HASHEINTRAG	*HashTab;		/* pointer to hashtable         */
+
+} HASHDAT;
+
+
+
+#define MAX_DEPTH 	((1<<DEPTH_BITS)-2) 	/* maximum depth of tree */
+
+#define END_DEPTH	((1<<DEPTH_BITS)-1) 	/* endgame hashentry */
+
+
+#if (1<<(VALUE_BITS-1))-1 < WERTMAX
+#error VALUE_BITS to small
+#endif
+
+
+
+
+
+
+#define SETHASH(ph, pbr, t, al, be, best, wert)		\
+{							\
+  ph->BesterZug  = best;				\
+  ph->Wert       = wert;				\
+  ph->Hash2 	 = (pbr)->Hash2;			\
+  ph->Tiefe      = t;					\
+  if      (wert <= al) ph->WertArt = WERT_GRGL_MINIMAX;	\
+  else if (wert >= be) ph->WertArt = WERT_KLGL_MINIMAX;	\
+  else  	       ph->WertArt = WERT_EXAKT;	\
+}
+
+
+#define HASH_WHITE(h)	((h) ^ 1)
+
+enum WERT_ART { 
+
+  WERT_EXAKT=0, WERT_KLGL_MINIMAX, WERT_GRGL_MINIMAX, WERT_UNBEKANNT
+
+};
+
+
+
+
+extern	void	ClearHashTab	(HASHDAT *phash);
+extern  void	InitTabs	(void);
+extern	void	InitHash	(HASHDAT *phash, int HashBits, int HashMaxDepth);
+extern	void	FreeHash	(HASHDAT *phash);
+extern	ULONG	Hash1		(BRETT *, PARTEI);
+extern	ULONG	Hash2		(BRETT *, PARTEI);
+extern	ULONG	Hash2Board	(SPFELD *psf);
+
+
+extern ULONG 
+  ZufBLACK1[100], ZufWHITE1[100], ZufBW1[100],	/* für Hashadresse */
+  ZufBLACK2[100], ZufWHITE2[100], ZufBW2[100];	/* für Lock	   */
+
+extern ULONG ZufBLACK1T[8][100], ZufWHITE1T[8][100];
+
+#endif

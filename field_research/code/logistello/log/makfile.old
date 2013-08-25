@@ -1,0 +1,236 @@
+# LINUX makefile
+
+CC	= g++
+CC_OPTS	= -DGCC -pipe -Dglibc
+
+# normal, debug, prof
+
+MODE = normal
+
+
+# gcc/g++ settings
+
+WARN = \
+-Wall  \
+-Woverloaded-virtual \
+-Wsign-promo \
+-Wsynth \
+-Wunused-parameter \
+-Wunused-variable \
+-Wunused-value \
+-Wunused \
+-Wuninitialized \
+-fpedantic
+
+#-Weffc++
+#-Wunreachable-code 
+#-Wold-style-cast 
+
+
+ifeq ("$(ARCH)", "i686")
+
+  OPT0	= -O16 \
+ 	  -fstrength-reduce \
+  	  -fthread-jumps \
+          -frerun-cse-after-loop \
+	  -fexpensive-optimizations \
+	  -finline-functions \
+
+#	  -fforce-mem \
+#	  -fforce-addr \
+#         -malign-loops=1 -malign-jumps=1 -malign-functions=1 \
+#         -funroll-loops
+
+  OBJ       = ../obj.LINUX
+  OBJ_DEBUG = ../obj.LINUX.debug
+  OBJ_PROF  = ../obj.LINUX.prof
+  OBJ_BP    = ../obj.LINUX.bp
+
+  LIBS    = -lm
+  BP_LIBS = /usr/lib/bmon.o -lm
+  PROF_LIBS = -lm
+
+  EVAL_EXCEPTION = -fno-force-addr
+
+  MACHINE_OPT = $(OPT0)
+  OPT         = -fomit-frame-pointer
+
+  SELF_PROTOS = 0
+  USLEEP      = 1
+  SMALL_HASH  = 0
+
+else 
+
+ifeq ("$(ARCH)", "i486")
+
+  OPT0	= -O16 \
+ 	  -fstrength-reduce \
+  	  -fthread-jumps \
+          -frerun-cse-after-loop \
+	  -fexpensive-optimizations \
+	  -finline-functions \
+
+#          -malign-loops=1 -malign-jumps=1 -malign-functions=1
+
+#         -funroll-loops \
+#	  -fforce-mem \
+#	  -fforce-addr \
+
+  OBJ       = ../obj.LINUX
+  OBJ_DEBUG = ../obj.LINUX.debug
+  OBJ_PROF  = ../obj.LINUX.prof
+  OBJ_BP    = ../obj.LINUX.bp
+
+  LIBS    = -lm
+  BP_LIBS = /usr/lib/bmon.o -lm
+  PROF_LIBS = -lm
+
+  EVAL_EXCEPTION = -fno-force-addr
+
+  MACHINE_OPT = $(OPT0)
+  OPT         = -fomit-frame-pointer
+
+  SELF_PROTOS = 0
+  USLEEP      = 1
+  SMALL_HASH  = 0
+
+else 
+
+ifeq ("$(ARCH)", "i586")
+
+  OPT0	= -O16 \
+ 	  -fstrength-reduce \
+  	  -fthread-jumps \
+          -frerun-cse-after-loop \
+	  -fexpensive-optimizations \
+	  -finline-functions \
+	  -mcpu=k6-2
+
+#         -malign-loops=1 -malign-jumps=1 -malign-functions=1
+#         -funroll-loops \
+#	  -fforce-mem \
+#	  -fforce-addr \
+
+  OBJ       = ../obj.LINUX
+  OBJ_DEBUG = ../obj.LINUX.debug
+  OBJ_PROF  = ../obj.LINUX.prof
+  OBJ_BP    = ../obj.LINUX.bp
+
+  LIBS    = -lm
+  BP_LIBS = /usr/lib/bmon.o -lm
+  PROF_LIBS = -lm
+
+  EVAL_EXCEPTION = -fno-force-addr
+
+  MACHINE_OPT = $(OPT0)
+  OPT         = -fomit-frame-pointer
+
+  SELF_PROTOS = 0
+  USLEEP      = 1
+  SMALL_HASH  = 0
+
+else 
+
+ifeq ("$(ARCH)", "alpha")
+
+  OPT0	= -O6 \
+ 	  -fstrength-reduce \
+	  -fexpensive-optimizations \
+	  -finline-functions
+
+  OBJ       = ../obj.ALPHA
+  OBJ_DEBUG = ../obj.ALPHA.debug
+  OBJ_PROF  = ../obj.ALPHA.prof
+
+  EVAL_EXCEPTION =
+
+  MACHINE_OPT = $(OPT0) -DALPHA
+  OPT         = -fomit-frame-pointer
+
+  SELF_PROTOS = 0
+  USLEEP      = 1
+  SMALL_HASH  = 0
+
+else 
+
+ifeq ("$(ARCH)", "SGI")
+
+  OPT0    = -O6 \
+          -fforce-addr \
+          -fforce-mem \
+          -fstrength-reduce \
+          -fthread-jumps \
+          -frerun-cse-after-loop \
+          -fexpensive-optimizations \
+          -funroll-loops \
+          -fschedule-insns -fschedule-insns2 -fdelayed-branch \
+          -finline-functions
+  OBJ       = ../obj.IRIX
+  OBJ_DEBUG = ../obj.IRIX.debug
+  OBJ_PROF  = ../obj.IRIX.prof
+
+  MACHINE_OPT = $(OPT0) -DIRIX
+  OPT         = -fomit-frame-pointer
+
+  SELF_PROTOS = 0
+  USLEEP      = 0
+  SMALL_HASH  = 0
+
+else
+
+ifeq ("$(OSTYPE)", "solaris")
+
+  OPT0    = -O6 \
+          -fforce-addr \
+          -fforce-mem \
+          -fstrength-reduce \
+          -fthread-jumps \
+          -frerun-cse-after-loop \
+          -fexpensive-optimizations \
+          -funroll-loops \
+          -fschedule-insns -fschedule-insns2 -fdelayed-branch \
+          -finline-functions
+  OBJ       = ../obj.SUNOS
+  OBJ_DEBUG = ../obj.SUNOS.debug
+  OBJ_PROF  = ../obj.SUNOS.prof
+
+  MACHINE_OPT = $(OPT0)
+  OPT         = -fomit-frame-pointer
+
+  SELF_PROTOS = 0
+  USLEEP      = 1
+  SMALL_HASH  = 0
+
+else
+
+ifeq ("$(OSTYPE)", "IRIX64")
+
+  CC = CC
+  CC_OPTS =   
+  WARN =
+
+  OPT0    = -O3 -mips2
+  OBJ       = ../obj.IRIX64
+  OBJ_DEBUG = ../obj.IRIX64.debug
+  OBJ_PROF  = ../obj.IRIX64.prof
+
+  MACHINE_OPT = $(OPT0)
+  OPT         = 
+
+  SELF_PROTOS = 0
+  USLEEP      = 0
+  SMALL_HASH  = 0
+  
+else 
+
+  xxx 
+
+endif
+endif
+endif
+endif
+endif
+endif
+endif
+
+include make.i

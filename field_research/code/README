@@ -1,5 +1,5 @@
-This directory contains a collection of open source code collected on internet,
-related to the subject of the Reversi project.
+This directory contains a collection of open source code gathered on internet,
+and related to the subject of the Reversi project.
 
 The software is "as-is" and may even do not compile.
 
@@ -50,3 +50,9 @@ The software is "as-is" and may even do not compile.
     Adding -m32 to CFLAGS and -m32 -L/usr/lib32 to LDFLAGS it compile fine also on Linux x86_64.
     Hint: after running ./configure edit Makefile, ios/Makefile, and tables/Makefile adding the flags
           to the two env variables. Run make, and make clean. the Bill executable is ready and well functioning.
+
+(6) logistello
+    Logistello has been developed by Michael Buro (https://skatgame.net/mburo/log.html).
+    This is the Logistello source directory which is licensed under the GPL v2.
+    Buro worked on it from 1992 till 1998.
+    I has not been able to build it, further effort and focus is required, I will see if in the future ... who knows.
