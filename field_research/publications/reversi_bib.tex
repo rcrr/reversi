@@ -1,0 +1,101 @@
+\documentclass[twoside, 3p, times, a4paper, 11pt, onecolumn]{elsarticle}
+
+% convert to pdf by running: pdflatex
+
+%%% OTHELLO DIAGRAMS %%%
+\usepackage{othelloboard}
+\let\Oldothellogrid\othellogrid
+\renewcommand{\othellogrid}{\dotmarkings\Oldothellogrid}
+
+% diagram sizes
+\newcommand{\scalefactorthreeup}{0.64}
+\newcommand{\scalefactortwoup}{0.64}
+\newcommand{\scalefactorfourup}{0.48}
+
+% URLs
+\usepackage{url}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,decorations.pathmorphing,backgrounds,positioning,fit,petri,calc}
+
+\usepackage{multirow}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+
+\usepackage{epstopdf}
+
+\usepackage[font={small,sf}, labelfont={small,sf,bf}, margin=1cm]{caption}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[RO,LE]{\thepage}
+\fancyhead[RE,LO]{\slshape \leftmark}
+\fancyfoot{}
+
+\begin{document}
+
+\begin{frontmatter}
+  \title{AI Software Playing Reversi: a Bibliography Research}
+
+  \author[rcrr]{Roberto Corradini}
+  \address[rcrr]{Indipendent researcher, Milan, Italy - rob\_corradini@yahoo.it}
+
+  \begin{abstract}
+    In this work I am maintaining the collection of papers, articles, books and more in general publications
+    that are of interest in the field of automated agents capable to play the Reversi board game (also known as Othello).
+    The development of computer program that raised to the World Championship level and then even further, went on hands in
+    hands with the theoretical research in several fields including areas such as game theory, combinatorial
+    game searches, logic programming, constraint satisfaction, pattern recognition, parallel computing, and more,
+    and of course with the continuous improvements in hardware power.
+  \end{abstract}
+
+\end{frontmatter}
+
+\thispagestyle{empty} %removes the footprint preview submitted to ...
+
+\section{Iago}\label{sec:iago}
+Computers have always excelled in Othello because average human players cannot envision the drastic board changes caused by moves.
+However, few programs played at an advanced level until Paul Rosenbloom created IAGO.
+
+In his article {\it "A World-Championship-Level Othello Program"} \cite{Rosenbloom1982},
+published in 1992, Rosenbloom describes the champion Othello program, IAGO. The work described there includes:
+(1) a task analysis of Othello;
+(2) the implementation of a program based on this analysis and state-of-the-art AI game-playing techniques;
+and (3) an evaluation of the program's performance through games played against other programs and comparisons
+with expert human play.
+
+The original article can be purchased from Science-Direct at the Internet site \url{www.sciencedirect.com}. An almost
+equivalent document can also be found at the Carnegie Mellon University at the URL \url{repository.cmu.edu},
+the scanner quality is not as good as the former but it comes at no charge. 
+
+
+\section{Bill}\label{sec:bill}
+The first version of BILL, a program developed by Kai-Fu Lee and Sanjoy Mahajan,
+captured first place in the 1985 Waterloo Computer Othello Tournament,
+and second place in the 1986 North American Computer Othello Championship.
+Moreover, BILL 1.0 consistently defeated IAGO, the program that inspired it.
+A full description of BILL 1.0 can be found in {\it "BILL: A table-based knowledge-intensive Othello program"} \cite{Lee1986},
+published in 1986 as a technical report by Carnegie Mellon University.
+
+In 1988 the two authors improved BILL and prepared version 2.0 and 3.0 of the program. The main area of improvement has been
+the classification of the features used by the evaluation function by mean of Bayesian inference. Their efforts are described
+in the article {\it "A pattern classification approach to evaluation function learning"} \cite{Lee1988}, published on Artificial
+Intelligence Journal, volume 36 of the same year. The original article can be purchased from Science-Direct at the Internet site
+\url{www.sciencedirect.com}. An equivalent pre-print document is made available by the Carnegie Mellon University at the
+URL \url{repository.cmu.edu}. 
+
+Finally, a new article summarizing all the achievements done by Lee and Mahajan appeared on Artificial Intelligence in 1990 with
+the title {\it "The Development of a World Class Othello Program"} \cite{Lee1990}. It can be obtained again by Science-Direct. 
+
+
+\section{PAIP}\label{sec:paip}
+The book {\it "Paradigms of Artificial Intelligence Programming: Case Studies in Common LISP"} \cite{Norvig1992} written by Peter Norvig
+and published by Morgan Kaufmann in 1992, deserves a full chapter on Reversi AI programming.
+
+\bibliographystyle{alpha}
+%\bibliographystyle{abbrv}
+\bibliography{reversi}
+\end{document}
