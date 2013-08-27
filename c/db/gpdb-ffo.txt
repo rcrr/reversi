@@ -80,6 +80,7 @@ ffo-39;w.wwww..bwbbwb..bwwwbbb.bwwwbb..bwwbwb..bwbbb...b.bb............;w; A8:+6
 # FFO position #40, black to move, Turner vs Monnom, Bruxelles 1997.
 # Principal Variation, PV: a2 b1 c1 -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
 # Final score is +38
+# Move values: A2:+38; C7:+36; D8:+34; C1:+30; B1:+30; G7:+28; D7:+28; C6:+28; F7:+26; A6:+24;
 #
 #    a b c d e f g h 
 # 1  O . . 0 0 0 0 @ 
@@ -287,6 +288,7 @@ ffo-40_a2_b1_c1_pass_b6_c7_a7_b7;wwbbbbbbbwbbbbbbwwbwbwwbwwbbwwbbwwbwwwbb.w.wwww
 # FFO position #41, black to move, Eclipse vs Logistello, Internet (7-12) 1996.
 # Principal Variation, PV: h4 a3 a2 g6 g5 h5 f8 e8 h6 g7 h2 a5 a7 h3 h1 g1
 # Final score is +0
+# Move values: H4:+0; H3:-2; F8:-2; G5:-4; B7:-6; G7:-8; G1:-12; A2:-14; A7:-18; B2:-34;
 #
 #    a b c d e f g h 
 # 1  . O O O O O . . 
@@ -310,6 +312,7 @@ ffo-41;.wwwww....wwwwb..wwwwww.bbbbbww..bbwwb..wwbwbb....wbbw...www..w.;b;FFO po
 # FFO position #42, black to move, Penloup vs Shaman, Cambridge 1998.
 # Principal Variation, PV: g2 h1 c2 g1 f1 d2 b2 a2 b6 c6 b5 a4 a6 g8 a1 b1
 # Final score is +6
+# Move values: G2:+6; A4:+0; C6:-2; C7:-4; C2:-4; D2:-6; B5:-8; B2:-10; B6:-10;
 #
 #    a b c d e f g h 
 # 1  . . O O O . . . 
@@ -335,6 +338,7 @@ ffo-42;..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..;b;FFO po
 # Principal Variation, PV: c7 h4 h5 b8 b7 a8 a7 a5 h3 a4 g3 h6 a3 h2 g7 a2
 # Final score is -12
 # Variation: c7 and g3 both lead to 26-38.
+# Move values: G3:-12; C7:-12; H4:-22; G7:-28; G2:-30; B1:-36;
 #
 #    a b c d e f g h 
 # 1  . . @ @ @ @ @ . 
@@ -353,18 +357,14 @@ ffo-42;..www.......bb.wwwwwwbww.wwwwbwwb.wwwbbw...wwbww...wwwbw..wwww..;b;FFO po
 ffo-43;..bbbbb...bbbb...wwwbb...wwbbbb..wwbbbw.wwwwbww....bwb....bbbbb.;w;FFO position 43, white to move, Brightwell vs Suekuni, WC 1997 (final).;
 #
 #
-#       |1       2       3       4       5       6       7       8       |
-#       |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
-ffo-43-r;..wwwww...wwww...bbbww...bbwwww..bbwwwb.bbbbwbb....wbw....wwwww.;b;FFO position 43, b/w reversed, black to move, Brightwell vs Suekuni, WC 1997 (final).;
-#
-#
 #
 #
 #
 # FFO position #44, white to move, Shaman vs Tastet, WC 1995.
 # Principal Variation, PV: d2 g5 b8 a3 b7 a8 a7 c8 g7 g8 h6 h5 g6 f1 d1 h1 g2
 # Final score is -14
-# Variation: d2 and d8 both lead to 39-25.
+# Variation: d2 and b8 both lead to 39-25.
+# Move values: D2:-14; B8:-14; G2:-18; G6:-18; F1:-22; A7:-24; B7:-26; G5:-28; G8:-28; C8:-28;
 #
 #    a b c d e f g h 
 # 1  . . O . @ . O . 
@@ -389,6 +389,7 @@ ffo-44;..w.b.w...w.bw.w.wwbbbwwwwwwbbbwwwwwbb..bbwwbw....bbbb.....bbb..;w;FFO po
 # FFO position #45, black to move, Tamenori vs Shaman, WC 1995 (final).
 # Principal Variation, PV: b2 c1 g5 h6 g4 h3 b1 g3 h5 h4 g2 a6 a8 a1 
 # Final score is +6
+# Move values: B2:+6; G5:+2; H6:+0; G2:-2; G4:-2; G7:-2; D8:-2; C8:-6; G3:-8; H7:-8; A6:-10; B8:-10; B7:-16; G8:-16;
 #
 #    a b c d e f g h 
 # 1  . . . @ @ @ @ . 
@@ -413,6 +414,7 @@ ffo-45;...bbbb.b.bbbw..bbwbww..bbbwbw..bbwbbw...wbbbww.w.wwww......ww..;b;FFO po
 # FFO position #46, black to move, Caspard vs Juhem, FC 1994.
 # Principal Variation, PV: b3 c1 b1 a3 b2 h3 a5 a4 a2 h7 g7 g2 g1 h1 h2 a1 h8
 # Final score is -8
+# Move values: B3:-8; B7:-10; A3:-12; A4:-16; B5:-22; A5:-24; B6:-26; B1:-26; B2:-28; C1:-34; F8:-36; G7:-38;
 #
 #    a b c d e f g h 
 # 1  . . . @ @ @ . . 
@@ -437,6 +439,7 @@ ffo-46;...bbb....wwwb....wwwbb..wwwwbbb..wwwwbb..wbwbbb..bbww...bbbb.w.;b;FFO po
 # FFO position #47, white to move, Brightwell vs Tastet, WC 1997.
 # Principal Variation, PV: g2 b8 b7 a2 a5 b2 g3 h3 a1 a3 h2 h1 g1 g4 h5 h4 g5 a8
 # Final score is +4
+# Move values: G2:+4; G6:-24; G4:-26; A5:-28; G3:-28; G5:-30; G7:-34; G8:-36;
 #
 #    a b c d e f g h 
 # 1  . O O O O O . . 
@@ -461,6 +464,7 @@ ffo-47;.wwwww....wwww...wwwwb..bbbbbb...wbwwb..wwwbwb....wwbb....bbbb..;w;FFO po
 # FFO position #48, white to move, Brightwell vs Tastet, Paris Open 1997.
 # Principal Variation, PV: f6 g5 g3 f2 h4 h5 h3 g6 g2 a7 h6 g7 d1 c1 b1 e1 g1 b7
 # Final score is +28
+# Move values: F6:+28; G5:+20; G6:+16; G3:+14; E1:+12; D1:+12; H4:+10; H5:+8; H3:+8; C1:-2; B1:-2; B2:-2; G7:-8;
 #
 #    a b c d e f g h 
 # 1  . . . . . @ . . 
@@ -485,6 +489,7 @@ ffo-48;.....b..b.bbb...bbbbww..bwbwwbb.bwwbbb..bwwbb.....wwwb...bbbbbb.;w;FFO po
 # FFO position #49, black to move, Lazard vs Cali, FC 1991.
 # Principal Variation, PV: e1 h4 g6 g4 h5 h6 b2 f8 d8 b8 c7 h3 g2 a1 b1 h2 h1 g1 h7
 # Final score is +16
+# Move values: E1:+16; B1:+2; B2:-14; A2:-16; D8:-18; B7:-32; G2:-38; C7:-40;
 #
 #    a b c d e f g h 
 # 1  . . O @ . O . . 
@@ -501,3 +506,47 @@ ffo-48;.....b..b.bbb...bbbbww..bwbwwbb.bwwbbb..bwwbb.....wwwb...bbbbbb.;w;FFO po
 #     |1       2       3       4       5       6       7       8       |
 #     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 ffo-49;..wb.w....bbww..wwwwwbb.wwwwwb..wwwbwbb.wwwwbb.....wwb....b.w...;b;FFO position 49, black to move, Lazard vs Cali, FC 1991.;
+#
+#
+#
+#
+#
+# FFO positions from 50 to 59.
+#
+ffo-50;....b.....bbb....wwwbwww.wwwbwww.wbwbwbw.wwbbwww..wwbw....w..w..;b; D8:+10. H7:+6. A4:+2. B2:+2. G7:-2. G8:-2. A2:-4. A5:-6. A7:-6. G2:-6. H2:-6. A6:-8. A3:-10. B8:-14. B7:-18.;
+ffo-51;....w.b......b.....bbbw.wbbbbbww.bbwwbwwbbwbbbww..wwww.w....ww..;w; E2:+6. A3:+6. F1:+4. G7:+2. C2:+0. B3:-2. D2:-4. G2:-6. C3:-10. A5:-14.;
+ffo-52;...b.......wb..b..bwwbbbbbbwbbbbbbbwwbbbbbbwwwbb..bw...b........;w; A3:+0. E1:-2. B3:-2. F2:-8. F1:-12. B8:-12. G2:-16. B7:-18. B2:-22. A7:-26.;
+ffo-53;....ww.....www...bbbbwww..bbwwbw.bbbbbww..wwwbww..b.wb.w.....b..;b; D8:-2. C1:-4. E8:-6. D1:-8. G1:-8. G7:-12. B6:-12. B7:-14. G2:-18. H2:-20. D7:-22.;
+ffo-54;..www...bbww....bbbbwwwwbbbbwb..bbbwbb..bbwww......www.....w....;b; C7:-2. F8:-4. F2:-4. C8:-4. F6:-10. G8:-12. B1:-14. E2:-16. H2:-20. E8:-22.;
+ffo-55;........b.b......bbbbwwwwwbwbb..wwwbbbb.wwbbbb..w.wwwb.....ww...;w; G6:+0. B7:+0. E2:+0. G4:+0. F2:-2. H4:-2. D2:-2. C1:-4. H5:-4. F8:-6. D1:-12. G7:-16. A3:-16. B2:-28.;
+ffo-56;..bbbbb...bbbb...wwwbb...wwbwb...wbbbbb.wwwwwbw....wbb..........;w; H5:+2. F8:-8. G3:-12. E8:-14. G4:-20. G8:-28. G7:-32. G2:-34. B1:-40.;
+ffo-57;...................bbwww..bbbwww..bbwbww.wwwbbbw..wbww.w.wwwww..;b; A6:-10. F2:-12. B5:-16. A7:-18. G7:-20. G2:-20. B7:-22. G8:-52.;
+ffo-58;..bwww....www....wwwbww..wwwwbw..wbwbbb.wwbbbb....b.bb..........;b; G1:+4. A5:-6. B2:-10. H2:-18. A4:-22. A3:-22. F2:-22. A7:-24. H4:-26. B1:-26. A2:-28. H3:-36. G2:-38.;
+ffo-59;.......................w..wwwww...wwwwwbwwwwbbbb..bbwwbb..bb.w.b;b; H4:+64. G8:+64. E8:+64. A5:+62. B3:+54. F3:+52. B5:+44. D3:+38. E3:+36. G3:+34. C3:+30.;
+#
+#
+#
+#
+#
+# FFO positions from 60 to 79.
+#
+ffo-60;...wwww....www....bwbwbb..bwwbbb..bwwbbb..bwwwbb..wbbb.b..bbbb..;b; C2:+20. B8:+18. C1:+10. B6:+0. G7:-10. G2:-12. B7:-18.;
+ffo-61;.bbbb...b.bbwb..bbbbwbb.bwwbwwwwbwwwwww.bbwwww..b...w...........;w; H3:-14. G1:-14. F1:-16. B7:-22. H2:-30. B2:-34. G2:-46.;
+ffo-62;..wwww....wwbb....wbbbbbbbwbbwww.bbbbww.wbbbbbbw....b...........;w; E8:+28. D7:+24. H7:+24. F7:+18. C7:+14. D8:+10. A5:-2. G7:-4. H2:-8. G2:-20.;
+ffo-63;..b.......b.b....wbbbb...wbbbbw.wwbwbwwwwwwwwbw...bwbb.....bbbb.;w; F2:-2. B8:-4. D2:-8. C8:-10. E1:-10. B7:-12. F1:-14. G3:-16. D1:-18. G2:-18. G7:-24. B1:-28.;
+ffo-64;..w..b....w..b.w.wwbbbww..bbbbbw..bbwwww.bbbbbb...bbb....b.www..;w; B4:+20. E1:+18. E2:+18. B5:+18. D2:+10. A5:+8. F7:+6. C8:-6. G7:-12. H7:-16.;
+ffo-65;....ww....wwwwb...wbbbb.w.wbbbb..wwbbwb.bbwbbbb...wwww.......w..;b; G1:+10. C8:+8. A5:+8. B7:+6. D8:+4. B3:+2. D1:+0. B1:+0. E8:-4. B4:-6. C1:-8. B8:-10. G8:-14. B2:-30.;
+ffo-66;.www....b.wbb...bbwbbww.bwbbww..bbwwww..bbwwww....www.....w.....;b; H3:+30. G4:+28. F8:+26. G5:+18. F7:+16. G6:+12. G7:+10. D8:+6. B2:-14. E8:-16.;
+ffo-67;.bbbbb....bwbb..wwwbwbw..wwwbwww.wwwbbw...wwwb.w...wb...........;b; H3:+22. C8:+20. A6:+20. B6:+14. D8:+14. H5:+12. B2:+12. A4:+12. C7:+6. B7:+2. A5:-4. H2:-14.;
+ffo-68;...www....wwww....wbbwwb.wwbbwb..wwbbbb..bwwbb....www........w..;b; E8:+28. A5:+26. A6:+24. A4:+24. H2:+22. C8:+22. B1:+22. C1:+20. B3:+18. G2:+10. B2:+8. B7:+8. B8:+8. D8:+4. G1:-4.;
+ffo-69;..wwww.....www...wwwww..bbwbbww..wbwbww.wbbbbbb...b.b...........;b; H3:+0. H5:-2. A2:-2. A5:-4. G2:-4. C2:-12. H4:-12. B2:-12. G3:-12. G1:-26.;
+ffo-70;...b....b.bbb...bbbb....bbbwww..bbbbww..bbwwbbb.b.wwbb....w.....;b; E3:-24. E8:-26. D8:-26. G5:-26. F3:-44. B7:-48. G4:-56.;
+ffo-71;..................bbbbb..bbbbbw..wbbbwwb..wbwbbb..wwbb.b...bbbb.;w; D2:+20. F2:+18. B3:+16. A4:+10. H2:+10. E2:+4. G2:-22. G7:-22. C2:-30.;
+ffo-72;...w......wwbb...bbwbbb.bbbbwwbb.bbbbww...bbbww....bb.......b...;w; E1:+24. A3:+22. A6:+22. C8:+18. F1:+16. B2:+16. C7:+16. H3:+16. B6:+14. D8:+10. A5:+10. B7:+6. H5:+4. H2:+4. G2:-14.;
+ffo-73;..b..b....bbb...wwbbbb...wwbbb...wbwbbw.wwwbbbb.w..wbw..........;w; G4:-4. D8:-6. H5:-6. H6:-8. F8:-8. E1:-12. G3:-12. G2:-12. F2:-20. G7:-22. D1:-22.;
+ffo-74;....b.....wbbw.b..wbwwbb.wwbbwbb..wbbw.b..bbww....bwww.......w..;w; F1:-30. B5:-32. C1:-32. B6:-36. D1:-42. B8:-44. B7:-44. C8:-44.;
+ffo-75;....w.......ww....bbwb.w.bbbwbww..wwwww...wwwbwb..wwwwb......w..;b; D2:+14. H5:+12. D1:+8. B6:+4. F1:+0. C8:+0. H7:-2. D8:-4. G1:-6. G8:-6. B8:-10. G3:-16. B7:-34.;
+ffo-76;...w......ww.w.....wwwb.wwwwwwb..bbbbwbb..wwwwww..www.......w...;b; A3:+32. F7:+30. E1:+30. C1:+30. H7:+28. F8:+28. E2:+20. C3:+14. D8:+14. G7:+14. B8:+12. G2:+12. B7:+12. B3:+12. C8:+10. G1:-4.;
+ffo-77;..w.wb..b.www...bbwww...bbwbwwww.wwwww..w.b.w.....wb............;b; B7:+34. C8:+30. B6:+26. D6:+24. B2:+22. D1:+14. F2:+12. F6:+12. F3:+4. H3:+0. F7:-4.;
+ffo-78;....w.....wwww...wwwb.b.wwbwbbbb.bwwb...bwww.b....ww.......w....;b; F1:+8. A7:+6. C8:+4. A2:+2. A3:+2. E8:-2. C1:-2. G1:-8. E6:-10. B8:-10. B7:-18. B2:-20. B1:-22.;
+ffo-79;..............b.....w.bb...wwwb.wwwwbwbb..wwwwww..w.ww.w....ww..;b; D7:+64. D8:+62. H8:+56. C3:+30. B8:+16. C4:+14. E2:+12. D2:+12. G7:-2.;
