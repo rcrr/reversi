@@ -1,0 +1,224 @@
+# main Makefile for Bill
+# @configure_input@
+
+version = 1.0
+
+CC=@CC@
+
+bill_includedir = @top_srcdir@/include
+
+# the -W... switches work with gcc.  You don't need to uncomment them.
+# XCFLAGS = -O2 # -Wchar-subscripts -Wcomment -Wformat -Wparentheses -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wtraditional -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wredundant-decls
+
+CFLAGS= @CFLAGS@ @CPPFLAGS@ -I@top_srcdir@ -I$(bill_includedir) @DEFS@
+LDFLAGS=@LDFLAGS@
+
+LOADLIBES = @LIBS@
+
+# STUPID_CC is either `yes' or `no', depending whether $(CC) can accept
+# -c and -o together.  If it can't, define a pattern rule that fakes
+# -c and -o together, by moving the generated .o to where it should have
+# been put to begin with.
+STUPID_CC=@STUPID_CC@
+ifeq ($(STUPID_CC),yes)
+MV=@MV@
+%.o: %.c
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< ; $(MV) $(@F) $@
+endif
+
+# need a GNU version of tar if you want to make a .tar.gz distribution
+TAR = @TAR@
+
+IO = io/bill.o io/io.o io/player.o io/print.o io/sig.o io/computer.o io/stat.o misc/search_table.o
+
+AB = ab/zero.o ab/search.o ab/steal.o ab/hash.o ab/time.o
+
+SELECT = select/select.o select/dump.o select/expand.o
+
+EVAL = \
+eval/eval_table.o \
+eval/eval.o eval/compute4.o eval/combine4.o eval/win_prob4.o \
+eval/bayes_data1.o eval/bayes_data2.o eval/coef.o eval/coef4.o \
+eval/eval_newedge.o eval/compute4_newedge.o
+
+MISC = \
+misc/init.o misc/init_data.o misc/global.o misc/utils.o misc/copy_board.o misc/error.o \
+move/move.o move/move2.o \
+book/book.o book/Black_Opening.o book/White_Opening.o
+
+OBJS = $(IO) $(AB) $(SELECT) $(EVAL) $(MISC) tables/tables.a
+
+all: always Bill ios/front-end
+Bill: Makefile $(OBJS)
+	$(CC) $(LDFLAGS) -o Bill $(OBJS) $(LOADLIBES) -lm
+
+.PHONY: always all clean distclean dist
+
+# always remake the tables.a archive (used by the `all' target, so that the 
+# tables.a archive can be remade if needed, and if it is remade, then
+# Bill will be relinked (even if none of the .c files in the non-tables
+# part of Bill are changed).
+tables/tables.a always:	
+	$(MAKE) -C tables
+
+ios/front-end:
+	$(MAKE) -C ios
+
+# cleanup
+
+clean:
+	$(MAKE) -C tables clean
+	-rm -f */*.o *~ */*~ Bill.log Black.stat White.stat Bill.moves  config.status config.log core */core
+distclean: clean
+	$(MAKE) -C tables distclean
+	-rm -f */*.a Bill config.cache config.h
+
+TAROPTS=--exclude='*~' --exclude=Makefile --exclude='*.moves'
+
+dist: distclean
+	cd .. && $(TAR) $(TAROPTS) -zcvf bill-$(version).tar.gz ./bill-$(version)
+
+$(bill_includedir)/ab_info.h: $(bill_includedir)/eval.h
+$(bill_includedir)/check.h: $(bill_includedir)/tourn.h
+$(bill_includedir)/eval.h: $(bill_includedir)/pfi.h
+$(bill_includedir)/features8.h: $(bill_includedir)/bill-features.h
+$(bill_includedir)/general.h: $(bill_includedir)/move.h
+$(bill_includedir)/general.h: $(bill_includedir)/eval.h
+$(bill_includedir)/node.h: $(bill_includedir)/general.h
+$(bill_includedir)/node.h: $(bill_includedir)/board.h
+$(bill_includedir)/node.h: $(bill_includedir)/color.h
+$(bill_includedir)/node.h: $(bill_includedir)/move.h
+$(bill_includedir)/node.h: $(bill_includedir)/bill-features.h
+$(bill_includedir)/node.h: $(bill_includedir)/eval.h
+$(bill_includedir)/node.h: $(bill_includedir)/killer.h
+book/book.o: $(bill_includedir)/files.h
+book/book.o: $(bill_includedir)/general.h
+book/book.o: $(bill_includedir)/node.h
+eval/bayes_data1.o: $(bill_includedir)/bill-features.h
+eval/coef.o: $(bill_includedir)/general.h
+eval/coef1.o: $(bill_includedir)/general.h
+eval/combine21.o: $(bill_includedir)/bill-features.h
+eval/combine4.o: $(bill_includedir)/node.h
+eval/compute4.o: $(bill_includedir)/node.h
+eval/compute4.o: $(bill_includedir)/bill-features.h
+eval/compute4.o: $(bill_includedir)/color.h
+eval/compute4.o: $(bill_includedir)/extract.h
+eval/eval.o: $(bill_includedir)/node.h
+eval/eval21.o: $(bill_includedir)/general.h
+eval/eval21.o: $(bill_includedir)/node.h
+eval/eval80.o: $(bill_includedir)/node.h
+eval/eval9.o: $(bill_includedir)/general.h
+eval/eval9.o: $(bill_includedir)/node.h
+eval/eval_table.o: $(bill_includedir)/eval.h
+eval/eval_table.o: $(bill_includedir)/general.h
+eval/linearn.o: $(bill_includedir)/bill-features.h
+eval/linearn.o: $(bill_includedir)/eval.h
+eval/merge17.o: $(bill_includedir)/bill-features.h
+eval/merge9.o: $(bill_includedir)/bill-features.h
+eval/mergen.o: $(bill_includedir)/bill-features.h
+eval/win_prob4.o: $(bill_includedir)/general.h
+eval/win_prob4.o: $(bill_includedir)/bill-features.h
+eval/win_prob4.o: $(bill_includedir)/eval.h
+eval/win_probn.o: $(bill_includedir)/bill-features.h
+eval/win_probn.o: $(bill_includedir)/check.h
+io/bill.o: $(bill_includedir)/general.h
+io/bill.o: $(bill_includedir)/node.h
+io/bill.o: $(bill_includedir)/tourn.h
+io/bill.o: $(bill_includedir)/search.h
+io/bill.o: $(bill_includedir)/files.h
+io/bill.o: $(bill_includedir)/ab_info.h
+io/bill.o: $(bill_includedir)/ss_info.h
+io/computer.o: $(bill_includedir)/node.h
+io/computer.o: $(bill_includedir)/search.h
+io/computer.o: $(bill_includedir)/check.h
+io/computer.o: $(bill_includedir)/stat.h
+io/io.o: $(bill_includedir)/general.h
+io/io.o: $(bill_includedir)/hash.h
+io/io.o: $(bill_includedir)/files.h
+io/io.o: $(bill_includedir)/node.h
+io/io.o: $(bill_includedir)/search.h
+io/io.o: $(bill_includedir)/tourn.h
+io/io.o: $(bill_includedir)/exact.h
+io/player.o: $(bill_includedir)/stat.h
+io/player.o: $(bill_includedir)/general.h
+io/player.o: $(bill_includedir)/search.h
+io/player.o: $(bill_includedir)/node.h
+io/player.o: $(bill_includedir)/tourn.h
+io/print.o: $(bill_includedir)/color.h
+io/stat.o: $(bill_includedir)/node.h
+io/stat.o: $(bill_includedir)/general.h
+io/stat.o: $(bill_includedir)/stat.h
+io/stat.o: $(bill_includedir)/hash.h
+misc/copy_board.o: $(bill_includedir)/board.h
+misc/error.o: $(bill_includedir)/tourn.h
+misc/global.o: $(bill_includedir)/node.h
+misc/global.o: $(bill_includedir)/version.h
+misc/global.o: $(bill_includedir)/general.h
+misc/global.o: $(bill_includedir)/hash.h
+misc/global.o: $(bill_includedir)/move.h
+misc/global.o: $(bill_includedir)/killer.h
+misc/global.o: $(bill_includedir)/eval.h
+misc/global.o: $(bill_includedir)/ab_info.h
+misc/global.o: $(bill_includedir)/ss_info.h
+misc/init.o: $(bill_includedir)/node.h
+misc/init.o: $(bill_includedir)/hash.h
+misc/init_data.o: $(bill_includedir)/board.h
+misc/init_data.o: $(bill_includedir)/color.h
+misc/search_table.o: $(bill_includedir)/general.h
+misc/utils.o: $(bill_includedir)/node.h
+misc/utils.o: $(bill_includedir)/search.h
+misc/utils.o: $(bill_includedir)/stat.h
+misc/utils.o: $(bill_includedir)/ab_info.h
+move/move.o: $(bill_includedir)/node.h
+move/move.o: $(bill_includedir)/hash.h
+move/move.o: $(bill_includedir)/prune.h
+move/move.o: $(bill_includedir)/check.h
+move/move.o: $(bill_includedir)/general.h
+move/move2.o: $(bill_includedir)/node.h
+move/move2.o: $(bill_includedir)/prune.h
+move/move2.o: $(bill_includedir)/killer.h
+move/move2.o: $(bill_includedir)/hash.h
+ab/ab_info.o: $(bill_includedir)/ab_info.h
+ab/hash.o: $(bill_includedir)/node.h
+ab/hash.o: $(bill_includedir)/hash.h
+ab/hash.o: $(bill_includedir)/check.h
+ab/search.o: $(bill_includedir)/node.h
+ab/search.o: $(bill_includedir)/general.h
+ab/search.o: $(bill_includedir)/search.h
+ab/search.o: $(bill_includedir)/tourn.h
+ab/search.o: $(bill_includedir)/eval.h
+ab/search.o: $(bill_includedir)/debug.h
+ab/search.o: $(bill_includedir)/check.h
+ab/steal.o: $(bill_includedir)/search.h
+ab/steal.o: $(bill_includedir)/general.h
+ab/steal.o: $(bill_includedir)/node.h
+ab/steal.o: $(bill_includedir)/prune.h
+ab/steal.o: $(bill_includedir)/tourn.h
+ab/steal.o: $(bill_includedir)/exact.h
+ab/steal.o: $(bill_includedir)/ab_info.h
+ab/time.o: $(bill_includedir)/node.h
+ab/zero.o: $(bill_includedir)/ab_info.h
+ab/zero.o: $(bill_includedir)/search.h
+ab/zero.o: $(bill_includedir)/node.h
+ab/zero.o: $(bill_includedir)/prune.h
+ab/zero.o: $(bill_includedir)/debug.h
+ab/zero.o: $(bill_includedir)/tourn.h
+ab/zero.o: $(bill_includedir)/prune.h
+ab/zero.o: $(bill_includedir)/exact.h
+ab/zero.o: $(bill_includedir)/check.h
+ab/zero.o: $(bill_includedir)/stat.h
+select/dump.o: $(bill_includedir)/node.h
+select/expand.o: $(bill_includedir)/pfi.h
+select/expand.o: $(bill_includedir)/node.h
+select/expand.o: $(bill_includedir)/search.h
+select/expand.o: $(bill_includedir)/prune.h
+select/expand.o: $(bill_includedir)/exact.h
+select/expand.o: $(bill_includedir)/check.h
+select/select.o: $(bill_includedir)/node.h
+select/select.o: $(bill_includedir)/exact.h
+select/select.o: $(bill_includedir)/check.h
+select/select.o: $(bill_includedir)/eval.h
+select/select.o: $(bill_includedir)/ss_info.h
+eval/compute4.o eval/compute4_newedge.o: $(bill_includedir)/pack.h
+
+misc/copy_board.o ab/time.o io/computer.o io/bill.o io/io.o io/player.o io/sig.o misc/error.o: @srcdir@/config.h

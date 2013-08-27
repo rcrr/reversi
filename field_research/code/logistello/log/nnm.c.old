@@ -1,0 +1,522 @@
+// table learning with NNs / 1.97
+// one example at a time
+
+
+#include "main.h"
+#include "crt.h"
+#include "patt.h"
+#include "eval.h"
+
+const char FILE_NAME[] = "end.sfk";
+const int  IND_NUM     = 12;  // number of indices
+const int  INFO_MAXNUM = 800000;
+const int  HIST_NUM    = 20;
+const float BETA = 0.05;
+
+#undef DISC_MIN
+#undef DISC_MAX
+
+const int  DISC_MIN = 54;
+const int  DISC_MAX = 62;
+const int  DISC_NUM = (DISC_MAX-DISC_MIN+1);
+
+#define SMALL FALSE
+
+
+#define P8(p1,p2,p3,p4,p5,p6,p7,p8) \
+(3280 + (3*(3*(3*(3*(3*(3*(3*p1+p2)+p3)+p4)+p5)+p6)+p7)+p8))
+
+#define P10(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10) \
+(29524 + (3*(3*(3*(3*(3*(3*(3*(3*(3*p1+p2)+p3)+p4)+p5)+p6)+p7)+p8)+p9)+p10))
+
+
+#if 0
+
+// disc difference
+
+inline float F(int diff)
+{
+  return diff;
+}
+
+#else
+
+// sigmoid 
+
+inline float F(int diff)
+{
+  return 100*(2.0/(1+exp(-0.073*diff)) - 1.0);
+}
+
+#endif
+
+
+
+
+
+
+
+
+class Entry {
+public:
+
+  double y, sum, last_avg;
+  int    n, short_n;
+  double short_sum;
+  Entry  *pmirror;
+  static int reset_num;
+
+  Entry() { 
+    y = sum = short_sum = last_avg = 0; 
+    n = short_n = 0; 
+    pmirror = 0;
+  }
+
+  void update(float delta) 
+  {
+
+#if 0
+
+    // check overflow
+
+    if (delta != 0) {
+
+      static double min_factor = 2;
+      float z = y+delta;
+      double f = abs((z-y)/delta);
+
+      if (f < min_factor) {
+	cout << setprecision(15) << f << endl;
+	min_factor = f;
+      }
+    }
+
+#endif
+
+    y += delta;
+    sum += y; 
+    n++;
+    short_sum += y;
+    short_n++;
+
+    if (pmirror) {
+
+      pmirror->y   = y;
+      pmirror->sum = sum ;
+      pmirror->n   = n;
+      pmirror->short_sum = short_sum;
+      pmirror->short_n = short_n;
+
+    }
+  }
+
+ 
+  void reset()
+  {
+    n = short_n;
+    sum = short_sum;
+    y = short_avg();
+    reset_num++;
+  }
+
+  void short_reset()
+  {
+    short_n = 1;
+    short_sum = y;
+  }
+
+  float avg()
+  {
+    if (n) return sum/n;
+    return 0;
+  }
+
+  float short_avg()
+  {
+    if (short_n) return short_sum/short_n;
+    return 0;
+  }
+
+
+};
+
+
+int Entry::reset_num = 0;
+
+
+struct Info {
+  Entry *pentry[IND_NUM]; 
+  short par, centerdiff, disc_num;
+  float val;
+};
+
+
+void _abort(void) { exit(20); }
+
+static Entry *patt1;
+static Entry *patt2;
+
+
+static void WriteDisc(FILE *fp, PARTEI Partei)
+{
+  if      (Partei == LEER)  fprintf(fp, "-");
+  else if (Partei == BLACK) fprintf(fp, "X");
+  else			    fprintf(fp, "O");
+}
+
+static void WritePatt(FILE *fp, int n, int discnum)
+{
+  int i, r, Cont[20];
+
+  if (discnum > 20) Error("WritePatt: too many discs");
+
+  FOR (i, discnum) {
+
+    r = n % 3;
+    
+    if      (r == 0) Cont[i] = WHITE;
+    else if (r == 1) Cont[i] = LEER;
+    else             Cont[i] = BLACK;
+
+    n /= 3;
+  }
+
+  FOR (i, discnum) WriteDisc(fp, Cont[discnum-1-i]);
+}
+  
+
+static BOOL finished;
+
+void ctrlc(int)
+{
+  finished = TRUE;
+}
+
+
+
+int main()
+{
+  FILE *fp;
+  
+#if SMALL
+  const int pat_disc_num = 8;
+  int perm1[] = { 7, 6, 5, 4, 3, 2, 1, 0 };
+#else
+  const int pat_disc_num = 10;
+  int perm1[] = { 7, 6, 5, 4, 3, 2, 1, 0, 9, 8 };
+#endif
+
+  int config_num = Pot3[pat_disc_num];
+  Info *infos;
+  int  num, i;
+
+  signal(SIGINT, ctrlc);
+
+  infos = new Info[INFO_MAXNUM];
+  if (!infos) Error("no mem.");
+
+  patt1 = new Entry[config_num];
+  patt2 = new Entry[config_num];
+ 
+  if (!patt1 || !patt2) Error("no memory");
+
+  fp = fopen(FILE_NAME, "r");
+  if (!fp) Error("can't open file");
+
+
+  // patt1 (edge) is symmetrical => compute mirror-pointers
+
+  FOR (i, config_num) {
+    
+    int list[20+1], j;
+
+    int s = i;
+
+    FOR (j, pat_disc_num) {
+      list[pat_disc_num-1-j] = s % 3;
+      s /= 3;
+    }
+
+    s = 0;
+
+    FOR (j, pat_disc_num) s = s+s+s+list[perm1[j]];
+
+    patt1[i].pmirror = &patt1[s];
+
+    //    printf("%d->%d\n", i, s);
+  }
+
+
+
+
+
+  printf("reading boards ..."); fflush(stdout);
+
+  for (num=0; ; num++) {
+
+    SPFELD bo;
+
+    if (!fSfRead(fp, &bo, 1)) break;
+
+    int val = bo.Marke;
+
+    if (val < MA_DIFF || val > MA_DIFF+128) {
+      Error("no diff-label");
+    }
+
+    if (num >= INFO_MAXNUM) break;
+
+    Info &inf = infos[num];
+    SBYTE *p = bo.p;
+
+    inf.val = F(val - (MA_DIFF+64));
+
+    //    cout << val- (MA_DIFF+64) << " " << inf.val << endl;
+
+    int disc_num = SfAnz(&bo);
+    if (disc_num < DISC_MIN || disc_num > DISC_MAX)
+      Error("discnum?");
+
+    inf.par =  disc_num & 1;
+    inf.disc_num = disc_num;
+
+    inf.centerdiff = p[C3]+p[C4]+p[C5]+p[C6]+
+                     p[D3]+p[D4]+p[D5]+p[D6]+
+                     p[E3]+p[E4]+p[E5]+p[E6]+
+                     p[F3]+p[F4]+p[F5]+p[F6];
+
+#if SMALL
+
+    // edge
+
+    inf.pentry[0] = &patt1[PATT8(+,A1,B1,C1,D1,E1,F1,G1,H1)];
+    inf.pentry[1] = &patt1[PATT8(+,A8,B8,C8,D8,E8,F8,G8,H8)];
+    inf.pentry[2] = &patt1[PATT8(+,A1,A2,A3,A4,A5,A6,A7,A8)];
+    inf.pentry[3] = &patt1[PATT8(+,H1,H2,H3,H4,H5,H6,H7,H8)];
+
+    // 2x4 corner
+
+    inf.pentry[4] = &patt2[PATT8(+,A1,B1,C1,D1,A2,B2,C2,D2)];
+    inf.pentry[5] = &patt2[PATT8(+,H1,G1,F1,E1,H2,G2,F2,E2)];
+    inf.pentry[6] = &patt2[PATT8(+,A8,B8,C8,D8,A7,B7,C7,D7)];
+    inf.pentry[7] = &patt2[PATT8(+,H8,G8,F8,E8,H7,G7,F7,E7)];
+    inf.pentry[8] = &patt2[PATT8(+,A1,A2,A3,A4,B1,B2,B3,B4)];
+    inf.pentry[9] = &patt2[PATT8(+,H1,H2,H3,H4,G1,G2,G3,G4)];
+    inf.pentry[10]= &patt2[PATT8(+,A8,A7,A6,A5,B8,B7,B6,B5)];
+    inf.pentry[11]= &patt2[PATT8(+,H8,H7,H6,H5,G8,G7,G6,G5)];
+
+#else
+
+    // edge+2X
+
+    inf.pentry[0] = &patt1[PATT10(+,A1,B1,C1,D1,E1,F1,G1,H1,B2,G2)];
+    inf.pentry[1] = &patt1[PATT10(+,A8,B8,C8,D8,E8,F8,G8,H8,B7,G7)];
+    inf.pentry[2] = &patt1[PATT10(+,A1,A2,A3,A4,A5,A6,A7,A8,B2,B7)];
+    inf.pentry[3] = &patt1[PATT10(+,H1,H2,H3,H4,H5,H6,H7,H8,G2,G7)];
+
+    // 2x5 corner
+
+    inf.pentry[4] = &patt2[PATT10(+,A1,B1,C1,D1,A2,B2,C2,D2,E1,E2)];
+    inf.pentry[5] = &patt2[PATT10(+,H1,G1,F1,E1,H2,G2,F2,E2,D1,D2)];
+    inf.pentry[6] = &patt2[PATT10(+,A8,B8,C8,D8,A7,B7,C7,D7,E8,E7)];
+    inf.pentry[7] = &patt2[PATT10(+,H8,G8,F8,E8,H7,G7,F7,E7,D8,D7)];
+    inf.pentry[8] = &patt2[PATT10(+,A1,A2,A3,A4,B1,B2,B3,B4,A5,B5)];
+    inf.pentry[9] = &patt2[PATT10(+,H1,H2,H3,H4,G1,G2,G3,G4,H5,G5)];
+    inf.pentry[10]= &patt2[PATT10(+,A8,A7,A6,A5,B8,B7,B6,B5,A4,B4)];
+    inf.pentry[11]= &patt2[PATT10(+,H8,H7,H6,H5,G8,G7,G6,G5,H4,G4)];
+
+#endif
+
+
+  }
+  
+  printf("%d\n", num);
+
+  fclose(fp);
+  
+
+  double delta_sum = 0;
+  const int CHECK_NUM = 65536*2;  // power of 2
+  const float BOUND = 0.3;
+  int test_num[DISC_NUM], correct_num[DISC_NUM];
+
+  FOR (i, DISC_NUM) correct_num[i] = test_num[i] = 0;
+
+  Entry inter[2];
+  Entry centerdiff;
+  
+  finished = 0;
+
+  for (int iter=0; ; iter++) {
+
+    if (iter && !(iter & (CHECK_NUM-1))) {
+
+      double avg_local_diff = 0;
+      int i;
+
+#if SMALL
+      int num_config = NUM8;
+#else
+      int num_config = NUM10;
+#endif
+
+
+      if (finished) break;
+
+
+      // reset?
+
+      FOR (i, num_config) {
+
+	avg_local_diff += abs(patt1[i].avg() - patt1[i].last_avg);
+	patt1[i].last_avg = patt1[i].avg();
+
+	if (patt1[i].short_n > 4 && abs(patt1[i].avg() - patt1[i].short_avg()) > BOUND) {
+	  patt1[i].reset();
+	  //	  cout << "." << flush;
+	}
+
+	patt1[i].short_reset();
+
+	avg_local_diff += abs(patt2[i].avg() - patt2[i].last_avg);
+	patt2[i].last_avg = patt2[i].avg();
+
+	if (patt2[i].short_n > 4 && abs(patt2[i].avg() - patt2[i].short_avg()) > BOUND) {
+	  patt2[i].reset();
+	  //	  cout << "." << flush;
+	}
+
+	patt2[i].short_reset();
+	
+      }
+      
+      printf("%8d r=%5d agd=%.3f ald=%.2e i0=%.2f (%.2f) i1=%.2f (%.2f) c=%.2f (%.2f) ",
+	     iter, 
+	     Entry::reset_num, 
+	     delta_sum / CHECK_NUM, avg_local_diff / (2*num_config), 
+	     inter[0].avg(), inter[0].short_avg(), 
+	     inter[1].avg(), inter[1].short_avg(), 
+	     centerdiff.avg(), centerdiff.short_avg());
+
+      FOR (i, DISC_NUM)
+	printf("%.1f%% ", 100.0*correct_num[i]/(test_num[i]+0.01)); 
+
+      puts("");
+
+      inter[0].short_reset();
+      inter[1].short_reset();
+      centerdiff.short_reset();
+
+      Entry::reset_num = 0;
+      FOR (i, DISC_NUM) correct_num[i] = test_num[i] = 0;
+      delta_sum = 0;
+
+      printf("    "); 
+
+#if SMALL
+      printf("v1=%.2f (%.2f) ", 
+	     patt1[P8(1,1,1,1,1,1,1,1)].avg(), patt1[P8(1,1,1,1,1,1,1,1)].short_avg());
+
+      printf("v2=%.2f (%.2f) ", 
+	     patt1[P8(0,1,1,1,1,1,1,0)].avg(), patt1[P8(0,1,1,1,1,1,1,0)].short_avg());
+
+      printf("v3=%.2f (%.2f) ", 
+	     patt1[P8(0,0,1,1,1,1,1,0)].avg(), patt1[P8(0,0,1,1,1,1,1,0)].short_avg());
+
+      printf("v4=%.2f (%.2f) ", 
+	     patt1[P8(0,0,1,-1,-1,1,0,0)].avg(), patt1[P8(0,0,1,-1,-1,1,0,0)].short_avg());
+
+      printf("v5=%.2f (%.2f) ", 
+	     patt2[P8(1,1,1,1,1,1,1,1)].avg(), patt2[P8(1,1,1,1,1,1,1,1)].short_avg());
+
+#else
+
+      printf("v1=%.2f (%.2f) ", 
+	     patt1[P10(1,1,1,1,1,1,1,1,1,1)].avg(), 
+	     patt1[P10(1,1,1,1,1,1,1,1,1,1)].short_avg());
+
+      printf("v2=%.2f (%.2f) ", 
+	     patt1[P10(0,1,1,1,1,1,1,0,0,0)].avg(), 
+	     patt1[P10(0,1,1,1,1,1,1,0,0,0)].short_avg());
+
+      printf("v3=%.2f (%.2f) ", 
+	     patt1[P10(0,0,1,1,1,1,1,0,-1,0)].avg(), 
+	     patt1[P10(0,0,1,1,1,1,1,0,-1,0)].short_avg());
+
+      printf("v4=%.2f (%.2f) ", 
+	     patt1[P10(0,0,1,-1,-1,1,0,0,0,0)].avg(), 
+	     patt1[P10(0,0,1,-1,-1,1,0,0,0,0)].short_avg());
+
+      printf("v5=%.2f (%.2f) ", 
+	     patt1[P10(0,1,0,0,0,0,0,0,0,0)].avg(), 
+	     patt1[P10(0,1,0,0,0,0,0,0,0,0)].short_avg());
+
+      printf("v6=%.2f (%.2f) ", 
+	     patt2[P10(1,1,1,1,1,1,1,1,1,1)].avg(), 
+	     patt2[P10(1,1,1,1,1,1,1,1,1,1)].short_avg());
+
+      printf("v7=%.2f (%.2f) ", 
+	     patt1[P10(0,-1,0,0,0,0,0,0,0,0)].avg(), 
+	     patt1[P10(0,-1,0,0,0,0,0,0,0,0)].short_avg());
+
+#endif
+
+      printf("\n");
+    }
+
+    int i, rndi = IRAN % num;
+    Info &inf = infos[rndi];
+    float tabval = inter[inf.par].y + centerdiff.y * inf.centerdiff;;
+    
+    FOR (i, IND_NUM) tabval += inf.pentry[i]->y;
+
+    if (inf.val) {
+      if ((inf.val > 0) ^ (tabval < 0)) 
+	correct_num[inf.disc_num - DISC_MIN]++;
+      test_num[inf.disc_num - DISC_MIN]++;
+    }
+    
+    float delta = inf.val - tabval;
+      
+    delta_sum += abs(delta);
+
+    float learn_delta = BETA*delta;
+
+    if (inf.centerdiff) learn_delta /= IND_NUM+2;
+    else                learn_delta /= IND_NUM+1;
+
+    FOR (i, IND_NUM) inf.pentry[i]->update(learn_delta);
+
+    inter[inf.par].update(learn_delta);
+
+    if (inf.centerdiff) centerdiff.update(learn_delta/inf.centerdiff);
+  }
+
+
+  cout << "\nsave tables... patt1 " << flush;
+
+  fp=fopen("patt1","w");
+  if (!fp) Error("can't write patt1");
+
+  FOR (i, config_num) {
+    WritePatt(fp, i, pat_disc_num); fprintf(fp, " %+.2f\n", patt1[i].avg());
+  }
+
+  fclose(fp);
+
+  cout << " patt1 " << flush;
+
+  fp=fopen("patt2","w");
+  if (!fp) Error("can't write patt2");
+
+  FOR (i, config_num) {
+    WritePatt(fp, i, pat_disc_num); fprintf(fp, " %+.2f\n", patt2[i].avg());
+  }
+
+  fclose(fp);
+
+  cout << "OK\n";
+
+  return 0;
+}
+

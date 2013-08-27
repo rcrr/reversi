@@ -1,0 +1,79 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(ab/hash.c)
+
+dnl Checks for programs.
+
+dnl Must have GNU make
+AC_CHECK_PROGS(MAKE, gmake make)
+if $ac_cv_prog_MAKE --version 2> /dev/null | grep GNU > /dev/null 2>&1 ; 
+then 
+echo -n
+else
+AC_MSG_ERROR([Didn't find GNU make, which is necessary for building Bill.])
+fi
+
+AC_PROG_CC
+AC_TRY_COMPILE(int a(int b) { return 7;},, 
+echo -n,
+AC_MSG_ERROR([Must use a C compiler than understands prototypes.]))
+AC_SUBST(CC)
+
+AC_PROG_CC_C_O
+
+dnl stupid C compilers don't accept -c and -o together
+dnl Until proven otherwise, we're using a smart one
+STUPID_CC=no
+
+if test ${ac_cv_prog_cc_cc_c_o:-yes} = no ; then 
+STUPID_CC=yes
+AC_PATH_PROG(MV,mv,mv)
+fi
+
+AC_SUBST(STUPID_CC)
+
+dnl
+AC_SUBST(CFLAGS)
+AC_SUBST(CPPFLAGS)
+AC_SUBST(top_srcdir)
+AC_SUBST(srcdir)
+
+AC_PROG_RANLIB
+AC_SUBST(RANLIB)
+
+AC_PATH_PROGS(TAR, gtar tar)
+if $ac_cv_path_TAR --version 2> /dev/null | grep GNU > /dev/null 2>&1 ; 
+then echo -n ; 
+else
+AC_MSG_WARN([Didn't find GNU tar, which is 
+  necessary for making a .tar.gz distribution version of Bill.
+  Lacking GNU tar won't prevent you from building and running Bill.])
+fi
+
+dnl Checks for libraries
+AC_SUBST(LIBS)
+AC_SUBST(LDFLAGS)
+
+dnl Checks for header files.
+AC_CHECK_HEADERS(sys/time.h sys/resource.h unistd.h string.h strings.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_SIZEOF(int, 4)
+if test $ac_cv_sizeof_int != 4 ; then
+AC_MSG_WARN([Bill may break since sizeof(int) != 4.])
+fi
+
+dnl Checks for library functions.
+AC_TYPE_SIGNAL
+
+AC_CHECK_FUNCS(gettimeofday select memcpy bcopy getrusage)
+if test $ac_cv_func_select != yes || test $ac_cv_func_gettimeofday != yes ; 
+then
+AC_MSG_ERROR([Bill requires select and gettimeofday.])
+fi
+
+if test $ac_cv_func_memcpy != yes && test $ac_cv_func_bcopy != yes ; then
+AC_MSG_ERROR([Bill requires either the memcpy or the bcopy functions.])
+fi
+
+AC_CONFIG_HEADER(config.h)
+AC_OUTPUT(Makefile tables/Makefile ios/Makefile)

@@ -1,0 +1,10 @@
+ios_includedir = @srcdir@
+# CFLAGS=@CFLAGS@ @CPPFLAGS@ -I@srcdir@
+CFLAGS=-g @CPPFLAGS@ -I@srcdir@
+CC=@CC@
+
+front-end:  client.o
+
+front-end.o: $(ios_includedir)/ios.h
+front-end.o: $(ios_includedir)/interface.h
+client.o front-end.o: $(ios_includedir)/client.h

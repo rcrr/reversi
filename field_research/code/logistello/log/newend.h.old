@@ -1,0 +1,19 @@
+#ifndef NEWEND_H
+#define NEWEND_H
+
+#include "move.h"
+
+#define END_CHECK_DEPTH	4
+#define END_EVAL_DEPTH	8
+#define END_PERCENTILE  1.5
+
+int EndIteration(
+  ZUGIO *pzio,		/* pointer to global variables */
+  PARTEI colour,	/* player to move              */
+  int al, int be,	/* alpha-beta window           */
+  int LastMove
+);
+
+void PrintIterStat(void);
+
+#endif

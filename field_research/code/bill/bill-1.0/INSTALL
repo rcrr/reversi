@@ -1,0 +1,61 @@
+Bill is a strong Othello program, written by Kai-Fu Lee, Sanjoy
+Mahajan, and Joe Keane.  It is copyright under the GNU GPL v2 (see the
+file COPYING) or, at your option, any later version.
+
+It certainly has bugs.  We hope it is useful to you.
+
+
+QUICK START
+-----------
+
+	./configure
+	make
+
+Then read the 'Help' file for how to run Bill.
+
+LONGER STORY
+------------
+
+This package uses the GNU autoconfiguration stuff (i.e. a ./configure 
+shell script generated from configure.in by the autoconf program).
+
+To build Bill:
+
+Step 0: Make sure you are in the root directory of the distribution.
+	It will have subdirectories such as ab, search, and io.
+Step 1: ./configure
+	[Don't worry about any errors relating to ./ios/GNUmakefile.in
+	 Those files, to connect Bill to IOS, are not included with this
+	 standard distribution.]
+Step 2: make or gmake (or whatever you call GNU make)
+
+You need GNU make, and a version of `cc' which can accept function
+prototypes (ANSI C).  'gcc' works well, as does `cc' on SGI IRIX64.
+The configure script checks that these requirements are satisifed.  If
+you don't like the default that configure uses for optimization, you
+can do for example (Bourne shell)
+	CFLAGS=-O2 ./configure
+or, if you have the `env' program (this command works for the C-shell)
+	env CFLAGS=-O2 ./configure
+Similarly, you can choose the C compiler by setting the CC environment
+variable.
+
+`make' in the root directory will make the tables.a archive in the
+tables/ subdirectory, then make the `Bill' executable.  After Bill is
+successfully built, you can type `make clean' to get rid of the object
+files and library files.  `make dist' will make a .tar.gz distribution
+of Bill in the parent directory (it'll be ../bill-dist.tar.gz).  Be
+warned that the `make dist' command deletes, among other things, the
+`Bill' executable.
+
+Hardware/OS combinations that I've successfully tested Bill on:
+
+Sparc 10	SunOS 4.1.4
+i586		Linux 2.0.27
+SGI		Irix64 6.2
+
+Once I entered an old version of Bill in a tournament, running on an
+Alpha, and it worked fine, but I haven't tried it recently.
+
+-Sanjoy Mahajan
+

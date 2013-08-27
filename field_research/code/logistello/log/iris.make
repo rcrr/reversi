@@ -1,0 +1,1 @@
+sboard.c move.c eval.c board.c mid.c killer.c hash.c end.c patt.c fpatt.c tab.c trans.c game.c newgame.c order.c newend.c newendeval.c pcstat.c util.c normal.c pmove.c filecom.c lib.c book.c client.c playm.c evall.c goodies.c crt.c crtt.c 

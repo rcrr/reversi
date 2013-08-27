@@ -1,0 +1,11 @@
+This directory contains programs to generate tables that:
+	Convert an index that is generated from the pieces on a "line",
+where a line can be a combination (like a 5+3 or a 4+4) or a normal line (8,
+7, or 6 square lines), to an unsigned char representing the legal moves on
+that line.  A bit in position x represents whether a legal move is possible
+to sqaure x: 1 for yes, 0 for no.
+	tobyte.c is the file that contains all the data.  It has been
+removed.  To recreate it, do
+	mv_gen > tobyte.c
+	The arrays are named as follows:
+		tobyte??[size], with ?? being one of 44,53,60,70, or 80.

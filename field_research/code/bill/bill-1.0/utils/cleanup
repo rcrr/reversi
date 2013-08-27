@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sed 's/billtest% //g' | sed 's/^<ios> \[//' | sed 's/^Move: .*$//'

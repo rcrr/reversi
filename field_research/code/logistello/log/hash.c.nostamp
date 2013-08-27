@@ -1,0 +1,161 @@
+#ifndef PRECOMP
+#include "main.h"
+#endif
+
+#include "hash.h"
+#include "trans.h"
+#include "goodies.h"
+#include "crt.h"
+
+
+ULONG 
+  ZufBLACK1[100], ZufWHITE1[100], ZufBW1[100],	/* für Hashadresse */
+  ZufBLACK2[100], ZufWHITE2[100], ZufBW2[100];	/* für Lock	   */
+
+ULONG ZufBLACK1T[8][100], ZufWHITE1T[8][100];
+
+
+void InitTabs(void)
+{
+  int i, j, *tr;
+
+/*printf("Hasheintrag umfaßt %d Bytes\n", sizeof(HASHEINTRAG));*/
+
+  sMyRand(3);
+
+  FOR (i, 100) { 
+
+    ZufBLACK1[i] = MyRand() >> 3; 
+    ZufWHITE1[i] = MyRand() >> 3;
+    ZufBW1[i]    = ZufBLACK1[i] ^ ZufWHITE1[i];		/* Stein ändert Farbe */
+
+    ZufBLACK2[i] = MyRand(); 
+    ZufWHITE2[i] = MyRand();
+    ZufBW2[i]    = ZufBLACK2[i] ^ ZufWHITE2[i];		/* Stein ändert Farbe */
+
+  }
+
+
+  FOR (i, 8) {
+
+    tr = TransTab[i];
+
+    FOR (j, 100) {
+      ZufBLACK1T[i][j] = ZufBLACK1[tr[j]];
+      ZufWHITE1T[i][j] = ZufWHITE1[tr[j]];
+    }
+  }
+}
+
+
+
+
+void InitHash(HASHDAT *phash, int HashBits, int HashMaxDepth)
+{
+  if (HashBits <= 0) Error("InitHash: HashBits <= 0");
+
+  InitTabs();
+
+  phash->HashTab = NULL;
+
+  phash->HashBits = HashBits;
+  phash->HashMask = (1 << HashBits) - 1;
+
+  phash->HashMaxDepth = HashMaxDepth;  
+
+#ifdef HASH
+
+  if (!(phash->HashTab = (HASHEINTRAG *) malloc(sizeof(HASHEINTRAG) * (phash->HashMask+1)))) 
+    Error("kein Speicher");
+
+  ClearHashTab(phash);
+
+#endif
+}
+
+
+
+void FreeHash(HASHDAT *phash)
+{
+  free((char*)phash->HashTab);
+  phash->HashBits = 0;
+  phash->HashMask = 0;
+}
+
+
+
+ULONG Hash1(BRETT *pbr, PARTEI Partei)
+{
+  ULONG h=0;
+  int   i;
+
+
+  h = 0;
+
+  FOR_SFPOS10 (i) {
+
+    if      (pbr->p[i] == BLACK) h ^= ZufBLACK1[i];
+    else if (pbr->p[i] == WHITE) h ^= ZufWHITE1[i];
+
+  }
+
+
+  if (Partei == WHITE) return HASH_WHITE(h); else return h;
+}
+
+
+
+
+ULONG Hash2(BRETT *pbr, PARTEI Partei)
+{
+  ULONG h=0;
+  int   i;
+
+
+  h = 0;
+
+  FOR_SFPOS10 (i) {
+
+    if      (pbr->p[i] == BLACK) h ^= ZufBLACK2[i];
+    else if (pbr->p[i] == WHITE) h ^= ZufWHITE2[i];
+
+  }
+
+  return h;
+}
+
+
+
+
+ULONG Hash2Board(SPFELD *psf)
+{
+  ULONG h=0;
+  int   i;
+  SBYTE *p=psf->p;
+
+  h = 0;
+
+  FOR_SFPOS10 (i) {
+
+    if      (p[i] == BLACK) h ^= ZufBLACK2[i];
+    else if (p[i] == WHITE) h ^= ZufWHITE2[i];
+
+  }
+
+  return h;
+}
+
+
+
+
+void ClearHashTab(HASHDAT *phash)
+{
+  int         i, num=phash->HashMask+1;
+  HASHEINTRAG *ph=phash->HashTab;
+
+  FOR (i, num) { 
+    ph[i].BesterZug = ZUG_UNBEKANNT; 
+    ph[i].Hash2 = 0; 
+  }
+
+}

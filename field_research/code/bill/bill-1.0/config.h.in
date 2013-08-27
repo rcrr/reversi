@@ -1,0 +1,33 @@
+/* Define as 1 if you have sys/resource.h */
+#define HAVE_SYS_RESOURCE_H 1
+
+/* Define as 1 if you have unistd.h */
+#define HAVE_UNISTD_H 1
+
+/* Define as 1 if you have the getrusage function */
+#define HAVE_GETRUSAGE 1
+
+/* Define as 1 if you have sys/time.h */
+#define HAVE_SYS_TIME_H 1
+
+/* Define as 1 if you have strings.h */
+#define HAVE_STRING_H 1
+
+/* Define as 1 if you have string.h */
+#define HAVE_STRINGS_H 1
+
+/* Define as 1 if you have the gettimeofday function */
+#define HAVE_GETTIMEOFDAY 1
+
+/* Define as 1 if you have the select function */
+#define HAVE_SELECT 1
+
+/* Define to the return type of signal handlers (usually void or int) */
+#define RETSIGTYPE void
+
+/* Define as 1 if you have the memcpy function */
+#define HAVE_MEMCPY 1
+
+/* Define as 1 if you have the bcopy function */
+#define HAVE_BCOPY 1
+

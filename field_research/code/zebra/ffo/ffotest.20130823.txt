@@ -1,0 +1,676 @@
+**** Environment ****
+
+Fri Aug 23 12:47:03 CEST 2013
+Linux whitewater 3.5.0-39-generic #60-Ubuntu SMP Tue Aug 13 18:33:05 UTC 2013 x86_64 x86_64 x86_64 GNU/Linux
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 23
+model name	: Intel(R) Core(TM)2 Duo CPU     T8300  @ 2.40GHz
+stepping	: 6
+microcode	: 0x607
+cpu MHz		: 2401.000
+cache size	: 3072 KB
+physical id	: 0
+siblings	: 2
+core id		: 0
+cpu cores	: 2
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 10
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts rep_good nopl aperfmperf pni dtes64 monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr pdcm sse4_1 lahf_lm ida dtherm tpr_shadow vnmi flexpriority
+bogomips	: 4800.55
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 36 bits physical, 48 bits virtual
+power management:
+
+processor	: 1
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 23
+model name	: Intel(R) Core(TM)2 Duo CPU     T8300  @ 2.40GHz
+stepping	: 6
+microcode	: 0x607
+cpu MHz		: 800.000
+cache size	: 3072 KB
+physical id	: 0
+siblings	: 2
+core id		: 1
+cpu cores	: 2
+apicid		: 1
+initial apicid	: 1
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 10
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts rep_good nopl aperfmperf pni dtes64 monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr pdcm sse4_1 lahf_lm ida dtherm tpr_shadow vnmi flexpriority
+bogomips	: 4800.55
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 36 bits physical, 48 bits virtual
+power management:
+
+**** Environment ****
+
+
+rcrr@whitewater:~/base/prj/reversi/field_research/code/zebra$ ./scrzebra -script ffo/ffotest.scr ffo/ffotest.out
+
+scrZebra (c) 1997-2005 Gunnar Andersson, compile date Aug 23 2013 at 10:42:48
+
+
+         a b c d e f g h
+
+      1    O O O O O          Black                 
+      2      O O O O                                
+      3    O O O O *                   17 discs     
+      4  * * * * * *                                
+      5    O * O O *          White                 
+      6  O O O * O *                                
+      7      O O * *           (O)     22 discs     
+      8      * * * *                                
+
+-->  13  +6.64         146168  g2 b8 b7 a2 a5     0.0 s  3084624 nps
+-->  25  +4 @ 99%     6690988  g2 b8 b7 a2 a5     0.5 s  14242993 nps  
+[3,5]:     g2
+[3,5]:     g2=4 a5 g7 g6 g4 g3 g5 g8
+-->  25  +4          23450180  g2 b8 b7 a2 a5     2.1 s  11178911 nps  
+PV: g2 b8 b7 a2 a5 b2 g3 h3 a1 a3
+
+
+
+
+
+         a b c d e f g h
+
+      1  O     O O O O *      Black                 
+      2    O O O O O O *                            
+      3  O O * * O O O *       (*)     12 discs     
+      4  O O * O O O * *                            
+      5  O O O O O O * *      White                 
+      6        O O O O *                            
+      7          O     *               32 discs     
+      8                                             
+
+-->   8  +34.28         34817  c1 b1 g7 f7 f8     0.0 s  3365587 nps
+[33,35]:   c1<34 a2>34 
+-->  20  +38 @ 99%    6035957  a2 b1 c1 b6 c7     0.3 s  18131987 nps  
+[37,39]:   a2=38 c1 d8 b1 c7 f7 d7 a6 g7
+-->  20  +38         19091613  a2 b1 c1 b6 c7     1.1 s  17696312 nps  
+PV: a2 b1 c1 -- b6 c7 a7 b7 b8 d7 f8 c6
+
+
+
+
+
+         a b c d e f g h
+
+      1    O O O O O          Black                 
+      2      O O O O *                              
+      3    O O O O O O         (*)     14 discs     
+      4  * * * * * O O                              
+      5    * * O O *          White                 
+      6  O O * O * *                                
+      7      O * * O                   28 discs     
+      8    O O O     O                              
+
+-->  10  +0.20         113728  h4 a3 a2 h5 h6     0.0 s  3670777 nps
+-->  22  Draw @ 99%  10343810  h4 a3 a2 g6 g5     0.7 s  14631414 nps  
+[-1,1]:    h4
+-->  22  +0          21403632  h4 a3 a2 g6 g5     1.6 s  13491450 nps  
+PV: h4 a3 a2 g6 g5 h5 f8 e8 h6 g7 h2
+
+
+
+
+
+         a b c d e f g h
+
+      1      O O O            Black                 
+      2          * *   O                            
+      3  O O O O O * O O       (*)     9 discs      
+      4    O O O O * O O                            
+      5  *   O O O * * O      White                 
+      6        O O * O O                            
+      7        O O O * O               33 discs     
+      8      O O O O                                
+
+-->  10  +2.91         103474  c6 c7 a4 a6 b5     0.0 s  3352470 nps
+[1,3]:     c6<2 a4 g2=2 
+-->  22  +6 @ 99%    15134769  g2 h1 c2 g1 f1     0.9 s  16612793 nps  
+[5,7]:     g2
+-->  22  +6          28624562  g2 h1 c2 g1 f1     1.8 s  15816764 nps  
+PV: g2 h1 c2 g1 f1 d2 b2 a2 b6 c6 b5
+
+
+
+
+
+         a b c d e f g h
+
+      1      * * * * *        Black                 
+      2      * * * *                                
+      3    O O O * *                   26 discs     
+      4    O O * * * *                              
+      5    O O * * * O        White                 
+      6  O O O O * O O                              
+      7        * O *           (O)     15 discs     
+      8      * * * * *                              
+
+-->  11  -3.73         234775  c7 h4 h5 b8 h3     0.1 s  3804365 nps
+-->  23  -12 @ 99%   11549279  c7 h4 h5 b8 b7     0.8 s  14580435 nps  
+[-13,-11]: c7
+-->  23  -12         23118067  c7 h4 h5 b8 b7     1.9 s  12138055 nps  
+PV: c7 h4 h5 b8 b7 a8 a7 a5 h3 a4 g3
+
+
+
+
+
+         a b c d e f g h
+
+      1      O   *   O        Black                 
+      2      O   * O   O                            
+      3    O O * * * O O               20 discs     
+      4  O O O O * * * O                            
+      5  O O O O * *          White                 
+      6  * * O O * O                                
+      7      * * * *           (O)     21 discs     
+      8        * * *                                
+
+-->  11  -9.46         153996  d2 g5 b8 a3 b7     0.0 s  3607224 nps
+-->  23  -14 @ 98%   11753902  d2 g5 b8 a3 b7     1.0 s  12177320 nps  
+[-15,-13]: d2=-14 f1
+-->  23  -14         20961153  d2 g5 b8 a3 b7     1.9 s  11197454 nps  
+PV: d2 g5 b8 a3 b7 a8 a7 c8 g7 g8 h6 h5 g6
+
+
+
+
+
+         a b c d e f g h
+
+      1        * * * *        Black                 
+      2  *   * * * O                                
+      3  * * O * O O           (*)     22 discs     
+      4  * * * O * O                                
+      5  * * O * * O          White                 
+      6    O * * * O O                              
+      7  O   O O O O                   18 discs     
+      8          O O                                
+
+[-inf,inf]:    b2=1.15 g2=1.64 
+[-inf,inf]:    g2=2.48 b2=3.67 
+-->  12  +2.10         607207  b2 c1 b1 b7 g5     0.2 s  3894899 nps
+[3,5]:     b2<4 g2>4 
+[3,5]:     g2<4 b2>4 
+-->  24  +6 @ 83%    16158701  b2 c1 g5 h6 g4     0.9 s  17180731 nps  
+[5,7]:     b2=6 g2 g5 h6 g7 g4
+-->  24  +6 @ 95%    29561166  b2 c1 g5 h6 g4     1.7 s  17222672 nps  
+[5,7]:     b2
+-->  24  +6 @ 98%    59045970  b2 c1 g5 h6 g4     3.3 s  18083876 nps  
+[5,7]:     b2
+-->  24  +6 @ 99%     101289k  b2 c1 g5 h6 g4     5.7 s  17880603 nps  
+[5,7]:     b2
+[5,7]:     b2=6 g2
+[5,7]:     b2=6 g2 g5 h6 g7
+-->  24  +6           469858k  b2 c1 g5 h6 g4    30.8 s  15277094 nps  
+PV: b2 c1 g5 h6 g4 h3 b1 g3 h5 h4 g2
+
+
+
+
+
+         a b c d e f g h
+
+      1        * * *          Black                 
+      2      O O O *                                
+      3      O O O * *         (*)     21 discs     
+      4    O O O O * * *                            
+      5      O O O O * *      White                 
+      6      O * O * * *                            
+      7      * * O O                   19 discs     
+      8    * * * *   O                              
+
+[-inf,inf]:    b7=-11.27 b3=-9.53 
+[-inf,inf]:    b3=-7.45 b7=-5.84 
+-->  12  -7.73         435899  b7 g7 a4 a3 a2     0.1 s  3758560 nps
+[-9,-7]:   b7<-8 b3=-8 
+-->  24  -8 @ 95%     8321247  b3 c1 b1 a3 b2     0.7 s  12372240 nps  
+[-9,-7]:   b3=-8 b7
+-->  24  -8 @ 99%    26917564  b3 c1 b1 a3 b2     2.0 s  13801458 nps  
+[-9,-7]:   b3
+-->  24  -8          66217552  b3 c1 b1 a3 b2     5.2 s  12673466 nps  
+PV: b3 c1 b1 a3 b2 h3 a5 a4 a2 h7 g7 g2
+
+
+
+
+
+         a b c d e f g h
+
+      1    O O O O O          Black                 
+      2      O O O O                                
+      3    O O O O *                   17 discs     
+      4  * * * * * *                                
+      5    O * O O *          White                 
+      6  O O O * O *                                
+      7      O O * *           (O)     22 discs     
+      8      * * * *                                
+
+-->  13  +6.64         146962  g2 b8 b7 a2 a5     0.0 s  3546380 nps
+-->  25  +4 @ 99%     6749324  g2 b8 b7 a2 a5     0.5 s  14466113 nps  
+[3,5]:     g2
+[3,5]:     g2=4 a5 g7 g6 g5 g4 g3 g8
+-->  25  +4          23543948  g2 b8 b7 a2 a5     2.1 s  11254170 nps  
+PV: g2 b8 b7 a2 a5 b2 g3 h3 a1 a3 h2
+
+
+
+
+
+         a b c d e f g h
+
+      1            *          Black                 
+      2  *   * * *                                  
+      3  * * * * O O                   27 discs     
+      4  * O * O O * *                              
+      5  * O O * * *          White                 
+      6  * O O * *                                  
+      7      O O O *           (O)     12 discs     
+      8    * * * * * *                              
+
+-->  13  +16.63        515588  f6 g5 f2 g3 g6     0.1 s  3653232 nps
+-->  25  +22 @ 95%    9883370  f6                 0.8 s  12535237 nps  
+[23,25]:   f6
+[25,27]:   f6
+-->  25  +28 @ 99%   54547093  f6 g5 g3 f2 h4     3.6 s  15131916 nps  
+[27,29]:   f6
+[27,29]:   f6=28 g6
+[27,29]:   f6=28 g6 g3 b1 h4 h5 g5 g7
+-->  25  +28          324677k  f6 g5 g3 f2 h4    25.3 s  12850684 nps  
+PV: f6 g5 g3 f2 h4 h5 h3
+
+
+
+
+
+         a b c d e f g h
+
+      1      O *   O          Black                 
+      2      * * O O                                
+      3  O O O O O * *         (*)     13 discs     
+      4  O O O O O *                                
+      5  O O O * O * *        White                 
+      6  O O O O * *                                
+      7        O O *                   25 discs     
+      8      *   O                                  
+
+-->  14  +9.89         608061  e1 g6 b2 h5 a2     0.2 s  3747887 nps
+-->  26  +12 @ 72%    5911414  e1                 0.5 s  11877751 nps  
+[11,13]:   e1
+-->  26  +12 @ 83%   23206473  e1 h4 g6 h6 b2     1.5 s  15933029 nps  
+[13,15]:   e1
+-->  26  +14 @ 95%   58043844  e1 h4 g6 g4 b2     3.4 s  16960329 nps  
+[13,15]:   e1
+-->  26  +14 @ 98%   93894741  e1 h4 g6 g4 b2     5.5 s  17135587 nps  
+[13,15]:   e1
+-->  26  +16 @ 99%    178774k  e1 h4 g6 g4 h5    10.5 s  16952722 nps  
+[15,17]:   e1
+-->  26  +16          383985k  e1 h4 g6 g4 h5    25.4 s  15126747 nps  
+PV: e1 h4 g6 g4 h5 h6 b2 f8 d8 b8 c7 h3 g2
+
+
+
+
+
+         a b c d e f g h
+
+      1          *            Black                 
+      2      * * *                                  
+      3    O O O * O O O       (*)     12 discs     
+      4    O O O * O O O                            
+      5    O * O * O * O      White                 
+      6    O O * * O O O                            
+      7      O O * O                   26 discs     
+      8      O     O                                
+
+-->  14  +6.26        1302515  d8 e8 h7 h8 f2     0.3 s  3899454 nps
+-->  26  +8 @ 95%    16143483  d8 e8 g8 h8 f2     1.2 s  13622629 nps  
+[7,9]:     d8
+-->  26  +10 @ 98%   26111119  d8 e8 g8 h8 f2     1.8 s  14817938 nps  
+[9,11]:    d8=10 h7
+-->  26  +10 @ 99%   52659095  d8 e8 g8 h8 f2     3.3 s  15787959 nps  
+[9,11]:    d8
+[9,11]:    d8=10 h7
+[9,11]:    d8=10 h7 a4 a6 b2
+[9,11]:    d8=10 h7 a4 a6 b2 a5 a2
+[9,11]:    d8=10 h7 a4 a6 b2 a5 a2 g8 g2 a7 g7 a3 b7 h2
+-->  26  +10         2125775k  d8 e8 g8 h8 f2   162.8 s  13059493 nps  
+PV: d8 e8 g8 h8 f2 g7 b7 a7 a6
+
+
+
+
+
+         a b c d e f g h
+
+      1          O   *        Black                 
+      2            *                                
+      3        * * * O                 18 discs     
+      4  O * * * * * O O                            
+      5    * * O O * O O      White                 
+      6  * * O * * * O O                            
+      7      O O O O   O       (O)     19 discs     
+      8          O O                                
+
+[-inf,inf]:    e2=5.41 a3=5.95 
+[-inf,inf]:    a3=6.46 e2=9.87 
+-->  15  +7.34         461666  e2 h2 g7 h8 h3     0.1 s  3553026 nps
+[5,7]:     e2<6 a3>6 
+[5,7]:     a3<6 e2>6 
+-->  27  +8 @ 95%    14563838  e2                 1.1 s  13364041 nps  
+[7,9]:     e2
+[7,9]:     e2<8 a3
+[5,7]:     e2=6 a3 f1 g7 c2 d2 c3 b3 a5 g2
+-->  27  +6 @ 98%    60592773  e2 h2 g7 f1 h1     4.2 s  14560954 nps  
+[5,7]:     e2=6 a3 f1 g7 c2 d2 c3
+-->  27  +6 @ 99%     110726k  e2 h2 g7 f1 h1     7.7 s  14464249 nps  
+[5,7]:     e2
+[5,7]:     e2=6 a3 f1 g7 c2
+-->  27  +6           333620k  e2 h2 g7 f1 h1    27.8 s  11988259 nps  
+PV: e2 h2 g7 f1 h1 h3 d1 c8 g2 h8
+
+
+
+
+
+         a b c d e f g h
+
+      1        *              Black                 
+      2        O *     *                            
+      3      * O O * * *               27 discs     
+      4  * * * O * * * *                            
+      5  * * * O O * * *      White                 
+      6  * * * O O O * *                            
+      7      * O       *       (O)     10 discs     
+      8                                             
+
+[-inf,inf]:    e1=0.54 a3 f1 b3 f2=1.12 
+[-inf,inf]:    f2=3.64 e1=5.49 
+[-inf,inf]:    e1=-0.59 f2=0.95 
+[-inf,inf]:    f2=2.02 e1 a3=3.39 
+-->  15  +2.16         848319  a3 f2 b3 c1 e1     0.2 s  3579390 nps
+[1,3]:     a3<2 f2>2 
+[1,3]:     f2<2 a3 e1>2 
+-->  27  +2 @ 72%    15136038  e1                 1.2 s  12715641 nps  
+[1,3]:     e1=2 f2
+-->  27  +2 @ 91%    23784162  e1 f1 f2 d8 c2     1.9 s  12640345 nps  
+[1,3]:     e1
+-->  27  Draw @ 95%  43148572  e1 f1 f2 c8 b3     3.4 s  12711379 nps  
+[-1,1]:    e1
+-->  27  Draw @ 98%  91634638  e1 f1 f2 c8 b3     7.0 s  13158997 nps  
+[-1,1]:    e1
+[-1,1]:    e1<0 f2 a3
+[-1,1]:    e1<0 f2 a3=0 
+-->  27  Draw @ 99%   219753k  a3 f2 e1 f1 c2    16.9 s  13025057 nps  
+[-1,1]:    a3
+-->  27  +0           368093k  a3 f2 e1 f1 c2    31.0 s  11868004 nps  
+PV: a3 f2 e1 f1 c2 b1 b3 c1
+
+
+
+
+
+         a b c d e f g h
+
+      1          O O          Black                 
+      2        O O O                                
+      3    * * * * O O O       (*)     16 discs     
+      4      * * O O * O                            
+      5    * * * * * O O      White                 
+      6      O O O * O O                            
+      7      *   O *   O               20 discs     
+      8            *                                
+
+[-inf,inf]:    d8=-5.51 g1 b6 c1 g7 e8=-3.50 
+[-inf,inf]:    e8=-3.05 d8=-2.12 
+[-inf,inf]:    d8=-4.24 e8=-3.94 
+-->  16  -3.03        1525080  e8 c8 d7 a3 g1     0.4 s  3755346 nps
+-->  28  -4 @ 19%    17083176  e8                 1.3 s  13389496 nps  
+[-3,-1]:   e8<-2 d8
+[-3,-1]:   e8<-2 d8=-2 
+-->  28  -2 @ 57%    24957919  d8 c8 d7 e8 g7     1.8 s  13644194 nps  
+[-3,-1]:   d8
+[-3,-1]:   d8<-2 e8
+-->  28  -4 @ 72%    71212260  d8                 4.8 s  14729638 nps  
+[-3,-1]:   d8
+-->  28  -2 @ 91%     150135k  d8 b6 d7 a5 a4    10.2 s  14675014 nps  
+[-3,-1]:   d8
+-->  28  Draw @ 95%   347031k  d8                22.7 s  15280230 nps  
+[-1,1]:    d8<0 e8 c1 g1
+[-3,-1]:   d8=-2 e8 c1 g1
+-->  28  -2 @ 98%     955919k  d8 b6 a5 c2 d7    61.3 s  15602489 nps  
+[-3,-1]:   d8=-2 e8
+-->  28  -2 @ 99%    1622114k  d8 b6 a5 c2 d7   105.2 s  15414515 nps  
+[-3,-1]:   d8
+[-3,-1]:   d8=-2 e8 c1
+-->  28  -2          3779108k  d8 b6 a5 c2 d7   283.4 s  13333237 nps  
+PV: d8 b6 a5 c2 d7 a3 g2 e8 b4
+
+
+
+
+
+         a b c d e f g h
+
+      1      O O O            Black                 
+      2  * * O O                                    
+      3  * * * * O O O O       (*)     18 discs     
+      4  * * * * O *                                
+      5  * * * O * *          White                 
+      6  * * O O O                                  
+      7        O O O                   18 discs     
+      8        O                                    
+
+[-inf,inf]:    f2=-3.01 f8=-2.67 
+[-inf,inf]:    f8=-0.69 f2=0.38 
+[-inf,inf]:    f2=-5.00 f8=-4.24 
+-->  16  -1.08         885562  f8 g4 c7 f6 g5     0.3 s  3305828 nps
+-->  28  Draw @ 72%   7522217  f8                 0.7 s  10154948 nps  
+[-3,-1]:   f8
+-->  28  -2 @ 83%    22206620  f8 g6 g5 c7 e8     1.7 s  12758979 nps  
+[-3,-1]:   f8
+[-3,-1]:   f8=-2 f2
+-->  28  -2 @ 91%    72012355  f8 g6 g5 c7 e8     4.8 s  14950875 nps  
+[-3,-1]:   f8
+[-3,-1]:   f8<-2 f2 f6 c7 g8
+-->  28  -4 @ 95%     234251k  f8                14.6 s  16007676 nps  
+[-5,-3]:   f8
+[-5,-3]:   f8=-4 f2
+[-5,-3]:   f8=-4 f2 f6 c7>-4 
+[-3,-1]:   c7
+-->  28  -2 @ 98%    1149917k  c7 g6 g5 f6 g4    68.7 s  16732330 nps  
+[-3,-1]:   c7
+-->  28  -2 @ 99%    1949752k  c7 g6 g5 f6 g4   119.4 s  16324515 nps  
+[-3,-1]:   c7
+[-3,-1]:   c7=-2 f8
+[-3,-1]:   c7=-2 f8 f2 f6 g8 c8
+-->  28  -2          5671807k  c7 g6 g5 f6 g4   414.0 s  13701219 nps  
+PV: c7 g6 g5 f6 g4 c8 b7 e2 b8 h6 h5 h4
+
+
+
+
+
+         a b c d e f g h
+
+      1                       Black                 
+      2  *   *                                      
+      3    * * * * O O O               18 discs     
+      4  O O * O * *                                
+      5  O O O * * * *        White                 
+      6  O O * * * *                                
+      7  O   O O O *           (O)     17 discs     
+      8        O O                                  
+
+-->  17  +1.47        3850539  g6 h7 c1 f2 h6     1.0 s  3849173 nps
+-->  29  Draw @ 57%  16902060  g6                 1.8 s  9180499 nps  
+[1,3]:     g6
+-->  29  +2 @ 72%    28665111  g6                 2.7 s  10628387 nps  
+[1,3]:     g6
+[1,3]:     g6<2 e2 b7
+[1,3]:     g6<2 e2 b7 d2 c1 h4
+-->  29  Draw @ 83%   153379k  g6                10.5 s  14677256 nps  
+[1,3]:     g6<2 e2 b7
+-->  29  +2 @ 91%     313063k  g6                20.3 s  15394194 nps  
+[1,3]:     g6
+[1,3]:     g6<2 e2 b7 d2 c1 h4 g4
+-->  29  Draw @ 95%   815445k  g6 h7 c1 f2 g2    51.6 s  15801193 nps  
+[-1,1]:    g6
+[-1,1]:    g6=0 e2 b7
+[-1,1]:    g6=0 e2 b7 d2 c1 h4 g4 f2
+-->  29  Draw @ 98%  2455024k  g6 h7 c1 f2 g2   151.6 s  16191818 nps  
+[-1,1]:    g6=0 e2 b7
+-->  29  Draw @ 99%  5177682k  g6 h7 c1 f2 g2   326.1 s  15878767 nps  
+[-1,1]:    g6
+[-1,1]:    g6=0 e2
+[-1,1]:    g6=0 e2 b7 d2
+-->  29  +0            18649M  g6 h7 c1 f2 g2  1560.4 s  11951379 nps  
+PV: g6 h7 c1 f2 g2 g8 f8 h1 h8
+
+
+
+
+
+         a b c d e f g h
+
+      1      * * * * *        Black                 
+      2      * * * *                                
+      3    O O O * *                   21 discs     
+      4    O O * O *                                
+      5    O * * * * *        White                 
+      6  O O O O O * O                              
+      7        O * *           (O)     14 discs     
+      8                                             
+
+-->  17  +2.38         902319  h5 h4 h3 d8 e8     0.2 s  3775156 nps
+-->  29  +2 @ 72%     8208087  h5 d8 c7 g4 h4     0.7 s  11485834 nps  
+[-1,1]:    h5
+-->  29  Draw @ 83%  31341504  h5 h4 h3 d8 e8     2.3 s  13886325 nps  
+[-1,1]:    h5
+-->  29  Draw @ 95%  48513304  h5                 3.5 s  13799913 nps  
+[-1,1]:    h5
+-->  29  +2 @ 98%     160419k  h5 h4 h3 d8 c8    11.5 s  13928314 nps  
+[1,3]:     h5
+-->  29  +2 @ 99%     316952k  h5 h4 h3 d8 c8    23.1 s  13706763 nps  
+[1,3]:     h5
+[1,3]:     h5=2 f8 g8 e8
+-->  29  +2          1455414k  h5 h4 h3 d8 c8   152.8 s  9525637 nps  
+PV: h5 h4 h3 d8 c8 c7 e8 g8 g4
+
+
+
+
+
+         a b c d e f g h
+
+      1                       Black                 
+      2                                             
+      3        * * O O O       (*)     12 discs     
+      4      * * * O O O                            
+      5      * * O * O O      White                 
+      6    O O O * * * O                            
+      7      O * O O   O               22 discs     
+      8    O O O O O                                
+
+[-inf,inf]:    g7=-6.35 f2 b5 a6=-2.55 
+-->  18  -4.50        2521564  a6 b5 b4 a3 a4     0.7 s  3697617 nps
+[-5,-3]:   a6<-4 g7>-4 
+-->  30  -2 @ 38%     2620002  g7                 0.7 s  3693614 nps  
+[-5,-3]:   g7
+-->  30  -6 @ 57%     121186k  g7                 7.6 s  16029278 nps  
+[-5,-3]:   g7<-4 a6
+[-5,-3]:   g7<-4 a6=-4 
+[-7,-5]:   a6<-6 g7=-6 
+-->  30  -6 @ 91%     140705k  g7 c2 b5 d2 a6     9.1 s  15516625 nps  
+[-7,-5]:   g7
+-->  30  -8 @ 95%     230233k  g7                14.9 s  15493061 nps  
+[-9,-7]:   g7=-8 a6
+-->  30  -8 @ 98%     336778k  g7 b5 a5 e2 a6    22.2 s  15192054 nps  
+[-9,-7]:   g7
+[-9,-7]:   g7<-8 a6 f2
+[-11,-9]:  g7
+[-11,-9]:  g7<-10 a6=-10 
+-->  30  -10 @ 99%   1797615k  a6 b5 b4 e2 f2   121.3 s  14822800 nps  
+[-11,-9]:  a6
+[-11,-9]:  a6=-10 g7
+-->  30  -10         3503335k  a6 b5 b4 e2 f2   269.4 s  13005809 nps  
+PV: a6 b5 b4 e2 f2 e1 g1 a3 g2
+
+
+
+
+
+         a b c d e f g h
+
+      1      * O O O          Black                 
+      2      O O O                                  
+      3    O O O * O O         (*)     14 discs     
+      4    O O O O * O                              
+      5    O * O * * *        White                 
+      6  O O * * * *                                
+      7      *   * *                   20 discs     
+      8                                             
+
+-->  18  -0.16        1515071  g1 f2 h3 d8 c8     0.4 s  3849060 nps
+-->  30  +2 @ 57%     2572704  g1                 0.5 s  5046101 nps  
+[3,5]:     g1
+-->  30  +4 @ 72%    24574861  g1 f2 h3 d8 c8     1.8 s  13396960 nps  
+[3,5]:     g1
+-->  30  +4 @ 91%    48709745  g1 f2 h3 d8 c8     3.5 s  13916366 nps  
+[3,5]:     g1
+-->  30  +4 @ 95%    70540719  g1 f2 h3 d8 c8     5.0 s  14083565 nps  
+[3,5]:     g1
+-->  30  +4 @ 98%     214748k  g1 f2 h3 d8 c8    14.3 s  15007192 nps  
+[3,5]:     g1
+-->  30  +4 @ 99%     434194k  g1 f2 h3 d8 c8    29.6 s  14644112 nps  
+[3,5]:     g1
+-->  30  +4          2538512k  g1 f2 h3 d8 c8   224.3 s  11315439 nps  
+PV: g1 f2 h3 d8 c8 d7 e8
+
+
+
+
+
+         a b c d e f g h
+
+      1                       Black                 
+      2                                             
+      3                O       (*)     12 discs     
+      4      O O O O O                              
+      5      O O O O O *      White                 
+      6  O O O O * * * *                            
+      7      * * O O * *               18 discs     
+      8      * *   O   *                            
+
+-->  18  +96.82       1341606  g8 e8 h4 b8 b5     0.4 s  3613471 nps
+-->  34  +64          1566457  g8                 0.4 s  3592659 nps  
+PV: g8
+
+
+
+
+Total positions solved:   21
+Total time:               3225.5 s
+Total nodes:              39830926956
+
+Average time for solve:   153.6 s
+Maximum time for solve:   1560.4 s
+
+Average speed:            12348808 nps
+
+rcrr@whitewater:~/base/prj/reversi/field_research/code/zebra$ 

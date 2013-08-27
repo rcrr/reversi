@@ -1,0 +1,5 @@
+#!/bin/csh
+# get the depth and time taken fields from a Bill log file (alpha-beta)
+# input: stdin   output: stdout
+
+grep 'Deepen' | tr -d '?'| sed 's/Deepen (//' | awk '{print $1, $9}'

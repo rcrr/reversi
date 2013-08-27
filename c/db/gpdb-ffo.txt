@@ -24,6 +24,59 @@
 #
 #
 #
+# FFO positions from 1 to 19.
+#
+ffo-01;..bbbbb..wwwbb.w.wwwbbwb.wbwbwbbwbbbwbbb..bwbwbb.bbbwww..wwwww..;b; G8:+18. H1:+12. H7:+6. A2:+6. A3:+4. B1:-4. A4:-22. G2:-24.;
+ffo-02;.bbbbbb...bwwww..bwbbwwb.wwwwwwwwwwwbbwwwwwbbwwb..bbww....bbbbb.;b; A4:+10. B2:+0. A3:-6. G7:-8. A7:-12. H7:-14. B7:-14. H2:-24.;
+ffo-03;....wb....wwbb...wwwbb.bwwbbwwwwwbbwbbwwwbbbwwwwwbbbbwbw..wwwwwb;b; D1:+2. G3:+0. B8:-2. B1:-4. C1:-4. A2:-4. A3:-6. B2:-12.;
+ffo-04;.bbbbbb.b.bbbww.bwbbbwwbbbwbwwwb.wbwwbbb..wwwbbb..wwbb....bwbbw.;b; H8:+0. A5:+0. B6:-4. B7:-4. A6:-8. B2:-12. H2:-26.;
+ffo-05;.wwwww....wbbw.bbbwbwbb.bbwbwbbwbbwwbwwwbbbbww.wb.bwww...bbbbb..;b; G8:+32. G2:+12. B2:-20. G6:-26. G1:-32. G7:-34.;
+ffo-06;..wbbb..wwwbbb..wwwbwbw.wwbwwwb.wwbbbbbbbwwbbwb..wwwwb...bbbbbb.;b; A1:+14. H3:+14. A8:+12. H2:+8. G2:+8. H4:+4. G7:+4. A7:-22. B1:-24.;
+ffo-07;..wbbw..bwbbbb..bwwwbbbbbwwbbbbbbwwwwbbb.bbbbbbb..bbwww....bbww.;b; A6:+8. G1:+0. A1:-2. H8:-6. H7:-14. B1:-30.;
+ffo-08;...b.b..b.bbbb..bbbbwbbbbbbwwwwwbbwbbbw.bwbbbbw.bwwbbb..bwwbbw..;w; E1:+8. H2:+4. G2:+4. B2:+4. G7:+4. B1:+2. G1:-6. C1:-8.;
+ffo-09;..bwbb..w.wwbbbb.wwwbbbb.bwbbbwbbbwbwwwbwbbwbwbb..wbww....wwww..;w; G7:-8. A4:-8. B1:-16. A7:-16. B7:-26. A3:-30. G1:-38. H7:-40.;
+ffo-10;.bbbb.....wbbb..bwbwbwbbwbwbbwbbwbbwbwwwbbbwbwwb..wbbw...wwwww..;w; B2:+10. B7:+4. F1:+0. A7:-4. A2:-6. G2:-12. H2:-16. H7:-20.;
+ffo-11;...w.bwb....bbwb...bbwwbw.bbwbwbbbbwwbwb.bwwbbbbbwwwbb.bwwwwwww.;w; B3:+30. C2:+26. A6:+24. G7:+20. C3:+18. D2:+16. B4:+10. E1:+6.;
+ffo-12;..w..w..b.wwwwb.bbwwwbwwbbwbwbwwbbwbbwwwbbbbwwww..wbbb...bbbbb..;w; B7:-8. A7:-10. G7:-14. G8:-14. H2:-16. G1:-16. H1:-20.;
+ffo-13;..bbbbb..wwwbb...wwwbbbb.wbwbwbbwbbbwbbb..bwbwbb..wbwww..wwwww..;b; B7:+14. A4:+0. A3:-8. B1:-18. G8:-20. H7:-20. A2:-24.;
+ffo-14;..bbbbb...wwwb...bwwbbbb.wwwwwwwwwwbbbwwwwwbbwwb..bbww....bbbbb.;b; A3:+18. A4:+12. B1:+8. G7:-4. H7:-14. A7:-24. B7:-24. B2:-28.;
+ffo-15;....w......wwb...wwwbb.bwwwbwwwwwbbwbbwwwbbbwwwwwbbbwwbw..wwwwwb;b; G3:+4. B8:+4. F1:+0. C1:+0. C2:-2. D1:-4. B2:-8. A3:-8.;
+ffo-16;.bbbbbb.b.bbbww.bwbbbwwbbwwbbbwb.wwwbbbb..wwbbbb...www....bwb.w.;b; F8:+24. C7:+20. A5:+6. H1:+6. B6:+0. B7:-2. A6:-6. H2:-26.;
+ffo-17;.wwwww....wbbw.bbbwwwbb.bbwbwbbwbbwwbwwwbbbbww.wb.bww....bbbb...;b; F8:+8. G2:+6. G6:-24. G1:-32. F7:-32. G7:-34. B2:-38.;
+ffo-18;.bbb......wwwb..bwwwwwbbwbwbwwbbwbbwwwwwbbbwbwwb..wbbw...wwwww..;b; G2:-2. B7:-6. F1:-8. E1:-10. H7:-12. G8:-14. G7:-14. A2:-18. B2:-18.;
+ffo-19;..wbbw..bwbbbb..bwwwwbbbbwwwbbbbb.wwwbbb..wwwwbb..bbwww....bbww.;b; B6:+8. H8:+4. B7:+0. G1:-6. B5:-16. H7:-16. B1:-24.;
+#
+#
+#
+#
+#
+# FFO positions from 20 to 39.
+#
+ffo-20;bbbwbbbbwbbbbbbbwwbbbbbbwwwbbbbbwwwbbww.wwwww...wwwwwww.wwwwwww.;b; H5:+6. G6:-2. F6:-4. H6:-10;
+ffo-21;wwwwwwwwbwwbbb..bbwwbww.bwbwww..bwwwwb..bwwbww..bwwwww..bbbb....;w; G5:+0. G2:-2. G4:-4. G6:-6;
+ffo-22;..wwww..b.wwwww.bbwwbwbbbwbwbbbbbbbwbbbb.bbwbwbb..wbbb.b....b...;w; G8:+2. A6:+0. F8:-4. A7:-4. H2:-4. B2:-6. D8:-8. B7:-14. G7:-26;
+ffo-23;..w.......wwb...wwwbbbw.wwwwbwbbbbbwwbwbbbbbbwwbb.bbbbwb..bbbb..;b; A2:+4. D1:-20. H3:-20. B1:-30. G2:-30. E1:-30. F2:-34. G8:-34. B2:-36. H2:-38;
+ffo-24;..w..w.....wwwb..b.bwbww..bbbwwwbbbbwwwwbbbwbbwwbbbbbb..bwbb.w..;w; C3:+0. B4:-4. C2:-8. E8:-12. G7:-14. H2:-16. G1:-24;
+ffo-25;....b......bbbw..wwwbbbbbwwwwbbw.bbwwbbwwwbwbbbbwwwbb...b.bbbb..;w; G1:+0. A5:+0. F1:-4. D1:-6. F7:-8. C2:-10. G7:-10. H2:-12. H7:-16;
+ffo-26;.wwwww....wbbw...wwwwbbw.wwwbwbb.wwbwwbb.bwbbwbb..w.bbbb..w....w;b; D8:+0. A6:-2. A4:-6. B7:-6. A5:-12. G1:-16. A2:-16. A3:-18. H2:-18. B8:-20. G2:-20. B2:-26;
+ffo-27;..bw.w....wwww..wwbwbbw.wwwwbbwwwwwbbwb.wbwbbbbb..bbbb....b.w.b.;b; B7:-2. E1:-4. B1:-6. H2:-10. H5:-10. B2:-12. A2:-14. H3:-28. G1:-28. G2:-28;
+ffo-28;..w.......www..b.bwwwwbbbbbbwbwb.bbwbwwbbbwbwwbb.wwwww.b...www..;b; F1:+0. B2:+0. E1:+0. B1:-4. F2:-6. G7:-6. D1:-12. C8:-20. G8:-22. B8:-28;
+ffo-29;.wbbbb....wbbw..bbwwbwwwbbbwwbwwbbwwbwwwbbbbww.bb.bbw...........;b; G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34;
+ffo-30;.bbb....b.bww...bbwbww..bwbwbw..bwwbwbbbbwwbbwb...wwwww..bbbbb..;b; G3:+0. G2:-12. E1:-16. F2:-18. F1:-22. G4:-22. H6:-24. B7:-24. G8:-28;
+ffo-31;.wwwww....wwww..wbbwww...bbbww..bbbbbbw.bbbwww.wb.wwww...wwwww..;b; G6:-2. G3:-4. G4:-8. G7:-14. H5:-14. G2:-16. G1:-30. G8:-32;
+ffo-32;..bb....w.bbwb..wwbww...wbwbwww.wwbbwwwbwwbbbwwb..bbbbwb..b..b.b;b; G3:-4. B7:-6. E1:-8. H4:-10. F3:-10. H3:-10. B2:-14. A7:-22;
+ffo-33;.bbbbbbb..bwww....wbwwbb.wwbbwbb.wwwwwbb.b.bwwbb...w.b.b..wwww..;b; E7:-8. A3:-8. A6:-12. B2:-12. G7:-12. G2:-12. A4:-14. C6:-20. A5:-22. B3:-28;
+ffo-34;.............w.w.wwwwwwwwwwwwbwwwbbwwwbw.bbbwbww..bbbwbw..wbbbbw;b; C2:-2. D2:-6. E2:-6. A3:-10. A2:-10. F1:-12. G2:-14. G1:-16. B2:-20. B8:-26;
+ffo-35;..bbb.....bbbb.wwwbbwwwwwwwwwwbw.wwbbbbw.wwwbbbw...bwbb...b.....;w; C7:+0. D8:-8. H8:-8. B2:-12. G1:-14. E8:-20. B1:-20. F8:-24. F1:-32. H7:-32. G8:-38;
+ffo-36;...b.w....bbbw.bbbbbbbbbbwwbbwwbbwbwwwbbbbwwww.bb..wwww.........;w; B7:+0. B1:-2. E1:-4. C1:-6. G6:-8. G2:-10. A2:-22. B2:-24;
+ffo-37;..wwww..w.wwww..wbbbwww.wbbwbw..wwbbwbb.wwbbbb..w.bbb.....bb.w..;b; G2:-20. G4:-22. B7:-22. H3:-22. G1:-30. H2:-42. B1:-48;
+ffo-38;..wwww....wwww...bwbbwwbwwbwwwwb.wwwwwbbbwwbbbbb..b.b...........;b; B2:+4. A5:+0. H2:-4. A3:-10. A7:-18. G2:-20. B7:-22. G1:-24. B1:-26;
+ffo-39;w.wwww..bwbbwb..bwwwbbb.bwwwbb..bwwbwb..bwbbb...b.bb............;w; A8:+64. B1:+64. G1:+64. G5:+64. G6:+64. C8:+64. H3:+64. E8:+64. H4:+64. F7:+62. D8:+62. E7:+62. H2:+62. B8:+62. G2:+60. G4:+60. F6:+32;
+#
+#
+#
+#
+#
 # FFO position #40, black to move, Turner vs Monnom, Bruxelles 1997.
 # Principal Variation, PV: a2 b1 c1 -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
 # Final score is +38

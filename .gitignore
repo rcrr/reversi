@@ -24,3 +24,16 @@ valgrind.*.log
 analysis.txt
 gmon.out
 gprof
+field_research/code/zebra/*.o
+field_research/code/zebra/booktool
+field_research/code/zebra/enddev
+field_research/code/zebra/libzebra.a
+field_research/code/zebra/practice
+field_research/code/zebra/scrzebra
+field_research/code/zebra/tune8dbs
+field_research/code/zebra/zebra
+field_research/code/zebra/zebra.err
+field_research/code/zebra/zebra.log
+field_research/code/zebra/ffo/*.out
+field_research/code/edax/4.3/doc
+field_research/code/edax/4.3/bin

@@ -319,6 +319,7 @@ game_position_ifes_solve (const GamePosition * const root)
                k, (void*) &ems[k], ems[k].square, ifes_square_to_string(ems[k].square), ems[k].hole_id,
                (void*) ems[k].pred, (void*) ems[k].succ);
     }
+    printf("region_parity=%d\n", region_parity);
     printf("\n");
   }
   /** **/
@@ -694,26 +695,29 @@ prepare_to_solve (uchar *board)
    * ought to keep doing iters until reach fixed point, but in most
    * othello positions with few empties this ought to work, and besides,
    * this is justifiable since the definition of "hole" in othello
-   * is somewhat arbitrary anyway. */
-  const int max_iters = 1;
+   * is somewhat arbitrary anyway.
+   *
+   * For ffo-40 max_iters must be 2.
+   */
+  const int max_iters = 4;
 
   for (z = max_iters; z > 0; z--) {
     for (i = 80; i >= 10; i--) {
       if (board[i] == IFES_EMPTY) {
         k = hole_id_map[i];
-        if (board[i +10] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i +10]);
-        if (board[i + 9] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i + 9]);
-        if (board[i + 8] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i + 8]);
-        if (board[i + 1] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i + 1]);
+        if (board[i +10] == IFES_EMPTY) hole_id_map[i] = minu(k, hole_id_map[i +10]);
+        if (board[i + 9] == IFES_EMPTY) hole_id_map[i] = minu(k, hole_id_map[i + 9]);
+        if (board[i + 8] == IFES_EMPTY) hole_id_map[i] = minu(k, hole_id_map[i + 8]);
+        if (board[i + 1] == IFES_EMPTY) hole_id_map[i] = minu(k, hole_id_map[i + 1]);
       }
     }
     for (i = 10; i <= 80; i++) {
       if (board[i] == IFES_EMPTY) {
         k = hole_id_map[i];
-        if (board[i - 10] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i - 10]);
-        if (board[i -  9] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i -  9]);
-        if (board[i -  8] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i -  8]);
-        if (board[i -  1] == IFES_EMPTY) hole_id_map[i] = minu(k,hole_id_map[i -  1]);
+        if (board[i - 10] == IFES_EMPTY) hole_id_map[i] = minu(k, hole_id_map[i - 10]);
+        if (board[i -  9] == IFES_EMPTY) hole_id_map[i] = minu(k, hole_id_map[i -  9]);
+        if (board[i -  8] == IFES_EMPTY) hole_id_map[i] = minu(k, hole_id_map[i -  8]);
+        if (board[i -  1] == IFES_EMPTY) hole_id_map[i] = minu(k, hole_id_map[i -  1]);
       }
     }
   }

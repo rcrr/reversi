@@ -1,0 +1,1069 @@
+%% othelloboard.sty
+  %% Copyright 2011 Steven Hall
+  %
+  % This work may be distributed and/or modified under the
+  % conditions of the LaTeX Project Public License.
+  % The latest version of this license is in
+  %   http://www.latex-project.org/lppl.txt
+  % and version 1.3 or later is part of all distributions of LaTeX
+  % version 2005/12/01 or later.
+  %
+  % This work has the LPPL maintenance status `maintained'.
+  % 
+  % The Current Maintainer of this work is Steven Hall.
+  %
+  % This work consists of the files othelloboard.sty and othelloboard.pdf
+
+
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{othelloboard}[2011/18/08 Othello board diagram drawing package by Steven Hall]
+\RequirePackage{graphicx}
+\RequirePackage{pict2e}
+\RequirePackage{ifthen}
+\RequirePackage{color}
+\RequirePackage{xstring}
+\RequirePackage{stringstrings}
+
+
+%%%%%%%%%%%%%%%%%%%%
+%%OTHELLO DIAGRAMS MACROS%%
+%%%%%%%%%%%%%%%%%%%%
+
+
+%------Main commands for individual discs-------%
+\newcommand{\blackdisc}{\circle*{20.4}}
+\newcommand{\whitedisc}{\circle{20}}
+\newcommand{\whitediamond}{\makebox(0,0){\rotatebox{45}{\framebox(13.3,13.3){}}}}
+\newcommand{\blackdiamond}{\makebox(0,0){\rotatebox{45}{\rule{14.12pt}{14.12pt}}}}
+
+
+%------Conditional command depending on value of a single argument. 1=white disc, 2=black disc, 3=white diamond, 4=black diamond, 0=no disc. Other numbers give no disc by default. 
+\newcommand{\othellodisc}[1]{%
+\ifthenelse{#1=0}{}{}%
+\ifthenelse{#1=1}{\whitedisc}{}%
+\ifthenelse{#1=2}{\blackdisc}{}%
+\ifthenelse{#1=3}{\whitediamond}{}%
+\ifthenelse{#1=4}{\blackdiamond}{}%
+}%
+
+%-------Declare all the counters to be used to store value inputted for each square. Only called upon to determine the text colour of annotations (white text if value=2 or 4, otherwise normal text). 
+\newcounter{disccolouraa}  \newcounter{disccolourab} \newcounter{disccolourac} 
+\newcounter{disccolourad} \newcounter{disccolourae} \newcounter{disccolouraf} 
+\newcounter{disccolourag} \newcounter{disccolourah} \newcounter{disccolourba} 
+\newcounter{disccolourbb} \newcounter{disccolourbc} \newcounter{disccolourbd} 
+\newcounter{disccolourbe} \newcounter{disccolourbf} \newcounter{disccolourbg} 
+\newcounter{disccolourbh} \newcounter{disccolourca} \newcounter{disccolourcb} 
+\newcounter{disccolourcc} \newcounter{disccolourcd} \newcounter{disccolource} 
+\newcounter{disccolourcf} \newcounter{disccolourcg} \newcounter{disccolourch} 
+\newcounter{disccolourda} \newcounter{disccolourdb} \newcounter{disccolourdc} 
+\newcounter{disccolourdd} \newcounter{disccolourde} \newcounter{disccolourdf} 
+\newcounter{disccolourdg} \newcounter{disccolourdh} \newcounter{disccolourea} 
+\newcounter{disccoloureb} \newcounter{disccolourec} \newcounter{disccoloured} 
+\newcounter{disccolouree} \newcounter{disccolouref} \newcounter{disccoloureg} 
+\newcounter{disccoloureh} \newcounter{disccolourfa} \newcounter{disccolourfb} 
+\newcounter{disccolourfc} \newcounter{disccolourfd} \newcounter{disccolourfe} 
+\newcounter{disccolourff} \newcounter{disccolourfg} \newcounter{disccolourfh} 
+\newcounter{disccolourga} \newcounter{disccolourgb} \newcounter{disccolourgc} 
+\newcounter{disccolourgd} \newcounter{disccolourge} \newcounter{disccolourgf} 
+\newcounter{disccolourgg} \newcounter{disccolourgh} \newcounter{disccolourha} 
+\newcounter{disccolourhb} \newcounter{disccolourhc} \newcounter{disccolourhd} 
+\newcounter{disccolourhe} \newcounter{disccolourhf} \newcounter{disccolourhg} 
+\newcounter{disccolourhh} 
+%   
+
+%----- Need a command to reset all counters.----
+\newcommand{\resetalldisccolours}{
+\setcounter{disccolouraa}{0}\setcounter{disccolourab}{0}\setcounter{disccolourac}{0}
+\setcounter{disccolourad}{0}\setcounter{disccolourae}{0}\setcounter{disccolouraf}{0}
+\setcounter{disccolourag}{0}\setcounter{disccolourah}{0}\setcounter{disccolourba}{0}
+\setcounter{disccolourbb}{0}\setcounter{disccolourbc}{0}\setcounter{disccolourbd}{0}
+\setcounter{disccolourbe}{0}\setcounter{disccolourbf}{0}\setcounter{disccolourbg}{0}
+\setcounter{disccolourbh}{0}\setcounter{disccolourca}{0}\setcounter{disccolourcb}{0}
+\setcounter{disccolourcc}{0}\setcounter{disccolourcd}{0}\setcounter{disccolource}{0}
+\setcounter{disccolourcf}{0}\setcounter{disccolourcg}{0}\setcounter{disccolourch}{0}
+\setcounter{disccolourda}{0}\setcounter{disccolourdb}{0}\setcounter{disccolourdc}{0}
+\setcounter{disccolourdd}{0}\setcounter{disccolourde}{0}\setcounter{disccolourdf}{0}
+\setcounter{disccolourdg}{0}\setcounter{disccolourdh}{0}\setcounter{disccolourea}{0}
+\setcounter{disccoloureb}{0}\setcounter{disccolourec}{0}\setcounter{disccoloured}{0}
+\setcounter{disccolouree}{0}\setcounter{disccolouref}{0}\setcounter{disccoloureg}{0}
+\setcounter{disccoloureh}{0}\setcounter{disccolourfa}{0}\setcounter{disccolourfb}{0}
+\setcounter{disccolourfc}{0}\setcounter{disccolourfd}{0}\setcounter{disccolourfe}{0}
+\setcounter{disccolourff}{0}\setcounter{disccolourfg}{0}\setcounter{disccolourfh}{0}
+\setcounter{disccolourga}{0}\setcounter{disccolourgb}{0}\setcounter{disccolourgc}{0}
+\setcounter{disccolourgd}{0}\setcounter{disccolourge}{0}\setcounter{disccolourgf}{0}
+\setcounter{disccolourgg}{0}\setcounter{disccolourgh}{0}\setcounter{disccolourha}{0}
+\setcounter{disccolourhb}{0}\setcounter{disccolourhc}{0}\setcounter{disccolourhd}{0}
+\setcounter{disccolourhe}{0}\setcounter{disccolourhf}{0}\setcounter{disccolourhg}{0}
+\setcounter{disccolourhh}{0}}
+
+%------- Colour commands for annotations text ------------
+% Centres inputted annotation string for each square within a 20pt wide box. Text can spill outside the box and remains centred. Two commands, one for white, one for normal (typically black) text.
+\newcommand{\othellowhitetext}[1]{\makebox[20pt]{\textcolor{white}{#1}}}
+\newcommand{\othellonormaltext}[1]{\makebox[20pt]{#1}}
+
+% Conditional command that is used within each \annotations...row command. Takes two arguments. The first determines which of the two commands defined just above to execute (the white text command if arg is 2 or 4, black text command otherwise). The second argument is the string that gets fed into either the white text or black text command. The second argument is inputted by the user. The first string is going to be taken from the value of a disccolour... counter. 
+\newcommand{\othelloannotation}[2]{%
+\ifthenelse{#1=2 \or #1=4}%
+{\othellowhitetext{#2}}%
+{\othellonormaltext{#2}}%
+}
+
+
+%-------Individual rows of the array. (LaTeX only takes up to 9 arguments in a \newcommand definition)
+% Discs/diamonds are placed horizontally and vertically at 24-unit intervals. Diameter 20 units.
+
+%----First Row (from the top, left to right)-----%
+\newcommand{\othelloarrayfirstrow}[8]%
+{%
+\put(12,180){\othellodisc{#1}} \setcounter{disccolouraa}{#1}%	Places disc/diamond at a1 and stores value in counters declared above.
+\put(36,180){\othellodisc{#2}} \setcounter{disccolourba}{#2}
+\put(60,180){\othellodisc{#3}} \setcounter{disccolourca}{#3}
+\put(84,180){\othellodisc{#4}} \setcounter{disccolourda}{#4}
+\put(108,180){\othellodisc{#5}} \setcounter{disccolourea}{#5}
+\put(132,180){\othellodisc{#6}} \setcounter{disccolourfa}{#6}
+\put(156,180){\othellodisc{#7}} \setcounter{disccolourga}{#7}
+\put(180,180){\othellodisc{#8}} \setcounter{disccolourha}{#8}
+}
+%------Second Row--------%
+\newcommand{\othelloarraysecondrow}[8]%
+{%
+\put(12,156){\othellodisc{#1}} \setcounter{disccolourab}{#1}
+\put(36,156){\othellodisc{#2}} \setcounter{disccolourbb}{#2}
+\put(60,156){\othellodisc{#3}} \setcounter{disccolourcb}{#3}
+\put(84,156){\othellodisc{#4}} \setcounter{disccolourdb}{#4} 
+\put(108,156){\othellodisc{#5}} \setcounter{disccoloureb}{#5}
+\put(132,156){\othellodisc{#6}} \setcounter{disccolourfb}{#6}
+\put(156,156){\othellodisc{#7}} \setcounter{disccolourgb}{#7}
+\put(180,156){\othellodisc{#8}} \setcounter{disccolourhb}{#8}
+}
+%-------Third Row-----%
+\newcommand{\othelloarraythirdrow}[8]%
+{%
+\put(12,132){\othellodisc{#1}} \setcounter{disccolourac}{#1}
+\put(36,132){\othellodisc{#2}} \setcounter{disccolourbc}{#2}
+\put(60,132){\othellodisc{#3}} \setcounter{disccolourcc}{#3}
+\put(84,132){\othellodisc{#4}} \setcounter{disccolourdc}{#4}
+\put(108,132){\othellodisc{#5}} \setcounter{disccolourec}{#5}
+\put(132,132){\othellodisc{#6}} \setcounter{disccolourfc}{#6}
+\put(156,132){\othellodisc{#7}} \setcounter{disccolourgc}{#7}
+\put(180,132){\othellodisc{#8}} \setcounter{disccolourhc}{#8}
+}
+%-------Fourth Row-----%
+\newcommand{\othelloarrayfourthrow}[8]%
+{%
+\put(12,108){\othellodisc{#1}} \setcounter{disccolourad}{#1}
+\put(36,108){\othellodisc{#2}} \setcounter{disccolourbd}{#2}
+\put(60,108){\othellodisc{#3}} \setcounter{disccolourcd}{#3}
+\put(84,108){\othellodisc{#4}} \setcounter{disccolourdd}{#4}
+\put(108,108){\othellodisc{#5}} \setcounter{disccoloured}{#5}
+\put(132,108){\othellodisc{#6}} \setcounter{disccolourfd}{#6}
+\put(156,108){\othellodisc{#7}} \setcounter{disccolourgd}{#7}
+\put(180,108){\othellodisc{#8}}\setcounter{disccolourhd}{#8}
+}
+%-------Fifth Row-----%
+\newcommand{\othelloarrayfifthrow}[8]%
+{%
+\put(12,84){\othellodisc{#1}} \setcounter{disccolourae}{#1}
+\put(36,84){\othellodisc{#2}} \setcounter{disccolourbe}{#2}
+\put(60,84){\othellodisc{#3}} \setcounter{disccolource}{#3}
+\put(84,84){\othellodisc{#4}} \setcounter{disccolourde}{#4}
+\put(108,84){\othellodisc{#5}} \setcounter{disccolouree}{#5}
+\put(132,84){\othellodisc{#6}} \setcounter{disccolourfe}{#6}
+\put(156,84){\othellodisc{#7}} \setcounter{disccolourge}{#7}
+\put(180,84){\othellodisc{#8}} \setcounter{disccolourhe}{#8}
+}
+%-------Sixth Row-----%
+\newcommand{\othelloarraysixthrow}[8]%
+{%
+\put(12,60){\othellodisc{#1}} \setcounter{disccolouraf}{#1}
+\put(36,60){\othellodisc{#2}} \setcounter{disccolourbf}{#2}
+\put(60,60){\othellodisc{#3}} \setcounter{disccolourcf}{#3}
+\put(84,60){\othellodisc{#4}} \setcounter{disccolourdf}{#4}
+\put(108,60){\othellodisc{#5}} \setcounter{disccolouref}{#5}
+\put(132,60){\othellodisc{#6}} \setcounter{disccolourff}{#6}
+\put(156,60){\othellodisc{#7}} \setcounter{disccolourgf}{#7}
+\put(180,60){\othellodisc{#8}} \setcounter{disccolourhf}{#8}
+}
+%-------Seventh Row-----%
+\newcommand{\othelloarrayseventhrow}[8]%
+{%
+\put(12,36){\othellodisc{#1}} \setcounter{disccolourag}{#1}
+\put(36,36){\othellodisc{#2}} \setcounter{disccolourbg}{#2}
+\put(60,36){\othellodisc{#3}} \setcounter{disccolourcg}{#3}
+\put(84,36){\othellodisc{#4}} \setcounter{disccolourdg}{#4}
+\put(108,36){\othellodisc{#5}} \setcounter{disccoloureg}{#5}
+\put(132,36){\othellodisc{#6}} \setcounter{disccolourfg}{#6}
+\put(156,36){\othellodisc{#7}} \setcounter{disccolourgg}{#7}
+\put(180,36){\othellodisc{#8}} \setcounter{disccolourhg}{#8}
+}
+%-------Eighth Row-----%
+\newcommand{\othelloarrayeighthrow}[8]%
+{%
+\put(12,12){\othellodisc{#1}} \setcounter{disccolourah}{#1}
+\put(36,12){\othellodisc{#2}} \setcounter{disccolourbh}{#2}
+\put(60,12){\othellodisc{#3}} \setcounter{disccolourch}{#3}
+\put(84,12){\othellodisc{#4}} \setcounter{disccolourdh}{#4}
+\put(108,12){\othellodisc{#5}} \setcounter{disccoloureh}{#5}
+\put(132,12){\othellodisc{#6}} \setcounter{disccolourfh}{#6}
+\put(156,12){\othellodisc{#7}} \setcounter{disccolourgh}{#7}
+\put(180,12){\othellodisc{#8}} \setcounter{disccolourhh}{#8}
+}
+
+
+%----Annotations Row by Row-----%
+%----First Row (from the top, left to right)-----%
+\newcommand{\annotationsfirstrow}[8]%
+{%
+\put(2,176.5){\othelloannotation{\value{disccolouraa}}{#1}} %Places text at a1 in white or normal font according to colour of the disc at that square. Calls upon counter value set when the disc was placed. 
+\put(26,176.5){\othelloannotation{\value{disccolourba}}{#2}} 
+\put(50,176.5){\othelloannotation{\value{disccolourca}}{#3}} 
+\put(74,176.5){\othelloannotation{\value{disccolourda}}{#4}} 
+\put(98,176.5){\othelloannotation{\value{disccolourea}}{#5}} 
+\put(122,176.5){\othelloannotation{\value{disccolourfa}}{#6}} 
+\put(146,176.5){\othelloannotation{\value{disccolourga}}{#7}} 
+\put(170,176.5){\othelloannotation{\value{disccolourha}}{#8}}
+}
+%----Second Row------%
+\newcommand{\annotationssecondrow}[8]%
+{%
+\put(2,152.5){\othelloannotation{\value{disccolourab}}{#1}} \put(26,152.5){\othelloannotation{\value{disccolourbb}}{#2}} \put(50,152.5){\othelloannotation{\value{disccolourcb}}{#3}} \put(74,152.5){\othelloannotation{\value{disccolourdb}}{#4}} \put(98,152.5){\othelloannotation{\value{disccoloureb}}{#5}} \put(122,152.5){\othelloannotation{\value{disccolourfb}}{#6}} \put(146,152.5){\othelloannotation{\value{disccolourgb}}{#7}} \put(170,152.5){\othelloannotation{\value{disccolourhb}}{#8}}
+}
+%----Third Row------%
+\newcommand{\annotationsthirdrow}[8]%
+{%
+\put(2,128.5){\othelloannotation{\value{disccolourac}}{#1}} \put(26,128.5){\othelloannotation{\value{disccolourbc}}{#2}} \put(50,128.5){\othelloannotation{\value{disccolourcc}}{#3}} \put(74,128.5){\othelloannotation{\value{disccolourdc}}{#4}} \put(98,128.5){\othelloannotation{\value{disccolourec}}{#5}} \put(122,128.5){\othelloannotation{\value{disccolourfc}}{#6}} \put(146,128.5){\othelloannotation{\value{disccolourgc}}{#7}} \put(170,128.5){\othelloannotation{\value{disccolourhc}}{#8}}
+}
+%----Fourth Row-----%
+\newcommand{\annotationsfourthrow}[8]
+{%
+\put(2,104.5){\othelloannotation{\value{disccolourad}}{#1}} \put(26,104.5){\othelloannotation{\value{disccolourbd}}{#2}} \put(50,104.5){\othelloannotation{\value{disccolourcd}}{#3}} \put(74,104.5){\othelloannotation{\value{disccolourdd}}{#4}} \put(98,104.5){\othelloannotation{\value{disccoloured}}{#5}} \put(122,104.5){\othelloannotation{\value{disccolourfd}}{#6}} \put(146,104.5){\othelloannotation{\value{disccolourgd}}{#7}} \put(170,104.5){\othelloannotation{\value{disccolourhd}}{#8}}
+}
+%----Fifth Row-----%
+\newcommand{\annotationsfifthrow}[8]
+{%
+\put(2,80.5){\othelloannotation{\value{disccolourae}}{#1}} \put(26,80.5){\othelloannotation{\value{disccolourbe}}{#2}} \put(50,80.5){\othelloannotation{\value{disccolource}}{#3}} \put(74,80.5){\othelloannotation{\value{disccolourde}}{#4}} \put(98,80.5){\othelloannotation{\value{disccolouree}}{#5}} \put(122,80.5){\othelloannotation{\value{disccolourfe}}{#6}} \put(146,80.5){\othelloannotation{\value{disccolourge}}{#7}} \put(170,80.5){\othelloannotation{\value{disccolourhe}}{#8}}
+}
+%----Sixth Row-----%
+\newcommand{\annotationssixthrow}[8]
+{
+\put(2,56.5){\othelloannotation{\value{disccolouraf}}{#1}} \put(26,56.5){\othelloannotation{\value{disccolourbf}}{#2}} \put(50,56.5){\othelloannotation{\value{disccolourcf}}{#3}} \put(74,56.5){\othelloannotation{\value{disccolourdf}}{#4}}\put(98,56.5){\othelloannotation{\value{disccolouref}}{#5}}\put(122,56.5){\othelloannotation{\value{disccolourff}}{#6}}\put(146,56.5){\othelloannotation{\value{disccolourgf}}{#7}}\put(170,56.5){\othelloannotation{\value{disccolourhf}}{#8}}
+}
+%----Seventh Row-----%
+\newcommand{\annotationsseventhrow}[8]%
+{%
+\put(2,32.5){\othelloannotation{\value{disccolourag}}{#1}} \put(26,32.5){\othelloannotation{\value{disccolourbg}}{#2}} \put(50,32.5){\othelloannotation{\value{disccolourcg}}{#3}} \put(74,32.5){\othelloannotation{\value{disccolourdg}}{#4}} \put(98,32.5){\othelloannotation{\value{disccoloureg}}{#5}} \put(122,32.5){\othelloannotation{\value{disccolourfg}}{#6}} \put(146,32.5){\othelloannotation{\value{disccolourgg}}{#7}} \put(170,32.5){\othelloannotation{\value{disccolourhg}}{#8}}
+}
+%----Eighth Row-----%
+\newcommand{\annotationseighthrow}[8]%
+{%
+\put(2,8.5){\othelloannotation{\value{disccolourah}}{#1}} \put(26,8.5){\othelloannotation{\value{disccolourbh}}{#2}} \put(50,8.5){\othelloannotation{\value{disccolourch}}{#3}} \put(74,8.5){\othelloannotation{\value{disccolourdh}}{#4}} \put(98,8.5){\othelloannotation{\value{disccoloureh}}{#5}} \put(122,8.5){\othelloannotation{\value{disccolourfh}}{#6}} \put(146,8.5){\othelloannotation{\value{disccolourgh}}{#7}} \put(170,8.5){\othelloannotation{\value{disccolourhh}}{#8}}
+}
+
+%-----Grids-------%
+\newcommand{\othellogrid}{%
+% outside edges first, slightly thicker
+\thicklines
+\put(0,0){\line(0,1){192}}
+\put(192,0){\line(0,1){192}}
+\put(0,0){\line(1,0){192}}
+\put(0,192){\line(1,0){192}}
+% inside lines
+\thinlines
+\put(24,0){\line(0,1){192}}
+\put(48,0){\line(0,1){192}}
+\put(72,0){\line(0,1){192}}
+\put(96,0){\line(0,1){192}}
+\put(120,0){\line(0,1){192}}
+\put(144,0){\line(0,1){192}}
+\put(168,0){\line(0,1){192}}
+\put(0,24){\line(1,0){192}}
+\put(0,48){\line(1,0){192}}
+\put(0,72){\line(1,0){192}}
+\put(0,96){\line(1,0){192}}
+\put(0,120){\line(1,0){192}}
+\put(0,144){\line(1,0){192}}
+\put(0,168){\line(1,0){192}}
+}
+
+%Initially included dot markings (on the inner corners of each x-square) as part of the \othellogrid command, but people may prefer to leave them out. So there's a separate command to put them in.
+%-------Dot markings-------
+\newcommand{\dotmarkings}{%
+\put(48,48){\circle*{2.4}}
+\put(48,144){\circle*{2.4}}
+\put(144,144){\circle*{2.4}}
+\put(144,48){\circle*{2.4}}
+}
+
+
+%------Row and Column Labels-----%
+%Diagrams in some places, e.g. the British Othello Federation newsletter, leave off grid references.
+%Note the co-ordinates here are given relative to the picture box that contains the grid, which is 192x192 units and places bounding lines at (0,0)(left edge and bottom edge), (0,192)(top edge), and (192,0)(right edge). The co-ordinates below all fall *outside* this box. This seems like the neatest way of keeping the grid as a separate module from the grid labels. To ensure the labels, when used, don't bleed into the text surrounding a board diagram the grid is housed inside of a larger, 208x208 unit, box as part of the othelloboard environment. 
+\newcommand{\gridrefs}{%
+\put(-10,10){\footnotesize{8}} 
+\put(-10,34){\footnotesize{7}} 
+\put(-10,58){\footnotesize{6}} 
+\put(-10,82){\footnotesize{5}} 
+\put(-10,106){\footnotesize{4}} 
+\put(-10,130){\footnotesize{3}} 
+\put(-10,154){\footnotesize{2}} 
+\put(-10,178){\footnotesize{1}}
+\put(9.5,197){\footnotesize{a}} 
+\put(33.5,197){\footnotesize{b}} 
+\put(57.5,197){\footnotesize{c}} 
+\put(81.5,197){\footnotesize{d}} 
+\put(105.5,197){\footnotesize{e}} 
+\put(129.5,197){\footnotesize{f}} 
+\put(153.5,197){\footnotesize{g}} 
+\put(177.5,197){\footnotesize{h}}
+}
+
+%-------Define Environments to shorten the code required for each diagram-------
+% To be used with \lrbox to work around environment definition restrictions on having unclosed braces in the begin code.
+\newsavebox{\fmboard}%
+
+% Instead of a counter to work around inability to use argument values for an environment definition in the end code, and the inability to pass counter values set in the begin code on to the end code. 
+\newcommand{\scalefactor}{1}%
+
+% The othelloboard environment
+% The use of \frame is to put a clean border around the board, with definite corners. The way that LaTeX draws lines means that orthogonal lines from the same point don't form a nice corner. This starts to be noticeable with larger boards.
+\newenvironment{othelloboard}[1]%
+{\renewcommand{\scalefactor}{#1} \begin{lrbox}{\fmboard}\begin{picture}(192,192)\resetalldisccolours \othellogrid \gridrefs}
+{\end{picture} \end{lrbox} \scalebox{\scalefactor}{\begin{picture}(208,208)(-16,0) \frame{\usebox{\fmboard}} \end{picture}}}
+
+%The othelloboardnorefs environment
+\newenvironment{othelloboardnorefs}[1]%
+{\renewcommand{\scalefactor}{#1} \begin{lrbox}{\fmboard}\begin{picture}(192,192)\resetalldisccolours \othellogrid}
+{\end{picture} \end{lrbox} \scalebox{\scalefactor}{\begin{picture}(192,192)(0,0) \frame{\usebox{\fmboard}} \end{picture}}}
+
+
+%---- Commands used in the appendix of the documentation, in the example of counting discs using disccolourxy counters.
+\newcounter{numberwdiscs}% counter used in the following command for totting up the number of white discs
+\newcommand{\countwhitediscs}{% If the value of the disccolour counter at a square is 1, increment numberwdiscs, otherwise do nothing 
+\ifthenelse{\equal{\value{disccolouraa}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourab}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourac}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourad}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourae}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolouraf}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourag}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourah}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourba}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbb}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbc}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbd}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbe}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbf}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbg}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbh}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourca}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourcb}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourcc}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourcd}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolource}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourcf}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourcg}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourch}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourda}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdb}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdc}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdd}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourde}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdf}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdg}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdh}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourea}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccoloureb}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourec}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccoloured}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolouree}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolouref}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccoloureg}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccoloureh}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfa}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfb}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfc}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfd}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfe}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourff}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfg}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfh}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourga}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgb}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgc}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgd}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourge}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgf}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgg}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgh}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourha}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhb}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhc}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhd}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhe}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhf}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhg}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhh}}{1}}{\addtocounter{numberwdiscs}{1}}{}
+}
+
+
+\newcounter{numberbdiscs}
+\newcommand{\countblackdiscs}{%
+\ifthenelse{\equal{\value{disccolouraa}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourab}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourac}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourad}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourae}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolouraf}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourag}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourah}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourba}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbb}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbc}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbd}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbe}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbf}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbg}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourbh}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourca}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourcb}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourcc}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourcd}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolource}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourcf}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourcg}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourch}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourda}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdb}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdc}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdd}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourde}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdf}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdg}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourdh}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourea}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccoloureb}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourec}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccoloured}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolouree}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolouref}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccoloureg}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccoloureh}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfa}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfb}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfc}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfd}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfe}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourff}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfg}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourfh}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourga}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgb}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgc}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgd}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourge}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgf}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgg}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourgh}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourha}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhb}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhc}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhd}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhe}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhf}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhg}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+\ifthenelse{\equal{\value{disccolourhh}}{2}}{\addtocounter{numberbdiscs}{1}}{}
+}
+
+
+%----- Command for placing annotations according to square name. Puts '#2' at square #1.
+\newcommand{\posannotation}[2]{%
+\ifthenelse{\equal{#1}{A1} \OR \equal{#1}{a1}}{\put(2,176.5){\othelloannotation{\value{disccolouraa}}{#2}}}{}
+\ifthenelse{\equal{#1}{B1} \OR \equal{#1}{b1}}{\put(26,176.5){\othelloannotation{\value{disccolourba}}{#2}}}{}
+\ifthenelse{\equal{#1}{C1} \OR \equal{#1}{c1}}{\put(50,176.5){\othelloannotation{\value{disccolourca}}{#2}}}{}
+\ifthenelse{\equal{#1}{D1} \OR \equal{#1}{d1}}{\put(74,176.5){\othelloannotation{\value{disccolourda}}{#2}}}{}
+\ifthenelse{\equal{#1}{E1} \OR \equal{#1}{e1}}{\put(98,176.5){\othelloannotation{\value{disccolourea}}{#2}}}{}
+\ifthenelse{\equal{#1}{F1} \OR \equal{#1}{f1}}{\put(122,176.5){\othelloannotation{\value{disccolourfa}}{#2}}}{}
+\ifthenelse{\equal{#1}{G1} \OR \equal{#1}{g1}}{\put(146,176.5){\othelloannotation{\value{disccolourga}}{#2}}}{}
+\ifthenelse{\equal{#1}{H1} \OR \equal{#1}{h1}}{\put(170,176.5){\othelloannotation{\value{disccolourha}}{#2}}}{} 
+\ifthenelse{\equal{#1}{A2} \OR \equal{#1}{a2}}{\put(2,152.5){\othelloannotation{\value{disccolourab}}{#2}}}{}
+\ifthenelse{\equal{#1}{B2} \OR \equal{#1}{b2}}{\put(26,152.5){\othelloannotation{\value{disccolourbb}}{#2}}}{}
+\ifthenelse{\equal{#1}{C2} \OR \equal{#1}{c2}}{\put(50,152.5){\othelloannotation{\value{disccolourcb}}{#2}}}{}
+\ifthenelse{\equal{#1}{D2} \OR \equal{#1}{d2}}{\put(74,152.5){\othelloannotation{\value{disccolourdb}}{#2}}}{}
+\ifthenelse{\equal{#1}{E2} \OR \equal{#1}{e2}}{\put(98,152.5){\othelloannotation{\value{disccoloureb}}{#2}}}{}
+\ifthenelse{\equal{#1}{F2} \OR \equal{#1}{f2}}{\put(122,152.5){\othelloannotation{\value{disccolourfb}}{#2}}}{}
+\ifthenelse{\equal{#1}{G2} \OR \equal{#1}{g2}}{\put(146,152.5){\othelloannotation{\value{disccolourgb}}{#2}}}{}
+\ifthenelse{\equal{#1}{H2} \OR \equal{#1}{h2}}{\put(170,152.5){\othelloannotation{\value{disccolourhb}}{#2}}}{}
+\ifthenelse{\equal{#1}{A3} \OR \equal{#1}{a3}}{\put(2,128.5){\othelloannotation{\value{disccolourac}}{#2}}}{}
+\ifthenelse{\equal{#1}{B3} \OR \equal{#1}{b3}}{\put(26,128.5){\othelloannotation{\value{disccolourbc}}{#2}}}{}
+\ifthenelse{\equal{#1}{C3} \OR \equal{#1}{c3}}{\put(50,128.5){\othelloannotation{\value{disccolourcc}}{#2}}}{}
+\ifthenelse{\equal{#1}{D3} \OR \equal{#1}{d3}}{\put(74,128.5){\othelloannotation{\value{disccolourdc}}{#2}}}{}
+\ifthenelse{\equal{#1}{E3} \OR \equal{#1}{e3}}{\put(98,128.5){\othelloannotation{\value{disccolourec}}{#2}}}{}
+\ifthenelse{\equal{#1}{F3} \OR \equal{#1}{f3}}{\put(122,128.5){\othelloannotation{\value{disccolourfc}}{#2}}}{}
+\ifthenelse{\equal{#1}{G3} \OR \equal{#1}{g3}}{\put(146,128.5){\othelloannotation{\value{disccolourgc}}{#2}}}{}
+\ifthenelse{\equal{#1}{H3} \OR \equal{#1}{h3}}{\put(170,128.5){\othelloannotation{\value{disccolourhc}}{#2}}}{}
+\ifthenelse{\equal{#1}{A4} \OR \equal{#1}{a4}}{\put(2,104.5){\othelloannotation{\value{disccolourad}}{#2}}}{}
+\ifthenelse{\equal{#1}{B4} \OR \equal{#1}{b4}}{\put(26,104.5){\othelloannotation{\value{disccolourbd}}{#2}}}{}
+\ifthenelse{\equal{#1}{C4} \OR \equal{#1}{c4}}{\put(50,104.5){\othelloannotation{\value{disccolourcd}}{#2}}}{}
+\ifthenelse{\equal{#1}{D4} \OR \equal{#1}{d4}}{\put(74,104.5){\othelloannotation{\value{disccolourdd}}{#2}}}{}
+\ifthenelse{\equal{#1}{E4} \OR \equal{#1}{e4}}{\put(98,104.5){\othelloannotation{\value{disccoloured}}{#2}}}{}
+\ifthenelse{\equal{#1}{F4} \OR \equal{#1}{f4}}{\put(122,104.5){\othelloannotation{\value{disccolourfd}}{#2}}}{}
+\ifthenelse{\equal{#1}{G4} \OR \equal{#1}{g4}}{\put(146,104.5){\othelloannotation{\value{disccolourgd}}{#2}}}{}
+\ifthenelse{\equal{#1}{H4} \OR \equal{#1}{h4}}{\put(170,104.5){\othelloannotation{\value{disccolourhd}}{#2}}}{}
+\ifthenelse{\equal{#1}{A5} \OR \equal{#1}{a5}}{\put(2,80.5){\othelloannotation{\value{disccolourae}}{#2}}}{}
+\ifthenelse{\equal{#1}{B5} \OR \equal{#1}{b5}}{\put(26,80.5){\othelloannotation{\value{disccolourbe}}{#2}}}{}
+\ifthenelse{\equal{#1}{C5} \OR \equal{#1}{c5}}{\put(50,80.5){\othelloannotation{\value{disccolource}}{#2}}}{}
+\ifthenelse{\equal{#1}{D5} \OR \equal{#1}{d5}}{\put(74,80.5){\othelloannotation{\value{disccolourde}}{#2}}}{}
+\ifthenelse{\equal{#1}{E5} \OR \equal{#1}{e5}}{\put(98,80.5){\othelloannotation{\value{disccolouree}}{#2}}}{}
+\ifthenelse{\equal{#1}{F5} \OR \equal{#1}{f5}}{\put(122,80.5){\othelloannotation{\value{disccolourfe}}{#2}}}{}
+\ifthenelse{\equal{#1}{G5} \OR \equal{#1}{g5}}{\put(146,80.5){\othelloannotation{\value{disccolourge}}{#2}}}{}
+\ifthenelse{\equal{#1}{H5} \OR \equal{#1}{h5}}{\put(170,80.5){\othelloannotation{\value{disccolourhe}}{#2}}}{}
+\ifthenelse{\equal{#1}{A6} \OR \equal{#1}{a6}}{\put(2,56.5){\othelloannotation{\value{disccolouraf}}{#2}}}{}
+\ifthenelse{\equal{#1}{B6} \OR \equal{#1}{b6}}{\put(26,56.5){\othelloannotation{\value{disccolourbf}}{#2}}}{}
+\ifthenelse{\equal{#1}{C6} \OR \equal{#1}{c6}}{\put(50,56.5){\othelloannotation{\value{disccolourcf}}{#2}}}{}
+\ifthenelse{\equal{#1}{D6} \OR \equal{#1}{d6}}{\put(74,56.5){\othelloannotation{\value{disccolourdf}}{#2}}}{}
+\ifthenelse{\equal{#1}{E6} \OR \equal{#1}{e6}}{\put(98,56.5){\othelloannotation{\value{disccolouref}}{#2}}}{}
+\ifthenelse{\equal{#1}{F6} \OR \equal{#1}{f6}}{\put(122,56.5){\othelloannotation{\value{disccolourff}}{#2}}}{}
+\ifthenelse{\equal{#1}{G6} \OR \equal{#1}{g6}}{\put(146,56.5){\othelloannotation{\value{disccolourgf}}{#2}}}{}
+\ifthenelse{\equal{#1}{H6} \OR \equal{#1}{h6}}{\put(170,56.5){\othelloannotation{\value{disccolourhf}}{#2}}}{}
+\ifthenelse{\equal{#1}{A7} \OR \equal{#1}{a7}}{\put(2,32.5){\othelloannotation{\value{disccolourag}}{#2}}}{}
+\ifthenelse{\equal{#1}{B7} \OR \equal{#1}{b7}}{\put(26,32.5){\othelloannotation{\value{disccolourbg}}{#2}}}{}
+\ifthenelse{\equal{#1}{C7} \OR \equal{#1}{c7}}{\put(50,32.5){\othelloannotation{\value{disccolourcg}}{#2}}}{}
+\ifthenelse{\equal{#1}{D7} \OR \equal{#1}{d7}}{\put(74,32.5){\othelloannotation{\value{disccolourdg}}{#2}}}{}
+\ifthenelse{\equal{#1}{E7} \OR \equal{#1}{e7}}{\put(98,32.5){\othelloannotation{\value{disccoloureg}}{#2}}}{}
+\ifthenelse{\equal{#1}{F7} \OR \equal{#1}{f7}}{\put(122,32.5){\othelloannotation{\value{disccolourfg}}{#2}}}{}
+\ifthenelse{\equal{#1}{G7} \OR \equal{#1}{g7}}{\put(146,32.5){\othelloannotation{\value{disccolourgg}}{#2}}}{}
+\ifthenelse{\equal{#1}{H7} \OR \equal{#1}{h7}}{\put(170,32.5){\othelloannotation{\value{disccolourhg}}{#2}}}{}
+\ifthenelse{\equal{#1}{A8} \OR \equal{#1}{a8}}{\put(2,8.5){\othelloannotation{\value{disccolourah}}{#2}}}{}
+\ifthenelse{\equal{#1}{B8} \OR \equal{#1}{b8}}{\put(26,8.5){\othelloannotation{\value{disccolourbh}}{#2}}}{}
+\ifthenelse{\equal{#1}{C8} \OR \equal{#1}{c8}}{\put(50,8.5){\othelloannotation{\value{disccolourch}}{#2}}}{}
+\ifthenelse{\equal{#1}{D8} \OR \equal{#1}{d8}}{\put(74,8.5){\othelloannotation{\value{disccolourdh}}{#2}}}{}
+\ifthenelse{\equal{#1}{E8} \OR \equal{#1}{e8}}{\put(98,8.5){\othelloannotation{\value{disccoloureh}}{#2}}}{}
+\ifthenelse{\equal{#1}{F8} \OR \equal{#1}{f8}}{\put(122,8.5){\othelloannotation{\value{disccolourfh}}{#2}}}{}
+\ifthenelse{\equal{#1}{G8} \OR \equal{#1}{g8}}{\put(146,8.5){\othelloannotation{\value{disccolourgh}}{#2}}}{}
+\ifthenelse{\equal{#1}{H8} \OR \equal{#1}{h8}}{\put(170,8.5){\othelloannotation{\value{disccolourhh}}{#2}}}{}
+}
+
+%---- Automated transcript creation
+%---- Command for taking two characters at a time and writing a number at the square represented by the character pair, starting with 1. 
+
+\newcommand{\drawtranscript}[1]{%
+\noblanks[q]{#1}%
+    \StrMid{\thestring}{1}{2}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{1}
+    \StrMid{\thestring}{3}{4}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{2}
+    \StrMid{\thestring}{5}{6}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{3}
+    \StrMid{\thestring}{7}{8}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{4}
+    \StrMid{\thestring}{9}{10}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{5}
+    \StrMid{\thestring}{11}{12}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{6}
+    \StrMid{\thestring}{13}{14}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{7}
+    \StrMid{\thestring}{15}{16}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{8}
+    \StrMid{\thestring}{17}{18}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{9}
+    \StrMid{\thestring}{19}{20}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{10}
+    \StrMid{\thestring}{21}{22}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{11}
+    \StrMid{\thestring}{23}{24}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{12}
+    \StrMid{\thestring}{25}{26}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{13}
+    \StrMid{\thestring}{27}{28}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{14}
+    \StrMid{\thestring}{29}{30}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{15}
+    \StrMid{\thestring}{31}{32}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{16}
+    \StrMid{\thestring}{33}{34}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{17}
+    \StrMid{\thestring}{35}{36}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{18}
+    \StrMid{\thestring}{37}{38}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{19}
+    \StrMid{\thestring}{39}{40}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{20}
+    \StrMid{\thestring}{41}{42}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{21}
+    \StrMid{\thestring}{43}{44}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{22}
+    \StrMid{\thestring}{45}{46}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{23}
+    \StrMid{\thestring}{47}{48}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{24}
+    \StrMid{\thestring}{49}{50}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{25}
+    \StrMid{\thestring}{51}{52}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{26}
+    \StrMid{\thestring}{53}{54}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{27}
+    \StrMid{\thestring}{55}{56}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{28}
+    \StrMid{\thestring}{57}{58}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{29}
+    \StrMid{\thestring}{59}{60}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{30}
+    \StrMid{\thestring}{61}{62}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{31}
+    \StrMid{\thestring}{63}{64}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{32}
+    \StrMid{\thestring}{65}{66}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{33}
+    \StrMid{\thestring}{67}{68}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{34}
+    \StrMid{\thestring}{69}{70}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{35}
+    \StrMid{\thestring}{71}{72}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{36}
+    \StrMid{\thestring}{73}{74}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{37}
+    \StrMid{\thestring}{75}{76}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{38}
+    \StrMid{\thestring}{77}{78}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{39}
+    \StrMid{\thestring}{79}{80}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{40}
+    \StrMid{\thestring}{81}{82}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{41}
+    \StrMid{\thestring}{83}{84}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{42}
+    \StrMid{\thestring}{85}{86}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{43}
+    \StrMid{\thestring}{87}{88}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{44}
+    \StrMid{\thestring}{89}{90}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{45}
+    \StrMid{\thestring}{91}{92}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{46}
+    \StrMid{\thestring}{93}{94}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{47}
+    \StrMid{\thestring}{95}{96}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{48}
+    \StrMid{\thestring}{97}{98}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{49}
+    \StrMid{\thestring}{99}{100}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{50}
+    \StrMid{\thestring}{101}{102}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{51}
+    \StrMid{\thestring}{103}{104}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{52}
+    \StrMid{\thestring}{105}{106}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{53}
+    \StrMid{\thestring}{107}{108}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{54}
+    \StrMid{\thestring}{109}{110}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{55}
+    \StrMid{\thestring}{111}{112}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{56}
+    \StrMid{\thestring}{113}{114}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{57}
+    \StrMid{\thestring}{115}{116}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{58}
+    \StrMid{\thestring}{117}{118}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{59}
+    \StrMid{\thestring}{119}{120}[\mytwochars]%
+    \expandafter\posannotation\expandafter{\mytwochars}{60}
+    }
+
+%------------Commands for drawing discs according to whether argument is dash, O or X. Now draws diamonds for 3 and 4 as argument too.
+\newcommand{\othellodiscfromstring}[1]{%
+\ifthenelse{\equal{#1}{-}}{}{}%
+\ifthenelse{\equal{#1}{O} \or \equal{#1}{o}}{\whitedisc}{}%
+\ifthenelse{\equal{#1}{X} \or \equal{#1}{x}}{\blackdisc}{}%
+\ifthenelse{\equal{#1}{3}}{\whitediamond}{}%
+\ifthenelse{\equal{#1}{4}}{\blackdiamond}{}%
+}
+
+%----- Command for automated board creation from string of Os, Xs and -s. Sets values for each disccolourxy counter as well. 
+\newcommand{\drawboardfromstring}[1]{%
+\StrMid{#1}{1}{1}[\mychar]%
+  \put(12,180){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolouraa}{2}}{}%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolouraa}{1}}{}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolouraa}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolouraa}{4}}{}%
+\StrMid{#1}{2}{2}[\mychar]%
+  \put(36,180){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourba}{2}}{}%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourba}{1}}{}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourba}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourba}{4}}{}%
+\StrMid{#1}{3}{3}[\mychar]%
+  \put(60,180){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourca}{2}}{}%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourca}{1}}{}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourca}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourca}{4}}{}%
+\StrMid{#1}{4}{4}[\mychar]%
+  \put(84,180){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourda}{2}}{}%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourda}{1}}{}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourda}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourda}{4}}{}%
+\StrMid{#1}{5}{5}[\mychar]%
+  \put(108,180){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourea}{2}}{}%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourea}{1}}{}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourea}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourea}{4}}{}%
+\StrMid{#1}{6}{6}[\mychar]%
+  \put(132,180){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourfa}{2}}{}%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourfa}{1}}{}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourfa}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourfa}{4}}{}%
+\StrMid{#1}{7}{7}[\mychar]%
+  \put(156,180){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourga}{2}}{}%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourga}{1}}{}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourga}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourga}{4}}{}%
+\StrMid{#1}{8}{8}[\mychar]%
+  \put(180,180){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourha}{2}}{}%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourha}{1}}{}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourha}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourha}{4}}{}%
+\StrMid{#1}{9}{9}[\mychar]%
+  \put(12,156){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourab}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourab}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourab}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourab}{4}}{}%
+\StrMid{#1}{10}{10}[\mychar]%
+  \put(36,156){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourbb}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourbb}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourbb}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourbb}{4}}{}%
+\StrMid{#1}{11}{11}[\mychar]%
+  \put(60,156){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourcb}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourcb}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourcb}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourcb}{4}}{}%
+\StrMid{#1}{12}{12}[\mychar]%
+  \put(84,156){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourdb}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourdb}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourdb}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourdb}{4}}{}%
+\StrMid{#1}{13}{13}[\mychar]%
+  \put(108,156){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccoloureb}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccoloureb}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccoloureb}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccoloureb}{4}}{}%
+\StrMid{#1}{14}{14}[\mychar]%
+  \put(132,156){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourfb}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourfb}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourfb}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourfb}{4}}{}%
+\StrMid{#1}{15}{15}[\mychar]%
+  \put(156,156){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourgb}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourgb}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourgb}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourgb}{4}}{}%
+\StrMid{#1}{16}{16}[\mychar]%
+  \put(180,156){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourhb}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourhb}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourhb}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourhb}{4}}{}%
+\StrMid{#1}{17}{17}[\mychar]%
+  \put(12,132){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourac}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourac}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourac}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourac}{4}}{}%
+\StrMid{#1}{18}{18}[\mychar]%
+  \put(36,132){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourbc}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourbc}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourbc}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourbc}{4}}{}%
+\StrMid{#1}{19}{19}[\mychar]%
+  \put(60,132){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourcc}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourcc}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourcc}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourcc}{4}}{}%
+\StrMid{#1}{20}{20}[\mychar]%
+  \put(84,132){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourdc}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourdc}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourdc}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourdc}{4}}{}%
+\StrMid{#1}{21}{21}[\mychar]%
+  \put(108,132){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourec}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourec}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourec}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourec}{4}}{}%
+\StrMid{#1}{22}{22}[\mychar]%
+  \put(132,132){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourfc}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourfc}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourfc}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourfc}{4}}{}%
+\StrMid{#1}{23}{23}[\mychar]%
+  \put(156,132){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourgc}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourgc}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourgc}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourgc}{4}}{}%
+\StrMid{#1}{24}{24}[\mychar]%
+  \put(180,132){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourhc}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourhc}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourhc}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourhc}{4}}{}%
+\StrMid{#1}{25}{25}[\mychar]%
+  \put(12,108){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourad}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourad}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourad}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourad}{4}}{}%
+\StrMid{#1}{26}{26}[\mychar]%
+  \put(36,108){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourbd}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourbd}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourbd}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourbd}{4}}{}%
+\StrMid{#1}{27}{27}[\mychar]%
+  \put(60,108){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourcd}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourcd}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourcd}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourcd}{4}}{}%
+\StrMid{#1}{28}{28}[\mychar]%
+  \put(84,108){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourdd}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourdd}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourdd}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourdd}{4}}{}%
+\StrMid{#1}{29}{29}[\mychar]%
+  \put(108,108){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccoloured}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccoloured}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccoloured}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccoloured}{4}}{}%
+\StrMid{#1}{30}{30}[\mychar]%
+  \put(132,108){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourfd}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourfd}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourfd}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourfd}{4}}{}%
+\StrMid{#1}{31}{31}[\mychar]%
+  \put(156,108){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourgd}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourgd}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourgd}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourgd}{4}}{}%
+\StrMid{#1}{32}{32}[\mychar]%
+  \put(180,108){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourhd}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourhd}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourhd}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourhd}{4}}{}%
+\StrMid{#1}{33}{33}[\mychar]%
+  \put(12,84){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourae}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourae}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourae}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourae}{4}}{}%
+\StrMid{#1}{34}{34}[\mychar]%
+  \put(36,84){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourbe}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourbe}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourbe}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourbe}{4}}{}%
+\StrMid{#1}{35}{35}[\mychar]%
+  \put(60,84){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolource}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolource}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolource}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolource}{4}}{}%
+\StrMid{#1}{36}{36}[\mychar]%
+  \put(84,84){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourde}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourde}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourde}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourde}{4}}{}%
+\StrMid{#1}{37}{37}[\mychar]%
+  \put(108,84){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolouree}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolouree}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolouree}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolouree}{4}}{}%
+\StrMid{#1}{38}{38}[\mychar]%
+  \put(132,84){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourfe}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourfe}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourfe}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourfe}{4}}{}%
+\StrMid{#1}{39}{39}[\mychar]%
+  \put(156,84){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourge}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourge}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourge}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourge}{4}}{}%
+\StrMid{#1}{40}{40}[\mychar]%
+  \put(180,84){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourhe}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourhe}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourhe}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourhe}{4}}{}%
+\StrMid{#1}{41}{41}[\mychar]%
+  \put(12,60){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolouraf}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolouraf}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolouraf}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolouraf}{4}}{}%
+\StrMid{#1}{42}{42}[\mychar]%
+  \put(36,60){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourbf}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourbf}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourbf}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourbf}{4}}{}%
+\StrMid{#1}{43}{43}[\mychar]%
+  \put(60,60){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourcf}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourcf}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourcf}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourcf}{4}}{}%
+\StrMid{#1}{44}{44}[\mychar]%
+  \put(84,60){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourdf}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourdf}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourdf}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourdf}{4}}{}%
+\StrMid{#1}{45}{45}[\mychar]%
+  \put(108,60){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolouref}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolouref}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolouref}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolouref}{4}}{}%
+\StrMid{#1}{46}{46}[\mychar]%
+  \put(132,60){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourff}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourff}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourff}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourff}{4}}{}%
+\StrMid{#1}{47}{47}[\mychar]%
+  \put(156,60){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourgf}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourgf}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourgf}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourgf}{4}}{}%
+\StrMid{#1}{48}{48}[\mychar]%
+  \put(180,60){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourhf}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourhf}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourhf}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourhf}{4}}{}%
+\StrMid{#1}{49}{49}[\mychar]%
+  \put(12,36){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourag}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourag}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourag}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourag}{4}}{}%
+\StrMid{#1}{50}{50}[\mychar]%
+  \put(36,36){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourbg}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourbg}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourbg}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourbg}{4}}{}%
+\StrMid{#1}{51}{51}[\mychar]%
+  \put(60,36){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourcg}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourcg}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourcg}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourcg}{4}}{}%
+\StrMid{#1}{52}{52}[\mychar]%
+  \put(84,36){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourdg}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourdg}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourdg}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourdg}{4}}{}%
+\StrMid{#1}{53}{53}[\mychar]%
+  \put(108,36){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccoloureg}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccoloureg}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccoloureg}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccoloureg}{4}}{}%
+\StrMid{#1}{54}{54}[\mychar]%
+  \put(132,36){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourfg}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourfg}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourfg}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourfg}{4}}{}%
+\StrMid{#1}{55}{55}[\mychar]%
+  \put(156,36){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourgg}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourgg}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourgg}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourgg}{4}}{}%
+\StrMid{#1}{56}{56}[\mychar]%
+  \put(180,36){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourhg}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourhg}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourhg}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourhg}{4}}{}%
+\StrMid{#1}{57}{57}[\mychar]%
+  \put(12,12){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourah}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourah}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourah}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourah}{4}}{}%
+\StrMid{#1}{58}{58}[\mychar]%
+  \put(36,12){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourbh}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourbh}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourbh}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourbh}{4}}{}%
+\StrMid{#1}{59}{59}[\mychar]%
+  \put(60,12){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourch}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourch}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourch}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourch}{4}}{}%
+\StrMid{#1}{60}{60}[\mychar]%
+  \put(84,12){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourdh}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourdh}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourdh}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourdh}{4}}{}%
+\StrMid{#1}{61}{61}[\mychar]%
+  \put(108,12){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccoloureh}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccoloureh}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccoloureh}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccoloureh}{4}}{}%
+\StrMid{#1}{62}{62}[\mychar]%
+  \put(132,12){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourfh}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourfh}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourfh}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourfh}{4}}{}%
+\StrMid{#1}{63}{63}[\mychar]%
+  \put(156,12){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourgh}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourgh}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourgh}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourgh}{4}}{}%
+\StrMid{#1}{64}{64}[\mychar]%
+  \put(180,12){\expandafter\othellodiscfromstring\expandafter{\mychar}}%
+  \ifthenelse{\equal{\mychar}{X} \OR \equal{\mychar}{x}}{\setcounter{disccolourhh}{2}}{%
+  \ifthenelse{\equal{\mychar}{O} \OR \equal{\mychar}{o}}{\setcounter{disccolourhh}{1}}{}}%
+  \ifthenelse{\equal{\mychar}{3}}{\setcounter{disccolourhh}{3}}{}%
+  \ifthenelse{\equal{\mychar}{4}}{\setcounter{disccolourhh}{4}}{}%
+}

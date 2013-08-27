@@ -1,5 +1,5 @@
-This directory contains a collection of open source code collected on internet,
-related to the subject of the Reversi project.
+This directory contains a collection of open source code gathered on internet,
+and related to the subject of the Reversi project.
 
 The software is "as-is" and may even do not compile.
 
@@ -7,7 +7,52 @@ The software is "as-is" and may even do not compile.
     A single source file written by Gunnar Andersson and last modified on July 13, 1999.
     The program, as stated by Gunnar, was created by Warren Smith and later improved by
     Jean-Christophe Weill.
+    The code compiles and runs fine.
 
 (2) solver
     A single source file written by Richard Delorme, the author of Edax (http://abulmo.perso.neuf.fr).
     The program, released under the GNU General Public License V2+, is an endgame solver, too.
+    The code compiles and runs fine.
+
+(3) zebra
+    The zebra program written by Gunnar Andersson.
+    The software is ditributed by means of the GNU General Public License V2.
+    The code compiles and scrzebra, the tool dedicated to endgame solving, run perfectly.
+
+(4) edax
+    Edax 4.3 program written by Richard Delorme (http://abulmo.perso.neuf.fr/index.htm).
+    The software is distributed by means of the GNU General Public License V3.
+    The code builds perfectly on my linux/x64/gcc box. The executable runs fine.
+    Left out of this repository are de html documenattion, that can be simply rebuild by running doxygen,
+    precompiled binaries, the bin/pthreadGC2.dll, the problem ffo files, and averall most important, the two
+    data file: eval.dat and book.dat. Those wo large binary files are mandatory to run the program, are
+    provided by the archive distributed by the official Edax site and are the database of precompiled info
+    used by the evaluation function.
+
+(5) bill
+    Bill 1.0 released under the GPLv2, written by Sanjoy Mahajan (http://web.mit.edu/sanjoy/www/) and Kai-Fu Lee.
+    About 210KB. It was once one of the strongest Othello players in the world (but now far surpassed!).
+    The software is described by three accademic papers:
+
+       1. Kai-Fu Lee and Sanjoy Mahajan.
+          Development of a world-class Othello program.
+          Artificial Intelligence 43:21-36 (1990).
+
+       2. Kai-Fu Lee and Sanjoy Mahajan.
+          A pattern-classification approach to evaluation-function learning.
+          Artificial Intelligence 36:1-25 (1988).
+
+       3. Kai-Fu Lee and Sanjoy Mahajan.
+          BILL: A table-based, knowledge-intensive Othello program.
+          Carnegie Mellon CS Dept Technical Report CMU-CS-86-141 (1986).
+
+    The package compile fines on Linux and Windows 7 using Cygwin as long as the system is x86_32.
+    Adding -m32 to CFLAGS and -m32 -L/usr/lib32 to LDFLAGS it compile fine also on Linux x86_64.
+    Hint: after running ./configure edit Makefile, ios/Makefile, and tables/Makefile adding the flags
+          to the two env variables. Run make, and make clean. the Bill executable is ready and well functioning.
+
+(6) logistello
+    Logistello has been developed by Michael Buro (https://skatgame.net/mburo/log.html).
+    This is the Logistello source directory which is licensed under the GPL v2.
+    Buro worked on it from 1992 till 1998.
+    I has not been able to build it, further effort and focus is required, I will see if in the future ... who knows.
