@@ -102,21 +102,30 @@ game_position_solve_test (GamePositionDbFixture *fixture,
   GamePositionDb *db = fixture->db;
 
   /*
-   * FFO position #40, black to move, Turner vs Monnom, Bruxelles 1997.
-   * Principal Variation, PV: a2 b1 c1 -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
-   * Final score is +38
+   * FFO position #05:
+   *
+   * a b c d e f g h 
+   * 1  . O O O O O . . 
+   * 2  . . O @ @ O . @ 
+   * 3  @ @ O @ O @ @ . 
+   * 4  @ @ O @ O @ @ O 
+   * 5  @ @ O O @ O O O 
+   * 6  @ @ @ @ O O . O 
+   * 7  @ . @ O O O . . 
+   * 8  . @ @ @ @ @ . . 
+   * Player to move: BLACK
+   *
+   * Move values: G8:+32. G2:+12. B2:-20. G6:-26. G1:-32. G7:-34.
+   *
+   * Principal Variation, PV: g8 g7 h8 g2 b2 a2 a1 g6 h7 b7 a8 -- h3
+   * Final score is +32
    */
-  GamePosition *ffo_40 = get_gp_from_db(db, "ffo-40");
-  g_assert(TRUE  == game_position_has_any_legal_move(ffo_40));
+  GamePosition *ffo_05 = get_gp_from_db(db, "ffo-05");
+  g_assert(TRUE  == game_position_has_any_legal_move(ffo_05));
 
-  /*
-   * A semplified position, offspring of the basic ffo-40, that do not consume too much time ...
-   */
-  GamePosition *ffo_40_a2_b1_c1_pass_b6_c7_a7_b7 = get_gp_from_db(db, "ffo-40_a2_b1_c1_pass_b6_c7_a7_b7");
-  g_assert(TRUE  == game_position_has_any_legal_move(ffo_40_a2_b1_c1_pass_b6_c7_a7_b7));
-
-  ExactSolution *solution = game_position_solve(ffo_40_a2_b1_c1_pass_b6_c7_a7_b7);
-  g_assert(+38 == solution->outcome);
+  ExactSolution *solution = game_position_solve(ffo_05);
+  g_assert(+32 == solution->outcome);
+  g_assert(G8 == solution->principal_variation[0]);
 }
 
 
@@ -143,7 +152,7 @@ gpdb_fixture_setup (GamePositionDbFixture *fixture,
     g_test_fail();
   }
   g_assert(fp);
-  db = gpdb_new(g_strdup("Testing Database"));
+  db = gpdb_new(g_strdup("FFOTEST database"));
   syntax_error_log = NULL;
   error = NULL;
   gpdb_load(fp, source, db, &syntax_error_log, &error);
