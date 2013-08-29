@@ -174,15 +174,11 @@ static const int max_empties = 32;
 static const int infinity = 30000;
 
 /*
- * It is plain alphabeta, no transposition table.  It can be used for
- * WLD solve by setting alpha=-1 and beta=1 or for full solve with 
- * alpha=-64, beta=64. It uses a fixed preference
- * ordering of squares. This is not such a bad thing to do when <=10
- * empties, where the demand for speed is paramount. When use_parity=X is
- * turned on (X>0), it also uses parity to help with move ordering,
+ * NOT TRUE! Must be clarified.
+ *
+ * When use_parity=X is turned on (X>0), it also uses parity to help with move ordering,
  * specifically it will consider all moves into odd regions before
- * considering any moves into even regions, in situations with more than
- * X empties.
+ * considering any moves into even regions, in situations with more than X empties.
  */
 static const int use_parity = 4;
 
@@ -952,7 +948,7 @@ fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int b
   for (old_em = &em_head, em = old_em->succ; em != NULL;
        old_em = em, em = em->succ ) {
     sqnum = em->square;
-    flipped = do_flips(board, sqnum, color, oppcol );
+    flipped = do_flips(board, sqnum, color, oppcol);
     if (flipped) {
       board[sqnum] = color;
       old_em->succ = em->succ;
@@ -1013,8 +1009,7 @@ fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int b
 	}
       }
     }
-  }
-  else {
+  } else {
     if (prevmove == 0) { // game-over
       solution->leaf_count++;
       if (discdiff > 0) {
@@ -1024,8 +1019,7 @@ fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int b
       } else {
         selected_n.value = 0;
       }
-    }
-    else { /* I pass: */
+    } else { /* I pass: */
       selected_n = fastest_first_end_solve(solution, board, -beta, -alpha, oppcol,
                                            empties, -discdiff, 0);
       selected_n.value = -selected_n.value;
@@ -1037,11 +1031,25 @@ fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int b
 
 /**
  * @brief The search itself.
+ *
+ * It is plain alphabeta, no transposition table.
+ * It can be used for WLD solve by setting `alpha=-1` and `beta=1` or
+ * for full solve with `alpha=-64`, `beta=64`.
+ * It uses a fixed preference ordering of squares.
+ * This is not such a bad thing to do when <=10 empties,
+ * where the demand for speed is paramount. 
+ *
  * Assumes relevant data structures have been set up with prepare_to_solve().
- * color is the color on move. Discdiff is color disc count - opposite
- * color disc count. The value of this at the end of the game is returned.
- * prevmove==0 if previous move was a pass, otherwise non0.
- * empties>0 is number of empty squares.
+ *
+ * @param solution
+ * @param board
+ * @param alpha
+ * @param beta
+ * @param color    the color on move
+ * @param empties  the number of empty squares
+ * @param discdiff color disc count less opposite_color disc count
+ * @param prevmove the previous move, or zero if previous move was a pass
+ * @return         the node having the best value among the legal moves
  */
 static Node
 end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
