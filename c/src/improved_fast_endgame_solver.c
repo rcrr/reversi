@@ -174,6 +174,46 @@ static const int max_empties = 32;
 static const int infinity = 30000;
 
 /*
+ * The selection of the variant of end end_solver() function follows these rules.
+ *
+ * Let's take as an example the two values: use_parity = 4, and fastest_first = 7.
+ *
+ * And lets's drow the empties axis:
+ *
+ * 0         1         2
+ * 012345678901234567890123456789..... -> [empties]
+ *     |  |
+ *     |  fastest_first
+ *     |
+ *     use_parity
+ *
+ * When empties are less than or equal to use_parity, then no_parity_end_solve() is used,
+ * in our case the range is [0...4].
+ * Within the range use_parity + 1 and fastest_first, in the example [5...7], the
+ * parity_end_solve() is applied.
+ * When empties is greather then fastest_first, range [8...], fastest_first_end_solve()
+ * is selected.
+ *
+ * Corner cases must be investigated ....
+ *
+ * use_parity = 0;
+ * fastest_first > 0;
+ *
+ * use_parity = 0;
+ * fastest_first = 0;
+ *
+ * use_parity > 0;
+ * fastest_first = use_parity;
+ *
+ * use_parity > 0;
+ * fastest_first = 0;
+ *
+ * use_parity > 0;
+ * fastest_first != 0 && fastest_first < use_parity;
+ *
+ */
+
+/*
  * NOT TRUE! Must be clarified.
  *
  * When use_parity=X is turned on (X>0), it also uses parity to help with move ordering,
