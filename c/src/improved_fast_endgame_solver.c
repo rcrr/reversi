@@ -194,38 +194,57 @@ static const int infinity = 30000;
  * When empties is greather then fastest_first, range [8...], fastest_first_end_solve()
  * is selected.
  *
- * Corner cases must be investigated ....
+ * Corner cases must be investigation: the standard case is (4,7), where 4 is assigned to
+ * use_parity, and 7 is assigned to fastest_first.
  *
- * use_parity = 0;
- * fastest_first > 0;
+ * (a)
+ *   use_parity = 0;
+ *   fastest_first > 0;
+ *   Test case (0,7). It runs fine, 36% more time is consumed compared with the standard case.
+ *   When empties is 0 no_parity_end_solve() is used.
+ *   Range [1...7] parity_end_solve() is called.
+ *   Range [8...] fastest_first_end_solve is selected.
  *
- * use_parity = 0;
- * fastest_first = 0;
+ * (b)
+ *   use_parity = 0;
+ *   fastest_first = 0;
+ *   Test case (0,0). It runs fine, 127% more time is consumed compared with the standard case.
+ *   When empties is 0 parity_end_solve() is used.
+ *   Range [1...] fastest_first_end_solve is selected.
  *
- * use_parity > 0;
- * fastest_first = use_parity;
- *
- * use_parity > 0;
- * fastest_first = 0;
- *
- * use_parity > 0;
- * fastest_first != 0 && fastest_first < use_parity;
- *
+ * (c)
+ *   use_parity > 0;
+ *   fastest_first = use_parity;
+ *   Test case (4,4). It runs fine, 23% more time is consumed compared with the standard case.
+ *   [0...3] no_parity_end_solve().
+ *   [4]     parity_end_solve().
+ *   [5...]  fastest_first_end_solve().
+ *   
+ * (d)
+ *   use_parity > 0;
+ *   fastest_first = 0;
+ *   Test case (4,0). It runs fine, 124% more time is consumed compared with the standard case.
+ *   When empties is 0 parity_end_solve() is used.
+ *   Range [1...] fastest_first_end_solve is selected.
+ *   
+ * (e)
+ *   use_parity > 0;
+ *   fastest_first != 0 && fastest_first < use_parity;
+ *   Test case (6,4). It runs fine, 25% more time is consumed compared with the standard case.
+ *   [0...3] no_parity_end_solve().
+ *   [4]     parity_end_solve().
+ *   [5...]  fastest_first_end_solve().
  */
 
 /*
- * NOT TRUE! Must be clarified.
- *
- * When use_parity=X is turned on (X>0), it also uses parity to help with move ordering,
- * specifically it will consider all moves into odd regions before
- * considering any moves into even regions, in situations with more than X empties.
+ * The parameter use_parity. See above for explanation.
  */
-static const int use_parity = 4;
+static const int use_parity = 6;
 
 /*
- * In positions with <= fastest_first empty, fastest first is disabled.
+ * The parameter fastest_first. See above for explanation.
  */
-static const int fastest_first = 7;
+static const int fastest_first = 4;
 
 /*
  * The 8 legal directions, plus no direction an ninth value.
