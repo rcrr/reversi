@@ -49,10 +49,22 @@ typedef unsigned long long int uint64;
 typedef unsigned int uint32;
 
 /**
+ * @typedef uint16
+ * @brief Unsigned 16 bits integer.
+ */
+typedef unsigned short int uint16;
+
+/**
  * @typedef uint8
  * @brief Unsigned 8 bits integer.
  */
 typedef unsigned char uint8;
+
+/**
+ * @typedef sint8
+ * @brief Signed 8 bits integer.
+ */
+typedef signed char sint8;
 
 /**
  * @brief Used to return a two digit representation on a given base, for an integer.

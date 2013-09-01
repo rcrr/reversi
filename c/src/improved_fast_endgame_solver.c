@@ -56,12 +56,6 @@ typedef enum {
 typedef unsigned char uchar;
 
 /**
- * @typedef schar
- * @brief Signed one byte integer.
- */
-typedef signed char schar;
-
-/**
  * @typedef uint
  * @brief Unigned four byte integer.
  */
@@ -249,7 +243,7 @@ static const int fastest_first = 7;
 /*
  * The 8 legal directions, plus no direction an ninth value.
  */
-static const schar dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
+static const sint8 dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
 
 /*
  * Fixed square ordering.
