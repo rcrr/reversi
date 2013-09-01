@@ -177,7 +177,7 @@ static const int infinity = 30000;
  * The selection of the variant of end end_solver() function follows these rules.
  *
  * Let's take as an example the two values: use_parity = 4, and fastest_first = 7.
- *
+g *
  * And lets's drow the empties axis:
  *
  * 0         1         2
@@ -239,12 +239,12 @@ static const int infinity = 30000;
 /*
  * The parameter use_parity. See above for explanation.
  */
-static const int use_parity = 6;
+static const int use_parity = 4;
 
 /*
  * The parameter fastest_first. See above for explanation.
  */
-static const int fastest_first = 4;
+static const int fastest_first = 7;
 
 /*
  * The 8 legal directions, plus no direction an ninth value.
