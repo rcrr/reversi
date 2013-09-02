@@ -43,6 +43,7 @@
 /* Test function prototypes. */
 
 static void dummy_test (void);
+static void bit_works_int_size_definition_checks (void);
 static void bit_works_lowest_bit_set_8_test (void);
 static void bit_works_fill_in_between_test (void);
 static void bit_works_bitscanMS1B_8_test (void);
@@ -64,6 +65,7 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func("/bit_works/dummy", dummy_test);
+  g_test_add_func("/bit_works/bit_works_int_size_definition_checks", bit_works_int_size_definition_checks);
   g_test_add_func("/bit_works/bit_works_lowest_bit_set_8_test", bit_works_lowest_bit_set_8_test);
   g_test_add_func("/bit_works/bit_works_fill_in_between_test", bit_works_fill_in_between_test);
   g_test_add_func("/bit_works/bit_works_bitscanMS1B_8_test", bit_works_bitscanMS1B_8_test);
@@ -89,6 +91,37 @@ static void
 dummy_test (void)
 {
   g_assert(TRUE);
+}
+
+static void
+bit_works_int_size_definition_checks (void)
+{
+  uint8  ui8;
+  uint16 ui16;
+  uint32 ui32;
+  uint64 ui64;
+
+  /* uint8 must be one byte. */
+  ui8 = 0xFF;
+  g_assert(0 == ++ui8);
+
+  /* uint16 must be two bytes. */
+  ui16 = 0xFFFF;
+  g_assert(0 == ++ui16);
+  ui16 = 0x00FF;
+  g_assert(0x0100 == ++ui16);
+
+  /* uint32 must be four bytes. */
+  ui32 = 0xFFFFFFFF;
+  g_assert(0 == ++ui32);
+  ui32 = 0x0000FFFF;
+  g_assert(0x00010000 == ++ui32);
+
+  /* uint64 must be eight bytes. */
+  ui64 = 0xFFFFFFFFFFFFFFFF;
+  g_assert(0 == ++ui64);
+  ui64 = 0x00000000FFFFFFFF;
+  g_assert(0x0000000100000000 == ++ui64);
 }
 
 static void

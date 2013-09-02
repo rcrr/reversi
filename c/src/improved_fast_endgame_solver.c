@@ -56,12 +56,6 @@ typedef enum {
 typedef unsigned char uchar;
 
 /**
- * @typedef schar
- * @brief Signed one byte integer.
- */
-typedef signed char schar;
-
-/**
  * @typedef uint
  * @brief Unigned four byte integer.
  */
@@ -174,23 +168,82 @@ static const int max_empties = 32;
 static const int infinity = 30000;
 
 /*
- * NOT TRUE! Must be clarified.
+ * The selection of the variant of end end_solver() function follows these rules.
  *
- * When use_parity=X is turned on (X>0), it also uses parity to help with move ordering,
- * specifically it will consider all moves into odd regions before
- * considering any moves into even regions, in situations with more than X empties.
+ * Let's take as an example the two values: use_parity = 4, and fastest_first = 7.
+g *
+ * And lets's drow the empties axis:
+ *
+ * 0         1         2
+ * 012345678901234567890123456789..... -> [empties]
+ *     |  |
+ *     |  fastest_first
+ *     |
+ *     use_parity
+ *
+ * When empties are less than or equal to use_parity, then no_parity_end_solve() is used,
+ * in our case the range is [0...4].
+ * Within the range use_parity + 1 and fastest_first, in the example [5...7], the
+ * parity_end_solve() is applied.
+ * When empties is greather then fastest_first, range [8...], fastest_first_end_solve()
+ * is selected.
+ *
+ * Corner cases must be investigation: the standard case is (4,7), where 4 is assigned to
+ * use_parity, and 7 is assigned to fastest_first.
+ *
+ * (a)
+ *   use_parity = 0;
+ *   fastest_first > 0;
+ *   Test case (0,7). It runs fine, 36% more time is consumed compared with the standard case.
+ *   When empties is 0 no_parity_end_solve() is used.
+ *   Range [1...7] parity_end_solve() is called.
+ *   Range [8...] fastest_first_end_solve is selected.
+ *
+ * (b)
+ *   use_parity = 0;
+ *   fastest_first = 0;
+ *   Test case (0,0). It runs fine, 127% more time is consumed compared with the standard case.
+ *   When empties is 0 parity_end_solve() is used.
+ *   Range [1...] fastest_first_end_solve is selected.
+ *
+ * (c)
+ *   use_parity > 0;
+ *   fastest_first = use_parity;
+ *   Test case (4,4). It runs fine, 23% more time is consumed compared with the standard case.
+ *   [0...3] no_parity_end_solve().
+ *   [4]     parity_end_solve().
+ *   [5...]  fastest_first_end_solve().
+ *   
+ * (d)
+ *   use_parity > 0;
+ *   fastest_first = 0;
+ *   Test case (4,0). It runs fine, 124% more time is consumed compared with the standard case.
+ *   When empties is 0 parity_end_solve() is used.
+ *   Range [1...] fastest_first_end_solve is selected.
+ *   
+ * (e)
+ *   use_parity > 0;
+ *   fastest_first != 0 && fastest_first < use_parity;
+ *   Test case (6,4). It runs fine, 25% more time is consumed compared with the standard case.
+ *   [0...3] no_parity_end_solve().
+ *   [4]     parity_end_solve().
+ *   [5...]  fastest_first_end_solve().
+ */
+
+/*
+ * The parameter use_parity. See above for explanation.
  */
 static const int use_parity = 4;
 
 /*
- * In positions with <= fastest_first empty, fastest first is disabled.
+ * The parameter fastest_first. See above for explanation.
  */
 static const int fastest_first = 7;
 
 /*
  * The 8 legal directions, plus no direction an ninth value.
  */
-static const schar dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
+static const sint8 dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
 
 /*
  * Fixed square ordering.
