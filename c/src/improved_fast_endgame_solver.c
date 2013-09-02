@@ -50,18 +50,6 @@ typedef enum {
 } IFES_SquareState;
 
 /**
- * @typedef uchar
- * @brief Unsigned one byte integer.
- */
-typedef unsigned char uchar;
-
-/**
- * @typedef uint
- * @brief Unigned four byte integer.
- */
-typedef signed char uint;
-
-/**
  * @brief An empty list collects a set of ordered squares.
  *
  * Details to be documented.
@@ -89,49 +77,49 @@ typedef struct {
  */
 
 inline static void
-directional_flips (uchar *sq, int inc, int color, int oppcol);
+directional_flips (uint8 *sq, int inc, int color, int oppcol);
 
 static int
-do_flips (uchar *board, int sqnum, int color, int oppcol);
+do_flips (uint8 *board, int sqnum, int color, int oppcol);
 
 inline static int
-ct_directional_flips (uchar *sq, int inc, int color, int oppcol);
+ct_directional_flips (uint8 *sq, int inc, int color, int oppcol);
 
 static int
-count_flips (uchar *board, int sqnum, int color, int oppcol);
+count_flips (uint8 *board, int sqnum, int color, int oppcol);
 
 inline static int
-any_directional_flips (uchar *sq, int inc, int color, int oppcol);
+any_directional_flips (uint8 *sq, int inc, int color, int oppcol);
 
 static int
-any_flips (uchar *board, int sqnum, int color, int oppcol);
+any_flips (uint8 *board, int sqnum, int color, int oppcol);
 
 inline static void
 undo_flips (int flip_count, int oppcol);
 
-inline static uint
-minu (uint a, uint b);
+inline static uint32
+minu (uint32 a, uint32 b);
 
 static int
-count_mobility (uchar *board, int color);
+count_mobility (uint8 *board, int color);
 
 static void
-prepare_to_solve (uchar *board);
+prepare_to_solve (uint8 *board);
 
 static Node
-no_parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
+no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
                      int color, int empties, int discdiff, int prevmove);
 
 static Node
-parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
+parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
                   int color, int empties, int discdiff, int prevmove);
 
 static Node
-fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
+fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
                          int color, int empties, int discdiff, int prevmove);
 
 static Node
-end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
+end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
            int color, int empties, int discdiff, int prevmove);
 
 static void
@@ -154,7 +142,7 @@ ifes_square_to_square (const int sq);
 
 /*
  * This code will work for any number of empties up to the number
- * of bits in a uint (should be 32).
+ * of bits in a uint32 (it is 32).
  *
  * The function prepare_to_solve aborts if empties are more than max_empties.
  */
@@ -270,7 +258,7 @@ static const int worst_to_best[64] =
  * hence square 10 (A1) can flip in directions dirinc[0]=1,
  * dirinc[4]=9, and dirinc[6]=10:
  */
-static const uchar dirmask[91] = {
+static const uint8 dirmask[91] = {
   0,   0,   0,   0,   0,   0,   0,   0,   0,
   0,  81,  81,  87,  87,  87,  87,  22,  22,
   0,  81,  81,  87,  87,  87,  87,  22,  22,
@@ -291,7 +279,7 @@ static const uchar dirmask[91] = {
 
 /*
  * Inside this fast endgame solver, the board is represented by
- * a 1D array of 91 uchars board[0..90]:
+ * a 1D array of 91 uint8s board[0..90]:
  * ddddddddd
  * dxxxxxxxx
  * dxxxxxxxx
@@ -304,7 +292,7 @@ static const uchar dirmask[91] = {
  * dddddddddd   
  * where d (dummy) squares contain DUMMY, x are EMPTY, BLACK, or WHITE:
  */
-static uchar board[91];
+static uint8 board[91];
 
 /*
  * Also there is a doubly linked list of the empty squares.
@@ -319,13 +307,13 @@ static EmList em_head, ems[64];
  * There are up to 32 regions. The parities of the regions are in
  * the region_parity bit vector:
  */
-static uint region_parity;
+static uint32 region_parity;
 
 /* Must be documented. */
-static uchar  *global_flip_stack[2048];
+static uint8  *global_flip_stack[2048];
 
 /* Must be documented. */
-static uchar **flip_stack = &(global_flip_stack[0]);
+static uint8 **flip_stack = &(global_flip_stack[0]);
 
 
 
@@ -430,8 +418,8 @@ game_position_get_ifes_player(const GamePosition * const gp)
 static Square
 ifes_square_to_square (const int sq)
 {
-  const uchar col = (sq % 9) - 1;
-  const uchar row = (sq / 9) - 1;
+  const uint8 col = (sq % 9) - 1;
+  const uint8 row = (sq / 9) - 1;
   return row * 8 + col;
 }
 
@@ -452,8 +440,8 @@ ifes_square_to_string (const int sq)
     *(symbol + 1) = 'A';
     *(symbol + 2) = '\0';
   } else {
-    const uchar col = (sq % 9) - 1;
-    const uchar row = (sq / 9) - 1;
+    const uint8 col = (sq % 9) - 1;
+    const uint8 row = (sq / 9) - 1;
     *symbol = 'A' + col;
     *(symbol + 1) = '1' + row;
     *(symbol + 2) = '\0';
@@ -473,9 +461,9 @@ ifes_square_to_string (const int sq)
  * This routine flips in direction inc and returns count of flips it made:
  */
 inline static void
-directional_flips (uchar *sq, int inc, int color, int oppcol)
+directional_flips (uint8 *sq, int inc, int color, int oppcol)
 {
-  uchar *pt = sq + inc;
+  uint8 *pt = sq + inc;
   if (*pt == oppcol) {
     pt += inc;
     if (*pt == oppcol) {
@@ -509,12 +497,12 @@ directional_flips (uchar *sq, int inc, int color, int oppcol)
  * and return their count.
  */
 static int
-do_flips (uchar *board, int sqnum,
+do_flips (uint8 *board, int sqnum,
           int color, int oppcol)
 {
   int j = dirmask[sqnum];
-  uchar **old_flip_stack = flip_stack;
-  uchar *sq;
+  uint8 **old_flip_stack = flip_stack;
+  uint8 *sq;
   sq = sqnum + board;
   if (j & 128)
     directional_flips(sq, dirinc[7], color, oppcol);
@@ -540,9 +528,9 @@ do_flips (uchar *board, int sqnum,
  * @brief For the last move, we compute the score without updating the board:
  */
 inline static int
-ct_directional_flips (uchar *sq, int inc, int color, int oppcol)
+ct_directional_flips (uint8 *sq, int inc, int color, int oppcol)
 {
-  uchar *pt = sq + inc;
+  uint8 *pt = sq + inc;
   if (*pt == oppcol) {
     int count = 1;
     pt += inc;
@@ -576,11 +564,11 @@ ct_directional_flips (uchar *sq, int inc, int color, int oppcol)
  *
  */
 static int
-count_flips (uchar *board, int sqnum, int color, int oppcol)
+count_flips (uint8 *board, int sqnum, int color, int oppcol)
 {
   int ct = 0;
   int j = dirmask[sqnum];
-  uchar *sq;
+  uint8 *sq;
   sq = sqnum + board;
   if (j & 128)
     ct += ct_directional_flips(sq, dirinc[7], color, oppcol);
@@ -606,9 +594,9 @@ count_flips (uchar *board, int sqnum, int color, int oppcol)
  * many discs it flips.
  */
 inline static int
-any_directional_flips (uchar *sq, int inc, int color, int oppcol)
+any_directional_flips (uint8 *sq, int inc, int color, int oppcol)
 {
-  uchar *pt = sq + inc;
+  uint8 *pt = sq + inc;
   if (*pt == oppcol) {
     pt += inc;
     if (*pt == oppcol) {
@@ -635,11 +623,11 @@ any_directional_flips (uchar *sq, int inc, int color, int oppcol)
  * @brief To be documented
  */
 static int
-any_flips (uchar *board, int sqnum, int color, int oppcol)
+any_flips (uint8 *board, int sqnum, int color, int oppcol)
 {
   int any = 0;
   int j = dirmask[sqnum];
-  uchar *sq;
+  uint8 *sq;
   sq = sqnum + board;
   if (j & 128)
     any += any_directional_flips(sq, dirinc[7], color, oppcol);
@@ -684,8 +672,8 @@ undo_flips (int flip_count, int oppcol)
 /**
  * @brief To be documented
  */
-inline static uint
-minu (uint a, uint b)
+inline static uint32
+minu (uint32 a, uint32 b)
 {
   if (a < b) return a;
   return b;
@@ -695,7 +683,7 @@ minu (uint a, uint b)
  * @brief To be documented
  */
 static int
-count_mobility (uchar *board, int color)
+count_mobility (uint8 *board, int color)
 {
   int     mobility;
   int     square;
@@ -720,11 +708,11 @@ count_mobility (uchar *board, int color)
  * I haven't worried about speeding it up.
  */
 static void
-prepare_to_solve (uchar *board)
+prepare_to_solve (uint8 *board)
 {
-  uint hole_id_map[91];
+  uint32 hole_id_map[91];
   int i, sqnum;
-  uint k;
+  uint32 k;
   EmList *pt;
   int z;
   /* find hole IDs: */
@@ -798,7 +786,7 @@ prepare_to_solve (uchar *board)
  * @brief To be documented
  */
 static Node
-no_parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
+no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
                      int color, int empties, int discdiff, int prevmove)
 {
   int sqnum, j;
@@ -889,12 +877,12 @@ no_parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta,
  * @brief To be documented
  */
 static Node
-parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
+parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
                   int color, int empties, int discdiff, int prevmove)
 {
   int sqnum, j;
   EmList *em, *old_em;
-  uint parity_mask;
+  uint32 parity_mask;
   int par, holepar;
   Node evaluated_n;
 
@@ -975,7 +963,7 @@ parity_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta,
  * @brief To be documented
  */
 static Node
-fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
+fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
                          int color, int empties, int discdiff, int prevmove)
 {
   int i, j;
@@ -1105,7 +1093,7 @@ fastest_first_end_solve (ExactSolution *solution, uchar *board, int alpha, int b
  * @return         the node having the best value among the legal moves
  */
 static Node
-end_solve (ExactSolution *solution, uchar *board, int alpha, int beta, 
+end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
            int color, int empties, int discdiff, int prevmove)
 {
   if (empties > fastest_first)
