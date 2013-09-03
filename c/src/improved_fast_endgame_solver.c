@@ -54,11 +54,11 @@ typedef enum {
  *
  * Details to be documented.
  */
-typedef struct em_list {
+typedef struct EmList_ {
   int square;           /**< @brief To be documented. */
   int hole_id;
-  struct em_list *pred;
-  struct em_list *succ;
+  struct EmList_ *pred;
+  struct EmList_ *succ;
 } EmList;
 
 /**
@@ -106,7 +106,7 @@ count_mobility (uint8 *board, int color);
 static void
 prepare_to_solve (uint8 *board);
 
-static Node
+inline static Node
 no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
                      int color, int empties, int discdiff, int prevmove);
 
@@ -404,7 +404,7 @@ game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_w
  *
  */
 static IFES_SquareState
-game_position_get_ifes_player(const GamePosition * const gp)
+game_position_get_ifes_player (const GamePosition * const gp)
 {
   IFES_SquareState ifes_player;
   ifes_player = gp->player == BLACK_PLAYER ? IFES_BLACK : IFES_WHITE;
@@ -654,19 +654,7 @@ any_flips (uint8 *board, int sqnum, int color, int oppcol)
 inline static void
 undo_flips (int flip_count, int oppcol)
 {
-  /*
-   * This is functionally equivalent to the simpler but slower code line:
-   * while (flip_count) { flip_count--;  *(*(--flip_stack)) = oppcol; }
-   */
-  if (flip_count & 1) {
-    flip_count--;
-    * (*(--flip_stack)) = oppcol;
-  }
-  while (flip_count) {
-    flip_count -= 2;
-    * (*(--flip_stack)) = oppcol;
-    * (*(--flip_stack)) = oppcol;
-  }
+  while (flip_count) { flip_count--;  *(*(--flip_stack)) = oppcol; }
 }
 
 /**
@@ -1024,13 +1012,15 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       em->pred->succ = em->succ;
       if (em->succ != NULL)
 	em->succ->pred = em->pred;
+      /*
       if (empties <= fastest_first + 1)
 	evaluated_n = parity_end_solve(solution, board, -beta, -alpha, oppcol, empties - 1,
                                        -discdiff - 2 * j - 1, sqnum);
       else
 	evaluated_n = fastest_first_end_solve(solution, board, -beta, -alpha, oppcol,
-                                              empties - 1, -discdiff - 2 * j - 1,
-                                              sqnum);
+                                              empties - 1, -discdiff - 2 * j - 1, sqnum);
+      */
+      evaluated_n = end_solve(solution, board, -beta, -alpha, oppcol, empties - 1, -discdiff - 2 * j - 1, sqnum);
       evaluated_n.value = -evaluated_n.value;
       undo_flips(j, oppcol);
       region_parity ^= holepar;
@@ -1092,7 +1082,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
  * @param prevmove the previous move, or zero if previous move was a pass
  * @return         the node having the best value among the legal moves
  */
-static Node
+inline static Node
 end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
            int color, int empties, int discdiff, int prevmove)
 {
