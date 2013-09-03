@@ -100,28 +100,42 @@ bit_works_int_size_definition_checks (void)
   uint16 ui16;
   uint32 ui32;
   uint64 ui64;
+  sint8  si8;
 
   /* uint8 must be one byte. */
   ui8 = 0xFF;
+  g_assert(255 == ui8);
   g_assert(0 == ++ui8);
+  g_assert(1 == sizeof(ui8));
 
   /* uint16 must be two bytes. */
   ui16 = 0xFFFF;
+  g_assert(65535 == ui16);
   g_assert(0 == ++ui16);
   ui16 = 0x00FF;
   g_assert(0x0100 == ++ui16);
+  g_assert(2 == sizeof(ui16));
 
   /* uint32 must be four bytes. */
   ui32 = 0xFFFFFFFF;
+  g_assert(4294967295 == ui32);
   g_assert(0 == ++ui32);
   ui32 = 0x0000FFFF;
   g_assert(0x00010000 == ++ui32);
+  g_assert(4 == sizeof(ui32));
 
   /* uint64 must be eight bytes. */
   ui64 = 0xFFFFFFFFFFFFFFFF;
+  g_assert(18446744073709551615ULL == ui64);
   g_assert(0 == ++ui64);
   ui64 = 0x00000000FFFFFFFF;
   g_assert(0x0000000100000000 == ++ui64);
+  g_assert(8 == sizeof(ui64));
+
+  /* sint8 must be one byte. */
+  si8 = 127;
+  g_assert(1 == sizeof(si8));
+
 }
 
 static void
