@@ -313,16 +313,27 @@ static uint8 **flip_stack = &(global_flip_stack[0]);
 /*********************************************************/
 
 /**
- * @brief Documentation to be prepared.
+ * @brief Solves the game position defined by the `root` parameter,
+ *        applying the ifes solver.
+ *
+ * The "Improved Fast Endgame Solver" is described by the module documentation.
+ *
+ * @invariant Parameters `root` must be not `NULL`.
+ * The invariants are guarded by assertions.
+ *
+ * @param root the game position to be solved
+ * @return     the exact solution is the collector for results
  */
 ExactSolution *
 game_position_ifes_solve (const GamePosition * const root)
 {
-  ExactSolution *result;
-  int            emp;
-  int            wc, bc;
-  int            discdiff;
-  Node           n;
+  ExactSolution *result;    /* The solution structure returned by the function. */
+  int            emp;       /* Empty discs count. */
+  int            wc, bc;    /* White and Black discs count. */
+  int            discdiff;  /* Disc difference between player and opponent. */
+  Node           n;         /* Best node returned by the search. */
+
+  g_assert(root);
 
   result = exact_solution_new();
   result->solved_game_position = game_position_clone(root);
@@ -526,19 +537,19 @@ ct_directional_flips (uint8 *sq, int inc, int color, int oppcol)
     int count = 1;
     pt += inc;
     if (*pt == oppcol) {
-      count++;                /* 2 */
+      count++;                /* count = 2 */
       pt += inc;
       if (*pt == oppcol) {
-        count++;              /* 3 */
+        count++;              /* count = 3 */
         pt += inc;
         if (*pt == oppcol) {
-          count++;            /* 4 */
+          count++;            /* count = 4 */
           pt += inc;
           if (*pt == oppcol) {
-            count++;          /* 5 */
+            count++;          /* count = 5 */
             pt += inc;
             if (*pt == oppcol) {
-              count++;        /* 6 */
+              count++;        /* count = 6 */
               pt += inc;
             }
           }
@@ -577,7 +588,7 @@ count_flips (uint8 *board, int sqnum, int color, int oppcol)
     ct += ct_directional_flips(sq, dir_inc[1], color, oppcol);
   if (j & 1)
     ct += ct_directional_flips(sq, dir_inc[0], color, oppcol);
-  return(ct);
+  return ct;
 }
 
 /**
@@ -645,7 +656,7 @@ any_flips (uint8 *board, int sqnum, int color, int oppcol)
 inline static void
 undo_flips (int flip_count, int oppcol)
 {
-  while (flip_count) { flip_count--;  *(*(--flip_stack)) = oppcol; }
+  while (flip_count) { flip_count--; *(*(--flip_stack)) = oppcol; }
 }
 
 /**
