@@ -43,10 +43,10 @@
  * of each board square.
  */
 typedef enum {
-  IFES_WHITE,   /**< A white piece. */
-  IFES_EMPTY,   /**< An empty square. */
-  IFES_BLACK,   /**< A black piece. */
-  IFES_DUMMY    /**< A piece out of board. */
+  IFES_WHITE,         /**< A white piece. */
+  IFES_EMPTY,         /**< An empty square. */
+  IFES_BLACK,         /**< A black piece. */
+  IFES_DUMMY          /**< A piece out of board. */
 } IFES_SquareState;
 
 /**
@@ -55,10 +55,10 @@ typedef enum {
  * Details to be documented.
  */
 typedef struct EmList_ {
-  int square;           /**< @brief To be documented. */
-  int hole_id;
-  struct EmList_ *pred;
-  struct EmList_ *succ;
+  uint8           square;     /**< @brief To be documented. */
+  uint64          hole_id;    /**< @brief To be documented. */
+  struct EmList_ *pred;       /**< @brief To be documented. */
+  struct EmList_ *succ;       /**< @brief To be documented. */
 } EmList;
 
 /**
@@ -67,8 +67,8 @@ typedef struct EmList_ {
  * Details to be documented.
  */
 typedef struct {
-  int square;
-  int value;
+  uint8 square;
+  sint8 value;
 } Node;
 
 
@@ -97,8 +97,8 @@ any_flips (uint8 *board, int sqnum, int color, int oppcol);
 inline static void
 undo_flips (int flip_count, int oppcol);
 
-inline static uint32
-minu (uint32 a, uint32 b);
+inline static uint64
+minu (uint64 a, uint64 b);
 
 static int
 count_mobility (uint8 *board, int color);
@@ -141,19 +141,10 @@ ifes_square_to_square (const int sq);
  */
 
 /*
- * This code will work for any number of empties up to the number
- * of bits in a uint32 (it is 32).
- *
- * The function prepare_to_solve aborts if empties are more than max_empties.
- */
-static const int max_empties = 32;
-
-/*
  * This is the best/worst case board value.
  * Any value greather than 64 can be adopted.
- * The value thirty thousands has an hystorical heritage. 
  */
-static const int infinity = 30000;
+static const sint8 infinity = 65;
 
 /*
  * The selection of the variant of end end_solver() function follows these rules.
@@ -221,22 +212,22 @@ g *
 /*
  * The parameter use_parity. See above for explanation.
  */
-static const int use_parity = 4;
+static const uint8 use_parity = 4;
 
 /*
  * The parameter fastest_first. See above for explanation.
  */
-static const int fastest_first = 7;
+static const uint8 fastest_first = 7;
 
 /*
  * The 8 legal directions, plus no direction an ninth value.
  */
-static const sint8 dirinc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
+static const sint8 dir_inc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
 
 /*
  * Fixed square ordering.
  */
-static const int worst_to_best[64] =
+static const uint8 worst_to_best[64] =
 {
   /*B2*/      20, 25, 65, 70,
   /*B1*/      11, 16, 19, 26, 64, 71, 74, 79,
@@ -254,11 +245,11 @@ static const int worst_to_best[64] =
  * The bit mask for direction i is 1<<i
  *
  * Bit masks for the directions squares can flip in,
- * for example dirmask[10]=81=64+16+1=(1<<6)+(1<<4)+(1<<0)
- * hence square 10 (A1) can flip in directions dirinc[0]=1,
- * dirinc[4]=9, and dirinc[6]=10:
+ * for example dir_mask[10]=81=64+16+1=(1<<6)+(1<<4)+(1<<0)
+ * hence square 10 (A1) can flip in directions dir_inc[0]=1,
+ * dir_inc[4]=9, and dir_inc[6]=10:
  */
-static const uint8 dirmask[91] = {
+static const uint8 dir_mask[91] = {
   0,   0,   0,   0,   0,   0,   0,   0,   0,
   0,  81,  81,  87,  87,  87,  87,  22,  22,
   0,  81,  81,  87,  87,  87,  87,  22,  22,
@@ -307,7 +298,7 @@ static EmList em_head, ems[64];
  * There are up to 32 regions. The parities of the regions are in
  * the region_parity bit vector:
  */
-static uint32 region_parity;
+static uint64 region_parity;
 
 /* Must be documented. */
 static uint8  *global_flip_stack[2048];
@@ -322,16 +313,27 @@ static uint8 **flip_stack = &(global_flip_stack[0]);
 /*********************************************************/
 
 /**
- * @brief Documentation to be prepared.
+ * @brief Solves the game position defined by the `root` parameter,
+ *        applying the ifes solver.
+ *
+ * The "Improved Fast Endgame Solver" is described by the module documentation.
+ *
+ * @invariant Parameters `root` must be not `NULL`.
+ * The invariants are guarded by assertions.
+ *
+ * @param root the game position to be solved
+ * @return     the exact solution is the collector for results
  */
 ExactSolution *
 game_position_ifes_solve (const GamePosition * const root)
 {
-  ExactSolution *result;
-  int            emp;
-  int            wc, bc;
-  int            discdiff;
-  Node           n;
+  ExactSolution *result;    /* The solution structure returned by the function. */
+  int            emp;       /* Empty discs count. */
+  int            wc, bc;    /* White and Black discs count. */
+  int            discdiff;  /* Disc difference between player and opponent. */
+  Node           n;         /* Best node returned by the search. */
+
+  g_assert(root);
 
   result = exact_solution_new();
   result->solved_game_position = game_position_clone(root);
@@ -347,16 +349,16 @@ game_position_ifes_solve (const GamePosition * const root)
   /** Debug info **/
   if (TRUE) {
     printf("\nEmpty Square Doubly linked List debug info:\n");
-    printf("em_head: address=%p [square=%2d (%s), hole_id=%d] pred=%p succ=%p\n",
+    printf("em_head: address=%p [square=%2d (%s), hole_id=%llu] pred=%p succ=%p\n",
            (void*) &em_head, em_head.square, ifes_square_to_string(em_head.square), em_head.hole_id,
            (void*) em_head.pred, (void*) em_head.succ);
     for (int k = 0; k < 64; k++) {
       if (ems[k].square != 0)
-        printf("ems[%2d]: address=%p [square=%2d (%s), hole_id=%d] pred=%p succ=%p\n",
+        printf("ems[%2d]: address=%p [square=%2d (%s), hole_id=%llu] pred=%p succ=%p\n",
                k, (void*) &ems[k], ems[k].square, ifes_square_to_string(ems[k].square), ems[k].hole_id,
                (void*) ems[k].pred, (void*) ems[k].succ);
     }
-    printf("region_parity=%d\n", region_parity);
+    printf("region_parity=%llu\n", region_parity);
     printf("\n");
   }
   /** **/
@@ -500,26 +502,26 @@ static int
 do_flips (uint8 *board, int sqnum,
           int color, int oppcol)
 {
-  int j = dirmask[sqnum];
+  int j = dir_mask[sqnum];
   uint8 **old_flip_stack = flip_stack;
   uint8 *sq;
   sq = sqnum + board;
   if (j & 128)
-    directional_flips(sq, dirinc[7], color, oppcol);
+    directional_flips(sq, dir_inc[7], color, oppcol);
   if (j & 64)
-    directional_flips(sq, dirinc[6], color, oppcol);
+    directional_flips(sq, dir_inc[6], color, oppcol);
   if (j & 32)
-    directional_flips(sq, dirinc[5], color, oppcol);
+    directional_flips(sq, dir_inc[5], color, oppcol);
   if (j & 16)
-    directional_flips(sq, dirinc[4], color, oppcol);
+    directional_flips(sq, dir_inc[4], color, oppcol);
   if (j & 8)
-    directional_flips(sq, dirinc[3], color, oppcol);
+    directional_flips(sq, dir_inc[3], color, oppcol);
   if (j & 4)
-    directional_flips(sq, dirinc[2], color, oppcol);
+    directional_flips(sq, dir_inc[2], color, oppcol);
   if (j & 2)
-    directional_flips(sq, dirinc[1], color, oppcol);
+    directional_flips(sq, dir_inc[1], color, oppcol);
   if (j & 1)
-    directional_flips(sq, dirinc[0], color, oppcol);
+    directional_flips(sq, dir_inc[0], color, oppcol);
 
   return flip_stack - old_flip_stack;
 }
@@ -535,19 +537,19 @@ ct_directional_flips (uint8 *sq, int inc, int color, int oppcol)
     int count = 1;
     pt += inc;
     if (*pt == oppcol) {
-      count++;                /* 2 */
+      count++;                /* count = 2 */
       pt += inc;
       if (*pt == oppcol) {
-        count++;              /* 3 */
+        count++;              /* count = 3 */
         pt += inc;
         if (*pt == oppcol) {
-          count++;            /* 4 */
+          count++;            /* count = 4 */
           pt += inc;
           if (*pt == oppcol) {
-            count++;          /* 5 */
+            count++;          /* count = 5 */
             pt += inc;
             if (*pt == oppcol) {
-              count++;        /* 6 */
+              count++;        /* count = 6 */
               pt += inc;
             }
           }
@@ -567,26 +569,26 @@ static int
 count_flips (uint8 *board, int sqnum, int color, int oppcol)
 {
   int ct = 0;
-  int j = dirmask[sqnum];
+  int j = dir_mask[sqnum];
   uint8 *sq;
   sq = sqnum + board;
   if (j & 128)
-    ct += ct_directional_flips(sq, dirinc[7], color, oppcol);
+    ct += ct_directional_flips(sq, dir_inc[7], color, oppcol);
   if (j & 64)
-    ct += ct_directional_flips(sq, dirinc[6], color, oppcol);
+    ct += ct_directional_flips(sq, dir_inc[6], color, oppcol);
   if (j & 32)
-    ct += ct_directional_flips(sq, dirinc[5], color, oppcol);
+    ct += ct_directional_flips(sq, dir_inc[5], color, oppcol);
   if (j & 16)
-    ct += ct_directional_flips(sq, dirinc[4], color, oppcol);
+    ct += ct_directional_flips(sq, dir_inc[4], color, oppcol);
   if (j & 8)
-    ct += ct_directional_flips(sq, dirinc[3], color, oppcol);
+    ct += ct_directional_flips(sq, dir_inc[3], color, oppcol);
   if (j & 4)
-    ct += ct_directional_flips(sq, dirinc[2], color, oppcol);
+    ct += ct_directional_flips(sq, dir_inc[2], color, oppcol);
   if (j & 2)
-    ct += ct_directional_flips(sq, dirinc[1], color, oppcol);
+    ct += ct_directional_flips(sq, dir_inc[1], color, oppcol);
   if (j & 1)
-    ct += ct_directional_flips(sq, dirinc[0], color, oppcol);
-  return(ct);
+    ct += ct_directional_flips(sq, dir_inc[0], color, oppcol);
+  return ct;
 }
 
 /**
@@ -620,31 +622,49 @@ any_directional_flips (uint8 *sq, int inc, int color, int oppcol)
 }
 
 /**
- * @brief To be documented
+ * @brief Verify if the move is legal.
+ *
+ * Parameter `sqnum` must be an empty square.
+ *
+ * @param board  the game board
+ * @param sqnum  the move
+ * @param color  the player going to move
+ * @param oppcol the opponent
+ * @return       the number of flipped discs
  */
 static int
 any_flips (uint8 *board, int sqnum, int color, int oppcol)
 {
   int any = 0;
-  int j = dirmask[sqnum];
+  int j = dir_mask[sqnum];
   uint8 *sq;
   sq = sqnum + board;
+
+  /* Unrolling the loop the gain is quite sensible.
+   *
+   * for (int dir = 0; dir < 8; dir++) {
+   *   if (j & (1 < dir))
+   *     any += any_directional_flips(sq, dir_inc[dir], color, oppcol);
+   *  }
+  */
+
   if (j & 128)
-    any += any_directional_flips(sq, dirinc[7], color, oppcol);
+    any += any_directional_flips(sq, dir_inc[7], color, oppcol);
   if (j & 64)
-    any += any_directional_flips(sq, dirinc[6], color, oppcol);
+    any += any_directional_flips(sq, dir_inc[6], color, oppcol);
   if (j & 32)
-    any += any_directional_flips(sq, dirinc[5], color, oppcol);
+    any += any_directional_flips(sq, dir_inc[5], color, oppcol);
   if (j & 16)
-    any += any_directional_flips(sq, dirinc[4], color, oppcol);
+    any += any_directional_flips(sq, dir_inc[4], color, oppcol);
   if (j & 8)
-    any += any_directional_flips(sq, dirinc[3], color, oppcol);
+    any += any_directional_flips(sq, dir_inc[3], color, oppcol);
   if (j & 4)
-    any += any_directional_flips(sq, dirinc[2], color, oppcol);
+    any += any_directional_flips(sq, dir_inc[2], color, oppcol);
   if (j & 2)
-    any += any_directional_flips(sq, dirinc[1], color, oppcol);
+    any += any_directional_flips(sq, dir_inc[1], color, oppcol);
   if (j & 1)
-    any += any_directional_flips(sq, dirinc[0], color, oppcol);
+    any += any_directional_flips(sq, dir_inc[0], color, oppcol);
+
   return any;
 }
 
@@ -654,14 +674,14 @@ any_flips (uint8 *board, int sqnum, int color, int oppcol)
 inline static void
 undo_flips (int flip_count, int oppcol)
 {
-  while (flip_count) { flip_count--;  *(*(--flip_stack)) = oppcol; }
+  while (flip_count) { flip_count--; *(*(--flip_stack)) = oppcol; }
 }
 
 /**
  * @brief To be documented
  */
-inline static uint32
-minu (uint32 a, uint32 b)
+inline static uint64
+minu (uint64 a, uint64 b)
 {
   if (a < b) return a;
   return b;
@@ -698,9 +718,10 @@ count_mobility (uint8 *board, int color)
 static void
 prepare_to_solve (uint8 *board)
 {
-  uint32 hole_id_map[91];
-  int i, sqnum;
-  uint32 k;
+  uint64 hole_id_map[91];
+  uint8 sqnum;
+  int i;
+  uint64 k;
   EmList *pt;
   int z;
   /* find hole IDs: */
@@ -767,7 +788,6 @@ prepare_to_solve (uint8 *board)
     }
   }
   pt->succ = NULL;
-  if (k > max_empties) abort(); /* better not have too many empties... */
 }
 
 /**
@@ -870,7 +890,7 @@ parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
 {
   int sqnum, j;
   EmList *em, *old_em;
-  uint32 parity_mask;
+  uint64 parity_mask;
   int par, holepar;
   Node evaluated_n;
 
