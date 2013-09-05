@@ -622,7 +622,15 @@ any_directional_flips (uint8 *sq, int inc, int color, int oppcol)
 }
 
 /**
- * @brief To be documented
+ * @brief Verify if the move is legal.
+ *
+ * Parameter `sqnum` must be an empty square.
+ *
+ * @param board  the game board
+ * @param sqnum  the move
+ * @param color  the player going to move
+ * @param oppcol the opponent
+ * @return       the number of flipped discs
  */
 static int
 any_flips (uint8 *board, int sqnum, int color, int oppcol)
@@ -631,6 +639,15 @@ any_flips (uint8 *board, int sqnum, int color, int oppcol)
   int j = dir_mask[sqnum];
   uint8 *sq;
   sq = sqnum + board;
+
+  /* Unrolling the loop the gain is quite sensible.
+   *
+   * for (int dir = 0; dir < 8; dir++) {
+   *   if (j & (1 < dir))
+   *     any += any_directional_flips(sq, dir_inc[dir], color, oppcol);
+   *  }
+  */
+
   if (j & 128)
     any += any_directional_flips(sq, dir_inc[7], color, oppcol);
   if (j & 64)
@@ -647,6 +664,7 @@ any_flips (uint8 *board, int sqnum, int color, int oppcol)
     any += any_directional_flips(sq, dir_inc[1], color, oppcol);
   if (j & 1)
     any += any_directional_flips(sq, dir_inc[0], color, oppcol);
+
   return any;
 }
 
