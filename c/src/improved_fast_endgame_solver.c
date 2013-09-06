@@ -55,10 +55,10 @@ typedef enum {
  * Details to be documented.
  */
 typedef struct EmList_ {
-  uint8           square;     /**< @brief To be documented. */
-  uint64          hole_id;    /**< @brief To be documented. */
-  struct EmList_ *pred;       /**< @brief To be documented. */
-  struct EmList_ *succ;       /**< @brief To be documented. */
+  uint8           square;     /**< @brief One square on the board. */
+  uint64          hole_id;    /**< @brief Id of the hole to which the square belongs to. */
+  struct EmList_ *pred;       /**< @brief Predecessor element, or NULL if missing. */
+  struct EmList_ *succ;       /**< @brief Successor element, or NULL if missing. */
 } EmList;
 
 /**
@@ -67,8 +67,8 @@ typedef struct EmList_ {
  * Details to be documented.
  */
 typedef struct {
-  uint8 square;
-  sint8 value;
+  uint8 square;    /**< @brief One square on the board. */
+  sint8 value;     /**< @brief The game value of moving into the square. */
 } Node;
 
 
@@ -245,11 +245,11 @@ static const uint8 worst_to_best[64] =
  * The bit mask for direction i is 1<<i
  *
  * Bit masks for the directions squares can flip in,
- * for example dir_mask[10]=81=64+16+1=(1<<6)+(1<<4)+(1<<0)
+ * for example flipping_dir_mask_table[10]=81=64+16+1=(1<<6)+(1<<4)+(1<<0)
  * hence square 10 (A1) can flip in directions dir_inc[0]=1,
  * dir_inc[4]=9, and dir_inc[6]=10:
  */
-static const uint8 dir_mask[91] = {
+static const uint8 flipping_dir_mask_table[91] = {
   0,   0,   0,   0,   0,   0,   0,   0,   0,
   0,  81,  81,  87,  87,  87,  87,  22,  22,
   0,  81,  81,  87,  87,  87,  87,  22,  22,
@@ -300,10 +300,16 @@ static EmList em_head, ems[64];
  */
 static uint64 region_parity;
 
-/* Must be documented. */
+/*
+ * Stores the pointers to the board element that are flipped
+ * by each move during the search tree expansion.
+ */
 static uint8  *global_flip_stack[2048];
 
-/* Must be documented. */
+/*
+ * A global pointer to one element of `global_flip_stack`,
+ * it identify the next empty position in the stack.
+ */
 static uint8 **flip_stack = &(global_flip_stack[0]);
 
 
@@ -381,7 +387,12 @@ game_position_ifes_solve (const GamePosition * const root)
  */
 
 /**
- * @brief Documentation to be prepared.
+ * @brief Prepares the board global structure and return the empties, blacks, and whites counts.
+ *
+ * @param [in]  gp    the given game position
+ * @param [out] p_emp a pointer to the empties count
+ * @param [out] p_wc  a pointer to the whites count
+ * @param [out] p_bc  a pointer to the blacks count
  *
  */
 static void
@@ -502,8 +513,8 @@ static int
 do_flips (uint8 *board, int sqnum,
           int color, int oppcol)
 {
-  int j = dir_mask[sqnum];
-  uint8 **old_flip_stack = flip_stack;
+  int j = flipping_dir_mask_table[sqnum];
+  uint8 **previous_flip_stack = flip_stack;
   uint8 *sq;
   sq = sqnum + board;
   if (j & 128)
@@ -523,7 +534,7 @@ do_flips (uint8 *board, int sqnum,
   if (j & 1)
     directional_flips(sq, dir_inc[0], color, oppcol);
 
-  return flip_stack - old_flip_stack;
+  return flip_stack - previous_flip_stack;
 }
 
 /**
@@ -569,7 +580,7 @@ static int
 count_flips (uint8 *board, int sqnum, int color, int oppcol)
 {
   int ct = 0;
-  int j = dir_mask[sqnum];
+  int j = flipping_dir_mask_table[sqnum];
   uint8 *sq;
   sq = sqnum + board;
   if (j & 128)
@@ -626,43 +637,44 @@ any_directional_flips (uint8 *sq, int inc, int color, int oppcol)
  *
  * Parameter `sqnum` must be an empty square.
  *
- * @param board  the game board
- * @param sqnum  the move
- * @param color  the player going to move
- * @param oppcol the opponent
- * @return       the number of flipped discs
+ * @param [in] board  the game board
+ * @param [in] sqnum  the move
+ * @param [in] color  the player going to move
+ * @param [in] oppcol the opponent
+ * @return            the number of flipped discs
  */
 static int
 any_flips (uint8 *board, int sqnum, int color, int oppcol)
 {
   int any = 0;
-  int j = dir_mask[sqnum];
+  uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
   uint8 *sq;
   sq = sqnum + board;
 
-  /* Unrolling the loop the gain is quite sensible.
+  /*
+   * Unrolling the loop brings a quite sensible gain.
    *
    * for (int dir = 0; dir < 8; dir++) {
-   *   if (j & (1 < dir))
+   *   if (flipping_dir_mask & (1 < dir))
    *     any += any_directional_flips(sq, dir_inc[dir], color, oppcol);
    *  }
   */
 
-  if (j & 128)
+  if (flipping_dir_mask & (1 << 7))
     any += any_directional_flips(sq, dir_inc[7], color, oppcol);
-  if (j & 64)
+  if (flipping_dir_mask & (1 << 6))
     any += any_directional_flips(sq, dir_inc[6], color, oppcol);
-  if (j & 32)
+  if (flipping_dir_mask & (1 << 5))
     any += any_directional_flips(sq, dir_inc[5], color, oppcol);
-  if (j & 16)
+  if (flipping_dir_mask & (1 << 4))
     any += any_directional_flips(sq, dir_inc[4], color, oppcol);
-  if (j & 8)
+  if (flipping_dir_mask & (1 << 3))
     any += any_directional_flips(sq, dir_inc[3], color, oppcol);
-  if (j & 4)
+  if (flipping_dir_mask & (1 << 2))
     any += any_directional_flips(sq, dir_inc[2], color, oppcol);
-  if (j & 2)
+  if (flipping_dir_mask & (1 << 1))
     any += any_directional_flips(sq, dir_inc[1], color, oppcol);
-  if (j & 1)
+  if (flipping_dir_mask & (1 << 0))
     any += any_directional_flips(sq, dir_inc[0], color, oppcol);
 
   return any;
@@ -670,6 +682,9 @@ any_flips (uint8 *board, int sqnum, int color, int oppcol)
 
 /**
  * @brief Call this function right after `flip_count = do_flips()` to undo those flips!
+ *
+ * @param [in] flip_count number of disc flipped
+ * @param [in] oppcol     opponent color
  */
 inline static void
 undo_flips (int flip_count, int oppcol)
@@ -678,7 +693,11 @@ undo_flips (int flip_count, int oppcol)
 }
 
 /**
- * @brief To be documented
+ * @brief Return the minimum amon parameters.
+ *
+ * @param [in] a first element to compare
+ * @param [in] b second element to compare
+ * @return       the lesser element
  */
 inline static uint64
 minu (uint64 a, uint64 b)
@@ -688,7 +707,11 @@ minu (uint64 a, uint64 b)
 }
 
 /**
- * @brief To be documented
+ * @brief Returns the number of available legal moves.
+ *
+ * @param [in] board the game board
+ * @param [in] color the player having the move
+ * @return           the legal move count
  */
 static int
 count_mobility (uint8 *board, int color)
@@ -1092,15 +1115,15 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
  *
  * Assumes relevant data structures have been set up with prepare_to_solve().
  *
- * @param solution
- * @param board
- * @param alpha
- * @param beta
- * @param color    the color on move
- * @param empties  the number of empty squares
- * @param discdiff color disc count less opposite_color disc count
- * @param prevmove the previous move, or zero if previous move was a pass
- * @return         the node having the best value among the legal moves
+ * @param [in,out] solution
+ * @param [in]     board
+ * @param [in]     alpha
+ * @param [in]     beta
+ * @param [in]     color    the color on move
+ * @param [in]     empties  the number of empty squares
+ * @param [in]     discdiff color disc count less opposite_color disc count
+ * @param [in]     prevmove the previous move, or zero if previous move was a pass
+ * @return                  the node having the best value among the legal moves
  */
 inline static Node
 end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
