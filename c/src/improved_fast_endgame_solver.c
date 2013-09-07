@@ -353,7 +353,7 @@ game_position_ifes_solve (const GamePosition * const root)
   prepare_to_solve(board);
 
   /** Debug info **/
-  if (TRUE) {
+  if (FALSE) {
     printf("\nEmpty Square Doubly linked List debug info:\n");
     printf("em_head: address=%p [square=%2d (%s), hole_id=%llu] pred=%p succ=%p\n",
            (void*) &em_head, em_head.square, ifes_square_to_string(em_head.square), em_head.hole_id,
@@ -366,6 +366,8 @@ game_position_ifes_solve (const GamePosition * const root)
     }
     printf("region_parity=%llu\n", region_parity);
     printf("\n");
+    printf("use_parity=%d. fastest_first=%d.\n",
+           use_parity, fastest_first);
   }
   /** **/
 
@@ -373,9 +375,6 @@ game_position_ifes_solve (const GamePosition * const root)
 
   result->outcome = n.value;
   result->principal_variation[0] = ifes_square_to_square(n.square);
-
-  printf("use_parity=%d. fastest_first=%d.\n",
-         use_parity, fastest_first);
 
   return result;
 }
@@ -413,8 +412,10 @@ game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_w
 }
 
 /**
- * @brief Documentation to be prepared.
+ * @brief Returns the ifes player from the game position.
  *
+ * @param [in] gp the game position
+ * @return        the player having the move
  */
 static IFES_SquareState
 game_position_get_ifes_player (const GamePosition * const gp)
@@ -425,8 +426,10 @@ game_position_get_ifes_player (const GamePosition * const gp)
 }
 
 /**
- * @brief Documentation to be prepared.
+ * @brief Translates the ifes square into an enum square.
  *
+ * @param [in] sq the ifes square
+ * @return        the translated square enum
  */
 static Square
 ifes_square_to_square (const int sq)
