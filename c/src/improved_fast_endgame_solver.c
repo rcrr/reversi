@@ -134,6 +134,9 @@ ifes_square_to_string (const int sq);
 static Square
 ifes_square_to_square (const int sq);
 
+inline static Node
+init_node (void);
+
 
 
 /*
@@ -861,9 +864,7 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
 
   solution->node_count++;
 
-  Node selected_n; /* Best node, selected, and then returned. */
-  selected_n.value = -infinity;
-  selected_n.square = 0;
+  Node selected_n = init_node(); /* Best node, selected, and then returned. */
 
   for (old_em = &em_head, em = old_em->succ; em != NULL;
        old_em = em, em = em->succ) {
@@ -964,9 +965,7 @@ parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
 
   solution->node_count++;
 
-  Node selected_n;
-  selected_n.value = -infinity;
-  selected_n.square = 0;
+  Node selected_n = init_node(); /* Best node, selected, and then returned. */
 
   for (par = 1, parity_mask = region_parity; par >= 0;
        par--, parity_mask = ~parity_mask) {
@@ -1065,9 +1064,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
 
   solution->node_count++;
 
-  Node selected_n;
-  selected_n.value = -infinity;
-  selected_n.square = 0;
+  Node selected_n = init_node(); /* Best node, selected, and then returned. */
 
   moves = 0;
   for (old_em = &em_head, em = old_em->succ; em != NULL;
@@ -1190,4 +1187,13 @@ end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
     else
       return parity_end_solve(solution, board, alpha, beta, color, empties, discdiff, prevmove);
   }
+}
+
+inline static Node
+init_node (void)
+{
+  Node n;
+  n.value = -infinity;
+  n.square = 0;
+  return n;
 }
