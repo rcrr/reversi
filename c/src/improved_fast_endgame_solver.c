@@ -440,8 +440,12 @@ ifes_square_to_square (const int sq)
 }
 
 /**
- * @brief Documentation to be prepared.
+ * @brief Returns a string representation for the given square.
  *
+ * The returned string must be freed when no longer used by the client function.
+ *
+ * @param [in] sq the square
+ * @return        a string representation for the square
  */
 static char *
 ifes_square_to_string (const int sq)
@@ -467,14 +471,12 @@ ifes_square_to_string (const int sq)
 }
 
 /**
- * @brief Documentation to be prepared.
+ * @brief Executes board flips from a square `sq` in the `inc` direction.
  *
- * sq is a pointer to the square the move is to.
- * inc is the increment to go in some direction.
- * color is the color of the mover.
- * oppcol = 2-color is the opposite color.
- * flip_stack records locations of flipped men so can unflip later.
- * This routine flips in direction inc and returns count of flips it made:
+ * @param [in] sq     a pointer to the square the move is to
+ * @param [in] inc    the increment to go in some direction
+ * @param [in] color  the color of the mover
+ * @param [in] oppcol the opposite color
  */
 inline static void
 directional_flips (uint8 *sq, int inc, int color, int oppcol)
@@ -509,8 +511,14 @@ directional_flips (uint8 *sq, int inc, int color, int oppcol)
 }
 
 /**
- * @brief Do all flips involved in making a move to square sqnum of board,
+ * @brief Does all flips involved in making a move to square `sqnum` of board,
  * and return their count.
+ *
+ * @param [in,out] board  a pointer to the board to modify
+ * @param [in]     sqnum  move square number 
+ * @param [in]     color  player color
+ * @param [in]     oppcol opponent color
+ * @return                the flip count
  */
 static int
 do_flips (uint8 *board, int sqnum,
@@ -606,8 +614,16 @@ count_flips (uint8 *board, int sqnum, int color, int oppcol)
 }
 
 /**
- * @brief Sometimes we only want to know if a move is legal, not how
+ * @brief Returns if the move generates flips in a given direction.
+ *
+ * Sometimes we only want to know if a move is legal, not how
  * many discs it flips.
+ *
+ * @param [in] sq     a square pointer
+ * @param [in] inc    a given direction
+ * @param [in] color  player color
+ * @param [in] oppcol opponent color
+ * @return            `1` if there are legal flips, `0` otherwise
  */
 inline static int
 any_directional_flips (uint8 *sq, int inc, int color, int oppcol)
@@ -737,9 +753,13 @@ count_mobility (uint8 *board, int color)
 
 /**
  * @brief Set up the data structures, other than board array,
- * which will be used by solver. Since this routine consumes
- * about 0.0002 of the time needed for a 12-empty solve,
- * I haven't worried about speeding it up.
+ * which will be used by solver.
+ *
+ * As a side effect it computes the `hole_id_map` table, the `region_parity` field,
+ * and prepares the linked list `em_head`, hosted by the arry `ems` having the
+ * list of empty squares.
+ *
+ * @param [in] board a given board
  */
 static void
 prepare_to_solve (uint8 *board)
@@ -817,7 +837,17 @@ prepare_to_solve (uint8 *board)
 }
 
 /**
- * @brief To be documented
+ * @brief Searches to the leafs.
+ *
+ * @param [in, out] solution the solution object
+ * @param [in]      board    a pointer to the game board
+ * @param [in]      alpha    the alpha value
+ * @param [in]      beta     the beta value
+ * @param [in]      color    the color of the player having to move
+ * @param [in]      empties  the count of empty squares
+ * @param [in]      discdiff the disc difference between player and opponennt
+ * @param [in]      prevmove the previous move or zero if it was a pass
+ * @return                   the best node (move/value pairs) available
  */
 static Node
 no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
@@ -908,7 +938,17 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
 }
 
 /**
- * @brief To be documented
+ * @brief Searches by sorting the available moves using the parity heuristic.
+ *
+ * @param [in, out] solution the solution object
+ * @param [in]      board    a pointer to the game board
+ * @param [in]      alpha    the alpha value
+ * @param [in]      beta     the beta value
+ * @param [in]      color    the color of the player having to move
+ * @param [in]      empties  the count of empty squares
+ * @param [in]      discdiff the disc difference between player and opponennt
+ * @param [in]      prevmove the previous move or zero if it was a pass
+ * @return                   the best node (move/value pairs) available
  */
 static Node
 parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
@@ -994,7 +1034,17 @@ parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
 }
 
 /**
- * @brief To be documented
+ * @brief Searches by sorting the legal moves minimizing the opponent's mobility.
+ *
+ * @param [in, out] solution the solution object
+ * @param [in]      board    a pointer to the game board
+ * @param [in]      alpha    the alpha value
+ * @param [in]      beta     the beta value
+ * @param [in]      color    the color of the player having to move
+ * @param [in]      empties  the count of empty squares
+ * @param [in]      discdiff the disc difference between player and opponennt
+ * @param [in]      prevmove the previous move or zero if it was a pass
+ * @return                   the best node (move/value pairs) available
  */
 static Node
 fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
