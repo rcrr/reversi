@@ -137,6 +137,8 @@ ifes_square_to_square (const int sq);
 inline static Node
 init_node (void);
 
+inline static Node
+node_negate (Node n);
 
 
 /*
@@ -896,9 +898,14 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
         }
       }
       else {
-        evaluated_n = no_parity_end_solve(solution, board, -beta, -alpha, 
-                                          oppcol, empties-1, -discdiff-2*j-1, sqnum);
-        evaluated_n.value = -evaluated_n.value;
+        evaluated_n = node_negate(no_parity_end_solve(solution,
+                                                      board,
+                                                      -beta,
+                                                      -alpha,
+                                                      oppcol,
+                                                      empties-1,
+                                                      -discdiff - 2 * j - 1,
+                                                      sqnum));
       }
       undo_flips(j, oppcol);
       /* un-place your disc: */
@@ -930,8 +937,14 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
       }
     }
     else { /* I pass: */
-      selected_n = no_parity_end_solve(solution, board, -beta, -alpha, oppcol, empties, -discdiff, 0);
-      selected_n.value = -selected_n.value;
+      selected_n = node_negate(no_parity_end_solve(solution,
+                                                   board,
+                                                   -beta,
+                                                   -alpha,
+                                                   oppcol,
+                                                   empties,
+                                                   -discdiff,
+                                                   0));
     }
   }
  end:
@@ -1024,8 +1037,14 @@ parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
       }
     }
     else { /* I pass: */
-      selected_n = parity_end_solve(solution, board, -beta, -alpha, oppcol, empties, -discdiff, 0);
-      selected_n.value = -selected_n.value;
+      selected_n = node_negate(parity_end_solve(solution,
+                                                board,
+                                                -beta,
+                                                -alpha,
+                                                oppcol,
+                                                empties,
+                                                -discdiff,
+                                                0));
     }
   }
  end:
@@ -1113,8 +1132,14 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
 	evaluated_n = fastest_first_end_solve(solution, board, -beta, -alpha, oppcol,
                                               empties - 1, -discdiff - 2 * j - 1, sqnum);
       */
-      evaluated_n = end_solve(solution, board, -beta, -alpha, oppcol, empties - 1, -discdiff - 2 * j - 1, sqnum);
-      evaluated_n.value = -evaluated_n.value;
+      evaluated_n = node_negate(end_solve(solution,
+                                          board,
+                                          -beta,
+                                          -alpha,
+                                          oppcol,
+                                          empties - 1,
+                                          -discdiff - 2 * j - 1,
+                                          sqnum));
       undo_flips(j, oppcol);
       region_parity ^= holepar;
       board[sqnum] = IFES_EMPTY;
@@ -1144,9 +1169,14 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
         selected_n.value = 0;
       }
     } else { /* I pass: */
-      selected_n = fastest_first_end_solve(solution, board, -beta, -alpha, oppcol,
-                                           empties, -discdiff, 0);
-      selected_n.value = -selected_n.value;
+      selected_n = node_negate(fastest_first_end_solve(solution,
+                                                       board,
+                                                       -beta,
+                                                       -alpha,
+                                                       oppcol,
+                                                       empties,
+                                                       -discdiff,
+                                                       0));
     }
   }
  end:
@@ -1195,5 +1225,12 @@ init_node (void)
   Node n;
   n.value = -infinity;
   n.square = 0;
+  return n;
+}
+
+inline static Node
+node_negate (Node n)
+{
+  n.value = -n.value;
   return n;
 }
