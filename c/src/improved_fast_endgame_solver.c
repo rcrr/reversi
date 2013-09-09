@@ -870,28 +870,28 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
 
   for (old_em = &em_head, em = old_em->succ; em != NULL;
        old_em = em, em = em->succ) {
-    /* go thru list of possible move-squares */
+    /* Go thru list of possible move-squares. */
     sqnum = em->square;
     j = do_flips(board, sqnum, color, oppcol);
-    if (j) { /* legal move */
-      /* place your disc: */
+    if (j) { /* Legal move. */
+      /* Place your disc. */
       *(board+sqnum) = color;
-      /* delete square from empties list: */
+      /* Delete square from empties list. */
       old_em->succ = em->succ;
-      if (empties == 2) { /* So, now filled but for 1 empty: */
-        solution->leaf_count++; /* Could be more than one leaf_node, it cold be one or two!. */
+      if (empties == 2) { /* So, now filled but for 1 empty. */
+        solution->leaf_count++; /* Could be more than one leaf_node, it cold be one or two! */
         int j1;
         j1 = count_flips(board, em_head.succ->square, oppcol, color);
-        if (j1) { /* I move then he moves */
+        if (j1) { /* I move then he moves. */
           evaluated_n.value = discdiff + 2*(j-j1);
         }
-        else { /* he will have to pass */
+        else { /* He will have to pass. */
           j1 = count_flips(board, em_head.succ->square, color, oppcol);
           evaluated_n.value = discdiff + 2*j;
-          if (j1) { /* I pass then he passes then I move */
+          if (j1) { /* I pass then he passes then I move. */
             evaluated_n.value += 2 * (j1 + 1);
           }
-          else { /* I move then both must pass, so game over */
+          else { /* I move then both must pass, so game over. */
             if (evaluated_n.value >= 0)
               evaluated_n.value += 2;
           }
@@ -908,25 +908,25 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
                                                       sqnum));
       }
       undo_flips(j, oppcol);
-      /* un-place your disc: */
+      /* Un-place your disc. */
       *(board+sqnum) = IFES_EMPTY;
-      /* restore deleted empty square: */
+      /* Restore deleted empty square. */
       old_em->succ = em;
 
-      if (evaluated_n.value > selected_n.value) { /* better move: */
+      if (evaluated_n.value > selected_n.value) { /* Better move. */
         selected_n.value = evaluated_n.value;
         selected_n.square = sqnum;
         if (evaluated_n.value > alpha) {
           alpha = evaluated_n.value;
-          if (evaluated_n.value >= beta) { /* cutoff */
+          if (evaluated_n.value >= beta) { /* Cutoff. */
             goto end;
           }
         }
       }
     }
   }
-  if (selected_n.value == -infinity) {  /* No legal move */
-    if (prevmove == 0) { /* game over: */
+  if (selected_n.value == -infinity) {  /* No legal move found. */
+    if (prevmove == 0) { /* Game over. */
       solution->leaf_count++;
       if (discdiff > 0) {
         selected_n.value = discdiff + empties;
@@ -936,7 +936,7 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
         selected_n.value = 0;
       }
     }
-    else { /* I pass: */
+    else { /* Pass. */
       selected_n = node_negate(no_parity_end_solve(solution,
                                                    board,
                                                    -beta,
@@ -984,39 +984,40 @@ parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
        par--, parity_mask = ~parity_mask) {
     for (old_em = &em_head, em = old_em->succ; em != NULL;
          old_em = em, em = em->succ) {
-      /* go thru list of possible move-squares */
+      /* Go thru list of possible move-squares. */
       holepar = em->hole_id;
       if (holepar & parity_mask) {
         sqnum = em->square;
         j = do_flips(board, sqnum, color, oppcol);
         if (j) { /* legal move */
-          /* place your disc: */
+          /* Place your disc. */
           *(board+sqnum) = color;
-          /* update parity: */
+          /* Update parity. */
           region_parity ^= holepar;
-          /* delete square from empties list: */
+          /* Delete square from empties list. */
 	  old_em->succ = em->succ;
-          if (empties <= 1 + use_parity)
-            evaluated_n = no_parity_end_solve(solution, board, -beta, -alpha, 
-                                              oppcol, empties-1, -discdiff-2*j-1, sqnum);
-          else
-            evaluated_n = parity_end_solve(solution, board, -beta, -alpha, 
-                                           oppcol, empties-1, -discdiff-2*j-1, sqnum);
-          evaluated_n.value = -evaluated_n.value;
+          evaluated_n = node_negate(end_solve(solution,
+                                              board,
+                                              -beta,
+                                              -alpha, 
+                                              oppcol,
+                                              empties - 1,
+                                              -discdiff - 2 * j - 1,
+                                              sqnum));
           undo_flips(j, oppcol);
-          /* restore parity of hole */
+          /* Restore parity of hole. */
           region_parity ^= holepar;
-          /* un-place your disc: */
+          /* Un-place your disc. */
           *(board+sqnum) = IFES_EMPTY;
-          /* restore deleted empty square: */
+          /* Restore deleted empty square. */
 	  old_em->succ = em;
 
-          if (evaluated_n.value > selected_n.value) { /* better move: */
+          if (evaluated_n.value > selected_n.value) { /* Better move. */
             selected_n.value = evaluated_n.value;
             selected_n.square = sqnum;
             if (evaluated_n.value > alpha) {
               alpha = evaluated_n.value;
-              if (evaluated_n.value >= beta) { 
+              if (evaluated_n.value >= beta) { /* Cutoff. */ 
                 goto end;
               }
 	    }
@@ -1025,8 +1026,8 @@ parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
       }
     }
   }
-  if (selected_n.value == -infinity) {  /* No legal move found */
-    if (prevmove == 0) { /* game over: */
+  if (selected_n.value == -infinity) {  /* No legal move found. */
+    if (prevmove == 0) { /* Game over. */
       solution->leaf_count++;
       if (discdiff > 0) {
         selected_n.value = discdiff + empties;
@@ -1036,7 +1037,7 @@ parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
         selected_n.value = 0;
       }
     }
-    else { /* I pass: */
+    else { /* Pass. */
       selected_n = node_negate(parity_end_solve(solution,
                                                 board,
                                                 -beta,
@@ -1124,14 +1125,6 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       em->pred->succ = em->succ;
       if (em->succ != NULL)
 	em->succ->pred = em->pred;
-      /*
-      if (empties <= fastest_first + 1)
-	evaluated_n = parity_end_solve(solution, board, -beta, -alpha, oppcol, empties - 1,
-                                       -discdiff - 2 * j - 1, sqnum);
-      else
-	evaluated_n = fastest_first_end_solve(solution, board, -beta, -alpha, oppcol,
-                                              empties - 1, -discdiff - 2 * j - 1, sqnum);
-      */
       evaluated_n = node_negate(end_solve(solution,
                                           board,
                                           -beta,
@@ -1147,19 +1140,19 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       if (em->succ != NULL)
 	em->succ->pred = em;
 
-      if (evaluated_n.value > selected_n.value) { /* better move: */
+      if (evaluated_n.value > selected_n.value) { /* Better move. */
 	selected_n.value = evaluated_n.value;
         selected_n.square = sqnum;
 	if (evaluated_n.value > alpha) {
 	  alpha = evaluated_n.value;
-	  if (evaluated_n.value >= beta) {
+	  if (evaluated_n.value >= beta) { /* Cutoff. */
             goto end;
           }
 	}
       }
     }
   } else {
-    if (prevmove == 0) { // game-over
+    if (prevmove == 0) { /* Game over. */
       solution->leaf_count++;
       if (discdiff > 0) {
         selected_n.value = discdiff + empties;
@@ -1168,7 +1161,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       } else {
         selected_n.value = 0;
       }
-    } else { /* I pass: */
+    } else { /* Pass. */
       selected_n = node_negate(fastest_first_end_solve(solution,
                                                        board,
                                                        -beta,
