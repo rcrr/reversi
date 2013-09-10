@@ -529,25 +529,25 @@ static int
 do_flips (uint8 *board, int sqnum,
           int color, int oppcol)
 {
-  int j = flipping_dir_mask_table[sqnum];
+  const uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
   uint8 **previous_flip_stack = flip_stack;
-  uint8 *sq;
-  sq = sqnum + board;
-  if (j & 128)
+  uint8 *sq = sqnum + board;
+
+  if (flipping_dir_mask & (1 << 7))
     directional_flips(sq, dir_inc[7], color, oppcol);
-  if (j & 64)
+  if (flipping_dir_mask & (1 << 6))
     directional_flips(sq, dir_inc[6], color, oppcol);
-  if (j & 32)
+  if (flipping_dir_mask & (1 << 5))
     directional_flips(sq, dir_inc[5], color, oppcol);
-  if (j & 16)
+  if (flipping_dir_mask & (1 << 4))
     directional_flips(sq, dir_inc[4], color, oppcol);
-  if (j & 8)
+  if (flipping_dir_mask & (1 << 3))
     directional_flips(sq, dir_inc[3], color, oppcol);
-  if (j & 4)
+  if (flipping_dir_mask & (1 << 2))
     directional_flips(sq, dir_inc[2], color, oppcol);
-  if (j & 2)
+  if (flipping_dir_mask & (1 << 1))
     directional_flips(sq, dir_inc[1], color, oppcol);
-  if (j & 1)
+  if (flipping_dir_mask & (1 << 0))
     directional_flips(sq, dir_inc[0], color, oppcol);
 
   return flip_stack - previous_flip_stack;
@@ -596,25 +596,26 @@ static int
 count_flips (uint8 *board, int sqnum, int color, int oppcol)
 {
   int ct = 0;
-  int j = flipping_dir_mask_table[sqnum];
-  uint8 *sq;
-  sq = sqnum + board;
-  if (j & 128)
+  const uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
+  uint8 *sq = sqnum + board;
+
+  if (flipping_dir_mask & (1 << 7))
     ct += ct_directional_flips(sq, dir_inc[7], color, oppcol);
-  if (j & 64)
+  if (flipping_dir_mask & (1 << 6))
     ct += ct_directional_flips(sq, dir_inc[6], color, oppcol);
-  if (j & 32)
+  if (flipping_dir_mask & (1 << 5))
     ct += ct_directional_flips(sq, dir_inc[5], color, oppcol);
-  if (j & 16)
+  if (flipping_dir_mask & (1 << 4))
     ct += ct_directional_flips(sq, dir_inc[4], color, oppcol);
-  if (j & 8)
+  if (flipping_dir_mask & (1 << 3))
     ct += ct_directional_flips(sq, dir_inc[3], color, oppcol);
-  if (j & 4)
+  if (flipping_dir_mask & (1 << 2))
     ct += ct_directional_flips(sq, dir_inc[2], color, oppcol);
-  if (j & 2)
+  if (flipping_dir_mask & (1 << 1))
     ct += ct_directional_flips(sq, dir_inc[1], color, oppcol);
-  if (j & 1)
+  if (flipping_dir_mask & (1 << 0))
     ct += ct_directional_flips(sq, dir_inc[0], color, oppcol);
+
   return ct;
 }
 
@@ -671,9 +672,8 @@ static int
 any_flips (uint8 *board, int sqnum, int color, int oppcol)
 {
   int any = 0;
-  uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
-  uint8 *sq;
-  sq = sqnum + board;
+  const uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
+  uint8 *sq = sqnum + board;
 
   /*
    * Unrolling the loop brings a quite sensible gain.
