@@ -411,18 +411,25 @@ game_position_ifes_solve (const GamePosition * const root)
 static void
 game_position_to_ifes_board (const GamePosition * const gp, int *p_emp, int *p_wc, int *p_bc)
 {
-  int emp, wc, bc, j, k, x, y;
-  for (j = 0; j <= 90; j++) board[j] = IFES_DUMMY;
-  wc = bc = emp = 0;
-  for (j = 0; j < 64; j++) {
-    x = j&7; y = (j>>3)&7; k = x+10+9*y;
-    if      ((gp->board->whites & (1ULL << j)) != 0ULL) { board[k] = IFES_WHITE; wc++; }
-    else if ((gp->board->blacks & (1ULL << j)) != 0ULL) { board[k] = IFES_BLACK; bc++; }
-    else                                                { board[k] = IFES_EMPTY; emp++; }
+  /* Sets to IFES_DUMMY all the board squares. */
+  for (int board_index = 0; board_index < 91; board_index++) board[board_index] = IFES_DUMMY;
+
+  int emp = 0;
+  int wc  = 0;
+  int bc  = 0;
+  for (int square_index = 0; square_index < 64; square_index++) {
+    const int column = square_index & 7;
+    const int row = (square_index >> 3) & 7;
+    const int board_index = column + 10 + 9 * row;
+    if      ((gp->board->whites & (1ULL << square_index)) != 0ULL) { board[board_index] = IFES_WHITE; wc++; }
+    else if ((gp->board->blacks & (1ULL << square_index)) != 0ULL) { board[board_index] = IFES_BLACK; bc++; }
+    else                                                           { board[board_index] = IFES_EMPTY; emp++; }
   }
+
+  /* Sets the empties, whites, and blacks counts. */
   *p_emp = emp;
-  *p_wc = wc;
-  *p_bc = bc;
+  *p_wc  = wc;
+  *p_bc  = bc;
 }
 
 /**
