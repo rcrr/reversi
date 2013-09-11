@@ -140,6 +140,10 @@ init_node (void);
 inline static Node
 node_negate (Node n);
 
+inline static int
+opponent_color (int color);
+
+
 
 /*
  * Internal constants.
@@ -308,8 +312,13 @@ static uint64 region_parity;
 /*
  * Stores the pointers to the board element that are flipped
  * by each move during the search tree expansion.
+ *
+ * An upper bound of the size of the stack is:
+ * number_of_moves_in_a_game * max_flips_per_move = 60 * (3*6) = 1080.
+ * But, first move flips always one discs (not sixteen), second the same,
+ * so in a game 1024 is a trusted upper bound.
  */
-static uint8  *global_flip_stack[2048];
+static uint8 *global_flip_stack[1024];
 
 /*
  * A global pointer to one element of `global_flip_stack`,
@@ -526,28 +535,27 @@ directional_flips (uint8 *sq, int inc, int color, int oppcol)
  * @return                the flip count
  */
 static int
-do_flips (uint8 *board, int sqnum,
-          int color, int oppcol)
+do_flips (uint8 *board, int sqnum, int color, int oppcol)
 {
-  int j = flipping_dir_mask_table[sqnum];
+  const uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
   uint8 **previous_flip_stack = flip_stack;
-  uint8 *sq;
-  sq = sqnum + board;
-  if (j & 128)
+  uint8 *sq = sqnum + board;
+
+  if (flipping_dir_mask & (1 << 7))
     directional_flips(sq, dir_inc[7], color, oppcol);
-  if (j & 64)
+  if (flipping_dir_mask & (1 << 6))
     directional_flips(sq, dir_inc[6], color, oppcol);
-  if (j & 32)
+  if (flipping_dir_mask & (1 << 5))
     directional_flips(sq, dir_inc[5], color, oppcol);
-  if (j & 16)
+  if (flipping_dir_mask & (1 << 4))
     directional_flips(sq, dir_inc[4], color, oppcol);
-  if (j & 8)
+  if (flipping_dir_mask & (1 << 3))
     directional_flips(sq, dir_inc[3], color, oppcol);
-  if (j & 4)
+  if (flipping_dir_mask & (1 << 2))
     directional_flips(sq, dir_inc[2], color, oppcol);
-  if (j & 2)
+  if (flipping_dir_mask & (1 << 1))
     directional_flips(sq, dir_inc[1], color, oppcol);
-  if (j & 1)
+  if (flipping_dir_mask & (1 << 0))
     directional_flips(sq, dir_inc[0], color, oppcol);
 
   return flip_stack - previous_flip_stack;
@@ -596,25 +604,26 @@ static int
 count_flips (uint8 *board, int sqnum, int color, int oppcol)
 {
   int ct = 0;
-  int j = flipping_dir_mask_table[sqnum];
-  uint8 *sq;
-  sq = sqnum + board;
-  if (j & 128)
+  const uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
+  uint8 *sq = sqnum + board;
+
+  if (flipping_dir_mask & (1 << 7))
     ct += ct_directional_flips(sq, dir_inc[7], color, oppcol);
-  if (j & 64)
+  if (flipping_dir_mask & (1 << 6))
     ct += ct_directional_flips(sq, dir_inc[6], color, oppcol);
-  if (j & 32)
+  if (flipping_dir_mask & (1 << 5))
     ct += ct_directional_flips(sq, dir_inc[5], color, oppcol);
-  if (j & 16)
+  if (flipping_dir_mask & (1 << 4))
     ct += ct_directional_flips(sq, dir_inc[4], color, oppcol);
-  if (j & 8)
+  if (flipping_dir_mask & (1 << 3))
     ct += ct_directional_flips(sq, dir_inc[3], color, oppcol);
-  if (j & 4)
+  if (flipping_dir_mask & (1 << 2))
     ct += ct_directional_flips(sq, dir_inc[2], color, oppcol);
-  if (j & 2)
+  if (flipping_dir_mask & (1 << 1))
     ct += ct_directional_flips(sq, dir_inc[1], color, oppcol);
-  if (j & 1)
+  if (flipping_dir_mask & (1 << 0))
     ct += ct_directional_flips(sq, dir_inc[0], color, oppcol);
+
   return ct;
 }
 
@@ -671,9 +680,8 @@ static int
 any_flips (uint8 *board, int sqnum, int color, int oppcol)
 {
   int any = 0;
-  uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
-  uint8 *sq;
-  sq = sqnum + board;
+  const uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
+  uint8 *sq = sqnum + board;
 
   /*
    * Unrolling the loop brings a quite sensible gain.
@@ -744,7 +752,7 @@ count_mobility (uint8 *board, int color)
   int     square;
   EmList *em;
 
-  const int oppcol = 2 - color;
+  const int oppcol = opponent_color(color);
 
   mobility = 0;
   for (em = em_head.succ; em != NULL; em = em->succ) {
@@ -775,6 +783,7 @@ prepare_to_solve (uint8 *board)
   uint64 k;
   EmList *pt;
   int z;
+
   /* find hole IDs: */
   k = 1;
   for (i = 10; i <= 80; i++) {
@@ -862,7 +871,7 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
   EmList *em, *old_em;
   Node evaluated_n;
 
-  const int oppcol = 2 - color;
+  const int oppcol = opponent_color(color);
 
   solution->node_count++;
 
@@ -974,7 +983,7 @@ parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
   int par, holepar;
   Node evaluated_n;
 
-  const int oppcol = 2 - color;
+  const int oppcol = opponent_color(color);
 
   solution->node_count++;
 
@@ -1080,7 +1089,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
   int goodness[64];
   Node evaluated_n;
 
-  const int oppcol = 2 - color;
+  const int oppcol = opponent_color(color);
 
   solution->node_count++;
 
@@ -1212,6 +1221,10 @@ end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
   }
 }
 
+/**
+ * @brief Documentation to be prepared.
+ *
+ */
 inline static Node
 init_node (void)
 {
@@ -1221,9 +1234,23 @@ init_node (void)
   return n;
 }
 
+/**
+ * @brief Documentation to be prepared.
+ *
+ */
 inline static Node
 node_negate (Node n)
 {
   n.value = -n.value;
   return n;
+}
+
+/**
+ * @brief Documentation to be prepared.
+ *
+ */
+inline static int
+opponent_color (int color)
+{
+  return 2 - color;
 }
