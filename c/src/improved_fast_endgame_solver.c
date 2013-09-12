@@ -535,6 +535,8 @@ directional_flips (uint8 *sq, int inc, int color, int oppcol)
  * @brief Does all flips involved in making a move to square `sqnum` of board,
  * and return their count.
  *
+ * If the move is not legal the returned value is zero.
+ *
  * @param [in,out] board  a pointer to the board to modify
  * @param [in]     sqnum  move square number 
  * @param [in]     color  player color
@@ -885,7 +887,8 @@ static Node
 no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
                      int color, int empties, int discdiff, int prevmove)
 {
-  int sqnum, j;
+  uint8 move_square;
+  int flip_count;
   EmList *em, *old_em;
   Node evaluated_n;
 
@@ -898,25 +901,25 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
   for (old_em = &em_head, em = old_em->succ; em != NULL;
        old_em = em, em = em->succ) {
     /* Go thru list of possible move-squares. */
-    sqnum = em->square;
-    j = do_flips(board, sqnum, color, oppcol);
-    if (j) { /* Legal move. */
+    move_square = em->square;
+    flip_count = do_flips(board, move_square, color, oppcol);
+    if (flip_count) { /* Legal move. */
       /* Place your disc. */
-      *(board+sqnum) = color;
+      *(board + move_square) = color;
       /* Delete square from empties list. */
       old_em->succ = em->succ;
       if (empties == 2) { /* So, now filled but for 1 empty. */
         solution->leaf_count++; /* Could be more than one leaf_node, it cold be one or two! */
-        int j1;
-        j1 = count_flips(board, em_head.succ->square, oppcol, color);
-        if (j1) { /* I move then he moves. */
-          evaluated_n.value = discdiff + 2*(j-j1);
+        int last_move_flip_count;
+        last_move_flip_count = count_flips(board, em_head.succ->square, oppcol, color);
+        if (last_move_flip_count) { /* I move then he moves. */
+          evaluated_n.value = discdiff + 2 * (flip_count - last_move_flip_count);
         }
         else { /* He will have to pass. */
-          j1 = count_flips(board, em_head.succ->square, color, oppcol);
-          evaluated_n.value = discdiff + 2*j;
-          if (j1) { /* I pass then he passes then I move. */
-            evaluated_n.value += 2 * (j1 + 1);
+          last_move_flip_count = count_flips(board, em_head.succ->square, color, oppcol);
+          evaluated_n.value = discdiff + 2 * flip_count;
+          if (last_move_flip_count) { /* I pass then he passes then I move. */
+            evaluated_n.value += 2 * (last_move_flip_count + 1);
           }
           else { /* I move then both must pass, so game over. */
             if (evaluated_n.value >= 0)
@@ -931,18 +934,18 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
                                                       -alpha,
                                                       oppcol,
                                                       empties - 1,
-                                                      -discdiff - 2 * j - 1,
-                                                      sqnum));
+                                                      -discdiff - 2 * flip_count - 1,
+                                                      move_square));
       }
-      undo_flips(j, oppcol);
+      undo_flips(flip_count, oppcol);
       /* Un-place your disc. */
-      *(board+sqnum) = IFES_EMPTY;
+      *(board + move_square) = IFES_EMPTY;
       /* Restore deleted empty square. */
       old_em->succ = em;
 
       if (evaluated_n.value > selected_n.value) { /* Better move. */
         selected_n.value = evaluated_n.value;
-        selected_n.square = sqnum;
+        selected_n.square = move_square;
         if (evaluated_n.value > alpha) {
           alpha = evaluated_n.value;
           if (evaluated_n.value >= beta) { /* Cutoff. */
