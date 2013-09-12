@@ -871,7 +871,9 @@ prepare_to_solve (uint8 *board)
 }
 
 /**
- * @brief Searches to the leafs.
+ * @brief Searches whithout any move sorting up to the leafs.
+ *
+ * The last two discs are placed without recursion.
  *
  * @param [in, out] solution the solution object
  * @param [in]      board    a pointer to the game board
@@ -900,34 +902,33 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
 
   for (old_em = &em_head, em = old_em->succ; em != NULL;
        old_em = em, em = em->succ) {
-    /* Go thru list of possible move-squares. */
+    /* Goes thru list of possible move-squares. */
     move_square = em->square;
     flip_count = do_flips(board, move_square, color, oppcol);
     if (flip_count) { /* Legal move. */
-      /* Place your disc. */
+      /* Places the player disc. */
       *(board + move_square) = color;
-      /* Delete square from empties list. */
+      /* Deletes square from empties list. */
       old_em->succ = em->succ;
-      if (empties == 2) { /* So, now filled but for 1 empty. */
-        solution->leaf_count++; /* Could be more than one leaf_node, it cold be one or two! */
+      if (empties == 2) { /* One empty square is there. */
+        solution->leaf_count++;
         int last_move_flip_count;
         last_move_flip_count = count_flips(board, em_head.succ->square, oppcol, color);
-        if (last_move_flip_count) { /* I move then he moves. */
+        if (last_move_flip_count) { /* Oppenent does the last move. */
           evaluated_n.value = discdiff + 2 * (flip_count - last_move_flip_count);
         }
-        else { /* He will have to pass. */
+        else { /* Opponent has to pass. */
           last_move_flip_count = count_flips(board, em_head.succ->square, color, oppcol);
           evaluated_n.value = discdiff + 2 * flip_count;
-          if (last_move_flip_count) { /* I pass then he passes then I move. */
+          if (last_move_flip_count) { /* Player put the last disc. */
             evaluated_n.value += 2 * (last_move_flip_count + 1);
           }
-          else { /* I move then both must pass, so game over. */
+          else { /* Nobody can place the last disc. */
             if (evaluated_n.value >= 0)
               evaluated_n.value += 2;
           }
         }
-      }
-      else {
+      } else {
         evaluated_n = node_negate(no_parity_end_solve(solution,
                                                       board,
                                                       -beta,
@@ -938,9 +939,9 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
                                                       move_square));
       }
       undo_flips(flip_count, oppcol);
-      /* Un-place your disc. */
+      /* Un-places player disc. */
       *(board + move_square) = IFES_EMPTY;
-      /* Restore deleted empty square. */
+      /* Restores deleted empty square. */
       old_em->succ = em;
 
       if (evaluated_n.value > selected_n.value) { /* Better move. */
