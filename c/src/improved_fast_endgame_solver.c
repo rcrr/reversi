@@ -891,7 +891,8 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
 {
   uint8 move_square;
   int flip_count;
-  EmList *em, *old_em;
+  EmList *previous_move;
+  EmList *current_move;
   Node evaluated_n;
 
   const int oppcol = opponent_color(color);
@@ -900,16 +901,17 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
 
   Node selected_n = init_node(); /* Best node, selected, and then returned. */
 
-  for (old_em = &em_head, em = old_em->succ; em != NULL;
-       old_em = em, em = em->succ) {
+  for (previous_move = &em_head, current_move = previous_move->succ;
+       current_move != NULL;
+       previous_move = current_move, current_move = current_move->succ) {
     /* Goes thru list of possible move-squares. */
-    move_square = em->square;
+    move_square = current_move->square;
     flip_count = do_flips(board, move_square, color, oppcol);
     if (flip_count) { /* Legal move. */
       /* Places the player disc. */
       *(board + move_square) = color;
       /* Deletes square from empties list. */
-      old_em->succ = em->succ;
+      previous_move->succ = current_move->succ;
       if (empties == 2) { /* One empty square is there. */
         solution->leaf_count++;
         int last_move_flip_count;
@@ -942,7 +944,7 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
       /* Un-places player disc. */
       *(board + move_square) = IFES_EMPTY;
       /* Restores deleted empty square. */
-      old_em->succ = em;
+      previous_move->succ = current_move;
 
       if (evaluated_n.value > selected_n.value) { /* Better move. */
         selected_n.value = evaluated_n.value;
@@ -999,8 +1001,10 @@ static Node
 parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
                   int color, int empties, int discdiff, int prevmove)
 {
-  int sqnum, j;
-  EmList *em, *old_em;
+  uint8 move_square;
+  int flip_count;
+  EmList *previous_move;
+  EmList *current_move;
   uint64 parity_mask;
   int par, holepar;
   Node evaluated_n;
@@ -1013,39 +1017,40 @@ parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
 
   for (par = 1, parity_mask = region_parity; par >= 0;
        par--, parity_mask = ~parity_mask) {
-    for (old_em = &em_head, em = old_em->succ; em != NULL;
-         old_em = em, em = em->succ) {
+    for (previous_move = &em_head, current_move = previous_move->succ;
+         current_move != NULL;
+         previous_move = current_move, current_move = current_move->succ) {
       /* Go thru list of possible move-squares. */
-      holepar = em->hole_id;
+      holepar = current_move->hole_id;
       if (holepar & parity_mask) {
-        sqnum = em->square;
-        j = do_flips(board, sqnum, color, oppcol);
-        if (j) { /* legal move */
+        move_square = current_move->square;
+        flip_count = do_flips(board, move_square, color, oppcol);
+        if (flip_count) { /* legal move */
           /* Place your disc. */
-          *(board+sqnum) = color;
+          *(board + move_square) = color;
           /* Update parity. */
           region_parity ^= holepar;
           /* Delete square from empties list. */
-	  old_em->succ = em->succ;
+	  previous_move->succ = current_move->succ;
           evaluated_n = node_negate(end_solve(solution,
                                               board,
                                               -beta,
                                               -alpha, 
                                               oppcol,
                                               empties - 1,
-                                              -discdiff - 2 * j - 1,
-                                              sqnum));
-          undo_flips(j, oppcol);
+                                              -discdiff - 2 * flip_count - 1,
+                                              move_square));
+          undo_flips(flip_count, oppcol);
           /* Restore parity of hole. */
           region_parity ^= holepar;
           /* Un-place your disc. */
-          *(board+sqnum) = IFES_EMPTY;
+          *(board + move_square) = IFES_EMPTY;
           /* Restore deleted empty square. */
-	  old_em->succ = em;
+	  previous_move->succ = current_move;
 
           if (evaluated_n.value > selected_n.value) { /* Better move. */
             selected_n.value = evaluated_n.value;
-            selected_n.square = sqnum;
+            selected_n.square = move_square;
             if (evaluated_n.value > alpha) {
               alpha = evaluated_n.value;
               if (evaluated_n.value >= beta) { /* Cutoff. */ 
@@ -1100,12 +1105,12 @@ static Node
 fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
                          int color, int empties, int discdiff, int prevmove)
 {
-  int i, j;
-  int sqnum;
-  int flipped;
+  uint8 move_square;
+  int flip_count;
+  EmList *previous_move;
+  EmList *current_move;
   int moves, mobility;
   int best_value, best_index;
-  EmList *em, *old_em;
   EmList *move_ptr[64];
   int holepar;
   int goodness[64];
@@ -1118,62 +1123,63 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
   Node selected_n = init_node(); /* Best node, selected, and then returned. */
 
   moves = 0;
-  for (old_em = &em_head, em = old_em->succ; em != NULL;
-       old_em = em, em = em->succ ) {
-    sqnum = em->square;
-    flipped = do_flips(board, sqnum, color, oppcol);
-    if (flipped) {
-      board[sqnum] = color;
-      old_em->succ = em->succ;
+  for (previous_move = &em_head, current_move = previous_move->succ;
+       current_move != NULL;
+       previous_move = current_move, current_move = current_move->succ ) {
+    move_square = current_move->square;
+    flip_count = do_flips(board, move_square, color, oppcol);
+    if (flip_count) {
+      board[move_square] = color;
+      previous_move->succ = current_move->succ;
       mobility = count_mobility(board, oppcol);
-      old_em->succ = em;
-      undo_flips(flipped, oppcol);
-      board[sqnum] = IFES_EMPTY;
-      move_ptr[moves] = em;
+      previous_move->succ = current_move;
+      undo_flips(flip_count, oppcol);
+      board[move_square] = IFES_EMPTY;
+      move_ptr[moves] = current_move;
       goodness[moves] = -mobility;
       moves++;
     }
   }
 
   if (moves != 0) {
-    for (i = 0; i < moves; i++) {
+    for (int i = 0; i < moves; i++) {
       best_value = goodness[i];
       best_index = i;
-      for (j = i + 1; j < moves; j++)
+      for (int j = i + 1; j < moves; j++)
 	if (goodness[j] > best_value) {
 	  best_value = goodness[j];
 	  best_index = j;
 	}
-      em = move_ptr[best_index];
+      current_move = move_ptr[best_index];
       move_ptr[best_index] = move_ptr[i];
       goodness[best_index] = goodness[i];
 
-      sqnum = em->square;
-      holepar = em->hole_id;
-      j = do_flips(board, sqnum, color, oppcol);
-      board[sqnum] = color;
+      move_square = current_move->square;
+      holepar = current_move->hole_id;
+      flip_count = do_flips(board, move_square, color, oppcol);
+      board[move_square] = color;
       region_parity ^= holepar;
-      em->pred->succ = em->succ;
-      if (em->succ != NULL)
-	em->succ->pred = em->pred;
+      current_move->pred->succ = current_move->succ;
+      if (current_move->succ != NULL)
+	current_move->succ->pred = current_move->pred;
       evaluated_n = node_negate(end_solve(solution,
                                           board,
                                           -beta,
                                           -alpha,
                                           oppcol,
                                           empties - 1,
-                                          -discdiff - 2 * j - 1,
-                                          sqnum));
-      undo_flips(j, oppcol);
+                                          -discdiff - 2 * flip_count - 1,
+                                          move_square));
+      undo_flips(flip_count, oppcol);
       region_parity ^= holepar;
-      board[sqnum] = IFES_EMPTY;
-      em->pred->succ = em;
-      if (em->succ != NULL)
-	em->succ->pred = em;
+      board[move_square] = IFES_EMPTY;
+      current_move->pred->succ = current_move;
+      if (current_move->succ != NULL)
+	current_move->succ->pred = current_move;
 
       if (evaluated_n.value > selected_n.value) { /* Better move. */
 	selected_n.value = evaluated_n.value;
-        selected_n.square = sqnum;
+        selected_n.square = move_square;
 	if (evaluated_n.value > alpha) {
 	  alpha = evaluated_n.value;
 	  if (evaluated_n.value >= beta) { /* Cutoff. */
