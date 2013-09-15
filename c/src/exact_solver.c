@@ -55,6 +55,17 @@ typedef struct MoveListElement_ {
   struct MoveListElement_ *succ;         /**< @brief A pointer to the successor element. */
 } MoveListElement;
 
+/**
+ * @brief Move list, having head, tail, and elements fields.
+ *
+ * Head and tail are not part of the list.
+ */
+typedef struct {
+  MoveListElement elements[64];
+  MoveListElement head;
+  MoveListElement tail;
+} MoveList;
+
 
 
 /*
@@ -62,7 +73,7 @@ typedef struct MoveListElement_ {
  */
 
 static void
-sort_moves_by_mobility_count (      MoveListElement      elements[],
+sort_moves_by_mobility_count (      MoveList     *       move_list,
                               const GamePosition * const gp);
 
 static SearchNode *
@@ -73,6 +84,9 @@ game_position_solve_impl (      ExactSolution * const result,
 
 static int
 final_value (const GamePosition * const gp);
+
+static void
+move_list_init (MoveList *ml);
 
 
 
@@ -277,20 +291,14 @@ game_position_solve (const GamePosition * const root)
  */
 
 static void
-sort_moves_by_mobility_count (MoveListElement elements[], const GamePosition * const gp)
+sort_moves_by_mobility_count (MoveList *move_list, const GamePosition * const gp)
 {
-  MoveListElement *head = &elements[64];
-  MoveListElement *tail = &elements[65];
-  head->succ = tail;
-  tail->pred = head;
-
   MoveListElement *curr = NULL;
-
   int move_index = 0;
   const SquareSet moves = game_position_legal_moves(gp);
   SquareSet moves_to_search = moves;
   while (moves_to_search) {
-    curr = &elements[move_index];
+    curr = &move_list->elements[move_index];
     const Square move = bit_works_bitscanLS1B_64(moves_to_search);
     moves_to_search &= ~(1ULL << move);
     GamePosition *next_gp = game_position_make_move(gp, move);
@@ -299,10 +307,7 @@ sort_moves_by_mobility_count (MoveListElement elements[], const GamePosition * c
     const int next_move_count = bit_works_popcount(next_moves);
     curr->sq = move;
     curr->mobility = next_move_count;
-
-    int move_cursor = 0;
-    for (MoveListElement *element = head->succ; element != NULL; element = element->succ) {
-      move_cursor++;
+    for (MoveListElement *element = move_list->head.succ; element != NULL; element = element->succ) {
       if (curr->mobility < element->mobility) { /* Insert current before element. */
         MoveListElement *left  = element->pred;
         MoveListElement *right = element;
@@ -343,27 +348,10 @@ game_position_solve_impl (      ExactSolution * const result,
     }
     flipped_players = game_position_free(flipped_players);
   } else {
-    MoveListElement elements[64+2]; /* 64 squares plus head and tail. */
-    MoveListElement *head = &elements[64];
-    MoveListElement *tail = &elements[65];
-    for (int i = 0; i < 64+2; i++) {
-      elements[i].sq = -1;
-      elements[i].mobility = -1;
-      elements[i].pred = NULL;
-      elements[i].succ = NULL;
-    }
-    sort_moves_by_mobility_count(elements, gp);
-    if (FALSE) {
-      printf("&elements[0] = %p,\n", &elements[0]);
-      printf("head         = %p, head->succ=%p\n", head, head->succ);
-      printf("tail         = %p, tail->pred=%p\n", tail, tail->pred);
-      for (MoveListElement *element = head->succ; element != tail; element = element->succ) {
-        printf("addr=%p, move=%s, mobility=%2d, pred=%p, succ=%p\n", element, square_to_string(element->sq), element->mobility, element->pred, element->succ);
-      }
-      printf("YEP\n");
-      exit(1);
-    }
-    for (MoveListElement *element = head->succ; element != tail; element = element->succ) {
+    MoveList move_list;
+    move_list_init(&move_list);
+    sort_moves_by_mobility_count(&move_list, gp);
+    for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
       if (!node) node = search_node_new(move, achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
@@ -388,4 +376,23 @@ static int
 final_value (const GamePosition * const gp)
 {
   return board_count_diff_winner_get_empties(gp->board, gp->player);
+}
+
+static void
+move_list_init (MoveList *ml)
+{
+  for (int i = 0; i < 64; i++) {
+    ml->elements[i].sq = -1;
+    ml->elements[i].mobility = -1;
+    ml->elements[i].pred = NULL;
+    ml->elements[i].succ = NULL;
+  }
+  ml->head.sq = -1;
+  ml->head.mobility = -1;
+  ml->head.pred = NULL;
+  ml->head.succ = &ml->tail;
+  ml->tail.sq = -1;
+  ml->tail.mobility = -1;
+  ml->tail.pred = &ml->head;
+  ml->tail.succ = NULL;
 }
