@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 
-import rcrr.reversi.CountDifference;
+import rcrr.reversi.EvalEndgame;
 import rcrr.reversi.EvalFunction;
 import rcrr.reversi.SearchNode;
 import rcrr.reversi.GamePosition;
@@ -50,15 +50,16 @@ public class ExactSolver {
     private static long nodeCount = 0;
     private static long leafCount = 0;
 
+    private static EvalFunction evalEndgame = new EvalEndgame();
+
     /**
      * Returns the board final value.
      *
-     * @param board  the final board
-     * @param player the player for wich the value is calulated
-     * @return       the game final value
+     * @param gp the game position to be evaluated
+     * @return   the game final value
      */
-    protected static int finalValue(final Board board, final Player player) {
-        return board.countDifference(player);
+    protected static int finalValue(final GamePosition gp) {
+        return evalEndgame.eval(gp);
     }
 
     final private GamePosition root;
@@ -68,8 +69,7 @@ public class ExactSolver {
     }
 
     public SearchNode solve() {
-        final EvalFunction ef = new CountDifference();
-        final SearchNode result = solveImpl(root.player(), root.board(), -64, +64, 60, ef);
+        final SearchNode result = solveImpl(root.player(), root.board(), -64, +64, 60);
         System.out.println("[nodeCount=" + nodeCount + ", leafCount=" + leafCount + "]");
         return result;
     }
@@ -82,15 +82,13 @@ public class ExactSolver {
      * @param achievable the search window lower bound (also know as alpha)
      * @param cutoff     the search window upper bound (also know as beta)
      * @param ply        the search depth
-     * @param ef         the evaluation function
      * @return           a new search node
      */
     public SearchNode solveImpl(final Player player,
                                 final Board board,
                                 final int achievable,
                                 final int cutoff,
-                                final int ply,
-                                final EvalFunction ef) {
+                                final int ply) {
         nodeCount++;
         final GamePosition gp = GamePosition.valueOf(board, player);
         SearchNode node;
@@ -98,16 +96,16 @@ public class ExactSolver {
         final List<Square> moves = board.legalMoves(player);
         if (moves.isEmpty()) {
             if (board.hasAnyLegalMove(opponent)) {
-                node = solveImpl(opponent, board, -cutoff, -achievable, ply - 1, ef).negated();
+                node = solveImpl(opponent, board, -cutoff, -achievable, ply - 1).negated();
             } else {
                 leafCount++;
-                node = SearchNode.valueOf(null, finalValue(board, player));
+                node = SearchNode.valueOf(null, finalValue(gp));
             }
         } else {
             node = SearchNode.valueOf(moves.get(0), achievable);
             outer: for (final Square move : moves) {
                 final Board board2 = board.makeMove(move, player);
-                final int val = solveImpl(opponent, board2, -cutoff, -node.value(), ply - 1, ef).negated().value();
+                final int val = solveImpl(opponent, board2, -cutoff, -node.value(), ply - 1).negated().value();
                 if (val > node.value()) {
                     node = SearchNode.valueOf(move, val);
                 }

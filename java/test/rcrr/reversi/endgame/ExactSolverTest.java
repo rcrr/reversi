@@ -44,6 +44,42 @@ import static org.hamcrest.CoreMatchers.is;
 public class ExactSolverTest {
 
     /**
+     * FFO position #40, black to move.
+     * Move values: G8:+32. G2:+12. B2:-20. G6:-26. G1:-32. G7:-34.
+     *
+     * Principal Variation, PV: g8 g7 h8 g2 b2 a2 a1 g6 h7 b7 a8 -- h3
+     * Final score is +32
+     */
+
+    /**
+     * FFO position #05:
+     *
+     * a b c d e f g h 
+     * 1  . O O O O O . . 
+     * 2  . . O @ @ O . @ 
+     * 3  @ @ O @ O @ @ . 
+     * 4  @ @ O @ O @ @ O 
+     * 5  @ @ O O @ O O O 
+     * 6  @ @ @ @ O O . O 
+     * 7  @ . @ O O O . . 
+     * 8  . @ @ @ @ @ . . 
+     * Player to move: BLACK
+     */
+    final static GamePosition FFO_05 = new GamePosition.Builder()
+        .withBoard(new BoardBuilder()
+                   .withSquaresLiteral(0, 2, 2, 2, 2, 2, 0, 0,
+                                       0, 0, 2, 1, 1, 2, 0, 1,
+                                       1, 1, 2, 1, 2, 1, 1, 0,
+                                       1, 1, 2, 1, 2, 1, 1, 2,
+                                       1, 1, 2, 2, 1, 2, 2, 2,
+                                       1, 1, 1, 1, 2, 2, 0, 2,
+                                       1, 0, 1, 2, 2, 2, 0, 0,
+                                       0, 1, 1, 1, 1, 1, 0, 0)
+                   .build())
+        .withPlayer(Player.BLACK)
+        .build();
+
+    /**
      * FFO position #40, black to move, Turner vs Monnom, Bruxelles 1997.
      * Principal Variation, PV: a2 b1 c1 -- b6 c7 a7 b7 b8 d7 f8 c6 f7 g7
      * Final score is +38
@@ -62,15 +98,6 @@ public class ExactSolverTest {
         .withPlayer(Player.BLACK)
         .build();
 
-    final static GamePosition FFO_40_A2 = FFO_40.makeMove(Square.A2);
-    final static GamePosition FFO_40_A2_B1 = FFO_40_A2.makeMove(Square.B1);
-    final static GamePosition FFO_40_A2_B1_C1 = FFO_40_A2_B1.makeMove(Square.C1);
-    final static GamePosition FFO_40_A2_B1_C1_PASS = GamePosition.valueOf(FFO_40_A2_B1_C1.board(), FFO_40_A2_B1_C1.player().opponent());
-    final static GamePosition FFO_40_A2_B1_C1_PASS_B6 = FFO_40_A2_B1_C1_PASS.makeMove(Square.B6);
-    final static GamePosition FFO_40_A2_B1_C1_PASS_B6_C7 = FFO_40_A2_B1_C1_PASS_B6.makeMove(Square.C7);
-    final static GamePosition FFO_40_A2_B1_C1_PASS_B6_C7_A7 = FFO_40_A2_B1_C1_PASS_B6_C7.makeMove(Square.A7);
-    final static GamePosition FFO_40_A2_B1_C1_PASS_B6_C7_A7_B7 = FFO_40_A2_B1_C1_PASS_B6_C7_A7.makeMove(Square.B7);
-
     /** Class constructor. */
     public ExactSolverTest() { }
 
@@ -80,33 +107,16 @@ public class ExactSolverTest {
      * @see ExactSolver#solve()
      */
     @Test
-    public final void testSolveFFO_40() {
+    public final void testSolveFFO_05() {
 
-        System.out.printf("FF0_40:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40.board().printBoard());
+        final SearchNode result = new ExactSolver(FFO_05).solve();
 
-        final SearchNode result = new ExactSolver(FFO_40).solve();
-
-        System.out.printf("%s\n", result);
-
-        System.out.println("BitBoard2.printLog() = " + BitBoard2.printLog());
-
-        assertThat("The value is 38.",
+        assertThat("The value is 32.",
                    result.value(),
-                   is(38));
+                   is(32));
+
+        assertThat("The move is G8.",
+                   result.move(),
+                   is(Square.G8));
     }
-
-    /*
-    @Test
-    public final void testSolveFFO_40_A2_B1_C1_PASS_B6_C7() {
-
-        System.out.printf("FFO_40_A2_B1_C1_PASS_B6_C7:\nBlack to move, Turner vs Monnom, Bruxelles 1997.\n%s\n", FFO_40_A2_B1_C1_PASS_B6_C7.board().printBoard());
-
-        final SearchNode result = new ExactSolver(FFO_40_A2_B1_C1_PASS_B6_C7).solve();
-        System.out.printf("%s\n", result);
-
-        assertThat("The value is 38.",
-                   result.value(),
-                   is(38));
-    }
-    */
 }
