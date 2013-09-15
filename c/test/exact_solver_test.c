@@ -176,7 +176,7 @@ gpdb_fixture_teardown (GamePositionDbFixture *fixture,
   gpdb_free(fixture->db, TRUE);
 }
 
-GamePosition *
+static GamePosition *
 get_gp_from_db (GamePositionDb *db, gchar *id)
 {
   GamePositionDbEntry *entry = gpdb_lookup(db, id);
