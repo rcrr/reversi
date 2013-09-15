@@ -1,5 +1,5 @@
 /*
- *  Line2.java
+ *  Line.java
  *
  *  Copyright (c) 2012 Roberto Corradini. All rights reserved.
  *
@@ -40,7 +40,7 @@ import static rcrr.reversi.board.Square.*;
 /**
  * The {@code Line} enum defines a line of the board game.
  */
-public enum Line2 {
+public enum Line {
     A1_H1(HO,   0, 0x00, squaresAsList(A1, B1, C1, D1, E1, F1, G1, H1)),
     A2_H2(HO,  -8, 0x00, squaresAsList(A2, B2, C2, D2, E2, F2, G2, H2)),
     A3_H3(HO, -16, 0x00, squaresAsList(A3, B3, C3, D3, E3, F3, G3, H3)),
@@ -81,13 +81,13 @@ public enum Line2 {
     F8_H6(DU, -40, 0x1F, squaresAsList(F8, G7, H6));
 
     /** The null instance. */
-    public static final Line2 NULL = null;
+    public static final Line NULL = null;
 
     /** The number of lines. */
     public static final int NUMBER_OF = values().length;
 
     /** A generic line instance. */
-    public static final Line2 AN_INSTANCE = B8_H2;
+    public static final Line AN_INSTANCE = B8_H2;
 
     /** Used for masking a byte when using integer values. */
     static final int BYTE_MASK_FOR_INT = 0xFF;
@@ -200,7 +200,7 @@ public enum Line2 {
      *
      * @param squares the list of squares
      */
-    private Line2(final Axis axis, final int shift, final int outerMask, final List<Square> squares) {
+    private Line(final Axis axis, final int shift, final int outerMask, final List<Square> squares) {
         this.axis = axis;
         this.shift = shift;
         this.outerMask = outerMask;

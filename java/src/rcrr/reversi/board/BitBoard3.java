@@ -44,7 +44,7 @@ public final class BitBoard3 extends BitBoard1 {
     private static final boolean LOG = true;
 
     /** Caches the direction enum values in a local array. */
-    private static final Line2[] LINE2_VALUES = Line2.values();
+    private static final Line[] LINE_VALUES = Line.values();
 
     /** Collects the number of call to legalMoves method. */
     private static int callsTolegalMoves = 0;
@@ -148,7 +148,7 @@ public final class BitBoard3 extends BitBoard1 {
             final long empties = empties();
             final long pBitboard = bitboard(player);
             final long oBitboard = bitboard(opponent);
-            for (final Line2 line : LINE2_VALUES) {
+            for (final Line line : LINE_VALUES) {
                 final int lineIndex = line.index(pBitboard, oBitboard);
                 final long lm = line.legalMoves(lineIndex);
                 result |= lm;
