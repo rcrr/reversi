@@ -44,26 +44,11 @@ import static org.hamcrest.CoreMatchers.is;
 public class ExactSolverTest {
 
     /**
-     * FFO position #40, black to move.
+     * FFO position #05, black to move.
      * Move values: G8:+32. G2:+12. B2:-20. G6:-26. G1:-32. G7:-34.
      *
      * Principal Variation, PV: g8 g7 h8 g2 b2 a2 a1 g6 h7 b7 a8 -- h3
      * Final score is +32
-     */
-
-    /**
-     * FFO position #05:
-     *
-     * a b c d e f g h 
-     * 1  . O O O O O . . 
-     * 2  . . O @ @ O . @ 
-     * 3  @ @ O @ O @ @ . 
-     * 4  @ @ O @ O @ @ O 
-     * 5  @ @ O O @ O O O 
-     * 6  @ @ @ @ O O . O 
-     * 7  @ . @ O O O . . 
-     * 8  . @ @ @ @ @ . . 
-     * Player to move: BLACK
      */
     final static GamePosition FFO_05 = new GamePosition.Builder()
         .withBoard(new BoardBuilder()
