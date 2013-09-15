@@ -43,11 +43,27 @@
 #include "bit_works.h"
 #include "advanced_square_set.h"
 
+/**
+ * @brief Elements of a doubly linked list that collects moves.
+ *
+ * Elements have the square and mobility fields.
+ */
+typedef struct MoveListElement_ {
+  Square                   sq;           /**< @brief The square field. */
+  uint8                    mobility;     /**< @brief The mobility field. */
+  struct MoveListElement_ *pred;         /**< @brief A pointer to the predecesor element. */
+  struct MoveListElement_ *succ;         /**< @brief A pointer to the successor element. */
+} MoveListElement;
+
 
 
 /*
  * Prototypes for internal functions.
  */
+
+static void
+sort_moves_by_mobility_count (      MoveListElement      elements[],
+                              const GamePosition * const gp);
 
 static SearchNode *
 game_position_solve_impl (      ExactSolution * const result,
@@ -129,6 +145,11 @@ search_node_free (SearchNode *sn)
   return sn;
 }
 
+/**
+ * @brief To de documented.
+ *
+ * Details to be documented.
+ */
 SearchNode *
 search_node_negated (SearchNode *sn)
 {
@@ -137,6 +158,7 @@ search_node_negated (SearchNode *sn)
   search_node_free(sn);
   return result;
 }
+
 
 
 /**********************************************************/
@@ -254,35 +276,13 @@ game_position_solve (const GamePosition * const root)
  * Internal functions.
  */
 
-/**
- * @brief A set of ordered squares.
- *
- * Details to be documented.
- */
-typedef struct MoveListElement_ {
-  Square sq;           /**< @brief To be documented. */
-  uint8  mobility;
-  struct MoveListElement_ *pred;
-  struct MoveListElement_ *succ;
-} MoveListElement;
-
-/**
- * @brief A set of ordered squares.
- *
- * Details to be documented.
- */
-typedef struct {
-  MoveListElement *head;
-  MoveListElement *tail;
-} MoveList;
-
-MoveList
+static void
 sort_moves_by_mobility_count (MoveListElement elements[], const GamePosition * const gp)
 {
-  MoveList move_list;
-
-  move_list.head = NULL;
-  move_list.tail = NULL;
+  MoveListElement *head = &elements[64];
+  MoveListElement *tail = &elements[65];
+  head->succ = tail;
+  tail->pred = head;
 
   MoveListElement *curr = NULL;
 
@@ -301,50 +301,25 @@ sort_moves_by_mobility_count (MoveListElement elements[], const GamePosition * c
     curr->mobility = next_move_count;
 
     int move_cursor = 0;
-    for (MoveListElement *element = move_list.head; element != NULL; element = element->succ) {
+    for (MoveListElement *element = head->succ; element != NULL; element = element->succ) {
       move_cursor++;
       if (curr->mobility < element->mobility) { /* Insert current before element. */
         MoveListElement *left  = element->pred;
         MoveListElement *right = element;
-        curr->pred = left;
-        curr->succ = right;
-        if (left) {
-          left->succ  = curr;
-        } else {
-          move_list.head = curr;
-        }
-        if (right) {
-          right->pred = curr;
-        } else {
-          move_list.tail = curr;
-        }
+        curr->pred  = left;
+        curr->succ  = right;
+        left->succ  = curr;
+        right->pred = curr;
         goto out;
       }
-      if (move_cursor == move_index) { /* Append current at the end of the list. */
-        MoveListElement *left  = element;
-        MoveListElement *right = NULL;
-        curr->pred = left;
-        curr->succ = right;
-        left->succ = curr;
-        move_list.tail = curr;
-        goto out;        
-      }
-    }
-    if (move_cursor == 0) { /* Insert first element. */
-      MoveListElement *left  = NULL;
-      MoveListElement *right = NULL;
-      curr->pred = left;
-      curr->succ = right;
-      move_list.head = curr;
-      move_list.tail = curr;
     }
   out:
     move_index++;
   }
-  return move_list;
+  return;
 }
 
-SearchNode *
+static SearchNode *
 game_position_solve_impl (      ExactSolution * const result,
                           const GamePosition  * const gp,
                           const int                   achievable,
@@ -368,23 +343,27 @@ game_position_solve_impl (      ExactSolution * const result,
     }
     flipped_players = game_position_free(flipped_players);
   } else {
-
-    MoveList move_list;
-    MoveListElement elements[64];
-    for (int i = 0; i < 64; i++) {
+    MoveListElement elements[64+2]; /* 64 squares plus head and tail. */
+    MoveListElement *head = &elements[64];
+    MoveListElement *tail = &elements[65];
+    for (int i = 0; i < 64+2; i++) {
       elements[i].sq = -1;
       elements[i].mobility = -1;
       elements[i].pred = NULL;
       elements[i].succ = NULL;
     }
-    move_list = sort_moves_by_mobility_count(elements, gp);
+    sort_moves_by_mobility_count(elements, gp);
     if (FALSE) {
-      for (MoveListElement *element = move_list.head; element != NULL; element = element->succ) {
-        printf("move=%s, mobility=%d\n", square_to_string(element->sq), element->mobility);
+      printf("&elements[0] = %p,\n", &elements[0]);
+      printf("head         = %p, head->succ=%p\n", head, head->succ);
+      printf("tail         = %p, tail->pred=%p\n", tail, tail->pred);
+      for (MoveListElement *element = head->succ; element != tail; element = element->succ) {
+        printf("addr=%p, move=%s, mobility=%2d, pred=%p, succ=%p\n", element, square_to_string(element->sq), element->mobility, element->pred, element->succ);
       }
       printf("YEP\n");
+      exit(1);
     }
-    for (MoveListElement *element = move_list.head; element != NULL; element = element->succ) {
+    for (MoveListElement *element = head->succ; element != tail; element = element->succ) {
       const Square move = element->sq;
       if (!node) node = search_node_new(move, achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
@@ -400,33 +379,12 @@ game_position_solve_impl (      ExactSolution * const result,
         node2 = search_node_free(node2);
       }
     }
-
-    /*
-    SquareSet moves_to_search = moves;
-    while (moves_to_search) {
-      const Square move = bit_works_bitscanLS1B_64(moves_to_search);
-      if (!node) node = search_node_new(move, achievable);
-      moves_to_search &= ~(1ULL << move);
-      GamePosition *gp2 = game_position_make_move(gp, move);
-      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value));
-      gp2 = game_position_free(gp2);
-      if (node2->value > node->value) {
-        search_node_free(node);
-        node = node2;
-        node->move = move;
-        node2 = NULL;
-        if (node->value >= cutoff) { goto out; }
-      } else {
-        node2 = search_node_free(node2);
-      }
-    }
-    */
   }
  out:
   return node;
 }
 
-int
+static int
 final_value (const GamePosition * const gp)
 {
   return board_count_diff_winner_get_empties(gp->board, gp->player);
