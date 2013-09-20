@@ -94,11 +94,11 @@ move_list_init (MoveList *ml);
  * Internal variables and constants.
  */
 
-static const uint64 legal_moves_priority_mask[] = {
+static const uint64 _legal_moves_priority_mask[] = {
   0xFFFFFFFFFFFFFFFF,0,0,0,0,0,0,0,0,0
 };
 
-static const uint64 _legal_moves_priority_mask[] = {
+static const uint64 legal_moves_priority_mask[] = {
   /* D4, E4, E5, D5 */                 0x0000001818000000,
   /* A1, H1, H8, A8 */                 0x8100000000000081,
   /* C1, F1, F8, C8, A3, H3, H6, A6 */ 0x2400810000810024,
@@ -297,29 +297,32 @@ sort_moves_by_mobility_count (MoveList *move_list, const GamePosition * const gp
   int move_index = 0;
   const SquareSet moves = game_position_legal_moves(gp);
   SquareSet moves_to_search = moves;
-  while (moves_to_search) {
-    curr = &move_list->elements[move_index];
-    const Square move = bit_works_bitscanLS1B_64(moves_to_search);
-    moves_to_search &= ~(1ULL << move);
-    GamePosition *next_gp = game_position_make_move(gp, move);
-    const SquareSet next_moves = game_position_legal_moves(next_gp);
-    next_gp = game_position_free(next_gp);
-    const int next_move_count = bit_works_popcount(next_moves);
-    curr->sq = move;
-    curr->mobility = next_move_count;
-    for (MoveListElement *element = move_list->head.succ; element != NULL; element = element->succ) {
-      if (curr->mobility < element->mobility) { /* Insert current before element. */
-        MoveListElement *left  = element->pred;
-        MoveListElement *right = element;
-        curr->pred  = left;
-        curr->succ  = right;
-        left->succ  = curr;
-        right->pred = curr;
-        goto out;
+  for (int i = 0; i < 10; i++) {
+    moves_to_search = legal_moves_priority_mask[i] & moves;
+    while (moves_to_search) {
+      curr = &move_list->elements[move_index];
+      const Square move = bit_works_bitscanLS1B_64(moves_to_search);
+      moves_to_search &= ~(1ULL << move);
+      GamePosition *next_gp = game_position_make_move(gp, move);
+      const SquareSet next_moves = game_position_legal_moves(next_gp);
+      next_gp = game_position_free(next_gp);
+      const int next_move_count = bit_works_popcount(next_moves);
+      curr->sq = move;
+      curr->mobility = next_move_count;
+      for (MoveListElement *element = move_list->head.succ; element != NULL; element = element->succ) {
+        if (curr->mobility < element->mobility) { /* Insert current before element. */
+          MoveListElement *left  = element->pred;
+          MoveListElement *right = element;
+          curr->pred  = left;
+          curr->succ  = right;
+          left->succ  = curr;
+          right->pred = curr;
+          goto out;
+        }
       }
+    out:
+      move_index++;
     }
-  out:
-    move_index++;
   }
   return;
 }

@@ -159,7 +159,7 @@ static const sint8 infinity = 65;
  * The selection of the variant of end end_solver() function follows these rules.
  *
  * Let's take as an example the two values: use_parity = 4, and fastest_first = 7.
-g *
+ *
  * And lets's drow the empties axis:
  *
  * 0         1         2
@@ -220,13 +220,17 @@ g *
 
 /*
  * The parameter use_parity. See above for explanation.
+ *
+ * Best setting so far is 4.
  */
-static const uint8 use_parity = 4;
+static const uint8 use_parity = 0;
 
 /*
  * The parameter fastest_first. See above for explanation.
+ *
+ * Best setting so far is 7.
  */
-static const uint8 fastest_first = 7;
+static const uint8 fastest_first = 0;
 
 /*
  * The 8 legal directions, plus no direction an ninth value.
@@ -236,7 +240,7 @@ static const sint8 dir_inc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
 /*
  * Fixed square ordering.
  */
-static const uint8 worst_to_best[64] =
+static const uint8 _worst_to_best[64] =
 {
   /*B2*/      20, 25, 65, 70,
   /*B1*/      11, 16, 19, 26, 64, 71, 74, 79,
@@ -248,6 +252,20 @@ static const uint8 worst_to_best[64] =
   /*C1*/      12, 15, 28, 35, 55, 62, 75, 78,
   /*A1*/      10, 17, 73, 80, 
   /*D4*/      40, 41, 49, 50
+};
+
+static const uint8 worst_to_best[64] =
+{
+  /*B2*/      70, 65, 25, 20,
+  /*B1*/      79, 74, 71, 64, 26, 19, 16, 11,
+  /*C2*/      69, 66, 61, 56, 34, 29, 24, 21,
+  /*D2*/      68, 67, 52, 47, 43, 38, 23, 22,
+  /*D3*/      59, 58, 51, 48, 42, 39, 32, 31,
+  /*D1*/      77, 76, 53, 46, 44, 37, 14, 13,
+  /*C3*/      60, 57, 33, 30,
+  /*C1*/      78, 75, 62, 55, 35, 28, 15, 12,
+  /*A1*/      80, 73, 17, 10, 
+  /*D4*/      50, 49, 41, 40
 };
 
 /*
@@ -914,12 +932,14 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
       previous_move->succ = current_move->succ;
       if (empties == 2) { /* One empty square is there. */
         solution->leaf_count++;
+        solution->node_count++;
         int last_move_flip_count;
         last_move_flip_count = count_flips(board, em_head.succ->square, oppcol, color);
         if (last_move_flip_count) { /* Oppenent does the last move. */
           evaluated_n.value = discdiff + 2 * (flip_count - last_move_flip_count);
         }
         else { /* Opponent has to pass. */
+          solution->node_count++;
           last_move_flip_count = count_flips(board, em_head.succ->square, color, oppcol);
           evaluated_n.value = discdiff + 2 * flip_count;
           if (last_move_flip_count) { /* Player put the last disc. */

@@ -41,7 +41,7 @@ CC = gcc
 #LDFLAGS =
 # add -pg for gprof execution.
 CFLAGS = -std=c99 -pedantic -Wall -g -O3 -DG_DISABLE_ASSERT `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
-LDFLAGS =
+LDFLAGS = 
 CFLAGS_TEST = -std=c99 -pedantic -Wall -g -O2 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LDFLAGS_TEST =
 ASMFLAGS = -std=c99 -pedantic -Wall -O3 -DG_DISABLE_ASSERT -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
