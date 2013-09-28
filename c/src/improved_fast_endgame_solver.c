@@ -143,6 +143,9 @@ node_negate (Node n);
 inline static int
 opponent_color (int color);
 
+static char *
+square_list_print (const EmList * const sl);
+
 
 
 /*
@@ -1174,6 +1177,13 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       move_ptr[best_index] = move_ptr[i];
       goodness[best_index] = goodness[i];
 
+      /* p: player, e: empties, bm: best move. */
+      printf("p=%c, e=%46s, bm=%s, a-b=[%+3d %+3d];\n",
+             (color == IFES_BLACK) ? 'B' : 'W',
+             square_list_print(&em_head),
+             ifes_square_to_string(current_move->square),
+             alpha, beta);
+
       move_square = current_move->square;
       holepar = current_move->hole_id;
       flip_count = do_flips(board, move_square, color, oppcol);
@@ -1182,14 +1192,14 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       current_move->pred->succ = current_move->succ;
       if (current_move->succ != NULL)
 	current_move->succ->pred = current_move->pred;
-      evaluated_n = node_negate(end_solve(solution,
-                                          board,
-                                          -beta,
-                                          -alpha,
-                                          oppcol,
-                                          empties - 1,
-                                          -discdiff - 2 * flip_count - 1,
-                                          move_square));
+      evaluated_n = node_negate(fastest_first_end_solve(solution, //MODIFIED must be end_solve(....
+                                                        board,
+                                                        -beta,
+                                                        -alpha,
+                                                        oppcol,
+                                                        empties - 1,
+                                                        -discdiff - 2 * flip_count - 1,
+                                                        move_square));
       undo_flips(flip_count, oppcol);
       region_parity ^= holepar;
       board[move_square] = IFES_EMPTY;
@@ -1203,6 +1213,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
 	if (evaluated_n.value > alpha) {
 	  alpha = evaluated_n.value;
 	  if (evaluated_n.value >= beta) { /* Cutoff. */
+            printf("-cut-");
             goto end;
           }
 	}
@@ -1218,7 +1229,18 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       } else {
         selected_n.value = 0;
       }
+      printf("p=%c, leaf_value=%+02d;\n",
+             (color == IFES_BLACK) ? 'B' : 'W',
+             selected_n.value);
     } else { /* Pass. */
+
+      /* p: player, e: empties, bm: best move. */
+      printf("p=%c, e=%46s, bm=%s, a-b=[%+3d %+3d];\n",
+             (color == IFES_BLACK) ? 'B' : 'W',
+             square_list_print(&em_head),
+             "--",
+             alpha, beta);
+
       selected_n = node_negate(fastest_first_end_solve(solution,
                                                        board,
                                                        -beta,
@@ -1229,7 +1251,12 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
                                                        0));
     }
   }
+  printf("     ");
  end:
+  ;
+  gchar* move_to_s = ifes_square_to_string(selected_n.square);
+  printf("return node: n.move=%3s n.value=%+3d\n", move_to_s, selected_n.value);
+  g_free(move_to_s);
   return selected_n;
 }
 
@@ -1306,4 +1333,30 @@ inline static int
 opponent_color (int color)
 {
   return 2 - color;
+}
+
+static char *
+square_list_print (const EmList * const sl)
+{
+  EmList *current_move;
+  gchar *ml_to_s;
+  gchar space[] = {' ', '\0'};
+
+  static const size_t size_of_ml_to_s = (3 * 64 + 1) * sizeof(gchar);
+  ml_to_s = (gchar*) malloc(size_of_ml_to_s);
+
+  *ml_to_s = '\0';
+  gchar *cursor = ml_to_s;
+  for (current_move = sl->succ;
+       current_move != NULL;
+       current_move = current_move->succ ) {
+    gchar *move_to_s = square_to_string(ifes_square_to_square (current_move->square));
+    cursor = g_stpcpy(cursor, move_to_s);
+    g_free(move_to_s);
+    cursor = g_stpcpy(cursor, &space[0]);
+  }
+  if (ml_to_s != cursor) {
+    *--cursor = '\0';
+  }
+  return ml_to_s;
 }

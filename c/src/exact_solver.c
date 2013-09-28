@@ -88,6 +88,9 @@ final_value (const GamePosition * const gp);
 static void
 move_list_init (MoveList *ml);
 
+static gchar *
+move_list_print (MoveList *ml);
+
 
 
 /*
@@ -340,20 +343,46 @@ game_position_solve_impl (      ExactSolution * const result,
   node2 = NULL;
   result->node_count++;
 
+  // - Debug On
+  SquareSet empties = board_empties(gp->board);
+  // - Debug Off
+
   const SquareSet moves = game_position_legal_moves(gp);
   if (0ULL == moves) {
+    // - Debug On
+    // p: player, e: empties, ml: ordere legal moves
+    printf("p=%c, e=%46s, ml=%20s, a-b=[%+2d %+2d];\n",
+           (gp->player == BLACK_PLAYER) ? 'B' : 'W',
+           square_set_print_as_moves(empties),
+           "",
+           achievable, cutoff);
+    // - Debug Off
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
       node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable));
     } else {
       result->leaf_count++;
       node = search_node_new((Square) -1, final_value(gp));
+      // - Debug On
+      printf("p=%c, leaf_value=%+2d;\n",
+             (gp->player == BLACK_PLAYER) ? 'B' : 'W',
+             node->value);
+      // - Debug Off
     }
     flipped_players = game_position_free(flipped_players);
   } else {
     MoveList move_list;
     move_list_init(&move_list);
     sort_moves_by_mobility_count(&move_list, gp);
+    // - Debug On
+    gchar *move_list_to_s = move_list_print(&move_list);
+    printf("p=%c, e=%46s, ml=%20s, a-b=[%+3d %+3d];\n",
+           (gp->player == BLACK_PLAYER) ? 'B' : 'W',
+           square_set_print_as_moves(empties),
+           move_list_to_s,
+           achievable, cutoff);
+    g_free(move_list_to_s);
+    // - Debug Off
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
       if (!node) node = search_node_new(move, achievable);
@@ -365,13 +394,18 @@ game_position_solve_impl (      ExactSolution * const result,
         node = node2;
         node->move = move;
         node2 = NULL;
-        if (node->value >= cutoff) { goto out; }
+        if (node->value >= cutoff) { printf("-cut-"); goto out; }
       } else {
         node2 = search_node_free(node2);
       }
     }
   }
+  printf("     ");
  out:
+  ;
+  gchar* move_to_s = square_to_string(node->move);
+  printf("return node: n.move=%3s n.value=%+2d\n", move_to_s, node->value);
+  g_free(move_to_s);
   return node;
 }
 
@@ -398,4 +432,27 @@ move_list_init (MoveList *ml)
   ml->tail.mobility = -1;
   ml->tail.pred = &ml->head;
   ml->tail.succ = NULL;
+}
+
+static gchar *
+move_list_print (MoveList *ml)
+{
+  gchar *ml_to_s;
+  gchar space[] = {' ', '\0'};
+
+  static const size_t size_of_ml_to_s = (3 * 64 + 1) * sizeof(gchar);
+  ml_to_s = (gchar*) malloc(size_of_ml_to_s);
+
+  *ml_to_s = '\0';
+  gchar *cursor = ml_to_s;
+  for (MoveListElement *element = ml->head.succ; element != &ml->tail; element = element->succ) {
+    gchar *move_to_s = square_to_string(element->sq);
+    cursor = g_stpcpy(cursor, move_to_s);
+    g_free(move_to_s);
+    cursor = g_stpcpy(cursor, &space[0]);
+  }
+  if (ml_to_s != cursor) {
+    *--cursor = '\0';
+  }
+  return ml_to_s;
 }
