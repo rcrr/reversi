@@ -345,17 +345,19 @@ game_position_solve_impl (      ExactSolution * const result,
 
   // - Debug On
   SquareSet empties = board_empties(gp->board);
+  uint64 hash = game_position_hash(gp);
   // - Debug Off
 
   const SquareSet moves = game_position_legal_moves(gp);
   if (0ULL == moves) {
     // - Debug On
     // p: player, e: empties, ml: ordere legal moves
-    printf("p=%c, e=%46s, ml=%20s, a-b=[%+2d %+2d];\n",
+    printf("p=%c, e=%46s, ml=%20s, a-b=[%+2d %+2d] [%016llx];\n",
            (gp->player == BLACK_PLAYER) ? 'B' : 'W',
            square_set_print_as_moves(empties),
            "",
-           achievable, cutoff);
+           achievable, cutoff,
+           hash);
     // - Debug Off
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
@@ -376,11 +378,12 @@ game_position_solve_impl (      ExactSolution * const result,
     sort_moves_by_mobility_count(&move_list, gp);
     // - Debug On
     gchar *move_list_to_s = move_list_print(&move_list);
-    printf("p=%c, e=%46s, ml=%20s, a-b=[%+3d %+3d];\n",
+    printf("p=%c, e=%46s, ml=%20s, a-b=[%+3d %+3d] [%016llx];\n",
            (gp->player == BLACK_PLAYER) ? 'B' : 'W',
            square_set_print_as_moves(empties),
            move_list_to_s,
-           achievable, cutoff);
+           achievable, cutoff,
+           hash);
     g_free(move_list_to_s);
     // - Debug Off
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
@@ -404,7 +407,7 @@ game_position_solve_impl (      ExactSolution * const result,
  out:
   ;
   gchar* move_to_s = square_to_string(node->move);
-  printf("return node: n.move=%3s n.value=%+2d\n", move_to_s, node->value);
+  printf("return node: n.move=%3s n.value=%+3d [%016llx]\n", move_to_s, node->value, hash);
   g_free(move_to_s);
   return node;
 }
