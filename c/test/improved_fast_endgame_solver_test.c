@@ -54,6 +54,10 @@ static void
 game_position_ifes_solve_test (GamePositionDbFixture *fixture,
                                gconstpointer          test_data);
 
+static void
+ifes_game_position_translation_test (GamePositionDbFixture *fixture,
+                                     gconstpointer          test_data);
+
 
 
 /* Helper function prototypes. */
@@ -79,12 +83,19 @@ main (int   argc,
 
   board_module_init();
 
-  g_test_add ("/game_position/game_position_ifes_solve_test",
-              GamePositionDbFixture,
-              (gconstpointer) NULL,
-              gpdb_fixture_setup,
-              game_position_ifes_solve_test,
-              gpdb_fixture_teardown);
+  g_test_add("/ifes/ifes_game_position_translation_test",
+             GamePositionDbFixture,
+             (gconstpointer) NULL,
+             gpdb_fixture_setup,
+             ifes_game_position_translation_test,
+             gpdb_fixture_teardown);
+
+  g_test_add("/game_position/game_position_ifes_solve_test",
+             GamePositionDbFixture,
+             (gconstpointer) NULL,
+             gpdb_fixture_setup,
+             game_position_ifes_solve_test,
+             gpdb_fixture_teardown);
 
   return g_test_run();
 }
@@ -128,6 +139,34 @@ game_position_ifes_solve_test (GamePositionDbFixture *fixture,
   g_assert(G8 == solution->principal_variation[0]);
 }
 
+static void
+ifes_game_position_translation_test (GamePositionDbFixture *fixture,
+                                     gconstpointer          test_data)
+{
+  GamePositionDb *db = fixture->db;
+  GamePosition *ffo_01 = get_gp_from_db(db, "ffo-01");
+  gchar *gpa_to_s = game_position_print(ffo_01);
+  printf("\n%s\n", gpa_to_s);
+
+  uint64 expected_hash = game_position_hash(ffo_01);
+  printf("expected_hash = [%016llx]\n", expected_hash);
+
+  uint8 ifes_board[91];
+  int emp = 0;
+  int wc  = 0;
+  int bc  = 0;
+  game_position_to_ifes_board(ffo_01, &ifes_board[0], &emp, &wc, &bc);
+  IFES_SquareState ifes_player = game_position_get_ifes_player(ffo_01);
+
+  GamePosition *translated = ifes_game_position_translation(ifes_board, ifes_player);
+  gchar *gpb_to_s = game_position_print(translated);
+  printf("\n%s\n", gpb_to_s);
+
+  uint64 translated_hash = game_position_hash(translated);
+  printf("translated_hash = [%016llx]\n", translated_hash);
+
+  g_assert(expected_hash == translated_hash);
+}
 
 
 /*
