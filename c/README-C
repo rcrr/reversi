@@ -1,0 +1,41 @@
+
+  README-C
+
+  Copyright (c) 2012 Roberto Corradini. All rights reserved.
+
+  This file is part of the reversi program
+  http://github.com/rcrr/reversi
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 3, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+  or visit the site <http://www.gnu.org/licenses/>.
+
+This file describes the configuration and settings done to prepare the C environment used to develop and execute
+the REVERSI program.
+
+Software components being used are:
+
+ - Ubuntu distribution 13.10 (x86_64)
+ - GCC 4.8.1
+ - glib 2.32.1
+ - doxygen 1.8.4
+ - The GNU/Linux toolchain
+
+Run the following commands in a terminal:
+
+ (1) make
+
+ (2) make test
+
+ (3) make doxygen
