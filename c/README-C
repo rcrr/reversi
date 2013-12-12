@@ -34,8 +34,15 @@ Software components being used are:
 
 Run the following commands in a terminal:
 
- (1) make
+$ make
+$ make test
+$ make doxygen
 
- (2) make test
+Everything is build under the ./build directory.
 
- (3) make doxygen
+Two executables are created in ./build/bin:
+  endgame_solver
+  gpdb_verify
+
+gpdb_verify (game position database consistency verifier) is a tool that reads and verifies a file based database of game position.
+Run 'gpdb_verify -h' for help and options.
