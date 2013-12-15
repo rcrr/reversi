@@ -43,6 +43,8 @@
 #include "bit_works.h"
 #include "advanced_square_set.h"
 
+#define GAME_TREE_DEBUG
+
 /**
  * @brief Elements of a doubly linked list that collects moves.
  *
@@ -96,6 +98,10 @@ move_list_print (MoveList *ml);
 /*
  * Internal variables and constants.
  */
+
+#ifdef GAME_TREE_DEBUG
+FILE *game_tree_debug_file = NULL;
+#endif
 
 static const uint64 _legal_moves_priority_mask[] = {
   0xFFFFFFFFFFFFFFFF,0,0,0,0,0,0,0,0,0
@@ -272,6 +278,11 @@ game_position_solve (const GamePosition * const root)
   ExactSolution *result; 
   SearchNode    *sn;
 
+#ifdef GAME_TREE_DEBUG
+  game_tree_debug_file = fopen("exact_solver_game_tree_debug_file.log", "w");
+  fprintf(game_tree_debug_file, "%s;\n", "GAME_POSITION_HASH");
+#endif
+
   result = exact_solution_new();
 
   result->solved_game_position = game_position_clone(root);
@@ -283,6 +294,10 @@ game_position_solve (const GamePosition * const root)
     result->outcome = sn->value;
   }
   sn = search_node_free(sn);
+
+#ifdef GAME_TREE_DEBUG
+  fclose(game_tree_debug_file);
+#endif
 
   return result;
 }
@@ -343,15 +358,16 @@ game_position_solve_impl (      ExactSolution * const result,
   node2 = NULL;
   result->node_count++;
 
-  // - Debug On
-  // SquareSet empties = board_empties(gp->board);
-  // uint64 hash = game_position_hash(gp);
-  // - Debug Off
+#ifdef GAME_TREE_DEBUG
+  SquareSet empties = board_empties(gp->board);
+  uint64 hash = game_position_hash(gp);
+  fprintf(game_tree_debug_file, "%016llx;\n", hash);
+#endif
 
   const SquareSet moves = game_position_legal_moves(gp);
   if (0ULL == moves) {
     // - Debug On
-    // p: player, e: empties, ml: ordere legal moves
+    // p: player, e: empties, ml: ordered legal moves
     /*
     printf("p=%c, e=%46s, ml=%20s, a-b=[%+2d %+2d] [%016llx];\n",
            (gp->player == BLACK_PLAYER) ? 'B' : 'W',

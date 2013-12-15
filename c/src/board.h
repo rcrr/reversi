@@ -332,6 +332,9 @@ game_position_clone (const GamePosition * const gp);
 extern gchar *
 game_position_print (const GamePosition const *gp);
 
+extern gchar *
+game_position_to_string (const GamePosition const *gp);
+
 extern int
 game_position_count_difference (const GamePosition *gp);
 

@@ -67,6 +67,7 @@ static void board_is_move_legal_test (void);
 static void board_legal_moves_test (void);
 
 static void game_position_print_test (void);
+static void game_position_to_string_test (void);
 static void game_position_compare_test (void);
 static void game_position_count_difference_test (void);
 static void game_position_hash_test (void);
@@ -104,6 +105,7 @@ main (int   argc,
   g_test_add_func("/board/board_legal_moves_test", board_legal_moves_test);
 
   g_test_add_func("/board/game_position_print_test", game_position_print_test);
+  g_test_add_func("/board/game_position_to_string_test", game_position_to_string_test);
   g_test_add_func("/board/game_position_compare_test", game_position_compare_test);
   g_test_add_func("/board/game_position_count_difference_test", game_position_count_difference_test);
   g_test_add_func("/board/game_position_hash_test", game_position_hash_test);
@@ -421,6 +423,31 @@ game_position_print_test (void)
   g_string_append(expected, " 7  . . . . . . . . \n");
   g_string_append(expected, " 8  . . . . . . . . \n");
   g_string_append(expected, "Player to move: WHITE\n");
+
+  g_assert(g_strcmp0(expected->str, gp_to_string) == 0);
+
+  game_position_free(gp);
+  g_free(gp_to_string);
+  g_string_free(expected, TRUE);
+}
+
+static void
+game_position_to_string_test (void)
+{
+  Board        *b;
+  Player        p;
+  GamePosition *gp;
+  char         *gp_to_string;
+  GString      *expected;
+
+  b = board_new(1LLU, 4LLU);
+  p = WHITE_PLAYER;
+  gp = game_position_new(b, p);
+
+  gp_to_string = game_position_to_string(gp);
+
+  expected = g_string_sized_new(66);
+  g_string_append(expected, "b.w.............................................................w");
 
   g_assert(g_strcmp0(expected->str, gp_to_string) == 0);
 
