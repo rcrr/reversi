@@ -1234,11 +1234,13 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       goodness[best_index] = goodness[i];
 
       /* p: player, e: empties, bm: best move. */
+      /*
       printf("p=%c, e=%46s, bm=%s, a-b=[%+3d %+3d];\n",
              (color == IFES_BLACK) ? 'B' : 'W',
              square_list_print(&em_head),
              ifes_square_to_string(current_move->square),
              alpha, beta);
+      */
 
       move_square = current_move->square;
       holepar = current_move->hole_id;
@@ -1269,7 +1271,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
 	if (evaluated_n.value > alpha) {
 	  alpha = evaluated_n.value;
 	  if (evaluated_n.value >= beta) { /* Cutoff. */
-            printf("-cut-");
+            //printf("-cut-");
             goto end;
           }
 	}
@@ -1285,17 +1287,22 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       } else {
         selected_n.value = 0;
       }
+      ;
+      /*
       printf("p=%c, leaf_value=%+02d;\n",
              (color == IFES_BLACK) ? 'B' : 'W',
              selected_n.value);
+      */
     } else { /* Pass. */
 
       /* p: player, e: empties, bm: best move. */
+      /*
       printf("p=%c, e=%46s, bm=%s, a-b=[%+3d %+3d];\n",
              (color == IFES_BLACK) ? 'B' : 'W',
              square_list_print(&em_head),
              "--",
              alpha, beta);
+      */
 
       selected_n = node_negate(fastest_first_end_solve(solution,
                                                        board,
@@ -1307,12 +1314,14 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
                                                        0));
     }
   }
-  printf("     ");
+  // printf("     ");
  end:
   ;
+  /*
   gchar* move_to_s = ifes_square_to_string(selected_n.square);
   printf("return node: n.move=%3s n.value=%+3d [%016llx]\n", move_to_s, selected_n.value, hash);
   g_free(move_to_s);
+  */
   return selected_n;
 }
 

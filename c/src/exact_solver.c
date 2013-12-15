@@ -344,20 +344,22 @@ game_position_solve_impl (      ExactSolution * const result,
   result->node_count++;
 
   // - Debug On
-  SquareSet empties = board_empties(gp->board);
-  uint64 hash = game_position_hash(gp);
+  // SquareSet empties = board_empties(gp->board);
+  // uint64 hash = game_position_hash(gp);
   // - Debug Off
 
   const SquareSet moves = game_position_legal_moves(gp);
   if (0ULL == moves) {
     // - Debug On
     // p: player, e: empties, ml: ordere legal moves
+    /*
     printf("p=%c, e=%46s, ml=%20s, a-b=[%+2d %+2d] [%016llx];\n",
            (gp->player == BLACK_PLAYER) ? 'B' : 'W',
            square_set_print_as_moves(empties),
            "",
            achievable, cutoff,
            hash);
+    */
     // - Debug Off
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
@@ -366,9 +368,11 @@ game_position_solve_impl (      ExactSolution * const result,
       result->leaf_count++;
       node = search_node_new((Square) -1, final_value(gp));
       // - Debug On
+      /*
       printf("p=%c, leaf_value=%+2d;\n",
              (gp->player == BLACK_PLAYER) ? 'B' : 'W',
              node->value);
+      */
       // - Debug Off
     }
     flipped_players = game_position_free(flipped_players);
@@ -377,6 +381,7 @@ game_position_solve_impl (      ExactSolution * const result,
     move_list_init(&move_list);
     sort_moves_by_mobility_count(&move_list, gp);
     // - Debug On
+    /*
     gchar *move_list_to_s = move_list_print(&move_list);
     printf("p=%c, e=%46s, ml=%20s, a-b=[%+3d %+3d] [%016llx];\n",
            (gp->player == BLACK_PLAYER) ? 'B' : 'W',
@@ -385,6 +390,7 @@ game_position_solve_impl (      ExactSolution * const result,
            achievable, cutoff,
            hash);
     g_free(move_list_to_s);
+    */
     // - Debug Off
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
@@ -397,18 +403,18 @@ game_position_solve_impl (      ExactSolution * const result,
         node = node2;
         node->move = move;
         node2 = NULL;
-        if (node->value >= cutoff) { printf("-cut-"); goto out; }
+        if (node->value >= cutoff) { /* printf("-cut-"); */ goto out; }
       } else {
         node2 = search_node_free(node2);
       }
     }
   }
-  printf("     ");
+  // printf("     ");
  out:
   ;
-  gchar* move_to_s = square_to_string(node->move);
-  printf("return node: n.move=%3s n.value=%+3d [%016llx]\n", move_to_s, node->value, hash);
-  g_free(move_to_s);
+  //gchar* move_to_s = square_to_string(node->move);
+  //printf("return node: n.move=%3s n.value=%+3d [%016llx]\n", move_to_s, node->value, hash);
+  //g_free(move_to_s);
   return node;
 }
 
