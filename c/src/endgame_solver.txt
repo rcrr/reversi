@@ -1,7 +1,22 @@
 
 This is a diary of the performance evolution of the endgame solver.
 
-Date: September 1, 2013
+Date: Dicember 14th, 2013
+      git commit de231cd9599955a08822a1ba662eb42f0674fa05
+
+Several minor changes introduced, nothing really big.
+The tree expanded by exact_solver (es) is not equal to the one expanded by improved_fast_endgame_solver (ifes).
+Ifes is my refactoring of the endgame_solver obtained by Gunnar. The two should be equal, I have spent quite a lot of time
+in logging info from the tree expansion in order to compare and understand, but I have to start over fresh now, after a month
+of stop and no real understanding.
+
+In the meanwhile I changed my PC, "whitewater" (Acer Aspire having an Intel T8300 CPU, running Ubunto 12.10 x86-64) has been
+replaced by "hypnotic", a brand new ASUS n550jv, sporting a new Intel Haswell i7-4700HQ.
+Running the command:
+   time ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s es
+is 42% faster on hypnotic then on whitewater, respectively 43 vs 78 seconds.
+
+Date: September 1st, 2013
       git commit 2ec7d4e4f0de90eec863bc56c932c9ca34584779
 
 Endgame solver has been inserted as an option of endgame_solver under the name ifes (improved_fast_endgame_solver).
