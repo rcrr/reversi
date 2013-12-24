@@ -37,6 +37,8 @@
 
 #include "improved_fast_endgame_solver.h"
 
+#define GAME_TREE_DEBUG
+
 /**
  * @brief An empty list collects a set of ordered squares.
  *
@@ -283,6 +285,11 @@ static const uint8 flipping_dir_mask_table[91] = {
  * Internal variables.
  */
 
+#ifdef GAME_TREE_DEBUG
+static uint64 call_count = 0;
+static FILE *game_tree_debug_file = NULL;
+#endif
+
 /*
  * Inside this fast endgame solver, the board is represented by
  * a 1D array of 91 uint8s board[0..90]:
@@ -361,6 +368,11 @@ game_position_ifes_solve (const GamePosition * const root)
 
   g_assert(root);
 
+#ifdef GAME_TREE_DEBUG
+  game_tree_debug_file = fopen("ifes_log.csv", "w");
+  fprintf(game_tree_debug_file, "%s;%s;%s;%s\n", "COUNTER", "GAME_POSITION_HASH", "GAME_POSITION", "EMPTY_COUNT");
+#endif
+
   result = exact_solution_new();
   result->solved_game_position = game_position_clone(root);
 
@@ -395,6 +407,10 @@ game_position_ifes_solve (const GamePosition * const root)
 
   result->outcome = n.value;
   result->principal_variation[0] = ifes_square_to_square(n.square);
+
+#ifdef GAME_TREE_DEBUG
+  fclose(game_tree_debug_file);
+#endif
 
   return result;
 }
@@ -1188,11 +1204,15 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
   int goodness[64];
   Node evaluated_n;
 
-  // Debug - start
+#ifdef GAME_TREE_DEBUG
+  call_count++;
   GamePosition *gp = ifes_game_position_translation(board, color);
   uint64 hash = game_position_hash(gp);
+  gchar *gp_to_s = game_position_to_string(gp);
+  fprintf(game_tree_debug_file, "%8lld;%016llx;%s;%2d\n", call_count, hash, gp_to_s, empties);
   gp = game_position_free(gp);
-  // Debug - end
+  g_free(gp_to_s);
+#endif
 
 
   const int oppcol = opponent_color(color);

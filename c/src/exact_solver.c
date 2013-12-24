@@ -100,7 +100,10 @@ move_list_print (MoveList *ml);
  */
 
 #ifdef GAME_TREE_DEBUG
-FILE *game_tree_debug_file = NULL;
+static uint64 call_count = 0;
+static FILE *game_tree_debug_file = NULL;
+static uint64 gp_hash_stack[128];
+static int gp_hash_stack_fill_point = 0;
 #endif
 
 static const uint64 _legal_moves_priority_mask[] = {
@@ -279,8 +282,9 @@ game_position_solve (const GamePosition * const root)
   SearchNode    *sn;
 
 #ifdef GAME_TREE_DEBUG
-  game_tree_debug_file = fopen("exact_solver_game_tree_debug_file.log", "w");
-  fprintf(game_tree_debug_file, "%s;\n", "GAME_POSITION_HASH");
+  gp_hash_stack[0] = 0;
+  game_tree_debug_file = fopen("es_log.csv", "w");
+  fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s\n", "COUNTER", "GAME_POSITION_HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL");
 #endif
 
   result = exact_solution_new();
@@ -359,9 +363,21 @@ game_position_solve_impl (      ExactSolution * const result,
   result->node_count++;
 
 #ifdef GAME_TREE_DEBUG
-  SquareSet empties = board_empties(gp->board);
-  uint64 hash = game_position_hash(gp);
-  fprintf(game_tree_debug_file, "%016llx;\n", hash);
+  call_count++;
+  gp_hash_stack_fill_point++;
+  const SquareSet empties = board_empties(gp->board);
+  const int empty_count = bit_works_popcount(empties);
+  const uint64 hash = game_position_hash(gp);
+  gp_hash_stack[gp_hash_stack_fill_point] = hash;
+  gchar *gp_to_s = game_position_to_string(gp);
+  fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d\n",
+          call_count,
+          hash,
+          gp_hash_stack[gp_hash_stack_fill_point - 1],
+          gp_to_s,
+          empty_count,
+          gp_hash_stack_fill_point);
+  g_free(gp_to_s);
 #endif
 
   const SquareSet moves = game_position_legal_moves(gp);
@@ -431,6 +447,11 @@ game_position_solve_impl (      ExactSolution * const result,
   //gchar* move_to_s = square_to_string(node->move);
   //printf("return node: n.move=%3s n.value=%+3d [%016llx]\n", move_to_s, node->value, hash);
   //g_free(move_to_s);
+
+#ifdef GAME_TREE_DEBUG
+  gp_hash_stack_fill_point--;
+#endif
+
   return node;
 }
 
