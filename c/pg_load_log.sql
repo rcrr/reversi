@@ -9,13 +9,17 @@
 
 DROP TABLE IF EXISTS es_log;
 
-CREATE TABLE es_log (call_id INTEGER, hash VARCHAR(16), parent_hash VARCHAR(16), game_position VARCHAR(65), empty_count INTEGER, level INTEGER, PRIMARY KEY(call_id));
+CREATE TABLE es_log (call_id INTEGER, hash VARCHAR(16), parent_hash VARCHAR(16), game_position VARCHAR(65), empty_count INTEGER, level INTEGER, is_leaf BOOLEAN, PRIMARY KEY(call_id));
 
 \COPY es_log FROM '/home/rcrr/base/prj/reversi/c/es_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
 
 VACUUM (FULL, ANALYZE, VERBOSE) es_log;
 
 SELECT COUNT(*) FROM es_log;
+
+SELECT COUNT(DISTINCT game_position) from es_log;
+
+SELECT COUNT(DISTINCT hash) from es_log;
 
 
 
@@ -28,3 +32,7 @@ CREATE TABLE ifes_log (call_id INTEGER, hash VARCHAR(16), game_position VARCHAR(
 VACUUM (FULL, ANALYZE, VERBOSE) ifes_log;
 
 SELECT COUNT(*) FROM ifes_log;
+
+SELECT COUNT(DISTINCT game_position) from ifes_log;
+
+SELECT COUNT(DISTINCT hash) from ifes_log;

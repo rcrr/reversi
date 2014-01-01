@@ -284,7 +284,7 @@ game_position_solve (const GamePosition * const root)
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack[0] = 0;
   game_tree_debug_file = fopen("es_log.csv", "w");
-  fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s\n", "COUNTER", "GAME_POSITION_HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL");
+  fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s\n", "COUNTER", "GAME_POSITION_HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEF");
 #endif
 
   result = exact_solution_new();
@@ -370,13 +370,15 @@ game_position_solve_impl (      ExactSolution * const result,
   const uint64 hash = game_position_hash(gp);
   gp_hash_stack[gp_hash_stack_fill_point] = hash;
   gchar *gp_to_s = game_position_to_string(gp);
-  fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d\n",
+  const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
+  fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s\n",
           call_count,
           hash,
           gp_hash_stack[gp_hash_stack_fill_point - 1],
           gp_to_s,
           empty_count,
-          gp_hash_stack_fill_point);
+          gp_hash_stack_fill_point,
+          is_leaf ? "t" : "f");
   g_free(gp_to_s);
 #endif
 
