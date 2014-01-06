@@ -1266,13 +1266,13 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       goodness[best_index] = goodness[i];
 
       /* p: player, e: empties, bm: best move. */
-      /*
+      
       printf("p=%c, e=%46s, bm=%s, a-b=[%+3d %+3d];\n",
              (color == IFES_BLACK) ? 'B' : 'W',
              square_list_print(&em_head),
              ifes_square_to_string(current_move->square),
              alpha, beta);
-      */
+      
 
       move_square = current_move->square;
       holepar = current_move->hole_id;
