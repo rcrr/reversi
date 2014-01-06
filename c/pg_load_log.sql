@@ -6,33 +6,240 @@
 -- Load the file by running the command: \i pg_load_log.sql
 
 
+CREATE OR REPLACE FUNCTION populate_rel_index() RETURNS INTEGER AS $$
+DECLARE
+  ret           INTEGER;
+  rel           RECORD;
+  es_rel        RECORD;
+  ifes_rel      RECORD;
+  gp            VARCHAR(65);
+  ec            INTEGER;
+  il            BOOLEAN;
+BEGIN
+  ret := 0;
+  TRUNCATE rel_index;
+  
+  FOR rel IN SELECT hash, parent_hash FROM es_log_p AS es
+             UNION
+             SELECT hash, parent_hash FROM ifes_log_p AS ifes LOOP
+    INSERT INTO rel_index(hash, parent_hash) VALUES (rel.hash, rel.parent_hash);
+    ret := ret + 1;
+  END LOOP;
 
+  FOR rel IN SELECT hash, parent_hash FROM rel_index LOOP
+    SELECT * INTO es_rel FROM es_log_p AS es WHERE rel.hash=es.hash AND rel.parent_hash=es.parent_hash;
+    SELECT * INTO ifes_rel FROM ifes_log_p AS ifes WHERE rel.hash=ifes.hash AND rel.parent_hash=ifes.parent_hash;
+    IF es_rel IS NOT NULL AND ifes_rel IS NOT NULL AND es_rel.game_position <> ifes_rel.game_position THEN
+      RAISE EXCEPTION 'GAME_POSITION FIELDS MUST BE EQUALS! hash=%', rel.hash;
+    END IF;
+    IF es_rel IS NOT NULL THEN
+      gp := es_rel.game_position;
+      ec := es_rel.empty_count;
+      il := es_rel.is_leaf;
+    ELSE
+      gp := ifes_rel.game_position;
+      ec := ifes_rel.empty_count;
+      il := ifes_rel.is_leaf;
+    END IF;
+
+    UPDATE rel_index
+      SET (es_call_id, ifes_call_id, game_position, empty_count, is_leaf, es_level, ifes_level) = (es_rel.call_id, ifes_rel.call_id, gp, ec, il, es_rel.level, ifes_rel.level)
+      WHERE rel.hash=hash AND rel.parent_hash=parent_hash;
+  END LOOP;
+  
+  RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION check_es_log() RETURNS RECORD AS $$
+DECLARE
+  ret                     RECORD;
+  node                    RECORD;
+  rel                     RECORD;
+  collisions              INTEGER;
+  duplicates              INTEGER;
+  duplicate_count         INTEGER;
+  collision_count         INTEGER;
+  row_count               INTEGER;
+  distinct_game_positions INTEGER;
+  distinct_hashes         INTEGER;
+  distinct_rels           INTEGER;
+BEGIN
+  RAISE NOTICE 'Checking records in table es_log ...';
+  SELECT COUNT(*) INTO row_count FROM es_log;
+  SELECT COUNT(DISTINCT game_position) INTO distinct_game_positions FROM es_log;
+  SELECT COUNT(DISTINCT hash) INTO distinct_hashes FROM es_log;
+  SELECT COUNT(DISTINCT (hash, parent_hash)) INTO distinct_rels FROM es_log;
+  collisions := 0;
+  duplicates := 0;
+  FOR node IN SELECT DISTINCT hash FROM es_log LOOP
+    SELECT COUNT(hash) INTO duplicate_count FROM es_log AS full_table WHERE node.hash=full_table.hash;
+    SELECT COUNT(DISTINCT game_position) INTO collision_count FROM es_log AS full_table WHERE node.hash=full_table.hash;
+    collisions := collisions + collision_count - 1;
+    duplicates := duplicates + duplicate_count - collision_count;
+  END LOOP;
+  RAISE NOTICE 'Check completed: row count is %, distinct_game_positions are %, distinct_hashes are %, distinct_rels are %, collisions are %, duplicates are %.',
+               row_count,
+               distinct_game_positions,
+               distinct_hashes,
+               distinct_rels,
+               collisions,
+               duplicates;
+  
+  SELECT row_count, distinct_game_positions, distinct_hashes, distinct_rels, collisions, duplicates INTO ret;
+  RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION check_ifes_log() RETURNS RECORD AS $$
+DECLARE
+  duplicated_leafs        INTEGER;
+  ret                     RECORD;
+  node                    RECORD;
+  rel                     RECORD;
+  collisions              INTEGER;
+  duplicates              INTEGER;
+  duplicate_count         INTEGER;
+  collision_count         INTEGER;
+  row_count               INTEGER;
+  distinct_game_positions INTEGER;
+  distinct_hashes         INTEGER;
+  distinct_rels           INTEGER;
+BEGIN
+  RAISE NOTICE 'Checking records in table ifes_log ...';
+  SELECT COUNT(*) INTO duplicated_leafs FROM ifes_log WHERE is_leaf=TRUE AND parent_is_pass=TRUE;
+  RAISE NOTICE 'Duplicated leafs in ifes_log are %, these rows shall be filtered.', duplicated_leafs;
+  CREATE OR REPLACE VIEW ifes_log_filtered AS SELECT * FROM ifes_log WHERE (is_leaf=TRUE AND parent_is_pass=TRUE) IS NOT TRUE;
+
+  SELECT COUNT(*) INTO row_count FROM ifes_log_filtered;
+  SELECT COUNT(DISTINCT game_position) INTO distinct_game_positions FROM ifes_log_filtered;
+  SELECT COUNT(DISTINCT hash) INTO distinct_hashes FROM ifes_log_filtered;
+  SELECT COUNT(DISTINCT (hash, parent_hash)) INTO distinct_rels FROM ifes_log_filtered;
+  collisions := 0;
+  duplicates := 0;
+  FOR node IN SELECT DISTINCT hash FROM ifes_log_filtered LOOP
+    SELECT COUNT(hash) INTO duplicate_count FROM ifes_log_filtered AS full_table WHERE node.hash=full_table.hash;
+    SELECT COUNT(DISTINCT game_position) INTO collision_count FROM ifes_log_filtered AS full_table WHERE node.hash=full_table.hash;
+    collisions := collisions + collision_count - 1;
+    duplicates := duplicates + duplicate_count - collision_count;
+  END LOOP;
+  RAISE NOTICE 'Check completed: row count is %, distinct_game_positions are %, distinct_hashes are %, distinct_rels are %, collisions are %, duplicates are %.',
+               row_count,
+               distinct_game_positions,
+               distinct_hashes,
+               distinct_rels,
+               collisions,
+               duplicates;
+  
+  SELECT row_count, distinct_game_positions, distinct_hashes, distinct_rels, collisions, duplicates INTO ret;
+  RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Original table generated by exact_solver.c
 DROP TABLE IF EXISTS es_log;
 
-CREATE TABLE es_log (call_id INTEGER, hash VARCHAR(16), parent_hash VARCHAR(16), game_position VARCHAR(65), empty_count INTEGER, level INTEGER, is_leaf BOOLEAN, PRIMARY KEY(call_id));
+CREATE TABLE es_log (call_id       INTEGER,
+                     hash          VARCHAR(16),
+                     parent_hash   VARCHAR(16),
+                     game_position VARCHAR(65),
+                     empty_count   INTEGER,
+                     level         INTEGER,
+                     is_leaf       BOOLEAN,
+                     PRIMARY KEY(call_id));
 
 \COPY es_log FROM '/home/rcrr/base/prj/reversi/c/es_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
 
 VACUUM (FULL, ANALYZE, VERBOSE) es_log;
 
-SELECT COUNT(*) FROM es_log;
-
-SELECT COUNT(DISTINCT game_position) from es_log;
-
-SELECT COUNT(DISTINCT hash) from es_log;
+CREATE INDEX es_log_hash ON es_log (hash);
 
 
+-- Pruned table derived from es_log.
+DROP TABLE IF EXISTS es_log_p;
 
-DROP TABLE IF EXISTS ifes_log;
+CREATE TABLE es_log_p (call_id       INTEGER,
+                       hash          VARCHAR(16),
+                       parent_hash   VARCHAR(16),
+                       game_position VARCHAR(65),
+                       empty_count   INTEGER,
+                       level         INTEGER,
+                       is_leaf       BOOLEAN,
+                       PRIMARY KEY(call_id));
 
-CREATE TABLE ifes_log (call_id INTEGER, hash VARCHAR(16), game_position VARCHAR(65), empty_count INTEGER, PRIMARY KEY(call_id));
+SELECT check_es_log();
+
+-- Populate the es_log_p table.
+TRUNCATE es_log_p;
+INSERT INTO es_log_p
+  SELECT * FROM es_log WHERE call_id IN (SELECT min(call_id) FROM es_log GROUP BY hash, parent_hash) ORDER BY call_id;
+
+VACUUM (FULL, ANALYZE, VERBOSE) es_log_p;
+
+CREATE UNIQUE INDEX es_log_p_hashes ON es_log_p (hash, parent_hash);
+
+
+
+
+DROP TABLE IF EXISTS ifes_log CASCADE;
+
+CREATE TABLE ifes_log (call_id        INTEGER,
+                       hash           VARCHAR(16),
+                       parent_hash    VARCHAR(16),
+                       game_position  VARCHAR(65),
+                       empty_count    INTEGER,
+                       level          INTEGER,
+                       is_leaf        BOOLEAN,
+                       parent_is_pass BOOLEAN,
+                       PRIMARY KEY(call_id));
 
 \COPY ifes_log FROM '/home/rcrr/base/prj/reversi/c/ifes_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
 
 VACUUM (FULL, ANALYZE, VERBOSE) ifes_log;
 
-SELECT COUNT(*) FROM ifes_log;
+CREATE INDEX ifes_log_hash ON ifes_log (hash);
 
-SELECT COUNT(DISTINCT game_position) from ifes_log;
+SELECT check_ifes_log();
 
-SELECT COUNT(DISTINCT hash) from ifes_log;
+-- Pruned table derived from ifes_log.
+DROP TABLE IF EXISTS ifes_log_p;
+
+CREATE TABLE ifes_log_p (call_id       INTEGER,
+                         hash          VARCHAR(16),
+                         parent_hash   VARCHAR(16),
+                         game_position VARCHAR(65),
+                         empty_count   INTEGER,
+                         level         INTEGER,
+                         is_leaf       BOOLEAN,
+                         PRIMARY KEY(call_id));
+
+
+-- Populate the ifes_log_p table.
+TRUNCATE ifes_log_p;
+INSERT INTO ifes_log_p
+  SELECT call_id, hash, parent_hash, game_position, empty_count, level, is_leaf
+  FROM ifes_log_filtered WHERE call_id IN (SELECT min(call_id) FROM ifes_log_filtered GROUP BY hash, parent_hash) ORDER BY call_id;
+
+VACUUM (FULL, ANALYZE, VERBOSE) ifes_log_p;
+
+CREATE UNIQUE INDEX ifes_log_p_hashes ON ifes_log_p (hash, parent_hash);
+                         
+                     
+-- Comparison table for relationships node-parent_node.
+DROP TABLE IF EXISTS rel_index;
+
+CREATE TABLE rel_index(hash          VARCHAR(16),
+                       parent_hash   VARCHAR(16),
+                       es_call_id    INTEGER,
+                       ifes_call_id  INTEGER,
+                       game_position VARCHAR(65),
+                       empty_count   INTEGER,
+                       es_level      INTEGER,
+                       ifes_level    INTEGER,
+                       is_leaf       BOOLEAN,
+                       PRIMARY KEY(hash, parent_hash));
+
+SELECT populate_rel_index();
+
+VACUUM (FULL, ANALYZE, VERBOSE) rel_index;

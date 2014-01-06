@@ -284,7 +284,7 @@ game_position_solve (const GamePosition * const root)
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack[0] = 0;
   game_tree_debug_file = fopen("es_log.csv", "w");
-  fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s\n", "COUNTER", "GAME_POSITION_HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEF");
+  fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEF");
 #endif
 
   result = exact_solution_new();

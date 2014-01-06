@@ -288,6 +288,8 @@ static const uint8 flipping_dir_mask_table[91] = {
 #ifdef GAME_TREE_DEBUG
 static uint64 call_count = 0;
 static FILE *game_tree_debug_file = NULL;
+static uint64 gp_hash_stack[128];
+static int gp_hash_stack_fill_point = 0;
 #endif
 
 /*
@@ -370,7 +372,7 @@ game_position_ifes_solve (const GamePosition * const root)
 
 #ifdef GAME_TREE_DEBUG
   game_tree_debug_file = fopen("ifes_log.csv", "w");
-  fprintf(game_tree_debug_file, "%s;%s;%s;%s\n", "COUNTER", "GAME_POSITION_HASH", "GAME_POSITION", "EMPTY_COUNT");
+  fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEF", "PARENT_IS_PASS");
 #endif
 
   result = exact_solution_new();
@@ -1206,14 +1208,24 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
 
 #ifdef GAME_TREE_DEBUG
   call_count++;
+  gp_hash_stack_fill_point++;
   GamePosition *gp = ifes_game_position_translation(board, color);
   uint64 hash = game_position_hash(gp);
+  gp_hash_stack[gp_hash_stack_fill_point] = hash;
   gchar *gp_to_s = game_position_to_string(gp);
-  fprintf(game_tree_debug_file, "%8lld;%016llx;%s;%2d\n", call_count, hash, gp_to_s, empties);
+  const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
+  fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%s\n",
+          call_count,
+          hash,
+          gp_hash_stack[gp_hash_stack_fill_point - 1],
+          gp_to_s,
+          empties,
+          gp_hash_stack_fill_point,
+          is_leaf ? "t" : "f",
+          prevmove ? "f" : "t");
   gp = game_position_free(gp);
   g_free(gp_to_s);
 #endif
-
 
   const int oppcol = opponent_color(color);
 
@@ -1342,6 +1354,11 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
   printf("return node: n.move=%3s n.value=%+3d [%016llx]\n", move_to_s, selected_n.value, hash);
   g_free(move_to_s);
   */
+
+#ifdef GAME_TREE_DEBUG
+  gp_hash_stack_fill_point--;
+#endif
+  
   return selected_n;
 }
 
