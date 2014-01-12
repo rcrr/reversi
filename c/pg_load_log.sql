@@ -43,8 +43,8 @@ BEGIN
     END IF;
 
     UPDATE rel_index
-      SET (es_call_id, ifes_call_id, game_position, empty_count, is_leaf, es_level, ifes_level, es_move_list) =
-          (es_rel.call_id, ifes_rel.call_id, gp, ec, il, es_rel.level, ifes_rel.level, es_rel.move_list)
+      SET (es_call_id, ifes_call_id, game_position, empty_count, is_leaf, es_level, ifes_level, es_move_list, ifes_move_list) =
+          (es_rel.call_id, ifes_rel.call_id, gp, ec, il, es_rel.level, ifes_rel.level, es_rel.move_list, ifes_rel.move_list)
       WHERE rel.hash=hash AND rel.parent_hash=parent_hash;
   END LOOP;
   
@@ -195,6 +195,7 @@ CREATE TABLE ifes_log (call_id        INTEGER,
                        level          INTEGER,
                        is_leaf        BOOLEAN,
                        parent_is_pass BOOLEAN,
+                       move_list      VARCHAR(42),
                        PRIMARY KEY(call_id));
 
 \COPY ifes_log FROM '/home/rcrr/base/prj/reversi/c/ifes_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
@@ -215,13 +216,14 @@ CREATE TABLE ifes_log_p (call_id       INTEGER,
                          empty_count   INTEGER,
                          level         INTEGER,
                          is_leaf       BOOLEAN,
+                         move_list     VARCHAR(42),
                          PRIMARY KEY(call_id));
 
 
 -- Populate the ifes_log_p table.
 TRUNCATE ifes_log_p;
 INSERT INTO ifes_log_p
-  SELECT call_id, hash, parent_hash, game_position, empty_count, level, is_leaf
+  SELECT call_id, hash, parent_hash, game_position, empty_count, level, is_leaf, move_list
   FROM ifes_log_filtered WHERE call_id IN (SELECT min(call_id) FROM ifes_log_filtered GROUP BY hash, parent_hash) ORDER BY call_id;
 
 VACUUM (FULL, ANALYZE, VERBOSE) ifes_log_p;

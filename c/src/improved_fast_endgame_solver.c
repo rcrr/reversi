@@ -64,7 +64,7 @@ typedef struct {
 #ifdef GAME_TREE_DEBUG
 typedef struct Move {
   uint8           square;     /**< @brief One square on the board. */
-  uint8           mobility;   /**< @brief Id of the hole to which the square belongs to. */
+  int             mobility;   /**< @brief Id of the hole to which the square belongs to. */
   EmList     *move_pointer;   /**< @brief Predecessor element, or NULL if missing. */
 } Move;
 #endif
@@ -250,32 +250,47 @@ static const sint8 dir_inc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
  * Fixed square ordering.
  */
 static const uint8 _worst_to_best[64] =
-{
-  /*B2*/      20, 25, 65, 70,
-  /*B1*/      11, 16, 19, 26, 64, 71, 74, 79,
-  /*C2*/      21, 24, 29, 34, 56, 61, 66, 69,
-  /*D2*/      22, 23, 38, 43, 47, 52, 67, 68,
-  /*D3*/      31, 32, 39, 42, 48, 51, 58, 59,
-  /*D1*/      13, 14, 37, 44, 46, 53, 76, 77,
-  /*C3*/      30, 33, 57, 60,
-  /*C1*/      12, 15, 28, 35, 55, 62, 75, 78,
-  /*A1*/      10, 17, 73, 80, 
-  /*D4*/      40, 41, 49, 50
-};
+  {
+    /*B2*/      20, 25, 65, 70,
+    /*B1*/      11, 16, 19, 26, 64, 71, 74, 79,
+    /*C2*/      21, 24, 29, 34, 56, 61, 66, 69,
+    /*D2*/      22, 23, 38, 43, 47, 52, 67, 68,
+    /*D3*/      31, 32, 39, 42, 48, 51, 58, 59,
+    /*D1*/      13, 14, 37, 44, 46, 53, 76, 77,
+    /*C3*/      30, 33, 57, 60,
+    /*C1*/      12, 15, 28, 35, 55, 62, 75, 78,
+    /*A1*/      10, 17, 73, 80, 
+    /*D4*/      40, 41, 49, 50
+  };
 
 static const uint8 worst_to_best[64] =
-{
-  /*B2*/      70, 65, 25, 20,
-  /*B1*/      79, 74, 71, 64, 26, 19, 16, 11,
-  /*C2*/      69, 66, 61, 56, 34, 29, 24, 21,
-  /*D2*/      68, 67, 52, 47, 43, 38, 23, 22,
-  /*D3*/      59, 58, 51, 48, 42, 39, 32, 31,
-  /*D1*/      77, 76, 53, 46, 44, 37, 14, 13,
-  /*C3*/      60, 57, 33, 30,
-  /*C1*/      78, 75, 62, 55, 35, 28, 15, 12,
-  /*A1*/      80, 73, 17, 10, 
-  /*D4*/      50, 49, 41, 40
-};
+  {
+    /*B2*/      70, 65, 25, 20,
+    /*B1*/      79, 74, 71, 64, 26, 19, 16, 11,
+    /*C2*/      69, 66, 61, 56, 34, 29, 24, 21,
+    /*D2*/      68, 67, 52, 47, 43, 38, 23, 22,
+    /*D3*/      59, 58, 51, 48, 42, 39, 32, 31,
+    /*D1*/      77, 76, 53, 46, 44, 37, 14, 13,
+    /*C3*/      60, 57, 33, 30,
+    /*C1*/      78, 75, 62, 55, 35, 28, 15, 12,
+    /*A1*/      80, 73, 17, 10, 
+    /*D4*/      50, 49, 41, 40
+  };
+
+static const uint8 worst_to_best_reverse_lookup[91] =
+  {
+    /*00-08*/ 0,   0,   0,   0,   0,   0,   0,   0,   0,
+    /*09-17*/ 0,  60,  12,  56,  44,  43,  55,  11,  59,
+    /*18-26*/ 0,  10,   4,  20,  28,  27,  19,   3,   9,
+    /*27-35*/ 0,  54,  18,  48,  36,  35,  47,  17,  53,
+    /*36-44*/ 0,  42,  26,  34,  64,  63,  33,  25,  41,
+    /*45-53*/ 0,  40,  24,  32,  62,  61,  31,  23,  39,
+    /*54-62*/ 0,  52,  16,  46,  30,  29,  45,  15,  51,
+    /*63-71*/ 0,   8,   2,  14,  22,  21,  13,   1,   7,
+    /*72-80*/ 0,  58,   6,  50,  38,  37,  49,   5,  57,
+    /*81-89*/ 0,   0,   0,   0,   0,   0,   0,   0,   0,
+    /*90---*/ 0
+  };
 
 /*
  * The bit mask for direction i is 1<<i
@@ -285,18 +300,19 @@ static const uint8 worst_to_best[64] =
  * hence square 10 (A1) can flip in directions dir_inc[0]=1,
  * dir_inc[4]=9, and dir_inc[6]=10:
  */
-static const uint8 flipping_dir_mask_table[91] = {
-  0,   0,   0,   0,   0,   0,   0,   0,   0,
-  0,  81,  81,  87,  87,  87,  87,  22,  22,
-  0,  81,  81,  87,  87,  87,  87,  22,  22,
-  0, 121, 121, 255, 255, 255, 255, 182, 182,
-  0, 121, 121, 255, 255, 255, 255, 182, 182,
-  0, 121, 121, 255, 255, 255, 255, 182, 182,
-  0, 121, 121, 255, 255, 255, 255, 182, 182,
-  0,  41,  41, 171, 171, 171, 171, 162, 162,
-  0,  41,  41, 171, 171, 171, 171, 162, 162,
-  0,   0,   0,   0,   0,   0,   0,   0,   0, 0
-};
+static const uint8 flipping_dir_mask_table[91] =
+  {
+    0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,  81,  81,  87,  87,  87,  87,  22,  22,
+    0,  81,  81,  87,  87,  87,  87,  22,  22,
+    0, 121, 121, 255, 255, 255, 255, 182, 182,
+    0, 121, 121, 255, 255, 255, 255, 182, 182,
+    0, 121, 121, 255, 255, 255, 255, 182, 182,
+    0, 121, 121, 255, 255, 255, 255, 182, 182,
+    0,  41,  41, 171, 171, 171, 171, 162, 162,
+    0,  41,  41, 171, 171, 171, 171, 162, 162,
+    0,   0,   0,   0,   0,   0,   0,   0,   0, 0
+  };
 
 
 
@@ -1225,9 +1241,6 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
   int goodness[64];
   Node evaluated_n;
 
-#ifdef GAME_TREE_DEBUG
-#endif
-
   const int oppcol = opponent_color(color);
 
   solution->node_count++;
@@ -1273,6 +1286,16 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
   move_list = g_slist_sort(move_list, (GCompareFunc) move_compare_by_mobility);
   gchar *lm_to_s_a = square_list_print(&em_head);
   gchar *lm_to_s_b = move_list_print(move_list);
+
+  if (hash == 0x94b5a36ef5a09de7) {
+    printf("OUCH! hash=%016llx\n", hash);
+    for (GSList *cm = move_list;
+         cm != NULL;
+         cm = g_slist_next(cm)) {
+      Move *m  = cm->data;
+      printf("move: %d (%s), mobility=%d\n", m->square, ifes_square_to_string(m->square), m->mobility);
+    }
+  }
   
   fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%s;%42s\n",
           call_count,
@@ -1289,17 +1312,6 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
   g_free(lm_to_s_a);
   g_free(lm_to_s_b);
   g_slist_free(move_list);
-  /*
-  for (int i = 0; i < moves; i++) {
-    move_array[i].square = 99;
-    move_array[i].mobility = 0;
-    move_array[i].move_pointer = NULL;    
-  }
-  printf("p=%c, square_list=%42s, move_list=%42s;\n",
-         (color == IFES_BLACK) ? 'B' : 'W',
-         lm_to_s_a,
-         lm_to_s_b);
-  */
 #endif
 
   if (moves != 0) {
@@ -1530,7 +1542,7 @@ move_list_print (GSList *ml)
   gchar *cursor = ml_to_s;
   for (current_move = ml;
        current_move != NULL;
-       current_move = g_slist_next(current_move) ) {
+       current_move = g_slist_next(current_move)) {
     Move *m  = current_move->data;
     gchar *move_to_s = square_to_string(ifes_square_to_square(m->square));
     cursor = g_stpcpy(cursor, move_to_s);
@@ -1555,9 +1567,13 @@ move_compare_by_mobility (gconstpointer pa,
   if (a->mobility > b->mobility) {
     ret = -1;
   } else if (a->mobility < b->mobility) {
-    ret =  +1;
+    ret = +1;
   } else {
-    ret = 0;
+    if (worst_to_best_reverse_lookup[a->square] > worst_to_best_reverse_lookup[b->square]) {
+      ret = -1;
+    } else {
+      ret = +1;
+    }
   }
   
   return ret;

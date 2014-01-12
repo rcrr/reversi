@@ -107,7 +107,7 @@ static int gp_hash_stack_fill_point = 0;
 #endif
 
 static const uint64 _legal_moves_priority_mask[] = {
-  0xFFFFFFFFFFFFFFFF,0,0,0,0,0,0,0,0,0
+  0xFFFFFFFFFFFFFFFF, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
 static const uint64 legal_moves_priority_mask[] = {
@@ -122,6 +122,9 @@ static const uint64 legal_moves_priority_mask[] = {
   /* B1, G1, G8, B8, A2, H2, H7, A7 */ 0x4281000000008142,
   /* B2, G2, G7, B7 */                 0x0042000000004200
 };
+
+static const int legal_moves_priority_cluster_count =
+  sizeof(legal_moves_priority_mask) / sizeof(legal_moves_priority_mask[0]);
 
 
 /*******************************************************/
@@ -319,7 +322,7 @@ sort_moves_by_mobility_count (MoveList *move_list, const GamePosition * const gp
   int move_index = 0;
   const SquareSet moves = game_position_legal_moves(gp);
   SquareSet moves_to_search = moves;
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
     moves_to_search = legal_moves_priority_mask[i] & moves;
     while (moves_to_search) {
       curr = &move_list->elements[move_index];
