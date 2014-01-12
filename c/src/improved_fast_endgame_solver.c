@@ -61,6 +61,14 @@ typedef struct {
   sint8 value;     /**< @brief The game value of moving into the square. */
 } Node;
 
+#ifdef GAME_TREE_DEBUG
+typedef struct Move {
+  uint8           square;     /**< @brief One square on the board. */
+  uint8           mobility;   /**< @brief Id of the hole to which the square belongs to. */
+  EmList     *move_pointer;   /**< @brief Predecessor element, or NULL if missing. */
+} Move;
+#endif
+
 
 /*
  * Prototypes for internal functions.
@@ -130,8 +138,19 @@ node_negate (Node n);
 inline static int
 opponent_color (int color);
 
+#ifdef GAME_TREE_DEBUG
+
+static gint
+move_compare_by_mobility (gconstpointer pa,
+                          gconstpointer pb);
+
+static char *
+move_list_print (GSList *ml);
+
 static char *
 square_list_print (const EmList * const sl);
+
+#endif
 
 
 
@@ -372,7 +391,7 @@ game_position_ifes_solve (const GamePosition * const root)
 
 #ifdef GAME_TREE_DEBUG
   game_tree_debug_file = fopen("ifes_log.csv", "w");
-  fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEF", "PARENT_IS_PASS");
+  fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEF", "PARENT_IS_PASS", "MOVE_LIST");
 #endif
 
   result = exact_solution_new();
@@ -1207,24 +1226,6 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
   Node evaluated_n;
 
 #ifdef GAME_TREE_DEBUG
-  call_count++;
-  gp_hash_stack_fill_point++;
-  GamePosition *gp = ifes_game_position_translation(board, color);
-  uint64 hash = game_position_hash(gp);
-  gp_hash_stack[gp_hash_stack_fill_point] = hash;
-  gchar *gp_to_s = game_position_to_string(gp);
-  const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
-  fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%s\n",
-          call_count,
-          hash,
-          gp_hash_stack[gp_hash_stack_fill_point - 1],
-          gp_to_s,
-          empties,
-          gp_hash_stack_fill_point,
-          is_leaf ? "t" : "f",
-          prevmove ? "f" : "t");
-  gp = game_position_free(gp);
-  g_free(gp_to_s);
 #endif
 
   const int oppcol = opponent_color(color);
@@ -1252,6 +1253,55 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
     }
   }
 
+#ifdef GAME_TREE_DEBUG
+  call_count++;
+  gp_hash_stack_fill_point++;
+  GamePosition *gp = ifes_game_position_translation(board, color);
+  uint64 hash = game_position_hash(gp);
+  gp_hash_stack[gp_hash_stack_fill_point] = hash;
+  gchar *gp_to_s = game_position_to_string(gp);
+  const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
+  Move move_array[64];
+  GSList *move_list = NULL;
+  for (int i = 0; i < moves; i++) {
+    Move *m = &move_array[i];
+    m->square = move_ptr[i]->square;
+    m->mobility = goodness[i];
+    m->move_pointer = move_ptr[i];
+    move_list = g_slist_prepend(move_list, m);
+  }
+  move_list = g_slist_sort(move_list, (GCompareFunc) move_compare_by_mobility);
+  gchar *lm_to_s_a = square_list_print(&em_head);
+  gchar *lm_to_s_b = move_list_print(move_list);
+  
+  fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%s;%42s\n",
+          call_count,
+          hash,
+          gp_hash_stack[gp_hash_stack_fill_point - 1],
+          gp_to_s,
+          empties,
+          gp_hash_stack_fill_point,
+          is_leaf ? "t" : "f",
+          prevmove ? "f" : "t",
+          lm_to_s_b);
+  gp = game_position_free(gp);
+  g_free(gp_to_s);
+  g_free(lm_to_s_a);
+  g_free(lm_to_s_b);
+  g_slist_free(move_list);
+  /*
+  for (int i = 0; i < moves; i++) {
+    move_array[i].square = 99;
+    move_array[i].mobility = 0;
+    move_array[i].move_pointer = NULL;    
+  }
+  printf("p=%c, square_list=%42s, move_list=%42s;\n",
+         (color == IFES_BLACK) ? 'B' : 'W',
+         lm_to_s_a,
+         lm_to_s_b);
+  */
+#endif
+
   if (moves != 0) {
     for (int i = 0; i < moves; i++) {
       best_value = goodness[i];
@@ -1266,13 +1316,13 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       goodness[best_index] = goodness[i];
 
       /* p: player, e: empties, bm: best move. */
-      
+      /*
       printf("p=%c, e=%46s, bm=%s, a-b=[%+3d %+3d];\n",
              (color == IFES_BLACK) ? 'B' : 'W',
              square_list_print(&em_head),
              ifes_square_to_string(current_move->square),
              alpha, beta);
-      
+      */
 
       move_square = current_move->square;
       holepar = current_move->hole_id;
@@ -1437,6 +1487,9 @@ opponent_color (int color)
   return 2 - color;
 }
 
+
+#ifdef GAME_TREE_DEBUG
+ 
 static char *
 square_list_print (const EmList * const sl)
 {
@@ -1452,7 +1505,7 @@ square_list_print (const EmList * const sl)
   for (current_move = sl->succ;
        current_move != NULL;
        current_move = current_move->succ ) {
-    gchar *move_to_s = square_to_string(ifes_square_to_square (current_move->square));
+    gchar *move_to_s = square_to_string(ifes_square_to_square(current_move->square));
     cursor = g_stpcpy(cursor, move_to_s);
     g_free(move_to_s);
     cursor = g_stpcpy(cursor, &space[0]);
@@ -1462,3 +1515,52 @@ square_list_print (const EmList * const sl)
   }
   return ml_to_s;
 }
+
+static char *
+move_list_print (GSList *ml)
+{
+  GSList *current_move;
+  gchar *ml_to_s;
+  gchar space[] = {' ', '\0'};
+
+  static const size_t size_of_ml_to_s = (3 * 64 + 1) * sizeof(gchar);
+  ml_to_s = (gchar*) malloc(size_of_ml_to_s);
+
+  *ml_to_s = '\0';
+  gchar *cursor = ml_to_s;
+  for (current_move = ml;
+       current_move != NULL;
+       current_move = g_slist_next(current_move) ) {
+    Move *m  = current_move->data;
+    gchar *move_to_s = square_to_string(ifes_square_to_square(m->square));
+    cursor = g_stpcpy(cursor, move_to_s);
+    g_free(move_to_s);
+    cursor = g_stpcpy(cursor, &space[0]);
+  }
+  if (ml_to_s != cursor) {
+    *--cursor = '\0';
+  }
+  return ml_to_s;
+}
+
+static gint
+move_compare_by_mobility (gconstpointer pa,
+                          gconstpointer pb)
+{
+  const Move *a = (Move *) pa;
+  const Move *b = (Move *) pb;
+
+  int ret;
+  
+  if (a->mobility > b->mobility) {
+    ret = -1;
+  } else if (a->mobility < b->mobility) {
+    ret =  +1;
+  } else {
+    ret = 0;
+  }
+  
+  return ret;
+}
+
+#endif
