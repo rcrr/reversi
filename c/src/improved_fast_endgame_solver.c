@@ -1286,17 +1286,6 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
   move_list = g_slist_sort(move_list, (GCompareFunc) move_compare_by_mobility);
   gchar *lm_to_s_a = square_list_print(&em_head);
   gchar *lm_to_s_b = move_list_print(move_list);
-
-  if (hash == 0x94b5a36ef5a09de7) {
-    printf("OUCH! hash=%016llx\n", hash);
-    for (GSList *cm = move_list;
-         cm != NULL;
-         cm = g_slist_next(cm)) {
-      Move *m  = cm->data;
-      printf("move: %d (%s), mobility=%d\n", m->square, ifes_square_to_string(m->square), m->mobility);
-    }
-  }
-  
   fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%s;%42s\n",
           call_count,
           hash,
@@ -1311,7 +1300,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
   g_free(gp_to_s);
   g_free(lm_to_s_a);
   g_free(lm_to_s_b);
-  g_slist_free(move_list);
+  GSList *current_move_ref = move_list;
 #endif
 
   if (moves != 0) {
@@ -1326,6 +1315,14 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       current_move = move_ptr[best_index];
       move_ptr[best_index] = move_ptr[i];
       goodness[best_index] = goodness[i];
+
+#ifdef GAME_TREE_DEBUG
+      Move *m = current_move_ref->data;
+      if (current_move->square != m->square) {
+        printf("hash=%016llx, i=%d, current_move->square=%d, m->square=%d\n", hash, i, current_move->square, m->square);
+      }
+      current_move_ref = g_slist_next(current_move_ref);
+#endif
 
       /* p: player, e: empties, bm: best move. */
       /*
@@ -1419,6 +1416,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
 
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack_fill_point--;
+  g_slist_free(move_list);
 #endif
   
   return selected_n;
