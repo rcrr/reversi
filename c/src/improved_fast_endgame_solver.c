@@ -1261,7 +1261,8 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       undo_flips(flip_count, oppcol);
       board[move_square] = IFES_EMPTY;
       move_ptr[moves] = current_move;
-      goodness[moves] = -mobility;
+      //goodness[moves] = -mobility;
+      goodness[moves] = -(mobility * 64 + 64 - (worst_to_best_reverse_lookup[move_square] - 1));
       moves++;
     }
   }
@@ -1318,7 +1319,8 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
 
 #ifdef GAME_TREE_DEBUG
       Move *m = current_move_ref->data;
-      if (current_move->square != m->square) {
+      //if (current_move->square != m->square) {
+      if (hash == 0x29486e9b788024a6) {
         printf("hash=%016llx, i=%d, current_move->square=%d, m->square=%d\n", hash, i, current_move->square, m->square);
       }
       current_move_ref = g_slist_next(current_move_ref);
