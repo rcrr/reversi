@@ -62,7 +62,7 @@ typedef struct {
 } Node;
 
 #ifdef GAME_TREE_DEBUG
-typedef struct Move {
+typedef struct {
   uint8           square;     /**< @brief One square on the board. */
   int             mobility;   /**< @brief Id of the hole to which the square belongs to. */
   EmList     *move_pointer;   /**< @brief Predecessor element, or NULL if missing. */
@@ -242,39 +242,32 @@ static const uint8 use_parity = 0;
 static const uint8 fastest_first = 0;
 
 /*
- * The 8 legal directions, plus no direction an ninth value.
+ * The 8 legal directions, plus no direction at ninth value.
  */
 static const sint8 dir_inc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
 
 /*
  * Fixed square ordering.
+ *
+ * The order in each "cluster" has been changed from the original proposal
+ * in order to be consistent with the bit_scan used by the exact_solver module,
+ * most significant bit come first.
+ *
+ * Central squares 50, 49, 41, 40 should never be used, but are there to have a "complete"
+ * implementation.
  */
-static const uint8 _worst_to_best[64] =
-  {
-    /*B2*/      20, 25, 65, 70,
-    /*B1*/      11, 16, 19, 26, 64, 71, 74, 79,
-    /*C2*/      21, 24, 29, 34, 56, 61, 66, 69,
-    /*D2*/      22, 23, 38, 43, 47, 52, 67, 68,
-    /*D3*/      31, 32, 39, 42, 48, 51, 58, 59,
-    /*D1*/      13, 14, 37, 44, 46, 53, 76, 77,
-    /*C3*/      30, 33, 57, 60,
-    /*C1*/      12, 15, 28, 35, 55, 62, 75, 78,
-    /*A1*/      10, 17, 73, 80, 
-    /*D4*/      40, 41, 49, 50
-  };
-
 static const uint8 worst_to_best[64] =
   {
-    /*B2*/      70, 65, 25, 20,
-    /*B1*/      79, 74, 71, 64, 26, 19, 16, 11,
-    /*C2*/      69, 66, 61, 56, 34, 29, 24, 21,
-    /*D2*/      68, 67, 52, 47, 43, 38, 23, 22,
-    /*D3*/      59, 58, 51, 48, 42, 39, 32, 31,
-    /*D1*/      77, 76, 53, 46, 44, 37, 14, 13,
-    /*C3*/      60, 57, 33, 30,
-    /*C1*/      78, 75, 62, 55, 35, 28, 15, 12,
-    /*A1*/      80, 73, 17, 10, 
-    /*D4*/      50, 49, 41, 40
+    /* G7 B7 G2 B2 */              70, 65, 25, 20,
+    /* G8 B8 H7 A7 H2 A2 G1 B1 */  79, 74, 71, 64, 26, 19, 16, 11,
+    /* F7 C7 G6 B6 G3 B3 F2 C2 */  69, 66, 61, 56, 34, 29, 24, 21,
+    /* E7 D7 G5 B5 G4 B4 E2 D2 */  68, 67, 52, 47, 43, 38, 23, 22,
+    /* E6 D6 F5 C5 F4 C4 E3 D3 */  59, 58, 51, 48, 42, 39, 32, 31,
+    /* E8 D8 H5 A5 H4 A4 E1 D1 */  77, 76, 53, 46, 44, 37, 14, 13,
+    /* F6 C6 F3 C3 */              60, 57, 33, 30,
+    /* F8 C8 H6 A6 H3 A3 F1 C1 */  78, 75, 62, 55, 35, 28, 15, 12,
+    /* H8 A8 H1 A1 */              80, 73, 17, 10, 
+    /* E5 D5 E4 D4 */              50, 49, 41, 40
   };
 
 static const uint8 worst_to_best_reverse_lookup[91] =
@@ -341,6 +334,18 @@ static int gp_hash_stack_fill_point = 0;
  * dxxxxxxxx       square(a,b) = board[10+a+b*9] for 0 <= a, b <= 7.
  * dddddddddd   
  * where d (dummy) squares contain DUMMY, x are EMPTY, BLACK, or WHITE:
+ *
+ *       A   B   C   D   E   F   G   H
+ *       -   -   -   -   -   -   -   -
+ *  1 - 10  11  12  13  14  15  16  17
+ *  2 - 19  20  21  22  23  24  25  26
+ *  3 - 28  29  30  31  32  33  34  35
+ *  4 - 37  38  39  40  41  42  43  44
+ *  5 - 46  47  48  49  50  51  52  53
+ *  6 - 55  56  57  58  59  60  61  62
+ *  7 - 64  65  66  67  68  69  70  71
+ *  8 - 73  74  75  76  77  78  79  80
+ *
  */
 static uint8 board[91];
 
