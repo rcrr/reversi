@@ -261,3 +261,9 @@ GROUP BY
   es_log.level
 ORDER BY
   es_log.level ASC;
+
+-- Average branching factor per level.
+-- A random move selection should be tested to extimate the real game tree size.
+-- A FULL MINIMAX (no-cut) should be used to prove the assunptions.
+-- Finally for each node the number of cut moves shold be logged.
+SELECT level, round(avg((char_length(trim(move_list)) + 1) / 3), 2) FROM es_log_p GROUP BY level ORDER BY level ASC;
