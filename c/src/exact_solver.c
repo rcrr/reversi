@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -63,9 +63,9 @@ typedef struct MoveListElement_ {
  * Head and tail are not part of the list.
  */
 typedef struct {
-  MoveListElement elements[64];
-  MoveListElement head;
-  MoveListElement tail;
+  MoveListElement elements[64];          /**< @brief Elements array. */
+  MoveListElement head;                  /**< @brief Head element, it is not part of the list. */
+  MoveListElement tail;                  /**< @brief Tail element, it is not part of the list. */
 } MoveList;
 
 
@@ -99,17 +99,7 @@ move_list_print (MoveList *ml);
  * Internal variables and constants.
  */
 
-#ifdef GAME_TREE_DEBUG
-static uint64 call_count = 0;
-static FILE *game_tree_debug_file = NULL;
-static uint64 gp_hash_stack[128];
-static int gp_hash_stack_fill_point = 0;
-#endif
-
-static const uint64 _legal_moves_priority_mask[] = {
-  0xFFFFFFFFFFFFFFFF, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
+/* Used to sort the legal moves based on an heuristic knowledge. */
 static const uint64 legal_moves_priority_mask[] = {
   /* D4, E4, E5, D5 */                 0x0000001818000000,
   /* A1, H1, H8, A8 */                 0x8100000000000081,
@@ -123,8 +113,25 @@ static const uint64 legal_moves_priority_mask[] = {
   /* B2, G2, G7, B7 */                 0x0042000000004200
 };
 
+/* The size of the legal_moves_priority_mask array. */
 static const int legal_moves_priority_cluster_count =
   sizeof(legal_moves_priority_mask) / sizeof(legal_moves_priority_mask[0]);
+
+#ifdef GAME_TREE_DEBUG
+
+/* The total number of call to the recursive function that traverse the game DAG. */
+static uint64 call_count = 0;
+
+/* The log file used to record the game DAG traversing. */
+static FILE *game_tree_debug_file = NULL;
+
+/* The predecessor-successor array of game position hash values. */
+static uint64 gp_hash_stack[128];
+
+/* The index of the last entry into gp_hash_stack. */
+static int gp_hash_stack_fill_point = 0;
+
+#endif
 
 
 /*******************************************************/
@@ -134,10 +141,9 @@ static const int legal_moves_priority_cluster_count =
 /**
  * @brief Search node structure constructor.
  *
- * An assertion checks that the received pointer to the allocated
- * search node structure is not `NULL`.
- *
- * @return a pointer to a new search node structure
+ * @param [in] move  the move field
+ * @param [in] value the value field
+ * @return           a pointer to a new search node structure
  */
 SearchNode *
 search_node_new (const Square move, const int value)
@@ -175,9 +181,10 @@ search_node_free (SearchNode *sn)
 }
 
 /**
- * @brief To de documented.
+ * @brief Negate the value of the node.
  *
- * Details to be documented.
+ * @param sn the search node to be negated
+ * @return   a new node having the negated value
  */
 SearchNode *
 search_node_negated (SearchNode *sn)
@@ -196,9 +203,6 @@ search_node_negated (SearchNode *sn)
 
 /**
  * @brief Exact solution structure constructor.
- *
- * An assertion checks that the received pointer to the allocated
- * exact solution structure is not `NULL`.
  *
  * @return a pointer to a new exact solution structure
  */
@@ -278,6 +282,12 @@ exact_solution_print (const ExactSolution * const es)
 /* Function implementations for the GamePosition entity. */ 
 /*********************************************************/
 
+/**
+ * @brief Solves the game position returning a new exact solution pointer.
+ *
+ * @param [in] root the starting game position to be solved
+ * @return          a pointer to a new exact solution structure
+ */
 ExactSolution *
 game_position_solve (const GamePosition * const root)
 {
@@ -393,48 +403,18 @@ game_position_solve_impl (      ExactSolution * const result,
 
   const SquareSet moves = game_position_legal_moves(gp);
   if (0ULL == moves) {
-    // - Debug On
-    // p: player, e: empties, ml: ordered legal moves
-    /*
-    printf("p=%c, e=%46s, ml=%20s, a-b=[%+2d %+2d] [%016llx];\n",
-           (gp->player == BLACK_PLAYER) ? 'B' : 'W',
-           square_set_print_as_moves(empties),
-           "",
-           achievable, cutoff,
-           hash);
-    */
-    // - Debug Off
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
       node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable));
     } else {
       result->leaf_count++;
       node = search_node_new((Square) -1, final_value(gp));
-      // - Debug On
-      /*
-      printf("p=%c, leaf_value=%+2d;\n",
-             (gp->player == BLACK_PLAYER) ? 'B' : 'W',
-             node->value);
-      */
-      // - Debug Off
     }
     flipped_players = game_position_free(flipped_players);
   } else {
     MoveList move_list;
     move_list_init(&move_list);
     sort_moves_by_mobility_count(&move_list, gp);
-    // - Debug On
-    /*
-    gchar *move_list_to_s = move_list_print(&move_list);
-    printf("p=%c, e=%46s, ml=%20s, a-b=[%+3d %+3d] [%016llx];\n",
-           (gp->player == BLACK_PLAYER) ? 'B' : 'W',
-           square_set_print_as_moves(empties),
-           move_list_to_s,
-           achievable, cutoff,
-           hash);
-    g_free(move_list_to_s);
-    */
-    // - Debug Off
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
       if (!node) node = search_node_new(move, achievable);
@@ -446,18 +426,14 @@ game_position_solve_impl (      ExactSolution * const result,
         node = node2;
         node->move = move;
         node2 = NULL;
-        if (node->value >= cutoff) { /* printf("-cut-"); */ goto out; }
+        if (node->value >= cutoff) goto out;
       } else {
         node2 = search_node_free(node2);
       }
     }
   }
-  // printf("     ");
  out:
   ;
-  //gchar* move_to_s = square_to_string(node->move);
-  //printf("return node: n.move=%3s n.value=%+3d [%016llx]\n", move_to_s, node->value, hash);
-  //g_free(move_to_s);
 
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack_fill_point--;

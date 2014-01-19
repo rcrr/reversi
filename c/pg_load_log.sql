@@ -250,3 +250,14 @@ CREATE TABLE rel_index(hash           VARCHAR(16),
 SELECT populate_rel_index();
 
 VACUUM (FULL, ANALYZE, VERBOSE) rel_index;
+
+
+-- Level count into the game DAG (directed acyclic graph)
+SELECT
+  es_log.level, count(es_log.level)
+FROM 
+  public.es_log
+GROUP BY
+  es_log.level
+ORDER BY
+  es_log.level ASC;

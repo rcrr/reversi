@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -506,7 +506,11 @@ game_position_get_ifes_player (const GamePosition * const gp)
 }
 
 /**
- * MUST BE DEVELOPPED !!!
+ * @brief Translates board and color into the correspondig game position.
+ *
+ * @param [in] board a board
+ * @param [in] color a color
+ * @return           the equivalent game position
  */
 GamePosition *
 ifes_game_position_translation (uint8 *board, int color)
@@ -531,7 +535,6 @@ ifes_game_position_translation (uint8 *board, int color)
       break;
     }
   }
-
   return game_position_new(board_new(blacks, whites), p);
 }
 
@@ -1266,7 +1269,8 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       undo_flips(flip_count, oppcol);
       board[move_square] = IFES_EMPTY;
       move_ptr[moves] = current_move;
-      //goodness[moves] = -mobility;
+
+      /* Goodness is computed negating mobility, and sorting equal moves by the worst_to_best heuristic. */
       goodness[moves] = -(mobility * 64 + 64 - (worst_to_best_reverse_lookup[move_square] - 1));
       moves++;
     }
@@ -1324,21 +1328,11 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
 
 #ifdef GAME_TREE_DEBUG
       Move *m = current_move_ref->data;
-      //if (current_move->square != m->square) {
-      if (hash == 0x29486e9b788024a6) {
+      if (current_move->square != m->square) {
         printf("hash=%016llx, i=%d, current_move->square=%d, m->square=%d\n", hash, i, current_move->square, m->square);
       }
       current_move_ref = g_slist_next(current_move_ref);
 #endif
-
-      /* p: player, e: empties, bm: best move. */
-      /*
-      printf("p=%c, e=%46s, bm=%s, a-b=[%+3d %+3d];\n",
-             (color == IFES_BLACK) ? 'B' : 'W',
-             square_list_print(&em_head),
-             ifes_square_to_string(current_move->square),
-             alpha, beta);
-      */
 
       move_square = current_move->square;
       holepar = current_move->hole_id;
@@ -1369,7 +1363,6 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
 	if (evaluated_n.value > alpha) {
 	  alpha = evaluated_n.value;
 	  if (evaluated_n.value >= beta) { /* Cutoff. */
-            //printf("-cut-");
             goto end;
           }
 	}
@@ -1386,22 +1379,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
         selected_n.value = 0;
       }
       ;
-      /*
-      printf("p=%c, leaf_value=%+02d;\n",
-             (color == IFES_BLACK) ? 'B' : 'W',
-             selected_n.value);
-      */
     } else { /* Pass. */
-
-      /* p: player, e: empties, bm: best move. */
-      /*
-      printf("p=%c, e=%46s, bm=%s, a-b=[%+3d %+3d];\n",
-             (color == IFES_BLACK) ? 'B' : 'W',
-             square_list_print(&em_head),
-             "--",
-             alpha, beta);
-      */
-
       selected_n = node_negate(fastest_first_end_solve(solution,
                                                        board,
                                                        -beta,
@@ -1412,14 +1390,8 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
                                                        0));
     }
   }
-  // printf("     ");
  end:
   ;
-  /*
-  gchar* move_to_s = ifes_square_to_string(selected_n.square);
-  printf("return node: n.move=%3s n.value=%+3d [%016llx]\n", move_to_s, selected_n.value, hash);
-  g_free(move_to_s);
-  */
 
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack_fill_point--;
