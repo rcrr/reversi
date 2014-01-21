@@ -1,6 +1,65 @@
 
 This is a diary of the performance evolution of the endgame solver.
 
+Date: January 21st, 2014
+      git commit 5c97f746285d703b23b87df33c6b4f00bf77fdef
+
+Finally after a long journey I was able to spot the reason why the two solver (es and ifes) were generating
+different game tree expansions. Ifes was not ordering moves having the same mobility using the best_to_wore static
+heuristic. This has been fixed, and now the two endgame solver behawe the same when ifes is forced to use
+fastest first only feature.
+
+During the investigation the analysis has been done using also SQL scripts, backed up by a PostgreSQL database,
+that load and trasform the records logged by the program. This evolution is promising becouse it helped a lot
+in understanding the properties of the game tree/DAG.
+Scripts are a bit row, and should be organized, commentend, and cleaned.
+
+Now I am interested in working in two different directions:
+
+ - Tune the runner (same path, how fast is the game tree walker)
+ - Measure the path length (the number of nodes being explored) given by different features
+
+ In order to start I want to have some statistical data on the branching factor per level.
+
+I start studying game position FFO_05, that is the only one that completes using pure MINIMAX algorithm,
+without any alpha-beta cut; here the results:
+
+rcrr@hypnotic:~/base/prj/reversi/c$ time ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-05 -s es
+Entry id:    ffo-05
+Description:  G8:+32. G2:+12. B2:-20. G6:-26. G1:-32. G7:-34.
+Game Position:
+    a b c d e f g h 
+ 1  . O O O O O . . 
+ 2  . . O @ @ O . @ 
+ 3  @ @ O @ O @ @ . 
+ 4  @ @ O @ O @ @ O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . O 
+ 7  @ . @ O O O . . 
+ 8  . @ @ @ @ @ . . 
+Player to move: BLACK
+
+Solving the game position ffo-05 using solver es ...
+
+    a b c d e f g h 
+ 1  . O O O O O . . 
+ 2  . . O @ @ O . @ 
+ 3  @ @ O @ O @ @ . 
+ 4  @ @ O @ O @ @ O 
+ 5  @ @ O O @ O O O 
+ 6  @ @ @ @ O O . O 
+ 7  @ . @ O O O . . 
+ 8  . @ @ @ @ @ . . 
+Player to move: BLACK
+
+[node_count=99924329, leaf_count=27616057]
+Final SearchNode sn: move=G8, value=32
+
+real	17m42.050s
+user	17m29.166s
+sys	0m7.825s
+
+
 Date: Dicember 14th, 2013
       git commit de231cd9599955a08822a1ba662eb42f0674fa05
 
@@ -15,6 +74,8 @@ replaced by "hypnotic", a brand new ASUS n550jv, sporting a new Intel Haswell i7
 Running the command:
    time ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s es
 is 42% faster on hypnotic then on whitewater, respectively 43 vs 78 seconds.
+
+
 
 Date: September 1st, 2013
       git commit 2ec7d4e4f0de90eec863bc56c932c9ca34584779
