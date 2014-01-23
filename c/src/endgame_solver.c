@@ -11,7 +11,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -37,6 +37,7 @@
 #include "game_position_db.h"
 #include "exact_solver.h"
 #include "improved_fast_endgame_solver.h"
+#include "random_game_sampler.h"
 
 
 
@@ -47,7 +48,7 @@
 
 /* Static constants. */
 
-static const gchar *solvers[] = {"es", "ifes"};
+static const gchar *solvers[] = {"es", "ifes", "rand"};
 static const int n_solver = sizeof(solvers) / sizeof(solvers[0]);
 
 
@@ -58,19 +59,21 @@ static const int n_solver = sizeof(solvers) / sizeof(solvers[0]);
 static gchar *input_file   = NULL;
 static gchar *lookup_entry = NULL;
 static gchar *solver       = NULL;
+static gint   repeats      = 1;
 
 static GOptionEntry entries[] =
   {
-    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,   "Input file name - Mandatory",                        NULL },
-    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry    - Mandatory",                        NULL },
-    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver          - Mandatory - Must be in [es|ifes]", NULL },
+    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,   "Input file name   - Mandatory",                             NULL },
+    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry      - Mandatory",                             NULL },
+    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver            - Mandatory - Must be in [es|ifes|rand]", NULL },
+    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand solver",             NULL },
     { NULL }
   };
 
 
 
 /**
- * @brief Main entry to the Reversi C endgame solver implementation.
+ * @brief Main entry to the Reversi C endgame solver implementation.111
  * 
  * Documentation has to be completly developed.
  */
@@ -96,9 +99,10 @@ main (int argc, char *argv[])
 
   /* GLib command line options and argument parsing. */
   option_group = g_option_group_new("name", "description", "help_description", NULL, NULL);
-  context = g_option_context_new ("- Solve an endgame position");
-  g_option_context_add_main_entries (context, entries, NULL);
-  g_option_context_add_group (context, option_group);
+  context = g_option_context_new("- Solve an endgame position");
+  g_option_context_add_main_entries(context, entries, NULL);
+  g_option_context_add_group(context, option_group);
+  g_option_context_set_description(context, "The rand solver is a way to play a sequence of random game from the given position.\n");
   if (!g_option_context_parse (context, &argc, &argv, &error)) {
     g_print("Option parsing failed: %s\n", error->message);
     return -1;
@@ -120,11 +124,17 @@ main (int argc, char *argv[])
       g_print("Option -s, --solver is out of range.\n.");
       return -8;
     }
+    if (solver_index == 2) { // solver == random
+      if (repeats < 1) {
+        g_print("Option -n, --repeats is out of range.\n.");
+        return -9;
+      }
+    }
   } else {
     g_print("Option -s, --solver is mandatory.\n.");
     return -5;
   }
-
+  
   /* Opens the source file for reading. */
   fp = fopen(source, "r");
   if (!fp) {
@@ -175,6 +185,9 @@ main (int argc, char *argv[])
     break;
   case 1:
     solution = game_position_ifes_solve(gp);
+    break;
+  case 2:
+    solution = game_position_random_sampler(gp, repeats);
     break;
   default:
     g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);
