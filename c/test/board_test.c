@@ -573,7 +573,7 @@ game_position_hash_test (void)
   b = board_new(blacks, whites);
   p = WHITE_PLAYER;
   gp = game_position_new(b, p);
-  g_assert(game_position_hash(gp) == 0x6EF5203CCAF44DBF);
+  g_assert(game_position_hash(gp) == 0xFFFFFFFFFFFFFFFF);
   gp = game_position_free(gp);
 
   expected = 0x4689879C5E2B6C8D ^ 0x056C0070CF70F8DD ^ 0x81AD4662EE05E75A;
@@ -583,6 +583,17 @@ game_position_hash_test (void)
   p = BLACK_PLAYER;
   gp = game_position_new(b, p);
   g_assert(game_position_hash(gp) == expected);
+  gp = game_position_free(gp);
+
+  /* 
+   * The hash of two game position A, and B having the same board but different player satisfy
+   * this property:
+   * hash(A) & hash(B) == 0;
+   */
+  p = WHITE_PLAYER;
+  b = board_new(blacks, whites);
+  gp = game_position_new(b, p);
+  g_assert(game_position_hash(gp) == ~expected);
   gp = game_position_free(gp);
 
 }
