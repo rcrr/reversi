@@ -65,8 +65,9 @@
 /**
  * @brief Solves the game position returning a new exact solution pointer.
  *
- * @param [in] root the starting game position to be solved
- * @return          a pointer to a new exact solution structure
+ * @param [in] root    the starting game position to be solved
+ * @param [in] repeats number of random game to play
+ * @return             a pointer to a new exact solution structure
  */
 ExactSolution *
 game_position_random_sampler (const GamePosition * const root,

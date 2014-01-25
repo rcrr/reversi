@@ -145,11 +145,11 @@ ifes_game_position_translation_test (GamePositionDbFixture *fixture,
 {
   GamePositionDb *db = fixture->db;
   GamePosition *ffo_01 = get_gp_from_db(db, "ffo-01");
-  gchar *gpa_to_s = game_position_print(ffo_01);
-  printf("\n%s\n", gpa_to_s);
+  //gchar *gpa_to_s = game_position_print(ffo_01);
+  //printf("\n%s\n", gpa_to_s);
 
   uint64 expected_hash = game_position_hash(ffo_01);
-  printf("expected_hash = [%016llx]\n", expected_hash);
+  //printf("expected_hash = [%016llx]\n", expected_hash);
 
   uint8 ifes_board[91];
   int emp = 0;
@@ -159,11 +159,11 @@ ifes_game_position_translation_test (GamePositionDbFixture *fixture,
   IFES_SquareState ifes_player = game_position_get_ifes_player(ffo_01);
 
   GamePosition *translated = ifes_game_position_translation(ifes_board, ifes_player);
-  gchar *gpb_to_s = game_position_print(translated);
-  printf("\n%s\n", gpb_to_s);
+  //gchar *gpb_to_s = game_position_print(translated);
+  //printf("\n%s\n", gpb_to_s);
 
   uint64 translated_hash = game_position_hash(translated);
-  printf("translated_hash = [%016llx]\n", translated_hash);
+  //printf("translated_hash = [%016llx]\n", translated_hash);
 
   g_assert(expected_hash == translated_hash);
 }
