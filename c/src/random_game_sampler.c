@@ -42,7 +42,6 @@
 #include "random_game_sampler.h"
 #include "board.h"
 #include "bit_works.h"
-#include "advanced_square_set.h"
 
 
 
