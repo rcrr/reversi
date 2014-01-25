@@ -31,13 +31,10 @@
  * </tt>
  */
 
-#include "bit_works.h"
-#include "board.h"
-
-#include <glib.h>
-
 #ifndef RANDOM_GAME_SAMPLER_H
 #define RANDOM_GAME_SAMPLER_H
+
+#include "board.h"
 
 
 

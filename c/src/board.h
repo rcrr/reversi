@@ -12,7 +12,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -33,12 +33,12 @@
  * </tt>
  */
 
-#include "bit_works.h"
+#ifndef BOARD_H
+#define BOARD_H
 
 #include <glib.h>
 
-#ifndef BOARD_H
-#define BOARD_H
+#include "bit_works.h"
 
 /**
  * @enum Player

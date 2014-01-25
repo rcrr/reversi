@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -31,10 +31,10 @@
  * </tt>
  */
 
-#include "exact_solver.h"
-
 #ifndef IMPROVED_FAST_ENDGAME_SOLVER_H
 #define IMPROVED_FAST_ENDGAME_SOLVER_H
+
+#include "exact_solver.h"
 
 /**
  * @enum IFES_SquareState

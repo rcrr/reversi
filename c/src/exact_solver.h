@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -31,13 +31,12 @@
  * </tt>
  */
 
-#include "bit_works.h"
-#include "board.h"
+#ifndef EXACT_SOLVER_H
+#define EXACT_SOLVER_H
 
 #include <glib.h>
 
-#ifndef EXACT_SOLVER_H
-#define EXACT_SOLVER_H
+#include "board.h"
 
 /**
  * @brief An exact solution is an entity that holds the result of a #game_position_solve run.
