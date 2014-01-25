@@ -1,6 +1,36 @@
 /**
  * @file
  *
+ *
+ * @todo Complete the random game player.
+ *
+ * @todo Add to the solver selection a full MINIMAX implementation.
+ *
+ * @todo Add to the solver selection an alpha-beta implementation that
+ * sort the legal move list with a random function.
+ *
+ * @todo Add to the exact_solver logging strategy a second file that logs
+ * when the function returns. There we can add the return value and the
+ * number of moves serched against the number of legal ones. This can give
+ * back a kpi of the alpha-beta efficiency in cutting unrelevant branches.
+ *
+ * @todo Refine and refactor the exact_solver implementation.
+ *
+ * @todo Write a test suite that solves a selection of the FFO test cases.
+ *
+ * @todo Profile exact_solver against improved_fast_endgame_solver.
+ *
+ * @todo Analyze the parity feature in improved_fast_endgame.
+ *
+ * @todo Try to avoid having malloc/free calls during game tree expansion.
+ *
+ * @todo Organize the SQL scripts into a modular practice.
+ *
+ * @todo Develop a full description of the evidence of all the variants.
+ *
+ * @todo Introduce the node cache by means of a shared hashtable. 
+ *
+ *
  * @brief Endgame Solver.
  * @details This executable analyzes an end game position and
  * computes the exact outcome.
