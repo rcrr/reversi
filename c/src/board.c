@@ -1185,7 +1185,7 @@ game_position_clone (const GamePosition * const gp)
 }
 
 /**
- * @brief Compares game positions `a` and board `b`.
+ * @brief Compares game positions `a` and `b`.
  *
  * When the two game position are equal it returns `0`, when `a` is greather then `b` it
  * returns `+1`, otherwise `-1`.
@@ -1488,6 +1488,15 @@ game_position_hash (const GamePosition * const gp)
   if (p) hash = ~hash; /* In this way passing doesn't require a full new hash. */
 
   return hash;
+}
+
+/**
+ * @todo To be documented.
+ */
+int
+game_position_final_value (const GamePosition * const gp)
+{
+  return board_count_diff_winner_get_empties(gp->board, gp->player);
 }
 
 /*

@@ -37,8 +37,6 @@
 #include <glib.h>
 
 #include "exact_solver.h"
-//#include "board.h"
-//#include "bit_works.h"
 
 #define GAME_TREE_DEBUG
 
@@ -80,9 +78,6 @@ game_position_solve_impl (      ExactSolution * const result,
                           const GamePosition  * const gp,
                           const int                   achievable,
                           const int                   cutoff);
-
-static int
-final_value (const GamePosition * const gp);
 
 static void
 move_list_init (MoveList *ml);
@@ -405,7 +400,7 @@ game_position_solve_impl (      ExactSolution * const result,
       node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable));
     } else {
       result->leaf_count++;
-      node = search_node_new((Square) -1, final_value(gp));
+      node = search_node_new((Square) -1, game_position_final_value(gp));
     }
     flipped_players = game_position_free(flipped_players);
   } else {
@@ -437,12 +432,6 @@ game_position_solve_impl (      ExactSolution * const result,
 #endif
 
   return node;
-}
-
-static int
-final_value (const GamePosition * const gp)
-{
-  return board_count_diff_winner_get_empties(gp->board, gp->player);
 }
 
 static void
