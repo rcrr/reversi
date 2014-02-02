@@ -49,9 +49,10 @@
   ON (e.empty = f.empty)
 )
 SELECT
-  t.empty                                                          AS empty,
-  round(max(t.average_mobility), 3)                                AS average_mobility,
-  round(sum((t.average_mobility - t.mobility)^2 * t.frequency), 4) AS mobility_variance
+  t.empty                                                                 AS empty,
+  round(max(t.average_mobility), 3)                                       AS average_mobility,
+  round(sum((t.average_mobility - t.mobility)^2 * t.frequency), 4)        AS mobility_variance,
+  round(sqrt(sum((t.average_mobility - t.mobility)^2 * t.frequency)), 4)  AS mobility_sd
 FROM
   empty_mobility_variance AS t
 GROUP BY
