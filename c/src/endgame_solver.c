@@ -2,7 +2,7 @@
  * @file
  *
  *
- * @todo Complete the random game player.
+ * @todo [done] Complete the random game player.
  *
  * @todo Add to the solver selection a full MINIMAX implementation.
  *
@@ -68,17 +68,13 @@
 #include "exact_solver.h"
 #include "improved_fast_endgame_solver.h"
 #include "random_game_sampler.h"
-
-
-
-/* Helper function prototypes. */
-
+#include "minimax_solver.h"
 
 
 
 /* Static constants. */
 
-static const gchar *solvers[] = {"es", "ifes", "rand"};
+static const gchar *solvers[] = {"es", "ifes", "rand", "minimax"};
 static const int n_solver = sizeof(solvers) / sizeof(solvers[0]);
 
 
@@ -93,10 +89,10 @@ static gint   repeats      = 1;
 
 static GOptionEntry entries[] =
   {
-    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,   "Input file name   - Mandatory",                             NULL },
-    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry      - Mandatory",                             NULL },
-    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver            - Mandatory - Must be in [es|ifes|rand]", NULL },
-    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand solver",             NULL },
+    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,   "Input file name   - Mandatory",                                     NULL },
+    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry      - Mandatory",                                     NULL },
+    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver            - Mandatory - Must be in [es|ifes|rand|minimax]", NULL },
+    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand solver",                     NULL },
     { NULL }
   };
 
@@ -105,7 +101,7 @@ static GOptionEntry entries[] =
 /**
  * @brief Main entry to the Reversi C endgame solver implementation.111
  * 
- * Documentation has to be completly developed.
+ * @todo Documentation has to be completly developed.
  */
 int
 main (int argc, char *argv[])
@@ -219,6 +215,9 @@ main (int argc, char *argv[])
   case 2:
     solution = game_position_random_sampler(gp, repeats);
     break;
+  case 3:
+    solution = game_position_minimax_solve(gp);
+    break;
   default:
     g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);
     return -9;
@@ -247,10 +246,3 @@ main (int argc, char *argv[])
 
   return 0;
 }
-
-
-
-/*
- * Internal functions.
- */
-
