@@ -48,9 +48,7 @@
 
 static SearchNode *
 game_position_solve_impl (      ExactSolution * const result,
-                          const GamePosition  * const gp,
-                          const int                   achievable,
-                          const int                   cutoff);
+                          const GamePosition  * const gp);
 
 
 
@@ -120,7 +118,7 @@ game_position_minimax_solve (const GamePosition * const root)
 
   result->solved_game_position = game_position_clone(root);
 
-  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64);
+  sn = game_position_solve_impl(result, result->solved_game_position);
 
   if (sn) {
     result->principal_variation[0] = sn->move;
@@ -143,9 +141,7 @@ game_position_minimax_solve (const GamePosition * const root)
 
 static SearchNode *
 game_position_solve_impl (      ExactSolution * const result,
-                          const GamePosition  * const gp,
-                          const int                   achievable,
-                          const int                   cutoff)
+                          const GamePosition  * const gp)
 {
   SearchNode *node;
   SearchNode *node2;
@@ -182,7 +178,7 @@ game_position_solve_impl (      ExactSolution * const result,
   if (moves == empty_square_set) {
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
-      node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable));
+      node = search_node_negated(game_position_solve_impl(result, flipped_players));
     } else {
       result->leaf_count++;
       node = search_node_new((Square) -1, game_position_final_value(gp));
@@ -195,7 +191,7 @@ game_position_solve_impl (      ExactSolution * const result,
       const Square move = bit_works_bitscanLS1B_64(remaining_moves);
       remaining_moves ^= 1ULL << move;
       GamePosition *gp2 = game_position_make_move(gp, move);
-      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value));
+      node2 = search_node_negated(game_position_solve_impl(result, gp2));
       gp2 = game_position_free(gp2);
       if (node2->value > node->value) {
         search_node_free(node);
