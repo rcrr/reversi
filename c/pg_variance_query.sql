@@ -1,10 +1,12 @@
 ﻿WITH empty_mobility_node_count AS (
   SELECT
     facts.empty_count                AS empty,
-    facts.legal_move_count_adjusted  AS mobility,
+    facts.legal_move_count           AS mobility,
     count(*)                         AS node_count
   FROM
     rand_log AS facts
+  WHERE
+    NOT (legal_move_count = 0 AND legal_move_count_adjusted = 1)
   GROUP BY
     empty, mobility
   ORDER BY
