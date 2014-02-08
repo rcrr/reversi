@@ -165,7 +165,7 @@ game_position_random_sampler_impl (      ExactSolution * const result,
   const SquareSet lm = game_position_legal_moves(gp);
   const int lm_count = bit_works_popcount(lm);
   const int lm_count_adj = lm_count + ((lm == 0 && !is_leaf) ? 1 : 0);
-  gchar *lm_to_s = square_set_print_as_moves(lm);
+  gchar *lm_to_s = square_set_to_string(lm);
   fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%2d;%2d;%78s\n",
           call_count,
           hash,

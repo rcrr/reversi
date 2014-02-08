@@ -135,23 +135,23 @@ game_position_legal_moves_test (GamePositionDbFixture *fixture,
 
   GamePositionDb *db = fixture->db;
 
-  legal_moves_to_string = square_set_print_as_moves(game_position_legal_moves(get_gp_from_db(db, "initial")));
+  legal_moves_to_string = square_set_to_string(game_position_legal_moves(get_gp_from_db(db, "initial")));
   g_assert_cmpstr("D3 C4 F5 E6", ==, legal_moves_to_string);
   g_free(legal_moves_to_string);
 
-  legal_moves_to_string = square_set_print_as_moves(game_position_legal_moves(get_gp_from_db(db, "early-game-b-9-moves")));
+  legal_moves_to_string = square_set_to_string(game_position_legal_moves(get_gp_from_db(db, "early-game-b-9-moves")));
   g_assert_cmpstr("C3 C6", ==, legal_moves_to_string);
   g_free(legal_moves_to_string);
 
-  legal_moves_to_string = square_set_print_as_moves(game_position_legal_moves(get_gp_from_db(db, "black-has-to-pass")));
+  legal_moves_to_string = square_set_to_string(game_position_legal_moves(get_gp_from_db(db, "black-has-to-pass")));
   g_assert_cmpstr("", ==, legal_moves_to_string);
   g_free(legal_moves_to_string);
 
-  legal_moves_to_string = square_set_print_as_moves(game_position_legal_moves(get_gp_from_db(db, "early-game-c-12-moves")));
+  legal_moves_to_string = square_set_to_string(game_position_legal_moves(get_gp_from_db(db, "early-game-c-12-moves")));
   g_assert_cmpstr("H2 A4 C4 G4 A5 F5 B6 E6 G7", ==, legal_moves_to_string);
   g_free(legal_moves_to_string);
 
-  legal_moves_to_string = square_set_print_as_moves(game_position_legal_moves(get_gp_from_db(db, "final-b37-w27")));
+  legal_moves_to_string = square_set_to_string(game_position_legal_moves(get_gp_from_db(db, "final-b37-w27")));
   g_assert_cmpstr("", ==, legal_moves_to_string);
   g_free(legal_moves_to_string);
 

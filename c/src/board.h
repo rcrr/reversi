@@ -40,6 +40,12 @@
 
 #include "bit_works.h"
 
+
+
+/**********************************************/
+/* Type declarations.                         */ 
+/**********************************************/
+
 /**
  * @enum Player
  * @brief The player is one of the two competitors in the game.
@@ -167,6 +173,17 @@ typedef struct {
   Board *board;   /**< @brief Member board contains a pointer to a `Board` structure. */
   Player player;  /**< @brief Member player contains the next to move. */
 } GamePosition;
+
+
+
+/**********************************************/
+/* Global constants.                          */ 
+/**********************************************/
+
+/**
+ * @brief The empty square set.
+ */
+static const SquareSet empty_square_set = 0ULL;
 
 
 
@@ -373,7 +390,7 @@ game_position_final_value (const GamePosition * const gp);
 /******************************************************/
 
 extern gchar *
-square_set_print_as_moves (SquareSet moves);
+square_set_to_string (SquareSet moves);
 
 
 #endif /* BOARD_H */

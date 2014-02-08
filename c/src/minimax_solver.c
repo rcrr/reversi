@@ -38,30 +38,7 @@
 
 #include "minimax_solver.h"
 
-#define GAME_TREE_DEBUG
-
-/**
- * @brief Elements of a doubly linked list that collects moves.
- *
- * Elements have the square and mobility fields.
- */
-typedef struct MoveListElement_ {
-  Square                   sq;           /**< @brief The square field. */
-  uint8                    mobility;     /**< @brief The mobility field. */
-  struct MoveListElement_ *pred;         /**< @brief A pointer to the predecesor element. */
-  struct MoveListElement_ *succ;         /**< @brief A pointer to the successor element. */
-} MoveListElement;
-
-/**
- * @brief Move list, having head, tail, and elements fields.
- *
- * Head and tail are not part of the list.
- */
-typedef struct {
-  MoveListElement elements[64];          /**< @brief Elements array. */
-  MoveListElement head;                  /**< @brief Head element, it is not part of the list. */
-  MoveListElement tail;                  /**< @brief Tail element, it is not part of the list. */
-} MoveList;
+//#define GAME_TREE_DEBUG
 
 
 
@@ -69,21 +46,11 @@ typedef struct {
  * Prototypes for internal functions.
  */
 
-static void
-sort_moves_by_mobility_count (      MoveList     *       move_list,
-                              const GamePosition * const gp);
-
 static SearchNode *
 game_position_solve_impl (      ExactSolution * const result,
                           const GamePosition  * const gp,
                           const int                   achievable,
                           const int                   cutoff);
-
-static void
-move_list_init (MoveList *ml);
-
-static gchar *
-move_list_print (MoveList *ml);
 
 
 
@@ -145,7 +112,7 @@ game_position_minimax_solve (const GamePosition * const root)
 
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack[0] = 0;
-  game_tree_debug_file = fopen("es_log.csv", "w");
+  game_tree_debug_file = fopen("minimax_log.csv", "w");
   fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEF", "MOVE_LIST");
 #endif
 
@@ -174,43 +141,6 @@ game_position_minimax_solve (const GamePosition * const root)
  * Internal functions.
  */
 
-static void
-sort_moves_by_mobility_count (MoveList *move_list, const GamePosition * const gp)
-{
-  MoveListElement *curr = NULL;
-  int move_index = 0;
-  const SquareSet moves = game_position_legal_moves(gp);
-  SquareSet moves_to_search = moves;
-  for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
-    moves_to_search = legal_moves_priority_mask[i] & moves;
-    while (moves_to_search) {
-      curr = &move_list->elements[move_index];
-      const Square move = bit_works_bitscanLS1B_64(moves_to_search);
-      moves_to_search &= ~(1ULL << move);
-      GamePosition *next_gp = game_position_make_move(gp, move);
-      const SquareSet next_moves = game_position_legal_moves(next_gp);
-      next_gp = game_position_free(next_gp);
-      const int next_move_count = bit_works_popcount(next_moves);
-      curr->sq = move;
-      curr->mobility = next_move_count;
-      for (MoveListElement *element = move_list->head.succ; element != NULL; element = element->succ) {
-        if (curr->mobility < element->mobility) { /* Insert current before element. */
-          MoveListElement *left  = element->pred;
-          MoveListElement *right = element;
-          curr->pred  = left;
-          curr->succ  = right;
-          left->succ  = curr;
-          right->pred = curr;
-          goto out;
-        }
-      }
-    out:
-      move_index++;
-    }
-  }
-  return;
-}
-
 static SearchNode *
 game_position_solve_impl (      ExactSolution * const result,
                           const GamePosition  * const gp,
@@ -224,6 +154,8 @@ game_position_solve_impl (      ExactSolution * const result,
   node2 = NULL;
   result->node_count++;
 
+  const SquareSet moves = game_position_legal_moves(gp);
+
 #ifdef GAME_TREE_DEBUG
   call_count++;
   gp_hash_stack_fill_point++;
@@ -233,10 +165,7 @@ game_position_solve_impl (      ExactSolution * const result,
   gp_hash_stack[gp_hash_stack_fill_point] = hash;
   gchar *gp_to_s = game_position_to_string(gp);
   const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
-  MoveList ml;
-  move_list_init(&ml);
-  sort_moves_by_mobility_count(&ml, gp);
-  gchar *ml_to_s = move_list_print(&ml);
+  gchar *ml_to_s = square_set_to_string(moves);
   fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%42s\n",
           call_count,
           hash,
@@ -250,8 +179,7 @@ game_position_solve_impl (      ExactSolution * const result,
   g_free(ml_to_s);
 #endif
 
-  const SquareSet moves = game_position_legal_moves(gp);
-  if (0ULL == moves) {
+  if (moves == empty_square_set) {
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
       node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable));
@@ -261,11 +189,10 @@ game_position_solve_impl (      ExactSolution * const result,
     }
     flipped_players = game_position_free(flipped_players);
   } else {
-    MoveList move_list;
-    move_list_init(&move_list);
-    sort_moves_by_mobility_count(&move_list, gp);
-    for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
-      const Square move = element->sq;
+    SquareSet remaining_moves = moves;
+    while (remaining_moves) {
+      const Square move = bit_works_bitscanLS1B_64(remaining_moves);
+      remaining_moves ^= 1ULL << move;
       if (!node) node = search_node_new(move, achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
       node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value));
@@ -275,60 +202,15 @@ game_position_solve_impl (      ExactSolution * const result,
         node = node2;
         node->move = move;
         node2 = NULL;
-        if (node->value >= cutoff) goto out;
       } else {
         node2 = search_node_free(node2);
       }
     }
   }
- out:
-  ;
 
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack_fill_point--;
 #endif
 
   return node;
-}
-
-static void
-move_list_init (MoveList *ml)
-{
-  for (int i = 0; i < 64; i++) {
-    ml->elements[i].sq = -1;
-    ml->elements[i].mobility = -1;
-    ml->elements[i].pred = NULL;
-    ml->elements[i].succ = NULL;
-  }
-  ml->head.sq = -1;
-  ml->head.mobility = -1;
-  ml->head.pred = NULL;
-  ml->head.succ = &ml->tail;
-  ml->tail.sq = -1;
-  ml->tail.mobility = -1;
-  ml->tail.pred = &ml->head;
-  ml->tail.succ = NULL;
-}
-
-static gchar *
-move_list_print (MoveList *ml)
-{
-  gchar *ml_to_s;
-  gchar space[] = {' ', '\0'};
-
-  static const size_t size_of_ml_to_s = (3 * 64 + 1) * sizeof(gchar);
-  ml_to_s = (gchar*) malloc(size_of_ml_to_s);
-
-  *ml_to_s = '\0';
-  gchar *cursor = ml_to_s;
-  for (MoveListElement *element = ml->head.succ; element != &ml->tail; element = element->succ) {
-    gchar *move_to_s = square_to_string(element->sq);
-    cursor = g_stpcpy(cursor, move_to_s);
-    g_free(move_to_s);
-    cursor = g_stpcpy(cursor, &space[0]);
-  }
-  if (ml_to_s != cursor) {
-    *--cursor = '\0';
-  }
-  return ml_to_s;
 }

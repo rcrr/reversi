@@ -215,7 +215,7 @@ square_to_string (const Square sq)
  * @return      a string having the moves sorted as the `Square` enum
  */
 gchar *
-square_set_print_as_moves (SquareSet moves)
+square_set_to_string (SquareSet moves)
 {
   char *moves_to_string;
   GString *tmp;
