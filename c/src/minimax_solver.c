@@ -189,11 +189,11 @@ game_position_solve_impl (      ExactSolution * const result,
     }
     flipped_players = game_position_free(flipped_players);
   } else {
+    node = search_node_new(-1, -65);
     SquareSet remaining_moves = moves;
     while (remaining_moves) {
       const Square move = bit_works_bitscanLS1B_64(remaining_moves);
       remaining_moves ^= 1ULL << move;
-      if (!node) node = search_node_new(move, achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
       node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value));
       gp2 = game_position_free(gp2);

@@ -4,7 +4,7 @@
  *
  * @todo [done] Complete the random game player.
  *
- * @todo Add to the solver selection a full MINIMAX implementation.
+ * @todo [done] Add to the solver selection a full MINIMAX implementation.
  *
  * @todo Add to the solver selection an alpha-beta implementation that
  * sort the legal move list with a random function.
