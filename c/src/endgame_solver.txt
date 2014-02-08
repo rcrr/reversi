@@ -1,6 +1,54 @@
 
 This is a diary of the performance evolution of the endgame solver.
 
+
+Date: February 5th, 2014
+      git commit ...
+
+A test running the minimax algorithm:
+
+Estimated number of nodes: 4.93E+008 (variance: 7.15E+008)
+Number of nodes: 1.35E+009
+
+So the computed and the estimated are very close.
+      
+rcrr@hypnotic:~/base/prj/reversi/c$ time ./build/bin/endgame_solver -s minimax -f db/gpdb-ffo.txt -q ffo-01
+Entry id:    ffo-01
+Description:  G8:+18. H1:+12. H7:+6. A2:+6. A3:+4. B1:-4. A4:-22. G2:-24.
+Game Position:
+    a b c d e f g h 
+ 1  . . @ @ @ @ @ . 
+ 2  . O O O @ @ . O 
+ 3  . O O O @ @ O @ 
+ 4  . O @ O @ O @ @ 
+ 5  O @ @ @ O @ @ @ 
+ 6  . . @ O @ O @ @ 
+ 7  . @ @ @ O O O . 
+ 8  . O O O O O . . 
+Player to move: BLACK
+
+Solving the game position ffo-01 using solver minimax ...
+
+    a b c d e f g h 
+ 1  . . @ @ @ @ @ . 
+ 2  . O O O @ @ . O 
+ 3  . O O O @ @ O @ 
+ 4  . O @ O @ O @ @ 
+ 5  O @ @ @ O @ @ @ 
+ 6  . . @ O @ O @ @ 
+ 7  . @ @ @ O O O . 
+ 8  . O O O O O . . 
+Player to move: BLACK
+
+[node_count=1345278883, leaf_count=404474235]
+Final SearchNode sn: move=G8, value=18
+
+real	23m52.960s
+user	23m53.964s
+sys	0m0.000s
+rcrr@hypnotic:~/base/prj/reversi/c$ 
+
+
 Date: January 21st, 2014
       git commit 5c97f746285d703b23b87df33c6b4f00bf77fdef
 
