@@ -72,6 +72,8 @@ static void game_position_compare_test (void);
 static void game_position_count_difference_test (void);
 static void game_position_hash_test (void);
 
+static void legal_move_list_new_test (void);
+
 int
 main (int   argc,
       char *argv[])
@@ -109,6 +111,8 @@ main (int   argc,
   g_test_add_func("/board/game_position_compare_test", game_position_compare_test);
   g_test_add_func("/board/game_position_count_difference_test", game_position_count_difference_test);
   g_test_add_func("/board/game_position_hash_test", game_position_hash_test);
+
+  g_test_add_func("/board/legal_move_list_new_test", legal_move_list_new_test);
 
   return g_test_run();
 }
@@ -576,9 +580,9 @@ game_position_hash_test (void)
   g_assert(game_position_hash(gp) == 0xFFFFFFFFFFFFFFFF);
   gp = game_position_free(gp);
 
-  expected = 0x4689879C5E2B6C8D ^ 0x056C0070CF70F8DD ^ 0x81AD4662EE05E75A;
+  expected = 0x4689879C5E2B6C8D ^ 0x1C10E0B05C7B3C49;
   blacks = 0x0000000000000002ULL;
-  whites = 0x0000000000000003ULL;
+  whites = 0x0000000000000004ULL;
   b = board_new(blacks, whites);
   p = BLACK_PLAYER;
   gp = game_position_new(b, p);
@@ -596,4 +600,20 @@ game_position_hash_test (void)
   g_assert(game_position_hash(gp) == ~expected);
   gp = game_position_free(gp);
 
+}
+
+static void
+legal_move_list_new_test (void)
+{
+  const SquareSet set = 0x8000000000000003;
+  LegalMoveList *lml = legal_move_list_new(set);
+
+  g_assert(lml->move_count == 3);
+
+  Square expected_moves[3] = {0, 1, 63};
+  for (int i = 0; i < lml->move_count; i++) {
+    g_assert(lml->squares[i] == expected_moves[i]);
+  }
+
+  legal_move_list_free(lml);
 }

@@ -174,6 +174,14 @@ typedef struct {
   Player player;  /**< @brief Member player contains the next to move. */
 } GamePosition;
 
+/**
+ * @brief A legal move list arrange a square set with a given order.
+ */
+typedef struct {
+  SquareSet square_set;    /**< @brief The square set representing the legal moves. */
+  int       move_count;    /**< @brief The count of legal moves. */
+  Square    squares[32];   /**< @brief The list of squares that are valid moves. */
+} LegalMoveList;
 
 
 /**********************************************/
@@ -229,9 +237,9 @@ axis_transform_back_from_row_one (const Axis   axis,
 
 
 
-/**************************************************/
+/**********************************************/
 /* Function prototypes for the Player entity. */ 
-/**************************************************/
+/**********************************************/
 
 extern SquareState
 player_color (const Player p);
@@ -244,9 +252,9 @@ player_opponent (const Player p);
 
 
 
-/**************************************************/
+/*********************************************/
 /* Function prototypes for the Board entity. */ 
-/**************************************************/
+/*********************************************/
 
 extern Board *
 board_new (const SquareSet b,
@@ -324,17 +332,17 @@ direction_opposite (const Direction dir);
 
 
 
-/********************************************************/
-/* Function implementations for the SquareState entity. */ 
-/********************************************************/
+/***************************************************/
+/* Function prototypes for the SquareState entity. */ 
+/***************************************************/
 
 extern char square_state_symbol (const SquareState color);
 
 
 
-/*********************************************************/
-/* Function implementations for the GamePosition entity. */ 
-/*********************************************************/
+/****************************************************/
+/* Function prototypes for the GamePosition entity. */ 
+/****************************************************/
 
 extern GamePosition *
 game_position_new (Board  *b,
@@ -385,12 +393,25 @@ game_position_final_value (const GamePosition * const gp);
 
 
 
-/******************************************************/
-/* Function implementations for the SquareSet entity. */ 
-/******************************************************/
+/*************************************************/
+/* Function prototypes for the SquareSet entity. */ 
+/*************************************************/
 
 extern gchar *
 square_set_to_string (SquareSet moves);
+
+
+
+/*****************************************************/
+/* Function prototypes for the LegalMoveList entity. */ 
+/*****************************************************/
+
+extern LegalMoveList *
+legal_move_list_new (const SquareSet legal_move_set);
+
+LegalMoveList *
+legal_move_list_free (LegalMoveList *list);
+
 
 
 #endif /* BOARD_H */
