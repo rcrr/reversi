@@ -409,7 +409,7 @@ square_set_to_string (SquareSet moves);
 extern LegalMoveList *
 legal_move_list_new (const SquareSet legal_move_set);
 
-LegalMoveList *
+extern LegalMoveList *
 legal_move_list_free (LegalMoveList *list);
 
 

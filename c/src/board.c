@@ -1484,7 +1484,6 @@ game_position_hash (const GamePosition * const gp)
     if (blacks & mask) hash ^= zobrist_bitstrings[i];
     if (whites & mask) hash ^= zobrist_bitstrings[i+64];
   }
-  //if (p) hash ^= zobrist_bitstrings[128];
   if (p) hash = ~hash; /* In this way passing doesn't require a full new hash. */
 
   return hash;

@@ -40,6 +40,15 @@
 
 //#define GAME_TREE_DEBUG
 
+/**
+ * @brief To be detailed.
+ *
+ * It defines which way the code traverse the legal move list.
+ * 0: bitscan is embedded in the loop.
+ * 1: a global function defined by the board header file is used.
+ * 2: a local inlined function is used.  
+ */
+#define LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING 1
 
 
 /*
@@ -119,6 +128,28 @@ game_position_minimax_solve (const GamePosition * const root)
  * Internal functions.
  */
 
+#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==2
+inline
+LegalMoveList
+legal_move_list_new_local (const SquareSet legal_move_set)
+{
+  LegalMoveList legal_move_list;
+
+  legal_move_list.move_count = 0;
+  legal_move_list.square_set = legal_move_set;
+
+  SquareSet remaining_moves = legal_move_set;
+  while (remaining_moves) {
+    const Square move = bit_works_bitscanLS1B_64(remaining_moves);
+    legal_move_list.squares[legal_move_list.move_count] = move;
+    legal_move_list.move_count++;
+    remaining_moves ^= 1ULL << move;
+  }
+  
+  return legal_move_list;
+}
+#endif
+
 static SearchNode *
 game_position_solve_impl (      ExactSolution * const result,
                           const GamePosition  * const gp)
@@ -166,23 +197,8 @@ game_position_solve_impl (      ExactSolution * const result,
     flipped_players = game_position_free(flipped_players);
   } else {
     node = search_node_new(-1, -65);
-    /*
-    LegalMoveList *legal_move_list = legal_move_list_new(moves);
-    for (int i = 0; i < legal_move_list->move_count; i++) {
-      const Square move = legal_move_list->squares[i];
-      GamePosition *gp2 = game_position_make_move(gp, move);
-      node2 = search_node_negated(game_position_solve_impl(result, gp2));
-      gp2 = game_position_free(gp2);
-      if (node2->value > node->value) {
-        search_node_free(node);
-        node = node2;
-        node->move = move;
-        node2 = NULL;
-      } else {
-        node2 = search_node_free(node2);
-      }
-    }
-    */
+
+#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==0
     SquareSet remaining_moves = moves;
     while (remaining_moves) {
       const Square move = bit_works_bitscanLS1B_64(remaining_moves);
@@ -199,6 +215,46 @@ game_position_solve_impl (      ExactSolution * const result,
         node2 = search_node_free(node2);
       }
     }
+#endif
+
+#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==1
+    LegalMoveList *legal_move_list = legal_move_list_new(moves);
+    for (int i = 0; i < legal_move_list->move_count; i++) {
+      const Square move = legal_move_list->squares[i];
+      GamePosition *gp2 = game_position_make_move(gp, move);
+      node2 = search_node_negated(game_position_solve_impl(result, gp2));
+      gp2 = game_position_free(gp2);
+      if (node2->value > node->value) {
+        search_node_free(node);
+        node = node2;
+        node->move = move;
+        node2 = NULL;
+      } else {
+        node2 = search_node_free(node2);
+      }
+    }
+    legal_move_list = legal_move_list_free(legal_move_list);
+#endif
+
+#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==2
+    LegalMoveList legal_move_list_structure = legal_move_list_new_local(moves);
+    LegalMoveList *legal_move_list = &legal_move_list_structure;
+    for (int i = 0; i < legal_move_list->move_count; i++) {
+      const Square move = legal_move_list->squares[i];
+      GamePosition *gp2 = game_position_make_move(gp, move);
+      node2 = search_node_negated(game_position_solve_impl(result, gp2));
+      gp2 = game_position_free(gp2);
+      if (node2->value > node->value) {
+        search_node_free(node);
+        node = node2;
+        node->move = move;
+        node2 = NULL;
+      } else {
+        node2 = search_node_free(node2);
+      }
+    }
+#endif
+
   }
 
 #ifdef GAME_TREE_DEBUG
