@@ -69,14 +69,47 @@
 #include "improved_fast_endgame_solver.h"
 #include "random_game_sampler.h"
 #include "minimax_solver.h"
+#include "rab_solver.h"
 
 
 
 /* Static constants. */
 
-static const gchar *solvers[] = {"es", "ifes", "rand", "minimax"};
+static const gchar *solvers[] = {"es", "ifes", "rand", "minimax", "rab"};
 static const int n_solver = sizeof(solvers) / sizeof(solvers[0]);
 
+static const gchar *program_documentation_string =
+  "Description:\n"
+  "Endgame solver is the front end for a group of algorithms aimed to analyze the final part of the game and to asses the game tree structure.\n"
+  "Available engines are: es (exact solver), ifes (improved fast endgame solver), rand (random game sampler), minimax (minimax solver), and\n"
+  "rab (random alpha-beta solver).\n"
+  "\n"
+  " - es (exact solver)\n"
+  "   My fully featured implementation of a Reversi Endgame Exact Solver. A sample call is:\n"
+  "     $ endgame_solver -f db/gpdb-ffo.txt -q ffo-40 -s es\n"
+  "\n"
+  " - ifes (improved fast endgame solver)\n"
+  "   A solver derived from the Gunnar Andersson work.\n"
+  "\n"
+  " - rand (minimax solver)\n"
+  "   The rand solver is a way to play a sequence of random game from the given position.\n"
+  "   This option works together with the -n flag, that assigns the number of repeats, a sample call is:\n"
+  "     $ endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100\n"
+  "\n"
+  " - minimax (minimax solver)\n"
+  "   It applies the plain vanilla minimax algorithm, a sample call is:\n"
+  "     $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified -s minimax\n"
+  "\n"
+  " - rab (random alpha-beta solver)\n"
+  "   It uses the alpha-beta pruning, ordering the moves by mean of a random criteria.\n"
+  "\n"
+  "Author:\n"
+  "   Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
+  "\n"
+  "Copyright (c) 2013, 2014 Roberto Corradini. All rights reserved.\n"
+  "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
+  "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
+  ;
 
 
 
@@ -87,19 +120,19 @@ static gchar *lookup_entry = NULL;
 static gchar *solver       = NULL;
 static gint   repeats      = 1;
 
-static GOptionEntry entries[] =
+static const GOptionEntry entries[] =
   {
-    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,   "Input file name   - Mandatory",                                     NULL },
-    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry      - Mandatory",                                     NULL },
-    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver            - Mandatory - Must be in [es|ifes|rand|minimax]", NULL },
-    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand solver",                     NULL },
+    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,   "Input file name   - Mandatory",                                         NULL },
+    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry      - Mandatory",                                         NULL },
+    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver            - Mandatory - Must be in [es|ifes|rand|minimax|rab]", NULL },
+    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand solver",                         NULL },
     { NULL }
   };
 
 
 
 /**
- * @brief Main entry to the Reversi C endgame solver implementation.111
+ * @brief Main entry to the Reversi C endgame solver implementation.
  * 
  * @todo Documentation has to be completly developed.
  */
@@ -128,7 +161,7 @@ main (int argc, char *argv[])
   context = g_option_context_new("- Solve an endgame position");
   g_option_context_add_main_entries(context, entries, NULL);
   g_option_context_add_group(context, option_group);
-  g_option_context_set_description(context, "The rand solver is a way to play a sequence of random game from the given position.\n");
+  g_option_context_set_description(context, program_documentation_string);
   if (!g_option_context_parse (context, &argc, &argv, &error)) {
     g_print("Option parsing failed: %s\n", error->message);
     return -1;
@@ -217,6 +250,9 @@ main (int argc, char *argv[])
     break;
   case 3:
     solution = game_position_minimax_solve(gp);
+    break;
+  case 4:
+    solution = game_position_rab_solve(gp);
     break;
   default:
     g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);
