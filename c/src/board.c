@@ -225,7 +225,7 @@ square_set_to_string (SquareSet moves)
   Square move = 0;
   gboolean passed = FALSE;
   for (SquareSet cursor = 1ULL; cursor != 0ULL; cursor <<= 1) {
-    if ((cursor & moves) != 0ULL) {
+    if ((cursor & moves) != empty_square_set) {
       const char row = '1' + (move / 8);
       const char col = 'A' + (move % 8);
       if (passed) {
@@ -505,7 +505,7 @@ Board *
 board_new (const SquareSet b,
            const SquareSet w)
 {
-  g_assert((w & b) == 0ULL);
+  g_assert((w & b) == empty_square_set);
 
   Board *board;
   static const size_t size_of_board = sizeof(Board);
@@ -692,7 +692,7 @@ board_is_move_legal (const Board  *const b,
 
   bit_move = 1ULL << move;
 
-  if ((board_empties(b) & bit_move) == 0ULL) return FALSE;
+  if ((board_empties(b) & bit_move) == empty_square_set) return FALSE;
 
   p_bit_board = board_get_player(b, p);
   o_bit_board = board_get_player(b, player_opponent(p));
@@ -738,7 +738,7 @@ board_legal_moves (const Board * const b, const Player p)
 
   register SquareSet result;
   
-  result = 0ULL;
+  result = empty_square_set;
 
   const Player o = player_opponent(p);
   const SquareSet empties = board_empties(b);
@@ -749,7 +749,7 @@ board_legal_moves (const Board * const b, const Player p)
     const Direction opposite = direction_opposite(dir);
     SquareSet wave = direction_shift_square_set(dir, empties) & o_bit_board;
     int shift = 1;
-    while (wave != 0ULL) {
+    while (wave != empty_square_set) {
       wave = direction_shift_square_set(dir, wave);
       shift++;
       result |= direction_shift_square_set_by_amount(opposite, (wave & p_bit_board), shift);
@@ -774,8 +774,8 @@ board_has_any_player_any_legal_move (const Board * const b)
 {
   g_assert(b);
 
-  return (0ULL == board_legal_moves(b, BLACK_PLAYER) &&
-          0ULL == board_legal_moves(b, WHITE_PLAYER)) ? FALSE : TRUE;
+  return (empty_square_set == board_legal_moves(b, BLACK_PLAYER) &&
+          empty_square_set == board_legal_moves(b, WHITE_PLAYER)) ? FALSE : TRUE;
 }
 
 /**
@@ -1336,7 +1336,7 @@ game_position_has_any_legal_move (const GamePosition * const gp)
 {
   g_assert(gp);
 
-  return (0ULL == game_position_legal_moves(gp)) ? FALSE : TRUE;
+  return (empty_square_set == game_position_legal_moves(gp)) ? FALSE : TRUE;
 }
 
 /**
