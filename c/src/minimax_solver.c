@@ -41,14 +41,17 @@
 //#define GAME_TREE_DEBUG
 
 /**
- * @brief To be detailed.
+ * @brief Macro value used to select the algorithm applied to traverse the move list.
  *
- * It defines which way the code traverse the legal move list.
- * 0: bitscan is embedded in the loop.
- * 1: a global function defined by the board header file is used.
- * 2: a local inlined function is used.  
+ * It defines which way the code traverse the legal move list, valid values are:
+ * - 0: bitscan is embedded in the loop.
+ *   This is the fastest option.
+ * - 1: a global function defined by the board header file is used.
+ *   This is the most elegant option that make the code more readable and clear.
+ * - 2: a local in-lined function is used.  
+ *   This is an in-between version.
  */
-#define LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING 1
+#define LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING 0
 
 
 /*
