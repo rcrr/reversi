@@ -42,18 +42,33 @@
 //#define GAME_TREE_DEBUG
 
 /**
- * @brief Macro value used to select the algorithm applied to traverse the move list.
+ * @brief Game tree stack size.
  *
- * It defines which way the code traverse the legal move list, valid values are:
- * - 0: bitscan is embedded in the loop.
- *   This is the fastest option.
- * - 1: a global function defined by the board header file is used.
- *   This is the most elegant option that make the code more readable and clear.
- * - 2: a local in-lined function is used.  
- *   This is an in-between version, is close to the performances of the first variant, and
- *   opens the way to have the proper structure for move sorting.
+ * @details It give the size of the static stack used to pile-up the info
+ * computed by deepening the game tree.
+ * The value is given by the 64 squares doubled to take into account the possibility
+ * to pass. Real tree depth are smaller because the empty square are 60 in a real game,
+ * because the number of pass is little, and because there is no capability currently to
+ * search so deep.
  */
-#define LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING 2
+#define GAME_TREE_MAX_DEPTH 128
+
+/**
+ * @brief The info collected on each node.
+ */
+typedef struct {
+  GamePosition  gp;           /**< @brief The game position related to the game tree node. */
+  uint64        hash;         /**< @brief The hash value of the game position. */
+  LegalMoveList moves;        /**< @brief The list of legal moves for the node. */
+} NodeInfo;
+
+/**
+ * @brief The info collected by deepening the game tree.
+ */
+typedef struct {
+  int      fill_point;                    /**< @brief The index of the last entry into the stack. */
+  NodeInfo nodes[GAME_TREE_MAX_DEPTH];    /**< @brief The stack of node info. */
+} GameTreeStack;
 
 
 /*
@@ -64,11 +79,18 @@ static SearchNode *
 game_position_solve_impl (      ExactSolution * const result,
                           const GamePosition  * const gp);
 
+static void
+game_tree_stack_init (void);
+
 
 
 /*
  * Internal variables and constants.
  */
+
+static GameTreeStack stack_structure;
+
+static GameTreeStack *stack = &stack_structure;
 
 #ifdef GAME_TREE_DEBUG
 
@@ -79,7 +101,7 @@ static uint64 call_count = 0;
 static FILE *game_tree_debug_file = NULL;
 
 /* The predecessor-successor array of game position hash values. */
-static uint64 gp_hash_stack[128];
+static uint64 gp_hash_stack[GAME_TREE_MAX_DEPTH];
 
 /* The index of the last entry into gp_hash_stack. */
 static int gp_hash_stack_fill_point = 0;
@@ -106,10 +128,12 @@ game_position_rab_solve (const GamePosition * const root)
 
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack[0] = 0;
-  game_tree_debug_file = fopen("minimax_log.csv", "w");
+  game_tree_debug_file = fopen("rab_log.csv", "w");
   fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEF", "MOVE_LIST");
 #endif
 
+  game_tree_stack_init();
+  
   result = exact_solution_new();
 
   result->solved_game_position = game_position_clone(root);
@@ -133,7 +157,14 @@ game_position_rab_solve (const GamePosition * const root)
  * Internal functions.
  */
 
-#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==2
+/**
+ * @brief Initializes the stack structure.
+ */
+static void
+game_tree_stack_init (void)
+{
+  stack->fill_point = 0;
+}
 
 /**
  * @brief Returns a new legal move list structure.
@@ -141,8 +172,7 @@ game_position_rab_solve (const GamePosition * const root)
  * @param [in] legal_move_set the set of legal moves
  * @return                    a new legal move list structure
  */
-inline static
-LegalMoveList
+inline static LegalMoveList
 legal_move_list_new_local (const SquareSet legal_move_set)
 {
   LegalMoveList legal_move_list;
@@ -160,8 +190,6 @@ legal_move_list_new_local (const SquareSet legal_move_set)
   
   return legal_move_list;
 }
-
-#endif
 
 
 /**
@@ -182,7 +210,15 @@ game_position_solve_impl (      ExactSolution * const result,
   node2 = NULL;
   result->node_count++;
 
-  const SquareSet moves = game_position_legal_moves(gp);
+  NodeInfo *node_info = &stack->nodes[++stack->fill_point];
+  LegalMoveList *moves = &node_info->moves;
+  const SquareSet move_set = game_position_legal_moves(gp);
+  *moves = legal_move_list_new_local(move_set);
+  /*
+  GamePosition  gp;   
+  uint64        hash; 
+  LegalMoveList moves;
+  */
 
 #ifdef GAME_TREE_DEBUG
   call_count++;
@@ -193,7 +229,7 @@ game_position_solve_impl (      ExactSolution * const result,
   gp_hash_stack[gp_hash_stack_fill_point] = hash;
   gchar *gp_to_s = game_position_to_string(gp);
   const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
-  gchar *ml_to_s = square_set_to_string(moves);
+  gchar *ml_to_s = square_set_to_string(move_set);
   fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%42s\n",
           call_count,
           hash,
@@ -207,8 +243,18 @@ game_position_solve_impl (      ExactSolution * const result,
   g_free(ml_to_s);
 #endif
 
-  if (moves == empty_square_set) {
+  if (move_set == empty_square_set) {
     GamePosition *flipped_players = game_position_pass(gp);
+    /*
+    if (stack->nodes[stack->fill_point - 1].moves.move_count != 0) {
+      node = search_node_negated(game_position_solve_impl(result, flipped_players));
+    } else {
+      result->leaf_count++;
+      node = search_node_new((Square) -1, game_position_final_value(gp));
+    }
+     */
+    /*
+    */
     if (game_position_has_any_legal_move(flipped_players)) {
       node = search_node_negated(game_position_solve_impl(result, flipped_players));
     } else {
@@ -218,27 +264,8 @@ game_position_solve_impl (      ExactSolution * const result,
     flipped_players = game_position_free(flipped_players);
   } else {
     node = search_node_new(-1, -65);
-
-#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==0
-    SquareSet remaining_moves = moves;
-    while (remaining_moves) {
-      const Square move = bit_works_bitscanLS1B_64(remaining_moves);
-      remaining_moves ^= 1ULL << move;
-#endif
-
-#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==1
-    LegalMoveList *legal_move_list = legal_move_list_new(moves);
-    for (int i = 0; i < legal_move_list->move_count; i++) {
-      const Square move = legal_move_list->squares[i];
-#endif
-
-#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==2
-    LegalMoveList legal_move_list_structure = legal_move_list_new_local(moves);
-    LegalMoveList *legal_move_list = &legal_move_list_structure;
-    for (int i = 0; i < legal_move_list->move_count; i++) {
-      const Square move = legal_move_list->squares[i];
-#endif
-
+    for (int i = 0; i < moves->move_count; i++) {
+      const Square move = moves->squares[i];
       GamePosition *gp2 = game_position_make_move(gp, move);
       node2 = search_node_negated(game_position_solve_impl(result, gp2));
       gp2 = game_position_free(gp2);
@@ -251,16 +278,12 @@ game_position_solve_impl (      ExactSolution * const result,
         node2 = search_node_free(node2);
       }
     }
-    
-#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==1
-    legal_move_list = legal_move_list_free(legal_move_list);
-#endif
-
   }
 
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack_fill_point--;
 #endif
 
+  stack->fill_point--;
   return node;
 }
