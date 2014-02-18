@@ -246,21 +246,21 @@ game_position_solve_impl (      ExactSolution * const result,
   if (move_set == empty_square_set) {
     GamePosition *flipped_players = game_position_pass(gp);
     /*
-    if (stack->nodes[stack->fill_point - 1].moves.move_count != 0) {
+     */
+    if (board_empties(gp->board) != empty_square_set && stack->nodes[stack->fill_point - 1].moves.move_count != 0) {
       node = search_node_negated(game_position_solve_impl(result, flipped_players));
     } else {
       result->leaf_count++;
       node = search_node_new((Square) -1, game_position_final_value(gp));
     }
-     */
     /*
-    */
     if (game_position_has_any_legal_move(flipped_players)) {
       node = search_node_negated(game_position_solve_impl(result, flipped_players));
     } else {
       result->leaf_count++;
       node = search_node_new((Square) -1, game_position_final_value(gp));
     }
+    */
     flipped_players = game_position_free(flipped_players);
   } else {
     node = search_node_new(-1, -65);
