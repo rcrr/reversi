@@ -38,6 +38,7 @@
 #include <glib.h>
 
 #include "board.h"
+#include "utils.h"
 
 /*
  * Prototypes for internal functions.
@@ -241,6 +242,29 @@ square_set_to_string (SquareSet moves)
   g_string_free(tmp, FALSE);
 
   return moves_to_string;
+}
+
+/**
+ * @brief Returns a random square among the given set.
+ *
+ * @invariant Parameter `squares` must not be empty.
+ * The invariant is guarded by an assertion.
+ *
+ * @param squares a square set
+ * @return        one square selected among the set
+ */
+Square
+square_set_random_selection (SquareSet squares)
+{
+  g_assert(squares != empty_square_set);
+
+  const int square_count = bit_works_popcount(squares);
+  const int square_index = random_number(0, square_count - 1);
+  for (int i = 0; i < square_count; i++) {
+    if (i == square_index) break;
+    squares ^= bit_works_lowest_bit_set_64(squares);
+  }
+  return (Square) bit_works_bitscanLS1B_64(squares);
 }
 
 

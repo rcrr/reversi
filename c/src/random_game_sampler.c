@@ -52,12 +52,6 @@ static SearchNode *
 game_position_random_sampler_impl (      ExactSolution * const result,
                                    const GamePosition  * const gp);
 
-static int
-random_number (int low, int high);
-
-static Square
-square_set_random_selection (SquareSet squares);
-
 
 
 /*
@@ -204,27 +198,4 @@ game_position_random_sampler_impl (      ExactSolution * const result,
 #endif
 
   return node;
-}
-
-
-static Square
-square_set_random_selection (SquareSet squares)
-{
-  g_assert(squares != 0ULL);
-
-  const int square_count = bit_works_popcount(squares);
-  const int square_index = random_number(0, square_count - 1);
-  //printf("square_set_random_selection: square_count=%2d, square_index=%2d\n", square_count, square_index);
-  for (int i = 0; i < square_count; i++) {
-    if (i == square_index) break;
-    squares ^= bit_works_lowest_bit_set_64(squares);
-  }
-  return (Square) bit_works_bitscanLS1B_64(squares);
-}
-
-
-static int
-random_number (int low, int high)
-{
-  return low + (double) rand() * (high - low + 1) / RAND_MAX;
 }

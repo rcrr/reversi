@@ -2,9 +2,9 @@
  * @file
  *
  * @brief Bit Works module definitions.
- * @details This module defines the #Player, #SquareState,
- * #Square, #SquareSet, #Board, #GamePosition, #Direction entities,
- * and the function prototypes that operate on them.
+ * @details This module defines signed and unsigned
+ * integer types, and some procedures processing the bits
+ * of these objects.
  *
  * @par bit_works.h
  * <tt>

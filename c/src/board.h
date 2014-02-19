@@ -417,6 +417,9 @@ game_position_final_value (const GamePosition * const gp);
 extern gchar *
 square_set_to_string (SquareSet moves);
 
+extern Square
+square_set_random_selection (SquareSet squares);
+
 
 
 /*****************************************************/
