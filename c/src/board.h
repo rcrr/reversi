@@ -175,6 +175,9 @@ typedef struct {
   Player player;  /**< @brief Member player contains the next to move. */
 } GamePosition;
 
+/**
+ * @todo ....
+ */
 typedef struct {
   Square move;
   int    mobility;

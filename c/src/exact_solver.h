@@ -41,7 +41,7 @@
 /**
  * @brief An exact solution is an entity that holds the result of a #game_position_solve run.
  *
- * To be detailed ...
+ * @todo To be detailed ...
  */
 typedef struct {
   GamePosition *solved_game_position;        /**< @brief The game position given as input. */
@@ -52,9 +52,14 @@ typedef struct {
   uint64        node_count;
 } ExactSolution;
 
+/**
+ * @brief A search node is the structure returned by #game_position_solve function.
+ *
+ * @todo To be detailed ...
+ */
 typedef struct {
-  Square move;
-  int    value;
+  Square move;       /**< @brief The move to play. */
+  int    value;      /**< @brief The move's value. */
 } SearchNode;
 
 
