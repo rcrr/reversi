@@ -32,6 +32,10 @@
 
 #include "bit_works.h"
 
+#define X86_POPCNT
+
+
+
 static const uint64 m1  = 0x5555555555555555; //binary: 0101...
 static const uint64 m2  = 0x3333333333333333; //binary: 00110011..
 static const uint64 m4  = 0x0f0f0f0f0f0f0f0f; //binary:  4 zeros,  4 ones ...
@@ -115,10 +119,16 @@ static int popcount_2(uint64 x) {
  */
 int
 bit_works_popcount (uint64 x) {
-    x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
-    x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
-    x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
-    return (x * h01) >> 56;         //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ... 
+#ifdef X86_POPCNT
+  long long int out;
+  __asm__ __volatile__ ("popcnt %1, %0" : "=g" (out) : "g" (x));
+  return (int) out;
+#else
+  x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
+  x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
+  x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
+  return (x * h01) >> 56;         //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
+#endif
 }
 
 /*

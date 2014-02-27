@@ -140,8 +140,7 @@ game_position_minimax_solve (const GamePosition * const root)
  * @param [in] legal_move_set the set of legal moves
  * @return                    a new legal move list structure
  */
-inline static
-LegalMoveList
+inline static LegalMoveList
 legal_move_list_new_local (const SquareSet legal_move_set)
 {
   LegalMoveList legal_move_list;
