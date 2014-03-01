@@ -167,28 +167,26 @@ game_tree_stack_init (void)
 }
 
 /**
- * @brief Returns a new legal move list structure.
+ * @brief Computes the legal move list structure given the set.
  *
- * @param [in] legal_move_set the set of legal moves
- * @return                    a new legal move list structure
+ * @param [in]  legal_move_set  the set of legal moves
+ * @param [out] legal_move_list the compuetd list of legal moves
  */
-inline static LegalMoveList
-legal_move_list_new_local (const SquareSet legal_move_set)
+inline static void
+legal_move_list_from_set (const SquareSet legal_move_set, LegalMoveList *legal_move_list)
 {
-  LegalMoveList legal_move_list;
-
-  legal_move_list.move_count = 0;
-  legal_move_list.square_set = legal_move_set;
+  legal_move_list->move_count = 0;
+  legal_move_list->square_set = legal_move_set;
 
   SquareSet remaining_moves = legal_move_set;
   while (remaining_moves) {
     const Square move = bit_works_bitscanLS1B_64(remaining_moves);
-    legal_move_list.squares[legal_move_list.move_count] = move;
-    legal_move_list.move_count++;
+    legal_move_list->squares[legal_move_list->move_count] = move;
+    legal_move_list->move_count++;
     remaining_moves ^= 1ULL << move;
   }
   
-  return legal_move_list;
+  return;
 }
 
 
@@ -213,11 +211,10 @@ game_position_solve_impl (      ExactSolution * const result,
   NodeInfo *node_info = &stack->nodes[++stack->fill_point];
   LegalMoveList *moves = &node_info->moves;
   const SquareSet move_set = game_position_legal_moves(gp);
-  *moves = legal_move_list_new_local(move_set);
+  legal_move_list_from_set(move_set, moves);
   /*
   GamePosition  gp;   
   uint64        hash; 
-  LegalMoveList moves;
   */
 
 #ifdef GAME_TREE_DEBUG
@@ -255,7 +252,7 @@ game_position_solve_impl (      ExactSolution * const result,
     }
     flipped_players = game_position_free(flipped_players);
   } else {
-    node = search_node_new(-1, -65);
+    node = search_node_new((Square) -1, -65);
     for (int i = 0; i < moves->move_count; i++) {
       const Square move = moves->squares[i];
       GamePosition *gp2 = game_position_make_move(gp, move);
