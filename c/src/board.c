@@ -1230,7 +1230,7 @@ game_position_compare (const GamePosition * const a,
   g_assert(a);
   g_assert(b);
 
-  if ( a == b) return 0;
+  if (a == b) return 0;
 
   const int board_comp = board_compare(a->board, b->board);
   if (board_comp != 0) {
@@ -1538,9 +1538,9 @@ game_position_final_value (const GamePosition * const gp)
  * game_position_x_legal_moves
  * game_position_x_count_difference
  * game_position_x_to_string
+ * game_position_x_compare
  *
  * game_position_print
- * game_position_compare
  * game_position_clone
  * game_position_has_any_legal_move
  * game_position_has_any_player_any_legal_move
@@ -1769,6 +1769,51 @@ game_position_x_to_string (const GamePositionX const * gpx,
   }
   *out++ = (gpx->player == BLACK_PLAYER) ? 'b' : 'w';
   *out = '\0';
+}
+
+/**
+ * @brief Compares game positions `a` and `b`.
+ *
+ * When the two game position are equal it returns `0`, when `a` is greather then `b` it
+ * returns `+1`, otherwise `-1`.
+ *
+ * Game positions are equals when have the same board and player.
+ *
+ * @invariant Parameters `a` and `b` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] a a pointer to a game position x structure
+ * @param [in] b a pointer to a second structure
+ * @return       `-1` when `a < b`, `+1` when `a > b`, or `0` when the two game position are equal
+ */
+int
+game_position_x_compare (const GamePositionX * const a,
+                         const GamePositionX * const b)
+{
+  g_assert(a);
+  g_assert(b);
+
+  if (a == b) return 0;
+
+  if (a->blacks < b->blacks) {
+    return -1;
+  } else if (a->blacks > b->blacks) {
+    return +1;
+  } else {          /* Blacks are equal. */
+    if (a->whites < b->whites) {
+      return -1;
+    } else if (a->whites > b->whites) {
+      return +1;
+    } else {        /* Also whites are equal. */
+      if (a->player < b->player) {
+        return -1;
+      } else if (a->player > b->player) {
+        return +1;
+      } else {
+        return 0;   /* Players are equal, and so are a and b. */
+      }
+    }
+  }
 }
 
 

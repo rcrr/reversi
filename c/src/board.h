@@ -459,6 +459,10 @@ extern void
 game_position_x_to_string (const GamePositionX const * gpx,
                                  char                * out);
 
+extern int
+game_position_x_compare (const GamePositionX * const a,
+                         const GamePositionX * const b);
+
 
 
 /*************************************************/
