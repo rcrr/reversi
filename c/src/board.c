@@ -1693,7 +1693,24 @@ game_position_x_count_difference (const GamePositionX * const gpx)
 }
 
 /**
- * @brief Computes the string represantation of the game position.
+ * @brief Computes the string representation of the game position.
+ * @details The function overwrites sixty six chars starting from the position
+ * identified by the `out` pointer.
+ *
+ * A sample call is here exemplified:
+ *
+ * @code
+ * GamePositionX *gpx;
+ * char gpx_to_string[66];
+ *
+ * gpx = game_position_x_new(0x00000000000000FF,
+ *                           0xFF0000000000FF00,
+ *                           WHITE_PLAYER);
+ *
+ * game_position_x_to_string(gpx, gpx_to_string);
+ *
+ * g_assert(g_strcmp0("bbbbbbbbwwwwwwww........................................wwwwwwwww", gpx_to_string) == 0);
+ * @endcode
  *
  * @invariant Parameters `gpx` and `out` must be not `NULL`. 
  * The invariants are guarded by assertions.
@@ -1710,26 +1727,18 @@ game_position_x_to_string (const GamePositionX const * gpx,
   g_assert(gpx);
   g_assert(out);
 
-  const SquareSet blacks = gpx->blacks;
-  const SquareSet whites = gpx->whites;
-  const Player    player = gpx->player;
-
   for (int pos = 0; pos < 64; pos++) {
     const SquareSet sq = 1ULL << pos;
     char color = '.';
-    if (sq & blacks) {
+    if (sq & gpx->blacks) {
       color = 'b';
-    } else if (sq & whites) {
+    } else if (sq & gpx->whites) {
       color = 'w';
     }
-    *out = color;
-    out++;
+    *out++ = color;
   }
-  *out = (player == BLACK_PLAYER) ? 'b' : 'w';
-  out++;
+  *out++ = (gpx->player == BLACK_PLAYER) ? 'b' : 'w';
   *out = '\0';
-
-  return ;
 }
 
 
