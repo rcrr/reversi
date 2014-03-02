@@ -1539,9 +1539,10 @@ game_position_final_value (const GamePosition * const gp)
  * game_position_x_count_difference
  * game_position_x_to_string
  * game_position_x_compare
+ * game_position_x_clone
+ * game_position_x_copy
  *
  * game_position_print
- * game_position_clone
  * game_position_has_any_legal_move
  * game_position_has_any_player_any_legal_move
  * game_position_is_move_legal
@@ -1604,6 +1605,40 @@ game_position_x_free (GamePositionX *gpx)
   gpx = NULL;
 
   return gpx;
+}
+
+/**
+ * @brief Clones a `GamePositionX` structure.
+ *
+ * @invariant Parameter `gpx` cannot be null. 
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gpx the game position x to clone
+ * @return         a pointer to a new game position structure
+ */
+GamePositionX *
+game_position_x_clone (const GamePositionX * const gpx)
+{
+  g_assert(gpx);
+
+  return game_position_x_new(gpx->blacks,
+                             gpx->whites,
+                             gpx->player);
+}
+
+/**
+ * @brief Copies a `GamePositionX` structure.
+ *
+ * @param [in]  from the game position x to copy from
+ * @param [out] to   the game position x to copy to
+ */
+void
+game_position_x_copy (const GamePositionX * const from,
+                            GamePositionX * const to)
+{
+  to->blacks = from->blacks;
+  to->whites = from->whites;
+  to->player = from->player;
 }
 
 /**

@@ -80,6 +80,9 @@ static void game_position_x_count_difference_test (void);
 static void game_position_x_to_string_test (void);
 static void game_position_x_get_square_test (void);
 static void game_position_x_compare_test (void);
+static void game_position_x_clone_test (void);
+static void game_position_x_copy_test (void);
+
 
 static void legal_move_list_new_test (void);
 
@@ -129,7 +132,9 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_to_string_test", game_position_x_to_string_test);
   g_test_add_func("/board/game_position_x_get_square_test", game_position_x_get_square_test);
   g_test_add_func("/board/game_position_x_compare_test", game_position_x_compare_test);
-  
+  g_test_add_func("/board/game_position_x_clone_test", game_position_x_clone_test);
+  g_test_add_func("/board/game_position_x_copy_test", game_position_x_copy_test);
+
   g_test_add_func("/board/legal_move_list_new_test", legal_move_list_new_test);
   
   return g_test_run();
@@ -820,4 +825,34 @@ game_position_x_compare_test (void)
   g_assert(-1 == game_position_x_compare(a, b));
   a = game_position_x_free(a);
   b = game_position_x_free(b);
+}
+
+static void
+game_position_x_clone_test (void)
+{
+  GamePositionX *a;
+  GamePositionX *b;
+  a = game_position_x_new(0x0000000000000001,
+                          0x0000000000000002,
+                          BLACK_PLAYER);
+  b = game_position_x_clone(a);
+  g_assert(0 == game_position_x_compare(a, b));
+  a = game_position_x_free(a);
+  b = game_position_x_free(b);
+}
+
+static void
+game_position_x_copy_test (void)
+{
+  GamePositionX *a;
+  GamePositionX *b;
+  a = game_position_x_new(0x0000000000000001,
+                          0x0000000000000002,
+                          BLACK_PLAYER);
+  b = game_position_x_new(0x00000000000000FF,
+                          0x0000000000000000,
+                          WHITE_PLAYER);
+  g_assert(0 != game_position_x_compare(a, b));
+  game_position_x_copy(a, b);
+  g_assert(0 == game_position_x_compare(a, b));
 }

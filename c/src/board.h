@@ -436,6 +436,13 @@ game_position_x_new (const SquareSet b,
 extern GamePositionX *
 game_position_x_free (GamePositionX *gpx);
 
+extern GamePositionX *
+game_position_x_clone (const GamePositionX * const gpx);
+
+extern void
+game_position_x_copy (const GamePositionX * const from,
+                            GamePositionX * const to);
+
 extern SquareSet
 game_position_x_empties (const GamePositionX * const gpx);
 
