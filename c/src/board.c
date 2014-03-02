@@ -1525,6 +1525,164 @@ game_position_final_value (const GamePosition * const gp)
 
 
 /**********************************************************/
+/* Function implementations for the GamePositionX entity. */ 
+/**********************************************************/
+
+/*
+ * game_position_x_new
+ * game_position_x_free
+ *
+ * game_position_x_empties
+ * game_position_x_get_player
+ * game_position_x_get_opponent
+ *
+ * game_position_x_legal_moves
+ * game_position_count_difference
+ * game_position_to_string
+ * game_position_print
+ * game_position_compare
+ * game_position_clone
+ * game_position_has_any_legal_move
+ * game_position_has_any_player_any_legal_move
+ * game_position_is_move_legal
+ * game_position_make_move
+ * game_position_pass
+ * game_position_hash
+ * game_position_final_value
+ */
+
+/**
+ * @brief Game position x structure constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * game position x structure is not `NULL`.
+ *
+ * @invariant Parameters `b` and `w` cannot have common square set. 
+ * The invariant is guarded by an assertion.
+ * It means that a square cannot have a white and a black disc set together.
+ *
+ * @param [in] b the set of black squares
+ * @param [in] w the set of white squares
+ * @param [in] p the player having to move
+ * @return     a pointer to a new game position x structure
+ */
+GamePositionX *
+game_position_x_new (const SquareSet b,
+                     const SquareSet w,
+                     const Player    p)
+{
+  g_assert((w & b) == empty_square_set);
+
+  GamePositionX *gpx;
+  static const size_t size_of_game_position_x = sizeof(GamePositionX);
+
+  gpx = (GamePositionX*) malloc(size_of_game_position_x);
+  g_assert(gpx);
+
+  gpx->blacks = b;
+  gpx->whites = w;
+  gpx->player = p;
+
+  return gpx;
+}
+
+/**
+ * @brief Game position x structure destructor.
+ *
+ * @invariant Parameter `gpx` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] gpx the pointer to be deallocated
+ * @return         always the NULL pointer
+ */
+GamePositionX *
+game_position_x_free (GamePositionX *gpx)
+{
+  g_assert(gpx);
+
+  free(gpx);
+  gpx = NULL;
+
+  return gpx;
+}
+
+/**
+ * @brief Returns the set of empty squares in the game position.
+ *
+ * @param [in] gpx a pointer to the game position structure
+ * @return         the set of empty squares
+ */
+SquareSet
+game_position_x_empties (const GamePositionX * const gpx)
+{
+  return ~(gpx->blacks | gpx->whites);
+}
+
+/**
+ * @brief Returns the square set belonging to the moving player.
+ *
+ * @param [in] gpx a pointer to the game position structure
+ * @return         the set of squares in the board belonging to the given player
+ */
+SquareSet
+game_position_x_get_player (const GamePositionX * const gpx)
+{
+  if (gpx->player == BLACK_PLAYER) {
+    return gpx->blacks;
+  } else {
+    return gpx->whites;
+  }
+}
+
+/**
+ * @brief Returns the square set belonging to the opponent player.
+ *
+ * @param [in] gpx a pointer to the game position structure
+ * @return         the set of squares in the board belonging to the opponent
+ */
+SquareSet
+game_position_x_get_opponent (const GamePositionX * const gpx)
+{
+  if (gpx->player == BLACK_PLAYER) {
+    return gpx->whites;
+  } else {
+    return gpx->blacks;
+  }
+}
+
+/**
+ * @brief Returns a set of squares that represents the legal moves for the game position.
+ *
+ * @param [in] gpx the given game position
+ * @return         a square set holding the legal moves
+ */
+SquareSet
+game_position_x_legal_moves (const GamePositionX * const gpx)
+{
+  SquareSet result = empty_square_set;
+  
+  const SquareSet empties = game_position_x_empties(gpx);
+  const SquareSet p_bit_board = game_position_x_get_player(gpx);
+  const SquareSet o_bit_board = game_position_x_get_opponent(gpx);
+  
+  for (Direction dir = NW; dir <= SE; dir++) {
+    const Direction opposite = direction_opposite(dir);
+    SquareSet wave = direction_shift_square_set(dir, empties) & o_bit_board;
+    int shift = 1;
+    while (wave != empty_square_set) {
+      wave = direction_shift_square_set(dir, wave);
+      shift++;
+      result |= direction_shift_square_set_by_amount(opposite, (wave & p_bit_board), shift);
+      wave &= o_bit_board;
+    }
+  }
+
+  return result;
+}
+
+
+
+/**********************************************************/
 /* Function implementations for the LegalMoveList entity. */ 
 /**********************************************************/
 

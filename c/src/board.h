@@ -194,6 +194,17 @@ typedef struct {
   //LegalMoveInfo *sorted[MAX_LEGAL_MOVE_COUNT];
 } LegalMoveList;
 
+/**
+ * @brief A game position variant where instead of the board pointer its field are directly collected.
+ * @details This game position representation is used in conjunction with functions
+ * that do not malloc/free, these function use the prefix `game_position_x`.
+ */
+typedef struct {
+  SquareSet blacks;   /**< @brief The set of squares occupied by blank discs. */
+  SquareSet whites;   /**< @brief The set of squares occupied by white discs. */
+  Player    player;   /**< @brief Next player to move. */
+} GamePositionX;
+
 
 /**********************************************/
 /* Global constants.                          */ 
@@ -410,6 +421,32 @@ game_position_hash (const GamePosition * const gp);
 
 extern int
 game_position_final_value (const GamePosition * const gp);
+
+
+
+/*****************************************************/
+/* Function prototypes for the GamePositionX entity. */ 
+/*****************************************************/
+
+extern GamePositionX *
+game_position_x_new (const SquareSet b,
+                     const SquareSet w,
+                     const Player    p);
+
+extern GamePositionX *
+game_position_x_free (GamePositionX *gpx);
+
+extern SquareSet
+game_position_x_empties (const GamePositionX * const gpx);
+
+extern SquareSet
+game_position_x_get_player (const GamePositionX * const gpx);
+
+extern SquareSet
+game_position_x_get_opponent (const GamePositionX * const gpx);
+
+extern SquareSet
+game_position_x_legal_moves (const GamePositionX * const gpx);
 
 
 
