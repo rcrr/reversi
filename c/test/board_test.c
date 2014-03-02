@@ -78,6 +78,7 @@ static void game_position_x_get_opponent_test (void);
 static void game_position_x_legal_moves_test (void);
 static void game_position_x_count_difference_test (void);
 static void game_position_x_to_string_test (void);
+static void game_position_x_get_square_test (void);
 
 static void legal_move_list_new_test (void);
 
@@ -125,7 +126,9 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_legal_moves_test", game_position_x_legal_moves_test);
   g_test_add_func("/board/game_position_x_count_difference_test", game_position_x_count_difference_test);
   g_test_add_func("/board/game_position_x_to_string_test", game_position_x_to_string_test);
+  g_test_add_func("/board/game_position_x_get_square_test", game_position_x_get_square_test);
 
+  
   g_test_add_func("/board/legal_move_list_new_test", legal_move_list_new_test);
   
   return g_test_run();
@@ -745,6 +748,7 @@ game_position_x_to_string_test (void)
   game_position_x_to_string(gpx, gpx_to_string);
   g_assert(g_strcmp0("bbbbbbbbwwwwwwww................................................b",
                      gpx_to_string) == 0);
+  gpx = game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x00000000000000FF,
                             0xFF0000000000FF00,
@@ -752,4 +756,20 @@ game_position_x_to_string_test (void)
   game_position_x_to_string(gpx, gpx_to_string);
   g_assert(g_strcmp0("bbbbbbbbwwwwwwww........................................wwwwwwwww",
                      gpx_to_string) == 0);
+  gpx = game_position_x_free(gpx);
+}
+
+static void
+game_position_x_get_square_test (void)
+{
+  GamePositionX *gpx;
+  gpx = game_position_x_new(0x0000000000000001,
+                            0x0000000000000002,
+                            BLACK_PLAYER);
+
+  g_assert(BLACK_SQUARE == game_position_x_get_square(gpx, A1));
+  g_assert(WHITE_SQUARE == game_position_x_get_square(gpx, B1));
+  g_assert(EMPTY_SQUARE == game_position_x_get_square(gpx, C1));
+
+  gpx = game_position_x_free(gpx);
 }

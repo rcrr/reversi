@@ -445,6 +445,10 @@ game_position_x_get_player (const GamePositionX * const gpx);
 extern SquareSet
 game_position_x_get_opponent (const GamePositionX * const gpx);
 
+extern SquareState
+game_position_x_get_square (const GamePositionX * const gpx,
+                            const Square                sq);
+
 extern SquareSet
 game_position_x_legal_moves (const GamePositionX * const gpx);
 

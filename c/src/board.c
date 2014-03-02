@@ -1534,10 +1534,11 @@ game_position_final_value (const GamePosition * const gp)
  * game_position_x_empties
  * game_position_x_get_player
  * game_position_x_get_opponent
+ * game_position_x_get_square
  * game_position_x_legal_moves
- *
  * game_position_x_count_difference
  * game_position_x_to_string
+ *
  * game_position_print
  * game_position_compare
  * game_position_clone
@@ -1647,6 +1648,35 @@ game_position_x_get_opponent (const GamePositionX * const gpx)
   } else {
     return gpx->blacks;
   }
+}
+
+/**
+ * @brief Returns the SquareState value for the given game position's square.
+ *
+ * @invariant Parameter `gpx` must be not `NULL`.
+ * Parameter `sq` must belongs to the `Square` enum.
+ * Invariants are both guarded by assetions.
+ *
+ * @param [in] gpx a pointer to the board structure
+ * @param [in] sq  the square to query for
+ * @return         the color of the given square
+ */
+SquareState
+game_position_x_get_square (const GamePositionX * const gpx,
+                            const Square                sq)
+{
+  g_assert(gpx);
+  g_assert(sq >= A1 && sq <= H8);
+
+  SquareSet bitsquare;
+
+  bitsquare = 1ULL << sq;
+  if (bitsquare & gpx->blacks)
+    return BLACK_SQUARE;
+  else if (bitsquare & gpx->whites)
+    return WHITE_SQUARE;
+  else
+    return EMPTY_SQUARE;
 }
 
 /**
