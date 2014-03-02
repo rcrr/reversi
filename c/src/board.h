@@ -448,6 +448,13 @@ game_position_x_get_opponent (const GamePositionX * const gpx);
 extern SquareSet
 game_position_x_legal_moves (const GamePositionX * const gpx);
 
+extern int
+game_position_x_count_difference (const GamePositionX * const gpx);
+
+extern void
+game_position_x_to_string (const GamePositionX const * gpx,
+                                 char                * out);
+
 
 
 /*************************************************/

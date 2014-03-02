@@ -76,6 +76,8 @@ static void game_position_x_empties_test (void);
 static void game_position_x_get_player_test (void);
 static void game_position_x_get_opponent_test (void);
 static void game_position_x_legal_moves_test (void);
+static void game_position_x_count_difference_test (void);
+static void game_position_x_to_string_test (void);
 
 static void legal_move_list_new_test (void);
 
@@ -121,6 +123,8 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_get_player_test", game_position_x_get_player_test);
   g_test_add_func("/board/game_position_x_get_opponent_test", game_position_x_get_opponent_test);
   g_test_add_func("/board/game_position_x_legal_moves_test", game_position_x_legal_moves_test);
+  g_test_add_func("/board/game_position_x_count_difference_test", game_position_x_count_difference_test);
+  g_test_add_func("/board/game_position_x_to_string_test", game_position_x_to_string_test);
 
   g_test_add_func("/board/legal_move_list_new_test", legal_move_list_new_test);
   
@@ -697,4 +701,55 @@ game_position_x_legal_moves_test (void)
                             BLACK_PLAYER);
   g_assert(0x8000000000000000 == game_position_x_legal_moves(gpx));
   gpx = game_position_x_free(gpx);
+}
+
+static void
+game_position_x_count_difference_test (void)
+{
+  GamePositionX *gpx;
+
+  gpx = game_position_x_new(0x00000000000000FF,
+                            0x000000000000FF00,
+                            BLACK_PLAYER);
+  g_assert(0 == game_position_x_count_difference(gpx));
+  gpx = game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x00000000000000FF,
+                            0x000000000000FF00,
+                            WHITE_PLAYER);
+  g_assert(0 == game_position_x_count_difference(gpx));
+  gpx = game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x0000000000000000,
+                            0x000000000000FF00,
+                            BLACK_PLAYER);
+  g_assert(-8 == game_position_x_count_difference(gpx));
+  gpx = game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x0000000000000000,
+                            0x000000000000FF00,
+                            WHITE_PLAYER);
+  g_assert(+8 == game_position_x_count_difference(gpx));
+  gpx = game_position_x_free(gpx);
+}
+
+static void
+game_position_x_to_string_test (void)
+{
+  GamePositionX *gpx;
+  char gpx_to_string[66];
+
+  gpx = game_position_x_new(0x00000000000000FF,
+                            0x000000000000FF00,
+                            BLACK_PLAYER);
+  game_position_x_to_string(gpx, gpx_to_string);
+  g_assert(g_strcmp0("bbbbbbbbwwwwwwww................................................b",
+                     gpx_to_string) == 0);
+
+  gpx = game_position_x_new(0x00000000000000FF,
+                            0xFF0000000000FF00,
+                            WHITE_PLAYER);
+  game_position_x_to_string(gpx, gpx_to_string);
+  g_assert(g_strcmp0("bbbbbbbbwwwwwwww........................................wwwwwwwww",
+                     gpx_to_string) == 0);
 }

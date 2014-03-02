@@ -1531,14 +1531,13 @@ game_position_final_value (const GamePosition * const gp)
 /*
  * game_position_x_new
  * game_position_x_free
- *
  * game_position_x_empties
  * game_position_x_get_player
  * game_position_x_get_opponent
- *
  * game_position_x_legal_moves
- * game_position_count_difference
- * game_position_to_string
+ *
+ * game_position_x_count_difference
+ * game_position_x_to_string
  * game_position_print
  * game_position_compare
  * game_position_clone
@@ -1678,6 +1677,59 @@ game_position_x_legal_moves (const GamePositionX * const gpx)
   }
 
   return result;
+}
+
+/**
+ * @brief Returns the disk difference between the player and her opponent.
+ *
+ * @param [in] gpx the given game position
+ * @return         the disc count difference
+ */
+int
+game_position_x_count_difference (const GamePositionX * const gpx)
+{
+  const int square_difference = bit_works_popcount(gpx->blacks) - bit_works_popcount(gpx->whites);
+  return (gpx->player == BLACK_PLAYER) ? square_difference : - square_difference;
+}
+
+/**
+ * @brief Computes the string represantation of the game position.
+ *
+ * @invariant Parameters `gpx` and `out` must be not `NULL`. 
+ * The invariants are guarded by assertions.
+ * Moreover it is responsibility of the caller to garantee that the `out`
+ * pointer refers to a `char` vector thta has `66` positions ore more.
+ *
+ * @param [in]  gpx the given game position
+ * @param [out] out the string written by the function
+ */
+void
+game_position_x_to_string (const GamePositionX const * gpx,
+                                 char                * out)
+{
+  g_assert(gpx);
+  g_assert(out);
+
+  const SquareSet blacks = gpx->blacks;
+  const SquareSet whites = gpx->whites;
+  const Player    player = gpx->player;
+
+  for (int pos = 0; pos < 64; pos++) {
+    const SquareSet sq = 1ULL << pos;
+    char color = '.';
+    if (sq & blacks) {
+      color = 'b';
+    } else if (sq & whites) {
+      color = 'w';
+    }
+    *out = color;
+    out++;
+  }
+  *out = (player == BLACK_PLAYER) ? 'b' : 'w';
+  out++;
+  *out = '\0';
+
+  return ;
 }
 
 
