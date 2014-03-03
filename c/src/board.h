@@ -449,6 +449,10 @@ extern void
 game_position_x_copy (const GamePositionX * const from,
                             GamePositionX * const to);
 
+void
+game_position_x_copy_from_gp (const GamePosition  * const from,
+                                    GamePositionX * const to);
+
 extern SquareSet
 game_position_x_empties (const GamePositionX * const gpx);
 

@@ -84,6 +84,7 @@ static void game_position_x_clone_test (void);
 static void game_position_x_copy_test (void);
 static void game_position_x_gp_to_gpx_test (void);
 static void game_position_x_gpx_to_gp_test (void);
+static void game_position_x_copy_from_gp_test (void);
 
 static void legal_move_list_new_test (void);
 
@@ -137,7 +138,8 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_copy_test", game_position_x_copy_test);
   g_test_add_func("/board/game_position_x_gp_to_gpx_test", game_position_x_gp_to_gpx_test);
   g_test_add_func("/board/game_position_x_gpx_to_gp_test", game_position_x_gpx_to_gp_test);
-  
+  g_test_add_func("/board/game_position_x_copy_from_gp_test", game_position_x_copy_from_gp_test);
+
   g_test_add_func("/board/legal_move_list_new_test", legal_move_list_new_test);
   
   return g_test_run();
@@ -891,6 +893,7 @@ game_position_x_gpx_to_gp_test (void)
   gpx = game_position_x_new(0x0000000000000001,
                             0x0000000000000002,
                             BLACK_PLAYER);
+
   gp_a = game_position_x_gpx_to_gp(gpx);
   gp_b = game_position_x_gpx_to_gp(gpx);
 
@@ -899,4 +902,28 @@ game_position_x_gpx_to_gp_test (void)
   game_position_x_free(gpx);
   game_position_free(gp_a);
   game_position_free(gp_b);
+}
+
+static void
+game_position_x_copy_from_gp_test (void)
+{
+  GamePositionX *gpx;
+  GamePosition  *gp;
+
+  gpx = game_position_x_new(0x0000000000000001,
+                            0x0000000000000002,
+                            BLACK_PLAYER);
+
+  gp = game_position_new(board_new(0xFFFFFFFFFFFFFFFF,
+                                   0x0000000000000000),
+                         WHITE_PLAYER);
+
+  game_position_x_copy_from_gp(gp, gpx);
+
+  g_assert(0xFFFFFFFFFFFFFFFF == gpx->blacks);
+  g_assert(0x0000000000000000 == gpx->whites);
+  g_assert(WHITE_PLAYER == gpx->player);
+
+  game_position_x_free(gpx);
+  game_position_free(gp);
 }

@@ -1541,6 +1541,9 @@ game_position_final_value (const GamePosition * const gp)
  * game_position_x_compare
  * game_position_x_clone
  * game_position_x_copy
+ * game_position_x_copy_from_gp
+ * game_position_x_gp_to_gpx
+ * game_position_x_gpx_to_gp
  *
  * game_position_print
  * game_position_has_any_legal_move
@@ -1680,6 +1683,20 @@ game_position_x_copy (const GamePositionX * const from,
 {
   to->blacks = from->blacks;
   to->whites = from->whites;
+  to->player = from->player;
+}
+/**
+ * @brief Copies a `GamePosition` structure into a `GamePositionX` one.
+ *
+ * @param [in]  from the game position to copy from
+ * @param [out] to   the game position x to copy to
+ */
+void
+game_position_x_copy_from_gp  (const GamePosition  * const from,
+                                     GamePositionX * const to)
+{
+  to->blacks = from->board->blacks;
+  to->whites = from->board->whites;
   to->player = from->player;
 }
 
