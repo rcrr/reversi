@@ -82,7 +82,8 @@ static void game_position_x_get_square_test (void);
 static void game_position_x_compare_test (void);
 static void game_position_x_clone_test (void);
 static void game_position_x_copy_test (void);
-
+static void game_position_x_gp_to_gpx_test (void);
+static void game_position_x_gpx_to_gp_test (void);
 
 static void legal_move_list_new_test (void);
 
@@ -134,7 +135,9 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_compare_test", game_position_x_compare_test);
   g_test_add_func("/board/game_position_x_clone_test", game_position_x_clone_test);
   g_test_add_func("/board/game_position_x_copy_test", game_position_x_copy_test);
-
+  g_test_add_func("/board/game_position_x_gp_to_gpx_test", game_position_x_gp_to_gpx_test);
+  g_test_add_func("/board/game_position_x_gpx_to_gp_test", game_position_x_gpx_to_gp_test);
+  
   g_test_add_func("/board/legal_move_list_new_test", legal_move_list_new_test);
   
   return g_test_run();
@@ -855,4 +858,45 @@ game_position_x_copy_test (void)
   g_assert(0 != game_position_x_compare(a, b));
   game_position_x_copy(a, b);
   g_assert(0 == game_position_x_compare(a, b));
+}
+
+static void
+game_position_x_gp_to_gpx_test (void)
+{
+  GamePosition  *gp;
+  GamePositionX *gpx_a;
+  GamePositionX *gpx_b;
+
+  gp = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL,
+                                   0x0000000000000000ULL),
+                         BLACK_PLAYER);
+
+  gpx_a = game_position_x_gp_to_gpx(gp);
+  gpx_b = game_position_x_gp_to_gpx(gp);
+
+  g_assert(game_position_x_compare(gpx_a, gpx_b) == 0);
+
+  game_position_free(gp);
+  game_position_x_free(gpx_a);
+  game_position_x_free(gpx_b);
+}
+
+static void
+game_position_x_gpx_to_gp_test (void)
+{
+  GamePositionX *gpx;
+  GamePosition  *gp_a;
+  GamePosition  *gp_b;
+
+  gpx = game_position_x_new(0x0000000000000001,
+                            0x0000000000000002,
+                            BLACK_PLAYER);
+  gp_a = game_position_x_gpx_to_gp(gpx);
+  gp_b = game_position_x_gpx_to_gp(gpx);
+
+  g_assert(game_position_compare(gp_a, gp_b) == 0);
+
+  game_position_x_free(gpx);
+  game_position_free(gp_a);
+  game_position_free(gp_b);
 }
