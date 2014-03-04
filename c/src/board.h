@@ -480,6 +480,10 @@ extern int
 game_position_x_compare (const GamePositionX * const a,
                          const GamePositionX * const b);
 
+extern void
+game_position_x_pass (const GamePositionX * const current,
+                            GamePositionX * const next);
+
 
 
 /*************************************************/

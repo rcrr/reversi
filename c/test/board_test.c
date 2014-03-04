@@ -85,6 +85,7 @@ static void game_position_x_copy_test (void);
 static void game_position_x_gp_to_gpx_test (void);
 static void game_position_x_gpx_to_gp_test (void);
 static void game_position_x_copy_from_gp_test (void);
+static void game_position_x_pass_test (void);
 
 static void legal_move_list_new_test (void);
 
@@ -139,6 +140,7 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_gp_to_gpx_test", game_position_x_gp_to_gpx_test);
   g_test_add_func("/board/game_position_x_gpx_to_gp_test", game_position_x_gpx_to_gp_test);
   g_test_add_func("/board/game_position_x_copy_from_gp_test", game_position_x_copy_from_gp_test);
+  g_test_add_func("/board/game_position_x_pass_test", game_position_x_pass_test);
 
   g_test_add_func("/board/legal_move_list_new_test", legal_move_list_new_test);
   
@@ -926,4 +928,10 @@ game_position_x_copy_from_gp_test (void)
 
   game_position_x_free(gpx);
   game_position_free(gp);
+}
+
+static void
+game_position_x_pass_test (void)
+{
+  g_assert(TRUE);
 }

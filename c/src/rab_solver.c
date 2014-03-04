@@ -166,16 +166,6 @@ legal_move_list_from_set (const SquareSet      legal_move_set,
   return;
 }
 
-inline static void
-game_position_x_pass (const GamePositionX * const gp,
-                            GamePositionX * const next_gp)
-{
-  next_gp->blacks = gp->blacks;
-  next_gp->whites = gp->whites;
-  next_gp->player = 1 - gp->player; // like calling player_opponent(gp->player)
-  return;
-}
-
 /**
  * @brief Recursive function used to traverse the game tree.
  *

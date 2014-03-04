@@ -1544,13 +1544,13 @@ game_position_final_value (const GamePosition * const gp)
  * game_position_x_copy_from_gp
  * game_position_x_gp_to_gpx
  * game_position_x_gpx_to_gp
+ * game_position_x_pass
  *
  * game_position_print
  * game_position_has_any_legal_move
  * game_position_has_any_player_any_legal_move
  * game_position_is_move_legal
  * game_position_make_move
- * game_position_pass
  * game_position_hash
  * game_position_final_value
  */
@@ -1685,6 +1685,7 @@ game_position_x_copy (const GamePositionX * const from,
   to->whites = from->whites;
   to->player = from->player;
 }
+
 /**
  * @brief Copies a `GamePosition` structure into a `GamePositionX` one.
  *
@@ -1698,6 +1699,23 @@ game_position_x_copy_from_gp  (const GamePosition  * const from,
   to->blacks = from->board->blacks;
   to->whites = from->board->whites;
   to->player = from->player;
+}
+
+/**
+ * @brief Updates game position x `next` by passing the move from `current`.
+ *
+ * The function doesn't check that the current player has to pass.
+ *
+ * @param [in]  current the current game position x
+ * @param [out] next    the updated game position x after passing
+ */
+void
+game_position_x_pass  (const GamePositionX * const current,
+                             GamePositionX * const next)
+{
+  next->blacks = current->blacks;
+  next->whites = current->whites;
+  next->player = 1 - current->player;
 }
 
 /**
