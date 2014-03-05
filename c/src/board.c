@@ -1565,8 +1565,8 @@ game_position_final_value (const GamePosition * const gp)
  * game_position_x_gpx_to_gp
  * game_position_x_pass
  * game_position_x_hash
+ * game_position_x_print
  *
- * game_position_print
  * game_position_has_any_legal_move
  * game_position_has_any_player_any_legal_move
  * game_position_is_move_legal
@@ -2002,6 +2002,28 @@ game_position_x_final_value (const GamePositionX * const gpx)
   const int empties = 64 - (b_count + w_count);
   const int delta = (difference > 0) ? difference + empties : difference - empties;
   return (gpx->player == BLACK_PLAYER) ? +delta : -delta;
+}
+
+/**
+ * @brief Returns a formatted string showing a 2d graphical represention of the game position x.
+ *
+ * The returned string has a dynamic extent set by a call to malloc. It must then properly
+ * garbage collected by a call to free when no more referenced.
+ *
+ * @invariant Parameter `gpx` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gpx a pointer to the game position x structure
+ * @return         a string being a 2d representation of the game position
+ */
+gchar *
+game_position_x_print (const GamePositionX const *gpx)
+{
+  g_assert(gpx);
+  GamePosition *gp = game_position_x_gpx_to_gp(gpx);
+  gchar *result = game_position_print(gp);
+  gp = game_position_free(gp);
+  return result;
 }
 
 
