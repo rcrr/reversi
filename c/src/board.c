@@ -1282,6 +1282,9 @@ game_position_print (const GamePosition const *gp)
   return gp_to_string;
 }
 
+/**
+ * @todo To be documented.
+ */
 gchar *
 game_position_to_string (const GamePosition const *gp)
 {
@@ -1485,6 +1488,14 @@ game_position_make_move (const GamePosition * const gp, const Square move)
   return game_position_new(board_new(new_bit_board[0], new_bit_board[1]), o);
 }
 
+/**
+ * @brief Returns a new game position by passing the move.
+ *
+ * The function doesn't check that the current player has to pass.
+ *
+ * @param [in] gp the current game position
+ * @return     a new game position computed by passing the move
+ */
 GamePosition *
 game_position_pass (const GamePosition * const gp)
 {
@@ -1494,6 +1505,14 @@ game_position_pass (const GamePosition * const gp)
   return game_position_new(board_new(gp->board->blacks, gp->board->whites), player_opponent(gp->player));
 }
 
+/**
+ * @brief Returns the hash value for the game position.
+ *
+ * The hash is computed by mean of a zobrist technique.
+ *
+ * @param [in] gp the current game position
+ * @return     the hash value for the game position
+ */
 uint64
 game_position_hash (const GamePosition * const gp)
 {
@@ -1545,13 +1564,13 @@ game_position_final_value (const GamePosition * const gp)
  * game_position_x_gp_to_gpx
  * game_position_x_gpx_to_gp
  * game_position_x_pass
+ * game_position_x_hash
  *
  * game_position_print
  * game_position_has_any_legal_move
  * game_position_has_any_player_any_legal_move
  * game_position_is_move_legal
  * game_position_make_move
- * game_position_hash
  * game_position_final_value
  */
 
@@ -1716,6 +1735,33 @@ game_position_x_pass  (const GamePositionX * const current,
   next->blacks = current->blacks;
   next->whites = current->whites;
   next->player = 1 - current->player;
+}
+
+/**
+ * @brief Returns the hash value for the game position x.
+ *
+ * The hash is computed by mean of a zobrist technique.
+ *
+ * @param [in] gpx the current game position
+ * @return         the hash value for the game position
+ */
+uint64
+game_position_x_hash (const GamePositionX * const gpx)
+{
+  const SquareSet whites = gpx->whites;
+  const SquareSet blacks = gpx->blacks;
+  const Player p = gpx->player;
+
+  uint64 hash = 0ULL;
+
+  for (int i = 0; i < 64; i++) {
+    const uint64 mask = 1ULL << i;
+    if (blacks & mask) hash ^= zobrist_bitstrings[i];
+    if (whites & mask) hash ^= zobrist_bitstrings[i+64];
+  }
+  if (p) hash = ~hash; /* In this way passing doesn't require a full new hash. */
+
+  return hash;
 }
 
 /**
@@ -1926,6 +1972,36 @@ game_position_x_compare (const GamePositionX * const a,
       }
     }
   }
+}
+
+/**
+ * @brief Used for the score at the end of the game.
+ *
+ * @details Returns the disk difference between the player and her opponent,
+ * assigning the empty squares to the player having most discs.
+ *
+ * From the web site of the World Othello Federation,
+ * World Othello Chanpionship Rules, scoring:<br>
+ * <em>"At the end of the game, if both players have completed their moves in
+ * the allowed time, the winner is the player with the greater number of
+ * discs of his colour on the board at the end. The official score of the
+ * game will be determined by counting up the discs of each colour on the
+ * board, counting empty squares for the winner. In the event of a draw,
+ * the score will always be 32-32"</em>.
+ *
+ * @param [in] gpx a pointer to the game position x structure
+ * @return         the game score according to the WOF rules
+ */
+int
+game_position_x_final_value (const GamePositionX * const gpx)
+{
+  const int b_count = bit_works_popcount(gpx->blacks);
+  const int w_count = bit_works_popcount(gpx->whites);
+  const int difference = b_count - w_count;
+  if (difference == 0) return 0;
+  const int empties = 64 - (b_count + w_count);
+  const int delta = (difference > 0) ? difference + empties : difference - empties;
+  return (gpx->player == BLACK_PLAYER) ? +delta : -delta;
 }
 
 

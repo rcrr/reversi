@@ -86,6 +86,8 @@ static void game_position_x_gp_to_gpx_test (void);
 static void game_position_x_gpx_to_gp_test (void);
 static void game_position_x_copy_from_gp_test (void);
 static void game_position_x_pass_test (void);
+static void game_position_x_hash_test (void);
+static void game_position_x_final_value_test (void);
 
 static void legal_move_list_new_test (void);
 
@@ -141,6 +143,8 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_gpx_to_gp_test", game_position_x_gpx_to_gp_test);
   g_test_add_func("/board/game_position_x_copy_from_gp_test", game_position_x_copy_from_gp_test);
   g_test_add_func("/board/game_position_x_pass_test", game_position_x_pass_test);
+  g_test_add_func("/board/game_position_x_hash_test", game_position_x_hash_test);
+  g_test_add_func("/board/game_position_x_final_value_test", game_position_x_final_value_test);
 
   g_test_add_func("/board/legal_move_list_new_test", legal_move_list_new_test);
   
@@ -933,5 +937,109 @@ game_position_x_copy_from_gp_test (void)
 static void
 game_position_x_pass_test (void)
 {
-  g_assert(TRUE);
+  GamePositionX *current;
+  GamePositionX *next;
+
+  current = game_position_x_new(0x0000000000000001,
+                                0x0000000000000002,
+                                BLACK_PLAYER);
+
+  next = game_position_x_new(0x0000000000000000,
+                             0x0000000000000000,
+                             BLACK_PLAYER);
+
+  game_position_x_pass(current, next);
+
+  g_assert(0x0000000000000001 == next->blacks);
+  g_assert(0x0000000000000002 == next->whites);
+  g_assert(WHITE_PLAYER == next->player);
+
+  game_position_x_free(current);
+  game_position_x_free(next);
+}
+
+static void
+game_position_x_hash_test (void)
+{
+  GamePositionX *gpx;
+  SquareSet      blacks;
+  SquareSet      whites;
+  Player         player;
+  uint64         expected;
+
+  expected = 0ULL;
+  blacks = 0x0000000000000000ULL;
+  whites = 0x0000000000000000ULL;
+  player = BLACK_PLAYER;
+  gpx = game_position_x_new(blacks, whites, player);
+  g_assert(expected == game_position_x_hash(gpx));
+  gpx = game_position_x_free(gpx);
+
+  expected = 0xFFFFFFFFFFFFFFFF;
+  blacks = 0x0000000000000000ULL;
+  whites = 0x0000000000000000ULL;
+  player = WHITE_PLAYER;
+  gpx = game_position_x_new(blacks, whites, player);
+  g_assert(expected == game_position_x_hash(gpx));
+  gpx = game_position_x_free(gpx);
+
+  expected = 0x4689879C5E2B6C8D ^ 0x1C10E0B05C7B3C49;
+  blacks = 0x0000000000000002ULL;
+  whites = 0x0000000000000004ULL;
+  player = BLACK_PLAYER;
+  gpx = game_position_x_new(blacks, whites, player);
+  g_assert(expected == game_position_x_hash(gpx));
+  gpx = game_position_x_free(gpx);
+
+  /* 
+   * The hash of two game position A, and B having the same board but different player satisfy
+   * this property:
+   * hash(A) & hash(B) == 0;
+   */
+  player = WHITE_PLAYER;
+  gpx = game_position_x_new(blacks, whites, player);
+  g_assert(~expected == game_position_x_hash(gpx));
+  gpx = game_position_x_free(gpx);
+}
+
+static void
+game_position_x_final_value_test (void)
+{
+  GamePositionX *gpx;
+
+  gpx = game_position_x_new(0xFFFFFFFFFFFFFFFF,
+                            0x0000000000000000,
+                            BLACK_PLAYER);
+  g_assert(64 == game_position_x_final_value(gpx));
+  gpx = game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x0000000000000001,
+                            0x0000000000000002,
+                            BLACK_PLAYER);
+  g_assert(0 == game_position_x_final_value(gpx));
+  gpx = game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x0000000000000001,
+                            0x0000000000000002,
+                            WHITE_PLAYER);
+  g_assert(0 == game_position_x_final_value(gpx));
+  gpx = game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x0000000000000001,
+                            0x0000000000000000,
+                            BLACK_PLAYER);
+  g_assert(64 == game_position_x_final_value(gpx));
+  gpx = game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x0000000000000001,
+                            0x0000000000000000,
+                            WHITE_PLAYER);
+  g_assert(-64 == game_position_x_final_value(gpx));
+  gpx = game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x00FF000000000001,
+                            0xFF00000000000000,
+                            BLACK_PLAYER);
+  g_assert(48 == game_position_x_final_value(gpx));
+  gpx = game_position_x_free(gpx);
 }

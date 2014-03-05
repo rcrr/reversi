@@ -484,6 +484,12 @@ extern void
 game_position_x_pass (const GamePositionX * const current,
                             GamePositionX * const next);
 
+uint64
+game_position_x_hash (const GamePositionX * const gpx);
+
+int
+game_position_x_final_value (const GamePositionX * const gpx);
+
 
 
 /*************************************************/
