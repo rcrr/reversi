@@ -493,6 +493,9 @@ game_position_x_final_value (const GamePositionX * const gpx);
 extern gchar *
 game_position_x_print (const GamePositionX const *gpx);
 
+extern gboolean
+game_position_x_has_any_legal_move (const GamePositionX * const gpx);
+
 
 
 /*************************************************/

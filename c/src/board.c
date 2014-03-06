@@ -1533,7 +1533,22 @@ game_position_hash (const GamePosition * const gp)
 }
 
 /**
- * @todo To be documented.
+ * @brief Used for the score at the end of the game.
+ *
+ * @details Returns the disk difference between the player and her opponent,
+ * assigning the empty squares to the player having most discs.
+ *
+ * From the web site of the World Othello Federation,
+ * World Othello Chanpionship Rules, scoring:<br>
+ * <em>"At the end of the game, if both players have completed their moves in
+ * the allowed time, the winner is the player with the greater number of
+ * discs of his colour on the board at the end. The official score of the
+ * game will be determined by counting up the discs of each colour on the
+ * board, counting empty squares for the winner. In the event of a draw,
+ * the score will always be 32-32"</em>.
+ *
+ * @param [in] gp a pointer to the game position structure
+ * @return        the game score according to the WOF rules
  */
 int
 game_position_final_value (const GamePosition * const gp)
@@ -1566,12 +1581,12 @@ game_position_final_value (const GamePosition * const gp)
  * game_position_x_pass
  * game_position_x_hash
  * game_position_x_print
+ * game_position_x_final_value
  *
- * game_position_has_any_legal_move
+ * game_position_x_has_any_legal_move
  * game_position_has_any_player_any_legal_move
  * game_position_is_move_legal
  * game_position_make_move
- * game_position_final_value
  */
 
 /**
@@ -1882,6 +1897,7 @@ game_position_x_count_difference (const GamePositionX * const gpx)
 
 /**
  * @brief Computes the string representation of the game position.
+ *
  * @details The function overwrites sixty six chars starting from the position
  * identified by the `out` pointer.
  *
@@ -2024,6 +2040,23 @@ game_position_x_print (const GamePositionX const *gpx)
   gchar *result = game_position_print(gp);
   gp = game_position_free(gp);
   return result;
+}
+
+/**
+ * @brief Returns if the game state admit one or more legal moves.
+ *
+ * @invariant Parameter `gpx` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gpx the given game position x
+ * @return         true if the game state admit a legal move
+ */
+gboolean
+game_position_x_has_any_legal_move (const GamePositionX * const gpx)
+{
+  g_assert(gpx);
+
+  return (empty_square_set == game_position_x_legal_moves(gpx)) ? FALSE : TRUE;
 }
 
 

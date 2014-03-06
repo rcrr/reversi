@@ -88,6 +88,7 @@ static void game_position_x_copy_from_gp_test (void);
 static void game_position_x_pass_test (void);
 static void game_position_x_hash_test (void);
 static void game_position_x_final_value_test (void);
+static void game_position_x_has_any_legal_move_test (void);
 
 static void legal_move_list_new_test (void);
 
@@ -145,6 +146,7 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_pass_test", game_position_x_pass_test);
   g_test_add_func("/board/game_position_x_hash_test", game_position_x_hash_test);
   g_test_add_func("/board/game_position_x_final_value_test", game_position_x_final_value_test);
+  g_test_add_func("/board/game_position_x_has_any_legal_move_test", game_position_x_has_any_legal_move_test);
 
   g_test_add_func("/board/legal_move_list_new_test", legal_move_list_new_test);
   
@@ -1041,5 +1043,23 @@ game_position_x_final_value_test (void)
                             0xFF00000000000000,
                             BLACK_PLAYER);
   g_assert(48 == game_position_x_final_value(gpx));
+  gpx = game_position_x_free(gpx);
+}
+
+static void
+game_position_x_has_any_legal_move_test (void)
+{
+  GamePositionX *gpx;
+ 
+  gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
+                            0x8000000000000000,
+                            WHITE_PLAYER);
+  g_assert(TRUE == game_position_x_has_any_legal_move(gpx));
+  gpx = game_position_x_free(gpx);
+ 
+  gpx = game_position_x_new(0xFFFFFFFFFFFFFFFE,
+                            0x0000000000000000,
+                            WHITE_PLAYER);
+  g_assert(FALSE == game_position_x_has_any_legal_move(gpx));
   gpx = game_position_x_free(gpx);
 }
