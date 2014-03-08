@@ -1582,10 +1582,10 @@ game_position_final_value (const GamePosition * const gp)
  * game_position_x_hash
  * game_position_x_print
  * game_position_x_final_value
- *
  * game_position_x_has_any_legal_move
- * game_position_has_any_player_any_legal_move
- * game_position_is_move_legal
+ * game_position_x_has_any_player_any_legal_move
+ *
+ * move_position_is_move_legal
  * game_position_make_move
  */
 
@@ -2057,6 +2057,47 @@ game_position_x_has_any_legal_move (const GamePositionX * const gpx)
   g_assert(gpx);
 
   return (empty_square_set == game_position_x_legal_moves(gpx)) ? FALSE : TRUE;
+}
+
+/**
+ * @brief Returns `TRUE` if the game position x is not final.
+ *
+ * @invariant Parameter `gpx` must be not `NULL`.
+ * All invariants are guarded by assertions.
+ *
+ * @param [in] gpx the given game position x
+ * @return         true if one of the player has one or more legal moves
+ */
+gboolean
+game_position_x_has_any_player_any_legal_move (const GamePositionX * const gpx)
+{
+  g_assert(gpx);
+  
+  const SquareSet empties = game_position_x_empties(gpx);
+  const SquareSet blacks = gpx->blacks;
+  const SquareSet whites = gpx->whites;
+  
+  for (Direction dir = NW; dir <= SE; dir++) {
+    SquareSet wave;
+    int shift;
+    wave = direction_shift_square_set(dir, empties) & whites;
+    shift = 1;
+    while (wave != empty_square_set) {
+      wave = direction_shift_square_set(dir, wave);
+      shift++;
+      if ((wave & blacks) != empty_square_set) return TRUE;
+      wave &= whites;
+    }
+    wave = direction_shift_square_set(dir, empties) & blacks;
+    shift = 1;
+    while (wave != empty_square_set) {
+      wave = direction_shift_square_set(dir, wave);
+      shift++;
+      if ((wave & whites) != empty_square_set) return TRUE;
+      wave &= blacks;
+    }
+  }
+  return FALSE;
 }
 
 
