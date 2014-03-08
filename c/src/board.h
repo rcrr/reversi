@@ -499,6 +499,14 @@ game_position_x_has_any_legal_move (const GamePositionX * const gpx);
 extern gboolean
 game_position_x_has_any_player_any_legal_move (const GamePositionX * const gpx);
 
+extern gboolean
+game_position_x_is_move_legal (const GamePositionX * const gpx, const Square move);
+
+extern void
+game_position_x_make_move (const GamePositionX * const current,
+                           const Square                move,
+                                 GamePositionX * const updated);
+
 
 
 /*************************************************/

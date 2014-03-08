@@ -1398,6 +1398,7 @@ gboolean
 game_position_is_move_legal (const GamePosition * const gp, const Square move)
 {
   g_assert(gp);
+  g_assert(move >= A1 && move <= H8);
 
   return board_is_move_legal(gp->board, move, gp->player);
 }
@@ -1561,33 +1562,6 @@ game_position_final_value (const GamePosition * const gp)
 /**********************************************************/
 /* Function implementations for the GamePositionX entity. */ 
 /**********************************************************/
-
-/*
- * game_position_x_new
- * game_position_x_free
- * game_position_x_empties
- * game_position_x_get_player
- * game_position_x_get_opponent
- * game_position_x_get_square
- * game_position_x_legal_moves
- * game_position_x_count_difference
- * game_position_x_to_string
- * game_position_x_compare
- * game_position_x_clone
- * game_position_x_copy
- * game_position_x_copy_from_gp
- * game_position_x_gp_to_gpx
- * game_position_x_gpx_to_gp
- * game_position_x_pass
- * game_position_x_hash
- * game_position_x_print
- * game_position_x_final_value
- * game_position_x_has_any_legal_move
- * game_position_x_has_any_player_any_legal_move
- *
- * move_position_is_move_legal
- * game_position_make_move
- */
 
 /**
  * @brief Game position x structure constructor.
@@ -2098,6 +2072,116 @@ game_position_x_has_any_player_any_legal_move (const GamePositionX * const gpx)
     }
   }
   return FALSE;
+}
+
+/**
+ * @brief Returns true if the `move` is legal for the game position x.
+ *
+ * @invariant Parameter `gpx` must be not `NULL`.
+ * Parameter `move` must be a value belonging to the `Square` enum.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gpx  the given game position x
+ * @param [in] move the square where to put the new disk
+ * @return          true if the move is legal
+ */
+gboolean
+game_position_x_is_move_legal (const GamePositionX * const gpx, const Square move)
+{
+  g_assert(gpx);
+  g_assert(move >= A1 && move <= H8);
+
+  Board board;
+  board.blacks = gpx->blacks;
+  board.whites = gpx->whites;
+
+  return board_is_move_legal(&board, move, gpx->player);
+}
+
+/**
+ * @brief Executes a game move.
+ *
+ * @details The moving player places a disc in the square identified by the `move` parameter.
+ *          The `current` position is unchanged, the new position is assigned to the structure
+ *          pointed by the `updated` parameter.
+ *
+ * @invariant Parameter `current` must be not `NULL`.
+ * Parameter `updated` must be not `NULL`.
+ * Parameter `move` must be a value belonging to the `Square` enum.
+ * Parameter `move` must be legal.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in]  current the given game position x
+ * @param [in]  move    the square where to put the new disk
+ * @param [out] updated the updated game position x as a rusult of the move
+ */
+void
+game_position_x_make_move (const GamePositionX * const current,
+                           const Square                move,
+                                 GamePositionX * const updated)
+{
+  g_assert(current);
+  g_assert(updated);
+  g_assert(move >= A1 && move <= H8);
+  g_assert(game_position_x_is_move_legal(current, move));
+
+  const Player p = current->player;
+  const Player o = player_opponent(p);
+  const SquareSet blacks = current->blacks;
+  const SquareSet whites = current->whites;
+  const SquareSet p_bit_board = (p == BLACK_PLAYER) ? blacks : whites;
+  const SquareSet o_bit_board = (p == BLACK_PLAYER) ? whites : blacks;
+  const int column = move % 8;
+  const int row = move / 8;
+
+  SquareSet new_bit_board[2];
+  const SquareSet unmodified_mask = ~bitboard_mask_for_all_directions[move];
+  new_bit_board[p] = p_bit_board & unmodified_mask;
+  new_bit_board[o] = o_bit_board & unmodified_mask;
+
+  int shift_distance;
+  uint8 p_bitrow;
+  uint8 o_bitrow;
+
+  /* Axis HO. */
+  const uint8 right_shift_for_HO = 8 * row;
+  p_bitrow = axis_transform_to_row_one(HO, p_bit_board >> right_shift_for_HO);
+  o_bitrow = axis_transform_to_row_one(HO, o_bit_board >> right_shift_for_HO);
+  p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, column);
+  o_bitrow &= ~p_bitrow;
+  new_bit_board[p] |= ((SquareSet) p_bitrow << right_shift_for_HO);
+  new_bit_board[o] |= ((SquareSet) o_bitrow << right_shift_for_HO);
+
+  /* Axis VE. */
+  p_bitrow = axis_transform_to_row_one(VE, p_bit_board >> column);
+  o_bitrow = axis_transform_to_row_one(VE, o_bit_board >> column);
+  p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, row);
+  o_bitrow &= ~p_bitrow;
+  new_bit_board[p] |= axis_transform_back_from_row_one(VE, p_bitrow) << column;
+  new_bit_board[o] |= axis_transform_back_from_row_one(VE, o_bitrow) << column;
+
+  /* Axis DD. */
+  shift_distance = axis_shift_distance(DD, column, row);
+  p_bitrow = axis_transform_to_row_one(DD, bit_works_signed_left_shift(p_bit_board, shift_distance));
+  o_bitrow = axis_transform_to_row_one(DD, bit_works_signed_left_shift(o_bit_board, shift_distance));
+  p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, column);
+  o_bitrow &= ~p_bitrow;
+  new_bit_board[p] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(DD, p_bitrow), -shift_distance);
+  new_bit_board[o] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(DD, o_bitrow), -shift_distance);
+
+  /* Axis DU. */
+  shift_distance = axis_shift_distance(DU, column, row);
+  p_bitrow = axis_transform_to_row_one(DU, bit_works_signed_left_shift(p_bit_board, shift_distance));
+  o_bitrow = axis_transform_to_row_one(DU, bit_works_signed_left_shift(o_bit_board, shift_distance));
+  p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, column);
+  o_bitrow &= ~p_bitrow;
+  new_bit_board[p] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(DU, p_bitrow), -shift_distance);
+  new_bit_board[o] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(DU, o_bitrow), -shift_distance);
+
+  updated->player = o;
+  updated->blacks = new_bit_board[0];
+  updated->whites = new_bit_board[1];
+  return;
 }
 
 

@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -90,6 +90,8 @@ static void game_position_x_hash_test (void);
 static void game_position_x_final_value_test (void);
 static void game_position_x_has_any_legal_move_test (void);
 static void game_position_x_has_any_player_any_legal_move_test (void);
+static void game_position_x_is_move_legal_test (void);
+static void game_position_x_make_move_test (void);
 
 static void legal_move_list_new_test (void);
 
@@ -149,6 +151,8 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_final_value_test", game_position_x_final_value_test);
   g_test_add_func("/board/game_position_x_has_any_legal_move_test", game_position_x_has_any_legal_move_test);
   g_test_add_func("/board/game_position_x_has_any_player_any_legal_move_test", game_position_x_has_any_player_any_legal_move_test);
+  g_test_add_func("/board/game_position_x_is_move_legal_test", game_position_x_is_move_legal_test);
+  g_test_add_func("/board/game_position_x_make_move_test", game_position_x_make_move_test);
 
   g_test_add_func("/board/legal_move_list_new_test", legal_move_list_new_test);
   
@@ -1094,4 +1098,56 @@ game_position_x_has_any_player_any_legal_move_test (void)
                             BLACK_PLAYER);
   g_assert(FALSE == game_position_x_has_any_player_any_legal_move(gpx));
   gpx = game_position_x_free(gpx);
+}
+
+static void
+game_position_x_is_move_legal_test (void)
+{
+  GamePositionX *gpx;
+ 
+  gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
+                            0x8000000000000000,
+                            WHITE_PLAYER);
+  g_assert(TRUE == game_position_x_is_move_legal(gpx, 0));
+  gpx = game_position_x_free(gpx);
+ 
+  gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
+                            0x8000000000000000,
+                            WHITE_PLAYER);
+  g_assert(FALSE == game_position_x_is_move_legal(gpx, 1));
+  gpx = game_position_x_free(gpx);
+ 
+  gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
+                            0x0000000000000000,
+                            WHITE_PLAYER);
+  g_assert(FALSE == game_position_x_is_move_legal(gpx, 0));
+  gpx = game_position_x_free(gpx);
+}
+
+static void
+game_position_x_make_move_test (void)
+{
+  GamePositionX *current;
+  GamePositionX *updated;
+  GamePositionX *expected;
+
+  current = game_position_x_new(0x0000000000000002,
+                                0x0000000000000004,
+                                WHITE_PLAYER);
+
+  updated = game_position_x_new(0x0000000000000000,
+                                0x0000000000000000,
+                                WHITE_PLAYER);
+
+  expected = game_position_x_new(0x0000000000000000,
+                                 0x0000000000000007,
+                                 BLACK_PLAYER);
+
+  g_assert(TRUE == game_position_x_is_move_legal(current, 0));
+  game_position_x_make_move(current, 0, updated);
+  g_assert(0 == game_position_x_compare(expected, updated));
+
+  current  = game_position_x_free(current);
+  updated  = game_position_x_free(updated);
+  expected = game_position_x_free(expected);
 }
