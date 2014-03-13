@@ -84,6 +84,9 @@ game_position_solve_impl2 (      ExactSolution * const result,
 static void
 game_tree_stack_init (void);
 
+static void
+game_tree_stack_print (void);
+
 inline static void
 legal_move_list_from_set (const SquareSet      legal_move_set,
                                 LegalMoveList *legal_move_list);
@@ -117,6 +120,8 @@ game_position_rab_solve (const GamePosition * const root)
   SearchNode    *sn;
 
   game_tree_stack_init();
+
+  game_tree_stack_print();
   
   result = exact_solution_new();
 
@@ -124,6 +129,7 @@ game_position_rab_solve (const GamePosition * const root)
 
   //sn = game_position_solve_impl(result, result->solved_game_position);
   GamePositionX *gpx = game_position_x_gp_to_gpx(root);
+  game_position_x_copy(gpx, &(&stack->nodes[0])->gpx);
   sn = game_position_solve_impl2(result, gpx);
   gpx = game_position_x_free(gpx);
   
@@ -139,6 +145,38 @@ game_position_rab_solve (const GamePosition * const root)
 /*
  * Internal functions.
  */
+
+/**
+ * @brief Prints the stack structure.
+ */
+static void
+game_tree_stack_print (void)
+{
+  const size_t size_of_stack_pointer = sizeof(stack);
+  const size_t size_of_stack_structure = sizeof(*stack);
+  const size_t size_of_node_info = sizeof(NodeInfo);
+  const int node_count = sizeof(stack->nodes)/sizeof(NodeInfo);
+  const size_t size_of_game_position_x = sizeof(GamePositionX);
+  const size_t size_of_uint64 = sizeof(uint64);
+  const size_t size_of_legal_move_list = sizeof(LegalMoveList);
+  printf("### ### ### ### ###\n");
+  printf("size_of_stack_pointer: %zu\n", size_of_stack_pointer);
+  printf("size_of_stack_structure: %zu\n", size_of_stack_structure);
+  printf("size_of_node_info: %zu\n", size_of_node_info);
+  printf("size_of_game_position_x: %zu\n", size_of_game_position_x);
+  printf("size_of_uint64: %zu\n", size_of_uint64);
+  printf("size_of_legal_move_list: %zu\n", size_of_legal_move_list);
+  printf("stack address: %p\n", (void *) stack);
+  printf("stack->fill_point: %d, address: %p\n", stack->fill_point, (void *) &(stack->fill_point));
+  printf("stack->nodes address: %p\n", (void *) &(stack->nodes));
+  printf("node_count: %d\n", node_count);
+  for (int i = 0; i < 3; i++) {
+    const NodeInfo *node = &stack->nodes[i];
+    printf("node[%d] address: %p, offset=%ld\n", i, (void *) node, node - &(stack->nodes[0]));
+  }
+  printf("### ### ### ### ###\n");
+  //abort();
+}
 
 /**
  * @brief Initializes the stack structure.
@@ -248,11 +286,25 @@ game_position_solve_impl2 (      ExactSolution * const result,
   node2 = NULL;
   result->node_count++;
  
-  NodeInfo * const node_info = &stack->nodes[++stack->fill_point];
+  NodeInfo * const node_info = &stack->nodes[stack->fill_point++];
+  //game_position_x_copy(current, &node_info->gpx);
   // to be removed ....
-  game_position_x_copy(current, &node_info->gpx);
+  if (0 != game_position_x_compare(current, &node_info->gpx)) {
+    printf("dfferent .... stack->fill_point=%d\n", stack->fill_point);
+    gchar *gpxs1 = game_position_x_print(current);
+    printf("%s\n", gpxs1);
+    g_free(gpxs1);
+    gchar *gpxs2 = game_position_x_print(&node_info->gpx);
+    printf("node[%d] address: %p, offset=%ld\n", stack->fill_point, (void *) node_info, node_info - &(stack->nodes[0]));
+    printf("%s\n", gpxs2);
+    g_free(gpxs2);
+    if (stack->fill_point == 3) abort();
+  }
 
   NodeInfo * const next_node_info = &stack->nodes[stack->fill_point];
+  //printf("xxxxxxxxxxx\n");
+  //printf("node_info[%d] address: %p, offset=%ld\n", stack->fill_point, (void *) node_info, node_info - &(stack->nodes[0]));
+  //printf("next_node_info address: %p, offset=%ld\n", (void *) next_node_info, next_node_info - &(stack->nodes[0]));
   LegalMoveList * const moves = &node_info->moves;
   const SquareSet move_set = game_position_x_legal_moves(current);
   legal_move_list_from_set(move_set, moves);
