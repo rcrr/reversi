@@ -79,9 +79,6 @@ game_position_solve_impl (ExactSolution * const result);
 static void
 game_tree_stack_init (void);
 
-static void
-game_tree_stack_print (void);
-
 inline static void
 legal_move_list_from_set (const SquareSet      legal_move_set,
                                 LegalMoveList *legal_move_list);
@@ -116,8 +113,6 @@ game_position_rab_solve (const GamePosition * const root)
 
   game_tree_stack_init();
 
-  if (FALSE) game_tree_stack_print();
-  
   result = exact_solution_new();
 
   result->solved_game_position = game_position_clone(root);
@@ -139,37 +134,6 @@ game_position_rab_solve (const GamePosition * const root)
 /*
  * Internal functions.
  */
-
-/**
- * @brief Prints the stack structure.
- */
-static void
-game_tree_stack_print (void)
-{
-  const size_t size_of_stack_pointer = sizeof(stack);
-  const size_t size_of_stack_structure = sizeof(*stack);
-  const size_t size_of_node_info = sizeof(NodeInfo);
-  const int node_count = sizeof(stack->nodes)/sizeof(NodeInfo);
-  const size_t size_of_game_position_x = sizeof(GamePositionX);
-  const size_t size_of_uint64 = sizeof(uint64);
-  const size_t size_of_legal_move_list = sizeof(LegalMoveList);
-  printf("### ### ### ### ###\n");
-  printf("size_of_stack_pointer: %zu\n", size_of_stack_pointer);
-  printf("size_of_stack_structure: %zu\n", size_of_stack_structure);
-  printf("size_of_node_info: %zu\n", size_of_node_info);
-  printf("size_of_game_position_x: %zu\n", size_of_game_position_x);
-  printf("size_of_uint64: %zu\n", size_of_uint64);
-  printf("size_of_legal_move_list: %zu\n", size_of_legal_move_list);
-  printf("stack address: %p\n", (void *) stack);
-  printf("stack->fill_index: %d, address: %p\n", stack->fill_index, (void *) &(stack->fill_index));
-  printf("stack->nodes address: %p\n", (void *) &(stack->nodes));
-  printf("node_count: %d\n", node_count);
-  for (int i = 0; i < 3; i++) {
-    const NodeInfo *node = &stack->nodes[i];
-    printf("node[%d] address: %p, offset=%ld\n", i, (void *) node, node - &(stack->nodes[0]));
-  }
-  printf("### ### ### ### ###\n");
-}
 
 /**
  * @brief Initializes the stack structure.
