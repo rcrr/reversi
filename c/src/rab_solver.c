@@ -64,7 +64,7 @@ typedef struct {
  * @brief The info collected by deepening the game tree.
  */
 typedef struct {
-  int      fill_point;                    /**< @brief The index of the last entry into the stack. */
+  int      fill_index;                    /**< @brief The index of the last entry into the stack. */
   NodeInfo nodes[GAME_TREE_MAX_DEPTH];    /**< @brief The stack of node info. */
 } GameTreeStack;
 
@@ -74,11 +74,14 @@ typedef struct {
  */
 
 static SearchNode *
-game_position_solve_impl2 (      ExactSolution * const result,
-                           const GamePositionX * const gpx);
+game_position_solve_impl (      ExactSolution * const result,
+                          const GamePositionX * const gpx);
 
 static void
 game_tree_stack_init (void);
+
+static void
+game_tree_stack_print (void);
 
 inline static void
 legal_move_list_from_set (const SquareSet      legal_move_set,
@@ -113,14 +116,17 @@ game_position_rab_solve (const GamePosition * const root)
   SearchNode    *sn;
 
   game_tree_stack_init();
+
+  if (TRUE) game_tree_stack_print();
+  printf("&(&stack->nodes[0])->gpx = %p\n", (void *) &(&stack->nodes[0])->gpx);
   
   result = exact_solution_new();
 
   result->solved_game_position = game_position_clone(root);
 
-  //sn = game_position_solve_impl(result, result->solved_game_position);
   GamePositionX *gpx = game_position_x_gp_to_gpx(root);
-  sn = game_position_solve_impl2(result, gpx);
+  game_position_x_copy(gpx, &(&stack->nodes[0])->gpx);
+  sn = game_position_solve_impl(result, gpx);
   gpx = game_position_x_free(gpx);
   
   result->principal_variation[0] = sn->move;
@@ -137,12 +143,44 @@ game_position_rab_solve (const GamePosition * const root)
  */
 
 /**
+ * @brief Prints the stack structure.
+ */
+static void
+game_tree_stack_print (void)
+{
+  const size_t size_of_stack_pointer = sizeof(stack);
+  const size_t size_of_stack_structure = sizeof(*stack);
+  const size_t size_of_node_info = sizeof(NodeInfo);
+  const int node_count = sizeof(stack->nodes)/sizeof(NodeInfo);
+  const size_t size_of_game_position_x = sizeof(GamePositionX);
+  const size_t size_of_uint64 = sizeof(uint64);
+  const size_t size_of_legal_move_list = sizeof(LegalMoveList);
+  printf("### ### ### ### ###\n");
+  printf("size_of_stack_pointer: %zu\n", size_of_stack_pointer);
+  printf("size_of_stack_structure: %zu\n", size_of_stack_structure);
+  printf("size_of_node_info: %zu\n", size_of_node_info);
+  printf("size_of_game_position_x: %zu\n", size_of_game_position_x);
+  printf("size_of_uint64: %zu\n", size_of_uint64);
+  printf("size_of_legal_move_list: %zu\n", size_of_legal_move_list);
+  printf("stack address: %p\n", (void *) stack);
+  printf("stack->fill_index: %d, address: %p\n", stack->fill_index, (void *) &(stack->fill_index));
+  printf("stack->nodes address: %p\n", (void *) &(stack->nodes));
+  printf("node_count: %d\n", node_count);
+  for (int i = 0; i < 3; i++) {
+    const NodeInfo *node = &stack->nodes[i];
+    printf("node[%d] address: %p, offset=%ld\n", i, (void *) node, node - &(stack->nodes[0]));
+  }
+  printf("### ### ### ### ###\n");
+  //abort();
+}
+
+/**
  * @brief Initializes the stack structure.
  */
 static void
 game_tree_stack_init (void)
 {
-  stack->fill_point = 0;
+  stack->fill_index = 0;
 }
 
 /**
@@ -177,8 +215,8 @@ legal_move_list_from_set (const SquareSet      legal_move_set,
  * @return             a pointer to a new serch node structure
  */
 static SearchNode *
-game_position_solve_impl2 (      ExactSolution * const result,
-                           const GamePositionX * const current)
+game_position_solve_impl (      ExactSolution * const result,
+                          const GamePositionX * const current)
 {
   
   SearchNode *node;
@@ -187,28 +225,36 @@ game_position_solve_impl2 (      ExactSolution * const result,
   node  = NULL;
   node2 = NULL;
   result->node_count++;
- 
-  NodeInfo * const node_info = &stack->nodes[++stack->fill_point];
-  // to be removed ....
-  game_position_x_copy(current, &node_info->gpx);
 
-  NodeInfo * const next_node_info = &stack->nodes[stack->fill_point];
+  NodeInfo * const node_info = &stack->nodes[stack->fill_index];
+  stack->fill_index++;
+  // to be removed ....
+  if (0 != game_position_x_compare(current, &node_info->gpx)) {
+    printf("dfferent .... stack->fill_index=%d\n", stack->fill_index);
+    gchar *gpxs1 = game_position_x_print(current);
+    printf("%s\n", gpxs1);
+    g_free(gpxs1);
+    gchar *gpxs2 = game_position_x_print(&node_info->gpx);
+    printf("node[%d] address: %p, offset=%ld\n", stack->fill_index, (void *) node_info, node_info - &(stack->nodes[0]));
+    printf("%s\n", gpxs2);
+    g_free(gpxs2);
+    abort();
+  }
+  //game_position_x_copy(current, &node_info->gpx);
+
+  NodeInfo * const next_node_info = &stack->nodes[stack->fill_index];
+  if ((next_node_info - node_info) != 1) abort();
+
   LegalMoveList * const moves = &node_info->moves;
   const SquareSet move_set = game_position_x_legal_moves(current);
   legal_move_list_from_set(move_set, moves);
-  //GamePositionX * const gp = &node_info->gp;
-  //GamePositionX * const next_gp = &next_node_info->gp;
-  /*
-  GamePosition  gp;   
-  uint64        hash; 
-  */
 
   if (move_set == empty_square_set) {
     game_position_x_pass(current, &next_node_info->gpx);
-    const int previous_move_count = stack->nodes[stack->fill_point - 1].moves.move_count;
+    const int previous_move_count = stack->nodes[stack->fill_index - 2].moves.move_count;
     const SquareSet empties = game_position_x_empties(current);
     if (empties != empty_square_set && previous_move_count != 0) {
-      node = search_node_negated(game_position_solve_impl2(result, &next_node_info->gpx));
+      node = search_node_negated(game_position_solve_impl(result, &next_node_info->gpx));
     } else {
       result->leaf_count++;
       node = search_node_new((Square) -1, game_position_x_final_value(current));
@@ -218,7 +264,7 @@ game_position_solve_impl2 (      ExactSolution * const result,
     for (int i = 0; i < moves->move_count; i++) {
       const Square move = moves->squares[i];
       game_position_x_make_move(current, move, &next_node_info->gpx);
-      node2 = search_node_negated(game_position_solve_impl2(result, &next_node_info->gpx));
+      node2 = search_node_negated(game_position_solve_impl(result, &next_node_info->gpx));
       if (node2->value > node->value) {
         search_node_free(node);
         node = node2;
@@ -230,6 +276,6 @@ game_position_solve_impl2 (      ExactSolution * const result,
     }
   }
 
-  stack->fill_point--;
+  stack->fill_index--;
   return node;
 }
