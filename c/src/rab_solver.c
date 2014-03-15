@@ -58,6 +58,8 @@ typedef struct {
   GamePositionX  gpx;          /**< @brief The game position related to the game tree node. */
   uint64         hash;         /**< @brief The hash value of the game position. */
   LegalMoveList  moves;        /**< @brief The list of legal moves for the node. */
+  Square         best_move;
+  int            value;
 } NodeInfo;
 
 /**
@@ -110,7 +112,7 @@ game_position_rab_solve (const GamePosition * const root)
 {
   ExactSolution *result; 
   SearchNode    *sn;
-
+  
   game_tree_stack_init();
 
   result = exact_solution_new();
@@ -206,17 +208,25 @@ game_position_solve_impl (ExactSolution * const result)
     if (empties != empty_square_set && previous_move_count != 0) {
       game_position_x_pass(current_gpx, next_gpx);
       node = search_node_negated(game_position_solve_impl(result));
+      current_node_info->value = -next_node_info->value;
+      current_node_info->best_move = next_node_info->best_move;
     } else {
       result->leaf_count++;
+      current_node_info->value = game_position_x_final_value(current_gpx);
+      current_node_info->best_move = (Square) -1;
       node = search_node_new((Square) -1, game_position_x_final_value(current_gpx));
     }
   } else {
+    current_node_info->value = -65;
+    current_node_info->best_move = (Square) -1;
     node = search_node_new((Square) -1, -65);
     for (int i = 0; i < moves->move_count; i++) {
       const Square move = moves->squares[i];
       game_position_x_make_move(current_gpx, move, next_gpx);
       node2 = search_node_negated(game_position_solve_impl(result));
       if (node2->value > node->value) {
+        current_node_info->value = -next_node_info->value;
+        current_node_info->best_move = move;
         search_node_free(node);
         node = node2;
         node->move = move;
@@ -227,6 +237,14 @@ game_position_solve_impl (ExactSolution * const result)
     }
   }
 
+  if (node->value != current_node_info->value) {
+    printf("node->value=%d; current_node_info->value=%d\n", node->value, current_node_info->value);
+    abort();
+  }
+  if (node->move != current_node_info->best_move) {
+    printf("node->move=%d; current_node_info->best_move=%d\n", node->move, current_node_info->best_move);
+    abort();
+  }
   stack->fill_index--;
   return node;
 }
