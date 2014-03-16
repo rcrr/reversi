@@ -73,6 +73,9 @@ typedef struct {
   GamePositionX  gpx;          /**< @brief The game position related to the game tree node. */
   uint64         hash;         /**< @brief The hash value of the game position. */
   LegalMoveList  moves;        /**< @brief The list of legal moves for the node. */
+  SquareSet      move_set;
+  int            move_count;
+  Square        *head_of_legal_move_list;
   Square         best_move;
   int            value;
 } NodeInfo;
@@ -83,6 +86,7 @@ typedef struct {
 typedef struct {
   int      fill_index;                    /**< @brief The index of the last entry into the stack. */
   NodeInfo nodes[GAME_TREE_MAX_DEPTH];    /**< @brief The stack of node info. */
+  Square legal_move_stack[GAME_TREE_MAX_DEPTH * MAX_LEGAL_MOVE_COUNT];
 } GameTreeStack;
 
 
@@ -94,7 +98,7 @@ static void
 game_position_solve_impl (ExactSolution * const result);
 
 static void
-game_tree_stack_init (void);
+game_tree_stack_init (const GamePosition * const root);
 
 inline static void
 legal_move_list_from_set (const SquareSet      legal_move_set,
@@ -127,17 +131,12 @@ game_position_rab_solve (const GamePosition * const root)
 {
   ExactSolution *result; 
   
-  game_tree_stack_init();
+  game_tree_stack_init(root);
+  NodeInfo *first_node_info = &stack->nodes[1];
 
   result = exact_solution_new();
-
   result->solved_game_position = game_position_clone(root);
 
-  NodeInfo *first_node_info = &stack->nodes[0];
-
-  GamePositionX *gpx = game_position_x_gp_to_gpx(root);
-  game_position_x_copy(gpx, &first_node_info->gpx);
-  gpx = game_position_x_free(gpx);
   game_position_solve_impl(result);
   
   result->principal_variation[0] = first_node_info->best_move;
@@ -156,9 +155,23 @@ game_position_rab_solve (const GamePosition * const root)
  * @brief Initializes the stack structure.
  */
 static void
-game_tree_stack_init (void)
+game_tree_stack_init (const GamePosition * const root)
 {
-  stack->fill_index = 0;
+  NodeInfo *ground_node_info = &stack->nodes[0];
+  game_position_x_copy_from_gp(root, &ground_node_info->gpx);
+  ground_node_info->gpx.player = player_opponent(ground_node_info->gpx.player);
+  ground_node_info->hash = game_position_x_hash(&ground_node_info->gpx);
+  ground_node_info->move_set = 0ULL;
+  ground_node_info->move_count = 0;
+  ground_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
+  ground_node_info->best_move = (Square) -1;
+  ground_node_info->value = -65;
+  
+  NodeInfo *first_node_info  = &stack->nodes[1];
+  game_position_x_copy_from_gp(root, &first_node_info->gpx);  
+  first_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
+
+  stack->fill_index = 1;
 }
 
 /**
@@ -185,6 +198,25 @@ legal_move_list_from_set (const SquareSet      legal_move_set,
   return;
 }
 
+inline static void
+legal_move_list_from_set2 (const SquareSet        legal_move_set,
+                                 NodeInfo * const current_node_info,
+                                 NodeInfo * const next_node_info)
+{
+  Square *move_ptr = current_node_info->head_of_legal_move_list;
+  SquareSet remaining_moves = legal_move_set;
+  current_node_info->move_count = 0;
+  while (remaining_moves) {
+    const Square move = bit_works_bitscanLS1B_64(remaining_moves);
+    *move_ptr = move;
+    move_ptr++;
+    current_node_info->move_count++;
+    remaining_moves ^= 1ULL << move;
+  }
+  next_node_info->head_of_legal_move_list = move_ptr;
+  return;  
+}
+
 /**
  * @brief Recursive function used to traverse the game tree.
  *
@@ -203,14 +235,17 @@ game_position_solve_impl (ExactSolution * const result)
   
   NodeInfo * const current_node_info = &stack->nodes[current_fill_index];
   NodeInfo * const next_node_info = &stack->nodes[next_fill_index];
+  NodeInfo * const previous_node_info = &stack->nodes[previous_fill_index];
   const GamePositionX * const current_gpx = &current_node_info->gpx;
   GamePositionX * const next_gpx = &next_node_info->gpx;
   LegalMoveList * const moves = &current_node_info->moves;
   const SquareSet move_set = game_position_x_legal_moves(current_gpx);
   legal_move_list_from_set(move_set, moves);
+  legal_move_list_from_set2(move_set, current_node_info, next_node_info);
 
   if (move_set == empty_square_set) {
     const int previous_move_count = stack->nodes[previous_fill_index].moves.move_count;
+    if (previous_move_count != previous_node_info->move_count) {printf("previous_move_count=%d, previous_node_info->move_count=%d\n", previous_move_count, previous_node_info->move_count); abort();}
     const SquareSet empties = game_position_x_empties(current_gpx);
     if (empties != empty_square_set && previous_move_count != 0) {
       game_position_x_pass(current_gpx, next_gpx);
