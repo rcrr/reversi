@@ -54,6 +54,23 @@
  */
 #define LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING 2
 
+/**
+ * @brief The maximum number of legal moves.
+ */
+#define MAX_MS_LEGAL_MOVE_COUNT 32
+
+
+
+/**
+ * @brief A legal move list arrange a square set with a given order.
+ */
+typedef struct {
+  SquareSet      square_set;                         /**< @brief The square set representing the legal moves. */
+  int            move_count;                         /**< @brief The count of legal moves. */
+  Square         squares[MAX_MS_LEGAL_MOVE_COUNT];   /**< @brief The list of squares that are valid moves. */
+} MSLegalMoveList;
+
+
 
 /*
  * Prototypes for internal functions.
@@ -140,10 +157,10 @@ game_position_minimax_solve (const GamePosition * const root)
  * @param [in] legal_move_set the set of legal moves
  * @return                    a new legal move list structure
  */
-inline static LegalMoveList
+inline static MSLegalMoveList
 legal_move_list_new_local (const SquareSet legal_move_set)
 {
-  LegalMoveList legal_move_list;
+  MSLegalMoveList legal_move_list;
 
   legal_move_list.move_count = 0;
   legal_move_list.square_set = legal_move_set;
@@ -225,14 +242,14 @@ game_position_solve_impl (      ExactSolution * const result,
 #endif
 
 #if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==1
-    LegalMoveList *legal_move_list = legal_move_list_new(moves);
+    MSLegalMoveList *legal_move_list = legal_move_list_new(moves);
     for (int i = 0; i < legal_move_list->move_count; i++) {
       const Square move = legal_move_list->squares[i];
 #endif
 
 #if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==2
-    LegalMoveList legal_move_list_structure = legal_move_list_new_local(moves);
-    LegalMoveList *legal_move_list = &legal_move_list_structure;
+    MSLegalMoveList legal_move_list_structure = legal_move_list_new_local(moves);
+    MSLegalMoveList *legal_move_list = &legal_move_list_structure;
     for (int i = 0; i < legal_move_list->move_count; i++) {
       const Square move = legal_move_list->squares[i];
 #endif
