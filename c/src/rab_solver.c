@@ -75,7 +75,7 @@ typedef struct {
  * Prototypes for internal functions.
  */
 
-static SearchNode *
+static void
 game_position_solve_impl (ExactSolution * const result);
 
 static void
@@ -111,7 +111,6 @@ ExactSolution *
 game_position_rab_solve (const GamePosition * const root)
 {
   ExactSolution *result; 
-  SearchNode    *sn;
   
   game_tree_stack_init();
 
@@ -121,12 +120,11 @@ game_position_rab_solve (const GamePosition * const root)
 
   GamePositionX *gpx = game_position_x_gp_to_gpx(root);
   game_position_x_copy(gpx, &(&stack->nodes[0])->gpx);
-  sn = game_position_solve_impl(result);
+  game_position_solve_impl(result);
   gpx = game_position_x_free(gpx);
   
-  result->principal_variation[0] = sn->move;
-  result->outcome = sn->value;
-  sn = search_node_free(sn);
+  result->principal_variation[0] = (&stack->nodes[0])->best_move;
+  result->outcome = (&stack->nodes[0])->value;
 
   return result;
 }
@@ -174,18 +172,10 @@ legal_move_list_from_set (const SquareSet      legal_move_set,
  * @brief Recursive function used to traverse the game tree.
  *
  * @param [in] result  a reference to the exact solution data structure
- * @param [in] current the game position x to traverse
- * @return             a pointer to a new serch node structure
  */
-static SearchNode *
+static void
 game_position_solve_impl (ExactSolution * const result)
 {
-  
-  SearchNode *node;
-  SearchNode *node2;
-
-  node  = NULL;
-  node2 = NULL;
   result->node_count++;
 
   const int current_fill_index = stack->fill_index;
@@ -207,44 +197,30 @@ game_position_solve_impl (ExactSolution * const result)
     const SquareSet empties = game_position_x_empties(current_gpx);
     if (empties != empty_square_set && previous_move_count != 0) {
       game_position_x_pass(current_gpx, next_gpx);
-      node = search_node_negated(game_position_solve_impl(result));
+      game_position_solve_impl(result);
       current_node_info->value = -next_node_info->value;
       current_node_info->best_move = next_node_info->best_move;
     } else {
       result->leaf_count++;
       current_node_info->value = game_position_x_final_value(current_gpx);
       current_node_info->best_move = (Square) -1;
-      node = search_node_new((Square) -1, game_position_x_final_value(current_gpx));
     }
   } else {
     current_node_info->value = -65;
     current_node_info->best_move = (Square) -1;
-    node = search_node_new((Square) -1, -65);
     for (int i = 0; i < moves->move_count; i++) {
       const Square move = moves->squares[i];
       game_position_x_make_move(current_gpx, move, next_gpx);
-      node2 = search_node_negated(game_position_solve_impl(result));
-      if (node2->value > node->value) {
+      game_position_solve_impl(result);
+      if (-next_node_info->value > current_node_info->value) {
         current_node_info->value = -next_node_info->value;
         current_node_info->best_move = move;
-        search_node_free(node);
-        node = node2;
-        node->move = move;
-        node2 = NULL;
       } else {
-        node2 = search_node_free(node2);
+        ;
       }
     }
   }
 
-  if (node->value != current_node_info->value) {
-    printf("node->value=%d; current_node_info->value=%d\n", node->value, current_node_info->value);
-    abort();
-  }
-  if (node->move != current_node_info->best_move) {
-    printf("node->move=%d; current_node_info->best_move=%d\n", node->move, current_node_info->best_move);
-    abort();
-  }
   stack->fill_index--;
-  return node;
+  return;
 }
