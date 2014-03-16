@@ -22,7 +22,13 @@
  *
  * @todo Analyze the parity feature in improved_fast_endgame.
  *
- * @todo Try to avoid having malloc/free calls during game tree expansion.
+ * @todo [done] Try to avoid having malloc/free calls during game tree expansion.
+ *
+ * @todo Refactor the game-tree static stack implementation.
+ * Avoid to put it in the stack (implement one call to malloc for the complete structure).
+ * Pass the stack pointer in the parameter list.
+ * Make the code as much readable as possible.
+ * Port the practice to all the other solver, refactor the structures used (Stack, NodeInfo, GamePositionX).
  *
  * @todo Organize the SQL scripts into a modular practice.
  *
