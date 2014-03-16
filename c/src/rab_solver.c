@@ -118,13 +118,15 @@ game_position_rab_solve (const GamePosition * const root)
 
   result->solved_game_position = game_position_clone(root);
 
+  NodeInfo *first_node_info = &stack->nodes[0];
+
   GamePositionX *gpx = game_position_x_gp_to_gpx(root);
-  game_position_x_copy(gpx, &(&stack->nodes[0])->gpx);
-  game_position_solve_impl(result);
+  game_position_x_copy(gpx, &first_node_info->gpx);
   gpx = game_position_x_free(gpx);
+  game_position_solve_impl(result);
   
-  result->principal_variation[0] = (&stack->nodes[0])->best_move;
-  result->outcome = (&stack->nodes[0])->value;
+  result->principal_variation[0] = first_node_info->best_move;
+  result->outcome = first_node_info->value;
 
   return result;
 }
@@ -207,7 +209,7 @@ game_position_solve_impl (ExactSolution * const result)
     }
   } else {
     current_node_info->value = -65;
-    current_node_info->best_move = (Square) -1;
+    //current_node_info->best_move = (Square) -1;
     for (int i = 0; i < moves->move_count; i++) {
       const Square move = moves->squares[i];
       game_position_x_make_move(current_gpx, move, next_gpx);
@@ -215,8 +217,6 @@ game_position_solve_impl (ExactSolution * const result)
       if (-next_node_info->value > current_node_info->value) {
         current_node_info->value = -next_node_info->value;
         current_node_info->best_move = move;
-      } else {
-        ;
       }
     }
   }
