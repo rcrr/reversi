@@ -40,36 +40,6 @@
 
 //#define GAME_TREE_DEBUG
 
-/**
- * @brief Macro value used to select the algorithm applied to traverse the move list.
- *
- * It defines which way the code traverse the legal move list, valid values are:
- * - 0: bitscan is embedded in the loop.
- *   This is the fastest option.
- * - 1: a global function defined by the board header file is used.
- *   This is the most elegant option that make the code more readable and clear.
- * - 2: a local in-lined function is used.  
- *   This is an in-between version, is close to the performances of the first variant, and
- *   opens the way to have the proper structure for move sorting.
- */
-#define LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING 2
-
-/**
- * @brief The maximum number of legal moves.
- */
-#define MAX_MS_LEGAL_MOVE_COUNT 32
-
-
-
-/**
- * @brief A legal move list arrange a square set with a given order.
- */
-typedef struct {
-  SquareSet      square_set;                         /**< @brief The square set representing the legal moves. */
-  int            move_count;                         /**< @brief The count of legal moves. */
-  Square         squares[MAX_MS_LEGAL_MOVE_COUNT];   /**< @brief The list of squares that are valid moves. */
-} MSLegalMoveList;
-
 
 
 /*
@@ -149,36 +119,6 @@ game_position_minimax_solve (const GamePosition * const root)
  * Internal functions.
  */
 
-#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==2
-
-/**
- * @brief Returns a new legal move list structure.
- *
- * @param [in] legal_move_set the set of legal moves
- * @return                    a new legal move list structure
- */
-inline static MSLegalMoveList
-legal_move_list_new_local (const SquareSet legal_move_set)
-{
-  MSLegalMoveList legal_move_list;
-
-  legal_move_list.move_count = 0;
-  legal_move_list.square_set = legal_move_set;
-
-  SquareSet remaining_moves = legal_move_set;
-  while (remaining_moves) {
-    const Square move = bit_works_bitscanLS1B_64(remaining_moves);
-    legal_move_list.squares[legal_move_list.move_count] = move;
-    legal_move_list.move_count++;
-    remaining_moves ^= 1ULL << move;
-  }
-  
-  return legal_move_list;
-}
-
-#endif
-
-
 /**
  * @brief Recursive function used to traverse the game tree.
  *
@@ -233,27 +173,10 @@ game_position_solve_impl (      ExactSolution * const result,
     flipped_players = game_position_free(flipped_players);
   } else {
     node = search_node_new(-1, -65);
-
-#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==0
     SquareSet remaining_moves = moves;
     while (remaining_moves) {
       const Square move = bit_works_bitscanLS1B_64(remaining_moves);
       remaining_moves ^= 1ULL << move;
-#endif
-
-#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==1
-    MSLegalMoveList *legal_move_list = legal_move_list_new(moves);
-    for (int i = 0; i < legal_move_list->move_count; i++) {
-      const Square move = legal_move_list->squares[i];
-#endif
-
-#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==2
-    MSLegalMoveList legal_move_list_structure = legal_move_list_new_local(moves);
-    MSLegalMoveList *legal_move_list = &legal_move_list_structure;
-    for (int i = 0; i < legal_move_list->move_count; i++) {
-      const Square move = legal_move_list->squares[i];
-#endif
-
       GamePosition *gp2 = game_position_make_move(gp, move);
       node2 = search_node_negated(game_position_solve_impl(result, gp2));
       gp2 = game_position_free(gp2);
@@ -266,11 +189,6 @@ game_position_solve_impl (      ExactSolution * const result,
         node2 = search_node_free(node2);
       }
     }
-    
-#if LOOP_TYPE_FOR_MOVE_LIST_TRAVERSING==1
-    legal_move_list = legal_move_list_free(legal_move_list);
-#endif
-
   }
 
 #ifdef GAME_TREE_DEBUG

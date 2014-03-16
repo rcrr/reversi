@@ -93,8 +93,6 @@ static void game_position_x_has_any_player_any_legal_move_test (void);
 static void game_position_x_is_move_legal_test (void);
 static void game_position_x_make_move_test (void);
 
-static void legal_move_list_new_test (void);
-
 int
 main (int   argc,
       char *argv[])
@@ -153,8 +151,6 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_has_any_player_any_legal_move_test", game_position_x_has_any_player_any_legal_move_test);
   g_test_add_func("/board/game_position_x_is_move_legal_test", game_position_x_is_move_legal_test);
   g_test_add_func("/board/game_position_x_make_move_test", game_position_x_make_move_test);
-
-  g_test_add_func("/board/legal_move_list_new_test", legal_move_list_new_test);
   
   return g_test_run();
 }
@@ -641,22 +637,6 @@ game_position_hash_test (void)
   g_assert(game_position_hash(gp) == ~expected);
   gp = game_position_free(gp);
 
-}
-
-static void
-legal_move_list_new_test (void)
-{
-  const SquareSet set = 0x8000000000000003;
-  LegalMoveList *lml = legal_move_list_new(set);
-
-  g_assert(3 == lml->move_count);
-
-  Square expected_moves[3] = {0, 1, 63};
-  for (int i = 0; i < lml->move_count; i++) {
-    g_assert(lml->squares[i] == expected_moves[i]);
-  }
-
-  legal_move_list_free(lml);
 }
 
 static void

@@ -38,7 +38,7 @@
 
 #include "exact_solver.h"
 
-//#define GAME_TREE_DEBUG
+#define GAME_TREE_DEBUG
 
 /**
  * @brief Elements of a doubly linked list that collects moves.
@@ -82,10 +82,12 @@ game_position_solve_impl (      ExactSolution * const result,
 static void
 move_list_init (MoveList *ml);
 
+#ifdef GAME_TREE_DEBUG
+
 static gchar *
 move_list_print (MoveList *ml);
 
-
+#endif
 
 /*
  * Internal variables and constants.
@@ -453,6 +455,8 @@ move_list_init (MoveList *ml)
   ml->tail.succ = NULL;
 }
 
+#ifdef GAME_TREE_DEBUG
+
 static gchar *
 move_list_print (MoveList *ml)
 {
@@ -475,3 +479,5 @@ move_list_print (MoveList *ml)
   }
   return ml_to_s;
 }
+
+#endif

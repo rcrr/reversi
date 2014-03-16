@@ -40,8 +40,6 @@
 
 #include "bit_works.h"
 
-#define MAX_LEGAL_MOVE_COUNT  32
-
 
 /**********************************************/
 /* Type declarations.                         */ 
@@ -176,25 +174,6 @@ typedef struct {
 } GamePosition;
 
 /**
- * @todo ....
- */
-typedef struct {
-  Square move;
-  int    mobility;
-} LegalMoveInfo;
-
-/**
- * @brief A legal move list arrange a square set with a given order.
- */
-typedef struct {
-  SquareSet      square_set;                      /**< @brief The square set representing the legal moves. */
-  int            move_count;                      /**< @brief The count of legal moves. */
-  Square         squares[MAX_LEGAL_MOVE_COUNT];   /**< @brief The list of squares that are valid moves. */
-  //LegalMoveInfo  moves[MAX_LEGAL_MOVE_COUNT];
-  //LegalMoveInfo *sorted[MAX_LEGAL_MOVE_COUNT];
-} LegalMoveList;
-
-/**
  * @brief A game position variant where instead of the board pointer its field are directly collected.
  * @details This game position representation is used in conjunction with functions
  * that do not malloc/free, these function use the prefix `game_position_x`.
@@ -214,15 +193,6 @@ typedef struct {
  * @brief The empty square set.
  */
 static const SquareSet empty_square_set = 0ULL;
-
-/**
- * @brief The maximum number of legal moves.
- * @detail The value has been determined by running 100,000 random games.
- * When 30/36 squares are empty, there is the mobility peak, having 25 legal moves.
- * The distribution shape suggests that 26/27 moves should be the cap, so a value of 32
- * should be considered as safe.
- */
-static const int max_legal_move_count = MAX_LEGAL_MOVE_COUNT;
 
 
 
@@ -518,18 +488,6 @@ square_set_to_string (SquareSet moves);
 
 extern Square
 square_set_random_selection (SquareSet squares);
-
-
-
-/*****************************************************/
-/* Function prototypes for the LegalMoveList entity. */ 
-/*****************************************************/
-
-extern LegalMoveList *
-legal_move_list_new (const SquareSet legal_move_set);
-
-extern LegalMoveList *
-legal_move_list_free (LegalMoveList *list);
 
 
 

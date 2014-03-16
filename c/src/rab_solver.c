@@ -52,6 +52,21 @@
 #define GAME_TREE_MAX_DEPTH 128
 
 /**
+ * @brief Max number of legal moves
+ */
+#define MAX_LEGAL_MOVE_COUNT 32
+
+
+/**
+ * @brief A legal move list arrange a square set with a given order.
+ */
+typedef struct {
+  SquareSet      square_set;                      /**< @brief The square set representing the legal moves. */
+  int            move_count;                      /**< @brief The count of legal moves. */
+  Square         squares[MAX_LEGAL_MOVE_COUNT];   /**< @brief The list of squares that are valid moves. */
+} LegalMoveList;
+
+/**
  * @brief The info collected on each node.
  */
 typedef struct {
@@ -209,7 +224,6 @@ game_position_solve_impl (ExactSolution * const result)
     }
   } else {
     current_node_info->value = -65;
-    //current_node_info->best_move = (Square) -1;
     for (int i = 0; i < moves->move_count; i++) {
       const Square move = moves->squares[i];
       game_position_x_make_move(current_gpx, move, next_gpx);
