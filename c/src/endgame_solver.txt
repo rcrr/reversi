@@ -2,6 +2,89 @@
 This is a diary of the performance evolution of the endgame solver.
 
 
+
+
+Date: March 16th, 2014
+      git commit f1623c20d944ce63e2b183700ebccc04a0e9fef2
+
+A variant of the algorithm that traverses the game tree has been rewritten to avoid the malloc/free practice, it is the rab solver.
+Rab solver will be a random alpha-beta variant that has been conceived to extimate the tree size for a given position.
+But sofar it doesn't cut, and doesn't sort, so it is a real minimax.
+The comparison between the malloc/free minimax, and the stack based variant states that the second is twice as fast.
+
+Here the comparison:
+
+rcrr@hypnotic:~/base/prj/reversi/c$ time ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified -s minimax
+Entry id:    ffo-01-simplified
+Description:  From position ffo-01 executing two moves, A8 wins +18
+Game Position:
+    a b c d e f g h 
+ 1  . . @ @ @ @ @ . 
+ 2  . O O O @ @ . O 
+ 3  . O O O @ @ O O 
+ 4  . O @ O O O @ O 
+ 5  O @ @ @ O O @ O 
+ 6  . . @ O @ O O O 
+ 7  . @ @ @ O O O O 
+ 8  . O O O O O @ . 
+Player to move: BLACK
+
+Solving the game position ffo-01-simplified using solver minimax ...
+
+    a b c d e f g h 
+ 1  . . @ @ @ @ @ . 
+ 2  . O O O @ @ . O 
+ 3  . O O O @ @ O O 
+ 4  . O @ O O O @ O 
+ 5  O @ @ @ O O @ O 
+ 6  . . @ O @ O O O 
+ 7  . @ @ @ O O O O 
+ 8  . O O O O O @ . 
+Player to move: BLACK
+
+[node_count=18055194, leaf_count=5316151]
+Final SearchNode sn: move=A8, value=18
+
+real	0m4.755s
+user	0m4.758s
+sys	0m0.000s
+rcrr@hypnotic:~/base/prj/reversi/c$ time ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified -s rab
+Entry id:    ffo-01-simplified
+Description:  From position ffo-01 executing two moves, A8 wins +18
+Game Position:
+    a b c d e f g h 
+ 1  . . @ @ @ @ @ . 
+ 2  . O O O @ @ . O 
+ 3  . O O O @ @ O O 
+ 4  . O @ O O O @ O 
+ 5  O @ @ @ O O @ O 
+ 6  . . @ O @ O O O 
+ 7  . @ @ @ O O O O 
+ 8  . O O O O O @ . 
+Player to move: BLACK
+
+Solving the game position ffo-01-simplified using solver rab ...
+
+    a b c d e f g h 
+ 1  . . @ @ @ @ @ . 
+ 2  . O O O @ @ . O 
+ 3  . O O O @ @ O O 
+ 4  . O @ O O O @ O 
+ 5  O @ @ @ O O @ O 
+ 6  . . @ O @ O O O 
+ 7  . @ @ @ O O O O 
+ 8  . O O O O O @ . 
+Player to move: BLACK
+
+[node_count=18213276, leaf_count=5316151]
+Final SearchNode sn: move=A8, value=18
+
+real	0m2.234s
+user	0m2.236s
+sys	0m0.000s
+
+
+
 Date: February 5th, 2014
       git commit ...
 

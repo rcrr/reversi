@@ -37,7 +37,7 @@
 
 #include "improved_fast_endgame_solver.h"
 
-#define GAME_TREE_DEBUG
+//#define GAME_TREE_DEBUG
 
 /**
  * @brief An empty list collects a set of ordered squares.

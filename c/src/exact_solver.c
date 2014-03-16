@@ -38,7 +38,7 @@
 
 #include "exact_solver.h"
 
-#define GAME_TREE_DEBUG
+//#define GAME_TREE_DEBUG
 
 /**
  * @brief Elements of a doubly linked list that collects moves.
