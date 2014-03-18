@@ -44,17 +44,21 @@
  *
  * @details It give the size of the static stack used to pile-up the info
  * computed by deepening the game tree.
- * The value is given by the 64 squares doubled to take into account the possibility
- * to pass. Real tree depth are smaller because the empty square are 60 in a real game,
- * because the number of pass is little, and because there is no capability currently to
- * search so deep.
+ * The value is given by the 60 plus 12 moves added to take into account the possibility
+ * to pass. Real tree depth are smaller because the number of pass is little,
+ * and because there is no capability currently to search so deep.
  */
-#define GAME_TREE_MAX_DEPTH 128
+#define GAME_TREE_MAX_DEPTH 72
 
 /**
- * @brief Max number of legal moves
+ * @brief Max number of legal moves hosted in the stack.
+ *
+ * @details A game has 60 moves, pass moves are not consuming the stack.
+ * Every game stage has been assessed with the random game generator, and a distribution of legal moves
+ * has been computed. The maximum for each game stage has been summed up totalling 981.
+ * the value 1024 is a further safety added in order to not run out of this stack size.
  */
-#define MAX_LEGAL_MOVE_COUNT 32
+#define MAX_LEGAL_MOVE_STACK_COUNT 1024
 
 
 /**
@@ -72,11 +76,13 @@ typedef struct {
 
 /**
  * @brief The info collected by deepening the game tree.
+ *
+ * @details The stack uses 5 kB of memory.
  */
 typedef struct {
   int      fill_index;                    /**< @brief The index of the last entry into the stack. */
   NodeInfo nodes[GAME_TREE_MAX_DEPTH];    /**< @brief The stack of node info. */
-  Square legal_move_stack[GAME_TREE_MAX_DEPTH * MAX_LEGAL_MOVE_COUNT];
+  unsigned char legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];
 } GameTreeStack;
 
 
@@ -120,7 +126,13 @@ static GameTreeStack *stack = &stack_structure;
 ExactSolution *
 game_position_rab_solve (const GamePosition * const root)
 {
-  ExactSolution *result; 
+  ExactSolution *result;
+
+  printf("sizeof(GameTreeStack)=%zu kB\n", sizeof(GameTreeStack)/1024);
+  printf("sizeof(Square)=%zu Bytes\n", sizeof(Square));
+  unsigned char sq = 64;
+  Square x = sq;
+  printf("Square x = %d\n", x);
   
   game_tree_stack_init(root);
   NodeInfo *first_node_info = &stack->nodes[1];
@@ -154,13 +166,13 @@ game_tree_stack_init (const GamePosition * const root)
   ground_node_info->hash = game_position_x_hash(&ground_node_info->gpx);
   ground_node_info->move_set = 0ULL;
   ground_node_info->move_count = 0;
-  ground_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
+  ground_node_info->head_of_legal_move_list = (Square *) &stack->legal_move_stack[0];
   ground_node_info->best_move = (Square) -1;
   ground_node_info->value = -65;
   
   NodeInfo *first_node_info  = &stack->nodes[1];
   game_position_x_copy_from_gp(root, &first_node_info->gpx);  
-  first_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
+  first_node_info->head_of_legal_move_list = (Square *) &stack->legal_move_stack[0];
 
   stack->fill_index = 1;
 }
