@@ -56,7 +56,7 @@
  * @details A game has 60 moves, pass moves are not consuming the stack.
  * Every game stage has been assessed with the random game generator, and a distribution of legal moves
  * has been computed. The maximum for each game stage has been summed up totalling 981.
- * the value 1024 is a further safety added in order to not run out of this stack size.
+ * the value 1024 is a further safety added in order to prevent running out of space.
  */
 #define MAX_LEGAL_MOVE_STACK_COUNT 1024
 
@@ -65,13 +65,13 @@
  * @brief The info collected on each node.
  */
 typedef struct {
-  GamePositionX  gpx;          /**< @brief The game position related to the game tree node. */
-  uint64         hash;         /**< @brief The hash value of the game position. */
-  SquareSet      move_set;
-  int            move_count;
-  Square        *head_of_legal_move_list;
-  Square         best_move;
-  int            value;
+  GamePositionX  gpx;                         /**< @brief The game position related to the game tree node. */
+  uint64         hash;                        /**< @brief The hash value of the game position. */
+  SquareSet      move_set;                    /**< @brief . */
+  int            move_count;                  /**< @brief . */
+  Square        *head_of_legal_move_list;     /**< @brief . */
+  Square         best_move;                   /**< @brief . */
+  int            value;                       /**< @brief . */
 } NodeInfo;
 
 /**
@@ -80,9 +80,9 @@ typedef struct {
  * @details The stack uses 5 kB of memory.
  */
 typedef struct {
-  int      fill_index;                    /**< @brief The index of the last entry into the stack. */
-  NodeInfo nodes[GAME_TREE_MAX_DEPTH];    /**< @brief The stack of node info. */
-  unsigned char legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];
+  int      fill_index;                                     /**< @brief The index of the current entry into the stack, at the beginning of game_position_solve_impl. */
+  NodeInfo nodes[GAME_TREE_MAX_DEPTH];                     /**< @brief The stack of node info. */
+  uint8    legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];   /**< @brief The stack hosting the legal moves for each node. */
 } GameTreeStack;
 
 
@@ -107,6 +107,10 @@ legal_move_list_from_set (const SquareSet        legal_move_set,
  * Internal variables and constants.
  */
 
+static const Square null_move = -1;
+
+static const int out_of_range_defeat_score = -65;
+
 static GameTreeStack stack_structure;
 
 static GameTreeStack *stack = &stack_structure;
@@ -130,6 +134,7 @@ game_position_rab_solve (const GamePosition * const root)
 
   printf("sizeof(GameTreeStack)=%zu kB\n", sizeof(GameTreeStack)/1024);
   printf("sizeof(Square)=%zu Bytes\n", sizeof(Square));
+  printf("sizeof(uint8)=%zu Bytes\n", sizeof(uint8));
   unsigned char sq = 64;
   Square x = sq;
   printf("Square x = %d\n", x);
@@ -167,8 +172,8 @@ game_tree_stack_init (const GamePosition * const root)
   ground_node_info->move_set = 0ULL;
   ground_node_info->move_count = 0;
   ground_node_info->head_of_legal_move_list = (Square *) &stack->legal_move_stack[0];
-  ground_node_info->best_move = (Square) -1;
-  ground_node_info->value = -65;
+  ground_node_info->best_move = null_move;
+  ground_node_info->value = out_of_range_defeat_score;
   
   NodeInfo *first_node_info  = &stack->nodes[1];
   game_position_x_copy_from_gp(root, &first_node_info->gpx);  
@@ -238,10 +243,10 @@ game_position_solve_impl (ExactSolution * const result)
     } else {
       result->leaf_count++;
       current_node_info->value = game_position_x_final_value(current_gpx);
-      current_node_info->best_move = (Square) -1;
+      current_node_info->best_move = null_move;
     }
   } else {
-    current_node_info->value = -65;
+    current_node_info->value = out_of_range_defeat_score;
     for (int i = 0; i < current_node_info->move_count; i++) {
       const Square move = *(current_node_info->head_of_legal_move_list + i);
       game_position_x_make_move(current_gpx, move, next_gpx);
