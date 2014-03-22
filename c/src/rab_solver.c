@@ -90,11 +90,19 @@ typedef struct {
  * Prototypes for internal functions.
  */
 
-static void
-game_position_solve_impl (ExactSolution * const result);
+static GameTreeStack *
+game_tree_stack_new ();
+
+GameTreeStack *
+game_tree_stack_free (GameTreeStack *stack);
 
 static void
-game_tree_stack_init (const GamePosition * const root);
+game_position_solve_impl (ExactSolution * const result,
+			  GameTreeStack * const stack);
+
+static void
+game_tree_stack_init (const GamePosition  * const root,
+		            GameTreeStack * const stack);
 
 inline static void
 legal_move_list_from_set (const SquareSet        legal_move_set,
@@ -107,13 +115,15 @@ legal_move_list_from_set (const SquareSet        legal_move_set,
  * Internal variables and constants.
  */
 
+/**
+ * @brief A null move is an invalid one.
+ */
 static const Square null_move = -1;
 
+/**
+ * @brief An out of range defeat score is a value lesser than the worst case.  
+ */
 static const int out_of_range_defeat_score = -65;
-
-static GameTreeStack stack_structure;
-
-static GameTreeStack *stack = &stack_structure;
 
 
 
@@ -131,25 +141,22 @@ ExactSolution *
 game_position_rab_solve (const GamePosition * const root)
 {
   ExactSolution *result;
-
-  printf("sizeof(GameTreeStack)=%zu kB\n", sizeof(GameTreeStack)/1024);
-  printf("sizeof(Square)=%zu Bytes\n", sizeof(Square));
-  printf("sizeof(uint8)=%zu Bytes\n", sizeof(uint8));
-  unsigned char sq = 64;
-  Square x = sq;
-  printf("Square x = %d\n", x);
   
-  game_tree_stack_init(root);
+  GameTreeStack *stack = game_tree_stack_new();
+  
+  game_tree_stack_init(root, stack);
   NodeInfo *first_node_info = &stack->nodes[1];
 
   result = exact_solution_new();
   result->solved_game_position = game_position_clone(root);
 
-  game_position_solve_impl(result);
+  game_position_solve_impl(result, stack);
   
   result->principal_variation[0] = first_node_info->best_move;
   result->outcome = first_node_info->value;
 
+  game_tree_stack_free(stack);
+  
   return result;
 }
 
@@ -159,11 +166,53 @@ game_position_rab_solve (const GamePosition * const root)
  * Internal functions.
  */
 
+/**********************************************************/
+/* Function implementations for the GameTreeStack entity. */ 
+/**********************************************************/
+
+/**
+ * @brief GameTreeStack structure constructor.
+ *
+ * @return a pointer to a new game tree stack structure
+ */
+GameTreeStack *
+game_tree_stack_new ()
+{
+  GameTreeStack *stack;
+  static const size_t size_of_stack = sizeof(GameTreeStack);
+  
+  stack = (GameTreeStack*) malloc(size_of_stack);
+  g_assert(stack);
+  
+  return stack;
+}
+
+/**
+ * @brief GameTreeStack structure destructor.
+ *
+ * @invariant Parameter `stack` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] stack the pointer to be deallocated
+ * @return           always the NULL pointer
+ */
+GameTreeStack *
+game_tree_stack_free (GameTreeStack *stack)
+{
+  g_assert(stack);
+  
+  free(stack);
+  stack = NULL;
+  
+  return stack;
+}
+
 /**
  * @brief Initializes the stack structure.
  */
 static void
-game_tree_stack_init (const GamePosition * const root)
+game_tree_stack_init (const GamePosition * const root,
+		      GameTreeStack * const stack)
 {
   NodeInfo *ground_node_info = &stack->nodes[0];
   game_position_x_copy_from_gp(root, &ground_node_info->gpx);
@@ -214,7 +263,8 @@ legal_move_list_from_set (const SquareSet        legal_move_set,
  * @param [in] result  a reference to the exact solution data structure
  */
 static void
-game_position_solve_impl (ExactSolution * const result)
+game_position_solve_impl (ExactSolution * const result,
+			  GameTreeStack * const stack)
 {
   result->node_count++;
 
@@ -237,7 +287,7 @@ game_position_solve_impl (ExactSolution * const result)
     const SquareSet empties = game_position_x_empties(current_gpx);
     if (empties != empty_square_set && previous_move_count != 0) {
       game_position_x_pass(current_gpx, next_gpx);
-      game_position_solve_impl(result);
+      game_position_solve_impl(result, stack);
       current_node_info->value = -next_node_info->value;
       current_node_info->best_move = next_node_info->best_move;
     } else {
@@ -250,7 +300,7 @@ game_position_solve_impl (ExactSolution * const result)
     for (int i = 0; i < current_node_info->move_count; i++) {
       const Square move = *(current_node_info->head_of_legal_move_list + i);
       game_position_x_make_move(current_gpx, move, next_gpx);
-      game_position_solve_impl(result);
+      game_position_solve_impl(result, stack);
       if (-next_node_info->value > current_node_info->value) {
         current_node_info->value = -next_node_info->value;
         current_node_info->best_move = move;
