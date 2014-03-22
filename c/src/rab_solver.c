@@ -98,11 +98,11 @@ game_tree_stack_free (GameTreeStack *stack);
 
 static void
 game_position_solve_impl (ExactSolution * const result,
-			  GameTreeStack * const stack);
+                          GameTreeStack * const stack);
 
 static void
 game_tree_stack_init (const GamePosition  * const root,
-		            GameTreeStack * const stack);
+                            GameTreeStack * const stack);
 
 inline static void
 legal_move_list_from_set (const SquareSet        legal_move_set,
@@ -211,8 +211,8 @@ game_tree_stack_free (GameTreeStack *stack)
  * @brief Initializes the stack structure.
  */
 static void
-game_tree_stack_init (const GamePosition * const root,
-		      GameTreeStack * const stack)
+game_tree_stack_init (const GamePosition  * const root,
+                            GameTreeStack * const stack)
 {
   NodeInfo *ground_node_info = &stack->nodes[0];
   game_position_x_copy_from_gp(root, &ground_node_info->gpx);
@@ -264,7 +264,7 @@ legal_move_list_from_set (const SquareSet        legal_move_set,
  */
 static void
 game_position_solve_impl (ExactSolution * const result,
-			  GameTreeStack * const stack)
+                          GameTreeStack * const stack)
 {
   result->node_count++;
 
