@@ -70,9 +70,10 @@ typedef struct {
   uint64         hash;                        /**< @brief The hash value of the game position. */
   SquareSet      move_set;                    /**< @brief The set of legal moves. */
   int            move_count;                  /**< @brief The count of legal moves. */
-  uint8         *head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
+  uint8*         head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
   Square         best_move;                   /**< @brief The best move for the node. */
-  int            value;                       /**< @brief The node value. */
+  int            alpha;                       /**< @brief The node value. */
+  int            beta;                        /**< @brief The node cutoff value. */
 } NodeInfo;
 
 /**
@@ -91,24 +92,24 @@ typedef struct {
  * Prototypes for internal functions.
  */
 
-static GameTreeStack *
-game_tree_stack_new ();
+static GameTreeStack*
+game_tree_stack_new();
 
-GameTreeStack *
-game_tree_stack_free (GameTreeStack *stack);
-
-static void
-game_position_solve_impl (ExactSolution * const result,
-                          GameTreeStack * const stack);
+GameTreeStack*
+game_tree_stack_free(GameTreeStack* stack);
 
 static void
-game_tree_stack_init (const GamePosition  * const root,
-                            GameTreeStack * const stack);
+game_position_solve_impl(ExactSolution* const result,
+                         GameTreeStack* const stack);
+
+static void
+game_tree_stack_init(const GamePosition* const root,
+                     GameTreeStack* const stack);
 
 inline static void
-legal_move_list_from_set (const SquareSet        legal_move_set,
-                                NodeInfo * const current_node_info,
-                                NodeInfo * const next_node_info);
+legal_move_list_from_set(const SquareSet legal_move_set,
+                         NodeInfo* const current_node_info,
+                         NodeInfo* const next_node_info);
 
 
 
@@ -122,14 +123,24 @@ legal_move_list_from_set (const SquareSet        legal_move_set,
 static const Square null_move = -1;
 
 /**
- * @brief An out of range defeat score is a value lesser than the worst case.  
+ * @brief An out of range defeat score is a value lesser than the worst case.
  */
 static const int out_of_range_defeat_score = -65;
+
+/**
+ * @brief The best score achievable.
+ */
+static const int best_score = +64;
+
+/**
+ * @brief The worst score achievable.
+ */
+static const int worst_score = -64;
 
 
 
 /*********************************************************/
-/* Function implementations for the GamePosition entity. */ 
+/* Function implementations for the GamePosition entity. */
 /*********************************************************/
 
 /**
@@ -138,28 +149,28 @@ static const int out_of_range_defeat_score = -65;
  * @param [in] root the starting game position to be solved
  * @return          a pointer to a new exact solution structure
  */
-ExactSolution *
-game_position_rab_solve (const GamePosition * const root)
+ExactSolution*
+game_position_rab_solve(const GamePosition* const root)
 {
-  ExactSolution *result;
-  
+  ExactSolution* result;
+
   utils_init_random_seed();
-  
-  GameTreeStack *stack = game_tree_stack_new();
-  
+
+  GameTreeStack* stack = game_tree_stack_new();
+
   game_tree_stack_init(root, stack);
-  NodeInfo *first_node_info = &stack->nodes[1];
+  NodeInfo* first_node_info = &stack->nodes[1];
 
   result = exact_solution_new();
   result->solved_game_position = game_position_clone(root);
 
   game_position_solve_impl(result, stack);
-  
+
   result->principal_variation[0] = first_node_info->best_move;
-  result->outcome = first_node_info->value;
+  result->outcome = first_node_info->alpha;
 
   game_tree_stack_free(stack);
-  
+
   return result;
 }
 
@@ -170,7 +181,7 @@ game_position_rab_solve (const GamePosition * const root)
  */
 
 /**********************************************************/
-/* Function implementations for the GameTreeStack entity. */ 
+/* Function implementations for the GameTreeStack entity. */
 /**********************************************************/
 
 /**
@@ -178,15 +189,15 @@ game_position_rab_solve (const GamePosition * const root)
  *
  * @return a pointer to a new game tree stack structure
  */
-GameTreeStack *
-game_tree_stack_new ()
+GameTreeStack*
+game_tree_stack_new()
 {
-  GameTreeStack *stack;
+  GameTreeStack* stack;
   static const size_t size_of_stack = sizeof(GameTreeStack);
-  
+
   stack = (GameTreeStack*) malloc(size_of_stack);
   g_assert(stack);
-  
+
   return stack;
 }
 
@@ -199,14 +210,14 @@ game_tree_stack_new ()
  * @param [in] stack the pointer to be deallocated
  * @return           always the NULL pointer
  */
-GameTreeStack *
-game_tree_stack_free (GameTreeStack *stack)
+GameTreeStack*
+game_tree_stack_free(GameTreeStack* stack)
 {
   g_assert(stack);
-  
+
   free(stack);
   stack = NULL;
-  
+
   return stack;
 }
 
@@ -214,10 +225,10 @@ game_tree_stack_free (GameTreeStack *stack)
  * @brief Initializes the stack structure.
  */
 static void
-game_tree_stack_init (const GamePosition  * const root,
-                            GameTreeStack * const stack)
+game_tree_stack_init(const GamePosition*   const root,
+                     GameTreeStack* const stack)
 {
-  NodeInfo *ground_node_info = &stack->nodes[0];
+  NodeInfo* ground_node_info = &stack->nodes[0];
   game_position_x_copy_from_gp(root, &ground_node_info->gpx);
   ground_node_info->gpx.player = player_opponent(ground_node_info->gpx.player);
   ground_node_info->hash = game_position_x_hash(&ground_node_info->gpx);
@@ -225,11 +236,14 @@ game_tree_stack_init (const GamePosition  * const root,
   ground_node_info->move_count = 0;
   ground_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
   ground_node_info->best_move = null_move;
-  ground_node_info->value = out_of_range_defeat_score;
-  
-  NodeInfo *first_node_info  = &stack->nodes[1];
-  game_position_x_copy_from_gp(root, &first_node_info->gpx);  
+  ground_node_info->alpha = out_of_range_defeat_score;
+  ground_node_info->beta = out_of_range_defeat_score;
+
+  NodeInfo* first_node_info  = &stack->nodes[1];
+  game_position_x_copy_from_gp(root, &first_node_info->gpx);
   first_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
+  first_node_info->alpha = worst_score;
+  first_node_info->beta = best_score;
 
   stack->fill_index = 1;
 }
@@ -239,14 +253,14 @@ game_tree_stack_init (const GamePosition  * const root,
  *
  * @param [in]  legal_move_set    the set of legal moves
  * @param [out] current_node_info the node info updated with the compuetd list of legal moves
- * @param [out] next_node_info    the node info updated with the new head_of_legal_move_list poiter 
+ * @param [out] next_node_info    the node info updated with the new head_of_legal_move_list poiter
  */
 inline static void
-legal_move_list_from_set (const SquareSet        legal_move_set,
-                                NodeInfo * const current_node_info,
-                                NodeInfo * const next_node_info)
+legal_move_list_from_set(const SquareSet legal_move_set,
+                         NodeInfo* const current_node_info,
+                         NodeInfo* const next_node_info)
 {
-  uint8 *move_ptr = current_node_info->head_of_legal_move_list;
+  uint8* move_ptr = current_node_info->head_of_legal_move_list;
   SquareSet remaining_moves = legal_move_set;
   current_node_info->move_count = 0;
   while (remaining_moves) {
@@ -257,7 +271,7 @@ legal_move_list_from_set (const SquareSet        legal_move_set,
     remaining_moves ^= 1ULL << move;
   }
   next_node_info->head_of_legal_move_list = move_ptr;
-  return;  
+  return;
 }
 
 /**
@@ -266,8 +280,8 @@ legal_move_list_from_set (const SquareSet        legal_move_set,
  * @param [in] result  a reference to the exact solution data structure
  */
 static void
-game_position_solve_impl (ExactSolution * const result,
-                          GameTreeStack * const stack)
+game_position_solve_impl(ExactSolution* const result,
+                         GameTreeStack* const stack)
 {
   result->node_count++;
 
@@ -276,12 +290,12 @@ game_position_solve_impl (ExactSolution * const result,
   const int previous_fill_index = current_fill_index - 1;
 
   stack->fill_index++;
-  
-  NodeInfo * const current_node_info = &stack->nodes[current_fill_index];
-  NodeInfo * const next_node_info = &stack->nodes[next_fill_index];
-  NodeInfo * const previous_node_info = &stack->nodes[previous_fill_index];
-  const GamePositionX * const current_gpx = &current_node_info->gpx;
-  GamePositionX * const next_gpx = &next_node_info->gpx;
+
+  NodeInfo* const current_node_info = &stack->nodes[current_fill_index];
+  NodeInfo* const next_node_info = &stack->nodes[next_fill_index];
+  NodeInfo* const previous_node_info = &stack->nodes[previous_fill_index];
+  const GamePositionX* const current_gpx = &current_node_info->gpx;
+  GamePositionX* const next_gpx = &next_node_info->gpx;
   const SquareSet move_set = game_position_x_legal_moves(current_gpx);
   legal_move_list_from_set(move_set, current_node_info, next_node_info);
   utils_shuffle_uint8(current_node_info->head_of_legal_move_list, current_node_info->move_count);
@@ -291,27 +305,34 @@ game_position_solve_impl (ExactSolution * const result,
     const SquareSet empties = game_position_x_empties(current_gpx);
     if (empties != empty_square_set && previous_move_count != 0) {
       game_position_x_pass(current_gpx, next_gpx);
+      next_node_info->alpha = -current_node_info->beta;
+      next_node_info->beta = -current_node_info->alpha;
       game_position_solve_impl(result, stack);
-      current_node_info->value = -next_node_info->value;
+      current_node_info->alpha = -next_node_info->alpha;
       current_node_info->best_move = next_node_info->best_move;
     } else {
       result->leaf_count++;
-      current_node_info->value = game_position_x_final_value(current_gpx);
+      current_node_info->alpha = game_position_x_final_value(current_gpx);
       current_node_info->best_move = null_move;
     }
   } else {
-    current_node_info->value = out_of_range_defeat_score;
+    current_node_info->alpha = out_of_range_defeat_score;
     for (int i = 0; i < current_node_info->move_count; i++) {
-      const Square move = *(current_node_info->head_of_legal_move_list + i);
+      const Square move = * (current_node_info->head_of_legal_move_list + i);
       game_position_x_make_move(current_gpx, move, next_gpx);
+      next_node_info->alpha = -current_node_info->beta;
+      next_node_info->beta = -current_node_info->alpha;
       game_position_solve_impl(result, stack);
-      if (-next_node_info->value > current_node_info->value) {
-        current_node_info->value = -next_node_info->value;
+      if (-next_node_info->alpha > current_node_info->alpha) {
+        current_node_info->alpha = -next_node_info->alpha;
         current_node_info->best_move = move;
+        if (current_node_info->alpha >= current_node_info->beta) {
+          goto out;
+        }
       }
     }
   }
-
+out:
   stack->fill_index--;
   return;
 }
