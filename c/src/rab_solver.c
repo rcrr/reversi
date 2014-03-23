@@ -38,6 +38,7 @@
 #include <glib.h>
 
 #include "rab_solver.h"
+#include "utils.h"
 
 /**
  * @brief Game tree stack size.
@@ -69,7 +70,7 @@ typedef struct {
   uint64         hash;                        /**< @brief The hash value of the game position. */
   SquareSet      move_set;                    /**< @brief The set of legal moves. */
   int            move_count;                  /**< @brief The count of legal moves. */
-  Square        *head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
+  uint8         *head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
   Square         best_move;                   /**< @brief The best move for the node. */
   int            value;                       /**< @brief The node value. */
 } NodeInfo;
@@ -141,6 +142,8 @@ ExactSolution *
 game_position_rab_solve (const GamePosition * const root)
 {
   ExactSolution *result;
+  
+  utils_init_random_seed();
   
   GameTreeStack *stack = game_tree_stack_new();
   
@@ -220,13 +223,13 @@ game_tree_stack_init (const GamePosition  * const root,
   ground_node_info->hash = game_position_x_hash(&ground_node_info->gpx);
   ground_node_info->move_set = 0ULL;
   ground_node_info->move_count = 0;
-  ground_node_info->head_of_legal_move_list = (Square *) &stack->legal_move_stack[0];
+  ground_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
   ground_node_info->best_move = null_move;
   ground_node_info->value = out_of_range_defeat_score;
   
   NodeInfo *first_node_info  = &stack->nodes[1];
   game_position_x_copy_from_gp(root, &first_node_info->gpx);  
-  first_node_info->head_of_legal_move_list = (Square *) &stack->legal_move_stack[0];
+  first_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
 
   stack->fill_index = 1;
 }
@@ -243,11 +246,11 @@ legal_move_list_from_set (const SquareSet        legal_move_set,
                                 NodeInfo * const current_node_info,
                                 NodeInfo * const next_node_info)
 {
-  Square *move_ptr = current_node_info->head_of_legal_move_list;
+  uint8 *move_ptr = current_node_info->head_of_legal_move_list;
   SquareSet remaining_moves = legal_move_set;
   current_node_info->move_count = 0;
   while (remaining_moves) {
-    const Square move = bit_works_bitscanLS1B_64(remaining_moves);
+    const uint8 move = bit_works_bitscanLS1B_64(remaining_moves);
     *move_ptr = move;
     move_ptr++;
     current_node_info->move_count++;
@@ -281,6 +284,7 @@ game_position_solve_impl (ExactSolution * const result,
   GamePositionX * const next_gpx = &next_node_info->gpx;
   const SquareSet move_set = game_position_x_legal_moves(current_gpx);
   legal_move_list_from_set(move_set, current_node_info, next_node_info);
+  utils_shuffle_uint8(current_node_info->head_of_legal_move_list, current_node_info->move_count);
 
   if (move_set == empty_square_set) {
     const int previous_move_count = previous_node_info->move_count;

@@ -34,7 +34,15 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "bit_works.h"
+
+extern void
+utils_init_random_seed (void);
+
 extern int
-random_number (int low, int high);
+utils_random_number (int low, int high);
+
+extern void
+utils_shuffle_uint8 (uint8 *array, int n);
 
 #endif /* UTILS_H */

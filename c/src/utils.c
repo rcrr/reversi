@@ -31,10 +31,19 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 
 #include "utils.h"
 
-
+/**
+ * @brief Initializes seed used by the random functions.
+ */
+void
+utils_init_random_seed (void)
+{
+  srand(time(NULL));
+}
 
 /**
  * @brief Returns a random integer selected in the window between
@@ -46,7 +55,29 @@
  * @return          a random value in the given range
  */
 int
-random_number (int low, int high)
+utils_random_number (int low, int high)
 {
   return low + (double) rand() * (high - low + 1) / RAND_MAX;
+}
+
+/**
+ * @brief Shuffles the given array.
+ * 
+ * @details Arrange the N elements of ARRAY in random order.
+ * Only effective if N is much smaller than RAND_MAX.
+ *
+ * @param [in,out] array the array to be shuffled
+ * @param [in]     n     the number of elements in the array
+ */
+void
+utils_shuffle_uint8 (uint8 *array, int n)
+{
+  if (n > 1) {
+    for (int i = 0; i < n - 1; i++) {
+      int j = i + (double) rand() * (n - i) / RAND_MAX;
+      const uint8 t = *(array + j);
+      *(array + j) = *(array + i);
+      *(array + i) = t;
+    }
+  }
 }
