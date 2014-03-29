@@ -61,6 +61,12 @@ typedef unsigned short int uint16;
 typedef unsigned char uint8;
 
 /**
+ * @typedef sint64
+ * @brief Signed 64 bits integer.
+ */
+typedef signed long long int sint64;
+
+/**
  * @typedef sint8
  * @brief Signed 8 bits integer.
  */

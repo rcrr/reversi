@@ -37,15 +37,15 @@ TEST_PROGS = bit_works_test board_test game_position_db_test game_position_test 
 # Add -pg to CFLAGS and DFLAGS to profile.
 
 CC = gcc 
-#CFLAGS = -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
+#CFLAGS = -std=c99 -pedantic -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 #LDFLAGS =
 # add -pg for gprof execution.
 # add -DG_DISABLE_ASSERT to disable assertions
-CFLAGS = -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE -mpopcnt
+CFLAGS = -std=c99 -pedantic -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE -mpopcnt -DG_DISABLE_ASSERT
 LDFLAGS = 
 CFLAGS_TEST = -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -pedantic -Wall -O0 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
+ASMFLAGS = -std=c99 -pedantic -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE -DG_DISABLE_ASSERT
 LIBS = `pkg-config --libs glib-2.0`
 TEST_LIBS =
 SRCDIR = src
@@ -57,6 +57,8 @@ BINDIR   = $(BUILDDIR)/bin
 DOCDIR   = $(BUILDDIR)/doc
 BTESTDIR = $(BUILDDIR)/test
 ASMDIR   = $(BUILDDIR)/asm
+
+OUTDIR = out
 
 SRCS = $(wildcard $(SRCDIR)/*.c)
 HDRS = $(wildcard $(SRCDIR)/*.h)
@@ -77,7 +79,7 @@ TEST_INCLUDE = -I./src
 TEST_OBJS_WITH_MAIN = $(addsuffix .o,$(addprefix $(TEST_OBJDIR)/,$(TEST_PROGS)))
 TEST_OBJS_NO_MAIN = $(filter-out $(TEST_OBJS_WITH_MAIN),$(TEST_OBJS))
 
-all: $(BINS) $(TEST_BINS)
+all: $(BINS) $(TEST_BINS) $(OUTDIR)
 
 $(BINS): $(OBJS) | $(BINDIR)
 	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(BINDIR),$(OBJDIR),$@))))
@@ -121,6 +123,13 @@ $(BUILDDIR): $(BUILDDIR)/.dir_sentinel
 $(BUILDDIR)/.dir_sentinel:
 	mkdir -p $(BUILDDIR)
 	touch $(BUILDDIR)/.dir_sentinel
+
+.PHONY: $(OUTDIR)
+$(OUTDIR): $(OUTDIR)/.dir_sentinel
+
+$(OUTDIR)/.dir_sentinel:
+	mkdir -p $(OUTDIR)
+	touch $(OUTDIR)/.dir_sentinel
 
 
 .PHONY: $(OBJDIR)

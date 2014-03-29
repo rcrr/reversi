@@ -43,8 +43,10 @@
 /* Function implementations for the GamePosition entity. */ 
 /*********************************************************/
 
-extern ExactSolution *
-game_position_rab_solve (const GamePosition * const root);
+extern ExactSolution*
+game_position_rab_solve(const GamePosition* const root,
+                        const gboolean log_flag,
+                        const int repeats);
 
 
 #endif /* RAB_SOLVER_H */

@@ -6,7 +6,7 @@
  *
  * @todo [done] Add to the solver selection a full MINIMAX implementation.
  *
- * @todo Add to the solver selection an alpha-beta implementation that
+ * @todo [done] Add to the solver selection an alpha-beta implementation that
  * sort the legal move list with a random function.
  *
  * @todo Add to the exact_solver logging strategy a second file that logs
@@ -122,17 +122,19 @@ static const gchar *program_documentation_string =
 
 /* Static variables. */
 
-static gchar *input_file   = NULL;
-static gchar *lookup_entry = NULL;
-static gchar *solver       = NULL;
-static gint   repeats      = 1;
+static gchar   *input_file   = NULL;
+static gchar   *lookup_entry = NULL;
+static gchar   *solver       = NULL;
+static gint     repeats      = 1;
+static gboolean log_flag     = FALSE;
 
 static const GOptionEntry entries[] =
   {
     { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,   "Input file name   - Mandatory",                                         NULL },
     { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry      - Mandatory",                                         NULL },
     { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver            - Mandatory - Must be in [es|ifes|rand|minimax|rab]", NULL },
-    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand solver",                         NULL },
+    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand/rab solvers",                    NULL },
+    { "log",           'l', 0, G_OPTION_ARG_NONE,     &log_flag,     "Turns logging on",                                                      NULL },
     { NULL }
   };
 
@@ -259,7 +261,7 @@ main (int argc, char *argv[])
     solution = game_position_minimax_solve(gp);
     break;
   case 4:
-    solution = game_position_rab_solve(gp);
+    solution = game_position_rab_solve(gp, log_flag, repeats);
     break;
   default:
     g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);
