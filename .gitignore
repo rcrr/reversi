@@ -37,3 +37,7 @@ field_research/code/zebra/zebra.log
 field_research/code/zebra/ffo/*.out
 field_research/code/edax/4.3/doc
 field_research/code/edax/4.3/bin
+.kdev4
+*.kdev4
+.kdev_include_paths
+out
