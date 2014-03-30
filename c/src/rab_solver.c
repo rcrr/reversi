@@ -177,36 +177,17 @@ game_position_rab_solve(const GamePosition* const root,
   }
   
   log = log_flag;
-  
-  printf("### ### ###\n");
-  uint64 x = +1;
-  long long int *spx = (long long int *) &x;
-  printf("x=%llu, (%lld) (%016llx)\n", x, *spx, x);
-  
-  uint64 y = 0xFFFFFFFFFFFFFFFF; // it is: 18446744073709551615
-  signed long long int *spy = (signed long long int *) &y;
-  printf("y=%llu, (%lld) (%016llx)\n", y, *spy, y);
-  
-  uint64 ya = 0x7FFFFFFFFFFFFFFF; // it is: +9223372036854775807, the largest signed int.
-  signed long long int *spya = (signed long long int *) &ya;
-  printf("ya=%llu, (%lld) (%016llx)\n", ya, *spya, ya);
-    
-  uint64 yb = 0x8000000000000000; // it is: -9223372036854775808, the smollest signed int.
-  signed long long int *spyb = (signed long long int *) &yb;
-  printf("yb=%llu, (%lld) (%016llx)\n", yb, *spyb, yb);
-
-  unsigned char c = 0xFF;
-  signed char *scp = (signed char *) &c;
-  printf("c=%d, *spc=%d\n", c, *scp);
-  printf("### ### ###\n");
 
   if (log) {
     game_tree_log_file = fopen("out/rab_solver_log.csv", "w");
-    fprintf(game_tree_log_file, "%s;%s;%s;%s\n",
+    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s\n",
             "RUN_ID",
             "CALL_ID",
             "HASH",
-            "PARENT_HASH");
+            "PARENT_HASH",
+            "BLACKS",
+            "WHITES",
+            "PLAYER");
   }
   
   int game_value = out_of_range_defeat_score;
@@ -371,11 +352,16 @@ game_position_solve_impl(ExactSolution* const result,
   if (log) {
     sint64 *current_hash_to_signed = (sint64 *) &current_node_info->hash;
     sint64 *previous_hash_to_signed = (sint64 *) &previous_node_info->hash;
-    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld\n",
+    sint64 *blacks_to_signed = (sint64 *) &current_gpx->blacks;
+    sint64 *whites_to_signed = (sint64 *) &current_gpx->whites;
+    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d\n",
             run_id,
             result->node_count,
             *current_hash_to_signed,
-            *previous_hash_to_signed);
+            *previous_hash_to_signed,
+            *blacks_to_signed,
+            *whites_to_signed,
+            current_gpx->player);
   }
 
   if (move_set == empty_square_set) {

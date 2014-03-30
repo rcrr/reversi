@@ -38,8 +38,38 @@ CREATE SCHEMA reversi;
 
 SET search_path TO reversi;
 
+
+--
+-- ENUM axis
+-- The axes are the lines that pass throw a square, a general square has four axes.
+--
+-- HO: Horizontal axis (W-E).
+-- VE: Vertical axis (N-S).
+-- DD: Diagonal Down axis (NW-SE), A1-H8.
+-- DU: Diagonal Up axis (NE-SW), A8-H1.
+--
+-- DROP TYPE IF EXISTS axis;
+--
+CREATE TYPE axis AS ENUM ('HO', 'VE', 'DD', 'DU');
+
+CREATE TABLE axis_info (id      axis,
+                        ordinal SMALLINT,
+                        PRIMARY KEY(id));
+
+INSERT INTO axis_info (id, ordinal) VALUES
+  ('HO', 0),
+  ('VE', 1),
+  ('DD', 2),
+  ('DU', 3);
+
+
+
+-- DROP TABLE IF EXISTS rab_solver_log;
 CREATE TABLE rab_solver_log (run_id         INTEGER,
                              call_id        INTEGER,
                              hash           BIGINT,
                              parent_hash    BIGINT,
+                             blacks         BIGINT,
+                             whites         BIGINT,
+                             player         SMALLINT,
                              PRIMARY KEY(run_id, call_id));
