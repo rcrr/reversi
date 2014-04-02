@@ -37,6 +37,34 @@
 SET search_path TO reversi;
 
 
+--
+-- Realizes the assert statement.
+--
+CREATE OR REPLACE FUNCTION p_assert(p_assertion BOOLEAN, p_message_on_error VARCHAR(255)) RETURNS VOID AS $$
+BEGIN
+  IF p_assertion IS NULL THEN
+    RAISE EXCEPTION 'Assertion is null, that is not supported.';
+  END IF;
+  IF NOT p_assertion THEN
+    RAISE EXCEPTION '%', p_message_on_error;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+
+--
+-- Returns true if the move is legal.
+--
+CREATE OR REPLACE FUNCTION game_position_is_move_legal(blacks BIGINT, whites BIGINT, player SMALLINT, move Square) RETURNS BOOLEAN AS $$
+DECLARE
+  ret BOOLEAN;
+BEGIN
+  PERFORM p_assert(player = 0 OR player = 1, 'Parameter player must be in the range 0..1.');
+  ret := FALSE;
+  return ret;
+END
+$$ LANGUAGE plpgsql;
+
 
 --
 -- Returns a string describing the game position state.
