@@ -182,6 +182,66 @@ INSERT INTO direction_info (id, ordinal) VALUES
   ('S',  6),
   ('SE', 7);
 
+--
+-- The board_bitrow_changes_for_player collects the precomputed effects of moving
+-- a piece in any of the eigth squares in a row.
+-- The size is so computed:
+--  - there are 256 arrangments of player discs,
+--  - and 256 arrangements of opponent pieces,
+--  - the potential moves are 8.
+-- So the number of entries is 256 * 256 * 8 = 524,288 records = 512k records.
+-- Not all the entries are legal! The first set of eigth bits and the second one (opponent row)
+-- must not set the same position.
+--
+-- The index of the array is computed by this formula:
+-- index = playerRow | (opponentRow << 8) | (movePosition << 16);
+--
+-- After initialization the table is never changed.
+--
+-- DROP TABLE IF EXISTS board_bitrow_changes_for_player;
+--
+CREATE TABLE board_bitrow_changes_for_player(id      INTEGER,
+                                             changes SMALLINT,
+                                             PRIMARY KEY(id));
+
+--
+-- Populates the table board_bitrow_changes_for_player.
+--
+CREATE OR REPLACE FUNCTION board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
+DECLARE
+  player_row_count      INTEGER;
+  opponent_row_count    INTEGER;
+  move_position         INTEGER;
+  player_row            SMALLINT;
+  opponent_row          SMALLINT;
+  filled_in_row         SMALLINT;
+  empties_in_row        SMALLINT;
+  game_move             SMALLINT;
+  table_id              INTEGER;
+  player_row_after_move SMALLINT;
+BEGIN
+  FOR player_row_count IN 0..255 LOOP
+    player_row := CAST (player_row_count AS SMALLINT);
+    FOR opponent_row_count IN 0..255 LOOP
+      opponent_row := CAST (opponent_row_count AS SMALLINT);
+      filled_in_row := player_row | opponent_row;
+      empties_in_row := (~filled_in_row) & CAST (255 AS SMALLINT);
+      FOR move_position IN 0..7 LOOP
+        game_move := 1 << move_position;
+        table_id := player_row_count | (opponent_row_count << 8) | (move_position << 16);
+        IF (player_row & opponent_row <> 0) OR (game_move & filled_in_row <> 0) THEN
+          player_row_after_move := player_row;
+        ELSE
+          player_row_after_move := 0;
+        END IF;
+        INSERT INTO board_bitrow_changes_for_player (id, changes) VALUES (table_id, player_row_after_move);
+      END LOOP;
+    END LOOP;
+  END LOOP;
+END
+$$ LANGUAGE plpgsql;
+
+
 
 
 -- DROP TABLE IF EXISTS rab_solver_log;
