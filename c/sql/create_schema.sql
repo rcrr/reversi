@@ -48,16 +48,16 @@ SET search_path TO reversi;
 -- DD: Diagonal Down axis (NW-SE), A1-H8.
 -- DU: Diagonal Up axis (NE-SW), A8-H1.
 --
--- DROP TYPE IF EXISTS Axis;
+-- DROP TYPE IF EXISTS axis;
 --
-CREATE TYPE Axis AS ENUM ('HO', 'VE', 'DD', 'DU');
+CREATE TYPE axis AS ENUM ('HO', 'VE', 'DD', 'DU');
 
 --
 -- The axis_info table holds all info related to Axes.
 --
 -- DROP TABLE IF EXISTS axis_info;
 --
-CREATE TABLE axis_info (id      Axis,
+CREATE TABLE axis_info (id      axis,
                         ordinal SMALLINT,
                         PRIMARY KEY(id));
 
@@ -69,9 +69,9 @@ INSERT INTO axis_info (id, ordinal) VALUES
   ('DU', 3);
 
 
-  
+
 --
--- ENUM Square
+-- ENUM square
 -- Square is an enum that realize the base unit of the game board.
 --
 -- Squares are represented by two characters, a letter and a numeric digit.
@@ -79,7 +79,7 @@ INSERT INTO axis_info (id, ordinal) VALUES
 -- For instance, let's take a square: D4.
 -- This symbol identifies the square at the cross of column d and row 4.
 --
--- Here is represented the collection of the 64 Square as them are
+-- Here is represented the collection of the 64 square as them are
 -- organized in the game board:
 -- 
 --      a    b    c    d    e    f    g    h
@@ -106,7 +106,7 @@ INSERT INTO axis_info (id, ordinal) VALUES
 --
 -- (A1, B1, C1, D1, E1, F1, G1, H1, A2, ... H8).
 --
-CREATE TYPE Square AS ENUM (
+CREATE TYPE square AS ENUM (
   'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
   'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2',
   'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3',
@@ -117,11 +117,11 @@ CREATE TYPE Square AS ENUM (
   'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8');
 
 --
--- The square_info table holds all info related to Squares.
+-- The square_info table holds all info related to squares.
 --
 -- DROP TABLE IF EXISTS square_info;
 --
-CREATE TABLE square_info (id      Square,
+CREATE TABLE square_info (id      square,
                           ordinal SMALLINT,
                           PRIMARY KEY(id));
 
@@ -139,14 +139,14 @@ INSERT INTO square_info (id, ordinal) VALUES
 
 
 --
--- ENUM Direction
+-- ENUM direction
 -- The directions that are available in a regular board's square are
 -- eight, Up, Down, Left, Right, and the four diagonal between them.
 --
--- Each regular Square has eight neighbor ones,
+-- Each regular square has eight neighbor ones,
 -- each identified by the proper direction. Boundary squares have fewer neighbors.
 -- 
--- The Direction enum is represented by the respective cardinal point literal.
+-- The direction enum is represented by the respective cardinal point literal.
 --
 --
 --  NW: North-West direction.
@@ -158,16 +158,16 @@ INSERT INTO square_info (id, ordinal) VALUES
 --  S:  South direction.
 --  SE: South-Est direction.
 --
--- DROP TYPE IF EXISTS Direction;
+-- DROP TYPE IF EXISTS direction;
 --
-CREATE TYPE Direction AS ENUM ('NW', 'N', 'NE', 'W', 'E', 'SW', 'S', 'SE');
+CREATE TYPE direction AS ENUM ('NW', 'N', 'NE', 'W', 'E', 'SW', 'S', 'SE');
 
 --
--- The direction_info table holds all info related to Directions.
+-- The direction_info table holds all info related to directions.
 --
 -- DROP TABLE IF EXISTS direction_info;
 --
-CREATE TABLE direction_info (id      Direction,
+CREATE TABLE direction_info (id      direction,
                              ordinal SMALLINT,
                              PRIMARY KEY(id));
 
@@ -181,6 +181,68 @@ INSERT INTO direction_info (id, ordinal) VALUES
   ('SW', 5),
   ('S',  6),
   ('SE', 7);
+
+
+
+--
+-- ENUM color
+--
+CREATE TYPE color AS ENUM ('BLACK', 'WHITE', 'EMPTY');
+
+--
+-- The color_info table holds all info related to colors.
+--
+-- DROP TABLE IF EXISTS color_info;
+--
+CREATE TABLE color_info (id      color,
+                         ordinal SMALLINT,
+                         PRIMARY KEY(id));
+
+-- Populates the color_info table.
+INSERT INTO color_info (id, ordinal) VALUES
+  ('BLACK', 0),
+  ('WHITE', 1),
+  ('EMPTY', 2);
+
+
+
+--
+-- DOMAIN player
+--
+CREATE DOMAIN player SMALLINT CHECK (VALUE = 0 OR VALUE = 1);
+
+--
+-- The player_info table holds all info related to players.
+--
+-- DROP TABLE IF EXISTS player_info;
+--
+CREATE TABLE player_info (id    player,
+                          color color,
+                          PRIMARY KEY(id));
+
+-- Populates the player_info table.
+INSERT INTO player_info (id, color) VALUES
+  (0, 'BLACK'),
+  (1, 'WHITE');
+
+
+
+--
+-- DOMAIN square_set
+--
+CREATE DOMAIN square_set BIGINT;
+
+
+
+--
+-- TYPE game_position
+--
+CREATE TYPE game_position AS (
+  blacks square_set,
+  whites square_set,
+  player player
+);
+
 
 --
 -- The board_bitrow_changes_for_player collects the precomputed effects of moving
@@ -241,7 +303,7 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
-
+SELECT board_populate_bitrow_changes_for_player();
 
 
 -- DROP TABLE IF EXISTS rab_solver_log;

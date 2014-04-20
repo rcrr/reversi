@@ -37,6 +37,7 @@
 SET search_path TO reversi;
 
 
+
 --
 -- Realizes the assert statement.
 --
@@ -50,6 +51,7 @@ BEGIN
   END IF;
 END;
 $$ LANGUAGE plpgsql;
+
 
 
 --
@@ -86,7 +88,7 @@ BEGIN
   END IF;
   move_column := move_ordinal % 8;
   move_row    := move_ordinal / 8;
-  RAISE NOTICE 'move_ordinal=%, move_column=%, move_row=%',move_ordinal, move_column, move_row ;
+  RAISE NOTICE 'move_ordinal=%, move_column=%, move_row=%',move_ordinal, move_column, move_row;
   FOR axis IN SELECT id, ordinal FROM axis_info ORDER BY ordinal LOOP
     move_ordinal_position := axis_move_ordinal_position_in_bitrow(axis.id, move_column, move_row);
     shift_distance := axis_shift_distance(axis.id, move_column, move_row);
@@ -98,6 +100,7 @@ BEGIN
   RETURN TRUE;
 END
 $$ LANGUAGE plpgsql;
+
 
 
 --
@@ -114,6 +117,8 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+
+
 --
 -- Returns a value computed shifting the `bit_sequence` parameter
 -- to left by a signed amount given by the `shift` parameter.
@@ -128,6 +133,7 @@ BEGIN
   END IF;
 END
 $$ LANGUAGE plpgsql;
+
 
 
 --
@@ -169,6 +175,7 @@ END
 $$ LANGUAGE plpgsql;
 
 
+
 --
 -- Returns the ordinal position of the move.
 --
@@ -180,6 +187,7 @@ BEGIN
   RETURN move_column;
 END
 $$ LANGUAGE plpgsql;
+
 
 
 --
@@ -200,6 +208,7 @@ BEGIN
   END IF;
 END
 $$ LANGUAGE plpgsql;
+
 
 
 --
@@ -282,11 +291,46 @@ $$ LANGUAGE plpgsql;
 --
 -- Returns the set of empty squares.
 --
-CREATE OR REPLACE FUNCTION empties(blacks BIGINT, whites BIGINT) RETURNS BIGINT AS $$
+CREATE OR REPLACE FUNCTION game_position_from_string(gp_string CHAR(65)) RETURNS game_position AS $$
 DECLARE
-  empties BIGINT;
+  blacks square_set;
+  whites square_set;
+  p      player;
+  c      char;
+  i      int;
+  square square_set;
 BEGIN
-  empties := ~(blacks | whites);
-  RETURN empties;
-END;
+  IF length(gp_string) <> 65 THEN
+    RAISE EXCEPTION 'Value of length(gp_string) is %, it must be 65!', length(gp_string);
+  END IF;
+  blacks := 0;
+  whites := 0;
+  p := 0;
+  i := 0;
+  FOREACH c IN ARRAY string_to_array(gp_string, NULL)
+  LOOP
+    IF (i = 64) THEN
+      IF (c = 'b') THEN
+        p := 0;
+      ELSEIF (c = 'w') THEN
+        p := 1;
+      ELSE
+        RAISE EXCEPTION 'Player must be either b or w, it is equal to "%".', c;
+      END IF;
+    ELSE
+      square = CAST (1 AS square_set) << i;
+      IF (c = 'b') THEN
+        blacks := blacks | square;
+      ELSEIF (c = 'w') THEN
+        whites := whites | square;
+      ELSEIF (c = '.') THEN
+        NULL;
+      ELSE
+        RAISE EXCEPTION 'Player must be either b or w, it is equal to "%".', c;
+      END IF;
+    END IF;
+    i := i + 1;
+  END LOOP;
+  RETURN (blacks, whites, p);
+END
 $$ LANGUAGE plpgsql;
