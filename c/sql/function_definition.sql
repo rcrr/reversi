@@ -55,6 +55,96 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Returns a value computed shifting the `bit_sequence` parameter
+-- to left by a signed amount given by the `shift` parameter.
+--
+CREATE OR REPLACE FUNCTION bit_works_signed_left_shift(bit_sequence BIGINT, shift INT) RETURNS BIGINT AS $$
+DECLARE
+BEGIN
+  IF shift >= 0 THEN
+    RETURN bit_sequence << shift;
+  ELSE
+    RETURN bit_sequence >> -shift;
+  END IF;
+END
+$$ LANGUAGE plpgsql;
+
+
+--
+-- Returns a string describing the player.
+--
+CREATE OR REPLACE FUNCTION player_to_string(player SMALLINT) RETURNS CHAR(1) AS $$
+DECLARE
+  ret  CHAR(1);
+BEGIN
+  IF player = CAST(0 AS SMALLINT) THEN
+      ret := 'b';
+  ELSE
+      ret := 'w';
+  END IF;
+  RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns a string describing the square set.
+-- Tests written.
+--
+CREATE OR REPLACE FUNCTION square_set_to_string(squares square_set) RETURNS CHAR(64) AS $$
+DECLARE
+  ret CHAR(64);
+BEGIN
+  ret := '';
+  FOR i IN 0..63 LOOP
+    IF (CAST(1 AS square_set) << i) & squares <> 0 THEN
+      ret := ret || 'x';
+    ELSE
+      ret := ret || '.';
+    END IF;
+  END LOOP;
+  RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns a square_set from the given string.
+-- Tests written.
+--
+CREATE OR REPLACE FUNCTION square_set_from_string(ss_string CHAR(64)) RETURNS square_set AS $$
+DECLARE
+  squares square_set;
+  c      char;
+  i      int;
+  square square_set;
+BEGIN
+  IF length(ss_string) <> 64 THEN
+    RAISE EXCEPTION 'Value of length(ss_string) is %, it must be 64!', length(ss_string);
+  END IF;
+  squares := 0;
+  i := 0;
+  FOREACH c IN ARRAY string_to_array(ss_string, NULL)
+  LOOP
+    square = CAST (1 AS square_set) << i;
+    IF (c = 'x') THEN
+      squares := squares | square;
+    ELSEIF (c = '.') THEN
+      NULL;
+    ELSE
+      RAISE EXCEPTION 'Square must be either x or ., it is equal to "%".', c;
+    END IF;
+    i := i + 1;
+  END LOOP;
+  RETURN squares;
+END
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Returns true if the move is legal.
 --
 CREATE OR REPLACE FUNCTION game_position_is_move_legal(blacks BIGINT, whites BIGINT, player SMALLINT, move Square) RETURNS BOOLEAN AS $$
@@ -77,7 +167,7 @@ BEGIN
   SELECT ordinal INTO STRICT move_ordinal FROM square_info WHERE id = move;
   empty_square_set := CAST(0 AS BIGINT);
   bit_move := CAST(1 AS BIGINT) << move_ordinal;
-  empties := empties(blacks, whites);
+  empties := game_position_empties(blacks, whites);
   IF (empties & bit_move) = empty_square_set THEN RETURN FALSE; END IF;
   IF player = 0 THEN
     p_square_set := blacks;
@@ -114,23 +204,6 @@ BEGIN
   bitrow_changes_for_player_index := player_row | (opponent_row << 8) | (CAST (move_position AS INT) << 16);
   SELECT changes INTO STRICT result FROM bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
   RETURN result;
-END
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Returns a value computed shifting the `bit_sequence` parameter
--- to left by a signed amount given by the `shift` parameter.
---
-CREATE OR REPLACE FUNCTION bit_works_signed_left_shift(bit_sequence BIGINT, shift INT) RETURNS BIGINT AS $$
-DECLARE
-BEGIN
-  IF shift >= 0 THEN
-    RETURN bit_sequence << shift;
-  ELSE
-    RETURN bit_sequence >> -shift;
-  END IF;
 END
 $$ LANGUAGE plpgsql;
 
@@ -224,23 +297,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 
---
--- Returns a string describing the player.
---
-CREATE OR REPLACE FUNCTION player_to_string(player SMALLINT) RETURNS CHAR(1) AS $$
-DECLARE
-  ret  CHAR(1);
-BEGIN
-  IF player = CAST(0 AS SMALLINT) THEN
-      ret := 'b';
-  ELSE
-      ret := 'w';
-  END IF;
-  RETURN ret;
-END;
-$$ LANGUAGE plpgsql;
-
-
 
 --
 -- Returns a string describing the board state.
@@ -268,28 +324,8 @@ $$ LANGUAGE plpgsql;
 
 
 --
--- Returns a string describing the square set.
---
-CREATE OR REPLACE FUNCTION square_set_to_string(square_set BIGINT) RETURNS CHAR(64) AS $$
-DECLARE
-  ret CHAR(64);
-BEGIN
-  ret := '';
-  FOR i IN 0..63 LOOP
-    IF (CAST(1 AS BIGINT) << i) & square_set <> 0 THEN
-      ret := ret || 'x';
-    ELSE
-      ret := ret || '_';
-    END IF;
-  END LOOP;
-  RETURN ret;
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
 -- Returns the set of empty squares.
+-- Tests written.
 --
 CREATE OR REPLACE FUNCTION game_position_empties(gp game_position) RETURNS square_set AS $$
 DECLARE
@@ -298,39 +334,6 @@ BEGIN
   empties := ~(gp.blacks | gp.whites);
   RETURN empties;
 END;
-$$ LANGUAGE plpgsql;
-
-
-
---
---  Returns a square_set from the given string.
---
-CREATE OR REPLACE FUNCTION square_set_from_string(ss_string CHAR(64)) RETURNS square_set AS $$
-DECLARE
-  squares square_set;
-  c      char;
-  i      int;
-  square square_set;
-BEGIN
-  IF length(ss_string) <> 64 THEN
-    RAISE EXCEPTION 'Value of length(ss_string) is %, it must be 64!', length(ss_string);
-  END IF;
-  squares := 0;
-  i := 0;
-  FOREACH c IN ARRAY string_to_array(ss_string, NULL)
-  LOOP
-    square = CAST (1 AS square_set) << i;
-    IF (c = 'x') THEN
-      squares := squares | square;
-    ELSEIF (c = '.') THEN
-      NULL;
-    ELSE
-      RAISE EXCEPTION 'Square must be either x or ., it is equal to "%".', c;
-    END IF;
-    i := i + 1;
-  END LOOP;
-  RETURN squares;
-END
 $$ LANGUAGE plpgsql;
 
 

@@ -39,6 +39,69 @@ SET search_path TO reversi;
 
 
 --
+-- Tests the square_set_from_string function.
+--
+CREATE OR REPLACE FUNCTION test_square_set_from_string() RETURNS VOID AS $$
+DECLARE
+  computed square_set;
+  expected square_set;
+BEGIN
+  expected := 0;
+  computed := square_set_from_string('................................................................');
+  PERFORM p_assert(expected = computed, 'Square set must be 0.');
+
+  expected := 1;
+  computed := square_set_from_string('x...............................................................');
+  PERFORM p_assert(expected = computed, 'Square set must be 1.');
+
+  expected := 12;
+  computed := square_set_from_string('..xx............................................................');
+  PERFORM p_assert(expected = computed, 'Square set must be 12.');
+
+  expected := -1;
+  computed := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+  PERFORM p_assert(expected = computed, 'Square set must be -1.');
+
+  expected := 9223372036854775807;
+  computed := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.');
+  PERFORM p_assert(expected = computed, 'Square set must be 9223372036854775807.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the square_set_to_string function.
+--
+CREATE OR REPLACE FUNCTION test_square_set_to_string() RETURNS VOID AS $$
+DECLARE
+  computed CHAR(64);
+  expected CHAR(64);
+BEGIN
+  expected := '................................................................';
+  computed := square_set_to_string(0);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 'x...............................................................';
+  computed := square_set_to_string(1);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := '..xx............................................................';
+  computed := square_set_to_string(12);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+  computed := square_set_to_string(-1);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+
+  expected := 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.';
+  computed := square_set_to_string(9223372036854775807);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+--
 -- Tests the game_position_empties function.
 --
 CREATE OR REPLACE FUNCTION test_game_position_empties() RETURNS VOID AS $$
@@ -53,5 +116,14 @@ BEGIN
   computed := game_position_empties(gp);
   expected := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
   PERFORM p_assert(expected = computed, 'The empty board must have 64 empties.');
+
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'initial';
+  gp := fixture.gp;
+  computed := game_position_empties(gp);
+--
+--                                   |1       2       3       4       5       6       7       8       |
+--                                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+  expected := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxx..xxxxxx..xxxxxxxxxxxxxxxxxxxxxxxxxxx');
+  PERFORM p_assert(expected = computed, 'The initial board must have 60 empties.');
 END;
 $$ LANGUAGE plpgsql;
