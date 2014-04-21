@@ -291,6 +291,53 @@ $$ LANGUAGE plpgsql;
 --
 -- Returns the set of empty squares.
 --
+CREATE OR REPLACE FUNCTION game_position_empties(gp game_position) RETURNS square_set AS $$
+DECLARE
+  empties square_set;
+BEGIN
+  empties := ~(gp.blacks | gp.whites);
+  RETURN empties;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+--  Returns a square_set from the given string.
+--
+CREATE OR REPLACE FUNCTION square_set_from_string(ss_string CHAR(64)) RETURNS square_set AS $$
+DECLARE
+  squares square_set;
+  c      char;
+  i      int;
+  square square_set;
+BEGIN
+  IF length(ss_string) <> 64 THEN
+    RAISE EXCEPTION 'Value of length(ss_string) is %, it must be 64!', length(ss_string);
+  END IF;
+  squares := 0;
+  i := 0;
+  FOREACH c IN ARRAY string_to_array(ss_string, NULL)
+  LOOP
+    square = CAST (1 AS square_set) << i;
+    IF (c = 'x') THEN
+      squares := squares | square;
+    ELSEIF (c = '.') THEN
+      NULL;
+    ELSE
+      RAISE EXCEPTION 'Square must be either x or ., it is equal to "%".', c;
+    END IF;
+    i := i + 1;
+  END LOOP;
+  RETURN squares;
+END
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns a game position from the given string.
+--
 CREATE OR REPLACE FUNCTION game_position_from_string(gp_string CHAR(65)) RETURNS game_position AS $$
 DECLARE
   blacks square_set;
@@ -326,7 +373,7 @@ BEGIN
       ELSEIF (c = '.') THEN
         NULL;
       ELSE
-        RAISE EXCEPTION 'Player must be either b or w, it is equal to "%".', c;
+        RAISE EXCEPTION 'Square color must be either b or w or ., it is equal to "%".', c;
       END IF;
     END IF;
     i := i + 1;
