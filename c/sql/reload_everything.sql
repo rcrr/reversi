@@ -37,6 +37,7 @@
 SET search_path TO reversi;
 
 
+\set ON_ERROR_STOP
 
 \i drop_schema.sql
 \i create_schema.sql
@@ -45,3 +46,5 @@ SET search_path TO reversi;
 \i test_data.sql
 \i execute_tests.sql
 \i load_rab_solver.sql
+
+\unset ON_ERROR_STOP

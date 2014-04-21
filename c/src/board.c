@@ -47,9 +47,6 @@
 static void
 board_initialize_bitrow_changes_for_player_array (uint8 *array);
 
-static uint8
-board_bitrow_changes_for_player (int player_row, int opponent_row, int move_position);
-
 
 
 /*

@@ -36,8 +36,11 @@
 
 SET search_path TO reversi;
 
+SELECT test_player_to_string();
 
 SELECT test_square_set_from_string();
 SELECT test_square_set_to_string();
 
 SELECT test_game_position_empties();
+SELECT test_game_position_to_string();
+SELECT test_game_position_from_string();

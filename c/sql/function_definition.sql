@@ -72,12 +72,13 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns a string describing the player.
+-- Tests written.
 --
-CREATE OR REPLACE FUNCTION player_to_string(player SMALLINT) RETURNS CHAR(1) AS $$
+CREATE OR REPLACE FUNCTION player_to_string(pl player) RETURNS CHAR(1) AS $$
 DECLARE
   ret  CHAR(1);
 BEGIN
-  IF player = CAST(0 AS SMALLINT) THEN
+  IF pl = 0 THEN
       ret := 'b';
   ELSE
       ret := 'w';
@@ -139,71 +140,6 @@ BEGIN
     i := i + 1;
   END LOOP;
   RETURN squares;
-END
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Returns true if the move is legal.
---
-CREATE OR REPLACE FUNCTION game_position_is_move_legal(blacks BIGINT, whites BIGINT, player SMALLINT, move Square) RETURNS BOOLEAN AS $$
-DECLARE
-  bit_move              BIGINT;
-  move_ordinal          INT;
-  empties               BIGINT;
-  empty_square_set      BIGINT;
-  p_square_set          BIGINT;
-  o_square_set          BIGINT;
-  move_column           INT;
-  move_row              INT;
-  axis                  RECORD;
-  move_ordinal_position INT;
-  shift_distance        INT;
-  p_bitrow              SMALLINT;
-  o_bitrow              SMALLINT;
-BEGIN
-  PERFORM p_assert(player = 0 OR player = 1, 'Parameter player must be in the range 0..1.');
-  SELECT ordinal INTO STRICT move_ordinal FROM square_info WHERE id = move;
-  empty_square_set := CAST(0 AS BIGINT);
-  bit_move := CAST(1 AS BIGINT) << move_ordinal;
-  empties := game_position_empties(blacks, whites);
-  IF (empties & bit_move) = empty_square_set THEN RETURN FALSE; END IF;
-  IF player = 0 THEN
-    p_square_set := blacks;
-    o_square_set := whites;
-  ELSE
-    p_square_set := whites;
-    o_square_set := blacks;
-  END IF;
-  move_column := move_ordinal % 8;
-  move_row    := move_ordinal / 8;
-  RAISE NOTICE 'move_ordinal=%, move_column=%, move_row=%',move_ordinal, move_column, move_row;
-  FOR axis IN SELECT id, ordinal FROM axis_info ORDER BY ordinal LOOP
-    move_ordinal_position := axis_move_ordinal_position_in_bitrow(axis.id, move_column, move_row);
-    shift_distance := axis_shift_distance(axis.id, move_column, move_row);
-    RAISE NOTICE 'axis.id=%, move_ordinal_position=%, shift_distance=%', axis.id, move_ordinal_position, shift_distance;
-    p_bitrow := axis_transform_to_row_one(axis.id, bit_works_signed_left_shift(p_square_set, shift_distance));
-    o_bitrow := axis_transform_to_row_one(axis.id, bit_works_signed_left_shift(o_square_set, shift_distance));
-    RAISE NOTICE 'p_bitrow=%, o_bitrow=%', p_bitrow, o_bitrow;
-  END LOOP;
-  RETURN TRUE;
-END
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Returns an 8-bit row representation of the player pieces after applying the move.
---
-CREATE OR REPLACE FUNCTION board_bitrow_changes_for_player(player_row SMALLINT, opponent_row SMALLINT, move_position SMALLINT) RETURNS SMALLINT AS $$
-DECLARE
-  bitrow_changes_for_player_index INT;
-  result SMALLINT;
-BEGIN
-  bitrow_changes_for_player_index := player_row | (opponent_row << 8) | (CAST (move_position AS INT) << 16);
-  SELECT changes INTO STRICT result FROM bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
-  RETURN result;
 END
 $$ LANGUAGE plpgsql;
 
@@ -285,27 +221,36 @@ $$ LANGUAGE plpgsql;
 
 
 --
--- Returns a string describing the game position state.
+-- Returns an 8-bit row representation of the player pieces after applying the move.
 --
-CREATE OR REPLACE FUNCTION game_position_to_string(blacks BIGINT, whites BIGINT, player SMALLINT) RETURNS CHAR(66) AS $$
+CREATE OR REPLACE FUNCTION board_bitrow_changes_for_player(player_row SMALLINT, opponent_row SMALLINT, move_position SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
-  ret  CHAR(66);
+  bitrow_changes_for_player_index INT;
+  result SMALLINT;
 BEGIN
-  ret := board_to_string(blacks, whites) || ';' || player_to_string(player);
-  RETURN ret;
-END;
+  bitrow_changes_for_player_index := player_row | (opponent_row << 8) | (CAST (move_position AS INT) << 16);
+  SELECT changes INTO STRICT result FROM bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
+  RETURN result;
+END
 $$ LANGUAGE plpgsql;
 
 
 
 --
 -- Returns a string describing the board state.
+-- Tests written.
 --
-CREATE OR REPLACE FUNCTION board_to_string(blacks BIGINT, whites BIGINT) RETURNS CHAR(64) AS $$
+CREATE OR REPLACE FUNCTION game_position_to_string(gp game_position) RETURNS CHAR(65) AS $$
 DECLARE
-  ret  CHAR(64);
-  mask BIGINT;
+  ret    CHAR(65);
+  mask   BIGINT;
+  blacks square_set;
+  whites square_set;
+  pl     player;
 BEGIN
+  blacks := gp.blacks;
+  whites := gp.whites;
+  pl     := gp.player;
   ret := '';
   FOR i IN 0..63 LOOP
     mask := CAST(1 AS BIGINT) << i;
@@ -317,22 +262,8 @@ BEGIN
       ret := ret || '.';
     END IF;
   END LOOP;
+  ret := ret || player_to_string(pl);
   RETURN ret;
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Returns the set of empty squares.
--- Tests written.
---
-CREATE OR REPLACE FUNCTION game_position_empties(gp game_position) RETURNS square_set AS $$
-DECLARE
-  empties square_set;
-BEGIN
-  empties := ~(gp.blacks | gp.whites);
-  RETURN empties;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -382,5 +313,69 @@ BEGIN
     i := i + 1;
   END LOOP;
   RETURN (blacks, whites, p);
+END
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns the set of empty squares.
+-- Tests written.
+--
+CREATE OR REPLACE FUNCTION game_position_empties(gp game_position) RETURNS square_set AS $$
+DECLARE
+  empties square_set;
+BEGIN
+  empties := ~(gp.blacks | gp.whites);
+  RETURN empties;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns true if the move is legal.
+--
+CREATE OR REPLACE FUNCTION game_position_is_move_legal(blacks BIGINT, whites BIGINT, player SMALLINT, move Square) RETURNS BOOLEAN AS $$
+DECLARE
+  bit_move              BIGINT;
+  move_ordinal          INT;
+  empties               BIGINT;
+  empty_square_set      BIGINT;
+  p_square_set          BIGINT;
+  o_square_set          BIGINT;
+  move_column           INT;
+  move_row              INT;
+  axis                  RECORD;
+  move_ordinal_position INT;
+  shift_distance        INT;
+  p_bitrow              SMALLINT;
+  o_bitrow              SMALLINT;
+BEGIN
+  PERFORM p_assert(player = 0 OR player = 1, 'Parameter player must be in the range 0..1.');
+  SELECT ordinal INTO STRICT move_ordinal FROM square_info WHERE id = move;
+  empty_square_set := CAST(0 AS BIGINT);
+  bit_move := CAST(1 AS BIGINT) << move_ordinal;
+  empties := game_position_empties(blacks, whites);
+  IF (empties & bit_move) = empty_square_set THEN RETURN FALSE; END IF;
+  IF player = 0 THEN
+    p_square_set := blacks;
+    o_square_set := whites;
+  ELSE
+    p_square_set := whites;
+    o_square_set := blacks;
+  END IF;
+  move_column := move_ordinal % 8;
+  move_row    := move_ordinal / 8;
+  RAISE NOTICE 'move_ordinal=%, move_column=%, move_row=%',move_ordinal, move_column, move_row;
+  FOR axis IN SELECT id, ordinal FROM axis_info ORDER BY ordinal LOOP
+    move_ordinal_position := axis_move_ordinal_position_in_bitrow(axis.id, move_column, move_row);
+    shift_distance := axis_shift_distance(axis.id, move_column, move_row);
+    RAISE NOTICE 'axis.id=%, move_ordinal_position=%, shift_distance=%', axis.id, move_ordinal_position, shift_distance;
+    p_bitrow := axis_transform_to_row_one(axis.id, bit_works_signed_left_shift(p_square_set, shift_distance));
+    o_bitrow := axis_transform_to_row_one(axis.id, bit_works_signed_left_shift(o_square_set, shift_distance));
+    RAISE NOTICE 'p_bitrow=%, o_bitrow=%', p_bitrow, o_bitrow;
+  END LOOP;
+  RETURN TRUE;
 END
 $$ LANGUAGE plpgsql;

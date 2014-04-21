@@ -23,7 +23,7 @@
 #
 
 # Add all the programs that has a main and that will be compiled and linked as a bin executable.
-MAINS = endgame_solver gpdb_verify
+MAINS = endgame_solver gpdb_verify dump_bitrow_changes
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
 TEST_PROGS = bit_works_test board_test game_position_db_test game_position_test exact_solver_test \

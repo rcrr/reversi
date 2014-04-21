@@ -101,6 +101,28 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+
+--
+-- Tests the player_to_string function.
+--
+CREATE OR REPLACE FUNCTION test_player_to_string() RETURNS VOID AS $$
+DECLARE
+  computed CHAR(1);
+  expected CHAR(1);
+  pl       player;
+BEGIN
+  pl := 0;
+  expected := 'b';
+  computed := player_to_string(pl);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  pl := 1;
+  expected := 'w';
+  computed := player_to_string(pl);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+END;
+$$ LANGUAGE plpgsql;
+
 --
 -- Tests the game_position_empties function.
 --
@@ -127,3 +149,55 @@ BEGIN
   PERFORM p_assert(expected = computed, 'The initial board must have 60 empties.');
 END;
 $$ LANGUAGE plpgsql;
+
+--
+-- Tests the game_position_to_string function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_to_string() RETURNS VOID AS $$
+DECLARE
+  fixture  RECORD;
+  gp       game_position;
+  computed CHAR(65);
+  expected CHAR(65);
+BEGIN
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'empty';
+  gp := fixture.gp;
+  computed := game_position_to_string(gp);
+--
+--            |1       2       3       4       5       6       7       8       .|
+--            |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHp|
+  expected := '................................................................b';
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'initial';
+  gp := fixture.gp;
+  computed := game_position_to_string(gp);
+--
+--            |1       2       3       4       5       6       7       8       .|
+--            |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHp|
+  expected := '...........................wb......bw...........................b';
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+END;
+$$ LANGUAGE plpgsql;
+
+--
+-- Tests the game_position_to_string function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_from_string() RETURNS VOID AS $$
+DECLARE
+  gp_string CHAR(65);
+  computed  game_position;
+  expected  game_position;
+BEGIN
+  gp_string := '................................................................b';
+  computed := game_position_from_string(gp_string);
+  expected := (0, 0, 0);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+  
+  gp_string := 'bw..............................................................w';
+  computed := game_position_from_string(gp_string);
+  expected := (1, 2, 1);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+END;
+$$ LANGUAGE plpgsql;
+

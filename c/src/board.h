@@ -267,8 +267,9 @@ extern SquareState
 board_get_square (const Board  *const b,
                   const Square        sq);
 
-extern int board_count_pieces(const Board       *const b,
-                              const SquareState        color);
+extern int
+board_count_pieces(const Board       *const b,
+                   const SquareState        color);
 
 extern int
 board_count_difference (const Board  *const b,
@@ -291,8 +292,14 @@ extern SquareSet
 board_get_color (const Board       *const b,
                  const SquareState        color);
 
-extern SquareSet board_get_player (const Board  *const b,
-                                   const Player        p);
+extern uint8
+board_bitrow_changes_for_player (int player_row,
+                                 int opponent_row,
+                                 int move_position);
+
+extern SquareSet
+board_get_player (const Board  *const b,
+                  const Player        p);
 
 extern SquareSet
 board_empties (const Board *const b);
