@@ -271,6 +271,7 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns a game position from the given string.
+-- Tests written.
 --
 CREATE OR REPLACE FUNCTION game_position_from_string(gp_string CHAR(65)) RETURNS game_position AS $$
 DECLARE

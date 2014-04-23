@@ -50,7 +50,7 @@
  * @brief Main entry for the dump utility.
  * 
  * @todo It dumps the contetnt of the bitrow changes for player array.
- * Call it as "dump_bitrow_changes > bitrow_changes_for_player.csv".
+ * Call it as "build/bin/dump_bitrow_changes > out/bitrow_changes_for_player.csv".
  */
 int
 main (int argc, char *argv[])
@@ -61,14 +61,14 @@ main (int argc, char *argv[])
 
   board_module_init();
 
-  printf("PLAYER_ROW;OPPONENT_ROW;MOVE_POSITION;ARRAY_INDEX;PLAYER_CHANGES\n");
+  printf("ARRAY_INDEX;PLAYER_ROW;OPPONENT_ROW;MOVE_POSITION;PLAYER_CHANGES\n");
 
   for (player_row = 0; player_row < 256; player_row++) {
     for (opponent_row = 0; opponent_row < 256; opponent_row++) {
       for (move_position = 0; move_position < 8; move_position++) {
         const int array_index = player_row | (opponent_row << 8) | (move_position << 16);
         const uint8 player_changes = board_bitrow_changes_for_player(player_row, opponent_row, move_position);
-        printf("%d;%d;%d;%d;%d\n", player_row, opponent_row, move_position, array_index, player_changes);
+        printf("%d;%d;%d;%d;%d\n", array_index, player_row, opponent_row, move_position, player_changes);
       }
     }
   }
