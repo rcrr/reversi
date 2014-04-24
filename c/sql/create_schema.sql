@@ -294,6 +294,7 @@ BEGIN
         IF (player_row & opponent_row <> 0) OR (game_move & filled_in_row <> 0) THEN
           player_row_after_move := player_row;
         ELSE
+          -- MUST BE CONPLETED WITH THE FLIPPING LOGIC!!!! --
           player_row_after_move := 0;
         END IF;
         INSERT INTO board_bitrow_changes_for_player (id, changes) VALUES (table_id, player_row_after_move);
