@@ -39,6 +39,41 @@ SET search_path TO reversi;
 
 
 --
+-- Tests the bit_works_fill_in_between_8 function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_fill_in_between_8() RETURNS VOID AS $$
+DECLARE
+  computed SMALLINT;
+  expected SMALLINT;
+BEGIN
+  expected := 0;
+  computed := bit_works_fill_in_between_8(CAST (1 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 0;
+  computed := bit_works_fill_in_between_8(CAST (128 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := 0;
+  computed := bit_works_fill_in_between_8(CAST (8 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 0;
+  computed := bit_works_fill_in_between_8(CAST (3 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+
+  expected := 8;
+  computed := bit_works_fill_in_between_8(CAST (20 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
+
+  expected := 126;
+  computed := bit_works_fill_in_between_8(CAST (129 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+--
 -- Tests the square_set_from_string function.
 --
 CREATE OR REPLACE FUNCTION test_square_set_from_string() RETURNS VOID AS $$

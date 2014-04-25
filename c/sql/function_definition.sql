@@ -68,12 +68,12 @@ DECLARE
                               7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
                               7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
                             }';
-  result  SMALLINT;
-  masked  SMALLINT;
+  res    SMALLINT;
+  masked SMALLINT;
 BEGIN
   masked := bit_sequence & CAST (255 AS SMALLINT);
-  result := log2_array[masked + 1];
-  RETURN result;
+  res := log2_array[masked + 1];
+  RETURN res;
 END
 $$ LANGUAGE plpgsql;
 
@@ -93,18 +93,12 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION bit_works_fill_in_between_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
-  res     SMALLINT;
-  tmp     SMALLINT;
   mask    SMALLINT;
   masked  SMALLINT;
 BEGIN
   mask := CAST (255 AS SMALLINT);
   masked := bit_sequence & mask;
-  res := ~masked & mask;
-  tmp := masked - 1;
-  res := ((res # tmp) & mask);
-  res := ((1 << bit_works_bitscanMS1B_8(masked)) - 1) & res;
-  RETURN res;
+  RETURN ((1 << bit_works_bitscanMS1B_8(masked)) - 1) & ((~masked # (masked - 1)) & mask);
 END
 $$ LANGUAGE plpgsql;
 
@@ -129,16 +123,16 @@ DECLARE
                               7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
                               7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
                             }';
-  result  SMALLINT;
-  masked  SMALLINT;
+  res    SMALLINT;
+  masked SMALLINT;
 BEGIN
   masked := bit_sequence & CAST (255 AS SMALLINT);
   IF masked = 0 THEN
-    result := 0;
+    res := 0;
   ELSE
-    result := 1 << log2_array[masked + 1];
+    res := 1 << log2_array[masked + 1];
   END IF;
-  RETURN result;
+  RETURN res;
 END
 $$ LANGUAGE plpgsql;
 
@@ -309,27 +303,6 @@ END
 $$ LANGUAGE plpgsql;
 
 
---
--- The board_bitrow_changes_for_player collects the precomputed effects of moving
--- a piece in any of the eigth squares in a row.
--- The size is so computed:
---  - there are 256 arrangments of player discs,
---  - and 256 arrangements of opponent pieces,
---  - the potential moves are 8.
--- So the number of entries is 256 * 256 * 8 = 524,288 records = 512k records.
--- Not all the entries are legal! The first set of eigth bits and the second one (opponent row)
--- must not set the same position.
---
--- The index of the array is computed by this formula:
--- index = playerRow | (opponentRow << 8) | (movePosition << 16);
---
--- After initialization the table is never changed.
---
--- DROP TABLE IF EXISTS board_bitrow_changes_for_player;
---
-CREATE TABLE board_bitrow_changes_for_player(id      INTEGER,
-                                             changes SMALLINT,
-                                             PRIMARY KEY(id));
 
 --
 -- Populates the table board_bitrow_changes_for_player.

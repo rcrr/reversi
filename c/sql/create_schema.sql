@@ -245,7 +245,33 @@ CREATE TYPE game_position AS (
 
 
 
+--
+-- The board_bitrow_changes_for_player collects the precomputed effects of moving
+-- a piece in any of the eigth squares in a row.
+-- The size is so computed:
+--  - there are 256 arrangments of player discs,
+--  - and 256 arrangements of opponent pieces,
+--  - the potential moves are 8.
+-- So the number of entries is 256 * 256 * 8 = 524,288 records = 512k records.
+-- Not all the entries are legal! The first set of eigth bits and the second one (opponent row)
+-- must not set the same position.
+--
+-- The index of the array is computed by this formula:
+-- index = playerRow | (opponentRow << 8) | (movePosition << 16);
+--
+-- After initialization the table is never changed.
+--
+-- DROP TABLE IF EXISTS board_bitrow_changes_for_player;
+--
+CREATE TABLE board_bitrow_changes_for_player(id      INTEGER,
+                                             changes SMALLINT,
+                                             PRIMARY KEY(id));
+
+
+
+--
 -- DROP TABLE IF EXISTS rab_solver_log;
+--
 CREATE TABLE rab_solver_log (run_id         INTEGER,
                              call_id        INTEGER,
                              hash           BIGINT,

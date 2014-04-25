@@ -36,6 +36,8 @@
 
 SET search_path TO reversi;
 
+SELECT test_bit_works_fill_in_between_8();
+
 SELECT test_player_to_string();
 
 SELECT test_square_set_from_string();
