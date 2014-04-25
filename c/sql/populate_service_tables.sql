@@ -1,5 +1,5 @@
 --
--- reload_everything.sql
+-- populate_service_tables.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
@@ -28,7 +28,7 @@
 --
 -- This script has been tested with PostgreSQL.
 -- Start psql by running: psql -U reversi -w -d reversi -h localhost
--- Load the file by running the command: \i reload_everything.sql
+-- Load the file by running the command: \i populate_service_tables.sql
 --
 --
 -- This script creates the functions used by the reversi program.
@@ -37,15 +37,8 @@
 SET search_path TO reversi;
 
 
-\set ON_ERROR_STOP
 
-\i drop_schema.sql
-\i create_schema.sql
-\i function_definition.sql
-\i populate_service_tables.sql
-\i test_function_definition.sql
-\i test_data.sql
-\i execute_tests.sql
-\i load_rab_solver.sql
-
-\unset ON_ERROR_STOP
+--
+-- Populates the bitrow_changes_for_player table.
+--
+SELECT board_populate_bitrow_changes_for_player();

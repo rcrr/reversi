@@ -55,6 +55,96 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Returns the index (0..7) of the most significant bit set in the bit_sequence parameter.
+--
+CREATE OR REPLACE FUNCTION bit_works_bitscanMS1B_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
+DECLARE
+  log2_array SMALLINT[] := '{ 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+                              5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                              6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+                              6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+                            }';
+  result  SMALLINT;
+  masked  SMALLINT;
+BEGIN
+  masked := bit_sequence & CAST (255 AS SMALLINT);
+  result := log2_array[masked + 1];
+  RETURN result;
+END
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns a bit sequence having set the bits between the two, or zero
+-- when only one bit is set.
+--
+-- Bits higher than 8 (the second byte of the smallint) are masked to 0.
+--
+-- The bitsequence parameter must have one or two bits set.
+--
+-- For example: 00100010 returns 00011100.
+--
+-- When the input data doesn't meet the requirements the result is unpredictable.
+--
+CREATE OR REPLACE FUNCTION bit_works_fill_in_between_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
+DECLARE
+  res     SMALLINT;
+  tmp     SMALLINT;
+  mask    SMALLINT;
+  masked  SMALLINT;
+BEGIN
+  mask := CAST (255 AS SMALLINT);
+  masked := bit_sequence & mask;
+  res := ~masked & mask;
+  tmp := masked - 1;
+  res := ((res # tmp) & mask);
+  res := ((1 << bit_works_bitscanMS1B_8(masked)) - 1) & res;
+  RETURN res;
+END
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns an int value having all the bit set in bit_sequence turned to 0
+-- except the most significant one.
+--
+-- When parameter bit_sequence is equal to 0 it returns 0.
+--
+-- Bits higher than 8 (the second byte of the smallint) are masked to 0.
+--
+CREATE OR REPLACE FUNCTION bit_works_highest_bit_set_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
+DECLARE
+  log2_array SMALLINT[] := '{ 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+                              5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                              6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+                              6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+                            }';
+  result  SMALLINT;
+  masked  SMALLINT;
+BEGIN
+  masked := bit_sequence & CAST (255 AS SMALLINT);
+  IF masked = 0 THEN
+    result := 0;
+  ELSE
+    result := 1 << log2_array[masked + 1];
+  END IF;
+  RETURN result;
+END
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Returns a value computed shifting the `bit_sequence` parameter
 -- to left by a signed amount given by the `shift` parameter.
 --
@@ -215,6 +305,82 @@ BEGIN
   ELSE
     RAISE EXCEPTION 'Parameter axis out of range.';
   END IF;
+END
+$$ LANGUAGE plpgsql;
+
+
+--
+-- The board_bitrow_changes_for_player collects the precomputed effects of moving
+-- a piece in any of the eigth squares in a row.
+-- The size is so computed:
+--  - there are 256 arrangments of player discs,
+--  - and 256 arrangements of opponent pieces,
+--  - the potential moves are 8.
+-- So the number of entries is 256 * 256 * 8 = 524,288 records = 512k records.
+-- Not all the entries are legal! The first set of eigth bits and the second one (opponent row)
+-- must not set the same position.
+--
+-- The index of the array is computed by this formula:
+-- index = playerRow | (opponentRow << 8) | (movePosition << 16);
+--
+-- After initialization the table is never changed.
+--
+-- DROP TABLE IF EXISTS board_bitrow_changes_for_player;
+--
+CREATE TABLE board_bitrow_changes_for_player(id      INTEGER,
+                                             changes SMALLINT,
+                                             PRIMARY KEY(id));
+
+--
+-- Populates the table board_bitrow_changes_for_player.
+--
+CREATE OR REPLACE FUNCTION board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
+DECLARE
+  player_row_count      INTEGER;
+  opponent_row_count    INTEGER;
+  move_position         INTEGER;
+  player_row            SMALLINT;
+  opponent_row          SMALLINT;
+  filled_in_row         SMALLINT;
+  empties_in_row        SMALLINT;
+  game_move             SMALLINT;
+  table_id              INTEGER;
+  player_row_after_move SMALLINT;
+  potential_bracketing_disc_on_the_left SMALLINT;
+  left_rank             SMALLINT;
+BEGIN
+  FOR player_row_count IN 0..255 LOOP
+    player_row := CAST (player_row_count AS SMALLINT);
+    FOR opponent_row_count IN 0..255 LOOP
+      opponent_row := CAST (opponent_row_count AS SMALLINT);
+      filled_in_row := player_row | opponent_row;
+      empties_in_row := (~filled_in_row) & CAST (255 AS SMALLINT);
+      FOR move_position IN 0..7 LOOP
+        game_move := 1 << move_position;
+        table_id := player_row_count | (opponent_row_count << 8) | (move_position << 16);
+        IF (player_row & opponent_row <> 0) OR (game_move & filled_in_row <> 0) THEN
+          player_row_after_move := player_row;
+        ELSE
+        
+          -- The square of the move is added to the player configuration of the row after the move.
+          player_row_after_move := player_row | game_move;
+
+           -- The potential bracketing disc on the right is the first player disc found moving
+           -- on the left starting from the square of the move.
+          potential_bracketing_disc_on_the_left := bit_works_highest_bit_set_8(CAST (player_row & (game_move - 1) AS SMALLINT));
+
+           -- The left rank is the sequence of adiacent discs that start from the bracketing disc and end
+           -- with the move disc.
+          left_rank := bit_works_fill_in_between_8(potential_bracketing_disc_on_the_left | game_move);
+
+
+          -- MUST BE CONPLETED WITH THE FLIPPING LOGIC!!!! --
+          player_row_after_move := 0;
+        END IF;
+        INSERT INTO board_bitrow_changes_for_player (id, changes) VALUES (table_id, player_row_after_move);
+      END LOOP;
+    END LOOP;
+  END LOOP;
 END
 $$ LANGUAGE plpgsql;
 
