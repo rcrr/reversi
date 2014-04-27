@@ -39,6 +39,145 @@ SET search_path TO reversi;
 
 
 --
+-- Tests the axis_shift_distance function.
+--
+CREATE OR REPLACE FUNCTION test_axis_shift_distance() RETURNS VOID AS $$
+DECLARE
+BEGIN
+  PERFORM p_assert(  0 = axis_shift_distance('HO', 0, 0), 'Expected must be different. (HO a)');
+  PERFORM p_assert(  0 = axis_shift_distance('HO', 5, 0), 'Expected must be different. (HO b)');
+  PERFORM p_assert(-16 = axis_shift_distance('HO', 0, 2), 'Expected must be different. (HO c)');
+
+  PERFORM p_assert(  0 = axis_shift_distance('VE', 0, 0), 'Expected must be different. (VE a)');
+  PERFORM p_assert( -5 = axis_shift_distance('VE', 5, 0), 'Expected must be different. (VE b)');
+  PERFORM p_assert(  0 = axis_shift_distance('VE', 0, 2), 'Expected must be different. (VE c)');
+
+  PERFORM p_assert(  0 = axis_shift_distance('DD', 0, 0), 'Expected must be different. (DD a)');
+  PERFORM p_assert( 40 = axis_shift_distance('DD', 5, 0), 'Expected must be different. (DD b)');
+  PERFORM p_assert(-16 = axis_shift_distance('DD', 0, 2), 'Expected must be different. (DD c)');
+
+  PERFORM p_assert( 56 = axis_shift_distance('DU', 0, 0), 'Expected must be different. (DU a)');
+  PERFORM p_assert( 16 = axis_shift_distance('DU', 5, 0), 'Expected must be different. (DU b)');
+  PERFORM p_assert( 40 = axis_shift_distance('DU', 0, 2), 'Expected must be different. (DU c)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the axis_move_ordinal_position_in_bitrow function.
+--
+CREATE OR REPLACE FUNCTION test_axis_move_ordinal_position_in_bitrow() RETURNS VOID AS $$
+DECLARE
+  computed    INT;
+  expected    INT;
+  move_column INT;
+  move_row    INT;
+BEGIN
+  move_column := 3;
+  move_row    := 5;
+
+  expected := 3;
+  computed := axis_move_ordinal_position_in_bitrow('HO', move_column, move_row);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 5;
+  computed := axis_move_ordinal_position_in_bitrow('VE', move_column, move_row);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the axis_transform_to_row_one function.
+--
+CREATE OR REPLACE FUNCTION test_axis_transform_to_row_one() RETURNS VOID AS $$
+DECLARE
+  computed SMALLINT;
+  expected SMALLINT;
+  squares  square_set;
+BEGIN
+  squares := square_set_from_string('................................................................');
+  expected := 0;
+  computed := axis_transform_to_row_one('HO', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (HO a)');
+
+  squares := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+  expected := 255;
+  computed := axis_transform_to_row_one('HO', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (HO b)');
+
+  squares := square_set_from_string('xxxxxxxx........................................................');
+  expected := 255;
+  computed := axis_transform_to_row_one('HO', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (HO c)');
+
+  squares := square_set_from_string('................................................................');
+  expected := 0;
+  computed := axis_transform_to_row_one('VE', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (VE a)');
+
+  squares := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+  expected := 255;
+  computed := axis_transform_to_row_one('VE', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (VE b)');
+
+  squares := square_set_from_string('x.......x.......x.......x.......x.......x.......x.......x.......');
+  expected := 255;
+  computed := axis_transform_to_row_one('VE', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (VE c)');
+
+  squares := square_set_from_string('x.......................x...............x.......x.......x.......');
+  expected := 233;
+  computed := axis_transform_to_row_one('VE', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (VE d)');
+
+  squares := square_set_from_string('................................................................');
+  expected := 0;
+  computed := axis_transform_to_row_one('DD', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (DD a)');
+
+  squares := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+  expected := 255;
+  computed := axis_transform_to_row_one('DD', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (DD b)');
+
+  squares := square_set_from_string('x........x........x........x........x........x........x........x');
+  expected := 255;
+  computed := axis_transform_to_row_one('DD', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (DD c)');
+
+  squares := square_set_from_string('x..........................x.................x........x........x');
+  expected := 233;
+  computed := axis_transform_to_row_one('DD', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (DD d)');
+
+  squares := square_set_from_string('................................................................');
+  expected := 0;
+  computed := axis_transform_to_row_one('DU', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (DU a)');
+
+  squares := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+  expected := 255;
+  computed := axis_transform_to_row_one('DU', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (DU b)');
+
+  squares := square_set_from_string('.......x......x......x......x......x......x......x......x.......');
+  expected := 255;
+  computed := axis_transform_to_row_one('DU', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (DU c)');
+
+  squares := square_set_from_string('.......x....................x.............x......x......x.......');
+  expected := 151;
+  computed := axis_transform_to_row_one('DU', squares);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (DU d)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Tests the bit_works_signed_left_shift function.
 --
 CREATE OR REPLACE FUNCTION test_bit_works_signed_left_shift() RETURNS VOID AS $$
@@ -68,6 +207,42 @@ BEGIN
 
   expected := 1;
   computed := bit_works_signed_left_shift(CAST (-9223372036854775808 AS BIGINT), -63);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the bit_works_lowest_bit_set_8 function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_lowest_bit_set_8() RETURNS VOID AS $$
+DECLARE
+  computed SMALLINT;
+  expected SMALLINT;
+BEGIN
+  expected := 0;
+  computed := bit_works_lowest_bit_set_8(0::SMALLINT);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 1;
+  computed := bit_works_lowest_bit_set_8(1::SMALLINT);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := 2;
+  computed := bit_works_lowest_bit_set_8(2::SMALLINT);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 1;
+  computed := bit_works_lowest_bit_set_8(3::SMALLINT);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+
+  expected := 1;
+  computed := bit_works_lowest_bit_set_8(255::SMALLINT);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
+
+  expected := 128;
+  computed := bit_works_lowest_bit_set_8(128::SMALLINT);
   PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
 END;
 $$ LANGUAGE plpgsql;
@@ -340,3 +515,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+
+--
+-- Tests the board_populate_bitrow_changes_for_player function.
+--
+CREATE OR REPLACE FUNCTION test_board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
+DECLARE
+  entry_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO STRICT entry_count FROM board_bitrow_changes_for_player;
+    PERFORM p_assert(524288 = entry_count, 'Expected must be different. (a)');
+END;
+$$ LANGUAGE plpgsql;

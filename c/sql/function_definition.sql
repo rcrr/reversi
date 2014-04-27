@@ -56,6 +56,7 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns the index (0..7) of the most significant bit set in the bit_sequence parameter.
+-- Tests written.
 --
 CREATE OR REPLACE FUNCTION bit_works_bitscanMS1B_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
@@ -91,6 +92,8 @@ $$ LANGUAGE plpgsql;
 --
 -- When the input data doesn't meet the requirements the result is unpredictable.
 --
+-- Tests written.
+--
 CREATE OR REPLACE FUNCTION bit_works_fill_in_between_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
   mask    SMALLINT;
@@ -111,6 +114,8 @@ $$ LANGUAGE plpgsql;
 -- When parameter bit_sequence is equal to 0 it returns 0.
 --
 -- Bits higher than 8 (the second byte of the smallint) are masked to 0.
+--
+-- Tests written.
 --
 CREATE OR REPLACE FUNCTION bit_works_highest_bit_set_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
@@ -139,8 +144,29 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Returns a bit sequence having one bit set, the lowest found
+-- in the bit_sequence parameter.
+--
+-- Tests written.
+--
+CREATE OR REPLACE FUNCTION bit_works_lowest_bit_set_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
+DECLARE
+  mask   SMALLINT;
+  masked SMALLINT;
+BEGIN
+  mask := 255::SMALLINT;
+  masked := bit_sequence & mask;
+  RETURN ((masked & (masked - 1)) # masked) & mask;
+END
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Returns a value computed shifting the bit_sequence parameter
 -- to left by a signed amount given by the shift parameter.
+--
+-- Tests written.
 --
 CREATE OR REPLACE FUNCTION bit_works_signed_left_shift(bit_sequence BIGINT, shift INT) RETURNS BIGINT AS $$
 DECLARE
@@ -156,6 +182,7 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns a string describing the player.
+--
 -- Tests written.
 --
 CREATE OR REPLACE FUNCTION player_to_string(pl player) RETURNS CHAR(1) AS $$
@@ -175,6 +202,7 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns a string describing the square set.
+--
 -- Tests written.
 --
 CREATE OR REPLACE FUNCTION square_set_to_string(squares square_set) RETURNS CHAR(64) AS $$
@@ -197,6 +225,7 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns a square_set from the given string.
+--
 -- Tests written.
 --
 CREATE OR REPLACE FUNCTION square_set_from_string(ss_string CHAR(64)) RETURNS square_set AS $$
@@ -232,38 +261,41 @@ $$ LANGUAGE plpgsql;
 --
 -- Maps the principal line of each axis into row one.
 --
-CREATE OR REPLACE FUNCTION axis_transform_to_row_one(axis Axis, square_set BIGINT) RETURNS SMALLINT AS $$
+-- Shifting right should be done casting to BIT(64), but becouse we are protected by the bitwise and we can
+-- just skip it!
+--
+-- Tests written.
+--
+CREATE OR REPLACE FUNCTION axis_transform_to_row_one(axis axis, squares square_set) RETURNS SMALLINT AS $$
 DECLARE
-  result         BIGINT;
-  column_a       BIGINT;
-  diagonal_a1_h8 BIGINT;
-  diagonal_h1_a8 BIGINT;
+  res            square_set;
+  row_one        square_set := (x'00000000000000FF')::square_set;
+  column_a       square_set := (x'0101010101010101')::square_set;
+  diagonal_a1_h8 square_set := (x'8040201008040201')::square_set;
+  diagonal_h1_a8 square_set := (x'0102040810204080')::square_set;
 BEGIN
-  column_a       := CAST (x'0101010101010101' AS BIGINT);
-  diagonal_a1_h8 := CAST (x'8040201008040201' AS BIGINT);
-  diagonal_h1_a8 := CAST (x'0102040810204080' AS BIGINT);
-  result := square_set;
+  res := squares;
   IF axis = 'HO' THEN
-    result := result;
+    res := res;
   ELSEIF axis = 'VE' THEN
-    result := result & column_a;
-    result := result | (result >> 28);
-    result := result | (result >> 14);
-    result := result | (result >>  7);
+    res := res & column_a;
+    res := res | (res >> 28);
+    res := res | (res >> 14);
+    res := res | (res >>  7);
   ELSEIF axis = 'DD' THEN
-    result := result & diagonal_a1_h8;
-    result := result | (result >> 32);
-    result := result | (result >> 16);
-    result := result | (result >>  8);
+    res := res & diagonal_a1_h8;
+    res := res | (res >> 32);
+    res := res | (res >> 16);
+    res := res | (res >>  8);
   ELSEIF axis = 'DU' THEN
-    result := result & diagonal_h1_a8;
-    result := result | (result >> 32);
-    result := result | (result >> 16);
-    result := result | (result >>  8);
+    res := res & diagonal_h1_a8;
+    res := res | (res >> 32);
+    res := res | (res >> 16);
+    res := res | (res >>  8);
   ELSE
     RAISE EXCEPTION 'Parameter axis out of range.';
   END IF;
-  RETURN CAST ((result & 255) AS SMALLINT);
+  RETURN (res & row_one)::SMALLINT;
 END
 $$ LANGUAGE plpgsql;
 
@@ -272,7 +304,9 @@ $$ LANGUAGE plpgsql;
 --
 -- Returns the ordinal position of the move.
 --
-CREATE OR REPLACE FUNCTION axis_move_ordinal_position_in_bitrow(axis Axis, move_column INT, move_row INT) RETURNS INT AS $$
+-- Tests written.
+--
+CREATE OR REPLACE FUNCTION axis_move_ordinal_position_in_bitrow(axis axis, move_column INT, move_row INT) RETURNS INT AS $$
 BEGIN
   IF  axis = 'VE' THEN
     RETURN move_row;
@@ -286,7 +320,9 @@ $$ LANGUAGE plpgsql;
 --
 -- Computes the shift quantity.
 --
-CREATE OR REPLACE FUNCTION axis_shift_distance(axis Axis, move_column INT, move_row INT) RETURNS INT AS $$
+-- Tests written.
+--
+CREATE OR REPLACE FUNCTION axis_shift_distance(axis axis, move_column INT, move_row INT) RETURNS INT AS $$
 BEGIN
   IF axis = 'HO' THEN
     RETURN -move_row << 3;
@@ -307,20 +343,24 @@ $$ LANGUAGE plpgsql;
 --
 -- Populates the table board_bitrow_changes_for_player.
 --
+-- The table must be empty before running the function.
+--
 CREATE OR REPLACE FUNCTION board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
 DECLARE
-  player_row_count      INTEGER;
-  opponent_row_count    INTEGER;
-  move_position         INTEGER;
-  player_row            SMALLINT;
-  opponent_row          SMALLINT;
-  filled_in_row         SMALLINT;
-  empties_in_row        SMALLINT;
-  game_move             SMALLINT;
-  table_id              INTEGER;
-  player_row_after_move SMALLINT;
-  potential_bracketing_disc_on_the_left SMALLINT;
-  left_rank             SMALLINT;
+  player_row_count                       INTEGER;
+  opponent_row_count                     INTEGER;
+  move_position                          INTEGER;
+  player_row                             SMALLINT;
+  opponent_row                           SMALLINT;
+  filled_in_row                          SMALLINT;
+  empties_in_row                         SMALLINT;
+  game_move                              SMALLINT;
+  table_id                               INTEGER;
+  player_row_after_move                  SMALLINT;
+  potential_bracketing_disc_on_the_left  SMALLINT;
+  potential_bracketing_disc_on_the_right SMALLINT;
+  left_rank                              SMALLINT;
+  right_rank                             SMALLINT;
 BEGIN
   FOR player_row_count IN 0..255 LOOP
     player_row := CAST (player_row_count AS SMALLINT);
@@ -338,17 +378,38 @@ BEGIN
           -- The square of the move is added to the player configuration of the row after the move.
           player_row_after_move := player_row | game_move;
 
-           -- The potential bracketing disc on the right is the first player disc found moving
-           -- on the left starting from the square of the move.
+          -- The potential bracketing disc on the right is the first player disc found moving
+          -- on the left starting from the square of the move.
           potential_bracketing_disc_on_the_left := bit_works_highest_bit_set_8(CAST (player_row & (game_move - 1) AS SMALLINT));
 
-           -- The left rank is the sequence of adiacent discs that start from the bracketing disc and end
-           -- with the move disc.
+          -- The left rank is the sequence of adiacent discs that start from the bracketing disc and end
+          -- with the move disc.
           left_rank := bit_works_fill_in_between_8(potential_bracketing_disc_on_the_left | game_move);
 
+          -- If the rank contains empy squares, this is a fake flip, and it doesn't do anything.
+          -- If the rank is full, it cannot be full of anything different than opponent discs, so
+          -- it adds the discs to the after move player configuration.
+          IF ((left_rank & empties_in_row) = 0) THEN
+            player_row_after_move := player_row_after_move | left_rank;
+          END IF;
 
-          -- MUST BE CONPLETED WITH THE FLIPPING LOGIC!!!! --
-          player_row_after_move := 0;
+          --Here it does the same procedure computed on the left also on the right.
+          potential_bracketing_disc_on_the_right := bit_works_lowest_bit_set_8(CAST (player_row & ~(game_move - 1) AS SMALLINT));
+          right_rank := bit_works_fill_in_between_8(potential_bracketing_disc_on_the_right | game_move);
+          IF ((right_rank & empties_in_row) = 0) THEN
+            player_row_after_move := player_row_after_move | right_rank;
+          END IF;
+
+          -- It checks that the after move configuration is different from
+          -- the starting one for the player.
+          -- This case can happen because it never checked that
+          -- the bracketing piece was not adjacent to the move disc,
+          -- on such a case, on both side, the move is illegal, and it is recorded setting
+          -- the result configuation appropriately.
+          IF (player_row_after_move = (player_row | game_move)) THEN
+            player_row_after_move := player_row;
+          END IF;
+
         END IF;
         INSERT INTO board_bitrow_changes_for_player (id, changes) VALUES (table_id, player_row_after_move);
       END LOOP;
@@ -365,11 +426,11 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION board_bitrow_changes_for_player(player_row SMALLINT, opponent_row SMALLINT, move_position SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
   bitrow_changes_for_player_index INT;
-  result SMALLINT;
+  res SMALLINT;
 BEGIN
   bitrow_changes_for_player_index := player_row | (opponent_row << 8) | (CAST (move_position AS INT) << 16);
-  SELECT changes INTO STRICT result FROM bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
-  RETURN result;
+  SELECT changes INTO STRICT res FROM bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
+  RETURN res;
 END
 $$ LANGUAGE plpgsql;
 
@@ -377,6 +438,7 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns a string describing the board state.
+--
 -- Tests written.
 --
 CREATE OR REPLACE FUNCTION game_position_to_string(gp game_position) RETURNS CHAR(65) AS $$
@@ -410,6 +472,7 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns a game position from the given string.
+--
 -- Tests written.
 --
 CREATE OR REPLACE FUNCTION game_position_from_string(gp_string CHAR(65)) RETURNS game_position AS $$
@@ -460,6 +523,7 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns the set of empty squares.
+--
 -- Tests written.
 --
 CREATE OR REPLACE FUNCTION game_position_empties(gp game_position) RETURNS square_set AS $$
@@ -515,6 +579,9 @@ BEGIN
     p_bitrow := axis_transform_to_row_one(axis.id, bit_works_signed_left_shift(p_square_set, shift_distance));
     o_bitrow := axis_transform_to_row_one(axis.id, bit_works_signed_left_shift(o_square_set, shift_distance));
     RAISE NOTICE 'p_bitrow=%, o_bitrow=%', p_bitrow, o_bitrow;
+
+    -- MUST BE CONPLETED !!!! --
+
   END LOOP;
   RETURN TRUE;
 END
