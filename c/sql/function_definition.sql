@@ -139,16 +139,16 @@ $$ LANGUAGE plpgsql;
 
 
 --
--- Returns a value computed shifting the `bit_sequence` parameter
--- to left by a signed amount given by the `shift` parameter.
+-- Returns a value computed shifting the bit_sequence parameter
+-- to left by a signed amount given by the shift parameter.
 --
 CREATE OR REPLACE FUNCTION bit_works_signed_left_shift(bit_sequence BIGINT, shift INT) RETURNS BIGINT AS $$
 DECLARE
 BEGIN
   IF shift >= 0 THEN
-    RETURN bit_sequence << shift;
+    RETURN (bit_sequence::BIT(64) << +shift)::BIGINT;
   ELSE
-    RETURN bit_sequence >> -shift;
+    RETURN (bit_sequence::BIT(64) >> -shift)::BIGINT;
   END IF;
 END
 $$ LANGUAGE plpgsql;

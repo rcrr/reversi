@@ -39,6 +39,110 @@ SET search_path TO reversi;
 
 
 --
+-- Tests the bit_works_signed_left_shift function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_signed_left_shift() RETURNS VOID AS $$
+DECLARE
+  computed BIGINT;
+  expected BIGINT;
+BEGIN
+  expected := 0;
+  computed := bit_works_signed_left_shift(CAST (0 AS BIGINT), 1);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 0;
+  computed := bit_works_signed_left_shift(CAST (0 AS BIGINT), -1);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := 2;
+  computed := bit_works_signed_left_shift(CAST (1 AS BIGINT), 1);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 6;
+  computed := bit_works_signed_left_shift(CAST (24 AS BIGINT), -2);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+
+  expected := -9223372036854775808;
+  computed := bit_works_signed_left_shift(CAST (1 AS BIGINT), 63);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
+
+  expected := 1;
+  computed := bit_works_signed_left_shift(CAST (-9223372036854775808 AS BIGINT), -63);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the bit_works_highest_bit_set_8 function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_highest_bit_set_8() RETURNS VOID AS $$
+DECLARE
+  computed SMALLINT;
+  expected SMALLINT;
+BEGIN
+  expected := 0;
+  computed := bit_works_highest_bit_set_8(CAST (0 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 1;
+  computed := bit_works_highest_bit_set_8(CAST (1 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := 1;
+  computed := bit_works_highest_bit_set_8(CAST (1 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 2;
+  computed := bit_works_highest_bit_set_8(CAST (2 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+
+  expected := 2;
+  computed := bit_works_highest_bit_set_8(CAST (3 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
+
+  expected := 128;
+  computed := bit_works_highest_bit_set_8(CAST (128 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
+
+  expected := 128;
+  computed := bit_works_highest_bit_set_8(CAST (255 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (g)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the bit_works_bitscanMS1B_8 function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_bitscanMS1B_8() RETURNS VOID AS $$
+DECLARE
+  computed SMALLINT;
+  expected SMALLINT;
+BEGIN
+  expected := 0;
+  computed := bit_works_bitscanMS1B_8(CAST (1 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 1;
+  computed := bit_works_bitscanMS1B_8(CAST (2 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := 7;
+  computed := bit_works_bitscanMS1B_8(CAST (128 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 2;
+  computed := bit_works_bitscanMS1B_8(CAST (6 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Tests the bit_works_fill_in_between_8 function.
 --
 CREATE OR REPLACE FUNCTION test_bit_works_fill_in_between_8() RETURNS VOID AS $$
