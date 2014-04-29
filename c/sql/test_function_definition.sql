@@ -69,10 +69,10 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION test_axis_move_ordinal_position_in_bitrow() RETURNS VOID AS $$
 DECLARE
-  computed    INT;
-  expected    INT;
-  move_column INT;
-  move_row    INT;
+  computed    SMALLINT;
+  expected    SMALLINT;
+  move_column SMALLINT;
+  move_row    SMALLINT;
 BEGIN
   move_column := 3;
   move_row    := 5;
@@ -532,7 +532,7 @@ BEGIN
   PERFORM p_assert(7 = computed, 'Expected value of changes(id=516) is 7.');
  
   SELECT changes INTO STRICT computed FROM board_bitrow_changes_for_player WHERE id = 33388;
-  PERFORM p_assert(112 = computed, 'Expected value of changes(id=33388) is 111.');
+  PERFORM p_assert(111 = computed, 'Expected value of changes(id=33388) is 111.');
 END;
 $$ LANGUAGE plpgsql;
 

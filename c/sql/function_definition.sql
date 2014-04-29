@@ -306,7 +306,7 @@ $$ LANGUAGE plpgsql;
 --
 -- Tests written.
 --
-CREATE OR REPLACE FUNCTION axis_move_ordinal_position_in_bitrow(axis axis, move_column INT, move_row INT) RETURNS INT AS $$
+CREATE OR REPLACE FUNCTION axis_move_ordinal_position_in_bitrow(axis axis, move_column SMALLINT, move_row SMALLINT) RETURNS SMALLINT AS $$
 BEGIN
   IF  axis = 'VE' THEN
     RETURN move_row;
@@ -530,49 +530,46 @@ $$ LANGUAGE plpgsql;
 --
 -- Returns true if the move is legal.
 --
-CREATE OR REPLACE FUNCTION game_position_is_move_legal(blacks BIGINT, whites BIGINT, player SMALLINT, move Square) RETURNS BOOLEAN AS $$
+CREATE OR REPLACE FUNCTION game_position_is_move_legal(gp game_position, move square) RETURNS BOOLEAN AS $$
 DECLARE
-  bit_move              BIGINT;
-  move_ordinal          INT;
-  empties               BIGINT;
-  empty_square_set      BIGINT;
-  p_square_set          BIGINT;
-  o_square_set          BIGINT;
-  move_column           INT;
-  move_row              INT;
+  bit_move              square_set;
+  move_ordinal          INTEGER;
+  empties               square_set;
+  empty_square_set      square_set := 0;
+  p_square_set          square_set;
+  o_square_set          square_set;
+  move_column           INTEGER;
+  move_row              INTEGER;
   axis                  RECORD;
-  move_ordinal_position INT;
-  shift_distance        INT;
+  move_ordinal_position SMALLINT;
+  shift_distance        INTEGER;
   p_bitrow              SMALLINT;
   o_bitrow              SMALLINT;
 BEGIN
-  PERFORM p_assert(player = 0 OR player = 1, 'Parameter player must be in the range 0..1.');
   SELECT ordinal INTO STRICT move_ordinal FROM square_info WHERE id = move;
-  empty_square_set := CAST(0 AS BIGINT);
-  bit_move := CAST(1 AS BIGINT) << move_ordinal;
-  empties := game_position_empties(blacks, whites);
+  bit_move := 1::square_set << move_ordinal;
+  empties := game_position_empties(gp);
   IF (empties & bit_move) = empty_square_set THEN RETURN FALSE; END IF;
-  IF player = 0 THEN
-    p_square_set := blacks;
-    o_square_set := whites;
+  IF gp.player = 0 THEN
+    p_square_set := gp.blacks;
+    o_square_set := gp.whites;
   ELSE
-    p_square_set := whites;
-    o_square_set := blacks;
+    p_square_set := gp.whites;
+    o_square_set := gp.blacks;
   END IF;
   move_column := move_ordinal % 8;
   move_row    := move_ordinal / 8;
-  RAISE NOTICE 'move_ordinal=%, move_column=%, move_row=%',move_ordinal, move_column, move_row;
   FOR axis IN SELECT id, ordinal FROM axis_info ORDER BY ordinal LOOP
     move_ordinal_position := axis_move_ordinal_position_in_bitrow(axis.id, move_column, move_row);
     shift_distance := axis_shift_distance(axis.id, move_column, move_row);
-    RAISE NOTICE 'axis.id=%, move_ordinal_position=%, shift_distance=%', axis.id, move_ordinal_position, shift_distance;
     p_bitrow := axis_transform_to_row_one(axis.id, bit_works_signed_left_shift(p_square_set, shift_distance));
     o_bitrow := axis_transform_to_row_one(axis.id, bit_works_signed_left_shift(o_square_set, shift_distance));
-    RAISE NOTICE 'p_bitrow=%, o_bitrow=%', p_bitrow, o_bitrow;
-
-    -- MUST BE CONPLETED !!!! --
-
+    IF (board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position) != p_bitrow) THEN
+      RETURN TRUE;
+    END IF;
   END LOOP;
-  RETURN TRUE;
+
+  -- If no capture on the four directions happens, return false.
+  RETURN FALSE;
 END
 $$ LANGUAGE plpgsql;
