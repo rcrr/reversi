@@ -429,7 +429,7 @@ DECLARE
   ret                             SMALLINT;
 BEGIN
   bitrow_changes_for_player_index := player_row | (opponent_row << 8) | (move_position::INTEGER << 16);
-  SELECT changes INTO STRICT ret FROM bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
+  SELECT changes INTO STRICT ret FROM board_bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
   RETURN ret;
 END
 $$ LANGUAGE plpgsql;

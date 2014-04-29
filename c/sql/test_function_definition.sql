@@ -523,8 +523,35 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION test_board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
 DECLARE
   entry_count INTEGER;
+  computed    SMALLINT;
 BEGIN
-    SELECT COUNT(*) INTO STRICT entry_count FROM board_bitrow_changes_for_player;
-    PERFORM p_assert(524288 = entry_count, 'Expected must be different. (a)');
+  SELECT COUNT(*) INTO STRICT entry_count FROM board_bitrow_changes_for_player;
+  PERFORM p_assert(524288 = entry_count, 'Expected must be different. (a)');
+ 
+  SELECT changes INTO STRICT computed FROM board_bitrow_changes_for_player WHERE id = 516;
+  PERFORM p_assert(7 = computed, 'Expected value of changes(id=516) is 7.');
+ 
+  SELECT changes INTO STRICT computed FROM board_bitrow_changes_for_player WHERE id = 33388;
+  PERFORM p_assert(112 = computed, 'Expected value of changes(id=33388) is 111.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the board_bitrow_changes_for_player function.
+--
+CREATE OR REPLACE FUNCTION test_board_bitrow_changes_for_player() RETURNS VOID AS $$
+DECLARE
+  player_row    SMALLINT;
+  opponent_row  SMALLINT;
+  move_position SMALLINT;
+  computed      SMALLINT;
+BEGIN
+  player_row    := 4;
+  opponent_row  := 2;
+  move_position := 0;
+  computed := board_bitrow_changes_for_player(player_row, opponent_row, move_position);
+  PERFORM p_assert(7 = computed, 'Expected value is 7.');
 END;
 $$ LANGUAGE plpgsql;
