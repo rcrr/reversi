@@ -425,12 +425,12 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION board_bitrow_changes_for_player(player_row SMALLINT, opponent_row SMALLINT, move_position SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
-  bitrow_changes_for_player_index INT;
-  res SMALLINT;
+  bitrow_changes_for_player_index INTEGER;
+  ret                             SMALLINT;
 BEGIN
-  bitrow_changes_for_player_index := player_row | (opponent_row << 8) | (CAST (move_position AS INT) << 16);
-  SELECT changes INTO STRICT res FROM bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
-  RETURN res;
+  bitrow_changes_for_player_index := player_row | (opponent_row << 8) | (move_position::INTEGER << 16);
+  SELECT changes INTO STRICT ret FROM bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
+  RETURN ret;
 END
 $$ LANGUAGE plpgsql;
 
@@ -443,27 +443,20 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION game_position_to_string(gp game_position) RETURNS CHAR(65) AS $$
 DECLARE
-  ret    CHAR(65);
-  mask   BIGINT;
-  blacks square_set;
-  whites square_set;
-  pl     player;
+  ret    CHAR(65) := '';
+  mask   square_set;
 BEGIN
-  blacks := gp.blacks;
-  whites := gp.whites;
-  pl     := gp.player;
-  ret := '';
   FOR i IN 0..63 LOOP
-    mask := CAST(1 AS BIGINT) << i;
-    IF mask & blacks <> 0 THEN
+    mask := 1::square_set << i;
+    IF mask & gp.blacks <> 0 THEN
       ret := ret || 'b';
-    ELSIF mask & whites <> 0 THEN
+    ELSIF mask & gp.whites <> 0 THEN
       ret := ret || 'w';
     ELSE
       ret := ret || '.';
     END IF;
   END LOOP;
-  ret := ret || player_to_string(pl);
+  ret := ret || player_to_string(gp.player);
   RETURN ret;
 END;
 $$ LANGUAGE plpgsql;
@@ -480,8 +473,8 @@ DECLARE
   blacks square_set;
   whites square_set;
   p      player;
-  c      char;
-  i      int;
+  c      CHAR;
+  i      INTEGER;
   square square_set;
 BEGIN
   IF length(gp_string) <> 65 THEN
@@ -527,12 +520,6 @@ $$ LANGUAGE plpgsql;
 -- Tests written.
 --
 CREATE OR REPLACE FUNCTION game_position_empties(gp game_position) RETURNS square_set AS $$
---DECLARE
---  empties square_set;
---BEGIN
---  empties := ~(gp.blacks | gp.whites);
---  RETURN empties;
---END;
 BEGIN
   RETURN ~(gp.blacks | gp.whites);
 END;
