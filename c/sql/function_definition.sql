@@ -538,8 +538,8 @@ DECLARE
   empty_square_set      square_set := 0;
   p_square_set          square_set;
   o_square_set          square_set;
-  move_column           INTEGER;
-  move_row              INTEGER;
+  move_column           SMALLINT;
+  move_row              SMALLINT;
   axis                  RECORD;
   move_ordinal_position SMALLINT;
   shift_distance        INTEGER;
