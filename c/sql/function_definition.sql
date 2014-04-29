@@ -527,11 +527,14 @@ $$ LANGUAGE plpgsql;
 -- Tests written.
 --
 CREATE OR REPLACE FUNCTION game_position_empties(gp game_position) RETURNS square_set AS $$
-DECLARE
-  empties square_set;
+--DECLARE
+--  empties square_set;
+--BEGIN
+--  empties := ~(gp.blacks | gp.whites);
+--  RETURN empties;
+--END;
 BEGIN
-  empties := ~(gp.blacks | gp.whites);
-  RETURN empties;
+  RETURN ~(gp.blacks | gp.whites);
 END;
 $$ LANGUAGE plpgsql;
 
