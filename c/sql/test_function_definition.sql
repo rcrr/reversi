@@ -511,7 +511,7 @@ BEGIN
   computed := game_position_from_string(gp_string);
   expected := (0, 0, 0);
   PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
-  
+
   gp_string := 'bw..............................................................w';
   computed := game_position_from_string(gp_string);
   expected := (1, 2, 1);
@@ -526,10 +526,14 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION test_game_position_is_move_legal() RETURNS VOID AS $$
 DECLARE
+  gp_string CHAR(65);
 BEGIN
-  PERFORM p_assert(TRUE  = game_position_is_move_legal((1::square_set, 2::square_set, 0::SMALLINT),'C1'), 'C1 is a valid move.');
-  PERFORM p_assert(FALSE = game_position_is_move_legal((1::square_set, 2::square_set, 0::SMALLINT),'A1'), 'A1 is already occupied.');
-  PERFORM p_assert(FALSE = game_position_is_move_legal((1::square_set, 2::square_set, 0::SMALLINT),'D1'), 'D1 is not a legal move.');
+  PERFORM p_assert(TRUE  = game_position_is_move_legal((1::square_set, 2::square_set, 0::SMALLINT), 'C1'), 'C1 is a valid move.');
+  PERFORM p_assert(FALSE = game_position_is_move_legal((1::square_set, 2::square_set, 0::SMALLINT), 'A1'), 'A1 is already occupied.');
+  PERFORM p_assert(FALSE = game_position_is_move_legal((1::square_set, 2::square_set, 0::SMALLINT), 'D1'), 'D1 is not a legal move.');
+
+  gp_string := 'w.......b.......b.......b.......b.......b.......b...............w';
+  PERFORM p_assert(TRUE  = game_position_is_move_legal(game_position_from_string(gp_string), 'A8'), 'A8 is a valid move.');
 END;
 $$ LANGUAGE plpgsql;
 
