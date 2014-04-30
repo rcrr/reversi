@@ -168,8 +168,7 @@ $$ LANGUAGE plpgsql;
 --
 -- Tests written.
 --
-CREATE OR REPLACE FUNCTION bit_works_signed_left_shift(bit_sequence BIGINT, shift INT) RETURNS BIGINT AS $$
-DECLARE
+CREATE OR REPLACE FUNCTION bit_works_signed_left_shift(bit_sequence BIGINT, shift INTEGER) RETURNS BIGINT AS $$
 BEGIN
   IF shift >= 0 THEN
     RETURN (bit_sequence::BIT(64) << +shift)::BIGINT;
@@ -181,18 +180,18 @@ $$ LANGUAGE plpgsql;
 
 
 --
--- Returns a string describing the player.
+-- Returns a string describing the palyer.
 --
 -- Tests written.
 --
-CREATE OR REPLACE FUNCTION player_to_string(pl player) RETURNS CHAR(1) AS $$
+CREATE OR REPLACE FUNCTION player_to_string(player player) RETURNS CHAR(1) AS $$
 DECLARE
-  ret  CHAR(1);
+  ret CHAR(1);
 BEGIN
-  IF pl = 0 THEN
-      ret := 'b';
+  IF player = 0 THEN
+    ret := 'b';
   ELSE
-      ret := 'w';
+    ret := 'w';
   END IF;
   RETURN ret;
 END;
@@ -201,17 +200,17 @@ $$ LANGUAGE plpgsql;
 
 
 --
--- Returns a string describing the square set.
+-- RETURNS A STRING DESCRIBING THE SQUARE SET.
 --
--- Tests written.
+-- TESTS WRITTEN.
 --
-CREATE OR REPLACE FUNCTION square_set_to_string(squares square_set) RETURNS CHAR(64) AS $$
+CREATE OR REPLACE FUNCTION SQUARE_SET_TO_STRING(SQUARES SQUARE_SET) RETURNS CHAR(64) AS $$
 DECLARE
   ret CHAR(64);
 BEGIN
   ret := '';
   FOR i IN 0..63 LOOP
-    IF (CAST(1 AS square_set) << i) & squares <> 0 THEN
+    IF (1::square_set << i) & squares <> 0 THEN
       ret := ret || 'x';
     ELSE
       ret := ret || '.';
@@ -230,19 +229,17 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION square_set_from_string(ss_string CHAR(64)) RETURNS square_set AS $$
 DECLARE
-  squares square_set;
-  c      char;
-  i      int;
-  square square_set;
+  square  square_set := 0;
+  i       INTEGER    := 0;
+  squares square_set := 0;
+  c       CHAR;
 BEGIN
   IF length(ss_string) <> 64 THEN
     RAISE EXCEPTION 'Value of length(ss_string) is %, it must be 64!', length(ss_string);
   END IF;
-  squares := 0;
-  i := 0;
   FOREACH c IN ARRAY string_to_array(ss_string, NULL)
   LOOP
-    square = CAST (1 AS square_set) << i;
+    square = 1::square_set << i;
     IF (c = 'x') THEN
       squares := squares | square;
     ELSEIF (c = '.') THEN
@@ -268,34 +265,34 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION axis_transform_to_row_one(axis axis, squares square_set) RETURNS SMALLINT AS $$
 DECLARE
-  res            square_set;
   row_one        square_set := (x'00000000000000FF')::square_set;
   column_a       square_set := (x'0101010101010101')::square_set;
   diagonal_a1_h8 square_set := (x'8040201008040201')::square_set;
   diagonal_h1_a8 square_set := (x'0102040810204080')::square_set;
+  ret            square_set;
 BEGIN
-  res := squares;
+  ret := squares;
   IF axis = 'HO' THEN
-    res := res;
+    NULL;
   ELSEIF axis = 'VE' THEN
-    res := res & column_a;
-    res := res | (res >> 28);
-    res := res | (res >> 14);
-    res := res | (res >>  7);
+    ret := ret & column_a;
+    ret := ret | (ret >> 28);
+    ret := ret | (ret >> 14);
+    ret := ret | (ret >>  7);
   ELSEIF axis = 'DD' THEN
-    res := res & diagonal_a1_h8;
-    res := res | (res >> 32);
-    res := res | (res >> 16);
-    res := res | (res >>  8);
+    ret := ret & diagonal_a1_h8;
+    ret := ret | (ret >> 32);
+    ret := ret | (ret >> 16);
+    ret := ret | (ret >>  8);
   ELSEIF axis = 'DU' THEN
-    res := res & diagonal_h1_a8;
-    res := res | (res >> 32);
-    res := res | (res >> 16);
-    res := res | (res >>  8);
+    ret := ret & diagonal_h1_a8;
+    ret := ret | (ret >> 32);
+    ret := ret | (ret >> 16);
+    ret := ret | (ret >>  8);
   ELSE
     RAISE EXCEPTION 'Parameter axis out of range.';
   END IF;
-  RETURN (res & row_one)::SMALLINT;
+  RETURN (ret & row_one)::SMALLINT;
 END
 $$ LANGUAGE plpgsql;
 
@@ -344,6 +341,8 @@ $$ LANGUAGE plpgsql;
 -- Populates the table board_bitrow_changes_for_player.
 --
 -- The table must be empty before running the function.
+--
+-- Tests written.
 --
 CREATE OR REPLACE FUNCTION board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
 DECLARE
@@ -443,8 +442,8 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION game_position_to_string(gp game_position) RETURNS CHAR(65) AS $$
 DECLARE
-  ret    CHAR(65) := '';
-  mask   square_set;
+  ret  CHAR(65) := '';
+  mask square_set;
 BEGIN
   FOR i IN 0..63 LOOP
     mask := 1::square_set << i;
@@ -470,32 +469,28 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION game_position_from_string(gp_string CHAR(65)) RETURNS game_position AS $$
 DECLARE
-  blacks square_set;
-  whites square_set;
-  p      player;
+  blacks square_set := 0;
+  whites square_set := 0;
+  player player     := 0;
+  i      INTEGER    := 0;
   c      CHAR;
-  i      INTEGER;
   square square_set;
 BEGIN
   IF length(gp_string) <> 65 THEN
     RAISE EXCEPTION 'Value of length(gp_string) is %, it must be 65!', length(gp_string);
   END IF;
-  blacks := 0;
-  whites := 0;
-  p := 0;
-  i := 0;
   FOREACH c IN ARRAY string_to_array(gp_string, NULL)
   LOOP
     IF (i = 64) THEN
       IF (c = 'b') THEN
-        p := 0;
+        player := 0;
       ELSEIF (c = 'w') THEN
-        p := 1;
+        player := 1;
       ELSE
         RAISE EXCEPTION 'Player must be either b or w, it is equal to "%".', c;
       END IF;
     ELSE
-      square = CAST (1 AS square_set) << i;
+      square = 1::square_set << i;
       IF (c = 'b') THEN
         blacks := blacks | square;
       ELSEIF (c = 'w') THEN
@@ -508,7 +503,7 @@ BEGIN
     END IF;
     i := i + 1;
   END LOOP;
-  RETURN (blacks, whites, p);
+  RETURN (blacks, whites, player);
 END
 $$ LANGUAGE plpgsql;
 
@@ -530,12 +525,14 @@ $$ LANGUAGE plpgsql;
 --
 -- Returns true if the move is legal.
 --
+-- Tests written.
+--
 CREATE OR REPLACE FUNCTION game_position_is_move_legal(gp game_position, move square) RETURNS BOOLEAN AS $$
 DECLARE
+  empties               square_set := game_position_empties(gp);
+  empty_square_set      square_set := 0;
   bit_move              square_set;
   move_ordinal          INTEGER;
-  empties               square_set;
-  empty_square_set      square_set := 0;
   p_square_set          square_set;
   o_square_set          square_set;
   move_column           SMALLINT;
@@ -546,10 +543,9 @@ DECLARE
   p_bitrow              SMALLINT;
   o_bitrow              SMALLINT;
 BEGIN
+  IF (empties & bit_move) = empty_square_set THEN RETURN FALSE; END IF;
   SELECT ordinal INTO STRICT move_ordinal FROM square_info WHERE id = move;
   bit_move := 1::square_set << move_ordinal;
-  empties := game_position_empties(gp);
-  IF (empties & bit_move) = empty_square_set THEN RETURN FALSE; END IF;
   IF gp.player = 0 THEN
     p_square_set := gp.blacks;
     o_square_set := gp.whites;
@@ -568,7 +564,6 @@ BEGIN
       RETURN TRUE;
     END IF;
   END LOOP;
-
   -- If no capture on the four directions happens, return false.
   RETURN FALSE;
 END
