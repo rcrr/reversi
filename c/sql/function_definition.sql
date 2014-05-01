@@ -75,7 +75,7 @@ BEGIN
   masked := bit_sequence & CAST (255 AS SMALLINT);
   res := log2_array[masked + 1];
   RETURN res;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -102,7 +102,7 @@ BEGIN
   mask := CAST (255 AS SMALLINT);
   masked := bit_sequence & mask;
   RETURN ((1 << bit_works_bitscanMS1B_8(masked)) - 1) & ((~masked # (masked - 1)) & mask);
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -138,7 +138,7 @@ BEGIN
     res := 1 << log2_array[masked + 1];
   END IF;
   RETURN res;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -157,7 +157,7 @@ BEGIN
   mask := 255::SMALLINT;
   masked := bit_sequence & mask;
   RETURN ((masked & (masked - 1)) # masked) & mask;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -175,7 +175,7 @@ BEGIN
   ELSE
     RETURN (bit_sequence::BIT(64) >> -shift)::BIGINT;
   END IF;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -250,7 +250,7 @@ BEGIN
     i := i + 1;
   END LOOP;
   RETURN squares;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -293,7 +293,7 @@ BEGIN
     RAISE EXCEPTION 'Parameter axis out of range.';
   END IF;
   RETURN (ret & row_one)::SMALLINT;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -309,7 +309,7 @@ BEGIN
     RETURN move_row;
   END IF;
   RETURN move_column;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -332,7 +332,7 @@ BEGIN
   ELSE
     RAISE EXCEPTION 'Parameter axis out of range.';
   END IF;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -442,7 +442,7 @@ BEGIN
       END LOOP;
     END LOOP;
   END LOOP;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -458,7 +458,7 @@ BEGIN
   bitrow_changes_for_player_index := player_row | (opponent_row << 8) | (move_position::INTEGER << 16);
   SELECT changes INTO STRICT ret FROM board_bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
   RETURN ret;
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -532,7 +532,7 @@ BEGIN
     i := i + 1;
   END LOOP;
   RETURN (blacks, whites, player);
-END
+END;
 $$ LANGUAGE plpgsql;
 
 
