@@ -55,6 +55,8 @@ SELECT test_axis_move_ordinal_position_in_bitrow();
 SELECT test_axis_shift_distance();
 SELECT test_axis_transform_to_row_one();
 
+SELECT test_direction_shift_square_set();
+
 SELECT test_board_populate_bitrow_changes_for_player();
 SELECT test_board_bitrow_changes_for_player();
 

@@ -200,11 +200,11 @@ $$ LANGUAGE plpgsql;
 
 
 --
--- RETURNS A STRING DESCRIBING THE SQUARE SET.
+-- Returns a string describing the square set.
 --
--- TESTS WRITTEN.
+-- Tests written.
 --
-CREATE OR REPLACE FUNCTION SQUARE_SET_TO_STRING(SQUARES SQUARE_SET) RETURNS CHAR(64) AS $$
+CREATE OR REPLACE FUNCTION square_set_to_string(squares square_set) RETURNS CHAR(64) AS $$
 DECLARE
   ret CHAR(64);
 BEGIN
@@ -333,6 +333,34 @@ BEGIN
     RAISE EXCEPTION 'Parameter axis out of range.';
   END IF;
 END
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns a square_set value by shifting the
+-- squares parameter by one position on the board.
+--
+-- Parameter dir must belong to the direction enum.
+--
+CREATE OR REPLACE FUNCTION direction_shift_square_set(dir direction, squares square_set) RETURNS square_set AS $$
+DECLARE
+  all_squares_except_column_a square_set := (x'FEFEFEFEFEFEFEFE')::square_set;
+  all_squares_except_column_h square_set := (x'7F7F7F7F7F7F7F7F')::square_set;
+BEGIN
+  CASE dir
+    WHEN 'NW' THEN RETURN (squares::BIT(64) >> 9)::square_set & all_squares_except_column_h;
+    WHEN 'N'  THEN RETURN (squares::BIT(64) >> 8)::square_set;
+    WHEN 'NE' THEN RETURN (squares::BIT(64) >> 7)::square_set & all_squares_except_column_a;
+    WHEN 'W'  THEN RETURN (squares::BIT(64) >> 1)::square_set & all_squares_except_column_h;
+    WHEN 'E'  THEN RETURN (squares::BIT(64) << 1)::square_set & all_squares_except_column_a;
+    WHEN 'SW' THEN RETURN (squares::BIT(64) << 7)::square_set & all_squares_except_column_h;
+    WHEN 'S'  THEN RETURN (squares::BIT(64) << 8)::square_set;
+    WHEN 'SE' THEN RETURN (squares::BIT(64) << 9)::square_set & all_squares_except_column_a;
+    ELSE
+      RAISE EXCEPTION 'Parameter dir out of range.';
+  END CASE;
+END;
 $$ LANGUAGE plpgsql;
 
 
@@ -566,5 +594,34 @@ BEGIN
   END LOOP;
   -- If no capture on the four directions happens, return false.
   RETURN FALSE;
-END
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns a set of squares that represents the legal moves for the game position.
+--
+CREATE OR REPLACE FUNCTION game_position_legal_moves(gp game_position) RETURNS square_set AS $$
+DECLARE
+  ret          square_set := 0;
+  empties      square_set := game_position_empties(gp);
+  p_square_set square_set;
+  o_square_set square_set;
+  dir          RECORD;
+BEGIN
+  IF gp.player = 0 THEN
+    p_square_set := gp.blacks;
+    o_square_set := gp.whites;
+  ELSE
+    p_square_set := gp.whites;
+    o_square_set := gp.blacks;
+  END IF;
+  
+  FOR dir IN SELECT id, ordinal, opposite FROM direction_info ORDER BY ordinal LOOP
+    RAISE NOTICE 'dir.id=%, dir.opposite=%', dir.id, dir.opposite;
+  END LOOP;
+
+  RETURN ret;
+END;
 $$ LANGUAGE plpgsql;

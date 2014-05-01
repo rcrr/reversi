@@ -39,10 +39,30 @@ SET search_path TO reversi;
 
 
 --
+-- Tests the direction_shift_square_set function.
+--
+CREATE OR REPLACE FUNCTION test_direction_shift_square_set() RETURNS VOID AS $$
+BEGIN
+  PERFORM p_assert( 2 = direction_shift_square_set('NE', (x'0000000000000100')::square_set), 'Expected result is 2.');
+
+  PERFORM p_assert((x'00FFFFFFFFFFFFFF')::square_set = direction_shift_square_set('N', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board N.');
+  PERFORM p_assert((x'7F7F7F7F7F7F7F7F')::square_set = direction_shift_square_set('W', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board W.');
+  PERFORM p_assert((x'FEFEFEFEFEFEFEFE')::square_set = direction_shift_square_set('E', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board E.');
+  PERFORM p_assert((x'FFFFFFFFFFFFFF00')::square_set = direction_shift_square_set('S', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board S.');
+
+  PERFORM p_assert((x'007F7F7F7F7F7F7F')::square_set = direction_shift_square_set('NW', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board NW.');
+  PERFORM p_assert((x'00FEFEFEFEFEFEFE')::square_set = direction_shift_square_set('NE', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board NE.');
+  PERFORM p_assert((x'7F7F7F7F7F7F7F00')::square_set = direction_shift_square_set('SW', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board SW.');
+  PERFORM p_assert((x'FEFEFEFEFEFEFE00')::square_set = direction_shift_square_set('SE', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board SE.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Tests the axis_shift_distance function.
 --
 CREATE OR REPLACE FUNCTION test_axis_shift_distance() RETURNS VOID AS $$
-DECLARE
 BEGIN
   PERFORM p_assert(  0 = axis_shift_distance('HO', 0, 0), 'Expected must be different. (HO a)');
   PERFORM p_assert(  0 = axis_shift_distance('HO', 5, 0), 'Expected must be different. (HO b)');

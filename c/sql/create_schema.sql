@@ -167,20 +167,21 @@ CREATE TYPE direction AS ENUM ('NW', 'N', 'NE', 'W', 'E', 'SW', 'S', 'SE');
 --
 -- DROP TABLE IF EXISTS direction_info;
 --
-CREATE TABLE direction_info (id      direction,
-                             ordinal SMALLINT,
+CREATE TABLE direction_info (id       direction,
+                             ordinal  SMALLINT,
+                             opposite direction,
                              PRIMARY KEY(id));
 
 -- Populates the direction_info table.
-INSERT INTO direction_info (id, ordinal) VALUES
-  ('NW', 0),
-  ('N',  1),
-  ('NE', 2),
-  ('W',  3),
-  ('E',  4),
-  ('SW', 5),
-  ('S',  6),
-  ('SE', 7);
+INSERT INTO direction_info (id, ordinal, opposite) VALUES
+  ('NW', 0, 'SE'),
+  ('N',  1, 'S' ),
+  ('NE', 2, 'SW'),
+  ('W',  3, 'E' ),
+  ('E',  4, 'W' ),
+  ('SW', 5, 'NE'),
+  ('S',  6, 'N' ),
+  ('SE', 7, 'NW');
 
 
 
