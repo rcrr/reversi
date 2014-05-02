@@ -47,6 +47,13 @@
 static void
 board_initialize_bitrow_changes_for_player_array (uint8 *array);
 
+static void
+board_initialize_shift_square_set_by_amount_mask_array (SquareSet *array);
+
+static SquareSet
+direction_shift_back_square_set_by_amount (const Direction dir,
+                                           const SquareSet squares,
+                                           const int       amount);
 
 
 /*
@@ -88,6 +95,15 @@ static const SquareSet squares_b1_f1_a2_e2 = 0x1122;
  * After initialization the array is never changed.
  */
 static uint8 bitrow_changes_for_player_array[256 * 256 * 8]; 
+
+/*
+ * This array is a precomputed table used by the direction_shift_square_set_by_amount function.
+ * It has an entry for each couple Direction-Amount, amount having as range 0..7.
+ * 
+ * The index of the array is computed by this formula:
+ * index = amount | (direction << 3)
+ */
+static SquareSet shift_square_set_by_amount_mask_array[8 * 8];
 
 /*
  * This array has sixtyfour entries. The index, having range 0-63, represent one of the squares
@@ -169,6 +185,7 @@ void
 board_module_init (void)
 {
   board_initialize_bitrow_changes_for_player_array(bitrow_changes_for_player_array);
+  board_initialize_shift_square_set_by_amount_mask_array(shift_square_set_by_amount_mask_array);
 }
 
 
@@ -773,7 +790,7 @@ board_legal_moves (const Board * const b, const Player p)
     while (wave != empty_square_set) {
       wave = direction_shift_square_set(dir, wave);
       shift++;
-      result |= direction_shift_square_set_by_amount(opposite, (wave & p_bit_board), shift);
+      result |= direction_shift_back_square_set_by_amount(opposite, (wave & p_bit_board), shift);
       wave &= o_bit_board;
     }
   }
@@ -999,6 +1016,20 @@ board_compare (const Board * const a,
   }  
 }
 
+/**
+ * Returns an 8-bit row representation of the player pieces after applying the move.
+ *
+ * @param player_row    8-bit bitboard corrosponding to player pieces
+ * @param opponent_row  8-bit bitboard corrosponding to opponent pieces
+ * @param move_position square to move
+ * @return              the new player's row index after making the move
+ */
+uint8
+board_bitrow_changes_for_player (int player_row, int opponent_row, int move_position) {
+  const int array_index = player_row | (opponent_row << 8) | (move_position << 16);
+  return bitrow_changes_for_player_array[array_index];
+}
+
 
 
 /******************************************************/
@@ -1039,10 +1070,13 @@ direction_shift_square_set (const Direction dir,
  * @brief Returns a new #SquareSet value by shifting the `squares` parameter
  * by a number of positions as given by the `amount` parameter.
  *
- * Amount must be in the 0..8 range, meaning that 0 is equal to no shift, 1 is
- * on position, and 8 always return an empy squares.
+ * Amount must be in the 0..7 range, meaning that 0 is equal to no shift, 1 is
+ * on position, and so on.
  *
  * @invariant Parameter `dir` must belong to the #Direction enum.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `amount` must be in the range 0..7 enum.
  * The invariant is guarded by an assertion.
  *
  * @param [in] dir     the direction to shift to
@@ -1056,18 +1090,25 @@ direction_shift_square_set_by_amount (const Direction dir,
                                       const int       amount)
 {
   g_assert(dir >= NW && dir <= SE);
+  g_assert(amount >= 0 && amount <= 7);
+
+  SquareSet ret;
+
+  const int index = amount | (dir << 3);
 
   switch (dir) {
-  case NW: return (squares >> (9 * amount)) & all_squares_except_column_h;
-  case N:  return (squares >> (8 * amount));
-  case NE: return (squares >> (7 * amount)) & all_squares_except_column_a;
-  case W:  return (squares >> (1 * amount)) & all_squares_except_column_h;
-  case E:  return (squares << (1 * amount)) & all_squares_except_column_a;
-  case SW: return (squares << (7 * amount)) & all_squares_except_column_h;
-  case S:  return (squares << (8 * amount));
-  case SE: return (squares << (9 * amount)) & all_squares_except_column_a;
+  case NW: ret = squares >> (9 * amount); break;
+  case N:  ret = squares >> (8 * amount); break;
+  case NE: ret = squares >> (7 * amount); break;
+  case W:  ret = squares >> (1 * amount); break;
+  case E:  ret = squares << (1 * amount); break;
+  case SW: ret = squares << (7 * amount); break;
+  case S:  ret = squares << (8 * amount); break;
+  case SE: ret = squares << (9 * amount); break;
   default: abort();
   }
+  ret = ret & shift_square_set_by_amount_mask_array[index];
+  return ret;
 }
 
 /**
@@ -1837,7 +1878,7 @@ game_position_x_legal_moves (const GamePositionX * const gpx)
   const SquareSet empties = game_position_x_empties(gpx);
   const SquareSet p_bit_board = game_position_x_get_player(gpx);
   const SquareSet o_bit_board = game_position_x_get_opponent(gpx);
-  
+
   for (Direction dir = NW; dir <= SE; dir++) {
     const Direction opposite = direction_opposite(dir);
     SquareSet wave = direction_shift_square_set(dir, empties) & o_bit_board;
@@ -1845,7 +1886,7 @@ game_position_x_legal_moves (const GamePositionX * const gpx)
     while (wave != empty_square_set) {
       wave = direction_shift_square_set(dir, wave);
       shift++;
-      result |= direction_shift_square_set_by_amount(opposite, (wave & p_bit_board), shift);
+      result |= direction_shift_back_square_set_by_amount(opposite, (wave & p_bit_board), shift);
       wave &= o_bit_board;
     }
   }
@@ -2274,15 +2315,62 @@ board_initialize_bitrow_changes_for_player_array (uint8 *array)
 }
 
 /**
- * Returns an 8-bit row representation of the player pieces after applying the move.
+ * @brief Used to initialize the `shift_square_set_by_amount_mask_array`.
  *
- * @param player_row    8-bit bitboard corrosponding to player pieces
- * @param opponent_row  8-bit bitboard corrosponding to opponent pieces
- * @param move_position square to move
- * @return              the new player's row index after making the move
+ * @param array a SquareSet array having the board mask for the given index value
  */
-uint8
-board_bitrow_changes_for_player (int player_row, int opponent_row, int move_position) {
-  const int array_index = player_row | (opponent_row << 8) | (move_position << 16);
-  return bitrow_changes_for_player_array[array_index];
+void
+board_initialize_shift_square_set_by_amount_mask_array (SquareSet *array)
+{
+  const SquareSet full_board = 0xFFFFFFFFFFFFFFFFULL;
+  for (Direction dir = NW; dir <= SE; dir++) {
+    const int i_dir = dir;
+    for (int amount = 0; amount < 8; amount++) {
+      const int array_index = amount | (i_dir << 3);
+      SquareSet mask = full_board;
+      for (int i = 0; i < amount; i++) {
+        mask = direction_shift_square_set(dir, mask);
+      }
+      array[array_index] = mask;
+    }
+  }
+}
+
+/**
+ * @brief Returns a new #SquareSet value by shifting back the `squares` parameter
+ * by a number of positions as given by the `amount` parameter.
+ *
+ * Amount must be in the 0..7 range, meaning that 0 is equal to no shift, 1 is
+ * on position, and so on.
+ *
+ * It is safe to call this function only after a number of shift call equal to the amount value.
+ * This is becouse the function doesn't mask after shifting.
+ *
+ * @invariant Parameter `dir` must belong to the #Direction enum.
+ * The invariant is not guarded by an assertion.
+ *
+ * @invariant Parameter `amount` must be in the range 0..7 enum.
+ * The invariant is not guarded by an assertion.
+ *
+ * @param [in] dir     the direction to shift to
+ * @param [in] squares the squares set on the bitboard
+ * @param [in] amount  the amount to shift
+ * @return             the shifted squares
+*/
+SquareSet
+direction_shift_back_square_set_by_amount (const Direction dir,
+                                           const SquareSet squares,
+                                           const int       amount)
+{
+  switch (dir) {
+  case NW: return squares >> (9 * amount);
+  case N:  return squares >> (8 * amount);
+  case NE: return squares >> (7 * amount);
+  case W:  return squares >> (1 * amount);
+  case E:  return squares << (1 * amount);
+  case SW: return squares << (7 * amount);
+  case S:  return squares << (8 * amount);
+  case SE: return squares << (9 * amount);
+  default: abort();
+  }
 }

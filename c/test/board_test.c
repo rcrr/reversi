@@ -51,6 +51,7 @@ static void player_description_test (void);
 static void player_opponent_test (void);
 
 static void direction_shift_square_set_test (void);
+static void direction_shift_square_set_by_amount_test (void);
 
 static void axis_shift_distance_test (void);
 static void axis_move_ordinal_position_in_bitrow_test (void);
@@ -110,6 +111,7 @@ main (int   argc,
   g_test_add_func("/board/player_opponent_test", player_opponent_test);
 
   g_test_add_func("/board/direction_shift_square_set_test", direction_shift_square_set_test);
+  g_test_add_func("/board/direction_shift_square_set_by_amount_test", direction_shift_square_set_by_amount_test);
 
   g_test_add_func("/board/axis_shift_distance_test", axis_shift_distance_test);
   g_test_add_func("/board/axis_move_ordinal_position_in_bitrow_test", axis_move_ordinal_position_in_bitrow_test);
@@ -302,6 +304,35 @@ direction_shift_square_set_test (void)
   g_assert(direction_shift_square_set(SE, 0xFFFFFFFFFFFFFFFFULL) == 0xFEFEFEFEFEFEFE00ULL);
   g_assert(direction_shift_square_set(NW, 0xFFFFFFFFFFFFFFFFULL) == 0x007F7F7F7F7F7F7FULL);
   g_assert(direction_shift_square_set(SW, 0xFFFFFFFFFFFFFFFFULL) == 0x7F7F7F7F7F7F7F00ULL);
+}
+
+
+static void
+direction_shift_square_set_by_amount_test (void)
+{
+  g_assert(direction_shift_square_set_by_amount(N,  0xFFFFFFFFFFFFFFFFULL, 1) == 0x00FFFFFFFFFFFFFFULL);
+  g_assert(direction_shift_square_set_by_amount(N,  0xFFFFFFFFFFFFFFFFULL, 2) == 0x0000FFFFFFFFFFFFULL);
+  g_assert(direction_shift_square_set_by_amount(N,  0xFFFFFFFFFFFFFFFFULL, 7) == 0x00000000000000FFULL);
+
+  g_assert(direction_shift_square_set_by_amount(S,  0xFFFFFFFFFFFFFFFFULL, 1) == 0xFFFFFFFFFFFFFF00ULL);
+  g_assert(direction_shift_square_set_by_amount(S,  0xFFFFFFFFFFFFFFFFULL, 7) == 0xFF00000000000000ULL);
+
+  g_assert(direction_shift_square_set_by_amount(E,  0xFFFFFFFFFFFFFFFFULL, 1) == 0xFEFEFEFEFEFEFEFEULL);
+  g_assert(direction_shift_square_set_by_amount(E,  0xFFFFFFFFFFFFFFFFULL, 7) == 0x8080808080808080ULL);
+
+  g_assert(direction_shift_square_set_by_amount(W,  0xFFFFFFFFFFFFFFFFULL, 1) == 0x7F7F7F7F7F7F7F7FULL);
+  g_assert(direction_shift_square_set_by_amount(W,  0xFFFFFFFFFFFFFFFFULL, 7) == 0x0101010101010101ULL);
+
+  g_assert(direction_shift_square_set_by_amount(SW, 0xFFFFFFFFFFFFFFFFULL, 1) == 0x7F7F7F7F7F7F7F00ULL);
+  g_assert(direction_shift_square_set_by_amount(SW, 0xFFFFFFFFFFFFFFFFULL, 7) == 0x0100000000000000ULL);
+  
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 1) == 0x00FEFEFEFEFEFEFEULL);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 2) == 0x0000FCFCFCFCFCFCULL);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 3) == 0x000000F8F8F8F8F8ULL);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 4) == 0x00000000F0F0F0F0ULL);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 5) == 0x0000000000E0E0E0ULL);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 6) == 0x000000000000C0C0ULL);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 7) == 0x0000000000000080ULL);
 }
 
 static void
