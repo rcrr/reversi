@@ -343,6 +343,8 @@ $$ LANGUAGE plpgsql;
 --
 -- Parameter dir must belong to the direction enum.
 --
+-- Tests written.
+--
 CREATE OR REPLACE FUNCTION direction_shift_square_set(dir direction, squares square_set) RETURNS square_set AS $$
 DECLARE
   all_squares_except_column_a square_set := (x'FEFEFEFEFEFEFEFE')::square_set;
@@ -357,6 +359,36 @@ BEGIN
     WHEN 'SW' THEN RETURN (squares::BIT(64) << 7)::square_set & all_squares_except_column_h;
     WHEN 'S'  THEN RETURN (squares::BIT(64) << 8)::square_set;
     WHEN 'SE' THEN RETURN (squares::BIT(64) << 9)::square_set & all_squares_except_column_a;
+    ELSE
+      RAISE EXCEPTION 'Parameter dir out of range.';
+  END CASE;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns a new square_set value by shifting back the squares parameter
+-- by a number of positions as given by the amount parameter.
+--
+-- Amount must be in the 0..7 range, meaning that 0 is equal to no shift, 1 is
+-- on position, and so on.
+--
+-- It is safe to call this function only after a number of shift call equal to the amount value.
+-- This is becouse the function doesn't mask after shifting.
+--
+CREATE OR REPLACE FUNCTION direction_shift_back_square_set_by_amount(dir direction, squares square_set, amount INTEGER) RETURNS square_set AS $$
+DECLARE
+BEGIN
+  CASE dir
+    WHEN 'NW' THEN RETURN (squares::BIT(64) >> (9 * amount))::square_set;
+    WHEN 'N'  THEN RETURN (squares::BIT(64) >> (8 * amount))::square_set;
+    WHEN 'NE' THEN RETURN (squares::BIT(64) >> (7 * amount))::square_set;
+    WHEN 'W'  THEN RETURN (squares::BIT(64) >> (1 * amount))::square_set;
+    WHEN 'E'  THEN RETURN (squares::BIT(64) << (1 * amount))::square_set;
+    WHEN 'SW' THEN RETURN (squares::BIT(64) << (7 * amount))::square_set;
+    WHEN 'S'  THEN RETURN (squares::BIT(64) << (8 * amount))::square_set;
+    WHEN 'SE' THEN RETURN (squares::BIT(64) << (9 * amount))::square_set;
     ELSE
       RAISE EXCEPTION 'Parameter dir out of range.';
   END CASE;
@@ -604,11 +636,14 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION game_position_legal_moves(gp game_position) RETURNS square_set AS $$
 DECLARE
-  ret          square_set := 0;
-  empties      square_set := game_position_empties(gp);
-  p_square_set square_set;
-  o_square_set square_set;
-  dir          RECORD;
+  ret              square_set := 0;
+  empty_square_set square_set := 0;
+  empties          square_set := game_position_empties(gp);
+  p_square_set     square_set;
+  o_square_set     square_set;
+  dir              RECORD;
+  wave             square_set;
+  shift            INTEGER;
 BEGIN
   IF gp.player = 0 THEN
     p_square_set := gp.blacks;
@@ -619,9 +654,15 @@ BEGIN
   END IF;
   
   FOR dir IN SELECT id, ordinal, opposite FROM direction_info ORDER BY ordinal LOOP
-    RAISE NOTICE 'dir.id=%, dir.opposite=%', dir.id, dir.opposite;
+    wave := direction_shift_square_set(dir.id, empties) & o_square_set;
+    shift := 1;
+    WHILE wave != empty_square_set LOOP
+      wave = direction_shift_square_set(dir.id, wave);
+      shift := shift + 1;
+      ret := ret | direction_shift_back_square_set_by_amount(dir.opposite, wave & p_square_set, shift);
+      wave := wave & o_square_set;
+    END LOOP;
   END LOOP;
-
   RETURN ret;
 END;
 $$ LANGUAGE plpgsql;
