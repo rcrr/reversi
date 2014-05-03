@@ -61,3 +61,4 @@ SELECT test_board_populate_bitrow_changes_for_player();
 SELECT test_board_bitrow_changes_for_player();
 
 SELECT test_game_position_is_move_legal();
+SELECT test_game_position_legal_moves();

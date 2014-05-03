@@ -560,6 +560,18 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Tests the game_position_legal_moves function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_legal_moves() RETURNS VOID AS $$
+BEGIN
+  PERFORM p_assert(4 = game_position_legal_moves((1, 2, 0)::game_position), 'Expected square set is equal to 4.');
+  PERFORM p_assert(8 = game_position_legal_moves((1, 6, 0)::game_position), 'Expected square set is equal to 8.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Tests the board_populate_bitrow_changes_for_player function.
 --
 CREATE OR REPLACE FUNCTION test_board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
