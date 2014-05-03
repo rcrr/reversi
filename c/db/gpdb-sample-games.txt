@@ -225,7 +225,7 @@ final-b37-w27;wwwwwbbbwwwbbbbbwwwbbbwbwwbwbbwbbbwbwbwbbwbwbwbbbbbbbbwbbbbbwwww;b
 #
 #
 #
-# #################################################################################
+###################################################################################
 # Entries for testing game_position_make_move function.
 # Game positions come in pairs:
 # - make-move-test-case-x-before is a game position configuration

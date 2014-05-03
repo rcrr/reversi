@@ -57,8 +57,30 @@ INSERT INTO game_position_test_data (id, gp, description) VALUES
   ('early-game-bc3-10-moves', game_position_from_string('...bbb......b.....wwwww....bb......bb.......b...................b'), 'The board after ten moves of a generic game.'),
   ('early-game-bc6-10-moves', game_position_from_string('...bbb......b......bbww....bw......wb.....w.b...................b'), 'The board after ten moves of a generic game.'),
   ('early-game-c-12-moves',   game_position_from_string('................wbbb..w..w.wbw...wwbw.....bb.w..................b'), 'The board after twelve moves of a generic game.'),
-  ('final-b37-w27',           game_position_from_string('wwwwwbbbwwwbbbbbwwwbbbwbwwbwbbwbbbwbwbwbbwbwbwbbbbbbbbwbbbbbwwwwb'), 'A final position, all square filled.');
-  -- Template string used to inser a new entry: ('', game_position_from_string(''), '')
+  ('final-b37-w27',           game_position_from_string('wwwwwbbbwwwbbbbbwwwbbbwbwwbwbbwbbbwbwbwbbwbwbwbbbbbbbbwbbbbbwwwwb'), 'A final position, all square filled.'),
+  --
+  --
+  --
+  -- Entries for testing game_position_make_move function.
+  -- Game positions come in pairs:
+  -- - make-move-test-case-x-before is a game position configuration
+  -- - make-move-test-case-x-after is the expected configuration after a defined move
+  --  
+  --                                                         |1       2       3       4       5       6       7       8       .|
+  --                                                         |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHP|
+  ('make-move-test-case-a-before', game_position_from_string('.........wwwww...wbbbw...wb.bw...wbbbw...wwwww..................w'), 'Test case MAKE MOVE A: before the move.'),
+  ('make-move-test-case-a-after',  game_position_from_string('.........wwwww...wwwww...wwwww...wwwww...wwwww..................b'), 'Test case MAKE MOVE A: after the d4 move.'),
+  ('make-move-test-case-b-before', game_position_from_string('wwwwwww.wbbbbbw.wbbbbbw.wbb.bbw.wbbbbbw.wbbbbbw.wwwwwww.........w'), 'Test case MAKE MOVE B: before the move.'),
+  ('make-move-test-case-b-after',  game_position_from_string('wwwwwww.wwbwbww.wbwwwbw.wwwwwww.wbwwwbw.wwbwbww.wwwwwww.........b'), 'Test case MAKE MOVE B: after the d4 move.'),
+  ('make-move-test-case-c-before', game_position_from_string('bbbbbbbwbbbbbbbwbbbbbbbwbbb.bbbwbbbbbbbwbbbbbbbwbbbbbbbwwwwwwwwww'), 'Test case MAKE MOVE C: before the move.'),
+  ('make-move-test-case-c-after',  game_position_from_string('bbbbbbbwbbbbbbbwbbbbbbbwbbbwwwwwbbbwwbbwbbbwbwbwbbbwbbwwwwwwwwwwb'), 'Test case MAKE MOVE C: after the d4 move.'),
+  ('make-move-test-case-d-before', game_position_from_string('.b..w....w.w....bbb.....b.b.w...bbb......w.b.....b..w....w......w'), 'Test case MAKE MOVE D: before the move.'),
+  ('make-move-test-case-d-after',  game_position_from_string('.b..w....w.w....bww.....bwb.w...bww......w.w.....b..w....w......b'), 'Test case MAKE MOVE D: after the b4 move.'),
+  --
+  --
+  --
+  ('all-blacks',              game_position_from_string('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbw'), 'All blacks, white to move.');
+  -- Template string used to insert a new entry: ('', game_position_from_string(''), ''),
 
 
 

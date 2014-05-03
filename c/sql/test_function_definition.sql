@@ -563,9 +563,22 @@ $$ LANGUAGE plpgsql;
 -- Tests the game_position_legal_moves function.
 --
 CREATE OR REPLACE FUNCTION test_game_position_legal_moves() RETURNS VOID AS $$
+DECLARE
+  fixture  RECORD;
+  computed square_set;
+  expected square_set;
 BEGIN
   PERFORM p_assert(4 = game_position_legal_moves((1, 2, 0)::game_position), 'Expected square set is equal to 4.');
   PERFORM p_assert(8 = game_position_legal_moves((1, 6, 0)::game_position), 'Expected square set is equal to 8.');
+
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'empty';
+  computed := game_position_legal_moves(fixture.gp);
+  PERFORM p_assert(0 = computed, 'Expected square set is equal to 0.');
+
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'initial';
+  computed := game_position_legal_moves(fixture.gp);
+  PERFORM p_assert(17729692631040 = computed, 'Expected square set is equal to D3(19), C4(26), F5(37), E6(44), or 2^19+2^26+2^27+2^44.');
+
 END;
 $$ LANGUAGE plpgsql;
 
