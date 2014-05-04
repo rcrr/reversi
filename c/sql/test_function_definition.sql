@@ -462,6 +462,22 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Tests the square_set_to_array function.
+--
+CREATE OR REPLACE FUNCTION test_square_set_to_array() RETURNS VOID AS $$
+BEGIN
+  PERFORM p_assert('{"A1"}'       = square_set_to_array(1::square_set), 'Expected result is A1.');
+  PERFORM p_assert('{"B1"}'       = square_set_to_array(2::square_set), 'Expected result is B1.');
+  PERFORM p_assert('{"A1", "B1"}' = square_set_to_array(3::square_set), 'Expected result is A1, B1.');
+
+  PERFORM p_assert('{}' = square_set_to_array(0::square_set), 'Expected result is an empty array.');
+
+  PERFORM p_assert(64 = array_length(square_set_to_array((-1)::square_set), 1), 'Expected result is 64.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+--
 -- Tests the player_to_string function.
 --
 CREATE OR REPLACE FUNCTION test_player_to_string() RETURNS VOID AS $$
@@ -599,10 +615,31 @@ BEGIN
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'empty';
   computed := game_position_legal_moves(fixture.gp);
   PERFORM p_assert(0 = computed, 'Expected square set is equal to 0.');
-
+ 
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'initial';
   computed := game_position_legal_moves(fixture.gp);
   PERFORM p_assert(17729692631040 = computed, 'Expected square set is equal to D3(19), C4(26), F5(37), E6(44), or 2^19+2^26+2^27+2^44.');
+  PERFORM p_assert('{"D3", "C4", "F5", "E6"}' = square_set_to_array(computed), 'Expected array is equal to {"D3", "C4", "F5", "E6"}');
+
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'first-move-d3';
+  computed := game_position_legal_moves(fixture.gp);
+  PERFORM p_assert('{"C3", "E3", "C5"}' = square_set_to_array(computed), 'Expected array is equal to {"C3", "E3", "C5"}');
+
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'black-has-to-pass';
+  computed := game_position_legal_moves(fixture.gp);
+  PERFORM p_assert('{}' = square_set_to_array(computed), 'Expected array is equal to {}');
+
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'early-game-b-9-moves';
+  computed := game_position_legal_moves(fixture.gp);
+  PERFORM p_assert('{"C3", "C6"}' = square_set_to_array(computed), 'Expected array is equal to {"C3", "C6"}');
+
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'final-b37-w27';
+  computed := game_position_legal_moves(fixture.gp);
+  PERFORM p_assert('{}' = square_set_to_array(computed), 'Expected array is equal to {}');
+
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'make-move-test-case-a-before';
+  computed := game_position_legal_moves(fixture.gp);
+  PERFORM p_assert('{"D4"}' = square_set_to_array(computed), 'Expected array is equal to {"D4"}');
 
 END;
 $$ LANGUAGE plpgsql;

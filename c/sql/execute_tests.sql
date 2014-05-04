@@ -47,6 +47,7 @@ SELECT test_player_to_string();
 
 SELECT test_square_set_from_string();
 SELECT test_square_set_to_string();
+SELECT test_square_set_to_array();
 
 SELECT test_game_position_empties();
 SELECT test_game_position_to_string();
