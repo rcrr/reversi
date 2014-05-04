@@ -253,6 +253,17 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Returns the player's opponent.
+--
+CREATE OR REPLACE FUNCTION player_opponent(player player) RETURNS player AS $$
+BEGIN
+  RETURN 1 - player;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Returns a string describing the square set.
 --
 -- Tests written.
@@ -740,5 +751,54 @@ BEGIN
     END LOOP;
   END LOOP;
   RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Executes a game move on the given position.
+--
+CREATE OR REPLACE FUNCTION game_position_make_move(gp game_position, game_move square) RETURNS game_position AS $$
+DECLARE
+  player       player     := gp.player;
+  opponent     player     := player_opponent(player);
+  p_square_set square_set := 0::square_set;
+  o_square_set square_set := 0::square_set;
+  /*
+  const Player p = gp->player;
+  const Player o = player_opponent(p);
+  const Board *b = gp->board;
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+  const int column = move % 8;
+  const int row = move / 8;
+  */
+  axis RECORD;
+BEGIN
+
+  /*
+  SquareSet new_bit_board[2];
+  const SquareSet unmodified_mask = ~bitboard_mask_for_all_directions[move];
+  new_bit_board[p] = p_bit_board & unmodified_mask;
+  new_bit_board[o] = o_bit_board & unmodified_mask;
+  */
+  
+  FOR axis IN SELECT id, ordinal FROM axis_info ORDER BY ordinal LOOP
+  END LOOP;
+  /*
+  for (Axis axis = HO; axis <= DU; axis++) {
+    const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
+    const int shift_distance = axis_shift_distance(axis, column, row);
+    uint8 p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
+    uint8 o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
+    p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position);
+    o_bitrow &= ~p_bitrow;
+    new_bit_board[p] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, p_bitrow), -shift_distance);
+    new_bit_board[o] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, o_bitrow), -shift_distance);
+  }
+  */
+  RETURN (0::square_set, 0::square_set, 0::player);
+
 END;
 $$ LANGUAGE plpgsql;
