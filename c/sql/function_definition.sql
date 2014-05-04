@@ -81,6 +81,59 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Returns the index of the least significant bit set in the bit_sequence parameter.
+--
+-- Parameter bit_sequence must be different from 0.
+-- If no bit set is found, meaning that bit_sequence is equal to 0, 64 is
+-- returned, that is clearly a wrong value.
+--
+CREATE OR REPLACE FUNCTION bit_works_bitscanLS1B_64(bit_sequence BIGINT) RETURNS SMALLINT AS $$
+DECLARE
+  tmp    BIGINT   := bit_sequence;
+  ret    SMALLINT := 0;
+  mask_1 BIGINT   := (x'00000000FFFFFFFF')::BIGINT;
+  mask_2 BIGINT   := (x'000000000000FFFF')::BIGINT;
+  mask_3 BIGINT   := (x'00000000000000FF')::BIGINT;
+  mask_4 BIGINT   := (x'000000000000000F')::BIGINT;
+  mask_5 BIGINT   := (x'0000000000000007')::BIGINT;
+  mask_6 BIGINT   := (x'0000000000000003')::BIGINT;
+  mask_7 BIGINT   := (x'0000000000000001')::BIGINT;
+BEGIN
+  IF (tmp & mask_1) = 0 THEN
+   ret := ret + 32;
+   tmp := tmp >> 32;
+  END IF;
+  IF (tmp & mask_2) = 0 THEN
+   ret := ret + 16;
+   tmp := tmp >> 16;
+  END IF;
+  IF (tmp & mask_3) = 0 THEN
+   ret := ret + 8;
+   tmp := tmp >> 8;
+  END IF;
+  IF (tmp & mask_4) = 0 THEN
+   ret := ret + 4;
+   tmp := tmp >> 4;
+  END IF;
+  IF (tmp & mask_5) = 0 THEN
+   ret := ret + 2;
+   tmp := tmp >> 2;
+  END IF;
+  IF (tmp & mask_6) = 0 THEN
+   ret := ret + 1;
+   tmp := tmp >> 1;
+  END IF;
+  IF (tmp & mask_7) = 0 THEN
+   ret := ret + 1;
+   tmp := tmp >> 1;
+  END IF;
+  RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Returns a bit sequence having set the bits between the two, or zero
 -- when only one bit is set.
 --
@@ -250,6 +303,29 @@ BEGIN
     i := i + 1;
   END LOOP;
   RETURN squares;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns an array of squares from the given square_set.
+--
+CREATE OR REPLACE FUNCTION square_set_to_array(squares square_set) RETURNS square[] AS $$
+DECLARE
+  ret               square[]   := '{}';
+  remaining_squares square_set := squares;
+  empty_square_set  square_set := 0;
+  game_move         square;
+  game_move_index   INTEGER;
+BEGIN
+  WHILE remaining_squares != empty_square_set LOOP
+    game_move_index := bit_works_bitscanLS1B_64(remaining_squares);
+    SELECT id INTO STRICT game_move FROM square_info WHERE ordinal = game_move_index;
+    ret := ret || game_move;
+    remaining_squares := remaining_squares # (1::square_set << game_move_index);
+  END LOOP;
+  return ret;
 END;
 $$ LANGUAGE plpgsql;
 
