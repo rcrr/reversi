@@ -40,6 +40,7 @@ SELECT test_bit_works_signed_left_shift();
 SELECT test_bit_works_highest_bit_set_8();
 SELECT test_bit_works_lowest_bit_set_8();
 SELECT test_bit_works_bitscanMS1B_8();
+SELECT test_bit_works_bitscanLS1B_64();
 SELECT test_bit_works_fill_in_between_8();
 
 SELECT test_player_to_string();

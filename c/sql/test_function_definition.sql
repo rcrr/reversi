@@ -310,6 +310,31 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Tests the bit_works_bitscanLS1B_64 function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_bitscanLS1B_64() RETURNS VOID AS $$
+BEGIN
+  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64(1::BIGINT),                     'Expected value is  0.');
+  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((-1)::BIGINT),                  'Expected value is  0.');
+  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((x'0000000000000001')::BIGINT), 'Expected value is  0.');
+  PERFORM p_assert( 1 = bit_works_bitscanLS1B_64((x'0000000000000002')::BIGINT), 'Expected value is  1.');
+  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((x'0000000000000003')::BIGINT), 'Expected value is  0.');
+  PERFORM p_assert( 2 = bit_works_bitscanLS1B_64((x'0000000000000004')::BIGINT), 'Expected value is  2.');
+  PERFORM p_assert(63 = bit_works_bitscanLS1B_64((x'8000000000000000')::BIGINT), 'Expected value is 63.');
+  PERFORM p_assert(56 = bit_works_bitscanLS1B_64((x'FF00000000000000')::BIGINT), 'Expected value is 56.');
+  PERFORM p_assert(48 = bit_works_bitscanLS1B_64((x'00FF000000000000')::BIGINT), 'Expected value is 48.');
+  PERFORM p_assert(40 = bit_works_bitscanLS1B_64((x'0000FF0000000000')::BIGINT), 'Expected value is 40.');
+  PERFORM p_assert(32 = bit_works_bitscanLS1B_64((x'000000FF00000000')::BIGINT), 'Expected value is 32.');
+  PERFORM p_assert(24 = bit_works_bitscanLS1B_64((x'00000000FF000000')::BIGINT), 'Expected value is 24.');
+  PERFORM p_assert(16 = bit_works_bitscanLS1B_64((x'0000000000FF0000')::BIGINT), 'Expected value is 16.');
+  PERFORM p_assert( 8 = bit_works_bitscanLS1B_64((x'000000000000FF00')::BIGINT), 'Expected value is  8.');
+  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((x'00000000000000FF')::BIGINT), 'Expected value is  0.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Tests the bit_works_bitscanMS1B_8 function.
 --
 CREATE OR REPLACE FUNCTION test_bit_works_bitscanMS1B_8() RETURNS VOID AS $$
