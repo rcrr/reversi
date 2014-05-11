@@ -714,6 +714,36 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Returns the set of empty squares.
+--
+CREATE OR REPLACE FUNCTION game_position_get_square_set_for_player(gp game_position) RETURNS square_set AS $$
+BEGIN
+  IF gp.player = 0 THEN
+    RETURN gp.blacks;
+  ELSE
+    RETURN gp.whites;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns the set of empty squares.
+--
+CREATE OR REPLACE FUNCTION game_position_get_square_set_for_opponent(gp game_position) RETURNS square_set AS $$
+BEGIN
+  IF gp.player = 0 THEN
+    RETURN gp.whites;
+  ELSE
+    RETURN gp.blacks;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Returns true if the move is legal.
 --
 -- Tests written.
@@ -805,12 +835,12 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION game_position_make_move(gp game_position, game_move square) RETURNS game_position AS $$
 DECLARE
-  player       player     := gp.player;
-  opponent     player     := player_opponent(player);
-  p_square_set square_set := 0::square_set;
-  o_square_set square_set := 0::square_set;
-  move_column  SMALLINT   := square_get_column(game_move);
-  move_row     SMALLINT   := square_get_row(game_move);
+  player       CONSTANT player     := gp.player;
+  opponent     CONSTANT player     := player_opponent(player);
+  p_square_set CONSTANT square_set := game_position_get_square_set_for_player(gp);
+  o_square_set CONSTANT square_set := game_position_get_square_set_for_opponent(gp);
+  move_column  CONSTANT SMALLINT   := square_get_column(game_move);
+  move_row     CONSTANT SMALLINT   := square_get_row(game_move);
   /*
   const Player p = gp->player;
   const Player o = player_opponent(p);
