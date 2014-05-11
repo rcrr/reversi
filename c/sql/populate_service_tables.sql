@@ -42,3 +42,12 @@ SET search_path TO reversi;
 -- Populates the bitrow_changes_for_player table.
 --
 SELECT board_populate_bitrow_changes_for_player();
+VACUUM (FULL, ANALYZE) board_bitrow_changes_for_player;
+
+
+
+--
+-- Populates the square_info table with sq_column and sq_row fields.
+--
+SELECT  square_populate_addictional_fields();
+VACUUM (FULL, ANALYZE) square_info;

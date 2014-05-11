@@ -52,4 +52,4 @@ TRUNCATE TABLE board_bitrow_changes_for_player_from_csv;
 
 \COPY board_bitrow_changes_for_player_from_csv FROM '../out/bitrow_changes_for_player.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
 
-VACUUM (FULL, ANALYZE, VERBOSE) board_bitrow_changes_for_player_from_csv;
+VACUUM (FULL, ANALYZE) board_bitrow_changes_for_player_from_csv;

@@ -264,6 +264,50 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Populates the table square_info with sq_column and sq_row fields.
+--
+CREATE OR REPLACE FUNCTION square_populate_addictional_fields() RETURNS VOID AS $$
+DECLARE
+  r square_info;
+BEGIN
+  FOR r IN SELECT * FROM square_info LOOP
+    UPDATE square_info SET sq_column = r.ordinal % 8, sq_row = r.ordinal / 8
+    WHERE id = r.id;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns the column ordinal of the square.
+--
+CREATE OR REPLACE FUNCTION square_get_column(sq square) RETURNS SMALLINT AS $$
+DECLARE
+  ret SMALLINT;
+BEGIN
+  SELECT sq_column INTO STRICT ret FROM square_info WHERE sq = id;
+  RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns the row ordinal of the square.
+--
+CREATE OR REPLACE FUNCTION square_get_row(sq square) RETURNS SMALLINT AS $$
+DECLARE
+  ret SMALLINT;
+BEGIN
+  SELECT sq_row INTO STRICT ret FROM square_info WHERE sq = id;
+  RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Returns a string describing the square set.
 --
 -- Tests written.
@@ -765,6 +809,8 @@ DECLARE
   opponent     player     := player_opponent(player);
   p_square_set square_set := 0::square_set;
   o_square_set square_set := 0::square_set;
+  move_column  SMALLINT   := square_get_column(game_move);
+  move_row     SMALLINT   := square_get_row(game_move);
   /*
   const Player p = gp->player;
   const Player o = player_opponent(p);
@@ -776,6 +822,8 @@ DECLARE
   */
   axis RECORD;
 BEGIN
+
+  RAISE NOTICE 'move_column=%, move_row=%', move_column, move_row;
 
   /*
   SquareSet new_bit_board[2];

@@ -43,7 +43,7 @@ DROP INDEX IF EXISTS rab_solver_log_parent_hash;
 
 \COPY rab_solver_log FROM '../out/rab_solver_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
 
-VACUUM (FULL, ANALYZE, VERBOSE) rab_solver_log;
+VACUUM (FULL, ANALYZE) rab_solver_log;
 
 CREATE INDEX rab_solver_log_hash ON rab_solver_log (hash);
 CREATE INDEX rab_solver_log_parent_hash ON rab_solver_log (parent_hash);

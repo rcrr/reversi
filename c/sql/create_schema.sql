@@ -121,8 +121,10 @@ CREATE TYPE square AS ENUM (
 --
 -- DROP TABLE IF EXISTS square_info;
 --
-CREATE TABLE square_info (id      square,
-                          ordinal SMALLINT,
+CREATE TABLE square_info (id        square,
+                          ordinal   SMALLINT,
+                          sq_column SMALLINT,
+                          sq_row    SMALLINT,
                           PRIMARY KEY(id));
 
 -- Populates the square_info table.
