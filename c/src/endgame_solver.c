@@ -40,7 +40,10 @@
  *
  * @todo Develop a full description of the evidence of all the variants.
  *
- * @todo Introduce the node cache by means of a shared hashtable. 
+ * @todo Introduce the node cache by means of a shared hashtable.
+ *
+ * @todo Optimize (better saying improve) the bitrow_changes_for_player array .... the number of entries is ten times the required ones.
+ *       A complete rethinking of the index function is then needed.
  *
  *
  * @brief Endgame Solver.
