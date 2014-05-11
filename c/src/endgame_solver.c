@@ -45,6 +45,8 @@
  * @todo Optimize (better saying improve) the bitrow_changes_for_player array .... the number of entries is ten times the required ones.
  *       A complete rethinking of the index function is then needed.
  *
+ * @todo Verify if it is possible to optimize the definition of bitboard_mask_for_all_directions removing squares that do not flip (inner frame).
+ *
  *
  * @brief Endgame Solver.
  * @details This executable analyzes an end game position and
