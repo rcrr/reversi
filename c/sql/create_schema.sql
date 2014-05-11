@@ -39,6 +39,14 @@ CREATE SCHEMA reversi;
 SET search_path TO reversi;
 
 
+
+--
+-- DOMAIN square_set
+--
+CREATE DOMAIN square_set AS BIGINT;
+
+
+
 --
 -- ENUM axis
 -- The axes are the lines that pass throw a square, a general square has four axes.
@@ -121,10 +129,11 @@ CREATE TYPE square AS ENUM (
 --
 -- DROP TABLE IF EXISTS square_info;
 --
-CREATE TABLE square_info (id        square,
-                          ordinal   SMALLINT,
-                          sq_column SMALLINT,
-                          sq_row    SMALLINT,
+CREATE TABLE square_info (id                           square,
+                          ordinal                      SMALLINT,
+                          sq_column                    SMALLINT,
+                          sq_row                       SMALLINT,
+                          move_mask_for_all_directions square_set,
                           PRIMARY KEY(id));
 
 -- Populates the square_info table.
@@ -212,7 +221,7 @@ INSERT INTO color_info (id, ordinal) VALUES
 --
 -- DOMAIN player
 --
-CREATE DOMAIN player SMALLINT CHECK (VALUE = 0 OR VALUE = 1);
+CREATE DOMAIN player AS SMALLINT CHECK (VALUE = 0 OR VALUE = 1);
 
 --
 -- The player_info table holds all info related to players.
@@ -231,19 +240,22 @@ INSERT INTO player_info (id, color) VALUES
 
 
 --
--- DOMAIN square_set
---
-CREATE DOMAIN square_set BIGINT;
-
-
-
---
 -- TYPE game_position
 --
 CREATE TYPE game_position AS (
   blacks square_set,
   whites square_set,
   player player
+);
+
+
+
+--
+-- TYPE transient_board
+--
+CREATE TYPE transient_board AS (
+  p_square_set square_set,
+  o_square_set square_set
 );
 
 
@@ -279,7 +291,7 @@ CREATE TABLE rab_solver_log (run_id         INTEGER,
                              call_id        INTEGER,
                              hash           BIGINT,
                              parent_hash    BIGINT,
-                             blacks         BIGINT,
-                             whites         BIGINT,
-                             player         SMALLINT,
+                             blacks         square_set,
+                             whites         square_set,
+                             player         player,
                              PRIMARY KEY(run_id, call_id));

@@ -64,21 +64,21 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION test_axis_shift_distance() RETURNS VOID AS $$
 BEGIN
-  PERFORM p_assert(  0 = axis_shift_distance('HO', 0, 0), 'Expected must be different. (HO a)');
-  PERFORM p_assert(  0 = axis_shift_distance('HO', 5, 0), 'Expected must be different. (HO b)');
-  PERFORM p_assert(-16 = axis_shift_distance('HO', 0, 2), 'Expected must be different. (HO c)');
+  PERFORM p_assert(  0 = axis_shift_distance('HO', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (HO a)');
+  PERFORM p_assert(  0 = axis_shift_distance('HO', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (HO b)');
+  PERFORM p_assert(-16 = axis_shift_distance('HO', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (HO c)');
 
-  PERFORM p_assert(  0 = axis_shift_distance('VE', 0, 0), 'Expected must be different. (VE a)');
-  PERFORM p_assert( -5 = axis_shift_distance('VE', 5, 0), 'Expected must be different. (VE b)');
-  PERFORM p_assert(  0 = axis_shift_distance('VE', 0, 2), 'Expected must be different. (VE c)');
+  PERFORM p_assert(  0 = axis_shift_distance('VE', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (VE a)');
+  PERFORM p_assert( -5 = axis_shift_distance('VE', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (VE b)');
+  PERFORM p_assert(  0 = axis_shift_distance('VE', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (VE c)');
 
-  PERFORM p_assert(  0 = axis_shift_distance('DD', 0, 0), 'Expected must be different. (DD a)');
-  PERFORM p_assert( 40 = axis_shift_distance('DD', 5, 0), 'Expected must be different. (DD b)');
-  PERFORM p_assert(-16 = axis_shift_distance('DD', 0, 2), 'Expected must be different. (DD c)');
+  PERFORM p_assert(  0 = axis_shift_distance('DD', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (DD a)');
+  PERFORM p_assert( 40 = axis_shift_distance('DD', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (DD b)');
+  PERFORM p_assert(-16 = axis_shift_distance('DD', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (DD c)');
 
-  PERFORM p_assert( 56 = axis_shift_distance('DU', 0, 0), 'Expected must be different. (DU a)');
-  PERFORM p_assert( 16 = axis_shift_distance('DU', 5, 0), 'Expected must be different. (DU b)');
-  PERFORM p_assert( 40 = axis_shift_distance('DU', 0, 2), 'Expected must be different. (DU c)');
+  PERFORM p_assert( 56 = axis_shift_distance('DU', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (DU a)');
+  PERFORM p_assert( 16 = axis_shift_distance('DU', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (DU b)');
+  PERFORM p_assert( 40 = axis_shift_distance('DU', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (DU c)');
 END;
 $$ LANGUAGE plpgsql;
 

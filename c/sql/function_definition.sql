@@ -268,10 +268,39 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION square_populate_addictional_fields() RETURNS VOID AS $$
 DECLARE
+  -- This array has sixtyfour entries. The index, having range 0-63, represent one of the squares
+  -- of the table. Each entry is a bitboard mask having set all the squares that are
+  -- reachable moving along the eigth directions, when starting from the square identified by
+  -- the index itself.
+  --
+  -- WARNING: the definition should be square_set[] but as stated by the official documentation: "Arrays of domains are not yet supported.".
+  --
+  move_mask_for_all_directions_init_data CONSTANT BIGINT[] := array[
+    (x'81412111090503FE')::BIGINT, (x'02824222120A07FD')::BIGINT, (x'0404844424150EFB')::BIGINT, (x'08080888492A1CF7')::BIGINT,
+    (x'10101011925438EF')::BIGINT, (x'2020212224A870DF')::BIGINT, (x'404142444850E0BF')::BIGINT, (x'8182848890A0C07F')::BIGINT,
+    (x'412111090503FE03')::BIGINT, (x'824222120A07FD07')::BIGINT, (x'04844424150EFB0E')::BIGINT, (x'080888492A1CF71C')::BIGINT,
+    (x'101011925438EF38')::BIGINT, (x'20212224A870DF70')::BIGINT, (x'4142444850E0BFE0')::BIGINT, (x'82848890A0C07FC0')::BIGINT,
+    (x'2111090503FE0305')::BIGINT, (x'4222120A07FD070A')::BIGINT, (x'844424150EFB0E15')::BIGINT, (x'0888492A1CF71C2A')::BIGINT,
+    (x'1011925438EF3854')::BIGINT, (x'212224A870DF70A8')::BIGINT, (x'42444850E0BFE050')::BIGINT, (x'848890A0C07FC0A0')::BIGINT,
+    (x'11090503FE030509')::BIGINT, (x'22120A07FD070A12')::BIGINT, (x'4424150EFB0E1524')::BIGINT, (x'88492A1CF71C2A49')::BIGINT,
+    (x'11925438EF385492')::BIGINT, (x'2224A870DF70A824')::BIGINT, (x'444850E0BFE05048')::BIGINT, (x'8890A0C07FC0A090')::BIGINT,
+    (x'090503FE03050911')::BIGINT, (x'120A07FD070A1222')::BIGINT, (x'24150EFB0E152444')::BIGINT, (x'492A1CF71C2A4988')::BIGINT,
+    (x'925438EF38549211')::BIGINT, (x'24A870DF70A82422')::BIGINT, (x'4850E0BFE0504844')::BIGINT, (x'90A0C07FC0A09088')::BIGINT,
+    (x'0503FE0305091121')::BIGINT, (x'0A07FD070A122242')::BIGINT, (x'150EFB0E15244484')::BIGINT, (x'2A1CF71C2A498808')::BIGINT,
+    (x'5438EF3854921110')::BIGINT, (x'A870DF70A8242221')::BIGINT, (x'50E0BFE050484442')::BIGINT, (x'A0C07FC0A0908884')::BIGINT,
+    (x'03FE030509112141')::BIGINT, (x'07FD070A12224282')::BIGINT, (x'0EFB0E1524448404')::BIGINT, (x'1CF71C2A49880808')::BIGINT,
+    (x'38EF385492111010')::BIGINT, (x'70DF70A824222120')::BIGINT, (x'E0BFE05048444241')::BIGINT, (x'C07FC0A090888482')::BIGINT,
+    (x'FE03050911214181')::BIGINT, (x'FD070A1222428202')::BIGINT, (x'FB0E152444840404')::BIGINT, (x'F71C2A4988080808')::BIGINT,
+    (x'EF38549211101010')::BIGINT, (x'DF70A82422212020')::BIGINT, (x'BFE0504844424140')::BIGINT, (x'7FC0A09088848281')::BIGINT
+  ];
   r square_info;
 BEGIN
   FOR r IN SELECT * FROM square_info LOOP
-    UPDATE square_info SET sq_column = r.ordinal % 8, sq_row = r.ordinal / 8
+    UPDATE square_info
+    SET
+      sq_column = r.ordinal % 8,
+      sq_row = r.ordinal / 8,
+      move_mask_for_all_directions = move_mask_for_all_directions_init_data[r.ordinal + 1]
     WHERE id = r.id;
   END LOOP;
 END;
@@ -430,6 +459,50 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Maps back the principal line of each axis from row one.
+--
+-- Returns a square set having the bits along the axis reference file set to
+-- the corresponding ones on the bitrow parameter 0..7, all other position are set to zero.
+--
+CREATE OR REPLACE FUNCTION axis_transform_back_from_row_one(axis axis, bitrow BIGINT) RETURNS square_set AS $$
+DECLARE
+  column_a            CONSTANT square_set := (x'0101010101010101')::square_set;
+  diagonal_a1_h8      CONSTANT square_set := (x'8040201008040201')::square_set;
+  diagonal_h1_a8      CONSTANT square_set := (x'0102040810204080')::square_set;
+  squares_b1_f1_a2_e2 CONSTANT square_set := (x'0000000000001122')::square_set;
+
+  tmp square_set;
+BEGIN
+  CASE axis
+    WHEN 'HO' THEN RETURN bitrow;
+    WHEN 'VE' THEN
+      tmp := bitrow;
+      tmp := tmp | (tmp <<  7);
+      tmp := tmp | (tmp << 14);
+      tmp := tmp | (tmp << 28);
+      RETURN tmp & column_a;
+    WHEN 'DD' THEN
+      tmp := bitrow;
+      tmp := tmp | (tmp <<  8);
+      tmp := tmp | (tmp << 16);
+      tmp := tmp | (tmp << 32);
+      RETURN tmp & diagonal_a1_h8;
+    WHEN 'DU' THEN
+      tmp := bitrow;
+      tmp := tmp | (tmp << 8);
+      tmp := tmp | ((tmp & squares_b1_f1_a2_e2) << 16);
+      tmp := tmp | (tmp << 32);
+      RETURN tmp & diagonal_h1_a8;
+    ELSE
+      RAISE EXCEPTION 'Parameter axis out of range.';
+  END CASE;
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Returns the ordinal position of the move.
 --
 -- Tests written.
@@ -450,7 +523,7 @@ $$ LANGUAGE plpgsql;
 --
 -- Tests written.
 --
-CREATE OR REPLACE FUNCTION axis_shift_distance(axis axis, move_column INT, move_row INT) RETURNS INT AS $$
+CREATE OR REPLACE FUNCTION axis_shift_distance(axis axis, move_column SMALLINT, move_row SMALLINT) RETURNS SMALLINT AS $$
 BEGIN
   IF axis = 'HO' THEN
     RETURN -move_row << 3;
@@ -758,7 +831,7 @@ DECLARE
   o_square_set          square_set;
   move_column           SMALLINT;
   move_row              SMALLINT;
-  axis                  RECORD;
+  axis_record           RECORD;
   move_ordinal_position SMALLINT;
   shift_distance        INTEGER;
   p_bitrow              SMALLINT;
@@ -776,11 +849,11 @@ BEGIN
   END IF;
   move_column := move_ordinal % 8;
   move_row    := move_ordinal / 8;
-  FOR axis IN SELECT id, ordinal FROM axis_info ORDER BY ordinal LOOP
-    move_ordinal_position := axis_move_ordinal_position_in_bitrow(axis.id, move_column, move_row);
-    shift_distance := axis_shift_distance(axis.id, move_column, move_row);
-    p_bitrow := axis_transform_to_row_one(axis.id, bit_works_signed_left_shift(p_square_set, shift_distance));
-    o_bitrow := axis_transform_to_row_one(axis.id, bit_works_signed_left_shift(o_square_set, shift_distance));
+  FOR axis_record IN SELECT id, ordinal FROM axis_info ORDER BY ordinal LOOP
+    move_ordinal_position := axis_move_ordinal_position_in_bitrow(axis_record.id, move_column, move_row);
+    shift_distance := axis_shift_distance(axis_record.id, move_column, move_row);
+    p_bitrow := axis_transform_to_row_one(axis_record.id, bit_works_signed_left_shift(p_square_set, shift_distance));
+    o_bitrow := axis_transform_to_row_one(axis_record.id, bit_works_signed_left_shift(o_square_set, shift_distance));
     IF (board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position) != p_bitrow) THEN
       RETURN TRUE;
     END IF;
@@ -835,48 +908,37 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION game_position_make_move(gp game_position, game_move square) RETURNS game_position AS $$
 DECLARE
-  player       CONSTANT player     := gp.player;
-  opponent     CONSTANT player     := player_opponent(player);
-  p_square_set CONSTANT square_set := game_position_get_square_set_for_player(gp);
-  o_square_set CONSTANT square_set := game_position_get_square_set_for_opponent(gp);
-  move_column  CONSTANT SMALLINT   := square_get_column(game_move);
-  move_row     CONSTANT SMALLINT   := square_get_row(game_move);
-  /*
-  const Player p = gp->player;
-  const Player o = player_opponent(p);
-  const Board *b = gp->board;
-  const SquareSet p_bit_board = board_get_player(b, p);
-  const SquareSet o_bit_board = board_get_player(b, o);
-  const int column = move % 8;
-  const int row = move / 8;
-  */
-  axis RECORD;
+  player         CONSTANT player     := gp.player;
+  opponent       CONSTANT player     := player_opponent(player);
+  p_square_set   CONSTANT square_set := game_position_get_square_set_for_player(gp);
+  o_square_set   CONSTANT square_set := game_position_get_square_set_for_opponent(gp);
+  move_column    CONSTANT SMALLINT   := square_get_column(game_move);
+  move_row       CONSTANT SMALLINT   := square_get_row(game_move);
+  unmodified_set CONSTANT square_set := ~(SELECT move_mask_for_all_directions FROM square_info WHERE id = game_move);
+
+  new_board             transient_board;
+  axis                  axis;
+  move_ordinal_position SMALLINT;
+  shift_distance        SMALLINT;
+  p_bitrow              SMALLINT;
+  o_bitrow              SMALLINT;
 BEGIN
-
-  RAISE NOTICE 'move_column=%, move_row=%', move_column, move_row;
-
-  /*
-  SquareSet new_bit_board[2];
-  const SquareSet unmodified_mask = ~bitboard_mask_for_all_directions[move];
-  new_bit_board[p] = p_bit_board & unmodified_mask;
-  new_bit_board[o] = o_bit_board & unmodified_mask;
-  */
-  
-  FOR axis IN SELECT id, ordinal FROM axis_info ORDER BY ordinal LOOP
+  new_board := (p_square_set & unmodified_set, o_square_set & unmodified_set);
+  FOREACH axis IN ARRAY (SELECT enum_range(NULL::axis)) LOOP
+    move_ordinal_position := axis_move_ordinal_position_in_bitrow(axis, move_column, move_row);
+    shift_distance := axis_shift_distance(axis, move_column, move_row);
+    p_bitrow := axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_square_set, shift_distance));
+    o_bitrow := axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_square_set, shift_distance));
+    p_bitrow := board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position);
+    o_bitrow := o_bitrow & ~p_bitrow;
+    new_board.p_square_set := new_board.p_square_set | bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, p_bitrow), -shift_distance); 
+    new_board.o_square_set := new_board.o_square_set | bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, o_bitrow), -shift_distance); 
+    RAISE NOTICE 'axis=%, move_ordinal_position=%, shift_distance=%', axis, move_ordinal_position, shift_distance;
   END LOOP;
-  /*
-  for (Axis axis = HO; axis <= DU; axis++) {
-    const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
-    const int shift_distance = axis_shift_distance(axis, column, row);
-    uint8 p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
-    uint8 o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
-    p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position);
-    o_bitrow &= ~p_bitrow;
-    new_bit_board[p] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, p_bitrow), -shift_distance);
-    new_bit_board[o] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, o_bitrow), -shift_distance);
-  }
-  */
-  RETURN (0::square_set, 0::square_set, 0::player);
-
+  IF opponent = 0 THEN
+    RETURN (new_board.o_square_set, new_board.p_square_set, opponent);
+  ELSE
+    RETURN (new_board.p_square_set, new_board.o_square_set, opponent);
+  END IF;
 END;
 $$ LANGUAGE plpgsql;
