@@ -502,29 +502,41 @@ $$ LANGUAGE plpgsql;
 
 
 --
--- Tests the game_position_empties function.
+-- Tests the board_populate_bitrow_changes_for_player function.
 --
-CREATE OR REPLACE FUNCTION test_game_position_empties() RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION test_board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
 DECLARE
-  fixture  RECORD;
-  gp       game_position;
-  computed square_set;
-  expected square_set;
+  entry_count INTEGER;
+  computed    SMALLINT;
 BEGIN
-  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'empty';
-  gp := fixture.gp;
-  computed := game_position_empties(gp);
-  expected := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-  PERFORM p_assert(expected = computed, 'The empty board must have 64 empties.');
+  SELECT COUNT(*) INTO STRICT entry_count FROM board_bitrow_changes_for_player;
+  PERFORM p_assert(524288 = entry_count, 'Expected must be different. (a)');
+ 
+  SELECT changes INTO STRICT computed FROM board_bitrow_changes_for_player WHERE id = 516;
+  PERFORM p_assert(7 = computed, 'Expected value of changes(id=516) is 7.');
+ 
+  SELECT changes INTO STRICT computed FROM board_bitrow_changes_for_player WHERE id = 33388;
+  PERFORM p_assert(111 = computed, 'Expected value of changes(id=33388) is 111.');
+END;
+$$ LANGUAGE plpgsql;
 
-  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'initial';
-  gp := fixture.gp;
-  computed := game_position_empties(gp);
+
+
 --
---                                   |1       2       3       4       5       6       7       8       |
---                                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
-  expected := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxx..xxxxxx..xxxxxxxxxxxxxxxxxxxxxxxxxxx');
-  PERFORM p_assert(expected = computed, 'The initial board must have 60 empties.');
+-- Tests the board_bitrow_changes_for_player function.
+--
+CREATE OR REPLACE FUNCTION test_board_bitrow_changes_for_player() RETURNS VOID AS $$
+DECLARE
+  player_row    SMALLINT;
+  opponent_row  SMALLINT;
+  move_position SMALLINT;
+  computed      SMALLINT;
+BEGIN
+  player_row    := 4;
+  opponent_row  := 2;
+  move_position := 0;
+  computed := board_bitrow_changes_for_player(player_row, opponent_row, move_position);
+  PERFORM p_assert(7 = computed, 'Expected value is 7.');
 END;
 $$ LANGUAGE plpgsql;
 
@@ -580,6 +592,57 @@ BEGIN
   computed := game_position_from_string(gp_string);
   expected := (1, 2, 1);
   PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the game_position_empties function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_empties() RETURNS VOID AS $$
+DECLARE
+  fixture  RECORD;
+  gp       game_position;
+  computed square_set;
+  expected square_set;
+BEGIN
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'empty';
+  gp := fixture.gp;
+  computed := game_position_empties(gp);
+  expected := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+  PERFORM p_assert(expected = computed, 'The empty board must have 64 empties.');
+
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'initial';
+  gp := fixture.gp;
+  computed := game_position_empties(gp);
+--
+--                                   |1       2       3       4       5       6       7       8       |
+--                                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+  expected := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxx..xxxxxx..xxxxxxxxxxxxxxxxxxxxxxxxxxx');
+  PERFORM p_assert(expected = computed, 'The initial board must have 60 empties.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the game_position_get_square_set_for_player function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_get_square_set_for_player() RETURNS VOID AS $$
+DECLARE
+BEGIN
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the game_position_get_square_set_for_opponent function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_get_square_set_for_opponent() RETURNS VOID AS $$
+DECLARE
+BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
@@ -655,46 +718,5 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION test_game_position_make_move() RETURNS VOID AS $$
 DECLARE
 BEGIN
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the board_populate_bitrow_changes_for_player function.
---
-CREATE OR REPLACE FUNCTION test_board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
-DECLARE
-  entry_count INTEGER;
-  computed    SMALLINT;
-BEGIN
-  SELECT COUNT(*) INTO STRICT entry_count FROM board_bitrow_changes_for_player;
-  PERFORM p_assert(524288 = entry_count, 'Expected must be different. (a)');
- 
-  SELECT changes INTO STRICT computed FROM board_bitrow_changes_for_player WHERE id = 516;
-  PERFORM p_assert(7 = computed, 'Expected value of changes(id=516) is 7.');
- 
-  SELECT changes INTO STRICT computed FROM board_bitrow_changes_for_player WHERE id = 33388;
-  PERFORM p_assert(111 = computed, 'Expected value of changes(id=33388) is 111.');
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the board_bitrow_changes_for_player function.
---
-CREATE OR REPLACE FUNCTION test_board_bitrow_changes_for_player() RETURNS VOID AS $$
-DECLARE
-  player_row    SMALLINT;
-  opponent_row  SMALLINT;
-  move_position SMALLINT;
-  computed      SMALLINT;
-BEGIN
-  player_row    := 4;
-  opponent_row  := 2;
-  move_position := 0;
-  computed := board_bitrow_changes_for_player(player_row, opponent_row, move_position);
-  PERFORM p_assert(7 = computed, 'Expected value is 7.');
 END;
 $$ LANGUAGE plpgsql;

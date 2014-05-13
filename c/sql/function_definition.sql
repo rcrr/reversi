@@ -686,6 +686,8 @@ $$ LANGUAGE plpgsql;
 --
 -- Returns an 8-bit row representation of the player pieces after applying the move.
 --
+-- Tests written.
+--
 CREATE OR REPLACE FUNCTION board_bitrow_changes_for_player(player_row SMALLINT, opponent_row SMALLINT, move_position SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
   bitrow_changes_for_player_index INTEGER;
