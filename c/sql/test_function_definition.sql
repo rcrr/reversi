@@ -397,6 +397,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+
 --
 -- Tests the square_set_from_string function.
 --
@@ -497,6 +498,8 @@ BEGIN
   PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
 END;
 $$ LANGUAGE plpgsql;
+
+
 
 --
 -- Tests the game_position_empties function.
@@ -641,6 +644,17 @@ BEGIN
   computed := game_position_legal_moves(fixture.gp);
   PERFORM p_assert('{"D4"}' = square_set_to_array(computed), 'Expected array is equal to {"D4"}');
 
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the game_position_make_move function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_make_move() RETURNS VOID AS $$
+DECLARE
+BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
