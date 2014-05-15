@@ -39,71 +39,337 @@ SET search_path TO reversi;
 
 
 --
--- Tests the direction_shift_square_set function.
+-- Tests the bit_works_bitscanMS1B_8 function.
 --
-CREATE OR REPLACE FUNCTION test_direction_shift_square_set() RETURNS VOID AS $$
-BEGIN
-  PERFORM p_assert( 2 = direction_shift_square_set('NE', (x'0000000000000100')::square_set), 'Expected result is 2.');
-
-  PERFORM p_assert((x'00FFFFFFFFFFFFFF')::square_set = direction_shift_square_set('N', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board N.');
-  PERFORM p_assert((x'7F7F7F7F7F7F7F7F')::square_set = direction_shift_square_set('W', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board W.');
-  PERFORM p_assert((x'FEFEFEFEFEFEFEFE')::square_set = direction_shift_square_set('E', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board E.');
-  PERFORM p_assert((x'FFFFFFFFFFFFFF00')::square_set = direction_shift_square_set('S', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board S.');
-
-  PERFORM p_assert((x'007F7F7F7F7F7F7F')::square_set = direction_shift_square_set('NW', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board NW.');
-  PERFORM p_assert((x'00FEFEFEFEFEFEFE')::square_set = direction_shift_square_set('NE', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board NE.');
-  PERFORM p_assert((x'7F7F7F7F7F7F7F00')::square_set = direction_shift_square_set('SW', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board SW.');
-  PERFORM p_assert((x'FEFEFEFEFEFEFE00')::square_set = direction_shift_square_set('SE', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board SE.');
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the axis_shift_distance function.
---
-CREATE OR REPLACE FUNCTION test_axis_shift_distance() RETURNS VOID AS $$
-BEGIN
-  PERFORM p_assert(  0 = axis_shift_distance('HO', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (HO a)');
-  PERFORM p_assert(  0 = axis_shift_distance('HO', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (HO b)');
-  PERFORM p_assert(-16 = axis_shift_distance('HO', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (HO c)');
-
-  PERFORM p_assert(  0 = axis_shift_distance('VE', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (VE a)');
-  PERFORM p_assert( -5 = axis_shift_distance('VE', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (VE b)');
-  PERFORM p_assert(  0 = axis_shift_distance('VE', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (VE c)');
-
-  PERFORM p_assert(  0 = axis_shift_distance('DD', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (DD a)');
-  PERFORM p_assert( 40 = axis_shift_distance('DD', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (DD b)');
-  PERFORM p_assert(-16 = axis_shift_distance('DD', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (DD c)');
-
-  PERFORM p_assert( 56 = axis_shift_distance('DU', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (DU a)');
-  PERFORM p_assert( 16 = axis_shift_distance('DU', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (DU b)');
-  PERFORM p_assert( 40 = axis_shift_distance('DU', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (DU c)');
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the axis_move_ordinal_position_in_bitrow function.
---
-CREATE OR REPLACE FUNCTION test_axis_move_ordinal_position_in_bitrow() RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION test_bit_works_bitscanMS1B_8() RETURNS VOID AS $$
 DECLARE
-  computed    SMALLINT;
-  expected    SMALLINT;
-  move_column SMALLINT;
-  move_row    SMALLINT;
+  computed SMALLINT;
+  expected SMALLINT;
 BEGIN
-  move_column := 3;
-  move_row    := 5;
-
-  expected := 3;
-  computed := axis_move_ordinal_position_in_bitrow('HO', move_column, move_row);
+  expected := 0;
+  computed := bit_works_bitscanMS1B_8(CAST (1 AS SMALLINT));
   PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
 
-  expected := 5;
-  computed := axis_move_ordinal_position_in_bitrow('VE', move_column, move_row);
+  expected := 1;
+  computed := bit_works_bitscanMS1B_8(CAST (2 AS SMALLINT));
   PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := 7;
+  computed := bit_works_bitscanMS1B_8(CAST (128 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 2;
+  computed := bit_works_bitscanMS1B_8(CAST (6 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the bit_works_bitscanLS1B_64 function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_bitscanLS1B_64() RETURNS VOID AS $$
+BEGIN
+  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64(1::BIGINT),                     'Expected value is  0.');
+  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((-1)::BIGINT),                  'Expected value is  0.');
+  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((x'0000000000000001')::BIGINT), 'Expected value is  0.');
+  PERFORM p_assert( 1 = bit_works_bitscanLS1B_64((x'0000000000000002')::BIGINT), 'Expected value is  1.');
+  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((x'0000000000000003')::BIGINT), 'Expected value is  0.');
+  PERFORM p_assert( 2 = bit_works_bitscanLS1B_64((x'0000000000000004')::BIGINT), 'Expected value is  2.');
+  PERFORM p_assert(63 = bit_works_bitscanLS1B_64((x'8000000000000000')::BIGINT), 'Expected value is 63.');
+  PERFORM p_assert(56 = bit_works_bitscanLS1B_64((x'FF00000000000000')::BIGINT), 'Expected value is 56.');
+  PERFORM p_assert(48 = bit_works_bitscanLS1B_64((x'00FF000000000000')::BIGINT), 'Expected value is 48.');
+  PERFORM p_assert(40 = bit_works_bitscanLS1B_64((x'0000FF0000000000')::BIGINT), 'Expected value is 40.');
+  PERFORM p_assert(32 = bit_works_bitscanLS1B_64((x'000000FF00000000')::BIGINT), 'Expected value is 32.');
+  PERFORM p_assert(24 = bit_works_bitscanLS1B_64((x'00000000FF000000')::BIGINT), 'Expected value is 24.');
+  PERFORM p_assert(16 = bit_works_bitscanLS1B_64((x'0000000000FF0000')::BIGINT), 'Expected value is 16.');
+  PERFORM p_assert( 8 = bit_works_bitscanLS1B_64((x'000000000000FF00')::BIGINT), 'Expected value is  8.');
+  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((x'00000000000000FF')::BIGINT), 'Expected value is  0.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the bit_works_fill_in_between_8 function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_fill_in_between_8() RETURNS VOID AS $$
+DECLARE
+  computed SMALLINT;
+  expected SMALLINT;
+BEGIN
+  expected := 0;
+  computed := bit_works_fill_in_between_8(CAST (1 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 0;
+  computed := bit_works_fill_in_between_8(CAST (128 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := 0;
+  computed := bit_works_fill_in_between_8(CAST (8 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 0;
+  computed := bit_works_fill_in_between_8(CAST (3 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+
+  expected := 8;
+  computed := bit_works_fill_in_between_8(CAST (20 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
+
+  expected := 126;
+  computed := bit_works_fill_in_between_8(CAST (129 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the bit_works_highest_bit_set_8 function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_highest_bit_set_8() RETURNS VOID AS $$
+DECLARE
+  computed SMALLINT;
+  expected SMALLINT;
+BEGIN
+  expected := 0;
+  computed := bit_works_highest_bit_set_8(CAST (0 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 1;
+  computed := bit_works_highest_bit_set_8(CAST (1 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := 1;
+  computed := bit_works_highest_bit_set_8(CAST (1 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 2;
+  computed := bit_works_highest_bit_set_8(CAST (2 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+
+  expected := 2;
+  computed := bit_works_highest_bit_set_8(CAST (3 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
+
+  expected := 128;
+  computed := bit_works_highest_bit_set_8(CAST (128 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
+
+  expected := 128;
+  computed := bit_works_highest_bit_set_8(CAST (255 AS SMALLINT));
+  PERFORM p_assert(expected = computed, 'Expected must be different. (g)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the bit_works_lowest_bit_set_8 function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_lowest_bit_set_8() RETURNS VOID AS $$
+DECLARE
+  computed SMALLINT;
+  expected SMALLINT;
+BEGIN
+  expected := 0;
+  computed := bit_works_lowest_bit_set_8(0::SMALLINT);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 1;
+  computed := bit_works_lowest_bit_set_8(1::SMALLINT);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := 2;
+  computed := bit_works_lowest_bit_set_8(2::SMALLINT);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 1;
+  computed := bit_works_lowest_bit_set_8(3::SMALLINT);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+
+  expected := 1;
+  computed := bit_works_lowest_bit_set_8(255::SMALLINT);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
+
+  expected := 128;
+  computed := bit_works_lowest_bit_set_8(128::SMALLINT);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the bit_works_signed_left_shift function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_signed_left_shift() RETURNS VOID AS $$
+DECLARE
+  computed BIGINT;
+  expected BIGINT;
+BEGIN
+  expected := 0;
+  computed := bit_works_signed_left_shift(CAST (0 AS BIGINT), 1);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 0;
+  computed := bit_works_signed_left_shift(CAST (0 AS BIGINT), -1);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := 2;
+  computed := bit_works_signed_left_shift(CAST (1 AS BIGINT), 1);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 6;
+  computed := bit_works_signed_left_shift(CAST (24 AS BIGINT), -2);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+
+  expected := -9223372036854775808;
+  computed := bit_works_signed_left_shift(CAST (1 AS BIGINT), 63);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
+
+  expected := 1;
+  computed := bit_works_signed_left_shift(CAST (-9223372036854775808 AS BIGINT), -63);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+--
+-- Tests the player_to_string function.
+--
+CREATE OR REPLACE FUNCTION test_player_to_string() RETURNS VOID AS $$
+DECLARE
+  computed CHAR(1);
+  expected CHAR(1);
+  pl       player;
+BEGIN
+  pl := 0;
+  expected := 'b';
+  computed := player_to_string(pl);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  pl := 1;
+  expected := 'w';
+  computed := player_to_string(pl);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the player_opponent function.
+--
+CREATE OR REPLACE FUNCTION test_player_opponent() RETURNS VOID AS $$
+DECLARE
+BEGIN
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the square_get_column function.
+--
+CREATE OR REPLACE FUNCTION test_square_get_column() RETURNS VOID AS $$
+DECLARE
+BEGIN
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the square_get_row function.
+--
+CREATE OR REPLACE FUNCTION test_square_get_row() RETURNS VOID AS $$
+DECLARE
+BEGIN
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the square_set_to_string function.
+--
+CREATE OR REPLACE FUNCTION test_square_set_to_string() RETURNS VOID AS $$
+DECLARE
+  computed CHAR(64);
+  expected CHAR(64);
+BEGIN
+  expected := '................................................................';
+  computed := square_set_to_string(0);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
+
+  expected := 'x...............................................................';
+  computed := square_set_to_string(1);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
+
+  expected := '..xx............................................................';
+  computed := square_set_to_string(12);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
+
+  expected := 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+  computed := square_set_to_string(-1);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
+
+  expected := 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.';
+  computed := square_set_to_string(9223372036854775807);
+  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the square_set_from_string function.
+--
+CREATE OR REPLACE FUNCTION test_square_set_from_string() RETURNS VOID AS $$
+DECLARE
+  computed square_set;
+  expected square_set;
+BEGIN
+  expected := 0;
+  computed := square_set_from_string('................................................................');
+  PERFORM p_assert(expected = computed, 'Square set must be 0.');
+
+  expected := 1;
+  computed := square_set_from_string('x...............................................................');
+  PERFORM p_assert(expected = computed, 'Square set must be 1.');
+
+  expected := 12;
+  computed := square_set_from_string('..xx............................................................');
+  PERFORM p_assert(expected = computed, 'Square set must be 12.');
+
+  expected := -1;
+  computed := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+  PERFORM p_assert(expected = computed, 'Square set must be -1.');
+
+  expected := 9223372036854775807;
+  computed := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.');
+  PERFORM p_assert(expected = computed, 'Square set must be 9223372036854775807.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the square_set_to_array function.
+--
+CREATE OR REPLACE FUNCTION test_square_set_to_array() RETURNS VOID AS $$
+BEGIN
+  PERFORM p_assert('{"A1"}'       = square_set_to_array(1::square_set), 'Expected result is A1.');
+  PERFORM p_assert('{"B1"}'       = square_set_to_array(2::square_set), 'Expected result is B1.');
+  PERFORM p_assert('{"A1", "B1"}' = square_set_to_array(3::square_set), 'Expected result is A1, B1.');
+
+  PERFORM p_assert('{}' = square_set_to_array(0::square_set), 'Expected result is an empty array.');
+
+  PERFORM p_assert(64 = array_length(square_set_to_array((-1)::square_set), 1), 'Expected result is 64.');
 END;
 $$ LANGUAGE plpgsql;
 
@@ -198,304 +464,93 @@ $$ LANGUAGE plpgsql;
 
 
 --
--- Tests the bit_works_signed_left_shift function.
+-- Tests the axis_transform_back_from_row_one function.
 --
-CREATE OR REPLACE FUNCTION test_bit_works_signed_left_shift() RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION test_axis_transform_back_from_row_one() RETURNS VOID AS $$
 DECLARE
-  computed BIGINT;
-  expected BIGINT;
 BEGIN
-  expected := 0;
-  computed := bit_works_signed_left_shift(CAST (0 AS BIGINT), 1);
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the axis_move_ordinal_position_in_bitrow function.
+--
+CREATE OR REPLACE FUNCTION test_axis_move_ordinal_position_in_bitrow() RETURNS VOID AS $$
+DECLARE
+  computed    SMALLINT;
+  expected    SMALLINT;
+  move_column SMALLINT;
+  move_row    SMALLINT;
+BEGIN
+  move_column := 3;
+  move_row    := 5;
+
+  expected := 3;
+  computed := axis_move_ordinal_position_in_bitrow('HO', move_column, move_row);
   PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
 
-  expected := 0;
-  computed := bit_works_signed_left_shift(CAST (0 AS BIGINT), -1);
+  expected := 5;
+  computed := axis_move_ordinal_position_in_bitrow('VE', move_column, move_row);
   PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
-
-  expected := 2;
-  computed := bit_works_signed_left_shift(CAST (1 AS BIGINT), 1);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
-
-  expected := 6;
-  computed := bit_works_signed_left_shift(CAST (24 AS BIGINT), -2);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
-
-  expected := -9223372036854775808;
-  computed := bit_works_signed_left_shift(CAST (1 AS BIGINT), 63);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
-
-  expected := 1;
-  computed := bit_works_signed_left_shift(CAST (-9223372036854775808 AS BIGINT), -63);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
 END;
 $$ LANGUAGE plpgsql;
 
 
 
 --
--- Tests the bit_works_lowest_bit_set_8 function.
+-- Tests the axis_shift_distance function.
 --
-CREATE OR REPLACE FUNCTION test_bit_works_lowest_bit_set_8() RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION test_axis_shift_distance() RETURNS VOID AS $$
+BEGIN
+  PERFORM p_assert(  0 = axis_shift_distance('HO', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (HO a)');
+  PERFORM p_assert(  0 = axis_shift_distance('HO', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (HO b)');
+  PERFORM p_assert(-16 = axis_shift_distance('HO', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (HO c)');
+
+  PERFORM p_assert(  0 = axis_shift_distance('VE', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (VE a)');
+  PERFORM p_assert( -5 = axis_shift_distance('VE', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (VE b)');
+  PERFORM p_assert(  0 = axis_shift_distance('VE', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (VE c)');
+
+  PERFORM p_assert(  0 = axis_shift_distance('DD', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (DD a)');
+  PERFORM p_assert( 40 = axis_shift_distance('DD', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (DD b)');
+  PERFORM p_assert(-16 = axis_shift_distance('DD', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (DD c)');
+
+  PERFORM p_assert( 56 = axis_shift_distance('DU', 0::SMALLINT, 0::SMALLINT), 'Expected must be different. (DU a)');
+  PERFORM p_assert( 16 = axis_shift_distance('DU', 5::SMALLINT, 0::SMALLINT), 'Expected must be different. (DU b)');
+  PERFORM p_assert( 40 = axis_shift_distance('DU', 0::SMALLINT, 2::SMALLINT), 'Expected must be different. (DU c)');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the direction_shift_square_set function.
+--
+CREATE OR REPLACE FUNCTION test_direction_shift_square_set() RETURNS VOID AS $$
+BEGIN
+  PERFORM p_assert( 2 = direction_shift_square_set('NE', (x'0000000000000100')::square_set), 'Expected result is 2.');
+
+  PERFORM p_assert((x'00FFFFFFFFFFFFFF')::square_set = direction_shift_square_set('N', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board N.');
+  PERFORM p_assert((x'7F7F7F7F7F7F7F7F')::square_set = direction_shift_square_set('W', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board W.');
+  PERFORM p_assert((x'FEFEFEFEFEFEFEFE')::square_set = direction_shift_square_set('E', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board E.');
+  PERFORM p_assert((x'FFFFFFFFFFFFFF00')::square_set = direction_shift_square_set('S', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board S.');
+
+  PERFORM p_assert((x'007F7F7F7F7F7F7F')::square_set = direction_shift_square_set('NW', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board NW.');
+  PERFORM p_assert((x'00FEFEFEFEFEFEFE')::square_set = direction_shift_square_set('NE', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board NE.');
+  PERFORM p_assert((x'7F7F7F7F7F7F7F00')::square_set = direction_shift_square_set('SW', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board SW.');
+  PERFORM p_assert((x'FEFEFEFEFEFEFE00')::square_set = direction_shift_square_set('SE', (x'FFFFFFFFFFFFFFFF')::square_set), 'Shifting the board SE.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the direction_shift_back_square_set_by_amount function.
+--
+CREATE OR REPLACE FUNCTION test_direction_shift_back_square_set_by_amount() RETURNS VOID AS $$
 DECLARE
-  computed SMALLINT;
-  expected SMALLINT;
 BEGIN
-  expected := 0;
-  computed := bit_works_lowest_bit_set_8(0::SMALLINT);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
-
-  expected := 1;
-  computed := bit_works_lowest_bit_set_8(1::SMALLINT);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
-
-  expected := 2;
-  computed := bit_works_lowest_bit_set_8(2::SMALLINT);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
-
-  expected := 1;
-  computed := bit_works_lowest_bit_set_8(3::SMALLINT);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
-
-  expected := 1;
-  computed := bit_works_lowest_bit_set_8(255::SMALLINT);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
-
-  expected := 128;
-  computed := bit_works_lowest_bit_set_8(128::SMALLINT);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the bit_works_highest_bit_set_8 function.
---
-CREATE OR REPLACE FUNCTION test_bit_works_highest_bit_set_8() RETURNS VOID AS $$
-DECLARE
-  computed SMALLINT;
-  expected SMALLINT;
-BEGIN
-  expected := 0;
-  computed := bit_works_highest_bit_set_8(CAST (0 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
-
-  expected := 1;
-  computed := bit_works_highest_bit_set_8(CAST (1 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
-
-  expected := 1;
-  computed := bit_works_highest_bit_set_8(CAST (1 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
-
-  expected := 2;
-  computed := bit_works_highest_bit_set_8(CAST (2 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
-
-  expected := 2;
-  computed := bit_works_highest_bit_set_8(CAST (3 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
-
-  expected := 128;
-  computed := bit_works_highest_bit_set_8(CAST (128 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
-
-  expected := 128;
-  computed := bit_works_highest_bit_set_8(CAST (255 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (g)');
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the bit_works_bitscanLS1B_64 function.
---
-CREATE OR REPLACE FUNCTION test_bit_works_bitscanLS1B_64() RETURNS VOID AS $$
-BEGIN
-  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64(1::BIGINT),                     'Expected value is  0.');
-  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((-1)::BIGINT),                  'Expected value is  0.');
-  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((x'0000000000000001')::BIGINT), 'Expected value is  0.');
-  PERFORM p_assert( 1 = bit_works_bitscanLS1B_64((x'0000000000000002')::BIGINT), 'Expected value is  1.');
-  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((x'0000000000000003')::BIGINT), 'Expected value is  0.');
-  PERFORM p_assert( 2 = bit_works_bitscanLS1B_64((x'0000000000000004')::BIGINT), 'Expected value is  2.');
-  PERFORM p_assert(63 = bit_works_bitscanLS1B_64((x'8000000000000000')::BIGINT), 'Expected value is 63.');
-  PERFORM p_assert(56 = bit_works_bitscanLS1B_64((x'FF00000000000000')::BIGINT), 'Expected value is 56.');
-  PERFORM p_assert(48 = bit_works_bitscanLS1B_64((x'00FF000000000000')::BIGINT), 'Expected value is 48.');
-  PERFORM p_assert(40 = bit_works_bitscanLS1B_64((x'0000FF0000000000')::BIGINT), 'Expected value is 40.');
-  PERFORM p_assert(32 = bit_works_bitscanLS1B_64((x'000000FF00000000')::BIGINT), 'Expected value is 32.');
-  PERFORM p_assert(24 = bit_works_bitscanLS1B_64((x'00000000FF000000')::BIGINT), 'Expected value is 24.');
-  PERFORM p_assert(16 = bit_works_bitscanLS1B_64((x'0000000000FF0000')::BIGINT), 'Expected value is 16.');
-  PERFORM p_assert( 8 = bit_works_bitscanLS1B_64((x'000000000000FF00')::BIGINT), 'Expected value is  8.');
-  PERFORM p_assert( 0 = bit_works_bitscanLS1B_64((x'00000000000000FF')::BIGINT), 'Expected value is  0.');
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the bit_works_bitscanMS1B_8 function.
---
-CREATE OR REPLACE FUNCTION test_bit_works_bitscanMS1B_8() RETURNS VOID AS $$
-DECLARE
-  computed SMALLINT;
-  expected SMALLINT;
-BEGIN
-  expected := 0;
-  computed := bit_works_bitscanMS1B_8(CAST (1 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
-
-  expected := 1;
-  computed := bit_works_bitscanMS1B_8(CAST (2 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
-
-  expected := 7;
-  computed := bit_works_bitscanMS1B_8(CAST (128 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
-
-  expected := 2;
-  computed := bit_works_bitscanMS1B_8(CAST (6 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the bit_works_fill_in_between_8 function.
---
-CREATE OR REPLACE FUNCTION test_bit_works_fill_in_between_8() RETURNS VOID AS $$
-DECLARE
-  computed SMALLINT;
-  expected SMALLINT;
-BEGIN
-  expected := 0;
-  computed := bit_works_fill_in_between_8(CAST (1 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
-
-  expected := 0;
-  computed := bit_works_fill_in_between_8(CAST (128 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
-
-  expected := 0;
-  computed := bit_works_fill_in_between_8(CAST (8 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
-
-  expected := 0;
-  computed := bit_works_fill_in_between_8(CAST (3 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
-
-  expected := 8;
-  computed := bit_works_fill_in_between_8(CAST (20 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
-
-  expected := 126;
-  computed := bit_works_fill_in_between_8(CAST (129 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected must be different. (f)');
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the square_set_from_string function.
---
-CREATE OR REPLACE FUNCTION test_square_set_from_string() RETURNS VOID AS $$
-DECLARE
-  computed square_set;
-  expected square_set;
-BEGIN
-  expected := 0;
-  computed := square_set_from_string('................................................................');
-  PERFORM p_assert(expected = computed, 'Square set must be 0.');
-
-  expected := 1;
-  computed := square_set_from_string('x...............................................................');
-  PERFORM p_assert(expected = computed, 'Square set must be 1.');
-
-  expected := 12;
-  computed := square_set_from_string('..xx............................................................');
-  PERFORM p_assert(expected = computed, 'Square set must be 12.');
-
-  expected := -1;
-  computed := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-  PERFORM p_assert(expected = computed, 'Square set must be -1.');
-
-  expected := 9223372036854775807;
-  computed := square_set_from_string('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.');
-  PERFORM p_assert(expected = computed, 'Square set must be 9223372036854775807.');
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the square_set_to_string function.
---
-CREATE OR REPLACE FUNCTION test_square_set_to_string() RETURNS VOID AS $$
-DECLARE
-  computed CHAR(64);
-  expected CHAR(64);
-BEGIN
-  expected := '................................................................';
-  computed := square_set_to_string(0);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
-
-  expected := 'x...............................................................';
-  computed := square_set_to_string(1);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
-
-  expected := '..xx............................................................';
-  computed := square_set_to_string(12);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (c)');
-
-  expected := 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
-  computed := square_set_to_string(-1);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (d)');
-
-  expected := 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.';
-  computed := square_set_to_string(9223372036854775807);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (e)');
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the square_set_to_array function.
---
-CREATE OR REPLACE FUNCTION test_square_set_to_array() RETURNS VOID AS $$
-BEGIN
-  PERFORM p_assert('{"A1"}'       = square_set_to_array(1::square_set), 'Expected result is A1.');
-  PERFORM p_assert('{"B1"}'       = square_set_to_array(2::square_set), 'Expected result is B1.');
-  PERFORM p_assert('{"A1", "B1"}' = square_set_to_array(3::square_set), 'Expected result is A1, B1.');
-
-  PERFORM p_assert('{}' = square_set_to_array(0::square_set), 'Expected result is an empty array.');
-
-  PERFORM p_assert(64 = array_length(square_set_to_array((-1)::square_set), 1), 'Expected result is 64.');
-END;
-$$ LANGUAGE plpgsql;
-
-
---
--- Tests the player_to_string function.
---
-CREATE OR REPLACE FUNCTION test_player_to_string() RETURNS VOID AS $$
-DECLARE
-  computed CHAR(1);
-  expected CHAR(1);
-  pl       player;
-BEGIN
-  pl := 0;
-  expected := 'b';
-  computed := player_to_string(pl);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (a)');
-
-  pl := 1;
-  expected := 'w';
-  computed := player_to_string(pl);
-  PERFORM p_assert(expected = computed, 'Expected must be different. (b)');
 END;
 $$ LANGUAGE plpgsql;
 
