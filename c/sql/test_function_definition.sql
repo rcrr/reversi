@@ -275,6 +275,26 @@ $$ LANGUAGE plpgsql;
 --
 -- Tests the square_get_column function.
 --
+CREATE OR REPLACE FUNCTION test_square_populate_addictional_fields() RETURNS VOID AS $$
+DECLARE
+  entry_count INTEGER;
+  rec         RECORD;
+BEGIN
+  SELECT COUNT(*) INTO STRICT entry_count FROM square_info;
+  PERFORM p_assert(64 = entry_count, 'Expected entry_count for square_info is 64.');
+
+  SELECT * INTO STRICT rec FROM square_info WHERE id = 'H4';
+  PERFORM p_assert(31 = rec.ordinal, 'Expected ordinal value for H4 is 31.');
+  PERFORM p_assert(7 = rec.sq_column, 'Expected sq_column value for H4 is 7.');
+  PERFORM p_assert(3 = rec.sq_row, 'Expected sq_row value for H4 is 3.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the square_get_column function.
+--
 CREATE OR REPLACE FUNCTION test_square_get_column() RETURNS VOID AS $$
 DECLARE
 BEGIN
@@ -566,7 +586,7 @@ DECLARE
 BEGIN
   SELECT COUNT(*) INTO STRICT entry_count FROM board_bitrow_changes_for_player;
   PERFORM p_assert(524288 = entry_count, 'Expected must be different. (a)');
- 
+
   SELECT changes INTO STRICT computed FROM board_bitrow_changes_for_player WHERE id = 516;
   PERFORM p_assert(7 = computed, 'Expected value of changes(id=516) is 7.');
  

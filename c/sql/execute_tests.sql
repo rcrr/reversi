@@ -36,31 +36,40 @@
 
 SET search_path TO reversi;
 
-SELECT test_bit_works_signed_left_shift();
-SELECT test_bit_works_highest_bit_set_8();
-SELECT test_bit_works_lowest_bit_set_8();
 SELECT test_bit_works_bitscanMS1B_8();
 SELECT test_bit_works_bitscanLS1B_64();
 SELECT test_bit_works_fill_in_between_8();
+SELECT test_bit_works_highest_bit_set_8();
+SELECT test_bit_works_lowest_bit_set_8();
+SELECT test_bit_works_signed_left_shift();
 
 SELECT test_player_to_string();
+SELECT test_player_opponent();
 
-SELECT test_square_set_from_string();
+SELECT test_square_populate_addictional_fields();
+SELECT test_square_get_column();
+SELECT test_square_get_row();
+
 SELECT test_square_set_to_string();
+SELECT test_square_set_from_string();
 SELECT test_square_set_to_array();
 
-SELECT test_game_position_empties();
-SELECT test_game_position_to_string();
-SELECT test_game_position_from_string();
-
+SELECT test_axis_transform_to_row_one();
+SELECT test_axis_transform_back_from_row_one();
 SELECT test_axis_move_ordinal_position_in_bitrow();
 SELECT test_axis_shift_distance();
-SELECT test_axis_transform_to_row_one();
 
 SELECT test_direction_shift_square_set();
+SELECT test_direction_shift_back_square_set_by_amount();
 
 SELECT test_board_populate_bitrow_changes_for_player();
 SELECT test_board_bitrow_changes_for_player();
 
+SELECT test_game_position_to_string();
+SELECT test_game_position_from_string();
+SELECT test_game_position_empties();
+SELECT test_game_position_get_square_set_for_player();
+SELECT test_game_position_get_square_set_for_opponent();
 SELECT test_game_position_is_move_legal();
 SELECT test_game_position_legal_moves();
+SELECT test_game_position_make_move();
