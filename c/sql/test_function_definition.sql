@@ -496,7 +496,13 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION test_axis_transform_back_from_row_one() RETURNS VOID AS $$
 DECLARE
+  bitrow BIGINT;
 BEGIN
+  bitrow := (x'FF')::BIGINT;
+  PERFORM p_assert((x'00000000000000FF')::square_set = axis_transform_back_from_row_one('HO', bitrow), 'Expected is row_1.');
+  PERFORM p_assert((x'0101010101010101')::square_set = axis_transform_back_from_row_one('VE', bitrow), 'Expected is column_a.');
+  PERFORM p_assert((x'8040201008040201')::square_set = axis_transform_back_from_row_one('DD', bitrow), 'Expected is diagonal_a1_h8.');
+  PERFORM p_assert((x'0102040810204080')::square_set = axis_transform_back_from_row_one('DU', bitrow), 'Expected is diagonal_h1_a8.');
 END;
 $$ LANGUAGE plpgsql;
 
