@@ -300,8 +300,10 @@ $$ LANGUAGE plpgsql;
 -- Tests the square_get_column function.
 --
 CREATE OR REPLACE FUNCTION test_square_get_column() RETURNS VOID AS $$
-DECLARE
 BEGIN
+  PERFORM p_assert(0 = square_get_column('A1'), 'The column of A1 is 0.');
+  PERFORM p_assert(2 = square_get_column('C4'), 'The column of C4 is 2.');
+  PERFORM p_assert(7 = square_get_column('H8'), 'The column of H8 is 7.');
 END;
 $$ LANGUAGE plpgsql;
 
@@ -311,8 +313,10 @@ $$ LANGUAGE plpgsql;
 -- Tests the square_get_row function.
 --
 CREATE OR REPLACE FUNCTION test_square_get_row() RETURNS VOID AS $$
-DECLARE
 BEGIN
+  PERFORM p_assert(0 = square_get_row('A1'), 'The row of A1 is 0.');
+  PERFORM p_assert(3 = square_get_row('C4'), 'The row of C4 is 3.');
+  PERFORM p_assert(7 = square_get_row('H8'), 'The row of H8 is 7.');
 END;
 $$ LANGUAGE plpgsql;
 
