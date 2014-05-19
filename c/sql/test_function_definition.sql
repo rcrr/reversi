@@ -266,7 +266,11 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION test_player_opponent() RETURNS VOID AS $$
 DECLARE
+  black player := 0;
+  white player := 1;
 BEGIN
+  PERFORM p_assert(white = player_opponent(black), 'White (1) is the opponent of Black (0).');
+  PERFORM p_assert(black = player_opponent(white), 'Black (0) is the opponent of White (1).');
 END;
 $$ LANGUAGE plpgsql;
 
