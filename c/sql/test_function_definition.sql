@@ -712,20 +712,16 @@ $$ LANGUAGE plpgsql;
 --
 -- Tests the game_position_get_square_set_for_player function.
 --
-CREATE OR REPLACE FUNCTION test_game_position_get_square_set_for_player() RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION test_game_position_get_square_set_for_player_opponent() RETURNS VOID AS $$
 DECLARE
+  blacks square_set := 1::square_set;
+  whites square_set := 2::square_set;
+  player player     := 1::player;
+  gp     game_position;
 BEGIN
-END;
-$$ LANGUAGE plpgsql;
-
-
-
---
--- Tests the game_position_get_square_set_for_opponent function.
---
-CREATE OR REPLACE FUNCTION test_game_position_get_square_set_for_opponent() RETURNS VOID AS $$
-DECLARE
-BEGIN
+  gp := (blacks, whites, player);
+  PERFORM p_assert(whites = game_position_get_square_set_for_player(gp),   'Expected result is 2::square_set.');
+  PERFORM p_assert(blacks = game_position_get_square_set_for_opponent(gp), 'Expected result is 1::square_set.');
 END;
 $$ LANGUAGE plpgsql;
 
