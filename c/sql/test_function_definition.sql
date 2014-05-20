@@ -584,7 +584,16 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION test_direction_shift_back_square_set_by_amount() RETURNS VOID AS $$
 DECLARE
+  full_set square_set := (x'FFFFFFFFFFFFFFFF')::square_set;
+  squares  square_set;
+  shift    INTEGER;
 BEGIN
+  squares := full_set;
+  shift   := 7;
+  FOR i IN 1..shift LOOP
+    squares = direction_shift_square_set('N', squares);
+  END LOOP;
+  PERFORM p_assert((x'FF00000000000000')::square_set = direction_shift_back_square_set_by_amount('S', squares, shift), 'Expected result is row_8 filled.');
 END;
 $$ LANGUAGE plpgsql;
 
