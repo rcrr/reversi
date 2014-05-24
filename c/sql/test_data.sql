@@ -79,6 +79,12 @@ INSERT INTO game_position_test_data (id, gp, description) VALUES
   --
   --
   --
+  --                                              |1       2       3       4       5       6       7       8       .|
+  --                                              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHP|
+  ('ffo-01-simplified', game_position_from_string('..bbbbb..wwwbb.w.wwwbbww.wbwwwbwwbbbwwbw..bwbwww.bbbwwww.wwwwwb.b'), 'From position ffo-01 executing two moves, A8 wins +18'),
+  --
+  --
+  --
   ('all-blacks',              game_position_from_string('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbw'), 'All blacks, white to move.');
   -- Template string used to insert a new entry: ('', game_position_from_string(''), ''),
 
