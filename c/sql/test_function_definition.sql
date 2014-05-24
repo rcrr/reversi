@@ -811,6 +811,28 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION test_game_position_make_move() RETURNS VOID AS $$
 DECLARE
+  fixture_before RECORD;
+  fixture_after  RECORD;
+  computed game_position;
 BEGIN
+  SELECT * INTO STRICT fixture_before FROM game_position_test_data WHERE id = 'make-move-test-case-a-before';
+  SELECT * INTO STRICT fixture_after  FROM game_position_test_data WHERE id = 'make-move-test-case-a-after';
+  computed := game_position_make_move(fixture_before.gp, 'D4');
+  PERFORM p_assert(fixture_after.gp = computed, 'Expected game position is equal to make-move-test-case-a-after');
+
+  SELECT * INTO STRICT fixture_before FROM game_position_test_data WHERE id = 'make-move-test-case-b-before';
+  SELECT * INTO STRICT fixture_after  FROM game_position_test_data WHERE id = 'make-move-test-case-b-after';
+  computed := game_position_make_move(fixture_before.gp, 'D4');
+  PERFORM p_assert(fixture_after.gp = computed, 'Expected game position is equal to make-move-test-case-b-after');
+
+  SELECT * INTO STRICT fixture_before FROM game_position_test_data WHERE id = 'make-move-test-case-c-before';
+  SELECT * INTO STRICT fixture_after  FROM game_position_test_data WHERE id = 'make-move-test-case-c-after';
+  computed := game_position_make_move(fixture_before.gp, 'D4');
+  PERFORM p_assert(fixture_after.gp = computed, 'Expected game position is equal to make-move-test-case-c-after');
+
+  SELECT * INTO STRICT fixture_before FROM game_position_test_data WHERE id = 'make-move-test-case-d-before';
+  SELECT * INTO STRICT fixture_after  FROM game_position_test_data WHERE id = 'make-move-test-case-d-after';
+  computed := game_position_make_move(fixture_before.gp, 'B4');
+  PERFORM p_assert(fixture_after.gp = computed, 'Expected game position is equal to make-move-test-case-d-after');
 END;
 $$ LANGUAGE plpgsql;

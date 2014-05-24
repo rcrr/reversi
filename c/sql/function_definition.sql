@@ -935,7 +935,6 @@ BEGIN
     o_bitrow := o_bitrow & ~p_bitrow;
     new_board.p_square_set := new_board.p_square_set | bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, p_bitrow), -shift_distance); 
     new_board.o_square_set := new_board.o_square_set | bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, o_bitrow), -shift_distance); 
-    RAISE NOTICE 'axis=%, move_ordinal_position=%, shift_distance=%', axis, move_ordinal_position, shift_distance;
   END LOOP;
   IF opponent = 0 THEN
     RETURN (new_board.o_square_set, new_board.p_square_set, opponent);
