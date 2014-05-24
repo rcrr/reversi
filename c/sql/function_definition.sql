@@ -56,7 +56,6 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns the index (0..7) of the most significant bit set in the bit_sequence parameter.
--- Tests written.
 --
 CREATE OR REPLACE FUNCTION bit_works_bitscanMS1B_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
@@ -145,8 +144,6 @@ $$ LANGUAGE plpgsql;
 --
 -- When the input data doesn't meet the requirements the result is unpredictable.
 --
--- Tests written.
---
 CREATE OR REPLACE FUNCTION bit_works_fill_in_between_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
   mask    SMALLINT;
@@ -167,8 +164,6 @@ $$ LANGUAGE plpgsql;
 -- When parameter bit_sequence is equal to 0 it returns 0.
 --
 -- Bits higher than 8 (the second byte of the smallint) are masked to 0.
---
--- Tests written.
 --
 CREATE OR REPLACE FUNCTION bit_works_highest_bit_set_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
@@ -200,8 +195,6 @@ $$ LANGUAGE plpgsql;
 -- Returns a bit sequence having one bit set, the lowest found
 -- in the bit_sequence parameter.
 --
--- Tests written.
---
 CREATE OR REPLACE FUNCTION bit_works_lowest_bit_set_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
   mask   SMALLINT;
@@ -219,8 +212,6 @@ $$ LANGUAGE plpgsql;
 -- Returns a value computed shifting the bit_sequence parameter
 -- to left by a signed amount given by the shift parameter.
 --
--- Tests written.
---
 CREATE OR REPLACE FUNCTION bit_works_signed_left_shift(bit_sequence BIGINT, shift INTEGER) RETURNS BIGINT AS $$
 BEGIN
   IF shift >= 0 THEN
@@ -232,12 +223,11 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+
 --
--- Returns a string describing the palyer.
+-- Returns a char describing the palyer.
 --
--- Tests written.
---
-CREATE OR REPLACE FUNCTION player_to_string(player player) RETURNS CHAR(1) AS $$
+CREATE OR REPLACE FUNCTION player_to_char(player player) RETURNS CHAR(1) AS $$
 DECLARE
   ret CHAR(1);
 BEGIN
@@ -245,6 +235,24 @@ BEGIN
     ret := 'b';
   ELSE
     ret := 'w';
+  END IF;
+  RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Returns a string describing the palyer.
+--
+CREATE OR REPLACE FUNCTION player_to_string(player player) RETURNS TEXT AS $$
+DECLARE
+  ret TEXT;
+BEGIN
+  IF player = 0 THEN
+    ret := 'BLACK';
+  ELSE
+    ret := 'WHITE';
   END IF;
   RETURN ret;
 END;
@@ -339,8 +347,6 @@ $$ LANGUAGE plpgsql;
 --
 -- Returns a string describing the square set.
 --
--- Tests written.
---
 CREATE OR REPLACE FUNCTION square_set_to_string(squares square_set) RETURNS CHAR(64) AS $$
 DECLARE
   ret CHAR(64);
@@ -361,8 +367,6 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns a square_set from the given string.
---
--- Tests written.
 --
 CREATE OR REPLACE FUNCTION square_set_from_string(ss_string CHAR(64)) RETURNS square_set AS $$
 DECLARE
@@ -420,8 +424,6 @@ $$ LANGUAGE plpgsql;
 --
 -- Shifting right should be done casting to BIT(64), but becouse we are protected by the bitwise and we can
 -- just skip it!
---
--- Tests written.
 --
 CREATE OR REPLACE FUNCTION axis_transform_to_row_one(axis axis, squares square_set) RETURNS SMALLINT AS $$
 DECLARE
@@ -505,8 +507,6 @@ $$ LANGUAGE plpgsql;
 --
 -- Returns the ordinal position of the move.
 --
--- Tests written.
---
 CREATE OR REPLACE FUNCTION axis_move_ordinal_position_in_bitrow(axis axis, move_column SMALLINT, move_row SMALLINT) RETURNS SMALLINT AS $$
 BEGIN
   IF  axis = 'VE' THEN
@@ -520,8 +520,6 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Computes the shift quantity.
---
--- Tests written.
 --
 CREATE OR REPLACE FUNCTION axis_shift_distance(axis axis, move_column SMALLINT, move_row SMALLINT) RETURNS SMALLINT AS $$
 BEGIN
@@ -546,8 +544,6 @@ $$ LANGUAGE plpgsql;
 -- squares parameter by one position on the board.
 --
 -- Parameter dir must belong to the direction enum.
---
--- Tests written.
 --
 CREATE OR REPLACE FUNCTION direction_shift_square_set(dir direction, squares square_set) RETURNS square_set AS $$
 DECLARE
@@ -605,8 +601,6 @@ $$ LANGUAGE plpgsql;
 -- Populates the table board_bitrow_changes_for_player.
 --
 -- The table must be empty before running the function.
---
--- Tests written.
 --
 CREATE OR REPLACE FUNCTION board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
 DECLARE
@@ -686,8 +680,6 @@ $$ LANGUAGE plpgsql;
 --
 -- Returns an 8-bit row representation of the player pieces after applying the move.
 --
--- Tests written.
---
 CREATE OR REPLACE FUNCTION board_bitrow_changes_for_player(player_row SMALLINT, opponent_row SMALLINT, move_position SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
   bitrow_changes_for_player_index INTEGER;
@@ -704,8 +696,6 @@ $$ LANGUAGE plpgsql;
 --
 -- Returns a string describing the board state.
 --
--- Tests written.
---
 CREATE OR REPLACE FUNCTION game_position_to_string(gp game_position) RETURNS CHAR(65) AS $$
 DECLARE
   ret  CHAR(65) := '';
@@ -721,7 +711,7 @@ BEGIN
       ret := ret || '.';
     END IF;
   END LOOP;
-  ret := ret || player_to_string(gp.player);
+  ret := ret || player_to_char(gp.player);
   RETURN ret;
 END;
 $$ LANGUAGE plpgsql;
@@ -730,8 +720,6 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns a game position from the given string.
---
--- Tests written.
 --
 CREATE OR REPLACE FUNCTION game_position_from_string(gp_string CHAR(65)) RETURNS game_position AS $$
 DECLARE
@@ -778,8 +766,6 @@ $$ LANGUAGE plpgsql;
 --
 -- Returns the set of empty squares.
 --
--- Tests written.
---
 CREATE OR REPLACE FUNCTION game_position_empties(gp game_position) RETURNS square_set AS $$
 BEGIN
   RETURN ~(gp.blacks | gp.whites);
@@ -789,7 +775,7 @@ $$ LANGUAGE plpgsql;
 
 
 --
--- Returns the set of empty squares.
+-- Returns the square set for the player.
 --
 CREATE OR REPLACE FUNCTION game_position_get_square_set_for_player(gp game_position) RETURNS square_set AS $$
 BEGIN
@@ -804,7 +790,7 @@ $$ LANGUAGE plpgsql;
 
 
 --
--- Returns the set of empty squares.
+-- Returns the square set for the opponent.
 --
 CREATE OR REPLACE FUNCTION game_position_get_square_set_for_opponent(gp game_position) RETURNS square_set AS $$
 BEGIN
@@ -820,8 +806,6 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Returns true if the move is legal.
---
--- Tests written.
 --
 CREATE OR REPLACE FUNCTION game_position_is_move_legal(gp game_position, move square) RETURNS BOOLEAN AS $$
 DECLARE
@@ -941,5 +925,42 @@ BEGIN
   ELSE
     RETURN (new_board.p_square_set, new_board.o_square_set, opponent);
   END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Executes a game move on the given position.
+--
+CREATE OR REPLACE FUNCTION game_position_pp(gp game_position) RETURNS TEXT AS $$
+DECLARE
+  new_line TEXT := E'\n';
+
+  i_sq INTEGER;
+  sq   square_set;
+  ret  TEXT;
+BEGIN
+  ret := '';
+  i_sq := 0;
+  ret := ret || '   a b c d e f g h ' || new_line;
+  FOR i_row IN 1..8 LOOP
+    ret := ret || i_row::TEXT || '  ';
+    FOR i_column IN 1..8 LOOP
+      sq := 1::square_set << i_sq;
+      IF sq & gp.blacks <> 0 THEN
+        ret := ret || 'O';
+      ELSEIF sq & gp.whites <> 0 THEN
+        ret := ret || '@';
+      ELSE
+        ret := ret || '.';
+      END IF;
+      ret := ret || ' ';
+      i_sq := i_sq + 1;
+    END LOOP;
+    ret := ret || new_line;
+  END LOOP;
+  ret := ret || 'Player to move: ' || player_to_string(gp.player);
+  RETURN ret;
 END;
 $$ LANGUAGE plpgsql;

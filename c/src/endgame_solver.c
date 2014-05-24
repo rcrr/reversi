@@ -7,12 +7,12 @@
  * @todo [done] Add to the solver selection a full MINIMAX implementation.
  *
  * @todo [done] Add to the solver selection an alpha-beta implementation that
- * sort the legal move list with a random function.
+ *       sort the legal move list with a random function.
  *
  * @todo Add to the exact_solver logging strategy a second file that logs
- * when the function returns. There we can add the return value and the
- * number of moves serched against the number of legal ones. This can give
- * back a kpi of the alpha-beta efficiency in cutting unrelevant branches.
+ *       when the function returns. There we can add the return value and the
+ *       number of moves serched against the number of legal ones. This can give
+ *       back a kpi of the alpha-beta efficiency in cutting unrelevant branches.
  *
  * @todo Refine and refactor the exact_solver implementation.
  *
@@ -25,9 +25,9 @@
  * @todo [done] Try to avoid having malloc/free calls during game tree expansion.
  *
  * @todo [done] Refactor the game-tree static stack implementation.
- * Avoid to put it in the stack (implement one call to malloc for the complete structure).
- * Pass the stack pointer in the parameter list.
- * Make the code as much readable as possible.
+ *       Avoid to put it in the stack (implement one call to malloc for the complete structure).
+ *       Pass the stack pointer in the parameter list.
+ *       Make the code as much readable as possible.
  * 
  * @todo Port the stack practice to all the other solver, refactor the structures used (Stack, NodeInfo, GamePositionX).
  *

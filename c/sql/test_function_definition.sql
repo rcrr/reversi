@@ -238,10 +238,11 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+
 --
--- Tests the player_to_string function.
+-- Tests the player_to_char function.
 --
-CREATE OR REPLACE FUNCTION test_player_to_string() RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION test_player_to_char() RETURNS VOID AS $$
 DECLARE
   computed CHAR(1);
   expected CHAR(1);
@@ -249,13 +250,36 @@ DECLARE
 BEGIN
   pl := 0;
   expected := 'b';
-  computed := player_to_string(pl);
+  computed := player_to_char(pl);
   PERFORM p_assert(expected = computed, 'Expected value is b.');
 
   pl := 1;
   expected := 'w';
-  computed := player_to_string(pl);
+  computed := player_to_char(pl);
   PERFORM p_assert(expected = computed, 'Expected value is w.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the player_to_string function.
+--
+CREATE OR REPLACE FUNCTION test_player_to_string() RETURNS VOID AS $$
+DECLARE
+  computed TEXT;
+  expected TEXT;
+  pl       player;
+BEGIN
+  pl := 0;
+  expected := 'BLACK';
+  computed := player_to_string(pl);
+  PERFORM p_assert(expected = computed, 'Expected value is BLACK.');
+
+  pl := 1;
+  expected := 'WHITE';
+  computed := player_to_string(pl);
+  PERFORM p_assert(expected = computed, 'Expected value is WHITE.');
 END;
 $$ LANGUAGE plpgsql;
 
@@ -834,5 +858,33 @@ BEGIN
   SELECT * INTO STRICT fixture_after  FROM game_position_test_data WHERE id = 'make-move-test-case-d-after';
   computed := game_position_make_move(fixture_before.gp, 'B4');
   PERFORM p_assert(fixture_after.gp = computed, 'Expected game position is equal to make-move-test-case-d-after');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the game_position_pp function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_pp() RETURNS VOID AS $$
+DECLARE
+  new_line TEXT := E'\n';
+
+  fixture  RECORD;
+  expected TEXT;
+BEGIN
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'black-has-to-pass';
+  expected := '';
+  expected := expected || '   a b c d e f g h ' || new_line;
+  expected := expected || '1  @ O . O . @ . . ' || new_line;
+  expected := expected || '2  O O O O O O O @ ' || new_line;
+  expected := expected || '3  . O @ @ O O @ @ ' || new_line;
+  expected := expected || '4  . O @ O @ @ @ @ ' || new_line;
+  expected := expected || '5  . O @ O @ @ @ @ ' || new_line;
+  expected := expected || '6  . O @ O O @ O @ ' || new_line;
+  expected := expected || '7  . O @ O O O O . ' || new_line;
+  expected := expected || '8  @ @ @ @ @ @ O @ ' || new_line;
+  expected := expected || 'Player to move: BLACK';
+  PERFORM p_assert(expected = game_position_pp(fixture.gp), 'Computed does not match with expected.');
 END;
 $$ LANGUAGE plpgsql;

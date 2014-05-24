@@ -43,6 +43,7 @@ SELECT test_bit_works_highest_bit_set_8();
 SELECT test_bit_works_lowest_bit_set_8();
 SELECT test_bit_works_signed_left_shift();
 
+SELECT test_player_to_char();
 SELECT test_player_to_string();
 SELECT test_player_opponent();
 
@@ -72,3 +73,4 @@ SELECT test_game_position_get_square_set_for_player_opponent();
 SELECT test_game_position_is_move_legal();
 SELECT test_game_position_legal_moves();
 SELECT test_game_position_make_move();
+SELECT test_game_position_pp();
