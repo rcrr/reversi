@@ -261,6 +261,16 @@ CREATE TYPE transient_board AS (
 
 
 --
+-- TYPE search_node
+--
+CREATE TYPE search_node AS (
+  game_move  square,
+  game_value SMALLINT
+);
+
+
+
+--
 -- The board_bitrow_changes_for_player collects the precomputed effects of moving
 -- a piece in any of the eigth squares in a row.
 -- The size is so computed:

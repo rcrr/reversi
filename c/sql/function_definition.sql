@@ -931,6 +931,17 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Executes a game pass move on the given position.
+--
+CREATE OR REPLACE FUNCTION game_position_pass(gp game_position) RETURNS game_position AS $$
+BEGIN
+  RETURN (gp.blacks, gp.whites, player_opponent(gp.player));
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Executes a game move on the given position.
 --
 CREATE OR REPLACE FUNCTION game_position_pp(gp game_position) RETURNS TEXT AS $$
@@ -962,5 +973,27 @@ BEGIN
   END LOOP;
   ret := ret || 'Player to move: ' || player_to_string(gp.player);
   RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Solves a game position.
+--
+CREATE OR REPLACE FUNCTION game_position_solve(gp game_position) RETURNS search_node AS $$
+DECLARE
+  moves            square_set := game_position_legal_moves(gp);
+  empty_square_set square_set := 0;
+
+  flipped_players game_position;
+  node            search_node;
+BEGIN
+  IF moves = empty_square_set THEN
+    flipped_players := game_position_pass(gp);
+  ELSE
+    node := (NULL, -65);
+  END IF;
+  RETURN node;
 END;
 $$ LANGUAGE plpgsql;

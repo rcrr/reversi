@@ -864,6 +864,22 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Tests the game_position_pass function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_pass() RETURNS VOID AS $$
+DECLARE
+  gp       game_position;
+  expected game_position;
+BEGIN
+  gp       := (1::square_set, 2::square_set, 0::player);
+  expected := (1::square_set, 2::square_set, 1::player);
+  PERFORM p_assert(expected = game_position_pass(gp), 'Expected game position is (1, 2, 1).');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Tests the game_position_pp function.
 --
 CREATE OR REPLACE FUNCTION test_game_position_pp() RETURNS VOID AS $$

@@ -73,4 +73,5 @@ SELECT test_game_position_get_square_set_for_player_opponent();
 SELECT test_game_position_is_move_legal();
 SELECT test_game_position_legal_moves();
 SELECT test_game_position_make_move();
+SELECT test_game_position_pass();
 SELECT test_game_position_pp();
