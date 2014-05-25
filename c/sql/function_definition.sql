@@ -712,7 +712,7 @@ DECLARE
   bitrow_changes_for_player_index INTEGER;
   ret                             SMALLINT;
 BEGIN
-  bitrow_changes_for_player_index := player_row | (opponent_row << 8) | (move_position::INTEGER << 16);
+  bitrow_changes_for_player_index := player_row::INTEGER | (opponent_row::INTEGER << 8) | (move_position::INTEGER << 16);
   SELECT changes INTO STRICT ret FROM board_bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
   RETURN ret;
 END;
