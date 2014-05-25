@@ -383,4 +383,174 @@ make-move-test-case-d-after;.b..w....w.w....bww.....bwb.w...bww......w.w.....b..
 #
 #                |1       2       3       4       5       6       7       8       |
 #                |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
-ffo-01-simplified;..bbbbb..wwwbb.w.wwwbbww.wbwwwbwwbbbwwbw..bwbwww.bbbwwww.wwwwwb.;b; From position ffo-01 executing two moves, A8 wins +18;
+ffo-01-simplified;..bbbbb..wwwbb.w.wwwbbww.wbwwwbwwbbbwwbw..bwbwww.bbbwwww.wwwwwb.;b;From position ffo-01 executing two moves, A8 wins +18;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . O O O @ @ . O 
+# 3  . O O O @ @ O O 
+# 4  . O @ O O O @ O 
+# 5  O @ @ @ O O @ O 
+# 6  . . @ O @ O O O 
+# 7  . @ @ @ O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: WHITE
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-1;..bbbbb..wwwbb.w.wwwbbww.wbwwwbwwbbbwwbw..bwbwww.bbbwwwwbbbbbbb.;w;From position ffo-01-simplified executing A8;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . O O O @ @ . O 
+# 3  . O O O @ @ O O 
+# 4  . O O O O O @ O 
+# 5  O O @ @ O O @ O 
+# 6  O . @ O @ O O O 
+# 7  . @ @ @ O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: BLACK
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-2;..bbbbb..wwwbb.w.wwwbbww.wwwwwbwwwbbwwbww.bwbwww.bbbwwwwbbbbbbb.;b;From position ffo-01-simplified-1 executing A6;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . O @ O @ @ . O 
+# 3  . @ O O @ @ O O 
+# 4  @ @ @ @ @ @ @ O 
+# 5  O @ @ @ O O @ O 
+# 6  O . @ O @ O O O 
+# 7  . @ @ @ O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: WHITE
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-3;..bbbbb..wbwbb.w.bwwbbwwbbbbbbbwwbbbwwbww.bwbwww.bbbwwwwbbbbbbb.;w;From position ffo-01-simplified-2 executing A4;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . O @ O @ @ . O 
+# 3  . @ O O @ @ O O 
+# 4  @ @ @ @ @ @ @ O 
+# 5  O @ @ @ O O @ O 
+# 6  O . @ O @ O O O 
+# 7  O O O O O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: BLACK
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-4;..bbbbb..wbwbb.w.bwwbbwwbbbbbbbwwbbbwwbww.bwbwwwwwwwwwwwbbbbbbb.;b;From position ffo-01-simplified-3 executing A7;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  . O @ O @ @ . O 
+# 3  . @ O O @ @ O O 
+# 4  @ @ @ @ @ @ @ O 
+# 5  O @ @ @ O O @ O 
+# 6  O @ @ O @ O O O 
+# 7  O @ @ O O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: WHITE
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-5;..bbbbb..wbwbb.w.bwwbbwwbbbbbbbwwbbbwwbwwbbwbwwwwbbwwwwwbbbbbbb.;w;From position ffo-01-simplified-4 executing B6;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  O O @ O @ @ . O 
+# 3  . O O O @ @ O O 
+# 4  @ @ O @ @ @ @ O 
+# 5  O @ @ O O O @ O 
+# 6  O @ @ O O O O O 
+# 7  O @ @ O O O O O 
+# 8  @ @ @ @ @ @ @ . 
+# Player to move: BLACK
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-6;..bbbbb.wwbwbb.w.wwwbbwwbbwbbbbwwbbwwwbwwbbwwwwwwbbwwwwwbbbbbbb.;b;From position ffo-01-simplified-5 executing A2;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  O O @ O @ @ . O 
+# 3  . O O O @ @ O O 
+# 4  @ @ O @ @ @ @ O 
+# 5  O @ @ O @ O @ O 
+# 6  O @ @ O O @ O O 
+# 7  O @ @ O O O @ O 
+# 8  @ @ @ @ @ @ @ @ 
+# Player to move: WHITE
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-7;..bbbbb.wwbwbb.w.wwwbbwwbbwbbbbwwbbwbwbwwbbwwbwwwbbwwwbwbbbbbbbb;w;From position ffo-01-simplified-6 executing H8;
+#
+#
+#
+#    a b c d e f g h 
+# 1  . . @ @ @ @ @ . 
+# 2  O O @ O @ @ . O 
+# 3  O O O O @ @ O O 
+# 4  O O O @ @ @ @ O 
+# 5  O @ O O @ O @ O 
+# 6  O @ @ O O @ O O 
+# 7  O @ @ O O O @ O 
+# 8  @ @ @ @ @ @ @ @ 
+# Player to move: BLACK
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-8;..bbbbb.wwbwbb.wwwwwbbwwwwwbbbbwwbwwbwbwwbbwwbwwwbbwwwbwbbbbbbbb;b;From position ffo-01-simplified-7 executing A3;
+#
+#
+#
+#    a b c d e f g h 
+# 1  @ . @ @ @ @ @ . 
+# 2  @ @ @ O @ @ . O 
+# 3  @ O @ O @ @ O O 
+# 4  @ O O @ @ @ @ O 
+# 5  @ @ O O @ O @ O 
+# 6  @ @ @ O O @ O O 
+# 7  @ @ @ O O O @ O 
+# 8  @ @ @ @ @ @ @ @ 
+# Player to move: WHITE
+#
+#                  |1       2       3       4       5       6       7       8       |
+#                  |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-9;b.bbbbb.bbbwbb.wbwbwbbwwbwwbbbbwbbwwbwbwbbbwwbwwbbbwwwbwbbbbbbbb;w;From position ffo-01-simplified-8 executing A1;
+#
+#
+#
+#    a b c d e f g h 
+# 1  @ O @ @ @ @ @ . 
+# 2  @ O O O @ @ . O 
+# 3  @ O @ O @ @ O O 
+# 4  @ O O @ @ @ @ O 
+# 5  @ @ O O @ O @ O 
+# 6  @ @ @ O O @ O O 
+# 7  @ @ @ O O O @ O 
+# 8  @ @ @ @ @ @ @ @ 
+# Player to move: BLACK
+#
+#                   |1       2       3       4       5       6       7       8       |
+#                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-01-simplified-10;bwbbbbb.bwwwbb.wbwbwbbwwbwwbbbbwbbwwbwbwbbbwwbwwbbbwwwbwbbbbbbbb;b;From position ffo-01-simplified-9 executing B1;

@@ -1049,6 +1049,7 @@ DECLARE
   flipped_players       game_position;
   flipped_players_moves square_set;
   node_tmp              search_node;
+  node_child            search_node;
   node                  search_node;
   gp_child              game_position;
 BEGIN
@@ -1065,8 +1066,12 @@ BEGIN
     node := (NULL, -65);
     remaining_move_array := square_set_to_array(moves);
     FOREACH game_move IN ARRAY remaining_move_array LOOP
-      RAISE NOTICE 'game_move=%', game_move;
       gp_child := game_position_make_move(gp, game_move);
+      node_tmp := game_position_solve(gp_child);
+      node_child := (node_tmp.game_move, -node_tmp.game_value);
+      IF node_child.game_value > node.game_value THEN
+        node := (game_move, node_child.game_value);
+      END IF;
     END LOOP;
   END IF;
   RETURN node;

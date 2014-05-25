@@ -844,8 +844,6 @@ BEGIN
 
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified';
   computed := game_position_legal_moves(fixture.gp);
-  RAISE NOTICE 'computed=%', computed::BIT(64);
-  RAISE NOTICE 'computed=%', square_set_to_array(computed);
   PERFORM p_assert('{"B1", "A2", "G2", "A3", "A4", "A8"}' = square_set_to_array(computed), 'Expected array is equal to {"B1", "A2", "G2", "A3", "A4", "A8"}');
 
 END;

@@ -79,15 +79,21 @@ INSERT INTO game_position_test_data (id, gp, description) VALUES
   --
   --
   --
-  --                                              |1       2       3       4       5       6       7       8       .|
-  --                                              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHP|
-  ('ffo-01-simplified', game_position_from_string('..bbbbb..wwwbb.w.wwwbbww.wbwwwbwwbbbwwbw..bwbwww.bbbwwww.wwwwwb.b'), 'From position ffo-01 executing two moves, A8 wins +18'),
+  --                                                 |1       2       3       4       5       6       7       8       .|
+  --                                                 |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHP|
+  ('ffo-01-simplified',    game_position_from_string('..bbbbb..wwwbb.w.wwwbbww.wbwwwbwwbbbwwbw..bwbwww.bbbwwww.wwwwwb.b'), 'From position ffo-01 executing two moves, A8 wins +18.'),
+  ('ffo-01-simplified-1',  game_position_from_string('..bbbbb..wwwbb.w.wwwbbww.wbwwwbwwbbbwwbw..bwbwww.bbbwwwwbbbbbbb.w'), 'From position ffo-01-simplified   executing A8.'),
+  ('ffo-01-simplified-2',  game_position_from_string('..bbbbb..wwwbb.w.wwwbbww.wwwwwbwwwbbwwbww.bwbwww.bbbwwwwbbbbbbb.b'), 'From position ffo-01-simplified-1 executing A6.'),
+  ('ffo-01-simplified-3',  game_position_from_string('..bbbbb..wbwbb.w.bwwbbwwbbbbbbbwwbbbwwbww.bwbwww.bbbwwwwbbbbbbb.w'), 'From position ffo-01-simplified-2 executing A4.'),
+  ('ffo-01-simplified-4',  game_position_from_string('..bbbbb..wbwbb.w.bwwbbwwbbbbbbbwwbbbwwbww.bwbwwwwwwwwwwwbbbbbbb.b'), 'From position ffo-01-simplified-3 executing A7.'),
+  ('ffo-01-simplified-5',  game_position_from_string('..bbbbb..wbwbb.w.bwwbbwwbbbbbbbwwbbbwwbwwbbwbwwwwbbwwwwwbbbbbbb.w'), 'From position ffo-01-simplified-4 executing B6.'),
+  ('ffo-01-simplified-6',  game_position_from_string('..bbbbb.wwbwbb.w.wwwbbwwbbwbbbbwwbbwwwbwwbbwwwwwwbbwwwwwbbbbbbb.b'), 'From position ffo-01-simplified-5 executing A2.'),
+  ('ffo-01-simplified-7',  game_position_from_string('..bbbbb.wwbwbb.w.wwwbbwwbbwbbbbwwbbwbwbwwbbwwbwwwbbwwwbwbbbbbbbbw'), 'From position ffo-01-simplified-6 executing H8.'),
+  ('ffo-01-simplified-8',  game_position_from_string('..bbbbb.wwbwbb.wwwwwbbwwwwwbbbbwwbwwbwbwwbbwwbwwwbbwwwbwbbbbbbbbb'), 'From position ffo-01-simplified-7 executing A3.'),
+  ('ffo-01-simplified-9',  game_position_from_string('b.bbbbb.bbbwbb.wbwbwbbwwbwwbbbbwbbwwbwbwbbbwwbwwbbbwwwbwbbbbbbbbw'), 'From position ffo-01-simplified-8 executing A1.'),
+  ('ffo-01-simplified-10', game_position_from_string('bwbbbbb.bwwwbb.wbwbwbbwwbwwbbbbwbbwwbwbwbbbwwbwwbbbwwwbwbbbbbbbbb'), 'From position ffo-01-simplified-9 executing B1.'),
   --
   --
   --
   ('all-blacks',              game_position_from_string('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbw'), 'All blacks, white to move.');
   -- Template string used to insert a new entry: ('', game_position_from_string(''), ''),
-
-
-
-
