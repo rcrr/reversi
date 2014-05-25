@@ -31,11 +31,13 @@
  * 
  * @todo Port the stack practice to all the other solver, refactor the structures used (Stack, NodeInfo, GamePositionX).
  *
- * @todo Organize the SQL scripts into a modular practice.
- *       This task is evolving into a complete porting of the board engine in PLPGSQL.
- *       Missing features are: - game_position_pretty_print
- *                             - game_position_make_move
- *                             - ??? some form of a minimax solver ???
+ * @todo [done] Organize the SQL scripts into a modular practice.
+ *       [done] This task is evolving into a complete porting of the board engine in PLPGSQL.
+ *       [done] Missing features are: - game_position_pretty_print
+ *       [done]                       - game_position_make_move
+ *       [done]                       - a minimax solver
+ *                                    - an alpha-beta solver
+ *       Organize the logging activity for the solvers.
  *       Organize the files used to read and analyze the C program outputs
  *
  * @todo Develop a full description of the evidence of all the variants.
