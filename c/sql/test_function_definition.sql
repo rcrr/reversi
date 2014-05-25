@@ -842,6 +842,12 @@ BEGIN
   computed := game_position_legal_moves(fixture.gp);
   PERFORM p_assert('{"D4"}' = square_set_to_array(computed), 'Expected array is equal to {"D4"}');
 
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified';
+  computed := game_position_legal_moves(fixture.gp);
+  RAISE NOTICE 'computed=%', computed::BIT(64);
+  RAISE NOTICE 'computed=%', square_set_to_array(computed);
+  PERFORM p_assert('{"B1", "A2", "G2", "A3", "A4", "A8"}' = square_set_to_array(computed), 'Expected array is equal to {"B1", "A2", "G2", "A3", "A4", "A8"}');
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -909,14 +915,14 @@ BEGIN
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'black-has-to-pass';
   expected := '';
   expected := expected || '   a b c d e f g h ' || new_line;
-  expected := expected || '1  @ O . O . @ . . ' || new_line;
-  expected := expected || '2  O O O O O O O @ ' || new_line;
-  expected := expected || '3  . O @ @ O O @ @ ' || new_line;
-  expected := expected || '4  . O @ O @ @ @ @ ' || new_line;
-  expected := expected || '5  . O @ O @ @ @ @ ' || new_line;
-  expected := expected || '6  . O @ O O @ O @ ' || new_line;
-  expected := expected || '7  . O @ O O O O . ' || new_line;
-  expected := expected || '8  @ @ @ @ @ @ O @ ' || new_line;
+  expected := expected || '1  O @ . @ . O . . ' || new_line;
+  expected := expected || '2  @ @ @ @ @ @ @ O ' || new_line;
+  expected := expected || '3  . @ O O @ @ O O ' || new_line;
+  expected := expected || '4  . @ O @ O O O O ' || new_line;
+  expected := expected || '5  . @ O @ O O O O ' || new_line;
+  expected := expected || '6  . @ O @ @ O @ O ' || new_line;
+  expected := expected || '7  . @ O @ @ @ @ . ' || new_line;
+  expected := expected || '8  O O O O O O @ O ' || new_line;
   expected := expected || 'Player to move: BLACK';
   PERFORM p_assert(expected = game_position_pp(fixture.gp), 'Computed does not match with expected.');
 END;

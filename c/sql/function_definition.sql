@@ -899,7 +899,6 @@ BEGIN
     p_square_set := gp.whites;
     o_square_set := gp.blacks;
   END IF;
-  
   FOR dir IN SELECT id, ordinal, opposite FROM direction_info ORDER BY ordinal LOOP
     wave := direction_shift_square_set(dir.id, empties) & o_square_set;
     shift := 1;
@@ -987,9 +986,9 @@ BEGIN
     FOR i_column IN 1..8 LOOP
       sq := 1::square_set << i_sq;
       IF sq & gp.blacks <> 0 THEN
-        ret := ret || 'O';
-      ELSEIF sq & gp.whites <> 0 THEN
         ret := ret || '@';
+      ELSEIF sq & gp.whites <> 0 THEN
+        ret := ret || 'O';
       ELSE
         ret := ret || '.';
       END IF;
@@ -1045,10 +1044,13 @@ DECLARE
   moves            square_set := game_position_legal_moves(gp);
   empty_square_set square_set := 0;
 
+  remaining_move_array  square[];
+  game_move             square;
   flipped_players       game_position;
   flipped_players_moves square_set;
   node_tmp              search_node;
   node                  search_node;
+  gp_child              game_position;
 BEGIN
   IF moves = empty_square_set THEN
     flipped_players := game_position_pass(gp);
@@ -1061,6 +1063,11 @@ BEGIN
     END IF;
   ELSE
     node := (NULL, -65);
+    remaining_move_array := square_set_to_array(moves);
+    FOREACH game_move IN ARRAY remaining_move_array LOOP
+      RAISE NOTICE 'game_move=%', game_move;
+      gp_child := game_position_make_move(gp, game_move);
+    END LOOP;
   END IF;
   RETURN node;
 END;
