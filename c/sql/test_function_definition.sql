@@ -39,6 +39,23 @@ SET search_path TO reversi;
 
 
 --
+-- Tests the bit_works_popcnt function.
+--
+CREATE OR REPLACE FUNCTION test_bit_works_popcnt() RETURNS VOID AS $$
+BEGIN
+  PERFORM p_assert( 0 = bit_works_popcnt( 0::BIGINT), 'Expected value is 0.');
+  PERFORM p_assert( 1 = bit_works_popcnt( 1::BIGINT), 'Expected value is 1.');
+  PERFORM p_assert( 1 = bit_works_popcnt( 2::BIGINT), 'Expected value is 1.');
+  PERFORM p_assert( 2 = bit_works_popcnt( 3::BIGINT), 'Expected value is 2.');
+  PERFORM p_assert( 1 = bit_works_popcnt( 4::BIGINT), 'Expected value is 1.');
+  PERFORM p_assert( 3 = bit_works_popcnt( 7::BIGINT), 'Expected value is 3.');
+  PERFORM p_assert(64 = bit_works_popcnt(-1::BIGINT), 'Expected value is 64.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Tests the bit_works_bitscanMS1B_8 function.
 --
 CREATE OR REPLACE FUNCTION test_bit_works_bitscanMS1B_8() RETURNS VOID AS $$
@@ -902,5 +919,24 @@ BEGIN
   expected := expected || '8  @ @ @ @ @ @ O @ ' || new_line;
   expected := expected || 'Player to move: BLACK';
   PERFORM p_assert(expected = game_position_pp(fixture.gp), 'Computed does not match with expected.');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the game_position_final_value function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_final_value() RETURNS VOID AS $$
+DECLARE
+  fixture  RECORD;
+BEGIN
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'final-b37-w27';
+  PERFORM p_assert(10 = game_position_final_value(fixture.gp), 'Expected final value is 10.');
+  PERFORM p_assert( 0 = game_position_final_value((0::square_set, 0::square_set, 0::player)), 'Expected final value is 0.');
+  PERFORM p_assert( 0 = game_position_final_value((0::square_set, 0::square_set, 1::player)), 'Expected final value is 0.');
+  PERFORM p_assert( 0 = game_position_final_value((1::square_set, 2::square_set, 0::player)), 'Expected final value is 0.');
+  PERFORM p_assert(64 = game_position_final_value((1::square_set, 0::square_set, 0::player)), 'Expected final value is 64.');
+  PERFORM p_assert(62 = game_position_final_value((3::square_set, 4::square_set, 0::player)), 'Expected final value is 62.');
 END;
 $$ LANGUAGE plpgsql;

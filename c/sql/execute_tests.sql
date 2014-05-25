@@ -36,6 +36,7 @@
 
 SET search_path TO reversi;
 
+SELECT test_bit_works_popcnt();
 SELECT test_bit_works_bitscanMS1B_8();
 SELECT test_bit_works_bitscanLS1B_64();
 SELECT test_bit_works_fill_in_between_8();
@@ -75,3 +76,4 @@ SELECT test_game_position_legal_moves();
 SELECT test_game_position_make_move();
 SELECT test_game_position_pass();
 SELECT test_game_position_pp();
+SELECT test_game_position_final_value();

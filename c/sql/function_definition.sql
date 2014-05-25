@@ -55,6 +55,33 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Returns the count of the bit set to 1 in the bit_sequence argument.
+--
+CREATE OR REPLACE FUNCTION bit_works_popcnt(bit_sequence BIGINT) RETURNS SMALLINT AS $$
+DECLARE
+  sign_mask square_set := (x'7FFFFFFFFFFFFFFF')::square_set;
+  tmp BIGINT   := bit_sequence;
+  cnt SMALLINT := 0;
+BEGIN
+  IF tmp < 0 THEN
+    cnt := cnt + 1;
+    tmp := tmp & sign_mask;
+  END IF;
+  <<the_loop>>
+  LOOP
+    IF tmp = 0 THEN
+      EXIT the_loop;
+    END IF;
+    cnt := cnt + 1;
+    tmp := tmp & (tmp - 1);
+  END LOOP;
+  RETURN cnt;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Returns the index (0..7) of the most significant bit set in the bit_sequence parameter.
 --
 CREATE OR REPLACE FUNCTION bit_works_bitscanMS1B_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
@@ -979,6 +1006,38 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Computes the value of a final position.
+--
+CREATE OR REPLACE FUNCTION game_position_final_value(gp game_position) RETURNS SMALLINT AS $$
+DECLARE
+  b_count    SMALLINT := bit_works_popcnt(gp.blacks);
+  w_count    SMALLINT := bit_works_popcnt(gp.whites);
+  difference SMALLINT := b_count - w_count;
+
+  empties    SMALLINT;
+  delta      SMALLINT;
+BEGIN
+  IF difference = 0 THEN
+    RETURN 0;
+  ELSE
+    empties := 64 - (b_count + w_count);
+    IF difference > 0 THEN
+      delta := difference + empties;
+    ELSE
+      delta := difference - empties;
+    END IF;
+    IF gp.player = 0 THEN
+      RETURN +delta;
+    ELSE
+      RETURN -delta;
+    END IF;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Solves a game position.
 --
 CREATE OR REPLACE FUNCTION game_position_solve(gp game_position) RETURNS search_node AS $$
@@ -986,11 +1045,20 @@ DECLARE
   moves            square_set := game_position_legal_moves(gp);
   empty_square_set square_set := 0;
 
-  flipped_players game_position;
-  node            search_node;
+  flipped_players       game_position;
+  flipped_players_moves square_set;
+  node_tmp              search_node;
+  node                  search_node;
 BEGIN
   IF moves = empty_square_set THEN
     flipped_players := game_position_pass(gp);
+    flipped_players_moves := game_position_legal_moves(flipped_players);
+    IF flipped_players_moves <> 0 THEN
+      node_tmp := game_position_solve(flipped_players);
+      node := (node_tmp.game_move, -node_tmp.game_value);
+    ELSE
+      node := (NULL, game_position_final_value(gp));
+    END IF;
   ELSE
     node := (NULL, -65);
   END IF;
