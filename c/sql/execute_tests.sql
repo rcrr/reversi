@@ -77,3 +77,5 @@ SELECT test_game_position_make_move();
 SELECT test_game_position_pass();
 SELECT test_game_position_pp();
 SELECT test_game_position_final_value();
+
+SELECT test_game_position_solve();
