@@ -158,10 +158,6 @@ BEGIN
 
   expected := 1;
   computed := bit_works_highest_bit_set_8(CAST (1 AS SMALLINT));
-  PERFORM p_assert(expected = computed, 'Expected value is 1. Ref a');
-
-  expected := 1;
-  computed := bit_works_highest_bit_set_8(CAST (1 AS SMALLINT));
   PERFORM p_assert(expected = computed, 'Expected value is 1. Ref b.');
 
   expected := 2;

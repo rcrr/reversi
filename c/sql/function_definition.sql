@@ -114,15 +114,16 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 --
 CREATE OR REPLACE FUNCTION bit_works_bitscanLS1B_64(bit_sequence BIGINT) RETURNS SMALLINT AS $$
 DECLARE
-  tmp    BIGINT   := bit_sequence;
-  ret    SMALLINT := 0;
-  mask_1 BIGINT   := (x'00000000FFFFFFFF')::BIGINT;
-  mask_2 BIGINT   := (x'000000000000FFFF')::BIGINT;
-  mask_3 BIGINT   := (x'00000000000000FF')::BIGINT;
-  mask_4 BIGINT   := (x'000000000000000F')::BIGINT;
-  mask_5 BIGINT   := (x'0000000000000007')::BIGINT;
-  mask_6 BIGINT   := (x'0000000000000003')::BIGINT;
-  mask_7 BIGINT   := (x'0000000000000001')::BIGINT;
+  mask_1 CONSTANT BIGINT := (x'00000000FFFFFFFF')::BIGINT;
+  mask_2 CONSTANT BIGINT := (x'000000000000FFFF')::BIGINT;
+  mask_3 CONSTANT BIGINT := (x'00000000000000FF')::BIGINT;
+  mask_4 CONSTANT BIGINT := (x'000000000000000F')::BIGINT;
+  mask_5 CONSTANT BIGINT := (x'0000000000000007')::BIGINT;
+  mask_6 CONSTANT BIGINT := (x'0000000000000003')::BIGINT;
+  mask_7 CONSTANT BIGINT := (x'0000000000000001')::BIGINT;
+
+  tmp BIGINT   := bit_sequence;
+  ret SMALLINT := 0;
 BEGIN
   IF (tmp & mask_1) = 0 THEN
    ret := ret + 32;
@@ -154,7 +155,7 @@ BEGIN
   END IF;
   RETURN ret;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -172,14 +173,12 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION bit_works_fill_in_between_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
-  mask    SMALLINT;
-  masked  SMALLINT;
+  mask   CONSTANT SMALLINT := 255::SMALLINT;
+  masked CONSTANT SMALLINT := bit_sequence & mask;
 BEGIN
-  mask := CAST (255 AS SMALLINT);
-  masked := bit_sequence & mask;
   RETURN ((1 << bit_works_bitscanMS1B_8(masked)) - 1) & ((~masked # (masked - 1)) & mask);
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -189,31 +188,32 @@ $$ LANGUAGE plpgsql;
 --
 -- When parameter bit_sequence is equal to 0 it returns 0.
 --
--- Bits higher than 8 (the second byte of the smallint) are masked to 0.
+-- Bits higher than 7 (the second byte of the smallint) are masked to 0.
 --
 CREATE OR REPLACE FUNCTION bit_works_highest_bit_set_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
-  log2_array SMALLINT[] := '{ 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-                              5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-                              6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-                              6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-                              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
-                            }';
-  res    SMALLINT;
-  masked SMALLINT;
+  log2_array CONSTANT SMALLINT[] :=
+    '{   0,   1,   2,   2,   4,   4,   4,   4,   8,   8,   8,   8,   8,   8,   8,   8,
+        16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,
+        32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,
+        32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,
+        64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,
+        64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,
+        64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,
+        64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,  64,
+       128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+       128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+       128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+       128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+       128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+       128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+       128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+       128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128
+     }';
 BEGIN
-  masked := bit_sequence & CAST (255 AS SMALLINT);
-  IF masked = 0 THEN
-    res := 0;
-  ELSE
-    res := 1 << log2_array[masked + 1];
-  END IF;
-  RETURN res;
+  RETURN log2_array[(bit_sequence::INTEGER & 255) + 1];
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
