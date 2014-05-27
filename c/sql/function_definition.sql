@@ -332,7 +332,7 @@ BEGIN
     WHERE id = r.id;
   END LOOP;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql VOLATILE;
 
 
 
@@ -346,7 +346,7 @@ BEGIN
   SELECT sq_column INTO STRICT ret FROM square_info WHERE sq = id;
   RETURN ret;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -360,7 +360,7 @@ BEGIN
   SELECT sq_row INTO STRICT ret FROM square_info WHERE sq = id;
   RETURN ret;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -381,7 +381,7 @@ BEGIN
   END LOOP;
   RETURN ret;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -393,26 +393,26 @@ DECLARE
   square  square_set := 0;
   i       INTEGER    := 0;
   squares square_set := 0;
-  c       CHAR;
+  ch      CHAR;
 BEGIN
   IF length(ss_string) <> 64 THEN
     RAISE EXCEPTION 'Value of length(ss_string) is %, it must be 64!', length(ss_string);
   END IF;
-  FOREACH c IN ARRAY string_to_array(ss_string, NULL)
+  FOREACH ch IN ARRAY string_to_array(ss_string, NULL)
   LOOP
     square = 1::square_set << i;
-    IF (c = 'x') THEN
+    IF (ch = 'x') THEN
       squares := squares | square;
-    ELSEIF (c = '.') THEN
+    ELSEIF (ch = '.') THEN
       NULL;
     ELSE
-      RAISE EXCEPTION 'Square must be either x or ., it is equal to "%".', c;
+      RAISE EXCEPTION 'Square must be either x or ., it is equal to "%".', ch;
     END IF;
     i := i + 1;
   END LOOP;
   RETURN squares;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -421,21 +421,21 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION square_set_to_array(squares square_set) RETURNS square[] AS $$
 DECLARE
+  empty_square_set CONSTANT square_set := 0;
+  square_array     CONSTANT square[]   := array(SELECT id FROM square_info ORDER BY ordinal);
+
   ret               square[]   := '{}';
   remaining_squares square_set := squares;
-  empty_square_set  square_set := 0;
-  game_move         square;
   game_move_index   INTEGER;
 BEGIN
   WHILE remaining_squares != empty_square_set LOOP
     game_move_index := bit_works_bitscanLS1B_64(remaining_squares);
-    SELECT id INTO STRICT game_move FROM square_info WHERE ordinal = game_move_index;
-    ret := ret || game_move;
+    ret := ret || square_array[game_move_index + 1];
     remaining_squares := remaining_squares # (1::square_set << game_move_index);
   END LOOP;
   return ret;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -447,13 +447,13 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION axis_transform_to_row_one(axis axis, squares square_set) RETURNS SMALLINT AS $$
 DECLARE
-  row_one        square_set := (x'00000000000000FF')::square_set;
-  column_a       square_set := (x'0101010101010101')::square_set;
-  diagonal_a1_h8 square_set := (x'8040201008040201')::square_set;
-  diagonal_h1_a8 square_set := (x'0102040810204080')::square_set;
-  ret            square_set;
+  row_one        CONSTANT square_set := (x'00000000000000FF')::square_set;
+  column_a       CONSTANT square_set := (x'0101010101010101')::square_set;
+  diagonal_a1_h8 CONSTANT square_set := (x'8040201008040201')::square_set;
+  diagonal_h1_a8 CONSTANT square_set := (x'0102040810204080')::square_set;
+
+  ret square_set := squares;
 BEGIN
-  ret := squares;
   IF axis = 'HO' THEN
     NULL;
   ELSEIF axis = 'VE' THEN
@@ -476,7 +476,7 @@ BEGIN
   END IF;
   RETURN (ret & row_one)::SMALLINT;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
