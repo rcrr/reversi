@@ -221,16 +221,16 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 -- Returns a bit sequence having one bit set, the lowest found
 -- in the bit_sequence parameter.
 --
+-- Bits higher than 7 (the second byte of the smallint) are masked to 0.
+--
 CREATE OR REPLACE FUNCTION bit_works_lowest_bit_set_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
-  mask   SMALLINT;
-  masked SMALLINT;
+  mask   CONSTANT SMALLINT := 255::SMALLINT;
+  masked CONSTANT SMALLINT := bit_sequence & mask;
 BEGIN
-  mask := 255::SMALLINT;
-  masked := bit_sequence & mask;
   RETURN ((masked & (masked - 1)) # masked) & mask;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -246,7 +246,7 @@ BEGIN
     RETURN (bit_sequence::BIT(64) >> -shift)::BIGINT;
   END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -254,17 +254,14 @@ $$ LANGUAGE plpgsql;
 -- Returns a char describing the palyer.
 --
 CREATE OR REPLACE FUNCTION player_to_char(player player) RETURNS CHAR(1) AS $$
-DECLARE
-  ret CHAR(1);
 BEGIN
   IF player = 0 THEN
-    ret := 'b';
+    RETURN 'b';
   ELSE
-    ret := 'w';
+    RETURN 'w';
   END IF;
-  RETURN ret;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -272,17 +269,14 @@ $$ LANGUAGE plpgsql;
 -- Returns a string describing the palyer.
 --
 CREATE OR REPLACE FUNCTION player_to_string(player player) RETURNS TEXT AS $$
-DECLARE
-  ret TEXT;
 BEGIN
   IF player = 0 THEN
-    ret := 'BLACK';
+    RETURN 'BLACK';
   ELSE
-    ret := 'WHITE';
+    RETURN 'WHITE';
   END IF;
-  RETURN ret;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -293,7 +287,7 @@ CREATE OR REPLACE FUNCTION player_opponent(player player) RETURNS player AS $$
 BEGIN
   RETURN 1 - player;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
