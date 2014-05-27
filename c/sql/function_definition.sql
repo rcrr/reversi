@@ -520,7 +520,7 @@ BEGIN
   END CASE;
 
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -534,7 +534,7 @@ BEGIN
   END IF;
   RETURN move_column;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -555,7 +555,7 @@ BEGIN
     RAISE EXCEPTION 'Parameter axis out of range.';
   END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -567,8 +567,8 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION direction_shift_square_set(dir direction, squares square_set) RETURNS square_set AS $$
 DECLARE
-  all_squares_except_column_a square_set := (x'FEFEFEFEFEFEFEFE')::square_set;
-  all_squares_except_column_h square_set := (x'7F7F7F7F7F7F7F7F')::square_set;
+  all_squares_except_column_a CONSTANT square_set := (x'FEFEFEFEFEFEFEFE')::square_set;
+  all_squares_except_column_h CONSTANT square_set := (x'7F7F7F7F7F7F7F7F')::square_set;
 BEGIN
   CASE dir
     WHEN 'NW' THEN RETURN (squares::BIT(64) >> 9)::square_set & all_squares_except_column_h;
@@ -583,7 +583,7 @@ BEGIN
       RAISE EXCEPTION 'Parameter dir out of range.';
   END CASE;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -598,7 +598,6 @@ $$ LANGUAGE plpgsql;
 -- This is becouse the function doesn't mask after shifting.
 --
 CREATE OR REPLACE FUNCTION direction_shift_back_square_set_by_amount(dir direction, squares square_set, amount INTEGER) RETURNS square_set AS $$
-DECLARE
 BEGIN
   CASE dir
     WHEN 'NW' THEN RETURN (squares::BIT(64) >> (9 * amount))::square_set;
@@ -613,7 +612,7 @@ BEGIN
       RAISE EXCEPTION 'Parameter dir out of range.';
   END CASE;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -693,7 +692,7 @@ BEGIN
     END LOOP;
   END LOOP;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql VOLATILE;
 
 
 
@@ -702,14 +701,14 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION board_bitrow_changes_for_player(player_row SMALLINT, opponent_row SMALLINT, move_position SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
-  bitrow_changes_for_player_index INTEGER;
-  ret                             SMALLINT;
+  bitrow_changes_for_player_index CONSTANT INTEGER := player_row::INTEGER | (opponent_row::INTEGER << 8) | (move_position::INTEGER << 16);
+
+  ret SMALLINT;
 BEGIN
-  bitrow_changes_for_player_index := player_row::INTEGER | (opponent_row::INTEGER << 8) | (move_position::INTEGER << 16);
   SELECT changes INTO STRICT ret FROM board_bitrow_changes_for_player WHERE id = bitrow_changes_for_player_index;
   RETURN ret;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -734,7 +733,7 @@ BEGIN
   ret := ret || player_to_char(gp.player);
   RETURN ret;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -747,29 +746,29 @@ DECLARE
   whites square_set := 0;
   player player     := 0;
   i      INTEGER    := 0;
-  c      CHAR;
+  ch     CHAR;
   square square_set;
 BEGIN
   IF length(gp_string) <> 65 THEN
     RAISE EXCEPTION 'Value of length(gp_string) is %, it must be 65!', length(gp_string);
   END IF;
-  FOREACH c IN ARRAY string_to_array(gp_string, NULL)
+  FOREACH ch IN ARRAY string_to_array(gp_string, NULL)
   LOOP
     IF (i = 64) THEN
-      IF (c = 'b') THEN
+      IF (ch = 'b') THEN
         player := 0;
-      ELSEIF (c = 'w') THEN
+      ELSEIF (ch = 'w') THEN
         player := 1;
       ELSE
         RAISE EXCEPTION 'Player must be either b or w, it is equal to "%".', c;
       END IF;
     ELSE
       square = 1::square_set << i;
-      IF (c = 'b') THEN
+      IF (ch = 'b') THEN
         blacks := blacks | square;
-      ELSEIF (c = 'w') THEN
+      ELSEIF (ch = 'w') THEN
         whites := whites | square;
-      ELSEIF (c = '.') THEN
+      ELSEIF (ch = '.') THEN
         NULL;
       ELSE
         RAISE EXCEPTION 'Square color must be either b or w or ., it is equal to "%".', c;
@@ -779,7 +778,7 @@ BEGIN
   END LOOP;
   RETURN (blacks, whites, player);
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -805,7 +804,7 @@ BEGIN
     RETURN gp.whites;
   END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -820,7 +819,7 @@ BEGIN
     RETURN gp.blacks;
   END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -829,10 +828,10 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION game_position_is_move_legal(gp game_position, move square) RETURNS BOOLEAN AS $$
 DECLARE
-  empties               square_set := game_position_empties(gp);
-  empty_square_set      square_set := 0;
-  bit_move              square_set;
+  empties               CONSTANT square_set := game_position_empties(gp);
+  empty_square_set      CONSTANT square_set := 0;
   move_ordinal          INTEGER;
+  bit_move              square_set;
   p_square_set          square_set;
   o_square_set          square_set;
   move_column           SMALLINT;
@@ -867,7 +866,7 @@ BEGIN
   -- If no capture on the four directions happens, return false.
   RETURN FALSE;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
