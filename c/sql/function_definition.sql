@@ -875,14 +875,15 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 --
 CREATE OR REPLACE FUNCTION game_position_legal_moves(gp game_position) RETURNS square_set AS $$
 DECLARE
-  ret              square_set := 0;
-  empty_square_set square_set := 0;
-  empties          square_set := game_position_empties(gp);
+  empty_square_set CONSTANT square_set := 0;
+  empties          CONSTANT square_set := game_position_empties(gp);
+
   p_square_set     square_set;
   o_square_set     square_set;
   dir              RECORD;
   wave             square_set;
   shift            INTEGER;
+  ret              square_set := 0;
 BEGIN
   IF gp.player = 0 THEN
     p_square_set := gp.blacks;
@@ -892,18 +893,18 @@ BEGIN
     o_square_set := gp.blacks;
   END IF;
   FOR dir IN SELECT id, ordinal, opposite FROM direction_info ORDER BY ordinal LOOP
-    wave := direction_shift_square_set(dir.id, empties) & o_square_set;
+    wave  := direction_shift_square_set(dir.id, empties) & o_square_set;
     shift := 1;
     WHILE wave != empty_square_set LOOP
-      wave = direction_shift_square_set(dir.id, wave);
+      wave  := direction_shift_square_set(dir.id, wave);
       shift := shift + 1;
-      ret := ret | direction_shift_back_square_set_by_amount(dir.opposite, wave & p_square_set, shift);
-      wave := wave & o_square_set;
+      ret   := ret | direction_shift_back_square_set_by_amount(dir.opposite, wave & p_square_set, shift);
+      wave  := wave & o_square_set;
     END LOOP;
   END LOOP;
   RETURN ret;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -944,7 +945,7 @@ BEGIN
     RETURN (new_board.p_square_set, new_board.o_square_set, opponent);
   END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -955,7 +956,7 @@ CREATE OR REPLACE FUNCTION game_position_pass(gp game_position) RETURNS game_pos
 BEGIN
   RETURN (gp.blacks, gp.whites, player_opponent(gp.player));
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -964,7 +965,7 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION game_position_pp(gp game_position) RETURNS TEXT AS $$
 DECLARE
-  new_line TEXT := E'\n';
+  new_line CONSTANT TEXT := E'\n';
 
   i_sq INTEGER;
   sq   square_set;
@@ -992,7 +993,7 @@ BEGIN
   ret := ret || 'Player to move: ' || player_to_string(gp.player);
   RETURN ret;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -1001,12 +1002,12 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION game_position_final_value(gp game_position) RETURNS SMALLINT AS $$
 DECLARE
-  b_count    SMALLINT := bit_works_popcnt(gp.blacks);
-  w_count    SMALLINT := bit_works_popcnt(gp.whites);
-  difference SMALLINT := b_count - w_count;
+  b_count    CONSTANT SMALLINT := bit_works_popcnt(gp.blacks);
+  w_count    CONSTANT SMALLINT := bit_works_popcnt(gp.whites);
+  difference CONSTANT SMALLINT := b_count - w_count;
 
-  empties    SMALLINT;
-  delta      SMALLINT;
+  empties SMALLINT;
+  delta   SMALLINT;
 BEGIN
   IF difference = 0 THEN
     RETURN 0;
@@ -1024,7 +1025,7 @@ BEGIN
     END IF;
   END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
@@ -1033,8 +1034,8 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION game_position_solve(gp game_position) RETURNS search_node AS $$
 DECLARE
-  moves            square_set := game_position_legal_moves(gp);
-  empty_square_set square_set := 0;
+  moves            CONSTANT square_set := game_position_legal_moves(gp);
+  empty_square_set CONSTANT square_set := 0;
 
   remaining_move_array  square[];
   game_move             square;
@@ -1068,4 +1069,4 @@ BEGIN
   END IF;
   RETURN node;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
