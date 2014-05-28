@@ -38,7 +38,7 @@
 
 #include "minimax_solver.h"
 
-//#define GAME_TREE_DEBUG
+#define GAME_TREE_DEBUG
 
 
 
@@ -92,7 +92,7 @@ game_position_minimax_solve (const GamePosition * const root)
 
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack[0] = 0;
-  game_tree_debug_file = fopen("minimax_log.csv", "w");
+  game_tree_debug_file = fopen("out/minimax_log.csv", "w");
   fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEF", "MOVE_LIST");
 #endif
 
