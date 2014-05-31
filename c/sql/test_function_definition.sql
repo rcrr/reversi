@@ -966,3 +966,21 @@ BEGIN
   PERFORM p_assert(('H8', +18)::search_node = game_position_solve(fixture.gp), 'Expected value is (H8, +18).');
 END;
 $$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the game_position_hash function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_hash() RETURNS VOID AS $$
+DECLARE
+  expected BIGINT;
+BEGIN
+  PERFORM p_assert( 0 = game_position_hash((0::square_set, 0::square_set, 0::player)::game_position), 'Expected hash value is 0.');
+  PERFORM p_assert(-1 = game_position_hash((0::square_set, 0::square_set, 1::player)::game_position), 'Expected hash value is -1.');
+
+  expected := (x'4689879C5E2B6C8D')::BIGINT # (x'1C10E0B05C7B3C49')::BIGINT;
+  PERFORM p_assert( expected = game_position_hash((2::square_set, 4::square_set, 0::player)::game_position), 'Expected hash value is not ok. Ref a.');
+  PERFORM p_assert(~expected = game_position_hash((2::square_set, 4::square_set, 1::player)::game_position), 'Expected hash value is not ok. Ref b.');
+END;
+$$ LANGUAGE plpgsql;
