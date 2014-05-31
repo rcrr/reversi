@@ -305,3 +305,42 @@ CREATE TABLE rab_solver_log (run_id         INTEGER,
                              whites         square_set,
                              player         player,
                              PRIMARY KEY(run_id, call_id));
+
+
+
+--
+-- DROP TABLE IF EXISTS game_tree_log_header;
+--
+CREATE TABLE game_tree_log_header (run_id       SERIAL     PRIMARY KEY,
+                                   engine_id    CHAR(8)    NOT NULL,
+                                   run_date     TIMESTAMP  NOT NULL,
+                                   description  TEXT);
+
+
+
+--
+-- DROP TABLE IF EXISTS game_tree_log;
+--
+CREATE TABLE game_tree_log (run_id       INTEGER   REFERENCES game_tree_log_header (run_id) ON DELETE CASCADE,
+                            sub_run_id   SMALLINT  NOT NULL,
+                            call_id      INTEGER   NOT NULL,
+                            hash         BIGINT,
+                            parent_hash  BIGINT,
+                            blacks       square_set,
+                            whites       square_set,
+                            player       player,
+                            PRIMARY KEY(run_id, sub_run_id, call_id));
+
+
+
+--
+-- DROP TABLE IF EXISTS game_tree_log_staging;
+--
+CREATE TABLE game_tree_log_staging (sub_run_id   SMALLINT  NOT NULL,
+                                    call_id      INTEGER   NOT NULL,
+                                    hash         BIGINT,
+                                    parent_hash  BIGINT,
+                                    blacks       square_set,
+                                    whites       square_set,
+                                    player       player,
+                                    PRIMARY KEY(sub_run_id, call_id));

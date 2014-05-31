@@ -31,19 +31,38 @@
 -- Load the file by running the command: \i load_rab_solver.sql
 --
 --
--- This script creates the schema used by the reversi program.
+-- This script load the rab_solver_log file into the appropriate table.
 --
 
 SET search_path TO reversi;
 
-TRUNCATE TABLE rab_solver_log;
+--TRUNCATE TABLE rab_solver_log;
 
-DROP INDEX IF EXISTS rab_solver_log_hash;
-DROP INDEX IF EXISTS rab_solver_log_parent_hash;
+--DROP INDEX IF EXISTS rab_solver_log_hash;
+--DROP INDEX IF EXISTS rab_solver_log_parent_hash;
 
-\COPY rab_solver_log FROM '../out/rab_solver_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
+--\COPY rab_solver_log FROM '../out/rab_solver_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
 
-VACUUM (FULL, ANALYZE) rab_solver_log;
+--VACUUM (FULL, ANALYZE) rab_solver_log;
 
-CREATE INDEX rab_solver_log_hash ON rab_solver_log (hash);
-CREATE INDEX rab_solver_log_parent_hash ON rab_solver_log (parent_hash);
+--CREATE INDEX rab_solver_log_hash ON rab_solver_log (hash);
+--CREATE INDEX rab_solver_log_parent_hash ON rab_solver_log (parent_hash);
+
+TRUNCATE TABLE game_tree_log_staging;
+
+\COPY game_tree_log_staging FROM '../out/test_solver_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
+
+VACUUM (FULL, ANALYZE) game_tree_log_staging;
+
+DO $$
+DECLARE
+  new_run_id INTEGER;
+BEGIN
+  INSERT INTO game_tree_log_header (engine_id, run_date, description) VALUES ('TEST', now(), 'Test run.') RETURNING run_id INTO new_run_id;
+  INSERT INTO game_tree_log (run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player)
+  SELECT new_run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player FROM game_tree_log_staging;
+END $$;
+
+VACUUM (FULL, ANALYZE) game_tree_log;
+
+TRUNCATE TABLE game_tree_log_staging;
