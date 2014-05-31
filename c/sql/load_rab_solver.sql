@@ -50,7 +50,7 @@ SET search_path TO reversi;
 
 TRUNCATE TABLE game_tree_log_staging;
 
-\COPY game_tree_log_staging FROM '../out/test_solver_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
+\COPY game_tree_log_staging FROM '../out/rab_solver_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
 
 VACUUM (FULL, ANALYZE) game_tree_log_staging;
 

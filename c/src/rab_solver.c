@@ -101,7 +101,7 @@ game_tree_stack_free(GameTreeStack* stack);
 static void
 game_position_solve_impl(ExactSolution* const result,
                          GameTreeStack* const stack,
-                         const int run_id);
+                         const int sub_run_id);
 
 static void
 game_tree_stack_init(const GamePosition* const root,
@@ -181,7 +181,7 @@ game_position_rab_solve(const GamePosition* const root,
   if (log) {
     game_tree_log_file = fopen("out/rab_solver_log.csv", "w");
     fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s\n",
-            "RUN_ID",
+            "SUB_RUN_ID",
             "CALL_ID",
             "HASH",
             "PARENT_HASH",
@@ -193,7 +193,7 @@ game_position_rab_solve(const GamePosition* const root,
   int game_value = out_of_range_defeat_score;
   Square best_move = null_move;
   
-  for (int run_id = 0; run_id < n; run_id++) {
+  for (int sub_run_id = 0; sub_run_id < n; sub_run_id++) {
     utils_init_random_seed();
 
     GameTreeStack* stack = game_tree_stack_new();
@@ -204,7 +204,7 @@ game_position_rab_solve(const GamePosition* const root,
     result = exact_solution_new();
     result->solved_game_position = game_position_clone(root);
 
-    game_position_solve_impl(result, stack, run_id);
+    game_position_solve_impl(result, stack, sub_run_id);
 
     best_move = first_node_info->best_move;
     game_value = first_node_info->alpha;
@@ -329,7 +329,7 @@ legal_move_list_from_set(const SquareSet legal_move_set,
 static void
 game_position_solve_impl(ExactSolution* const result,
                          GameTreeStack* const stack,
-                         const int run_id)
+                         const int sub_run_id)
 {
   result->node_count++;
 
@@ -355,7 +355,7 @@ game_position_solve_impl(ExactSolution* const result,
     sint64 *blacks_to_signed = (sint64 *) &current_gpx->blacks;
     sint64 *whites_to_signed = (sint64 *) &current_gpx->whites;
     fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d\n",
-            run_id,
+            sub_run_id,
             result->node_count,
             *current_hash_to_signed,
             *previous_hash_to_signed,
@@ -371,7 +371,7 @@ game_position_solve_impl(ExactSolution* const result,
       game_position_x_pass(current_gpx, next_gpx);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
-      game_position_solve_impl(result, stack, run_id);
+      game_position_solve_impl(result, stack, sub_run_id);
       current_node_info->alpha = -next_node_info->alpha;
       current_node_info->best_move = next_node_info->best_move;
     } else {
@@ -386,7 +386,7 @@ game_position_solve_impl(ExactSolution* const result,
       game_position_x_make_move(current_gpx, move, next_gpx);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
-      game_position_solve_impl(result, stack, run_id);
+      game_position_solve_impl(result, stack, sub_run_id);
       if (-next_node_info->alpha > current_node_info->alpha) {
         current_node_info->alpha = -next_node_info->alpha;
         current_node_info->best_move = move;
