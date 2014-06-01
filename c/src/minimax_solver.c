@@ -79,6 +79,7 @@ static uint64 gp_hash_stack[128];
  */
 static int gp_hash_stack_fill_point = 0;
 
+static int sub_run_id = 0;
 
 
 /*********************************************************/
@@ -102,7 +103,15 @@ game_position_minimax_solve (const GamePosition * const root)
   if (log) {
     gp_hash_stack[0] = 0;
     game_tree_log_file = fopen("out/minimax_log.csv", "w");
-    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEAF", "MOVE_LIST");
+    //fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEAF", "MOVE_LIST");
+    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s\n",
+            "SUB_RUN_ID",
+            "CALL_ID",
+            "HASH",
+            "PARENT_HASH",
+            "BLACKS",
+            "WHITES",
+            "PLAYER");
   }
 
   result = exact_solution_new();
@@ -149,6 +158,7 @@ game_position_solve_impl (      ExactSolution * const result,
   const SquareSet moves = game_position_legal_moves(gp);
 
   if (log) {
+    /*
     call_count++;
     gp_hash_stack_fill_point++;
     const SquareSet empties = board_empties(gp->board);
@@ -169,6 +179,25 @@ game_position_solve_impl (      ExactSolution * const result,
             ml_to_s);
     g_free(gp_to_s);
     g_free(ml_to_s);
+    */
+    
+    call_count++;
+    gp_hash_stack_fill_point++;
+    const uint64 hash = game_position_hash(gp);
+    gp_hash_stack[gp_hash_stack_fill_point] = hash;
+    const sint64 hash_to_signed = (sint64) hash;
+    const sint64 previous_hash_to_signed = (sint64) gp_hash_stack[gp_hash_stack_fill_point - 1];
+    const Board  *current_board = gp->board;
+    const sint64 *blacks_to_signed = (sint64 *) &current_board->blacks;
+    const sint64 *whites_to_signed = (sint64 *) &current_board->whites;
+    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d\n",
+            sub_run_id,
+            call_count,
+            hash_to_signed,
+            previous_hash_to_signed,
+            *blacks_to_signed,
+            *whites_to_signed,
+            gp->player);
   }
 
   if (moves == empty_square_set) {

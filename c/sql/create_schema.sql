@@ -295,24 +295,10 @@ CREATE TABLE board_bitrow_changes_for_player(id      INTEGER,
 
 
 --
--- DROP TABLE IF EXISTS rab_solver_log;
---
-CREATE TABLE rab_solver_log (run_id         INTEGER,
-                             call_id        INTEGER,
-                             hash           BIGINT,
-                             parent_hash    BIGINT,
-                             blacks         square_set,
-                             whites         square_set,
-                             player         player,
-                             PRIMARY KEY(run_id, call_id));
-
-
-
---
 -- DROP TABLE IF EXISTS game_tree_log_header;
 --
 CREATE TABLE game_tree_log_header (run_id       SERIAL     PRIMARY KEY,
-                                   engine_id    CHAR(8)    NOT NULL,
+                                   engine_id    CHAR(20)   NOT NULL,
                                    run_date     TIMESTAMP  NOT NULL,
                                    description  TEXT);
 

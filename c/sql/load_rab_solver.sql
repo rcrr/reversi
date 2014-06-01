@@ -36,33 +36,24 @@
 
 SET search_path TO reversi;
 
---TRUNCATE TABLE rab_solver_log;
 
---DROP INDEX IF EXISTS rab_solver_log_hash;
---DROP INDEX IF EXISTS rab_solver_log_parent_hash;
 
---\COPY rab_solver_log FROM '../out/rab_solver_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
+--
+-- File ../out/rab_solver_log-ffo-01-simplified-4_n3.csv is obtained by running
+-- the commands:
+-- ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -l -n 3
+-- mv out/rab_solver_log.csv out/rab_solver_log-ffo-01-simplified-4_n3.csv
+--
+\! ./gt_load_file.sh ../out/rab_solver_log-ffo-01-simplified-4_n3.csv;
+SELECT gt_load_from_staging('C_RAB_SOLVER', 'Test data obtained by the C rab solver on position ffo-01-simplified-4.');
 
---VACUUM (FULL, ANALYZE) rab_solver_log;
 
---CREATE INDEX rab_solver_log_hash ON rab_solver_log (hash);
---CREATE INDEX rab_solver_log_parent_hash ON rab_solver_log (parent_hash);
 
-TRUNCATE TABLE game_tree_log_staging;
-
-\COPY game_tree_log_staging FROM '../out/rab_solver_log.csv' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
-
-VACUUM (FULL, ANALYZE) game_tree_log_staging;
-
-DO $$
-DECLARE
-  new_run_id INTEGER;
-BEGIN
-  INSERT INTO game_tree_log_header (engine_id, run_date, description) VALUES ('TEST', now(), 'Test run.') RETURNING run_id INTO new_run_id;
-  INSERT INTO game_tree_log (run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player)
-  SELECT new_run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player FROM game_tree_log_staging;
-END $$;
-
-VACUUM (FULL, ANALYZE) game_tree_log;
-
-TRUNCATE TABLE game_tree_log_staging;
+--
+-- File ../out/minimax_log-ffo-01-simplified-4.csv is obtained by running
+-- the commands:
+-- ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s minimax -l
+-- mv out/minimax_log.csv out/minimax_log-ffo-01-simplified-4.csv
+--
+\! ./gt_load_file.sh ../out/minimax_log-ffo-01-simplified-4.csv;
+SELECT gt_load_from_staging('C_MINIMAX_SOLVER', 'Test data obtained by the C minimax solver on position ffo-01-simplified-4.');

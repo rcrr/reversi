@@ -46,6 +46,7 @@ SET search_path TO reversi;
 \i test_function_definition.sql
 \i test_data.sql
 \i execute_tests.sql
+\i game_tree_function_definition.sql
 \i load_rab_solver.sql
 
 \unset ON_ERROR_STOP
