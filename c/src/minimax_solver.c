@@ -38,8 +38,6 @@
 
 #include "minimax_solver.h"
 
-#define GAME_TREE_DEBUG
-
 
 
 /*
@@ -56,21 +54,30 @@ game_position_solve_impl (      ExactSolution * const result,
  * Internal variables and constants.
  */
 
-#ifdef GAME_TREE_DEBUG
+/**
+ * @brief The log file used to record the game DAG traversing.
+ */
+static FILE *game_tree_log_file = NULL;
 
-/* The total number of call to the recursive function that traverse the game DAG. */
+/**
+ * @brief True if the module logs to file.
+ */
+static gboolean log = FALSE;
+
+/**
+ * @brief The total number of call to the recursive function that traverse the game DAG.
+ */
 static uint64 call_count = 0;
 
-/* The log file used to record the game DAG traversing. */
-static FILE *game_tree_debug_file = NULL;
-
-/* The predecessor-successor array of game position hash values. */
+/**
+ * @brief The predecessor-successor array of game position hash values.
+ */
 static uint64 gp_hash_stack[128];
 
-/* The index of the last entry into gp_hash_stack. */
+/**
+ * @brief The index of the last entry into gp_hash_stack.
+ */
 static int gp_hash_stack_fill_point = 0;
-
-#endif
 
 
 
@@ -90,11 +97,13 @@ game_position_minimax_solve (const GamePosition * const root)
   ExactSolution *result; 
   SearchNode    *sn;
 
-#ifdef GAME_TREE_DEBUG
-  gp_hash_stack[0] = 0;
-  game_tree_debug_file = fopen("out/minimax_log.csv", "w");
-  fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEF", "MOVE_LIST");
-#endif
+  log = TRUE;
+
+  if (log) {
+    gp_hash_stack[0] = 0;
+    game_tree_log_file = fopen("out/minimax_log.csv", "w");
+    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEAF", "MOVE_LIST");
+  }
 
   result = exact_solution_new();
 
@@ -106,9 +115,9 @@ game_position_minimax_solve (const GamePosition * const root)
   result->outcome = sn->value;
   sn = search_node_free(sn);
 
-#ifdef GAME_TREE_DEBUG
-  fclose(game_tree_debug_file);
-#endif
+  if (log) {
+    fclose(game_tree_log_file);
+  }
 
   return result;
 }
@@ -139,28 +148,28 @@ game_position_solve_impl (      ExactSolution * const result,
 
   const SquareSet moves = game_position_legal_moves(gp);
 
-#ifdef GAME_TREE_DEBUG
-  call_count++;
-  gp_hash_stack_fill_point++;
-  const SquareSet empties = board_empties(gp->board);
-  const int empty_count = bit_works_popcount(empties);
-  const uint64 hash = game_position_hash(gp);
-  gp_hash_stack[gp_hash_stack_fill_point] = hash;
-  gchar *gp_to_s = game_position_to_string(gp);
-  const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
-  gchar *ml_to_s = square_set_to_string(moves);
-  fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%42s\n",
-          call_count,
-          hash,
-          gp_hash_stack[gp_hash_stack_fill_point - 1],
-          gp_to_s,
-          empty_count,
-          gp_hash_stack_fill_point,
-          is_leaf ? "t" : "f",
-          ml_to_s);
-  g_free(gp_to_s);
-  g_free(ml_to_s);
-#endif
+  if (log) {
+    call_count++;
+    gp_hash_stack_fill_point++;
+    const SquareSet empties = board_empties(gp->board);
+    const int empty_count = bit_works_popcount(empties);
+    const uint64 hash = game_position_hash(gp);
+    gp_hash_stack[gp_hash_stack_fill_point] = hash;
+    gchar *gp_to_s = game_position_to_string(gp);
+    const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
+    gchar *ml_to_s = square_set_to_string(moves);
+    fprintf(game_tree_log_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%42s\n",
+            call_count,
+            hash,
+            gp_hash_stack[gp_hash_stack_fill_point - 1],
+            gp_to_s,
+            empty_count,
+            gp_hash_stack_fill_point,
+            is_leaf ? "t" : "f",
+            ml_to_s);
+    g_free(gp_to_s);
+    g_free(ml_to_s);
+  }
 
   if (moves == empty_square_set) {
     GamePosition *flipped_players = game_position_pass(gp);
@@ -191,9 +200,9 @@ game_position_solve_impl (      ExactSolution * const result,
     }
   }
 
-#ifdef GAME_TREE_DEBUG
-  gp_hash_stack_fill_point--;
-#endif
+  if (log) {
+    gp_hash_stack_fill_point--;
+  }
 
   return node;
 }
