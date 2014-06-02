@@ -103,7 +103,6 @@ game_position_minimax_solve (const GamePosition * const root)
   if (log) {
     gp_hash_stack[0] = 0;
     game_tree_log_file = fopen("out/minimax_log.csv", "w");
-    //fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEAF", "MOVE_LIST");
     fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s\n",
             "SUB_RUN_ID",
             "CALL_ID",
@@ -158,29 +157,6 @@ game_position_solve_impl (      ExactSolution * const result,
   const SquareSet moves = game_position_legal_moves(gp);
 
   if (log) {
-    /*
-    call_count++;
-    gp_hash_stack_fill_point++;
-    const SquareSet empties = board_empties(gp->board);
-    const int empty_count = bit_works_popcount(empties);
-    const uint64 hash = game_position_hash(gp);
-    gp_hash_stack[gp_hash_stack_fill_point] = hash;
-    gchar *gp_to_s = game_position_to_string(gp);
-    const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
-    gchar *ml_to_s = square_set_to_string(moves);
-    fprintf(game_tree_log_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%42s\n",
-            call_count,
-            hash,
-            gp_hash_stack[gp_hash_stack_fill_point - 1],
-            gp_to_s,
-            empty_count,
-            gp_hash_stack_fill_point,
-            is_leaf ? "t" : "f",
-            ml_to_s);
-    g_free(gp_to_s);
-    g_free(ml_to_s);
-    */
-    
     call_count++;
     gp_hash_stack_fill_point++;
     const uint64 hash = game_position_hash(gp);

@@ -1,5 +1,5 @@
 --
--- load_rab_solver.sql
+-- load_game_tree_log_sets.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
@@ -31,7 +31,7 @@
 -- Load the file by running the command: \i load_rab_solver.sql
 --
 --
--- This script load the rab_solver_log file into the appropriate table.
+-- This script loads game tree sets into the db, game_tree_log_header, and game_tree_log tables.
 --
 
 SET search_path TO reversi;
