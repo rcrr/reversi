@@ -70,66 +70,71 @@ FROM
 --
 DO $$
 DECLARE
-  rec          RECORD;
-  c_run_id            INTEGER;
-  plsql_run_id        INTEGER;
-  c_run_log_count     INTEGER;
-  plsql_run_log_count INTEGER;
+  c_run_id              INTEGER;
+  plsql_run_id          INTEGER;
+  c_run_log_count       INTEGER;
+  plsql_run_log_count   INTEGER;
+  full_outer_join_count INTEGER;
 BEGIN
   SELECT run_id INTO STRICT c_run_id     FROM game_tree_log_header WHERE run_label = 'T001';
   SELECT run_id INTO STRICT plsql_run_id FROM game_tree_log_header WHERE run_label = 'T002';
   SELECT COUNT(*) INTO STRICT c_run_log_count     FROM game_tree_log WHERE run_id = c_run_id;
   SELECT COUNT(*) INTO STRICT plsql_run_log_count FROM game_tree_log WHERE run_id = plsql_run_id;
-  RAISE NOTICE 'c_run_log_count=%, plsql_run_log_count=%', c_run_log_count, plsql_run_log_count;
+  PERFORM p_assert(c_run_log_count = plsql_run_log_count, 'Values of c_run_log_count and plsql_run_log_count must be equal.');
+
+  --
+  -- The query prepares two temporary tables c_minimax_gtl and plsql_minimax_gtl.
+  -- Then performs a full outer join matching for equality all the game tree fields.
+  -- The record count is then saved to the variable full_outer_join_count.
+  -- This value is equal to the two specific count when the records are all equal one by one.
+  --
+  WITH c_minimax_gtl AS (
+    SELECT
+      gtl.run_id            AS run_id,
+      gtl.sub_run_id        AS sub_run_id,
+      gtl.call_id           AS call_id,
+      gtl.hash              AS hash,
+      gtl.parent_hash       AS parent_hash,
+      gtl.blacks            AS blacks,
+      gtl.whites            AS whites,
+      gtl.player            AS player
+    FROM
+      game_tree_log AS gtl
+    WHERE
+      run_id = c_run_id
+    ORDER BY
+      sub_run_id ASC, call_id ASC
+  ), plsql_minimax_gtl AS (
+    SELECT
+      gtl.run_id            AS run_id,
+      gtl.sub_run_id        AS sub_run_id,
+      gtl.call_id           AS call_id,
+      gtl.hash              AS hash,
+      gtl.parent_hash       AS parent_hash,
+      gtl.blacks            AS blacks,
+      gtl.whites            AS whites,
+      gtl.player            AS player
+    FROM
+      game_tree_log AS gtl
+    WHERE
+      run_id = plsql_run_id
+    ORDER BY
+      sub_run_id ASC, call_id ASC
+  )
+  SELECT
+    COUNT(*)
+  INTO STRICT full_outer_join_count
+  FROM
+    c_minimax_gtl AS ct FULL OUTER JOIN plsql_minimax_gtl AS pt
+  ON (ct.sub_run_id  = pt.sub_run_id  AND
+      ct.call_id     = pt.call_id     AND
+      ct.hash        = pt.hash        AND
+      ct.parent_hash = pt.parent_hash AND
+      ct.blacks      = pt.blacks      AND
+      ct.whites      = pt.whites      AND
+      ct.player      = pt.player)
+  ;
+  PERFORM p_assert(c_run_log_count = full_outer_join_count, 'All the records belonging to T001 and T002 must be equal.');
 END $$;
-
-
-
-WITH c_minimax_gtl AS (
-  SELECT
-    gtl.run_id            AS run_id,
-    gtl.sub_run_id        AS sub_run_id,
-    gtl.call_id           AS call_id,
-    gtl.hash              AS hash,
-    gtl.parent_hash       AS parent_hash,
-    gtl.blacks            AS blacks,
-    gtl.whites            AS whites,
-    gtl.player            AS player
-  FROM
-    game_tree_log AS gtl
-  WHERE
-    run_id = 2
-  ORDER BY
-    sub_run_id ASC, call_id ASC
-), plsql_minimax_gtl AS (
-  SELECT
-    gtl.run_id            AS run_id,
-    gtl.sub_run_id        AS sub_run_id,
-    gtl.call_id           AS call_id,
-    gtl.hash              AS hash,
-    gtl.parent_hash       AS parent_hash,
-    gtl.blacks            AS blacks,
-    gtl.whites            AS whites,
-    gtl.player            AS player
-  FROM
-    game_tree_log AS gtl
-  WHERE
-    run_id = 3
-  ORDER BY
-    sub_run_id ASC, call_id ASC
-)
-SELECT
-  COUNT(*)
-FROM
-  c_minimax_gtl     AS c
-  FULL OUTER JOIN
-  plsql_minimax_gtl AS p
-ON (c.sub_run_id  = p.sub_run_id  AND
-    c.call_id     = p.call_id     AND
-    c.hash        = p.hash        AND
-    c.parent_hash = p.parent_hash AND
-    c.blacks      = p.blacks      AND
-    c.whites      = p.whites      AND
-    c.player      = p.player);
 
 
