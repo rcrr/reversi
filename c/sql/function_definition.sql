@@ -1032,7 +1032,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 --
 -- Solves a game position.
 --
-CREATE OR REPLACE FUNCTION game_position_solve(gp game_position, log BOOLEAN, log_description TEXT) RETURNS search_node AS $$
+CREATE OR REPLACE FUNCTION game_position_solve(gp game_position, log BOOLEAN, run_label CHAR(4), log_description TEXT) RETURNS search_node AS $$
 DECLARE
   solver CONSTANT CHAR(20) := 'SQL_MINIMAX_SOLVER';
   sn search_node;
@@ -1044,7 +1044,7 @@ BEGIN
   sn := game_position_solve_impl(gp, log, 0);
   IF log THEN
     DROP SEQUENCE call_id_seq;
-    PERFORM gt_load_from_staging(solver, log_description);
+    PERFORM gt_load_from_staging(run_label, solver, log_description);
     TRUNCATE game_tree_log_staging;
   END IF;
   RETURN sn;

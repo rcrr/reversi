@@ -298,6 +298,7 @@ CREATE TABLE board_bitrow_changes_for_player(id      INTEGER,
 -- DROP TABLE IF EXISTS game_tree_log_header;
 --
 CREATE TABLE game_tree_log_header (run_id       SERIAL     PRIMARY KEY,
+                                   run_label    CHAR(4)    NOT NULL UNIQUE,
                                    engine_id    CHAR(20)   NOT NULL,
                                    run_date     TIMESTAMP  NOT NULL,
                                    description  TEXT);
