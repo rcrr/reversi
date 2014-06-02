@@ -1032,7 +1032,35 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 --
 -- Solves a game position.
 --
-CREATE OR REPLACE FUNCTION game_position_solve(gp game_position) RETURNS search_node AS $$
+CREATE OR REPLACE FUNCTION game_position_solve(gp game_position, log BOOLEAN, log_description TEXT) RETURNS search_node AS $$
+DECLARE
+  solver CONSTANT CHAR(20) := 'SQL_MINIMAX_SOLVER';
+  sn search_node;
+BEGIN
+  IF log THEN
+    TRUNCATE game_tree_log_staging;
+    CREATE TEMPORARY SEQUENCE call_id_seq START 1;
+  END IF;
+  sn := game_position_solve_impl(gp, log, 0);
+  IF log THEN
+    DROP SEQUENCE call_id_seq;
+    PERFORM gt_load_from_staging(solver, log_description);
+    TRUNCATE game_tree_log_staging;
+  END IF;
+  RETURN sn;
+END;
+$$ LANGUAGE plpgsql VOLATILE;
+
+
+
+--
+-- Utility function used by the game_position_solve one.
+--
+CREATE OR REPLACE FUNCTION game_position_solve_impl (    gp          game_position,
+                                                         log         BOOLEAN,
+                                                         parent_hash BIGINT,
+                                                     OUT node        search_node)
+AS $$
 DECLARE
   moves            CONSTANT square_set := game_position_legal_moves(gp);
   empty_square_set CONSTANT square_set := 0;
@@ -1043,14 +1071,19 @@ DECLARE
   flipped_players_moves square_set;
   node_tmp              search_node;
   node_child            search_node;
-  node                  search_node;
   gp_child              game_position;
+  hash                  BIGINT;
 BEGIN
+  IF log THEN
+    hash := game_position_hash(gp);
+    INSERT INTO game_tree_log_staging (sub_run_id, call_id, hash, parent_hash, blacks, whites, player)
+      VALUES (0, nextval('call_id_seq'), hash, parent_hash, gp.blacks, gp.whites, gp.player);
+  END IF;
   IF moves = empty_square_set THEN
     flipped_players := game_position_pass(gp);
     flipped_players_moves := game_position_legal_moves(flipped_players);
     IF flipped_players_moves <> 0 THEN
-      node_tmp := game_position_solve(flipped_players);
+      node_tmp := game_position_solve_impl(flipped_players, log, hash);
       node := (node_tmp.game_move, -node_tmp.game_value);
     ELSE
       node := (NULL, game_position_final_value(gp));
@@ -1060,16 +1093,15 @@ BEGIN
     remaining_move_array := square_set_to_array(moves);
     FOREACH game_move IN ARRAY remaining_move_array LOOP
       gp_child := game_position_make_move(gp, game_move);
-      node_tmp := game_position_solve(gp_child);
+      node_tmp := game_position_solve_impl(gp_child, log, hash);
       node_child := (node_tmp.game_move, -node_tmp.game_value);
       IF node_child.game_value > node.game_value THEN
         node := (game_move, node_child.game_value);
       END IF;
     END LOOP;
   END IF;
-  RETURN node;
 END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+$$ LANGUAGE plpgsql VOLATILE;
 
 
 
