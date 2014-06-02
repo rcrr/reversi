@@ -33,7 +33,7 @@
 --
 -- This script creates a table named board_bitrow_changes_for_player_from_csv, and
 -- populates it according to the file "../out/bitrow_changes_for_player.csv".
--- If the table already exists t is deleted and recreated.
+-- If the table already exists it is deleted and recreated.
 --
 
 SET search_path TO reversi;
