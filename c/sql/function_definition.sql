@@ -54,6 +54,7 @@ $$ LANGUAGE plpgsql;
 
 
 
+
 --
 -- Returns the count of the bit set to 1 in the bit_sequence argument.
 --
@@ -789,7 +790,8 @@ CREATE OR REPLACE FUNCTION game_position_empties(gp game_position) RETURNS squar
 BEGIN
   RETURN ~(gp.blacks | gp.whites);
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
+COMMENT ON FUNCTION game_position_empties (game_position) IS 'Returns the set of empty squares.';
 
 
 
