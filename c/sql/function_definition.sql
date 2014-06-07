@@ -38,10 +38,10 @@ SET search_path TO reversi;
 
 
 
+CREATE OR REPLACE FUNCTION p_assert(p_assertion BOOLEAN, p_message_on_error VARCHAR(255)) RETURNS VOID AS $$
 --
 -- Realizes the assert statement.
 --
-CREATE OR REPLACE FUNCTION p_assert(p_assertion BOOLEAN, p_message_on_error VARCHAR(255)) RETURNS VOID AS $$
 BEGIN
   IF p_assertion IS NULL THEN
     RAISE EXCEPTION 'Assertion is null, that is not supported.';
@@ -51,14 +51,14 @@ BEGIN
   END IF;
 END;
 $$ LANGUAGE plpgsql;
+COMMENT ON FUNCTION p_assert (BOOLEAN, VARCHAR(255)) IS 'Realizes the assert statement.';
 
 
 
-
+CREATE OR REPLACE FUNCTION bit_works_popcnt(bit_sequence BIGINT) RETURNS SMALLINT AS $$
 --
 -- Returns the count of the bit set to 1 in the bit_sequence argument.
 --
-CREATE OR REPLACE FUNCTION bit_works_popcnt(bit_sequence BIGINT) RETURNS SMALLINT AS $$
 DECLARE
   sign_mask CONSTANT square_set := (x'7FFFFFFFFFFFFFFF')::square_set;
 
@@ -83,11 +83,11 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION bit_works_bitscanMS1B_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 --
 -- Returns the index (0..7) of the most significant bit set in the bit_sequence parameter.
 -- Only bits from 0 to 7 in parameter bit_sequence are considered, 8..15 are irrelevant. 
 --
-CREATE OR REPLACE FUNCTION bit_works_bitscanMS1B_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
   log2_array CONSTANT SMALLINT[] :=
     '{ 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -106,6 +106,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION bit_works_bitscanLS1B_64(bit_sequence BIGINT) RETURNS SMALLINT AS $$
 --
 -- Returns the index of the least significant bit set in the bit_sequence parameter.
 --
@@ -113,7 +114,6 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 -- If no bit set is found, meaning that bit_sequence is equal to 0, 64 is
 -- returned, that is clearly a wrong value.
 --
-CREATE OR REPLACE FUNCTION bit_works_bitscanLS1B_64(bit_sequence BIGINT) RETURNS SMALLINT AS $$
 DECLARE
   mask_1 CONSTANT BIGINT := (x'00000000FFFFFFFF')::BIGINT;
   mask_2 CONSTANT BIGINT := (x'000000000000FFFF')::BIGINT;
@@ -160,6 +160,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION bit_works_fill_in_between_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 --
 -- Returns a bit sequence having set the bits between the two, or zero
 -- when only one bit is set.
@@ -172,7 +173,6 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 --
 -- When the input data doesn't meet the requirements the result is unpredictable.
 --
-CREATE OR REPLACE FUNCTION bit_works_fill_in_between_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
   mask   CONSTANT SMALLINT := 255::SMALLINT;
   masked CONSTANT SMALLINT := bit_sequence & mask;
@@ -183,6 +183,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION bit_works_highest_bit_set_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 --
 -- Returns an int value having all the bit set in bit_sequence turned to 0
 -- except the most significant one.
@@ -191,7 +192,6 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 --
 -- Bits higher than 7 (the second byte of the smallint) are masked to 0.
 --
-CREATE OR REPLACE FUNCTION bit_works_highest_bit_set_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
   log2_array CONSTANT SMALLINT[] :=
     '{   0,   1,   2,   2,   4,   4,   4,   4,   8,   8,   8,   8,   8,   8,   8,   8,
@@ -218,13 +218,13 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION bit_works_lowest_bit_set_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 --
 -- Returns a bit sequence having one bit set, the lowest found
 -- in the bit_sequence parameter.
 --
 -- Bits higher than 7 (the second byte of the smallint) are masked to 0.
 --
-CREATE OR REPLACE FUNCTION bit_works_lowest_bit_set_8(bit_sequence SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
   mask   CONSTANT SMALLINT := 255::SMALLINT;
   masked CONSTANT SMALLINT := bit_sequence & mask;
@@ -235,11 +235,11 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION bit_works_signed_left_shift(bit_sequence BIGINT, shift INTEGER) RETURNS BIGINT AS $$
 --
 -- Returns a value computed shifting the bit_sequence parameter
 -- to left by a signed amount given by the shift parameter.
 --
-CREATE OR REPLACE FUNCTION bit_works_signed_left_shift(bit_sequence BIGINT, shift INTEGER) RETURNS BIGINT AS $$
 BEGIN
   IF shift >= 0 THEN
     RETURN (bit_sequence::BIT(64) << +shift)::BIGINT;
@@ -251,10 +251,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION player_to_char(player player) RETURNS CHAR(1) AS $$
 --
 -- Returns a char describing the palyer.
 --
-CREATE OR REPLACE FUNCTION player_to_char(player player) RETURNS CHAR(1) AS $$
 BEGIN
   IF player = 0 THEN
     RETURN 'b';
@@ -266,10 +266,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION player_to_string(player player) RETURNS TEXT AS $$
 --
 -- Returns a string describing the palyer.
 --
-CREATE OR REPLACE FUNCTION player_to_string(player player) RETURNS TEXT AS $$
 BEGIN
   IF player = 0 THEN
     RETURN 'BLACK';
@@ -281,10 +281,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION player_opponent(player player) RETURNS player AS $$
 --
 -- Returns the player's opponent.
 --
-CREATE OR REPLACE FUNCTION player_opponent(player player) RETURNS player AS $$
 BEGIN
   RETURN 1 - player;
 END;
@@ -292,10 +292,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION square_populate_addictional_fields() RETURNS VOID AS $$
 --
 -- Populates the table square_info with sq_column and sq_row fields.
 --
-CREATE OR REPLACE FUNCTION square_populate_addictional_fields() RETURNS VOID AS $$
 DECLARE
   -- This array has sixtyfour entries. The index, having range 0-63, represent one of the squares
   -- of the table. Each entry is a bitboard mask having set all the squares that are
@@ -337,10 +337,10 @@ $$ LANGUAGE plpgsql VOLATILE;
 
 
 
+CREATE OR REPLACE FUNCTION square_get_column(sq square) RETURNS SMALLINT AS $$
 --
 -- Returns the column ordinal of the square.
 --
-CREATE OR REPLACE FUNCTION square_get_column(sq square) RETURNS SMALLINT AS $$
 DECLARE
   ret SMALLINT;
 BEGIN
@@ -351,10 +351,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION square_get_row(sq square) RETURNS SMALLINT AS $$
 --
 -- Returns the row ordinal of the square.
 --
-CREATE OR REPLACE FUNCTION square_get_row(sq square) RETURNS SMALLINT AS $$
 DECLARE
   ret SMALLINT;
 BEGIN
@@ -365,10 +365,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION square_set_to_string(squares square_set) RETURNS CHAR(64) AS $$
 --
 -- Returns a string describing the square set.
 --
-CREATE OR REPLACE FUNCTION square_set_to_string(squares square_set) RETURNS CHAR(64) AS $$
 DECLARE
   ret CHAR(64);
 BEGIN
@@ -386,10 +386,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION square_set_from_string(ss_string CHAR(64)) RETURNS square_set AS $$
 --
 -- Returns a square_set from the given string.
 --
-CREATE OR REPLACE FUNCTION square_set_from_string(ss_string CHAR(64)) RETURNS square_set AS $$
 DECLARE
   square  square_set := 0;
   i       INTEGER    := 0;
@@ -417,10 +417,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION square_set_to_array(squares square_set) RETURNS square[] AS $$
 --
 -- Returns an array of squares from the given square_set.
 --
-CREATE OR REPLACE FUNCTION square_set_to_array(squares square_set) RETURNS square[] AS $$
 DECLARE
   empty_square_set CONSTANT square_set := 0;
   square_array     CONSTANT square[]   := array(SELECT id FROM square_info ORDER BY ordinal);
@@ -440,13 +440,13 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION axis_transform_to_row_one(axis axis, squares square_set) RETURNS SMALLINT AS $$
 --
 -- Maps the principal line of each axis into row one.
 --
 -- Shifting right should be done casting to BIT(64), but becouse we are protected by the bitwise and we can
 -- just skip it!
 --
-CREATE OR REPLACE FUNCTION axis_transform_to_row_one(axis axis, squares square_set) RETURNS SMALLINT AS $$
 DECLARE
   row_one        CONSTANT square_set := (x'00000000000000FF')::square_set;
   column_a       CONSTANT square_set := (x'0101010101010101')::square_set;
@@ -481,13 +481,13 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION axis_transform_back_from_row_one(axis axis, bitrow BIGINT) RETURNS square_set AS $$
 --
 -- Maps back the principal line of each axis from row one.
 --
 -- Returns a square set having the bits along the axis reference file set to
 -- the corresponding ones on the bitrow parameter 0..7, all other position are set to zero.
 --
-CREATE OR REPLACE FUNCTION axis_transform_back_from_row_one(axis axis, bitrow BIGINT) RETURNS square_set AS $$
 DECLARE
   column_a            CONSTANT square_set := (x'0101010101010101')::square_set;
   diagonal_a1_h8      CONSTANT square_set := (x'8040201008040201')::square_set;
@@ -525,10 +525,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION axis_move_ordinal_position_in_bitrow(axis axis, move_column SMALLINT, move_row SMALLINT) RETURNS SMALLINT AS $$
 --
 -- Returns the ordinal position of the move.
 --
-CREATE OR REPLACE FUNCTION axis_move_ordinal_position_in_bitrow(axis axis, move_column SMALLINT, move_row SMALLINT) RETURNS SMALLINT AS $$
 BEGIN
   IF  axis = 'VE' THEN
     RETURN move_row;
@@ -539,10 +539,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION axis_shift_distance(axis axis, move_column SMALLINT, move_row SMALLINT) RETURNS SMALLINT AS $$
 --
 -- Computes the shift quantity.
 --
-CREATE OR REPLACE FUNCTION axis_shift_distance(axis axis, move_column SMALLINT, move_row SMALLINT) RETURNS SMALLINT AS $$
 BEGIN
   IF axis = 'HO' THEN
     RETURN -move_row << 3;
@@ -560,13 +560,13 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION direction_shift_square_set(dir direction, squares square_set) RETURNS square_set AS $$
 --
 -- Returns a square_set value by shifting the
 -- squares parameter by one position on the board.
 --
 -- Parameter dir must belong to the direction enum.
 --
-CREATE OR REPLACE FUNCTION direction_shift_square_set(dir direction, squares square_set) RETURNS square_set AS $$
 DECLARE
   all_squares_except_column_a CONSTANT square_set := (x'FEFEFEFEFEFEFEFE')::square_set;
   all_squares_except_column_h CONSTANT square_set := (x'7F7F7F7F7F7F7F7F')::square_set;
@@ -588,6 +588,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION direction_shift_back_square_set_by_amount(dir direction, squares square_set, amount INTEGER) RETURNS square_set AS $$
 --
 -- Returns a new square_set value by shifting back the squares parameter
 -- by a number of positions as given by the amount parameter.
@@ -598,7 +599,6 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 -- It is safe to call this function only after a number of shift call equal to the amount value.
 -- This is becouse the function doesn't mask after shifting.
 --
-CREATE OR REPLACE FUNCTION direction_shift_back_square_set_by_amount(dir direction, squares square_set, amount INTEGER) RETURNS square_set AS $$
 BEGIN
   CASE dir
     WHEN 'NW' THEN RETURN (squares::BIT(64) >> (9 * amount))::square_set;
@@ -617,12 +617,12 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
 --
 -- Populates the table board_bitrow_changes_for_player.
 --
 -- The table must be empty before running the function.
 --
-CREATE OR REPLACE FUNCTION board_populate_bitrow_changes_for_player() RETURNS VOID AS $$
 DECLARE
   player_row_count                       INTEGER;
   opponent_row_count                     INTEGER;
@@ -697,10 +697,10 @@ $$ LANGUAGE plpgsql VOLATILE;
 
 
 
+CREATE OR REPLACE FUNCTION board_bitrow_changes_for_player(player_row SMALLINT, opponent_row SMALLINT, move_position SMALLINT) RETURNS SMALLINT AS $$
 --
 -- Returns an 8-bit row representation of the player pieces after applying the move.
 --
-CREATE OR REPLACE FUNCTION board_bitrow_changes_for_player(player_row SMALLINT, opponent_row SMALLINT, move_position SMALLINT) RETURNS SMALLINT AS $$
 DECLARE
   bitrow_changes_for_player_index CONSTANT INTEGER := player_row::INTEGER | (opponent_row::INTEGER << 8) | (move_position::INTEGER << 16);
 
@@ -713,10 +713,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_to_string(gp game_position) RETURNS CHAR(65) AS $$
 --
 -- Returns a string describing the board state.
 --
-CREATE OR REPLACE FUNCTION game_position_to_string(gp game_position) RETURNS CHAR(65) AS $$
 DECLARE
   ret  CHAR(65) := '';
   mask square_set;
@@ -738,10 +738,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_from_string(gp_string CHAR(65)) RETURNS game_position AS $$
 --
 -- Returns a game position from the given string.
 --
-CREATE OR REPLACE FUNCTION game_position_from_string(gp_string CHAR(65)) RETURNS game_position AS $$
 DECLARE
   blacks square_set := 0;
   whites square_set := 0;
@@ -783,10 +783,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_empties(gp game_position) RETURNS square_set AS $$
 --
 -- Returns the set of empty squares.
 --
-CREATE OR REPLACE FUNCTION game_position_empties(gp game_position) RETURNS square_set AS $$
 BEGIN
   RETURN ~(gp.blacks | gp.whites);
 END;
@@ -795,10 +795,10 @@ COMMENT ON FUNCTION game_position_empties (game_position) IS 'Returns the set of
 
 
 
+CREATE OR REPLACE FUNCTION game_position_get_square_set_for_player(gp game_position) RETURNS square_set AS $$
 --
 -- Returns the square set for the player.
 --
-CREATE OR REPLACE FUNCTION game_position_get_square_set_for_player(gp game_position) RETURNS square_set AS $$
 BEGIN
   IF gp.player = 0 THEN
     RETURN gp.blacks;
@@ -810,10 +810,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_get_square_set_for_opponent(gp game_position) RETURNS square_set AS $$
 --
 -- Returns the square set for the opponent.
 --
-CREATE OR REPLACE FUNCTION game_position_get_square_set_for_opponent(gp game_position) RETURNS square_set AS $$
 BEGIN
   IF gp.player = 0 THEN
     RETURN gp.whites;
@@ -825,10 +825,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_is_move_legal(gp game_position, move square) RETURNS BOOLEAN AS $$
 --
 -- Returns true if the move is legal.
 --
-CREATE OR REPLACE FUNCTION game_position_is_move_legal(gp game_position, move square) RETURNS BOOLEAN AS $$
 DECLARE
   empties               CONSTANT square_set := game_position_empties(gp);
   empty_square_set      CONSTANT square_set := 0;
@@ -872,10 +872,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_legal_moves(gp game_position) RETURNS square_set AS $$
 --
 -- Returns a set of squares that represents the legal moves for the game position.
 --
-CREATE OR REPLACE FUNCTION game_position_legal_moves(gp game_position) RETURNS square_set AS $$
 DECLARE
   empty_square_set CONSTANT square_set := 0;
   empties          CONSTANT square_set := game_position_empties(gp);
@@ -910,10 +910,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_make_move(gp game_position, game_move square) RETURNS game_position AS $$
 --
 -- Executes a game move on the given position.
 --
-CREATE OR REPLACE FUNCTION game_position_make_move(gp game_position, game_move square) RETURNS game_position AS $$
 DECLARE
   player         CONSTANT player     := gp.player;
   opponent       CONSTANT player     := player_opponent(player);
@@ -951,10 +951,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_pass(gp game_position) RETURNS game_position AS $$
 --
 -- Executes a game pass move on the given position.
 --
-CREATE OR REPLACE FUNCTION game_position_pass(gp game_position) RETURNS game_position AS $$
 BEGIN
   RETURN (gp.blacks, gp.whites, player_opponent(gp.player));
 END;
@@ -962,10 +962,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_pp(gp game_position) RETURNS TEXT AS $$
 --
 -- Executes a game move on the given position.
 --
-CREATE OR REPLACE FUNCTION game_position_pp(gp game_position) RETURNS TEXT AS $$
 DECLARE
   new_line CONSTANT TEXT := E'\n';
 
@@ -999,10 +999,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_final_value(gp game_position) RETURNS SMALLINT AS $$
 --
 -- Computes the value of a final position.
 --
-CREATE OR REPLACE FUNCTION game_position_final_value(gp game_position) RETURNS SMALLINT AS $$
 DECLARE
   b_count    CONSTANT SMALLINT := bit_works_popcnt(gp.blacks);
   w_count    CONSTANT SMALLINT := bit_works_popcnt(gp.whites);
@@ -1031,10 +1031,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_solve(gp game_position, log BOOLEAN, run_label CHAR(4), log_description TEXT) RETURNS search_node AS $$
 --
 -- Solves a game position.
 --
-CREATE OR REPLACE FUNCTION game_position_solve(gp game_position, log BOOLEAN, run_label CHAR(4), log_description TEXT) RETURNS search_node AS $$
 DECLARE
   solver CONSTANT CHAR(20) := 'SQL_MINIMAX_SOLVER';
   sn search_node;
@@ -1055,14 +1055,14 @@ $$ LANGUAGE plpgsql VOLATILE;
 
 
 
---
--- Utility function used by the game_position_solve one.
---
 CREATE OR REPLACE FUNCTION game_position_solve_impl (    gp          game_position,
                                                          log         BOOLEAN,
                                                          parent_hash BIGINT,
                                                      OUT node        search_node)
 AS $$
+--
+-- Utility function used by the game_position_solve one.
+--
 DECLARE
   moves            CONSTANT square_set := game_position_legal_moves(gp);
   empty_square_set CONSTANT square_set := 0;
@@ -1107,11 +1107,11 @@ $$ LANGUAGE plpgsql VOLATILE;
 
 
 
+CREATE OR REPLACE FUNCTION game_position_hash(gp game_position) RETURNS BIGINT AS $$
 --
 -- Returns the hash value for the game position.
 -- The hash is computed by mean of a zobrist technique.
 --
-CREATE OR REPLACE FUNCTION game_position_hash(gp game_position) RETURNS BIGINT AS $$
 DECLARE
   --
   -- Zobrist bitstrings generated by the URANDOM Linux generator.
