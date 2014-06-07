@@ -61,7 +61,7 @@ SELECT
   id,
   description,
   game_position_pp(gp),
-  game_position_solve(gp, TRUE, 'T002', 'Test data obtained by the PL/SQL minimax solver on position ffo-01-simplified-4.')
+  game_position_solve(gp, 'SQL_MINIMAX_SOLVER', TRUE, 'T002', 'Test data obtained by the PL/SQL minimax solver on position ffo-01-simplified-4.')
 FROM
   game_position_test_data WHERE id = 'ffo-01-simplified-4';
 

@@ -948,25 +948,26 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION test_game_position_solve() RETURNS VOID AS $$
 DECLARE
-  log       BOOLEAN := FALSE;
-  run_label CHAR(4) := NULL;
-  log_desc  TEXT    := NULL;
+  solver    CHAR(40) := 'SQL_MINIMAX_SOLVER';
+  log       BOOLEAN  := FALSE;
+  run_label CHAR(4)  := NULL;
+  log_desc  TEXT     := NULL;
   fixture  RECORD;
 BEGIN
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified-10';
-  PERFORM p_assert(('H1', +18)::search_node = game_position_solve(fixture.gp, log, run_label, log_desc), 'Expected value is (H1, +18).');
+  PERFORM p_assert(('H1', +18)::search_node = game_position_solve(fixture.gp, solver, log, run_label, log_desc), 'Expected value is (H1, +18).');
 
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified-9';
-  PERFORM p_assert(('B1', -18)::search_node = game_position_solve(fixture.gp, log, run_label, log_desc), 'Expected value is (B1, -18).');
+  PERFORM p_assert(('B1', -18)::search_node = game_position_solve(fixture.gp, solver, log, run_label, log_desc), 'Expected value is (B1, -18).');
 
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified-8';
-  PERFORM p_assert(('A1', +18)::search_node = game_position_solve(fixture.gp, log, run_label, log_desc), 'Expected value is (A1, +18).');
+  PERFORM p_assert(('A1', +18)::search_node = game_position_solve(fixture.gp, solver, log, run_label, log_desc), 'Expected value is (A1, +18).');
 
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified-7';
-  PERFORM p_assert(('A3', -18)::search_node = game_position_solve(fixture.gp, log, run_label, log_desc), 'Expected value is (A3, -18).');
+  PERFORM p_assert(('A3', -18)::search_node = game_position_solve(fixture.gp, solver, log, run_label, log_desc), 'Expected value is (A3, -18).');
 
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified-6';
-  PERFORM p_assert(('H8', +18)::search_node = game_position_solve(fixture.gp, log, run_label, log_desc), 'Expected value is (H8, +18).');
+  PERFORM p_assert(('H8', +18)::search_node = game_position_solve(fixture.gp, solver, log, run_label, log_desc), 'Expected value is (H8, +18).');
 END;
 $$ LANGUAGE plpgsql;
 

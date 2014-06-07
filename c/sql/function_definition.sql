@@ -1032,6 +1032,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 CREATE OR REPLACE FUNCTION game_position_solve(    gp              game_position,
+                                                   solver          CHAR(20),
                                                    log             BOOLEAN,
                                                    run_label       CHAR(4),
                                                    log_description TEXT,
@@ -1040,13 +1041,12 @@ AS $$
 --
 -- Solves a game position.
 --
-DECLARE
-  solver CONSTANT CHAR(20) := 'SQL_MINIMAX_SOLVER';
 BEGIN
   IF log THEN
     TRUNCATE game_tree_log_staging;
     CREATE TEMPORARY SEQUENCE call_id_seq START 1;
   END IF;
+  -- Use EXECUTE to make the call to game_position_solve_impl a dynamic call based on a query on game_tree_solver ....
   sn := game_position_solve_impl(gp, log, 0);
   IF log THEN
     DROP SEQUENCE call_id_seq;
