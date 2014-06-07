@@ -288,9 +288,9 @@ CREATE TYPE search_node AS (
 --
 -- DROP TABLE IF EXISTS board_bitrow_changes_for_player;
 --
-CREATE TABLE board_bitrow_changes_for_player(id      INTEGER,
-                                             changes SMALLINT,
-                                             PRIMARY KEY(id));
+CREATE TABLE board_bitrow_changes_for_player (id      INTEGER,
+                                              changes SMALLINT,
+                                              PRIMARY KEY(id));
 
 
 
@@ -331,3 +331,16 @@ CREATE TABLE game_tree_log_staging (sub_run_id   SMALLINT  NOT NULL,
                                     whites       square_set,
                                     player       player,
                                     PRIMARY KEY(sub_run_id, call_id));
+
+
+
+--
+-- DROP TABLE IF EXISTS game_tree_solver;
+--
+CREATE TABLE game_tree_solver (solver        CHAR(20)  PRIMARY KEY,
+                               function_name TEXT      NOT NULL UNIQUE);
+
+-- Populates the game_tree_solver table.
+INSERT INTO game_tree_solver (solver, function_name) VALUES
+  ('SQL_MINIMAX_SOLVER',   'game_tree_minimax_solver_impl'),
+  ('SQL_ALPHABETA_SOLVER', 'game_tree_alphabeta_solver_impl');

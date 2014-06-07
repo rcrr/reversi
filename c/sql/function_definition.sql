@@ -1031,13 +1031,17 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 
 
-CREATE OR REPLACE FUNCTION game_position_solve(gp game_position, log BOOLEAN, run_label CHAR(4), log_description TEXT) RETURNS search_node AS $$
+CREATE OR REPLACE FUNCTION game_position_solve(    gp              game_position,
+                                                   log             BOOLEAN,
+                                                   run_label       CHAR(4),
+                                                   log_description TEXT,
+                                               OUT sn              search_node)
+AS $$
 --
 -- Solves a game position.
 --
 DECLARE
   solver CONSTANT CHAR(20) := 'SQL_MINIMAX_SOLVER';
-  sn search_node;
 BEGIN
   IF log THEN
     TRUNCATE game_tree_log_staging;
@@ -1049,16 +1053,15 @@ BEGIN
     PERFORM gt_load_from_staging(run_label, solver, log_description);
     TRUNCATE game_tree_log_staging;
   END IF;
-  RETURN sn;
 END;
 $$ LANGUAGE plpgsql VOLATILE;
 
 
 
-CREATE OR REPLACE FUNCTION game_position_solve_impl (    gp          game_position,
-                                                         log         BOOLEAN,
-                                                         parent_hash BIGINT,
-                                                     OUT node        search_node)
+CREATE OR REPLACE FUNCTION game_position_solve_impl(    gp          game_position,
+                                                        log         BOOLEAN,
+                                                        parent_hash BIGINT,
+                                                    OUT node        search_node)
 AS $$
 --
 -- Utility function used by the game_position_solve one.

@@ -43,7 +43,7 @@ SET search_path TO reversi;
 -- Returns the number of record loaded in game_tree_log and the run_id value inserted in game_tree_log_header.
 --
 CREATE OR REPLACE FUNCTION gt_load_from_staging (    run_label           CHAR(4),
-                                                     engine_id           CHAR(10),
+                                                     engine_id           CHAR(20),
                                                      description         TEXT,
                                                  OUT new_run_id          INTEGER,
                                                  OUT record_loaded_count INTEGER)
