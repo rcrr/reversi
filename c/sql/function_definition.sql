@@ -1041,13 +1041,19 @@ AS $$
 --
 -- Solves a game position.
 --
+DECLARE
+  square_count INTEGER := 0;
 BEGIN
   IF log THEN
     TRUNCATE game_tree_log_staging;
     CREATE TEMPORARY SEQUENCE call_id_seq START 1;
   END IF;
-  -- Use EXECUTE to make the call to game_position_solve_impl a dynamic call based on a query on game_tree_solver ....
-  sn := game_position_solve_impl(gp, log, 0);
+  CASE solver
+    WHEN 'SQL_MINIMAX_SOLVER' THEN
+      sn := game_tree_minimax_solver_impl(gp, log, 0);
+    ELSE
+      sn := (NULL, NULL);
+  END CASE;
   IF log THEN
     DROP SEQUENCE call_id_seq;
     PERFORM gt_load_from_staging(run_label, solver, log_description);
@@ -1058,10 +1064,10 @@ $$ LANGUAGE plpgsql VOLATILE;
 
 
 
-CREATE OR REPLACE FUNCTION game_position_solve_impl(    gp          game_position,
-                                                        log         BOOLEAN,
-                                                        parent_hash BIGINT,
-                                                    OUT node        search_node)
+CREATE OR REPLACE FUNCTION game_tree_minimax_solver_impl(    gp          game_position,
+                                                             log         BOOLEAN,
+                                                             parent_hash BIGINT,
+                                                         OUT node        search_node)
 AS $$
 --
 -- Utility function used by the game_position_solve one.
@@ -1088,7 +1094,7 @@ BEGIN
     flipped_players := game_position_pass(gp);
     flipped_players_moves := game_position_legal_moves(flipped_players);
     IF flipped_players_moves <> 0 THEN
-      node_tmp := game_position_solve_impl(flipped_players, log, hash);
+      node_tmp := game_tree_minimax_solver_impl(flipped_players, log, hash);
       node := (node_tmp.game_move, -node_tmp.game_value);
     ELSE
       node := (NULL, game_position_final_value(gp));
@@ -1098,7 +1104,7 @@ BEGIN
     remaining_move_array := square_set_to_array(moves);
     FOREACH game_move IN ARRAY remaining_move_array LOOP
       gp_child := game_position_make_move(gp, game_move);
-      node_tmp := game_position_solve_impl(gp_child, log, hash);
+      node_tmp := game_tree_minimax_solver_impl(gp_child, log, hash);
       node_child := (node_tmp.game_move, -node_tmp.game_value);
       IF node_child.game_value > node.game_value THEN
         node := (game_move, node_child.game_value);
