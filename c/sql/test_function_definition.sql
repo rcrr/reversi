@@ -946,7 +946,7 @@ $$ LANGUAGE plpgsql;
 --
 -- Tests the game_position_solve function.
 --
-CREATE OR REPLACE FUNCTION test_game_position_solve() RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION test_game_position_solve_by_means_of_minimax() RETURNS VOID AS $$
 DECLARE
   solver    CHAR(40) := 'SQL_MINIMAX_SOLVER';
   log       BOOLEAN  := FALSE;
@@ -966,6 +966,24 @@ BEGIN
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified-7';
   PERFORM p_assert(('A3', -18)::search_node = game_position_solve(fixture.gp, solver, log, run_label, log_desc), 'Expected value is (A3, -18).');
 
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified-6';
+  PERFORM p_assert(('H8', +18)::search_node = game_position_solve(fixture.gp, solver, log, run_label, log_desc), 'Expected value is (H8, +18).');
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+--
+-- Tests the game_position_solve function.
+--
+CREATE OR REPLACE FUNCTION test_game_position_solve_by_means_of_alphabeta() RETURNS VOID AS $$
+DECLARE
+  solver    CHAR(40) := 'SQL_ALPHABETA_SOLVER';
+  log       BOOLEAN  := FALSE;
+  run_label CHAR(4)  := NULL;
+  log_desc  TEXT     := NULL;
+  fixture  RECORD;
+BEGIN
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified-6';
   PERFORM p_assert(('H8', +18)::search_node = game_position_solve(fixture.gp, solver, log, run_label, log_desc), 'Expected value is (H8, +18).');
 END;

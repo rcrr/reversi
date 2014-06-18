@@ -79,4 +79,5 @@ SELECT test_game_position_pp();
 SELECT test_game_position_final_value();
 SELECT test_game_position_hash();
 
-SELECT test_game_position_solve();
+SELECT test_game_position_solve_by_means_of_minimax();
+SELECT test_game_position_solve_by_means_of_alphabeta();
