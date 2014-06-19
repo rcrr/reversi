@@ -1042,8 +1042,9 @@ AS $$
 -- Solves a game position.
 --
 DECLARE
-  best_score  CONSTANT SMALLINT := +64;
-  worst_score CONSTANT SMALLINT := -64;
+  best_score        CONSTANT SMALLINT := +64;
+  worst_score       CONSTANT SMALLINT := -64;
+  dummy_parent_hash CONSTANT BIGINT   := 0;
 
   square_count INTEGER := 0;
 BEGIN
@@ -1053,9 +1054,9 @@ BEGIN
   END IF;
   CASE solver
     WHEN 'SQL_MINIMAX_SOLVER' THEN
-      sn := game_tree_minimax_solver_impl(gp, log, 0);
+      sn := game_tree_minimax_solver_impl(gp, log, dummy_parent_hash);
     WHEN 'SQL_ALPHABETA_SOLVER' THEN
-      sn := game_tree_alphabeta_solver_impl(gp, log, 0, worst_score, best_score);
+      sn := game_tree_alphabeta_solver_impl(gp, log, dummy_parent_hash, worst_score, best_score);
     ELSE
       sn := (NULL, NULL);
   END CASE;
@@ -1078,8 +1079,9 @@ AS $$
 -- Utility function used by game_position_solve, it solves the game by applying a plain minimax algorithm.
 --
 DECLARE
-  moves            CONSTANT square_set := game_position_legal_moves(gp);
-  empty_square_set CONSTANT square_set := 0;
+  moves                     CONSTANT square_set := game_position_legal_moves(gp);
+  empty_square_set          CONSTANT square_set := 0;
+  out_of_range_defeat_score CONSTANT SMALLINT   := -65;
 
   remaining_move_array  square[];
   game_move             square;
@@ -1105,7 +1107,7 @@ BEGIN
       node := (NULL, game_position_final_value(gp));
     END IF;
   ELSE
-    node := (NULL, -65);
+    node := (NULL, out_of_range_defeat_score);
     remaining_move_array := square_set_to_array(moves);
     FOREACH game_move IN ARRAY remaining_move_array LOOP
       gp_child := game_position_make_move(gp, game_move);
@@ -1133,8 +1135,9 @@ AS $$
 -- Legal moves are sorted by their natural order, from A1 to H8.
 --
 DECLARE
-  moves            CONSTANT square_set := game_position_legal_moves(gp);
-  empty_square_set CONSTANT square_set := 0;
+  moves                     CONSTANT square_set := game_position_legal_moves(gp);
+  empty_square_set          CONSTANT square_set := 0;
+  out_of_range_defeat_score CONSTANT SMALLINT   := -65;
 
   remaining_move_array  square[];
   game_move             square;
@@ -1160,7 +1163,7 @@ BEGIN
       node := (NULL, game_position_final_value(gp));
     END IF;
   ELSE
-    node := (NULL, -65);
+    node := (NULL, out_of_range_defeat_score);
     remaining_move_array := square_set_to_array(moves);
     FOREACH game_move IN ARRAY remaining_move_array LOOP
       gp_child := game_position_make_move(gp, game_move);
