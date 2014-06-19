@@ -1165,14 +1165,16 @@ BEGIN
   ELSE
     node := (NULL, out_of_range_defeat_score);
     remaining_move_array := square_set_to_array(moves);
+    <<moves_loop>>
     FOREACH game_move IN ARRAY remaining_move_array LOOP
       gp_child := game_position_make_move(gp, game_move);
-      node_tmp := game_tree_alphabeta_solver_impl(gp_child, log, hash, -beta, -alpha);
+      node_tmp := game_tree_alphabeta_solver_impl(gp_child, log, hash, -beta, -node.game_value);
       node_child := (node_tmp.game_move, -node_tmp.game_value);
       IF node_child.game_value > node.game_value THEN
         node := (game_move, node_child.game_value);
+        EXIT moves_loop WHEN node.game_value >= beta; 
       END IF;
-    END LOOP;
+    END LOOP moves_loop;
   END IF;
 END;
 $$ LANGUAGE plpgsql VOLATILE;

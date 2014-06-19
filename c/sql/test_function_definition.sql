@@ -986,6 +986,10 @@ DECLARE
 BEGIN
   SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified-6';
   PERFORM p_assert(('H8', +18)::search_node = game_position_solve(fixture.gp, solver, log, run_label, log_desc), 'Expected value is (H8, +18).');
+
+  SELECT * INTO STRICT fixture FROM game_position_test_data WHERE id = 'ffo-01-simplified-4';
+  PERFORM p_assert(('B6', +18)::search_node = game_position_solve(fixture.gp, solver, log, run_label, log_desc), 'Expected value is (B6, +18).');
+  
 END;
 $$ LANGUAGE plpgsql;
 
