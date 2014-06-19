@@ -1042,6 +1042,9 @@ AS $$
 -- Solves a game position.
 --
 DECLARE
+  best_score  CONSTANT SMALLINT := +64;
+  worst_score CONSTANT SMALLINT := -64;
+
   square_count INTEGER := 0;
 BEGIN
   IF log THEN
@@ -1052,7 +1055,7 @@ BEGIN
     WHEN 'SQL_MINIMAX_SOLVER' THEN
       sn := game_tree_minimax_solver_impl(gp, log, 0);
     WHEN 'SQL_ALPHABETA_SOLVER' THEN
-      sn := game_tree_alphabeta_solver_impl(gp, log, 0);
+      sn := game_tree_alphabeta_solver_impl(gp, log, 0, worst_score, best_score);
     ELSE
       sn := (NULL, NULL);
   END CASE;
@@ -1121,10 +1124,13 @@ $$ LANGUAGE plpgsql VOLATILE;
 CREATE OR REPLACE FUNCTION game_tree_alphabeta_solver_impl(    gp          game_position,
                                                                log         BOOLEAN,
                                                                parent_hash BIGINT,
+                                                               alpha       SMALLINT,
+                                                               beta        SMALLINT,
                                                            OUT node        search_node)
 AS $$
 --
 -- Utility function used by game_position_solve, it solves the game using a base alpha-beta algorithm.
+-- Legal moves are sorted by their natural order, from A1 to H8.
 --
 DECLARE
   moves            CONSTANT square_set := game_position_legal_moves(gp);
@@ -1148,7 +1154,7 @@ BEGIN
     flipped_players := game_position_pass(gp);
     flipped_players_moves := game_position_legal_moves(flipped_players);
     IF flipped_players_moves <> 0 THEN
-      node_tmp := game_tree_minimax_solver_impl(flipped_players, log, hash);
+      node_tmp := game_tree_alphabeta_solver_impl(flipped_players, log, hash, -beta, -alpha);
       node := (node_tmp.game_move, -node_tmp.game_value);
     ELSE
       node := (NULL, game_position_final_value(gp));
@@ -1158,7 +1164,7 @@ BEGIN
     remaining_move_array := square_set_to_array(moves);
     FOREACH game_move IN ARRAY remaining_move_array LOOP
       gp_child := game_position_make_move(gp, game_move);
-      node_tmp := game_tree_minimax_solver_impl(gp_child, log, hash);
+      node_tmp := game_tree_alphabeta_solver_impl(gp_child, log, hash, -beta, -alpha);
       node_child := (node_tmp.game_move, -node_tmp.game_value);
       IF node_child.game_value > node.game_value THEN
         node := (game_move, node_child.game_value);
