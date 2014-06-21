@@ -1056,7 +1056,7 @@ BEGIN
     WHEN 'SQL_MINIMAX_SOLVER' THEN
       sn := game_tree_minimax_solver_impl(gp, log, dummy_parent_hash);
     WHEN 'SQL_ALPHABETA_SOLVER' THEN
-      sn := game_tree_alphabeta_solver_impl(gp, log, dummy_parent_hash, worst_score, best_score);
+      sn := game_tree_alphabeta_solver_impl(gp, log, dummy_parent_hash, worst_score, best_score, TRUE);
     ELSE
       sn := (NULL, NULL);
   END CASE;
@@ -1123,12 +1123,13 @@ $$ LANGUAGE plpgsql VOLATILE;
 
 
 
-CREATE OR REPLACE FUNCTION game_tree_alphabeta_solver_impl(    gp          game_position,
-                                                               log         BOOLEAN,
-                                                               parent_hash BIGINT,
-                                                               alpha       SMALLINT,
-                                                               beta        SMALLINT,
-                                                           OUT node        search_node)
+CREATE OR REPLACE FUNCTION game_tree_alphabeta_solver_impl(    gp                          game_position,
+                                                               log                         BOOLEAN,
+                                                               parent_hash                 BIGINT,
+                                                               alpha                       SMALLINT,
+                                                               beta                        SMALLINT,
+                                                               previuos_position_has_moves BOOLEAN,
+                                                           OUT node                        search_node)
 AS $$
 --
 -- Utility function used by game_position_solve, it solves the game using a base alpha-beta algorithm.
@@ -1154,10 +1155,9 @@ BEGIN
       VALUES (0, nextval('call_id_seq'), hash, parent_hash, gp.blacks, gp.whites, gp.player);
   END IF;
   IF moves = empty_square_set THEN
-    flipped_players := game_position_pass(gp);
-    flipped_players_moves := game_position_legal_moves(flipped_players);
-    IF flipped_players_moves <> 0 THEN
-      node_tmp := game_tree_alphabeta_solver_impl(flipped_players, log, hash, -beta, -alpha);
+    IF (game_position_empties(gp) <> empty_square_set AND previuos_position_has_moves) THEN
+      flipped_players := game_position_pass(gp);
+      node_tmp := game_tree_alphabeta_solver_impl(flipped_players, log, hash, -beta, -alpha, FALSE);
       node := (node_tmp.game_move, -node_tmp.game_value);
     ELSE
       node := (NULL, game_position_final_value(gp));
@@ -1168,7 +1168,7 @@ BEGIN
     <<moves_loop>>
     FOREACH game_move IN ARRAY remaining_move_array LOOP
       gp_child := game_position_make_move(gp, game_move);
-      node_tmp := game_tree_alphabeta_solver_impl(gp_child, log, hash, -beta, -node.game_value);
+      node_tmp := game_tree_alphabeta_solver_impl(gp_child, log, hash, -beta, -node.game_value, TRUE);
       node_child := (node_tmp.game_move, -node_tmp.game_value);
       IF node_child.game_value > node.game_value THEN
         node := (game_move, node_child.game_value);

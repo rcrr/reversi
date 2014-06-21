@@ -169,7 +169,7 @@ game_position_ab_solve(const GamePosition* const root,
   log = log_flag;
 
   if (log) {
-    game_tree_log_file = fopen("out/rab_solver_log.csv", "w");
+    game_tree_log_file = fopen("out/ab_solver_log.csv", "w");
     fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s\n",
             "SUB_RUN_ID",
             "CALL_ID",
@@ -333,7 +333,6 @@ game_position_solve_impl(ExactSolution* const result,
   current_node_info->hash = game_position_x_hash(current_gpx);
   const SquareSet move_set = game_position_x_legal_moves(current_gpx);
   legal_move_list_from_set(move_set, current_node_info, next_node_info);
-  utils_shuffle_uint8(current_node_info->head_of_legal_move_list, current_node_info->move_count);
   
   if (log) {
     sint64 *current_hash_to_signed = (sint64 *) &current_node_info->hash;
