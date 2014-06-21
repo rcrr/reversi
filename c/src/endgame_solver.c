@@ -16,6 +16,10 @@
  *
  * @todo Refine and refactor the exact_solver implementation.
  *
+ * @todo Solvers rab and ab share the same stack solution. Refactor it sharing
+ *       the same utilities brougth to a dedicated module. The es solver should
+ *       do the same.
+ *
  * @todo Write a test suite that solves a selection of the FFO test cases.
  *
  * @todo Profile exact_solver against improved_fast_endgame_solver.
@@ -25,9 +29,9 @@
  * @todo [done] Try to avoid having malloc/free calls during game tree expansion.
  *
  * @todo [done] Refactor the game-tree static stack implementation.
- *       Avoid to put it in the stack (implement one call to malloc for the complete structure).
- *       Pass the stack pointer in the parameter list.
- *       Make the code as much readable as possible.
+ *       [done] Avoid to put it in the stack (implement one call to malloc for the complete structure).
+ *       [done] Pass the stack pointer in the parameter list.
+ *       [done] Make the code as much readable as possible.
  * 
  * @todo Port the stack practice to all the other solver, refactor the structures used (Stack, NodeInfo, GamePositionX).
  *
@@ -36,11 +40,18 @@
  *       [done] Missing features are: - game_position_pretty_print
  *       [done]                       - game_position_make_move
  *       [done]                       - a minimax solver
- *                                    - an alpha-beta solver
+ *       [done]                       - an alpha-beta solver
  *       Organize the logging activity for the solvers.
  *       Organize the files used to read and analyze the C program outputs
  *
- * @todo Develop a full description of the evidence of all the variants.
+ * @todo Develop a full description of the evidence of all the variants, basically a paper describing:
+ *        - The statisctical data obtained by the random sampler.
+ *        - The statistical data obtained by the minimax and rab solvers.
+ *        - A kind of relation with the minimal tree (this has to be detailed more).
+ *        - A description of the solvers.
+ *        - A description of the PL/SQL reversi package.
+ *
+ * @todo A new section of the Makefile that regenerates the log csv files used by the PL/SQL reload_everything.sql script.
  *
  * @todo Introduce the node cache by means of a shared hashtable.
  *
