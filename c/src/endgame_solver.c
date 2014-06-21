@@ -89,19 +89,20 @@
 #include "random_game_sampler.h"
 #include "minimax_solver.h"
 #include "rab_solver.h"
+#include "ab_solver.h"
 
 
 
 /* Static constants. */
 
-static const gchar *solvers[] = {"es", "ifes", "rand", "minimax", "rab"};
+static const gchar *solvers[] = {"es", "ifes", "rand", "minimax", "rab", "ab"};
 static const int n_solver = sizeof(solvers) / sizeof(solvers[0]);
 
 static const gchar *program_documentation_string =
   "Description:\n"
   "Endgame solver is the front end for a group of algorithms aimed to analyze the final part of the game and to asses the game tree structure.\n"
-  "Available engines are: es (exact solver), ifes (improved fast endgame solver), rand (random game sampler), minimax (minimax solver), and\n"
-  "rab (random alpha-beta solver).\n"
+  "Available engines are: es (exact solver), ifes (improved fast endgame solver), rand (random game sampler), minimax (minimax solver),\n"
+  "ab (alpha-beta solver), and rab (random alpha-beta solver).\n"
   "\n"
   " - es (exact solver)\n"
   "   My fully featured implementation of a Reversi Endgame Exact Solver. A sample call is:\n"
@@ -111,7 +112,7 @@ static const gchar *program_documentation_string =
   "   A solver derived from the Gunnar Andersson work. A sample call is:\n"
   "     $ endgame_solver -f db/gpdb-ffo.txt -q ffo-40 -s ifes\n"
   "\n"
-  " - rand (random player)\n"
+  " - rand (random game sampler)\n"
   "   The rand solver is a way to play a sequence of random game from the given position.\n"
   "   This option works together with the -n flag, that assigns the number of repeats, a sample call is:\n"
   "     $ endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100\n"
@@ -119,6 +120,10 @@ static const gchar *program_documentation_string =
   " - minimax (minimax solver)\n"
   "   It applies the plain vanilla minimax algorithm, a sample call is:\n"
   "     $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified -s minimax\n"
+  "\n"
+  " - ab (alpha-beta solver)\n"
+  "   It applies the alpha-beta algorithm sorting legal moves by their natural order, a sample call is:\n"
+  "     $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified -s ab\n"
   "\n"
   " - rab (random alpha-beta solver)\n"
   "   It uses the alpha-beta pruning, ordering the moves by mean of a random criteria, a sample call is.\n"
@@ -144,11 +149,11 @@ static gboolean log_flag     = FALSE;
 
 static const GOptionEntry entries[] =
   {
-    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,   "Input file name   - Mandatory",                                         NULL },
-    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry      - Mandatory",                                         NULL },
-    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver            - Mandatory - Must be in [es|ifes|rand|minimax|rab]", NULL },
-    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand/rab solvers",                    NULL },
-    { "log",           'l', 0, G_OPTION_ARG_NONE,     &log_flag,     "Turns logging on",                                                      NULL },
+    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,   "Input file name   - Mandatory",                                            NULL },
+    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry      - Mandatory",                                            NULL },
+    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver            - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab]", NULL },
+    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand/rab solvers",                       NULL },
+    { "log",           'l', 0, G_OPTION_ARG_NONE,     &log_flag,     "Turns logging on",                                                         NULL },
     { NULL }
   };
 
@@ -276,6 +281,9 @@ main (int argc, char *argv[])
     break;
   case 4:
     solution = game_position_rab_solve(gp, log_flag, repeats);
+    break;
+  case 5:
+    solution = game_position_ab_solve(gp, log_flag);
     break;
   default:
     g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);

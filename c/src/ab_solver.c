@@ -1,11 +1,11 @@
 /**
  * @file
  *
- * @brief Random alpha-beta solver module implementation.
+ * @brief Alpha-beta solver module implementation.
  * @details It searches the end of the game for an exact outcome using the Alpha-Beta algorithm.
- * Moves are sorted by a random criteria.
+ * Moves are sorted by their natural order, from A1 to H8 (A1, B1, C1, ... G8, H8).
  *
- * @par rab_solver.c
+ * @par ab_solver.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -37,7 +37,7 @@
 
 #include <glib.h>
 
-#include "rab_solver.h"
+#include "ab_solver.h"
 #include "utils.h"
 
 /**
@@ -100,8 +100,7 @@ game_tree_stack_free(GameTreeStack* stack);
 
 static void
 game_position_solve_impl(ExactSolution* const result,
-                         GameTreeStack* const stack,
-                         const int sub_run_id);
+                         GameTreeStack* const stack);
 
 static void
 game_tree_stack_init(const GamePosition* const root,
@@ -159,22 +158,13 @@ static gboolean log = FALSE;
  *
  * @param [in] root     the starting game position to be solved
  * @param [in] log_flag true when logging is enabled
- * @param [in] repeats  number of repetitions
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution*
-game_position_rab_solve(const GamePosition* const root,
-                        const gboolean log_flag,
-                        const int repeats)
+game_position_ab_solve(const GamePosition* const root,
+                       const gboolean log_flag)
 {
   ExactSolution* result = NULL;
-  int n;
-  
-  if (repeats < 1) {
-    n = 1;
-  } else {
-    n = repeats;
-  }
   
   log = log_flag;
 
@@ -193,24 +183,20 @@ game_position_rab_solve(const GamePosition* const root,
   int game_value = out_of_range_defeat_score;
   Square best_move = null_move;
   
-  for (int sub_run_id = 0; sub_run_id < n; sub_run_id++) {
-    utils_init_random_seed();
+  GameTreeStack* stack = game_tree_stack_new();
 
-    GameTreeStack* stack = game_tree_stack_new();
+  game_tree_stack_init(root, stack);
+  NodeInfo* first_node_info = &stack->nodes[1];
 
-    game_tree_stack_init(root, stack);
-    NodeInfo* first_node_info = &stack->nodes[1];
+  result = exact_solution_new();
+  result->solved_game_position = game_position_clone(root);
 
-    result = exact_solution_new();
-    result->solved_game_position = game_position_clone(root);
+  game_position_solve_impl(result, stack);
 
-    game_position_solve_impl(result, stack, sub_run_id);
+  best_move = first_node_info->best_move;
+  game_value = first_node_info->alpha;
 
-    best_move = first_node_info->best_move;
-    game_value = first_node_info->alpha;
-
-    game_tree_stack_free(stack);
-  }
+  game_tree_stack_free(stack);
 
   if (log) {
     fclose(game_tree_log_file);
@@ -328,14 +314,14 @@ legal_move_list_from_set(const SquareSet legal_move_set,
  */
 static void
 game_position_solve_impl(ExactSolution* const result,
-                         GameTreeStack* const stack,
-                         const int sub_run_id)
+                         GameTreeStack* const stack)
 {
   result->node_count++;
 
   const int current_fill_index = stack->fill_index;
   const int next_fill_index = current_fill_index + 1;
   const int previous_fill_index = current_fill_index - 1;
+  const int sub_run_id = 0;
 
   stack->fill_index++;
 
@@ -371,7 +357,7 @@ game_position_solve_impl(ExactSolution* const result,
       game_position_x_pass(current_gpx, next_gpx);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
-      game_position_solve_impl(result, stack, sub_run_id);
+      game_position_solve_impl(result, stack);
       current_node_info->alpha = -next_node_info->alpha;
       current_node_info->best_move = next_node_info->best_move;
     } else {
@@ -386,7 +372,7 @@ game_position_solve_impl(ExactSolution* const result,
       game_position_x_make_move(current_gpx, move, next_gpx);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
-      game_position_solve_impl(result, stack, sub_run_id);
+      game_position_solve_impl(result, stack);
       if (-next_node_info->alpha > current_node_info->alpha) {
         current_node_info->alpha = -next_node_info->alpha;
         current_node_info->best_move = move;
