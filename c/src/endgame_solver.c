@@ -126,7 +126,7 @@ static const gchar *program_documentation_string =
   " - rand (random game sampler)\n"
   "   The rand solver is a way to play a sequence of random game from the given position.\n"
   "   This option works together with the -n flag, that assigns the number of repeats, a sample call is:\n"
-  "     $ endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100\n"
+  "     $ endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100 -l\n"
   "\n"
   " - minimax (minimax solver)\n"
   "   It applies the plain vanilla minimax algorithm, a sample call is:\n"
@@ -285,7 +285,7 @@ main (int argc, char *argv[])
     solution = game_position_ifes_solve(gp);
     break;
   case 2:
-    solution = game_position_random_sampler(gp, repeats);
+    solution = game_position_random_sampler(gp, log_flag, repeats);
     break;
   case 3:
     solution = game_position_minimax_solve(gp);

@@ -74,6 +74,16 @@ static int gp_hash_stack_fill_point = 0;
 
 #endif
 
+/**
+ * @brief The log file used to record the game DAG traversing.
+ */
+static FILE *game_tree_log_file = NULL;
+
+/**
+ * @brief True if the module logs to file.
+ */
+static gboolean log = FALSE;
+
 
 
 /*********************************************************/
@@ -84,16 +94,39 @@ static int gp_hash_stack_fill_point = 0;
  * @brief Runs a sequence of random games for number of times equal
  * to the `repeats` parameter, starting from the `root` game position.
  *
- * @param [in] root    the starting game position to be solved
- * @param [in] repeats number of random game to play
- * @return             a pointer to a new exact solution structure
+ * @param [in] root     the starting game position to be solved
+ * @param [in] log_flag true when logging is enabled
+ * @param [in] repeats  number of random game to play
+ * @return              a pointer to a new exact solution structure
  */
 ExactSolution *
 game_position_random_sampler (const GamePosition * const root,
+                              const gboolean             log_flag,
                               const int                  repeats)
 {
   ExactSolution *result; 
   SearchNode    *sn;
+  int            n;
+  
+  if (repeats < 1) {
+    n = 1;
+  } else {
+    n = repeats;
+  }
+  
+  log = log_flag;
+
+  if (log) {
+    game_tree_log_file = fopen("out/random_game_sampler_log.csv", "w");
+    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s\n",
+            "SUB_RUN_ID",
+            "CALL_ID",
+            "HASH",
+            "PARENT_HASH",
+            "BLACKS",
+            "WHITES",
+            "PLAYER");
+  }
 
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack[0] = 0;
@@ -116,7 +149,7 @@ game_position_random_sampler (const GamePosition * const root,
   result = exact_solution_new();
   result->solved_game_position = game_position_clone(root);
 
-  for (int repetition = 0; repetition < repeats; repetition++) {
+  for (int repetition = 0; repetition < n; repetition++) {
     sn = game_position_random_sampler_impl(result, result->solved_game_position);  
     if (sn) {
       result->principal_variation[0] = sn->move;
@@ -128,6 +161,10 @@ game_position_random_sampler (const GamePosition * const root,
 #ifdef GAME_TREE_DEBUG
   fclose(game_tree_debug_file);
 #endif
+
+  if (log) {
+    fclose(game_tree_log_file);
+  }
 
   return result;
 }
