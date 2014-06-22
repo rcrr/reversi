@@ -1044,7 +1044,7 @@ AS $$
 DECLARE
   best_score        CONSTANT SMALLINT := +64;
   worst_score       CONSTANT SMALLINT := -64;
-  dummy_parent_hash CONSTANT BIGINT   := 0;
+  dummy_parent_hash CONSTANT BIGINT   := game_position_hash(game_position_pass(gp));
 
   square_count INTEGER := 0;
 BEGIN

@@ -101,7 +101,9 @@ game_position_minimax_solve (const GamePosition * const root)
   log = TRUE;
 
   if (log) {
-    gp_hash_stack[0] = 0;
+    GamePosition *ground = game_position_new(board_new(root->board->blacks, root->board->whites), player_opponent(root->player));
+    gp_hash_stack[0] = game_position_hash(ground);
+    game_position_free(ground);
     game_tree_log_file = fopen("out/minimax_log.csv", "w");
     fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s\n",
             "SUB_RUN_ID",
