@@ -40,7 +40,7 @@
 #include "exact_solver.h"
 #include "random_game_sampler.h"
 
-#define GAME_TREE_DEBUG
+//#define GAME_TREE_DEBUG
 
 
 
@@ -84,6 +84,26 @@ static FILE *game_tree_log_file = NULL;
  */
 static gboolean log = FALSE;
 
+/**
+ * @brief The total number of call to the recursive function that traverse the game DAG.
+ */
+static uint64 call_count = 0;
+
+/**
+ * @brief The predecessor-successor array of game position hash values.
+ */
+static uint64 gp_hash_stack[128];
+
+/**
+ * @brief The index of the last entry into gp_hash_stack.
+ */
+static int gp_hash_stack_fill_point = 0;
+
+/**
+ * @brief The sub_run_id used for logging.
+ */
+static int sub_run_id = 0;
+
 
 
 /*********************************************************/
@@ -117,6 +137,9 @@ game_position_random_sampler (const GamePosition * const root,
   log = log_flag;
 
   if (log) {
+    GamePosition *ground = game_position_new(board_new(root->board->blacks, root->board->whites), player_opponent(root->player));
+    gp_hash_stack[0] = game_position_hash(ground);
+    game_position_free(ground);
     game_tree_log_file = fopen("out/random_game_sampler_log.csv", "w");
     fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s\n",
             "SUB_RUN_ID",
@@ -150,6 +173,10 @@ game_position_random_sampler (const GamePosition * const root,
   result->solved_game_position = game_position_clone(root);
 
   for (int repetition = 0; repetition < n; repetition++) {
+    if (log) {
+      sub_run_id = repetition;
+      call_count = 0;
+    }
     sn = game_position_random_sampler_impl(result, result->solved_game_position);  
     if (sn) {
       result->principal_variation[0] = sn->move;
@@ -212,6 +239,26 @@ game_position_random_sampler_impl (      ExactSolution * const result,
   g_free(lm_to_s);
 #endif
 
+  if (log) {
+    call_count++;
+    gp_hash_stack_fill_point++;
+    const uint64 hash = game_position_hash(gp);
+    gp_hash_stack[gp_hash_stack_fill_point] = hash;
+    const sint64 hash_to_signed = (sint64) hash;
+    const sint64 previous_hash_to_signed = (sint64) gp_hash_stack[gp_hash_stack_fill_point - 1];
+    const Board  *current_board = gp->board;
+    const sint64 *blacks_to_signed = (sint64 *) &current_board->blacks;
+    const sint64 *whites_to_signed = (sint64 *) &current_board->whites;
+    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d\n",
+            sub_run_id,
+            call_count,
+            hash_to_signed,
+            previous_hash_to_signed,
+            *blacks_to_signed,
+            *whites_to_signed,
+            gp->player);
+  }
+
   if (game_position_has_any_player_any_legal_move(gp)) { // the game must go on
     const SquareSet moves = game_position_legal_moves(gp);
     const int move_count = bit_works_popcount(moves);
@@ -233,6 +280,10 @@ game_position_random_sampler_impl (      ExactSolution * const result,
 #ifdef GAME_TREE_DEBUG
   gp_hash_stack_fill_point--;
 #endif
+
+  if (log) {
+    gp_hash_stack_fill_point--;
+  }
 
   return node;
 }

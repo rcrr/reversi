@@ -79,7 +79,10 @@ static uint64 gp_hash_stack[128];
  */
 static int gp_hash_stack_fill_point = 0;
 
-static int sub_run_id = 0;
+/**
+ * @brief The sub_run_id used for logging.
+ */
+static const int sub_run_id = 0;
 
 
 /*********************************************************/
