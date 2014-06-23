@@ -318,6 +318,8 @@ CREATE TABLE game_tree_log (run_id       INTEGER   REFERENCES game_tree_log_head
                             player       player,
                             PRIMARY KEY(run_id, sub_run_id, call_id));
 
+CREATE INDEX game_tree_log_hash_idx ON game_tree_log (hash);
+
 
 
 --
