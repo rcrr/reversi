@@ -60,6 +60,7 @@ SELECT p_assert(gt_check('T000', 2) = (4069, 2677, 2677, 3096, 0, 1392), 'The ga
 --
 \! ./gt_load_file.sh ../out/minimax_log-ffo-01-simplified-4.csv;
 SELECT gt_load_from_staging('T001','C_MINIMAX_SOLVER', 'Test data obtained by the C minimax solver on position ffo-01-simplified-4.');
+VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT p_assert(gt_check('T001', 0) = (20040, 6879, 6879, 8875, 0, 13161), 'The game tree T001/0 has not been loaded as expected.');
 
 --
@@ -72,6 +73,7 @@ SELECT
   game_position_solve(gp, 'SQL_MINIMAX_SOLVER', TRUE, 'T002', 'Test data obtained by the PL/SQL minimax solver on position ffo-01-simplified-4.')
 FROM
   game_position_test_data WHERE id = 'ffo-01-simplified-4';
+VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT p_assert(gt_check('T002', 0) = (20040, 6879, 6879, 8875, 0, 13161), 'The game tree T002/0 has not been loaded as expected.');
 
 --
@@ -97,6 +99,7 @@ END $$;
 --
 \! ./gt_load_file.sh ../out/ab_solver_log-ffo-01-simplified-4.csv;
 SELECT gt_load_from_staging('T003','C_ALPHABETA_SOLVER', 'Test data obtained by the C alpha-beta solver on position ffo-01-simplified-4.');
+VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT p_assert(gt_check('T003', 0) = (3367, 1829, 1829, 2128, 0, 1538), 'The game tree T003/0 has not been loaded as expected.');
 
 --
@@ -109,6 +112,7 @@ SELECT
   game_position_solve(gp, 'SQL_ALPHABETA_SOLVER', TRUE, 'T004', 'Test data obtained by the PL/SQL alpha-beta solver on position ffo-01-simplified-4.')
 FROM
   game_position_test_data WHERE id = 'ffo-01-simplified-4';
+VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT p_assert(gt_check('T004', 0) = (3367, 1829, 1829, 2128, 0, 1538), 'The game tree T004/0 has not been loaded as expected.');
 
 --

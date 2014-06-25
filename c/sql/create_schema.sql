@@ -316,6 +316,7 @@ CREATE TABLE game_tree_log (run_id       INTEGER   REFERENCES game_tree_log_head
                             blacks       square_set,
                             whites       square_set,
                             player       player,
+                            json_doc     JSON,
                             PRIMARY KEY(run_id, sub_run_id, call_id));
 
 CREATE INDEX game_tree_log_hash_idx ON game_tree_log (hash);
@@ -332,6 +333,7 @@ CREATE TABLE game_tree_log_staging (sub_run_id   SMALLINT  NOT NULL,
                                     blacks       square_set,
                                     whites       square_set,
                                     player       player,
+                                    json_doc     JSON,
                                     PRIMARY KEY(sub_run_id, call_id));
 
 
