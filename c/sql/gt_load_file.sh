@@ -37,7 +37,7 @@ if [ ! -f $FILE_NAME ]; then
 fi
 
 TABLE_NAME=game_tree_log_staging
-TABLE_NAME_AND_COLUMNS="$TABLE_NAME (sub_run_id, call_id, hash, parent_hash, blacks, whites, player)"
+TABLE_NAME_AND_COLUMNS="$TABLE_NAME (sub_run_id, call_id, hash, parent_hash, blacks, whites, player, json_doc)"
 
 psql -U reversi -w -d reversi -h localhost <<EOF
 

@@ -180,14 +180,15 @@ game_position_rab_solve(const GamePosition* const root,
 
   if (log) {
     game_tree_log_file = fopen("out/rab_solver_log.csv", "w");
-    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s\n",
+    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
             "SUB_RUN_ID",
             "CALL_ID",
             "HASH",
             "PARENT_HASH",
             "BLACKS",
             "WHITES",
-            "PLAYER");
+            "PLAYER",
+            "JSON_DOC");
   }
   
   int game_value = out_of_range_defeat_score;
@@ -354,14 +355,16 @@ game_position_solve_impl(ExactSolution* const result,
     sint64 *previous_hash_to_signed = (sint64 *) &previous_node_info->hash;
     sint64 *blacks_to_signed = (sint64 *) &current_gpx->blacks;
     sint64 *whites_to_signed = (sint64 *) &current_gpx->whites;
-    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d\n",
+    const gchar  * const json_doc = "{}";
+    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
             sub_run_id,
             result->node_count,
             *current_hash_to_signed,
             *previous_hash_to_signed,
             *blacks_to_signed,
             *whites_to_signed,
-            current_gpx->player);
+            current_gpx->player,
+            json_doc);
   }
 
   if (move_set == empty_square_set) {

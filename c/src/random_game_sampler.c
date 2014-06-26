@@ -141,14 +141,15 @@ game_position_random_sampler (const GamePosition * const root,
     gp_hash_stack[0] = game_position_hash(ground);
     game_position_free(ground);
     game_tree_log_file = fopen("out/random_game_sampler_log.csv", "w");
-    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s\n",
+    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
             "SUB_RUN_ID",
             "CALL_ID",
             "HASH",
             "PARENT_HASH",
             "BLACKS",
             "WHITES",
-            "PLAYER");
+            "PLAYER",
+            "JSON_DOC");
   }
 
 #ifdef GAME_TREE_DEBUG
@@ -249,14 +250,16 @@ game_position_random_sampler_impl (      ExactSolution * const result,
     const Board  *current_board = gp->board;
     const sint64 *blacks_to_signed = (sint64 *) &current_board->blacks;
     const sint64 *whites_to_signed = (sint64 *) &current_board->whites;
-    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d\n",
+    const gchar * const json_doc = "{}";
+    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
             sub_run_id,
             call_count,
             hash_to_signed,
             previous_hash_to_signed,
             *blacks_to_signed,
             *whites_to_signed,
-            gp->player);
+            gp->player,
+            json_doc);
   }
 
   if (game_position_has_any_player_any_legal_move(gp)) { // the game must go on
