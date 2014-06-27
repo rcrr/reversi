@@ -190,13 +190,13 @@ game_position_rab_solve(const GamePosition* const root,
             "PLAYER",
             "JSON_DOC");
   }
-  
+
+  utils_init_random_seed();
+
   int game_value = out_of_range_defeat_score;
   Square best_move = null_move;
   
   for (int sub_run_id = 0; sub_run_id < n; sub_run_id++) {
-    utils_init_random_seed();
-
     GameTreeStack* stack = game_tree_stack_new();
 
     game_tree_stack_init(root, stack);

@@ -194,3 +194,23 @@ BEGIN
   END LOOP;
 END;
 $$ LANGUAGE plpgsql;
+
+
+
+--
+-- Checks a game tree of type C_RAB_SOLVER stored in the tables game_tree_log_header/game_tree_log for consistency.
+--
+CREATE OR REPLACE FUNCTION gt_check_rab(run_label_in  CHAR(4),
+                                        sub_run_id_in INTEGER)
+RETURNS RECORD AS $$
+DECLARE
+  rec RECORD;
+BEGIN
+  PERFORM p_assert('C_RAB_SOLVER' = (SELECT engine_id FROM game_tree_log_header WHERE run_label = run_label_in), 'Wrong game tree type.');
+  SELECT (gt_check(run_label_in, sub_run_id_in)).* INTO STRICT rec;
+  PERFORM p_assert(rec.distinct_game_positions = rec.distinct_hashes, 'Distinct game position count must be equal to distinct hash count.');
+  PERFORM p_assert(rec.collision_count = 0, 'Collision count must be zero.');
+  PERFORM p_assert(rec.duplicate_count + rec.distinct_game_positions = rec.game_tree_node_count, 'duplicate_count + distinct_game_positions must be equal to game_tree_node_count.');
+  RETURN rec;
+END
+$$ LANGUAGE plpgsql;
