@@ -52,8 +52,8 @@ BEGIN
   INSERT INTO game_tree_log_header (run_label, engine_id, run_date, description)
     VALUES (run_label, engine_id, now(), description) RETURNING run_id INTO new_run_id;
   DROP INDEX IF EXISTS game_tree_log_hash_idx;
-  INSERT INTO game_tree_log (run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player)
-    SELECT new_run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player FROM game_tree_log_staging;
+  INSERT INTO game_tree_log (run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player, json_doc)
+    SELECT new_run_id, sub_run_id, call_id, hash, parent_hash, blacks, whites, player, json_doc FROM game_tree_log_staging;
   CREATE INDEX game_tree_log_hash_idx ON game_tree_log (hash);
   SELECT COUNT(*) INTO STRICT record_loaded_count FROM game_tree_log WHERE run_id = new_run_id;
 END;
@@ -214,3 +214,32 @@ BEGIN
   RETURN rec;
 END
 $$ LANGUAGE plpgsql;
+
+
+
+--
+-- SELECT array_agg(trim(elem::text, '"')::square) FROM json_array_elements('["A1", "B2", "C4", "H9"]'::json) AS elem;
+--
+-- Function that checks the json_doc ...
+--
+CREATE OR REPLACE FUNCTION gt_check_random(    run_label_in   CHAR(4),
+                                           OUT repeat_count   INTEGER,
+                                           OUT position_count INTEGER)
+RETURNS RECORD AS $$
+DECLARE
+  rec       RECORD;
+  gt_exists BOOLEAN;
+  run_id_in INTEGER;
+BEGIN
+  SELECT EXISTS (SELECT 1 FROM game_tree_log_header WHERE run_label = run_label_in) INTO STRICT gt_exists;
+  IF gt_exists IS FALSE THEN
+    RETURN;
+  ELSE
+    SELECT gtlh.run_id INTO STRICT run_id_in FROM game_tree_log_header AS gtlh  WHERE gtlh.run_label = run_label_in;
+  END IF;
+  PERFORM p_assert('C_RANDOM_SAMPLER' = (SELECT engine_id FROM game_tree_log_header WHERE run_label = run_label_in), 'Wrong game tree type.');
+  SELECT COUNT(DISTINCT sub_run_id) INTO STRICT repeat_count FROM game_tree_log WHERE run_id = run_id_in;
+  SELECT COUNT(*) INTO STRICT position_count FROM game_tree_log WHERE run_id = run_id_in;
+END
+$$ LANGUAGE plpgsql;
+

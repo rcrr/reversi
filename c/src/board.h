@@ -491,6 +491,9 @@ game_position_x_make_move (const GamePositionX * const current,
 /*************************************************/
 
 extern gchar *
+square_set_to_pg_json_array (SquareSet moves);
+
+extern gchar *
 square_set_to_string (SquareSet moves);
 
 extern Square

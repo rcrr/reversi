@@ -207,10 +207,11 @@ static SearchNode *
 game_position_random_sampler_impl (      ExactSolution * const result,
                                    const GamePosition  * const gp)
 {
-  SearchNode *node;
-
-  node  = NULL;
   result->node_count++;
+  SearchNode *node = NULL;
+  const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
+  const SquareSet legal_moves = game_position_legal_moves(gp);
+  const int legal_move_count = bit_works_popcount(legal_moves);
 
 #ifdef GAME_TREE_DEBUG
   call_count++;
@@ -250,7 +251,29 @@ game_position_random_sampler_impl (      ExactSolution * const result,
     const Board  *current_board = gp->board;
     const sint64 *blacks_to_signed = (sint64 *) &current_board->blacks;
     const sint64 *whites_to_signed = (sint64 *) &current_board->whites;
-    const gchar * const json_doc = "{}";
+    GString *json_doc;
+    json_doc = g_string_sized_new(256);
+    const SquareSet empties = board_empties(gp->board);
+    const int empty_count = bit_works_popcount(empties);
+    const int legal_move_count_adj = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0);
+    gchar *legal_moves_pg_json_array = square_set_to_pg_json_array(legal_moves);
+    /*
+     * cl:   call level
+     * ec:   empty count
+     * il:   is leaf
+     * lmc:  legal move count
+     * lmca: legal move count adjusted
+     * lma:  legal move array ([""A1"", ""B4"", ""H8""])
+     */
+    g_string_append_printf(json_doc,
+                           "\"{ \"\"cl\"\": %2d, \"\"ec\"\": %2d, \"\"il\"\": %s, \"\"lmc\"\": %2d, \"\"lmca\"\": %2d, \"\"lma\"\": %s }\"",
+                           gp_hash_stack_fill_point,
+                           empty_count,
+                           is_leaf ? "true" : "false",
+                           legal_move_count,
+                           legal_move_count_adj,
+                           legal_moves_pg_json_array);
+    g_free(legal_moves_pg_json_array);
     fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
             sub_run_id,
             call_count,
@@ -259,18 +282,17 @@ game_position_random_sampler_impl (      ExactSolution * const result,
             *blacks_to_signed,
             *whites_to_signed,
             gp->player,
-            json_doc);
+            json_doc->str);
+    g_string_free(json_doc, TRUE);
   }
 
   if (game_position_has_any_player_any_legal_move(gp)) { // the game must go on
-    const SquareSet moves = game_position_legal_moves(gp);
-    const int move_count = bit_works_popcount(moves);
-    if (move_count == 0) { // player has to pass
+    if (legal_move_count == 0) { // player has to pass
       GamePosition *flipped_players = game_position_pass(gp);
       node = search_node_negated(game_position_random_sampler_impl(result, flipped_players));
       flipped_players = game_position_free(flipped_players);
     } else { // regular move
-      const Square random_move = square_set_random_selection(moves);
+      const Square random_move = square_set_random_selection(legal_moves);
       GamePosition *next_gp = game_position_make_move(gp, random_move);
       node = search_node_negated(game_position_random_sampler_impl(result, next_gp));
       next_gp = game_position_free(next_gp);

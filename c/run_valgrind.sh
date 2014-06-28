@@ -2,8 +2,8 @@
 
 PROG=./build/bin/endgame_solver
 #ARGS="./build/bin/gpdb_verify -f db/gpdb-test-db.txt -q duplicate-entry"
-ARGS="-f db/gpdb-ffo.txt -q ffo-40"
-
+#ARGS="-f db/gpdb-ffo.txt -q ffo-40"
+ARGS="-f db/gpdb-sample-games.txt -q initial -s rand -n 1000 -l"
 
 G_SLICE=always-malloc G_DEBUG=gc-friendly \
 valgrind -v --tool=memcheck \

@@ -309,7 +309,7 @@ CREATE TABLE game_tree_log_header (run_id       SERIAL     PRIMARY KEY,
 -- DROP TABLE IF EXISTS game_tree_log;
 --
 CREATE TABLE game_tree_log (run_id       INTEGER   REFERENCES game_tree_log_header (run_id) ON DELETE CASCADE,
-                            sub_run_id   SMALLINT  NOT NULL,
+                            sub_run_id   INTEGER   NOT NULL,
                             call_id      INTEGER   NOT NULL,
                             hash         BIGINT,
                             parent_hash  BIGINT,
@@ -326,7 +326,7 @@ CREATE INDEX game_tree_log_hash_idx ON game_tree_log (hash);
 --
 -- DROP TABLE IF EXISTS game_tree_log_staging;
 --
-CREATE TABLE game_tree_log_staging (sub_run_id   SMALLINT  NOT NULL,
+CREATE TABLE game_tree_log_staging (sub_run_id   INTEGER   NOT NULL,
                                     call_id      INTEGER   NOT NULL,
                                     hash         BIGINT,
                                     parent_hash  BIGINT,
