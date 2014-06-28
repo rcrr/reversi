@@ -40,8 +40,6 @@
 #include "exact_solver.h"
 #include "random_game_sampler.h"
 
-//#define GAME_TREE_DEBUG
-
 
 
 /*
@@ -57,22 +55,6 @@ game_position_random_sampler_impl (      ExactSolution * const result,
 /*
  * Internal variables and constants.
  */
-
-#ifdef GAME_TREE_DEBUG
-
-/* The total number of call to the recursive function that traverse the game DAG. */
-static uint64 call_count = 0;
-
-/* The log file used to record the game DAG traversing. */
-static FILE *game_tree_debug_file = NULL;
-
-/* The predecessor-successor array of game position hash values. */
-static uint64 gp_hash_stack[128];
-
-/* The index of the last entry into gp_hash_stack. */
-static int gp_hash_stack_fill_point = 0;
-
-#endif
 
 /**
  * @brief The log file used to record the game DAG traversing.
@@ -152,22 +134,6 @@ game_position_random_sampler (const GamePosition * const root,
             "JSON_DOC");
   }
 
-#ifdef GAME_TREE_DEBUG
-  gp_hash_stack[0] = 0;
-  game_tree_debug_file = fopen("rand_log.csv", "w");
-  fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
-          "CALL_ID",
-          "HASH",
-          "PARENT_HASH",
-          "GAME_POSITION",
-          "EMPTY_COUNT",
-          "CALL_LEVEL",
-          "IS_LEF",
-          "LEGAL_MOVE_COUNT",
-          "LEGAL_MOVE_COUNT_ADJUSTED",
-          "MOVE_LIST");
-#endif
-
   srand(time(NULL));
   
   result = exact_solution_new();
@@ -185,10 +151,6 @@ game_position_random_sampler (const GamePosition * const root,
     }
     sn = search_node_free(sn);
   }
-
-#ifdef GAME_TREE_DEBUG
-  fclose(game_tree_debug_file);
-#endif
 
   if (log) {
     fclose(game_tree_log_file);
@@ -212,34 +174,6 @@ game_position_random_sampler_impl (      ExactSolution * const result,
   const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
   const SquareSet legal_moves = game_position_legal_moves(gp);
   const int legal_move_count = bit_works_popcount(legal_moves);
-
-#ifdef GAME_TREE_DEBUG
-  call_count++;
-  gp_hash_stack_fill_point++;
-  const SquareSet empties = board_empties(gp->board);
-  const int empty_count = bit_works_popcount(empties);
-  const uint64 hash = game_position_hash(gp);
-  gp_hash_stack[gp_hash_stack_fill_point] = hash;
-  gchar *gp_to_s = game_position_to_string(gp);
-  const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
-  const SquareSet lm = game_position_legal_moves(gp);
-  const int lm_count = bit_works_popcount(lm);
-  const int lm_count_adj = lm_count + ((lm == 0 && !is_leaf) ? 1 : 0);
-  gchar *lm_to_s = square_set_to_string(lm);
-  fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%2d;%2d;%78s\n",
-          call_count,
-          hash,
-          gp_hash_stack[gp_hash_stack_fill_point - 1],
-          gp_to_s,
-          empty_count,
-          gp_hash_stack_fill_point,
-          is_leaf ? "t" : "f",
-          lm_count,
-          lm_count_adj,
-          lm_to_s);
-  g_free(gp_to_s);
-  g_free(lm_to_s);
-#endif
 
   if (log) {
     call_count++;
@@ -301,10 +235,6 @@ game_position_random_sampler_impl (      ExactSolution * const result,
     result->leaf_count++;
     node = search_node_new((Square) -1, game_position_final_value(gp));
   }
-
-#ifdef GAME_TREE_DEBUG
-  gp_hash_stack_fill_point--;
-#endif
 
   if (log) {
     gp_hash_stack_fill_point--;
