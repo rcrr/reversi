@@ -218,7 +218,21 @@ $$ LANGUAGE plpgsql;
 
 
 --
+-- Converts a json array to a square[] type.
+-- No checks is performed thta the array is composed by valid elements.
+--
+CREATE OR REPLACE FUNCTION gt_legal_moves_as_json_array_elem(elem JSON)
+RETURNS square[] AS $$
+BEGIN
+  RETURN array(SELECT trim(json_array_elements(elem)::TEXT, '"')::square);
+END
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- SELECT array_agg(trim(elem::text, '"')::square) FROM json_array_elements('["A1", "B2", "C4", "H9"]'::json) AS elem;
+-- SELECT hash, gt_legal_moves_as_json_array_elem(json_doc->'lma') = square_set_to_array(game_position_legal_moves((blacks, whites, player))) FROM game_tree_log WHERE run_id = 6;
 --
 -- Function that checks the json_doc ...
 --
@@ -228,9 +242,10 @@ CREATE OR REPLACE FUNCTION gt_check_random(    run_label_in   CHAR(4),
                                            OUT distinct_count INTEGER)
 RETURNS RECORD AS $$
 DECLARE
-  rec                 RECORD;
-  gt_exists           BOOLEAN;
-  run_id_in           INTEGER;
+  rec                                RECORD;
+  gt_exists                          BOOLEAN;
+  run_id_in                          INTEGER;
+  legal_move_computation_error_count INTEGER;
 BEGIN
   SELECT EXISTS (SELECT 1 FROM game_tree_log_header WHERE run_label = run_label_in) INTO STRICT gt_exists;
   IF gt_exists IS FALSE THEN
@@ -247,10 +262,16 @@ BEGIN
          COUNT(DISTINCT hash)                           AS hash_distinct_count
     INTO STRICT rec
     FROM game_tree_log
-    WHERE run_id = 6;
+    WHERE run_id = run_id_in;
   PERFORM p_assert(rec.hash_distinct_count = rec.gp_distinct_count,  'Hash values and game positions must have the same count.');
   PERFORM p_assert(rec.hash_distinct_count = rec.rel_distinct_count, 'Hash values and game positions must be one-to-one.');
   distinct_count := rec.hash_distinct_count;
+  --
+  SELECT COUNT(*) INTO STRICT legal_move_computation_error_count FROM game_tree_log
+    WHERE
+      run_id = run_id_in
+      AND (gt_legal_moves_as_json_array_elem(json_doc->'lma') = square_set_to_array(game_position_legal_moves((blacks, whites, player)))) = FALSE;
+  PERFORM p_assert(legal_move_computation_error_count = 0, 'Legal move computation error count must be equal to zero.');
 END
 $$ LANGUAGE plpgsql;
 
