@@ -126,3 +126,18 @@ BEGIN
   gt_compare_result_record := gt_compare('T003', 'T004');
   PERFORM p_assert(gt_compare_result_record.are_equal = TRUE, 'Game tree set T003 and T004 must be equal.');
 END $$;
+
+
+
+-- Loads a sample of 100 random game trees.
+
+--
+-- File ../out/random_game_sampler_log-t100.csv is obtained by running
+-- the commands:
+-- ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100 -l
+--  mv out/random_game_sampler_log.csv out/random_game_sampler_log-t100.csv
+--
+\! ./gt_load_file.sh ../out/random_game_sampler_log-t100.csv;
+SELECT gt_load_from_staging('T005','C_RANDOM_SAMPLER', 'Test data obtained by the C random game sampler on position initial.');
+VACUUM(FULL, ANALYZE) game_tree_log;
+SELECT gt_check_random('T005');

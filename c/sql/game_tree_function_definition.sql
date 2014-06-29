@@ -224,12 +224,13 @@ $$ LANGUAGE plpgsql;
 --
 CREATE OR REPLACE FUNCTION gt_check_random(    run_label_in   CHAR(4),
                                            OUT repeat_count   INTEGER,
-                                           OUT position_count INTEGER)
+                                           OUT position_count INTEGER,
+                                           OUT distinct_count INTEGER)
 RETURNS RECORD AS $$
 DECLARE
-  rec       RECORD;
-  gt_exists BOOLEAN;
-  run_id_in INTEGER;
+  rec                 RECORD;
+  gt_exists           BOOLEAN;
+  run_id_in           INTEGER;
 BEGIN
   SELECT EXISTS (SELECT 1 FROM game_tree_log_header WHERE run_label = run_label_in) INTO STRICT gt_exists;
   IF gt_exists IS FALSE THEN
@@ -240,6 +241,16 @@ BEGIN
   PERFORM p_assert('C_RANDOM_SAMPLER' = (SELECT engine_id FROM game_tree_log_header WHERE run_label = run_label_in), 'Wrong game tree type.');
   SELECT COUNT(DISTINCT sub_run_id) INTO STRICT repeat_count FROM game_tree_log WHERE run_id = run_id_in;
   SELECT COUNT(*) INTO STRICT position_count FROM game_tree_log WHERE run_id = run_id_in;
+  --
+  SELECT COUNT(DISTINCT (hash, blacks, whites, player)) AS rel_distinct_count,
+         COUNT(DISTINCT (blacks, whites, player))       AS gp_distinct_count,
+         COUNT(DISTINCT hash)                           AS hash_distinct_count
+    INTO STRICT rec
+    FROM game_tree_log
+    WHERE run_id = 6;
+  PERFORM p_assert(rec.hash_distinct_count = rec.gp_distinct_count,  'Hash values and game positions must have the same count.');
+  PERFORM p_assert(rec.hash_distinct_count = rec.rel_distinct_count, 'Hash values and game positions must be one-to-one.');
+  distinct_count := rec.hash_distinct_count;
 END
 $$ LANGUAGE plpgsql;
 
