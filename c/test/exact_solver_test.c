@@ -123,7 +123,7 @@ game_position_solve_test (GamePositionDbFixture *fixture,
   GamePosition *ffo_05 = get_gp_from_db(db, "ffo-05");
   g_assert(TRUE  == game_position_has_any_legal_move(ffo_05));
 
-  ExactSolution *solution = game_position_solve(ffo_05);
+  ExactSolution *solution = game_position_solve(ffo_05, FALSE);
   g_assert(+32 == solution->outcome);
   g_assert(G8 == solution->principal_variation[0]);
 }

@@ -38,8 +38,6 @@
 
 #include "exact_solver.h"
 
-#define GAME_TREE_DEBUG
-
 /**
  * @brief Elements of a doubly linked list that collects moves.
  *
@@ -82,18 +80,43 @@ game_position_solve_impl (      ExactSolution * const result,
 static void
 move_list_init (MoveList *ml);
 
-#ifdef GAME_TREE_DEBUG
-
-static gchar *
-move_list_print (MoveList *ml);
-
-#endif
-
 /*
  * Internal variables and constants.
  */
 
-/* Used to sort the legal moves based on an heuristic knowledge. */
+/**
+ * @brief The log file used to record the game DAG traversing.
+ */
+static FILE *game_tree_log_file = NULL;
+
+/**
+ * @brief True if the module logs to file.
+ */
+static gboolean log = FALSE;
+
+/**
+ * @brief The total number of call to the recursive function that traverse the game DAG.
+ */
+static uint64 call_count = 0;
+
+/**
+ * @brief The predecessor-successor array of game position hash values.
+ */
+static uint64 gp_hash_stack[128];
+
+/**
+ * @brief The index of the last entry into gp_hash_stack.
+ */
+static int gp_hash_stack_fill_point = 0;
+
+/**
+ * @brief The sub_run_id used for logging.
+ */
+static const int sub_run_id = 0;
+
+/**
+ * @brief Used d to sort the legal moves based on an heuristic knowledge.
+ */
 static const uint64 legal_moves_priority_mask[] = {
   /* D4, E4, E5, D5 */                 0x0000001818000000,
   /* A1, H1, H8, A8 */                 0x8100000000000081,
@@ -107,25 +130,12 @@ static const uint64 legal_moves_priority_mask[] = {
   /* B2, G2, G7, B7 */                 0x0042000000004200
 };
 
-/* The size of the legal_moves_priority_mask array. */
+/**
+ * @brief The size of the legal_moves_priority_mask array.
+ */
 static const int legal_moves_priority_cluster_count =
   sizeof(legal_moves_priority_mask) / sizeof(legal_moves_priority_mask[0]);
 
-#ifdef GAME_TREE_DEBUG
-
-/* The total number of call to the recursive function that traverse the game DAG. */
-static uint64 call_count = 0;
-
-/* The log file used to record the game DAG traversing. */
-static FILE *game_tree_debug_file = NULL;
-
-/* The predecessor-successor array of game position hash values. */
-static uint64 gp_hash_stack[128];
-
-/* The index of the last entry into gp_hash_stack. */
-static int gp_hash_stack_fill_point = 0;
-
-#endif
 
 
 /*******************************************************/
@@ -279,20 +289,32 @@ exact_solution_print (const ExactSolution * const es)
 /**
  * @brief Solves the game position returning a new exact solution pointer.
  *
- * @param [in] root the starting game position to be solved
- * @return          a pointer to a new exact solution structure
+ * @param [in] root     the starting game position to be solved
+ * @param [in] log_flag true when logging is enabled
+ * @return              a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_solve (const GamePosition * const root)
+game_position_solve (const GamePosition * const root,
+                     const gboolean             log_flag)
 {
   ExactSolution *result; 
   SearchNode    *sn;
 
-#ifdef GAME_TREE_DEBUG
-  gp_hash_stack[0] = 0;
-  game_tree_debug_file = fopen("es_log.csv", "w");
-  fprintf(game_tree_debug_file, "%s;%s;%s;%s;%s;%s;%s;%s\n", "CALL_ID", "HASH", "PARENT_HASH", "GAME_POSITION", "EMPTY_COUNT", "LEVEL", "IS_LEF", "MOVE_LIST");
-#endif
+  log = log_flag;
+
+  if (log) {
+    gp_hash_stack[0] = 0;
+    game_tree_log_file = fopen("out/exact_solver_log.csv", "w");
+    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
+            "SUB_RUN_ID",
+            "CALL_ID",
+            "HASH",
+            "PARENT_HASH",
+            "BLACKS",
+            "WHITES",
+            "PLAYER",
+            "JSON_DOC");
+  }
 
   result = exact_solution_new();
 
@@ -306,9 +328,9 @@ game_position_solve (const GamePosition * const root)
   }
   sn = search_node_free(sn);
 
-#ifdef GAME_TREE_DEBUG
-  fclose(game_tree_debug_file);
-#endif
+  if (log) {
+    fclose(game_tree_log_file);
+  }
 
   return result;
 }
@@ -362,38 +384,57 @@ game_position_solve_impl (      ExactSolution * const result,
                           const int                   achievable,
                           const int                   cutoff)
 {
-  SearchNode *node;
-  SearchNode *node2;
-
-  node  = NULL;
-  node2 = NULL;
   result->node_count++;
+  SearchNode *node  = NULL;
+  SearchNode *node2 = NULL;
 
-#ifdef GAME_TREE_DEBUG
-  call_count++;
-  gp_hash_stack_fill_point++;
-  const SquareSet empties = board_empties(gp->board);
-  const int empty_count = bit_works_popcount(empties);
-  const uint64 hash = game_position_hash(gp);
-  gp_hash_stack[gp_hash_stack_fill_point] = hash;
-  gchar *gp_to_s = game_position_to_string(gp);
-  const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
-  MoveList ml;
-  move_list_init(&ml);
-  sort_moves_by_mobility_count(&ml, gp);
-  gchar *ml_to_s = move_list_print(&ml);
-  fprintf(game_tree_debug_file, "%8lld;%016llx;%016llx;%s;%2d;%2d;%s;%42s\n",
-          call_count,
-          hash,
-          gp_hash_stack[gp_hash_stack_fill_point - 1],
-          gp_to_s,
-          empty_count,
-          gp_hash_stack_fill_point,
-          is_leaf ? "t" : "f",
-          ml_to_s);
-  g_free(gp_to_s);
-  g_free(ml_to_s);
-#endif
+  if (log) {
+    call_count++;
+    gp_hash_stack_fill_point++;
+    const uint64 hash = game_position_hash(gp);
+    gp_hash_stack[gp_hash_stack_fill_point] = hash;
+    const sint64 hash_to_signed = (sint64) hash;
+    const sint64 previous_hash_to_signed = (sint64) gp_hash_stack[gp_hash_stack_fill_point - 1];
+    const Board  *current_board = gp->board;
+    const sint64 *blacks_to_signed = (sint64 *) &current_board->blacks;
+    const sint64 *whites_to_signed = (sint64 *) &current_board->whites;
+    GString *json_doc;
+    json_doc = g_string_sized_new(256);
+    const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
+    const SquareSet legal_moves = game_position_legal_moves(gp);
+    const int legal_move_count = bit_works_popcount(legal_moves);
+    const SquareSet empties = board_empties(gp->board);
+    const int empty_count = bit_works_popcount(empties);
+    const int legal_move_count_adj = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0);
+    gchar *legal_moves_pg_json_array = square_set_to_pg_json_array(legal_moves);
+    /*
+     * cl:   call level
+     * ec:   empty count
+     * il:   is leaf
+     * lmc:  legal move count
+     * lmca: legal move count adjusted
+     * lma:  legal move array ([""A1"", ""B4"", ""H8""])
+     */
+    g_string_append_printf(json_doc,
+                           "\"{ \"\"cl\"\": %2d, \"\"ec\"\": %2d, \"\"il\"\": %s, \"\"lmc\"\": %2d, \"\"lmca\"\": %2d, \"\"lma\"\": %s }\"",
+                           gp_hash_stack_fill_point,
+                           empty_count,
+                           is_leaf ? "true" : "false",
+                           legal_move_count,
+                           legal_move_count_adj,
+                           legal_moves_pg_json_array);
+    g_free(legal_moves_pg_json_array);
+    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
+            sub_run_id,
+            call_count,
+            hash_to_signed,
+            previous_hash_to_signed,
+            *blacks_to_signed,
+            *whites_to_signed,
+            gp->player,
+            json_doc->str);
+    g_string_free(json_doc, TRUE);
+  }
 
   const SquareSet moves = game_position_legal_moves(gp);
   if (0ULL == moves) {
@@ -428,10 +469,10 @@ game_position_solve_impl (      ExactSolution * const result,
   }
  out:
   ;
-
-#ifdef GAME_TREE_DEBUG
-  gp_hash_stack_fill_point--;
-#endif
+  
+  if (log) {
+    gp_hash_stack_fill_point--;
+  }
 
   return node;
 }
@@ -454,30 +495,3 @@ move_list_init (MoveList *ml)
   ml->tail.pred = &ml->head;
   ml->tail.succ = NULL;
 }
-
-#ifdef GAME_TREE_DEBUG
-
-static gchar *
-move_list_print (MoveList *ml)
-{
-  gchar *ml_to_s;
-  gchar space[] = {' ', '\0'};
-
-  static const size_t size_of_ml_to_s = (3 * 64 + 1) * sizeof(gchar);
-  ml_to_s = (gchar*) malloc(size_of_ml_to_s);
-
-  *ml_to_s = '\0';
-  gchar *cursor = ml_to_s;
-  for (MoveListElement *element = ml->head.succ; element != &ml->tail; element = element->succ) {
-    gchar *move_to_s = square_to_string(element->sq);
-    cursor = g_stpcpy(cursor, move_to_s);
-    g_free(move_to_s);
-    cursor = g_stpcpy(cursor, &space[0]);
-  }
-  if (ml_to_s != cursor) {
-    *--cursor = '\0';
-  }
-  return ml_to_s;
-}
-
-#endif

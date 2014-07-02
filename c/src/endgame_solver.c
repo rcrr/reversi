@@ -279,7 +279,7 @@ main (int argc, char *argv[])
   g_print("Solving the game position %s using solver %s ...\n", entry->id, solvers[solver_index]);
   switch (solver_index) {
   case 0:
-    solution = game_position_solve(gp);
+    solution = game_position_solve(gp, log_flag);
     break;
   case 1:
     solution = game_position_ifes_solve(gp);
