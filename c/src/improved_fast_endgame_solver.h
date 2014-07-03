@@ -49,7 +49,8 @@ typedef enum {
 } IFES_SquareState;
 
 extern ExactSolution *
-game_position_ifes_solve (const GamePosition * const root);
+game_position_ifes_solve (const GamePosition * const root,
+                          const gboolean             log_flag);
 
 extern GamePosition *
 ifes_game_position_translation (uint8 *board, int color);

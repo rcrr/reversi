@@ -313,6 +313,36 @@ static const uint8 flipping_dir_mask_table[91] =
  * Internal variables.
  */
 
+/**
+ * @brief The log file used to record the game DAG traversing.
+ */
+static FILE *game_tree_log_file = NULL;
+
+/**
+ * @brief True if the module logs to file.
+ */
+static gboolean log = FALSE;
+
+/**
+ * @brief The total number of call to the recursive function that traverse the game DAG.
+ */
+static uint64 call_count = 0;
+
+/**
+ * @brief The predecessor-successor array of game position hash values.
+ */
+static uint64 gp_hash_stack[128];
+
+/**
+ * @brief The index of the last entry into gp_hash_stack.
+ */
+static int gp_hash_stack_fill_point = 0;
+
+/**
+ * @brief The sub_run_id used for logging.
+ */
+static const int sub_run_id = 0;
+
 #ifdef GAME_TREE_DEBUG
 static uint64 call_count = 0;
 static FILE *game_tree_debug_file = NULL;
@@ -396,11 +426,13 @@ static uint8 **flip_stack = &(global_flip_stack[0]);
  * @invariant Parameters `root` must be not `NULL`.
  * The invariants are guarded by assertions.
  *
- * @param root the game position to be solved
- * @return     the exact solution is the collector for results
+ * @param [in] root     the game position to be solved
+ * @param [in] log_flag true when logging is enabled
+ * @return              the exact solution is the collector for results
  */
 ExactSolution *
-game_position_ifes_solve (const GamePosition * const root)
+game_position_ifes_solve (const GamePosition * const root,
+                          const gboolean             log_flag)
 {
   ExactSolution *result;    /* The solution structure returned by the function. */
   int            emp;       /* Empty discs count. */
@@ -409,6 +441,22 @@ game_position_ifes_solve (const GamePosition * const root)
   Node           n;         /* Best node returned by the search. */
 
   g_assert(root);
+
+  log = log_flag;
+
+  if (log) {
+    gp_hash_stack[0] = 0;
+    game_tree_log_file = fopen("out/ifes_solver_log.csv", "w");
+    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
+            "SUB_RUN_ID",
+            "CALL_ID",
+            "HASH",
+            "PARENT_HASH",
+            "BLACKS",
+            "WHITES",
+            "PLAYER",
+            "JSON_DOC");
+  }
 
 #ifdef GAME_TREE_DEBUG
   game_tree_debug_file = fopen("ifes_log.csv", "w");
@@ -453,6 +501,10 @@ game_position_ifes_solve (const GamePosition * const root)
 #ifdef GAME_TREE_DEBUG
   fclose(game_tree_debug_file);
 #endif
+
+  if (log) {
+    fclose(game_tree_log_file);
+  }
 
   return result;
 }
@@ -1276,6 +1328,11 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
     }
   }
 
+  if (log) {
+    call_count++;
+    gp_hash_stack_fill_point++;
+  }
+
 #ifdef GAME_TREE_DEBUG
   call_count++;
   gp_hash_stack_fill_point++;
@@ -1398,6 +1455,10 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
   g_slist_free(move_list);
 #endif
   
+  if (log) {
+    gp_hash_stack_fill_point--;
+  }
+
   return selected_n;
 }
 

@@ -282,7 +282,7 @@ main (int argc, char *argv[])
     solution = game_position_solve(gp, log_flag);
     break;
   case 1:
-    solution = game_position_ifes_solve(gp);
+    solution = game_position_ifes_solve(gp, log_flag);
     break;
   case 2:
     solution = game_position_random_sampler(gp, log_flag, repeats);
