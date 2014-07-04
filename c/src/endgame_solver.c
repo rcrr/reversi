@@ -41,8 +41,11 @@
  *       [done]                       - game_position_make_move
  *       [done]                       - a minimax solver
  *       [done]                       - an alpha-beta solver
- *       Organize the logging activity for the solvers.
- *       Organize the files used to read and analyze the C program outputs
+ *       [done] Organize the logging activity for the solvers.
+ *       Organize the files used to read and analyze the C program outputs.
+ *       Refactor logging into a module and a few function calls.
+ *
+ * @todo Develop an R replacement of the rand_log_elaboration.ods Calc file.
  *
  * @todo Develop a full description of the evidence of all the variants, basically a paper describing:
  *        - The statisctical data obtained by the random sampler.
