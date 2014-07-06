@@ -1351,8 +1351,6 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
       move_ptr[best_index] = move_ptr[i];
       goodness[best_index] = goodness[i];
 
-      /* Add here one more logging ... */
-
       move_square = current_move->square;
       holepar = current_move->hole_id;
       flip_count = do_flips(board, move_square, color, oppcol);
