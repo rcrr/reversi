@@ -61,7 +61,89 @@ typedef struct {
   MoveListElement tail;                  /**< @brief Tail element, it is not part of the list. */
 } MoveList;
 
+/*
+ * game_tree_log module - BEGIN.
+ */
 
+/**
+ * @brief The log file used to record the game DAG traversing.
+ */
+static FILE *game_tree_log_file = NULL;
+
+static void
+game_tree_log_open (const gchar * const filename);
+
+static void
+game_tree_log_write (void);
+
+static void
+game_tree_log_close (void);
+
+/**
+ * @brief Opens the file for logging and writes the header.
+ *
+ * @param [in] filename the name of the logging file
+ */
+void
+game_tree_log_open (const gchar * const filename)
+{
+  //const gchar * const basename = g_path_get_basename(filename);
+  const gchar * const dirname  = g_path_get_dirname(filename);
+  
+  if (!g_file_test(filename, G_FILE_TEST_EXISTS)) {
+    if (!g_file_test(dirname, G_FILE_TEST_EXISTS)) {
+      /*
+       * It could happen that the dirname contains a file in the middle, in such a case the program will dump.
+       * To prevent this corner case the creation of the directories should be a nested function .....
+       */
+      g_mkdir_with_parents(dirname, 0755);
+    } else {
+      if (g_file_test(dirname, G_FILE_TEST_IS_REGULAR)) {
+        printf("Logging file \"%s\" doesn't exist, but the given path contains an existing file! Exiting with status -102.\n", filename);
+        exit(-102);
+      }
+    }
+  } else {
+    if (g_file_test(filename, G_FILE_TEST_IS_REGULAR)) {
+      printf("Logging regular file \"%s\" does exist, overwriting it.\n", filename);
+    } else {
+      printf("Logging file \"%s\" does exist, but it is a directory! Exiting with status -101.\n", filename);
+      exit(-101);
+    }
+  }
+  
+  game_tree_log_file = fopen(filename, "w");
+  fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
+          "SUB_RUN_ID",
+          "CALL_ID",
+          "HASH",
+          "PARENT_HASH",
+          "BLACKS",
+          "WHITES",
+          "PLAYER",
+          "JSON_DOC");
+}
+
+/**
+ * @brief Writes one record to the logging file.
+ */
+void
+game_tree_log_write (void)
+{
+  ;
+}
+
+/**
+ * @brief Closes the logging file.
+ */
+void
+game_tree_log_close (void)
+{
+  fclose(game_tree_log_file);
+}
+/*
+ * game_tree_log module - END.
+ */
 
 /*
  * Prototypes for internal functions.
@@ -83,11 +165,6 @@ move_list_init (MoveList *ml);
 /*
  * Internal variables and constants.
  */
-
-/**
- * @brief The log file used to record the game DAG traversing.
- */
-static FILE *game_tree_log_file = NULL;
 
 /**
  * @brief True if the module logs to file.
@@ -303,7 +380,9 @@ game_position_solve (const GamePosition * const root,
   log = log_flag;
 
   if (log) {
-    gp_hash_stack[0] = 0;
+    gp_hash_stack[0] = 0; 
+    game_tree_log_open("out1/out4/out3/exact_solver_log.csv");
+   /*
     game_tree_log_file = fopen("out/exact_solver_log.csv", "w");
     fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
             "SUB_RUN_ID",
@@ -314,6 +393,7 @@ game_position_solve (const GamePosition * const root,
             "WHITES",
             "PLAYER",
             "JSON_DOC");
+    */
   }
 
   result = exact_solution_new();
@@ -329,7 +409,8 @@ game_position_solve (const GamePosition * const root,
   sn = search_node_free(sn);
 
   if (log) {
-    fclose(game_tree_log_file);
+    game_tree_log_close();
+    //fclose(game_tree_log_file);
   }
 
   return result;
@@ -389,6 +470,7 @@ game_position_solve_impl (      ExactSolution * const result,
   SearchNode *node2 = NULL;
 
   if (log) {
+    game_tree_log_write();
     call_count++;
     gp_hash_stack_fill_point++;
     const uint64 hash = game_position_hash(gp);
