@@ -167,3 +167,45 @@ SELECT * FROM gt_check('T006', 0);
 SELECT gt_load_from_staging('T007','C_IFES_SOLVER', 'Test data obtained by the C ifes solver on position FFO-01.');
 VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT * FROM gt_check('T007', 0);
+
+--
+-- Tests if the tree expansion performed by the es and ifes C implementations are equal.
+--
+DO $$
+DECLARE
+  sub_run_id_in     INTEGER := 0;
+  es_run_label_in   CHAR(4) := 'T006';
+  ifes_run_label_in CHAR(4) := 'T007';
+
+  ifes_rec  RECORD;
+  es_rec    RECORD;
+  run_id_in INTEGER;
+BEGIN
+  SELECT gtlh.run_id INTO STRICT run_id_in FROM game_tree_log_header AS gtlh  WHERE gtlh.run_label = ifes_run_label_in;
+  SELECT
+    COUNT(*)             AS leaf_count,
+    COUNT(DISTINCT hash) AS distinct_leaf_count
+  INTO STRICT ifes_rec
+  FROM
+    game_tree_log AS t0
+  WHERE
+    t0.run_id = run_id_in
+    AND (t0.json_doc->'il')::TEXT::BOOL = TRUE
+    AND t0.hash = (SELECT ~t1.hash FROM game_tree_log AS t1 WHERE t1.run_id = run_id_in AND t1.sub_run_id = sub_run_id_in AND t1.call_id = t0.call_id + 1);
+    PERFORM p_assert(ifes_rec.leaf_count = 20244, 'Ifes game tree leaf count must be 20244.');
+
+  SELECT gtlh.run_id INTO STRICT run_id_in FROM game_tree_log_header AS gtlh  WHERE gtlh.run_label = es_run_label_in;
+  SELECT
+    COUNT(*)             AS leaf_count,
+    COUNT(DISTINCT hash) AS distinct_leaf_count
+  INTO STRICT es_rec
+  FROM
+    game_tree_log AS t0
+  WHERE
+    t0.run_id = run_id_in
+    AND (t0.json_doc->'il')::TEXT::BOOL = TRUE;
+    PERFORM p_assert(es_rec.leaf_count = 20244, 'Es game tree leaf count must be 20244.');
+
+    PERFORM p_assert(ifes_rec.distinct_leaf_count = es_rec.distinct_leaf_count, 'Distinct hash counts must be equal.');
+END $$;
+
