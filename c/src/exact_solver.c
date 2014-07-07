@@ -87,42 +87,27 @@ static void
 game_tree_log_dirname_recursive_check (const gchar * const filename);
 
 void
-game_tree_log_dirname_recursive_check (const gchar * const dirname)
+game_tree_log_dirname_recursive_check (const gchar * const filename)
 {
-  //const gchar * const basename    = g_path_get_basename(dirname);
-  const gchar * const subdirname  = g_path_get_dirname(dirname);
-  //printf("dirname=%s, subdirname=%s, basename=%s\n", dirname, subdirname, basename);
-  if (!g_file_test(subdirname, G_FILE_TEST_EXISTS)) {
-    printf("b\n");
-    //g_mkdir_with_parents(dirname, 0755);
-    game_tree_log_dirname_recursive_check(subdirname);
-    //printf("mkdir + dirname=%s\n", dirname);
-    g_mkdir(dirname, 0755);
+  const gchar * const dirname  = g_path_get_dirname(filename);
+  if (!g_file_test(filename, G_FILE_TEST_EXISTS)) {
+    game_tree_log_dirname_recursive_check(dirname);
+    g_mkdir(filename, 0755);
   } else {
-    //printf("c\n");
-    if (g_file_test(dirname, G_FILE_TEST_IS_REGULAR)) {
-      printf("d\n");
-      printf("The given \"%s\" path contains an existing file! Exiting with status -102.\n", dirname);
+    if (g_file_test(filename, G_FILE_TEST_IS_REGULAR)) {
+      printf("The given \"%s\" path contains an existing file! Exiting with status -102.\n", filename);
       exit(-102);
-    } else {
-      //printf("mkdir - dirname=%s\n", dirname);
     }
   }
-  g_mkdir(dirname, 0755);
 }
 
 void
 game_tree_log_filename_check (const gchar * const filename)
 {
-  const gchar * const basename = g_path_get_basename(filename);
   const gchar * const dirname  = g_path_get_dirname(filename);
-  printf("filename=%s, dirname=%s, basename=%s\n", filename, dirname, basename);
-
   if (!g_file_test(filename, G_FILE_TEST_EXISTS)) {
-    printf("file: \"%s\" does not exist, checking dirname \"%s\".\n", filename, dirname);
-    //game_tree_log_dirname_recursive_check(dirname);
+    game_tree_log_dirname_recursive_check(dirname);
   } else {
-    printf("file: \"%s\" exists.\n", filename);
     if (g_file_test(filename, G_FILE_TEST_IS_REGULAR)) {
       printf("Logging regular file \"%s\" does exist, overwriting it.\n", filename);
     } else {
@@ -130,7 +115,6 @@ game_tree_log_filename_check (const gchar * const filename)
       exit(-101);
     }
   }
-  exit(0);
 }
 
 /**
@@ -411,7 +395,7 @@ game_position_solve (const GamePosition * const root,
 
   if (log) {
     gp_hash_stack[0] = 0; 
-    game_tree_log_open("out/out1/out2/exact_solver_log.csv");
+    game_tree_log_open("out/exact_solver_log.csv");
    /*
     game_tree_log_file = fopen("out/exact_solver_log.csv", "w");
     fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
