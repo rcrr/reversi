@@ -67,6 +67,20 @@ typedef struct {
  */
 
 /**
+ * @brief Log data is collecting the info logged into one record.
+ */
+typedef struct {
+  int        sub_run_id;  /**< @brief Sub run id field. */
+  int        call_id;     /**< @brief Call id. */
+  uint64     hash;        /**< @brief Game position hash. */
+  uint64     parent_hash; /**< @brief Parent game position hash. */
+  SquareSet  blacks;      /**< @brief Blacks field part of the game position. */
+  SquareSet  whites;      /**< @brief Whites field part of the game position. */
+  Player     player;      /**< @brief Player field part of the game position. */
+  gchar     *json_doc;    /**< @brief Json field. */
+} LogData;
+
+/**
  * @brief The log file used to record the game DAG traversing.
  */
 static FILE *game_tree_log_file = NULL;
@@ -75,7 +89,7 @@ static void
 game_tree_log_open (const gchar * const filename);
 
 static void
-game_tree_log_write (void);
+game_tree_log_write (const LogData * const log_data);
 
 static void
 game_tree_log_close (void);
@@ -140,9 +154,11 @@ game_tree_log_open (const gchar * const filename)
 
 /**
  * @brief Writes one record to the logging file.
+ *
+ * @param [in] log_data a pointer to the log record
  */
 void
-game_tree_log_write (void)
+game_tree_log_write (const LogData * const log_data)
 {
   ;
 }
@@ -396,18 +412,6 @@ game_position_solve (const GamePosition * const root,
   if (log) {
     gp_hash_stack[0] = 0; 
     game_tree_log_open("out/exact_solver_log.csv");
-   /*
-    game_tree_log_file = fopen("out/exact_solver_log.csv", "w");
-    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
-            "SUB_RUN_ID",
-            "CALL_ID",
-            "HASH",
-            "PARENT_HASH",
-            "BLACKS",
-            "WHITES",
-            "PLAYER",
-            "JSON_DOC");
-    */
   }
 
   result = exact_solution_new();
@@ -424,7 +428,6 @@ game_position_solve (const GamePosition * const root,
 
   if (log) {
     game_tree_log_close();
-    //fclose(game_tree_log_file);
   }
 
   return result;
@@ -484,14 +487,21 @@ game_position_solve_impl (      ExactSolution * const result,
   SearchNode *node2 = NULL;
 
   if (log) {
-    game_tree_log_write();
     call_count++;
     gp_hash_stack_fill_point++;
+    LogData log_data;
+    log_data.hash = game_position_hash(gp);
+    gp_hash_stack[gp_hash_stack_fill_point] = log_data.hash;
+    log_data.parent_hash = gp_hash_stack[gp_hash_stack_fill_point - 1];
+    const Board  *current_board = gp->board;
+    log_data.blacks = current_board->blacks;
+    log_data.whites = current_board->whites;
+    game_tree_log_write(&log_data);
+    //
     const uint64 hash = game_position_hash(gp);
     gp_hash_stack[gp_hash_stack_fill_point] = hash;
     const sint64 hash_to_signed = (sint64) hash;
     const sint64 previous_hash_to_signed = (sint64) gp_hash_stack[gp_hash_stack_fill_point - 1];
-    const Board  *current_board = gp->board;
     const sint64 *blacks_to_signed = (sint64 *) &current_board->blacks;
     const sint64 *whites_to_signed = (sint64 *) &current_board->whites;
     GString *json_doc;
