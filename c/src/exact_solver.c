@@ -71,7 +71,7 @@ typedef struct {
  */
 typedef struct {
   int        sub_run_id;  /**< @brief Sub run id field. */
-  int        call_id;     /**< @brief Call id. */
+  uint64     call_id;     /**< @brief Call id. */
   uint64     hash;        /**< @brief Game position hash. */
   uint64     parent_hash; /**< @brief Parent game position hash. */
   SquareSet  blacks;      /**< @brief Blacks field part of the game position. */
@@ -160,7 +160,15 @@ game_tree_log_open (const gchar * const filename)
 void
 game_tree_log_write (const LogData * const log_data)
 {
-  ;
+  fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
+          log_data->sub_run_id,
+          log_data->call_id,
+          (sint64) log_data->hash,
+          (sint64) log_data->parent_hash,
+          (sint64) log_data->blacks,
+          (sint64) log_data->whites,
+          log_data->player,
+          log_data->json_doc);
 }
 
 /**
@@ -490,20 +498,14 @@ game_position_solve_impl (      ExactSolution * const result,
     call_count++;
     gp_hash_stack_fill_point++;
     LogData log_data;
+    log_data.sub_run_id = 0;
+    log_data.call_id = call_count;
     log_data.hash = game_position_hash(gp);
     gp_hash_stack[gp_hash_stack_fill_point] = log_data.hash;
     log_data.parent_hash = gp_hash_stack[gp_hash_stack_fill_point - 1];
-    const Board  *current_board = gp->board;
-    log_data.blacks = current_board->blacks;
-    log_data.whites = current_board->whites;
-    game_tree_log_write(&log_data);
-    //
-    const uint64 hash = game_position_hash(gp);
-    gp_hash_stack[gp_hash_stack_fill_point] = hash;
-    const sint64 hash_to_signed = (sint64) hash;
-    const sint64 previous_hash_to_signed = (sint64) gp_hash_stack[gp_hash_stack_fill_point - 1];
-    const sint64 *blacks_to_signed = (sint64 *) &current_board->blacks;
-    const sint64 *whites_to_signed = (sint64 *) &current_board->whites;
+    log_data.blacks = (gp->board)->blacks;
+    log_data.whites = (gp->board)->whites;
+    log_data.player = gp->player;
     GString *json_doc;
     json_doc = g_string_sized_new(256);
     const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
@@ -530,15 +532,8 @@ game_position_solve_impl (      ExactSolution * const result,
                            legal_move_count_adj,
                            legal_moves_pg_json_array);
     g_free(legal_moves_pg_json_array);
-    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
-            sub_run_id,
-            call_count,
-            hash_to_signed,
-            previous_hash_to_signed,
-            *blacks_to_signed,
-            *whites_to_signed,
-            gp->player,
-            json_doc->str);
+    log_data.json_doc = json_doc->str;
+    game_tree_log_write(&log_data);
     g_string_free(json_doc, TRUE);
   }
 
