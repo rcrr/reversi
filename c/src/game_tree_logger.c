@@ -1,6 +1,15 @@
 /**
  * @file
  *
+ * @todo Add a game_tree_log_env structure, add to it the FILE field. Pass a pointer to it
+ * as an argument to all the module's call.
+ *
+ * @todo Create a game_tree_log_json_doc_maker function.
+ * It receive the env, a game position and returns the json_doc string.
+ * In order to have a strong configurability it should receive as argument an hash-table with key-value pairs.
+ *
+ * @todo Add the file name definition as an option when calling endgame_solver with the -l flag.
+ *
  * @brief Game tree logger module implementation.
  * @details Provides functions to open, close, and write to a log file during the
  * game tree expansion.
@@ -40,8 +49,6 @@
 
 #include "game_tree_logger.h"
 
-
-
 /*
  * Prototypes for internal functions.
  */
@@ -58,6 +65,10 @@ game_tree_log_dirname_recursive_check (const gchar * const filename);
  * Internal variables and constants.
  */
 
+/**
+ * @brief The log file used to record the game DAG traversing.
+ */
+static FILE *game_tree_log_file = NULL;
 
 
 

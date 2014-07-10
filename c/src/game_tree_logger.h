@@ -53,11 +53,6 @@ typedef struct {
   gchar     *json_doc;    /**< @brief Json field. */
 } LogData;
 
-/**
- * @brief The log file used to record the game DAG traversing.
- */
-static FILE *game_tree_log_file = NULL;
-
 
 
 /********************************************************/

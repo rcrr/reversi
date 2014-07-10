@@ -37,6 +37,8 @@
 #include <glib.h>
 #include <glib/gstdio.h>
 
+#include "game_tree_logger.h"
+
 #include "exact_solver.h"
 
 /**
@@ -61,127 +63,6 @@ typedef struct {
   MoveListElement head;                  /**< @brief Head element, it is not part of the list. */
   MoveListElement tail;                  /**< @brief Tail element, it is not part of the list. */
 } MoveList;
-
-/*
- * game_tree_log module - BEGIN.
- */
-
-/**
- * @brief Log data is collecting the info logged into one record.
- */
-typedef struct {
-  int        sub_run_id;  /**< @brief Sub run id field. */
-  uint64     call_id;     /**< @brief Call id. */
-  uint64     hash;        /**< @brief Game position hash. */
-  uint64     parent_hash; /**< @brief Parent game position hash. */
-  SquareSet  blacks;      /**< @brief Blacks field part of the game position. */
-  SquareSet  whites;      /**< @brief Whites field part of the game position. */
-  Player     player;      /**< @brief Player field part of the game position. */
-  gchar     *json_doc;    /**< @brief Json field. */
-} LogData;
-
-/**
- * @brief The log file used to record the game DAG traversing.
- */
-static FILE *game_tree_log_file = NULL;
-
-static void
-game_tree_log_open (const gchar * const filename);
-
-static void
-game_tree_log_write (const LogData * const log_data);
-
-static void
-game_tree_log_close (void);
-
-static void
-game_tree_log_filename_check (const gchar * const filename);
-
-static void
-game_tree_log_dirname_recursive_check (const gchar * const filename);
-
-void
-game_tree_log_dirname_recursive_check (const gchar * const filename)
-{
-  const gchar * const dirname  = g_path_get_dirname(filename);
-  if (!g_file_test(filename, G_FILE_TEST_EXISTS)) {
-    game_tree_log_dirname_recursive_check(dirname);
-    g_mkdir(filename, 0755);
-  } else {
-    if (g_file_test(filename, G_FILE_TEST_IS_REGULAR)) {
-      printf("The given \"%s\" path contains an existing file! Exiting with status -102.\n", filename);
-      exit(-102);
-    }
-  }
-}
-
-void
-game_tree_log_filename_check (const gchar * const filename)
-{
-  const gchar * const dirname  = g_path_get_dirname(filename);
-  if (!g_file_test(filename, G_FILE_TEST_EXISTS)) {
-    game_tree_log_dirname_recursive_check(dirname);
-  } else {
-    if (g_file_test(filename, G_FILE_TEST_IS_REGULAR)) {
-      printf("Logging regular file \"%s\" does exist, overwriting it.\n", filename);
-    } else {
-      printf("Logging file \"%s\" does exist, but it is a directory! Exiting with status -101.\n", filename);
-      exit(-101);
-    }
-  }
-}
-
-/**
- * @brief Opens the file for logging and writes the header.
- *
- * @param [in] filename the name of the logging file
- */
-void
-game_tree_log_open (const gchar * const filename)
-{
-  game_tree_log_filename_check(filename);
-  game_tree_log_file = fopen(filename, "w");
-  fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
-          "SUB_RUN_ID",
-          "CALL_ID",
-          "HASH",
-          "PARENT_HASH",
-          "BLACKS",
-          "WHITES",
-          "PLAYER",
-          "JSON_DOC");
-}
-
-/**
- * @brief Writes one record to the logging file.
- *
- * @param [in] log_data a pointer to the log record
- */
-void
-game_tree_log_write (const LogData * const log_data)
-{
-  fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
-          log_data->sub_run_id,
-          log_data->call_id,
-          (sint64) log_data->hash,
-          (sint64) log_data->parent_hash,
-          (sint64) log_data->blacks,
-          (sint64) log_data->whites,
-          log_data->player,
-          log_data->json_doc);
-}
-
-/**
- * @brief Closes the logging file.
- */
-void
-game_tree_log_close (void)
-{
-  fclose(game_tree_log_file);
-}
-/*
- * game_tree_log module - END.
- */
 
 /*
  * Prototypes for internal functions.
