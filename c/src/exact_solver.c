@@ -300,7 +300,7 @@ game_position_solve (const GamePosition * const root,
 
   if (log) {
     gp_hash_stack[0] = 0; 
-    game_tree_log_open("out/exact_solver_log.csv");
+    game_tree_log_open(log_file);
   }
 
   result = exact_solution_new();
