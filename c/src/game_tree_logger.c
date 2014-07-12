@@ -8,8 +8,6 @@
  * It receive the env, a game position and returns the json_doc string.
  * In order to have a strong configurability it should receive as argument an hash-table with key-value pairs.
  *
- * @todo Add the file name definition as an option when calling endgame_solver with the -l flag.
- *
  * @brief Game tree logger module implementation.
  * @details Provides functions to open, close, and write to a log file during the
  * game tree expansion.
