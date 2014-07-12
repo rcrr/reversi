@@ -296,6 +296,13 @@ game_position_solve (const GamePosition * const root,
   ExactSolution *result; 
   SearchNode    *sn;
 
+  LogEnv *log_env = game_tree_log_init(log_file);
+  printf("log_env->log_is_on=%d\n", log_env->log_is_on);
+  printf("log_env->file_name_prefix=%s\n", log_env->file_name_prefix);
+  printf("log_env->h_file_name=%s\n", log_env->h_file_name);
+  printf("log_env->t_file_name=%s\n", log_env->t_file_name);
+  
+  
   if (log_file) log = TRUE;
 
   if (log) {

@@ -123,6 +123,41 @@ game_tree_log_close (void)
   fclose(game_tree_log_file);
 }
 
+/**
+ * @brief Initializes the log env structure.
+ *
+ * @param [in] log_file_name_prefix the prefix for the file names
+ * @return                          the newly constructed log env
+ */
+LogEnv *
+game_tree_log_init (const gchar * const file_name_prefix)
+{
+  LogEnv *log_env;
+  static const size_t size_of_log_env = sizeof(LogEnv);
+  
+  gchar* file_name_prefix_copy = g_strdup(file_name_prefix);
+  
+  log_env = (LogEnv*) malloc(size_of_log_env);
+  g_assert(log_env);
+
+  log_env->h_file = NULL;
+  log_env->t_file = NULL;
+  
+  if (file_name_prefix_copy) {
+    log_env->log_is_on = TRUE;
+    log_env->file_name_prefix = file_name_prefix_copy;
+    log_env->h_file_name = g_strconcat(file_name_prefix_copy, "_h.csv", NULL);
+    log_env->t_file_name = g_strconcat(file_name_prefix_copy, "_t.csv", NULL);
+  } else {
+    log_env->log_is_on        = FALSE;
+    log_env->file_name_prefix = NULL;
+    log_env->h_file_name      = NULL;
+    log_env->t_file_name      = NULL;
+  }
+
+  return log_env;
+}
+
 
 
 /*

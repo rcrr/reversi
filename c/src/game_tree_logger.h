@@ -39,6 +39,7 @@
 #include "board.h"
 
 
+
 /**
  * @brief Log data is collecting the info logged into one record.
  */
@@ -52,6 +53,18 @@ typedef struct {
   Player     player;      /**< @brief Player field part of the game position. */
   gchar     *json_doc;    /**< @brief Json field. */
 } LogData;
+
+/**
+ * @brief Environment in wich the logger operates.
+ */
+typedef struct {
+  gboolean   log_is_on;        /**< @brief True when logging is turned on. */
+  gchar     *file_name_prefix; /**< @brief The log file name prefix received by the caller. */
+  gchar     *h_file_name;      /**< @brief The complete nmae for the head file. */
+  gchar     *t_file_name;      /**< @brief The complete name for the tail file. */
+  FILE      *h_file;           /**< @brief Head file. */
+  FILE      *t_file;           /**< @brief Tail file. */
+} LogEnv;
 
 
 
@@ -67,6 +80,10 @@ game_tree_log_write (const LogData * const log_data);
 
 extern void
 game_tree_log_close (void);
+
+extern LogEnv *
+game_tree_log_init (const gchar * const file_name_prefix);
+
 
 
 #endif /* GAME_TREE_LOGGER_H */
