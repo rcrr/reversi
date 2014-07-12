@@ -75,6 +75,28 @@ static FILE *game_tree_log_file = NULL;
 /********************************************************/
 
 /**
+ * @brief Opens the h file for logging and writes the header.
+ *
+ * @param [in] env the logging environment
+ */
+void
+game_tree_log_open_h (const LogEnv * const env)
+{
+  ;
+}
+
+/**
+ * @brief Opens the t file for logging and writes the header.
+ *
+ * @param [in] env the logging environment
+ */
+void
+game_tree_log_open_t (const LogEnv * const env)
+{
+  ;
+}
+
+/**
  * @brief Opens the file for logging and writes the header.
  *
  * @param [in] filename the name of the logging file
@@ -126,8 +148,8 @@ game_tree_log_close (void)
 /**
  * @brief Initializes the log env structure.
  *
- * @param [in] log_file_name_prefix the prefix for the file names
- * @return                          the newly constructed log env
+ * @param [in] file_name_prefix the prefix for the file names
+ * @return                      the newly constructed log env
  */
 LogEnv *
 game_tree_log_init (const gchar * const file_name_prefix)

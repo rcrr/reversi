@@ -84,6 +84,11 @@ game_tree_log_close (void);
 extern LogEnv *
 game_tree_log_init (const gchar * const file_name_prefix);
 
+extern void
+game_tree_log_open_h (const LogEnv * const env);
+
+extern void
+game_tree_log_open_t (const LogEnv * const env);
 
 
 #endif /* GAME_TREE_LOGGER_H */
