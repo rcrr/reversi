@@ -157,16 +157,16 @@ static gboolean log = FALSE;
  * @brief Solves the game position returning a new exact solution pointer.
  *
  * @param [in] root     the starting game position to be solved
- * @param [in] log_flag true when logging is enabled
+ * @param [in] log_file if not null turns logging on the given file name
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution*
-game_position_ab_solve(const GamePosition* const root,
-                       const gboolean log_flag)
+game_position_ab_solve(const GamePosition * const root,
+                       const gchar        * const log_file)
 {
   ExactSolution* result = NULL;
-  
-  log = log_flag;
+
+  if (log_file) log = TRUE;
 
   if (log) {
     game_tree_log_file = fopen("out/ab_solver_log.csv", "w");

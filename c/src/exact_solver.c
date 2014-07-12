@@ -286,17 +286,17 @@ exact_solution_print (const ExactSolution * const es)
  * @brief Solves the game position returning a new exact solution pointer.
  *
  * @param [in] root     the starting game position to be solved
- * @param [in] log_flag true when logging is enabled
+ * @param [in] log_file if not null turns logging on the given file name
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution *
 game_position_solve (const GamePosition * const root,
-                     const gboolean             log_flag)
+                     const gchar        * const log_file)
 {
   ExactSolution *result; 
   SearchNode    *sn;
 
-  log = log_flag;
+  if (log_file) log = TRUE;
 
   if (log) {
     gp_hash_stack[0] = 0; 

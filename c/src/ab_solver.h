@@ -44,8 +44,8 @@
 /*********************************************************/
 
 extern ExactSolution*
-game_position_ab_solve(const GamePosition* const root,
-                       const gboolean log_flag);
+game_position_ab_solve(const GamePosition * const root,
+                       const gchar        * const log_file);
 
 
 #endif /* AB_SOLVER_H */

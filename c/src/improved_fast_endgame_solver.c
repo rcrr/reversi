@@ -397,12 +397,12 @@ static uint8 **flip_stack = &(global_flip_stack[0]);
  * The invariants are guarded by assertions.
  *
  * @param [in] root     the game position to be solved
- * @param [in] log_flag true when logging is enabled
+ * @param [in] log_file if not null turns logging on the given file name
  * @return              the exact solution is the collector for results
  */
 ExactSolution *
 game_position_ifes_solve (const GamePosition * const root,
-                          const gboolean             log_flag)
+                          const gchar        * const log_file)
 {
   ExactSolution *result;    /* The solution structure returned by the function. */
   int            emp;       /* Empty discs count. */
@@ -412,7 +412,7 @@ game_position_ifes_solve (const GamePosition * const root,
 
   g_assert(root);
 
-  log = log_flag;
+  if (log_file) log = TRUE;
 
   if (log) {
     gp_hash_stack[0] = 0;

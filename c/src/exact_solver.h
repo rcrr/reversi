@@ -100,7 +100,7 @@ exact_solution_print (const ExactSolution * const es);
 
 extern ExactSolution *
 game_position_solve (const GamePosition * const root,
-                     const gboolean             log_file);
+                     const gchar        * const log_file);
 
 
 #endif /* EXACT_SOLVER_H */

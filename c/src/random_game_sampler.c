@@ -97,13 +97,13 @@ static int sub_run_id = 0;
  * to the `repeats` parameter, starting from the `root` game position.
  *
  * @param [in] root     the starting game position to be solved
- * @param [in] log_flag true when logging is enabled
+ * @param [in] log_file if not null turns logging on the given file name
  * @param [in] repeats  number of random game to play
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution *
 game_position_random_sampler (const GamePosition * const root,
-                              const gboolean             log_flag,
+                              const gchar        * const log_file,
                               const int                  repeats)
 {
   ExactSolution *result; 
@@ -115,8 +115,8 @@ game_position_random_sampler (const GamePosition * const root,
   } else {
     n = repeats;
   }
-  
-  log = log_flag;
+
+  if (log_file) log = TRUE;
 
   if (log) {
     GamePosition *ground = game_position_new(board_new(root->board->blacks, root->board->whites), player_opponent(root->player));

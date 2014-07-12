@@ -163,7 +163,7 @@ static gchar   *input_file   = NULL;
 static gchar   *lookup_entry = NULL;
 static gchar   *solver       = NULL;
 static gint     repeats      = 1;
-static gboolean log_flag     = FALSE;
+static gchar   *log_file     = NULL;
 
 static const GOptionEntry entries[] =
   {
@@ -171,7 +171,7 @@ static const GOptionEntry entries[] =
     { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry      - Mandatory",                                            NULL },
     { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver            - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab]", NULL },
     { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand/rab solvers",                       NULL },
-    { "log",           'l', 0, G_OPTION_ARG_NONE,     &log_flag,     "Turns logging on",                                                         NULL },
+    { "log",           'l', 0, G_OPTION_ARG_FILENAME, &log_file,     "Turns logging on the given file name",                                     NULL },
     { NULL }
   };
 
@@ -286,22 +286,22 @@ main (int argc, char *argv[])
   g_print("Solving the game position %s using solver %s ...\n", entry->id, solvers[solver_index]);
   switch (solver_index) {
   case 0:
-    solution = game_position_solve(gp, log_flag);
+    solution = game_position_solve(gp, log_file);
     break;
   case 1:
-    solution = game_position_ifes_solve(gp, log_flag);
+    solution = game_position_ifes_solve(gp, log_file);
     break;
   case 2:
-    solution = game_position_random_sampler(gp, log_flag, repeats);
+    solution = game_position_random_sampler(gp, log_file, repeats);
     break;
   case 3:
     solution = game_position_minimax_solve(gp);
     break;
   case 4:
-    solution = game_position_rab_solve(gp, log_flag, repeats);
+    solution = game_position_rab_solve(gp, log_file, repeats);
     break;
   case 5:
-    solution = game_position_ab_solve(gp, log_flag);
+    solution = game_position_ab_solve(gp, log_file);
     break;
   default:
     g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);

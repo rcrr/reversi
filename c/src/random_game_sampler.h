@@ -44,7 +44,7 @@
 
 extern ExactSolution *
 game_position_random_sampler (const GamePosition * const root,
-                              const gboolean             log_flag,
+                              const gchar        * const log_file,
                               const int                  repeats);
 
 

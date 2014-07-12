@@ -158,14 +158,14 @@ static gboolean log = FALSE;
  * @brief Solves the game position returning a new exact solution pointer.
  *
  * @param [in] root     the starting game position to be solved
- * @param [in] log_flag true when logging is enabled
+ * @param [in] log_file if not null turns logging on the given file name
  * @param [in] repeats  number of repetitions
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution*
-game_position_rab_solve(const GamePosition* const root,
-                        const gboolean log_flag,
-                        const int repeats)
+game_position_rab_solve(const GamePosition * const root,
+                        const gchar        * const log_file,
+                        const int                  repeats)
 {
   ExactSolution* result = NULL;
   int n;
@@ -175,8 +175,8 @@ game_position_rab_solve(const GamePosition* const root,
   } else {
     n = repeats;
   }
-  
-  log = log_flag;
+
+  if (log_file) log = TRUE;
 
   if (log) {
     game_tree_log_file = fopen("out/rab_solver_log.csv", "w");
