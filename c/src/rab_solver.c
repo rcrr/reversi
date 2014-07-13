@@ -37,8 +37,10 @@
 
 #include <glib.h>
 
-#include "rab_solver.h"
 #include "utils.h"
+#include "game_tree_logger.h"
+
+#include "rab_solver.h"
 
 /**
  * @brief Game tree stack size.
@@ -119,6 +121,11 @@ legal_move_list_from_set(const SquareSet legal_move_set,
  */
 
 /**
+ * @brief The logging environment structure.
+ */
+static LogEnv *log_env = NULL;
+
+/**
  * @brief A null move is an invalid one.
  */
 static const Square null_move = -1;
@@ -137,16 +144,6 @@ static const int best_score = +64;
  * @brief The worst score achievable.
  */
 static const int worst_score = -64;
-
-/**
- * @brief The log file used to record the game DAG traversing.
- */
-static FILE *game_tree_log_file = NULL;
-
-/**
- * @brief True if the module logs to file.
- */
-static gboolean log = FALSE;
 
 
 
@@ -176,19 +173,10 @@ game_position_rab_solve(const GamePosition * const root,
     n = repeats;
   }
 
-  if (log_file) log = TRUE;
+  log_env = game_tree_log_init(log_file);
 
-  if (log) {
-    game_tree_log_file = fopen("out/rab_solver_log.csv", "w");
-    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
-            "SUB_RUN_ID",
-            "CALL_ID",
-            "HASH",
-            "PARENT_HASH",
-            "BLACKS",
-            "WHITES",
-            "PLAYER",
-            "JSON_DOC");
+  if (log_env->log_is_on) {
+    game_tree_log_open_h(log_env);
   }
 
   utils_init_random_seed();
@@ -213,9 +201,7 @@ game_position_rab_solve(const GamePosition * const root,
     game_tree_stack_free(stack);
   }
 
-  if (log) {
-    fclose(game_tree_log_file);
-  }
+  game_tree_log_close(log_env);
 
   result->principal_variation[0] = best_move;
   result->outcome = game_value;
@@ -350,21 +336,17 @@ game_position_solve_impl(ExactSolution* const result,
   legal_move_list_from_set(move_set, current_node_info, next_node_info);
   utils_shuffle_uint8(current_node_info->head_of_legal_move_list, current_node_info->move_count);
   
-  if (log) {
-    sint64 *current_hash_to_signed = (sint64 *) &current_node_info->hash;
-    sint64 *previous_hash_to_signed = (sint64 *) &previous_node_info->hash;
-    sint64 *blacks_to_signed = (sint64 *) &current_gpx->blacks;
-    sint64 *whites_to_signed = (sint64 *) &current_gpx->whites;
-    const gchar  * const json_doc = "{}";
-    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
-            sub_run_id,
-            result->node_count,
-            *current_hash_to_signed,
-            *previous_hash_to_signed,
-            *blacks_to_signed,
-            *whites_to_signed,
-            current_gpx->player,
-            json_doc);
+  if (log_env->log_is_on) {
+    LogDataH log_data;
+    log_data.sub_run_id = sub_run_id;
+    log_data.call_id = result->node_count;
+    log_data.hash = current_node_info->hash;
+    log_data.parent_hash = previous_node_info->hash;
+    log_data.blacks = current_gpx->blacks;
+    log_data.whites = current_gpx->whites;
+    log_data.player = current_gpx->player;
+    log_data.json_doc = "\"{}\"";
+    game_tree_log_write_h(log_env, &log_data);
   }
 
   if (move_set == empty_square_set) {

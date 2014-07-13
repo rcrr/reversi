@@ -28,7 +28,7 @@
 --
 -- This script has been tested with PostgreSQL.
 -- Start psql by running: psql -U reversi -w -d reversi -h localhost
--- Load the file by running the command: \i load_rab_solver.sql
+-- Load the file by running the command: \i load_game_tree_log_sets.sql
 --
 --
 -- This script loads game tree sets into the db, game_tree_log_header, and game_tree_log tables.
@@ -36,13 +36,16 @@
 
 SET search_path TO reversi;
 
+-- ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -n 3 -l rab_solver_log-ffo-01-simplified-4_n3_h.csv
+
 --
--- File ../out/rab_solver_log-ffo-01-simplified-4_n3.csv is obtained by running
--- the commands:
--- ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -l -n 3
--- mv out/rab_solver_log.csv out/rab_solver_log-ffo-01-simplified-4_n3.csv
+-- File ../build/out/rab_solver_log-ffo-01-simplified-4_n3_h.csv is obtained by running
+-- the command:
+-- $ make make endgame_log_files
+-- or directly calling:
+-- $ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -n 3 -l build/out/rab_solver_log-ffo-01-simplified-4_n3_h.csv
 --
-\! ./gt_load_file.sh ../out/rab_solver_log-ffo-01-simplified-4_n3.csv;
+\! ./gt_load_file.sh ../build/out/rab_solver_log-ffo-01-simplified-4_n3_h.csv;
 SELECT gt_load_from_staging('T000', 'C_RAB_SOLVER', 'Test data obtained by the C rab solver on position ffo-01-simplified-4.');
 VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT gt_check_rab('T000', 0);
