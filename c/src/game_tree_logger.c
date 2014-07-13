@@ -1,11 +1,8 @@
 /**
  * @file
  *
- * @todo Add a game_tree_log_env structure, add to it the FILE field. Pass a pointer to it
- * as an argument to all the module's call.
- *
  * @todo Create a game_tree_log_json_doc_maker function.
- * It receive the env, a game position and returns the json_doc string.
+ * It receives the env, a game position and returns the json_doc string.
  * In order to have a strong configurability it should receive as argument an hash-table with key-value pairs.
  *
  * @brief Game tree logger module implementation.
@@ -47,6 +44,8 @@
 
 #include "game_tree_logger.h"
 
+
+
 /*
  * Prototypes for internal functions.
  */
@@ -57,16 +56,14 @@ game_tree_log_filename_check (const gchar * const filename);
 static void
 game_tree_log_dirname_recursive_check (const gchar * const filename);
 
+static 
+void game_tree_log_write_header (FILE * const file);
+
 
 
 /*
  * Internal variables and constants.
  */
-
-/**
- * @brief The log file used to record the game DAG traversing.
- */
-static FILE *game_tree_log_file = NULL;
 
 
 
@@ -77,72 +74,86 @@ static FILE *game_tree_log_file = NULL;
 /**
  * @brief Opens the h file for logging and writes the header.
  *
- * @param [in] env the logging environment
+ * @invariant Parameter `env` must not be empty.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] env a pointer to the logging environment
  */
 void
-game_tree_log_open_h (const LogEnv * const env)
+game_tree_log_open_h (LogEnv * const env)
 {
-  ;
+  g_assert(env);
+  if (env->log_is_on) {
+    game_tree_log_filename_check(env->h_file_name);
+    env->h_file = fopen(env->h_file_name, "w");
+    game_tree_log_write_header(env->h_file);
+  }
 }
 
 /**
  * @brief Opens the t file for logging and writes the header.
  *
- * @param [in] env the logging environment
- */
-void
-game_tree_log_open_t (const LogEnv * const env)
-{
-  ;
-}
-
-/**
- * @brief Opens the file for logging and writes the header.
+ * @invariant Parameter `env` must not be empty.
+ * The invariant is guarded by an assertion.
  *
- * @param [in] filename the name of the logging file
+ * @param [in] env a pointer to the logging environment
  */
 void
-game_tree_log_open (const gchar * const filename)
+game_tree_log_open_t (LogEnv * const env)
 {
-  game_tree_log_filename_check(filename);
-  game_tree_log_file = fopen(filename, "w");
-  fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
-          "SUB_RUN_ID",
-          "CALL_ID",
-          "HASH",
-          "PARENT_HASH",
-          "BLACKS",
-          "WHITES",
-          "PLAYER",
-          "JSON_DOC");
+  g_assert(env);
+  if (env->log_is_on) {
+    game_tree_log_filename_check(env->t_file_name);
+    env->t_file = fopen(env->t_file_name, "w");
+    game_tree_log_write_header(env->t_file);
+  }
 }
 
 /**
- * @brief Writes one record to the logging file.
+ * @brief Writes one record to the head logging file.
  *
- * @param [in] log_data a pointer to the log record
+ * @invariant Parameter `env` must not be empty.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] env  a pointer to the logging environment
+ * @param [in] data a pointer to the log record
  */
 void
-game_tree_log_write (const LogData * const log_data)
+game_tree_log_write_h (const LogEnv  * const env,
+                       const LogData * const data)
 {
-  fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
-          log_data->sub_run_id,
-          log_data->call_id,
-          (sint64) log_data->hash,
-          (sint64) log_data->parent_hash,
-          (sint64) log_data->blacks,
-          (sint64) log_data->whites,
-          log_data->player,
-          log_data->json_doc);
+  g_assert(env);
+  fprintf(env->h_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
+          data->sub_run_id,
+          data->call_id,
+          (sint64) data->hash,
+          (sint64) data->parent_hash,
+          (sint64) data->blacks,
+          (sint64) data->whites,
+          data->player,
+          data->json_doc);
 }
 
 /**
- * @brief Closes the logging file.
+ * @brief Frees the `env` structure after closing the open files.
+ *
+ * @invariant Parameter `env` must not be empty.
+ * The invariant is guarded by an assertion.
+ *
+ * @param env the logging environment
  */
 void
-game_tree_log_close (void)
+game_tree_log_close (LogEnv * const env)
 {
-  fclose(game_tree_log_file);
+  g_assert(env);
+  if (env->log_is_on) {
+    g_free(env->file_name_prefix);
+    g_free(env->h_file_name);
+    g_free(env->t_file_name);
+  }
+  if (env->h_file) fclose(env->h_file);
+  if (env->t_file) fclose(env->t_file);
+  free(env);
 }
 
 /**
@@ -154,30 +165,30 @@ game_tree_log_close (void)
 LogEnv *
 game_tree_log_init (const gchar * const file_name_prefix)
 {
-  LogEnv *log_env;
+  LogEnv *env;
   static const size_t size_of_log_env = sizeof(LogEnv);
   
-  gchar* file_name_prefix_copy = g_strdup(file_name_prefix);
+  env = (LogEnv*) malloc(size_of_log_env);
+  g_assert(env);
   
-  log_env = (LogEnv*) malloc(size_of_log_env);
-  g_assert(log_env);
+  gchar* file_name_prefix_copy = g_strdup(file_name_prefix);
 
-  log_env->h_file = NULL;
-  log_env->t_file = NULL;
+  env->h_file = NULL;
+  env->t_file = NULL;
   
   if (file_name_prefix_copy) {
-    log_env->log_is_on = TRUE;
-    log_env->file_name_prefix = file_name_prefix_copy;
-    log_env->h_file_name = g_strconcat(file_name_prefix_copy, "_h.csv", NULL);
-    log_env->t_file_name = g_strconcat(file_name_prefix_copy, "_t.csv", NULL);
+    env->log_is_on = TRUE;
+    env->file_name_prefix = file_name_prefix_copy;
+    env->h_file_name = g_strconcat(file_name_prefix_copy, "_h.csv", NULL);
+    env->t_file_name = g_strconcat(file_name_prefix_copy, "_t.csv", NULL);
   } else {
-    log_env->log_is_on        = FALSE;
-    log_env->file_name_prefix = NULL;
-    log_env->h_file_name      = NULL;
-    log_env->t_file_name      = NULL;
+    env->log_is_on        = FALSE;
+    env->file_name_prefix = NULL;
+    env->h_file_name      = NULL;
+    env->t_file_name      = NULL;
   }
 
-  return log_env;
+  return env;
 }
 
 
@@ -215,4 +226,18 @@ game_tree_log_filename_check (const gchar * const filename)
       exit(-101);
     }
   }
+}
+
+void
+game_tree_log_write_header (FILE * const file)
+{
+  fprintf(file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
+          "SUB_RUN_ID",
+          "CALL_ID",
+          "HASH",
+          "PARENT_HASH",
+          "BLACKS",
+          "WHITES",
+          "PLAYER",
+          "JSON_DOC");
 }

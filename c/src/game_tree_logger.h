@@ -76,19 +76,20 @@ extern void
 game_tree_log_open (const gchar * const filename);
 
 extern void
-game_tree_log_write (const LogData * const log_data);
+game_tree_log_write_h (const LogEnv  * const env,
+                       const LogData * const data);
 
 extern void
-game_tree_log_close (void);
+game_tree_log_close (LogEnv * const env);
 
 extern LogEnv *
 game_tree_log_init (const gchar * const file_name_prefix);
 
 extern void
-game_tree_log_open_h (const LogEnv * const env);
+game_tree_log_open_h (LogEnv * const env);
 
 extern void
-game_tree_log_open_t (const LogEnv * const env);
+game_tree_log_open_t (LogEnv * const env);
 
 
 #endif /* GAME_TREE_LOGGER_H */

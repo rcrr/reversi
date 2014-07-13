@@ -86,9 +86,9 @@ move_list_init (MoveList *ml);
  */
 
 /**
- * @brief True if the module logs to file.
+ * @brief The logging environment structure.
  */
-static gboolean log = FALSE;
+static LogEnv *log_env = NULL;
 
 /**
  * @brief The total number of call to the recursive function that traverse the game DAG.
@@ -296,18 +296,11 @@ game_position_solve (const GamePosition * const root,
   ExactSolution *result; 
   SearchNode    *sn;
 
-  LogEnv *log_env = game_tree_log_init(log_file);
-  printf("log_env->log_is_on=%d\n", log_env->log_is_on);
-  printf("log_env->file_name_prefix=%s\n", log_env->file_name_prefix);
-  printf("log_env->h_file_name=%s\n", log_env->h_file_name);
-  printf("log_env->t_file_name=%s\n", log_env->t_file_name);
-  
-  
-  if (log_file) log = TRUE;
+  log_env = game_tree_log_init(log_file);
 
-  if (log) {
+  if (log_env->log_is_on) {
     gp_hash_stack[0] = 0; 
-    game_tree_log_open(log_file);
+    game_tree_log_open_h(log_env);
   }
 
   result = exact_solution_new();
@@ -322,9 +315,7 @@ game_position_solve (const GamePosition * const root,
   }
   sn = search_node_free(sn);
 
-  if (log) {
-    game_tree_log_close();
-  }
+  game_tree_log_close(log_env);
 
   return result;
 }
@@ -382,7 +373,7 @@ game_position_solve_impl (      ExactSolution * const result,
   SearchNode *node  = NULL;
   SearchNode *node2 = NULL;
 
-  if (log) {
+  if (log_env->log_is_on) {
     call_count++;
     gp_hash_stack_fill_point++;
     LogData log_data;
@@ -421,7 +412,7 @@ game_position_solve_impl (      ExactSolution * const result,
                            legal_moves_pg_json_array);
     g_free(legal_moves_pg_json_array);
     log_data.json_doc = json_doc->str;
-    game_tree_log_write(&log_data);
+    game_tree_log_write_h(log_env, &log_data);
     g_string_free(json_doc, TRUE);
   }
 
@@ -459,7 +450,7 @@ game_position_solve_impl (      ExactSolution * const result,
  out:
   ;
   
-  if (log) {
+  if (log_env->log_is_on) {
     gp_hash_stack_fill_point--;
   }
 
