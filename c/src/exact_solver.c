@@ -385,35 +385,10 @@ game_position_solve_impl (      ExactSolution * const result,
     log_data.blacks = (gp->board)->blacks;
     log_data.whites = (gp->board)->whites;
     log_data.player = gp->player;
-    GString *json_doc;
-    json_doc = g_string_sized_new(256);
-    const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
-    const SquareSet legal_moves = game_position_legal_moves(gp);
-    const int legal_move_count = bit_works_popcount(legal_moves);
-    const SquareSet empties = board_empties(gp->board);
-    const int empty_count = bit_works_popcount(empties);
-    const int legal_move_count_adj = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0);
-    gchar *legal_moves_pg_json_array = square_set_to_pg_json_array(legal_moves);
-    /*
-     * cl:   call level
-     * ec:   empty count
-     * il:   is leaf
-     * lmc:  legal move count
-     * lmca: legal move count adjusted
-     * lma:  legal move array ([""A1"", ""B4"", ""H8""])
-     */
-    g_string_append_printf(json_doc,
-                           "\"{ \"\"cl\"\": %2d, \"\"ec\"\": %2d, \"\"il\"\": %s, \"\"lmc\"\": %2d, \"\"lmca\"\": %2d, \"\"lma\"\": %s }\"",
-                           gp_hash_stack_fill_point,
-                           empty_count,
-                           is_leaf ? "true" : "false",
-                           legal_move_count,
-                           legal_move_count_adj,
-                           legal_moves_pg_json_array);
-    g_free(legal_moves_pg_json_array);
-    log_data.json_doc = json_doc->str;
+    gchar *json_doc = game_tree_log_data_h_json_doc(gp_hash_stack_fill_point, gp);
+    log_data.json_doc = json_doc;
     game_tree_log_write_h(log_env, &log_data);
-    g_string_free(json_doc, TRUE);
+    g_free(json_doc);
   }
 
   const SquareSet moves = game_position_legal_moves(gp);
@@ -449,7 +424,7 @@ game_position_solve_impl (      ExactSolution * const result,
   }
  out:
   ;
-  
+
   if (log_env->log_is_on) {
     gp_hash_stack_fill_point--;
   }

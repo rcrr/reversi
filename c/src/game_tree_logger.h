@@ -101,5 +101,8 @@ game_tree_log_close (LogEnv * const env);
 extern LogEnv *
 game_tree_log_init (const gchar * const file_name_prefix);
 
+extern gchar *
+game_tree_log_data_h_json_doc (const int                  call_level,
+                               const GamePosition * const gp);
 
 #endif /* GAME_TREE_LOGGER_H */
