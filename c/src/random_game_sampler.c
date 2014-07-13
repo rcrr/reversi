@@ -38,6 +38,7 @@
 
 #include "board.h"
 #include "exact_solver.h"
+#include "game_tree_logger.h"
 #include "random_game_sampler.h"
 
 
@@ -57,14 +58,9 @@ game_position_random_sampler_impl (      ExactSolution * const result,
  */
 
 /**
- * @brief The log file used to record the game DAG traversing.
+ * @brief The logging environment structure.
  */
-static FILE *game_tree_log_file = NULL;
-
-/**
- * @brief True if the module logs to file.
- */
-static gboolean log = FALSE;
+static LogEnv *log_env = NULL;
 
 /**
  * @brief The total number of call to the recursive function that traverse the game DAG.
@@ -116,22 +112,15 @@ game_position_random_sampler (const GamePosition * const root,
     n = repeats;
   }
 
-  if (log_file) log = TRUE;
+  log_env = game_tree_log_init(log_file);
 
-  if (log) {
-    GamePosition *ground = game_position_new(board_new(root->board->blacks, root->board->whites), player_opponent(root->player));
+  if (log_env->log_is_on) {
+    GamePosition *ground = game_position_new(board_new(root->board->blacks,
+                                                       root->board->whites),
+                                             player_opponent(root->player));
     gp_hash_stack[0] = game_position_hash(ground);
     game_position_free(ground);
-    game_tree_log_file = fopen("out/random_game_sampler_log.csv", "w");
-    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
-            "SUB_RUN_ID",
-            "CALL_ID",
-            "HASH",
-            "PARENT_HASH",
-            "BLACKS",
-            "WHITES",
-            "PLAYER",
-            "JSON_DOC");
+    game_tree_log_open_h(log_env);
   }
 
   srand(time(NULL));
@@ -140,7 +129,7 @@ game_position_random_sampler (const GamePosition * const root,
   result->solved_game_position = game_position_clone(root);
 
   for (int repetition = 0; repetition < n; repetition++) {
-    if (log) {
+    if (log_env->log_is_on) {
       sub_run_id = repetition;
       call_count = 0;
     }
@@ -152,9 +141,7 @@ game_position_random_sampler (const GamePosition * const root,
     sn = search_node_free(sn);
   }
 
-  if (log) {
-    fclose(game_tree_log_file);
-  }
+  game_tree_log_close(log_env);
 
   return result;
 }
@@ -171,55 +158,27 @@ game_position_random_sampler_impl (      ExactSolution * const result,
 {
   result->node_count++;
   SearchNode *node = NULL;
-  const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
-  const SquareSet legal_moves = game_position_legal_moves(gp);
-  const int legal_move_count = bit_works_popcount(legal_moves);
 
-  if (log) {
+  if (log_env->log_is_on) {
     call_count++;
     gp_hash_stack_fill_point++;
-    const uint64 hash = game_position_hash(gp);
-    gp_hash_stack[gp_hash_stack_fill_point] = hash;
-    const sint64 hash_to_signed = (sint64) hash;
-    const sint64 previous_hash_to_signed = (sint64) gp_hash_stack[gp_hash_stack_fill_point - 1];
-    const Board  *current_board = gp->board;
-    const sint64 *blacks_to_signed = (sint64 *) &current_board->blacks;
-    const sint64 *whites_to_signed = (sint64 *) &current_board->whites;
-    GString *json_doc;
-    json_doc = g_string_sized_new(256);
-    const SquareSet empties = board_empties(gp->board);
-    const int empty_count = bit_works_popcount(empties);
-    const int legal_move_count_adj = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0);
-    gchar *legal_moves_pg_json_array = square_set_to_pg_json_array(legal_moves);
-    /*
-     * cl:   call level
-     * ec:   empty count
-     * il:   is leaf
-     * lmc:  legal move count
-     * lmca: legal move count adjusted
-     * lma:  legal move array ([""A1"", ""B4"", ""H8""])
-     */
-    g_string_append_printf(json_doc,
-                           "\"{ \"\"cl\"\": %2d, \"\"ec\"\": %2d, \"\"il\"\": %s, \"\"lmc\"\": %2d, \"\"lmca\"\": %2d, \"\"lma\"\": %s }\"",
-                           gp_hash_stack_fill_point,
-                           empty_count,
-                           is_leaf ? "true" : "false",
-                           legal_move_count,
-                           legal_move_count_adj,
-                           legal_moves_pg_json_array);
-    g_free(legal_moves_pg_json_array);
-    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
-            sub_run_id,
-            call_count,
-            hash_to_signed,
-            previous_hash_to_signed,
-            *blacks_to_signed,
-            *whites_to_signed,
-            gp->player,
-            json_doc->str);
-    g_string_free(json_doc, TRUE);
+    LogDataH log_data;
+    log_data.sub_run_id = sub_run_id;
+    log_data.call_id = call_count;
+    log_data.hash = game_position_hash(gp);
+    gp_hash_stack[gp_hash_stack_fill_point] = log_data.hash;
+    log_data.parent_hash = gp_hash_stack[gp_hash_stack_fill_point - 1];
+    log_data.blacks = (gp->board)->blacks;
+    log_data.whites = (gp->board)->whites;
+    log_data.player = gp->player;
+    gchar *json_doc = game_tree_log_data_h_json_doc(gp_hash_stack_fill_point, gp);
+    log_data.json_doc = json_doc;
+    game_tree_log_write_h(log_env, &log_data);
+    g_free(json_doc);
   }
 
+  const SquareSet legal_moves = game_position_legal_moves(gp);
+  const int legal_move_count = bit_works_popcount(legal_moves);
   if (game_position_has_any_player_any_legal_move(gp)) { // the game must go on
     if (legal_move_count == 0) { // player has to pass
       GamePosition *flipped_players = game_position_pass(gp);
@@ -236,7 +195,7 @@ game_position_random_sampler_impl (      ExactSolution * const result,
     node = search_node_new((Square) -1, game_position_final_value(gp));
   }
 
-  if (log) {
+  if (log_env->log_is_on) {
     gp_hash_stack_fill_point--;
   }
 

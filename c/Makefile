@@ -251,3 +251,4 @@ $(ENDGAME_LOG_DIR)/.dir_sentinel:
 endgame_log_files: $(ENDGAME_LOG_DIR)
 	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s es -l $(ENDGAME_LOG_DIR)/exact_solver_log-ffo-01
 	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s ifes -l $(ENDGAME_LOG_DIR)/ifes_solver_log-ffo-01
+	./$(BINDIR)/endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100 -l $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100 

@@ -1,10 +1,6 @@
 /**
  * @file
  *
- * @todo Create a game_tree_log_json_doc_maker function.
- * It receives the env, a game position and returns the json_doc string.
- * In order to have a strong configurability it should receive as argument an hash-table with key-value pairs.
- *
  * @brief Game tree logger module implementation.
  * @details Provides functions to open, close, and write to a log file during the
  * game tree expansion.
