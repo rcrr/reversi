@@ -159,12 +159,13 @@ VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT * FROM gt_check('T006', 0);
 
 --
--- File ../out/ifes_solver_log-ffo-01.csv is obtained by running
--- the commands:
--- ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s ifes -l
---  mv out/ifes_solver_log.csv out/ifes_solver_log-ffo-01.csv
+-- File ../build/out/ifes_solver_log-ffo-01_h.csv is obtained by running
+-- the command:
+-- $ make make endgame_log_files
+-- or directly calling:
+-- $ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s ifes -l build/out/ifes_solver_log-ffo-01
 --
-\! ./gt_load_file.sh ../out/ifes_solver_log-ffo-01.csv;
+\! ./gt_load_file.sh ../build/out/ifes_solver_log-ffo-01_h.csv;
 SELECT gt_load_from_staging('T007','C_IFES_SOLVER', 'Test data obtained by the C ifes solver on position FFO-01.');
 VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT * FROM gt_check('T007', 0);
