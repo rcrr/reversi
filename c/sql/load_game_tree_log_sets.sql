@@ -54,12 +54,13 @@ SELECT gt_check_rab('T000', 2);
 -- Compares MINIMAX tree expansion.
 
 --
--- File ../out/minimax_log-ffo-01-simplified-4.csv is obtained by running
--- the commands:
--- ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s minimax -l
--- mv out/minimax_log.csv out/minimax_log-ffo-01-simplified-4.csv
+-- File ../build/out/minimax_log-ffo-01-simplified-4_h.csv is obtained by running
+-- the command:
+-- $ make make endgame_log_files
+-- or directly calling:
+-- $ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s minimax -l build/out/minimax_log-ffo-01-simplified-4
 --
-\! ./gt_load_file.sh ../out/minimax_log-ffo-01-simplified-4.csv;
+\! ./gt_load_file.sh ../build/out/minimax_log-ffo-01-simplified-4_h.csv;
 SELECT gt_load_from_staging('T001','C_MINIMAX_SOLVER', 'Test data obtained by the C minimax solver on position ffo-01-simplified-4.');
 VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT p_assert(gt_check('T001', 0) = (20040, 6879, 6879, 8875, 0, 13161), 'The game tree T001/0 has not been loaded as expected.');

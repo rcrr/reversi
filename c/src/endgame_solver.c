@@ -295,7 +295,7 @@ main (int argc, char *argv[])
     solution = game_position_random_sampler(gp, log_file, repeats);
     break;
   case 3:
-    solution = game_position_minimax_solve(gp);
+    solution = game_position_minimax_solve(gp, log_file);
     break;
   case 4:
     solution = game_position_rab_solve(gp, log_file, repeats);

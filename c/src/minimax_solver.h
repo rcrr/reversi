@@ -44,7 +44,8 @@
 /*********************************************************/
 
 extern ExactSolution *
-game_position_minimax_solve (const GamePosition * const root);
+game_position_minimax_solve (const GamePosition * const root,
+                             const gchar        * const log_file);
 
 
 #endif /* MINIMAX_SOLVER_H */

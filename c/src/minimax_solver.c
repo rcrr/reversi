@@ -36,6 +36,8 @@
 
 #include <glib.h>
 
+#include "game_tree_logger.h"
+
 #include "minimax_solver.h"
 
 
@@ -55,14 +57,9 @@ game_position_solve_impl (      ExactSolution * const result,
  */
 
 /**
- * @brief The log file used to record the game DAG traversing.
+ * @brief The logging environment structure.
  */
-static FILE *game_tree_log_file = NULL;
-
-/**
- * @brief True if the module logs to file.
- */
-static gboolean log = FALSE;
+static LogEnv *log_env = NULL;
 
 /**
  * @brief The total number of call to the recursive function that traverse the game DAG.
@@ -93,30 +90,23 @@ static const int sub_run_id = 0;
  * @brief Solves the game position returning a new exact solution pointer.
  *
  * @param [in] root the starting game position to be solved
- * @return          a pointer to a new exact solution structure
+ * @param [in] log_file if not null turns logging on the given file name
+g * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_minimax_solve (const GamePosition * const root)
+game_position_minimax_solve (const GamePosition * const root,
+                             const gchar        * const log_file)
 {
   ExactSolution *result; 
   SearchNode    *sn;
 
-  log = TRUE;
+  log_env = game_tree_log_init(log_file);
 
-  if (log) {
+  if (log_env->log_is_on) {
     GamePosition *ground = game_position_new(board_new(root->board->blacks, root->board->whites), player_opponent(root->player));
     gp_hash_stack[0] = game_position_hash(ground);
     game_position_free(ground);
-    game_tree_log_file = fopen("out/minimax_log.csv", "w");
-    fprintf(game_tree_log_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
-            "SUB_RUN_ID",
-            "CALL_ID",
-            "HASH",
-            "PARENT_HASH",
-            "BLACKS",
-            "WHITES",
-            "PLAYER",
-            "JSON_DOC");
+    game_tree_log_open_h(log_env);
   }
 
   result = exact_solution_new();
@@ -129,9 +119,7 @@ game_position_minimax_solve (const GamePosition * const root)
   result->outcome = sn->value;
   sn = search_node_free(sn);
 
-  if (log) {
-    fclose(game_tree_log_file);
-  }
+  game_tree_log_close(log_env);
 
   return result;
 }
@@ -162,26 +150,22 @@ game_position_solve_impl (      ExactSolution * const result,
 
   const SquareSet moves = game_position_legal_moves(gp);
 
-  if (log) {
+  if (log_env->log_is_on) {
     call_count++;
     gp_hash_stack_fill_point++;
-    const uint64 hash = game_position_hash(gp);
-    gp_hash_stack[gp_hash_stack_fill_point] = hash;
-    const sint64 hash_to_signed = (sint64) hash;
-    const sint64 previous_hash_to_signed = (sint64) gp_hash_stack[gp_hash_stack_fill_point - 1];
-    const Board  *current_board = gp->board;
-    const sint64 *blacks_to_signed = (sint64 *) &current_board->blacks;
-    const sint64 *whites_to_signed = (sint64 *) &current_board->whites;
-    const gchar  * const json_doc = "{}";
-    fprintf(game_tree_log_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
-            sub_run_id,
-            call_count,
-            hash_to_signed,
-            previous_hash_to_signed,
-            *blacks_to_signed,
-            *whites_to_signed,
-            gp->player,
-            json_doc);
+    LogDataH log_data;
+    log_data.sub_run_id = 0;
+    log_data.call_id = call_count;
+    log_data.hash = game_position_hash(gp);
+    gp_hash_stack[gp_hash_stack_fill_point] = log_data.hash;
+    log_data.parent_hash = gp_hash_stack[gp_hash_stack_fill_point - 1];
+    log_data.blacks = (gp->board)->blacks;
+    log_data.whites = (gp->board)->whites;
+    log_data.player = gp->player;
+    gchar *json_doc = game_tree_log_data_h_json_doc(gp_hash_stack_fill_point, gp);
+    log_data.json_doc = json_doc;
+    game_tree_log_write_h(log_env, &log_data);
+    g_free(json_doc);
   }
 
   if (moves == empty_square_set) {
@@ -213,7 +197,7 @@ game_position_solve_impl (      ExactSolution * const result,
     }
   }
 
-  if (log) {
+  if (log_env->log_is_on) {
     gp_hash_stack_fill_point--;
   }
 
