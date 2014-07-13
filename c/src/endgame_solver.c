@@ -47,7 +47,7 @@
  *         - pg_pivot_rand.sql has to be converted into a game_tree function. It computes the mobility distribution ..... (what is the difference between the two?).
  *         - pg_load_rand.sql ... everythig but the two final queries are ported to the new model.
  *         - pg_load_log.sql ... everything is done.
- *       Refactor logging into a module and a few function calls.
+ *       [done] Refactor logging into a module and a few function calls.
  *
  * @todo Develop an R replacement of the rand_log_elaboration.ods Calc file.
  *
@@ -58,7 +58,7 @@
  *        - A description of the solvers.
  *        - A description of the PL/SQL reversi package.
  *
- * @todo A new section of the Makefile that regenerates the log csv files used by the PL/SQL reload_everything.sql script.
+ * @todo [done] A new section of the Makefile that regenerates the log csv files used by the PL/SQL reload_everything.sql script.
  *
  * @todo Introduce the node cache by means of a shared hashtable.
  *
