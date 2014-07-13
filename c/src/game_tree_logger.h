@@ -41,20 +41,6 @@
 
 
 /**
- * @brief Log data is collecting the info logged into one record.
- */
-typedef struct {
-  int        sub_run_id;  /**< @brief Sub run id field. */
-  uint64     call_id;     /**< @brief Call id. */
-  uint64     hash;        /**< @brief Game position hash. */
-  uint64     parent_hash; /**< @brief Parent game position hash. */
-  SquareSet  blacks;      /**< @brief Blacks field part of the game position. */
-  SquareSet  whites;      /**< @brief Whites field part of the game position. */
-  Player     player;      /**< @brief Player field part of the game position. */
-  gchar     *json_doc;    /**< @brief Json field. */
-} LogData;
-
-/**
  * @brief Environment in wich the logger operates.
  */
 typedef struct {
@@ -66,6 +52,29 @@ typedef struct {
   FILE      *t_file;           /**< @brief Tail file. */
 } LogEnv;
 
+/**
+ * @brief It is collecting the info logged into a record by the head write function.
+ */
+typedef struct {
+  int        sub_run_id;  /**< @brief Sub run id field. */
+  uint64     call_id;     /**< @brief Call id. */
+  uint64     hash;        /**< @brief Game position hash. */
+  uint64     parent_hash; /**< @brief Parent game position hash. */
+  SquareSet  blacks;      /**< @brief Blacks field part of the game position. */
+  SquareSet  whites;      /**< @brief Whites field part of the game position. */
+  Player     player;      /**< @brief Player field part of the game position. */
+  gchar     *json_doc;    /**< @brief Json field. */
+} LogDataH;
+
+/**
+ * @brief It is collecting the info logged into a record by the tail write function.
+ */
+typedef struct {
+  int        sub_run_id;  /**< @brief Sub run id field. */
+  uint64     call_id;     /**< @brief Call id. */
+  gchar     *json_doc;    /**< @brief Json field. */
+} LogDataT;
+
 
 
 /********************************************************/
@@ -73,23 +82,24 @@ typedef struct {
 /********************************************************/
 
 extern void
-game_tree_log_open (const gchar * const filename);
+game_tree_log_open_h (LogEnv * const env);
 
 extern void
-game_tree_log_write_h (const LogEnv  * const env,
-                       const LogData * const data);
+game_tree_log_open_t (LogEnv * const env);
+
+extern void
+game_tree_log_write_h (const LogEnv   * const env,
+                       const LogDataH * const data);
+
+extern void
+game_tree_log_write_t (const LogEnv   * const env,
+                       const LogDataT * const data);
 
 extern void
 game_tree_log_close (LogEnv * const env);
 
 extern LogEnv *
 game_tree_log_init (const gchar * const file_name_prefix);
-
-extern void
-game_tree_log_open_h (LogEnv * const env);
-
-extern void
-game_tree_log_open_t (LogEnv * const env);
 
 
 #endif /* GAME_TREE_LOGGER_H */

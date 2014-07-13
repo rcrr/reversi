@@ -56,9 +56,6 @@ game_tree_log_filename_check (const gchar * const filename);
 static void
 game_tree_log_dirname_recursive_check (const gchar * const filename);
 
-static 
-void game_tree_log_write_header (FILE * const file);
-
 
 
 /*
@@ -72,7 +69,7 @@ void game_tree_log_write_header (FILE * const file);
 /********************************************************/
 
 /**
- * @brief Opens the h file for logging and writes the header.
+ * @brief Opens the head file for logging and writes the header.
  *
  * @invariant Parameter `env` must not be empty.
  * The invariant is guarded by an assertion.
@@ -86,12 +83,20 @@ game_tree_log_open_h (LogEnv * const env)
   if (env->log_is_on) {
     game_tree_log_filename_check(env->h_file_name);
     env->h_file = fopen(env->h_file_name, "w");
-    game_tree_log_write_header(env->h_file);
+    fprintf(env->h_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
+            "SUB_RUN_ID",
+            "CALL_ID",
+            "HASH",
+            "PARENT_HASH",
+            "BLACKS",
+            "WHITES",
+            "PLAYER",
+            "JSON_DOC");
   }
 }
 
 /**
- * @brief Opens the t file for logging and writes the header.
+ * @brief Opens the tail file for logging and writes the header.
  *
  * @invariant Parameter `env` must not be empty.
  * The invariant is guarded by an assertion.
@@ -105,7 +110,10 @@ game_tree_log_open_t (LogEnv * const env)
   if (env->log_is_on) {
     game_tree_log_filename_check(env->t_file_name);
     env->t_file = fopen(env->t_file_name, "w");
-    game_tree_log_write_header(env->t_file);
+    fprintf(env->t_file, "%s;%s;%s\n",
+            "SUB_RUN_ID",
+            "CALL_ID",
+            "JSON_DOC");
   }
 }
 
@@ -119,10 +127,10 @@ game_tree_log_open_t (LogEnv * const env)
  * @param [in] data a pointer to the log record
  */
 void
-game_tree_log_write_h (const LogEnv  * const env,
-                       const LogData * const data)
+game_tree_log_write_h (const LogEnv   * const env,
+                       const LogDataH * const data)
 {
-  g_assert(env);
+  g_assert(env && env->h_file);
   fprintf(env->h_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
           data->sub_run_id,
           data->call_id,
@@ -131,6 +139,26 @@ game_tree_log_write_h (const LogEnv  * const env,
           (sint64) data->blacks,
           (sint64) data->whites,
           data->player,
+          data->json_doc);
+}
+
+/**
+ * @brief Writes one record to the tail logging file.
+ *
+ * @invariant Parameter `env` must not be empty.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] env  a pointer to the logging environment
+ * @param [in] data a pointer to the log record
+ */
+void
+game_tree_log_write_t (const LogEnv   * const env,
+                       const LogDataT * const data)
+{
+  g_assert(env && env->t_file);
+  fprintf(env->t_file, "%6d;%8llu;x%s\n",
+          data->sub_run_id,
+          data->call_id,
           data->json_doc);
 }
 
@@ -197,21 +225,11 @@ game_tree_log_init (const gchar * const file_name_prefix)
  * Internal functions.
  */
 
-void
-game_tree_log_dirname_recursive_check (const gchar * const filename)
-{
-  const gchar * const dirname  = g_path_get_dirname(filename);
-  if (!g_file_test(filename, G_FILE_TEST_EXISTS)) {
-    game_tree_log_dirname_recursive_check(dirname);
-    g_mkdir(filename, 0755);
-  } else {
-    if (g_file_test(filename, G_FILE_TEST_IS_REGULAR)) {
-      printf("The given \"%s\" path contains an existing file! Exiting with status -102.\n", filename);
-      exit(-102);
-    }
-  }
-}
-
+/**
+ * @brief Verifies the filename.
+ *
+ * @param [in] filename the logging file name
+ */
 void
 game_tree_log_filename_check (const gchar * const filename)
 {
@@ -228,16 +246,23 @@ game_tree_log_filename_check (const gchar * const filename)
   }
 }
 
+/**
+ * @brief Utility function used by game_tree_log_filename_check.
+ * It recursively checks the subdirs in the filename path and creates them if are missing.
+ *
+ * @param [in] filename the directory path to be checked
+ */
 void
-game_tree_log_write_header (FILE * const file)
+game_tree_log_dirname_recursive_check (const gchar * const filename)
 {
-  fprintf(file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
-          "SUB_RUN_ID",
-          "CALL_ID",
-          "HASH",
-          "PARENT_HASH",
-          "BLACKS",
-          "WHITES",
-          "PLAYER",
-          "JSON_DOC");
+  const gchar * const dirname  = g_path_get_dirname(filename);
+  if (!g_file_test(filename, G_FILE_TEST_EXISTS)) {
+    game_tree_log_dirname_recursive_check(dirname);
+    g_mkdir(filename, 0755);
+  } else {
+    if (g_file_test(filename, G_FILE_TEST_IS_REGULAR)) {
+      printf("The given \"%s\" path contains an existing file! Exiting with status -102.\n", filename);
+      exit(-102);
+    }
+  }
 }

@@ -4,7 +4,7 @@
 #  This file is part of the reversi program
 #  http://github.com/rcrr/reversi
 #
-#  Copyright (c) 2013 Roberto Corradini. All rights reserved.
+#  Copyright (c) 2013, 2014 Roberto Corradini. All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -41,11 +41,11 @@ CC = gcc
 #LDFLAGS =
 # add -pg for gprof execution.
 # add -DG_DISABLE_ASSERT to disable assertions
-CFLAGS = -std=c99 -pedantic -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE -mpopcnt -DG_DISABLE_ASSERT
+CFLAGS = -std=c99 -pedantic -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE -mpopcnt
 LDFLAGS = 
 CFLAGS_TEST = -std=c99 -pedantic -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -pedantic -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE -DG_DISABLE_ASSERT
+ASMFLAGS = -std=c99 -pedantic -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LIBS = `pkg-config --libs glib-2.0`
 TEST_LIBS =
 SRCDIR = src
@@ -235,3 +235,18 @@ info:
 	@echo "CFLAGS = "$(CFLAGS)
 	@echo "TEST_OBJS_NO_MAIN = "$(TEST_OBJS_NO_MAIN)
 	@echo "TEST_OBJS_WITH_MAIN = "$(TEST_OBJS_WITH_MAIN)
+
+
+
+ENDGAME_LOG_DIR = $(BUILDDIR)/out
+
+.PHONY: $(ENDGAME_LOG_DIR)
+$(ENDGAME_LOG_DIR): $(ENDGAME_LOG_DIR)/.dir_sentinel | $(BUILDDIR)
+
+$(ENDGAME_LOG_DIR)/.dir_sentinel:
+	mkdir -p $(ENDGAME_LOG_DIR)
+	touch $(ENDGAME_LOG_DIR)/.dir_sentinel
+
+.PHONY: endgame_log_files
+endgame_log_files: $(ENDGAME_LOG_DIR)
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s es -l $(ENDGAME_LOG_DIR)/exact_solver_log-ffo-01

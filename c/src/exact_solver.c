@@ -376,7 +376,7 @@ game_position_solve_impl (      ExactSolution * const result,
   if (log_env->log_is_on) {
     call_count++;
     gp_hash_stack_fill_point++;
-    LogData log_data;
+    LogDataH log_data;
     log_data.sub_run_id = 0;
     log_data.call_id = call_count;
     log_data.hash = game_position_hash(gp);
