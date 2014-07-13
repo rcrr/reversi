@@ -133,7 +133,7 @@ static const gchar *program_documentation_string =
   " - rand (random game sampler)\n"
   "   The rand solver is a way to play a sequence of random game from the given position.\n"
   "   This option works together with the -n flag, that assigns the number of repeats, a sample call is:\n"
-  "     $ endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100 -l\n"
+  "     $ endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100 -l logfile\n"
   "\n"
   " - minimax (minimax solver)\n"
   "   It applies the plain vanilla minimax algorithm, a sample call is:\n"
@@ -145,7 +145,7 @@ static const gchar *program_documentation_string =
   "\n"
   " - rab (random alpha-beta solver)\n"
   "   It uses the alpha-beta pruning, ordering the moves by mean of a random criteria, a sample call is.\n"
-  "     $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -l -n 3\n"
+  "     $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -l out/log -n 3\n"
   "\n"
   "Author:\n"
   "   Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
@@ -171,7 +171,7 @@ static const GOptionEntry entries[] =
     { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry      - Mandatory",                                            NULL },
     { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver            - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab]", NULL },
     { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand/rab solvers",                       NULL },
-    { "log",           'l', 0, G_OPTION_ARG_FILENAME, &log_file,     "Turns logging on the given file name",                                     NULL },
+    { "log",           'l', 0, G_OPTION_ARG_FILENAME, &log_file,     "Turns logging on  - Requires a filename prefx",                            NULL },
     { NULL }
   };
 
