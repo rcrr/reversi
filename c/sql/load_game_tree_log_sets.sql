@@ -36,8 +36,6 @@
 
 SET search_path TO reversi;
 
--- ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -n 3 -l rab_solver_log-ffo-01-simplified-4_n3_h.csv
-
 --
 -- File ../build/out/rab_solver_log-ffo-01-simplified-4_n3_h.csv is obtained by running
 -- the command:
@@ -97,12 +95,13 @@ END $$;
 -- Compares ALPHA-BETA tree expansion.
 
 --
--- File ../out/ab_log-ffo-01-simplified-4.csv is obtained by running
--- the commands:
--- ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s ab -l
--- mv out/ab_solver_log.csv out/ab_solver_log-ffo-01-simplified-4.csv
+-- File ../build/out/ab_solver_log-ffo-01-simplified-4_h.csv is obtained by running
+-- the command:
+-- $ make make endgame_log_files
+-- or directly calling:
+-- $ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s ab -l build/out/ab_solver_log-ffo-01-simplified-4
 --
-\! ./gt_load_file.sh ../out/ab_solver_log-ffo-01-simplified-4.csv;
+\! ./gt_load_file.sh ../build/out/ab_solver_log-ffo-01-simplified-4_h.csv;
 SELECT gt_load_from_staging('T003','C_ALPHABETA_SOLVER', 'Test data obtained by the C alpha-beta solver on position ffo-01-simplified-4.');
 VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT p_assert(gt_check('T003', 0) = (3367, 1829, 1829, 2128, 0, 1538), 'The game tree T003/0 has not been loaded as expected.');
