@@ -364,3 +364,36 @@ ORDER BY
 
 END
 $$ LANGUAGE plpgsql;
+
+-- To be transformed into a function ....
+/*
+SELECT
+  (game_tree_log.json_doc->'lmca')::TEXT::INTEGER AS mobility,
+  count(*) AS frequency
+FROM
+  game_tree_log
+WHERE
+  (game_tree_log.json_doc->'ec')::TEXT::INTEGER = 54
+GROUP BY
+  (game_tree_log.json_doc->'lmca')::TEXT::INTEGER
+ORDER BY
+  (game_tree_log.json_doc->'lmca')::TEXT::INTEGER ASC;
+*/
+
+/*
+SELECT
+  (t.json_doc->'ec')::TEXT::INTEGER                         AS empty_square_count,
+  count((t.json_doc->'ec')::TEXT::INTEGER)                  AS sample_size,
+  round(avg((t.json_doc->'lmca')::TEXT::INTEGER), 4)        AS average_mobility, 
+  min((t.json_doc->'lmca')::TEXT::INTEGER)                  AS min_mobility,
+  max((t.json_doc->'lmca')::TEXT::INTEGER)                  AS max_mobility,
+  round(stddev_pop((t.json_doc->'lmca')::TEXT::INTEGER), 4) AS standard_deviation
+FROM 
+  game_tree_log AS t
+WHERE
+  run_id = 6
+GROUP BY
+  (t.json_doc->'ec')::TEXT::INTEGER
+ORDER BY
+  (t.json_doc->'ec')::TEXT::INTEGER DESC;
+*/

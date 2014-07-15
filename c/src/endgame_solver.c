@@ -42,7 +42,7 @@
  *       [done]                       - a minimax solver
  *       [done]                       - an alpha-beta solver
  *       [done] Organize the logging activity for the solvers.
- *       Organize the files used to read and analyze the C program outputs.
+ *       [done] Organize the files used to read and analyze the C program outputs.
  *         - pg_variance.query.sql has to be converted into a game_tree function. It computes the mobility distribution accross game phases.
  *         - pg_pivot_rand.sql has to be converted into a game_tree function. It computes the mobility distribution ..... (what is the difference between the two?).
  *         - pg_load_rand.sql ... everythig but the two final queries are ported to the new model.
