@@ -224,3 +224,13 @@ BEGIN
     PERFORM p_assert(ifes_rec.distinct_leaf_count = es_rec.distinct_leaf_count, 'Distinct hash counts must be equal.');
 END $$;
 
+--
+-- Tests if the gt_mobility_statistics_on_random(character) function works properly.
+--
+DO $$
+DECLARE
+  avg_mobility NUMERIC;
+BEGIN
+ SELECT average_mobility INTO STRICT avg_mobility FROM gt_mobility_statistics_on_random('T005') WHERE empty_square_count = 60;
+ PERFORM p_assert(avg_mobility = 4.00, 'Average mobility when there are 60 empty disc is 4.00.');
+END $$;
