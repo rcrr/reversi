@@ -43,10 +43,10 @@
  *       [done]                       - an alpha-beta solver
  *       [done] Organize the logging activity for the solvers.
  *       [done] Organize the files used to read and analyze the C program outputs.
- *         - pg_variance.query.sql has to be converted into a game_tree function. It computes the mobility distribution accross game phases.
- *         - pg_pivot_rand.sql has to be converted into a game_tree function. It computes the mobility distribution ..... (what is the difference between the two?).
- *         - pg_load_rand.sql ... everythig but the two final queries are ported to the new model.
- *         - pg_load_log.sql ... everything is done.
+ *       [done]   - pg_variance.query.sql
+ *       [done]   - pg_pivot_rand.sql
+ *       [done]   - pg_load_rand.sql
+ *       [done]   - pg_load_log.sql
  *       [done] Refactor logging into a module and a few function calls.
  *
  * @todo Develop an R replacement of the rand_log_elaboration.ods Calc file.
