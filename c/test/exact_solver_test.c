@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -54,6 +54,10 @@ static void
 game_position_solve_test (GamePositionDbFixture *fixture,
                           gconstpointer          test_data);
 
+static void
+game_position_solve_ffo_01_test (GamePositionDbFixture *fixture,
+                                 gconstpointer          test_data);
+
 
 
 /* Helper function prototypes. */
@@ -86,6 +90,15 @@ main (int   argc,
               game_position_solve_test,
               gpdb_fixture_teardown);
 
+  if (g_test_slow ()) {
+    g_test_add ("/exact_solver/game_position_solve_ffo_01_test",
+                GamePositionDbFixture,
+                (gconstpointer) NULL,
+                gpdb_fixture_setup,
+                game_position_solve_ffo_01_test,
+                gpdb_fixture_teardown);
+  }
+  
   return g_test_run();
 }
 
@@ -125,6 +138,19 @@ game_position_solve_test (GamePositionDbFixture *fixture,
 
   ExactSolution *solution = game_position_solve(ffo_05, FALSE);
   g_assert(+32 == solution->outcome);
+  g_assert(G8 == solution->principal_variation[0]);
+}
+
+static void
+game_position_solve_ffo_01_test (GamePositionDbFixture *fixture,
+                                 gconstpointer          test_data)
+{
+  GamePositionDb *db = fixture->db;
+  GamePosition *ffo_01 = get_gp_from_db(db, "ffo-01");
+  g_assert(TRUE  == game_position_has_any_legal_move(ffo_01));
+
+  ExactSolution *solution = game_position_solve(ffo_01, FALSE);
+  g_assert(+18 == solution->outcome);
   g_assert(G8 == solution->principal_variation[0]);
 }
 

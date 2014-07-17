@@ -109,7 +109,11 @@ $(TEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
 
 .PHONY: test
 test: $(TEST_BINS)
-	gtester --verbose -k -o $(BTESTDIR)/gtester-log.xml $(TEST_BINS)
+	gtester --verbose -k -m=quick -o $(BTESTDIR)/gtester-log.xml $(TEST_BINS)
+
+.PHONY: test_slow
+test_slow: $(TEST_BINS)
+	gtester --verbose -k -m=slow -o $(BTESTDIR)/gtester-log.xml $(TEST_BINS)
 
 .PHONY: test_report
 test_report: $(BTESTDIR)/gtester-log.html
