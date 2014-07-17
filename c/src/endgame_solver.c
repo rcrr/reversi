@@ -14,6 +14,13 @@
  *       number of moves serched against the number of legal ones. This can give
  *       back a kpi of the alpha-beta efficiency in cutting unrelevant branches.
  *
+ * @todo The solvers do not return a PV, but just the best move and its value.
+ *
+ * @todo The output of the solvers is not always appropriate:
+ *         - PV is missing
+ *         - for random game sampler the output is meaningless
+ *         - final game position is not reported ...
+ *
  * @todo Refine and refactor the exact_solver implementation.
  *
  * @todo Solvers rab and ab share the same stack solution. Refactor it sharing
