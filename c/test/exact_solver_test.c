@@ -46,6 +46,15 @@ typedef struct {
   GamePositionDb *db;
 } GamePositionDbFixture;
 
+/**
+ * @brief A test case is used to automate the execution of a set of test game position.
+ */
+typedef struct {
+  gchar *gpdb_label;   /**< @brief The game position label used to acces the gpdb database. */
+  int    outcome;      /**< @brief The expected game position value. */
+  Square best_move;    /**< @brief The expected best move. */
+} TestCase;
+
 
 
 /* Test function prototypes. */
@@ -178,7 +187,7 @@ gpdb_fixture_setup (GamePositionDbFixture *fixture,
     g_test_fail();
   }
   g_assert(fp);
-  db = gpdb_new(g_strdup("FFOTEST database"));
+  db = gpdb_new(g_strdup("FFO-TEST database"));
   syntax_error_log = NULL;
   error = NULL;
   gpdb_load(fp, source, db, &syntax_error_log, &error);
