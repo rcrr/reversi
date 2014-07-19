@@ -60,6 +60,18 @@ direction_shift_back_square_set_by_amount (const Direction dir,
  * Internal variables and constants.
  */
 
+/* Array used for conversion between square and its string representation. */
+static const gchar * const sq_to_s[65] =
+  {"A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1",
+   "A2", "B2", "C2", "D2", "E2", "F2", "G2", "H2",
+   "A3", "B3", "C3", "D3", "E3", "F3", "G3", "H3",
+   "A4", "B4", "C4", "D4", "E4", "F4", "G4", "H4",
+   "A5", "B5", "C5", "D5", "E5", "F5", "G5", "H5",
+   "A6", "B6", "C6", "D6", "E6", "F6", "G6", "H6",
+   "A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7",
+   "A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8",
+   "NA"};
+
 /* A square set being all set with the exception of column A. */
 static const SquareSet all_squares_except_column_a = 0xFEFEFEFEFEFEFEFEULL;
 
@@ -193,6 +205,14 @@ board_module_init (void)
 /* Function implementations for the Square entity. */
 /***************************************************/
 
+/**
+ * @brief Returns a string representation for the sqare.
+ *
+ * The returned string must then be deallocated by the caller using g_free.
+ *
+ * @param sq the square
+ * @return   a string of two chars representing the square
+ */
 gchar *
 square_to_string (const Square sq)
 {
@@ -214,6 +234,44 @@ square_to_string (const Square sq)
   }
 
   return symbol;
+}
+
+/**
+ * @brief Returns a string representation for the sqare.
+ *
+ * The returned string cannot be changed and must not be deallocated.
+ *
+ * @param sq the square
+ * @return   a string of two chars representing the square
+ */
+const gchar const *
+square_to_string2 (const Square sq)
+{
+  if (sq >= A1 && sq <= H8) {
+    return sq_to_s[sq];
+  } else {
+    return sq_to_s[64]; // NA
+  }
+  
+}
+
+gchar *
+square_array_to_string (const Square sqa[], const int length)
+{
+  char *moves_to_string;
+  GString *tmp;
+
+  tmp = g_string_sized_new(10);  
+
+  for (int i = 0; i < length; i++) {
+    g_string_append_printf(tmp, "%s", square_to_string2(sqa[i]));
+    if (length - i > 1) g_string_append_printf(tmp, " ");
+  }
+  
+  moves_to_string = tmp->str;
+  g_string_free(tmp, FALSE);
+
+  return moves_to_string;
 }
 
 

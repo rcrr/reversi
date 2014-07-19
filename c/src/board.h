@@ -212,6 +212,13 @@ board_module_init (void);
 extern gchar *
 square_to_string (const Square sq);
 
+extern const gchar const *
+square_to_string2 (const Square sq);
+
+extern gchar *
+square_array_to_string (const Square sqa[],
+                        const int    length);
+
 
 
 /********************************************/

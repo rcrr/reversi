@@ -58,9 +58,10 @@ typedef struct {
  * @brief A test case is used to automate the execution of a set of test game position.
  */
 typedef struct {
-  gchar *gpdb_label;   /**< @brief The game position label used to acces the gpdb database. */
-  int    outcome;      /**< @brief The expected game position value. */
-  Square best_move;    /**< @brief The expected best move. */
+  gchar *gpdb_label;       /**< @brief The game position label used to acces the gpdb database. */
+  int    best_move_count;  /**< @brief The count of best moves. */
+  int    outcome;          /**< @brief The expected game position value. */
+  Square best_move[64];    /**< @brief The expected best move array. */
 } TestCase;
 
 /**
@@ -68,26 +69,26 @@ typedef struct {
  */
 const TestCase ffo_01_19[] =
   {
-    { "ffo-01", +18, G8}, // ffo-01;..bbbbb..wwwbb.w.wwwbbwb.wbwbwbbwbbbwbbb..bwbwbb.bbbwww..wwwww..;b; G8:+18. H1:+12. H7:+6. A2:+6. A3:+4. B1:-4. A4:-22. G2:-24.;
-    { "ffo-02", +10, A4}, // ffo-02;.bbbbbb...bwwww..bwbbwwb.wwwwwwwwwwwbbwwwwwbbwwb..bbww....bbbbb.;b; A4:+10. B2:+0. A3:-6. G7:-8. A7:-12. H7:-14. B7:-14. H2:-24.;
-    { "ffo-03",  +2, D1}, // ffo-03;....wb....wwbb...wwwbb.bwwbbwwwwwbbwbbwwwbbbwwwwwbbbbwbw..wwwwwb;b; D1:+2. G3:+0. B8:-2. B1:-4. C1:-4. A2:-4. A3:-6. B2:-12.;
-    { "ffo-04",  +0, H8}, // ffo-04;.bbbbbb.b.bbbww.bwbbbwwbbbwbwwwb.wbwwbbb..wwwbbb..wwbb....bwbbw.;b; H8:+0. A5:+0. B6:-4. B7:-4. A6:-8. B2:-12. H2:-26.;
-    { "ffo-05", +32, G8}, // ffo-05;.wwwww....wbbw.bbbwbwbb.bbwbwbbwbbwwbwwwbbbbww.wb.bwww...bbbbb..;b; G8:+32. G2:+12. B2:-20. G6:-26. G1:-32. G7:-34.;
-    { "ffo-06", +14, A1}, // ffo-06;..wbbb..wwwbbb..wwwbwbw.wwbwwwb.wwbbbbbbbwwbbwb..wwwwb...bbbbbb.;b; A1:+14. H3:+14. A8:+12. H2:+8. G2:+8. H4:+4. G7:+4. A7:-22. B1:-24.;
-    { "ffo-07",  +8, A6}, // ffo-07;..wbbw..bwbbbb..bwwwbbbbbwwbbbbbbwwwwbbb.bbbbbbb..bbwww....bbww.;b; A6:+8. G1:+0. A1:-2. H8:-6. H7:-14. B1:-30.;
-    { "ffo-08",  +8, E1}, // ffo-08;...b.b..b.bbbb..bbbbwbbbbbbwwwwwbbwbbbw.bwbbbbw.bwwbbb..bwwbbw..;w; E1:+8. H2:+4. G2:+4. B2:+4. G7:+4. B1:+2. G1:-6. C1:-8.;
-    { "ffo-09",  -8, A4}, // ffo-09;..bwbb..w.wwbbbb.wwwbbbb.bwbbbwbbbwbwwwbwbbwbwbb..wbww....wwww..;w; G7:-8. A4:-8. B1:-16. A7:-16. B7:-26. A3:-30. G1:-38. H7:-40.;
-    { "ffo-10", +10, B2}, // ffo-10;.bbbb.....wbbb..bwbwbwbbwbwbbwbbwbbwbwwwbbbwbwwb..wbbw...wwwww..;w; B2:+10. B7:+4. F1:+0. A7:-4. A2:-6. G2:-12. H2:-16. H7:-20.;
-    { "ffo-11", +30, B3}, // ffo-11;...w.bwb....bbwb...bbwwbw.bbwbwbbbbwwbwb.bwwbbbbbwwwbb.bwwwwwww.;w; B3:+30. C2:+26. A6:+24. G7:+20. C3:+18. D2:+16. B4:+10. E1:+6.;
-    { "ffo-12",  -8, B7}, // ffo-12;..w..w..b.wwwwb.bbwwwbwwbbwbwbwwbbwbbwwwbbbbwwww..wbbb...bbbbb..;w; B7:-8. A7:-10. G7:-14. G8:-14. H2:-16. G1:-16. H1:-20.;
-    { "ffo-13", +14, B7}, // ffo-13;..bbbbb..wwwbb...wwwbbbb.wbwbwbbwbbbwbbb..bwbwbb..wbwww..wwwww..;b; B7:+14. A4:+0. A3:-8. B1:-18. G8:-20. H7:-20. A2:-24.;
-    { "ffo-14", +18, A3}, // ffo-14;..bbbbb...wwwb...bwwbbbb.wwwwwwwwwwbbbwwwwwbbwwb..bbww....bbbbb.;b; A3:+18. A4:+12. B1:+8. G7:-4. H7:-14. A7:-24. B7:-24. B2:-28.;
-    { "ffo-15",  +4, G3}, // ffo-15;....w......wwb...wwwbb.bwwwbwwwwwbbwbbwwwbbbwwwwwbbbwwbw..wwwwwb;b; G3:+4. B8:+4. F1:+0. C1:+0. C2:-2. D1:-4. B2:-8. A3:-8.;
-    { "ffo-16", +24, F8}, // ffo-16;.bbbbbb.b.bbbww.bwbbbwwbbwwbbbwb.wwwbbbb..wwbbbb...www....bwb.w.;b; F8:+24. C7:+20. A5:+6. H1:+6. B6:+0. B7:-2. A6:-6. H2:-26.;
-    { "ffo-17",  +8, F8}, // ffo-17;.wwwww....wbbw.bbbwwwbb.bbwbwbbwbbwwbwwwbbbbww.wb.bww....bbbb...;b; F8:+8. G2:+6. G6:-24. G1:-32. F7:-32. G7:-34. B2:-38.;
-    { "ffo-18",  -2, G2}, // ffo-18;.bbb......wwwb..bwwwwwbbwbwbwwbbwbbwwwwwbbbwbwwb..wbbw...wwwww..;b; G2:-2. B7:-6. F1:-8. E1:-10. H7:-12. G8:-14. G7:-14. A2:-18. B2:-18.;
-    { "ffo-19",  +8, B6}, // ffo-19;..wbbw..bwbbbb..bwwwwbbbbwwwbbbbb.wwwbbb..wwwwbb..bbwww....bbww.;b; B6:+8. H8:+4. B7:+0. G1:-6. B5:-16. H7:-16. B1:-24.;
-    {NULL, 0, A1}
+    { "ffo-01", 1, +18, { G8 } }, // ffo-01;..bbbbb..wwwbb.w.wwwbbwb.wbwbwbbwbbbwbbb..bwbwbb.bbbwww..wwwww..;b; G8:+18. H1:+12. H7:+6. A2:+6. A3:+4. B1:-4. A4:-22. G2:-24.;
+    { "ffo-02", 1, +10, { A4 } }, // ffo-02;.bbbbbb...bwwww..bwbbwwb.wwwwwwwwwwwbbwwwwwbbwwb..bbww....bbbbb.;b; A4:+10. B2:+0. A3:-6. G7:-8. A7:-12. H7:-14. B7:-14. H2:-24.;
+    { "ffo-03", 1,  +2, { D1 } }, // ffo-03;....wb....wwbb...wwwbb.bwwbbwwwwwbbwbbwwwbbbwwwwwbbbbwbw..wwwwwb;b; D1:+2. G3:+0. B8:-2. B1:-4. C1:-4. A2:-4. A3:-6. B2:-12.;
+    { "ffo-04", 1,  +0, { H8 } }, // ffo-04;.bbbbbb.b.bbbww.bwbbbwwbbbwbwwwb.wbwwbbb..wwwbbb..wwbb....bwbbw.;b; H8:+0. A5:+0. B6:-4. B7:-4. A6:-8. B2:-12. H2:-26.;
+    { "ffo-05", 1, +32, { G8 } }, // ffo-05;.wwwww....wbbw.bbbwbwbb.bbwbwbbwbbwwbwwwbbbbww.wb.bwww...bbbbb..;b; G8:+32. G2:+12. B2:-20. G6:-26. G1:-32. G7:-34.;
+    { "ffo-06", 1, +14, { A1 } }, // ffo-06;..wbbb..wwwbbb..wwwbwbw.wwbwwwb.wwbbbbbbbwwbbwb..wwwwb...bbbbbb.;b; A1:+14. H3:+14. A8:+12. H2:+8. G2:+8. H4:+4. G7:+4. A7:-22. B1:-24.;
+    { "ffo-07", 1,  +8, { A6 } }, // ffo-07;..wbbw..bwbbbb..bwwwbbbbbwwbbbbbbwwwwbbb.bbbbbbb..bbwww....bbww.;b; A6:+8. G1:+0. A1:-2. H8:-6. H7:-14. B1:-30.;
+    { "ffo-08", 1,  +8, { E1 } }, // ffo-08;...b.b..b.bbbb..bbbbwbbbbbbwwwwwbbwbbbw.bwbbbbw.bwwbbb..bwwbbw..;w; E1:+8. H2:+4. G2:+4. B2:+4. G7:+4. B1:+2. G1:-6. C1:-8.;
+    { "ffo-09", 1,  -8, { A4 } }, // ffo-09;..bwbb..w.wwbbbb.wwwbbbb.bwbbbwbbbwbwwwbwbbwbwbb..wbww....wwww..;w; G7:-8. A4:-8. B1:-16. A7:-16. B7:-26. A3:-30. G1:-38. H7:-40.;
+    { "ffo-10", 1, +10, { B2 } }, // ffo-10;.bbbb.....wbbb..bwbwbwbbwbwbbwbbwbbwbwwwbbbwbwwb..wbbw...wwwww..;w; B2:+10. B7:+4. F1:+0. A7:-4. A2:-6. G2:-12. H2:-16. H7:-20.;
+    { "ffo-11", 1, +30, { B3 } }, // ffo-11;...w.bwb....bbwb...bbwwbw.bbwbwbbbbwwbwb.bwwbbbbbwwwbb.bwwwwwww.;w; B3:+30. C2:+26. A6:+24. G7:+20. C3:+18. D2:+16. B4:+10. E1:+6.;
+    { "ffo-12", 2,  -8, { A7, B7 } }, // ffo-12;..w..w..b.wwwwb.bbwwwbwwbbwbwbwwbbwbbwwwbbbbwwww..wbbb...bbbbb..;w; B7:-8. A7:-10. G7:-14. G8:-14. H2:-16. G1:-16. H1:-20.;
+    { "ffo-13", 1, +14, { B7 } }, // ffo-13;..bbbbb..wwwbb...wwwbbbb.wbwbwbbwbbbwbbb..bwbwbb..wbwww..wwwww..;b; B7:+14. A4:+0. A3:-8. B1:-18. G8:-20. H7:-20. A2:-24.;
+    { "ffo-14", 1, +18, { A3 } }, // ffo-14;..bbbbb...wwwb...bwwbbbb.wwwwwwwwwwbbbwwwwwbbwwb..bbww....bbbbb.;b; A3:+18. A4:+12. B1:+8. G7:-4. H7:-14. A7:-24. B7:-24. B2:-28.;
+    { "ffo-15", 1,  +4, { G3 } }, // ffo-15;....w......wwb...wwwbb.bwwwbwwwwwbbwbbwwwbbbwwwwwbbbwwbw..wwwwwb;b; G3:+4. B8:+4. F1:+0. C1:+0. C2:-2. D1:-4. B2:-8. A3:-8.;
+    { "ffo-16", 1, +24, { F8 } }, // ffo-16;.bbbbbb.b.bbbww.bwbbbwwbbwwbbbwb.wwwbbbb..wwbbbb...www....bwb.w.;b; F8:+24. C7:+20. A5:+6. H1:+6. B6:+0. B7:-2. A6:-6. H2:-26.;
+    { "ffo-17", 1,  +8, { F8 } }, // ffo-17;.wwwww....wbbw.bbbwwwbb.bbwbwbbwbbwwbwwwbbbbww.wb.bww....bbbb...;b; F8:+8. G2:+6. G6:-24. G1:-32. F7:-32. G7:-34. B2:-38.;
+    { "ffo-18", 1,  -2, { G2 } }, // ffo-18;.bbb......wwwb..bwwwwwbbwbwbwwbbwbbwwwwwbbbwbwwb..wbbw...wwwww..;b; G2:-2. B7:-6. F1:-8. E1:-10. H7:-12. G8:-14. G7:-14. A2:-18. B2:-18.;
+    { "ffo-19", 1,  +8, { B6 } }, // ffo-19;..wbbw..bwbbbb..bwwwwbbbbwwwbbbbb.wwwbbb..wwwwbb..bbwww....bbww.;b; B6:+8. H8:+4. B7:+0. G1:-6. B5:-16. H7:-16. B1:-24.;
+    {NULL, 0, 0, {A1}}
   };
 
 /**
@@ -95,17 +96,17 @@ const TestCase ffo_01_19[] =
  */
 const TestCase ffo_20_29[] =
   {
-    {"ffo-20",  +6, H5}, // ffo-20;bbbwbbbbwbbbbbbbwwbbbbbbwwwbbbbbwwwbbww.wwwww...wwwwwww.wwwwwww.;b; H5:+6. G6:-2. F6:-4. H6:-10;
-    {"ffo-21",  +0, G5}, // ffo-21;wwwwwwwwbwwbbb..bbwwbww.bwbwww..bwwwwb..bwwbww..bwwwww..bbbb....;w; G5:+0. G2:-2. G4:-4. G6:-6;
-    {"ffo-22",  +2, G8}, // ffo-22;..wwww..b.wwwww.bbwwbwbbbwbwbbbbbbbwbbbb.bbwbwbb..wbbb.b....b...;w; G8:+2. A6:+0. F8:-4. A7:-4. H2:-4. B2:-6. D8:-8. B7:-14. G7:-26;
-    {"ffo-23",  +4, A2}, // ffo-23;..w.......wwb...wwwbbbw.wwwwbwbbbbbwwbwbbbbbbwwbb.bbbbwb..bbbb..;b; A2:+4. D1:-20. H3:-20. B1:-30. G2:-30. E1:-30. F2:-34. G8:-34. B2:-36. H2:-38;
-    {"ffo-24",  +0, C3}, // ffo-24;..w..w.....wwwb..b.bwbww..bbbwwwbbbbwwwwbbbwbbwwbbbbbb..bwbb.w..;w; C3:+0. B4:-4. C2:-8. E8:-12. G7:-14. H2:-16. G1:-24;
-    {"ffo-25",  +0, A5}, // ffo-25;....b......bbbw..wwwbbbbbwwwwbbw.bbwwbbwwwbwbbbbwwwbb...b.bbbb..;w; G1:+0. A5:+0. F1:-4. D1:-6. F7:-8. C2:-10. G7:-10. H2:-12. H7:-16;
-    {"ffo-26",  +0, D8}, // ffo-26;.wwwww....wbbw...wwwwbbw.wwwbwbb.wwbwwbb.bwbbwbb..w.bbbb..w....w;b; D8:+0. A6:-2. A4:-6. B7:-6. A5:-12. G1:-16. A2:-16. A3:-18. H2:-18. B8:-20. G2:-20. B2:-26;
-    {"ffo-27",  -2, B7}, // ffo-27;..bw.w....wwww..wwbwbbw.wwwwbbwwwwwbbwb.wbwbbbbb..bbbb....b.w.b.;b; B7:-2. E1:-4. B1:-6. H2:-10. H5:-10. B2:-12. A2:-14. H3:-28. G1:-28. G2:-28;
-    {"ffo-28",  +0, B2}, // ffo-28;..w.......www..b.bwwwwbbbbbbwbwb.bbwbwwbbbwbwwbb.wwwww.b...www..;b; F1:+0. B2:+0. E1:+0. B1:-4. F2:-6. G7:-6. D1:-12. C8:-20. G8:-22. B8:-28;
-    {"ffo-29", +10, G2}, // ffo-29;.wbbbb....wbbw..bbwwbwwwbbbwwbwwbbwwbwwwbbbbww.bb.bbw...........;b; G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34;
-    {NULL, 0, A1}
+    {"ffo-20", 1,  +6, { H5 } }, // ffo-20;bbbwbbbbwbbbbbbbwwbbbbbbwwwbbbbbwwwbbww.wwwww...wwwwwww.wwwwwww.;b; H5:+6. G6:-2. F6:-4. H6:-10;
+    {"ffo-21", 1,  +0, { G5 } }, // ffo-21;wwwwwwwwbwwbbb..bbwwbww.bwbwww..bwwwwb..bwwbww..bwwwww..bbbb....;w; G5:+0. G2:-2. G4:-4. G6:-6;
+    {"ffo-22", 1,  +2, { G8 } }, // ffo-22;..wwww..b.wwwww.bbwwbwbbbwbwbbbbbbbwbbbb.bbwbwbb..wbbb.b....b...;w; G8:+2. A6:+0. F8:-4. A7:-4. H2:-4. B2:-6. D8:-8. B7:-14. G7:-26;
+    {"ffo-23", 1,  +4, { A2 } }, // ffo-23;..w.......wwb...wwwbbbw.wwwwbwbbbbbwwbwbbbbbbwwbb.bbbbwb..bbbb..;b; A2:+4. D1:-20. H3:-20. B1:-30. G2:-30. E1:-30. F2:-34. G8:-34. B2:-36. H2:-38;
+    {"ffo-24", 1,  +0, { C3 } }, // ffo-24;..w..w.....wwwb..b.bwbww..bbbwwwbbbbwwwwbbbwbbwwbbbbbb..bwbb.w..;w; C3:+0. B4:-4. C2:-8. E8:-12. G7:-14. H2:-16. G1:-24;
+    {"ffo-25", 2,  +0, { G1, A5 } }, // ffo-25;....b......bbbw..wwwbbbbbwwwwbbw.bbwwbbwwwbwbbbbwwwbb...b.bbbb..;w; G1:+0. A5:+0. F1:-4. D1:-6. F7:-8. C2:-10. G7:-10. H2:-12. H7:-16;
+    {"ffo-26", 1,  +0, { D8 } }, // ffo-26;.wwwww....wbbw...wwwwbbw.wwwbwbb.wwbwwbb.bwbbwbb..w.bbbb..w....w;b; D8:+0. A6:-2. A4:-6. B7:-6. A5:-12. G1:-16. A2:-16. A3:-18. H2:-18. B8:-20. G2:-20. B2:-26;
+    {"ffo-27", 1,  -2, { B7 } }, // ffo-27;..bw.w....wwww..wwbwbbw.wwwwbbwwwwwbbwb.wbwbbbbb..bbbb....b.w.b.;b; B7:-2. E1:-4. B1:-6. H2:-10. H5:-10. B2:-12. A2:-14. H3:-28. G1:-28. G2:-28;
+    {"ffo-28", 3,  +0, { F1, B2, E1 } }, // ffo-28;..w.......www..b.bwwwwbbbbbbwbwb.bbwbwwbbbwbwwbb.wwwww.b...www..;b; F1:+0. B2:+0. E1:+0. B1:-4. F2:-6. G7:-6. D1:-12. C8:-20. G8:-22. B8:-28;
+    {"ffo-29", 1, +10, { G2 } }, // ffo-29;.wbbbb....wbbw..bbwwbwwwbbbwwbwwbbwwbwwwbbbbww.bb.bbw...........;b; G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34;
+    {NULL, 0, 0, {A1}}
   };
 
 /*
@@ -155,6 +156,11 @@ get_gp_from_db (GamePositionDb *db,
 static void
 run_test_case_array (      GamePositionDb *db,
                      const TestCase        tca[]);
+
+static void
+assert_move_is_part_of_array (const Square move,
+                              const Square move_array[],
+                              const int    move_array_length);
 
 
 
@@ -315,9 +321,9 @@ run_test_case_array (      GamePositionDb *db,
     tc = &tca[i];
     if (tc->gpdb_label == NULL) break;
     if (g_test_verbose()) {
-      gchar *move_to_s = square_to_string(tc->best_move);
-      printf("Test #%3d: data[position=%s, expected_value=%+03d, expected_best_move=%s]; ", i, tc->gpdb_label, tc->outcome, move_to_s);
-      g_free(move_to_s);
+      gchar *moves_to_s = square_array_to_string(tc->best_move, tc->best_move_count);
+      printf("Test #%3d: data[position=%s, expected_value=%+03d, expected_best_moves={%s}]; ", i, tc->gpdb_label, tc->outcome, moves_to_s);
+      g_free(moves_to_s);
     }
     const GamePosition * const gp = get_gp_from_db(db, tc->gpdb_label);
     ExactSolution * const solution = game_position_solve(gp, FALSE);
@@ -327,7 +333,18 @@ run_test_case_array (      GamePositionDb *db,
       g_free(move_to_s);
     }
     g_assert_cmpint(tc->outcome, ==, solution->outcome);
-    g_assert(tc->best_move == solution->principal_variation[0]);
+    assert_move_is_part_of_array(solution->principal_variation[0], tc->best_move, tc->best_move_count);
     exact_solution_free(solution);
   }
+}
+
+static void
+assert_move_is_part_of_array (const Square move,
+                              const Square move_array[],
+                              const int move_array_length)
+{
+  for (int i = 0; i < move_array_length; i++) {
+    if (move == move_array[i]) return;
+  }
+  g_test_fail();
 }
