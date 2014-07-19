@@ -5,7 +5,7 @@
  *
  * @todo Add other solvers (ifes, rab, ab, minimax)
  *
- * @todo Add the capability to handle more then one best move!
+ * @todo Using the test_data pointer reduce the number of function needed for testinf to one.
  *
  * @brief Exact solver unit test suite.
  * @details Collects tests and helper methods for the exact solver module.
