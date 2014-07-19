@@ -93,8 +93,8 @@ game_position_solve_test (GamePositionDbFixture *fixture,
                           gconstpointer          test_data);
 
 static void
-game_position_solve_ffo_01_test (GamePositionDbFixture *fixture,
-                                 gconstpointer          test_data);
+game_position_solve_ffo_01_19_test (GamePositionDbFixture *fixture,
+                                    gconstpointer          test_data);
 
 
 
@@ -134,11 +134,11 @@ main (int   argc,
               gpdb_fixture_teardown);
 
   if (g_test_slow ()) {
-    g_test_add ("/exact_solver/game_position_solve_ffo_01_test",
+    g_test_add ("/exact_solver/game_position_solve_ffo_01_19_test",
                 GamePositionDbFixture,
                 (gconstpointer) NULL,
                 gpdb_fixture_setup,
-                game_position_solve_ffo_01_test,
+                game_position_solve_ffo_01_19_test,
                 gpdb_fixture_teardown);
   }
   
@@ -185,8 +185,8 @@ game_position_solve_test (GamePositionDbFixture *fixture,
 }
 
 static void
-game_position_solve_ffo_01_test (GamePositionDbFixture *fixture,
-                                 gconstpointer          test_data)
+game_position_solve_ffo_01_19_test (GamePositionDbFixture *fixture,
+                                    gconstpointer          test_data)
 {
   GamePositionDb *db = fixture->db;
   run_test_case_array(db, ffo_01_19);
