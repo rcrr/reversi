@@ -1,6 +1,12 @@
 /**
  * @file
  *
+ * @todo Add all the ffo game position.
+ *
+ * @todo Add other solvers (ifes, rab, ab, minimax)
+ *
+ * @todo Add the capability to handle more then one best move!
+ *
  * @brief Exact solver unit test suite.
  * @details Collects tests and helper methods for the exact solver module.
  *
