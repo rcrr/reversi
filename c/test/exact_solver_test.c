@@ -95,9 +95,31 @@ const TestCase ffo_01_19[] =
  */
 const TestCase ffo_20_29[] =
   {
+    {"ffo-20",  +6, H5}, // ffo-20;bbbwbbbbwbbbbbbbwwbbbbbbwwwbbbbbwwwbbww.wwwww...wwwwwww.wwwwwww.;b; H5:+6. G6:-2. F6:-4. H6:-10;
+    {"ffo-21",  +0, G5}, // ffo-21;wwwwwwwwbwwbbb..bbwwbww.bwbwww..bwwwwb..bwwbww..bwwwww..bbbb....;w; G5:+0. G2:-2. G4:-4. G6:-6;
+    {"ffo-22",  +2, G8}, // ffo-22;..wwww..b.wwwww.bbwwbwbbbwbwbbbbbbbwbbbb.bbwbwbb..wbbb.b....b...;w; G8:+2. A6:+0. F8:-4. A7:-4. H2:-4. B2:-6. D8:-8. B7:-14. G7:-26;
+    {"ffo-23",  +4, A2}, // ffo-23;..w.......wwb...wwwbbbw.wwwwbwbbbbbwwbwbbbbbbwwbb.bbbbwb..bbbb..;b; A2:+4. D1:-20. H3:-20. B1:-30. G2:-30. E1:-30. F2:-34. G8:-34. B2:-36. H2:-38;
+    {"ffo-24",  +0, C3}, // ffo-24;..w..w.....wwwb..b.bwbww..bbbwwwbbbbwwwwbbbwbbwwbbbbbb..bwbb.w..;w; C3:+0. B4:-4. C2:-8. E8:-12. G7:-14. H2:-16. G1:-24;
+    {"ffo-25",  +0, A5}, // ffo-25;....b......bbbw..wwwbbbbbwwwwbbw.bbwwbbwwwbwbbbbwwwbb...b.bbbb..;w; G1:+0. A5:+0. F1:-4. D1:-6. F7:-8. C2:-10. G7:-10. H2:-12. H7:-16;
+    {"ffo-26",  +0, D8}, // ffo-26;.wwwww....wbbw...wwwwbbw.wwwbwbb.wwbwwbb.bwbbwbb..w.bbbb..w....w;b; D8:+0. A6:-2. A4:-6. B7:-6. A5:-12. G1:-16. A2:-16. A3:-18. H2:-18. B8:-20. G2:-20. B2:-26;
+    {"ffo-27",  -2, B7}, // ffo-27;..bw.w....wwww..wwbwbbw.wwwwbbwwwwwbbwb.wbwbbbbb..bbbb....b.w.b.;b; B7:-2. E1:-4. B1:-6. H2:-10. H5:-10. B2:-12. A2:-14. H3:-28. G1:-28. G2:-28;
+    {"ffo-28",  +0, B2}, // ffo-28;..w.......www..b.bwwwwbbbbbbwbwb.bbwbwwbbbwbwwbb.wwwww.b...www..;b; F1:+0. B2:+0. E1:+0. B1:-4. F2:-6. G7:-6. D1:-12. C8:-20. G8:-22. B8:-28;
+    {"ffo-29", +10, G2}, // ffo-29;.wbbbb....wbbw..bbwwbwwwbbbwwbwwbbwwbwwwbbbbww.bb.bbw...........;b; G2:+10. A1:+4. G6:-10. H2:-12. F8:-12. E8:-12. G7:-24. G1:-24. B2:-30. F7:-34;
     {NULL, 0, A1}
   };
 
+/*
+ffo-30;.bbb....b.bww...bbwbww..bwbwbw..bwwbwbbbbwwbbwb...wwwww..bbbbb..;b; G3:+0. G2:-12. E1:-16. F2:-18. F1:-22. G4:-22. H6:-24. B7:-24. G8:-28;
+ffo-31;.wwwww....wwww..wbbwww...bbbww..bbbbbbw.bbbwww.wb.wwww...wwwww..;b; G6:-2. G3:-4. G4:-8. G7:-14. H5:-14. G2:-16. G1:-30. G8:-32;
+ffo-32;..bb....w.bbwb..wwbww...wbwbwww.wwbbwwwbwwbbbwwb..bbbbwb..b..b.b;b; G3:-4. B7:-6. E1:-8. H4:-10. F3:-10. H3:-10. B2:-14. A7:-22;
+ffo-33;.bbbbbbb..bwww....wbwwbb.wwbbwbb.wwwwwbb.b.bwwbb...w.b.b..wwww..;b; E7:-8. A3:-8. A6:-12. B2:-12. G7:-12. G2:-12. A4:-14. C6:-20. A5:-22. B3:-28;
+ffo-34;.............w.w.wwwwwwwwwwwwbwwwbbwwwbw.bbbwbww..bbbwbw..wbbbbw;b; C2:-2. D2:-6. E2:-6. A3:-10. A2:-10. F1:-12. G2:-14. G1:-16. B2:-20. B8:-26;
+ffo-35;..bbb.....bbbb.wwwbbwwwwwwwwwwbw.wwbbbbw.wwwbbbw...bwbb...b.....;w; C7:+0. D8:-8. H8:-8. B2:-12. G1:-14. E8:-20. B1:-20. F8:-24. F1:-32. H7:-32. G8:-38;
+ffo-36;...b.w....bbbw.bbbbbbbbbbwwbbwwbbwbwwwbbbbwwww.bb..wwww.........;w; B7:+0. B1:-2. E1:-4. C1:-6. G6:-8. G2:-10. A2:-22. B2:-24;
+ffo-37;..wwww..w.wwww..wbbbwww.wbbwbw..wwbbwbb.wwbbbb..w.bbb.....bb.w..;b; G2:-20. G4:-22. B7:-22. H3:-22. G1:-30. H2:-42. B1:-48;
+ffo-38;..wwww....wwww...bwbbwwbwwbwwwwb.wwwwwbbbwwbbbbb..b.b...........;b; B2:+4. A5:+0. H2:-4. A3:-10. A7:-18. G2:-20. B7:-22. G1:-24. B1:-26;
+ffo-39;w.wwww..bwbbwb..bwwwbbb.bwwwbb..bwwbwb..bwbbb...b.bb............;w; A8:+64. B1:+64. G1:+64. G5:+64. G6:+64. C8:+64. H3:+64. E8:+64. H4:+64. F7:+62. D8:+62. E7:+62. H2:+62. B8:+62. G2:+60. G4:+60. F6:+32;
+ */
 
 
 /* Test function prototypes. */
