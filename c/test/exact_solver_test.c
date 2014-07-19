@@ -90,6 +90,14 @@ const TestCase ffo_01_19[] =
     {NULL, 0, A1}
   };
 
+/**
+ * @brief Expected results for test cases coming from French Federation Othello game positions, from number 20 to 29.
+ */
+const TestCase ffo_20_29[] =
+  {
+    {NULL, 0, A1}
+  };
+
 
 
 /* Test function prototypes. */
@@ -100,6 +108,10 @@ game_position_solve_test (GamePositionDbFixture *fixture,
 
 static void
 game_position_solve_ffo_01_19_test (GamePositionDbFixture *fixture,
+                                    gconstpointer          test_data);
+
+static void
+game_position_solve_ffo_20_29_test (GamePositionDbFixture *fixture,
                                     gconstpointer          test_data);
 
 
@@ -145,6 +157,12 @@ main (int   argc,
                 (gconstpointer) NULL,
                 gpdb_fixture_setup,
                 game_position_solve_ffo_01_19_test,
+                gpdb_fixture_teardown);
+    g_test_add ("/exact_solver/game_position_solve_ffo_20_29_test",
+                GamePositionDbFixture,
+                (gconstpointer) NULL,
+                gpdb_fixture_setup,
+                game_position_solve_ffo_20_29_test,
                 gpdb_fixture_teardown);
   }
   
@@ -196,6 +214,14 @@ game_position_solve_ffo_01_19_test (GamePositionDbFixture *fixture,
 {
   GamePositionDb *db = fixture->db;
   run_test_case_array(db, ffo_01_19);
+}
+
+static void
+game_position_solve_ffo_20_29_test (GamePositionDbFixture *fixture,
+                                    gconstpointer          test_data)
+{
+  GamePositionDb *db = fixture->db;
+  run_test_case_array(db, ffo_20_29);
 }
 
 
