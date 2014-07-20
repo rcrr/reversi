@@ -207,20 +207,8 @@ game_position_solve_test (GamePositionDbFixture *fixture,
                           gconstpointer          test_data);
 
 static void
-game_position_solve_ffo_01_19_test (GamePositionDbFixture *fixture,
-                                    gconstpointer          test_data);
-
-static void
-game_position_solve_ffo_20_29_test (GamePositionDbFixture *fixture,
-                                    gconstpointer          test_data);
-
-static void
-game_position_solve_ffo_30_39_test (GamePositionDbFixture *fixture,
-                                    gconstpointer          test_data);
-
-static void
-game_position_solve_ffo_40_49_test (GamePositionDbFixture *fixture,
-                                    gconstpointer          test_data);
+game_position_es_solve_test (GamePositionDbFixture *fixture,
+                             gconstpointer          test_data);
 
 
 
@@ -257,7 +245,7 @@ main (int   argc,
 
   board_module_init();
 
-  g_test_add ("/game_position/game_position_solve_test",
+  g_test_add ("/exact_solver/game_position_solve_test",
               GamePositionDbFixture,
               (gconstpointer) NULL,
               gpdb_fixture_setup,
@@ -265,29 +253,29 @@ main (int   argc,
               gpdb_fixture_teardown);
 
   if (g_test_slow ()) {
-    g_test_add ("/exact_solver/game_position_solve_ffo_01_19_test",
+    g_test_add ("/exact_solver/ffo_01_19",
                 GamePositionDbFixture,
-                (gconstpointer) NULL,
+                (gconstpointer) ffo_01_19,
                 gpdb_fixture_setup,
-                game_position_solve_ffo_01_19_test,
+                game_position_es_solve_test,
                 gpdb_fixture_teardown);
-    g_test_add ("/exact_solver/game_position_solve_ffo_20_29_test",
+    g_test_add ("/exact_solver/ffo_20_29",
                 GamePositionDbFixture,
-                (gconstpointer) NULL,
+                (gconstpointer) ffo_20_29,
                 gpdb_fixture_setup,
-                game_position_solve_ffo_20_29_test,
+                game_position_es_solve_test,
                 gpdb_fixture_teardown);
-    g_test_add ("/exact_solver/game_position_solve_ffo_30_39_test",
+    g_test_add ("/exact_solver/ffo_30_39",
                 GamePositionDbFixture,
-                (gconstpointer) NULL,
+                (gconstpointer) ffo_30_39,
                 gpdb_fixture_setup,
-                game_position_solve_ffo_30_39_test,
+                game_position_es_solve_test,
                 gpdb_fixture_teardown);
-    g_test_add ("/exact_solver/game_position_solve_ffo_40_49_test",
+    g_test_add ("/exact_solver/ffo_40_49",
                 GamePositionDbFixture,
-                (gconstpointer) NULL,
+                (gconstpointer) ffo_40_49,
                 gpdb_fixture_setup,
-                game_position_solve_ffo_40_49_test,
+                game_position_es_solve_test,
                 gpdb_fixture_teardown);
   }
   
@@ -334,35 +322,12 @@ game_position_solve_test (GamePositionDbFixture *fixture,
 }
 
 static void
-game_position_solve_ffo_01_19_test (GamePositionDbFixture *fixture,
-                                    gconstpointer          test_data)
+game_position_es_solve_test (GamePositionDbFixture *fixture,
+                             gconstpointer          test_data)
 {
   GamePositionDb *db = fixture->db;
-  run_test_case_array(db, ffo_01_19);
-}
-
-static void
-game_position_solve_ffo_20_29_test (GamePositionDbFixture *fixture,
-                                    gconstpointer          test_data)
-{
-  GamePositionDb *db = fixture->db;
-  run_test_case_array(db, ffo_20_29);
-}
-
-static void
-game_position_solve_ffo_30_39_test (GamePositionDbFixture *fixture,
-                                    gconstpointer          test_data)
-{
-  GamePositionDb *db = fixture->db;
-  run_test_case_array(db, ffo_30_39);
-}
-
-static void
-game_position_solve_ffo_40_49_test (GamePositionDbFixture *fixture,
-                                    gconstpointer          test_data)
-{
-  GamePositionDb *db = fixture->db;
-  run_test_case_array(db, ffo_40_49);
+  TestCase *tcap = (TestCase *) test_data;
+  run_test_case_array(db, tcap);
 }
 
 
