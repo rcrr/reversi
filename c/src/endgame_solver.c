@@ -27,7 +27,7 @@
  *       the same utilities brougth to a dedicated module. The es solver should
  *       do the same.
  *
- * @todo Write a test suite that solves a selection of the FFO test cases.
+ * @todo [done] Write a test suite that solves a selection of the FFO test cases.
  *
  * @todo Profile exact_solver against improved_fast_endgame_solver.
  *
