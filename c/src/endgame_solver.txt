@@ -1,8 +1,33 @@
 
 This is a diary of the performance evolution of the endgame solver.
 
+Date: July 20th, 2014
+      git commit 16936be7a2c6533c7e5f741db3f3cebf5fb12c2a
 
+Preparing tests today I have run for the first time the es solver on the FFO suite from game position 1 to 49.
+Position 1-39 took 30 minutes to solve.
+Position 40-49 tooks a lot more:
 
+$ time ./build/test/bin/exact_solver_test --verbose -m=slow -p /exact_solver/game_position_solve_ffo_40_49_test
+GTest: random seed: R02S332669c3e36ddf6b7599850bc9588d58
+GTest: run: /exact_solver/game_position_solve_ffo_40_49_test
+Test #  0: data[position=ffo-40, expected_value=+38, expected_best_moves={A2}]; result[outcome=+38, move=A2]
+Test #  1: data[position=ffo-41, expected_value=+00, expected_best_moves={H4}]; result[outcome=+00, move=H4]
+Test #  2: data[position=ffo-42, expected_value=+06, expected_best_moves={G2}]; result[outcome=+06, move=G2]
+Test #  3: data[position=ffo-43, expected_value=-12, expected_best_moves={G3 C7}]; result[outcome=-12, move=C7]
+Test #  4: data[position=ffo-44, expected_value=-14, expected_best_moves={D2 B8}]; result[outcome=-14, move=B8]
+Test #  5: data[position=ffo-45, expected_value=+06, expected_best_moves={B2}]; result[outcome=+06, move=B2]
+Test #  6: data[position=ffo-46, expected_value=-08, expected_best_moves={B3}]; result[outcome=-08, move=B3]
+Test #  7: data[position=ffo-47, expected_value=+04, expected_best_moves={G2}]; result[outcome=+04, move=G2]
+Test #  8: data[position=ffo-48, expected_value=+28, expected_best_moves={F6}]; result[outcome=+28, move=F6]
+Test #  9: data[position=ffo-49, expected_value=+16, expected_best_moves={E1}]; result[outcome=+16, move=E1]
+GTest: result: OK
+
+real	588m36.881s
+user	588m43.793s
+sys	0m14.163s
+
+Must be noted that under tests all the assertion are turned on.
 
 Date: March 16th, 2014
       git commit f1623c20d944ce63e2b183700ebccc04a0e9fef2
