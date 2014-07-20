@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -90,7 +90,7 @@ main (int   argc,
              ifes_game_position_translation_test,
              gpdb_fixture_teardown);
 
-  g_test_add("/game_position/game_position_ifes_solve_test",
+  g_test_add("/ifes/game_position_ifes_solve_test",
              GamePositionDbFixture,
              (gconstpointer) NULL,
              gpdb_fixture_setup,
