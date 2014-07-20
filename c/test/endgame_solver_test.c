@@ -3,10 +3,10 @@
  *
  * @todo Add other solvers (ifes, rab, ab, minimax)
  *
- * @brief Exact solver unit test suite.
- * @details Collects tests and helper methods for the exact solver module.
+ * @brief Endgame solvers unit test suite.
+ * @details Collects tests and helper methods for all the solvers under the endgame_solver umbrella.
  *
- * @par exact_solver_test.c
+ * @par endgame_solver_test.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
