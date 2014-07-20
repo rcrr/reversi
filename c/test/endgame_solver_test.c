@@ -64,7 +64,7 @@ typedef struct {
 /**
  * @brief Expected results for test cases coming from French Federation Othello game positions, number 05.
  */
-const TestCase ffo_05_[] =
+const TestCase ffo_05[] =
   {
     { "ffo-05", 1, +32, { G8 } }, // ffo-05;.wwwww....wbbw.bbbwbwbb.bbwbwbbwbbwwbwwwbbbbww.wb.bwww...bbbbb..;b; G8:+32. G2:+12. B2:-20. G6:-26. G1:-32. G7:-34.;
     {NULL, 0, 0, {A1}}
@@ -209,10 +209,6 @@ const TestCase ffo_70_79[] =
 /* Test function prototypes. */
 
 static void
-game_position_solve_test (GamePositionDbFixture *fixture,
-                          gconstpointer          test_data);
-
-static void
 game_position_es_solve_test (GamePositionDbFixture *fixture,
                              gconstpointer          test_data);
 
@@ -242,7 +238,9 @@ get_gp_from_db (GamePositionDb *db,
 
 static void
 run_test_case_array (      GamePositionDb *db,
-                     const TestCase        tca[]);
+                     const TestCase        tca[],
+                           ExactSolution* (*solver)(const GamePosition * const gp,
+                                                    const gchar        * const log_file));
 
 static void
 assert_move_is_part_of_array (const Square move,
@@ -259,24 +257,24 @@ main (int   argc,
 
   board_module_init();
 
-  g_test_add ("/es/game_position_solve_test",
-              GamePositionDbFixture,
-              (gconstpointer) NULL,
-              gpdb_fixture_setup,
-              game_position_solve_test,
-              gpdb_fixture_teardown);
+  g_test_add ("/es/ffo_05",
+                GamePositionDbFixture,
+                (gconstpointer) ffo_05,
+                gpdb_fixture_setup,
+                game_position_es_solve_test,
+                gpdb_fixture_teardown);
 
+  g_test_add ("/ifes/ffo_05",
+                GamePositionDbFixture,
+                (gconstpointer) ffo_05,
+                gpdb_fixture_setup,
+                game_position_ifes_solve_test,
+                gpdb_fixture_teardown);
   g_test_add("/ifes/ifes_game_position_translation_test",
              GamePositionDbFixture,
              (gconstpointer) NULL,
              gpdb_fixture_setup,
              ifes_game_position_translation_test,
-             gpdb_fixture_teardown);
-  g_test_add("/ifes/game_position_ifes_solve_test",
-             GamePositionDbFixture,
-             (gconstpointer) NULL,
-             gpdb_fixture_setup,
-             game_position_ifes_solve_test,
              gpdb_fixture_teardown);
 
   if (g_test_slow ()) {
@@ -286,11 +284,23 @@ main (int   argc,
                 gpdb_fixture_setup,
                 game_position_es_solve_test,
                 gpdb_fixture_teardown);
+    g_test_add ("/ifes/ffo_01_19",
+                GamePositionDbFixture,
+                (gconstpointer) ffo_01_19,
+                gpdb_fixture_setup,
+                game_position_ifes_solve_test,
+                gpdb_fixture_teardown);
     g_test_add ("/es/ffo_20_29",
                 GamePositionDbFixture,
                 (gconstpointer) ffo_20_29,
                 gpdb_fixture_setup,
                 game_position_es_solve_test,
+                gpdb_fixture_teardown);
+    g_test_add ("/ifes/ffo_20_29",
+                GamePositionDbFixture,
+                (gconstpointer) ffo_20_29,
+                gpdb_fixture_setup,
+                game_position_ifes_solve_test,
                 gpdb_fixture_teardown);
     g_test_add ("/es/ffo_30_39",
                 GamePositionDbFixture,
@@ -298,11 +308,23 @@ main (int   argc,
                 gpdb_fixture_setup,
                 game_position_es_solve_test,
                 gpdb_fixture_teardown);
+    g_test_add ("/ifes/ffo_30_39",
+                GamePositionDbFixture,
+                (gconstpointer) ffo_30_39,
+                gpdb_fixture_setup,
+                game_position_ifes_solve_test,
+                gpdb_fixture_teardown);
     g_test_add ("/es/ffo_40_49",
                 GamePositionDbFixture,
                 (gconstpointer) ffo_40_49,
                 gpdb_fixture_setup,
                 game_position_es_solve_test,
+                gpdb_fixture_teardown);
+    g_test_add ("/ifes/ffo_40_49",
+                GamePositionDbFixture,
+                (gconstpointer) ffo_40_49,
+                gpdb_fixture_setup,
+                game_position_ifes_solve_test,
                 gpdb_fixture_teardown);
   }
   
@@ -316,16 +338,12 @@ main (int   argc,
  */
 
 static void
-game_position_solve_test (GamePositionDbFixture *fixture,
-                          gconstpointer          test_data)
+game_position_es_solve_test (GamePositionDbFixture *fixture,
+                             gconstpointer          test_data)
 {
   GamePositionDb *db = fixture->db;
-  GamePosition *ffo_05 = get_gp_from_db(db, "ffo-05");
-  g_assert(TRUE  == game_position_has_any_legal_move(ffo_05));
-
-  ExactSolution *solution = game_position_solve(ffo_05, FALSE);
-  g_assert(+32 == solution->outcome);
-  g_assert(G8 == solution->principal_variation[0]);
+  TestCase *tcap = (TestCase *) test_data;
+  run_test_case_array(db, tcap, game_position_solve);
 }
 
 static void
@@ -333,21 +351,8 @@ game_position_ifes_solve_test (GamePositionDbFixture *fixture,
                                gconstpointer          test_data)
 {
   GamePositionDb *db = fixture->db;
-  GamePosition *ffo_05 = get_gp_from_db(db, "ffo-05");
-  g_assert(TRUE  == game_position_has_any_legal_move(ffo_05));
-
-  ExactSolution *solution = game_position_ifes_solve(ffo_05, FALSE);
-  g_assert(+32 == solution->outcome);
-  g_assert(G8 == solution->principal_variation[0]);
-}
-
-static void
-game_position_es_solve_test (GamePositionDbFixture *fixture,
-                             gconstpointer          test_data)
-{
-  GamePositionDb *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
-  run_test_case_array(db, tcap);
+  run_test_case_array(db, tcap, game_position_ifes_solve);
 }
 
 static void
@@ -367,9 +372,7 @@ ifes_game_position_translation_test (GamePositionDbFixture *fixture,
   IFES_SquareState ifes_player = game_position_get_ifes_player(ffo_01);
 
   GamePosition *translated = ifes_game_position_translation(ifes_board, ifes_player);
-
   uint64 translated_hash = game_position_hash(translated);
-
   g_assert(expected_hash == translated_hash);
 }
 
@@ -436,7 +439,9 @@ get_gp_from_db (GamePositionDb *db,
 
 static void
 run_test_case_array (      GamePositionDb *db,
-                     const TestCase        tca[])
+                     const TestCase        tca[],
+                           ExactSolution* (*solver)(const GamePosition * const gp,
+                                                    const gchar        * const log_file))
 {
   const TestCase *tc = NULL;
   for (int i = 0;; i++) {
@@ -448,7 +453,7 @@ run_test_case_array (      GamePositionDb *db,
       g_free(moves_to_s);
     }
     const GamePosition * const gp = get_gp_from_db(db, tc->gpdb_label);
-    ExactSolution * const solution = game_position_solve(gp, FALSE);
+    ExactSolution * const solution = (*solver)(gp, FALSE);
     if (g_test_verbose()) {
       gchar *move_to_s = square_to_string(solution->principal_variation[0]);
       printf("result[outcome=%+03d, move=%s]\n", solution->outcome, move_to_s);
