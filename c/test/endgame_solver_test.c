@@ -1,7 +1,7 @@
 /**
  * @file
  *
- * @todo Add other solvers (ifes, rab, ab, minimax)
+ * @todo Add other solvers (rab, ab, minimax)
  *
  * @brief Endgame solvers unit test suite.
  * @details Collects tests and helper methods for all the solvers under the endgame_solver umbrella.
