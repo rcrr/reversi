@@ -151,7 +151,7 @@ static const gchar *program_documentation_string =
   "     $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified -s ab\n"
   "\n"
   " - rab (random alpha-beta solver)\n"
-  "   It uses the alpha-beta pruning, ordering the moves by mean of a random criteria, a sample call is.\n"
+  "   It uses the alpha-beta pruning, ordering the moves by mean of a random criteria, a sample call is:\n"
   "     $ endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -l out/log -n 3\n"
   "\n"
   "Author:\n"
