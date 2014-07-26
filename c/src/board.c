@@ -52,8 +52,8 @@ board_initialize_shift_square_set_by_amount_mask_array (SquareSet *array);
 
 static SquareSet
 direction_shift_back_square_set_by_amount (const Direction dir,
-                                           const SquareSet squares,
-                                           const int       amount);
+    const SquareSet squares,
+    const int       amount);
 
 
 /*
@@ -61,16 +61,17 @@ direction_shift_back_square_set_by_amount (const Direction dir,
  */
 
 /* Array used for conversion between square and its string representation. */
-static const gchar * const sq_to_s[65] =
-  {"A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1",
-   "A2", "B2", "C2", "D2", "E2", "F2", "G2", "H2",
-   "A3", "B3", "C3", "D3", "E3", "F3", "G3", "H3",
-   "A4", "B4", "C4", "D4", "E4", "F4", "G4", "H4",
-   "A5", "B5", "C5", "D5", "E5", "F5", "G5", "H5",
-   "A6", "B6", "C6", "D6", "E6", "F6", "G6", "H6",
-   "A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7",
-   "A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8",
-   "NA"};
+static const gchar *const sq_to_s[65] = {
+  "A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1",
+  "A2", "B2", "C2", "D2", "E2", "F2", "G2", "H2",
+  "A3", "B3", "C3", "D3", "E3", "F3", "G3", "H3",
+  "A4", "B4", "C4", "D4", "E4", "F4", "G4", "H4",
+  "A5", "B5", "C5", "D5", "E5", "F5", "G5", "H5",
+  "A6", "B6", "C6", "D6", "E6", "F6", "G6", "H6",
+  "A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7",
+  "A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8",
+  "NA"
+};
 
 /* A square set being all set with the exception of column A. */
 static const SquareSet all_squares_except_column_a = 0xFEFEFEFEFEFEFEFEULL;
@@ -106,12 +107,12 @@ static const SquareSet squares_b1_f1_a2_e2 = 0x1122;
  *
  * After initialization the array is never changed.
  */
-static uint8 bitrow_changes_for_player_array[256 * 256 * 8]; 
+static uint8 bitrow_changes_for_player_array[256 * 256 * 8];
 
 /*
  * This array is a precomputed table used by the direction_shift_square_set_by_amount function.
  * It has an entry for each couple Direction-Amount, amount having as range 0..7.
- * 
+ *
  * The index of the array is computed by this formula:
  * index = amount | (direction << 3)
  */
@@ -122,7 +123,7 @@ static SquareSet shift_square_set_by_amount_mask_array[8 * 8];
  * of the table. Each entry is a bitboard mask having set all the squares that are
  * reachable moving along the eigth directions, when starting from the square identified by
  * the index itself.
- * 
+ *
  * Values do not change.
  */
 static SquareSet bitboard_mask_for_all_directions[] = {
@@ -186,7 +187,7 @@ static uint64 zobrist_bitstrings[] = {
 
 
 /************************************/
-/* Module initialization functions. */ 
+/* Module initialization functions. */
 /************************************/
 
 /**
@@ -210,8 +211,8 @@ board_module_init (void)
  *
  * The returned string must then be deallocated by the caller using g_free.
  *
- * @param sq the square
- * @return   a string of two chars representing the square
+ * @param [in] sq the square
+ * @return        a string of two chars representing the square
  */
 gchar *
 square_to_string (const Square sq)
@@ -219,7 +220,7 @@ square_to_string (const Square sq)
   gchar *symbol;
 
   static const size_t size_of_square_to_string = 3 * sizeof(gchar);
-  symbol = (gchar*) malloc(size_of_square_to_string);
+  symbol = (gchar *) malloc(size_of_square_to_string);
 
   if (sq >= A1 && sq <= H8) {
     const uint8 col = sq % 8;
@@ -241,8 +242,8 @@ square_to_string (const Square sq)
  *
  * The returned string cannot be changed and must not be deallocated.
  *
- * @param sq the square
- * @return   a string of two chars representing the square
+ * @param [in] sq the square
+ * @return        a string of two chars representing the square
  */
 const gchar const *
 square_to_string2 (const Square sq)
@@ -252,22 +253,31 @@ square_to_string2 (const Square sq)
   } else {
     return sq_to_s[64]; // NA
   }
-  
 }
 
+/**
+ * @brief Returns a string that represents the square array.
+ *
+ * The returned string has to be freed by the caller.
+ *
+ * @param [in] sqa    the square array to convert
+ * @param [in] length the count of elements in the array
+ * @return            a string representation for the square array
+ */
 gchar *
-square_array_to_string (const Square sqa[], const int length)
+square_array_to_string (const Square sqa[],
+                        const int length)
 {
   char *moves_to_string;
   GString *tmp;
 
-  tmp = g_string_sized_new(10);  
+  tmp = g_string_sized_new(10);
 
   for (int i = 0; i < length; i++) {
     g_string_append_printf(tmp, "%s", square_to_string2(sqa[i]));
     if (length - i > 1) g_string_append_printf(tmp, " ");
   }
-  
+
   moves_to_string = tmp->str;
   g_string_free(tmp, FALSE);
 
@@ -277,15 +287,15 @@ square_array_to_string (const Square sqa[], const int length)
 
 
 /******************************************************/
-/* Function implementations for the SquareSet entity. */ 
+/* Function implementations for the SquareSet entity. */
 /******************************************************/
 
 /**
  * @brief Returns a string representation for the sqare set used
  * to load a json array by postgresql command COPY.
  *
- * @param moves the square set to be converted into a string
- * @return      a string having the moves sorted as the `Square` enum
+ * @param [in] moves the square set to be converted into a string
+ * @return           a string having the moves sorted as the `Square` enum
  */
 gchar *
 square_set_to_pg_json_array (SquareSet moves)
@@ -293,7 +303,7 @@ square_set_to_pg_json_array (SquareSet moves)
   char *moves_to_string;
   GString *tmp;
 
-  tmp = g_string_sized_new(10);  
+  tmp = g_string_sized_new(10);
 
   g_string_append_printf(tmp, "[");
   Square move = 0;
@@ -311,7 +321,7 @@ square_set_to_pg_json_array (SquareSet moves)
     move++;
   }
   g_string_append_printf(tmp, "]");
-  
+
   moves_to_string = tmp->str;
   g_string_free(tmp, FALSE);
 
@@ -321,8 +331,10 @@ square_set_to_pg_json_array (SquareSet moves)
 /**
  * @brief Returns a string representation for the sqare set.
  *
- * @param moves the square set to be converted into a string
- * @return      a string having the moves sorted as the `Square` enum
+ * The returned string has to be freed by the caller.
+ *
+ * @param [in] moves the square set to be converted into a string
+ * @return           a string having the moves sorted as the `Square` enum
  */
 gchar *
 square_set_to_string (SquareSet moves)
@@ -330,7 +342,7 @@ square_set_to_string (SquareSet moves)
   char *moves_to_string;
   GString *tmp;
 
-  tmp = g_string_sized_new(10);  
+  tmp = g_string_sized_new(10);
 
   Square move = 0;
   gboolean passed = FALSE;
@@ -359,8 +371,8 @@ square_set_to_string (SquareSet moves)
  * @invariant Parameter `squares` must not be empty.
  * The invariant is guarded by an assertion.
  *
- * @param squares a square set
- * @return        one square selected among the set
+ * @param [in] squares a square set
+ * @return             one square selected among the set
  */
 Square
 square_set_random_selection (SquareSet squares)
@@ -379,7 +391,7 @@ square_set_random_selection (SquareSet squares)
 
 
 /***************************************************/
-/* Function implementations for the Player entity. */ 
+/* Function implementations for the Player entity. */
 /***************************************************/
 
 /**
@@ -389,7 +401,7 @@ square_set_random_selection (SquareSet squares)
  * The invariant is guarded by an assertion.
  *
  * @param [in] p the player
- * @return     the square state of the player
+ * @return       the square state of the player
  */
 SquareState
 player_color (const Player p)
@@ -404,8 +416,8 @@ player_color (const Player p)
  * @invariant Parameter `p` must have a value belonging to the `Player` enum.
  * The invariant is guarded by an assertion.
  *
- * @param p the player
- * @return  the player's description
+ * @param [in] p the player
+ * @return       the player's description
  */
 gchar *
 player_description (const Player p)
@@ -421,7 +433,7 @@ player_description (const Player p)
  * The invariant is guarded by an assertion.
  *
  * @param [in] p the player
- * @return     the player's opponent
+ * @return       the player's opponent
  */
 Player
 player_opponent (const Player p)
@@ -433,7 +445,7 @@ player_opponent (const Player p)
 
 
 /*************************************************/
-/* Function implementations for the Axis entity. */ 
+/* Function implementations for the Axis entity. */
 /*************************************************/
 
 /**
@@ -457,7 +469,7 @@ player_opponent (const Player p)
  * @return     the shift quantity
  */
 int
-axis_shift_distance (const Axis  axis,
+axis_shift_distance (const Axis axis,
                      const uint8 column,
                      const uint8 row)
 {
@@ -494,10 +506,10 @@ axis_shift_distance (const Axis  axis,
  * @param [in] axis   the selected axis
  * @param [in] column the move's column
  * @param [in] row    the move's row
- * @return     the shift quantity
+ * @return            the shift quantity
  */
 uint8
-axis_move_ordinal_position_in_bitrow (const Axis  axis,
+axis_move_ordinal_position_in_bitrow (const Axis axis,
                                       const uint8 column,
                                       const uint8 row)
 {
@@ -531,7 +543,7 @@ axis_move_ordinal_position_in_bitrow (const Axis  axis,
  * @return             the transformed line
  */
 uint8
-axis_transform_to_row_one (const Axis      axis,
+axis_transform_to_row_one (const Axis axis,
                            const SquareSet squares)
 {
   g_assert(axis >= HO && axis <= DU);
@@ -581,7 +593,7 @@ axis_transform_to_row_one (const Axis      axis,
  *                    all other position are set to zero
  */
 SquareSet
-axis_transform_back_from_row_one (const Axis   axis,
+axis_transform_back_from_row_one (const Axis axis,
                                   const uint32 bitrow)
 {
   g_assert(axis >= HO && axis <= DU);
@@ -617,7 +629,7 @@ axis_transform_back_from_row_one (const Axis   axis,
 }
 
 /**************************************************/
-/* Function implementations for the Board entity. */ 
+/* Function implementations for the Board entity. */
 /**************************************************/
 
 /**
@@ -626,13 +638,13 @@ axis_transform_back_from_row_one (const Axis   axis,
  * An assertion checks that the received pointer to the allocated
  * board structure is not `NULL`.
  *
- * @invariant Parameters `b` and `w` cannot have common square set. 
+ * @invariant Parameters `b` and `w` cannot have common square set.
  * The invariant is guarded by an assertion.
  * It means that a square cannot have a white and a black disc set together.
  *
  * @param [in] b the set of black squares
  * @param [in] w the set of white squares
- * @return     a pointer to a new board structure
+ * @return       a pointer to a new board structure
  */
 Board *
 board_new (const SquareSet b,
@@ -643,7 +655,7 @@ board_new (const SquareSet b,
   Board *board;
   static const size_t size_of_board = sizeof(Board);
 
-  board = (Board*) malloc(size_of_board);
+  board = (Board *) malloc(size_of_board);
   g_assert(board);
 
   board->blacks = b;
@@ -684,8 +696,8 @@ board_free (Board *b)
  * @return        the color of the given square
  */
 SquareState
-board_get_square (const Board  *const b,
-                  const Square        sq)
+board_get_square (const Board *const b,
+                  const Square sq)
 {
   g_assert(b);
   g_assert(sq >= A1 && sq <= H8);
@@ -713,8 +725,8 @@ board_get_square (const Board  *const b,
  * @return           the piece count for the given color
  */
 int
-board_count_pieces (const Board       *const b,
-                    const SquareState        color)
+board_count_pieces (const Board *const b,
+                    const SquareState color)
 {
   g_assert(b);
   g_assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
@@ -734,8 +746,8 @@ board_count_pieces (const Board       *const b,
  * @return       the disc count difference
  */
 int
-board_count_difference (const Board  *const b,
-                        const Player        p)
+board_count_difference (const Board *const b,
+                        const Player p)
 {
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
@@ -774,8 +786,8 @@ board_count_difference (const Board  *const b,
  * @return       the game score according to the WOF rules
  */
 int
-board_count_diff_winner_get_empties (const Board  *const b,
-                                     const Player        p)
+board_count_diff_winner_get_empties (const Board *const b,
+                                     const Player p)
 {
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
@@ -787,7 +799,7 @@ board_count_diff_winner_get_empties (const Board  *const b,
   pcount = board_count_pieces(b, player_color(p));
   ocount = board_count_pieces(b, player_color(o));
 
-  difference = pcount - ocount; 
+  difference = pcount - ocount;
   empties = 64 - (pcount + ocount);
 
   return difference + ((difference > 0) ? +empties : -empties);
@@ -808,9 +820,9 @@ board_count_diff_winner_get_empties (const Board  *const b,
  * @return          1 if the move is legal, otherwise 0
  */
 int
-board_is_move_legal (const Board  *const b,
-                     const Square        move,
-                     const Player        p)
+board_is_move_legal (const Board *const b,
+                     const Square move,
+                     const Player p)
 {
   g_assert(b);
   g_assert(move >= A1 && move <= H8);
@@ -851,7 +863,7 @@ board_is_move_legal (const Board  *const b,
 /**
  * @brief Returns a list holding the legal moves that the player can do at the board position.
  *        When no moves are available to the player the method returns an empty list.
- *       
+ *
  * Implements the legal moves call by waveing the potential legal moves up to the bracketing
  * pieces. Directions are computed one by one, squares work in parallel.
  *
@@ -861,23 +873,24 @@ board_is_move_legal (const Board  *const b,
  *
  * @param [in] b the given board
  * @param [in] p the player that has to move
- * @return     legal moves for the player
+ * @return       legal moves for the player
  */
 SquareSet
-board_legal_moves (const Board * const b, const Player p)
+board_legal_moves (const Board *const b,
+                   const Player p)
 {
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
   register SquareSet result;
-  
+
   result = empty_square_set;
 
   const Player o = player_opponent(p);
   const SquareSet empties = board_empties(b);
   const SquareSet p_bit_board = board_get_player(b, p);
   const SquareSet o_bit_board = board_get_player(b, o);
-  
+
   for (Direction dir = NW; dir <= SE; dir++) {
     const Direction opposite = direction_opposite(dir);
     SquareSet wave = direction_shift_square_set(dir, empties) & o_bit_board;
@@ -900,10 +913,10 @@ board_legal_moves (const Board * const b, const Player p)
  * All invariants are guarded by assertions.
  *
  * @param [in] b the given board
- * @return     true if one of the player has one or more legal moves
+ * @return       true if one of the player has one or more legal moves
  */
 gboolean
-board_has_any_player_any_legal_move (const Board * const b)
+board_has_any_player_any_legal_move (const Board *const b)
 {
   g_assert(b);
 
@@ -975,8 +988,8 @@ board_whites (const Board *const b)
  * @return           the set of squares in the board having the given color
  */
 SquareSet
-board_get_color (const Board       *const b,
-                 const SquareState        color)
+board_get_color (const Board *const b,
+                 const SquareState color)
 {
   g_assert(b);
   g_assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
@@ -1013,8 +1026,8 @@ board_get_color (const Board       *const b,
  * @return       the set of squares in the board belonging to the given player
  */
 SquareSet
-board_get_player (const Board  *const b,
-                  const Player        p)
+board_get_player (const Board *const b,
+                  const Player p)
 {
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
@@ -1048,7 +1061,7 @@ board_get_player (const Board  *const b,
  * @return       a string being a 2d representation of the board
  */
 gchar *
-board_print (const Board const *b)
+board_print (const Board *const b)
 {
   g_assert(b);
 
@@ -1090,8 +1103,8 @@ board_print (const Board const *b)
  * @return       `-1` when `a < b`, `+1` when `a > b`, or `0` when the two boards are equal
  */
 int
-board_compare (const Board * const a,
-               const Board * const b)
+board_compare (const Board *const a,
+               const Board *const b)
 {
   g_assert(a);
   g_assert(b);
@@ -1108,19 +1121,22 @@ board_compare (const Board * const a,
     } else {        /* Also whites are equal, and so are a and b boards. */
       return  0;
     }
-  }  
+  }
 }
 
 /**
  * Returns an 8-bit row representation of the player pieces after applying the move.
  *
- * @param player_row    8-bit bitboard corrosponding to player pieces
- * @param opponent_row  8-bit bitboard corrosponding to opponent pieces
- * @param move_position square to move
- * @return              the new player's row index after making the move
+ * @param [in] player_row    8-bit bitboard corrosponding to player pieces
+ * @param [in] opponent_row  8-bit bitboard corrosponding to opponent pieces
+ * @param [in] move_position square to move
+ * @return                   the new player's row index after making the move
  */
 uint8
-board_bitrow_changes_for_player (int player_row, int opponent_row, int move_position) {
+board_bitrow_changes_for_player (int player_row,
+                                 int opponent_row,
+                                 int move_position)
+{
   const int array_index = player_row | (opponent_row << 8) | (move_position << 16);
   return bitrow_changes_for_player_array[array_index];
 }
@@ -1128,7 +1144,7 @@ board_bitrow_changes_for_player (int player_row, int opponent_row, int move_posi
 
 
 /******************************************************/
-/* Function implementations for the Direction entity. */ 
+/* Function implementations for the Direction entity. */
 /******************************************************/
 
 /**
@@ -1234,7 +1250,7 @@ direction_opposite (const Direction dir)
 }
 
 /********************************************************/
-/* Function implementations for the SquareState entity. */ 
+/* Function implementations for the SquareState entity. */
 /********************************************************/
 
 /**
@@ -1244,7 +1260,7 @@ direction_opposite (const Direction dir)
  * The invariant is guarded by an assertion.
  *
  * @param [in] color the given color
- * @return     the color's `symbol`
+ * @return           the color's `symbol`
  */
 char
 square_state_symbol (const SquareState color)
@@ -1262,7 +1278,7 @@ square_state_symbol (const SquareState color)
 
 
 /*********************************************************/
-/* Function implementations for the GamePosition entity. */ 
+/* Function implementations for the GamePosition entity. */
 /*********************************************************/
 
 /**
@@ -1271,19 +1287,19 @@ square_state_symbol (const SquareState color)
  * An assertion checks that the received pointer to the allocated
  * game position structure is not `NULL`.
  *
- * @invariant Parameter `b` cannot be null. 
+ * @invariant Parameter `b` cannot be null.
  * The invariant is guarded by an assertion.
  *
- * @invariant Parameter `p` must belong to the `Player` enum set. 
+ * @invariant Parameter `p` must belong to the `Player` enum set.
  * The invariant is guarded by an assertion.
  *
  * @param [in] b the board field
  * @param [in] p the player field
- * @return     a pointer to a new game position structure
+ * @return       a pointer to a new game position structure
  */
 GamePosition *
-game_position_new (Board  *b,
-                   Player  p)
+game_position_new (Board *b,
+                   Player p)
 {
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
@@ -1291,7 +1307,7 @@ game_position_new (Board  *b,
   GamePosition *gp;
   static const size_t size_of_game_position = sizeof(GamePosition);
 
-  gp = (GamePosition*) malloc(size_of_game_position);
+  gp = (GamePosition *) malloc(size_of_game_position);
   g_assert(gp);
 
   gp->board = b;
@@ -1325,14 +1341,14 @@ game_position_free (GamePosition *gp)
 /**
  * @brief Clones a GamePosition structure.
  *
- * @invariant Parameter `gp` cannot be null. 
+ * @invariant Parameter `gp` cannot be null.
  * The invariant is guarded by an assertion.
  *
  * @param [in] gp the game position to clone
  * @return     a pointer to a new game position structure
  */
 GamePosition *
-game_position_clone (const GamePosition * const gp)
+game_position_clone (const GamePosition *const gp)
 {
   g_assert(gp);
 
@@ -1357,8 +1373,8 @@ game_position_clone (const GamePosition * const gp)
  * @return       `-1` when `a < b`, `+1` when `a > b`, or `0` when the two game position are equal
  */
 int
-game_position_compare (const GamePosition * const a,
-                       const GamePosition * const b)
+game_position_compare (const GamePosition *const a,
+                       const GamePosition *const b)
 {
   g_assert(a);
   g_assert(b);
@@ -1392,7 +1408,7 @@ game_position_compare (const GamePosition * const a,
  * @return        a string being a 2d representation of the game position
  */
 gchar *
-game_position_print (const GamePosition const *gp)
+game_position_print (const GamePosition *const gp)
 {
   g_assert(gp);
 
@@ -1416,10 +1432,16 @@ game_position_print (const GamePosition const *gp)
 }
 
 /**
- * @todo To be documented.
+ * @brief Returns a string representation of the game position.
+ *
+ * @invariant Parameter `gp` must be not `NULL`.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in] gp the given game position
+ * @return        a string representing the game position
  */
 gchar *
-game_position_to_string (const GamePosition const *gp)
+game_position_to_string (const GamePosition *const gp)
 {
   g_assert(gp);
 
@@ -1492,7 +1514,7 @@ game_position_legal_moves (const GamePosition *gp)
  * @return        true if the game state admit a legal move
  */
 gboolean
-game_position_has_any_legal_move (const GamePosition * const gp)
+game_position_has_any_legal_move (const GamePosition *const gp)
 {
   g_assert(gp);
 
@@ -1509,7 +1531,7 @@ game_position_has_any_legal_move (const GamePosition * const gp)
  * @return        true if the game state admit a legal move for at last one player
  */
 gboolean
-game_position_has_any_player_any_legal_move (const GamePosition * const gp)
+game_position_has_any_player_any_legal_move (const GamePosition *const gp)
 {
   g_assert(gp);
 
@@ -1528,7 +1550,8 @@ game_position_has_any_player_any_legal_move (const GamePosition * const gp)
  * @return          true if the move is legal
  */
 gboolean
-game_position_is_move_legal (const GamePosition * const gp, const Square move)
+game_position_is_move_legal (const GamePosition *const gp,
+                             const Square move)
 {
   g_assert(gp);
   g_assert(move >= A1 && move <= H8);
@@ -1548,7 +1571,8 @@ game_position_is_move_legal (const GamePosition * const gp, const Square move)
  * @return          a pointer to a newly created game position as a rusult of the move
  */
 GamePosition *
-game_position_make_move (const GamePosition * const gp, const Square move)
+game_position_make_move (const GamePosition *const gp,
+                         const Square move)
 {
   g_assert(gp);
   g_assert(move >= A1 && move <= H8);
@@ -1631,12 +1655,14 @@ game_position_make_move (const GamePosition * const gp, const Square move)
  * @return     a new game position computed by passing the move
  */
 GamePosition *
-game_position_pass (const GamePosition * const gp)
+game_position_pass (const GamePosition *const gp)
 {
   g_assert(gp);
   g_assert(TRUE != game_position_has_any_legal_move(gp));
 
-  return game_position_new(board_new(gp->board->blacks, gp->board->whites), player_opponent(gp->player));
+  return game_position_new(board_new(gp->board->blacks,
+                                     gp->board->whites),
+                           player_opponent(gp->player));
 }
 
 /**
@@ -1645,10 +1671,10 @@ game_position_pass (const GamePosition * const gp)
  * The hash is computed by mean of a zobrist technique.
  *
  * @param [in] gp the current game position
- * @return     the hash value for the game position
+ * @return        the hash value for the game position
  */
 uint64
-game_position_hash (const GamePosition * const gp)
+game_position_hash (const GamePosition *const gp)
 {
   const SquareSet whites = gp->board->whites;
   const SquareSet blacks = gp->board->blacks;
@@ -1659,7 +1685,7 @@ game_position_hash (const GamePosition * const gp)
   for (int i = 0; i < 64; i++) {
     const uint64 mask = 1ULL << i;
     if (blacks & mask) hash ^= zobrist_bitstrings[i];
-    if (whites & mask) hash ^= zobrist_bitstrings[i+64];
+    if (whites & mask) hash ^= zobrist_bitstrings[i + 64];
   }
   if (p) hash = ~hash; /* In this way passing doesn't require a full new hash. */
 
@@ -1685,7 +1711,7 @@ game_position_hash (const GamePosition * const gp)
  * @return        the game score according to the WOF rules
  */
 int
-game_position_final_value (const GamePosition * const gp)
+game_position_final_value (const GamePosition *const gp)
 {
   return board_count_diff_winner_get_empties(gp->board, gp->player);
 }
@@ -1693,7 +1719,7 @@ game_position_final_value (const GamePosition * const gp)
 
 
 /**********************************************************/
-/* Function implementations for the GamePositionX entity. */ 
+/* Function implementations for the GamePositionX entity. */
 /**********************************************************/
 
 /**
@@ -1702,26 +1728,26 @@ game_position_final_value (const GamePosition * const gp)
  * An assertion checks that the received pointer to the allocated
  * game position x structure is not `NULL`.
  *
- * @invariant Parameters `b` and `w` cannot have common square set. 
+ * @invariant Parameters `b` and `w` cannot have common square set.
  * The invariant is guarded by an assertion.
  * It means that a square cannot have a white and a black disc set together.
  *
  * @param [in] b the set of black squares
  * @param [in] w the set of white squares
  * @param [in] p the player having to move
- * @return     a pointer to a new game position x structure
+ * @return       a pointer to a new game position x structure
  */
 GamePositionX *
 game_position_x_new (const SquareSet b,
                      const SquareSet w,
-                     const Player    p)
+                     const Player p)
 {
   g_assert((w & b) == empty_square_set);
 
   GamePositionX *gpx;
   static const size_t size_of_game_position_x = sizeof(GamePositionX);
 
-  gpx = (GamePositionX*) malloc(size_of_game_position_x);
+  gpx = (GamePositionX *) malloc(size_of_game_position_x);
   g_assert(gpx);
 
   gpx->blacks = b;
@@ -1754,14 +1780,14 @@ game_position_x_free (GamePositionX *gpx)
 /**
  * @brief Clones a `GamePositionX` structure.
  *
- * @invariant Parameter `gpx` cannot be null. 
+ * @invariant Parameter `gpx` cannot be null.
  * The invariant is guarded by an assertion.
  *
  * @param [in] gpx the game position x to clone
  * @return         a pointer to a new game position structure
  */
 GamePositionX *
-game_position_x_clone (const GamePositionX * const gpx)
+game_position_x_clone (const GamePositionX *const gpx)
 {
   g_assert(gpx);
 
@@ -1773,17 +1799,17 @@ game_position_x_clone (const GamePositionX * const gpx)
 /**
  * @brief Returns a new `GamePositionX` structure cloning `gp`.
  *
- * @invariant Parameter `gp` cannot be null. 
+ * @invariant Parameter `gp` cannot be null.
  * The invariant is guarded by an assertion.
  *
  * @param [in] gp the game position to convert
  * @return        a pointer to a new game position x structure
  */
 GamePositionX *
-game_position_x_gp_to_gpx (const GamePosition * const gp)
+game_position_x_gp_to_gpx (const GamePosition *const gp)
 {
   g_assert(gp);
-  
+
   GamePositionX *gpx;
   gpx = game_position_x_new(gp->board->blacks,
                             gp->board->whites,
@@ -1794,14 +1820,14 @@ game_position_x_gp_to_gpx (const GamePosition * const gp)
 /**
  * @brief Returns a new `GamePosition` structure cloning `gpx`.
  *
- * @invariant Parameter `gpx` cannot be null. 
+ * @invariant Parameter `gpx` cannot be null.
  * The invariant is guarded by an assertion.
  *
  * @param [in] gpx the game position x to convert
  * @return         a pointer to a new game position structure
  */
 GamePosition *
-game_position_x_gpx_to_gp (const GamePositionX * const gpx)
+game_position_x_gpx_to_gp (const GamePositionX *const gpx)
 {
   g_assert(gpx);
 
@@ -1819,8 +1845,8 @@ game_position_x_gpx_to_gp (const GamePositionX * const gpx)
  * @param [out] to   the game position x to copy to
  */
 void
-game_position_x_copy (const GamePositionX * const from,
-                            GamePositionX * const to)
+game_position_x_copy (const GamePositionX *const from,
+                      GamePositionX *const to)
 {
   to->blacks = from->blacks;
   to->whites = from->whites;
@@ -1834,8 +1860,8 @@ game_position_x_copy (const GamePositionX * const from,
  * @param [out] to   the game position x to copy to
  */
 void
-game_position_x_copy_from_gp  (const GamePosition  * const from,
-                                     GamePositionX * const to)
+game_position_x_copy_from_gp  (const GamePosition   *const from,
+                               GamePositionX *const to)
 {
   to->blacks = from->board->blacks;
   to->whites = from->board->whites;
@@ -1851,8 +1877,8 @@ game_position_x_copy_from_gp  (const GamePosition  * const from,
  * @param [out] next    the updated game position x after passing
  */
 void
-game_position_x_pass  (const GamePositionX * const current,
-                             GamePositionX * const next)
+game_position_x_pass  (const GamePositionX *const current,
+                       GamePositionX *const next)
 {
   next->blacks = current->blacks;
   next->whites = current->whites;
@@ -1868,7 +1894,7 @@ game_position_x_pass  (const GamePositionX * const current,
  * @return         the hash value for the game position
  */
 uint64
-game_position_x_hash (const GamePositionX * const gpx)
+game_position_x_hash (const GamePositionX *const gpx)
 {
   const SquareSet whites = gpx->whites;
   const SquareSet blacks = gpx->blacks;
@@ -1879,7 +1905,7 @@ game_position_x_hash (const GamePositionX * const gpx)
   for (int i = 0; i < 64; i++) {
     const uint64 mask = 1ULL << i;
     if (blacks & mask) hash ^= zobrist_bitstrings[i];
-    if (whites & mask) hash ^= zobrist_bitstrings[i+64];
+    if (whites & mask) hash ^= zobrist_bitstrings[i + 64];
   }
   if (p) hash = ~hash; /* In this way passing doesn't require a full new hash. */
 
@@ -1893,7 +1919,7 @@ game_position_x_hash (const GamePositionX * const gpx)
  * @return         the set of empty squares
  */
 SquareSet
-game_position_x_empties (const GamePositionX * const gpx)
+game_position_x_empties (const GamePositionX *const gpx)
 {
   return ~(gpx->blacks | gpx->whites);
 }
@@ -1905,7 +1931,7 @@ game_position_x_empties (const GamePositionX * const gpx)
  * @return         the set of squares in the board belonging to the given player
  */
 SquareSet
-game_position_x_get_player (const GamePositionX * const gpx)
+game_position_x_get_player (const GamePositionX *const gpx)
 {
   if (gpx->player == BLACK_PLAYER) {
     return gpx->blacks;
@@ -1921,7 +1947,7 @@ game_position_x_get_player (const GamePositionX * const gpx)
  * @return         the set of squares in the board belonging to the opponent
  */
 SquareSet
-game_position_x_get_opponent (const GamePositionX * const gpx)
+game_position_x_get_opponent (const GamePositionX *const gpx)
 {
   if (gpx->player == BLACK_PLAYER) {
     return gpx->whites;
@@ -1942,8 +1968,8 @@ game_position_x_get_opponent (const GamePositionX * const gpx)
  * @return         the color of the given square
  */
 SquareState
-game_position_x_get_square (const GamePositionX * const gpx,
-                            const Square                sq)
+game_position_x_get_square (const GamePositionX *const gpx,
+                            const Square sq)
 {
   g_assert(gpx);
   g_assert(sq >= A1 && sq <= H8);
@@ -1966,10 +1992,10 @@ game_position_x_get_square (const GamePositionX * const gpx,
  * @return         a square set holding the legal moves
  */
 SquareSet
-game_position_x_legal_moves (const GamePositionX * const gpx)
+game_position_x_legal_moves (const GamePositionX *const gpx)
 {
   SquareSet result = empty_square_set;
-  
+
   const SquareSet empties = game_position_x_empties(gpx);
   const SquareSet p_bit_board = game_position_x_get_player(gpx);
   const SquareSet o_bit_board = game_position_x_get_opponent(gpx);
@@ -1996,7 +2022,7 @@ game_position_x_legal_moves (const GamePositionX * const gpx)
  * @return         the disc count difference
  */
 int
-game_position_x_count_difference (const GamePositionX * const gpx)
+game_position_x_count_difference (const GamePositionX *const gpx)
 {
   const int square_difference = bit_works_popcount(gpx->blacks) - bit_works_popcount(gpx->whites);
   return (gpx->player == BLACK_PLAYER) ? square_difference : - square_difference;
@@ -2023,7 +2049,7 @@ game_position_x_count_difference (const GamePositionX * const gpx)
  * g_assert(g_strcmp0("bbbbbbbbwwwwwwww........................................wwwwwwwww", gpx_to_string) == 0);
  * @endcode
  *
- * @invariant Parameters `gpx` and `out` must be not `NULL`. 
+ * @invariant Parameters `gpx` and `out` must be not `NULL`.
  * The invariants are guarded by assertions.
  * Moreover it is responsibility of the caller to garantee that the `out`
  * pointer refers to a `char` vector thta has `66` positions ore more.
@@ -2032,8 +2058,8 @@ game_position_x_count_difference (const GamePositionX * const gpx)
  * @param [out] out the string written by the function
  */
 void
-game_position_x_to_string (const GamePositionX const * gpx,
-                                 char                * out)
+game_position_x_to_string (const GamePositionX const *gpx,
+                           char *out)
 {
   g_assert(gpx);
   g_assert(out);
@@ -2068,8 +2094,8 @@ game_position_x_to_string (const GamePositionX const * gpx,
  * @return       `-1` when `a < b`, `+1` when `a > b`, or `0` when the two game position are equal
  */
 int
-game_position_x_compare (const GamePositionX * const a,
-                         const GamePositionX * const b)
+game_position_x_compare (const GamePositionX *const a,
+                         const GamePositionX *const b)
 {
   g_assert(a);
   g_assert(b);
@@ -2116,7 +2142,7 @@ game_position_x_compare (const GamePositionX * const a,
  * @return         the game score according to the WOF rules
  */
 int
-game_position_x_final_value (const GamePositionX * const gpx)
+game_position_x_final_value (const GamePositionX *const gpx)
 {
   const int b_count = bit_works_popcount(gpx->blacks);
   const int w_count = bit_works_popcount(gpx->whites);
@@ -2140,7 +2166,7 @@ game_position_x_final_value (const GamePositionX * const gpx)
  * @return         a string being a 2d representation of the game position
  */
 gchar *
-game_position_x_print (const GamePositionX const *gpx)
+game_position_x_print (const GamePositionX *const gpx)
 {
   g_assert(gpx);
   GamePosition *gp = game_position_x_gpx_to_gp(gpx);
@@ -2159,7 +2185,7 @@ game_position_x_print (const GamePositionX const *gpx)
  * @return         true if the game state admit a legal move
  */
 gboolean
-game_position_x_has_any_legal_move (const GamePositionX * const gpx)
+game_position_x_has_any_legal_move (const GamePositionX *const gpx)
 {
   g_assert(gpx);
 
@@ -2176,14 +2202,14 @@ game_position_x_has_any_legal_move (const GamePositionX * const gpx)
  * @return         true if one of the player has one or more legal moves
  */
 gboolean
-game_position_x_has_any_player_any_legal_move (const GamePositionX * const gpx)
+game_position_x_has_any_player_any_legal_move (const GamePositionX *const gpx)
 {
   g_assert(gpx);
-  
+
   const SquareSet empties = game_position_x_empties(gpx);
   const SquareSet blacks = gpx->blacks;
   const SquareSet whites = gpx->whites;
-  
+
   for (Direction dir = NW; dir <= SE; dir++) {
     SquareSet wave;
     int shift;
@@ -2219,7 +2245,8 @@ game_position_x_has_any_player_any_legal_move (const GamePositionX * const gpx)
  * @return          true if the move is legal
  */
 gboolean
-game_position_x_is_move_legal (const GamePositionX * const gpx, const Square move)
+game_position_x_is_move_legal (const GamePositionX *const gpx,
+                               const Square move)
 {
   g_assert(gpx);
   g_assert(move >= A1 && move <= H8);
@@ -2249,9 +2276,9 @@ game_position_x_is_move_legal (const GamePositionX * const gpx, const Square mov
  * @param [out] updated the updated game position x as a rusult of the move
  */
 void
-game_position_x_make_move (const GamePositionX * const current,
-                           const Square                move,
-                                 GamePositionX * const updated)
+game_position_x_make_move (const GamePositionX *const current,
+                           const Square move,
+                           GamePositionX *const updated)
 {
   g_assert(current);
   g_assert(updated);
@@ -2340,8 +2367,8 @@ board_initialize_bitrow_changes_for_player_array (uint8 *array)
       for (uint8 move_position = 0; move_position < 8; move_position++) {
         const uint8 move = 1 << move_position;
         const int array_index = player_row
-          | (opponent_row << 8)
-          | (move_position << 16);
+                                | (opponent_row << 8)
+                                | (move_position << 16);
 
         uint8 player_row_after_move;
 
@@ -2377,28 +2404,28 @@ board_initialize_bitrow_changes_for_player_array (uint8 *array)
            * If the rank is full, it cannot be full of anything different than opponent discs, so
            * it adds the discs to the after move player configuration.
            */
-            if ((left_rank & empties_in_row) == 0x00) {
-              player_row_after_move |= left_rank;
-            }
+          if ((left_rank & empties_in_row) == 0x00) {
+            player_row_after_move |= left_rank;
+          }
 
-            /* Here it does the same procedure computed on the left also on the right. */
-            const uint8 potential_bracketing_disc_on_the_right = bit_works_lowest_bit_set_8(player_row & ~(move - 1));
-            const uint8 right_rank = bit_works_fill_in_between(potential_bracketing_disc_on_the_right | move);
-            if ((right_rank & empties_in_row) == 0x00) {
-              player_row_after_move |= right_rank;
-            }
+          /* Here it does the same procedure computed on the left also on the right. */
+          const uint8 potential_bracketing_disc_on_the_right = bit_works_lowest_bit_set_8(player_row & ~(move - 1));
+          const uint8 right_rank = bit_works_fill_in_between(potential_bracketing_disc_on_the_right | move);
+          if ((right_rank & empties_in_row) == 0x00) {
+            player_row_after_move |= right_rank;
+          }
 
-            /*
-             * It checks that the after move configuration is different from
-             * the starting one for the player.
-             * This case can happen because it never checked that
-             * the bracketing piece was not adjacent to the move disc,
-             * on such a case, on both side, the move is illegal, and it is recorded setting
-             * the result configuation appropriately.
-             */
-            if (player_row_after_move == (player_row | move)) {
-              player_row_after_move = player_row;
-            }
+          /*
+           * It checks that the after move configuration is different from
+           * the starting one for the player.
+           * This case can happen because it never checked that
+           * the bracketing piece was not adjacent to the move disc,
+           * on such a case, on both side, the move is illegal, and it is recorded setting
+           * the result configuation appropriately.
+           */
+          if (player_row_after_move == (player_row | move)) {
+            player_row_after_move = player_row;
+          }
         }
 
         /* Assigns the computed player row to the proper array position. */
@@ -2454,8 +2481,8 @@ board_initialize_shift_square_set_by_amount_mask_array (SquareSet *array)
 */
 SquareSet
 direction_shift_back_square_set_by_amount (const Direction dir,
-                                           const SquareSet squares,
-                                           const int       amount)
+    const SquareSet squares,
+    const int amount)
 {
   switch (dir) {
   case NW: return squares >> (9 * amount);

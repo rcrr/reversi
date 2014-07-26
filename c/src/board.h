@@ -217,7 +217,7 @@ square_to_string2 (const Square sq);
 
 extern gchar *
 square_array_to_string (const Square sqa[],
-                        const int    length);
+                        const int length);
 
 
 
@@ -226,21 +226,21 @@ square_array_to_string (const Square sqa[],
 /********************************************/
 
 extern int
-axis_shift_distance (const Axis  axis,
+axis_shift_distance (const Axis axis,
                      const uint8 column,
                      const uint8 row);
 
 extern uint8
-axis_move_ordinal_position_in_bitrow (const Axis  axis,
+axis_move_ordinal_position_in_bitrow (const Axis axis,
                                       const uint8 column,
                                       const uint8 row);
 
 extern uint8
-axis_transform_to_row_one (const Axis      axis,
+axis_transform_to_row_one (const Axis axis,
                            const SquareSet squares);
 
 extern SquareSet
-axis_transform_back_from_row_one (const Axis   axis,
+axis_transform_back_from_row_one (const Axis axis,
                                   const uint32 bitrow);
 
 
@@ -271,33 +271,33 @@ board_new (const SquareSet b,
 extern Board *board_free (Board *b);
 
 extern SquareState
-board_get_square (const Board  *const b,
-                  const Square        sq);
+board_get_square (const Board *const b,
+                  const Square sq);
 
 extern int
-board_count_pieces(const Board       *const b,
-                   const SquareState        color);
+board_count_pieces(const Board *const b,
+                   const SquareState color);
 
 extern int
-board_count_difference (const Board  *const b,
-                        const Player        p);
+board_count_difference (const Board *const b,
+                        const Player p);
 
 extern int
-board_count_diff_winner_get_empties (const Board  *const b,
-                                     const Player        p);
+board_count_diff_winner_get_empties (const Board *const b,
+                                     const Player p);
 
 extern int
 board_is_move_legal (const Board *const b,
-                     const Square       move,
-                     const Player       p);
+                     const Square move,
+                     const Player p);
 
 extern SquareSet
-board_legal_moves (const Board  * const b,
-                   const Player         p);
+board_legal_moves (const Board *const b,
+                   const Player p);
 
 extern SquareSet
-board_get_color (const Board       *const b,
-                 const SquareState        color);
+board_get_color (const Board *const b,
+                 const SquareState color);
 
 extern uint8
 board_bitrow_changes_for_player (int player_row,
@@ -305,8 +305,8 @@ board_bitrow_changes_for_player (int player_row,
                                  int move_position);
 
 extern SquareSet
-board_get_player (const Board  *const b,
-                  const Player        p);
+board_get_player (const Board *const b,
+                  const Player p);
 
 extern SquareSet
 board_empties (const Board *const b);
@@ -318,14 +318,14 @@ extern SquareSet
 board_whites (const Board *const b);
 
 extern char *
-board_print (const Board const *b);
+board_print (const Board *const b);
 
 extern int
-board_compare (const Board * const a,
-               const Board * const b);
+board_compare (const Board *const a,
+               const Board *const b);
 
 extern gboolean
-board_has_any_player_any_legal_move (const Board * const b);
+board_has_any_player_any_legal_move (const Board *const b);
 
 
 
@@ -340,7 +340,7 @@ direction_shift_square_set (const Direction dir,
 extern SquareSet
 direction_shift_square_set_by_amount (const Direction dir,
                                       const SquareSet squares,
-                                      const int       amount);
+                                      const int amount);
 
 extern Direction
 direction_opposite (const Direction dir);
@@ -360,20 +360,20 @@ extern char square_state_symbol (const SquareState color);
 /****************************************************/
 
 extern GamePosition *
-game_position_new (Board  *b,
-                   Player  p);
+game_position_new (Board *b,
+                   Player p);
 
 extern GamePosition *
 game_position_free (GamePosition *gp);
 
 extern GamePosition *
-game_position_clone (const GamePosition * const gp);
+game_position_clone (const GamePosition *const gp);
 
 extern gchar *
-game_position_print (const GamePosition const *gp);
+game_position_print (const GamePosition *const gp);
 
 extern gchar *
-game_position_to_string (const GamePosition const *gp);
+game_position_to_string (const GamePosition *const gp);
 
 extern int
 game_position_count_difference (const GamePosition *gp);
@@ -382,29 +382,31 @@ extern SquareSet
 game_position_legal_moves (const GamePosition *position);
 
 extern int
-game_position_compare (const GamePosition * const a,
-                       const GamePosition * const b);
+game_position_compare (const GamePosition *const a,
+                       const GamePosition *const b);
 
 extern gboolean
-game_position_has_any_legal_move (const GamePosition * const gp);
+game_position_has_any_legal_move (const GamePosition *const gp);
 
 extern gboolean
-game_position_has_any_player_any_legal_move (const GamePosition * const gp);
+game_position_has_any_player_any_legal_move (const GamePosition *const gp);
 
 extern gboolean
-game_position_is_move_legal (const GamePosition * const gp, const Square move);
+game_position_is_move_legal (const GamePosition *const gp,
+                             const Square move);
 
 extern GamePosition *
-game_position_make_move (const GamePosition * const gp, const Square move);
+game_position_make_move (const GamePosition *const gp,
+                         const Square move);
 
 extern GamePosition *
-game_position_pass (const GamePosition * const gp);
+game_position_pass (const GamePosition *const gp);
 
 extern uint64
-game_position_hash (const GamePosition * const gp);
+game_position_hash (const GamePosition *const gp);
 
 extern int
-game_position_final_value (const GamePosition * const gp);
+game_position_final_value (const GamePosition *const gp);
 
 
 
@@ -415,81 +417,82 @@ game_position_final_value (const GamePosition * const gp);
 extern GamePositionX *
 game_position_x_new (const SquareSet b,
                      const SquareSet w,
-                     const Player    p);
+                     const Player p);
 
 extern GamePositionX *
 game_position_x_free (GamePositionX *gpx);
 
 extern GamePositionX *
-game_position_x_clone (const GamePositionX * const gpx);
+game_position_x_clone (const GamePositionX *const gpx);
 
 extern GamePositionX *
-game_position_x_gp_to_gpx (const GamePosition * const gp);
+game_position_x_gp_to_gpx (const GamePosition *const gp);
 
 extern GamePosition *
-game_position_x_gpx_to_gp (const GamePositionX * const gpx);
+game_position_x_gpx_to_gp (const GamePositionX *const gpx);
 
 extern void
-game_position_x_copy (const GamePositionX * const from,
-                            GamePositionX * const to);
+game_position_x_copy (const GamePositionX *const from,
+                      GamePositionX *const to);
 
 void
-game_position_x_copy_from_gp (const GamePosition  * const from,
-                                    GamePositionX * const to);
+game_position_x_copy_from_gp (const GamePosition *const from,
+                              GamePositionX *const to);
 
 extern SquareSet
-game_position_x_empties (const GamePositionX * const gpx);
+game_position_x_empties (const GamePositionX *const gpx);
 
 extern SquareSet
-game_position_x_get_player (const GamePositionX * const gpx);
+game_position_x_get_player (const GamePositionX *const gpx);
 
 extern SquareSet
-game_position_x_get_opponent (const GamePositionX * const gpx);
+game_position_x_get_opponent (const GamePositionX *const gpx);
 
 extern SquareState
-game_position_x_get_square (const GamePositionX * const gpx,
-                            const Square                sq);
+game_position_x_get_square (const GamePositionX *const gpx,
+                            const Square sq);
 
 extern SquareSet
-game_position_x_legal_moves (const GamePositionX * const gpx);
+game_position_x_legal_moves (const GamePositionX *const gpx);
 
 extern int
-game_position_x_count_difference (const GamePositionX * const gpx);
+game_position_x_count_difference (const GamePositionX *const gpx);
 
 extern void
-game_position_x_to_string (const GamePositionX const * gpx,
-                                 char                * out);
+game_position_x_to_string (const GamePositionX const *gpx,
+                           char *out);
 
 extern int
-game_position_x_compare (const GamePositionX * const a,
-                         const GamePositionX * const b);
+game_position_x_compare (const GamePositionX *const a,
+                         const GamePositionX *const b);
 
 extern void
-game_position_x_pass (const GamePositionX * const current,
-                            GamePositionX * const next);
+game_position_x_pass (const GamePositionX *const current,
+                      GamePositionX *const next);
 
 extern uint64
-game_position_x_hash (const GamePositionX * const gpx);
+game_position_x_hash (const GamePositionX *const gpx);
 
 extern int
-game_position_x_final_value (const GamePositionX * const gpx);
+game_position_x_final_value (const GamePositionX *const gpx);
 
 extern gchar *
-game_position_x_print (const GamePositionX const *gpx);
+game_position_x_print (const GamePositionX *const gpx);
 
 extern gboolean
-game_position_x_has_any_legal_move (const GamePositionX * const gpx);
+game_position_x_has_any_legal_move (const GamePositionX *const gpx);
 
 extern gboolean
-game_position_x_has_any_player_any_legal_move (const GamePositionX * const gpx);
+game_position_x_has_any_player_any_legal_move (const GamePositionX *const gpx);
 
 extern gboolean
-game_position_x_is_move_legal (const GamePositionX * const gpx, const Square move);
+game_position_x_is_move_legal (const GamePositionX *const gpx,
+                               const Square move);
 
 extern void
-game_position_x_make_move (const GamePositionX * const current,
-                           const Square                move,
-                                 GamePositionX * const updated);
+game_position_x_make_move (const GamePositionX *const current,
+                           const Square move,
+                           GamePositionX *const updated);
 
 
 
