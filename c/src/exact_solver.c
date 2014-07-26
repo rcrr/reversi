@@ -33,6 +33,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <glib.h>
 #include <glib/gstdio.h>
@@ -64,6 +65,11 @@ typedef struct {
   MoveListElement tail;                  /**< @brief Tail element, it is not part of the list. */
 } MoveList;
 
+typedef struct {
+  int    length;            // Number of moves in the line.
+  Square moves[64];         // The line.
+} PrincipalVariationLine;
+
 /*
  * Prototypes for internal functions.
  */
@@ -73,10 +79,11 @@ sort_moves_by_mobility_count (      MoveList     *       move_list,
                               const GamePosition * const gp);
 
 static SearchNode *
-game_position_solve_impl (      ExactSolution * const result,
-                          const GamePosition  * const gp,
-                          const int                   achievable,
-                          const int                   cutoff);
+game_position_solve_impl (ExactSolution *const result,
+                          const GamePosition  *const gp,
+                          const int achievable,
+                          const int cutoff,
+                          PrincipalVariationLine *parent_pv);
 
 static void
 move_list_init (MoveList *ml);
@@ -293,6 +300,7 @@ ExactSolution *
 game_position_solve (const GamePosition * const root,
                      const gchar        * const log_file)
 {
+  PrincipalVariationLine root_pv;
   ExactSolution *result; 
   SearchNode    *sn;
 
@@ -307,7 +315,7 @@ game_position_solve (const GamePosition * const root,
 
   result->solved_game_position = game_position_clone(root);
 
-  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64);
+  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64, &root_pv);
 
   if (sn) {
     result->principal_variation[0] = sn->move;
@@ -317,6 +325,11 @@ game_position_solve (const GamePosition * const root,
 
   game_tree_log_close(log_env);
 
+  printf("\n");
+  for (int i = 0; i < root_pv.length; i++) {
+    printf("pv[%d]=%s\n", i, square_to_string2(root_pv.moves[i]));
+  }
+  
   return result;
 }
 
@@ -364,14 +377,21 @@ sort_moves_by_mobility_count (MoveList *move_list, const GamePosition * const gp
 }
 
 static SearchNode *
-game_position_solve_impl (      ExactSolution * const result,
-                          const GamePosition  * const gp,
-                          const int                   achievable,
-                          const int                   cutoff)
+game_position_solve_impl (ExactSolution *const result,
+                          const GamePosition  *const gp,
+                          const int achievable,
+                          const int cutoff,
+                          PrincipalVariationLine *parent_pv)
 {
   result->node_count++;
   SearchNode *node  = NULL;
   SearchNode *node2 = NULL;
+  PrincipalVariationLine pv;
+  for (int i = 0; i < 64; i++) {
+    pv.moves[i] = (Square) -2;
+  }
+  pv.length = 0;
+
 
   if (log_env->log_is_on) {
     call_count++;
@@ -395,9 +415,13 @@ game_position_solve_impl (      ExactSolution * const result,
   if (0ULL == moves) {
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
-      node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable));
+      node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable, &pv));
+      parent_pv->moves[0] = (Square) -1;
+      memcpy(parent_pv->moves + 1, pv.moves, pv.length * sizeof(Square));
+      parent_pv->length = pv.length + 1;
     } else {
       result->leaf_count++;
+      parent_pv->length = 0;
       node = search_node_new((Square) -1, game_position_final_value(gp));
     }
     flipped_players = game_position_free(flipped_players);
@@ -409,7 +433,7 @@ game_position_solve_impl (      ExactSolution * const result,
       const Square move = element->sq;
       if (!node) node = search_node_new(move, achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
-      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value));
+      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pv));
       gp2 = game_position_free(gp2);
       if (node2->value > node->value) {
         search_node_free(node);
@@ -417,6 +441,9 @@ game_position_solve_impl (      ExactSolution * const result,
         node->move = move;
         node2 = NULL;
         if (node->value >= cutoff) goto out;
+        parent_pv->moves[0] = move;
+        memcpy(parent_pv->moves + 1, pv.moves, pv.length * sizeof(Square));
+        parent_pv->length = pv.length + 1;
       } else {
         node2 = search_node_free(node2);
       }
