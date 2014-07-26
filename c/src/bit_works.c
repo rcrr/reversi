@@ -81,25 +81,25 @@ static const int debruijn_64_shift_value = 58;
  * It uses 24 arithmetic operations (shift, add, and).
  *
 static int popcount_1(uint64 x) {
-    x = (x & m1 ) + ((x >>  1) & m1 ); //put count of each  2 bits into those  2 bits 
-    x = (x & m2 ) + ((x >>  2) & m2 ); //put count of each  4 bits into those  4 bits 
-    x = (x & m4 ) + ((x >>  4) & m4 ); //put count of each  8 bits into those  8 bits 
-    x = (x & m8 ) + ((x >>  8) & m8 ); //put count of each 16 bits into those 16 bits 
-    x = (x & m16) + ((x >> 16) & m16); //put count of each 32 bits into those 32 bits 
-    x = (x & m32) + ((x >> 32) & m32); //put count of each 64 bits into those 64 bits 
+    x = (x & m1 ) + ((x >>  1) & m1 ); //put count of each  2 bits into those  2 bits
+    x = (x & m2 ) + ((x >>  2) & m2 ); //put count of each  4 bits into those  4 bits
+    x = (x & m4 ) + ((x >>  4) & m4 ); //put count of each  8 bits into those  8 bits
+    x = (x & m8 ) + ((x >>  8) & m8 ); //put count of each 16 bits into those 16 bits
+    x = (x & m16) + ((x >> 16) & m16); //put count of each 32 bits into those 32 bits
+    x = (x & m32) + ((x >> 32) & m32); //put count of each 64 bits into those 64 bits
     return x;
 }
 */
 
 /*
- * This uses fewer arithmetic operations than any other known  
+ * This uses fewer arithmetic operations than any other known
  * implementation on machines with slow multiplication.
  * It uses 17 arithmetic operations.
  *
 static int popcount_2(uint64 x) {
     x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
-    x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
-    x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
+    x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits
+    x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits
     x += x >>  8;                   //put count of each 16 bits into their lowest 8 bits
     x += x >> 16;                   //put count of each 32 bits into their lowest 8 bits
     x += x >> 32;                   //put count of each 64 bits into their lowest 8 bits
@@ -110,7 +110,7 @@ static int popcount_2(uint64 x) {
 /**
  * @brief Returns the count of the bit set to 1 in the `x` argument.
  *
- * This uses fewer arithmetic operations than any other known  
+ * This uses fewer arithmetic operations than any other known
  * implementation on machines with fast multiplication.
  * It uses 12 arithmetic operations, one of which is a multiply.
  *
@@ -118,15 +118,16 @@ static int popcount_2(uint64 x) {
  * @return       the count of bit set in the `x` parameter
  */
 int
-bit_works_popcount (uint64 x) {
+bit_works_popcount (uint64 x)
+{
 #ifdef X86_POPCNT
   long long int out;
   __asm__ __volatile__ ("popcnt %1, %0" : "=g" (out) : "g" (x));
   return (int) out;
 #else
   x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
-  x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
-  x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
+  x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits
+  x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits
   return (x * h01) >> 56;         //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
 #endif
 }
@@ -171,9 +172,15 @@ bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
     tmp = (uint32) bit_sequence;
   }
 
-  if ((tmp & 0xFFFF0000) != 0) { tmp >>= 16; hi += 2; }
-  if ((tmp & 0x0000FF00) != 0) { tmp >>=  8; hi += 1; }
-  
+  if ((tmp & 0xFFFF0000) != 0) {
+    tmp >>= 16;
+    hi += 2;
+  }
+  if ((tmp & 0x0000FF00) != 0) {
+    tmp >>=  8;
+    hi += 1;
+  }
+
   result->hi = hi;
   result->lo = log2_array[tmp];
   return;
@@ -188,7 +195,8 @@ bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
  * @return             the shifted value
  */
 uint64
-bit_works_signed_left_shift (uint64 bit_sequence, int shift) {
+bit_works_signed_left_shift (uint64 bit_sequence, int shift)
+{
   return shift >= 0 ? bit_sequence << shift : bit_sequence >> -shift;
 }
 
@@ -202,12 +210,21 @@ bit_works_signed_left_shift (uint64 bit_sequence, int shift) {
  * @return             an value having set the bit most significative found in bit_sequence
  */
 uint32
-bit_works_highest_bit_set_32 (uint32 bit_sequence) {
-  if (bit_sequence == 0x00000000) { return 0x00000000; }
+bit_works_highest_bit_set_32 (uint32 bit_sequence)
+{
+  if (bit_sequence == 0x00000000) {
+    return 0x00000000;
+  }
   uint32 result = 0x00000001;
   uint32 tmp = bit_sequence;
-  if ((tmp & 0xFFFF0000) != 0x00000000) { tmp >>= 16; result = 0x00010000; }
-  if  (tmp > 0x000000FF)                { tmp >>=  8; result <<= 8; }
+  if ((tmp & 0xFFFF0000) != 0x00000000) {
+    tmp >>= 16;
+    result = 0x00010000;
+  }
+  if  (tmp > 0x000000FF)                {
+    tmp >>=  8;
+    result <<= 8;
+  }
   result <<= log2_array[tmp];
   return result;
 }
@@ -222,8 +239,11 @@ bit_works_highest_bit_set_32 (uint32 bit_sequence) {
  * @return             an value having set the bit most significative found in bit_sequence
  */
 uint8
-bit_works_highest_bit_set_8 (uint8 bit_sequence) {
-  if (bit_sequence == 0x00) { return 0x00; }
+bit_works_highest_bit_set_8 (uint8 bit_sequence)
+{
+  if (bit_sequence == 0x00) {
+    return 0x00;
+  }
   uint8 result = 0x01;
   result <<= log2_array[bit_sequence];
   return result;
@@ -242,9 +262,10 @@ bit_works_highest_bit_set_8 (uint8 bit_sequence) {
  * @return                  a bit sequence having the internal bits set
  */
 uint8
-bit_works_fill_in_between (uint8 bit_sequence) {
+bit_works_fill_in_between (uint8 bit_sequence)
+{
   return ((0x01 << bit_works_bitscanMS1B_8(bit_sequence)) - 0x01)
-    & ((~bit_sequence & 0xFF) ^ (bit_sequence - 0x01));
+         & ((~bit_sequence & 0xFF) ^ (bit_sequence - 0x01));
 }
 
 /**
@@ -263,12 +284,22 @@ bit_works_fill_in_between (uint8 bit_sequence) {
  * @return             the index `(0..63)` of the most significant bit set
  */
 uint8
-bit_works_bitscanMS1B_64 (const uint64 bit_sequence) {
+bit_works_bitscanMS1B_64 (const uint64 bit_sequence)
+{
   uint64 tmp = bit_sequence;
   uint8 result = 0x00;
-  if ((tmp & 0xFFFFFFFF00000000) != 0ULL) { tmp >>= 32; result  = 32; }
-  if  (tmp > 0x000000000000FFFF)          { tmp >>= 16; result |= 16; }
-  if  (tmp > 0x00000000000000FF)          { tmp >>=  8; result |=  8; }
+  if ((tmp & 0xFFFFFFFF00000000) != 0ULL) {
+    tmp >>= 32;
+    result  = 32;
+  }
+  if  (tmp > 0x000000000000FFFF)          {
+    tmp >>= 16;
+    result |= 16;
+  }
+  if  (tmp > 0x00000000000000FF)          {
+    tmp >>=  8;
+    result |=  8;
+  }
   result |= log2_array[(int) tmp];
   return result;
 }
@@ -277,10 +308,11 @@ bit_works_bitscanMS1B_64 (const uint64 bit_sequence) {
  * @brief Returns the index of the most significant bit set in the `bit_sequence` parameter.
  *
  * @param bit_sequence uint8 value that is scanned
- * @return             the index (0..7) of the most significant bit set 
+ * @return             the index (0..7) of the most significant bit set
  */
 uint8
-bit_works_bitscanMS1B_8 (const uint8 bit_sequence) {
+bit_works_bitscanMS1B_8 (const uint8 bit_sequence)
+{
   uint8 result = 0x00;
   result |= log2_array[(int) bit_sequence];
   return result;
@@ -301,7 +333,8 @@ bit_works_bitscanMS1B_8 (const uint8 bit_sequence) {
  * @return             the index of the least significant bit set
  */
 uint8
-bit_works_bitscanLS1B_64 (const uint64 bit_sequence) {
+bit_works_bitscanLS1B_64 (const uint64 bit_sequence)
+{
   /** mask isolates the least significant one bit (LS1B). */
   const uint64 mask = bit_sequence & (-bit_sequence);
   return debruijn_64_index[(mask * debruijn_64_magic_constant) >> debruijn_64_shift_value];
@@ -315,7 +348,8 @@ bit_works_bitscanLS1B_64 (const uint64 bit_sequence) {
  * @return             the filtered sequence
  */
 uint64
-bit_works_lowest_bit_set_64 (const uint64 bit_sequence) {
+bit_works_lowest_bit_set_64 (const uint64 bit_sequence)
+{
   return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
 }
 
@@ -327,7 +361,8 @@ bit_works_lowest_bit_set_64 (const uint64 bit_sequence) {
  * @return             the filtered sequence
  */
 uint32
-bit_works_lowest_bit_set_32 (const uint32 bit_sequence) {
+bit_works_lowest_bit_set_32 (const uint32 bit_sequence)
+{
   return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
 }
 
@@ -339,6 +374,7 @@ bit_works_lowest_bit_set_32 (const uint32 bit_sequence) {
  * @return             the filtered sequence
  */
 uint8
-bit_works_lowest_bit_set_8 (const uint8 bit_sequence) {
+bit_works_lowest_bit_set_8 (const uint8 bit_sequence)
+{
   return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
 }
