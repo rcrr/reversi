@@ -39,6 +39,7 @@
 #include <glib/gstdio.h>
 
 #include "game_tree_logger.h"
+#include "game_tree_utils.h"
 
 #include "exact_solver.h"
 
@@ -68,7 +69,7 @@ typedef struct {
 typedef struct {
   int    length;            // Number of moves in the line.
   Square moves[64];         // The line.
-} PrincipalVariationLine;
+} PrincipalVariationLine_x;
 
 /*
  * Prototypes for internal functions.
@@ -83,7 +84,7 @@ game_position_solve_impl (ExactSolution *const result,
                           const GamePosition  *const gp,
                           const int achievable,
                           const int cutoff,
-                          PrincipalVariationLine *parent_pv);
+                          PrincipalVariationLine_x *parent_pv);
 
 static void
 move_list_init (MoveList *ml);
@@ -218,7 +219,7 @@ exact_solution_new (void)
 {
   ExactSolution * es;
   static const size_t size_of_exact_solution = sizeof(ExactSolution);
-
+  
   es = (ExactSolution*) malloc(size_of_exact_solution);
   g_assert(es);
 
@@ -300,11 +301,18 @@ ExactSolution *
 game_position_solve (const GamePosition * const root,
                      const gchar        * const log_file)
 {
-  PrincipalVariationLine root_pv;
+  PrincipalVariationLine_x root_pv;
   ExactSolution *result; 
   SearchNode    *sn;
 
   log_env = game_tree_log_init(log_file);
+
+  /**/
+  PrincipalVariationLine *pvl = pvl_new(20);
+  printf("pvl->size=%d\n", pvl->size);
+  pvl_print(pvl);
+  pvl_free(pvl);
+  /**/
 
   if (log_env->log_is_on) {
     gp_hash_stack[0] = 0; 
@@ -381,12 +389,12 @@ game_position_solve_impl (ExactSolution *const result,
                           const GamePosition  *const gp,
                           const int achievable,
                           const int cutoff,
-                          PrincipalVariationLine *parent_pv)
+                          PrincipalVariationLine_x *parent_pv)
 {
   result->node_count++;
   SearchNode *node  = NULL;
   SearchNode *node2 = NULL;
-  PrincipalVariationLine pv;
+  PrincipalVariationLine_x pv;
   for (int i = 0; i < 64; i++) {
     pv.moves[i] = (Square) -2;
   }
