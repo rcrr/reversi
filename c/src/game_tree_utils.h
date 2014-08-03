@@ -43,34 +43,50 @@
 /**
  * @brief A principal variation cell.
  */
-typedef struct PrincipalVariationCell_ {
-  Square move;                          /**< @brief The current move. */
-  struct PrincipalVariationCell_ *next; /**< @brief The next move. */
-} PrincipalVariationCell;
+typedef struct PVCell_ {
+  Square          move;   /**< @brief The current move. */
+  struct PVCell_ *next;   /**< @brief The next move. */
+} PVCell;
 
 /**
- * @brief A principal variation line.
+ * @brief A principal variation environment.
  */
 typedef struct {
-  int                      size;   /**< @brief Tbd. */
-  PrincipalVariationCell  *head;   /**< @brief Tbd. */
-  PrincipalVariationCell  *cells;  /**< @brief Tbd. */
-  PrincipalVariationCell **stack;  /**< @brief Tbd. */
-} PrincipalVariationLine;
+  int      cells_size;   /**< @brief The count of cells contained by the cells array. */
+  PVCell  *cells;        /**< @brief The pointer to the array of cells. */
+  PVCell **stack;        /**< @brief The pointer to the array of pointers used to manage the cells. */
+  PVCell **stack_head;   /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
+  int      lines_size;   /**< @brief The count of lines contained by the lines array. */
+  PVCell **lines;        /**< @brief The pointer to the array of pointers used as a reference of the head of a cell-list. */
+  PVCell **lines_head;   /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
+} PVEnv;
 
 
 
-/*******************************************************************/
-/* Function implementations for the PrincipalVariationLine entity. */ 
-/*******************************************************************/
+/**************************************************/
+/* Function implementations for the PVEnv entity. */ 
+/**************************************************/
 
-extern PrincipalVariationLine *
-pvl_new (const int size);
+extern PVEnv *
+pve_new (const int cells_size,
+         const int lines_size);
 
-extern PrincipalVariationLine *
-pvl_free (PrincipalVariationLine *pvl);
+extern PVEnv *
+pve_free (PVEnv *pve);
 
 extern void
-pvl_print (PrincipalVariationLine *pvl);
+pve_print (PVEnv *pve);
+
+extern PVCell *
+pvl_add_move (PVEnv *pve,
+              PVCell *line,
+              Square move);
+
+extern PVCell *
+pvl_create_line (PVEnv *pve);
+
+extern void
+pvl_delete_line (PVEnv *pve,
+                 PVCell *line);
 
 #endif /* GAME_TREE_UTILS_H */

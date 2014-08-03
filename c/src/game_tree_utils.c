@@ -45,10 +45,16 @@
  */
 
 static void
-pvl_print_cells (PrincipalVariationCell cells[], int size);
+pve_print_cells (PVCell cells[],
+                 int cells_size);
 
 static void
-pvl_print_stack (PrincipalVariationCell *stack[], int size);
+pve_print_stack (PVCell *stack[],
+                 int cells_size);
+
+static void
+pve_print_lines (PVCell *lines[],
+                 int lines_size);
 
 
 
@@ -58,95 +64,175 @@ pvl_print_stack (PrincipalVariationCell *stack[], int size);
 
 
 
-/*******************************************************************/
-/* Function implementations for the PrincipalVariationLine entity. */ 
-/*******************************************************************/
+/**************************************************/
+/* Function implementations for the PVEnv entity. */ 
+/**************************************************/
 
 /**
- * @brief PrincipalVariationLine structure constructor.
+ * @brief PVEnv structure constructor.
  *
  * An assertion checks that the received pointer to the allocated
  * principal variation line structure is not `NULL`.
  *
- * @invariant Parameter `size` cannot be negative. 
+ * @invariant Parameter `cells_size` cannot be negative. 
  * The invariant is guarded by an assertion.
  *
- * @param [in] size the size of the cell stack
- * @return     a pointer to a new principal variation line structure
+ * @param [in] cells_size the number of the cells available in the env structure
+ * @param [in] lines_size the number of the lines available in the env structure
+ * @return                a pointer to a new principal variation env structure
  */
-PrincipalVariationLine *
-pvl_new (const int size)
+PVEnv *
+pve_new (const int cells_size,
+         const int lines_size)
 {
-  g_assert(size >= 0);
+  g_assert(cells_size >= 0);
 
-  PrincipalVariationLine *pvl;
-  static const size_t size_of_pvl = sizeof(PrincipalVariationLine);
+  static const size_t size_of_pve  = sizeof(PVEnv);
+  static const size_t size_of_pvc  = sizeof(PVCell);
+  static const size_t size_of_pvcp = sizeof(PVCell*);
 
-  pvl = (PrincipalVariationLine*) malloc(size_of_pvl);
-  g_assert(pvl);
+  PVEnv *const pve = (PVEnv*) malloc(size_of_pve);
+  g_assert(pve);
 
-  pvl->size = size;
-  pvl->head = NULL;
-  pvl->cells = (PrincipalVariationCell*)  malloc(size * sizeof(PrincipalVariationCell));
-  pvl->stack = (PrincipalVariationCell**) malloc(size * sizeof(PrincipalVariationCell*));
+  pve->cells_size = cells_size;
+  pve->cells = (PVCell*)  malloc(cells_size * size_of_pvc);
 
-  for (int i = 0; i < size; i++) {
-    (pvl->cells + i)->move = (Square) -2; 
-    (pvl->cells + i)->next = NULL;
-    *(pvl->stack + i) = pvl->cells + i;
- }
+  pve->stack = (PVCell**) malloc(cells_size * size_of_pvcp);
+  pve->stack_head = pve->stack;
+
+  for (int i = 0; i < cells_size; i++) {
+    (pve->cells + i)->move = (Square) -2; 
+    (pve->cells + i)->next = NULL;
+    *(pve->stack + i) = pve->cells + i;
+  }
   
-  return pvl;
+  pve->lines_size = lines_size;
+  pve->lines = (PVCell**) malloc(lines_size * size_of_pvcp);
+  for (int i = 0; i < lines_size; i++) {
+    *(pve->lines + i) = NULL;
+  }
+  pve->lines_head = pve->lines;
+  
+  return pve;
 }
 
 /**
- * @brief PrincipalVariationLine structure destructor.
+ * @brief PVEnv structure destructor.
  *
  * @invariant Parameter `pvl` cannot be `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in] pvl the pointer to be deallocated
+ * @param [in] pve the pointer to be deallocated
  * @return         always the NULL pointer
  */
-PrincipalVariationLine *
-pvl_free (PrincipalVariationLine *pvl)
+PVEnv *
+pve_free (PVEnv *pve)
 {
-  g_assert(pvl);
+  g_assert(pve);
 
-  g_free(pvl->cells);
-  g_free(pvl->stack);
-  g_free(pvl);
-  pvl = NULL;
+  g_free(pve->cells);
+  g_free(pve->stack);
+  g_free(pve->lines);
+  g_free(pve);
+  pve = NULL;
 
-  return pvl;
+  return pve;
 }
 
 void
-pvl_print (PrincipalVariationLine *pvl)
+pve_print (PVEnv *pve)
 {
-  printf("pvl address: %p\n", (void*) pvl);
-  printf("pvl size: %d\n", pvl->size);
-  pvl_print_cells(pvl->cells, pvl->size);
-  pvl_print_stack(pvl->stack, pvl->size);
+  printf("pve address: %p\n", (void*) pve);
+  printf("pve cells_size: %d\n", pve->cells_size);
+  printf("pve lines_size: %d\n", pve->lines_size);
+  printf("pve stack_head: points_to=%p\n", (void*) pve->stack_head);
+  printf("pve lines_head: points_to=%p\n", (void*) pve->lines_head);
+  pve_print_cells(pve->cells, pve->cells_size);
+  pve_print_stack(pve->stack, pve->cells_size);
+  pve_print_lines(pve->lines, pve->lines_size);
 }
 
+/**
+ * @brief Returns a free line pointer
+ *
+ * @param [in] pve a pointer to the principal variatin line structure
+ * @return         a pointer to the next free pointers in the lines array
+ */
+PVCell *
+pvl_create_line (PVEnv *pve)
+{
+  PVCell *line = *(pve->lines_head);
+  pve->lines_head--;
+  // Should be turned NULL?
+  return line;
+}
+
+/**
+ * @brief Adds the `move` to the given `line`.
+ *
+ * @param [in] pve  a pointer to the principal variatin line structure
+ * @param [in] line a pointer to the head of the current line
+ * @param [in] move the move to add to the line
+ * @return          the new head for the line
+ */
+PVCell *
+pvl_add_move (PVEnv *pve,
+              PVCell *line,
+              Square move)
+{
+  PVCell *added_cell = *(pve->stack_head);
+  pve->stack_head++;
+  added_cell->move = move;
+  // added cell has to point to what line is pointing to, and line has to be repointed to added_cell ....
+  added_cell->next = line;
+  return added_cell;
+}
+
+/**
+ * @brief Deletes the `line` and returns cells to the stack.
+ *
+ * @param [in] pve  a pointer to the principal variatin line sructure
+ * @param [in] line a pointer to the head of the line to be deleted
+ */
+void
+pvl_delete_line (PVEnv *pve,
+                 PVCell *line)
+{
+  PVCell *current = line;
+  while (current) {
+    *(pve->stack_head) = current;
+    pve->stack_head--;
+    current = current->next;
+  }
+}
 
 /*
  * Internal functions.
  */
 
 static void
-pvl_print_cells (PrincipalVariationCell cells[], int size)
+pve_print_cells (PVCell cells[],
+                 int cells_size)
 {
-  for (int i = 0; i < size; i++) {
-    printf("cells[%d]: move=%d, next=%p, address=%p\n", i, cells[i].move, (void*) cells[i].next, (void*) &cells[i]);
+  for (int i = 0; i < cells_size; i++) {
+    printf("cells[%2d]: move=%d, next=%p, address=%p\n", i, cells[i].move, (void*) cells[i].next, (void*) &cells[i]);
   }
 }
 
 static void
-pvl_print_stack (PrincipalVariationCell *stack[], int size)
+pve_print_stack (PVCell *stack[],
+                 int cells_size)
 {
-  for (int i = 0; i < size; i++) {
-    printf("stack[%d]: points_to=%p, address=%p\n", i, (void*) stack[i], (void*) &(stack[i]));
+  for (int i = 0; i < cells_size; i++) {
+    printf("stack[%2d]: points_to=%p, address=%p\n", i, (void*) stack[i], (void*) &(stack[i]));
+  }
+}
+
+static void
+pve_print_lines (PVCell *lines[],
+                 int lines_size)
+{
+  for (int i = 0; i < lines_size; i++) {
+    printf("lines[%2d]: points_to=%p, address=%p\n", i, (void*) lines[i], (void*) &(lines[i]));
   }
 }
