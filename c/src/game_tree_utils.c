@@ -158,34 +158,39 @@ pve_print (PVEnv *pve)
  * @param [in] pve a pointer to the principal variatin line structure
  * @return         a pointer to the next free pointers in the lines array
  */
-PVCell *
+PVCell **
 pvl_create_line (PVEnv *pve)
 {
-  PVCell *line = *(pve->lines_head);
-  pve->lines_head--;
-  // Should be turned NULL?
-  return line;
+  // debug using ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-9 -s es
+  g_assert(pve->lines_head - pve->lines >= 0);
+  g_assert(pve->lines_head - pve->lines < pve->lines_size);
+  printf("pvl_create_line: pve->lines_head=%p\n", (void *) pve->lines_head);
+  return pve->lines_head++;
 }
 
 /**
  * @brief Adds the `move` to the given `line`.
  *
  * @param [in] pve  a pointer to the principal variatin line structure
- * @param [in] line a pointer to the head of the current line
+ * @param [in] line reference to the pointer to the head of the current line
  * @param [in] move the move to add to the line
- * @return          the new head for the line
  */
-PVCell *
+void
 pvl_add_move (PVEnv *pve,
-              PVCell *line,
+              PVCell **line,
               Square move)
 {
+  // This is the suspect! When we add a move the line is managed properly? mmmmm first add all the proper printf!!!!!
+  g_assert(pve->lines_head - pve->lines >= 0);
+  g_assert(pve->lines_head - pve->lines < pve->lines_size);
+  g_assert(pve->stack_head - pve->stack >= 0);
+  g_assert(pve->stack_head - pve->stack < pve->cells_size);
   PVCell *added_cell = *(pve->stack_head);
   pve->stack_head++;
   added_cell->move = move;
-  // added cell has to point to what line is pointing to, and line has to be repointed to added_cell ....
-  added_cell->next = line;
-  return added_cell;
+  added_cell->next = *line;
+  *line = added_cell;
+  printf("pvl_add_move: line=%p, added_cell->move=%s\n", (void *) line, square_to_string2(move));
 }
 
 /**
@@ -196,14 +201,22 @@ pvl_add_move (PVEnv *pve,
  */
 void
 pvl_delete_line (PVEnv *pve,
-                 PVCell *line)
+                 PVCell **line)
 {
-  PVCell *current = line;
+  g_assert(pve->lines_head - pve->lines >= 0);
+  g_assert(pve->lines_head - pve->lines < pve->lines_size);
+  g_assert(pve->stack_head - pve->stack >= 0);
+  g_assert(pve->stack_head - pve->stack < pve->cells_size);
+  PVCell *current = *line;
+  printf("  pvl_delete_line: current=%p\n", (void *) current);
   while (current) {
-    *(pve->stack_head) = current;
     pve->stack_head--;
+    *(pve->stack_head) = current;
     current = current->next;
   }
+  pve->lines_head--;
+  *(pve->lines_head) = *line;
+  printf("pvl_delete_line: pve->lines_head=%p\n", (void *) pve->lines_head);
 }
 
 /*

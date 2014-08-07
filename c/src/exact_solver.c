@@ -84,7 +84,8 @@ game_position_solve_impl (ExactSolution *const result,
                           const GamePosition  *const gp,
                           const int achievable,
                           const int cutoff,
-                          PrincipalVariationLine_x *parent_pv);
+                          PrincipalVariationLine_x *parent_pv,
+                          PVCell **pvl_parent_line);
 
 static void
 move_list_init (MoveList *ml);
@@ -92,6 +93,11 @@ move_list_init (MoveList *ml);
 /*
  * Internal variables and constants.
  */
+
+/**
+ * @brief Principal Variation Environmenat
+ */
+static PVEnv *pve = NULL;
 
 /**
  * @brief The logging environment structure.
@@ -308,10 +314,10 @@ game_position_solve (const GamePosition * const root,
   log_env = game_tree_log_init(log_file);
 
   /**/
-  PVEnv *pve = pve_new(20, 5);
+  pve = pve_new(20, 8);
   printf("pve->cells_size=%d, pve->lines=%d\n", pve->cells_size, pve->lines_size);
   pve_print(pve);
-  pve_free(pve);
+  PVCell **pvl_root_line = pvl_create_line(pve);
   /**/
 
   if (log_env->log_is_on) {
@@ -323,7 +329,7 @@ game_position_solve (const GamePosition * const root,
 
   result->solved_game_position = game_position_clone(root);
 
-  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64, &root_pv);
+  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64, &root_pv, pvl_root_line);
 
   if (sn) {
     result->principal_variation[0] = sn->move;
@@ -333,10 +339,14 @@ game_position_solve (const GamePosition * const root,
 
   game_tree_log_close(log_env);
 
+  /**/
   printf("\n");
   for (int i = 0; i < root_pv.length; i++) {
     printf("pv[%d]=%s\n", i, square_to_string2(root_pv.moves[i]));
   }
+
+  pve_free(pve);
+  /**/
   
   return result;
 }
@@ -389,7 +399,8 @@ game_position_solve_impl (ExactSolution *const result,
                           const GamePosition  *const gp,
                           const int achievable,
                           const int cutoff,
-                          PrincipalVariationLine_x *parent_pv)
+                          PrincipalVariationLine_x *parent_pv,
+                          PVCell **pvl_parent_line)
 {
   result->node_count++;
   SearchNode *node  = NULL;
@@ -400,6 +411,8 @@ game_position_solve_impl (ExactSolution *const result,
     pv.moves[i] = (Square) -2;
   }
   pv.length = 0;
+
+  PVCell **pvl_line = pvl_create_line(pve);
   /** PV code out **/
 
   if (log_env->log_is_on) {
@@ -424,12 +437,12 @@ game_position_solve_impl (ExactSolution *const result,
   if (0ULL == moves) {
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
-      node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable, &pv));
+      node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable, &pv, pvl_line));
       /** PV code in **/
       parent_pv->moves[0] = (Square) -1;
       memcpy(parent_pv->moves + 1, pv.moves, pv.length * sizeof(Square));
       parent_pv->length = pv.length + 1;
-      //pvl_add_move(pve, pvl_parent_line, (Square) -1);
+      pvl_add_move(pve, pvl_parent_line, (Square) -1);
       /** PV code out **/
     } else {
       result->leaf_count++;
@@ -447,7 +460,7 @@ game_position_solve_impl (ExactSolution *const result,
       const Square move = element->sq;
       if (!node) node = search_node_new(move, achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
-      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pv));
+      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pv, pvl_line));
       gp2 = game_position_free(gp2);
       if (node2->value > node->value) {
         search_node_free(node);
@@ -459,7 +472,7 @@ game_position_solve_impl (ExactSolution *const result,
         parent_pv->moves[0] = move;
         memcpy(parent_pv->moves + 1, pv.moves, pv.length * sizeof(Square));
         parent_pv->length = pv.length + 1;
-        //pvl_add_move(pve, pvl_parent_line, move);
+        pvl_add_move(pve, pvl_parent_line, move);
         /** PV code out **/
       } else {
         node2 = search_node_free(node2);
@@ -472,7 +485,7 @@ game_position_solve_impl (ExactSolution *const result,
   if (log_env->log_is_on) {
     gp_hash_stack_fill_point--;
   }
-  //pvl_delete_line(pve, pvl_line);
+  pvl_delete_line(pve, pvl_line);
   return node;
 }
 
