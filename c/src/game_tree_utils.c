@@ -56,6 +56,14 @@ static void
 pve_print_lines (PVCell *lines[],
                  int lines_size);
 
+static void
+pve_assert (PVEnv *pve);
+
+static gboolean
+pve_is_cell_active(const PVCell *const cell,
+                   PVCell **stack_head,
+                   PVCell **stack_bottom);
+
 
 
 /*
@@ -86,6 +94,7 @@ pve_new (const int cells_size,
          const int lines_size)
 {
   g_assert(cells_size >= 0);
+  g_assert(lines_size >= 0);
 
   static const size_t size_of_pve  = sizeof(PVEnv);
   static const size_t size_of_pvc  = sizeof(PVCell);
@@ -128,7 +137,7 @@ pve_new (const int cells_size,
 PVEnv *
 pve_free (PVEnv *pve)
 {
-  g_assert(pve);
+  pve_assert(pve);
 
   g_free(pve->cells);
   g_free(pve->stack);
@@ -142,6 +151,7 @@ pve_free (PVEnv *pve)
 void
 pve_print (PVEnv *pve)
 {
+  pve_assert(pve);
   printf("pve address: %p\n", (void*) pve);
   printf("pve cells_size: %d\n", pve->cells_size);
   printf("pve lines_size: %d\n", pve->lines_size);
@@ -161,9 +171,8 @@ pve_print (PVEnv *pve)
 PVCell **
 pvl_create_line (PVEnv *pve)
 {
+  pve_assert(pve);
   // debug using ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-9 -s es
-  g_assert(pve->lines_head - pve->lines >= 0);
-  g_assert(pve->lines_head - pve->lines < pve->lines_size);
   printf("pvl_create_line: pve->lines_head=%p\n", (void *) pve->lines_head);
   return pve->lines_head++;
 }
@@ -180,11 +189,8 @@ pvl_add_move (PVEnv *pve,
               PVCell **line,
               Square move)
 {
+  pve_assert(pve);
   // This is the suspect! When we add a move the line is managed properly? mmmmm first add all the proper printf!!!!!
-  g_assert(pve->lines_head - pve->lines >= 0);
-  g_assert(pve->lines_head - pve->lines < pve->lines_size);
-  g_assert(pve->stack_head - pve->stack >= 0);
-  g_assert(pve->stack_head - pve->stack < pve->cells_size);
   PVCell *added_cell = *(pve->stack_head);
   pve->stack_head++;
   added_cell->move = move;
@@ -203,10 +209,7 @@ void
 pvl_delete_line (PVEnv *pve,
                  PVCell **line)
 {
-  g_assert(pve->lines_head - pve->lines >= 0);
-  g_assert(pve->lines_head - pve->lines < pve->lines_size);
-  g_assert(pve->stack_head - pve->stack >= 0);
-  g_assert(pve->stack_head - pve->stack < pve->cells_size);
+  pve_assert(pve);
   PVCell *current = *line;
   printf("  pvl_delete_line: current=%p\n", (void *) current);
   while (current) {
@@ -248,4 +251,36 @@ pve_print_lines (PVCell *lines[],
   for (int i = 0; i < lines_size; i++) {
     printf("lines[%2d]: points_to=%p, address=%p\n", i, (void*) lines[i], (void*) &(lines[i]));
   }
+}
+
+static void
+pve_assert (PVEnv *pve)
+{
+  g_assert(pve);
+  const int lines_in_use_count = pve->lines_head - pve->lines;
+  g_assert(lines_in_use_count >= 0);
+  g_assert(lines_in_use_count < pve->lines_size);
+  g_assert(pve->stack_head - pve->stack >= 0);
+  g_assert(pve->stack_head - pve->stack < pve->cells_size);
+  for (int i = 0; i < lines_in_use_count; i++) {
+    const PVCell *const line_in_use = *(pve->lines + i);
+    if (line_in_use) {
+      g_assert(pve_is_cell_active(line_in_use, pve->stack_head, pve->stack));
+    }
+  }
+}
+
+
+static gboolean
+pve_is_cell_active(const PVCell *const cell,
+                   PVCell **stack_head,
+                   PVCell **stack_bottom)
+{
+  const int stack_in_use_count = stack_head - stack_bottom;
+  g_assert(stack_in_use_count >= 0);
+  for (int i = 0; i < stack_in_use_count; i++) {
+    if (cell == *(stack_bottom + i)) return TRUE;
+  }
+  printf("HAVE TO UNDERSTAND WHAT WRONG!");
+  return FALSE;
 }
