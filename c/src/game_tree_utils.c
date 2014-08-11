@@ -314,5 +314,16 @@ pve_is_cell_active (const PVCell *const cell,
                     PVCell **stack_bottom,
                     int stack_size)
 {
-  return !pve_is_cell_free(cell, stack_head, stack_bottom, stack_size);
+  const gboolean result = !pve_is_cell_free(cell, stack_head, stack_bottom, stack_size);
+  if (!result) {
+    const int stack_in_use_count = stack_head - stack_bottom;
+    const int stack_free_count = stack_size - stack_in_use_count;
+    printf("  pve_is_cell_active: cell=%p, stack_head=%p, stack_bottom=%p, stack_size=%d, stack_in_use_count=%d, stack_free_count=%d\n",
+           (void *) cell, (void *) stack_head, (void *) stack_bottom, stack_size, stack_in_use_count, stack_free_count);
+    for (int i = 0; i < stack_free_count; i++) {
+      printf("  pve_is_cell_active, free_cells: i=%3d, (stack_head + i)=%p, *(stack_head + i)=%p\n",
+             i, (void *) (stack_head + i), (void *) *(stack_head + i));
+    }
+  }
+  return result;
 }
