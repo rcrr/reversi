@@ -317,7 +317,7 @@ game_position_solve (const GamePosition * const root,
   pve = pve_new(20, 8);
   printf("pve->cells_size=%d, pve->lines=%d\n", pve->cells_size, pve->lines_size);
   pve_print(pve);
-  PVCell **pvl_root_line = pvl_create_line(pve);
+  PVCell **pvl_root_line = NULL;
   /**/
 
   if (log_env->log_is_on) {
@@ -412,7 +412,7 @@ game_position_solve_impl (ExactSolution *const result,
   }
   pv.length = 0;
 
-  PVCell **pvl_line = pvl_create_line(pve);
+  PVCell **pvl_line = NULL;
   /** PV code out **/
 
   if (log_env->log_is_on) {
@@ -442,7 +442,6 @@ game_position_solve_impl (ExactSolution *const result,
       parent_pv->moves[0] = (Square) -1;
       memcpy(parent_pv->moves + 1, pv.moves, pv.length * sizeof(Square));
       parent_pv->length = pv.length + 1;
-      pvl_add_move(pve, pvl_parent_line, (Square) -1);
       /** PV code out **/
     } else {
       result->leaf_count++;
@@ -472,7 +471,6 @@ game_position_solve_impl (ExactSolution *const result,
         parent_pv->moves[0] = move;
         memcpy(parent_pv->moves + 1, pv.moves, pv.length * sizeof(Square));
         parent_pv->length = pv.length + 1;
-        pvl_add_move(pve, pvl_parent_line, move);
         /** PV code out **/
       } else {
         node2 = search_node_free(node2);
@@ -485,7 +483,6 @@ game_position_solve_impl (ExactSolution *const result,
   if (log_env->log_is_on) {
     gp_hash_stack_fill_point--;
   }
-  pvl_delete_line(pve, pvl_line);
   return node;
 }
 

@@ -88,5 +88,9 @@ pvl_create_line (PVEnv *pve);
 extern void
 pvl_delete_line (PVEnv *pve,
                  PVCell **line);
+extern void
+pvl_copy_line (PVEnv *pve,
+               PVCell **line,
+               PVCell **parent_line);
 
 #endif /* GAME_TREE_UTILS_H */

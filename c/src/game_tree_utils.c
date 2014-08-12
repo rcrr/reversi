@@ -223,14 +223,32 @@ pvl_delete_line (PVEnv *pve,
   while (current) {
     printf("  pvl_delete_line: current=%p, current->move=%s, current->next=%p\n", (void *) current, square_to_string2(current->move), (void *) current->next);
     pve->stack_head--;
-    printf("  pvl_delete_line: pve->stack_head=%p, *(pve->stack_head)=%p\n", (void *) pve->stack_head, (void *) *(pve->stack_head));
+    //printf("  pvl_delete_line: pve->stack_head=%p, *(pve->stack_head)=%p\n", (void *) pve->stack_head, (void *) *(pve->stack_head));
     *(pve->stack_head) = current;
-    printf("  pvl_delete_line: *(pve->stack_head)=%p\n", (void *) *(pve->stack_head));
+    //printf("  pvl_delete_line: *(pve->stack_head)=%p\n", (void *) *(pve->stack_head));
     current = current->next;
   }
   pve->lines_head--;
-  *(pve->lines_head) = *line;
-  printf("pvl_delete_line: pve->lines_head=%p\n", (void *) pve->lines_head);
+  // it was an error *(pve->lines_head) = *line;
+  printf("pvl_delete_line: pve->lines_head=%p, *(pve->lines_head)=%p, *line=%p\n", (void *) pve->lines_head, (void *) *(pve->lines_head), (void* ) *line);
+  *line = NULL;
+}
+
+void
+pvl_copy_line (PVEnv *pve,
+               PVCell **from_line,
+               PVCell **to_line)
+{
+  pve_assert(pve);
+  PVCell *previous = *to_line;
+  for (const PVCell *c = *from_line; c != NULL; c = c->next) {
+    PVCell *target_cell = *(pve->stack_head);
+    pve->stack_head++;
+    target_cell->move = c->move;
+    target_cell->next = NULL;
+    previous = target_cell;
+    previous = previous->next;
+  }
 }
 
 /*
@@ -275,10 +293,13 @@ pve_assert (PVEnv *pve)
   g_assert(stack_in_use_count >= 0);
   g_assert(stack_in_use_count < pve->cells_size);
   for (int i = 0; i < lines_in_use_count; i++) {
-    const PVCell *const line_in_use = *(pve->lines + i);
-    if (line_in_use) {
-      g_assert(pve_is_cell_active(line_in_use, pve->stack_head, pve->stack, pve->cells_size));
+    const PVCell *const cell = *(pve->lines + i);
+    printf("pve_assert: line_address=%p, cell=%p", (void *) (pve->lines + i), (void *) cell);
+    for (const PVCell *c = cell; c != NULL; c = c->next) {
+      printf("(c=%p, m=%s, n=%p)", (void *) c, square_to_string2(c->move), (void *) c->next);
+      g_assert(pve_is_cell_active(c, pve->stack_head, pve->stack, pve->cells_size));
     }
+    printf("\n");
   }
 }
 
