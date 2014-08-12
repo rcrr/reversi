@@ -52,13 +52,14 @@ typedef struct PVCell_ {
  * @brief A principal variation environment.
  */
 typedef struct {
-  int      cells_size;   /**< @brief The count of cells contained by the cells array. */
-  PVCell  *cells;        /**< @brief The pointer to the array of cells. */
-  PVCell **stack;        /**< @brief The pointer to the array of pointers used to manage the cells. */
-  PVCell **stack_head;   /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
-  int      lines_size;   /**< @brief The count of lines contained by the lines array. */
-  PVCell **lines;        /**< @brief The pointer to the array of pointers used as a reference of the head of a cell-list. */
-  PVCell **lines_head;   /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
+  int       cells_size;         /**< @brief The count of cells contained by the cells array. */
+  PVCell   *cells;              /**< @brief The pointer to the array of cells. */
+  PVCell  **cells_stack;        /**< @brief The pointer to the array of pointers used to manage the cells. */
+  PVCell  **cells_stack_head;   /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
+  int       lines_size;         /**< @brief The count of lines contained by the lines array. */
+  PVCell  **lines;              /**< @brief The pointer to the array of pointers used as a reference of the head of a cell-list. */
+  PVCell ***lines_stack;        /**< @brief The pointer to an array of pointers used to manage the lines. */
+  PVCell ***lines_stack_head;   /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
 } PVEnv;
 
 
@@ -92,5 +93,9 @@ extern void
 pvl_copy_line (PVEnv *pve,
                PVCell **line,
                PVCell **parent_line);
+
+extern void
+pvl_print_line (PVEnv *pve,
+                PVCell **line);
 
 #endif /* GAME_TREE_UTILS_H */

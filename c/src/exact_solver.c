@@ -317,7 +317,7 @@ game_position_solve (const GamePosition * const root,
   pve = pve_new(20, 8);
   printf("pve->cells_size=%d, pve->lines=%d\n", pve->cells_size, pve->lines_size);
   pve_print(pve);
-  PVCell **pvl_root_line = NULL;
+  PVCell **pvl_root_line = pvl_create_line(pve);
   /**/
 
   if (log_env->log_is_on) {
@@ -435,6 +435,7 @@ game_position_solve_impl (ExactSolution *const result,
 
   const SquareSet moves = game_position_legal_moves(gp);
   if (0ULL == moves) {
+    pvl_line = pvl_create_line(pve);
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
       node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable, &pv, pvl_line));
@@ -450,6 +451,8 @@ game_position_solve_impl (ExactSolution *const result,
       /** PV code out **/
       node = search_node_new((Square) -1, game_position_final_value(gp));
     }
+    pvl_delete_line(pve, pvl_parent_line);
+    pvl_parent_line = pvl_line;
     flipped_players = game_position_free(flipped_players);
   } else {
     MoveList move_list;
@@ -459,6 +462,7 @@ game_position_solve_impl (ExactSolution *const result,
       const Square move = element->sq;
       if (!node) node = search_node_new(move, achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
+      pvl_line = pvl_create_line(pve);
       node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pv, pvl_line));
       gp2 = game_position_free(gp2);
       if (node2->value > node->value) {
@@ -466,6 +470,11 @@ game_position_solve_impl (ExactSolution *const result,
         node = node2;
         node->move = move;
         node2 = NULL;
+
+        pvl_add_move (pve, pvl_line, move);
+        pvl_delete_line(pve, pvl_parent_line);
+        printf("SWAP LINES: pvl_parent_line=%p, pvl_line=%p\n", (void *) pvl_parent_line, (void *) pvl_line);
+        pvl_parent_line = pvl_line;
         if (node->value >= cutoff) goto out;
         /** PV code in **/
         parent_pv->moves[0] = move;
@@ -474,6 +483,7 @@ game_position_solve_impl (ExactSolution *const result,
         /** PV code out **/
       } else {
         node2 = search_node_free(node2);
+        pvl_delete_line(pve, pvl_line);
       }
     }
   }
@@ -483,6 +493,8 @@ game_position_solve_impl (ExactSolution *const result,
   if (log_env->log_is_on) {
     gp_hash_stack_fill_point--;
   }
+  printf("RETURNING: node->move=%s, node->value=%d, ", square_to_string2(node->move), node->value);
+  pvl_print_line(pve, pvl_parent_line);
   return node;
 }
 

@@ -61,14 +61,14 @@ pve_assert (PVEnv *pve);
 
 static gboolean
 pve_is_cell_free (const PVCell *const cell,
-                  PVCell **stack_head,
-                  PVCell **stack_bottom,
+                  PVCell **cells_stack_head,
+                  PVCell **cells_stack_bottom,
                   int stack_size);
 
 static gboolean
 pve_is_cell_active (const PVCell *const cell,
-                    PVCell **stack_head,
-                    PVCell **stack_bottom,
+                    PVCell **cells_stack_head,
+                    PVCell **cells_stack_bottom,
                     int stack_size);
 
 
@@ -103,9 +103,10 @@ pve_new (const int cells_size,
   g_assert(cells_size >= 0);
   g_assert(lines_size >= 0);
 
-  static const size_t size_of_pve  = sizeof(PVEnv);
-  static const size_t size_of_pvc  = sizeof(PVCell);
-  static const size_t size_of_pvcp = sizeof(PVCell*);
+  static const size_t size_of_pve   = sizeof(PVEnv);
+  static const size_t size_of_pvc   = sizeof(PVCell);
+  static const size_t size_of_pvcp  = sizeof(PVCell*);
+  static const size_t size_of_pvcpp = sizeof(PVCell**);
 
   PVEnv *const pve = (PVEnv*) malloc(size_of_pve);
   g_assert(pve);
@@ -113,21 +114,24 @@ pve_new (const int cells_size,
   pve->cells_size = cells_size;
   pve->cells = (PVCell*)  malloc(cells_size * size_of_pvc);
 
-  pve->stack = (PVCell**) malloc(cells_size * size_of_pvcp);
-  pve->stack_head = pve->stack;
+  pve->cells_stack = (PVCell**) malloc(cells_size * size_of_pvcp);
+  pve->cells_stack_head = pve->cells_stack;
 
   for (int i = 0; i < cells_size; i++) {
     (pve->cells + i)->move = (Square) -2; 
     (pve->cells + i)->next = NULL;
-    *(pve->stack + i) = pve->cells + i;
+    *(pve->cells_stack + i) = pve->cells + i;
   }
   
   pve->lines_size = lines_size;
   pve->lines = (PVCell**) malloc(lines_size * size_of_pvcp);
+  pve->lines_stack = (PVCell***) malloc(lines_size * size_of_pvcpp);
+
   for (int i = 0; i < lines_size; i++) {
     *(pve->lines + i) = NULL;
+    *(pve->lines_stack + i) = pve->lines + i;
   }
-  pve->lines_head = pve->lines;
+  pve->lines_stack_head = pve->lines_stack;
   
   return pve;
 }
@@ -147,8 +151,9 @@ pve_free (PVEnv *pve)
   pve_assert(pve);
 
   g_free(pve->cells);
-  g_free(pve->stack);
+  g_free(pve->cells_stack);
   g_free(pve->lines);
+  g_free(pve->lines_stack);
   g_free(pve);
   pve = NULL;
 
@@ -162,10 +167,10 @@ pve_print (PVEnv *pve)
   printf("pve address: %p\n", (void*) pve);
   printf("pve cells_size: %d\n", pve->cells_size);
   printf("pve lines_size: %d\n", pve->lines_size);
-  printf("pve stack_head: points_to=%p\n", (void*) pve->stack_head);
-  printf("pve lines_head: points_to=%p\n", (void*) pve->lines_head);
+  printf("pve cells_stack_head: points_to=%p\n", (void*) pve->cells_stack_head);
+  printf("pve lines_stack_head: points_to=%p\n", (void*) pve->lines_stack_head);
   pve_print_cells(pve->cells, pve->cells_size);
-  pve_print_stack(pve->stack, pve->cells_size);
+  pve_print_stack(pve->cells_stack, pve->cells_size);
   pve_print_lines(pve->lines, pve->lines_size);
 }
 
@@ -180,8 +185,8 @@ pvl_create_line (PVEnv *pve)
 {
   pve_assert(pve);
   // debug using ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-9 -s es
-  printf("pvl_create_line: pve->lines_head=%p\n", (void *) pve->lines_head);
-  return pve->lines_head++;
+  printf("pvl_create_line: pve->lines_stack_head=%p, *(pve->lines_stack_head)=%p\n", (void *) pve->lines_stack_head, (void *) *(pve->lines_stack_head));
+  return *(pve->lines_stack_head++);
 }
 
 /**
@@ -198,8 +203,8 @@ pvl_add_move (PVEnv *pve,
 {
   pve_assert(pve);
   // This is the suspect! When we add a move the line is managed properly? mmmmm first add all the proper printf!!!!!
-  PVCell *added_cell = *(pve->stack_head);
-  pve->stack_head++;
+  PVCell *added_cell = *(pve->cells_stack_head);
+  pve->cells_stack_head++;
   added_cell->move = move;
   added_cell->next = *line;
   *line = added_cell;
@@ -208,7 +213,7 @@ pvl_add_move (PVEnv *pve,
 }
 
 /**
- * @brief Deletes the `line` and returns cells to the stack.
+ * @brief Deletes the `line` and returns cells to the cell stack.
  *
  * @param [in] pve  a pointer to the principal variatin line sructure
  * @param [in] line a pointer to the head of the line to be deleted
@@ -222,15 +227,13 @@ pvl_delete_line (PVEnv *pve,
   printf("  pvl_delete_line: line=%p\n", (void *) line);
   while (current) {
     printf("  pvl_delete_line: current=%p, current->move=%s, current->next=%p\n", (void *) current, square_to_string2(current->move), (void *) current->next);
-    pve->stack_head--;
-    //printf("  pvl_delete_line: pve->stack_head=%p, *(pve->stack_head)=%p\n", (void *) pve->stack_head, (void *) *(pve->stack_head));
-    *(pve->stack_head) = current;
-    //printf("  pvl_delete_line: *(pve->stack_head)=%p\n", (void *) *(pve->stack_head));
+    pve->cells_stack_head--;
+    *(pve->cells_stack_head) = current;
     current = current->next;
   }
-  pve->lines_head--;
-  // it was an error *(pve->lines_head) = *line;
-  printf("pvl_delete_line: pve->lines_head=%p, *(pve->lines_head)=%p, *line=%p\n", (void *) pve->lines_head, (void *) *(pve->lines_head), (void* ) *line);
+  pve->lines_stack_head--;
+  *(pve->lines_stack_head) = line;
+  printf("pvl_delete_line: pve->lines_stack_head=%p, *(pve->lines_stack_head)=%p, *line=%p\n", (void *) pve->lines_stack_head, (void *) *(pve->lines_stack_head), (void* ) *line);
   *line = NULL;
 }
 
@@ -242,13 +245,24 @@ pvl_copy_line (PVEnv *pve,
   pve_assert(pve);
   PVCell *previous = *to_line;
   for (const PVCell *c = *from_line; c != NULL; c = c->next) {
-    PVCell *target_cell = *(pve->stack_head);
-    pve->stack_head++;
+    PVCell *target_cell = *(pve->cells_stack_head);
+    pve->cells_stack_head++;
     target_cell->move = c->move;
     target_cell->next = NULL;
     previous = target_cell;
     previous = previous->next;
   }
+}
+
+void
+pvl_print_line (PVEnv *pve,
+                PVCell **line)
+{
+  printf("pvl_print_line: line_address=%p, first_cell=%p", (void *) line, (void *) *line);
+  for (const PVCell *c = *line; c != NULL; c = c->next) {
+    printf("(c=%p, m=%s, n=%p)", (void *) c, square_to_string2(c->move), (void *) c->next);
+  }
+  printf("\n");
 }
 
 /*
@@ -286,8 +300,8 @@ static void
 pve_assert (PVEnv *pve)
 {
   g_assert(pve);
-  const int lines_in_use_count = pve->lines_head - pve->lines;
-  const int stack_in_use_count = pve->stack_head - pve->stack;
+  const int lines_in_use_count = pve->lines_stack_head - pve->lines_stack;
+  const int stack_in_use_count = pve->cells_stack_head - pve->cells_stack;
   g_assert(lines_in_use_count >= 0);
   g_assert(lines_in_use_count < pve->lines_size);
   g_assert(stack_in_use_count >= 0);
@@ -297,7 +311,7 @@ pve_assert (PVEnv *pve)
     printf("pve_assert: line_address=%p, cell=%p", (void *) (pve->lines + i), (void *) cell);
     for (const PVCell *c = cell; c != NULL; c = c->next) {
       printf("(c=%p, m=%s, n=%p)", (void *) c, square_to_string2(c->move), (void *) c->next);
-      g_assert(pve_is_cell_active(c, pve->stack_head, pve->stack, pve->cells_size));
+      g_assert(pve_is_cell_active(c, pve->cells_stack_head, pve->cells_stack, pve->cells_size));
     }
     printf("\n");
   }
@@ -306,44 +320,36 @@ pve_assert (PVEnv *pve)
 
 static gboolean
 pve_is_cell_free (const PVCell *const cell,
-                  PVCell **stack_head,
-                  PVCell **stack_bottom,
-                  int stack_size)
+                  PVCell **cells_stack_head,
+                  PVCell **cells_stack_bottom,
+                  int cells_size)
 {
-  const int stack_in_use_count = stack_head - stack_bottom;
-  g_assert(stack_in_use_count >= 0);
-  const int stack_free_count = stack_size - stack_in_use_count;
-  g_assert(stack_free_count >= 0);
-  for (int i = 0; i < stack_free_count; i++) {
-    if (cell == *(stack_head + i)) return TRUE;
+  const int cells_in_use_count = cells_stack_head - cells_stack_bottom;
+  g_assert(cells_in_use_count >= 0);
+  const int cells_free_count = cells_size - cells_in_use_count;
+  g_assert(cells_free_count >= 0);
+  for (int i = 0; i < cells_free_count; i++) {
+    if (cell == *(cells_stack_head + i)) return TRUE;
   }
-  /*
-  printf("  pve_is_cell_free: cell=%p, stack_in_use_count=%d, stack_head=%p, stack_bottom=%p, stack_size=%d, stack_free_count=%d\n",
-         (void *) cell, stack_in_use_count, (void *) stack_head, (void *) stack_bottom, stack_size, stack_free_count);
-  for (int i = 0; i < stack_free_count; i++) {
-    printf("  pve_is_cell_free: i=%d, (stack_head + i)=%p, *(stack_headg + i)=%p\n",
-           i, (void *) (stack_head + i), (void *) *(stack_head + i));
-  }
-  */
   return FALSE;
 }
 
 
 static gboolean
 pve_is_cell_active (const PVCell *const cell,
-                    PVCell **stack_head,
-                    PVCell **stack_bottom,
-                    int stack_size)
+                    PVCell **cells_stack_head,
+                    PVCell **cells_stack_bottom,
+                    int cells_size)
 {
-  const gboolean result = !pve_is_cell_free(cell, stack_head, stack_bottom, stack_size);
+  const gboolean result = !pve_is_cell_free(cell, cells_stack_head, cells_stack_bottom, cells_size);
   if (!result) {
-    const int stack_in_use_count = stack_head - stack_bottom;
-    const int stack_free_count = stack_size - stack_in_use_count;
-    printf("  pve_is_cell_active: cell=%p, stack_head=%p, stack_bottom=%p, stack_size=%d, stack_in_use_count=%d, stack_free_count=%d\n",
-           (void *) cell, (void *) stack_head, (void *) stack_bottom, stack_size, stack_in_use_count, stack_free_count);
-    for (int i = 0; i < stack_free_count; i++) {
-      printf("  pve_is_cell_active, free_cells: i=%3d, (stack_head + i)=%p, *(stack_head + i)=%p\n",
-             i, (void *) (stack_head + i), (void *) *(stack_head + i));
+    const int cells_in_use_count = cells_stack_head - cells_stack_bottom;
+    const int cells_free_count = cells_size - cells_in_use_count;
+    printf("  pve_is_cell_active: cell=%p, cells_stack_head=%p, cells_stack_bottom=%p, cells_size=%d, cells_in_use_count=%d, cells_free_count=%d\n",
+           (void *) cell, (void *) cells_stack_head, (void *) cells_stack_bottom, cells_size, cells_in_use_count, cells_free_count);
+    for (int i = 0; i < cells_free_count; i++) {
+      printf("  pve_is_cell_active, free_cells: i=%3d, (cells_stack_head + i)=%p, *(cells_stack_head + i)=%p\n",
+             i, (void *) (cells_stack_head + i), (void *) *(cells_stack_head + i));
     }
   }
   return result;
