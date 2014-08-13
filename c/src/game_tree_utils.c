@@ -134,7 +134,7 @@ pve_new (const int empty_count)
   pve->cells_stack_head = pve->cells_stack;
 
   for (int i = 0; i < cells_size; i++) {
-    (pve->cells + i)->move = (Square) -2; 
+    (pve->cells + i)->move = invalid_move; 
     (pve->cells + i)->next = NULL;
     *(pve->cells_stack + i) = pve->cells + i;
   }
@@ -238,7 +238,7 @@ pvl_add_move (PVEnv *pve,
   added_cell->next = *line;
   *line = added_cell;
   printf("pvl_add_move: line=%p, added_cell->move=%s, added_cell->next=%p, added_cell=%p\n",
-         (void *) line, square_to_string2(move), (void *) added_cell->next, (void *) added_cell);
+         (void *) line, square_as_move_to_string2(move), (void *) added_cell->next, (void *) added_cell);
 }
 
 /**
@@ -255,7 +255,7 @@ pvl_delete_line (PVEnv *pve,
   PVCell *current = *line;
   printf("  pvl_delete_line: line=%p\n", (void *) line);
   while (current) {
-    printf("  pvl_delete_line: current=%p, current->move=%s, current->next=%p\n", (void *) current, square_to_string2(current->move), (void *) current->next);
+    printf("  pvl_delete_line: current=%p, current->move=%s, current->next=%p\n", (void *) current, square_as_move_to_string2(current->move), (void *) current->next);
     pve->cells_stack_head--;
     *(pve->cells_stack_head) = current;
     current = current->next;
@@ -290,7 +290,7 @@ pvl_print_line (PVEnv *pve,
   printf("pvl_print_line: line_address=%p, first_cell=%p", (void *) line, (void *) *line);
   if (*line) printf(", chain: ");
   for (const PVCell *c = *line; c != NULL; c = c->next) {
-    printf("(c=%p, m=%s, n=%p)", (void *) c, square_to_string2(c->move), (void *) c->next);
+    printf("(c=%p, m=%s, n=%p)", (void *) c, square_as_move_to_string2(c->move), (void *) c->next);
   }
   printf("\n");
 }
@@ -350,7 +350,7 @@ pve_assert (PVEnv *pve)
     const PVCell *const cell = *(pve->lines + i);
     printf("pve_assert: line_address=%p, cell=%p", (void *) (pve->lines + i), (void *) cell);
     for (const PVCell *c = cell; c != NULL; c = c->next) {
-      printf("(c=%p, m=%s, n=%p)", (void *) c, square_to_string2(c->move), (void *) c->next);
+      printf("(c=%p, m=%s, n=%p)", (void *) c, square_as_move_to_string2(c->move), (void *) c->next);
       g_assert(pve_is_cell_active(pve, c));
     }
     printf("\n");

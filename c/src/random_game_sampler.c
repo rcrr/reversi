@@ -192,7 +192,7 @@ game_position_random_sampler_impl (      ExactSolution * const result,
     }
   } else { // game-over
     result->leaf_count++;
-    node = search_node_new((Square) -1, game_position_final_value(gp));
+    node = search_node_new(pass_move, game_position_final_value(gp));
   }
 
   if (log_env->log_is_on) {

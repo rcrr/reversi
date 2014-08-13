@@ -174,7 +174,7 @@ game_position_solve_impl (      ExactSolution * const result,
       node = search_node_negated(game_position_solve_impl(result, flipped_players));
     } else {
       result->leaf_count++;
-      node = search_node_new((Square) -1, game_position_final_value(gp));
+      node = search_node_new(pass_move, game_position_final_value(gp));
     }
     flipped_players = game_position_free(flipped_players);
   } else {

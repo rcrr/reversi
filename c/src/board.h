@@ -199,6 +199,11 @@ static const SquareSet empty_square_set = 0ULL;
  */
 static const Square pass_move = (Square) -1;
 
+/**
+ * @brief The invalid move.
+ */
+static const Square invalid_move = (Square) -2;
+
 
 
 /**********************************************/

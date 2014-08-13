@@ -408,7 +408,7 @@ game_position_solve_impl (ExactSolution *const result,
   /** PV code in **/
   PrincipalVariationLine_x pv;
   for (int i = 0; i < 64; i++) {
-    pv.moves[i] = (Square) -2;
+    pv.moves[i] = invalid_move;
   }
   pv.length = 0;
 
@@ -441,7 +441,7 @@ game_position_solve_impl (ExactSolution *const result,
     if (game_position_has_any_legal_move(flipped_players)) {
       node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable, &pv, pvl_line));
       /** PV code in **/
-      parent_pv->moves[0] = (Square) -1;
+      parent_pv->moves[0] = pass_move;
       memcpy(parent_pv->moves + 1, pv.moves, pv.length * sizeof(Square));
       parent_pv->length = pv.length + 1;
       /** PV code out **/
@@ -450,7 +450,7 @@ game_position_solve_impl (ExactSolution *const result,
       /** PV code in **/
       parent_pv->length = 0;
       /** PV code out **/
-      node = search_node_new((Square) -1, game_position_final_value(gp));
+      node = search_node_new(pass_move, game_position_final_value(gp));
     }
     pvl_delete_line(pve, pvl_parent_line);
     pvl_parent_line = pvl_line;
