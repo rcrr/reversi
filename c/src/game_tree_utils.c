@@ -86,22 +86,30 @@ pve_is_cell_active (const PVCell *const cell,
 /**
  * @brief PVEnv structure constructor.
  *
- * An assertion checks that the received pointer to the allocated
- * principal variation line structure is not `NULL`.
+ * @detail The sizing of the structure's components is done taking into account
+ * a worst case scenario, where every disc put on the board can cost two search
+ * levels, one for the move and one for a potential pass, plus two extra slots
+ * are reserved if the minimax algorithm check the leaf condition consuming two
+ * consecutive pass moves.
+ * These assumptions can be unrealistic, but are the only one that fit all the conditions.
  *
- * @invariant Parameter `cells_size` cannot be negative. 
+ * Assertions check that the received pointers to the allocated
+ * structures are not `NULL`.
+ *
+ * @invariant Parameter `empty_count` cannot be negative. 
  * The invariant is guarded by an assertion.
  *
- * @param [in] cells_size the number of the cells available in the env structure
- * @param [in] lines_size the number of the lines available in the env structure
- * @return                a pointer to a new principal variation env structure
+ * @param [in] empty_count the number of empty cells in the board, or the expected depth
+ *                         for the search 
+ * @return                 a pointer to a new principal variation env structure
  */
 PVEnv *
-pve_new (const int cells_size,
-         const int lines_size)
+pve_new (const int empty_count)
 {
-  g_assert(cells_size >= 0);
-  g_assert(lines_size >= 0);
+  g_assert(empty_count >= 0);
+  const int levels = 2 * (empty_count + 1);
+  const int cells_size = (levels * (levels + 1)) / 2;
+  const int lines_size = levels;
 
   static const size_t size_of_pve   = sizeof(PVEnv);
   static const size_t size_of_pvc   = sizeof(PVCell);

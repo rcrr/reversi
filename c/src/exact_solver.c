@@ -314,7 +314,7 @@ game_position_solve (const GamePosition * const root,
   log_env = game_tree_log_init(log_file);
 
   /**/
-  pve = pve_new(20, 8);
+  pve = pve_new(game_position_empty_count(root));
   printf("pve->cells_size=%d, pve->lines=%d\n", pve->cells_size, pve->lines_size);
   pve_print(pve);
   PVCell **pvl_root_line = pvl_create_line(pve);

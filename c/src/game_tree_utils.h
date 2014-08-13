@@ -69,8 +69,7 @@ typedef struct {
 /**************************************************/
 
 extern PVEnv *
-pve_new (const int cells_size,
-         const int lines_size);
+pve_new (const int empty_count);
 
 extern PVEnv *
 pve_free (PVEnv *pve);

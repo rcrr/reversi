@@ -1716,6 +1716,18 @@ game_position_final_value (const GamePosition *const gp)
   return board_count_diff_winner_get_empties(gp->board, gp->player);
 }
 
+/**
+ * @brief Returns the count of empty discs.
+ *
+ * @param [in] gp a pointer to the game position structure
+ * @return        the empty count
+ */
+int
+game_position_empty_count (const GamePosition *const gp)
+{
+  return bit_works_popcount(board_empties(gp->board));
+}
+
 
 
 /**********************************************************/
