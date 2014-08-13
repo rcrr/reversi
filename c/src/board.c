@@ -60,8 +60,8 @@ direction_shift_back_square_set_by_amount (const Direction dir,
  * Internal variables and constants.
  */
 
-/* Array used for conversion between square and its string representation. */
-static const gchar *const sq_to_s[65] = {
+/* Array used for conversion between square/move and its string representation. */
+static const gchar *const sq_to_s[66] = {
   "A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1",
   "A2", "B2", "C2", "D2", "E2", "F2", "G2", "H2",
   "A3", "B3", "C3", "D3", "E3", "F3", "G3", "H3",
@@ -70,7 +70,7 @@ static const gchar *const sq_to_s[65] = {
   "A6", "B6", "C6", "D6", "E6", "F6", "G6", "H6",
   "A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7",
   "A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8",
-  "NA"
+  "--", "NA"
 };
 
 /* A square set being all set with the exception of column A. */
@@ -251,7 +251,25 @@ square_to_string2 (const Square sq)
   if (sq >= A1 && sq <= H8) {
     return sq_to_s[sq];
   } else {
-    return sq_to_s[64]; // NA
+    return sq_to_s[65]; // NA
+  }
+}
+
+/**
+ * @brief Returns a string representation for the move.
+ *
+ * The returned string cannot be changed and must not be deallocated.
+ *
+ * @param [in] move the move
+ * @return          a string of two chars representing the move
+ */
+const gchar const *
+square_as_move_to_string2 (const Square move)
+{
+  if (move == pass_move) {
+    return sq_to_s[64]; // --
+  } else {
+    return square_to_string2(move);
   }
 }
 

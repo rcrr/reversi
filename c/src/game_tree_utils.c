@@ -64,28 +64,20 @@ static void
 pve_assert (PVEnv *pve);
 
 static gboolean
-pve_is_cell_free (const PVCell *const cell,
-                  PVCell **cells_stack_head,
-                  PVCell **cells_stack_bottom,
-                  int stack_size);
+pve_is_cell_free (const PVEnv *const pve,
+                  const PVCell *const cell);
 
 static gboolean
-pve_is_cell_active (const PVCell *const cell,
-                    PVCell **cells_stack_head,
-                    PVCell **cells_stack_bottom,
-                    int stack_size);
+pve_is_cell_active (const PVEnv *const pve,
+                    const PVCell *const cell);
 
 static gboolean
-pve_is_line_free (PVCell **line,
-                  PVCell ***lines_stack_head,
-                  PVCell ***lines_stack_bottom,
-                  int lines_size);
+pve_is_line_free (const PVEnv *const pve,
+                  PVCell **line);
 
 static gboolean
-pve_is_line_active (PVCell **line,
-                    PVCell ***lines_stack_head,
-                    PVCell ***lines_stack_bottom,
-                    int lines_size);
+pve_is_line_active (const PVEnv *const pve,
+                    PVCell **line);
 
 
 
@@ -200,8 +192,9 @@ pve_print (PVEnv *pve)
   printf("pve: line_in_use_count=%d, cell_in_use_count=%d\n", line_in_use_count, cell_in_use_count);
   for (int i = 0; i < pve->lines_size; i++) {
     PVCell **line = pve->lines + i;
-    printf("line=%p\n", (void *) line);
-    //if (pve_is_line_active(line,));
+    if (pve_is_line_active(pve, line)) {
+      pvl_print_line(pve, line);
+    }
   }
 
   pve_print_cells(pve->cells, pve->cells_size);
@@ -295,6 +288,7 @@ pvl_print_line (PVEnv *pve,
                 PVCell **line)
 {
   printf("pvl_print_line: line_address=%p, first_cell=%p", (void *) line, (void *) *line);
+  if (*line) printf(", chain: ");
   for (const PVCell *c = *line; c != NULL; c = c->next) {
     printf("(c=%p, m=%s, n=%p)", (void *) c, square_to_string2(c->move), (void *) c->next);
   }
@@ -310,7 +304,8 @@ pve_print_cells (PVCell cells[],
                  int cells_size)
 {
   for (int i = 0; i < cells_size; i++) {
-    printf("cells[%4d]: move=%d, next=%p, address=%p\n", i, cells[i].move, (void*) cells[i].next, (void*) &cells[i]);
+    printf("cells[%4d]: move=%s, next=%p, address=%p\n",
+           i, square_as_move_to_string2(cells[i].move), (void*) cells[i].next, (void*) &cells[i]);
   }
 }
 
@@ -356,60 +351,50 @@ pve_assert (PVEnv *pve)
     printf("pve_assert: line_address=%p, cell=%p", (void *) (pve->lines + i), (void *) cell);
     for (const PVCell *c = cell; c != NULL; c = c->next) {
       printf("(c=%p, m=%s, n=%p)", (void *) c, square_to_string2(c->move), (void *) c->next);
-      g_assert(pve_is_cell_active(c, pve->cells_stack_head, pve->cells_stack, pve->cells_size));
+      g_assert(pve_is_cell_active(pve, c));
     }
     printf("\n");
   }
 }
 
 
-// MUST ALL be transformed in (pve, cell).....
-
 static gboolean
-pve_is_cell_free (const PVCell *const cell,
-                  PVCell **cells_stack_head,
-                  PVCell **cells_stack_bottom,
-                  int cells_size)
+pve_is_cell_free (const PVEnv *const pve,
+                  const PVCell *const cell)
 {
-  const int cell_in_use_count = cells_stack_head - cells_stack_bottom;
-  const int cell_free_count = cells_size - cell_in_use_count;
+  const int cell_in_use_count = pve->cells_stack_head - pve->cells_stack;
+  const int cell_free_count = pve->cells_size - cell_in_use_count;
   for (int i = 0; i < cell_free_count; i++) {
-    if (cell == *(cells_stack_head + i)) return TRUE;
+    if (cell == *(pve->cells_stack_head + i)) return TRUE;
   }
   return FALSE;
 }
 
 
 static gboolean
-pve_is_cell_active (const PVCell *const cell,
-                    PVCell **cells_stack_head,
-                    PVCell **cells_stack_bottom,
-                    int cells_size)
+pve_is_cell_active (const PVEnv *const pve,
+                    const PVCell *const cell)
 {
-  return !pve_is_cell_free(cell, cells_stack_head, cells_stack_bottom, cells_size);
+  return !pve_is_cell_free(pve, cell);
 }
 
 
 static gboolean
-pve_is_line_free (PVCell **line,
-                  PVCell ***lines_stack_head,
-                  PVCell ***lines_stack_bottom,
-                  int lines_size)
+pve_is_line_free (const PVEnv *const pve,
+                  PVCell **line)
 {
-  const int line_in_use_count = lines_stack_head - lines_stack_bottom;
-  const int line_free_count = lines_size - line_in_use_count;
+  const int line_in_use_count = pve->lines_stack_head - pve->lines_stack;
+  const int line_free_count = pve->lines_size - line_in_use_count;
   for (int i = 0; i < line_free_count; i++) {
-    if (line == *(lines_stack_head + i)) return TRUE;
+    if (line == *(pve->lines_stack_head + i)) return TRUE;
   }
   return FALSE;
 }
 
 
 static gboolean
-pve_is_line_active (PVCell **line,
-                    PVCell ***lines_stack_head,
-                    PVCell ***lines_stack_bottom,
-                    int lines_size)
+pve_is_line_active (const PVEnv *const pve,
+                    PVCell **line)
 {
-  return !pve_is_line_free(line, lines_stack_head, lines_stack_bottom, lines_size);
+  return !pve_is_line_free(pve, line);
 }

@@ -194,6 +194,11 @@ typedef struct {
  */
 static const SquareSet empty_square_set = 0ULL;
 
+/**
+ * @brief The pass move.
+ */
+static const Square pass_move = (Square) -1;
+
 
 
 /**********************************************/
@@ -214,6 +219,9 @@ square_to_string (const Square sq);
 
 extern const gchar const *
 square_to_string2 (const Square sq);
+
+extern const gchar const *
+square_as_move_to_string2 (const Square move);
 
 extern gchar *
 square_array_to_string (const Square sqa[],

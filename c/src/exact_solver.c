@@ -412,6 +412,7 @@ game_position_solve_impl (ExactSolution *const result,
   }
   pv.length = 0;
 
+  pve_print(pve);
   PVCell **pvl_line = NULL;
   /** PV code out **/
 
