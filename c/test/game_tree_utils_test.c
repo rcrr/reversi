@@ -43,7 +43,7 @@
 /* Test function prototypes. */
 
 static void dummy_test (void);
-
+static void pve_create_test (void);
 
 
 int
@@ -52,7 +52,8 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
 
-  g_test_add_func("/bit_works/dummy", dummy_test);
+  g_test_add_func("/game_tree_utils/dummy", dummy_test);
+  g_test_add_func("/game_tree_utils/pve_create_test", pve_create_test);
 
   return g_test_run();
 }
@@ -67,5 +68,19 @@ static void
 dummy_test (void)
 {
   g_assert(TRUE);
+}
+
+static void
+pve_create_test (void)
+{
+  PVEnv *pve;
+
+  pve = pve_new(60);
+  pve = pve_free(pve);
+  g_assert(pve == NULL);
+
+  pve = pve_new(0);
+  pve = pve_free(pve);
+  g_assert(pve == NULL);
 }
 
