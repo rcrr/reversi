@@ -206,7 +206,7 @@ pve_print (PVEnv *pve)
 /**
  * @brief Returns a free line pointer
  *
- * @param [in] pve a pointer to the principal variatin line structure
+ * @param [in] pve a pointer to the principal variation environment
  * @return         a pointer to the next free pointers in the lines array
  */
 PVCell **

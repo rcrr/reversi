@@ -85,7 +85,7 @@ game_position_solve_impl (ExactSolution *const result,
                           const int achievable,
                           const int cutoff,
                           PrincipalVariationLine_x *parent_pv,
-                          PVCell **pvl_parent_line);
+                          PVCell ***pvl_parent_line_p);
 
 static void
 move_list_init (MoveList *ml);
@@ -329,7 +329,7 @@ game_position_solve (const GamePosition * const root,
 
   result->solved_game_position = game_position_clone(root);
 
-  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64, &root_pv, pvl_root_line);
+  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64, &root_pv, &pvl_root_line);
 
   if (sn) {
     result->principal_variation[0] = sn->move;
@@ -345,6 +345,8 @@ game_position_solve (const GamePosition * const root,
     printf("pv[%d]=%s\n", i, square_to_string2(root_pv.moves[i]));
   }
 
+  pve_print(pve);
+  pvl_print_line(pve, pvl_root_line);
   pve_free(pve);
   /**/
   
@@ -400,7 +402,7 @@ game_position_solve_impl (ExactSolution *const result,
                           const int achievable,
                           const int cutoff,
                           PrincipalVariationLine_x *parent_pv,
-                          PVCell **pvl_parent_line)
+                          PVCell ***pvl_parent_line_p)
 {
   result->node_count++;
   SearchNode *node  = NULL;
@@ -439,7 +441,7 @@ game_position_solve_impl (ExactSolution *const result,
     pvl_line = pvl_create_line(pve);
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
-      node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable, &pv, pvl_line));
+      node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable, &pv, &pvl_line));
       /** PV code in **/
       parent_pv->moves[0] = pass_move;
       memcpy(parent_pv->moves + 1, pv.moves, pv.length * sizeof(Square));
@@ -452,8 +454,8 @@ game_position_solve_impl (ExactSolution *const result,
       /** PV code out **/
       node = search_node_new(pass_move, game_position_final_value(gp));
     }
-    pvl_delete_line(pve, pvl_parent_line);
-    pvl_parent_line = pvl_line;
+    pvl_delete_line(pve, *pvl_parent_line_p);
+    *pvl_parent_line_p = pvl_line;
     flipped_players = game_position_free(flipped_players);
   } else {
     MoveList move_list;
@@ -464,7 +466,7 @@ game_position_solve_impl (ExactSolution *const result,
       if (!node) node = search_node_new(move, achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
       pvl_line = pvl_create_line(pve);
-      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pv, pvl_line));
+      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pv, &pvl_line));
       gp2 = game_position_free(gp2);
       if (node2->value > node->value) {
         search_node_free(node);
@@ -473,9 +475,9 @@ game_position_solve_impl (ExactSolution *const result,
         node2 = NULL;
 
         pvl_add_move (pve, pvl_line, move);
-        pvl_delete_line(pve, pvl_parent_line);
-        printf("SWAP LINES: pvl_parent_line=%p, pvl_line=%p\n", (void *) pvl_parent_line, (void *) pvl_line);
-        pvl_parent_line = pvl_line;
+        pvl_delete_line(pve, *pvl_parent_line_p);
+        printf("SWAP LINES: pvl_parent_line_p=%p, *pvl_parent_line_p=%p, pvl_line=%p\n", (void *) pvl_parent_line_p, (void *) *pvl_parent_line_p, (void *) pvl_line);
+        *pvl_parent_line_p = pvl_line;
         if (node->value >= cutoff) goto out;
         /** PV code in **/
         parent_pv->moves[0] = move;
@@ -495,7 +497,7 @@ game_position_solve_impl (ExactSolution *const result,
     gp_hash_stack_fill_point--;
   }
   printf("RETURNING: node->move=%s, node->value=%d, ", square_to_string2(node->move), node->value);
-  pvl_print_line(pve, pvl_parent_line);
+  pvl_print_line(pve, *pvl_parent_line_p);
   return node;
 }
 
