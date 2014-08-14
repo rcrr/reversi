@@ -1,6 +1,15 @@
 /**
  * @file
  *
+ * @todo Verify the sizing of the pve structure.
+ *
+ * @todo pve_print has to:
+ *       - be renamed into pve_to_string
+ *       - be documented
+ *       - has to allocate a GString and return it
+ *
+ * @todo all pvl_* functions has to be renamed pve_*.
+ *
  * @brief Game tree utilities module implementation.
  * @details Provides functions to support the game tree expansion.
  *
@@ -94,7 +103,7 @@ pve_is_line_active (const PVEnv *const pve,
 /**
  * @brief PVEnv structure constructor.
  *
- * @detail The sizing of the structure's components is done taking into account
+ * @details The sizing of the structure's components is done taking into account
  * a worst case scenario, where every disc put on the board can cost two search
  * levels, one for the move and one for a potential pass, plus two extra slots
  * are reserved if the minimax algorithm check the leaf condition consuming two
@@ -158,8 +167,8 @@ pve_new (const int empty_count)
  * @invariant Parameter `pve` cannot be `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in] pve the pointer to be deallocated
- * @return         always the NULL pointer
+ * @param [in,out] pve the pointer to be deallocated
+ * @return             always the NULL pointer
  */
 PVEnv *
 pve_free (PVEnv *pve)
@@ -204,26 +213,34 @@ pve_print (PVEnv *pve)
 }
 
 /**
- * @brief Returns a free line pointer
+ * @brief Returns a free line pointer.
  *
- * @param [in] pve a pointer to the principal variation environment
- * @return         a pointer to the next free pointers in the lines array
+ * @details The environment is modified because the line stack fill pointer,
+ * lines_stack_head, is incremented. 
+ *
+ * @param [in,out] pve a pointer to the principal variation environment
+ * @return             a pointer to the next free line
  */
 PVCell **
 pvl_create_line (PVEnv *pve)
 {
   pve_assert(pve);
-  // debug using ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-9 -s es
-  printf("pvl_create_line: pve->lines_stack_head=%p, *(pve->lines_stack_head)=%p\n", (void *) pve->lines_stack_head, (void *) *(pve->lines_stack_head));
   return *(pve->lines_stack_head++);
 }
 
 /**
  * @brief Adds the `move` to the given `line`.
  *
- * @param [in] pve  a pointer to the principal variatin line structure
- * @param [in] line reference to the pointer to the head of the current line
- * @param [in] move the move to add to the line
+ * @details The function inserts a new cell at the front of the linked list of cells.
+ * A cell is retrieved from the stack, the stack fill pointer is then decremented.
+ * The cell is filled with the move and the previous first cell as next.
+ * The line is updated referring to the new added cell.
+ *
+ * The `line` must be active, it is an error to call the function on free lines.
+ *
+ * @param [in,out] pve  a pointer to the principal variation environment
+ * @param [in,out] line the line to be updated
+ * @param [in]     move the move value to add to the line
  */
 void
 pvl_add_move (PVEnv *pve,
@@ -231,39 +248,32 @@ pvl_add_move (PVEnv *pve,
               Square move)
 {
   pve_assert(pve);
-  // This is the suspect! When we add a move the line is managed properly? mmmmm first add all the proper printf!!!!!
   PVCell *added_cell = *(pve->cells_stack_head);
   pve->cells_stack_head++;
   added_cell->move = move;
   added_cell->next = *line;
   *line = added_cell;
-  printf("pvl_add_move: line=%p, added_cell->move=%s, added_cell->next=%p, added_cell=%p\n",
-         (void *) line, square_as_move_to_string2(move), (void *) added_cell->next, (void *) added_cell);
 }
 
 /**
  * @brief Deletes the `line` and returns cells to the cell stack.
  *
- * @param [in] pve  a pointer to the principal variatin line sructure
- * @param [in] line a pointer to the head of the line to be deleted
+ * @param [in,out] pve  a pointer to the principal variation environment
+ * @param [in,out] line the line to be deleted
  */
 void
 pvl_delete_line (PVEnv *pve,
                  PVCell **line)
 {
   pve_assert(pve);
-  PVCell *current = *line;
-  printf("  pvl_delete_line: line=%p\n", (void *) line);
-  while (current) {
-    printf("  pvl_delete_line: current=%p, current->move=%s, current->next=%p\n", (void *) current, square_as_move_to_string2(current->move), (void *) current->next);
+  PVCell *cell = *line; // A poiter to the first cell, or null if the line is empty.
+  while (cell) {
     pve->cells_stack_head--;
-    *(pve->cells_stack_head) = current;
-    current = current->next;
+    *(pve->cells_stack_head) = cell;
+    cell = cell->next;
   }
   pve->lines_stack_head--;
   *(pve->lines_stack_head) = line;
-  printf("pvl_delete_line: pve->lines_stack_head=%p, *(pve->lines_stack_head)=%p, *line=%p\n", (void *) pve->lines_stack_head, (void *) *(pve->lines_stack_head), (void* ) *line);
-  *line = NULL;
 }
 
 void
