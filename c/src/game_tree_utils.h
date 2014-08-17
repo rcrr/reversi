@@ -78,23 +78,19 @@ extern void
 pve_print (PVEnv *pve);
 
 extern void
-pvl_add_move (PVEnv *pve,
+pve_add_move (PVEnv *pve,
               PVCell **line,
               Square move);
 
 extern PVCell **
-pvl_create_line (PVEnv *pve);
+pve_create_line (PVEnv *pve);
 
 extern void
-pvl_delete_line (PVEnv *pve,
+pve_delete_line (PVEnv *pve,
                  PVCell **line);
-extern void
-pvl_copy_line (PVEnv *pve,
-               PVCell **line,
-               PVCell **parent_line);
 
 extern void
-pvl_print_line (PVEnv *pve,
+pve_print_line (PVEnv *pve,
                 PVCell **line);
 
 #endif /* GAME_TREE_UTILS_H */
