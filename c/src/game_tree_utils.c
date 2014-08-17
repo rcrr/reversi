@@ -124,10 +124,9 @@ PVEnv *
 pve_new (const int empty_count)
 {
   g_assert(empty_count >= 0);
-  const int levels = 2 * (empty_count + 1);
-  const int cells_size = (levels * (levels + 1)) / 2;
-  const int lines_size = levels;
-
+  const int lines_size = 2 * (empty_count + 1) + 1;
+  const int cells_size = ((empty_count + 2) * ((empty_count + 2) + 1)) / 2;
+  
   static const size_t size_of_pve   = sizeof(PVEnv);
   static const size_t size_of_pvc   = sizeof(PVCell);
   static const size_t size_of_pvcp  = sizeof(PVCell*);
@@ -228,7 +227,6 @@ pve_create_line (PVEnv *pve)
   PVCell **line_p = *(pve->lines_stack_head);
   *(line_p) = NULL;
   pve->lines_stack_head++;
-  g_assert(pve_verify_consistency(pve));
   return line_p;
 }
 
@@ -257,7 +255,6 @@ pve_add_move (PVEnv *pve,
   added_cell->move = move;
   added_cell->next = *line;
   *line = added_cell;
-  g_assert(pve_verify_consistency(pve));
 }
 
 /**
@@ -279,7 +276,6 @@ pve_delete_line (PVEnv *pve,
   }
   pve->lines_stack_head--;
   *(pve->lines_stack_head) = line;
-  g_assert(pve_verify_consistency(pve));
 }
 
 void

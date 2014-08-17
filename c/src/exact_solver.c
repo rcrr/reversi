@@ -455,7 +455,6 @@ game_position_solve_impl (ExactSolution *const result,
     }
     pve_add_move(pve, pve_line, pass_move);
     pve_delete_line(pve, *pve_parent_line_p);
-    printf("SWAP LINES*: pve_parent_line_p=%p, *pve_parent_line_p=%p, pve_line=%p\n", (void *) pve_parent_line_p, (void *) *pve_parent_line_p, (void *) pve_line);
     *pve_parent_line_p = pve_line;
     flipped_players = game_position_free(flipped_players);
   } else {
@@ -477,7 +476,6 @@ game_position_solve_impl (ExactSolution *const result,
 
         pve_add_move(pve, pve_line, move);
         pve_delete_line(pve, *pve_parent_line_p);
-        printf("SWAP LINES+: pve_parent_line_p=%p, *pve_parent_line_p=%p, pve_line=%p\n", (void *) pve_parent_line_p, (void *) *pve_parent_line_p, (void *) pve_line);
         *pve_parent_line_p = pve_line;
         if (node->value >= cutoff) goto out;
         /** PV code in **/
@@ -497,7 +495,6 @@ game_position_solve_impl (ExactSolution *const result,
   if (log_env->log_is_on) {
     gp_hash_stack_fill_point--;
   }
-  printf("RETURNING: node->move=%s, node->value=%d\n", square_as_move_to_string2(node->move), node->value);
   return node;
 }
 
