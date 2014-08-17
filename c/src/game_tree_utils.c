@@ -1,14 +1,12 @@
 /**
  * @file
  *
- * @todo Verify the sizing of the pve structure.
- *
  * @todo pve_print has to:
  *       - be renamed into pve_to_string
  *       - be documented
  *       - has to allocate a GString and return it
  * 
- * @todo pve_verify_consistency has to be transformed into a function returning a gboolean
+ * @todo pve_verify_consistency is very inefficient.
  *
  * @brief Game tree utilities module implementation.
  * @details Provides functions to support the game tree expansion.
@@ -68,9 +66,6 @@ pve_print_lines (PVCell *lines[],
 static void
 pve_print_lines_stack (PVCell **lines_stack[],
                        int lines_size);
-
-static gboolean
-pve_verify_consistency (PVEnv *pve);
 
 static gboolean
 pve_is_cell_free (const PVEnv *const pve,
@@ -184,8 +179,83 @@ pve_free (PVEnv *pve)
   return pve;
 }
 
+/**
+ * @brief Verifies that the pve structure is consistent.
+ *
+ * @param [in] pve a pointer to the principal variation environment
+ * @return         true if everithing is ok
+ */
+gboolean
+pve_verify_consistency (const PVEnv *const pve)
+{
+  gboolean ret = TRUE;
+  int err_code = 0;
+  if (!pve) return FALSE;
+
+  /*
+   * Tests that the head pointers are within the proper bounds.
+   */
+  const int lines_in_use_count = pve->lines_stack_head - pve->lines_stack;
+  const int cells_in_use_count = pve->cells_stack_head - pve->cells_stack;
+  if (!(lines_in_use_count >= 0) ||
+      !(lines_in_use_count < pve->lines_size) ||
+      !(cells_in_use_count >= 0) ||
+      !(cells_in_use_count < pve->cells_size)) {
+    ret = FALSE;
+    err_code = 1;
+    goto end;
+  }
+
+  /*
+   * Tests that free lines and free cells are unique has to be added.
+   */
+
+  /*
+   * Tests that active lines and active cells are unique has to be added.
+   */
+
+  /*
+   * Tests that all active lines have active cells, and then that the
+   * acrive lines and cells count are consistent with their stack pointers.
+   */
+  int active_cell_count = 0;
+  int active_line_count = 0;
+  for (int i = 0; i < pve->lines_size; i++) {
+    PVCell **line = pve->lines + i;
+    if (pve_is_line_active(pve, line)) {
+      active_line_count++;
+      for (const PVCell *c = *line; c != NULL; c = c->next) {
+        if (!pve_is_cell_active(pve, c)) {
+          ret = FALSE;
+          err_code = 2;
+          goto end;
+        } else {
+          active_cell_count++;
+        }
+      }
+    }
+  }
+  if (active_line_count != lines_in_use_count) {
+    ret = FALSE;
+    err_code = 3;
+    goto end;
+  }
+  if (active_cell_count != cells_in_use_count) {
+    ret = FALSE;
+    err_code = 4;
+    goto end;
+  }
+  ;
+ end:
+  if (!ret) {
+    printf("pve_verify_consistency: error code %d.\n", err_code);
+    printf("pve_verify_consistency: active_line_count=%d, active_cell_count=%d\n", active_line_count, active_cell_count);
+  }
+  return ret;
+}
+
 void
-pve_print (PVEnv *pve)
+pve_print (const PVEnv *const pve)
 {
   g_assert(pve);
   
@@ -279,7 +349,7 @@ pve_delete_line (PVEnv *pve,
 }
 
 void
-pve_print_line (PVEnv *pve,
+pve_print_line (const PVEnv *const pve,
                 PVCell **line)
 {
   printf("pve_print_line: line_address=%p, first_cell=%p", (void *) line, (void *) *line);
@@ -332,78 +402,6 @@ pve_print_lines_stack (PVCell **lines_stack[],
 }
 
 static gboolean
-pve_verify_consistency (PVEnv *pve)
-{
-  gboolean ret = TRUE;
-  int err_code = 0;
-  if (!pve) return FALSE;
-
-  /*
-   * Tests that the head pointers are within the proper bounds.
-   */
-  const int lines_in_use_count = pve->lines_stack_head - pve->lines_stack;
-  const int cells_in_use_count = pve->cells_stack_head - pve->cells_stack;
-  if (!(lines_in_use_count >= 0) ||
-      !(lines_in_use_count < pve->lines_size) ||
-      !(cells_in_use_count >= 0) ||
-      !(cells_in_use_count < pve->cells_size)) {
-    ret = FALSE;
-    err_code = 1;
-    goto end;
-  }
-
-  /*
-   * Tests that free lines and free cells are unique has to be added.
-   */
-
-  /*
-   * Tests that active lines and active cells are unique has to be added.
-   */
-
-  /*
-   * Tests that all active lines have active cells, and then that the
-   * acrive lines and cells count are consistent with their stack pointers.
-   */
-  int active_cell_count = 0;
-  int active_line_count = 0;
-  for (int i = 0; i < pve->lines_size; i++) {
-    PVCell **line = pve->lines + i;
-    if (pve_is_line_active(pve, line)) {
-      active_line_count++;
-      for (const PVCell *c = *line; c != NULL; c = c->next) {
-        if (!pve_is_cell_active(pve, c)) {
-          ret = FALSE;
-          err_code = 2;
-          goto end;
-        } else {
-          active_cell_count++;
-        }
-      }
-    }
-  }
-  if (active_line_count != lines_in_use_count) {
-    ret = FALSE;
-    err_code = 3;
-    goto end;
-  }
-  if (active_cell_count != cells_in_use_count) {
-    ret = FALSE;
-    err_code = 4;
-    goto end;
-  }
-
-  ;
- end:
-  if (!ret) {
-    printf("pve_verify_consistency: error code %d.\n", err_code);
-    printf("pve_verify_consistency: active_line_count=%d, active_cell_count=%d\n", active_line_count, active_cell_count);
-    pve_print(pve);
-  }
-  return ret;
-}
-
-
-static gboolean
 pve_is_cell_free (const PVEnv *const pve,
                   const PVCell *const cell)
 {
@@ -415,14 +413,12 @@ pve_is_cell_free (const PVEnv *const pve,
   return FALSE;
 }
 
-
 static gboolean
 pve_is_cell_active (const PVEnv *const pve,
                     const PVCell *const cell)
 {
   return !pve_is_cell_free(pve, cell);
 }
-
 
 static gboolean
 pve_is_line_free (const PVEnv *const pve,
@@ -435,7 +431,6 @@ pve_is_line_free (const PVEnv *const pve,
   }
   return FALSE;
 }
-
 
 static gboolean
 pve_is_line_active (const PVEnv *const pve,

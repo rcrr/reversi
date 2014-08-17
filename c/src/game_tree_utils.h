@@ -74,8 +74,11 @@ pve_new (const int empty_count);
 extern PVEnv *
 pve_free (PVEnv *pve);
 
+extern gboolean
+pve_verify_consistency (const PVEnv * const pve);
+
 extern void
-pve_print (PVEnv *pve);
+pve_print (const PVEnv *const pve);
 
 extern void
 pve_add_move (PVEnv *pve,
@@ -90,7 +93,7 @@ pve_delete_line (PVEnv *pve,
                  PVCell **line);
 
 extern void
-pve_print_line (PVEnv *pve,
+pve_print_line (const PVEnv *const pve,
                 PVCell **line);
 
 #endif /* GAME_TREE_UTILS_H */
