@@ -271,7 +271,7 @@ pve_print (const PVEnv *const pve)
   for (int i = 0; i < pve->lines_size; i++) {
     PVCell **line = pve->lines + i;
     if (pve_is_line_active(pve, line)) {
-      pve_print_line(pve, line);
+      pve_print_line(pve, (const PVCell**) line);
     }
   }
 
@@ -350,7 +350,7 @@ pve_delete_line (PVEnv *pve,
 
 void
 pve_print_line (const PVEnv *const pve,
-                PVCell **line)
+                const PVCell **const line)
 {
   printf("pve_print_line: line_address=%p, first_cell=%p", (void *) line, (void *) *line);
   if (*line) printf(", chain: ");

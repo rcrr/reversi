@@ -315,8 +315,6 @@ game_position_solve (const GamePosition * const root,
 
   /**/
   pve = pve_new(game_position_empty_count(root));
-  printf("pve->cells_size=%d, pve->lines=%d\n", pve->cells_size, pve->lines_size);
-  pve_print(pve);
   PVCell **pve_root_line = pve_create_line(pve);
   /**/
 
@@ -345,8 +343,7 @@ game_position_solve (const GamePosition * const root,
     printf("pv[%d]=%s\n", i, square_to_string2(root_pv.moves[i]));
   }
 
-  pve_print(pve);
-  pve_print_line(pve, pve_root_line);
+  pve_print_line(pve, (const PVCell**) pve_root_line);
   pve_free(pve);
   /**/
   

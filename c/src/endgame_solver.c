@@ -27,6 +27,8 @@
  *       the same utilities brougth to a dedicated module. The es solver should
  *       do the same.
  *
+ * @todo Port the stack practice to all the other solver, refactor the structures used (Stack, NodeInfo, GamePositionX).
+ *
  * @todo [done] Write a test suite that solves a selection of the FFO test cases.
  *
  * @todo Profile exact_solver against improved_fast_endgame_solver.
@@ -40,8 +42,6 @@
  *       [done] Pass the stack pointer in the parameter list.
  *       [done] Make the code as much readable as possible.
  * 
- * @todo Port the stack practice to all the other solver, refactor the structures used (Stack, NodeInfo, GamePositionX).
- *
  * @todo [done] Organize the SQL scripts into a modular practice.
  *       [done] This task is evolving into a complete porting of the board engine in PLPGSQL.
  *       [done] Missing features are: - game_position_pretty_print
