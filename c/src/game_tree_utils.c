@@ -293,7 +293,7 @@ pve_print (const PVEnv *const pve)
  * @return             a pointer to the next free line
  */
 PVCell **
-pve_create_line (PVEnv *pve)
+pve_line_create (PVEnv *pve)
 {
   g_assert(pve_verify_consistency(pve));
   PVCell **line_p = *(pve->lines_stack_head);
@@ -317,9 +317,9 @@ pve_create_line (PVEnv *pve)
  * @param [in]     move the move value to add to the line
  */
 void
-pve_add_move (PVEnv *pve,
-              PVCell **line,
-              Square move)
+pve_line_add_move (PVEnv *pve,
+                   PVCell **line,
+                   Square move)
 {
   g_assert(pve_verify_consistency(pve));
   PVCell *added_cell = *(pve->cells_stack_head);
@@ -336,7 +336,7 @@ pve_add_move (PVEnv *pve,
  * @param [in,out] line the line to be deleted
  */
 void
-pve_delete_line (PVEnv *pve,
+pve_line_delete (PVEnv *pve,
                  PVCell **line)
 {
   g_assert(pve_verify_consistency(pve));

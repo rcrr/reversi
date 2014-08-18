@@ -315,7 +315,7 @@ game_position_solve (const GamePosition * const root,
 
   /**/
   pve = pve_new(game_position_empty_count(root));
-  PVCell **pve_root_line = pve_create_line(pve);
+  PVCell **pve_root_line = pve_line_create(pve);
   /**/
 
   if (log_env->log_is_on) {
@@ -436,7 +436,7 @@ game_position_solve_impl (ExactSolution *const result,
 
   const SquareSet moves = game_position_legal_moves(gp);
   if (0ULL == moves) {
-    pve_line = pve_create_line(pve);
+    pve_line = pve_line_create(pve);
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
       node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable, &pv, &pve_line));
@@ -452,8 +452,8 @@ game_position_solve_impl (ExactSolution *const result,
       /** PV code out **/
       node = search_node_new(pass_move, game_position_final_value(gp));
     }
-    pve_add_move(pve, pve_line, pass_move);
-    pve_delete_line(pve, *pve_parent_line_p);
+    pve_line_add_move(pve, pve_line, pass_move);
+    pve_line_delete(pve, *pve_parent_line_p);
     *pve_parent_line_p = pve_line;
     flipped_players = game_position_free(flipped_players);
   } else {
@@ -464,7 +464,7 @@ game_position_solve_impl (ExactSolution *const result,
       const Square move = element->sq;
       if (!node) node = search_node_new(move, achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
-      pve_line = pve_create_line(pve);
+      pve_line = pve_line_create(pve);
       node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pv, &pve_line));
       gp2 = game_position_free(gp2);
       if (node2->value > node->value) {
@@ -473,8 +473,8 @@ game_position_solve_impl (ExactSolution *const result,
         node->move = move;
         node2 = NULL;
 
-        pve_add_move(pve, pve_line, move);
-        pve_delete_line(pve, *pve_parent_line_p);
+        pve_line_add_move(pve, pve_line, move);
+        pve_line_delete(pve, *pve_parent_line_p);
         *pve_parent_line_p = pve_line;
         if (node->value >= cutoff) goto out;
         /** PV code in **/
@@ -484,7 +484,7 @@ game_position_solve_impl (ExactSolution *const result,
         /** PV code out **/
       } else {
         node2 = search_node_free(node2);
-        pve_delete_line(pve, pve_line);
+        pve_line_delete(pve, pve_line);
       }
     }
   }

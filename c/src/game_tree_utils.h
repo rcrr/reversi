@@ -80,17 +80,17 @@ pve_verify_consistency (const PVEnv * const pve);
 extern void
 pve_print (const PVEnv *const pve);
 
-extern void
-pve_add_move (PVEnv *pve,
-              PVCell **line,
-              Square move);
-
 extern PVCell **
-pve_create_line (PVEnv *pve);
+pve_line_create (PVEnv *pve);
 
 extern void
-pve_delete_line (PVEnv *pve,
+pve_line_delete (PVEnv *pve,
                  PVCell **line);
+
+extern void
+pve_line_add_move (PVEnv *pve,
+                   PVCell **line,
+                   Square move);
 
 extern gchar *
 pve_line_print_internals (const PVEnv *const pve,
