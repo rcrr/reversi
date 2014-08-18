@@ -2,11 +2,15 @@
  * @file
  *
  * @todo pve_print has to:
- *       - be renamed into pve_to_string
- *       - be documented
- *       - has to allocate a GString and return it
+ *       - Be renamed into pve_to_string.
+ *       - Be documented.
+ *       - Has to allocate a GString and return it.
+ *       - Has to receive constant arguments!
+ *       - Should be designed avoiding repeating constant string each line. Having section each one more like a csv.
  * 
  * @todo pve_verify_consistency is very inefficient.
+ *
+ * @todo Should we introduce a typedef for PVLine and so get rid of the three star sin?
  *
  * @brief Game tree utilities module implementation.
  * @details Provides functions to support the game tree expansion.
