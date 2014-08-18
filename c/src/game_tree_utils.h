@@ -92,8 +92,8 @@ extern void
 pve_delete_line (PVEnv *pve,
                  PVCell **line);
 
-extern void
-pve_print_line (const PVEnv *const pve,
-                const PVCell **const line);
+extern gchar *
+pve_line_print_internals (const PVEnv *const pve,
+                          const PVCell **const line);
 
 #endif /* GAME_TREE_UTILS_H */

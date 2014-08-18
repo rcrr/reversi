@@ -286,7 +286,7 @@ gchar *
 square_array_to_string (const Square sqa[],
                         const int length)
 {
-  char *moves_to_string;
+  gchar *moves_to_string;
   GString *tmp;
 
   tmp = g_string_sized_new(10);

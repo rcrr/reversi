@@ -271,7 +271,9 @@ pve_print (const PVEnv *const pve)
   for (int i = 0; i < pve->lines_size; i++) {
     PVCell **line = pve->lines + i;
     if (pve_is_line_active(pve, line)) {
-      pve_print_line(pve, (const PVCell**) line);
+      gchar *pve_root_line_to_s = pve_line_print_internals(pve, (const PVCell**) line);
+      printf("line_internals: %s\n", pve_root_line_to_s);
+      g_free(pve_root_line_to_s);
     }
   }
 
@@ -348,16 +350,29 @@ pve_delete_line (PVEnv *pve,
   *(pve->lines_stack_head) = line;
 }
 
-void
-pve_print_line (const PVEnv *const pve,
-                const PVCell **const line)
+/**
+ * @brief Prints the `line` into the returning string.
+ *
+ * @param [in] pve  a pointer to the principal variation environment
+ * @param [in] line the line to be printed
+ * @return          a string reporting the line internals
+ */
+gchar *
+pve_line_print_internals (const PVEnv *const pve,
+                          const PVCell **const line)
 {
-  printf("pve_print_line: line_address=%p, first_cell=%p", (void *) line, (void *) *line);
-  if (*line) printf(", chain: ");
+  gchar *line_to_string;
+  GString *tmp = g_string_sized_new(32);
+
+  g_string_append_printf(tmp, "line_address=%p, first_cell=%p", (void *) line, (void *) *line);
+  if (*line) g_string_append_printf(tmp, ", chain: ");
   for (const PVCell *c = *line; c != NULL; c = c->next) {
-    printf("(c=%p, m=%s, n=%p)", (void *) c, square_as_move_to_string2(c->move), (void *) c->next);
+    g_string_append_printf(tmp, "(c=%p, m=%s, n=%p)", (void *) c, square_as_move_to_string2(c->move), (void *) c->next);
   }
-  printf("\n");
+
+  line_to_string = tmp->str;
+  g_string_free(tmp, FALSE);
+  return line_to_string;
 }
 
 /*
