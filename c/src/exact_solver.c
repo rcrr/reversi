@@ -343,7 +343,7 @@ game_position_solve (const GamePosition * const root,
     printf("pv[%d]=%s\n", i, square_to_string2(root_pv.moves[i]));
   }
 
-  gchar *pve_root_line_to_s = pve_line_print_internals(pve, (const PVCell**) pve_root_line);
+  gchar *pve_root_line_to_s = pve_line_to_string(pve, (const PVCell**) pve_root_line);
   printf("Principal Variation Line: %s\n", pve_root_line_to_s);
   g_free(pve_root_line_to_s);
   pve_free(pve);

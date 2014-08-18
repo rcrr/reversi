@@ -96,4 +96,8 @@ extern gchar *
 pve_line_print_internals (const PVEnv *const pve,
                           const PVCell **const line);
 
+extern gchar *
+pve_line_to_string (const PVEnv *const pve,
+                    const PVCell **const line);
+
 #endif /* GAME_TREE_UTILS_H */

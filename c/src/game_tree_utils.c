@@ -351,7 +351,7 @@ pve_delete_line (PVEnv *pve,
 }
 
 /**
- * @brief Prints the `line` into the returning string.
+ * @brief Prints the `line` internals into the returning string.
  *
  * @param [in] pve  a pointer to the principal variation environment
  * @param [in] line the line to be printed
@@ -368,6 +368,30 @@ pve_line_print_internals (const PVEnv *const pve,
   if (*line) g_string_append_printf(tmp, ", chain: ");
   for (const PVCell *c = *line; c != NULL; c = c->next) {
     g_string_append_printf(tmp, "(c=%p, m=%s, n=%p)", (void *) c, square_as_move_to_string2(c->move), (void *) c->next);
+  }
+
+  line_to_string = tmp->str;
+  g_string_free(tmp, FALSE);
+  return line_to_string;
+}
+
+/**
+ * @brief Prints the `line` into the returning string.
+ *
+ * @param [in] pve  a pointer to the principal variation environment
+ * @param [in] line the line to be printed
+ * @return          a string describing the sequence of moves held by the line
+ */
+gchar *
+pve_line_to_string (const PVEnv *const pve,
+                    const PVCell **const line)
+{
+  gchar *line_to_string;
+  GString *tmp = g_string_sized_new(16);
+
+  for (const PVCell *c = *line; c != NULL; c = c->next) {
+    g_string_append_printf(tmp, "%s", square_as_move_to_string2(c->move));
+    if (c->next) g_string_append_printf(tmp, " ");
   }
 
   line_to_string = tmp->str;
