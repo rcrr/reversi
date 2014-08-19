@@ -66,10 +66,7 @@ typedef struct {
   MoveListElement tail;                  /**< @brief Tail element, it is not part of the list. */
 } MoveList;
 
-typedef struct {
-  int    length;            // Number of moves in the line.
-  Square moves[64];         // The line.
-} PrincipalVariationLine_x;
+
 
 /*
  * Prototypes for internal functions.
@@ -84,7 +81,6 @@ game_position_solve_impl (ExactSolution *const result,
                           const GamePosition  *const gp,
                           const int achievable,
                           const int cutoff,
-                          PrincipalVariationLine_x *parent_pv,
                           PVCell ***pve_parent_line_p);
 
 static void
@@ -346,7 +342,6 @@ ExactSolution *
 game_position_solve (const GamePosition * const root,
                      const gchar        * const log_file)
 {
-  PrincipalVariationLine_x root_pv;
   ExactSolution *result; 
   SearchNode    *sn;
 
@@ -366,7 +361,7 @@ game_position_solve (const GamePosition * const root,
 
   result->solved_game_position = game_position_clone(root);
 
-  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64, &root_pv, &pve_root_line);
+  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64, &pve_root_line);
 
   if (sn) {
     result->pv[0] = sn->move;
@@ -377,10 +372,6 @@ game_position_solve (const GamePosition * const root,
   game_tree_log_close(log_env);
 
   /**/
-  printf("\n");
-  for (int i = 0; i < root_pv.length; i++) {
-    printf("pv[%d]=%s\n", i, square_to_string2(root_pv.moves[i]));
-  }
 
   // Should become a function.
   int i = 0;
@@ -444,21 +435,12 @@ game_position_solve_impl (ExactSolution *const result,
                           const GamePosition  *const gp,
                           const int achievable,
                           const int cutoff,
-                          PrincipalVariationLine_x *parent_pv,
                           PVCell ***pve_parent_line_p)
 {
   result->node_count++;
   SearchNode *node  = NULL;
   SearchNode *node2 = NULL;
-  /** PV code in **/
-  PrincipalVariationLine_x pv;
-  for (int i = 0; i < 64; i++) {
-    pv.moves[i] = invalid_move;
-  }
-  pv.length = 0;
-
   PVCell **pve_line = NULL;
-  /** PV code out **/
 
   if (log_env->log_is_on) {
     call_count++;
@@ -483,17 +465,9 @@ game_position_solve_impl (ExactSolution *const result,
     pve_line = pve_line_create(pve);
     GamePosition *flipped_players = game_position_pass(gp);
     if (game_position_has_any_legal_move(flipped_players)) {
-      node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable, &pv, &pve_line));
-      /** PV code in **/
-      parent_pv->moves[0] = pass_move;
-      memcpy(parent_pv->moves + 1, pv.moves, pv.length * sizeof(Square));
-      parent_pv->length = pv.length + 1;
-      /** PV code out **/
+      node = search_node_negated(game_position_solve_impl(result, flipped_players, -cutoff, -achievable, &pve_line));
     } else {
       result->leaf_count++;
-      /** PV code in **/
-      parent_pv->length = 0;
-      /** PV code out **/
       node = search_node_new(pass_move, game_position_final_value(gp));
     }
     pve_line_add_move(pve, pve_line, pass_move);
@@ -509,7 +483,7 @@ game_position_solve_impl (ExactSolution *const result,
       if (!node) node = search_node_new(move, achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
       pve_line = pve_line_create(pve);
-      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pv, &pve_line));
+      node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pve_line));
       gp2 = game_position_free(gp2);
       if (node2->value > node->value) {
         search_node_free(node);
@@ -521,11 +495,6 @@ game_position_solve_impl (ExactSolution *const result,
         pve_line_delete(pve, *pve_parent_line_p);
         *pve_parent_line_p = pve_line;
         if (node->value >= cutoff) goto out;
-        /** PV code in **/
-        parent_pv->moves[0] = move;
-        memcpy(parent_pv->moves + 1, pv.moves, pv.length * sizeof(Square));
-        parent_pv->length = pv.length + 1;
-        /** PV code out **/
       } else {
         node2 = search_node_free(node2);
         pve_line_delete(pve, pve_line);
