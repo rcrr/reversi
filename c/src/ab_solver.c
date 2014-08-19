@@ -189,7 +189,7 @@ game_position_ab_solve (const GamePosition *const root,
 
   game_tree_log_close(log_env);
 
-  result->principal_variation[0] = best_move;
+  result->pv[0] = best_move;
   result->outcome = game_value;
   return result;
 }

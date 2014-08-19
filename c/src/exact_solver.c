@@ -231,9 +231,10 @@ exact_solution_new (void)
 
   es->solved_game_position = NULL;
   es->outcome = 65;
-  for (int i = 0; i < 60; i++) {
-    es->principal_variation[i] = -1;
+  for (int i = 0; i < PV_MAX_LENGTH; i++) {
+    es->pv[i] = invalid_move;
   }
+  es->pv_length = 0;
   es->final_board = NULL;
   es->node_count = 0;
   es->leaf_count = 0;
@@ -267,7 +268,7 @@ exact_solution_free (ExactSolution *es)
 /**
  * @brief Returns a formatted string describing the exact solution structure.
  *
- * @todo MUST BE COMPLETED!
+ * @todo If computed the final board should be added.
  *
  * The returned string has a dynamic extent set by a call to malloc. It must then properly
  * garbage collected by a call to free when no more referenced.
@@ -284,10 +285,48 @@ exact_solution_print (const ExactSolution * const es)
   g_assert(es);
 
   gchar *es_to_string;
+  GString *tmp = g_string_sized_new(32);
 
-  es_to_string = game_position_print(es->solved_game_position);
+  g_string_append_printf(tmp, "%s\n",
+                         game_position_print(es->solved_game_position));
+  g_string_append_printf(tmp, "[node_count=%llu, leaf_count=%llu]\n",
+                         es->node_count, 
+                         es->leaf_count);
+  g_string_append_printf(tmp, "Final outcome: best move=%s, position value=%d\n",
+                         square_as_move_to_string2(es->pv[0]),
+                         es->outcome);
 
+  if (es->pv_length != 0) {
+    gchar *pv_to_s = exact_solution_pv_to_string(es);
+    g_string_append_printf(tmp, "PV: %s\n", pv_to_s);
+    g_free(pv_to_s);
+  }
+
+  es_to_string = tmp->str;
+  g_string_free(tmp, FALSE);
   return es_to_string;
+}
+
+/**
+ * @brief Prints the principal variation line into the returning string.
+ *
+ * @param [in] es a pointer to the exact solution structure
+ * @return        a string being a representation of the pv line
+ */
+gchar *
+exact_solution_pv_to_string (const ExactSolution *const es)
+{
+  gchar *pv_to_string;
+  GString *tmp = g_string_sized_new(16);
+
+  for (int i = 0; i < es->pv_length; i++) {
+    g_string_append_printf(tmp, "%s", square_as_move_to_string2(es->pv[i]));
+    if (i != es->pv_length) g_string_append_printf(tmp, " ");
+  }
+
+  pv_to_string = tmp->str;
+  g_string_free(tmp, FALSE);
+  return pv_to_string;
 }
 
 
@@ -330,7 +369,7 @@ game_position_solve (const GamePosition * const root,
   sn = game_position_solve_impl(result, result->solved_game_position, -64, +64, &root_pv, &pve_root_line);
 
   if (sn) {
-    result->principal_variation[0] = sn->move;
+    result->pv[0] = sn->move;
     result->outcome = sn->value;
   }
   sn = search_node_free(sn);
@@ -343,9 +382,14 @@ game_position_solve (const GamePosition * const root,
     printf("pv[%d]=%s\n", i, square_to_string2(root_pv.moves[i]));
   }
 
-  gchar *pve_root_line_to_s = pve_line_to_string(pve, (const PVCell**) pve_root_line);
-  printf("Principal Variation Line: %s\n", pve_root_line_to_s);
-  g_free(pve_root_line_to_s);
+  // Should become a function.
+  int i = 0;
+  for (const PVCell *c = *pve_root_line; c != NULL; c = c->next) {
+    result->pv[i] = c->move;
+    i++;
+  }
+  result->pv_length = i;
+
   pve_free(pve);
   /**/
   

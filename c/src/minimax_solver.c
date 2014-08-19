@@ -115,7 +115,7 @@ game_position_minimax_solve (const GamePosition * const root,
 
   sn = game_position_solve_impl(result, result->solved_game_position);
 
-  result->principal_variation[0] = sn->move;
+  result->pv[0] = sn->move;
   result->outcome = sn->value;
   sn = search_node_free(sn);
 

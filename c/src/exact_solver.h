@@ -40,6 +40,8 @@
 #ifndef EXACT_SOLVER_H
 #define EXACT_SOLVER_H
 
+#define PV_MAX_LENGTH 128
+
 #include <glib.h>
 
 #include "board.h"
@@ -52,10 +54,11 @@
 typedef struct {
   GamePosition *solved_game_position;        /**< @brief The game position given as input. */
   int           outcome;                     /**< @brief The final endgame score. */
-  Square        principal_variation[60];     /**< @brief The sequence of best moves, or principal variation. */
+  Square        pv[PV_MAX_LENGTH];           /**< @brief The sequence of best moves, or principal variation. */
+  int           pv_length;                   /**< @brief The number of moves in the principal variation line. */
   Board        *final_board;                 /**< @brief The final board state. */
-  uint64        leaf_count;
-  uint64        node_count;
+  uint64        leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
+  uint64        node_count;                  /**< @brief The count of all nodes touched by the solver. */
 } ExactSolution;
 
 /**
@@ -75,7 +78,8 @@ typedef struct {
 /*******************************************************/
 
 extern SearchNode *
-search_node_new (const Square move, const int value);
+search_node_new (const Square move,
+                 const int value);
 
 extern SearchNode *
 search_node_free (SearchNode *sn);
@@ -96,7 +100,10 @@ extern ExactSolution *
 exact_solution_free (ExactSolution *es);
 
 extern gchar *
-exact_solution_print (const ExactSolution * const es);
+exact_solution_print (const ExactSolution *const es);
+
+extern gchar *
+exact_solution_pv_to_string (const ExactSolution *const es);
 
 
 
@@ -105,8 +112,8 @@ exact_solution_print (const ExactSolution * const es);
 /*********************************************************/
 
 extern ExactSolution *
-game_position_solve (const GamePosition * const root,
-                     const gchar        * const log_file);
+game_position_solve (const GamePosition *const root,
+                     const gchar *const log_file);
 
 
 #endif /* EXACT_SOLVER_H */

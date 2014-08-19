@@ -290,7 +290,7 @@ main (int argc, char *argv[])
   /* Solving the position. */
   GamePosition *gp = entry->game_position;
   ExactSolution *solution = NULL;
-  g_print("Solving the game position %s using solver %s ...\n", entry->id, solvers[solver_index]);
+  g_print("Solving game position %s, from source %s, using solver %s ...\n", entry->id, source, solvers[solver_index]);
   switch (solver_index) {
   case 0:
     solution = game_position_solve(gp, log_file);
@@ -319,14 +319,14 @@ main (int argc, char *argv[])
   gchar *solution_to_string = exact_solution_print(solution);
   printf("\n%s\n", solution_to_string);
   g_free(solution_to_string);
-
+  /*
   printf("[node_count=%llu, leaf_count=%llu]\n",
          solution->node_count, 
          solution->leaf_count);
-  gchar *move_to_s = square_to_string(solution->principal_variation[0]);
+  gchar *move_to_s = square_to_string(solution->pv[0]);
   printf("Final SearchNode sn: move=%s, value=%d\n", move_to_s, solution->outcome);
   g_free(move_to_s);
-
+  */
   /* Frees the resources. */
   g_free(error);
   gpdb_free(db, TRUE);

@@ -449,7 +449,7 @@ game_position_ifes_solve (const GamePosition * const root,
   n = end_solve(result, board, -64, 64, player, emp, discdiff, 1);
 
   result->outcome = n.value;
-  result->principal_variation[0] = ifes_square_to_square(n.square);
+  result->pv[0] = ifes_square_to_square(n.square);
 
   game_tree_log_close(log_env);
 

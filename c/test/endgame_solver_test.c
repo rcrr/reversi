@@ -537,12 +537,12 @@ run_test_case_array (      GamePositionDb *db,
     const GamePosition * const gp = get_gp_from_db(db, tc->gpdb_label);
     ExactSolution * const solution = (*solver)(gp, FALSE);
     if (g_test_verbose()) {
-      gchar *move_to_s = square_to_string(solution->principal_variation[0]);
+      gchar *move_to_s = square_to_string(solution->pv[0]);
       printf("result[outcome=%+03d, move=%s]\n", solution->outcome, move_to_s);
       g_free(move_to_s);
     }
     g_assert_cmpint(tc->outcome, ==, solution->outcome);
-    assert_move_is_part_of_array(solution->principal_variation[0], tc->best_move, tc->best_move_count);
+    assert_move_is_part_of_array(solution->pv[0], tc->best_move, tc->best_move_count);
     exact_solution_free(solution);
   }
 }

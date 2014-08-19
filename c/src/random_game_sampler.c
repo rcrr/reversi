@@ -135,7 +135,7 @@ game_position_random_sampler (const GamePosition * const root,
     }
     sn = game_position_random_sampler_impl(result, result->solved_game_position);  
     if (sn) {
-      result->principal_variation[0] = sn->move;
+      result->pv[0] = sn->move;
       result->outcome = sn->value;
     }
     sn = search_node_free(sn);
