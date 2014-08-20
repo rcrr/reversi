@@ -14,12 +14,14 @@
  *       number of moves serched against the number of legal ones. This can give
  *       back a kpi of the alpha-beta efficiency in cutting unrelevant branches.
  *
- * @todo The solvers do not return a PV, but just the best move and its value.
+ * @todo [done] The solvers do not return a PV, but just the best move and its value.
+ *       Now a new sub-module, pve in game_tree_utils, has al the functions that are needed.
+ *       It is used by the exact_solver, the other has to be updated if usefull.
  *
  * @todo The output of the solvers is not always appropriate:
- *         - PV is missing
+ *         - Final board is not reported
+ *         - The value of all the first level moves is not recorded
  *         - for random game sampler the output is meaningless
- *         - final game position is not reported ...
  *
  * @todo Refine and refactor the exact_solver implementation.
  *
@@ -121,7 +123,7 @@
 /* Static constants. */
 
 static const gchar *solvers[] = {"es", "ifes", "rand", "minimax", "rab", "ab"};
-static const int n_solver = sizeof(solvers) / sizeof(solvers[0]);
+static const int solvers_count = sizeof(solvers) / sizeof(solvers[0]);
 
 static const gchar *program_documentation_string =
   "Description:\n"
@@ -228,7 +230,7 @@ main (int argc, char *argv[])
     return -2;
   }
   if (solver) {
-    for (int index = 0; index < n_solver; index++) {
+    for (int index = 0; index < solvers_count; index++) {
       if (g_strcmp0(solver, solvers[index]) == 0)
         solver_index = index;
     }
