@@ -34,11 +34,28 @@
 #ifndef GAME_TREE_UTILS_H
 #define GAME_TREE_UTILS_H
 
+#define PV_MAX_LENGTH 128
+
 #include <glib.h>
 
 #include "board.h"
 
 
+
+/**
+ * @brief An exact solution is an entity that holds the result of a #game_position_solve run.
+ *
+ * @todo To be detailed ...
+ */
+typedef struct {
+  GamePosition *solved_game_position;        /**< @brief The game position given as input. */
+  int           outcome;                     /**< @brief The final endgame score. */
+  Square        pv[PV_MAX_LENGTH];           /**< @brief The sequence of best moves, or principal variation. */
+  int           pv_length;                   /**< @brief The number of moves in the principal variation line. */
+  Board        *final_board;                 /**< @brief The final board state. */
+  uint64        leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
+  uint64        node_count;                  /**< @brief The count of all nodes touched by the solver. */
+} ExactSolution;
 
 /**
  * @brief A principal variation cell.
@@ -61,6 +78,24 @@ typedef struct {
   PVCell ***lines_stack;        /**< @brief The pointer to an array of pointers used to manage the lines. */
   PVCell ***lines_stack_head;   /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
 } PVEnv;
+
+
+
+/**********************************************************/
+/* Function implementations for the ExactSolution entity. */ 
+/**********************************************************/
+
+extern ExactSolution *
+exact_solution_new (void);
+
+extern ExactSolution *
+exact_solution_free (ExactSolution *es);
+
+extern gchar *
+exact_solution_print (const ExactSolution *const es);
+
+extern gchar *
+exact_solution_pv_to_string (const ExactSolution *const es);
 
 
 
@@ -99,5 +134,10 @@ pve_line_print_internals (const PVEnv *const pve,
 extern gchar *
 pve_line_to_string (const PVEnv *const pve,
                     const PVCell **const line);
+
+extern void
+pve_line_copy_to_exact_solution (const PVEnv *const pve,
+                                 const PVCell **const line,
+                                 ExactSolution *const es);
 
 #endif /* GAME_TREE_UTILS_H */

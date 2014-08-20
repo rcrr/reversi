@@ -40,26 +40,10 @@
 #ifndef EXACT_SOLVER_H
 #define EXACT_SOLVER_H
 
-#define PV_MAX_LENGTH 128
-
 #include <glib.h>
 
+#include "game_tree_utils.h"
 #include "board.h"
-
-/**
- * @brief An exact solution is an entity that holds the result of a #game_position_solve run.
- *
- * @todo To be detailed ...
- */
-typedef struct {
-  GamePosition *solved_game_position;        /**< @brief The game position given as input. */
-  int           outcome;                     /**< @brief The final endgame score. */
-  Square        pv[PV_MAX_LENGTH];           /**< @brief The sequence of best moves, or principal variation. */
-  int           pv_length;                   /**< @brief The number of moves in the principal variation line. */
-  Board        *final_board;                 /**< @brief The final board state. */
-  uint64        leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
-  uint64        node_count;                  /**< @brief The count of all nodes touched by the solver. */
-} ExactSolution;
 
 /**
  * @brief A search node is the structure returned by #game_position_solve function.
@@ -86,24 +70,6 @@ search_node_free (SearchNode *sn);
 
 extern SearchNode *
 search_node_negated (SearchNode *sn);
-
-
-
-/**********************************************************/
-/* Function implementations for the ExactSolution entity. */ 
-/**********************************************************/
-
-extern ExactSolution *
-exact_solution_new (void);
-
-extern ExactSolution *
-exact_solution_free (ExactSolution *es);
-
-extern gchar *
-exact_solution_print (const ExactSolution *const es);
-
-extern gchar *
-exact_solution_pv_to_string (const ExactSolution *const es);
 
 
 

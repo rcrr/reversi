@@ -35,6 +35,7 @@
 #define AB_SOLVER_H
 
 #include "board.h"
+#include "game_tree_utils.h"
 #include "exact_solver.h"
 
 

@@ -207,126 +207,6 @@ search_node_negated (SearchNode *sn)
 
 
 
-/**********************************************************/
-/* Function implementations for the ExactSolution entity. */ 
-/**********************************************************/
-
-/**
- * @brief Exact solution structure constructor.
- *
- * @return a pointer to a new exact solution structure
- */
-ExactSolution *
-exact_solution_new (void)
-{
-  ExactSolution * es;
-  static const size_t size_of_exact_solution = sizeof(ExactSolution);
-  
-  es = (ExactSolution*) malloc(size_of_exact_solution);
-  g_assert(es);
-
-  es->solved_game_position = NULL;
-  es->outcome = 65;
-  for (int i = 0; i < PV_MAX_LENGTH; i++) {
-    es->pv[i] = invalid_move;
-  }
-  es->pv_length = 0;
-  es->final_board = NULL;
-  es->node_count = 0;
-  es->leaf_count = 0;
-
-  return es;
-}
-
-/**
- * @brief Exact solution structure destructor.
- *
- * @invariant Parameter `es` cannot be `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @param [in] es the pointer to be deallocated
- * @return        always the NULL pointer
- */
-ExactSolution *
-exact_solution_free (ExactSolution *es)
-{
-  g_assert(es);
-
-  if (es->solved_game_position) game_position_free(es->solved_game_position);
-  if (es->final_board) board_free(es->final_board);
-
-  free(es);
-  es = NULL;
-
-  return es;
-}
-
-/**
- * @brief Returns a formatted string describing the exact solution structure.
- *
- * @todo If computed the final board should be added.
- *
- * The returned string has a dynamic extent set by a call to malloc. It must then properly
- * garbage collected by a call to free when no more referenced.
- *
- * @invariant Parameter `es` must be not `NULL`.
- * Invariants are guarded by assertions.
- *
- * @param [in] es a pointer to the exact solution structure
- * @return        a string being a representation of the structure
- */
-gchar *
-exact_solution_print (const ExactSolution * const es)
-{
-  g_assert(es);
-
-  gchar *es_to_string;
-  GString *tmp = g_string_sized_new(32);
-
-  g_string_append_printf(tmp, "%s\n",
-                         game_position_print(es->solved_game_position));
-  g_string_append_printf(tmp, "[node_count=%llu, leaf_count=%llu]\n",
-                         es->node_count, 
-                         es->leaf_count);
-  g_string_append_printf(tmp, "Final outcome: best move=%s, position value=%d\n",
-                         square_as_move_to_string2(es->pv[0]),
-                         es->outcome);
-
-  if (es->pv_length != 0) {
-    gchar *pv_to_s = exact_solution_pv_to_string(es);
-    g_string_append_printf(tmp, "PV: %s\n", pv_to_s);
-    g_free(pv_to_s);
-  }
-
-  es_to_string = tmp->str;
-  g_string_free(tmp, FALSE);
-  return es_to_string;
-}
-
-/**
- * @brief Prints the principal variation line into the returning string.
- *
- * @param [in] es a pointer to the exact solution structure
- * @return        a string being a representation of the pv line
- */
-gchar *
-exact_solution_pv_to_string (const ExactSolution *const es)
-{
-  gchar *pv_to_string;
-  GString *tmp = g_string_sized_new(16);
-
-  for (int i = 0; i < es->pv_length; i++) {
-    g_string_append_printf(tmp, "%s", square_as_move_to_string2(es->pv[i]));
-    if (i != es->pv_length) g_string_append_printf(tmp, " ");
-  }
-
-  pv_to_string = tmp->str;
-  g_string_free(tmp, FALSE);
-  return pv_to_string;
-}
-
-
-
 /*********************************************************/
 /* Function implementations for the GamePosition entity. */ 
 /*********************************************************/
@@ -347,10 +227,8 @@ game_position_solve (const GamePosition * const root,
 
   log_env = game_tree_log_init(log_file);
 
-  /**/
   pve = pve_new(game_position_empty_count(root));
   PVCell **pve_root_line = pve_line_create(pve);
-  /**/
 
   if (log_env->log_is_on) {
     gp_hash_stack[0] = 0; 
@@ -371,18 +249,8 @@ game_position_solve (const GamePosition * const root,
 
   game_tree_log_close(log_env);
 
-  /**/
-
-  // Should become a function.
-  int i = 0;
-  for (const PVCell *c = *pve_root_line; c != NULL; c = c->next) {
-    result->pv[i] = c->move;
-    i++;
-  }
-  result->pv_length = i;
-
+  pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve_root_line, result);
   pve_free(pve);
-  /**/
   
   return result;
 }
@@ -490,7 +358,6 @@ game_position_solve_impl (ExactSolution *const result,
         node = node2;
         node->move = move;
         node2 = NULL;
-
         pve_line_add_move(pve, pve_line, move);
         pve_line_delete(pve, *pve_parent_line_p);
         *pve_parent_line_p = pve_line;
@@ -502,8 +369,6 @@ game_position_solve_impl (ExactSolution *const result,
     }
   }
  out:
-  ;
-
   if (log_env->log_is_on) {
     gp_hash_stack_fill_point--;
   }
