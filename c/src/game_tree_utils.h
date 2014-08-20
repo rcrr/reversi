@@ -81,6 +81,14 @@ typedef struct {
   PVCell ***lines_stack_head;   /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
 } PVEnv;
 
+/**
+ * @brief A search node is the most simple structure returned by the implementations of the search function.
+ */
+typedef struct {
+  Square move;       /**< @brief The move to play. */
+  int    value;      /**< @brief The move's value. */
+} SearchNode;
+
 
 
 /**********************************************/
@@ -152,5 +160,21 @@ extern void
 pve_line_copy_to_exact_solution (const PVEnv *const pve,
                                  const PVCell **const line,
                                  ExactSolution *const es);
+
+
+
+/*******************************************************/
+/* Function implementations for the SearchNode entity. */ 
+/*******************************************************/
+
+extern SearchNode *
+search_node_new (const Square move,
+                 const int value);
+
+extern SearchNode *
+search_node_free (SearchNode *sn);
+
+extern SearchNode *
+search_node_negated (SearchNode *sn);
 
 #endif /* GAME_TREE_UTILS_H */

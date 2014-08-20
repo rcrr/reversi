@@ -45,32 +45,6 @@
 #include "game_tree_utils.h"
 #include "board.h"
 
-/**
- * @brief A search node is the structure returned by #game_position_solve function.
- *
- * @todo To be detailed ...
- */
-typedef struct {
-  Square move;       /**< @brief The move to play. */
-  int    value;      /**< @brief The move's value. */
-} SearchNode;
-
-
-
-/*******************************************************/
-/* Function implementations for the SearchNode entity. */ 
-/*******************************************************/
-
-extern SearchNode *
-search_node_new (const Square move,
-                 const int value);
-
-extern SearchNode *
-search_node_free (SearchNode *sn);
-
-extern SearchNode *
-search_node_negated (SearchNode *sn);
-
 
 
 /*********************************************************/

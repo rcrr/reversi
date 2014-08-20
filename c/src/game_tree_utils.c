@@ -547,6 +547,69 @@ pve_line_copy_to_exact_solution (const PVEnv *const pve,
 
 
 
+/*******************************************************/
+/* Function implementations for the SearchNode entity. */ 
+/*******************************************************/
+
+/**
+ * @brief Search node structure constructor.
+ *
+ * @param [in] move  the move field
+ * @param [in] value the value field
+ * @return           a pointer to a new search node structure
+ */
+SearchNode *
+search_node_new (const Square move, const int value)
+{
+  SearchNode * sn;
+  static const size_t size_of_search_node = sizeof(SearchNode);
+
+  sn = (SearchNode*) malloc(size_of_search_node);
+  g_assert(sn);
+
+  sn->move = move;
+  sn->value = value;
+
+  return sn;
+}
+
+/**
+ * @brief Search node structure destructor.
+ *
+ * @invariant Parameter `sn` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] sn the pointer to be deallocated
+ * @return        always the NULL pointer
+ */
+SearchNode *
+search_node_free (SearchNode *sn)
+{
+  g_assert(sn);
+
+  free(sn);
+  sn = NULL;
+
+  return sn;
+}
+
+/**
+ * @brief Negate the value of the node.
+ *
+ * @param sn the search node to be negated
+ * @return   a new node having the negated value
+ */
+SearchNode *
+search_node_negated (SearchNode *sn)
+{
+  SearchNode *result;
+  result = search_node_new(sn->move, -sn->value);
+  search_node_free(sn);
+  return result;
+}
+
+
+
 /*
  * Internal functions.
  */
