@@ -164,7 +164,7 @@ exact_solution_free (ExactSolution *es)
  * @return        a string being a representation of the structure
  */
 gchar *
-exact_solution_print (const ExactSolution * const es)
+exact_solution_to_string (const ExactSolution * const es)
 {
   g_assert(es);
 

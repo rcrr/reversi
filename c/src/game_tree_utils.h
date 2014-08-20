@@ -92,7 +92,7 @@ extern ExactSolution *
 exact_solution_free (ExactSolution *es);
 
 extern gchar *
-exact_solution_print (const ExactSolution *const es);
+exact_solution_to_string (const ExactSolution *const es);
 
 extern gchar *
 exact_solution_pv_to_string (const ExactSolution *const es);

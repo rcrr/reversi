@@ -318,17 +318,10 @@ main (int argc, char *argv[])
   }
 
   /* Printing results. */
-  gchar *solution_to_string = exact_solution_print(solution);
+  gchar *solution_to_string = exact_solution_to_string(solution);
   printf("\n%s\n", solution_to_string);
   g_free(solution_to_string);
-  /*
-  printf("[node_count=%llu, leaf_count=%llu]\n",
-         solution->node_count, 
-         solution->leaf_count);
-  gchar *move_to_s = square_to_string(solution->pv[0]);
-  printf("Final SearchNode sn: move=%s, value=%d\n", move_to_s, solution->outcome);
-  g_free(move_to_s);
-  */
+
   /* Frees the resources. */
   g_free(error);
   gpdb_free(db, TRUE);
