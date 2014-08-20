@@ -378,33 +378,52 @@ pve_verify_consistency (const PVEnv *const pve)
   return ret;
 }
 
-void
-pve_print (const PVEnv *const pve)
+/**
+ * @brief Prints the `pve` internals into the returning string.
+ *
+ * @param [in] pve  a pointer to the principal variation environment
+ * @return          a string reporting the pve internals
+ */
+gchar *
+pve_internals_to_string (const PVEnv *const pve)
 {
   g_assert(pve);
-  
-  printf("pve address: %p\n", (void*) pve);
-  printf("pve cells_size: %d\n", pve->cells_size);
-  printf("pve lines_size: %d\n", pve->lines_size);
-  printf("pve cells_stack_head: points_to=%p\n", (void*) pve->cells_stack_head);
-  printf("pve lines_stack_head: points_to=%p\n", (void*) pve->lines_stack_head);
 
+  gchar *pve_to_string;
+  GString *tmp = g_string_sized_new(1024);
+
+  g_string_append_printf(tmp, "pve address: %p\n", (void*) pve);
+  g_string_append_printf(tmp, "pve cells_size: %d\n", pve->cells_size);
+  g_string_append_printf(tmp, "pve lines_size: %d\n", pve->lines_size);
+  g_string_append_printf(tmp, "pve cells_stack_head: points_to=%p\n", (void*) pve->cells_stack_head);
+  g_string_append_printf(tmp, "pve lines_stack_head: points_to=%p\n", (void*) pve->lines_stack_head);
   const int line_in_use_count = pve->lines_stack_head - pve->lines_stack;
   const int cell_in_use_count = pve->cells_stack_head - pve->cells_stack;
-  printf("pve: line_in_use_count=%d, cell_in_use_count=%d\n", line_in_use_count, cell_in_use_count);
+  g_string_append_printf(tmp, "pve: line_in_use_count=%d, cell_in_use_count=%d\n", line_in_use_count, cell_in_use_count);
   for (int i = 0; i < pve->lines_size; i++) {
     PVCell **line = pve->lines + i;
     if (pve_is_line_active(pve, line)) {
       gchar *pve_root_line_to_s = pve_line_print_internals(pve, (const PVCell**) line);
-      printf("line_internals: %s\n", pve_root_line_to_s);
+      g_string_append_printf(tmp, "line_internals: %s\n", pve_root_line_to_s);
       g_free(pve_root_line_to_s);
     }
   }
-
+  g_string_append_printf(tmp, "\n\n# PVE CELLS\n");
+  g_string_append_printf(tmp, "ordinal;address;move;next\n");
+  for (int i = 0; i < pve->cells_size; i++) {
+    g_string_append_printf(tmp, "%4d;%p;%s;%p\n",
+                           i, (void*) (pve->cells + i), square_as_move_to_string2((pve->cells + i)->move), (void*) (pve->cells + i)->next);
+  }
+  /*
   pve_print_cells(pve->cells, pve->cells_size);
   pve_print_cells_stack(pve->cells_stack, pve->cells_size);
   pve_print_lines(pve->lines, pve->lines_size);
   pve_print_lines_stack (pve->lines_stack, pve->lines_size);
+  */
+
+  pve_to_string = tmp->str;
+  g_string_free(tmp, FALSE);
+  return pve_to_string;
 }
 
 /**

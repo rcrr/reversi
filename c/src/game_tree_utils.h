@@ -133,8 +133,8 @@ pve_free (PVEnv *pve);
 extern gboolean
 pve_verify_consistency (const PVEnv * const pve);
 
-extern void
-pve_print (const PVEnv *const pve);
+extern gchar *
+pve_internals_to_string (const PVEnv *const pve);
 
 extern PVCell **
 pve_line_create (PVEnv *pve);
