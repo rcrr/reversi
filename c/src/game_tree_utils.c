@@ -114,7 +114,7 @@ exact_solution_new (void)
   g_assert(es);
 
   es->solved_game_position = NULL;
-  es->outcome = 65;
+  es->outcome = invalid_outcome;
   for (int i = 0; i < PV_MAX_LENGTH; i++) {
     es->pv[i] = invalid_move;
   }

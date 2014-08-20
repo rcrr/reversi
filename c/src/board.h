@@ -41,6 +41,7 @@
 #include "bit_works.h"
 
 
+
 /**********************************************/
 /* Type declarations.                         */ 
 /**********************************************/
@@ -156,7 +157,7 @@ typedef unsigned long long int SquareSet;
 /**
  * @brief A board is an entity that holds the state of a Reversi's gameboard.
  *
- * The state is expressed as the combination of the individual state of each board's square.
+ * @details The state is expressed as the combination of the individual state of each board's square.
  * It is the state that a board has regardless of the player
  * that has to move or the time spent or remaining to each player. 
  */
@@ -175,6 +176,7 @@ typedef struct {
 
 /**
  * @brief A game position variant where instead of the board pointer its field are directly collected.
+ *
  * @details This game position representation is used in conjunction with functions
  * that do not malloc/free, these function use the prefix `game_position_x`.
  */
@@ -183,6 +185,7 @@ typedef struct {
   SquareSet whites;   /**< @brief The set of squares occupied by white discs. */
   Player    player;   /**< @brief Next player to move. */
 } GamePositionX;
+
 
 
 /**********************************************/

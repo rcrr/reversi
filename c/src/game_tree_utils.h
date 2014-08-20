@@ -42,10 +42,12 @@
 
 
 
+/**********************************************/
+/* Type declarations.                         */ 
+/**********************************************/
+
 /**
  * @brief An exact solution is an entity that holds the result of a #game_position_solve run.
- *
- * @todo To be detailed ...
  */
 typedef struct {
   GamePosition *solved_game_position;        /**< @brief The game position given as input. */
@@ -78,6 +80,17 @@ typedef struct {
   PVCell ***lines_stack;        /**< @brief The pointer to an array of pointers used to manage the lines. */
   PVCell ***lines_stack_head;   /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
 } PVEnv;
+
+
+
+/**********************************************/
+/* Global constants.                          */ 
+/**********************************************/
+
+/**
+ * @brief The invalid outcome.
+ */
+static const int invalid_outcome = 65;
 
 
 
