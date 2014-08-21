@@ -1,13 +1,6 @@
 /**
  * @file
  *
- * @todo pve_print has to:
- *       - Be renamed into pve_to_string.
- *       - Be documented.
- *       - Has to allocate a GString and return it.
- *       - Has to receive constant arguments!
- *       - Should be designed avoiding repeating constant string each line. Having section each one more like a csv.
- * 
  * @todo pve_verify_consistency is very inefficient.
  *
  * @todo Should we introduce a typedef for PVLine and so get rid of the three star sin?
@@ -364,6 +357,13 @@ pve_verify_consistency (const PVEnv *const pve)
 
 /**
  * @brief Prints the `pve` internals into the returning string.
+ *
+ * @details The returned string is structured into five sections:
+ *          - A header with the basic info belonging to the pve structure
+ *          - A csv table for the cells array
+ *          - A csv table for the stack of pointers to cells
+ *          - A csv table for the lines
+ *          - A csv table for the stack of pointers to lines
  *
  * @param [in] pve  a pointer to the principal variation environment
  * @return          a string reporting the pve internals
