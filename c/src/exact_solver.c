@@ -188,10 +188,6 @@ game_position_solve (const GamePosition * const root,
 
   pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve_root_line, result);
 
-  gchar *pve_to_s = pve_internals_to_string(pve);
-  printf("%s", pve_to_s);
-  g_free(pve_to_s);
-  
   pve_free(pve);
   
   return result;

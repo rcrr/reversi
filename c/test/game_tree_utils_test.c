@@ -44,6 +44,8 @@
 
 static void dummy_test (void);
 static void pve_create_test (void);
+static void pve_internals_to_string_test (void);
+
 
 
 int
@@ -54,6 +56,7 @@ main (int   argc,
 
   g_test_add_func("/game_tree_utils/dummy", dummy_test);
   g_test_add_func("/game_tree_utils/pve_create_test", pve_create_test);
+  g_test_add_func("/game_tree_utils/pve_internals_to_string_test", pve_internals_to_string_test);
 
   return g_test_run();
 }
@@ -84,3 +87,21 @@ pve_create_test (void)
   g_assert(pve == NULL);
 }
 
+static void
+pve_internals_to_string_test (void)
+{
+  PVEnv *pve;
+  gchar *pve_to_s;
+
+  pve = pve_new(60);
+  pve_to_s = pve_internals_to_string(pve);
+  pve = pve_free(pve);
+  g_free(pve_to_s);
+
+  pve = pve_new(0);
+  pve_to_s = pve_internals_to_string(pve);
+  pve = pve_free(pve);
+  g_free(pve_to_s);
+
+  g_assert(TRUE);
+}
