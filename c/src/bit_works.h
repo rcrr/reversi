@@ -45,12 +45,6 @@
 typedef unsigned long long int uint64;
 
 /**
- * @typedef uint16
- * @brief Unsigned 16 bits integer.
- */
-typedef unsigned short int uint16;
-
-/**
  * @typedef uint8
  * @brief Unsigned 8 bits integer.
  */
