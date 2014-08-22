@@ -129,8 +129,6 @@ exact_solution_free (ExactSolution *es)
 /**
  * @brief Returns a formatted string describing the exact solution structure.
  *
- * @todo If computed the final board should be added.
- *
  * The returned string has a dynamic extent set by a call to malloc. It must then properly
  * garbage collected by a call to free when no more referenced.
  *

@@ -1,12 +1,6 @@
 /**
  * @file
  *
- * @todo ExactSolution structure has to be reorganized.
- *       - A method has to be added for writing the PV.
- *       - A method should have a full print, playing the PV ....
- *       - A method should compute the final board.
- *       - A new field should have the solver used for the solution.
- *
  * @brief Exact solver module definitions.
  * @details This module defines the #game_position_solve function.
  *
