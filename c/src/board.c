@@ -626,11 +626,11 @@ axis_transform_to_row_one (const Axis axis,
  */
 SquareSet
 axis_transform_back_from_row_one (const Axis axis,
-                                  const uint32 bitrow)
+                                  const uint32_t bitrow)
 {
   g_assert(axis >= HO && axis <= DU);
 
-  uint32 tmp;
+  uint32_t tmp;
   SquareSet bit_board;
 
   switch (axis) {

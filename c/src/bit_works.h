@@ -36,17 +36,13 @@
 #ifndef BIT_WORKS_H
 #define BIT_WORKS_H
 
+#include <stdint.h>
+
 /**
  * @typedef uint64
  * @brief Unsigned 64 bits integer.
  */
 typedef unsigned long long int uint64;
-
-/**
- * @typedef uint32
- * @brief Unsigned 32 bits integer.
- */
-typedef unsigned int uint32;
 
 /**
  * @typedef uint16
@@ -92,8 +88,8 @@ bit_works_signed_left_shift (uint64 bit_sequence, int shift);
 extern uint64
 bit_works_signed_left_shift (uint64 bit_sequence, int shift);
 
-extern uint32
-bit_works_highest_bit_set_32 (uint32 bit_sequence);
+extern uint32_t
+bit_works_highest_bit_set_32 (uint32_t bit_sequence);
 
 extern uint8
 bit_works_highest_bit_set_8 (uint8 bit_sequence);
@@ -113,8 +109,8 @@ bit_works_bitscanLS1B_64 (const uint64 bit_sequence);
 extern uint64
 bit_works_lowest_bit_set_64 (const uint64 bit_sequence);
 
-extern uint32
-bit_works_lowest_bit_set_32 (const uint32 bit_sequence);
+extern uint32_t
+bit_works_lowest_bit_set_32 (const uint32_t bit_sequence);
 
 extern uint8
 bit_works_lowest_bit_set_8 (const uint8 bit_sequence);

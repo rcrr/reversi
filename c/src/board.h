@@ -260,7 +260,7 @@ axis_transform_to_row_one (const Axis axis,
 
 extern SquareSet
 axis_transform_back_from_row_one (const Axis axis,
-                                  const uint32 bitrow);
+                                  const uint32_t bitrow);
 
 
 

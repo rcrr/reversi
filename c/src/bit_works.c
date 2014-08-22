@@ -160,16 +160,16 @@ static int popcount_4(uint64 x) {
 void
 bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
 {
-  uint32 tmp;
+  uint32_t tmp;
   uint8  hi;
 
   hi = 0;
 
   if ((bit_sequence & 0xFFFFFFFF00000000) != 0ULL) {
-    tmp = (uint32) (bit_sequence >> 32);
+    tmp = (uint32_t) (bit_sequence >> 32);
     hi += 4;
   } else {
-    tmp = (uint32) bit_sequence;
+    tmp = (uint32_t) bit_sequence;
   }
 
   if ((tmp & 0xFFFF0000) != 0) {
@@ -209,14 +209,14 @@ bit_works_signed_left_shift (uint64 bit_sequence, int shift)
  * @param bit_sequence the value analyzed
  * @return             an value having set the bit most significative found in bit_sequence
  */
-uint32
-bit_works_highest_bit_set_32 (uint32 bit_sequence)
+uint32_t
+bit_works_highest_bit_set_32 (uint32_t bit_sequence)
 {
   if (bit_sequence == 0x00000000) {
     return 0x00000000;
   }
-  uint32 result = 0x00000001;
-  uint32 tmp = bit_sequence;
+  uint32_t result = 0x00000001;
+  uint32_t tmp = bit_sequence;
   if ((tmp & 0xFFFF0000) != 0x00000000) {
     tmp >>= 16;
     result = 0x00010000;
@@ -360,8 +360,8 @@ bit_works_lowest_bit_set_64 (const uint64 bit_sequence)
  * @param bit_sequence the input value
  * @return             the filtered sequence
  */
-uint32
-bit_works_lowest_bit_set_32 (const uint32 bit_sequence)
+uint32_t
+bit_works_lowest_bit_set_32 (const uint32_t bit_sequence)
 {
   return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
 }

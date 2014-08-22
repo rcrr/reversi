@@ -98,7 +98,7 @@ bit_works_int_size_definition_checks (void)
 {
   uint8  ui8;
   uint16 ui16;
-  uint32 ui32;
+  uint32_t ui32;
   uint64 ui64;
   sint8  si8;
 
@@ -116,7 +116,7 @@ bit_works_int_size_definition_checks (void)
   g_assert(0x0100 == ++ui16);
   g_assert(2 == sizeof(ui16));
 
-  /* uint32 must be four bytes. */
+  /* uint32_t must be four bytes. */
   ui32 = 0xFFFFFFFF;
   g_assert(4294967295 == ui32);
   g_assert(0 == ++ui32);
@@ -245,7 +245,7 @@ static void
 bit_works_type_size_test (void)
 {
   g_assert(8 == sizeof(uint64));
-  g_assert(4 == sizeof(uint32));
+  g_assert(4 == sizeof(uint32_t));
   g_assert(1 == sizeof(uint8));
 }
 
