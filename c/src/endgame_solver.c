@@ -1,6 +1,9 @@
 /**
  * @file
  *
+ * @todo Unit tests are far behind, a complete check is needed to ensure all functions have the appropriate testing.
+ *
+ * @todo Add a way to check a PV for variants.
  *
  * @todo [done] Complete the random game player.
  *
@@ -19,11 +22,11 @@
  *       It is used by the exact_solver, the other has to be updated if usefull.
  *
  * @todo The output of the solvers is not always appropriate:
- *         - Final board is not reported
+ *         - [done] Final board is not reported
  *         - The value of all the first level moves is not recorded
  *         - for random game sampler the output is meaningless
  *
- * @todo Refine and refactor the exact_solver implementation.
+ * @todo [done] Refine and refactor the exact_solver implementation.
  *
  * @todo Solvers rab and ab share the same stack solution. Refactor it sharing
  *       the same utilities brougth to a dedicated module. The es solver should
