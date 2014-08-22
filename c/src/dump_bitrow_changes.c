@@ -67,7 +67,7 @@ main (int argc, char *argv[])
     for (opponent_row = 0; opponent_row < 256; opponent_row++) {
       for (move_position = 0; move_position < 8; move_position++) {
         const int array_index = player_row | (opponent_row << 8) | (move_position << 16);
-        const uint8 player_changes = board_bitrow_changes_for_player(player_row, opponent_row, move_position);
+        const uint8_t player_changes = board_bitrow_changes_for_player(player_row, opponent_row, move_position);
         printf("%d;%d;%d;%d;%d\n", array_index, player_row, opponent_row, move_position, player_changes);
       }
     }

@@ -70,12 +70,12 @@ utils_random_number (int low, int high)
  * @param [in]     n     the number of elements in the array
  */
 void
-utils_shuffle_uint8 (uint8 *array, int n)
+utils_shuffle_uint8 (uint8_t *array, int n)
 {
   if (n > 1) {
     for (int i = 0; i < n - 1; i++) {
       int j = i + (double) rand() * (n - i) / RAND_MAX;
-      const uint8 t = *(array + j);
+      const uint8_t t = *(array + j);
       *(array + j) = *(array + i);
       *(array + i) = t;
     }

@@ -45,7 +45,7 @@
  */
 
 static void
-board_initialize_bitrow_changes_for_player_array (uint8 *array);
+board_initialize_bitrow_changes_for_player_array (uint8_t *array);
 
 static void
 board_initialize_shift_square_set_by_amount_mask_array (SquareSet *array);
@@ -107,7 +107,7 @@ static const SquareSet squares_b1_f1_a2_e2 = 0x1122;
  *
  * After initialization the array is never changed.
  */
-static uint8 bitrow_changes_for_player_array[256 * 256 * 8];
+static uint8_t bitrow_changes_for_player_array[256 * 256 * 8];
 
 /*
  * This array is a precomputed table used by the direction_shift_square_set_by_amount function.
@@ -223,8 +223,8 @@ square_to_string (const Square sq)
   symbol = (gchar *) malloc(size_of_square_to_string);
 
   if (sq >= A1 && sq <= H8) {
-    const uint8 col = sq % 8;
-    const uint8 row = sq / 8;
+    const uint8_t col = sq % 8;
+    const uint8_t row = sq / 8;
     *symbol = 'A' + col;
     *(symbol + 1) = '1' + row;
     *(symbol + 2) = '\0';
@@ -502,8 +502,8 @@ player_opponent (const Player p)
  */
 int
 axis_shift_distance (const Axis axis,
-                     const uint8 column,
-                     const uint8 row)
+                     const uint8_t column,
+                     const uint8_t row)
 {
   g_assert(axis >= HO && axis <= DU);
   g_assert(column >= 0 && column <= 7);
@@ -540,10 +540,10 @@ axis_shift_distance (const Axis axis,
  * @param [in] row    the move's row
  * @return            the shift quantity
  */
-uint8
+uint8_t
 axis_move_ordinal_position_in_bitrow (const Axis axis,
-                                      const uint8 column,
-                                      const uint8 row)
+                                      const uint8_t column,
+                                      const uint8_t row)
 {
   g_assert(axis >= HO && axis <= DU);
   g_assert(column >= 0 && column <= 7);
@@ -574,7 +574,7 @@ axis_move_ordinal_position_in_bitrow (const Axis axis,
  * @param [in] squares the set of board squares
  * @return             the transformed line
  */
-uint8
+uint8_t
 axis_transform_to_row_one (const Axis axis,
                            const SquareSet squares)
 {
@@ -607,7 +607,7 @@ axis_transform_to_row_one (const Axis axis,
   default:
     abort();
   }
-  return (uint8) tmp;
+  return (uint8_t) tmp;
 }
 
 /**
@@ -893,7 +893,7 @@ board_is_move_legal (const Board *const b,
   SquareSet o_bit_board;
 
   HiLo xy;
-  uint8 column, row;
+  uint8_t column, row;
 
   bit_move = 1ULL << move;
 
@@ -909,8 +909,8 @@ board_is_move_legal (const Board *const b,
   for (Axis axis = HO; axis <= DU; axis++) {
     const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
     const int shift_distance = axis_shift_distance(axis, column, row);
-    const uint8 p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
-    const uint8 o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
+    const uint8_t p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
+    const uint8_t o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
     if (board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position) != p_bitrow) {
       return TRUE;
     }
@@ -1192,7 +1192,7 @@ board_compare (const Board *const a,
  * @param [in] move_position square to move
  * @return                   the new player's row index after making the move
  */
-uint8
+uint8_t
 board_bitrow_changes_for_player (int player_row,
                                  int opponent_row,
                                  int move_position)
@@ -1661,8 +1661,8 @@ game_position_make_move (const GamePosition *const gp,
   for (Axis axis = HO; axis <= DU; axis++) {
     const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
     const int shift_distance = axis_shift_distance(axis, column, row);
-    uint8 p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
-    uint8 o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
+    uint8_t p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
+    uint8_t o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
     p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position);
     o_bitrow &= ~p_bitrow;
     new_bit_board[p] |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, p_bitrow), -shift_distance);
@@ -1671,11 +1671,11 @@ game_position_make_move (const GamePosition *const gp,
   */
 
   int shift_distance;
-  uint8 p_bitrow;
-  uint8 o_bitrow;
+  uint8_t p_bitrow;
+  uint8_t o_bitrow;
 
   /* Axis HO. */
-  const uint8 right_shift_for_HO = 8 * row;
+  const uint8_t right_shift_for_HO = 8 * row;
   p_bitrow = axis_transform_to_row_one(HO, p_bit_board >> right_shift_for_HO);
   o_bitrow = axis_transform_to_row_one(HO, o_bit_board >> right_shift_for_HO);
   p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, column);
@@ -2385,11 +2385,11 @@ game_position_x_make_move (const GamePositionX *const current,
   new_bit_board[o] = o_bit_board & unmodified_mask;
 
   int shift_distance;
-  uint8 p_bitrow;
-  uint8 o_bitrow;
+  uint8_t p_bitrow;
+  uint8_t o_bitrow;
 
   /* Axis HO. */
-  const uint8 right_shift_for_HO = 8 * row;
+  const uint8_t right_shift_for_HO = 8 * row;
   p_bitrow = axis_transform_to_row_one(HO, p_bit_board >> right_shift_for_HO);
   o_bitrow = axis_transform_to_row_one(HO, o_bit_board >> right_shift_for_HO);
   p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, column);
@@ -2438,24 +2438,24 @@ game_position_x_make_move (const GamePositionX *const current,
 /**
  * @brief Used to initialize the `bitrow_changes_for_player_array`.
  *
- * @param array a uint8 array having the row changes for the given index value
+ * @param array a uint8_t array having the row changes for the given index value
  */
 void
-board_initialize_bitrow_changes_for_player_array (uint8 *array)
+board_initialize_bitrow_changes_for_player_array (uint8_t *array)
 {
   for (int player_row_count = 0; player_row_count < 256; player_row_count++) {
-    const uint8 player_row = (uint8) player_row_count;
+    const uint8_t player_row = (uint8_t) player_row_count;
     for (int opponent_row_count = 0; opponent_row_count < 256; opponent_row_count++) {
-      const uint8 opponent_row = (uint8) opponent_row_count;
-      const uint8 filled_in_row = player_row | opponent_row;
-      const uint8 empties_in_row = ~filled_in_row;
-      for (uint8 move_position = 0; move_position < 8; move_position++) {
-        const uint8 move = 1 << move_position;
+      const uint8_t opponent_row = (uint8_t) opponent_row_count;
+      const uint8_t filled_in_row = player_row | opponent_row;
+      const uint8_t empties_in_row = ~filled_in_row;
+      for (uint8_t move_position = 0; move_position < 8; move_position++) {
+        const uint8_t move = 1 << move_position;
         const int array_index = player_row
                                 | (opponent_row << 8)
                                 | (move_position << 16);
 
-        uint8 player_row_after_move;
+        uint8_t player_row_after_move;
 
         /*
          * It checks two conditions that cannot happen because are illegal.
@@ -2476,13 +2476,13 @@ board_initialize_bitrow_changes_for_player_array (uint8 *array)
            * The potential bracketing disc on the right is the first player disc found moving
            * on the left starting from the square of the move.
            */
-          const uint8 potential_bracketing_disc_on_the_left = bit_works_highest_bit_set_8(player_row & (move - 1));
+          const uint8_t potential_bracketing_disc_on_the_left = bit_works_highest_bit_set_8(player_row & (move - 1));
 
           /*
            * The left rank is the sequence of adiacent discs that start from the bracketing disc and end
            * with the move disc.
            */
-          const uint8 left_rank = bit_works_fill_in_between(potential_bracketing_disc_on_the_left | move);
+          const uint8_t left_rank = bit_works_fill_in_between(potential_bracketing_disc_on_the_left | move);
 
           /*
            * If the rank contains empy squares, this is a fake flip, and it doesn't do anything.
@@ -2494,8 +2494,8 @@ board_initialize_bitrow_changes_for_player_array (uint8 *array)
           }
 
           /* Here it does the same procedure computed on the left also on the right. */
-          const uint8 potential_bracketing_disc_on_the_right = bit_works_lowest_bit_set_8(player_row & ~(move - 1));
-          const uint8 right_rank = bit_works_fill_in_between(potential_bracketing_disc_on_the_right | move);
+          const uint8_t potential_bracketing_disc_on_the_right = bit_works_lowest_bit_set_8(player_row & ~(move - 1));
+          const uint8_t right_rank = bit_works_fill_in_between(potential_bracketing_disc_on_the_right | move);
           if ((right_rank & empties_in_row) == 0x00) {
             player_row_after_move |= right_rank;
           }

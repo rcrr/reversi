@@ -433,7 +433,7 @@ ifes_game_position_translation_test (GamePositionDbFixture *fixture,
 
   uint64 expected_hash = game_position_hash(ffo_01);
 
-  uint8 ifes_board[91];
+  uint8_t ifes_board[91];
   int emp = 0;
   int wc  = 0;
   int bc  = 0;

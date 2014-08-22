@@ -46,7 +46,7 @@ static const uint64 hff = 0xffffffffffffffff; //binary: all ones
 static const uint64 h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,3...
 
 /* Log 2 array */
-static const uint8 log2_array[] = {
+static const uint8_t log2_array[] = {
   0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
   5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
   6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
@@ -58,7 +58,7 @@ static const uint8 log2_array[] = {
 };
 
 /* Array for de Bruijn multiplication. */
-static const uint8 debruijn_64_index[] = {
+static const uint8_t debruijn_64_index[] = {
   63,  0, 58,  1, 59, 47, 53,  2,
   60, 39, 48, 27, 54, 33, 42,  3,
   61, 51, 37, 40, 49, 18, 28, 20,
@@ -161,7 +161,7 @@ void
 bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
 {
   uint32_t tmp;
-  uint8  hi;
+  uint8_t  hi;
 
   hi = 0;
 
@@ -238,13 +238,13 @@ bit_works_highest_bit_set_32 (uint32_t bit_sequence)
  * @param bit_sequence the value analyzed
  * @return             an value having set the bit most significative found in bit_sequence
  */
-uint8
-bit_works_highest_bit_set_8 (uint8 bit_sequence)
+uint8_t
+bit_works_highest_bit_set_8 (uint8_t bit_sequence)
 {
   if (bit_sequence == 0x00) {
     return 0x00;
   }
-  uint8 result = 0x01;
+  uint8_t result = 0x01;
   result <<= log2_array[bit_sequence];
   return result;
 }
@@ -261,8 +261,8 @@ bit_works_highest_bit_set_8 (uint8 bit_sequence)
  * @param [in] bit_sequence the value to be scanned
  * @return                  a bit sequence having the internal bits set
  */
-uint8
-bit_works_fill_in_between (uint8 bit_sequence)
+uint8_t
+bit_works_fill_in_between (uint8_t bit_sequence)
 {
   return ((0x01 << bit_works_bitscanMS1B_8(bit_sequence)) - 0x01)
          & ((~bit_sequence & 0xFF) ^ (bit_sequence - 0x01));
@@ -283,11 +283,11 @@ bit_works_fill_in_between (uint8 bit_sequence)
  * @param bit_sequence uint64 value that is scanned
  * @return             the index `(0..63)` of the most significant bit set
  */
-uint8
+uint8_t
 bit_works_bitscanMS1B_64 (const uint64 bit_sequence)
 {
   uint64 tmp = bit_sequence;
-  uint8 result = 0x00;
+  uint8_t result = 0x00;
   if ((tmp & 0xFFFFFFFF00000000) != 0ULL) {
     tmp >>= 32;
     result  = 32;
@@ -307,13 +307,13 @@ bit_works_bitscanMS1B_64 (const uint64 bit_sequence)
 /**
  * @brief Returns the index of the most significant bit set in the `bit_sequence` parameter.
  *
- * @param bit_sequence uint8 value that is scanned
+ * @param bit_sequence uint8_t value that is scanned
  * @return             the index (0..7) of the most significant bit set
  */
-uint8
-bit_works_bitscanMS1B_8 (const uint8 bit_sequence)
+uint8_t
+bit_works_bitscanMS1B_8 (const uint8_t bit_sequence)
 {
-  uint8 result = 0x00;
+  uint8_t result = 0x00;
   result |= log2_array[(int) bit_sequence];
   return result;
 }
@@ -332,7 +332,7 @@ bit_works_bitscanMS1B_8 (const uint8 bit_sequence)
  * @param bit_sequence value that is scanned
  * @return             the index of the least significant bit set
  */
-uint8
+uint8_t
 bit_works_bitscanLS1B_64 (const uint64 bit_sequence)
 {
   /** mask isolates the least significant one bit (LS1B). */
@@ -373,8 +373,8 @@ bit_works_lowest_bit_set_32 (const uint32_t bit_sequence)
  * @param bit_sequence the input value
  * @return             the filtered sequence
  */
-uint8
-bit_works_lowest_bit_set_8 (const uint8 bit_sequence)
+uint8_t
+bit_works_lowest_bit_set_8 (const uint8_t bit_sequence)
 {
   return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
 }

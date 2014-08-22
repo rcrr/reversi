@@ -50,7 +50,7 @@
  */
 typedef struct MoveListElement_ {
   Square                   sq;           /**< @brief The square field. */
-  uint8                    mobility;     /**< @brief The mobility field. */
+  uint8_t                  mobility;     /**< @brief The mobility field. */
   struct MoveListElement_ *pred;         /**< @brief A pointer to the predecesor element. */
   struct MoveListElement_ *succ;         /**< @brief A pointer to the successor element. */
 } MoveListElement;

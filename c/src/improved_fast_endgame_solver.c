@@ -45,7 +45,7 @@
  * Details to be documented.
  */
 typedef struct EmList_ {
-  uint8           square;     /**< @brief One square on the board. */
+  uint8_t           square;     /**< @brief One square on the board. */
   uint64          hole_id;    /**< @brief Id of the hole to which the square belongs to. */
   struct EmList_ *pred;       /**< @brief Predecessor element, or NULL if missing. */
   struct EmList_ *succ;       /**< @brief Successor element, or NULL if missing. */
@@ -57,7 +57,7 @@ typedef struct EmList_ {
  * Details to be documented.
  */
 typedef struct {
-  uint8 square;    /**< @brief One square on the board. */
+  uint8_t square;    /**< @brief One square on the board. */
   sint8 value;     /**< @brief The game value of moving into the square. */
 } Node;
 
@@ -68,22 +68,22 @@ typedef struct {
  */
 
 inline static void
-directional_flips (uint8 *sq, int inc, int color, int oppcol);
+directional_flips (uint8_t *sq, int inc, int color, int oppcol);
 
 static int
-do_flips (uint8 *board, int sqnum, int color, int oppcol);
+do_flips (uint8_t *board, int sqnum, int color, int oppcol);
 
 inline static int
-ct_directional_flips (uint8 *sq, int inc, int color, int oppcol);
+ct_directional_flips (uint8_t *sq, int inc, int color, int oppcol);
 
 static int
-count_flips (uint8 *board, int sqnum, int color, int oppcol);
+count_flips (uint8_t *board, int sqnum, int color, int oppcol);
 
 inline static int
-any_directional_flips (uint8 *sq, int inc, int color, int oppcol);
+any_directional_flips (uint8_t *sq, int inc, int color, int oppcol);
 
 static int
-any_flips (uint8 *board, int sqnum, int color, int oppcol);
+any_flips (uint8_t *board, int sqnum, int color, int oppcol);
 
 inline static void
 undo_flips (int flip_count, int oppcol);
@@ -92,25 +92,25 @@ inline static uint64
 minu (uint64 a, uint64 b);
 
 static int
-count_mobility (uint8 *board, int color);
+count_mobility (uint8_t *board, int color);
 
 static void
-prepare_to_solve (uint8 *board);
+prepare_to_solve (uint8_t *board);
 
 inline static Node
-no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
+no_parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
                      int color, int empties, int discdiff, int prevmove);
 
 static Node
-parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
+parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
                   int color, int empties, int discdiff, int prevmove);
 
 static Node
-fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
+fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
                          int color, int empties, int discdiff, int prevmove);
 
 static Node
-end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
+end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
            int color, int empties, int discdiff, int prevmove);
 
 static void
@@ -211,14 +211,14 @@ static const sint8 infinity = 65;
  *
  * Best setting so far is 4.
  */
-static const uint8 use_parity = 0;
+static const uint8_t use_parity = 0;
 
 /*
  * The parameter fastest_first. See above for explanation.
  *
  * Best setting so far is 7.
  */
-static const uint8 fastest_first = 0;
+static const uint8_t fastest_first = 0;
 
 /*
  * The 8 legal directions, plus no direction at ninth value.
@@ -235,7 +235,7 @@ static const sint8 dir_inc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
  * Central squares 50, 49, 41, 40 should never be used, but are there to have a "complete"
  * implementation.
  */
-static const uint8 worst_to_best[64] =
+static const uint8_t worst_to_best[64] =
   {
     /* G7 B7 G2 B2 */              70, 65, 25, 20,
     /* G8 B8 H7 A7 H2 A2 G1 B1 */  79, 74, 71, 64, 26, 19, 16, 11,
@@ -249,7 +249,7 @@ static const uint8 worst_to_best[64] =
     /* E5 D5 E4 D4 */              50, 49, 41, 40
   };
 
-static const uint8 worst_to_best_reverse_lookup[91] =
+static const uint8_t worst_to_best_reverse_lookup[91] =
   {
     /*00-08*/ 0,   0,   0,   0,   0,   0,   0,   0,   0,
     /*09-17*/ 0,  60,  12,  56,  44,  43,  55,  11,  59,
@@ -272,7 +272,7 @@ static const uint8 worst_to_best_reverse_lookup[91] =
  * hence square 10 (A1) can flip in directions dir_inc[0]=1,
  * dir_inc[4]=9, and dir_inc[6]=10:
  */
-static const uint8 flipping_dir_mask_table[91] =
+static const uint8_t flipping_dir_mask_table[91] =
   {
     0,   0,   0,   0,   0,   0,   0,   0,   0,
     0,  81,  81,  87,  87,  87,  87,  22,  22,
@@ -319,7 +319,7 @@ static const int sub_run_id = 0;
 
 /*
  * Inside this fast endgame solver, the board is represented by
- * a 1D array of 91 uint8s board[0..90]:
+ * a 1D array of 91 uint8_ts board[0..90]:
  * ddddddddd
  * dxxxxxxxx
  * dxxxxxxxx
@@ -344,7 +344,7 @@ static const int sub_run_id = 0;
  *  8 - 73  74  75  76  77  78  79  80
  *
  */
-static uint8 board[91];
+static uint8_t board[91];
 
 /*
  * Also there is a doubly linked list of the empty squares.
@@ -370,13 +370,13 @@ static uint64 region_parity;
  * But, first move flips always one discs (not sixteen), second the same,
  * so in a game 1024 is a trusted upper bound.
  */
-static uint8 *global_flip_stack[1024];
+static uint8_t *global_flip_stack[1024];
 
 /*
  * A global pointer to one element of `global_flip_stack`,
  * it identify the next empty position in the stack.
  */
-static uint8 **flip_stack = &(global_flip_stack[0]);
+static uint8_t **flip_stack = &(global_flip_stack[0]);
 
 
 
@@ -467,7 +467,7 @@ game_position_ifes_solve (const GamePosition * const root,
  *
  */
 void
-game_position_to_ifes_board (const GamePosition * const gp, uint8 *b, int *p_emp, int *p_wc, int *p_bc)
+game_position_to_ifes_board (const GamePosition * const gp, uint8_t *b, int *p_emp, int *p_wc, int *p_bc)
 {
   /* Sets to IFES_DUMMY all the board squares. */
   for (int board_index = 0; board_index < 91; board_index++) b[board_index] = IFES_DUMMY;
@@ -512,7 +512,7 @@ game_position_get_ifes_player (const GamePosition * const gp)
  * @return           the equivalent game position
  */
 GamePosition *
-ifes_game_position_translation (uint8 *board, int color)
+ifes_game_position_translation (uint8_t *board, int color)
 {
   SquareSet blacks = 0ULL;
   SquareSet whites = 0ULL;
@@ -585,8 +585,8 @@ game_position_to_ifes_board_ (const GamePosition * const gp, int *p_emp, int *p_
 static Square
 ifes_square_to_square (const int sq)
 {
-  const uint8 col = (sq % 9) - 1;
-  const uint8 row = (sq / 9) - 1;
+  const uint8_t col = (sq % 9) - 1;
+  const uint8_t row = (sq / 9) - 1;
   return row * 8 + col;
 }
 
@@ -611,8 +611,8 @@ ifes_square_to_string (const int sq)
     *(symbol + 1) = 'A';
     *(symbol + 2) = '\0';
   } else {
-    const uint8 col = (sq % 9) - 1;
-    const uint8 row = (sq / 9) - 1;
+    const uint8_t col = (sq % 9) - 1;
+    const uint8_t row = (sq / 9) - 1;
     *symbol = 'A' + col;
     *(symbol + 1) = '1' + row;
     *(symbol + 2) = '\0';
@@ -630,9 +630,9 @@ ifes_square_to_string (const int sq)
  * @param [in] oppcol the opposite color
  */
 inline static void
-directional_flips (uint8 *sq, int inc, int color, int oppcol)
+directional_flips (uint8_t *sq, int inc, int color, int oppcol)
 {
-  uint8 *pt = sq + inc;
+  uint8_t *pt = sq + inc;
   if (*pt == oppcol) {
     pt += inc;
     if (*pt == oppcol) {
@@ -674,11 +674,11 @@ directional_flips (uint8 *sq, int inc, int color, int oppcol)
  * @return                the flip count
  */
 static int
-do_flips (uint8 *board, int sqnum, int color, int oppcol)
+do_flips (uint8_t *board, int sqnum, int color, int oppcol)
 {
-  const uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
-  uint8 **previous_flip_stack = flip_stack;
-  uint8 *sq = sqnum + board;
+  const uint8_t flipping_dir_mask = flipping_dir_mask_table[sqnum];
+  uint8_t **previous_flip_stack = flip_stack;
+  uint8_t *sq = sqnum + board;
 
   if (flipping_dir_mask & (1 << 7))
     directional_flips(sq, dir_inc[7], color, oppcol);
@@ -710,9 +710,9 @@ do_flips (uint8 *board, int sqnum, int color, int oppcol)
  * @return            the count of flipped discs in this direction
  */
 inline static int
-ct_directional_flips (uint8 *sq, int inc, int color, int oppcol)
+ct_directional_flips (uint8_t *sq, int inc, int color, int oppcol)
 {
-  uint8 *pt = sq + inc;
+  uint8_t *pt = sq + inc;
   if (*pt == oppcol) {
     int count = 1;
     pt += inc;
@@ -751,11 +751,11 @@ ct_directional_flips (uint8 *sq, int inc, int color, int oppcol)
  * @return            the flip count
  */
 static int
-count_flips (uint8 *board, int sqnum, int color, int oppcol)
+count_flips (uint8_t *board, int sqnum, int color, int oppcol)
 {
   int ct = 0;
-  const uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
-  uint8 *sq = sqnum + board;
+  const uint8_t flipping_dir_mask = flipping_dir_mask_table[sqnum];
+  uint8_t *sq = sqnum + board;
 
   if (flipping_dir_mask & (1 << 7))
     ct += ct_directional_flips(sq, dir_inc[7], color, oppcol);
@@ -790,9 +790,9 @@ count_flips (uint8 *board, int sqnum, int color, int oppcol)
  * @return            `1` if there are legal flips, `0` otherwise
  */
 inline static int
-any_directional_flips (uint8 *sq, int inc, int color, int oppcol)
+any_directional_flips (uint8_t *sq, int inc, int color, int oppcol)
 {
-  uint8 *pt = sq + inc;
+  uint8_t *pt = sq + inc;
   if (*pt == oppcol) {
     pt += inc;
     if (*pt == oppcol) {
@@ -827,11 +827,11 @@ any_directional_flips (uint8 *sq, int inc, int color, int oppcol)
  * @return            the number of flipped discs
  */
 static int
-any_flips (uint8 *board, int sqnum, int color, int oppcol)
+any_flips (uint8_t *board, int sqnum, int color, int oppcol)
 {
   int any = 0;
-  const uint8 flipping_dir_mask = flipping_dir_mask_table[sqnum];
-  uint8 *sq = sqnum + board;
+  const uint8_t flipping_dir_mask = flipping_dir_mask_table[sqnum];
+  uint8_t *sq = sqnum + board;
 
   /*
    * Unrolling the loop brings a quite sensible gain.
@@ -896,7 +896,7 @@ minu (uint64 a, uint64 b)
  * @return           the legal move count
  */
 static int
-count_mobility (uint8 *board, int color)
+count_mobility (uint8_t *board, int color)
 {
   int     mobility;
   int     square;
@@ -925,10 +925,10 @@ count_mobility (uint8 *board, int color)
  * @param [in] board a given board
  */
 static void
-prepare_to_solve (uint8 *board)
+prepare_to_solve (uint8_t *board)
 {
   uint64 hole_id_map[91];
-  uint8 sqnum;
+  uint8_t sqnum;
   int i;
   uint64 k;
   EmList *pt;
@@ -1016,10 +1016,10 @@ prepare_to_solve (uint8 *board)
  * @return                   the best node (move/value pairs) available
  */
 static Node
-no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
+no_parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
                      int color, int empties, int discdiff, int prevmove)
 {
-  uint8 move_square;
+  uint8_t move_square;
   int flip_count;
   EmList *previous_move;
   EmList *current_move;
@@ -1130,10 +1130,10 @@ no_parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
  * @return                   the best node (move/value pairs) available
  */
 static Node
-parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
+parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
                   int color, int empties, int discdiff, int prevmove)
 {
-  uint8 move_square;
+  uint8_t move_square;
   int flip_count;
   EmList *previous_move;
   EmList *current_move;
@@ -1234,10 +1234,10 @@ parity_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta,
  * @return                   the best node (move/value pairs) available
  */
 static Node
-fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
+fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
                          int color, int empties, int discdiff, int prevmove)
 {
-  uint8 move_square;
+  uint8_t move_square;
   int flip_count;
   EmList *previous_move;
   EmList *current_move;
@@ -1396,7 +1396,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8 *board, int alpha, int b
  * @return                  the node having the best value among the legal moves
  */
 inline static Node
-end_solve (ExactSolution *solution, uint8 *board, int alpha, int beta, 
+end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
            int color, int empties, int discdiff, int prevmove)
 {
   if (empties > fastest_first)

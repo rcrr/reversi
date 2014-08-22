@@ -72,7 +72,7 @@ typedef struct {
   uint64         hash;                        /**< @brief The hash value of the game position. */
   SquareSet      move_set;                    /**< @brief The set of legal moves. */
   int            move_count;                  /**< @brief The count of legal moves. */
-  uint8*         head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
+  uint8_t       *head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
   Square         best_move;                   /**< @brief The best move for the node. */
   int            alpha;                       /**< @brief The node value. */
   int            beta;                        /**< @brief The node cutoff value. */
@@ -86,7 +86,7 @@ typedef struct {
 typedef struct {
   int      fill_index;                                     /**< @brief The index of the current entry into the stack, at the beginning of game_position_solve_impl. */
   NodeInfo nodes[GAME_TREE_MAX_DEPTH];                     /**< @brief The stack of node info. */
-  uint8    legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];   /**< @brief The stack hosting the legal moves for each node. */
+  uint8_t  legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];   /**< @brief The stack hosting the legal moves for each node. */
 } GameTreeStack;
 
 
@@ -294,11 +294,11 @@ legal_move_list_from_set(const SquareSet legal_move_set,
                          NodeInfo* const current_node_info,
                          NodeInfo* const next_node_info)
 {
-  uint8* move_ptr = current_node_info->head_of_legal_move_list;
+  uint8_t *move_ptr = current_node_info->head_of_legal_move_list;
   SquareSet remaining_moves = legal_move_set;
   current_node_info->move_count = 0;
   while (remaining_moves) {
-    const uint8 move = bit_works_bitscanLS1B_64(remaining_moves);
+    const uint8_t move = bit_works_bitscanLS1B_64(remaining_moves);
     *move_ptr = move;
     move_ptr++;
     current_node_info->move_count++;

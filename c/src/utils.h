@@ -43,6 +43,6 @@ extern int
 utils_random_number (int low, int high);
 
 extern void
-utils_shuffle_uint8 (uint8 *array, int n);
+utils_shuffle_uint8 (uint8_t *array, int n);
 
 #endif /* UTILS_H */

@@ -45,12 +45,6 @@
 typedef unsigned long long int uint64;
 
 /**
- * @typedef uint8
- * @brief Unsigned 8 bits integer.
- */
-typedef unsigned char uint8;
-
-/**
  * @typedef sint64
  * @brief Signed 64 bits integer.
  */
@@ -85,19 +79,19 @@ bit_works_signed_left_shift (uint64 bit_sequence, int shift);
 extern uint32_t
 bit_works_highest_bit_set_32 (uint32_t bit_sequence);
 
-extern uint8
-bit_works_highest_bit_set_8 (uint8 bit_sequence);
+extern uint8_t
+bit_works_highest_bit_set_8 (uint8_t bit_sequence);
 
-extern uint8
-bit_works_fill_in_between (uint8 bit_sequence);
+extern uint8_t
+bit_works_fill_in_between (uint8_t bit_sequence);
 
-extern uint8
+extern uint8_t
 bit_works_bitscanMS1B_64 (const uint64 bit_sequence);
 
-extern uint8
-bit_works_bitscanMS1B_8 (const uint8 bit_sequence);
+extern uint8_t
+bit_works_bitscanMS1B_8 (const uint8_t bit_sequence);
 
-extern uint8
+extern uint8_t
 bit_works_bitscanLS1B_64 (const uint64 bit_sequence);
 
 extern uint64
@@ -106,7 +100,7 @@ bit_works_lowest_bit_set_64 (const uint64 bit_sequence);
 extern uint32_t
 bit_works_lowest_bit_set_32 (const uint32_t bit_sequence);
 
-extern uint8
-bit_works_lowest_bit_set_8 (const uint8 bit_sequence);
+extern uint8_t
+bit_works_lowest_bit_set_8 (const uint8_t bit_sequence);
 
 #endif /* BIT_WORKS_H */

@@ -53,11 +53,11 @@ game_position_ifes_solve (const GamePosition * const root,
                           const gchar        * const log_file);
 
 extern GamePosition *
-ifes_game_position_translation (uint8 *board, int color);
+ifes_game_position_translation (uint8_t *board, int color);
 
 extern void
 game_position_to_ifes_board (const GamePosition * const gp,
-                                   uint8        *       b,
+                                   uint8_t      *       b,
                                    int          *       p_emp,
                                    int          *       p_wc,
                                    int          *       p_bc);

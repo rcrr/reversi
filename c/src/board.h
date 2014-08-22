@@ -246,15 +246,15 @@ square_is_in_legal_move_range (const Square move);
 
 extern int
 axis_shift_distance (const Axis axis,
-                     const uint8 column,
-                     const uint8 row);
+                     const uint8_t column,
+                     const uint8_t row);
 
-extern uint8
+extern uint8_t
 axis_move_ordinal_position_in_bitrow (const Axis axis,
-                                      const uint8 column,
-                                      const uint8 row);
+                                      const uint8_t column,
+                                      const uint8_t row);
 
-extern uint8
+extern uint8_t
 axis_transform_to_row_one (const Axis axis,
                            const SquareSet squares);
 
@@ -322,7 +322,7 @@ extern SquareSet
 board_get_color (const Board *const b,
                  const SquareState color);
 
-extern uint8
+extern uint8_t
 board_bitrow_changes_for_player (int player_row,
                                  int opponent_row,
                                  int move_position);
