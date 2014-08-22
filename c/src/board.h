@@ -235,6 +235,9 @@ extern gchar *
 square_array_to_string (const Square sqa[],
                         const int length);
 
+extern gboolean
+square_is_in_legal_move_range (const Square move);
+
 
 
 /********************************************/
@@ -284,7 +287,11 @@ extern Board *
 board_new (const SquareSet b,
            const SquareSet w);
 
-extern Board *board_free (Board *b);
+extern Board *
+board_free (Board *b);
+
+extern Board *
+board_clone (const Board *const b);
 
 extern SquareState
 board_get_square (const Board *const b,

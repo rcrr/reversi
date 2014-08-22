@@ -118,6 +118,9 @@ exact_solution_to_string (const ExactSolution *const es);
 extern gchar *
 exact_solution_pv_to_string (const ExactSolution *const es);
 
+extern void
+exact_solution_compute_final_board (ExactSolution *const es);
+
 
 
 /**************************************************/

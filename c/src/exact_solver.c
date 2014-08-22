@@ -181,14 +181,13 @@ game_position_solve (const GamePosition * const root,
   if (sn) {
     result->pv[0] = sn->move;
     result->outcome = sn->value;
+    pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve_root_line, result);
+    exact_solution_compute_final_board(result);
   }
   sn = search_node_free(sn);
+  pve_free(pve);
 
   game_tree_log_close(log_env);
-
-  pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve_root_line, result);
-
-  pve_free(pve);
   
   return result;
 }

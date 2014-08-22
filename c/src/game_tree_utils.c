@@ -177,6 +177,8 @@ exact_solution_to_string (const ExactSolution * const es)
 gchar *
 exact_solution_pv_to_string (const ExactSolution *const es)
 {
+  g_assert(es);
+
   gchar *pv_to_string;
   GString *tmp = g_string_sized_new(16);
 
@@ -184,10 +186,41 @@ exact_solution_pv_to_string (const ExactSolution *const es)
     g_string_append_printf(tmp, "%s", square_as_move_to_string2(es->pv[i]));
     if (i != es->pv_length) g_string_append_printf(tmp, " ");
   }
+  g_string_append_printf(tmp, "\n");
+
+  if (es->final_board) {
+    gchar *b_to_s = board_print(es->final_board);
+    g_string_append_printf(tmp, "\nFinal board configuration:\n%s\n", b_to_s);
+    g_free(b_to_s);
+  }
 
   pv_to_string = tmp->str;
   g_string_free(tmp, FALSE);
   return pv_to_string;
+}
+
+/**
+ * @brief Computes the final board when the pv component is properly populated.
+ *
+ * @details Executes all the moves stored into the pv field up the the final
+ * board configuration, then stores it into the final_board field.
+ *
+ * @param [in] es a pointer to the exact solution structure
+ */
+void
+exact_solution_compute_final_board (ExactSolution *const es)
+{
+  g_assert(es);
+
+  int i;
+  GamePosition *gp, *gp_next;
+  for (i = 0, gp = game_position_clone(es->solved_game_position); i < es->pv_length; i++) {
+    gp_next = game_position_make_move(gp, es->pv[i]);
+    gp = game_position_free(gp);
+    gp = gp_next;
+  }
+  es->final_board = board_clone(gp->board);
+  game_position_free(gp);
 }
 
 
