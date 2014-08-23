@@ -157,35 +157,10 @@ exact_solution_to_string (const ExactSolution * const es)
                          es->outcome);
 
   if (es->pv_length != 0) {
-    gchar *pv_to_s = exact_solution_pv_to_string(es);
+    gchar *pv_to_s = square_as_move_array_to_string(es->pv, es->pv_length);
     g_string_append_printf(tmp, "PV: %s\n", pv_to_s);
     g_free(pv_to_s);
   }
-
-  es_to_string = tmp->str;
-  g_string_free(tmp, FALSE);
-  return es_to_string;
-}
-
-/**
- * @brief Prints the principal variation line into the returning string.
- *
- * @param [in] es a pointer to the exact solution structure
- * @return        a string being a representation of the pv line
- */
-gchar *
-exact_solution_pv_to_string (const ExactSolution *const es)
-{
-  g_assert(es);
-
-  gchar *pv_to_string;
-  GString *tmp = g_string_sized_new(16);
-
-  for (int i = 0; i < es->pv_length; i++) {
-    g_string_append_printf(tmp, "%s", square_as_move_to_string(es->pv[i]));
-    if (i != es->pv_length) g_string_append_printf(tmp, " ");
-  }
-  g_string_append_printf(tmp, "\n");
 
   if (es->final_board) {
     gchar *b_to_s = board_print(es->final_board);
@@ -193,9 +168,9 @@ exact_solution_pv_to_string (const ExactSolution *const es)
     g_free(b_to_s);
   }
 
-  pv_to_string = tmp->str;
+  es_to_string = tmp->str;
   g_string_free(tmp, FALSE);
-  return pv_to_string;
+  return es_to_string;
 }
 
 /**
