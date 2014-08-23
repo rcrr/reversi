@@ -374,7 +374,7 @@ square_is_in_legal_move_range (const Square move)
 /******************************************************/
 
 /**
- * @brief Returns a string representation for the sqare set used
+ * @brief Returns a string representation for the square set used
  * to load a json array by postgresql command COPY.
  *
  * @details The returned string has to be freed by the caller.
@@ -424,17 +424,29 @@ square_set_to_pg_json_array (SquareSet squares)
 }
 
 /**
- * @brief Returns a string representation for the sqare set.
+ * @brief Returns a string representation for the square set.
  *
- * The returned string has to be freed by the caller.
+ * @details The returned string has to be freed by the caller.
  *
- * @param [in] moves the square set to be converted into a string
- * @return           a string having the moves sorted as the `Square` enum
+ * A sample call is here exemplified:
+ *
+ * @code{.c}
+ * gchar *ss_to_string;
+ * ss_to_string = square_set_to_string((SquareSet) 0);
+ * g_assert_cmpstr(ss_to_string, ==, "");
+ * g_free(ss_to_string);
+ * ss_to_string = square_set_to_string((SquareSet) 5);
+ * g_assert_cmpstr(ss_to_string, ==, "A1 C1");
+ * g_free(ss_to_string);
+ * @endcode
+ *
+ * @param [in] squares the square set to be converted into a string
+ * @return             a string having the squares sorted as the `Square` enum
  */
 gchar *
-square_set_to_string (SquareSet moves)
+square_set_to_string (SquareSet squares)
 {
-  char *moves_to_string;
+  char *ss_to_string;
   GString *tmp;
 
   tmp = g_string_sized_new(10);
@@ -442,7 +454,7 @@ square_set_to_string (SquareSet moves)
   Square move = 0;
   gboolean passed = FALSE;
   for (SquareSet cursor = 1ULL; cursor != 0ULL; cursor <<= 1) {
-    if ((cursor & moves) != empty_square_set) {
+    if ((cursor & squares) != empty_square_set) {
       const char row = '1' + (move / 8);
       const char col = 'A' + (move % 8);
       if (passed) {
@@ -454,10 +466,10 @@ square_set_to_string (SquareSet moves)
     move++;
   }
 
-  moves_to_string = tmp->str;
+  ss_to_string = tmp->str;
   g_string_free(tmp, FALSE);
 
-  return moves_to_string;
+  return ss_to_string;
 }
 
 /**

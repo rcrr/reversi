@@ -51,6 +51,7 @@ static void square_as_move_array_to_string_test (void);
 static void square_is_in_legal_move_range_test (void);
 
 static void square_set_to_pg_json_array_test (void);
+static void square_set_to_string_test (void);
 
 static void player_color_test (void);
 static void player_description_test (void);
@@ -117,6 +118,7 @@ main (int   argc,
   g_test_add_func("/board/square_is_in_legal_move_range_test", square_is_in_legal_move_range_test);
 
   g_test_add_func("/board/square_set_to_pg_json_array_test", square_set_to_pg_json_array_test);
+  g_test_add_func("/board/square_set_to_string_test", square_set_to_string_test);
 
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
@@ -240,7 +242,6 @@ square_is_in_legal_move_range_test (void)
 /****************************************/
 
 // Missing:
-// square_set_to_string
 // square_set_random_selection
 
 static void
@@ -254,6 +255,19 @@ square_set_to_pg_json_array_test (void)
   g_assert_cmpstr(pg_json_string, ==, "[\"\"A1\"\", \"\"C1\"\"]");
   g_free(pg_json_string);
 }
+
+static void
+square_set_to_string_test (void)
+{
+  gchar *ss_to_string;
+  ss_to_string = square_set_to_string((SquareSet) 0);
+  g_assert_cmpstr(ss_to_string, ==, "");
+  g_free(ss_to_string);
+  ss_to_string = square_set_to_string((SquareSet) 5);
+  g_assert_cmpstr(ss_to_string, ==, "A1 C1");
+  g_free(ss_to_string);
+}
+
 
 
 /*************************************/

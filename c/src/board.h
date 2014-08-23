@@ -241,6 +241,21 @@ square_is_in_legal_move_range (const Square move);
 
 
 
+/*************************************************/
+/* Function prototypes for the SquareSet entity. */ 
+/*************************************************/
+
+extern gchar *
+square_set_to_pg_json_array (SquareSet squares);
+
+extern gchar *
+square_set_to_string (SquareSet squares);
+
+extern Square
+square_set_random_selection (SquareSet squares);
+
+
+
 /********************************************/
 /* Function prototypes for the Axis entity. */ 
 /********************************************/
@@ -520,21 +535,6 @@ extern void
 game_position_x_make_move (const GamePositionX *const current,
                            const Square move,
                            GamePositionX *const updated);
-
-
-
-/*************************************************/
-/* Function prototypes for the SquareSet entity. */ 
-/*************************************************/
-
-extern gchar *
-square_set_to_pg_json_array (SquareSet moves);
-
-extern gchar *
-square_set_to_string (SquareSet moves);
-
-extern Square
-square_set_random_selection (SquareSet squares);
 
 
 
