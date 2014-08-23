@@ -48,6 +48,7 @@ static void square_to_string_test (void);
 static void square_as_move_to_string_test (void);
 static void square_array_to_string_test (void);
 static void square_as_move_array_to_string_test (void);
+static void square_is_in_legal_move_range_test (void);
 
 static void player_color_test (void);
 static void player_description_test (void);
@@ -111,6 +112,7 @@ main (int   argc,
   g_test_add_func("/board/square_as_move_to_string_test", square_as_move_to_string_test);
   g_test_add_func("/board/square_array_to_string_test", square_array_to_string_test);
   g_test_add_func("/board/square_as_move_array_to_string_test", square_as_move_array_to_string_test);
+  g_test_add_func("/board/square_is_in_legal_move_range_test", square_is_in_legal_move_range_test);
 
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
@@ -208,6 +210,17 @@ square_as_move_array_to_string_test (void)
   gchar *expected = square_as_move_array_to_string(mova, length);
   g_assert_cmpstr(expected, ==, "A1 D7 H8 --");
   g_free(expected);
+}
+
+static void
+square_is_in_legal_move_range_test (void)
+{
+  g_assert(square_is_in_legal_move_range(A1));
+  g_assert(square_is_in_legal_move_range(D3));
+  g_assert(square_is_in_legal_move_range(H8));
+  g_assert(square_is_in_legal_move_range(pass_move));
+  g_assert(!square_is_in_legal_move_range((Square) 64));
+  g_assert(!square_is_in_legal_move_range((Square) -2));
 }
 
 static void

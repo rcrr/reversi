@@ -217,6 +217,14 @@ board_module_init (void)
  *
  * @details The returned string cannot be changed and must not be deallocated.
  *
+ * A sample call is here exemplified:
+ *
+ * @code{.c}
+ * g_assert_cmpstr("D5", ==, square_to_string(D5));
+ * g_assert_cmpstr("A1", ==, square_to_string(A1));
+ * g_assert_cmpstr("H8", ==, square_to_string(H8));
+ * @endcode
+ *
  * @param [in] sq the square
  * @return        a string of two chars representing the square
  */
@@ -337,6 +345,17 @@ square_as_move_array_to_string (const Square mova[],
  * @brief Returns TRUE is the `move` parameter is in the range [-1,63],
  * where `-1` means move_pass, and values from `0` to `63` are defined by the
  * `Square` enum.
+ *
+ * A sample call is here exemplified:
+ *
+ * @code{.c}
+ * g_assert(square_is_in_legal_move_range(A1));
+ * g_assert(square_is_in_legal_move_range(D3));
+ * g_assert(square_is_in_legal_move_range(H8));
+ * g_assert(square_is_in_legal_move_range(pass_move));
+ * g_assert(!square_is_in_legal_move_range((Square) 64));
+ * g_assert(!square_is_in_legal_move_range((Square) -2));
+ * @endcode
  *
  * @param [in] move the given move
  * @return          true if the move is in the legal range
