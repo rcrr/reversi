@@ -222,14 +222,11 @@ board_module_init (void);
 /* Function prototypes for the Square entity. */ 
 /**********************************************/
 
-extern gchar *
+extern const gchar *
 square_to_string (const Square sq);
 
-extern const gchar const *
-square_to_string2 (const Square sq);
-
-extern const gchar const *
-square_as_move_to_string2 (const Square move);
+extern const gchar *
+square_as_move_to_string (const Square move);
 
 extern gchar *
 square_array_to_string (const Square sqa[],

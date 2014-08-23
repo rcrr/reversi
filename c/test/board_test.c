@@ -172,9 +172,9 @@ dummy_test (void)
 static void
 square_to_string_test (void)
 {
-  g_assert_cmpstr("D5", ==, square_to_string2(D5));
-  g_assert_cmpstr("A1", ==, square_to_string2(A1));
-  g_assert_cmpstr("H8", ==, square_to_string2(H8));
+  g_assert_cmpstr("D5", ==, square_to_string(D5));
+  g_assert_cmpstr("A1", ==, square_to_string(A1));
+  g_assert_cmpstr("H8", ==, square_to_string(H8));
 }
 
 static void

@@ -153,7 +153,7 @@ exact_solution_to_string (const ExactSolution * const es)
                          es->node_count, 
                          es->leaf_count);
   g_string_append_printf(tmp, "Final outcome: best move=%s, position value=%d\n",
-                         square_as_move_to_string2(es->pv[0]),
+                         square_as_move_to_string(es->pv[0]),
                          es->outcome);
 
   if (es->pv_length != 0) {
@@ -182,7 +182,7 @@ exact_solution_pv_to_string (const ExactSolution *const es)
   GString *tmp = g_string_sized_new(16);
 
   for (int i = 0; i < es->pv_length; i++) {
-    g_string_append_printf(tmp, "%s", square_as_move_to_string2(es->pv[i]));
+    g_string_append_printf(tmp, "%s", square_as_move_to_string(es->pv[i]));
     if (i != es->pv_length) g_string_append_printf(tmp, " ");
   }
   g_string_append_printf(tmp, "\n");
@@ -429,7 +429,7 @@ pve_internals_to_string (const PVEnv *const pve)
   g_string_append_printf(tmp, "ordinal;address;move;next\n");
   for (int i = 0; i < pve->cells_size; i++) {
     g_string_append_printf(tmp, "%4d;%p;%s;%p\n",
-                           i, (void*) (pve->cells + i), square_as_move_to_string2((pve->cells + i)->move), (void*) (pve->cells + i)->next);
+                           i, (void*) (pve->cells + i), square_as_move_to_string((pve->cells + i)->move), (void*) (pve->cells + i)->next);
   }
   g_string_append_printf(tmp, "\n# PVE CELLS STACK\n");
   g_string_append_printf(tmp, "ordinal;address;points_to\n");
@@ -539,7 +539,7 @@ pve_line_print_internals (const PVEnv *const pve,
   g_string_append_printf(tmp, "line_address=%p, first_cell=%p", (void *) line, (void *) *line);
   if (*line) g_string_append_printf(tmp, ", chain: ");
   for (const PVCell *c = *line; c != NULL; c = c->next) {
-    g_string_append_printf(tmp, "(c=%p, m=%s, n=%p)", (void *) c, square_as_move_to_string2(c->move), (void *) c->next);
+    g_string_append_printf(tmp, "(c=%p, m=%s, n=%p)", (void *) c, square_as_move_to_string(c->move), (void *) c->next);
   }
 
   line_to_string = tmp->str;
@@ -562,7 +562,7 @@ pve_line_to_string (const PVEnv *const pve,
   GString *tmp = g_string_sized_new(16);
 
   for (const PVCell *c = *line; c != NULL; c = c->next) {
-    g_string_append_printf(tmp, "%s", square_as_move_to_string2(c->move));
+    g_string_append_printf(tmp, "%s", square_as_move_to_string(c->move));
     if (c->next) g_string_append_printf(tmp, " ");
   }
 

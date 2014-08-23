@@ -220,8 +220,8 @@ board_module_init (void)
  * @param [in] sq the square
  * @return        a string of two chars representing the square
  */
-const gchar const *
-square_to_string2 (const Square sq)
+const gchar *
+square_to_string (const Square sq)
 {
   if (sq >= A1 && sq <= H8) {
     return sq_to_s[sq];
@@ -238,13 +238,13 @@ square_to_string2 (const Square sq)
  * @param [in] move the move
  * @return          a string of two chars representing the move
  */
-const gchar const *
-square_as_move_to_string2 (const Square move)
+const gchar *
+square_as_move_to_string (const Square move)
 {
   if (move == pass_move) {
     return sq_to_s[64]; // --
   } else {
-    return square_to_string2(move);
+    return square_to_string(move);
   }
 }
 
@@ -267,7 +267,7 @@ square_array_to_string (const Square sqa[],
   tmp = g_string_sized_new(10);
 
   for (int i = 0; i < length; i++) {
-    g_string_append_printf(tmp, "%s", square_to_string2(sqa[i]));
+    g_string_append_printf(tmp, "%s", square_to_string(sqa[i]));
     if (length - i > 1) g_string_append_printf(tmp, " ");
   }
 
