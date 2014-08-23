@@ -226,7 +226,7 @@ square_to_string (const Square sq)
   if (sq >= A1 && sq <= H8) {
     return sq_to_s[sq];
   } else {
-    return sq_to_s[65]; // NA
+    return sq_to_s[65]; // 65 means "NA"
   }
 }
 
@@ -242,7 +242,7 @@ const gchar *
 square_as_move_to_string (const Square move)
 {
   if (move == pass_move) {
-    return sq_to_s[64]; // --
+    return sq_to_s[64]; // 64 means "--"
   } else {
     return square_to_string(move);
   }

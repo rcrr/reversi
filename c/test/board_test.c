@@ -45,6 +45,7 @@
 static void dummy_test (void);
 
 static void square_to_string_test (void);
+static void square_as_move_to_string_test (void);
 
 static void player_color_test (void);
 static void player_description_test (void);
@@ -105,6 +106,7 @@ main (int   argc,
   g_test_add_func("/board/dummy_test", dummy_test);
 
   g_test_add_func("/board/square_to_string_test", square_to_string_test);
+  g_test_add_func("/board/square_as_move_to_string_test", square_as_move_to_string_test);
 
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
@@ -175,6 +177,13 @@ square_to_string_test (void)
   g_assert_cmpstr("D5", ==, square_to_string(D5));
   g_assert_cmpstr("A1", ==, square_to_string(A1));
   g_assert_cmpstr("H8", ==, square_to_string(H8));
+}
+
+static void
+square_as_move_to_string_test (void)
+{
+  g_assert_cmpstr("D5", ==, square_as_move_to_string(D5));
+  g_assert_cmpstr("--", ==, square_as_move_to_string(pass_move));
 }
 
 static void
