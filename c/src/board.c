@@ -215,7 +215,7 @@ board_module_init (void)
 /**
  * @brief Returns a string representation for the sqare.
  *
- * The returned string cannot be changed and must not be deallocated.
+ * @details The returned string cannot be changed and must not be deallocated.
  *
  * @param [in] sq the square
  * @return        a string of two chars representing the square
@@ -233,7 +233,14 @@ square_to_string (const Square sq)
 /**
  * @brief Returns a string representation for the move.
  *
- * The returned string cannot be changed and must not be deallocated.
+ * @details The returned string cannot be changed and must not be deallocated.
+ *
+ * A sample call is here exemplified:
+ *
+ * @code{.c}
+ * g_assert_cmpstr("D5", ==, square_as_move_to_string(D5));
+ * g_assert_cmpstr("--", ==, square_as_move_to_string(pass_move));
+ * @endcode
  *
  * @param [in] move the move
  * @return          a string of two chars representing the move
@@ -251,7 +258,17 @@ square_as_move_to_string (const Square move)
 /**
  * @brief Returns a string that represents the square array.
  *
- * The returned string has to be freed by the caller.
+ * @details The returned string has to be freed by the caller.
+ *
+ * A sample call is here exemplified:
+ *
+ * @code{.c}
+ * const Square sqa[] = {A1, D7, H8};
+ * const int length = 3;
+ * gchar *expected = square_array_to_string(sqa, length);
+ * g_assert_cmpstr(expected, ==, "A1 D7 H8");
+ * g_free(expected);
+ * @endcode
  *
  * @param [in] sqa    the square array to convert
  * @param [in] length the count of elements in the array
@@ -261,13 +278,52 @@ gchar *
 square_array_to_string (const Square sqa[],
                         const int length)
 {
-  gchar *moves_to_string;
+  gchar *squares_to_string;
   GString *tmp;
 
   tmp = g_string_sized_new(10);
 
   for (int i = 0; i < length; i++) {
     g_string_append_printf(tmp, "%s", square_to_string(sqa[i]));
+    if (length - i > 1) g_string_append_printf(tmp, " ");
+  }
+
+  squares_to_string = tmp->str;
+  g_string_free(tmp, FALSE);
+
+  return squares_to_string;
+}
+
+/**
+ * @brief Returns a string that represents the move array.
+ *
+ * @details The returned string has to be freed by the caller.
+ *
+ * A sample call is here exemplified:
+ *
+ * @code{.c}
+ * const Square mova[] = {A1, D7, H8, pass_move};
+ * const int length = 4;
+ * gchar *expected = square_as_move_array_to_string(mova, length);
+ * g_assert_cmpstr(expected, ==, "A1 D7 H8 --");
+ * g_free(expected);
+ * @endcode
+ *
+ * @param [in] mova   the move array to convert
+ * @param [in] length the count of elements in the array
+ * @return            a string representation for the move array
+ */
+gchar *
+square_as_move_array_to_string (const Square mova[],
+                                const int length)
+{
+  gchar *moves_to_string;
+  GString *tmp;
+
+  tmp = g_string_sized_new(10);
+
+  for (int i = 0; i < length; i++) {
+    g_string_append_printf(tmp, "%s", square_as_move_to_string(mova[i]));
     if (length - i > 1) g_string_append_printf(tmp, " ");
   }
 

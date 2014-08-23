@@ -232,6 +232,10 @@ extern gchar *
 square_array_to_string (const Square sqa[],
                         const int length);
 
+extern gchar *
+square_as_move_array_to_string (const Square mova[],
+                                const int length);
+
 extern gboolean
 square_is_in_legal_move_range (const Square move);
 

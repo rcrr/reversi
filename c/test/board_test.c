@@ -46,6 +46,8 @@ static void dummy_test (void);
 
 static void square_to_string_test (void);
 static void square_as_move_to_string_test (void);
+static void square_array_to_string_test (void);
+static void square_as_move_array_to_string_test (void);
 
 static void player_color_test (void);
 static void player_description_test (void);
@@ -107,6 +109,8 @@ main (int   argc,
 
   g_test_add_func("/board/square_to_string_test", square_to_string_test);
   g_test_add_func("/board/square_as_move_to_string_test", square_as_move_to_string_test);
+  g_test_add_func("/board/square_array_to_string_test", square_array_to_string_test);
+  g_test_add_func("/board/square_as_move_array_to_string_test", square_as_move_array_to_string_test);
 
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
@@ -184,6 +188,26 @@ square_as_move_to_string_test (void)
 {
   g_assert_cmpstr("D5", ==, square_as_move_to_string(D5));
   g_assert_cmpstr("--", ==, square_as_move_to_string(pass_move));
+}
+
+static void
+square_array_to_string_test (void)
+{
+  const Square sqa[] = {A1, D7, H8};
+  const int length = 3;
+  gchar *expected = square_array_to_string(sqa, length);
+  g_assert_cmpstr(expected, ==, "A1 D7 H8");
+  g_free(expected);
+}
+
+static void
+square_as_move_array_to_string_test (void)
+{
+  const Square mova[] = {A1, D7, H8, pass_move};
+  const int length = 4;
+  gchar *expected = square_as_move_array_to_string(mova, length);
+  g_assert_cmpstr(expected, ==, "A1 D7 H8 --");
+  g_free(expected);
 }
 
 static void
