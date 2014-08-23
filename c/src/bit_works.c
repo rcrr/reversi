@@ -36,14 +36,14 @@
 
 
 
-static const uint64 m1  = 0x5555555555555555; //binary: 0101...
-static const uint64 m2  = 0x3333333333333333; //binary: 00110011..
-static const uint64 m4  = 0x0f0f0f0f0f0f0f0f; //binary:  4 zeros,  4 ones ...
-static const uint64 m8  = 0x00ff00ff00ff00ff; //binary:  8 zeros,  8 ones ...
-static const uint64 m16 = 0x0000ffff0000ffff; //binary: 16 zeros, 16 ones ...
-static const uint64 m32 = 0x00000000ffffffff; //binary: 32 zeros, 32 ones
-static const uint64 hff = 0xffffffffffffffff; //binary: all ones
-static const uint64 h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,3...
+static const uint64_t m1  = 0x5555555555555555; //binary: 0101...
+static const uint64_t m2  = 0x3333333333333333; //binary: 00110011..
+static const uint64_t m4  = 0x0f0f0f0f0f0f0f0f; //binary:  4 zeros,  4 ones ...
+static const uint64_t m8  = 0x00ff00ff00ff00ff; //binary:  8 zeros,  8 ones ...
+static const uint64_t m16 = 0x0000ffff0000ffff; //binary: 16 zeros, 16 ones ...
+static const uint64_t m32 = 0x00000000ffffffff; //binary: 32 zeros, 32 ones
+static const uint64_t hff = 0xffffffffffffffff; //binary: all ones
+static const uint64_t h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,3...
 
 /* Log 2 array */
 static const uint8_t log2_array[] = {
@@ -70,7 +70,7 @@ static const uint8_t debruijn_64_index[] = {
 };
 
 /* 64 bit value for the de Bruijn's "magical" constant. */
-static const uint64 debruijn_64_magic_constant = 0x07EDD5E59A4E28C2ULL;
+static const uint64_t debruijn_64_magic_constant = 0x07EDD5E59A4E28C2ULL;
 
 /* Right shift for the de Bruijn's algorithm. */
 static const int debruijn_64_shift_value = 58;
@@ -80,7 +80,7 @@ static const int debruijn_64_shift_value = 58;
  * and to help in understanding the better functions.
  * It uses 24 arithmetic operations (shift, add, and).
  *
-static int popcount_1(uint64 x) {
+static int popcount_1(uint64_t x) {
     x = (x & m1 ) + ((x >>  1) & m1 ); //put count of each  2 bits into those  2 bits
     x = (x & m2 ) + ((x >>  2) & m2 ); //put count of each  4 bits into those  4 bits
     x = (x & m4 ) + ((x >>  4) & m4 ); //put count of each  8 bits into those  8 bits
@@ -96,7 +96,7 @@ static int popcount_1(uint64 x) {
  * implementation on machines with slow multiplication.
  * It uses 17 arithmetic operations.
  *
-static int popcount_2(uint64 x) {
+static int popcount_2(uint64_t x) {
     x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
     x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits
     x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits
@@ -118,7 +118,7 @@ static int popcount_2(uint64 x) {
  * @return       the count of bit set in the `x` parameter
  */
 int
-bit_works_popcount (uint64 x)
+bit_works_popcount (uint64_t x)
 {
 #ifdef X86_POPCNT
   long long int out;
@@ -136,7 +136,7 @@ bit_works_popcount (uint64 x)
  * This is better when most bits in x are 0
  * It uses 3 arithmetic operations and one comparison/branch per "1" bit in x.
  *
-static int popcount_4(uint64 x) {
+static int popcount_4(uint64_t x) {
     int count;
     for (count=0; x; count++)
         x &= x-1;
@@ -158,7 +158,7 @@ static int popcount_4(uint64 x) {
  *                           collected in a two cells struct
  */
 void
-bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
+bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64_t bit_sequence)
 {
   uint32_t tmp;
   uint8_t  hi;
@@ -194,8 +194,8 @@ bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence)
  * @param shift        the number of position to shift
  * @return             the shifted value
  */
-uint64
-bit_works_signed_left_shift (uint64 bit_sequence, int shift)
+uint64_t
+bit_works_signed_left_shift (uint64_t bit_sequence, int shift)
 {
   return shift >= 0 ? bit_sequence << shift : bit_sequence >> -shift;
 }
@@ -280,13 +280,13 @@ bit_works_fill_in_between (uint8_t bit_sequence)
  *
  * So far it is the preferred choice for the reversi implementation.
  *
- * @param bit_sequence uint64 value that is scanned
+ * @param bit_sequence uint64_t value that is scanned
  * @return             the index `(0..63)` of the most significant bit set
  */
 uint8_t
-bit_works_bitscanMS1B_64 (const uint64 bit_sequence)
+bit_works_bitscanMS1B_64 (const uint64_t bit_sequence)
 {
-  uint64 tmp = bit_sequence;
+  uint64_t tmp = bit_sequence;
   uint8_t result = 0x00;
   if ((tmp & 0xFFFFFFFF00000000) != 0ULL) {
     tmp >>= 32;
@@ -333,10 +333,10 @@ bit_works_bitscanMS1B_8 (const uint8_t bit_sequence)
  * @return             the index of the least significant bit set
  */
 uint8_t
-bit_works_bitscanLS1B_64 (const uint64 bit_sequence)
+bit_works_bitscanLS1B_64 (const uint64_t bit_sequence)
 {
   /** mask isolates the least significant one bit (LS1B). */
-  const uint64 mask = bit_sequence & (-bit_sequence);
+  const uint64_t mask = bit_sequence & (-bit_sequence);
   return debruijn_64_index[(mask * debruijn_64_magic_constant) >> debruijn_64_shift_value];
 }
 
@@ -347,8 +347,8 @@ bit_works_bitscanLS1B_64 (const uint64 bit_sequence)
  * @param bit_sequence the input value
  * @return             the filtered sequence
  */
-uint64
-bit_works_lowest_bit_set_64 (const uint64 bit_sequence)
+uint64_t
+bit_works_lowest_bit_set_64 (const uint64_t bit_sequence)
 {
   return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
 }

@@ -69,7 +69,7 @@
  */
 typedef struct {
   GamePositionX  gpx;                         /**< @brief The game position related to the game tree node. */
-  uint64         hash;                        /**< @brief The hash value of the game position. */
+  uint64_t       hash;                        /**< @brief The hash value of the game position. */
   SquareSet      move_set;                    /**< @brief The set of legal moves. */
   int            move_count;                  /**< @brief The count of legal moves. */
   uint8_t       *head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */

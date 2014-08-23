@@ -103,12 +103,12 @@ static LogEnv *log_env = NULL;
 /**
  * @brief The total number of call to the recursive function that traverse the game DAG.
  */
-static uint64 call_count = 0;
+static uint64_t call_count = 0;
 
 /**
  * @brief The predecessor-successor array of game position hash values.
  */
-static uint64 gp_hash_stack[128];
+static uint64_t gp_hash_stack[128];
 
 /**
  * @brief The index of the last entry into gp_hash_stack.
@@ -123,7 +123,7 @@ static const int sub_run_id = 0;
 /**
  * @brief Used d to sort the legal moves based on an heuristic knowledge.
  */
-static const uint64 legal_moves_priority_mask[] = {
+static const uint64_t legal_moves_priority_mask[] = {
   /* D4, E4, E5, D5 */                 0x0000001818000000,
   /* A1, H1, H8, A8 */                 0x8100000000000081,
   /* C1, F1, F8, C8, A3, H3, H6, A6 */ 0x2400810000810024,

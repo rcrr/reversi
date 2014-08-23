@@ -57,9 +57,9 @@ typedef struct {
  */
 typedef struct {
   int        sub_run_id;  /**< @brief Sub run id field. */
-  uint64     call_id;     /**< @brief Call id. */
-  uint64     hash;        /**< @brief Game position hash. */
-  uint64     parent_hash; /**< @brief Parent game position hash. */
+  uint64_t   call_id;     /**< @brief Call id. */
+  uint64_t   hash;        /**< @brief Game position hash. */
+  uint64_t   parent_hash; /**< @brief Parent game position hash. */
   SquareSet  blacks;      /**< @brief Blacks field part of the game position. */
   SquareSet  whites;      /**< @brief Whites field part of the game position. */
   Player     player;      /**< @brief Player field part of the game position. */
@@ -71,7 +71,7 @@ typedef struct {
  */
 typedef struct {
   int        sub_run_id;  /**< @brief Sub run id field. */
-  uint64     call_id;     /**< @brief Call id. */
+  uint64_t   call_id;     /**< @brief Call id. */
   gchar     *json_doc;    /**< @brief Json field. */
 } LogDataT;
 

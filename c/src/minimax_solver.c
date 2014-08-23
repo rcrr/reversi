@@ -64,12 +64,12 @@ static LogEnv *log_env = NULL;
 /**
  * @brief The total number of call to the recursive function that traverse the game DAG.
  */
-static uint64 call_count = 0;
+static uint64_t call_count = 0;
 
 /**
  * @brief The predecessor-successor array of game position hash values.
  */
-static uint64 gp_hash_stack[128];
+static uint64_t gp_hash_stack[128];
 
 /**
  * @brief The index of the last entry into gp_hash_stack.

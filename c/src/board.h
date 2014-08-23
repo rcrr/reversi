@@ -425,7 +425,7 @@ game_position_make_move (const GamePosition *const gp,
 extern GamePosition *
 game_position_pass (const GamePosition *const gp);
 
-extern uint64
+extern uint64_t
 game_position_hash (const GamePosition *const gp);
 
 extern int
@@ -496,7 +496,7 @@ extern void
 game_position_x_pass (const GamePositionX *const current,
                       GamePositionX *const next);
 
-extern uint64
+extern uint64_t
 game_position_x_hash (const GamePositionX *const gpx);
 
 extern int

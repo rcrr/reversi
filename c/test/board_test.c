@@ -630,7 +630,7 @@ game_position_hash_test (void)
   SquareSet     blacks;
   SquareSet     whites;
   Player        p;
-  uint64        expected;
+  uint64_t      expected;
 
   blacks = 0x0000000000000000ULL;
   whites = 0x0000000000000000ULL;
@@ -984,7 +984,7 @@ game_position_x_hash_test (void)
   SquareSet      blacks;
   SquareSet      whites;
   Player         player;
-  uint64         expected;
+  uint64_t       expected;
 
   expected = 0ULL;
   blacks = 0x0000000000000000ULL;

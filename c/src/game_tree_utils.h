@@ -55,8 +55,8 @@ typedef struct {
   Square        pv[PV_MAX_LENGTH];           /**< @brief The sequence of best moves, or principal variation. */
   int           pv_length;                   /**< @brief The number of moves in the principal variation line. */
   Board        *final_board;                 /**< @brief The final board state. */
-  uint64        leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
-  uint64        node_count;                  /**< @brief The count of all nodes touched by the solver. */
+  uint64_t      leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
+  uint64_t      node_count;                  /**< @brief The count of all nodes touched by the solver. */
 } ExactSolution;
 
 /**

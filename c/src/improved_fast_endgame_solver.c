@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include "game_tree_logger.h"
 
@@ -45,8 +46,8 @@
  * Details to be documented.
  */
 typedef struct EmList_ {
-  uint8_t           square;     /**< @brief One square on the board. */
-  uint64          hole_id;    /**< @brief Id of the hole to which the square belongs to. */
+  uint8_t         square;     /**< @brief One square on the board. */
+  uint64_t        hole_id;    /**< @brief Id of the hole to which the square belongs to. */
   struct EmList_ *pred;       /**< @brief Predecessor element, or NULL if missing. */
   struct EmList_ *succ;       /**< @brief Successor element, or NULL if missing. */
 } EmList;
@@ -58,7 +59,7 @@ typedef struct EmList_ {
  */
 typedef struct {
   uint8_t square;    /**< @brief One square on the board. */
-  sint8 value;     /**< @brief The game value of moving into the square. */
+  sint8   value;     /**< @brief The game value of moving into the square. */
 } Node;
 
 
@@ -88,8 +89,8 @@ any_flips (uint8_t *board, int sqnum, int color, int oppcol);
 inline static void
 undo_flips (int flip_count, int oppcol);
 
-inline static uint64
-minu (uint64 a, uint64 b);
+inline static uint64_t
+minu (uint64_t a, uint64_t b);
 
 static int
 count_mobility (uint8_t *board, int color);
@@ -300,12 +301,12 @@ static LogEnv *log_env = NULL;
 /**
  * @brief The total number of call to the recursive function that traverse the game DAG.
  */
-static uint64 call_count = 0;
+static uint64_t call_count = 0;
 
 /**
  * @brief The predecessor-successor array of game position hash values.
  */
-static uint64 gp_hash_stack[128];
+static uint64_t gp_hash_stack[128];
 
 /**
  * @brief The index of the last entry into gp_hash_stack.
@@ -359,7 +360,7 @@ static EmList em_head, ems[64];
  * There are up to 32 regions. The parities of the regions are in
  * the region_parity bit vector:
  */
-static uint64 region_parity;
+static uint64_t region_parity;
 
 /*
  * Stores the pointers to the board element that are flipped
@@ -430,16 +431,16 @@ game_position_ifes_solve (const GamePosition * const root,
   /** Debug info **/
   if (FALSE) {
     printf("\nEmpty Square Doubly linked List debug info:\n");
-    printf("em_head: address=%p [square=%2d (%s), hole_id=%llu] pred=%p succ=%p\n",
+    printf("em_head: address=%p [square=%2d (%s), hole_id=%" PRIu64 "] pred=%p succ=%p\n",
            (void*) &em_head, em_head.square, ifes_square_to_string(em_head.square), em_head.hole_id,
            (void*) em_head.pred, (void*) em_head.succ);
     for (int k = 0; k < 64; k++) {
       if (ems[k].square != 0)
-        printf("ems[%2d]: address=%p [square=%2d (%s), hole_id=%llu] pred=%p succ=%p\n",
+        printf("ems[%2d]: address=%p [square=%2d (%s), hole_id=%" PRIu64 "] pred=%p succ=%p\n",
                k, (void*) &ems[k], ems[k].square, ifes_square_to_string(ems[k].square), ems[k].hole_id,
                (void*) ems[k].pred, (void*) ems[k].succ);
     }
-    printf("region_parity=%llu\n", region_parity);
+    printf("region_parity=%" PRIu64 "\n", region_parity);
     printf("\n");
     printf("use_parity=%d. fastest_first=%d.\n",
            use_parity, fastest_first);
@@ -881,8 +882,8 @@ undo_flips (int flip_count, int oppcol)
  * @param [in] b second element to compare
  * @return       the lesser element
  */
-inline static uint64
-minu (uint64 a, uint64 b)
+inline static uint64_t
+minu (uint64_t a, uint64_t b)
 {
   if (a < b) return a;
   return b;
@@ -927,10 +928,10 @@ count_mobility (uint8_t *board, int color)
 static void
 prepare_to_solve (uint8_t *board)
 {
-  uint64 hole_id_map[91];
+  uint64_t hole_id_map[91];
   uint8_t sqnum;
   int i;
-  uint64 k;
+  uint64_t k;
   EmList *pt;
   int z;
 
@@ -1137,7 +1138,7 @@ parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
   int flip_count;
   EmList *previous_move;
   EmList *current_move;
-  uint64 parity_mask;
+  uint64_t parity_mask;
   int par, holepar;
   Node evaluated_n;
 

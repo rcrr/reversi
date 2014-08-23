@@ -37,6 +37,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include <glib.h>
 
@@ -148,7 +149,7 @@ exact_solution_to_string (const ExactSolution * const es)
 
   g_string_append_printf(tmp, "%s\n",
                          game_position_print(es->solved_game_position));
-  g_string_append_printf(tmp, "[node_count=%llu, leaf_count=%llu]\n",
+  g_string_append_printf(tmp, "[node_count=%" PRIu64 ", leaf_count=%" PRIu64 "]\n",
                          es->node_count, 
                          es->leaf_count);
   g_string_append_printf(tmp, "Final outcome: best move=%s, position value=%d\n",

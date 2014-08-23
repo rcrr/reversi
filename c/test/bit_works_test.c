@@ -99,7 +99,7 @@ bit_works_int_size_definition_checks (void)
   uint8_t  ui8;
   uint16_t ui16;
   uint32_t ui32;
-  uint64 ui64;
+  uint64_t ui64;
   sint8  si8;
 
   /* uint8_t must be one byte. */
@@ -124,7 +124,7 @@ bit_works_int_size_definition_checks (void)
   g_assert(0x00010000 == ++ui32);
   g_assert(4 == sizeof(ui32));
 
-  /* uint64 must be eight bytes. */
+  /* uint64_t must be eight bytes. */
   ui64 = 0xFFFFFFFFFFFFFFFF;
   g_assert(18446744073709551615ULL == ui64);
   g_assert(0 == ++ui64);
@@ -244,7 +244,7 @@ bit_works_popcount_test (void)
 static void
 bit_works_type_size_test (void)
 {
-  g_assert(8 == sizeof(uint64));
+  g_assert(8 == sizeof(uint64_t));
   g_assert(4 == sizeof(uint32_t));
   g_assert(1 == sizeof(uint8_t));
 }
@@ -253,7 +253,7 @@ static void
 bit_works_bitscan_MS1B_to_base8_test (void)
 {
   HiLo ret;
-  uint64 bit_sequence;
+  uint64_t bit_sequence;
 
   ret = (HiLo) { .hi = 0, .lo = 0 };
   bit_sequence = 1ULL << 0;

@@ -39,12 +39,6 @@
 #include <stdint.h>
 
 /**
- * @typedef uint64
- * @brief Unsigned 64 bits integer.
- */
-typedef unsigned long long int uint64;
-
-/**
  * @typedef sint64
  * @brief Signed 64 bits integer.
  */
@@ -65,16 +59,16 @@ typedef struct {
 } HiLo;
 
 extern int
-bit_works_popcount (uint64 x);
+bit_works_popcount (uint64_t x);
 
 extern void
-bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64 bit_sequence);
+bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64_t bit_sequence);
 
-extern uint64
-bit_works_signed_left_shift (uint64 bit_sequence, int shift);
+extern uint64_t
+bit_works_signed_left_shift (uint64_t bit_sequence, int shift);
 
-extern uint64
-bit_works_signed_left_shift (uint64 bit_sequence, int shift);
+extern uint64_t
+bit_works_signed_left_shift (uint64_t bit_sequence, int shift);
 
 extern uint32_t
 bit_works_highest_bit_set_32 (uint32_t bit_sequence);
@@ -86,16 +80,16 @@ extern uint8_t
 bit_works_fill_in_between (uint8_t bit_sequence);
 
 extern uint8_t
-bit_works_bitscanMS1B_64 (const uint64 bit_sequence);
+bit_works_bitscanMS1B_64 (const uint64_t bit_sequence);
 
 extern uint8_t
 bit_works_bitscanMS1B_8 (const uint8_t bit_sequence);
 
 extern uint8_t
-bit_works_bitscanLS1B_64 (const uint64 bit_sequence);
+bit_works_bitscanLS1B_64 (const uint64_t bit_sequence);
 
-extern uint64
-bit_works_lowest_bit_set_64 (const uint64 bit_sequence);
+extern uint64_t
+bit_works_lowest_bit_set_64 (const uint64_t bit_sequence);
 
 extern uint32_t
 bit_works_lowest_bit_set_32 (const uint32_t bit_sequence);

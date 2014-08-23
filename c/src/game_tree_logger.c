@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include <glib.h>
 #include <glib/gstdio.h>
@@ -127,7 +128,7 @@ game_tree_log_write_h (const LogEnv   * const env,
                        const LogDataH * const data)
 {
   g_assert(env && env->h_file);
-  fprintf(env->h_file, "%6d;%8llu;%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
+  fprintf(env->h_file, "%6d;%8" PRIu64 ";%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
           data->sub_run_id,
           data->call_id,
           (sint64) data->hash,
@@ -152,7 +153,7 @@ game_tree_log_write_t (const LogEnv   * const env,
                        const LogDataT * const data)
 {
   g_assert(env && env->t_file);
-  fprintf(env->t_file, "%6d;%8llu;x%s\n",
+  fprintf(env->t_file, "%6d;%8" PRIu64 ";x%s\n",
           data->sub_run_id,
           data->call_id,
           data->json_doc);
