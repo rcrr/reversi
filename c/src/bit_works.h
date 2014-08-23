@@ -39,12 +39,6 @@
 #include <stdint.h>
 
 /**
- * @typedef sint64
- * @brief Signed 64 bits integer.
- */
-typedef signed long long int sint64;
-
-/**
  * @brief Used to return a two digit representation on a given base, for an integer.
  */
 typedef struct {

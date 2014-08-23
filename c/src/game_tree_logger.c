@@ -128,13 +128,13 @@ game_tree_log_write_h (const LogEnv   * const env,
                        const LogDataH * const data)
 {
   g_assert(env && env->h_file);
-  fprintf(env->h_file, "%6d;%8" PRIu64 ";%+20lld;%+20lld;%+20lld;%+20lld;%1d;%s\n",
+  fprintf(env->h_file, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%s\n",
           data->sub_run_id,
           data->call_id,
-          (sint64) data->hash,
-          (sint64) data->parent_hash,
-          (sint64) data->blacks,
-          (sint64) data->whites,
+          (int64_t) data->hash,
+          (int64_t) data->parent_hash,
+          (int64_t) data->blacks,
+          (int64_t) data->whites,
           data->player,
           data->json_doc);
 }
