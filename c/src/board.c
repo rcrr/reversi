@@ -40,6 +40,8 @@
 #include "board.h"
 #include "utils.h"
 
+
+
 /*
  * Prototypes for internal functions.
  */
@@ -52,8 +54,9 @@ board_initialize_shift_square_set_by_amount_mask_array (SquareSet *array);
 
 static SquareSet
 direction_shift_back_square_set_by_amount (const Direction dir,
-    const SquareSet squares,
-    const int       amount);
+                                           const SquareSet squares,
+                                           const int amount);
+
 
 
 /*
@@ -191,7 +194,10 @@ static uint64_t zobrist_bitstrings[] = {
 /************************************/
 
 /**
- * @brief This function must be called before any use of other functions contained in this module.
+ * @brief Initializes required data structures used by other module's functions.
+ *
+ * @details This function must be called once before any use of other functions
+ * contained in this module.
  */
 void
 board_module_init (void)
@@ -205,37 +211,6 @@ board_module_init (void)
 /***************************************************/
 /* Function implementations for the Square entity. */
 /***************************************************/
-
-/**
- * @brief Returns a string representation for the sqare.
- *
- * The returned string must then be deallocated by the caller using g_free.
- *
- * @param [in] sq the square
- * @return        a string of two chars representing the square
- */
-gchar *
-square_to_string (const Square sq)
-{
-  gchar *symbol;
-
-  static const size_t size_of_square_to_string = 3 * sizeof(gchar);
-  symbol = (gchar *) malloc(size_of_square_to_string);
-
-  if (sq >= A1 && sq <= H8) {
-    const uint8_t col = sq % 8;
-    const uint8_t row = sq / 8;
-    *symbol = 'A' + col;
-    *(symbol + 1) = '1' + row;
-    *(symbol + 2) = '\0';
-  } else {
-    *symbol       = 'N';
-    *(symbol + 1) = 'A';
-    *(symbol + 2) = '\0';
-  }
-
-  return symbol;
-}
 
 /**
  * @brief Returns a string representation for the sqare.

@@ -172,18 +172,9 @@ dummy_test (void)
 static void
 square_to_string_test (void)
 {
-  gchar *symbol;
-  symbol = square_to_string(D5);
-  g_assert(g_strcmp0("D5", symbol) == 0);
-  g_free(symbol);
-
-  symbol = square_to_string(A1);
-  g_assert(g_strcmp0("A1", symbol) == 0);
-  g_free(symbol);
-
-  symbol = square_to_string(H8);
-  g_assert(g_strcmp0("H8", symbol) == 0);
-  g_free(symbol);  
+  g_assert_cmpstr("D5", ==, square_to_string2(D5));
+  g_assert_cmpstr("A1", ==, square_to_string2(A1));
+  g_assert_cmpstr("H8", ==, square_to_string2(H8));
 }
 
 static void
