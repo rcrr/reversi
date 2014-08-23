@@ -50,6 +50,8 @@ static void square_array_to_string_test (void);
 static void square_as_move_array_to_string_test (void);
 static void square_is_in_legal_move_range_test (void);
 
+static void square_set_to_pg_json_array_test (void);
+
 static void player_color_test (void);
 static void player_description_test (void);
 static void player_opponent_test (void);
@@ -114,6 +116,8 @@ main (int   argc,
   g_test_add_func("/board/square_as_move_array_to_string_test", square_as_move_array_to_string_test);
   g_test_add_func("/board/square_is_in_legal_move_range_test", square_is_in_legal_move_range_test);
 
+  g_test_add_func("/board/square_set_to_pg_json_array_test", square_set_to_pg_json_array_test);
+
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
   g_test_add_func("/board/player_opponent_test", player_opponent_test);
@@ -177,6 +181,12 @@ dummy_test (void)
   g_assert(TRUE);
 }
 
+
+
+/*************************************/
+/* Unit tests for the Square entity. */
+/*************************************/
+
 static void
 square_to_string_test (void)
 {
@@ -222,6 +232,60 @@ square_is_in_legal_move_range_test (void)
   g_assert(!square_is_in_legal_move_range((Square) 64));
   g_assert(!square_is_in_legal_move_range((Square) -2));
 }
+
+
+
+/****************************************/
+/* Unit tests for the SquareSet entity. */
+/****************************************/
+
+// Missing:
+// square_set_to_string
+// square_set_random_selection
+
+static void
+square_set_to_pg_json_array_test (void)
+{
+  gchar *pg_json_string;
+  pg_json_string = square_set_to_pg_json_array((SquareSet) 0);
+  g_assert_cmpstr(pg_json_string, ==, "[]");
+  g_free(pg_json_string);
+  pg_json_string = square_set_to_pg_json_array((SquareSet) 5);
+  g_assert_cmpstr(pg_json_string, ==, "[\"\"A1\"\", \"\"C1\"\"]");
+  g_free(pg_json_string);
+}
+
+
+/*************************************/
+/* Unit tests for the Player entity. */
+/*************************************/
+
+static void
+player_color_test (void)
+{
+  g_assert(BLACK_SQUARE == player_color(BLACK_PLAYER));
+  g_assert(WHITE_SQUARE == player_color(WHITE_PLAYER));
+}
+
+static void
+player_description_test (void)
+{
+  g_assert(g_strcmp0(player_description(BLACK_PLAYER), "The Black player") == 0);
+  g_assert(g_strcmp0(player_description(WHITE_PLAYER), "The White player") == 0);
+}
+
+static void
+player_opponent_test (void)
+{
+  g_assert(BLACK_PLAYER == player_opponent(WHITE_PLAYER));
+  g_assert(WHITE_PLAYER == player_opponent(BLACK_PLAYER));
+}
+
+
+
+/***********************************/
+/* Unit tests for the Axis entity. */
+/***********************************/
 
 static void
 axis_transform_to_row_one_test (void)
@@ -307,27 +371,6 @@ axis_shift_distance_test (void)
   g_assert( 56 == axis_shift_distance(DU, 0, 0));
   g_assert( 40 == axis_shift_distance(DU, 1, 1));
   g_assert(-56 == axis_shift_distance(DU, 7, 7));
-}
-
-static void
-player_color_test (void)
-{
-  g_assert(BLACK_SQUARE == player_color(BLACK_PLAYER));
-  g_assert(WHITE_SQUARE == player_color(WHITE_PLAYER));
-}
-
-static void
-player_description_test (void)
-{
-  g_assert(g_strcmp0(player_description(BLACK_PLAYER), "The Black player") == 0);
-  g_assert(g_strcmp0(player_description(WHITE_PLAYER), "The White player") == 0);
-}
-
-static void
-player_opponent_test (void)
-{
-  g_assert(BLACK_PLAYER == player_opponent(WHITE_PLAYER));
-  g_assert(WHITE_PLAYER == player_opponent(BLACK_PLAYER));
 }
 
 static void

@@ -342,9 +342,10 @@ square_as_move_array_to_string (const Square mova[],
 }
 
 /**
- * @brief Returns TRUE is the `move` parameter is in the range [-1,63],
- * where `-1` means move_pass, and values from `0` to `63` are defined by the
- * `Square` enum.
+ * @brief Returns TRUE is the `move` parameter is in a valid range.
+ *
+ * @details The valid range is [-1,63], where `-1` means move_pass,
+ * and values from `0` to `63` are defined by the `Square` enum.
  *
  * A sample call is here exemplified:
  *
@@ -376,13 +377,25 @@ square_is_in_legal_move_range (const Square move)
  * @brief Returns a string representation for the sqare set used
  * to load a json array by postgresql command COPY.
  *
- * @param [in] moves the square set to be converted into a string
- * @return           a string having the moves sorted as the `Square` enum
+ * @details The returned string has to be freed by the caller.
+ *
+ * A sample call is here exemplified:
+ *
+ * @code{.c}
+ * gchar *pg_json_string;
+ * pg_json_string = square_set_to_pg_json_array((SquareSet) 5);
+ * g_assert_cmpstr(pg_json_string, ==, "[\"\"A1\"\", \"\"C1\"\"]");
+ * g_free(pg_json_string);
+ * @endcode
+ *
+ * @param [in] squares the square set to be converted into a string
+ * @return             a string having the given squares represented
+ *                     as a postgresql json array
  */
 gchar *
-square_set_to_pg_json_array (SquareSet moves)
+square_set_to_pg_json_array (SquareSet squares)
 {
-  char *moves_to_string;
+  gchar *ss_to_string;
   GString *tmp;
 
   tmp = g_string_sized_new(10);
@@ -390,8 +403,8 @@ square_set_to_pg_json_array (SquareSet moves)
   g_string_append_printf(tmp, "[");
   Square move = 0;
   gboolean passed = FALSE;
-  for (SquareSet cursor = 1ULL; cursor != 0ULL; cursor <<= 1) {
-    if ((cursor & moves) != empty_square_set) {
+  for (SquareSet cursor = 1ULL; cursor != 0; cursor <<= 1) {
+    if ((cursor & squares) != empty_square_set) {
       const char row = '1' + (move / 8);
       const char col = 'A' + (move % 8);
       if (passed) {
@@ -404,10 +417,10 @@ square_set_to_pg_json_array (SquareSet moves)
   }
   g_string_append_printf(tmp, "]");
 
-  moves_to_string = tmp->str;
+  ss_to_string = tmp->str;
   g_string_free(tmp, FALSE);
 
-  return moves_to_string;
+  return ss_to_string;
 }
 
 /**
