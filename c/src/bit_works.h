@@ -45,12 +45,6 @@
 typedef signed long long int sint64;
 
 /**
- * @typedef sint8
- * @brief Signed 8 bits integer.
- */
-typedef signed char sint8;
-
-/**
  * @brief Used to return a two digit representation on a given base, for an integer.
  */
 typedef struct {

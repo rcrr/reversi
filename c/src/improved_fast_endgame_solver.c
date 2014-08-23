@@ -59,7 +59,7 @@ typedef struct EmList_ {
  */
 typedef struct {
   uint8_t square;    /**< @brief One square on the board. */
-  sint8   value;     /**< @brief The game value of moving into the square. */
+  int8_t  value;     /**< @brief The game value of moving into the square. */
 } Node;
 
 
@@ -142,7 +142,7 @@ opponent_color (int color);
  * This is the best/worst case board value.
  * Any value greather than 64 can be adopted.
  */
-static const sint8 infinity = 65;
+static const int8_t infinity = 65;
 
 /*
  * The selection of the variant of end end_solver() function follows these rules.
@@ -224,7 +224,7 @@ static const uint8_t fastest_first = 0;
 /*
  * The 8 legal directions, plus no direction at ninth value.
  */
-static const sint8 dir_inc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
+static const int8_t dir_inc[] = {1, -1, 8, -8, 9, -9, 10, -10, 0};
 
 /*
  * Fixed square ordering.
