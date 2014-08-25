@@ -1,9 +1,9 @@
 /**
  * @file
  *
- * @brief Utils module implementation.
+ * @brief Random module implementation.
  *
- * @par utils.c
+ * @par random.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -36,10 +36,9 @@
 
 #include <glib.h>
 
-#include <gsl/gsl_sf_bessel.h>
 #include <gsl/gsl_rng.h>
 
-#include "utils.h"
+#include "random.h"
 
 /**
  * @brief Initializes seed used by the random functions.

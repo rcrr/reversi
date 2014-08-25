@@ -36,7 +36,7 @@
 
 #include <glib.h>
 
-#include "utils.h"
+#include "random.h"
 #include "board.h"
 
 

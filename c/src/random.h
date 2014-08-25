@@ -1,10 +1,11 @@
 /**
  * @file
  *
- * @brief Utils module definitions.
- * @details This module defines some common utilities.
+ * @brief Random module definitions.
+ * @details This module defines utilities that are based on
+ * random number generation.
  *
- * @par utils.h
+ * @par random.h
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -31,8 +32,8 @@
  * </tt>
  */
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef RANDOM_H
+#define RANDOM_H
 
 #include <gsl/gsl_rng.h>
 
@@ -70,4 +71,4 @@ extern unsigned long int
 rng_random_choice_from_finite_set (RandomNumberGenerator *rng,
                                    const unsigned long int k);
 
-#endif /* UTILS_H */
+#endif /* RANDOM_H */

@@ -1,10 +1,10 @@
 /**
  * @file
  *
- * @brief Utils unit test suite.
- * @details Collects tests and helper methods for the utils module.
+ * @brief Random unit test suite.
+ * @details Collects tests and helper methods for the random module.
  *
- * @par utils_test.c
+ * @par random_test.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -36,7 +36,7 @@
 
 #include <glib.h>
 
-#include "utils.h"
+#include "random.h"
 
 
 

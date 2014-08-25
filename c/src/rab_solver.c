@@ -37,7 +37,7 @@
 
 #include <glib.h>
 
-#include "utils.h"
+#include "random.h"
 #include "game_tree_logger.h"
 
 #include "rab_solver.h"
