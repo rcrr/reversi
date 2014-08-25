@@ -40,8 +40,12 @@
 
 #include "random.h"
 
+
+
 /**
- * @brief Initializes seed used by the random functions.
+ * @brief Initializes the seed used by the random functions.
+ *
+ * @details Set a new seed taken in a not repeatable way from the `time()` function.
  */
 void
 random_init_seed (void)
@@ -60,7 +64,11 @@ random_init_seed (void)
  * @details When `low == high` the function returns the `low` value
  * without consuming a position from the random sequence.
  *
- * The implementations is build upon the standard ANSI `random()` function.
+ * The implementations is build upon the standard `random()` function,
+ * see UNIX/Linux manpages for help.
+ *
+ * Calling the function #random_init_seed set a new seed taken in a not
+ * repeatable way from the `time()` function.
  *
  * @param [in] low  the lower bound
  * @param [in] high the upper bound
@@ -87,14 +95,15 @@ random_get_number_in_range (const int low,
 /**
  * @brief Shuffles the given array.
  * 
- * @details Arrange the N elements of ARRAY in random order.
- * Only effective if N is much smaller than RAND_MAX.
+ * @details Arrange the `n` elements of `array` in random order.
+ * Only effective if `n` is much smaller than `RAND_MAX`.
  *
  * @param [in,out] array the array to be shuffled
  * @param [in]     n     the number of elements in the array
  */
 void
-utils_shuffle_uint8 (uint8_t *array, int n)
+random_shuffle_array_uint8 (uint8_t *array,
+                            const int n)
 {
   if (n > 1) {
     for (int i = 0; i < n - 1; i++) {

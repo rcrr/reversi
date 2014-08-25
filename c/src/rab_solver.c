@@ -334,7 +334,7 @@ game_position_solve_impl(ExactSolution* const result,
   current_node_info->hash = game_position_x_hash(current_gpx);
   const SquareSet move_set = game_position_x_legal_moves(current_gpx);
   legal_move_list_from_set(move_set, current_node_info, next_node_info);
-  utils_shuffle_uint8(current_node_info->head_of_legal_move_list, current_node_info->move_count);
+  random_shuffle_array_uint8(current_node_info->head_of_legal_move_list, current_node_info->move_count);
   
   if (log_env->log_is_on) {
     LogDataH log_data;
