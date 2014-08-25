@@ -44,8 +44,21 @@
 
 static void dummy_test (void);
 
+static void random_seed_test (void);
+static void random_get_number_in_range_test (void);
+static void random_shuffle_array_uint8_test (void);
+
 static void rng_random_seed_test (void);
 static void rng_random_choice_from_finite_set_test (void);
+
+
+/* Helper function prototypes. */
+
+static double
+hlp_chi_square (const unsigned long int *category_observations,
+                const double *category_probabilities,
+                const unsigned long int categories_count,
+                const unsigned long int sample_size);
 
 
 
@@ -55,10 +68,14 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
 
-  g_test_add_func("/utils/dummy", dummy_test);
+  g_test_add_func("/random/dummy", dummy_test);
 
-  g_test_add_func("/utils/rng_random_seed_test", rng_random_seed_test);
-  g_test_add_func("/utils/rng_random_choice_from_finite_set_test", rng_random_choice_from_finite_set_test);
+  g_test_add_func("/random/random_seed_test", random_seed_test);
+  g_test_add_func("/random/random_get_number_in_range_test", random_get_number_in_range_test);
+  g_test_add_func("/random/random_shuffle_array_uint8_test", random_shuffle_array_uint8_test);
+
+  g_test_add_func("/random/rng_random_seed_test", rng_random_seed_test);
+  g_test_add_func("/random/rng_random_choice_from_finite_set_test", rng_random_choice_from_finite_set_test);
 
   return g_test_run();
 }
@@ -73,6 +90,63 @@ static void
 dummy_test (void)
 {
   g_assert(TRUE);
+}
+
+static void
+random_seed_test (void)
+{
+  int r;
+  random_init_seed();
+  r = random_get_number_in_range (10, 12);
+  g_assert(r >= 10 && r <= 12);
+
+  random_init_seed_with_value(12345);
+  r = random_get_number_in_range (10, 12);
+  g_assert(r >= 10 && r <= 12);
+}
+
+static void
+random_get_number_in_range_test (void)
+{
+  g_assert(TRUE);
+}
+
+static void
+random_shuffle_array_uint8_test (void)
+{
+  static const int sample_size = 1000;
+
+  static const unsigned int seed = 775533;
+  random_init_seed_with_value(seed);
+
+  static const double expected_chi_square = 1.444000;
+
+  static const int s_size = 2;
+  static const int s_sum = 1;
+  uint8_t s[] = {0, 1};
+
+  unsigned long s_freqs[2][2] = {{0, 0}, {0, 0}};
+  double s_probs[2][2] = {{0.5, 0.5}, {0.5, 0.5}};
+
+  for (int i = 0; i < sample_size; i++) {
+    int sum = 0;
+    for (int j = 0; j < s_size; j++) {
+      s[j] = j;
+    }
+    random_shuffle_array_uint8(s, s_size);
+    for (int j = 0; j < s_size; j++) {
+      g_assert(s[j] >= 0 && s[j] <= s_size - 1);
+      sum += s[j];
+      s_freqs[j][s[j]]++;
+    }
+    g_assert(sum == s_sum);
+  }
+
+  for (int i = 0; i < s_size; i++) {
+    double chi_square = hlp_chi_square(&s_freqs[i][0], &s_probs[i][0], s_size, sample_size);
+    g_assert(chi_square == expected_chi_square);
+  }
+  
 }
 
 static void
@@ -155,4 +229,25 @@ rng_random_choice_from_finite_set_test (void)
   for (int k = 0; k < category_count; k++) {
     g_assert(test_category_expected_frequencies[k] == test_category_frequencies[k]);
   }                 
+}
+
+
+
+/*
+ * Help functions.
+ */
+
+static double
+hlp_chi_square (const unsigned long int *category_observations,
+                const double *category_probabilities,
+                const unsigned long int categories_count,
+                const unsigned long int sample_size)
+{
+  double chi_square = 0.;
+  for (int i = 0; i < categories_count; i++) {
+    double x = *(category_probabilities + i) * sample_size;
+    double z = *(category_observations + i) - x;
+    chi_square += (z * z) / x;
+  }
+  return chi_square;
 }

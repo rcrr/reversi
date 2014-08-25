@@ -54,6 +54,15 @@ random_init_seed (void)
 }
 
 /**
+ * @brief Initializes the seed used by the random functions with the given value.
+ */
+void
+random_init_seed_with_value (const unsigned int seed)
+{
+  srand(seed);
+}
+
+/**
  * @brief Returns a random integer selected in the window between
  * the `low` and `high` function parameters, having the two boundaries
  * in the valid range for the returned value.

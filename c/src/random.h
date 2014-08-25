@@ -52,6 +52,9 @@ typedef struct {
 extern void
 random_init_seed (void);
 
+extern void
+random_init_seed_with_value (const unsigned int seed);
+
 extern int
 random_get_number_in_range (const int low,
                             const int high);
