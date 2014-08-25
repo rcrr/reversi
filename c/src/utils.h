@@ -64,6 +64,9 @@ extern RandomNumberGenerator *
 rng_free (RandomNumberGenerator *rng);
 
 extern unsigned long int
+rng_random_seed (void);
+
+extern unsigned long int
 rng_random_choice_from_finite_set (RandomNumberGenerator *rng,
                                    const unsigned long int k);
 

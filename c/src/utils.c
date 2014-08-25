@@ -99,10 +99,13 @@ utils_shuffle_uint8 (uint8_t *array, int n)
 }
 
 /**
- * @brief RandomNumberGenerator structure constructor.
+ * @brief `RandomNumberGenerator` structure constructor.
  *
- * An assertion checks that the received pointer to the allocated
- * board structure is not `NULL`.
+ * @details An assertion checks that the received pointer to the allocated
+ * rng (random number generator) structure is not `NULL`.
+ *
+ * Returns a new rng used by functions such as #rng_random_choice_from_finite_set.
+ * When the structure is no more used it must be freed bya call to #rng_free.
  *
  * @param [in] seed the seed for the random number generator
  * @return          a pointer to a new random number generator structure
@@ -144,6 +147,19 @@ rng_free (RandomNumberGenerator *rng)
   rng = NULL;
 
   return rng;
+}
+
+/**
+ * @brief Initializes seed used by the random functions.
+ *
+ * @return 
+ */
+unsigned long int
+rng_random_seed (void)
+{
+  struct timespec t;
+  clock_gettime(CLOCK_REALTIME, &t);
+  return (unsigned long int) t.tv_nsec;
 }
 
 /**

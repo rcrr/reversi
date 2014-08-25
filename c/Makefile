@@ -41,11 +41,11 @@ CC = gcc
 #LDFLAGS =
 # add -pg for gprof execution.
 # add -DG_DISABLE_ASSERT to disable assertions
-CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE -mpopcnt
+CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mpopcnt
 LDFLAGS = 
-CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
+CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
+ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L
 LIBS = `pkg-config --libs glib-2.0` -lgsl -lgslcblas
 TEST_LIBS =
 SRCDIR = src
