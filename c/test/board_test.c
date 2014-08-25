@@ -274,7 +274,7 @@ square_set_to_string_test (void)
 static void
 square_set_random_selection_test (void)
 {
-  utils_init_random_seed();
+  random_init_seed();
   /*
    * The test always checks that the outcome is one of the two expected values,
    * then verifies the null hypothesis computing the chi_square value.

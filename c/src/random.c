@@ -44,7 +44,7 @@
  * @brief Initializes seed used by the random functions.
  */
 void
-utils_init_random_seed (void)
+random_init_seed (void)
 {
   srand(time(NULL));
 }

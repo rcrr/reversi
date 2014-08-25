@@ -179,7 +179,7 @@ game_position_rab_solve(const GamePosition * const root,
     game_tree_log_open_h(log_env);
   }
 
-  utils_init_random_seed();
+  random_init_seed();
 
   int game_value = out_of_range_defeat_score;
   Square best_move = null_move;

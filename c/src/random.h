@@ -50,7 +50,7 @@ typedef struct {
 
 
 extern void
-utils_init_random_seed (void);
+random_init_seed (void);
 
 extern int
 utils_random_number (int low, int high);
