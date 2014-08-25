@@ -101,10 +101,12 @@ rng_random_choice_from_finite_set_test (void)
    * See: Donald E. Knuth, The Art of Compuer Programming, Volume 2, Seminumarical Algorithms.
    * Paragraph 3.3.1 - General Test Procedures for Studying Random Data, Table 1.
    */
-  /*                                    p=1%,    p=5%,  p=25%,  p=50%, p=75%, p=95%, p=99% */
-  const double chi_square_table[] = {0.00016, 0.00393, 0.1015, 0.4549, 1.323, 3.841, 6.635};
+  /*                                        p=1%,    p=5%,  p=25%,  p=50%, p=75%, p=95%, p=99% */
+  const double chi_square_table[][7] = {{0.00016, 0.00393, 0.1015, 0.4549, 1.323, 3.841, 6.635},   /* v=1 */
+                                        {0.02010, 0.10260, 0.5754, 1.3860, 2.773, 5.991, 9.210},   /* v=2 */
+                                        {0.11480, 0.35180, 1.2130, 2.3660, 4.108, 7.815, 11.34}};  /* v=3 */
   const double probability = 1.0 / set_size;
-  const double expected_outcame = sample_size * probability;
+  const double expected_outcome = sample_size * probability;
   
   unsigned long int test_category_frequencies[category_count];
   for (int k = 0; k < category_count; k++) {
@@ -121,11 +123,11 @@ rng_random_choice_from_finite_set_test (void)
       (rn == 0) ? count_0++ : count_1++;    
     }
 
-    const double diff_0 = (expected_outcame - count_0);
-    const double diff_1 = (expected_outcame - count_1);
-    const double chi_square = ((diff_0 * diff_0) + (diff_1 * diff_1)) / expected_outcame;
+    const double diff_0 = (expected_outcome - count_0);
+    const double diff_1 = (expected_outcome - count_1);
+    const double chi_square = ((diff_0 * diff_0) + (diff_1 * diff_1)) / expected_outcome;
     for (int k = 0; k < category_count - 1; k++) {
-      if (chi_square < chi_square_table[k]) {
+      if (chi_square < chi_square_table[0][k]) {
         test_category_frequencies[k]++;
         goto out;
       }
