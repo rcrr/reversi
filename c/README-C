@@ -28,12 +28,18 @@ Software components being used are:
 
  - Ubuntu distribution 14.04 (x86_64)
  - GCC 4.8.2
- - glib libglib-2.0.so.0
+ - glib libglib-2.0 (https://developer.gnome.org/glib/stable/)
  - doxygen 1.8.6
  - The GNU/Linux toolchain
+ - GNU GSL package (http://www.gnu.org/software/gsl/)
+
+To install the GSL software run:
+
+$ sudo apt-get install gsl-bin libgsl0-dbg libgsl0-dev libgsl0
 
 Run the following commands in a terminal:
 
+$ make clean
 $ make
 $ make test
 $ make doxygen

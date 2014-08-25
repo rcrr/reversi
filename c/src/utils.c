@@ -34,6 +34,11 @@
 #include <stdio.h>
 #include <time.h>
 
+#include <glib.h>
+
+#include <gsl/gsl_sf_bessel.h>
+#include <gsl/gsl_rng.h>
+
 #include "utils.h"
 
 /**
@@ -57,7 +62,18 @@ utils_init_random_seed (void)
 int
 utils_random_number (int low, int high)
 {
-  return low + (double) rand() * (high - low + 1) / RAND_MAX;
+  g_assert (low <= high);
+  if (low == high) return low;
+  int upper_range_boundary = high - low + 1;
+  int random = (int) ((double) upper_range_boundary * (rand() / (RAND_MAX + 1.0)));
+  return random + low;
+  /*
+   * args: 3, 10
+   * upper_range_boundary: 8
+   * rand: [0..7]
+   * return: [3..10]
+   */
+  //return low + (double) rand() * (high - low + 1) / RAND_MAX;
 }
 
 /**
@@ -80,4 +96,94 @@ utils_shuffle_uint8 (uint8_t *array, int n)
       *(array + i) = t;
     }
   }
+}
+
+/**
+ * @brief RandomNumberGenerator structure constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * board structure is not `NULL`.
+ *
+ * @param [in] seed the seed for the random number generator
+ * @return          a pointer to a new random number generator structure
+ */
+RandomNumberGenerator *
+rng_new (const unsigned long int seed)
+{
+  RandomNumberGenerator *rng;
+  static const size_t size_of_rng = sizeof(RandomNumberGenerator);
+
+  rng = (RandomNumberGenerator *) malloc(size_of_rng);
+  g_assert(rng);
+
+  rng->r = gsl_rng_alloc(gsl_rng_mt19937);
+  g_assert(rng->r);
+
+  rng->seed = seed;
+  gsl_rng_set(rng->r, rng->seed);
+
+  return rng;
+}
+
+/**
+ * @brief RandomNumberGenerator structure destructor.
+ *
+ * @invariant Parameter `rng` cannot be `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] rng the pointer to be deallocated
+ * @return         always the NULL pointer
+ */
+RandomNumberGenerator *
+rng_free (RandomNumberGenerator *rng)
+{
+  g_assert(rng);
+
+  gsl_rng_free(rng->r);
+  free(rng);
+  rng = NULL;
+
+  return rng;
+}
+
+/**
+ * @brief Returns a random integer uniformly distributed between `0` and `k - 1` included.
+ *
+ * @details It get a random value from U[0..k). The function is built
+ * on the GNU GSL library, applying the `gsl_rng_mt19937` function.
+ *
+ * When the parameter `k` is equal to `1` the function returns `0` without consuming a
+ * value from the rng sequence.
+ *
+ * The argument `rng` must be obtained calling #rng_new.
+ *
+ * Taking an extract from the GSL documentation:
+ *
+ * The MT19937 generator of Makoto Matsumoto and Takuji Nishimura is a variant
+ * of the twisted generalized feedback shift-register algorithm, and is known as
+ * the “Mersenne Twister” generator. It has a Mersenne prime period of 2^19937 - 1 (about 10^6000)
+ * and is equi-distributed in 623 dimensions. It has passed the DIEHARD statistical tests.
+ *
+ * For more information see,
+ * 
+ * <em>
+ * Makoto Matsumoto and Takuji Nishimura, “Mersenne Twister: A 623-dimensionally equidistributed
+ * uniform pseudorandom number generator”.
+ * ACM Transactions on Modeling and Computer Simulation, Vol. 8, No. 1 (Jan. 1998), Pages 3–30 
+ * </em>
+ *
+ * @invariant Parameter `k` cannot be `0`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] rng the random number generator to use
+ * @param [in] k   the size of the set to select from
+ * @return         an integer in the range [0..k)
+ */
+unsigned long int
+rng_random_choice_from_finite_set (RandomNumberGenerator *rng,
+                                   const unsigned long int k)
+{
+  g_assert(k != 0);
+  if (k == 1) return 0;
+  return gsl_rng_uniform_int(rng->r, k);
 }

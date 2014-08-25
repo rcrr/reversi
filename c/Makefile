@@ -26,8 +26,8 @@
 MAINS = endgame_solver gpdb_verify dump_bitrow_changes
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
-TEST_PROGS = bit_works_test board_test game_position_db_test game_position_test endgame_solver_test \
-             game_tree_utils_test
+TEST_PROGS = bit_works_test utils_test board_test game_position_db_test game_position_test \
+             game_tree_utils_test endgame_solver_test
 
 #
 # No changes from here to the end, unless a structurar change of the build process happens.
@@ -46,7 +46,7 @@ LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
 LDFLAGS_TEST =
 ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
-LIBS = `pkg-config --libs glib-2.0`
+LIBS = `pkg-config --libs glib-2.0` -lgsl -lgslcblas
 TEST_LIBS =
 SRCDIR = src
 TESTDIR = test

@@ -36,6 +36,7 @@
 
 #include <glib.h>
 
+#include "utils.h"
 #include "board.h"
 
 
@@ -52,6 +53,7 @@ static void square_is_in_legal_move_range_test (void);
 
 static void square_set_to_pg_json_array_test (void);
 static void square_set_to_string_test (void);
+static void square_set_random_selection_test (void);
 
 static void player_color_test (void);
 static void player_description_test (void);
@@ -119,6 +121,7 @@ main (int   argc,
 
   g_test_add_func("/board/square_set_to_pg_json_array_test", square_set_to_pg_json_array_test);
   g_test_add_func("/board/square_set_to_string_test", square_set_to_string_test);
+  //g_test_add_func("/board/square_set_random_selection_test", square_set_random_selection_test);
 
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
@@ -266,6 +269,40 @@ square_set_to_string_test (void)
   ss_to_string = square_set_to_string((SquareSet) 5);
   g_assert_cmpstr(ss_to_string, ==, "A1 C1");
   g_free(ss_to_string);
+}
+
+static void
+square_set_random_selection_test (void)
+{
+  utils_init_random_seed();
+  /*
+   * The test always checks that the outcome is one of the two expected values,
+   * then verifies the null hypothesis computing the chi_square value.
+   * For one degree of freedom a chi_square value equal to 3.84 corrsponds to
+   * a p-value of 0.05, that here we adopt as the limit for the test to succed.
+   */
+  const int sample_size = 10000000;
+  const double a1_probability = 0.5;
+  const double c1_probability = 0.5;
+  const double a1_expected_outcame = sample_size * a1_probability;
+  const double c1_expected_outcame = sample_size * c1_probability;
+  //const double max_chi_square_value = 3.84;
+  const double max_chi_square_value = 10.83;
+  for (int j = 0; j < 1000; j++) {
+  int a1_count = 0;
+  int c1_count = 0;
+  for (int i = 0; i < sample_size; i++) {
+    const Square sq = square_set_random_selection((SquareSet) 5);
+    if (!(sq == A1 || sq == C1)) printf("sq=%d\n", sq); 
+    g_assert(sq == A1 || sq == C1);
+    (sq == A1) ? a1_count++ : c1_count++;
+  }
+  const double a1_diff = (a1_expected_outcame - a1_count);
+  const double c1_diff = (c1_expected_outcame - c1_count);
+  const double chi_square = (a1_diff * a1_diff) / a1_expected_outcame + (c1_diff * c1_diff) / c1_expected_outcame;
+  printf("a1_count=%d, c1_count=%d, chi_square=%f\n", a1_count, c1_count, chi_square);
+  g_assert(max_chi_square_value>= chi_square);
+  }
 }
 
 

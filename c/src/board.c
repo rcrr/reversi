@@ -488,6 +488,7 @@ square_set_random_selection (SquareSet squares)
 
   const int square_count = bit_works_popcount(squares);
   const int square_index = utils_random_number(0, square_count - 1);
+  g_assert(square_index <= square_count - 1);
   for (int i = 0; i < square_count; i++) {
     if (i == square_index) break;
     squares ^= bit_works_lowest_bit_set_64(squares);

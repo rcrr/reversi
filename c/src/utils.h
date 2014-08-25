@@ -34,7 +34,19 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <gsl/gsl_rng.h>
+
 #include "bit_works.h"
+
+
+/**
+ * @brief An entity that holds the state of a random number generator.
+ */
+typedef struct {
+  gsl_rng           *r;           /**< @brief A reference to a GNU GSL random number generator. */
+  unsigned long int  seed;        /**< @brief The seed used to createthe RNG instance. */
+} RandomNumberGenerator;
+
 
 extern void
 utils_init_random_seed (void);
@@ -44,5 +56,15 @@ utils_random_number (int low, int high);
 
 extern void
 utils_shuffle_uint8 (uint8_t *array, int n);
+
+extern RandomNumberGenerator *
+rng_new (const unsigned long int seed);
+
+extern RandomNumberGenerator *
+rng_free (RandomNumberGenerator *rng);
+
+extern unsigned long int
+rng_random_choice_from_finite_set (RandomNumberGenerator *rng,
+                                   const unsigned long int k);
 
 #endif /* UTILS_H */
