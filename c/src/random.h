@@ -53,7 +53,8 @@ extern void
 random_init_seed (void);
 
 extern int
-utils_random_number (int low, int high);
+random_get_number_in_range (const int low,
+                            const int high);
 
 extern void
 utils_shuffle_uint8 (uint8_t *array, int n);

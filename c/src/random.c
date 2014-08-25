@@ -54,12 +54,21 @@ random_init_seed (void)
  * the `low` and `high` function parameters, having the two boundaries
  * in the valid range for the returned value.
  *
+ * @invariant Parameter `high` cannot be lower then parameter `low`.
+ * The invariant is guarded by an assertion.
+ *
+ * @details When `low == high` the function returns the `low` value
+ * without consuming a position from the random sequence.
+ *
+ * The implementations is build upon the standard ANSI `random()` function.
+ *
  * @param [in] low  the lower bound
  * @param [in] high the upper bound
- * @return          a random value in the given range
+ * @return          a random value in the range U[low..high]
  */
 int
-utils_random_number (int low, int high)
+random_get_number_in_range (const int low,
+                            const int high)
 {
   g_assert (low <= high);
   if (low == high) return low;
@@ -67,12 +76,12 @@ utils_random_number (int low, int high)
   int random = (int) ((double) upper_range_boundary * (rand() / (RAND_MAX + 1.0)));
   return random + low;
   /*
-   * args: 3, 10
+   * Call example:
+   * args: low=3, high=10
    * upper_range_boundary: 8
-   * rand: [0..7]
-   * return: [3..10]
+   * rand: U[0..7]
+   * return: U[3..10]
    */
-  //return low + (double) rand() * (high - low + 1) / RAND_MAX;
 }
 
 /**

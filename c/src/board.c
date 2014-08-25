@@ -487,7 +487,7 @@ square_set_random_selection (SquareSet squares)
   g_assert(squares != empty_square_set);
 
   const int square_count = bit_works_popcount(squares);
-  const int square_index = utils_random_number(0, square_count - 1);
+  const int square_index = random_get_number_in_range(0, square_count - 1);
   g_assert(square_index <= square_count - 1);
   for (int i = 0; i < square_count; i++) {
     if (i == square_index) break;
