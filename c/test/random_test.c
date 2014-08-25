@@ -33,6 +33,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <glib.h>
 
@@ -46,7 +47,8 @@ static void dummy_test (void);
 
 static void random_seed_test (void);
 static void random_get_number_in_range_test (void);
-static void random_shuffle_array_uint8_test (void);
+static void random_shuffle_array_uint8_2_test (void);
+static void random_shuffle_array_uint8_5_test (void);
 
 static void rng_random_seed_test (void);
 static void rng_random_choice_from_finite_set_test (void);
@@ -72,7 +74,8 @@ main (int   argc,
 
   g_test_add_func("/random/random_seed_test", random_seed_test);
   g_test_add_func("/random/random_get_number_in_range_test", random_get_number_in_range_test);
-  g_test_add_func("/random/random_shuffle_array_uint8_test", random_shuffle_array_uint8_test);
+  g_test_add_func("/random/random_shuffle_array_uint8_2_test", random_shuffle_array_uint8_2_test);
+  g_test_add_func("/random/random_shuffle_array_uint8_5_test", random_shuffle_array_uint8_5_test);
 
   g_test_add_func("/random/rng_random_seed_test", rng_random_seed_test);
   g_test_add_func("/random/rng_random_choice_from_finite_set_test", rng_random_choice_from_finite_set_test);
@@ -112,7 +115,7 @@ random_get_number_in_range_test (void)
 }
 
 static void
-random_shuffle_array_uint8_test (void)
+random_shuffle_array_uint8_2_test (void)
 {
   static const int sample_size = 1000;
 
@@ -145,6 +148,66 @@ random_shuffle_array_uint8_test (void)
   for (int i = 0; i < s_size; i++) {
     double chi_square = hlp_chi_square(&s_freqs[i][0], &s_probs[i][0], s_size, sample_size);
     g_assert(chi_square == expected_chi_square);
+  }
+  
+}
+
+static void
+random_shuffle_array_uint8_5_test (void)
+{
+  static const int sample_size = 1000;
+
+  static const double epsilon = 0.000001;
+
+  static const unsigned int seed = 775533;
+  random_init_seed_with_value(seed);
+
+  static const double expected_chi_square[] = {6.73, 0.97, 0.73, 2.25, 6.98};
+  static const double expected_chi_square_transposed[] = {4.84, 4.03, 0.83, 6.17, 1.79};
+
+  static const int s_size = 5;
+  static const int s_sum = 10;
+  uint8_t s[] = {0, 1, 2, 3, 4};
+
+  unsigned long s_freqs[5][5] = {{0, 0, 0, 0, 0},
+                                 {0, 0, 0, 0, 0},
+                                 {0, 0, 0, 0, 0},
+                                 {0, 0, 0, 0, 0},
+                                 {0, 0, 0, 0, 0}};
+  
+  unsigned long s_freqs_transposed[5][5];
+
+  double s_probs[5][5] = {{.2, .2, .2, .2, .2},
+                          {.2, .2, .2, .2, .2},
+                          {.2, .2, .2, .2, .2},
+                          {.2, .2, .2, .2, .2},
+                          {.2, .2, .2, .2, .2}};
+
+  for (int i = 0; i < sample_size; i++) {
+    int sum = 0;
+    for (int j = 0; j < s_size; j++) {
+      s[j] = j;
+    }
+    random_shuffle_array_uint8(s, s_size);
+    for (int j = 0; j < s_size; j++) {
+      g_assert(s[j] >= 0 && s[j] <= s_size - 1);
+      sum += s[j];
+      s_freqs[j][s[j]]++;
+    }
+    g_assert(sum == s_sum);
+  }
+
+  for (int i = 0; i < s_size; i++) {
+    for (int j = 0; j < s_size; j++) {
+      s_freqs_transposed[i][j] = s_freqs[j][i];
+    }
+  }
+
+  for (int i = 0; i < s_size; i++) {
+    double chi_square = hlp_chi_square(&s_freqs[i][0], &s_probs[i][0], s_size, sample_size);
+    g_assert_cmpfloat(fabs(chi_square - expected_chi_square[i]), <=, epsilon);
+    double chi_square_t = hlp_chi_square(&s_freqs_transposed[i][0], &s_probs[i][0], s_size, sample_size);
+    g_assert_cmpfloat(fabs(chi_square_t - expected_chi_square_transposed[i]), <=, epsilon);
   }
   
 }
