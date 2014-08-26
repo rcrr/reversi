@@ -111,37 +111,55 @@ random_seed_test (void)
 static void
 random_get_number_in_range_test (void)
 {
-  static const int sample_size = 10000;
-  static const int s_size = 10;
-  static const int range_lo = 0;
-  static const int range_hi = range_lo + s_size - 1; /* 9 */
+  static const int sample_size = 10000;               /* The number of "throws" per each test. */
+  static const int s_size = 10;                       /* The set size from wich we select. */
+  static const int range_lo = 0;                      /* The lower bound of the set. */
+  static const int range_hi = range_lo + s_size - 1;  /* The upper bound of the set (9). */
+  static const unsigned long int a_prime_number = 19; /* Used to change the random seed at each iteration. */
+  static const int number_of_tests = 10;              /* The number of iterations (or tests). */
+  static const unsigned int seed = 92650;             /* A seed value used to initialize the RNG. */
 
-  static const unsigned int seed = 92650;
-  random_init_seed_with_value(seed);
-
-  static const double expected_chi_square = 10.802;
+  /*
+   * Values has to be checked with the chi_square distribution when the DOF are nine.
+   * Results match quite well.
+   */
+  double expected_chi_square[number_of_tests];
+  expected_chi_square[0] = 10.802;
+  expected_chi_square[1] = 11.474;
+  expected_chi_square[2] = 11.810;
+  expected_chi_square[3] = 10.628;
+  expected_chi_square[4] =  3.252;
+  expected_chi_square[5] = 11.292;
+  expected_chi_square[6] = 11.712;
+  expected_chi_square[7] =  6.068;
+  expected_chi_square[8] = 12.430;
+  expected_chi_square[9] = 15.868;
 
   static const double epsilon = 0.000001;
 
-  unsigned long int s_observations[s_size];
-  for (int i = 0; i < s_size; i++) {
-    s_observations[i] = 0;
-  }
+  for (int j = 0; j < number_of_tests; j++) {
+    random_init_seed_with_value(seed + j * a_prime_number);
 
-  double s_probabilities[s_size];
-  for (int i = 0; i < s_size; i++) {
-    s_probabilities[i] = 1. / s_size;
-  }
+    unsigned long int s_observations[s_size];
+    for (int i = 0; i < s_size; i++) {
+      s_observations[i] = 0;
+    }
+
+    double s_probabilities[s_size];
+    for (int i = 0; i < s_size; i++) {
+      s_probabilities[i] = 1. / s_size;
+    }
   
-  for (int i = 0; i < sample_size; i++) {
-    int r = random_get_number_in_range(range_lo, range_hi);
-    g_assert_cmpint(r, >=, range_lo);
-    g_assert_cmpint(r, <=, range_hi);
-    s_observations[r - range_lo]++;
-  }
+    for (int i = 0; i < sample_size; i++) {
+      int r = random_get_number_in_range(range_lo, range_hi);
+      g_assert_cmpint(r, >=, range_lo);
+      g_assert_cmpint(r, <=, range_hi);
+      s_observations[r - range_lo]++;
+    }
 
-  double chi_square = hlp_chi_square(s_observations, s_probabilities, s_size, sample_size);
-  g_assert_cmpfloat(fabs(chi_square - expected_chi_square), <=, epsilon);
+    double chi_square = hlp_chi_square(s_observations, s_probabilities, s_size, sample_size);
+    g_assert_cmpfloat(fabs(chi_square - expected_chi_square[j]), <=, epsilon);
+  }
 }
 
 static void
@@ -264,7 +282,7 @@ rng_random_seed_test (void)
 static void
 rng_random_choice_from_finite_set_test (void)
 {
-  const unsigned long int seed = 123;          /* A seed value used to initialize the RNG. */
+  const unsigned int seed = 123;               /* A seed value used to initialize the RNG. */
   const unsigned long int a_prime_number = 17; /* Used to change the random seed at each iteration. */
   const unsigned long int set_size = 2;        /* Like flipping a coin. */
   const int sample_size = 10000;               /* The number of sample taken in each iteration. */
