@@ -119,6 +119,8 @@ random_shuffle_array_uint8_2_test (void)
 {
   static const int sample_size = 1000;
 
+  static const double epsilon = 0.000001;
+
   static const unsigned int seed = 775533;
   random_init_seed_with_value(seed);
 
@@ -128,8 +130,8 @@ random_shuffle_array_uint8_2_test (void)
   static const int s_sum = 1;
   uint8_t s[] = {0, 1};
 
-  unsigned long s_freqs[2][2] = {{0, 0}, {0, 0}};
-  double s_probs[2][2] = {{0.5, 0.5}, {0.5, 0.5}};
+  unsigned long s_observations[2][2] = {{0, 0}, {0, 0}};
+  double s_probabilities[2][2] = {{0.5, 0.5}, {0.5, 0.5}};
 
   for (int i = 0; i < sample_size; i++) {
     int sum = 0;
@@ -140,14 +142,14 @@ random_shuffle_array_uint8_2_test (void)
     for (int j = 0; j < s_size; j++) {
       g_assert(s[j] >= 0 && s[j] <= s_size - 1);
       sum += s[j];
-      s_freqs[j][s[j]]++;
+      s_observations[j][s[j]]++;
     }
     g_assert(sum == s_sum);
   }
 
   for (int i = 0; i < s_size; i++) {
-    double chi_square = hlp_chi_square(&s_freqs[i][0], &s_probs[i][0], s_size, sample_size);
-    g_assert(chi_square == expected_chi_square);
+    double chi_square = hlp_chi_square(&s_observations[i][0], &s_probabilities[i][0], s_size, sample_size);
+    g_assert_cmpfloat(fabs(chi_square - expected_chi_square), <=, epsilon);
   }
   
 }
@@ -162,26 +164,30 @@ random_shuffle_array_uint8_5_test (void)
   static const unsigned int seed = 775533;
   random_init_seed_with_value(seed);
 
-  static const double expected_chi_square[] = {6.73, 0.97, 0.73, 2.25, 6.98};
+  /*
+   * Values has to be compared with the chi-square table selecting line v=4 (four degree of freedom).
+   * All the value are in a quite good range.
+   */
+  static const double expected_chi_square[]            = {6.73, 0.97, 0.73, 2.25, 6.98};
   static const double expected_chi_square_transposed[] = {4.84, 4.03, 0.83, 6.17, 1.79};
 
   static const int s_size = 5;
   static const int s_sum = 10;
   uint8_t s[] = {0, 1, 2, 3, 4};
 
-  unsigned long s_freqs[5][5] = {{0, 0, 0, 0, 0},
-                                 {0, 0, 0, 0, 0},
-                                 {0, 0, 0, 0, 0},
-                                 {0, 0, 0, 0, 0},
-                                 {0, 0, 0, 0, 0}};
+  unsigned long s_observations[5][5] = {{0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0}};
   
-  unsigned long s_freqs_transposed[5][5];
+  unsigned long s_observations_transposed[5][5];
 
-  double s_probs[5][5] = {{.2, .2, .2, .2, .2},
-                          {.2, .2, .2, .2, .2},
-                          {.2, .2, .2, .2, .2},
-                          {.2, .2, .2, .2, .2},
-                          {.2, .2, .2, .2, .2}};
+  double s_probabilities[5][5] = {{.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2}};
 
   for (int i = 0; i < sample_size; i++) {
     int sum = 0;
@@ -192,21 +198,21 @@ random_shuffle_array_uint8_5_test (void)
     for (int j = 0; j < s_size; j++) {
       g_assert(s[j] >= 0 && s[j] <= s_size - 1);
       sum += s[j];
-      s_freqs[j][s[j]]++;
+      s_observations[j][s[j]]++;
     }
     g_assert(sum == s_sum);
   }
-
+ 
   for (int i = 0; i < s_size; i++) {
     for (int j = 0; j < s_size; j++) {
-      s_freqs_transposed[i][j] = s_freqs[j][i];
+      s_observations_transposed[i][j] = s_observations[j][i];
     }
   }
 
   for (int i = 0; i < s_size; i++) {
-    double chi_square = hlp_chi_square(&s_freqs[i][0], &s_probs[i][0], s_size, sample_size);
+    double chi_square = hlp_chi_square(&s_observations[i][0], &s_probabilities[i][0], s_size, sample_size);
     g_assert_cmpfloat(fabs(chi_square - expected_chi_square[i]), <=, epsilon);
-    double chi_square_t = hlp_chi_square(&s_freqs_transposed[i][0], &s_probs[i][0], s_size, sample_size);
+    double chi_square_t = hlp_chi_square(&s_observations_transposed[i][0], &s_probabilities[i][0], s_size, sample_size);
     g_assert_cmpfloat(fabs(chi_square_t - expected_chi_square_transposed[i]), <=, epsilon);
   }
   
@@ -241,7 +247,8 @@ rng_random_choice_from_finite_set_test (void)
   /*                                        p=1%,    p=5%,  p=25%,  p=50%, p=75%, p=95%, p=99% */
   const double chi_square_table[][7] = {{0.00016, 0.00393, 0.1015, 0.4549, 1.323, 3.841, 6.635},   /* v=1 */
                                         {0.02010, 0.10260, 0.5754, 1.3860, 2.773, 5.991, 9.210},   /* v=2 */
-                                        {0.11480, 0.35180, 1.2130, 2.3660, 4.108, 7.815, 11.34}};  /* v=3 */
+                                        {0.11480, 0.35180, 1.2130, 2.3660, 4.108, 7.815, 11.34},   /* v=3 */
+                                        {0.29710, 0.71070, 1.9230, 3.3570, 5.385, 9.488, 13.28}};  /* v=4 */
   const double probability = 1.0 / set_size;
   const double expected_outcome = sample_size * probability;
   
@@ -300,12 +307,33 @@ rng_random_choice_from_finite_set_test (void)
  * Help functions.
  */
 
+/**
+ * @brief Returns the chi_square value for the `category_observations` array.
+ *
+ * @details The value is computed according to the explanation given in TAOCP.
+ * See: Donald E. Knuth, The Art of Compuer Programming, Volume 2, Seminumarical Algorithms, 3rd ed.
+ * Paragraph 3.3.1 - General Test Procedures for Studying Random Data, pp 42-47.
+ *
+ * The `sample_size` parameter is redundant becouse it must be equal to the sum of the observations.
+ * An assertion assure this property.
+ *
+ * @param category_observations  an array with the observed numbers
+ * @param category_probabilities an array with the expected probabilities
+ * @param categories_count       the size of the the two array
+ * @param sample_size            the size of the sample
+ * @return                       the chi_square value
+ */
 static double
 hlp_chi_square (const unsigned long int *category_observations,
                 const double *category_probabilities,
                 const unsigned long int categories_count,
                 const unsigned long int sample_size)
 {
+  unsigned long int sum_of_category_observations = 0;
+  for (int i = 0; i < categories_count; i++) {
+    sum_of_category_observations += category_observations[i];
+  }
+  g_assert_cmpint(sum_of_category_observations, ==, sample_size);
   double chi_square = 0.;
   for (int i = 0; i < categories_count; i++) {
     double x = *(category_probabilities + i) * sample_size;
