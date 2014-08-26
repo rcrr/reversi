@@ -39,6 +39,24 @@
 
 #include "random.h"
 
+#define CHI_SQUARE_CATEGORIES_COUNT 8
+#define CHI_SQUARE_CATEGORIES_THRESHOLD_COUNT 7
+
+/*
+ * See: Donald E. Knuth, The Art of Compuer Programming, Volume 2, Seminumarical Algorithms.
+ * Paragraph 3.3.1 - General Test Procedures for Studying Random Data, Table 1.
+ */
+static const double chi_square_distribution_table[][CHI_SQUARE_CATEGORIES_THRESHOLD_COUNT]
+/*     p=1%,    p=5%,  p=25%,  p=50%,  p=75%,  p=95%,  p=99% */
+= {{0.00016, 0.00393, 0.1015, 0.4549,  1.323,  3.841,  6.635}, /* v=1 */
+   {0.02010, 0.1026,  0.5754, 1.386,   2.773,  5.991,  9.210}, /* v=2 */
+   {0.1148,  0.3518,  1.213,  2.366,   4.108,  7.815, 11.34},  /* v=3 */
+   {0.2971,  0.7107,  1.923,  3.357,   5.385,  9.488, 13.28},  /* v=4 */
+   {0.5543,  1.1455,  2.675,  4.351,   6.626, 11.07,  15.09},  /* v=5 */
+   {0.8721,  1.635,   3.455,  5.348,   7.841, 12.59,  16.81},  /* v=6 */
+   {1.239,   2.167,   4.255,  6.346,   9.037, 14.07,  18.48},  /* v=7 */
+   {1.646,   2.733,   5.071,  7.344,  10.22,  15.51,  20.09},  /* v=8 */
+   {2.088,   3.325,   5.899,  8.343,  11.39,  16.92,  21.67}}; /* v=9 */
 
 
 /* Test function prototypes. */
@@ -137,17 +155,17 @@ random_get_number_in_range_test (void)
 
   static const double epsilon = 0.000001;
 
+  double s_probabilities[s_size];
+  for (int i = 0; i < s_size; i++) {
+    s_probabilities[i] = 1. / s_size;
+  }
+
   for (int j = 0; j < number_of_tests; j++) {
     random_init_seed_with_value(seed + j * a_prime_number);
 
     unsigned long int s_observations[s_size];
     for (int i = 0; i < s_size; i++) {
       s_observations[i] = 0;
-    }
-
-    double s_probabilities[s_size];
-    for (int i = 0; i < s_size; i++) {
-      s_probabilities[i] = 1. / s_size;
     }
   
     for (int i = 0; i < sample_size; i++) {
@@ -282,54 +300,63 @@ rng_random_seed_test (void)
 static void
 rng_random_choice_from_finite_set_test (void)
 {
-  const unsigned int seed = 123;               /* A seed value used to initialize the RNG. */
-  const unsigned long int a_prime_number = 17; /* Used to change the random seed at each iteration. */
-  const unsigned long int set_size = 2;        /* Like flipping a coin. */
-  const int sample_size = 10000;               /* The number of sample taken in each iteration. */
-  const int number_of_tests = 1000;            /* The number of iterations (or tests). */
-  const int category_count = 8;                /* Number of chi-square categories adopted. */
+  static const unsigned int seed = 123;                    /* A seed value used to initialize the RNG. */
+  static const unsigned long int a_prime_number = 17;      /* Used to change the random seed at each iteration. */
+  static const unsigned int s_size = 2;                    /* The set size, when two it is like flipping a coin, when six like throwing a dice. */
+  static const int sample_size = 10000;                    /* The number of sample taken in each iteration. */
+  static const int number_of_tests = 1000;                 /* The number of iterations (or tests). */
+  static const int number_of_chi_square_comparisons = 10;  /**/
+
   /*
-   * See: Donald E. Knuth, The Art of Compuer Programming, Volume 2, Seminumarical Algorithms.
-   * Paragraph 3.3.1 - General Test Procedures for Studying Random Data, Table 1.
+   * Values has to be checked with the chi_square distribution when the DOF are nine.
+   * Results match quite well.
    */
-  /*                                        p=1%,    p=5%,  p=25%,  p=50%,  p=75%,  p=95%,  p=99% */
-  const double chi_square_table[][7] = {{0.00016, 0.00393, 0.1015, 0.4549,  1.323,  3.841,  6.635}, /* v=1 */
-                                        {0.02010, 0.1026,  0.5754, 1.386,   2.773,  5.991,  9.210}, /* v=2 */
-                                        {0.1148,  0.3518,  1.213,  2.366,   4.108,  7.815, 11.34},  /* v=3 */
-                                        {0.2971,  0.7107,  1.923,  3.357,   5.385,  9.488, 13.28},  /* v=4 */
-                                        {0.5543,  1.1455,  2.675,  4.351,   6.626, 11.07,  15.09},  /* v=5 */
-                                        {0.8721,  1.635,   3.455,  5.348,   7.841, 12.59,  16.81},  /* v=6 */
-                                        {1.239,   2.167,   4.255,  6.346,   9.037, 14.07,  18.48},  /* v=7 */
-                                        {1.646,   2.733,   5.071,  7.344,  10.22,  15.51,  20.09},  /* v=8 */
-                                        {2.088,   3.325,   5.899,  8.343,  11.39,  16.92,  21.67}}; /* v=9 */
-  const double probability = 1.0 / set_size;
-  const double expected_outcome = sample_size * probability;
+  double expected_chi_square[number_of_chi_square_comparisons];
+  expected_chi_square[0] = 0.;
+  expected_chi_square[1] = 0.;
+  expected_chi_square[2] = 0.;
+  expected_chi_square[3] = 0.;
+  expected_chi_square[4] = 0.;
+  expected_chi_square[5] = 0.;
+  expected_chi_square[6] = 0.;
+  expected_chi_square[7] = 0.;
+  expected_chi_square[8] = 0.;
+  expected_chi_square[9] = 0.;
+
+  static const double epsilon = 0.000001;
+
+  double s_probabilities[s_size];
+  for (int i = 0; i < s_size; i++) {
+    s_probabilities[i] = 1.0 / s_size;
+  }
   
-  unsigned long int test_category_frequencies[category_count];
-  for (int k = 0; k < category_count; k++) {
-    test_category_frequencies[k] = 0;
-  }                 
+  unsigned long int s_chi_square_category_observations[CHI_SQUARE_CATEGORIES_COUNT];
+  for (int k = 0; k < CHI_SQUARE_CATEGORIES_COUNT; k++) {
+    s_chi_square_category_observations[k] = 0;
+  }
+
   for (int j = 0; j < number_of_tests; j++) {
-    unsigned long int count_0 = 0;
-    unsigned long int count_1 = 0;
-  
     RandomNumberGenerator *rng = rng_new(seed + a_prime_number * j);
+
+    unsigned long int s_observations[s_size];
+    for (int i = 0; i < s_size; i++) {
+      s_observations[i] = 0;
+    }
+ 
     for (int i = 0; i < sample_size; i++) {
-      unsigned long int rn = rng_random_choice_from_finite_set(rng, set_size);
-      g_assert(rn < set_size);
-      (rn == 0) ? count_0++ : count_1++;    
+      unsigned long int rn = rng_random_choice_from_finite_set(rng, s_size);
+      g_assert_cmpuint(rn, <, s_size);
+      s_observations[rn]++;
     }
 
-    const double diff_0 = (expected_outcome - count_0);
-    const double diff_1 = (expected_outcome - count_1);
-    const double chi_square = ((diff_0 * diff_0) + (diff_1 * diff_1)) / expected_outcome;
-    for (int k = 0; k < category_count - 1; k++) {
-      if (chi_square < chi_square_table[0][k]) {
-        test_category_frequencies[k]++;
+    const double chi_square = hlp_chi_square(s_observations, s_probabilities, s_size, sample_size);
+    for (int k = 0; k < CHI_SQUARE_CATEGORIES_COUNT - 1; k++) {
+      if (chi_square < chi_square_distribution_table[0][k]) {
+        s_chi_square_category_observations[k]++;
         goto out;
       }
     }
-    test_category_frequencies[category_count - 1]++;
+    s_chi_square_category_observations[CHI_SQUARE_CATEGORIES_COUNT - 1]++;
   out:
     rng = rng_free(rng);
     g_assert(rng == NULL);
@@ -340,17 +367,17 @@ rng_random_choice_from_finite_set_test (void)
    * it depends on the size of the set on which we are sampling.
    * Anyhow the distribution appears really credible!
    */
-  unsigned long int test_category_expected_frequencies[category_count];
-  test_category_expected_frequencies[0]=11;
-  test_category_expected_frequencies[1]=58;
-  test_category_expected_frequencies[2]=180;
-  test_category_expected_frequencies[3]=264;
-  test_category_expected_frequencies[4]=254;
-  test_category_expected_frequencies[5]=192;
-  test_category_expected_frequencies[6]=32;
-  test_category_expected_frequencies[7]=9;
-  for (int k = 0; k < category_count; k++) {
-    g_assert(test_category_expected_frequencies[k] == test_category_frequencies[k]);
+  unsigned long int s_chi_square_category_expected_observations[CHI_SQUARE_CATEGORIES_COUNT];
+  s_chi_square_category_expected_observations[0]=11;
+  s_chi_square_category_expected_observations[1]=58;
+  s_chi_square_category_expected_observations[2]=180;
+  s_chi_square_category_expected_observations[3]=264;
+  s_chi_square_category_expected_observations[4]=254;
+  s_chi_square_category_expected_observations[5]=192;
+  s_chi_square_category_expected_observations[6]=32;
+  s_chi_square_category_expected_observations[7]=9;
+  for (int k = 0; k < CHI_SQUARE_CATEGORIES_COUNT; k++) {
+    g_assert(s_chi_square_category_expected_observations[k] == s_chi_square_category_observations[k]);
   }                 
 }
 
