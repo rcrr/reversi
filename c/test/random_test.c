@@ -111,14 +111,44 @@ random_seed_test (void)
 static void
 random_get_number_in_range_test (void)
 {
-  g_assert(TRUE);
+  static const int sample_size = 10000;
+  static const int s_size = 10;
+  static const int range_lo = 0;
+  static const int range_hi = range_lo + s_size - 1; /* 9 */
+
+  static const unsigned int seed = 92650;
+  random_init_seed_with_value(seed);
+
+  static const double expected_chi_square = 10.802;
+
+  static const double epsilon = 0.000001;
+
+  unsigned long int s_observations[s_size];
+  for (int i = 0; i < s_size; i++) {
+    s_observations[i] = 0;
+  }
+
+  double s_probabilities[s_size];
+  for (int i = 0; i < s_size; i++) {
+    s_probabilities[i] = 1. / s_size;
+  }
+  
+  for (int i = 0; i < sample_size; i++) {
+    int r = random_get_number_in_range(range_lo, range_hi);
+    g_assert_cmpint(r, >=, range_lo);
+    g_assert_cmpint(r, <=, range_hi);
+    s_observations[r - range_lo]++;
+  }
+
+  double chi_square = hlp_chi_square(s_observations, s_probabilities, s_size, sample_size);
+  g_assert_cmpfloat(fabs(chi_square - expected_chi_square), <=, epsilon);
 }
 
 static void
 random_shuffle_array_uint8_2_test (void)
 {
   static const int sample_size = 1000;
-
+ 
   static const double epsilon = 0.000001;
 
   static const unsigned int seed = 775533;
