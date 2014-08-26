@@ -41,6 +41,8 @@
 
 #define CHI_SQUARE_CATEGORIES_COUNT 8
 #define CHI_SQUARE_CATEGORIES_THRESHOLD_COUNT 7
+#define CHI_SQUARE_DEGREE_OF_FREEDOM_RANGE_LO 0
+#define CHI_SQUARE_DEGREE_OF_FREEDOM_RANGE_HI 9
 
 /*
  * See: Donald E. Knuth, The Art of Compuer Programming, Volume 2, Seminumarical Algorithms.
@@ -79,6 +81,10 @@ hlp_chi_square (const unsigned long int *category_observations,
                 const double *category_probabilities,
                 const unsigned long int categories_count,
                 const unsigned long int sample_size);
+
+static int
+hlp_chi_square_assign_to_category (const double chi_square,
+                                   const int dof);
 
 
 
@@ -307,32 +313,47 @@ rng_random_choice_from_finite_set_test (void)
   static const int number_of_tests = 1000;                 /* The number of iterations (or tests). */
   static const int number_of_chi_square_comparisons = 10;  /**/
 
+  static const double epsilon = 0.000001;
+
   /*
    * Values has to be checked with the chi_square distribution when the DOF are nine.
    * Results match quite well.
    */
   double expected_chi_square[number_of_chi_square_comparisons];
-  expected_chi_square[0] = 0.;
-  expected_chi_square[1] = 0.;
-  expected_chi_square[2] = 0.;
-  expected_chi_square[3] = 0.;
-  expected_chi_square[4] = 0.;
-  expected_chi_square[5] = 0.;
-  expected_chi_square[6] = 0.;
-  expected_chi_square[7] = 0.;
-  expected_chi_square[8] = 0.;
-  expected_chi_square[9] = 0.;
+  expected_chi_square[0] = 0.4096;
+  expected_chi_square[1] = 0.8836;
+  expected_chi_square[2] = 0.1764;
+  expected_chi_square[3] = 0.5476;
+  expected_chi_square[4] = 0.9216;
+  expected_chi_square[5] = 2.1904;
+  expected_chi_square[6] = 0.0576;
+  expected_chi_square[7] = 3.7636;
+  expected_chi_square[8] = 0.2116;
+  expected_chi_square[9] = 0.1936;
 
-  static const double epsilon = 0.000001;
+  /*
+   * The distribution depends on the RNG, the seed, the increment of the seed, the sample size, and
+   * it depends on the size of the set on which we are sampling.
+   * Anyhow the distribution appears really credible!
+   */
+  unsigned long int chi_square_category_expected_observations[CHI_SQUARE_CATEGORIES_COUNT];
+  chi_square_category_expected_observations[0]=11;
+  chi_square_category_expected_observations[1]=58;
+  chi_square_category_expected_observations[2]=180;
+  chi_square_category_expected_observations[3]=264;
+  chi_square_category_expected_observations[4]=254;
+  chi_square_category_expected_observations[5]=192;
+  chi_square_category_expected_observations[6]=32;
+  chi_square_category_expected_observations[7]=9;
 
   double s_probabilities[s_size];
   for (int i = 0; i < s_size; i++) {
     s_probabilities[i] = 1.0 / s_size;
   }
   
-  unsigned long int s_chi_square_category_observations[CHI_SQUARE_CATEGORIES_COUNT];
+  unsigned long int chi_square_category_observations[CHI_SQUARE_CATEGORIES_COUNT];
   for (int k = 0; k < CHI_SQUARE_CATEGORIES_COUNT; k++) {
-    s_chi_square_category_observations[k] = 0;
+    chi_square_category_observations[k] = 0;
   }
 
   for (int j = 0; j < number_of_tests; j++) {
@@ -350,34 +371,16 @@ rng_random_choice_from_finite_set_test (void)
     }
 
     const double chi_square = hlp_chi_square(s_observations, s_probabilities, s_size, sample_size);
-    for (int k = 0; k < CHI_SQUARE_CATEGORIES_COUNT - 1; k++) {
-      if (chi_square < chi_square_distribution_table[0][k]) {
-        s_chi_square_category_observations[k]++;
-        goto out;
-      }
+    if (j < number_of_chi_square_comparisons) {
+      g_assert_cmpfloat(fabs(expected_chi_square[j] - chi_square), <=, epsilon);
     }
-    s_chi_square_category_observations[CHI_SQUARE_CATEGORIES_COUNT - 1]++;
-  out:
+    chi_square_category_observations[hlp_chi_square_assign_to_category(chi_square, s_size - 1)]++;
+
     rng = rng_free(rng);
     g_assert(rng == NULL);
   }
-
-  /*
-   * The distribution depends on the RNG, the seed, the increment of the seed, the sample size, and
-   * it depends on the size of the set on which we are sampling.
-   * Anyhow the distribution appears really credible!
-   */
-  unsigned long int s_chi_square_category_expected_observations[CHI_SQUARE_CATEGORIES_COUNT];
-  s_chi_square_category_expected_observations[0]=11;
-  s_chi_square_category_expected_observations[1]=58;
-  s_chi_square_category_expected_observations[2]=180;
-  s_chi_square_category_expected_observations[3]=264;
-  s_chi_square_category_expected_observations[4]=254;
-  s_chi_square_category_expected_observations[5]=192;
-  s_chi_square_category_expected_observations[6]=32;
-  s_chi_square_category_expected_observations[7]=9;
   for (int k = 0; k < CHI_SQUARE_CATEGORIES_COUNT; k++) {
-    g_assert(s_chi_square_category_expected_observations[k] == s_chi_square_category_observations[k]);
+    g_assert(chi_square_category_expected_observations[k] == chi_square_category_observations[k]);
   }                 
 }
 
@@ -421,4 +424,30 @@ hlp_chi_square (const unsigned long int *category_observations,
     chi_square += (z * z) / x;
   }
   return chi_square;
+}
+
+/**
+ * @brief Assigns the given chi_square value to a category.
+ *
+ * @details The value is computed according to the explanation given in TAOCP.
+ * See: Donald E. Knuth, The Art of Compuer Programming, Volume 2, Seminumarical Algorithms, 3rd ed.
+ * Paragraph 3.3.1 - General Test Procedures for Studying Random Data, pp 42-47.
+ *
+ * The `dof` parameter must be positive and has to be in the range minus one of the
+ * row count of the `chi_square_distribution_table` 2d array.
+ *
+ * @param chi_square the chi square value to bi classified
+ * @param dof        degrees of freedom of the model
+ * @return           the index of the category to assign to
+ */
+static int
+hlp_chi_square_assign_to_category (const double chi_square,
+                                   const int dof)
+{
+  g_assert_cmpint(dof, >=, CHI_SQUARE_DEGREE_OF_FREEDOM_RANGE_LO);
+  g_assert_cmpint(dof, <=, CHI_SQUARE_DEGREE_OF_FREEDOM_RANGE_HI);
+  for (int k = 0; k < CHI_SQUARE_CATEGORIES_COUNT - 1; k++) {
+    if (chi_square < chi_square_distribution_table[dof - 1][k]) return k;
+  }
+  return CHI_SQUARE_CATEGORIES_COUNT - 1;
 }
