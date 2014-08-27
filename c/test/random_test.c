@@ -452,9 +452,30 @@ hlp_chi_square_assign_to_category (const double chi_square,
 }
 
 /**
- * @brief
+ * @brief Runs statistical test on selecting from a finite set at random.
  *
- * @details
+ * @details The test is dedicated to verify the statistical properties of the random
+ * generator function when used to simulate the random selection of a value among
+ * a given set of equi-probable ones.
+ *
+ * The helper function  uses a new `RandomNumberGenerator` for each test, running a `number_of_test` times.
+ * Each test has a `sample_size` number of selections, taken from the RNG sequence.
+ * The RNG is initialized using the `seed` parameter plus an integer computed using the iteration
+ * counter and the `a_prime_number` parameter. It means that the random generator function is
+ * called a number of times equal to the product of `sample_size` an `number_of_test` parameters.
+ *
+ * For each test the chi_square value of the sample is computed.
+ * Tests, starting from the first (position `0`), and ending with the position
+ * identified by `number_of_chi_square_comparisons - 1` are compared with the expected results
+ * held into the `expected_chi_square` array.
+ * If the absolute difference is larger than `epsilon` the test fails.
+ *
+ * Each computed chi_square value is then classified into eight categories, being [0..1)%,
+ * [1..5)%, [5..25)%, [25..50)%, [50..75)%, [75..95)%, [95..99)%, and [99..100], representing
+ * the probability of extracting the associated set from the random equi-distributed selection.
+ * The resulting observed class frequencies are then compared wit the expected, collected in the
+ * `chi_square_category_expected_observations` parameter.
+ * If the expected values are different from the computed the test fails.
  *
  * @param s_size                                    the size of the set from which we sample
  * @param number_of_tests                           the number of test to run
@@ -480,6 +501,12 @@ hlp_rng_random_choice_from_finite_set_test (const gboolean just_log,
                                             const double expected_chi_square[],
                                             const unsigned long int chi_square_category_expected_observations[])
 {
+  g_assert(s_size > 1);
+  g_assert(number_of_tests > 0);
+  g_assert(sample_size > 1);
+  g_assert(number_of_chi_square_comparisons > 0);
+  g_assert(epsilon > 0.);
+  
   double s_probabilities[s_size];
   for (int i = 0; i < s_size; i++) {
     s_probabilities[i] = 1.0 / s_size;
