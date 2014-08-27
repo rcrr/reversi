@@ -45,7 +45,7 @@
 #define CHI_SQUARE_DEGREE_OF_FREEDOM_RANGE_HI 9
 
 /*
- * See: Donald E. Knuth, The Art of Compuer Programming, Volume 2, Seminumarical Algorithms.
+ * See: Donald E. Knuth, The Art of Computer Programming, Volume 2, Seminumarical Algorithms.
  * Paragraph 3.3.1 - General Test Procedures for Studying Random Data, Table 1.
  */
 static const double chi_square_distribution_table[][CHI_SQUARE_CATEGORIES_THRESHOLD_COUNT]
@@ -486,7 +486,7 @@ hlp_chi_square_assign_to_category (const double chi_square,
  *                                                  chi_square is equal to the expected one
  * @param epsilon                                   the delta used to compare expected and computed chi_square
  * @param expected_chi_square                       an array holding the expected chi_square values
- * @param chi_square_category_expected_observations an array holding the expected occurrencies
+ * @param chi_square_category_expected_observations an array holding the expected occurrences
  *                                                  of competed chi_square in the probability ranges
  */
 static void
