@@ -76,4 +76,9 @@ extern unsigned long int
 rng_random_choice_from_finite_set (RandomNumberGenerator *rng,
                                    const unsigned long int k);
 
+extern void
+rng_shuffle_array_uint8 (RandomNumberGenerator *rng,
+                         uint8_t *array,
+                         const int n);
+
 #endif /* RANDOM_H */

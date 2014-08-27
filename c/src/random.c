@@ -160,8 +160,8 @@ rng_new (const unsigned long int seed)
  * @invariant Parameter `rng` cannot be `NULL`.
  * The invariant is guarded by an assertion.
  *
- * @param [in] rng the pointer to be deallocated
- * @return         always the NULL pointer
+ * @param [in,out] rng the pointer to be deallocated
+ * @return             always the NULL pointer
  */
 RandomNumberGenerator *
 rng_free (RandomNumberGenerator *rng)
@@ -217,9 +217,9 @@ rng_random_seed (void)
  * @invariant Parameter `k` cannot be `0`.
  * The invariant is guarded by an assertion.
  *
- * @param [in] rng the random number generator to use
- * @param [in] k   the size of the set to select from
- * @return         an integer in the range [0..k)
+ * @param [in,out] rng the random number generator to use
+ * @param [in] k       the size of the set to select from
+ * @return             an integer in the range [0..k)
  */
 unsigned long int
 rng_random_choice_from_finite_set (RandomNumberGenerator *rng,
@@ -228,4 +228,41 @@ rng_random_choice_from_finite_set (RandomNumberGenerator *rng,
   g_assert(k != 0);
   if (k == 1) return 0;
   return gsl_rng_uniform_int(rng->r, k);
+}
+
+/**
+ * @brief Shuffles the given array.
+ * 
+ * @details Arrange in place the `n` elements of `array` in random order.
+ *
+ * See:
+ * - the Wikipedia page: <a href="http://en.wikipedia.org/wiki/Knuth_shuffle" target="_blank">
+ *   Fisher–Yates shuffle</a>.
+ * - Knuth (1998). Seminumerical algorithms. The Art of Computer Programming 2 (3rd ed.). Boston: Addison–Wesley. pp. 145–146.
+ *
+ * When `n` is equal to `0` or to `1 no random number is consumed from the rng sequence.
+ *
+ * The argument `rng` must be obtained calling #rng_new.
+ *
+ * @invariant Parameter `n` cannot be negative.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] rng the random number generator to use
+ * @param [in,out] array the array to be shuffled
+ * @param [in]     n     the number of elements in the array
+ */
+void
+rng_shuffle_array_uint8 (RandomNumberGenerator *rng,
+                         uint8_t *array,
+                         const int n)
+{
+  g_assert(n >= 0);
+  if (n > 1) {
+    for (int i = n - 1; i > 0; i--) {
+      int j = rng_random_choice_from_finite_set(rng, i + 1);
+      const uint8_t t = *(array + j);
+      *(array + j) = *(array + i);
+      *(array + i) = t;
+    }
+  }
 }

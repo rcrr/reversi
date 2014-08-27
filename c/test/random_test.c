@@ -61,6 +61,7 @@ static const double chi_square_distribution_table[][CHI_SQUARE_CATEGORIES_THRESH
    {2.088,   3.325,   5.899,  8.343,  11.39,  16.92,  21.67}}; /* v=9 */
 
 
+
 /* Test function prototypes. */
 
 static void dummy_test (void);
@@ -74,6 +75,8 @@ static void rng_random_seed_test (void);
 static void rng_random_choice_from_finite_set_2_test (void);
 static void rng_random_choice_from_finite_set_5_test (void);
 static void rng_random_choice_from_finite_set_9_test (void);
+static void rng_shuffle_array_uint8_test (void);
+
 
 
 /* Helper function prototypes. */
@@ -119,6 +122,7 @@ main (int   argc,
   g_test_add_func("/random/rng_random_choice_from_finite_set_2_test", rng_random_choice_from_finite_set_2_test);
   g_test_add_func("/random/rng_random_choice_from_finite_set_5_test", rng_random_choice_from_finite_set_5_test);
   g_test_add_func("/random/rng_random_choice_from_finite_set_9_test", rng_random_choice_from_finite_set_9_test);
+  g_test_add_func("/random/rng_shuffle_array_uint8_test", rng_shuffle_array_uint8_test);
 
   return g_test_run();
 }
@@ -383,6 +387,85 @@ rng_random_choice_from_finite_set_9_test (void)
                                              expected_chi_square,
                                              chi_square_category_expected_observations);
 }
+
+static void
+rng_shuffle_array_uint8_test (void)
+{
+
+  const int s_size = 5;
+  uint8_t s[s_size];
+  int s_sum = 0;
+  for (int j = 0; j < s_size; j++) {
+    s[j] = j;
+    s_sum += j;
+  }
+
+  const int sample_size = 1000;
+  const double epsilon = 0.000001;
+  const unsigned long int seed = 775533;
+  RandomNumberGenerator *rng = rng_new(seed);
+
+  gboolean just_log = FALSE;
+  
+  /*
+   * Values has to be compared with the chi-square table selecting line v=4 (four degree of freedom).
+   * All the value are in a quite good range.
+   */
+  static const double expected_chi_square[]            = {4.33, 6.83, 2.47, 6.37, 3.34};
+  static const double expected_chi_square_transposed[] = {5.12, 5.00, 2.85, 7.47, 2.90};
+
+  unsigned long s_observations[5][5] = {{0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0}};
+  
+  unsigned long s_observations_transposed[5][5];
+
+  double s_probabilities[5][5] = {{.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2}};
+
+  for (int i = 0; i < sample_size; i++) {
+    int sum = 0;
+    for (int j = 0; j < s_size; j++) {
+      s[j] = j;
+    }
+    rng_shuffle_array_uint8(rng, s, s_size);
+    //printf("{%2d, %2d, %2d, %2d, %2d}\n", s[0], s[1], s[2], s[3], s[4]);
+    for (int j = 0; j < s_size; j++) {
+      g_assert(s[j] >= 0 && s[j] <= s_size - 1);
+      sum += s[j];
+      s_observations[j][s[j]]++;
+    }
+    g_assert(sum == s_sum);
+  }
+ 
+  for (int i = 0; i < s_size; i++) {
+    for (int j = 0; j < s_size; j++) {
+      //printf("obs[%d][%d]=%lu\n", i, j, s_observations[i][j]);
+      s_observations_transposed[i][j] = s_observations[j][i];
+    }
+  }
+
+  for (int i = 0; i < s_size; i++) {
+    double chi_square = hlp_chi_square(&s_observations[i][0], &s_probabilities[i][0], s_size, sample_size);
+    double chi_square_t = hlp_chi_square(&s_observations_transposed[i][0], &s_probabilities[i][0], s_size, sample_size);
+    if (just_log) {
+      printf("[%d], chi_square=%f, chi_square_t=%f\n", i, chi_square, chi_square_t);
+    } else {
+      g_assert_cmpfloat(fabs(chi_square - expected_chi_square[i]), <=, epsilon);
+      g_assert_cmpfloat(fabs(chi_square_t - expected_chi_square_transposed[i]), <=, epsilon);
+    }
+  }
+
+  rng_free(rng);
+  
+  g_assert(TRUE);
+}
+
 
 
 /*
