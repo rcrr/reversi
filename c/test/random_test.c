@@ -322,54 +322,26 @@ rng_random_seed_test (void)
 static void
 rng_random_choice_from_finite_set_2_test (void)
 {
-  static const unsigned int seed = 123;                    /* A seed value used to initialize the RNG. */
-  static const unsigned long int a_prime_number = 17;      /* Used to change the random seed at each iteration. */
-  static const unsigned int s_size = 2;                    /* The set size, when two it is like flipping a coin, when six like throwing a dice. */
-  static const int sample_size = 10000;                    /* The number of sample taken in each iteration. */
-  static const int number_of_tests = 1000;                 /* The number of iterations (or tests). */
-  static const int number_of_chi_square_comparisons = 10;  /* Number of test cases compared one by one with expected values. */
-  static const double epsilon = 0.000001;                  /* Acceptable delta when comparing computed and expected chi_square values. */
-
   /*
    * The first ten chi_square values in the sequence are checked one by one.
    */
-  double expected_chi_square[number_of_chi_square_comparisons];
-  expected_chi_square[0] = 0.4096;
-  expected_chi_square[1] = 0.8836;
-  expected_chi_square[2] = 0.1764;
-  expected_chi_square[3] = 0.5476;
-  expected_chi_square[4] = 0.9216;
-  expected_chi_square[5] = 2.1904;
-  expected_chi_square[6] = 0.0576;
-  expected_chi_square[7] = 3.7636;
-  expected_chi_square[8] = 0.2116;
-  expected_chi_square[9] = 0.1936;
+  double expected_chi_square[] = {0.4096, 0.8836, 0.1764, 0.5476, 0.9216, 2.1904, 0.0576, 3.7636, 0.2116, 0.1936};
 
   /*
    * The distribution depends on the RNG, the seed, the increment of the seed, the sample size, and
    * it depends on the size of the set on which we are sampling.
    * Anyhow the distribution appears really credible!
    */
-  unsigned long int chi_square_category_expected_observations[CHI_SQUARE_CATEGORIES_COUNT];
-  chi_square_category_expected_observations[0]=11;
-  chi_square_category_expected_observations[1]=58;
-  chi_square_category_expected_observations[2]=180;
-  chi_square_category_expected_observations[3]=264;
-  chi_square_category_expected_observations[4]=254;
-  chi_square_category_expected_observations[5]=192;
-  chi_square_category_expected_observations[6]=32;
-  chi_square_category_expected_observations[7]=9;
+  unsigned long int chi_square_category_expected_observations[] =  {11, 58, 180, 264, 254, 192, 32, 9};
 
-  gboolean just_log = FALSE;
-
-  hlp_rng_random_choice_from_finite_set_test(just_log,
-                                             s_size,
-                                             number_of_tests,
-                                             seed,
-                                             a_prime_number,
-                                             sample_size,
-                                             number_of_chi_square_comparisons,
-                                             epsilon,
+  hlp_rng_random_choice_from_finite_set_test(FALSE,    /* just_log */
+                                             2,        /* s_size */
+                                             1000,     /* number_of_tests */
+                                             123,      /* seed */
+                                             17,       /* a_prime_number */
+                                             10000,    /* sample_size */
+                                             10,       /* number_of_chi_square_comparisons */
+                                             0.000001, /* epsilon */
                                              expected_chi_square,
                                              chi_square_category_expected_observations);
 }
@@ -377,54 +349,18 @@ rng_random_choice_from_finite_set_2_test (void)
 static void
 rng_random_choice_from_finite_set_5_test (void)
 {
-  static const unsigned int seed = 991;                    /* A seed value used to initialize the RNG. */
-  static const unsigned long int a_prime_number = 7;       /* Used to change the random seed at each iteration. */
-  static const unsigned int s_size = 5;                    /* The set size, when two it is like flipping a coin, when six like throwing a dice. */
-  static const int sample_size = 14000;                    /* The number of sample taken in each iteration. */
-  static const int number_of_tests = 1000;                 /* The number of iterations (or tests). */
-  static const int number_of_chi_square_comparisons = 10;  /* Number of test cases compared one by one with expected values. */
-  static const double epsilon = 0.000001;                  /* Acceptable delta when comparing computed and expected chi_square values. */
+  double expected_chi_square[] = {0.973571, 3.839286, 4.087857, 3.529286, 4.645000, 3.097857, 4.837143, 8.080714, 0.844286, 1.419286};
 
-  /*
-   * The first ten chi_square values in the sequence are checked one by one.
-   */
-  double expected_chi_square[number_of_chi_square_comparisons];
-  expected_chi_square[0] = 0.973571;
-  expected_chi_square[1] = 3.839286;
-  expected_chi_square[2] = 4.087857;
-  expected_chi_square[3] = 3.529286;
-  expected_chi_square[4] = 4.645000;
-  expected_chi_square[5] = 3.097857;
-  expected_chi_square[6] = 4.837143;
-  expected_chi_square[7] = 8.080714;
-  expected_chi_square[8] = 0.844286;
-  expected_chi_square[9] = 1.419286;
+  unsigned long int chi_square_category_expected_observations[] = {12, 38, 207, 259, 251, 188, 34, 11};
 
-  /*
-   * The distribution depends on the RNG, the seed, the increment of the seed, the sample size, and
-   * it depends on the size of the set on which we are sampling.
-   * Anyhow the distribution appears really credible!
-   */
-  unsigned long int chi_square_category_expected_observations[CHI_SQUARE_CATEGORIES_COUNT];
-  chi_square_category_expected_observations[0]=12;
-  chi_square_category_expected_observations[1]=38;
-  chi_square_category_expected_observations[2]=207;
-  chi_square_category_expected_observations[3]=259;
-  chi_square_category_expected_observations[4]=251;
-  chi_square_category_expected_observations[5]=188;
-  chi_square_category_expected_observations[6]=34;
-  chi_square_category_expected_observations[7]=11;
-
-  gboolean just_log = FALSE;
-
-  hlp_rng_random_choice_from_finite_set_test(just_log,
-                                             s_size,
-                                             number_of_tests,
-                                             seed,
-                                             a_prime_number,
-                                             sample_size,
-                                             number_of_chi_square_comparisons,
-                                             epsilon,
+  hlp_rng_random_choice_from_finite_set_test(FALSE,    /* just_log */
+                                             5,        /* s_size */
+                                             1000,     /* number_of_tests */
+                                             991,      /* seed */
+                                             7,        /* a_prime_number */
+                                             14000,    /* sample_size */
+                                             10,       /* number_of_chi_square_comparisons */
+                                             0.000001, /* epsilon */
                                              expected_chi_square,
                                              chi_square_category_expected_observations);
 }
@@ -432,50 +368,18 @@ rng_random_choice_from_finite_set_5_test (void)
 static void
 rng_random_choice_from_finite_set_9_test (void)
 {
-  const unsigned int s_size = 9;
-  const int number_of_tests = 1000;
-  const unsigned int seed = 23;
-  const unsigned long int a_prime_number = 11;
-  const int sample_size = 1000;
-  const int number_of_chi_square_comparisons = 10;
-  const double epsilon = 0.000001;
+  double expected_chi_square[] = {5.264, 7.262, 4.328, 6.398, 8.882, 9.584, 13.616, 3.860, 6.380, 8.036};
 
-  /*
-   */
-  double expected_chi_square[number_of_chi_square_comparisons];
-  expected_chi_square[0] =  5.264;
-  expected_chi_square[1] =  7.262;
-  expected_chi_square[2] =  4.328;
-  expected_chi_square[3] =  6.398;
-  expected_chi_square[4] =  8.882;
-  expected_chi_square[5] =  9.584;
-  expected_chi_square[6] = 13.616;
-  expected_chi_square[7] =  3.860;
-  expected_chi_square[8] =  6.380;
-  expected_chi_square[9] =  8.036;
+  unsigned long int chi_square_category_expected_observations[] = {13, 37, 185, 249, 275, 187, 45, 9};
 
-  /*
-   */
-  unsigned long int chi_square_category_expected_observations[CHI_SQUARE_CATEGORIES_COUNT];
-  chi_square_category_expected_observations[0]=13;
-  chi_square_category_expected_observations[1]=37;
-  chi_square_category_expected_observations[2]=185;
-  chi_square_category_expected_observations[3]=249;
-  chi_square_category_expected_observations[4]=275;
-  chi_square_category_expected_observations[5]=187;
-  chi_square_category_expected_observations[6]=45;
-  chi_square_category_expected_observations[7]=9;
-
-  gboolean just_log = FALSE;
-
-  hlp_rng_random_choice_from_finite_set_test(just_log,
-                                             s_size,
-                                             number_of_tests,
-                                             seed,
-                                             a_prime_number,
-                                             sample_size,
-                                             number_of_chi_square_comparisons,
-                                             epsilon,
+  hlp_rng_random_choice_from_finite_set_test(FALSE,    /* just_log */
+                                             9,        /* s_size */
+                                             1000,     /* number_of_tests */
+                                             23,       /* seed */
+                                             11,       /* a_prime_number */
+                                             1000,     /* sample_size */
+                                             10,       /* number_of_chi_square_comparisons */
+                                             0.000001, /* epsilon */
                                              expected_chi_square,
                                              chi_square_category_expected_observations);
 }
