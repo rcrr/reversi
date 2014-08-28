@@ -418,7 +418,7 @@ rng_shuffle_array_uint8_test (void)
   static const size_t size_of_ulong = sizeof(unsigned long int);
   static const size_t size_of_double = sizeof(double);
 
-  abc();
+  //abc();
 
   const int s_size = 5;
   uint8_t s[s_size];
@@ -439,44 +439,24 @@ rng_shuffle_array_uint8_test (void)
    * Values has to be compared with the chi-square table selecting line v=4 (four degree of freedom).
    * All the value are in a quite good range.
    */
-  static const double expected_chi_square[]            = {4.33, 6.83, 2.47, 6.37, 3.34};
-  static const double expected_chi_square_transposed[] = {5.12, 5.00, 2.85, 7.47, 2.90};
+  const double expected_chi_square[]            = {4.33, 6.83, 2.47, 6.37, 3.34};
+  const double expected_chi_square_transposed[] = {5.12, 5.00, 2.85, 7.47, 2.90};
 
-  unsigned long int (*s_observations__)[s_size] = malloc(size_of_ulong * s_size * s_size);
+  unsigned long int (*s_observations)[s_size] = malloc(size_of_ulong * s_size * s_size);
   for (int i = 0; i < s_size; i++) {
     for (int j = 0; j < s_size; j++) {
-      s_observations__[i][j] = 0;
-    }
-  }
-  unsigned long int *s_observations_ = malloc(size_of_ulong * s_size * s_size);
-  for (int i = 0; i < s_size; i++) {
-    for (int j = 0; j < s_size; j++) {
-      *(s_observations_ + i * s_size + j) = 0;
+      s_observations[i][j] = 0;
     }
   }
 
-  unsigned long int *s_observations_transposed_ = malloc(size_of_ulong * s_size * s_size);
-
-  double *s_probabilities_ = malloc(size_of_double * s_size * s_size);
+  double (*s_probabilities)[s_size] = malloc(size_of_double * s_size * s_size);
   for (int i = 0; i < s_size; i++) {
     for (int j = 0; j < s_size; j++) {
-      *(s_probabilities_ + i * s_size + j) = 0;
+      s_probabilities[i][j] = (double) (1. / s_size);
     }
   }
 
-  unsigned long s_observations[5][5] = {{0, 0, 0, 0, 0},
-                                        {0, 0, 0, 0, 0},
-                                        {0, 0, 0, 0, 0},
-                                        {0, 0, 0, 0, 0},
-                                        {0, 0, 0, 0, 0}};
-  
-  unsigned long s_observations_transposed[5][5];
-
-  double s_probabilities[5][5] = {{.2, .2, .2, .2, .2},
-                                  {.2, .2, .2, .2, .2},
-                                  {.2, .2, .2, .2, .2},
-                                  {.2, .2, .2, .2, .2},
-                                  {.2, .2, .2, .2, .2}};
+  unsigned long int (*s_observations_transposed)[s_size] = malloc(size_of_ulong * s_size * s_size);
 
   for (int i = 0; i < sample_size; i++) {
     int sum = 0;
@@ -484,29 +464,23 @@ rng_shuffle_array_uint8_test (void)
       s[j] = j;
     }
     rng_shuffle_array_uint8(rng, s, s_size);
-    //printf("{%2d, %2d, %2d, %2d, %2d}\n", s[0], s[1], s[2], s[3], s[4]);
     for (int j = 0; j < s_size; j++) {
       g_assert(s[j] >= 0 && s[j] <= s_size - 1);
       sum += s[j];
       s_observations[j][s[j]]++;
-      (*(s_observations_ + j * s_size + s[j]))++;
     }
     g_assert(sum == s_sum);
   }
  
   for (int i = 0; i < s_size; i++) {
     for (int j = 0; j < s_size; j++) {
-      //printf("obs[%d][%d]=%lu\n", i, j, s_observations[i][j]);
       s_observations_transposed[i][j] = s_observations[j][i];
-      *(s_observations_transposed_ + i * s_size + j) = *(s_observations_ + j * s_size + i);
     }
   }
 
   for (int i = 0; i < s_size; i++) {
     double chi_square = hlp_chi_square(&s_observations[i][0], &s_probabilities[i][0], s_size, sample_size);
     double chi_square_t = hlp_chi_square(&s_observations_transposed[i][0], &s_probabilities[i][0], s_size, sample_size);
-    //double chi_square = hlp_chi_square(s_observations_ + i * s_size, s_probabilities + i * s_size, s_size, sample_size);
-    //double chi_square_t = hlp_chi_square(s_observations_transposed_ + i * s_size, s_probabilities + i * s_size, s_size, sample_size);
     if (just_log) {
       printf("[%d], chi_square=%f, chi_square_t=%f\n", i, chi_square, chi_square_t);
     } else {
@@ -516,9 +490,9 @@ rng_shuffle_array_uint8_test (void)
   }
 
   rng_free(rng);
-  free(s_observations_);
-  free(s_observations_transposed_);
-  free(s_probabilities_);
+  free(s_observations);
+  free(s_observations_transposed);
+  free(s_probabilities);
   g_assert(TRUE);
 }
 
