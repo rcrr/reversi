@@ -75,7 +75,9 @@ static void rng_random_seed_test (void);
 static void rng_random_choice_from_finite_set_2_test (void);
 static void rng_random_choice_from_finite_set_5_test (void);
 static void rng_random_choice_from_finite_set_9_test (void);
-static void rng_shuffle_array_uint8_test (void);
+static void rng_shuffle_array_uint8_2_test (void);
+static void rng_shuffle_array_uint8_5_test (void);
+static void rng_shuffle_array_uint8_9_test (void);
 
 
 
@@ -110,10 +112,11 @@ hlp_rng_shuffle_array_uint8_test (const gboolean just_log,
                                   const double epsilon,
                                   const unsigned long int seed,
                                   const double expected_chi_square[],
-                                  const double expected_chi_square_transposed[])
-;
+                                  const double expected_chi_square_transposed[]);
 
 
+
+/* Main function. */
 
 int
 main (int   argc,
@@ -132,7 +135,9 @@ main (int   argc,
   g_test_add_func("/random/rng_random_choice_from_finite_set_2_test", rng_random_choice_from_finite_set_2_test);
   g_test_add_func("/random/rng_random_choice_from_finite_set_5_test", rng_random_choice_from_finite_set_5_test);
   g_test_add_func("/random/rng_random_choice_from_finite_set_9_test", rng_random_choice_from_finite_set_9_test);
-  g_test_add_func("/random/rng_shuffle_array_uint8_test", rng_shuffle_array_uint8_test);
+  g_test_add_func("/random/rng_shuffle_array_uint8_2_test", rng_shuffle_array_uint8_2_test);
+  g_test_add_func("/random/rng_shuffle_array_uint8_5_test", rng_shuffle_array_uint8_5_test);
+  g_test_add_func("/random/rng_shuffle_array_uint8_9_test", rng_shuffle_array_uint8_9_test);
 
   return g_test_run();
 }
@@ -165,13 +170,13 @@ random_seed_test (void)
 static void
 random_get_number_in_range_test (void)
 {
-  static const int sample_size = 10000;               /* The number of "throws" per each test. */
-  static const int s_size = 10;                       /* The set size from wich we select. */
-  static const int range_lo = 0;                      /* The lower bound of the set. */
-  static const int range_hi = range_lo + s_size - 1;  /* The upper bound of the set (9). */
-  static const unsigned long int a_prime_number = 19; /* Used to change the random seed at each iteration. */
-  static const int number_of_tests = 10;              /* The number of iterations (or tests). */
-  static const unsigned int seed = 92650;             /* A seed value used to initialize the RNG. */
+  const int sample_size = 10000;               /* The number of "throws" per each test. */
+  const int s_size = 10;                       /* The set size from wich we select. */
+  const int range_lo = 0;                      /* The lower bound of the set. */
+  const int range_hi = range_lo + s_size - 1;  /* The upper bound of the set (9). */
+  const unsigned long int a_prime_number = 19; /* Used to change the random seed at each iteration. */
+  const int number_of_tests = 10;              /* The number of iterations (or tests). */
+  const unsigned int seed = 92650;             /* A seed value used to initialize the RNG. */
 
   /*
    * Values has to be checked with the chi_square distribution when the DOF are nine.
@@ -189,7 +194,7 @@ random_get_number_in_range_test (void)
   expected_chi_square[8] = 12.430;
   expected_chi_square[9] = 15.868;
 
-  static const double epsilon = 0.000001;
+  const double epsilon = 0.000001;
 
   double s_probabilities[s_size];
   for (int i = 0; i < s_size; i++) {
@@ -219,17 +224,16 @@ random_get_number_in_range_test (void)
 static void
 random_shuffle_array_uint8_2_test (void)
 {
-  static const int sample_size = 1000;
+  const int sample_size = 1000;
+  const double epsilon = 0.000001;
 
-  static const double epsilon = 0.000001;
-
-  static const unsigned int seed = 775533;
+  const unsigned int seed = 775533;
   random_init_seed_with_value(seed);
 
-  static const double expected_chi_square = 1.444000;
+  const double expected_chi_square = 1.444000;
 
-  static const int s_size = 2;
-  static const int s_sum = 1;
+  const int s_size = 2;
+  const int s_sum = 1;
   uint8_t s[] = {0, 1};
 
   unsigned long s_observations[2][2] = {{0, 0}, {0, 0}};
@@ -259,22 +263,21 @@ random_shuffle_array_uint8_2_test (void)
 static void
 random_shuffle_array_uint8_5_test (void)
 {
-  static const int sample_size = 1000;
+  const int sample_size = 1000;
+  const double epsilon = 0.000001;
 
-  static const double epsilon = 0.000001;
-
-  static const unsigned int seed = 775533;
+  const unsigned int seed = 775533;
   random_init_seed_with_value(seed);
 
   /*
    * Values has to be compared with the chi-square table selecting line v=4 (four degree of freedom).
    * All the value are in a quite good range.
    */
-  static const double expected_chi_square[]            = {6.73, 0.97, 0.73, 2.25, 6.98};
-  static const double expected_chi_square_transposed[] = {4.84, 4.03, 0.83, 6.17, 1.79};
+  const double expected_chi_square[]            = {6.73, 0.97, 0.73, 2.25, 6.98};
+  const double expected_chi_square_transposed[] = {4.84, 4.03, 0.83, 6.17, 1.79};
 
-  static const int s_size = 5;
-  static const int s_sum = 10;
+  const int s_size = 5;
+  const int s_sum = 10;
   uint8_t s[] = {0, 1, 2, 3, 4};
 
   unsigned long s_observations[5][5] = {{0, 0, 0, 0, 0},
@@ -323,7 +326,7 @@ random_shuffle_array_uint8_5_test (void)
 static void
 rng_random_seed_test (void)
 {
-  static const int sample_size = 10;
+  const int sample_size = 10;
   unsigned long int seed[sample_size];
   for (int i = 0; i < sample_size; i++) {
     seed[i] = rng_random_seed();
@@ -399,12 +402,25 @@ rng_random_choice_from_finite_set_9_test (void)
 }
 
 static void
-rng_shuffle_array_uint8_test (void)
+rng_shuffle_array_uint8_2_test (void)
 {
-  /*
-   * Values has to be compared with the chi-square table selecting line v=4 (four degree of freedom).
-   * All the value are in a quite good range.
-   */
+  /* Values has to be compared with the chi-square table selecting line v=1 (one degree of freedom). */
+  const double expected_chi_square[]            = {0.09604, 0.09604};
+  const double expected_chi_square_transposed[] = {0.09604, 0.09604};
+
+  hlp_rng_shuffle_array_uint8_test(FALSE,     /* just_log */
+                                   2,         /* s_size */
+                                   100000,    /* sample_size */
+                                   0.000001,  /* epsilon */
+                                   852901,    /* seed */
+                                   expected_chi_square,
+                                   expected_chi_square_transposed);
+}
+
+static void
+rng_shuffle_array_uint8_5_test (void)
+{
+  /* Values has to be compared with the chi-square table selecting line v=4 (four degree of freedom). */
   const double expected_chi_square[]            = {4.33, 6.83, 2.47, 6.37, 3.34};
   const double expected_chi_square_transposed[] = {5.12, 5.00, 2.85, 7.47, 2.90};
 
@@ -413,6 +429,22 @@ rng_shuffle_array_uint8_test (void)
                                    1000,      /* sample_size */
                                    0.000001,  /* epsilon */
                                    775533,    /* seed */
+                                   expected_chi_square,
+                                   expected_chi_square_transposed);
+}
+
+static void
+rng_shuffle_array_uint8_9_test (void)
+{
+  /* Values has to be compared with the chi-square table selecting line v=8 (eight degree of freedom). */
+  const double expected_chi_square[]           = {12.08330,  4.08248, 5.54660, 12.59774, 4.45094, 10.92986, 10.45340, 18.99854, 13.25780};
+  const double expected_chi_square_transposed[] = {9.45512, 10.43774, 7.61876,  9.28664, 9.06164, 10.43342, 15.19406, 10.19114, 10.72214};
+
+  hlp_rng_shuffle_array_uint8_test(FALSE,     /* just_log */
+                                   9,         /* s_size */
+                                   100000,    /* sample_size */
+                                   0.000001,  /* epsilon */
+                                   10481,     /* seed */
                                    expected_chi_square,
                                    expected_chi_square_transposed);
 }
