@@ -39,31 +39,36 @@
 
 #include "game_position_db.h"
 
+
+
+/**
+ * @cond
+ */
+
 /*
  * Internal variables and constants.
  */
 
-/**
- * Field separator for records in the game position db.
- */
-const static char
-field_separator = ';';
+/* Field separator for records in the game position db. */
+static const char field_separator = ';';
+
+
 
 /*
  * Prototypes for internal functions.
  */
 
 static gint
-gpdb_extract_entry_from_line (gchar                           *line,
-                              int                              line_number,
-                              gchar                           *source,
-                              GamePositionDbEntry            **p_entry,
+gpdb_extract_entry_from_line (gchar *line,
+                              int line_number,
+                              gchar *source,
+                              GamePositionDbEntry **p_entry,
                               GamePositionDbEntrySyntaxError **p_syntax_error);
 
 static gint
 gpdb_compare_entries (gconstpointer pa,
                       gconstpointer pb,
-                      gpointer      user_data);
+                      gpointer user_data);
 
 
 static void
@@ -76,9 +81,13 @@ static void
 gpdb_syntax_error_log_destroy_function (gpointer data);
 
 static gboolean
-gpdb_print_entry_helper_fn (gchar                *key,
-                            GamePositionDbEntry  *entry,
-                            GString             **p_msg);
+gpdb_print_entry_helper_fn (gchar *key,
+                            GamePositionDbEntry *entry,
+                            GString **p_msg);
+
+/**
+ * @endcond
+ */
 
 
 
@@ -87,7 +96,7 @@ gpdb_print_entry_helper_fn (gchar                *key,
  */
 
 /*************************************************************************/
-/* Function implementations for the GamePositionDbSyntaxErrorLog entity. */ 
+/* Function implementations for the GamePositionDbSyntaxErrorLog entity. */
 /*************************************************************************/
 
 /**
@@ -151,7 +160,7 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
   element = syntax_error_log;
 
   if (!element) {
-    msg = g_string_append(msg, "No errors detected.\n");    
+    msg = g_string_append(msg, "No errors detected.\n");
   } else {
     do {
       GamePositionDbEntrySyntaxError *syntax_error = (GamePositionDbEntrySyntaxError *) element->data;
@@ -162,7 +171,7 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
       }
     } while ((element = g_slist_next(element)) != NULL);
   }
-  
+
   result = msg->str;
   g_string_free(msg, FALSE);
   return result;
@@ -185,7 +194,7 @@ gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
 
 
 /***************************************************************************/
-/* Function implementations for the GamePositionDbEntrySyntaxError entity. */ 
+/* Function implementations for the GamePositionDbEntrySyntaxError entity. */
 /***************************************************************************/
 
 /**
@@ -206,19 +215,19 @@ gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
  *
  * @param [in] error_type    the type of the error
  * @param [in] source        the label identifying the source input
- * @param [in] line_number   the line number that rises the error 
- * @param [in] line          a string holding the line that rises the error 
+ * @param [in] line_number   the line number that rises the error
+ * @param [in] line          a string holding the line that rises the error
  * @param [in] error_message a detailed error message
  * @return                   a pointer to a new game position database syntax error structure
  */
 GamePositionDbEntrySyntaxError *
 gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
-                             char                               *source,
-                             int                                 line_number,
-                             char                               *line,
-                             char                               *error_message)
+                             char *source,
+                             int line_number,
+                             char *line,
+                             char *error_message)
 {
-  g_assert(error_type >= GPDB_ENTRY_SYNTAX_ERROR_ON_ID && 
+  g_assert(error_type >= GPDB_ENTRY_SYNTAX_ERROR_ON_ID &&
            error_type <= GPDB_ENTRY_SYNTAX_ERROR_DUPLICATE_ENTRY_KEY);
 
   GamePositionDbEntrySyntaxError *e;
@@ -378,7 +387,7 @@ gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *synta
 
 
 /***********************************************************/
-/* Function implementations for the GamePositionDb entity. */ 
+/* Function implementations for the GamePositionDb entity. */
 /***********************************************************/
 
 /**
@@ -447,12 +456,12 @@ gpdb_free (GamePositionDb *db,
  * The invariant is guarded by an assertion.
  *
  * @param [in] db       a pointer to the data base that is updated
- * @param [in] entry_id the entry key to search for 
+ * @param [in] entry_id the entry key to search for
  * @return              the matching db entry or null when the query fails
  */
 GamePositionDbEntry *
 gpdb_lookup (GamePositionDb *db,
-             gchar          *entry_id)
+             gchar *entry_id)
 {
   g_assert(db);
 
@@ -467,19 +476,19 @@ gpdb_lookup (GamePositionDb *db,
  * When the received pointer to the allocated game position database
  * structure is `NULL` return code is `EXIT_FAILURE`.
  *
- * @param [in]     fp                  a pointer to the file that is loaded 
- * @param [in]     source              a string documenting the source of the loaded records 
+ * @param [in]     fp                  a pointer to the file that is loaded
+ * @param [in]     source              a string documenting the source of the loaded records
  * @param [in,out] db                  a pointer to the data base that is updated
- * @param [out]    p_syntax_error_log  a location to return the list of syntax errors 
- * @param [out]    p_e                 a location to return an error reference 
+ * @param [out]    p_syntax_error_log  a location to return the list of syntax errors
+ * @param [out]    p_e                 a location to return an error reference
  * @return                             the return code
  */
 int
-gpdb_load (FILE                          *fp,
-           gchar                         *source,
-           GamePositionDb                *db,
+gpdb_load (FILE *fp,
+           gchar *source,
+           GamePositionDb *db,
            GamePositionDbSyntaxErrorLog **p_syntax_error_log,
-           GError                       **p_e)
+           GError **p_e)
 {
   GIOChannel *channel;
   GIOStatus   ret;
@@ -638,7 +647,7 @@ gpdb_length (GamePositionDb *db)
 
 
 /****************************************************************/
-/* Function implementations for the GamePositionDbEntry entity. */ 
+/* Function implementations for the GamePositionDbEntry entity. */
 /****************************************************************/
 
 /**
@@ -673,7 +682,7 @@ gpdb_entry_new (void)
  */
 GamePositionDbEntry *
 gpdb_entry_free (GamePositionDbEntry *entry,
-                 gboolean             free_segment)
+                 gboolean free_segment)
 {
   g_assert(entry);
 
@@ -722,6 +731,10 @@ gpdb_entry_print (GamePositionDbEntry *entry)
 }
 
 
+
+/**
+ * @cond
+ */
 
 /*
  * Internal functions.
@@ -1036,9 +1049,9 @@ gpdb_syntax_error_log_destroy_function (gpointer data)
  * @return            always `FALSE`
  */
 static gboolean
-gpdb_print_entry_helper_fn (gchar                *key,
-                            GamePositionDbEntry  *entry,
-                            GString             **p_msg)
+gpdb_print_entry_helper_fn (gchar *key,
+                            GamePositionDbEntry *entry,
+                            GString **p_msg)
 {
   GString *msg;
   gchar *entry_to_string;
@@ -1052,3 +1065,7 @@ gpdb_print_entry_helper_fn (gchar                *key,
 
   return FALSE;
 }
+
+/**
+ * @endcond
+ */
