@@ -36,6 +36,7 @@
 
 #include <glib.h>
 
+#include "random.h"
 #include "board.h"
 #include "exact_solver.h"
 #include "game_tree_logger.h"
@@ -48,8 +49,9 @@
  */
 
 static SearchNode *
-game_position_random_sampler_impl (      ExactSolution * const result,
-                                   const GamePosition  * const gp);
+game_position_random_sampler_impl (ExactSolution *const result,
+                                   const GamePosition  *const gp,
+                                   RandomNumberGenerator *const rng);
 
 
 
@@ -85,7 +87,7 @@ static int sub_run_id = 0;
 
 
 /*********************************************************/
-/* Function implementations for the GamePosition entity. */ 
+/* Function implementations for the GamePosition entity. */
 /*********************************************************/
 
 /**
@@ -102,10 +104,10 @@ game_position_random_sampler (const GamePosition * const root,
                               const gchar        * const log_file,
                               const int                  repeats)
 {
-  ExactSolution *result; 
+  ExactSolution *result;
   SearchNode    *sn;
   int            n;
-  
+
   if (repeats < 1) {
     n = 1;
   } else {
@@ -123,8 +125,8 @@ game_position_random_sampler (const GamePosition * const root,
     game_tree_log_open_h(log_env);
   }
 
-  srand(time(NULL));
-  
+  RandomNumberGenerator *rng = rng_new(rng_random_seed());
+
   result = exact_solution_new();
   result->solved_game_position = game_position_clone(root);
 
@@ -133,7 +135,7 @@ game_position_random_sampler (const GamePosition * const root,
       sub_run_id = repetition;
       call_count = 0;
     }
-    sn = game_position_random_sampler_impl(result, result->solved_game_position);  
+    sn = game_position_random_sampler_impl(result, result->solved_game_position, rng);
     if (sn) {
       result->pv[0] = sn->move;
       result->outcome = sn->value;
@@ -142,6 +144,7 @@ game_position_random_sampler (const GamePosition * const root,
   }
 
   game_tree_log_close(log_env);
+  rng_free(rng);
 
   return result;
 }
@@ -153,8 +156,9 @@ game_position_random_sampler (const GamePosition * const root,
  */
 
 static SearchNode *
-game_position_random_sampler_impl (      ExactSolution * const result,
-                                   const GamePosition  * const gp)
+game_position_random_sampler_impl (ExactSolution *const result,
+                                   const GamePosition  *const gp,
+                                   RandomNumberGenerator *const rng)
 {
   result->node_count++;
   SearchNode *node = NULL;
@@ -182,12 +186,12 @@ game_position_random_sampler_impl (      ExactSolution * const result,
   if (game_position_has_any_player_any_legal_move(gp)) { // the game must go on
     if (legal_move_count == 0) { // player has to pass
       GamePosition *flipped_players = game_position_pass(gp);
-      node = search_node_negated(game_position_random_sampler_impl(result, flipped_players));
+      node = search_node_negated(game_position_random_sampler_impl(result, flipped_players, rng));
       flipped_players = game_position_free(flipped_players);
     } else { // regular move
-      const Square random_move = square_set_random_selection(legal_moves);
+      const Square random_move = square_set_random_selection(rng, legal_moves);
       GamePosition *next_gp = game_position_make_move(gp, random_move);
-      node = search_node_negated(game_position_random_sampler_impl(result, next_gp));
+      node = search_node_negated(game_position_random_sampler_impl(result, next_gp, rng));
       next_gp = game_position_free(next_gp);
     }
   } else { // game-over

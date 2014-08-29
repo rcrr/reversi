@@ -121,7 +121,7 @@ main (int   argc,
 
   g_test_add_func("/board/square_set_to_pg_json_array_test", square_set_to_pg_json_array_test);
   g_test_add_func("/board/square_set_to_string_test", square_set_to_string_test);
-  //g_test_add_func("/board/square_set_random_selection_test", square_set_random_selection_test);
+  g_test_add_func("/board/square_set_random_selection_test", square_set_random_selection_test);
 
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
@@ -170,7 +170,7 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_has_any_player_any_legal_move_test", game_position_x_has_any_player_any_legal_move_test);
   g_test_add_func("/board/game_position_x_is_move_legal_test", game_position_x_is_move_legal_test);
   g_test_add_func("/board/game_position_x_make_move_test", game_position_x_make_move_test);
-  
+
   return g_test_run();
 }
 
@@ -274,35 +274,37 @@ square_set_to_string_test (void)
 static void
 square_set_random_selection_test (void)
 {
-  random_init_seed();
-  /*
-   * The test always checks that the outcome is one of the two expected values,
-   * then verifies the null hypothesis computing the chi_square value.
-   * For one degree of freedom a chi_square value equal to 3.84 corrsponds to
-   * a p-value of 0.05, that here we adopt as the limit for the test to succed.
-   */
-  const int sample_size = 10000000;
-  const double a1_probability = 0.5;
-  const double c1_probability = 0.5;
-  const double a1_expected_outcame = sample_size * a1_probability;
-  const double c1_expected_outcame = sample_size * c1_probability;
-  //const double max_chi_square_value = 3.84;
-  const double max_chi_square_value = 10.83;
-  for (int j = 0; j < 1000; j++) {
-  int a1_count = 0;
-  int c1_count = 0;
-  for (int i = 0; i < sample_size; i++) {
-    const Square sq = square_set_random_selection((SquareSet) 5);
-    if (!(sq == A1 || sq == C1)) printf("sq=%d\n", sq); 
+  RandomNumberGenerator *rng = rng_new(17598);
+
+  const int max_iteration_count = 1000000;
+  unsigned long int observations[square_cardinality];
+  for (int i = 0; i < square_cardinality; i++) {
+    observations[i] = 0;
+  }
+  for (int j = 0; j < max_iteration_count; j++) {
+    const Square sq = square_set_random_selection(rng, (SquareSet) 0xFFFFFFFFFFFFFFFF);
+    g_assert(sq >= A1 || sq <= H8);
+    observations[sq]++;
+    int touched_count = 0;
+    for (int i = 0; i < square_cardinality; i++) {
+      if (observations[i] != 0) touched_count++;
+    }
+    if (touched_count == 64) goto out;
+  }
+  g_assert(FALSE);
+ out:
+
+  for (int i = 0; i < 1000; i++) {
+    const Square sq = square_set_random_selection(rng, (SquareSet) 5);
     g_assert(sq == A1 || sq == C1);
-    (sq == A1) ? a1_count++ : c1_count++;
   }
-  const double a1_diff = (a1_expected_outcame - a1_count);
-  const double c1_diff = (c1_expected_outcame - c1_count);
-  const double chi_square = (a1_diff * a1_diff) / a1_expected_outcame + (c1_diff * c1_diff) / c1_expected_outcame;
-  printf("a1_count=%d, c1_count=%d, chi_square=%f\n", a1_count, c1_count, chi_square);
-  g_assert(max_chi_square_value>= chi_square);
+
+  for (int i = 0; i < 100; i++) {
+    const Square sq = square_set_random_selection(rng, (SquareSet) 2);
+    g_assert(sq == B1);
   }
+
+  rng_free(rng);
 }
 
 
@@ -456,7 +458,7 @@ direction_shift_square_set_by_amount_test (void)
 
   g_assert(direction_shift_square_set_by_amount(SW, 0xFFFFFFFFFFFFFFFFULL, 1) == 0x7F7F7F7F7F7F7F00ULL);
   g_assert(direction_shift_square_set_by_amount(SW, 0xFFFFFFFFFFFFFFFFULL, 7) == 0x0100000000000000ULL);
-  
+
   g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 1) == 0x00FEFEFEFEFEFEFEULL);
   g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 2) == 0x0000FCFCFCFCFCFCULL);
   g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 3) == 0x000000F8F8F8F8F8ULL);
@@ -788,7 +790,7 @@ game_position_hash_test (void)
   g_assert(game_position_hash(gp) == expected);
   gp = game_position_free(gp);
 
-  /* 
+  /*
    * The hash of two game position A, and B having the same board but different player satisfy
    * this property:
    * hash(A) & hash(B) == 0;
@@ -1141,7 +1143,7 @@ game_position_x_hash_test (void)
   g_assert(expected == game_position_x_hash(gpx));
   gpx = game_position_x_free(gpx);
 
-  /* 
+  /*
    * The hash of two game position A, and B having the same board but different player satisfy
    * this property:
    * hash(A) & hash(B) == 0;
@@ -1198,13 +1200,13 @@ static void
 game_position_x_has_any_legal_move_test (void)
 {
   GamePositionX *gpx;
- 
+
   gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
                             0x8000000000000000,
                             WHITE_PLAYER);
   g_assert(TRUE == game_position_x_has_any_legal_move(gpx));
   gpx = game_position_x_free(gpx);
- 
+
   gpx = game_position_x_new(0xFFFFFFFFFFFFFFFE,
                             0x0000000000000000,
                             WHITE_PLAYER);
@@ -1216,7 +1218,7 @@ static void
 game_position_x_has_any_player_any_legal_move_test (void)
 {
   GamePositionX *gpx;
- 
+
   gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
                             0x8000000000000000,
                             WHITE_PLAYER);
@@ -1228,13 +1230,13 @@ game_position_x_has_any_player_any_legal_move_test (void)
                             BLACK_PLAYER);
   g_assert(TRUE == game_position_x_has_any_player_any_legal_move(gpx));
   gpx = game_position_x_free(gpx);
- 
+
   gpx = game_position_x_new(0xFFFFFFFFFFFFFFFE,
                             0x0000000000000000,
                             WHITE_PLAYER);
   g_assert(FALSE == game_position_x_has_any_player_any_legal_move(gpx));
   gpx = game_position_x_free(gpx);
- 
+
   gpx = game_position_x_new(0xFFFFFFFFFFFFFFFE,
                             0x0000000000000000,
                             BLACK_PLAYER);
@@ -1246,19 +1248,19 @@ static void
 game_position_x_is_move_legal_test (void)
 {
   GamePositionX *gpx;
- 
+
   gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
                             0x8000000000000000,
                             WHITE_PLAYER);
   g_assert(TRUE == game_position_x_is_move_legal(gpx, 0));
   gpx = game_position_x_free(gpx);
- 
+
   gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
                             0x8000000000000000,
                             WHITE_PLAYER);
   g_assert(FALSE == game_position_x_is_move_legal(gpx, 1));
   gpx = game_position_x_free(gpx);
- 
+
   gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
                             0x0000000000000000,
                             WHITE_PLAYER);

@@ -478,16 +478,18 @@ square_set_to_string (SquareSet squares)
  * @invariant Parameter `squares` must not be empty.
  * The invariant is guarded by an assertion.
  *
- * @param [in] squares a square set
+ * @param [in,out] rng the random number generator instance
+ * @param [in]         squares a square set
  * @return             one square selected among the set
  */
 Square
-square_set_random_selection (SquareSet squares)
+square_set_random_selection (RandomNumberGenerator *const rng,
+                             SquareSet squares)
 {
   g_assert(squares != empty_square_set);
 
   const int square_count = bit_works_popcount(squares);
-  const int square_index = random_get_number_in_range(0, square_count - 1);
+  const int square_index = rng_random_choice_from_finite_set(rng, square_count);
   g_assert(square_index <= square_count - 1);
   for (int i = 0; i < square_count; i++) {
     if (i == square_index) break;

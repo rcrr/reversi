@@ -39,11 +39,12 @@
 #include <glib.h>
 
 #include "bit_works.h"
+#include "random.h"
 
 
 
 /**********************************************/
-/* Type declarations.                         */ 
+/* Type declarations.                         */
 /**********************************************/
 
 /**
@@ -122,7 +123,7 @@ typedef enum {
  *
  * Each regular `Square` has eight neighbor ones,
  * each identified by the proper direction. Boundary squares have fewer neighbors.
- * 
+ *
  * The `Direction` enum is represented by the respective cardinal point literal.
  */
 typedef enum {
@@ -159,7 +160,7 @@ typedef unsigned long long int SquareSet;
  *
  * @details The state is expressed as the combination of the individual state of each board's square.
  * It is the state that a board has regardless of the player
- * that has to move or the time spent or remaining to each player. 
+ * that has to move or the time spent or remaining to each player.
  */
 typedef struct {
   SquareSet blacks;   /**< @brief The set of squares occupied by blank discs. */
@@ -189,13 +190,18 @@ typedef struct {
 
 
 /**********************************************/
-/* Global constants.                          */ 
+/* Global constants.                          */
 /**********************************************/
 
 /**
  * @brief The empty square set.
  */
-static const SquareSet empty_square_set = 0ULL;
+static const int square_cardinality = 64;
+
+/**
+ * @brief The empty square set.
+ */
+static const SquareSet empty_square_set = 0;
 
 /**
  * @brief The pass move.
@@ -210,7 +216,7 @@ static const Square invalid_move = (Square) -2;
 
 
 /**********************************************/
-/* Module initialization prototype functions. */ 
+/* Module initialization prototype functions. */
 /**********************************************/
 
 extern void
@@ -219,7 +225,7 @@ board_module_init (void);
 
 
 /**********************************************/
-/* Function prototypes for the Square entity. */ 
+/* Function prototypes for the Square entity. */
 /**********************************************/
 
 extern const gchar *
@@ -242,7 +248,7 @@ square_is_in_legal_move_range (const Square move);
 
 
 /*************************************************/
-/* Function prototypes for the SquareSet entity. */ 
+/* Function prototypes for the SquareSet entity. */
 /*************************************************/
 
 extern gchar *
@@ -252,12 +258,13 @@ extern gchar *
 square_set_to_string (SquareSet squares);
 
 extern Square
-square_set_random_selection (SquareSet squares);
+square_set_random_selection (RandomNumberGenerator *const rng,
+                             SquareSet squares);
 
 
 
 /********************************************/
-/* Function prototypes for the Axis entity. */ 
+/* Function prototypes for the Axis entity. */
 /********************************************/
 
 extern int
@@ -281,7 +288,7 @@ axis_transform_back_from_row_one (const Axis axis,
 
 
 /**********************************************/
-/* Function prototypes for the Player entity. */ 
+/* Function prototypes for the Player entity. */
 /**********************************************/
 
 extern SquareState
@@ -296,7 +303,7 @@ player_opponent (const Player p);
 
 
 /*********************************************/
-/* Function prototypes for the Board entity. */ 
+/* Function prototypes for the Board entity. */
 /*********************************************/
 
 extern Board *
@@ -369,7 +376,7 @@ board_has_any_player_any_legal_move (const Board *const b);
 
 
 /*************************************************/
-/* Function prototypes for the Direction entity. */ 
+/* Function prototypes for the Direction entity. */
 /*************************************************/
 
 extern SquareSet
@@ -387,7 +394,7 @@ direction_opposite (const Direction dir);
 
 
 /***************************************************/
-/* Function prototypes for the SquareState entity. */ 
+/* Function prototypes for the SquareState entity. */
 /***************************************************/
 
 extern char square_state_symbol (const SquareState color);
@@ -395,7 +402,7 @@ extern char square_state_symbol (const SquareState color);
 
 
 /****************************************************/
-/* Function prototypes for the GamePosition entity. */ 
+/* Function prototypes for the GamePosition entity. */
 /****************************************************/
 
 extern GamePosition *
@@ -453,7 +460,7 @@ game_position_empty_count (const GamePosition *const gp);
 
 
 /*****************************************************/
-/* Function prototypes for the GamePositionX entity. */ 
+/* Function prototypes for the GamePositionX entity. */
 /*****************************************************/
 
 extern GamePositionX *
