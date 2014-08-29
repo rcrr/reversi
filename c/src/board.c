@@ -216,16 +216,14 @@ board_module_init (void)
  * @brief Returns a string representation for the sqare.
  *
  * @details The returned string cannot be changed and must not be deallocated.
+ * When the `sq` parameter is not part of the set defined by the enum `Square`
+ * the returned value is `"NA"`.
  *
- * A sample call is here exemplified:
+ * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @code{.c}
- * g_assert_cmpstr("D5", ==, square_to_string(D5));
- * g_assert_cmpstr("A1", ==, square_to_string(A1));
- * g_assert_cmpstr("H8", ==, square_to_string(H8));
- * @endcode
+ * @snippet board_test.c square_to_string usage
  *
- * @param [in] sq the square
+ * @param [in] sq the square to be converted
  * @return        a string of two chars representing the square
  */
 const gchar *
