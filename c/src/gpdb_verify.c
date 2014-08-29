@@ -1,6 +1,8 @@
 /**
  * @file
  *
+ * @todo Documentation is not complete.
+ *
  * @brief Verify a game position database.
  * @details This executable reads a game position db and logs errors.
  *
@@ -37,6 +39,11 @@
 
 #include "game_position_db.h"
 
+
+/**
+ * @cond
+ */
+
 static gchar    *input_file    = NULL;
 static gboolean  print_summary = FALSE;
 static gboolean  log_entries   = FALSE;
@@ -45,7 +52,7 @@ static gchar    *lookup_entry  = NULL;
 
 static GOptionEntry entries[] =
   {
-    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name", NULL }, 
+    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name", NULL },
     { "print-summary", 'p', 0, G_OPTION_ARG_NONE,     &print_summary, "Print summary",   NULL },
     { "log-entries",   'l', 0, G_OPTION_ARG_NONE,     &log_entries,   "Log entries",     NULL },
     { "log-errors",    'e', 0, G_OPTION_ARG_NONE,     &log_errors,    "Log errors",      NULL },
@@ -54,7 +61,13 @@ static GOptionEntry entries[] =
   };
 
 /**
- * Verifies a database file of game positions.
+ * @endcond
+ */
+
+
+
+/**
+ * @brief Verifies a database file of game positions.
  */
 int
 main (int argc, char *argv[])

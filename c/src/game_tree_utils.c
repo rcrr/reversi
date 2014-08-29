@@ -44,6 +44,9 @@
 #include "game_tree_utils.h"
 
 
+/**
+ * @cond
+ */
 
 /*
  * Prototypes for internal functions.
@@ -71,10 +74,14 @@ pve_is_line_active (const PVEnv *const pve,
  * Internal variables and constants.
  */
 
+/**
+ * @endcond
+ */
+
 
 
 /**********************************************************/
-/* Function implementations for the ExactSolution entity. */ 
+/* Function implementations for the ExactSolution entity. */
 /**********************************************************/
 
 /**
@@ -87,7 +94,7 @@ exact_solution_new (void)
 {
   ExactSolution * es;
   static const size_t size_of_exact_solution = sizeof(ExactSolution);
-  
+
   es = (ExactSolution*) malloc(size_of_exact_solution);
   g_assert(es);
 
@@ -140,7 +147,7 @@ exact_solution_free (ExactSolution *es)
  * @return        a string being a representation of the structure
  */
 gchar *
-exact_solution_to_string (const ExactSolution * const es)
+exact_solution_to_string (const ExactSolution *const es)
 {
   g_assert(es);
 
@@ -150,7 +157,7 @@ exact_solution_to_string (const ExactSolution * const es)
   g_string_append_printf(tmp, "%s\n",
                          game_position_print(es->solved_game_position));
   g_string_append_printf(tmp, "[node_count=%" PRIu64 ", leaf_count=%" PRIu64 "]\n",
-                         es->node_count, 
+                         es->node_count,
                          es->leaf_count);
   g_string_append_printf(tmp, "Final outcome: best move=%s, position value=%d\n",
                          square_as_move_to_string(es->pv[0]),
@@ -200,7 +207,7 @@ exact_solution_compute_final_board (ExactSolution *const es)
 
 
 /**************************************************/
-/* Function implementations for the PVEnv entity. */ 
+/* Function implementations for the PVEnv entity. */
 /**************************************************/
 
 /**
@@ -216,11 +223,11 @@ exact_solution_compute_final_board (ExactSolution *const es)
  * Assertions check that the received pointers to the allocated
  * structures are not `NULL`.
  *
- * @invariant Parameter `empty_count` cannot be negative. 
+ * @invariant Parameter `empty_count` cannot be negative.
  * The invariant is guarded by an assertion.
  *
  * @param [in] empty_count the number of empty cells in the board, or the expected depth
- *                         for the search 
+ *                         for the search
  * @return                 a pointer to a new principal variation env structure
  */
 PVEnv *
@@ -229,7 +236,7 @@ pve_new (const int empty_count)
   g_assert(empty_count >= 0);
   const int lines_size = 2 * (empty_count + 1) + 1;
   const int cells_size = ((empty_count + 2) * ((empty_count + 2) + 1)) / 2;
-  
+
   static const size_t size_of_pve   = sizeof(PVEnv);
   static const size_t size_of_pvc   = sizeof(PVCell);
   static const size_t size_of_pvcp  = sizeof(PVCell*);
@@ -245,11 +252,11 @@ pve_new (const int empty_count)
   pve->cells_stack_head = pve->cells_stack;
 
   for (int i = 0; i < cells_size; i++) {
-    (pve->cells + i)->move = invalid_move; 
+    (pve->cells + i)->move = invalid_move;
     (pve->cells + i)->next = NULL;
     *(pve->cells_stack + i) = pve->cells + i;
   }
-  
+
   pve->lines_size = lines_size;
   pve->lines = (PVCell**) malloc(lines_size * size_of_pvcp);
   pve->lines_stack = (PVCell***) malloc(lines_size * size_of_pvcpp);
@@ -259,7 +266,7 @@ pve_new (const int empty_count)
     *(pve->lines_stack + i) = pve->lines + i;
   }
   pve->lines_stack_head = pve->lines_stack;
-  
+
   return pve;
 }
 
@@ -434,7 +441,7 @@ pve_internals_to_string (const PVEnv *const pve)
  * @brief Returns a free line pointer.
  *
  * @details The environment is modified because the line stack fill pointer,
- * lines_stack_head, is incremented. 
+ * lines_stack_head, is incremented.
  *
  * @param [in,out] pve a pointer to the principal variation environment
  * @return             a pointer to the next free line
@@ -551,7 +558,7 @@ pve_line_to_string (const PVEnv *const pve,
  *
  * Exact solution `es` must have an empty pv field. The assumption is
  * checked assuring that the pv_length field is equal to zero.
- * The assumption is guarded by an assertion.  
+ * The assumption is guarded by an assertion.
  *
  * @param [in]     pve  a pointer to the principal variation environment
  * @param [in]     line the line to be copied
@@ -571,7 +578,7 @@ pve_line_copy_to_exact_solution (const PVEnv *const pve,
 
 
 /*******************************************************/
-/* Function implementations for the SearchNode entity. */ 
+/* Function implementations for the SearchNode entity. */
 /*******************************************************/
 
 /**
@@ -633,6 +640,10 @@ search_node_negated (SearchNode *sn)
 
 
 
+/**
+ * @cond
+ */
+
 /*
  * Internal functions.
  */
@@ -674,3 +685,7 @@ pve_is_line_active (const PVEnv *const pve,
 {
   return !pve_is_line_free(pve, line);
 }
+
+/**
+ * @endcond
+ */

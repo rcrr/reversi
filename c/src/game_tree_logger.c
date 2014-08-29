@@ -42,6 +42,9 @@
 #include "game_tree_logger.h"
 
 
+/**
+ * @cond
+ */
 
 /*
  * Prototypes for internal functions.
@@ -59,10 +62,14 @@ game_tree_log_dirname_recursive_check (const gchar * const filename);
  * Internal variables and constants.
  */
 
+/**
+ * @endcond
+ */
+
 
 
 /********************************************************/
-/* Function implementations for the GameTreeLog entity. */ 
+/* Function implementations for the GameTreeLog entity. */
 /********************************************************/
 
 /**
@@ -74,7 +81,7 @@ game_tree_log_dirname_recursive_check (const gchar * const filename);
  * @param [in] env a pointer to the logging environment
  */
 void
-game_tree_log_open_h (LogEnv * const env)
+game_tree_log_open_h (LogEnv *const env)
 {
   g_assert(env);
   if (env->log_is_on) {
@@ -101,7 +108,7 @@ game_tree_log_open_h (LogEnv * const env)
  * @param [in] env a pointer to the logging environment
  */
 void
-game_tree_log_open_t (LogEnv * const env)
+game_tree_log_open_t (LogEnv *const env)
 {
   g_assert(env);
   if (env->log_is_on) {
@@ -124,8 +131,8 @@ game_tree_log_open_t (LogEnv * const env)
  * @param [in] data a pointer to the log record
  */
 void
-game_tree_log_write_h (const LogEnv   * const env,
-                       const LogDataH * const data)
+game_tree_log_write_h (const LogEnv *const env,
+                       const LogDataH *const data)
 {
   g_assert(env && env->h_file);
   fprintf(env->h_file, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%s\n",
@@ -149,8 +156,8 @@ game_tree_log_write_h (const LogEnv   * const env,
  * @param [in] data a pointer to the log record
  */
 void
-game_tree_log_write_t (const LogEnv   * const env,
-                       const LogDataT * const data)
+game_tree_log_write_t (const LogEnv *const env,
+                       const LogDataT *const data)
 {
   g_assert(env && env->t_file);
   fprintf(env->t_file, "%6d;%8" PRIu64 ";x%s\n",
@@ -168,7 +175,7 @@ game_tree_log_write_t (const LogEnv   * const env,
  * @param env the logging environment
  */
 void
-game_tree_log_close (LogEnv * const env)
+game_tree_log_close (LogEnv *const env)
 {
   g_assert(env);
   if (env->log_is_on) {
@@ -188,19 +195,19 @@ game_tree_log_close (LogEnv * const env)
  * @return                      the newly constructed log env
  */
 LogEnv *
-game_tree_log_init (const gchar * const file_name_prefix)
+game_tree_log_init (const gchar *const file_name_prefix)
 {
   LogEnv *env;
   static const size_t size_of_log_env = sizeof(LogEnv);
-  
+
   env = (LogEnv*) malloc(size_of_log_env);
   g_assert(env);
-  
+
   gchar* file_name_prefix_copy = g_strdup(file_name_prefix);
 
   env->h_file = NULL;
   env->t_file = NULL;
-  
+
   if (file_name_prefix_copy) {
     env->log_is_on = TRUE;
     env->file_name_prefix = file_name_prefix_copy;
@@ -224,8 +231,8 @@ game_tree_log_init (const gchar * const file_name_prefix)
  * @return                the newly constucted json string
  */
 gchar *
-game_tree_log_data_h_json_doc (const int                  call_level,
-                               const GamePosition * const gp)
+game_tree_log_data_h_json_doc (const int call_level,
+                               const GamePosition *const gp)
 {
   gchar *ret = NULL;
   GString *json_doc;
@@ -261,6 +268,10 @@ game_tree_log_data_h_json_doc (const int                  call_level,
 
 
 
+/**
+ * @cond
+ */
+
 /*
  * Internal functions.
  */
@@ -270,8 +281,8 @@ game_tree_log_data_h_json_doc (const int                  call_level,
  *
  * @param [in] filename the logging file name
  */
-void
-game_tree_log_filename_check (const gchar * const filename)
+static void
+game_tree_log_filename_check (const gchar *const filename)
 {
   const gchar * const dirname  = g_path_get_dirname(filename);
   if (!g_file_test(filename, G_FILE_TEST_EXISTS)) {
@@ -292,7 +303,7 @@ game_tree_log_filename_check (const gchar * const filename)
  *
  * @param [in] filename the directory path to be checked
  */
-void
+static void
 game_tree_log_dirname_recursive_check (const gchar * const filename)
 {
   const gchar * const dirname  = g_path_get_dirname(filename);
@@ -306,3 +317,7 @@ game_tree_log_dirname_recursive_check (const gchar * const filename)
     }
   }
 }
+
+/**
+ * @endcond
+ */

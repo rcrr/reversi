@@ -1,6 +1,9 @@
 /**
  * @file
  *
+ * @todo Function game_position_to_ifes_board is not used, function game_position_to_ifes_board_
+ * is used instead ....
+ *
  * @brief Improved fast endgame solver.
  * @details Solver derived from the Gunnar Andersson work.
  *
@@ -37,14 +40,14 @@
 #include <inttypes.h>
 
 #include "game_tree_logger.h"
-
 #include "improved_fast_endgame_solver.h"
 
+
 /**
- * @brief An empty list collects a set of ordered squares.
- *
- * Details to be documented.
+ * @cond
  */
+
+/* An empty list collects a set of ordered squares. */
 typedef struct EmList_ {
   uint8_t         square;     /**< @brief One square on the board. */
   uint64_t        hole_id;    /**< @brief Id of the hole to which the square belongs to. */
@@ -52,11 +55,7 @@ typedef struct EmList_ {
   struct EmList_ *succ;       /**< @brief Successor element, or NULL if missing. */
 } EmList;
 
-/**
- * @brief A node in the search tree.
- *
- * Details to be documented.
- */
+/* A node in the search tree. */
 typedef struct {
   uint8_t square;    /**< @brief One square on the board. */
   int8_t  value;     /**< @brief The game value of moving into the square. */
@@ -99,19 +98,19 @@ static void
 prepare_to_solve (uint8_t *board);
 
 inline static Node
-no_parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
+no_parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
                      int color, int empties, int discdiff, int prevmove);
 
 static Node
-parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
+parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
                   int color, int empties, int discdiff, int prevmove);
 
 static Node
-fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
+fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
                          int color, int empties, int discdiff, int prevmove);
 
 static Node
-end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
+end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
            int color, int empties, int discdiff, int prevmove);
 
 static void
@@ -190,14 +189,14 @@ static const int8_t infinity = 65;
  *   [0...3] no_parity_end_solve().
  *   [4]     parity_end_solve().
  *   [5...]  fastest_first_end_solve().
- *   
+ *
  * (d)
  *   use_parity > 0;
  *   fastest_first = 0;
  *   Test case (4,0). It runs fine, 124% more time is consumed compared with the standard case.
  *   When empties is 0 parity_end_solve() is used.
  *   Range [1...] fastest_first_end_solve is selected.
- *   
+ *
  * (e)
  *   use_parity > 0;
  *   fastest_first != 0 && fastest_first < use_parity;
@@ -246,7 +245,7 @@ static const uint8_t worst_to_best[64] =
     /* E8 D8 H5 A5 H4 A4 E1 D1 */  77, 76, 53, 46, 44, 37, 14, 13,
     /* F6 C6 F3 C3 */              60, 57, 33, 30,
     /* F8 C8 H6 A6 H3 A3 F1 C1 */  78, 75, 62, 55, 35, 28, 15, 12,
-    /* H8 A8 H1 A1 */              80, 73, 17, 10, 
+    /* H8 A8 H1 A1 */              80, 73, 17, 10,
     /* E5 D5 E4 D4 */              50, 49, 41, 40
   };
 
@@ -293,29 +292,19 @@ static const uint8_t flipping_dir_mask_table[91] =
  * Internal variables.
  */
 
-/**
- * @brief The logging environment structure.
- */
+/* The logging environment structure. */
 static LogEnv *log_env = NULL;
 
-/**
- * @brief The total number of call to the recursive function that traverse the game DAG.
- */
+/* The total number of call to the recursive function that traverse the game DAG. */
 static uint64_t call_count = 0;
 
-/**
- * @brief The predecessor-successor array of game position hash values.
- */
+/* The predecessor-successor array of game position hash values. */
 static uint64_t gp_hash_stack[128];
 
-/**
- * @brief The index of the last entry into gp_hash_stack.
- */
+/* The index of the last entry into gp_hash_stack. */
 static int gp_hash_stack_fill_point = 0;
 
-/**
- * @brief The sub_run_id used for logging.
- */
+/* The sub_run_id used for logging. */
 static const int sub_run_id = 0;
 
 /*
@@ -330,7 +319,7 @@ static const int sub_run_id = 0;
  * dxxxxxxxx
  * dxxxxxxxx       where A1 is board[10], H8 is board[80].
  * dxxxxxxxx       square(a,b) = board[10+a+b*9] for 0 <= a, b <= 7.
- * dddddddddd   
+ * dddddddddd
  * where d (dummy) squares contain DUMMY, x are EMPTY, BLACK, or WHITE:
  *
  *       A   B   C   D   E   F   G   H
@@ -379,10 +368,14 @@ static uint8_t *global_flip_stack[1024];
  */
 static uint8_t **flip_stack = &(global_flip_stack[0]);
 
+/**
+ * @endcond
+ */
+
 
 
 /*********************************************************/
-/* Function implementations for the GamePosition entity. */ 
+/* Function implementations for the GamePosition entity. */
 /*********************************************************/
 
 /**
@@ -413,7 +406,7 @@ game_position_ifes_solve (const GamePosition * const root,
   log_env = game_tree_log_init(log_file);
 
   if (log_env->log_is_on) {
-    gp_hash_stack[0] = 0; 
+    gp_hash_stack[0] = 0;
     game_tree_log_open_h(log_env);
   }
 
@@ -669,7 +662,7 @@ directional_flips (uint8_t *sq, int inc, int color, int oppcol)
  * If the move is not legal the returned value is zero.
  *
  * @param [in,out] board  a pointer to the board to modify
- * @param [in]     sqnum  move square number 
+ * @param [in]     sqnum  move square number
  * @param [in]     color  player color
  * @param [in]     oppcol opponent color
  * @return                the flip count
@@ -1017,7 +1010,7 @@ prepare_to_solve (uint8_t *board)
  * @return                   the best node (move/value pairs) available
  */
 static Node
-no_parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
+no_parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
                      int color, int empties, int discdiff, int prevmove)
 {
   uint8_t move_square;
@@ -1131,7 +1124,7 @@ no_parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int bet
  * @return                   the best node (move/value pairs) available
  */
 static Node
-parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
+parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
                   int color, int empties, int discdiff, int prevmove)
 {
   uint8_t move_square;
@@ -1164,11 +1157,11 @@ parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
           /* Update parity. */
           region_parity ^= holepar;
           /* Delete square from empties list. */
-	  previous_move->succ = current_move->succ;
+          previous_move->succ = current_move->succ;
           evaluated_n = node_negate(end_solve(solution,
                                               board,
                                               -beta,
-                                              -alpha, 
+                                              -alpha,
                                               oppcol,
                                               empties - 1,
                                               -discdiff - 2 * flip_count - 1,
@@ -1179,17 +1172,17 @@ parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
           /* Un-place your disc. */
           *(board + move_square) = IFES_EMPTY;
           /* Restore deleted empty square. */
-	  previous_move->succ = current_move;
+          previous_move->succ = current_move;
 
           if (evaluated_n.value > selected_n.value) { /* Better move. */
             selected_n.value = evaluated_n.value;
             selected_n.square = move_square;
             if (evaluated_n.value > alpha) {
               alpha = evaluated_n.value;
-              if (evaluated_n.value >= beta) { /* Cutoff. */ 
+              if (evaluated_n.value >= beta) { /* Cutoff. */
                 goto end;
               }
-	    }
+            }
           }
         }
       }
@@ -1235,7 +1228,7 @@ parity_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
  * @return                   the best node (move/value pairs) available
  */
 static Node
-fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
+fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
                          int color, int empties, int discdiff, int prevmove)
 {
   uint8_t move_square;
@@ -1300,10 +1293,10 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
       best_value = goodness[i];
       best_index = i;
       for (int j = i + 1; j < moves; j++)
-	if (goodness[j] > best_value) {
-	  best_value = goodness[j];
-	  best_index = j;
-	}
+        if (goodness[j] > best_value) {
+          best_value = goodness[j];
+          best_index = j;
+        }
       current_move = move_ptr[best_index];
       move_ptr[best_index] = move_ptr[i];
       goodness[best_index] = goodness[i];
@@ -1315,7 +1308,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
       region_parity ^= holepar;
       current_move->pred->succ = current_move->succ;
       if (current_move->succ != NULL)
-	current_move->succ->pred = current_move->pred;
+        current_move->succ->pred = current_move->pred;
       evaluated_n = node_negate(fastest_first_end_solve(solution, //MODIFIED must be end_solve(....
                                                         board,
                                                         -beta,
@@ -1329,17 +1322,17 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
       board[move_square] = IFES_EMPTY;
       current_move->pred->succ = current_move;
       if (current_move->succ != NULL)
-	current_move->succ->pred = current_move;
+        current_move->succ->pred = current_move;
 
       if (evaluated_n.value > selected_n.value) { /* Better move. */
-	selected_n.value = evaluated_n.value;
+        selected_n.value = evaluated_n.value;
         selected_n.square = move_square;
-	if (evaluated_n.value > alpha) {
-	  alpha = evaluated_n.value;
-	  if (evaluated_n.value >= beta) { /* Cutoff. */
+        if (evaluated_n.value > alpha) {
+          alpha = evaluated_n.value;
+          if (evaluated_n.value >= beta) { /* Cutoff. */
             goto end;
           }
-	}
+        }
       }
     }
   } else {
@@ -1382,7 +1375,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
  * for full solve with `alpha=-64`, `beta=64`.
  * It uses a fixed preference ordering of squares.
  * This is not such a bad thing to do when <=10 empties,
- * where the demand for speed is paramount. 
+ * where the demand for speed is paramount.
  *
  * Assumes relevant data structures have been set up with prepare_to_solve().
  *
@@ -1397,7 +1390,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
  * @return                  the node having the best value among the legal moves
  */
 inline static Node
-end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta, 
+end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
            int color, int empties, int discdiff, int prevmove)
 {
   if (empties > fastest_first)
@@ -1448,4 +1441,3 @@ opponent_color (int color)
 {
   return 2 - color;
 }
-
