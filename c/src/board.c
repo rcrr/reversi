@@ -42,8 +42,10 @@
 
 
 
-/*
+/**
  * Prototypes for internal functions.
+ *
+ * @cond
  */
 
 static void
@@ -187,6 +189,9 @@ static uint64_t zobrist_bitstrings[] = {
   0xEEBD5772D344846F, 0x1E972C3F168BBF7F, 0x0C72560FAD1EC422, 0xD85B15F5DBCD19B9
 };
 
+/**
+ * @endcond
+ */
 
 
 /************************************/
@@ -240,15 +245,14 @@ square_to_string (const Square sq)
  * @brief Returns a string representation for the move.
  *
  * @details The returned string cannot be changed and must not be deallocated.
+ * When the `move` parameter  is equal to #pass_move the returned value is `"--"`,
+ * otherwise the returned value is consistent with the function #square_to_string.
  *
- * A sample call is here exemplified:
+ * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @code{.c}
- * g_assert_cmpstr("D5", ==, square_as_move_to_string(D5));
- * g_assert_cmpstr("--", ==, square_as_move_to_string(pass_move));
- * @endcode
+ * @snippet board_test.c square_as_move_to_string usage
  *
- * @param [in] move the move
+ * @param [in] move the move to be converted
  * @return          a string of two chars representing the move
  */
 const gchar *

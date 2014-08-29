@@ -32,9 +32,17 @@
 
 #include "bit_works.h"
 
+/**
+ * @brief When defined leverages the intel POPCNT instruction.
+ */
 #define X86_POPCNT
 
 
+/**
+ * Internal constants.
+ *
+ * @cond
+ */
 
 static const uint64_t m1  = 0x5555555555555555; //binary: 0101...
 static const uint64_t m2  = 0x3333333333333333; //binary: 00110011..
@@ -74,6 +82,12 @@ static const uint64_t debruijn_64_magic_constant = 0x07EDD5E59A4E28C2ULL;
 
 /* Right shift for the de Bruijn's algorithm. */
 static const int debruijn_64_shift_value = 58;
+
+/**
+ * @endcond
+ */
+
+
 
 /*
  * This is a naive implementation, shown for comparison,

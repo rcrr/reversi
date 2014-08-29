@@ -43,6 +43,14 @@
 
 #include "exact_solver.h"
 
+
+
+/**
+ * Internal structures.
+ *
+ * @cond
+ */
+
 /**
  * @brief Elements of a doubly linked list that collects moves.
  *
@@ -66,15 +74,21 @@ typedef struct {
   MoveListElement tail;                  /**< @brief Tail element, it is not part of the list. */
 } MoveList;
 
+/**
+ * @endcond
+ */
 
 
-/*
+
+/**
  * Prototypes for internal functions.
+ *
+ * @cond
  */
 
 static void
-sort_moves_by_mobility_count (      MoveList     *       move_list,
-                              const GamePosition * const gp);
+sort_moves_by_mobility_count (MoveList *move_list,
+                              const GamePosition *const gp);
 
 static SearchNode *
 game_position_solve_impl (ExactSolution *const result,
@@ -142,10 +156,14 @@ static const uint64_t legal_moves_priority_mask[] = {
 static const int legal_moves_priority_cluster_count =
   sizeof(legal_moves_priority_mask) / sizeof(legal_moves_priority_mask[0]);
 
+/**
+ * @endcond
+ */
+
 
 
 /*********************************************************/
-/* Function implementations for the GamePosition entity. */ 
+/* Function implementations for the GamePosition entity. */
 /*********************************************************/
 
 /**
@@ -156,10 +174,10 @@ static const int legal_moves_priority_cluster_count =
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_solve (const GamePosition * const root,
-                     const gchar        * const log_file)
+game_position_solve (const GamePosition *const root,
+                     const gchar *const log_file)
 {
-  ExactSolution *result; 
+  ExactSolution *result;
   SearchNode    *sn;
 
   log_env = game_tree_log_init(log_file);
@@ -168,7 +186,7 @@ game_position_solve (const GamePosition * const root,
   PVCell **pve_root_line = pve_line_create(pve);
 
   if (log_env->log_is_on) {
-    gp_hash_stack[0] = 0; 
+    gp_hash_stack[0] = 0;
     game_tree_log_open_h(log_env);
   }
 
@@ -188,18 +206,24 @@ game_position_solve (const GamePosition * const root,
   pve_free(pve);
 
   game_tree_log_close(log_env);
-  
+
   return result;
 }
 
 
 
-/*
+/**
  * Internal functions.
+ *
+ * @cond
  */
 
+/**
+ * @brief Sorts moves in ascending order of mobility.
+ */
 static void
-sort_moves_by_mobility_count (MoveList *move_list, const GamePosition * const gp)
+sort_moves_by_mobility_count (MoveList *move_list,
+                              const GamePosition *const gp)
 {
   MoveListElement *curr = NULL;
   int move_index = 0;
@@ -235,6 +259,9 @@ sort_moves_by_mobility_count (MoveList *move_list, const GamePosition * const gp
   return;
 }
 
+/**
+ * @brief Main recursive search function.
+ */
 static SearchNode *
 game_position_solve_impl (ExactSolution *const result,
                           const GamePosition  *const gp,
@@ -312,6 +339,9 @@ game_position_solve_impl (ExactSolution *const result,
   return node;
 }
 
+/**
+ * @brief Initializes the move list.
+ */
 static void
 move_list_init (MoveList *ml)
 {
@@ -330,3 +360,7 @@ move_list_init (MoveList *ml)
   ml->tail.pred = &ml->head;
   ml->tail.succ = NULL;
 }
+
+/**
+ * @endcond
+ */

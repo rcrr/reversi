@@ -42,6 +42,11 @@
 
 #include "ab_solver.h"
 
+
+/**
+ * @cond
+ */
+
 /**
  * @brief Game tree stack size.
  *
@@ -84,13 +89,14 @@ typedef struct {
  * @details The stack uses 5 kB of memory.
  */
 typedef struct {
-  int      fill_index;                                     /**< @brief The index of the current entry into the stack, at the beginning of game_position_solve_impl. */
-  NodeInfo nodes[GAME_TREE_MAX_DEPTH];                     /**< @brief The stack of node info. */
+  int        fill_index;                                     /**< @brief The index of the current entry into the stack, at the beginning of game_position_solve_impl. */
+  NodeInfo   nodes[GAME_TREE_MAX_DEPTH];                     /**< @brief The stack of node info. */
   uint8_t    legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];   /**< @brief The stack hosting the legal moves for each node. */
 } GameTreeStack;
 
 
-/*
+
+/**
  * Prototypes for internal functions.
  */
 
@@ -115,7 +121,7 @@ legal_move_list_from_set (const SquareSet legal_move_set,
 
 
 
-/*
+/**
  * Internal variables and constants.
  */
 
@@ -143,6 +149,10 @@ static const int best_score = +64;
  * @brief The worst score achievable.
  */
 static const int worst_score = -64;
+
+/**
+ * @endcond
+ */
 
 
 
@@ -196,8 +206,10 @@ game_position_ab_solve (const GamePosition *const root,
 
 
 
-/*
+/**
  * Internal functions.
+ *
+ * @cond
  */
 
 /**********************************************************/
@@ -209,7 +221,7 @@ game_position_ab_solve (const GamePosition *const root,
  *
  * @return a pointer to a new game tree stack structure
  */
-GameTreeStack *
+static GameTreeStack *
 game_tree_stack_new ()
 {
   GameTreeStack *stack;
@@ -230,7 +242,7 @@ game_tree_stack_new ()
  * @param [in] stack the pointer to be deallocated
  * @return           always the NULL pointer
  */
-GameTreeStack *
+static GameTreeStack *
 game_tree_stack_free (GameTreeStack *stack)
 {
   g_assert(stack);
@@ -374,3 +386,7 @@ out:
   stack->fill_index--;
   return;
 }
+
+/**
+ * @endcond
+ */

@@ -166,7 +166,7 @@ game_position_rab_solve(const GamePosition * const root,
 {
   ExactSolution* result = NULL;
   int n;
-  
+
   if (repeats < 1) {
     n = 1;
   } else {
@@ -183,7 +183,7 @@ game_position_rab_solve(const GamePosition * const root,
 
   int game_value = out_of_range_defeat_score;
   Square best_move = null_move;
-  
+
   for (int sub_run_id = 0; sub_run_id < n; sub_run_id++) {
     GameTreeStack* stack = game_tree_stack_new();
 
@@ -311,7 +311,9 @@ legal_move_list_from_set(const SquareSet legal_move_set,
 /**
  * @brief Recursive function used to traverse the game tree.
  *
- * @param [in] result  a reference to the exact solution data structure
+ * @param [in,out] result     a reference to the exact solution data structure
+ * @param [in,out] stack      it holds mostly of the status of the iterative search
+ * @param [in]     sub_run_id used to tag the log file with the run counter
  */
 static void
 game_position_solve_impl(ExactSolution* const result,
@@ -335,7 +337,7 @@ game_position_solve_impl(ExactSolution* const result,
   const SquareSet move_set = game_position_x_legal_moves(current_gpx);
   legal_move_list_from_set(move_set, current_node_info, next_node_info);
   random_shuffle_array_uint8(current_node_info->head_of_legal_move_list, current_node_info->move_count);
-  
+
   if (log_env->log_is_on) {
     LogDataH log_data;
     log_data.sub_run_id = sub_run_id;

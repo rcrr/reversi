@@ -55,6 +55,8 @@ random_init_seed (void)
 
 /**
  * @brief Initializes the seed used by the random functions with the given value.
+ *
+ * @param seed te value used to initialize the random generator
  */
 void
 random_init_seed_with_value (const unsigned int seed)
@@ -103,7 +105,7 @@ random_get_number_in_range (const int low,
 
 /**
  * @brief Shuffles the given array.
- * 
+ *
  * @details Arrange the `n` elements of `array` in random order.
  * Only effective if `n` is much smaller than `RAND_MAX`.
  *
@@ -178,7 +180,7 @@ rng_free (RandomNumberGenerator *rng)
 /**
  * @brief Initializes seed used by the random functions.
  *
- * @return 
+ * @return
  */
 unsigned long int
 rng_random_seed (void)
@@ -207,11 +209,11 @@ rng_random_seed (void)
  * and is equi-distributed in 623 dimensions. It has passed the DIEHARD statistical tests.
  *
  * For more information see,
- * 
+ *
  * <em>
  * Makoto Matsumoto and Takuji Nishimura, “Mersenne Twister: A 623-dimensionally equidistributed
  * uniform pseudorandom number generator”.
- * ACM Transactions on Modeling and Computer Simulation, Vol. 8, No. 1 (Jan. 1998), Pages 3–30 
+ * ACM Transactions on Modeling and Computer Simulation, Vol. 8, No. 1 (Jan. 1998), Pages 3–30
  * </em>
  *
  * @invariant Parameter `k` cannot be `0`.
@@ -232,7 +234,7 @@ rng_random_choice_from_finite_set (RandomNumberGenerator *rng,
 
 /**
  * @brief Shuffles the given array.
- * 
+ *
  * @details Arrange in place the `n` elements of `array` in random order.
  *
  * See:

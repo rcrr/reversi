@@ -46,7 +46,7 @@
  *       [done] Avoid to put it in the stack (implement one call to malloc for the complete structure).
  *       [done] Pass the stack pointer in the parameter list.
  *       [done] Make the code as much readable as possible.
- * 
+ *
  * @todo [done] Organize the SQL scripts into a modular practice.
  *       [done] This task is evolving into a complete porting of the board engine in PLPGSQL.
  *       [done] Missing features are: - game_position_pretty_print
@@ -123,7 +123,11 @@
 
 
 
-/* Static constants. */
+/**
+ * Static constants.
+ *
+ * @cond
+ */
 
 static const gchar *solvers[] = {"es", "ifes", "rand", "minimax", "rab", "ab"};
 static const int solvers_count = sizeof(solvers) / sizeof(solvers[0]);
@@ -187,11 +191,15 @@ static const GOptionEntry entries[] =
     { NULL }
   };
 
+/**
+ * @endcond
+ */
+
 
 
 /**
  * @brief Main entry to the Reversi C endgame solver implementation.
- * 
+ *
  * @todo Documentation has to be completly developed.
  */
 int
@@ -251,7 +259,7 @@ main (int argc, char *argv[])
     g_print("Option -s, --solver is mandatory.\n.");
     return -5;
   }
-  
+
   /* Opens the source file for reading. */
   fp = fopen(source, "r");
   if (!fp) {
@@ -282,7 +290,7 @@ main (int argc, char *argv[])
       g_free(tmp);
     } else {
       g_print("Entry %s not found in file %s.\n", lookup_entry, source);
-      return -6;      
+      return -6;
     }
   } else {
     g_print("No entry provided.\n");
