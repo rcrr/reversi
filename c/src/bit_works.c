@@ -33,15 +33,16 @@
 #include "bit_works.h"
 
 /**
- * @brief When defined leverages the intel POPCNT instruction.
+ * @cond
  */
+
+/* When defined leverages the intel POPCNT instruction. */
 #define X86_POPCNT
 
 
-/**
+
+/*
  * Internal constants.
- *
- * @cond
  */
 
 static const uint64_t m1  = 0x5555555555555555; //binary: 0101...

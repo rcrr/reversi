@@ -124,9 +124,11 @@
 
 
 /**
- * Static constants.
- *
  * @cond
+ */
+
+/*
+ * Static constants.
  */
 
 static const gchar *solvers[] = {"es", "ifes", "rand", "minimax", "rab", "ab"};

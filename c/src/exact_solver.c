@@ -46,15 +46,15 @@
 
 
 /**
- * Internal structures.
- *
  * @cond
  */
 
-/**
- * @brief Elements of a doubly linked list that collects moves.
- *
- * Elements have the square and mobility fields.
+/*
+ * Internal structures.
+ */
+
+/*
+ * Elements of a doubly linked list that collects moves.
  */
 typedef struct MoveListElement_ {
   Square                   sq;           /**< @brief The square field. */
@@ -63,8 +63,8 @@ typedef struct MoveListElement_ {
   struct MoveListElement_ *succ;         /**< @brief A pointer to the successor element. */
 } MoveListElement;
 
-/**
- * @brief Move list, having head, tail, and elements fields.
+/*
+ * Move list, having head, tail, and elements fields.
  *
  * Head and tail are not part of the list.
  */
@@ -74,16 +74,10 @@ typedef struct {
   MoveListElement tail;                  /**< @brief Tail element, it is not part of the list. */
 } MoveList;
 
-/**
- * @endcond
- */
 
 
-
-/**
+/*
  * Prototypes for internal functions.
- *
- * @cond
  */
 
 static void
@@ -104,39 +98,25 @@ move_list_init (MoveList *ml);
  * Internal variables and constants.
  */
 
-/**
- * @brief Principal Variation Environmenat
- */
+/* Principal Variation Environmenat. */
 static PVEnv *pve = NULL;
 
-/**
- * @brief The logging environment structure.
- */
+/* The logging environment structure. */
 static LogEnv *log_env = NULL;
 
-/**
- * @brief The total number of call to the recursive function that traverse the game DAG.
- */
+/* The total number of call to the recursive function that traverse the game DAG. */
 static uint64_t call_count = 0;
 
-/**
- * @brief The predecessor-successor array of game position hash values.
- */
+/* The predecessor-successor array of game position hash values. */
 static uint64_t gp_hash_stack[128];
 
-/**
- * @brief The index of the last entry into gp_hash_stack.
- */
+/* The index of the last entry into gp_hash_stack. */
 static int gp_hash_stack_fill_point = 0;
 
-/**
- * @brief The sub_run_id used for logging.
- */
+/* The sub_run_id used for logging. */
 static const int sub_run_id = 0;
 
-/**
- * @brief Used d to sort the legal moves based on an heuristic knowledge.
- */
+/* Used d to sort the legal moves based on an heuristic knowledge. */
 static const uint64_t legal_moves_priority_mask[] = {
   /* D4, E4, E5, D5 */                 0x0000001818000000,
   /* A1, H1, H8, A8 */                 0x8100000000000081,
@@ -150,9 +130,7 @@ static const uint64_t legal_moves_priority_mask[] = {
   /* B2, G2, G7, B7 */                 0x0042000000004200
 };
 
-/**
- * @brief The size of the legal_moves_priority_mask array.
- */
+/* The size of the legal_moves_priority_mask array. */
 static const int legal_moves_priority_cluster_count =
   sizeof(legal_moves_priority_mask) / sizeof(legal_moves_priority_mask[0]);
 
@@ -213,13 +191,15 @@ game_position_solve (const GamePosition *const root,
 
 
 /**
- * Internal functions.
- *
  * @cond
  */
 
-/**
- * @brief Sorts moves in ascending order of mobility.
+/*
+ * Internal functions.
+ */
+
+/*
+ * Sorts moves in ascending order of mobility.
  */
 static void
 sort_moves_by_mobility_count (MoveList *move_list,
@@ -259,8 +239,8 @@ sort_moves_by_mobility_count (MoveList *move_list,
   return;
 }
 
-/**
- * @brief Main recursive search function.
+/*
+ * Main recursive search function.
  */
 static SearchNode *
 game_position_solve_impl (ExactSolution *const result,
@@ -339,8 +319,8 @@ game_position_solve_impl (ExactSolution *const result,
   return node;
 }
 
-/**
- * @brief Initializes the move list.
+/*
+ * Initializes the move list.
  */
 static void
 move_list_init (MoveList *ml)

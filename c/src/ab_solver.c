@@ -47,10 +47,10 @@
  * @cond
  */
 
-/**
- * @brief Game tree stack size.
+/*
+ * Game tree stack size.
  *
- * @details It give the size of the static stack used to pile-up the info
+ * It give the size of the static stack used to pile-up the info
  * computed by deepening the game tree.
  * The value is given by the 60 plus 12 moves added to take into account the possibility
  * to pass. Real tree depth are smaller because the number of pass is little,
@@ -58,10 +58,10 @@
  */
 #define GAME_TREE_MAX_DEPTH 72
 
-/**
- * @brief Max number of legal moves hosted in the stack.
+/*
+ * Max number of legal moves hosted in the stack.
  *
- * @details A game has 60 moves, pass moves are not consuming the stack.
+ * A game has 60 moves, pass moves are not consuming the stack.
  * Every game stage has been assessed with the random game generator, and a distribution of legal moves
  * has been computed. The maximum for each game stage has been summed up totalling 981.
  * the value 1024 is a further safety added in order to prevent running out of space.
@@ -69,9 +69,12 @@
 #define MAX_LEGAL_MOVE_STACK_COUNT 1024
 
 
-/**
- * @brief The info collected on each node.
+
+/*
+ * Internal structures.
  */
+
+/* The info collected on each node. */
 typedef struct {
   GamePositionX  gpx;                         /**< @brief The game position related to the game tree node. */
   uint64_t       hash;                        /**< @brief The hash value of the game position. */
@@ -83,10 +86,10 @@ typedef struct {
   int            beta;                        /**< @brief The node cutoff value. */
 } NodeInfo;
 
-/**
- * @brief The info collected by deepening the game tree.
+/*
+ * The info collected by deepening the game tree.
  *
- * @details The stack uses 5 kB of memory.
+ * The stack uses 5 kB of memory.
  */
 typedef struct {
   int        fill_index;                                     /**< @brief The index of the current entry into the stack, at the beginning of game_position_solve_impl. */
@@ -96,7 +99,7 @@ typedef struct {
 
 
 
-/**
+/*
  * Prototypes for internal functions.
  */
 
@@ -121,33 +124,23 @@ legal_move_list_from_set (const SquareSet legal_move_set,
 
 
 
-/**
+/*
  * Internal variables and constants.
  */
 
-/**
- * @brief The logging environment structure.
- */
+/* The logging environment structure. */
 static LogEnv *log_env = NULL;
 
-/**
- * @brief A null move is an invalid one.
- */
+/* A null move is an invalid one. */
 static const Square null_move = -1;
 
-/**
- * @brief An out of range defeat score is a value lesser than the worst case.
- */
+/* An out of range defeat score is a value lesser than the worst case. */
 static const int out_of_range_defeat_score = -65;
 
-/**
- * @brief The best score achievable.
- */
+/* The best score achievable. */
 static const int best_score = +64;
 
-/**
- * @brief The worst score achievable.
- */
+/* The worst score achievable. */
 static const int worst_score = -64;
 
 /**
@@ -216,7 +209,7 @@ game_position_ab_solve (const GamePosition *const root,
 /* Function implementations for the GameTreeStack entity. */
 /**********************************************************/
 
-/**
+/*
  * @brief GameTreeStack structure constructor.
  *
  * @return a pointer to a new game tree stack structure
@@ -233,7 +226,7 @@ game_tree_stack_new ()
   return stack;
 }
 
-/**
+/*
  * @brief GameTreeStack structure destructor.
  *
  * @invariant Parameter `stack` cannot be `NULL`.
@@ -253,7 +246,7 @@ game_tree_stack_free (GameTreeStack *stack)
   return stack;
 }
 
-/**
+/*
  * @brief Initializes the stack structure.
  *
  * @param [in] root  the game position at the root of the game tree
@@ -283,7 +276,7 @@ game_tree_stack_init (const GamePosition *const root,
   stack->fill_index = 1;
 }
 
-/**
+/*
  * @brief Computes the legal move list given the set.
  *
  * @param [in]  legal_move_set    the set of legal moves
@@ -309,7 +302,7 @@ legal_move_list_from_set (const SquareSet legal_move_set,
   return;
 }
 
-/**
+/*
  * @brief Recursive function used to traverse the game tree.
  *
  * @param [in] result  a reference to the exact solution data structure
