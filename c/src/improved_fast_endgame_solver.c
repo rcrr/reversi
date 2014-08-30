@@ -40,9 +40,21 @@
 #include "improved_fast_endgame_solver.h"
 
 
+
 /**
  * @cond
  */
+
+/*
+ * The IFES_SquareState enum identifies the state, or as a synonym the "color",
+ * of each board square.
+ */
+typedef enum {
+  IFES_WHITE,         /**< A white piece. */
+  IFES_EMPTY,         /**< An empty square. */
+  IFES_BLACK,         /**< A black piece. */
+  IFES_DUMMY          /**< A piece out of board. */
+} IFES_SquareState;
 
 /* An empty list collects a set of ordered squares. */
 typedef struct EmList_ {
@@ -63,6 +75,20 @@ typedef struct {
 /*
  * Prototypes for internal functions.
  */
+
+static GamePosition *
+ifes_game_position_translation (uint8_t *board,
+                                int color);
+
+static void
+game_position_to_ifes_board (const GamePosition *const gp,
+                             uint8_t *b,
+                             int *p_emp,
+                             int *p_wc,
+                             int *p_bc);
+
+static IFES_SquareState
+game_position_get_ifes_player (const GamePosition *const gp);
 
 inline static void
 directional_flips (uint8_t *sq, int inc, int color, int oppcol);
@@ -444,6 +470,30 @@ game_position_ifes_solve (const GamePosition * const root,
   return result;
 }
 
+
+
+/**
+ * @cond
+ */
+
+/*
+ * Internal functions.
+ */
+
+/**
+ * @brief Returns the ifes player from the game position.
+ *
+ * @param [in] gp the game position
+ * @return        the player having the move
+ */
+static IFES_SquareState
+game_position_get_ifes_player (const GamePosition *const gp)
+{
+  IFES_SquareState ifes_player;
+  ifes_player = gp->player == BLACK_PLAYER ? IFES_BLACK : IFES_WHITE;
+  return ifes_player;
+}
+
 /**
  * @brief Prepares the board structure and return it, the empties, blacks, and whites counts.
  *
@@ -454,7 +504,7 @@ game_position_ifes_solve (const GamePosition * const root,
  * @param [out] p_bc  a pointer to the blacks count
  *
  */
-void
+static void
 game_position_to_ifes_board (const GamePosition * const gp, uint8_t *b, int *p_emp, int *p_wc, int *p_bc)
 {
   /* Sets to IFES_DUMMY all the board squares. */
@@ -479,28 +529,15 @@ game_position_to_ifes_board (const GamePosition * const gp, uint8_t *b, int *p_e
 }
 
 /**
- * @brief Returns the ifes player from the game position.
- *
- * @param [in] gp the game position
- * @return        the player having the move
- */
-IFES_SquareState
-game_position_get_ifes_player (const GamePosition * const gp)
-{
-  IFES_SquareState ifes_player;
-  ifes_player = gp->player == BLACK_PLAYER ? IFES_BLACK : IFES_WHITE;
-  return ifes_player;
-}
-
-/**
  * @brief Translates board and color into the correspondig game position.
  *
  * @param [in] board a board
  * @param [in] color a color
  * @return           the equivalent game position
  */
-GamePosition *
-ifes_game_position_translation (uint8_t *board, int color)
+static GamePosition *
+ifes_game_position_translation (uint8_t *board,
+                                int color)
 {
   SquareSet blacks = 0ULL;
   SquareSet whites = 0ULL;
@@ -524,16 +561,6 @@ ifes_game_position_translation (uint8_t *board, int color)
   }
   return game_position_new(board_new(blacks, whites), p);
 }
-
-
-
-/**
- * @cond
- */
-
-/*
- * Internal functions.
- */
 
 /**
  * @brief Translates the ifes square into an enum square.

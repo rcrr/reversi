@@ -234,10 +234,6 @@ static void
 game_position_ab_solve_test (GamePositionDbFixture *fixture,
                              gconstpointer test_data);
 
-static void
-ifes_game_position_translation_test (GamePositionDbFixture *fixture,
-                                     gconstpointer test_data);
-
 
 
 /* Helper function prototypes. */
@@ -294,12 +290,6 @@ main (int   argc,
              (gconstpointer) ffo_05,
              gpdb_ffo_fixture_setup,
              game_position_ifes_solve_test,
-             gpdb_fixture_teardown);
-  g_test_add("/ifes/ifes_game_position_translation_test",
-             GamePositionDbFixture,
-             (gconstpointer) NULL,
-             gpdb_ffo_fixture_setup,
-             ifes_game_position_translation_test,
              gpdb_fixture_teardown);
 
   g_test_add("/minimax/ffo_01_simplified_4",
@@ -422,27 +412,6 @@ game_position_ab_solve_test (GamePositionDbFixture *fixture,
   GamePositionDb *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
   run_test_case_array(db, tcap, game_position_ab_solve);
-}
-
-static void
-ifes_game_position_translation_test (GamePositionDbFixture *fixture,
-                                     gconstpointer test_data)
-{
-  GamePositionDb *db = fixture->db;
-  GamePosition *ffo_01 = get_gp_from_db(db, "ffo-01");
-
-  uint64_t expected_hash = game_position_hash(ffo_01);
-
-  uint8_t ifes_board[91];
-  int emp = 0;
-  int wc  = 0;
-  int bc  = 0;
-  game_position_to_ifes_board(ffo_01, ifes_board, &emp, &wc, &bc);
-  IFES_SquareState ifes_player = game_position_get_ifes_player(ffo_01);
-
-  GamePosition *translated = ifes_game_position_translation(ifes_board, ifes_player);
-  uint64_t translated_hash = game_position_hash(translated);
-  g_assert(expected_hash == translated_hash);
 }
 
 
