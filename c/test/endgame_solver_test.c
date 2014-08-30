@@ -220,23 +220,23 @@ const TestCase ffo_70_79[] =
 
 static void
 game_position_es_solve_test (GamePositionDbFixture *fixture,
-                             gconstpointer          test_data);
+                             gconstpointer test_data);
 
 static void
 game_position_ifes_solve_test (GamePositionDbFixture *fixture,
-                               gconstpointer          test_data);
+                               gconstpointer test_data);
 
 static void
 game_position_minimax_solve_test (GamePositionDbFixture *fixture,
-                                  gconstpointer          test_data);
+                                  gconstpointer test_data);
 
 static void
 game_position_ab_solve_test (GamePositionDbFixture *fixture,
-                             gconstpointer          test_data);
+                             gconstpointer test_data);
 
 static void
 ifes_game_position_translation_test (GamePositionDbFixture *fixture,
-                                     gconstpointer          test_data);
+                                     gconstpointer test_data);
 
 
 
@@ -247,30 +247,30 @@ gpdb_setup (gchar *source);
 
 static void
 gpdb_ffo_fixture_setup (GamePositionDbFixture *fixture,
-                        gconstpointer          test_data);
+                        gconstpointer test_data);
 
 static void
 gpdb_sample_games_fixture_setup (GamePositionDbFixture *fixture,
-                                 gconstpointer          test_data);
+                                 gconstpointer test_data);
 
 static void
 gpdb_fixture_teardown (GamePositionDbFixture *fixture,
-                       gconstpointer          test_data);
+                       gconstpointer test_data);
 
 static GamePosition *
 get_gp_from_db (GamePositionDb *db,
-                gchar          *id);
+                gchar *id);
 
 static void
-run_test_case_array (      GamePositionDb *db,
-                     const TestCase        tca[],
-                           ExactSolution* (*solver)(const GamePosition * const gp,
-                                                    const gchar        * const log_file));
+run_test_case_array (GamePositionDb *db,
+                     const TestCase tca[],
+                     ExactSolution* (*solver)(const GamePosition *const gp,
+                                              const gchar *const log_file));
 
 static void
 assert_move_is_part_of_array (const Square move,
                               const Square move_array[],
-                              const int    move_array_length);
+                              const int move_array_length);
 
 
 
@@ -378,7 +378,7 @@ main (int   argc,
                game_position_ifes_solve_test,
                gpdb_fixture_teardown);
   }
-  
+
   return g_test_run();
 }
 
@@ -390,7 +390,7 @@ main (int   argc,
 
 static void
 game_position_es_solve_test (GamePositionDbFixture *fixture,
-                             gconstpointer          test_data)
+                             gconstpointer test_data)
 {
   GamePositionDb *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
@@ -399,7 +399,7 @@ game_position_es_solve_test (GamePositionDbFixture *fixture,
 
 static void
 game_position_ifes_solve_test (GamePositionDbFixture *fixture,
-                               gconstpointer          test_data)
+                               gconstpointer test_data)
 {
   GamePositionDb *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
@@ -408,7 +408,7 @@ game_position_ifes_solve_test (GamePositionDbFixture *fixture,
 
 static void
 game_position_minimax_solve_test (GamePositionDbFixture *fixture,
-                                  gconstpointer          test_data)
+                                  gconstpointer test_data)
 {
   GamePositionDb *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
@@ -417,7 +417,7 @@ game_position_minimax_solve_test (GamePositionDbFixture *fixture,
 
 static void
 game_position_ab_solve_test (GamePositionDbFixture *fixture,
-                             gconstpointer          test_data)
+                             gconstpointer test_data)
 {
   GamePositionDb *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
@@ -426,7 +426,7 @@ game_position_ab_solve_test (GamePositionDbFixture *fixture,
 
 static void
 ifes_game_position_translation_test (GamePositionDbFixture *fixture,
-                                     gconstpointer          test_data)
+                                     gconstpointer test_data)
 {
   GamePositionDb *db = fixture->db;
   GamePosition *ffo_01 = get_gp_from_db(db, "ffo-01");
@@ -437,7 +437,7 @@ ifes_game_position_translation_test (GamePositionDbFixture *fixture,
   int emp = 0;
   int wc  = 0;
   int bc  = 0;
-  game_position_to_ifes_board(ffo_01, &ifes_board[0], &emp, &wc, &bc);
+  game_position_to_ifes_board(ffo_01, ifes_board, &emp, &wc, &bc);
   IFES_SquareState ifes_player = game_position_get_ifes_player(ffo_01);
 
   GamePosition *translated = ifes_game_position_translation(ifes_board, ifes_player);
@@ -484,7 +484,7 @@ gpdb_setup (gchar *source)
 
 static void
 gpdb_ffo_fixture_setup (GamePositionDbFixture *fixture,
-                        gconstpointer          test_data)
+                        gconstpointer test_data)
 {
   gchar *source = g_strdup("db/gpdb-ffo.txt");
   fixture->db = gpdb_setup(source);
@@ -492,7 +492,7 @@ gpdb_ffo_fixture_setup (GamePositionDbFixture *fixture,
 
 static void
 gpdb_sample_games_fixture_setup (GamePositionDbFixture *fixture,
-                                 gconstpointer          test_data)
+                                 gconstpointer test_data)
 {
   gchar *source = g_strdup("db/gpdb-sample-games.txt");
   fixture->db = gpdb_setup(source);
@@ -500,7 +500,7 @@ gpdb_sample_games_fixture_setup (GamePositionDbFixture *fixture,
 
 static void
 gpdb_fixture_teardown (GamePositionDbFixture *fixture,
-                       gconstpointer          test_data)
+                       gconstpointer test_data)
 {
   g_assert(fixture->db != NULL);
   gpdb_free(fixture->db, TRUE);
@@ -508,7 +508,7 @@ gpdb_fixture_teardown (GamePositionDbFixture *fixture,
 
 static GamePosition *
 get_gp_from_db (GamePositionDb *db,
-                gchar          *id)
+                gchar *id)
 {
   GamePositionDbEntry *entry = gpdb_lookup(db, id);
   if (!entry) {
@@ -520,10 +520,10 @@ get_gp_from_db (GamePositionDb *db,
 }
 
 static void
-run_test_case_array (      GamePositionDb *db,
-                     const TestCase        tca[],
-                           ExactSolution* (*solver)(const GamePosition * const gp,
-                                                    const gchar        * const log_file))
+run_test_case_array (GamePositionDb *db,
+                     const TestCase tca[],
+                     ExactSolution* (*solver)(const GamePosition *const gp,
+                                                    const gchar *const log_file))
 {
   const TestCase *tc = NULL;
   for (int i = 0;; i++) {

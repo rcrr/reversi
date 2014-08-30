@@ -1,9 +1,6 @@
 /**
  * @file
  *
- * @todo Function game_position_to_ifes_board is not used, function game_position_to_ifes_board_
- * is used instead ....
- *
  * @brief Improved fast endgame solver.
  * @details Solver derived from the Gunnar Andersson work.
  *
@@ -112,9 +109,6 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
 static Node
 end_solve (ExactSolution *solution, uint8_t *board, int alpha, int beta,
            int color, int empties, int discdiff, int prevmove);
-
-static void
-game_position_to_ifes_board_ (const GamePosition * const gp, int *p_emp, int *p_wc, int *p_bc);
 
 static char *
 ifes_square_to_string (const int sq);
@@ -413,7 +407,7 @@ game_position_ifes_solve (const GamePosition * const root,
   result = exact_solution_new();
   result->solved_game_position = game_position_clone(root);
 
-  game_position_to_ifes_board_(root, &emp, &wc, &bc);
+  game_position_to_ifes_board(root, board, &emp, &wc, &bc);
 
   IFES_SquareState player = game_position_get_ifes_player(root);
 
@@ -533,42 +527,13 @@ ifes_game_position_translation (uint8_t *board, int color)
 
 
 
+/**
+ * @cond
+ */
+
 /*
  * Internal functions.
  */
-
-/**
- * @brief Prepares the board global structure and return the empties, blacks, and whites counts.
- *
- * @param [in]  gp    the given game position
- * @param [out] p_emp a pointer to the empties count
- * @param [out] p_wc  a pointer to the whites count
- * @param [out] p_bc  a pointer to the blacks count
- *
- */
-static void
-game_position_to_ifes_board_ (const GamePosition * const gp, int *p_emp, int *p_wc, int *p_bc)
-{
-  /* Sets to IFES_DUMMY all the board squares. */
-  for (int board_index = 0; board_index < 91; board_index++) board[board_index] = IFES_DUMMY;
-
-  int emp = 0;
-  int wc  = 0;
-  int bc  = 0;
-  for (int square_index = 0; square_index < 64; square_index++) {
-    const int column = square_index & 7;
-    const int row = (square_index >> 3) & 7;
-    const int board_index = column + 10 + 9 * row;
-    if      ((gp->board->whites & (1ULL << square_index)) != 0ULL) { board[board_index] = IFES_WHITE; wc++; }
-    else if ((gp->board->blacks & (1ULL << square_index)) != 0ULL) { board[board_index] = IFES_BLACK; bc++; }
-    else                                                           { board[board_index] = IFES_EMPTY; emp++; }
-  }
-
-  /* Sets the empties, whites, and blacks counts. */
-  *p_emp = emp;
-  *p_wc  = wc;
-  *p_bc  = bc;
-}
 
 /**
  * @brief Translates the ifes square into an enum square.
@@ -1441,3 +1406,7 @@ opponent_color (int color)
 {
   return 2 - color;
 }
+
+/**
+ * @endcond
+ */

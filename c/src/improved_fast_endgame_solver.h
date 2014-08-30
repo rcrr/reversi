@@ -49,18 +49,19 @@ typedef enum {
 } IFES_SquareState;
 
 extern ExactSolution *
-game_position_ifes_solve (const GamePosition * const root,
-                          const gchar        * const log_file);
+game_position_ifes_solve (const GamePosition *const root,
+                          const gchar *const log_file);
 
 extern GamePosition *
-ifes_game_position_translation (uint8_t *board, int color);
+ifes_game_position_translation (uint8_t *board,
+                                int color);
 
 extern void
-game_position_to_ifes_board (const GamePosition * const gp,
-                                   uint8_t      *       b,
-                                   int          *       p_emp,
-                                   int          *       p_wc,
-                                   int          *       p_bc);
+game_position_to_ifes_board (const GamePosition *const gp,
+                             uint8_t *b,
+                             int *p_emp,
+                             int *p_wc,
+                             int *p_bc);
 
 extern IFES_SquareState
 game_position_get_ifes_player (const GamePosition * const gp);
