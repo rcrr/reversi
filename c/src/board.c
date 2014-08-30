@@ -1,6 +1,8 @@
 /**
  * @file
  *
+ * @todo All the free functions should return void and should not fail on a null pointer parameter.
+ *
  * @brief Board module implementation.
  * @details This module defines functions for the #Player, #SquareState,
  * #Square, #SquareSet, #Board, #GamePosition, #Direction entities.
@@ -345,29 +347,37 @@ square_as_move_array_to_string (const Square mova[],
 }
 
 /**
- * @brief Returns TRUE is the `move` parameter is in a valid range.
+ * @brief Returns TRUE if the `sq` parameter is in a valid range.
+ *
+ * @details The valid range is [0,63], as defined by the `Square` enum.
+ *
+ * @param [in] sq the given square
+ * @return        true if the square is in the legal range
+ */
+gboolean
+square_belongs_to_enum_set (const Square sq)
+{
+  return sq >= A1 && sq <= H8;
+}
+
+
+/**
+ * @brief Returns TRUE if the `move` parameter is in a valid range.
  *
  * @details The valid range is [-1,63], where `-1` means move_pass,
  * and values from `0` to `63` are defined by the `Square` enum.
  *
- * A sample call is here exemplified:
+ * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @code{.c}
- * g_assert(square_is_in_legal_move_range(A1));
- * g_assert(square_is_in_legal_move_range(D3));
- * g_assert(square_is_in_legal_move_range(H8));
- * g_assert(square_is_in_legal_move_range(pass_move));
- * g_assert(!square_is_in_legal_move_range((Square) 64));
- * g_assert(!square_is_in_legal_move_range((Square) -2));
- * @endcode
+ * @snippet board_test.c square_is_valid_move usage
  *
  * @param [in] move the given move
  * @return          true if the move is in the legal range
  */
 gboolean
-square_is_in_legal_move_range (const Square move)
+square_is_valid_move (const Square move)
 {
-  return ((move >= A1 && move <= H8) || move == pass_move);
+  return square_belongs_to_enum_set(move) || move == pass_move;
 }
 
 
@@ -939,7 +949,7 @@ board_count_diff_winner_get_empties (const Board *const b,
  *
  * @invariant Parameter `b` must be not `NULL`.
  * Parameter `move` must be a value in the range defined by
- * the #square_is_in_legal_move_range function.
+ * the #square_is_valid_move function.
  * Parameter `p` must be a value belonging to the `Player` enum.
  * All invariants are guarded by assertions.
  *
@@ -954,7 +964,7 @@ board_is_move_legal (const Board *const b,
                      const Player p)
 {
   g_assert(b);
-  g_assert(square_is_in_legal_move_range(move));
+  g_assert(square_is_valid_move(move));
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
   if (move == pass_move) {
@@ -1676,7 +1686,7 @@ game_position_has_any_player_any_legal_move (const GamePosition *const gp)
  *
  * @invariant Parameter `gp` must be not `NULL`.
  * Parameter `move` must be a value in the range defined by
- * the #square_is_in_legal_move_range function.
+ * the #square_is_valid_move function.
  * Invariants are guarded by assertions.
  *
  * @param [in] gp   the given game position
@@ -1688,7 +1698,7 @@ game_position_is_move_legal (const GamePosition *const gp,
                              const Square move)
 {
   g_assert(gp);
-  g_assert(square_is_in_legal_move_range(move));
+  g_assert(square_is_valid_move(move));
 
   return board_is_move_legal(gp->board, move, gp->player);
 }
@@ -1698,7 +1708,7 @@ game_position_is_move_legal (const GamePosition *const gp,
  *
  * @invariant Parameter `gp` must be not `NULL`.
  * Parameter `move` must be a value in the range defined by
- * the #square_is_in_legal_move_range function.
+ * the #square_is_valid_move function.
  * Invariants are guarded by assertions.
  *
  * @param [in] gp   the given game position
@@ -1710,7 +1720,7 @@ game_position_make_move (const GamePosition *const gp,
                          const Square move)
 {
   g_assert(gp);
-  g_assert(square_is_in_legal_move_range(move));
+  g_assert(square_is_valid_move(move));
   g_assert(game_position_is_move_legal(gp, move));
 
   if (move == pass_move) {
@@ -2387,7 +2397,7 @@ game_position_x_has_any_player_any_legal_move (const GamePositionX *const gpx)
  *
  * @invariant Parameter `gpx` must be not `NULL`.
  * Parameter `move` must be a value in the range defined by
- * the #square_is_in_legal_move_range function.
+ * the #square_is_valid_move function.
  * Invariants are guarded by assertions.
  *
  * @param [in] gpx  the given game position x
@@ -2399,7 +2409,7 @@ game_position_x_is_move_legal (const GamePositionX *const gpx,
                                const Square move)
 {
   g_assert(gpx);
-  g_assert(square_is_in_legal_move_range(move));
+  g_assert(square_is_valid_move(move));
 
   Board board;
   board.blacks = gpx->blacks;
@@ -2418,7 +2428,7 @@ game_position_x_is_move_legal (const GamePositionX *const gpx,
  * @invariant Parameter `current` must be not `NULL`.
  * Parameter `updated` must be not `NULL`.
  * Parameter `move` must be a value in the range defined by
- * the #square_is_in_legal_move_range function.
+ * the #square_is_valid_move function.
  * Parameter `move` must be legal.
  * Invariants are guarded by assertions.
  *
@@ -2433,7 +2443,7 @@ game_position_x_make_move (const GamePositionX *const current,
 {
   g_assert(current);
   g_assert(updated);
-  g_assert(square_is_in_legal_move_range(move));
+  g_assert(square_is_valid_move(move));
   g_assert(game_position_x_is_move_legal(current, move));
 
   if (move == pass_move) {
