@@ -44,6 +44,10 @@
 
 
 
+/**
+ * @cond
+ */
+
 /*
  * Prototypes for internal functions.
  */
@@ -59,30 +63,24 @@ game_position_random_sampler_impl (ExactSolution *const result,
  * Internal variables and constants.
  */
 
-/**
- * @brief The logging environment structure.
- */
+/* The logging environment structure. */
 static LogEnv *log_env = NULL;
 
-/**
- * @brief The total number of call to the recursive function that traverse the game DAG.
- */
+/* The total number of call to the recursive function that traverse the game DAG. */
 static uint64_t call_count = 0;
 
-/**
- * @brief The predecessor-successor array of game position hash values.
- */
+/* The predecessor-successor array of game position hash values. */
 static uint64_t gp_hash_stack[128];
 
-/**
- * @brief The index of the last entry into gp_hash_stack.
- */
+/* The index of the last entry into gp_hash_stack. */
 static int gp_hash_stack_fill_point = 0;
 
-/**
- * @brief The sub_run_id used for logging.
- */
+/* The sub_run_id used for logging. */
 static int sub_run_id = 0;
+
+/**
+ * @endcond
+ */
 
 
 
@@ -100,9 +98,9 @@ static int sub_run_id = 0;
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_random_sampler (const GamePosition * const root,
-                              const gchar        * const log_file,
-                              const int                  repeats)
+game_position_random_sampler (const GamePosition *const root,
+                              const gchar *const log_file,
+                              const int repeats)
 {
   ExactSolution *result;
   SearchNode    *sn;
@@ -150,6 +148,10 @@ game_position_random_sampler (const GamePosition * const root,
 }
 
 
+
+/**
+ * @cond
+ */
 
 /*
  * Internal functions.
@@ -205,3 +207,7 @@ game_position_random_sampler_impl (ExactSolution *const result,
 
   return node;
 }
+
+/**
+ * @endcond
+ */

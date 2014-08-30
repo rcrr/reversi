@@ -37,18 +37,21 @@
 #include <glib.h>
 
 #include "game_tree_logger.h"
-
 #include "minimax_solver.h"
 
 
+
+/**
+ * @cond
+ */
 
 /*
  * Prototypes for internal functions.
  */
 
 static SearchNode *
-game_position_solve_impl (      ExactSolution * const result,
-                          const GamePosition  * const gp);
+game_position_solve_impl (ExactSolution *const result,
+                          const GamePosition *const gp);
 
 
 
@@ -56,34 +59,29 @@ game_position_solve_impl (      ExactSolution * const result,
  * Internal variables and constants.
  */
 
-/**
- * @brief The logging environment structure.
- */
+/* The logging environment structure. */
 static LogEnv *log_env = NULL;
 
-/**
- * @brief The total number of call to the recursive function that traverse the game DAG.
- */
+/* The total number of call to the recursive function that traverse the game DAG. */
 static uint64_t call_count = 0;
 
-/**
- * @brief The predecessor-successor array of game position hash values.
- */
+/* The predecessor-successor array of game position hash values. */
 static uint64_t gp_hash_stack[128];
 
-/**
- * @brief The index of the last entry into gp_hash_stack.
- */
+/* The index of the last entry into gp_hash_stack. */
 static int gp_hash_stack_fill_point = 0;
 
-/**
- * @brief The sub_run_id used for logging.
- */
+/* The sub_run_id used for logging. */
 static const int sub_run_id = 0;
+
+/**
+ * @endcond
+ */
+
 
 
 /*********************************************************/
-/* Function implementations for the GamePosition entity. */ 
+/* Function implementations for the GamePosition entity. */
 /*********************************************************/
 
 /**
@@ -91,29 +89,28 @@ static const int sub_run_id = 0;
  *
  * @param [in] root the starting game position to be solved
  * @param [in] log_file if not null turns logging on the given file name
-g * @return          a pointer to a new exact solution structure
+ * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_minimax_solve (const GamePosition * const root,
-                             const gchar        * const log_file)
+game_position_minimax_solve (const GamePosition *const root,
+                             const gchar *const log_file)
 {
-  ExactSolution *result; 
-  SearchNode    *sn;
-
   log_env = game_tree_log_init(log_file);
 
   if (log_env->log_is_on) {
-    GamePosition *ground = game_position_new(board_new(root->board->blacks, root->board->whites), player_opponent(root->player));
+    GamePosition *ground = game_position_new(board_new(root->board->blacks,
+                                                       root->board->whites),
+                                             player_opponent(root->player));
     gp_hash_stack[0] = game_position_hash(ground);
     game_position_free(ground);
     game_tree_log_open_h(log_env);
   }
 
-  result = exact_solution_new();
+  ExactSolution *result = exact_solution_new();
 
   result->solved_game_position = game_position_clone(root);
 
-  sn = game_position_solve_impl(result, result->solved_game_position);
+  SearchNode *sn = game_position_solve_impl(result, result->solved_game_position);
 
   result->pv[0] = sn->move;
   result->outcome = sn->value;
@@ -125,6 +122,10 @@ game_position_minimax_solve (const GamePosition * const root,
 }
 
 
+
+/**
+ * @cond
+ */
 
 /*
  * Internal functions.
@@ -138,14 +139,12 @@ game_position_minimax_solve (const GamePosition * const root,
  * @return            a pointer to a new serch node structure
  */
 static SearchNode *
-game_position_solve_impl (      ExactSolution * const result,
-                          const GamePosition  * const gp)
+game_position_solve_impl (ExactSolution *const result,
+                          const GamePosition *const gp)
 {
-  SearchNode *node;
-  SearchNode *node2;
+  SearchNode *node  = NULL;
+  SearchNode *node2 = NULL;
 
-  node  = NULL;
-  node2 = NULL;
   result->node_count++;
 
   const SquareSet moves = game_position_legal_moves(gp);
@@ -203,3 +202,7 @@ game_position_solve_impl (      ExactSolution * const result,
 
   return node;
 }
+
+/**
+ * @endcond
+ */

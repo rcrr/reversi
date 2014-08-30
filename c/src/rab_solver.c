@@ -39,13 +39,18 @@
 
 #include "random.h"
 #include "game_tree_logger.h"
-
 #include "rab_solver.h"
 
+
+
 /**
- * @brief Game tree stack size.
+ * @cond
+ */
+
+/*
+ * Game tree stack size.
  *
- * @details It give the size of the static stack used to pile-up the info
+ * It give the size of the static stack used to pile-up the info
  * computed by deepening the game tree.
  * The value is given by the 60 plus 12 moves added to take into account the possibility
  * to pass. Real tree depth are smaller because the number of pass is little,
@@ -53,10 +58,10 @@
  */
 #define GAME_TREE_MAX_DEPTH 72
 
-/**
- * @brief Max number of legal moves hosted in the stack.
+/*
+ * Max number of legal moves hosted in the stack.
  *
- * @details A game has 60 moves, pass moves are not consuming the stack.
+ * A game has 60 moves, pass moves are not consuming the stack.
  * Every game stage has been assessed with the random game generator, and a distribution of legal moves
  * has been computed. The maximum for each game stage has been summed up totalling 981.
  * the value 1024 is a further safety added in order to prevent running out of space.
@@ -64,9 +69,7 @@
 #define MAX_LEGAL_MOVE_STACK_COUNT 1024
 
 
-/**
- * @brief The info collected on each node.
- */
+/* The info collected on each node. */
 typedef struct {
   GamePositionX  gpx;                         /**< @brief The game position related to the game tree node. */
   uint64_t       hash;                        /**< @brief The hash value of the game position. */
@@ -78,10 +81,10 @@ typedef struct {
   int            beta;                        /**< @brief The node cutoff value. */
 } NodeInfo;
 
-/**
- * @brief The info collected by deepening the game tree.
+/*
+ * The info collected by deepening the game tree.
  *
- * @details The stack uses 5 kB of memory.
+ * The stack uses 5 kB of memory.
  */
 typedef struct {
   int      fill_index;                                     /**< @brief The index of the current entry into the stack, at the beginning of game_position_solve_impl. */
@@ -120,30 +123,24 @@ legal_move_list_from_set(const SquareSet legal_move_set,
  * Internal variables and constants.
  */
 
-/**
- * @brief The logging environment structure.
- */
+/* The logging environment structure. */
 static LogEnv *log_env = NULL;
 
-/**
- * @brief A null move is an invalid one.
- */
+/* A null move is an invalid one. */
 static const Square null_move = -1;
 
-/**
- * @brief An out of range defeat score is a value lesser than the worst case.
- */
+/* An out of range defeat score is a value lesser than the worst case. */
 static const int out_of_range_defeat_score = -65;
 
-/**
- * @brief The best score achievable.
- */
+/* The best score achievable. */
 static const int best_score = +64;
 
-/**
- * @brief The worst score achievable.
- */
+/* The worst score achievable. */
 static const int worst_score = -64;
+
+/**
+ * @endcond
+ */
 
 
 
@@ -160,9 +157,9 @@ static const int worst_score = -64;
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution*
-game_position_rab_solve(const GamePosition * const root,
-                        const gchar        * const log_file,
-                        const int                  repeats)
+game_position_rab_solve (const GamePosition *const root,
+                         const gchar *const log_file,
+                         const int repeats)
 {
   ExactSolution* result = NULL;
   int n;
@@ -210,6 +207,10 @@ game_position_rab_solve(const GamePosition * const root,
 
 
 
+/**
+ * @cond
+ */
+
 /*
  * Internal functions.
  */
@@ -223,8 +224,8 @@ game_position_rab_solve(const GamePosition * const root,
  *
  * @return a pointer to a new game tree stack structure
  */
-GameTreeStack*
-game_tree_stack_new()
+static GameTreeStack *
+game_tree_stack_new (void)
 {
   GameTreeStack* stack;
   static const size_t size_of_stack = sizeof(GameTreeStack);
@@ -244,8 +245,8 @@ game_tree_stack_new()
  * @param [in] stack the pointer to be deallocated
  * @return           always the NULL pointer
  */
-GameTreeStack*
-game_tree_stack_free(GameTreeStack* stack)
+static GameTreeStack *
+game_tree_stack_free (GameTreeStack *stack)
 {
   g_assert(stack);
 
@@ -259,8 +260,8 @@ game_tree_stack_free(GameTreeStack* stack)
  * @brief Initializes the stack structure.
  */
 static void
-game_tree_stack_init(const GamePosition*   const root,
-                     GameTreeStack* const stack)
+game_tree_stack_init (const GamePosition *const root,
+                      GameTreeStack* const stack)
 {
   NodeInfo* ground_node_info = &stack->nodes[0];
   game_position_x_copy_from_gp(root, &ground_node_info->gpx);
@@ -290,9 +291,9 @@ game_tree_stack_init(const GamePosition*   const root,
  * @param [out] next_node_info    the node info updated with the new head_of_legal_move_list poiter
  */
 inline static void
-legal_move_list_from_set(const SquareSet legal_move_set,
-                         NodeInfo* const current_node_info,
-                         NodeInfo* const next_node_info)
+legal_move_list_from_set (const SquareSet legal_move_set,
+                          NodeInfo* const current_node_info,
+                          NodeInfo* const next_node_info)
 {
   uint8_t *move_ptr = current_node_info->head_of_legal_move_list;
   SquareSet remaining_moves = legal_move_set;
@@ -316,9 +317,9 @@ legal_move_list_from_set(const SquareSet legal_move_set,
  * @param [in]     sub_run_id used to tag the log file with the run counter
  */
 static void
-game_position_solve_impl(ExactSolution* const result,
-                         GameTreeStack* const stack,
-                         const int sub_run_id)
+game_position_solve_impl (ExactSolution* const result,
+                          GameTreeStack* const stack,
+                          const int sub_run_id)
 {
   result->node_count++;
 
@@ -387,3 +388,7 @@ out:
   stack->fill_index--;
   return;
 }
+
+/**
+ * @endcond
+ */

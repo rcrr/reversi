@@ -39,13 +39,12 @@
 
 
 /*********************************************************/
-/* Function implementations for the GamePosition entity. */ 
+/* Function implementations for the GamePosition entity. */
 /*********************************************************/
 
 extern ExactSolution *
-game_position_random_sampler (const GamePosition * const root,
-                              const gchar        * const log_file,
-                              const int                  repeats);
-
+game_position_random_sampler (const GamePosition *const root,
+                              const gchar *const log_file,
+                              const int repeats);
 
 #endif /* RANDOM_GAME_SAMPLER_H */
