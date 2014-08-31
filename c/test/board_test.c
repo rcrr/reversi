@@ -490,43 +490,43 @@ axis_shift_distance_test (void)
 static void
 direction_shift_square_set_test (void)
 {
-  g_assert(direction_shift_square_set(N,  0xFFFFFFFFFFFFFFFFULL) == 0x00FFFFFFFFFFFFFFULL);
-  g_assert(direction_shift_square_set(S,  0xFFFFFFFFFFFFFFFFULL) == 0xFFFFFFFFFFFFFF00ULL);
-  g_assert(direction_shift_square_set(E,  0xFFFFFFFFFFFFFFFFULL) == 0xFEFEFEFEFEFEFEFEULL);
-  g_assert(direction_shift_square_set(W,  0xFFFFFFFFFFFFFFFFULL) == 0x7F7F7F7F7F7F7F7FULL);
-  g_assert(direction_shift_square_set(NE, 0xFFFFFFFFFFFFFFFFULL) == 0x00FEFEFEFEFEFEFEULL);
-  g_assert(direction_shift_square_set(SE, 0xFFFFFFFFFFFFFFFFULL) == 0xFEFEFEFEFEFEFE00ULL);
-  g_assert(direction_shift_square_set(NW, 0xFFFFFFFFFFFFFFFFULL) == 0x007F7F7F7F7F7F7FULL);
-  g_assert(direction_shift_square_set(SW, 0xFFFFFFFFFFFFFFFFULL) == 0x7F7F7F7F7F7F7F00ULL);
+  g_assert(direction_shift_square_set(N,  0xFFFFFFFFFFFFFFFF) == 0x00FFFFFFFFFFFFFF);
+  g_assert(direction_shift_square_set(S,  0xFFFFFFFFFFFFFFFF) == 0xFFFFFFFFFFFFFF00);
+  g_assert(direction_shift_square_set(E,  0xFFFFFFFFFFFFFFFF) == 0xFEFEFEFEFEFEFEFE);
+  g_assert(direction_shift_square_set(W,  0xFFFFFFFFFFFFFFFF) == 0x7F7F7F7F7F7F7F7F);
+  g_assert(direction_shift_square_set(NE, 0xFFFFFFFFFFFFFFFF) == 0x00FEFEFEFEFEFEFE);
+  g_assert(direction_shift_square_set(SE, 0xFFFFFFFFFFFFFFFF) == 0xFEFEFEFEFEFEFE00);
+  g_assert(direction_shift_square_set(NW, 0xFFFFFFFFFFFFFFFF) == 0x007F7F7F7F7F7F7F);
+  g_assert(direction_shift_square_set(SW, 0xFFFFFFFFFFFFFFFF) == 0x7F7F7F7F7F7F7F00);
 }
 
 
 static void
 direction_shift_square_set_by_amount_test (void)
 {
-  g_assert(direction_shift_square_set_by_amount(N,  0xFFFFFFFFFFFFFFFFULL, 1) == 0x00FFFFFFFFFFFFFFULL);
-  g_assert(direction_shift_square_set_by_amount(N,  0xFFFFFFFFFFFFFFFFULL, 2) == 0x0000FFFFFFFFFFFFULL);
-  g_assert(direction_shift_square_set_by_amount(N,  0xFFFFFFFFFFFFFFFFULL, 7) == 0x00000000000000FFULL);
+  g_assert(direction_shift_square_set_by_amount(N,  0xFFFFFFFFFFFFFFFF, 1) == 0x00FFFFFFFFFFFFFF);
+  g_assert(direction_shift_square_set_by_amount(N,  0xFFFFFFFFFFFFFFFF, 2) == 0x0000FFFFFFFFFFFF);
+  g_assert(direction_shift_square_set_by_amount(N,  0xFFFFFFFFFFFFFFFF, 7) == 0x00000000000000FF);
 
-  g_assert(direction_shift_square_set_by_amount(S,  0xFFFFFFFFFFFFFFFFULL, 1) == 0xFFFFFFFFFFFFFF00ULL);
-  g_assert(direction_shift_square_set_by_amount(S,  0xFFFFFFFFFFFFFFFFULL, 7) == 0xFF00000000000000ULL);
+  g_assert(direction_shift_square_set_by_amount(S,  0xFFFFFFFFFFFFFFFF, 1) == 0xFFFFFFFFFFFFFF00);
+  g_assert(direction_shift_square_set_by_amount(S,  0xFFFFFFFFFFFFFFFF, 7) == 0xFF00000000000000);
 
-  g_assert(direction_shift_square_set_by_amount(E,  0xFFFFFFFFFFFFFFFFULL, 1) == 0xFEFEFEFEFEFEFEFEULL);
-  g_assert(direction_shift_square_set_by_amount(E,  0xFFFFFFFFFFFFFFFFULL, 7) == 0x8080808080808080ULL);
+  g_assert(direction_shift_square_set_by_amount(E,  0xFFFFFFFFFFFFFFFF, 1) == 0xFEFEFEFEFEFEFEFE);
+  g_assert(direction_shift_square_set_by_amount(E,  0xFFFFFFFFFFFFFFFF, 7) == 0x8080808080808080);
 
-  g_assert(direction_shift_square_set_by_amount(W,  0xFFFFFFFFFFFFFFFFULL, 1) == 0x7F7F7F7F7F7F7F7FULL);
-  g_assert(direction_shift_square_set_by_amount(W,  0xFFFFFFFFFFFFFFFFULL, 7) == 0x0101010101010101ULL);
+  g_assert(direction_shift_square_set_by_amount(W,  0xFFFFFFFFFFFFFFFF, 1) == 0x7F7F7F7F7F7F7F7F);
+  g_assert(direction_shift_square_set_by_amount(W,  0xFFFFFFFFFFFFFFFF, 7) == 0x0101010101010101);
 
-  g_assert(direction_shift_square_set_by_amount(SW, 0xFFFFFFFFFFFFFFFFULL, 1) == 0x7F7F7F7F7F7F7F00ULL);
-  g_assert(direction_shift_square_set_by_amount(SW, 0xFFFFFFFFFFFFFFFFULL, 7) == 0x0100000000000000ULL);
+  g_assert(direction_shift_square_set_by_amount(SW, 0xFFFFFFFFFFFFFFFF, 1) == 0x7F7F7F7F7F7F7F00);
+  g_assert(direction_shift_square_set_by_amount(SW, 0xFFFFFFFFFFFFFFFF, 7) == 0x0100000000000000);
 
-  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 1) == 0x00FEFEFEFEFEFEFEULL);
-  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 2) == 0x0000FCFCFCFCFCFCULL);
-  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 3) == 0x000000F8F8F8F8F8ULL);
-  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 4) == 0x00000000F0F0F0F0ULL);
-  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 5) == 0x0000000000E0E0E0ULL);
-  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 6) == 0x000000000000C0C0ULL);
-  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFFULL, 7) == 0x0000000000000080ULL);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 1) == 0x00FEFEFEFEFEFEFE);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 2) == 0x0000FCFCFCFCFCFC);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 3) == 0x000000F8F8F8F8F8);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 4) == 0x00000000F0F0F0F0);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 5) == 0x0000000000E0E0E0);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 6) == 0x000000000000C0C0);
+  g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 7) == 0x0000000000000080);
 }
 
 static void
@@ -534,7 +534,7 @@ board_get_square_test (void)
 {
   Board *b;
 
-  b = board_new(1LLU, 2LLU);
+  b = board_new(1, 2);
 
   g_assert(board_get_square(b, A1) == BLACK_SQUARE);
   g_assert(board_get_square(b, B1) == WHITE_SQUARE);
@@ -550,8 +550,8 @@ board_count_difference_test (void)
   SquareSet  blacks;
   SquareSet  whites;
 
-  blacks = 0xFFFFFFFFFFFFFFFFULL;
-  whites = 0x0000000000000000ULL;
+  blacks = 0xFFFFFFFFFFFFFFFF;
+  whites = 0x0000000000000000;
 
   b = board_new(blacks, whites);
 
@@ -567,38 +567,38 @@ board_compare_test (void)
   Board *a;
   Board *b;
 
-  a = board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
-  b = board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
+  a = board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000);
+  b = board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000);
   g_assert(board_compare(a, b) == 0);
   a = board_free(a);
   b = board_free(b);
 
-  a = board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL);
-  b = board_new(0x0000000000000000ULL, 0x0000000000000000ULL);
+  a = board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000);
+  b = board_new(0x0000000000000000, 0x0000000000000000);
   g_assert(board_compare(a, b) == +1);
   a = board_free(a);
   b = board_free(b);
 
-  a = board_new(0x0000000000000000ULL, 0x0000000000000000ULL);
-  b = board_new(0x0000000000000001ULL, 0x0000000000000000ULL);
+  a = board_new(0x0000000000000000, 0x0000000000000000);
+  b = board_new(0x0000000000000001, 0x0000000000000000);
   g_assert(board_compare(a, b) == -1);
   a = board_free(a);
   b = board_free(b);
 
-  a = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
-  b = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
+  a = board_new(0x0000000000000007, 0x0000000000000000);
+  b = board_new(0x0000000000000007, 0x0000000000000000);
   g_assert(board_compare(a, b) == 0);
   a = board_free(a);
   b = board_free(b);
 
-  a = board_new(0x0000000000000007ULL, 0x0100000000000000ULL);
-  b = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
+  a = board_new(0x0000000000000007, 0x0100000000000000);
+  b = board_new(0x0000000000000007, 0x0000000000000000);
   g_assert(board_compare(a, b) == +1);
   a = board_free(a);
   b = board_free(b);
 
-  a = board_new(0x0000000000000007ULL, 0x0000000000000000ULL);
-  b = board_new(0x0000000000000007ULL, 0x0100000000000000ULL);
+  a = board_new(0x0000000000000007, 0x0000000000000000);
+  b = board_new(0x0000000000000007, 0x0100000000000000);
   g_assert(board_compare(a, b) == -1);
   a = board_free(a);
   b = board_free(b);
@@ -609,7 +609,7 @@ board_count_pieces_test (void)
 {
   Board *b;
 
-  b = board_new(1LLU, 2LLU);
+  b = board_new(1, 2);
 
   g_assert(board_count_pieces(b, BLACK_SQUARE) ==  1);
   g_assert(board_count_pieces(b, WHITE_SQUARE) ==  1);
@@ -625,8 +625,8 @@ board_new_test (void)
   SquareSet  b;
   Board     *empty_board;
 
-  b = 0LLU;
-  w = 0LLU;
+  b = 0;
+  w = 0;
 
   empty_board = board_new(b, w);
   g_assert(empty_board != NULL);
@@ -642,7 +642,7 @@ board_print_test (void)
   char *b_to_string;
   GString *expected;
 
-  b = board_new(1LLU, 2LLU);
+  b = board_new(1, 2);
   b_to_string = board_print(b);
 
   expected = g_string_sized_new(220);
@@ -672,7 +672,7 @@ game_position_print_test (void)
   char         *gp_to_string;
   GString      *expected;
 
-  b = board_new(1LLU, 4LLU);
+  b = board_new(1, 4);
   p = WHITE_PLAYER;
   gp = game_position_new(b, p);
 
@@ -706,7 +706,7 @@ game_position_to_string_test (void)
   char         *gp_to_string;
   GString      *expected;
 
-  b = board_new(1LLU, 4LLU);
+  b = board_new(1, 4);
   p = WHITE_PLAYER;
   gp = game_position_new(b, p);
 
@@ -727,7 +727,7 @@ board_is_move_legal_test (void)
 {
   Board *b;
 
-  b = board_new(1LLU, 2LLU);
+  b = board_new(1, 2);
   g_assert(FALSE == board_is_move_legal(b, A1, WHITE_PLAYER));
   g_assert(FALSE == board_is_move_legal(b, A1, BLACK_PLAYER));
   g_assert(FALSE == board_is_move_legal(b, B1, WHITE_PLAYER));
@@ -765,32 +765,32 @@ game_position_compare_test (void)
   GamePosition *a;
   GamePosition *b;
 
-  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
+  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
   b = a;
   g_assert(game_position_compare(a, b) == 0);
   a = game_position_free(a);
   b = a;
 
-  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
-  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
+  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
+  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
   g_assert(game_position_compare(a, b) == 0);
   a = game_position_free(a);
   b = game_position_free(b);
 
-  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
-  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), WHITE_PLAYER);
+  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
+  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), WHITE_PLAYER);
   g_assert(game_position_compare(a, b) < 0);
   a = game_position_free(a);
   b = game_position_free(b);
 
-  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), WHITE_PLAYER);
-  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
+  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), WHITE_PLAYER);
+  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
   g_assert(game_position_compare(a, b) > 0);
   a = game_position_free(a);
   b = game_position_free(b);
 
-  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL, 0x0000000000000000ULL), BLACK_PLAYER);
-  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFEULL, 0x0000000000000000ULL), BLACK_PLAYER);
+  a = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
+  b = game_position_new(board_new(0xFFFFFFFFFFFFFFFE, 0x0000000000000000), BLACK_PLAYER);
   g_assert(game_position_compare(a, b) > 0);
   a = game_position_free(a);
   b = game_position_free(b);
@@ -805,8 +805,8 @@ game_position_count_difference_test (void)
   SquareSet     whites;
   Player        p;
 
-  blacks = 0xFFFFFFFFFFFFFFFFULL;
-  whites = 0x0000000000000000ULL;
+  blacks = 0xFFFFFFFFFFFFFFFF;
+  whites = 0x0000000000000000;
   b = board_new(blacks, whites);
   p = BLACK_PLAYER;
   gp = game_position_new(b, p);
@@ -826,16 +826,16 @@ game_position_hash_test (void)
   Player        p;
   uint64_t      expected;
 
-  blacks = 0x0000000000000000ULL;
-  whites = 0x0000000000000000ULL;
+  blacks = 0x0000000000000000;
+  whites = 0x0000000000000000;
   b = board_new(blacks, whites);
   p = BLACK_PLAYER;
   gp = game_position_new(b, p);
-  g_assert(game_position_hash(gp) == 0ULL);
+  g_assert(game_position_hash(gp) == 0);
   gp = game_position_free(gp);
 
-  blacks = 0x0000000000000000ULL;
-  whites = 0x0000000000000000ULL;
+  blacks = 0x0000000000000000;
+  whites = 0x0000000000000000;
   b = board_new(blacks, whites);
   p = WHITE_PLAYER;
   gp = game_position_new(b, p);
@@ -843,8 +843,8 @@ game_position_hash_test (void)
   gp = game_position_free(gp);
 
   expected = 0x4689879C5E2B6C8D ^ 0x1C10E0B05C7B3C49;
-  blacks = 0x0000000000000002ULL;
-  whites = 0x0000000000000004ULL;
+  blacks = 0x0000000000000002;
+  whites = 0x0000000000000004;
   b = board_new(blacks, whites);
   p = BLACK_PLAYER;
   gp = game_position_new(b, p);
@@ -1088,8 +1088,8 @@ game_position_x_gp_to_gpx_test (void)
   GamePositionX *gpx_a;
   GamePositionX *gpx_b;
 
-  gp = game_position_new(board_new(0xFFFFFFFFFFFFFFFFULL,
-                                   0x0000000000000000ULL),
+  gp = game_position_new(board_new(0xFFFFFFFFFFFFFFFF,
+                                   0x0000000000000000),
                          BLACK_PLAYER);
 
   gpx_a = game_position_x_gp_to_gpx(gp);
@@ -1180,25 +1180,25 @@ game_position_x_hash_test (void)
   Player         player;
   uint64_t       expected;
 
-  expected = 0ULL;
-  blacks = 0x0000000000000000ULL;
-  whites = 0x0000000000000000ULL;
+  expected = 0;
+  blacks = 0x0000000000000000;
+  whites = 0x0000000000000000;
   player = BLACK_PLAYER;
   gpx = game_position_x_new(blacks, whites, player);
   g_assert(expected == game_position_x_hash(gpx));
   gpx = game_position_x_free(gpx);
 
   expected = 0xFFFFFFFFFFFFFFFF;
-  blacks = 0x0000000000000000ULL;
-  whites = 0x0000000000000000ULL;
+  blacks = 0x0000000000000000;
+  whites = 0x0000000000000000;
   player = WHITE_PLAYER;
   gpx = game_position_x_new(blacks, whites, player);
   g_assert(expected == game_position_x_hash(gpx));
   gpx = game_position_x_free(gpx);
 
   expected = 0x4689879C5E2B6C8D ^ 0x1C10E0B05C7B3C49;
-  blacks = 0x0000000000000002ULL;
-  whites = 0x0000000000000004ULL;
+  blacks = 0x0000000000000002;
+  whites = 0x0000000000000004;
   player = BLACK_PLAYER;
   gpx = game_position_x_new(blacks, whites, player);
   g_assert(expected == game_position_x_hash(gpx));
