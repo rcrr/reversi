@@ -264,6 +264,11 @@ extern Square
 square_set_random_selection (RandomNumberGenerator *const rng,
                              const SquareSet squares);
 
+extern void
+square_set_to_array (int *sq_count,
+                     Square **sq_array,
+                     const SquareSet squares);
+
 
 
 /********************************************/

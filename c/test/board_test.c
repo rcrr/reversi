@@ -54,6 +54,7 @@ static void square_is_valid_move_test (void);
 static void square_set_to_pg_json_array_test (void);
 static void square_set_to_string_test (void);
 static void square_set_random_selection_test (void);
+static void square_set_to_array_test (void);
 
 static void player_color_test (void);
 static void player_description_test (void);
@@ -122,6 +123,7 @@ main (int   argc,
   g_test_add_func("/board/square_set_to_pg_json_array_test", square_set_to_pg_json_array_test);
   g_test_add_func("/board/square_set_to_string_test", square_set_to_string_test);
   g_test_add_func("/board/square_set_random_selection_test", square_set_random_selection_test);
+  g_test_add_func("/board/square_set_to_array_test", square_set_to_array_test);
 
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
@@ -326,6 +328,22 @@ square_set_random_selection_test (void)
   }
 
   rng_free(rng1);
+}
+
+static void
+square_set_to_array_test (void)
+{
+
+  int sq_count;
+  Square *sq_array;
+  square_set_to_array(&sq_count,
+                      &sq_array,
+                      (SquareSet) 1);
+  g_assert(sq_count == 1);
+  g_assert(*sq_array == A1);
+  g_assert(sq_array[0] == A1);
+  printf("sq_array=%p\n", (void *) sq_array);
+  free(sq_array); // Not sure it is correct, must be checked!!! SEAMS OK!!
 }
 
 

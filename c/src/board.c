@@ -482,6 +482,26 @@ square_set_random_selection (RandomNumberGenerator *const rng,
   return (Square) bit_works_bitscanLS1B_64(s);
 }
 
+void
+square_set_to_array (int *sq_count,
+                     Square **sq_array,
+                     const SquareSet squares)
+{
+  static const size_t size_of_square = sizeof(Square);
+  const int square_count = bit_works_popcount(squares);
+  Square *sqa = (Square *) malloc(square_count * size_of_square);
+  printf("sqa=%p\n", (void *) sqa);
+  g_assert(sqa);
+  SquareSet s = squares;
+  for (int i = 0; i < square_count; i++) {
+    const Square sq = bit_works_bitscanLS1B_64(s);
+    *(sqa + i) = sq;
+    s ^= (Square) 1 << sq;
+  }
+  *sq_count = square_count;
+  *sq_array = sqa;
+  return;
+}
 
 
 /***************************************************/
