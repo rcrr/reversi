@@ -215,21 +215,25 @@ square_as_move_to_string_test (void)
 static void
 square_array_to_string_test (void)
 {
+  //! [square_array_to_string usage]
   const Square sqa[] = {A1, D7, H8};
   const int length = 3;
   gchar *expected = square_array_to_string(sqa, length);
   g_assert_cmpstr(expected, ==, "A1 D7 H8");
   g_free(expected);
+  //! [square_array_to_string usage]
 }
 
 static void
 square_as_move_array_to_string_test (void)
 {
+  //! [square_as_move_array_to_string usage]
   const Square mova[] = {A1, D7, H8, pass_move};
   const int length = 4;
   gchar *expected = square_as_move_array_to_string(mova, length);
   g_assert_cmpstr(expected, ==, "A1 D7 H8 --");
   g_free(expected);
+  //! [square_as_move_array_to_string usage]
 }
 
 static void
@@ -251,12 +255,10 @@ square_is_valid_move_test (void)
 /* Unit tests for the SquareSet entity. */
 /****************************************/
 
-// Missing:
-// square_set_random_selection
-
 static void
 square_set_to_pg_json_array_test (void)
 {
+  //! [square_set_to_pg_json_array usage]
   gchar *pg_json_string;
   pg_json_string = square_set_to_pg_json_array((SquareSet) 0);
   g_assert_cmpstr(pg_json_string, ==, "[]");
@@ -264,11 +266,13 @@ square_set_to_pg_json_array_test (void)
   pg_json_string = square_set_to_pg_json_array((SquareSet) 5);
   g_assert_cmpstr(pg_json_string, ==, "[\"\"A1\"\", \"\"C1\"\"]");
   g_free(pg_json_string);
+  //! [square_set_to_pg_json_array usage]
 }
 
 static void
 square_set_to_string_test (void)
 {
+  //! [square_set_to_string usage]
   gchar *ss_to_string;
   ss_to_string = square_set_to_string((SquareSet) 0);
   g_assert_cmpstr(ss_to_string, ==, "");
@@ -276,12 +280,22 @@ square_set_to_string_test (void)
   ss_to_string = square_set_to_string((SquareSet) 5);
   g_assert_cmpstr(ss_to_string, ==, "A1 C1");
   g_free(ss_to_string);
+  //! [square_set_to_string usage]
 }
 
 static void
 square_set_random_selection_test (void)
 {
-  RandomNumberGenerator *rng = rng_new(17598);
+  //! [square_set_random_selection usage]
+  const unsigned int seed = 1739;
+  RandomNumberGenerator *rng = rng_new(seed);
+  const SquareSet squares = (SquareSet) 7; // 7 is {A1, B1, C1}
+  const Square sq = square_set_random_selection(rng, squares);
+  g_assert(sq == A1 || sq == B1 || sq == C1);
+  rng_free(rng);
+  //! [square_set_random_selection usage]
+
+  RandomNumberGenerator *rng1 = rng_new(17598);
 
   const int max_iteration_count = 1000000;
   unsigned long int observations[square_cardinality];
@@ -289,7 +303,7 @@ square_set_random_selection_test (void)
     observations[i] = 0;
   }
   for (int j = 0; j < max_iteration_count; j++) {
-    const Square sq = square_set_random_selection(rng, (SquareSet) 0xFFFFFFFFFFFFFFFF);
+    const Square sq = square_set_random_selection(rng1, (SquareSet) 0xFFFFFFFFFFFFFFFF);
     g_assert(sq >= A1 || sq <= H8);
     observations[sq]++;
     int touched_count = 0;
@@ -302,16 +316,16 @@ square_set_random_selection_test (void)
  out:
 
   for (int i = 0; i < 1000; i++) {
-    const Square sq = square_set_random_selection(rng, (SquareSet) 5);
+    const Square sq = square_set_random_selection(rng1, (SquareSet) 5);
     g_assert(sq == A1 || sq == C1);
   }
 
   for (int i = 0; i < 100; i++) {
-    const Square sq = square_set_random_selection(rng, (SquareSet) 2);
+    const Square sq = square_set_random_selection(rng1, (SquareSet) 2);
     g_assert(sq == B1);
   }
 
-  rng_free(rng);
+  rng_free(rng1);
 }
 
 

@@ -255,14 +255,14 @@ square_is_valid_move (const Square move);
 /*************************************************/
 
 extern gchar *
-square_set_to_pg_json_array (SquareSet squares);
+square_set_to_pg_json_array (const SquareSet squares);
 
 extern gchar *
-square_set_to_string (SquareSet squares);
+square_set_to_string (const SquareSet squares);
 
 extern Square
 square_set_random_selection (RandomNumberGenerator *const rng,
-                             SquareSet squares);
+                             const SquareSet squares);
 
 
 

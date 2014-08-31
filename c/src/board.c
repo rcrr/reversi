@@ -237,10 +237,10 @@ board_module_init (void)
 const gchar *
 square_to_string (const Square sq)
 {
-  if (sq >= A1 && sq <= H8) {
+  if (square_belongs_to_enum_set(sq)) {
     return sq_to_s[sq];
   } else {
-    return sq_to_s[65]; // 65 means "NA"
+    return sq_to_s[65]; // sq_to_s[65] is "NA"
   }
 }
 
@@ -262,7 +262,7 @@ const gchar *
 square_as_move_to_string (const Square move)
 {
   if (move == pass_move) {
-    return sq_to_s[64]; // 64 means "--"
+    return sq_to_s[64]; // sq_to_s[64] is "--"
   } else {
     return square_to_string(move);
   }
@@ -273,15 +273,10 @@ square_as_move_to_string (const Square move)
  *
  * @details The returned string has to be freed by the caller.
  *
- * A sample call is here exemplified:
+ * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @code{.c}
- * const Square sqa[] = {A1, D7, H8};
- * const int length = 3;
- * gchar *expected = square_array_to_string(sqa, length);
- * g_assert_cmpstr(expected, ==, "A1 D7 H8");
- * g_free(expected);
- * @endcode
+ * @snippet board_test.c square_array_to_string usage
+ * A sample call is here exemplified:
  *
  * @param [in] sqa    the square array to convert
  * @param [in] length the count of elements in the array
@@ -312,15 +307,9 @@ square_array_to_string (const Square sqa[],
  *
  * @details The returned string has to be freed by the caller.
  *
- * A sample call is here exemplified:
+ * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @code{.c}
- * const Square mova[] = {A1, D7, H8, pass_move};
- * const int length = 4;
- * gchar *expected = square_as_move_array_to_string(mova, length);
- * g_assert_cmpstr(expected, ==, "A1 D7 H8 --");
- * g_free(expected);
- * @endcode
+ * @snippet board_test.c square_as_move_array_to_string usage
  *
  * @param [in] mova   the move array to convert
  * @param [in] length the count of elements in the array
@@ -392,27 +381,22 @@ square_is_valid_move (const Square move)
  *
  * @details The returned string has to be freed by the caller.
  *
- * A sample call is here exemplified:
+ * PostgreSQL command COPY requires that the json array elements are
+ * "double quoted", so to obtain a db field equal to `["A1", "C1"]`,
+ * the string to be prepared is `[""A1"", ""C1""]`.
  *
- * @code{.c}
- * gchar *pg_json_string;
- * pg_json_string = square_set_to_pg_json_array((SquareSet) 5);
- * g_assert_cmpstr(pg_json_string, ==, "[\"\"A1\"\", \"\"C1\"\"]");
- * g_free(pg_json_string);
- * @endcode
+ * A sample usage scenario taken from unit tests is here exemplified:
+ *
+ * @snippet board_test.c square_set_to_pg_json_array usage
  *
  * @param [in] squares the square set to be converted into a string
  * @return             a string having the given squares represented
  *                     as a postgresql json array
  */
 gchar *
-square_set_to_pg_json_array (SquareSet squares)
+square_set_to_pg_json_array (const SquareSet squares)
 {
-  gchar *ss_to_string;
-  GString *tmp;
-
-  tmp = g_string_sized_new(10);
-
+  GString *tmp = g_string_sized_new(10);
   g_string_append_printf(tmp, "[");
   Square move = 0;
   gboolean passed = FALSE;
@@ -429,11 +413,9 @@ square_set_to_pg_json_array (SquareSet squares)
     move++;
   }
   g_string_append_printf(tmp, "]");
-
-  ss_to_string = tmp->str;
+  gchar *squares_to_string = tmp->str;
   g_string_free(tmp, FALSE);
-
-  return ss_to_string;
+  return squares_to_string;
 }
 
 /**
@@ -441,29 +423,17 @@ square_set_to_pg_json_array (SquareSet squares)
  *
  * @details The returned string has to be freed by the caller.
  *
- * A sample call is here exemplified:
+ * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @code{.c}
- * gchar *ss_to_string;
- * ss_to_string = square_set_to_string((SquareSet) 0);
- * g_assert_cmpstr(ss_to_string, ==, "");
- * g_free(ss_to_string);
- * ss_to_string = square_set_to_string((SquareSet) 5);
- * g_assert_cmpstr(ss_to_string, ==, "A1 C1");
- * g_free(ss_to_string);
- * @endcode
+ * @snippet board_test.c square_set_to_string usage
  *
  * @param [in] squares the square set to be converted into a string
  * @return             a string having the squares sorted as the `Square` enum
  */
 gchar *
-square_set_to_string (SquareSet squares)
+square_set_to_string (const SquareSet squares)
 {
-  char *ss_to_string;
-  GString *tmp;
-
-  tmp = g_string_sized_new(10);
-
+  GString *tmp = g_string_sized_new(10);
   Square move = 0;
   gboolean passed = FALSE;
   for (SquareSet cursor = 1; cursor != 0; cursor <<= 1) {
@@ -478,11 +448,9 @@ square_set_to_string (SquareSet squares)
     }
     move++;
   }
-
-  ss_to_string = tmp->str;
+  gchar *squares_to_string = tmp->str;
   g_string_free(tmp, FALSE);
-
-  return ss_to_string;
+  return squares_to_string;
 }
 
 /**
@@ -491,24 +459,27 @@ square_set_to_string (SquareSet squares)
  * @invariant Parameter `squares` must not be empty.
  * The invariant is guarded by an assertion.
  *
+ * A sample usage scenario taken from unit tests is here exemplified:
+ *
+ * @snippet board_test.c square_set_random_selection usage
+ *
  * @param [in,out] rng the random number generator instance
  * @param [in]         squares a square set
  * @return             one square selected among the set
  */
 Square
 square_set_random_selection (RandomNumberGenerator *const rng,
-                             SquareSet squares)
+                             const SquareSet squares)
 {
   g_assert(squares != empty_square_set);
-
+  SquareSet s = squares;
   const int square_count = bit_works_popcount(squares);
   const int square_index = rng_random_choice_from_finite_set(rng, square_count);
-  g_assert(square_index <= square_count - 1);
   for (int i = 0; i < square_count; i++) {
     if (i == square_index) break;
-    squares ^= bit_works_lowest_bit_set_64(squares);
+    s ^= bit_works_lowest_bit_set_64(s);
   }
-  return (Square) bit_works_bitscanLS1B_64(squares);
+  return (Square) bit_works_bitscanLS1B_64(s);
 }
 
 
@@ -840,7 +811,7 @@ board_get_square (const Board *const b,
                   const Square sq)
 {
   g_assert(b);
-  g_assert(sq >= A1 && sq <= H8);
+  g_assert(square_belongs_to_enum_set(sq));
 
   SquareSet bitsquare = (SquareSet) 1 << sq;
   if (bitsquare & b->blacks)
@@ -2133,7 +2104,7 @@ game_position_x_get_square (const GamePositionX *const gpx,
                             const Square sq)
 {
   g_assert(gpx);
-  g_assert(sq >= A1 && sq <= H8);
+  g_assert(square_belongs_to_enum_set(sq));
 
   SquareSet bitsquare = (SquareSet) 1 << sq;
   if (bitsquare & gpx->blacks)
