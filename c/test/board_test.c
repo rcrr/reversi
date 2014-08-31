@@ -333,17 +333,39 @@ square_set_random_selection_test (void)
 static void
 square_set_to_array_test (void)
 {
-
+  //! [square_set_to_array usage]
   int sq_count;
   Square *sq_array;
   square_set_to_array(&sq_count,
                       &sq_array,
+                      (SquareSet) 5);
+  g_assert(sq_count == 2);
+  g_assert(sq_array[0] == A1);
+  g_assert(sq_array[1] == C1);
+  free(sq_array);
+  //! [square_set_to_array usage]
+
+  square_set_to_array(&sq_count,
+                      &sq_array,
+                      (SquareSet) 0);
+  g_assert(sq_count == 0);
+  free(sq_array);
+
+  square_set_to_array(&sq_count,
+                      &sq_array,
                       (SquareSet) 1);
   g_assert(sq_count == 1);
-  g_assert(*sq_array == A1);
   g_assert(sq_array[0] == A1);
-  printf("sq_array=%p\n", (void *) sq_array);
-  free(sq_array); // Not sure it is correct, must be checked!!! SEAMS OK!!
+  free(sq_array);
+
+  square_set_to_array(&sq_count,
+                      &sq_array,
+                      (SquareSet) 0xFFFFFFFFFFFFFFFF);
+  g_assert(sq_count == 64);
+  for (int i = 0; i < 64; i++) {
+    g_assert_cmpint(sq_array[i], ==, (Square) i);
+  }
+  free(sq_array);
 }
 
 

@@ -482,6 +482,25 @@ square_set_random_selection (RandomNumberGenerator *const rng,
   return (Square) bit_works_bitscanLS1B_64(s);
 }
 
+/**
+ * @brief Transforms the square set into an array.
+ *
+ * @details The array size, equal to the number of squares held in the set, is
+ * returned into the value pointed by the `sq_count` parameter.
+ * The array is dynamically allocated by the function, squares are returned
+ * manteining the `Square` enum natural order.
+ * The `sq_array` parameter is a pointer to the allocated array.
+ *
+ * The returned array has to be freed by the caller.
+ *
+ * A sample usage scenario taken from unit tests is here exemplified:
+ *
+ * @snippet board_test.c square_set_to_array usage
+ *
+ * @param [out] sq_count the size of the returned array
+ * @param [out] sq_array a pointer to the allocated new array
+ * @param [in]  squares  a square set
+ */
 void
 square_set_to_array (int *sq_count,
                      Square **sq_array,
@@ -489,18 +508,16 @@ square_set_to_array (int *sq_count,
 {
   static const size_t size_of_square = sizeof(Square);
   const int square_count = bit_works_popcount(squares);
-  Square *sqa = (Square *) malloc(square_count * size_of_square);
-  printf("sqa=%p\n", (void *) sqa);
-  g_assert(sqa);
+  Square *array = (Square *) malloc(square_count * size_of_square);
+  g_assert(array);
   SquareSet s = squares;
   for (int i = 0; i < square_count; i++) {
     const Square sq = bit_works_bitscanLS1B_64(s);
-    *(sqa + i) = sq;
-    s ^= (Square) 1 << sq;
+    *(array + i) = sq;
+    s ^= (SquareSet) 1 << sq;
   }
   *sq_count = square_count;
-  *sq_array = sqa;
-  return;
+  *sq_array = array;
 }
 
 
