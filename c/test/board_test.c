@@ -55,6 +55,7 @@ static void square_set_to_pg_json_array_test (void);
 static void square_set_to_string_test (void);
 static void square_set_random_selection_test (void);
 static void square_set_to_array_test (void);
+static void square_set_from_array_test (void);
 
 static void player_color_test (void);
 static void player_description_test (void);
@@ -124,6 +125,7 @@ main (int   argc,
   g_test_add_func("/board/square_set_to_string_test", square_set_to_string_test);
   g_test_add_func("/board/square_set_random_selection_test", square_set_random_selection_test);
   g_test_add_func("/board/square_set_to_array_test", square_set_to_array_test);
+  g_test_add_func("/board/square_set_from_array_test", square_set_from_array_test);
 
   g_test_add_func("/board/player_color_test", player_color_test);
   g_test_add_func("/board/player_description_test", player_description_test);
@@ -366,6 +368,27 @@ square_set_to_array_test (void)
     g_assert_cmpint(sq_array[i], ==, (Square) i);
   }
   free(sq_array);
+}
+
+static void
+square_set_from_array_test (void)
+{
+  //! [square_set_from_array usage]
+  const Square sq_array[] = {A1, C1};
+  const int sq_count = 2;
+  const SquareSet computed = square_set_from_array(sq_array, sq_count);
+  g_assert_cmpint(computed, ==, (SquareSet) 5);
+  //! [square_set_from_array usage]
+
+  const Square sq_array_1[] = {A1, C1, A1};
+  const int sq_count_1 = 3;
+  const SquareSet computed_1 = square_set_from_array(sq_array_1, sq_count_1);
+  g_assert_cmpint(computed_1, ==, (SquareSet) 5);
+
+  const Square *sq_array_2 = NULL;
+  const int sq_count_2 = 0;
+  const SquareSet computed_2 = square_set_from_array(sq_array_2, sq_count_2);
+  g_assert_cmpint(computed_2, ==, (SquareSet) 0);
 }
 
 

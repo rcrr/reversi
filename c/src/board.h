@@ -269,6 +269,10 @@ square_set_to_array (int *sq_count,
                      Square **sq_array,
                      const SquareSet squares);
 
+extern SquareSet
+square_set_from_array (const Square sq_array[],
+                       const int sq_count);
+
 
 
 /********************************************/

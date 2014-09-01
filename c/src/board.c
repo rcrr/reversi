@@ -520,6 +520,36 @@ square_set_to_array (int *sq_count,
   *sq_array = array;
 }
 
+/**
+ * @brief Transform the array of squares into a square set.
+ *
+ * @invariant Parameter `sq_array` must be composed of elements belonging to the `Squae` enum.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `sq_count` must be not negative.
+ * The invariant is guarded by an assertion.
+ *
+ * A sample usage scenario taken from unit tests is here exemplified:
+ *
+ * @snippet board_test.c square_set_from_array usage
+ *
+ * @param sq_array the array to be converted
+ * @param sq_count the number of squares in the array
+ * @return         the resulting square set
+ */
+SquareSet
+square_set_from_array (const Square sq_array[],
+                       const int sq_count)
+{
+  g_assert(sq_count >= 0);
+  SquareSet squares = 0;
+  for (int i = 0; i < sq_count; i++) {
+    const Square sq = sq_array[i];
+    g_assert(square_belongs_to_enum_set(sq));
+    squares |= (SquareSet) 1 << sq;
+  }
+  return squares;
+}
 
 /***************************************************/
 /* Function implementations for the Player entity. */
