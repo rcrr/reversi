@@ -66,7 +66,7 @@ random_shuffle_array_uint8 (uint8_t *array,
 extern RandomNumberGenerator *
 rng_new (const unsigned long int seed);
 
-extern RandomNumberGenerator *
+extern void
 rng_free (RandomNumberGenerator *rng);
 
 extern unsigned long int

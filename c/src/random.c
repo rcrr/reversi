@@ -157,24 +157,19 @@ rng_new (const unsigned long int seed)
 }
 
 /**
- * @brief RandomNumberGenerator structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #rng_new.
  *
- * @invariant Parameter `rng` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * @details If a null pointer is passed as argument, no action occurs.
  *
  * @param [in,out] rng the pointer to be deallocated
- * @return             always the NULL pointer
  */
-RandomNumberGenerator *
+void
 rng_free (RandomNumberGenerator *rng)
 {
-  g_assert(rng);
-
-  gsl_rng_free(rng->r);
-  free(rng);
-  rng = NULL;
-
-  return rng;
+  if (rng) {
+    gsl_rng_free(rng->r);
+    free(rng);
+  }
 }
 
 /**

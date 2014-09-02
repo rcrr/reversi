@@ -607,8 +607,7 @@ hlp_rng_random_choice_from_finite_set_test (const gboolean just_log,
     }
     chi_square_category_observations[hlp_chi_square_assign_to_category(chi_square, s_size - 1)]++;
 
-    rng = rng_free(rng);
-    g_assert(rng == NULL);
+    rng_free(rng);
   }
 
   for (int k = 0; k < CHI_SQUARE_CATEGORIES_COUNT; k++) {
