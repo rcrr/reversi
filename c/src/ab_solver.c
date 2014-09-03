@@ -106,7 +106,7 @@ typedef struct {
 static GameTreeStack *
 game_tree_stack_new ();
 
-static GameTreeStack *
+static void
 game_tree_stack_free (GameTreeStack *stack);
 
 static void
@@ -227,23 +227,16 @@ game_tree_stack_new ()
 }
 
 /*
- * @brief GameTreeStack structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #game_tree_stack_new.
  *
- * @invariant Parameter `stack` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * @details If a null pointer is passed as argument, no action occurs.
  *
- * @param [in] stack the pointer to be deallocated
- * @return           always the NULL pointer
+ * @param [in,out] stack the pointer to be deallocated
  */
-static GameTreeStack *
+static void
 game_tree_stack_free (GameTreeStack *stack)
 {
-  g_assert(stack);
-
   free(stack);
-  stack = NULL;
-
-  return stack;
 }
 
 /*
