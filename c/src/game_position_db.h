@@ -65,7 +65,7 @@ typedef enum {
 /**
  * @brief A syntax error in processing entries in a game position database.
  *
- * Fields must be kept private, the #gpdb_entry_syntax_error_free function frees them all.
+ * @details Fields must be kept private, the #gpdb_entry_syntax_error_free function frees them all.
  */
 typedef struct {
   GamePositionDbEntrySyntaxErrorType  error_type;      /**< @brief The type of the error. */
@@ -78,7 +78,7 @@ typedef struct {
 /**
  * @brief An `Entry` collects the #GamePosition data with a description and an unique key.
  *
- * Fields must be kept private, the #gpdb_entry_free function frees them all.
+ * @details Fields must be kept private, the #gpdb_entry_free function frees them all.
  */
 typedef struct {
   gchar        *id;                /**< @brief It is a string used as key in the dictionary. */
@@ -89,7 +89,7 @@ typedef struct {
 /**
  * @brief A database of #GamePositionDbEntry.
  *
- * Entries are organized in a dictionary having has key the id field of each entry.
+ * @details Entries are organized in a dictionary having has key the id field of each entry.
  * Duplicated keys are not allowed. Trying to insert a key already loaded generates
  * an error added to the log.
  *
@@ -103,17 +103,17 @@ typedef struct {
 
 
 /**********************************************************************/
-/* Function prototypes for the GamePositionDbEntrySyntaxError entity. */ 
+/* Function prototypes for the GamePositionDbEntrySyntaxError entity. */
 /**********************************************************************/
 
 extern GamePositionDbEntrySyntaxError *
 gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
-                             char                               *source,
-                             int                                 line_number,
-                             char                               *line,
-                             char                               *error_message);
+                             char *source,
+                             int line_number,
+                             char *line,
+                             char *error_message);
 
-extern GamePositionDbEntrySyntaxError *
+extern void
 gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *syntax_error);
 
 extern gchar *
@@ -122,13 +122,13 @@ gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *synta
 
 
 /********************************************************************/
-/* Function prototypes for the GamePositionDbSyntaxErrorLog entity. */ 
+/* Function prototypes for the GamePositionDbSyntaxErrorLog entity. */
 /********************************************************************/
 
 extern GamePositionDbSyntaxErrorLog *
 gpdb_syntax_error_log_new (void);
 
-extern GamePositionDbSyntaxErrorLog *
+extern void
 gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log);
 
 extern gchar *
@@ -140,26 +140,26 @@ gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log);
 
 
 /******************************************************/
-/* Function prototypes for the GamePositionDb entity. */ 
+/* Function prototypes for the GamePositionDb entity. */
 /******************************************************/
 
 extern int
-gpdb_load (FILE                          *fp,
-           gchar                         *source,
-           GamePositionDb                *db,
+gpdb_load (FILE *fp,
+           gchar *source,
+           GamePositionDb *db,
            GamePositionDbSyntaxErrorLog **p_syntax_error_log,
-           GError                       **p_e);
+           GError **p_e);
 
 extern GamePositionDb *
 gpdb_new (char *desc);
 
-extern GamePositionDb *
+extern void
 gpdb_free (GamePositionDb *db,
-           gboolean        free_segment);
+           gboolean free_segment);
 
 extern GamePositionDbEntry *
 gpdb_lookup (GamePositionDb *db,
-             gchar          *entry_id);
+             gchar *entry_id);
 
 extern gchar *
 gpdb_print (GamePositionDb *db);
@@ -171,15 +171,15 @@ extern int
 gpdb_length (GamePositionDb *db);
 
 /***********************************************************/
-/* Function prototypes for the GamePositionDbEntry entity. */ 
+/* Function prototypes for the GamePositionDbEntry entity. */
 /***********************************************************/
 
 extern GamePositionDbEntry *
 gpdb_entry_new (void);
 
-extern GamePositionDbEntry *
+extern void
 gpdb_entry_free (GamePositionDbEntry *entry,
-                 gboolean             free_segment);
+                 gboolean free_segment);
 
 extern gchar *
 gpdb_entry_print (GamePositionDbEntry *entry);

@@ -116,26 +116,21 @@ gpdb_syntax_error_log_new (void)
 }
 
 /**
- * @brief Game position database syntax error log destructor.
+ * @brief Deallocates the memory previously allocated by a call to #gpdb_syntax_error_log_new.
  *
- * The error structures, content of the log,  must
+ * @details The error structures, content of the log,  must
  * be not shared elsewhere. This function frees them all.
  *
- * @invariant Parameter `syntax_error_log` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * If a null pointer is passed as argument, no action occurs.
  *
- * @param [in] syntax_error_log the pointer to be deallocated
- * @return                      always the NULL pointer
+ * @param [in,out] syntax_error_log the pointer to be deallocated
  */
-GamePositionDbSyntaxErrorLog *
+void
 gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log)
 {
-  g_assert(syntax_error_log);
-
-  g_slist_free_full(syntax_error_log, (GDestroyNotify) gpdb_syntax_error_log_destroy_function);
-  syntax_error_log = NULL;
-
-  return syntax_error_log;
+  if (syntax_error_log) {
+    g_slist_free_full(syntax_error_log, (GDestroyNotify) gpdb_syntax_error_log_destroy_function);
+  }
 }
 
 /**
@@ -261,30 +256,24 @@ gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
 }
 
 /**
- * @brief Game position database syntax error structure structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #gpdb_entry_syntax_error_new.
  *
- * The fields belonging to the error parameter `error` must
+ * @details The fields belonging to the error parameter `error` must
  * be not shared elsewhere. This function frees them all.
  *
- * @invariant Parameter `error` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * If a null pointer is passed as argument, no action occurs.
  *
- * @param [in] error the pointer to be deallocated
- * @return           always the NULL pointer
+ * @param [in,out] error the pointer to be deallocated
  */
-GamePositionDbEntrySyntaxError *
+void
 gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *error)
 {
-  g_assert(error);
-
-  g_free(error->source);
-  g_free(error->line);
-  g_free(error->error_message);
-
-  g_free(error);
-  error = NULL;
-
-  return error;
+  if (error) {
+    g_free(error->source);
+    g_free(error->line);
+    g_free(error->error_message);
+    g_free(error);
+  }
 }
 
 /**
@@ -419,33 +408,27 @@ gpdb_new (char *desc)
 }
 
 /**
- * @brief Game position database structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #gpdb_new.
  *
- * @invariant Parameter `db` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * @details If a null pointer is passed as argument, no action occurs.
  *
- * @param [in] db           the pointer to be deallocated
- * @param [in] free_segment if yes also frees the data stored in the db
- * @return                  always the NULL pointer
+ * @param [in,out] db           the pointer to be deallocated
+ * @param [in]     free_segment if yes also frees the data stored in the db
  */
-GamePositionDb *
+void
 gpdb_free (GamePositionDb *db,
-           gboolean        free_segment)
+           gboolean free_segment)
 {
-  g_assert(db);
-
-  if (free_segment) {
-    if (db->desc)
-      g_free(db->desc);
-    if (db->tree) {
-      g_tree_destroy(db->tree);
+  if (db) {
+    if (free_segment) {
+      if (db->desc)
+        g_free(db->desc);
+      if (db->tree) {
+        g_tree_destroy(db->tree);
+      }
     }
+    g_free(db);
   }
-
-  g_free(db);
-  db = NULL;
-
-  return db;
 }
 
 /**
@@ -527,7 +510,7 @@ gpdb_load (FILE *fp,
                                                    line_number,
                                                    line,
                                                    g_strdup_printf("id \"%s\" is duplicated.", entry->id));
-        entry = gpdb_entry_free(entry, TRUE);
+        gpdb_entry_free(entry, TRUE);
       } else {
         g_tree_insert(tree, g_strdup(entry->id), entry);
         g_free(line);
@@ -671,31 +654,25 @@ gpdb_entry_new (void)
 }
 
 /**
- * @brief Game position database entry structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #gpdb_entry_new.
  *
- * @invariant Parameter `entry` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * @details If a null pointer is passed as argument, no action occurs.
  *
- * @param [in] entry        the pointer to be deallocated
- * @param [in] free_segment if yes also free the data referenced by the entry
- * @return                  always the NULL pointer
+ * @param [in,out] entry        the pointer to be deallocated
+ * @param [in]     free_segment if yes also frees the data stored in the db
  */
-GamePositionDbEntry *
+void
 gpdb_entry_free (GamePositionDbEntry *entry,
                  gboolean free_segment)
 {
-  g_assert(entry);
-
-  if (free_segment) {
-    g_free(entry->id);
-    game_position_free(entry->game_position);
-    g_free(entry->desc);
+  if (entry) {
+    if (free_segment) {
+      g_free(entry->id);
+      game_position_free(entry->game_position);
+      g_free(entry->desc);
+    }
+    g_free(entry);
   }
-
-  g_free(entry);
-  entry = NULL;
-
-  return entry;
 }
 
 /**
