@@ -180,7 +180,7 @@ game_position_solve (const GamePosition *const root,
     pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve_root_line, result);
     exact_solution_compute_final_board(result);
   }
-  sn = search_node_free(sn);
+  search_node_free(sn);
   pve_free(pve);
 
   game_tree_log_close(log_env);
@@ -307,7 +307,7 @@ game_position_solve_impl (ExactSolution *const result,
         *pve_parent_line_p = pve_line;
         if (node->value >= cutoff) goto out;
       } else {
-        node2 = search_node_free(node2);
+        search_node_free(node2);
         pve_line_delete(pve, pve_line);
       }
     }

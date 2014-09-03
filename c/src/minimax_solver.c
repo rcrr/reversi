@@ -114,7 +114,7 @@ game_position_minimax_solve (const GamePosition *const root,
 
   result->pv[0] = sn->move;
   result->outcome = sn->value;
-  sn = search_node_free(sn);
+  search_node_free(sn);
 
   game_tree_log_close(log_env);
 
@@ -191,7 +191,7 @@ game_position_solve_impl (ExactSolution *const result,
         node->move = move;
         node2 = NULL;
       } else {
-        node2 = search_node_free(node2);
+        search_node_free(node2);
       }
     }
   }

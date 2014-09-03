@@ -138,7 +138,7 @@ game_position_random_sampler (const GamePosition *const root,
       result->pv[0] = sn->move;
       result->outcome = sn->value;
     }
-    sn = search_node_free(sn);
+    search_node_free(sn);
   }
 
   game_tree_log_close(log_env);

@@ -594,23 +594,16 @@ search_node_new (const Square move, const int value)
 }
 
 /**
- * @brief Search node structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #search_node_new.
  *
- * @invariant Parameter `sn` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * @details If a null pointer is passed as argument, no action occurs.
  *
- * @param [in] sn the pointer to be deallocated
- * @return        always the NULL pointer
+ * @param [in,out] sn the pointer to be deallocated
  */
-SearchNode *
+void
 search_node_free (SearchNode *sn)
 {
-  g_assert(sn);
-
   free(sn);
-  sn = NULL;
-
-  return sn;
 }
 
 /**

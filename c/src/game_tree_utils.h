@@ -171,7 +171,7 @@ extern SearchNode *
 search_node_new (const Square move,
                  const int value);
 
-extern SearchNode *
+extern void
 search_node_free (SearchNode *sn);
 
 extern SearchNode *
