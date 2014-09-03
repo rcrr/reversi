@@ -97,25 +97,25 @@ typedef struct {
  * Prototypes for internal functions.
  */
 
-static GameTreeStack*
+static GameTreeStack *
 game_tree_stack_new();
 
-static GameTreeStack*
-game_tree_stack_free(GameTreeStack* stack);
+static void
+game_tree_stack_free (GameTreeStack* stack);
 
 static void
-game_position_solve_impl(ExactSolution* const result,
-                         GameTreeStack* const stack,
-                         const int sub_run_id);
+game_position_solve_impl (ExactSolution* const result,
+                          GameTreeStack* const stack,
+                          const int sub_run_id);
 
 static void
-game_tree_stack_init(const GamePosition* const root,
-                     GameTreeStack* const stack);
+game_tree_stack_init (const GamePosition* const root,
+                      GameTreeStack* const stack);
 
 inline static void
-legal_move_list_from_set(const SquareSet legal_move_set,
-                         NodeInfo* const current_node_info,
-                         NodeInfo* const next_node_info);
+legal_move_list_from_set (const SquareSet legal_move_set,
+                          NodeInfo* const current_node_info,
+                          NodeInfo* const next_node_info);
 
 
 
@@ -237,23 +237,16 @@ game_tree_stack_new (void)
 }
 
 /**
- * @brief GameTreeStack structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #game_tree_stack_new.
  *
- * @invariant Parameter `stack` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * @details If a null pointer is passed as argument, no action occurs.
  *
- * @param [in] stack the pointer to be deallocated
- * @return           always the NULL pointer
+ * @param [in,out] stack the pointer to be deallocated
  */
-static GameTreeStack *
+static void
 game_tree_stack_free (GameTreeStack *stack)
 {
-  g_assert(stack);
-
   free(stack);
-  stack = NULL;
-
-  return stack;
 }
 
 /**
