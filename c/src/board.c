@@ -1,8 +1,6 @@
 /**
  * @file
  *
- * @todo All the free functions should return void and should not fail on a null pointer parameter.
- *
  * @brief Board module implementation.
  * @details This module defines functions for the #Player, #SquareState,
  * #Square, #SquareSet, #Board, #GamePosition, #Direction entities.
