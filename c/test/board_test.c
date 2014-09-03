@@ -883,19 +883,19 @@ game_position_x_empties_test (void)
                             0x0000000000000000,
                             BLACK_PLAYER);
   g_assert(0xFFFFFFFFFFFFFFFF == game_position_x_empties(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x0000000000000000,
                             0x0000000000000001,
                             BLACK_PLAYER);
   g_assert(0xFFFFFFFFFFFFFFFE == game_position_x_empties(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0xFF00000000000001,
                             0x00FF000000000002,
                             WHITE_PLAYER);
   g_assert(0x0000FFFFFFFFFFFC == game_position_x_empties(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -907,13 +907,13 @@ game_position_x_get_player_test (void)
                             0x000000000000FF00,
                             BLACK_PLAYER);
   g_assert(0x00000000000000FF == game_position_x_get_player(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x00000000000000FF,
                             0x000000000000FF00,
                             WHITE_PLAYER);
   g_assert(0x000000000000FF00 == game_position_x_get_player(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -925,13 +925,13 @@ game_position_x_get_opponent_test (void)
                             0x000000000000FF00,
                             BLACK_PLAYER);
   g_assert(0x000000000000FF00 == game_position_x_get_opponent(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x00000000000000FF,
                             0x000000000000FF00,
                             WHITE_PLAYER);
   g_assert(0x00000000000000FF == game_position_x_get_opponent(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -943,7 +943,7 @@ game_position_x_legal_moves_test (void)
                             0x0040201008040200,
                             BLACK_PLAYER);
   g_assert(0x8000000000000000 == game_position_x_legal_moves(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -955,25 +955,25 @@ game_position_x_count_difference_test (void)
                             0x000000000000FF00,
                             BLACK_PLAYER);
   g_assert(0 == game_position_x_count_difference(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x00000000000000FF,
                             0x000000000000FF00,
                             WHITE_PLAYER);
   g_assert(0 == game_position_x_count_difference(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x0000000000000000,
                             0x000000000000FF00,
                             BLACK_PLAYER);
   g_assert(-8 == game_position_x_count_difference(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x0000000000000000,
                             0x000000000000FF00,
                             WHITE_PLAYER);
   g_assert(+8 == game_position_x_count_difference(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -988,7 +988,7 @@ game_position_x_to_string_test (void)
   game_position_x_to_string(gpx, gpx_to_string);
   g_assert(g_strcmp0("bbbbbbbbwwwwwwww................................................b",
                      gpx_to_string) == 0);
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x00000000000000FF,
                             0xFF0000000000FF00,
@@ -996,7 +996,7 @@ game_position_x_to_string_test (void)
   game_position_x_to_string(gpx, gpx_to_string);
   g_assert(g_strcmp0("bbbbbbbbwwwwwwww........................................wwwwwwwww",
                      gpx_to_string) == 0);
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -1011,7 +1011,7 @@ game_position_x_get_square_test (void)
   g_assert(WHITE_SQUARE == game_position_x_get_square(gpx, B1));
   g_assert(EMPTY_SQUARE == game_position_x_get_square(gpx, C1));
 
-   gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -1027,8 +1027,8 @@ game_position_x_compare_test (void)
                           0x0000000000000002,
                           BLACK_PLAYER);
   g_assert(0 == game_position_x_compare(a, b));
-  a = game_position_x_free(a);
-  b = game_position_x_free(b);
+  game_position_x_free(a);
+  game_position_x_free(b);
 
   a = game_position_x_new(0x0000000000000001,
                           0x0000000000000002,
@@ -1037,8 +1037,8 @@ game_position_x_compare_test (void)
                           0x0000000000000002,
                           WHITE_PLAYER);
   g_assert(-1 == game_position_x_compare(a, b));
-  a = game_position_x_free(a);
-  b = game_position_x_free(b);
+  game_position_x_free(a);
+  game_position_x_free(b);
 
   a = game_position_x_new(0x0000000000000001,
                           0x0000000000000002,
@@ -1047,8 +1047,8 @@ game_position_x_compare_test (void)
                           0x0000000000000002,
                           BLACK_PLAYER);
   g_assert(+1 == game_position_x_compare(a, b));
-  a = game_position_x_free(a);
-  b = game_position_x_free(b);
+  game_position_x_free(a);
+  game_position_x_free(b);
 
   a = game_position_x_new(0x0000000000000001,
                           0x0000000000000002,
@@ -1057,8 +1057,8 @@ game_position_x_compare_test (void)
                           0x0000000000000002,
                           BLACK_PLAYER);
   g_assert(-1 == game_position_x_compare(a, b));
-  a = game_position_x_free(a);
-  b = game_position_x_free(b);
+  game_position_x_free(a);
+  game_position_x_free(b);
 }
 
 static void
@@ -1071,8 +1071,8 @@ game_position_x_clone_test (void)
                           BLACK_PLAYER);
   b = game_position_x_clone(a);
   g_assert(0 == game_position_x_compare(a, b));
-  a = game_position_x_free(a);
-  b = game_position_x_free(b);
+  game_position_x_free(a);
+  game_position_x_free(b);
 }
 
 static void
@@ -1196,7 +1196,7 @@ game_position_x_hash_test (void)
   player = BLACK_PLAYER;
   gpx = game_position_x_new(blacks, whites, player);
   g_assert(expected == game_position_x_hash(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   expected = 0xFFFFFFFFFFFFFFFF;
   blacks = 0x0000000000000000;
@@ -1204,7 +1204,7 @@ game_position_x_hash_test (void)
   player = WHITE_PLAYER;
   gpx = game_position_x_new(blacks, whites, player);
   g_assert(expected == game_position_x_hash(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   expected = 0x4689879C5E2B6C8D ^ 0x1C10E0B05C7B3C49;
   blacks = 0x0000000000000002;
@@ -1212,7 +1212,7 @@ game_position_x_hash_test (void)
   player = BLACK_PLAYER;
   gpx = game_position_x_new(blacks, whites, player);
   g_assert(expected == game_position_x_hash(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   /*
    * The hash of two game position A, and B having the same board but different player satisfy
@@ -1222,7 +1222,7 @@ game_position_x_hash_test (void)
   player = WHITE_PLAYER;
   gpx = game_position_x_new(blacks, whites, player);
   g_assert(~expected == game_position_x_hash(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -1234,37 +1234,37 @@ game_position_x_final_value_test (void)
                             0x0000000000000000,
                             BLACK_PLAYER);
   g_assert(64 == game_position_x_final_value(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x0000000000000001,
                             0x0000000000000002,
                             BLACK_PLAYER);
   g_assert(0 == game_position_x_final_value(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x0000000000000001,
                             0x0000000000000002,
                             WHITE_PLAYER);
   g_assert(0 == game_position_x_final_value(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x0000000000000001,
                             0x0000000000000000,
                             BLACK_PLAYER);
   g_assert(64 == game_position_x_final_value(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x0000000000000001,
                             0x0000000000000000,
                             WHITE_PLAYER);
   g_assert(-64 == game_position_x_final_value(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x00FF000000000001,
                             0xFF00000000000000,
                             BLACK_PLAYER);
   g_assert(48 == game_position_x_final_value(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -1276,13 +1276,13 @@ game_position_x_has_any_legal_move_test (void)
                             0x8000000000000000,
                             WHITE_PLAYER);
   g_assert(TRUE == game_position_x_has_any_legal_move(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0xFFFFFFFFFFFFFFFE,
                             0x0000000000000000,
                             WHITE_PLAYER);
   g_assert(FALSE == game_position_x_has_any_legal_move(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -1294,25 +1294,25 @@ game_position_x_has_any_player_any_legal_move_test (void)
                             0x8000000000000000,
                             WHITE_PLAYER);
   g_assert(TRUE == game_position_x_has_any_player_any_legal_move(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
                             0x8000000000000000,
                             BLACK_PLAYER);
   g_assert(TRUE == game_position_x_has_any_player_any_legal_move(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0xFFFFFFFFFFFFFFFE,
                             0x0000000000000000,
                             WHITE_PLAYER);
   g_assert(FALSE == game_position_x_has_any_player_any_legal_move(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0xFFFFFFFFFFFFFFFE,
                             0x0000000000000000,
                             BLACK_PLAYER);
   g_assert(FALSE == game_position_x_has_any_player_any_legal_move(gpx));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -1324,19 +1324,19 @@ game_position_x_is_move_legal_test (void)
                             0x8000000000000000,
                             WHITE_PLAYER);
   g_assert(TRUE == game_position_x_is_move_legal(gpx, 0));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
                             0x8000000000000000,
                             WHITE_PLAYER);
   g_assert(FALSE == game_position_x_is_move_legal(gpx, 1));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 
   gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
                             0x0000000000000000,
                             WHITE_PLAYER);
   g_assert(FALSE == game_position_x_is_move_legal(gpx, 0));
-  gpx = game_position_x_free(gpx);
+  game_position_x_free(gpx);
 }
 
 static void
@@ -1362,7 +1362,7 @@ game_position_x_make_move_test (void)
   game_position_x_make_move(current, 0, updated);
   g_assert(0 == game_position_x_compare(expected, updated));
 
-  current  = game_position_x_free(current);
-  updated  = game_position_x_free(updated);
-  expected = game_position_x_free(expected);
+  game_position_x_free(current);
+  game_position_x_free(updated);
+  game_position_x_free(expected);
 }

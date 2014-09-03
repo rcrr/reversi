@@ -480,7 +480,7 @@ game_position_x_new (const SquareSet b,
                      const SquareSet w,
                      const Player p);
 
-extern GamePositionX *
+extern void
 game_position_x_free (GamePositionX *gpx);
 
 extern GamePositionX *

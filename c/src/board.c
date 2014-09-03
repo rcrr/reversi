@@ -1944,23 +1944,16 @@ game_position_x_new (const SquareSet b,
 }
 
 /**
- * @brief Game position x structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #game_position_x_new.
  *
- * @invariant Parameter `gpx` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * @details If a null pointer is passed as argument, no action occurs.
  *
- * @param [in] gpx the pointer to be deallocated
- * @return         always the NULL pointer
+ * @param [in,out] gpx the pointer to be deallocated
  */
-GamePositionX *
+void
 game_position_x_free (GamePositionX *gpx)
 {
-  g_assert(gpx);
-
   free(gpx);
-  gpx = NULL;
-
-  return gpx;
 }
 
 /**
