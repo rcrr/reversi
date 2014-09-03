@@ -43,7 +43,7 @@
 
 
 /**********************************************/
-/* Type declarations.                         */ 
+/* Type declarations.                         */
 /**********************************************/
 
 /**
@@ -92,7 +92,7 @@ typedef struct {
 
 
 /**********************************************/
-/* Global constants.                          */ 
+/* Global constants.                          */
 /**********************************************/
 
 /**
@@ -103,13 +103,13 @@ static const int invalid_outcome = 65;
 
 
 /**********************************************************/
-/* Function implementations for the ExactSolution entity. */ 
+/* Function implementations for the ExactSolution entity. */
 /**********************************************************/
 
 extern ExactSolution *
 exact_solution_new (void);
 
-extern ExactSolution *
+extern void
 exact_solution_free (ExactSolution *es);
 
 extern gchar *
@@ -121,7 +121,7 @@ exact_solution_compute_final_board (ExactSolution *const es);
 
 
 /**************************************************/
-/* Function implementations for the PVEnv entity. */ 
+/* Function implementations for the PVEnv entity. */
 /**************************************************/
 
 extern PVEnv *
@@ -164,7 +164,7 @@ pve_line_copy_to_exact_solution (const PVEnv *const pve,
 
 
 /*******************************************************/
-/* Function implementations for the SearchNode entity. */ 
+/* Function implementations for the SearchNode entity. */
 /*******************************************************/
 
 extern SearchNode *

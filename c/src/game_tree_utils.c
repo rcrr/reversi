@@ -112,26 +112,20 @@ exact_solution_new (void)
 }
 
 /**
- * @brief Exact solution structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #exact_solution_new.
  *
- * @invariant Parameter `es` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * @details If a null pointer is passed as argument, no action occurs.
  *
- * @param [in] es the pointer to be deallocated
- * @return        always the NULL pointer
+ * @param [in,out] es the pointer to be deallocated
  */
-ExactSolution *
+void
 exact_solution_free (ExactSolution *es)
 {
-  g_assert(es);
-
-  if (es->solved_game_position) game_position_free(es->solved_game_position);
-  if (es->final_board) board_free(es->final_board);
-
-  free(es);
-  es = NULL;
-
-  return es;
+  if (es) {
+    if (es->solved_game_position) game_position_free(es->solved_game_position);
+    if (es->final_board) board_free(es->final_board);
+    free(es);
+  }
 }
 
 /**
