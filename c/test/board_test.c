@@ -555,33 +555,27 @@ direction_shift_square_set_by_amount_test (void)
 static void
 board_get_square_test (void)
 {
-  Board *b;
-
-  b = board_new(1, 2);
+  Board *b = board_new(1, 2);
 
   g_assert(board_get_square(b, A1) == BLACK_SQUARE);
   g_assert(board_get_square(b, B1) == WHITE_SQUARE);
   g_assert(board_get_square(b, C1) == EMPTY_SQUARE);
 
-  b = board_free(b);
+  board_free(b);
 }
 
 static void
 board_count_difference_test (void)
 {
-  Board     *b;
-  SquareSet  blacks;
-  SquareSet  whites;
+  const SquareSet blacks = 0xFFFFFFFFFFFFFFFF;
+  const SquareSet whites = 0x0000000000000000;
 
-  blacks = 0xFFFFFFFFFFFFFFFF;
-  whites = 0x0000000000000000;
-
-  b = board_new(blacks, whites);
+  Board *b = board_new(blacks, whites);
 
   g_assert(board_count_difference(b, BLACK_PLAYER) == +64);
   g_assert(board_count_difference(b, WHITE_PLAYER) == -64);
 
-  b = board_free(b);
+  board_free(b);
 }
 
 static void
@@ -593,69 +587,62 @@ board_compare_test (void)
   a = board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000);
   b = board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000);
   g_assert(board_compare(a, b) == 0);
-  a = board_free(a);
-  b = board_free(b);
+  board_free(a);
+  board_free(b);
 
   a = board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000);
   b = board_new(0x0000000000000000, 0x0000000000000000);
   g_assert(board_compare(a, b) == +1);
-  a = board_free(a);
-  b = board_free(b);
+  board_free(a);
+  board_free(b);
 
   a = board_new(0x0000000000000000, 0x0000000000000000);
   b = board_new(0x0000000000000001, 0x0000000000000000);
   g_assert(board_compare(a, b) == -1);
-  a = board_free(a);
-  b = board_free(b);
+  board_free(a);
+  board_free(b);
 
   a = board_new(0x0000000000000007, 0x0000000000000000);
   b = board_new(0x0000000000000007, 0x0000000000000000);
   g_assert(board_compare(a, b) == 0);
-  a = board_free(a);
-  b = board_free(b);
+  board_free(a);
+  board_free(b);
 
   a = board_new(0x0000000000000007, 0x0100000000000000);
   b = board_new(0x0000000000000007, 0x0000000000000000);
   g_assert(board_compare(a, b) == +1);
-  a = board_free(a);
-  b = board_free(b);
+  board_free(a);
+  board_free(b);
 
   a = board_new(0x0000000000000007, 0x0000000000000000);
   b = board_new(0x0000000000000007, 0x0100000000000000);
   g_assert(board_compare(a, b) == -1);
-  a = board_free(a);
-  b = board_free(b);
+  board_free(a);
+  board_free(b);
 }
 
 static void
 board_count_pieces_test (void)
 {
-  Board *b;
-
-  b = board_new(1, 2);
+  Board *b = board_new(1, 2);
 
   g_assert(board_count_pieces(b, BLACK_SQUARE) ==  1);
   g_assert(board_count_pieces(b, WHITE_SQUARE) ==  1);
   g_assert(board_count_pieces(b, EMPTY_SQUARE) == 62);
 
-  b = board_free(b);
+  board_free(b);
 }
 
 static void
 board_new_test (void)
 {
-  SquareSet  w;
-  SquareSet  b;
-  Board     *empty_board;
+  const SquareSet b = 0;
+  const SquareSet w = 0;
 
-  b = 0;
-  w = 0;
-
-  empty_board = board_new(b, w);
+  Board *empty_board = board_new(b, w);
   g_assert(empty_board != NULL);
 
-  empty_board = board_free(empty_board);
-  g_assert(empty_board == NULL);
+  board_free(empty_board);
 }
 
 static void
@@ -765,11 +752,11 @@ board_is_move_legal_test (void)
   g_assert(FALSE == board_is_move_legal(b, B2, BLACK_PLAYER));
   g_assert(FALSE == board_is_move_legal(b, C2, WHITE_PLAYER));
   g_assert(FALSE == board_is_move_legal(b, C2, BLACK_PLAYER));
-  b = board_free(b);
+  board_free(b);
 
   b = board_new(0x0000000000000001, 0x0040201008040200);
   g_assert(TRUE == board_is_move_legal(b, H8, BLACK_PLAYER));
-  b = board_free(b);
+  board_free(b);
 }
 
 static void
@@ -779,7 +766,7 @@ board_legal_moves_test (void)
 
   b = board_new(0x0000000000000001, 0x0040201008040200);
   g_assert(0x8000000000000000 == board_legal_moves(b, BLACK_PLAYER));
-  b = board_free(b);
+  board_free(b);
 }
 
 static void

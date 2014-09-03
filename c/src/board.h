@@ -322,7 +322,7 @@ extern Board *
 board_new (const SquareSet b,
            const SquareSet w);
 
-extern Board *
+extern void
 board_free (Board *b);
 
 extern Board *

@@ -826,23 +826,16 @@ board_new (const SquareSet b,
 }
 
 /**
- * @brief Board structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #board_new.
  *
- * @invariant Parameter `b` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * @details If a null pointer is passed as argument, no action occurs.
  *
- * @param [in] b the pointer to be deallocated
- * @return       always the NULL pointer
+ * @param [in,out] b the pointer to be deallocated
  */
-Board *
+void
 board_free (Board *b)
 {
-  g_assert(b);
-
   free(b);
-  b = NULL;
-
-  return b;
 }
 
 /**
