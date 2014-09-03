@@ -421,7 +421,7 @@ extern GamePosition *
 game_position_new (Board *b,
                    Player p);
 
-extern GamePosition *
+extern void
 game_position_free (GamePosition *gp);
 
 extern GamePosition *

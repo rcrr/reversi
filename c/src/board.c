@@ -1491,25 +1491,19 @@ game_position_new (Board *b,
 }
 
 /**
- * @brief GamePosition structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #game_position_new.
  *
- * @invariant Parameter `gp` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * @details If a null pointer is passed as argument, no action occurs.
  *
- * @param [in] gp the pointer to be deallocated
- * @return        always the NULL pointer
+ * @param [in,out] gp the pointer to be deallocated
  */
-GamePosition *
+void
 game_position_free (GamePosition *gp)
 {
-  g_assert(gp);
-
-  board_free(gp->board);
-
-  g_free(gp);
-  gp = NULL;
-
-  return gp;
+  if (gp) {
+    board_free(gp->board);
+    g_free(gp);
+  }
 }
 
 /**
@@ -2361,7 +2355,7 @@ game_position_x_print (const GamePositionX *const gpx)
   g_assert(gpx);
   GamePosition *gp = game_position_x_gpx_to_gp(gpx);
   gchar *result = game_position_print(gp);
-  gp = game_position_free(gp);
+  game_position_free(gp);
   return result;
 }
 

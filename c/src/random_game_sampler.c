@@ -189,12 +189,12 @@ game_position_random_sampler_impl (ExactSolution *const result,
     if (legal_move_count == 0) { // player has to pass
       GamePosition *flipped_players = game_position_pass(gp);
       node = search_node_negated(game_position_random_sampler_impl(result, flipped_players, rng));
-      flipped_players = game_position_free(flipped_players);
+      game_position_free(flipped_players);
     } else { // regular move
       const Square random_move = square_set_random_selection(rng, legal_moves);
       GamePosition *next_gp = game_position_make_move(gp, random_move);
       node = search_node_negated(game_position_random_sampler_impl(result, next_gp, rng));
-      next_gp = game_position_free(next_gp);
+      game_position_free(next_gp);
     }
   } else { // game-over
     result->leaf_count++;

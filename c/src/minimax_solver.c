@@ -175,7 +175,7 @@ game_position_solve_impl (ExactSolution *const result,
       result->leaf_count++;
       node = search_node_new(pass_move, game_position_final_value(gp));
     }
-    flipped_players = game_position_free(flipped_players);
+    game_position_free(flipped_players);
   } else {
     node = search_node_new(-1, -65);
     SquareSet remaining_moves = moves;
@@ -184,7 +184,7 @@ game_position_solve_impl (ExactSolution *const result,
       remaining_moves ^= 1ULL << move;
       GamePosition *gp2 = game_position_make_move(gp, move);
       node2 = search_node_negated(game_position_solve_impl(result, gp2));
-      gp2 = game_position_free(gp2);
+      game_position_free(gp2);
       if (node2->value > node->value) {
         search_node_free(node);
         node = node2;

@@ -778,32 +778,32 @@ game_position_compare_test (void)
   a = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
   b = a;
   g_assert(game_position_compare(a, b) == 0);
-  a = game_position_free(a);
+  game_position_free(a);
   b = a;
 
   a = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
   b = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
   g_assert(game_position_compare(a, b) == 0);
-  a = game_position_free(a);
-  b = game_position_free(b);
+  game_position_free(a);
+  game_position_free(b);
 
   a = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
   b = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), WHITE_PLAYER);
   g_assert(game_position_compare(a, b) < 0);
-  a = game_position_free(a);
-  b = game_position_free(b);
+  game_position_free(a);
+  game_position_free(b);
 
   a = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), WHITE_PLAYER);
   b = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
   g_assert(game_position_compare(a, b) > 0);
-  a = game_position_free(a);
-  b = game_position_free(b);
+  game_position_free(a);
+  game_position_free(b);
 
   a = game_position_new(board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000), BLACK_PLAYER);
   b = game_position_new(board_new(0xFFFFFFFFFFFFFFFE, 0x0000000000000000), BLACK_PLAYER);
   g_assert(game_position_compare(a, b) > 0);
-  a = game_position_free(a);
-  b = game_position_free(b);
+  game_position_free(a);
+  game_position_free(b);
 }
 
 static void
@@ -823,7 +823,7 @@ game_position_count_difference_test (void)
 
   g_assert(game_position_count_difference(gp) == +64);
 
-  gp = game_position_free(gp);
+  game_position_free(gp);
 }
 
 static void
@@ -842,7 +842,7 @@ game_position_hash_test (void)
   p = BLACK_PLAYER;
   gp = game_position_new(b, p);
   g_assert(game_position_hash(gp) == 0);
-  gp = game_position_free(gp);
+  game_position_free(gp);
 
   blacks = 0x0000000000000000;
   whites = 0x0000000000000000;
@@ -850,7 +850,7 @@ game_position_hash_test (void)
   p = WHITE_PLAYER;
   gp = game_position_new(b, p);
   g_assert(game_position_hash(gp) == 0xFFFFFFFFFFFFFFFF);
-  gp = game_position_free(gp);
+  game_position_free(gp);
 
   expected = 0x4689879C5E2B6C8D ^ 0x1C10E0B05C7B3C49;
   blacks = 0x0000000000000002;
@@ -859,7 +859,7 @@ game_position_hash_test (void)
   p = BLACK_PLAYER;
   gp = game_position_new(b, p);
   g_assert(game_position_hash(gp) == expected);
-  gp = game_position_free(gp);
+  game_position_free(gp);
 
   /*
    * The hash of two game position A, and B having the same board but different player satisfy
@@ -870,7 +870,7 @@ game_position_hash_test (void)
   b = board_new(blacks, whites);
   gp = game_position_new(b, p);
   g_assert(game_position_hash(gp) == ~expected);
-  gp = game_position_free(gp);
+  game_position_free(gp);
 
 }
 

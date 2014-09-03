@@ -217,7 +217,7 @@ sort_moves_by_mobility_count (MoveList *move_list,
       moves_to_search &= ~(1ULL << move);
       GamePosition *next_gp = game_position_make_move(gp, move);
       const SquareSet next_moves = game_position_legal_moves(next_gp);
-      next_gp = game_position_free(next_gp);
+      game_position_free(next_gp);
       const int next_move_count = bit_works_popcount(next_moves);
       curr->sq = move;
       curr->mobility = next_move_count;
@@ -285,7 +285,7 @@ game_position_solve_impl (ExactSolution *const result,
     pve_line_add_move(pve, pve_line, pass_move);
     pve_line_delete(pve, *pve_parent_line_p);
     *pve_parent_line_p = pve_line;
-    flipped_players = game_position_free(flipped_players);
+    game_position_free(flipped_players);
   } else {
     MoveList move_list;
     move_list_init(&move_list);
@@ -296,7 +296,7 @@ game_position_solve_impl (ExactSolution *const result,
       GamePosition *gp2 = game_position_make_move(gp, move);
       pve_line = pve_line_create(pve);
       node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pve_line));
-      gp2 = game_position_free(gp2);
+      game_position_free(gp2);
       if (node2->value > node->value) {
         search_node_free(node);
         node = node2;
