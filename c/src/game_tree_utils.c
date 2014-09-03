@@ -265,27 +265,23 @@ pve_new (const int empty_count)
 }
 
 /**
- * @brief PVEnv structure destructor.
+ * @brief Deallocates the memory previously allocated by a call to #pve_new.
  *
- * @invariant Parameter `pve` cannot be `NULL`.
- * The invariant is guarded by an assertion.
+ * @details If a null pointer is passed as argument, no action occurs.
  *
  * @param [in,out] pve the pointer to be deallocated
- * @return             always the NULL pointer
  */
-PVEnv *
+void
 pve_free (PVEnv *pve)
 {
-  g_assert(pve_verify_consistency(pve));
-
-  g_free(pve->cells);
-  g_free(pve->cells_stack);
-  g_free(pve->lines);
-  g_free(pve->lines_stack);
-  g_free(pve);
-  pve = NULL;
-
-  return pve;
+  if (pve) {
+    g_assert(pve_verify_consistency(pve));
+    g_free(pve->cells);
+    g_free(pve->cells_stack);
+    g_free(pve->lines);
+    g_free(pve->lines_stack);
+    g_free(pve);
+  }
 }
 
 /**

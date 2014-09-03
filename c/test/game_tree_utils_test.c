@@ -79,12 +79,12 @@ pve_create_test (void)
   PVEnv *pve;
 
   pve = pve_new(60);
-  pve = pve_free(pve);
-  g_assert(pve == NULL);
+  pve_free(pve);
 
   pve = pve_new(0);
-  pve = pve_free(pve);
-  g_assert(pve == NULL);
+  pve_free(pve);
+
+  g_assert(TRUE);
 }
 
 static void
@@ -95,12 +95,12 @@ pve_internals_to_string_test (void)
 
   pve = pve_new(60);
   pve_to_s = pve_internals_to_string(pve);
-  pve = pve_free(pve);
+  pve_free(pve);
   g_free(pve_to_s);
 
   pve = pve_new(0);
   pve_to_s = pve_internals_to_string(pve);
-  pve = pve_free(pve);
+  pve_free(pve);
   g_free(pve_to_s);
 
   g_assert(TRUE);

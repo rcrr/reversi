@@ -127,7 +127,7 @@ exact_solution_compute_final_board (ExactSolution *const es);
 extern PVEnv *
 pve_new (const int empty_count);
 
-extern PVEnv *
+extern void
 pve_free (PVEnv *pve);
 
 extern gboolean
