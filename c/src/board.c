@@ -334,12 +334,16 @@ square_as_move_array_to_string (const Square mova[],
 }
 
 /**
- * @brief Returns TRUE if the `sq` parameter is in a valid range.
+ * @brief Returns TRUE if the `sq` parameter is in the valid range.
  *
- * @details The valid range is [0,63], as defined by the `Square` enum.
+ * @details The valid range is `[0,63]`, as defined by the `Square` enum.
+ *
+ * A sample usage scenario taken from unit tests is here exemplified:
+ *
+ * @snippet board_test.c square_belongs_to_enum_set usage
  *
  * @param [in] sq the given square
- * @return        true if the square is in the legal range
+ * @return        true if the square is in the valid range
  */
 gboolean
 square_belongs_to_enum_set (const Square sq)
@@ -349,9 +353,9 @@ square_belongs_to_enum_set (const Square sq)
 
 
 /**
- * @brief Returns TRUE if the `move` parameter is in a valid range.
+ * @brief Returns TRUE if the `move` parameter is in the valid range.
  *
- * @details The valid range is [-1,63], where `-1` means move_pass,
+ * @details The valid range is `[-1,63]`, where `-1` means move_pass,
  * and values from `0` to `63` are defined by the `Square` enum.
  *
  * A sample usage scenario taken from unit tests is here exemplified:
@@ -359,7 +363,7 @@ square_belongs_to_enum_set (const Square sq)
  * @snippet board_test.c square_is_valid_move usage
  *
  * @param [in] move the given move
- * @return          true if the move is in the legal range
+ * @return          true if the move is in the valid range
  */
 gboolean
 square_is_valid_move (const Square move)

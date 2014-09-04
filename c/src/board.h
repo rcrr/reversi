@@ -213,6 +213,11 @@ static const Square pass_move = (Square) -1;
  */
 static const Square invalid_move = (Square) -2;
 
+/**
+ * @brief The invalid square.
+ */
+static const Square invalid_square = (Square) -2;
+
 
 
 /**********************************************/
