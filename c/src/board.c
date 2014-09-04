@@ -563,6 +563,10 @@ square_set_from_array (const Square sq_array[],
  * @invariant Parameter `p` must have a value belonging to the `Player` enum.
  * The invariant is guarded by an assertion.
  *
+ * A sample usage scenario taken from unit tests is here exemplified:
+ *
+ * @snippet board_test.c player_color usage
+ *
  * @param [in] p the player
  * @return       the square state of the player
  */
@@ -579,6 +583,10 @@ player_color (const Player p)
  * @invariant Parameter `p` must have a value belonging to the `Player` enum.
  * The invariant is guarded by an assertion.
  *
+ * A sample usage scenario taken from unit tests is here exemplified:
+ *
+ * @snippet board_test.c player_description usage
+ *
  * @param [in] p the player
  * @return       the player's description
  */
@@ -594,6 +602,10 @@ player_description (const Player p)
  *
  * @invariant Parameter `p` must have a value belonging to the `Player` enum.
  * The invariant is guarded by an assertion.
+ *
+ * A sample usage scenario taken from unit tests is here exemplified:
+ *
+ * @snippet board_test.c player_opponent usage
  *
  * @param [in] p the player
  * @return       the player's opponent

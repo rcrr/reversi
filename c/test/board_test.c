@@ -412,22 +412,28 @@ square_set_from_array_test (void)
 static void
 player_color_test (void)
 {
+  //! [player_color usage]
   g_assert(BLACK_SQUARE == player_color(BLACK_PLAYER));
   g_assert(WHITE_SQUARE == player_color(WHITE_PLAYER));
+  //! [player_color usage]
 }
 
 static void
 player_description_test (void)
 {
+  //! [player_description usage]
   g_assert(g_strcmp0(player_description(BLACK_PLAYER), "The Black player") == 0);
   g_assert(g_strcmp0(player_description(WHITE_PLAYER), "The White player") == 0);
+  //! [player_description usage]
 }
 
 static void
 player_opponent_test (void)
 {
+  //! [player_opponent usage]
   g_assert(BLACK_PLAYER == player_opponent(WHITE_PLAYER));
   g_assert(WHITE_PLAYER == player_opponent(BLACK_PLAYER));
+  //! [player_opponent usage]
 }
 
 
