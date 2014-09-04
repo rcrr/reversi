@@ -1,6 +1,9 @@
 /**
  * @file
  *
+ * @todo Axis functions are used only internally. Should be removed from the public interface.
+ *       But tests has to be mantained ..... (including the board.c file?).
+ *
  * @brief Board module implementation.
  * @details This module defines functions for the #Player, #SquareState,
  * #Square, #SquareSet, #Board, #GamePosition, #Direction entities.
@@ -626,6 +629,8 @@ player_opponent (const Player p)
 /**
  * @brief Computes the shift quantity.
  *
+ * @details The function is used only in the board module!
+ *
  * The parameter `column` and `row` identify a square, and the `axis`
  * then select the line passing by the square and parallel to it.
  * The returned shift quantity is the amount to apply to the bit board
@@ -670,6 +675,8 @@ axis_shift_distance (const Axis axis,
 /**
  * @brief Returns the ordinal position of the move.
  *
+ * @details The function is used only in the board module!
+ *
  * The parameter `column` and `row` identify a move in the bitboard,
  * given the `axis` the function return the ordinal position of the move
  * in the selected line.
@@ -702,6 +709,8 @@ axis_move_ordinal_position_in_bitrow (const Axis axis,
 
 /**
  * @brief Maps the principal line of each axis into row one.
+ *
+ * @details The function is used only in the board module!
  *
  * Returns an int having the bits from position 0 to position 7, corresponding to Row One in the board,
  * transformed from:
@@ -755,6 +764,8 @@ axis_transform_to_row_one (const Axis axis,
 
 /**
  * @brief Maps back the principal line of each axis from row one.
+ *
+ * @details The function is used only in the board module!
  *
  * Returns a square set having the bits along the axis reference file set to
  * the corresponding ones on the `bitrow` parameter.
