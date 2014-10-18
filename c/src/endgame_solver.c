@@ -10,7 +10,7 @@
  * @todo [done] Add to the solver selection a full MINIMAX implementation.
  *
  * @todo [done] Add to the solver selection an alpha-beta implementation that
- *       sort the legal move list with a random function.
+ *              sort the legal move list with a random function.
  *
  * @todo Add to the exact_solver logging strategy a second file that logs
  *       when the function returns. There we can add the return value and the
@@ -18,8 +18,8 @@
  *       back a kpi of the alpha-beta efficiency in cutting unrelevant branches.
  *
  * @todo [done] The solvers do not return a PV, but just the best move and its value.
- *       Now a new sub-module, pve in game_tree_utils, has al the functions that are needed.
- *       It is used by the exact_solver, the other has to be updated if usefull.
+ *              Now a new sub-module, pve in game_tree_utils, has al the functions that are needed.
+ *              It is used by the exact_solver, the other has to be updated if usefull.
  *
  * @todo The output of the solvers is not always appropriate:
  *         - [done] Final board is not reported
@@ -28,9 +28,9 @@
  *
  * @todo [done] Refine and refactor the exact_solver implementation.
  *
- * @todo Solvers rab and ab share the same stack solution. Refactor it sharing
- *       the same utilities brougth to a dedicated module. The es solver should
- *       do the same.
+ * @todo [done] Solvers rab and ab share the same stack solution. Refactor it sharing
+ *              the same utilities brougth to a dedicated module.
+ *       The es solver should do the same.
  *
  * @todo Port the stack practice to all the other solver, refactor the structures used (Stack, NodeInfo, GamePositionX).
  *
