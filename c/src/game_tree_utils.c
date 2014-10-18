@@ -623,6 +623,95 @@ search_node_negated (SearchNode *sn)
 
 
 
+/**********************************************************/
+/* Function implementations for the GameTreeStack entity. */
+/**********************************************************/
+
+/**
+ * @brief GameTreeStack structure constructor.
+ *
+ * @return a pointer to a new game tree stack structure
+ */
+GameTreeStack *
+game_tree_stack_new (void)
+{
+  GameTreeStack* stack;
+  static const size_t size_of_stack = sizeof(GameTreeStack);
+
+  stack = (GameTreeStack*) malloc(size_of_stack);
+  g_assert(stack);
+
+  return stack;
+}
+
+/**
+ * @brief Deallocates the memory previously allocated by a call to #game_tree_stack_new.
+ *
+ * @details If a null pointer is passed as argument, no action occurs.
+ *
+ * @param [in,out] stack the pointer to be deallocated
+ */
+void
+game_tree_stack_free (GameTreeStack *stack)
+{
+  free(stack);
+}
+
+/**
+ * @brief Initializes the stack structure.
+ */
+void
+game_tree_stack_init (const GamePosition *const root,
+                      GameTreeStack* const stack)
+{
+  NodeInfo* ground_node_info = &stack->nodes[0];
+  game_position_x_copy_from_gp(root, &ground_node_info->gpx);
+  ground_node_info->gpx.player = player_opponent(ground_node_info->gpx.player);
+  ground_node_info->hash = game_position_x_hash(&ground_node_info->gpx);
+  ground_node_info->move_set = 0ULL;
+  ground_node_info->move_count = 0;
+  ground_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
+  ground_node_info->best_move = invalid_move;
+  ground_node_info->alpha = out_of_range_defeat_score;
+  ground_node_info->beta = out_of_range_defeat_score;
+
+  NodeInfo* first_node_info  = &stack->nodes[1];
+  game_position_x_copy_from_gp(root, &first_node_info->gpx);
+  first_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
+  first_node_info->alpha = worst_score;
+  first_node_info->beta = best_score;
+
+  stack->fill_index = 1;
+}
+
+/**
+ * @brief Computes the legal move list given the set.
+ *
+ * @param [in]  legal_move_set    the set of legal moves
+ * @param [out] current_node_info the node info updated with the compuetd list of legal moves
+ * @param [out] next_node_info    the node info updated with the new head_of_legal_move_list poiter
+ */
+void
+legal_move_list_from_set (const SquareSet legal_move_set,
+                          NodeInfo* const current_node_info,
+                          NodeInfo* const next_node_info)
+{
+  uint8_t *move_ptr = current_node_info->head_of_legal_move_list;
+  SquareSet remaining_moves = legal_move_set;
+  current_node_info->move_count = 0;
+  while (remaining_moves) {
+    const uint8_t move = bit_works_bitscanLS1B_64(remaining_moves);
+    *move_ptr = move;
+    move_ptr++;
+    current_node_info->move_count++;
+    remaining_moves ^= 1ULL << move;
+  }
+  next_node_info->head_of_legal_move_list = move_ptr;
+  return;
+}
+
+
+
 /**
  * @cond
  */

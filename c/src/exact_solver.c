@@ -2,7 +2,7 @@
  * @file
  *
  * @brief Exact solver module implementation.
- * @details It searches the end of the game for an exact outcome..
+ * @details It searches the end of the game for an exact outcome.
  *
  * @par exact_solver.c
  * <tt>

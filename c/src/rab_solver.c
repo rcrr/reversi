@@ -39,6 +39,7 @@
 
 #include "random.h"
 #include "game_tree_logger.h"
+
 #include "rab_solver.h"
 
 
@@ -48,74 +49,13 @@
  */
 
 /*
- * Game tree stack size.
- *
- * It give the size of the static stack used to pile-up the info
- * computed by deepening the game tree.
- * The value is given by the 60 plus 12 moves added to take into account the possibility
- * to pass. Real tree depth are smaller because the number of pass is little,
- * and because there is no capability currently to search so deep.
- */
-#define GAME_TREE_MAX_DEPTH 72
-
-/*
- * Max number of legal moves hosted in the stack.
- *
- * A game has 60 moves, pass moves are not consuming the stack.
- * Every game stage has been assessed with the random game generator, and a distribution of legal moves
- * has been computed. The maximum for each game stage has been summed up totalling 981.
- * the value 1024 is a further safety added in order to prevent running out of space.
- */
-#define MAX_LEGAL_MOVE_STACK_COUNT 1024
-
-
-/* The info collected on each node. */
-typedef struct {
-  GamePositionX  gpx;                         /**< @brief The game position related to the game tree node. */
-  uint64_t       hash;                        /**< @brief The hash value of the game position. */
-  SquareSet      move_set;                    /**< @brief The set of legal moves. */
-  int            move_count;                  /**< @brief The count of legal moves. */
-  uint8_t       *head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
-  Square         best_move;                   /**< @brief The best move for the node. */
-  int            alpha;                       /**< @brief The node value. */
-  int            beta;                        /**< @brief The node cutoff value. */
-} NodeInfo;
-
-/*
- * The info collected by deepening the game tree.
- *
- * The stack uses 5 kB of memory.
- */
-typedef struct {
-  int      fill_index;                                     /**< @brief The index of the current entry into the stack, at the beginning of game_position_solve_impl. */
-  NodeInfo nodes[GAME_TREE_MAX_DEPTH];                     /**< @brief The stack of node info. */
-  uint8_t  legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];   /**< @brief The stack hosting the legal moves for each node. */
-} GameTreeStack;
-
-
-/*
  * Prototypes for internal functions.
  */
-
-static GameTreeStack *
-game_tree_stack_new();
-
-static void
-game_tree_stack_free (GameTreeStack* stack);
 
 static void
 game_position_solve_impl (ExactSolution* const result,
                           GameTreeStack* const stack,
                           const int sub_run_id);
-
-static void
-game_tree_stack_init (const GamePosition* const root,
-                      GameTreeStack* const stack);
-
-inline static void
-legal_move_list_from_set (const SquareSet legal_move_set,
-                          NodeInfo* const current_node_info,
-                          NodeInfo* const next_node_info);
 
 
 
@@ -125,18 +65,6 @@ legal_move_list_from_set (const SquareSet legal_move_set,
 
 /* The logging environment structure. */
 static LogEnv *log_env = NULL;
-
-/* A null move is an invalid one. */
-static const Square null_move = -1;
-
-/* An out of range defeat score is a value lesser than the worst case. */
-static const int out_of_range_defeat_score = -65;
-
-/* The best score achievable. */
-static const int best_score = +64;
-
-/* The worst score achievable. */
-static const int worst_score = -64;
 
 /**
  * @endcond
@@ -179,7 +107,7 @@ game_position_rab_solve (const GamePosition *const root,
   random_init_seed();
 
   int game_value = out_of_range_defeat_score;
-  Square best_move = null_move;
+  Square best_move = invalid_move;
 
   for (int sub_run_id = 0; sub_run_id < n; sub_run_id++) {
     GameTreeStack* stack = game_tree_stack_new();
@@ -214,93 +142,6 @@ game_position_rab_solve (const GamePosition *const root,
 /*
  * Internal functions.
  */
-
-/**********************************************************/
-/* Function implementations for the GameTreeStack entity. */
-/**********************************************************/
-
-/**
- * @brief GameTreeStack structure constructor.
- *
- * @return a pointer to a new game tree stack structure
- */
-static GameTreeStack *
-game_tree_stack_new (void)
-{
-  GameTreeStack* stack;
-  static const size_t size_of_stack = sizeof(GameTreeStack);
-
-  stack = (GameTreeStack*) malloc(size_of_stack);
-  g_assert(stack);
-
-  return stack;
-}
-
-/**
- * @brief Deallocates the memory previously allocated by a call to #game_tree_stack_new.
- *
- * @details If a null pointer is passed as argument, no action occurs.
- *
- * @param [in,out] stack the pointer to be deallocated
- */
-static void
-game_tree_stack_free (GameTreeStack *stack)
-{
-  free(stack);
-}
-
-/**
- * @brief Initializes the stack structure.
- */
-static void
-game_tree_stack_init (const GamePosition *const root,
-                      GameTreeStack* const stack)
-{
-  NodeInfo* ground_node_info = &stack->nodes[0];
-  game_position_x_copy_from_gp(root, &ground_node_info->gpx);
-  ground_node_info->gpx.player = player_opponent(ground_node_info->gpx.player);
-  ground_node_info->hash = game_position_x_hash(&ground_node_info->gpx);
-  ground_node_info->move_set = 0ULL;
-  ground_node_info->move_count = 0;
-  ground_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
-  ground_node_info->best_move = null_move;
-  ground_node_info->alpha = out_of_range_defeat_score;
-  ground_node_info->beta = out_of_range_defeat_score;
-
-  NodeInfo* first_node_info  = &stack->nodes[1];
-  game_position_x_copy_from_gp(root, &first_node_info->gpx);
-  first_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
-  first_node_info->alpha = worst_score;
-  first_node_info->beta = best_score;
-
-  stack->fill_index = 1;
-}
-
-/**
- * @brief Computes the legal move list given the set.
- *
- * @param [in]  legal_move_set    the set of legal moves
- * @param [out] current_node_info the node info updated with the compuetd list of legal moves
- * @param [out] next_node_info    the node info updated with the new head_of_legal_move_list poiter
- */
-inline static void
-legal_move_list_from_set (const SquareSet legal_move_set,
-                          NodeInfo* const current_node_info,
-                          NodeInfo* const next_node_info)
-{
-  uint8_t *move_ptr = current_node_info->head_of_legal_move_list;
-  SquareSet remaining_moves = legal_move_set;
-  current_node_info->move_count = 0;
-  while (remaining_moves) {
-    const uint8_t move = bit_works_bitscanLS1B_64(remaining_moves);
-    *move_ptr = move;
-    move_ptr++;
-    current_node_info->move_count++;
-    remaining_moves ^= 1ULL << move;
-  }
-  next_node_info->head_of_legal_move_list = move_ptr;
-  return;
-}
 
 /**
  * @brief Recursive function used to traverse the game tree.
@@ -358,7 +199,7 @@ game_position_solve_impl (ExactSolution* const result,
     } else {
       result->leaf_count++;
       current_node_info->alpha = game_position_x_final_value(current_gpx);
-      current_node_info->best_move = null_move;
+      current_node_info->best_move = invalid_move;
     }
   } else {
     current_node_info->alpha = out_of_range_defeat_score;

@@ -36,6 +36,27 @@
 
 #define PV_MAX_LENGTH 128
 
+/*
+ * Game tree stack size.
+ *
+ * It give the size of the static stack used to pile-up the info
+ * computed by deepening the game tree.
+ * The value is given by the 60 plus 12 moves added to take into account the possibility
+ * to pass. Real tree depth are smaller because the number of pass is little,
+ * and because there is no capability currently to search so deep.
+ */
+#define GAME_TREE_MAX_DEPTH 72
+
+/*
+ * Max number of legal moves hosted in the stack.
+ *
+ * A game has 60 moves, pass moves are not consuming the stack.
+ * Every game stage has been assessed with the random game generator, and a distribution of legal moves
+ * has been computed. The maximum for each game stage has been summed up totalling 981.
+ * the value 1024 is a further safety added in order to prevent running out of space.
+ */
+#define MAX_LEGAL_MOVE_STACK_COUNT 1024
+
 #include <glib.h>
 
 #include "board.h"
@@ -89,6 +110,31 @@ typedef struct {
   int    value;      /**< @brief The move's value. */
 } SearchNode;
 
+/**
+ * @brief The info collected on each node.
+ */
+typedef struct {
+  GamePositionX  gpx;                         /**< @brief The game position related to the game tree node. */
+  uint64_t       hash;                        /**< @brief The hash value of the game position. */
+  SquareSet      move_set;                    /**< @brief The set of legal moves. */
+  int            move_count;                  /**< @brief The count of legal moves. */
+  uint8_t       *head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
+  Square         best_move;                   /**< @brief The best move for the node. */
+  int            alpha;                       /**< @brief The node value. */
+  int            beta;                        /**< @brief The node cutoff value. */
+} NodeInfo;
+
+/**
+ * @brief The info collected by deepening the game tree.
+ *
+ * @details The stack uses 5 kbytes of memory.
+ */
+typedef struct {
+  int        fill_index;                                     /**< @brief The index of the current entry into the stack, at the beginning of game_position_solve_impl. */
+  NodeInfo   nodes[GAME_TREE_MAX_DEPTH];                     /**< @brief The stack of node info. */
+  uint8_t    legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];   /**< @brief The stack hosting the legal moves for each node. */
+} GameTreeStack;
+
 
 
 /**********************************************/
@@ -100,11 +146,26 @@ typedef struct {
  */
 static const int invalid_outcome = 65;
 
+/**
+ * @brief An out of range defeat score is a value lesser than the worst case.
+ */
+static const int out_of_range_defeat_score = -65;
+
+/**
+ * @brief The best score achievable.
+ */
+static const int best_score = +64;
+
+/**
+ * @brief The worst score achievable.
+ */
+static const int worst_score = -64;
 
 
-/**********************************************************/
-/* Function implementations for the ExactSolution entity. */
-/**********************************************************/
+
+/*****************************************************/
+/* Function prototypes for the ExactSolution entity. */
+/*****************************************************/
 
 extern ExactSolution *
 exact_solution_new (void);
@@ -120,9 +181,9 @@ exact_solution_compute_final_board (ExactSolution *const es);
 
 
 
-/**************************************************/
-/* Function implementations for the PVEnv entity. */
-/**************************************************/
+/*********************************************/
+/* Function prototypes for the PVEnv entity. */
+/*********************************************/
 
 extern PVEnv *
 pve_new (const int empty_count);
@@ -163,9 +224,9 @@ pve_line_copy_to_exact_solution (const PVEnv *const pve,
 
 
 
-/*******************************************************/
-/* Function implementations for the SearchNode entity. */
-/*******************************************************/
+/**************************************************/
+/* Function prototypes for the SearchNode entity. */
+/**************************************************/
 
 extern SearchNode *
 search_node_new (const Square move,
@@ -176,5 +237,28 @@ search_node_free (SearchNode *sn);
 
 extern SearchNode *
 search_node_negated (SearchNode *sn);
+
+
+
+/*****************************************************/
+/* Function prototypes for the GameTreeStack entity. */
+/*****************************************************/
+
+extern GameTreeStack *
+game_tree_stack_new (void);
+
+extern void
+game_tree_stack_free (GameTreeStack *stack);
+
+extern void
+game_tree_stack_init (const GamePosition *const root,
+                      GameTreeStack *const stack);
+
+extern void
+legal_move_list_from_set (const SquareSet legal_move_set,
+                          NodeInfo *const current_node_info,
+                          NodeInfo *const next_node_info);
+
+
 
 #endif /* GAME_TREE_UTILS_H */
