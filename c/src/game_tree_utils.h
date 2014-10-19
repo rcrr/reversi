@@ -85,6 +85,7 @@ typedef struct {
  */
 typedef struct PVCell_ {
   Square          move;   /**< @brief The current move. */
+  gboolean   is_active;   /**< @brief True when the cell is used. */
   struct PVCell_ *next;   /**< @brief The next move. */
 } PVCell;
 

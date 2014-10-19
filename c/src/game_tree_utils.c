@@ -247,6 +247,7 @@ pve_new (const int empty_count)
 
   for (int i = 0; i < cells_size; i++) {
     (pve->cells + i)->move = invalid_move;
+    (pve->cells + i)->is_active = FALSE;
     (pve->cells + i)->next = NULL;
     *(pve->cells_stack + i) = pve->cells + i;
   }
@@ -302,7 +303,6 @@ pve_verify_consistency (const PVEnv *const pve,
 {
   gboolean ret = TRUE;
   int err_code = 0;
-  gchar *err_message;
 
   if (!pve) {
     *error_code = -1;
@@ -325,14 +325,15 @@ pve_verify_consistency (const PVEnv *const pve,
     *error_message = "The count for cells in use excedes allocated size, pointer cells_stack_head is larger than cells_stack + cells_size.";
     return FALSE;
   }
-  if (!(lines_in_use_count >= 0) ||
-      !(lines_in_use_count < pve->lines_size) ||
-      !(cells_in_use_count >= 0) ||
-      !(cells_in_use_count < pve->cells_size)) {
-    ret = FALSE;
-    err_code = 1;
-    err_message = "ERROR ONE";
-    goto end;
+  if (!(lines_in_use_count >= 0)) {
+    *error_code = 3;
+    *error_message = "The count for lines in use is negative, pointer lines_stack_head is smaller than lines_stack.";
+    return FALSE;
+  }
+  if (!(lines_in_use_count < pve->lines_size)) {
+    *error_code = 4;
+    *error_message = "The count for lines in use excedes allocated size, pointer lines_stack_head is larger than lines_stack + lines_size.";
+    return FALSE;
   }
 
   /*
@@ -347,6 +348,11 @@ pve_verify_consistency (const PVEnv *const pve,
    * Tests that all active lines have active cells, and then that the
    * acrive lines and cells count are consistent with their stack pointers.
    */
+  int active_cell_count2 = 0;
+  for (int i = 0; i < pve->cells_size; i++) {
+    const PVCell *const cell = pve->cells + i;
+    if (cell->is_active) active_cell_count2++;
+  }
   int active_cell_count = 0;
   int active_line_count = 0;
   for (int i = 0; i < pve->lines_size; i++) {
@@ -374,12 +380,12 @@ pve_verify_consistency (const PVEnv *const pve,
     err_code = 4;
     goto end;
   }
+  if (active_cell_count2 != active_cell_count) return FALSE;
   ;
  end:
   if (!ret) {
     if (error_code) {
       *error_code = err_code;
-      *error_message = err_message;
     }
     printf("pve_verify_consistency: error code %d.\n", err_code);
     printf("pve_verify_consistency: active_line_count=%d, active_cell_count=%d\n", active_line_count, active_cell_count);
@@ -426,10 +432,10 @@ pve_internals_to_string (const PVEnv *const pve)
     }
   }
   g_string_append_printf(tmp, "\n# PVE CELLS\n");
-  g_string_append_printf(tmp, "ordinal;address;move;next\n");
+  g_string_append_printf(tmp, "ordinal;address;move;is_active;next\n");
   for (int i = 0; i < pve->cells_size; i++) {
-    g_string_append_printf(tmp, "%4d;%p;%s;%p\n",
-                           i, (void*) (pve->cells + i), square_as_move_to_string((pve->cells + i)->move), (void*) (pve->cells + i)->next);
+    g_string_append_printf(tmp, "%4d;%p;%s;%d;%p\n",
+                           i, (void*) (pve->cells + i), square_as_move_to_string((pve->cells + i)->move), (pve->cells + i)->is_active, (void*) (pve->cells + i)->next);
   }
   g_string_append_printf(tmp, "\n# PVE CELLS STACK\n");
   g_string_append_printf(tmp, "ordinal;address;points_to\n");
@@ -497,6 +503,7 @@ pve_line_add_move (PVEnv *pve,
   PVCell *added_cell = *(pve->cells_stack_head);
   pve->cells_stack_head++;
   added_cell->move = move;
+  added_cell->is_active = TRUE;
   added_cell->next = *line;
   *line = added_cell;
 }
@@ -516,6 +523,7 @@ pve_line_delete (PVEnv *pve,
   while (cell) {
     pve->cells_stack_head--;
     *(pve->cells_stack_head) = cell;
+    cell->is_active = FALSE;
     cell = cell->next;
   }
   pve->lines_stack_head--;
