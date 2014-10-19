@@ -275,7 +275,6 @@ void
 pve_free (PVEnv *pve)
 {
   if (pve) {
-    g_assert(pve_verify_consistency(pve));
     g_free(pve->cells);
     g_free(pve->cells_stack);
     g_free(pve->lines);
@@ -287,27 +286,52 @@ pve_free (PVEnv *pve)
 /**
  * @brief Verifies that the pve structure is consistent.
  *
- * @param [in] pve a pointer to the principal variation environment
- * @return         true if everithing is ok
+ * @details If `pve` parameter is `NULL` the function return `FALSE` with error_code `-1`.
+ *          When no error is found return value is `TRUE` and the variables pointed by
+ *          parameters `error_code` and `error_message` are unchanged.
+ *
+ * @param [in]  pve           a pointer to the principal variation environment
+ * @param [out] error_code    a pointer to error code
+ * @param [out] error_message a pointer to error message
+ * @return                    true if everithing is ok
  */
 gboolean
-pve_verify_consistency (const PVEnv *const pve)
+pve_verify_consistency (const PVEnv *const pve,
+                        int *const error_code,
+                        gchar **const error_message)
 {
   gboolean ret = TRUE;
   int err_code = 0;
-  if (!pve) return FALSE;
+  gchar *err_message;
+
+  if (!pve) {
+    *error_code = -1;
+    *error_message = "Parameter pve is NULL.";
+    return FALSE;
+  }
 
   /*
    * Tests that the head pointers are within the proper bounds.
    */
   const int lines_in_use_count = pve->lines_stack_head - pve->lines_stack;
   const int cells_in_use_count = pve->cells_stack_head - pve->cells_stack;
+  if (!(cells_in_use_count >= 0)) {
+    *error_code = 1;
+    *error_message = "The count for cells in use is negative, pointer cells_stack_head is smaller than cells_stack.";
+    return FALSE;
+  }
+  if (!(cells_in_use_count < pve->cells_size)) {
+    *error_code = 2;
+    *error_message = "The count for cells in use excedes allocated size, pointer cells_stack_head is larger than cells_stack + cells_size.";
+    return FALSE;
+  }
   if (!(lines_in_use_count >= 0) ||
       !(lines_in_use_count < pve->lines_size) ||
       !(cells_in_use_count >= 0) ||
       !(cells_in_use_count < pve->cells_size)) {
     ret = FALSE;
     err_code = 1;
+    err_message = "ERROR ONE";
     goto end;
   }
 
@@ -353,6 +377,10 @@ pve_verify_consistency (const PVEnv *const pve)
   ;
  end:
   if (!ret) {
+    if (error_code) {
+      *error_code = err_code;
+      *error_message = err_message;
+    }
     printf("pve_verify_consistency: error code %d.\n", err_code);
     printf("pve_verify_consistency: active_line_count=%d, active_cell_count=%d\n", active_line_count, active_cell_count);
   }
@@ -439,7 +467,7 @@ pve_internals_to_string (const PVEnv *const pve)
 PVCell **
 pve_line_create (PVEnv *pve)
 {
-  g_assert(pve_verify_consistency(pve));
+  g_assert(pve_verify_consistency(pve, NULL, NULL));
   PVCell **line_p = *(pve->lines_stack_head);
   *(line_p) = NULL;
   pve->lines_stack_head++;
@@ -465,7 +493,7 @@ pve_line_add_move (PVEnv *pve,
                    PVCell **line,
                    Square move)
 {
-  g_assert(pve_verify_consistency(pve));
+  g_assert(pve_verify_consistency(pve, NULL, NULL));
   PVCell *added_cell = *(pve->cells_stack_head);
   pve->cells_stack_head++;
   added_cell->move = move;
@@ -483,7 +511,7 @@ void
 pve_line_delete (PVEnv *pve,
                  PVCell **line)
 {
-  g_assert(pve_verify_consistency(pve));
+  g_assert(pve_verify_consistency(pve, NULL, NULL));
   PVCell *cell = *line; // A poiter to the first cell, or null if the line is empty.
   while (cell) {
     pve->cells_stack_head--;

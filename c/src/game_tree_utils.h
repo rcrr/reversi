@@ -90,6 +90,12 @@ typedef struct PVCell_ {
 
 /**
  * @brief A principal variation environment.
+ *
+ * @details Fields `cells_size` and `lines_size` are assigned by the #pve_new function based on the empty count parameter.
+ *          Pointers `cells`, `cells_stack`, `lines`, and `lines_stack` are also assigned in the #pve_new function
+ *          by calls to malloc. All these fields are immutable.
+ *
+ *          Fields `cells_stack_head` and `lines_stack_head` are mutable.
  */
 typedef struct {
   int       cells_size;         /**< @brief The count of cells contained by the cells array. */
@@ -192,7 +198,9 @@ extern void
 pve_free (PVEnv *pve);
 
 extern gboolean
-pve_verify_consistency (const PVEnv * const pve);
+pve_verify_consistency (const PVEnv *const pve,
+                        int *const error_code,
+                        gchar **const error_message);
 
 extern gchar *
 pve_internals_to_string (const PVEnv *const pve);

@@ -45,7 +45,7 @@
 static void dummy_test (void);
 static void pve_create_test (void);
 static void pve_internals_to_string_test (void);
-
+static void pve_verify_consistency_test (void);
 
 
 int
@@ -57,6 +57,7 @@ main (int   argc,
   g_test_add_func("/game_tree_utils/dummy", dummy_test);
   g_test_add_func("/game_tree_utils/pve_create_test", pve_create_test);
   g_test_add_func("/game_tree_utils/pve_internals_to_string_test", pve_internals_to_string_test);
+  g_test_add_func("/game_tree_utils/pve_verify_consistency_test", pve_verify_consistency_test);
 
   return g_test_run();
 }
@@ -71,6 +72,31 @@ static void
 dummy_test (void)
 {
   g_assert(TRUE);
+}
+
+static void
+pve_verify_consistency_test (void)
+{
+  PVEnv *pve;
+  gchar *pve_to_s;
+  gboolean is_consistent = TRUE;
+  int error_code = 0;
+  gchar *error_message = NULL;
+
+  pve = pve_new(2);
+  pve->cells_stack_head = pve->cells_stack - 1;
+  is_consistent = pve_verify_consistency(pve, &error_code, &error_message);
+  g_assert(!is_consistent && (error_code == 1));
+  pve_free(pve);
+
+  if (FALSE) {
+    printf("\nis_consistent = %d, error_code = %d, message: %s\n", is_consistent, error_code, error_message);
+    pve_to_s = pve_internals_to_string(pve);
+    printf("\n");
+    printf("%s\n", pve_to_s);
+    printf("\n");
+    g_free(pve_to_s);
+  }
 }
 
 static void
