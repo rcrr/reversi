@@ -43,7 +43,8 @@
 /* Test function prototypes. */
 
 static void dummy_test (void);
-
+static void sort_utils_heapsort_d_test (void);
+static void sort_utils_heapsort_p_test (void);
 
 
 int
@@ -53,6 +54,8 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func("/sort_utils/dummy", dummy_test);
+  g_test_add_func("/sort_utils/sort_utils_heapsort_d_test", sort_utils_heapsort_d_test);
+  g_test_add_func("/sort_utils/sort_utils_heapsort_p_test", sort_utils_heapsort_p_test);
 
   return g_test_run();
 }
@@ -67,42 +70,41 @@ static void
 dummy_test (void)
 {
   g_assert(TRUE);
+}
 
-  double vals_to_sort[] = {
-    1.4, 50.2, 5.11, -1.55, 301.521, 0.3301, 40.17,
-    -18.0, 88.1, 30.44, -37.2, 3012.0, 49.2};
+static void
+sort_utils_heapsort_d_test (void)
+{
+  double a[]        = { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. };
+  double expected[] = { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. };
 
-  const int values_size = sizeof(vals_to_sort) / sizeof(vals_to_sort[0]);
-  void *pointers_to_sort[values_size];
+  const int a_length = sizeof(a) / sizeof(a[0]);
 
-  for (int i = 0; i < values_size; i++) {
-    pointers_to_sort[i] = vals_to_sort + i;
+  sort_utils_heapsort_d(a, a_length);
+
+  for (int i = 0; i < a_length; i++) {
+    g_assert_cmpfloat(expected[i], ==, a[i]);
+  }
+}
+
+static void
+sort_utils_heapsort_p_test (void)
+{
+  const int a_length = 4;
+  void *a[a_length];
+
+  for (int i = 0; i < a_length; i++) {
+    a[i] = a + i;
   }
 
   void *tmp;
-  tmp = pointers_to_sort[5];
-  pointers_to_sort[5] = pointers_to_sort[3];
-  pointers_to_sort[3] = tmp;
+  tmp = a[0];
+  a[0] = a[a_length - 1];
+  a[a_length - 1] = tmp;
 
-  printf("index;value;address;point_to\n");
-  for (int i = 0; i < values_size; i++) {
-    printf("%2d;%10.3f;%p;%p\n", i, vals_to_sort[i], (void *) (vals_to_sort + i), pointers_to_sort[i]);
+  sort_utils_heapsort_p(a, a_length);
+
+  for (int i = 0; i < a_length; i++) {
+    g_assert(a[i] == &a[i]);
   }
-
-  printf("pointers_to_sort[0] < pointers_to_sort[1] = %d\n", pointers_to_sort[0] < pointers_to_sort[1]);
-  printf("pointers_to_sort[1] < pointers_to_sort[0] = %d\n", pointers_to_sort[1] < pointers_to_sort[0]);
-
-  sort_utils_heapsort_d(vals_to_sort, values_size);
-
-  sort_utils_heapsort_p(pointers_to_sort, values_size);
-
-  printf("{");
-  for (int i = 0; i < values_size; i++) printf(" %.3f ", vals_to_sort[i]);
-  printf("}\n");
-
-  printf("index;value;address;point_to\n");
-  for (int i = 0; i < values_size; i++) {
-    printf("%2d;%10.3f;%p;%p\n", i, vals_to_sort[i], (void *) (vals_to_sort + i), pointers_to_sort[i]);
-  }
-
 }
