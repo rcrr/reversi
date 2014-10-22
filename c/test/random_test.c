@@ -78,7 +78,7 @@ static void rng_random_choice_from_finite_set_9_test (void);
 static void rng_shuffle_array_uint8_2_test (void);
 static void rng_shuffle_array_uint8_5_test (void);
 static void rng_shuffle_array_uint8_9_test (void);
-
+static void rng_shuffle_array_p_test (void);
 
 
 /* Helper function prototypes. */
@@ -138,6 +138,7 @@ main (int   argc,
   g_test_add_func("/random/rng_shuffle_array_uint8_2_test", rng_shuffle_array_uint8_2_test);
   g_test_add_func("/random/rng_shuffle_array_uint8_5_test", rng_shuffle_array_uint8_5_test);
   g_test_add_func("/random/rng_shuffle_array_uint8_9_test", rng_shuffle_array_uint8_9_test);
+  g_test_add_func("/random/rng_shuffle_array_p_test", rng_shuffle_array_p_test);
 
   return g_test_run();
 }
@@ -447,6 +448,37 @@ rng_shuffle_array_uint8_9_test (void)
                                    10481,     /* seed */
                                    expected_chi_square,
                                    expected_chi_square_transposed);
+}
+
+
+static void
+rng_shuffle_array_p_test (void)
+{
+  const int a_length = 10;
+  void *a[a_length];
+  for (int i = 0; i < a_length; i++) {
+    a[i] = &a[i];
+  }
+  RandomNumberGenerator *rng = rng_new(37);
+  rng_shuffle_array_p(rng, a, a_length);
+
+  /*
+  printf("\n\nindex;address;value\n");
+  for (int i = 0; i < a_length; i++) {
+    printf("%2d;%p;%p\n", i, (void *) &a[i], a[i]);
+  }
+  0;0x7fff9b050f20;0x7fff9b050f40
+  1;0x7fff9b050f28;0x7fff9b050f48
+  2;0x7fff9b050f30;0x7fff9b050f20
+  3;0x7fff9b050f38;0x7fff9b050f30
+  4;0x7fff9b050f40;0x7fff9b050f50
+  5;0x7fff9b050f48;0x7fff9b050f60
+  6;0x7fff9b050f50;0x7fff9b050f58
+  7;0x7fff9b050f58;0x7fff9b050f38
+  8;0x7fff9b050f60;0x7fff9b050f28
+  9;0x7fff9b050f68;0x7fff9b050f68
+  */
+  g_assert((void **) a[0] - (void **) a == 4);
 }
 
 
