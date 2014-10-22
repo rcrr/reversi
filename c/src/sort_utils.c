@@ -35,19 +35,47 @@
 
 #include "sort_utils.h"
 
-
-
+/**
+ * @brief Returns true if `v1` is smaller than `v2` for all data types
+ *        for which the `<` operator is defined.
+ */
 #define is_less(v1, v2) (v1 < v2)
 
+/**
+ * @brief Exchanges values among two double variables.
+ */
 #define swap_d(r,s)  do { double t = r; r = s; s = t; } while(0)
 
+/**
+ * @brief Exchanges values among two pointers.
+ */
 #define swap_p(r,s)  do { void *t = r; r = s; s = t; } while(0)
 
-static void
-sift_down_d (double *const a, const int start, const int end);
+
+
+/**
+ * @cond
+ */
+
+/*
+ * Prototypes for internal functions.
+ */
 
 static void
-sift_down_p (void **const a, const int start, const int end);
+sift_down_d (double *const a,
+             const int start,
+             const int end);
+
+static void
+sift_down_p (void **const a,
+             const int start,
+             const int end);
+
+/**
+ * @endcond
+ */
+
+
 
 void
 sort_utils_heapsort_d (double *const a,
@@ -75,6 +103,25 @@ sort_utils_heapsort_p (void **const a,
   }
 }
 
+
+
+/**
+ * @cond
+ */
+
+/*
+ * Internal functions.
+ */
+
+/**
+ * @brief Sift down function for double arrays.
+ *
+ * @details The sift-down function extends the heap property ...
+ *
+ * @param [in,out] a     the array to sift
+ * @param [in]     start index of the initial position
+ * @param [in]     end   index of the final position
+ */
 static void
 sift_down_d (double *const a,
              const int start,
@@ -114,3 +161,7 @@ sift_down_p (void **const a,
       return;
   }
 }
+
+/**
+ * @endcond
+ */

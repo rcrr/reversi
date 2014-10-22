@@ -461,7 +461,7 @@ rng_shuffle_array_p_test (void)
   }
   RandomNumberGenerator *rng = rng_new(37);
   rng_shuffle_array_p(rng, a, a_length);
-
+  rng_free(rng);
   /*
   printf("\n\nindex;address;value\n");
   for (int i = 0; i < a_length; i++) {

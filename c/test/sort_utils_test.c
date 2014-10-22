@@ -37,7 +37,7 @@
 #include <glib.h>
 
 #include "sort_utils.h"
-
+#include "random.h"
 
 
 /* Test function prototypes. */
@@ -90,17 +90,20 @@ sort_utils_heapsort_d_test (void)
 static void
 sort_utils_heapsort_p_test (void)
 {
-  const int a_length = 4;
-  void *a[a_length];
+  const int a_length = 1024;
+
+  static const size_t size_of_pointer = sizeof(void *);
+
+  void **a = (void *) malloc(a_length * size_of_pointer);
+  g_assert(a);
 
   for (int i = 0; i < a_length; i++) {
     a[i] = a + i;
   }
 
-  void *tmp;
-  tmp = a[0];
-  a[0] = a[a_length - 1];
-  a[a_length - 1] = tmp;
+  RandomNumberGenerator *rng = rng_new(175);
+  rng_shuffle_array_p(rng, a, a_length);
+  rng_free(rng);
 
   sort_utils_heapsort_p(a, a_length);
 
