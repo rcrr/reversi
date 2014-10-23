@@ -77,6 +77,15 @@ sift_down_p (void **const a,
 
 
 
+/**
+ * @brief Sorts in ascending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the heapsort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
 void
 sort_utils_heapsort_d (double *const a,
                        const int count)
@@ -90,6 +99,15 @@ sort_utils_heapsort_d (double *const a,
   }
 }
 
+/**
+ * @brief Sorts in ascending order the `a` array of pointers.
+ *
+ * @details The vector of pointers `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the heapsort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
 void
 sort_utils_heapsort_p (void **const a,
                        const int count)
@@ -116,7 +134,9 @@ sort_utils_heapsort_p (void **const a,
 /**
  * @brief Sift down function for double arrays.
  *
- * @details The sift-down function extends the heap property ...
+ * @details The sift-down function extends the heap property (heapify) the
+ *          segment of array `a` starting from index equal to `start` and
+ *          ending to index equal to `end`.
  *
  * @param [in,out] a     the array to sift
  * @param [in]     start index of the initial position
@@ -142,6 +162,9 @@ sift_down_d (double *const a,
   }
 }
 
+/**
+ * @brief Sift down function for array of pointers.
+ */
 static void
 sift_down_p (void **const a,
              const int start,
