@@ -44,6 +44,7 @@
 #include "random.h"
 
 
+
 /**
  * @cond
  */
@@ -207,6 +208,8 @@ static const uint64_t zobrist_bitstrings[] = {
  *
  * @details This function must be called once before any use of other functions
  * contained in this module.
+ *
+ * @callergraph
  */
 void
 board_module_init (void)
