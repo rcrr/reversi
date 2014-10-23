@@ -35,6 +35,11 @@
 #ifndef SORT_UTILS_H
 #define SORT_UTILS_H
 
+/**
+ * Type of items to be sorted; for numeric types, replace by int, float or double.
+ */
+typedef double SItem;
+
 extern void
 sort_utils_heapsort_d (double *const a,
                        const int count);
@@ -42,5 +47,9 @@ sort_utils_heapsort_d (double *const a,
 extern void
 sort_utils_heapsort_p (void **const a,
                        const int count);
+
+extern void
+sort_utils_smoothsort (SItem Aarg[],
+                       const int N);
 
 #endif /* SORT_UTILS_H */

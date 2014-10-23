@@ -32,6 +32,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "sort_utils.h"
 
@@ -42,14 +43,23 @@
 #define is_less(v1, v2) (v1 < v2)
 
 /**
+ * @brief Returns true if `v1` is smaller than or equal to `v2` for all
+ *        data types for which the `<` operator is defined.
+ */
+#define is_less_or_equal(v1, v2) (v1 <= v2)
+
+/**
  * @brief Exchanges values among two double variables.
  */
-#define swap_d(r,s)  do { double t = r; r = s; s = t; } while(0)
+#define swap_d(r,s) do { double t = r; r = s; s = t; } while(0)
 
 /**
  * @brief Exchanges values among two pointers.
  */
-#define swap_p(r,s)  do { void *t = r; r = s; s = t; } while(0)
+#define swap_p(r,s) do { void *t = r; r = s; s = t; } while(0)
+
+#define up(ia, ib) do { int temp = ia; ia += ib + 1; ib = temp; } while (0)
+#define down(ia, ib) do { int temp = ib; ib = ia - ib - 1; ia = temp; } while (0)
 
 
 
@@ -188,3 +198,146 @@ sift_down_p (void **const a,
 /**
  * @endcond
  */
+
+static int q, r, p, b, c, r1, b1, c1;
+static SItem *A;
+
+void
+sift (void)
+{
+  int r0, r2;
+  SItem T;
+  r0 = r1;
+  T = A[r0];
+  while (b1 >= 3) {
+    r2 = r1 - b1 + c1;
+    if (! is_less_or_equal(A[r1 - 1], A[r2])) {
+      r2 = r1 - 1;
+      down(b1, c1);
+    }
+    if (is_less_or_equal(A[r2], T)) b1 = 1;
+    else {
+      A[r1] = A[r2];
+      r1 = r2;
+      down(b1, c1);
+    }
+  }
+  if (r1 - r0) A[r1] = T;
+}
+
+void
+trinkle (void)
+{
+  int p1, r2, r3, r0;
+  SItem T;
+  p1 = p; b1 = b; c1 = c;
+  r0 = r1; T = A[r0];
+  while (p1 > 0) {
+    while ((p1 & 1)==0) {
+      p1 >>= 1;
+      up(b1, c1);
+    }
+    r3 = r1 - b1;
+    if ((p1 == 1) || is_less_or_equal(A[r3], T)) p1 = 0;
+    else {
+      p1--;
+      if (b1 == 1) {
+        A[r1] = A[r3];
+        r1 = r3;
+      }
+      else
+        if (b1 >= 3) {
+          r2 = r1 - b1 + c1;
+          if (! is_less_or_equal(A[r1 - 1], A[r2])) {
+            r2 = r1 - 1;
+            down(b1, c1);
+            p1 <<= 1;
+          }
+          if (is_less_or_equal(A[r2], A[r3])) {
+            A[r1] = A[r3]; r1 = r3;
+          }
+          else {
+            A[r1] = A[r2];
+            r1 = r2;
+            down(b1, c1);
+            p1 = 0;
+          }
+        }
+    }
+  }
+  if (r0 - r1) A[r1] = T;
+  sift();
+}
+
+void
+semitrinkle (void)
+{
+  SItem T;
+  r1 = r - c;
+  if (! is_less_or_equal(A[r1], A[r])) {
+    T = A[r]; A[r] = A[r1]; A[r1] = T;
+    trinkle();
+  }
+}
+
+
+/**
+ * Adapted from Delphi implementation of Dijkstra's algorithm.
+ */
+void
+sort_utils_smoothsort (SItem Aarg[],
+                       const int N)
+{
+  A=Aarg; /* 0-base array; warning: A is shared by other functions */
+  q = 1; r = 0; p = 1; b = 1; c = 1;
+
+  /* building tree */
+  while (q < N) {
+    r1 = r;
+    if ((p & 7)==3) {
+      b1 = b; c1 = c; sift();
+      p = (p + 1) >> 2;
+      up(b, c);
+      up(b, c);
+    }
+    else if ((p & 3)==1) {
+      if (q + c < N) {
+        b1 = b; c1 = c; sift();
+      }
+      else trinkle();
+      down(b, c);
+      p <<= 1;
+      while (b > 1) {
+        down(b, c);
+        p <<= 1;
+      }
+      p++;
+    }
+    q++; r++;
+  }
+  r1 = r; trinkle();
+
+  /* building sorted array */
+  while (q > 1) {
+    q--;
+    if (b == 1) {
+      r--; p--;
+      while ((p & 1) == 0) {
+        p >>= 1;
+        up(b, c);
+      }
+    }
+    else
+      if (b >= 3) {
+        p--; r = r - b + c;
+        if (p > 0) semitrinkle();
+        down(b, c);
+        p = (p << 1) + 1;
+        r = r+c;  semitrinkle();
+        down(b, c);
+        p = (p << 1) + 1;
+      }
+    /* element q processed */
+  }
+  /* element 0 processed */
+}
