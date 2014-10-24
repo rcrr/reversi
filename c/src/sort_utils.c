@@ -1,6 +1,12 @@
 /**
  * @file
  *
+ * @todo Naming has to be reorganized with helper function having prefixes like ss_ and hs_
+ *
+ * @todo Static variables for smoothsort has to be removed.
+ *
+ * @todo Smoothsort unction has to be ported to double and pointer ....
+ *
  * @brief Sort Utils module implementation.
  *
  * @par sort_utils.c
@@ -203,7 +209,7 @@ static int q, r, p, b, c, r1, b1, c1;
 static SItem *A;
 
 void
-sift (void)
+smoothsort_sift (void)
 {
   int r0, r2;
   SItem T;
@@ -215,8 +221,9 @@ sift (void)
       r2 = r1 - 1;
       down(b1, c1);
     }
-    if (is_less_or_equal(A[r2], T)) b1 = 1;
-    else {
+    if (is_less_or_equal(A[r2], T)) {
+      b1 = 1;
+    } else {
       A[r1] = A[r2];
       r1 = r2;
       down(b1, c1);
@@ -226,26 +233,29 @@ sift (void)
 }
 
 void
-trinkle (void)
+smoothsort_trinkle (void)
 {
   int p1, r2, r3, r0;
   SItem T;
-  p1 = p; b1 = b; c1 = c;
-  r0 = r1; T = A[r0];
+  p1 = p;
+  b1 = b;
+  c1 = c;
+  r0 = r1;
+  T = A[r0];
   while (p1 > 0) {
-    while ((p1 & 1)==0) {
+    while ((p1 & 1) == 0) {
       p1 >>= 1;
       up(b1, c1);
     }
     r3 = r1 - b1;
-    if ((p1 == 1) || is_less_or_equal(A[r3], T)) p1 = 0;
-    else {
+    if ((p1 == 1) || is_less_or_equal(A[r3], T)) {
+      p1 = 0;
+    } else {
       p1--;
       if (b1 == 1) {
         A[r1] = A[r3];
         r1 = r3;
-      }
-      else
+      } else {
         if (b1 >= 3) {
           r2 = r1 - b1 + c1;
           if (! is_less_or_equal(A[r1 - 1], A[r2])) {
@@ -255,28 +265,32 @@ trinkle (void)
           }
           if (is_less_or_equal(A[r2], A[r3])) {
             A[r1] = A[r3]; r1 = r3;
-          }
-          else {
+          } else {
             A[r1] = A[r2];
             r1 = r2;
             down(b1, c1);
             p1 = 0;
           }
         }
+      }
     }
   }
-  if (r0 - r1) A[r1] = T;
-  sift();
+  if (r0 - r1) {
+    A[r1] = T;
+  }
+  smoothsort_sift();
 }
 
 void
-semitrinkle (void)
+smoothsort_semitrinkle (void)
 {
   SItem T;
   r1 = r - c;
-  if (! is_less_or_equal(A[r1], A[r])) {
-    T = A[r]; A[r] = A[r1]; A[r1] = T;
-    trinkle();
+  if (!is_less_or_equal(A[r1], A[r])) {
+    T = A[r];
+    A[r] = A[r1];
+    A[r1] = T;
+    smoothsort_trinkle();
   }
 }
 
@@ -288,23 +302,27 @@ void
 sort_utils_smoothsort (SItem Aarg[],
                        const int N)
 {
-  A=Aarg; /* 0-base array; warning: A is shared by other functions */
+  A = Aarg; /* 0-base array; warning: A is shared by other functions */
   q = 1; r = 0; p = 1; b = 1; c = 1;
 
   /* building tree */
   while (q < N) {
     r1 = r;
-    if ((p & 7)==3) {
-      b1 = b; c1 = c; sift();
+    if ((p & 7) == 3) {
+      b1 = b;
+      c1 = c;
+      smoothsort_sift();
       p = (p + 1) >> 2;
       up(b, c);
       up(b, c);
-    }
-    else if ((p & 3)==1) {
+    } else if ((p & 3) == 1) {
       if (q + c < N) {
-        b1 = b; c1 = c; sift();
+        b1 = b;
+        c1 = c;
+        smoothsort_sift();
+      } else {
+        smoothsort_trinkle();
       }
-      else trinkle();
       down(b, c);
       p <<= 1;
       while (b > 1) {
@@ -315,28 +333,34 @@ sort_utils_smoothsort (SItem Aarg[],
     }
     q++; r++;
   }
-  r1 = r; trinkle();
+  r1 = r;
+  smoothsort_trinkle();
 
   /* building sorted array */
   while (q > 1) {
     q--;
     if (b == 1) {
-      r--; p--;
+      r--;
+      p--;
       while ((p & 1) == 0) {
         p >>= 1;
         up(b, c);
       }
-    }
-    else
+    } else {
       if (b >= 3) {
-        p--; r = r - b + c;
-        if (p > 0) semitrinkle();
+        p--;
+        r = r - b + c;
+        if (p > 0) {
+          smoothsort_semitrinkle();
+        }
         down(b, c);
         p = (p << 1) + 1;
-        r = r+c;  semitrinkle();
+        r = r + c;
+        smoothsort_semitrinkle();
         down(b, c);
         p = (p << 1) + 1;
       }
+    }
     /* element q processed */
   }
   /* element 0 processed */
