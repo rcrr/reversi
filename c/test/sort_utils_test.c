@@ -44,8 +44,17 @@
 
 static void dummy_test (void);
 static void sort_utils_heapsort_d_test (void);
-static void sort_utils_heapsort_p_test (void);
+static void sort_utils_heapsort_p_1024_test (void);
+static void sort_utils_heapsort_p_1048576_test (void);
 static void sort_utils_smoothsort_test (void);
+
+/* Helper function prototypes. */
+
+static void
+hlp_run_heapsort_p_test (const int array_length,
+                         const int repetitions,
+                         const int factor);
+
 
 
 int
@@ -56,8 +65,12 @@ main (int   argc,
 
   g_test_add_func("/sort_utils/dummy", dummy_test);
   g_test_add_func("/sort_utils/sort_utils_heapsort_d_test", sort_utils_heapsort_d_test);
-  g_test_add_func("/sort_utils/sort_utils_heapsort_p_test", sort_utils_heapsort_p_test);
+  g_test_add_func("/sort_utils/sort_utils_heapsort_p_1024_test", sort_utils_heapsort_p_1024_test);
   g_test_add_func("/sort_utils/sort_utils_smoothsort_test", sort_utils_smoothsort_test);
+
+  if (g_test_perf()) {
+    g_test_add_func("/sort_utils/sort_utils_heapsort_p_1048576_test", sort_utils_heapsort_p_1048576_test);
+  }
 
   return g_test_run();
 }
@@ -90,28 +103,15 @@ sort_utils_heapsort_d_test (void)
 }
 
 static void
-sort_utils_heapsort_p_test (void)
+sort_utils_heapsort_p_1024_test (void)
 {
-  const int a_length = 1024;
+  hlp_run_heapsort_p_test(1024, 1, 0);
+}
 
-  static const size_t size_of_pointer = sizeof(void *);
-
-  void **a = (void *) malloc(a_length * size_of_pointer);
-  g_assert(a);
-
-  for (int i = 0; i < a_length; i++) {
-    a[i] = a + i;
-  }
-
-  RandomNumberGenerator *rng = rng_new(175);
-  rng_shuffle_array_p(rng, a, a_length);
-  rng_free(rng);
-
-  sort_utils_heapsort_p(a, a_length);
-
-  for (int i = 0; i < a_length; i++) {
-    g_assert(a[i] == &a[i]);
-  }
+static void
+sort_utils_heapsort_p_1048576_test (void)
+{
+  hlp_run_heapsort_p_test(1024, 15, 2);
 }
 
 static void
@@ -126,5 +126,49 @@ sort_utils_smoothsort_test (void)
 
   for (int i = 0; i < a_length; i++) {
     g_assert_cmpfloat(expected[i], ==, a[i]);
+  }
+}
+
+
+
+/*
+ * Internal functions.
+ */
+
+static void
+hlp_run_heapsort_p_test (const int array_length,
+                         const int repetitions,
+                         const int factor)
+{
+  g_assert(array_length > 0);
+  double ttime;
+  static const size_t size_of_pointer = sizeof(void *);
+  int len = array_length;
+
+  for (int i = 0; i < repetitions; i++) {
+    void **a = (void *) malloc(len * size_of_pointer);
+    g_assert(a);
+
+    for (int i = 0; i < len; i++) {
+      a[i] = a + i;
+    }
+
+    RandomNumberGenerator *rng = rng_new(175);
+    rng_shuffle_array_p(rng, a, len);
+    rng_free(rng);
+
+    g_test_timer_start();
+    sort_utils_heapsort_p(a, len);
+    ttime = g_test_timer_elapsed();
+    if (g_test_perf())
+      g_test_minimized_result(ttime, "Sorting %u items: %gsec", len, ttime);
+
+    for (int i = 0; i < len; i++) {
+      g_assert(a[i] == &a[i]);
+    }
+
+    free(a);
+
+    len = len * factor;
   }
 }

@@ -115,6 +115,10 @@ test: $(TEST_BINS)
 test_slow: $(TEST_BINS)
 	gtester --verbose -k -m=slow -o $(BTESTDIR)/gtester-log.xml $(TEST_BINS)
 
+.PHONY: test_perf
+test_perf: $(TEST_BINS)
+	gtester --verbose -k -m=perf -o $(BTESTDIR)/gtester-log.xml $(TEST_BINS)
+
 .PHONY: test_report
 test_report: $(BTESTDIR)/gtester-log.html
 
