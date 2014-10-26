@@ -205,160 +205,189 @@ sift_down_p (void **const a,
  * @endcond
  */
 
-static int q, r, p, b, c, r1, b1, c1;
-static SItem *A;
+
+/**
+ * @brief Parameters used and shared by the smoothsort algorithm.
+ */
+typedef struct {
+  double                  *a;
+  unsigned long long int   r;
+  unsigned long long int  r1;
+  unsigned long long int   p;
+  unsigned long long int   b;
+  unsigned long long int   c;
+  unsigned long long int  b1;
+  unsigned long long int  c1;
+} SmoothsortSharedVariables;
 
 void
-smoothsort_sift (void)
+smoothsort_sift (SmoothsortSharedVariables shrd)
 {
-  int r0, r2;
-  SItem T;
-  r0 = r1;
-  T = A[r0];
-  while (b1 >= 3) {
-    r2 = r1 - b1 + c1;
-    if (! is_less_or_equal(A[r1 - 1], A[r2])) {
-      r2 = r1 - 1;
-      down(b1, c1);
+  double tmp;
+  unsigned long long r0, r2;
+  r0 = shrd.r1;
+  tmp = shrd.a[r0];
+  while (shrd.b1 >= 3) {
+    r2 = shrd.r1 - shrd.b1 + shrd.c1;
+    if (! is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) {
+      r2 = shrd.r1 - 1;
+      down(shrd.b1, shrd.c1);
     }
-    if (is_less_or_equal(A[r2], T)) {
-      b1 = 1;
+    if (is_less_or_equal(shrd.a[r2], tmp)) {
+      shrd.b1 = 1;
     } else {
-      A[r1] = A[r2];
-      r1 = r2;
-      down(b1, c1);
+      shrd.a[shrd.r1] = shrd.a[r2];
+      shrd.r1 = r2;
+      down(shrd.b1, shrd.c1);
     }
   }
-  if (r1 - r0) A[r1] = T;
+  if (shrd.r1 - r0) {
+    shrd.a[shrd.r1] = tmp;
+  }
 }
 
 void
-smoothsort_trinkle (void)
+smoothsort_trinkle (SmoothsortSharedVariables shrd)
 {
-  int p1, r2, r3, r0;
-  SItem T;
-  p1 = p;
-  b1 = b;
-  c1 = c;
-  r0 = r1;
-  T = A[r0];
+  double tmp;
+  unsigned long long r0, r2, r3, p1;
+  p1 = shrd.p;
+  shrd.b1 = shrd.b;
+  shrd.c1 = shrd.c;
+  r0 = shrd.r1;
+  tmp = shrd.a[r0];
   while (p1 > 0) {
     while ((p1 & 1) == 0) {
       p1 >>= 1;
-      up(b1, c1);
+      up(shrd.b1, shrd.c1);
     }
-    r3 = r1 - b1;
-    if ((p1 == 1) || is_less_or_equal(A[r3], T)) {
+    r3 = shrd.r1 - shrd.b1;
+    if ((p1 == 1) || is_less_or_equal(shrd.a[r3], tmp)) {
       p1 = 0;
     } else {
       p1--;
-      if (b1 == 1) {
-        A[r1] = A[r3];
-        r1 = r3;
+      if (shrd.b1 == 1) {
+        shrd.a[shrd.r1] = shrd.a[r3];
+        shrd.r1 = r3;
       } else {
-        if (b1 >= 3) {
-          r2 = r1 - b1 + c1;
-          if (! is_less_or_equal(A[r1 - 1], A[r2])) {
-            r2 = r1 - 1;
-            down(b1, c1);
+        if (shrd.b1 >= 3) {
+          r2 = shrd.r1 - shrd.b1 + shrd.c1;
+          if (! is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) {
+            r2 = shrd.r1 - 1;
+            down(shrd.b1, shrd.c1);
             p1 <<= 1;
           }
-          if (is_less_or_equal(A[r2], A[r3])) {
-            A[r1] = A[r3]; r1 = r3;
+          if (is_less_or_equal(shrd.a[r2], shrd.a[r3])) {
+            shrd.a[shrd.r1] = shrd.a[r3];
+            shrd.r1 = r3;
           } else {
-            A[r1] = A[r2];
-            r1 = r2;
-            down(b1, c1);
+            shrd.a[shrd.r1] = shrd.a[r2];
+            shrd.r1 = r2;
+            down(shrd.b1, shrd.c1);
             p1 = 0;
           }
         }
       }
     }
   }
-  if (r0 - r1) {
-    A[r1] = T;
+  if (r0 - shrd.r1) {
+    shrd.a[shrd.r1] = tmp;
   }
-  smoothsort_sift();
+  smoothsort_sift(shrd);
 }
 
 void
-smoothsort_semitrinkle (void)
+smoothsort_semitrinkle (SmoothsortSharedVariables shrd)
 {
-  SItem T;
-  r1 = r - c;
-  if (!is_less_or_equal(A[r1], A[r])) {
-    T = A[r];
-    A[r] = A[r1];
-    A[r1] = T;
-    smoothsort_trinkle();
+  double tmp;
+  shrd.r1 = shrd.r - shrd.c;
+  if (!is_less_or_equal(shrd.a[shrd.r1], shrd.a[shrd.r])) {
+    tmp = shrd.a[shrd.r];
+    shrd.a[shrd.r] = shrd.a[shrd.r1];
+    shrd.a[shrd.r1] = tmp;
+    smoothsort_trinkle(shrd);
   }
 }
-
 
 /**
- * Adapted from Delphi implementation of Dijkstra's algorithm.
+ * @brief Sorts in ascending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the smoothsort algorithm.
+ *          Adapted from Dijkstra's paper: http://www.enterag.ch/hartwig/order/smoothsort.pdf
+ *          See also: http://en.wikipedia.org/wiki/Smoothsort
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
  */
 void
-sort_utils_smoothsort_d (SItem Aarg[],
-                         const int N)
+sort_utils_smoothsort_d (double *const a,
+                         const int count)
 {
-  A = Aarg; /* 0-base array; warning: A is shared by other functions */
-  q = 1; r = 0; p = 1; b = 1; c = 1;
+  SmoothsortSharedVariables shrd;
+  shrd.a = a;
+  shrd.r = 0;
+  shrd.c = 1;
+  shrd.p = 1;
+  shrd.b = 1;
+
+  unsigned long long int q = 1;
 
   /* building tree */
-  while (q < N) {
-    r1 = r;
-    if ((p & 7) == 3) {
-      b1 = b;
-      c1 = c;
-      smoothsort_sift();
-      p = (p + 1) >> 2;
-      up(b, c);
-      up(b, c);
-    } else if ((p & 3) == 1) {
-      if (q + c < N) {
-        b1 = b;
-        c1 = c;
-        smoothsort_sift();
+  while (q < count) {
+    shrd.r1 = shrd.r;
+    if ((shrd.p & 7) == 3) {
+      shrd.b1 = shrd.b;
+      shrd.c1 = shrd.c;
+      smoothsort_sift(shrd);
+      shrd.p = (shrd.p + 1) >> 2;
+      up(shrd.b, shrd.c);
+      up(shrd.b, shrd.c);
+    } else if ((shrd.p & 3) == 1) {
+      if (q + shrd.c < count) {
+        shrd.b1 = shrd.b;
+        shrd.c1 = shrd.c;
+        smoothsort_sift(shrd);
       } else {
-        smoothsort_trinkle();
+        smoothsort_trinkle(shrd);
       }
-      down(b, c);
-      p <<= 1;
-      while (b > 1) {
-        down(b, c);
-        p <<= 1;
+      down(shrd.b, shrd.c);
+      shrd.p <<= 1;
+      while (shrd.b > 1) {
+        down(shrd.b, shrd.c);
+        shrd.p <<= 1;
       }
-      p++;
+      shrd.p++;
     }
-    q++; r++;
+    q++;
+    shrd.r++;
   }
-  r1 = r;
-  smoothsort_trinkle();
+  shrd.r1 = shrd.r;
+  smoothsort_trinkle(shrd);
 
   /* building sorted array */
   while (q > 1) {
     q--;
-    if (b == 1) {
-      r--;
-      p--;
-      while ((p & 1) == 0) {
-        p >>= 1;
-        up(b, c);
+    if (shrd.b == 1) {
+      shrd.r--;
+      shrd.p--;
+      while ((shrd.p & 1) == 0) {
+        shrd.p >>= 1;
+        up(shrd.b, shrd.c);
       }
     } else {
-      if (b >= 3) {
-        p--;
-        r = r - b + c;
-        if (p > 0) {
-          smoothsort_semitrinkle();
+      if (shrd.b >= 3) {
+        shrd.p--;
+        shrd.r = shrd.r - shrd.b + shrd.c;
+        if (shrd.p > 0) {
+          smoothsort_semitrinkle(shrd);
         }
-        down(b, c);
-        p = (p << 1) + 1;
-        r = r + c;
-        smoothsort_semitrinkle();
-        down(b, c);
-        p = (p << 1) + 1;
+        down(shrd.b, shrd.c);
+        shrd.p = (shrd.p << 1) + 1;
+        shrd.r = shrd.r + shrd.c;
+        smoothsort_semitrinkle(shrd);
+        down(shrd.b, shrd.c);
+        shrd.p = (shrd.p << 1) + 1;
       }
     }
     /* element q processed */

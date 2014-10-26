@@ -128,7 +128,7 @@ sort_utils_heapsort_d_1_test (void)
 static void
 sort_utils_heapsort_d_perf_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_heapsort_d, 1024, 14, 2);
+  hlp_run_sort_d_test(sort_utils_heapsort_d, 1024, 15, 2);
 }
 
 static void
@@ -140,7 +140,7 @@ sort_utils_heapsort_p_test (void)
 static void
 sort_utils_heapsort_p_perf_test (void)
 {
-  hlp_run_heapsort_p_test(1024, 14, 2);
+  hlp_run_heapsort_p_test(1024, 15, 2);
 }
 
 static void
@@ -167,7 +167,7 @@ sort_utils_smoothsort_d_1_test (void)
 static void
 sort_utils_smoothsort_d_perf_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_smoothsort_d, 1024, 13, 2);
+  hlp_run_sort_d_test(sort_utils_smoothsort_d, 1024, 15, 2);
 }
 
 
