@@ -49,7 +49,7 @@ sort_utils_heapsort_p (void **const a,
                        const int count);
 
 extern void
-sort_utils_smoothsort (SItem Aarg[],
-                       const int N);
+sort_utils_smoothsort_d (SItem Aarg[],
+                         const int N);
 
 #endif /* SORT_UTILS_H */

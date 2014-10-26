@@ -300,3 +300,40 @@ rng_shuffle_array_p (RandomNumberGenerator *const rng,
     }
   }
 }
+
+/**
+ * @brief Shuffles the given array of doubles.
+ *
+ * @details Arrange in place the `n` elements of `array` in random order.
+ *
+ * See:
+ * - the Wikipedia page: <a href="http://en.wikipedia.org/wiki/Knuth_shuffle" target="_blank">
+ *   Fisher–Yates shuffle</a>.
+ * - Knuth (1998). Seminumerical algorithms. The Art of Computer Programming 2 (3rd ed.). Boston: Addison–Wesley. pp. 145–146.
+ *
+ * When `n` is equal to `0` or to `1 no random number is consumed from the rng sequence.
+ *
+ * The argument `rng` must be obtained calling #rng_new.
+ *
+ * @invariant Parameter `n` cannot be negative.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] rng the random number generator to use
+ * @param [in,out] array the array to be shuffled
+ * @param [in]     n     the number of elements in the array
+ */
+void
+rng_shuffle_array_double (RandomNumberGenerator *const rng,
+                          double *const array,
+                          const int n)
+{
+  g_assert(n >= 0);
+  if (n > 1) {
+    for (int i = n - 1; i > 0; i--) {
+      int j = rng_random_choice_from_finite_set(rng, i + 1);
+      const double element = *(array + j);
+      *(array + j) = *(array + i);
+      *(array + i) = element;
+    }
+  }
+}

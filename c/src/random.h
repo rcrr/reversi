@@ -86,4 +86,9 @@ rng_shuffle_array_p (RandomNumberGenerator *const rng,
                      void **const array,
                      const int n);
 
+extern void
+rng_shuffle_array_double (RandomNumberGenerator *const rng,
+                          double *const array,
+                          const int n);
+
 #endif /* RANDOM_H */

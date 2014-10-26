@@ -299,8 +299,8 @@ smoothsort_semitrinkle (void)
  * Adapted from Delphi implementation of Dijkstra's algorithm.
  */
 void
-sort_utils_smoothsort (SItem Aarg[],
-                       const int N)
+sort_utils_smoothsort_d (SItem Aarg[],
+                         const int N)
 {
   A = Aarg; /* 0-base array; warning: A is shared by other functions */
   q = 1; r = 0; p = 1; b = 1; c = 1;
