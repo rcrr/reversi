@@ -1,6 +1,20 @@
 /**
  * @file
  *
+ * @todo Write tests for ordered and mostly ordered data.
+ *
+ * @todo Write sort_utils_smoothsorth_p.
+ *
+ * @todo Add quicksort to the list of available choices.
+ *
+ * @todo Write a function that receives the array of pointers to be sorted,
+ *       the count, a function pointer for compare, a void pointer to data,
+ *       an enum that identify the sorting algorithm.
+ *
+ * @todo Write tests for corner cases like zero, one, two elements to be sorted.
+ *
+ *
+ *
  * @brief Sort Utils module implementation.
  *
  * @par sort_utils.c
