@@ -35,6 +35,19 @@
 #ifndef SORT_UTILS_H
 #define SORT_UTILS_H
 
+typedef int (*sort_utils_compare_function)(const void *const a, const void *const b);
+
+extern int
+double_cmp (const void *const a,
+            const void *const b);
+
+
+extern void
+sort_utils_heapsort (void *const a,
+                     const size_t count,
+                     const size_t element_size,
+                     const sort_utils_compare_function cmp);
+
 extern void
 sort_utils_insertionsort_d (double *const a,
                             const int n);

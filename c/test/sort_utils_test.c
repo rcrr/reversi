@@ -47,6 +47,8 @@ typedef void (*sort_utils_sort_p)(void **const a, const int count);
 
 static void dummy_test (void);
 
+static void sort_utils_heapsort_X_d_0_test (void);
+
 static void sort_utils_insertionsort_d_0_test (void);
 
 static void sort_utils_heapsort_d_0_test (void);
@@ -89,6 +91,7 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_smoothsort_d_0_test", sort_utils_smoothsort_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_smoothsort_d_1_test", sort_utils_smoothsort_d_1_test);
 
+  g_test_add_func("/sort_utils/sort_utils_heapsort_X_d_0_test", sort_utils_heapsort_X_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_quicksort_test", sort_utils_quicksort_test);
   g_test_add_func("/sort_utils/sort_utils_insertionsort_d_0_test", sort_utils_insertionsort_d_0_test);
 
@@ -131,6 +134,21 @@ sort_utils_quicksort_test (void)
   }
   printf("};\n");
   g_assert(TRUE);
+}
+
+static void
+sort_utils_heapsort_X_d_0_test (void)
+{
+  double a[]        = { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. };
+  double expected[] = { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. };
+
+  const int a_length = sizeof(a) / sizeof(a[0]);
+
+  sort_utils_heapsort(a, a_length, sizeof(double), double_cmp);
+
+  for (int i = 0; i < a_length; i++) {
+    g_assert_cmpfloat(expected[i], ==, a[i]);
+  }
 }
 
 static void

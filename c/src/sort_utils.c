@@ -118,6 +118,13 @@ typedef struct {
  */
 
 static void
+hps_sift_down (void *const a,
+               const int start,
+               const int end,
+               const size_t element_size,
+               const sort_utils_compare_function cmp);
+
+static void
 hs_sift_down_d (double *const a,
                 const int start,
                 const int end);
@@ -141,6 +148,44 @@ ss_semitrinkle (SmoothsortSharedVariables shrd);
  * @endcond
  */
 
+int
+double_cmp (const void *const a, const void *const b)
+{
+  const double *const x = a;
+  const double *const y = b;
+  return (*x > *y) - (*x < *y);
+}
+
+void
+swap (void *const a,
+      void *const b,
+      const size_t element_size)
+{
+  size_t n = element_size;
+  char *ca = (char*) a;
+  char *cb = (char*) b;
+  do {
+    const char c = *ca;
+    *ca++ = *cb;
+    *cb++ = c;
+  } while (--n > 0);
+}
+
+void
+sort_utils_heapsort (void *const a,
+                     const size_t count,
+                     const size_t element_size,
+                     const sort_utils_compare_function cmp)
+{
+  char *a_ptr = (char *) a;
+  for (int start = (count - 2) / 2; start >= 0; start--) {
+    hps_sift_down(a, start, count, element_size, cmp);
+  }
+  for (int end = count - 1; end > 0; end--) {
+    swap(a_ptr + end * element_size, a_ptr, element_size);
+    hps_sift_down(a, 0, end, element_size, cmp);
+  }
+}
 
 
 /**
@@ -282,6 +327,30 @@ sort_utils_smoothsort_d (double *const a,
 /*
  * Internal functions.
  */
+
+static void
+hps_sift_down (void *const a,
+               const int start,
+               const int end,
+               const size_t element_size,
+               const sort_utils_compare_function cmp)
+{
+  char *a_ptr = (char *) a;
+  int root = start;
+  while (root * 2 + 1 < end) {
+    int child = 2 * root + 1;
+    if ((child + 1 < end) && cmp(a_ptr + child * element_size, a_ptr + (child + 1) * element_size) < 0) {
+      child += 1;
+    }
+    if (cmp(a_ptr + root * element_size, a_ptr + child * element_size) < 0) {
+      swap(a_ptr + child * element_size, a_ptr + root * element_size, element_size);
+      root = child;
+    }
+    else
+      return;
+  }
+}
+
 
 /**
  * @brief Sift down function for double arrays.
