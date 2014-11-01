@@ -187,6 +187,13 @@ sort_utils_heapsort (void *const a,
   }
 }
 
+void
+sort_utils_heapsort_X_d (double *const a,
+                         const int count)
+{
+  sort_utils_heapsort(a, count, sizeof(double), double_cmp);
+}
+
 
 /**
  * @brief Sorts in ascending order the `a` array of doubles.
