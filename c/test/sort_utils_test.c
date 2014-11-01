@@ -46,14 +46,20 @@ typedef void (*sort_utils_sort_p)(void **const a, const int count);
 /* Test function prototypes. */
 
 static void dummy_test (void);
+
+static void sort_utils_insertionsort_d_0_test (void);
+
 static void sort_utils_heapsort_d_0_test (void);
 static void sort_utils_heapsort_d_1_test (void);
 static void sort_utils_heapsort_d_perf_test (void);
 static void sort_utils_heapsort_p_test (void);
 static void sort_utils_heapsort_p_perf_test (void);
+
 static void sort_utils_smoothsort_d_0_test (void);
 static void sort_utils_smoothsort_d_1_test (void);
 static void sort_utils_smoothsort_d_perf_test (void);
+
+static void sort_utils_quicksort_test (void);
 
 /* Helper function prototypes. */
 
@@ -83,6 +89,9 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_smoothsort_d_0_test", sort_utils_smoothsort_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_smoothsort_d_1_test", sort_utils_smoothsort_d_1_test);
 
+  g_test_add_func("/sort_utils/sort_utils_quicksort_test", sort_utils_quicksort_test);
+  g_test_add_func("/sort_utils/sort_utils_insertionsort_d_0_test", sort_utils_insertionsort_d_0_test);
+
   if (g_test_perf()) {
     g_test_add_func("/sort_utils/sort_utils_heapsort_d_perf_test", sort_utils_heapsort_d_perf_test);
     g_test_add_func("/sort_utils/sort_utils_heapsort_p_perf_test", sort_utils_heapsort_p_perf_test);
@@ -92,6 +101,9 @@ main (int   argc,
   return g_test_run();
 }
 
+typedef int type;
+
+int type_cmp(void *a, void *b){ return (*(type*)a)-(*(type*)b); }
 
 
 /*
@@ -102,6 +114,38 @@ static void
 dummy_test (void)
 {
   g_assert(TRUE);
+}
+
+static void
+sort_utils_quicksort_test (void)
+{
+  int num_list[]={5,4,3,2,1};
+  int len=sizeof(num_list)/sizeof(type);
+  char *sep="";
+  int i;
+  sort_utils_quicksort(num_list, len, sizeof(type), type_cmp);
+  printf("sorted_num_list={");
+  for(i=0; i<len; i++){
+    printf("%s%d",sep,num_list[i]);
+    sep=", ";
+  }
+  printf("};\n");
+  g_assert(TRUE);
+}
+
+static void
+sort_utils_insertionsort_d_0_test (void)
+{
+  double a[]        = { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. };
+  double expected[] = { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. };
+
+  const int a_length = sizeof(a) / sizeof(a[0]);
+
+  sort_utils_insertionsort_d(a, a_length);
+
+  for (int i = 0; i < a_length; i++) {
+    g_assert_cmpfloat(expected[i], ==, a[i]);
+  }
 }
 
 static void
