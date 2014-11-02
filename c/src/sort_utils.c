@@ -46,6 +46,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "sort_utils.h"
 
@@ -161,9 +162,17 @@ swap (void *const a,
       void *const b,
       const size_t element_size)
 {
+  if (element_size == sizeof(uint64_t)) {
+    uint64_t *i64_a = (uint64_t *) a;
+    uint64_t *i64_b = (uint64_t *) b;
+    const uint64_t t = *i64_a;
+    *i64_a = *i64_b;
+    *i64_b = t;
+    return;
+  }
   size_t n = element_size;
-  char *ca = (char*) a;
-  char *cb = (char*) b;
+  char *ca = (char *) a;
+  char *cb = (char *) b;
   do {
     const char c = *ca;
     *ca++ = *cb;
