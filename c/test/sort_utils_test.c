@@ -164,7 +164,7 @@ sort_utils_heapsort_X_d_1_test (void)
 static void
 sort_utils_heapsort_X_d_perf_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_heapsort_X_d, 1024, 15, 2);
+  hlp_run_sort_d_test(sort_utils_heapsort_X_d, 1024, 10, 2);
 }
 
 static void
@@ -319,7 +319,7 @@ hlp_run_sort_d_test (const sort_utils_sort_d sort_fun,
     sort_fun(a, len);
     ttime = g_test_timer_elapsed();
     if (g_test_perf())
-      g_test_minimized_result(ttime, "Sorting %u items: %gsec", len, ttime);
+      g_test_minimized_result(ttime, "Sorting %10u items: %-12.8gsec", len, ttime);
 
     for (int i = 0; i < len; i++) {
       g_assert(a[i] == i);
