@@ -1,0 +1,5 @@
+
+
+This is a very rough cut log of useful command for profiling and spotting issues:
+
+valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes build/test/bin/sort_utils_test --verbose -m=perf -p /sort_utils/sort_utils_heapsort_X_d_perf_test
