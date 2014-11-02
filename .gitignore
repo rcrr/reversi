@@ -23,6 +23,7 @@ valgrind.log
 valgrind.*.log
 analysis.txt
 gmon.out
+gmon.txt
 gprof
 field_research/code/zebra/*.o
 field_research/code/zebra/booktool
@@ -41,3 +42,4 @@ field_research/code/edax/4.3/bin
 *.kdev4
 .kdev_include_paths
 out
+callgrind.out.*
