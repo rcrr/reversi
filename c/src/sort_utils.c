@@ -152,8 +152,11 @@ ss_semitrinkle (SmoothsortSharedVariables shrd);
 int
 double_cmp (const void *const a, const void *const b)
 {
-  const double *const x = a;
-  const double *const y = b;
+  const double *const x = (const double *const) a;
+  const double *const y = (const double *const) b;
+  //if (*x > *y) return +1;
+  //if (*x < *y) return -1;
+  //return 0;
   return (*x > *y) - (*x < *y);
 }
 
@@ -351,15 +354,17 @@ hps_sift_down (void *const a,
                const size_t element_size,
                const sort_utils_compare_function cmp)
 {
-  char *a_ptr = (char *) a;
+  char *const a_ptr = (char *const) a;
   int root = start;
-  while (root * 2 + 1 < end) {
-    int child = 2 * root + 1;
-    if ((child + 1 < end) && cmp(a_ptr + child * element_size, a_ptr + (child + 1) * element_size) < 0) {
+  for (int child = 2 * root + 1; child < end; child = 2 * root + 1) {
+    char *child_ptr = (char *) a_ptr + child * element_size;
+    char *const root_ptr = (char *const) a_ptr + root * element_size;
+    if ((child < end - 1) && cmp(child_ptr, child_ptr + element_size) < 0) {
       child += 1;
+      child_ptr += element_size;
     }
-    if (cmp(a_ptr + root * element_size, a_ptr + child * element_size) < 0) {
-      swap(a_ptr + child * element_size, a_ptr + root * element_size, element_size);
+    if (cmp(root_ptr, child_ptr) < 0) {
+      swap(child_ptr, root_ptr, element_size);
       root = child;
     }
     else
