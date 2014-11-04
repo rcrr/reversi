@@ -48,6 +48,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <glib.h>
+
 #include "sort_utils.h"
 
 
@@ -150,13 +152,18 @@ ss_semitrinkle (SmoothsortSharedVariables shrd);
  */
 
 int
+double_is_less (const void *const a, const void *const b)
+{
+  const double *const x = (const double *const) a;
+  const double *const y = (const double *const) b;
+  return *x < *y;
+}
+
+int
 double_cmp (const void *const a, const void *const b)
 {
   const double *const x = (const double *const) a;
   const double *const y = (const double *const) b;
-  //if (*x > *y) return +1;
-  //if (*x < *y) return -1;
-  //return 0;
   return (*x > *y) - (*x < *y);
 }
 
@@ -359,11 +366,14 @@ hps_sift_down (void *const a,
   for (int child = 2 * root + 1; child < end; child = 2 * root + 1) {
     char *child_ptr = (char *) a_ptr + child * element_size;
     char *const root_ptr = (char *const) a_ptr + root * element_size;
-    if ((child < end - 1) && cmp(child_ptr, child_ptr + element_size) < 0) {
+    //if ((child < end - 1) && cmp(child_ptr, child_ptr + element_size) < 0) {
+    if ((child < end - 1) && double_is_less(child_ptr, child_ptr + element_size)) {
       child += 1;
       child_ptr += element_size;
     }
-    if (cmp(root_ptr, child_ptr) < 0) {
+    g_assert((cmp(root_ptr, child_ptr) < 0) == double_is_less(root_ptr, child_ptr));
+    //if (cmp(root_ptr, child_ptr) < 0) {
+    if (double_is_less(root_ptr, child_ptr)) {
       swap(child_ptr, root_ptr, element_size);
       root = child;
     }

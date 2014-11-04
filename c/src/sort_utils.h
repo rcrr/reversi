@@ -36,6 +36,7 @@
 #define SORT_UTILS_H
 
 typedef int (*sort_utils_compare_function)(const void *const a, const void *const b);
+typedef int (*sort_utils_is_less_function)(const void *const a, const void *const b);
 
 extern int
 double_cmp (const void *const a,
