@@ -35,19 +35,25 @@
 #ifndef SORT_UTILS_H
 #define SORT_UTILS_H
 
+#include <glib.h>
+
 typedef int (*sort_utils_compare_function)(const void *const a, const void *const b);
-typedef int (*sort_utils_is_less_function)(const void *const a, const void *const b);
+typedef gboolean (*sort_utils_lt_function)(const void *const a, const void *const b);
 
 extern int
-double_cmp (const void *const a,
-            const void *const b);
+sort_utils_double_cmp (const void *const a,
+                       const void *const b);
+
+extern gboolean
+sort_utils_double_lt (const void *const a,
+                      const void *const b);
 
 
 extern void
 sort_utils_heapsort (void *const a,
                      const size_t count,
                      const size_t element_size,
-                     const sort_utils_compare_function cmp);
+                     const sort_utils_lt_function lt);
 
 extern void
 sort_utils_heapsort_X_d (double *const a,

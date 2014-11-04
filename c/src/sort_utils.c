@@ -48,8 +48,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include <glib.h>
-
 #include "sort_utils.h"
 
 
@@ -125,7 +123,7 @@ hps_sift_down (void *const a,
                const int start,
                const int end,
                const size_t element_size,
-               const sort_utils_compare_function cmp);
+               const sort_utils_lt_function lt);
 
 static void
 hs_sift_down_d (double *const a,
@@ -151,8 +149,8 @@ ss_semitrinkle (SmoothsortSharedVariables shrd);
  * @endcond
  */
 
-int
-double_is_less (const void *const a, const void *const b)
+gboolean
+sort_utils_double_lt (const void *const a, const void *const b)
 {
   const double *const x = (const double *const) a;
   const double *const y = (const double *const) b;
@@ -160,7 +158,7 @@ double_is_less (const void *const a, const void *const b)
 }
 
 int
-double_cmp (const void *const a, const void *const b)
+sort_utils_double_cmp (const void *const a, const void *const b)
 {
   const double *const x = (const double *const) a;
   const double *const y = (const double *const) b;
@@ -194,15 +192,15 @@ void
 sort_utils_heapsort (void *const a,
                      const size_t count,
                      const size_t element_size,
-                     const sort_utils_compare_function cmp)
+                     const sort_utils_lt_function lt)
 {
   char *a_ptr = (char *) a;
   for (int start = (count - 2) / 2; start >= 0; start--) {
-    hps_sift_down(a, start, count, element_size, cmp);
+    hps_sift_down(a, start, count, element_size, lt);
   }
   for (int end = count - 1; end > 0; end--) {
     swap(a_ptr + end * element_size, a_ptr, element_size);
-    hps_sift_down(a, 0, end, element_size, cmp);
+    hps_sift_down(a, 0, end, element_size, lt);
   }
 }
 
@@ -210,7 +208,7 @@ void
 sort_utils_heapsort_X_d (double *const a,
                          const int count)
 {
-  sort_utils_heapsort(a, count, sizeof(double), double_cmp);
+  sort_utils_heapsort(a, count, sizeof(double), sort_utils_double_lt);
 }
 
 
@@ -359,21 +357,18 @@ hps_sift_down (void *const a,
                const int start,
                const int end,
                const size_t element_size,
-               const sort_utils_compare_function cmp)
+               const sort_utils_lt_function lt)
 {
   char *const a_ptr = (char *const) a;
   int root = start;
   for (int child = 2 * root + 1; child < end; child = 2 * root + 1) {
     char *child_ptr = (char *) a_ptr + child * element_size;
     char *const root_ptr = (char *const) a_ptr + root * element_size;
-    //if ((child < end - 1) && cmp(child_ptr, child_ptr + element_size) < 0) {
-    if ((child < end - 1) && double_is_less(child_ptr, child_ptr + element_size)) {
+    if ((child < end - 1) && lt(child_ptr, child_ptr + element_size)) {
       child += 1;
       child_ptr += element_size;
     }
-    g_assert((cmp(root_ptr, child_ptr) < 0) == double_is_less(root_ptr, child_ptr));
-    //if (cmp(root_ptr, child_ptr) < 0) {
-    if (double_is_less(root_ptr, child_ptr)) {
+    if (lt(root_ptr, child_ptr)) {
       swap(child_ptr, root_ptr, element_size);
       root = child;
     }

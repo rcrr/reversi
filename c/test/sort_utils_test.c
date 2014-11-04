@@ -148,7 +148,7 @@ sort_utils_heapsort_X_d_0_test (void)
 
   const int a_length = sizeof(a) / sizeof(a[0]);
 
-  sort_utils_heapsort(a, a_length, sizeof(double), double_cmp);
+  sort_utils_heapsort(a, a_length, sizeof(double), sort_utils_double_lt);
 
   for (int i = 0; i < a_length; i++) {
     g_assert_cmpfloat(expected[i], ==, a[i]);
