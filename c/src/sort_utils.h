@@ -37,8 +37,32 @@
 
 #include <glib.h>
 
-typedef int (*sort_utils_compare_function)(const void *const a, const void *const b);
-typedef gboolean (*sort_utils_lt_function)(const void *const a, const void *const b);
+/**
+ * @brief Function pointer type for comparing values.
+ *
+ * @details Function implementation has to ensure that when `a` is equal `b`,
+ *          zero is returned, when `a` is greater than `b` a positive integer,
+ *          and otherwise a negative one.
+ *
+ * @param a first value
+ * @param b second value
+ * @return result of comparing values
+ */
+typedef int (*sort_utils_compare_function) (const void *const a,
+                                            const void *const b);
+
+/**
+ * @brief Function pointer type to a predicate procedure of the type `a < b`.
+ *
+ * @details Function implementation has to assure that when `a` is less than `b`,
+ *          `TRUE` is returned, and `FALSE` otherwise.
+ *
+ * @param a first value
+ * @param b second value
+ * @return true when `a` is less than `b`
+ */
+typedef gboolean (*sort_utils_lt_function) (const void *const a,
+                                            const void *const b);
 
 extern int
 sort_utils_double_cmp (const void *const a,
