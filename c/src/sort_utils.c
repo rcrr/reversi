@@ -48,6 +48,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <glib.h>
+
 #include "sort_utils.h"
 
 
@@ -123,7 +125,7 @@ hps_sift_down (void *const a,
                const int start,
                const int end,
                const size_t element_size,
-               const sort_utils_lt_function lt);
+               const sort_utils_compare_function lt);
 
 static void
 hs_sift_down_d (double *const a,
@@ -149,7 +151,7 @@ ss_semitrinkle (SmoothsortSharedVariables shrd);
  * @endcond
  */
 
-gboolean
+int
 sort_utils_double_lt (const void *const a, const void *const b)
 {
   const double *const x = (const double *const) a;
@@ -192,7 +194,7 @@ void
 sort_utils_heapsort (void *const a,
                      const size_t count,
                      const size_t element_size,
-                     const sort_utils_lt_function lt)
+                     const sort_utils_compare_function lt)
 {
   char *a_ptr = (char *) a;
   for (int start = (count - 2) / 2; start >= 0; start--) {
@@ -357,7 +359,7 @@ hps_sift_down (void *const a,
                const int start,
                const int end,
                const size_t element_size,
-               const sort_utils_lt_function lt)
+               const sort_utils_compare_function lt)
 {
   char *const a_ptr = (char *const) a;
   int root = start;

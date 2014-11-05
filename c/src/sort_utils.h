@@ -35,33 +35,21 @@
 #ifndef SORT_UTILS_H
 #define SORT_UTILS_H
 
-#include <glib.h>
-
 /**
  * @brief Function pointer type for comparing values.
  *
- * @details Function implementation has to ensure that when `a` is equal `b`,
+ * @details Function implementation can have different forms:
+ *          - Compare: has to ensure that when `a` is equal `b`,
  *          zero is returned, when `a` is greater than `b` a positive integer,
  *          and otherwise a negative one.
+ *          - Less then: has to assure that when `a` is less than `b`,
+ *          `TRUE` is returned, and `FALSE` otherwise.
  *
  * @param a first value
  * @param b second value
  * @return result of comparing values
  */
 typedef int (*sort_utils_compare_function) (const void *const a,
-                                            const void *const b);
-
-/**
- * @brief Function pointer type to a predicate procedure of the type `a < b`.
- *
- * @details Function implementation has to assure that when `a` is less than `b`,
- *          `TRUE` is returned, and `FALSE` otherwise.
- *
- * @param a first value
- * @param b second value
- * @return true when `a` is less than `b`
- */
-typedef gboolean (*sort_utils_lt_function) (const void *const a,
                                             const void *const b);
 
 extern int
@@ -77,7 +65,7 @@ extern void
 sort_utils_heapsort (void *const a,
                      const size_t count,
                      const size_t element_size,
-                     const sort_utils_lt_function lt);
+                     const sort_utils_compare_function lt);
 
 extern void
 sort_utils_heapsort_X_d (double *const a,
