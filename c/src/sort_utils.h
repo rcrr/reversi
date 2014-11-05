@@ -56,7 +56,7 @@ extern int
 sort_utils_double_cmp (const void *const a,
                        const void *const b);
 
-extern gboolean
+extern int
 sort_utils_double_lt (const void *const a,
                       const void *const b);
 
