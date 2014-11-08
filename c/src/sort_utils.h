@@ -57,6 +57,10 @@ sort_utils_double_cmp (const void *const a,
                        const void *const b);
 
 extern int
+sort_utils_double_gt (const void *const a,
+                      const void *const b);
+
+extern int
 sort_utils_double_lt (const void *const a,
                       const void *const b);
 
@@ -68,8 +72,12 @@ sort_utils_heapsort (void *const a,
                      const sort_utils_compare_function cmp);
 
 extern void
-sort_utils_heapsort_X_d (double *const a,
-                         const int count);
+sort_utils_heapsort_asc_d (double *const a,
+                           const int count);
+
+extern void
+sort_utils_heapsort_dsc_d (double *const a,
+                           const int count);
 
 extern void
 sort_utils_insertionsort_d (double *const a,

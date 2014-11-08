@@ -146,11 +146,44 @@ ss_trinkle (SmoothsortSharedVariables shrd);
 static void
 ss_semitrinkle (SmoothsortSharedVariables shrd);
 
-
 /**
  * @endcond
  */
 
+
+
+/**
+ * @brief Returns true when `a` is greater than `b`.
+ *
+ * @details Compare funtion that returns `TRUE`, so a value
+ *          different from zero, when the double value pointed
+ *          by `a` is greater than the one pointed by `b`, otherwise
+ *          it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first double
+ * @param b a ponter to the second double
+ * @return  `TRUE` when `a` is greater than `b`.
+ */
+int
+sort_utils_double_gt (const void *const a, const void *const b)
+{
+  const double *const x = (const double *const) a;
+  const double *const y = (const double *const) b;
+  return *x > *y;
+}
+
+/**
+ * @brief Returns true when `a` is less than `b`.
+ *
+ * @details Compare funtion that returns `TRUE`, so a value
+ *          different from zero, when the double value pointed
+ *          by `a` is less than the one pointed by `b`, otherwise
+ *          it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first double
+ * @param b a ponter to the second double
+ * @return  `TRUE` when `a` is less than `b`.
+ */
 int
 sort_utils_double_lt (const void *const a, const void *const b)
 {
@@ -159,6 +192,18 @@ sort_utils_double_lt (const void *const a, const void *const b)
   return *x < *y;
 }
 
+/**
+ * @brief Compares double values pointed by `a` and `b`.
+ *
+ * @details Compare funtion that returns:
+ *          - `+1` when `a` is greater than `b`
+ *          - ` 0` when `a` is equal to `b`
+ *          - `-1` when `a` is less then `b`
+ *
+ * @param a a pointer to the first double
+ * @param b a ponter to the second double
+ * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
+ */
 int
 sort_utils_double_cmp (const void *const a, const void *const b)
 {
@@ -228,10 +273,26 @@ sort_utils_heapsort (void *const a,
  * @param [in]     count the number of element of array a
  */
 void
-sort_utils_heapsort_X_d (double *const a,
-                         const int count)
+sort_utils_heapsort_asc_d (double *const a,
+                           const int count)
 {
   sort_utils_heapsort(a, count, sizeof(double), sort_utils_double_lt);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in descending order applying the heapsort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_heapsort_dsc_d (double *const a,
+                           const int count)
+{
+  sort_utils_heapsort(a, count, sizeof(double), sort_utils_double_gt);
 }
 
 /**
