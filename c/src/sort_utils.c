@@ -190,29 +190,49 @@ swap (void *const a,
   } while (--n > 0);
 }
 
+/**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a` having length equal to `count` is sorted
+ *          in place applying the heapsort algorithm.
+ *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applyed by the algorithm
+ */
 void
 sort_utils_heapsort (void *const a,
                      const size_t count,
                      const size_t element_size,
-                     const sort_utils_compare_function lt)
+                     const sort_utils_compare_function cmp)
 {
   char *a_ptr = (char *) a;
   for (int start = (count - 2) / 2; start >= 0; start--) {
-    hps_sift_down(a, start, count, element_size, lt);
+    hps_sift_down(a, start, count, element_size, cmp);
   }
   for (int end = count - 1; end > 0; end--) {
     swap(a_ptr + end * element_size, a_ptr, element_size);
-    hps_sift_down(a, 0, end, element_size, lt);
+    hps_sift_down(a, 0, end, element_size, cmp);
   }
 }
 
+/**
+ * @brief Sorts in ascending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the heapsort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
 void
 sort_utils_heapsort_X_d (double *const a,
                          const int count)
 {
   sort_utils_heapsort(a, count, sizeof(double), sort_utils_double_lt);
 }
-
 
 /**
  * @brief Sorts in ascending order the `a` array of doubles.

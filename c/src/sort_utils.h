@@ -65,7 +65,7 @@ extern void
 sort_utils_heapsort (void *const a,
                      const size_t count,
                      const size_t element_size,
-                     const sort_utils_compare_function lt);
+                     const sort_utils_compare_function cmp);
 
 extern void
 sort_utils_heapsort_X_d (double *const a,
