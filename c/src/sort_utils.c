@@ -250,6 +250,10 @@ sort_utils_double_cmp (const void *const a, const void *const b)
 /* Sort function implementatons */
 /********************************/
 
+/******************/
+/* Insertion-sort */
+/******************/
+
 /**
  * @brief Sorts the `a` array.
  *
@@ -310,6 +314,28 @@ sort_utils_insertionsort_asc_d (double *const a,
 {
   sort_utils_insertionsort(a, count, sizeof(double), sort_utils_double_lt);
 }
+
+/**
+ * @brief Sorts in descending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in descending order applying the insertionsort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_insertionsort_dsc_d (double *const a,
+                                const int count)
+{
+  sort_utils_insertionsort(a, count, sizeof(double), sort_utils_double_gt);
+}
+
+
+
+/*************/
+/* Heap-sort */
+/*************/
 
 /**
  * @brief Sorts the `a` array.
@@ -415,6 +441,12 @@ sort_utils_heapsort_p (void **const a,
   }
 }
 
+
+
+/***************/
+/* Smooth-sort */
+/***************/
+
 /**
  * @brief Sorts in ascending order the `a` array of doubles.
  *
@@ -511,6 +543,13 @@ sort_utils_smoothsort_d (double *const a,
  * Internal functions.
  */
 
+/**
+ * @brief Swaps values pointed by `a` with `b`.
+ *
+ * @param [in,out] a            first value
+ * @param [in,out] b            second value
+ * @param [in]     element_size number of bytes occupaid by a and b values
+ */
 static void
 swap (void *const a,
       void *const b,

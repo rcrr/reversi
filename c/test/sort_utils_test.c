@@ -56,6 +56,7 @@ static void sort_utils_heapsort_asc_d_1_test (void);
 static void sort_utils_heapsort_asc_d_perf_test (void);
 
 static void sort_utils_insertionsort_asc_d_0_test (void);
+static void sort_utils_insertionsort_dsc_d_0_test (void);
 static void sort_utils_insertionsort_asc_d_1_test (void);
 static void sort_utils_insertionsort_asc_d_perf_test (void);
 
@@ -95,17 +96,18 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_double_compare_test", sort_utils_double_compare_test);
 
   g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_0_test", sort_utils_insertionsort_asc_d_0_test);
+  g_test_add_func("/sort_utils/sort_utils_insertionsort_dsc_d_0_test", sort_utils_insertionsort_dsc_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_1_test", sort_utils_insertionsort_asc_d_1_test);
+
+  g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_0_test", sort_utils_heapsort_asc_d_0_test);
+  g_test_add_func("/sort_utils/sort_utils_heapsort_dsc_d_0_test", sort_utils_heapsort_dsc_d_0_test);
+  g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_1_test", sort_utils_heapsort_asc_d_1_test);
 
   g_test_add_func("/sort_utils/sort_utils_heapsort_d_0_test", sort_utils_heapsort_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_heapsort_d_1_test", sort_utils_heapsort_d_1_test);
   g_test_add_func("/sort_utils/sort_utils_heapsort_p_test", sort_utils_heapsort_p_test);
   g_test_add_func("/sort_utils/sort_utils_smoothsort_d_0_test", sort_utils_smoothsort_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_smoothsort_d_1_test", sort_utils_smoothsort_d_1_test);
-
-  g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_0_test", sort_utils_heapsort_asc_d_0_test);
-  g_test_add_func("/sort_utils/sort_utils_heapsort_dsc_d_0_test", sort_utils_heapsort_dsc_d_0_test);
-  g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_1_test", sort_utils_heapsort_asc_d_1_test);
 
   if (g_test_perf()) {
     g_test_add_func("/sort_utils/sort_utils_heapsort_d_perf_test", sort_utils_heapsort_d_perf_test);
@@ -186,7 +188,57 @@ sort_utils_double_compare_test (void)
 
 
 
+/********************************************/
+/* Unit tests for insertion-sort algorithm. */
+/********************************************/
 
+static void
+sort_utils_insertionsort_asc_d_0_test (void)
+{
+  double a[]        = { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. };
+  double expected[] = { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. };
+
+  const int a_length = sizeof(a) / sizeof(a[0]);
+
+  sort_utils_insertionsort(a, a_length, sizeof(double), sort_utils_double_lt);
+
+  for (int i = 0; i < a_length; i++) {
+    g_assert_cmpfloat(expected[i], ==, a[i]);
+  }
+}
+
+static void
+sort_utils_insertionsort_dsc_d_0_test (void)
+{
+  double a[]        = { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. };
+  double expected[] = { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. };
+
+  const int a_length = sizeof(a) / sizeof(a[0]);
+
+  sort_utils_insertionsort(a, a_length, sizeof(double), sort_utils_double_gt);
+
+  for (int i = 0; i < a_length; i++) {
+    g_assert_cmpfloat(expected[i], ==, a[i]);
+  }
+}
+
+static void
+sort_utils_insertionsort_asc_d_1_test (void)
+{
+  hlp_run_sort_d_test(sort_utils_insertionsort_asc_d, 1024, 1, 0);
+}
+
+static void
+sort_utils_insertionsort_asc_d_perf_test (void)
+{
+  hlp_run_sort_d_test(sort_utils_insertionsort_asc_d, 1024, 8, 2);
+}
+
+
+
+/***************************************/
+/* Unit tests for heap-sort algorithm. */
+/***************************************/
 
 static void
 sort_utils_heapsort_asc_d_0_test (void)
@@ -228,33 +280,6 @@ static void
 sort_utils_heapsort_asc_d_perf_test (void)
 {
   hlp_run_sort_d_test(sort_utils_heapsort_asc_d, 1024, 15, 2);
-}
-
-static void
-sort_utils_insertionsort_asc_d_0_test (void)
-{
-  double a[]        = { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. };
-  double expected[] = { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. };
-
-  const int a_length = sizeof(a) / sizeof(a[0]);
-
-  sort_utils_insertionsort_asc_d(a, a_length);
-
-  for (int i = 0; i < a_length; i++) {
-    g_assert_cmpfloat(expected[i], ==, a[i]);
-  }
-}
-
-static void
-sort_utils_insertionsort_asc_d_1_test (void)
-{
-  hlp_run_sort_d_test(sort_utils_insertionsort_asc_d, 1024, 1, 0);
-}
-
-static void
-sort_utils_insertionsort_asc_d_perf_test (void)
-{
-  hlp_run_sort_d_test(sort_utils_insertionsort_asc_d, 1024, 8, 2);
 }
 
 

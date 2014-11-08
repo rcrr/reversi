@@ -81,8 +81,18 @@ sort_utils_double_cmp (const void *const a,
 /***************************************/
 
 extern void
+sort_utils_insertionsort (void *const a,
+                          const size_t count,
+                          const size_t element_size,
+                          const sort_utils_compare_function cmp);
+
+extern void
 sort_utils_insertionsort_asc_d (double *const a,
                                 const int n);
+
+extern void
+sort_utils_insertionsort_dsc_d (double *const a,
+                                const int count);
 
 
 
