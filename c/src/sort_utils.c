@@ -121,6 +121,11 @@ typedef struct {
  */
 
 static void
+swap (void *const a,
+      void *const b,
+      const size_t element_size);
+
+static void
 hps_sift_down (void *const a,
                const int start,
                const int end,
@@ -239,27 +244,71 @@ sort_utils_double_cmp (const void *const a, const void *const b)
   return (*x > *y) - (*x < *y);
 }
 
+
+
+/********************************/
+/* Sort function implementatons */
+/********************************/
+
+/**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a` having length equal to `count` is sorted
+ *          in place applying the insertionsort algorithm.
+ *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *
+ *          Insertion-sort is a naive algorithm with asimptotic time complexity of O(n^2),
+ *          so quicksort or heapsort should be preferred even for small arrays.
+ *          Nevertheless sometimes its semplicity makes it a valid choice. The given
+ *          implementation is between two or three percent slower compared to a bare
+ *          metal version, sorting doubles values, like the one here transcribed:
+ * @code
+ * void
+ * sort_utils_insertionsort_asc_d (double *const a,
+ *                                 const int count)
+ *  for (int i = 1; i < count; i++) {
+ *    for (int j = i; j > 0 && a[j - 1] > a[j]; j--) {
+ *      double t = a[j]; a[j] = a[j - 1]; a[j - 1] = t;
+ *    }
+ *  }
+ * @endcode
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applyed by the algorithm
+ */
 void
-swap (void *const a,
-      void *const b,
-      const size_t element_size)
+sort_utils_insertionsort (void *const a,
+                          const size_t count,
+                          const size_t element_size,
+                          const sort_utils_compare_function cmp)
 {
-  if (element_size == sizeof(uint64_t)) {
-    uint64_t *i64_a = (uint64_t *) a;
-    uint64_t *i64_b = (uint64_t *) b;
-    const uint64_t t = *i64_a;
-    *i64_a = *i64_b;
-    *i64_b = t;
-    return;
+  char *a_ptr = (char *) a;
+  for (int i = 1; i < count; i++) {
+    int j = i;
+    for (;;) {
+      if (j == 0 || cmp(a_ptr + (j - 1) * element_size, a_ptr + j * element_size)) break;
+      swap(a_ptr + j * element_size, a_ptr + (j - 1) * element_size, element_size);
+      j--;
+    }
   }
-  size_t n = element_size;
-  char *ca = (char *) a;
-  char *cb = (char *) b;
-  do {
-    const char c = *ca;
-    *ca++ = *cb;
-    *cb++ = c;
-  } while (--n > 0);
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the insertionsort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_insertionsort_asc_d (double *const a,
+                                const int count)
+{
+  sort_utils_insertionsort(a, count, sizeof(double), sort_utils_double_lt);
 }
 
 /**
@@ -461,6 +510,29 @@ sort_utils_smoothsort_d (double *const a,
 /*
  * Internal functions.
  */
+
+static void
+swap (void *const a,
+      void *const b,
+      const size_t element_size)
+{
+  if (element_size == sizeof(uint64_t)) {
+    uint64_t *i64_a = (uint64_t *) a;
+    uint64_t *i64_b = (uint64_t *) b;
+    const uint64_t t = *i64_a;
+    *i64_a = *i64_b;
+    *i64_b = t;
+    return;
+  }
+  size_t n = element_size;
+  char *ca = (char *) a;
+  char *cb = (char *) b;
+  do {
+    const char c = *ca;
+    *ca++ = *cb;
+    *cb++ = c;
+  } while (--n > 0);
+}
 
 static void
 hps_sift_down (void *const a,
@@ -668,15 +740,3 @@ ss_semitrinkle (SmoothsortSharedVariables shrd)
 /**
  * @endcond
  */
-
-void
-sort_utils_insertionsort_d (double *const a,
-                            const int n)
-{
-  int i, j;
-  for (i = 1; i < n; i++) {
-    for (j = i; j > 0 && a[j - 1] > a[j]; j--) {
-      swap_d(a[j], a[j - 1]);
-    }
-  }
-}

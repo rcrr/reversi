@@ -74,6 +74,22 @@ extern int
 sort_utils_double_cmp (const void *const a,
                        const void *const b);
 
+
+
+/***************************************/
+/* Insertion-sort function prototypes. */
+/***************************************/
+
+extern void
+sort_utils_insertionsort_asc_d (double *const a,
+                                const int n);
+
+
+
+/**********************************/
+/* Heap-sort function prototypes. */
+/**********************************/
+
 extern void
 sort_utils_heapsort (void *const a,
                      const size_t count,
@@ -89,16 +105,18 @@ sort_utils_heapsort_dsc_d (double *const a,
                            const int count);
 
 extern void
-sort_utils_insertionsort_d (double *const a,
-                            const int n);
-
-extern void
 sort_utils_heapsort_d (double *const a,
                        const int count);
 
 extern void
 sort_utils_heapsort_p (void **const a,
                        const int count);
+
+
+
+/************************************/
+/* Smooth-sort function prototypes. */
+/************************************/
 
 extern void
 sort_utils_smoothsort_d (double *const a,
