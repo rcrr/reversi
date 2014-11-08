@@ -52,9 +52,15 @@
 typedef int (*sort_utils_compare_function) (const void *const a,
                                             const void *const b);
 
+
+
+/********************************/
+/* Compare function signatures. */
+/********************************/
+
 extern int
-sort_utils_double_cmp (const void *const a,
-                       const void *const b);
+sort_utils_double_eq (const void *const a,
+                      const void *const b);
 
 extern int
 sort_utils_double_gt (const void *const a,
@@ -64,6 +70,9 @@ extern int
 sort_utils_double_lt (const void *const a,
                       const void *const b);
 
+extern int
+sort_utils_double_cmp (const void *const a,
+                       const void *const b);
 
 extern void
 sort_utils_heapsort (void *const a,

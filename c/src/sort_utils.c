@@ -152,6 +152,31 @@ ss_semitrinkle (SmoothsortSharedVariables shrd);
 
 
 
+/*************************************/
+/* Compare function implementations. */
+/*************************************/
+
+/**
+ * @brief Returns true when `a` is equal to `b`.
+ *
+ * @details Compare funtion that returns `TRUE`, so a value
+ *          different from zero, when the double value pointed
+ *          by `a` is equal to the one pointed by `b`, otherwise
+ *          it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first double
+ * @param b a ponter to the second double
+ * @return  `TRUE` when `a` is equal `b`.
+ */
+int
+sort_utils_double_eq (const void *const a,
+                      const void *const b)
+{
+  const double *const x = (const double *const) a;
+  const double *const y = (const double *const) b;
+  return *x == *y;
+}
+
 /**
  * @brief Returns true when `a` is greater than `b`.
  *
@@ -165,7 +190,8 @@ ss_semitrinkle (SmoothsortSharedVariables shrd);
  * @return  `TRUE` when `a` is greater than `b`.
  */
 int
-sort_utils_double_gt (const void *const a, const void *const b)
+sort_utils_double_gt (const void *const a,
+                      const void *const b)
 {
   const double *const x = (const double *const) a;
   const double *const y = (const double *const) b;
@@ -185,7 +211,8 @@ sort_utils_double_gt (const void *const a, const void *const b)
  * @return  `TRUE` when `a` is less than `b`.
  */
 int
-sort_utils_double_lt (const void *const a, const void *const b)
+sort_utils_double_lt (const void *const a,
+                      const void *const b)
 {
   const double *const x = (const double *const) a;
   const double *const y = (const double *const) b;

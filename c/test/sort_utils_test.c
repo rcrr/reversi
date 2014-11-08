@@ -47,6 +47,8 @@ typedef void (*sort_utils_sort_p)(void **const a, const int count);
 
 static void dummy_test (void);
 
+static void sort_utils_double_compare_test (void);
+
 static void sort_utils_heapsort_asc_d_0_test (void);
 static void sort_utils_heapsort_dsc_d_0_test (void);
 
@@ -87,6 +89,9 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func("/sort_utils/dummy", dummy_test);
+
+  g_test_add_func("/sort_utils/sort_utils_double_compare_test", sort_utils_double_compare_test);
+
   g_test_add_func("/sort_utils/sort_utils_heapsort_d_0_test", sort_utils_heapsort_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_heapsort_d_1_test", sort_utils_heapsort_d_1_test);
   g_test_add_func("/sort_utils/sort_utils_heapsort_p_test", sort_utils_heapsort_p_test);
@@ -122,6 +127,61 @@ dummy_test (void)
 {
   g_assert(TRUE);
 }
+
+static void
+sort_utils_double_compare_test (void)
+{
+  double a;
+  double b;
+
+  a = 3.;
+  b = 3.;
+  g_assert_true(sort_utils_double_eq(&a, &b));
+
+  a = 3.;
+  b = 2.;
+  g_assert_false(sort_utils_double_eq(&a, &b));
+
+  a = 3.;
+  b = 2.;
+  g_assert_true(sort_utils_double_gt(&a, &b));
+
+  a = 2.;
+  b = 3.;
+  g_assert_false(sort_utils_double_gt(&a, &b));
+
+  a = 3.;
+  b = 3.;
+  g_assert_false(sort_utils_double_gt(&a, &b));
+
+  a = 3.;
+  b = 2.;
+  g_assert_false(sort_utils_double_lt(&a, &b));
+
+  a = 2.;
+  b = 3.;
+  g_assert_true(sort_utils_double_lt(&a, &b));
+
+  a = 3.;
+  b = 3.;
+  g_assert_false(sort_utils_double_lt(&a, &b));
+
+  a = 2.;
+  b = 3.;
+  g_assert_cmpint(sort_utils_double_cmp(&a, &b), ==, -1);
+
+  a = 3.;
+  b = 3.;
+  g_assert_cmpint(sort_utils_double_cmp(&a, &b), ==,  0);
+
+  a = 3.;
+  b = 2.;
+  g_assert_cmpint(sort_utils_double_cmp(&a, &b), ==, +1);
+}
+
+
+
+
 
 static void
 sort_utils_heapsort_asc_d_0_test (void)
