@@ -95,10 +95,4 @@ extern void
 sort_utils_smoothsort_d (double *const a,
                          const int count);
 
-extern void
-sort_utils_quicksort (void *a,
-                      size_t nitems,
-                      size_t size,
-                      int (*cmp)(void*, void*));
-
 #endif /* SORT_UTILS_H */

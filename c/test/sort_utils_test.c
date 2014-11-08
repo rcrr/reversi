@@ -65,8 +65,6 @@ static void sort_utils_smoothsort_d_0_test (void);
 static void sort_utils_smoothsort_d_1_test (void);
 static void sort_utils_smoothsort_d_perf_test (void);
 
-static void sort_utils_quicksort_test (void);
-
 /* Helper function prototypes. */
 
 static void
@@ -98,7 +96,6 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_0_test", sort_utils_heapsort_asc_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_heapsort_dsc_d_0_test", sort_utils_heapsort_dsc_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_1_test", sort_utils_heapsort_asc_d_1_test);
-  g_test_add_func("/sort_utils/sort_utils_quicksort_test", sort_utils_quicksort_test);
   g_test_add_func("/sort_utils/sort_utils_insertionsort_d_0_test", sort_utils_insertionsort_d_0_test);
 
   if (g_test_perf()) {
@@ -123,23 +120,6 @@ int type_cmp(void *a, void *b){ return (*(type*)a)-(*(type*)b); }
 static void
 dummy_test (void)
 {
-  g_assert(TRUE);
-}
-
-static void
-sort_utils_quicksort_test (void)
-{
-  int num_list[]={5,4,3,2,1};
-  int len=sizeof(num_list)/sizeof(type);
-  char *sep="";
-  int i;
-  sort_utils_quicksort(num_list, len, sizeof(type), type_cmp);
-  printf("sorted_num_list={");
-  for(i=0; i<len; i++){
-    printf("%s%d",sep,num_list[i]);
-    sep=", ";
-  }
-  printf("};\n");
   g_assert(TRUE);
 }
 
