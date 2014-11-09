@@ -33,6 +33,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <glib.h>
 
@@ -41,11 +42,6 @@
 
 
 typedef void (*sort_utils_sort_d)(double *const a, const int count);
-
-
-typedef struct {
-  int dummy;
-} Fixture;
 
 /**
  * @brief A test case is used to automate the execution of a set of test.
@@ -57,6 +53,13 @@ typedef struct {
   double *data;           /**< @brief The data to be sorted. */
   double *expected;       /**< @brief The expected sequence. */
 } TestCaseDouble;
+
+/**
+ *
+ */
+typedef struct {
+  void *data;
+} Fixture;
 
 /**
  * @brief Expected results for test cases coming from French Federation Othello game positions, number 01.
@@ -185,6 +188,8 @@ static void
 insertionsort_tcd_base_test (Fixture *fixture,
                              gconstpointer test_data)
 {
+  TestCaseDouble **tests = fixture->data;
+  if (!tests) printf("tests is NULL\n");
   g_assert(TRUE);
 }
 
@@ -407,14 +412,27 @@ static void
 base_fixture_setup (Fixture *fixture,
                     gconstpointer test_data)
 {
-  ;
+  TestCaseDouble *tests = (TestCaseDouble *) test_data;
+  const TestCaseDouble *t = NULL;
+  printf("\n\n");
+  for (int i = 0;; i++) {
+    t = &tests[i];
+    if (t->label == NULL) break;
+    printf("label=%s\n", t->label);
+  }
+  /*
+  const size_t size_of_test_data = sizeof(*tdata);
+  printf("size_of_test_data=%d\n", size_of_test_data);
+  fixture->data = (TestCaseDouble *) malloc(size_of_test_data);
+  memcpy(fixture->data, test_data, size_of_test_data);
+  */
 }
 
 static void
 base_fixture_teardown (Fixture *fixture,
                        gconstpointer test_data)
 {
-  ;
+  //free(fixture->data);
 }
 
 
