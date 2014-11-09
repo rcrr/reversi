@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -51,19 +51,19 @@ typedef struct {
 
 static void
 game_position_legal_moves_test (GamePositionDbFixture *fixture,
-                                gconstpointer          test_data);
+                                gconstpointer test_data);
 
 static void
 game_position_make_move_test (GamePositionDbFixture *fixture,
-                              gconstpointer          test_data);
+                              gconstpointer test_data);
 
 static void
 game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
-                                       gconstpointer          test_data);
+                                       gconstpointer test_data);
 
 static void
 game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture,
-                                       gconstpointer          test_data);
+                                                  gconstpointer test_data);
 
 
 
@@ -71,14 +71,15 @@ game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture
 
 static void
 gpdb_fixture_setup (GamePositionDbFixture *fixture,
-                    gconstpointer          test_data);
+                    gconstpointer test_data);
 
 static void
 gpdb_fixture_teardown (GamePositionDbFixture *fixture,
-                       gconstpointer          test_data);
+                       gconstpointer test_data);
 
 static GamePosition *
-get_gp_from_db (GamePositionDb *db, gchar *id);
+get_gp_from_db (GamePositionDb *db,
+                gchar *id);
 
 
 
@@ -129,7 +130,7 @@ main (int   argc,
 
 static void
 game_position_legal_moves_test (GamePositionDbFixture *fixture,
-                                gconstpointer          test_data)
+                                gconstpointer test_data)
 {
   gchar *legal_moves_to_string;
 
@@ -159,7 +160,7 @@ game_position_legal_moves_test (GamePositionDbFixture *fixture,
 
 static void
 game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
-                                       gconstpointer          test_data)
+                                       gconstpointer test_data)
 {
   GamePositionDb *db = fixture->db;
 
@@ -172,7 +173,7 @@ game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
 
 static void
 game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture,
-                                                  gconstpointer          test_data)
+                                                  gconstpointer test_data)
 {
   GamePositionDb *db = fixture->db;
 
@@ -185,7 +186,7 @@ game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture
 
 static void
 game_position_make_move_test (GamePositionDbFixture *fixture,
-                              gconstpointer          test_data)
+                              gconstpointer test_data)
 {
   GamePositionDb *db = fixture->db;
 
@@ -247,7 +248,7 @@ game_position_make_move_test (GamePositionDbFixture *fixture,
 
 static void
 gpdb_fixture_setup (GamePositionDbFixture *fixture,
-                    gconstpointer          test_data)
+                    gconstpointer test_data)
 {
   gchar *source = g_strdup("db/gpdb-sample-games.txt");
 
@@ -280,14 +281,15 @@ gpdb_fixture_setup (GamePositionDbFixture *fixture,
 
 static void
 gpdb_fixture_teardown (GamePositionDbFixture *fixture,
-                       gconstpointer          test_data)
+                       gconstpointer test_data)
 {
   g_assert(fixture->db != NULL);
   gpdb_free(fixture->db, TRUE);
 }
 
 GamePosition *
-get_gp_from_db (GamePositionDb *db, gchar *id)
+get_gp_from_db (GamePositionDb *db,
+                gchar *id)
 {
   GamePositionDbEntry *entry = gpdb_lookup(db, id);
   if (!entry) {
