@@ -3,7 +3,9 @@
  *
  * @todo Write tests for ordered and mostly ordered data.
  *
- * @todo Write sort_utils_smoothsorth_p.
+ * @todo Write the generic sort_utils_smoothsorth.
+ *
+ * @todo Add one shellsort implementation to the list of available choices.
  *
  * @todo Add quicksort to the list of available choices.
  *
@@ -131,16 +133,6 @@ hps_sift_down (void *const a,
                const int end,
                const size_t element_size,
                const sort_utils_compare_function lt);
-
-static void
-hs_sift_down_d (double *const a,
-                const int start,
-                const int end);
-
-static void
-hs_sift_down_p (void **const a,
-                const int start,
-                const int end);
 
 static void
 ss_sift (SmoothsortSharedVariables shrd);
@@ -591,61 +583,6 @@ hps_sift_down (void *const a,
     }
     if (lt(root_ptr, child_ptr)) {
       swap(child_ptr, root_ptr, element_size);
-      root = child;
-    }
-    else
-      return;
-  }
-}
-
-
-/**
- * @brief Sift down function for double arrays.
- *
- * @details The sift-down function extends the heap property (heapify) the
- *          segment of array `a` starting from index equal to `start` and
- *          ending to index equal to `end`.
- *
- * @param [in,out] a     the array to sift
- * @param [in]     start index of the initial position
- * @param [in]     end   index of the final position
- */
-static void
-hs_sift_down_d (double *const a,
-                const int start,
-                const int end)
-{
-  int root = start;
-  while (root * 2 + 1 < end) {
-    int child = 2 * root + 1;
-    if ((child + 1 < end) && is_less(a[child], a[child + 1])) {
-      child += 1;
-    }
-    if (is_less(a[root], a[child])) {
-      swap_d(a[child], a[root]);
-      root = child;
-    }
-    else
-      return;
-  }
-}
-
-/**
- * @brief Sift down function for array of pointers.
- */
-static void
-hs_sift_down_p (void **const a,
-                const int start,
-                const int end)
-{
-  int root = start;
-  while (root * 2 + 1 < end) {
-    int child = 2 * root + 1;
-    if ((child + 1 < end) && is_less(a[child], a[child + 1])) {
-      child += 1;
-    }
-    if (is_less(a[root], a[child])) {
-      swap_p(a[child], a[root]);
       root = child;
     }
     else
