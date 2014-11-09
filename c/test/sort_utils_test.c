@@ -42,6 +42,38 @@
 
 typedef void (*sort_utils_sort_d)(double *const a, const int count);
 
+
+
+/**
+ * @brief A test case is used to automate the execution of a set of test.
+ */
+typedef struct {
+  gchar  *label;          /**< @brief Test label. */
+  int     versus;         /**< @brief 0 for descending, and 1 for ascending. */
+  int     data_count;     /**< @brief The size of the array to be sorted. */
+  double *data;           /**< @brief The data to be sorted. */
+  double *expected;       /**< @brief The expected sequence. */
+} TestCaseDouble;
+
+/**
+ * @brief Expected results for test cases coming from French Federation Othello game positions, number 01.
+ */
+const TestCaseDouble tcd_base[] =
+  {
+    { "A simple array of ten elements must be sorted in ascending order.", 1, 10,
+      (double []) { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. },
+      (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. } },
+
+    { "A simple array of ten elements must be sorted in descending order.", 0, 10,
+      (double []) { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. },
+      (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. } },
+
+    {NULL, 1, (double []) {0}, (double []) {0}, 0}
+  };
+
+
+
+
 /* Test function prototypes. */
 
 static void dummy_test (void);
@@ -62,6 +94,8 @@ static void sort_utils_smoothsort_d_0_test (void);
 static void sort_utils_smoothsort_d_1_test (void);
 static void sort_utils_smoothsort_d_perf_test (void);
 
+
+
 /* Helper function prototypes. */
 
 static void
@@ -69,6 +103,14 @@ hlp_run_sort_d_test (const sort_utils_sort_d f,
                      const int array_length,
                      const int repetitions,
                      const int factor);
+
+
+
+/* Test data. */
+
+static const double test_data_set_a[]       = { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. };
+static const double expected_result_a_asc[] = { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. };
+static const double expected_result_a_dsc[] = { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. };
 
 
 
@@ -81,6 +123,15 @@ main (int   argc,
   g_test_add_func("/sort_utils/dummy", dummy_test);
 
   g_test_add_func("/sort_utils/sort_utils_double_compare_test", sort_utils_double_compare_test);
+
+  /*
+  g_test_add("/insertionsort/ffo_05",
+             GamePositionDbFixture,
+             (gconstpointer) ffo_05,
+             gpdb_ffo_fixture_setup,
+             game_position_es_solve_test,
+             gpdb_fixture_teardown);
+  */
 
   g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_0_test", sort_utils_insertionsort_asc_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_insertionsort_dsc_d_0_test", sort_utils_insertionsort_dsc_d_0_test);
