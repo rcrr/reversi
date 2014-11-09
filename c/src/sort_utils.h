@@ -67,7 +67,15 @@ sort_utils_double_gt (const void *const a,
                       const void *const b);
 
 extern int
+sort_utils_double_ge (const void *const a,
+                      const void *const b);
+
+extern int
 sort_utils_double_lt (const void *const a,
+                      const void *const b);
+
+extern int
+sort_utils_double_le (const void *const a,
                       const void *const b);
 
 extern int

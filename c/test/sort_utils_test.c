@@ -163,6 +163,18 @@ sort_utils_double_compare_test (void)
 
   a = 3.;
   b = 2.;
+  g_assert_true(sort_utils_double_ge(&a, &b));
+
+  a = 2.;
+  b = 3.;
+  g_assert_false(sort_utils_double_ge(&a, &b));
+
+  a = 3.;
+  b = 3.;
+  g_assert_true(sort_utils_double_ge(&a, &b));
+
+  a = 3.;
+  b = 2.;
   g_assert_false(sort_utils_double_lt(&a, &b));
 
   a = 2.;
@@ -172,6 +184,18 @@ sort_utils_double_compare_test (void)
   a = 3.;
   b = 3.;
   g_assert_false(sort_utils_double_lt(&a, &b));
+
+  a = 3.;
+  b = 2.;
+  g_assert_false(sort_utils_double_le(&a, &b));
+
+  a = 2.;
+  b = 3.;
+  g_assert_true(sort_utils_double_le(&a, &b));
+
+  a = 3.;
+  b = 3.;
+  g_assert_true(sort_utils_double_le(&a, &b));
 
   a = 2.;
   b = 3.;
