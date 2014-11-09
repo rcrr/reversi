@@ -161,6 +161,8 @@ ss_semitrinkle (SmoothsortSharedVariables shrd);
 /* Compare function implementations. */
 /*************************************/
 
+/* double */
+
 /**
  * @brief Returns true when `a` is equal to `b`.
  *
@@ -437,50 +439,6 @@ sort_utils_heapsort_dsc_d (double *const a,
                            const int count)
 {
   sort_utils_heapsort(a, count, sizeof(double), sort_utils_double_gt);
-}
-
-/**
- * @brief Sorts in ascending order the `a` array of doubles.
- *
- * @details The vector of doubles `a` having length equal to `count` is sorted
- *          in place in ascending order applying the heapsort algorithm.
- *
- * @param [in,out] a     the array to be sorted
- * @param [in]     count the number of element of array a
- */
-void
-sort_utils_heapsort_d (double *const a,
-                       const int count)
-{
-  for (int start = (count - 2) / 2; start >= 0; start--) {
-    hs_sift_down_d(a, start, count);
-  }
-  for (int end = count - 1; end > 0; end--) {
-    swap_d(a[end], a[0]);
-    hs_sift_down_d(a, 0, end);
-  }
-}
-
-/**
- * @brief Sorts in ascending order the `a` array of pointers.
- *
- * @details The vector of pointers `a` having length equal to `count` is sorted
- *          in place in ascending order applying the heapsort algorithm.
- *
- * @param [in,out] a     the array to be sorted
- * @param [in]     count the number of element of array a
- */
-void
-sort_utils_heapsort_p (void **const a,
-                       const int count)
-{
-  for (int start = (count - 2) / 2; start >= 0; start--) {
-    hs_sift_down_p(a, start, count);
-  }
-  for (int end = count - 1; end > 0; end--) {
-    swap_p(a[end], a[0]);
-    hs_sift_down_p(a, 0, end);
-  }
 }
 
 

@@ -122,14 +122,6 @@ extern void
 sort_utils_heapsort_dsc_d (double *const a,
                            const int count);
 
-extern void
-sort_utils_heapsort_d (double *const a,
-                       const int count);
-
-extern void
-sort_utils_heapsort_p (void **const a,
-                       const int count);
-
 
 
 /************************************/
