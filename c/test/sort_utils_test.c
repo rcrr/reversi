@@ -43,6 +43,9 @@
 typedef void (*sort_utils_sort_d)(double *const a, const int count);
 
 
+typedef struct {
+  int dummy;
+} Fixture;
 
 /**
  * @brief A test case is used to automate the execution of a set of test.
@@ -68,15 +71,18 @@ const TestCaseDouble tcd_base[] =
       (double []) { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. },
       (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. } },
 
-    {NULL, 1, (double []) {0}, (double []) {0}, 0}
+    {NULL, 1, 1, (double []) {0}, (double []) {0} }
   };
-
 
 
 
 /* Test function prototypes. */
 
 static void dummy_test (void);
+
+static void
+insertionsort_tcd_base_test (Fixture *fixture,
+                             gconstpointer test_data);
 
 static void sort_utils_double_compare_test (void);
 
@@ -93,6 +99,18 @@ static void sort_utils_heapsort_asc_d_perf_test (void);
 static void sort_utils_smoothsort_d_0_test (void);
 static void sort_utils_smoothsort_d_1_test (void);
 static void sort_utils_smoothsort_d_perf_test (void);
+
+
+
+/* Helper function prototypes. */
+
+static void
+base_fixture_setup (Fixture *fixture,
+                    gconstpointer test_data);
+
+static void
+base_fixture_teardown (Fixture *fixture,
+                       gconstpointer test_data);
 
 
 
@@ -124,14 +142,12 @@ main (int   argc,
 
   g_test_add_func("/sort_utils/sort_utils_double_compare_test", sort_utils_double_compare_test);
 
-  /*
-  g_test_add("/insertionsort/ffo_05",
-             GamePositionDbFixture,
-             (gconstpointer) ffo_05,
-             gpdb_ffo_fixture_setup,
-             game_position_es_solve_test,
-             gpdb_fixture_teardown);
-  */
+  g_test_add("/insertionsort/tcd_base",
+             Fixture,
+             (gconstpointer) tcd_base,
+             base_fixture_setup,
+             insertionsort_tcd_base_test,
+             base_fixture_teardown);
 
   g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_0_test", sort_utils_insertionsort_asc_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_insertionsort_dsc_d_0_test", sort_utils_insertionsort_dsc_d_0_test);
@@ -165,6 +181,12 @@ dummy_test (void)
   g_assert(TRUE);
 }
 
+static void
+insertionsort_tcd_base_test (Fixture *fixture,
+                             gconstpointer test_data)
+{
+  g_assert(TRUE);
+}
 
 
 /*************************************/
@@ -380,6 +402,21 @@ sort_utils_smoothsort_d_perf_test (void)
 /*
  * Internal functions.
  */
+
+static void
+base_fixture_setup (Fixture *fixture,
+                    gconstpointer test_data)
+{
+  ;
+}
+
+static void
+base_fixture_teardown (Fixture *fixture,
+                       gconstpointer test_data)
+{
+  ;
+}
+
 
 static void
 hlp_run_sort_d_test (const sort_utils_sort_d sort_fun,
