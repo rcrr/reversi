@@ -58,6 +58,7 @@ typedef struct {
  *
  */
 typedef struct {
+  int   data_count;
   void *data;
 } Fixture;
 
@@ -412,14 +413,27 @@ static void
 base_fixture_setup (Fixture *fixture,
                     gconstpointer test_data)
 {
-  TestCaseDouble *tests = (TestCaseDouble *) test_data;
+  const size_t size_of_test_case_double = sizeof(TestCaseDouble);
+
+  TestCaseDouble *test_defs = (TestCaseDouble *) test_data;
   const TestCaseDouble *t = NULL;
   printf("\n\n");
+  int test_count = 0;
   for (int i = 0;; i++) {
-    t = &tests[i];
-    if (t->label == NULL) break;
+    t = &test_defs[i];
+    if (t->label == NULL) { test_count = i; break; }
     printf("label=%s\n", t->label);
   }
+  printf("test_count=%d\n", test_count);
+  TestCaseDouble *tests = (TestCaseDouble *) malloc(test_count * size_of_test_case_double);
+  for (int i = 0; i < test_count; i++) {
+    tests[i].label      = test_defs[i].label;
+    tests[i].versus     = test_defs[i].versus;
+    tests[i].data_count = test_defs[i].data_count;
+    //tests[i].data = ...
+    tests[i].expected   = test_defs[i].expected;
+  }
+  fixture->data = tests;
   /*
   const size_t size_of_test_data = sizeof(*tdata);
   printf("size_of_test_data=%d\n", size_of_test_data);
@@ -432,7 +446,7 @@ static void
 base_fixture_teardown (Fixture *fixture,
                        gconstpointer test_data)
 {
-  //free(fixture->data);
+  free(fixture->data);
 }
 
 
