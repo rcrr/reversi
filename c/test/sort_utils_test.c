@@ -47,19 +47,19 @@ typedef void (*sort_utils_sort_d)(double *const a, const int count);
  * @brief A test case is used to automate the execution of a set of test.
  */
 typedef struct {
-  gchar  *label;          /**< @brief Test label. */
-  int     versus;         /**< @brief 0 for descending, and 1 for ascending. */
-  int     data_count;     /**< @brief The size of the array to be sorted. */
-  double *data;           /**< @brief The data to be sorted. */
-  double *expected;       /**< @brief The expected sequence. */
+  gchar  *test_label;            /**< @brief Test label. */
+  int     versus;                /**< @brief 0 for descending, and 1 for ascending. */
+  int     elements_count;        /**< @brief The size of the array to be sorted. */
+  double *elements;              /**< @brief The data to be sorted. */
+  double *sorted_sequence;       /**< @brief The expected sequence. */
 } TestCaseDouble;
 
 /**
  *
  */
 typedef struct {
-  int   data_count;
-  void *data;
+  int   tests_count;
+  void *tests;
 } Fixture;
 
 /**
@@ -189,8 +189,11 @@ static void
 insertionsort_tcd_base_test (Fixture *fixture,
                              gconstpointer test_data)
 {
-  TestCaseDouble **tests = fixture->data;
+  TestCaseDouble *tests = fixture->tests;
   if (!tests) printf("tests is NULL\n");
+  for (int i = 0; i < fixture->tests_count; i++) {
+    printf("tests[%d].test_label=%s\n", i, tests[i].test_label);
+  }
   g_assert(TRUE);
 }
 
@@ -414,39 +417,36 @@ base_fixture_setup (Fixture *fixture,
                     gconstpointer test_data)
 {
   const size_t size_of_test_case_double = sizeof(TestCaseDouble);
-
   TestCaseDouble *test_defs = (TestCaseDouble *) test_data;
   const TestCaseDouble *t = NULL;
   printf("\n\n");
-  int test_count = 0;
+  fixture->tests_count = 0;
   for (int i = 0;; i++) {
     t = &test_defs[i];
-    if (t->label == NULL) { test_count = i; break; }
-    printf("label=%s\n", t->label);
+    if (t->test_label == NULL) { fixture->tests_count = i; break; }
+    printf("label=%s\n", t->test_label);
   }
-  printf("test_count=%d\n", test_count);
-  TestCaseDouble *tests = (TestCaseDouble *) malloc(test_count * size_of_test_case_double);
-  for (int i = 0; i < test_count; i++) {
-    tests[i].label      = test_defs[i].label;
-    tests[i].versus     = test_defs[i].versus;
-    tests[i].data_count = test_defs[i].data_count;
-    //tests[i].data = ...
-    tests[i].expected   = test_defs[i].expected;
+  TestCaseDouble *tests = (TestCaseDouble *) malloc(fixture->tests_count * size_of_test_case_double);
+  for (int i = 0; i < fixture->tests_count; i++) {
+    tests[i].test_label      = test_defs[i].test_label;
+    tests[i].versus          = test_defs[i].versus;
+    tests[i].elements_count  = test_defs[i].elements_count;
+    tests[i].elements        = (double *) malloc(test_defs[i].elements_count * sizeof(double));
+    memcpy(tests[i].elements, test_defs[i].elements, test_defs[i].elements_count * sizeof(double));
+    tests[i].sorted_sequence = test_defs[i].sorted_sequence;
   }
-  fixture->data = tests;
-  /*
-  const size_t size_of_test_data = sizeof(*tdata);
-  printf("size_of_test_data=%d\n", size_of_test_data);
-  fixture->data = (TestCaseDouble *) malloc(size_of_test_data);
-  memcpy(fixture->data, test_data, size_of_test_data);
-  */
+  fixture->tests = tests;
 }
 
 static void
 base_fixture_teardown (Fixture *fixture,
                        gconstpointer test_data)
 {
-  free(fixture->data);
+  TestCaseDouble *tests = (TestCaseDouble *) fixture->tests;
+  for (int i = 0; i < fixture->tests_count; i++) {
+    free(tests[i].elements);
+  }
+  free(fixture->tests);
 }
 
 
