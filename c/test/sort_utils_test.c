@@ -66,7 +66,7 @@ typedef struct {
 /**
  * @brief Expected results for test cases coming from French Federation Othello game positions, number 01.
  */
-const TestCase tcd_base[] =
+const TestCase tc_double_base[] =
   {
     { "A simple array of ten elements must be sorted in ascending order.", 1, 8, 10,
       (double []) { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. },
@@ -86,8 +86,8 @@ const TestCase tcd_base[] =
 static void dummy_test (void);
 
 static void
-insertionsort_tcd_base_test (Fixture *fixture,
-                             gconstpointer test_data);
+insertionsort_tc_double_base_test (Fixture *fixture,
+                                   gconstpointer test_data);
 
 static void sort_utils_double_compare_test (void);
 
@@ -143,11 +143,11 @@ main (int   argc,
 
   g_test_add_func("/sort_utils/sort_utils_double_compare_test", sort_utils_double_compare_test);
 
-  g_test_add("/insertionsort/tcd_base",
+  g_test_add("/insertionsort/tc_double_base",
              Fixture,
-             (gconstpointer) tcd_base,
+             (gconstpointer) tc_double_base,
              base_fixture_setup,
-             insertionsort_tcd_base_test,
+             insertionsort_tc_double_base_test,
              base_fixture_teardown);
 
   g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_0_test", sort_utils_insertionsort_asc_d_0_test);
@@ -183,8 +183,8 @@ dummy_test (void)
 }
 
 static void
-insertionsort_tcd_base_test (Fixture *fixture,
-                             gconstpointer test_data)
+insertionsort_tc_double_base_test (Fixture *fixture,
+                                   gconstpointer test_data)
 {
   TestCase *tests = fixture->tests;
   if (!tests) printf("tests is NULL\n");
