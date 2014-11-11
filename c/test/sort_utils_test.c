@@ -187,18 +187,20 @@ insertionsort_tc_double_base_test (Fixture *fixture,
                                    gconstpointer test_data)
 {
   TestCase *tests = fixture->tests;
-  if (!tests) printf("tests is NULL\n");
+  g_assert(tests);
   for (int i = 0; i < fixture->tests_count; i++) {
     const TestCase *t = &tests[i];
-    printf("tests[%d].test_label=%s\n", i, t->test_label);
-    for (int j = 0; j < t->elements_count; j++) {
-      double *e = (double *) t->elements + j;
-      printf("e[%d]=%f\n", j, *e);
+    sort_utils_insertionsort(t->elements,
+                             t->elements_count,
+                             sizeof(double),
+                             t->versus ? sort_utils_double_lt : sort_utils_double_gt);
+    for (int i = 0; i < t->elements_count; i++) {
+      const double *computed = (double *) t->elements + i;
+      const double *expected = (double *) t->expected_sorted_sequence + i;
+      g_assert_cmpfloat(*expected, ==, *computed);
     }
   }
-  g_assert(TRUE);
 }
-
 
 /*************************************/
 /* Unit tests for compare functions. */
