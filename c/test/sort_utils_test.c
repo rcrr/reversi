@@ -131,10 +131,6 @@ hlp_run_sort_d_test (const sort_utils_sort_d f,
 
 /* Test data. */
 
-static const double test_data_set_a[]       = { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. };
-static const double expected_result_a_asc[] = { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. };
-static const double expected_result_a_dsc[] = { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. };
-
 
 
 int
