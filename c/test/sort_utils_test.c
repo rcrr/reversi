@@ -47,12 +47,13 @@ typedef void (*sort_utils_sort_d)(double *const a, const int count);
  * @brief A test case is used to automate the execution of a set of test.
  */
 typedef struct {
-  gchar  *test_label;            /**< @brief Test label. */
-  int     versus;                /**< @brief 0 for descending, and 1 for ascending. */
-  int     elements_count;        /**< @brief The size of the array to be sorted. */
-  double *elements;              /**< @brief The data to be sorted. */
-  double *sorted_sequence;       /**< @brief The expected sequence. */
-} TestCaseDouble;
+  gchar  *test_label;                     /**< @brief Test label. */
+  int     versus;                         /**< @brief 0 for descending, and 1 for ascending. */
+  size_t  element_size;                   /**< @brief Number of bytes needed by one element. */
+  int     elements_count;                 /**< @brief The size of the array to be sorted. */
+  void   *elements;                       /**< @brief The data to be sorted. */
+  void   *expected_sorted_sequence;       /**< @brief The expected sequence. */
+} TestCase;
 
 /**
  *
@@ -65,17 +66,17 @@ typedef struct {
 /**
  * @brief Expected results for test cases coming from French Federation Othello game positions, number 01.
  */
-const TestCaseDouble tcd_base[] =
+const TestCase tcd_base[] =
   {
-    { "A simple array of ten elements must be sorted in ascending order.", 1, 10,
+    { "A simple array of ten elements must be sorted in ascending order.", 1, 8, 10,
       (double []) { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. },
       (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. } },
 
-    { "A simple array of ten elements must be sorted in descending order.", 0, 10,
+    { "A simple array of ten elements must be sorted in descending order.", 0, 8, 10,
       (double []) { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. },
       (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. } },
 
-    {NULL, 1, 1, (double []) {0}, (double []) {0} }
+    {NULL, 1, 8, 1, (double []) {0}, (double []) {0} }
   };
 
 
@@ -189,10 +190,15 @@ static void
 insertionsort_tcd_base_test (Fixture *fixture,
                              gconstpointer test_data)
 {
-  TestCaseDouble *tests = fixture->tests;
+  TestCase *tests = fixture->tests;
   if (!tests) printf("tests is NULL\n");
   for (int i = 0; i < fixture->tests_count; i++) {
-    printf("tests[%d].test_label=%s\n", i, tests[i].test_label);
+    const TestCase *t = &tests[i];
+    printf("tests[%d].test_label=%s\n", i, t->test_label);
+    for (int j = 0; j < t->elements_count; j++) {
+      double *e = (double *) t->elements + j;
+      printf("e[%d]=%f\n", j, *e);
+    }
   }
   g_assert(TRUE);
 }
@@ -416,24 +422,31 @@ static void
 base_fixture_setup (Fixture *fixture,
                     gconstpointer test_data)
 {
-  const size_t size_of_test_case_double = sizeof(TestCaseDouble);
-  TestCaseDouble *test_defs = (TestCaseDouble *) test_data;
-  const TestCaseDouble *t = NULL;
-  printf("\n\n");
+  const size_t size_of_test_case = sizeof(TestCase);
+
+  const TestCase *const test_defs = (TestCase *) test_data;
+
   fixture->tests_count = 0;
   for (int i = 0;; i++) {
-    t = &test_defs[i];
-    if (t->test_label == NULL) { fixture->tests_count = i; break; }
-    printf("label=%s\n", t->test_label);
+    const TestCase *td = &test_defs[i];
+    if (td->test_label == NULL) {
+      fixture->tests_count = i;
+      break;
+    }
   }
-  TestCaseDouble *tests = (TestCaseDouble *) malloc(fixture->tests_count * size_of_test_case_double);
+
+  TestCase *tests = (TestCase *) malloc(fixture->tests_count * size_of_test_case);
   for (int i = 0; i < fixture->tests_count; i++) {
-    tests[i].test_label      = test_defs[i].test_label;
-    tests[i].versus          = test_defs[i].versus;
-    tests[i].elements_count  = test_defs[i].elements_count;
-    tests[i].elements        = (double *) malloc(test_defs[i].elements_count * sizeof(double));
-    memcpy(tests[i].elements, test_defs[i].elements, test_defs[i].elements_count * sizeof(double));
-    tests[i].sorted_sequence = test_defs[i].sorted_sequence;
+    const TestCase *td = &test_defs[i];
+    TestCase *t = &tests[i];
+    t->test_label = td->test_label;
+    t->versus = td->versus;
+    t->element_size = td->element_size;
+    t->elements_count = td->elements_count;
+    const size_t size_of_elements_array = td->elements_count * td->element_size;
+    t->elements = malloc(size_of_elements_array);
+    memcpy(t->elements, td->elements, size_of_elements_array);
+    t->expected_sorted_sequence = td->expected_sorted_sequence;
   }
   fixture->tests = tests;
 }
@@ -442,7 +455,7 @@ static void
 base_fixture_teardown (Fixture *fixture,
                        gconstpointer test_data)
 {
-  TestCaseDouble *tests = (TestCaseDouble *) fixture->tests;
+  TestCase *tests = (TestCase *) fixture->tests;
   for (int i = 0; i < fixture->tests_count; i++) {
     free(tests[i].elements);
   }
