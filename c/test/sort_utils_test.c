@@ -44,7 +44,7 @@
 typedef void (*sort_utils_sort_d)(double *const a, const int count);
 
 /**
- * @brief A test case is used to automate the execution of a set of test.
+ * @brief A test case collects a set of elements and the expected sorted sequence.
  */
 typedef struct {
   gchar  *test_label;                     /**< @brief Test label. */
@@ -56,24 +56,41 @@ typedef struct {
 } TestCase;
 
 /**
- *
+ * @brief Fixtures are prepared by the #base_fixture_setup function by linking or
+ *        deep-copying the #TestCase structure.
  */
 typedef struct {
-  int   tests_count;
-  void *tests;
+  int   tests_count;                      /**< @brief Number of tests in the test case. */
+  void *tests;                            /**< @brief An array of test cases. */
 } Fixture;
 
 /**
- * @brief Expected results for test cases coming from French Federation Othello game positions, number 01.
+ * @brief Sorting test cases for simple arrays od double: base cases.
  */
 const TestCase tc_double_base[] =
   {
-    { "A simple array of ten elements must be sorted in ascending order.", 1, 8, 10,
+    { "A simple array of ten elements must be sorted in ascending order.", 1, sizeof(double), 10,
       (double []) { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. },
       (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. } },
 
-    { "A simple array of ten elements must be sorted in descending order.", 0, 8, 10,
+    { "A simple array of ten elements must be sorted in descending order.", 0, sizeof(double), 10,
       (double []) { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. },
+      (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. } },
+
+    { "An ascending sorted array of ten elements must be sorted in ascending order.", 1, sizeof(double), 10,
+      (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. },
+      (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. } },
+
+    { "An ascending sorted array of ten elements must be sorted in descending order.", 0, sizeof(double), 10,
+      (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. },
+      (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. } },
+
+    { "A descending sorted array of ten elements must be sorted in ascending order.", 1, sizeof(double), 10,
+      (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. },
+      (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. } },
+
+    { "A descending sorted array of ten elements must be sorted in descending order.", 0, sizeof(double), 10,
+      (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. },
       (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. } },
 
     {NULL, 1, 8, 1, (double []) {0}, (double []) {0} }
@@ -81,13 +98,15 @@ const TestCase tc_double_base[] =
 
 
 
-/* Test function prototypes. */
+/*
+ * Test function prototypes.
+ */
 
 static void dummy_test (void);
 
 static void
-insertionsort_tc_double_base_test (Fixture *fixture,
-                                   gconstpointer test_data);
+sort_utils_insertionsort_tc_double_base_test (Fixture *fixture,
+                                              gconstpointer test_data);
 
 static void sort_utils_double_compare_test (void);
 
@@ -107,7 +126,9 @@ static void sort_utils_smoothsort_d_perf_test (void);
 
 
 
-/* Helper function prototypes. */
+/*
+ * Helper function prototypes.
+ */
 
 static void
 base_fixture_setup (Fixture *fixture,
@@ -117,19 +138,11 @@ static void
 base_fixture_teardown (Fixture *fixture,
                        gconstpointer test_data);
 
-
-
-/* Helper function prototypes. */
-
 static void
 hlp_run_sort_d_test (const sort_utils_sort_d f,
                      const int array_length,
                      const int repetitions,
                      const int factor);
-
-
-
-/* Test data. */
 
 
 
@@ -143,11 +156,11 @@ main (int   argc,
 
   g_test_add_func("/sort_utils/sort_utils_double_compare_test", sort_utils_double_compare_test);
 
-  g_test_add("/insertionsort/tc_double_base",
+  g_test_add("/sort_utils/sort_utils_insertionsort_tc_double_base_test",
              Fixture,
              (gconstpointer) tc_double_base,
              base_fixture_setup,
-             insertionsort_tc_double_base_test,
+             sort_utils_insertionsort_tc_double_base_test,
              base_fixture_teardown);
 
   g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_0_test", sort_utils_insertionsort_asc_d_0_test);
@@ -183,8 +196,8 @@ dummy_test (void)
 }
 
 static void
-insertionsort_tc_double_base_test (Fixture *fixture,
-                                   gconstpointer test_data)
+sort_utils_insertionsort_tc_double_base_test (Fixture *fixture,
+                                              gconstpointer test_data)
 {
   TestCase *tests = fixture->tests;
   g_assert(tests);
