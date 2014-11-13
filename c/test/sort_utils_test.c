@@ -41,18 +41,30 @@
 #include "random.h"
 
 
-typedef void (*sort_utils_sort_d)(double *const a, const int count);
+typedef void (*sort_utils_sort_d) (double *const a, const int count);
+
+/**
+ * @enum SortingVersus
+ * @brief The sorting versus.
+ *
+ * Ascending means that a lesser element precede a greater one, descending
+ * is the opposite.
+ */
+typedef enum {
+  DSC,   /**< Ascending. */
+  ASC    /**< Descending. */
+} SortingVersus;
 
 /**
  * @brief A test case collects a set of elements and the expected sorted sequence.
  */
 typedef struct {
-  gchar  *test_label;                     /**< @brief Test label. */
-  int     versus;                         /**< @brief 0 for descending, and 1 for ascending. */
-  size_t  element_size;                   /**< @brief Number of bytes needed by one element. */
-  int     elements_count;                 /**< @brief The size of the array to be sorted. */
-  void   *elements;                       /**< @brief The data to be sorted. */
-  void   *expected_sorted_sequence;       /**< @brief The expected sequence. */
+  gchar         *test_label;                     /**< @brief Test label. */
+  SortingVersus  versus;                         /**< @brief 0 for descending, and 1 for ascending. */
+  size_t         element_size;                   /**< @brief Number of bytes needed by one element. */
+  int            elements_count;                 /**< @brief The size of the array to be sorted. */
+  void          *elements;                       /**< @brief The data to be sorted. */
+  void          *expected_sorted_sequence;       /**< @brief The expected sequence. */
 } TestCase;
 
 /**
@@ -69,31 +81,37 @@ typedef struct {
  */
 const TestCase tc_double_base[] =
   {
-    { "A simple array of ten elements must be sorted in ascending order.", 1, sizeof(double), 10,
+    { "A simple array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(double), 10,
       (double []) { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. },
       (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. } },
 
-    { "A simple array of ten elements must be sorted in descending order.", 0, sizeof(double), 10,
+    { "A simple array of ten elements must be sorted in descending order.",
+      DSC, sizeof(double), 10,
       (double []) { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. },
       (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. } },
 
-    { "An ascending sorted array of ten elements must be sorted in ascending order.", 1, sizeof(double), 10,
+    { "An ascending sorted array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(double), 10,
       (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. },
       (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. } },
 
-    { "An ascending sorted array of ten elements must be sorted in descending order.", 0, sizeof(double), 10,
+    { "An ascending sorted array of ten elements must be sorted in descending order.",
+      DSC, sizeof(double), 10,
       (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. },
       (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. } },
 
-    { "A descending sorted array of ten elements must be sorted in ascending order.", 1, sizeof(double), 10,
+    { "A descending sorted array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(double), 10,
       (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. },
       (double []) { 0., 1., 2., 3., 4., 5., 6., 7., 8., 9. } },
 
-    { "A descending sorted array of ten elements must be sorted in descending order.", 0, sizeof(double), 10,
+    { "A descending sorted array of ten elements must be sorted in descending order.",
+      DSC, sizeof(double), 10,
       (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. },
       (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. } },
 
-    {NULL, 1, 8, 1, (double []) {0}, (double []) {0} }
+    {NULL, ASC, sizeof(double), 1, (double []) {0}, (double []) {0} }
   };
 
 
@@ -203,10 +221,22 @@ sort_utils_insertionsort_tc_double_base_test (Fixture *fixture,
   g_assert(tests);
   for (int i = 0; i < fixture->tests_count; i++) {
     const TestCase *t = &tests[i];
+    sort_utils_compare_function f;
+    switch (t->versus) {
+    case ASC:
+      f = sort_utils_double_lt;
+      break;
+    case DSC:
+      f = sort_utils_double_gt;
+      break;
+    default:
+      g_test_fail();
+      return;
+    }
     sort_utils_insertionsort(t->elements,
                              t->elements_count,
                              sizeof(double),
-                             t->versus ? sort_utils_double_lt : sort_utils_double_gt);
+                             f);
     for (int i = 0; i < t->elements_count; i++) {
       const double *computed = (double *) t->elements + i;
       const double *expected = (double *) t->expected_sorted_sequence + i;
