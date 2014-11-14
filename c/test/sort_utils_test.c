@@ -141,6 +141,46 @@ const TestCase tc_double_base[] =
       (double []) { -9.70, 8.34, 123.02, 0.00, -72.03, 9.71, -3.23, -9.70, 9.70, -0.1 },
       (double []) { -72.03, -9.70, -9.70, -3.23, -0.1, 0.00, 8.34, 9.70, 9.71, 123.02 } },
 
+    { "An array of ten elements, nine zeros and a one, must be sorted in ascending order.",
+      ASC, sizeof(double), 10,
+      (double []) { 0., 0., 0., 0., 0., 0., 1., 0., 0., 0. },
+      (double []) { 0., 0., 0., 0., 0., 0., 0., 0., 0., 1. } },
+
+    { "An array of ten elements, seven zeros and three ones, must be sorted in ascending order.",
+      ASC, sizeof(double), 10,
+      (double []) { 1., 0., 0., 0., 0., 0., 1., 0., 0., 1. },
+      (double []) { 0., 0., 0., 0., 0., 0., 0., 1., 1., 1. } },
+
+    { "An array of two elements, must be sorted in ascending order.",
+      ASC, sizeof(double), 2,
+      (double []) { 1., 0. },
+      (double []) { 0., 1. } },
+
+    { "An array of two elements, must be sorted in ascending order.",
+      ASC, sizeof(double), 2,
+      (double []) { 0., 1. },
+      (double []) { 0., 1. } },
+
+    { "An array of two elements, must be sorted in ascending order.",
+      ASC, sizeof(double), 2,
+      (double []) { 0., 0. },
+      (double []) { 0., 0. } },
+
+    { "An array of one element, must be sorted in ascending order.",
+      ASC, sizeof(double), 1,
+      (double []) { 0. },
+      (double []) { 0. } },
+
+    { "An empty array, must be sorted in ascending order.",
+      ASC, sizeof(double), 0,
+      (double []) { 0. },
+      (double []) { 0. } },
+
+    { "An array of seven elements, five zeros and two ones, must be sorted in ascending order.",
+      ASC, sizeof(double), 7,
+      (double []) { 1., 0., 0., 0., 0., 0., 1. },
+      (double []) { 0., 0., 0., 0., 0., 1., 1. } },
+
     {NULL, ASC, sizeof(double), 1, (double []) {0}, (double []) {0} }
   };
 
