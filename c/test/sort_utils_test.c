@@ -111,6 +111,36 @@ const TestCase tc_double_base[] =
       (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. },
       (double []) { 9., 8., 7., 6., 5., 4., 3., 2., 1., 0. } },
 
+    { "An array of ten equal elements must be sorted in descending order.",
+      DSC, sizeof(double), 10,
+      (double []) { 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. },
+      (double []) { 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. } },
+
+    { "An array of ten equal elements must be sorted in ascending order.",
+      ASC, sizeof(double), 10,
+      (double []) { 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. },
+      (double []) { 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. } },
+
+    { "An ascending sorted array of ten negative elements must be sorted in descending order.",
+      DSC, sizeof(double), 10,
+      (double []) { -9., -8., -7., -6., -5., -4., -3., -2., -1.,  0. },
+      (double []) {  0., -1., -2., -3., -4., -5., -6., -7., -8., -9. } },
+
+    { "A dscending sorted array of ten negative elements must be sorted in descending order.",
+      DSC, sizeof(double), 10,
+      (double []) {  0., -1., -2., -3., -4., -5., -6., -7., -8., -9. },
+      (double []) {  0., -1., -2., -3., -4., -5., -6., -7., -8., -9. } },
+
+    { "An ascending sorted array of ten negative elements must be sorted in ascending order.",
+      ASC, sizeof(double), 10,
+      (double []) { -9., -8., -7., -6., -5., -4., -3., -2., -1.,  0. },
+      (double []) { -9., -8., -7., -6., -5., -4., -3., -2., -1.,  0. } },
+
+    { "An ascending sorted array of ten negative elements must be sorted in ascending order.",
+      ASC, sizeof(double), 10,
+      (double []) { -9.70, 8.34, 123.02, 0.00, -72.03, 9.71, -3.23, -9.70, 9.70, -0.1 },
+      (double []) { -72.03, -9.70, -9.70, -3.23, -0.1, 0.00, 8.34, 9.70, 9.71, 123.02 } },
+
     {NULL, ASC, sizeof(double), 1, (double []) {0}, (double []) {0} }
   };
 
