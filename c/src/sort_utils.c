@@ -765,11 +765,13 @@ sms_sift (SmoothsortSharedVariables shrd)
   tmp = shrd.a[r0];
   while (shrd.b1 >= 3) {
     r2 = shrd.r1 - shrd.b1 + shrd.c1;
-    if (!is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) {
+    //if (!is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) { // cost 7-8%
+    if (!shrd.cmp(&shrd.a[shrd.r1 - 1], &shrd.a[r2])) {
       r2 = shrd.r1 - 1;
       sms_down(shrd.b1, shrd.c1);
     }
-    if (is_less_or_equal(shrd.a[r2], tmp)) {
+    //if (is_less_or_equal(shrd.a[r2], tmp)) { // cost 5%
+    if (shrd.cmp(&shrd.a[r2], &tmp)) {
       shrd.b1 = 1;
     } else {
       shrd.a[shrd.r1] = shrd.a[r2];
@@ -811,7 +813,8 @@ sms_trinkle (SmoothsortSharedVariables shrd)
       sms_up(shrd.b1, shrd.c1);
     }
     r3 = shrd.r1 - shrd.b1;
-    if ((p1 == 1) || is_less_or_equal(shrd.a[r3], tmp)) {
+    //if ((p1 == 1) || is_less_or_equal(shrd.a[r3], tmp)) { // cost 0%
+    if ((p1 == 1) || shrd.cmp(&shrd.a[r3], &tmp)) {
       p1 = 0;
     } else {
       p1--;
@@ -821,12 +824,14 @@ sms_trinkle (SmoothsortSharedVariables shrd)
       } else {
         if (shrd.b1 >= 3) {
           r2 = shrd.r1 - shrd.b1 + shrd.c1;
-          if (!is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) {
+          //if (!is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) { // cost 2%
+          if (!shrd.cmp(&shrd.a[shrd.r1 - 1], &shrd.a[r2])) {
             r2 = shrd.r1 - 1;
             sms_down(shrd.b1, shrd.c1);
             p1 <<= 1;
           }
-          if (is_less_or_equal(shrd.a[r2], shrd.a[r3])) {
+          //if (is_less_or_equal(shrd.a[r2], shrd.a[r3])) { // cost 5%
+          if (shrd.cmp(&shrd.a[r2], &shrd.a[r3])) {
             shrd.a[shrd.r1] = shrd.a[r3];
             shrd.r1 = r3;
           } else {
@@ -860,7 +865,8 @@ sms_semitrinkle (SmoothsortSharedVariables shrd)
 {
   double tmp;
   shrd.r1 = shrd.r - shrd.c;
-  if (!is_less_or_equal(shrd.a[shrd.r1], shrd.a[shrd.r])) {
+  //if (!is_less_or_equal(shrd.a[shrd.r1], shrd.a[shrd.r])) {
+  if (!shrd.cmp(&shrd.a[shrd.r1], &shrd.a[shrd.r])) {
     tmp = shrd.a[shrd.r];
     shrd.a[shrd.r] = shrd.a[shrd.r1];
     shrd.a[shrd.r1] = tmp;
