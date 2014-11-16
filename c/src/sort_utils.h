@@ -129,6 +129,12 @@ sort_utils_heapsort_dsc_d (double *const a,
 /************************************/
 
 extern void
+sort_utils_smoothsort (void *const a,
+                       const size_t count,
+                       const size_t element_size,
+                       const sort_utils_compare_function cmp);
+
+extern void
 sort_utils_smoothsort_d (double *const a,
                          const int count);
 

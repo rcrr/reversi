@@ -49,6 +49,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <glib.h>
 
@@ -121,6 +122,12 @@ typedef struct {
 /*
  * Prototypes for internal functions.
  */
+
+
+static void
+copy (void *const src,
+      void *const dest,
+      const size_t element_size);
 
 static void
 swap (void *const a,
@@ -440,6 +447,30 @@ sort_utils_heapsort_dsc_d (double *const a,
 /***************/
 
 /**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a` having length equal to `count` is sorted
+ *          in place applying the smoothsort algorithm.
+ *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *
+ *          Adapted from Dijkstra's paper: http://www.enterag.ch/hartwig/order/smoothsort.pdf
+ *          See also: http://en.wikipedia.org/wiki/Smoothsort
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applyed by the algorithm
+ */
+void
+sort_utils_smoothsort (void *const a,
+                       const size_t count,
+                       const size_t element_size,
+                       const sort_utils_compare_function cmp)
+{
+  ;
+}
+
+/**
  * @brief Sorts in ascending order the `a` array of doubles.
  *
  * @details The vector of doubles `a` having length equal to `count` is sorted
@@ -535,6 +566,20 @@ sort_utils_smoothsort_d (double *const a,
  * Internal functions.
  */
 
+static void
+copy (void *const src,
+      void *const dest,
+      const size_t element_size)
+{
+  if (element_size == sizeof(uint64_t)) {
+    uint64_t *i64_src = (uint64_t *) src;
+    uint64_t *i64_dest = (uint64_t *) dest;
+    *i64_dest = *i64_src;
+    return;
+  }
+  memcpy(dest, src, element_size);
+}
+
 /**
  * @brief Swaps values pointed by `a` with `b`.
  *
@@ -565,23 +610,26 @@ swap (void *const a,
   } while (--n > 0);
 }
 
+/**
+ * @brief Sift down function used by the heapsort algorithm.
+ */
 static void
 hps_sift_down (void *const a,
                const int start,
                const int end,
                const size_t element_size,
-               const sort_utils_compare_function lt)
+               const sort_utils_compare_function cmp)
 {
   char *const a_ptr = (char *const) a;
   int root = start;
   for (int child = 2 * root + 1; child < end; child = 2 * root + 1) {
     char *child_ptr = (char *) a_ptr + child * element_size;
     char *const root_ptr = (char *const) a_ptr + root * element_size;
-    if ((child < end - 1) && lt(child_ptr, child_ptr + element_size)) {
+    if ((child < end - 1) && cmp(child_ptr, child_ptr + element_size)) {
       child += 1;
       child_ptr += element_size;
     }
-    if (lt(root_ptr, child_ptr)) {
+    if (cmp(root_ptr, child_ptr)) {
       swap(child_ptr, root_ptr, element_size);
       root = child;
     }
@@ -589,6 +637,8 @@ hps_sift_down (void *const a,
       return;
   }
 }
+
+/*---------------------------------------------------------------------*/
 
 /**
  * @brief Function sift as defined by the smoothsort paper.
@@ -610,7 +660,7 @@ ss_sift (SmoothsortSharedVariables shrd)
   tmp = shrd.a[r0];
   while (shrd.b1 >= 3) {
     r2 = shrd.r1 - shrd.b1 + shrd.c1;
-    if (! is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) {
+    if (!is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) {
       r2 = shrd.r1 - 1;
       ss_down(shrd.b1, shrd.c1);
     }
@@ -666,7 +716,7 @@ ss_trinkle (SmoothsortSharedVariables shrd)
       } else {
         if (shrd.b1 >= 3) {
           r2 = shrd.r1 - shrd.b1 + shrd.c1;
-          if (! is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) {
+          if (!is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) {
             r2 = shrd.r1 - 1;
             ss_down(shrd.b1, shrd.c1);
             p1 <<= 1;

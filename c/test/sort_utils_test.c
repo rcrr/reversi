@@ -209,6 +209,10 @@ sort_utils_heapsort_tc_double_base_test (Fixture *fixture,
 static void sort_utils_heapsort_asc_d_1_test (void);
 static void sort_utils_heapsort_asc_d_perf_test (void);
 
+static void
+sort_utils_smoothsort_tc_double_base_test (Fixture *fixture,
+                                           gconstpointer test_data);
+
 static void sort_utils_smoothsort_d_0_test (void);
 static void sort_utils_smoothsort_d_1_test (void);
 static void sort_utils_smoothsort_d_perf_test (void);
@@ -261,6 +265,13 @@ main (int   argc,
              sort_utils_heapsort_tc_double_base_test,
              base_fixture_teardown);
   g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_1_test", sort_utils_heapsort_asc_d_1_test);
+
+  g_test_add("/sort_utils/sort_utils_smoothsort_tc_double_base_test",
+             Fixture,
+             (gconstpointer) tc_double_base,
+             base_fixture_setup,
+             sort_utils_smoothsort_tc_double_base_test,
+             base_fixture_teardown);
 
   g_test_add_func("/sort_utils/sort_utils_smoothsort_d_0_test", sort_utils_smoothsort_d_0_test);
   g_test_add_func("/sort_utils/sort_utils_smoothsort_d_1_test", sort_utils_smoothsort_d_1_test);
@@ -474,6 +485,38 @@ sort_utils_heapsort_asc_d_perf_test (void)
 /*****************************************/
 
 static void
+sort_utils_smoothsort_tc_double_base_test (Fixture *fixture,
+                                           gconstpointer test_data)
+{
+  TestCase *tests = fixture->tests;
+  g_assert(tests);
+  for (int i = 0; i < fixture->tests_count; i++) {
+    const TestCase *t = &tests[i];
+    sort_utils_compare_function f;
+    switch (t->versus) {
+    case ASC:
+      f = sort_utils_double_le;
+      break;
+    case DSC:
+      f = sort_utils_double_ge;
+      break;
+    default:
+      g_test_fail();
+      return;
+    }
+    sort_utils_smoothsort(t->elements,
+                          t->elements_count,
+                          sizeof(double),
+                          f);
+    for (int i = 0; i < t->elements_count; i++) {
+      const double *computed = (double *) t->elements + i;
+      const double *expected = (double *) t->expected_sorted_sequence + i;
+      g_assert_cmpfloat(*expected, ==, *computed);
+    }
+  }
+}
+
+static void
 sort_utils_smoothsort_d_0_test (void)
 {
   double a[]        = { 7., 3., 9., 0., 1., 5., 2., 8., 4., 6. };
@@ -572,6 +615,11 @@ hlp_run_sort_d_test (const sort_utils_sort_d sort_fun,
 
     RandomNumberGenerator *rng = rng_new(175);
     rng_shuffle_array_double(rng, a, len);
+    /*
+    double tmp = a[array_length - 3];
+    a[array_length - 3] = a[array_length/7];
+    a[array_length/7] = tmp;
+    */
     rng_free(rng);
 
     g_test_timer_start();
