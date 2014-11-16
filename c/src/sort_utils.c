@@ -69,14 +69,16 @@
  * @brief Parameters used and shared by the smoothsort algorithm.
  */
 typedef struct {
-  double                  *a;
-  unsigned long long int   r;
-  unsigned long long int  r1;
-  unsigned long long int   p;
-  unsigned long long int   b;
-  unsigned long long int   c;
-  unsigned long long int  b1;
-  unsigned long long int  c1;
+  double                      *a;
+  unsigned long long int       r;
+  unsigned long long int       r1;
+  unsigned long long int       p;
+  unsigned long long int       b;
+  unsigned long long int       c;
+  unsigned long long int       b1;
+  unsigned long long int       c1;
+  size_t                       es;
+  sort_utils_compare_function  cmp;
 } SmoothsortSharedVariables;
 
 
@@ -117,6 +119,16 @@ typedef struct {
  */
 #define ss_down(ia, ib) do { unsigned long long int temp = ib; ib = ia - ib - 1; ia = temp; } while (0)
 
+/**
+ * @brief Function up as described by the soothsort paper.
+ */
+#define sms_up(ia, ib) do { unsigned long long int temp = ia; ia += ib + 1; ib = temp; } while (0)
+
+/**
+ * @brief Function down as described by the soothsort paper.
+ */
+#define sms_down(ia, ib) do { unsigned long long int temp = ib; ib = ia - ib - 1; ia = temp; } while (0)
+
 
 
 /*
@@ -139,7 +151,7 @@ hps_sift_down (void *const a,
                const int start,
                const int end,
                const size_t element_size,
-               const sort_utils_compare_function lt);
+               const sort_utils_compare_function cmp);
 
 static void
 ss_sift (SmoothsortSharedVariables shrd);
@@ -149,6 +161,15 @@ ss_trinkle (SmoothsortSharedVariables shrd);
 
 static void
 ss_semitrinkle (SmoothsortSharedVariables shrd);
+
+static void
+sms_sift (SmoothsortSharedVariables shrd);
+
+static void
+sms_trinkle (SmoothsortSharedVariables shrd);
+
+static void
+sms_semitrinkle (SmoothsortSharedVariables shrd);
 
 /**
  * @endcond
@@ -467,7 +488,93 @@ sort_utils_smoothsort (void *const a,
                        const size_t element_size,
                        const sort_utils_compare_function cmp)
 {
-  ;
+  SmoothsortSharedVariables shrd;
+  shrd.a = a;
+  shrd.r = 0;
+  shrd.c = 1;
+  shrd.p = 1;
+  shrd.b = 1;
+  shrd.es = element_size;
+  shrd.cmp = cmp;
+
+  unsigned long long int q = 1;
+
+  /* building tree */
+  while (q < count) {
+    shrd.r1 = shrd.r;
+    if ((shrd.p & 7) == 3) {
+      shrd.b1 = shrd.b;
+      shrd.c1 = shrd.c;
+      sms_sift(shrd);
+      shrd.p = (shrd.p + 1) >> 2;
+      sms_up(shrd.b, shrd.c);
+      sms_up(shrd.b, shrd.c);
+    } else if ((shrd.p & 3) == 1) {
+      if (q + shrd.c < count) {
+        shrd.b1 = shrd.b;
+        shrd.c1 = shrd.c;
+        sms_sift(shrd);
+      } else {
+        sms_trinkle(shrd);
+      }
+      sms_down(shrd.b, shrd.c);
+      shrd.p <<= 1;
+      while (shrd.b > 1) {
+        sms_down(shrd.b, shrd.c);
+        shrd.p <<= 1;
+      }
+      shrd.p++;
+    }
+    q++;
+    shrd.r++;
+  }
+  shrd.r1 = shrd.r;
+  sms_trinkle(shrd);
+
+  /* building sorted array */
+  while (q > 1) {
+    q--;
+    if (shrd.b == 1) {
+      shrd.r--;
+      shrd.p--;
+      while ((shrd.p & 1) == 0) {
+        shrd.p >>= 1;
+        sms_up(shrd.b, shrd.c);
+      }
+    } else {
+      if (shrd.b >= 3) {
+        shrd.p--;
+        shrd.r = shrd.r - shrd.b + shrd.c;
+        if (shrd.p > 0) {
+          sms_semitrinkle(shrd);
+        }
+        sms_down(shrd.b, shrd.c);
+        shrd.p = (shrd.p << 1) + 1;
+        shrd.r = shrd.r + shrd.c;
+        sms_semitrinkle(shrd);
+        sms_down(shrd.b, shrd.c);
+        shrd.p = (shrd.p << 1) + 1;
+      }
+    }
+    /* element q processed */
+  }
+  /* element 0 processed */
+
+  if (TRUE) return;
+
+  /* TESTS - START */
+  double ta =  1.;
+  double tb =  0.;
+  double tc = -1.;
+  int test0 = (ta == ta) && (tb == tb) && (tc == tc);
+  int test1 = sort_utils_double_le(&ta, &tb);
+  int test2 = is_less_or_equal(ta, tb);
+  printf("\n\ntest0=%d, test1=%d, test2=%d\n", test0, test1, test2);
+  /* TESTS - END */
+
+  /* --- */
+  if (FALSE) copy(a, a, element_size);
+  sort_utils_smoothsort_d(a, count);
 }
 
 /**
@@ -635,6 +742,129 @@ hps_sift_down (void *const a,
     }
     else
       return;
+  }
+}
+
+/**
+ * @brief Function sift as defined by the smoothsort paper.
+ *
+ * @brief When stretches thus parsed areviewed as postorder traversals of binarytrees,
+ *        trustiness means that no son exceeds its father. A dubious stretch is made into
+ *        a trusty one by applying the operation "sift" –a direct inheritance from heapsort– to its root,
+ *        where sift is defined as follow: sift applied to an element m[r1] that is exceede by its
+ *        largest son m[r2] consists of a swap of these two values, followed by an application of sift to m[r2].
+ *
+ * @param shrd shared variables used by the functions composing smoothsort
+ */
+void
+sms_sift (SmoothsortSharedVariables shrd)
+{
+  double tmp;
+  unsigned long long r0, r2;
+  r0 = shrd.r1;
+  tmp = shrd.a[r0];
+  while (shrd.b1 >= 3) {
+    r2 = shrd.r1 - shrd.b1 + shrd.c1;
+    if (!is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) {
+      r2 = shrd.r1 - 1;
+      sms_down(shrd.b1, shrd.c1);
+    }
+    if (is_less_or_equal(shrd.a[r2], tmp)) {
+      shrd.b1 = 1;
+    } else {
+      shrd.a[shrd.r1] = shrd.a[r2];
+      shrd.r1 = r2;
+      sms_down(shrd.b1, shrd.c1);
+    }
+  }
+  if (shrd.r1 - r0) {
+    shrd.a[shrd.r1] = tmp;
+  }
+}
+
+/**
+ * @brief Function trinkle as defined by the smoothsort paper.
+ *
+ * @details In the case `p mod 4 = 1`, the standard concatenation ends on a dubious stretch of length b,
+ *          which in this step becomes the last but one stretch of the standard concatenation and,
+ *          hence, must be made trusty. In the case `q + c < N`, it suffices to apply sift to m[r] as before,
+ *          since this stretch will later disappear from the standard concatenation. In the case `q + c >= N`,
+ *          however, just applying sift to m[r] might violate P4' since this stretch of length b also occurs
+ *          in the standard concatenation of length N. Making such a dubious stretch trusty and including its
+ *          root in the sequence of ascending roots is achieved by applying "trinkle“ to m[r].
+ *
+ * @param shrd shared variables used by the functions composing smoothsort
+ */
+void
+sms_trinkle (SmoothsortSharedVariables shrd)
+{
+  double tmp;
+  unsigned long long r0, r2, r3, p1;
+  p1 = shrd.p;
+  shrd.b1 = shrd.b;
+  shrd.c1 = shrd.c;
+  r0 = shrd.r1;
+  tmp = shrd.a[r0];
+  while (p1 > 0) {
+    while ((p1 & 1) == 0) {
+      p1 >>= 1;
+      sms_up(shrd.b1, shrd.c1);
+    }
+    r3 = shrd.r1 - shrd.b1;
+    if ((p1 == 1) || is_less_or_equal(shrd.a[r3], tmp)) {
+      p1 = 0;
+    } else {
+      p1--;
+      if (shrd.b1 == 1) {
+        shrd.a[shrd.r1] = shrd.a[r3];
+        shrd.r1 = r3;
+      } else {
+        if (shrd.b1 >= 3) {
+          r2 = shrd.r1 - shrd.b1 + shrd.c1;
+          if (!is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) {
+            r2 = shrd.r1 - 1;
+            sms_down(shrd.b1, shrd.c1);
+            p1 <<= 1;
+          }
+          if (is_less_or_equal(shrd.a[r2], shrd.a[r3])) {
+            shrd.a[shrd.r1] = shrd.a[r3];
+            shrd.r1 = r3;
+          } else {
+            shrd.a[shrd.r1] = shrd.a[r2];
+            shrd.r1 = r2;
+            sms_down(shrd.b1, shrd.c1);
+            p1 = 0;
+          }
+        }
+      }
+    }
+  }
+  if (r0 - shrd.r1) {
+    shrd.a[shrd.r1] = tmp;
+  }
+  sms_sift(shrd);
+}
+
+/**
+ * @brief Function semitrinkle as defined by the smoothsort paper.
+ *
+ * @details In the case `b >= 3`, the rightmost stretch of length b is replaced by two trusty ones; hence P3 is maintained.
+ *          To restore P4 it would suffice to apply trinkle first to the root of the first new stretch and then to the
+ *          root of the second new stretch, but this would fail to exploit the fact that the new stretches are already
+ *          trusty to start with. This is exploited by applying "semitrinkle“ in order to those roots.
+ *
+ * @param shrd shared variables used by the functions composing smoothsort
+ */
+void
+sms_semitrinkle (SmoothsortSharedVariables shrd)
+{
+  double tmp;
+  shrd.r1 = shrd.r - shrd.c;
+  if (!is_less_or_equal(shrd.a[shrd.r1], shrd.a[shrd.r])) {
+    tmp = shrd.a[shrd.r];
+    shrd.a[shrd.r] = shrd.a[shrd.r1];
+    shrd.a[shrd.r1] = tmp;
+    sms_trinkle(shrd);
   }
 }
 
