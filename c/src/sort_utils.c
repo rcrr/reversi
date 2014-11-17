@@ -137,8 +137,8 @@ typedef struct {
 
 
 static void
-copy (void *const src,
-      void *const dest,
+copy (void *const dest,
+      void *const src,
       const size_t element_size);
 
 static void
@@ -674,8 +674,8 @@ sort_utils_smoothsort_d (double *const a,
  */
 
 static void
-copy (void *const src,
-      void *const dest,
+copy (void *const dest,
+      void *const src,
       const size_t element_size)
 {
   if (element_size == sizeof(uint64_t)) {
@@ -863,13 +863,9 @@ sms_trinkle (SmoothsortSharedVariables shrd)
 void
 sms_semitrinkle (SmoothsortSharedVariables shrd)
 {
-  double tmp;
   shrd.r1 = shrd.r - shrd.c;
-  //if (!is_less_or_equal(shrd.a[shrd.r1], shrd.a[shrd.r])) {
   if (!shrd.cmp(&shrd.a[shrd.r1], &shrd.a[shrd.r])) {
-    tmp = shrd.a[shrd.r];
-    shrd.a[shrd.r] = shrd.a[shrd.r1];
-    shrd.a[shrd.r1] = tmp;
+    swap(&shrd.a[shrd.r], &shrd.a[shrd.r1], shrd.es);
     sms_trinkle(shrd);
   }
 }
