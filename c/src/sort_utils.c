@@ -762,7 +762,8 @@ sms_sift (SmoothsortSharedVariables shrd)
   double tmp;
   unsigned long long r0, r2;
   r0 = shrd.r1;
-  tmp = shrd.a[r0];
+  //tmp = shrd.a[r0];
+  copy(&tmp, &shrd.a[r0], shrd.es);
   while (shrd.b1 >= 3) {
     r2 = shrd.r1 - shrd.b1 + shrd.c1;
     //if (!is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) { // cost 7-8%
@@ -774,13 +775,15 @@ sms_sift (SmoothsortSharedVariables shrd)
     if (shrd.cmp(&shrd.a[r2], &tmp)) {
       shrd.b1 = 1;
     } else {
-      shrd.a[shrd.r1] = shrd.a[r2];
+      //shrd.a[shrd.r1] = shrd.a[r2];
+      copy(&shrd.a[shrd.r1], &shrd.a[r2], shrd.es);
       shrd.r1 = r2;
       sms_down(shrd.b1, shrd.c1);
     }
   }
   if (shrd.r1 - r0) {
-    shrd.a[shrd.r1] = tmp;
+    //shrd.a[shrd.r1] = tmp;
+    copy(&shrd.a[shrd.r1], &tmp, shrd.es);
   }
 }
 
