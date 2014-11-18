@@ -79,6 +79,8 @@ typedef struct {
   unsigned long long int       c1;
   size_t                       es;
   sort_utils_compare_function  cmp;
+  char                        *tmp0;
+  char                        *tmp1;
 } SmoothsortSharedVariables;
 
 
@@ -488,6 +490,7 @@ sort_utils_smoothsort (void *const a,
                        const size_t element_size,
                        const sort_utils_compare_function cmp)
 {
+  static const size_t size_of_char = sizeof(char);
   SmoothsortSharedVariables shrd;
   shrd.a = a;
   shrd.r = 0;
@@ -496,6 +499,8 @@ sort_utils_smoothsort (void *const a,
   shrd.b = 1;
   shrd.es = element_size;
   shrd.cmp = cmp;
+  shrd.tmp0 = malloc(element_size * size_of_char);
+  shrd.tmp1 = malloc(element_size * size_of_char);
 
   unsigned long long int q = 1;
 
@@ -560,21 +565,8 @@ sort_utils_smoothsort (void *const a,
   }
   /* element 0 processed */
 
-  if (TRUE) return;
-
-  /* TESTS - START */
-  double ta =  1.;
-  double tb =  0.;
-  double tc = -1.;
-  int test0 = (ta == ta) && (tb == tb) && (tc == tc);
-  int test1 = sort_utils_double_le(&ta, &tb);
-  int test2 = is_less_or_equal(ta, tb);
-  printf("\n\ntest0=%d, test1=%d, test2=%d\n", test0, test1, test2);
-  /* TESTS - END */
-
-  /* --- */
-  if (FALSE) copy(a, a, element_size);
-  sort_utils_smoothsort_d(a, count);
+  free(shrd.tmp0);
+  free(shrd.tmp1);
 }
 
 /**
@@ -759,31 +751,25 @@ hps_sift_down (void *const a,
 void
 sms_sift (SmoothsortSharedVariables shrd)
 {
-  double tmp;
   unsigned long long r0, r2;
   r0 = shrd.r1;
-  //tmp = shrd.a[r0];
-  copy(&tmp, &shrd.a[r0], shrd.es);
+  copy(shrd.tmp0, &shrd.a[r0], shrd.es);
   while (shrd.b1 >= 3) {
     r2 = shrd.r1 - shrd.b1 + shrd.c1;
-    //if (!is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) { // cost 7-8%
     if (!shrd.cmp(&shrd.a[shrd.r1 - 1], &shrd.a[r2])) {
       r2 = shrd.r1 - 1;
       sms_down(shrd.b1, shrd.c1);
     }
-    //if (is_less_or_equal(shrd.a[r2], tmp)) { // cost 5%
-    if (shrd.cmp(&shrd.a[r2], &tmp)) {
+    if (shrd.cmp(&shrd.a[r2], shrd.tmp0)) {
       shrd.b1 = 1;
     } else {
-      //shrd.a[shrd.r1] = shrd.a[r2];
       copy(&shrd.a[shrd.r1], &shrd.a[r2], shrd.es);
       shrd.r1 = r2;
       sms_down(shrd.b1, shrd.c1);
     }
   }
   if (shrd.r1 - r0) {
-    //shrd.a[shrd.r1] = tmp;
-    copy(&shrd.a[shrd.r1], &tmp, shrd.es);
+    copy(&shrd.a[shrd.r1], shrd.tmp0, shrd.es);
   }
 }
 
