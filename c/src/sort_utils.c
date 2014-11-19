@@ -79,8 +79,7 @@ typedef struct {
   unsigned long long int       c1;
   size_t                       es;
   sort_utils_compare_function  cmp;
-  char                        *tmp0;
-  char                        *tmp1;
+  char                        *tmp;
 } SmoothsortSharedVariables;
 
 
@@ -499,8 +498,7 @@ sort_utils_smoothsort (void *const a,
   shrd.b = 1;
   shrd.es = element_size;
   shrd.cmp = cmp;
-  shrd.tmp0 = malloc(element_size * size_of_char);
-  shrd.tmp1 = malloc(element_size * size_of_char);
+  shrd.tmp = malloc(element_size * size_of_char);
 
   unsigned long long int q = 1;
 
@@ -565,8 +563,7 @@ sort_utils_smoothsort (void *const a,
   }
   /* element 0 processed */
 
-  free(shrd.tmp0);
-  free(shrd.tmp1);
+  free(shrd.tmp);
 }
 
 /**
@@ -753,14 +750,14 @@ sms_sift (SmoothsortSharedVariables shrd)
 {
   unsigned long long r0, r2;
   r0 = shrd.r1;
-  copy(shrd.tmp0, &shrd.a[r0], shrd.es);
+  copy(shrd.tmp, &shrd.a[r0], shrd.es);
   while (shrd.b1 >= 3) {
     r2 = shrd.r1 - shrd.b1 + shrd.c1;
     if (!shrd.cmp(&shrd.a[shrd.r1 - 1], &shrd.a[r2])) {
       r2 = shrd.r1 - 1;
       sms_down(shrd.b1, shrd.c1);
     }
-    if (shrd.cmp(&shrd.a[r2], shrd.tmp0)) {
+    if (shrd.cmp(&shrd.a[r2], shrd.tmp)) {
       shrd.b1 = 1;
     } else {
       copy(&shrd.a[shrd.r1], &shrd.a[r2], shrd.es);
@@ -769,7 +766,7 @@ sms_sift (SmoothsortSharedVariables shrd)
     }
   }
   if (shrd.r1 - r0) {
-    copy(&shrd.a[shrd.r1], shrd.tmp0, shrd.es);
+    copy(&shrd.a[shrd.r1], shrd.tmp, shrd.es);
   }
 }
 
@@ -789,21 +786,19 @@ sms_sift (SmoothsortSharedVariables shrd)
 void
 sms_trinkle (SmoothsortSharedVariables shrd)
 {
-  double tmp;
   unsigned long long r0, r2, r3, p1;
   p1 = shrd.p;
   shrd.b1 = shrd.b;
   shrd.c1 = shrd.c;
   r0 = shrd.r1;
-  tmp = shrd.a[r0];
+  copy(shrd.tmp, &shrd.a[r0], shrd.es);
   while (p1 > 0) {
     while ((p1 & 1) == 0) {
       p1 >>= 1;
       sms_up(shrd.b1, shrd.c1);
     }
     r3 = shrd.r1 - shrd.b1;
-    //if ((p1 == 1) || is_less_or_equal(shrd.a[r3], tmp)) { // cost 0%
-    if ((p1 == 1) || shrd.cmp(&shrd.a[r3], &tmp)) {
+    if ((p1 == 1) || shrd.cmp(&shrd.a[r3], shrd.tmp)) {
       p1 = 0;
     } else {
       p1--;
@@ -813,13 +808,11 @@ sms_trinkle (SmoothsortSharedVariables shrd)
       } else {
         if (shrd.b1 >= 3) {
           r2 = shrd.r1 - shrd.b1 + shrd.c1;
-          //if (!is_less_or_equal(shrd.a[shrd.r1 - 1], shrd.a[r2])) { // cost 2%
           if (!shrd.cmp(&shrd.a[shrd.r1 - 1], &shrd.a[r2])) {
             r2 = shrd.r1 - 1;
             sms_down(shrd.b1, shrd.c1);
             p1 <<= 1;
           }
-          //if (is_less_or_equal(shrd.a[r2], shrd.a[r3])) { // cost 5%
           if (shrd.cmp(&shrd.a[r2], &shrd.a[r3])) {
             shrd.a[shrd.r1] = shrd.a[r3];
             shrd.r1 = r3;
@@ -834,7 +827,7 @@ sms_trinkle (SmoothsortSharedVariables shrd)
     }
   }
   if (r0 - shrd.r1) {
-    shrd.a[shrd.r1] = tmp;
+    copy(&shrd.a[shrd.r1], shrd.tmp, shrd.es);
   }
   sms_sift(shrd);
 }
