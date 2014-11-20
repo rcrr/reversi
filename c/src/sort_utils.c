@@ -69,7 +69,7 @@
  * @brief Parameters used and shared by the smoothsort algorithm.
  */
 typedef struct {
-  double                      *a;
+  double                      *a;      /**< @brief The array that is going to be sorted. */
   unsigned long long int       r;
   unsigned long long int       r1;
   unsigned long long int       p;
