@@ -69,17 +69,17 @@
  * @brief Parameters used and shared by the smoothsort algorithm.
  */
 typedef struct {
-  double                      *a;      /**< @brief The array that is going to be sorted. */
-  unsigned long long int       r;
-  unsigned long long int       r1;
-  unsigned long long int       p;
-  unsigned long long int       b;
-  unsigned long long int       c;
-  unsigned long long int       b1;
-  unsigned long long int       c1;
-  size_t                       es;
-  sort_utils_compare_function  cmp;
-  char                        *tmp;
+  double                      *a;        /**< @brief The array that is going to be sorted. */
+  unsigned long long int       r;        /**< @brief . */
+  unsigned long long int       r1;       /**< @brief . */
+  unsigned long long int       p;        /**< @brief . */
+  unsigned long long int       b;        /**< @brief . */
+  unsigned long long int       c;        /**< @brief . */
+  unsigned long long int       b1;       /**< @brief . */
+  unsigned long long int       c1;       /**< @brief . */
+  size_t                       es;       /**< @brief . */
+  sort_utils_compare_function  cmp;      /**< @brief . */
+  char                        *tmp;      /**< @brief . */
 } SmoothsortSharedVariables;
 
 
@@ -856,7 +856,9 @@ sms_trinkle (SmoothsortSharedVariables s)
 void
 sms_semitrinkle (SmoothsortSharedVariables s)
 {
-  s.r1 = s.r - s.c;
+  SmoothsortSharedVariables *p = &s;
+  //s.r1 = s.r - s.c;
+  p->r1 = p->r - p->c;
   if (!s.cmp(&s.a[s.r1], &s.a[s.r])) {
     swap(&s.a[s.r], &s.a[s.r1], s.es);
     sms_trinkle(s);
