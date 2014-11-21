@@ -170,7 +170,7 @@ static void
 sms_trinkle (SmoothsortSharedVariables shrd);
 
 static void
-sms_semitrinkle (SmoothsortSharedVariables shrd);
+sms_semitrinkle (SmoothsortSharedVariables *s);
 
 /**
  * @endcond
@@ -549,12 +549,12 @@ sort_utils_smoothsort (void *const a,
         shrd.p--;
         shrd.r = shrd.r - shrd.b + shrd.c;
         if (shrd.p > 0) {
-          sms_semitrinkle(shrd);
+          sms_semitrinkle(&shrd);
         }
         sms_down(shrd.b, shrd.c);
         shrd.p = (shrd.p << 1) + 1;
         shrd.r = shrd.r + shrd.c;
-        sms_semitrinkle(shrd);
+        sms_semitrinkle(&shrd);
         sms_down(shrd.b, shrd.c);
         shrd.p = (shrd.p << 1) + 1;
       }
@@ -854,14 +854,13 @@ sms_trinkle (SmoothsortSharedVariables s)
  * @param s shared variables used by the functions composing smoothsort
  */
 void
-sms_semitrinkle (SmoothsortSharedVariables s)
+sms_semitrinkle (SmoothsortSharedVariables *s)
 {
-  SmoothsortSharedVariables *p = &s;
-  //s.r1 = s.r - s.c;
-  p->r1 = p->r - p->c;
-  if (!s.cmp(&s.a[s.r1], &s.a[s.r])) {
-    swap(&s.a[s.r], &s.a[s.r1], s.es);
-    sms_trinkle(s);
+  //SmoothsortSharedVariables *p = s;
+  s->r1 = s->r - s->c;
+  if (!s->cmp(s->a + s->r1, s->a + s->r)) {
+    swap(s->a + s->r, s->a + s->r1, s->es);
+    sms_trinkle(*s);
   }
 }
 
