@@ -759,25 +759,27 @@ hps_sift_down (void *const a,
 void
 sms_sift (SmoothsortSharedVariables *s)
 {
+  const size_t es = s->es;
+  char *a = (char *) s->a;
   unsigned long long r0, r2;
   r0 = s->r1;
-  copy(s->tmp, s->a + r0, s->es);
+  copy(s->tmp, a + r0 * es, es);
   while (s->b1 >= 3) {
     r2 = s->r1 - s->b1 + s->c1;
-    if (!s->cmp(s->a + s->r1 - 1, s->a + r2)) {
+    if (!s->cmp(a + (s->r1 - 1) * es, a + r2 * es)) {
       r2 = s->r1 - 1;
       sms_down(s->b1, s->c1);
     }
-    if (s->cmp(s->a + r2, s->tmp)) {
+    if (s->cmp(a + r2 * es, s->tmp)) {
       s->b1 = 1;
     } else {
-      copy(s->a + s->r1, s->a + r2, s->es);
+      copy(a + s->r1 * es, a + r2 * es, es);
       s->r1 = r2;
       sms_down(s->b1, s->c1);
     }
   }
   if (s->r1 - r0) {
-    copy(s->a + s->r1, s->tmp, s->es);
+    copy(a + s->r1 * es, s->tmp, es);
   }
 }
 
@@ -797,38 +799,40 @@ sms_sift (SmoothsortSharedVariables *s)
 void
 sms_trinkle (SmoothsortSharedVariables *s)
 {
+  const size_t es = s->es;
+  char *a = (char *) s->a;
   unsigned long long r0, r2, r3, p1;
   p1 = s->p;
   s->b1 = s->b;
   s->c1 = s->c;
   r0 = s->r1;
-  copy(s->tmp, s->a + r0, s->es);
+  copy(s->tmp, a + r0 * es, es);
   while (p1 > 0) {
     while ((p1 & 1) == 0) {
       p1 >>= 1;
       sms_up(s->b1, s->c1);
     }
     r3 = s->r1 - s->b1;
-    if ((p1 == 1) || s->cmp(s->a + r3, s->tmp)) {
+    if ((p1 == 1) || s->cmp(a + r3 * es, s->tmp)) {
       p1 = 0;
     } else {
       p1--;
       if (s->b1 == 1) {
-        copy(s->a + s->r1, s->a + r3, s->es);
+        copy(a + s->r1 * es, a + r3 * es, es);
         s->r1 = r3;
       } else {
         if (s->b1 >= 3) {
           r2 = s->r1 - s->b1 + s->c1;
-          if (!s->cmp(s->a + s->r1 - 1, s->a + r2)) {
+          if (!s->cmp(a + (s->r1 - 1) * es, a + r2 * es)) {
             r2 = s->r1 - 1;
             sms_down(s->b1, s->c1);
             p1 <<= 1;
           }
-          if (s->cmp(s->a + r2, s->a + r3)) {
-            copy(s->a + s->r1, s->a +r3, s->es);
+          if (s->cmp(a + r2 * es, a + r3 * es)) {
+            copy(a + s->r1 * es, a + r3 * es, es);
             s->r1 = r3;
           } else {
-            copy(s->a + s->r1, s->a + r2, s->es);
+            copy(a + s->r1 * es, a + r2 * es, es);
             s->r1 = r2;
             sms_down(s->b1, s->c1);
             p1 = 0;
@@ -838,7 +842,7 @@ sms_trinkle (SmoothsortSharedVariables *s)
     }
   }
   if (r0 - s->r1) {
-    copy(s->a + s->r1, s->tmp, s->es);
+    copy(a + s->r1 * es, s->tmp, es);
   }
   sms_sift(s);
 }
@@ -856,9 +860,11 @@ sms_trinkle (SmoothsortSharedVariables *s)
 void
 sms_semitrinkle (SmoothsortSharedVariables *s)
 {
+  const size_t es = s->es;
+  char *a = (char *) s->a;
   s->r1 = s->r - s->c;
-  if (!s->cmp(s->a + s->r1, s->a + s->r)) {
-    swap(s->a + s->r, s->a + s->r1, s->es);
+  if (!s->cmp(a + s->r1 * es, a + s->r * es)) {
+    swap(a + s->r * es, a + s->r1 * es, es);
     sms_trinkle(s);
   }
 }
