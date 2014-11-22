@@ -69,7 +69,7 @@
  * @brief Parameters used and shared by the smoothsort algorithm.
  */
 typedef struct {
-  double                      *a;        /**< @brief The array that is going to be sorted. */
+  void                        *a;        /**< @brief The array that is going to be sorted. */
   unsigned long long int       r;        /**< @brief . */
   unsigned long long int       r1;       /**< @brief . */
   unsigned long long int       p;        /**< @brief . */
@@ -81,6 +81,23 @@ typedef struct {
   sort_utils_compare_function  cmp;      /**< @brief . */
   char                        *tmp;      /**< @brief . */
 } SmoothsortSharedVariables;
+
+/**
+ * @brief Parameters used and shared by the smoothsort algorithm.
+ */
+typedef struct {
+  double                      *a;        /**< @brief The array that is going to be sorted. */
+  unsigned long long int       r;        /**< @brief . */
+  unsigned long long int       r1;       /**< @brief . */
+  unsigned long long int       p;        /**< @brief . */
+  unsigned long long int       b;        /**< @brief . */
+  unsigned long long int       c;        /**< @brief . */
+  unsigned long long int       b1;       /**< @brief . */
+  unsigned long long int       c1;       /**< @brief . */
+  size_t                       es;       /**< @brief . */
+  sort_utils_compare_function  cmp;      /**< @brief . */
+  char                        *tmp;      /**< @brief . */
+} SmoothsortSharedVariablesX;
 
 
 
@@ -155,13 +172,13 @@ hps_sift_down (void *const a,
                const sort_utils_compare_function cmp);
 
 static void
-ss_sift (SmoothsortSharedVariables shrd);
+ss_sift (SmoothsortSharedVariablesX shrd);
 
 static void
-ss_trinkle (SmoothsortSharedVariables shrd);
+ss_trinkle (SmoothsortSharedVariablesX shrd);
 
 static void
-ss_semitrinkle (SmoothsortSharedVariables shrd);
+ss_semitrinkle (SmoothsortSharedVariablesX shrd);
 
 static void
 sms_sift (SmoothsortSharedVariables *s);
@@ -581,7 +598,7 @@ void
 sort_utils_smoothsort_d (double *const a,
                          const int count)
 {
-  SmoothsortSharedVariables s;
+  SmoothsortSharedVariablesX s;
   s.a = a;
   s.r = 0;
   s.c = 1;
@@ -883,7 +900,7 @@ sms_semitrinkle (SmoothsortSharedVariables *s)
  * @param shrd shared variables used by the functions composing smoothsort
  */
 void
-ss_sift (SmoothsortSharedVariables shrd)
+ss_sift (SmoothsortSharedVariablesX shrd)
 {
   double tmp;
   unsigned long long r0, r2;
@@ -922,7 +939,7 @@ ss_sift (SmoothsortSharedVariables shrd)
  * @param shrd shared variables used by the functions composing smoothsort
  */
 void
-ss_trinkle (SmoothsortSharedVariables shrd)
+ss_trinkle (SmoothsortSharedVariablesX shrd)
 {
   double tmp;
   unsigned long long r0, r2, r3, p1;
@@ -982,7 +999,7 @@ ss_trinkle (SmoothsortSharedVariables shrd)
  * @param shrd shared variables used by the functions composing smoothsort
  */
 void
-ss_semitrinkle (SmoothsortSharedVariables shrd)
+ss_semitrinkle (SmoothsortSharedVariablesX shrd)
 {
   double tmp;
   shrd.r1 = shrd.r - shrd.c;
