@@ -79,7 +79,7 @@ typedef struct {
   size_t                       es;       /**< @brief . */
   sort_utils_compare_function  cmp;      /**< @brief . */
   char                        *tmp;      /**< @brief . */
-} sms_shared_t;
+} SmsShared;
 
 /**
  * @brief Parameters used and shared by the smoothsort algorithm.
@@ -180,13 +180,13 @@ static void
 ss_semitrinkle (SmoothsortSharedVariablesX shrd);
 
 static void
-sms_sift (sms_shared_t *s);
+sms_sift (SmsShared *s);
 
 static void
-sms_trinkle (sms_shared_t *s);
+sms_trinkle (SmsShared *s);
 
 static void
-sms_semitrinkle (sms_shared_t *s);
+sms_semitrinkle (SmsShared *s);
 
 /**
  * @endcond
@@ -506,7 +506,7 @@ sort_utils_smoothsort (void *const a,
                        const sort_utils_compare_function cmp)
 {
   static const size_t size_of_char = sizeof(char);
-  sms_shared_t s;
+  SmsShared s;
   s.r = a;
   s.c = 1;
   s.p = 1;
@@ -771,7 +771,7 @@ hps_sift_down (void *const a,
  * @param s shared variables used by the functions composing smoothsort
  */
 void
-sms_sift (sms_shared_t *s)
+sms_sift (SmsShared *s)
 {
   const size_t es = s->es;
   char *r0 = s->r1;
@@ -809,7 +809,7 @@ sms_sift (sms_shared_t *s)
  * @param s shared variables used by the functions composing smoothsort
  */
 void
-sms_trinkle (sms_shared_t *s)
+sms_trinkle (SmsShared *s)
 {
   const size_t es = s->es;
   unsigned long long int p1 = s->p;
@@ -868,7 +868,7 @@ sms_trinkle (sms_shared_t *s)
  * @param s shared variables used by the functions composing smoothsort
  */
 void
-sms_semitrinkle (sms_shared_t *s)
+sms_semitrinkle (SmsShared *s)
 {
   const size_t es = s->es;
   s->r1 = s->r - s->c * es;
