@@ -69,22 +69,6 @@
  * @brief Parameters used and shared by the smoothsort algorithm.
  */
 typedef struct {
-  //char                        *r;        /**< @brief . */
-  //char                        *r1;       /**< @brief . */
-  //unsigned long long int       p;        /**< @brief . */
-  //unsigned long long int       b;        /**< @brief . */
-  unsigned long long int       c;        /**< @brief . */
-  unsigned long long int       b1;       /**< @brief . */
-  unsigned long long int       c1;       /**< @brief . */
-  //size_t                       es;       /**< @brief . */
-  //sort_utils_compare_function  cmp;      /**< @brief . */
-  //char                        *tmp;      /**< @brief . */
-} SmsShared;
-
-/**
- * @brief Parameters used and shared by the smoothsort algorithm.
- */
-typedef struct {
   double                      *a;        /**< @brief The array that is going to be sorted. */
   unsigned long long int       r;        /**< @brief . */
   unsigned long long int       r1;       /**< @brief . */
@@ -184,11 +168,8 @@ sms_sift (const sort_utils_compare_function cmp,
           const size_t es,
           char *r1,
           char *tmp,
-          unsigned long long int b,
-          unsigned long long int c,
-          unsigned long long int b1,
-          unsigned long long int c1,
-          SmsShared *s);
+          unsigned long long int *b1,
+          unsigned long long int *c1);
 
 static void
 sms_trinkle (const sort_utils_compare_function cmp,
@@ -198,9 +179,8 @@ sms_trinkle (const sort_utils_compare_function cmp,
              unsigned long long int p,
              unsigned long long int b,
              unsigned long long int c,
-             unsigned long long int b1,
-             unsigned long long int c1,
-             SmsShared *s);
+             unsigned long long int *b1,
+             unsigned long long int *c1);
 
 static void
 sms_semitrinkle (const sort_utils_compare_function cmp,
@@ -211,9 +191,8 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
                  unsigned long long int p,
                  unsigned long long int b,
                  unsigned long long int c,
-                 unsigned long long int b1,
-                 unsigned long long int c1,
-                 SmsShared *s);
+                 unsigned long long int *b1,
+                 unsigned long long int *c1);
 
 /**
  * @endcond
@@ -533,11 +512,12 @@ sort_utils_smoothsort (void *const a,
                        const sort_utils_compare_function cmp)
 {
   static const size_t size_of_char = sizeof(char);
-  SmsShared s;
   char *r = a;
-  s.c = 1;
+  unsigned long long int c = 1;
   unsigned long long int p = 1;
   unsigned long long int b = 1;
+  unsigned long long int b1;
+  unsigned long long int c1;
   char *tmp = malloc(element_size * size_of_char);
 
   unsigned long long int q = 1;
@@ -546,24 +526,24 @@ sort_utils_smoothsort (void *const a,
   while (q < count) {
     char *r1 = r;
     if ((p & 7) == 3) {
-      s.b1 = b;
-      s.c1 = s.c;
-      sms_sift(cmp, element_size, r1, tmp, b, s.c, s.b1, s.c1, &s);
+      b1 = b;
+      c1 = c;
+      sms_sift(cmp, element_size, r1, tmp, &b1, &c1);
       p = (p + 1) >> 2;
-      sms_up(b, s.c);
-      sms_up(b, s.c);
+      sms_up(b, c);
+      sms_up(b, c);
     } else if ((p & 3) == 1) {
-      if (q + s.c < count) {
-        s.b1 = b;
-        s.c1 = s.c;
-        sms_sift(cmp, element_size, r1, tmp, b, s.c, s.b1, s.c1, &s);
+      if (q + c < count) {
+        b1 = b;
+        c1 = c;
+        sms_sift(cmp, element_size, r1, tmp, &b1, &c1);
       } else {
-        sms_trinkle(cmp, element_size, r1, tmp, p, b, s.c, s.b1, s.c1, &s);
+        sms_trinkle(cmp, element_size, r1, tmp, p, b, c, &b1, &c1);
       }
-      sms_down(b, s.c);
+      sms_down(b, c);
       p <<= 1;
       while (b > 1) {
-        sms_down(b, s.c);
+        sms_down(b, c);
         p <<= 1;
       }
       p++;
@@ -572,7 +552,7 @@ sort_utils_smoothsort (void *const a,
     r += element_size;
   }
   char *r1 = r;
-  sms_trinkle(cmp, element_size, r1, tmp, p, b, s.c, s.b1, s.c1, &s);
+  sms_trinkle(cmp, element_size, r1, tmp, p, b, c, &b1, &c1);
 
   /* building sorted array */
   while (q > 1) {
@@ -582,20 +562,20 @@ sort_utils_smoothsort (void *const a,
       p--;
       while ((p & 1) == 0) {
         p >>= 1;
-        sms_up(b, s.c);
+        sms_up(b, c);
       }
     } else {
       if (b >= 3) {
         p--;
-        r = r + (s.c - b) * element_size;
+        r = r + (c - b) * element_size;
         if (p > 0) {
-          sms_semitrinkle(cmp, element_size, r, r1, tmp, p, b, s.c, s.b1, s.c1, &s);
+          sms_semitrinkle(cmp, element_size, r, r1, tmp, p, b, c, &b1, &c1);
         }
-        sms_down(b, s.c);
+        sms_down(b, c);
         p = (p << 1) + 1;
-        r = r + s.c * element_size;
-        sms_semitrinkle(cmp, element_size, r, r1, tmp, p, b, s.c, s.b1, s.c1, &s);
-        sms_down(b, s.c);
+        r = r + c * element_size;
+        sms_semitrinkle(cmp, element_size, r, r1, tmp, p, b, c, &b1, &c1);
+        sms_down(b, c);
         p = (p << 1) + 1;
       }
     }
@@ -800,26 +780,23 @@ sms_sift (const sort_utils_compare_function cmp,
           const size_t es,
           char *r1,
           char *tmp,
-          unsigned long long int b,
-          unsigned long long int c,
-          unsigned long long int b1,
-          unsigned long long int c1,
-          SmsShared *s)
+          unsigned long long int *b1,
+          unsigned long long int *c1)
 {
   char *r0 = r1;
   copy(tmp, r0, es);
-  while (s->b1 >= 3) {
-    char *r2 = r1 + (s->c1 - s->b1) * es;
+  while (*b1 >= 3) {
+    char *r2 = r1 + (*c1 - *b1) * es;
     if (!cmp(r1 - es, r2)) {
       r2 = r1 - es;
-      sms_down(s->b1, s->c1);
+      sms_down(*b1, *c1);
     }
     if (cmp(r2, tmp)) {
-      s->b1 = 1;
+      *b1 = 1;
     } else {
       copy(r1, r2, es);
       r1 = r2;
-      sms_down(s->b1, s->c1);
+      sms_down(*b1, *c1);
     }
   }
   if (r1 - r0) {
@@ -848,34 +825,33 @@ sms_trinkle (const sort_utils_compare_function cmp,
              unsigned long long int p,
              unsigned long long int b,
              unsigned long long int c,
-             unsigned long long int b1,
-             unsigned long long int c1,
-             SmsShared *s)
+             unsigned long long int *b1,
+             unsigned long long int *c1)
 {
   unsigned long long int p1 = p;
-  s->b1 = b;
-  s->c1 = s->c;
+  *b1 = b;
+  *c1 = c;
   char *r0 = r1;
   copy(tmp, r0, es);
   while (p1 > 0) {
     while ((p1 & 1) == 0) {
       p1 >>= 1;
-      sms_up(s->b1, s->c1);
+      sms_up(*b1, *c1);
     }
-    char *r3 = r1 - s->b1 * es;
+    char *r3 = r1 - *b1 * es;
     if ((p1 == 1) || cmp(r3, tmp)) {
       p1 = 0;
     } else {
       p1--;
-      if (s->b1 == 1) {
+      if (*b1 == 1) {
         copy(r1, r3, es);
         r1 = r3;
       } else {
-        if (s->b1 >= 3) {
-          char *r2 = r1 + (s->c1 - s->b1) * es;
+        if (*b1 >= 3) {
+          char *r2 = r1 + (*c1 - *b1) * es;
           if (!cmp(r1 - es, r2)) {
             r2 = r1 - es;
-            sms_down(s->b1, s->c1);
+            sms_down(*b1, *c1);
             p1 <<= 1;
           }
           if (cmp(r2, r3)) {
@@ -884,7 +860,7 @@ sms_trinkle (const sort_utils_compare_function cmp,
           } else {
             copy(r1, r2, es);
             r1 = r2;
-            sms_down(s->b1, s->c1);
+            sms_down(*b1, *c1);
             p1 = 0;
           }
         }
@@ -894,7 +870,7 @@ sms_trinkle (const sort_utils_compare_function cmp,
   if (r0 - r1) {
     copy(r1, tmp, es);
   }
-  sms_sift(cmp, es, r1, tmp, b, c, b1, c1, s);
+  sms_sift(cmp, es, r1, tmp, b1, c1);
 }
 
 /**
@@ -916,14 +892,13 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
                  unsigned long long int p,
                  unsigned long long int b,
                  unsigned long long int c,
-                 unsigned long long int b1,
-                 unsigned long long int c1,
-                 SmsShared *s)
+                 unsigned long long int *b1,
+                 unsigned long long int *c1)
 {
-  r1 = r - s->c * es;
+  r1 = r - c * es;
   if (!cmp(r1, r)) {
     swap(r, r1, es);
-    sms_trinkle(cmp, es, r1, tmp, p, b, c, b1, c1, s);
+    sms_trinkle(cmp, es, r1, tmp, p, b, c, b1, c1);
   }
 }
 
