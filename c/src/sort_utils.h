@@ -139,7 +139,7 @@ sort_utils_smoothsort_asc_d (double *const a,
                              const int count);
 
 extern void
-sort_utils_smoothsort_d (double *const a,
-                         const int count);
+sort_utils_smoothsort_dsc_d (double *const a,
+                             const int count);
 
 #endif /* SORT_UTILS_H */
