@@ -135,6 +135,10 @@ sort_utils_smoothsort (void *const a,
                        const sort_utils_compare_function cmp);
 
 extern void
+sort_utils_smoothsort_asc_d (double *const a,
+                             const int count);
+
+extern void
 sort_utils_smoothsort_d (double *const a,
                          const int count);
 

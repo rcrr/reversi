@@ -577,7 +577,7 @@ sort_utils_smoothsort_d_1_test (void)
 static void
 sort_utils_smoothsort_d_perf_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_smoothsort_d, 1024, 15, 2);
+  hlp_run_sort_d_test(sort_utils_smoothsort_asc_d, 1024, 15, 2);
 }
 
 
