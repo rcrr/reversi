@@ -84,28 +84,6 @@
  */
 
 /**
- * @brief Returns true if `v1` is smaller than `v2` for all data types
- *        for which the `<` operator is defined.
- */
-#define is_less(v1, v2) (v1 < v2)
-
-/**
- * @brief Returns true if `v1` is smaller than or equal to `v2` for all
- *        data types for which the `<` operator is defined.
- */
-#define is_less_or_equal(v1, v2) (v1 <= v2)
-
-/**
- * @brief Exchanges values among two double variables.
- */
-#define swap_d(r,s) do { double t = r; r = s; s = t; } while(0)
-
-/**
- * @brief Exchanges values among two pointers.
- */
-#define swap_p(r,s) do { void *t = r; r = s; s = t; } while(0)
-
-/**
  * @brief Function up as described by the soothsort paper.
  */
 #define sms_up(ia, ib) do { unsigned long long int temp = ia; ia += ib + 1; ib = temp; } while (0)
@@ -697,7 +675,7 @@ hps_sift_down (void *const a,
  *
  * @param s shared variables used by the functions composing smoothsort
  */
-void
+static void
 sms_sift (const sort_utils_compare_function cmp,
           const size_t es,
           char *r1,
@@ -739,7 +717,7 @@ sms_sift (const sort_utils_compare_function cmp,
  *
  * @param s shared variables used by the functions composing smoothsort
  */
-void
+static void
 sms_trinkle (const sort_utils_compare_function cmp,
              const size_t es,
              char *r1,
@@ -805,7 +783,7 @@ sms_trinkle (const sort_utils_compare_function cmp,
  *
  * @param s shared variables used by the functions composing smoothsort
  */
-void
+static void
 sms_semitrinkle (const sort_utils_compare_function cmp,
                  const size_t es,
                  char *r,
