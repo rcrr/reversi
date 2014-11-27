@@ -82,6 +82,10 @@ extern int
 sort_utils_double_cmp (const void *const a,
                        const void *const b);
 
+extern int
+sort_utils_double_icmp (const void *const a,
+                        const void *const b);
+
 
 
 /***************************************/
@@ -141,5 +145,17 @@ sort_utils_smoothsort_asc_d (double *const a,
 extern void
 sort_utils_smoothsort_dsc_d (double *const a,
                              const int count);
+
+
+
+/***********************************/
+/* Quick-sort function prototypes. */
+/***********************************/
+
+extern void
+sort_utils_quicksort (void *const a,
+                      const size_t count,
+                      const size_t element_size,
+                      const sort_utils_compare_function cmp);
 
 #endif /* SORT_UTILS_H */

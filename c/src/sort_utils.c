@@ -285,6 +285,26 @@ sort_utils_double_cmp (const void *const a, const void *const b)
   return (*x > *y) - (*x < *y);
 }
 
+/**
+ * @brief Compares double values pointed by `a` and `b`.
+ *
+ * @details Compare funtion that returns:
+ *          - `-1` when `a` is greater than `b`
+ *          - ` 0` when `a` is equal to `b`
+ *          - `+1` when `a` is less then `b`
+ *
+ * @param a a pointer to the first double
+ * @param b a ponter to the second double
+ * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
+ */
+int
+sort_utils_double_icmp (const void *const a, const void *const b)
+{
+  const double *const x = (const double *const) a;
+  const double *const y = (const double *const) b;
+  return (*x < *y) - (*x > *y);
+}
+
 
 
 /********************************/
@@ -571,6 +591,53 @@ sort_utils_smoothsort_dsc_d (double *const a,
   sort_utils_smoothsort(a, count, sizeof(double), sort_utils_double_ge);
 }
 
+
+
+/**************/
+/* Quick-sort */
+/**************/
+
+/**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a` having length equal to `count` is sorted
+ *          in place applying the quicksort algorithm.
+ *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *
+ *          Adapted from the paper "Engineering a Sort Function" by Jon L. Bentley and M. Douglas McIlroy
+ *          See: http://www.skidmore.edu/~meckmann/2009Spring/cs206/papers/spe862jb.pdf
+ *          See also: http://en.wikipedia.org/wiki/Quicksort
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applyed by the algorithm
+ */
+void
+sort_utils_quicksort (void *const a,
+                      const size_t count,
+                      const size_t element_size,
+                      const sort_utils_compare_function cmp)
+{
+  char *ca = (char *) a;
+  int j;
+  char *pi, *pj, *pn;
+  if (count <= 1) return;
+  pi = ca + (rand() % count) * element_size;
+  swap(ca, pi, element_size);
+  pi = ca;
+  pj = pn = ca + count * element_size;
+  for (;;) {
+    do pi += element_size; while (pi < pn && cmp(pi, ca) < 0);
+    do pj -= element_size; while (cmp(pj, ca) > 0);
+    if (pj < pi) break;
+    swap(pi, pj, element_size);
+  }
+  swap(ca, pj, element_size);
+  j = (pj - ca) / element_size;
+  sort_utils_quicksort(ca, j, element_size, cmp);
+  sort_utils_quicksort(ca + (j + 1) * element_size, count - j - 1, element_size, cmp);
+}
 
 
 /**
