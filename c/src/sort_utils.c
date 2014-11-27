@@ -1,19 +1,31 @@
 /**
  * @file
  *
- * @todo Write tests for ordered and mostly ordered data.
- *
- * @todo Write the generic sort_utils_smoothsorth.
+ * @todo Add one merge implementation to the list of available choices.
  *
  * @todo Add one shellsort implementation to the list of available choices.
  *
  * @todo Add quicksort to the list of available choices.
  *
- * @todo Write a function that receives the array of pointers to be sorted,
- *       the count, a function pointer for compare, a void pointer to data,
- *       an enum that identify the sorting algorithm.
+ * @todo Add compare functions for 64, 32, 8 bit signed and unsiged integers.
  *
- * @todo Write tests for corner cases like zero, one, two elements to be sorted.
+ * @todo Add dedicated sort functions for 64, 32, 8 bit signed and unsiged integers.
+ *
+ * @todo Add compare functions for pointers, and relative dedicated sort functions.
+ *
+ * @todo Add dedicated sort functions for object (pointer and structure) sorting.
+ *
+ * @todo Prepare tests for:
+ *         - Added compare functions.
+ *         - Dedicated integer, pointer, object sorting functions.
+ *
+ * @todo Write performance tests for ordered and mostly ordered data, organ-pipe data
+ *       fiew values data (eg. a long array of ones and zeroes).
+ *       Rewrite test helper function (has to suport more use cases than just random order).
+ *
+ * @todo Write a complete introduction to document the module.
+ *
+ * @todo Prepare one or more plots to document performances of the different functions.
  *
  *
  *
