@@ -194,14 +194,18 @@ const TestCase tc_double_base[] =
 static void sort_utils_double_compare_test (void);
 
 static void
+sort_utils_qsort_tc_double_base_test (Fixture *fixture,
+                                      gconstpointer test_data);
+
+static void
 sort_utils_insertionsort_tc_double_base_test (Fixture *fixture,
                                               gconstpointer test_data);
 
-static void sort_utils_insertionsort_asc_d_1_test (void);
-static void sort_utils_insertionsort_asc_d_n_test (void);
-static void sort_utils_insertionsort_dsc_d_1_test (void);
-static void sort_utils_insertionsort_dsc_d_n_test (void);
-static void sort_utils_insertionsort_asc_d_perf_test (void);
+static void sort_utils_insertionsort_asc_d_1_rand_test (void);
+static void sort_utils_insertionsort_asc_d_n_rand_test (void);
+static void sort_utils_insertionsort_dsc_d_1_rand_test (void);
+static void sort_utils_insertionsort_dsc_d_n_rand_test (void);
+static void sort_utils_insertionsort_asc_d_rand_perf_test (void);
 
 static void
 sort_utils_heapsort_tc_double_base_test (Fixture *fixture,
@@ -253,6 +257,14 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_double_compare_test", sort_utils_double_compare_test);
 
 
+  g_test_add("/sort_utils/sort_utils_qsort_tc_double_base_test",
+             Fixture,
+             (gconstpointer) tc_double_base,
+             base_fixture_setup,
+             sort_utils_qsort_tc_double_base_test,
+             base_fixture_teardown);
+
+
   g_test_add("/sort_utils/sort_utils_insertionsort_tc_double_base_test",
              Fixture,
              (gconstpointer) tc_double_base,
@@ -260,10 +272,10 @@ main (int   argc,
              sort_utils_insertionsort_tc_double_base_test,
              base_fixture_teardown);
 
-  g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_1_test", sort_utils_insertionsort_asc_d_1_test);
-  g_test_add_func("/sort_utils/sort_utils_insertionsort_dsc_d_1_test", sort_utils_insertionsort_dsc_d_1_test);
-  g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_n_test", sort_utils_insertionsort_asc_d_n_test);
-  g_test_add_func("/sort_utils/sort_utils_insertionsort_dsc_d_n_test", sort_utils_insertionsort_dsc_d_n_test);
+  g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_1_rand_test", sort_utils_insertionsort_asc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_insertionsort_dsc_d_1_rand_test", sort_utils_insertionsort_dsc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_n_rand_test", sort_utils_insertionsort_asc_d_n_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_insertionsort_dsc_d_n_rand_test", sort_utils_insertionsort_dsc_d_n_rand_test);
 
 
   g_test_add("/sort_utils/sort_utils_heapsort_tc_double_base_test",
@@ -294,7 +306,7 @@ main (int   argc,
              base_fixture_teardown);
 
   if (g_test_perf()) {
-    g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_perf_test", sort_utils_insertionsort_asc_d_perf_test);
+    g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_rand_perf_test", sort_utils_insertionsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_perf_test", sort_utils_heapsort_asc_d_perf_test);
     g_test_add_func("/sort_utils/sort_utils_smoothsort_asc_d_perf_test", sort_utils_smoothsort_asc_d_perf_test);
   }
@@ -390,6 +402,44 @@ sort_utils_double_compare_test (void)
 
 
 /********************************************/
+/* Unit tests for stdlib.h qsort algorithm. */
+/********************************************/
+
+static void
+sort_utils_qsort_tc_double_base_test (Fixture *fixture,
+                                      gconstpointer test_data)
+{
+  TestCase *tests = fixture->tests;
+  g_assert(tests);
+  for (int i = 0; i < fixture->tests_count; i++) {
+    const TestCase *t = &tests[i];
+    sort_utils_compare_function f;
+    switch (t->versus) {
+    case ASC:
+      f = sort_utils_double_cmp;
+      break;
+    case DSC:
+      f = sort_utils_double_icmp;
+      break;
+    default:
+      g_test_fail();
+      return;
+    }
+    qsort(t->elements,
+          t->elements_count,
+          sizeof(double),
+          f);
+    for (int j = 0; j < t->elements_count; j++) {
+      const double *computed = (double *) t->elements + j;
+      const double *expected = (double *) t->expected_sorted_sequence + j;
+      g_assert_cmpfloat(*expected, ==, *computed);
+    }
+  }
+}
+
+
+
+/********************************************/
 /* Unit tests for insertion-sort algorithm. */
 /********************************************/
 
@@ -426,19 +476,19 @@ sort_utils_insertionsort_tc_double_base_test (Fixture *fixture,
 }
 
 static void
-sort_utils_insertionsort_asc_d_1_test (void)
+sort_utils_insertionsort_asc_d_1_rand_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_insertionsort_asc_d, 1024, 1, 0, 175, ASC);
 }
 
 static void
-sort_utils_insertionsort_dsc_d_1_test (void)
+sort_utils_insertionsort_dsc_d_1_rand_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_insertionsort_dsc_d, 1024, 1, 0, 175, DSC);
 }
 
 static void
-sort_utils_insertionsort_asc_d_n_test (void)
+sort_utils_insertionsort_asc_d_n_rand_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_insertionsort_asc_d, 1024, 3, 2, 322, ASC);
   hlp_run_sort_d_random_test(sort_utils_insertionsort_asc_d, 1023, 3, 2, 655, ASC);
@@ -446,7 +496,7 @@ sort_utils_insertionsort_asc_d_n_test (void)
 }
 
 static void
-sort_utils_insertionsort_dsc_d_n_test (void)
+sort_utils_insertionsort_dsc_d_n_rand_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_insertionsort_dsc_d, 1024, 3, 2, 114, DSC);
   hlp_run_sort_d_random_test(sort_utils_insertionsort_dsc_d, 1023, 3, 2, 563, DSC);
@@ -454,7 +504,7 @@ sort_utils_insertionsort_dsc_d_n_test (void)
 }
 
 static void
-sort_utils_insertionsort_asc_d_perf_test (void)
+sort_utils_insertionsort_asc_d_rand_perf_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_insertionsort_asc_d, 1024, 8, 2, 175, ASC);
 }
