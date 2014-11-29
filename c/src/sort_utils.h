@@ -158,4 +158,14 @@ sort_utils_quicksort (void *const a,
                       const size_t element_size,
                       const sort_utils_compare_function cmp);
 
+extern void
+sort_utils_quicksort_asc_d (double *const a,
+                            const int count);
+
+extern void
+sort_utils_quicksort_dsc_d (double *const a,
+                            const int count);
+
+
+
 #endif /* SORT_UTILS_H */

@@ -639,6 +639,39 @@ sort_utils_quicksort (void *const a,
   sort_utils_quicksort(ca + (j + 1) * element_size, count - j - 1, element_size, cmp);
 }
 
+/**
+ * @brief Sorts in ascending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the quicksort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_quicksort_asc_d (double *const a,
+                            const int count)
+{
+  sort_utils_quicksort(a, count, sizeof(double), sort_utils_double_cmp);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in descending order applying the quicksort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_quicksort_dsc_d (double *const a,
+                            const int count)
+{
+  sort_utils_quicksort(a, count, sizeof(double), sort_utils_double_icmp);
+}
+
+
 
 /**
  * @cond
