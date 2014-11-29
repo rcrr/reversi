@@ -198,6 +198,9 @@ sort_utils_insertionsort_tc_double_base_test (Fixture *fixture,
                                               gconstpointer test_data);
 
 static void sort_utils_insertionsort_asc_d_1_test (void);
+static void sort_utils_insertionsort_asc_d_n_test (void);
+static void sort_utils_insertionsort_dsc_d_1_test (void);
+static void sort_utils_insertionsort_dsc_d_n_test (void);
 static void sort_utils_insertionsort_asc_d_perf_test (void);
 
 static void
@@ -232,11 +235,12 @@ base_fixture_teardown (Fixture *fixture,
                        gconstpointer test_data);
 
 static void
-hlp_run_sort_d_test (const sort_double_fun f,
-                     const int array_length,
-                     const int repetitions,
-                     const int factor,
-                     const int seed);
+hlp_run_sort_d_random_test (const sort_double_fun f,
+                            const int array_length,
+                            const int repetitions,
+                            const int factor,
+                            const int seed,
+                            const SortingVersus v);
 
 
 
@@ -257,6 +261,9 @@ main (int   argc,
              base_fixture_teardown);
 
   g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_1_test", sort_utils_insertionsort_asc_d_1_test);
+  g_test_add_func("/sort_utils/sort_utils_insertionsort_dsc_d_1_test", sort_utils_insertionsort_dsc_d_1_test);
+  g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_n_test", sort_utils_insertionsort_asc_d_n_test);
+  g_test_add_func("/sort_utils/sort_utils_insertionsort_dsc_d_n_test", sort_utils_insertionsort_dsc_d_n_test);
 
 
   g_test_add("/sort_utils/sort_utils_heapsort_tc_double_base_test",
@@ -421,13 +428,35 @@ sort_utils_insertionsort_tc_double_base_test (Fixture *fixture,
 static void
 sort_utils_insertionsort_asc_d_1_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_insertionsort_asc_d, 1024, 1, 0, 175);
+  hlp_run_sort_d_random_test(sort_utils_insertionsort_asc_d, 1024, 1, 0, 175, ASC);
+}
+
+static void
+sort_utils_insertionsort_dsc_d_1_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_insertionsort_dsc_d, 1024, 1, 0, 175, DSC);
+}
+
+static void
+sort_utils_insertionsort_asc_d_n_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_insertionsort_asc_d, 1024, 3, 2, 322, ASC);
+  hlp_run_sort_d_random_test(sort_utils_insertionsort_asc_d, 1023, 3, 2, 655, ASC);
+  hlp_run_sort_d_random_test(sort_utils_insertionsort_asc_d, 1025, 3, 2, 983, ASC);
+}
+
+static void
+sort_utils_insertionsort_dsc_d_n_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_insertionsort_dsc_d, 1024, 3, 2, 114, DSC);
+  hlp_run_sort_d_random_test(sort_utils_insertionsort_dsc_d, 1023, 3, 2, 563, DSC);
+  hlp_run_sort_d_random_test(sort_utils_insertionsort_dsc_d, 1025, 3, 2, 940, DSC);
 }
 
 static void
 sort_utils_insertionsort_asc_d_perf_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_insertionsort_asc_d, 1024, 8, 2, 175);
+  hlp_run_sort_d_random_test(sort_utils_insertionsort_asc_d, 1024, 8, 2, 175, ASC);
 }
 
 
@@ -471,13 +500,13 @@ sort_utils_heapsort_tc_double_base_test (Fixture *fixture,
 static void
 sort_utils_heapsort_asc_d_1_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_heapsort_asc_d, 1024, 1, 0, 175);
+  hlp_run_sort_d_random_test(sort_utils_heapsort_asc_d, 1024, 1, 0, 175, ASC);
 }
 
 static void
 sort_utils_heapsort_asc_d_perf_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_heapsort_asc_d, 1024, 15, 2, 175);
+  hlp_run_sort_d_random_test(sort_utils_heapsort_asc_d, 1024, 15, 2, 175, ASC);
 }
 
 
@@ -521,13 +550,13 @@ sort_utils_smoothsort_tc_double_base_test (Fixture *fixture,
 static void
 sort_utils_smoothsort_asc_d_1_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_smoothsort_asc_d, 1024, 1, 0, 175);
+  hlp_run_sort_d_random_test(sort_utils_smoothsort_asc_d, 1024, 1, 0, 175, ASC);
 }
 
 static void
 sort_utils_smoothsort_asc_d_perf_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_smoothsort_asc_d, 1024, 15, 2, 175);
+  hlp_run_sort_d_random_test(sort_utils_smoothsort_asc_d, 1024, 15, 2, 175, ASC);
 }
 
 
@@ -620,11 +649,12 @@ base_fixture_teardown (Fixture *fixture,
 
 
 static void
-hlp_run_sort_d_test (const sort_double_fun sort_fun,
-                     const int array_length,
-                     const int repetitions,
-                     const int factor,
-                     const int seed)
+hlp_run_sort_d_random_test (const sort_double_fun sort_fun,
+                            const int array_length,
+                            const int repetitions,
+                            const int factor,
+                            const int seed,
+                            const SortingVersus v)
 {
   g_assert(array_length > 0);
   double ttime;
@@ -650,7 +680,17 @@ hlp_run_sort_d_test (const sort_double_fun sort_fun,
       g_test_minimized_result(ttime, "Sorting %10u items: %-12.8gsec", len, ttime);
 
     for (int i = 0; i < len; i++) {
-      g_assert(a[i] == i);
+      switch (v) {
+      case ASC:
+        g_assert(a[i] == i);
+        break;
+      case DSC:
+        g_assert(a[i] == len - (1 + i));
+        break;
+      default:
+        g_test_fail();
+      return;
+      }
     }
 
     free(a);
