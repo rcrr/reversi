@@ -1,7 +1,8 @@
 /**
  * @file
  *
- * @brief Sort Utils unit test suite.
+ * @brief Sort utils unit test suite.
+ *
  * @details Collects tests and helper methods for the sort utils module.
  *
  * @par sort_utils_test.c
@@ -41,7 +42,7 @@
 #include "random.h"
 
 
-typedef void (*sort_utils_sort_d) (double *const a, const int count);
+typedef void (*sort_double_fun) (double *const a, const int count);
 
 /**
  * @enum SortingVersus
@@ -77,7 +78,7 @@ typedef struct {
 } Fixture;
 
 /**
- * @brief Sorting test cases for simple arrays od double: base cases.
+ * @brief Sorting test cases for simple arrays of double: base cases.
  */
 const TestCase tc_double_base[] =
   {
@@ -231,10 +232,11 @@ base_fixture_teardown (Fixture *fixture,
                        gconstpointer test_data);
 
 static void
-hlp_run_sort_d_test (const sort_utils_sort_d f,
+hlp_run_sort_d_test (const sort_double_fun f,
                      const int array_length,
                      const int repetitions,
-                     const int factor);
+                     const int factor,
+                     const int seed);
 
 
 
@@ -419,13 +421,13 @@ sort_utils_insertionsort_tc_double_base_test (Fixture *fixture,
 static void
 sort_utils_insertionsort_asc_d_1_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_insertionsort_asc_d, 1024, 1, 0);
+  hlp_run_sort_d_test(sort_utils_insertionsort_asc_d, 1024, 1, 0, 175);
 }
 
 static void
 sort_utils_insertionsort_asc_d_perf_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_insertionsort_asc_d, 1024, 8, 2);
+  hlp_run_sort_d_test(sort_utils_insertionsort_asc_d, 1024, 8, 2, 175);
 }
 
 
@@ -469,13 +471,13 @@ sort_utils_heapsort_tc_double_base_test (Fixture *fixture,
 static void
 sort_utils_heapsort_asc_d_1_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_heapsort_asc_d, 1024, 1, 0);
+  hlp_run_sort_d_test(sort_utils_heapsort_asc_d, 1024, 1, 0, 175);
 }
 
 static void
 sort_utils_heapsort_asc_d_perf_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_heapsort_asc_d, 1024, 15, 2);
+  hlp_run_sort_d_test(sort_utils_heapsort_asc_d, 1024, 15, 2, 175);
 }
 
 
@@ -519,13 +521,13 @@ sort_utils_smoothsort_tc_double_base_test (Fixture *fixture,
 static void
 sort_utils_smoothsort_asc_d_1_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_smoothsort_asc_d, 1024, 1, 0);
+  hlp_run_sort_d_test(sort_utils_smoothsort_asc_d, 1024, 1, 0, 175);
 }
 
 static void
 sort_utils_smoothsort_asc_d_perf_test (void)
 {
-  hlp_run_sort_d_test(sort_utils_smoothsort_asc_d, 1024, 15, 2);
+  hlp_run_sort_d_test(sort_utils_smoothsort_asc_d, 1024, 15, 2, 175);
 }
 
 
@@ -618,10 +620,11 @@ base_fixture_teardown (Fixture *fixture,
 
 
 static void
-hlp_run_sort_d_test (const sort_utils_sort_d sort_fun,
+hlp_run_sort_d_test (const sort_double_fun sort_fun,
                      const int array_length,
                      const int repetitions,
-                     const int factor)
+                     const int factor,
+                     const int seed)
 {
   g_assert(array_length > 0);
   double ttime;
@@ -636,7 +639,7 @@ hlp_run_sort_d_test (const sort_utils_sort_d sort_fun,
       a[i] = i;
     }
 
-    RandomNumberGenerator *rng = rng_new(175);
+    RandomNumberGenerator *rng = rng_new(seed);
     rng_shuffle_array_double(rng, a, len);
     rng_free(rng);
 
