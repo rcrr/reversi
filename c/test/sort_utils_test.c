@@ -197,6 +197,12 @@ static void
 sort_utils_qsort_tc_double_base_test (Fixture *fixture,
                                       gconstpointer test_data);
 
+static void sort_utils_qsort_asc_d_1_rand_test (void);
+static void sort_utils_qsort_asc_d_n_rand_test (void);
+static void sort_utils_qsort_dsc_d_1_rand_test (void);
+static void sort_utils_qsort_dsc_d_n_rand_test (void);
+static void sort_utils_qsort_asc_d_rand_perf_test (void);
+
 static void
 sort_utils_insertionsort_tc_double_base_test (Fixture *fixture,
                                               gconstpointer test_data);
@@ -211,15 +217,15 @@ static void
 sort_utils_heapsort_tc_double_base_test (Fixture *fixture,
                                          gconstpointer test_data);
 
-static void sort_utils_heapsort_asc_d_1_test (void);
-static void sort_utils_heapsort_asc_d_perf_test (void);
+static void sort_utils_heapsort_asc_d_1_rand_test (void);
+static void sort_utils_heapsort_asc_d_rand_perf_test (void);
 
 static void
 sort_utils_smoothsort_tc_double_base_test (Fixture *fixture,
                                            gconstpointer test_data);
 
-static void sort_utils_smoothsort_asc_d_1_test (void);
-static void sort_utils_smoothsort_asc_d_perf_test (void);
+static void sort_utils_smoothsort_asc_d_1_rand_test (void);
+static void sort_utils_smoothsort_asc_d_rand_perf_test (void);
 
 static void
 sort_utils_quicksort_tc_double_base_test (Fixture *fixture,
@@ -246,6 +252,14 @@ hlp_run_sort_d_random_test (const sort_double_fun f,
                             const int seed,
                             const SortingVersus v);
 
+static void
+sort_utils_qsort_asc_d (double *const a,
+                        const int count);
+
+static void
+sort_utils_qsort_dsc_d (double *const a,
+                        const int count);
+
 
 
 int
@@ -263,6 +277,11 @@ main (int   argc,
              base_fixture_setup,
              sort_utils_qsort_tc_double_base_test,
              base_fixture_teardown);
+
+  g_test_add_func("/sort_utils/sort_utils_qsort_asc_d_1_rand_test", sort_utils_qsort_asc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_qsort_dsc_d_1_rand_test", sort_utils_qsort_dsc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_qsort_asc_d_n_rand_test", sort_utils_qsort_asc_d_n_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_qsort_dsc_d_n_rand_test", sort_utils_qsort_dsc_d_n_rand_test);
 
 
   g_test_add("/sort_utils/sort_utils_insertionsort_tc_double_base_test",
@@ -285,7 +304,7 @@ main (int   argc,
              sort_utils_heapsort_tc_double_base_test,
              base_fixture_teardown);
 
-  g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_1_test", sort_utils_heapsort_asc_d_1_test);
+  g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_1_rand_test", sort_utils_heapsort_asc_d_1_rand_test);
 
 
   g_test_add("/sort_utils/sort_utils_smoothsort_tc_double_base_test",
@@ -295,7 +314,7 @@ main (int   argc,
              sort_utils_smoothsort_tc_double_base_test,
              base_fixture_teardown);
 
-  g_test_add_func("/sort_utils/sort_utils_smoothsort_asc_d_1_test", sort_utils_smoothsort_asc_d_1_test);
+  g_test_add_func("/sort_utils/sort_utils_smoothsort_asc_d_1_rand_test", sort_utils_smoothsort_asc_d_1_rand_test);
 
 
   g_test_add("/sort_utils/sort_utils_quicksort_tc_double_base_test",
@@ -306,9 +325,10 @@ main (int   argc,
              base_fixture_teardown);
 
   if (g_test_perf()) {
+    g_test_add_func("/sort_utils/sort_utils_qsort_asc_d_rand_perf_test", sort_utils_qsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_rand_perf_test", sort_utils_insertionsort_asc_d_rand_perf_test);
-    g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_perf_test", sort_utils_heapsort_asc_d_perf_test);
-    g_test_add_func("/sort_utils/sort_utils_smoothsort_asc_d_perf_test", sort_utils_smoothsort_asc_d_perf_test);
+    g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_rand_perf_test", sort_utils_heapsort_asc_d_rand_perf_test);
+    g_test_add_func("/sort_utils/sort_utils_smoothsort_asc_d_rand_perf_test", sort_utils_smoothsort_asc_d_rand_perf_test);
   }
 
   return g_test_run();
@@ -437,6 +457,40 @@ sort_utils_qsort_tc_double_base_test (Fixture *fixture,
   }
 }
 
+static void
+sort_utils_qsort_asc_d_1_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_qsort_asc_d, 1024, 1, 0, 654, ASC);
+}
+
+static void
+sort_utils_qsort_dsc_d_1_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_qsort_dsc_d, 1024, 1, 0, 870, DSC);
+}
+
+static void
+sort_utils_qsort_asc_d_n_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_qsort_asc_d, 1024, 3, 2, 103, ASC);
+  hlp_run_sort_d_random_test(sort_utils_qsort_asc_d, 1023, 3, 2,  55, ASC);
+  hlp_run_sort_d_random_test(sort_utils_qsort_asc_d, 1025, 3, 2, 870, ASC);
+}
+
+static void
+sort_utils_qsort_dsc_d_n_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_qsort_dsc_d, 1024, 3, 2, 253, DSC);
+  hlp_run_sort_d_random_test(sort_utils_qsort_dsc_d, 1023, 3, 2, 763, DSC);
+  hlp_run_sort_d_random_test(sort_utils_qsort_dsc_d, 1025, 3, 2, 894, DSC);
+}
+
+static void
+sort_utils_qsort_asc_d_rand_perf_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_qsort_asc_d, 1024, 15, 2, 175, ASC);
+}
+
 
 
 /********************************************/
@@ -548,13 +602,13 @@ sort_utils_heapsort_tc_double_base_test (Fixture *fixture,
 }
 
 static void
-sort_utils_heapsort_asc_d_1_test (void)
+sort_utils_heapsort_asc_d_1_rand_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_heapsort_asc_d, 1024, 1, 0, 175, ASC);
 }
 
 static void
-sort_utils_heapsort_asc_d_perf_test (void)
+sort_utils_heapsort_asc_d_rand_perf_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_heapsort_asc_d, 1024, 15, 2, 175, ASC);
 }
@@ -598,13 +652,13 @@ sort_utils_smoothsort_tc_double_base_test (Fixture *fixture,
 }
 
 static void
-sort_utils_smoothsort_asc_d_1_test (void)
+sort_utils_smoothsort_asc_d_1_rand_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_smoothsort_asc_d, 1024, 1, 0, 175, ASC);
 }
 
 static void
-sort_utils_smoothsort_asc_d_perf_test (void)
+sort_utils_smoothsort_asc_d_rand_perf_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_smoothsort_asc_d, 1024, 15, 2, 175, ASC);
 }
@@ -747,4 +801,18 @@ hlp_run_sort_d_random_test (const sort_double_fun sort_fun,
 
     len = len * factor;
   }
+}
+
+static void
+sort_utils_qsort_asc_d (double *const a,
+                        const int count)
+{
+  qsort(a, count, sizeof(double), sort_utils_double_cmp);
+}
+
+static void
+sort_utils_qsort_dsc_d (double *const a,
+                        const int count)
+{
+  qsort(a, count, sizeof(double), sort_utils_double_icmp);
 }
