@@ -1,23 +1,26 @@
 /**
  * @file
  *
- * @todo Add one merge implementation to the list of available choices.
+ * @todo Refactor quicksort.
+ *
+ * @todo Add one mergesort implementation to the list of available choices.
  *
  * @todo Add one shellsort implementation to the list of available choices.
- *
- * @todo Add quicksort to the list of available choices.
  *
  * @todo Add compare functions for 64, 32, 8 bit signed and unsiged integers.
  *
  * @todo Add dedicated sort functions for 64, 32, 8 bit signed and unsiged integers.
+ *       These version can have dedicated compare and swap macros/functions.
  *
  * @todo Add compare functions for pointers, and relative dedicated sort functions.
  *
  * @todo Add dedicated sort functions for object (pointer and structure) sorting.
+ *       This version can have a dedicated swap macro/function.
  *
  * @todo Prepare tests for:
  *         - Added compare functions.
  *         - Dedicated integer, pointer, object sorting functions.
+ *         - Write a sanity check test that verifies the list of sort functions comparing each other results.
  *
  * @todo Write performance tests for ordered and mostly ordered data, organ-pipe data
  *       fiew values data (eg. a long array of ones and zeroes).
@@ -29,7 +32,7 @@
  *
  *
  *
- * @brief Sort Utils module implementation.
+ * @brief Sort utils module implementation.
  *
  * @par sort_utils.c
  * <tt>
