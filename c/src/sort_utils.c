@@ -612,18 +612,18 @@ typedef long long int QksSwapWord;
 
 #define qks_exch(a, b, t) (t = a, a = b, b = t)
 
-#define qks_swap(a, b)                                  \
-  swaptype != 0 ? swapfunc(a, b, es, swaptype) :        \
+#define qks_swap(a, b)                                                  \
+  swaptype != 0 ? qks_swapfunc(a, b, es, swaptype) :                    \
     (void) qks_exch(*(QksSwapWord *) (a), *(QksSwapWord *) (b), t)
 
-#define qks_vec_swap(a, b, n) if (n > 0) swapfunc(a, b, n, swaptype)
+#define qks_vec_swap(a, b, n) if (n > 0) qks_swapfunc(a, b, n, swaptype)
 
 #define qks_pv_init(pv, pm)                     \
   if (swaptype != 0) pv = a, qks_swap(pv, pm);  \
   else pv = (char *) &v, v = *(QksSwapWord *) pm
 
 static void
-swapfunc (char *a, char *b, size_t n, int swaptype)
+qks_swapfunc (char *a, char *b, size_t n, int swaptype)
 {
   if (swaptype <= 1) {
     QksSwapWord t;
@@ -637,7 +637,7 @@ swapfunc (char *a, char *b, size_t n, int swaptype)
 }
 
 static char *
-med3(char *a, char *b, char *c, int (*cmp) ())
+qks_med3 (char *a, char *b, char *c, int (*cmp) ())
 {
   return cmp(a, b) < 0 ?
     (cmp(b, c) < 0 ? b : cmp(a, c) < 0 ? c : a) :
@@ -645,7 +645,7 @@ med3(char *a, char *b, char *c, int (*cmp) ())
 }
 
 static ptrdiff_t
-min(ptrdiff_t a, ptrdiff_t b)
+qks_min(ptrdiff_t a, ptrdiff_t b)
 {
   return (a < b) ? a : b;
 }
@@ -680,11 +680,11 @@ sort_utils_quicksort (void *const a,
     pn = ca + (count - 1) * es;
     if (count > qks_2nd_treshold_for_med) { /* Big arrays, pseudomedian of nine. */
       s = (count >> 3) * es;
-      pl = med3(pl, pl + s, pl + 2 * s, cmp);
-      pm = med3(pm - s, pm, pm + s, cmp);
-      pn = med3(pn - 2 * s, pn - s, pn, cmp);
+      pl = qks_med3(pl, pl + s, pl + 2 * s, cmp);
+      pm = qks_med3(pm - s, pm, pm + s, cmp);
+      pn = qks_med3(pn - 2 * s, pn - s, pn, cmp);
     }
-    pm = med3(pl, pm, pn, cmp); /* Mid-size, med of three. */
+    pm = qks_med3(pl, pm, pn, cmp); /* Mid-size, med of three. */
   }
   qks_pv_init(pv, pm); /* Variable pv points to the partition value. */
   pa = pb = ca;
@@ -704,11 +704,19 @@ sort_utils_quicksort (void *const a,
     pc -= es;
   }
   pn = ca + count * es;
-  s = min(pa - ca, pb - pa); qks_vec_swap(ca, pb - s, s);
-  s = min(pd - pc, pn - pd - es); qks_vec_swap(pb, pn -s, s);
+  s = qks_min(pa - ca, pb - pa); qks_vec_swap(ca, pb - s, s);
+  s = qks_min(pd - pc, pn - pd - es); qks_vec_swap(pb, pn -s, s);
   if ((s = pb - pa) > es) sort_utils_quicksort(ca, s / es, es, cmp);
   if ((s = pd - pc) > es) sort_utils_quicksort(pn - s, s / es, es, cmp);
 }
+
+#undef qks_sws
+#undef qks_sws
+#undef qks_swap_init
+#undef qks_exch
+#undef qks_swap
+#undef qks_vec_swap
+#undef qks_pv_init
 
 /**
  * @brief Sorts the `a` array.
