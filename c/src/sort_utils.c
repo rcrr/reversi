@@ -600,32 +600,35 @@ sort_utils_smoothsort_dsc_d (double *const a,
 /* Quick-sort */
 /**************/
 
-typedef long WORD;
+/**
+ * @brief Used to optimize the swap operation for quicksort.
+ */
+typedef long long int QksSwapWord;
 
-#define W sizeof(WORD)
+#define qks_sws sizeof(QksSwapWord)
 
-#define SWAPINIT(a, es) swaptype =                      \
-    ((a - (char *) 0) | es) % W ? 2 : es > W ? 1 : 0
+#define qks_swap_init(a, es) swaptype =                      \
+    ((a - (char *) 0) | es) % qks_sws ? 2 : es > qks_sws ? 1 : 0
 
 #define qks_exch(a, b, t) (t = a, a = b, b = t)
 
 #define qks_swap(a, b)                                  \
   swaptype != 0 ? swapfunc(a, b, es, swaptype) :        \
-    (void) qks_exch(*(WORD *) (a), *(WORD *) (b), t)
+    (void) qks_exch(*(QksSwapWord *) (a), *(QksSwapWord *) (b), t)
 
-#define vecswap(a, b, n) if (n > 0) swapfunc(a, b, n, swaptype)
+#define qks_vec_swap(a, b, n) if (n > 0) swapfunc(a, b, n, swaptype)
 
-#define PVINIT(pv, pm)                          \
+#define qks_pv_init(pv, pm)                     \
   if (swaptype != 0) pv = a, qks_swap(pv, pm);  \
-  else pv = (char *) &v, v = *(WORD *) pm
+  else pv = (char *) &v, v = *(QksSwapWord *) pm
 
 static void
 swapfunc (char *a, char *b, size_t n, int swaptype)
 {
   if (swaptype <= 1) {
-    WORD t;
-    for ( ; n > 0; a += W, b += W, n -= W)
-      qks_exch(*(WORD *) a, *(WORD *) b, t);
+    QksSwapWord t;
+    for ( ; n > 0; a += qks_sws, b += qks_sws, n -= qks_sws)
+      qks_exch(*(QksSwapWord *) a, *(QksSwapWord *) b, t);
   } else {
     char t;
     for ( ; n > 0; a += 1, b += 1, n -= 1)
@@ -647,40 +650,45 @@ min(ptrdiff_t a, ptrdiff_t b)
   return (a < b) ? a : b;
 }
 
+static const int qks_small_array_treshold = 7;
+static const int qks_1st_treshold_for_med = 7;
+static const int qks_2nd_treshold_for_med = 40;
+
 void
-sort_utils_quicksort (void *const va,
-                      const size_t n,
-                      const size_t es,
+sort_utils_quicksort (void *const a,
+                      const size_t count,
+                      const size_t element_size,
                       const sort_utils_compare_function cmp)
 {
+  char *ca = (char *) a;
+  const size_t es = element_size;
   char *pa, *pb, *pc, *pd, *pl, *pm, *pn, *pv;
   int r, swaptype;
-  WORD t, v;
+  QksSwapWord t, v;
   size_t s;
-  char *a = (char *) va;
 
-  SWAPINIT(a, es);
-  if (n < 7) { /* Insertion sort on smallest arrays. */
-    for (pm = a + es; pm < a + n * es; pm += es)
-      for (pl = pm; pl > a && cmp(pl - es, pl) > 0; pl -= es)
+  qks_swap_init(ca, es);
+  if (count < qks_small_array_treshold) { /* Insertion sort on smallest arrays. */
+    for (pm = ca + es; pm < ca + count * es; pm += es)
+      for (pl = pm; pl > ca && cmp(pl - es, pl) > 0; pl -= es)
         qks_swap(pl, pl - es);
     return;
   }
-  pm = a + ( n / 2) * es; /* Small arrays, middle element. */
-  if (n > 7) {
-    pl = a;
-    pn = a + (n - 1) * es;
-    if (n > 40) { /* Big arrays, pseudomedian of nine. */
-      s = (n / 8) * es;
+  pm = ca + (count >> 1) * es; /* Small arrays, middle element. */
+  if (count > qks_1st_treshold_for_med) {
+    pl = ca;
+    pn = ca + (count - 1) * es;
+    if (count > qks_2nd_treshold_for_med) { /* Big arrays, pseudomedian of nine. */
+      s = (count >> 3) * es;
       pl = med3(pl, pl + s, pl + 2 * s, cmp);
       pm = med3(pm - s, pm, pm + s, cmp);
       pn = med3(pn - 2 * s, pn - s, pn, cmp);
     }
     pm = med3(pl, pm, pn, cmp); /* Mid-size, med of three. */
   }
-  PVINIT(pv, pm); /* Variable pv points to the partition value. */
-  pa = pb = a;
-  pc = pd = a + (n - 1) * es;
+  qks_pv_init(pv, pm); /* Variable pv points to the partition value. */
+  pa = pb = ca;
+  pc = pd = ca + (count - 1) * es;
   for (;;) {
     while (pb <= pc && (r = cmp(pb, pv)) <= 0) {
       if (r == 0) { qks_swap(pa, pb); pa += es; }
@@ -695,10 +703,10 @@ sort_utils_quicksort (void *const va,
     pb += es;
     pc -= es;
   }
-  pn = a + n * es;
-  s = min(pa - a, pb - pa); vecswap(a, pb - s, s);
-  s = min(pd - pc, pn - pd - es); vecswap(pb, pn -s, s);
-  if ((s = pb - pa) > es) sort_utils_quicksort(a, s / es, es, cmp);
+  pn = ca + count * es;
+  s = min(pa - ca, pb - pa); qks_vec_swap(ca, pb - s, s);
+  s = min(pd - pc, pn - pd - es); qks_vec_swap(pb, pn -s, s);
+  if ((s = pb - pa) > es) sort_utils_quicksort(ca, s / es, es, cmp);
   if ((s = pd - pc) > es) sort_utils_quicksort(pn - s, s / es, es, cmp);
 }
 
