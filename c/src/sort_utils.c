@@ -650,16 +650,32 @@ qks_min(ptrdiff_t a, ptrdiff_t b)
   return (a < b) ? a : b;
 }
 
-static const int qks_small_array_treshold = 7;
-static const int qks_1st_treshold_for_med = 7;
-static const int qks_2nd_treshold_for_med = 40;
-
+/**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a` having length equal to `count` is sorted
+ *          in place applying the quicksort algorithm.
+ *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *
+ *          Adapted from the paper "Engineering a Sort Function" by Jon L. Bentley and M. Douglas McIlroy
+ *          See: http://www.skidmore.edu/~meckmann/2009Spring/cs206/papers/spe862jb.pdf
+ *          See also: http://en.wikipedia.org/wiki/Quicksort
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applyed by the algorithm
+ */
 void
 sort_utils_quicksort (void *const a,
                       const size_t count,
                       const size_t element_size,
                       const sort_utils_compare_function cmp)
 {
+  static const int small_array_treshold = 7;
+  static const int fst_treshold_for_med = 7;
+  static const int snd_treshold_for_med = 40;
+
   char *ca = (char *) a;
   const size_t es = element_size;
   char *pa, *pb, *pc, *pd, *pl, *pm, *pn, *pv;
@@ -668,17 +684,17 @@ sort_utils_quicksort (void *const a,
   size_t s;
 
   qks_swap_init(ca, es);
-  if (count < qks_small_array_treshold) { /* Insertion sort on smallest arrays. */
+  if (count < small_array_treshold) { /* Insertion sort on smallest arrays. */
     for (pm = ca + es; pm < ca + count * es; pm += es)
       for (pl = pm; pl > ca && cmp(pl - es, pl) > 0; pl -= es)
         qks_swap(pl, pl - es);
     return;
   }
   pm = ca + (count >> 1) * es; /* Small arrays, middle element. */
-  if (count > qks_1st_treshold_for_med) {
+  if (count > fst_treshold_for_med) {
     pl = ca;
     pn = ca + (count - 1) * es;
-    if (count > qks_2nd_treshold_for_med) { /* Big arrays, pseudomedian of nine. */
+    if (count > snd_treshold_for_med) { /* Big arrays, pseudomedian of nine. */
       s = (count >> 3) * es;
       pl = qks_med3(pl, pl + s, pl + 2 * s, cmp);
       pm = qks_med3(pm - s, pm, pm + s, cmp);
@@ -717,48 +733,6 @@ sort_utils_quicksort (void *const a,
 #undef qks_swap
 #undef qks_vec_swap
 #undef qks_pv_init
-
-/**
- * @brief Sorts the `a` array.
- *
- * @details The vector `a` having length equal to `count` is sorted
- *          in place applying the quicksort algorithm.
- *          The compare function is a predicate and must return `TRUE` or `FALSE`.
- *
- *          Adapted from the paper "Engineering a Sort Function" by Jon L. Bentley and M. Douglas McIlroy
- *          See: http://www.skidmore.edu/~meckmann/2009Spring/cs206/papers/spe862jb.pdf
- *          See also: http://en.wikipedia.org/wiki/Quicksort
- *
- * @param [in,out] a            the array to be sorted
- * @param [in]     count        the number of element in array
- * @param [in]     element_size the number of bytes used by one element
- * @param [in]     cmp          the compare function applyed by the algorithm
- */
-void
-sort_utils_quicksort_ (void *const a,
-                       const size_t count,
-                       const size_t element_size,
-                       const sort_utils_compare_function cmp)
-{
-  char *ca = (char *) a;
-  int j;
-  char *pi, *pj, *pn;
-  if (count <= 1) return;
-  pi = ca + (rand() % count) * element_size;
-  swap(ca, pi, element_size);
-  pi = ca;
-  pj = pn = ca + count * element_size;
-  for (;;) {
-    do pi += element_size; while (pi < pn && cmp(pi, ca) < 0);
-    do pj -= element_size; while (cmp(pj, ca) > 0);
-    if (pj < pi) break;
-    swap(pi, pj, element_size);
-  }
-  swap(ca, pj, element_size);
-  j = (pj - ca) / element_size;
-  sort_utils_quicksort_(ca, j, element_size, cmp);
-  sort_utils_quicksort_(ca + (j + 1) * element_size, count - j - 1, element_size, cmp);
-}
 
 /**
  * @brief Sorts in ascending order the `a` array of doubles.
