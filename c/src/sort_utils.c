@@ -684,12 +684,23 @@ sort_utils_quicksort (void *const a,
   size_t s;
 
   qks_swap_init(ca, es);
-  if (count < small_array_treshold) { /* Insertion sort on smallest arrays. */
+
+  /* Runs insertion sort on arrays smalle than small_array_treshold. */
+  if (count < small_array_treshold) {
     for (pm = ca + es; pm < ca + count * es; pm += es)
       for (pl = pm; pl > ca && cmp(pl - es, pl) > 0; pl -= es)
         qks_swap(pl, pl - es);
     return;
   }
+
+  /* Computes the partition value, adopting three different strategies based on array length:
+   *   - on small arrays, having length less than fst_treshold_for_med, it takes the middle element
+   *   - on mid size arrays, having length in between small and large ones, it takes the median
+   *     of the first, the last, and the middle elements.
+   *   - on large arrays, having length equal or greater than snd_treshold_for_med, it takes
+   *     the median of the medians of three groups of three elements taken at equal distance
+   *     from each other.
+   */
   pm = ca + (count >> 1) * es; /* Small arrays, middle element. */
   if (count > fst_treshold_for_med) {
     pl = ca;
@@ -702,6 +713,16 @@ sort_utils_quicksort (void *const a,
     }
     pm = qks_med3(pl, pm, pn, cmp); /* Mid-size, med of three. */
   }
+
+  /* Partitions the array in five groups:
+   *  - the central one has one element, pointed by variable pv
+   *  - on the left there are all the elements strictly smaller than pv
+   *  - on the rigth there are all the element strictly larger than pv
+   *  - on the far left, beginning from pointer pa are positioned elements
+   *    equal to pv found on the left during partitioning
+   *  - on the far rigth, beginning from pointer pd are positioned elements
+   *    equal to pv found on the rigth during partitioning
+   */
   qks_pv_init(pv, pm); /* Variable pv points to the partition value. */
   pa = pb = ca;
   pc = pd = ca + (count - 1) * es;
@@ -719,14 +740,17 @@ sort_utils_quicksort (void *const a,
     pb += es;
     pc -= es;
   }
+
+  /* Swaps far left and far right groups adiacent to pv value.*/
   pn = ca + count * es;
   s = qks_min(pa - ca, pb - pa); qks_vec_swap(ca, pb - s, s);
   s = qks_min(pd - pc, pn - pd - es); qks_vec_swap(pb, pn -s, s);
+
+  /* Recurs on smaller, and larger elements. */
   if ((s = pb - pa) > es) sort_utils_quicksort(ca, s / es, es, cmp);
   if ((s = pd - pc) > es) sort_utils_quicksort(pn - s, s / es, es, cmp);
 }
 
-#undef qks_sws
 #undef qks_sws
 #undef qks_swap_init
 #undef qks_exch
