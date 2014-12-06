@@ -65,6 +65,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 
 #include <glib.h>
 
@@ -1026,29 +1027,77 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
  */
 
 
-void ssort(void  *base,
-           size_t nel,
-           size_t width,
-           int (*comp)(const void *, const void *))
-{
-  size_t wnel, gap, wgap, i, j, k;
-  char *a, *b, tmp;
 
-  wnel = width * nel;
-  for (gap = 0; ++gap < nel;)
+/**************/
+/* Shell-sort */
+/**************/
+
+/**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a` having length equal to `count` is sorted
+ *          in place applying the shellsort algorithm.
+ *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applyed by the algorithm
+ */
+void
+sort_utils_shellsort(void *const a,
+                     const size_t count,
+                     const size_t element_size,
+                     const sort_utils_compare_function cmp)
+{
+  size_t array_size, gap, wgap, i, j, k;
+  char tmp;
+
+  /**
+   * See "The Art Of Computer Programming", VOLUME 3, Sorting and Serching Second Edition, 5.2.1 pp 95
+   *
+   * seq 0:
+   * h(0) = 1, h[s+1] = 3.00 * h[s] + 1, and stop with h[t-1] when h[t+1] > count.
+   *
+   * seq 1:
+   * h(0) = 1, h[s+1] = 2.25 * h[s] + 1, and stop with h[t-1] when h[t+1] > count.
+   *
+   * seq 2:
+   * h(k) = ceil((pow(9, k) - pow(4, k)) / (5 * pow(4, k - 1))).
+   */
+  const unsigned int seq0[] = { 1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484, 7174453, 21523360 };
+  const unsigned int seq1[] = { 1, 4, 10, 24,  55, 125,  283,  638, 1437,  3235,  7280,  16381,  36859,   82934,  186603,   419858, 944682, 2125536, 4782457, 10760530, 24211194 };
+  const unsigned int seq2[] = { 1, 4,  9, 20,  46, 103,  233,  525, 1182,  2660,  5985,  13467,  30301,   68178,  153401,   345152, 776591, 1747331, 3931496,  8845866, 19903198 };
+
+  unsigned long long int t1 = 0;
+  unsigned long long int t2 = 0;
+  for (int k = 1; k < 30; k++) {
+    unsigned long long int tokuda = ceil((pow(9, k) - pow(4, k)) / (5 * pow(4, k - 1)));
+    //printf("tokuda[%d]=%llu\n", k, tokuda);
+    if (k == 1) {
+      t2 = 1;
+    } else {
+      t2 = ceil(3 * t1 + 1);
+    }
+    //printf("    t2[%d]=%llu\n", k, t2);
+    t1 = t2;
+  }
+
+  array_size = element_size * count;
+  for (gap = 0; ++gap < count;)
     gap *= 3;
   while ((gap /= 3) != 0) {
-    wgap = width * gap;
-    for (i = wgap; i < wnel; i += width) {
+    wgap = element_size * gap;
+    for (i = wgap; i < array_size; i += element_size) {
       for (j = i - wgap; ;j -= wgap) {
-        a = j + (char *)base;
-        b = a + wgap;
-        if ((*comp)(a, b) <= 0)
+        char *c = j + (char *) a;
+        char *b = c + wgap;
+        if (cmp(c, b) <= 0)
           break;
-        k = width;
+        k = element_size;
         do {
-          tmp = *a;
-          *a++ = *b;
+          tmp = *c;
+          *c++ = *b;
           *b++ = tmp;
         } while (--k);
         if (j < wgap)

@@ -243,6 +243,11 @@ static void sort_utils_quicksort_dsc_d_1_rand_test (void);
 static void sort_utils_quicksort_dsc_d_n_rand_test (void);
 static void sort_utils_quicksort_asc_d_rand_perf_test (void);
 
+static void
+sort_utils_shellsort_tc_double_base_test (Fixture *fixture,
+                                          gconstpointer test_data);
+
+
 
 
 /*
@@ -347,6 +352,14 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_quicksort_dsc_d_1_rand_test", sort_utils_quicksort_dsc_d_1_rand_test);
   g_test_add_func("/sort_utils/sort_utils_quicksort_asc_d_n_rand_test", sort_utils_quicksort_asc_d_n_rand_test);
   g_test_add_func("/sort_utils/sort_utils_quicksort_dsc_d_n_rand_test", sort_utils_quicksort_dsc_d_n_rand_test);
+
+
+  g_test_add("/sort_utils/sort_utils_shellsort_tc_double_base_test",
+             Fixture,
+             (gconstpointer) tc_double_base,
+             base_fixture_setup,
+             sort_utils_shellsort_tc_double_base_test,
+             base_fixture_teardown);
 
   if (g_test_perf()) {
     g_test_add_func("/sort_utils/sort_utils_qsort_asc_d_rand_perf_test", sort_utils_qsort_asc_d_rand_perf_test);
@@ -802,6 +815,44 @@ static void
 sort_utils_quicksort_asc_d_rand_perf_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_quicksort_asc_d, 1024, 15, 2, 175, ASC);
+}
+
+
+
+/***************************************/
+/* Unit tests for shellsort algorithm. */
+/***************************************/
+
+static void
+sort_utils_shellsort_tc_double_base_test (Fixture *fixture,
+                                          gconstpointer test_data)
+{
+  TestCase *tests = fixture->tests;
+  g_assert(tests);
+  for (int i = 0; i < fixture->tests_count; i++) {
+    const TestCase *t = &tests[i];
+    sort_utils_compare_function f;
+    switch (t->versus) {
+    case ASC:
+      f = sort_utils_double_cmp;
+      break;
+    case DSC:
+      f = sort_utils_double_icmp;
+      break;
+    default:
+      g_test_fail();
+      return;
+    }
+    sort_utils_shellsort(t->elements,
+                         t->elements_count,
+                         sizeof(double),
+                         f);
+    for (int j = 0; j < t->elements_count; j++) {
+      const double *computed = (double *) t->elements + j;
+      const double *expected = (double *) t->expected_sorted_sequence + j;
+      g_assert_cmpfloat(*expected, ==, *computed);
+    }
+  }
 }
 
 

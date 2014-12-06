@@ -168,4 +168,15 @@ sort_utils_quicksort_dsc_d (double *const a,
 
 
 
+/***********************************/
+/* Shell-sort function prototypes. */
+/***********************************/
+
+extern void
+sort_utils_shellsort(void *const a,
+                     const size_t count,
+                     const size_t element_size,
+                     const sort_utils_compare_function cmp);
+
+
 #endif /* SORT_UTILS_H */

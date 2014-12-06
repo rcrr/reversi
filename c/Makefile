@@ -46,7 +46,7 @@ LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L
 LDFLAGS_TEST =
 ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L
-LIBS = `pkg-config --libs glib-2.0` -lgsl -lgslcblas
+LIBS = `pkg-config --libs glib-2.0` -lgsl -lgslcblas -lm
 TEST_LIBS =
 SRCDIR = src
 TESTDIR = test
