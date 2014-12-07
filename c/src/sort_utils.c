@@ -1039,6 +1039,36 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
  *          in place applying the shellsort algorithm.
  *          The compare function is a predicate and must return `TRUE` or `FALSE`.
  *
+ * See:
+ *
+ * - The Wikipedia page: <a href="http://en.wikipedia.org/wiki/Shellsort" target="_blank">Shellsort</a>.
+ *
+ * - Donald E. Knuth (1998), Sorting and Searching (par. 5.2.1 - pp. 83-95). The Art of Computer Programming, Vol. 3 (2nd ed.). Boston: Addison–Wesley.
+ *
+ * - N. Tokuda, An Improved Shellsort, IFIP Transactions, A-12 (1992) 449-457.
+ *
+ * - Marcin Ciura, Best Increments for the Average Case of Shellsort,
+ *     13th International Symposium on Fundamentals of Computation Theory, Riga, Latvia, Aug 22 2001;
+ *     Lecture Notes in Computer Science 2001; 2138: 106-117.
+ *     <a href="http://sun.aei.polsl.pl/~mciura/publikacje/shellsort.pdf" target="_blank">Download PDF</a>.
+ *
+ * A few sequences has been tested:
+ *  1. `h(0) = 1, h[s+1] = 3 * h[s] + 1`, and stop with `h[t-1] when h[t+1] > count`.<br>
+ *     The beginning of the sequence is: `1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484, 7174453, 21523360`.<br>
+ *     The web site "The On-Line Encyclopedia of Integer  Sequences" has registered it as: <a href="https://oeis.org/A003462" target="_blank">A003462</a>.
+ *  2. `h(0) = 1, h[s+1] = 2.25 * h[s] + 1`, and stop with `h[t-1] when h[t+1] > count`.<br>
+ *     The beginning of the sequence is: `1, 4, 10, 24, 55, 125, 283, 638, 1437, 3235, 7280, 16381, 36859, 82934, 186603, 419858, 944682, 2125536, 4782457, 10760530, 24211194`.<br>
+ *     It is not registered at "The On-Line Encyclopedia of Integer  Sequences".
+ *  3. `h(k) = ceil((pow(9, k) - pow(4, k)) / (5 * pow(4, k - 1)))`.<br>
+ *     The beginning of the sequence is: `1, 4, 9, 20, 46, 103, 233, 525, 1182, 2660, 5985, 13467, 30301, 68178, 153401, 345152`.<br>
+ *     It is known as the "Tokuda's good set of increments for Shell sort" and it is registered as: <a href="https://oeis.org/A108870" target="_blank">A108870</a>.
+ *  4. `1, 4, 10, 23, 57, 132, 301, 701`.<br>
+ *     No other number is known after `701`, the sequence has been discovered by Marcin Ciura by empirical evidence, and is the best known sequence of increments for shell sort.<br>
+ *     It is registered at OEIS as: <a href="https://oeis.org/A102549" target="_blank">A102549</a>.
+ *
+ * The first sequence is described by Knuth and works quite well, the second one is a sensible improvement, Knuth himself reports that it has been suggested by Tokuda.
+ * The sequence number three, the Tokuda sequence, is slightly better than the second one, and it has been selected and applyed here. The last one is too short to be adopted.
+ *
  * @param [in,out] a            the array to be sorted
  * @param [in]     count        the number of element in array
  * @param [in]     element_size the number of bytes used by one element
@@ -1050,26 +1080,12 @@ sort_utils_shellsort(void *const a,
                      const size_t element_size,
                      const sort_utils_compare_function cmp)
 {
-  /**
-   * See "The Art of Computer Programming", VOLUME 3, Sorting and Serching Second Edition, 5.2.1 pp 95
-   *
-   * seq 0:
-   * h(0) = 1, h[s+1] = 3.00 * h[s] + 1, and stop with h[t-1] when h[t+1] > count.
-   *
-   * seq 1:
-   * h(0) = 1, h[s+1] = 2.25 * h[s] + 1, and stop with h[t-1] when h[t+1] > count.
-   *
-   * seq 2:
-   * h(k) = ceil((pow(9, k) - pow(4, k)) / (5 * pow(4, k - 1))).
-   */
-  //const unsigned int gap_seq[] = { 1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484, 7174453, 21523360 };
-  //const unsigned int gap_seq[] = { 1, 4, 10, 24,  55, 125,  283,  638, 1437,  3235,  7280,  16381,  36859,   82934,  186603,   419858, 944682, 2125536, 4782457, 10760530, 24211194 };
   static const unsigned long long int gap_seq[] = {         1,          4,          9,         20,          46,         103,         233,          525,
                                                          1182,       2660,       5985,      13467,       30301,       68178,      153401,       345152,
                                                        776591,    1747331,    3931496,    8845866,    19903198,    44782196,   100759940,    226709866,
                                                     510097200, 1147718700, 2582367076, 5810325920, 13073233321, 29414774973, 66183243690, 148912298303 };
-  //const unsigned int gap_seq[] = { 1, 4, 10, 23,  57, 132,  301,  701 };
 
+  /* This code is here for documentation purposes, it computes the gap sequence. */
   if (FALSE) {
     for (int k = 0; k < 32; k++) {
       unsigned long long int h = ceil((pow(9, k + 1) - pow(4, k + 1)) / (5 * pow(4, k)));
@@ -1078,8 +1094,8 @@ sort_utils_shellsort(void *const a,
     if (TRUE) return;
   }
 
-
   if (count < 2) return;
+
   const size_t array_size = element_size * count;
 
   long long int t = 0;
