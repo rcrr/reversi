@@ -1050,9 +1050,6 @@ sort_utils_shellsort(void *const a,
                      const size_t element_size,
                      const sort_utils_compare_function cmp)
 {
-  size_t array_size, gap, wgap, i, j, k;
-  char tmp;
-
   /**
    * See "The Art Of Computer Programming", VOLUME 3, Sorting and Serching Second Edition, 5.2.1 pp 95
    *
@@ -1065,44 +1062,64 @@ sort_utils_shellsort(void *const a,
    * seq 2:
    * h(k) = ceil((pow(9, k) - pow(4, k)) / (5 * pow(4, k - 1))).
    */
-  const unsigned int seq0[] = { 1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484, 7174453, 21523360 };
-  const unsigned int seq1[] = { 1, 4, 10, 24,  55, 125,  283,  638, 1437,  3235,  7280,  16381,  36859,   82934,  186603,   419858, 944682, 2125536, 4782457, 10760530, 24211194 };
-  const unsigned int seq2[] = { 1, 4,  9, 20,  46, 103,  233,  525, 1182,  2660,  5985,  13467,  30301,   68178,  153401,   345152, 776591, 1747331, 3931496,  8845866, 19903198 };
+  const unsigned int gap_seq[] = { 1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484, 7174453, 21523360 };
+  //const unsigned int seq1[] = { 1, 4, 10, 24,  55, 125,  283,  638, 1437,  3235,  7280,  16381,  36859,   82934,  186603,   419858, 944682, 2125536, 4782457, 10760530, 24211194 };
+  //const unsigned int seq2[] = { 1, 4,  9, 20,  46, 103,  233,  525, 1182,  2660,  5985,  13467,  30301,   68178,  153401,   345152, 776591, 1747331, 3931496,  8845866, 19903198 };
 
-  unsigned long long int t1 = 0;
-  unsigned long long int t2 = 0;
-  for (int k = 1; k < 30; k++) {
-    unsigned long long int tokuda = ceil((pow(9, k) - pow(4, k)) / (5 * pow(4, k - 1)));
-    //printf("tokuda[%d]=%llu\n", k, tokuda);
-    if (k == 1) {
-      t2 = 1;
-    } else {
-      t2 = ceil(3 * t1 + 1);
-    }
-    //printf("    t2[%d]=%llu\n", k, t2);
-    t1 = t2;
+  if (count < 2) return;
+  const size_t array_size = element_size * count;
+
+  long long int t = 0;
+  for (; t < sizeof(gap_seq); t++) {
+    if (gap_seq[t] > count) break;
   }
+  t--;
 
-  array_size = element_size * count;
-  for (gap = 0; ++gap < count;)
-    gap *= 3;
-  while ((gap /= 3) != 0) {
-    wgap = element_size * gap;
-    for (i = wgap; i < array_size; i += element_size) {
-      for (j = i - wgap; ;j -= wgap) {
-        char *c = j + (char *) a;
-        char *b = c + wgap;
-        if (cmp(c, b) <= 0)
+  for (; t >= 0; t--) {
+    const size_t gap = gap_seq[t];
+    const size_t scaled_gap = element_size * gap;
+    for (long long int i = scaled_gap; i < array_size; i += element_size) {
+      for (long long int j = i - scaled_gap; ; j -= scaled_gap) {
+        char *one_element = j + (char *) a;
+        char *another_one = one_element + scaled_gap;
+        if (cmp(one_element, another_one) <= 0)
           break;
-        k = element_size;
-        do {
-          tmp = *c;
-          *c++ = *b;
-          *b++ = tmp;
-        } while (--k);
-        if (j < wgap)
+        swap(one_element, another_one, element_size);
+        if (j < scaled_gap)
           break;
       }
     }
   }
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the shellsort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_shellsort_asc_d (double *const a,
+                             const int count)
+{
+  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_cmp);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in descending order applying the shellsort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_shellsort_dsc_d (double *const a,
+                             const int count)
+{
+  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_icmp);
 }

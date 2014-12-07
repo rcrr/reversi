@@ -247,6 +247,12 @@ static void
 sort_utils_shellsort_tc_double_base_test (Fixture *fixture,
                                           gconstpointer test_data);
 
+static void sort_utils_shellsort_asc_d_1_rand_test (void);
+static void sort_utils_shellsort_asc_d_n_rand_test (void);
+static void sort_utils_shellsort_dsc_d_1_rand_test (void);
+static void sort_utils_shellsort_dsc_d_n_rand_test (void);
+static void sort_utils_shellsort_asc_d_rand_perf_test (void);
+
 
 
 
@@ -361,12 +367,18 @@ main (int   argc,
              sort_utils_shellsort_tc_double_base_test,
              base_fixture_teardown);
 
+  g_test_add_func("/sort_utils/sort_utils_shellsort_asc_d_1_rand_test", sort_utils_shellsort_asc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_shellsort_dsc_d_1_rand_test", sort_utils_shellsort_dsc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_shellsort_asc_d_n_rand_test", sort_utils_shellsort_asc_d_n_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_shellsort_dsc_d_n_rand_test", sort_utils_shellsort_dsc_d_n_rand_test);
+
   if (g_test_perf()) {
     g_test_add_func("/sort_utils/sort_utils_qsort_asc_d_rand_perf_test", sort_utils_qsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_rand_perf_test", sort_utils_insertionsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_rand_perf_test", sort_utils_heapsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_smoothsort_asc_d_rand_perf_test", sort_utils_smoothsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_quicksort_asc_d_rand_perf_test", sort_utils_quicksort_asc_d_rand_perf_test);
+    g_test_add_func("/sort_utils/sort_utils_shellsort_asc_d_rand_perf_test", sort_utils_shellsort_asc_d_rand_perf_test);
   }
 
   return g_test_run();
@@ -853,6 +865,40 @@ sort_utils_shellsort_tc_double_base_test (Fixture *fixture,
       g_assert_cmpfloat(*expected, ==, *computed);
     }
   }
+}
+
+static void
+sort_utils_shellsort_asc_d_1_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_shellsort_asc_d, 1024, 1, 0, 175, ASC);
+}
+
+static void
+sort_utils_shellsort_dsc_d_1_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_shellsort_dsc_d, 1024, 1, 0, 171, DSC);
+}
+
+static void
+sort_utils_shellsort_asc_d_n_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_shellsort_asc_d, 1024, 3, 2, 366, ASC);
+  hlp_run_sort_d_random_test(sort_utils_shellsort_asc_d, 1023, 3, 2, 683, ASC);
+  hlp_run_sort_d_random_test(sort_utils_shellsort_asc_d, 1025, 3, 2, 557, ASC);
+}
+
+static void
+sort_utils_shellsort_dsc_d_n_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_shellsort_dsc_d, 1024, 3, 2, 163, DSC);
+  hlp_run_sort_d_random_test(sort_utils_shellsort_dsc_d, 1023, 3, 2, 785, DSC);
+  hlp_run_sort_d_random_test(sort_utils_shellsort_dsc_d, 1025, 3, 2, 650, DSC);
+}
+
+static void
+sort_utils_shellsort_asc_d_rand_perf_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_shellsort_asc_d, 1024, 15, 2, 175, ASC);
 }
 
 
