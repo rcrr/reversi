@@ -846,10 +846,10 @@ sort_utils_shellsort_tc_double_base_test (Fixture *fixture,
     sort_utils_compare_function f;
     switch (t->versus) {
     case ASC:
-      f = sort_utils_double_cmp;
+      f = sort_utils_double_le;
       break;
     case DSC:
-      f = sort_utils_double_icmp;
+      f = sort_utils_double_ge;
       break;
     default:
       g_test_fail();

@@ -1051,7 +1051,7 @@ sort_utils_shellsort(void *const a,
                      const sort_utils_compare_function cmp)
 {
   /**
-   * See "The Art Of Computer Programming", VOLUME 3, Sorting and Serching Second Edition, 5.2.1 pp 95
+   * See "The Art of Computer Programming", VOLUME 3, Sorting and Serching Second Edition, 5.2.1 pp 95
    *
    * seq 0:
    * h(0) = 1, h[s+1] = 3.00 * h[s] + 1, and stop with h[t-1] when h[t+1] > count.
@@ -1062,9 +1062,22 @@ sort_utils_shellsort(void *const a,
    * seq 2:
    * h(k) = ceil((pow(9, k) - pow(4, k)) / (5 * pow(4, k - 1))).
    */
-  const unsigned int gap_seq[] = { 1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484, 7174453, 21523360 };
-  //const unsigned int seq1[] = { 1, 4, 10, 24,  55, 125,  283,  638, 1437,  3235,  7280,  16381,  36859,   82934,  186603,   419858, 944682, 2125536, 4782457, 10760530, 24211194 };
-  //const unsigned int seq2[] = { 1, 4,  9, 20,  46, 103,  233,  525, 1182,  2660,  5985,  13467,  30301,   68178,  153401,   345152, 776591, 1747331, 3931496,  8845866, 19903198 };
+  //const unsigned int gap_seq[] = { 1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484, 7174453, 21523360 };
+  //const unsigned int gap_seq[] = { 1, 4, 10, 24,  55, 125,  283,  638, 1437,  3235,  7280,  16381,  36859,   82934,  186603,   419858, 944682, 2125536, 4782457, 10760530, 24211194 };
+  static const unsigned long long int gap_seq[] = {         1,          4,          9,         20,          46,         103,         233,          525,
+                                                         1182,       2660,       5985,      13467,       30301,       68178,      153401,       345152,
+                                                       776591,    1747331,    3931496,    8845866,    19903198,    44782196,   100759940,    226709866,
+                                                    510097200, 1147718700, 2582367076, 5810325920, 13073233321, 29414774973, 66183243690, 148912298303 };
+  //const unsigned int gap_seq[] = { 1, 4, 10, 23,  57, 132,  301,  701 };
+
+  if (FALSE) {
+    for (int k = 0; k < 32; k++) {
+      unsigned long long int h = ceil((pow(9, k + 1) - pow(4, k + 1)) / (5 * pow(4, k)));
+      printf("h[%2d] = %12llu\n", k, h);
+    }
+    if (TRUE) return;
+  }
+
 
   if (count < 2) return;
   const size_t array_size = element_size * count;
@@ -1082,7 +1095,7 @@ sort_utils_shellsort(void *const a,
       for (long long int j = i - scaled_gap; ; j -= scaled_gap) {
         char *one_element = j + (char *) a;
         char *another_one = one_element + scaled_gap;
-        if (cmp(one_element, another_one) <= 0)
+        if (cmp(one_element, another_one))
           break;
         swap(one_element, another_one, element_size);
         if (j < scaled_gap)
@@ -1103,9 +1116,9 @@ sort_utils_shellsort(void *const a,
  */
 void
 sort_utils_shellsort_asc_d (double *const a,
-                             const int count)
+                            const int count)
 {
-  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_cmp);
+  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_le);
 }
 
 /**
@@ -1119,7 +1132,7 @@ sort_utils_shellsort_asc_d (double *const a,
  */
 void
 sort_utils_shellsort_dsc_d (double *const a,
-                             const int count)
+                            const int count)
 {
-  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_icmp);
+  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_ge);
 }
