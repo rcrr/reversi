@@ -913,24 +913,49 @@ sort_utils_shellsort_asc_d_rand_perf_test (void)
 static void
 sort_utils_mergesort_test (void)
 {
-  printf("\n\nMERGE-SORT\n\n");
-
-  size_t size = 1024;
-  int *a = malloc(sizeof(int) * size);
-  int *temp = malloc(sizeof(int) * size);
-  int i;
-
+  size_t size;
   srand(time(NULL));
 
-  for(i = 0; i < size; i++) {
+
+  printf("\n\nMERGE-SORT integer\n\n");
+
+  size = 1024;
+  int *a = malloc(sizeof(int) * size);
+  int *temp = malloc(sizeof(int) * size);
+
+  for (int i = 0; i < size; i++) {
     a[i] = rand() % size;
   }
 
-  sort_utils_mergesort(a, size, temp);
+  mergesort_array(a, size, temp);
 
-  for (i = 1; i < size; i++) {
-    g_assert(a[i-1] <= a[i]);
+  for (int i = 1; i < size; i++) {
+    g_assert(a[i - 1] <= a[i]);
   }
+
+  free(a);
+  free(temp);
+
+
+  printf("\n\nMERGE-SORT double\n\n");
+
+  size = 1024;
+  double *da = malloc(sizeof(double) * size);
+  double *dtemp = malloc(sizeof(double) * size);
+
+  for (int i = 0; i < size; i++) {
+    da[i] = (rand() % size) * 1.0;
+  }
+
+  sort_utils_mergesort(da, size, dtemp);
+
+  for (int i = 1; i < size; i++) {
+    g_assert(da[i - 1] <= da[i]);
+  }
+
+  free(da);
+  free(dtemp);
+
 }
 
 

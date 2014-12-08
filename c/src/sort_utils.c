@@ -1233,49 +1233,51 @@ mergesort_array (int a[],
 }
 
 void
-sort_utils_mergesort (int a[],
-                      const size_t size,
-                      int temp[])
+sort_utils_mergesort (double a[],
+                      const size_t count,
+                      double aux[])
 {
   static const int small_array_threshold = 7;
 
   /* Termination condition, uses insertion-sort. */
-  if (size < small_array_threshold) {
-    for (size_t i = 1; i < size; i++) {
+  if (count < small_array_threshold) {
+    for (size_t i = 1; i < count; i++) {
       for (size_t j = i; j > 0 && a[j - 1] > a[j]; j--) {
-        int t = a[j]; a[j] = a[j - 1]; a[j - 1] = t;
+        double t = a[j]; a[j] = a[j - 1]; a[j - 1] = t;
       }
     }
     return;
   }
 
+  const size_t hc = count / 2;
+
   /* Recurs on the two half of the array. */
-  sort_utils_mergesort(a, size / 2, temp);
-  sort_utils_mergesort(a + size / 2, size - size / 2, temp);
+  sort_utils_mergesort(a, hc, aux);
+  sort_utils_mergesort(a + hc, count - hc, aux);
 
   /* Merge phase. */
-  size_t i1 = 0;
-  size_t i2 = size / 2;
-  size_t tempi = 0;
-  while (i1 < size / 2 && i2 < size) {
-    if (a[i1] <= a[i2]) {
-      temp[tempi] = a[i1];
-      i1++;
+  size_t i_left = 0;
+  size_t i_right = hc;
+  size_t i_aux = 0;
+  while (i_left < hc && i_right < count) {
+    if (a[i_left] <= a[i_right]) {
+      aux[i_aux] = a[i_left];
+      i_left++;
     } else {
-      temp[tempi] = a[i2];
-      i2++;
+      aux[i_aux] = a[i_right];
+      i_right++;
     }
-    tempi++;
+    i_aux++;
   }
-  while (i1 < size / 2) {
-    temp[tempi] = a[i1];
-    i1++;
-    tempi++;
+  while (i_left < hc) {
+    aux[i_aux] = a[i_left];
+    i_left++;
+    i_aux++;
   }
-  while (i2 < size) {
-    temp[tempi] = a[i2];
-    i2++;
-    tempi++;
+  while (i_right < count) {
+    aux[i_aux] = a[i_right];
+    i_right++;
+    i_aux++;
   }
-  memcpy(a, temp, size * sizeof(int));
+  memcpy(a, aux, sizeof(double) * count);
 }

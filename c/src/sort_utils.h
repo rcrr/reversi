@@ -198,9 +198,9 @@ mergesort_array (int a[],
                  int temp[]);
 
 extern void
-sort_utils_mergesort (int a[],
+sort_utils_mergesort (double a[],
                       const size_t size,
-                      int temp[]);
+                      double temp[]);
 
 
 #endif /* SORT_UTILS_H */
