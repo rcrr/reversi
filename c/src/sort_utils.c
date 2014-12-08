@@ -1,15 +1,13 @@
 /**
  * @file
  *
- * @todo Refactor quicksort.
+ * @todo Refactor quick-sort.
  *
- * @todo Add one mergesort implementation to the list of available choices.
+ * @todo Add one merge-sort implementation to the list of available choices.
  *
- * @todo Add one shellsort implementation to the list of available choices.
+ * @todo Add compare functions for 64, 32, 8 bit signed and unsigned integers.
  *
- * @todo Add compare functions for 64, 32, 8 bit signed and unsiged integers.
- *
- * @todo Add dedicated sort functions for 64, 32, 8 bit signed and unsiged integers.
+ * @todo Add dedicated sort functions for 64, 32, 8 bit signed and unsigned integers.
  *       These version can have dedicated compare and swap macros/functions.
  *
  * @todo Add compare functions for pointers, and relative dedicated sort functions.
@@ -23,8 +21,8 @@
  *         - Write a sanity check test that verifies the list of sort functions comparing each other results.
  *
  * @todo Write performance tests for ordered and mostly ordered data, organ-pipe data
- *       fiew values data (eg. a long array of ones and zeroes).
- *       Rewrite test helper function (has to suport more use cases than just random order).
+ *       few values data (eg. a long array of ones and zeroes).
+ *       Rewrite test helper function (has to support more use cases than just random order).
  *
  * @todo Write a complete introduction to document the module.
  *
@@ -32,7 +30,7 @@
  *
  *
  *
- * @brief Sort utils module implementation.
+ * @brief Sort utilities module implementation.
  *
  * @par sort_utils.c
  * <tt>
@@ -88,12 +86,12 @@
  */
 
 /**
- * @brief Function up as described by the soothsort paper.
+ * @brief Function up as described by the sooth-sort paper.
  */
 #define sms_up(ia, ib) do { unsigned long long int temp = ia; ia += ib + 1; ib = temp; } while (0)
 
 /**
- * @brief Function down as described by the soothsort paper.
+ * @brief Function down as described by the sooth-sort paper.
  */
 #define sms_down(ia, ib) do { unsigned long long int temp = ib; ib = ia - ib - 1; ia = temp; } while (0)
 
@@ -167,13 +165,13 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
 /**
  * @brief Returns true when `a` is equal to `b`.
  *
- * @details Compare funtion that returns `TRUE`, so a value
+ * @details Compare function that returns `TRUE`, so a value
  *          different from zero, when the double value pointed
  *          by `a` is equal to the one pointed by `b`, otherwise
  *          it returns zero (`FALSE`).
  *
  * @param a a pointer to the first double
- * @param b a ponter to the second double
+ * @param b a pointer to the second double
  * @return  `TRUE` when `a` is equal `b`.
  */
 int
@@ -188,13 +186,13 @@ sort_utils_double_eq (const void *const a,
 /**
  * @brief Returns true when `a` is greater than `b`.
  *
- * @details Compare funtion that returns `TRUE`, so a value
+ * @details Compare function that returns `TRUE`, so a value
  *          different from zero, when the double value pointed
  *          by `a` is greater than the one pointed by `b`, otherwise
  *          it returns zero (`FALSE`).
  *
  * @param a a pointer to the first double
- * @param b a ponter to the second double
+ * @param b a pointer to the second double
  * @return  `TRUE` when `a` is greater than `b`.
  */
 int
@@ -209,13 +207,13 @@ sort_utils_double_gt (const void *const a,
 /**
  * @brief Returns true when `a` is greater than or equal to `b`.
  *
- * @details Compare funtion that returns `TRUE`, so a value
+ * @details Compare function that returns `TRUE`, so a value
  *          different from zero, when the double value pointed
  *          by `a` is greater than or equal to the one pointed by `b`,
  *          otherwise it returns zero (`FALSE`).
  *
  * @param a a pointer to the first double
- * @param b a ponter to the second double
+ * @param b a pointer to the second double
  * @return  `TRUE` when `a` is greater than or equal to `b`.
  */
 int
@@ -230,13 +228,13 @@ sort_utils_double_ge (const void *const a,
 /**
  * @brief Returns true when `a` is less than `b`.
  *
- * @details Compare funtion that returns `TRUE`, so a value
+ * @details Compare function that returns `TRUE`, so a value
  *          different from zero, when the double value pointed
  *          by `a` is less than the one pointed by `b`, otherwise
  *          it returns zero (`FALSE`).
  *
  * @param a a pointer to the first double
- * @param b a ponter to the second double
+ * @param b a pointer to the second double
  * @return  `TRUE` when `a` is less than `b`.
  */
 int
@@ -251,13 +249,13 @@ sort_utils_double_lt (const void *const a,
 /**
  * @brief Returns true when `a` is less than or equal to `b`.
  *
- * @details Compare funtion that returns `TRUE`, so a value
+ * @details Compare function that returns `TRUE`, so a value
  *          different from zero, when the double value pointed
  *          by `a` is less than or equal to the one pointed by `b`,
  *          otherwise it returns zero (`FALSE`).
  *
  * @param a a pointer to the first double
- * @param b a ponter to the second double
+ * @param b a pointer to the second double
  * @return  `TRUE` when `a` is less than or equal to `b`.
  */
 int
@@ -272,13 +270,13 @@ sort_utils_double_le (const void *const a,
 /**
  * @brief Compares double values pointed by `a` and `b`.
  *
- * @details Compare funtion that returns:
+ * @details Compare function that returns:
  *          - `+1` when `a` is greater than `b`
  *          - ` 0` when `a` is equal to `b`
  *          - `-1` when `a` is less then `b`
  *
  * @param a a pointer to the first double
- * @param b a ponter to the second double
+ * @param b a pointer to the second double
  * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
  */
 int
@@ -292,13 +290,13 @@ sort_utils_double_cmp (const void *const a, const void *const b)
 /**
  * @brief Compares double values pointed by `a` and `b`.
  *
- * @details Compare funtion that returns:
+ * @details Compare function that returns:
  *          - `-1` when `a` is greater than `b`
  *          - ` 0` when `a` is equal to `b`
  *          - `+1` when `a` is less then `b`
  *
  * @param a a pointer to the first double
- * @param b a ponter to the second double
+ * @param b a pointer to the second double
  * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
  */
 int
@@ -312,7 +310,7 @@ sort_utils_double_icmp (const void *const a, const void *const b)
 
 
 /********************************/
-/* Sort function implementatons */
+/* Sort function implementations */
 /********************************/
 
 /******************/
@@ -323,12 +321,12 @@ sort_utils_double_icmp (const void *const a, const void *const b)
  * @brief Sorts the `a` array.
  *
  * @details The vector `a` having length equal to `count` is sorted
- *          in place applying the insertionsort algorithm.
+ *          in place applying the insertion-sort algorithm.
  *          The compare function is a predicate and must return `TRUE` or `FALSE`.
  *
- *          Insertion-sort is a naive algorithm with asimptotic time complexity of O(n^2),
- *          so quicksort or heapsort should be preferred even for small arrays.
- *          Nevertheless sometimes its semplicity makes it a valid choice. The given
+ *          Insertion-sort is a naive algorithm with asymptotic time complexity of O(n^2),
+ *          so quick-sort or heap-sort should be preferred even for small arrays.
+ *          Nevertheless sometimes its simplicity makes it a valid choice. The given
  *          implementation is between two or three percent slower compared to a bare
  *          metal version, sorting doubles values, like the one here transcribed:
  * @code
@@ -345,7 +343,7 @@ sort_utils_double_icmp (const void *const a, const void *const b)
  * @param [in,out] a            the array to be sorted
  * @param [in]     count        the number of element in array
  * @param [in]     element_size the number of bytes used by one element
- * @param [in]     cmp          the compare function applyed by the algorithm
+ * @param [in]     cmp          the compare function applied by the algorithm
  */
 void
 sort_utils_insertionsort (void *const a,
@@ -368,7 +366,7 @@ sort_utils_insertionsort (void *const a,
  * @brief Sorts in ascending order the `a` array of doubles.
  *
  * @details The vector of doubles `a` having length equal to `count` is sorted
- *          in place in ascending order applying the insertionsort algorithm.
+ *          in place in ascending order applying the insertion-sort algorithm.
  *
  * @param [in,out] a     the array to be sorted
  * @param [in]     count the number of element of array a
@@ -384,7 +382,7 @@ sort_utils_insertionsort_asc_d (double *const a,
  * @brief Sorts in descending order the `a` array of doubles.
  *
  * @details The vector of doubles `a` having length equal to `count` is sorted
- *          in place in descending order applying the insertionsort algorithm.
+ *          in place in descending order applying the insertion-sort algorithm.
  *
  * @param [in,out] a     the array to be sorted
  * @param [in]     count the number of element of array a
@@ -406,13 +404,13 @@ sort_utils_insertionsort_dsc_d (double *const a,
  * @brief Sorts the `a` array.
  *
  * @details The vector `a` having length equal to `count` is sorted
- *          in place applying the heapsort algorithm.
+ *          in place applying the heap-sort algorithm.
  *          The compare function is a predicate and must return `TRUE` or `FALSE`.
  *
  * @param [in,out] a            the array to be sorted
  * @param [in]     count        the number of element in array
  * @param [in]     element_size the number of bytes used by one element
- * @param [in]     cmp          the compare function applyed by the algorithm
+ * @param [in]     cmp          the compare function applied by the algorithm
  */
 void
 sort_utils_heapsort (void *const a,
@@ -434,7 +432,7 @@ sort_utils_heapsort (void *const a,
  * @brief Sorts in ascending order the `a` array of doubles.
  *
  * @details The vector of doubles `a` having length equal to `count` is sorted
- *          in place in ascending order applying the heapsort algorithm.
+ *          in place in ascending order applying the heap-sort algorithm.
  *
  * @param [in,out] a     the array to be sorted
  * @param [in]     count the number of element of array a
@@ -450,7 +448,7 @@ sort_utils_heapsort_asc_d (double *const a,
  * @brief Sorts in descending order the `a` array of doubles.
  *
  * @details The vector of doubles `a` having length equal to `count` is sorted
- *          in place in descending order applying the heapsort algorithm.
+ *          in place in descending order applying the heap-sort algorithm.
  *
  * @param [in,out] a     the array to be sorted
  * @param [in]     count the number of element of array a
@@ -472,7 +470,7 @@ sort_utils_heapsort_dsc_d (double *const a,
  * @brief Sorts the `a` array.
  *
  * @details The vector `a` having length equal to `count` is sorted
- *          in place applying the smoothsort algorithm.
+ *          in place applying the smooth-sort algorithm.
  *          The compare function is a predicate and must return `TRUE` or `FALSE`.
  *
  *          Adapted from Dijkstra's paper: http://www.enterag.ch/hartwig/order/smoothsort.pdf
@@ -481,7 +479,7 @@ sort_utils_heapsort_dsc_d (double *const a,
  * @param [in,out] a            the array to be sorted
  * @param [in]     count        the number of element in array
  * @param [in]     element_size the number of bytes used by one element
- * @param [in]     cmp          the compare function applyed by the algorithm
+ * @param [in]     cmp          the compare function applied by the algorithm
  */
 void
 sort_utils_smoothsort (void *const a,
@@ -567,7 +565,7 @@ sort_utils_smoothsort (void *const a,
  * @brief Sorts in ascending order the `a` array of doubles.
  *
  * @details The vector of doubles `a` having length equal to `count` is sorted
- *          in place in ascending order applying the smoothsort algorithm.
+ *          in place in ascending order applying the smooth-sort algorithm.
  *
  * @param [in,out] a     the array to be sorted
  * @param [in]     count the number of element of array a
@@ -583,7 +581,7 @@ sort_utils_smoothsort_asc_d (double *const a,
  * @brief Sorts in descending order the `a` array of doubles.
  *
  * @details The vector of doubles `a` having length equal to `count` is sorted
- *          in place in descending order applying the smoothsort algorithm.
+ *          in place in descending order applying the smooth-sort algorithm.
  *
  * @param [in,out] a     the array to be sorted
  * @param [in]     count the number of element of array a
@@ -602,7 +600,7 @@ sort_utils_smoothsort_dsc_d (double *const a,
 /**************/
 
 /**
- * @brief Used to optimize the swap operation for quicksort.
+ * @brief Used to optimize the swap operation for quick-sort.
  */
 typedef long long int QksSwapWord;
 
@@ -655,7 +653,7 @@ qks_min(ptrdiff_t a, ptrdiff_t b)
  * @brief Sorts the `a` array.
  *
  * @details The vector `a` having length equal to `count` is sorted
- *          in place applying the quicksort algorithm.
+ *          in place applying the quick-sort algorithm.
  *          The compare function is a predicate and must return `TRUE` or `FALSE`.
  *
  *          Adapted from the paper "Engineering a Sort Function" by Jon L. Bentley and M. Douglas McIlroy
@@ -665,7 +663,7 @@ qks_min(ptrdiff_t a, ptrdiff_t b)
  * @param [in,out] a            the array to be sorted
  * @param [in]     count        the number of element in array
  * @param [in]     element_size the number of bytes used by one element
- * @param [in]     cmp          the compare function applyed by the algorithm
+ * @param [in]     cmp          the compare function applied by the algorithm
  */
 void
 sort_utils_quicksort (void *const a,
@@ -673,9 +671,9 @@ sort_utils_quicksort (void *const a,
                       const size_t element_size,
                       const sort_utils_compare_function cmp)
 {
-  static const int small_array_treshold = 7;
-  static const int fst_treshold_for_med = 7;
-  static const int snd_treshold_for_med = 40;
+  static const int small_array_threshold = 7;
+  static const int fst_threshold_for_med = 7;
+  static const int snd_threshold_for_med = 40;
 
   char *ca = (char *) a;
   const size_t es = element_size;
@@ -686,8 +684,8 @@ sort_utils_quicksort (void *const a,
 
   qks_swap_init(ca, es);
 
-  /* Runs insertion sort on arrays smalle than small_array_treshold. */
-  if (count < small_array_treshold) {
+  /* Runs insertion sort on arrays smaller than small_array_threshold. */
+  if (count < small_array_threshold) {
     for (pm = ca + es; pm < ca + count * es; pm += es)
       for (pl = pm; pl > ca && cmp(pl - es, pl) > 0; pl -= es)
         qks_swap(pl, pl - es);
@@ -695,18 +693,18 @@ sort_utils_quicksort (void *const a,
   }
 
   /* Computes the partition value, adopting three different strategies based on array length:
-   *   - on small arrays, having length less than fst_treshold_for_med, it takes the middle element
+   *   - on small arrays, having length less than fst_threshold_for_med, it takes the middle element
    *   - on mid size arrays, having length in between small and large ones, it takes the median
    *     of the first, the last, and the middle elements.
-   *   - on large arrays, having length equal or greater than snd_treshold_for_med, it takes
+   *   - on large arrays, having length equal or greater than snd_threshold_for_med, it takes
    *     the median of the medians of three groups of three elements taken at equal distance
    *     from each other.
    */
   pm = ca + (count >> 1) * es; /* Small arrays, middle element. */
-  if (count > fst_treshold_for_med) {
+  if (count > fst_threshold_for_med) {
     pl = ca;
     pn = ca + (count - 1) * es;
-    if (count > snd_treshold_for_med) { /* Big arrays, pseudomedian of nine. */
+    if (count > snd_threshold_for_med) { /* Big arrays, pseudo-median of nine. */
       s = (count >> 3) * es;
       pl = qks_med3(pl, pl + s, pl + 2 * s, cmp);
       pm = qks_med3(pm - s, pm, pm + s, cmp);
@@ -718,11 +716,11 @@ sort_utils_quicksort (void *const a,
   /* Partitions the array in five groups:
    *  - the central one has one element, pointed by variable pv
    *  - on the left there are all the elements strictly smaller than pv
-   *  - on the rigth there are all the element strictly larger than pv
+   *  - on the right there are all the element strictly larger than pv
    *  - on the far left, beginning from pointer pa are positioned elements
    *    equal to pv found on the left during partitioning
-   *  - on the far rigth, beginning from pointer pd are positioned elements
-   *    equal to pv found on the rigth during partitioning
+   *  - on the far right, beginning from pointer pd are positioned elements
+   *    equal to pv found on the right during partitioning
    */
   qks_pv_init(pv, pm); /* Variable pv points to the partition value. */
   pa = pb = ca;
@@ -742,7 +740,7 @@ sort_utils_quicksort (void *const a,
     pc -= es;
   }
 
-  /* Swaps far left and far right groups adiacent to pv value.*/
+  /* Swaps far left and far right groups adjacent to pv value.*/
   pn = ca + count * es;
   s = qks_min(pa - ca, pb - pa); qks_vec_swap(ca, pb - s, s);
   s = qks_min(pd - pc, pn - pd - es); qks_vec_swap(pb, pn -s, s);
@@ -763,7 +761,7 @@ sort_utils_quicksort (void *const a,
  * @brief Sorts in ascending order the `a` array of doubles.
  *
  * @details The vector of doubles `a` having length equal to `count` is sorted
- *          in place in ascending order applying the quicksort algorithm.
+ *          in place in ascending order applying the quick-sort algorithm.
  *
  * @param [in,out] a     the array to be sorted
  * @param [in]     count the number of element of array a
@@ -779,7 +777,7 @@ sort_utils_quicksort_asc_d (double *const a,
  * @brief Sorts in descending order the `a` array of doubles.
  *
  * @details The vector of doubles `a` having length equal to `count` is sorted
- *          in place in descending order applying the quicksort algorithm.
+ *          in place in descending order applying the quick-sort algorithm.
  *
  * @param [in,out] a     the array to be sorted
  * @param [in]     count the number of element of array a
@@ -789,6 +787,137 @@ sort_utils_quicksort_dsc_d (double *const a,
                             const int count)
 {
   sort_utils_quicksort(a, count, sizeof(double), sort_utils_double_icmp);
+}
+
+
+
+/**************/
+/* Shell-sort */
+/**************/
+
+/**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a` having length equal to `count` is sorted
+ *          in place applying the shell-sort algorithm.
+ *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *
+ * See:
+ *
+ * - The Wikipedia page: <a href="http://en.wikipedia.org/wiki/Shellsort" target="_blank">Shellsort</a>.
+ *
+ * - Donald E. Knuth (1998), Sorting and Searching (par. 5.2.1 - pp. 83-95). The Art of Computer Programming, Vol. 3 (2nd ed.). Boston: Addison–Wesley.
+ *
+ * - N. Tokuda, An Improved Shellsort, IFIP Transactions, A-12 (1992) 449-457.
+ *
+ * - Marcin Ciura, Best Increments for the Average Case of Shellsort,
+ *     13th International Symposium on Fundamentals of Computation Theory, Riga, Latvia, Aug 22 2001;
+ *     Lecture Notes in Computer Science 2001; 2138: 106-117.
+ *     <a href="http://sun.aei.polsl.pl/~mciura/publikacje/shellsort.pdf" target="_blank">Download PDF</a>.
+ *
+ * A few sequences has been tested:
+ *  1. `h(0) = 1, h[s+1] = 3 * h[s] + 1`, and stop with `h[t-1] when h[t+1] > count`.<br>
+ *     The beginning of the sequence is: `1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484, 7174453, 21523360`.<br>
+ *     The web site "The On-Line Encyclopedia of Integer  Sequences" has registered it as: <a href="https://oeis.org/A003462" target="_blank">A003462</a>.
+ *  2. `h(0) = 1, h[s+1] = 2.25 * h[s] + 1`, and stop with `h[t-1] when h[t+1] > count`.<br>
+ *     The beginning of the sequence is: `1, 4, 10, 24, 55, 125, 283, 638, 1437, 3235, 7280, 16381, 36859, 82934, 186603, 419858, 944682, 2125536, 4782457, 10760530, 24211194`.<br>
+ *     It is not registered at "The On-Line Encyclopedia of Integer  Sequences".
+ *  3. `h(k) = ceil((pow(9, k) - pow(4, k)) / (5 * pow(4, k - 1)))`.<br>
+ *     The beginning of the sequence is: `1, 4, 9, 20, 46, 103, 233, 525, 1182, 2660, 5985, 13467, 30301, 68178, 153401, 345152`.<br>
+ *     It is known as the "Tokuda's good set of increments for Shell sort" and it is registered as: <a href="https://oeis.org/A108870" target="_blank">A108870</a>.
+ *  4. `1, 4, 10, 23, 57, 132, 301, 701`.<br>
+ *     No other number is known after `701`, the sequence has been discovered by Marcin Ciura by empirical evidence, and is the best known sequence of increments for shell sort.<br>
+ *     It is registered at OEIS as: <a href="https://oeis.org/A102549" target="_blank">A102549</a>.
+ *
+ * The first sequence is described by Knuth and works quite well, the second one is a sensible improvement, Knuth himself reports that it has been suggested by Tokuda.
+ * The sequence number three, the Tokuda sequence, is slightly better than the second one, and it has been selected and applied here. The last one is too short to be adopted.
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applied by the algorithm
+ */
+void
+sort_utils_shellsort(void *const a,
+                     const size_t count,
+                     const size_t element_size,
+                     const sort_utils_compare_function cmp)
+{
+  static const unsigned long long int gap_seq[] = { 1,           4,           9,           20,
+                                                    46,          103,         233,         525,
+                                                    1182,        2660,        5985,        13467,
+                                                    30301,       68178,       153401,      345152,
+                                                    776591,      1747331,     3931496,     8845866,
+                                                    19903198,    44782196,    100759940,   226709866,
+                                                    510097200,   1147718700,  2582367076,  5810325920,
+                                                    13073233321, 29414774973, 66183243690, 148912298303 };
+
+  /* This code is here for documentation purposes, it computes the gap sequence. */
+  if (FALSE) {
+    for (int k = 0; k < 32; k++) {
+      unsigned long long int h = ceil((pow(9, k + 1) - pow(4, k + 1)) / (5 * pow(4, k)));
+      printf("h[%2d] = %12llu\n", k, h);
+    }
+    if (TRUE) return;
+  }
+
+  if (count < 2) return;
+
+  const size_t array_size = element_size * count;
+
+  long long int t = 0;
+  for (; t < sizeof(gap_seq); t++) {
+    if (gap_seq[t] > count) break;
+  }
+  t--;
+
+  for (; t >= 0; t--) {
+    const size_t gap = gap_seq[t];
+    const size_t scaled_gap = element_size * gap;
+    for (long long int i = scaled_gap; i < array_size; i += element_size) {
+      for (long long int j = i - scaled_gap; ; j -= scaled_gap) {
+        char *one_element = j + (char *) a;
+        char *another_one = one_element + scaled_gap;
+        if (cmp(one_element, another_one))
+          break;
+        swap(one_element, another_one, element_size);
+        if (j < scaled_gap)
+          break;
+      }
+    }
+  }
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the shell-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_shellsort_asc_d (double *const a,
+                            const int count)
+{
+  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_le);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in descending order applying the shell-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_shellsort_dsc_d (double *const a,
+                            const int count)
+{
+  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_ge);
 }
 
 
@@ -831,7 +960,7 @@ copy (void *const dest,
  *
  * @param [in,out] a            first value
  * @param [in,out] b            second value
- * @param [in]     element_size number of bytes occupaid by a and b values
+ * @param [in]     element_size number of bytes occupied by a and b values
  */
 static void
 swap (void *const a,
@@ -857,7 +986,7 @@ swap (void *const a,
 }
 
 /**
- * @brief Sift down function used by the heapsort algorithm.
+ * @brief Sift down function used by the heap-sort algorithm.
  */
 static void
 hps_sift_down (void *const a,
@@ -885,15 +1014,20 @@ hps_sift_down (void *const a,
 }
 
 /**
- * @brief Function sift as defined by the smoothsort paper.
+ * @brief Function sift as defined by the smooth-sort paper.
  *
- * @details When stretches thus parsed areviewed as postorder traversals of binarytrees,
+ * @details When stretches thus parsed are viewed as post-order traversals of binary-trees,
  *          trustiness means that no son exceeds its father. A dubious stretch is made into
- *          a trusty one by applying the operation "sift" –a direct inheritance from heapsort– to its root,
- *          where sift is defined as follow: sift applied to an element m[r1] that is exceede by its
+ *          a trusty one by applying the operation "sift" –a direct inheritance from heap-sort– to its root,
+ *          where sift is defined as follow: sift applied to an element m[r1] that is exceeded by its
  *          largest son m[r2] consists of a swap of these two values, followed by an application of sift to m[r2].
  *
- * @param s shared variables used by the functions composing smoothsort
+ * @param cmp compare function
+ * @param es  element size
+ * @param r1  one of the reference described in the smooth-sort paper
+ * @param tmp a reference to a temporary value having the same size of the array elements.
+ * @param b1  a reference to the b1 variable described in the paper
+ * @param c1  a reference to the c1 variable also described in the paper
  */
 static void
 sms_sift (const sort_utils_compare_function cmp,
@@ -925,7 +1059,7 @@ sms_sift (const sort_utils_compare_function cmp,
 }
 
 /**
- * @brief Function trinkle as defined by the smoothsort paper.
+ * @brief Function trinkle as defined by the smooth-sort paper.
  *
  * @details In the case `p mod 4 = 1`, the standard concatenation ends on a dubious stretch of length b,
  *          which in this step becomes the last but one stretch of the standard concatenation and,
@@ -935,7 +1069,15 @@ sms_sift (const sort_utils_compare_function cmp,
  *          in the standard concatenation of length N. Making such a dubious stretch trusty and including its
  *          root in the sequence of ascending roots is achieved by applying "trinkle“ to m[r].
  *
- * @param s shared variables used by the functions composing smoothsort
+ * @param cmp compare function
+ * @param es  element size
+ * @param r1  one of the reference described in the smooth-sort paper
+ * @param tmp a reference to a temporary value having the same size of the array elements.
+ * @param p   the corresponding variable described in the paper
+ * @param b   the corresponding variable described in the paper
+ * @param c   the corresponding variable described in the paper
+ * @param b1  a reference to the b1 variable described in the paper
+ * @param c1  a reference to the c1 variable also described in the paper
  */
 static void
 sms_trinkle (const sort_utils_compare_function cmp,
@@ -994,14 +1136,23 @@ sms_trinkle (const sort_utils_compare_function cmp,
 }
 
 /**
- * @brief Function semitrinkle as defined by the smoothsort paper.
+ * @brief Function semi-trinkle as defined by the smooth-sort paper.
  *
  * @details In the case `b >= 3`, the rightmost stretch of length b is replaced by two trusty ones; hence P3 is maintained.
  *          To restore P4 it would suffice to apply trinkle first to the root of the first new stretch and then to the
  *          root of the second new stretch, but this would fail to exploit the fact that the new stretches are already
  *          trusty to start with. This is exploited by applying "semitrinkle“ in order to those roots.
  *
- * @param s shared variables used by the functions composing smoothsort
+ * @param cmp compare function
+ * @param es  element size
+ * @param r   one of the reference described in the smooth-sort paper
+ * @param r1  one of the reference described in the smooth-sort paper
+ * @param tmp a reference to a temporary value having the same size of the array elements.
+ * @param p   the corresponding variable described in the paper
+ * @param b   the corresponding variable described in the paper
+ * @param c   the corresponding variable described in the paper
+ * @param b1  a reference to the b1 variable described in the paper
+ * @param c1  a reference to the c1 variable also described in the paper
  */
 static void
 sms_semitrinkle (const sort_utils_compare_function cmp,
@@ -1025,130 +1176,3 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
 /**
  * @endcond
  */
-
-
-
-/**************/
-/* Shell-sort */
-/**************/
-
-/**
- * @brief Sorts the `a` array.
- *
- * @details The vector `a` having length equal to `count` is sorted
- *          in place applying the shellsort algorithm.
- *          The compare function is a predicate and must return `TRUE` or `FALSE`.
- *
- * See:
- *
- * - The Wikipedia page: <a href="http://en.wikipedia.org/wiki/Shellsort" target="_blank">Shellsort</a>.
- *
- * - Donald E. Knuth (1998), Sorting and Searching (par. 5.2.1 - pp. 83-95). The Art of Computer Programming, Vol. 3 (2nd ed.). Boston: Addison–Wesley.
- *
- * - N. Tokuda, An Improved Shellsort, IFIP Transactions, A-12 (1992) 449-457.
- *
- * - Marcin Ciura, Best Increments for the Average Case of Shellsort,
- *     13th International Symposium on Fundamentals of Computation Theory, Riga, Latvia, Aug 22 2001;
- *     Lecture Notes in Computer Science 2001; 2138: 106-117.
- *     <a href="http://sun.aei.polsl.pl/~mciura/publikacje/shellsort.pdf" target="_blank">Download PDF</a>.
- *
- * A few sequences has been tested:
- *  1. `h(0) = 1, h[s+1] = 3 * h[s] + 1`, and stop with `h[t-1] when h[t+1] > count`.<br>
- *     The beginning of the sequence is: `1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484, 7174453, 21523360`.<br>
- *     The web site "The On-Line Encyclopedia of Integer  Sequences" has registered it as: <a href="https://oeis.org/A003462" target="_blank">A003462</a>.
- *  2. `h(0) = 1, h[s+1] = 2.25 * h[s] + 1`, and stop with `h[t-1] when h[t+1] > count`.<br>
- *     The beginning of the sequence is: `1, 4, 10, 24, 55, 125, 283, 638, 1437, 3235, 7280, 16381, 36859, 82934, 186603, 419858, 944682, 2125536, 4782457, 10760530, 24211194`.<br>
- *     It is not registered at "The On-Line Encyclopedia of Integer  Sequences".
- *  3. `h(k) = ceil((pow(9, k) - pow(4, k)) / (5 * pow(4, k - 1)))`.<br>
- *     The beginning of the sequence is: `1, 4, 9, 20, 46, 103, 233, 525, 1182, 2660, 5985, 13467, 30301, 68178, 153401, 345152`.<br>
- *     It is known as the "Tokuda's good set of increments for Shell sort" and it is registered as: <a href="https://oeis.org/A108870" target="_blank">A108870</a>.
- *  4. `1, 4, 10, 23, 57, 132, 301, 701`.<br>
- *     No other number is known after `701`, the sequence has been discovered by Marcin Ciura by empirical evidence, and is the best known sequence of increments for shell sort.<br>
- *     It is registered at OEIS as: <a href="https://oeis.org/A102549" target="_blank">A102549</a>.
- *
- * The first sequence is described by Knuth and works quite well, the second one is a sensible improvement, Knuth himself reports that it has been suggested by Tokuda.
- * The sequence number three, the Tokuda sequence, is slightly better than the second one, and it has been selected and applyed here. The last one is too short to be adopted.
- *
- * @param [in,out] a            the array to be sorted
- * @param [in]     count        the number of element in array
- * @param [in]     element_size the number of bytes used by one element
- * @param [in]     cmp          the compare function applyed by the algorithm
- */
-void
-sort_utils_shellsort(void *const a,
-                     const size_t count,
-                     const size_t element_size,
-                     const sort_utils_compare_function cmp)
-{
-  static const unsigned long long int gap_seq[] = {         1,          4,          9,         20,          46,         103,         233,          525,
-                                                         1182,       2660,       5985,      13467,       30301,       68178,      153401,       345152,
-                                                       776591,    1747331,    3931496,    8845866,    19903198,    44782196,   100759940,    226709866,
-                                                    510097200, 1147718700, 2582367076, 5810325920, 13073233321, 29414774973, 66183243690, 148912298303 };
-
-  /* This code is here for documentation purposes, it computes the gap sequence. */
-  if (FALSE) {
-    for (int k = 0; k < 32; k++) {
-      unsigned long long int h = ceil((pow(9, k + 1) - pow(4, k + 1)) / (5 * pow(4, k)));
-      printf("h[%2d] = %12llu\n", k, h);
-    }
-    if (TRUE) return;
-  }
-
-  if (count < 2) return;
-
-  const size_t array_size = element_size * count;
-
-  long long int t = 0;
-  for (; t < sizeof(gap_seq); t++) {
-    if (gap_seq[t] > count) break;
-  }
-  t--;
-
-  for (; t >= 0; t--) {
-    const size_t gap = gap_seq[t];
-    const size_t scaled_gap = element_size * gap;
-    for (long long int i = scaled_gap; i < array_size; i += element_size) {
-      for (long long int j = i - scaled_gap; ; j -= scaled_gap) {
-        char *one_element = j + (char *) a;
-        char *another_one = one_element + scaled_gap;
-        if (cmp(one_element, another_one))
-          break;
-        swap(one_element, another_one, element_size);
-        if (j < scaled_gap)
-          break;
-      }
-    }
-  }
-}
-
-/**
- * @brief Sorts in ascending order the `a` array of doubles.
- *
- * @details The vector of doubles `a` having length equal to `count` is sorted
- *          in place in ascending order applying the shellsort algorithm.
- *
- * @param [in,out] a     the array to be sorted
- * @param [in]     count the number of element of array a
- */
-void
-sort_utils_shellsort_asc_d (double *const a,
-                            const int count)
-{
-  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_le);
-}
-
-/**
- * @brief Sorts in descending order the `a` array of doubles.
- *
- * @details The vector of doubles `a` having length equal to `count` is sorted
- *          in place in descending order applying the shellsort algorithm.
- *
- * @param [in,out] a     the array to be sorted
- * @param [in]     count the number of element of array a
- */
-void
-sort_utils_shellsort_dsc_d (double *const a,
-                            const int count)
-{
-  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_ge);
-}
