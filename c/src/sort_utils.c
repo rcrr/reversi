@@ -838,10 +838,10 @@ sort_utils_quicksort_dsc_d (double *const a,
  * @param [in]     cmp          the compare function applied by the algorithm
  */
 void
-sort_utils_shellsort(void *const a,
-                     const size_t count,
-                     const size_t element_size,
-                     const sort_utils_compare_function cmp)
+sort_utils_shellsort (void *const a,
+                      const size_t count,
+                      const size_t element_size,
+                      const sort_utils_compare_function cmp)
 {
   static const unsigned long long int gap_seq[] = { 1,           4,           9,           20,
                                                     46,          103,         233,         525,
@@ -1186,14 +1186,15 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
 #define MIN_MERGESORT_LIST_SIZE 32
 
 void
-mergesort_array(int a[],
-                int size,
-                int temp[]) {
+mergesort_array (int a[],
+                 int size,
+                 int temp[])
+{
   int i1, i2, tempi;
   if (size < MIN_MERGESORT_LIST_SIZE) {
     /* Use insertion sort */
     int i;
-    for (i=0; i < size; i++) {
+    for (i = 0; i < size; i++) {
       int j, v = a[i];
       for (j = i - 1; j >= 0; j--) {
         if (a[j] <= v) break;
@@ -1208,6 +1209,54 @@ mergesort_array(int a[],
   i1 = 0;
   i2 = size / 2;
   tempi = 0;
+  while (i1 < size / 2 && i2 < size) {
+    if (a[i1] <= a[i2]) {
+      temp[tempi] = a[i1];
+      i1++;
+    } else {
+      temp[tempi] = a[i2];
+      i2++;
+    }
+    tempi++;
+  }
+  while (i1 < size / 2) {
+    temp[tempi] = a[i1];
+    i1++;
+    tempi++;
+  }
+  while (i2 < size) {
+    temp[tempi] = a[i2];
+    i2++;
+    tempi++;
+  }
+  memcpy(a, temp, size * sizeof(int));
+}
+
+void
+sort_utils_mergesort (int a[],
+                      const size_t size,
+                      int temp[])
+{
+  static const int small_array_threshold = 7;
+
+  /* Termination condition, uses insertion-sort. */
+  if (size < small_array_threshold) {
+    for (size_t i = 1; i < size; i++) {
+      for (size_t j = i; j > 0 && a[j - 1] > a[j]; j--) {
+        int t = a[j]; a[j] = a[j - 1]; a[j - 1] = t;
+      }
+    }
+    return;
+  }
+
+  /* Recurs on the two half of the array. */
+  sort_utils_mergesort(a, size / 2, temp);
+  sort_utils_mergesort(a + size / 2, size - size / 2, temp);
+
+  /* Merge phase. */
+  size_t i1 = 0;
+  size_t i2 = size / 2;
+  size_t tempi = 0;
   while (i1 < size / 2 && i2 < size) {
     if (a[i1] <= a[i2]) {
       temp[tempi] = a[i1];

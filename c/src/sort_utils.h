@@ -197,5 +197,10 @@ mergesort_array (int a[],
                  int size,
                  int temp[]);
 
+extern void
+sort_utils_mergesort (int a[],
+                      const size_t size,
+                      int temp[]);
+
 
 #endif /* SORT_UTILS_H */

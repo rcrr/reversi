@@ -926,7 +926,7 @@ sort_utils_mergesort_test (void)
     a[i] = rand() % size;
   }
 
-  mergesort_array(a, size, temp);
+  sort_utils_mergesort(a, size, temp);
 
   for (i = 1; i < size; i++) {
     g_assert(a[i-1] <= a[i]);
