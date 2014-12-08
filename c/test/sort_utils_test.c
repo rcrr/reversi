@@ -253,6 +253,7 @@ static void sort_utils_shellsort_dsc_d_1_rand_test (void);
 static void sort_utils_shellsort_dsc_d_n_rand_test (void);
 static void sort_utils_shellsort_asc_d_rand_perf_test (void);
 
+static void sort_utils_mergesort_test (void);
 
 
 
@@ -371,6 +372,8 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_shellsort_dsc_d_1_rand_test", sort_utils_shellsort_dsc_d_1_rand_test);
   g_test_add_func("/sort_utils/sort_utils_shellsort_asc_d_n_rand_test", sort_utils_shellsort_asc_d_n_rand_test);
   g_test_add_func("/sort_utils/sort_utils_shellsort_dsc_d_n_rand_test", sort_utils_shellsort_dsc_d_n_rand_test);
+
+  g_test_add_func("/sort_utils/sort_utils_mergesort_test", sort_utils_mergesort_test);
 
   if (g_test_perf()) {
     g_test_add_func("/sort_utils/sort_utils_qsort_asc_d_rand_perf_test", sort_utils_qsort_asc_d_rand_perf_test);
@@ -831,9 +834,9 @@ sort_utils_quicksort_asc_d_rand_perf_test (void)
 
 
 
-/***************************************/
-/* Unit tests for shellsort algorithm. */
-/***************************************/
+/****************************************/
+/* Unit tests for shell-sort algorithm. */
+/****************************************/
 
 static void
 sort_utils_shellsort_tc_double_base_test (Fixture *fixture,
@@ -899,6 +902,35 @@ static void
 sort_utils_shellsort_asc_d_rand_perf_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_shellsort_asc_d, 1024, 15, 2, 175, ASC);
+}
+
+
+
+/****************************************/
+/* Unit tests for merge-sort algorithm. */
+/****************************************/
+
+static void
+sort_utils_mergesort_test (void)
+{
+  printf("\n\nMERGE-SORT\n\n");
+
+  size_t size = 1024;
+  int *a = malloc(sizeof(int) * size);
+  int *temp = malloc(sizeof(int) * size);
+  int i;
+
+  srand(time(NULL));
+
+  for(i = 0; i < size; i++) {
+    a[i] = rand() % size;
+  }
+
+  mergesort_array(a, size, temp);
+
+  for (i = 1; i < size; i++) {
+    g_assert(a[i-1] <= a[i]);
+  }
 }
 
 

@@ -173,10 +173,10 @@ sort_utils_quicksort_dsc_d (double *const a,
 /***********************************/
 
 extern void
-sort_utils_shellsort(void *const a,
-                     const size_t count,
-                     const size_t element_size,
-                     const sort_utils_compare_function cmp);
+sort_utils_shellsort (void *const a,
+                      const size_t count,
+                      const size_t element_size,
+                      const sort_utils_compare_function cmp);
 
 extern void
 sort_utils_shellsort_asc_d (double *const a,
@@ -185,6 +185,17 @@ sort_utils_shellsort_asc_d (double *const a,
 extern void
 sort_utils_shellsort_dsc_d (double *const a,
                             const int count);
+
+
+
+/***********************************/
+/* Shell-sort function prototypes. */
+/***********************************/
+
+extern void
+mergesort_array (int a[],
+                 int size,
+                 int temp[]);
 
 
 #endif /* SORT_UTILS_H */

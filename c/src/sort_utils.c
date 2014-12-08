@@ -309,9 +309,9 @@ sort_utils_double_icmp (const void *const a, const void *const b)
 
 
 
-/********************************/
+/*********************************/
 /* Sort function implementations */
-/********************************/
+/*********************************/
 
 /******************/
 /* Insertion-sort */
@@ -1176,3 +1176,57 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
 /**
  * @endcond
  */
+
+
+
+/**************/
+/* Merge-sort */
+/**************/
+
+#define MIN_MERGESORT_LIST_SIZE 32
+
+void
+mergesort_array(int a[],
+                int size,
+                int temp[]) {
+  int i1, i2, tempi;
+  if (size < MIN_MERGESORT_LIST_SIZE) {
+    /* Use insertion sort */
+    int i;
+    for (i=0; i < size; i++) {
+      int j, v = a[i];
+      for (j = i - 1; j >= 0; j--) {
+        if (a[j] <= v) break;
+        a[j + 1] = a[j];
+      }
+      a[j + 1] = v;
+    }
+    return;
+  }
+  mergesort_array(a, size / 2, temp);
+  mergesort_array(a + size / 2, size - size / 2, temp);
+  i1 = 0;
+  i2 = size / 2;
+  tempi = 0;
+  while (i1 < size / 2 && i2 < size) {
+    if (a[i1] <= a[i2]) {
+      temp[tempi] = a[i1];
+      i1++;
+    } else {
+      temp[tempi] = a[i2];
+      i2++;
+    }
+    tempi++;
+  }
+  while (i1 < size / 2) {
+    temp[tempi] = a[i1];
+    i1++;
+    tempi++;
+  }
+  while (i2 < size) {
+    temp[tempi] = a[i2];
+    i2++;
+    tempi++;
+  }
+  memcpy(a, temp, size * sizeof(int));
+}
