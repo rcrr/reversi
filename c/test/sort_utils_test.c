@@ -941,20 +941,21 @@ sort_utils_mergesort_test (void)
 
   size = 1024;
   double *da = malloc(sizeof(double) * size);
-  double *dtemp = malloc(sizeof(double) * size);
 
   for (int i = 0; i < size; i++) {
     da[i] = (rand() % size) * 1.0;
   }
 
-  sort_utils_mergesort(da, size, dtemp);
+  sort_utils_mergesort(da,
+                       size,
+                       sizeof(double),
+                       sort_utils_double_lt);
 
   for (int i = 1; i < size; i++) {
     g_assert(da[i - 1] <= da[i]);
   }
 
   free(da);
-  free(dtemp);
 
 }
 

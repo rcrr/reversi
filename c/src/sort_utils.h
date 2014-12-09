@@ -198,9 +198,10 @@ mergesort_array (int a[],
                  int temp[]);
 
 extern void
-sort_utils_mergesort (double a[],
-                      const size_t size,
-                      double temp[]);
+sort_utils_mergesort (void *const a,
+                      const size_t count,
+                      const size_t element_size,
+                      const sort_utils_compare_function cmp);
 
 
 #endif /* SORT_UTILS_H */
