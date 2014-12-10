@@ -309,6 +309,31 @@ sort_utils_double_icmp (const void *const a, const void *const b)
 
 
 
+/* int */
+
+/**
+ * @brief Returns true when `a` is less than `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the integer value pointed
+ *          by `a` is less than the one pointed by `b`, otherwise
+ *          it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first integer
+ * @param b a pointer to the second integer
+ * @return  `TRUE` when `a` is less than `b`.
+ */
+int
+sort_utils_int_lt (const void *const a,
+                   const void *const b)
+{
+  const int *const x = (const int *const) a;
+  const int *const y = (const int *const) b;
+  return *x < *y;
+}
+
+
+
 /*********************************/
 /* Sort function implementations */
 /*********************************/
@@ -1318,15 +1343,18 @@ mrs_merge(double a[],
 }
 
 void
-sort_utils_mergesort_x (double a[],
+sort_utils_mergesort_x (void *const a,
                         const size_t count,
                         const size_t es,
                         const sort_utils_compare_function cmp,
-                        double aux[])
+                        void *const aux)
 {
   static const int small_array_threshold = 7;
 
-  /* Termination condition, uses insertion-sort. */
+  char *ca = (char *) a;
+  char *caux = (char *) aux;
+
+  /* Termination condition, it uses insertion-sort. */
   if (count < small_array_threshold) {
     sort_utils_insertionsort(a, count, es, cmp);
     return;
@@ -1335,58 +1363,36 @@ sort_utils_mergesort_x (double a[],
   const size_t hc = count / 2;
 
   /* Recurs on the two half of the array. */
-  sort_utils_mergesort_x(a, hc, es, cmp, aux);
-  sort_utils_mergesort_x(a + hc, count - hc, es, cmp, aux);
+  sort_utils_mergesort_x(ca, hc, es, cmp, caux);
+  sort_utils_mergesort_x(ca + hc * es, count - hc, es, cmp, caux);
 
   /* Merge phase. */
-  //size_t i_left = 0;
-  //size_t i_right = hc;
-  //size_t i_aux = 0;
-  double *left = a;
-  double *right = a + hc;
-  double *aux_ptr = aux;
-  double *one_past_last_for_left = a + hc;
-  double *one_past_last_for_right = a + count;
-  //g_assert(a[i_left] == *left);
-  //g_assert(a[i_right] == *right);
-  //g_assert(aux[i_aux] == *aux_ptr);
-  //g_assert(a[hc] == *one_past_last_for_left);
-  //while (i_left < hc && i_right < count) {
+  char *left = ca;
+  char *right = ca + hc * es;
+  char *aux_ptr = caux;
+  char *one_past_last_for_left = ca + hc * es;
+  char *one_past_last_for_right = ca + count * es;
   while (left < one_past_last_for_left && right < one_past_last_for_right) {
-    //if (a[i_left] <= a[i_right]) {
     if (cmp(left, right)) {
-      //aux[i_aux] = a[i_left];
       copy(aux_ptr, left, es);
-      //i_left++;
-      left++;
+      left += es;
     } else {
-      //aux[i_aux] = a[i_right];
       copy(aux_ptr, right, es);
-      //i_right++;
-      right++;
+      right += es;
     }
-    //i_aux++;
-    aux_ptr++;
+    aux_ptr += es;
   }
-  //while (i_left < hc) {
   while (left < one_past_last_for_left) {
-    //aux[i_aux] = a[i_left];
     copy(aux_ptr, left, es);
-    //i_left++;
-    left++;
-    //i_aux++;
-    aux_ptr++;
+    left += es;
+    aux_ptr += es;
   }
-  //while (i_right < count) {
   while (right < one_past_last_for_right) {
-    //aux[i_aux] = a[i_right];
     copy(aux_ptr, right, es);
-    //i_right++;
-    right++;
-    //i_aux++;
-    aux_ptr++;
+    right += es;
+    aux_ptr += es;
   }
-  memcpy(a, aux, es * count);
+  memcpy(ca, caux, es * count);
 }
 
 /**
@@ -1407,7 +1413,6 @@ sort_utils_mergesort (void *const a,
                       const size_t element_size,
                       const sort_utils_compare_function cmp)
 {
-  g_assert(element_size == sizeof(double));
   void *aux = malloc(sizeof(element_size) * count);
   sort_utils_mergesort_x (a, count, element_size, cmp, aux);
   free(aux);
