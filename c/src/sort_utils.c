@@ -1345,18 +1345,24 @@ sort_utils_mergesort_x (double a[],
   double *left = a;
   double *right = a + hc;
   double *aux_ptr = aux;
+  double *one_past_last_for_left = a + hc;
+  double *one_past_last_for_right = a + count;
   g_assert(a[i_left] == *left);
   g_assert(a[i_right] == *right);
   g_assert(aux[i_aux] == *aux_ptr);
-  while (i_left < hc && i_right < count) {
+  g_assert(a[hc] == *one_past_last_for_left);
+  //while (i_left < hc && i_right < count) {
+  while (left < one_past_last_for_left && right < one_past_last_for_right) {
     if (a[i_left] <= a[i_right]) {
       //aux[i_aux] = a[i_left];
       copy(aux_ptr, left, es);
       i_left++;
       left++;
     } else {
-      aux[i_aux] = a[i_right];
+      //aux[i_aux] = a[i_right];
+      copy(aux_ptr, right, es);
       i_right++;
+      right++;
     }
     i_aux++;
     aux_ptr++;
