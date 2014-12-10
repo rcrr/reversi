@@ -947,6 +947,103 @@ sort_utils_shellsort_dsc_d (double *const a,
 
 
 
+/**************/
+/* Merge-sort */
+/**************/
+
+/**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a` having length equal to `count` is sorted
+ *          using auxiliary space applying the merge-sort algorithm.
+ *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *          The auxiliary space must have the same size of the `a` array or larger,
+ *          the content when the function returns is garbage.
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applied by the algorithm
+ * @param [in]     aux          an auxiliary array
+ */
+void
+sort_utils_mergesort_a (void *const a,
+                        const size_t count,
+                        const size_t es,
+                        const sort_utils_compare_function cmp,
+                        void *const aux)
+{
+  static const int small_array_threshold = 7;
+
+  char *ca = (char *) a;
+  char *caux = (char *) aux;
+
+  /* Termination condition, it uses insertion-sort. */
+  if (count < small_array_threshold) {
+    sort_utils_insertionsort(a, count, es, cmp);
+    return;
+  }
+
+  const size_t hc = count / 2;
+
+  /* Recurs on the two half of the array. */
+  sort_utils_mergesort_a(ca, hc, es, cmp, caux);
+  sort_utils_mergesort_a(ca + hc * es, count - hc, es, cmp, caux);
+
+  /* Merge phase. */
+  char *left = ca;
+  char *right = ca + hc * es;
+  char *aux_ptr = caux;
+  char *one_past_last_for_left = ca + hc * es;
+  char *one_past_last_for_right = ca + count * es;
+  while (left < one_past_last_for_left && right < one_past_last_for_right) {
+    if (cmp(left, right)) {
+      copy(aux_ptr, left, es);
+      left += es;
+    } else {
+      copy(aux_ptr, right, es);
+      right += es;
+    }
+    aux_ptr += es;
+  }
+  while (left < one_past_last_for_left) {
+    copy(aux_ptr, left, es);
+    left += es;
+    aux_ptr += es;
+  }
+  while (right < one_past_last_for_right) {
+    copy(aux_ptr, right, es);
+    right += es;
+    aux_ptr += es;
+  }
+  memcpy(ca, caux, es * count);
+}
+
+/**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a` having length equal to `count` is sorted
+ *          using auxiliary space applying the merge-sort algorithm.
+ *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applied by the algorithm
+ */
+void
+sort_utils_mergesort (void *const a,
+                      const size_t count,
+                      const size_t element_size,
+                      const sort_utils_compare_function cmp)
+{
+  void *aux = malloc(sizeof(element_size) * count);
+  sort_utils_mergesort_a(a, count, element_size, cmp, aux);
+  free(aux);
+}
+
+
+
 /**
  * @cond
  */
@@ -1201,219 +1298,3 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
 /**
  * @endcond
  */
-
-
-
-/**************/
-/* Merge-sort */
-/**************/
-
-#define MIN_MERGESORT_LIST_SIZE 32
-
-void
-mergesort_array (int a[],
-                 int size,
-                 int temp[])
-{
-  int i1, i2, tempi;
-  if (size < MIN_MERGESORT_LIST_SIZE) {
-    /* Use insertion sort */
-    int i;
-    for (i = 0; i < size; i++) {
-      int j, v = a[i];
-      for (j = i - 1; j >= 0; j--) {
-        if (a[j] <= v) break;
-        a[j + 1] = a[j];
-      }
-      a[j + 1] = v;
-    }
-    return;
-  }
-  mergesort_array(a, size / 2, temp);
-  mergesort_array(a + size / 2, size - size / 2, temp);
-  i1 = 0;
-  i2 = size / 2;
-  tempi = 0;
-  while (i1 < size / 2 && i2 < size) {
-    if (a[i1] <= a[i2]) {
-      temp[tempi] = a[i1];
-      i1++;
-    } else {
-      temp[tempi] = a[i2];
-      i2++;
-    }
-    tempi++;
-  }
-  while (i1 < size / 2) {
-    temp[tempi] = a[i1];
-    i1++;
-    tempi++;
-  }
-  while (i2 < size) {
-    temp[tempi] = a[i2];
-    i2++;
-    tempi++;
-  }
-  memcpy(a, temp, size * sizeof(int));
-}
-
-void
-sort_utils_mergesort__ (double a[],
-                        const size_t count,
-                        double aux[])
-{
-  static const int small_array_threshold = 7;
-
-  /* Termination condition, uses insertion-sort. */
-  if (count < small_array_threshold) {
-    for (size_t i = 1; i < count; i++) {
-      for (size_t j = i; j > 0 && a[j - 1] > a[j]; j--) {
-        double t = a[j]; a[j] = a[j - 1]; a[j - 1] = t;
-      }
-    }
-    return;
-  }
-
-  const size_t hc = count / 2;
-
-  /* Recurs on the two half of the array. */
-  sort_utils_mergesort__(a, hc, aux);
-  sort_utils_mergesort__(a + hc, count - hc, aux);
-
-  /* Merge phase. */
-  size_t i_left = 0;
-  size_t i_right = hc;
-  size_t i_aux = 0;
-  while (i_left < hc && i_right < count) {
-    if (a[i_left] <= a[i_right]) {
-      aux[i_aux] = a[i_left];
-      i_left++;
-    } else {
-      aux[i_aux] = a[i_right];
-      i_right++;
-    }
-    i_aux++;
-  }
-  while (i_left < hc) {
-    aux[i_aux] = a[i_left];
-    i_left++;
-    i_aux++;
-  }
-  while (i_right < count) {
-    aux[i_aux] = a[i_right];
-    i_right++;
-    i_aux++;
-  }
-  memcpy(a, aux, sizeof(double) * count);
-}
-
-
-void
-mrs_merge(double a[],
-          const size_t count,
-          const size_t es,
-          const sort_utils_compare_function cmp,
-          double aux[],
-          size_t i_left,
-          size_t i_right,
-          size_t i_aux)
-{
-  const size_t hc = count / 2;
-  while (i_left < hc && i_right < count) {
-    if (a[i_left] <= a[i_right]) {
-      aux[i_aux] = a[i_left];
-      i_left++;
-    } else {
-      aux[i_aux] = a[i_right];
-      i_right++;
-    }
-    i_aux++;
-  }
-  while (i_left < hc) {
-    aux[i_aux] = a[i_left];
-    i_left++;
-    i_aux++;
-  }
-  while (i_right < count) {
-    aux[i_aux] = a[i_right];
-    i_right++;
-    i_aux++;
-  }
-  memcpy(a, aux, es * count);
-}
-
-void
-sort_utils_mergesort_x (void *const a,
-                        const size_t count,
-                        const size_t es,
-                        const sort_utils_compare_function cmp,
-                        void *const aux)
-{
-  static const int small_array_threshold = 7;
-
-  char *ca = (char *) a;
-  char *caux = (char *) aux;
-
-  /* Termination condition, it uses insertion-sort. */
-  if (count < small_array_threshold) {
-    sort_utils_insertionsort(a, count, es, cmp);
-    return;
-  }
-
-  const size_t hc = count / 2;
-
-  /* Recurs on the two half of the array. */
-  sort_utils_mergesort_x(ca, hc, es, cmp, caux);
-  sort_utils_mergesort_x(ca + hc * es, count - hc, es, cmp, caux);
-
-  /* Merge phase. */
-  char *left = ca;
-  char *right = ca + hc * es;
-  char *aux_ptr = caux;
-  char *one_past_last_for_left = ca + hc * es;
-  char *one_past_last_for_right = ca + count * es;
-  while (left < one_past_last_for_left && right < one_past_last_for_right) {
-    if (cmp(left, right)) {
-      copy(aux_ptr, left, es);
-      left += es;
-    } else {
-      copy(aux_ptr, right, es);
-      right += es;
-    }
-    aux_ptr += es;
-  }
-  while (left < one_past_last_for_left) {
-    copy(aux_ptr, left, es);
-    left += es;
-    aux_ptr += es;
-  }
-  while (right < one_past_last_for_right) {
-    copy(aux_ptr, right, es);
-    right += es;
-    aux_ptr += es;
-  }
-  memcpy(ca, caux, es * count);
-}
-
-/**
- * @brief Sorts the `a` array.
- *
- * @details The vector `a` having length equal to `count` is sorted
- *          using auxiliary space applying the merge-sort algorithm.
- *          The compare function is a predicate and must return `TRUE` or `FALSE`.
- *
- * @param [in,out] a            the array to be sorted
- * @param [in]     count        the number of element in array
- * @param [in]     element_size the number of bytes used by one element
- * @param [in]     cmp          the compare function applied by the algorithm
- */
-void
-sort_utils_mergesort (void *const a,
-                      const size_t count,
-                      const size_t element_size,
-                      const sort_utils_compare_function cmp)
-{
-  void *aux = malloc(sizeof(element_size) * count);
-  sort_utils_mergesort_x (a, count, element_size, cmp, aux);
-  free(aux);
-}

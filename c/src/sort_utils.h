@@ -199,19 +199,21 @@ sort_utils_shellsort_dsc_d (double *const a,
 
 
 /***********************************/
-/* Shell-sort function prototypes. */
+/* Merge-sort function prototypes. */
 /***********************************/
-
-extern void
-mergesort_array (int a[],
-                 int size,
-                 int temp[]);
 
 extern void
 sort_utils_mergesort (void *const a,
                       const size_t count,
                       const size_t element_size,
                       const sort_utils_compare_function cmp);
+
+extern void
+sort_utils_mergesort_a (void *const a,
+                        const size_t count,
+                        const size_t es,
+                        const sort_utils_compare_function cmp,
+                        void *const aux);
 
 
 #endif /* SORT_UTILS_H */
