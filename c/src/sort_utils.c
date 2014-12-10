@@ -1339,43 +1339,52 @@ sort_utils_mergesort_x (double a[],
   sort_utils_mergesort_x(a + hc, count - hc, es, cmp, aux);
 
   /* Merge phase. */
-  size_t i_left = 0;
-  size_t i_right = hc;
-  size_t i_aux = 0;
+  //size_t i_left = 0;
+  //size_t i_right = hc;
+  //size_t i_aux = 0;
   double *left = a;
   double *right = a + hc;
   double *aux_ptr = aux;
   double *one_past_last_for_left = a + hc;
   double *one_past_last_for_right = a + count;
-  g_assert(a[i_left] == *left);
-  g_assert(a[i_right] == *right);
-  g_assert(aux[i_aux] == *aux_ptr);
-  g_assert(a[hc] == *one_past_last_for_left);
+  //g_assert(a[i_left] == *left);
+  //g_assert(a[i_right] == *right);
+  //g_assert(aux[i_aux] == *aux_ptr);
+  //g_assert(a[hc] == *one_past_last_for_left);
   //while (i_left < hc && i_right < count) {
   while (left < one_past_last_for_left && right < one_past_last_for_right) {
-    if (a[i_left] <= a[i_right]) {
+    //if (a[i_left] <= a[i_right]) {
+    if (cmp(left, right)) {
       //aux[i_aux] = a[i_left];
       copy(aux_ptr, left, es);
-      i_left++;
+      //i_left++;
       left++;
     } else {
       //aux[i_aux] = a[i_right];
       copy(aux_ptr, right, es);
-      i_right++;
+      //i_right++;
       right++;
     }
-    i_aux++;
+    //i_aux++;
     aux_ptr++;
   }
-  while (i_left < hc) {
-    aux[i_aux] = a[i_left];
-    i_left++;
-    i_aux++;
+  //while (i_left < hc) {
+  while (left < one_past_last_for_left) {
+    //aux[i_aux] = a[i_left];
+    copy(aux_ptr, left, es);
+    //i_left++;
+    left++;
+    //i_aux++;
+    aux_ptr++;
   }
-  while (i_right < count) {
-    aux[i_aux] = a[i_right];
-    i_right++;
-    i_aux++;
+  //while (i_right < count) {
+  while (right < one_past_last_for_right) {
+    //aux[i_aux] = a[i_right];
+    copy(aux_ptr, right, es);
+    //i_right++;
+    right++;
+    //i_aux++;
+    aux_ptr++;
   }
   memcpy(a, aux, es * count);
 }
