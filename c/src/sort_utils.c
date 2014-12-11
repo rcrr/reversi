@@ -3,7 +3,7 @@
  *
  * @todo Refactor quick-sort.
  *
- * @todo Add one merge-sort implementation to the list of available choices.
+ * @todo Add tim-sort implementation to the list of available choices.
  *
  * @todo Add compare functions for 64, 32, 8 bit signed and unsigned integers.
  *
@@ -960,11 +960,11 @@ sort_utils_shellsort_dsc_d (double *const a,
  *          The auxiliary space must have the same size of the `a` array or larger,
  *          the content when the function returns is garbage.
  *
- * @param [in,out] a            the array to be sorted
- * @param [in]     count        the number of element in array
- * @param [in]     element_size the number of bytes used by one element
- * @param [in]     cmp          the compare function applied by the algorithm
- * @param [in]     aux          an auxiliary array
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element in array
+ * @param [in]     es    the number of bytes used by one element
+ * @param [in]     cmp   the compare function applied by the algorithm
+ * @param [in]     aux   an auxiliary array
  */
 void
 sort_utils_mergesort_a (void *const a,
