@@ -253,7 +253,15 @@ static void sort_utils_shellsort_dsc_d_1_rand_test (void);
 static void sort_utils_shellsort_dsc_d_n_rand_test (void);
 static void sort_utils_shellsort_asc_d_rand_perf_test (void);
 
-static void sort_utils_mergesort_test (void);
+static void
+sort_utils_mergesort_tc_double_base_test (Fixture *fixture,
+                                          gconstpointer test_data);
+
+static void sort_utils_mergesort_asc_d_1_rand_test (void);
+static void sort_utils_mergesort_asc_d_n_rand_test (void);
+static void sort_utils_mergesort_dsc_d_1_rand_test (void);
+static void sort_utils_mergesort_dsc_d_n_rand_test (void);
+static void sort_utils_mergesort_asc_d_rand_perf_test (void);
 
 
 
@@ -373,7 +381,20 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_shellsort_asc_d_n_rand_test", sort_utils_shellsort_asc_d_n_rand_test);
   g_test_add_func("/sort_utils/sort_utils_shellsort_dsc_d_n_rand_test", sort_utils_shellsort_dsc_d_n_rand_test);
 
-  g_test_add_func("/sort_utils/sort_utils_mergesort_test", sort_utils_mergesort_test);
+
+  g_test_add("/sort_utils/sort_utils_mergesort_tc_double_base_test",
+             Fixture,
+             (gconstpointer) tc_double_base,
+             base_fixture_setup,
+             sort_utils_mergesort_tc_double_base_test,
+             base_fixture_teardown);
+
+  g_test_add_func("/sort_utils/sort_utils_mergesort_asc_d_1_rand_test", sort_utils_mergesort_asc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_mergesort_dsc_d_1_rand_test", sort_utils_mergesort_dsc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_mergesort_asc_d_n_rand_test", sort_utils_mergesort_asc_d_n_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_mergesort_dsc_d_n_rand_test", sort_utils_mergesort_dsc_d_n_rand_test);
+
+
 
   if (g_test_perf()) {
     g_test_add_func("/sort_utils/sort_utils_qsort_asc_d_rand_perf_test", sort_utils_qsort_asc_d_rand_perf_test);
@@ -382,6 +403,7 @@ main (int   argc,
     g_test_add_func("/sort_utils/sort_utils_smoothsort_asc_d_rand_perf_test", sort_utils_smoothsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_quicksort_asc_d_rand_perf_test", sort_utils_quicksort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_shellsort_asc_d_rand_perf_test", sort_utils_shellsort_asc_d_rand_perf_test);
+    g_test_add_func("/sort_utils/sort_utils_mergesort_asc_d_rand_perf_test", sort_utils_mergesort_asc_d_rand_perf_test);
   }
 
   return g_test_run();
@@ -911,57 +933,69 @@ sort_utils_shellsort_asc_d_rand_perf_test (void)
 /****************************************/
 
 static void
-sort_utils_mergesort_test (void)
+sort_utils_mergesort_tc_double_base_test (Fixture *fixture,
+                                          gconstpointer test_data)
 {
-  size_t size;
-  srand(time(NULL));
-
-
-  printf("\n\nMERGE-SORT integer\n\n");
-
-  size = 1024;
-  int *a = malloc(sizeof(int) * size);
-  int *temp = malloc(sizeof(int) * size);
-
-  for (int i = 0; i < size; i++) {
-    a[i] = rand() % size;
+  TestCase *tests = fixture->tests;
+  g_assert(tests);
+  for (int i = 0; i < fixture->tests_count; i++) {
+    const TestCase *t = &tests[i];
+    sort_utils_compare_function f;
+    switch (t->versus) {
+    case ASC:
+      f = sort_utils_double_le;
+      break;
+    case DSC:
+      f = sort_utils_double_ge;
+      break;
+    default:
+      g_test_fail();
+      return;
+    }
+    sort_utils_mergesort(t->elements,
+                         t->elements_count,
+                         sizeof(double),
+                         f);
+    for (int j = 0; j < t->elements_count; j++) {
+      const double *computed = (double *) t->elements + j;
+      const double *expected = (double *) t->expected_sorted_sequence + j;
+      g_assert_cmpfloat(*expected, ==, *computed);
+    }
   }
+}
 
-  //mergesort_array(a, size, temp);
+static void
+sort_utils_mergesort_asc_d_1_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_mergesort_asc_d, 1024, 1, 0, 175, ASC);
+}
 
-  sort_utils_mergesort(a,
-                       size,
-                       sizeof(int),
-                       sort_utils_int_lt);
+static void
+sort_utils_mergesort_dsc_d_1_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_mergesort_dsc_d, 1024, 1, 0, 171, DSC);
+}
 
-  for (int i = 1; i < size; i++) {
-    g_assert(a[i - 1] <= a[i]);
-  }
+static void
+sort_utils_mergesort_asc_d_n_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_mergesort_asc_d, 1024, 3, 2, 366, ASC);
+  hlp_run_sort_d_random_test(sort_utils_mergesort_asc_d, 1023, 3, 2, 683, ASC);
+  hlp_run_sort_d_random_test(sort_utils_mergesort_asc_d, 1025, 3, 2, 557, ASC);
+}
 
-  free(a);
-  free(temp);
+static void
+sort_utils_mergesort_dsc_d_n_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_mergesort_dsc_d, 1024, 3, 2, 163, DSC);
+  hlp_run_sort_d_random_test(sort_utils_mergesort_dsc_d, 1023, 3, 2, 785, DSC);
+  hlp_run_sort_d_random_test(sort_utils_mergesort_dsc_d, 1025, 3, 2, 650, DSC);
+}
 
-
-  printf("\n\nMERGE-SORT double\n\n");
-
-  size = 1024;
-  double *da = malloc(sizeof(double) * size);
-
-  for (int i = 0; i < size; i++) {
-    da[i] = (rand() % size) * 1.0;
-  }
-
-  sort_utils_mergesort(da,
-                       size,
-                       sizeof(double),
-                       sort_utils_double_lt);
-
-  for (int i = 1; i < size; i++) {
-    g_assert(da[i - 1] <= da[i]);
-  }
-
-  free(da);
-
+static void
+sort_utils_mergesort_asc_d_rand_perf_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_mergesort_asc_d, 1024, 15, 2, 175, ASC);
 }
 
 

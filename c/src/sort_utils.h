@@ -215,5 +215,13 @@ sort_utils_mergesort_a (void *const a,
                         const sort_utils_compare_function cmp,
                         void *const aux);
 
+extern void
+sort_utils_mergesort_asc_d (double *const a,
+                            const int count);
+
+extern void
+sort_utils_mergesort_dsc_d (double *const a,
+                            const int count);
+
 
 #endif /* SORT_UTILS_H */

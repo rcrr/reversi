@@ -1042,6 +1042,38 @@ sort_utils_mergesort (void *const a,
   free(aux);
 }
 
+/**
+ * @brief Sorts in ascending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the merge-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_mergesort_asc_d (double *const a,
+                            const int count)
+{
+  sort_utils_mergesort(a, count, sizeof(double), sort_utils_double_le);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in descending order applying the merge-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_mergesort_dsc_d (double *const a,
+                            const int count)
+{
+  sort_utils_mergesort(a, count, sizeof(double), sort_utils_double_ge);
+}
+
 
 
 /**
