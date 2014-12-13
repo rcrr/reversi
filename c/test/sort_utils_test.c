@@ -127,7 +127,7 @@ const TestCase tc_double_base[] =
       (double []) { -9., -8., -7., -6., -5., -4., -3., -2., -1.,  0. },
       (double []) {  0., -1., -2., -3., -4., -5., -6., -7., -8., -9. } },
 
-    { "A dscending sorted array of ten negative elements must be sorted in descending order.",
+    { "A descending sorted array of ten negative elements must be sorted in descending order.",
       DSC, sizeof(double), 10,
       (double []) {  0., -1., -2., -3., -4., -5., -6., -7., -8., -9. },
       (double []) {  0., -1., -2., -3., -4., -5., -6., -7., -8., -9. } },
@@ -137,7 +137,7 @@ const TestCase tc_double_base[] =
       (double []) { -9., -8., -7., -6., -5., -4., -3., -2., -1.,  0. },
       (double []) { -9., -8., -7., -6., -5., -4., -3., -2., -1.,  0. } },
 
-    { "An ascending sorted array of ten negative elements must be sorted in ascending order.",
+    { "A generic aarray must be sorted in ascending order.",
       ASC, sizeof(double), 10,
       (double []) { -9.70, 8.34, 123.02, 0.00, -72.03, 9.71, -3.23, -9.70, 9.70, -0.1 },
       (double []) { -72.03, -9.70, -9.70, -3.23, -0.1, 0.00, 8.34, 9.70, 9.71, 123.02 } },
@@ -186,6 +186,110 @@ const TestCase tc_double_base[] =
   };
 
 
+/**
+ * @brief Sorting test cases for simple arrays of int: base cases.
+ */
+const TestCase tc_int_base[] =
+  {
+    { "A simple array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 7, 3, 9, 0, 1, 5, 2, 8, 4, 6 },
+      (int []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+
+    { "A simple array of ten elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) { 7, 3, 9, 0, 1, 5, 2, 8, 4, 6 },
+      (int []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 } },
+
+    { "An ascending sorted array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
+      (int []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+
+    { "An ascending sorted array of ten elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
+      (int []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 } },
+
+    { "A descending sorted array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+      (int []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+
+    { "A descending sorted array of ten elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+      (int []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 } },
+
+    { "An array of ten equal elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+
+    { "An array of ten equal elements must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+
+    { "An ascending sorted array of ten negative elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) { -9, -8, -7, -6, -5, -4, -3, -2, -1,  0 },
+      (int []) {  0, -1, -2, -3, -4, -5, -6, -7, -8, -9 } },
+
+    { "A descending sorted array of ten negative elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) {  0, -1, -2, -3, -4, -5, -6, -7, -8, -9 },
+      (int []) {  0, -1, -2, -3, -4, -5, -6, -7, -8, -9 } },
+
+    { "An ascending sorted array of ten negative elements must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { -9, -8, -7, -6, -5, -4, -3, -2, -1,  0 },
+      (int []) { -9, -8, -7, -6, -5, -4, -3, -2, -1,  0 } },
+
+    { "An array of ten elements, nine zeros and a one, must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 },
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } },
+
+    { "An array of ten elements, seven zeros and three ones, must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 1, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 1, 1, 1 } },
+
+    { "An array of two elements, must be sorted in ascending order.",
+      ASC, sizeof(int), 2,
+      (int []) { 1, 0 },
+      (int []) { 0, 1 } },
+
+    { "An array of two elements, must be sorted in ascending order.",
+      ASC, sizeof(int), 2,
+      (int []) { 0, 1 },
+      (int []) { 0, 1 } },
+
+    { "An array of two elements, must be sorted in ascending order.",
+      ASC, sizeof(int), 2,
+      (int []) { 0, 0 },
+      (int []) { 0, 0 } },
+
+    { "An array of one element, must be sorted in ascending order.",
+      ASC, sizeof(int), 1,
+      (int []) { 0 },
+      (int []) { 0 } },
+
+    { "An empty array, must be sorted in ascending order.",
+      ASC, sizeof(int), 0,
+      (int []) { 0 },
+      (int []) { 0 } },
+
+    { "An array of seven elements, five zeros and two ones, must be sorted in ascending order.",
+      ASC, sizeof(int), 7,
+      (int []) { 1, 0, 0, 0, 0, 0, 1 },
+      (int []) { 0, 0, 0, 0, 0, 1, 1 } },
+
+    {NULL, ASC, sizeof(int), 1, (int []) {0}, (int []) {0} }
+  };
+
+
 
 /*
  * Test function prototypes.
@@ -193,9 +297,15 @@ const TestCase tc_double_base[] =
 
 static void sort_utils_double_compare_test (void);
 
+static void sort_utils_int_compare_test (void);
+
 static void
 sort_utils_qsort_tc_double_base_test (Fixture *fixture,
                                       gconstpointer test_data);
+
+static void
+sort_utils_qsort_tc_int_base_test (Fixture *fixture,
+                                   gconstpointer test_data);
 
 static void sort_utils_qsort_asc_d_1_rand_test (void);
 static void sort_utils_qsort_asc_d_n_rand_test (void);
@@ -206,6 +316,10 @@ static void sort_utils_qsort_asc_d_rand_perf_test (void);
 static void
 sort_utils_insertionsort_tc_double_base_test (Fixture *fixture,
                                               gconstpointer test_data);
+
+static void
+sort_utils_insertionsort_tc_int_base_test (Fixture *fixture,
+                                           gconstpointer test_data);
 
 static void sort_utils_insertionsort_asc_d_1_rand_test (void);
 static void sort_utils_insertionsort_asc_d_n_rand_test (void);
@@ -303,12 +417,21 @@ main (int   argc,
 
   g_test_add_func("/sort_utils/sort_utils_double_compare_test", sort_utils_double_compare_test);
 
+  g_test_add_func("/sort_utils/sort_utils_int_compare_test", sort_utils_int_compare_test);
+
 
   g_test_add("/sort_utils/sort_utils_qsort_tc_double_base_test",
              Fixture,
              (gconstpointer) tc_double_base,
              base_fixture_setup,
              sort_utils_qsort_tc_double_base_test,
+             base_fixture_teardown);
+
+  g_test_add("/sort_utils/sort_utils_qsort_tc_int_base_test",
+             Fixture,
+             (gconstpointer) tc_int_base,
+             base_fixture_setup,
+             sort_utils_qsort_tc_int_base_test,
              base_fixture_teardown);
 
   g_test_add_func("/sort_utils/sort_utils_qsort_asc_d_1_rand_test", sort_utils_qsort_asc_d_1_rand_test);
@@ -322,6 +445,13 @@ main (int   argc,
              (gconstpointer) tc_double_base,
              base_fixture_setup,
              sort_utils_insertionsort_tc_double_base_test,
+             base_fixture_teardown);
+
+  g_test_add("/sort_utils/sort_utils_insertionsort_tc_int_base_test",
+             Fixture,
+             (gconstpointer) tc_int_base,
+             base_fixture_setup,
+             sort_utils_insertionsort_tc_int_base_test,
              base_fixture_teardown);
 
   g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_1_rand_test", sort_utils_insertionsort_asc_d_1_rand_test);
@@ -494,6 +624,81 @@ sort_utils_double_compare_test (void)
   g_assert_cmpint(sort_utils_double_cmp(&a, &b), ==, +1);
 }
 
+static void
+sort_utils_int_compare_test (void)
+{
+  int a;
+  int b;
+
+  a = 3;
+  b = 3;
+  g_assert_true(sort_utils_int_eq(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_false(sort_utils_int_eq(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_true(sort_utils_int_gt(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_false(sort_utils_int_gt(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_false(sort_utils_int_gt(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_true(sort_utils_int_ge(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_false(sort_utils_int_ge(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_true(sort_utils_int_ge(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_false(sort_utils_int_lt(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_true(sort_utils_int_lt(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_false(sort_utils_int_lt(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_false(sort_utils_int_le(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_true(sort_utils_int_le(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_true(sort_utils_int_le(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_cmpint(sort_utils_int_cmp(&a, &b), ==, -1);
+
+  a = 3;
+  b = 3;
+  g_assert_cmpint(sort_utils_int_cmp(&a, &b), ==,  0);
+
+  a = 3;
+  b = 2;
+  g_assert_cmpint(sort_utils_int_cmp(&a, &b), ==, +1);
+}
+
 
 
 /********************************************/
@@ -528,6 +733,38 @@ sort_utils_qsort_tc_double_base_test (Fixture *fixture,
       const double *computed = (double *) t->elements + j;
       const double *expected = (double *) t->expected_sorted_sequence + j;
       g_assert_cmpfloat(*expected, ==, *computed);
+    }
+  }
+}
+
+static void
+sort_utils_qsort_tc_int_base_test (Fixture *fixture,
+                                   gconstpointer test_data)
+{
+  TestCase *tests = fixture->tests;
+  g_assert(tests);
+  for (int i = 0; i < fixture->tests_count; i++) {
+    const TestCase *t = &tests[i];
+    sort_utils_compare_function f;
+    switch (t->versus) {
+    case ASC:
+      f = sort_utils_int_cmp;
+      break;
+    case DSC:
+      f = sort_utils_int_icmp;
+      break;
+    default:
+      g_test_fail();
+      return;
+    }
+    qsort(t->elements,
+          t->elements_count,
+          sizeof(int),
+          f);
+    for (int j = 0; j < t->elements_count; j++) {
+      const int *computed = (int *) t->elements + j;
+      const int *expected = (int *) t->expected_sorted_sequence + j;
+      g_assert_cmpint(*expected, ==, *computed);
     }
   }
 }
@@ -600,6 +837,38 @@ sort_utils_insertionsort_tc_double_base_test (Fixture *fixture,
       const double *computed = (double *) t->elements + i;
       const double *expected = (double *) t->expected_sorted_sequence + i;
       g_assert_cmpfloat(*expected, ==, *computed);
+    }
+  }
+}
+
+static void
+sort_utils_insertionsort_tc_int_base_test (Fixture *fixture,
+                                           gconstpointer test_data)
+{
+  TestCase *tests = fixture->tests;
+  g_assert(tests);
+  for (int i = 0; i < fixture->tests_count; i++) {
+    const TestCase *t = &tests[i];
+    sort_utils_compare_function f;
+    switch (t->versus) {
+    case ASC:
+      f = sort_utils_int_lt;
+      break;
+    case DSC:
+      f = sort_utils_int_gt;
+      break;
+    default:
+      g_test_fail();
+      return;
+    }
+    sort_utils_insertionsort(t->elements,
+                             t->elements_count,
+                             sizeof(int),
+                             f);
+    for (int j = 0; j < t->elements_count; j++) {
+      const int *computed = (int *) t->elements + j;
+      const int *expected = (int *) t->expected_sorted_sequence + j;
+      g_assert_cmpint(*expected, ==, *computed);
     }
   }
 }

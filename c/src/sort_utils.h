@@ -93,8 +93,32 @@ sort_utils_double_icmp (const void *const a,
 /* int */
 
 extern int
+sort_utils_int_eq (const void *const a,
+                   const void *const b);
+
+extern int
+sort_utils_int_gt (const void *const a,
+                   const void *const b);
+
+extern int
+sort_utils_int_ge (const void *const a,
+                   const void *const b);
+
+extern int
 sort_utils_int_lt (const void *const a,
                    const void *const b);
+
+extern int
+sort_utils_int_le (const void *const a,
+                   const void *const b);
+
+extern int
+sort_utils_int_cmp (const void *const a,
+                    const void *const b);
+
+extern int
+sort_utils_int_icmp (const void *const a,
+                     const void *const b);
 
 
 
@@ -114,6 +138,13 @@ sort_utils_insertionsort_asc_d (double *const a,
 
 extern void
 sort_utils_insertionsort_dsc_d (double *const a,
+                                const int count);
+extern void
+sort_utils_insertionsort_asc_i (int *const a,
+                                const int count);
+
+extern void
+sort_utils_insertionsort_dsc_i (int *const a,
                                 const int count);
 
 

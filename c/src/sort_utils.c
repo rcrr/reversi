@@ -280,7 +280,8 @@ sort_utils_double_le (const void *const a,
  * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
  */
 int
-sort_utils_double_cmp (const void *const a, const void *const b)
+sort_utils_double_cmp (const void *const a,
+                       const void *const b)
 {
   const double *const x = (const double *const) a;
   const double *const y = (const double *const) b;
@@ -300,7 +301,8 @@ sort_utils_double_cmp (const void *const a, const void *const b)
  * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
  */
 int
-sort_utils_double_icmp (const void *const a, const void *const b)
+sort_utils_double_icmp (const void *const a,
+                        const void *const b)
 {
   const double *const x = (const double *const) a;
   const double *const y = (const double *const) b;
@@ -310,6 +312,69 @@ sort_utils_double_icmp (const void *const a, const void *const b)
 
 
 /* int */
+
+/**
+ * @brief Returns true when `a` is equal to `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the int value pointed
+ *          by `a` is equal to the one pointed by `b`, otherwise
+ *          it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first int
+ * @param b a pointer to the second int
+ * @return  `TRUE` when `a` is equal `b`.
+ */
+int
+sort_utils_int_eq (const void *const a,
+                   const void *const b)
+{
+  const int *const x = (const int *const) a;
+  const int *const y = (const int *const) b;
+  return *x == *y;
+}
+
+/**
+ * @brief Returns true when `a` is greater than `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the int value pointed
+ *          by `a` is greater than the one pointed by `b`, otherwise
+ *          it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first int
+ * @param b a pointer to the second int
+ * @return  `TRUE` when `a` is greater than `b`.
+ */
+int
+sort_utils_int_gt (const void *const a,
+                   const void *const b)
+{
+  const int *const x = (const int *const) a;
+  const int *const y = (const int *const) b;
+  return *x > *y;
+}
+
+/**
+ * @brief Returns true when `a` is greater than or equal to `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the int value pointed
+ *          by `a` is greater than or equal to the one pointed by `b`,
+ *          otherwise it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first int
+ * @param b a pointer to the second int
+ * @return  `TRUE` when `a` is greater than or equal to `b`.
+ */
+int
+sort_utils_int_ge (const void *const a,
+                   const void *const b)
+{
+  const int *const x = (const int *const) a;
+  const int *const y = (const int *const) b;
+  return *x >= *y;
+}
 
 /**
  * @brief Returns true when `a` is less than `b`.
@@ -330,6 +395,69 @@ sort_utils_int_lt (const void *const a,
   const int *const x = (const int *const) a;
   const int *const y = (const int *const) b;
   return *x < *y;
+}
+
+/**
+ * @brief Returns true when `a` is less than or equal to `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the int value pointed
+ *          by `a` is less than or equal to the one pointed by `b`,
+ *          otherwise it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first int
+ * @param b a pointer to the second int
+ * @return  `TRUE` when `a` is less than or equal to `b`.
+ */
+int
+sort_utils_int_le (const void *const a,
+                   const void *const b)
+{
+  const int *const x = (const int *const) a;
+  const int *const y = (const int *const) b;
+  return *x <= *y;
+}
+
+/**
+ * @brief Compares int values pointed by `a` and `b`.
+ *
+ * @details Compare function that returns:
+ *          - `+1` when `a` is greater than `b`
+ *          - ` 0` when `a` is equal to `b`
+ *          - `-1` when `a` is less then `b`
+ *
+ * @param a a pointer to the first int
+ * @param b a pointer to the second int
+ * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
+ */
+int
+sort_utils_int_cmp (const void *const a,
+                    const void *const b)
+{
+  const int *const x = (const int *const) a;
+  const int *const y = (const int *const) b;
+  return (*x > *y) - (*x < *y);
+}
+
+/**
+ * @brief Compares int values pointed by `a` and `b`.
+ *
+ * @details Compare function that returns:
+ *          - `-1` when `a` is greater than `b`
+ *          - ` 0` when `a` is equal to `b`
+ *          - `+1` when `a` is less then `b`
+ *
+ * @param a a pointer to the first int
+ * @param b a pointer to the second int
+ * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
+ */
+int
+sort_utils_int_icmp (const void *const a,
+                     const void *const b)
+{
+  const int *const x = (const int *const) a;
+  const int *const y = (const int *const) b;
+  return (*x < *y) - (*x > *y);
 }
 
 
@@ -417,6 +545,38 @@ sort_utils_insertionsort_dsc_d (double *const a,
                                 const int count)
 {
   sort_utils_insertionsort(a, count, sizeof(double), sort_utils_double_gt);
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of ints.
+ *
+ * @details The vector of ints `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the insertion-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_insertionsort_asc_i (int *const a,
+                                const int count)
+{
+  sort_utils_insertionsort(a, count, sizeof(int), sort_utils_int_lt);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of ints.
+ *
+ * @details The vector of ints `a` having length equal to `count` is sorted
+ *          in place in descending order applying the insertion-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_insertionsort_dsc_i (int *const a,
+                                const int count)
+{
+  sort_utils_insertionsort(a, count, sizeof(int), sort_utils_int_gt);
 }
 
 
