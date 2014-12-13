@@ -104,20 +104,13 @@
 
 static void
 copy (void *const dest,
-      void *const src,
+      const void *const src,
       const size_t element_size);
 
 static void
 swap (void *const a,
       void *const b,
       const size_t element_size);
-
-static void
-hps_sift_down (void *const a,
-               const int start,
-               const int end,
-               const size_t element_size,
-               const sort_utils_compare_function cmp);
 
 static void
 sms_sift (const sort_utils_compare_function cmp,
@@ -548,9 +541,9 @@ sort_utils_insertionsort_dsc_d (double *const a,
 }
 
 /**
- * @brief Sorts in ascending order the `a` array of ints.
+ * @brief Sorts in ascending order the `a` array of integers.
  *
- * @details The vector of ints `a` having length equal to `count` is sorted
+ * @details The vector of integers `a` having length equal to `count` is sorted
  *          in place in ascending order applying the insertion-sort algorithm.
  *
  * @param [in,out] a     the array to be sorted
@@ -564,9 +557,9 @@ sort_utils_insertionsort_asc_i (int *const a,
 }
 
 /**
- * @brief Sorts in descending order the `a` array of ints.
+ * @brief Sorts in descending order the `a` array of integers.
  *
- * @details The vector of ints `a` having length equal to `count` is sorted
+ * @details The vector of integers `a` having length equal to `count` is sorted
  *          in place in descending order applying the insertion-sort algorithm.
  *
  * @param [in,out] a     the array to be sorted
@@ -584,6 +577,48 @@ sort_utils_insertionsort_dsc_i (int *const a,
 /*************/
 /* Heap-sort */
 /*************/
+
+/**
+ * @cond
+ */
+
+/**
+ * @brief Sift down function used by the heap-sort algorithm.
+ *
+ * @param [in,out] a            the array being sorted
+ * @param [in]     start        tbd
+ * @param [in]     end          tbd
+ * @param [in]     element_size tbd
+ * @param [in]     cmp          tbd
+ */
+static void
+hps_sift_down (void *const a,
+               const int start,
+               const int end,
+               const size_t element_size,
+               const sort_utils_compare_function cmp)
+{
+  char *const a_ptr = (char *const) a;
+  int root = start;
+  for (int child = 2 * root + 1; child < end; child = 2 * root + 1) {
+    char *child_ptr = (char *) a_ptr + child * element_size;
+    char *const root_ptr = (char *const) a_ptr + root * element_size;
+    if ((child < end - 1) && cmp(child_ptr, child_ptr + element_size)) {
+      child += 1;
+      child_ptr += element_size;
+    }
+    if (cmp(root_ptr, child_ptr)) {
+      swap(child_ptr, root_ptr, element_size);
+      root = child;
+    }
+    else
+      return;
+  }
+}
+
+/**
+ * @endcond
+ */
 
 /**
  * @brief Sorts the `a` array.
@@ -627,6 +662,38 @@ sort_utils_heapsort_asc_d (double *const a,
                            const int count)
 {
   sort_utils_heapsort(a, count, sizeof(double), sort_utils_double_lt);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of integers.
+ *
+ * @details The vector of integerss `a` having length equal to `count` is sorted
+ *          in place in descending order applying the heap-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_heapsort_dsc_i (int *const a,
+                           const int count)
+{
+  sort_utils_heapsort(a, count, sizeof(int), sort_utils_int_gt);
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of integers.
+ *
+ * @details The vector of integers `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the heap-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_heapsort_asc_i (int *const a,
+                           const int count)
+{
+  sort_utils_heapsort(a, count, sizeof(int), sort_utils_int_lt);
 }
 
 /**
@@ -1241,7 +1308,7 @@ sort_utils_mergesort_dsc_d (double *const a,
  */
 
 /*
- * Internal functions.
+ * Internal functions used by more than one algorithm.
  */
 
 /**
@@ -1251,13 +1318,13 @@ sort_utils_mergesort_dsc_d (double *const a,
  *          that leverages the dimension of the data copied
  *          when it fits into a standard register size.
  *
- * @param dest         a pointer to the first byte to be overwritten
- * @param src          a pointer to the first byte of data to be copied
- * @param element_size number of bytes to be copied
+ * @param [in,out] dest         a pointer to the first byte to be overwritten
+ * @param [in]     src          a pointer to the first byte of data to be copied
+ * @param [in]     element_size number of bytes to be copied
  */
 static void
 copy (void *const dest,
-      void *const src,
+      const void *const src,
       const size_t element_size)
 {
   if (element_size == sizeof(uint64_t)) {
@@ -1297,34 +1364,6 @@ swap (void *const a,
     *ca++ = *cb;
     *cb++ = c;
   } while (--n > 0);
-}
-
-/**
- * @brief Sift down function used by the heap-sort algorithm.
- */
-static void
-hps_sift_down (void *const a,
-               const int start,
-               const int end,
-               const size_t element_size,
-               const sort_utils_compare_function cmp)
-{
-  char *const a_ptr = (char *const) a;
-  int root = start;
-  for (int child = 2 * root + 1; child < end; child = 2 * root + 1) {
-    char *child_ptr = (char *) a_ptr + child * element_size;
-    char *const root_ptr = (char *const) a_ptr + root * element_size;
-    if ((child < end - 1) && cmp(child_ptr, child_ptr + element_size)) {
-      child += 1;
-      child_ptr += element_size;
-    }
-    if (cmp(root_ptr, child_ptr)) {
-      swap(child_ptr, root_ptr, element_size);
-      root = child;
-    }
-    else
-      return;
-  }
 }
 
 /**
