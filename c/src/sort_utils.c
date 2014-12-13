@@ -76,28 +76,6 @@
  */
 
 /*
- * Internal struct and type definitions.
- */
-
-
-
-/*
- * Internal macros.
- */
-
-/**
- * @brief Function up as described by the sooth-sort paper.
- */
-#define sms_up(ia, ib) do { unsigned long long int temp = ia; ia += ib + 1; ib = temp; } while (0)
-
-/**
- * @brief Function down as described by the sooth-sort paper.
- */
-#define sms_down(ia, ib) do { unsigned long long int temp = ib; ib = ia - ib - 1; ia = temp; } while (0)
-
-
-
-/*
  * Prototypes for internal functions.
  */
 
@@ -111,37 +89,6 @@ static void
 swap (void *const a,
       void *const b,
       const size_t element_size);
-
-static void
-sms_sift (const sort_utils_compare_function cmp,
-          const size_t es,
-          char *r1,
-          char *tmp,
-          unsigned long long int *b1,
-          unsigned long long int *c1);
-
-static void
-sms_trinkle (const sort_utils_compare_function cmp,
-             const size_t es,
-             char *r1,
-             char *tmp,
-             unsigned long long int p,
-             unsigned long long int b,
-             unsigned long long int c,
-             unsigned long long int *b1,
-             unsigned long long int *c1);
-
-static void
-sms_semitrinkle (const sort_utils_compare_function cmp,
-                 const size_t es,
-                 char *r,
-                 char *r1,
-                 char *tmp,
-                 unsigned long long int p,
-                 unsigned long long int b,
-                 unsigned long long int c,
-                 unsigned long long int *b1,
-                 unsigned long long int *c1);
 
 /**
  * @endcond
@@ -719,6 +666,184 @@ sort_utils_heapsort_dsc_d (double *const a,
 /***************/
 
 /**
+ * @cond
+ */
+
+/**
+ * @brief Function up as described by the sooth-sort paper.
+ */
+#define sms_up(ia, ib) do { unsigned long long int temp = ia; ia += ib + 1; ib = temp; } while (0)
+
+/**
+ * @brief Function down as described by the sooth-sort paper.
+ */
+#define sms_down(ia, ib) do { unsigned long long int temp = ib; ib = ia - ib - 1; ia = temp; } while (0)
+
+/**
+ * @brief Function sift as defined by the smooth-sort paper.
+ *
+ * @details When stretches thus parsed are viewed as post-order traversals of binary-trees,
+ *          trustiness means that no son exceeds its father. A dubious stretch is made into
+ *          a trusty one by applying the operation "sift" –a direct inheritance from heap-sort– to its root,
+ *          where sift is defined as follow: sift applied to an element m[r1] that is exceeded by its
+ *          largest son m[r2] consists of a swap of these two values, followed by an application of sift to m[r2].
+ *
+ * @param [in]     cmp compare function
+ * @param [in]     es  element size
+ * @param [in,out] r1  one of the reference described in the smooth-sort paper
+ * @param [in]     tmp a reference to a temporary value having the same size of the array elements.
+ * @param [in,out] b1  a reference to the b1 variable described in the paper
+ * @param [in,out] c1  a reference to the c1 variable also described in the paper
+ */
+static void
+sms_sift (const sort_utils_compare_function cmp,
+          const size_t es,
+          char *r1,
+          char *const tmp,
+          unsigned long long int *const b1,
+          unsigned long long int *const c1)
+{
+  char *r0 = r1;
+  copy(tmp, r0, es);
+  while (*b1 >= 3) {
+    char *r2 = r1 + (*c1 - *b1) * es;
+    if (!cmp(r1 - es, r2)) {
+      r2 = r1 - es;
+      sms_down(*b1, *c1);
+    }
+    if (cmp(r2, tmp)) {
+      *b1 = 1;
+    } else {
+      copy(r1, r2, es);
+      r1 = r2;
+      sms_down(*b1, *c1);
+    }
+  }
+  if (r1 - r0) {
+    copy(r1, tmp, es);
+  }
+}
+
+/**
+ * @brief Function trinkle as defined by the smooth-sort paper.
+ *
+ * @details In the case `p mod 4 = 1`, the standard concatenation ends on a dubious stretch of length b,
+ *          which in this step becomes the last but one stretch of the standard concatenation and,
+ *          hence, must be made trusty. In the case `q + c < N`, it suffices to apply sift to m[r] as before,
+ *          since this stretch will later disappear from the standard concatenation. In the case `q + c >= N`,
+ *          however, just applying sift to m[r] might violate P4' since this stretch of length b also occurs
+ *          in the standard concatenation of length N. Making such a dubious stretch trusty and including its
+ *          root in the sequence of ascending roots is achieved by applying "trinkle“ to m[r].
+ *
+ * @param [in]     cmp compare function
+ * @param [in]     es  element size
+ * @param [in,out] r1  one of the reference described in the smooth-sort paper
+ * @param [in]     tmp a reference to a temporary value having the same size of the array elements.
+ * @param [in]     p   the corresponding variable described in the paper
+ * @param [in]     b   the corresponding variable described in the paper
+ * @param [in]     c   the corresponding variable described in the paper
+ * @param [in,out] b1  a reference to the b1 variable described in the paper
+ * @param [in,out] c1  a reference to the c1 variable also described in the paper
+ */
+static void
+sms_trinkle (const sort_utils_compare_function cmp,
+             const size_t es,
+             char *r1,
+             char *const tmp,
+             const unsigned long long int p,
+             const unsigned long long int b,
+             const unsigned long long int c,
+             unsigned long long int *const b1,
+             unsigned long long int *const c1)
+{
+  unsigned long long int p1 = p;
+  *b1 = b;
+  *c1 = c;
+  char *r0 = r1;
+  copy(tmp, r0, es);
+  while (p1 > 0) {
+    while ((p1 & 1) == 0) {
+      p1 >>= 1;
+      sms_up(*b1, *c1);
+    }
+    char *r3 = r1 - *b1 * es;
+    if ((p1 == 1) || cmp(r3, tmp)) {
+      p1 = 0;
+    } else {
+      p1--;
+      if (*b1 == 1) {
+        copy(r1, r3, es);
+        r1 = r3;
+      } else {
+        if (*b1 >= 3) {
+          char *r2 = r1 + (*c1 - *b1) * es;
+          if (!cmp(r1 - es, r2)) {
+            r2 = r1 - es;
+            sms_down(*b1, *c1);
+            p1 <<= 1;
+          }
+          if (cmp(r2, r3)) {
+            copy(r1, r3, es);
+            r1 = r3;
+          } else {
+            copy(r1, r2, es);
+            r1 = r2;
+            sms_down(*b1, *c1);
+            p1 = 0;
+          }
+        }
+      }
+    }
+  }
+  if (r0 - r1) {
+    copy(r1, tmp, es);
+  }
+  sms_sift(cmp, es, r1, tmp, b1, c1);
+}
+
+/**
+ * @brief Function semi-trinkle as defined by the smooth-sort paper.
+ *
+ * @details In the case `b >= 3`, the rightmost stretch of length b is replaced by two trusty ones; hence P3 is maintained.
+ *          To restore P4 it would suffice to apply trinkle first to the root of the first new stretch and then to the
+ *          root of the second new stretch, but this would fail to exploit the fact that the new stretches are already
+ *          trusty to start with. This is exploited by applying "semitrinkle“ in order to those roots.
+ *
+ * @param [in]     cmp compare function
+ * @param [in]     es  element size
+ * @param [in,out] r   one of the reference described in the smooth-sort paper
+ * @param [in,out] r1  one of the reference described in the smooth-sort paper
+ * @param [in]     tmp a reference to a temporary value having the same size of the array elements.
+ * @param [in]     p   the corresponding variable described in the paper
+ * @param [in]     b   the corresponding variable described in the paper
+ * @param [in]     c   the corresponding variable described in the paper
+ * @param [in,out] b1  a reference to the b1 variable described in the paper
+ * @param [in,out] c1  a reference to the c1 variable also described in the paper
+ */
+static void
+sms_semitrinkle (const sort_utils_compare_function cmp,
+                 const size_t es,
+                 char *const r,
+                 char *r1,
+                 char *const tmp,
+                 const unsigned long long int p,
+                 const unsigned long long int b,
+                 const unsigned long long int c,
+                 unsigned long long int *const b1,
+                 unsigned long long int *const c1)
+{
+  r1 = r - c * es;
+  if (!cmp(r1, r)) {
+    swap(r, r1, es);
+    sms_trinkle(cmp, es, r1, tmp, p, b, c, b1, c1);
+  }
+}
+
+/**
+ * @endcond
+ */
+
+/**
  * @brief Sorts the `a` array.
  *
  * @details The vector `a` having length equal to `count` is sorted
@@ -750,7 +875,7 @@ sort_utils_smoothsort (void *const a,
 
   unsigned long long int q = 1;
 
-  /* building tree */
+  /* Building tree. */
   while (q < count) {
     char *r1 = r;
     if ((p & 7) == 3) {
@@ -782,7 +907,7 @@ sort_utils_smoothsort (void *const a,
   char *r1 = r;
   sms_trinkle(cmp, element_size, r1, tmp, p, b, c, &b1, &c1);
 
-  /* building sorted array */
+  /* Building sorted array. */
   while (q > 1) {
     q--;
     if (b == 1) {
@@ -807,9 +932,9 @@ sort_utils_smoothsort (void *const a,
         p = (p << 1) + 1;
       }
     }
-    /* element q processed */
+    /* Wlement q processed. */
   }
-  /* element 0 processed */
+  /* Element 0 processed. */
   free(tmp);
 }
 
@@ -843,6 +968,38 @@ sort_utils_smoothsort_dsc_d (double *const a,
                              const int count)
 {
   sort_utils_smoothsort(a, count, sizeof(double), sort_utils_double_ge);
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of integers.
+ *
+ * @details The vector of integers `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the smooth-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_smoothsort_asc_i (int *const a,
+                             const int count)
+{
+  sort_utils_smoothsort(a, count, sizeof(int), sort_utils_int_le);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of integers.
+ *
+ * @details The vector of integers `a` having length equal to `count` is sorted
+ *          in place in descending order applying the smooth-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_smoothsort_dsc_i (int *const a,
+                             const int count)
+{
+  sort_utils_smoothsort(a, count, sizeof(int), sort_utils_int_ge);
 }
 
 
@@ -1364,166 +1521,6 @@ swap (void *const a,
     *ca++ = *cb;
     *cb++ = c;
   } while (--n > 0);
-}
-
-/**
- * @brief Function sift as defined by the smooth-sort paper.
- *
- * @details When stretches thus parsed are viewed as post-order traversals of binary-trees,
- *          trustiness means that no son exceeds its father. A dubious stretch is made into
- *          a trusty one by applying the operation "sift" –a direct inheritance from heap-sort– to its root,
- *          where sift is defined as follow: sift applied to an element m[r1] that is exceeded by its
- *          largest son m[r2] consists of a swap of these two values, followed by an application of sift to m[r2].
- *
- * @param cmp compare function
- * @param es  element size
- * @param r1  one of the reference described in the smooth-sort paper
- * @param tmp a reference to a temporary value having the same size of the array elements.
- * @param b1  a reference to the b1 variable described in the paper
- * @param c1  a reference to the c1 variable also described in the paper
- */
-static void
-sms_sift (const sort_utils_compare_function cmp,
-          const size_t es,
-          char *r1,
-          char *tmp,
-          unsigned long long int *b1,
-          unsigned long long int *c1)
-{
-  char *r0 = r1;
-  copy(tmp, r0, es);
-  while (*b1 >= 3) {
-    char *r2 = r1 + (*c1 - *b1) * es;
-    if (!cmp(r1 - es, r2)) {
-      r2 = r1 - es;
-      sms_down(*b1, *c1);
-    }
-    if (cmp(r2, tmp)) {
-      *b1 = 1;
-    } else {
-      copy(r1, r2, es);
-      r1 = r2;
-      sms_down(*b1, *c1);
-    }
-  }
-  if (r1 - r0) {
-    copy(r1, tmp, es);
-  }
-}
-
-/**
- * @brief Function trinkle as defined by the smooth-sort paper.
- *
- * @details In the case `p mod 4 = 1`, the standard concatenation ends on a dubious stretch of length b,
- *          which in this step becomes the last but one stretch of the standard concatenation and,
- *          hence, must be made trusty. In the case `q + c < N`, it suffices to apply sift to m[r] as before,
- *          since this stretch will later disappear from the standard concatenation. In the case `q + c >= N`,
- *          however, just applying sift to m[r] might violate P4' since this stretch of length b also occurs
- *          in the standard concatenation of length N. Making such a dubious stretch trusty and including its
- *          root in the sequence of ascending roots is achieved by applying "trinkle“ to m[r].
- *
- * @param cmp compare function
- * @param es  element size
- * @param r1  one of the reference described in the smooth-sort paper
- * @param tmp a reference to a temporary value having the same size of the array elements.
- * @param p   the corresponding variable described in the paper
- * @param b   the corresponding variable described in the paper
- * @param c   the corresponding variable described in the paper
- * @param b1  a reference to the b1 variable described in the paper
- * @param c1  a reference to the c1 variable also described in the paper
- */
-static void
-sms_trinkle (const sort_utils_compare_function cmp,
-             const size_t es,
-             char *r1,
-             char *tmp,
-             unsigned long long int p,
-             unsigned long long int b,
-             unsigned long long int c,
-             unsigned long long int *b1,
-             unsigned long long int *c1)
-{
-  unsigned long long int p1 = p;
-  *b1 = b;
-  *c1 = c;
-  char *r0 = r1;
-  copy(tmp, r0, es);
-  while (p1 > 0) {
-    while ((p1 & 1) == 0) {
-      p1 >>= 1;
-      sms_up(*b1, *c1);
-    }
-    char *r3 = r1 - *b1 * es;
-    if ((p1 == 1) || cmp(r3, tmp)) {
-      p1 = 0;
-    } else {
-      p1--;
-      if (*b1 == 1) {
-        copy(r1, r3, es);
-        r1 = r3;
-      } else {
-        if (*b1 >= 3) {
-          char *r2 = r1 + (*c1 - *b1) * es;
-          if (!cmp(r1 - es, r2)) {
-            r2 = r1 - es;
-            sms_down(*b1, *c1);
-            p1 <<= 1;
-          }
-          if (cmp(r2, r3)) {
-            copy(r1, r3, es);
-            r1 = r3;
-          } else {
-            copy(r1, r2, es);
-            r1 = r2;
-            sms_down(*b1, *c1);
-            p1 = 0;
-          }
-        }
-      }
-    }
-  }
-  if (r0 - r1) {
-    copy(r1, tmp, es);
-  }
-  sms_sift(cmp, es, r1, tmp, b1, c1);
-}
-
-/**
- * @brief Function semi-trinkle as defined by the smooth-sort paper.
- *
- * @details In the case `b >= 3`, the rightmost stretch of length b is replaced by two trusty ones; hence P3 is maintained.
- *          To restore P4 it would suffice to apply trinkle first to the root of the first new stretch and then to the
- *          root of the second new stretch, but this would fail to exploit the fact that the new stretches are already
- *          trusty to start with. This is exploited by applying "semitrinkle“ in order to those roots.
- *
- * @param cmp compare function
- * @param es  element size
- * @param r   one of the reference described in the smooth-sort paper
- * @param r1  one of the reference described in the smooth-sort paper
- * @param tmp a reference to a temporary value having the same size of the array elements.
- * @param p   the corresponding variable described in the paper
- * @param b   the corresponding variable described in the paper
- * @param c   the corresponding variable described in the paper
- * @param b1  a reference to the b1 variable described in the paper
- * @param c1  a reference to the c1 variable also described in the paper
- */
-static void
-sms_semitrinkle (const sort_utils_compare_function cmp,
-                 const size_t es,
-                 char *r,
-                 char *r1,
-                 char *tmp,
-                 unsigned long long int p,
-                 unsigned long long int b,
-                 unsigned long long int c,
-                 unsigned long long int *b1,
-                 unsigned long long int *c1)
-{
-  r1 = r - c * es;
-  if (!cmp(r1, r)) {
-    swap(r, r1, es);
-    sms_trinkle(cmp, es, r1, tmp, p, b, c, b1, c1);
-  }
 }
 
 /**

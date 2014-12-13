@@ -195,6 +195,14 @@ extern void
 sort_utils_smoothsort_dsc_d (double *const a,
                              const int count);
 
+extern void
+sort_utils_smoothsort_asc_i (int *const a,
+                             const int count);
+
+extern void
+sort_utils_smoothsort_dsc_i (int *const a,
+                             const int count);
+
 
 
 /***********************************/
