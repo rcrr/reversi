@@ -2,6 +2,7 @@
  * @file
  *
  * @todo Refactor quick-sort.
+ *       The swap macro is complicated .... and does not bring performance in.
  *
  * @todo Add tim-sort implementation to the list of available choices.
  *
@@ -31,6 +32,32 @@
  *
  *
  * @brief Sort utilities module implementation.
+ *
+ * @details The functions made available by this module are all in-memory algorithms for "internal sorting".
+ *
+ * A lot of effort has been devoted to study and research sorting procedures, but a silver bullet has still to come.
+ * Depending on the sorting data distribution, the patterns in the data, the type and number of the records,
+ * the cost of comparing versus swapping, the availability of extra space, and finally our tolerance to the risk
+ * of exploding running time and memory consumption caused by unpredicted data distributions that drive the
+ * algorithm into the abyss, one procedure can be more efficient then the others.
+ *
+ * The algorithms here proposed are:
+ *   - Insertion-sort
+ *   - Heap-sort
+ *   - Smooth-sort
+ *   - Quick-sort
+ *   - Shell-sort
+ *   - Merge-sort
+ *
+ * There are mainly three different approaches when we have to rearrange records of information in a given order:
+ *   - Address table sorting that means moving the complete records around.
+ *   - Key-sorting that is carried out by preparing an auxiliary array of references and sort them.
+ *   - List sorting that is done organizing auxiliary references into a linked list.
+ *
+ * The first one is more appealing when the data to be sorted is not too big when compared with the pointer size
+ * of the machine, on the other side linked lists are very efficient when we have to make an insertion and
+ * key-sorting shines when two elements has to be swapped.
+ *
  *
  * @par sort_utils.c
  * <tt>
@@ -614,7 +641,7 @@ sort_utils_heapsort_asc_d (double *const a,
 /**
  * @brief Sorts in descending order the `a` array of integers.
  *
- * @details The vector of integerss `a` having length equal to `count` is sorted
+ * @details The vector of integers `a` having length equal to `count` is sorted
  *          in place in descending order applying the heap-sort algorithm.
  *
  * @param [in,out] a     the array to be sorted
@@ -932,7 +959,7 @@ sort_utils_smoothsort (void *const a,
         p = (p << 1) + 1;
       }
     }
-    /* Wlement q processed. */
+    /* Element q processed. */
   }
   /* Element 0 processed. */
   free(tmp);
@@ -1026,7 +1053,7 @@ typedef long long int QksSwapWord;
 #define qks_sws sizeof(QksSwapWord)
 
 /**
- * @brief This macro must be called at the beginning of a fuction using qks_swap.
+ * @brief This macro must be called at the beginning of a function using qks_swap.
  *        Variables `size_t es` and `QksSwapWord t` must be defined.
  */
 #define qks_swap_init(a, es) swaptype =                                 \
