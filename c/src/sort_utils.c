@@ -1110,7 +1110,8 @@ qks_min (const ptrdiff_t a,
  *
  * @details The vector `a` having length equal to `count` is sorted
  *          in place applying the quick-sort algorithm.
- *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *          The compare function is a comparator and must return `-1`, `0`, or `+1` constrained by
+ *          the sorting order of the two elements.
  *
  *          Adapted from the paper "Engineering a Sort Function" by Jon L. Bentley and M. Douglas McIlroy
  *          See: http://www.skidmore.edu/~meckmann/2009Spring/cs206/papers/spe862jb.pdf
@@ -1408,6 +1409,38 @@ sort_utils_shellsort_dsc_d (double *const a,
   sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_gt);
 }
 
+/**
+ * @brief Sorts in ascending order the `a` array of integers.
+ *
+ * @details The vector of integers `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the shell-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_shellsort_asc_i (int *const a,
+                            const int count)
+{
+  sort_utils_shellsort(a, count, sizeof(int), sort_utils_int_lt);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of integers.
+ *
+ * @details The vector of integers `a` having length equal to `count` is sorted
+ *          in place in descending order applying the shell-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_shellsort_dsc_i (int *const a,
+                            const int count)
+{
+  sort_utils_shellsort(a, count, sizeof(int), sort_utils_int_gt);
+}
+
 
 
 /**************/
@@ -1420,8 +1453,31 @@ sort_utils_shellsort_dsc_d (double *const a,
  * @details The vector `a` having length equal to `count` is sorted
  *          using auxiliary space applying the merge-sort algorithm.
  *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applied by the algorithm
+ */
+void
+sort_utils_mergesort (void *const a,
+                      const size_t count,
+                      const size_t element_size,
+                      const sort_utils_compare_function cmp)
+{
+  void *aux = malloc(sizeof(element_size) * count);
+  sort_utils_mergesort_a(a, count, element_size, cmp, aux);
+  free(aux);
+}
+
+/**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a` having length equal to `count` is sorted
+ *          using auxiliary space applying the merge-sort algorithm.
+ *          The compare function is a predicate and must return `TRUE` or `FALSE`.
  *          The auxiliary space must have the same size of the `a` array or larger,
- *          the content when the function returns is garbage.
+ *          the content of it when the function returns is garbage.
  *
  * @param [in,out] a     the array to be sorted
  * @param [in]     count the number of element in array
@@ -1483,29 +1539,6 @@ sort_utils_mergesort_a (void *const a,
 }
 
 /**
- * @brief Sorts the `a` array.
- *
- * @details The vector `a` having length equal to `count` is sorted
- *          using auxiliary space applying the merge-sort algorithm.
- *          The compare function is a predicate and must return `TRUE` or `FALSE`.
- *
- * @param [in,out] a            the array to be sorted
- * @param [in]     count        the number of element in array
- * @param [in]     element_size the number of bytes used by one element
- * @param [in]     cmp          the compare function applied by the algorithm
- */
-void
-sort_utils_mergesort (void *const a,
-                      const size_t count,
-                      const size_t element_size,
-                      const sort_utils_compare_function cmp)
-{
-  void *aux = malloc(sizeof(element_size) * count);
-  sort_utils_mergesort_a(a, count, element_size, cmp, aux);
-  free(aux);
-}
-
-/**
  * @brief Sorts in ascending order the `a` array of doubles.
  *
  * @details The vector of doubles `a` having length equal to `count` is sorted
@@ -1535,6 +1568,38 @@ sort_utils_mergesort_dsc_d (double *const a,
                             const int count)
 {
   sort_utils_mergesort(a, count, sizeof(double), sort_utils_double_gt);
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of integers.
+ *
+ * @details The vector of integers `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the merge-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_mergesort_asc_i (int *const a,
+                            const int count)
+{
+  sort_utils_mergesort(a, count, sizeof(int), sort_utils_int_lt);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of integers.
+ *
+ * @details The vector of integers `a` having length equal to `count` is sorted
+ *          in place in descending order applying the merge-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_mergesort_dsc_i (int *const a,
+                            const int count)
+{
+  sort_utils_mergesort(a, count, sizeof(int), sort_utils_int_gt);
 }
 
 

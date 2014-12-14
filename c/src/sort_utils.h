@@ -251,6 +251,14 @@ extern void
 sort_utils_shellsort_dsc_d (double *const a,
                             const int count);
 
+extern void
+sort_utils_shellsort_asc_i (int *const a,
+                            const int count);
+
+extern void
+sort_utils_shellsort_dsc_i (int *const a,
+                            const int count);
+
 
 
 /***********************************/
@@ -276,6 +284,14 @@ sort_utils_mergesort_asc_d (double *const a,
 
 extern void
 sort_utils_mergesort_dsc_d (double *const a,
+                            const int count);
+
+extern void
+sort_utils_mergesort_asc_i (int *const a,
+                            const int count);
+
+extern void
+sort_utils_mergesort_dsc_i (int *const a,
                             const int count);
 
 
