@@ -444,12 +444,12 @@ sort_utils_insertionsort (void *const a,
                           const size_t element_size,
                           const sort_utils_compare_function cmp)
 {
-  char *a_ptr = (char *) a;
+  char *ca = (char *) a;
   for (int i = 1; i < count; i++) {
     int j = i;
     for (;;) {
-      if (j == 0 || cmp(a_ptr + (j - 1) * element_size, a_ptr + j * element_size)) break;
-      swap(a_ptr + j * element_size, a_ptr + (j - 1) * element_size, element_size);
+      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size)) break;
+      swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
       j--;
     }
   }
@@ -545,11 +545,11 @@ hps_sift_down (void *const a,
                const size_t element_size,
                const sort_utils_compare_function cmp)
 {
-  char *const a_ptr = (char *const) a;
+  char *const ca = (char *const) a;
   int root = start;
   for (int child = 2 * root + 1; child < end; child = 2 * root + 1) {
-    char *child_ptr = (char *) a_ptr + child * element_size;
-    char *const root_ptr = (char *const) a_ptr + root * element_size;
+    char *child_ptr = (char *) ca + child * element_size;
+    char *const root_ptr = (char *const) ca + root * element_size;
     if ((child < end - 1) && cmp(child_ptr, child_ptr + element_size)) {
       child += 1;
       child_ptr += element_size;
@@ -585,12 +585,12 @@ sort_utils_heapsort (void *const a,
                      const size_t element_size,
                      const sort_utils_compare_function cmp)
 {
-  char *a_ptr = (char *) a;
+  char *ca = (char *) a;
   for (int start = (count - 2) / 2; start >= 0; start--) {
     hps_sift_down(a, start, count, element_size, cmp);
   }
   for (int end = count - 1; end > 0; end--) {
-    swap(a_ptr + end * element_size, a_ptr, element_size);
+    swap(ca + end * element_size, ca, element_size);
     hps_sift_down(a, 0, end, element_size, cmp);
   }
 }
@@ -938,6 +938,9 @@ sort_utils_smoothsort (void *const a,
   free(tmp);
 }
 
+#undef sms_up
+#undef sms_down
+
 /**
  * @brief Sorts in ascending order the `a` array of doubles.
  *
@@ -951,7 +954,7 @@ void
 sort_utils_smoothsort_asc_d (double *const a,
                              const int count)
 {
-  sort_utils_smoothsort(a, count, sizeof(double), sort_utils_double_le);
+  sort_utils_smoothsort(a, count, sizeof(double), sort_utils_double_lt);
 }
 
 /**
@@ -967,7 +970,7 @@ void
 sort_utils_smoothsort_dsc_d (double *const a,
                              const int count)
 {
-  sort_utils_smoothsort(a, count, sizeof(double), sort_utils_double_ge);
+  sort_utils_smoothsort(a, count, sizeof(double), sort_utils_double_gt);
 }
 
 /**
@@ -1009,29 +1012,59 @@ sort_utils_smoothsort_dsc_i (int *const a,
 /**************/
 
 /**
+ * @cond
+ */
+
+/**
  * @brief Used to optimize the swap operation for quick-sort.
  */
 typedef long long int QksSwapWord;
 
+/**
+ * @brief The size of a register, on x86_64 it is eight.
+ */
 #define qks_sws sizeof(QksSwapWord)
 
-#define qks_swap_init(a, es) swaptype =                      \
+/**
+ * @brief This macro must be called at the beginning of a fuction using qks_swap.
+ *        Variables `size_t es` and `QksSwapWord t` must be defined.
+ */
+#define qks_swap_init(a, es) swaptype =                                 \
     ((a - (char *) 0) | es) % qks_sws ? 2 : es > qks_sws ? 1 : 0
 
+/**
+ * @brief Inline exchange of values among `a` and `b`.
+ */
 #define qks_exch(a, b, t) (t = a, a = b, b = t)
 
+/**
+ * @brief Swaps values among `a` and `b`.
+ *        A call to qks_swap_init macro must be done once in advance.
+ */
 #define qks_swap(a, b)                                                  \
   swaptype != 0 ? qks_swapfunc(a, b, es, swaptype) :                    \
     (void) qks_exch(*(QksSwapWord *) (a), *(QksSwapWord *) (b), t)
 
+/**
+ * @brief Swaps vectors.
+ */
 #define qks_vec_swap(a, b, n) if (n > 0) qks_swapfunc(a, b, n, swaptype)
 
-#define qks_pv_init(pv, pm)                     \
-  if (swaptype != 0) pv = a, qks_swap(pv, pm);  \
+/**
+ * @brief Prepares pivot elements.
+ */
+#define qks_pv_init(pv, pm)                             \
+  if (swaptype != 0) pv = a, qks_swap(pv, pm);          \
   else pv = (char *) &v, v = *(QksSwapWord *) pm
 
+/**
+ * @brief Swaps values among pointers `a` and `b`.
+ */
 static void
-qks_swapfunc (char *a, char *b, size_t n, int swaptype)
+qks_swapfunc (char *a,
+              char *b,
+              size_t n,
+              const int swaptype)
 {
   if (swaptype <= 1) {
     QksSwapWord t;
@@ -1044,19 +1077,33 @@ qks_swapfunc (char *a, char *b, size_t n, int swaptype)
   }
 }
 
+/**
+ * @brief Returns the median element among `a`, `b`, and `c`.
+ */
 static char *
-qks_med3 (char *a, char *b, char *c, int (*cmp) ())
+qks_med3 (char *const a,
+          char *const b,
+          char *const c,
+          int (*const cmp) ())
 {
   return cmp(a, b) < 0 ?
     (cmp(b, c) < 0 ? b : cmp(a, c) < 0 ? c : a) :
     (cmp(b, c) > 0 ? b : cmp(a, c) > 0 ? c : a);
 }
 
+/**
+ * @brief Returns the minimum between pointer differences `a` and `b`.
+ */
 static ptrdiff_t
-qks_min(ptrdiff_t a, ptrdiff_t b)
+qks_min (const ptrdiff_t a,
+         const ptrdiff_t b)
 {
   return (a < b) ? a : b;
 }
+
+/**
+ * @endcond
+ */
 
 /**
  * @brief Sorts the `a` array.
@@ -1198,6 +1245,38 @@ sort_utils_quicksort_dsc_d (double *const a,
   sort_utils_quicksort(a, count, sizeof(double), sort_utils_double_icmp);
 }
 
+/**
+ * @brief Sorts in ascending order the `a` array of integers.
+ *
+ * @details The vector of integers `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the quick-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_quicksort_asc_i (int *const a,
+                            const int count)
+{
+  sort_utils_quicksort(a, count, sizeof(int), sort_utils_int_cmp);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of integers.
+ *
+ * @details The vector of integers `a` having length equal to `count` is sorted
+ *          in place in descending order applying the quick-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_quicksort_dsc_i (int *const a,
+                            const int count)
+{
+  sort_utils_quicksort(a, count, sizeof(int), sort_utils_int_icmp);
+}
+
 
 
 /**************/
@@ -1310,7 +1389,7 @@ void
 sort_utils_shellsort_asc_d (double *const a,
                             const int count)
 {
-  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_le);
+  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_lt);
 }
 
 /**
@@ -1326,7 +1405,7 @@ void
 sort_utils_shellsort_dsc_d (double *const a,
                             const int count)
 {
-  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_ge);
+  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_gt);
 }
 
 
@@ -1439,7 +1518,7 @@ void
 sort_utils_mergesort_asc_d (double *const a,
                             const int count)
 {
-  sort_utils_mergesort(a, count, sizeof(double), sort_utils_double_le);
+  sort_utils_mergesort(a, count, sizeof(double), sort_utils_double_lt);
 }
 
 /**
@@ -1455,7 +1534,7 @@ void
 sort_utils_mergesort_dsc_d (double *const a,
                             const int count)
 {
-  sort_utils_mergesort(a, count, sizeof(double), sort_utils_double_ge);
+  sort_utils_mergesort(a, count, sizeof(double), sort_utils_double_gt);
 }
 
 
