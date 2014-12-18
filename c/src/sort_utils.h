@@ -122,6 +122,14 @@ sort_utils_int_icmp (const void *const a,
 
 
 
+/* uint64_t */
+
+extern int
+sort_utils_uint64_t_eq (const void *const a,
+                        const void *const b);
+
+
+
 /***************************************/
 /* Insertion-sort function prototypes. */
 /***************************************/
