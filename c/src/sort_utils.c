@@ -284,12 +284,12 @@ sort_utils_double_icmp (const void *const a,
  * @brief Returns true when `a` is equal to `b`.
  *
  * @details Compare function that returns `TRUE`, so a value
- *          different from zero, when the int value pointed
+ *          different from zero, when the integer value pointed
  *          by `a` is equal to the one pointed by `b`, otherwise
  *          it returns zero (`FALSE`).
  *
- * @param a a pointer to the first int
- * @param b a pointer to the second int
+ * @param a a pointer to the first integer
+ * @param b a pointer to the second integer
  * @return  `TRUE` when `a` is equal `b`.
  */
 int
@@ -305,12 +305,12 @@ sort_utils_int_eq (const void *const a,
  * @brief Returns true when `a` is greater than `b`.
  *
  * @details Compare function that returns `TRUE`, so a value
- *          different from zero, when the int value pointed
+ *          different from zero, when the integer value pointed
  *          by `a` is greater than the one pointed by `b`, otherwise
  *          it returns zero (`FALSE`).
  *
- * @param a a pointer to the first int
- * @param b a pointer to the second int
+ * @param a a pointer to the first integer
+ * @param b a pointer to the second integer
  * @return  `TRUE` when `a` is greater than `b`.
  */
 int
@@ -326,12 +326,12 @@ sort_utils_int_gt (const void *const a,
  * @brief Returns true when `a` is greater than or equal to `b`.
  *
  * @details Compare function that returns `TRUE`, so a value
- *          different from zero, when the int value pointed
+ *          different from zero, when the integer value pointed
  *          by `a` is greater than or equal to the one pointed by `b`,
  *          otherwise it returns zero (`FALSE`).
  *
- * @param a a pointer to the first int
- * @param b a pointer to the second int
+ * @param a a pointer to the first integer
+ * @param b a pointer to the second integer
  * @return  `TRUE` when `a` is greater than or equal to `b`.
  */
 int
@@ -368,12 +368,12 @@ sort_utils_int_lt (const void *const a,
  * @brief Returns true when `a` is less than or equal to `b`.
  *
  * @details Compare function that returns `TRUE`, so a value
- *          different from zero, when the int value pointed
+ *          different from zero, when the integer value pointed
  *          by `a` is less than or equal to the one pointed by `b`,
  *          otherwise it returns zero (`FALSE`).
  *
- * @param a a pointer to the first int
- * @param b a pointer to the second int
+ * @param a a pointer to the first integer
+ * @param b a pointer to the second integer
  * @return  `TRUE` when `a` is less than or equal to `b`.
  */
 int
@@ -393,8 +393,8 @@ sort_utils_int_le (const void *const a,
  *          - ` 0` when `a` is equal to `b`
  *          - `-1` when `a` is less then `b`
  *
- * @param a a pointer to the first int
- * @param b a pointer to the second int
+ * @param a a pointer to the first integer
+ * @param b a pointer to the second integer
  * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
  */
 int
@@ -414,8 +414,8 @@ sort_utils_int_cmp (const void *const a,
  *          - ` 0` when `a` is equal to `b`
  *          - `+1` when `a` is less then `b`
  *
- * @param a a pointer to the first int
- * @param b a pointer to the second int
+ * @param a a pointer to the first integer
+ * @param b a pointer to the second integer
  * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
  */
 int
@@ -435,12 +435,12 @@ sort_utils_int_icmp (const void *const a,
  * @brief Returns true when `a` is equal to `b`.
  *
  * @details Compare function that returns `TRUE`, so a value
- *          different from zero, when the uint64_t value pointed
+ *          different from zero, when the `uint64_t` value pointed
  *          by `a` is equal to the one pointed by `b`, otherwise
  *          it returns zero (`FALSE`).
  *
- * @param a a pointer to the first uint64_t
- * @param b a pointer to the second uint64_t
+ * @param a a pointer to the first `uint64_t` value
+ * @param b a pointer to the second `uint64_t` value
  * @return  `TRUE` when `a` is equal `b`.
  */
 int
@@ -450,6 +450,132 @@ sort_utils_uint64_t_eq (const void *const a,
   const uint64_t *const x = (const uint64_t *const) a;
   const uint64_t *const y = (const uint64_t *const) b;
   return *x == *y;
+}
+
+/**
+ * @brief Returns true when `a` is greater than `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the `uint64_t` value pointed
+ *          by `a` is greater than the one pointed by `b`, otherwise
+ *          it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first `uint64_t` value
+ * @param b a pointer to the second `uint64_t` value
+ * @return  `TRUE` when `a` is greater than `b`.
+ */
+int
+sort_utils_uint64_t_gt (const void *const a,
+                        const void *const b)
+{
+  const uint64_t *const x = (const uint64_t *const) a;
+  const uint64_t *const y = (const uint64_t *const) b;
+  return *x > *y;
+}
+
+/**
+ * @brief Returns true when `a` is greater than or equal to `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the `uint64_t` value pointed
+ *          by `a` is greater than or equal to the one pointed by `b`,
+ *          otherwise it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first `uint64_t` value
+ * @param b a pointer to the second `uint64_t` value
+ * @return  `TRUE` when `a` is greater than or equal to `b`.
+ */
+int
+sort_utils_uint64_t_ge (const void *const a,
+                        const void *const b)
+{
+  const uint64_t *const x = (const uint64_t *const) a;
+  const uint64_t *const y = (const uint64_t *const) b;
+  return *x >= *y;
+}
+
+/**
+ * @brief Returns true when `a` is less than `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the `uint64_t` value pointed
+ *          by `a` is less than the one pointed by `b`, otherwise
+ *          it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first `uint64_t` value
+ * @param b a pointer to the second `uint64_t` value
+ * @return  `TRUE` when `a` is less than `b`.
+ */
+int
+sort_utils_uint64_t_lt (const void *const a,
+                        const void *const b)
+{
+  const uint64_t *const x = (const uint64_t *const) a;
+  const uint64_t *const y = (const uint64_t *const) b;
+  return *x < *y;
+}
+
+/**
+ * @brief Returns true when `a` is less than or equal to `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the `uint64_t` value pointed
+ *          by `a` is less than or equal to the one pointed by `b`,
+ *          otherwise it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first `uint64_t` value
+ * @param b a pointer to the second `uint64_t` value
+ * @return  `TRUE` when `a` is less than or equal to `b`.
+ */
+int
+sort_utils_uint64_t_le (const void *const a,
+                        const void *const b)
+{
+  const uint64_t *const x = (const uint64_t *const) a;
+  const uint64_t *const y = (const uint64_t *const) b;
+  return *x <= *y;
+}
+
+/**
+ * @brief Compares `uint64_t` values pointed by `a` and `b`.
+ *
+ * @details Compare function that returns:
+ *          - `+1` when `a` is greater than `b`
+ *          - ` 0` when `a` is equal to `b`
+ *          - `-1` when `a` is less then `b`
+ *
+ * @param a a pointer to the first `uint64_t` value
+ * @param b a pointer to the second `uint64_t` value
+ * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
+ */
+int
+sort_utils_uint64_t_cmp (const void *const a,
+                         const void *const b)
+{
+  const uint64_t *const x = (const uint64_t *const) a;
+  const uint64_t *const y = (const uint64_t *const) b;
+  return (*x > *y) - (*x < *y);
+}
+
+/**
+ * @brief Compares `uint64_t` values pointed by `a` and `b`.
+ *
+ * @details Compare function that returns:
+ *          - `-1` when `a` is greater than `b`
+ *          - ` 0` when `a` is equal to `b`
+ *          - `+1` when `a` is less then `b`
+ *
+ * @param a a pointer to the first `uint64_t` value
+ * @param b a pointer to the second `uint64_t` value
+ * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
+ */
+int
+sort_utils_uint64_t_icmp (const void *const a,
+                          const void *const b)
+{
+  const uint64_t *const x = (const uint64_t *const) a;
+  const uint64_t *const y = (const uint64_t *const) b;
+  return (*x < *y) - (*x > *y);
 }
 
 
