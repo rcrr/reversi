@@ -603,6 +603,132 @@ sort_utils_int64_t_eq (const void *const a,
   return *x == *y;
 }
 
+/**
+ * @brief Returns true when `a` is greater than `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the `int64_t` value pointed
+ *          by `a` is greater than the one pointed by `b`, otherwise
+ *          it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first `int64_t` value
+ * @param b a pointer to the second `int64_t` value
+ * @return  `TRUE` when `a` is greater than `b`.
+ */
+int
+sort_utils_int64_t_gt (const void *const a,
+                       const void *const b)
+{
+  const int64_t *const x = (const int64_t *const) a;
+  const int64_t *const y = (const int64_t *const) b;
+  return *x > *y;
+}
+
+/**
+ * @brief Returns true when `a` is greater than or equal to `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the `int64_t` value pointed
+ *          by `a` is greater than or equal to the one pointed by `b`,
+ *          otherwise it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first `int64_t` value
+ * @param b a pointer to the second `int64_t` value
+ * @return  `TRUE` when `a` is greater than or equal to `b`.
+ */
+int
+sort_utils_int64_t_ge (const void *const a,
+                       const void *const b)
+{
+  const int64_t *const x = (const int64_t *const) a;
+  const int64_t *const y = (const int64_t *const) b;
+  return *x >= *y;
+}
+
+/**
+ * @brief Returns true when `a` is less than `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the `int64_t` value pointed
+ *          by `a` is less than the one pointed by `b`, otherwise
+ *          it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first `int64_t` value
+ * @param b a pointer to the second `int64_t` value
+ * @return  `TRUE` when `a` is less than `b`.
+ */
+int
+sort_utils_int64_t_lt (const void *const a,
+                       const void *const b)
+{
+  const int64_t *const x = (const int64_t *const) a;
+  const int64_t *const y = (const int64_t *const) b;
+  return *x < *y;
+}
+
+/**
+ * @brief Returns true when `a` is less than or equal to `b`.
+ *
+ * @details Compare function that returns `TRUE`, so a value
+ *          different from zero, when the `int64_t` value pointed
+ *          by `a` is less than or equal to the one pointed by `b`,
+ *          otherwise it returns zero (`FALSE`).
+ *
+ * @param a a pointer to the first `int64_t` value
+ * @param b a pointer to the second `int64_t` value
+ * @return  `TRUE` when `a` is less than or equal to `b`.
+ */
+int
+sort_utils_int64_t_le (const void *const a,
+                       const void *const b)
+{
+  const int64_t *const x = (const int64_t *const) a;
+  const int64_t *const y = (const int64_t *const) b;
+  return *x <= *y;
+}
+
+/**
+ * @brief Compares `int64_t` values pointed by `a` and `b`.
+ *
+ * @details Compare function that returns:
+ *          - `+1` when `a` is greater than `b`
+ *          - ` 0` when `a` is equal to `b`
+ *          - `-1` when `a` is less then `b`
+ *
+ * @param a a pointer to the first `int64_t` value
+ * @param b a pointer to the second `int64_t` value
+ * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
+ */
+int
+sort_utils_int64_t_cmp (const void *const a,
+                        const void *const b)
+{
+  const int64_t *const x = (const int64_t *const) a;
+  const int64_t *const y = (const int64_t *const) b;
+  return (*x > *y) - (*x < *y);
+}
+
+/**
+ * @brief Compares `int64_t` values pointed by `a` and `b`.
+ *
+ * @details Compare function that returns:
+ *          - `-1` when `a` is greater than `b`
+ *          - ` 0` when `a` is equal to `b`
+ *          - `+1` when `a` is less then `b`
+ *
+ * @param a a pointer to the first `int64_t` value
+ * @param b a pointer to the second `int64_t` value
+ * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
+ */
+int
+sort_utils_int64_t_icmp (const void *const a,
+                         const void *const b)
+{
+  const int64_t *const x = (const int64_t *const) a;
+  const int64_t *const y = (const int64_t *const) b;
+  return (*x < *y) - (*x > *y);
+}
+
 
 
 /*********************************/

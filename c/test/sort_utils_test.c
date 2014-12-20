@@ -775,6 +775,66 @@ sort_utils_uint64_t_compare_test (void)
   a = 3;
   b = 2;
   g_assert_false(sort_utils_uint64_t_eq(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_true(sort_utils_uint64_t_gt(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_false(sort_utils_uint64_t_gt(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_false(sort_utils_uint64_t_gt(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_true(sort_utils_uint64_t_ge(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_false(sort_utils_uint64_t_ge(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_true(sort_utils_uint64_t_ge(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_false(sort_utils_uint64_t_lt(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_true(sort_utils_uint64_t_lt(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_false(sort_utils_uint64_t_lt(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_false(sort_utils_uint64_t_le(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_true(sort_utils_uint64_t_le(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_true(sort_utils_uint64_t_le(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_cmpint(sort_utils_uint64_t_cmp(&a, &b), ==, -1);
+
+  a = 3;
+  b = 3;
+  g_assert_cmpint(sort_utils_uint64_t_cmp(&a, &b), ==,  0);
+
+  a = 3;
+  b = 2;
+  g_assert_cmpint(sort_utils_uint64_t_cmp(&a, &b), ==, +1);
 }
 
 
@@ -791,6 +851,66 @@ sort_utils_int64_t_compare_test (void)
   a = 3;
   b = 2;
   g_assert_false(sort_utils_int64_t_eq(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_true(sort_utils_int64_t_gt(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_false(sort_utils_int64_t_gt(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_false(sort_utils_int64_t_gt(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_true(sort_utils_int64_t_ge(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_false(sort_utils_int64_t_ge(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_true(sort_utils_int64_t_ge(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_false(sort_utils_int64_t_lt(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_true(sort_utils_int64_t_lt(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_false(sort_utils_int64_t_lt(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_false(sort_utils_int64_t_le(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_true(sort_utils_int64_t_le(&a, &b));
+
+  a = 3;
+  b = 3;
+  g_assert_true(sort_utils_int64_t_le(&a, &b));
+
+  a = 2;
+  b = 3;
+  g_assert_cmpint(sort_utils_int64_t_cmp(&a, &b), ==, -1);
+
+  a = 3;
+  b = 3;
+  g_assert_cmpint(sort_utils_int64_t_cmp(&a, &b), ==,  0);
+
+  a = 3;
+  b = 2;
+  g_assert_cmpint(sort_utils_int64_t_cmp(&a, &b), ==, +1);
 }
 
 
