@@ -301,6 +301,8 @@ static void sort_utils_int_compare_test (void);
 
 static void sort_utils_uint64_t_compare_test (void);
 
+static void sort_utils_int64_t_compare_test (void);
+
 static void
 sort_utils_qsort_tc_double_base_test (Fixture *fixture,
                                       gconstpointer test_data);
@@ -442,6 +444,8 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_int_compare_test", sort_utils_int_compare_test);
 
   g_test_add_func("/sort_utils/sort_utils_uint64_t_compare_test", sort_utils_uint64_t_compare_test);
+
+  g_test_add_func("/sort_utils/sort_utils_int64_t_compare_test", sort_utils_int64_t_compare_test);
 
 
   g_test_add("/sort_utils/sort_utils_qsort_tc_double_base_test",
@@ -771,6 +775,22 @@ sort_utils_uint64_t_compare_test (void)
   a = 3;
   b = 2;
   g_assert_false(sort_utils_uint64_t_eq(&a, &b));
+}
+
+
+static void
+sort_utils_int64_t_compare_test (void)
+{
+  int64_t a;
+  int64_t b;
+
+  a = 3;
+  b = 3;
+  g_assert_true(sort_utils_int64_t_eq(&a, &b));
+
+  a = 3;
+  b = 2;
+  g_assert_false(sort_utils_int64_t_eq(&a, &b));
 }
 
 
