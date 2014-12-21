@@ -38,21 +38,52 @@
 /**
  * @brief Function pointer type for comparing values.
  *
- * @details Function implementation can have different forms:
- *          - Compare: has to ensure that when `a` is equal `b`,
- *          zero is returned, when `a` is greater than `b` a positive integer,
- *          and otherwise a negative one.
- *          - Less then: has to assure that when `a` is less than `b`,
- *          `TRUE` is returned, and `FALSE` otherwise.
+ * @details Within the forthcoming explanation `a`, and the same applies to `b`, is a shortcut
+ *          for the more precise but also more verbose sentence: "the value referenced by pointer `a`".
  *
- * @param a first value
- * @param b second value
- * @return result of comparing values
+ *          Compare functions bring the complete information to be self-sufficient, and so the predicates
+ *          appear to be redundant, but most sort functions are written expecting a proper predicate because
+ *          the empirical evidence shows that sorting using a predicate is faster. The reason is rooted in the
+ *          fact that the compare makes two comparisons, an a third one is done by the sort function itself.
+ *          The predicates make just one compare, and the sorting function can use the return value as a Boolean.
+ *          So for primitive values sorting using a compare function consumes three comparisons versus a single one
+ *          executed when the sorting algorithm is designed on a predicate.
+ *
+ *          Anyhow the signature for predicates and compares is the same, and so
+ *          function implementation can have different forms:
+ *          - Compare: has to ensure that when `a` is equal `b`,
+ *            zero is returned, when `a` is greater than `b` a positive integer,
+ *            and otherwise a negative one.
+ *          - EQ, equal to: has to ensure that when `a` is equal `b`,
+ *            `TRUE` is returned, and `FALSE` otherwise.
+ *          - LT, less than: has to ensure that when `a` is less than `b`,
+ *            `TRUE` is returned, and `FALSE` otherwise.
+ *          - LE, less than or equal to: has to ensure that when `a` is less than or equal `b`,
+ *            `TRUE` is returned, and `FALSE` otherwise.
+ *          - GT, greater than: has to ensure that when `a` is greater than `b`,
+ *            `TRUE` is returned, and `FALSE` otherwise.
+ *          - GE, greater than or equal to: has to ensure that when `a` is greater than or equal `b`,
+ *            `TRUE` is returned, and `FALSE` otherwise.
+ *
+ * @param [in] a a pointer to the first value
+ * @param [in] b a pointer to the second value
+ * @return       result of comparing the values pointed by `a` and `b`
  */
 typedef int
 (*sort_utils_compare_function) (const void *const a,
                                 const void *const b);
 
+/**
+ * @brief Function pointer type for sorting arrays.
+ *
+ * @details This prototype is equal to the qsort definition
+ *          in the standard library.
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applied by the algorithm
+ */
 typedef void
 (*sort_utils_sort_function) (void *const a,
                              const size_t count,
