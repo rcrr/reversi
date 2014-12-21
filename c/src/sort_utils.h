@@ -49,8 +49,15 @@
  * @param b second value
  * @return result of comparing values
  */
-typedef int (*sort_utils_compare_function) (const void *const a,
-                                            const void *const b);
+typedef int
+(*sort_utils_compare_function) (const void *const a,
+                                const void *const b);
+
+typedef void
+(*sort_utils_sort_function) (void *const a,
+                             const size_t count,
+                             const size_t element_size,
+                             const sort_utils_compare_function cmp);
 
 
 

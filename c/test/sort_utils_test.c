@@ -1,6 +1,9 @@
 /**
  * @file
  *
+ * @todo The structure TestsWithSortingFunction has to be applyed, *_base_test
+ *       functions have a lot of redundancy ........ It has to be removed.
+ *
  * @brief Sort utils unit test suite.
  *
  * @details Collects tests and helper methods for the sort utils module.
@@ -67,21 +70,32 @@ typedef enum {
  * @brief A test case collects a set of elements and the expected sorted sequence.
  */
 typedef struct {
-  gchar         *test_label;                     /**< @brief Test label. */
-  SortingVersus  versus;                         /**< @brief 0 for descending, and 1 for ascending. */
-  size_t         element_size;                   /**< @brief Number of bytes needed by one element. */
-  int            elements_count;                 /**< @brief The size of the array to be sorted. */
-  void          *elements;                       /**< @brief The data to be sorted. */
-  void          *expected_sorted_sequence;       /**< @brief The expected sequence. */
+  gchar         *test_label;                    /**< @brief Test label. */
+  SortingVersus  versus;                        /**< @brief 0 for descending, and 1 for ascending. */
+  size_t         element_size;                  /**< @brief Number of bytes needed by one element. */
+  int            elements_count;                /**< @brief The size of the array to be sorted. */
+  void          *elements;                      /**< @brief The data to be sorted. */
+  void          *expected_sorted_sequence;      /**< @brief The expected sequence. */
 } TestCase;
+
+/**
+ * @brief Tests with sorting function structure merges a list of test cases with a sorting implementation.
+ */
+typedef struct {
+  TestCase                    *tests;           /**< @brief An array of test cases. */
+  sort_utils_compare_function *cmp_dsc;         /**< @brief Compare function for descending cases. */
+  sort_utils_compare_function *cmp_asc;         /**< @brief Compare function for ascending cases. */
+  sort_utils_sort_function    *sort;            /**< @brief Sorting function. */
+  size_t                       element_size;    /**< @brief Number of bytes needed by one element. */
+} TestsWithSortingFunction;
 
 /**
  * @brief Fixtures are prepared by the #base_fixture_setup function by linking or
  *        deep-copying the #TestCase structure.
  */
 typedef struct {
-  int   tests_count;                      /**< @brief Number of tests in the test case. */
-  void *tests;                            /**< @brief An array of test cases. */
+  int   tests_count;                            /**< @brief Number of tests in the test case. */
+  void *tests;                                  /**< @brief An array of test cases. */
 } Fixture;
 
 /**
