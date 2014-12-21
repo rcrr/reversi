@@ -42,6 +42,13 @@
 #include "random.h"
 
 
+
+#define MIN_UINT64   0
+#define MAX_UINT64   0xffffffffffffffff
+#define LARGE_UINT64 0xfffffffffffffffe
+
+
+
 typedef void (*sort_double_fun) (double *const a, const int count);
 
 /**
@@ -182,9 +189,8 @@ const TestCase tc_double_base[] =
       (double []) { 1., 0., 0., 0., 0., 0., 1. },
       (double []) { 0., 0., 0., 0., 0., 1., 1. } },
 
-    {NULL, ASC, sizeof(double), 1, (double []) {0}, (double []) {0} }
+    { NULL, ASC, sizeof(double), 1, (double []) {0}, (double []) {0} }
   };
-
 
 /**
  * @brief Sorting test cases for simple arrays of int: base cases.
@@ -286,7 +292,35 @@ const TestCase tc_int_base[] =
       (int []) { 1, 0, 0, 0, 0, 0, 1 },
       (int []) { 0, 0, 0, 0, 0, 1, 1 } },
 
-    {NULL, ASC, sizeof(int), 1, (int []) {0}, (int []) {0} }
+    { NULL, ASC, sizeof(int), 1, (int []) {0}, (int []) {0} }
+  };
+
+/**
+ * @brief Sorting test cases for simple arrays of uint64_t: base cases.
+ */
+const TestCase tc_uint64_t_base[] =
+  {
+    { "A simple array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(uint64_t), 10,
+      (uint64_t []) { 7, 3, 9, 0, 1, 5, 2, 8, 4, 6 },
+      (uint64_t []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+
+    { "A simple array of ten elements must be sorted in descending order.",
+      DSC, sizeof(uint64_t), 10,
+      (uint64_t []) { 7, 3, 9, 0, 1, 5, 2, 8, 4, 6 },
+      (uint64_t []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 } },
+
+    { "An array of three elements, min_uint64, 0, max_uint64, must be sorted in ascending order.",
+      ASC, sizeof(uint64_t), 4,
+      (uint64_t []) { MIN_UINT64, 1, LARGE_UINT64, MAX_UINT64 },
+      (uint64_t []) { MIN_UINT64, 1, LARGE_UINT64, MAX_UINT64 } },
+
+    { "An array of three elements, min_uint64, 0, max_uint64, must be sorted in descending order.",
+      DSC, sizeof(uint64_t), 4,
+      (uint64_t []) { MIN_UINT64, 1, LARGE_UINT64, MAX_UINT64 },
+      (uint64_t []) { MAX_UINT64, LARGE_UINT64, 1, MIN_UINT64 } },
+
+    { NULL, ASC, sizeof(uint64_t), 1, (uint64_t []) {0}, (uint64_t []) {0} }
   };
 
 
@@ -310,6 +344,10 @@ sort_utils_qsort_tc_double_base_test (Fixture *fixture,
 static void
 sort_utils_qsort_tc_int_base_test (Fixture *fixture,
                                    gconstpointer test_data);
+
+static void
+sort_utils_qsort_tc_uint64_t_base_test (Fixture *fixture,
+                                        gconstpointer test_data);
 
 static void sort_utils_qsort_asc_d_1_rand_test (void);
 static void sort_utils_qsort_asc_d_n_rand_test (void);
@@ -460,6 +498,13 @@ main (int   argc,
              (gconstpointer) tc_int_base,
              base_fixture_setup,
              sort_utils_qsort_tc_int_base_test,
+             base_fixture_teardown);
+
+  g_test_add("/sort_utils/sort_utils_qsort_tc_uint64_t_base_test",
+             Fixture,
+             (gconstpointer) tc_uint64_t_base,
+             base_fixture_setup,
+             sort_utils_qsort_tc_uint64_t_base_test,
              base_fixture_teardown);
 
   g_test_add_func("/sort_utils/sort_utils_qsort_asc_d_1_rand_test", sort_utils_qsort_asc_d_1_rand_test);
@@ -835,6 +880,10 @@ sort_utils_uint64_t_compare_test (void)
   a = 3;
   b = 2;
   g_assert_cmpint(sort_utils_uint64_t_cmp(&a, &b), ==, +1);
+
+  a = MAX_UINT64;
+  b = LARGE_UINT64;
+  g_assert_true(sort_utils_uint64_t_gt(&a, &b));
 }
 
 
@@ -978,6 +1027,38 @@ sort_utils_qsort_tc_int_base_test (Fixture *fixture,
       const int *computed = (int *) t->elements + j;
       const int *expected = (int *) t->expected_sorted_sequence + j;
       g_assert_cmpint(*expected, ==, *computed);
+    }
+  }
+}
+
+static void
+sort_utils_qsort_tc_uint64_t_base_test (Fixture *fixture,
+                                        gconstpointer test_data)
+{
+  TestCase *tests = fixture->tests;
+  g_assert(tests);
+  for (int i = 0; i < fixture->tests_count; i++) {
+    const TestCase *t = &tests[i];
+    sort_utils_compare_function f;
+    switch (t->versus) {
+    case ASC:
+      f = sort_utils_uint64_t_cmp;
+      break;
+    case DSC:
+      f = sort_utils_uint64_t_icmp;
+      break;
+    default:
+      g_test_fail();
+      return;
+    }
+    qsort(t->elements,
+          t->elements_count,
+          sizeof(uint64_t),
+          f);
+    for (int j = 0; j < t->elements_count; j++) {
+      const uint64_t *computed = (uint64_t *) t->elements + j;
+      const uint64_t *expected = (uint64_t *) t->expected_sorted_sequence + j;
+      g_assert_cmpuint(*expected, ==, *computed);
     }
   }
 }
