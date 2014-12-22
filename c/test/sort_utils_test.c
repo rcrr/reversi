@@ -82,11 +82,11 @@ typedef struct {
  * @brief Tests with sorting function structure merges a list of test cases with a sorting implementation.
  */
 typedef struct {
-  TestCase                    *tests;           /**< @brief An array of test cases. */
-  sort_utils_compare_function *cmp_dsc;         /**< @brief Compare function for descending cases. */
-  sort_utils_compare_function *cmp_asc;         /**< @brief Compare function for ascending cases. */
-  sort_utils_sort_function    *sort;            /**< @brief Sorting function. */
-  size_t                       element_size;    /**< @brief Number of bytes needed by one element. */
+  gconstpointer               tests;            /**< @brief An array of test cases. */
+  sort_utils_compare_function cmp_dsc;          /**< @brief Compare function for descending cases. */
+  sort_utils_compare_function cmp_asc;          /**< @brief Compare function for ascending cases. */
+  sort_utils_sort_function    sort;             /**< @brief Sorting function. */
+  size_t                      element_size;     /**< @brief Number of bytes needed by one element. */
 } TestsWithSortingFunction;
 
 /**
@@ -335,6 +335,18 @@ const TestCase tc_uint64_t_base[] =
       (uint64_t []) { MAX_UINT64, LARGE_UINT64, 1, MIN_UINT64 } },
 
     { NULL, ASC, sizeof(uint64_t), 1, (uint64_t []) {0}, (uint64_t []) {0} }
+  };
+
+/**
+ * @brief Qsort digests the double base test case.
+ */
+const TestsWithSortingFunction twsf_double_base_qsort =
+  {
+    (gconstpointer) tc_uint64_t_base,
+    sort_utils_double_cmp,
+    sort_utils_double_icmp,
+    qsort,
+    sizeof(double)
   };
 
 
@@ -1740,6 +1752,51 @@ sort_utils_mergesort_asc_d_rand_perf_test (void)
 /*
  * Internal functions.
  */
+
+static void
+fixture_setup (Fixture *fixture,
+               gconstpointer tests_with_sorting_function)
+{
+  const size_t size_of_test_case = sizeof(TestCase);
+
+  const TestsWithSortingFunction *const twsf = (TestsWithSortingFunction *) tests_with_sorting_function;
+  const TestCase *const test_defs = (TestCase *) twsf->tests;
+
+  fixture->tests_count = 0;
+  for (int i = 0;; i++) {
+    const TestCase *td = &test_defs[i];
+    if (td->test_label == NULL) {
+      fixture->tests_count = i;
+      break;
+    }
+  }
+
+  TestCase *tests = (TestCase *) malloc(fixture->tests_count * size_of_test_case);
+  for (int i = 0; i < fixture->tests_count; i++) {
+    const TestCase *td = &test_defs[i];
+    TestCase *t = &tests[i];
+    t->test_label = td->test_label;
+    t->versus = td->versus;
+    t->element_size = td->element_size;
+    t->elements_count = td->elements_count;
+    const size_t size_of_elements_array = td->elements_count * td->element_size;
+    t->elements = malloc(size_of_elements_array);
+    memcpy(t->elements, td->elements, size_of_elements_array);
+    t->expected_sorted_sequence = td->expected_sorted_sequence;
+  }
+  fixture->tests = tests;
+}
+
+static void
+fixture_teardown (Fixture *fixture,
+                  gconstpointer tests_with_sorting_function)
+{
+  TestCase *tests = (TestCase *) fixture->tests;
+  for (int i = 0; i < fixture->tests_count; i++) {
+    free(tests[i].elements);
+  }
+  free(fixture->tests);
+}
 
 static void
 base_fixture_setup (Fixture *fixture,
