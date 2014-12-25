@@ -364,6 +364,10 @@ static void sort_utils_uint64_t_compare_test (void);
 static void sort_utils_int64_t_compare_test (void);
 
 static void
+sort_utils_qsort_tc_double_base_test_ (Fixture *fixture,
+                                       gconstpointer test_data);
+
+static void
 sort_utils_qsort_tc_double_base_test (Fixture *fixture,
                                       gconstpointer test_data);
 
@@ -472,6 +476,14 @@ static void sort_utils_mergesort_asc_d_rand_perf_test (void);
  */
 
 static void
+fixture_setup (Fixture *fixture,
+               gconstpointer test_data);
+
+static void
+fixture_teardown (Fixture *fixture,
+                  gconstpointer test_data);
+
+static void
 base_fixture_setup (Fixture *fixture,
                     gconstpointer test_data);
 
@@ -510,6 +522,14 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_uint64_t_compare_test", sort_utils_uint64_t_compare_test);
 
   g_test_add_func("/sort_utils/sort_utils_int64_t_compare_test", sort_utils_int64_t_compare_test);
+
+
+  g_test_add("/sort_utils/sort_utils_qsort_tc_double_base_test_",
+             Fixture,
+             (gconstpointer) &twsf_double_base_qsort,
+             fixture_setup,
+             sort_utils_qsort_tc_double_base_test_,
+             fixture_teardown);
 
 
   g_test_add("/sort_utils/sort_utils_qsort_tc_double_base_test",
@@ -992,6 +1012,16 @@ sort_utils_int64_t_compare_test (void)
 /********************************************/
 /* Unit tests for stdlib.h qsort algorithm. */
 /********************************************/
+
+
+static void
+sort_utils_qsort_tc_double_base_test_ (Fixture *fixture,
+                                       gconstpointer test_data)
+{
+  printf("\n\n\nHere we have to add the new testsing structure ..... !!!\n\n\n");
+  g_assert(TRUE);
+}
+
 
 static void
 sort_utils_qsort_tc_double_base_test (Fixture *fixture,
