@@ -1,9 +1,6 @@
 /**
  * @file
  *
- * @todo The structure TestsWithSortingFunction has to be applyed, *_base_test
- *       functions have a lot of redundancy ........ It has to be removed.
- *
  * @brief Sort utils unit test suite.
  *
  * @details Collects tests and helper methods for the sort utils module.
@@ -49,6 +46,11 @@
 #define MIN_UINT64   0
 #define MAX_UINT64   0xffffffffffffffff
 #define LARGE_UINT64 0xfffffffffffffffe
+
+#define MIN_INT64   (-9223372036854775807LL-1LL)
+#define SMALL_INT64 -9223372036854775807LL
+#define MAX_INT64   +9223372036854775807LL
+#define LARGE_INT64 +9223372036854775806LL
 
 
 
@@ -1266,6 +1268,22 @@ sort_utils_int64_t_compare_test (void)
   a = 3;
   b = 2;
   g_assert_cmpint(sort_utils_int64_t_cmp(&a, &b), ==, +1);
+
+  a = MAX_INT64;
+  b = LARGE_INT64;
+  g_assert_true(sort_utils_int64_t_gt(&a, &b));
+
+  a = 0;
+  b = LARGE_INT64;
+  g_assert_true(sort_utils_int64_t_lt(&a, &b));
+
+  a = 0;
+  b = SMALL_INT64;
+  g_assert_true(sort_utils_int64_t_gt(&a, &b));
+
+  a = MIN_INT64;
+  b = SMALL_INT64;
+  g_assert_true(sort_utils_int64_t_lt(&a, &b));
 }
 
 

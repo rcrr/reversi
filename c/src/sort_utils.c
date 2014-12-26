@@ -6,11 +6,6 @@
  *
  * @todo Add tim-sort implementation to the list of available choices.
  *
- * @todo Add compare functions for 64, 32, 8 bit signed and unsigned integers.
- *
- * @todo Add dedicated sort functions for 64, 32, 8 bit signed and unsigned integers.
- *       These version can have dedicated compare and swap macros/functions.
- *
  * @todo Add compare functions for pointers, and relative dedicated sort functions.
  *
  * @todo Add dedicated sort functions for object (pointer and structure) sorting.
