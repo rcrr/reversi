@@ -515,6 +515,50 @@ const TestsWithSortingFunction twsf_uint64_t_base_smoothsort =
   };
 
 
+
+/* Quick-sort */
+
+/**
+ * @brief Quick-sort is applied to the double base test case.
+ */
+const TestsWithSortingFunction twsf_double_base_quicksort =
+  {
+    (gconstpointer) tc_double_base,
+    sort_utils_double_cmp,
+    sort_utils_double_icmp,
+    sort_utils_quicksort,
+    sizeof(double),
+    sort_utils_double_cmp
+  };
+
+/**
+ * @brief Quick-sort is applied to the int base test case.
+ */
+const TestsWithSortingFunction twsf_int_base_quicksort =
+  {
+    (gconstpointer) tc_int_base,
+    sort_utils_int_cmp,
+    sort_utils_int_icmp,
+    sort_utils_quicksort,
+    sizeof(int),
+    sort_utils_int_cmp
+  };
+
+/**
+ * @brief Quick-sort is applied to the uint64_t base test case.
+ */
+const TestsWithSortingFunction twsf_uint64_t_base_quicksort =
+  {
+    (gconstpointer) tc_uint64_t_base,
+    sort_utils_uint64_t_cmp,
+    sort_utils_uint64_t_icmp,
+    sort_utils_quicksort,
+    sizeof(uint64_t),
+    sort_utils_uint64_t_cmp
+  };
+
+
+
 /*
  * Test function prototypes.
  */
@@ -550,14 +594,6 @@ static void sort_utils_smoothsort_asc_d_n_rand_test (void);
 static void sort_utils_smoothsort_dsc_d_1_rand_test (void);
 static void sort_utils_smoothsort_dsc_d_n_rand_test (void);
 static void sort_utils_smoothsort_asc_d_rand_perf_test (void);
-
-static void
-sort_utils_quicksort_tc_double_base_test (Fixture *fixture,
-                                          gconstpointer test_data);
-
-static void
-sort_utils_quicksort_tc_int_base_test (Fixture *fixture,
-                                       gconstpointer test_data);
 
 static void sort_utils_quicksort_asc_d_1_rand_test (void);
 static void sort_utils_quicksort_asc_d_n_rand_test (void);
@@ -760,19 +796,26 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_smoothsort_dsc_d_n_rand_test", sort_utils_smoothsort_dsc_d_n_rand_test);
 
 
-  g_test_add("/sort_utils/sort_utils_quicksort_tc_double_base_test",
+  g_test_add("/sort_utils/double_base_quicksort",
              Fixture,
-             (gconstpointer) tc_double_base,
-             base_fixture_setup,
-             sort_utils_quicksort_tc_double_base_test,
-             base_fixture_teardown);
+             (gconstpointer) &twsf_double_base_quicksort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
 
-  g_test_add("/sort_utils/sort_utils_quicksort_tc_int_base_test",
+  g_test_add("/sort_utils/int_base_quicksort",
              Fixture,
-             (gconstpointer) tc_int_base,
-             base_fixture_setup,
-             sort_utils_quicksort_tc_int_base_test,
-             base_fixture_teardown);
+             (gconstpointer) &twsf_int_base_quicksort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
+
+  g_test_add("/sort_utils/uint64_t_base_quicksort",
+             Fixture,
+             (gconstpointer) &twsf_uint64_t_base_quicksort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
 
   g_test_add_func("/sort_utils/sort_utils_quicksort_asc_d_1_rand_test", sort_utils_quicksort_asc_d_1_rand_test);
   g_test_add_func("/sort_utils/sort_utils_quicksort_dsc_d_1_rand_test", sort_utils_quicksort_dsc_d_1_rand_test);
@@ -1313,70 +1356,6 @@ sort_utils_smoothsort_asc_d_rand_perf_test (void)
 /****************************************/
 /* Unit tests for quick-sort algorithm. */
 /****************************************/
-
-static void
-sort_utils_quicksort_tc_double_base_test (Fixture *fixture,
-                                          gconstpointer test_data)
-{
-  TestCase *tests = fixture->tests;
-  g_assert(tests);
-  for (int i = 0; i < fixture->tests_count; i++) {
-    const TestCase *t = &tests[i];
-    sort_utils_compare_function f;
-    switch (t->versus) {
-    case ASC:
-      f = sort_utils_double_cmp;
-      break;
-    case DSC:
-      f = sort_utils_double_icmp;
-      break;
-    default:
-      g_test_fail();
-      return;
-    }
-    sort_utils_quicksort(t->elements,
-                         t->elements_count,
-                         sizeof(double),
-                         f);
-    for (int i = 0; i < t->elements_count; i++) {
-      const double *computed = (double *) t->elements + i;
-      const double *expected = (double *) t->expected_sorted_sequence + i;
-      g_assert_cmpfloat(*expected, ==, *computed);
-    }
-  }
-}
-
-static void
-sort_utils_quicksort_tc_int_base_test (Fixture *fixture,
-                                       gconstpointer test_data)
-{
-  TestCase *tests = fixture->tests;
-  g_assert(tests);
-  for (int i = 0; i < fixture->tests_count; i++) {
-    const TestCase *t = &tests[i];
-    sort_utils_compare_function f;
-    switch (t->versus) {
-    case ASC:
-      f = sort_utils_int_cmp;
-      break;
-    case DSC:
-      f = sort_utils_int_icmp;
-      break;
-    default:
-      g_test_fail();
-      return;
-    }
-    sort_utils_quicksort(t->elements,
-                         t->elements_count,
-                         sizeof(int),
-                         f);
-    for (int j = 0; j < t->elements_count; j++) {
-      const int *computed = (int *) t->elements + j;
-      const int *expected = (int *) t->expected_sorted_sequence + j;
-      g_assert_cmpint(*expected, ==, *computed);
-    }
-  }
-}
 
 static void
 sort_utils_quicksort_asc_d_1_rand_test (void)
