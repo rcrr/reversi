@@ -83,10 +83,11 @@ typedef struct {
  */
 typedef struct {
   gconstpointer               tests;            /**< @brief An array of test cases. */
-  sort_utils_compare_function cmp_dsc;          /**< @brief Compare function for descending cases. */
   sort_utils_compare_function cmp_asc;          /**< @brief Compare function for ascending cases. */
+  sort_utils_compare_function cmp_dsc;          /**< @brief Compare function for descending cases. */
   sort_utils_sort_function    sort;             /**< @brief Sorting function. */
   size_t                      element_size;     /**< @brief Number of bytes needed by one element. */
+  sort_utils_compare_function cmp_result;       /**< @brief Compare expected and computed results and returns zero when they are equal. */
 } TestsWithSortingFunction;
 
 /**
@@ -342,11 +343,12 @@ const TestCase tc_uint64_t_base[] =
  */
 const TestsWithSortingFunction twsf_double_base_qsort =
   {
-    (gconstpointer) tc_uint64_t_base,
+    (gconstpointer) tc_double_base,
     sort_utils_double_cmp,
     sort_utils_double_icmp,
     qsort,
-    sizeof(double)
+    sizeof(double),
+    sort_utils_double_cmp
   };
 
 
@@ -1018,8 +1020,52 @@ static void
 sort_utils_qsort_tc_double_base_test_ (Fixture *fixture,
                                        gconstpointer test_data)
 {
-  printf("\n\n\nHere we have to add the new testsing structure ..... !!!\n\n\n");
-  g_assert(TRUE);
+  g_assert(fixture);
+  g_assert(test_data);
+
+  TestCase *tests = fixture->tests;
+  g_assert(tests);
+
+  const TestsWithSortingFunction *twsf = (const TestsWithSortingFunction *) test_data;
+  const sort_utils_compare_function cmp_asc = twsf->cmp_asc;
+  g_assert(cmp_asc);
+  const sort_utils_compare_function cmp_dsc = twsf->cmp_dsc;
+  g_assert(cmp_dsc);
+  const sort_utils_sort_function sort = twsf->sort;
+  g_assert(sort);
+  const size_t es = twsf->element_size;
+  const sort_utils_compare_function cmp_result = twsf->cmp_result;
+  g_assert(cmp_result);
+
+  for (int i = 0; i < fixture->tests_count; i++) {
+    const TestCase *tc = &tests[i];
+    sort_utils_compare_function cmp;
+    switch (tc->versus) {
+    case ASC:
+      cmp = cmp_asc;
+      break;
+    case DSC:
+      cmp = cmp_dsc;
+      break;
+    default:
+      g_test_fail();
+      return;
+    }
+
+    sort(tc->elements,
+         tc->elements_count,
+         es,
+         cmp);
+
+    for (int j = 0; j < tc->elements_count; j++) {
+      const void *computed = (char *) tc->elements + j * es;
+      const void *expected = (char *) tc->expected_sorted_sequence + j * es;
+      g_assert(cmp_result(expected, computed) == 0);
+
+    }
+
+  }
+
 }
 
 
