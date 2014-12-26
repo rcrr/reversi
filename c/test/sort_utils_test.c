@@ -91,8 +91,8 @@ typedef struct {
 } TestsWithSortingFunction;
 
 /**
- * @brief Fixtures are prepared by the #base_fixture_setup function by linking or
- *        deep-copying the #TestCase structure.
+ * @brief Fixtures are prepared by the #fixture_setup function by linking or
+ *        deep-copying the #TestsWithSortingFunction structure.
  */
 typedef struct {
   int   tests_count;                            /**< @brief Number of tests in the test case. */
@@ -559,6 +559,92 @@ const TestsWithSortingFunction twsf_uint64_t_base_quicksort =
 
 
 
+/* Shell-sort */
+
+/**
+ * @brief Shell-sort is applied to the double base test case.
+ */
+const TestsWithSortingFunction twsf_double_base_shellsort =
+  {
+    (gconstpointer) tc_double_base,
+    sort_utils_double_lt,
+    sort_utils_double_gt,
+    sort_utils_shellsort,
+    sizeof(double),
+    sort_utils_double_cmp
+  };
+
+/**
+ * @brief Shell-sort is applied to the int base test case.
+ */
+const TestsWithSortingFunction twsf_int_base_shellsort =
+  {
+    (gconstpointer) tc_int_base,
+    sort_utils_int_lt,
+    sort_utils_int_gt,
+    sort_utils_shellsort,
+    sizeof(int),
+    sort_utils_int_cmp
+  };
+
+/**
+ * @brief Shell-sort is applied to the uint64_t base test case.
+ */
+const TestsWithSortingFunction twsf_uint64_t_base_shellsort =
+  {
+    (gconstpointer) tc_uint64_t_base,
+    sort_utils_uint64_t_lt,
+    sort_utils_uint64_t_gt,
+    sort_utils_shellsort,
+    sizeof(uint64_t),
+    sort_utils_uint64_t_cmp
+  };
+
+
+
+/* Merge-sort */
+
+/**
+ * @brief Merge-sort is applied to the double base test case.
+ */
+const TestsWithSortingFunction twsf_double_base_mergesort =
+  {
+    (gconstpointer) tc_double_base,
+    sort_utils_double_lt,
+    sort_utils_double_gt,
+    sort_utils_mergesort,
+    sizeof(double),
+    sort_utils_double_cmp
+  };
+
+/**
+ * @brief Merge-sort is applied to the int base test case.
+ */
+const TestsWithSortingFunction twsf_int_base_mergesort =
+  {
+    (gconstpointer) tc_int_base,
+    sort_utils_int_lt,
+    sort_utils_int_gt,
+    sort_utils_mergesort,
+    sizeof(int),
+    sort_utils_int_cmp
+  };
+
+/**
+ * @brief Merge-sort is applied to the uint64_t base test case.
+ */
+const TestsWithSortingFunction twsf_uint64_t_base_mergesort =
+  {
+    (gconstpointer) tc_uint64_t_base,
+    sort_utils_uint64_t_lt,
+    sort_utils_uint64_t_gt,
+    sort_utils_mergesort,
+    sizeof(uint64_t),
+    sort_utils_uint64_t_cmp
+  };
+
+
+
 /*
  * Test function prototypes.
  */
@@ -601,27 +687,11 @@ static void sort_utils_quicksort_dsc_d_1_rand_test (void);
 static void sort_utils_quicksort_dsc_d_n_rand_test (void);
 static void sort_utils_quicksort_asc_d_rand_perf_test (void);
 
-static void
-sort_utils_shellsort_tc_double_base_test (Fixture *fixture,
-                                          gconstpointer test_data);
-
-static void
-sort_utils_shellsort_tc_int_base_test (Fixture *fixture,
-                                       gconstpointer test_data);
-
 static void sort_utils_shellsort_asc_d_1_rand_test (void);
 static void sort_utils_shellsort_asc_d_n_rand_test (void);
 static void sort_utils_shellsort_dsc_d_1_rand_test (void);
 static void sort_utils_shellsort_dsc_d_n_rand_test (void);
 static void sort_utils_shellsort_asc_d_rand_perf_test (void);
-
-static void
-sort_utils_mergesort_tc_double_base_test (Fixture *fixture,
-                                          gconstpointer test_data);
-
-static void
-sort_utils_mergesort_tc_int_base_test (Fixture *fixture,
-                                       gconstpointer test_data);
 
 static void sort_utils_mergesort_asc_d_1_rand_test (void);
 static void sort_utils_mergesort_asc_d_n_rand_test (void);
@@ -642,14 +712,6 @@ fixture_setup (Fixture *fixture,
 static void
 fixture_teardown (Fixture *fixture,
                   gconstpointer test_data);
-
-static void
-base_fixture_setup (Fixture *fixture,
-                    gconstpointer test_data);
-
-static void
-base_fixture_teardown (Fixture *fixture,
-                       gconstpointer test_data);
 
 static void
 hlp_run_tests_with_sorting_function (Fixture *fixture,
@@ -823,19 +885,26 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_quicksort_dsc_d_n_rand_test", sort_utils_quicksort_dsc_d_n_rand_test);
 
 
-  g_test_add("/sort_utils/sort_utils_shellsort_tc_double_base_test",
+  g_test_add("/sort_utils/double_base_shellsort",
              Fixture,
-             (gconstpointer) tc_double_base,
-             base_fixture_setup,
-             sort_utils_shellsort_tc_double_base_test,
-             base_fixture_teardown);
+             (gconstpointer) &twsf_double_base_shellsort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
 
-  g_test_add("/sort_utils/sort_utils_shellsort_tc_int_base_test",
+  g_test_add("/sort_utils/int_base_shellsort",
              Fixture,
-             (gconstpointer) tc_int_base,
-             base_fixture_setup,
-             sort_utils_shellsort_tc_int_base_test,
-             base_fixture_teardown);
+             (gconstpointer) &twsf_int_base_shellsort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
+
+  g_test_add("/sort_utils/uint64_t_base_shellsort",
+             Fixture,
+             (gconstpointer) &twsf_uint64_t_base_shellsort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
 
   g_test_add_func("/sort_utils/sort_utils_shellsort_asc_d_1_rand_test", sort_utils_shellsort_asc_d_1_rand_test);
   g_test_add_func("/sort_utils/sort_utils_shellsort_dsc_d_1_rand_test", sort_utils_shellsort_dsc_d_1_rand_test);
@@ -843,19 +912,26 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_shellsort_dsc_d_n_rand_test", sort_utils_shellsort_dsc_d_n_rand_test);
 
 
-  g_test_add("/sort_utils/sort_utils_mergesort_tc_double_base_test",
+  g_test_add("/sort_utils/double_base_mergesort",
              Fixture,
-             (gconstpointer) tc_double_base,
-             base_fixture_setup,
-             sort_utils_mergesort_tc_double_base_test,
-             base_fixture_teardown);
+             (gconstpointer) &twsf_double_base_mergesort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
 
-  g_test_add("/sort_utils/sort_utils_mergesort_tc_int_base_test",
+  g_test_add("/sort_utils/int_base_mergesort",
              Fixture,
-             (gconstpointer) tc_int_base,
-             base_fixture_setup,
-             sort_utils_mergesort_tc_int_base_test,
-             base_fixture_teardown);
+             (gconstpointer) &twsf_int_base_mergesort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
+
+  g_test_add("/sort_utils/uint64_t_base_mergesort",
+             Fixture,
+             (gconstpointer) &twsf_uint64_t_base_mergesort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
 
   g_test_add_func("/sort_utils/sort_utils_mergesort_asc_d_1_rand_test", sort_utils_mergesort_asc_d_1_rand_test);
   g_test_add_func("/sort_utils/sort_utils_mergesort_dsc_d_1_rand_test", sort_utils_mergesort_dsc_d_1_rand_test);
@@ -1398,70 +1474,6 @@ sort_utils_quicksort_asc_d_rand_perf_test (void)
 /****************************************/
 
 static void
-sort_utils_shellsort_tc_double_base_test (Fixture *fixture,
-                                          gconstpointer test_data)
-{
-  TestCase *tests = fixture->tests;
-  g_assert(tests);
-  for (int i = 0; i < fixture->tests_count; i++) {
-    const TestCase *t = &tests[i];
-    sort_utils_compare_function f;
-    switch (t->versus) {
-    case ASC:
-      f = sort_utils_double_lt;
-      break;
-    case DSC:
-      f = sort_utils_double_gt;
-      break;
-    default:
-      g_test_fail();
-      return;
-    }
-    sort_utils_shellsort(t->elements,
-                         t->elements_count,
-                         sizeof(double),
-                         f);
-    for (int j = 0; j < t->elements_count; j++) {
-      const double *computed = (double *) t->elements + j;
-      const double *expected = (double *) t->expected_sorted_sequence + j;
-      g_assert_cmpfloat(*expected, ==, *computed);
-    }
-  }
-}
-
-static void
-sort_utils_shellsort_tc_int_base_test (Fixture *fixture,
-                                       gconstpointer test_data)
-{
-  TestCase *tests = fixture->tests;
-  g_assert(tests);
-  for (int i = 0; i < fixture->tests_count; i++) {
-    const TestCase *t = &tests[i];
-    sort_utils_compare_function f;
-    switch (t->versus) {
-    case ASC:
-      f = sort_utils_int_lt;
-      break;
-    case DSC:
-      f = sort_utils_int_gt;
-      break;
-    default:
-      g_test_fail();
-      return;
-    }
-    sort_utils_shellsort(t->elements,
-                         t->elements_count,
-                         sizeof(int),
-                         f);
-    for (int j = 0; j < t->elements_count; j++) {
-      const int *computed = (int *) t->elements + j;
-      const int *expected = (int *) t->expected_sorted_sequence + j;
-      g_assert_cmpint(*expected, ==, *computed);
-    }
-  }
-}
-
-static void
 sort_utils_shellsort_asc_d_1_rand_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_shellsort_asc_d, 1024, 1, 0, 175, ASC);
@@ -1500,70 +1512,6 @@ sort_utils_shellsort_asc_d_rand_perf_test (void)
 /****************************************/
 /* Unit tests for merge-sort algorithm. */
 /****************************************/
-
-static void
-sort_utils_mergesort_tc_double_base_test (Fixture *fixture,
-                                          gconstpointer test_data)
-{
-  TestCase *tests = fixture->tests;
-  g_assert(tests);
-  for (int i = 0; i < fixture->tests_count; i++) {
-    const TestCase *t = &tests[i];
-    sort_utils_compare_function f;
-    switch (t->versus) {
-    case ASC:
-      f = sort_utils_double_lt;
-      break;
-    case DSC:
-      f = sort_utils_double_gt;
-      break;
-    default:
-      g_test_fail();
-      return;
-    }
-    sort_utils_mergesort(t->elements,
-                         t->elements_count,
-                         sizeof(double),
-                         f);
-    for (int j = 0; j < t->elements_count; j++) {
-      const double *computed = (double *) t->elements + j;
-      const double *expected = (double *) t->expected_sorted_sequence + j;
-      g_assert_cmpfloat(*expected, ==, *computed);
-    }
-  }
-}
-
-static void
-sort_utils_mergesort_tc_int_base_test (Fixture *fixture,
-                                       gconstpointer test_data)
-{
-  TestCase *tests = fixture->tests;
-  g_assert(tests);
-  for (int i = 0; i < fixture->tests_count; i++) {
-    const TestCase *t = &tests[i];
-    sort_utils_compare_function f;
-    switch (t->versus) {
-    case ASC:
-      f = sort_utils_int_lt;
-      break;
-    case DSC:
-      f = sort_utils_int_gt;
-      break;
-    default:
-      g_test_fail();
-      return;
-    }
-    sort_utils_mergesort(t->elements,
-                         t->elements_count,
-                         sizeof(int),
-                         f);
-    for (int j = 0; j < t->elements_count; j++) {
-      const int *computed = (int *) t->elements + j;
-      const int *expected = (int *) t->expected_sorted_sequence + j;
-      g_assert_cmpint(*expected, ==, *computed);
-    }
-  }
-}
 
 static void
 sort_utils_mergesort_asc_d_1_rand_test (void)
@@ -1642,50 +1590,6 @@ fixture_setup (Fixture *fixture,
 static void
 fixture_teardown (Fixture *fixture,
                   gconstpointer tests_with_sorting_function)
-{
-  TestCase *tests = (TestCase *) fixture->tests;
-  for (int i = 0; i < fixture->tests_count; i++) {
-    free(tests[i].elements);
-  }
-  free(fixture->tests);
-}
-
-static void
-base_fixture_setup (Fixture *fixture,
-                    gconstpointer test_data)
-{
-  const size_t size_of_test_case = sizeof(TestCase);
-
-  const TestCase *const test_defs = (TestCase *) test_data;
-
-  fixture->tests_count = 0;
-  for (int i = 0;; i++) {
-    const TestCase *td = &test_defs[i];
-    if (td->test_label == NULL) {
-      fixture->tests_count = i;
-      break;
-    }
-  }
-
-  TestCase *tests = (TestCase *) malloc(fixture->tests_count * size_of_test_case);
-  for (int i = 0; i < fixture->tests_count; i++) {
-    const TestCase *td = &test_defs[i];
-    TestCase *t = &tests[i];
-    t->test_label = td->test_label;
-    t->versus = td->versus;
-    t->element_size = td->element_size;
-    t->elements_count = td->elements_count;
-    const size_t size_of_elements_array = td->elements_count * td->element_size;
-    t->elements = malloc(size_of_elements_array);
-    memcpy(t->elements, td->elements, size_of_elements_array);
-    t->expected_sorted_sequence = td->expected_sorted_sequence;
-  }
-  fixture->tests = tests;
-}
-
-static void
-base_fixture_teardown (Fixture *fixture,
-                       gconstpointer test_data)
 {
   TestCase *tests = (TestCase *) fixture->tests;
   for (int i = 0; i < fixture->tests_count; i++) {
