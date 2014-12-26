@@ -339,7 +339,7 @@ const TestCase tc_uint64_t_base[] =
   };
 
 /**
- * @brief Qsort digests the double base test case.
+ * @brief Qsort is applied to the double base test case.
  */
 const TestsWithSortingFunction twsf_double_base_qsort =
   {
@@ -349,6 +349,19 @@ const TestsWithSortingFunction twsf_double_base_qsort =
     qsort,
     sizeof(double),
     sort_utils_double_cmp
+  };
+
+/**
+ * @brief Qsort is applied to the int base test case.
+ */
+const TestsWithSortingFunction twsf_int_base_qsort =
+  {
+    (gconstpointer) tc_int_base,
+    sort_utils_int_cmp,
+    sort_utils_int_icmp,
+    qsort,
+    sizeof(int),
+    sort_utils_int_cmp
   };
 
 
@@ -364,10 +377,6 @@ static void sort_utils_int_compare_test (void);
 static void sort_utils_uint64_t_compare_test (void);
 
 static void sort_utils_int64_t_compare_test (void);
-
-static void
-sort_utils_qsort_tc_int_base_test (Fixture *fixture,
-                                   gconstpointer test_data);
 
 static void
 sort_utils_qsort_tc_uint64_t_base_test (Fixture *fixture,
@@ -529,12 +538,12 @@ main (int   argc,
              hlp_run_tests_with_sorting_function,
              fixture_teardown);
 
-  g_test_add("/sort_utils/sort_utils_qsort_tc_int_base_test",
+  g_test_add("/sort_utils/int_base_qsort",
              Fixture,
-             (gconstpointer) tc_int_base,
-             base_fixture_setup,
-             sort_utils_qsort_tc_int_base_test,
-             base_fixture_teardown);
+             (gconstpointer) &twsf_int_base_qsort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
 
   g_test_add("/sort_utils/sort_utils_qsort_tc_uint64_t_base_test",
              Fixture,
@@ -1002,38 +1011,6 @@ sort_utils_int64_t_compare_test (void)
 /********************************************/
 /* Unit tests for stdlib.h qsort algorithm. */
 /********************************************/
-
-static void
-sort_utils_qsort_tc_int_base_test (Fixture *fixture,
-                                   gconstpointer test_data)
-{
-  TestCase *tests = fixture->tests;
-  g_assert(tests);
-  for (int i = 0; i < fixture->tests_count; i++) {
-    const TestCase *t = &tests[i];
-    sort_utils_compare_function f;
-    switch (t->versus) {
-    case ASC:
-      f = sort_utils_int_cmp;
-      break;
-    case DSC:
-      f = sort_utils_int_icmp;
-      break;
-    default:
-      g_test_fail();
-      return;
-    }
-    qsort(t->elements,
-          t->elements_count,
-          sizeof(int),
-          f);
-    for (int j = 0; j < t->elements_count; j++) {
-      const int *computed = (int *) t->elements + j;
-      const int *expected = (int *) t->expected_sorted_sequence + j;
-      g_assert_cmpint(*expected, ==, *computed);
-    }
-  }
-}
 
 static void
 sort_utils_qsort_tc_uint64_t_base_test (Fixture *fixture,
