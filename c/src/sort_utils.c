@@ -101,7 +101,6 @@
  * Prototypes for internal functions.
  */
 
-
 static void
 copy (void *const dest,
       const void *const src,
@@ -779,6 +778,23 @@ sort_utils_insertionsort (void *const a,
   }
 }
 
+void
+sort_utils_insertionsort_c (void *const a,
+                            const size_t count,
+                            const size_t element_size,
+                            const sort_utils_compare_function cmp)
+{
+  char *ca = (char *) a;
+  for (int i = 1; i < count; i++) {
+    int j = i;
+    for (;;) {
+      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) < 0) break;
+      swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
+      j--;
+    }
+  }
+}
+
 /**
  * @brief Sorts in ascending order the `a` array of doubles.
  *
@@ -793,6 +809,13 @@ sort_utils_insertionsort_asc_d (double *const a,
                                 const int count)
 {
   sort_utils_insertionsort(a, count, sizeof(double), sort_utils_double_lt);
+}
+
+void
+sort_utils_insertionsort_c_asc_d (double *const a,
+                                  const int count)
+{
+  sort_utils_insertionsort_c(a, count, sizeof(double), sort_utils_double_cmp);
 }
 
 /**
@@ -1924,6 +1947,83 @@ sort_utils_mergesort_dsc_i (int *const a,
                             const int count)
 {
   sort_utils_mergesort(a, count, sizeof(int), sort_utils_int_gt);
+}
+
+
+
+/************/
+/* Tim-sort */
+/************/
+
+/**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a` having length equal to `count` is sorted
+ *          in place applying the tim-sort algorithm.
+ *          The compare function is a comparator and must return `-1`, `0`, or `+1` constrained by
+ *          the sorting order of the two elements.
+ *
+ *          Tim-sort is a stable, adaptive, iterative merge-sort that requires far fewer than
+ *          n lg(n) comparisons when running on partially sorted arrays, while
+ *          offering performance comparable to a traditional merge-sort when run
+ *          on random arrays.
+ *
+ *          This work is heavily inspired by the code written by Josh Bloch in Java
+ *          and released to the public as part of the OpneJDK library.
+ *
+ *          The original implementation is found in Tim Peters's list sort for
+ *          Python, which is described in detail here:
+ *
+ *          http://svn.python.org/projects/python/trunk/Objects/listsort.txt
+ *
+ *          Tim's C code may be found here:
+ *
+ *          http://svn.python.org/projects/python/trunk/Objects/listobject.c
+ *
+ *          The underlying techniques are described in this paper (and may have
+ *          even earlier origins):
+ *
+ *          "Optimistic Sorting and Information Theoretic Complexity"
+ *          Peter McIlroy
+ *          SODA (Fourth Annual ACM-SIAM Symposium on Discrete Algorithms),
+ *          pp 467-474, Austin, Texas, 25-27 January 1993.
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applied by the algorithm
+ */
+void
+sort_utils_timsort (void *const a,
+                    const size_t count,
+                    const size_t element_size,
+                    const sort_utils_compare_function cmp)
+{
+  g_assert(a);
+  g_assert(element_size > 0);
+  g_assert(cmp);
+  if (count < 2) return;
+
+  static const int min_merge = 32;
+
+  if (count < min_merge) {
+    sort_utils_insertionsort(a, count, element_size, cmp);
+    /*
+    int initRunLen = countRunAndMakeAscending(a, lo, hi, c);
+    binarySort(a, lo, hi, lo + initRunLen, c);
+    return;
+    */
+  }
+
+  char *ca = (char *) a;
+  for (int i = 1; i < count; i++) {
+    int j = i;
+    for (;;) {
+      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size)) break;
+      swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
+      j--;
+    }
+  }
 }
 
 
