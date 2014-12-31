@@ -440,8 +440,8 @@ const TestsWithSortingFunction twsf_uint64_t_base_insertionsort =
 const TestsWithSortingFunction twsf_double_base_heapsort =
   {
     (gconstpointer) tc_double_base,
-    sort_utils_double_lt,
-    sort_utils_double_gt,
+    sort_utils_double_cmp,
+    sort_utils_double_icmp,
     sort_utils_heapsort,
     sizeof(double),
     sort_utils_double_cmp
@@ -453,8 +453,8 @@ const TestsWithSortingFunction twsf_double_base_heapsort =
 const TestsWithSortingFunction twsf_int_base_heapsort =
   {
     (gconstpointer) tc_int_base,
-    sort_utils_int_lt,
-    sort_utils_int_gt,
+    sort_utils_int_cmp,
+    sort_utils_int_icmp,
     sort_utils_heapsort,
     sizeof(int),
     sort_utils_int_cmp
@@ -466,8 +466,8 @@ const TestsWithSortingFunction twsf_int_base_heapsort =
 const TestsWithSortingFunction twsf_uint64_t_base_heapsort =
   {
     (gconstpointer) tc_uint64_t_base,
-    sort_utils_uint64_t_lt,
-    sort_utils_uint64_t_gt,
+    sort_utils_uint64_t_cmp,
+    sort_utils_uint64_t_icmp,
     sort_utils_heapsort,
     sizeof(uint64_t),
     sort_utils_uint64_t_cmp

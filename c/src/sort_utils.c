@@ -873,11 +873,11 @@ hps_sift_down (void *const a,
   for (int child = 2 * root + 1; child < end; child = 2 * root + 1) {
     char *child_ptr = (char *) ca + child * element_size;
     char *const root_ptr = (char *const) ca + root * element_size;
-    if ((child < end - 1) && cmp(child_ptr, child_ptr + element_size)) {
+    if ((child < end - 1) && cmp(child_ptr, child_ptr + element_size) < 0) {
       child += 1;
       child_ptr += element_size;
     }
-    if (cmp(root_ptr, child_ptr)) {
+    if (cmp(root_ptr, child_ptr) < 0) {
       swap(child_ptr, root_ptr, element_size);
       root = child;
     }
@@ -931,7 +931,7 @@ void
 sort_utils_heapsort_asc_d (double *const a,
                            const int count)
 {
-  sort_utils_heapsort(a, count, sizeof(double), sort_utils_double_lt);
+  sort_utils_heapsort(a, count, sizeof(double), sort_utils_double_cmp);
 }
 
 /**
@@ -947,7 +947,7 @@ void
 sort_utils_heapsort_dsc_i (int *const a,
                            const int count)
 {
-  sort_utils_heapsort(a, count, sizeof(int), sort_utils_int_gt);
+  sort_utils_heapsort(a, count, sizeof(int), sort_utils_int_icmp);
 }
 
 /**
@@ -963,7 +963,7 @@ void
 sort_utils_heapsort_asc_i (int *const a,
                            const int count)
 {
-  sort_utils_heapsort(a, count, sizeof(int), sort_utils_int_lt);
+  sort_utils_heapsort(a, count, sizeof(int), sort_utils_int_cmp);
 }
 
 /**
@@ -979,7 +979,7 @@ void
 sort_utils_heapsort_dsc_d (double *const a,
                            const int count)
 {
-  sort_utils_heapsort(a, count, sizeof(double), sort_utils_double_gt);
+  sort_utils_heapsort(a, count, sizeof(double), sort_utils_double_icmp);
 }
 
 
