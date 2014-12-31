@@ -1030,11 +1030,11 @@ sms_sift (const sort_utils_compare_function cmp,
   copy(tmp, r0, es);
   while (*b1 >= 3) {
     char *r2 = r1 + (*c1 - *b1) * es;
-    if (!cmp(r1 - es, r2)) {
+    if (cmp(r1 - es, r2) >= 0) {
       r2 = r1 - es;
       sms_down(*b1, *c1);
     }
-    if (cmp(r2, tmp)) {
+    if (cmp(r2, tmp) < 0) {
       *b1 = 1;
     } else {
       copy(r1, r2, es);
@@ -1090,7 +1090,7 @@ sms_trinkle (const sort_utils_compare_function cmp,
       sms_up(*b1, *c1);
     }
     char *r3 = r1 - *b1 * es;
-    if ((p1 == 1) || cmp(r3, tmp)) {
+    if ((p1 == 1) || cmp(r3, tmp) < 0) {
       p1 = 0;
     } else {
       p1--;
@@ -1100,12 +1100,12 @@ sms_trinkle (const sort_utils_compare_function cmp,
       } else {
         if (*b1 >= 3) {
           char *r2 = r1 + (*c1 - *b1) * es;
-          if (!cmp(r1 - es, r2)) {
+          if (cmp(r1 - es, r2) >= 0) {
             r2 = r1 - es;
             sms_down(*b1, *c1);
             p1 <<= 1;
           }
-          if (cmp(r2, r3)) {
+          if (cmp(r2, r3) < 0) {
             copy(r1, r3, es);
             r1 = r3;
           } else {
@@ -1156,7 +1156,7 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
                  unsigned long long int *const c1)
 {
   r1 = r - c * es;
-  if (!cmp(r1, r)) {
+  if (cmp(r1, r) >= 0) {
     swap(r, r1, es);
     sms_trinkle(cmp, es, r1, tmp, p, b, c, b1, c1);
   }
@@ -1277,7 +1277,7 @@ void
 sort_utils_smoothsort_asc_d (double *const a,
                              const int count)
 {
-  sort_utils_smoothsort(a, count, sizeof(double), sort_utils_double_lt);
+  sort_utils_smoothsort(a, count, sizeof(double), sort_utils_double_cmp);
 }
 
 /**
@@ -1293,7 +1293,7 @@ void
 sort_utils_smoothsort_dsc_d (double *const a,
                              const int count)
 {
-  sort_utils_smoothsort(a, count, sizeof(double), sort_utils_double_gt);
+  sort_utils_smoothsort(a, count, sizeof(double), sort_utils_double_icmp);
 }
 
 /**
@@ -1309,7 +1309,7 @@ void
 sort_utils_smoothsort_asc_i (int *const a,
                              const int count)
 {
-  sort_utils_smoothsort(a, count, sizeof(int), sort_utils_int_le);
+  sort_utils_smoothsort(a, count, sizeof(int), sort_utils_int_cmp);
 }
 
 /**
@@ -1325,7 +1325,7 @@ void
 sort_utils_smoothsort_dsc_i (int *const a,
                              const int count)
 {
-  sort_utils_smoothsort(a, count, sizeof(int), sort_utils_int_ge);
+  sort_utils_smoothsort(a, count, sizeof(int), sort_utils_int_icmp);
 }
 
 
