@@ -771,23 +771,6 @@ sort_utils_insertionsort (void *const a,
   for (int i = 1; i < count; i++) {
     int j = i;
     for (;;) {
-      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size)) break;
-      swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
-      j--;
-    }
-  }
-}
-
-void
-sort_utils_insertionsort_c (void *const a,
-                            const size_t count,
-                            const size_t element_size,
-                            const sort_utils_compare_function cmp)
-{
-  char *ca = (char *) a;
-  for (int i = 1; i < count; i++) {
-    int j = i;
-    for (;;) {
       if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) < 0) break;
       swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
       j--;
@@ -808,14 +791,7 @@ void
 sort_utils_insertionsort_asc_d (double *const a,
                                 const int count)
 {
-  sort_utils_insertionsort(a, count, sizeof(double), sort_utils_double_lt);
-}
-
-void
-sort_utils_insertionsort_c_asc_d (double *const a,
-                                  const int count)
-{
-  sort_utils_insertionsort_c(a, count, sizeof(double), sort_utils_double_cmp);
+  sort_utils_insertionsort(a, count, sizeof(double), sort_utils_double_cmp);
 }
 
 /**
@@ -831,7 +807,7 @@ void
 sort_utils_insertionsort_dsc_d (double *const a,
                                 const int count)
 {
-  sort_utils_insertionsort(a, count, sizeof(double), sort_utils_double_gt);
+  sort_utils_insertionsort(a, count, sizeof(double), sort_utils_double_icmp);
 }
 
 /**
@@ -1794,6 +1770,23 @@ sort_utils_shellsort_dsc_i (int *const a,
 /* Merge-sort */
 /**************/
 
+static void
+mrs_insertionsort (void *const a,
+                   const size_t count,
+                   const size_t element_size,
+                   const sort_utils_compare_function cmp)
+{
+  char *ca = (char *) a;
+  for (int i = 1; i < count; i++) {
+    int j = i;
+    for (;;) {
+      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) ) break;
+      swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
+      j--;
+    }
+  }
+}
+
 /**
  * @brief Sorts the `a` array.
  *
@@ -1846,7 +1839,7 @@ sort_utils_mergesort_a (void *const a,
 
   /* Termination condition, it uses insertion-sort. */
   if (count < small_array_threshold) {
-    sort_utils_insertionsort(a, count, es, cmp);
+    mrs_insertionsort(a, count, es, cmp);
     return;
   }
 
