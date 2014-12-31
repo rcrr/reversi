@@ -170,111 +170,6 @@ sort_utils_double_icmp (const void *const a,
 /* int */
 
 /**
- * @brief Returns true when `a` is equal to `b`.
- *
- * @details Compare function that returns `TRUE`, so a value
- *          different from zero, when the integer value pointed
- *          by `a` is equal to the one pointed by `b`, otherwise
- *          it returns zero (`FALSE`).
- *
- * @param a a pointer to the first integer
- * @param b a pointer to the second integer
- * @return  `TRUE` when `a` is equal `b`.
- */
-int
-sort_utils_int_eq (const void *const a,
-                   const void *const b)
-{
-  const int *const x = (const int *const) a;
-  const int *const y = (const int *const) b;
-  return *x == *y;
-}
-
-/**
- * @brief Returns true when `a` is greater than `b`.
- *
- * @details Compare function that returns `TRUE`, so a value
- *          different from zero, when the integer value pointed
- *          by `a` is greater than the one pointed by `b`, otherwise
- *          it returns zero (`FALSE`).
- *
- * @param a a pointer to the first integer
- * @param b a pointer to the second integer
- * @return  `TRUE` when `a` is greater than `b`.
- */
-int
-sort_utils_int_gt (const void *const a,
-                   const void *const b)
-{
-  const int *const x = (const int *const) a;
-  const int *const y = (const int *const) b;
-  return *x > *y;
-}
-
-/**
- * @brief Returns true when `a` is greater than or equal to `b`.
- *
- * @details Compare function that returns `TRUE`, so a value
- *          different from zero, when the integer value pointed
- *          by `a` is greater than or equal to the one pointed by `b`,
- *          otherwise it returns zero (`FALSE`).
- *
- * @param a a pointer to the first integer
- * @param b a pointer to the second integer
- * @return  `TRUE` when `a` is greater than or equal to `b`.
- */
-int
-sort_utils_int_ge (const void *const a,
-                   const void *const b)
-{
-  const int *const x = (const int *const) a;
-  const int *const y = (const int *const) b;
-  return *x >= *y;
-}
-
-/**
- * @brief Returns true when `a` is less than `b`.
- *
- * @details Compare function that returns `TRUE`, so a value
- *          different from zero, when the integer value pointed
- *          by `a` is less than the one pointed by `b`, otherwise
- *          it returns zero (`FALSE`).
- *
- * @param a a pointer to the first integer
- * @param b a pointer to the second integer
- * @return  `TRUE` when `a` is less than `b`.
- */
-int
-sort_utils_int_lt (const void *const a,
-                   const void *const b)
-{
-  const int *const x = (const int *const) a;
-  const int *const y = (const int *const) b;
-  return *x < *y;
-}
-
-/**
- * @brief Returns true when `a` is less than or equal to `b`.
- *
- * @details Compare function that returns `TRUE`, so a value
- *          different from zero, when the integer value pointed
- *          by `a` is less than or equal to the one pointed by `b`,
- *          otherwise it returns zero (`FALSE`).
- *
- * @param a a pointer to the first integer
- * @param b a pointer to the second integer
- * @return  `TRUE` when `a` is less than or equal to `b`.
- */
-int
-sort_utils_int_le (const void *const a,
-                   const void *const b)
-{
-  const int *const x = (const int *const) a;
-  const int *const y = (const int *const) b;
-  return *x <= *y;
-}
-
-/**
  * @brief Compares int values pointed by `a` and `b`.
  *
  * @details Compare function that returns:
@@ -718,7 +613,7 @@ void
 sort_utils_insertionsort_asc_i (int *const a,
                                 const int count)
 {
-  sort_utils_insertionsort(a, count, sizeof(int), sort_utils_int_lt);
+  sort_utils_insertionsort(a, count, sizeof(int), sort_utils_int_cmp);
 }
 
 /**
@@ -734,7 +629,7 @@ void
 sort_utils_insertionsort_dsc_i (int *const a,
                                 const int count)
 {
-  sort_utils_insertionsort(a, count, sizeof(int), sort_utils_int_gt);
+  sort_utils_insertionsort(a, count, sizeof(int), sort_utils_int_icmp);
 }
 
 

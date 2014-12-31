@@ -111,26 +111,6 @@ sort_utils_double_icmp (const void *const a,
 /* int */
 
 extern int
-sort_utils_int_eq (const void *const a,
-                   const void *const b);
-
-extern int
-sort_utils_int_gt (const void *const a,
-                   const void *const b);
-
-extern int
-sort_utils_int_ge (const void *const a,
-                   const void *const b);
-
-extern int
-sort_utils_int_lt (const void *const a,
-                   const void *const b);
-
-extern int
-sort_utils_int_le (const void *const a,
-                   const void *const b);
-
-extern int
 sort_utils_int_cmp (const void *const a,
                     const void *const b);
 
