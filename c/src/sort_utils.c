@@ -1770,23 +1770,6 @@ sort_utils_shellsort_dsc_i (int *const a,
 /* Merge-sort */
 /**************/
 
-static void
-mrs_insertionsort (void *const a,
-                   const size_t count,
-                   const size_t element_size,
-                   const sort_utils_compare_function cmp)
-{
-  char *ca = (char *) a;
-  for (int i = 1; i < count; i++) {
-    int j = i;
-    for (;;) {
-      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) < 0) break;
-      swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
-      j--;
-    }
-  }
-}
-
 /**
  * @brief Sorts the `a` array.
  *
@@ -1839,7 +1822,7 @@ sort_utils_mergesort_a (void *const a,
 
   /* Termination condition, it uses insertion-sort. */
   if (count < small_array_threshold) {
-    mrs_insertionsort(a, count, es, cmp);
+    sort_utils_insertionsort(a, count, es, cmp);
     return;
   }
 
