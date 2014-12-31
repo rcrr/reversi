@@ -1511,6 +1511,146 @@ sort_utils_mergesort_dsc_i (int *const a,
 /************/
 
 /**
+ * Reverse the specified range of the specified array.
+ *
+ * @param a the array in which a range is to be reversed
+ * @param lo the index of the first element in the range to be reversed
+ * @param hi the index after the last element in the range to be reversed
+ */
+static void
+reverse_range (void *const a,
+               const size_t element_size,
+               size_t lo,
+               size_t hi)
+{
+  char *ca = (char *) a;
+  hi--;
+  while (lo < hi) {
+    swap(ca + lo * element_size, ca + hi * element_size, element_size);
+    lo++; hi--;
+  }
+}
+
+/**
+ * Returns the length of the run beginning at the specified position in
+ * the specified array and reverses the run if it is descending (ensuring
+ * that the run will always be ascending when the method returns).
+ *
+ * A run is the longest ascending sequence with:
+ *
+ *    a[lo] <= a[lo + 1] <= a[lo + 2] <= ...
+ *
+ * or the longest descending sequence with:
+ *
+ *    a[lo] >  a[lo + 1] >  a[lo + 2] >  ...
+ *
+ * For its intended use in a stable mergesort, the strictness of the
+ * definition of "descending" is needed so that the call can safely
+ * reverse a descending sequence without violating stability.
+ *
+ * @param a the array in which a run is to be counted and possibly reversed
+ * @param lo index of the first element in the run
+ * @param hi index after the last element that may be contained in the run.
+ *           It is required that @code{lo < hi}.
+ * @param c the comparator to used for the sort
+ * @return  the length of the run beginning at the specified position in
+ *          the specified array
+ */
+static size_t
+count_run_and_make_asending (void *const a,
+                             const size_t element_size,
+                             size_t lo,
+                             size_t hi,
+                             const sort_utils_compare_function cmp)
+{
+  g_assert(lo < hi);
+  size_t run_hi = lo + 1;
+  if (run_hi == hi) return 1;
+
+  char *ca = (char *) a;
+
+  /* Finds end of run, and reverses range if descending. */
+  if (cmp(ca + run_hi++ * element_size, ca + lo * element_size) < 0) { // Descending.
+    while (run_hi < hi && cmp(ca + run_hi * element_size, ca + (run_hi -1) * element_size) < 0)
+      run_hi++;
+    reverse_range(a, element_size, lo, run_hi);
+  } else { // Ascending.
+    while (run_hi < hi && cmp(ca + run_hi * element_size, ca + (run_hi -1) * element_size) >= 0)
+      run_hi++;
+  }
+  return run_hi - lo;
+}
+
+
+/**
+ * Sorts the specified portion of the specified array using a binary
+ * insertion sort.  This is the best method for sorting small numbers
+ * of elements.  It requires O(n log n) compares, but O(n^2) data
+ * movement (worst case).
+ *
+ * If the initial part of the specified range is already sorted,
+ * this method can take advantage of it: the method assumes that the
+ * elements from index {@code lo}, inclusive, to {@code start},
+ * exclusive are already sorted.
+ *
+ * @param a the array in which a range is to be sorted
+ * @param lo the index of the first element in the range to be sorted
+ * @param hi the index after the last element in the range to be sorted
+ * @param start the index of the first element in the range that is
+ *        not already known to be sorted (@code lo <= start <= hi}
+ * @param c comparator to used for the sort
+ */
+static void
+binary_sort (void *const a,
+             const size_t element_size,
+             size_t lo,
+             size_t hi,
+             size_t start,
+             const sort_utils_compare_function cmp)
+{
+  g_assert(lo <= start && start <= hi);
+
+  char *ca = (char *) a;
+
+  if (start == lo)
+    start++;
+  for ( ; start < hi; start++) {
+    char *pivot = ca + start * element_size;
+    double pivot_value;                                                              // !!!!!!!!!!!!!!!!!!!!!!!!!!!! WHAT A PITY !!!!!!
+    copy(&pivot_value, pivot, element_size);
+
+    // Set left (and right) to the index where a[start] (pivot) belongs
+    size_t left = lo;
+    size_t right = start;
+    g_assert (left <= right);
+    /*
+     * Invariants:
+     *   pivot >= all in [lo, left).
+     *   pivot <  all in [right, start).
+     */
+    while (left < right) {
+      size_t mid = (left + right) >> 1;
+      if (cmp(pivot, ca + mid * element_size) < 0)
+        right = mid;
+      else
+        left = mid + 1;
+    }
+    g_assert(left == right);
+
+    /*
+     * The invariants still hold: pivot >= all in [lo, left) and
+     * pivot < all in [left, start), so pivot belongs at left.  Note
+     * that if there are elements equal to pivot, left points to the
+     * first slot after them -- that's why this sort is stable.
+     * Slide elements over to make room to make room for pivot.
+     */
+    size_t n = start - left;  // The number of elements to move
+    memmove(ca + (left + 1) * element_size, ca + left * element_size, n * element_size);
+    copy(ca + left * element_size, &pivot_value, element_size);
+  }
+}
+
+/**
  * @brief Sorts the `a` array.
  *
  * @details The vector `a` having length equal to `count` is sorted
@@ -1559,22 +1699,29 @@ sort_utils_timsort (void *const a,
   g_assert(cmp);
   if (count < 2) return;
 
+  size_t lo = 0;
+  size_t hi = count;
+
   static const int min_merge = 32;
 
   if (count < min_merge) {
-    sort_utils_insertionsort(a, count, element_size, cmp);
+    size_t init_run_len = count_run_and_make_asending(a, element_size, lo, hi, cmp);
+    //printf("\n\ninit_run_len=%zu\n\n", init_run_len);
+    binary_sort(a, element_size, lo, hi, lo + init_run_len, cmp);
+    //sort_utils_insertionsort(a, count, element_size, cmp);
     /*
     int initRunLen = countRunAndMakeAscending(a, lo, hi, c);
     binarySort(a, lo, hi, lo + initRunLen, c);
     return;
     */
+    return;
   }
 
   char *ca = (char *) a;
   for (int i = 1; i < count; i++) {
     int j = i;
     for (;;) {
-      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size)) break;
+      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) < 0) break;
       swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
       j--;
     }

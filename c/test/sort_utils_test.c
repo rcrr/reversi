@@ -647,6 +647,23 @@ const TestsWithSortingFunction twsf_uint64_t_base_mergesort =
 
 
 
+/* Tim-sort */
+
+/**
+ * @brief Tim-sort is applied to the double base test case.
+ */
+const TestsWithSortingFunction twsf_double_base_timsort =
+  {
+    (gconstpointer) tc_double_base,
+    sort_utils_double_cmp,
+    sort_utils_double_icmp,
+    sort_utils_timsort,
+    sizeof(double),
+    sort_utils_double_cmp
+  };
+
+
+
 /*
  * Test function prototypes.
  */
@@ -939,6 +956,14 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_mergesort_dsc_d_1_rand_test", sort_utils_mergesort_dsc_d_1_rand_test);
   g_test_add_func("/sort_utils/sort_utils_mergesort_asc_d_n_rand_test", sort_utils_mergesort_asc_d_n_rand_test);
   g_test_add_func("/sort_utils/sort_utils_mergesort_dsc_d_n_rand_test", sort_utils_mergesort_dsc_d_n_rand_test);
+
+
+  g_test_add("/sort_utils/double_base_timsort",
+             Fixture,
+             (gconstpointer) &twsf_double_base_timsort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
 
 
 
