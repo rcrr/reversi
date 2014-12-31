@@ -1780,7 +1780,7 @@ mrs_insertionsort (void *const a,
   for (int i = 1; i < count; i++) {
     int j = i;
     for (;;) {
-      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) ) break;
+      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) < 0) break;
       swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
       j--;
     }
@@ -1856,7 +1856,7 @@ sort_utils_mergesort_a (void *const a,
   char *one_past_last_for_left = ca + hc * es;
   char *one_past_last_for_right = ca + count * es;
   while (left < one_past_last_for_left && right < one_past_last_for_right) {
-    if (cmp(left, right)) {
+    if (cmp(left, right) < 0) {
       copy(aux_ptr, left, es);
       left += es;
     } else {
@@ -1891,7 +1891,7 @@ void
 sort_utils_mergesort_asc_d (double *const a,
                             const int count)
 {
-  sort_utils_mergesort(a, count, sizeof(double), sort_utils_double_lt);
+  sort_utils_mergesort(a, count, sizeof(double), sort_utils_double_cmp);
 }
 
 /**
@@ -1907,7 +1907,7 @@ void
 sort_utils_mergesort_dsc_d (double *const a,
                             const int count)
 {
-  sort_utils_mergesort(a, count, sizeof(double), sort_utils_double_gt);
+  sort_utils_mergesort(a, count, sizeof(double), sort_utils_double_icmp);
 }
 
 /**
@@ -1923,7 +1923,7 @@ void
 sort_utils_mergesort_asc_i (int *const a,
                             const int count)
 {
-  sort_utils_mergesort(a, count, sizeof(int), sort_utils_int_lt);
+  sort_utils_mergesort(a, count, sizeof(int), sort_utils_int_cmp);
 }
 
 /**
@@ -1939,7 +1939,7 @@ void
 sort_utils_mergesort_dsc_i (int *const a,
                             const int count)
 {
-  sort_utils_mergesort(a, count, sizeof(int), sort_utils_int_gt);
+  sort_utils_mergesort(a, count, sizeof(int), sort_utils_int_icmp);
 }
 
 
