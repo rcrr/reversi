@@ -123,26 +123,6 @@ sort_utils_int_icmp (const void *const a,
 /* uint64_t */
 
 extern int
-sort_utils_uint64_t_eq (const void *const a,
-                        const void *const b);
-
-extern int
-sort_utils_uint64_t_gt (const void *const a,
-                        const void *const b);
-
-extern int
-sort_utils_uint64_t_ge (const void *const a,
-                        const void *const b);
-
-extern int
-sort_utils_uint64_t_lt (const void *const a,
-                        const void *const b);
-
-extern int
-sort_utils_uint64_t_le (const void *const a,
-                        const void *const b);
-
-extern int
 sort_utils_uint64_t_cmp (const void *const a,
                          const void *const b);
 
@@ -153,26 +133,6 @@ sort_utils_uint64_t_icmp (const void *const a,
 
 
 /* int64_t */
-
-extern int
-sort_utils_int64_t_eq (const void *const a,
-                       const void *const b);
-
-extern int
-sort_utils_int64_t_gt (const void *const a,
-                       const void *const b);
-
-extern int
-sort_utils_int64_t_ge (const void *const a,
-                       const void *const b);
-
-extern int
-sort_utils_int64_t_lt (const void *const a,
-                       const void *const b);
-
-extern int
-sort_utils_int64_t_le (const void *const a,
-                       const void *const b);
 
 extern int
 sort_utils_int64_t_cmp (const void *const a,
