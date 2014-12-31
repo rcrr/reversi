@@ -569,8 +569,8 @@ const TestsWithSortingFunction twsf_uint64_t_base_quicksort =
 const TestsWithSortingFunction twsf_double_base_shellsort =
   {
     (gconstpointer) tc_double_base,
-    sort_utils_double_lt,
-    sort_utils_double_gt,
+    sort_utils_double_cmp,
+    sort_utils_double_icmp,
     sort_utils_shellsort,
     sizeof(double),
     sort_utils_double_cmp
@@ -582,8 +582,8 @@ const TestsWithSortingFunction twsf_double_base_shellsort =
 const TestsWithSortingFunction twsf_int_base_shellsort =
   {
     (gconstpointer) tc_int_base,
-    sort_utils_int_lt,
-    sort_utils_int_gt,
+    sort_utils_int_cmp,
+    sort_utils_int_icmp,
     sort_utils_shellsort,
     sizeof(int),
     sort_utils_int_cmp
@@ -595,8 +595,8 @@ const TestsWithSortingFunction twsf_int_base_shellsort =
 const TestsWithSortingFunction twsf_uint64_t_base_shellsort =
   {
     (gconstpointer) tc_uint64_t_base,
-    sort_utils_uint64_t_lt,
-    sort_utils_uint64_t_gt,
+    sort_utils_uint64_t_cmp,
+    sort_utils_uint64_t_icmp,
     sort_utils_shellsort,
     sizeof(uint64_t),
     sort_utils_uint64_t_cmp

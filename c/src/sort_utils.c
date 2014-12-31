@@ -1690,7 +1690,7 @@ sort_utils_shellsort (void *const a,
       for (long long int j = i - scaled_gap; ; j -= scaled_gap) {
         char *one_element = j + (char *) a;
         char *another_one = one_element + scaled_gap;
-        if (cmp(one_element, another_one))
+        if (cmp(one_element, another_one) < 0)
           break;
         swap(one_element, another_one, element_size);
         if (j < scaled_gap)
@@ -1713,7 +1713,7 @@ void
 sort_utils_shellsort_asc_d (double *const a,
                             const int count)
 {
-  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_lt);
+  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_cmp);
 }
 
 /**
@@ -1729,7 +1729,7 @@ void
 sort_utils_shellsort_dsc_d (double *const a,
                             const int count)
 {
-  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_gt);
+  sort_utils_shellsort(a, count, sizeof(double), sort_utils_double_icmp);
 }
 
 /**
@@ -1745,7 +1745,7 @@ void
 sort_utils_shellsort_asc_i (int *const a,
                             const int count)
 {
-  sort_utils_shellsort(a, count, sizeof(int), sort_utils_int_lt);
+  sort_utils_shellsort(a, count, sizeof(int), sort_utils_int_cmp);
 }
 
 /**
@@ -1761,7 +1761,7 @@ void
 sort_utils_shellsort_dsc_i (int *const a,
                             const int count)
 {
-  sort_utils_shellsort(a, count, sizeof(int), sort_utils_int_gt);
+  sort_utils_shellsort(a, count, sizeof(int), sort_utils_int_icmp);
 }
 
 
