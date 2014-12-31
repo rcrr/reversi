@@ -36,34 +36,19 @@
 #define SORT_UTILS_H
 
 /**
- * @brief Function pointer type for comparing values.
+ * @brief Compare function signature.
  *
- * @details Within the forthcoming explanation `a`, and the same applies to `b`, is a shortcut
- *          for the more precise but also more verbose sentence: "the value referenced by pointer `a`".
+ * @details The implementer has to ensure that when the value refernced by `a`
+ *          is equal to the one addressed by `b`, than zero is returned.
+ *          When the value identified by `a` is greater than the one pointed by `b`,
+ *          than the return value has to be a positive integer, and otherwise a negative one.
  *
- *          Compare functions bring the complete information to be self-sufficient, and so the predicates
- *          appear to be redundant, but most sort functions are written expecting a proper predicate because
- *          the empirical evidence shows that sorting using a predicate is faster. The reason is rooted in the
- *          fact that the compare makes two comparisons, an a third one is done by the sort function itself.
- *          The predicates make just one compare, and the sorting function can use the return value as a Boolean.
- *          So for primitive values sorting using a compare function consumes three comparisons versus a single one
- *          executed when the sorting algorithm is designed on a predicate.
- *
- *          Anyhow the signature for predicates and compares is the same, and so
- *          function implementation can have different forms:
- *          - Compare: has to ensure that when `a` is equal `b`,
- *            zero is returned, when `a` is greater than `b` a positive integer,
- *            and otherwise a negative one.
- *          - EQ, equal to: has to ensure that when `a` is equal `b`,
- *            `TRUE` is returned, and `FALSE` otherwise.
- *          - LT, less than: has to ensure that when `a` is less than `b`,
- *            `TRUE` is returned, and `FALSE` otherwise.
- *          - LE, less than or equal to: has to ensure that when `a` is less than or equal `b`,
- *            `TRUE` is returned, and `FALSE` otherwise.
- *          - GT, greater than: has to ensure that when `a` is greater than `b`,
- *            `TRUE` is returned, and `FALSE` otherwise.
- *          - GE, greater than or equal to: has to ensure that when `a` is greater than or equal `b`,
- *            `TRUE` is returned, and `FALSE` otherwise.
+ *          Pseudocode:
+ * @code
+ *  if (*a > *b) return +1;
+ *  else if (*a == *b) return 0;
+ *  else return -1;
+ * @endcode
  *
  * @param [in] a a pointer to the first value
  * @param [in] b a pointer to the second value

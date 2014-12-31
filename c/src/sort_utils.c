@@ -6,8 +6,6 @@
  *
  * @todo Add tim-sort implementation to the list of available choices.
  *
- * @todo Add compare functions for pointers, and relative dedicated sort functions.
- *
  * @todo Add dedicated sort functions for object (pointer and structure) sorting.
  *       This version can have a dedicated swap macro/function.
  *
@@ -33,8 +31,8 @@
  * A lot of effort has been devoted to study and research sorting procedures, but a silver bullet has still to come.
  * Depending on the sorting data distribution, the patterns in the data, the type and number of the records,
  * the cost of comparing versus swapping, the availability of extra space, and finally our tolerance to the risk
- * of exploding running time and memory consumption caused by unpredicted data distributions that drive the
- * algorithm into the abyss, one procedure can be more efficient then the others.
+ * of exploding running time and memory consumption caused by unpredicted data distributions which might drive the
+ * algorithm into the abyss, one procedure can be more suitable than the others.
  *
  * The algorithms here proposed are:
  *   - Insertion-sort
@@ -43,6 +41,7 @@
  *   - Quick-sort
  *   - Shell-sort
  *   - Merge-sort
+ *   - Tim-sort
  *
  * There are mainly three different approaches when we have to rearrange records of information in a given order:
  *   - Address table sorting that means moving the complete records around.
@@ -316,9 +315,9 @@ sort_utils_int64_t_icmp (const void *const a,
 /**
  * @brief Sorts the `a` array.
  *
- * @details The vector `a` having length equal to `count` is sorted
- *          in place applying the insertion-sort algorithm.
- *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ * @details The vector `a`, collecting elements of size `element_size`, having length equal to `count`,
+ *          is sorted in place applying the insertion-sort algorithm.
+ *          The compare function `cmp` has to comply with the signature of #sort_utils_compare_function.
  *
  *          Insertion-sort is a naive algorithm with asymptotic time complexity of O(n^2),
  *          so quick-sort or heap-sort should be preferred even for small arrays.
