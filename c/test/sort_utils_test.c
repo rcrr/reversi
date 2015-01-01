@@ -11,7 +11,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -432,6 +432,49 @@ const TestsWithSortingFunction twsf_uint64_t_base_insertionsort =
 
 
 
+/* Binary-sort */
+
+/**
+ * @brief Binary-sort is applied to the double base test case.
+ */
+const TestsWithSortingFunction twsf_double_base_binarysort =
+  {
+    (gconstpointer) tc_double_base,
+    sort_utils_double_cmp,
+    sort_utils_double_icmp,
+    sort_utils_binarysort,
+    sizeof(double),
+    sort_utils_double_cmp
+  };
+
+/**
+ * @brief Binary-sort is applied to the int base test case.
+ */
+const TestsWithSortingFunction twsf_int_base_binarysort =
+  {
+    (gconstpointer) tc_int_base,
+    sort_utils_int_cmp,
+    sort_utils_int_icmp,
+    sort_utils_binarysort,
+    sizeof(int),
+    sort_utils_int_cmp
+  };
+
+/**
+ * @brief Binary-sort is applied to the uint64_t base test case.
+ */
+const TestsWithSortingFunction twsf_uint64_t_base_binarysort =
+  {
+    (gconstpointer) tc_uint64_t_base,
+    sort_utils_uint64_t_cmp,
+    sort_utils_uint64_t_icmp,
+    sort_utils_binarysort,
+    sizeof(uint64_t),
+    sort_utils_uint64_t_cmp
+  };
+
+
+
 /* Heap-sort */
 
 /**
@@ -821,6 +864,28 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_insertionsort_dsc_d_1_rand_test", sort_utils_insertionsort_dsc_d_1_rand_test);
   g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_n_rand_test", sort_utils_insertionsort_asc_d_n_rand_test);
   g_test_add_func("/sort_utils/sort_utils_insertionsort_dsc_d_n_rand_test", sort_utils_insertionsort_dsc_d_n_rand_test);
+
+
+  g_test_add("/sort_utils/double_base_binarysort",
+             Fixture,
+             (gconstpointer) &twsf_double_base_binarysort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
+
+  g_test_add("/sort_utils/int_base_binarysort",
+             Fixture,
+             (gconstpointer) &twsf_int_base_binarysort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
+
+  g_test_add("/sort_utils/uint64_t_base_binarysort",
+             Fixture,
+             (gconstpointer) &twsf_uint64_t_base_binarysort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
 
 
   g_test_add("/sort_utils/double_base_heapsort",

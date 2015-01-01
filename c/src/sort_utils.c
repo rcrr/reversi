@@ -357,70 +357,6 @@ sort_utils_insertionsort (void *const a,
   }
 }
 
-void
-sort_utils_insertionsort_ (void *const a,
-                           const size_t count,
-                           const size_t element_size,
-                           const sort_utils_compare_function cmp)
-{
-  char *ca = (char *) a;
-  const size_t es = element_size;
-
-  /*
-  printf("\n\ncount=%zu, array={", count);
-  for (size_t k = 0; k < count; k++) {
-    double *x = (double *) (ca + k * es);
-    printf( "%4.2f, ", *x);
-  }
-  printf("}\n");
-  */
-
-  if (count < 2) return;
-  char *tmp = malloc(element_size * sizeof(char));
-  //double *xtmp = (double *) tmp;
-
-  for (size_t i = 1; i < count; i++) {
-    copy(tmp, ca + i * es, es);
-    size_t j = i;
-    //printf("... ... ... i=%zu, tmp=%4.2f\n", i, *xtmp);
-
-    size_t left = 0;
-    size_t right = i;
-    g_assert(left <= right);
-    while (left < right) {
-      size_t mid = (left + right) >> 1;
-      //printf("... ... ... ... ... left=%zu, right=%zu, mid=%zu", left, right, mid);
-      if (cmp(tmp, ca + mid * element_size) < 0)
-        right = mid;
-      else
-        left = mid + 1;
-      //printf(" === === === >>> left=%zu, right=%zu\n", left, right);
-    }
-    g_assert(left == right);
-
-    for (;;) {
-      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) <= 0) {
-        break;
-      }
-      swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
-      j--;
-    }
-
-    g_assert(j == left);
-
-    /*
-    printf("      left=%zu, j=%zu, i=%zu, array={", left, j, i);
-    for (size_t k = 0; k < count; k++) {
-      double *x = (double *) (ca + k * es);
-      printf( "%4.2f, ", *x);
-    }
-    printf("}\n");
-    */
-
-  }
-  free(tmp);
-}
-
 /**
  * @brief Sorts in ascending order the `a` array of doubles.
  *
@@ -483,6 +419,52 @@ sort_utils_insertionsort_dsc_i (int *const a,
                                 const int count)
 {
   sort_utils_insertionsort(a, count, sizeof(int), sort_utils_int_icmp);
+}
+
+
+
+/***************/
+/* Binary-sort */
+/***************/
+
+/**
+ * @brief Sorts the `a` array.
+ *
+ * @details The vector `a`, collecting elements of size `element_size`, having length equal to `count`,
+ *          is sorted in place applying the binary-sort algorithm.
+ *          The compare function `cmp` has to comply with the signature of #sort_utils_compare_function.
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applied by the algorithm
+ */
+void
+sort_utils_binarysort (void *const a,
+                       const size_t count,
+                       const size_t element_size,
+                       const sort_utils_compare_function cmp)
+{
+  if (count < 2) return;
+  const size_t es = element_size;
+  char *ca = (char *) a;
+  char *tmp = malloc(element_size * sizeof(char));
+  for (size_t i = 1; i < count; i++) {
+    copy(tmp, ca + i * es, es);
+    size_t left = 0;
+    size_t right = i;
+    while (left < right) {
+      size_t mid = (left + right) >> 1;
+      if (cmp(tmp, ca + mid * element_size) < 0)
+        right = mid;
+      else
+        left = mid + 1;
+    }
+    const size_t n = i - left;
+    memmove(ca + (left + 1) * element_size, ca + left * element_size, n * element_size);
+    copy(ca + left * element_size, tmp, element_size);
+  }
+  free(tmp);
 }
 
 

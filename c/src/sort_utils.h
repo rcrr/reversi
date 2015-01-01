@@ -11,7 +11,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -153,6 +153,18 @@ sort_utils_insertionsort_asc_i (int *const a,
 extern void
 sort_utils_insertionsort_dsc_i (int *const a,
                                 const int count);
+
+
+
+/************************************/
+/* Binary-sort function prototypes. */
+/************************************/
+
+extern void
+sort_utils_binarysort (void *const a,
+                       const size_t count,
+                       const size_t element_size,
+                       const sort_utils_compare_function cmp);
 
 
 
