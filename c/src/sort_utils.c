@@ -341,7 +341,7 @@ sort_utils_int64_t_icmp (const void *const a,
  * @param [in]     cmp          the compare function applied by the algorithm
  */
 void
-sort_utils_insertionsort (void *const a,
+sort_utils_insertionsort_ (void *const a,
                           const size_t count,
                           const size_t element_size,
                           const sort_utils_compare_function cmp)
@@ -355,6 +355,70 @@ sort_utils_insertionsort (void *const a,
       j--;
     }
   }
+}
+
+void
+sort_utils_insertionsort (void *const a,
+                          const size_t count,
+                          const size_t element_size,
+                          const sort_utils_compare_function cmp)
+{
+  char *ca = (char *) a;
+  const size_t es = element_size;
+
+  /*
+  printf("\n\ncount=%zu, array={", count);
+  for (size_t k = 0; k < count; k++) {
+    double *x = (double *) (ca + k * es);
+    printf( "%4.2f, ", *x);
+  }
+  printf("}\n");
+  */
+
+  if (count < 2) return;
+  char *tmp = malloc(element_size * sizeof(char));
+  //double *xtmp = (double *) tmp;
+
+  for (size_t i = 1; i < count; i++) {
+    copy(tmp, ca + i * es, es);
+    size_t j = i;
+    //printf("... ... ... i=%zu, tmp=%4.2f\n", i, *xtmp);
+
+    size_t left = 0;
+    size_t right = i;
+    g_assert(left <= right);
+    while (left < right) {
+      size_t mid = (left + right) >> 1;
+      //printf("... ... ... ... ... left=%zu, right=%zu, mid=%zu", left, right, mid);
+      if (cmp(tmp, ca + mid * element_size) < 0)
+        right = mid;
+      else
+        left = mid + 1;
+      //printf(" === === === >>> left=%zu, right=%zu\n", left, right);
+    }
+    g_assert(left == right);
+
+    for (;;) {
+      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) <= 0) {
+        break;
+      }
+      swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
+      j--;
+    }
+
+    g_assert(j == left);
+
+    /*
+    printf("      left=%zu, j=%zu, i=%zu, array={", left, j, i);
+    for (size_t k = 0; k < count; k++) {
+      double *x = (double *) (ca + k * es);
+      printf( "%4.2f, ", *x);
+    }
+    printf("}\n");
+    */
+
+  }
+  free(tmp);
 }
 
 /**
@@ -1706,14 +1770,7 @@ sort_utils_timsort (void *const a,
 
   if (count < min_merge) {
     size_t init_run_len = count_run_and_make_asending(a, element_size, lo, hi, cmp);
-    //printf("\n\ninit_run_len=%zu\n\n", init_run_len);
     binary_sort(a, element_size, lo, hi, lo + init_run_len, cmp);
-    //sort_utils_insertionsort(a, count, element_size, cmp);
-    /*
-    int initRunLen = countRunAndMakeAscending(a, lo, hi, c);
-    binarySort(a, lo, hi, lo + initRunLen, c);
-    return;
-    */
     return;
   }
 
