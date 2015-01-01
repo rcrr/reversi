@@ -341,7 +341,7 @@ sort_utils_int64_t_icmp (const void *const a,
  * @param [in]     cmp          the compare function applied by the algorithm
  */
 void
-sort_utils_insertionsort_ (void *const a,
+sort_utils_insertionsort (void *const a,
                           const size_t count,
                           const size_t element_size,
                           const sort_utils_compare_function cmp)
@@ -350,7 +350,7 @@ sort_utils_insertionsort_ (void *const a,
   for (int i = 1; i < count; i++) {
     int j = i;
     for (;;) {
-      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) < 0) break;
+      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) <= 0) break;
       swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
       j--;
     }
@@ -358,10 +358,10 @@ sort_utils_insertionsort_ (void *const a,
 }
 
 void
-sort_utils_insertionsort (void *const a,
-                          const size_t count,
-                          const size_t element_size,
-                          const sort_utils_compare_function cmp)
+sort_utils_insertionsort_ (void *const a,
+                           const size_t count,
+                           const size_t element_size,
+                           const sort_utils_compare_function cmp)
 {
   char *ca = (char *) a;
   const size_t es = element_size;
