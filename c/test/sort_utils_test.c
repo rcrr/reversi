@@ -731,6 +731,12 @@ static void sort_utils_insertionsort_dsc_d_1_rand_test (void);
 static void sort_utils_insertionsort_dsc_d_n_rand_test (void);
 static void sort_utils_insertionsort_asc_d_rand_perf_test (void);
 
+static void sort_utils_binarysort_asc_d_1_rand_test (void);
+static void sort_utils_binarysort_asc_d_n_rand_test (void);
+static void sort_utils_binarysort_dsc_d_1_rand_test (void);
+static void sort_utils_binarysort_dsc_d_n_rand_test (void);
+static void sort_utils_binarysort_asc_d_rand_perf_test (void);
+
 static void sort_utils_heapsort_asc_d_1_rand_test (void);
 static void sort_utils_heapsort_asc_d_n_rand_test (void);
 static void sort_utils_heapsort_dsc_d_1_rand_test (void);
@@ -887,6 +893,11 @@ main (int   argc,
              hlp_run_tests_with_sorting_function,
              fixture_teardown);
 
+  g_test_add_func("/sort_utils/sort_utils_binarysort_asc_d_1_rand_test", sort_utils_binarysort_asc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_binarysort_dsc_d_1_rand_test", sort_utils_binarysort_dsc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_binarysort_asc_d_n_rand_test", sort_utils_binarysort_asc_d_n_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_binarysort_dsc_d_n_rand_test", sort_utils_binarysort_dsc_d_n_rand_test);
+
 
   g_test_add("/sort_utils/double_base_heapsort",
              Fixture,
@@ -1035,6 +1046,7 @@ main (int   argc,
   if (g_test_perf()) {
     g_test_add_func("/sort_utils/sort_utils_qsort_asc_d_rand_perf_test", sort_utils_qsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_insertionsort_asc_d_rand_perf_test", sort_utils_insertionsort_asc_d_rand_perf_test);
+    g_test_add_func("/sort_utils/sort_utils_binarysort_asc_d_rand_perf_test", sort_utils_binarysort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_heapsort_asc_d_rand_perf_test", sort_utils_heapsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_smoothsort_asc_d_rand_perf_test", sort_utils_smoothsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_quicksort_asc_d_rand_perf_test", sort_utils_quicksort_asc_d_rand_perf_test);
@@ -1241,6 +1253,46 @@ static void
 sort_utils_insertionsort_asc_d_rand_perf_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_insertionsort_asc_d, 1024, 8, 2, 175, ASC);
+}
+
+
+
+/*****************************************/
+/* Unit tests for binary-sort algorithm. */
+/*****************************************/
+
+static void
+sort_utils_binarysort_asc_d_1_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_binarysort_asc_d, 1024, 1, 0, 175, ASC);
+}
+
+static void
+sort_utils_binarysort_dsc_d_1_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_binarysort_dsc_d, 1024, 1, 0, 175, DSC);
+}
+
+static void
+sort_utils_binarysort_asc_d_n_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_binarysort_asc_d, 1024, 3, 2, 322, ASC);
+  hlp_run_sort_d_random_test(sort_utils_binarysort_asc_d, 1023, 3, 2, 655, ASC);
+  hlp_run_sort_d_random_test(sort_utils_binarysort_asc_d, 1025, 3, 2, 983, ASC);
+}
+
+static void
+sort_utils_binarysort_dsc_d_n_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_binarysort_dsc_d, 1024, 3, 2, 114, DSC);
+  hlp_run_sort_d_random_test(sort_utils_binarysort_dsc_d, 1023, 3, 2, 563, DSC);
+  hlp_run_sort_d_random_test(sort_utils_binarysort_dsc_d, 1025, 3, 2, 940, DSC);
+}
+
+static void
+sort_utils_binarysort_asc_d_rand_perf_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_binarysort_asc_d, 1024, 8, 2, 175, ASC);
 }
 
 

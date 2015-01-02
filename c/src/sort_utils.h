@@ -166,6 +166,22 @@ sort_utils_binarysort (void *const a,
                        const size_t element_size,
                        const sort_utils_compare_function cmp);
 
+extern void
+sort_utils_binarysort_asc_d (double *const a,
+                             const int count);
+
+extern void
+sort_utils_binarysort_dsc_d (double *const a,
+                             const int count);
+
+extern void
+sort_utils_binarysort_asc_i (int *const a,
+                             const int count);
+
+extern void
+sort_utils_binarysort_dsc_i (int *const a,
+                             const int count);
+
 
 
 /**********************************/
