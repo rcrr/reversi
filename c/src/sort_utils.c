@@ -1659,6 +1659,41 @@ sort_utils_mergesort_dsc_i (int *const a,
 /************/
 
 /**
+ * @cond
+ */
+
+static const int min_merge = 32;
+static const int min_gallop = 7;
+
+/**
+ * Returns the minimum acceptable run length for an array of the specified
+ * length. Natural runs shorter than this will be extended with
+ * {@link #binarySort}.
+ *
+ * Roughly speaking, the computation is:
+ *
+ *  If n < MIN_MERGE, return n (it's too small to bother with fancy stuff).
+ *  Else if n is an exact power of 2, return MIN_MERGE/2.
+ *  Else return an int k, MIN_MERGE/2 <= k <= MIN_MERGE, such that n/k
+ *   is close to, but strictly less than, an exact power of 2.
+ *
+ * For the rationale, see listsort.txt.
+ *
+ * @param n the length of the array to be sorted
+ * @return the length of the minimum run to be merged
+ */
+static size_t
+min_run_length (size_t n) {
+  g_assert(n >= 0);
+  size_t r = 0;      // Becomes 1 if any 1 bits are shifted off
+  while (n >= min_merge) {
+    r |= (n & 1);
+    n >>= 1;
+  }
+  return n + r;
+}
+
+/**
  * @brief Reverse the specified range of the specified array.
  *
  * @param a            the array in which a range is to be reversed
@@ -1706,11 +1741,11 @@ reverse_range (void *const a,
  *          the specified array
  */
 static size_t
-count_run_and_make_asending (void *const a,
-                             const size_t element_size,
-                             size_t lo,
-                             size_t hi,
-                             const sort_utils_compare_function cmp)
+count_run_and_make_ascending (void *const a,
+                              const size_t element_size,
+                              size_t lo,
+                              size_t hi,
+                              const sort_utils_compare_function cmp)
 {
   g_assert(lo < hi);
   size_t run_hi = lo + 1;
@@ -1730,74 +1765,9 @@ count_run_and_make_asending (void *const a,
   return run_hi - lo;
 }
 
-
 /**
- * @brief Sorts the specified portion of the specified array using a binary
- * insertion sort.  This is the best method for sorting small numbers
- * of elements.  It requires O(n log n) compares, but O(n^2) data
- * movement (worst case).
- *
- * If the initial part of the specified range is already sorted,
- * this method can take advantage of it: the method assumes that the
- * elements from index {@code lo}, inclusive, to {@code start},
- * exclusive are already sorted.
- *
- * @param a the array in which a range is to be sorted
- * @param lo the index of the first element in the range to be sorted
- * @param hi the index after the last element in the range to be sorted
- * @param start the index of the first element in the range that is
- *        not already known to be sorted (@code lo <= start <= hi}
- * @param c comparator to used for the sort
+ * @endcond
  */
-static void
-binary_sort (void *const a,
-             const size_t element_size,
-             size_t lo,
-             size_t hi,
-             size_t start,
-             const sort_utils_compare_function cmp)
-{
-  g_assert(lo <= start && start <= hi);
-
-  char *ca = (char *) a;
-
-  if (start == lo)
-    start++;
-  for ( ; start < hi; start++) {
-    char *pivot = ca + start * element_size;
-    double pivot_value;                                                              // !!!!!!!!!!!!!!!!!!!!!!!!!!!! WHAT A PITY !!!!!!
-    copy(&pivot_value, pivot, element_size);
-
-    // Set left (and right) to the index where a[start] (pivot) belongs
-    size_t left = lo;
-    size_t right = start;
-    g_assert (left <= right);
-    /*
-     * Invariants:
-     *   pivot >= all in [lo, left).
-     *   pivot <  all in [right, start).
-     */
-    while (left < right) {
-      size_t mid = (left + right) >> 1;
-      if (cmp(pivot, ca + mid * element_size) < 0)
-        right = mid;
-      else
-        left = mid + 1;
-    }
-    g_assert(left == right);
-
-    /*
-     * The invariants still hold: pivot >= all in [lo, left) and
-     * pivot < all in [left, start), so pivot belongs at left.  Note
-     * that if there are elements equal to pivot, left points to the
-     * first slot after them -- that's why this sort is stable.
-     * Slide elements over to make room to make room for pivot.
-     */
-    size_t n = start - left;  // The number of elements to move
-    memmove(ca + (left + 1) * element_size, ca + left * element_size, n * element_size);
-    copy(ca + left * element_size, &pivot_value, element_size);
-  }
-}
 
 /**
  * @brief Sorts the `a` array.
@@ -1852,14 +1822,42 @@ sort_utils_timsort (void *const a,
 
   size_t lo = 0;
   size_t hi = count;
-
-  static const int min_merge = 32;
+  size_t n_remaining = hi - lo;
 
   if (count < min_merge) {
-    size_t init_run_len = count_run_and_make_asending(a, element_size, lo, hi, cmp);
+    size_t init_run_len = count_run_and_make_ascending(a, element_size, lo, hi, cmp);
     bnr_sort_from_ordered_initial_run(ca + lo * element_size, hi, init_run_len, element_size, cmp);
     return;
   }
+
+  /*
+   * March over the array once, left to right, finding natural runs,
+   * extending short natural runs to minRun elements, and merging runs
+   * to maintain stack invariant.
+   */
+  //TimSort<T> ts = new TimSort<T>(a, c);
+  size_t min_run = min_run_length(n_remaining);
+  do {
+    /* Identify next run. */
+    size_t run_len = count_run_and_make_ascending(a, element_size, lo, hi, cmp);
+
+    // If run is short, extend to min(min_run, n_remaining)
+    if (run_len < min_run) {
+      size_t force = n_remaining <= min_run ? n_remaining : min_run;
+      bnr_sort_from_ordered_initial_run(ca + lo * element_size, lo + force, lo + run_len, element_size, cmp);
+      run_len = force;
+    }
+
+    /*
+    // Push run onto pending-run stack, and maybe merge
+    ts.pushRun(lo, runLen);
+    ts.mergeCollapse();
+    */
+
+    // Advance to find next run
+    lo += run_len;
+    n_remaining -= run_len;
+  } while (n_remaining != 0);
 
   for (int i = 1; i < count; i++) {
     int j = i;
