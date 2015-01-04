@@ -1693,6 +1693,220 @@ typedef struct {
 } TimSort;
 
 /**
+ * Locates the position at which to insert the specified key into the
+ * specified sorted range; if the range contains an element equal to key,
+ * returns the index of the leftmost equal element.
+ *
+ * @param key the key whose insertion point to search for
+ * @param a the array in which to search
+ * @param es element size
+ * @param base the index of the first element in the range
+ * @param len the length of the range; must be > 0
+ * @param hint the index at which to begin the search, 0 <= hint < n.
+ *     The closer hint is to the result, the faster this method will run.
+ * @param c the comparator used to order the range, and to search
+ * @return the int k,  0 <= k <= n such that a[b + k - 1] < key <= a[b + k],
+ *    pretending that a[b - 1] is minus infinity and a[b + n] is infinity.
+ *    In other words, key belongs at index b + k; or in other words,
+ *    the first k elements of a should precede key, and the last n - k
+ *    should follow it.
+ */
+static size_t
+gallop_left (void *key,
+             void *a,
+             size_t es,
+             size_t base,
+             size_t len,
+             size_t hint,
+             sort_utils_compare_function cmp)
+{
+  g_assert(len > 0 && hint >= 0 && hint < len);
+  return 0;
+}
+/**
+ * Like gallopLeft, except that if the range contains an element equal to
+ * key, gallopRight returns the index after the rightmost equal element.
+ *
+ * @param key the key whose insertion point to search for
+ * @param a the array in which to search
+ * @param es element size
+ * @param base the index of the first element in the range
+ * @param len the length of the range; must be > 0
+ * @param hint the index at which to begin the search, 0 <= hint < n.
+ *     The closer hint is to the result, the faster this method will run.
+ * @param c the comparator used to order the range, and to search
+ * @return the int k,  0 <= k <= n such that a[b + k - 1] <= key < a[b + k]
+ */
+static size_t
+gallop_right (void *key,
+              void *a,
+              size_t es,
+              size_t base,
+              size_t len,
+              size_t hint,
+              sort_utils_compare_function cmp)
+{
+  g_assert(len > 0 && hint >= 0 && hint < len);
+  return 0;
+}
+
+/**
+ * Merges two adjacent runs in place, in a stable fashion.  The first
+ * element of the first run must be greater than the first element of the
+ * second run (a[base1] > a[base2]), and the last element of the first run
+ * (a[base1 + len1-1]) must be greater than all elements of the second run.
+ *
+ * For performance, this method should be called only when len1 <= len2;
+ * its twin, mergeHi should be called if len1 >= len2.  (Either method
+ * may be called if len1 == len2.)
+ *
+ * @param base1 index of first element in first run to be merged
+ * @param len1  length of first run to be merged (must be > 0)
+ * @param base2 index of first element in second run to be merged
+ *        (must be aBase + aLen)
+ * @param len2  length of second run to be merged (must be > 0)
+ */
+static void
+merge_lo (TimSort *ts,
+          size_t base1,
+          size_t len1,
+          size_t base2,
+          size_t len2)
+{
+  g_assert(len1 > 0 && len2 > 0 && base1 + len1 == base2);
+
+  /*
+  // Copy first run into temp array
+  T[] a = this.a; // For performance
+  T[] tmp = ensureCapacity(len1);
+  System.arraycopy(a, base1, tmp, 0, len1);
+
+  int cursor1 = 0;       // Indexes into tmp array
+  int cursor2 = base2;   // Indexes int a
+  int dest = base1;      // Indexes int a
+
+  // Move first element of second run and deal with degenerate cases
+  a[dest++] = a[cursor2++];
+  if (--len2 == 0) {
+    System.arraycopy(tmp, cursor1, a, dest, len1);
+    return;
+  }
+  if (len1 == 1) {
+    System.arraycopy(a, cursor2, a, dest, len2);
+    a[dest + len2] = tmp[cursor1]; // Last elt of run 1 to end of merge
+    return;
+  }
+  */
+
+  /*
+  Comparator<? super T> c = this.c;  // Use local variable for performance
+  int minGallop = this.minGallop;    //  "    "       "     "      "
+ outer:
+  while (true) {
+    int count1 = 0; // Number of times in a row that first run won
+    int count2 = 0; // Number of times in a row that second run won
+  */
+
+    /*
+     * Do the straightforward thing until (if ever) one run starts
+     * winning consistently.
+     */
+  /*
+    do {
+      assert len1 > 1 && len2 > 0;
+      if (c.compare(a[cursor2], tmp[cursor1]) < 0) {
+        a[dest++] = a[cursor2++];
+        count2++;
+        count1 = 0;
+        if (--len2 == 0)
+          break outer;
+      } else {
+        a[dest++] = tmp[cursor1++];
+        count1++;
+        count2 = 0;
+        if (--len1 == 1)
+          break outer;
+      }
+    } while ((count1 | count2) < minGallop);
+  */
+    /*
+     * One run is winning so consistently that galloping may be a
+     * huge win. So try that, and continue galloping until (if ever)
+     * neither run appears to be winning consistently anymore.
+     */
+  /*
+    do {
+      assert len1 > 1 && len2 > 0;
+      count1 = gallopRight(a[cursor2], tmp, cursor1, len1, 0, c);
+      if (count1 != 0) {
+        System.arraycopy(tmp, cursor1, a, dest, count1);
+        dest += count1;
+        cursor1 += count1;
+        len1 -= count1;
+        if (len1 <= 1) // len1 == 1 || len1 == 0
+          break outer;
+      }
+      a[dest++] = a[cursor2++];
+      if (--len2 == 0)
+        break outer;
+
+      count2 = gallopLeft(tmp[cursor1], a, cursor2, len2, 0, c);
+      if (count2 != 0) {
+        System.arraycopy(a, cursor2, a, dest, count2);
+        dest += count2;
+        cursor2 += count2;
+        len2 -= count2;
+        if (len2 == 0)
+          break outer;
+      }
+      a[dest++] = tmp[cursor1++];
+      if (--len1 == 1)
+        break outer;
+      minGallop--;
+    } while (count1 >= MIN_GALLOP | count2 >= MIN_GALLOP);
+    if (minGallop < 0)
+      minGallop = 0;
+    minGallop += 2;  // Penalize for leaving gallop mode
+  }  // End of "outer" loop
+  this.minGallop = minGallop < 1 ? 1 : minGallop;  // Write back to field
+
+  if (len1 == 1) {
+    assert len2 > 0;
+    System.arraycopy(a, cursor2, a, dest, len2);
+    a[dest + len2] = tmp[cursor1]; //  Last elt of run 1 to end of merge
+  } else if (len1 == 0) {
+    throw new IllegalArgumentException(
+                                       "Comparison method violates its general contract!");
+  } else {
+    assert len2 == 0;
+    assert len1 > 1;
+    System.arraycopy(tmp, cursor1, a, dest, len1);
+  }
+  */
+}
+
+/**
+ * Like mergeLo, except that this method should be called only if
+ * len1 >= len2; mergeLo should be called if len1 <= len2.  (Either method
+ * may be called if len1 == len2.)
+ *
+ * @param base1 index of first element in first run to be merged
+ * @param len1  length of first run to be merged (must be > 0)
+ * @param base2 index of first element in second run to be merged
+ *        (must be aBase + aLen)
+ * @param len2  length of second run to be merged (must be > 0)
+ */
+static void
+merge_hi (TimSort *ts,
+          size_t base1,
+          size_t len1,
+          size_t base2,
+          size_t len2)
+{
+  g_assert(len1 > 0 && len2 > 0 && base1 + len1 == base2);
+}
+
+/**
  * Merges the two runs at stack indices i and i+1.  Run i must be
  * the penultimate or antepenultimate run on the stack.  In other words,
  * i must be equal to stackSize-2 or stackSize-3.
@@ -1707,6 +1921,54 @@ merge_at (TimSort *ts,
   g_assert(ts->stack_size >= 2);
   g_assert(i >= 0);
   g_assert(i == ts->stack_size - 2 || i == ts->stack_size - 3);
+
+  char *ca = (char *) ts-> a;
+  const size_t es = ts->element_size;
+
+  size_t base1 = ts->run_base[i];
+  size_t len1 = ts->run_len[i];
+  size_t base2 = ts->run_base[i + 1];
+  size_t len2 = ts->run_len[i + 1];
+  g_assert(len1 > 0 && len2 > 0);
+  g_assert(base1 + len1 == base2);
+
+  /*
+   * Record the length of the combined runs; if i is the 3rd-last
+   * run now, also slide over the last run (which isn't involved
+   * in this merge).  The current run (i+1) goes away in any case.
+   */
+  ts->run_len[i] = len1 + len2;
+  if (i == ts->stack_size - 3) {
+    ts->run_base[i + 1] = ts->run_base[i + 2];
+    ts->run_len[i + 1] = ts->run_len[i + 2];
+  }
+  ts->stack_size--;
+
+  /*
+   * Find where the first element of run2 goes in run1. Prior elements
+   * in run1 can be ignored (because they're already in place).
+   */
+  size_t k = gallop_right(ca + base2 * es, ca, es, base1, len1, 0, ts->cmp);
+  g_assert(k >= 0);
+  base1 += k;
+  len1 -= k;
+  if (len1 == 0)
+    return;
+
+  /*
+   * Find where the last element of run1 goes in run2. Subsequent elements
+   * in run2 can be ignored (because they're already in place).
+   */
+  len2 = gallop_left(ca + (base1 + len1 - 1) * es, ca, es, base2, len2, len2 - 1, ts->cmp);
+  g_assert(len2 >= 0);
+  if (len2 == 0)
+    return;
+
+  /* Merge remaining runs, using tmp array with min(len1, len2) elements. */
+  if (len1 <= len2)
+    merge_lo(ts, base1, len1, base2, len2);
+  else
+    merge_hi(ts, base1, len1, base2, len2);
 }
 
 /**
