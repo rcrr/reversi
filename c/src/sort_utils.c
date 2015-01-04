@@ -1666,6 +1666,169 @@ static const int min_merge = 32;
 static const int min_gallop = 7;
 
 /**
+ * @brief A team sort structure holds internal data for the algorithm.
+ *
+ * @details Variables `stack_size`, `run_base`, and `run_len` define a stack
+ *          of pending runs yet to be merged.  Run i starts at
+ *          address base[i] and extends for len[i] elements.  It's always
+ *          true (so long as the indices are in bounds) that:
+ *
+ *             run_base[i] + run_len[i] == run_base[i + 1]
+ *
+ *          so we could cut the storage for this, but it's a minor amount,
+ *          and keeping all the info explicit simplifies the code.
+ */
+typedef struct {
+  void                       *a;            /**< @brief The array to be sorted. */
+  size_t                      count;        /**< @brief The number of element in array. */
+  size_t                      element_size; /**< @brief The number of bytes used by one element. */
+  sort_utils_compare_function cmp;          /**< @brief The compare function applied by the algorithm. */
+  size_t                      min_gallop;   /**< @brief This controls when we get *into* galloping mode. It is initialized to MIN_GALLOP.
+                                             *          The merge_lo and merge_hi methods nudge it higher for random data,
+                                             *          and lower for highly structured data. */
+  void                       *tmp;          /**< @brief Temp storage for merges. */
+  size_t                      stack_size;   /**< @brief Number of pending runs on stack. */
+  size_t                     *run_base;     /**< @brief Index of first element for the ith run. */
+  size_t                     *run_len;      /**< @brief Run Lenght. */
+} TimSort;
+
+/**
+ * Merges the two runs at stack indices i and i+1.  Run i must be
+ * the penultimate or antepenultimate run on the stack.  In other words,
+ * i must be equal to stackSize-2 or stackSize-3.
+ *
+ * @param [in,out] ts tim sort structure
+ * @param [in]     i  stack index of the first of the two runs to merge
+ */
+static void
+merge_at (TimSort *ts,
+          size_t i)
+{
+  g_assert(ts->stack_size >= 2);
+  g_assert(i >= 0);
+  g_assert(i == ts->stack_size - 2 || i == ts->stack_size - 3);
+}
+
+/**
+ * Examines the stack of runs waiting to be merged and merges adjacent runs
+ * until the stack invariants are reestablished:
+ *
+ *     1. runLen[i - 3] > runLen[i - 2] + runLen[i - 1]
+ *     2. runLen[i - 2] > runLen[i - 1]
+ *
+ * This method is called each time a new run is pushed onto the stack,
+ * so the invariants are guaranteed to hold for i < stackSize upon
+ * entry to the method.
+ *
+ * @param [in,out] ts tim sort structure
+ */
+static void
+merge_collapse (TimSort *ts)
+{
+  while (ts->stack_size > 1) {
+    size_t n = ts->stack_size - 2;
+    if (n > 0 && ts->run_len[n - 1] <= ts->run_len[n] + ts->run_len[n + 1]) {
+      if (ts->run_len[n - 1] < ts->run_len[n + 1])
+        n--;
+      merge_at(ts, n);
+    } else if (ts->run_len[n] <= ts->run_len[n + 1]) {
+      merge_at(ts, n);
+    } else {
+      break; // Invariant is established
+    }
+  }
+}
+
+/**
+ * Merges all runs on the stack until only one remains.  This method is
+ * called once, to complete the sort.
+ *
+ * @param [in,out] ts tim sort structure
+ */
+static void
+merge_force_collapse (TimSort *ts) {
+  while (ts->stack_size > 1) {
+    size_t n = ts->stack_size - 2;
+    if (n > 0 && ts->run_len[n - 1] < ts->run_len[n + 1])
+      n--;
+    merge_at(ts, n);
+  }
+}
+
+/**
+ * @brief TimSort structure constructor.
+ *
+ * @param [in] a            the array to be sorted
+ * @param [in] count        the number of element in array
+ * @param [in] element_size the number of bytes used by one element
+ * @param [in] cmp          the compare function applied by the algorithm
+ * @return                  a pointer to a new tim sort structure
+ */
+static TimSort *
+tim_sort_new (void *const a,
+              const size_t count,
+              const size_t element_size,
+              const sort_utils_compare_function cmp)
+{
+  TimSort *ts;
+  static const size_t size_of_ts = sizeof(TimSort);
+
+  static const size_t initial_tmp_storage_length = 256;
+  static const size_t stack_len = 85;
+
+  ts = (TimSort *) malloc(size_of_ts);
+  g_assert(ts);
+
+  ts->a = a;
+  ts->count = count;
+  ts->element_size = element_size;
+  ts->cmp = cmp;
+  ts->min_gallop = min_gallop;
+
+  size_t tmp_size = count < 2 * initial_tmp_storage_length ? count >> 1 : initial_tmp_storage_length;
+  ts-> tmp = (TimSort *) malloc(tmp_size * element_size);
+
+  ts->stack_size = 0;
+  ts->run_base = malloc(stack_len * sizeof(size_t));
+  ts->run_len = malloc(stack_len * sizeof(size_t));
+
+  return ts;
+}
+
+/**
+ * @brief Deallocates the memory previously allocated by a call to #tim_sort_new.
+ *
+ * @details If a null pointer is passed as argument, no action occurs.
+ *
+ * @param [in,out] ts the pointer to be deallocated
+ */
+static void
+tim_sort_free (TimSort *ts)
+{
+  free(ts->tmp);
+  free(ts->run_base);
+  free(ts->run_len);
+  free(ts);
+}
+
+
+/**
+ * Pushes the specified run onto the pending-run stack.
+ *
+ * @param ts       tim sort structure pointer
+ * @param run_base index of the first element in the run
+ * @param run_len  the number of elements in the run
+ */
+static void
+push_run (TimSort *const ts,
+          const size_t run_base,
+          const size_t run_len) {
+  ts->run_base[ts->stack_size] = run_base;
+  ts->run_len[ts->stack_size] = run_len;
+  ts->stack_size++;
+}
+
+/**
  * Returns the minimum acceptable run length for an array of the specified
  * length. Natural runs shorter than this will be extended with
  * {@link #binarySort}.
@@ -1832,10 +1995,10 @@ sort_utils_timsort (void *const a,
 
   /*
    * March over the array once, left to right, finding natural runs,
-   * extending short natural runs to minRun elements, and merging runs
+   * extending short natural runs to min_run elements, and merging runs
    * to maintain stack invariant.
    */
-  //TimSort<T> ts = new TimSort<T>(a, c);
+  TimSort *ts = tim_sort_new(a, count, element_size, cmp);
   size_t min_run = min_run_length(n_remaining);
   do {
     /* Identify next run. */
@@ -1848,16 +2011,21 @@ sort_utils_timsort (void *const a,
       run_len = force;
     }
 
-    /*
     // Push run onto pending-run stack, and maybe merge
-    ts.pushRun(lo, runLen);
-    ts.mergeCollapse();
-    */
+    push_run(ts, lo, run_len);
+    merge_collapse(ts);
 
     // Advance to find next run
     lo += run_len;
     n_remaining -= run_len;
   } while (n_remaining != 0);
+
+  /* Merge all remaining runs to complete sort. */
+  g_assert(lo == hi);
+  merge_force_collapse(ts);
+  g_assert(ts->stack_size == 1);
+
+  tim_sort_free(ts);
 
   for (int i = 1; i < count; i++) {
     int j = i;
