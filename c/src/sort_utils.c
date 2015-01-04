@@ -36,6 +36,7 @@
  *
  * The algorithms here proposed are:
  *   - Insertion-sort
+ *   - Binary-sort
  *   - Heap-sort
  *   - Smooth-sort
  *   - Quick-sort
@@ -428,6 +429,62 @@ sort_utils_insertionsort_dsc_i (int *const a,
 /***************/
 
 /**
+ * @cond
+ */
+
+/**
+ * @brief Sorts the specified portion of the `a` array using a binary
+ * insertion sort.
+ *
+ * @details If the initial part of the array is already sorted,
+ * this function assumes that the elements from the beginning,
+ * to `start`, exclusive, are already sorted.
+ *
+ * @param [in,out] a            the array to be sorted
+ * @param [in]     count        the number of element in array
+ * @param [in]     start        the index of the first element out of sequence
+ * @param [in]     element_size the number of bytes used by one element
+ * @param [in]     cmp          the compare function applied by the algorithm
+ */
+static void
+bnr_sort_from_ordered_initial_run  (void *const a,
+                                    const size_t count,
+                                    const size_t start,
+                                    const size_t element_size,
+                                    const sort_utils_compare_function cmp)
+{
+  g_assert(count >= 0);
+  g_assert(start >= 0 && start <= count);
+  if (count < 2) return;
+  const size_t es = element_size;
+  char *ca = (char *) a;
+  for (size_t i = 1; i < start; i++) {
+    g_assert(cmp(ca + i * es, ca + (i - 1) * es) >= 0);
+  }
+  char *tmp = malloc(element_size * sizeof(char));
+  for (size_t i = start; i < count; i++) {
+    copy(tmp, ca + i * es, es);
+    size_t left = 0;
+    size_t right = i;
+    while (left < right) {
+      size_t mid = (left + right) >> 1;
+      if (cmp(tmp, ca + mid * element_size) < 0)
+        right = mid;
+      else
+        left = mid + 1;
+    }
+    const size_t n = i - left;
+    memmove(ca + (left + 1) * element_size, ca + left * element_size, n * element_size);
+    copy(ca + left * element_size, tmp, element_size);
+  }
+  free(tmp);
+}
+
+/**
+ * @endcond
+ */
+
+/**
  * @brief Sorts the `a` array.
  *
  * @details The vector `a`, collecting elements of size `element_size`, having length equal to `count`,
@@ -445,26 +502,7 @@ sort_utils_binarysort (void *const a,
                        const size_t element_size,
                        const sort_utils_compare_function cmp)
 {
-  if (count < 2) return;
-  const size_t es = element_size;
-  char *ca = (char *) a;
-  char *tmp = malloc(element_size * sizeof(char));
-  for (size_t i = 1; i < count; i++) {
-    copy(tmp, ca + i * es, es);
-    size_t left = 0;
-    size_t right = i;
-    while (left < right) {
-      size_t mid = (left + right) >> 1;
-      if (cmp(tmp, ca + mid * element_size) < 0)
-        right = mid;
-      else
-        left = mid + 1;
-    }
-    const size_t n = i - left;
-    memmove(ca + (left + 1) * element_size, ca + left * element_size, n * element_size);
-    copy(ca + left * element_size, tmp, element_size);
-  }
-  free(tmp);
+  bnr_sort_from_ordered_initial_run(a, count, 0, element_size, cmp);
 }
 
 /**
@@ -1621,11 +1659,12 @@ sort_utils_mergesort_dsc_i (int *const a,
 /************/
 
 /**
- * Reverse the specified range of the specified array.
+ * @brief Reverse the specified range of the specified array.
  *
- * @param a the array in which a range is to be reversed
- * @param lo the index of the first element in the range to be reversed
- * @param hi the index after the last element in the range to be reversed
+ * @param a            the array in which a range is to be reversed
+ * @param element_size number of bytes used by one element
+ * @param lo           the index of the first element in the range to be reversed
+ * @param hi           the index after the last element in the range to be reversed
  */
 static void
 reverse_range (void *const a,
@@ -1693,7 +1732,7 @@ count_run_and_make_asending (void *const a,
 
 
 /**
- * Sorts the specified portion of the specified array using a binary
+ * @brief Sorts the specified portion of the specified array using a binary
  * insertion sort.  This is the best method for sorting small numbers
  * of elements.  It requires O(n log n) compares, but O(n^2) data
  * movement (worst case).
@@ -1809,6 +1848,8 @@ sort_utils_timsort (void *const a,
   g_assert(cmp);
   if (count < 2) return;
 
+  char *ca = (char *) a;
+
   size_t lo = 0;
   size_t hi = count;
 
@@ -1816,11 +1857,10 @@ sort_utils_timsort (void *const a,
 
   if (count < min_merge) {
     size_t init_run_len = count_run_and_make_asending(a, element_size, lo, hi, cmp);
-    binary_sort(a, element_size, lo, hi, lo + init_run_len, cmp);
+    bnr_sort_from_ordered_initial_run(ca + lo * element_size, hi, init_run_len, element_size, cmp);
     return;
   }
 
-  char *ca = (char *) a;
   for (int i = 1; i < count; i++) {
     int j = i;
     for (;;) {
