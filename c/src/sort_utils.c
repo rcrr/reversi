@@ -1662,8 +1662,8 @@ sort_utils_mergesort_dsc_i (int *const a,
  * @cond
  */
 
-static const int min_merge = 32;
-static const int min_gallop = 7;
+static const size_t tms_min_merge = 32;
+static const long long int tms_min_gallop = 7;
 
 /**
  * @brief A team sort structure holds internal data for the algorithm.
@@ -1680,17 +1680,50 @@ static const int min_gallop = 7;
  */
 typedef struct {
   void                       *a;            /**< @brief The array to be sorted. */
-  size_t                      count;        /**< @brief The number of element in array. */
+  size_t                      count;        /**< @brief The number of elements in array. */
   size_t                      element_size; /**< @brief The number of bytes used by one element. */
   sort_utils_compare_function cmp;          /**< @brief The compare function applied by the algorithm. */
-  size_t                      min_gallop;   /**< @brief This controls when we get *into* galloping mode. It is initialized to MIN_GALLOP.
+  long long int               min_gallop;   /**< @brief This controls when we get *into* galloping mode. It is initialized to tms_min_gallop.
                                              *          The merge_lo and merge_hi methods nudge it higher for random data,
                                              *          and lower for highly structured data. */
   void                       *tmp;          /**< @brief Temp storage for merges. */
+  size_t                      tmp_count;    /**< @brief The max number of elements contained by temp storage. */
   size_t                      stack_size;   /**< @brief Number of pending runs on stack. */
   size_t                     *run_base;     /**< @brief Index of first element for the ith run. */
   size_t                     *run_len;      /**< @brief Run Lenght. */
 } TimSort;
+
+/**
+ * Ensures that the external array tmp has at least the specified
+ * number of elements, increasing its size if necessary.  The size
+ * increases exponentially to ensure amortized linear time complexity.
+ *
+ * @param minCapacity the minimum required capacity of the tmp array
+ * @return tmp, whether or not it grew
+ */
+static void *
+ensure_capacity (TimSort *ts,
+                 size_t min_capacity)
+{
+  if (ts->tmp_count < min_capacity) {
+    // Compute smallest power of 2 > min_capacity
+    size_t new_size = min_capacity;
+    new_size |= new_size >> 1;
+    new_size |= new_size >> 2;
+    new_size |= new_size >> 4;
+    new_size |= new_size >> 8;
+    new_size |= new_size >> 16;
+    new_size |= new_size >> 32;
+    new_size++;
+
+    size_t half_a_size = ts->count >> 1;
+    new_size = (new_size < half_a_size) ? new_size : half_a_size;
+
+    ts->tmp_count = new_size;
+    ts->tmp = realloc(ts->tmp, ts->tmp_count * ts->element_size);
+  }
+  return ts->tmp;
+}
 
 /**
  * Locates the position at which to insert the specified key into the
@@ -1775,114 +1808,109 @@ merge_lo (TimSort *ts,
 {
   g_assert(len1 > 0 && len2 > 0 && base1 + len1 == base2);
 
-  /*
-  // Copy first run into temp array
-  T[] a = this.a; // For performance
-  T[] tmp = ensureCapacity(len1);
-  System.arraycopy(a, base1, tmp, 0, len1);
+  /* Copy first run into temp array. */
+  char *ca = (char *) ts->a;
+  char *tmp = (char *) ensure_capacity(ts, len1);
+  const size_t es = ts->element_size;
+  memcpy(ca + base1 * es, tmp, len1 * es);
 
-  int cursor1 = 0;       // Indexes into tmp array
-  int cursor2 = base2;   // Indexes int a
-  int dest = base1;      // Indexes int a
+  size_t cursor1 = 0;       // Indexes into tmp array
+  size_t cursor2 = base2;   // Indexes int a
+  size_t dest = base1;      // Indexes int a
 
   // Move first element of second run and deal with degenerate cases
-  a[dest++] = a[cursor2++];
+  copy(ca + dest++ * es, ca + cursor2++ * es, es);
   if (--len2 == 0) {
-    System.arraycopy(tmp, cursor1, a, dest, len1);
+    memcpy(tmp + cursor1 * es, ca + dest * es, len1 * es);
     return;
   }
   if (len1 == 1) {
-    System.arraycopy(a, cursor2, a, dest, len2);
-    a[dest + len2] = tmp[cursor1]; // Last elt of run 1 to end of merge
+    memcpy(ca + cursor2 * es, ca + dest * es, len2 * es);
+    copy(ca + (dest + len2) * es, tmp + cursor1 * es, es); // Last elt of run 1 to end of merge
     return;
   }
-  */
 
-  /*
-  Comparator<? super T> c = this.c;  // Use local variable for performance
-  int minGallop = this.minGallop;    //  "    "       "     "      "
+  sort_utils_compare_function cmp = ts->cmp;
+  long long int  min_gallop = ts->min_gallop;
+
  outer:
-  while (true) {
-    int count1 = 0; // Number of times in a row that first run won
-    int count2 = 0; // Number of times in a row that second run won
-  */
+  while (TRUE) {
+    size_t count1 = 0; // Number of times in a row that first run won
+    size_t count2 = 0; // Number of times in a row that second run won
 
     /*
      * Do the straightforward thing until (if ever) one run starts
      * winning consistently.
      */
-  /*
     do {
-      assert len1 > 1 && len2 > 0;
-      if (c.compare(a[cursor2], tmp[cursor1]) < 0) {
-        a[dest++] = a[cursor2++];
+      g_assert(len1 > 1 && len2 > 0);
+      if (cmp(ca + cursor2 * es, tmp + cursor1 * es) < 0) {
+        copy(ca + dest++ * es, ca + cursor2++ * es, es);
         count2++;
         count1 = 0;
         if (--len2 == 0)
-          break outer;
+          goto outer;
       } else {
-        a[dest++] = tmp[cursor1++];
+        copy(ca + dest++ * es, tmp + cursor1++ * es, es);
         count1++;
         count2 = 0;
         if (--len1 == 1)
-          break outer;
+          goto outer;
       }
-    } while ((count1 | count2) < minGallop);
-  */
+    } while ((count1 | count2) < min_gallop);
+
     /*
      * One run is winning so consistently that galloping may be a
      * huge win. So try that, and continue galloping until (if ever)
      * neither run appears to be winning consistently anymore.
      */
-  /*
     do {
-      assert len1 > 1 && len2 > 0;
-      count1 = gallopRight(a[cursor2], tmp, cursor1, len1, 0, c);
+      g_assert(len1 > 1 && len2 > 0);
+      count1 = gallop_right(ca + cursor2 * es, tmp, es, cursor1, len1, 0, cmp);
       if (count1 != 0) {
-        System.arraycopy(tmp, cursor1, a, dest, count1);
+        memcpy(tmp + cursor1 * es, ca + dest * es, count1 * es);
         dest += count1;
         cursor1 += count1;
         len1 -= count1;
         if (len1 <= 1) // len1 == 1 || len1 == 0
-          break outer;
+          goto outer;
       }
-      a[dest++] = a[cursor2++];
+      copy(ca + dest++ * es, ca + cursor2++ * es, es);
       if (--len2 == 0)
-        break outer;
+        goto outer;
 
-      count2 = gallopLeft(tmp[cursor1], a, cursor2, len2, 0, c);
+      count2 = gallop_left(tmp + cursor1 * es, ca, es, cursor2, len2, 0, cmp);
       if (count2 != 0) {
-        System.arraycopy(a, cursor2, a, dest, count2);
+        memmove(ca + cursor2 * es, ca + dest * es, count2 * es);
         dest += count2;
         cursor2 += count2;
         len2 -= count2;
         if (len2 == 0)
-          break outer;
+          goto outer;
       }
-      a[dest++] = tmp[cursor1++];
+      copy(ca + dest++ * es, tmp + cursor1++ * es, es);
       if (--len1 == 1)
-        break outer;
-      minGallop--;
-    } while (count1 >= MIN_GALLOP | count2 >= MIN_GALLOP);
-    if (minGallop < 0)
-      minGallop = 0;
-    minGallop += 2;  // Penalize for leaving gallop mode
+        goto outer;
+      min_gallop--;
+    } while ((count1 >= tms_min_gallop) | (count2 >= tms_min_gallop));
+    if (min_gallop < 0)
+      min_gallop = 0;
+    min_gallop += 2;  // Penalize for leaving gallop mode
   }  // End of "outer" loop
-  this.minGallop = minGallop < 1 ? 1 : minGallop;  // Write back to field
+  ts->min_gallop = min_gallop < 1 ? 1 : min_gallop; // Write back to field
 
   if (len1 == 1) {
-    assert len2 > 0;
-    System.arraycopy(a, cursor2, a, dest, len2);
-    a[dest + len2] = tmp[cursor1]; //  Last elt of run 1 to end of merge
+    g_assert(len2 > 0);
+    memmove(ca + cursor2 * es, ca + dest * es, len2 * es);
+    copy(ca + (dest + len2) * es, tmp + cursor1 * es, es); // Last elt of run 1 to end of merge
   } else if (len1 == 0) {
-    throw new IllegalArgumentException(
-                                       "Comparison method violates its general contract!");
+    printf("Comparison method violates its general contract!\n");
+    g_assert(FALSE);
   } else {
-    assert len2 == 0;
-    assert len1 > 1;
-    System.arraycopy(tmp, cursor1, a, dest, len1);
+    g_assert(len2 == 0);
+    g_assert(len1 > 1);
+    memcpy(tmp + cursor1 * es, ca + dest * es, len1 * es);
   }
-  */
 }
 
 /**
@@ -2045,10 +2073,10 @@ tim_sort_new (void *const a,
   ts->count = count;
   ts->element_size = element_size;
   ts->cmp = cmp;
-  ts->min_gallop = min_gallop;
+  ts->min_gallop = tms_min_gallop;
 
-  size_t tmp_size = count < 2 * initial_tmp_storage_length ? count >> 1 : initial_tmp_storage_length;
-  ts-> tmp = (TimSort *) malloc(tmp_size * element_size);
+  ts->tmp_count = count < 2 * initial_tmp_storage_length ? count >> 1 : initial_tmp_storage_length;
+  ts->tmp = malloc(ts->tmp_count * element_size);
 
   ts->stack_size = 0;
   ts->run_base = malloc(stack_len * sizeof(size_t));
@@ -2097,9 +2125,9 @@ push_run (TimSort *const ts,
  *
  * Roughly speaking, the computation is:
  *
- *  If n < MIN_MERGE, return n (it's too small to bother with fancy stuff).
- *  Else if n is an exact power of 2, return MIN_MERGE/2.
- *  Else return an int k, MIN_MERGE/2 <= k <= MIN_MERGE, such that n/k
+ *  If n < tms_min_merge, return n (it's too small to bother with fancy stuff).
+ *  Else if n is an exact power of 2, return tms_min_merge/2.
+ *  Else return an int k, tms_min_merge/2 <= k <= tms_min_merge, such that n/k
  *   is close to, but strictly less than, an exact power of 2.
  *
  * For the rationale, see listsort.txt.
@@ -2111,7 +2139,7 @@ static size_t
 min_run_length (size_t n) {
   g_assert(n >= 0);
   size_t r = 0;      // Becomes 1 if any 1 bits are shifted off
-  while (n >= min_merge) {
+  while (n >= tms_min_merge) {
     r |= (n & 1);
     n >>= 1;
   }
@@ -2249,7 +2277,7 @@ sort_utils_timsort (void *const a,
   size_t hi = count;
   size_t n_remaining = hi - lo;
 
-  if (count < min_merge) {
+  if (count < tms_min_merge) {
     size_t init_run_len = count_run_and_make_ascending(a, element_size, lo, hi, cmp);
     bnr_sort_from_ordered_initial_run(ca + lo * element_size, hi, init_run_len, element_size, cmp);
     return;
