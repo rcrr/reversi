@@ -1693,6 +1693,25 @@ typedef struct {
   size_t                     *run_len;      /**< @brief Run Lenght. */
 } TimSort;
 
+
+/**
+ * @brief Checks that from_index and to_index are in range.
+ *
+ * @param [in] array_len  the length of the array
+ * @param [in] from_index the index of the first element of the range
+ * @param [in] to_index   the index after the last element of the range
+ */
+static void
+range_check (const size_t array_len,
+             const size_t from_index,
+             const size_t to_index)
+{
+  g_assert(to_index >= from_index);
+  g_assert(from_index >= 0);
+  g_assert(to_index <= array_len);
+}
+
+
 /**
  * Ensures that the external array tmp has at least the specified
  * number of elements, increasing its size if necessary.  The size
@@ -1754,7 +1773,59 @@ gallop_left (void *key,
              sort_utils_compare_function cmp)
 {
   g_assert(len > 0 && hint >= 0 && hint < len);
-  return 0;
+  char *ca = (char *) a;
+  long long int last_ofs = 0;
+  long long int  ofs = 1;
+  if (cmp(key, ca + (base + hint) * es) > 0) {
+    // Gallop right until a[base+hint+lastOfs] < key <= a[base+hint+ofs]
+    long long int max_ofs = len - hint;
+    while (ofs < max_ofs && cmp(key, ca + (base + hint + ofs) * es) > 0) {
+      last_ofs = ofs;
+      ofs = (ofs << 1) + 1;
+      if (ofs <= 0)   // int overflow
+        ofs = max_ofs;
+    }
+    if (ofs > max_ofs)
+      ofs = max_ofs;
+
+    // Make offsets relative to base
+    last_ofs += hint;
+    ofs += hint;
+  } else { // key <= a[base + hint]
+    // Gallop left until a[base+hint-ofs] < key <= a[base+hint-lastOfs]
+    const long long  int max_ofs = hint + 1;
+    while (ofs < max_ofs && cmp(key, ca + (base + hint - ofs) * es) <= 0) {
+      last_ofs = ofs;
+      ofs = (ofs << 1) + 1;
+      if (ofs <= 0)   // int overflow
+        ofs = max_ofs;
+    }
+    if (ofs > max_ofs)
+      ofs = max_ofs;
+
+    // Make offsets relative to base
+    long long int tmp = last_ofs;
+    last_ofs = hint - ofs;
+    ofs = hint - tmp;
+  }
+  g_assert(last_ofs >= 0 && ofs >= 0);
+  g_assert(-1 <= last_ofs && last_ofs < ofs && ofs <= len);
+
+  /*
+   * Now a[base+lastOfs] < key <= a[base+ofs], so key belongs somewhere
+   * to the right of lastOfs but no farther right than ofs.  Do a binary
+   * search, with invariant a[base + lastOfs - 1] < key <= a[base + ofs].
+   */
+  last_ofs++;
+  while (last_ofs < ofs) {
+    long long int m = last_ofs + ((ofs - last_ofs) >> 1);
+    if (cmp(key, ca + (base + m) * es) > 0)
+      last_ofs = m + 1;  // a[base + m] < key
+    else
+      ofs = m;           // key <= a[base + m]
+  }
+  g_assert(last_ofs == ofs); // so a[base + ofs - 1] < key <= a[base + ofs]
+  return ofs;
 }
 /**
  * Like gallopLeft, except that if the range contains an element equal to
@@ -1780,7 +1851,60 @@ gallop_right (void *key,
               sort_utils_compare_function cmp)
 {
   g_assert(len > 0 && hint >= 0 && hint < len);
-  return 0;
+  char *ca = (char *) a;
+
+  long long int ofs = 1;
+  long long int last_ofs = 0;
+  if (cmp(key, ca + (base + hint) * es) < 0) {
+    // Gallop left until a[b+hint - ofs] <= key < a[b+hint - lastOfs]
+    int max_ofs = hint + 1;
+    while (ofs < max_ofs && cmp(key, ca + (base + hint - ofs) * es) < 0) {
+      last_ofs = ofs;
+      ofs = (ofs << 1) + 1;
+      if (ofs <= 0)   // int overflow
+        ofs = max_ofs;
+    }
+    if (ofs > max_ofs)
+      ofs = max_ofs;
+
+    // Make offsets relative to b
+    long long int tmp = last_ofs;
+    last_ofs = hint - ofs;
+    ofs = hint - tmp;
+  } else { // a[b + hint] <= key
+    // Gallop right until a[b+hint + lastOfs] <= key < a[b+hint + ofs]
+    long long int max_ofs = len - hint;
+    while (ofs < max_ofs && cmp(key, ca + (base + hint + ofs) * es) >= 0) {
+    last_ofs = ofs;
+      ofs = (ofs << 1) + 1;
+      if (ofs <= 0)   // int overflow
+        ofs = max_ofs;
+    }
+    if (ofs > max_ofs)
+      ofs = max_ofs;
+
+    // Make offsets relative to b
+    last_ofs += hint;
+    ofs += hint;
+  }
+  g_assert(-1 <= last_ofs && last_ofs < ofs && ofs <= len);
+
+  /*
+   * Now a[b + lastOfs] <= key < a[b + ofs], so key belongs somewhere to
+   * the right of lastOfs but no farther right than ofs.  Do a binary
+   * search, with invariant a[b + lastOfs - 1] <= key < a[b + ofs].
+   */
+  last_ofs++;
+  while (last_ofs < ofs) {
+    int m = last_ofs + ((ofs - last_ofs) >> 1);
+
+    if (cmp(key, ca + (base + m) * es) < 0)
+      ofs = m;          // key < a[b + m]
+    else
+      last_ofs = m + 1;  // a[b + m] <= key
+  }
+  g_assert(last_ofs == ofs);    // so a[b + ofs - 1] <= key < a[b + ofs]
+  return ofs;
 }
 
 /**
@@ -2379,15 +2503,18 @@ sort_utils_timsort (void *const a,
   g_assert(a);
   g_assert(element_size > 0);
   g_assert(cmp);
-  if (count < 2) return;
 
   char *ca = (char *) a;
 
   size_t lo = 0;
   size_t hi = count;
-  size_t n_remaining = hi - lo;
 
-  if (count < tms_min_merge) {
+  range_check(count, lo, hi);
+
+  size_t n_remaining = hi - lo;
+  if (n_remaining < 2) return;
+
+  if (n_remaining < tms_min_merge) {
     size_t init_run_len = count_run_and_make_ascending(a, element_size, lo, hi, cmp);
     bnr_sort_from_ordered_initial_run(ca + lo * element_size, hi, init_run_len, element_size, cmp);
     return;
