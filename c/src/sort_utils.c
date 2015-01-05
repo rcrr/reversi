@@ -1815,8 +1815,8 @@ merge_lo (TimSort *ts,
   memcpy(ca + base1 * es, tmp, len1 * es);
 
   size_t cursor1 = 0;       // Indexes into tmp array
-  size_t cursor2 = base2;   // Indexes int a
-  size_t dest = base1;      // Indexes int a
+  size_t cursor2 = base2;   // Indexes into a array
+  size_t dest = base1;      // Indexes into a array
 
   // Move first element of second run and deal with degenerate cases
   copy(ca + dest++ * es, ca + cursor2++ * es, es);
@@ -1914,15 +1914,17 @@ merge_lo (TimSort *ts,
 }
 
 /**
- * Like mergeLo, except that this method should be called only if
- * len1 >= len2; mergeLo should be called if len1 <= len2.  (Either method
- * may be called if len1 == len2.)
+ * @brief Merges two adjacent runs in place, in a stable fashion.
  *
- * @param base1 index of first element in first run to be merged
- * @param len1  length of first run to be merged (must be > 0)
- * @param base2 index of first element in second run to be merged
- *        (must be aBase + aLen)
- * @param len2  length of second run to be merged (must be > 0)
+ * @details Like mergeLo, except that this method should be called only if
+ *          len1 >= len2; mergeLo should be called if len1 <= len2.
+ *          Either method may be called if len1 == len2.
+ *
+ * @param [in,out] ts    tim sort structure
+ * @param [in]     base1 index of first element in first run to be merged
+ * @param [in]     len1  length of first run to be merged (must be > 0)
+ * @param [in]     base2 index of first element in second run to be merged (must be aBase + aLen)
+ * @param [in]     len2  length of second run to be merged (must be > 0)
  */
 static void
 merge_hi (TimSort *ts,
@@ -1932,6 +1934,114 @@ merge_hi (TimSort *ts,
           size_t len2)
 {
   g_assert(len1 > 0 && len2 > 0 && base1 + len1 == base2);
+
+  /* Copy first run into temp array. */
+  char *ca = (char *) ts->a;
+  char *tmp = (char *) ensure_capacity(ts, len2);
+  const size_t es = ts->element_size;
+  memcpy(ca + base2 * es, tmp, len2 * es);
+
+  size_t cursor1 = base1 + len1 - 1;  // Indexes into a array
+  size_t cursor2 = len2 -1;           // Indexes into tmp array
+  size_t dest = base2 + len2 - 1;     // Indexes into a array
+
+  // Move first element of second run and deal with degenerate cases
+  copy(ca + dest-- * es, ca + cursor1-- * es, es);
+  if (--len1 == 0) {
+    memcpy(tmp, ca + (dest - (len2 - 1)) * es, len2 * es);
+    return;
+  }
+  if (len2 == 1) {
+    dest -= len1;
+    cursor1 -= len1;
+    memmove(ca + (cursor1 + 1) * es, ca + (dest + 1) * es, len1 * es);
+    copy(ca + dest * es, tmp + cursor2 * es, es);
+    return;
+  }
+
+  sort_utils_compare_function cmp = ts->cmp;
+  long long int  min_gallop = ts->min_gallop;
+
+ outer:
+  while (TRUE) {
+    size_t count1 = 0; // Number of times in a row that first run won
+    size_t count2 = 0; // Number of times in a row that second run won
+
+    /*
+     * Do the straightforward thing until (if ever) one run
+     * appears to win consistently.
+     */
+    do {
+      g_assert(len1 > 0 && len2 > 1);
+      if (cmp(tmp + cursor2 * es, ca + cursor1 * es) < 0) {
+        copy(ca + dest-- * es, ca + cursor1-- * es, es);
+        count1++;
+        count2 = 0;
+        if (--len1 == 0)
+          goto outer;
+      } else {
+        copy(ca + dest-- * es, tmp + cursor2-- * es, es);
+        count2++;
+        count1 = 0;
+        if (--len2 == 1)
+          goto outer;
+      }
+    } while ((count1 | count2) < min_gallop);
+
+    /*
+     * One run is winning so consistently that galloping may be a
+     * huge win. So try that, and continue galloping until (if ever)
+     * neither run appears to be winning consistently anymore.
+     */
+    do {
+      g_assert(len1 > 0 && len2 > 1);
+      count1 = len1 - gallop_right(tmp + cursor2 * es, ca, es, base1, len1, len1 - 1, cmp);
+      if (count1 != 0) {
+        dest -= count1;
+        cursor1 -= count1;
+        len1 -= count1;
+        memmove(ca + (cursor1 + 1) * es, ca + (dest + 1) * es, count1 * es);
+        if (len1 == 0)
+          goto outer;
+      }
+      copy(ca + dest-- * es, tmp + cursor2-- * es, es);
+      if (--len2 == 1)
+        goto outer;
+
+      count2 = len2 - gallop_left(ca + cursor1 * es, tmp, es, 0, len2, len2 - 1, cmp);
+      if (count2 != 0) {
+        dest -= count2;
+        cursor2 -= count2;
+        len2 -= count2;
+        memcpy(tmp + (cursor2 + 1) * es, ca + (dest + 1) * es, count2 * es);
+        if (len2 <= 1) // len2 == 1 || len2 == 0
+          goto outer;
+      }
+      copy(ca + dest-- * es, ca + cursor1-- * es, es);
+      if (--len1 == 0)
+        goto outer;
+      min_gallop--;
+    } while ((count1 >= tms_min_gallop) | (count2 >= tms_min_gallop));
+    if (min_gallop < 0)
+      min_gallop = 0;
+    min_gallop += 2;  // Penalize for leaving gallop mode
+  }  // End of "outer" loop
+  ts->min_gallop = min_gallop < 1 ? 1 : min_gallop; // Write back to field
+
+  if (len2 == 1) {
+    g_assert(len1 > 0);
+    dest -= len1;
+    cursor1 -= len1;
+    memmove(ca + (cursor1 + 1) * es, ca + (dest + 1) * es, len1 * es);
+    copy(ca + dest * es, tmp + cursor2 * es, es); // Move first elt of run2 to front of merge
+  } else if (len2 == 0) {
+    printf("Comparison method violates its general contract!\n");
+    g_assert(FALSE);
+  } else {
+    g_assert(len1 == 0);
+    g_assert(len2 > 0);
+    memcpy(tmp, ca + (dest - (len2 - 1)) * es, len2 * es);
+  }
 }
 
 /**
