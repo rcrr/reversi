@@ -1,0 +1,41 @@
+
+M-x gud-gdb
+
+(gdb)
+(gdb) file build/test/bin/sort_utils_test
+Reading symbols from build/test/bin/sort_utils_test...done.
+(gdb) set args  -p /sort_utils/double_base_timsort
+(gdb) show args
+Argument list to give program being debugged when it is started is "-p /sort_utils/double_base_timsort".
+(gdb)
+
+(gdb) br sort_utils_timsort
+Breakpoint 1 at 0x413122: file src/sort_utils.c, line 2482.
+(gdb)
+
+(gdb) info br
+Num     Type           Disp Enb Address            What
+1       breakpoint     keep y   0x0000000000413122 in sort_utils_timsort at src/sort_utils.c:2482
+(gdb)
+
+(gdb) run
+Starting program: /home/rcrr/base/prj/reversi/c/build/test/bin/sort_utils_test -p /sort_utils/double_base_timsort
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+/sort_utils/double_base_timsort: 
+Breakpoint 1, sort_utils_timsort (a=0x6a7790, count=10, element_size=8, cmp=0x40f4d6 <sort_utils_double_cmp>) at src/sort_utils.c:2482
+(gdb)
+
+(gdb) n
+(gdb) n
+(gdb) n
+(gdb) n
+(gdb) n
+(gdb) n
+(gdb) n
+(gdb) n
+(gdb) n
+(gdb) n
+(gdb) p *(double *)ts->a@ts->count
+$1 = {7, 3, 9, 0, 1, 5, 2, 8, 4, 6}
+(gdb) 

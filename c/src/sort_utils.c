@@ -461,21 +461,23 @@ bnr_sort_from_ordered_initial_run  (void *const a,
   for (size_t i = 1; i < start; i++) {
     g_assert(cmp(ca + i * es, ca + (i - 1) * es) >= 0);
   }
-  char *tmp = malloc(element_size * sizeof(char));
+  char *tmp = malloc(es * sizeof(char));
   for (size_t i = start; i < count; i++) {
     copy(tmp, ca + i * es, es);
     size_t left = 0;
     size_t right = i;
     while (left < right) {
-      size_t mid = (left + right) >> 1;
-      if (cmp(tmp, ca + mid * element_size) < 0)
+      const size_t mid = (left + right) >> 1;
+      if (cmp(tmp, ca + mid * es) < 0)
         right = mid;
       else
         left = mid + 1;
     }
     const size_t n = i - left;
-    memmove(ca + (left + 1) * element_size, ca + left * element_size, n * element_size);
-    copy(ca + left * element_size, tmp, element_size);
+    if (n > 0) {
+      memmove(ca + (left + 1) * es, ca + left * es, n * es);
+      copy(ca + left * es, tmp, es);
+    }
   }
   free(tmp);
 }
@@ -1662,7 +1664,8 @@ sort_utils_mergesort_dsc_i (int *const a,
  * @cond
  */
 
-static const size_t tms_min_merge = 32;
+//static const size_t tms_min_merge = 32;
+static const size_t tms_min_merge = 8;
 static const long long int tms_min_gallop = 7;
 
 /**
@@ -1692,25 +1695,6 @@ typedef struct {
   size_t                     *run_base;     /**< @brief Index of first element for the ith run. */
   size_t                     *run_len;      /**< @brief Run Lenght. */
 } TimSort;
-
-
-/**
- * @brief Checks that from_index and to_index are in range.
- *
- * @param [in] array_len  the length of the array
- * @param [in] from_index the index of the first element of the range
- * @param [in] to_index   the index after the last element of the range
- */
-static void
-range_check (const size_t array_len,
-             const size_t from_index,
-             const size_t to_index)
-{
-  g_assert(to_index >= from_index);
-  g_assert(from_index >= 0);
-  g_assert(to_index <= array_len);
-}
-
 
 /**
  * Ensures that the external array tmp has at least the specified
@@ -1936,7 +1920,7 @@ merge_lo (TimSort *ts,
   char *ca = (char *) ts->a;
   char *tmp = (char *) ensure_capacity(ts, len1);
   const size_t es = ts->element_size;
-  memcpy(ca + base1 * es, tmp, len1 * es);
+  memcpy(tmp, ca + base1 * es, len1 * es);
 
   size_t cursor1 = 0;       // Indexes into tmp array
   size_t cursor2 = base2;   // Indexes into a array
@@ -1945,11 +1929,11 @@ merge_lo (TimSort *ts,
   // Move first element of second run and deal with degenerate cases
   copy(ca + dest++ * es, ca + cursor2++ * es, es);
   if (--len2 == 0) {
-    memcpy(tmp + cursor1 * es, ca + dest * es, len1 * es);
+    memcpy(ca + dest * es, tmp + cursor1 * es, len1 * es);
     return;
   }
   if (len1 == 1) {
-    memcpy(ca + cursor2 * es, ca + dest * es, len2 * es);
+    memcpy(ca + dest * es, ca + cursor2 * es, len2 * es);
     copy(ca + (dest + len2) * es, tmp + cursor1 * es, es); // Last elt of run 1 to end of merge
     return;
   }
@@ -1992,7 +1976,7 @@ merge_lo (TimSort *ts,
       g_assert(len1 > 1 && len2 > 0);
       count1 = gallop_right(ca + cursor2 * es, tmp, es, cursor1, len1, 0, cmp);
       if (count1 != 0) {
-        memcpy(tmp + cursor1 * es, ca + dest * es, count1 * es);
+        memcpy(ca + dest * es, tmp + cursor1 * es, count1 * es);
         dest += count1;
         cursor1 += count1;
         len1 -= count1;
@@ -2005,7 +1989,7 @@ merge_lo (TimSort *ts,
 
       count2 = gallop_left(tmp + cursor1 * es, ca, es, cursor2, len2, 0, cmp);
       if (count2 != 0) {
-        memmove(ca + cursor2 * es, ca + dest * es, count2 * es);
+        memmove(ca + dest * es, ca + cursor2 * es, count2 * es);
         dest += count2;
         cursor2 += count2;
         len2 -= count2;
@@ -2025,7 +2009,7 @@ merge_lo (TimSort *ts,
 
   if (len1 == 1) {
     g_assert(len2 > 0);
-    memmove(ca + cursor2 * es, ca + dest * es, len2 * es);
+    memmove(ca + dest * es, ca + cursor2 * es, len2 * es);
     copy(ca + (dest + len2) * es, tmp + cursor1 * es, es); // Last elt of run 1 to end of merge
   } else if (len1 == 0) {
     printf("Comparison method violates its general contract!\n");
@@ -2033,7 +2017,7 @@ merge_lo (TimSort *ts,
   } else {
     g_assert(len2 == 0);
     g_assert(len1 > 1);
-    memcpy(tmp + cursor1 * es, ca + dest * es, len1 * es);
+    memcpy(ca + dest * es, tmp + cursor1 * es, len1 * es);
   }
 }
 
@@ -2063,7 +2047,7 @@ merge_hi (TimSort *ts,
   char *ca = (char *) ts->a;
   char *tmp = (char *) ensure_capacity(ts, len2);
   const size_t es = ts->element_size;
-  memcpy(ca + base2 * es, tmp, len2 * es);
+  memcpy(tmp, ca + base2 * es, len2 * es);
 
   size_t cursor1 = base1 + len1 - 1;  // Indexes into a array
   size_t cursor2 = len2 -1;           // Indexes into tmp array
@@ -2072,13 +2056,13 @@ merge_hi (TimSort *ts,
   // Move first element of second run and deal with degenerate cases
   copy(ca + dest-- * es, ca + cursor1-- * es, es);
   if (--len1 == 0) {
-    memcpy(tmp, ca + (dest - (len2 - 1)) * es, len2 * es);
+    memcpy(ca + (dest - (len2 - 1)) * es, tmp, len2 * es);
     return;
   }
   if (len2 == 1) {
     dest -= len1;
     cursor1 -= len1;
-    memmove(ca + (cursor1 + 1) * es, ca + (dest + 1) * es, len1 * es);
+    memmove(ca + (dest + 1) * es, ca + (cursor1 + 1) * es, len1 * es);
     copy(ca + dest * es, tmp + cursor2 * es, es);
     return;
   }
@@ -2124,7 +2108,7 @@ merge_hi (TimSort *ts,
         dest -= count1;
         cursor1 -= count1;
         len1 -= count1;
-        memmove(ca + (cursor1 + 1) * es, ca + (dest + 1) * es, count1 * es);
+        memmove(ca + (dest + 1) * es, ca + (cursor1 + 1) * es, count1 * es);
         if (len1 == 0)
           goto outer;
       }
@@ -2137,7 +2121,7 @@ merge_hi (TimSort *ts,
         dest -= count2;
         cursor2 -= count2;
         len2 -= count2;
-        memcpy(tmp + (cursor2 + 1) * es, ca + (dest + 1) * es, count2 * es);
+        memcpy(ca + (dest + 1) * es, tmp + (cursor2 + 1) * es, count2 * es);
         if (len2 <= 1) // len2 == 1 || len2 == 0
           goto outer;
       }
@@ -2156,7 +2140,7 @@ merge_hi (TimSort *ts,
     g_assert(len1 > 0);
     dest -= len1;
     cursor1 -= len1;
-    memmove(ca + (cursor1 + 1) * es, ca + (dest + 1) * es, len1 * es);
+    memmove(ca + (dest + 1) * es, ca + (cursor1 + 1) * es, len1 * es);
     copy(ca + dest * es, tmp + cursor2 * es, es); // Move first elt of run2 to front of merge
   } else if (len2 == 0) {
     printf("Comparison method violates its general contract!\n");
@@ -2164,7 +2148,7 @@ merge_hi (TimSort *ts,
   } else {
     g_assert(len1 == 0);
     g_assert(len2 > 0);
-    memcpy(tmp, ca + (dest - (len2 - 1)) * es, len2 * es);
+    memcpy(ca + (dest - (len2 - 1)) * es, tmp, len2 * es);
   }
 }
 
@@ -2403,53 +2387,50 @@ reverse_range (void *const a,
 }
 
 /**
- * Returns the length of the run beginning at the specified position in
- * the specified array and reverses the run if it is descending (ensuring
- * that the run will always be ascending when the method returns).
+ * @brief Returns the length of the run at the beginning of the specified array
+ *        and reverses the run if it is descending, ensuring
+ *        that the run will always be ascending when the method returns.
  *
- * A run is the longest ascending sequence with:
+ * @details A run is the longest ascending sequence with:
  *
- *    a[lo] <= a[lo + 1] <= a[lo + 2] <= ...
+ *            a[lo] <= a[lo + 1] <= a[lo + 2] <= ...
  *
- * or the longest descending sequence with:
+ *          or the longest descending sequence with:
  *
- *    a[lo] >  a[lo + 1] >  a[lo + 2] >  ...
+ *            a[lo] >  a[lo + 1] >  a[lo + 2] >  ...
  *
- * For its intended use in a stable mergesort, the strictness of the
- * definition of "descending" is needed so that the call can safely
- * reverse a descending sequence without violating stability.
+ *          For its intended use in a stable mergesort, the strictness of the
+ *          definition of "descending" is needed so that the call can safely
+ *          reverse a descending sequence without violating stability.
  *
- * @param a the array in which a run is to be counted and possibly reversed
- * @param lo index of the first element in the run
- * @param hi index after the last element that may be contained in the run.
- *           It is required that @code{lo < hi}.
- * @param c the comparator to used for the sort
- * @return  the length of the run beginning at the specified position in
- *          the specified array
+ * @param [in,out] a     the array in which a run is to be counted and possibly reversed
+ * @param [in]     count index after the last element that may be contained in the run.
+ * @param [in]     cmp   the comparator to use for the sort
+ * @return               the length of the run at the beginning of the specified array
  */
 static size_t
 count_run_and_make_ascending (void *const a,
+                              size_t count,
                               const size_t element_size,
-                              size_t lo,
-                              size_t hi,
                               const sort_utils_compare_function cmp)
 {
-  g_assert(lo < hi);
-  size_t run_hi = lo + 1;
-  if (run_hi == hi) return 1;
+  g_assert(count > 0);
+  if (count == 1) return 1;
 
   char *ca = (char *) a;
+  const size_t es = element_size;
 
   /* Finds end of run, and reverses range if descending. */
-  if (cmp(ca + run_hi++ * element_size, ca + lo * element_size) < 0) { // Descending.
-    while (run_hi < hi && cmp(ca + run_hi * element_size, ca + (run_hi -1) * element_size) < 0)
-      run_hi++;
-    reverse_range(a, element_size, lo, run_hi);
+  size_t run_len = 1;
+  if (cmp(ca + run_len++ * es, ca) < 0) { // Descending.
+    while (run_len < count && cmp(ca + run_len * es, ca + (run_len - 1) * es) < 0)
+      run_len++;
+    reverse_range(a, es, 0, run_len);
   } else { // Ascending.
-    while (run_hi < hi && cmp(ca + run_hi * element_size, ca + (run_hi -1) * element_size) >= 0)
-      run_hi++;
+    while (run_len < count && cmp(ca + run_len * es, ca + (run_len - 1) * es) >= 0)
+      run_len++;
   }
-  return run_hi - lo;
+  return run_len;
 }
 
 /**
@@ -2504,19 +2485,14 @@ sort_utils_timsort (void *const a,
   g_assert(element_size > 0);
   g_assert(cmp);
 
+  if (count < 2) return;
+
   char *ca = (char *) a;
+  const size_t es = element_size;
 
-  size_t lo = 0;
-  size_t hi = count;
-
-  range_check(count, lo, hi);
-
-  size_t n_remaining = hi - lo;
-  if (n_remaining < 2) return;
-
-  if (n_remaining < tms_min_merge) {
-    size_t init_run_len = count_run_and_make_ascending(a, element_size, lo, hi, cmp);
-    bnr_sort_from_ordered_initial_run(ca + lo * element_size, hi, init_run_len, element_size, cmp);
+  if (count < tms_min_merge) {
+    size_t init_run_len = count_run_and_make_ascending(a, count, es, cmp);
+    bnr_sort_from_ordered_initial_run(a, count, init_run_len, es, cmp);
     return;
   }
 
@@ -2525,16 +2501,19 @@ sort_utils_timsort (void *const a,
    * extending short natural runs to min_run elements, and merging runs
    * to maintain stack invariant.
    */
-  TimSort *ts = tim_sort_new(a, count, element_size, cmp);
-  size_t min_run = min_run_length(n_remaining);
+  size_t lo = 0;
+  size_t n_remaining = count - lo;
+  TimSort *ts = tim_sort_new(a, count, es, cmp);
+  const size_t min_run = min_run_length(n_remaining);
   do {
     /* Identify next run. */
-    size_t run_len = count_run_and_make_ascending(a, element_size, lo, hi, cmp);
+    g_assert(lo + n_remaining == count);
+    size_t run_len = count_run_and_make_ascending(ca + lo * es, n_remaining, es, cmp);
 
     // If run is short, extend to min(min_run, n_remaining)
     if (run_len < min_run) {
-      size_t force = n_remaining <= min_run ? n_remaining : min_run;
-      bnr_sort_from_ordered_initial_run(ca + lo * element_size, lo + force, lo + run_len, element_size, cmp);
+      const size_t force = n_remaining <= min_run ? n_remaining : min_run;
+      bnr_sort_from_ordered_initial_run(ca + lo * es, force, run_len, es, cmp);
       run_len = force;
     }
 
@@ -2548,20 +2527,11 @@ sort_utils_timsort (void *const a,
   } while (n_remaining != 0);
 
   /* Merge all remaining runs to complete sort. */
-  g_assert(lo == hi);
+  g_assert(lo == count);
   merge_force_collapse(ts);
   g_assert(ts->stack_size == 1);
 
   tim_sort_free(ts);
-
-  for (int i = 1; i < count; i++) {
-    int j = i;
-    for (;;) {
-      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) < 0) break;
-      swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
-      j--;
-    }
-  }
 }
 
 
