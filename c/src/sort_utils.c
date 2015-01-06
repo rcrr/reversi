@@ -1941,7 +1941,6 @@ merge_lo (TimSort *ts,
   sort_utils_compare_function cmp = ts->cmp;
   long long int  min_gallop = ts->min_gallop;
 
- outer:
   while (TRUE) {
     size_t count1 = 0; // Number of times in a row that first run won
     size_t count2 = 0; // Number of times in a row that second run won
@@ -2005,6 +2004,7 @@ merge_lo (TimSort *ts,
       min_gallop = 0;
     min_gallop += 2;  // Penalize for leaving gallop mode
   }  // End of "outer" loop
+ outer:
   ts->min_gallop = min_gallop < 1 ? 1 : min_gallop; // Write back to field
 
   if (len1 == 1) {
@@ -2070,7 +2070,6 @@ merge_hi (TimSort *ts,
   sort_utils_compare_function cmp = ts->cmp;
   long long int  min_gallop = ts->min_gallop;
 
- outer:
   while (TRUE) {
     size_t count1 = 0; // Number of times in a row that first run won
     size_t count2 = 0; // Number of times in a row that second run won
@@ -2134,6 +2133,7 @@ merge_hi (TimSort *ts,
       min_gallop = 0;
     min_gallop += 2;  // Penalize for leaving gallop mode
   }  // End of "outer" loop
+ outer:
   ts->min_gallop = min_gallop < 1 ? 1 : min_gallop; // Write back to field
 
   if (len2 == 1) {
