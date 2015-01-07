@@ -2534,6 +2534,70 @@ sort_utils_timsort (void *const a,
   tim_sort_free(ts);
 }
 
+/**
+ * @brief Sorts in ascending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the tim-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_timsort_asc_d (double *const a,
+                          const int count)
+{
+  sort_utils_timsort(a, count, sizeof(double), sort_utils_double_cmp);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of doubles.
+ *
+ * @details The vector of doubles `a` having length equal to `count` is sorted
+ *          in place in descending order applying the tim-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_timsort_dsc_d (double *const a,
+                          const int count)
+{
+  sort_utils_timsort(a, count, sizeof(double), sort_utils_double_icmp);
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of integers.
+ *
+ * @details The vector of integers `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the tim-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_timsort_asc_i (int *const a,
+                          const int count)
+{
+  sort_utils_timsort(a, count, sizeof(int), sort_utils_int_cmp);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of integers.
+ *
+ * @details The vector of integers `a` having length equal to `count` is sorted
+ *          in place in descending order applying the tim-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_timsort_dsc_i (int *const a,
+                          const int count)
+{
+  sort_utils_timsort(a, count, sizeof(int), sort_utils_int_icmp);
+}
+
 
 
 /**

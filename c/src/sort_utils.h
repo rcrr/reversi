@@ -331,15 +331,31 @@ sort_utils_mergesort_dsc_i (int *const a,
 
 
 
-/***********************************/
-/* Merge-sort function prototypes. */
-/***********************************/
+/*********************************/
+/* Tim-sort function prototypes. */
+/*********************************/
 
 extern void
 sort_utils_timsort (void *const a,
                     const size_t count,
                     const size_t element_size,
                     const sort_utils_compare_function cmp);
+
+extern void
+sort_utils_timsort_asc_d (double *const a,
+                          const int count);
+
+extern void
+sort_utils_timsort_dsc_d (double *const a,
+                          const int count);
+
+extern void
+sort_utils_timsort_asc_i (int *const a,
+                          const int count);
+
+extern void
+sort_utils_timsort_dsc_i (int *const a,
+                          const int count);
 
 
 

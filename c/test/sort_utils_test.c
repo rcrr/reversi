@@ -705,6 +705,32 @@ const TestsWithSortingFunction twsf_double_base_timsort =
     sort_utils_double_cmp
   };
 
+/**
+ * @brief Tim-sort is applied to the int base test case.
+ */
+const TestsWithSortingFunction twsf_int_base_timsort =
+  {
+    (gconstpointer) tc_int_base,
+    sort_utils_int_cmp,
+    sort_utils_int_icmp,
+    sort_utils_timsort,
+    sizeof(int),
+    sort_utils_int_cmp
+  };
+
+/**
+ * @brief Tim-sort is applied to the uint64_t base test case.
+ */
+const TestsWithSortingFunction twsf_uint64_t_base_timsort =
+  {
+    (gconstpointer) tc_uint64_t_base,
+    sort_utils_uint64_t_cmp,
+    sort_utils_uint64_t_icmp,
+    sort_utils_timsort,
+    sizeof(uint64_t),
+    sort_utils_uint64_t_cmp
+  };
+
 
 
 /*
@@ -766,6 +792,12 @@ static void sort_utils_mergesort_asc_d_n_rand_test (void);
 static void sort_utils_mergesort_dsc_d_1_rand_test (void);
 static void sort_utils_mergesort_dsc_d_n_rand_test (void);
 static void sort_utils_mergesort_asc_d_rand_perf_test (void);
+
+static void sort_utils_timsort_asc_d_1_rand_test (void);
+static void sort_utils_timsort_asc_d_n_rand_test (void);
+static void sort_utils_timsort_dsc_d_1_rand_test (void);
+static void sort_utils_timsort_dsc_d_n_rand_test (void);
+static void sort_utils_timsort_asc_d_rand_perf_test (void);
 
 
 
@@ -1041,6 +1073,24 @@ main (int   argc,
              hlp_run_tests_with_sorting_function,
              fixture_teardown);
 
+  g_test_add("/sort_utils/int_base_timsort",
+             Fixture,
+             (gconstpointer) &twsf_int_base_timsort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
+
+  g_test_add("/sort_utils/uint64_t_base_timsort",
+             Fixture,
+             (gconstpointer) &twsf_uint64_t_base_timsort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
+
+  g_test_add_func("/sort_utils/sort_utils_timsort_asc_d_1_rand_test", sort_utils_timsort_asc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_timsort_dsc_d_1_rand_test", sort_utils_timsort_dsc_d_1_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_timsort_asc_d_n_rand_test", sort_utils_timsort_asc_d_n_rand_test);
+  g_test_add_func("/sort_utils/sort_utils_timsort_dsc_d_n_rand_test", sort_utils_timsort_dsc_d_n_rand_test);
 
 
   if (g_test_perf()) {
@@ -1052,6 +1102,7 @@ main (int   argc,
     g_test_add_func("/sort_utils/sort_utils_quicksort_asc_d_rand_perf_test", sort_utils_quicksort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_shellsort_asc_d_rand_perf_test", sort_utils_shellsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_mergesort_asc_d_rand_perf_test", sort_utils_mergesort_asc_d_rand_perf_test);
+    g_test_add_func("/sort_utils/sort_utils_timsort_asc_d_rand_perf_test", sort_utils_timsort_asc_d_rand_perf_test);
   }
 
   return g_test_run();
@@ -1493,6 +1544,46 @@ static void
 sort_utils_mergesort_asc_d_rand_perf_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_mergesort_asc_d, 1024, 15, 2, 175, ASC);
+}
+
+
+
+/**************************************/
+/* Unit tests for tim-sort algorithm. */
+/**************************************/
+
+static void
+sort_utils_timsort_asc_d_1_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_timsort_asc_d, 1024, 1, 0, 175, ASC);
+}
+
+static void
+sort_utils_timsort_dsc_d_1_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_timsort_dsc_d, 1024, 1, 0, 171, DSC);
+}
+
+static void
+sort_utils_timsort_asc_d_n_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_timsort_asc_d, 1024, 3, 2, 366, ASC);
+  hlp_run_sort_d_random_test(sort_utils_timsort_asc_d, 1023, 3, 2, 683, ASC);
+  hlp_run_sort_d_random_test(sort_utils_timsort_asc_d, 1025, 3, 2, 557, ASC);
+}
+
+static void
+sort_utils_timsort_dsc_d_n_rand_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_timsort_dsc_d, 1024, 3, 2, 163, DSC);
+  hlp_run_sort_d_random_test(sort_utils_timsort_dsc_d, 1023, 3, 2, 785, DSC);
+  hlp_run_sort_d_random_test(sort_utils_timsort_dsc_d, 1025, 3, 2, 650, DSC);
+}
+
+static void
+sort_utils_timsort_asc_d_rand_perf_test (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_timsort_asc_d, 1024, 15, 2, 175, ASC);
 }
 
 
