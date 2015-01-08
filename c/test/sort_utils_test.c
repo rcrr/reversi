@@ -799,6 +799,7 @@ static void sort_utils_timsort_dsc_d_1_rand_test (void);
 static void sort_utils_timsort_dsc_d_n_rand_test (void);
 static void sort_utils_timsort_asc_d_rand_perf_test (void);
 
+static void sort_utils_timsort_debug (void);
 
 
 /*
@@ -1091,6 +1092,8 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_timsort_dsc_d_1_rand_test", sort_utils_timsort_dsc_d_1_rand_test);
   g_test_add_func("/sort_utils/sort_utils_timsort_asc_d_n_rand_test", sort_utils_timsort_asc_d_n_rand_test);
   g_test_add_func("/sort_utils/sort_utils_timsort_dsc_d_n_rand_test", sort_utils_timsort_dsc_d_n_rand_test);
+
+  g_test_add_func("/sort_utils/sort_utils_timsort_debug", sort_utils_timsort_debug);
 
 
   if (g_test_perf()) {
@@ -1584,6 +1587,12 @@ static void
 sort_utils_timsort_asc_d_rand_perf_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_timsort_asc_d, 1024, 15, 2, 175, ASC);
+}
+
+static void
+sort_utils_timsort_debug (void)
+{
+  hlp_run_sort_d_random_test(sort_utils_timsort_asc_d, 8192, 1, 0, 175, ASC);
 }
 
 

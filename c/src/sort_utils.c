@@ -1665,7 +1665,7 @@ sort_utils_mergesort_dsc_i (int *const a,
  */
 
 //static const size_t tms_min_merge = 32;
-static const size_t tms_min_merge = 8;
+static const size_t tms_min_merge = 1;
 static const long long int tms_min_gallop = 7;
 
 /**
@@ -1792,7 +1792,7 @@ gallop_left (void *key,
     last_ofs = hint - ofs;
     ofs = hint - tmp;
   }
-  g_assert(last_ofs >= 0 && ofs >= 0);
+  //g_assert(last_ofs >= 0 && ofs >= 0);
   g_assert(-1 <= last_ofs && last_ofs < ofs && ofs <= len);
 
   /*
@@ -2025,7 +2025,7 @@ merge_lo (TimSort *ts,
  * @brief Merges two adjacent runs in place, in a stable fashion.
  *
  * @details Like mergeLo, except that this method should be called only if
- *          len1 >= len2; mergeLo should be called if len1 <= len2.
+ *          len1 >= len2; merge_lo should be called if len1 <= len2.
  *          Either method may be called if len1 == len2.
  *
  * @param [in,out] ts    tim sort structure
@@ -2041,13 +2041,26 @@ merge_hi (TimSort *ts,
           size_t base2,
           size_t len2)
 {
-  g_assert(len1 > 0 && len2 > 0 && base1 + len1 == base2);
+  g_assert(len1 > 0 && len2 > 0 && base1 + len1 == base2 && len1 >= len2);
 
   /* Copy first run into temp array. */
   char *ca = (char *) ts->a;
   char *tmp = (char *) ensure_capacity(ts, len2);
   const size_t es = ts->element_size;
   memcpy(tmp, ca + base2 * es, len2 * es);
+
+  // ABRACADABRA
+  g_assert(base1 + len1 == base2);
+  const size_t base1_s = base1_s;
+  const size_t base2_s = base2_s;
+  const size_t len1_s = len1;
+  const size_t len2_s = len2;
+  const size_t abra_len = len1 + len2;
+  void *abra = malloc(abra_len * ts->element_size);
+  memcpy(abra, ca + base1 * es, abra_len * es);
+  void *abra_s = malloc(abra_len * ts->element_size);
+  memcpy(abra_s, ca + base1 * es, abra_len * es);
+  sort_utils_binarysort (abra, abra_len, es, ts->cmp);
 
   size_t cursor1 = base1 + len1 - 1;  // Indexes into a array
   size_t cursor2 = len2 -1;           // Indexes into tmp array
@@ -2057,14 +2070,16 @@ merge_hi (TimSort *ts,
   copy(ca + dest-- * es, ca + cursor1-- * es, es);
   if (--len1 == 0) {
     memcpy(ca + (dest - (len2 - 1)) * es, tmp, len2 * es);
-    return;
+    //return;
+    goto abracadabra;
   }
   if (len2 == 1) {
     dest -= len1;
     cursor1 -= len1;
     memmove(ca + (dest + 1) * es, ca + (cursor1 + 1) * es, len1 * es);
     copy(ca + dest * es, tmp + cursor2 * es, es);
-    return;
+    goto abracadabra;
+    //return;
   }
 
   sort_utils_compare_function cmp = ts->cmp;
@@ -2150,6 +2165,30 @@ merge_hi (TimSort *ts,
     g_assert(len2 > 0);
     memcpy(ca + (dest - (len2 - 1)) * es, tmp, len2 * es);
   }
+
+ abracadabra:
+  ;
+  // ABRACADABRA
+  double *da =    (double *) ca;
+  double *dabra = (double *) abra;
+  double *dabra_s = (double *) abra_s;
+  for (int i = 0; i < abra_len; i++) {
+    double xa    = *(da    + i);
+    double xabra = *(dabra + i);
+    if (xa != xabra) {
+      printf("\n\n");
+      for (int j = 0; j < len1_s; j++) {
+        printf("j=%d, abra_s=%4.0f\n", j, *(dabra_s + j));
+      }
+      for (int j = 0; j < len2_s; j++) {
+        printf("j=%d, abra_s=%4.0f\n", j, *(dabra_s + len1_s + j));
+      }
+      printf("i=%d, len1_s=%zu, len2_s=%zu, xa=%4.0f, xabra=%4.0f\n", i, len1_s, len2_s, xa, xabra);
+      abort();
+    }
+  }
+  free(abra);
+  free(abra_s);
 }
 
 /**
