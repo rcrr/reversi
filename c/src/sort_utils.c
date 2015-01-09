@@ -2024,7 +2024,7 @@ merge_lo (TimSort *ts,
 /**
  * @brief Merges two adjacent runs in place, in a stable fashion.
  *
- * @details Like mergeLo, except that this method should be called only if
+ * @details Like merge_lo, except that this method should be called only if
  *          len1 >= len2; merge_lo should be called if len1 <= len2.
  *          Either method may be called if len1 == len2.
  *
