@@ -867,6 +867,7 @@ hlp_run_sort_d_random_test (const sort_double_fun f,
 static TestCase *
 hlp_organpipe_int64_new (const size_t n,
                          const double jitters,
+                         const int seed,
                          const SortingVersus versus);
 
 static void
@@ -1167,7 +1168,7 @@ main (int   argc,
 static void
 abc_test (void)
 {
-  TestCase *tc = hlp_organpipe_int64_new (5, 0., ASC);
+  TestCase *tc = hlp_organpipe_int64_new (20, 0.1, 596, ASC);
 
   printf("\n\ntc->elements: { ");
   for (size_t i = 0; i < tc->elements_count; i++) {
@@ -1820,10 +1821,14 @@ typedef struct {
 static TestCase *
 hlp_organpipe_int64_new (const size_t n,
                          const double jitters,
+                         const int seed,
                          const SortingVersus versus)
 {
-  g_assert(n > 0);
+  g_assert(n > 0 && n < 0x00000000efffffffLLU); // The RNG has a 32bit limit.
   g_assert(0. <= jitters && jitters <= 1.);
+
+  const size_t swaps = n * jitters;
+  printf("swaps=%zu\n", swaps);
 
   TestCase *tc = (TestCase *) malloc(sizeof(TestCase));
   g_assert(tc);
@@ -1835,10 +1840,30 @@ hlp_organpipe_int64_new (const size_t n,
     el[n - k]     = n - k;
     el[n + k - 1] = n - k;
   }
+
+  RandomNumberGenerator *rng = rng_new(seed);
+  for (int k = 0; k < swaps; k++) {
+    unsigned long int i = rng_random_choice_from_finite_set(rng, 2 * n);
+    unsigned long int j = rng_random_choice_from_finite_set(rng, 2 * n);
+    printf("k=%d: i=%lu, j=%lu\n", k, i, j);
+    if (i != j) {
+      const size_t tmp = *(el + i);
+      *(el + i) = *(el + j);
+      *(el + j) = tmp;
+    }
+  }
+  rng_free(rng);
+
   tc->elements = el;
   tc->elements_count = 2 * n;
   tc->element_size = sizeof(int64_t);
   tc->versus = versus;
+
+  // add the description string ...
+
+  // add the expected data ...
+
+  // REMOVE PRINTF, add the free function ....
 
   return tc;
 }
