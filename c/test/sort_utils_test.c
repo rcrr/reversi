@@ -339,6 +339,34 @@ const TestCase tc_uint64_t_base[] =
     { NULL, ASC, sizeof(uint64_t), 1, (uint64_t []) {0}, (uint64_t []) {0} }
   };
 
+/**
+ * @brief Sorting test cases for simple arrays of int64_t: base cases.
+ */
+const TestCase tc_int64_t_base[] =
+  {
+    { "A simple array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(int64_t), 10,
+      (int64_t []) { 7, 3, 9, 0, 1, 5, 2, 8, 4, 6 },
+      (int64_t []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+
+    { "A simple array of ten elements must be sorted in descending order.",
+      DSC, sizeof(int64_t), 10,
+      (int64_t []) { -7,  3,  9,  0,  1,  5, -2,  8,  4,  6 },
+      (int64_t []) {  9,  8,  6,  5,  4,  3,  1,  0, -2, -7 } },
+
+    { "An array of three elements, min_uint64, 0, max_uint64, must be sorted in ascending order.",
+      ASC, sizeof(int64_t), 5,
+      (int64_t []) { MIN_INT64, SMALL_INT64, 1, LARGE_INT64, MAX_INT64 },
+      (int64_t []) { MIN_INT64, SMALL_INT64, 1, LARGE_INT64, MAX_INT64 } },
+
+    { "An array of three elements, min_uint64, 0, max_uint64, must be sorted in descending order.",
+      DSC, sizeof(int64_t), 5,
+      (int64_t []) { MIN_INT64, SMALL_INT64, 1, LARGE_INT64, MAX_INT64 },
+      (int64_t []) { MAX_INT64, LARGE_INT64, 1, SMALL_INT64, MIN_INT64 } },
+
+    { NULL, ASC, sizeof(uint64_t), 1, (int64_t []) {0}, (int64_t []) {0} }
+  };
+
 
 
 /*
@@ -381,6 +409,18 @@ const TestsWithSortingFunction twsf_uint64_t_base_qsort =
     sort_utils_uint64_t_icmp,
     qsort,
     sizeof(uint64_t),
+  };
+
+/**
+ * @brief Qsort is applied to the int64_t base test case.
+ */
+const TestsWithSortingFunction twsf_int64_t_base_qsort =
+  {
+    (gconstpointer) tc_int64_t_base,
+    sort_utils_int64_t_cmp,
+    sort_utils_int64_t_icmp,
+    qsort,
+    sizeof(int64_t),
   };
 
 
@@ -771,7 +811,6 @@ static void sort_utils_timsort_dsc_d_1_rand_test (void);
 static void sort_utils_timsort_dsc_d_n_rand_test (void);
 static void sort_utils_timsort_asc_d_rand_perf_test (void);
 
-static void sort_utils_timsort_debug (void);
 
 
 /*
@@ -840,6 +879,13 @@ main (int   argc,
   g_test_add("/sort_utils/uint64_t_base_qsort",
              Fixture,
              (gconstpointer) &twsf_uint64_t_base_qsort,
+             fixture_setup,
+             hlp_run_tests_with_sorting_function,
+             fixture_teardown);
+
+  g_test_add("/sort_utils/int64_t_base_qsort",
+             Fixture,
+             (gconstpointer) &twsf_int64_t_base_qsort,
              fixture_setup,
              hlp_run_tests_with_sorting_function,
              fixture_teardown);
@@ -1064,8 +1110,6 @@ main (int   argc,
   g_test_add_func("/sort_utils/sort_utils_timsort_dsc_d_1_rand_test", sort_utils_timsort_dsc_d_1_rand_test);
   g_test_add_func("/sort_utils/sort_utils_timsort_asc_d_n_rand_test", sort_utils_timsort_asc_d_n_rand_test);
   g_test_add_func("/sort_utils/sort_utils_timsort_dsc_d_n_rand_test", sort_utils_timsort_dsc_d_n_rand_test);
-
-  g_test_add_func("/sort_utils/sort_utils_timsort_debug", sort_utils_timsort_debug);
 
 
   if (g_test_perf()) {
@@ -1559,12 +1603,6 @@ static void
 sort_utils_timsort_asc_d_rand_perf_test (void)
 {
   hlp_run_sort_d_random_test(sort_utils_timsort_asc_d, 1024, 15, 2, 175, ASC);
-}
-
-static void
-sort_utils_timsort_debug (void)
-{
-  hlp_run_sort_d_random_test(sort_utils_timsort_asc_d, 8192, 1, 0, 175, ASC);
 }
 
 
