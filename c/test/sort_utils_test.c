@@ -100,6 +100,8 @@ typedef struct {
   void *tests;                                  /**< @brief An array of test cases. */
 } Fixture;
 
+
+
 /**
  * @brief Sorting test cases for simple arrays of double: base cases.
  */
@@ -775,12 +777,11 @@ const TestsWithSortingFunction twsf_uint64_t_base_timsort =
  * Test function prototypes.
  */
 
+static void abc_test (void);
+
 static void sort_utils_double_compare_test (void);
-
 static void sort_utils_int_compare_test (void);
-
 static void sort_utils_uint64_t_compare_test (void);
-
 static void sort_utils_int64_t_compare_test (void);
 
 static void sort_utils_qsort_asc_d_1_rand_test (void);
@@ -863,6 +864,11 @@ hlp_run_sort_d_random_test (const sort_double_fun f,
                             const int seed,
                             const SortingVersus v);
 
+static TestCase *
+hlp_organpipe_int64_new (const size_t n,
+                         const double jitters,
+                         const SortingVersus versus);
+
 static void
 sort_utils_qsort_asc_d (double *const a,
                         const int count);
@@ -879,12 +885,11 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
 
+  g_test_add_func("/sort_utils/abc_test", abc_test);
+
   g_test_add_func("/sort_utils/sort_utils_double_compare_test", sort_utils_double_compare_test);
-
   g_test_add_func("/sort_utils/sort_utils_int_compare_test", sort_utils_int_compare_test);
-
   g_test_add_func("/sort_utils/sort_utils_uint64_t_compare_test", sort_utils_uint64_t_compare_test);
-
   g_test_add_func("/sort_utils/sort_utils_int64_t_compare_test", sort_utils_int64_t_compare_test);
 
 
@@ -1158,6 +1163,23 @@ main (int   argc,
 /*
  * Test functions.
  */
+
+static void
+abc_test (void)
+{
+  TestCase *tc = hlp_organpipe_int64_new (5, 0., ASC);
+
+  printf("\n\ntc->elements: { ");
+  for (size_t i = 0; i < tc->elements_count; i++) {
+    printf("%jd, ", *((int64_t *)tc->elements + i));
+  }
+  printf("}\n");
+
+  g_assert(TRUE);
+}
+
+
+
 
 /*************************************/
 /* Unit tests for compare functions. */
@@ -1781,6 +1803,44 @@ hlp_run_sort_d_random_test (const sort_double_fun sort_fun,
 
     len = len * factor;
   }
+}
+
+
+/*
+typedef struct {
+  gchar         *test_label;
+  SortingVersus  versus;
+  size_t         element_size;
+  int            elements_count;
+  void          *elements;
+  void          *expected_sorted_sequence;
+} TestCase;
+*/
+
+static TestCase *
+hlp_organpipe_int64_new (const size_t n,
+                         const double jitters,
+                         const SortingVersus versus)
+{
+  g_assert(n > 0);
+  g_assert(0. <= jitters && jitters <= 1.);
+
+  TestCase *tc = (TestCase *) malloc(sizeof(TestCase));
+  g_assert(tc);
+
+  int64_t *el = (int64_t *) malloc(2 * n * sizeof(int64_t));
+  g_assert(el);
+
+  for (int64_t k = n; k > 0; k--) {
+    el[n - k]     = n - k;
+    el[n + k - 1] = n - k;
+  }
+  tc->elements = el;
+  tc->elements_count = 2 * n;
+  tc->element_size = sizeof(int64_t);
+  tc->versus = versus;
+
+  return tc;
 }
 
 static void
