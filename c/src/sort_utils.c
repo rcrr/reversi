@@ -1664,7 +1664,36 @@ sort_utils_mergesort_dsc_i (int *const a,
  * @cond
  */
 
+/**
+ * @brief Minimum merge length.
+ *
+ * @details This is the minimum sized sequence that will be merged. Shorter
+ *          sequences will be lengthened by calling `bnr_sort_from_ordered_initial_run`.
+ *          If the entire array is less than this length, no merges will be performed.
+ *
+ *          This constant should be a power of two. It was 64 in Tim Peter's C
+ *          implementation, but Josh Bloch choose 32 in his Java version. The value
+ *          was empirically determined to work better in his implementation.
+ *          In this implementation 32 was found to be the best value too.
+ *
+ *          In the unlikely event that you set this constant
+ *          to be a number that's not a power of two, you'll need to change the
+ *          `tms_min_run_length` computation.
+ *
+ *          If you decrease this constant, you must change the stack_len
+ *          computation in the TimSort structure constructor, or you risk to
+ *          dereference a pointer out of bounds.  See listsort.txt for a discussion
+ *          of the minimum stack length required as a function of the length
+ *          of the array being sorted and the minimum merge sequence length.
+ */
 static const size_t tms_min_merge = 32;
+
+/**
+ * @brief Minimum gallop length.
+ *
+ * @details When we get into galloping mode, we stay there until both runs win less
+ *          often than `tms_min_gallop` consecutive times.
+ */
 static const long long int tms_min_gallop = 7;
 
 /**
@@ -1686,7 +1715,7 @@ typedef struct {
   size_t                      element_size; /**< @brief The number of bytes used by one element. */
   sort_utils_compare_function cmp;          /**< @brief The compare function applied by the algorithm. */
   long long int               min_gallop;   /**< @brief This controls when we get *into* galloping mode. It is initialized to tms_min_gallop.
-                                             *          The merge_lo and merge_hi methods nudge it higher for random data,
+                                             *          The tms_merge_lo and tms_merge_hi methods nudge it higher for random data,
                                              *          and lower for highly structured data. */
   void                       *tmp;          /**< @brief Temp storage for merges. */
   size_t                      tmp_count;    /**< @brief The max number of elements contained by temp storage. */
@@ -1696,19 +1725,21 @@ typedef struct {
 } TimSort;
 
 /**
- * Ensures that the external array tmp has at least the specified
- * number of elements, increasing its size if necessary.  The size
- * increases exponentially to ensure amortized linear time complexity.
+ * @brief Ensures that the external array tmp has at least the specified
+ *        number of elements, increasing its size if necessary.
  *
- * @param minCapacity the minimum required capacity of the tmp array
- * @return tmp, whether or not it grew
+ * @details The size increases exponentially to ensure amortized linear time complexity.
+ *
+ * @param [in,out] ts           a pointer to the `TimSort` structure
+ * @param [in]     min_capacity the minimum required capacity of the tmp array
+ * @return                      a pointer to the tmp array in the `ts` structure, whether or not it grew
  */
 static void *
-ensure_capacity (TimSort *ts,
-                 size_t min_capacity)
+tms_ensure_capacity (TimSort *const ts,
+                     const size_t min_capacity)
 {
   if (ts->tmp_count < min_capacity) {
-    // Compute smallest power of 2 > min_capacity
+    /* Computes smallest power of 2 > min_capacity. */
     size_t new_size = min_capacity;
     new_size |= new_size >> 1;
     new_size |= new_size >> 2;
@@ -1728,40 +1759,40 @@ ensure_capacity (TimSort *ts,
 }
 
 /**
- * Locates the position at which to insert the specified key into the
- * specified sorted range; if the range contains an element equal to key,
- * returns the index of the leftmost equal element.
+ * @brief Locates the position at which to insert the specified key into the
+ *        specified sorted range; if the range contains an element equal to key,
+ *        returns the index of the leftmost equal element.
  *
- * @param key the key whose insertion point to search for
- * @param a the array in which to search
- * @param es element size
- * @param base the index of the first element in the range
- * @param len the length of the range; must be > 0
- * @param hint the index at which to begin the search, 0 <= hint < n.
- *     The closer hint is to the result, the faster this method will run.
- * @param c the comparator used to order the range, and to search
- * @return the int k,  0 <= k <= n such that a[b + k - 1] < key <= a[b + k],
- *    pretending that a[b - 1] is minus infinity and a[b + n] is infinity.
- *    In other words, key belongs at index b + k; or in other words,
- *    the first k elements of a should precede key, and the last n - k
- *    should follow it.
+ * @param [in] key  the key whose insertion point to search for
+ * @param [in] a    the array in which to search
+ * @param [in] es   element size
+ * @param [in] base the index of the first element in the range
+ * @param [in] len  the length of the range; must be > 0
+ * @param [in] hint the index at which to begin the search, 0 <= hint < n.
+ *                  The closer hint is to the result, the faster this method will run.
+ * @param [in] cmp  the comparator used to order the range, and to search
+ * @return          the int k,  0 <= k <= n such that a[b + k - 1] < key <= a[b + k],
+ *                  pretending that a[b - 1] is minus infinity and a[b + n] is infinity.
+ *                  In other words, key belongs at index b + k; or in other words,
+ *                  the first k elements of a should precede key, and the last n - k
+ *                  should follow it.
  */
 static size_t
-gallop_left (void *key,
-             void *a,
-             size_t es,
-             size_t base,
-             size_t len,
-             size_t hint,
-             sort_utils_compare_function cmp)
+tms_gallop_left (const void *const key,
+                 const void *const a,
+                 const size_t es,
+                 const size_t base,
+                 const size_t len,
+                 const size_t hint,
+                 const sort_utils_compare_function cmp)
 {
   g_assert(len > 0 && hint >= 0 && hint < len);
   char *ca = (char *) a;
   long long int last_ofs = 0;
-  long long int  ofs = 1;
+  long long int ofs = 1;
   if (cmp(key, ca + (base + hint) * es) > 0) {
-    // Gallop right until a[base+hint+lastOfs] < key <= a[base+hint+ofs]
-    long long int max_ofs = len - hint;
+    /* Gallop right until a[base + hint + last_ofs] < key <= a[base + hint + ofs] */
+    const size_t max_ofs = len - hint;
     while (ofs < max_ofs && cmp(key, ca + (base + hint + ofs) * es) > 0) {
       last_ofs = ofs;
       ofs = (ofs << 1) + 1;
@@ -1771,12 +1802,12 @@ gallop_left (void *key,
     if (ofs > max_ofs)
       ofs = max_ofs;
 
-    // Make offsets relative to base
+    /* Make offsets relative to base */
     last_ofs += hint;
     ofs += hint;
   } else { // key <= a[base + hint]
-    // Gallop left until a[base+hint-ofs] < key <= a[base+hint-lastOfs]
-    const long long  int max_ofs = hint + 1;
+    /* Gallop left until a[base + hint - ofs] < key <= a[base + hint - last_ofs] */
+    const size_t max_ofs = hint + 1;
     while (ofs < max_ofs && cmp(key, ca + (base + hint - ofs) * es) <= 0) {
       last_ofs = ofs;
       ofs = (ofs << 1) + 1;
@@ -1786,22 +1817,21 @@ gallop_left (void *key,
     if (ofs > max_ofs)
       ofs = max_ofs;
 
-    // Make offsets relative to base
+    /* Make offsets relative to base. */
     long long int tmp = last_ofs;
     last_ofs = hint - ofs;
     ofs = hint - tmp;
   }
-  //g_assert(last_ofs >= 0 && ofs >= 0);
   g_assert(-1 <= last_ofs && last_ofs < ofs && ofs <= len);
 
   /*
-   * Now a[base+lastOfs] < key <= a[base+ofs], so key belongs somewhere
+   * Now a[base + last_ofs] < key <= a[base + ofs], so key belongs somewhere
    * to the right of lastOfs but no farther right than ofs.  Do a binary
-   * search, with invariant a[base + lastOfs - 1] < key <= a[base + ofs].
+   * search, with invariant a[base + last_ofs - 1] < key <= a[base + ofs].
    */
   last_ofs++;
   while (last_ofs < ofs) {
-    long long int m = last_ofs + ((ofs - last_ofs) >> 1);
+    const size_t m = last_ofs + ((ofs - last_ofs) >> 1);
     if (cmp(key, ca + (base + m) * es) > 0)
       last_ofs = m + 1;  // a[base + m] < key
     else
@@ -1810,28 +1840,29 @@ gallop_left (void *key,
   g_assert(last_ofs == ofs); // so a[base + ofs - 1] < key <= a[base + ofs]
   return ofs;
 }
+
 /**
- * Like gallopLeft, except that if the range contains an element equal to
- * key, gallopRight returns the index after the rightmost equal element.
+ * @brief Like tms_gallop_left, except that if the range contains an element equal to
+ *        key, tms_gallop_right returns the index after the rightmost equal element.
  *
- * @param key the key whose insertion point to search for
- * @param a the array in which to search
- * @param es element size
- * @param base the index of the first element in the range
- * @param len the length of the range; must be > 0
- * @param hint the index at which to begin the search, 0 <= hint < n.
- *     The closer hint is to the result, the faster this method will run.
- * @param c the comparator used to order the range, and to search
- * @return the int k,  0 <= k <= n such that a[b + k - 1] <= key < a[b + k]
+ * @param [in] key  the key whose insertion point to search for
+ * @param [in] a    the array in which to search
+ * @param [in] es   element size
+ * @param [in] base the index of the first element in the range
+ * @param [in] len  the length of the range; must be > 0
+ * @param [in] hint the index at which to begin the search, 0 <= hint < n.
+ *                  The closer hint is to the result, the faster this method will run.
+ * @param [in] cmp  the comparator used to order the range, and to search
+ * @return          the int k,  0 <= k <= n such that a[b + k - 1] <= key < a[b + k]
  */
 static size_t
-gallop_right (void *key,
-              void *a,
-              size_t es,
-              size_t base,
-              size_t len,
-              size_t hint,
-              sort_utils_compare_function cmp)
+tms_gallop_right (const void *const key,
+                  const void *const a,
+                  const size_t es,
+                  const size_t base,
+                  const size_t len,
+                  const size_t hint,
+                  const sort_utils_compare_function cmp)
 {
   g_assert(len > 0 && hint >= 0 && hint < len);
   char *ca = (char *) a;
@@ -1839,8 +1870,8 @@ gallop_right (void *key,
   long long int ofs = 1;
   long long int last_ofs = 0;
   if (cmp(key, ca + (base + hint) * es) < 0) {
-    // Gallop left until a[b+hint - ofs] <= key < a[b+hint - lastOfs]
-    int max_ofs = hint + 1;
+    /* Gallop left until a[b + hint - ofs] <= key < a[b + hint - last_ofs] */
+    const size_t max_ofs = hint + 1;
     while (ofs < max_ofs && cmp(key, ca + (base + hint - ofs) * es) < 0) {
       last_ofs = ofs;
       ofs = (ofs << 1) + 1;
@@ -1850,13 +1881,13 @@ gallop_right (void *key,
     if (ofs > max_ofs)
       ofs = max_ofs;
 
-    // Make offsets relative to b
+    /* Make offsets relative to b. */
     long long int tmp = last_ofs;
     last_ofs = hint - ofs;
     ofs = hint - tmp;
   } else { // a[b + hint] <= key
-    // Gallop right until a[b+hint + lastOfs] <= key < a[b+hint + ofs]
-    long long int max_ofs = len - hint;
+    /* Gallop right until a[b + hint + last_ofs] <= key < a[b + hint + ofs] */
+    const size_t max_ofs = len - hint;
     while (ofs < max_ofs && cmp(key, ca + (base + hint + ofs) * es) >= 0) {
     last_ofs = ofs;
       ofs = (ofs << 1) + 1;
@@ -1866,23 +1897,23 @@ gallop_right (void *key,
     if (ofs > max_ofs)
       ofs = max_ofs;
 
-    // Make offsets relative to b
+    /* Make offsets relative to b. */
     last_ofs += hint;
     ofs += hint;
   }
   g_assert(-1 <= last_ofs && last_ofs < ofs && ofs <= len);
 
   /*
-   * Now a[b + lastOfs] <= key < a[b + ofs], so key belongs somewhere to
+   * Now a[b + last_ofs] <= key < a[b + ofs], so key belongs somewhere to
    * the right of lastOfs but no farther right than ofs.  Do a binary
    * search, with invariant a[b + lastOfs - 1] <= key < a[b + ofs].
    */
   last_ofs++;
   while (last_ofs < ofs) {
-    int m = last_ofs + ((ofs - last_ofs) >> 1);
+    const size_t m = last_ofs + ((ofs - last_ofs) >> 1);
 
     if (cmp(key, ca + (base + m) * es) < 0)
-      ofs = m;          // key < a[b + m]
+      ofs = m;           // key < a[b + m]
     else
       last_ofs = m + 1;  // a[b + m] <= key
   }
@@ -1891,33 +1922,34 @@ gallop_right (void *key,
 }
 
 /**
- * Merges two adjacent runs in place, in a stable fashion.  The first
- * element of the first run must be greater than the first element of the
- * second run (a[base1] > a[base2]), and the last element of the first run
- * (a[base1 + len1-1]) must be greater than all elements of the second run.
+ * @brief Merges two adjacent runs in place, in a stable fashion.
  *
- * For performance, this method should be called only when len1 <= len2;
- * its twin, merge_hi should be called if len1 >= len2.  (Either method
- * may be called if len1 == len2.)
+ * @details The first element of the first run must be greater than the first element of the
+ *          second run (a[base1] > a[base2]), and the last element of the first run
+ *          (a[base1 + len1 - 1]) must be greater than all elements of the second run.
  *
- * @param base1 index of first element in first run to be merged
- * @param len1  length of first run to be merged (must be > 0)
- * @param base2 index of first element in second run to be merged
- *        (must be aBase + aLen)
- * @param len2  length of second run to be merged (must be > 0)
+ *          For performance, this method should be called only when len1 <= len2;
+ *          its twin, tms_merge_hi should be called if len1 >= len2. (Either method
+ *          may be called if len1 == len2.)
+ *
+ * @param [in,out] ts    tim sort structure
+ * @param [in]     base1 index of first element in first run to be merged
+ * @param [in]     len1  length of first run to be merged (must be > 0)
+ * @param [in]     base2 index of first element in second run to be merged
+ * @param [in]     len2  length of second run to be merged (must be > 0)
  */
 static void
-merge_lo (TimSort *ts,
-          size_t base1,
-          size_t len1,
-          size_t base2,
-          size_t len2)
+tms_merge_lo (TimSort *const ts,
+              const size_t base1,
+              size_t len1,
+              const size_t base2,
+              size_t len2)
 {
   g_assert(len1 > 0 && len2 > 0 && base1 + len1 == base2 && len1 <= len2);
 
   /* Copy first run into temp array. */
   char *ca = (char *) ts->a;
-  char *tmp = (char *) ensure_capacity(ts, len1);
+  char *tmp = (char *) tms_ensure_capacity(ts, len1);
   const size_t es = ts->element_size;
   memcpy(tmp, ca + base1 * es, len1 * es);
 
@@ -1937,7 +1969,7 @@ merge_lo (TimSort *ts,
     return;
   }
 
-  sort_utils_compare_function cmp = ts->cmp;
+  const sort_utils_compare_function cmp = ts->cmp;
   long long int  min_gallop = ts->min_gallop;
 
   while (TRUE) {
@@ -1972,7 +2004,7 @@ merge_lo (TimSort *ts,
      */
     do {
       g_assert(len1 > 1 && len2 > 0);
-      count1 = gallop_right(ca + cursor2 * es, tmp, es, cursor1, len1, 0, cmp);
+      count1 = tms_gallop_right(ca + cursor2 * es, tmp, es, cursor1, len1, 0, cmp);
       if (count1 != 0) {
         memcpy(ca + dest * es, tmp + cursor1 * es, count1 * es);
         dest += count1;
@@ -1985,7 +2017,7 @@ merge_lo (TimSort *ts,
       if (--len2 == 0)
         goto outer;
 
-      count2 = gallop_left(tmp + cursor1 * es, ca, es, cursor2, len2, 0, cmp);
+      count2 = tms_gallop_left(tmp + cursor1 * es, ca, es, cursor2, len2, 0, cmp);
       if (count2 != 0) {
         memmove(ca + dest * es, ca + cursor2 * es, count2 * es);
         dest += count2;
@@ -2011,7 +2043,7 @@ merge_lo (TimSort *ts,
     memmove(ca + dest * es, ca + cursor2 * es, len2 * es);
     copy(ca + (dest + len2) * es, tmp + cursor1 * es, es); // Last elt of run 1 to end of merge
   } else if (len1 == 0) {
-    printf("Comparison method violates its general contract!\n");
+    /* Comparison function violates its general contract! */
     g_assert(FALSE);
   } else {
     g_assert(len2 == 0);
@@ -2023,28 +2055,28 @@ merge_lo (TimSort *ts,
 /**
  * @brief Merges two adjacent runs in place, in a stable fashion.
  *
- * @details Like merge_lo, except that this method should be called only if
- *          len1 >= len2; merge_lo should be called if len1 <= len2.
+ * @details Like tms_merge_lo, except that this method should be called only if
+ *          len1 >= len2; tms_merge_lo should be called if len1 <= len2.
  *          Either method may be called if len1 == len2.
  *
  * @param [in,out] ts    tim sort structure
  * @param [in]     base1 index of first element in first run to be merged
  * @param [in]     len1  length of first run to be merged (must be > 0)
- * @param [in]     base2 index of first element in second run to be merged (must be aBase + aLen)
+ * @param [in]     base2 index of first element in second run to be merged
  * @param [in]     len2  length of second run to be merged (must be > 0)
  */
 static void
-merge_hi (TimSort *ts,
-          size_t base1,
-          size_t len1,
-          size_t base2,
-          size_t len2)
+tms_merge_hi (TimSort *const ts,
+              const size_t base1,
+              size_t len1,
+              const size_t base2,
+              size_t len2)
 {
   g_assert(len1 > 0 && len2 > 0 && base1 + len1 == base2 && len1 >= len2);
 
   /* Copy first run into temp array. */
   char *ca = (char *) ts->a;
-  char *tmp = (char *) ensure_capacity(ts, len2);
+  char *tmp = (char *) tms_ensure_capacity(ts, len2);
   const size_t es = ts->element_size;
   memcpy(tmp, ca + base2 * es, len2 * es);
 
@@ -2066,7 +2098,7 @@ merge_hi (TimSort *ts,
     return;
   }
 
-  sort_utils_compare_function cmp = ts->cmp;
+  const sort_utils_compare_function cmp = ts->cmp;
   long long int  min_gallop = ts->min_gallop;
 
   while (TRUE) {
@@ -2101,7 +2133,7 @@ merge_hi (TimSort *ts,
      */
     do {
       g_assert(len1 > 0 && len2 > 1);
-      count1 = len1 - gallop_right(tmp + cursor2 * es, ca, es, base1, len1, len1 - 1, cmp);
+      count1 = len1 - tms_gallop_right(tmp + cursor2 * es, ca, es, base1, len1, len1 - 1, cmp);
       if (count1 != 0) {
         dest -= count1;
         cursor1 -= count1;
@@ -2114,7 +2146,7 @@ merge_hi (TimSort *ts,
       if (--len2 == 1)
         goto outer;
 
-      count2 = len2 - gallop_left(ca + cursor1 * es, tmp, es, 0, len2, len2 - 1, cmp);
+      count2 = len2 - tms_gallop_left(ca + cursor1 * es, tmp, es, 0, len2, len2 - 1, cmp);
       if (count2 != 0) {
         dest -= count2;
         cursor2 -= count2;
@@ -2142,7 +2174,7 @@ merge_hi (TimSort *ts,
     memmove(ca + (dest + 1) * es, ca + (cursor1 + 1) * es, len1 * es);
     copy(ca + dest * es, tmp + cursor2 * es, es); // Move first elt of run2 to front of merge
   } else if (len2 == 0) {
-    printf("Comparison method violates its general contract!\n");
+    /* Comparison method violates its general contract! */
     g_assert(FALSE);
   } else {
     g_assert(len1 == 0);
@@ -2152,16 +2184,17 @@ merge_hi (TimSort *ts,
 }
 
 /**
- * Merges the two runs at stack indices i and i+1.  Run i must be
- * the penultimate or antepenultimate run on the stack.  In other words,
- * i must be equal to stackSize-2 or stackSize-3.
+ * @brief Merges the two runs at stack indices i and i + 1.
+ *
+ * @details Run i must be the penultimate or antepenultimate run on the stack.
+ *          In other words, i must be equal to stack_size - 2 or stack_size - 3.
  *
  * @param [in,out] ts tim sort structure
  * @param [in]     i  stack index of the first of the two runs to merge
  */
 static void
-merge_at (TimSort *ts,
-          size_t i)
+tms_merge_at (TimSort *const ts,
+              const size_t i)
 {
   g_assert(ts->stack_size >= 2);
   g_assert(i >= 0);
@@ -2180,7 +2213,7 @@ merge_at (TimSort *ts,
   /*
    * Record the length of the combined runs; if i is the 3rd-last
    * run now, also slide over the last run (which isn't involved
-   * in this merge).  The current run (i+1) goes away in any case.
+   * in this merge). The current run (i + 1) goes away in any case.
    */
   ts->run_len[i] = len1 + len2;
   if (i == ts->stack_size - 3) {
@@ -2193,7 +2226,7 @@ merge_at (TimSort *ts,
    * Find where the first element of run2 goes in run1. Prior elements
    * in run1 can be ignored (because they're already in place).
    */
-  size_t k = gallop_right(ca + base2 * es, ca, es, base1, len1, 0, ts->cmp);
+  const size_t k = tms_gallop_right(ca + base2 * es, ca, es, base1, len1, 0, ts->cmp);
   g_assert(k >= 0);
   base1 += k;
   len1 -= k;
@@ -2204,42 +2237,44 @@ merge_at (TimSort *ts,
    * Find where the last element of run1 goes in run2. Subsequent elements
    * in run2 can be ignored (because they're already in place).
    */
-  len2 = gallop_left(ca + (base1 + len1 - 1) * es, ca, es, base2, len2, len2 - 1, ts->cmp);
+  len2 = tms_gallop_left(ca + (base1 + len1 - 1) * es, ca, es, base2, len2, len2 - 1, ts->cmp);
   g_assert(len2 >= 0);
   if (len2 == 0)
     return;
 
   /* Merge remaining runs, using tmp array with min(len1, len2) elements. */
   if (len1 <= len2)
-    merge_lo(ts, base1, len1, base2, len2);
+    tms_merge_lo(ts, base1, len1, base2, len2);
   else
-    merge_hi(ts, base1, len1, base2, len2);
+    tms_merge_hi(ts, base1, len1, base2, len2);
 }
 
 /**
- * Examines the stack of runs waiting to be merged and merges adjacent runs
- * until the stack invariants are reestablished:
+ * @brief Merges the run accumulated in the stack.
  *
- *     1. runLen[i - 3] > runLen[i - 2] + runLen[i - 1]
- *     2. runLen[i - 2] > runLen[i - 1]
+ * @details Examines the stack of runs waiting to be merged and merges adjacent runs
+ *          until the stack invariants are reestablished:
  *
- * This method is called each time a new run is pushed onto the stack,
- * so the invariants are guaranteed to hold for i < stackSize upon
- * entry to the method.
+ *             1. run_len[i - 3] > run_len[i - 2] + run_len[i - 1]
+ *             2. run_len[i - 2] > run_len[i - 1]
+ *
+ *          This method is called each time a new run is pushed onto the stack,
+ *          so the invariants are guaranteed to hold for i < stack_size upon
+ *          entry to the method.
  *
  * @param [in,out] ts tim sort structure
  */
 static void
-merge_collapse (TimSort *ts)
+tms_merge_collapse (TimSort *const ts)
 {
   while (ts->stack_size > 1) {
     size_t n = ts->stack_size - 2;
     if (n > 0 && ts->run_len[n - 1] <= ts->run_len[n] + ts->run_len[n + 1]) {
       if (ts->run_len[n - 1] < ts->run_len[n + 1])
         n--;
-      merge_at(ts, n);
+      tms_merge_at(ts, n);
     } else if (ts->run_len[n] <= ts->run_len[n + 1]) {
-      merge_at(ts, n);
+      tms_merge_at(ts, n);
     } else {
       break; // Invariant is established
     }
@@ -2247,18 +2282,18 @@ merge_collapse (TimSort *ts)
 }
 
 /**
- * Merges all runs on the stack until only one remains.  This method is
- * called once, to complete the sort.
+ * @brief Merges all runs on the stack until only one remains. This method is
+ *        called once, to complete the sort.
  *
  * @param [in,out] ts tim sort structure
  */
 static void
-merge_force_collapse (TimSort *ts) {
+tms_merge_force_collapse (TimSort *const ts) {
   while (ts->stack_size > 1) {
     size_t n = ts->stack_size - 2;
     if (n > 0 && ts->run_len[n - 1] < ts->run_len[n + 1])
       n--;
-    merge_at(ts, n);
+    tms_merge_at(ts, n);
   }
 }
 
@@ -2280,7 +2315,21 @@ tim_sort_new (void *const a,
   TimSort *ts;
   static const size_t size_of_ts = sizeof(TimSort);
 
+  /*
+   * Maximum initial size of tmp array, which is used for merging. The array
+   * can grow to accommodate demand.
+   */
   static const size_t initial_tmp_storage_length = 256;
+
+  /*
+   * Allocate runs-to-be-merged stack (which cannot be expanded). The
+   * stack length requirements are described in listsort.txt. The C
+   * version always uses the same stack length (85), on the contrary this was
+   * measured to be too expensive when sorting "mid-sized" arrays (e.g.,
+   * 100 elements) in Java.
+   *
+   * Here we stay with the fixed value.
+   */
   static const size_t stack_len = 85;
 
   ts = (TimSort *) malloc(size_of_ts);
@@ -2310,7 +2359,7 @@ tim_sort_new (void *const a,
  * @param [in,out] ts the pointer to be deallocated
  */
 static void
-tim_sort_free (TimSort *ts)
+tim_sort_free (TimSort *const ts)
 {
   free(ts->tmp);
   free(ts->run_base);
@@ -2318,42 +2367,40 @@ tim_sort_free (TimSort *ts)
   free(ts);
 }
 
-
 /**
- * Pushes the specified run onto the pending-run stack.
+ * @brief Pushes the specified run onto the pending-run stack.
  *
- * @param ts       tim sort structure pointer
- * @param run_base index of the first element in the run
- * @param run_len  the number of elements in the run
+ * @param [in,out] ts       tim sort structure pointer
+ * @param [in]     run_base index of the first element in the run
+ * @param [in]     run_len  the number of elements in the run
  */
 static void
-push_run (TimSort *const ts,
-          const size_t run_base,
-          const size_t run_len) {
+tms_push_run (TimSort *const ts,
+              const size_t run_base,
+              const size_t run_len) {
   ts->run_base[ts->stack_size] = run_base;
   ts->run_len[ts->stack_size] = run_len;
   ts->stack_size++;
 }
 
 /**
- * Returns the minimum acceptable run length for an array of the specified
- * length. Natural runs shorter than this will be extended with
- * {@link #binarySort}.
+ * @brief Returns the minimum acceptable run length for an array of the specified
+ *        length. Natural runs shorter than this will be extended with binary sort.
  *
- * Roughly speaking, the computation is:
+ * @details Roughly speaking, the computation is:
  *
- *  If n < tms_min_merge, return n (it's too small to bother with fancy stuff).
- *  Else if n is an exact power of 2, return tms_min_merge/2.
- *  Else return an int k, tms_min_merge/2 <= k <= tms_min_merge, such that n/k
- *   is close to, but strictly less than, an exact power of 2.
+ *            If n < tms_min_merge, return n (it's too small to bother with fancy stuff).
+ *            Else if n is an exact power of 2, return tms_min_merge/2.
+ *            Else return an int k, tms_min_merge/2 <= k <= tms_min_merge, such that n/k
+ *             is close to, but strictly less than, an exact power of 2.
  *
- * For the rationale, see listsort.txt.
+ *          For the rationale, see listsort.txt.
  *
- * @param n the length of the array to be sorted
- * @return the length of the minimum run to be merged
+ * @param [in] n the length of the array to be sorted
+ * @return       the length of the minimum run to be merged
  */
 static size_t
-min_run_length (size_t n) {
+tms_min_run_length (size_t n) {
   g_assert(n >= 0);
   size_t r = 0;      // Becomes 1 if any 1 bits are shifted off
   while (n >= tms_min_merge) {
@@ -2366,21 +2413,21 @@ min_run_length (size_t n) {
 /**
  * @brief Reverse the specified range of the specified array.
  *
- * @param a            the array in which a range is to be reversed
- * @param element_size number of bytes used by one element
- * @param lo           the index of the first element in the range to be reversed
- * @param hi           the index after the last element in the range to be reversed
+ * @param [in,out] a  the array in which a range is to be reversed
+ * @param [in]     es element size, the number of bytes used by one element
+ * @param [in]     lo the index of the first element in the range to be reversed
+ * @param [in]     hi the index after the last element in the range to be reversed
  */
 static void
-reverse_range (void *const a,
-               const size_t element_size,
-               size_t lo,
-               size_t hi)
+tms_reverse_range (void *const a,
+                   const size_t es,
+                   size_t lo,
+                   size_t hi)
 {
   char *ca = (char *) a;
   hi--;
   while (lo < hi) {
-    swap(ca + lo * element_size, ca + hi * element_size, element_size);
+    swap(ca + lo * es, ca + hi * es, es);
     lo++; hi--;
   }
 }
@@ -2392,11 +2439,11 @@ reverse_range (void *const a,
  *
  * @details A run is the longest ascending sequence with:
  *
- *            a[lo] <= a[lo + 1] <= a[lo + 2] <= ...
+ *            a[0] <= a[0 + 1] <= a[0 + 2] <= ...
  *
  *          or the longest descending sequence with:
  *
- *            a[lo] >  a[lo + 1] >  a[lo + 2] >  ...
+ *            a[0] >  a[0 + 1] >  a[0 + 2] >  ...
  *
  *          For its intended use in a stable mergesort, the strictness of the
  *          definition of "descending" is needed so that the call can safely
@@ -2404,27 +2451,27 @@ reverse_range (void *const a,
  *
  * @param [in,out] a     the array in which a run is to be counted and possibly reversed
  * @param [in]     count index after the last element that may be contained in the run.
+ * @param [in]     es    element size, the number of bytes used by one element
  * @param [in]     cmp   the comparator to use for the sort
  * @return               the length of the run at the beginning of the specified array
  */
 static size_t
-count_run_and_make_ascending (void *const a,
-                              size_t count,
-                              const size_t element_size,
-                              const sort_utils_compare_function cmp)
+tms_count_run_and_make_ascending (void *const a,
+                                  const size_t count,
+                                  const size_t es,
+                                  const sort_utils_compare_function cmp)
 {
   g_assert(count > 0);
   if (count == 1) return 1;
 
-  char *ca = (char *) a;
-  const size_t es = element_size;
+  char *const ca = (char *) a;
 
   /* Finds end of run, and reverses range if descending. */
   size_t run_len = 1;
   if (cmp(ca + run_len++ * es, ca) < 0) { // Descending.
     while (run_len < count && cmp(ca + run_len * es, ca + (run_len - 1) * es) < 0)
       run_len++;
-    reverse_range(a, es, 0, run_len);
+    tms_reverse_range(a, es, 0, run_len);
   } else { // Ascending.
     while (run_len < count && cmp(ca + run_len * es, ca + (run_len - 1) * es) >= 0)
       run_len++;
@@ -2490,7 +2537,7 @@ sort_utils_timsort (void *const a,
   const size_t es = element_size;
 
   if (count < tms_min_merge) {
-    size_t init_run_len = count_run_and_make_ascending(a, count, es, cmp);
+    size_t init_run_len = tms_count_run_and_make_ascending(a, count, es, cmp);
     bnr_sort_from_ordered_initial_run(a, count, init_run_len, es, cmp);
     return;
   }
@@ -2503,11 +2550,11 @@ sort_utils_timsort (void *const a,
   size_t lo = 0;
   size_t n_remaining = count - lo;
   TimSort *ts = tim_sort_new(a, count, es, cmp);
-  const size_t min_run = min_run_length(n_remaining);
+  const size_t min_run = tms_min_run_length(n_remaining);
   do {
     /* Identify next run. */
     g_assert(lo + n_remaining == count);
-    size_t run_len = count_run_and_make_ascending(ca + lo * es, n_remaining, es, cmp);
+    size_t run_len = tms_count_run_and_make_ascending(ca + lo * es, n_remaining, es, cmp);
 
     // If run is short, extend to min(min_run, n_remaining)
     if (run_len < min_run) {
@@ -2517,8 +2564,8 @@ sort_utils_timsort (void *const a,
     }
 
     // Push run onto pending-run stack, and maybe merge
-    push_run(ts, lo, run_len);
-    merge_collapse(ts);
+    tms_push_run(ts, lo, run_len);
+    tms_merge_collapse(ts);
 
     // Advance to find next run
     lo += run_len;
@@ -2527,7 +2574,7 @@ sort_utils_timsort (void *const a,
 
   /* Merge all remaining runs to complete sort. */
   g_assert(lo == count);
-  merge_force_collapse(ts);
+  tms_merge_force_collapse(ts);
   g_assert(ts->stack_size == 1);
 
   tim_sort_free(ts);
