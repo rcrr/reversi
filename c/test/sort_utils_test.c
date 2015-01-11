@@ -89,7 +89,6 @@ typedef struct {
   sort_utils_compare_function cmp_dsc;          /**< @brief Compare function for descending cases. */
   sort_utils_sort_function    sort;             /**< @brief Sorting function. */
   size_t                      element_size;     /**< @brief Number of bytes needed by one element. */
-  sort_utils_compare_function cmp_result;       /**< @brief Compare expected and computed results and returns zero when they are equal. */
 } TestsWithSortingFunction;
 
 /**
@@ -358,7 +357,6 @@ const TestsWithSortingFunction twsf_double_base_qsort =
     sort_utils_double_icmp,
     qsort,
     sizeof(double),
-    sort_utils_double_cmp
   };
 
 /**
@@ -371,7 +369,6 @@ const TestsWithSortingFunction twsf_int_base_qsort =
     sort_utils_int_icmp,
     qsort,
     sizeof(int),
-    sort_utils_int_cmp
   };
 
 /**
@@ -384,7 +381,6 @@ const TestsWithSortingFunction twsf_uint64_t_base_qsort =
     sort_utils_uint64_t_icmp,
     qsort,
     sizeof(uint64_t),
-    sort_utils_uint64_t_cmp
   };
 
 
@@ -401,7 +397,6 @@ const TestsWithSortingFunction twsf_double_base_insertionsort =
     sort_utils_double_icmp,
     sort_utils_insertionsort,
     sizeof(double),
-    sort_utils_double_cmp
   };
 
 /**
@@ -414,7 +409,6 @@ const TestsWithSortingFunction twsf_int_base_insertionsort =
     sort_utils_int_icmp,
     sort_utils_insertionsort,
     sizeof(int),
-    sort_utils_int_cmp
   };
 
 /**
@@ -427,7 +421,6 @@ const TestsWithSortingFunction twsf_uint64_t_base_insertionsort =
     sort_utils_uint64_t_icmp,
     sort_utils_insertionsort,
     sizeof(uint64_t),
-    sort_utils_uint64_t_cmp
   };
 
 
@@ -444,7 +437,6 @@ const TestsWithSortingFunction twsf_double_base_binarysort =
     sort_utils_double_icmp,
     sort_utils_binarysort,
     sizeof(double),
-    sort_utils_double_cmp
   };
 
 /**
@@ -457,7 +449,6 @@ const TestsWithSortingFunction twsf_int_base_binarysort =
     sort_utils_int_icmp,
     sort_utils_binarysort,
     sizeof(int),
-    sort_utils_int_cmp
   };
 
 /**
@@ -470,7 +461,6 @@ const TestsWithSortingFunction twsf_uint64_t_base_binarysort =
     sort_utils_uint64_t_icmp,
     sort_utils_binarysort,
     sizeof(uint64_t),
-    sort_utils_uint64_t_cmp
   };
 
 
@@ -487,7 +477,6 @@ const TestsWithSortingFunction twsf_double_base_heapsort =
     sort_utils_double_icmp,
     sort_utils_heapsort,
     sizeof(double),
-    sort_utils_double_cmp
   };
 
 /**
@@ -500,7 +489,6 @@ const TestsWithSortingFunction twsf_int_base_heapsort =
     sort_utils_int_icmp,
     sort_utils_heapsort,
     sizeof(int),
-    sort_utils_int_cmp
   };
 
 /**
@@ -513,7 +501,6 @@ const TestsWithSortingFunction twsf_uint64_t_base_heapsort =
     sort_utils_uint64_t_icmp,
     sort_utils_heapsort,
     sizeof(uint64_t),
-    sort_utils_uint64_t_cmp
   };
 
 
@@ -530,7 +517,6 @@ const TestsWithSortingFunction twsf_double_base_smoothsort =
     sort_utils_double_icmp,
     sort_utils_smoothsort,
     sizeof(double),
-    sort_utils_double_cmp
   };
 
 /**
@@ -543,7 +529,6 @@ const TestsWithSortingFunction twsf_int_base_smoothsort =
     sort_utils_int_icmp,
     sort_utils_smoothsort,
     sizeof(int),
-    sort_utils_int_cmp
   };
 
 /**
@@ -556,7 +541,6 @@ const TestsWithSortingFunction twsf_uint64_t_base_smoothsort =
     sort_utils_uint64_t_icmp,
     sort_utils_smoothsort,
     sizeof(uint64_t),
-    sort_utils_uint64_t_cmp
   };
 
 
@@ -573,7 +557,6 @@ const TestsWithSortingFunction twsf_double_base_quicksort =
     sort_utils_double_icmp,
     sort_utils_quicksort,
     sizeof(double),
-    sort_utils_double_cmp
   };
 
 /**
@@ -586,7 +569,6 @@ const TestsWithSortingFunction twsf_int_base_quicksort =
     sort_utils_int_icmp,
     sort_utils_quicksort,
     sizeof(int),
-    sort_utils_int_cmp
   };
 
 /**
@@ -599,7 +581,6 @@ const TestsWithSortingFunction twsf_uint64_t_base_quicksort =
     sort_utils_uint64_t_icmp,
     sort_utils_quicksort,
     sizeof(uint64_t),
-    sort_utils_uint64_t_cmp
   };
 
 
@@ -616,7 +597,6 @@ const TestsWithSortingFunction twsf_double_base_shellsort =
     sort_utils_double_icmp,
     sort_utils_shellsort,
     sizeof(double),
-    sort_utils_double_cmp
   };
 
 /**
@@ -629,7 +609,6 @@ const TestsWithSortingFunction twsf_int_base_shellsort =
     sort_utils_int_icmp,
     sort_utils_shellsort,
     sizeof(int),
-    sort_utils_int_cmp
   };
 
 /**
@@ -642,7 +621,6 @@ const TestsWithSortingFunction twsf_uint64_t_base_shellsort =
     sort_utils_uint64_t_icmp,
     sort_utils_shellsort,
     sizeof(uint64_t),
-    sort_utils_uint64_t_cmp
   };
 
 
@@ -659,7 +637,6 @@ const TestsWithSortingFunction twsf_double_base_mergesort =
     sort_utils_double_icmp,
     sort_utils_mergesort,
     sizeof(double),
-    sort_utils_double_cmp
   };
 
 /**
@@ -672,7 +649,6 @@ const TestsWithSortingFunction twsf_int_base_mergesort =
     sort_utils_int_icmp,
     sort_utils_mergesort,
     sizeof(int),
-    sort_utils_int_cmp
   };
 
 /**
@@ -685,7 +661,6 @@ const TestsWithSortingFunction twsf_uint64_t_base_mergesort =
     sort_utils_uint64_t_icmp,
     sort_utils_mergesort,
     sizeof(uint64_t),
-    sort_utils_uint64_t_cmp
   };
 
 
@@ -702,7 +677,6 @@ const TestsWithSortingFunction twsf_double_base_timsort =
     sort_utils_double_icmp,
     sort_utils_timsort,
     sizeof(double),
-    sort_utils_double_cmp
   };
 
 /**
@@ -715,7 +689,6 @@ const TestsWithSortingFunction twsf_int_base_timsort =
     sort_utils_int_icmp,
     sort_utils_timsort,
     sizeof(int),
-    sort_utils_int_cmp
   };
 
 /**
@@ -728,7 +701,6 @@ const TestsWithSortingFunction twsf_uint64_t_base_timsort =
     sort_utils_uint64_t_icmp,
     sort_utils_timsort,
     sizeof(uint64_t),
-    sort_utils_uint64_t_cmp
   };
 
 
@@ -1664,8 +1636,6 @@ hlp_run_tests_with_sorting_function (Fixture *fixture,
   const sort_utils_sort_function sort = twsf->sort;
   g_assert(sort);
   const size_t es = twsf->element_size;
-  const sort_utils_compare_function cmp_result = twsf->cmp_result;
-  g_assert(cmp_result);
 
   for (int i = 0; i < fixture->tests_count; i++) {
     const TestCase *tc = &tests[i];
@@ -1690,7 +1660,7 @@ hlp_run_tests_with_sorting_function (Fixture *fixture,
     for (int j = 0; j < tc->elements_count; j++) {
       const void *computed = (char *) tc->elements + j * es;
       const void *expected = (char *) tc->expected_sorted_sequence + j * es;
-      g_assert(cmp_result(expected, computed) == 0);
+      g_assert(cmp_asc(expected, computed) == 0);
 
     }
 
