@@ -35,6 +35,8 @@
 #ifndef SORT_UTILS_H
 #define SORT_UTILS_H
 
+#include <stdint.h>
+
 /**
  * @brief Compare function signature.
  *
@@ -153,6 +155,22 @@ sort_utils_insertionsort_asc_i (int *const a,
 extern void
 sort_utils_insertionsort_dsc_i (int *const a,
                                 const int count);
+
+extern void
+sort_utils_insertionsort_asc_u64 (uint64_t *const a,
+                                  const int count);
+
+extern void
+sort_utils_insertionsort_dsc_u64 (uint64_t *const a,
+                                  const int count);
+
+extern void
+sort_utils_insertionsort_asc_i64 (int64_t *const a,
+                                  const int count);
+
+extern void
+sort_utils_insertionsort_dsc_i64 (int64_t *const a,
+                                  const int count);
 
 
 

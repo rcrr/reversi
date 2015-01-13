@@ -81,7 +81,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 #include <math.h>
 
@@ -418,6 +417,70 @@ sort_utils_insertionsort_dsc_i (int *const a,
                                 const int count)
 {
   sort_utils_insertionsort(a, count, sizeof(int), sort_utils_int_icmp);
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of unsigned sixtyfour bit integers.
+ *
+ * @details The vector of unsigned sixtyfour bit integers `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the insertion-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_insertionsort_asc_u64 (uint64_t *const a,
+                                  const int count)
+{
+  sort_utils_insertionsort(a, count, sizeof(int64_t), sort_utils_uint64_t_cmp);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of unsigned sixtyfour bit integers.
+ *
+ * @details The vector of unsigned sixtyfour bit integers `a` having length equal to `count` is sorted
+ *          in place in descending order applying the insertion-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_insertionsort_dsc_u64 (uint64_t *const a,
+                                  const int count)
+{
+  sort_utils_insertionsort(a, count, sizeof(int64_t), sort_utils_uint64_t_icmp);
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of signed sixtyfour bit integers.
+ *
+ * @details The vector of signed sixtyfour bit integers `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the insertion-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_insertionsort_asc_i64 (int64_t *const a,
+                                  const int count)
+{
+  sort_utils_insertionsort(a, count, sizeof(int64_t), sort_utils_int64_t_cmp);
+}
+
+/**
+ * @brief Sorts in descending order the `a` array of signed sixtyfour bit integers.
+ *
+ * @details The vector of signed sixtyfour bit integers `a` having length equal to `count` is sorted
+ *          in place in descending order applying the insertion-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_insertionsort_dsc_i64 (int64_t *const a,
+                                  const int count)
+{
+  sort_utils_insertionsort(a, count, sizeof(int64_t), sort_utils_int64_t_icmp);
 }
 
 

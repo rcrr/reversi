@@ -871,6 +871,13 @@ hlp_organpipe_int64_new (const size_t n,
                          const SortingVersus versus);
 
 static void
+test_case_free (TestCase *tc);
+
+static void
+test_case_verify_result (const TestCase *const tc,
+                         const sort_utils_compare_function cmp);
+
+static void
 sort_utils_qsort_asc_d (double *const a,
                         const int count);
 
@@ -1168,24 +1175,18 @@ main (int   argc,
 static void
 abc_test (void)
 {
-  TestCase *tc = hlp_organpipe_int64_new (20, 0.1, 596, DSC);
+  TestCase *tc = hlp_organpipe_int64_new(1024*32, 0.1, 596, ASC);
 
-  printf("\n\n%s\n", tc->test_label);
-  printf("tc->elements: { ");
-  for (size_t i = 0; i < tc->elements_count; i++) {
-    printf("%jd, ", *((int64_t *)tc->elements + i));
-  }
-  printf("}\n");
+  g_test_timer_start();
+  sort_utils_insertionsort_asc_i64(tc->elements, tc->elements_count);
+  double ttime = g_test_timer_elapsed();
+  //if (g_test_perf())
+  if (TRUE)
+    g_test_minimized_result(ttime, "Sorting %10u items: %-12.8gsec", tc->elements_count, ttime);
 
-  printf("tc->elements: { ");
-  for (size_t i = 0; i < tc->elements_count; i++) {
-    printf("%jd, ", *((int64_t *)tc->expected_sorted_sequence + i));
-  }
-  printf("}\n");
-
-  g_assert(TRUE);
+  test_case_verify_result(tc, sort_utils_int64_t_cmp);
+  test_case_free(tc);
 }
-
 
 
 
@@ -1823,7 +1824,6 @@ hlp_organpipe_int64_new (const size_t n,
   g_assert(0. <= jitters && jitters <= 1.);
 
   const size_t swaps = n * jitters;
-  printf("swaps=%zu\n", swaps);
 
   TestCase *tc = (TestCase *) malloc(sizeof(TestCase));
   g_assert(tc);
@@ -1860,7 +1860,6 @@ hlp_organpipe_int64_new (const size_t n,
   for (int k = 0; k < swaps; k++) {
     unsigned long int i = rng_random_choice_from_finite_set(rng, 2 * n);
     unsigned long int j = rng_random_choice_from_finite_set(rng, 2 * n);
-    printf("k=%d: i=%lu, j=%lu\n", k, i, j);
     if (i != j) {
       const size_t tmp = *(el + i);
       *(el + i) = *(el + j);
@@ -1876,10 +1875,30 @@ hlp_organpipe_int64_new (const size_t n,
   tc->elements = el;
   tc->expected_sorted_sequence = ex;
 
-  // REMOVE PRINTF, add the free function ....
-
   return tc;
 }
+
+static void
+test_case_free (TestCase *tc)
+{
+  if (tc->test_label)
+    free(tc->test_label);
+  if (tc->elements)
+    free(tc->elements);
+  if (tc->expected_sorted_sequence)
+    free(tc->expected_sorted_sequence);
+  free(tc);
+}
+
+static void
+test_case_verify_result (const TestCase *const tc,
+                         const sort_utils_compare_function cmp)
+{
+  for (int i = 0; i < tc->elements_count; i++) {
+    g_assert(cmp(tc->expected_sorted_sequence, tc->elements) == 0);
+  }
+}
+
 
 static void
 sort_utils_qsort_asc_d (double *const a,
