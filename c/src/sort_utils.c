@@ -4,8 +4,6 @@
  * @todo Refactor quick-sort.
  *       The swap macro is complicated .... and does not bring performance in.
  *
- * @todo Add tim-sort implementation to the list of available choices.
- *
  * @todo Add dedicated sort functions for object (pointer and structure) sorting.
  *       This version can have a dedicated swap macro/function.
  *

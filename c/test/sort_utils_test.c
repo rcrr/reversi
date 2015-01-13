@@ -1168,11 +1168,18 @@ main (int   argc,
 static void
 abc_test (void)
 {
-  TestCase *tc = hlp_organpipe_int64_new (20, 0.1, 596, ASC);
+  TestCase *tc = hlp_organpipe_int64_new (20, 0.1, 596, DSC);
 
-  printf("\n\ntc->elements: { ");
+  printf("\n\n%s\n", tc->test_label);
+  printf("tc->elements: { ");
   for (size_t i = 0; i < tc->elements_count; i++) {
     printf("%jd, ", *((int64_t *)tc->elements + i));
+  }
+  printf("}\n");
+
+  printf("tc->elements: { ");
+  for (size_t i = 0; i < tc->elements_count; i++) {
+    printf("%jd, ", *((int64_t *)tc->expected_sorted_sequence + i));
   }
   printf("}\n");
 
@@ -1184,7 +1191,7 @@ abc_test (void)
 
 /*************************************/
 /* Unit tests for compare functions. */
-/*************************************/
+/************************************/
 
 static void
 sort_utils_double_compare_test (void)
@@ -1806,18 +1813,6 @@ hlp_run_sort_d_random_test (const sort_double_fun sort_fun,
   }
 }
 
-
-/*
-typedef struct {
-  gchar         *test_label;
-  SortingVersus  versus;
-  size_t         element_size;
-  int            elements_count;
-  void          *elements;
-  void          *expected_sorted_sequence;
-} TestCase;
-*/
-
 static TestCase *
 hlp_organpipe_int64_new (const size_t n,
                          const double jitters,
@@ -1833,12 +1828,32 @@ hlp_organpipe_int64_new (const size_t n,
   TestCase *tc = (TestCase *) malloc(sizeof(TestCase));
   g_assert(tc);
 
+  char *desc = malloc(128 * sizeof(char));
+  g_assert(desc);
+  sprintf(desc, "Organ pipe int64_t test case: n=%zu, jitters=%3.3f, seed=%d, versus=%s",
+          n, jitters, seed, versus == ASC ? "ASC" : "DSC");
+
   int64_t *el = (int64_t *) malloc(2 * n * sizeof(int64_t));
   g_assert(el);
+
+  int64_t *ex = (int64_t *) malloc(2 * n * sizeof(int64_t));
+  g_assert(ex);
 
   for (int64_t k = n; k > 0; k--) {
     el[n - k]     = n - k;
     el[n + k - 1] = n - k;
+  }
+
+  if (versus == ASC) {
+    for (int64_t k = 0; k < n; k++) {
+      ex[2 * k]     = k;
+      ex[2 * k + 1] = k;
+    }
+  } else {
+    for (int64_t k = 0; k < n; k++) {
+      ex[2 * k]     = n - k - 1;
+      ex[2 * k + 1] = n - k - 1;
+    }
   }
 
   RandomNumberGenerator *rng = rng_new(seed);
@@ -1854,14 +1869,12 @@ hlp_organpipe_int64_new (const size_t n,
   }
   rng_free(rng);
 
-  tc->elements = el;
-  tc->elements_count = 2 * n;
-  tc->element_size = sizeof(int64_t);
+  tc->test_label = desc;
   tc->versus = versus;
-
-  // add the description string ...
-
-  // add the expected data ...
+  tc->element_size = sizeof(int64_t);
+  tc->elements_count = 2 * n;
+  tc->elements = el;
+  tc->expected_sorted_sequence = ex;
 
   // REMOVE PRINTF, add the free function ....
 
