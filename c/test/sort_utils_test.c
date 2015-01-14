@@ -100,7 +100,35 @@ typedef struct {
   void *tests;                                  /**< @brief An array of test cases. */
 } Fixture;
 
+/**
+ * @brief Sorting functions.
+ */
+const sort_utils_sort_function sort_functions[] =
+  {
+    sort_utils_insertionsort,
+    sort_utils_binarysort,
+    sort_utils_heapsort,
+    sort_utils_smoothsort,
+    sort_utils_quicksort,
+    sort_utils_shellsort,
+    sort_utils_mergesort,
+    sort_utils_timsort
+  };
 
+/**
+ * @brief Names of sorting functions.
+ */
+const char *sort_function_names[] =
+  {
+    "insertion-sort",
+    "binary-sort",
+    "heap-sort",
+    "smooth-sort",
+    "quick-sort",
+    "shell-sort",
+    "merge-sort",
+    "tim-sort"
+  };
 
 /**
  * @brief Sorting test cases for simple arrays of double: base cases.
@@ -1175,17 +1203,36 @@ main (int   argc,
 static void
 abc_test (void)
 {
-  TestCase *tc = hlp_organpipe_int64_new(1024*32, 0.1, 596, ASC);
 
-  g_test_timer_start();
-  sort_utils_insertionsort_asc_i64(tc->elements, tc->elements_count);
-  double ttime = g_test_timer_elapsed();
-  //if (g_test_perf())
-  if (TRUE)
-    g_test_minimized_result(ttime, "Sorting %10u items: %-12.8gsec", tc->elements_count, ttime);
+  const size_t n_base = 1024;
+  const size_t growth = 2;
+  const size_t steps = 8;
 
-  test_case_verify_result(tc, sort_utils_int64_t_cmp);
-  test_case_free(tc);
+  double jitters = 0.1;
+  const int seed_base = 589;
+  const int seed_increment = 7;
+
+  const SortingVersus versus = ASC;
+
+  size_t n = n_base;
+  int seed = seed_base;
+  for (int i = 1; i <= steps; i++) {
+
+    n *= growth;
+    seed += seed_increment;
+
+    TestCase *tc = hlp_organpipe_int64_new(n, jitters, seed, versus);
+
+    g_test_timer_start();
+    sort_utils_insertionsort_asc_i64(tc->elements, tc->elements_count);
+    double ttime = g_test_timer_elapsed();
+    //if (g_test_perf())
+    if (TRUE)
+      g_test_minimized_result(ttime, "Sorting %10u items: %-12.8gsec", tc->elements_count, ttime);
+
+    test_case_verify_result(tc, sort_utils_int64_t_cmp);
+    test_case_free(tc);
+  }
 }
 
 
