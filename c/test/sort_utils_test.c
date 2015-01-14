@@ -103,7 +103,7 @@ typedef struct {
 /**
  * @brief Sorting functions.
  */
-const sort_utils_sort_function sort_functions[] =
+static const sort_utils_sort_function sort_functions[] =
   {
     sort_utils_insertionsort,
     sort_utils_binarysort,
@@ -118,7 +118,7 @@ const sort_utils_sort_function sort_functions[] =
 /**
  * @brief Names of sorting functions.
  */
-const char *sort_function_names[] =
+static const char *sort_function_names[] =
   {
     "insertion-sort",
     "binary-sort",
@@ -129,6 +129,11 @@ const char *sort_function_names[] =
     "merge-sort",
     "tim-sort"
   };
+
+/**
+ * @brief Count for sorting functions.
+ */
+static const int sort_function_count = sizeof(sort_functions) / sizeof(sort_functions[0]);
 
 /**
  * @brief Sorting test cases for simple arrays of double: base cases.
@@ -921,8 +926,6 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
 
-  g_test_add_func("/sort_utils/abc_test", abc_test);
-
   g_test_add_func("/sort_utils/sort_utils_double_compare_test", sort_utils_double_compare_test);
   g_test_add_func("/sort_utils/sort_utils_int_compare_test", sort_utils_int_compare_test);
   g_test_add_func("/sort_utils/sort_utils_uint64_t_compare_test", sort_utils_uint64_t_compare_test);
@@ -1189,6 +1192,8 @@ main (int   argc,
     g_test_add_func("/sort_utils/sort_utils_shellsort_asc_d_rand_perf_test", sort_utils_shellsort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_mergesort_asc_d_rand_perf_test", sort_utils_mergesort_asc_d_rand_perf_test);
     g_test_add_func("/sort_utils/sort_utils_timsort_asc_d_rand_perf_test", sort_utils_timsort_asc_d_rand_perf_test);
+
+    g_test_add_func("/sort_utils/abc_test", abc_test);
   }
 
   return g_test_run();
@@ -1204,15 +1209,42 @@ static void
 abc_test (void)
 {
 
+  g_assert(sort_function_count == (sizeof(sort_function_names) / sizeof(sort_function_names[0])));
+
   const size_t n_base = 1024;
   const size_t growth = 2;
-  const size_t steps = 8;
+  const size_t steps = 6;
 
-  double jitters = 0.1;
+  const double jitters = 0.1;
   const int seed_base = 589;
   const int seed_increment = 7;
 
   const SortingVersus versus = ASC;
+
+  for (int i = 0; i < sort_function_count; i++) {
+    if (g_test_perf())
+      g_test_minimized_result(0., "Function [%d]: %20s", i, sort_function_names[i]);
+    const sort_utils_sort_function sort = sort_functions[i];
+
+    size_t n = n_base;
+    int seed = seed_base;
+    for (int i = 1; i <= steps; i++) {
+
+      n *= growth;
+      seed += seed_increment;
+
+      TestCase *tc = hlp_organpipe_int64_new(n, jitters, seed, versus);
+
+      g_test_timer_start();
+      sort(tc->elements, tc->elements_count, tc->element_size, sort_utils_int64_t_cmp);
+      const double ttime = g_test_timer_elapsed();
+      if (g_test_perf())
+        g_test_minimized_result(ttime, "Sorting %10u items: %-12.8gsec", tc->elements_count, ttime);
+
+      test_case_verify_result(tc, sort_utils_int64_t_cmp);
+      test_case_free(tc);
+    }
+  }
 
   size_t n = n_base;
   int seed = seed_base;
@@ -1226,8 +1258,7 @@ abc_test (void)
     g_test_timer_start();
     sort_utils_insertionsort_asc_i64(tc->elements, tc->elements_count);
     double ttime = g_test_timer_elapsed();
-    //if (g_test_perf())
-    if (TRUE)
+    if (g_test_perf())
       g_test_minimized_result(ttime, "Sorting %10u items: %-12.8gsec", tc->elements_count, ttime);
 
     test_case_verify_result(tc, sort_utils_int64_t_cmp);
