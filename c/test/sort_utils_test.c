@@ -1211,11 +1211,12 @@ abc_test (void)
 
   g_assert(sort_function_count == (sizeof(sort_function_names) / sizeof(sort_function_names[0])));
 
-  const size_t n_base = 1024;
-  const size_t growth = 2;
-  const size_t steps = 6;
+  const size_t n_base = 10000;
+  const size_t step = 1;
+  const size_t growth = 1;
+  const size_t iterations = 64;
 
-  const double jitters = 0.1;
+  const double jitters = 0.001;
   const int seed_base = 589;
   const int seed_increment = 7;
 
@@ -1228,10 +1229,7 @@ abc_test (void)
 
     size_t n = n_base;
     int seed = seed_base;
-    for (int i = 1; i <= steps; i++) {
-
-      n *= growth;
-      seed += seed_increment;
+    for (int i = 1; i <= iterations; i++) {
 
       TestCase *tc = hlp_organpipe_int64_new(n, jitters, seed, versus);
 
@@ -1243,26 +1241,10 @@ abc_test (void)
 
       test_case_verify_result(tc, sort_utils_int64_t_cmp);
       test_case_free(tc);
+
+      n = (n * growth) + step;
+      seed += seed_increment;
     }
-  }
-
-  size_t n = n_base;
-  int seed = seed_base;
-  for (int i = 1; i <= steps; i++) {
-
-    n *= growth;
-    seed += seed_increment;
-
-    TestCase *tc = hlp_organpipe_int64_new(n, jitters, seed, versus);
-
-    g_test_timer_start();
-    sort_utils_insertionsort_asc_i64(tc->elements, tc->elements_count);
-    double ttime = g_test_timer_elapsed();
-    if (g_test_perf())
-      g_test_minimized_result(ttime, "Sorting %10u items: %-12.8gsec", tc->elements_count, ttime);
-
-    test_case_verify_result(tc, sort_utils_int64_t_cmp);
-    test_case_free(tc);
   }
 }
 
