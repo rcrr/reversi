@@ -27,7 +27,7 @@ MAINS = endgame_solver gpdb_verify dump_bitrow_changes
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
 TEST_PROGS = bit_works_test random_test board_test game_position_db_test game_position_test \
-             game_tree_utils_test endgame_solver_test sort_utils_test
+             game_tree_utils_test endgame_solver_test sort_utils_test llist_test
 
 #
 # No changes from here to the end, unless a structurar change of the build process happens.

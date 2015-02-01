@@ -34,6 +34,16 @@
 #ifndef UNIT_TEST_H
 #define UNIT_TEST_H
 
+/**
+ * @brief Boolean true.
+ */
+#define TRUE  1
+
+/**
+ * @brief Boolean false.
+ */
+#define FALSE 0
+
 
 
 /**********************************************/
@@ -45,10 +55,11 @@
  *
  * @details A test functions without further data.
  *
- * @return the count of faiilures
+ * @param s the test suite
+ * @return  the count of faiilures
  */
 typedef int
-(*ut_simple_test_f) (void);
+(*ut_simple_test_f) (void *suite);
 
 
 
@@ -60,21 +71,57 @@ typedef int
  * @brief A unit test.
  */
 typedef struct {
-  char *label;             /**< @brief The test label. */
-  ut_simple_test_f test;   /**< @brief The test function. */
+  char *label;              /**< @brief The test label. */
+  ut_simple_test_f test;    /**< @brief The test function. */
 } ut_test_t;
 
+/**
+ * @brief A test suite.
+ */
+typedef struct {
+  size_t count;             /**< @brief Number of tests in the array. */
+  size_t size;              /**< @brief Size of the array. */
+  ut_test_t **tests;        /**< @brief An array of pointers to tests. */
+} ut_suite_t;
 
 
-/**********************************************/
-/* Function prototypes for the test_t entity. */
-/**********************************************/
+
+/*************************************************/
+/* Function prototypes for the ut_test_t entity. */
+/*************************************************/
 
 extern ut_test_t *
-ut_test_new (void);
+ut_test_new (char *label,
+             ut_simple_test_f tfun);
 
 extern void
 ut_test_free (ut_test_t *t);
+
+
+
+/**************************************************/
+/* Function prototypes for the ut_suite_t entity. */
+/**************************************************/
+
+extern ut_suite_t *
+ut_suite_new (void);
+
+extern void
+ut_suite_free (ut_suite_t *s);
+
+extern void
+ut_suite_add_simple_test (ut_suite_t *s,
+                          char *label,
+                          ut_simple_test_f tfun);
+
+extern int
+ut_suite_run (ut_suite_t *s);
+
+
+
+
+extern int
+ut_assert (int assertion);
 
 
 

@@ -47,17 +47,21 @@
  * @brief Test structure constructor.
  *
  * An assertion checks that the received pointer to the allocated
- * linked list structure is not `NULL`.
+ * test structure is not `NULL`.
  *
  * @return a pointer to a new test structure
  */
 ut_test_t *
-ut_test_new (void)
+ut_test_new (label, tfun)
+     char *label;
+     ut_simple_test_f tfun;
 {
   ut_test_t *t;
   static const size_t size_of_t = sizeof(ut_test_t);
   t = (ut_test_t *) malloc(size_of_t);
   assert(t);
+  t->label = label;
+  t->test = tfun;
   return t;
 }
 
@@ -73,4 +77,111 @@ ut_test_free (t)
      ut_test_t *t;
 {
   free(t);
+}
+
+
+
+/*******************************************************/
+/* Function implementations for the ut_suite_t entity. */
+/*******************************************************/
+
+/**
+ * @brief The array reallocation increase.
+ */
+static const size_t array_alloc_chunk_size = 2;
+
+/**
+ * @brief Suite structure constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * suite structure is not `NULL`.
+ *
+ * @return a pointer to a new suite structure
+ */
+ut_suite_t *
+ut_suite_new (void)
+{
+  ut_suite_t *s;
+  static const size_t size_of_t = sizeof(ut_suite_t);
+  s = (ut_suite_t *) malloc(size_of_t);
+  assert(s);
+  s->count = 0;
+  s->size = array_alloc_chunk_size;
+  s->tests = (void *) malloc(s->size * sizeof(void *));
+  assert(s->tests);
+  return s;
+}
+
+/**
+ * @brief Deallocates the memory previously allocated by a call to #ut_suite_new.
+ *
+ * @details If a null pointer is passed as argument, no action occurs.
+ *
+ * @param [in,out] s the pointer to be deallocated
+ */
+void
+ut_suite_free (s)
+     ut_suite_t *s;
+{
+  for (int i = 0; i < s->count; i++) {
+    ut_test_t **tests_p = s->tests + i;
+    ut_test_free(*tests_p);
+  }
+  free(s->tests);
+  free(s);
+}
+
+/**
+ * @details Adds a simple test to the suite.
+ *
+ * @param [in,out] s     the test suite
+ * @param [in]     label the test label
+ * @param [in]     tfun  the the test function
+ */
+void
+ut_suite_add_simple_test (s, label, tfun)
+     ut_suite_t *s;
+     char *label;
+     ut_simple_test_f tfun;
+{
+  assert(s);
+  assert(label);
+  assert(tfun);
+
+  ut_test_t *const t = ut_test_new(label, tfun);
+
+  if (s->count == s->size) {
+    s->size += array_alloc_chunk_size;
+    s->tests = (void *) realloc(s->tests, s->size * sizeof(void *));
+    assert(s->tests);
+  }
+
+  ut_test_t **tests_p = s->tests + s->count;
+  *tests_p = t;
+  s->count++;
+}
+
+int
+ut_suite_run (s)
+     ut_suite_t *s;
+{
+  for (int i = 0; i < s->count; i++) {
+    ut_test_t *t = *(s->tests + i);
+    printf("test label: %s\n", t->label);
+    t->test(s);
+  }
+  return 0;
+}
+
+
+
+/********************************************/
+/* Assertion implementations.               */
+/********************************************/
+
+int
+ut_assert (assertion)
+     int assertion;
+{
+  return assertion;
 }
