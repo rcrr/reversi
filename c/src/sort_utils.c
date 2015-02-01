@@ -15,6 +15,12 @@
  * @todo Write performance tests for ordered and mostly ordered data, organ-pipe data
  *       few values data (eg. a long array of ones and zeroes).
  *       Rewrite test helper function (has to support more use cases than just random order).
+ *       - Organ pipe shape - two occurrences per value, linear distribution.
+ *       - Ascending ramp up ...
+ *       - Sawtooth shape
+ *       - Flat distribution without duplicates
+ *       - Flat distribution with duplicates
+ *       - Normal distribution
  *
  * @todo Write a complete introduction to document the module.
  *
