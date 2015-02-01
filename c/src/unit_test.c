@@ -60,6 +60,8 @@ ut_test_new (label, tfun)
   static const size_t size_of_t = sizeof(ut_test_t);
   t = (ut_test_t *) malloc(size_of_t);
   assert(t);
+  t->failure_count = 0;
+  t->assertion_count = 0;
   t->label = label;
   t->test = tfun;
   return t;
@@ -168,7 +170,7 @@ ut_suite_run (s)
   for (int i = 0; i < s->count; i++) {
     ut_test_t *t = *(s->tests + i);
     printf("test label: %s\n", t->label);
-    t->test(s);
+    t->test(s, t);
   }
   return 0;
 }
@@ -179,9 +181,12 @@ ut_suite_run (s)
 /* Assertion implementations.               */
 /********************************************/
 
-int
-ut_assert (assertion)
+void
+ut_assert (s, t, assertion)
+     ut_suite_t *s;
+     ut_test_t *t;
      int assertion;
 {
-  return assertion;
+  t->assertion_count++;
+  if (!assertion) t->failure_count++;
 }

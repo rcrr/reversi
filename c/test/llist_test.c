@@ -39,10 +39,36 @@
 
 
 
-/* Test function prototypes. */
+/*
+ * Test functions.
+ */
 
-static int dummy_test (void *s);
+static void
+dummy_ok_test (void *s, void *t)
+{
+  ut_test_t *t_ = (ut_test_t *) t;
+  printf("pre:  t->assertion_count=%d, t->failure_count=%d\n", t_->assertion_count, t_->failure_count);
 
+  ut_assert(s, t, TRUE);
+
+  printf("post: t->assertion_count=%d, t->failure_count=%d\n", t_->assertion_count, t_->failure_count);
+}
+
+static void
+dummy_ko_test (void *s, void *t)
+{
+  ut_test_t *t_ = (ut_test_t *) t;
+  printf("pre:  t->assertion_count=%d, t->failure_count=%d\n", t_->assertion_count, t_->failure_count);
+
+  ut_assert(s, t, FALSE);
+
+  printf("post: t->assertion_count=%d, t->failure_count=%d\n", t_->assertion_count, t_->failure_count);
+}
+
+
+/**
+ * @brief Runs the tests.
+ */
 
 int
 main (int argc,
@@ -50,24 +76,11 @@ main (int argc,
 {
   ut_suite_t *const s = ut_suite_new();
 
-  ut_suite_add_simple_test(s, "dummy 0", dummy_test);
-  ut_suite_add_simple_test(s, "dummy 1", dummy_test);
-  ut_suite_add_simple_test(s, "dummy 2", dummy_test);
-  ut_suite_add_simple_test(s, "dummy 3", dummy_test);
-  ut_suite_add_simple_test(s, "dummy 4", dummy_test);
+  ut_suite_add_simple_test(s, "dummy 0", dummy_ok_test);
+  ut_suite_add_simple_test(s, "dummy 1", dummy_ok_test);
+  ut_suite_add_simple_test(s, "dummy 2", dummy_ok_test);
+  ut_suite_add_simple_test(s, "dummy 3", dummy_ko_test);
+  ut_suite_add_simple_test(s, "dummy 4", dummy_ok_test);
 
   return ut_suite_run(s);
-}
-
-
-
-/*
- * Test functions.
- */
-
-static int
-dummy_test (void *s)
-{
-  printf("yuppieeee ... \n");
-  return ut_assert(TRUE);
 }

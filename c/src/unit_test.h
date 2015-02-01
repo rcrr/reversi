@@ -56,10 +56,10 @@
  * @details A test functions without further data.
  *
  * @param s the test suite
- * @return  the count of faiilures
+ * @param t the unit test
  */
-typedef int
-(*ut_simple_test_f) (void *suite);
+typedef void
+(*ut_simple_test_f) (void *suite, void* test);
 
 
 
@@ -73,6 +73,8 @@ typedef int
 typedef struct {
   char *label;              /**< @brief The test label. */
   ut_simple_test_f test;    /**< @brief The test function. */
+  int failure_count;        /**< @brief The number of assertion failures. */
+  int assertion_count;      /**< @brief The number of assertions. */
 } ut_test_t;
 
 /**
@@ -120,8 +122,10 @@ ut_suite_run (ut_suite_t *s);
 
 
 
-extern int
-ut_assert (int assertion);
+extern void
+ut_assert (ut_suite_t *s,
+           ut_test_t *t,
+           int assertion);
 
 
 
