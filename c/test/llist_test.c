@@ -82,5 +82,9 @@ main (int argc,
   ut_suite_add_simple_test(s, "dummy 3", dummy_ko_test);
   ut_suite_add_simple_test(s, "dummy 4", dummy_ok_test);
 
-  return ut_suite_run(s);
+  int failure_count = ut_suite_run(s);
+
+  ut_suite_free(s);
+
+  return failure_count;
 }

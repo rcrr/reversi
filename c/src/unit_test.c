@@ -2,7 +2,14 @@
  * @file
  *
  * @brief Unit test module implementation.
- * @details This module defines a unit test module implementation.
+ *
+ * @details This module defines a suite entity and a test entity, respectively
+ *          #ut_suite_t, and #ut_test_t.
+ *          A suite is a collection of tests, it is created by colling #ut_suite_new.
+ *          Test are added to the suite by calling
+ *          the function #ut_suite_add_simple_test, that allocates the memory for
+ *          the test.
+ *
  *
  * @par unit_test.c
  * <tt>
@@ -39,9 +46,9 @@
 
 
 
-/***************************************************/
-/* Function implementations for the test_t entity. */
-/***************************************************/
+/******************************************************/
+/* Function implementations for the ut_test_t entity. */
+/******************************************************/
 
 /**
  * @brief Test structure constructor.
@@ -171,8 +178,9 @@ ut_suite_run (s)
     ut_test_t *t = *(s->tests + i);
     printf("test label: %s\n", t->label);
     t->test(s, t);
+    if (t->failure_count) s->failed_test_count++;
   }
-  return 0;
+  return s->failed_test_count;
 }
 
 

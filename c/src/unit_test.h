@@ -2,9 +2,9 @@
  * @file
  *
  * @brief Unit test module definitions.
- * @details This module defines the #test_t entity.
+ * @details This module defines the #ut_test_t entity.
  *
- * @par test.h
+ * @par unit_test.h
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -84,6 +84,7 @@ typedef struct {
   size_t count;             /**< @brief Number of tests in the array. */
   size_t size;              /**< @brief Size of the array. */
   ut_test_t **tests;        /**< @brief An array of pointers to tests. */
+  int failed_test_count;    /**> @brief Count of failed tests. */
 } ut_suite_t;
 
 
