@@ -124,7 +124,8 @@ ut_suite_new (void)
 /**
  * @brief Deallocates the memory previously allocated by a call to #ut_suite_new.
  *
- * @details If a null pointer is passed as argument, no action occurs.
+ * @details Deallocates also all the referenced tests.
+ *          If a null pointer is passed as argument, no action occurs.
  *
  * @param [in,out] s the pointer to be deallocated
  */

@@ -50,6 +50,9 @@
 /* Function declarations.                     */
 /**********************************************/
 
+struct ut_test_t_;
+struct ut_suite_t_;
+
 /**
  * @brief Simple test function.
  *
@@ -59,7 +62,8 @@
  * @param t the unit test
  */
 typedef void
-(*ut_simple_test_f) (void *suite, void* test);
+(*ut_simple_test_f) (struct ut_suite_t_ *s,
+                     struct ut_test_t_ *t);
 
 
 
@@ -70,7 +74,7 @@ typedef void
 /**
  * @brief A unit test.
  */
-typedef struct {
+typedef struct ut_test_t_ {
   char *label;              /**< @brief The test label. */
   ut_simple_test_f test;    /**< @brief The test function. */
   int failure_count;        /**< @brief The number of assertion failures. */
@@ -80,7 +84,7 @@ typedef struct {
 /**
  * @brief A test suite.
  */
-typedef struct {
+typedef struct ut_suite_t_ {
   size_t count;             /**< @brief Number of tests in the array. */
   size_t size;              /**< @brief Size of the array. */
   ut_test_t **tests;        /**< @brief An array of pointers to tests. */

@@ -44,7 +44,15 @@
  */
 
 static void
-dummy_ok_test (void *s, void *t)
+llist_new_free_test (ut_suite_t *s, ut_test_t *t)
+{
+  llist_t *l = llist_new();
+  ut_assert(s, t, l != NULL);
+  llist_free(l);
+}
+
+static void
+dummy_ok_test (ut_suite_t *s, ut_test_t *t)
 {
   ut_test_t *t_ = (ut_test_t *) t;
   printf("pre:  t->assertion_count=%d, t->failure_count=%d\n", t_->assertion_count, t_->failure_count);
@@ -55,7 +63,7 @@ dummy_ok_test (void *s, void *t)
 }
 
 static void
-dummy_ko_test (void *s, void *t)
+dummy_ko_test (ut_suite_t *s, ut_test_t *t)
 {
   ut_test_t *t_ = (ut_test_t *) t;
   printf("pre:  t->assertion_count=%d, t->failure_count=%d\n", t_->assertion_count, t_->failure_count);
@@ -81,6 +89,8 @@ main (int argc,
   ut_suite_add_simple_test(s, "dummy 2", dummy_ok_test);
   ut_suite_add_simple_test(s, "dummy 3", dummy_ko_test);
   ut_suite_add_simple_test(s, "dummy 4", dummy_ok_test);
+
+  ut_suite_add_simple_test(s, "llist_new_free", llist_new_free_test);
 
   int failure_count = ut_suite_run(s);
 
