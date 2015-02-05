@@ -47,11 +47,24 @@
 
 
 /**********************************************/
-/* Function declarations.                     */
+/* Structure declarations.                    */
 /**********************************************/
 
+/**
+ * @brief Test structure.
+ */
 struct ut_test_t_;
+
+/**
+ * @brief Suite structure.
+ */
 struct ut_suite_t_;
+
+
+
+/**********************************************/
+/* Function declarations.                     */
+/**********************************************/
 
 /**
  * @brief Simple test function.
@@ -62,8 +75,7 @@ struct ut_suite_t_;
  * @param t the unit test
  */
 typedef void
-(*ut_simple_test_f) (struct ut_suite_t_ *s,
-                     struct ut_test_t_ *t);
+(*ut_simple_test_f) (struct ut_test_t_ *t);
 
 
 
@@ -75,20 +87,21 @@ typedef void
  * @brief A unit test.
  */
 typedef struct ut_test_t_ {
-  char *label;              /**< @brief The test label. */
-  ut_simple_test_f test;    /**< @brief The test function. */
-  int failure_count;        /**< @brief The number of assertion failures. */
-  int assertion_count;      /**< @brief The number of assertions. */
+  struct ut_suite_t_ *suite;  /**< @brief The parent suite. */
+  char *label;                /**< @brief The test label. */
+  ut_simple_test_f test;      /**< @brief The test function. */
+  int failure_count;          /**< @brief The number of assertion failures. */
+  int assertion_count;        /**< @brief The number of assertions. */
 } ut_test_t;
 
 /**
  * @brief A test suite.
  */
 typedef struct ut_suite_t_ {
-  size_t count;             /**< @brief Number of tests in the array. */
-  size_t size;              /**< @brief Size of the array. */
-  ut_test_t **tests;        /**< @brief An array of pointers to tests. */
-  int failed_test_count;    /**> @brief Count of failed tests. */
+  size_t count;               /**< @brief Number of tests in the array. */
+  size_t size;                /**< @brief Size of the array. */
+  ut_test_t **tests;          /**< @brief An array of pointers to tests. */
+  int failed_test_count;      /**> @brief Count of failed tests. */
 } ut_suite_t;
 
 
@@ -99,7 +112,8 @@ typedef struct ut_suite_t_ {
 
 extern ut_test_t *
 ut_test_new (char *label,
-             ut_simple_test_f tfun);
+             ut_simple_test_f tfun,
+             ut_suite_t *s);
 
 extern void
 ut_test_free (ut_test_t *t);
@@ -128,8 +142,7 @@ ut_suite_run (ut_suite_t *s);
 
 
 extern void
-ut_assert (ut_suite_t *s,
-           ut_test_t *t,
+ut_assert (ut_test_t *t,
            int assertion);
 
 

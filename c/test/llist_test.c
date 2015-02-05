@@ -44,31 +44,31 @@
  */
 
 static void
-llist_new_free_test (ut_suite_t *s, ut_test_t *t)
+llist_new_free_test (ut_test_t *t)
 {
   llist_t *l = llist_new();
-  ut_assert(s, t, l != NULL);
+  ut_assert(t, l != NULL);
   llist_free(l);
 }
 
 static void
-dummy_ok_test (ut_suite_t *s, ut_test_t *t)
+dummy_ok_test (ut_test_t *t)
 {
   ut_test_t *t_ = (ut_test_t *) t;
   printf("pre:  t->assertion_count=%d, t->failure_count=%d\n", t_->assertion_count, t_->failure_count);
 
-  ut_assert(s, t, TRUE);
+  ut_assert(t, TRUE);
 
   printf("post: t->assertion_count=%d, t->failure_count=%d\n", t_->assertion_count, t_->failure_count);
 }
 
 static void
-dummy_ko_test (ut_suite_t *s, ut_test_t *t)
+dummy_ko_test (ut_test_t *t)
 {
   ut_test_t *t_ = (ut_test_t *) t;
   printf("pre:  t->assertion_count=%d, t->failure_count=%d\n", t_->assertion_count, t_->failure_count);
 
-  ut_assert(s, t, FALSE);
+  ut_assert(t, FALSE);
 
   printf("post: t->assertion_count=%d, t->failure_count=%d\n", t_->assertion_count, t_->failure_count);
 }

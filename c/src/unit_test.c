@@ -59,9 +59,10 @@
  * @return a pointer to a new test structure
  */
 ut_test_t *
-ut_test_new (label, tfun)
+ut_test_new (label, tfun, s)
      char *label;
      ut_simple_test_f tfun;
+     ut_suite_t *s;
 {
   ut_test_t *t;
   static const size_t size_of_t = sizeof(ut_test_t);
@@ -71,6 +72,7 @@ ut_test_new (label, tfun)
   t->assertion_count = 0;
   t->label = label;
   t->test = tfun;
+  t->suite = s;
   return t;
 }
 
@@ -158,7 +160,7 @@ ut_suite_add_simple_test (s, label, tfun)
   assert(label);
   assert(tfun);
 
-  ut_test_t *const t = ut_test_new(label, tfun);
+  ut_test_t *const t = ut_test_new(label, tfun, s);
 
   if (s->count == s->size) {
     s->size += array_alloc_chunk_size;
@@ -175,10 +177,11 @@ int
 ut_suite_run (s)
      ut_suite_t *s;
 {
+  if (!s) return 0;
   for (int i = 0; i < s->count; i++) {
     ut_test_t *t = *(s->tests + i);
     printf("test label: %s\n", t->label);
-    t->test(s, t);
+    t->test(t);
     if (t->failure_count) s->failed_test_count++;
   }
   return s->failed_test_count;
@@ -191,8 +194,7 @@ ut_suite_run (s)
 /********************************************/
 
 void
-ut_assert (s, t, assertion)
-     ut_suite_t *s;
+ut_assert (t, assertion)
      ut_test_t *t;
      int assertion;
 {
