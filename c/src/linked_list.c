@@ -2,6 +2,7 @@
  * @file
  *
  * @brief Linked list module implementation.
+ *
  * @details This module defines a linked list implementation.
  *
  * @par linked_list.c
@@ -72,6 +73,12 @@ void
 llist_free (l)
      llist_t *l;
 {
+  llist_elm_t *e = l->fe;
+  while (e) {
+    llist_elm_t *n = e->next;
+    llist_elm_free(e);
+    e = n;
+  }
   free(l);
 }
 
