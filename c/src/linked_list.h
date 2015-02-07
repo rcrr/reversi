@@ -67,6 +67,17 @@ llist_elm_new (void);
 extern void
 llist_elm_free (llist_elm_t *e);
 
+extern void
+llist_remove (llist_t *const l,
+              void *const d);
+
+extern void
+llist_foreach (llist_t *const l,
+               void (* fn) (void *const elm_data,
+                            void *const aux_data),
+               void *const aux_data);
+
+
 
 
 /***********************************************/

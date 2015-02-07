@@ -40,6 +40,21 @@
 
 
 /*
+ * Auxiliary functions.
+ */
+
+void
+aux_print_elm (d, aux)
+     void *const d;
+     void *const aux;
+{
+  int *ip = (int *) d;
+  printf("%d\n", *ip);
+}
+
+
+
+/*
  * Test functions.
  */
 
@@ -56,9 +71,25 @@ llist_add_test (ut_test_t *t)
 {
   llist_t *l = llist_new();
   ut_assert(t, l != NULL);
-  int data = 7;
-  void *e = &data;
-  llist_add(l, e);
+
+  int data0 = 7;
+  void *e0 = &data0;
+  llist_add(l, e0);
+  llist_foreach(l, aux_print_elm, NULL);
+  printf("\n");
+
+  int data1 = 3;
+  void *e1 = &data1;
+  llist_add(l, e1);
+  llist_foreach(l, aux_print_elm, NULL);
+  printf("\n");
+
+  int data2 = 9;
+  void *e2 = &data2;
+  llist_add(l, e2);
+  llist_foreach(l, aux_print_elm, NULL);
+  printf("\n");
+
   llist_free(l);
 }
 
