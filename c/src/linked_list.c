@@ -2,7 +2,7 @@
  * @file
  *
  * @todo Program insert, insert_before, insert_after, reverse,
- *       conca, last, nth, sort methods.
+ *       concat, last, nth, sort methods.
  *
  * @brief Linked list module implementation.
  *
@@ -172,19 +172,29 @@ llist_foreach (l, fn, aux_data)
  * @details The pointer data in each element of the list is compared with
  *          the `d` parameter. The first element matching is returned, `NULL`
  *          when none matches.
+ *          When the search is successful, and the parameter `i` is not `NULL`,
+ *          the index of the matching element, starting from `0`, is returned
+ *          in the value pointed by `i`.
  *
  * @param [in,out] l the linked list
  * @param [in]     d the element data to find
+ * @param [out]    i the element index if the search is successful
  * @return           the found element or NULL
  */
 llist_elm_t *
-llist_find (l, d)
+llist_find (l, d, i)
      llist_t *const l;
      void *const d;
+     size_t *i;
 {
   assert(l);
-  for (llist_elm_t *e = l->fe; e; e = e->next) {
-    if (e->data == d) return e;
+  llist_elm_t *e;
+  int k;
+  for (e = l->fe, k = 0; e; e = e->next, k++) {
+    if (e->data == d) {
+      if (i) *i = k;
+      return e;
+    }
   }
   return NULL;
 }

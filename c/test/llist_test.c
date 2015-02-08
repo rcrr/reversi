@@ -234,13 +234,15 @@ llist_find_test (ut_test_t *const t)
     llist_add(l, &data[i]);
   }
 
-  llist_elm_t *e = llist_find (l, NULL);
+  llist_elm_t *e = llist_find(l, NULL, NULL);
   ut_assert(t, e == NULL);
 
   for (int i = 0; i < data_size; i++) {
-    llist_elm_t *e = llist_find (l, &data[i]);
+    size_t index;
+    llist_elm_t *e = llist_find(l, &data[i], &index);
     ut_assert(t, e != NULL);
     if (e) ut_assert(t, i == *((int *)e->data));
+    if (e) ut_assert(t, index == (data_size -i -1));
   }
 
   llist_free(l);
