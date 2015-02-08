@@ -90,6 +90,24 @@ llist_add_test (ut_test_t *t)
   llist_foreach(l, aux_print_elm, NULL);
   printf("\n");
 
+  int data3 = 1;
+  void *e3 = &data3;
+  llist_add(l, e3);
+  llist_foreach(l, aux_print_elm, NULL);
+  printf("\n");
+
+  llist_remove(l, NULL);
+  llist_foreach(l, aux_print_elm, NULL);
+  printf("\n");
+
+  llist_remove(l, &data3);
+  llist_foreach(l, aux_print_elm, NULL);
+  printf("\n");
+
+  llist_remove(l, &data1);
+  llist_foreach(l, aux_print_elm, NULL);
+  printf("\n");
+
   llist_free(l);
 }
 

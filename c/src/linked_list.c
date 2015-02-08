@@ -124,16 +124,13 @@ llist_remove (l, d)
      void *const d;
 {
   assert(l);
-  llist_elm_t *e = l->fe;
-  llist_elm_t **pe = &e;
-  while (e) {
-    if (e->data == d) {
-      *pe = e->next;
-      llist_elm_free(e);
+  llist_elm_t **e = &(l->fe);
+  while (*e) {
+    if ((*e)->data == d) {
+      *e = (*e)->next;
       return;
     }
-    pe = &e;
-    e = e->next;
+    e = &((*e)->next);
   }
 }
 
@@ -157,7 +154,7 @@ llist_foreach (l, fn, aux_data)
 {
   assert(l);
   for (llist_elm_t *e = l->fe; e != NULL; e = e->next) {
-    printf("e=%p, e->data=%p, e->next=%p\n", (void *)e, (void *)e->data, (void *)e->next);
+    //printf("e=%p, e->data=%p, e->next=%p\n", (void *)e, (void *)e->data, (void *)e->next);
     fn(e->data, aux_data);
   }
 }
