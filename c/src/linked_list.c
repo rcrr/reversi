@@ -59,6 +59,7 @@ llist_new (void)
   static const size_t size_of_t = sizeof(llist_t);
   l = (llist_t *) malloc(size_of_t);
   assert(l);
+  l->fe = NULL;
   return l;
 }
 
@@ -154,7 +155,7 @@ llist_foreach (l, fn, aux_data)
 {
   assert(l);
   for (llist_elm_t *e = l->fe; e != NULL; e = e->next) {
-    //printf("e=%p, e->data=%p, e->next=%p\n", (void *)e, (void *)e->data, (void *)e->next);
+    if (0) printf("llist_foreach: e=%p, e->data=%p, e->next=%p\n", (void *)e, (void *)e->data, (void *)e->next);
     fn(e->data, aux_data);
   }
 }
@@ -179,6 +180,8 @@ llist_elm_new (void)
   static const size_t size_of_t = sizeof(llist_elm_t);
   e = (llist_elm_t *) malloc(size_of_t);
   assert(e);
+  e->data = NULL;
+  e->next = NULL;
   return e;
   ;
 }

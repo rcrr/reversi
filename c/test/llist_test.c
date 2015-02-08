@@ -33,6 +33,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "unit_test.h"
 #include "linked_list.h"
@@ -52,6 +53,19 @@ aux_print_elm (d, aux)
   printf("%d\n", *ip);
 }
 
+void
+aux_add_elements (d, aux)
+     void *const d;
+     void *const aux;
+{
+  assert(d);
+  assert(aux);
+  int *value = (int *) d;
+  int *sum = (int *) aux;
+  *sum += *value;
+  //printf("value=%d, sum=%d\n", *value, *sum);
+}
+
 
 
 /*
@@ -59,7 +73,7 @@ aux_print_elm (d, aux)
  */
 
 static void
-llist_new_free_test (ut_test_t *t)
+llist_new_free_test (ut_test_t *const t)
 {
   llist_t *l = llist_new();
   ut_assert(t, l != NULL);
@@ -67,65 +81,76 @@ llist_new_free_test (ut_test_t *t)
 }
 
 static void
-llist_add_test (ut_test_t *t)
+llist_add_remove_foreach_test (ut_test_t *const t)
 {
-  llist_t *l = llist_new();
-  ut_assert(t, l != NULL);
+  int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-  int data0 = 7;
-  void *e0 = &data0;
-  llist_add(l, e0);
-  llist_foreach(l, aux_print_elm, NULL);
-  printf("\n");
+  {
+    llist_t *l = llist_new();
+    ut_assert(t, l != NULL);
+    int sum = 0;
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 0);
+    llist_free(l);
+  }
 
-  int data1 = 3;
-  void *e1 = &data1;
-  llist_add(l, e1);
-  llist_foreach(l, aux_print_elm, NULL);
-  printf("\n");
+  {
+    llist_t *l = llist_new();
+    ut_assert(t, l != NULL);
+    int sum = 0;
+    llist_add(l, &data[7]);
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 7);
+    llist_free(l);
+  }
 
-  int data2 = 9;
-  void *e2 = &data2;
-  llist_add(l, e2);
-  llist_foreach(l, aux_print_elm, NULL);
-  printf("\n");
+  {
+    int sum;
+    llist_t *l = llist_new();
+    ut_assert(t, l != NULL);
 
-  int data3 = 1;
-  void *e3 = &data3;
-  llist_add(l, e3);
-  llist_foreach(l, aux_print_elm, NULL);
-  printf("\n");
+    sum = 0;
+    llist_add(l, &data[0]);
+    llist_add(l, &data[1]);
+    llist_add(l, &data[2]);
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 3);
 
-  llist_remove(l, NULL);
-  llist_foreach(l, aux_print_elm, NULL);
-  printf("\n");
+    sum = 0;
+    llist_remove(l, NULL);
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 3);
 
-  llist_remove(l, &data3);
-  llist_foreach(l, aux_print_elm, NULL);
-  printf("\n");
+    sum = 0;
+    llist_remove(l, &data[0]);
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 3);
 
-  llist_remove(l, &data1);
-  llist_foreach(l, aux_print_elm, NULL);
-  printf("\n");
+    sum = 0;
+    llist_remove(l, &data[2]);
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 1);
 
-  llist_free(l);
+    sum = 0;
+    llist_add(l, &data[7]);
+    llist_add(l, &data[8]);
+    llist_add(l, &data[9]);
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 25);
+
+    sum = 0;
+    llist_remove(l, &data[8]);
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 17);
+
+    llist_free(l);
+  }
 }
 
-static void
-dummy_ok_test (ut_test_t *t)
-{
-  ut_assert(t, TRUE);
-}
-
-static void
-dummy_ko_test (ut_test_t *t)
-{
-  ut_assert(t, FALSE);
-}
 
 
 /**
- * @brief Runs the tests.
+ * @brief Runs the test suite.
  */
 
 int
@@ -134,14 +159,8 @@ main (int argc,
 {
   ut_suite_t *const s = ut_suite_new();
 
-  ut_suite_add_simple_test(s, "dummy 0", dummy_ok_test);
-  ut_suite_add_simple_test(s, "dummy 1", dummy_ok_test);
-  ut_suite_add_simple_test(s, "dummy 2", dummy_ok_test);
-  ut_suite_add_simple_test(s, "dummy 3", dummy_ko_test);
-  ut_suite_add_simple_test(s, "dummy 4", dummy_ok_test);
-
   ut_suite_add_simple_test(s, "llist_new_free", llist_new_free_test);
-  ut_suite_add_simple_test(s, "llist_add", llist_add_test);
+  ut_suite_add_simple_test(s, "llist_add_remove_foreach", llist_add_remove_foreach_test);
 
   int failure_count = ut_suite_run(s);
 
