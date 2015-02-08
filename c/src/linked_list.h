@@ -53,6 +53,7 @@ typedef struct llist_elm_t_ {
  */
 typedef struct {
   llist_elm_t *fe;              /**< @brief The first element in the list. */
+  size_t length;                /**< @brief The number of elements in the list. */
 } llist_t;
 
 

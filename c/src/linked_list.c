@@ -1,6 +1,9 @@
 /**
  * @file
  *
+ * @todo Program find, insert, insert_before, insert_after, reverse,
+ *       conca, last, nth, sort methods.
+ *
  * @brief Linked list module implementation.
  *
  * @details This module defines a linked list implementation.
@@ -60,6 +63,7 @@ llist_new (void)
   l = (llist_t *) malloc(size_of_t);
   assert(l);
   l->fe = NULL;
+  l->length = 0;
   return l;
 }
 
@@ -108,6 +112,7 @@ llist_add (l, d)
   e->data = d;
   e->next = l->fe;
   l->fe = e;
+  l->length++;
 }
 
 /**
@@ -129,6 +134,7 @@ llist_remove (l, d)
   while (*e) {
     if ((*e)->data == d) {
       *e = (*e)->next;
+      l->length--;
       return;
     }
     e = &((*e)->next);
@@ -194,7 +200,8 @@ llist_elm_new (void)
  * @param [in,out] e the pointer to be deallocated
  */
 void
-llist_elm_free (llist_elm_t *e)
+llist_elm_free (e)
+     llist_elm_t *e;
 {
   free(e);
 }

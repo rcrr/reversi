@@ -63,7 +63,16 @@ aux_add_elements (d, aux)
   int *value = (int *) d;
   int *sum = (int *) aux;
   *sum += *value;
-  //printf("value=%d, sum=%d\n", *value, *sum);
+}
+
+void
+aux_count_elements (d, aux)
+     void *const d;
+     void *const aux;
+{
+  assert(aux);
+  int *count = (int *) aux;
+  (*count)++;
 }
 
 
@@ -85,6 +94,7 @@ llist_add_remove_foreach_test (ut_test_t *const t)
 {
   int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
+  /* Iterating on the empty list. */
   {
     llist_t *l = llist_new();
     ut_assert(t, l != NULL);
@@ -94,6 +104,7 @@ llist_add_remove_foreach_test (ut_test_t *const t)
     llist_free(l);
   }
 
+  /* Adding one element and iterating on it. */
   {
     llist_t *l = llist_new();
     ut_assert(t, l != NULL);
@@ -104,6 +115,7 @@ llist_add_remove_foreach_test (ut_test_t *const t)
     llist_free(l);
   }
 
+  /* Adding, iterating, removing, and adding again ... */
   {
     int sum;
     llist_t *l = llist_new();
@@ -145,8 +157,70 @@ llist_add_remove_foreach_test (ut_test_t *const t)
 
     llist_free(l);
   }
+
+  /* Adding and removing the same element. */
+  {
+    int sum;
+    llist_t *l = llist_new();
+    ut_assert(t, l != NULL);
+
+    sum = 0;
+    llist_add(l, &data[7]);
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 7);
+
+    sum = 0;
+    llist_add(l, &data[7]);
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 14);
+
+    sum = 0;
+    llist_add(l, &data[7]);
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 21);
+
+    sum = 0;
+    llist_remove(l, &data[7]);
+    llist_foreach(l, aux_add_elements, &sum);
+    ut_assert(t, sum == 14);
+
+    llist_free(l);
+  }
 }
 
+static void
+llist_length_test (ut_test_t *const t)
+{
+  int count;
+  llist_t *l = llist_new();
+  ut_assert(t, l != NULL);
+  ut_assert(t, l->length == 0);
+
+  count = 0;
+  llist_foreach(l, aux_count_elements, &count);
+  ut_assert(t, count == 0);
+
+  count = 0;
+  llist_add(l, NULL);
+  llist_foreach(l, aux_count_elements, &count);
+  ut_assert(t, count == 1);
+  ut_assert(t, l->length == count);
+
+  count = 0;
+  llist_add(l, NULL);
+  llist_add(l, NULL);
+  llist_foreach(l, aux_count_elements, &count);
+  ut_assert(t, count == 3);
+  ut_assert(t, l->length == count);
+
+  count = 0;
+  llist_remove(l, NULL);
+  llist_foreach(l, aux_count_elements, &count);
+  ut_assert(t, count == 2);
+  ut_assert(t, l->length == count);
+
+  llist_free(l);
+}
 
 
 /**
@@ -161,6 +235,7 @@ main (int argc,
 
   ut_suite_add_simple_test(s, "llist_new_free", llist_new_free_test);
   ut_suite_add_simple_test(s, "llist_add_remove_foreach", llist_add_remove_foreach_test);
+  ut_suite_add_simple_test(s, "llist_length", llist_length_test);
 
   int failure_count = ut_suite_run(s);
 
