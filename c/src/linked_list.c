@@ -1,7 +1,7 @@
 /**
  * @file
  *
- * @todo Program find, insert, insert_before, insert_after, reverse,
+ * @todo Program insert, insert_before, insert_after, reverse,
  *       conca, last, nth, sort methods.
  *
  * @brief Linked list module implementation.
@@ -142,10 +142,10 @@ llist_remove (l, d)
 }
 
 /**
- * @details Calls a function for each element of a list.
+ * @brief Calls a function for each element of a list.
  *
  * @details The function applyed to each element receives a pointer
- *          to the data of the element and to the auxyliary data.
+ *          to the data of the element and to the auxiliary data.
  *          The auxiliary data pointer is shared among all elements.
  *
  * @param [in,out] l        the linked list
@@ -160,10 +160,33 @@ llist_foreach (l, fn, aux_data)
      void *const aux_data;
 {
   assert(l);
-  for (llist_elm_t *e = l->fe; e != NULL; e = e->next) {
+  for (llist_elm_t *e = l->fe; e; e = e->next) {
     if (0) printf("llist_foreach: e=%p, e->data=%p, e->next=%p\n", (void *)e, (void *)e->data, (void *)e->next);
     fn(e->data, aux_data);
   }
+}
+
+/**
+ * @brief Finds the element in a list which contains the given data.
+ *
+ * @details The pointer data in each element of the list is compared with
+ *          the `d` parameter. The first element matching is returned, `NULL`
+ *          when none matches.
+ *
+ * @param [in,out] l the linked list
+ * @param [in]     d the element data to find
+ * @return           the found element or NULL
+ */
+llist_elm_t *
+llist_find (l, d)
+     llist_t *const l;
+     void *const d;
+{
+  assert(l);
+  for (llist_elm_t *e = l->fe; e; e = e->next) {
+    if (e->data == d) return e;
+  }
+  return NULL;
 }
 
 

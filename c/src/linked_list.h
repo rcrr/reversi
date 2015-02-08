@@ -78,6 +78,9 @@ llist_foreach (llist_t *const l,
                             void *const aux_data),
                void *const aux_data);
 
+extern llist_elm_t *
+llist_find (llist_t *const l,
+            void *const d);
 
 
 

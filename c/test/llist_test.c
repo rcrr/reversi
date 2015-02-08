@@ -222,11 +222,35 @@ llist_length_test (ut_test_t *const t)
   llist_free(l);
 }
 
+static void
+llist_find_test (ut_test_t *const t)
+{
+  int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int data_size = 10;
+
+  llist_t *l = llist_new();
+  ut_assert(t, l != NULL);
+  for (int i = 0; i < data_size; i++) {
+    llist_add(l, &data[i]);
+  }
+
+  llist_elm_t *e = llist_find (l, NULL);
+  ut_assert(t, e == NULL);
+
+  for (int i = 0; i < data_size; i++) {
+    llist_elm_t *e = llist_find (l, &data[i]);
+    ut_assert(t, e != NULL);
+    if (e) ut_assert(t, i == *((int *)e->data));
+  }
+
+  llist_free(l);
+}
+
+
 
 /**
  * @brief Runs the test suite.
  */
-
 int
 main (int argc,
       char **argv)
@@ -236,6 +260,7 @@ main (int argc,
   ut_suite_add_simple_test(s, "llist_new_free", llist_new_free_test);
   ut_suite_add_simple_test(s, "llist_add_remove_foreach", llist_add_remove_foreach_test);
   ut_suite_add_simple_test(s, "llist_length", llist_length_test);
+  ut_suite_add_simple_test(s, "llist_find", llist_find_test);
 
   int failure_count = ut_suite_run(s);
 
