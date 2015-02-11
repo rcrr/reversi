@@ -83,6 +83,12 @@ llist_find (llist_t *const l,
             void *const d,
             size_t *i);
 
+extern void
+llist_insert_at_position (llist_t *const l,
+                          void *const d,
+                          const size_t i);
+
+
 
 
 /***********************************************/

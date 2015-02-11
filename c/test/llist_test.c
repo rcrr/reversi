@@ -45,7 +45,7 @@
  */
 
 void
-aux_print_elm (d, aux)
+aux_print_elements (d, aux)
      void *const d;
      void *const aux;
 {
@@ -248,6 +248,31 @@ llist_find_test (ut_test_t *const t)
   llist_free(l);
 }
 
+static void
+llist_insert_at_position_test (ut_test_t *const t)
+{
+  int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int data_size = 10;
+
+  llist_t *l = llist_new();
+  ut_assert(t, l != NULL);
+
+  llist_add(l, &data[0]);
+  llist_add(l, &data[1]);
+  llist_add(l, &data[2]);
+  llist_add(l, &data[3]);
+  llist_add(l, &data[4]);
+  llist_foreach(l, aux_print_elements, NULL);
+  printf("\n");
+
+  ut_assert(t, l->length == 5);
+
+  llist_insert_at_position(l, &data[5], 0);
+  llist_foreach(l, aux_print_elements, NULL);
+  printf("\n");
+
+  llist_free(l);
+}
 
 
 /**
@@ -263,6 +288,7 @@ main (int argc,
   ut_suite_add_simple_test(s, "llist_add_remove_foreach", llist_add_remove_foreach_test);
   ut_suite_add_simple_test(s, "llist_length", llist_length_test);
   ut_suite_add_simple_test(s, "llist_find", llist_find_test);
+  ut_suite_add_simple_test(s, "llist_insert_at_position", llist_insert_at_position_test);
 
   int failure_count = ut_suite_run(s);
 

@@ -1,7 +1,7 @@
 /**
  * @file
  *
- * @todo Program insert, insert_before, insert_after, reverse,
+ * @todo Program insert_before, insert_after, reverse,
  *       concat, last, nth, sort methods.
  *
  * @brief Linked list module implementation.
@@ -189,7 +189,7 @@ llist_find (l, d, i)
 {
   assert(l);
   llist_elm_t *e;
-  int k;
+  size_t k;
   for (e = l->fe, k = 0; e; e = e->next, k++) {
     if (e->data == d) {
       if (i) *i = k;
@@ -198,6 +198,34 @@ llist_find (l, d, i)
   }
   return NULL;
 }
+
+/**
+ * @brief Inserts a new element into the list at the given position.
+ *
+ * @details If the parameter `i` is larger than the number of elements in the list,
+ *          the new element is added on to the end of the list.
+ *
+ * @param [in,out] l the linked list
+ * @param [in]     d the element data to find
+ * @param [in]     i the position to insert the element
+ */
+void
+llist_insert_at_position (l, d, i)
+     llist_t *const l;
+     void *const d;
+     const size_t i;
+{
+  assert(l);
+  const size_t position = (i > l->length) ? l->length : i;
+  llist_elm_t **e = &(l->fe);
+  for (size_t k = 0; k < position; k++, e = &((*e)->next)) ;
+  llist_elm_t *const new = llist_elm_new();
+  new->data = d;
+  new->next = *e;
+  *e = new;
+  l->length++;
+}
+
 
 
 /********************************************************/
