@@ -249,10 +249,30 @@ llist_find_test (ut_test_t *const t)
 }
 
 static void
+llist_nth_test (ut_test_t *const t)
+{
+  int data[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+  int data_size = 10;
+
+  llist_t *l = llist_new();
+  ut_assert(t, l != NULL);
+  for (int i = 0; i < data_size; i++) {
+    llist_add(l, &data[i]);
+  }
+
+  for (int i = 0; i < data_size; i++) {
+    const llist_elm_t *const e = llist_nth(l, i);
+    const int *data = (int *) e->data;
+    ut_assert(t, i == *data);
+  }
+
+  llist_free(l);
+}
+
+static void
 llist_insert_at_position_test (ut_test_t *const t)
 {
   int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  int data_size = 10;
 
   llist_t *l = llist_new();
   ut_assert(t, l != NULL);
@@ -288,6 +308,7 @@ main (int argc,
   ut_suite_add_simple_test(s, "llist_add_remove_foreach", llist_add_remove_foreach_test);
   ut_suite_add_simple_test(s, "llist_length", llist_length_test);
   ut_suite_add_simple_test(s, "llist_find", llist_find_test);
+  ut_suite_add_simple_test(s, "llist_nth", llist_nth_test);
   ut_suite_add_simple_test(s, "llist_insert_at_position", llist_insert_at_position_test);
 
   int failure_count = ut_suite_run(s);
