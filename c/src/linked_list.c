@@ -167,6 +167,28 @@ llist_foreach (l, fn, aux_data)
 }
 
 /**
+ * @brief Gets the element at the given position in a linked list.
+ *
+ * @param [in,out] l the linked list
+ * @param [in]     n the position of the element, counting from 0
+ * @return           the element, or NULL when n is off the end of the list
+ */
+llist_elm_t *
+llist_nth (l, n)
+     llist_t *const l;
+     const size_t n;
+{
+  assert(l);
+  if (n > l->length) return NULL;
+  llist_elm_t *e;
+  size_t i;
+  for (e = l->fe, i = 0; e; e = e->next, i++) {
+    if (i == n) return e;
+  }
+  abort(); /* Should never happens. */
+}
+
+/**
  * @brief Finds the element in a list which contains the given data.
  *
  * @details The pointer data in each element of the list is compared with
