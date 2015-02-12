@@ -270,28 +270,44 @@ llist_nth_test (ut_test_t *const t)
 }
 
 static void
-llist_insert_at_position_test (ut_test_t *const t)
+llist_nth_data_test (ut_test_t *const t)
 {
-  int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int data[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+  int data_size = 10;
 
   llist_t *l = llist_new();
   ut_assert(t, l != NULL);
+  for (int i = 0; i < data_size; i++) {
+    llist_add(l, &data[i]);
+  }
 
-  llist_add(l, &data[0]);
-  llist_add(l, &data[1]);
-  llist_add(l, &data[2]);
-  llist_add(l, &data[3]);
-  llist_add(l, &data[4]);
-  llist_foreach(l, aux_print_elements, NULL);
-  printf("\n");
-
-  ut_assert(t, l->length == 5);
-
-  llist_insert_at_position(l, &data[5], 0);
-  llist_foreach(l, aux_print_elements, NULL);
-  printf("\n");
+  for (int i = 0; i < data_size; i++) {
+    const int *data = (int *) llist_nth_data(l, i);
+    ut_assert(t, i == *data);
+  }
 
   llist_free(l);
+}
+
+static void
+llist_insert_at_position_test (ut_test_t *const t)
+{
+  int data[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+  int data_size = 10;
+  int v = 99;
+
+  for (int p = 0; p < data_size + 1; p++) {
+    llist_t *l = llist_new();
+    ut_assert(t, l != NULL);
+    for (int i = 0; i < data_size; i++) {
+      llist_add(l, &data[i]);
+    }
+    ut_assert(t, l->length == data_size);
+    llist_insert_at_position(l, &v, p);
+    const int *inserted = (int *) llist_nth_data(l, p);
+    ut_assert(t, 99 == *inserted);
+    llist_free(l);
+  }
 }
 
 
@@ -309,6 +325,7 @@ main (int argc,
   ut_suite_add_simple_test(s, "llist_length", llist_length_test);
   ut_suite_add_simple_test(s, "llist_find", llist_find_test);
   ut_suite_add_simple_test(s, "llist_nth", llist_nth_test);
+  ut_suite_add_simple_test(s, "llist_nth_data", llist_nth_data_test);
   ut_suite_add_simple_test(s, "llist_insert_at_position", llist_insert_at_position_test);
 
   int failure_count = ut_suite_run(s);

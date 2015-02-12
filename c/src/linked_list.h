@@ -82,6 +82,10 @@ extern llist_elm_t *
 llist_nth (llist_t *const l,
            const size_t n);
 
+extern void *
+llist_nth_data (llist_t *const l,
+                const size_t n);
+
 extern llist_elm_t *
 llist_find (llist_t *const l,
             void *const d,
