@@ -2,7 +2,7 @@
  * @file
  *
  * @todo Program insert_before, insert_after, reverse,
- *       concat, last, nth, sort methods.
+ *       concat, last, sort methods.
  *
  * @brief Linked list module implementation.
  *
@@ -270,6 +270,17 @@ llist_insert_at_position (l, d, i)
   l->length++;
 }
 
+/**
+ * @brief Inserts a new element after previous one.
+ */
+llist_elm_t *
+llist_insert_after (l, p, d)
+     llist_t *const l;
+     llist_elm_t *const p;
+     void *const d;
+{
+  assert(l);
+}
 
 
 /********************************************************/
