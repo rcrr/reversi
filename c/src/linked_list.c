@@ -272,14 +272,31 @@ llist_insert_at_position (l, d, i)
 
 /**
  * @brief Inserts a new element after previous one.
+ *
+ * @details If the list doesn't contain element `p`, the new element is not
+ *          created.
+ *
+ * @param [in,out] l the linked list
+ * @param [in]     p the previous element
+ * @param [in]     d the data to insert
  */
-llist_elm_t *
-llist_insert_after (l, p, d)
+void
+llist_insert_after_elm (l, p, d)
      llist_t *const l;
      llist_elm_t *const p;
      void *const d;
 {
   assert(l);
+  for (llist_elm_t *e = l->fe; e; e = e->next) {
+    if (e == p) {
+      llist_elm_t *const new = llist_elm_new();
+      new->data = d;
+      new->next = e->next;
+      e->next = new;
+      l->length++;
+      break;
+    }
+  }
 }
 
 

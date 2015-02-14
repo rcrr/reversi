@@ -96,6 +96,10 @@ llist_insert_at_position (llist_t *const l,
                           void *const d,
                           const size_t i);
 
+extern void
+llist_insert_after_elm (llist_t *const l,
+                        llist_elm_t *const p,
+                        void *const d);
 
 
 
