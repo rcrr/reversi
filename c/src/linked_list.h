@@ -52,7 +52,7 @@ typedef struct llist_elm_t_ {
  * @brief A linked list.
  */
 typedef struct {
-  llist_elm_t *fe;              /**< @brief The first element in the list. */
+  llist_elm_t *head;            /**< @brief The first element in the list. */
   size_t length;                /**< @brief The number of elements in the list. */
 } llist_t;
 
@@ -106,6 +106,15 @@ llist_insert_before_elm (llist_t *const l,
                          llist_elm_t *const n,
                          void *const d);
 
+extern llist_elm_t *
+llist_last_elm (llist_t *const l);
+
+extern void
+llist_concat (llist_t *const la,
+              llist_t *const lb);
+
+extern void
+llist_reverse (llist_t *const l);
 
 
 

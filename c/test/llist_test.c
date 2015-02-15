@@ -350,7 +350,6 @@ llist_insert_before_elm_test (ut_test_t *const t)
       llist_add(l, &data[i]);
     }
     ut_assert(t, l->length == data_size);
-    ;
     llist_elm_t *const e = llist_nth(l, p);
     llist_insert_before_elm(l, e, &v);
     const int *inserted = (int *) llist_nth_data(l, p);
@@ -359,7 +358,53 @@ llist_insert_before_elm_test (ut_test_t *const t)
     size_t index;
     llist_find(l, &v, &index);
     ut_assert(t, index == p);
-    ;
+    llist_free(l);
+  }
+}
+
+static void
+llist_last_elm_test (ut_test_t *const t)
+{
+  int data[] = {0, 1, 2, 3};
+  int data_size = 4;
+
+  llist_t *l = llist_new();
+  ut_assert(t, l != NULL);
+  ut_assert(t, llist_last_elm(l) == NULL);
+  for (int i = 0; i < data_size; i++) {
+    llist_add(l, &data[i]);
+    ut_assert(t, llist_last_elm(l) == llist_nth(l, i));
+    llist_elm_t *expected_last = llist_find(l, &data[0], NULL);
+    ut_assert(t, llist_last_elm(l) == expected_last);
+  }
+
+  llist_free(l);
+}
+
+static void
+llist_reverse_test (ut_test_t *const t)
+{
+  int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int data_size = 10;
+
+
+  for (int j = 0; j < data_size + 1; j++) {
+    llist_t *l = llist_new();
+    ut_assert(t, l != NULL);
+    for (int i = 0; i < j; i++) {
+      llist_add(l, &data[i]);
+    }
+
+    llist_reverse(l);
+
+    int i;
+    llist_elm_t *e;
+    for (e = l->head, i = 0; e; e = e->next, i++) {
+      int element_value = *(int *) e->data;
+      ut_assert(t, i == element_value);
+      ut_assert(t, data[i] == element_value);
+    }
+
     llist_free(l);
   }
 }
@@ -384,6 +429,8 @@ main (int argc,
   ut_suite_add_simple_test(s, "llist_insert_at_position", llist_insert_at_position_test);
   ut_suite_add_simple_test(s, "llist_insert_after_elm", llist_insert_after_elm_test);
   ut_suite_add_simple_test(s, "llist_insert_before_elm", llist_insert_before_elm_test);
+  ut_suite_add_simple_test(s, "llist_last_elm", llist_last_elm_test);
+  ut_suite_add_simple_test(s, "llist_reverse", llist_reverse_test);
 
   int failure_count = ut_suite_run(s);
 
