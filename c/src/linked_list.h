@@ -101,6 +101,12 @@ llist_insert_after_elm (llist_t *const l,
                         llist_elm_t *const p,
                         void *const d);
 
+extern void
+llist_insert_before_elm (llist_t *const l,
+                         llist_elm_t *const n,
+                         void *const d);
+
+
 
 
 /***********************************************/

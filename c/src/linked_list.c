@@ -1,7 +1,7 @@
 /**
  * @file
  *
- * @todo Program insert_before, insert_after, reverse,
+ * @todo Program insert_before, reverse,
  *       concat, last, sort methods.
  *
  * @brief Linked list module implementation.
@@ -133,8 +133,10 @@ llist_remove (l, d)
   llist_elm_t **e = &(l->fe);
   while (*e) {
     if ((*e)->data == d) {
+      llist_elm_t *to_be_removed = *e;
       *e = (*e)->next;
       l->length--;
+      llist_elm_free(to_be_removed);
       return;
     }
     e = &((*e)->next);
@@ -298,6 +300,36 @@ llist_insert_after_elm (l, p, d)
     }
   }
 }
+
+/**
+ * @brief Inserts a new element  before `n`, with the given data `d`.
+ *
+ * @details If the list doesn't contain element `n`, the new element is not
+ *          created.
+ *
+ * @param [in,out] l the linked list
+ * @param [in]     n the next element
+ * @param [in]     d the data to insert
+ */
+void
+llist_insert_before_elm (l, n, d)
+     llist_t *const l;
+     llist_elm_t *const n;
+     void *const d;
+{
+  assert(l);
+  for (llist_elm_t **e = &(l->fe); *e; e = &((*e)->next)) {
+    if (*e == n) {
+      llist_elm_t *const new = llist_elm_new();
+      new->data = d;
+      new->next = *e;
+      *e = new;
+      l->length++;
+      break;
+    }
+  }
+}
+
 
 
 /********************************************************/
