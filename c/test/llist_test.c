@@ -75,6 +75,15 @@ aux_count_elements (d, aux)
   (*count)++;
 }
 
+int
+aux_int_cmp (const void *const a,
+             const void *const b)
+{
+  const int *const x = (const int *const) a;
+  const int *const y = (const int *const) b;
+  return (*x > *y) - (*x < *y);
+}
+
 
 
 /*
@@ -84,7 +93,7 @@ aux_count_elements (d, aux)
 static void
 llist_new_free_test (ut_test_t *const t)
 {
-  llist_t *l = llist_new();
+  llist_t *l = llist_new(NULL);
   ut_assert(t, l != NULL);
   llist_free(l);
 }
@@ -96,7 +105,7 @@ llist_add_remove_foreach_test (ut_test_t *const t)
 
   /* Iterating on the empty list. */
   {
-    llist_t *l = llist_new();
+    llist_t *l = llist_new(NULL);
     ut_assert(t, l != NULL);
     int sum = 0;
     llist_foreach(l, aux_add_elements, &sum);
@@ -106,7 +115,7 @@ llist_add_remove_foreach_test (ut_test_t *const t)
 
   /* Adding one element and iterating on it. */
   {
-    llist_t *l = llist_new();
+    llist_t *l = llist_new(NULL);
     ut_assert(t, l != NULL);
     int sum = 0;
     llist_add(l, &data[7]);
@@ -118,7 +127,7 @@ llist_add_remove_foreach_test (ut_test_t *const t)
   /* Adding, iterating, removing, and adding again ... */
   {
     int sum;
-    llist_t *l = llist_new();
+    llist_t *l = llist_new(NULL);
     ut_assert(t, l != NULL);
 
     sum = 0;
@@ -161,7 +170,7 @@ llist_add_remove_foreach_test (ut_test_t *const t)
   /* Adding and removing the same element. */
   {
     int sum;
-    llist_t *l = llist_new();
+    llist_t *l = llist_new(NULL);
     ut_assert(t, l != NULL);
 
     sum = 0;
@@ -192,7 +201,7 @@ static void
 llist_length_test (ut_test_t *const t)
 {
   int count;
-  llist_t *l = llist_new();
+  llist_t *l = llist_new(NULL);
   ut_assert(t, l != NULL);
   ut_assert(t, l->length == 0);
 
@@ -228,7 +237,7 @@ llist_find_test (ut_test_t *const t)
   int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   int data_size = 10;
 
-  llist_t *l = llist_new();
+  llist_t *l = llist_new(NULL);
   ut_assert(t, l != NULL);
   for (int i = 0; i < data_size; i++) {
     llist_add(l, &data[i]);
@@ -254,7 +263,7 @@ llist_nth_test (ut_test_t *const t)
   int data[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
   int data_size = 10;
 
-  llist_t *l = llist_new();
+  llist_t *l = llist_new(NULL);
   ut_assert(t, l != NULL);
   for (int i = 0; i < data_size; i++) {
     llist_add(l, &data[i]);
@@ -275,7 +284,7 @@ llist_nth_data_test (ut_test_t *const t)
   int data[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
   int data_size = 10;
 
-  llist_t *l = llist_new();
+  llist_t *l = llist_new(NULL);
   ut_assert(t, l != NULL);
   for (int i = 0; i < data_size; i++) {
     llist_add(l, &data[i]);
@@ -297,7 +306,7 @@ llist_insert_at_position_test (ut_test_t *const t)
   int v = 99;
 
   for (int p = 0; p < data_size + 1; p++) {
-    llist_t *l = llist_new();
+    llist_t *l = llist_new(NULL);
     ut_assert(t, l != NULL);
     for (int i = 0; i < data_size; i++) {
       llist_add(l, &data[i]);
@@ -318,7 +327,7 @@ llist_insert_after_elm_test (ut_test_t *const t)
   int v = 99;
 
   for (int p = 0; p < data_size; p++) {
-    llist_t *l = llist_new();
+    llist_t *l = llist_new(NULL);
     ut_assert(t, l != NULL);
     for (int i = 0; i < data_size; i++) {
       llist_add(l, &data[i]);
@@ -344,7 +353,7 @@ llist_insert_before_elm_test (ut_test_t *const t)
   int v = 99;
 
   for (int p = 0; p < data_size; p++) {
-    llist_t *l = llist_new();
+    llist_t *l = llist_new(NULL);
     ut_assert(t, l != NULL);
     for (int i = 0; i < data_size; i++) {
       llist_add(l, &data[i]);
@@ -368,7 +377,7 @@ llist_last_elm_test (ut_test_t *const t)
   int data[] = {0, 1, 2, 3};
   int data_size = 4;
 
-  llist_t *l = llist_new();
+  llist_t *l = llist_new(NULL);
   ut_assert(t, l != NULL);
   ut_assert(t, llist_last_elm(l) == NULL);
   for (int i = 0; i < data_size; i++) {
@@ -389,7 +398,7 @@ llist_reverse_test (ut_test_t *const t)
 
 
   for (int j = 0; j < data_size + 1; j++) {
-    llist_t *l = llist_new();
+    llist_t *l = llist_new(NULL);
     ut_assert(t, l != NULL);
     for (int i = 0; i < j; i++) {
       llist_add(l, &data[i]);
@@ -409,6 +418,24 @@ llist_reverse_test (ut_test_t *const t)
   }
 }
 
+static void
+llist_sort_test (ut_test_t *const t)
+{
+  int data[] = {4, 2, 9, 1, 3, 0, 8, 6, 7, 5};
+  int data_size = 10;
+
+  llist_t *l = llist_new(aux_int_cmp);
+  ut_assert(t, l != NULL);
+  for (int i = 0; i < data_size; i++) {
+    llist_add(l, &data[i]);
+  }
+
+  llist_sort(l);
+  llist_foreach(l, aux_print_elements, NULL);
+  printf("\n");
+
+  llist_free(l);
+}
 
 
 /**
@@ -431,6 +458,7 @@ main (int argc,
   ut_suite_add_simple_test(s, "llist_insert_before_elm", llist_insert_before_elm_test);
   ut_suite_add_simple_test(s, "llist_last_elm", llist_last_elm_test);
   ut_suite_add_simple_test(s, "llist_reverse", llist_reverse_test);
+  ut_suite_add_simple_test(s, "llist_sort", llist_sort_test);
 
   int failure_count = ut_suite_run(s);
 

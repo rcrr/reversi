@@ -36,6 +36,30 @@
 
 
 
+/**
+ * @brief Compare function signature.
+ *
+ * @details The implementer has to ensure that when the value refernced by `a`
+ *          is equal to the one addressed by `b`, than zero is returned.
+ *          When the value identified by `a` is greater than the one pointed by `b`,
+ *          than the return value has to be a positive integer, and otherwise a negative one.
+ *
+ *          Pseudocode:
+ * @code
+ *  if (*a > *b) return +1;
+ *  else if (*a == *b) return 0;
+ *  else return -1;
+ * @endcode
+ *
+ * @param [in] a a pointer to the first value
+ * @param [in] b a pointer to the second value
+ * @return       result of comparing the values pointed by `a` and `b`
+ */
+typedef int
+(*llist_compare_f) (const void *const a,
+                    const void *const b);
+
+
 /**********************************************/
 /* Type declarations.                         */
 /**********************************************/
@@ -54,20 +78,24 @@ typedef struct llist_elm_t_ {
 typedef struct {
   llist_elm_t *head;            /**< @brief The first element in the list. */
   size_t length;                /**< @brief The number of elements in the list. */
+  llist_compare_f cmp;          /**< @brief Compare function for element data type. */
 } llist_t;
 
 
 
-/***************************************************/
-/* Function prototypes for the llist_elm_t entity. */
-/***************************************************/
+/***********************************************/
+/* Function prototypes for the llist_t entity. */
+/***********************************************/
 
-extern llist_elm_t *
-llist_elm_new (void);
+extern llist_t *
+llist_new (llist_compare_f cmp);
 
 extern void
-llist_elm_free (llist_elm_t *e);
+llist_free (llist_t *l);
 
+extern void
+llist_add (llist_t *const l,
+           void *const d);
 extern void
 llist_remove (llist_t *const l,
               void *const d);
@@ -116,21 +144,20 @@ llist_concat (llist_t *const la,
 extern void
 llist_reverse (llist_t *const l);
 
+extern void
+llist_sort (llist_t *const l);
 
 
-/***********************************************/
-/* Function prototypes for the llist_t entity. */
-/***********************************************/
 
-extern llist_t *
-llist_new (void);
+/***************************************************/
+/* Function prototypes for the llist_elm_t entity. */
+/***************************************************/
+
+extern llist_elm_t *
+llist_elm_new (void);
 
 extern void
-llist_free (llist_t *l);
-
-extern void
-llist_add (llist_t *const l,
-           void *const d);
+llist_elm_free (llist_elm_t *e);
 
 
 

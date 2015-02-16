@@ -52,10 +52,11 @@
  * An assertion checks that the received pointer to the allocated
  * linked list structure is not `NULL`.
  *
- * @return a pointer to a new linked list structure
+ * @param cmp a compare function for the data type
+ * @return    a pointer to a new linked list structure
  */
 llist_t *
-llist_new (void)
+llist_new (llist_compare_f cmp)
 {
   llist_t *l;
   static const size_t size_of_t = sizeof(llist_t);
@@ -63,6 +64,7 @@ llist_new (void)
   assert(l);
   l->head = NULL;
   l->length = 0;
+  l->cmp = cmp;
   return l;
 }
 
@@ -393,6 +395,20 @@ llist_reverse (l)
     e = next;
   }
 }
+
+/**
+ * @brief Sorts a linked list.
+ *
+ * @param [in,out] l the linked list
+ */
+void
+llist_sort (l)
+     llist_t *const l;
+{
+  assert(l);
+  assert(l->cmp);
+}
+
 
 
 /********************************************************/
