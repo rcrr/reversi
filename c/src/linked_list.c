@@ -421,27 +421,22 @@ llist_sort (l)
   size_t stack_size = 32;
   llist_sorted_run_t *const stack = (llist_sorted_run_t *) malloc(stack_size * sizeof(llist_sorted_run_t *));
 
-  printf("\n");
-  for (llist_elm_t *e = l->head->next; e; e = e->next) {
-    ;
-    for (llist_elm_t *f = e->next; f; f = f->next) {
-      printf("e=%p, e->data:%d, f=%p f->data=%d\n", (void *) e, *((int *) e->data), (void *) f, *((int *) f->data));
-    }
-  }
-  printf("\n");
-
   /*
-  {
-  char *ca = (char *) a;
-  for (int i = 1; i < count; i++) {
-    int j = i;
-    for (;;) {
-      if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) <= 0) break;
-      swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
-      j--;
+   * Insertion sort.
+   */
+  llist_elm_t *tail = l->head->next;
+  l->head->next = NULL;
+  llist_elm_t *tmp;
+  for (llist_elm_t *t = tail; t;) {
+    tmp = t->next;
+    llist_elm_t **e;
+    for (e = &(l->head); *e; e = &((*e)->next)) {
+      if (l->cmp(t->data, (*e)->data) < 0) break;
     }
+    t->next = *e;
+    *e = t;
+    t = tmp;
   }
-  */
 
   free(stack);
 }
