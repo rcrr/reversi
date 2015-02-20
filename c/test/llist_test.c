@@ -419,7 +419,7 @@ llist_reverse_test (ut_test_t *const t)
 }
 
 static void
-llist_sort_test (ut_test_t *const t)
+llist_insertion_sort_test (ut_test_t *const t)
 {
   int data[] = {4, 2, 9, 1, 3, 0, 8, 6, 7, 5};
   int data_size = 10;
@@ -430,7 +430,7 @@ llist_sort_test (ut_test_t *const t)
     llist_add(l, &data[i]);
   }
 
-  llist_sort(l);
+  llist_insertion_sort(l);
   llist_foreach(l, aux_print_elements, NULL);
   printf("\n");
 
@@ -458,7 +458,7 @@ main (int argc,
   ut_suite_add_simple_test(s, "llist_insert_before_elm", llist_insert_before_elm_test);
   ut_suite_add_simple_test(s, "llist_last_elm", llist_last_elm_test);
   ut_suite_add_simple_test(s, "llist_reverse", llist_reverse_test);
-  ut_suite_add_simple_test(s, "llist_sort", llist_sort_test);
+  ut_suite_add_simple_test(s, "llist_insertion_sort", llist_insertion_sort_test);
 
   int failure_count = ut_suite_run(s);
 

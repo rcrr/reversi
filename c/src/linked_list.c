@@ -407,10 +407,13 @@ typedef struct {
 /**
  * @brief Sorts a linked list.
  *
+ * @details Applies the insertion sort algorithm to the list, ordering it in
+ *          ascending order.
+ *
  * @param [in,out] l the linked list
  */
 void
-llist_sort (l)
+llist_insertion_sort (l)
      llist_t *const l;
 {
   assert(l);
@@ -418,12 +421,6 @@ llist_sort (l)
 
   if (l->length < 2) return;
 
-  size_t stack_size = 32;
-  llist_sorted_run_t *const stack = (llist_sorted_run_t *) malloc(stack_size * sizeof(llist_sorted_run_t *));
-
-  /*
-   * Insertion sort.
-   */
   llist_elm_t *tail = l->head->next;
   l->head->next = NULL;
   llist_elm_t *tmp;
@@ -437,6 +434,29 @@ llist_sort (l)
     *e = t;
     t = tmp;
   }
+}
+
+/**
+ * @brief Sorts a linked list.
+ *
+ * @details Applies the merge sort algorithm to the list, ordering it in
+ *          ascending order.
+ *
+ * @param [in,out] l the linked list
+ */
+void
+llist_merge_sort (l)
+     llist_t *const l;
+{
+  assert(l);
+  assert(l->cmp);
+
+  if (l->length < 2) return;
+
+  size_t stack_size = 32;
+  llist_sorted_run_t *const stack = (llist_sorted_run_t *) malloc(stack_size * sizeof(llist_sorted_run_t *));
+
+  llist_insertion_sort(l);
 
   free(stack);
 }

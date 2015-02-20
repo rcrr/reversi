@@ -145,7 +145,10 @@ extern void
 llist_reverse (llist_t *const l);
 
 extern void
-llist_sort (llist_t *const l);
+llist_insertion_sort (llist_t *const l);
+
+extern void
+llist_merge_sort (llist_t *const l);
 
 
 
