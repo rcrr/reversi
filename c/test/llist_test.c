@@ -430,9 +430,37 @@ llist_insertion_sort_test (ut_test_t *const t)
     llist_add(l, &data[i]);
   }
 
+  llist_insertion_sort(l);
+
+  for (int i = 0; i < data_size; i++) {
+    ut_assert(t, i == *(int *)llist_nth_data(l, i));
+  }
+
+  llist_free(l);
+}
+
+static void
+llist_adv_insertion_sort_test (ut_test_t *const t)
+{
+  int data[] = {4, 2, 6, 1, 3, 0, 8, 9, 7, 5};
+  //int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  //int data[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+  //int data[] = {9, 8, 7, 6, 1, 4, 3, 2, 5, 0};
+  int data_size = 10;
+
+  llist_t *l = llist_new(aux_int_cmp);
+  ut_assert(t, l != NULL);
+  for (int i = 0; i < data_size; i++) {
+    llist_add(l, &data[i]);
+  }
+
   llist_adv_insertion_sort(l);
   llist_foreach(l, aux_print_elements, NULL);
   printf("\n");
+
+  for (int i = 0; i < data_size; i++) {
+    ut_assert(t, i == *(int *)llist_nth_data(l, i));
+  }
 
   llist_free(l);
 }
@@ -459,6 +487,7 @@ main (int argc,
   ut_suite_add_simple_test(s, "llist_last_elm", llist_last_elm_test);
   ut_suite_add_simple_test(s, "llist_reverse", llist_reverse_test);
   ut_suite_add_simple_test(s, "llist_insertion_sort", llist_insertion_sort_test);
+  ut_suite_add_simple_test(s, "llist_adv_insertion_sort", llist_adv_insertion_sort_test);
 
   int failure_count = ut_suite_run(s);
 

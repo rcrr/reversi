@@ -445,36 +445,44 @@ llist_adv_insertion_sort (l)
 
   if (l->length < 2) return;
 
-  llist_elm_t *tail = l->head;
-  l->head = NULL;
+  llist_elm_t *t = l->head; /* t is the head of the tail. */
+  l->head = NULL; /* The list is now empty. */
 
-  for (llist_elm_t *t = tail; t;) {
+  while (t) {
 
-    llist_elm_t *h0 = t;
-    llist_elm_t *h1;
-    llist_elm_t *h2;
-    for (h1 = t, h2 = t->next; h2 && l->cmp(h1->data, h2->data) < 0; h1 = h2, h2 = h2->next) {
-      printf("... h1->data=%d, h2->data=%d\n", *(int *)h1->data,  *(int *)h2->data);
-    }
-    printf("h0->data=%d, h1->data=%d\n", *(int *)h0->data, *(int *)h1->data);
-    h1->next = NULL; /* Cut the run from the tail. */
-    t = h2; /* Set the new tail head. */
+    /*
+     * Computes the run, a sequence of elements taken from the tail that are ordered.
+     * r0 points to the first element in the run.
+     * r1 points to the last element in the run.
+     * r2 points to the next run.
+     * The last element, next value is set to NULL.
+     * The head of the tail is then moved to r2.
+     */
+    llist_elm_t *r0 = t;
+    llist_elm_t *r1;
+    llist_elm_t *r2;
+    for (r1 = t, r2 = t->next; r2 && l->cmp(r1->data, r2->data) < 0; r1 = r2, r2 = r2->next) ;
+    r1->next = NULL; /* Cut the run from the tail. */
+    t = r2; /* Set the new tail head. */
 
-    llist_elm_t **e = &(l->head); /* A pointer to the next element pointer in the sorted list. */
-    llist_elm_t **c = &h0; /* A pointer to the next element pointer in the run. */
-    while (*c) {
-      for (; *e; e = &((*e)->next)) {
-        if (l->cmp((*c)->data, (*e)->data) < 0) { /* Insertion point found. */
-          break;
-        }
-      }
-      /* Inserts a piece of the run starting at c, and ending at c1 ....*/
-      llist_elm_t **c1 = c;
-      for (; *c1 && (!*e || l->cmp((*c1)->data, (*e)->data) < 0); c1 = &((*c1))->next) ;
-      llist_elm_t *tmp = *c1;
-      *c1 = *e;
-      *e = *c; /* Connects the run head with the proper element. */
-      *c = tmp; /* Advances the list pointer to next. */
+    llist_elm_t **ep = &(l->head); /* A pointer to the next element pointer in the sorted list. */
+    llist_elm_t **rp = &r0; /* A pointer to the next element pointer in the run. */
+    while (*rp) {
+
+      /* Searches for the insertion point in the list. */
+      for (; *ep; ep = &((*ep)->next))
+        if (l->cmp((*rp)->data, (*ep)->data) < 0) break; /* Insertion point found. */
+
+      /* Searches the last element in the run, pointed by *xp, to insert at point. */
+      llist_elm_t **xp = rp;
+      for (; *xp && (!*ep || l->cmp((*xp)->data, (*ep)->data) < 0); xp = &((*xp))->next) ;
+
+      /* Inserts a piece of the run starting at *rp, and ending at *xp ....*/
+      llist_elm_t *tmp = *xp;
+      *xp = *ep; /* Connects the last element in the run to the point. */
+      *ep = *rp; /* Connects the run head with the point element. */
+
+      *rp = tmp; /* Advances the run list pointer to next. */
     }
   }
 }
