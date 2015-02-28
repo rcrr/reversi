@@ -148,6 +148,9 @@ extern void
 llist_insertion_sort (llist_t *const l);
 
 extern void
+llist_adv_insertion_sort (llist_t *const l);
+
+extern void
 llist_merge_sort (llist_t *const l);
 
 

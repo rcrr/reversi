@@ -436,6 +436,49 @@ llist_insertion_sort (l)
   }
 }
 
+void
+llist_adv_insertion_sort (l)
+     llist_t *const l;
+{
+  assert(l);
+  assert(l->cmp);
+
+  if (l->length < 2) return;
+
+  llist_elm_t *tail = l->head;
+  l->head = NULL;
+
+  for (llist_elm_t *t = tail; t;) {
+
+    llist_elm_t *h0 = t;
+    llist_elm_t *h1;
+    llist_elm_t *h2;
+    for (h1 = t, h2 = t->next; h2 && l->cmp(h1->data, h2->data) < 0; h1 = h2, h2 = h2->next) {
+      printf("... h1->data=%d, h2->data=%d\n", *(int *)h1->data,  *(int *)h2->data);
+    }
+    printf("h0->data=%d, h1->data=%d\n", *(int *)h0->data, *(int *)h1->data);
+    h1->next = NULL; /* Cut the run from the tail. */
+    t = h2; /* Set the new tail head. */
+
+    llist_elm_t **e = &(l->head); /* A pointer to the next element pointer in the sorted list. */
+    llist_elm_t **c = &h0; /* A pointer to the next element pointer in the run. */
+    while (*c) {
+      for (; *e; e = &((*e)->next)) {
+        if (l->cmp((*c)->data, (*e)->data) < 0) { /* Insertion point found. */
+          break;
+        }
+      }
+      /* Inserts a piece of the run starting at c, and ending at c1 ....*/
+      llist_elm_t **c1 = c;
+      for (; *c1 && (!*e || l->cmp((*c1)->data, (*e)->data) < 0); c1 = &((*c1))->next) ;
+      llist_elm_t *tmp = *c1;
+      *c1 = *e;
+      *e = *c; /* Connects the run head with the proper element. */
+      *c = tmp; /* Advances the list pointer to next. */
+    }
+  }
+}
+
 /**
  * @brief Sorts a linked list.
  *

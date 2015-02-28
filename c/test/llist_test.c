@@ -421,7 +421,7 @@ llist_reverse_test (ut_test_t *const t)
 static void
 llist_insertion_sort_test (ut_test_t *const t)
 {
-  int data[] = {4, 2, 9, 1, 3, 0, 8, 6, 7, 5};
+  int data[] = {4, 2, 6, 1, 3, 0, 8, 9, 7, 5};
   int data_size = 10;
 
   llist_t *l = llist_new(aux_int_cmp);
@@ -430,7 +430,7 @@ llist_insertion_sort_test (ut_test_t *const t)
     llist_add(l, &data[i]);
   }
 
-  llist_insertion_sort(l);
+  llist_adv_insertion_sort(l);
   llist_foreach(l, aux_print_elements, NULL);
   printf("\n");
 
