@@ -511,7 +511,7 @@ llist_merge_sort (l)
   llist_t *const lists = (llist_t *) malloc(stack_size * sizeof(llist_t));
   size_t *const lengths = (size_t *) malloc(stack_size * sizeof(size_t));
   size_t *lengths_fill_p = &lengths[0];
-  llist_elm_t *tail = l->head;
+  llist_elm_t *head_of_tail = l->head;
   l->head = NULL;
 
   for (size_t i = 0; i < stack_size; i++) {
@@ -532,6 +532,15 @@ llist_merge_sort (l)
   printf("lengths_fill_p=%p, index=%02zu\n", (void *)lengths_fill_p, lengths_fill_p - &lengths[0]);
   for (size_t i = 0; i < stack_size; i++) {
     printf("lengths[%02zu]=%02zu, address=%p\n", i, lengths[i], (void *)&lengths[i]);
+  }
+
+  llist_elm_t **hp = &head_of_tail;
+  printf("*lengths_fill_p=%zu\n", *lengths_fill_p);
+  for (size_t i = 0; i < *lengths_fill_p; i++ ) {
+    printf("head_of_tail=%p\n", (void *)head_of_tail);
+    //head_of_tail = head_of_tail->next;
+    hp = &((*hp)->next);
+    head_of_tail = *hp;
   }
 
   //llist_insertion_sort(l);
