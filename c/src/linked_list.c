@@ -397,14 +397,6 @@ llist_reverse (l)
 }
 
 /**
- * @brief A sorted sequence of elements.
- */
-typedef struct {
-  llist_elm_t *head;            /**< @brief The first element in the sorted run. */
-  size_t length;                /**< @brief The number of elements in the sorted run. */
-} llist_sorted_run_t;
-
-/**
  * @brief Sorts a linked list.
  *
  * @details Applies the insertion sort algorithm to the list, ordering it in
@@ -436,6 +428,16 @@ llist_insertion_sort (l)
   }
 }
 
+/**
+ * @brief Sorts a linked list.
+ *
+ * @details Applies the insertion sort algorithm to the list, ordering it in
+ *          ascending order.
+ *          This algorithm enhance insertion sort by merging already sorted
+ *          sublists, reducing the required comparisons.
+ *
+ * @param [in,out] l the linked list
+ */
 void
 llist_adv_insertion_sort (l)
      llist_t *const l;
@@ -505,11 +507,11 @@ llist_merge_sort (l)
   if (l->length < 2) return;
 
   size_t stack_size = 32;
-  llist_sorted_run_t *const stack = (llist_sorted_run_t *) malloc(stack_size * sizeof(llist_sorted_run_t *));
+  llist_t *const lists = (llist_t *) malloc(stack_size * sizeof(llist_t));
 
   llist_insertion_sort(l);
 
-  free(stack);
+  free(lists);
 }
 
 
