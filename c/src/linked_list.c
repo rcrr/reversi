@@ -535,6 +535,9 @@ llist_merge_sort (l)
     printf("lengths[%02zu]=%02zu, address=%p\n", i, lengths[i], (void *)&lengths[i]);
   }
 
+  llist_t *l = *lists_fill_p; llist_fill_p++;
+  l->head = head_of_tail;
+  l->length = *lengths_fill_p;
   llist_elm_t **hp = &head_of_tail;
   printf("*lengths_fill_p=%zu\n", *lengths_fill_p);
   for (size_t i = 0; i < *lengths_fill_p; i++ ) {
