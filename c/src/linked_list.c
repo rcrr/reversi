@@ -515,6 +515,7 @@ llist_merge_sort (l)
   llist_elm_t *head_of_tail = l->head;
   l->head = NULL;
 
+  /* Prepares the lists array. */
   for (size_t i = 0; i < stack_size; i++) {
     lengths[i] = 0;
     lists[i].head = NULL;
@@ -523,6 +524,7 @@ llist_merge_sort (l)
     printf("lists[%02zu]: head=%p, length=%02zu, cmp=%p\n", i, (void *)(lists[i].head), lists[i].length, lists[i].cmp);
   }
 
+  /* Computes the lists lengths. */
   *lengths_fill_p = l->length;
   while (*lengths_fill_p > min_merge_length) {
     *(lengths_fill_p + 1) = *lengths_fill_p / 2;
@@ -530,21 +532,34 @@ llist_merge_sort (l)
     lengths_fill_p++;
   }
 
+  printf("\n");
   printf("lengths_fill_p=%p, index=%02zu\n", (void *)lengths_fill_p, lengths_fill_p - &lengths[0]);
   for (size_t i = 0; i < stack_size; i++) {
     printf("lengths[%02zu]=%02zu, address=%p\n", i, lengths[i], (void *)&lengths[i]);
   }
 
-  llist_t *l = *lists_fill_p; llist_fill_p++;
-  l->head = head_of_tail;
-  l->length = *lengths_fill_p;
+  /* Prepares and sorts the work list, wl. */
+  llist_t *wl = lists_fill_p; lists_fill_p++;
+  wl->head = head_of_tail;
+  wl->length = *lengths_fill_p; lengths_fill_p--;
   llist_elm_t **hp = &head_of_tail;
-  printf("*lengths_fill_p=%zu\n", *lengths_fill_p);
-  for (size_t i = 0; i < *lengths_fill_p; i++ ) {
-    printf("head_of_tail=%p\n", (void *)head_of_tail);
-    //head_of_tail = head_of_tail->next;
-    hp = &((*hp)->next);
-    head_of_tail = *hp;
+  for (size_t i = 0; i < wl->length; i++, hp = &((*hp)->next)) ;
+  head_of_tail = *hp;
+  *hp = NULL; /* Now wl is ready to be used. */
+  llist_adv_insertion_sort(wl);
+
+  printf("\n");
+  printf("lengths_fill_p=%p, index=%02zu\n", (void *)lengths_fill_p, lengths_fill_p - &lengths[0]);
+  printf("\n");
+  printf("head_of_tail=%p\n", (void *) head_of_tail);
+  printf("\n");
+  for (size_t i = 0; i < stack_size; i++) {
+    printf("lists[%02zu]: head=%p, length=%02zu, cmp=%p\n", i, (void *)(lists[i].head), lists[i].length, lists[i].cmp);
+    llist_elm_t *e = lists[i].head;
+    while (e) {
+      printf("... ... ... e=%p, e->data=%d\n", (void *)e, *(int *)(e->data));
+      e = e->next;
+    }
   }
 
   //llist_insertion_sort(l);
