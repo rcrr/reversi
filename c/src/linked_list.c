@@ -489,6 +489,58 @@ llist_adv_insertion_sort (l)
   }
 }
 
+
+static void
+aux_print_lengths (lengths, stack_size, lengths_fill_p)
+     size_t *const lengths;
+     size_t stack_size;
+     size_t *lengths_fill_p;
+{
+  printf("\n");
+  printf("LENGTHS ARRAY: lengths_fill_p=%p, index=%02zu\n", (void *)lengths_fill_p, lengths_fill_p - &lengths[0]);
+  for (size_t i = 0; i < stack_size; i++) {
+    printf("               lengths[%02zu]=%02zu, address=%p\n", i, lengths[i], (void *)&lengths[i]);
+  }
+}
+
+
+static void
+aux_print_lists (lists, stack_size, lists_fill_p)
+     llist_t *const lists;
+     size_t stack_size;
+     llist_t *lists_fill_p;
+{
+  printf("\n");
+  printf("LISTS ARRAY: lists_fill_p=%p, index=%02zu\n", (void *)lists_fill_p, lists_fill_p - &lists[0]);
+  for (size_t i = 0; i < stack_size; i++) {
+    printf("             lists[%02zu]: head=%p, length=%02zu, cmp=%p, address=%p\n", i, (void *)(lists[i].head), lists[i].length, lists[i].cmp, (void *)&lists[i]);
+    llist_elm_t *e = lists[i].head;
+    size_t index = 0;
+    while (e) {
+      printf("             ... ... ...   e=%p, index=%02zu, e->data=%d\n", (void *)e, index, *(int *)(e->data));
+      e = e->next;
+      index++;
+    }
+  }
+}
+
+
+static void
+aux_print_tail (head_of_tail)
+     llist_elm_t *head_of_tail;
+{
+  printf("\n");
+  printf("TAIL LIST: head_of_tail=%p\n", (void *)head_of_tail);
+  llist_elm_t *e = head_of_tail;
+  size_t index = 0;
+  while (e) {
+    printf("           ... ... .. e=%p, index=%02zu, e->data=%d\n", (void *)e, index, *(int *)(e->data));
+    e = e->next;
+    index++;
+  }
+}
+
+
 /**
  * @brief Sorts a linked list.
  *
@@ -515,14 +567,17 @@ llist_merge_sort (l)
   llist_elm_t *head_of_tail = l->head;
   l->head = NULL;
 
+  aux_print_tail(head_of_tail);
+
   /* Prepares the lists array. */
   for (size_t i = 0; i < stack_size; i++) {
     lengths[i] = 0;
     lists[i].head = NULL;
     lists[i].length = 0;
     lists[i].cmp = l->cmp;
-    printf("lists[%02zu]: head=%p, length=%02zu, cmp=%p\n", i, (void *)(lists[i].head), lists[i].length, lists[i].cmp);
   }
+
+  aux_print_lists(lists, stack_size, lists_fill_p);
 
   /* Computes the lists lengths. */
   *lengths_fill_p = l->length;
@@ -532,11 +587,7 @@ llist_merge_sort (l)
     lengths_fill_p++;
   }
 
-  printf("\n");
-  printf("lengths_fill_p=%p, index=%02zu\n", (void *)lengths_fill_p, lengths_fill_p - &lengths[0]);
-  for (size_t i = 0; i < stack_size; i++) {
-    printf("lengths[%02zu]=%02zu, address=%p\n", i, lengths[i], (void *)&lengths[i]);
-  }
+  aux_print_lengths(lengths, stack_size, lengths_fill_p);
 
   /* Prepares and sorts the work list, wl. */
   llist_t *wl = lists_fill_p; lists_fill_p++;
@@ -548,21 +599,9 @@ llist_merge_sort (l)
   *hp = NULL; /* Now wl is ready to be used. */
   llist_adv_insertion_sort(wl);
 
-  printf("\n");
-  printf("lengths_fill_p=%p, index=%02zu\n", (void *)lengths_fill_p, lengths_fill_p - &lengths[0]);
-  printf("\n");
-  printf("head_of_tail=%p\n", (void *) head_of_tail);
-  printf("\n");
-  for (size_t i = 0; i < stack_size; i++) {
-    printf("lists[%02zu]: head=%p, length=%02zu, cmp=%p\n", i, (void *)(lists[i].head), lists[i].length, lists[i].cmp);
-    llist_elm_t *e = lists[i].head;
-    while (e) {
-      printf("... ... ... e=%p, e->data=%d\n", (void *)e, *(int *)(e->data));
-      e = e->next;
-    }
-  }
-
-  //llist_insertion_sort(l);
+  aux_print_tail(head_of_tail);
+  aux_print_lengths(lengths, stack_size, lengths_fill_p);
+  aux_print_lists (lists, stack_size, lists_fill_p);
 
   free(lists);
   free(lengths);
