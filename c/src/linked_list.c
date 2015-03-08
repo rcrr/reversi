@@ -558,7 +558,7 @@ llist_merge_sort (l)
 
   if (l->length < 2) return;
 
-  size_t stack_size = 16;
+  size_t stack_size = 16; // Stack size has to be computed as a function of the list length and the min_merge_length.
   size_t min_merge_length = 4;
   llist_t *const lists = (llist_t *) malloc(stack_size * sizeof(llist_t));
   llist_t *lists_fill_p = &(lists[0]);
@@ -580,7 +580,8 @@ llist_merge_sort (l)
   aux_print_lists(lists, stack_size, lists_fill_p);
 
   /* Computes the lists lengths. */
-  *lengths_fill_p = l->length;
+  lengths[0] = l->length;
+ begin:
   while (*lengths_fill_p > min_merge_length) {
     *(lengths_fill_p + 1) = *lengths_fill_p / 2;
     *lengths_fill_p -= *(lengths_fill_p + 1);
@@ -589,13 +590,15 @@ llist_merge_sort (l)
 
   aux_print_lengths(lengths, stack_size, lengths_fill_p);
 
-  while (*lengths_fill_p <= min_merge_length) { /* When the last run is shorter than the min merge length a new list is added on the stack. */
+  while (*lengths_fill_p > 0 && *lengths_fill_p <= min_merge_length) { /* When the last run is shorter than the min merge length a new list is added on the stack. */
     printf("\nCreate list: lengths_fill_p=%p, index=%02zu, length=%02zu, lists_fill_p=%p\n",
            (void *)lengths_fill_p, lengths_fill_p - &lengths[0], *lengths_fill_p, (void *)lists_fill_p);
     /* Prepares and sorts the work list, wl. */
     llist_t *wl = lists_fill_p; lists_fill_p++;
     wl->head = head_of_tail;
-    wl->length = *lengths_fill_p; lengths_fill_p--;
+    wl->length = *lengths_fill_p;
+    *lengths_fill_p = 0;
+    if (lengths_fill_p > &lengths[0]) lengths_fill_p--;
     llist_elm_t **hp = &head_of_tail;
     for (size_t i = 0; i < wl->length; i++, hp = &((*hp)->next)) ;
     head_of_tail = *hp;
@@ -607,19 +610,21 @@ llist_merge_sort (l)
   aux_print_lengths(lengths, stack_size, lengths_fill_p);
   aux_print_lists (lists, stack_size, lists_fill_p);
 
+ merge: // Has to be fully understood if it is required to iterate ...
   if (lists_fill_p > &lists[1]) { /* There are two or more lists on the stack. */
     llist_t *l1 = lists_fill_p - 1;
     llist_t *l2 = lists_fill_p - 2;
     size_t len_diff = (l1->length > l2->length) ? l1->length - l2->length : l2->length - l1->length;
     if (len_diff < 2) { /* Merge lists. */
-      printf("Merge lists.\n");
+      printf("\nMerge lists l1 + l2 -> l2: l1[address=%p, length=%02zu, head=%p], l2[address=%p, length=%02zu, head=%p]\n",
+             (void *)l1, l1->length, (void *)(l1->head), (void *)l2, l2->length, (void *)(l2->head));
       lists_fill_p--;
       llist_elm_t *c1 = l1->head;
       llist_elm_t *c2 = l2->head;
-      l1->head = NULL;
       l2->head = NULL;
       l2->length += l1->length;
-      l1->length = 0;
+      l1->head = NULL; // Could be removed. It is here just to make the program more clear.
+      l1->length = 0; // Could be removed. It is here just to make the program more clear.
       llist_elm_t **ep = &(l2->head);
       while (c2 && c1) {
         llist_elm_t **np = (l->cmp(c2->data, c1->data) <= 0) ? &c2 : &c1;
@@ -629,9 +634,13 @@ llist_merge_sort (l)
       }
       llist_elm_t **np = c1 ? &c1 : &c2;
       *ep = *np;
+      aux_print_lists (lists, stack_size, lists_fill_p);
+      goto merge;
     }
-    aux_print_lists (lists, stack_size, lists_fill_p);
   }
+  if (lengths[0] > 0) goto begin;
+
+  l->head = lists[0].head;
 
   free(lists);
   free(lengths);
