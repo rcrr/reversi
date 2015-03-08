@@ -589,7 +589,7 @@ llist_merge_sort (l)
 
   aux_print_lengths(lengths, stack_size, lengths_fill_p);
 
-  if (*lengths_fill_p <= min_merge_length) { /* When the last run is shorter than the min merge length a new list is added on the stack. */
+  while (*lengths_fill_p <= min_merge_length) { /* When the last run is shorter than the min merge length a new list is added on the stack. */
     printf("\nCreate list: lengths_fill_p=%p, index=%02zu, length=%02zu, lists_fill_p=%p\n",
            (void *)lengths_fill_p, lengths_fill_p - &lengths[0], *lengths_fill_p, (void *)lists_fill_p);
     /* Prepares and sorts the work list, wl. */
@@ -613,7 +613,24 @@ llist_merge_sort (l)
     size_t len_diff = (l1->length > l2->length) ? l1->length - l2->length : l2->length - l1->length;
     if (len_diff < 2) { /* Merge lists. */
       printf("Merge lists.\n");
+      lists_fill_p--;
+      llist_elm_t *c1 = l1->head;
+      llist_elm_t *c2 = l2->head;
+      l1->head = NULL;
+      l2->head = NULL;
+      l2->length += l1->length;
+      l1->length = 0;
+      llist_elm_t **ep = &(l2->head);
+      while (c2 && c1) {
+        llist_elm_t **np = (l->cmp(c2->data, c1->data) <= 0) ? &c2 : &c1;
+        *ep = *np; /* Connects the element selected among c1 and c2 to the tail of the composing list. */
+        *np = (*np)->next; /* Either c1 or c2 is moved to next. */
+        ep = &((*ep)->next); /* Moves the pointer to the tail of the forming list. */
+      }
+      llist_elm_t **np = c1 ? &c1 : &c2;
+      *ep = *np;
     }
+    aux_print_lists (lists, stack_size, lists_fill_p);
   }
 
   free(lists);
