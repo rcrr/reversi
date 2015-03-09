@@ -466,11 +466,15 @@ llist_adv_insertion_sort_test (ut_test_t *const t)
 static void
 llist_merge_sort_test (ut_test_t *const t)
 {
+  /*
   int data_size = 31;
   int data[] = {4, 25, 10,  1, 12, 18,  8, 21,
                 7, 16,  6,  3, 13, 14, 11, 15,
                 5, 17,  0, 19, 20,  9, 23, 22,
                 24, 2, 29, 30, 27, 26, 28};
+  */
+  int data_size = 3;
+  int data[] = {1, 2, 0};
 
   llist_t *l = llist_new(aux_int_cmp);
   ut_assert(t, l != NULL);
