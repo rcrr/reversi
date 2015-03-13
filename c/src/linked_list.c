@@ -568,7 +568,6 @@ llist_merge_sort (l)
   size_t *const lengths = (size_t *) malloc(stack_size * sizeof(size_t));
   size_t *lengths_fill_p = &lengths[0];
   llist_elm_t *head_of_tail = l->head;
-  //l->head = NULL;
 
   aux_print_tail(head_of_tail);
 
