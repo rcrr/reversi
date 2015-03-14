@@ -921,10 +921,11 @@ sort_utils_qsort_dsc_d (double *const a,
 
 
 int
-main (int   argc,
-      char *argv[])
+main (argc, argv)
+     int argc;
+     char **argv;
 {
-  g_test_init (&argc, &argv, NULL);
+  g_test_init(&argc, &argv, NULL);
 
   g_test_add_func("/sort_utils/sort_utils_double_compare_test", sort_utils_double_compare_test);
   g_test_add_func("/sort_utils/sort_utils_int_compare_test", sort_utils_int_compare_test);

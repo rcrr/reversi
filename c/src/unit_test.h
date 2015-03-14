@@ -141,10 +141,23 @@ ut_suite_run (ut_suite_t *s);
 
 
 
+/**************************************************/
+/* Function prototypes for assertions.            */
+/**************************************************/
 
 extern void
 ut_assert (ut_test_t *t,
            int assertion);
+
+
+
+/**************************************************/
+/* Prototypes for module's functions.             */
+/**************************************************/
+
+extern void
+ut_init (int *argc,
+         char ***argv);
 
 
 

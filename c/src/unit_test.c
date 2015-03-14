@@ -148,7 +148,7 @@ ut_suite_free (s)
 }
 
 /**
- * @details Adds a simple test to the suite.
+ * @brief Adds a simple test to the suite.
  *
  * @param [in,out] s     the test suite
  * @param [in]     label the test label
@@ -177,6 +177,12 @@ ut_suite_add_simple_test (s, label, tfun)
   s->count++;
 }
 
+/**
+ * @brief Runs all tests contained by the suite.
+ *
+ * @param [in,out] s the test suite
+ * @return           the count of failed tests
+ */
 int
 ut_suite_run (s)
      ut_suite_t *s;
@@ -202,6 +208,12 @@ ut_suite_run (s)
 /* Assertion implementations.               */
 /********************************************/
 
+/**
+ * @brief When assertion is not true, the count of failures fot the test is increased.
+ *
+ * @param [in,out] t         the test case
+ * @param [in,out] assertion the result of the assertion
+ */
 void
 ut_assert (t, assertion)
      ut_test_t *t;
@@ -209,4 +221,24 @@ ut_assert (t, assertion)
 {
   t->assertion_count++;
   if (!assertion) t->failure_count++;
+}
+
+
+
+/********************************************/
+/* Module functions.                        */
+/********************************************/
+
+/**
+ * @brief Has to be called by main as the first step for running the test suite.
+ *
+ * @param [in]     argc address of the argc parameter of the main() function.
+ * @param [in,out] argv address of the argv parameter of the main() function.
+ */
+void
+ut_init (argc, argv)
+     int *argc;
+     char ***argv;
+{
+  return;
 }

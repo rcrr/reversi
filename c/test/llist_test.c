@@ -523,6 +523,8 @@ int
 main (int argc,
       char **argv)
 {
+  ut_init (&argc, &argv);
+
   ut_suite_t *const s = ut_suite_new("llist");
 
   ut_suite_add_simple_test(s, "new-free", llist_new_free_test);
