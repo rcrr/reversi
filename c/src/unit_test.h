@@ -98,6 +98,7 @@ typedef struct ut_test_t_ {
  * @brief A test suite.
  */
 typedef struct ut_suite_t_ {
+  char *label;                /**< @brief The suite label. */
   size_t count;               /**< @brief Number of tests in the array. */
   size_t size;                /**< @brief Size of the array. */
   ut_test_t **tests;          /**< @brief An array of pointers to tests. */
@@ -125,7 +126,7 @@ ut_test_free (ut_test_t *t);
 /**************************************************/
 
 extern ut_suite_t *
-ut_suite_new (void);
+ut_suite_new (char *label);
 
 extern void
 ut_suite_free (ut_suite_t *s);

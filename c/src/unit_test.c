@@ -1,6 +1,8 @@
 /**
  * @file
  *
+ * @todo
+ *
  * @brief Unit test module implementation.
  *
  * @details This module defines a suite entity and a test entity, respectively
@@ -110,12 +112,14 @@ static const size_t array_alloc_chunk_size = 2;
  * @return a pointer to a new suite structure
  */
 ut_suite_t *
-ut_suite_new (void)
+ut_suite_new (label)
+     char *label;
 {
   ut_suite_t *s;
   static const size_t size_of_t = sizeof(ut_suite_t);
   s = (ut_suite_t *) malloc(size_of_t);
   assert(s);
+  s->label = label;
   s->count = 0;
   s->size = array_alloc_chunk_size;
   s->tests = (void *) malloc(s->size * sizeof(void *));
@@ -180,9 +184,14 @@ ut_suite_run (s)
   if (!s) return 0;
   for (int i = 0; i < s->count; i++) {
     ut_test_t *t = *(s->tests + i);
-    printf("test label: %s\n", t->label);
+    printf("/%s/%s: ", s->label, t->label);
     t->test(t);
-    if (t->failure_count) s->failed_test_count++;
+    if (t->failure_count) {
+      s->failed_test_count++;
+      printf("failure count = %d.\n", t->failure_count);
+    } else {
+      printf("OK\n");
+    }
   }
   return s->failed_test_count;
 }

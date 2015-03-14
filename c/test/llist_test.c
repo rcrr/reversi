@@ -464,7 +464,7 @@ llist_adv_insertion_sort_test (ut_test_t *const t)
 }
 
 static void
-llist_merge_sort_test (ut_test_t *const t)
+llist_merge_sort__0_test (ut_test_t *const t)
 {
   int data_size = 31;
   int data[] = {4, 25, 10,  1, 12, 18,  8, 21,
@@ -488,7 +488,7 @@ llist_merge_sort_test (ut_test_t *const t)
 }
 
 static void
-llist_merge_sort_2_test (ut_test_t *const t)
+llist_merge_sort__1_test (ut_test_t *const t)
 {
   const int sizes = 512;
   int data[sizes];
@@ -523,23 +523,23 @@ int
 main (int argc,
       char **argv)
 {
-  ut_suite_t *const s = ut_suite_new();
+  ut_suite_t *const s = ut_suite_new("llist");
 
-  ut_suite_add_simple_test(s, "llist_new_free", llist_new_free_test);
-  ut_suite_add_simple_test(s, "llist_add_remove_foreach", llist_add_remove_foreach_test);
-  ut_suite_add_simple_test(s, "llist_length", llist_length_test);
-  ut_suite_add_simple_test(s, "llist_find", llist_find_test);
-  ut_suite_add_simple_test(s, "llist_nth", llist_nth_test);
-  ut_suite_add_simple_test(s, "llist_nth_data", llist_nth_data_test);
-  ut_suite_add_simple_test(s, "llist_insert_at_position", llist_insert_at_position_test);
-  ut_suite_add_simple_test(s, "llist_insert_after_elm", llist_insert_after_elm_test);
-  ut_suite_add_simple_test(s, "llist_insert_before_elm", llist_insert_before_elm_test);
-  ut_suite_add_simple_test(s, "llist_last_elm", llist_last_elm_test);
-  ut_suite_add_simple_test(s, "llist_reverse", llist_reverse_test);
-  ut_suite_add_simple_test(s, "llist_insertion_sort", llist_insertion_sort_test);
-  ut_suite_add_simple_test(s, "llist_adv_insertion_sort", llist_adv_insertion_sort_test);
-  ut_suite_add_simple_test(s, "llist_merge_sort", llist_merge_sort_test);
-  ut_suite_add_simple_test(s, "llist_merge_sort_2", llist_merge_sort_2_test);
+  ut_suite_add_simple_test(s, "new-free", llist_new_free_test);
+  ut_suite_add_simple_test(s, "add-remove-foreach", llist_add_remove_foreach_test);
+  ut_suite_add_simple_test(s, "length", llist_length_test);
+  ut_suite_add_simple_test(s, "find", llist_find_test);
+  ut_suite_add_simple_test(s, "nth", llist_nth_test);
+  ut_suite_add_simple_test(s, "nth_data", llist_nth_data_test);
+  ut_suite_add_simple_test(s, "insert_at_position", llist_insert_at_position_test);
+  ut_suite_add_simple_test(s, "insert_after_elm", llist_insert_after_elm_test);
+  ut_suite_add_simple_test(s, "insert_before_elm", llist_insert_before_elm_test);
+  ut_suite_add_simple_test(s, "last_elm", llist_last_elm_test);
+  ut_suite_add_simple_test(s, "reverse", llist_reverse_test);
+  ut_suite_add_simple_test(s, "insertion_sort", llist_insertion_sort_test);
+  ut_suite_add_simple_test(s, "adv_insertion_sort", llist_adv_insertion_sort_test);
+  ut_suite_add_simple_test(s, "merge_sort__0", llist_merge_sort__0_test);
+  ut_suite_add_simple_test(s, "merge_sort__1", llist_merge_sort__1_test);
 
   int failure_count = ut_suite_run(s);
 
