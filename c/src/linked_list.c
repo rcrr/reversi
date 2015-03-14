@@ -513,7 +513,7 @@ aux_print_lists (lists, stack_size, lists_fill_p)
   printf("\n");
   printf("LISTS ARRAY: lists_fill_p=%p, index=%02zu\n", (void *)lists_fill_p, lists_fill_p - &lists[0]);
   for (size_t i = 0; i < stack_size; i++) {
-    printf("             lists[%02zu]: head=%p, length=%02zu, cmp=%p, address=%p\n", i, (void *)(lists[i].head), lists[i].length, lists[i].cmp, (void *)&lists[i]);
+    printf("             lists[%02zu]: head=%p, length=%02zu, address=%p\n", i, (void *)(lists[i].head), lists[i].length, (void *)&lists[i]);
     llist_elm_t *e = lists[i].head;
     size_t index = 0;
     while (e) {
@@ -553,12 +553,19 @@ void
 llist_merge_sort (l)
      llist_t *const l;
 {
+  static const int debug = 0;
+
   assert(l);
   assert(l->cmp);
 
   if (l->length < 2) return;
 
-  static const size_t min_merge_length = 4;
+  /*
+   * The value must be 2 or larger.
+   * The value 2 has been tested with long lists of data in reverse order.
+   * More tests are needed.
+   */
+  static const size_t min_merge_length = 2;
 
   size_t stack_size = 1;
   for (size_t i = min_merge_length; i < l->length; i <<= 1) stack_size++;
@@ -569,7 +576,7 @@ llist_merge_sort (l)
   size_t *lengths_fill_p = &lengths[0];
   llist_elm_t *head_of_tail = l->head;
 
-  aux_print_tail(head_of_tail);
+  if (debug) aux_print_tail(head_of_tail);
 
   /* Prepares the lists array. */
   for (size_t i = 0; i < stack_size; i++) {
@@ -579,7 +586,7 @@ llist_merge_sort (l)
     lists[i].cmp = l->cmp;
   }
 
-  aux_print_lists(lists, stack_size, lists_fill_p);
+  if (debug) aux_print_lists(lists, stack_size, lists_fill_p);
 
   /* Computes the lists lengths. */
   lengths[0] = l->length;
@@ -590,11 +597,12 @@ llist_merge_sort (l)
     lengths_fill_p++;
   }
 
-  aux_print_lengths(lengths, stack_size, lengths_fill_p);
+  if (debug) aux_print_lengths(lengths, stack_size, lengths_fill_p);
 
   while (*lengths_fill_p > 0 && *lengths_fill_p <= min_merge_length) { /* When the last run is shorter than the min merge length a new list is added on the stack. */
-    printf("\nCreate list: lengths_fill_p=%p, index=%02zu, length=%02zu, lists_fill_p=%p\n",
-           (void *)lengths_fill_p, lengths_fill_p - &lengths[0], *lengths_fill_p, (void *)lists_fill_p);
+    if (debug)
+      printf("\nCreate list: lengths_fill_p=%p, index=%02zu, length=%02zu, lists_fill_p=%p\n",
+             (void *)lengths_fill_p, lengths_fill_p - &lengths[0], *lengths_fill_p, (void *)lists_fill_p);
     /* Prepares and sorts the work list, wl. */
     llist_t *wl = lists_fill_p; lists_fill_p++;
     wl->head = head_of_tail;
@@ -605,12 +613,12 @@ llist_merge_sort (l)
     for (size_t i = 0; i < wl->length; i++, hp = &((*hp)->next)) ;
     head_of_tail = *hp;
     *hp = NULL; /* Now wl is ready to be used. */
-    llist_adv_insertion_sort(wl);
+    llist_insertion_sort(wl);
   }
 
-  aux_print_tail(head_of_tail);
-  aux_print_lengths(lengths, stack_size, lengths_fill_p);
-  aux_print_lists (lists, stack_size, lists_fill_p);
+  if (debug) aux_print_tail(head_of_tail);
+  if (debug) aux_print_lengths(lengths, stack_size, lengths_fill_p);
+  if (debug) aux_print_lists (lists, stack_size, lists_fill_p);
 
  merge: // Has to be fully understood if it is required to iterate ...
   if (lists_fill_p > &lists[1]) { /* There are two or more lists on the stack. */
@@ -618,8 +626,9 @@ llist_merge_sort (l)
     llist_t *l2 = lists_fill_p - 2;
     size_t len_diff = (l1->length > l2->length) ? l1->length - l2->length : l2->length - l1->length;
     if (len_diff < 2) { /* Merge lists. */
-      printf("\nMerge lists l1 + l2 -> l2: l1[address=%p, length=%02zu, head=%p], l2[address=%p, length=%02zu, head=%p]\n",
-             (void *)l1, l1->length, (void *)(l1->head), (void *)l2, l2->length, (void *)(l2->head));
+      if (debug)
+        printf("\nMerge lists l1 + l2 -> l2: l1[address=%p, length=%02zu, head=%p], l2[address=%p, length=%02zu, head=%p]\n",
+               (void *)l1, l1->length, (void *)(l1->head), (void *)l2, l2->length, (void *)(l2->head));
       lists_fill_p--;
       llist_elm_t *c1 = l1->head;
       llist_elm_t *c2 = l2->head;
@@ -636,7 +645,7 @@ llist_merge_sort (l)
       }
       llist_elm_t **np = c1 ? &c1 : &c2;
       *ep = *np;
-      aux_print_lists (lists, stack_size, lists_fill_p);
+      if (debug) aux_print_lists (lists, stack_size, lists_fill_p);
       goto merge;
     }
   }

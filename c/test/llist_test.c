@@ -466,11 +466,11 @@ llist_adv_insertion_sort_test (ut_test_t *const t)
 static void
 llist_merge_sort_test (ut_test_t *const t)
 {
-  int data_size = 33;
+  int data_size = 31;
   int data[] = {4, 25, 10,  1, 12, 18,  8, 21,
                 7, 16,  6,  3, 13, 14, 11, 15,
                 5, 17,  0, 19, 20,  9, 23, 22,
-                24, 2, 29, 30, 27, 26, 28, 31, 32};
+                24, 2, 29, 30, 27, 26, 28};
 
   llist_t *l = llist_new(aux_int_cmp);
   ut_assert(t, l != NULL);
@@ -479,8 +479,6 @@ llist_merge_sort_test (ut_test_t *const t)
   }
 
   llist_merge_sort(l);
-  llist_foreach(l, aux_print_elements, NULL);
-  printf("\n");
 
   for (int i = 0; i < data_size; i++) {
     ut_assert(t, i == *(int *)llist_nth_data(l, i));
@@ -492,11 +490,10 @@ llist_merge_sort_test (ut_test_t *const t)
 static void
 llist_merge_sort_2_test (ut_test_t *const t)
 {
-  const int sizes = 1024;
+  const int sizes = 512;
   int data[sizes];
 
   for (int data_size = 0; data_size <= sizes; data_size++) {
-    printf("DATA_SIZE=%04d BEGIN\n", data_size);
     for (int i = 0; i < data_size; i++) {
       data[i] = i;
     }
@@ -508,15 +505,12 @@ llist_merge_sort_2_test (ut_test_t *const t)
     }
 
     llist_merge_sort(l);
-    llist_foreach(l, aux_print_elements, NULL);
-    printf("\n");
 
     for (int i = 0; i < data_size; i++) {
       ut_assert(t, i == *(int *)llist_nth_data(l, i));
     }
 
     llist_free(l);
-    printf("DATA_SIZE=%04d END\n", data_size);
   }
 }
 
