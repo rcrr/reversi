@@ -156,8 +156,8 @@ ut_assert (ut_test_t *t,
 /**************************************************/
 
 extern void
-ut_init (int *argc,
-         char ***argv);
+ut_init (int *argc_p,
+         char ***argv_p);
 
 
 

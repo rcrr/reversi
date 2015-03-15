@@ -43,8 +43,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "unit_test.h"
+
+
+
+/******************************************************/
+/* Internal function declarations.                    */
+/******************************************************/
+
+static void
+parse_args (int *argc_p,
+            char ***argv_p);
 
 
 
@@ -232,13 +243,80 @@ ut_assert (t, assertion)
 /**
  * @brief Has to be called by main as the first step for running the test suite.
  *
- * @param [in]     argc address of the argc parameter of the main() function.
- * @param [in,out] argv address of the argv parameter of the main() function.
+ * @param [in]     argc_p address of the argc parameter of the main() function.
+ * @param [in,out] argv_p address of the argv parameter of the main() function.
  */
 void
-ut_init (argc, argv)
-     int *argc;
-     char ***argv;
+ut_init (argc_p, argv_p)
+     int *argc_p;
+     char ***argv_p;
 {
+  parse_args(argc_p, argv_p);
   return;
+}
+
+
+
+/********************************************/
+/* Internal functions.                      */
+/********************************************/
+
+static void
+parse_args (argc_p, argv_p)
+     int *argc_p;
+     char ***argv_p;
+{
+  int argc = *argc_p;
+  char **argv = *argv_p;
+
+  /* Parses known args. */
+  for (int i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "-l") == 0) {
+      ; // TBD
+      argv[i] = NULL;
+    } else if (strcmp("-m", argv[i]) == 0) {
+      ; // TBD
+      argv[i] = NULL;
+    } else if (strcmp("-p", argv[i]) == 0) {
+      ; // TBD
+      argv[i] = NULL;
+    } else if (strcmp("-s", argv[i]) == 0) {
+      ; // TBD
+      argv[i] = NULL;
+    } else if (strcmp("-q", argv[i]) == 0 || strcmp("--quiet", argv[i]) == 0) {
+      ; // TBD
+      argv[i] = NULL;
+    } else if (strcmp("-v", argv[i]) == 0 || strcmp("--verbose", argv[i]) == 0) {
+      ; // TBD
+      argv[i] = NULL;
+    } else if (strcmp("-?", argv[i]) == 0 ||
+               strcmp("-h", argv[i]) == 0 ||
+               strcmp("--help", argv[i]) == 0) {
+      printf("Usage:\n"
+             "  %s [OPTION...]\n\n"
+             "Help Options:\n"
+             "  -h, --help                  Show help options\n\n"
+             "Test Options:\n"
+             "  -l                          List test cases available in a test executable\n"
+             "  -m {perf|standard}          Execute tests according to mode\n"
+             "  -p TESTPATH                 Only start test cases matching TESTPATH\n"
+             "  -s TESTPATH                 Skip all tests matching TESTPATH\n"
+             "  -q, --quiet                 Run tests quietly\n"
+             "  -v, --verbose               Run tests verbosely\n",
+             argv[0]);
+      exit(0);
+    }
+  }
+
+  /* Packs argv removing null values. */
+  int count = 1;
+  for (int i = 1; i < argc; i++) {
+    if (argv[i]) {
+      argv[count++] = argv[i];
+      if (i >= count)
+        argv[i] = NULL;
+    }
+  }
+  *argc_p = count;
+
 }
