@@ -91,6 +91,18 @@ llist_free (l)
 }
 
 /**
+ * @brief Returns the length of the list..
+ *
+ * @param [in] l the list
+ */
+size_t
+llist_length (l)
+     const llist_t *const l;
+{
+  return l->length;
+}
+
+/**
  * @brief Adds a new element at the beginning of the linked list.
  *
  * @details A new element is created, having as data the parameter d, and

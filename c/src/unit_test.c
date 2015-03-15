@@ -220,20 +220,32 @@ ut_suite_run (s)
     ut_test_t *t = *(s->tests + i);
 
     sprintf(full_path, "/%s/%s", s->label, t->label);
-    // if matches .... write a function using strstr(full_path, );
-
-    if (arg_config.print_test_list) { /* Lists the test. */
-      printf("%s\n", full_path);
-    } else { /* Runs the test. */
-      printf("%s: ", full_path);
-      t->test(t);
-      if (t->failure_count) {
-        s->failed_test_count++;
-        printf("failure count = %d.\n", t->failure_count);
-      } else {
-        printf("%*cOK\n", (int)(12 + len - strlen(full_path)), ' ');
+    bool selected = false;
+    if (llist_length(arg_config.test_paths) == 0) selected = true;
+    for (llist_elm_t *e = arg_config.test_paths->head; e; e = e->next) {
+      char *test_path = (char *)(e->data);
+      char *match = strstr(full_path, test_path);
+      if (match == full_path) {
+        selected = true;
+        break;
       }
     }
+
+    if (selected) {
+      if (arg_config.print_test_list) { /* Lists the test. */
+        printf("%s\n", full_path);
+      } else { /* Runs the test. */
+        printf("%s: ", full_path);
+        t->test(t);
+        if (t->failure_count) {
+          s->failed_test_count++;
+          printf("failure count = %d.\n", t->failure_count);
+        } else {
+          printf("%*cOK\n", (int)(12 + len - strlen(full_path)), ' ');
+        }
+      }
+    }
+
   }
 
   free(full_path);

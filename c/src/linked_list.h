@@ -93,6 +93,9 @@ llist_new (llist_compare_f cmp);
 extern void
 llist_free (llist_t *l);
 
+extern size_t
+llist_length (const llist_t *const l);
+
 extern void
 llist_add (llist_t *const l,
            void *const d);
