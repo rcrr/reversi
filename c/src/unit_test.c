@@ -48,6 +48,13 @@
 #include "unit_test.h"
 
 
+/******************************************************/
+/* Internal static variable declarations.             */
+/******************************************************/
+
+static ut_prog_arg_config_t arg_config;
+
+
 
 /******************************************************/
 /* Internal function declarations.                    */
@@ -269,10 +276,16 @@ parse_args (argc_p, argv_p)
   int argc = *argc_p;
   char **argv = *argv_p;
 
+  arg_config.print_test_list = false;
+  arg_config.mode = UT_MODE_STND;
+  arg_config.path = NULL;
+  arg_config.skip = NULL;
+  arg_config.verb = UT_VEROSITY_STND;
+
   /* Parses known args. */
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-l") == 0) {
-      ; // TBD
+      arg_config.print_test_list = true;
       argv[i] = NULL;
     } else if (strcmp("-m", argv[i]) == 0) {
       ; // TBD

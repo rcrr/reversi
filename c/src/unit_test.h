@@ -34,15 +34,7 @@
 #ifndef UNIT_TEST_H
 #define UNIT_TEST_H
 
-/**
- * @brief Boolean true.
- */
-#define TRUE  1
-
-/**
- * @brief Boolean false.
- */
-#define FALSE 0
+#include <stdbool.h>
 
 
 
@@ -104,6 +96,36 @@ typedef struct ut_suite_t_ {
   ut_test_t **tests;          /**< @brief An array of pointers to tests. */
   int failed_test_count;      /**> @brief Count of failed tests. */
 } ut_suite_t;
+
+/**
+ * @enum ut_mode_t
+ * @brief The mode for running the group of tests.
+ */
+typedef enum {
+  UT_MODE_STND,   /**< Standard mode. */
+  UT_MODE_PERF    /**< Performance mode. */
+} ut_mode_t;
+
+/**
+ * @enum ut_verbosity_t
+ * @brief The mode for running the group of tests.
+ */
+typedef enum {
+  UT_VEROSITY_LOW,     /**< Low verbosity. */
+  UT_VEROSITY_STND,    /**< Standard verbosity. */
+  UT_VEROSITY_HIGHT    /**< Hight verbosity. */
+} ut_verbosity_t;
+
+/**
+ * @brief Program argument configuration.
+ */
+typedef struct ut_prog_arg_config_t_ {
+  bool print_test_list;                  /**< @brief Print test list. */
+  ut_mode_t mode;                        /**< @brief Running mode. */
+  char *path;                            /**< @brief Only start test cases matching it. */
+  char *skip;                            /**< @brief Skip all tests matching it. */
+  ut_verbosity_t verb;                   /**< @brief Output verbosity. */
+} ut_prog_arg_config_t;
 
 
 
