@@ -230,6 +230,14 @@ ut_suite_run (s)
         break;
       }
     }
+    for (llist_elm_t *e = arg_config.skip_paths->head; e; e = e->next) {
+      char *skip_path = (char *)(e->data);
+      char *match = strstr(full_path, skip_path);
+      if (match == full_path) {
+        selected = false;
+        break;
+      }
+    }
 
     if (selected) {
       if (arg_config.print_test_list) { /* Lists the test. */
@@ -334,9 +342,17 @@ parse_args (argc_p, argv_p)
       }
       argv[i] = NULL;
       if (test_path) llist_add(arg_config.test_paths, test_path);
-    } else if (strcmp("-s", argv[i]) == 0) {
-      ; // TBD
+    } else if (strcmp("-s", argv[i]) == 0 || strncmp ("-s=", argv[i], 3) == 0) {
+      char *equal = argv[i] + 2;
+      char *skip_path = NULL;
+      if (*equal == '=')
+        skip_path = equal + 1;
+      else if (i + 1 < argc) {
+        argv[i++] = NULL;
+        skip_path = argv[i];
+      }
       argv[i] = NULL;
+      if (skip_path) llist_add(arg_config.skip_paths, skip_path);
     } else if (strcmp("-q", argv[i]) == 0 || strcmp("--quiet", argv[i]) == 0) {
       arg_config.verb = UT_VEROSITY_LOW;
       argv[i] = NULL;
