@@ -208,13 +208,17 @@ ut_suite_run (s)
   if (!s) return 0;
   for (int i = 0; i < s->count; i++) {
     ut_test_t *t = *(s->tests + i);
-    printf("/%s/%s: ", s->label, t->label);
-    t->test(t);
-    if (t->failure_count) {
-      s->failed_test_count++;
-      printf("failure count = %d.\n", t->failure_count);
-    } else {
-      printf("OK\n");
+    if (arg_config.print_test_list) {
+      printf("/%s/%s\n", s->label, t->label);
+    } else { /* Runs the test. */
+      printf("/%s/%s: ", s->label, t->label);
+      t->test(t);
+      if (t->failure_count) {
+        s->failed_test_count++;
+        printf("failure count = %d.\n", t->failure_count);
+      } else {
+        printf("OK\n");
+      }
     }
   }
   return s->failed_test_count;
@@ -290,17 +294,34 @@ parse_args (argc_p, argv_p)
     } else if (strcmp("-m", argv[i]) == 0) {
       ; // TBD
       argv[i] = NULL;
+
+    } else if (strcmp("-p", argv[i]) == 0 || strncmp ("-p=", argv[i], 3) == 0) {
+      char *equal = argv[i] + 2;
+      char *test_path = NULL;
+      if (*equal == '=')
+        test_path = equal + 1;
+      //test_paths = g_slist_prepend (test_paths, equal + 1);
+      else if (i + 1 < argc) {
+        argv[i++] = NULL;
+        test_path = argv[i];
+        //test_paths = g_slist_prepend (test_paths, argv[i]);
+      }
+      argv[i] = NULL;
+      printf("*** %s ***\n", test_path);
+
+      /*
     } else if (strcmp("-p", argv[i]) == 0) {
       ; // TBD
       argv[i] = NULL;
+      */
     } else if (strcmp("-s", argv[i]) == 0) {
       ; // TBD
       argv[i] = NULL;
     } else if (strcmp("-q", argv[i]) == 0 || strcmp("--quiet", argv[i]) == 0) {
-      ; // TBD
+      arg_config.verb = UT_VEROSITY_LOW;
       argv[i] = NULL;
     } else if (strcmp("-v", argv[i]) == 0 || strcmp("--verbose", argv[i]) == 0) {
-      ; // TBD
+      arg_config.verb = UT_VEROSITY_HIGHT;
       argv[i] = NULL;
     } else if (strcmp("-?", argv[i]) == 0 ||
                strcmp("-h", argv[i]) == 0 ||
