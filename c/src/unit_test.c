@@ -48,6 +48,7 @@
 #include "unit_test.h"
 
 
+
 /******************************************************/
 /* Internal static variable declarations.             */
 /******************************************************/
@@ -63,6 +64,9 @@ static ut_prog_arg_config_t arg_config;
 static void
 parse_args (int *argc_p,
             char ***argv_p);
+
+static unsigned long
+ut_suite_full_path_max_length (ut_suite_t *s);
 
 
 
@@ -206,21 +210,34 @@ ut_suite_run (s)
      ut_suite_t *s;
 {
   if (!s) return 0;
+
+  const unsigned long len = ut_suite_full_path_max_length(s);
+
+  char *full_path = (char *) malloc(len * sizeof(char));
+  assert(full_path);
+
   for (int i = 0; i < s->count; i++) {
     ut_test_t *t = *(s->tests + i);
-    if (arg_config.print_test_list) {
-      printf("/%s/%s\n", s->label, t->label);
+
+    sprintf(full_path, "/%s/%s", s->label, t->label);
+    // if matches .... write a function using strstr(full_path, );
+
+    if (arg_config.print_test_list) { /* Lists the test. */
+      printf("%s\n", full_path);
     } else { /* Runs the test. */
-      printf("/%s/%s: ", s->label, t->label);
+      printf("%s: ", full_path);
       t->test(t);
       if (t->failure_count) {
         s->failed_test_count++;
         printf("failure count = %d.\n", t->failure_count);
       } else {
-        printf("OK\n");
+        printf("%*cOK\n", (int)(12 + len - strlen(full_path)), ' ');
       }
     }
   }
+
+  free(full_path);
+
   return s->failed_test_count;
 }
 
@@ -282,8 +299,8 @@ parse_args (argc_p, argv_p)
 
   arg_config.print_test_list = false;
   arg_config.mode = UT_MODE_STND;
-  arg_config.path = NULL;
-  arg_config.skip = NULL;
+  arg_config.test_paths = llist_new(NULL);
+  arg_config.skip_paths = llist_new(NULL);
   arg_config.verb = UT_VEROSITY_STND;
 
   /* Parses known args. */
@@ -294,26 +311,17 @@ parse_args (argc_p, argv_p)
     } else if (strcmp("-m", argv[i]) == 0) {
       ; // TBD
       argv[i] = NULL;
-
     } else if (strcmp("-p", argv[i]) == 0 || strncmp ("-p=", argv[i], 3) == 0) {
       char *equal = argv[i] + 2;
       char *test_path = NULL;
       if (*equal == '=')
         test_path = equal + 1;
-      //test_paths = g_slist_prepend (test_paths, equal + 1);
       else if (i + 1 < argc) {
         argv[i++] = NULL;
         test_path = argv[i];
-        //test_paths = g_slist_prepend (test_paths, argv[i]);
       }
       argv[i] = NULL;
-      printf("*** %s ***\n", test_path);
-
-      /*
-    } else if (strcmp("-p", argv[i]) == 0) {
-      ; // TBD
-      argv[i] = NULL;
-      */
+      if (test_path) llist_add(arg_config.test_paths, test_path);
     } else if (strcmp("-s", argv[i]) == 0) {
       ; // TBD
       argv[i] = NULL;
@@ -353,4 +361,19 @@ parse_args (argc_p, argv_p)
   }
   *argc_p = count;
 
+}
+
+static unsigned long
+ut_suite_full_path_max_length (s)
+     ut_suite_t *s;
+{
+  unsigned long max_label_len = 0;
+  unsigned long full_path_len = 2 + strlen(s->label);
+  for (int i = 0; i < s->count; i++) {
+    ut_test_t *t = *(s->tests + i);
+    unsigned long t_label_len = strlen(t->label);
+    if (t_label_len > max_label_len) max_label_len = t_label_len;
+  }
+  full_path_len += max_label_len;
+  return full_path_len;
 }

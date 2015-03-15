@@ -36,6 +36,8 @@
 
 #include <stdbool.h>
 
+#include "linked_list.h"
+
 
 
 /**********************************************/
@@ -122,8 +124,8 @@ typedef enum {
 typedef struct ut_prog_arg_config_t_ {
   bool print_test_list;                  /**< @brief Print test list. */
   ut_mode_t mode;                        /**< @brief Running mode. */
-  char *path;                            /**< @brief Only start test cases matching it. */
-  char *skip;                            /**< @brief Skip all tests matching it. */
+  llist_t *test_paths;                   /**< @brief Only start test cases matching a path in the list. */
+  llist_t *skip_paths;                   /**< @brief Skip all tests matching a path in the list. */
   ut_verbosity_t verb;                   /**< @brief Output verbosity. */
 } ut_prog_arg_config_t;
 
