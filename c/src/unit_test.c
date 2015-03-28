@@ -1,7 +1,20 @@
 /**
  * @file
  *
- * @todo
+ * @todo Implement the -v (verbose) and -q (quiet) modes.
+ *
+ * @todo Implement the -m flag standard|perf.
+ *
+ * @todo Implement the standard test, having the data pointer, and the fixture
+ *       prepare and terdown functions.
+ *
+ * @todo Verify that tests behave correctly when assertions fails or the program aborts.
+ *
+ * @todo Complete the utester program.
+ *
+ * @todo Write unit tests for the ut module.
+ *
+ *
  *
  * @brief Unit test module implementation.
  *
