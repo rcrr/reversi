@@ -10,7 +10,7 @@
  *
  * @todo Verify that tests behave correctly when assertions fails or the program aborts.
  *
- * @todo Complete the utester program.
+ * @todo Complete the utest program.
  *
  * @todo Write unit tests for the ut module.
  *
@@ -341,8 +341,24 @@ parse_args (argc_p, argv_p)
     if (strcmp(argv[i], "-l") == 0) {
       arg_config.print_test_list = true;
       argv[i] = NULL;
-    } else if (strcmp("-m", argv[i]) == 0) {
-      ; // TBD
+    } else if (strcmp("-m", argv[i]) == 0 || strncmp("-m=", argv[i], 3) == 0) {
+      char *equal = argv[i] + 2;
+      char *mode = NULL;
+      if (*equal == '=')
+        mode = equal + 1;
+      else if (i + 1 < argc) {
+        argv[i++] = NULL;
+        mode = argv[i];
+      } else {
+        printf("%s: missing mode value after -m flag.\n", argv[0]);
+        abort();
+      }
+      if (strcmp(mode, "perf") == 0) arg_config.mode = UT_MODE_PERF;
+      else if (strcmp(mode, "standard") == 0) arg_config.mode = UT_MODE_STND;
+      else {
+        printf("%s: mode value \"%s\" is invalid.\n", argv[0], mode);
+        abort();
+      }
       argv[i] = NULL;
     } else if (strcmp("-p", argv[i]) == 0 || strncmp ("-p=", argv[i], 3) == 0) {
       char *equal = argv[i] + 2;
@@ -352,6 +368,9 @@ parse_args (argc_p, argv_p)
       else if (i + 1 < argc) {
         argv[i++] = NULL;
         test_path = argv[i];
+      } else {
+        printf("%s: missing TESTPATH value after -p flag.\n", argv[0]);
+        abort();
       }
       argv[i] = NULL;
       if (test_path) llist_add(arg_config.test_paths, test_path);
@@ -363,6 +382,9 @@ parse_args (argc_p, argv_p)
       else if (i + 1 < argc) {
         argv[i++] = NULL;
         skip_path = argv[i];
+      } else {
+        printf("%s: missing TESTPATH value after -s flag.\n", argv[0]);
+        abort();
       }
       argv[i] = NULL;
       if (skip_path) llist_add(arg_config.skip_paths, skip_path);
