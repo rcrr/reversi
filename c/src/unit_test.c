@@ -260,7 +260,7 @@ ut_suite_run (s)
         t->test(t);
         if (t->failure_count) {
           s->failed_test_count++;
-          printf("failure count = %d.\n", t->failure_count);
+          printf("%*cFAILED - Failure count = %d\n", (int)(12 + len - strlen(full_path)), ' ', t->failure_count);
         } else {
           printf("%*cOK\n", (int)(12 + len - strlen(full_path)), ' ');
         }

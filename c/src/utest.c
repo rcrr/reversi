@@ -257,6 +257,7 @@ main (int argc, char *argv[])
       }
     } else {
       printf("%s: launching test program %s ... ( pid = %zu )\n", argv[0], test_program_name, (size_t) child_pid);
+      /*
       do {
         pid_t w = waitpid(child_pid, &status, WUNTRACED | WCONTINUED);
         if (w == -1) {
@@ -275,6 +276,13 @@ main (int argc, char *argv[])
           printf("continued\n");
         }
       } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+      */
+
+      wait(&status);
+      if (WIFSIGNALED(status))
+        printf("%*cKILLED - Killed by signal %d\n", 10, ' ', WTERMSIG(status));
+      printf("%s: test program %s, child process ( pid = %zu ) exit code: %d\n",
+             argv[0], test_program_name, (size_t) child_pid, WEXITSTATUS(status));
 
       // print test summary......
       printf("\n");
