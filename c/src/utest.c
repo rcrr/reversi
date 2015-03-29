@@ -228,36 +228,50 @@ main (int argc, char *argv[])
 
   ret = 0;
 
-  cpid = fork();
 
-  if (cpid == 0) {
-    printf("utest: launching llist_test ...\n");
+  for (int i = 1; i < argc; i++) {
+    char *test_program_name = argv[i];
+    if (access(test_program_name, F_OK) == -1 ) {
+      printf("%s: test program %s doesn't exist.\n", argv[0], test_program_name);
+      abort();
+    }
+    if (access(test_program_name, X_OK) == -1 ) {
+      printf("%s: test program %s is not executable.\n", argv[0], test_program_name);
+      abort();
+    }
 
-    char **argv_new = prepare_args();
-    argv_new[0] = "llist_test";
-    ret = execv("./build/test/bin/llist_test", argv_new);
-  } else {
-    do {
-      w = waitpid(cpid, &status, WUNTRACED | WCONTINUED);
-      if (w == -1) {
-        perror("waitpid");
-        exit(EXIT_FAILURE);
-      }
+    if ((cpid = fork()) == 0) {
+      printf("%s: launching test program %s ...\n", argv[0], test_program_name);
 
-      if (WIFEXITED(status)) {
-        printf("exited, status=%d\n", WEXITSTATUS(status));
-      } else if (WIFSIGNALED(status)) {
-        printf("killed by signal %d\n", WTERMSIG(status));
-      } else if (WIFSTOPPED(status)) {
-        printf("stopped by signal %d\n", WSTOPSIG(status));
-      } else if (WIFCONTINUED(status)) {
-        printf("continued\n");
-      }
-    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-    printf("\n");
-    printf("ret=%d\n", ret);
-    exit(EXIT_SUCCESS);
+      char **argv_new = prepare_args();
+      argv_new[0] = test_program_name;
+      ret = execv(test_program_name, argv_new);
+    } else {
+      do {
+        w = waitpid(cpid, &status, WUNTRACED | WCONTINUED);
+        if (w == -1) {
+          perror("waitpid");
+          exit(EXIT_FAILURE);
+        }
+
+        if (WIFEXITED(status)) {
+          printf("exited, status=%d\n", WEXITSTATUS(status));
+        } else if (WIFSIGNALED(status)) {
+          printf("killed by signal %d\n", WTERMSIG(status));
+        } else if (WIFSTOPPED(status)) {
+          printf("stopped by signal %d\n", WSTOPSIG(status));
+        } else if (WIFCONTINUED(status)) {
+          printf("continued\n");
+        }
+      } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+
+      // print test summary......
+      printf("\n");
+      printf("ret=%d\n", ret);
+    }
+
   }
+
 
   return 0;
 }
