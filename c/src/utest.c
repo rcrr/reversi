@@ -77,14 +77,14 @@ parse_args (argc_p, argv_p)
         argv[i++] = NULL;
         mode = argv[i];
       } else {
-        printf("%s: missing MODE value after -m flag.\n", argv[0]);
-        abort();
+        fprintf(stderr, "%s: missing MODE value after -m flag.\n", argv[0]);
+        exit(EXIT_FAILURE);
       }
       if (strcmp(mode, "perf") == 0) arg_config.mode = UT_MODE_PERF;
       else if (strcmp(mode, "standard") == 0) arg_config.mode = UT_MODE_STND;
       else {
-        printf("%s: MODE value \"%s\" is invalid.\n", argv[0], mode);
-        abort();
+        fprintf(stderr, "%s: MODE value \"%s\" is invalid.\n", argv[0], mode);
+        exit(EXIT_FAILURE);
       }
       argv[i] = NULL;
     } else if (strcmp("-p", argv[i]) == 0 || strncmp("-p=", argv[i], 3) == 0) {
@@ -96,8 +96,8 @@ parse_args (argc_p, argv_p)
         argv[i++] = NULL;
         test_path = argv[i];
       } else {
-        printf("%s: missing TESTPATH value after -l flag.\n", argv[0]);
-        abort();
+        fprintf(stderr, "%s: missing TESTPATH value after -l flag.\n", argv[0]);
+        exit(EXIT_FAILURE);
       }
       argv[i] = NULL;
       if (test_path) llist_add(arg_config.test_paths, test_path);
@@ -110,8 +110,8 @@ parse_args (argc_p, argv_p)
         argv[i++] = NULL;
         skip_path = argv[i];
       } else {
-        printf("%s: missing TESTPATH value after -s flag.\n", argv[0]);
-        abort();
+        fprintf(stderr, "%s: missing TESTPATH value after -s flag.\n", argv[0]);
+        exit(EXIT_FAILURE);
       }
       argv[i] = NULL;
       if (skip_path) llist_add(arg_config.skip_paths, skip_path);
@@ -183,7 +183,7 @@ prepare_args()
   if (arg_config.mode == UT_MODE_STND) argv[2] = "standard";
   else if (arg_config.mode == UT_MODE_PERF) argv[2] = "perf";
   else {
-    printf("Invalid arg_config.mode \"%d\" option.\n", arg_config.mode);
+    fprintf(stderr, "Invalid arg_config.mode \"%d\" option.\n", arg_config.mode);
     abort();
   }
 
@@ -192,7 +192,7 @@ prepare_args()
     if (arg_config.verb == UT_VEROSITY_LOW) argv[index++] = "-q";
     else if (arg_config.verb == UT_VEROSITY_HIGHT) argv[index++] = "-v";
     else {
-      printf("Invalid arg_config.verb \"%d\" option.\n", arg_config.verb);
+      fprintf(stderr, "Invalid arg_config.verb \"%d\" option.\n", arg_config.verb);
       abort();
     }
   }
@@ -222,35 +222,46 @@ main (int argc, char *argv[])
 {
   parse_args(&argc, &argv);
 
-  pid_t cpid, w;
-  int ret;
   int status;
-
-  ret = 0;
-
 
   for (int i = 1; i < argc; i++) {
     char *test_program_name = argv[i];
     if (access(test_program_name, F_OK) == -1 ) {
-      printf("%s: test program %s doesn't exist.\n", argv[0], test_program_name);
-      abort();
+      perror("Function access()");
+      fprintf(stderr, "%s: test program %s doesn't exist.\n", argv[0], test_program_name);
+      exit(EXIT_FAILURE);
     }
     if (access(test_program_name, X_OK) == -1 ) {
-      printf("%s: test program %s is not executable.\n", argv[0], test_program_name);
-      abort();
+      perror("Function access");
+      fprintf(stderr, "%s: test program %s is not executable.\n", argv[0], test_program_name);
+      exit(EXIT_FAILURE);
     }
 
-    if ((cpid = fork()) == 0) {
-      printf("%s: launching test program %s ...\n", argv[0], test_program_name);
-
-      char **argv_new = prepare_args();
-      argv_new[0] = test_program_name;
-      ret = execv(test_program_name, argv_new);
+    pid_t child_pid = fork();
+    if (child_pid == -1) {
+      perror("Function fork()");
+      fprintf(stderr, "%s, fork failed.", argv[0]);
+      exit(EXIT_FAILURE);
+    } else if (child_pid == 0) {
+      char **argv_tprog = prepare_args();
+      argv_tprog[0] = test_program_name;
+      int ret = execv(test_program_name, argv_tprog);
+      if (ret == -1) {
+        perror("Function execv()");
+        fprintf(stderr, "%s: returning from fork gave an error.", argv[0]);
+        exit(EXIT_FAILURE);
+      } else { // This should never happens.
+        perror("Function execv()");
+        fprintf(stderr, "%s: returning from fork gave an error. Return value is %d.\n", argv[0], ret);
+        abort();
+      }
     } else {
+      printf("%s: launching test program %s ... ( pid = %zu )\n", argv[0], test_program_name, (size_t) child_pid);
       do {
-        w = waitpid(cpid, &status, WUNTRACED | WCONTINUED);
+        pid_t w = waitpid(child_pid, &status, WUNTRACED | WCONTINUED);
         if (w == -1) {
-          perror("waitpid");
+          perror("Function waitpid()");
+          fprintf(stderr, "%s: unable to monitor the child process.\n", argv[0]);
           exit(EXIT_FAILURE);
         }
 
@@ -267,7 +278,6 @@ main (int argc, char *argv[])
 
       // print test summary......
       printf("\n");
-      printf("ret=%d\n", ret);
     }
 
   }
