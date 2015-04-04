@@ -258,11 +258,12 @@ main (argc, argv)
         abort();
       }
     } else {
-      printf("%s: launching test program %s ... ( pid = %zu )\n", argv[0], test_program_name, (size_t) child_pid);
+      fprintf(stdout, "%s: launching test program %s ... ( pid = %zu )\n", argv[0], test_program_name, (size_t) child_pid);
+      fflush(stdout);
       wait(&status);
       if (WIFSIGNALED(status))
-        printf("\nKILLED - Killed by signal %d\n", WTERMSIG(status));
-      printf("%s: test program %s, child process ( pid = %zu ) exit code: %d\n",
+        fprintf(stdout, "\nKILLED - Killed by signal %d\n", WTERMSIG(status));
+      fprintf(stdout, "%s: test program %s, child process ( pid = %zu ) exit code: %d\n",
              argv[0], test_program_name, (size_t) child_pid, WEXITSTATUS(status));
     }
   }

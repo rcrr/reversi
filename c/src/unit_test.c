@@ -224,7 +224,9 @@ ut_suite_run (s)
 {
   if (!s) return 0;
 
+  const unsigned long res_msg_def_print_column = 60;
   const unsigned long len = ut_suite_full_path_max_length(s);
+  const unsigned long res_msg_print_column = (res_msg_def_print_column > len) ? res_msg_def_print_column : len;
 
   char *full_path = (char *) malloc(len * sizeof(char));
   assert(full_path);
@@ -254,15 +256,15 @@ ut_suite_run (s)
 
     if (selected) {
       if (arg_config.print_test_list) { /* Lists the test. */
-        printf("%s\n", full_path);
+        fprintf(stdout, "%s\n", full_path);
       } else { /* Runs the test. */
-        printf("%s: ", full_path);
+        fprintf(stdout, "%s: ", full_path);
         t->test(t);
         if (t->failure_count) {
           s->failed_test_count++;
-          printf("%*cFAILED - Failure count = %d\n", (int)(12 + len - strlen(full_path)), ' ', t->failure_count);
+          fprintf(stdout, "%*cFAILED - Failure count = %d\n", (int)(res_msg_print_column - strlen(full_path)), ' ', t->failure_count);
         } else {
-          printf("%*cOK\n", (int)(12 + len - strlen(full_path)), ' ');
+          fprintf(stdout, "%*cOK\n", (int)(res_msg_print_column- strlen(full_path)), ' ');
         }
       }
     }
@@ -397,18 +399,19 @@ parse_args (argc_p, argv_p)
     } else if (strcmp("-?", argv[i]) == 0 ||
                strcmp("-h", argv[i]) == 0 ||
                strcmp("--help", argv[i]) == 0) {
-      printf("Usage:\n"
-             "  %s [OPTION...]\n\n"
-             "Help Options:\n"
-             "  -h, --help                  Show help options\n\n"
-             "Test Options:\n"
-             "  -l                          List test cases available in a test executable\n"
-             "  -m {perf|standard}          Execute tests according to mode\n"
-             "  -p TESTPATH                 Only start test cases matching TESTPATH\n"
-             "  -s TESTPATH                 Skip all tests matching TESTPATH\n"
-             "  -q, --quiet                 Run tests quietly\n"
-             "  -v, --verbose               Run tests verbosely\n",
-             argv[0]);
+      fprintf(stdout,
+              "Usage:\n"
+              "  %s [OPTION...]\n\n"
+              "Help Options:\n"
+              "  -h, --help                  Show help options\n\n"
+              "Test Options:\n"
+              "  -l                          List test cases available in a test executable\n"
+              "  -m {perf|standard}          Execute tests according to mode\n"
+              "  -p TESTPATH                 Only start test cases matching TESTPATH\n"
+              "  -s TESTPATH                 Skip all tests matching TESTPATH\n"
+              "  -q, --quiet                 Run tests quietly\n"
+              "  -v, --verbose               Run tests verbosely\n",
+              argv[0]);
       exit(0);
     }
   }
