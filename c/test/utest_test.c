@@ -70,7 +70,13 @@ utest_abort_test (ut_test_t *const t)
 static void
 utest_exit_test (ut_test_t *const t)
 {
-  exit(0);
+  exit(7);
+}
+
+static void
+utest_assert_false_test (ut_test_t *const t)
+{
+  assert(false);
 }
 
 
@@ -90,6 +96,7 @@ main (int argc,
   ut_suite_add_simple_test(s, "fail", utest_fail_test);
   ut_suite_add_simple_test(s, "abort", utest_abort_test);
   ut_suite_add_simple_test(s, "exit", utest_exit_test);
+  ut_suite_add_simple_test(s, "assert_false", utest_assert_false_test);
 
   int failure_count = ut_suite_run(s);
 

@@ -520,8 +520,9 @@ llist_merge_sort__1_test (ut_test_t *const t)
  * @brief Runs the test suite.
  */
 int
-main (int argc,
-      char **argv)
+main (argc, argv)
+     int argc;
+     char **argv;
 {
   ut_init (&argc, &argv);
 

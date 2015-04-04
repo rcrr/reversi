@@ -218,7 +218,9 @@ prepare_args()
  * @brief Main entry for the utest program.
  */
 int
-main (int argc, char *argv[])
+main (argc, argv)
+     int argc;
+     char **argv;
 {
   parse_args(&argc, &argv);
 
@@ -250,46 +252,20 @@ main (int argc, char *argv[])
         perror("Function execv()");
         fprintf(stderr, "%s: returning from fork gave an error.", argv[0]);
         exit(EXIT_FAILURE);
-      } else { // This should never happens.
+      } else { // This should never happen.
         perror("Function execv()");
         fprintf(stderr, "%s: returning from fork gave an error. Return value is %d.\n", argv[0], ret);
         abort();
       }
     } else {
       printf("%s: launching test program %s ... ( pid = %zu )\n", argv[0], test_program_name, (size_t) child_pid);
-      /*
-      do {
-        pid_t w = waitpid(child_pid, &status, WUNTRACED | WCONTINUED);
-        if (w == -1) {
-          perror("Function waitpid()");
-          fprintf(stderr, "%s: unable to monitor the child process.\n", argv[0]);
-          exit(EXIT_FAILURE);
-        }
-
-        if (WIFEXITED(status)) {
-          printf("exited, status=%d\n", WEXITSTATUS(status));
-        } else if (WIFSIGNALED(status)) {
-          printf("killed by signal %d\n", WTERMSIG(status));
-        } else if (WIFSTOPPED(status)) {
-          printf("stopped by signal %d\n", WSTOPSIG(status));
-        } else if (WIFCONTINUED(status)) {
-          printf("continued\n");
-        }
-      } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-      */
-
       wait(&status);
       if (WIFSIGNALED(status))
-        printf("%*cKILLED - Killed by signal %d\n", 10, ' ', WTERMSIG(status));
+        printf("\nKILLED - Killed by signal %d\n", WTERMSIG(status));
       printf("%s: test program %s, child process ( pid = %zu ) exit code: %d\n",
              argv[0], test_program_name, (size_t) child_pid, WEXITSTATUS(status));
-
-      // print test summary......
-      printf("\n");
     }
-
   }
-
 
   return 0;
 }
