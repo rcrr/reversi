@@ -256,8 +256,10 @@ ut_suite_run (s)
 
     if (selected) {
       if (arg_config.print_test_list) { /* Lists the test. */
+        if (arg_config.utest) fprintf(stdout, "   ");
         fprintf(stdout, "%s\n", full_path);
       } else { /* Runs the test. */
+        if (arg_config.utest) fprintf(stdout, "   ");
         fprintf(stdout, "%s: ", full_path);
         t->test(t);
         if (t->failure_count) {
@@ -337,6 +339,7 @@ parse_args (argc_p, argv_p)
   arg_config.test_paths = llist_new(NULL);
   arg_config.skip_paths = llist_new(NULL);
   arg_config.verb = UT_VEROSITY_STND;
+  arg_config.utest = false;
 
   /* Parses known args. */
   for (int i = 1; i < argc; i++) {
@@ -395,6 +398,9 @@ parse_args (argc_p, argv_p)
       argv[i] = NULL;
     } else if (strcmp("-v", argv[i]) == 0 || strcmp("--verbose", argv[i]) == 0) {
       arg_config.verb = UT_VEROSITY_HIGHT;
+      argv[i] = NULL;
+    } else if (strcmp("--utest", argv[i]) == 0) {
+      arg_config.utest = true;
       argv[i] = NULL;
     } else if (strcmp("-?", argv[i]) == 0 ||
                strcmp("-h", argv[i]) == 0 ||

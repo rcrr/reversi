@@ -127,6 +127,7 @@ typedef struct ut_prog_arg_config_t_ {
   llist_t *test_paths;                   /**< @brief Only start test cases matching a path in the list. */
   llist_t *skip_paths;                   /**< @brief Skip all tests matching a path in the list. */
   ut_verbosity_t verb;                   /**< @brief Output verbosity. */
+  bool utest;                            /**< @brief Called by utest program. */
 } ut_prog_arg_config_t;
 
 

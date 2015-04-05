@@ -169,11 +169,11 @@ prepare_args()
   }
 
   /*
-   * argc = program_name + 2 * MODE  + 2 * test_paths + 2 * skip_paths
-   *      = 3 + 2 * (test_paths + skip_paths)
+   * argc = program_name + 2 * MODE  + UTEST_FLAG + 2 * test_paths + 2 * skip_paths
+   *      = 4 + 2 * (test_paths + skip_paths)
    * argc++ if (-v or -q flags are turned on);
    */
-  argc = 3 + 2 * (llist_length(arg_config.test_paths) + llist_length(arg_config.skip_paths));
+  argc = 4 + 2 * (llist_length(arg_config.test_paths) + llist_length(arg_config.skip_paths));
   if (arg_config.verb != UT_VEROSITY_STND) argc++;
 
   char **argv = (char **) malloc((argc + 1) * sizeof(char *));
@@ -187,7 +187,9 @@ prepare_args()
     abort();
   }
 
-  int index = 3;
+  argv[3] = "--utest";
+
+  int index = 4;
   if (arg_config.verb != UT_VEROSITY_STND) {
     if (arg_config.verb == UT_VEROSITY_LOW) argv[index++] = "-q";
     else if (arg_config.verb == UT_VEROSITY_HIGHT) argv[index++] = "-v";
