@@ -230,6 +230,7 @@ main (argc, argv)
 
   for (int i = 1; i < argc; i++) {
     char *test_program_name = argv[i];
+    bool test_pass = false;
     if (access(test_program_name, F_OK) == -1 ) {
       perror("Function access()");
       fprintf(stderr, "%s: test program %s doesn't exist.\n", argv[0], test_program_name);
@@ -260,13 +261,20 @@ main (argc, argv)
         abort();
       }
     } else {
-      fprintf(stdout, "%s: launching test program %s ... ( pid = %zu )\n", argv[0], test_program_name, (size_t) child_pid);
+      fprintf(stdout, "TEST - %s: launching test program %s ... ( pid = %zu )\n", argv[0], test_program_name, (size_t) child_pid);
       fflush(stdout);
       wait(&status);
-      if (WIFSIGNALED(status))
+      const int exit_value = WEXITSTATUS(status);
+      char exit_msg[16] = {'\0'};
+      if (WIFSIGNALED(status)) {
         fprintf(stdout, "\nKILLED - Killed by signal %d\n", WTERMSIG(status));
-      fprintf(stdout, "%s: test program %s, child process ( pid = %zu ) exit code: %d\n",
-             argv[0], test_program_name, (size_t) child_pid, WEXITSTATUS(status));
+      } else {
+        if (!exit_value) test_pass = true;
+        sprintf(exit_msg, " exit code: %d", exit_value);
+      }
+      char *pass_or_fail_string = (test_pass) ? "PASS" : "FAIL";
+      fprintf(stdout, "%s - %s: test program %s, child process ( pid = %zu )%s\n",
+              pass_or_fail_string, argv[0], test_program_name, (size_t) child_pid, exit_msg);
     }
   }
 
