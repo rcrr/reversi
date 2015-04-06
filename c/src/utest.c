@@ -47,6 +47,65 @@
 
 static ut_prog_arg_config_t arg_config;
 
+static const char const* program_name = "utest";
+static const char const* program_version = "0.1";
+static const char const* program_description = "Unit test runner.";
+static const char const* program_copyright = "Copyright (c) 2015 Roberto Corradini. All rights reserved.";
+static const char const* program_long_description =
+  "The utest executable is part of the Reversi program.\n"
+  "This program is designed to run a test suite.\n"
+  "Type utest -h to learn how to use it.\n"
+  "Visit the web site http://github.com/rcrr/reversi for more info, and to obtain the source code.";
+static const char const* program_license =
+  "This program is free software; you can redistribute it and/or modify it\n"
+  "under the terms of the GNU General Public License as published by the\n"
+  "Free Software Foundation; either version 3, or (at your option) any\n"
+  "later version.\n"
+  "\n"
+  "This program is distributed in the hope that it will be useful,\n"
+  "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+  "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
+  "GNU General Public License for more details.\n"
+  "\n"
+  "You should have received a copy of the GNU General Public License\n"
+  "along with this program; if not, write to the Free Software\n"
+  "Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA\n"
+  "or visit the site <http://www.gnu.org/licenses/>.";
+
+
+
+static void
+print_program_version (void)
+{
+  fprintf(stdout, "%s version %s\n", program_name, program_version);
+}
+
+
+
+static void
+print_program_license (void)
+{
+  fprintf(stdout, "%s\n", program_license);
+}
+
+
+
+static void
+print_program_copyright (void)
+{
+  fprintf(stdout, "%s\n", program_copyright);
+}
+
+
+
+static void
+print_program_info (void)
+{
+  fprintf(stdout, "%s version %s - %s\n", program_name, program_version, program_description);
+  fprintf(stdout, "%s\n", program_copyright);
+  fprintf(stdout, "%s\n", program_long_description);
+}
+
 
 
 static void
@@ -121,6 +180,18 @@ parse_args (argc_p, argv_p)
     } else if (strcmp("-v", argv[i]) == 0 || strcmp("--verbose", argv[i]) == 0) {
       arg_config.verb = UT_VEROSITY_HIGHT;
       argv[i] = NULL;
+    } else if (strcmp("--license", argv[i]) == 0) {
+      print_program_license();
+      argv[i] = NULL;
+    } else if (strcmp("--version", argv[i]) == 0) {
+      print_program_version();
+      argv[i] = NULL;
+    } else if (strcmp("--copyright", argv[i]) == 0) {
+      print_program_copyright();
+      argv[i] = NULL;
+    } else if (strcmp("--info", argv[i]) == 0) {
+      print_program_info();
+      argv[i] = NULL;
     } else if (strcmp("-?", argv[i]) == 0 ||
                strcmp("-h", argv[i]) == 0 ||
                strcmp("--help", argv[i]) == 0) {
@@ -128,6 +199,11 @@ parse_args (argc_p, argv_p)
              "  %s [OPTIONS] testprogram...\n\n"
              "Help Options:\n"
              "  -h, --help                  Show help options\n\n"
+             "Info Options:\n"
+             "  --license                   Show software license\n"
+             "  --version                   Show software version\n"
+             "  --copyright                 Show software copyright\n"
+             "  --info                      Show software info\n\n"
              "Test Options:\n"
              "  -l                          List test cases available in a test executable\n"
              "  -m {perf|standard}          Execute tests according to mode\n"
@@ -152,6 +228,7 @@ parse_args (argc_p, argv_p)
   *argc_p = count;
 
 }
+
 
 
 static char **
@@ -216,6 +293,7 @@ prepare_args()
 }
 
 
+
 /**
  * @brief Main entry for the utest program.
  */
@@ -225,8 +303,6 @@ main (argc, argv)
      char **argv;
 {
   parse_args(&argc, &argv);
-
-  int status;
 
   for (int i = 1; i < argc; i++) {
     char *test_program_name = argv[i];
@@ -263,6 +339,7 @@ main (argc, argv)
     } else {
       fprintf(stdout, "TEST - %s: launching test program %s ... ( pid = %zu )\n", argv[0], test_program_name, (size_t) child_pid);
       fflush(stdout);
+      int status;
       wait(&status);
       const int exit_value = WEXITSTATUS(status);
       char exit_msg[16] = {'\0'};
