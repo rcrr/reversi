@@ -26,8 +26,10 @@
 MAINS = endgame_solver gpdb_verify dump_bitrow_changes utest
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
-TEST_PROGS = bit_works_test random_test board_test game_position_db_test game_position_test \
-             game_tree_utils_test endgame_solver_test sort_utils_test llist_test utest_test
+TEST_PROGS = bit_works_test random_test sort_utils_test board_test game_position_db_test game_position_test \
+             game_tree_utils_test endgame_solver_test
+
+UTEST_PROGS = utest_test llist_test
 
 #
 # No changes from here to the end, unless a structurar change of the build process happens.
@@ -74,12 +76,16 @@ TEST_BINDIR  = $(BTESTDIR)/bin
 TEST_SRCS    = $(wildcard $(TESTDIR)/*.c)
 TEST_OBJS    = $(addsuffix .o,$(basename $(subst $(TESTDIR)/,$(TEST_OBJDIR)/,$(TEST_SRCS))))
 TEST_BINS    = $(addprefix $(TEST_BINDIR)/,$(TEST_PROGS))
+UTEST_BINS    = $(addprefix $(TEST_BINDIR)/,$(UTEST_PROGS))
 TEST_INCLUDE = -I./src
 
 TEST_OBJS_WITH_MAIN = $(addsuffix .o,$(addprefix $(TEST_OBJDIR)/,$(TEST_PROGS)))
-TEST_OBJS_NO_MAIN = $(filter-out $(TEST_OBJS_WITH_MAIN),$(TEST_OBJS))
+UTEST_OBJS_WITH_MAIN = $(addsuffix .o,$(addprefix $(TEST_OBJDIR)/,$(UTEST_PROGS)))
 
-all: $(BINS) $(TEST_BINS) $(OUTDIR)
+ALL_TEST_OBJS_WITH_MAIN = $(TEST_OBJS_WITH_MAIN) $(UTEST_OBJS_WITH_MAIN)
+TEST_OBJS_NO_MAIN = $(filter-out $(ALL_TEST_OBJS_WITH_MAIN),$(TEST_OBJS))
+
+all: $(BINS) $(TEST_BINS) $(UTEST_BINS) $(OUTDIR)
 
 $(BINS): $(OBJS) | $(BINDIR)
 	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(BINDIR),$(OBJDIR),$@))))
@@ -107,6 +113,13 @@ $(TEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
 	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(TEST_BINDIR),$(TEST_OBJDIR),$@))))
 	$(CC) $(LDFLAGS_TEST) $(OBJECT) $(TEST_OBJS_NO_MAIN) $(OBJS_NO_MAIN) $(LIBS) $(TEST_LIBS) -o $@
 
+.PHONY: test_bin
+utest_bin: $(OBJS) $(TEST_OBJS) $(UTEST_BINS)
+
+$(UTEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
+	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(TEST_BINDIR),$(TEST_OBJDIR),$@))))
+	$(CC) $(LDFLAGS_TEST) $(OBJECT) $(TEST_OBJS_NO_MAIN) $(OBJS_NO_MAIN) $(LIBS) $(TEST_LIBS) -o $@
+
 .PHONY: test
 test: $(TEST_BINS)
 	gtester --verbose -k -m=quick -o $(BTESTDIR)/gtester-log.xml $(TEST_BINS)
@@ -121,6 +134,10 @@ test_perf: $(TEST_BINS)
 
 .PHONY: test_report
 test_report: $(BTESTDIR)/gtester-log.html
+
+.PHONY: test
+utest: $(UTEST_BINS)
+	./build/bin/utest --verbose -s=/utest/fail -s=/utest/abort -s=/utest/exit -s=/utest/assert_false $(UTEST_BINS)
 
 $(BTESTDIR)/gtester-log.html: $(BTESTDIR)/gtester-log.xml
 	gtester-report $(BTESTDIR)/gtester-log.xml > $(BTESTDIR)/gtester-log.html
@@ -237,12 +254,14 @@ info:
 	@echo "TEST_SRCS = "$(TEST_SRCS)
 	@echo "TEST_OBJS = "$(TEST_OBJS)
 	@echo "TEST_BINS = "$(TEST_BINS)
+	@echo "UTEST_BINS = "$(UTEST_BINS)
 	@echo "TEST_OBJDIR = "$(TEST_OBJDIR)
 	@echo "TESTDIR = "$(TESTDIR)
 	@echo "TEST_INCLUDE = "$(TEST_INCLUDE)
 	@echo "CFLAGS = "$(CFLAGS)
-	@echo "TEST_OBJS_NO_MAIN = "$(TEST_OBJS_NO_MAIN)
+	@echo "UTEST_OBJS_WITH_MAIN = "$(UTEST_OBJS_WITH_MAIN)
 	@echo "TEST_OBJS_WITH_MAIN = "$(TEST_OBJS_WITH_MAIN)
+	@echo "TEST_OBJS_NO_MAIN = "$(TEST_OBJS_NO_MAIN)
 
 
 

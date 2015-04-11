@@ -256,10 +256,10 @@ ut_suite_run (s)
 
     if (selected) {
       if (arg_config.print_test_list) { /* Lists the test. */
-        if (arg_config.utest) fprintf(stdout, "   ");
+        if (arg_config.utest) fprintf(stdout, "  ");
         fprintf(stdout, "%s\n", full_path);
       } else { /* Runs the test. */
-        if (arg_config.utest) fprintf(stdout, "   ");
+        if (arg_config.utest) fprintf(stdout, "  ");
         fprintf(stdout, "%s: ", full_path);
         t->test(t);
         if (t->failure_count) {
@@ -298,8 +298,6 @@ ut_assert (t, assertion)
   t->assertion_count++;
   if (!assertion) t->failure_count++;
 }
-
-
 
 /********************************************/
 /* Module functions.                        */
