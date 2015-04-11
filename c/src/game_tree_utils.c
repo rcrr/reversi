@@ -1,12 +1,15 @@
 /**
  * @file
  *
- * @todo pve_verify_consistency is very inefficient.
- *
- * @todo Should we introduce a typedef for PVLine and so get rid of the three star sin?
- *
  * @brief Game tree utilities module implementation.
+ *
  * @details Provides functions to support the game tree expansion.
+ *
+ *          The function pve_verify_consistency is very inefficient, but the check can
+ *          be diseabled by a macro.
+ *
+ *          A consideration: should we introduce a typedef for PVLine and so get rid of
+ *          the three star sin?
  *
  * @par game_tree_utils.c
  * <tt>
@@ -14,7 +17,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -44,9 +47,12 @@
 #include "game_tree_utils.h"
 
 
+
 /**
  * @cond
  */
+
+#define DISABLE_SLOW_ASSERT TRUE
 
 /*
  * Prototypes for internal functions.
@@ -346,7 +352,7 @@ pve_verify_consistency (const PVEnv *const pve,
 
   /*
    * Tests that all active lines have active cells, and then that the
-   * acrive lines and cells count are consistent with their stack pointers.
+   * active lines and cells count are consistent with their stack pointers.
    */
   int active_cell_count2 = 0;
   for (int i = 0; i < pve->cells_size; i++) {
@@ -465,7 +471,7 @@ pve_internals_to_string (const PVEnv *const pve)
  * @brief Returns a free line pointer.
  *
  * @details The environment is modified because the line stack fill pointer,
- * lines_stack_head, is incremented.
+ *          lines_stack_head, is incremented.
  *
  * @param [in,out] pve a pointer to the principal variation environment
  * @return             a pointer to the next free line
@@ -473,7 +479,7 @@ pve_internals_to_string (const PVEnv *const pve)
 PVCell **
 pve_line_create (PVEnv *pve)
 {
-  g_assert(pve_verify_consistency(pve, NULL, NULL));
+  if (!DISABLE_SLOW_ASSERT) g_assert(pve_verify_consistency(pve, NULL, NULL));
   PVCell **line_p = *(pve->lines_stack_head);
   *(line_p) = NULL;
   pve->lines_stack_head++;
@@ -484,11 +490,11 @@ pve_line_create (PVEnv *pve)
  * @brief Adds the `move` to the given `line`.
  *
  * @details The function inserts a new cell at the front of the linked list of cells.
- * A cell is retrieved from the stack, the stack fill pointer is then decremented.
- * The cell is filled with the move and the previous first cell as next.
- * The line is updated referring to the new added cell.
+ *          A cell is retrieved from the stack, the stack fill pointer is then decremented.
+ *          The cell is filled with the move and the previous first cell as next.
+ *          The line is updated referring to the new added cell.
  *
- * The `line` must be active, it is an error to call the function on free lines.
+ *          The `line` must be active, it is an error to call the function on free lines.
  *
  * @param [in,out] pve  a pointer to the principal variation environment
  * @param [in,out] line the line to be updated
@@ -499,7 +505,7 @@ pve_line_add_move (PVEnv *pve,
                    PVCell **line,
                    Square move)
 {
-  g_assert(pve_verify_consistency(pve, NULL, NULL));
+  if (!DISABLE_SLOW_ASSERT) g_assert(pve_verify_consistency(pve, NULL, NULL));
   PVCell *added_cell = *(pve->cells_stack_head);
   pve->cells_stack_head++;
   added_cell->move = move;
@@ -518,7 +524,7 @@ void
 pve_line_delete (PVEnv *pve,
                  PVCell **line)
 {
-  g_assert(pve_verify_consistency(pve, NULL, NULL));
+  if (!DISABLE_SLOW_ASSERT) g_assert(pve_verify_consistency(pve, NULL, NULL));
   PVCell *cell = *line; // A poiter to the first cell, or null if the line is empty.
   while (cell) {
     pve->cells_stack_head--;
@@ -582,9 +588,9 @@ pve_line_to_string (const PVEnv *const pve,
 /**
  * @brief Copies the pve line into the exact solution structure.
  *
- * Exact solution `es` must have an empty pv field. The assumption is
- * checked assuring that the pv_length field is equal to zero.
- * The assumption is guarded by an assertion.
+ * @details Exact solution `es` must have an empty pv field. The assumption is
+ *          checked assuring that the pv_length field is equal to zero.
+ *          The assumption is guarded by an assertion.
  *
  * @param [in]     pve  a pointer to the principal variation environment
  * @param [in]     line the line to be copied
