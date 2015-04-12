@@ -4,6 +4,11 @@
  * @todo Unit tests are far behind, a complete check is needed to ensure all functions have the appropriate testing.
  *
  * @todo Add a way to check a PV for variants.
+ *       I mean, add moves the the structure when the value is equal to the one of the move recorded in the principal tree.
+ *       PVCell should have a variant pointer to another cell. Alpha-Beta has to populate it when moves have equal values.
+ *       The size of the cell stack has to be increased, line_delete has to take care of variants.
+ *       The ExactSolution object should have a PVE reference, not just a muve array.
+ *       A couple of flags --pve_variants and --pve_variants_full should be added to drive the exact_solution_to_string function.
  *
  * @todo [done] Complete the random game player.
  *
