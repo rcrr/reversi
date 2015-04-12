@@ -308,7 +308,7 @@ game_position_solve_impl (ExactSolution *const result,
         if (node->value >= cutoff) goto out;
       } else {
         if (node2->value == node->value) {
-          ; // We have to register that the move is discarded, but equivalent.
+          ; // TBD - We have to register that the move is discarded, but equivalent.
         }
         search_node_free(node2);
         pve_line_delete(pve, pve_line);

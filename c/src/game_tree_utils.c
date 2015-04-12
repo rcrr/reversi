@@ -255,6 +255,7 @@ pve_new (const int empty_count)
     (pve->cells + i)->move = invalid_move;
     (pve->cells + i)->is_active = FALSE;
     (pve->cells + i)->next = NULL;
+    (pve->cells + i)->variant = NULL;
     *(pve->cells_stack + i) = pve->cells + i;
   }
 
@@ -483,6 +484,7 @@ pve_line_create (PVEnv *pve)
   PVCell **line_p = *(pve->lines_stack_head);
   *(line_p) = NULL;
   pve->lines_stack_head++;
+  g_assert(pve->lines_stack_head - pve->lines_stack < pve->lines_size);
   return line_p;
 }
 
@@ -508,6 +510,7 @@ pve_line_add_move (PVEnv *pve,
   if (!DISABLE_SLOW_ASSERT) g_assert(pve_verify_consistency(pve, NULL, NULL));
   PVCell *added_cell = *(pve->cells_stack_head);
   pve->cells_stack_head++;
+  g_assert(pve->cells_stack_head - pve->cells_stack < pve->cells_size);
   added_cell->move = move;
   added_cell->is_active = TRUE;
   added_cell->next = *line;

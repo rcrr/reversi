@@ -84,9 +84,10 @@ typedef struct {
  * @brief A principal variation cell.
  */
 typedef struct PVCell_ {
-  Square          move;   /**< @brief The current move. */
-  gboolean   is_active;   /**< @brief True when the cell is used. */
-  struct PVCell_ *next;   /**< @brief The next move. */
+  Square          move;           /**< @brief The current move. */
+  gboolean        is_active;      /**< @brief True when the cell is used. */
+  struct PVCell_ *next;           /**< @brief The next move. */
+  struct PVCell_ *variant;        /**< @brief A variant move. */
 } PVCell;
 
 /**
