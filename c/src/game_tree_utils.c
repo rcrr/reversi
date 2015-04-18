@@ -518,7 +518,11 @@ pve_line_add_move (PVEnv *pve,
 }
 
 /**
- * @brief Deletes the `line` and returns cells to the cell stack.
+ * @brief Deletes the `line`.
+ *
+ * @details Traverses the linked list of cells and returns them to the cell stack.
+ *          For each cell traverse recurvively all the variants.
+ *          Finally returns the line to the line stack.
  *
  * @param [in,out] pve  a pointer to the principal variation environment
  * @param [in,out] line the line to be deleted
@@ -530,6 +534,7 @@ pve_line_delete (PVEnv *pve,
   if (!DISABLE_SLOW_ASSERT) g_assert(pve_verify_consistency(pve, NULL, NULL));
   PVCell *cell = *line; // A poiter to the first cell, or null if the line is empty.
   while (cell) {
+    // TBD -  Variants has to be collected ad deleted ...
     pve->cells_stack_head--;
     *(pve->cells_stack_head) = cell;
     cell->is_active = FALSE;
