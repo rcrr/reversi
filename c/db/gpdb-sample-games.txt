@@ -588,3 +588,54 @@ ffo-01-simplified-11;bwbbbbbbbwwwbb.bbwbwbbwbbwwbbbbbbbwwbwbbbbbwwbwbbbbwwwbbbbb
 #                   |1       2       3       4       5       6       7       8       |
 #                   |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 ffo-01-simplified-12;bwbbbbbbbwwwwwwbbwbwbwwbbwwbwbbbbbwwbwbbbbbwwbwbbbbwwwbbbbbbbbbb;b;From position ffo-01-simplified-11 executing G2;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ O . . . . . .
+# 2  . . . . . . . .
+# 3  @ O . . . . . .
+# 4  . . . . . . . .
+# 5  . . . . . . . .
+# 6  . . . . . . . .
+# 7  . . . . . . . .
+# 8  . . . . . . @ O
+# Player to move: BLACK
+#
+#         |1       2       3       4       5       6       7       8       |
+#         |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+pve-test-a;bw..............bw............................................bw;b;C1 and C3 are two PV variants that lead to an outcome of 58;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ O . . . . . .
+# 2  . . . . . . . .
+# 3  @ O . . . . . .
+# 4  . . . . . . . .
+# 5  . . . . . . . .
+# 6  . . . . . . . .
+# 7  . . . . . . . .
+# 8  . . . . . . . .
+# Player to move: BLACK
+#
+#         |1       2       3       4       5       6       7       8       |
+#         |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+pve-test-b;bw..............bw..............................................;b;C1 and C3 are two PV variants that lead to an outcome of 64;
+#
+#
+#
+#    a b c d e f g h
+# 1  @ O . . . . . .
+# 2  . . . . . . . .
+# 3  @ O . . . . . .
+# 4  . . . . . . . .
+# 5  @ O . . . . . .
+# 6  . . . . . . @ O
+# 7  . . . . . . . .
+# 8  . . . . . . @ O
+# Player to move: BLACK
+#
+#         |1       2       3       4       5       6       7       8       |
+#         |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+pve-test-c;bw..............bw..............bw............bw..............bw;b;C1, C3, and C5 are three PV variants that lead to an outcome of 52;
