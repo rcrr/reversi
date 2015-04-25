@@ -84,10 +84,10 @@ typedef struct {
  * @brief A principal variation cell.
  */
 typedef struct PVCell_ {
-  Square          move;           /**< @brief The current move. */
-  gboolean        is_active;      /**< @brief True when the cell is used. */
-  struct PVCell_ *next;           /**< @brief The next move. */
-  struct PVCell_ *variant;        /**< @brief A variant move. */
+  Square           move;           /**< @brief The current move. */
+  gboolean         is_active;      /**< @brief True when the cell is used. */
+  struct PVCell_  *next;           /**< @brief The next move. */
+  struct PVCell_ **variant;        /**< @brief A variant move. */
 } PVCell;
 
 /**
@@ -160,6 +160,11 @@ static const int invalid_outcome = 65;
 static const int out_of_range_defeat_score = -65;
 
 /**
+ * @brief An out of range win score is a value greater than the best case.
+ */
+static const int out_of_range_win_score = +65;
+
+/**
  * @brief The best score achievable.
  */
 static const int best_score = +64;
@@ -219,6 +224,11 @@ pve_line_add_move (PVEnv *pve,
                    PVCell **line,
                    Square move);
 
+extern void
+pve_line_add_variant (PVEnv *pve,
+                      PVCell **line,
+                      PVCell **line_variant);
+
 extern gchar *
 pve_line_print_internals (const PVEnv *const pve,
                           const PVCell **const line);
@@ -226,6 +236,10 @@ pve_line_print_internals (const PVEnv *const pve,
 extern gchar *
 pve_line_to_string (const PVEnv *const pve,
                     const PVCell **const line);
+
+extern gchar *
+pve_line_with_variants_to_string (const PVEnv *const pve,
+                                  const PVCell **const line);
 
 extern void
 pve_line_copy_to_exact_solution (const PVEnv *const pve,

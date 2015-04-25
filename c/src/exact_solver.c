@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include <glib.h>
 #include <glib/gstdio.h>
@@ -172,7 +173,11 @@ game_position_solve (const GamePosition *const root,
 
   result->solved_game_position = game_position_clone(root);
 
-  sn = game_position_solve_impl(result, result->solved_game_position, -64, +64, &pve_root_line);
+  sn = game_position_solve_impl(result,
+                                result->solved_game_position,
+                                out_of_range_defeat_score,
+                                out_of_range_win_score,
+                                &pve_root_line);
 
   if (sn) {
     result->pv[0] = sn->move;
@@ -180,6 +185,16 @@ game_position_solve (const GamePosition *const root,
     pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve_root_line, result);
     exact_solution_compute_final_board(result);
   }
+  //---
+  printf("PVE: $$$ --- $$$\n");
+  gchar *pve_root_line_to_s = pve_line_with_variants_to_string(pve, (const PVCell **const ) pve_root_line);
+  printf("\n");
+  printf(" --- --- pve_line_with_variants_to_string(pve, pve_root_line) --- ---\n");
+  printf("%s\n", pve_root_line_to_s);
+  printf("\n");
+  g_free(pve_root_line_to_s);
+  printf("PVE: $$$ --- $$$\n");
+  //---
   search_node_free(sn);
   pve_free(pve);
 
@@ -288,16 +303,19 @@ game_position_solve_impl (ExactSolution *const result,
     game_position_free(flipped_players);
   } else {
     MoveList move_list;
+    bool branch_is_active = false;
     move_list_init(&move_list);
     sort_moves_by_mobility_count(&move_list, gp);
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
-      if (!node) node = search_node_new(move, achievable);
+      //if (!node) node = search_node_new(move, achievable);
+      if (!node) node = search_node_new(move, achievable - 1);
       GamePosition *gp2 = game_position_make_move(gp, move);
       pve_line = pve_line_create(pve);
       node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pve_line));
       game_position_free(gp2);
-      if (node2->value > node->value) {
+      if (node2->value > node->value || (!branch_is_active && node2->value == node->value)) {
+        branch_is_active = true;
         search_node_free(node);
         node = node2;
         node->move = move;
@@ -305,13 +323,23 @@ game_position_solve_impl (ExactSolution *const result,
         pve_line_add_move(pve, pve_line, move);
         pve_line_delete(pve, *pve_parent_line_p);
         *pve_parent_line_p = pve_line;
-        if (node->value >= cutoff) goto out;
+        if (node->value > cutoff) goto out;
+        // if (node->value >= cutoff) goto out; // more cutoff but not a full-analysis.
       } else {
         if (node2->value == node->value) {
+        //if (0) {
           ; // TBD - We have to register that the move is discarded, but equivalent.
+          pve_line_add_move(pve, pve_line, move);
+          pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
+          if (**pve_parent_line_p == NULL) {
+            printf("NULL-NULL--NULL\n");
+            abort();
+          }
+          //pve_line_delete(pve, pve_line); // QUESTA LINEA DA RIMUOVERE!!!
+        } else {
+          pve_line_delete(pve, pve_line);
         }
         search_node_free(node2);
-        pve_line_delete(pve, pve_line);
       }
     }
   }

@@ -38,4 +38,13 @@ Breakpoint 1, sort_utils_timsort (a=0x6a7790, count=10, element_size=8, cmp=0x40
 (gdb) n
 (gdb) p *(double *)ts->a@ts->count
 $1 = {7, 3, 9, 0, 1, 5, 2, 8, 4, 6}
-(gdb) 
+(gdb)
+
+To debug this command:
+build/bin/endgame_solver -f db/gpdb-sample-games.txt -s es -q ffo-01-simplified-8
+
+(gdb) file build/bin/endgame_solver
+(gdb) set args -f db/gpdb-sample-games.txt -s es -q ffo-01-simplified-8
+(gdb) show args
+(gdb) br exact_solver.c:238
+(gdb) run 

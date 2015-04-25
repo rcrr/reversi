@@ -234,8 +234,8 @@ PVEnv *
 pve_new (const int empty_count)
 {
   g_assert(empty_count >= 0);
-  const int lines_size = 2 * (empty_count + 1) + 1;
-  const int cells_size = ((empty_count + 2) * ((empty_count + 2) + 1)) / 2;
+  const int lines_size = (2 * (empty_count + 1) + 1) * 1000;
+  const int cells_size = (((empty_count + 2) * ((empty_count + 2) + 1)) / 2) * 10000;
 
   static const size_t size_of_pve   = sizeof(PVEnv);
   static const size_t size_of_pvc   = sizeof(PVCell);
@@ -517,6 +517,17 @@ pve_line_add_move (PVEnv *pve,
   *line = added_cell;
 }
 
+void
+pve_line_add_variant (PVEnv *pve,
+                      PVCell **line,
+                      PVCell **line_variant)
+{
+  g_assert(line_variant);
+  PVCell **tmp_line = (*line)->variant;
+  (*line)->variant = line_variant;
+  (*line_variant)->variant = tmp_line;
+}
+
 /**
  * @brief Deletes the `line`.
  *
@@ -534,10 +545,16 @@ pve_line_delete (PVEnv *pve,
   if (!DISABLE_SLOW_ASSERT) g_assert(pve_verify_consistency(pve, NULL, NULL));
   PVCell *cell = *line; // A poiter to the first cell, or null if the line is empty.
   while (cell) {
-    // TBD -  Variants has to be collected ad deleted ...
+    PVCell **v_line = cell->variant;
+    while (v_line) {
+      PVCell **next_variant_line = (*v_line)->variant;
+      //pve_line_delete(pve, v_line);
+      v_line = next_variant_line;
+    }
     pve->cells_stack_head--;
     *(pve->cells_stack_head) = cell;
     cell->is_active = FALSE;
+    cell->variant = NULL;
     cell = cell->next;
   }
   pve->lines_stack_head--;
@@ -586,6 +603,76 @@ pve_line_to_string (const PVEnv *const pve,
   for (const PVCell *c = *line; c != NULL; c = c->next) {
     g_string_append_printf(tmp, "%s", square_as_move_to_string(c->move));
     if (c->next) g_string_append_printf(tmp, " ");
+  }
+
+  line_to_string = tmp->str;
+  g_string_free(tmp, FALSE);
+  return line_to_string;
+}
+
+/**
+ * @brief Prints the `line` with variants into the returning string.
+ *
+ * @param [in] pve  a pointer to the principal variation environment
+ * @param [in] line the line to be printed
+ * @return          a string describing the sequence of moves held by the line
+ */
+gchar *
+pve_line_with_variants_to_string (const PVEnv *const pve,
+                                  const PVCell **const line)
+{
+  gchar *line_to_string;
+  GString *tmp = g_string_sized_new(256);
+
+  int branches[128];
+  int holes[128];
+  PVCell **lines[128];
+
+  int idx = 0;
+  holes[idx] = 0;
+  lines[idx] = (PVCell **) line;
+
+ print_line:
+  branches[idx] = 0;
+  int ind = 0;
+  for (int i = 0; i <= idx; i++) {
+    ind += holes[i];
+  }
+  for (int i = 0; i < ind; i++) {
+    g_string_append_printf(tmp, "    ");
+  }
+  for (const PVCell *c = *lines[idx]; c != NULL; c = c->next) {
+    g_string_append_printf(tmp, "%s", square_as_move_to_string(c->move));
+    if (c->variant) {
+      branches[idx]++;
+      g_string_append_printf(tmp, ".");
+      if (c->next) g_string_append_printf(tmp, " ");
+    } else {
+      if (c->next) g_string_append_printf(tmp, "  ");
+    }
+  }
+ variants:
+  if (branches[idx] > 0) {
+    g_string_append_printf(tmp, "\n");
+    int branch_count = branches[idx];
+    int hole_count = 0;
+    const PVCell *c = *lines[idx];
+    for (;;) {
+      if (c->variant) branch_count--;
+      if (branch_count == 0) break;
+      hole_count++;
+      c = c->next;
+    }
+    branches[idx]--;
+    idx++;
+    holes[idx] = hole_count;
+    lines[idx] = c->variant;
+    goto print_line;
+  } else {
+    if (idx != 0) {
+      idx--;
+      goto variants;
+    }
   }
 
   line_to_string = tmp->str;
