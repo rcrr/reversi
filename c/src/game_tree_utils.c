@@ -234,8 +234,8 @@ PVEnv *
 pve_new (const int empty_count)
 {
   g_assert(empty_count >= 0);
-  const int lines_size = (2 * (empty_count + 1) + 1) * 1000;
-  const int cells_size = (((empty_count + 2) * ((empty_count + 2) + 1)) / 2) * 10000;
+  const int lines_size = (2 * (empty_count + 1) + 1) * 10;
+  const int cells_size = (((empty_count + 2) * ((empty_count + 2) + 1)) / 2) * 10;
 
   static const size_t size_of_pve   = sizeof(PVEnv);
   static const size_t size_of_pvc   = sizeof(PVCell);
@@ -429,7 +429,9 @@ pve_internals_to_string (const PVEnv *const pve)
   g_string_append_printf(tmp, "pve lines_stack_head points_to: %p\n", (void*) pve->lines_stack_head);
   const int line_in_use_count = pve->lines_stack_head - pve->lines_stack;
   const int cell_in_use_count = pve->cells_stack_head - pve->cells_stack;
-  g_string_append_printf(tmp, "pve line_in_use_count: %d\npve cell_in_use_count: %d\n", line_in_use_count, cell_in_use_count);
+  g_string_append_printf(tmp, "pve line_in_use_count: %d\npve cell_in_use_count: %d\n",
+                         line_in_use_count,
+                         cell_in_use_count);
   for (int i = 0; i < pve->lines_size; i++) {
     PVCell **line = pve->lines + i;
     if (pve_is_line_active(pve, line)) {
@@ -439,28 +441,39 @@ pve_internals_to_string (const PVEnv *const pve)
     }
   }
   g_string_append_printf(tmp, "\n# PVE CELLS\n");
-  g_string_append_printf(tmp, "ordinal;address;move;is_active;next\n");
+  g_string_append_printf(tmp, "ORDINAL;       ADDRESS; MOVE; IS_ACTIVE;          NEXT;       VARIANT\n");
   for (int i = 0; i < pve->cells_size; i++) {
-    g_string_append_printf(tmp, "%4d;%p;%s;%d;%p\n",
-                           i, (void*) (pve->cells + i), square_as_move_to_string((pve->cells + i)->move), (pve->cells + i)->is_active, (void*) (pve->cells + i)->next);
+    g_string_append_printf(tmp, "%7d;%14p;   %s;%10d;%14p;%14p\n",
+                           i,
+                           (void*) (pve->cells + i),
+                           square_as_move_to_string((pve->cells + i)->move),
+                           (pve->cells + i)->is_active,
+                           (void*) (pve->cells + i)->next,
+                           (void*) (pve->cells + i)->variant);
   }
   g_string_append_printf(tmp, "\n# PVE CELLS STACK\n");
-  g_string_append_printf(tmp, "ordinal;address;points_to\n");
+  g_string_append_printf(tmp, "ORDINAL;       ADDRESS;     POINTS_TO\n");
   for (int i = 0; i < pve->cells_size; i++) {
-    g_string_append_printf(tmp, "%4d;%p;%p\n",
-                           i, (void*) (pve->cells_stack + i),  (void*) (*pve->cells_stack + i));
+    g_string_append_printf(tmp, "%7d;%14p;%14p\n",
+                           i,
+                           (void*) (pve->cells_stack + i),
+                           (void*) *(pve->cells_stack + i));
   }
   g_string_append_printf(tmp, "\n# PVE LINES\n");
-  g_string_append_printf(tmp, "ordinal;address;points_to\n");
+  g_string_append_printf(tmp, "ORDINAL;       ADDRESS;     POINTS_TO\n");
   for (int i = 0; i < pve->lines_size; i++) {
-    g_string_append_printf(tmp, "%2d;%p;%p\n",
-                           i, (void*) (pve->lines + i),  (void*) *(pve->lines + i));
+    g_string_append_printf(tmp, "%7d;%14p;%14p\n",
+                           i,
+                           (void*) (pve->lines + i),
+                           (void*) *(pve->lines + i));
   }
   g_string_append_printf(tmp, "\n# PVE LINES STACK\n");
-  g_string_append_printf(tmp, "ordinal;address;points_to\n");
+  g_string_append_printf(tmp, "ORDINAL;       ADDRESS;     POINTS_TO\n");
   for (int i = 0; i < pve->lines_size; i++) {
-    g_string_append_printf(tmp, "%2d;%p;%p\n",
-                           i, (void*) (pve->lines_stack + i),  (void*) *(pve->lines_stack + i));
+    g_string_append_printf(tmp, "%7d;%14p;%14p\n",
+                           i,
+                           (void*) (pve->lines_stack + i),
+                           (void*) *(pve->lines_stack + i));
   }
 
   pve_to_string = tmp->str;
@@ -546,11 +559,7 @@ pve_line_delete (PVEnv *pve,
   PVCell *cell = *line; // A poiter to the first cell, or null if the line is empty.
   while (cell) {
     PVCell **v_line = cell->variant;
-    while (v_line) {
-      PVCell **next_variant_line = (*v_line)->variant;
-      //pve_line_delete(pve, v_line);
-      v_line = next_variant_line;
-    }
+    if (v_line) pve_line_delete(pve, v_line);
     pve->cells_stack_head--;
     *(pve->cells_stack_head) = cell;
     cell->is_active = FALSE;
@@ -578,7 +587,11 @@ pve_line_print_internals (const PVEnv *const pve,
   g_string_append_printf(tmp, "line_address=%p, first_cell=%p", (void *) line, (void *) *line);
   if (*line) g_string_append_printf(tmp, ", chain: ");
   for (const PVCell *c = *line; c != NULL; c = c->next) {
-    g_string_append_printf(tmp, "(c=%p, m=%s, n=%p)", (void *) c, square_as_move_to_string(c->move), (void *) c->next);
+    g_string_append_printf(tmp, "(c=%p, m=%s, n=%p, v=%p)",
+                           (void *) c,
+                           square_as_move_to_string(c->move),
+                           (void *) c->next,
+                           (void *) c->variant);
   }
 
   line_to_string = tmp->str;

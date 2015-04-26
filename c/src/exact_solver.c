@@ -193,6 +193,10 @@ game_position_solve (const GamePosition *const root,
   printf("%s\n", pve_root_line_to_s);
   printf("\n");
   g_free(pve_root_line_to_s);
+  pve_verify_consistency(pve, NULL, NULL);
+  char *s = pve_internals_to_string(pve);
+  printf("%s\n", s);
+  free(s);
   printf("PVE: $$$ --- $$$\n");
   //---
   search_node_free(sn);
@@ -327,15 +331,8 @@ game_position_solve_impl (ExactSolution *const result,
         // if (node->value >= cutoff) goto out; // more cutoff but not a full-analysis.
       } else {
         if (node2->value == node->value) {
-        //if (0) {
-          ; // TBD - We have to register that the move is discarded, but equivalent.
           pve_line_add_move(pve, pve_line, move);
           pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
-          if (**pve_parent_line_p == NULL) {
-            printf("NULL-NULL--NULL\n");
-            abort();
-          }
-          //pve_line_delete(pve, pve_line); // QUESTA LINEA DA RIMUOVERE!!!
         } else {
           pve_line_delete(pve, pve_line);
         }
