@@ -135,6 +135,9 @@ static const uint64_t legal_moves_priority_mask[] = {
 static const int legal_moves_priority_cluster_count =
   sizeof(legal_moves_priority_mask) / sizeof(legal_moves_priority_mask[0]);
 
+/* Turn on full PV recording. Should be a parameter coming from command line. */
+static const bool pv_full_recording = true;
+
 /**
  * @endcond
  */
@@ -158,6 +161,8 @@ game_position_solve (const GamePosition *const root,
 {
   ExactSolution *result;
   SearchNode    *sn;
+  int            alpha;
+  int            beta;
 
   log_env = game_tree_log_init(log_file);
 
@@ -169,22 +174,23 @@ game_position_solve (const GamePosition *const root,
     game_tree_log_open_h(log_env);
   }
 
+  if (pv_full_recording) {
+    alpha = out_of_range_defeat_score;
+    beta = out_of_range_win_score;
+  } else {
+    alpha = worst_score;
+    beta = best_score;
+  }
+
   result = exact_solution_new();
 
   result->solved_game_position = game_position_clone(root);
 
   sn = game_position_solve_impl(result,
                                 result->solved_game_position,
-                                out_of_range_defeat_score,
-                                out_of_range_win_score,
+                                alpha,
+                                beta,
                                 &pve_root_line);
-  /*
-  sn = game_position_solve_impl(result,
-                                result->solved_game_position,
-                                -64,
-                                +64,
-                                &pve_root_line);
-  */
 
   if (sn) {
     result->pv[0] = sn->move;
@@ -193,18 +199,23 @@ game_position_solve (const GamePosition *const root,
     exact_solution_compute_final_board(result);
   }
   //---
-  printf("PVE: $$$ --- $$$\n");
-  gchar *pve_root_line_to_s = pve_line_with_variants_to_string(pve, (const PVCell **const ) pve_root_line);
-  printf("\n");
-  printf(" --- --- pve_line_with_variants_to_string(pve, pve_root_line) --- ---\n");
-  printf("%s\n", pve_root_line_to_s);
-  printf("\n");
-  g_free(pve_root_line_to_s);
-  pve_verify_consistency(pve, NULL, NULL);
-  char *s = pve_internals_to_string(pve);
-  printf("%s\n", s);
-  free(s);
-  printf("PVE: $$$ --- $$$\n");
+  if (pv_full_recording) {
+    printf("PVE: $$$ --- $$$\n");
+    gchar *pve_root_line_to_s = pve_line_with_variants_to_string(pve, (const PVCell **const ) pve_root_line);
+    printf("\n");
+    printf(" --- --- pve_line_with_variants_to_string(pve, pve_root_line) --- ---\n");
+    printf("%s\n", pve_root_line_to_s);
+    printf("\n");
+    g_free(pve_root_line_to_s);
+    printf("PVE: $$$ --- $$$\n");
+  }
+  if (true) {
+    pve_verify_consistency(pve, NULL, NULL);
+    char *s = pve_internals_to_string(pve);
+    printf("%s\n", s);
+    free(s);
+  }
+
   //---
   search_node_free(sn);
   pve_free(pve);
@@ -319,8 +330,7 @@ game_position_solve_impl (ExactSolution *const result,
     sort_moves_by_mobility_count(&move_list, gp);
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
-      if (!node) node = search_node_new(move, achievable);
-      //if (!node) node = search_node_new(move, achievable - 1);
+      if (!node) node = search_node_new(move, (pv_full_recording) ? achievable - 1 : achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
       pve_line = pve_line_create(pve);
       node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pve_line));
@@ -334,11 +344,10 @@ game_position_solve_impl (ExactSolution *const result,
         pve_line_add_move(pve, pve_line, move);
         pve_line_delete(pve, *pve_parent_line_p);
         *pve_parent_line_p = pve_line;
-        //if (node->value > cutoff) goto out;
-        if (node->value >= cutoff) goto out;
-        // if (node->value >= cutoff) goto out; // more cutoff but not a full-analysis.
+        if (node->value > cutoff) goto out;
+        if (!pv_full_recording && node->value == cutoff) goto out;
       } else {
-        if (node2->value == node->value) {
+        if (pv_full_recording && node2->value == node->value) {
           pve_line_add_move(pve, pve_line, move);
           pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
         } else {

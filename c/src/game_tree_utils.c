@@ -234,8 +234,8 @@ PVEnv *
 pve_new (const int empty_count)
 {
   g_assert(empty_count >= 0);
-  const int lines_size = (2 * (empty_count + 1) + 1) * 1000;
-  const int cells_size = (((empty_count + 2) * ((empty_count + 2) + 1)) / 2) * 1000;
+  const int lines_size = (2 * (empty_count + 1) + 1) * 100;
+  const int cells_size = (((empty_count + 2) * ((empty_count + 2) + 1)) / 2) * 100;
 
   static const size_t size_of_pve   = sizeof(PVEnv);
   static const size_t size_of_pvc   = sizeof(PVCell);
