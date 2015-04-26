@@ -178,6 +178,13 @@ game_position_solve (const GamePosition *const root,
                                 out_of_range_defeat_score,
                                 out_of_range_win_score,
                                 &pve_root_line);
+  /*
+  sn = game_position_solve_impl(result,
+                                result->solved_game_position,
+                                -64,
+                                +64,
+                                &pve_root_line);
+  */
 
   if (sn) {
     result->pv[0] = sn->move;
@@ -312,8 +319,8 @@ game_position_solve_impl (ExactSolution *const result,
     sort_moves_by_mobility_count(&move_list, gp);
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
-      //if (!node) node = search_node_new(move, achievable);
-      if (!node) node = search_node_new(move, achievable - 1);
+      if (!node) node = search_node_new(move, achievable);
+      //if (!node) node = search_node_new(move, achievable - 1);
       GamePosition *gp2 = game_position_make_move(gp, move);
       pve_line = pve_line_create(pve);
       node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pve_line));
@@ -327,7 +334,8 @@ game_position_solve_impl (ExactSolution *const result,
         pve_line_add_move(pve, pve_line, move);
         pve_line_delete(pve, *pve_parent_line_p);
         *pve_parent_line_p = pve_line;
-        if (node->value > cutoff) goto out;
+        //if (node->value > cutoff) goto out;
+        if (node->value >= cutoff) goto out;
         // if (node->value >= cutoff) goto out; // more cutoff but not a full-analysis.
       } else {
         if (node2->value == node->value) {

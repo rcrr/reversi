@@ -207,7 +207,8 @@ BEGIN
     t0.run_id = run_id_in
     AND (t0.json_doc->'il')::TEXT::BOOL = TRUE
     AND t0.hash = (SELECT ~t1.hash FROM game_tree_log AS t1 WHERE t1.run_id = run_id_in AND t1.sub_run_id = sub_run_id_in AND t1.call_id = t0.call_id + 1);
-    PERFORM p_assert(ifes_rec.leaf_count = 20244, 'Ifes game tree leaf count must be 20244.');
+
+  PERFORM p_assert(ifes_rec.leaf_count = 20244, 'Ifes game tree leaf count must be 20244.');
 
   SELECT gtlh.run_id INTO STRICT run_id_in FROM game_tree_log_header AS gtlh  WHERE gtlh.run_label = es_run_label_in;
   SELECT
@@ -219,9 +220,10 @@ BEGIN
   WHERE
     t0.run_id = run_id_in
     AND (t0.json_doc->'il')::TEXT::BOOL = TRUE;
-    PERFORM p_assert(es_rec.leaf_count = 20244, 'Es game tree leaf count must be 20244.');
 
-    PERFORM p_assert(ifes_rec.distinct_leaf_count = es_rec.distinct_leaf_count, 'Distinct hash counts must be equal.');
+  PERFORM p_assert(es_rec.leaf_count = 20244, 'Es game tree leaf count must be 20244.');
+
+  PERFORM p_assert(ifes_rec.distinct_leaf_count = es_rec.distinct_leaf_count, 'Distinct hash counts must be equal.');
 END $$;
 
 --
