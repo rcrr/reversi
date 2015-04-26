@@ -10,6 +10,14 @@
  *       The size of the cell stack has to be increased, line_delete has to take care of variants.
  *       The ExactSolution object should have a PVE reference, not just a move array.
  *       A couple of flags --pve_variants and --pve_variants_full should be added to drive the exact_solution_to_string function.
+ *       ---
+ *       The PV code is quite ok. What is missing now are a few improvements:
+ *       - The proper memory management for the pve structure.
+ *       - A pve_pack function that shrink the structure.
+ *       - A new more optimized pve_check.
+ *       - A command line option asking to run the full analysis.
+ *       - Tests ....
+ *       - A new way to record the PV into the exact_solution structure.
  *
  * @todo [done] Complete the random game player.
  *

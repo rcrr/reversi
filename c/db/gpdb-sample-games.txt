@@ -639,3 +639,10 @@ pve-test-b;bw..............bw..............................................;b;C1
 #         |1       2       3       4       5       6       7       8       |
 #         |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
 pve-test-c;bw..............bw..............bw............bw..............bw;b;C1, C3, and C5 are three PV variants that lead to an outcome of 52;
+#
+#
+# Reni-Rob 20150426
+#
+#                |1       2       3       4       5       6       7       8       |
+#                |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+reni-rob-20150426;..wwwwww..bbbbwwwwwwwwww..bbwwww..bbwbwwwwbwwwww..bbw.ww....w..w;b;Reni contro Rob;
