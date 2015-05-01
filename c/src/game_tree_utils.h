@@ -186,7 +186,7 @@ exact_solution_new (void);
 extern void
 exact_solution_free (ExactSolution *es);
 
-extern gchar *
+extern char *
 exact_solution_to_string (const ExactSolution *const es);
 
 extern void
@@ -209,7 +209,7 @@ pve_verify_consistency (const PVEnv *const pve,
                         int *const error_code,
                         gchar **const error_message);
 
-extern gchar *
+extern char *
 pve_internals_to_string (const PVEnv *const pve);
 
 extern PVCell **
@@ -233,11 +233,11 @@ extern gchar *
 pve_line_print_internals (const PVEnv *const pve,
                           const PVCell **const line);
 
-extern gchar *
+extern char *
 pve_line_to_string (const PVEnv *const pve,
                     const PVCell **const line);
 
-extern gchar *
+extern char *
 pve_line_with_variants_to_string (const PVEnv *const pve,
                                   const PVCell **const line);
 

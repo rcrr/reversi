@@ -58,6 +58,9 @@
  * Prototypes for internal functions.
  */
 
+static void
+pve_double_lines_size (PVEnv *const pve);
+
 static gboolean
 pve_is_cell_free (const PVEnv *const pve,
                   const PVCell *const cell);
@@ -137,16 +140,16 @@ exact_solution_free (ExactSolution *es)
 /**
  * @brief Returns a formatted string describing the exact solution structure.
  *
- * The returned string has a dynamic extent set by a call to malloc. It must then properly
- * garbage collected by a call to free when no more referenced.
+ * @details The returned string has a dynamic extent set by a call to malloc.
+ *          It must then properly garbage collected by a call to free when no more referenced.
  *
  * @invariant Parameter `es` must be not `NULL`.
- * Invariants are guarded by assertions.
+ *            Invariants are guarded by assertions.
  *
  * @param [in] es a pointer to the exact solution structure
  * @return        a string being a representation of the structure
  */
-gchar *
+char *
 exact_solution_to_string (const ExactSolution *const es)
 {
   g_assert(es);
@@ -184,7 +187,7 @@ exact_solution_to_string (const ExactSolution *const es)
  * @brief Computes the final board when the pv component is properly populated.
  *
  * @details Executes all the moves stored into the pv field up the the final
- * board configuration, then stores it into the final_board field.
+ *          board configuration, then stores it into the final_board field.
  *
  * @param [in] es a pointer to the exact solution structure
  */
@@ -214,17 +217,17 @@ exact_solution_compute_final_board (ExactSolution *const es)
  * @brief PVEnv structure constructor.
  *
  * @details The sizing of the structure's components is done taking into account
- * a worst case scenario, where every disc put on the board can cost two search
- * levels, one for the move and one for a potential pass, plus two extra slots
- * are reserved if the minimax algorithm check the leaf condition consuming two
- * consecutive pass moves.
- * These assumptions can be unrealistic, but are the only one that fit all the conditions.
+ *          a worst case scenario, where every disc put on the board can cost two search
+ *          levels, one for the move and one for a potential pass, plus two extra slots
+ *          are reserved if the minimax algorithm check the leaf condition consuming two
+ *          consecutive pass moves.
+ *          These assumptions can be unrealistic, but are the only one that fit all the conditions.
  *
- * Assertions check that the received pointers to the allocated
- * structures are not `NULL`.
+ *          Assertions check that the received pointers to the allocated
+ *          structures are not `NULL`.
  *
  * @invariant Parameter `empty_count` cannot be negative.
- * The invariant is guarded by an assertion.
+ *            The invariant is guarded by an assertion.
  *
  * @param [in] empty_count the number of empty cells in the board, or the expected depth
  *                         for the search
@@ -233,8 +236,10 @@ exact_solution_compute_final_board (ExactSolution *const es)
 PVEnv *
 pve_new (const int empty_count)
 {
+  static const size_t initial_lines_size = 8;
+
   g_assert(empty_count >= 0);
-  const int lines_size = (2 * (empty_count + 1) + 1) * 1000;
+  //const int lines_size = (2 * (empty_count + 1) + 1) * 1000;
   const int cells_size = (((empty_count + 2) * ((empty_count + 2) + 1)) / 2) * 1000;
 
   static const size_t size_of_pve   = sizeof(PVEnv);
@@ -259,11 +264,11 @@ pve_new (const int empty_count)
     *(pve->cells_stack + i) = pve->cells + i;
   }
 
-  pve->lines_size = lines_size;
-  pve->lines = (PVCell**) malloc(lines_size * size_of_pvcp);
-  pve->lines_stack = (PVCell***) malloc(lines_size * size_of_pvcpp);
+  pve->lines_size = initial_lines_size;
+  pve->lines = (PVCell**) malloc(initial_lines_size * size_of_pvcp);
+  pve->lines_stack = (PVCell***) malloc(initial_lines_size * size_of_pvcpp);
 
-  for (int i = 0; i < lines_size; i++) {
+  for (int i = 0; i < initial_lines_size; i++) {
     *(pve->lines + i) = NULL;
     *(pve->lines_stack + i) = pve->lines + i;
   }
@@ -413,7 +418,7 @@ pve_verify_consistency (const PVEnv *const pve,
  * @param [in] pve  a pointer to the principal variation environment
  * @return          a string reporting the pve internals
  */
-gchar *
+char *
 pve_internals_to_string (const PVEnv *const pve)
 {
   g_assert(pve);
@@ -497,7 +502,8 @@ pve_line_create (PVEnv *pve)
   PVCell **line_p = *(pve->lines_stack_head);
   *(line_p) = NULL;
   pve->lines_stack_head++;
-  g_assert(pve->lines_stack_head - pve->lines_stack < pve->lines_size);
+  //g_assert(pve->lines_stack_head - pve->lines_stack < pve->lines_size); //ZZZ
+  if (pve->lines_stack_head - pve->lines_stack == pve->lines_size) pve_double_lines_size(pve);
   return line_p;
 }
 
@@ -577,7 +583,7 @@ pve_line_delete (PVEnv *pve,
  * @param [in] line the line to be printed
  * @return          a string reporting the line internals
  */
-gchar *
+char *
 pve_line_print_internals (const PVEnv *const pve,
                           const PVCell **const line)
 {
@@ -606,7 +612,7 @@ pve_line_print_internals (const PVEnv *const pve,
  * @param [in] line the line to be printed
  * @return          a string describing the sequence of moves held by the line
  */
-gchar *
+char *
 pve_line_to_string (const PVEnv *const pve,
                     const PVCell **const line)
 {
@@ -630,7 +636,7 @@ pve_line_to_string (const PVEnv *const pve,
  * @param [in] line the line to be printed
  * @return          a string describing the sequence of moves held by the line
  */
-gchar *
+char *
 pve_line_with_variants_to_string (const PVEnv *const pve,
                                   const PVCell **const line)
 {
@@ -869,6 +875,41 @@ legal_move_list_from_set (const SquareSet legal_move_set,
 /*
  * Internal functions.
  */
+
+/**
+ * @brief Doubles the line count in the PV environment.
+ *
+ * @param [in,out] pve the principal variation environment pointer
+ */
+static void
+pve_double_lines_size (PVEnv *const pve)
+{
+  g_assert(pve);
+
+  /* Doubleing lines_size can occur only if the stack is fully used. */
+  g_assert(pve->lines_size == pve->lines_stack_head - pve->lines_stack);
+
+  static const size_t size_of_pvcp  = sizeof(PVCell*);
+  static const size_t size_of_pvcpp = sizeof(PVCell**);
+
+  const size_t actual_lines_size = pve->lines_size;
+  const size_t lines_size = pve->lines_size * 2;
+
+  PVCell **actual_lines = pve->lines;
+
+  pve->lines_size = lines_size;
+  pve->lines = (PVCell**) malloc(lines_size * size_of_pvcp);
+  pve->lines_stack = (PVCell***) malloc(lines_size * size_of_pvcpp);
+
+  for (int i = 0; i < actual_lines_size; i++) {
+    *(pve->lines + i) = *(actual_lines + i);
+  }
+  for (int i = actual_lines_size; i < lines_size; i++) {
+    *(pve->lines + i) = NULL;
+    *(pve->lines_stack + i) = pve->lines + i;
+  }
+  pve->lines_stack_head = pve->lines_stack + actual_lines_size;
+}
 
 static gboolean
 pve_is_cell_free (const PVEnv *const pve,
