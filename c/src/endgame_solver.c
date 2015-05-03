@@ -18,6 +18,13 @@
  *       - A command line option asking to run the full analysis.
  *       - Tests ....
  *       - A new way to record the PV into the exact_solution structure.
+ *       ---
+ *       The PVEnv structure is under refactoring .... the cells are not yet completed ... but ...
+ *       The program runtime is ok having the stack build as an array, testing and checking it would be much better
+ *       if the stack would be realized as a linked list. The list is going to use the double of the space of the array,
+ *       and a major redesign is needed.
+ *       My personal thought is that the best to do is to complete the refactoring and then move to the linked list.
+ *       This machinery is getting quite complex ...
  *
  * @todo [done] Complete the random game player.
  *
