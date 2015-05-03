@@ -104,12 +104,11 @@ typedef struct {
   PVCell   *cells;                /**< @brief The pointer to the array of cells. */
   PVCell  **cells_stack;          /**< @brief The pointer to the array of pointers used to manage the cells. */
   PVCell  **cells_stack_head;     /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
-  size_t    lines_size;           /**< @brief The count of lines contained by the lines array. */
-  size_t    lines_segments_size;
-  size_t    lines_first_size;
+  size_t    lines_size;           /**< @brief The total count of lines contained by the lines segments. */
+  size_t    lines_segments_size;  /**< @brief The count of lines segments. */
+  size_t    lines_first_size;     /**< @brief The number of lines contained by the first segment. */
   PVCell ***lines_segments;       /**< @brief Segments are pointers to array of lines. */
   PVCell ***lines_segments_head;  /**< @brief The next segment to be used. */
-  //  PVCell  **lines;                /**< @brief The pointer to the array of pointers used as a reference of the head of a cell-list. */
   PVCell ***lines_stack;          /**< @brief The pointer to an array of pointers used to manage the lines. */
   PVCell ***lines_stack_head;     /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
 } PVEnv;
