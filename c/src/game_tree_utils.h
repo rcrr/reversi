@@ -100,14 +100,18 @@ typedef struct PVCell_ {
  *          Fields `cells_stack_head` and `lines_stack_head` are mutable.
  */
 typedef struct {
-  int       cells_size;         /**< @brief The count of cells contained by the cells array. */
-  PVCell   *cells;              /**< @brief The pointer to the array of cells. */
-  PVCell  **cells_stack;        /**< @brief The pointer to the array of pointers used to manage the cells. */
-  PVCell  **cells_stack_head;   /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
-  int       lines_size;         /**< @brief The count of lines contained by the lines array. */
-  PVCell  **lines;              /**< @brief The pointer to the array of pointers used as a reference of the head of a cell-list. */
-  PVCell ***lines_stack;        /**< @brief The pointer to an array of pointers used to manage the lines. */
-  PVCell ***lines_stack_head;   /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
+  size_t    cells_size;           /**< @brief The count of cells contained by the cells array. */
+  PVCell   *cells;                /**< @brief The pointer to the array of cells. */
+  PVCell  **cells_stack;          /**< @brief The pointer to the array of pointers used to manage the cells. */
+  PVCell  **cells_stack_head;     /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
+  size_t    lines_size;           /**< @brief The count of lines contained by the lines array. */
+  size_t    lines_segments_size;
+  size_t    lines_first_size;
+  PVCell ***lines_segments;       /**< @brief Segments are pointers to array of lines. */
+  PVCell ***lines_segments_head;  /**< @brief The next segment to be used. */
+  //  PVCell  **lines;                /**< @brief The pointer to the array of pointers used as a reference of the head of a cell-list. */
+  PVCell ***lines_stack;          /**< @brief The pointer to an array of pointers used to manage the lines. */
+  PVCell ***lines_stack_head;     /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
 } PVEnv;
 
 /**

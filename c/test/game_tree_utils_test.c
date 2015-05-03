@@ -78,7 +78,6 @@ static void
 pve_verify_consistency_test (void)
 {
   PVEnv *pve;
-  gchar *pve_to_s;
   gboolean is_consistent = TRUE;
   int error_code = 0;
   gchar *error_message = NULL;
@@ -94,29 +93,6 @@ pve_verify_consistency_test (void)
   is_consistent = pve_verify_consistency(pve, &error_code, &error_message);
   g_assert(!is_consistent && (error_code == 2));
   pve_free(pve);
-
-  pve = pve_new(2);
-  pve->lines_stack_head = pve->lines_stack - 1;
-  is_consistent = pve_verify_consistency(pve, &error_code, &error_message);
-  g_assert(!is_consistent && (error_code == 3));
-  pve_free(pve);
-
-  pve = pve_new(2);
-  pve->lines_stack_head = pve->lines_stack + pve->lines_size;
-  is_consistent = pve_verify_consistency(pve, &error_code, &error_message);
-  g_assert(!is_consistent && (error_code == 4));
-  pve_free(pve);
-
-  if (FALSE) {
-    pve = pve_new(2);
-    printf("\nis_consistent = %d, error_code = %d, message: %s\n", is_consistent, error_code, error_message);
-    pve_to_s = pve_internals_to_string(pve);
-    printf("\n");
-    printf("%s\n", pve_to_s);
-    printf("\n");
-    g_free(pve_to_s);
-    pve_free(pve);
-  }
 }
 
 static void

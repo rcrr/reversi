@@ -209,7 +209,7 @@ game_position_solve (const GamePosition *const root,
     g_free(pve_root_line_to_s);
     printf("PVE: $$$ --- $$$\n");
   }
-  if (true) {
+  if (false) {
     pve_verify_consistency(pve, NULL, NULL);
     char *s = pve_internals_to_string(pve);
     printf("%s\n", s);
