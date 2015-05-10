@@ -130,6 +130,18 @@ sort_utils_int64_t_icmp (const void *const a,
                          const void *const b);
 
 
+
+/* (void *) */
+
+extern int
+sort_utils_pointer_cmp (const void *const a,
+                        const void *const b);
+
+extern int
+sort_utils_pointer_icmp (const void *const a,
+                         const void *const b);
+
+
 /***************************************/
 /* Insertion-sort function prototypes. */
 /***************************************/
@@ -171,6 +183,11 @@ sort_utils_insertionsort_asc_i64 (int64_t *const a,
 extern void
 sort_utils_insertionsort_dsc_i64 (int64_t *const a,
                                   const int count);
+
+extern void
+sort_utils_insertionsort_asc_p (void **const a,
+                                const int count);
+
 
 
 

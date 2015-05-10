@@ -45,6 +45,7 @@
 #include <glib.h>
 
 #include "game_tree_utils.h"
+#include "sort_utils.h"
 
 
 
@@ -60,6 +61,9 @@
 
 static void
 pve_double_lines_size (PVEnv *const pve);
+
+static PVCell ***
+pve_index_lines (const PVEnv *const pve);
 
 
 
@@ -227,7 +231,7 @@ pve_new (const int empty_count)
    * leading to a total of 16 MBytes.
    */
   static const size_t lines_segments_size = 16;
-  static const size_t lines_first_size = 32;
+  static const size_t lines_first_size = 4;
 
   /*
    * TBD
@@ -318,6 +322,16 @@ pve_new (const int empty_count)
     *(lines + i) = NULL;
   }
 
+  /* Prepares the sorted lines segments and the sorted sizes. */
+  pve->lines_segments_sizes = (size_t *) malloc(sizeof(size_t) * lines_segments_size);
+  pve->lines_segments_sorted = (PVCell ***) malloc(size_of_pvcpp * lines_segments_size);
+  for (int i = 0; i < lines_segments_size; i++) {
+    *(pve->lines_segments_sizes + i) = 0;
+    *(pve->lines_segments_sorted + i) = NULL;
+  }
+  *(pve->lines_segments_sizes + 0) = lines_first_size;
+  *(pve->lines_segments_sorted + 0) = lines;
+
   /* Creates the lines stack and load it with the lines held in the first segment. */
   pve->lines_stack = (PVCell ***) malloc(lines_first_size * size_of_pvcpp);
   g_assert(pve->lines_stack);
@@ -326,11 +340,12 @@ pve_new (const int empty_count)
   }
   pve->lines_stack_head = pve->lines_stack;
 
+  /*
   char *s = pve_internals_to_string(pve);
   printf("\n\n%s\n\n", s);
   fflush(stdout);
   free(s);
-
+  */
   return pve;
 }
 
@@ -365,6 +380,8 @@ pve_free (PVEnv *pve)
       lines_segments_size--;
     }
     g_free(pve->lines_segments);
+    g_free(pve->lines_segments_sizes);
+    g_free(pve->lines_segments_sorted);
 
     g_free(pve->cells);
     g_free(pve->cells_stack);
@@ -471,6 +488,7 @@ pve_internals_to_string (const PVEnv *const pve)
   g_string_append_printf(tmp, "PVE CELLS\n");
   g_string_append_printf(tmp, "PVE CELLS STACK\n");
   g_string_append_printf(tmp, "PVE LINES SEGMENTS\n");
+  g_string_append_printf(tmp, "PVE SORTED LINES SEGMENTS\n");
   g_string_append_printf(tmp, "PVE LINES\n");
   g_string_append_printf(tmp, "PVE LINES STACK\n");
   g_string_append_printf(tmp, "\n");
@@ -539,6 +557,8 @@ pve_internals_to_string (const PVEnv *const pve)
 
   g_string_append_printf(tmp, "# PVE ACTIVE LINES\n");
   g_string_append_printf(tmp, "To be implemented using pve_line_print_internals() ...\n");
+
+  PVCell ***lines_index = pve_index_lines(pve);
   //ZZZ
   /*
   for (int i = 0; i < pve->lines_size; i++) {
@@ -550,6 +570,7 @@ pve_internals_to_string (const PVEnv *const pve)
     }
   }
   */
+  free(lines_index);
   g_string_append_printf(tmp, "\n");
 
   g_string_append_printf(tmp, "# PVE LINES SEGMENTS\n");
@@ -559,6 +580,17 @@ pve_internals_to_string (const PVEnv *const pve)
                            i,
                            (void *) (pve->lines_segments + i),
                            (void *) *(pve->lines_segments + i));
+  }
+  g_string_append_printf(tmp, "\n");
+
+  g_string_append_printf(tmp, "# PVE SORTED LINES SEGMENTS\n");
+  g_string_append_printf(tmp, "ORDINAL;             ADDRESS;           POINTS_TO;     SIZE\n");
+  for (int i = 0; i < pve->lines_segments_size; i++) {
+    g_string_append_printf(tmp, "%7d;%20p;%20p;%9zu\n",
+                           i,
+                           (void *) (pve->lines_segments_sorted + i),
+                           (void *) *(pve->lines_segments_sorted + i),
+                           *(pve->lines_segments_sizes + i));
   }
   g_string_append_printf(tmp, "\n");
 
@@ -1018,7 +1050,8 @@ pve_double_lines_size (PVEnv *const pve)
   g_assert(pve->lines_size == pve->lines_stack_head - pve->lines_stack);
 
   /* The number of lines segments cannot grows further the limit. */
-  g_assert(pve->lines_segments_size > pve->lines_segments_head - pve->lines_segments);
+  size_t lines_segments_used = pve->lines_segments_head - pve->lines_segments;
+  g_assert(pve->lines_segments_size > lines_segments_used);
 
   static const size_t size_of_pvcp  = sizeof(PVCell *);
   static const size_t size_of_pvcpp = sizeof(PVCell **);
@@ -1031,6 +1064,7 @@ pve_double_lines_size (PVEnv *const pve)
   g_assert(lines_extension);
   *(pve->lines_segments_head) = lines_extension;
   pve->lines_segments_head++;
+  lines_segments_used++;
   pve->lines_size += lines_size_extension;
   for (int i = 0; i < lines_size_extension; i++) {
     *(lines_extension + i) = NULL;
@@ -1049,12 +1083,92 @@ pve_double_lines_size (PVEnv *const pve)
   }
   pve->lines_stack_head = pve->lines_stack + actual_lines_size;
 
+  /* Re-compute the sorted lines segments array, and respective sizes. */
+  for (size_t i = 0; i < lines_segments_used; i++) {
+    *(pve->lines_segments_sorted + i) = *(pve->lines_segments + i);
+  }
+  sort_utils_insertionsort_asc_p ((void **) pve->lines_segments_sorted, lines_segments_used);
+  for (size_t i = 0; i < lines_segments_used; i++) {
+    PVCell **segment = *(pve->lines_segments_sorted + i);
+    size_t segment_size = pve->lines_first_size;
+    size_t segment_size_incr = 0;
+    for (size_t j = 0; j < lines_segments_used; j++, segment_size += segment_size_incr, segment_size_incr = segment_size) {
+      if (segment == *(pve->lines_segments + j)) break;
+    }
+    *(pve->lines_segments_sizes + i) = segment_size;
+  }
+
   /*
   char *s = pve_internals_to_string(pve);
   printf("\n\n%s\n\n", s);
   fflush(stdout);
   free(s);
   */
+}
+
+/**
+ * @brief Returns a fresh sorted array of poiters to lines.
+ *
+ * @details The returned array has the same size of the lines_stack.
+ *          The first part of the array is filled with the used lines,
+ *          the second part is holding the free lines.
+ *          The two sub-arrays are sorted in their natural order.
+ *
+ *          The caller has to free the array when no more used.
+ *
+ * @param [in,out] pve the principal variation environment pointer
+ * @retur              an index of the lines_stack
+ */
+static PVCell ***
+pve_index_lines (const PVEnv *const pve)
+{
+  static const size_t size_of_pvcpp = sizeof(PVCell **);
+
+  PVCell ***index = (PVCell ***) malloc(pve->lines_size * size_of_pvcpp);
+  g_assert(index);
+
+  /* Here the index preparation. */
+  const size_t lines_in_use_count = pve->lines_stack_head - pve->lines_stack;
+  const size_t lines_not_in_use_count = pve->lines_size - lines_in_use_count;
+  for (size_t i = 0; i < lines_in_use_count; i++) {
+    *(index + i) = NULL;
+  }
+  for (size_t i = lines_in_use_count; i < pve->lines_size; i++) {
+    *(index + i) = *(pve->lines_stack + i);
+  }
+  // sort the sub-array of unused lines ...
+  PVCell ***lines_not_in_use_head = index +  lines_in_use_count;
+  sort_utils_insertionsort_asc_p ((void **) lines_not_in_use_head, lines_not_in_use_count);
+
+  printf("ORDINAL;             ADDRESS;           POINTS_TO\n");
+  for (size_t i = 0; i < pve->lines_size; i++) {
+    printf("%7zu;%20p;%20p\n",
+           i,
+           (void *) (index + i),
+           (void *) *(index + i));
+  }
+
+
+  const int lines_segments_in_use_count = pve->lines_segments_head - pve->lines_segments;
+  size_t segment_size = pve->lines_first_size;
+  size_t segment_size_incr = 0;
+  size_t c = 0;
+  printf("\n");
+  printf("SEGMENT;   INDEX;                LINE;          FIRST_CELL\n");
+  for (int i = 0; i < lines_segments_in_use_count; i++, segment_size += segment_size_incr, segment_size_incr = segment_size) {
+    for (int j = 0; j < segment_size; j++) {
+      c++;
+      PVCell **line = *(pve->lines_segments + i) + j;
+      printf("%7d;%8d;%20p;%20p\n",
+             i,
+             j,
+             (void *) line,
+             (void *) *(*(pve->lines_segments + i) + j));
+    }
+  }
+  g_assert(c == pve->lines_size);
+
+  return index;
 }
 
 /**

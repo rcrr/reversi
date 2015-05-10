@@ -308,6 +308,52 @@ sort_utils_int64_t_icmp (const void *const a,
 
 
 
+/* (void *) */
+
+/**
+ * @brief Compares `(void *)` values pointed by `a` and `b`.
+ *
+ * @details Compare function that returns:
+ *          - `+1` when `a` is greater than `b`
+ *          - ` 0` when `a` is equal to `b`
+ *          - `-1` when `a` is less then `b`
+ *
+ * @param a a pointer to the first `(void *)` value
+ * @param b a pointer to the second `(void *)` value
+ * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
+ */
+int
+sort_utils_pointer_cmp (const void *const a,
+                        const void *const b)
+{
+  const void *const *x = (const void *const *) a;
+  const void *const *y = (const void *const *) b;
+  return (*x > *y) - (*x < *y);
+}
+
+/**
+ * @brief Compares `(void *)` values pointed by `a` and `b`.
+ *
+ * @details Compare function that returns:
+ *          - `-1` when `a` is greater than `b`
+ *          - ` 0` when `a` is equal to `b`
+ *          - `+1` when `a` is less then `b`
+ *
+ * @param a a pointer to the first `(void *)` value
+ * @param b a pointer to the second `(void *)` value
+ * @return  a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
+ */
+int
+sort_utils_pointer_icmp (const void *const a,
+                         const void *const b)
+{
+  const void *const *x = (const void *const *) a;
+  const void *const *y = (const void *const *) b;
+  return (*x < *y) - (*x > *y);
+}
+
+
+
 /*********************************/
 /* Sort function implementations */
 /*********************************/
@@ -487,6 +533,22 @@ sort_utils_insertionsort_dsc_i64 (int64_t *const a,
                                   const int count)
 {
   sort_utils_insertionsort(a, count, sizeof(int64_t), sort_utils_int64_t_icmp);
+}
+
+/**
+ * @brief Sorts in ascending order the `a` array of pointers.
+ *
+ * @details The vector of pointers `a` having length equal to `count` is sorted
+ *          in place in ascending order applying the insertion-sort algorithm.
+ *
+ * @param [in,out] a     the array to be sorted
+ * @param [in]     count the number of element of array a
+ */
+void
+sort_utils_insertionsort_asc_p (void **const a,
+                                const int count)
+{
+  sort_utils_insertionsort(a, count, sizeof(void *), sort_utils_pointer_cmp);
 }
 
 
