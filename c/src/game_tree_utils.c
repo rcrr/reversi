@@ -1136,37 +1136,32 @@ pve_index_lines (const PVEnv *const pve)
   for (size_t i = lines_in_use_count; i < pve->lines_size; i++) {
     *(index + i) = *(pve->lines_stack + i);
   }
-  // sort the sub-array of unused lines ...
   PVCell ***lines_not_in_use_head = index +  lines_in_use_count;
   sort_utils_insertionsort_asc_p ((void **) lines_not_in_use_head, lines_not_in_use_count);
-
-  printf("ORDINAL;             ADDRESS;           POINTS_TO\n");
-  for (size_t i = 0; i < pve->lines_size; i++) {
-    printf("%7zu;%20p;%20p\n",
-           i,
-           (void *) (index + i),
-           (void *) *(index + i));
-  }
-
-
   const int lines_segments_in_use_count = pve->lines_segments_head - pve->lines_segments;
-  size_t segment_size = pve->lines_first_size;
-  size_t segment_size_incr = 0;
-  size_t c = 0;
-  printf("\n");
-  printf("SEGMENT;   INDEX;                LINE;          FIRST_CELL\n");
-  for (int i = 0; i < lines_segments_in_use_count; i++, segment_size += segment_size_incr, segment_size_incr = segment_size) {
+  PVCell ***used_lines_stack_p = index;
+  PVCell ***free_lines_stack_p = index + lines_in_use_count;
+  for (int i = 0; i < lines_segments_in_use_count; i++) {
+    size_t segment_size = *(pve->lines_segments_sizes + i);
     for (int j = 0; j < segment_size; j++) {
-      c++;
-      PVCell **line = *(pve->lines_segments + i) + j;
-      printf("%7d;%8d;%20p;%20p\n",
-             i,
-             j,
-             (void *) line,
-             (void *) *(*(pve->lines_segments + i) + j));
+      PVCell **line = *(pve->lines_segments_sorted + i) + j;
+      if (line < *free_lines_stack_p) {
+        *used_lines_stack_p++ = line;
+      } else {
+        free_lines_stack_p++;
+      }
     }
   }
-  g_assert(c == pve->lines_size);
+
+  if (1) {
+    printf("ORDINAL;             ADDRESS;           POINTS_TO\n");
+    for (size_t i = 0; i < pve->lines_size; i++) {
+      printf("%7zu;%20p;%20p\n",
+             i,
+             (void *) (index + i),
+             (void *) *(index + i));
+    }
+  }
 
   return index;
 }
