@@ -4,27 +4,21 @@
  * @todo Unit tests are far behind, a complete check is needed to ensure all functions have the appropriate testing.
  *
  * @todo Add a way to check a PV for variants. - Priority 1 -
- *       I mean, add moves the the structure when the value is equal to the one of the move recorded in the principal tree.
- *       PVCell should have a variant pointer to another cell. Alpha-Beta has to populate it when moves have equal values.
- *       A new function: pve_line_as_variant has to be coded. The pve_verify, and pve_line_delete functions has to be adjusted.
- *       The size of the cell stack has to be increased, line_delete has to take care of variants.
- *       The ExactSolution object should have a PVE reference, not just a move array.
- *       A couple of flags --pve_variants and --pve_variants_full should be added to drive the exact_solution_to_string function.
- *       ---
  *       The PV code is quite ok. What is missing now are a few improvements:
+ *       - [done] I mean, add moves to the structure when the value is equal to the one of the move recorded in the principal tree.
+ *       - [done] PVCell should have a variant pointer to another cell. Alpha-Beta has to populate it when moves have equal values.
+ *       - The pve_verify_consistency function has to be rewritten.
+ *       - The pve_internals_to_string function has to be completed.
+ *       - The pve_index_lines function has to be run on the real stack.
+ *       - Cells has to be converted as lines to segment management.
+ *       - [done] The size of the cell stack has to be increased, line_delete has to take care of variants.
+ *       - The ExactSolution object should have a PVE reference, not just a move array.
+ *       - A couple of flags --pve_variants and --pve_variants_full should be added to drive the exact_solution_to_string function.
+ *         A command line option asking to run the full analysis.
  *       - The proper memory management for the pve structure.
- *       - A pve_pack function that shrink the structure.
- *       - A new more optimized pve_check.
- *       - A command line option asking to run the full analysis.
+ *       - Prepare a pve_pack function that shrink the structure.
  *       - Tests ....
- *       - A new way to record the PV into the exact_solution structure.
- *       ---
- *       The PVEnv structure is under refactoring .... the cells are not yet completed ... but ...
- *       The program runtime is ok having the stack build as an array, testing and checking it would be much better
- *       if the stack would be realized as a linked list. The list is going to use the double of the space of the array,
- *       and a major redesign is needed.
- *       My personal thought is that the best to do is to complete the refactoring and then move to the linked list.
- *       This machinery is getting quite complex ...
+ *       - Documentation
  *
  * @todo [done] Complete the random game player.
  *
