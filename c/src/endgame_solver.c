@@ -19,6 +19,8 @@
  *       - Prepare a pve_pack function that shrink the structure.
  *       - Tests ....
  *       - Documentation
+ *       - Extract pve module from game_utils and make a new principal_variation module.
+ *       - Refactor the new module merging the segment concept into one abstraction, then used for lines and cells.
  *
  * @todo [done] Complete the random game player.
  *
