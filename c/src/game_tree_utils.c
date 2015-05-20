@@ -467,10 +467,14 @@ pve_verify_consistency (const PVEnv *const pve,
  *          - A header with the fields of the pve structure
  *          - A list of computed properties
  *          - A detail of active lines
- *          - A csv table for the cells segments
- *          - A csv table for the stack of pointers to cells
- *          - A csv table for the lines
- *          - A csv table for the stack of pointers to lines
+ *          - A csv table reporting cells segments
+ *          - A csv table reporting sorted cells segments
+ *          - A csv table reporting cells
+ *          - A csv table reporting the stack of pointers to cells
+ *          - A csv table reporting lines segments
+ *          - A csv table reporting sorted lines segments
+ *          - A csv table reporting lines
+ *          - A csv table reporting the stack of pointers to lines
  *
  * @param [in] pve  a pointer to the principal variation environment
  * @return          a string reporting the pve internals
@@ -489,12 +493,13 @@ pve_internals_to_string (const PVEnv *const pve)
   g_string_append_printf(tmp, " -02- PVE COMPUTED PROPERTIES\n");
   g_string_append_printf(tmp, " -03- PVE ACTIVE LINES\n");
   g_string_append_printf(tmp, " -04- PVE CELLS SEGMENTS\n");
-  g_string_append_printf(tmp, " -05- PVE CELLS\n");
-  g_string_append_printf(tmp, " -06- PVE CELLS STACK\n");
-  g_string_append_printf(tmp, " -07- PVE LINES SEGMENTS\n");
-  g_string_append_printf(tmp, " -08- PVE SORTED LINES SEGMENTS\n");
-  g_string_append_printf(tmp, " -09- PVE LINES\n");
-  g_string_append_printf(tmp, " -10- PVE LINES STACK\n");
+  g_string_append_printf(tmp, " -05- PVE SORTED CELLS SEGMENTS\n");
+  g_string_append_printf(tmp, " -06- PVE CELLS\n");
+  g_string_append_printf(tmp, " -07- PVE CELLS STACK\n");
+  g_string_append_printf(tmp, " -08- PVE LINES SEGMENTS\n");
+  g_string_append_printf(tmp, " -09- PVE SORTED LINES SEGMENTS\n");
+  g_string_append_printf(tmp, " -10- PVE LINES\n");
+  g_string_append_printf(tmp, " -11- PVE LINES STACK\n");
   g_string_append_printf(tmp, "\n");
 
   static const size_t size_of_pve   = sizeof(PVEnv);
@@ -570,6 +575,22 @@ pve_internals_to_string (const PVEnv *const pve)
   free(lines_index);
   g_string_append_printf(tmp, "\n");
 
+  g_string_append_printf(tmp, "# PVE CELLS SEGMENTS\n");
+  g_string_append_printf(tmp, "# --- To be developed. ---\n");
+  g_string_append_printf(tmp, "\n");
+
+  g_string_append_printf(tmp, "# PVE SORTED CELLS SEGMENTS\n");
+  g_string_append_printf(tmp, "# --- To be developed. ---\n");
+  g_string_append_printf(tmp, "\n");
+
+  g_string_append_printf(tmp, "# PVE CELLS\n");
+  g_string_append_printf(tmp, "# --- To be developed. ---\n");
+  g_string_append_printf(tmp, "\n");
+
+  g_string_append_printf(tmp, "# PVE CELLS STACK\n");
+  g_string_append_printf(tmp, "# --- To be developed. ---\n");
+  g_string_append_printf(tmp, "\n");
+
   g_string_append_printf(tmp, "# PVE LINES SEGMENTS\n");
   g_string_append_printf(tmp, "ORDINAL;             ADDRESS;           POINTS_TO\n");
   for (int i = 0; i < pve->lines_segments_size; i++) {
@@ -639,6 +660,7 @@ pve_internals_to_string (const PVEnv *const pve)
   }
 
   pve_to_string = tmp->str;
+  if (1) printf("pve_to_string length: %zu\n", tmp->len);
   g_string_free(tmp, FALSE);
   return pve_to_string;
 }

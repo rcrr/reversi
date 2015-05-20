@@ -18,9 +18,11 @@
  *       - The proper memory management for the pve structure.
  *       - Prepare a pve_pack function that shrink the structure.
  *       - Tests ....
- *       - Documentation
+ *       - Documentation.
  *       - Extract pve module from game_utils and make a new principal_variation module.
  *       - Refactor the new module merging the segment concept into one abstraction, then used for lines and cells.
+ *       - Add game values computation and output for first level moves.
+ *       - Add a function to compute PV hash code (it is useful for testing and database processing).
  *
  * @todo [done] Complete the random game player.
  *
@@ -41,7 +43,7 @@
  * @todo The output of the solvers is not always appropriate:
  *         - [done] Final board is not reported
  *         - The value of all the first level moves is not recorded
- *         - for random game sampler the output is meaningless
+ *         - For random game sampler the output is meaningless
  *
  * @todo [done] Refine and refactor the exact_solver implementation.
  *
@@ -98,8 +100,9 @@
  *
  *
  * @brief Endgame Solver.
+ *
  * @details This executable analyzes an end game position and
- * computes the exact outcome.
+ *          computes the exact outcome.
  *
  * @par endgame_solver.c
  * <tt>
