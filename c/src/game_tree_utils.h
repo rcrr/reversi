@@ -100,23 +100,23 @@ typedef struct PVCell_ {
  *          Fields `cells_stack_head` and `lines_stack_head` are mutable.
  */
 typedef struct {
-  size_t    cells_size;             /**< @brief The count of cells contained by the cells array. */
-  size_t    cells_segments_size;    /**< @brief The count of cells segments. */
-  size_t    cells_first_size;       /**< @brief The number of cells contained by the first segment. */
-  PVCell  **cells_segments;         /**< @brief Segments are pointers to array of cells. */
-  PVCell  **cells_segments_head;    /**< @brief The next cells segment to be used. */
-  PVCell   *cells;                  /**< @brief The pointer to the array of cells. */
-  PVCell  **cells_stack;            /**< @brief The pointer to the array of pointers used to manage the cells. */
-  PVCell  **cells_stack_head;       /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
-  size_t    lines_size;             /**< @brief The total count of lines contained by the lines segments. */
-  size_t    lines_segments_size;    /**< @brief The count of lines segments. */
-  size_t    lines_first_size;       /**< @brief The number of lines contained by the first segment. */
-  PVCell ***lines_segments;         /**< @brief Segments are pointers to array of lines. */
-  PVCell ***lines_segments_head;    /**< @brief The next lines segment to be used. */
-  size_t   *lines_segments_sizes;   /**< @brief Sizes of lines segments in the sorted order. */
-  PVCell ***lines_segments_sorted;  /**< @brief Sorted lines segments, by means of the natural order of the memory adress. */
-  PVCell ***lines_stack;            /**< @brief The pointer to an array of pointers used to manage the lines. */
-  PVCell ***lines_stack_head;       /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
+  size_t    cells_size;                    /**< @brief The count of cells contained by the cells array. */
+  size_t    cells_segments_size;           /**< @brief The count of cells segments. */
+  size_t    cells_first_size;              /**< @brief The number of cells contained by the first segment. */
+  PVCell  **cells_segments;                /**< @brief Segments are pointers to array of cells. */
+  PVCell  **cells_segments_head;           /**< @brief The next cells segment to be used. */
+  PVCell   *cells;                         /**< @brief The pointer to the array of cells. */
+  PVCell  **cells_stack;                   /**< @brief The pointer to the array of pointers used to manage the cells. */
+  PVCell  **cells_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
+  size_t    lines_size;                    /**< @brief The total count of lines contained by the lines segments. */
+  size_t    lines_segments_size;           /**< @brief The count of lines segments. */
+  size_t    lines_first_size;              /**< @brief The number of lines contained by the first segment. */
+  PVCell ***lines_segments;                /**< @brief Segments are pointers to array of lines. */
+  PVCell ***lines_segments_head;           /**< @brief The next lines segment to be used. */
+  size_t   *lines_segments_sorted_sizes;   /**< @brief Sizes of lines segments in the sorted order. */
+  PVCell ***lines_segments_sorted;         /**< @brief Sorted lines segments, by means of the natural order of the memory adress. */
+  PVCell ***lines_stack;                   /**< @brief The pointer to an array of pointers used to manage the lines. */
+  PVCell ***lines_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
 } PVEnv;
 
 /**

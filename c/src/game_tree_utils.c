@@ -323,13 +323,13 @@ pve_new (const int empty_count)
   }
 
   /* Prepares the sorted lines segments and the sorted sizes. */
-  pve->lines_segments_sizes = (size_t *) malloc(sizeof(size_t) * lines_segments_size);
+  pve->lines_segments_sorted_sizes = (size_t *) malloc(sizeof(size_t) * lines_segments_size);
   pve->lines_segments_sorted = (PVCell ***) malloc(size_of_pvcpp * lines_segments_size);
   for (int i = 0; i < lines_segments_size; i++) {
-    *(pve->lines_segments_sizes + i) = 0;
+    *(pve->lines_segments_sorted_sizes + i) = 0;
     *(pve->lines_segments_sorted + i) = NULL;
   }
-  *(pve->lines_segments_sizes + 0) = lines_first_size;
+  *(pve->lines_segments_sorted_sizes + 0) = lines_first_size;
   *(pve->lines_segments_sorted + 0) = lines;
 
   /* Creates the lines stack and load it with the lines held in the first segment. */
@@ -380,7 +380,7 @@ pve_free (PVEnv *pve)
       lines_segments_size--;
     }
     g_free(pve->lines_segments);
-    g_free(pve->lines_segments_sizes);
+    g_free(pve->lines_segments_sorted_sizes);
     g_free(pve->lines_segments_sorted);
 
     g_free(pve->cells);
@@ -608,7 +608,7 @@ pve_internals_to_string (const PVEnv *const pve)
                            i,
                            (void *) (pve->lines_segments_sorted + i),
                            (void *) *(pve->lines_segments_sorted + i),
-                           *(pve->lines_segments_sizes + i));
+                           *(pve->lines_segments_sorted_sizes + i));
   }
   g_string_append_printf(tmp, "\n");
 
@@ -1114,7 +1114,7 @@ pve_double_lines_size (PVEnv *const pve)
     for (size_t j = 0; j < lines_segments_used; j++, segment_size += segment_size_incr, segment_size_incr = segment_size) {
       if (segment == *(pve->lines_segments + j)) break;
     }
-    *(pve->lines_segments_sizes + i) = segment_size;
+    *(pve->lines_segments_sorted_sizes + i) = segment_size;
   }
 
   /*
@@ -1161,7 +1161,7 @@ pve_index_lines (const PVEnv *const pve)
   PVCell ***used_lines_stack_p = index;
   PVCell ***free_lines_stack_p = index + lines_in_use_count;
   for (int i = 0; i < lines_segments_in_use_count; i++) {
-    size_t segment_size = *(pve->lines_segments_sizes + i);
+    size_t segment_size = *(pve->lines_segments_sorted_sizes + i);
     for (int j = 0; j < segment_size; j++) {
       PVCell **line = *(pve->lines_segments_sorted + i) + j;
       if (line < *free_lines_stack_p) {
