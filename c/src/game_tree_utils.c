@@ -275,6 +275,16 @@ pve_new (const int empty_count)
     (cells + i)->variant = NULL;
   }
 
+  /* Prepares the sorted cells segments and the sorted sizes. */
+  pve->cells_segments_sorted_sizes = (size_t *) malloc(sizeof(size_t) * cells_segments_size);
+  pve->cells_segments_sorted = (PVCell **) malloc(size_of_pvcp * cells_segments_size);
+  for (int i = 0; i < cells_segments_size; i++) {
+    *(pve->cells_segments_sorted_sizes + i) = 0;
+    *(pve->cells_segments_sorted + i) = NULL;
+  }
+  *(pve->cells_segments_sorted_sizes + 0) = cells_first_size;
+  *(pve->cells_segments_sorted + 0) = cells;
+
   /* Creates the cells stack and load it with the cells held in the first segment. */
   /*
   pve->cells_stack = (PVCell **) malloc(cells_first_size * size_of_pvcp);
@@ -370,6 +380,8 @@ pve_free (PVEnv *pve)
       cells_segments_size--;
     }
     g_free(pve->cells_segments);
+    g_free(pve->cells_segments_sorted_sizes);
+    g_free(pve->cells_segments_sorted);
 
     /* Frees lines_segments. */
     int lines_segments_size = pve->lines_segments_head - pve->lines_segments;
@@ -576,11 +588,24 @@ pve_internals_to_string (const PVEnv *const pve)
   g_string_append_printf(tmp, "\n");
 
   g_string_append_printf(tmp, "# PVE CELLS SEGMENTS\n");
-  g_string_append_printf(tmp, "# --- To be developed. ---\n");
+  g_string_append_printf(tmp, "ORDINAL;             ADDRESS;           POINTS_TO\n");
+  for (int i = 0; i < pve->cells_segments_size; i++) {
+    g_string_append_printf(tmp, "%7d;%20p;%20p\n",
+                           i,
+                           (void *) (pve->cells_segments + i),
+                           (void *) *(pve->cells_segments + i));
+  }
   g_string_append_printf(tmp, "\n");
 
   g_string_append_printf(tmp, "# PVE SORTED CELLS SEGMENTS\n");
-  g_string_append_printf(tmp, "# --- To be developed. ---\n");
+  g_string_append_printf(tmp, "ORDINAL;             ADDRESS;           POINTS_TO;     SIZE\n");
+  for (int i = 0; i < pve->cells_segments_size; i++) {
+    g_string_append_printf(tmp, "%7d;%20p;%20p;%9zu\n",
+                           i,
+                           (void *) (pve->cells_segments_sorted + i),
+                           (void *) *(pve->cells_segments_sorted + i),
+                           *(pve->cells_segments_sorted_sizes + i));
+  }
   g_string_append_printf(tmp, "\n");
 
   g_string_append_printf(tmp, "# PVE CELLS\n");
@@ -681,7 +706,6 @@ pve_line_create (PVEnv *pve)
   PVCell **line_p = *(pve->lines_stack_head);
   *(line_p) = NULL;
   pve->lines_stack_head++;
-  //g_assert(pve->lines_stack_head - pve->lines_stack < pve->lines_size); //ZZZ
   if (pve->lines_stack_head - pve->lines_stack == pve->lines_size) pve_double_lines_size(pve);
   return line_p;
 }

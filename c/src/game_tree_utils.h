@@ -105,6 +105,8 @@ typedef struct {
   size_t    cells_first_size;              /**< @brief The number of cells contained by the first segment. */
   PVCell  **cells_segments;                /**< @brief Segments are pointers to array of cells. */
   PVCell  **cells_segments_head;           /**< @brief The next cells segment to be used. */
+  size_t   *cells_segments_sorted_sizes;   /**< @brief Sizes of cells segments in the sorted order. */
+  PVCell  **cells_segments_sorted;         /**< @brief Sorted cells segments, by means of the natural order of the memory adress. */
   PVCell   *cells;                         /**< @brief The pointer to the array of cells. */
   PVCell  **cells_stack;                   /**< @brief The pointer to the array of pointers used to manage the cells. */
   PVCell  **cells_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
