@@ -211,9 +211,7 @@ game_position_solve (const GamePosition *const root,
   }
   if (true) {
     pve_verify_consistency(pve, NULL, NULL);
-    char *s = pve_internals_to_string(pve);
-    printf("%s\n", s);
-    free(s);
+    pve_internals_to_stream(pve, stdout);
   }
 
   //---

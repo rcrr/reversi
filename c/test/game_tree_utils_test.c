@@ -44,7 +44,7 @@
 
 static void dummy_test (void);
 static void pve_create_test (void);
-static void pve_internals_to_string_test (void);
+static void pve_internals_to_stream_test (void);
 static void pve_verify_consistency_test (void);
 
 
@@ -56,7 +56,7 @@ main (int   argc,
 
   g_test_add_func("/game_tree_utils/dummy", dummy_test);
   g_test_add_func("/game_tree_utils/pve_create_test", pve_create_test);
-  g_test_add_func("/game_tree_utils/pve_internals_to_string_test", pve_internals_to_string_test);
+  g_test_add_func("/game_tree_utils/pve_internals_to_stream_test", pve_internals_to_stream_test);
   g_test_add_func("/game_tree_utils/pve_verify_consistency_test", pve_verify_consistency_test);
 
   return g_test_run();
@@ -82,13 +82,13 @@ pve_verify_consistency_test (void)
   int error_code = 0;
   gchar *error_message = NULL;
 
-  pve = pve_new(2);
+  pve = pve_new();
   pve->cells_stack_head = pve->cells_stack - 1;
   is_consistent = pve_verify_consistency(pve, &error_code, &error_message);
   g_assert(!is_consistent && (error_code == 1));
   pve_free(pve);
 
-  pve = pve_new(2);
+  pve = pve_new();
   pve->cells_stack_head = pve->cells_stack + pve->cells_size;
   is_consistent = pve_verify_consistency(pve, &error_code, &error_message);
   g_assert(!is_consistent && (error_code == 2));
@@ -100,30 +100,26 @@ pve_create_test (void)
 {
   PVEnv *pve;
 
-  pve = pve_new(60);
+  pve = pve_new();
   pve_free(pve);
 
-  pve = pve_new(0);
+  pve = pve_new();
   pve_free(pve);
 
   g_assert(TRUE);
 }
 
 static void
-pve_internals_to_string_test (void)
+pve_internals_to_stream_test (void)
 {
-  PVEnv *pve;
-  gchar *pve_to_s;
+   FILE * fp;
+   fp = fopen ("build/test/pve_internals_to_stream_test.txt", "w+");
 
-  pve = pve_new(60);
-  pve_to_s = pve_internals_to_string(pve);
+  PVEnv *pve = pve_new();
+  pve_internals_to_stream(pve, fp);
   pve_free(pve);
-  g_free(pve_to_s);
 
-  pve = pve_new(0);
-  pve_to_s = pve_internals_to_string(pve);
-  pve_free(pve);
-  g_free(pve_to_s);
+  fclose(fp);
 
   g_assert(TRUE);
 }

@@ -219,8 +219,9 @@ pve_verify_consistency (const PVEnv *const pve,
                         int *const error_code,
                         gchar **const error_message);
 
-extern char *
-pve_internals_to_string (const PVEnv *const pve);
+extern void
+pve_internals_to_stream (const PVEnv *const pve,
+                         FILE *const stream);
 
 extern PVCell **
 pve_line_create (PVEnv *pve);
