@@ -1,0 +1,89 @@
+# gpdb-ffo-39
+#
+#
+#
+# FFO position #39, white to move.
+# Principal Variation, PV:
+# Final score is +64
+# Move values: A8:+64. B1:+64. G1:+64. G5:+64. G6:+64. C8:+64. H3:+64. E8:+64. H4:+64. F7:+62. D8:+62. E7:+62. H2:+62. B8:+62. G2:+60. G4:+60. F6:+32;
+#
+#    a b c d e f g h 
+# 1  O . O O O O . . 
+# 2  @ O @ @ O @ . . 
+# 3  @ O O O @ @ @ . 
+# 4  @ O O O @ @ . . 
+# 5  @ O O @ O @ . . 
+# 6  @ O @ @ @ . . . 
+# 7  @ . @ @ . . . . 
+# 8  . . . . . . . . 
+# Player to move: WHITE
+#
+#     |1       2       3       4       5       6       7       8       |
+#     |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-39;w.wwww..bwbbwb..bwwwbbb.bwwwbb..bwwbwb..bwbbb...b.bb............;w;FFO position 39, white to move.;
+#
+#
+#
+# FFO position #39-A8, black to move.
+# Principal Variation, PV:
+# Final score is -64
+# Move values: 
+#
+#    a b c d e f g h 
+# 1  O . O O O O . . 
+# 2  O O @ @ O @ . . 
+# 3  O O O O @ @ @ . 
+# 4  O O O O @ @ . . 
+# 5  O O O @ O @ . . 
+# 6  O O @ @ @ . . . 
+# 7  O . @ @ . . . . 
+# 8  O . . . . . . . 
+# Player to move: BLACK
+#
+#        |1       2       3       4       5       6       7       8       |
+#        |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-39-A8;w.wwww..wwbbwb..wwwwbbb.wwwwbb..wwwbwb..wwbbb...w.bb....w.......;b;FFO position 39, white has moved to A8, black to move.;
+#
+#
+#
+# FFO position #39-A8----B1, black to move.
+# Principal Variation, PV:
+# Final score is -64
+# Move values: 
+#
+#    a b c d e f g h 
+# 1  O O O O O O . . 
+# 2  O O O @ O @ . . 
+# 3  O O O O @ @ @ . 
+# 4  O O O O @ @ . . 
+# 5  O O O @ O @ . . 
+# 6  O O @ @ @ . . . 
+# 7  O . @ @ . . . . 
+# 8  O . . . . . . . 
+# Player to move: BLACK
+#
+#              |1       2       3       4       5       6       7       8       |
+#              |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-39-A8----B1;wwwwww..wwwbwb..wwwwbbb.wwwwbb..wwwbwb..wwbbb...w.bb....w.......;b;FFO position 39, white has moved to A8, B1, black to move.;
+#
+#
+#
+# FFO position #39-A8----B1----G1, black to move.
+# Principal Variation, PV:
+# Final score is -64
+# Move values: 
+#
+#    a b c d e f g h 
+# 1  O O O O O O O . 
+# 2  O O O @ O O . . 
+# 3  O O O O @ @ @ . 
+# 4  O O O O @ @ . . 
+# 5  O O O @ O @ . . 
+# 6  O O @ @ @ . . . 
+# 7  O . @ @ . . . . 
+# 8  O . . . . . . . 
+# Player to move: BLACK
+#
+#                    |1       2       3       4       5       6       7       8       |
+#                    |ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGH|
+ffo-39-A8----B1----G1;wwwwwww.wwwbww..wwwwbbb.wwwwbb..wwwbwb..wwbbb...w.bb....w.......;b;FFO position 39, white has moved to A8, B1, G1, black to move.;
