@@ -166,7 +166,7 @@ game_position_solve (const GamePosition *const root,
 
   log_env = game_tree_log_init(log_file);
 
-  pve = pve_new(game_position_empty_count(root));
+  pve = pve_new();
   PVCell **pve_root_line = pve_line_create(pve);
 
   if (log_env->log_is_on) {
