@@ -220,9 +220,7 @@ exact_solution_compute_final_board (ExactSolution *const es)
  * @invariant Parameter `empty_count` cannot be negative.
  *            The invariant is guarded by an assertion.
  *
- * @param [in] empty_count the number of empty cells in the board, or the expected depth
- *                         for the search
- * @return                 a pointer to a new principal variation env structure
+ * @return a pointer to a new principal variation env structure
  */
 PVEnv *
 pve_new (void)
@@ -463,8 +461,8 @@ pve_verify_consistency (const PVEnv *const pve,
  *          - A csv table reporting lines
  *          - A csv table reporting the stack of pointers to lines
  *
- * @param [in] pve  a pointer to the principal variation environment
- * @return          a string reporting the pve internals
+ * @param [in] pve     a pointer to the principal variation environment
+ * @param [in] stream  the file handler destination of the report of the pve internals
  */
 void
 pve_internals_to_stream (const PVEnv *const pve,
