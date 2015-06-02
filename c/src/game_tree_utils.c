@@ -555,9 +555,9 @@ pve_internals_to_stream (const PVEnv *const pve,
   PVCell ***lines_index = pve_index_lines(pve);
   for (size_t i = 0; i < lines_in_use_count; i++) {
     PVCell **line = *(lines_index + i);
-    gchar *pve_root_line_to_s = pve_line_print_internals(pve, (const PVCell **) line);
-    fprintf(stream, "line_internals: %s\n", pve_root_line_to_s);
-    g_free(pve_root_line_to_s);
+    fprintf(stream, "line_internals: ");
+    pve_line_print_internals(pve, (const PVCell **) line, stream);
+    fprintf(stream, "\n");
   }
   free(lines_index);
   fprintf(stream, "\n");
@@ -728,32 +728,26 @@ pve_line_delete (PVEnv *pve,
 }
 
 /**
- * @brief Prints the `line` internals into the returning string.
+ * @brief Prints the `line` internals into the given `stream`.
  *
- * @param [in] pve  a pointer to the principal variation environment
- * @param [in] line the line to be printed
- * @return          a string reporting the line internals
+ * @param [in] pve    a pointer to the principal variation environment
+ * @param [in] line   the line to be printed
+ * @param [in] stream the stream collecting the output
  */
-char *
+void
 pve_line_print_internals (const PVEnv *const pve,
-                          const PVCell **const line)
+                          const PVCell **const line,
+                          FILE *const stream)
 {
-  gchar *line_to_string;
-  GString *tmp = g_string_sized_new(32);
-
-  g_string_append_printf(tmp, "line_address=%p, first_cell=%p", (void *) line, (void *) *line);
-  if (*line) g_string_append_printf(tmp, ", chain: ");
+  fprintf(stream, "line_address=%p, first_cell=%p", (void *) line, (void *) *line);
+  if (*line) fprintf(stream, ", chain: ");
   for (const PVCell *c = *line; c != NULL; c = c->next) {
-    g_string_append_printf(tmp, "(c=%p, m=%s, n=%p, v=%p)",
-                           (void *) c,
-                           square_as_move_to_string(c->move),
-                           (void *) c->next,
-                           (void *) c->variant);
+    fprintf(stream, "(c=%p, m=%s, n=%p, v=%p)",
+            (void *) c,
+            square_as_move_to_string(c->move),
+            (void *) c->next,
+            (void *) c->variant);
   }
-
-  line_to_string = tmp->str;
-  g_string_free(tmp, FALSE);
-  return line_to_string;
 }
 
 /**

@@ -240,9 +240,10 @@ pve_line_add_variant (PVEnv *pve,
                       PVCell **line,
                       PVCell **line_variant);
 
-extern gchar *
+extern void
 pve_line_print_internals (const PVEnv *const pve,
-                          const PVCell **const line);
+                          const PVCell **const line,
+                          FILE *const stream);
 
 extern char *
 pve_line_to_string (const PVEnv *const pve,
