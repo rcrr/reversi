@@ -248,6 +248,9 @@ pve_new (void)
   PVEnv *const pve = (PVEnv*) malloc(size_of_pve);
   g_assert(pve);
 
+  pve->cells_max_usage = 0;
+  pve->lines_max_usage = 0;
+
   /* Prepares the cells segments. */
   pve->cells_segments_size = cells_segments_size;
   pve->cells_first_size = cells_first_size;
@@ -503,15 +506,21 @@ pve_internals_to_stream (const PVEnv *const pve,
   fprintf(stream, "cells_first_size:            %20zu  --  Number of cells contained by the first segment.\n", pve->cells_first_size);
   fprintf(stream, "cells_segments:              %20p  --  Segments are pointers to array of cells.\n", (void *) pve->cells_segments);
   fprintf(stream, "cells_segments_head:         %20p  --  Next cells segment to be used.\n", (void *) pve->cells_segments_head);
+  fprintf(stream, "cells_segments_sorted_sizes: %20p  --  Array of sizes of cells segments in the sorted order.\n", (void *) pve->cells_segments_sorted_sizes);
+  fprintf(stream, "cells_segments_sorted:       %20p  --  Sorted cells segments, by means of the natural order of the memory adress.\n", (void *) pve->cells_segments_sorted);
   fprintf(stream, "cells_stack:                 %20p  --  Array of pointers used to manage the cells.\n", (void *) pve->cells_stack);
   fprintf(stream, "cells_stack_head:            %20p  --  Next, free to be assigned, pointer in the cells stack.\n", (void *) pve->cells_stack_head);
+  fprintf(stream, "cells_max_usage:             %20zu  --  The maximum number of cells in use.\n", pve->cells_max_usage);
   fprintf(stream, "lines_size:                  %20zu  --  Count of lines contained by the lines segments.\n", pve->lines_size);
   fprintf(stream, "lines_segments_size:         %20zu  --  Count of lines segments.\n", pve->lines_segments_size);
   fprintf(stream, "lines_first_size:            %20zu  --  Number of lines contained by the first segment.\n", pve->lines_first_size);
   fprintf(stream, "lines_segments:              %20p  --  Segments are pointers to array of lines.\n", (void *) pve->lines_segments);
   fprintf(stream, "lines_segments_head:         %20p  --  Next lines segment to be used.\n", (void *) pve->lines_segments_head);
+  fprintf(stream, "lines_segments_sorted_sizes: %20p  --  Array of sizes of lines segments in the sorted order.\n", (void *) pve->lines_segments_sorted_sizes);
+  fprintf(stream, "lines_segments_sorted:       %20p  --  Sorted lines segments, by means of the natural order of the memory adress.\n", (void *) pve->lines_segments_sorted);
   fprintf(stream, "lines_stack:                 %20p  --  Array of pointers used to manage the lines.\n", (void *) pve->lines_stack);
   fprintf(stream, "lines_stack_head:            %20p  --  Next, free to be assigned, pointer in the lines stack.\n", (void *) pve->lines_stack_head);
+  fprintf(stream, "lines_max_usage:             %20zu  --  The maximum number of lines in use.\n", pve->lines_max_usage);
   fprintf(stream, "\n");
 
   g_assert(pve->cells_segments_head >= pve->cells_segments);
@@ -675,6 +684,7 @@ pve_line_create (PVEnv *pve)
   PVCell **line_p = *(pve->lines_stack_head);
   *(line_p) = NULL;
   pve->lines_stack_head++;
+  if (pve->lines_stack_head - pve->lines_stack > pve->lines_max_usage) pve->lines_max_usage++;
   if (pve->lines_stack_head - pve->lines_stack == pve->lines_size) pve_double_lines_size(pve);
   return line_p;
 }
@@ -701,6 +711,7 @@ pve_line_add_move (PVEnv *pve,
   if (!DISABLE_SLOW_ASSERT) g_assert(pve_verify_consistency(pve, NULL, NULL));
   PVCell *added_cell = *(pve->cells_stack_head);
   pve->cells_stack_head++;
+  if (pve->cells_stack_head - pve->cells_stack > pve->cells_max_usage) pve->cells_max_usage++;
   if (pve->cells_stack_head - pve->cells_stack == pve->cells_size) pve_double_cells_size(pve);
   added_cell->move = move;
   added_cell->is_active = TRUE;

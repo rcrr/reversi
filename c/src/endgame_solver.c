@@ -8,7 +8,7 @@
  *       - [done] I mean, add moves to the structure when the value is equal to the one of the move recorded in the principal tree.
  *       - [done] PVCell should have a variant pointer to another cell. Alpha-Beta has to populate it when moves have equal values.
  *       - The pve_verify_consistency function has to be rewritten.
- *       - The pve_internals_to_string function has to be completed.
+ *       - [done] The pve_internals_to_string function has to be completed.
  *       - The pve_index_lines function has to be run on the real stack.
  *       - Cells has to be converted as lines to segment management.
  *       - [done] The size of the cell stack has to be increased, line_delete has to take care of variants.

@@ -109,6 +109,7 @@ typedef struct {
   PVCell  **cells_segments_sorted;         /**< @brief Sorted cells segments, by means of the natural order of the memory adress. */
   PVCell  **cells_stack;                   /**< @brief The pointer to the array of pointers used to manage the cells. */
   PVCell  **cells_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
+  size_t    cells_max_usage;               /**< @brief The maximum number of cells in use. */
   size_t    lines_size;                    /**< @brief The total count of lines contained by the lines segments. */
   size_t    lines_segments_size;           /**< @brief The count of lines segments. */
   size_t    lines_first_size;              /**< @brief The number of lines contained by the first segment. */
@@ -118,6 +119,7 @@ typedef struct {
   PVCell ***lines_segments_sorted;         /**< @brief Sorted lines segments, by means of the natural order of the memory adress. */
   PVCell ***lines_stack;                   /**< @brief The pointer to an array of pointers used to manage the lines. */
   PVCell ***lines_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
+  size_t    lines_max_usage;               /**< @brief The maximum number of lines in use. */
 } PVEnv;
 
 /**
