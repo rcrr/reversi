@@ -231,14 +231,14 @@ pve_new (void)
    * The total memory required is 8,388,608 bytes for lines and the same for the stack,
    * leading to a total of 16 MBytes.
    */
-  static const size_t lines_segments_size = 32;
-  static const size_t lines_first_size = 32;
+  static const size_t lines_segments_size = 28;
+  static const size_t lines_first_size = 2;
 
   /*
    * TBD
    */
-  static const size_t cells_segments_size = 32;
-  static const size_t cells_first_size = 64;
+  static const size_t cells_segments_size = 28;
+  static const size_t cells_first_size = 2;
 
   static const size_t size_of_pve   = sizeof(PVEnv);
   static const size_t size_of_pvc   = sizeof(PVCell);
@@ -576,19 +576,40 @@ pve_internals_to_stream (const PVEnv *const pve,
   fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO;     SIZE\n");
   for (size_t i = 0; i < pve->cells_segments_size; i++) {
     fprintf(stream, "%7zu;%20p;%20p;%9zu\n",
-                           i,
-                           (void *) (pve->cells_segments_sorted + i),
-                           (void *) *(pve->cells_segments_sorted + i),
-                           *(pve->cells_segments_sorted_sizes + i));
+            i,
+            (void *) (pve->cells_segments_sorted + i),
+            (void *) *(pve->cells_segments_sorted + i),
+            *(pve->cells_segments_sorted_sizes + i));
   }
   fprintf(stream, "\n");
 
+  size_t cells_segment_size = pve->cells_first_size;
+  size_t cells_segment_size_incr = 0;
   fprintf(stream, "# PVE CELLS\n");
-  fprintf(stream, "# --- To be developed. ---\n");
+  fprintf(stream, "SEGMENT; ORDINAL;             ADDRESS; MOVE; IS_ACTIVE;                NEXT;             VARIANT\n");
+  for (size_t i = 0; i < cells_segments_in_use_count; i++, cells_segment_size += cells_segment_size_incr, cells_segment_size_incr = cells_segment_size) {
+    for (size_t j = 0; j < cells_segment_size; j++) {
+      PVCell *cell = (PVCell *) (*(pve->cells_segments + i) + j);
+      fprintf(stream, "%7zu;%8zu;%20p;%5s;%10d;%20p;%20p\n",
+              i,
+              j,
+              (void *) cell,
+              square_as_move_to_string(cell->move),
+              cell->is_active,
+              (void *) cell->next,
+              (void *) cell->variant);
+    }
+  }
   fprintf(stream, "\n");
 
   fprintf(stream, "# PVE CELLS STACK\n");
-  fprintf(stream, "# --- To be developed. ---\n");
+  fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO\n");
+  for (size_t i = 0; i < pve->cells_size; i++) {
+    fprintf(stream, "%7zu;%20p;%20p\n",
+                           i,
+                           (void *) (pve->cells_stack + i),
+                           (void *) *(pve->cells_stack + i));
+  }
   fprintf(stream, "\n");
 
   fprintf(stream, "# PVE LINES SEGMENTS\n");
@@ -612,12 +633,12 @@ pve_internals_to_stream (const PVEnv *const pve,
   }
   fprintf(stream, "\n");
 
-  size_t segment_size = pve->lines_first_size;
-  size_t segment_size_incr = 0;
+  size_t lines_segment_size = pve->lines_first_size;
+  size_t lines_segment_size_incr = 0;
   fprintf(stream, "# PVE LINES\n");
   fprintf(stream, "SEGMENT; ORDINAL;             ADDRESS;           POINTS_TO\n");
-  for (size_t i = 0; i < lines_segments_in_use_count; i++, segment_size += segment_size_incr, segment_size_incr = segment_size) {
-    for (size_t j = 0; j < segment_size; j++) {
+  for (size_t i = 0; i < lines_segments_in_use_count; i++, lines_segment_size += lines_segment_size_incr, lines_segment_size_incr = lines_segment_size) {
+    for (size_t j = 0; j < lines_segment_size; j++) {
       fprintf(stream, "%7zu;%8zu;%20p;%20p\n",
                              i,
                              j,
@@ -762,7 +783,7 @@ pve_line_to_string (const PVEnv *const pve,
                     const PVCell **const line)
 {
   gchar *line_to_string;
-  GString *tmp = g_string_sized_new(16);
+  GString *tmp = g_string_sized_new(256);
 
   for (const PVCell *c = *line; c != NULL; c = c->next) {
     g_string_append_printf(tmp, "%s", square_as_move_to_string(c->move));
