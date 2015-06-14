@@ -9,13 +9,14 @@
  *       - [done] PVCell should have a variant pointer to another cell. Alpha-Beta has to populate it when moves have equal values.
  *       - The pve_verify_consistency function has to be rewritten.
  *       - [done] The pve_internals_to_string function has to be completed.
- *       - The pve_index_lines function has to be run on the real stack.
- *       - Cells has to be converted as lines to segment management.
+ *       - Add an argument to the function pve_internals_to_string. It should be a bit-mask that turn on-off the different blocks of the function.
+ *       - [done] The pve_index_lines function has to be run on the real stack.
+ *       - [done] Cells has to be converted as lines to segment management.
  *       - [done] The size of the cell stack has to be increased, line_delete has to take care of variants.
  *       - The ExactSolution object should have a PVE reference, not just a move array.
  *       - A couple of flags --pve_variants and --pve_variants_full should be added to drive the exact_solution_to_string function.
  *         A command line option asking to run the full analysis.
- *       - The proper memory management for the pve structure.
+ *       - [done] The proper memory management for the pve structure.
  *       - Prepare a pve_pack function that shrink the structure.
  *       - Tests ....
  *       - Documentation.
