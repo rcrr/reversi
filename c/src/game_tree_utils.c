@@ -573,7 +573,7 @@ pve_internals_to_stream (const PVEnv *const pve,
   for (size_t i = 0; i < lines_in_use_count; i++) {
     const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
     fprintf(stream, "line_internals: ");
-    pve_line_print_internals(pve, line, stream);
+    pve_line_internals_to_stream(pve, line, stream);
     fprintf(stream, "\n");
   }
   fprintf(stream, "\n");
@@ -774,9 +774,9 @@ pve_line_delete (PVEnv *pve,
  * @param [in] stream the stream collecting the output
  */
 void
-pve_line_print_internals (const PVEnv *const pve,
-                          const PVCell **const line,
-                          FILE *const stream)
+pve_line_internals_to_stream (const PVEnv *const pve,
+                              const PVCell **const line,
+                              FILE *const stream)
 {
   fprintf(stream, "line_address=%p, first_cell=%p", (void *) line, (void *) *line);
   if (*line) fprintf(stream, ", chain: ");
