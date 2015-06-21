@@ -238,7 +238,7 @@ pve_new (void)
    * TBD
    */
   static const size_t cells_segments_size = 28;
-  static const size_t cells_first_size = 4;
+  static const size_t cells_first_size = 8;
 
   static const size_t size_of_pve   = sizeof(PVEnv);
   static const size_t size_of_pvc   = sizeof(PVCell);
@@ -465,7 +465,7 @@ pve_verify_consistency (const PVEnv *const pve,
  *          - A csv table reporting lines
  *          - A csv table reporting the stack of pointers to lines
  *
- *          The block on active lines makes a call to the function #pve_sort_lines_in_place
+ *          The block on active lines makes a call to the function `pve_sort_lines_in_place`
  *          that sort, and so modify, the lines stack.
  *
  * @param [in] pve     a pointer to the principal variation environment
@@ -790,30 +790,6 @@ pve_line_print_internals (const PVEnv *const pve,
 }
 
 /**
- * @brief Prints the `line` into the returning string.
- *
- * @param [in] pve  a pointer to the principal variation environment
- * @param [in] line the line to be printed
- * @return          a string describing the sequence of moves held by the line
- */
-char *
-pve_line_to_string (const PVEnv *const pve,
-                    const PVCell **const line)
-{
-  gchar *line_to_string;
-  GString *tmp = g_string_sized_new(256);
-
-  for (const PVCell *c = *line; c != NULL; c = c->next) {
-    g_string_append_printf(tmp, "%s", square_as_move_to_string(c->move));
-    if (c->next) g_string_append_printf(tmp, " ");
-  }
-
-  line_to_string = tmp->str;
-  g_string_free(tmp, FALSE);
-  return line_to_string;
-}
-
-/**
  * @brief Prints the `line` with variants into the returning string.
  *
  * @param [in] pve  a pointer to the principal variation environment
@@ -1100,7 +1076,6 @@ pve_double_cells_size (PVEnv *const pve)
   /* Creates the new cells stack and load it with the cells held in the extension segment. */
   PVCell **new_cells_stack = (PVCell **) malloc(pve->cells_size * size_of_pvcp);
   g_assert(new_cells_stack);
-  printf("pve_double_cells_size: new_cells_stack size: %zu\n", pve->cells_size * size_of_pvcp);
   free(pve->cells_stack);
   pve->cells_stack = new_cells_stack;
   for (size_t i = 0; i < actual_cells_size; i++) {
@@ -1164,7 +1139,6 @@ pve_double_lines_size (PVEnv *const pve)
   /* Creates the new lines stack and load it with the lines held in the extension segment. */
   PVCell ***new_lines_stack = (PVCell ***) malloc(pve->lines_size * size_of_pvcpp);
   g_assert(new_lines_stack);
-  printf("pve_double_lines_size: new_lines_stack size: %zu\n", pve->lines_size * size_of_pvcpp);
   free(pve->lines_stack);
   pve->lines_stack = new_lines_stack;
   for (size_t i = 0; i < actual_lines_size; i++) {

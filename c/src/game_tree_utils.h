@@ -248,10 +248,6 @@ pve_line_print_internals (const PVEnv *const pve,
                           FILE *const stream);
 
 extern char *
-pve_line_to_string (const PVEnv *const pve,
-                    const PVCell **const line);
-
-extern char *
 pve_line_with_variants_to_string (const PVEnv *const pve,
                                   const PVCell **const line);
 
