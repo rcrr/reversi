@@ -794,15 +794,13 @@ pve_line_internals_to_stream (const PVEnv *const pve,
  *
  * @param [in] pve  a pointer to the principal variation environment
  * @param [in] line the line to be printed
- * @return          a string describing the sequence of moves held by the line
+ * @param [in] stream the stream collecting the output
  */
-char *
-pve_line_with_variants_to_string (const PVEnv *const pve,
-                                  const PVCell **const line)
+void
+pve_line_with_variants_to_stream (const PVEnv *const pve,
+                                  const PVCell **const line,
+                                  FILE *const stream)
 {
-  gchar *line_to_string;
-  GString *tmp = g_string_sized_new(256);
-
   int branches[128];
   int holes[128];
   PVCell **lines[128];
@@ -818,21 +816,21 @@ pve_line_with_variants_to_string (const PVEnv *const pve,
     ind += holes[i];
   }
   for (int i = 0; i < ind; i++) {
-    g_string_append_printf(tmp, "    ");
+    fprintf(stream, "    ");
   }
   for (const PVCell *c = *lines[idx]; c != NULL; c = c->next) {
-    g_string_append_printf(tmp, "%s", square_as_move_to_string(c->move));
+    fprintf(stream, "%s", square_as_move_to_string(c->move));
     if (c->variant) {
       branches[idx]++;
-      g_string_append_printf(tmp, ".");
-      if (c->next) g_string_append_printf(tmp, " ");
+      fprintf(stream, ".");
+      if (c->next) fprintf(stream, " ");
     } else {
-      if (c->next) g_string_append_printf(tmp, "  ");
+      if (c->next) fprintf(stream, "  ");
     }
   }
  variants:
   if (branches[idx] > 0) {
-    g_string_append_printf(tmp, "\n");
+    fprintf(stream, "\n");
     int branch_count = branches[idx];
     int hole_count = 0;
     const PVCell *c = *lines[idx];
@@ -853,10 +851,6 @@ pve_line_with_variants_to_string (const PVEnv *const pve,
       goto variants;
     }
   }
-
-  line_to_string = tmp->str;
-  g_string_free(tmp, FALSE);
-  return line_to_string;
 }
 
 /**

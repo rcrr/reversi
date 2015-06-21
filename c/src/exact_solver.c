@@ -200,17 +200,19 @@ game_position_solve (const GamePosition *const root,
   }
   //---
   if (pv_full_recording) {
+    fflush(stdout);
     printf("PVE: $$$ --- $$$\n");
-    gchar *pve_root_line_to_s = pve_line_with_variants_to_string(pve, (const PVCell **const ) pve_root_line);
     printf("\n");
     printf(" --- --- pve_line_with_variants_to_string(pve, pve_root_line) --- ---\n");
-    printf("%s\n", pve_root_line_to_s);
+    pve_line_with_variants_to_stream(pve, (const PVCell **const ) pve_root_line, stdout);
     printf("\n");
-    g_free(pve_root_line_to_s);
     printf("PVE: $$$ --- $$$\n");
+    fflush(stdout);
   }
   if (true) {
+    printf(" --- --- pve_verify_consistency --- ---\n");
     pve_verify_consistency(pve, NULL, NULL);
+    printf(" --- --- pve_internals_to_stream --- ---\n");
     pve_internals_to_stream(pve, stdout);
   }
 
