@@ -213,7 +213,7 @@ game_position_solve (const GamePosition *const root,
     printf(" --- --- pve_verify_consistency --- ---\n");
     pve_verify_consistency(pve, NULL, NULL);
     printf(" --- --- pve_internals_to_stream --- ---\n");
-    pve_internals_to_stream(pve, stdout);
+    pve_internals_to_stream(pve, stdout, 0xFF);
   }
 
   //---

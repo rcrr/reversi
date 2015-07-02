@@ -473,7 +473,8 @@ pve_verify_consistency (const PVEnv *const pve,
  */
 void
 pve_internals_to_stream (const PVEnv *const pve,
-                         FILE *const stream)
+                         FILE *const stream,
+                         const switches_t shown_sections)
 {
   g_assert(pve);
 

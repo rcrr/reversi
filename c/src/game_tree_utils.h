@@ -156,6 +156,11 @@ typedef struct {
 } GameTreeStack;
 
 
+/**
+ * @brief A set of 64 binary switches.
+ */
+typedef uint64_t switches_t;
+
 
 /**********************************************/
 /* Global constants.                          */
@@ -223,7 +228,8 @@ pve_verify_consistency (const PVEnv *const pve,
 
 extern void
 pve_internals_to_stream (const PVEnv *const pve,
-                         FILE *const stream);
+                         FILE *const stream,
+                         const switches_t shown_sections);
 
 extern PVCell **
 pve_line_create (PVEnv *pve);
