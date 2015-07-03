@@ -116,7 +116,7 @@ pve_internals_to_stream_test (void)
    fp = fopen ("build/test/pve_internals_to_stream_test.txt", "w+");
 
   PVEnv *pve = pve_new();
-  pve_internals_to_stream(pve, fp);
+  pve_internals_to_stream(pve, fp, 0xFF);
   pve_free(pve);
 
   fclose(fp);
