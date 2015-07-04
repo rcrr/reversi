@@ -447,10 +447,12 @@ pve_verify_consistency (const PVEnv *const pve,
   return ret;
 }
 
+
+
 /**
  * @brief Prints the `pve` internals into the given `stream`.
  *
- * @details The text is structured into ten sections:
+ * @details The text is structured into an header and ten sections:
  *          - The index of sections
  *          - A list of properties
  *          - A header with the fields of the pve structure
@@ -468,8 +470,27 @@ pve_verify_consistency (const PVEnv *const pve,
  *          The block on active lines makes a call to the function `pve_sort_lines_in_place`
  *          that sort, and so modify, the lines stack.
  *
- * @param [in] pve     a pointer to the principal variation environment
- * @param [in] stream  the file handler destination of the report of the pve internals
+ *          Sections are turned on and off according to the `shown_sections` parameter.
+ *          The header file defines this list of constants, taht document the relationship
+ *          between the switches and the sections:
+ *          - #pve_internals_header_section                `0x0001`
+ *          - #pve_internals_index_section                 `0x0002`
+ *          - #pve_internals_properties_section            `0x0004`
+ *          - #pve_internals_structure_section             `0x0008`
+ *          - #pve_internals_computed_properties_section   `0x0010`
+ *          - #pve_internals_active_lines_section          `0x0020`
+ *          - #pve_internals_cells_segments_section        `0x0040`
+ *          - #pve_internals_sorted_cells_segments_section `0x0080`
+ *          - #pve_internals_cells_section                 `0x0100`
+ *          - #pve_internals_cells_stack_section           `0x0200`
+ *          - #pve_internals_lines_segments_section        `0x0400`
+ *          - #pve_internals_sorted_lines_segments_section `0x0800`
+ *          - #pve_internals_lines_section                 `0x1000`
+ *          - #pve_internals_lines_stack_section           `0x2000`
+ *
+ * @param [in] pve            a pointer to the principal variation environment
+ * @param [in] stream         the file handler destination of the report of the pve internals
+ * @param [in] shown_sections switches that turn on/off the sections
  */
 void
 pve_internals_to_stream (const PVEnv *const pve,
@@ -478,55 +499,82 @@ pve_internals_to_stream (const PVEnv *const pve,
 {
   g_assert(pve);
 
-  fprintf(stream, "# PVE INDEX OF SECTIONS\n");
-  fprintf(stream, " -00- PVE PROPERTIES\n");
-  fprintf(stream, " -01- PVE STRUCTURE HEADER\n");
-  fprintf(stream, " -02- PVE COMPUTED PROPERTIES\n");
-  fprintf(stream, " -03- PVE ACTIVE LINES\n");
-  fprintf(stream, " -04- PVE CELLS SEGMENTS\n");
-  fprintf(stream, " -05- PVE SORTED CELLS SEGMENTS\n");
-  fprintf(stream, " -06- PVE CELLS\n");
-  fprintf(stream, " -07- PVE CELLS STACK\n");
-  fprintf(stream, " -08- PVE LINES SEGMENTS\n");
-  fprintf(stream, " -09- PVE SORTED LINES SEGMENTS\n");
-  fprintf(stream, " -10- PVE LINES\n");
-  fprintf(stream, " -11- PVE LINES STACK\n");
-  fprintf(stream, "\n");
-
   static const size_t size_of_pve   = sizeof(PVEnv);
   static const size_t size_of_pvc   = sizeof(PVCell);
   static const size_t size_of_pvcp  = sizeof(PVCell*);
   static const size_t size_of_pvcpp = sizeof(PVCell**);
-  fprintf(stream, "# PVE PROPERTIES\n");
-  fprintf(stream, "pve address:                 %20p  --  Address of the PVEnv structure.\n", (void *) pve);
-  fprintf(stream, "size of pve:                 %20zu  --  Bytes used by a PVEnv structure.\n", size_of_pve);
-  fprintf(stream, "size of pv cell:             %20zu  --  Bytes used by a PVCell structure.\n", size_of_pvc);
-  fprintf(stream, "size of pv cell pointer:     %20zu  --  Bytes used by a PVCell pointer, or a line.\n", size_of_pvcp);
-  fprintf(stream, "size of line pointer:        %20zu  --  Bytes used by a line pointer.\n", size_of_pvcpp);
-  fprintf(stream, "\n");
 
-  fprintf(stream, "# PVE STRUCTURE HEADER\n");
-  fprintf(stream, "cells_size:                  %20zu  --  Count of cells contained by the cells segments.\n", pve->cells_size);
-  fprintf(stream, "cells_segments_size:         %20zu  --  Count of cells segments.\n", pve->cells_segments_size);
-  fprintf(stream, "cells_first_size:            %20zu  --  Number of cells contained by the first segment.\n", pve->cells_first_size);
-  fprintf(stream, "cells_segments:              %20p  --  Segments are pointers to array of cells.\n", (void *) pve->cells_segments);
-  fprintf(stream, "cells_segments_head:         %20p  --  Next cells segment to be used.\n", (void *) pve->cells_segments_head);
-  fprintf(stream, "cells_segments_sorted_sizes: %20p  --  Array of sizes of cells segments in the sorted order.\n", (void *) pve->cells_segments_sorted_sizes);
-  fprintf(stream, "cells_segments_sorted:       %20p  --  Sorted cells segments, by means of the natural order of the memory adress.\n", (void *) pve->cells_segments_sorted);
-  fprintf(stream, "cells_stack:                 %20p  --  Array of pointers used to manage the cells.\n", (void *) pve->cells_stack);
-  fprintf(stream, "cells_stack_head:            %20p  --  Next, free to be assigned, pointer in the cells stack.\n", (void *) pve->cells_stack_head);
-  fprintf(stream, "cells_max_usage:             %20zu  --  The maximum number of cells in use.\n", pve->cells_max_usage);
-  fprintf(stream, "lines_size:                  %20zu  --  Count of lines contained by the lines segments.\n", pve->lines_size);
-  fprintf(stream, "lines_segments_size:         %20zu  --  Count of lines segments.\n", pve->lines_segments_size);
-  fprintf(stream, "lines_first_size:            %20zu  --  Number of lines contained by the first segment.\n", pve->lines_first_size);
-  fprintf(stream, "lines_segments:              %20p  --  Segments are pointers to array of lines.\n", (void *) pve->lines_segments);
-  fprintf(stream, "lines_segments_head:         %20p  --  Next lines segment to be used.\n", (void *) pve->lines_segments_head);
-  fprintf(stream, "lines_segments_sorted_sizes: %20p  --  Array of sizes of lines segments in the sorted order.\n", (void *) pve->lines_segments_sorted_sizes);
-  fprintf(stream, "lines_segments_sorted:       %20p  --  Sorted lines segments, by means of the natural order of the memory adress.\n", (void *) pve->lines_segments_sorted);
-  fprintf(stream, "lines_stack:                 %20p  --  Array of pointers used to manage the lines.\n", (void *) pve->lines_stack);
-  fprintf(stream, "lines_stack_head:            %20p  --  Next, free to be assigned, pointer in the lines stack.\n", (void *) pve->lines_stack_head);
-  fprintf(stream, "lines_max_usage:             %20zu  --  The maximum number of lines in use.\n", pve->lines_max_usage);
-  fprintf(stream, "\n");
+  if (shown_sections & pve_internals_header_section) {
+    time_t current_time = (time_t) -1;
+    char* c_time_string = NULL;
+
+    /* Obtain current time as seconds elapsed since the Epoch. */
+    current_time = time(NULL);
+    g_assert(current_time != ((time_t) -1));
+
+    /* Convert to local time format. */
+    c_time_string = ctime(&current_time);
+    g_assert(c_time_string);
+
+    fprintf(stream, "# PVE HEADER\n");
+
+    /* ctime() has already added a terminating newline character. */
+    fprintf(stream, "Current time is %s", c_time_string);
+
+    fprintf(stream, "\n");
+  }
+
+  if (shown_sections & pve_internals_index_section) {
+    fprintf(stream, "# PVE INDEX OF SECTIONS\n");
+    fprintf(stream, " -00- PVE PROPERTIES\n");
+    fprintf(stream, " -01- PVE STRUCTURE HEADER\n");
+    fprintf(stream, " -02- PVE COMPUTED PROPERTIES\n");
+    fprintf(stream, " -03- PVE ACTIVE LINES\n");
+    fprintf(stream, " -04- PVE CELLS SEGMENTS\n");
+    fprintf(stream, " -05- PVE SORTED CELLS SEGMENTS\n");
+    fprintf(stream, " -06- PVE CELLS\n");
+    fprintf(stream, " -07- PVE CELLS STACK\n");
+    fprintf(stream, " -08- PVE LINES SEGMENTS\n");
+    fprintf(stream, " -09- PVE SORTED LINES SEGMENTS\n");
+    fprintf(stream, " -10- PVE LINES\n");
+    fprintf(stream, " -11- PVE LINES STACK\n");
+    fprintf(stream, "\n");
+  }
+
+  if (shown_sections & pve_internals_properties_section) {
+    fprintf(stream, "# PVE PROPERTIES\n");
+    fprintf(stream, "pve address:                 %20p  --  Address of the PVEnv structure.\n", (void *) pve);
+    fprintf(stream, "size of pve:                 %20zu  --  Bytes used by a PVEnv structure.\n", size_of_pve);
+    fprintf(stream, "size of pv cell:             %20zu  --  Bytes used by a PVCell structure.\n", size_of_pvc);
+    fprintf(stream, "size of pv cell pointer:     %20zu  --  Bytes used by a PVCell pointer, or a line.\n", size_of_pvcp);
+    fprintf(stream, "size of line pointer:        %20zu  --  Bytes used by a line pointer.\n", size_of_pvcpp);
+    fprintf(stream, "\n");
+  }
+
+  if (shown_sections & pve_internals_structure_section) {
+    fprintf(stream, "# PVE STRUCTURE HEADER\n");
+    fprintf(stream, "cells_size:                  %20zu  --  Count of cells contained by the cells segments.\n", pve->cells_size);
+    fprintf(stream, "cells_segments_size:         %20zu  --  Count of cells segments.\n", pve->cells_segments_size);
+    fprintf(stream, "cells_first_size:            %20zu  --  Number of cells contained by the first segment.\n", pve->cells_first_size);
+    fprintf(stream, "cells_segments:              %20p  --  Segments are pointers to array of cells.\n", (void *) pve->cells_segments);
+    fprintf(stream, "cells_segments_head:         %20p  --  Next cells segment to be used.\n", (void *) pve->cells_segments_head);
+    fprintf(stream, "cells_segments_sorted_sizes: %20p  --  Array of sizes of cells segments in the sorted order.\n", (void *) pve->cells_segments_sorted_sizes);
+    fprintf(stream, "cells_segments_sorted:       %20p  --  Sorted cells segments, by means of the natural order of the memory adress.\n", (void *) pve->cells_segments_sorted);
+    fprintf(stream, "cells_stack:                 %20p  --  Array of pointers used to manage the cells.\n", (void *) pve->cells_stack);
+    fprintf(stream, "cells_stack_head:            %20p  --  Next, free to be assigned, pointer in the cells stack.\n", (void *) pve->cells_stack_head);
+    fprintf(stream, "cells_max_usage:             %20zu  --  The maximum number of cells in use.\n", pve->cells_max_usage);
+    fprintf(stream, "lines_size:                  %20zu  --  Count of lines contained by the lines segments.\n", pve->lines_size);
+    fprintf(stream, "lines_segments_size:         %20zu  --  Count of lines segments.\n", pve->lines_segments_size);
+    fprintf(stream, "lines_first_size:            %20zu  --  Number of lines contained by the first segment.\n", pve->lines_first_size);
+    fprintf(stream, "lines_segments:              %20p  --  Segments are pointers to array of lines.\n", (void *) pve->lines_segments);
+    fprintf(stream, "lines_segments_head:         %20p  --  Next lines segment to be used.\n", (void *) pve->lines_segments_head);
+    fprintf(stream, "lines_segments_sorted_sizes: %20p  --  Array of sizes of lines segments in the sorted order.\n", (void *) pve->lines_segments_sorted_sizes);
+    fprintf(stream, "lines_segments_sorted:       %20p  --  Sorted lines segments, by means of the natural order of the memory adress.\n", (void *) pve->lines_segments_sorted);
+    fprintf(stream, "lines_stack:                 %20p  --  Array of pointers used to manage the lines.\n", (void *) pve->lines_stack);
+    fprintf(stream, "lines_stack_head:            %20p  --  Next, free to be assigned, pointer in the lines stack.\n", (void *) pve->lines_stack_head);
+    fprintf(stream, "lines_max_usage:             %20zu  --  The maximum number of lines in use.\n", pve->lines_max_usage);
+    fprintf(stream, "\n");
+  }
 
   g_assert(pve->cells_segments_head >= pve->cells_segments);
   g_assert(pve->lines_segments_head >= pve->lines_segments);
@@ -556,124 +604,144 @@ pve_internals_to_stream (const PVEnv *const pve,
     (sizeof(size_t) + size_of_pvcpp) * pve->lines_segments_size +
     (size_of_pvc + size_of_pvcp) * cells_actual_max_size +
     (size_of_pvcp + size_of_pvcpp) * lines_actual_max_size;
-  fprintf(stream, "# PVE COMPUTED PROPERTIES\n");
-  fprintf(stream, "cells_segments_in_use_count: %20zu  --  Cells segments being allocated.\n", cells_segments_in_use_count);
-  fprintf(stream, "cells_in_use_count:          %20zu  --  Cells actively assigned to lines.\n", cells_in_use_count);
-  fprintf(stream, "cells_actual_max_size:       %20zu  --  Actual maximum number of cells without allocating new segments.\n", cells_actual_max_size);
-  fprintf(stream, "cells_max_size:              %20zu  --  Overall maximum number of cells.\n", cells_max_size);
-  fprintf(stream, "lines_segments_in_use_count: %20zu  --  Lines segments being allocated.\n", lines_segments_in_use_count);
-  fprintf(stream, "lines_in_use_count:          %20zu  --  Active lines.\n", lines_in_use_count);
-  fprintf(stream, "lines_actual_max_size:       %20zu  --  Actual maximum number of lines without allocating new segments.\n", lines_actual_max_size);
-  fprintf(stream, "lines_max_size:              %20zu  --  Overall maximum number of lines.\n", lines_max_size);
-  fprintf(stream, "pve_max_allowed_mem_consum   %20zu  --  PV environment max allowed memory consumption.\n", pve_max_allowed_mem_consum);
-  fprintf(stream, "pve_current_mem_consum       %20zu  --  PV environment current memory consumption.\n", pve_current_mem_consum);
-  fprintf(stream, "\n");
-
-  fprintf(stream, "# PVE ACTIVE LINES\n");
-  pve_sort_lines_in_place(pve);
-  for (size_t i = 0; i < lines_in_use_count; i++) {
-    const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
-    fprintf(stream, "line_internals: ");
-    pve_line_internals_to_stream(pve, line, stream);
+  if (shown_sections & pve_internals_computed_properties_section) {
+    fprintf(stream, "# PVE COMPUTED PROPERTIES\n");
+    fprintf(stream, "cells_segments_in_use_count: %20zu  --  Cells segments being allocated.\n", cells_segments_in_use_count);
+    fprintf(stream, "cells_in_use_count:          %20zu  --  Cells actively assigned to lines.\n", cells_in_use_count);
+    fprintf(stream, "cells_actual_max_size:       %20zu  --  Actual maximum number of cells without allocating new segments.\n", cells_actual_max_size);
+    fprintf(stream, "cells_max_size:              %20zu  --  Overall maximum number of cells.\n", cells_max_size);
+    fprintf(stream, "lines_segments_in_use_count: %20zu  --  Lines segments being allocated.\n", lines_segments_in_use_count);
+    fprintf(stream, "lines_in_use_count:          %20zu  --  Active lines.\n", lines_in_use_count);
+    fprintf(stream, "lines_actual_max_size:       %20zu  --  Actual maximum number of lines without allocating new segments.\n", lines_actual_max_size);
+    fprintf(stream, "lines_max_size:              %20zu  --  Overall maximum number of lines.\n", lines_max_size);
+    fprintf(stream, "pve_max_allowed_mem_consum   %20zu  --  PV environment max allowed memory consumption.\n", pve_max_allowed_mem_consum);
+    fprintf(stream, "pve_current_mem_consum       %20zu  --  PV environment current memory consumption.\n", pve_current_mem_consum);
     fprintf(stream, "\n");
   }
-  fprintf(stream, "\n");
 
-  fprintf(stream, "# PVE CELLS SEGMENTS\n");
-  fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO\n");
-  for (size_t i = 0; i < pve->cells_segments_size; i++) {
-    fprintf(stream, "%7zu;%20p;%20p\n",
-                           i,
-                           (void *) (pve->cells_segments + i),
-                           (void *) *(pve->cells_segments + i));
+  if (shown_sections & pve_internals_active_lines_section) {
+    fprintf(stream, "# PVE ACTIVE LINES\n");
+    pve_sort_lines_in_place(pve);
+    for (size_t i = 0; i < lines_in_use_count; i++) {
+      const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
+      fprintf(stream, "line_internals: ");
+      pve_line_internals_to_stream(pve, line, stream);
+      fprintf(stream, "\n");
+    }
+    fprintf(stream, "\n");
   }
-  fprintf(stream, "\n");
 
-  fprintf(stream, "# PVE SORTED CELLS SEGMENTS\n");
-  fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO;     SIZE\n");
-  for (size_t i = 0; i < pve->cells_segments_size; i++) {
-    fprintf(stream, "%7zu;%20p;%20p;%9zu\n",
-            i,
-            (void *) (pve->cells_segments_sorted + i),
-            (void *) *(pve->cells_segments_sorted + i),
-            *(pve->cells_segments_sorted_sizes + i));
+  if (shown_sections & pve_internals_cells_segments_section) {
+    fprintf(stream, "# PVE CELLS SEGMENTS\n");
+    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO\n");
+    for (size_t i = 0; i < pve->cells_segments_size; i++) {
+      fprintf(stream, "%7zu;%20p;%20p\n",
+              i,
+              (void *) (pve->cells_segments + i),
+              (void *) *(pve->cells_segments + i));
+    }
+    fprintf(stream, "\n");
   }
-  fprintf(stream, "\n");
+
+  if (shown_sections & pve_internals_sorted_cells_segments_section) {
+    fprintf(stream, "# PVE SORTED CELLS SEGMENTS\n");
+    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO;     SIZE\n");
+    for (size_t i = 0; i < pve->cells_segments_size; i++) {
+      fprintf(stream, "%7zu;%20p;%20p;%9zu\n",
+              i,
+              (void *) (pve->cells_segments_sorted + i),
+              (void *) *(pve->cells_segments_sorted + i),
+              *(pve->cells_segments_sorted_sizes + i));
+    }
+    fprintf(stream, "\n");
+  }
 
   size_t cells_segment_size = pve->cells_first_size;
   size_t cells_segment_size_incr = 0;
-  fprintf(stream, "# PVE CELLS\n");
-  fprintf(stream, "SEGMENT; ORDINAL;             ADDRESS; MOVE; IS_ACTIVE;                NEXT;             VARIANT\n");
-  for (size_t i = 0; i < cells_segments_in_use_count; i++, cells_segment_size += cells_segment_size_incr, cells_segment_size_incr = cells_segment_size) {
-    for (size_t j = 0; j < cells_segment_size; j++) {
-      PVCell *cell = (PVCell *) (*(pve->cells_segments + i) + j);
-      fprintf(stream, "%7zu;%8zu;%20p;%5s;%10d;%20p;%20p\n",
-              i,
-              j,
-              (void *) cell,
-              square_as_move_to_string(cell->move),
-              cell->is_active,
-              (void *) cell->next,
-              (void *) cell->variant);
+  if (shown_sections & pve_internals_cells_section) {
+    fprintf(stream, "# PVE CELLS\n");
+    fprintf(stream, "SEGMENT; ORDINAL;             ADDRESS; MOVE; IS_ACTIVE;                NEXT;             VARIANT\n");
+    for (size_t i = 0; i < cells_segments_in_use_count; i++, cells_segment_size += cells_segment_size_incr, cells_segment_size_incr = cells_segment_size) {
+      for (size_t j = 0; j < cells_segment_size; j++) {
+        PVCell *cell = (PVCell *) (*(pve->cells_segments + i) + j);
+        fprintf(stream, "%7zu;%8zu;%20p;%5s;%10d;%20p;%20p\n",
+                i,
+                j,
+                (void *) cell,
+                square_as_move_to_string(cell->move),
+                cell->is_active,
+                (void *) cell->next,
+                (void *) cell->variant);
+      }
     }
+    fprintf(stream, "\n");
   }
-  fprintf(stream, "\n");
 
-  fprintf(stream, "# PVE CELLS STACK\n");
-  fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO\n");
-  for (size_t i = 0; i < pve->cells_size; i++) {
-    fprintf(stream, "%7zu;%20p;%20p\n",
-                           i,
-                           (void *) (pve->cells_stack + i),
-                           (void *) *(pve->cells_stack + i));
+  if (shown_sections & pve_internals_cells_stack_section) {
+    fprintf(stream, "# PVE CELLS STACK\n");
+    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO\n");
+    for (size_t i = 0; i < pve->cells_size; i++) {
+      fprintf(stream, "%7zu;%20p;%20p\n",
+              i,
+              (void *) (pve->cells_stack + i),
+              (void *) *(pve->cells_stack + i));
+    }
+    fprintf(stream, "\n");
   }
-  fprintf(stream, "\n");
 
-  fprintf(stream, "# PVE LINES SEGMENTS\n");
-  fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO\n");
-  for (size_t i = 0; i < pve->lines_segments_size; i++) {
-    fprintf(stream, "%7zu;%20p;%20p\n",
-                           i,
-                           (void *) (pve->lines_segments + i),
-                           (void *) *(pve->lines_segments + i));
+  if (shown_sections & pve_internals_lines_segments_section) {
+    fprintf(stream, "# PVE LINES SEGMENTS\n");
+    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO\n");
+    for (size_t i = 0; i < pve->lines_segments_size; i++) {
+      fprintf(stream, "%7zu;%20p;%20p\n",
+              i,
+              (void *) (pve->lines_segments + i),
+              (void *) *(pve->lines_segments + i));
+    }
+    fprintf(stream, "\n");
   }
-  fprintf(stream, "\n");
 
-  fprintf(stream, "# PVE SORTED LINES SEGMENTS\n");
-  fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO;     SIZE\n");
-  for (size_t i = 0; i < pve->lines_segments_size; i++) {
-    fprintf(stream, "%7zu;%20p;%20p;%9zu\n",
-                           i,
-                           (void *) (pve->lines_segments_sorted + i),
-                           (void *) *(pve->lines_segments_sorted + i),
-                           *(pve->lines_segments_sorted_sizes + i));
+  if (shown_sections & pve_internals_sorted_lines_segments_section) {
+    fprintf(stream, "# PVE SORTED LINES SEGMENTS\n");
+    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO;     SIZE\n");
+    for (size_t i = 0; i < pve->lines_segments_size; i++) {
+      fprintf(stream, "%7zu;%20p;%20p;%9zu\n",
+              i,
+              (void *) (pve->lines_segments_sorted + i),
+              (void *) *(pve->lines_segments_sorted + i),
+              *(pve->lines_segments_sorted_sizes + i));
+    }
+    fprintf(stream, "\n");
   }
-  fprintf(stream, "\n");
 
   size_t lines_segment_size = pve->lines_first_size;
   size_t lines_segment_size_incr = 0;
-  fprintf(stream, "# PVE LINES\n");
-  fprintf(stream, "SEGMENT; ORDINAL;             ADDRESS;           POINTS_TO\n");
-  for (size_t i = 0; i < lines_segments_in_use_count; i++, lines_segment_size += lines_segment_size_incr, lines_segment_size_incr = lines_segment_size) {
-    for (size_t j = 0; j < lines_segment_size; j++) {
-      fprintf(stream, "%7zu;%8zu;%20p;%20p\n",
-                             i,
-                             j,
-                             (void *) (*(pve->lines_segments + i) + j),
-                             (void *) *(*(pve->lines_segments + i) + j));
+  if (shown_sections & pve_internals_lines_section) {
+    fprintf(stream, "# PVE LINES\n");
+    fprintf(stream, "SEGMENT; ORDINAL;             ADDRESS;           POINTS_TO\n");
+    for (size_t i = 0; i < lines_segments_in_use_count; i++, lines_segment_size += lines_segment_size_incr, lines_segment_size_incr = lines_segment_size) {
+      for (size_t j = 0; j < lines_segment_size; j++) {
+        fprintf(stream, "%7zu;%8zu;%20p;%20p\n",
+                i,
+                j,
+                (void *) (*(pve->lines_segments + i) + j),
+                (void *) *(*(pve->lines_segments + i) + j));
+      }
     }
+    fprintf(stream, "\n");
   }
-  fprintf(stream, "\n");
 
-  fprintf(stream, "# PVE LINES STACK\n");
-  fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO\n");
-  for (size_t i = 0; i < pve->lines_size; i++) {
-    fprintf(stream, "%7zu;%20p;%20p\n",
-                           i,
-                           (void *) (pve->lines_stack + i),
-                           (void *) *(pve->lines_stack + i));
+  if (shown_sections & pve_internals_lines_stack_section) {
+    fprintf(stream, "# PVE LINES STACK\n");
+    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO\n");
+    for (size_t i = 0; i < pve->lines_size; i++) {
+      fprintf(stream, "%7zu;%20p;%20p\n",
+              i,
+              (void *) (pve->lines_stack + i),
+              (void *) *(pve->lines_stack + i));
+    }
+    fprintf(stream, "\n");
   }
-  fprintf(stream, "\n");
 }
 
 /**

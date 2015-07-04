@@ -191,6 +191,76 @@ static const int best_score = +64;
  */
 static const int worst_score = -64;
 
+/**
+ * @brief The PVE internals header section switch mask.
+ */
+static const switches_t pve_internals_header_section                = 0x0001;
+
+/**
+ * @brief The PVE internals index section switch mask.
+ */
+static const switches_t pve_internals_index_section                 = 0x0002;
+
+/**
+ * @brief The PVE internals properties section switch mask.
+ */
+static const switches_t pve_internals_properties_section            = 0x0004;
+
+/**
+ * @brief The PVE internals structure  section switch mask.
+ */
+static const switches_t pve_internals_structure_section             = 0x0008;
+
+/**
+ * @brief The PVE internals computed properties section switch mask.
+ */
+static const switches_t pve_internals_computed_properties_section   = 0x0010;
+
+/**
+ * @brief The PVE internals active lines section switch mask.
+ */
+static const switches_t pve_internals_active_lines_section          = 0x0020;
+
+/**
+ * @brief The PVE internals cells segments section switch mask.
+ */
+static const switches_t pve_internals_cells_segments_section        = 0x0040;
+
+/**
+ * @brief The PVE internals sorted cells segments section switch mask.
+ */
+static const switches_t pve_internals_sorted_cells_segments_section = 0x0080;
+
+/**
+ * @brief The PVE internals cells section switch mask.
+ */
+static const switches_t pve_internals_cells_section                 = 0x0100;
+
+/**
+ * @brief The PVE internals sorted cells section switch mask.
+ */
+static const switches_t pve_internals_cells_stack_section           = 0x0200;
+
+/**
+ * @brief The PVE internals lines segments section switch mask.
+ */
+static const switches_t pve_internals_lines_segments_section        = 0x0400;
+
+/**
+ * @brief The PVE internals sorted lines segments section switch mask.
+ */
+static const switches_t pve_internals_sorted_lines_segments_section = 0x0800;
+
+/**
+ * @brief The PVE internals lines section switch mask.
+ */
+static const switches_t pve_internals_lines_section                 = 0x1000;
+
+/**
+ * @brief The PVE internals sorted lines section switch mask.
+ */
+static const switches_t pve_internals_lines_stack_section           = 0x2000;
+
 
 
 /*****************************************************/
