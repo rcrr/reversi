@@ -397,8 +397,8 @@ sort_utils_insertionsort (void *const a,
                           const sort_utils_compare_function cmp)
 {
   char *ca = (char *) a;
-  for (int i = 1; i < count; i++) {
-    int j = i;
+  for (size_t i = 1; i < count; i++) {
+    size_t j = i;
     for (;;) {
       if (j == 0 || cmp(ca + (j - 1) * element_size, ca + j * element_size) <= 0) break;
       swap(ca + j * element_size, ca + (j - 1) * element_size, element_size);
@@ -546,7 +546,7 @@ sort_utils_insertionsort_dsc_i64 (int64_t *const a,
  */
 void
 sort_utils_insertionsort_asc_p (void **const a,
-                                const int count)
+                                const size_t count)
 {
   sort_utils_insertionsort(a, count, sizeof(void *), sort_utils_pointer_cmp);
 }

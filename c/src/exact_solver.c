@@ -219,11 +219,11 @@ game_position_solve (const GamePosition *const root,
     shown_sections |= pve_internals_properties_section;
     shown_sections |= pve_internals_structure_section;
     shown_sections |= pve_internals_computed_properties_section;
-    //shown_sections |= pve_internals_active_lines_section;
-    shown_sections |= pve_internals_cells_segments_section;
-    shown_sections |= pve_internals_sorted_cells_segments_section;
-    shown_sections |= pve_internals_cells_section;
-    shown_sections |= pve_internals_cells_stack_section;
+    shown_sections |= pve_internals_active_lines_section;
+    //shown_sections |= pve_internals_cells_segments_section;
+    //shown_sections |= pve_internals_sorted_cells_segments_section;
+    //shown_sections |= pve_internals_cells_section;
+    //shown_sections |= pve_internals_cells_stack_section;
     shown_sections |= pve_internals_lines_segments_section;
     shown_sections |= pve_internals_sorted_lines_segments_section;
     shown_sections |= pve_internals_lines_section;

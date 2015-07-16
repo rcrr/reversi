@@ -186,7 +186,7 @@ sort_utils_insertionsort_dsc_i64 (int64_t *const a,
 
 extern void
 sort_utils_insertionsort_asc_p (void **const a,
-                                const int count);
+                                const size_t count);
 
 
 
