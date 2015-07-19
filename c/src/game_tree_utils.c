@@ -632,11 +632,11 @@ pve_internals_to_stream (const PVEnv *const pve,
     fprintf(stream, "lines_actual_max_size=%zu\n\n", lines_actual_max_size);
     pve_verify_line_stack(pve);
     fprintf(stream, "### DEBUG PRE SORT ###\n");
-    pve_internals_to_stream(pve, stdout, 0x201F);
+    pve_internals_to_stream(pve, stdout, 0x201F | 0x0C00);
     fprintf(stream, "### DEBUG SORTING .... ###\n");
     pve_sort_lines_in_place(pve);
     fprintf(stream, "### DEBUG POST SORT ###\n");
-    pve_internals_to_stream(pve, stdout, 0x201F);
+    pve_internals_to_stream(pve, stdout, 0x201F | 0x0C00);
     fprintf(stream, "### DEBUG ###\n");
     // ***
     //pve_sort_lines_in_place(pve);
@@ -712,21 +712,22 @@ pve_internals_to_stream (const PVEnv *const pve,
 
   if (shown_sections & pve_internals_lines_segments_section) {
     fprintf(stream, "# PVE LINES SEGMENTS\n");
-    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO\n");
+    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO;      SIZE\n");
     for (size_t i = 0; i < pve->lines_segments_size; i++) {
-      fprintf(stream, "%7zu;%20p;%20p\n",
+      fprintf(stream, "%7zu;%20p;%20p;%10zu\n",
               i,
               (void *) (pve->lines_segments + i),
-              (void *) *(pve->lines_segments + i));
+              (void *) *(pve->lines_segments + i),
+              (size_t) ((i == 0) ? 1 : (1ULL << (i - 1))) * pve->lines_first_size);
     }
     fprintf(stream, "\n");
   }
 
   if (shown_sections & pve_internals_sorted_lines_segments_section) {
     fprintf(stream, "# PVE SORTED LINES SEGMENTS\n");
-    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO;     SIZE\n");
+    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO;      SIZE\n");
     for (size_t i = 0; i < pve->lines_segments_size; i++) {
-      fprintf(stream, "%7zu;%20p;%20p;%9zu\n",
+      fprintf(stream, "%7zu;%20p;%20p;%10zu\n",
               i,
               (void *) (pve->lines_segments_sorted + i),
               (void *) *(pve->lines_segments_sorted + i),
@@ -1291,11 +1292,12 @@ pve_sort_lines_in_place (const PVEnv *const pve)
   PVCell ***used_lines_stack_p = index;
   PVCell ***free_lines_stack_p = index + lines_in_use_count;
   printf("used_lines_stack_p=%p, free_lines_stack_p=%p\n", (void *) used_lines_stack_p, (void *) free_lines_stack_p);
+  printf(" COUNT;                 LINE;  U/F\n");
   for (size_t i = 0; i < lines_segments_in_use_count; i++) {
     size_t segment_size = *(pve->lines_segments_sorted_sizes + i);
     for (size_t j = 0; j < segment_size; j++) {
       PVCell **line = *(pve->lines_segments_sorted + i) + j;
-      printf("%6zu, %20p, ", count_lines, (void *) line);
+      printf("%6zu; %20p; ", count_lines, (void *) line);
       count_lines++;
       if (line < *free_lines_stack_p) {
         printf("USED\n");
