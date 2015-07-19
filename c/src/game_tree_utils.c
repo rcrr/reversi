@@ -1292,21 +1292,24 @@ pve_sort_lines_in_place (const PVEnv *const pve)
   PVCell ***used_lines_stack_p = index;
   PVCell ***free_lines_stack_p = index + lines_in_use_count;
   printf("used_lines_stack_p=%p, free_lines_stack_p=%p\n", (void *) used_lines_stack_p, (void *) free_lines_stack_p);
-  printf(" COUNT;                 LINE;  U/F\n");
+  printf(" COUNT; SEG;   SEG_SIZE;                 LINE;  *FREE_LINES_STACK_P;   FREE_LINES_STACK_P;   USED_LINES_STACK_P; U/F;  C_U_L;  C_F_L;   USED_LINES_STACK_P; CNT;   FREE_LINES_STACK_P; CNT\n");
   for (size_t i = 0; i < lines_segments_in_use_count; i++) {
     size_t segment_size = *(pve->lines_segments_sorted_sizes + i);
     for (size_t j = 0; j < segment_size; j++) {
       PVCell **line = *(pve->lines_segments_sorted + i) + j;
-      printf("%6zu; %20p; ", count_lines, (void *) line);
+      printf("%6zu; %3zu; %10zu; %20p; %20p; %20p; %20p;", count_lines, i, segment_size, (void *) line, (void *) *free_lines_stack_p, (void *) free_lines_stack_p, (void *) used_lines_stack_p);
       count_lines++;
       if (line < *free_lines_stack_p) {
-        printf("USED\n");
         count_used_lines++;
-        *used_lines_stack_p++ = line;
+        *used_lines_stack_p = line;
+        used_lines_stack_p++;
+        printf("USED; %6zu; %6zu; %20p; %3zu; %20p; %3zu\n",
+               count_used_lines, count_free_lines, (void *) used_lines_stack_p, used_lines_stack_p - index, (void *) free_lines_stack_p, free_lines_stack_p - index - lines_in_use_count);
       } else {
-        printf("FREE\n");
         count_free_lines++;
         free_lines_stack_p++;
+        printf("FREE; %6zu; %6zu; %20p; %3zu; %20p; %3zu\n",
+               count_used_lines, count_free_lines, (void *) used_lines_stack_p, used_lines_stack_p - index, (void *) free_lines_stack_p, free_lines_stack_p - index - lines_in_use_count);
       }
     }
   }
