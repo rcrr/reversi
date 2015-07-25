@@ -57,6 +57,7 @@
  */
 #define MAX_LEGAL_MOVE_STACK_COUNT 1024
 
+#include <stdbool.h>
 #include <glib.h>
 
 #include "board.h"
@@ -290,6 +291,11 @@ pve_new (void);
 
 extern void
 pve_free (PVEnv *pve);
+
+extern bool
+pve_is_invariant_satisfied (const PVEnv *const pve,
+                            int *const error_code,
+                            const switches_t run_checks);
 
 extern gboolean
 pve_verify_consistency (const PVEnv *const pve,

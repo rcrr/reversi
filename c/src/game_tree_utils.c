@@ -384,6 +384,27 @@ pve_free (PVEnv *pve)
 }
 
 /**
+ * @brief Verifies that the PVE invariant is satisfied.
+ *
+ * @details To be written ....
+ *
+ * @param [in]  pve        a pointer to the principal variation environment
+ * @param [out] error_code a pointer to the error code
+ * @param [in]  run_checks switches that turn checks on
+ * @return                 true when checks are passed
+ */
+bool
+pve_is_invariant_satisfied (const PVEnv *const pve,
+                            int *const error_code,
+                            const switches_t run_checks)
+{
+  bool ret = TRUE;
+
+  return ret;
+}
+
+
+/**
  * @brief Verifies that the pve structure is consistent.
  *
  * @details If `pve` parameter is `NULL` the function return `FALSE` with error_code `-1`.
@@ -449,8 +470,6 @@ pve_verify_consistency (const PVEnv *const pve,
 
   return ret;
 }
-
-
 
 /**
  * @brief Prints the `pve` internals into the given `stream`.
