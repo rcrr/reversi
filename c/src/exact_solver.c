@@ -211,6 +211,9 @@ game_position_solve (const GamePosition *const root,
   }
   if (true) {
     printf(" --- --- pve_verify_consistency --- ---\n");
+    int error_code = 0;
+    g_assert(pve_is_invariant_satisfied(pve, &error_code, 0xFF));
+    printf(" --- --- pve_is_invariant_satisfied COMPLETED --- ---\n");
     pve_verify_consistency(pve, NULL, NULL);
     printf(" --- --- pve_internals_to_stream --- ---\n");
     switches_t shown_sections = 0x0000;

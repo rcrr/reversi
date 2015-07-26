@@ -234,8 +234,8 @@ pve_new (void)
    * The total memory required is 8,388,608 bytes for lines and the same for the stack,
    * leading to a total of 16 MBytes.
    */
-  static const size_t lines_segments_size = 28;
-  static const size_t lines_first_size = 4;
+  static const size_t lines_segments_size = PVE_LINES_SEGMENTS_SIZE;
+  static const size_t lines_first_size = PVE_LINES_FIRST_SIZE;
 
   /*
    * TBD
@@ -334,6 +334,9 @@ pve_new (void)
   }
   pve->lines_stack_head = pve->lines_stack;
 
+  int error_code = 0;
+  g_assert(pve_is_invariant_satisfied(pve, &error_code, 0xFF));
+
   return pve;
 }
 
@@ -386,21 +389,103 @@ pve_free (PVEnv *pve)
 /**
  * @brief Verifies that the PVE invariant is satisfied.
  *
- * @details To be written ....
+ * @details Invariants verified are:
+ *          - Lines stack must have NULL values from the
  *
- * @param [in]  pve        a pointer to the principal variation environment
- * @param [out] error_code a pointer to the error code
- * @param [in]  run_checks switches that turn checks on
- * @return                 true when checks are passed
+ * @param [in]  pve                a pointer to the principal variation environment
+ * @param [out] error_code         a pointer to the error code
+ * @param [in]  checked_invariants switches that turn checks on
+ * @return                         true when checked invariants are satisfied, otherwise false
  */
 bool
 pve_is_invariant_satisfied (const PVEnv *const pve,
                             int *const error_code,
-                            const switches_t run_checks)
+                            const switches_t checked_invariants)
 {
-  bool ret = TRUE;
+  if (pve->lines_segments_size != PVE_LINES_SEGMENTS_SIZE) {
+    if (error_code) *error_code = 1;
+    return FALSE;
+  }
+  if (pve->lines_first_size != PVE_LINES_FIRST_SIZE) {
+    if (error_code) *error_code = 2;
+    return FALSE;
+  }
+  if (!pve->lines_segments_head) {
+    if (error_code) *error_code = 3;
+    return FALSE;
+  }
+  if (!pve->lines_segments) {
+    if (error_code) *error_code = 4;
+    return FALSE;
+  }
+  const size_t active_lines_segments_count = pve->lines_segments_head - pve->lines_segments;
+  if (active_lines_segments_count < 0) {
+    if (error_code) *error_code = 5;
+    return FALSE;
+  }
+  if (active_lines_segments_count > pve->lines_segments_size) {
+    if (error_code) *error_code = 6;
+    return FALSE;
+  }
+  const size_t expected_lines_size = (size_t) (active_lines_segments_count == 0
+                                               ? 0 : (1ULL << (active_lines_segments_count - 1)) * PVE_LINES_FIRST_SIZE);
+  if (expected_lines_size != pve->lines_size) {
+    if (error_code) *error_code = 7;
+    return FALSE;
+  }
 
-  return ret;
+  for (size_t i = 0; i < active_lines_segments_count; i++) {
+    const PVCell ***ls = (const PVCell ***) *(pve->lines_segments + i);
+    if (!ls) {
+      if (error_code) *error_code = 8;
+      return FALSE;
+    }
+  }
+
+  for (size_t i = active_lines_segments_count; i < pve->lines_segments_size; i++) {
+    const PVCell ***ls = (const PVCell ***) *(pve->lines_segments + i);
+    if (ls) {
+      if (error_code) *error_code = 9;
+      return FALSE;
+    }
+  }
+
+  for (size_t i = 0; i < active_lines_segments_count; i++) {
+    const PVCell ***ls = (const PVCell ***) *(pve->lines_segments_sorted + i);
+    if (!ls) {
+      if (error_code) *error_code = 10;
+      return FALSE;
+    }
+  }
+
+  for (size_t i = active_lines_segments_count; i < pve->lines_segments_size; i++) {
+    const PVCell ***ls = (const PVCell ***) *(pve->lines_segments_sorted + i);
+    if (ls) {
+      if (error_code) *error_code = 11;
+      return FALSE;
+    }
+  }
+
+  size_t cumulated_lines_size_from_sorted_segments = 0;
+  for (size_t i = 0; i < active_lines_segments_count; i++) {
+    const size_t segment_size = (size_t) *(pve->lines_segments_sorted_sizes + i);
+    cumulated_lines_size_from_sorted_segments += segment_size;
+  }
+  if (expected_lines_size != cumulated_lines_size_from_sorted_segments) {
+    if (error_code) *error_code = 12;
+    return FALSE;
+  }
+
+
+  for (size_t i = active_lines_segments_count; i < pve->lines_segments_size; i++) {
+    const size_t segment_size = (size_t) *(pve->lines_segments_sorted_sizes + i);
+    if (segment_size != 0) {
+      if (error_code) *error_code = 13;
+      return FALSE;
+    }
+  }
+
+  return TRUE;
 }
 
 

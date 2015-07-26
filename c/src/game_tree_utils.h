@@ -57,6 +57,9 @@
  */
 #define MAX_LEGAL_MOVE_STACK_COUNT 1024
 
+#define PVE_LINES_SEGMENTS_SIZE 28
+#define PVE_LINES_FIRST_SIZE 4
+
 #include <stdbool.h>
 #include <glib.h>
 
@@ -67,6 +70,11 @@
 /**********************************************/
 /* Type declarations.                         */
 /**********************************************/
+
+/**
+ * @brief A set of 64 binary switches.
+ */
+typedef uint64_t switches_t;
 
 /**
  * @brief An exact solution is an entity that holds the result of a #game_position_solve run.
@@ -99,28 +107,34 @@ typedef struct PVCell_ {
  *          by calls to malloc. All these fields are immutable.
  *
  *          Fields `cells_stack_head` and `lines_stack_head` are mutable.
+ *
+ *          Field `state` is a bitfield of flags collecting the structure state.
+ *           - Bit zero (least significant bit) describes the lines stack state. When `0` the stack is not ordered
+ *             and the used pointers must be `NULL`. When `1` the unused lines are sorted in ascending order, as well as the
+ *             used pointers, no `NULL` pointers occurs.
  */
 typedef struct {
-  size_t    cells_size;                    /**< @brief The count of cells contained by the cells array. */
-  size_t    cells_segments_size;           /**< @brief The count of cells segments. */
-  size_t    cells_first_size;              /**< @brief The number of cells contained by the first segment. */
-  PVCell  **cells_segments;                /**< @brief Segments are pointers to array of cells. */
-  PVCell  **cells_segments_head;           /**< @brief The next cells segment to be used. */
-  size_t   *cells_segments_sorted_sizes;   /**< @brief Sizes of cells segments in the sorted order. */
-  PVCell  **cells_segments_sorted;         /**< @brief Sorted cells segments, by means of the natural order of the memory adress. */
-  PVCell  **cells_stack;                   /**< @brief The pointer to the array of pointers used to manage the cells. */
-  PVCell  **cells_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
-  size_t    cells_max_usage;               /**< @brief The maximum number of cells in use. */
-  size_t    lines_size;                    /**< @brief The total count of lines contained by the lines segments. */
-  size_t    lines_segments_size;           /**< @brief The count of lines segments. */
-  size_t    lines_first_size;              /**< @brief The number of lines contained by the first segment. */
-  PVCell ***lines_segments;                /**< @brief Segments are pointers to array of lines. */
-  PVCell ***lines_segments_head;           /**< @brief The next lines segment to be used. */
-  size_t   *lines_segments_sorted_sizes;   /**< @brief Sizes of lines segments in the sorted order. */
-  PVCell ***lines_segments_sorted;         /**< @brief Sorted lines segments, by means of the natural order of the memory adress. */
-  PVCell ***lines_stack;                   /**< @brief The pointer to an array of pointers used to manage the lines. */
-  PVCell ***lines_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
-  size_t    lines_max_usage;               /**< @brief The maximum number of lines in use. */
+  switches_t state;                         /**< @brief The condition of the structure. */
+  size_t     cells_size;                    /**< @brief The count of cells contained by the cells array. */
+  size_t     cells_segments_size;           /**< @brief The count of cells segments. */
+  size_t     cells_first_size;              /**< @brief The number of cells contained by the first segment. */
+  PVCell   **cells_segments;                /**< @brief Segments are pointers to array of cells. */
+  PVCell   **cells_segments_head;           /**< @brief The next cells segment to be used. */
+  size_t    *cells_segments_sorted_sizes;   /**< @brief Sizes of cells segments in the sorted order. */
+  PVCell   **cells_segments_sorted;         /**< @brief Sorted cells segments, by means of the natural order of the memory adress. */
+  PVCell   **cells_stack;                   /**< @brief The pointer to the array of pointers used to manage the cells. */
+  PVCell   **cells_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
+  size_t     cells_max_usage;               /**< @brief The maximum number of cells in use. */
+  size_t     lines_size;                    /**< @brief The total count of lines contained by the lines segments. */
+  size_t     lines_segments_size;           /**< @brief The count of lines segments. */
+  size_t     lines_first_size;              /**< @brief The number of lines contained by the first segment. */
+  PVCell  ***lines_segments;                /**< @brief Segments are pointers to array of lines. */
+  PVCell  ***lines_segments_head;           /**< @brief The next lines segment to be used. */
+  size_t    *lines_segments_sorted_sizes;   /**< @brief Sizes of lines segments in the sorted order. */
+  PVCell  ***lines_segments_sorted;         /**< @brief Sorted lines segments, by means of the natural order of the memory adress. */
+  PVCell  ***lines_stack;                   /**< @brief The pointer to an array of pointers used to manage the lines. */
+  PVCell  ***lines_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
+  size_t     lines_max_usage;               /**< @brief The maximum number of lines in use. */
 } PVEnv;
 
 /**
@@ -156,11 +170,6 @@ typedef struct {
   uint8_t    legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];   /**< @brief The stack hosting the legal moves for each node. */
 } GameTreeStack;
 
-
-/**
- * @brief A set of 64 binary switches.
- */
-typedef uint64_t switches_t;
 
 
 /**********************************************/
@@ -295,7 +304,7 @@ pve_free (PVEnv *pve);
 extern bool
 pve_is_invariant_satisfied (const PVEnv *const pve,
                             int *const error_code,
-                            const switches_t run_checks);
+                            const switches_t checked_invariants);
 
 extern gboolean
 pve_verify_consistency (const PVEnv *const pve,
