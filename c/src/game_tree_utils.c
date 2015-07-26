@@ -467,20 +467,63 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
   }
 
   size_t cumulated_lines_size_from_sorted_segments = 0;
+  bool ls_p0_found = FALSE;
+  bool ls_p1_found = FALSE;
+  const PVCell ***ls_position_0 = (const PVCell ***) *(pve->lines_segments + 0);
+  const PVCell ***ls_position_1 = (const PVCell ***) *(pve->lines_segments + 1);
   for (size_t i = 0; i < active_lines_segments_count; i++) {
     const size_t segment_size = (size_t) *(pve->lines_segments_sorted_sizes + i);
     cumulated_lines_size_from_sorted_segments += segment_size;
+    const PVCell ***ls = (const PVCell ***) *(pve->lines_segments_sorted + i);
+    const size_t ls_index = bit_works_bitscanMS1B_64((size_t) (segment_size / PVE_LINES_FIRST_SIZE)) + 1;
+    if (ls_index > active_lines_segments_count) {
+      if (error_code) *error_code = 12;
+      return FALSE;
+    }
+    if (ls_index == 1) {
+      if (!ls_p0_found && ls == ls_position_0) {
+        ls_p0_found = TRUE;
+        goto milestone;
+      }
+      if (!ls_p1_found && ls == ls_position_1) {
+        ls_p1_found = TRUE;
+        goto milestone;
+      }
+      if (error_code) *error_code = 13;
+      return FALSE;
+    } else {
+      const PVCell ***ls_unsorted = (const PVCell ***) *(pve->lines_segments + ls_index);
+      if (ls != ls_unsorted) {
+        if (error_code) *error_code = 14;
+        return FALSE;
+      }
+    }
+  milestone:
+    if (i > 0) {
+      const PVCell ***ls_prec = (const PVCell ***) *(pve->lines_segments_sorted + i - 1);
+      if (ls <= ls_prec) {
+        if (error_code) *error_code = 15;
+        return FALSE;
+      }
+    }
   }
   if (expected_lines_size != cumulated_lines_size_from_sorted_segments) {
-    if (error_code) *error_code = 12;
+    if (error_code) *error_code = 16;
     return FALSE;
   }
-
+  if (active_lines_segments_count == 1 && !ls_p0_found) {
+    if (error_code) *error_code = 17;
+    return FALSE;
+  }
+  if (active_lines_segments_count > 1 && !ls_p0_found && !ls_p1_found) {
+    if (error_code) *error_code = 18;
+    return FALSE;
+  }
 
   for (size_t i = active_lines_segments_count; i < pve->lines_segments_size; i++) {
     const size_t segment_size = (size_t) *(pve->lines_segments_sorted_sizes + i);
     if (segment_size != 0) {
-      if (error_code) *error_code = 13;
+      if (error_code) *error_code = 19;
       return FALSE;
     }
   }
