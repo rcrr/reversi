@@ -528,6 +528,43 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
     }
   }
 
+  /*
+   * Lines stack invariants checks.
+   */
+
+  /* Lines stack pointers are in the proper range. */
+  if (!pve->lines_stack_head) {
+    if (error_code) *error_code = 1001;
+    return FALSE;
+  }
+  if (!pve->lines_stack) {
+    if (error_code) *error_code = 1002;
+    return FALSE;
+  }
+  const size_t used_lines_count = pve->lines_stack_head - pve->lines_stack;
+  if (used_lines_count < 0) {
+    if (error_code) *error_code = 1003;
+    return FALSE;
+  }
+  if (used_lines_count > pve->lines_size) {
+    if (error_code) *error_code = 1004;
+    return FALSE;
+  }
+  //const size_t free_lines_count = pve->lines_size - used_lines_count;
+
+  /* Verifies that the line reference is contained into a segment. */
+
+  for (size_t i = 0; i < used_lines_count; i++) {
+    const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
+    ;
+  }
+
+  for (size_t i = used_lines_count; i < pve->lines_size; i++) {
+    const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
+    ;
+  }
+
+
   return TRUE;
 }
 
