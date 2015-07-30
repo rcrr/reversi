@@ -271,6 +271,11 @@ static const switches_t pve_internals_lines_section                 = 0x1000;
  */
 static const switches_t pve_internals_lines_stack_section           = 0x2000;
 
+/**
+ * @brief The PVE internals header section switch mask.
+ */
+static const switches_t pve_state_lines_stack_sorted                = 0x0001;
+
 
 
 /*****************************************************/

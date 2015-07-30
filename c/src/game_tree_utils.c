@@ -251,6 +251,9 @@ pve_new (void)
   PVEnv *const pve = (PVEnv*) malloc(size_of_pve);
   g_assert(pve);
 
+  /* Sets the state switches. */
+  pve->state = 0x0000000000000000;
+
   /* Sets to zero the max number of cells, and lines ever used. */
   pve->cells_max_usage = 0;
   pve->lines_max_usage = 0;
@@ -550,46 +553,46 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
     if (error_code) *error_code = 1004;
     return FALSE;
   }
-  //const size_t free_lines_count = pve->lines_size - used_lines_count;
 
   /* Verifies that the line reference is contained into a segment. */
-  // Just the not-sorted case is done.
-  for (size_t i = 0; i < used_lines_count; i++) {
-    const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
-    if (line) {
-      if (error_code) *error_code = 1005;
-      return FALSE;
-    }
-  }
-
-  for (size_t i = used_lines_count; i < pve->lines_size; i++) {
-    const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
-    if (!line) {
-      if (error_code) *error_code = 1006;
-      return FALSE;
-    }
-    // Moving on lines_segments is linear, a bisection approach would be better, but a lot moro sofisticated .....
-    for (size_t lsi = active_lines_segments_count - 1; ; lsi--) { // lsi: lines_segment_index
-      const PVCell **first_line_in_segment = (const PVCell **) *(pve->lines_segments_sorted + lsi);
-      if (line >= first_line_in_segment) {
-        if (line - first_line_in_segment < *(pve->lines_segments_sorted_sizes + lsi)) {
-          break;
-        } else {
-          if (error_code) *error_code = 1007;
-          return FALSE;
-        }
-      }
-      if (lsi == 0) {
-        if (error_code) *error_code = 1008;
+  if (pve->state & pve_state_lines_stack_sorted) { // Lines stack is not-sorted.
+    for (size_t i = 0; i < used_lines_count; i++) {
+      const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
+      if (line) {
+        if (error_code) *error_code = 1005;
         return FALSE;
       }
     }
-  }
 
+    for (size_t i = used_lines_count; i < pve->lines_size; i++) {
+      const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
+      if (!line) {
+        if (error_code) *error_code = 1006;
+        return FALSE;
+      }
+      // Moving on lines_segments is linear, a bisection approach would be better, but a lot more sophisticated .....
+      for (size_t lsi = active_lines_segments_count - 1; ; lsi--) { // lsi: lines_segment_index
+        const PVCell **first_line_in_segment = (const PVCell **) *(pve->lines_segments_sorted + lsi);
+        if (line >= first_line_in_segment) {
+          if (line - first_line_in_segment < *(pve->lines_segments_sorted_sizes + lsi)) {
+            break;
+          } else {
+            if (error_code) *error_code = 1007;
+            return FALSE;
+          }
+        }
+        if (lsi == 0) {
+          if (error_code) *error_code = 1008;
+          return FALSE;
+        }
+      }
+    }
+  } else {
+    ;
+  }
 
   return TRUE;
 }
-
 
 /**
  * @brief Verifies that the pve structure is consistent.
