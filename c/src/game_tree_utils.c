@@ -66,7 +66,7 @@ static void
 pve_double_cells_size (PVEnv *const pve);
 
 static void
-pve_sort_lines_in_place (const PVEnv *const pve);
+pve_sort_lines_in_place (PVEnv *const pve);
 
 static void
 pve_verify_lines_stack (const PVEnv *const pve);
@@ -708,7 +708,7 @@ pve_verify_consistency (const PVEnv *const pve,
  * @param [in] shown_sections switches that turn on/off the sections
  */
 void
-pve_internals_to_stream (const PVEnv *const pve,
+pve_internals_to_stream (PVEnv *const pve,
                          FILE *const stream,
                          const switches_t shown_sections)
 {
@@ -1484,7 +1484,7 @@ pve_double_lines_size (PVEnv *const pve)
  * @param [in,out] pve the principal variation environment pointer
  */
 static void
-pve_sort_lines_in_place (const PVEnv *const pve)
+pve_sort_lines_in_place (PVEnv *const pve)
 {
   PVCell ***index = pve->lines_stack;
 
@@ -1493,6 +1493,9 @@ pve_sort_lines_in_place (const PVEnv *const pve)
   const size_t lines_not_in_use_count = pve->lines_size - lines_in_use_count;
 
   g_assert(lines_in_use_count + lines_not_in_use_count - pve->lines_size == 0);
+
+  int error_code = 0;
+  g_assert(pve_is_invariant_satisfied(pve, &error_code, 0xFF));
 
   size_t count_lines = 0;
   size_t count_used_lines = 0;
@@ -1532,6 +1535,12 @@ pve_sort_lines_in_place (const PVEnv *const pve)
   fflush(stdout);
   //g_assert(free_lines_stack_p == pve->lines_stack + pve->lines_size);  //To be investigated .....
   //g_assert(count_lines == pve->lines_size);
+
+  pve->state |= pve_state_lines_stack_sorted;
+
+  bool check = pve_is_invariant_satisfied(pve, &error_code, 0xFF);
+  if (!check) printf("check=%d, error_code=%d\n", check, error_code);
+  g_assert(check);
 }
 
 void

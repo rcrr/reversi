@@ -317,7 +317,7 @@ pve_verify_consistency (const PVEnv *const pve,
                         gchar **const error_message);
 
 extern void
-pve_internals_to_stream (const PVEnv *const pve,
+pve_internals_to_stream (PVEnv *const pve,
                          FILE *const stream,
                          const switches_t shown_sections);
 
