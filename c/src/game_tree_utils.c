@@ -559,12 +559,26 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
 
   /* Verifies that the line reference is contained into a segment. */
   if (pve->state & pve_state_lines_stack_sorted) { // Lines stack is sorted.
-    ;
+    printf("Check lines stack when stack is sorted.\n");
+    PVCell ***lines_stack_cursor_prev = NULL;
+    for (PVCell ***lines_stack_cursor = pve->lines_stack; lines_stack_cursor < pve->lines_stack_head; lines_stack_cursor++) {
+      if (*lines_stack_cursor == NULL) {
+        if (error_code) *error_code = 1005;
+        printf("lines_stack_cursor=%p\n", (void *) lines_stack_cursor);
+        return FALSE;
+      } else {
+        if (lines_stack_cursor_prev && *lines_stack_cursor <= *lines_stack_cursor_prev) {
+          if (error_code) *error_code = 1006;
+          return FALSE;
+        }
+        lines_stack_cursor_prev = lines_stack_cursor;
+      }
+    }
   } else { // Lines stack is not sorted.
     for (size_t i = 0; i < used_lines_count; i++) {
       const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
       if (line) {
-        if (error_code) *error_code = 1005;
+        if (error_code) *error_code = 1007;
         return FALSE;
       }
     }
@@ -572,7 +586,7 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
     for (size_t i = used_lines_count; i < pve->lines_size; i++) {
       const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
       if (!line) {
-        if (error_code) *error_code = 1006;
+        if (error_code) *error_code = 1008;
         return FALSE;
       }
       // Moving on lines_segments is linear, a bisection approach would be better, but a lot more sophisticated .....
@@ -582,12 +596,12 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
           if (line - first_line_in_segment < *(pve->lines_segments_sorted_sizes + lsi)) {
             break;
           } else {
-            if (error_code) *error_code = 1007;
+            if (error_code) *error_code = 1009;
             return FALSE;
           }
         }
         if (lsi == 0) {
-          if (error_code) *error_code = 1008;
+          if (error_code) *error_code = 1010;
           return FALSE;
         }
       }
