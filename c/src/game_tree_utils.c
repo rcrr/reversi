@@ -559,9 +559,11 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
 
   /* Verifies that the line reference is contained into a segment. */
   if (pve->state & pve_state_lines_stack_sorted) { // Lines stack is sorted.
-    printf("Check lines stack when stack is sorted.\n");
-    PVCell ***lines_stack_cursor_prev = NULL;
-    for (PVCell ***lines_stack_cursor = pve->lines_stack; lines_stack_cursor < pve->lines_stack_head; lines_stack_cursor++) {
+    PVCell ***lines_stack_cursor_prev;
+    PVCell ***lines_stack_cursor;
+    for (lines_stack_cursor = pve->lines_stack, lines_stack_cursor_prev = NULL;
+         lines_stack_cursor < pve->lines_stack_head;
+         lines_stack_cursor++) {
       if (*lines_stack_cursor == NULL) {
         if (error_code) *error_code = 1005;
         printf("lines_stack_cursor=%p\n", (void *) lines_stack_cursor);
@@ -574,11 +576,26 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
         lines_stack_cursor_prev = lines_stack_cursor;
       }
     }
+    for (lines_stack_cursor = pve->lines_stack_head, lines_stack_cursor_prev = NULL;
+         lines_stack_cursor < pve->lines_stack + pve->lines_size;
+         lines_stack_cursor++) {
+      if (*lines_stack_cursor == NULL) {
+        if (error_code) *error_code = 1007;
+        printf("lines_stack_cursor=%p\n", (void *) lines_stack_cursor);
+        return FALSE;
+      } else {
+        if (lines_stack_cursor_prev && *lines_stack_cursor <= *lines_stack_cursor_prev) {
+          if (error_code) *error_code = 1008;
+          return FALSE;
+        }
+        lines_stack_cursor_prev = lines_stack_cursor;
+      }
+    }
   } else { // Lines stack is not sorted.
     for (size_t i = 0; i < used_lines_count; i++) {
       const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
       if (line) {
-        if (error_code) *error_code = 1007;
+        if (error_code) *error_code = 1009;
         return FALSE;
       }
     }
@@ -586,7 +603,7 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
     for (size_t i = used_lines_count; i < pve->lines_size; i++) {
       const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
       if (!line) {
-        if (error_code) *error_code = 1008;
+        if (error_code) *error_code = 1010;
         return FALSE;
       }
       // Moving on lines_segments is linear, a bisection approach would be better, but a lot more sophisticated .....
@@ -596,12 +613,12 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
           if (line - first_line_in_segment < *(pve->lines_segments_sorted_sizes + lsi)) {
             break;
           } else {
-            if (error_code) *error_code = 1009;
+            if (error_code) *error_code = 1011;
             return FALSE;
           }
         }
         if (lsi == 0) {
-          if (error_code) *error_code = 1010;
+          if (error_code) *error_code = 1012;
           return FALSE;
         }
       }
@@ -1138,6 +1155,7 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
   lines[idx] = (PVCell **) line;
 
  print_line:
+  printf("%20p;", (void *) lines[idx]);
   branches[idx] = 0;
   int ind = 0;
   for (int i = 0; i <= idx; i++) {
@@ -1519,6 +1537,14 @@ pve_sort_lines_in_place (PVEnv *const pve)
 
   PVCell ***lines_not_in_use_head = index +  lines_in_use_count;
   sort_utils_insertionsort_asc_p ((void **) lines_not_in_use_head, lines_not_in_use_count);
+
+  printf("abcd - 000\n");
+  g_assert(pve_is_invariant_satisfied(pve, &error_code, 0xFF));
+  printf("abcd - 001\n");
+  pve_internals_to_stream(pve, stdout, pve_internals_lines_stack_section);
+  printf("abcd - 002\n");
+  printf("abcd - 003 - The BUG is after here !!! So far everything is right!\n");
+
   const size_t lines_segments_in_use_count = pve->lines_segments_head - pve->lines_segments;
   PVCell ***used_lines_stack_p = index;
   PVCell ***free_lines_stack_p = index + lines_in_use_count;
