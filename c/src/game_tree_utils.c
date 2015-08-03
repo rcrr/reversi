@@ -1544,6 +1544,8 @@ pve_sort_lines_in_place (PVEnv *const pve)
   pve_internals_to_stream(pve, stdout, pve_internals_lines_stack_section);
   printf("abcd - 002\n");
 
+  PVCell ***free_lines_stack_cursor = pve->lines_stack_head;
+  PVCell ***used_lines_stack_cursor = pve->lines_stack;
   size_t lines_segments_count = pve->lines_segments_head - pve->lines_segments;
   for (size_t lines_segments_sorted_index = 0;
        lines_segments_sorted_index < lines_segments_count;
@@ -1553,11 +1555,18 @@ pve_sort_lines_in_place (PVEnv *const pve)
     printf("****%20p %20p %zu\n", (void *) first_line_in_segment, (void *) segment_boundary, *(pve->lines_segments_sorted_sizes + lines_segments_sorted_index));
     for (PVCell **line = first_line_in_segment; line < segment_boundary; line++) {
       printf("%20p\n", (void *) line);
-      // line is sorted here ........ ready to be used .....
+      if (line == *free_lines_stack_cursor) {
+        free_lines_stack_cursor++;
+      } else {
+        *used_lines_stack_cursor = line;
+        used_lines_stack_cursor++;
+      }
     }
   }
 
   printf("abcd - 003 - The BUG is after here !!! So far everything is right!\n");
+
+  /*
 
   const size_t lines_segments_in_use_count = pve->lines_segments_head - pve->lines_segments;
   PVCell ***used_lines_stack_p = index;
@@ -1589,6 +1598,8 @@ pve_sort_lines_in_place (PVEnv *const pve)
   fflush(stdout);
   //g_assert(free_lines_stack_p == pve->lines_stack + pve->lines_size);  //To be investigated .....
   //g_assert(count_lines == pve->lines_size);
+
+  */
 
   pve->state |= pve_state_lines_stack_sorted;
 
