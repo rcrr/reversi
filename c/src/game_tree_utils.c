@@ -69,9 +69,6 @@ static void
 pve_sort_lines_in_place (PVEnv *const pve);
 
 static void
-pve_verify_lines_stack (const PVEnv *const pve);
-
-static void
 pve_state_unset_lines_stack_sorted (PVEnv *const pve);
 
 
@@ -867,22 +864,7 @@ pve_internals_to_stream (PVEnv *const pve,
 
   if (shown_sections & pve_internals_active_lines_section) {
     fprintf(stream, "# PVE ACTIVE LINES\n");
-    // ***
-    fprintf(stream, "### DEBUG ###\n");
-    fprintf(stream, "pve->lines_size=%zu\n", pve->lines_size);
-    fprintf(stream, "lines_in_use_count=%zu\n", lines_in_use_count);
-    fprintf(stream, "lines_max_size=%zu\n", lines_max_size);
-    fprintf(stream, "lines_actual_max_size=%zu\n\n", lines_actual_max_size);
-    pve_verify_lines_stack(pve);
-    fprintf(stream, "### DEBUG PRE SORT ###\n");
-    pve_internals_to_stream(pve, stdout, 0x201F | 0x0C00);
-    fprintf(stream, "### DEBUG SORTING .... ###\n");
     pve_sort_lines_in_place(pve);
-    fprintf(stream, "### DEBUG POST SORT ###\n");
-    pve_internals_to_stream(pve, stdout, 0x201F | 0x0C00);
-    fprintf(stream, "### DEBUG ###\n");
-    // ***
-    //pve_sort_lines_in_place(pve);
     for (size_t i = 0; i < lines_in_use_count; i++) {
       const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
       if (!line) fprintf(stream, "line=%zu, lines_in_use_count=%zu\n", i, lines_in_use_count);
@@ -1155,7 +1137,6 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
   lines[idx] = (PVCell **) line;
 
  print_line:
-  printf("%20p;", (void *) lines[idx]);
   branches[idx] = 0;
   int ind = 0;
   for (int i = 0; i <= idx; i++) {
@@ -1524,25 +1505,8 @@ pve_sort_lines_in_place (PVEnv *const pve)
   const size_t lines_in_use_count = pve->lines_stack_head - pve->lines_stack;
   const size_t lines_not_in_use_count = pve->lines_size - lines_in_use_count;
 
-  g_assert(lines_in_use_count + lines_not_in_use_count - pve->lines_size == 0);
-
-  int error_code = 0;
-  g_assert(pve_is_invariant_satisfied(pve, &error_code, 0xFF));
-
-  size_t count_lines = 0;
-  size_t count_used_lines = 0;
-  size_t count_free_lines = 0;
-
-  printf("lines_in_use_count=%zu, lines_not_in_use_count=%zu, pve->lines_size=%zu\n", lines_in_use_count, lines_not_in_use_count, pve->lines_size);
-
   PVCell ***lines_not_in_use_head = index +  lines_in_use_count;
   sort_utils_insertionsort_asc_p ((void **) lines_not_in_use_head, lines_not_in_use_count);
-
-  printf("abcd - 000\n");
-  g_assert(pve_is_invariant_satisfied(pve, &error_code, 0xFF));
-  printf("abcd - 001\n");
-  pve_internals_to_stream(pve, stdout, pve_internals_lines_stack_section);
-  printf("abcd - 002\n");
 
   PVCell ***free_lines_stack_cursor = pve->lines_stack_head;
   PVCell ***used_lines_stack_cursor = pve->lines_stack;
@@ -1552,74 +1516,16 @@ pve_sort_lines_in_place (PVEnv *const pve)
        lines_segments_sorted_index++) {
     PVCell **first_line_in_segment = *(pve->lines_segments_sorted + lines_segments_sorted_index);
     PVCell **segment_boundary = first_line_in_segment + *(pve->lines_segments_sorted_sizes + lines_segments_sorted_index);
-    printf("****%20p %20p %zu\n", (void *) first_line_in_segment, (void *) segment_boundary, *(pve->lines_segments_sorted_sizes + lines_segments_sorted_index));
     for (PVCell **line = first_line_in_segment; line < segment_boundary; line++) {
-      printf("%20p\n", (void *) line);
       if (line == *free_lines_stack_cursor) {
         free_lines_stack_cursor++;
       } else {
-        *used_lines_stack_cursor = line;
-        used_lines_stack_cursor++;
+        *used_lines_stack_cursor++ = line;
       }
     }
   }
-
-  printf("abcd - 003 - The BUG is after here !!! So far everything is right!\n");
-
-  /*
-
-  const size_t lines_segments_in_use_count = pve->lines_segments_head - pve->lines_segments;
-  PVCell ***used_lines_stack_p = index;
-  PVCell ***free_lines_stack_p = index + lines_in_use_count;
-  printf("used_lines_stack_p=%p, free_lines_stack_p=%p\n", (void *) used_lines_stack_p, (void *) free_lines_stack_p);
-  printf(" COUNT; SEG;   SEG_SIZE;                 LINE;  *FREE_LINES_STACK_P;   FREE_LINES_STACK_P;   USED_LINES_STACK_P; U/F;  C_U_L;  C_F_L;   USED_LINES_STACK_P; CNT;   FREE_LINES_STACK_P; CNT\n");
-  for (size_t i = 0; i < lines_segments_in_use_count; i++) {
-    size_t segment_size = *(pve->lines_segments_sorted_sizes + i);
-    for (size_t j = 0; j < segment_size; j++) {
-      PVCell **line = *(pve->lines_segments_sorted + i) + j;
-      printf("%6zu; %3zu; %10zu; %20p; %20p; %20p; %20p;", count_lines, i, segment_size, (void *) line, (void *) *free_lines_stack_p, (void *) free_lines_stack_p, (void *) used_lines_stack_p);
-      count_lines++;
-      if (line < *free_lines_stack_p) {
-        count_used_lines++;
-        *used_lines_stack_p = line;
-        used_lines_stack_p++;
-        printf("USED; %6zu; %6zu; %20p; %3zu; %20p; %3zu\n",
-               count_used_lines, count_free_lines, (void *) used_lines_stack_p, used_lines_stack_p - index, (void *) free_lines_stack_p, free_lines_stack_p - index - lines_in_use_count);
-      } else {
-        count_free_lines++;
-        free_lines_stack_p++;
-        printf("FREE; %6zu; %6zu; %20p; %3zu; %20p; %3zu\n",
-               count_used_lines, count_free_lines, (void *) used_lines_stack_p, used_lines_stack_p - index, (void *) free_lines_stack_p, free_lines_stack_p - index - lines_in_use_count);
-      }
-    }
-  }
-  printf("free_lines_stack_p=%p, (pve->lines_stack + pve->lines_size)=%p\n", (void *) free_lines_stack_p, (void *) (pve->lines_stack + pve->lines_size));
-  printf("count_lines=%zu, count_used_lines=%zu, count_free_lines=%zu\n", count_lines, count_used_lines, count_free_lines);
-  fflush(stdout);
-  //g_assert(free_lines_stack_p == pve->lines_stack + pve->lines_size);  //To be investigated .....
-  //g_assert(count_lines == pve->lines_size);
-
-  */
 
   pve->state |= pve_state_lines_stack_sorted;
-
-  bool check = pve_is_invariant_satisfied(pve, &error_code, 0xFF);
-  if (!check) printf("check=%d, error_code=%d\n", check, error_code);
-  g_assert(check);
-}
-
-void
-pve_verify_lines_stack (const PVEnv *const pve)
-{
-  const size_t lines_in_use_count = pve->lines_stack_head - pve->lines_stack;
-  for (size_t i = 0; i < lines_in_use_count; i++) {
-    const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
-    g_assert(line == NULL);
-  }
-  for (size_t i = lines_in_use_count; i < pve->lines_size; i++) {
-    const PVCell **unused_line = (const PVCell **) *(pve->lines_stack + i);
-    g_assert(unused_line);
-  }
 }
 
 void
