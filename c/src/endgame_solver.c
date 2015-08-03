@@ -7,12 +7,13 @@
  *       The PV code is quite ok. What is missing now are a few improvements:
  *       - [done] I mean, add moves to the structure when the value is equal to the one of the move recorded in the principal tree.
  *       - [done] PVCell should have a variant pointer to another cell. Alpha-Beta has to populate it when moves have equal values.
- *       - The pve_verify_consistency function has to be rewritten.
+ *       - [done] The pve_verify_consistency function has to be rewritten.
  *       - [done] The pve_internals_to_stream function has to be completed.
  *       - [done] Add an argument to the function pve_internals_to_stream. It should be a bit-mask that turn on-off the different blocks of the function.
  *       - [done] The pve_index_lines function has to be run on the real stack.
  *       - [done] Cells has to be converted as lines to segment management.
  *       - [done] The size of the cell stack has to be increased, line_delete has to take care of variants.
+ *       - More optional checks could be added to pve_is_invariant_satisfied.
  *       - The ExactSolution object should have a PVE reference, not just a move array.
  *       - A couple of flags --pve_variants and --pve_variants_full should be added to drive the exact_solution_to_string function.
  *         A command line option asking to run the full analysis.
@@ -24,6 +25,9 @@
  *       - Refactor the new module merging the segment concept into one abstraction, then used for lines and cells.
  *       - Add game values computation and output for first level moves.
  *       - Add a function to compute PV hash code (it is useful for testing and database processing).
+ *       - PV is a tree structure composed by cells and lines. Could be, I strongly belive so, that there is quite a bit of duplication:
+ *         Investigate the statistics of this concept.
+ *         If the analysis proves it to be worthwile, improve the pve structure in order to exploit the duplication.
  *
  * @todo [done] Complete the random game player.
  *
