@@ -27,7 +27,8 @@
 
 MAX_JOBS=8
 
-TIME_CMD="/usr/bin/time -f 'Running %C, elapsed real time: %E'"
+TIME_CMD="/usr/bin/time -f 'Running %C, elapsed real time: %e'"
+#TIME_CMD="/usr/bin/time -v"
 
 launch_when_not_busy()
 {
