@@ -238,10 +238,13 @@ $(ZZZ_DIR)/.dir_sentinel:
 	mkdir -p $(ZZZ_DIR)
 	touch $(ZZZ_DIR)/.dir_sentinel
 
-
 .PHONY: clean
 clean:
 	rm -Rf $(BUILDDIR)
+
+.PHONY: clean_out
+clean_out:
+	rm -Rf $(OUTDIR)
 
 .PHONY: info
 info:
