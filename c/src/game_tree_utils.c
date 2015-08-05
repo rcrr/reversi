@@ -5,7 +5,7 @@
  *
  * @details Provides functions to support the game tree expansion.
  *
- *          The function pve_verify_consistency is very inefficient, but the check can
+ *          The function pve_is_invariant_satisfied is quite inefficient, but the check can
  *          be diseabled by a macro.
  *
  *          A consideration: should we introduce a typedef for PVLine and so get rid of
@@ -53,7 +53,14 @@
  * @cond
  */
 
-#define DISABLE_SLOW_ASSERT TRUE
+#define PVE_VERIFY_INVARIANT FALSE
+#define PVE_VERIFY_INVARIANT_MASK 0xFFFF
+#define pve_verify_invariant(chk_mask)                                  \
+  if (PVE_VERIFY_INVARIANT) do {                                        \
+      int error_code = 0;                                               \
+      pve_is_invariant_satisfied(pve, &error_code, chk_mask);           \
+      g_assert(!error_code);                                            \
+    } while (0);
 
 /*
  * Prototypes for internal functions.
@@ -337,8 +344,7 @@ pve_new (void)
   }
   pve->lines_stack_head = pve->lines_stack;
 
-  int error_code = 0;
-  g_assert(pve_is_invariant_satisfied(pve, &error_code, 0xFF));
+  g_assert(pve_is_invariant_satisfied(pve, NULL, 0xFF));
 
   return pve;
 }
@@ -394,6 +400,12 @@ pve_free (PVEnv *pve)
  *
  * @details Invariants verified are:
  *          - Lines stack must have NULL values from the
+ *
+ * Tests that free lines and free cells are unique has to be added.
+ * Tests that active lines and active cells are unique has to be added.
+ * Tests that all active lines have active cells, and then that the
+ *   active lines and cells count are consistent with their stack pointers.
+ *
  *
  * @param [in]  pve                a pointer to the principal variation environment
  * @param [out] error_code         a pointer to the error code
@@ -626,73 +638,6 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
 }
 
 /**
- * @brief Verifies that the pve structure is consistent.
- *
- * @details If `pve` parameter is `NULL` the function return `FALSE` with error_code `-1`.
- *          When no error is found return value is `TRUE` and the variables pointed by
- *          parameters `error_code` and `error_message` are unchanged.
- *
- * @param [in]  pve           a pointer to the principal variation environment
- * @param [out] error_code    a pointer to error code
- * @param [out] error_message a pointer to error message
- * @return                    true if everithing is ok
- */
-gboolean
-pve_verify_consistency (const PVEnv *const pve,
-                        int *const error_code,
-                        gchar **const error_message)
-{
-  gboolean ret = TRUE;
-
-  if (!pve) {
-    *error_code = -1;
-    *error_message = "Parameter pve is NULL.";
-    return FALSE;
-  }
-
-  /*
-   * Tests that the head pointers are within the proper bounds.
-   */
-  if (pve->cells_stack_head < pve->cells_stack) {
-    *error_code = 1;
-    *error_message = "The count for cells in use is negative, pointer cells_stack_head is smaller than cells_stack.";
-    return FALSE;
-  }
-  const size_t cells_in_use_count = pve->cells_stack_head - pve->cells_stack;
-  if (!(cells_in_use_count < pve->cells_size)) {
-    *error_code = 2;
-    *error_message = "The count for cells in use excedes allocated size, pointer cells_stack_head is larger than cells_stack + cells_size.";
-    return FALSE;
-  }
-  if (pve->lines_stack_head < pve->lines_stack) {
-    *error_code = 3;
-    *error_message = "The count for lines in use is negative, pointer lines_stack_head is smaller than lines_stack.";
-    return FALSE;
-  }
-  const size_t lines_in_use_count = pve->lines_stack_head - pve->lines_stack;
-  if (!(lines_in_use_count < pve->lines_size)) {
-    *error_code = 4;
-    *error_message = "The count for lines in use excedes allocated size, pointer lines_stack_head is larger than lines_stack + lines_size.";
-    return FALSE;
-  }
-
-  /*
-   * Tests that free lines and free cells are unique has to be added.
-   */
-
-  /*
-   * Tests that active lines and active cells are unique has to be added.
-   */
-
-  /*
-   * Tests that all active lines have active cells, and then that the
-   * active lines and cells count are consistent with their stack pointers.
-   */
-
-  return ret;
-}
-
-/**
  * @brief Prints the `pve` internals into the given `stream`.
  *
  * @details The text is structured into an header and ten sections:
@@ -730,6 +675,7 @@ pve_verify_consistency (const PVEnv *const pve,
  *          - #pve_internals_sorted_lines_segments_section `0x0800`
  *          - #pve_internals_lines_section                 `0x1000`
  *          - #pve_internals_lines_stack_section           `0x2000`
+ *
  *
  * @param [in] pve            a pointer to the principal variation environment
  * @param [in] stream         the file handler destination of the report of the pve internals
@@ -1003,8 +949,7 @@ pve_internals_to_stream (PVEnv *const pve,
 PVCell **
 pve_line_create (PVEnv *pve)
 {
-  //pve_verify_lines_stack(pve);
-  if (!DISABLE_SLOW_ASSERT) g_assert(pve_verify_consistency(pve, NULL, NULL));
+  pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
   pve_state_unset_lines_stack_sorted(pve);
   PVCell **line_p = *(pve->lines_stack_head);
   *(line_p) = NULL;
@@ -1012,7 +957,6 @@ pve_line_create (PVEnv *pve)
   pve->lines_stack_head++;
   if (pve->lines_stack_head - pve->lines_stack > pve->lines_max_usage) pve->lines_max_usage++;
   if (pve->lines_stack_head - pve->lines_stack == pve->lines_size) pve_double_lines_size(pve);
-  //pve_verify_lines_stack(pve);
   return line_p;
 }
 
@@ -1035,7 +979,7 @@ pve_line_add_move (PVEnv *pve,
                    PVCell **line,
                    Square move)
 {
-  if (!DISABLE_SLOW_ASSERT) g_assert(pve_verify_consistency(pve, NULL, NULL));
+  pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
   PVCell *added_cell = *(pve->cells_stack_head);
   pve->cells_stack_head++;
   if (pve->cells_stack_head - pve->cells_stack > pve->cells_max_usage) pve->cells_max_usage++;
@@ -1071,8 +1015,7 @@ void
 pve_line_delete (PVEnv *pve,
                  PVCell **line)
 {
-  //pve_verify_lines_stack(pve);
-  if (!DISABLE_SLOW_ASSERT) g_assert(pve_verify_consistency(pve, NULL, NULL));
+  pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
   pve_state_unset_lines_stack_sorted(pve);
   PVCell *cell = *line; // A poiter to the first cell, or null if the line is empty.
   while (cell) {
@@ -1086,7 +1029,6 @@ pve_line_delete (PVEnv *pve,
   }
   pve->lines_stack_head--;
   *(pve->lines_stack_head) = line;
-  //pve_verify_lines_stack(pve);
 }
 
 /**

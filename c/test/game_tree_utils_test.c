@@ -45,7 +45,7 @@
 static void dummy_test (void);
 static void pve_create_test (void);
 static void pve_internals_to_stream_test (void);
-static void pve_verify_consistency_test (void);
+static void pve_is_invariant_satisfied_test (void);
 
 
 int
@@ -57,7 +57,7 @@ main (int   argc,
   g_test_add_func("/game_tree_utils/dummy", dummy_test);
   g_test_add_func("/game_tree_utils/pve_create_test", pve_create_test);
   g_test_add_func("/game_tree_utils/pve_internals_to_stream_test", pve_internals_to_stream_test);
-  g_test_add_func("/game_tree_utils/pve_verify_consistency_test", pve_verify_consistency_test);
+  g_test_add_func("/game_tree_utils/pve_is_invariant_satisfied_test", pve_is_invariant_satisfied_test);
 
   return g_test_run();
 }
@@ -75,23 +75,24 @@ dummy_test (void)
 }
 
 static void
-pve_verify_consistency_test (void)
+pve_is_invariant_satisfied_test (void)
 {
   PVEnv *pve;
   gboolean is_consistent = TRUE;
   int error_code = 0;
-  gchar *error_message = NULL;
+  switches_t check_mask = 0xFFFFFFFF;
 
   pve = pve_new();
-  pve->cells_stack_head = pve->cells_stack - 1;
-  is_consistent = pve_verify_consistency(pve, &error_code, &error_message);
-  g_assert(!is_consistent && (error_code == 1));
+  pve->lines_stack_head = pve->lines_stack - 1;
+  is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
+  g_assert(!is_consistent && (error_code == 1004));
   pve_free(pve);
 
+  error_code = 0;
   pve = pve_new();
-  pve->cells_stack_head = pve->cells_stack + pve->cells_size;
-  is_consistent = pve_verify_consistency(pve, &error_code, &error_message);
-  g_assert(!is_consistent && (error_code == 2));
+  pve->lines_stack_head = pve->lines_stack + pve->lines_size;
+  is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
+  g_assert(!is_consistent && (error_code == 1009));
   pve_free(pve);
 }
 

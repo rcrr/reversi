@@ -311,16 +311,6 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
                             int *const error_code,
                             const switches_t checked_invariants);
 
-extern gboolean
-pve_verify_consistency (const PVEnv *const pve,
-                        int *const error_code,
-                        gchar **const error_message);
-
-extern void
-pve_internals_to_stream (PVEnv *const pve,
-                         FILE *const stream,
-                         const switches_t shown_sections);
-
 extern PVCell **
 pve_line_create (PVEnv *pve);
 
@@ -337,6 +327,11 @@ extern void
 pve_line_add_variant (PVEnv *pve,
                       PVCell **line,
                       PVCell **line_variant);
+
+extern void
+pve_internals_to_stream (PVEnv *const pve,
+                         FILE *const stream,
+                         const switches_t shown_sections);
 
 extern void
 pve_line_internals_to_stream (const PVEnv *const pve,
