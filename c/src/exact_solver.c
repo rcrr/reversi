@@ -138,6 +138,9 @@ static const int legal_moves_priority_cluster_count =
 /* Turn on full PV recording. Should be a parameter coming from command line. */
 static const bool pv_full_recording = true;
 
+/* Print debugging info ... */
+static const bool pv_internals_to_stream = false;
+
 /**
  * @endcond
  */
@@ -198,24 +201,25 @@ game_position_solve (const GamePosition *const root,
     pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve_root_line, result);
     exact_solution_compute_final_board(result);
   }
-  //---
+
   if (pv_full_recording) {
-    fflush(stdout);
-    printf("PVE: $$$ --- $$$\n");
-    printf("\n");
-    printf(" --- --- pve_line_with_variants_to_string(pve, pve_root_line) --- ---\n");
+    printf("\nThe constant \"pv_full_recording\", in source file \"exact_solver.c\", is TRUE. Printing PV with variants:\n");
+    printf("\n --- --- pve_line_with_variants_to_string() START --- ---\n");
     pve_line_with_variants_to_stream(pve, (const PVCell **const ) pve_root_line, stdout);
-    printf("\n");
-    printf("PVE: $$$ --- $$$\n");
-    fflush(stdout);
+    printf("\n --- --- pve_line_with_variants_to_string() COMPLETED --- ---\n");
   }
-  if (true) {
-    printf(" --- --- pve_verify_consistency --- ---\n");
+  if (pv_internals_to_stream) {
+    printf("\nThe constant \"pv_internals_to_stream\", in source file \"exact_solver.c\", is TRUE. Printing PVE:\n");
+    printf(" --- --- pve_is_invariant_satisfied() START --- ---\n");
     int error_code = 0;
-    g_assert(pve_is_invariant_satisfied(pve, &error_code, 0xFF));
-    printf(" --- --- pve_is_invariant_satisfied COMPLETED --- ---\n");
-    pve_verify_consistency(pve, NULL, NULL);
-    printf(" --- --- pve_internals_to_stream --- ---\n");
+    pve_is_invariant_satisfied(pve, &error_code, 0xFF);
+    if (error_code) {
+      printf("error_code=%d\n", error_code);
+      abort();
+    }
+    printf(" --- --- pve_is_invariant_satisfied() COMPLETED --- ---\n");
+
+    printf("\n --- --- pve_internals_to_stream() START --- ---\n");
     switches_t shown_sections = 0x0000;
     shown_sections |= pve_internals_header_section;
     shown_sections |= pve_internals_index_section;
@@ -223,19 +227,18 @@ game_position_solve (const GamePosition *const root,
     shown_sections |= pve_internals_structure_section;
     shown_sections |= pve_internals_computed_properties_section;
     shown_sections |= pve_internals_active_lines_section;
-    //shown_sections |= pve_internals_cells_segments_section;
-    //shown_sections |= pve_internals_sorted_cells_segments_section;
-    //shown_sections |= pve_internals_cells_section;
-    //shown_sections |= pve_internals_cells_stack_section;
+    shown_sections |= pve_internals_cells_segments_section;
+    shown_sections |= pve_internals_sorted_cells_segments_section;
+    shown_sections |= pve_internals_cells_section;
+    shown_sections |= pve_internals_cells_stack_section;
     shown_sections |= pve_internals_lines_segments_section;
     shown_sections |= pve_internals_sorted_lines_segments_section;
     shown_sections |= pve_internals_lines_section;
     shown_sections |= pve_internals_lines_stack_section;
     pve_internals_to_stream(pve, stdout, shown_sections);
+    printf("\n --- --- pve_internals_to_stream() COMPLETED --- ---\n");
   }
 
-
-  //---
   search_node_free(sn);
   pve_free(pve);
 
