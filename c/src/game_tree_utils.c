@@ -344,6 +344,10 @@ pve_new (void)
   }
   pve->lines_stack_head = pve->lines_stack;
 
+  /* Sets the statistical counters to zero. */
+  pve->line_create_count = 0;
+  pve->line_delete_count = 0;
+
   g_assert(pve_is_invariant_satisfied(pve, NULL, 0xFF));
 
   return pve;
@@ -762,6 +766,8 @@ pve_internals_to_stream (PVEnv *const pve,
     fprintf(stream, "lines_stack:                 %20p  --  Array of pointers used to manage the lines.\n", (void *) pve->lines_stack);
     fprintf(stream, "lines_stack_head:            %20p  --  Next, free to be assigned, pointer in the lines stack.\n", (void *) pve->lines_stack_head);
     fprintf(stream, "lines_max_usage:             %20zu  --  The maximum number of lines in use.\n", pve->lines_max_usage);
+    fprintf(stream, "line_create_count            %20zu  --  The number of calls to the function pve_create_line().\n", pve->line_create_count);
+    fprintf(stream, "line_delete_count            %20zu  --  The number of calls to the function pve_delete_line().\n", pve->line_delete_count);
     fprintf(stream, "\n");
   }
 
@@ -951,6 +957,7 @@ pve_line_create (PVEnv *pve)
 {
   pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
   pve_state_unset_lines_stack_sorted(pve);
+  pve->line_create_count++;
   PVCell **line_p = *(pve->lines_stack_head);
   *(line_p) = NULL;
   *(pve->lines_stack_head) = NULL; /* Set to NULL the stack cell. */
@@ -1017,6 +1024,7 @@ pve_line_delete (PVEnv *pve,
 {
   pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
   pve_state_unset_lines_stack_sorted(pve);
+  pve->line_delete_count++;
   PVCell *cell = *line; // A poiter to the first cell, or null if the line is empty.
   while (cell) {
     PVCell **v_line = cell->variant;

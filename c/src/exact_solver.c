@@ -139,7 +139,7 @@ static const int legal_moves_priority_cluster_count =
 static const bool pv_full_recording = true;
 
 /* Print debugging info ... */
-static const bool pv_internals_to_stream = false;
+static const bool pv_internals_to_stream = true;
 
 /**
  * @endcond
