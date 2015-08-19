@@ -638,6 +638,11 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
     }
   }
 
+  if (pve->line_create_count - pve->line_delete_count != used_lines_count) {
+    if (error_code) *error_code = 1100;
+    return FALSE;
+  }
+
   return TRUE;
 }
 
