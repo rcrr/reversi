@@ -135,8 +135,10 @@ typedef struct {
   PVCell  ***lines_stack;                   /**< @brief The pointer to an array of pointers used to manage the lines. */
   PVCell  ***lines_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
   size_t     lines_max_usage;               /**< @brief The maximum number of lines in use. */
-  size_t     line_create_count;             /**< @brief The number of time the pve_line_create function has been called. */
-  size_t     line_delete_count;             /**< @brief The number of time the pve_line_delete function has been called. */
+  size_t     line_create_count;             /**< @brief The number of time the pve_line_create() function has been called. */
+  size_t     line_delete_count;             /**< @brief The number of time the pve_line_delete() function has been called. */
+  size_t     line_add_move_count;           /**< @brief The number of time the pve_line_add_move() function has been called. */
+  size_t     line_release_cell_count;       /**< @brief The number of times a cell is released in the pve_line_delete() function. */
 } PVEnv;
 
 /**

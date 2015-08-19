@@ -347,6 +347,8 @@ pve_new (void)
   /* Sets the statistical counters to zero. */
   pve->line_create_count = 0;
   pve->line_delete_count = 0;
+  pve->line_add_move_count = 0;
+  pve->line_release_cell_count = 0;
 
   g_assert(pve_is_invariant_satisfied(pve, NULL, 0xFF));
 
@@ -643,6 +645,13 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
     return FALSE;
   }
 
+  const size_t used_cells_count = pve->cells_stack_head - pve->cells_stack;
+
+  if (pve->line_add_move_count - pve->line_release_cell_count != used_cells_count) {
+    if (error_code) *error_code = 1101;
+    return FALSE;
+  }
+
   return TRUE;
 }
 
@@ -771,8 +780,10 @@ pve_internals_to_stream (PVEnv *const pve,
     fprintf(stream, "lines_stack:                 %20p  --  Array of pointers used to manage the lines.\n", (void *) pve->lines_stack);
     fprintf(stream, "lines_stack_head:            %20p  --  Next, free to be assigned, pointer in the lines stack.\n", (void *) pve->lines_stack_head);
     fprintf(stream, "lines_max_usage:             %20zu  --  The maximum number of lines in use.\n", pve->lines_max_usage);
-    fprintf(stream, "line_create_count            %20zu  --  The number of calls to the function pve_create_line().\n", pve->line_create_count);
-    fprintf(stream, "line_delete_count            %20zu  --  The number of calls to the function pve_delete_line().\n", pve->line_delete_count);
+    fprintf(stream, "line_create_count            %20zu  --  The number of calls to the function pve_line_create().\n", pve->line_create_count);
+    fprintf(stream, "line_delete_count            %20zu  --  The number of calls to the function pve_line_delete().\n", pve->line_delete_count);
+    fprintf(stream, "line_add_move_count          %20zu  --  The number of calls to the function pve_line_add_move().\n", pve->line_add_move_count);
+    fprintf(stream, "line_release_cell_count      %20zu  --  The number of times a cell is released in the pve_line_delete() function.\n", pve->line_release_cell_count);
     fprintf(stream, "\n");
   }
 
@@ -992,6 +1003,7 @@ pve_line_add_move (PVEnv *pve,
                    Square move)
 {
   pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
+  pve->line_add_move_count++;
   PVCell *added_cell = *(pve->cells_stack_head);
   pve->cells_stack_head++;
   if (pve->cells_stack_head - pve->cells_stack > pve->cells_max_usage) pve->cells_max_usage++;
@@ -1038,6 +1050,7 @@ pve_line_delete (PVEnv *pve,
     *(pve->cells_stack_head) = cell;
     cell->is_active = FALSE;
     cell->variant = NULL;
+    pve->line_release_cell_count++;
     cell = cell->next;
   }
   pve->lines_stack_head--;
