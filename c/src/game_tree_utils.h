@@ -72,6 +72,17 @@
 /**********************************************/
 
 /**
+ * @enum pve_error_code_t
+ * @brief Error codes returned by the #pve_is_invariant_satisfied function.
+ */
+typedef enum {
+  PVE_ERROR_CODE_OK,                                 /**< No error detected. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_SIZE_IS_INCORRECT,   /**< Field `lines_segments_size` has a value different from `PVE_LINES_SEGMENTS_SIZE`. */
+  PVE_ERROR_CODE_LINES_FIRST_SIZE_IS_INCORRECT,      /**< Field `lines_first_size` has a value different from `PVE_LINES_FIRST_SIZE`. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_HEAD_IS_NULL         /**< Field `lines_segments_head` is `NULL`. */
+} pve_error_code_t;
+
+/**
  * @brief A set of 64 binary switches.
  */
 typedef uint64_t switches_t;
@@ -312,7 +323,7 @@ pve_free (PVEnv *pve);
 
 extern bool
 pve_is_invariant_satisfied (const PVEnv *const pve,
-                            int *const error_code,
+                            pve_error_code_t *const error_code,
                             const switches_t checked_invariants);
 
 extern PVCell **

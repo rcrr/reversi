@@ -211,7 +211,7 @@ game_position_solve (const GamePosition *const root,
   if (pv_internals_to_stream) {
     printf("\nThe constant \"pv_internals_to_stream\", in source file \"exact_solver.c\", is TRUE. Printing PVE:\n");
     printf(" --- --- pve_is_invariant_satisfied() START --- ---\n");
-    int error_code = 0;
+    pve_error_code_t error_code = 0;
     pve_is_invariant_satisfied(pve, &error_code, 0xFF);
     if (error_code) {
       printf("error_code=%d\n", error_code);

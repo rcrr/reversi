@@ -57,7 +57,7 @@
 #define PVE_VERIFY_INVARIANT_MASK 0xFFFF
 #define pve_verify_invariant(chk_mask)                                  \
   if (PVE_VERIFY_INVARIANT) do {                                        \
-      int error_code = 0;                                               \
+      pve_error_code_t error_code = 0;                                  \
       pve_is_invariant_satisfied(pve, &error_code, chk_mask);           \
       g_assert(!error_code);                                            \
     } while (0);
@@ -420,15 +420,15 @@ pve_free (PVEnv *pve)
  */
 bool
 pve_is_invariant_satisfied (const PVEnv *const pve,
-                            int *const error_code,
+                            pve_error_code_t *const error_code,
                             const switches_t checked_invariants)
 {
   if (pve->lines_segments_size != PVE_LINES_SEGMENTS_SIZE) {
-    if (error_code) *error_code = 1;
+    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_SIZE_IS_INCORRECT;
     return FALSE;
   }
   if (pve->lines_first_size != PVE_LINES_FIRST_SIZE) {
-    if (error_code) *error_code = 2;
+    if (error_code) *error_code = PVE_ERROR_CODE_LINES_FIRST_SIZE_IS_INCORRECT;
     return FALSE;
   }
   if (!pve->lines_segments_head) {
