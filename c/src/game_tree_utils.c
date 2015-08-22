@@ -432,16 +432,16 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
     return FALSE;
   }
   if (!pve->lines_segments) {
-    if (error_code) *error_code = 4;
+    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_IS_NULL;
     return FALSE;
   }
-  const size_t active_lines_segments_count = pve->lines_segments_head - pve->lines_segments;
+  const ptrdiff_t active_lines_segments_count = pve->lines_segments_head - pve->lines_segments;
   if (active_lines_segments_count < 0) {
-    if (error_code) *error_code = 5;
+    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HEADS_PRECEDES_ARRAY_INDEX_0;
     return FALSE;
   }
   if (active_lines_segments_count > pve->lines_segments_size) {
-    if (error_code) *error_code = 6;
+    if (error_code) *error_code = PVE_ERROR_CODE_ACTIVE_LINES_SEGMENTS_COUNT_EXCEEDS_BOUND;
     return FALSE;
   }
   const size_t expected_lines_size = (size_t) (active_lines_segments_count == 0

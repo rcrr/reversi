@@ -76,10 +76,13 @@
  * @brief Error codes returned by the #pve_is_invariant_satisfied function.
  */
 typedef enum {
-  PVE_ERROR_CODE_OK,                                 /**< No error detected. */
-  PVE_ERROR_CODE_LINES_SEGMENTS_SIZE_IS_INCORRECT,   /**< Field `lines_segments_size` has a value different from `PVE_LINES_SEGMENTS_SIZE`. */
-  PVE_ERROR_CODE_LINES_FIRST_SIZE_IS_INCORRECT,      /**< Field `lines_first_size` has a value different from `PVE_LINES_FIRST_SIZE`. */
-  PVE_ERROR_CODE_LINES_SEGMENTS_HEAD_IS_NULL         /**< Field `lines_segments_head` is `NULL`. */
+  PVE_ERROR_CODE_OK,                                             /**< No error detected. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_SIZE_IS_INCORRECT,               /**< Field `lines_segments_size` has a value different from `PVE_LINES_SEGMENTS_SIZE`. */
+  PVE_ERROR_CODE_LINES_FIRST_SIZE_IS_INCORRECT,                  /**< Field `lines_first_size` has a value different from `PVE_LINES_FIRST_SIZE`. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_HEAD_IS_NULL,                    /**< Field `lines_segments_head` is `NULL`. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_IS_NULL,                         /**< Field `lines_segments` is `NULL`. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_HEADS_PRECEDES_ARRAY_INDEX_0,    /**< Active lines segments count is negative. */
+  PVE_ERROR_CODE_ACTIVE_LINES_SEGMENTS_COUNT_EXCEEDS_BOUND       /**< Active lines segments count is too big. */
 } pve_error_code_t;
 
 /**
