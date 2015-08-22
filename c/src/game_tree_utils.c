@@ -447,14 +447,15 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
   const size_t expected_lines_size = (size_t) (active_lines_segments_count == 0
                                                ? 0 : (1ULL << (active_lines_segments_count - 1)) * PVE_LINES_FIRST_SIZE);
   if (expected_lines_size != pve->lines_size) {
-    if (error_code) *error_code = 7;
+    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SIZE_MISMATCH;
     return FALSE;
   }
 
   for (size_t i = 0; i < active_lines_segments_count; i++) {
-    const PVCell ***ls = (const PVCell ***) *(pve->lines_segments + i);
+    //const PVCell **ls = (const PVCell **) *(pve->lines_segments + i);
+    PVCell **ls = *(pve->lines_segments + i);
     if (!ls) {
-      if (error_code) *error_code = 8;
+      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NULL_VALUE;
       return FALSE;
     }
   }

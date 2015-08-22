@@ -81,6 +81,8 @@ pve_is_invariant_satisfied_test (void)
   pve_error_code_t error_code;
   PVCell ***lines_segments_tmp;
   PVCell ***lines_segments_head_tmp;
+  size_t lines_size_tmp;
+  PVCell **lines_segment_tmp;
 
   gboolean is_consistent = TRUE;
   switches_t check_mask = 0xFFFFFFFF;
@@ -136,6 +138,24 @@ pve_is_invariant_satisfied_test (void)
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
   g_assert(!is_consistent && (error_code == PVE_ERROR_CODE_ACTIVE_LINES_SEGMENTS_COUNT_EXCEEDS_BOUND));
   pve->lines_segments_head = lines_segments_head_tmp;
+  pve_free(pve);
+
+  error_code = PVE_ERROR_CODE_OK;
+  pve = pve_new();
+  lines_size_tmp = pve->lines_size;
+  pve->lines_size++;
+  is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
+  g_assert(!is_consistent && (error_code == PVE_ERROR_CODE_LINES_SIZE_MISMATCH));
+  pve->lines_size = lines_size_tmp;
+  pve_free(pve);
+
+  error_code = PVE_ERROR_CODE_OK;
+  pve = pve_new();
+  lines_segment_tmp = *pve->lines_segments;
+  *pve->lines_segments = NULL;
+  is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
+  g_assert(!is_consistent && (error_code == PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NULL_VALUE));
+  *pve->lines_segments = lines_segment_tmp;
   pve_free(pve);
 
 
