@@ -367,37 +367,33 @@ pve_free (PVEnv *pve)
 {
   if (pve) {
 
-    g_free(pve->cells_stack);
+    free(pve->cells_stack);
 
     /* Frees cells_segments. */
-    g_assert(pve->cells_segments_head >= pve->cells_segments);
     size_t cells_segments_size = pve->cells_segments_head - pve->cells_segments;
-    g_assert(cells_segments_size < pve->cells_segments_size);
     while (cells_segments_size) {
       pve->cells_segments_head--;
-      g_free(*(pve->cells_segments_head));
+      free(*(pve->cells_segments_head));
       cells_segments_size--;
     }
-    g_free(pve->cells_segments);
-    g_free(pve->cells_segments_sorted_sizes);
-    g_free(pve->cells_segments_sorted);
+    free(pve->cells_segments);
+    free(pve->cells_segments_sorted_sizes);
+    free(pve->cells_segments_sorted);
 
-    g_free(pve->lines_stack);
+    free(pve->lines_stack);
 
     /* Frees lines_segments. */
-    g_assert(pve->lines_segments_head >= pve->lines_segments);
     size_t lines_segments_size = pve->lines_segments_head - pve->lines_segments;
-    g_assert(lines_segments_size < pve->lines_segments_size);
     while (lines_segments_size) {
       pve->lines_segments_head--;
-      g_free(*(pve->lines_segments_head));
+      free(*(pve->lines_segments_head));
       lines_segments_size--;
     }
-    g_free(pve->lines_segments);
-    g_free(pve->lines_segments_sorted_sizes);
-    g_free(pve->lines_segments_sorted);
+    free(pve->lines_segments);
+    free(pve->lines_segments_sorted_sizes);
+    free(pve->lines_segments_sorted);
 
-    g_free(pve);
+    free(pve);
   }
 }
 
@@ -432,7 +428,7 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
     return FALSE;
   }
   if (!pve->lines_segments_head) {
-    if (error_code) *error_code = 3;
+    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HEAD_IS_NULL;
     return FALSE;
   }
   if (!pve->lines_segments) {

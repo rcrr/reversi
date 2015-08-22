@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2014 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -78,17 +78,25 @@ static void
 pve_is_invariant_satisfied_test (void)
 {
   PVEnv *pve;
+  pve_error_code_t error_code;
   gboolean is_consistent = TRUE;
-  int error_code = 0;
   switches_t check_mask = 0xFFFFFFFF;
 
+  error_code = PVE_ERROR_CODE_OK;
+  pve = pve_new();
+  pve->lines_segments_size = 0; // 0 is a wrong value.
+  is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
+  g_assert(!is_consistent && (error_code == PVE_ERROR_CODE_LINES_SEGMENTS_SIZE_IS_INCORRECT));
+  pve_free(pve);
+
+  error_code = PVE_ERROR_CODE_OK;
   pve = pve_new();
   pve->lines_stack_head = pve->lines_stack - 1;
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
   g_assert(!is_consistent && (error_code == 1004));
   pve_free(pve);
 
-  error_code = 0;
+  error_code = PVE_ERROR_CODE_OK;
   pve = pve_new();
   pve->lines_stack_head = pve->lines_stack + pve->lines_size;
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
