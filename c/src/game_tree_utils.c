@@ -452,7 +452,6 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
   }
 
   for (size_t i = 0; i < active_lines_segments_count; i++) {
-    //const PVCell **ls = (const PVCell **) *(pve->lines_segments + i);
     PVCell **ls = *(pve->lines_segments + i);
     if (!ls) {
       if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NULL_VALUE;
@@ -461,25 +460,9 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
   }
 
   for (size_t i = active_lines_segments_count; i < pve->lines_segments_size; i++) {
-    const PVCell ***ls = (const PVCell ***) *(pve->lines_segments + i);
+    PVCell **ls = *(pve->lines_segments + i);
     if (ls) {
-      if (error_code) *error_code = 9;
-      return FALSE;
-    }
-  }
-
-  for (size_t i = 0; i < active_lines_segments_count; i++) {
-    const PVCell ***ls = (const PVCell ***) *(pve->lines_segments_sorted + i);
-    if (!ls) {
-      if (error_code) *error_code = 10;
-      return FALSE;
-    }
-  }
-
-  for (size_t i = active_lines_segments_count; i < pve->lines_segments_size; i++) {
-    const PVCell ***ls = (const PVCell ***) *(pve->lines_segments_sorted + i);
-    if (ls) {
-      if (error_code) *error_code = 11;
+      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NOT_NULL_VALUE;
       return FALSE;
     }
   }

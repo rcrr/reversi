@@ -84,7 +84,8 @@ typedef enum {
   PVE_ERROR_CODE_LINES_SEGMENTS_HEADS_PRECEDES_ARRAY_INDEX_0,    /**< Active lines segments count is negative. */
   PVE_ERROR_CODE_ACTIVE_LINES_SEGMENTS_COUNT_EXCEEDS_BOUND,      /**< Active lines segments count is too big. */
   PVE_ERROR_CODE_LINES_SIZE_MISMATCH,                            /**< Lines size doesn't match with allocated lines segments. */
-  PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NULL_VALUE        /**< Array `lines_segments` has an invalid `NULL` value. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NULL_VALUE,       /**< Array `lines_segments` has an invalid `NULL` value. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NOT_NULL_VALUE    /**< Array `lines_segments` has an invalid `NOT NULL` value. */
 } pve_error_code_t;
 
 /**

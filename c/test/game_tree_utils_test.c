@@ -83,6 +83,7 @@ pve_is_invariant_satisfied_test (void)
   PVCell ***lines_segments_head_tmp;
   size_t lines_size_tmp;
   PVCell **lines_segment_tmp;
+  ptrdiff_t active_lines_segments_count;
 
   gboolean is_consistent = TRUE;
   switches_t check_mask = 0xFFFFFFFF;
@@ -157,6 +158,19 @@ pve_is_invariant_satisfied_test (void)
   g_assert(!is_consistent && (error_code == PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NULL_VALUE));
   *pve->lines_segments = lines_segment_tmp;
   pve_free(pve);
+
+  error_code = PVE_ERROR_CODE_OK;
+  PVCell *line_fake_value;
+  pve = pve_new();
+  active_lines_segments_count = pve->lines_segments_head - pve->lines_segments;
+  lines_segment_tmp = *(pve->lines_segments + active_lines_segments_count); // The first unused lines segment is saved, and then corrupted.
+  *(pve->lines_segments + active_lines_segments_count) = &line_fake_value;
+  is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
+  g_assert(!is_consistent && (error_code == PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NOT_NULL_VALUE));
+  *(pve->lines_segments + active_lines_segments_count) = lines_segment_tmp;
+  pve_free(pve);
+
+
 
 
 
