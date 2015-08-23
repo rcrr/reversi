@@ -170,6 +170,27 @@ pve_is_invariant_satisfied_test (void)
   *(pve->lines_segments + active_lines_segments_count) = lines_segment_tmp;
   pve_free(pve);
 
+  error_code = PVE_ERROR_CODE_OK;
+  pve = pve_new();
+  size_t size_tmp = *pve->lines_segments_sorted_sizes;
+  *pve->lines_segments_sorted_sizes = PVE_LINES_FIRST_SIZE * 2;
+  is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
+  g_assert(!is_consistent && (error_code == PVE_ERROR_CODE_LINES_SEGMENT_COMPUTED_INDEX_OUT_OF_RANGE));
+  *pve->lines_segments_sorted_sizes = size_tmp;
+  pve_free(pve);
+
+  /*
+   * These seven error codes are not tested. They require more than one active segment,
+   * and the api to increase the lines segments are not exported.
+   *
+   * PVE_ERROR_CODE_LINES_SEGMENTS_POS_0_AND_1_ANOMALY
+   * PVE_ERROR_CODE_LINES_SEGMENTS_SORTED_AND_UNSORTED_DO_NOT_MATCH
+   * PVE_ERROR_CODE_LINES_SEGMENTS_ARE_NOT_PROPERLY_SORTED
+   * PVE_ERROR_CODE_LINES_SIZE_DOESNT_MATCH_WITH_CUMULATED
+   * PVE_ERROR_CODE_LINES_SEGMENT_POSITION_0_NOT_FOUND
+   * PVE_ERROR_CODE_LINES_SEGMENT_POSITION_0_OR_1_NOT_FOUND
+   * PVE_ERROR_CODE_LINES_SEGMENTS_UNUSED_SEGMENT_HAS_SIZE
+   */
 
 
 

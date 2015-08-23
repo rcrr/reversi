@@ -76,16 +76,24 @@
  * @brief Error codes returned by the #pve_is_invariant_satisfied function.
  */
 typedef enum {
-  PVE_ERROR_CODE_OK,                                             /**< No error detected. */
-  PVE_ERROR_CODE_LINES_SEGMENTS_SIZE_IS_INCORRECT,               /**< Field `lines_segments_size` has a value different from `PVE_LINES_SEGMENTS_SIZE`. */
-  PVE_ERROR_CODE_LINES_FIRST_SIZE_IS_INCORRECT,                  /**< Field `lines_first_size` has a value different from `PVE_LINES_FIRST_SIZE`. */
-  PVE_ERROR_CODE_LINES_SEGMENTS_HEAD_IS_NULL,                    /**< Field `lines_segments_head` is `NULL`. */
-  PVE_ERROR_CODE_LINES_SEGMENTS_IS_NULL,                         /**< Field `lines_segments` is `NULL`. */
-  PVE_ERROR_CODE_LINES_SEGMENTS_HEADS_PRECEDES_ARRAY_INDEX_0,    /**< Active lines segments count is negative. */
-  PVE_ERROR_CODE_ACTIVE_LINES_SEGMENTS_COUNT_EXCEEDS_BOUND,      /**< Active lines segments count is too big. */
-  PVE_ERROR_CODE_LINES_SIZE_MISMATCH,                            /**< Lines size doesn't match with allocated lines segments. */
-  PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NULL_VALUE,       /**< Array `lines_segments` has an invalid `NULL` value. */
-  PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NOT_NULL_VALUE    /**< Array `lines_segments` has an invalid `NOT NULL` value. */
+  PVE_ERROR_CODE_OK,                                              /**< No error detected. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_SIZE_IS_INCORRECT,                /**< Field `lines_segments_size` has a value different from `PVE_LINES_SEGMENTS_SIZE`. */
+  PVE_ERROR_CODE_LINES_FIRST_SIZE_IS_INCORRECT,                   /**< Field `lines_first_size` has a value different from `PVE_LINES_FIRST_SIZE`. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_HEAD_IS_NULL,                     /**< Field `lines_segments_head` is `NULL`. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_IS_NULL,                          /**< Field `lines_segments` is `NULL`. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_HEADS_PRECEDES_ARRAY_INDEX_0,     /**< Active lines segments count is negative. */
+  PVE_ERROR_CODE_ACTIVE_LINES_SEGMENTS_COUNT_EXCEEDS_BOUND,       /**< Active lines segments count is too big. */
+  PVE_ERROR_CODE_LINES_SIZE_MISMATCH,                             /**< Lines size doesn't match with allocated lines segments. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NULL_VALUE,        /**< Array `lines_segments` has an invalid `NULL` value. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NOT_NULL_VALUE,    /**< Array `lines_segments` has an invalid `NOT NULL` value. */
+  PVE_ERROR_CODE_LINES_SEGMENT_COMPUTED_INDEX_OUT_OF_RANGE,       /**< The index of a lines segment, computed from field `lines_segments_sorted_sizes`, is out of range. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_POS_0_AND_1_ANOMALY,              /**< Array `lines_segments` has an anomaly on positions zero and one, computed from field `lines_segments_sorted_sizes`. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_SORTED_AND_UNSORTED_DO_NOT_MATCH, /**< Array `lines_segments` does not match with array `lines_segments_sorted`. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_ARE_NOT_PROPERLY_SORTED,          /**< Array `lines_segments_sorted` is not in the proper ascending order. */
+  PVE_ERROR_CODE_LINES_SIZE_DOESNT_MATCH_WITH_CUMULATED,          /**< Field `lines_size` differs from the cumulated values in `lines_segments_sorted_sizes`. */
+  PVE_ERROR_CODE_LINES_SEGMENT_POSITION_0_NOT_FOUND,              /**< No position found having minimum size in array `lines_segments_sorted_sizes`. */
+  PVE_ERROR_CODE_LINES_SEGMENT_POSITION_0_OR_1_NOT_FOUND,         /**< Two positions not found having minimum size in array `lines_segments_sorted_sizes`. */
+  PVE_ERROR_CODE_LINES_SEGMENTS_UNUSED_SEGMENT_HAS_SIZE           /**< Unused positions in array `lines_segments_sorted_sizes` has size different from zero. */
 } pve_error_code_t;
 
 /**
