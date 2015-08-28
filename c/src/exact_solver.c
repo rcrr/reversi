@@ -135,7 +135,10 @@ static const uint64_t legal_moves_priority_mask[] = {
 static const int legal_moves_priority_cluster_count =
   sizeof(legal_moves_priority_mask) / sizeof(legal_moves_priority_mask[0]);
 
-/* Turn on full PV recording. Should be a parameter coming from command line. */
+/*
+ * Turn on full PV recording. Should be a parameter coming from command line.
+ * The value must be false in order to prepare the endgame files for the SQL unit tests.
+ */
 static const bool pv_full_recording = true;
 
 /* Print debugging info ... */
