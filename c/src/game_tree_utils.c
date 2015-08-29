@@ -419,114 +419,124 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
                             pve_error_code_t *const error_code,
                             const switches_t checked_invariants)
 {
-  if (pve->lines_segments_size != PVE_LINES_SEGMENTS_SIZE) {
-    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_SIZE_IS_INCORRECT;
-    return FALSE;
-  }
-  if (pve->lines_first_size != PVE_LINES_FIRST_SIZE) {
-    if (error_code) *error_code = PVE_ERROR_CODE_LINES_FIRST_SIZE_IS_INCORRECT;
-    return FALSE;
-  }
-  if (!pve->lines_segments_head) {
-    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HEAD_IS_NULL;
-    return FALSE;
-  }
-  if (!pve->lines_segments) {
-    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_IS_NULL;
-    return FALSE;
-  }
   const ptrdiff_t active_lines_segments_count = pve->lines_segments_head - pve->lines_segments;
-  if (active_lines_segments_count < 0) {
-    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HEADS_PRECEDES_ARRAY_INDEX_0;
-    return FALSE;
-  }
-  if (active_lines_segments_count > pve->lines_segments_size) {
-    if (error_code) *error_code = PVE_ERROR_CODE_ACTIVE_LINES_SEGMENTS_COUNT_EXCEEDS_BOUND;
-    return FALSE;
-  }
-  const size_t expected_lines_size = (size_t) (active_lines_segments_count == 0
-                                               ? 0 : (1ULL << (active_lines_segments_count - 1)) * PVE_LINES_FIRST_SIZE);
-  if (expected_lines_size != pve->lines_size) {
-    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SIZE_MISMATCH;
-    return FALSE;
-  }
 
-  for (size_t i = 0; i < active_lines_segments_count; i++) {
-    PVCell **ls = *(pve->lines_segments + i);
-    if (!ls) {
-      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NULL_VALUE;
+  /*
+   * Lines basic checks.
+   *
+   * A set of very basic checks on lines storage.
+   * Pointers boundaries are checked to be consistent with sizes and the first position
+   * in each array.
+   */
+  if (pve_chk_inv_lines_basic & checked_invariants) {
+    if (pve->lines_segments_size != PVE_LINES_SEGMENTS_SIZE) {
+      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_SIZE_IS_INCORRECT;
       return FALSE;
     }
-  }
-
-  for (size_t i = active_lines_segments_count; i < pve->lines_segments_size; i++) {
-    PVCell **ls = *(pve->lines_segments + i);
-    if (ls) {
-      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NOT_NULL_VALUE;
+    if (pve->lines_first_size != PVE_LINES_FIRST_SIZE) {
+      if (error_code) *error_code = PVE_ERROR_CODE_LINES_FIRST_SIZE_IS_INCORRECT;
       return FALSE;
     }
-  }
-
-  size_t cumulated_lines_size_from_sorted_segments = 0;
-  bool ls_p0_found = FALSE;
-  bool ls_p1_found = FALSE;
-  PVCell **ls_position_0 = *(pve->lines_segments + 0);
-  PVCell **ls_position_1 = *(pve->lines_segments + 1);
-  for (size_t i = 0; i < active_lines_segments_count; i++) {
-    const size_t segment_size = (size_t) *(pve->lines_segments_sorted_sizes + i);
-    cumulated_lines_size_from_sorted_segments += segment_size;
-    PVCell **ls = *(pve->lines_segments_sorted + i);
-    const size_t ls_index = bit_works_bitscanMS1B_64((size_t) (segment_size / PVE_LINES_FIRST_SIZE)) + 1;
-    if (ls_index > active_lines_segments_count) {
-      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENT_COMPUTED_INDEX_OUT_OF_RANGE;
+    if (!pve->lines_segments_head) {
+      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HEAD_IS_NULL;
       return FALSE;
     }
-    if (ls_index == 1) {
-      if (!ls_p0_found && ls == ls_position_0) {
-        ls_p0_found = TRUE;
-        goto positions_1_and_2_found;
-      }
-      if (!ls_p1_found && ls == ls_position_1) {
-        ls_p1_found = TRUE;
-        goto positions_1_and_2_found;
-      }
-      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_POS_0_AND_1_ANOMALY;
+    if (!pve->lines_segments) {
+      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_IS_NULL;
       return FALSE;
-    } else {
-      PVCell **ls_unsorted = *(pve->lines_segments + ls_index);
-      if (ls != ls_unsorted) {
-        if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_SORTED_AND_UNSORTED_DO_NOT_MATCH;
+    }
+    if (active_lines_segments_count < 0) {
+      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HEADS_PRECEDES_ARRAY_INDEX_0;
+      return FALSE;
+    }
+    if (active_lines_segments_count > pve->lines_segments_size) {
+      if (error_code) *error_code = PVE_ERROR_CODE_ACTIVE_LINES_SEGMENTS_COUNT_EXCEEDS_BOUND;
+      return FALSE;
+    }
+    const size_t expected_lines_size = (size_t) (active_lines_segments_count == 0
+                                                 ? 0 : (1ULL << (active_lines_segments_count - 1)) * PVE_LINES_FIRST_SIZE);
+    if (expected_lines_size != pve->lines_size) {
+      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SIZE_MISMATCH;
+      return FALSE;
+    }
+
+    for (size_t i = 0; i < active_lines_segments_count; i++) {
+      PVCell **ls = *(pve->lines_segments + i);
+      if (!ls) {
+        if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NULL_VALUE;
         return FALSE;
       }
     }
-  positions_1_and_2_found:
-    if (i > 0) {
-      PVCell **ls_prec = *(pve->lines_segments_sorted + i - 1);
-      ls_prec++;
-      if (ls <= ls_prec) {
-        if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_ARE_NOT_PROPERLY_SORTED;
+
+    for (size_t i = active_lines_segments_count; i < pve->lines_segments_size; i++) {
+      PVCell **ls = *(pve->lines_segments + i);
+      if (ls) {
+        if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NOT_NULL_VALUE;
         return FALSE;
       }
     }
-  }
-  if (expected_lines_size != cumulated_lines_size_from_sorted_segments) {
-    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SIZE_DOESNT_MATCH_WITH_CUMULATED;
-    return FALSE;
-  }
-  if (active_lines_segments_count == 1 && !ls_p0_found) {
-    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENT_POSITION_0_NOT_FOUND;
-    return FALSE;
-  }
-  if (active_lines_segments_count > 1 && !ls_p0_found && !ls_p1_found) {
-    if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENT_POSITION_0_OR_1_NOT_FOUND;
-    return FALSE;
-  }
 
-  for (size_t i = active_lines_segments_count; i < pve->lines_segments_size; i++) {
-    const size_t segment_size = *(pve->lines_segments_sorted_sizes + i);
-    if (segment_size != 0) {
-      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_UNUSED_SEGMENT_HAS_SIZE;
+    size_t cumulated_lines_size_from_sorted_segments = 0;
+    bool ls_p0_found = FALSE;
+    bool ls_p1_found = FALSE;
+    PVCell **ls_position_0 = *(pve->lines_segments + 0);
+    PVCell **ls_position_1 = *(pve->lines_segments + 1);
+    for (size_t i = 0; i < active_lines_segments_count; i++) {
+      const size_t segment_size = (size_t) *(pve->lines_segments_sorted_sizes + i);
+      cumulated_lines_size_from_sorted_segments += segment_size;
+      PVCell **ls = *(pve->lines_segments_sorted + i);
+      const size_t ls_index = bit_works_bitscanMS1B_64((size_t) (segment_size / PVE_LINES_FIRST_SIZE)) + 1;
+      if (ls_index > active_lines_segments_count) {
+        if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENT_COMPUTED_INDEX_OUT_OF_RANGE;
+        return FALSE;
+      }
+      if (ls_index == 1) {
+        if (!ls_p0_found && ls == ls_position_0) {
+          ls_p0_found = TRUE;
+          goto positions_1_and_2_found;
+        }
+        if (!ls_p1_found && ls == ls_position_1) {
+          ls_p1_found = TRUE;
+          goto positions_1_and_2_found;
+        }
+        if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_POS_0_AND_1_ANOMALY;
+        return FALSE;
+      } else {
+        PVCell **ls_unsorted = *(pve->lines_segments + ls_index);
+        if (ls != ls_unsorted) {
+          if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_SORTED_AND_UNSORTED_DO_NOT_MATCH;
+          return FALSE;
+        }
+      }
+    positions_1_and_2_found:
+      if (i > 0) {
+        PVCell **ls_prec = *(pve->lines_segments_sorted + i - 1);
+        ls_prec++;
+        if (ls <= ls_prec) {
+          if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_ARE_NOT_PROPERLY_SORTED;
+          return FALSE;
+        }
+      }
+    }
+    if (expected_lines_size != cumulated_lines_size_from_sorted_segments) {
+      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SIZE_DOESNT_MATCH_WITH_CUMULATED;
       return FALSE;
+    }
+    if (active_lines_segments_count == 1 && !ls_p0_found) {
+      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENT_POSITION_0_NOT_FOUND;
+      return FALSE;
+    }
+    if (active_lines_segments_count > 1 && !ls_p0_found && !ls_p1_found) {
+      if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENT_POSITION_0_OR_1_NOT_FOUND;
+      return FALSE;
+    }
+
+    for (size_t i = active_lines_segments_count; i < pve->lines_segments_size; i++) {
+      const size_t segment_size = *(pve->lines_segments_sorted_sizes + i);
+      if (segment_size != 0) {
+        if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_UNUSED_SEGMENT_HAS_SIZE;
+        return FALSE;
+      }
     }
   }
 

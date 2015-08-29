@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -230,80 +230,119 @@ static const int best_score = +64;
  */
 static const int worst_score = -64;
 
+
+
 /**
  * @brief The PVE internals header section switch mask.
+ *
+ * @details This switch mask identifies the header section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_header_section                = 0x0001;
 
 /**
  * @brief The PVE internals index section switch mask.
+ *
+ * @details This switch mask identifies the index section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_index_section                 = 0x0002;
 
 /**
  * @brief The PVE internals properties section switch mask.
+ *
+ * @details This switch mask identifies the properties section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_properties_section            = 0x0004;
 
 /**
  * @brief The PVE internals structure  section switch mask.
+ *
+ * @details This switch mask identifies the structure section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_structure_section             = 0x0008;
 
 /**
  * @brief The PVE internals computed properties section switch mask.
+ *
+ * @details This switch mask identifies the computed properties section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_computed_properties_section   = 0x0010;
 
 /**
  * @brief The PVE internals active lines section switch mask.
+ *
+ * @details This switch mask identifies the active lines section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_active_lines_section          = 0x0020;
 
 /**
  * @brief The PVE internals cells segments section switch mask.
+ *
+ * @details This switch mask identifies the cells segments section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_cells_segments_section        = 0x0040;
 
 /**
  * @brief The PVE internals sorted cells segments section switch mask.
+ *
+ * @details This switch mask identifies the sorted cells segments section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_sorted_cells_segments_section = 0x0080;
 
 /**
  * @brief The PVE internals cells section switch mask.
+ *
+ * @details This switch mask identifies the cells section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_cells_section                 = 0x0100;
 
 /**
  * @brief The PVE internals sorted cells section switch mask.
+ *
+ * @details This switch mask identifies the cells stack section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_cells_stack_section           = 0x0200;
 
 /**
  * @brief The PVE internals lines segments section switch mask.
+ *
+ * @details This switch mask identifies the lines segments section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_lines_segments_section        = 0x0400;
 
 /**
  * @brief The PVE internals sorted lines segments section switch mask.
+ *
+ * @details This switch mask identifies the sorted lines segments section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_sorted_lines_segments_section = 0x0800;
 
 /**
  * @brief The PVE internals lines section switch mask.
+ *
+ * @details This switch mask identifies the lines section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_lines_section                 = 0x1000;
 
 /**
- * @brief The PVE internals sorted lines section switch mask.
+ * @brief The PVE internals lines stack section switch mask.
+ *
+ * @details This switch mask identifies the lines stack section when calling the function #pve_internals_to_stream.
  */
 static const switches_t pve_internals_lines_stack_section           = 0x2000;
 
+
+
 /**
- * @brief The PVE internals header section switch mask.
+ * @brief A mask associated with ::PVEnv::state field that identifies if the stack is sorted.
  */
-static const switches_t pve_state_lines_stack_sorted                = 0x0001;
+static const switches_t pve_state_lines_stack_sorted = 0x0001;
+
+
+
+/**
+ * @brief The PVE mask that activates basic lines checks in #pve_is_invariant_satisfied.
+ */
+static const switches_t pve_chk_inv_lines_basic = 0x0001;
 
 
 
