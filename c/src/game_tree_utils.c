@@ -822,16 +822,31 @@ pve_internals_to_stream (PVEnv *const pve,
   }
 
   if (shown_sections & pve_internals_active_lines_section) {
-    fprintf(stream, "# PVE ACTIVE LINES\n");
     pve_sort_lines_in_place(pve);
-    for (size_t i = 0; i < lines_in_use_count; i++) {
-      const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
-      if (!line) fprintf(stream, "line=%zu, lines_in_use_count=%zu\n", i, lines_in_use_count);
-      fflush(stream);
-      g_assert(line);
-      fprintf(stream, "line_internals: ");
-      pve_line_internals_to_stream(pve, line, stream);
-      fprintf(stream, "\n");
+    fprintf(stream, "# PVE ACTIVE LINES\n");
+    fprintf(stream, "   ORDINAL; L_COUNT; C_POS;      LINE_ADDRESS;        FIRST_CELL;              CELL; MOVE;              NEXT;           VARIANT\n");
+    size_t ordinal = 0;
+    size_t line_counter = 0;
+    for (PVCell ***line_p = pve->lines_stack; line_p < pve->lines_stack_head; line_p++) {
+      PVCell **line = *line_p;
+      PVCell *first_cell = *line;
+      g_assert(first_cell);
+      size_t cell_position = 0;
+      for (PVCell *c = first_cell; c != NULL; c = c->next) {
+        fprintf(stream, "%10zu;%8zu;%6zu;%18p;%18p;%18p;%5s;%18p;%18p\n",
+                ordinal,
+                line_counter,
+                cell_position,
+                (void *) line,
+                (void *) first_cell,
+                (void *) c,
+                square_as_move_to_string(c->move),
+                (void *) c->next,
+                (void *) c->variant);
+        cell_position++;
+        ordinal++;
+      }
+      line_counter++;
     }
     fprintf(stream, "\n");
   }

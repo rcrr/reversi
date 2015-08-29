@@ -224,20 +224,20 @@ game_position_solve (const GamePosition *const root,
 
     printf("\n --- --- pve_internals_to_stream() START --- ---\n");
     switches_t shown_sections = 0x0000;
-    shown_sections |= pve_internals_header_section;
-    shown_sections |= pve_internals_index_section;
-    shown_sections |= pve_internals_properties_section;
-    shown_sections |= pve_internals_structure_section;
-    shown_sections |= pve_internals_computed_properties_section;
+    //shown_sections |= pve_internals_header_section;
+    //shown_sections |= pve_internals_index_section;
+    //shown_sections |= pve_internals_properties_section;
+    //shown_sections |= pve_internals_structure_section;
+    //shown_sections |= pve_internals_computed_properties_section;
     shown_sections |= pve_internals_active_lines_section;
-    shown_sections |= pve_internals_cells_segments_section;
-    shown_sections |= pve_internals_sorted_cells_segments_section;
-    shown_sections |= pve_internals_cells_section;
-    shown_sections |= pve_internals_cells_stack_section;
-    shown_sections |= pve_internals_lines_segments_section;
-    shown_sections |= pve_internals_sorted_lines_segments_section;
-    shown_sections |= pve_internals_lines_section;
-    shown_sections |= pve_internals_lines_stack_section;
+    //shown_sections |= pve_internals_cells_segments_section;
+    //shown_sections |= pve_internals_sorted_cells_segments_section;
+    //shown_sections |= pve_internals_cells_section;
+    //shown_sections |= pve_internals_cells_stack_section;
+    //shown_sections |= pve_internals_lines_segments_section;
+    //shown_sections |= pve_internals_sorted_lines_segments_section;
+    //shown_sections |= pve_internals_lines_section;
+    //shown_sections |= pve_internals_lines_stack_section;
     pve_internals_to_stream(pve, stdout, shown_sections);
     printf("\n --- --- pve_internals_to_stream() COMPLETED --- ---\n");
   }
