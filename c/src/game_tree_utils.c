@@ -53,6 +53,13 @@
  * @cond
  */
 
+#define PVE_CELLS_SEGMENTS_SIZE 28
+#define PVE_CELLS_FIRST_SIZE 2
+#define PVE_LINES_SEGMENTS_SIZE 28
+#define PVE_LINES_FIRST_SIZE 4
+
+#define PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE 64
+
 #define PVE_VERIFY_INVARIANT FALSE
 #define PVE_VERIFY_INVARIANT_MASK 0xFFFF
 #define pve_verify_invariant(chk_mask)                                  \
@@ -259,6 +266,8 @@ pve_new (void)
   /* Sets to zero the max number of cells, and lines ever used. */
   pve->cells_max_usage = 0;
   pve->lines_max_usage = 0;
+
+  //AZS
 
   /* Prepares the cells segments. */
   pve->cells_segments_size = cells_segments_size;
@@ -741,6 +750,7 @@ pve_internals_to_stream (PVEnv *const pve,
 
   if (shown_sections & pve_internals_structure_section) {
     fprintf(stream, "# PVE STRUCTURE HEADER\n");
+    fprintf(stream, "state:                         0x%016lx  --  The internal state of the structure.\n", pve->state);
     fprintf(stream, "cells_size:                  %20zu  --  Count of cells contained by the cells segments.\n", pve->cells_size);
     fprintf(stream, "cells_segments_size:         %20zu  --  Count of cells segments.\n", pve->cells_segments_size);
     fprintf(stream, "cells_first_size:            %20zu  --  Number of cells contained by the first segment.\n", pve->cells_first_size);
@@ -843,21 +853,22 @@ pve_internals_to_stream (PVEnv *const pve,
 
   if (shown_sections & pve_internals_cells_segments_section) {
     fprintf(stream, "# PVE CELLS SEGMENTS\n");
-    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO\n");
+    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO;      SIZE\n");
     for (size_t i = 0; i < pve->cells_segments_size; i++) {
-      fprintf(stream, "%7zu;%20p;%20p\n",
+      fprintf(stream, "%7zu;%20p;%20p;%10zu\n",
               i,
               (void *) (pve->cells_segments + i),
-              (void *) *(pve->cells_segments + i));
+              (void *) *(pve->cells_segments + i),
+              (size_t) ((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size);
     }
     fprintf(stream, "\n");
   }
 
   if (shown_sections & pve_internals_sorted_cells_segments_section) {
     fprintf(stream, "# PVE SORTED CELLS SEGMENTS\n");
-    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO;     SIZE\n");
+    fprintf(stream, "ORDINAL;             ADDRESS;           POINTS_TO;      SIZE\n");
     for (size_t i = 0; i < pve->cells_segments_size; i++) {
-      fprintf(stream, "%7zu;%20p;%20p;%9zu\n",
+      fprintf(stream, "%7zu;%20p;%20p;%10zu\n",
               i,
               (void *) (pve->cells_segments_sorted + i),
               (void *) *(pve->cells_segments_sorted + i),
@@ -1185,6 +1196,14 @@ pve_dump_to_binary_file (const PVEnv *const pve,
   g_assert(fp);
 
   fwrite(pve, sizeof(PVEnv), 1, fp);
+  fwrite(pve->cells_segments, sizeof(PVCell *), pve->cells_segments_size, fp);
+  size_t i = 0;
+  for (PVCell **segment_p = pve->cells_segments; segment_p < pve->cells_segments_head; segment_p++, i++) {
+    PVCell *segment = *segment_p;
+    size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size);
+    printf("i=%zu, segment=%p, segment_size=%zu\n", i, (void *) segment, segment_size);
+    fwrite(segment, sizeof(PVCell), segment_size, fp);
+  }
 
   int fclose_ret = fclose(fp);
   g_assert(fclose_ret == 0);
@@ -1203,20 +1222,104 @@ pve_load_from_binary_file (const char *const in_file_path)
 {
   g_assert(in_file_path);
 
+  int fread_result;
+  PVEnv from_file_pve;
+  PVCell *from_file_cells_segments[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
+
+  /* Opens the binary file for reading. */
   FILE *fp = fopen(in_file_path, "r");
   g_assert(fp);
 
+  /* Reads the pve structure from the file. */
+  fread_result = fread(&from_file_pve, sizeof(PVEnv), 1, fp);
+  g_assert(fread_result == 1);
+  g_assert(from_file_pve.cells_segments_size <= PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE);
+
+  /* Computes usefull pve properties and dimensions. */
+  const ptrdiff_t active_cells_segments_count = from_file_pve.cells_segments_head - from_file_pve.cells_segments;
+  const ptrdiff_t active_lines_segments_count = from_file_pve.lines_segments_head - from_file_pve.lines_segments;
+
+  printf("AZS: active_cells_segments_count=%zu\n", active_cells_segments_count);
+  printf("AZS: active_lines_segments_count=%zu\n", active_lines_segments_count);
+
+  /* Allocates the space for the pve structure. */
   PVEnv *const pve = (PVEnv *) malloc(sizeof(PVEnv));
   g_assert(pve);
 
-  int fread_result = fread(pve, 1, sizeof(PVEnv), fp);
-  g_assert(fread_result == sizeof(PVEnv));
+  /* Sets the state switches. */
+  pve->state = 0x0000000000000000;
+
+  /* Sets fields from the read structure. */
+  pve->cells_size = from_file_pve.cells_size;
+  pve->cells_segments_size = from_file_pve.cells_segments_size;
+  pve->cells_first_size = from_file_pve.cells_first_size;
+
+  /* Reads the cells segments array from the file. */
+  fread_result = fread(&from_file_cells_segments, sizeof(PVCell *), pve->cells_segments_size, fp);
+  g_assert(fread_result == pve->cells_segments_size);
+
+  for (size_t i = 0; i < pve->cells_segments_size; i++) {
+    printf("AZS: from_file_cells_segments[%zu]=%p\n", i, (void *) from_file_cells_segments[i]);
+  }
+
+  /*
+   * - Allocates space for the cells segments array.
+   * - Set the head pointer at the beginning of the array.
+   * - For the active segments, allocates the proper space for cells,
+   *   read the element data from file, and increment the head pointer.
+   * - Sets the the cells segments element to point to the segment, or null if unsused.
+   */
+  pve->cells_segments = (PVCell **) malloc(sizeof(PVCell *) * pve->cells_segments_size);
+  g_assert(pve->cells_segments);
+  pve->cells_segments_head = pve->cells_segments;
+  for (size_t i = 0; i < pve->cells_segments_size; i++) {
+    PVCell *segment = NULL;
+    if (i < active_cells_segments_count) {
+      size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size);
+      segment = (PVCell *) malloc(segment_size * sizeof(PVCell));
+      fread_result = fread(segment, sizeof(PVCell), segment_size, fp);
+      pve->cells_segments_head++;
+      // update pointers in all cells ......
+    }
+    *(pve->cells_segments + i) = segment;
+  }
+
+  //AZS
 
   int fclose_ret = fclose(fp);
   g_assert(fclose_ret == 0);
 
   return pve;
 }
+
+/*
+. switches_t state;                         The condition of the structure.
+. size_t     cells_size;                    The count of cells contained by the cells array.
+. size_t     cells_segments_size;           The count of cells segments.
+. size_t     cells_first_size;              The number of cells contained by the first segment.
+. PVCell   **cells_segments;                Segments are pointers to array of cells.
+. PVCell   **cells_segments_head;           The next cells segment to be used.
+  size_t    *cells_segments_sorted_sizes;   Sizes of cells segments in the sorted order.
+  PVCell   **cells_segments_sorted;         Sorted cells segments, by means of the natural order of the memory adress.
+  PVCell   **cells_stack;                   The pointer to the array of pointers used to manage the cells.
+  PVCell   **cells_stack_head;              The pointer to the next, free to be assigned, pointer in the stack.
+  size_t     cells_max_usage;               The maximum number of cells in use.
+  size_t     lines_size;                    The total count of lines contained by the lines segments.
+  size_t     lines_segments_size;           The count of lines segments.
+  size_t     lines_first_size;              The number of lines contained by the first segment.
+  PVCell  ***lines_segments;                Segments are pointers to array of lines.
+  PVCell  ***lines_segments_head;           The next lines segment to be used.
+  size_t    *lines_segments_sorted_sizes;   Sizes of lines segments in the sorted order.
+  PVCell  ***lines_segments_sorted;         Sorted lines segments, by means of the natural order of the memory adress.
+  PVCell  ***lines_stack;                   The pointer to an array of pointers used to manage the lines.
+  PVCell  ***lines_stack_head;              The pointer to the next, free to be assigned, pointer in the ines array.
+  size_t     lines_max_usage;               The maximum number of lines in use.
+  size_t     line_create_count;             The number of time the pve_line_create() function has been called.
+  size_t     line_delete_count;             The number of time the pve_line_delete() function has been called.
+  size_t     line_add_move_count;           The number of time the pve_line_add_move() function has been called.
+  size_t     line_release_cell_count;       The number of times a cell is released in the pve_line_delete() function.
+ */
+
 
 
 /*******************************************************/
@@ -1419,18 +1522,13 @@ pve_double_cells_size (PVEnv *const pve)
   }
   pve->cells_stack_head = pve->cells_stack + actual_cells_size;
 
-  /* Re-compute the sorted cells segments array, and respective sizes. */
+  /* Re-compute the sorted cells segments array, and respective sizes. Should be a function .... */
   for (size_t i = 0; i < cells_segments_used; i++) {
     *(pve->cells_segments_sorted + i) = *(pve->cells_segments + i);
   }
   sort_utils_insertionsort_asc_p ((void **) pve->cells_segments_sorted, cells_segments_used);
   for (size_t i = 0; i < cells_segments_used; i++) {
-    PVCell *segment = *(pve->cells_segments_sorted + i);
-    size_t segment_size = pve->cells_first_size;
-    size_t segment_size_incr = 0;
-    for (size_t j = 0; j < cells_segments_used; j++, segment_size += segment_size_incr, segment_size_incr = segment_size) {
-      if (segment == *(pve->cells_segments + j)) break;
-    }
+    size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size);
     *(pve->cells_segments_sorted_sizes + i) = segment_size;
   }
 }

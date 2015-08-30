@@ -57,11 +57,6 @@
  */
 #define MAX_LEGAL_MOVE_STACK_COUNT 1024
 
-#define PVE_CELLS_SEGMENTS_SIZE 28
-#define PVE_CELLS_FIRST_SIZE 8
-#define PVE_LINES_SEGMENTS_SIZE 28
-#define PVE_LINES_FIRST_SIZE 4
-
 #include <stdbool.h>
 #include <glib.h>
 
@@ -141,7 +136,7 @@ typedef struct PVCell_ {
  *             used pointers, no `NULL` pointers occurs.
  */
 typedef struct {
-  switches_t state;                         /**< @brief The condition of the structure. */
+  switches_t state;                         /**< @brief The internal state of the structure. */
   size_t     cells_size;                    /**< @brief The count of cells contained by the cells array. */
   size_t     cells_segments_size;           /**< @brief The count of cells segments. */
   size_t     cells_first_size;              /**< @brief The number of cells contained by the first segment. */
