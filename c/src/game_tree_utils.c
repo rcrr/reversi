@@ -250,12 +250,7 @@ pve_new (void)
   static const size_t cells_segments_size = PVE_CELLS_SEGMENTS_SIZE;
   static const size_t cells_first_size = PVE_CELLS_FIRST_SIZE;
 
-  static const size_t size_of_pve   = sizeof(PVEnv);
-  static const size_t size_of_pvc   = sizeof(PVCell);
-  static const size_t size_of_pvcp  = sizeof(PVCell*);
-  static const size_t size_of_pvcpp = sizeof(PVCell**);
-
-  PVEnv *const pve = (PVEnv*) malloc(size_of_pve);
+  PVEnv *const pve = (PVEnv*) malloc(sizeof(PVEnv));
   g_assert(pve);
 
   /* Sets the state switches. */
@@ -268,7 +263,7 @@ pve_new (void)
   /* Prepares the cells segments. */
   pve->cells_segments_size = cells_segments_size;
   pve->cells_first_size = cells_first_size;
-  pve->cells_segments = (PVCell **) malloc(size_of_pvcp * cells_segments_size);
+  pve->cells_segments = (PVCell **) malloc(sizeof(PVCell *) * cells_segments_size);
   g_assert(pve->cells_segments);
   for (size_t i = 0; i < cells_segments_size; i++) {
     *(pve->cells_segments + i) = NULL;
@@ -277,7 +272,7 @@ pve_new (void)
 
   /* Prepares the first segment of cells. */
   pve->cells_size = cells_first_size;
-  PVCell *cells = (PVCell *) malloc(cells_first_size * size_of_pvc);
+  PVCell *cells = (PVCell *) malloc(cells_first_size * sizeof(PVCell));
   g_assert(cells);
   *(pve->cells_segments_head) = cells;
   pve->cells_segments_head++;
@@ -290,7 +285,7 @@ pve_new (void)
 
   /* Prepares the sorted cells segments and the sorted sizes. */
   pve->cells_segments_sorted_sizes = (size_t *) malloc(sizeof(size_t) * cells_segments_size);
-  pve->cells_segments_sorted = (PVCell **) malloc(size_of_pvcp * cells_segments_size);
+  pve->cells_segments_sorted = (PVCell **) malloc(sizeof(PVCell *) * cells_segments_size);
   for (size_t i = 0; i < cells_segments_size; i++) {
     *(pve->cells_segments_sorted_sizes + i) = 0;
     *(pve->cells_segments_sorted + i) = NULL;
@@ -299,7 +294,7 @@ pve_new (void)
   *(pve->cells_segments_sorted + 0) = cells;
 
   /* Creates the cells stack and load it with the cells held in the first segment. */
-  pve->cells_stack = (PVCell **) malloc(cells_first_size * size_of_pvcp);
+  pve->cells_stack = (PVCell **) malloc(cells_first_size * sizeof(PVCell *));
   g_assert(pve->cells_stack);
   for (size_t i = 0; i < cells_first_size; i++) {
     *(pve->cells_stack + i) = cells + i;
@@ -309,7 +304,7 @@ pve_new (void)
   /* Prepares the lines segments. */
   pve->lines_segments_size = lines_segments_size;
   pve->lines_first_size = lines_first_size;
-  pve->lines_segments = (PVCell ***) malloc(size_of_pvcpp * lines_segments_size);
+  pve->lines_segments = (PVCell ***) malloc(sizeof(PVCell **) * lines_segments_size);
   g_assert(pve->lines_segments);
   for (size_t i = 0; i < lines_segments_size; i++) {
     *(pve->lines_segments + i) = NULL;
@@ -318,7 +313,7 @@ pve_new (void)
 
   /* Prepares the first segment of lines. */
   pve->lines_size = lines_first_size;
-  PVCell **lines = (PVCell **) malloc(lines_first_size * size_of_pvcp);
+  PVCell **lines = (PVCell **) malloc(lines_first_size * sizeof(PVCell *));
   g_assert(lines);
   *(pve->lines_segments_head) = lines;
   pve->lines_segments_head++;
@@ -328,7 +323,7 @@ pve_new (void)
 
   /* Prepares the sorted lines segments and the sorted sizes. */
   pve->lines_segments_sorted_sizes = (size_t *) malloc(sizeof(size_t) * lines_segments_size);
-  pve->lines_segments_sorted = (PVCell ***) malloc(size_of_pvcpp * lines_segments_size);
+  pve->lines_segments_sorted = (PVCell ***) malloc(sizeof(PVCell **) * lines_segments_size);
   for (size_t i = 0; i < lines_segments_size; i++) {
     *(pve->lines_segments_sorted_sizes + i) = 0;
     *(pve->lines_segments_sorted + i) = NULL;
@@ -337,7 +332,7 @@ pve_new (void)
   *(pve->lines_segments_sorted + 0) = lines;
 
   /* Creates the lines stack and load it with the lines held in the first segment. */
-  pve->lines_stack = (PVCell ***) malloc(lines_first_size * size_of_pvcpp);
+  pve->lines_stack = (PVCell ***) malloc(lines_first_size * sizeof(PVCell **));
   g_assert(pve->lines_stack);
   for (size_t i = 0; i < lines_first_size; i++) {
     *(pve->lines_stack + i) = lines + i;
@@ -697,11 +692,6 @@ pve_internals_to_stream (PVEnv *const pve,
 {
   g_assert(pve);
 
-  static const size_t size_of_pve   = sizeof(PVEnv);
-  static const size_t size_of_pvc   = sizeof(PVCell);
-  static const size_t size_of_pvcp  = sizeof(PVCell*);
-  static const size_t size_of_pvcpp = sizeof(PVCell**);
-
   if (shown_sections & pve_internals_header_section) {
     time_t current_time = (time_t) -1;
     char* c_time_string = NULL;
@@ -742,10 +732,10 @@ pve_internals_to_stream (PVEnv *const pve,
   if (shown_sections & pve_internals_properties_section) {
     fprintf(stream, "# PVE PROPERTIES\n");
     fprintf(stream, "pve address:                 %20p  --  Address of the PVEnv structure.\n", (void *) pve);
-    fprintf(stream, "size of pve:                 %20zu  --  Bytes used by a PVEnv structure.\n", size_of_pve);
-    fprintf(stream, "size of pv cell:             %20zu  --  Bytes used by a PVCell structure.\n", size_of_pvc);
-    fprintf(stream, "size of pv cell pointer:     %20zu  --  Bytes used by a PVCell pointer, or a line.\n", size_of_pvcp);
-    fprintf(stream, "size of line pointer:        %20zu  --  Bytes used by a line pointer.\n", size_of_pvcpp);
+    fprintf(stream, "size of pve:                 %20zu  --  Bytes used by a PVEnv structure.\n", sizeof(PVEnv));
+    fprintf(stream, "size of pv cell:             %20zu  --  Bytes used by a PVCell structure.\n", sizeof(PVCell));
+    fprintf(stream, "size of pv cell pointer:     %20zu  --  Bytes used by a PVCell pointer, or a line.\n", sizeof(PVCell *));
+    fprintf(stream, "size of line pointer:        %20zu  --  Bytes used by a line pointer.\n", sizeof(PVCell **));
     fprintf(stream, "\n");
   }
 
@@ -791,21 +781,21 @@ pve_internals_to_stream (PVEnv *const pve,
   const size_t lines_actual_max_size = (1ULL << (lines_segments_in_use_count - 1)) * pve->lines_first_size;
   const size_t cells_actual_max_size = (1ULL << (cells_segments_in_use_count - 1)) * pve->cells_first_size;
   const size_t pve_max_allowed_mem_consum =
-    size_of_pve +
-    size_of_pvcp * pve->cells_segments_size +
-    size_of_pvcpp * pve->lines_segments_size +
-    (sizeof(size_t) + size_of_pvcp) * pve->cells_segments_size +
-    (sizeof(size_t) + size_of_pvcpp) * pve->lines_segments_size +
-    (size_of_pvc + size_of_pvcp) * cells_max_size +
-    (size_of_pvcp + size_of_pvcpp) * lines_max_size;
+    sizeof(PVEnv) +
+    sizeof(PVCell *) * pve->cells_segments_size +
+    sizeof(PVCell **) * pve->lines_segments_size +
+    (sizeof(size_t) + sizeof(PVCell *)) * pve->cells_segments_size +
+    (sizeof(size_t) + sizeof(PVCell **)) * pve->lines_segments_size +
+    (sizeof(PVCell) + sizeof(PVCell *)) * cells_max_size +
+    (sizeof(PVCell *) + sizeof(PVCell **)) * lines_max_size;
   const size_t pve_current_mem_consum =
-    size_of_pve +
-    size_of_pvcp * pve->cells_segments_size +
-    size_of_pvcpp * pve->lines_segments_size +
-    (sizeof(size_t) + size_of_pvcp) * pve->cells_segments_size +
-    (sizeof(size_t) + size_of_pvcpp) * pve->lines_segments_size +
-    (size_of_pvc + size_of_pvcp) * cells_actual_max_size +
-    (size_of_pvcp + size_of_pvcpp) * lines_actual_max_size;
+    sizeof(PVEnv) +
+    sizeof(PVCell *) * pve->cells_segments_size +
+    sizeof(PVCell **) * pve->lines_segments_size +
+    (sizeof(size_t) + sizeof(PVCell *)) * pve->cells_segments_size +
+    (sizeof(size_t) + sizeof(PVCell **)) * pve->lines_segments_size +
+    (sizeof(PVCell) + sizeof(PVCell *)) * cells_actual_max_size +
+    (sizeof(PVCell *) + sizeof(PVCell **)) * lines_actual_max_size;
   if (shown_sections & pve_internals_computed_properties_section) {
     fprintf(stream, "# PVE COMPUTED PROPERTIES\n");
     fprintf(stream, "cells_segments_in_use_count: %20zu  --  Cells segments being allocated.\n", cells_segments_in_use_count);
@@ -1399,14 +1389,11 @@ pve_double_cells_size (PVEnv *const pve)
   size_t cells_segments_used = pve->cells_segments_head - pve->cells_segments;
   g_assert(pve->cells_segments_size > cells_segments_used);
 
-  static const size_t size_of_pvc  = sizeof(PVCell);
-  static const size_t size_of_pvcp  = sizeof(PVCell *);
-
   const size_t actual_cells_size = pve->cells_size;
   const size_t cells_size_extension = pve->cells_size;
 
   /* Prepares the extension segment of cells. */
-  PVCell *cells_extension = (PVCell *) malloc(cells_size_extension * size_of_pvc);
+  PVCell *cells_extension = (PVCell *) malloc(cells_size_extension * sizeof(PVCell));
   g_assert(cells_extension);
   *(pve->cells_segments_head) = cells_extension;
   pve->cells_segments_head++;
@@ -1420,7 +1407,7 @@ pve_double_cells_size (PVEnv *const pve)
   }
 
   /* Creates the new cells stack and load it with the cells held in the extension segment. */
-  PVCell **new_cells_stack = (PVCell **) malloc(pve->cells_size * size_of_pvcp);
+  PVCell **new_cells_stack = (PVCell **) malloc(pve->cells_size * sizeof(PVCell *));
   g_assert(new_cells_stack);
   free(pve->cells_stack);
   pve->cells_stack = new_cells_stack;
@@ -1465,14 +1452,11 @@ pve_double_lines_size (PVEnv *const pve)
   size_t lines_segments_used = pve->lines_segments_head - pve->lines_segments;
   g_assert(pve->lines_segments_size > lines_segments_used);
 
-  static const size_t size_of_pvcp  = sizeof(PVCell *);
-  static const size_t size_of_pvcpp = sizeof(PVCell **);
-
   const size_t actual_lines_size = pve->lines_size;
   const size_t lines_size_extension = pve->lines_size;
 
   /* Prepares the extension segment of lines. */
-  PVCell **lines_extension = (PVCell **) malloc(lines_size_extension * size_of_pvcp);
+  PVCell **lines_extension = (PVCell **) malloc(lines_size_extension * sizeof(PVCell *));
   g_assert(lines_extension);
   *(pve->lines_segments_head) = lines_extension;
   pve->lines_segments_head++;
@@ -1483,7 +1467,7 @@ pve_double_lines_size (PVEnv *const pve)
   }
 
   /* Creates the new lines stack and load it with the lines held in the extension segment. */
-  PVCell ***new_lines_stack = (PVCell ***) malloc(pve->lines_size * size_of_pvcpp);
+  PVCell ***new_lines_stack = (PVCell ***) malloc(pve->lines_size * sizeof(PVCell **));
   g_assert(new_lines_stack);
   free(pve->lines_stack);
   pve->lines_stack = new_lines_stack;
