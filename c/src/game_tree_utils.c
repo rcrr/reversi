@@ -54,7 +54,7 @@
  */
 
 #define PVE_CELLS_SEGMENTS_SIZE 28
-#define PVE_CELLS_FIRST_SIZE 2
+#define PVE_CELLS_FIRST_SIZE 4
 #define PVE_LINES_SEGMENTS_SIZE 28
 #define PVE_LINES_FIRST_SIZE 4
 
@@ -84,6 +84,9 @@ pve_sort_lines_in_place (PVEnv *const pve);
 
 static void
 pve_state_unset_lines_stack_sorted (PVEnv *const pve);
+
+static void
+pve_sort_cells_segments (PVEnv *const pve);
 
 
 
@@ -1284,6 +1287,9 @@ pve_load_from_binary_file (const char *const in_file_path)
     *(pve->cells_segments + i) = segment;
   }
 
+  // to be fixed, it dumps ...
+  // pve_sort_cells_segments(pve);
+
   //AZS
 
   int fclose_ret = fclose(fp);
@@ -1522,15 +1528,8 @@ pve_double_cells_size (PVEnv *const pve)
   }
   pve->cells_stack_head = pve->cells_stack + actual_cells_size;
 
-  /* Re-compute the sorted cells segments array, and respective sizes. Should be a function .... */
-  for (size_t i = 0; i < cells_segments_used; i++) {
-    *(pve->cells_segments_sorted + i) = *(pve->cells_segments + i);
-  }
-  sort_utils_insertionsort_asc_p ((void **) pve->cells_segments_sorted, cells_segments_used);
-  for (size_t i = 0; i < cells_segments_used; i++) {
-    size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size);
-    *(pve->cells_segments_sorted_sizes + i) = segment_size;
-  }
+  /* Re-compute the sorted cells segments array, and respective sizes. */
+  pve_sort_cells_segments(pve);
 }
 
 /**
@@ -1648,6 +1647,31 @@ pve_state_unset_lines_stack_sorted (PVEnv *const pve)
     return;
   }
 }
+
+/**
+ * @brief Re-computes the sorted cells segments array, and respective sizes.
+ *
+ * @param [in,out] pve the principal variation environment pointer
+ */
+void
+pve_sort_cells_segments (PVEnv *const pve)
+{
+  const size_t cells_segments_used = pve->cells_segments_head - pve->cells_segments;
+  for (size_t i = 0; i < cells_segments_used; i++) {
+    *(pve->cells_segments_sorted + i) = *(pve->cells_segments + i);
+  }
+  sort_utils_insertionsort_asc_p ((void **) pve->cells_segments_sorted, cells_segments_used);
+  for (size_t i = 0; i < cells_segments_used; i++) {
+    PVCell *segment = *(pve->cells_segments_sorted + i);
+    size_t segment_size = pve->cells_first_size;
+    size_t segment_size_incr = 0;
+    for (size_t j = 0; j < cells_segments_used; j++, segment_size += segment_size_incr, segment_size_incr = segment_size) {
+      if (segment == *(pve->cells_segments + j)) break;
+    }
+    *(pve->cells_segments_sorted_sizes + i) = segment_size;
+  }
+}
+
 
 /**
  * @endcond
