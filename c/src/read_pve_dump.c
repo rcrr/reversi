@@ -35,44 +35,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-/* Static constants. */
-
+#include "game_tree_utils.h"
 
 
-/* Static variables. */
-
-int
-read_file (void)
-{
-  FILE * pFile;
-  long lSize;
-  char * buffer;
-  size_t result;
-
-  pFile = fopen ("pve_dump.dat", "rb");
-  if (pFile == NULL) {fputs ("File error", stderr); exit(1);}
-
-  // obtain file size:
-  fseek(pFile, 0, SEEK_END);
-  lSize = ftell(pFile);
-  rewind(pFile);
-
-  // allocate memory to contain the whole file:
-  buffer = (char *) malloc(sizeof(char) * lSize);
-  if (buffer == NULL) {fputs ("Memory error", stderr); exit(2);}
-
-  // copy the file into the buffer:
-  result = fread(buffer, 1, lSize, pFile);
-  if (result != lSize) {fputs ("Reading error", stderr); exit (3);}
-
-  /* the whole file is now loaded in the memory buffer. */
-
-  // terminate
-  fclose(pFile);
-  free(buffer);
-  return 0;
-}
 
 /**
  * @brief Main entry for the PVE dump utility.
@@ -80,20 +45,28 @@ read_file (void)
 int
 main (int argc, char *argv[])
 {
-  printf("read_pve_dump: hello world!\n");
+  const char *in_file_path = "pve_dump.dat";
 
-  FILE * pFile;
-  char c_buffer[] = {'a' , 'b' , 'c'};
-  size_t i_buffer[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  PVEnv *pve = pve_load_from_binary_file(in_file_path);
 
-  pFile = fopen("pve_dump.dat", "wb");
+  switches_t shown_sections = 0x0000;
+  shown_sections |= pve_internals_header_section;
+  shown_sections |= pve_internals_index_section;
+  shown_sections |= pve_internals_properties_section;
+  shown_sections |= pve_internals_structure_section;
+  //shown_sections |= pve_internals_computed_properties_section;
+  //shown_sections |= pve_internals_active_lines_section;
+  //shown_sections |= pve_internals_cells_segments_section;
+  //shown_sections |= pve_internals_sorted_cells_segments_section;
+  //shown_sections |= pve_internals_cells_section;
+  //shown_sections |= pve_internals_cells_stack_section;
+  //shown_sections |= pve_internals_lines_segments_section;
+  //shown_sections |= pve_internals_sorted_lines_segments_section;
+  //shown_sections |= pve_internals_lines_section;
+  //shown_sections |= pve_internals_lines_stack_section;
+  pve_internals_to_stream(pve, stdout, shown_sections);
 
-  fwrite(c_buffer, sizeof(char), sizeof(c_buffer), pFile);
-  fwrite(i_buffer, sizeof(size_t), sizeof(i_buffer), pFile);
-
-  fclose(pFile);
-
-  read_file();
+  free(pve);
 
   return 0;
 }

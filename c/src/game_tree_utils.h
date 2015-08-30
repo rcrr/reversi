@@ -57,6 +57,8 @@
  */
 #define MAX_LEGAL_MOVE_STACK_COUNT 1024
 
+#define PVE_CELLS_SEGMENTS_SIZE 28
+#define PVE_CELLS_FIRST_SIZE 8
 #define PVE_LINES_SEGMENTS_SIZE 28
 #define PVE_LINES_FIRST_SIZE 4
 
@@ -415,6 +417,13 @@ extern void
 pve_line_copy_to_exact_solution (const PVEnv *const pve,
                                  const PVCell **const line,
                                  ExactSolution *const es);
+
+extern void
+pve_dump_to_binary_file (const PVEnv *const pve,
+                         const char *const out_file_path);
+
+extern PVEnv *
+pve_load_from_binary_file (const char *const in_file_path);
 
 
 

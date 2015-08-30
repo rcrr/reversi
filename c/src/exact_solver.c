@@ -144,6 +144,9 @@ static const bool pv_full_recording = true;
 /* Print debugging info ... */
 static const bool pv_internals_to_stream = true;
 
+/* Dumps pve to file. */
+static const char *out_file_path = "pve_dump.dat";
+
 /**
  * @endcond
  */
@@ -240,6 +243,11 @@ game_position_solve (const GamePosition *const root,
     //shown_sections |= pve_internals_lines_stack_section;
     pve_internals_to_stream(pve, stdout, shown_sections);
     printf("\n --- --- pve_internals_to_stream() COMPLETED --- ---\n");
+  }
+  if (out_file_path) {
+    printf("\n --- --- pve_dump_to_binary_file() START --- ---\n");
+    pve_dump_to_binary_file(pve, out_file_path);
+    printf(" --- --- pve_dump_to_binary_file() COMPLETED --- ---\n");
   }
 
   search_node_free(sn);

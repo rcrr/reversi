@@ -247,8 +247,8 @@ pve_new (void)
   /*
    * TBD
    */
-  static const size_t cells_segments_size = 28;
-  static const size_t cells_first_size = 8;
+  static const size_t cells_segments_size = PVE_CELLS_SEGMENTS_SIZE;
+  static const size_t cells_first_size = PVE_CELLS_FIRST_SIZE;
 
   static const size_t size_of_pve   = sizeof(PVEnv);
   static const size_t size_of_pvc   = sizeof(PVCell);
@@ -1176,6 +1176,57 @@ pve_line_copy_to_exact_solution (const PVEnv *const pve,
   }
 }
 
+/**
+ * @brief Dumps the pve structure to a binary file.
+ *
+ * @details TBD.
+ *
+ * @param [in]     pve           a pointer to the principal variation environment
+ * @param [in]     out_file_path the path of the output file
+ */
+void
+pve_dump_to_binary_file (const PVEnv *const pve,
+                         const char *const out_file_path)
+{
+  g_assert(pve);
+  g_assert(out_file_path);
+
+  FILE *fp = fopen(out_file_path, "w");
+  g_assert(fp);
+
+  fwrite(pve, sizeof(PVEnv), 1, fp);
+
+  int fclose_ret = fclose(fp);
+  g_assert(fclose_ret == 0);
+}
+
+/**
+ * @brief Loads the pve structure from a binary file.
+ *
+ * @details TBD.
+ *
+ * @param [in]     pve          a pointer to the principal variation environment
+ * @param [in]     in_file_path the path of the input file
+ */
+PVEnv *
+pve_load_from_binary_file (const char *const in_file_path)
+{
+  g_assert(in_file_path);
+
+  FILE *fp = fopen(in_file_path, "r");
+  g_assert(fp);
+
+  PVEnv *const pve = (PVEnv *) malloc(sizeof(PVEnv));
+  g_assert(pve);
+
+  int fread_result = fread(pve, 1, sizeof(PVEnv), fp);
+  g_assert(fread_result == sizeof(PVEnv));
+
+  int fclose_ret = fclose(fp);
+  g_assert(fclose_ret == 0);
+
+  return pve;
+}
 
 
 /*******************************************************/
