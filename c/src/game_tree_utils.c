@@ -1200,8 +1200,10 @@ pve_dump_to_binary_file (const PVEnv *const pve,
 
   fwrite(pve, sizeof(PVEnv), 1, fp);
   fwrite(pve->cells_segments, sizeof(PVCell *), pve->cells_segments_size, fp);
-  size_t i = 0;
-  for (PVCell **segment_p = pve->cells_segments; segment_p < pve->cells_segments_head; segment_p++, i++) {
+  fwrite(pve->cells_segments_sorted, sizeof(PVCell *), pve->cells_segments_size, fp);
+  fwrite(pve->cells_segments_sorted_sizes, sizeof(size_t), pve->cells_segments_size, fp);
+  for (PVCell **segment_p = pve->cells_segments; segment_p < pve->cells_segments_head; segment_p++) {
+    const ptrdiff_t i = segment_p - pve->cells_segments;
     PVCell *segment = *segment_p;
     size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size);
     printf("i=%zu, segment=%p, segment_size=%zu\n", i, (void *) segment, segment_size);
@@ -1228,6 +1230,8 @@ pve_load_from_binary_file (const char *const in_file_path)
   int fread_result;
   PVEnv from_file_pve;
   PVCell *from_file_cells_segments[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
+  PVCell *from_file_cells_segments_sorted[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
+  size_t *from_file_cells_segments_sorted_sizes[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
 
   /* Opens the binary file for reading. */
   FILE *fp = fopen(in_file_path, "r");
@@ -1257,8 +1261,16 @@ pve_load_from_binary_file (const char *const in_file_path)
   pve->cells_segments_size = from_file_pve.cells_segments_size;
   pve->cells_first_size = from_file_pve.cells_first_size;
 
-  /* Reads the cells segments array from the file. */
+  /*
+   * First it reads the cells segments array from the file.
+   * Then it reads the cells segments sorted array from the file.
+   * Finally it reads the cells segments sorted sizes array from the file.
+   */
   fread_result = fread(&from_file_cells_segments, sizeof(PVCell *), pve->cells_segments_size, fp);
+  g_assert(fread_result == pve->cells_segments_size);
+  fread_result = fread(&from_file_cells_segments_sorted, sizeof(PVCell *), pve->cells_segments_size, fp);
+  g_assert(fread_result == pve->cells_segments_size);
+  fread_result = fread(&from_file_cells_segments_sorted_sizes, sizeof(size_t), pve->cells_segments_size, fp);
   g_assert(fread_result == pve->cells_segments_size);
 
   /*
