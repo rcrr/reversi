@@ -54,7 +54,7 @@
  */
 
 #define PVE_CELLS_SEGMENTS_SIZE 28
-#define PVE_CELLS_FIRST_SIZE 4
+#define PVE_CELLS_FIRST_SIZE 2
 #define PVE_LINES_SEGMENTS_SIZE 28
 #define PVE_LINES_FIRST_SIZE 4
 
@@ -270,8 +270,6 @@ pve_new (void)
   pve->cells_max_usage = 0;
   pve->lines_max_usage = 0;
 
-  //AZS
-
   /* Prepares the cells segments. */
   pve->cells_segments_size = cells_segments_size;
   pve->cells_first_size = cells_first_size;
@@ -304,6 +302,8 @@ pve_new (void)
   }
   *(pve->cells_segments_sorted_sizes + 0) = cells_first_size;
   *(pve->cells_segments_sorted + 0) = cells;
+
+  //AZS
 
   /* Creates the cells stack and load it with the cells held in the first segment. */
   pve->cells_stack = (PVCell **) malloc(cells_first_size * sizeof(PVCell *));
@@ -1261,10 +1261,6 @@ pve_load_from_binary_file (const char *const in_file_path)
   fread_result = fread(&from_file_cells_segments, sizeof(PVCell *), pve->cells_segments_size, fp);
   g_assert(fread_result == pve->cells_segments_size);
 
-  for (size_t i = 0; i < pve->cells_segments_size; i++) {
-    printf("AZS: from_file_cells_segments[%zu]=%p\n", i, (void *) from_file_cells_segments[i]);
-  }
-
   /*
    * - Allocates space for the cells segments array.
    * - Set the head pointer at the beginning of the array.
@@ -1282,13 +1278,35 @@ pve_load_from_binary_file (const char *const in_file_path)
       segment = (PVCell *) malloc(segment_size * sizeof(PVCell));
       fread_result = fread(segment, sizeof(PVCell), segment_size, fp);
       pve->cells_segments_head++;
-      // update pointers in all cells ......
     }
     *(pve->cells_segments + i) = segment;
   }
 
-  // to be fixed, it dumps ...
-  // pve_sort_cells_segments(pve);
+  /* Prepares the sorted cells segments and the sorted sizes. */
+  pve->cells_segments_sorted_sizes = (size_t *) malloc(sizeof(size_t) * pve->cells_segments_size);
+  pve->cells_segments_sorted = (PVCell **) malloc(sizeof(PVCell *) * pve->cells_segments_size);
+  for (size_t i = 0; i < pve->cells_segments_size; i++) {
+    *(pve->cells_segments_sorted_sizes + i) = 0;
+    *(pve->cells_segments_sorted + i) = NULL;
+  }
+  pve_sort_cells_segments(pve);
+
+  for (PVCell **segment_p = pve->cells_segments; segment_p < pve->cells_segments_head; segment_p++) {
+    PVCell *const segment = *segment_p;
+    const ptrdiff_t i = segment_p - pve->cells_segments;
+    const size_t segment_size = ((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size;
+    for (size_t j = 0; j < segment_size; j++) {
+      PVCell *c = segment + j;
+      g_assert(c);
+      // update pointers in all cells ......
+      ;
+    }
+  }
+
+  // Allocate cells stack
+  // Read cells stack from file
+  // Update stack pointers ....
+  // CELLS ARE COMPLETED !!!
 
   //AZS
 
@@ -1305,8 +1323,8 @@ pve_load_from_binary_file (const char *const in_file_path)
 . size_t     cells_first_size;              The number of cells contained by the first segment.
 . PVCell   **cells_segments;                Segments are pointers to array of cells.
 . PVCell   **cells_segments_head;           The next cells segment to be used.
-  size_t    *cells_segments_sorted_sizes;   Sizes of cells segments in the sorted order.
-  PVCell   **cells_segments_sorted;         Sorted cells segments, by means of the natural order of the memory adress.
+. size_t    *cells_segments_sorted_sizes;   Sizes of cells segments in the sorted order.
+. PVCell   **cells_segments_sorted;         Sorted cells segments, by means of the natural order of the memory adress.
   PVCell   **cells_stack;                   The pointer to the array of pointers used to manage the cells.
   PVCell   **cells_stack_head;              The pointer to the next, free to be assigned, pointer in the stack.
   size_t     cells_max_usage;               The maximum number of cells in use.
