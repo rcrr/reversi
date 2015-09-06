@@ -58,6 +58,7 @@
 #define PVE_LINES_SEGMENTS_SIZE 28
 #define PVE_LINES_FIRST_SIZE 4
 
+#define PVE_LOAD_DUMP_LINES_SEGMENTS_SIZE 64
 #define PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE 64
 
 #define PVE_VERIFY_INVARIANT FALSE
@@ -774,10 +775,10 @@ pve_internals_to_stream (PVEnv *const pve,
     fprintf(stream, "lines_stack:                 %20p  --  Array of pointers used to manage the lines.\n", (void *) pve->lines_stack);
     fprintf(stream, "lines_stack_head:            %20p  --  Next, free to be assigned, pointer in the lines stack.\n", (void *) pve->lines_stack_head);
     fprintf(stream, "lines_max_usage:             %20zu  --  The maximum number of lines in use.\n", pve->lines_max_usage);
-    fprintf(stream, "line_create_count            %20zu  --  The number of calls to the function pve_line_create().\n", pve->line_create_count);
-    fprintf(stream, "line_delete_count            %20zu  --  The number of calls to the function pve_line_delete().\n", pve->line_delete_count);
-    fprintf(stream, "line_add_move_count          %20zu  --  The number of calls to the function pve_line_add_move().\n", pve->line_add_move_count);
-    fprintf(stream, "line_release_cell_count      %20zu  --  The number of times a cell is released in the pve_line_delete() function.\n", pve->line_release_cell_count);
+    fprintf(stream, "line_create_count:           %20zu  --  The number of calls to the function pve_line_create().\n", pve->line_create_count);
+    fprintf(stream, "line_delete_count:           %20zu  --  The number of calls to the function pve_line_delete().\n", pve->line_delete_count);
+    fprintf(stream, "line_add_move_count:         %20zu  --  The number of calls to the function pve_line_add_move().\n", pve->line_add_move_count);
+    fprintf(stream, "line_release_cell_count:     %20zu  --  The number of times a cell is released in the pve_line_delete() function.\n", pve->line_release_cell_count);
     fprintf(stream, "\n");
   }
 
@@ -819,8 +820,8 @@ pve_internals_to_stream (PVEnv *const pve,
     fprintf(stream, "lines_in_use_count:          %20zu  --  Active lines.\n", lines_in_use_count);
     fprintf(stream, "lines_actual_max_size:       %20zu  --  Actual maximum number of lines without allocating new segments.\n", lines_actual_max_size);
     fprintf(stream, "lines_max_size:              %20zu  --  Overall maximum number of lines.\n", lines_max_size);
-    fprintf(stream, "pve_max_allowed_mem_consum   %20zu  --  PV environment max allowed memory consumption.\n", pve_max_allowed_mem_consum);
-    fprintf(stream, "pve_current_mem_consum       %20zu  --  PV environment current memory consumption.\n", pve_current_mem_consum);
+    fprintf(stream, "pve_max_allowed_mem_consum:  %20zu  --  PV environment max allowed memory consumption.\n", pve_max_allowed_mem_consum);
+    fprintf(stream, "pve_current_mem_consum:      %20zu  --  PV environment current memory consumption.\n", pve_current_mem_consum);
     fprintf(stream, "\n");
   }
 
@@ -1212,7 +1213,17 @@ pve_dump_to_binary_file (const PVEnv *const pve,
     size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size);
     fwrite(segment, sizeof(PVCell), segment_size, fp);
   }
-  fwrite(pve->cells_stack, sizeof(PVCell *), pve->cells_size, fp);
+  fwrite(pve->cells_stack, sizeof(PVCell **), pve->cells_size, fp);
+  fwrite(pve->lines_segments, sizeof(PVCell **), pve->lines_segments_size, fp);
+  fwrite(pve->lines_segments_sorted, sizeof(PVCell **), pve->lines_segments_size, fp);
+  fwrite(pve->lines_segments_sorted_sizes, sizeof(size_t), pve->lines_segments_size, fp);
+  for (PVCell ***segment_p = pve->lines_segments; segment_p < pve->lines_segments_head; segment_p++) {
+    const ptrdiff_t i = segment_p - pve->lines_segments;
+    PVCell **segment = *segment_p;
+    size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->lines_first_size);
+    fwrite(segment, sizeof(PVCell *), segment_size, fp);
+  }
+  fwrite(pve->lines_stack, sizeof(PVCell ***), pve->lines_size, fp);
 
   int fclose_ret = fclose(fp);
   g_assert(fclose_ret == 0);
@@ -1221,9 +1232,8 @@ pve_dump_to_binary_file (const PVEnv *const pve,
 /**
  * @brief Loads the pve structure from a binary file.
  *
- * @details TBD.
+ * @details Reads a binary file previously written by calling the function #pve_dump_to_binary_file.
  *
- * @param [in]     pve          a pointer to the principal variation environment
  * @param [in]     in_file_path the path of the input file
  */
 PVEnv *
@@ -1233,6 +1243,11 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   int fread_result;
   PVEnv from_file_pve;
+
+  PVCell **from_file_lines_segments[PVE_LOAD_DUMP_LINES_SEGMENTS_SIZE];
+  PVCell **from_file_lines_segments_sorted[PVE_LOAD_DUMP_LINES_SEGMENTS_SIZE];
+  size_t from_file_lines_segments_sorted_sizes[PVE_LOAD_DUMP_LINES_SEGMENTS_SIZE];
+
   PVCell *from_file_cells_segments[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
   PVCell *from_file_cells_segments_sorted[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
   size_t from_file_cells_segments_sorted_sizes[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
@@ -1269,6 +1284,15 @@ pve_load_from_binary_file (const char *const in_file_path)
   pve->cells_size = from_file_pve.cells_size;
   pve->cells_segments_size = from_file_pve.cells_segments_size;
   pve->cells_first_size = from_file_pve.cells_first_size;
+  pve->cells_max_usage = from_file_pve.cells_max_usage;
+  pve->lines_size = from_file_pve.lines_size;
+  pve->lines_segments_size = from_file_pve.lines_segments_size;
+  pve->lines_first_size = from_file_pve.lines_first_size;
+  pve->lines_max_usage = from_file_pve.lines_max_usage;
+  pve->line_create_count = from_file_pve.line_create_count;
+  pve->line_delete_count = from_file_pve.line_delete_count;
+  pve->line_add_move_count = from_file_pve.line_add_move_count;
+  pve->line_release_cell_count = from_file_pve.line_release_cell_count;
 
   /*
    * First it reads the cells segments array from the file.
@@ -1363,7 +1387,7 @@ pve_load_from_binary_file (const char *const in_file_path)
   for (size_t i = 0; i < pve->cells_size; i++) {
     PVCell **element_ptr = pve->cells_stack + i;
     if (*element_ptr) {
-      // ------ to be transformed ---
+      // ------ to be transformed into a function .... ---
       for (size_t k1 = active_cells_segments_count; k1 > 0; k1--) {
         const size_t k = k1 - 1;
         const PVCell *ff_base_adress_of_segment = from_file_cells_segments_sorted[k];
@@ -1382,9 +1406,61 @@ pve_load_from_binary_file (const char *const in_file_path)
       abort();
     next_cell_1:
       ;
-      // ------ to be transformed ---
+      // ------ to be transformed .... end ---
     }
   }
+
+  /*
+   * Lines from here to the end.
+   */
+
+  /*
+   * First it reads the lines segments array from the file.
+   * Then it reads the lines segments sorted array from the file.
+   * Finally it reads the lines segments sorted sizes array from the file.
+   */
+  fread_result = fread(&from_file_lines_segments, sizeof(PVCell **), pve->lines_segments_size, fp);
+  g_assert(fread_result == pve->lines_segments_size);
+  fread_result = fread(&from_file_lines_segments_sorted, sizeof(PVCell **), pve->lines_segments_size, fp);
+  g_assert(fread_result == pve->lines_segments_size);
+  fread_result = fread(&from_file_lines_segments_sorted_sizes, sizeof(size_t), pve->lines_segments_size, fp);
+  g_assert(fread_result == pve->lines_segments_size);
+
+  /*
+   * - Allocates space for the lines segments array.
+   * - Set the head pointer at the beginning of the array.
+   * - For the active segments, allocates the proper space for lines,
+   *   read the element data from file, and increment the head pointer.
+   * - Sets the the lines segments element to point to the segment, or null if unsused.
+   */
+  pve->lines_segments = (PVCell ***) malloc(sizeof(PVCell **) * pve->lines_segments_size);
+  g_assert(pve->lines_segments);
+  pve->lines_segments_head = pve->lines_segments;
+  for (size_t i = 0; i < pve->lines_segments_size; i++) {
+    PVCell **segment = NULL;
+    if (i < active_lines_segments_count) {
+      size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->lines_first_size);
+      segment = (PVCell **) malloc(segment_size * sizeof(PVCell *));
+      g_assert(segment);
+      fread_result = fread(segment, sizeof(PVCell *), segment_size, fp);
+      g_assert(fread_result == segment_size);
+      pve->lines_segments_head++;
+    }
+    *(pve->lines_segments + i) = segment;
+  }
+
+  /* Prepares the sorted lines segments and the sorted sizes. */
+  pve->lines_segments_sorted_sizes = (size_t *) malloc(sizeof(size_t) * pve->lines_segments_size);
+  g_assert(pve->lines_segments_sorted_sizes);
+  pve->lines_segments_sorted = (PVCell ***) malloc(sizeof(PVCell **) * pve->lines_segments_size);
+  g_assert(pve->lines_segments_sorted);
+  for (size_t i = 0; i < pve->lines_segments_size; i++) {
+    *(pve->lines_segments_sorted_sizes + i) = 0;
+    *(pve->lines_segments_sorted + i) = NULL;
+  }
+  // pve_sort_lines_segments(pve);
+
+  // Must be written!!!
 
   //AZS
 
