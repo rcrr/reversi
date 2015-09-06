@@ -1061,7 +1061,10 @@ pve_line_delete (PVEnv *pve,
     cell->is_active = FALSE;
     cell->variant = NULL;
     pve->line_release_cell_count++;
-    cell = cell->next;
+    cell->move = invalid_move;
+    PVCell *next = cell->next;
+    cell->next = NULL;
+    cell = next;
   }
   pve->lines_stack_head--;
   *(pve->lines_stack_head) = line;
@@ -1231,7 +1234,7 @@ pve_load_from_binary_file (const char *const in_file_path)
   PVEnv from_file_pve;
   PVCell *from_file_cells_segments[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
   PVCell *from_file_cells_segments_sorted[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
-  size_t *from_file_cells_segments_sorted_sizes[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
+  size_t from_file_cells_segments_sorted_sizes[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
 
   /* Opens the binary file for reading. */
   FILE *fp = fopen(in_file_path, "r");
@@ -1248,6 +1251,7 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   printf("AZS: active_cells_segments_count=%zu\n", active_cells_segments_count);
   printf("AZS: active_lines_segments_count=%zu\n", active_lines_segments_count);
+  printf("AZS: sizeof(PVCell)=%zu\n", sizeof(PVCell));
 
   /* Allocates the space for the pve structure. */
   PVEnv *const pve = (PVEnv *) malloc(sizeof(PVEnv));
@@ -1310,7 +1314,24 @@ pve_load_from_binary_file (const char *const in_file_path)
     for (size_t j = 0; j < segment_size; j++) {
       PVCell *c = segment + j;
       g_assert(c);
-      // update pointers in all cells ......
+      if (c->next == NULL) continue;
+      for (size_t k1 = active_cells_segments_count; k1 > 0; k1--) {
+        const size_t k = k1 - 1;
+        const PVCell *ff_base_adress_of_segment = from_file_cells_segments_sorted[k];
+        const size_t ff_segment_size = from_file_cells_segments_sorted_sizes[k];
+        if (c->next >= ff_base_adress_of_segment) {
+          const ptrdiff_t d = c->next - ff_base_adress_of_segment;
+          if (d > ff_segment_size) {
+            fprintf(stderr, "Error: inconsistent cell address: c->next=%p\n", (void *) c->next);
+            abort();
+          }
+          c->next = *(pve->cells_segments + k) + d;
+          goto next_cell;
+        }
+      }
+      fprintf(stderr, "Error: inconsistent cell address: %p\n", (void *) c);
+      abort();
+    next_cell:
       ;
     }
   }
