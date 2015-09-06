@@ -303,8 +303,6 @@ pve_new (void)
   *(pve->cells_segments_sorted_sizes + 0) = cells_first_size;
   *(pve->cells_segments_sorted + 0) = cells;
 
-  //AZS
-
   /* Creates the cells stack and load it with the cells held in the first segment. */
   pve->cells_stack = (PVCell **) malloc(cells_first_size * sizeof(PVCell *));
   g_assert(pve->cells_stack);
@@ -312,6 +310,8 @@ pve_new (void)
     *(pve->cells_stack + i) = cells + i;
   }
   pve->cells_stack_head = pve->cells_stack;
+
+  //AZS
 
   /* Prepares the lines segments. */
   pve->lines_segments_size = lines_segments_size;
@@ -1015,6 +1015,7 @@ pve_line_add_move (PVEnv *pve,
   pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
   pve->line_add_move_count++;
   PVCell *added_cell = *(pve->cells_stack_head);
+  *(pve->cells_stack_head) = NULL; /* Set to NULL the stack cell. */
   pve->cells_stack_head++;
   if (pve->cells_stack_head - pve->cells_stack > pve->cells_max_usage) pve->cells_max_usage++;
   if (pve->cells_stack_head - pve->cells_stack == pve->cells_size) pve_double_cells_size(pve);
@@ -1209,9 +1210,9 @@ pve_dump_to_binary_file (const PVEnv *const pve,
     const ptrdiff_t i = segment_p - pve->cells_segments;
     PVCell *segment = *segment_p;
     size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size);
-    printf("i=%zu, segment=%p, segment_size=%zu\n", i, (void *) segment, segment_size);
     fwrite(segment, sizeof(PVCell), segment_size, fp);
   }
+  fwrite(pve->cells_stack, sizeof(PVCell *), pve->cells_size, fp);
 
   int fclose_ret = fclose(fp);
   g_assert(fclose_ret == 0);
@@ -1248,10 +1249,14 @@ pve_load_from_binary_file (const char *const in_file_path)
   /* Computes usefull pve properties and dimensions. */
   const ptrdiff_t active_cells_segments_count = from_file_pve.cells_segments_head - from_file_pve.cells_segments;
   const ptrdiff_t active_lines_segments_count = from_file_pve.lines_segments_head - from_file_pve.lines_segments;
+  const ptrdiff_t cells_in_use_count = from_file_pve.cells_stack_head - from_file_pve.cells_stack;
+  const ptrdiff_t lines_in_use_count = from_file_pve.lines_stack_head - from_file_pve.lines_stack;
 
   printf("AZS: active_cells_segments_count=%zu\n", active_cells_segments_count);
   printf("AZS: active_lines_segments_count=%zu\n", active_lines_segments_count);
   printf("AZS: sizeof(PVCell)=%zu\n", sizeof(PVCell));
+  printf("AZS: cells_in_use_count=%zu\n", cells_in_use_count);
+  printf("AZS: lines_in_use_count=%zu\n", lines_in_use_count);
 
   /* Allocates the space for the pve structure. */
   PVEnv *const pve = (PVEnv *) malloc(sizeof(PVEnv));
@@ -1292,7 +1297,9 @@ pve_load_from_binary_file (const char *const in_file_path)
     if (i < active_cells_segments_count) {
       size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size);
       segment = (PVCell *) malloc(segment_size * sizeof(PVCell));
+      g_assert(segment);
       fread_result = fread(segment, sizeof(PVCell), segment_size, fp);
+      g_assert(fread_result == segment_size);
       pve->cells_segments_head++;
     }
     *(pve->cells_segments + i) = segment;
@@ -1300,13 +1307,18 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   /* Prepares the sorted cells segments and the sorted sizes. */
   pve->cells_segments_sorted_sizes = (size_t *) malloc(sizeof(size_t) * pve->cells_segments_size);
+  g_assert(pve->cells_segments_sorted_sizes);
   pve->cells_segments_sorted = (PVCell **) malloc(sizeof(PVCell *) * pve->cells_segments_size);
+  g_assert(pve->cells_segments_sorted);
   for (size_t i = 0; i < pve->cells_segments_size; i++) {
     *(pve->cells_segments_sorted_sizes + i) = 0;
     *(pve->cells_segments_sorted + i) = NULL;
   }
   pve_sort_cells_segments(pve);
 
+  /*
+   * Computes and executes the address translation for cell->next fields.
+   */
   for (PVCell **segment_p = pve->cells_segments; segment_p < pve->cells_segments_head; segment_p++) {
     PVCell *const segment = *segment_p;
     const ptrdiff_t i = segment_p - pve->cells_segments;
@@ -1335,6 +1347,14 @@ pve_load_from_binary_file (const char *const in_file_path)
       ;
     }
   }
+
+  /* Allocates the cells stack and load it with the cells read from file. */
+  pve->cells_stack = (PVCell **) malloc(pve->cells_size * sizeof(PVCell *));
+  g_assert(pve->cells_stack);
+  fread_result = fread(pve->cells_stack, sizeof(PVCell *), pve->cells_size, fp);
+  g_assert(fread_result == pve->cells_size);
+  pve->cells_stack_head = pve->cells_stack + cells_in_use_count;
+
 
   // Allocate cells stack
   // Read cells stack from file
