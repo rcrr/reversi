@@ -1015,7 +1015,7 @@ pve_line_add_move (PVEnv *pve,
   pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
   pve->line_add_move_count++;
   PVCell *added_cell = *(pve->cells_stack_head);
-  *(pve->cells_stack_head) = NULL; /* Set to NULL the stack cell. */
+  *(pve->cells_stack_head) = NULL; /* Set to NULL the stack element. */
   pve->cells_stack_head++;
   if (pve->cells_stack_head - pve->cells_stack > pve->cells_max_usage) pve->cells_max_usage++;
   if (pve->cells_stack_head - pve->cells_stack == pve->cells_size) pve_double_cells_size(pve);
@@ -1338,30 +1338,64 @@ pve_load_from_binary_file (const char *const in_file_path)
             abort();
           }
           c->next = *(pve->cells_segments + k) + d;
-          goto next_cell;
+          goto next_cell_0;
         }
       }
-      fprintf(stderr, "Error: inconsistent cell address: %p\n", (void *) c);
+      fprintf(stderr, "Error: inconsistent cell address: %p\n", (void *) c->next);
       abort();
-    next_cell:
+    next_cell_0:
       ;
     }
   }
 
-  /* Allocates the cells stack and load it with the cells read from file. */
+  /*
+   * Allocates the cells stack and load it with the cells read from file.
+   */
   pve->cells_stack = (PVCell **) malloc(pve->cells_size * sizeof(PVCell *));
   g_assert(pve->cells_stack);
   fread_result = fread(pve->cells_stack, sizeof(PVCell *), pve->cells_size, fp);
   g_assert(fread_result == pve->cells_size);
   pve->cells_stack_head = pve->cells_stack + cells_in_use_count;
 
-
-  // Allocate cells stack
-  // Read cells stack from file
-  // Update stack pointers ....
-  // CELLS ARE COMPLETED !!!
+  /*
+   * Executes address translation for stack elements.
+   */
+  for (size_t i = 0; i < pve->cells_size; i++) {
+    PVCell **element_ptr = pve->cells_stack + i;
+    if (*element_ptr) {
+      // ------ to be transformed ---
+      for (size_t k1 = active_cells_segments_count; k1 > 0; k1--) {
+        const size_t k = k1 - 1;
+        const PVCell *ff_base_adress_of_segment = from_file_cells_segments_sorted[k];
+        const size_t ff_segment_size = from_file_cells_segments_sorted_sizes[k];
+        if (*element_ptr >= ff_base_adress_of_segment) {
+          const ptrdiff_t d = *element_ptr - ff_base_adress_of_segment;
+          if (d > ff_segment_size) {
+            fprintf(stderr, "Error: inconsistent cell address: *element_ptr=%p\n", (void *) *element_ptr);
+            abort();
+          }
+          *element_ptr = *(pve->cells_segments + k) + d;
+          goto next_cell_1;
+        }
+      }
+      fprintf(stderr, "Error: inconsistent cell address: *element_ptr=%p\n", (void *) *element_ptr);
+      abort();
+    next_cell_1:
+      ;
+      // ------ to be transformed ---
+    }
+  }
 
   //AZS
+
+  /*
+   * To do:
+   *
+   * Lines segments ....
+   * Sorted lines segments ....
+   * Lines stack ....
+   * Address translation for variants in cells ....
+   */
 
   int fclose_ret = fclose(fp);
   g_assert(fclose_ret == 0);
