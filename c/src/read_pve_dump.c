@@ -60,8 +60,8 @@ main (int argc, char *argv[])
   shown_sections |= pve_internals_sorted_cells_segments_section;
   shown_sections |= pve_internals_cells_section;
   shown_sections |= pve_internals_cells_stack_section;
-  //shown_sections |= pve_internals_lines_segments_section;
-  //shown_sections |= pve_internals_sorted_lines_segments_section;
+  shown_sections |= pve_internals_lines_segments_section;
+  shown_sections |= pve_internals_sorted_lines_segments_section;
   //shown_sections |= pve_internals_lines_section;
   //shown_sections |= pve_internals_lines_stack_section;
   pve_internals_to_stream(pve, stdout, shown_sections);

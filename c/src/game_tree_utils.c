@@ -89,6 +89,9 @@ pve_state_unset_lines_stack_sorted (PVEnv *const pve);
 static void
 pve_sort_cells_segments (PVEnv *const pve);
 
+static void
+pve_sort_lines_segments (PVEnv *const pve);
+
 
 
 /*
@@ -1458,9 +1461,7 @@ pve_load_from_binary_file (const char *const in_file_path)
     *(pve->lines_segments_sorted_sizes + i) = 0;
     *(pve->lines_segments_sorted + i) = NULL;
   }
-  // pve_sort_lines_segments(pve);
-
-  // Must be written!!!
+  pve_sort_lines_segments(pve);
 
   //AZS
 
@@ -1758,19 +1759,7 @@ pve_double_lines_size (PVEnv *const pve)
   pve->lines_stack_head = pve->lines_stack + actual_lines_size;
 
   /* Re-compute the sorted lines segments array, and respective sizes. */
-  for (size_t i = 0; i < lines_segments_used; i++) {
-    *(pve->lines_segments_sorted + i) = *(pve->lines_segments + i);
-  }
-  sort_utils_insertionsort_asc_p ((void **) pve->lines_segments_sorted, lines_segments_used);
-  for (size_t i = 0; i < lines_segments_used; i++) {
-    PVCell **segment = *(pve->lines_segments_sorted + i);
-    size_t segment_size = pve->lines_first_size;
-    size_t segment_size_incr = 0;
-    for (size_t j = 0; j < lines_segments_used; j++, segment_size += segment_size_incr, segment_size_incr = segment_size) {
-      if (segment == *(pve->lines_segments + j)) break;
-    }
-    *(pve->lines_segments_sorted_sizes + i) = segment_size;
-  }
+  pve_sort_lines_segments(pve);
 }
 
 /**
@@ -1850,6 +1839,30 @@ pve_sort_cells_segments (PVEnv *const pve)
       if (segment == *(pve->cells_segments + j)) break;
     }
     *(pve->cells_segments_sorted_sizes + i) = segment_size;
+  }
+}
+
+/**
+ * @brief Re-computes the sorted lines segments array, and respective sizes.
+ *
+ * @param [in,out] pve the principal variation environment pointer
+ */
+void
+pve_sort_lines_segments (PVEnv *const pve)
+{
+  const size_t lines_segments_used = pve->lines_segments_head - pve->lines_segments;
+  for (size_t i = 0; i < lines_segments_used; i++) {
+    *(pve->lines_segments_sorted + i) = *(pve->lines_segments + i);
+  }
+  sort_utils_insertionsort_asc_p ((void **) pve->lines_segments_sorted, lines_segments_used);
+  for (size_t i = 0; i < lines_segments_used; i++) {
+    PVCell **segment = *(pve->lines_segments_sorted + i);
+    size_t segment_size = pve->lines_first_size;
+    size_t segment_size_incr = 0;
+    for (size_t j = 0; j < lines_segments_used; j++, segment_size += segment_size_incr, segment_size_incr = segment_size) {
+      if (segment == *(pve->lines_segments + j)) break;
+    }
+    *(pve->lines_segments_sorted_sizes + i) = segment_size;
   }
 }
 
