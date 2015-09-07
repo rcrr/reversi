@@ -22,6 +22,7 @@
  *       - Tests ....
  *       - Documentation.
  *       - Extract pve module from game_utils and make a new principal_variation module.
+ *       - Distil the chunk memory allocater concept into an appropriate module (cma_ ...., having segments ...).
  *       - Refactor the new module merging the segment concept into one abstraction, then used for lines and cells.
  *       - Add game values computation and output for first level moves.
  *       - Add a function to compute PV hash code (it is useful for testing and database processing).
