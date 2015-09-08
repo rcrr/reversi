@@ -92,6 +92,14 @@ pve_sort_cells_segments (PVEnv *const pve);
 static void
 pve_sort_lines_segments (PVEnv *const pve);
 
+static void *
+pve_translate_ref (size_t active_segments_count,
+                   size_t *segments_sizes,
+                   size_t element_size,
+                   void **from_segments,
+                   void **to_segments,
+                   void *from_element);
+
 
 
 /*
@@ -1354,24 +1362,18 @@ pve_load_from_binary_file (const char *const in_file_path)
       PVCell *c = segment + j;
       g_assert(c);
       if (c->next == NULL) continue;
-      for (size_t k1 = active_cells_segments_count; k1 > 0; k1--) {
-        const size_t k = k1 - 1;
-        const PVCell *ff_base_adress_of_segment = from_file_cells_segments_sorted[k];
-        const size_t ff_segment_size = from_file_cells_segments_sorted_sizes[k];
-        if (c->next >= ff_base_adress_of_segment) {
-          const ptrdiff_t d = c->next - ff_base_adress_of_segment;
-          if (d > ff_segment_size) {
-            fprintf(stderr, "Error: inconsistent cell address: c->next=%p\n", (void *) c->next);
-            abort();
-          }
-          c->next = *(pve->cells_segments + k) + d;
-          goto next_cell_0;
-        }
+      PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
+                                                     from_file_cells_segments_sorted_sizes,
+                                                     sizeof(PVCell),
+                                                     (void **) from_file_cells_segments_sorted,
+                                                     (void **) pve->cells_segments,
+                                                     c->next);
+      if (translated_element) {
+        c->next = translated_element;
+      } else {
+        fprintf(stderr, "Error: inconsistent cell address: c->next=%p\n", (void *) c->next);
+        abort();
       }
-      fprintf(stderr, "Error: inconsistent cell address: %p\n", (void *) c->next);
-      abort();
-    next_cell_0:
-      ;
     }
   }
 
@@ -1390,31 +1392,25 @@ pve_load_from_binary_file (const char *const in_file_path)
   for (size_t i = 0; i < pve->cells_size; i++) {
     PVCell **element_ptr = pve->cells_stack + i;
     if (*element_ptr) {
-      // ------ to be transformed into a function .... ---
-      for (size_t k1 = active_cells_segments_count; k1 > 0; k1--) {
-        const size_t k = k1 - 1;
-        const PVCell *ff_base_adress_of_segment = from_file_cells_segments_sorted[k];
-        const size_t ff_segment_size = from_file_cells_segments_sorted_sizes[k];
-        if (*element_ptr >= ff_base_adress_of_segment) {
-          const ptrdiff_t d = *element_ptr - ff_base_adress_of_segment;
-          if (d > ff_segment_size) {
-            fprintf(stderr, "Error: inconsistent cell address: *element_ptr=%p\n", (void *) *element_ptr);
-            abort();
-          }
-          *element_ptr = *(pve->cells_segments + k) + d;
-          goto next_cell_1;
-        }
+      PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
+                                                     from_file_cells_segments_sorted_sizes,
+                                                     sizeof(PVCell),
+                                                     (void **) from_file_cells_segments_sorted,
+                                                     (void **) pve->cells_segments,
+                                                     *element_ptr);
+      if (translated_element) {
+        *element_ptr = translated_element;
+      } else {
+        fprintf(stderr, "Error: inconsistent cell address: *element_ptr=%p\n", (void *) *element_ptr);
+        abort();
       }
-      fprintf(stderr, "Error: inconsistent cell address: *element_ptr=%p\n", (void *) *element_ptr);
-      abort();
-    next_cell_1:
-      ;
-      // ------ to be transformed .... end ---
     }
   }
 
   /*
-   * Lines from here to the end.
+   * *******************************************************
+   * LINES_START: lines from here up to the LINES_END label.
+   * *******************************************************
    */
 
   /*
@@ -1463,15 +1459,25 @@ pve_load_from_binary_file (const char *const in_file_path)
   }
   pve_sort_lines_segments(pve);
 
-  //AZS
+  /*
+   * Allocates the lines stack and load it with the lines read from file.
+   */
+  pve->lines_stack = (PVCell ***) malloc(pve->lines_size * sizeof(PVCell **));
+  g_assert(pve->lines_stack);
+  fread_result = fread(pve->lines_stack, sizeof(PVCell **), pve->lines_size, fp);
+  g_assert(fread_result == pve->lines_size);
+  pve->lines_stack_head = pve->lines_stack + lines_in_use_count;
+
+  /*
+   * ******************************
+   * LINES_END: lines coplete here.
+   * ******************************
+   */
 
   /*
    * To do:
    *
-   * Lines stack ....
-   *
    * Put lines first of cells.
-   * write a address_translation_function ....
    *
    * Address translation for line pointers in the stack ...
    * Address translation for first cell pointer in the line (the line pointer) ...
@@ -1483,34 +1489,6 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   return pve;
 }
-
-/*
-. switches_t state;                         The condition of the structure.
-. size_t     cells_size;                    The count of cells contained by the cells array.
-. size_t     cells_segments_size;           The count of cells segments.
-. size_t     cells_first_size;              The number of cells contained by the first segment.
-. PVCell   **cells_segments;                Segments are pointers to array of cells.
-. PVCell   **cells_segments_head;           The next cells segment to be used.
-. size_t    *cells_segments_sorted_sizes;   Sizes of cells segments in the sorted order.
-. PVCell   **cells_segments_sorted;         Sorted cells segments, by means of the natural order of the memory adress.
-  PVCell   **cells_stack;                   The pointer to the array of pointers used to manage the cells.
-  PVCell   **cells_stack_head;              The pointer to the next, free to be assigned, pointer in the stack.
-  size_t     cells_max_usage;               The maximum number of cells in use.
-  size_t     lines_size;                    The total count of lines contained by the lines segments.
-  size_t     lines_segments_size;           The count of lines segments.
-  size_t     lines_first_size;              The number of lines contained by the first segment.
-  PVCell  ***lines_segments;                Segments are pointers to array of lines.
-  PVCell  ***lines_segments_head;           The next lines segment to be used.
-  size_t    *lines_segments_sorted_sizes;   Sizes of lines segments in the sorted order.
-  PVCell  ***lines_segments_sorted;         Sorted lines segments, by means of the natural order of the memory adress.
-  PVCell  ***lines_stack;                   The pointer to an array of pointers used to manage the lines.
-  PVCell  ***lines_stack_head;              The pointer to the next, free to be assigned, pointer in the ines array.
-  size_t     lines_max_usage;               The maximum number of lines in use.
-  size_t     line_create_count;             The number of time the pve_line_create() function has been called.
-  size_t     line_delete_count;             The number of time the pve_line_delete() function has been called.
-  size_t     line_add_move_count;           The number of time the pve_line_add_move() function has been called.
-  size_t     line_release_cell_count;       The number of times a cell is released in the pve_line_delete() function.
- */
 
 
 
@@ -1868,6 +1846,47 @@ pve_sort_lines_segments (PVEnv *const pve)
     }
     *(pve->lines_segments_sorted_sizes + i) = segment_size;
   }
+}
+
+/**
+ * @brief Translate a reference from one env to another.
+ *
+ * @details The reference given by the `from_element` parameter is translated and returned
+ *          as reference in a new environment.
+ *
+ *          A `NULL` pointer is returned on error.
+ *
+ * @param [in] active_segments_count the number of active segments
+ * @param [in] segments_sizes        an array of segment sizes
+ * @param [in] element_size          the element size in bytes
+ * @param [in] from_segments         the array of segments from which translate
+ * @param [in] to_segments           the array of segments to which translate
+ * @param [in] from_element          the reference of the element in the from env
+ * @return                           the translated pointer
+ */
+void *
+pve_translate_ref (size_t active_segments_count,
+                   size_t *segments_sizes,
+                   size_t element_size,
+                   void **from_segments,
+                   void **to_segments,
+                   void *from_element)
+{
+  g_assert(from_segments);
+  g_assert(to_segments);
+  g_assert(from_element);
+
+  for (size_t k1 = active_segments_count; k1 > 0; k1--) {
+    const size_t k = k1 - 1;
+    const char *segment_base_adress = (char *) *(from_segments + k);
+    const size_t segment_size = *(segments_sizes + k);
+    if ((char *) from_element >= segment_base_adress) {
+      const ptrdiff_t d = (char *) from_element - segment_base_adress;
+      if (d > segment_size * element_size) return NULL;
+      return ((char *) *(to_segments + k)) + d;
+    }
+  }
+  return NULL;
 }
 
 
