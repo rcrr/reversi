@@ -1438,7 +1438,25 @@ pve_load_from_binary_file (const char *const in_file_path)
    */
 
   /*
-   * Computes and executes address translation for cell->next fields in all cell segments.
+   * There are five address translation to execute:
+   *
+   * - The field next in all cells. It is a pointer to another cell.
+   * - The field variant in all cells. It is a pointer to a line.
+   * - The "field" first_cell in all lines (lines are just pointers, not structures, ut conceptually ...).
+   *   It is a pointer to a cell.
+   * - The cells stack is composed by cell references.
+   * - The lines stack is composed by line references.
+   */
+
+  /*
+   * To do:
+   *
+   * Address translation for variants in cells ....
+   * Address translation for first cell pointer in the line (the line pointer) ...
+   */
+
+  /*
+   * Computes and executes address translation for cell->next and cell->variant fields in all cell segments.
    */
   for (PVCell **segment_p = pve->cells_segments; segment_p < pve->cells_segments_head; segment_p++) {
     PVCell *const segment = *segment_p;
@@ -1447,18 +1465,22 @@ pve_load_from_binary_file (const char *const in_file_path)
     for (size_t j = 0; j < segment_size; j++) {
       PVCell *c = segment + j;
       g_assert(c);
-      if (c->next == NULL) continue;
-      PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
-                                                     from_file_cells_segments_sorted_sizes,
-                                                     sizeof(PVCell),
-                                                     (void **) from_file_cells_segments_sorted,
-                                                     (void **) pve->cells_segments,
-                                                     c->next);
-      if (translated_element) {
-        c->next = translated_element;
-      } else {
-        fprintf(stderr, "Error: inconsistent cell address: c->next=%p\n", (void *) c->next);
-        abort();
+      if (c->next) {
+        PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
+                                                       from_file_cells_segments_sorted_sizes,
+                                                       sizeof(PVCell),
+                                                       (void **) from_file_cells_segments_sorted,
+                                                       (void **) pve->cells_segments,
+                                                       c->next);
+        if (translated_element) {
+          c->next = translated_element;
+        } else {
+          fprintf(stderr, "Error in translating address element for cell address: c->next=%p\n", (void *) c->next);
+          abort();
+        }
+      }
+      if (c->variant) {
+        ; // to be completed .....
       }
     }
   }
@@ -1478,7 +1500,7 @@ pve_load_from_binary_file (const char *const in_file_path)
       if (translated_element) {
         *element_ptr = translated_element;
       } else {
-        fprintf(stderr, "Error: inconsistent cell address: *element_ptr=%p\n", (void *) *element_ptr);
+        fprintf(stderr, "Error in translating address ref in cells stack: *element_ptr=%p\n", (void *) *element_ptr);
         abort();
       }
     }
@@ -1499,18 +1521,11 @@ pve_load_from_binary_file (const char *const in_file_path)
       if (translated_element) {
         *element_ptr = translated_element;
       } else {
-        fprintf(stderr, "Error: inconsistent cell address: *element_ptr=%p\n", (void *) *element_ptr);
+        fprintf(stderr, "Error in translating address ref in lines stack: *element_ptr=%p\n", (void *) *element_ptr);
         abort();
       }
     }
   }
-
-  /*
-   * To do:
-   *
-   * Address translation for first cell pointer in the line (the line pointer) ...
-   * Address translation for variants in cells ....
-   */
 
   /*
    * ************************************************************
