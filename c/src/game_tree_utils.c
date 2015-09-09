@@ -1449,13 +1449,6 @@ pve_load_from_binary_file (const char *const in_file_path)
    */
 
   /*
-   * To do:
-   *
-   * Address translation for variants in cells ....
-   * Address translation for first cell pointer in the line (the line pointer) ...
-   */
-
-  /*
    * Computes and executes address translation for cell->next and cell->variant fields in all cell segments.
    */
   for (PVCell **segment_p = pve->cells_segments; segment_p < pve->cells_segments_head; segment_p++) {
@@ -1480,7 +1473,45 @@ pve_load_from_binary_file (const char *const in_file_path)
         }
       }
       if (c->variant) {
-        ; // to be completed .....
+        PVCell **translated_element = pve_translate_ref(active_lines_segments_count,
+                                                        from_file_lines_segments_sorted_sizes,
+                                                        sizeof(PVCell *),
+                                                        (void **) from_file_lines_segments_sorted,
+                                                        (void **) pve->lines_segments,
+                                                        c->variant);
+        if (translated_element) {
+          c->variant = translated_element;
+        } else {
+          fprintf(stderr, "Error in translating address element for line address: c->variant=%p\n", (void *) c->variant);
+          abort();
+        }
+      }
+    }
+  }
+
+  /*
+   * Computes and executes address translation for "first cell" fields in all line segments.
+   */
+  for (PVCell ***segment_p = pve->lines_segments; segment_p < pve->lines_segments_head; segment_p++) {
+    PVCell **const segment = *segment_p;
+    const ptrdiff_t i = segment_p - pve->lines_segments;
+    const size_t segment_size = ((i == 0) ? 1 : (1ULL << (i - 1))) * pve->lines_first_size;
+    for (size_t j = 0; j < segment_size; j++) {
+      PVCell **line = segment + j;
+      g_assert(line);
+      if (*line) {
+        PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
+                                                       from_file_cells_segments_sorted_sizes,
+                                                       sizeof(PVCell),
+                                                       (void **) from_file_cells_segments_sorted,
+                                                       (void **) pve->cells_segments,
+                                                       *line);
+        if (translated_element) {
+          *line = translated_element;
+        } else {
+          fprintf(stderr, "Error in translating address element for cell address: *line=%p\n", (void *) *line);
+          abort();
+        }
       }
     }
   }
