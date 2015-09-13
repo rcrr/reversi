@@ -1302,6 +1302,8 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   /* Sets fields from the read structure. */
   pve->state = from_file_pve.state;
+  pve->root_game_position = from_file_pve.root_game_position;
+  pve->root_line = from_file_pve.root_line;
   pve->cells_size = from_file_pve.cells_size;
   pve->cells_segments_size = from_file_pve.cells_segments_size;
   pve->cells_first_size = from_file_pve.cells_first_size;
@@ -1534,8 +1536,9 @@ pve_load_from_binary_file (const char *const in_file_path)
    */
 
   /*
-   * There are five address translation to execute:
+   * There are six address translation to execute:
    *
+   * - The root_line field.
    * - The field next in all cells. It is a pointer to another cell.
    * - The field variant in all cells. It is a pointer to a line.
    * - The "field" first_cell in all lines (lines are just pointers, not structures, ut conceptually ...).
@@ -1543,6 +1546,21 @@ pve_load_from_binary_file (const char *const in_file_path)
    * - The cells stack is composed by cell references.
    * - The lines stack is composed by line references.
    */
+
+  /* Translates the root_line field. */
+  PVCell **translated_rl = pve_translate_ref2(active_lines_segments_count,
+                                              from_file_lines_segments_sorted_sizes,
+                                              sizeof(PVCell *),
+                                              from_to_lines_segments_sorted_map,
+                                              (void **) from_file_lines_segments_sorted,
+                                              (void **) pve->lines_segments,
+                                              pve->root_line);
+  if (translated_rl) {
+    pve->root_line = translated_rl;
+  } else {
+    fprintf(stderr, "Error in translating address element for line address: pve->root_line=%p\n", (void *) pve->root_line);
+    abort();
+  }
 
   /*
    * Computes and executes address translation for cell->next and cell->variant fields in all cell segments.

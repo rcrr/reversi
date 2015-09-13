@@ -71,6 +71,8 @@ main (int argc, char *argv[])
     printf("error_code=%d", error_code);
   }
 
+  pve_line_with_variants_to_stream(pve, (const PVCell **const ) pve->root_line, stdout);
+
   free(pve);
 
   return 0;

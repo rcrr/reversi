@@ -29,6 +29,12 @@
  *       - PV is a tree structure composed by cells and lines. Could be, I strongly belive so, that there is quite a bit of duplication:
  *         Investigate the statistics of this concept.
  *         If the analysis proves it to be worthwile, improve the pve structure in order to exploit the duplication.
+ *       - Prepare a new utility for PV dump/load to/from a binary file.
+ *         Write the root_game_position and read it. Add a paragraph for printing it.
+ *         Write a function for to-from-map creation. Purge printf statements ....
+ *         Add a flag for dumping the file at the end of the analysis.
+ *         Test the new utility and run it for all the ffo game positions.
+ *         Develop a dedicatet output for SQL COPY function. Verify the "pve duplication" hypothesys!
  *
  * @todo [done] Complete the random game player.
  *
