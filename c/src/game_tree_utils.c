@@ -54,9 +54,9 @@
  */
 
 #define PVE_CELLS_SEGMENTS_SIZE 28
-#define PVE_CELLS_FIRST_SIZE 2
+#define PVE_CELLS_FIRST_SIZE 1
 #define PVE_LINES_SEGMENTS_SIZE 28
-#define PVE_LINES_FIRST_SIZE 4
+#define PVE_LINES_FIRST_SIZE 1
 
 #define PVE_LOAD_DUMP_LINES_SEGMENTS_SIZE 64
 #define PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE 64
@@ -99,6 +99,15 @@ pve_translate_ref (size_t active_segments_count,
                    void **from_segments,
                    void **to_segments,
                    void *from_element);
+
+static void *
+pve_translate_ref2 (size_t active_segments_count,
+                    size_t *segments_sizes,
+                    size_t element_size,
+                    size_t *from_to_segments_sorted_map,
+                    void **from_segments,
+                    void **to_segments,
+                    void *from_element);
 
 
 
@@ -1263,6 +1272,9 @@ pve_load_from_binary_file (const char *const in_file_path)
   PVCell *from_file_cells_segments_sorted[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
   size_t from_file_cells_segments_sorted_sizes[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
 
+  size_t from_to_lines_segments_sorted_map[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
+  size_t from_to_cells_segments_sorted_map[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
+
   /* Opens the binary file for reading. */
   FILE *fp = fopen(in_file_path, "r");
   g_assert(fp);
@@ -1431,6 +1443,84 @@ pve_load_from_binary_file (const char *const in_file_path)
    * ****************************************
    */
 
+  printf("@@@@@@@@@@\n");
+  printf("---\n");
+  for (size_t i = 0; i < active_cells_segments_count; i++) {
+    size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->lines_first_size);
+    printf("segment_size=%zu\n", segment_size);
+    printf("   from_file_cells_segments[%zu]=%p\n", i, (void *) from_file_cells_segments[i]);
+    printf("   *(pve->cells_segments + i)=%p\n", (void *) *(pve->cells_segments + i));
+  }
+  printf("---\n");
+  for (size_t i = 0; i < active_cells_segments_count; i++) {
+    printf("   from_file_cells_segments_sorted_sizes[%zu]=%zu\n", i, from_file_cells_segments_sorted_sizes[i]);
+    printf("   *(pve->cells_segments_sorted_sizes + i)=%zu\n\n", *(pve->cells_segments_sorted_sizes + i));
+  }
+  printf("---\n");
+  size_t zero_segment_assigned_count = 0;
+  const size_t zero_segment_size = pve->cells_first_size;
+  printf("zero_segment_size=%zu\n", zero_segment_size);
+  for (size_t i = 0; i < active_cells_segments_count; i++) {
+    printf("i=%zu\n", i);
+    const size_t from_segment_size = from_file_cells_segments_sorted_sizes[i];
+    printf("   from_segment_size=%zu\n", from_segment_size);
+    size_t zero_segment_found_count = 0;
+    for (size_t j = 0; j < active_cells_segments_count; j++) {
+      const size_t to_segment_size = *(pve->cells_segments_sorted_sizes + j);
+      if (to_segment_size == from_segment_size) {
+        if (to_segment_size == zero_segment_size) {
+          if (zero_segment_assigned_count == zero_segment_found_count) {
+            zero_segment_assigned_count++;
+          } else {
+            zero_segment_found_count++;
+            continue;
+          }
+        }
+        from_to_cells_segments_sorted_map[i] = j;
+        printf("   segment_size=%zu, assignment_from_to=(%zu,%zu)\n", from_segment_size, i, j);
+        break;
+      }
+    }
+  }
+  printf("---\n");
+  for (size_t i = 0; i < active_cells_segments_count; i++) {
+    printf("   from_to_cells_segments_sorted_map[%zu]=%zu\n", i, from_to_cells_segments_sorted_map[i]);
+  }
+  printf("---\n");
+  {
+    size_t zero_segment_assigned_count = 0;
+    const size_t zero_segment_size = pve->lines_first_size;
+    printf("zero_segment_size=%zu\n", zero_segment_size);
+    for (size_t i = 0; i < active_lines_segments_count; i++) {
+      printf("i=%zu\n", i);
+      const size_t from_segment_size = from_file_lines_segments_sorted_sizes[i];
+      printf("   from_segment_size=%zu\n", from_segment_size);
+      size_t zero_segment_found_count = 0;
+      for (size_t j = 0; j < active_lines_segments_count; j++) {
+        const size_t to_segment_size = *(pve->lines_segments_sorted_sizes + j);
+        if (to_segment_size == from_segment_size) {
+          if (to_segment_size == zero_segment_size) {
+            if (zero_segment_assigned_count == zero_segment_found_count) {
+              zero_segment_assigned_count++;
+            } else {
+              zero_segment_found_count++;
+              continue;
+            }
+          }
+          from_to_lines_segments_sorted_map[i] = j;
+          printf("   segment_size=%zu, assignment_from_to=(%zu,%zu)\n", from_segment_size, i, j);
+          break;
+        }
+      }
+    }
+  }
+  printf("---\n");
+  for (size_t i = 0; i < active_lines_segments_count; i++) {
+    printf("   from_to_lines_segments_sorted_map[%zu]=%zu\n", i, from_to_lines_segments_sorted_map[i]);
+  }
+  printf("---\n");
+  printf("@@@@@@@@@@\n\n");
+
   /*
    * *************************************************************************************************
    * ADDRESS_TRANSLATION_START: pointer translation from here up to the ADDRESS_TRANSLATION_END label.
@@ -1459,12 +1549,21 @@ pve_load_from_binary_file (const char *const in_file_path)
       PVCell *c = segment + j;
       g_assert(c);
       if (c->next) {
+        /*
         PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
                                                        from_file_cells_segments_sorted_sizes,
                                                        sizeof(PVCell),
                                                        (void **) from_file_cells_segments_sorted,
                                                        (void **) pve->cells_segments,
                                                        c->next);
+        */
+        PVCell *translated_element = pve_translate_ref2(active_cells_segments_count,
+                                                        from_file_cells_segments_sorted_sizes,
+                                                        sizeof(PVCell),
+                                                        from_to_cells_segments_sorted_map,
+                                                        (void **) from_file_cells_segments_sorted,
+                                                        (void **) pve->cells_segments,
+                                                        c->next);
         if (translated_element) {
           c->next = translated_element;
         } else {
@@ -1473,12 +1572,21 @@ pve_load_from_binary_file (const char *const in_file_path)
         }
       }
       if (c->variant) {
+        /*
         PVCell **translated_element = pve_translate_ref(active_lines_segments_count,
                                                         from_file_lines_segments_sorted_sizes,
                                                         sizeof(PVCell *),
                                                         (void **) from_file_lines_segments_sorted,
                                                         (void **) pve->lines_segments,
                                                         c->variant);
+        */
+        PVCell **translated_element = pve_translate_ref2(active_lines_segments_count,
+                                                         from_file_lines_segments_sorted_sizes,
+                                                         sizeof(PVCell *),
+                                                         from_to_lines_segments_sorted_map,
+                                                         (void **) from_file_lines_segments_sorted,
+                                                         (void **) pve->lines_segments,
+                                                         c->variant);
         if (translated_element) {
           c->variant = translated_element;
         } else {
@@ -1500,12 +1608,21 @@ pve_load_from_binary_file (const char *const in_file_path)
       PVCell **line = segment + j;
       g_assert(line);
       if (*line) {
+        /*
         PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
                                                        from_file_cells_segments_sorted_sizes,
                                                        sizeof(PVCell),
                                                        (void **) from_file_cells_segments_sorted,
                                                        (void **) pve->cells_segments,
                                                        *line);
+                                                       */
+        PVCell *translated_element = pve_translate_ref2(active_cells_segments_count,
+                                                        from_file_cells_segments_sorted_sizes,
+                                                        sizeof(PVCell),
+                                                        from_to_cells_segments_sorted_map,
+                                                        (void **) from_file_cells_segments_sorted,
+                                                        (void **) pve->cells_segments,
+                                                        *line);
         if (translated_element) {
           *line = translated_element;
         } else {
@@ -1522,12 +1639,21 @@ pve_load_from_binary_file (const char *const in_file_path)
   for (size_t i = 0; i < pve->cells_size; i++) {
     PVCell **element_ptr = pve->cells_stack + i;
     if (*element_ptr) {
+      /*
       PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
                                                      from_file_cells_segments_sorted_sizes,
                                                      sizeof(PVCell),
                                                      (void **) from_file_cells_segments_sorted,
                                                      (void **) pve->cells_segments,
                                                      *element_ptr);
+                                                     */
+      PVCell *translated_element = pve_translate_ref2(active_cells_segments_count,
+                                                      from_file_cells_segments_sorted_sizes,
+                                                      sizeof(PVCell),
+                                                      from_to_cells_segments_sorted_map,
+                                                      (void **) from_file_cells_segments_sorted,
+                                                      (void **) pve->cells_segments,
+                                                      *element_ptr);
       if (translated_element) {
         *element_ptr = translated_element;
       } else {
@@ -1543,12 +1669,21 @@ pve_load_from_binary_file (const char *const in_file_path)
   for (size_t i = 0; i < pve->lines_size; i++) {
     PVCell ***element_ptr = pve->lines_stack + i;
     if (*element_ptr) {
+      /*
       PVCell **translated_element = pve_translate_ref(active_lines_segments_count,
                                                       from_file_lines_segments_sorted_sizes,
                                                       sizeof(PVCell *),
                                                       (void **) from_file_lines_segments_sorted,
                                                       (void **) pve->lines_segments,
                                                       *element_ptr);
+                                                      */
+      PVCell **translated_element = pve_translate_ref2(active_lines_segments_count,
+                                                       from_file_lines_segments_sorted_sizes,
+                                                       sizeof(PVCell *),
+                                                       from_to_lines_segments_sorted_map,
+                                                       (void **) from_file_lines_segments_sorted,
+                                                       (void **) pve->lines_segments,
+                                                       *element_ptr);
       if (translated_element) {
         *element_ptr = translated_element;
       } else {
@@ -1969,6 +2104,32 @@ pve_translate_ref (size_t active_segments_count,
   return NULL;
 }
 
+void *
+pve_translate_ref2 (size_t active_segments_count,
+                    size_t *segments_sizes,
+                    size_t element_size,
+                    size_t *from_to_segments_sorted_map,
+                    void **from_segments,
+                    void **to_segments,
+                    void *from_element)
+{
+  g_assert(from_segments);
+  g_assert(to_segments);
+  g_assert(from_element);
+
+  for (size_t k1 = active_segments_count; k1 > 0; k1--) {
+    const size_t k = k1 - 1;
+    const char *segment_base_adress = (char *) *(from_segments + k);
+    const size_t segment_size = *(segments_sizes + k);
+    if ((char *) from_element >= segment_base_adress) {
+      const ptrdiff_t d = (char *) from_element - segment_base_adress;
+      const size_t kk = *(from_to_segments_sorted_map + k);
+      if (d > segment_size * element_size) return NULL;
+      return ((char *) *(to_segments + kk)) + d;
+    }
+  }
+  return NULL;
+}
 
 /**
  * @endcond
