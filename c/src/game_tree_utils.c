@@ -53,11 +53,6 @@
  * @cond
  */
 
-#define PVE_CELLS_SEGMENTS_SIZE 28
-#define PVE_CELLS_FIRST_SIZE 1
-#define PVE_LINES_SEGMENTS_SIZE 28
-#define PVE_LINES_FIRST_SIZE 1
-
 #define PVE_LOAD_DUMP_LINES_SEGMENTS_SIZE 64
 #define PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE 64
 
@@ -264,7 +259,7 @@ exact_solution_compute_final_board (ExactSolution *const es)
  * @return a pointer to a new principal variation env structure
  */
 PVEnv *
-pve_new (void)
+pve_new (const GamePositionX *const root_game_position)
 {
   /*
    * Sixteen segments, having the first hosting 32 lines, leads to a maximum
@@ -281,8 +276,15 @@ pve_new (void)
   static const size_t cells_segments_size = PVE_CELLS_SEGMENTS_SIZE;
   static const size_t cells_first_size = PVE_CELLS_FIRST_SIZE;
 
+  /* Allocates the PVE structure. */
   PVEnv *const pve = (PVEnv*) malloc(sizeof(PVEnv));
   g_assert(pve);
+
+  /*
+   * Clones the game position structure into a newly allocated one, and assigns the reference
+   * to the root_game_position field.
+   */
+  pve->root_game_position = game_position_x_clone(root_game_position);
 
   /* Sets the state switches. */
   pve->state = 0x0000000000000000;
@@ -332,8 +334,6 @@ pve_new (void)
   }
   pve->cells_stack_head = pve->cells_stack;
 
-  //AZS
-
   /* Prepares the lines segments. */
   pve->lines_segments_size = lines_segments_size;
   pve->lines_first_size = lines_first_size;
@@ -378,6 +378,9 @@ pve_new (void)
   pve->line_add_move_count = 0;
   pve->line_release_cell_count = 0;
 
+  /* Creates the root line and assigns the reference to the dedicated field. */
+  pve->root_line = pve_line_create(pve);
+
   g_assert(pve_is_invariant_satisfied(pve, NULL, 0xFF));
 
   return pve;
@@ -420,6 +423,8 @@ pve_free (PVEnv *pve)
     free(pve->lines_segments);
     free(pve->lines_segments_sorted_sizes);
     free(pve->lines_segments_sorted);
+
+    game_position_x_free(pve->root_game_position);
 
     free(pve);
   }
@@ -775,6 +780,8 @@ pve_internals_to_stream (PVEnv *const pve,
   if (shown_sections & pve_internals_structure_section) {
     fprintf(stream, "# PVE STRUCTURE HEADER\n");
     fprintf(stream, "state:                         0x%016lx  --  The internal state of the structure.\n", pve->state);
+    fprintf(stream, "root_game_position:          %20p  --  Root game position.\n", (void *) pve->root_game_position);
+    fprintf(stream, "root_line:                   %20p  --  Root line.\n", (void *) pve->root_line);
     fprintf(stream, "cells_size:                  %20zu  --  Count of cells contained by the cells segments.\n", pve->cells_size);
     fprintf(stream, "cells_segments_size:         %20zu  --  Count of cells segments.\n", pve->cells_segments_size);
     fprintf(stream, "cells_first_size:            %20zu  --  Number of cells contained by the first segment.\n", pve->cells_first_size);
@@ -854,7 +861,6 @@ pve_internals_to_stream (PVEnv *const pve,
     for (PVCell ***line_p = pve->lines_stack; line_p < pve->lines_stack_head; line_p++) {
       PVCell **line = *line_p;
       PVCell *first_cell = *line;
-      g_assert(first_cell);
       size_t cell_position = 0;
       for (PVCell *c = first_cell; c != NULL; c = c->next) {
         fprintf(stream, "%10zu;%8zu;%6zu;%18p;%18p;%18p;%5s;%18p;%18p\n",

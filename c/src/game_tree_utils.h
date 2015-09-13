@@ -154,33 +154,33 @@ typedef struct PVCell_ {
  *             used pointers, no `NULL` pointers occurs.
  */
 typedef struct {
-  switches_t     state;                         /**< @brief The internal state of the structure. */
-  GamePosition  *root_game_position;            /**< @brief A pointer to the root game position. */
-  PVCell       **root_line;                     /**< @brief A reference to the root line. */
-  size_t         cells_size;                    /**< @brief The count of cells contained by the cells array. */
-  size_t         cells_segments_size;           /**< @brief The count of cells segments. */
-  size_t         cells_first_size;              /**< @brief The number of cells contained by the first segment. */
-  PVCell       **cells_segments;                /**< @brief Segments are pointers to array of cells. */
-  PVCell       **cells_segments_head;           /**< @brief The next cells segment to be used. */
-  size_t        *cells_segments_sorted_sizes;   /**< @brief Sizes of cells segments in the sorted order. */
-  PVCell       **cells_segments_sorted;         /**< @brief Sorted cells segments, by means of the natural order of the memory adress. */
-  PVCell       **cells_stack;                   /**< @brief The pointer to the array of pointers used to manage the cells. */
-  PVCell       **cells_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
-  size_t         cells_max_usage;               /**< @brief The maximum number of cells in use. */
-  size_t         lines_size;                    /**< @brief The total count of lines contained by the lines segments. */
-  size_t         lines_segments_size;           /**< @brief The count of lines segments. */
-  size_t         lines_first_size;              /**< @brief The number of lines contained by the first segment. */
-  PVCell      ***lines_segments;                /**< @brief Segments are pointers to array of lines. */
-  PVCell      ***lines_segments_head;           /**< @brief The next lines segment to be used. */
-  size_t        *lines_segments_sorted_sizes;   /**< @brief Sizes of lines segments in the sorted order. */
-  PVCell      ***lines_segments_sorted;         /**< @brief Sorted lines segments, by means of the natural order of the memory adress. */
-  PVCell      ***lines_stack;                   /**< @brief The pointer to an array of pointers used to manage the lines. */
-  PVCell      ***lines_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
-  size_t         lines_max_usage;               /**< @brief The maximum number of lines in use. */
-  size_t         line_create_count;             /**< @brief The number of time the pve_line_create() function has been called. */
-  size_t         line_delete_count;             /**< @brief The number of time the pve_line_delete() function has been called. */
-  size_t         line_add_move_count;           /**< @brief The number of time the pve_line_add_move() function has been called. */
-  size_t         line_release_cell_count;       /**< @brief The number of times a cell is released in the pve_line_delete() function. */
+  switches_t      state;                         /**< @brief The internal state of the structure. */
+  GamePositionX  *root_game_position;            /**< @brief A pointer to the root game position. */
+  PVCell        **root_line;                     /**< @brief A reference to the root line. */
+  size_t          cells_size;                    /**< @brief The count of cells contained by the cells array. */
+  size_t          cells_segments_size;           /**< @brief The count of cells segments. */
+  size_t          cells_first_size;              /**< @brief The number of cells contained by the first segment. */
+  PVCell        **cells_segments;                /**< @brief Segments are pointers to array of cells. */
+  PVCell        **cells_segments_head;           /**< @brief The next cells segment to be used. */
+  size_t         *cells_segments_sorted_sizes;   /**< @brief Sizes of cells segments in the sorted order. */
+  PVCell        **cells_segments_sorted;         /**< @brief Sorted cells segments, by means of the natural order of the memory adress. */
+  PVCell        **cells_stack;                   /**< @brief The pointer to the array of pointers used to manage the cells. */
+  PVCell        **cells_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the stack. */
+  size_t          cells_max_usage;               /**< @brief The maximum number of cells in use. */
+  size_t          lines_size;                    /**< @brief The total count of lines contained by the lines segments. */
+  size_t          lines_segments_size;           /**< @brief The count of lines segments. */
+  size_t          lines_first_size;              /**< @brief The number of lines contained by the first segment. */
+  PVCell       ***lines_segments;                /**< @brief Segments are pointers to array of lines. */
+  PVCell       ***lines_segments_head;           /**< @brief The next lines segment to be used. */
+  size_t         *lines_segments_sorted_sizes;   /**< @brief Sizes of lines segments in the sorted order. */
+  PVCell       ***lines_segments_sorted;         /**< @brief Sorted lines segments, by means of the natural order of the memory adress. */
+  PVCell       ***lines_stack;                   /**< @brief The pointer to an array of pointers used to manage the lines. */
+  PVCell       ***lines_stack_head;              /**< @brief The pointer to the next, free to be assigned, pointer in the lines array. */
+  size_t          lines_max_usage;               /**< @brief The maximum number of lines in use. */
+  size_t          line_create_count;             /**< @brief The number of time the pve_line_create() function has been called. */
+  size_t          line_delete_count;             /**< @brief The number of time the pve_line_delete() function has been called. */
+  size_t          line_add_move_count;           /**< @brief The number of time the pve_line_add_move() function has been called. */
+  size_t          line_release_cell_count;       /**< @brief The number of times a cell is released in the pve_line_delete() function. */
 } PVEnv;
 
 /**
@@ -386,7 +386,7 @@ exact_solution_compute_final_board (ExactSolution *const es);
 /*********************************************/
 
 extern PVEnv *
-pve_new (void);
+pve_new (const GamePositionX *const root_game_position);
 
 extern void
 pve_free (PVEnv *pve);

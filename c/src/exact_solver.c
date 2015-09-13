@@ -175,8 +175,9 @@ game_position_solve (const GamePosition *const root,
 
   log_env = game_tree_log_init(log_file);
 
-  pve = pve_new();
-  PVCell **pve_root_line = pve_line_create(pve);
+  GamePositionX *rootx = game_position_x_gp_to_gpx(root);
+  pve = pve_new(rootx);
+  game_position_x_free(rootx);
 
   if (log_env->log_is_on) {
     gp_hash_stack[0] = 0;
@@ -199,19 +200,20 @@ game_position_solve (const GamePosition *const root,
                                 result->solved_game_position,
                                 alpha,
                                 beta,
-                                &pve_root_line);
+                                &(pve->root_line));
+
 
   if (sn) {
     result->pv[0] = sn->move;
     result->outcome = sn->value;
-    pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve_root_line, result);
+    pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve->root_line, result);
     exact_solution_compute_final_board(result);
   }
 
   if (pv_full_recording) {
     printf("\nThe constant \"pv_full_recording\", in source file \"exact_solver.c\", is TRUE. Printing PV with variants:\n");
     printf("\n --- --- pve_line_with_variants_to_string() START --- ---\n");
-    pve_line_with_variants_to_stream(pve, (const PVCell **const ) pve_root_line, stdout);
+    pve_line_with_variants_to_stream(pve, (const PVCell **const ) pve->root_line, stdout);
     printf("\n --- --- pve_line_with_variants_to_string() COMPLETED --- ---\n");
   }
   if (pv_internals_to_stream) {

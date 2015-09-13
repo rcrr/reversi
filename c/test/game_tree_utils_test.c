@@ -88,22 +88,26 @@ pve_is_invariant_satisfied_test (void)
   gboolean is_consistent = TRUE;
   switches_t check_mask = 0xFFFFFFFF;
 
+  GamePositionX *dummy_gpx = game_position_x_new(empty_square_set,
+                                                 empty_square_set,
+                                                 BLACK_PLAYER);
+
   error_code = PVE_ERROR_CODE_OK;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   pve->lines_segments_size = 0; // 0 is a wrong value.
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
   g_assert(!is_consistent && (error_code == PVE_ERROR_CODE_LINES_SEGMENTS_SIZE_IS_INCORRECT));
   pve_free(pve);
 
   error_code = PVE_ERROR_CODE_OK;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   pve->lines_first_size = 0; // 0 is a wrong value.
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
   g_assert(!is_consistent && (error_code == PVE_ERROR_CODE_LINES_FIRST_SIZE_IS_INCORRECT));
   pve_free(pve);
 
   error_code = PVE_ERROR_CODE_OK;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   lines_segments_head_tmp = pve->lines_segments_head;
   pve->lines_segments_head = NULL; // NULL is a wrong value.
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
@@ -112,7 +116,7 @@ pve_is_invariant_satisfied_test (void)
   pve_free(pve);
 
   error_code = PVE_ERROR_CODE_OK;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   lines_segments_tmp = pve->lines_segments;
   pve->lines_segments = NULL; // NULL is a wrong value.
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
@@ -121,7 +125,7 @@ pve_is_invariant_satisfied_test (void)
   pve_free(pve);
 
   error_code = PVE_ERROR_CODE_OK;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   lines_segments_tmp = pve->lines_segments;
   lines_segments_head_tmp = pve->lines_segments_head;
   pve->lines_segments = lines_segments_head_tmp;
@@ -133,7 +137,7 @@ pve_is_invariant_satisfied_test (void)
   pve_free(pve);
 
   error_code = PVE_ERROR_CODE_OK;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   lines_segments_head_tmp = pve->lines_segments_head;
   pve->lines_segments_head = pve->lines_segments + pve->lines_segments_size + 1;
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
@@ -142,7 +146,7 @@ pve_is_invariant_satisfied_test (void)
   pve_free(pve);
 
   error_code = PVE_ERROR_CODE_OK;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   lines_size_tmp = pve->lines_size;
   pve->lines_size++;
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
@@ -151,7 +155,7 @@ pve_is_invariant_satisfied_test (void)
   pve_free(pve);
 
   error_code = PVE_ERROR_CODE_OK;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   lines_segment_tmp = *pve->lines_segments;
   *pve->lines_segments = NULL;
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
@@ -161,7 +165,7 @@ pve_is_invariant_satisfied_test (void)
 
   error_code = PVE_ERROR_CODE_OK;
   PVCell *line_fake_value;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   active_lines_segments_count = pve->lines_segments_head - pve->lines_segments;
   lines_segment_tmp = *(pve->lines_segments + active_lines_segments_count); // The first unused lines segment is saved, and then corrupted.
   *(pve->lines_segments + active_lines_segments_count) = &line_fake_value;
@@ -171,9 +175,9 @@ pve_is_invariant_satisfied_test (void)
   pve_free(pve);
 
   error_code = PVE_ERROR_CODE_OK;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   size_t size_tmp = *pve->lines_segments_sorted_sizes;
-  *pve->lines_segments_sorted_sizes = PVE_LINES_FIRST_SIZE * 2;
+  *pve->lines_segments_sorted_sizes = PVE_LINES_FIRST_SIZE * 4;
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
   g_assert(!is_consistent && (error_code == PVE_ERROR_CODE_LINES_SEGMENT_COMPUTED_INDEX_OUT_OF_RANGE));
   *pve->lines_segments_sorted_sizes = size_tmp;
@@ -197,14 +201,14 @@ pve_is_invariant_satisfied_test (void)
 
 
   error_code = PVE_ERROR_CODE_OK;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   pve->lines_stack_head = pve->lines_stack - 1;
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
   g_assert(!is_consistent && (error_code == 1004));
   pve_free(pve);
 
   error_code = PVE_ERROR_CODE_OK;
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   pve->lines_stack_head = pve->lines_stack + pve->lines_size;
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
   g_assert(!is_consistent && (error_code == 1009));
@@ -216,10 +220,14 @@ pve_create_test (void)
 {
   PVEnv *pve;
 
-  pve = pve_new();
+  GamePositionX *dummy_gpx = game_position_x_new(empty_square_set,
+                                                 empty_square_set,
+                                                 BLACK_PLAYER);
+
+  pve = pve_new(dummy_gpx);
   pve_free(pve);
 
-  pve = pve_new();
+  pve = pve_new(dummy_gpx);
   pve_free(pve);
 
   g_assert(TRUE);
@@ -228,10 +236,14 @@ pve_create_test (void)
 static void
 pve_internals_to_stream_test (void)
 {
-   FILE * fp;
-   fp = fopen ("build/test/pve_internals_to_stream_test.txt", "w+");
+  FILE * fp;
+  fp = fopen ("build/test/pve_internals_to_stream_test.txt", "w+");
 
-  PVEnv *pve = pve_new();
+  GamePositionX *dummy_gpx = game_position_x_new(empty_square_set,
+                                                 empty_square_set,
+                                                 BLACK_PLAYER);
+
+  PVEnv *pve = pve_new(dummy_gpx);
   pve_internals_to_stream(pve, fp, 0xFF);
   pve_free(pve);
 
