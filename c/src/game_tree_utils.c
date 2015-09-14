@@ -96,6 +96,14 @@ pve_translate_ref (size_t active_segments_count,
                    void **to_segments,
                    void *from_element);
 
+static void
+pve_populate_segments_sorted_from_to_map (size_t *const segments_sorted_from_to_map,
+                                          const size_t active_segments_count,
+                                          const size_t segments_first_size,
+                                          const size_t *const from_segments_sorted_sizes,
+                                          const size_t *const to_segments_sorted_sizes);
+
+
 
 
 /*
@@ -1270,8 +1278,8 @@ pve_load_from_binary_file (const char *const in_file_path)
   PVCell *from_file_cells_segments_sorted[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
   size_t from_file_cells_segments_sorted_sizes[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
 
-  size_t from_to_lines_segments_sorted_map[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
-  size_t from_to_cells_segments_sorted_map[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
+  size_t lines_segments_sorted_from_to_map[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
+  size_t cells_segments_sorted_from_to_map[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
 
   /* Opens the binary file for reading. */
   FILE *fp = fopen(in_file_path, "r");
@@ -1443,89 +1451,27 @@ pve_load_from_binary_file (const char *const in_file_path)
    * ****************************************
    */
 
-  printf("@@@@@@@@@@\n");
-  printf("---\n");
-  for (size_t i = 0; i < active_cells_segments_count; i++) {
-    size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->lines_first_size);
-    printf("segment_size=%zu\n", segment_size);
-    printf("   from_file_cells_segments[%zu]=%p\n", i, (void *) from_file_cells_segments[i]);
-    printf("   *(pve->cells_segments + i)=%p\n", (void *) *(pve->cells_segments + i));
-  }
-  printf("---\n");
-  for (size_t i = 0; i < active_cells_segments_count; i++) {
-    printf("   from_file_cells_segments_sorted_sizes[%zu]=%zu\n", i, from_file_cells_segments_sorted_sizes[i]);
-    printf("   *(pve->cells_segments_sorted_sizes + i)=%zu\n\n", *(pve->cells_segments_sorted_sizes + i));
-  }
-  printf("---\n");
-  size_t zero_segment_assigned_count = 0;
-  const size_t zero_segment_size = pve->cells_first_size;
-  printf("zero_segment_size=%zu\n", zero_segment_size);
-  for (size_t i = 0; i < active_cells_segments_count; i++) {
-    printf("i=%zu\n", i);
-    const size_t from_segment_size = from_file_cells_segments_sorted_sizes[i];
-    printf("   from_segment_size=%zu\n", from_segment_size);
-    size_t zero_segment_found_count = 0;
-    for (size_t j = 0; j < active_cells_segments_count; j++) {
-      const size_t to_segment_size = *(pve->cells_segments_sorted_sizes + j);
-      if (to_segment_size == from_segment_size) {
-        if (to_segment_size == zero_segment_size) {
-          if (zero_segment_assigned_count == zero_segment_found_count) {
-            zero_segment_assigned_count++;
-          } else {
-            zero_segment_found_count++;
-            continue;
-          }
-        }
-        from_to_cells_segments_sorted_map[i] = j;
-        printf("   segment_size=%zu, assignment_from_to=(%zu,%zu)\n", from_segment_size, i, j);
-        break;
-      }
-    }
-  }
-  printf("---\n");
-  for (size_t i = 0; i < active_cells_segments_count; i++) {
-    printf("   from_to_cells_segments_sorted_map[%zu]=%zu\n", i, from_to_cells_segments_sorted_map[i]);
-  }
-  printf("---\n");
-  {
-    size_t zero_segment_assigned_count = 0;
-    const size_t zero_segment_size = pve->lines_first_size;
-    printf("zero_segment_size=%zu\n", zero_segment_size);
-    for (size_t i = 0; i < active_lines_segments_count; i++) {
-      printf("i=%zu\n", i);
-      const size_t from_segment_size = from_file_lines_segments_sorted_sizes[i];
-      printf("   from_segment_size=%zu\n", from_segment_size);
-      size_t zero_segment_found_count = 0;
-      for (size_t j = 0; j < active_lines_segments_count; j++) {
-        const size_t to_segment_size = *(pve->lines_segments_sorted_sizes + j);
-        if (to_segment_size == from_segment_size) {
-          if (to_segment_size == zero_segment_size) {
-            if (zero_segment_assigned_count == zero_segment_found_count) {
-              zero_segment_assigned_count++;
-            } else {
-              zero_segment_found_count++;
-              continue;
-            }
-          }
-          from_to_lines_segments_sorted_map[i] = j;
-          printf("   segment_size=%zu, assignment_from_to=(%zu,%zu)\n", from_segment_size, i, j);
-          break;
-        }
-      }
-    }
-  }
-  printf("---\n");
-  for (size_t i = 0; i < active_lines_segments_count; i++) {
-    printf("   from_to_lines_segments_sorted_map[%zu]=%zu\n", i, from_to_lines_segments_sorted_map[i]);
-  }
-  printf("---\n");
-  printf("@@@@@@@@@@\n\n");
-
   /*
    * *************************************************************************************************
    * ADDRESS_TRANSLATION_START: pointer translation from here up to the ADDRESS_TRANSLATION_END label.
    * *************************************************************************************************
    */
+
+  /*
+   * First step is about generating the mappings between from and to segments.
+   * Cells first and then lines.
+   */
+  pve_populate_segments_sorted_from_to_map(cells_segments_sorted_from_to_map,
+                                           active_cells_segments_count,
+                                           pve->cells_first_size,
+                                           from_file_cells_segments_sorted_sizes,
+                                           pve->cells_segments_sorted_sizes);
+
+  pve_populate_segments_sorted_from_to_map(lines_segments_sorted_from_to_map,
+                                           active_lines_segments_count,
+                                           pve->lines_first_size,
+                                           from_file_lines_segments_sorted_sizes,
+                                           pve->lines_segments_sorted_sizes);
 
   /*
    * There are six address translation to execute:
@@ -1543,7 +1489,7 @@ pve_load_from_binary_file (const char *const in_file_path)
   PVCell **translated_rl = pve_translate_ref(active_lines_segments_count,
                                              from_file_lines_segments_sorted_sizes,
                                              sizeof(PVCell *),
-                                             from_to_lines_segments_sorted_map,
+                                             lines_segments_sorted_from_to_map,
                                              (void **) from_file_lines_segments_sorted,
                                              (void **) pve->lines_segments,
                                              pve->root_line);
@@ -1568,7 +1514,7 @@ pve_load_from_binary_file (const char *const in_file_path)
         PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
                                                        from_file_cells_segments_sorted_sizes,
                                                        sizeof(PVCell),
-                                                       from_to_cells_segments_sorted_map,
+                                                       cells_segments_sorted_from_to_map,
                                                        (void **) from_file_cells_segments_sorted,
                                                        (void **) pve->cells_segments,
                                                        c->next);
@@ -1583,7 +1529,7 @@ pve_load_from_binary_file (const char *const in_file_path)
         PVCell **translated_element = pve_translate_ref(active_lines_segments_count,
                                                         from_file_lines_segments_sorted_sizes,
                                                         sizeof(PVCell *),
-                                                        from_to_lines_segments_sorted_map,
+                                                        lines_segments_sorted_from_to_map,
                                                         (void **) from_file_lines_segments_sorted,
                                                         (void **) pve->lines_segments,
                                                         c->variant);
@@ -1611,7 +1557,7 @@ pve_load_from_binary_file (const char *const in_file_path)
         PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
                                                        from_file_cells_segments_sorted_sizes,
                                                        sizeof(PVCell),
-                                                       from_to_cells_segments_sorted_map,
+                                                       cells_segments_sorted_from_to_map,
                                                        (void **) from_file_cells_segments_sorted,
                                                        (void **) pve->cells_segments,
                                                        *line);
@@ -1634,7 +1580,7 @@ pve_load_from_binary_file (const char *const in_file_path)
       PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
                                                      from_file_cells_segments_sorted_sizes,
                                                      sizeof(PVCell),
-                                                     from_to_cells_segments_sorted_map,
+                                                     cells_segments_sorted_from_to_map,
                                                      (void **) from_file_cells_segments_sorted,
                                                      (void **) pve->cells_segments,
                                                      *element_ptr);
@@ -1656,7 +1602,7 @@ pve_load_from_binary_file (const char *const in_file_path)
       PVCell **translated_element = pve_translate_ref(active_lines_segments_count,
                                                       from_file_lines_segments_sorted_sizes,
                                                       sizeof(PVCell *),
-                                                      from_to_lines_segments_sorted_map,
+                                                      lines_segments_sorted_from_to_map,
                                                       (void **) from_file_lines_segments_sorted,
                                                       (void **) pve->lines_segments,
                                                       *element_ptr);
@@ -2081,6 +2027,45 @@ pve_translate_ref (size_t active_segments_count,
     }
   }
   return NULL;
+}
+
+
+/**
+ * @brief Populates the array of index mappings between from and to sorted segments.
+ *
+ * @param [out] segments_sorted_from_to_map  the result is stored in this array
+ * @param [in]  active_segments_count        the size of the active segments array
+ * @param [in]  segments_first_size          the size of the first segment
+ * @param [in]  from_segments_sorted_sizes   the sizes of the from sorted segment
+ * @param [in]  to_segments_sorted_sizes     the sizes of the to sorted segment
+ */
+void
+pve_populate_segments_sorted_from_to_map (size_t *const segments_sorted_from_to_map,
+                                          const size_t active_segments_count,
+                                          const size_t segments_first_size,
+                                          const size_t *const from_segments_sorted_sizes,
+                                          const size_t *const to_segments_sorted_sizes)
+{
+  size_t zero_segment_assigned_count = 0;
+  for (size_t i = 0; i < active_segments_count; i++) {
+    const size_t from_segment_size = from_segments_sorted_sizes[i];
+    size_t zero_segment_found_count = 0;
+    for (size_t j = 0; j < active_segments_count; j++) {
+      const size_t to_segment_size = to_segments_sorted_sizes[j];
+      if (to_segment_size == from_segment_size) {
+        if (to_segment_size == segments_first_size) {
+          if (zero_segment_assigned_count == zero_segment_found_count) {
+            zero_segment_assigned_count++;
+          } else {
+            zero_segment_found_count++;
+            continue;
+          }
+        }
+        segments_sorted_from_to_map[i] = j;
+        break;
+      }
+    }
+  }
 }
 
 /**
