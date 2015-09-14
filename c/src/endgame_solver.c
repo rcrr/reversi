@@ -4,7 +4,7 @@
  * @todo Unit tests are far behind, a complete check is needed to ensure all functions have the appropriate testing.
  *
  * @todo Add a way to check a PV for variants. - Priority 1 -
- *       The PV code is quite ok. What is missing now are a few improvements:
+ *       The PV code is quite OK. What is missing now are a few improvements:
  *       - [done] I mean, add moves to the structure when the value is equal to the one of the move recorded in the principal tree.
  *       - [done] PVCell should have a variant pointer to another cell. Alpha-Beta has to populate it when moves have equal values.
  *       - [done] The pve_verify_consistency function has to be rewritten.
@@ -22,19 +22,19 @@
  *       - Tests ....
  *       - Documentation.
  *       - Extract pve module from game_utils and make a new principal_variation module.
- *       - Distil the chunk memory allocater concept into an appropriate module (cma_ ...., having segments ...).
+ *       - Distill the chunk memory allocator concept into an appropriate module (cma_ ...., having segments ...).
  *       - Refactor the new module merging the segment concept into one abstraction, then used for lines and cells.
  *       - Add game values computation and output for first level moves.
  *       - Add a function to compute PV hash code (it is useful for testing and database processing).
- *       - PV is a tree structure composed by cells and lines. Could be, I strongly belive so, that there is quite a bit of duplication:
+ *       - PV is a tree structure composed by cells and lines. Could be, I strongly believe so, that there is quite a bit of duplication:
  *         Investigate the statistics of this concept.
- *         If the analysis proves it to be worthwile, improve the pve structure in order to exploit the duplication.
+ *         If the analysis proves it to be worthwhile, improve the pve structure in order to exploit the duplication.
  *       - Prepare a new utility for PV dump/load to/from a binary file.
  *         Write the root_game_position and read it. Add a paragraph for printing it.
  *         Write a function for to-from-map creation. Purge printf statements ....
  *         Add a flag for dumping the file at the end of the analysis.
  *         Test the new utility and run it for all the ffo game positions.
- *         Develop a dedicatet output for SQL COPY function. Verify the "pve duplication" hypothesys!
+ *         Develop a dedicated output for SQL COPY function. Verify the "pve duplication" hypothesis!
  *
  * @todo [done] Complete the random game player.
  *
