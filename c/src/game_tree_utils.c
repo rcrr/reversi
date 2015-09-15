@@ -682,7 +682,7 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
 /**
  * @brief Prints the `pve` internals into the given `stream`.
  *
- * @details The text is structured into an header and ten sections:
+ * @details The text is structured into an header and the following sections:
  *          - The index of sections
  *          - A list of properties
  *          - A header with the fields of the pve structure
@@ -696,6 +696,7 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
  *          - A csv table reporting sorted lines segments
  *          - A csv table reporting lines
  *          - A csv table reporting the stack of pointers to lines
+ *          - The root game position
  *
  *          The block on active lines makes a call to the function `pve_sort_lines_in_place`
  *          that sort, and so modify, the lines stack.
@@ -717,6 +718,7 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
  *          - #pve_internals_sorted_lines_segments_section `0x0800`
  *          - #pve_internals_lines_section                 `0x1000`
  *          - #pve_internals_lines_stack_section           `0x2000`
+ *          - #pve_internals_root_game_position            `0x4000`
  *
  *
  * @param [in] pve            a pointer to the principal variation environment
@@ -764,6 +766,7 @@ pve_internals_to_stream (PVEnv *const pve,
     fprintf(stream, " -09- PVE SORTED LINES SEGMENTS\n");
     fprintf(stream, " -10- PVE LINES\n");
     fprintf(stream, " -11- PVE LINES STACK\n");
+    fprintf(stream, " -12- PVE ROOT GAME POSITION\n");
     fprintf(stream, "\n");
   }
 
@@ -993,6 +996,13 @@ pve_internals_to_stream (PVEnv *const pve,
               (void *) *(pve->lines_stack + i));
     }
     fprintf(stream, "\n");
+  }
+
+  if (shown_sections & pve_internals_root_game_position) {
+    fprintf(stream, "# PVE ROOT GAME POSITION\n");
+    char *gpx_to_s = game_position_x_print(pve->root_game_position);
+    fprintf(stream, "\n%s\n", gpx_to_s);
+    free(gpx_to_s);
   }
 }
 
@@ -1230,6 +1240,7 @@ pve_dump_to_binary_file (const PVEnv *const pve,
   g_assert(fp);
 
   fwrite(pve, sizeof(PVEnv), 1, fp);
+  fwrite(pve->root_game_position, sizeof(GamePositionX), 1, fp);
   fwrite(pve->cells_segments, sizeof(PVCell *), pve->cells_segments_size, fp);
   fwrite(pve->cells_segments_sorted, sizeof(PVCell *), pve->cells_segments_size, fp);
   fwrite(pve->cells_segments_sorted_sizes, sizeof(size_t), pve->cells_segments_size, fp);
@@ -1302,7 +1313,6 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   /* Sets fields from the read structure. */
   pve->state = from_file_pve.state;
-  pve->root_game_position = from_file_pve.root_game_position;
   pve->root_line = from_file_pve.root_line;
   pve->cells_size = from_file_pve.cells_size;
   pve->cells_segments_size = from_file_pve.cells_segments_size;
@@ -1316,6 +1326,14 @@ pve_load_from_binary_file (const char *const in_file_path)
   pve->line_delete_count = from_file_pve.line_delete_count;
   pve->line_add_move_count = from_file_pve.line_add_move_count;
   pve->line_release_cell_count = from_file_pve.line_release_cell_count;
+
+  /* Allocates the space for the new game position structure. */
+  pve->root_game_position = (GamePositionX *) malloc(sizeof(GamePositionX));
+  g_assert(pve->root_game_position);
+
+  /* Reads the root_game_position structure. */
+  fread_result = fread(pve->root_game_position, sizeof(GamePositionX), 1, fp);
+  g_assert(fread_result == 1);
 
   /*
    * *************************************************************************

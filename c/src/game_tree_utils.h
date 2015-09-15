@@ -347,6 +347,13 @@ static const switches_t pve_internals_lines_section                 = 0x1000;
  */
 static const switches_t pve_internals_lines_stack_section           = 0x2000;
 
+/**
+ * @brief The PVE internals root game position switch mask.
+ *
+ * @details This switch mask identifies the root game position section when calling the function #pve_internals_to_stream.
+ */
+static const switches_t pve_internals_root_game_position            = 0x4000;
+
 
 
 /**

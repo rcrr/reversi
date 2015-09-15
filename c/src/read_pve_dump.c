@@ -64,6 +64,7 @@ main (int argc, char *argv[])
   shown_sections |= pve_internals_sorted_lines_segments_section;
   shown_sections |= pve_internals_lines_section;
   shown_sections |= pve_internals_lines_stack_section;
+  shown_sections |= pve_internals_root_game_position;
   pve_internals_to_stream(pve, stdout, shown_sections);
 
   pve_error_code_t error_code = PVE_ERROR_CODE_OK;

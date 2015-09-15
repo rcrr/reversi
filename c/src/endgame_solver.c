@@ -30,8 +30,8 @@
  *         Investigate the statistics of this concept.
  *         If the analysis proves it to be worthwhile, improve the pve structure in order to exploit the duplication.
  *       - Prepare a new utility for PV dump/load to/from a binary file.
- *         Write the root_game_position and read it. Add a paragraph for printing it.
- *         Write a function for to-from-map creation. Purge printf statements ....
+ *         [done] Write the root_game_position and read it. Add a paragraph for printing it.
+ *         [done] Write a function for to-from-map creation. Purge printf statements ....
  *         Add a flag for dumping the file at the end of the analysis.
  *         Test the new utility and run it for all the ffo game positions.
  *         Develop a dedicated output for SQL COPY function. Verify the "pve duplication" hypothesis!
