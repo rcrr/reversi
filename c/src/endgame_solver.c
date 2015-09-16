@@ -32,7 +32,7 @@
  *       - Prepare a new utility for PV dump/load to/from a binary file.
  *         [done] Write the root_game_position and read it. Add a paragraph for printing it.
  *         [done] Write a function for to-from-map creation. Purge printf statements ....
- *         Add a flag for dumping the file at the end of the analysis.
+ *         Add a flag for dumping the file at the end of the analysis..... Better adding an endgame_env having am open list of key-value pairs ....
  *         Test the new utility and run it for all the ffo game positions.
  *         Develop a dedicated output for SQL COPY function. Verify the "pve duplication" hypothesis!
  *
@@ -122,7 +122,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2015 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -200,7 +200,7 @@ static const gchar *program_documentation_string =
   "Author:\n"
   "   Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2013, 2014 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2013, 2014, 2015 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
@@ -209,19 +209,21 @@ static const gchar *program_documentation_string =
 
 /* Static variables. */
 
-static gchar   *input_file   = NULL;
-static gchar   *lookup_entry = NULL;
-static gchar   *solver       = NULL;
-static gint     repeats      = 1;
-static gchar   *log_file     = NULL;
+static gchar   *input_file    = NULL;
+static gchar   *lookup_entry  = NULL;
+static gchar   *solver        = NULL;
+static gint     repeats       = 1;
+static gchar   *log_file      = NULL;
+static gchar   *pve_dump_file = NULL;
 
 static const GOptionEntry entries[] =
   {
-    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,   "Input file name   - Mandatory",                                            NULL },
-    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry, "Lookup entry      - Mandatory",                                            NULL },
-    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,       "Solver            - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab]", NULL },
-    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,      "N. of repetitions - Used with the rand/rab solvers",                       NULL },
-    { "log",           'l', 0, G_OPTION_ARG_FILENAME, &log_file,     "Turns logging on  - Requires a filename prefx",                            NULL },
+    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name   - Mandatory",                                            NULL },
+    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry,  "Lookup entry      - Mandatory",                                            NULL },
+    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,        "Solver            - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab]", NULL },
+    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,       "N. of repetitions - Used with the rand/rab solvers",                       NULL },
+    { "log",           'l', 0, G_OPTION_ARG_FILENAME, &log_file,      "Turns logging on  - Requires a filename prefx",                            NULL },
+    { "pve-dump",      'd', 0, G_OPTION_ARG_FILENAME, &pve_dump_file, "Dumps PV          - Requires a filename path",                             NULL },
     { NULL }
   };
 
@@ -243,7 +245,6 @@ main (int argc, char *argv[])
   GamePositionDbSyntaxErrorLog *syntax_error_log;
   FILE                         *fp;
   GError                       *error;
-  gchar                        *source;
   int                           number_of_errors;
 
   GOptionContext *context;
@@ -268,10 +269,8 @@ main (int argc, char *argv[])
   }
 
   /* Checks command line options for consistency. */
-  if (input_file) {
-    source = g_strdup(input_file);
-  } else {
-    g_print("Option -f, --file is mandatory.\n.");
+  if (!input_file) {
+    g_print("Option -f, --file is mandatory.\n");
     return -2;
   }
   if (solver) {
@@ -280,38 +279,38 @@ main (int argc, char *argv[])
         solver_index = index;
     }
     if (solver_index == -1) {
-      g_print("Option -s, --solver is out of range.\n.");
+      g_print("Option -s, --solver is out of range.\n");
       return -8;
     }
     if (solver_index == 2) { // solver == random
       if (repeats < 1) {
-        g_print("Option -n, --repeats is out of range.\n.");
+        g_print("Option -n, --repeats is out of range.\n");
         return -9;
       }
     }
   } else {
-    g_print("Option -s, --solver is mandatory.\n.");
+    g_print("Option -s, --solver is mandatory.\n");
     return -5;
   }
 
   /* Opens the source file for reading. */
-  fp = fopen(source, "r");
+  fp = fopen(input_file, "r");
   if (!fp) {
-    g_print("Unable to open database resource for reading, file \"%s\" does not exist.\n", source);
+    g_print("Unable to open database resource for reading, file \"%s\" does not exist.\n", input_file);
     return -3;
   }
 
   /* Loads the game position database. */
-  db = gpdb_new(g_strdup(source));
+  db = gpdb_new(g_strdup(input_file));
   syntax_error_log = NULL;
   error = NULL;
-  gpdb_load(fp, source, db, &syntax_error_log, &error);
+  gpdb_load(fp, input_file, db, &syntax_error_log, &error);
   fclose(fp);
 
   /* Compute the number of errors logged. */
   number_of_errors = gpdb_syntax_error_log_length(syntax_error_log);
   if (number_of_errors != 0) {
-    g_print("The database resource, file \"%s\" contains errors, debug it using the gpdb_verify utility.\n", source);
+    g_print("The database resource, file \"%s\" contains errors, debug it using the gpdb_verify utility.\n", input_file);
     return -4;
   }
 
@@ -323,12 +322,18 @@ main (int argc, char *argv[])
       g_print("%s", tmp);
       g_free(tmp);
     } else {
-      g_print("Entry %s not found in file %s.\n", lookup_entry, source);
+      g_print("Entry %s not found in file %s.\n", lookup_entry, input_file);
       return -6;
     }
   } else {
     g_print("No entry provided.\n");
     return -7;
+  }
+
+  /* ... */
+  if (pve_dump_file) {
+    printf("--pve-dump option is not yet implemented. Exiting program with code -100\n");
+    return -100;
   }
 
   /* Initialize the board module. */
@@ -337,7 +342,7 @@ main (int argc, char *argv[])
   /* Solving the position. */
   GamePosition *gp = entry->game_position;
   ExactSolution *solution = NULL;
-  g_print("Solving game position %s, from source %s, using solver %s ...\n", entry->id, source, solvers[solver_index]);
+  g_print("Solving game position %s, from source %s, using solver %s ...\n", entry->id, input_file, solvers[solver_index]);
   switch (solver_index) {
   case 0:
     solution = game_position_solve(gp, log_file);
@@ -373,7 +378,6 @@ main (int argc, char *argv[])
   if (syntax_error_log)
     gpdb_syntax_error_log_free(syntax_error_log);
   g_option_context_free(context);
-  g_free(source);
   exact_solution_free(solution);
 
   return 0;
