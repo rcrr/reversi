@@ -261,7 +261,7 @@ static void
 run_test_case_array (GamePositionDb *db,
                      const TestCase tca[],
                      ExactSolution* (*solver)(const GamePosition *const gp,
-                                              const gchar *const log_file));
+                                              const endgame_solver_env_t *const env));
 
 static void
 assert_move_is_part_of_array (const Square move,
@@ -384,7 +384,7 @@ game_position_es_solve_test (GamePositionDbFixture *fixture,
 {
   GamePositionDb *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
-  run_test_case_array(db, tcap, game_position_solve);
+  run_test_case_array(db, tcap, game_position_es_solve);
 }
 
 static void
@@ -492,8 +492,14 @@ static void
 run_test_case_array (GamePositionDb *db,
                      const TestCase tca[],
                      ExactSolution* (*solver)(const GamePosition *const gp,
-                                                    const gchar *const log_file))
+                                              const endgame_solver_env_t *const env))
 {
+  endgame_solver_env_t endgame_solver_env =
+    { .log_file = NULL,
+      .pve_dump_file = NULL,
+      .repeats = 0
+    };
+
   const TestCase *tc = NULL;
   for (int i = 0;; i++) {
     tc = &tca[i];
@@ -504,7 +510,7 @@ run_test_case_array (GamePositionDb *db,
       g_free(moves_to_s);
     }
     const GamePosition * const gp = get_gp_from_db(db, tc->gpdb_label);
-    ExactSolution * const solution = (*solver)(gp, FALSE);
+    ExactSolution * const solution = (*solver)(gp, &endgame_solver_env);
     if (g_test_verbose()) {
       printf("result[outcome=%+03d, move=%s]\n", solution->outcome, square_to_string(solution->pv[0]));
     }

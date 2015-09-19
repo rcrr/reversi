@@ -36,18 +36,19 @@
 
 #include <glib.h>
 
+#include "endgame_solver.h"
 #include "game_tree_utils.h"
 #include "board.h"
 
 
 
 /*********************************************************/
-/* Function implementations for the GamePosition entity. */ 
+/* Function implementations for the GamePosition entity. */
 /*********************************************************/
 
 extern ExactSolution *
-game_position_solve (const GamePosition *const root,
-                     const gchar *const log_file);
+game_position_es_solve (const GamePosition *const root,
+                        const endgame_solver_env_t *const env);
 
 
 #endif /* EXACT_SOLVER_H */

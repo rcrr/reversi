@@ -44,7 +44,6 @@
 
 extern ExactSolution *
 game_position_random_sampler (const GamePosition *const root,
-                              const gchar *const log_file,
-                              const int repeats);
+                              const endgame_solver_env_t *const env);
 
 #endif /* RANDOM_GAME_SAMPLER_H */

@@ -34,10 +34,11 @@
 #ifndef IMPROVED_FAST_ENDGAME_SOLVER_H
 #define IMPROVED_FAST_ENDGAME_SOLVER_H
 
+#include "endgame_solver.h"
 #include "exact_solver.h"
 
 extern ExactSolution *
 game_position_ifes_solve (const GamePosition *const root,
-                          const gchar *const log_file);
+                          const endgame_solver_env_t *const env);
 
 #endif /* IMPROVED_FAST_ENDGAME_SOLVER_H */

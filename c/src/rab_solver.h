@@ -45,7 +45,6 @@
 
 extern ExactSolution *
 game_position_rab_solve (const GamePosition *const root,
-                         const gchar *const log_file,
-                         const int repeats);
+                         const endgame_solver_env_t *const env);
 
 #endif /* RAB_SOLVER_H */

@@ -77,17 +77,20 @@ static LogEnv *log_env = NULL;
 /**
  * @brief Solves the game position returning a new exact solution pointer.
  *
- * @param [in] root     the starting game position to be solved
- * @param [in] log_file if not null turns logging on the given file name
- * @return              a pointer to a new exact solution structure
+ * @param [in] root the starting game position to be solved
+ * @param [in] env  parameter envelope
+ * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
 game_position_ab_solve (const GamePosition *const root,
-                        const gchar *const log_file)
+                        const endgame_solver_env_t *const env)
 {
+  g_assert(root);
+  g_assert(env);
+
   ExactSolution *result = NULL;
 
-  log_env = game_tree_log_init(log_file);
+  log_env = game_tree_log_init(env->log_file);
 
   if (log_env->log_is_on) {
     game_tree_log_open_h(log_env);

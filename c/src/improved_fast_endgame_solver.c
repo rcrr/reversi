@@ -408,12 +408,12 @@ static uint8_t **flip_stack = &(global_flip_stack[0]);
  * The invariants are guarded by assertions.
  *
  * @param [in] root     the game position to be solved
- * @param [in] log_file if not null turns logging on the given file name
+ * @param [in] env      parameter envelope
  * @return              the exact solution is the collector for results
  */
 ExactSolution *
-game_position_ifes_solve (const GamePosition * const root,
-                          const gchar        * const log_file)
+game_position_ifes_solve (const GamePosition *const root,
+                          const endgame_solver_env_t *const env)
 {
   ExactSolution *result;    /* The solution structure returned by the function. */
   int            emp;       /* Empty discs count. */
@@ -422,8 +422,9 @@ game_position_ifes_solve (const GamePosition * const root,
   Node           n;         /* Best node returned by the search. */
 
   g_assert(root);
+  g_assert(env);
 
-  log_env = game_tree_log_init(log_file);
+  log_env = game_tree_log_init(env->log_file);
 
   if (log_env->log_is_on) {
     gp_hash_stack[0] = 0;

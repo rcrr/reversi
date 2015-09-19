@@ -88,14 +88,17 @@ static const int sub_run_id = 0;
  * @brief Solves the game position returning a new exact solution pointer.
  *
  * @param [in] root the starting game position to be solved
- * @param [in] log_file if not null turns logging on the given file name
+ * @param [in] env      parameter envelope
  * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
 game_position_minimax_solve (const GamePosition *const root,
-                             const gchar *const log_file)
+                             const endgame_solver_env_t *const env)
 {
-  log_env = game_tree_log_init(log_file);
+  g_assert(root);
+  g_assert(env);
+
+  log_env = game_tree_log_init(env->log_file);
 
   if (log_env->log_is_on) {
     GamePosition *ground = game_position_new(board_new(root->board->blacks,

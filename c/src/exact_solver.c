@@ -165,15 +165,18 @@ static const char *out_file_path = "pve_dump.dat";
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_solve (const GamePosition *const root,
-                     const gchar *const log_file)
+game_position_es_solve (const GamePosition *const root,
+                        const endgame_solver_env_t *const env)
 {
+  g_assert(root);
+  g_assert(env);
+
   ExactSolution *result;
   SearchNode    *sn;
   int            alpha;
   int            beta;
 
-  log_env = game_tree_log_init(log_file);
+  log_env = game_tree_log_init(env->log_file);
 
   GamePositionX *rootx = game_position_x_gp_to_gpx(root);
   pve = pve_new(rootx);

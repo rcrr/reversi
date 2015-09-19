@@ -34,8 +34,7 @@
 #ifndef AB_SOLVER_H
 #define AB_SOLVER_H
 
-#include "board.h"
-#include "game_tree_utils.h"
+#include "endgame_solver.h"
 #include "exact_solver.h"
 
 
@@ -46,7 +45,7 @@
 
 extern ExactSolution *
 game_position_ab_solve (const GamePosition *const root,
-                        const gchar *const log_file);
+                        const endgame_solver_env_t *const env);
 
 
 #endif /* AB_SOLVER_H */

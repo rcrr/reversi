@@ -92,27 +92,28 @@ static int sub_run_id = 0;
  * @brief Runs a sequence of random games for number of times equal
  * to the `repeats` parameter, starting from the `root` game position.
  *
- * @param [in] root     the starting game position to be solved
- * @param [in] log_file if not null turns logging on the given file name
- * @param [in] repeats  number of random game to play
- * @return              a pointer to a new exact solution structure
+ * @param [in] root the starting game position to be solved
+ * @param [in] env  parameter envelope
+ * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
 game_position_random_sampler (const GamePosition *const root,
-                              const gchar *const log_file,
-                              const int repeats)
+                              const endgame_solver_env_t *const env)
 {
+  g_assert(root);
+  g_assert(env);
+
   ExactSolution *result;
   SearchNode    *sn;
   int            n;
 
-  if (repeats < 1) {
+  if (env->repeats < 1) {
     n = 1;
   } else {
-    n = repeats;
+    n = env->repeats;
   }
 
-  log_env = game_tree_log_init(log_file);
+  log_env = game_tree_log_init(env->log_file);
 
   if (log_env->log_is_on) {
     GamePosition *ground = game_position_new(board_new(root->board->blacks,

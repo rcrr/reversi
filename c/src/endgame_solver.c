@@ -144,7 +144,9 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
+#include "endgame_solver.h"
 #include "game_position_db.h"
 #include "exact_solver.h"
 #include "improved_fast_endgame_solver.h"
@@ -159,10 +161,43 @@
  * @cond
  */
 
+/**
+ * @brief The endgame solver structure collects identity, description,
+ *        and the function pointer resolving the solver.
+ */
+typedef struct {
+  char           *id;              /**< @brief The solver id, it must be equal to the command line label. */
+  char           *description;     /**< @brief The solver description. */
+  char           *function_name;   /**< @brief The solver function name. */
+  endgame_solver *fn;              /**< @brief The solver function pointer. */
+} endgame_solver_t;
+
+
+
 /*
  * Static constants.
  */
 
+static endgame_solver_t s0 = { .id = "es",      .description = "exact solver",                 .function_name = "abc", .fn = NULL };
+static endgame_solver_t s1 = { .id = "ifes",    .description = "improved fast endgame solver", .function_name = "abc", .fn = NULL };
+static endgame_solver_t s2 = { .id = "rand",    .description = "random game sampler",          .function_name = "abc", .fn = NULL };
+static endgame_solver_t s3 = { .id = "minimax", .description = "minimax solver",               .function_name = "abc", .fn = NULL };
+static endgame_solver_t s4 = { .id = "rab",     .description = "random alpha-beta solver",     .function_name = "abc", .fn = NULL };
+static endgame_solver_t s5 = { .id = "ab",      .description = "alpha-beta solver",            .function_name = "abc", .fn = NULL };
+
+static endgame_solver_t *s[] = { &s0, &s1, &s2, &s3, &s4, &s5 };
+
+static endgame_solver_t xx[] =
+  {
+    { .id = "es",      .description = "exact solver",                 .function_name = "game_position_es_solve", .fn = NULL },
+    { .id = "ifes",    .description = "improved fast endgame solver", .function_name = "abc", .fn = NULL },
+    { .id = "rand",    .description = "random game sampler",          .function_name = "abc", .fn = NULL },
+    { .id = "minimax", .description = "minimax solver",               .function_name = "abc", .fn = NULL },
+    { .id = "rab",     .description = "random alpha-beta solver",     .function_name = "abc", .fn = NULL },
+    { .id = "ab",      .description = "alpha-beta solver",            .function_name = "abc", .fn = NULL }
+  };
+
+/* These two statements are duplications. */
 static const gchar *solvers[] = {"es", "ifes", "rand", "minimax", "rab", "ab"};
 static const int solvers_count = sizeof(solvers) / sizeof(solvers[0]);
 
@@ -227,6 +262,16 @@ static const GOptionEntry entries[] =
     { NULL }
   };
 
+
+
+
+/*
+ * Prototypes for internal functions.
+ */
+
+static endgame_solver_t *
+egs_select_solver (const char *const id);
+
 /**
  * @endcond
  */
@@ -252,6 +297,12 @@ main (int argc, char *argv[])
 
   GamePositionDbEntry *entry;
   int                  solver_index;
+
+  endgame_solver_env_t endgame_solver_env =
+    { .log_file = NULL,
+      .pve_dump_file = NULL,
+      .repeats = 0
+    };
 
   error = NULL;
   entry = NULL;
@@ -339,28 +390,37 @@ main (int argc, char *argv[])
   /* Initialize the board module. */
   board_module_init();
 
+  /* Setting env structure. */
+  endgame_solver_env.log_file = log_file;
+  endgame_solver_env.pve_dump_file = pve_dump_file;
+  endgame_solver_env.repeats = repeats;
+
+  /* Identifies the solver.*/
+  endgame_solver_t *ssolver = egs_select_solver(solver);
+
   /* Solving the position. */
   GamePosition *gp = entry->game_position;
   ExactSolution *solution = NULL;
   g_print("Solving game position %s, from source %s, using solver %s ...\n", entry->id, input_file, solvers[solver_index]);
+  g_print("ssolver->description=%s\n", ssolver->description);
   switch (solver_index) {
   case 0:
-    solution = game_position_solve(gp, log_file);
+    solution = game_position_es_solve(gp, &endgame_solver_env);
     break;
   case 1:
-    solution = game_position_ifes_solve(gp, log_file);
+    solution = game_position_ifes_solve(gp, &endgame_solver_env);
     break;
   case 2:
-    solution = game_position_random_sampler(gp, log_file, repeats);
+    solution = game_position_random_sampler(gp, &endgame_solver_env);
     break;
   case 3:
-    solution = game_position_minimax_solve(gp, log_file);
+    solution = game_position_minimax_solve(gp, &endgame_solver_env);
     break;
   case 4:
-    solution = game_position_rab_solve(gp, log_file, repeats);
+    solution = game_position_rab_solve(gp, &endgame_solver_env);
     break;
   case 5:
-    solution = game_position_ab_solve(gp, log_file);
+    solution = game_position_ab_solve(gp, &endgame_solver_env);
     break;
   default:
     g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);
@@ -382,3 +442,37 @@ main (int argc, char *argv[])
 
   return 0;
 }
+
+
+
+/**
+ * @cond
+ */
+
+/*
+ * Internal functions.
+ */
+
+/**
+ * @brief Ruturns the endgame solver identified by `id`.
+ *
+ * @details Compares the `id` parameter with the values in the solvers static array,
+ *          if the `id` parameter matches with the solver id field thee the solver
+ *          is returned. If no solver matches, a `NULL` value is returned.
+ *
+ * @param [in] id the principal variation environment pointer
+ */
+static endgame_solver_t *
+egs_select_solver (const char *const id)
+{
+  g_assert(id);
+  for (size_t i = 0; i < solvers_count; i++) {
+    endgame_solver_t *egs = s[i];
+    if (strcmp(id, egs->id) == 0) return egs;
+  }
+  return NULL;
+}
+
+/**
+ * @endcond
+ */
