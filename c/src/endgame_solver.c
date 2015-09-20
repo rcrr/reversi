@@ -166,10 +166,10 @@
  *        and the function pointer resolving the solver.
  */
 typedef struct {
-  char           *id;              /**< @brief The solver id, it must be equal to the command line label. */
-  char           *description;     /**< @brief The solver description. */
-  char           *function_name;   /**< @brief The solver function name. */
-  endgame_solver *fn;              /**< @brief The solver function pointer. */
+  char             *id;              /**< @brief The solver id, it must be equal to the command line label. */
+  char             *description;     /**< @brief The solver description. */
+  char             *function_name;   /**< @brief The solver function name. */
+  endgame_solver_f  fn;              /**< @brief The solver function pointer. */
 } endgame_solver_t;
 
 
@@ -178,27 +178,16 @@ typedef struct {
  * Static constants.
  */
 
-static endgame_solver_t s0 = { .id = "es",      .description = "exact solver",                 .function_name = "abc", .fn = NULL };
-static endgame_solver_t s1 = { .id = "ifes",    .description = "improved fast endgame solver", .function_name = "abc", .fn = NULL };
-static endgame_solver_t s2 = { .id = "rand",    .description = "random game sampler",          .function_name = "abc", .fn = NULL };
-static endgame_solver_t s3 = { .id = "minimax", .description = "minimax solver",               .function_name = "abc", .fn = NULL };
-static endgame_solver_t s4 = { .id = "rab",     .description = "random alpha-beta solver",     .function_name = "abc", .fn = NULL };
-static endgame_solver_t s5 = { .id = "ab",      .description = "alpha-beta solver",            .function_name = "abc", .fn = NULL };
-
-static endgame_solver_t *s[] = { &s0, &s1, &s2, &s3, &s4, &s5 };
-
-static endgame_solver_t xx[] =
+static const endgame_solver_t solvers[] =
   {
-    { .id = "es",      .description = "exact solver",                 .function_name = "game_position_es_solve", .fn = NULL },
-    { .id = "ifes",    .description = "improved fast endgame solver", .function_name = "abc", .fn = NULL },
-    { .id = "rand",    .description = "random game sampler",          .function_name = "abc", .fn = NULL },
-    { .id = "minimax", .description = "minimax solver",               .function_name = "abc", .fn = NULL },
-    { .id = "rab",     .description = "random alpha-beta solver",     .function_name = "abc", .fn = NULL },
-    { .id = "ab",      .description = "alpha-beta solver",            .function_name = "abc", .fn = NULL }
+    { .id = "es",      .description = "exact solver",                 .function_name = "game_position_es_solve",       .fn = game_position_es_solve },
+    { .id = "ifes",    .description = "improved fast endgame solver", .function_name = "game_position_ifes_solve",     .fn = game_position_ifes_solve },
+    { .id = "rand",    .description = "random game sampler",          .function_name = "game_position_random_sampler", .fn = game_position_random_sampler },
+    { .id = "minimax", .description = "minimax solver",               .function_name = "game_position_minimax_solve",  .fn = game_position_minimax_solve },
+    { .id = "rab",     .description = "random alpha-beta solver",     .function_name = "game_position_rab_solve",      .fn = game_position_rab_solve },
+    { .id = "ab",      .description = "alpha-beta solver",            .function_name = "game_position_ab_solve",       .fn = game_position_ab_solve }
   };
 
-/* These two statements are duplications. */
-static const gchar *solvers[] = {"es", "ifes", "rand", "minimax", "rab", "ab"};
 static const int solvers_count = sizeof(solvers) / sizeof(solvers[0]);
 
 static const gchar *program_documentation_string =
@@ -246,7 +235,7 @@ static const gchar *program_documentation_string =
 
 static gchar   *input_file    = NULL;
 static gchar   *lookup_entry  = NULL;
-static gchar   *solver        = NULL;
+static gchar   *solver_id     = NULL;
 static gint     repeats       = 1;
 static gchar   *log_file      = NULL;
 static gchar   *pve_dump_file = NULL;
@@ -255,7 +244,7 @@ static const GOptionEntry entries[] =
   {
     { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name   - Mandatory",                                            NULL },
     { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry,  "Lookup entry      - Mandatory",                                            NULL },
-    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver,        "Solver            - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab]", NULL },
+    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver_id,     "Solver            - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab]", NULL },
     { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,       "N. of repetitions - Used with the rand/rab solvers",                       NULL },
     { "log",           'l', 0, G_OPTION_ARG_FILENAME, &log_file,      "Turns logging on  - Requires a filename prefx",                            NULL },
     { "pve-dump",      'd', 0, G_OPTION_ARG_FILENAME, &pve_dump_file, "Dumps PV          - Requires a filename path",                             NULL },
@@ -264,12 +253,11 @@ static const GOptionEntry entries[] =
 
 
 
-
 /*
  * Prototypes for internal functions.
  */
 
-static endgame_solver_t *
+static int
 egs_select_solver (const char *const id);
 
 /**
@@ -298,7 +286,7 @@ main (int argc, char *argv[])
   GamePositionDbEntry *entry;
   int                  solver_index;
 
-  endgame_solver_env_t endgame_solver_env =
+  endgame_solver_env_t env =
     { .log_file = NULL,
       .pve_dump_file = NULL,
       .repeats = 0
@@ -324,16 +312,13 @@ main (int argc, char *argv[])
     g_print("Option -f, --file is mandatory.\n");
     return -2;
   }
-  if (solver) {
-    for (int index = 0; index < solvers_count; index++) {
-      if (g_strcmp0(solver, solvers[index]) == 0)
-        solver_index = index;
-    }
+  if (solver_id) {
+    solver_index = egs_select_solver(solver_id);
     if (solver_index == -1) {
       g_print("Option -s, --solver is out of range.\n");
       return -8;
     }
-    if (solver_index == 2) { // solver == random
+    if (strcmp(solvers[solver_index].id, "rand") == 0) {
       if (repeats < 1) {
         g_print("Option -n, --repeats is out of range.\n");
         return -9;
@@ -343,6 +328,9 @@ main (int argc, char *argv[])
     g_print("Option -s, --solver is mandatory.\n");
     return -5;
   }
+
+  /* Identifies the solver.*/
+  const endgame_solver_t *const solver = &solvers[solver_index];
 
   /* Opens the source file for reading. */
   fp = fopen(input_file, "r");
@@ -381,53 +369,44 @@ main (int argc, char *argv[])
     return -7;
   }
 
-  /* ... */
-  if (pve_dump_file) {
-    printf("--pve-dump option is not yet implemented. Exiting program with code -100\n");
-    return -100;
-  }
-
-  /* Initialize the board module. */
+  /* Initializes the board module. */
   board_module_init();
 
-  /* Setting env structure. */
-  endgame_solver_env.log_file = log_file;
-  endgame_solver_env.pve_dump_file = pve_dump_file;
-  endgame_solver_env.repeats = repeats;
+  /* Sets env structure. */
+  env.log_file = log_file;
+  env.pve_dump_file = pve_dump_file;
+  env.repeats = repeats;
 
-  /* Identifies the solver.*/
-  endgame_solver_t *ssolver = egs_select_solver(solver);
-
-  /* Solving the position. */
+  /* Solves the position. */
   GamePosition *gp = entry->game_position;
   ExactSolution *solution = NULL;
-  g_print("Solving game position %s, from source %s, using solver %s ...\n", entry->id, input_file, solvers[solver_index]);
-  g_print("ssolver->description=%s\n", ssolver->description);
+  g_print("Solving game position %s, from source %s, using solver %s (%s) ...\n", entry->id, input_file, solver->id, solver->description);
+  g_print("solver->description=%s\n", solver->description);
   switch (solver_index) {
   case 0:
-    solution = game_position_es_solve(gp, &endgame_solver_env);
+    solution = game_position_es_solve(gp, &env);
     break;
   case 1:
-    solution = game_position_ifes_solve(gp, &endgame_solver_env);
+    solution = game_position_ifes_solve(gp, &env);
     break;
   case 2:
-    solution = game_position_random_sampler(gp, &endgame_solver_env);
+    solution = game_position_random_sampler(gp, &env);
     break;
   case 3:
-    solution = game_position_minimax_solve(gp, &endgame_solver_env);
+    solution = game_position_minimax_solve(gp, &env);
     break;
   case 4:
-    solution = game_position_rab_solve(gp, &endgame_solver_env);
+    solution = game_position_rab_solve(gp, &env);
     break;
   case 5:
-    solution = game_position_ab_solve(gp, &endgame_solver_env);
+    solution = game_position_ab_solve(gp, &env);
     break;
   default:
     g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);
     return -9;
   }
 
-  /* Printing results. */
+  /* Prints results. */
   gchar *solution_to_string = exact_solution_to_string(solution);
   printf("\n%s\n", solution_to_string);
   g_free(solution_to_string);
@@ -454,23 +433,24 @@ main (int argc, char *argv[])
  */
 
 /**
- * @brief Ruturns the endgame solver identified by `id`.
+ * @brief Ruturns the index in the solvers arry of the endgame solver identified by `id`.
  *
  * @details Compares the `id` parameter with the values in the solvers static array,
- *          if the `id` parameter matches with the solver id field thee the solver
- *          is returned. If no solver matches, a `NULL` value is returned.
+ *          if the `id` parameter matches with the solver id field then the solver
+ *          position is returned. If no solver matches, a `-1` value is returned.
  *
- * @param [in] id the principal variation environment pointer
+ * @param [in] id the label of the solver
+ * @return        the solver index
  */
-static endgame_solver_t *
+static int
 egs_select_solver (const char *const id)
 {
   g_assert(id);
   for (size_t i = 0; i < solvers_count; i++) {
-    endgame_solver_t *egs = s[i];
-    if (strcmp(id, egs->id) == 0) return egs;
+    endgame_solver_t egs = solvers[i];
+    if (strcmp(id, egs.id) == 0) return i;
   }
-  return NULL;
+  return -1;
 }
 
 /**

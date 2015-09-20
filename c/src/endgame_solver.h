@@ -60,8 +60,8 @@ typedef struct {
  * @param [in] env arguments and parameters for the solver
  */
 typedef ExactSolution *
-(*endgame_solver) (const GamePosition *const gp,
-                   const endgame_solver_env_t *const env);
+(*endgame_solver_f) (const GamePosition *const gp,
+                     const endgame_solver_env_t *const env);
 
 
 
