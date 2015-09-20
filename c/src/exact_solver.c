@@ -114,6 +114,9 @@ static uint64_t gp_hash_stack[128];
 /* The index of the last entry into gp_hash_stack. */
 static int gp_hash_stack_fill_point = 0;
 
+/* Drives the analysis to consider all variants of equal value (slower, but complete).*/
+static bool pv_full_recording = false;
+
 /* The sub_run_id used for logging. */
 static const int sub_run_id = 0;
 
@@ -135,17 +138,8 @@ static const uint64_t legal_moves_priority_mask[] = {
 static const int legal_moves_priority_cluster_count =
   sizeof(legal_moves_priority_mask) / sizeof(legal_moves_priority_mask[0]);
 
-/*
- * Turn on full PV recording. Should be a parameter coming from command line.
- * The value must be false in order to prepare the endgame files for the SQL unit tests.
- */
-static const bool pv_full_recording = true;
-
 /* Print debugging info ... */
-static const bool pv_internals_to_stream = true;
-
-/* Dumps pve to file. */
-static const char *out_file_path = "pve_dump.dat";
+static const bool pv_internals_to_stream = false;
 
 /**
  * @endcond
@@ -175,6 +169,8 @@ game_position_es_solve (const GamePosition *const root,
   SearchNode    *sn;
   int            alpha;
   int            beta;
+
+  pv_full_recording = env->pv_full_recording;
 
   log_env = game_tree_log_init(env->log_file);
 
@@ -213,14 +209,14 @@ game_position_es_solve (const GamePosition *const root,
     exact_solution_compute_final_board(result);
   }
 
-  if (pv_full_recording) {
-    printf("\nThe constant \"pv_full_recording\", in source file \"exact_solver.c\", is TRUE. Printing PV with variants:\n");
+  if (pv_full_recording && !env->pv_no_print) {
     printf("\n --- --- pve_line_with_variants_to_string() START --- ---\n");
     pve_line_with_variants_to_stream(pve, (const PVCell **const ) pve->root_line, stdout);
     printf("\n --- --- pve_line_with_variants_to_string() COMPLETED --- ---\n");
   }
+
   if (pv_internals_to_stream) {
-    printf("\nThe constant \"pv_internals_to_stream\", in source file \"exact_solver.c\", is TRUE. Printing PVE:\n");
+    printf("\nThe constant \"pv_internals_to_stream\", in source file \"exact_solver.c\", is TRUE. Printing PVE internals:\n");
     printf(" --- --- pve_is_invariant_satisfied() START --- ---\n");
     pve_error_code_t error_code = 0;
     pve_is_invariant_satisfied(pve, &error_code, 0xFF);
@@ -249,9 +245,10 @@ game_position_es_solve (const GamePosition *const root,
     pve_internals_to_stream(pve, stdout, shown_sections);
     printf("\n --- --- pve_internals_to_stream() COMPLETED --- ---\n");
   }
-  if (out_file_path) {
+
+  if (env->pve_dump_file) {
     printf("\n --- --- pve_dump_to_binary_file() START --- ---\n");
-    pve_dump_to_binary_file(pve, out_file_path);
+    pve_dump_to_binary_file(pve, env->pve_dump_file);
     printf(" --- --- pve_dump_to_binary_file() COMPLETED --- ---\n");
   }
 

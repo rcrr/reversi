@@ -32,7 +32,7 @@
  *       - Prepare a new utility for PV dump/load to/from a binary file.
  *         [done] Write the root_game_position and read it. Add a paragraph for printing it.
  *         [done] Write a function for to-from-map creation. Purge printf statements ....
- *         Add a flag for dumping the file at the end of the analysis..... Better adding an endgame_env having am open list of key-value pairs ....
+ *         [done] Add a flag for dumping the file at the end of the analysis..... Better adding an endgame_env having am open list of key-value pairs ....
  *         Test the new utility and run it for all the ffo game positions.
  *         Develop a dedicated output for SQL COPY function. Verify the "pve duplication" hypothesis!
  *
@@ -239,15 +239,19 @@ static gchar   *solver_id     = NULL;
 static gint     repeats       = 1;
 static gchar   *log_file      = NULL;
 static gchar   *pve_dump_file = NULL;
+static gboolean pv_full_rec   = FALSE;
+static gboolean pv_no_print   = FALSE;
 
 static const GOptionEntry entries[] =
   {
-    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name   - Mandatory",                                            NULL },
-    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry,  "Lookup entry      - Mandatory",                                            NULL },
-    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver_id,     "Solver            - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab]", NULL },
-    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,       "N. of repetitions - Used with the rand/rab solvers",                       NULL },
-    { "log",           'l', 0, G_OPTION_ARG_FILENAME, &log_file,      "Turns logging on  - Requires a filename prefx",                            NULL },
-    { "pve-dump",      'd', 0, G_OPTION_ARG_FILENAME, &pve_dump_file, "Dumps PV          - Requires a filename path",                             NULL },
+    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name          - Mandatory",                                               NULL },
+    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry,  "Lookup entry             - Mandatory",                                               NULL },
+    { "solver",        's', 0, G_OPTION_ARG_STRING,   &solver_id,     "Solver                   - Mandatory - Must be in [es|ifes|rand|minimax|ab|rab]",    NULL },
+    { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,       "N. of repetitions        - Used with the rand/rab solvers",                          NULL },
+    { "log",           'l', 0, G_OPTION_ARG_FILENAME, &log_file,      "Turns logging on         - Requires a filename prefx",                               NULL },
+    { "pve-dump",      'd', 0, G_OPTION_ARG_FILENAME, &pve_dump_file, "Dumps PV                 - Requires a filename path. Available only for es solver.", NULL },
+    { "pv-full-rec",     0, 0, G_OPTION_ARG_NONE,     &pv_full_rec,   "Analyzes all PV variants - Available only for es solver.",                           NULL },
+    { "pv-no-print",     0, 0, G_OPTION_ARG_NONE,     &pv_no_print,   "Does't print PV variants - Available only in conjuction with option pv-full-rec.",   NULL },
     { NULL }
   };
 
@@ -289,7 +293,9 @@ main (int argc, char *argv[])
   endgame_solver_env_t env =
     { .log_file = NULL,
       .pve_dump_file = NULL,
-      .repeats = 0
+      .repeats = 0,
+      .pv_full_recording = false,
+      .pv_no_print = false
     };
 
   error = NULL;
@@ -307,7 +313,7 @@ main (int argc, char *argv[])
     return -1;
   }
 
-  /* Checks command line options for consistency. */
+  /* Checks command line options for consistency, and selects the solver. */
   if (!input_file) {
     g_print("Option -f, --file is mandatory.\n");
     return -2;
@@ -328,9 +334,15 @@ main (int argc, char *argv[])
     g_print("Option -s, --solver is mandatory.\n");
     return -5;
   }
-
-  /* Identifies the solver.*/
   const endgame_solver_t *const solver = &solvers[solver_index];
+  if (pv_full_rec && strcmp(solver->id, "es")) {
+    g_print("Option --pv-full-rec can be used only with solver \"es\".\n");
+    return -10;
+  }
+  if (pv_no_print && (strcmp(solver->id, "es") || !pv_full_rec)) {
+    g_print("Option --pv-no-print can be used only with solver \"es\", and when option --pv-full-rec is turned on.\n");
+    return -11;
+  }
 
   /* Opens the source file for reading. */
   fp = fopen(input_file, "r");
@@ -376,12 +388,13 @@ main (int argc, char *argv[])
   env.log_file = log_file;
   env.pve_dump_file = pve_dump_file;
   env.repeats = repeats;
+  env.pv_full_recording = pv_full_rec;
+  env.pv_no_print = pv_no_print;
 
   /* Solves the position. */
   GamePosition *gp = entry->game_position;
   ExactSolution *solution = NULL;
   g_print("Solving game position %s, from source %s, using solver %s (%s) ...\n", entry->id, input_file, solver->id, solver->description);
-  g_print("solver->description=%s\n", solver->description);
   switch (solver_index) {
   case 0:
     solution = game_position_es_solve(gp, &env);
@@ -403,7 +416,7 @@ main (int argc, char *argv[])
     break;
   default:
     g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);
-    return -9;
+    return -101;
   }
 
   /* Prints results. */
