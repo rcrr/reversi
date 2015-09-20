@@ -103,6 +103,12 @@ pve_populate_segments_sorted_from_to_map (size_t *const segments_sorted_from_to_
                                           const size_t *const from_segments_sorted_sizes,
                                           const size_t *const to_segments_sorted_sizes);
 
+static void
+pve_populate_segments_sorted_map (size_t *const segments_sorted_map,
+                                  const size_t active_segments_count,
+                                  const void **const unsorted_segments,
+                                  const void **const sorted_segments);
+
 
 
 
@@ -1147,6 +1153,7 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
                                   const PVCell **const line,
                                   FILE *const stream)
 {
+  printf("pve_line_with_variants_to_stream ......................................... \n");
   int branches[128];
   int holes[128];
   PVCell **lines[128];
@@ -1491,6 +1498,37 @@ pve_load_from_binary_file (const char *const in_file_path)
                                            from_file_lines_segments_sorted_sizes,
                                            pve->lines_segments_sorted_sizes);
 
+  for (size_t i = 0; i < active_cells_segments_count; i++) {
+    printf("cells_segments_sorted_from_to_map[%zu]=%zu\n", i, cells_segments_sorted_from_to_map[i]);
+  }
+  for (size_t i = 0; i < active_lines_segments_count; i++) {
+    printf("lines_segments_sorted_from_to_map[%zu]=%zu\n", i, lines_segments_sorted_from_to_map[i]);
+  }
+
+  size_t from_file_cells_segments_sorted_map[PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE];
+  size_t from_file_lines_segments_sorted_map[PVE_LOAD_DUMP_LINES_SEGMENTS_SIZE];
+
+  pve_populate_segments_sorted_map(from_file_cells_segments_sorted_map,
+                                   active_cells_segments_count,
+                                   (const void ** const) from_file_cells_segments,
+                                   (const void ** const) from_file_cells_segments_sorted);
+
+  pve_populate_segments_sorted_map(from_file_lines_segments_sorted_map,
+                                   active_lines_segments_count,
+                                   (const void ** const) from_file_lines_segments,
+                                   (const void ** const) from_file_lines_segments_sorted);
+
+  for (size_t i = 0; i < active_cells_segments_count; i++) {
+    printf("from_file_cells_segments_sorted_map[%zu]=%zu\n", i, from_file_cells_segments_sorted_map[i]);
+    cells_segments_sorted_from_to_map[i] = from_file_cells_segments_sorted_map[i];
+  }
+
+  for (size_t i = 0; i < active_lines_segments_count; i++) {
+    printf("from_file_lines_segments_sorted_map[%zu]=%zu\n", i, from_file_lines_segments_sorted_map[i]);
+    lines_segments_sorted_from_to_map[i] = from_file_lines_segments_sorted_map[i];
+  }
+
+
   /*
    * There are six address translation to execute:
    *
@@ -1512,6 +1550,7 @@ pve_load_from_binary_file (const char *const in_file_path)
                                              (void **) pve->lines_segments,
                                              pve->root_line);
   if (translated_rl) {
+    printf("translated_rl=%p\n", (void *) translated_rl);
     pve->root_line = translated_rl;
   } else {
     fprintf(stderr, "Error in translating address element for line address: pve->root_line=%p\n", (void *) pve->root_line);
@@ -2085,6 +2124,26 @@ pve_populate_segments_sorted_from_to_map (size_t *const segments_sorted_from_to_
     }
   }
 }
+
+static void
+pve_populate_segments_sorted_map (size_t *const segments_sorted_map,
+                                  const size_t active_segments_count,
+                                  const void **const unsorted_segments,
+                                  const void **const sorted_segments)
+{
+  for (size_t i = 0; i < active_segments_count; i++) {
+    const void *const sorted_segment = *(sorted_segments + i);
+    printf("--- sorted_segment=%p\n", (void *) sorted_segment);
+    for (size_t j = 0; j < active_segments_count; j++) {
+      const void *const unsorted_segment = *(unsorted_segments + j);
+      if (unsorted_segment == sorted_segment) {
+        segments_sorted_map[i] = j;
+        break;
+      }
+    }
+  }
+}
+
 
 /**
  * @endcond

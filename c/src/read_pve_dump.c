@@ -40,14 +40,67 @@
 
 
 /**
+ * @cond
+ */
+
+/* Static constants. */
+
+static const gchar *program_documentation_string =
+  "Description:\n"
+  "Read Principal Variation Environment dump is a program that load a binary dump file representation of a PVE.\n"
+  "\n"
+  "Author:\n"
+  "   Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
+  "\n"
+  "Copyright (c) 2015 Roberto Corradini. All rights reserved.\n"
+  "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
+  "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
+  ;
+
+
+
+/* Static variables. */
+
+static gchar   *input_file    = NULL;
+
+static const GOptionEntry entries[] =
+  {
+    { "file", 'f', 0, G_OPTION_ARG_FILENAME, &input_file, "Input file name - Mandatory", NULL },
+    { NULL }
+  };
+
+/**
+ * @endcond
+ */
+
+
+
+/**
  * @brief Main entry for the PVE dump utility.
  */
 int
 main (int argc, char *argv[])
 {
-  const char *in_file_path = "pve_dump.dat";
 
-  PVEnv *pve = pve_load_from_binary_file(in_file_path);
+  /* GLib command line options and argument parsing. */
+  GError *error = NULL;
+  GOptionGroup *option_group = g_option_group_new("name", "description", "help_description", NULL, NULL);
+  GOptionContext *context = g_option_context_new("- Loads a PVE dump file");
+  g_option_context_add_main_entries(context, entries, NULL);
+  g_option_context_add_group(context, option_group);
+  g_option_context_set_description(context, program_documentation_string);
+  if (!g_option_context_parse (context, &argc, &argv, &error)) {
+    g_print("Option parsing failed: %s\n", error->message);
+    return -1;
+  }
+
+  /* Checks command line options for consistency. */
+  if (!input_file) {
+    g_print("Option -f, --file is mandatory.\n");
+    return -2;
+  }
+
+  PVEnv *pve = pve_load_from_binary_file(input_file);
 
   switches_t shown_sections = 0x0000;
   shown_sections |= pve_internals_header_section;
@@ -55,7 +108,7 @@ main (int argc, char *argv[])
   shown_sections |= pve_internals_properties_section;
   shown_sections |= pve_internals_structure_section;
   shown_sections |= pve_internals_computed_properties_section;
-  shown_sections |= pve_internals_active_lines_section;
+  //shown_sections |= pve_internals_active_lines_section;
   shown_sections |= pve_internals_cells_segments_section;
   shown_sections |= pve_internals_sorted_cells_segments_section;
   shown_sections |= pve_internals_cells_section;
@@ -69,7 +122,8 @@ main (int argc, char *argv[])
 
   pve_error_code_t error_code = PVE_ERROR_CODE_OK;
   if (!pve_is_invariant_satisfied(pve, &error_code, 0xFF)) {
-    printf("error_code=%d", error_code);
+    printf("error_code=%d\n", error_code);
+    return -3;
   }
 
   pve_line_with_variants_to_stream(pve, (const PVCell **const ) pve->root_line, stdout);

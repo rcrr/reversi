@@ -139,7 +139,7 @@ static const int legal_moves_priority_cluster_count =
   sizeof(legal_moves_priority_mask) / sizeof(legal_moves_priority_mask[0]);
 
 /* Print debugging info ... */
-static const bool pv_internals_to_stream = false;
+static const bool pv_internals_to_stream = true;
 
 /**
  * @endcond
@@ -233,7 +233,7 @@ game_position_es_solve (const GamePosition *const root,
     shown_sections |= pve_internals_properties_section;
     shown_sections |= pve_internals_structure_section;
     shown_sections |= pve_internals_computed_properties_section;
-    shown_sections |= pve_internals_active_lines_section;
+    //shown_sections |= pve_internals_active_lines_section;
     shown_sections |= pve_internals_cells_segments_section;
     shown_sections |= pve_internals_sorted_cells_segments_section;
     shown_sections |= pve_internals_cells_section;

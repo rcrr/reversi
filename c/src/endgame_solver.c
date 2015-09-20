@@ -278,17 +278,12 @@ egs_select_solver (const char *const id);
 int
 main (int argc, char *argv[])
 {
-  GamePositionDb               *db;
+  GamePositionDb *db;
   GamePositionDbSyntaxErrorLog *syntax_error_log;
-  FILE                         *fp;
-  GError                       *error;
-  int                           number_of_errors;
+  FILE *fp;
 
-  GOptionContext *context;
-  GOptionGroup   *option_group;
-
-  GamePositionDbEntry *entry;
-  int                  solver_index;
+  GamePositionDbEntry *entry = NULL;
+  int solver_index = -1;
 
   endgame_solver_env_t env =
     { .log_file = NULL,
@@ -298,13 +293,10 @@ main (int argc, char *argv[])
       .pv_no_print = false
     };
 
-  error = NULL;
-  entry = NULL;
-  solver_index = -1;
-
   /* GLib command line options and argument parsing. */
-  option_group = g_option_group_new("name", "description", "help_description", NULL, NULL);
-  context = g_option_context_new("- Solve an endgame position");
+  GError *error = NULL;
+  GOptionGroup *option_group = g_option_group_new("name", "description", "help_description", NULL, NULL);
+  GOptionContext *context = g_option_context_new("- Solve an endgame position");
   g_option_context_add_main_entries(context, entries, NULL);
   g_option_context_add_group(context, option_group);
   g_option_context_set_description(context, program_documentation_string);
@@ -359,7 +351,7 @@ main (int argc, char *argv[])
   fclose(fp);
 
   /* Compute the number of errors logged. */
-  number_of_errors = gpdb_syntax_error_log_length(syntax_error_log);
+  const int number_of_errors = gpdb_syntax_error_log_length(syntax_error_log);
   if (number_of_errors != 0) {
     g_print("The database resource, file \"%s\" contains errors, debug it using the gpdb_verify utility.\n", input_file);
     return -4;

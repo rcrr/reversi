@@ -72,9 +72,9 @@
  */
 
 #define PVE_CELLS_SEGMENTS_SIZE 28
-#define PVE_CELLS_FIRST_SIZE 1
+#define PVE_CELLS_FIRST_SIZE 32
 #define PVE_LINES_SEGMENTS_SIZE 28
-#define PVE_LINES_FIRST_SIZE 1
+#define PVE_LINES_FIRST_SIZE 8
 
 /**
  * @endcond
