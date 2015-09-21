@@ -61,11 +61,13 @@ static const gchar *program_documentation_string =
 
 /* Static variables. */
 
-static gchar   *input_file    = NULL;
+static gchar    *input_file = NULL;
+static uint64_t  internals  = NULL;
 
 static const GOptionEntry entries[] =
   {
-    { "file", 'f', 0, G_OPTION_ARG_FILENAME, &input_file, "Input file name - Mandatory", NULL },
+    { "file",      'f', 0, G_OPTION_ARG_FILENAME, &input_file, "Input file name     - Mandatory", NULL },
+    { "internals", 'i', 0, G_OPTION_ARG_INT64,    &internals,  "Print PVE internals - Switches in hex form", NULL },
     { NULL }
   };
 
@@ -99,6 +101,8 @@ main (int argc, char *argv[])
     g_print("Option -f, --file is mandatory.\n");
     return -2;
   }
+
+  if (internals) printf("internals=%016lx\n", internals);
 
   PVEnv *pve = pve_load_from_binary_file(input_file);
 
