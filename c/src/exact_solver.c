@@ -139,7 +139,7 @@ static const int legal_moves_priority_cluster_count =
   sizeof(legal_moves_priority_mask) / sizeof(legal_moves_priority_mask[0]);
 
 /* Print debugging info ... */
-static const bool pv_internals_to_stream = true;
+static const bool pv_internals_to_stream = false;
 
 /**
  * @endcond

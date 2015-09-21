@@ -71,8 +71,8 @@
  * These constants should be internal, but are in the header file for testing purposes.
  */
 
-#define PVE_CELLS_SEGMENTS_SIZE 28
-#define PVE_CELLS_FIRST_SIZE 32
+#define PVE_CELLS_SEGMENTS_SIZE 26
+#define PVE_CELLS_FIRST_SIZE 64
 #define PVE_LINES_SEGMENTS_SIZE 28
 #define PVE_LINES_FIRST_SIZE 8
 
