@@ -36,6 +36,15 @@
 
 SET search_path TO reversi;
 
+SELECT current_database() AS reversi_dbname
+\gset
+\setenv REVERSI_DBNAME :reversi_dbname
+SELECT current_user AS reversi_username
+\gset
+\setenv REVERSI_USERNAME :reversi_username
+
+
+
 --
 -- File ../build/out/rab_solver_log-ffo-01-simplified-4_n3_h.csv is obtained by running
 -- the command:
@@ -43,7 +52,7 @@ SET search_path TO reversi;
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -n 3 -l build/out/rab_solver_log-ffo-01-simplified-4_n3_h.csv
 --
-\! ./gt_load_file.sh ../build/out/rab_solver_log-ffo-01-simplified-4_n3_h.csv;
+\! ./gt_load_file.sh $REVERSI_USERNAME $REVERSI_DBNAME ../build/out/rab_solver_log-ffo-01-simplified-4_n3_h.csv;
 SELECT gt_load_from_staging('T000', 'C_RAB_SOLVER', 'Test data obtained by the C rab solver on position ffo-01-simplified-4.');
 VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT gt_check_rab('T000', 0);
@@ -61,7 +70,7 @@ SELECT gt_check_rab('T000', 2);
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s minimax -l build/out/minimax_log-ffo-01-simplified-4
 --
-\! ./gt_load_file.sh ../build/out/minimax_log-ffo-01-simplified-4_h.csv;
+\! ./gt_load_file.sh $REVERSI_USERNAME $REVERSI_DBNAME ../build/out/minimax_log-ffo-01-simplified-4_h.csv;
 SELECT gt_load_from_staging('T001','C_MINIMAX_SOLVER', 'Test data obtained by the C minimax solver on position ffo-01-simplified-4.');
 VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT p_assert(gt_check('T001', 0) = (20040, 6879, 6879, 8875, 0, 13161), 'The game tree T001/0 has not been loaded as expected.');
@@ -101,7 +110,7 @@ END $$;
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s ab -l build/out/ab_solver_log-ffo-01-simplified-4
 --
-\! ./gt_load_file.sh ../build/out/ab_solver_log-ffo-01-simplified-4_h.csv;
+\! ./gt_load_file.sh $REVERSI_USERNAME $REVERSI_DBNAME ../build/out/ab_solver_log-ffo-01-simplified-4_h.csv;
 SELECT gt_load_from_staging('T003','C_ALPHABETA_SOLVER', 'Test data obtained by the C alpha-beta solver on position ffo-01-simplified-4.');
 VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT p_assert(gt_check('T003', 0) = (3367, 1829, 1829, 2128, 0, 1538), 'The game tree T003/0 has not been loaded as expected.');
@@ -141,7 +150,7 @@ END $$;
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100 -l build/out/random_game_sampler_log-t100 
 --
-\! ./gt_load_file.sh ../build/out/random_game_sampler_log-t100_h.csv;
+\! ./gt_load_file.sh $REVERSI_USERNAME $REVERSI_DBNAME ../build/out/random_game_sampler_log-t100_h.csv;
 SELECT gt_load_from_staging('T005','C_RANDOM_SAMPLER', 'Test data obtained by the C random game sampler on position initial.');
 VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT gt_check_random('T005');
@@ -166,7 +175,7 @@ END $$;
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s es -l build/out/exact_solver_log-ffo-01
 --
-\! ./gt_load_file.sh ../build/out/exact_solver_log-ffo-01_h.csv;
+\! ./gt_load_file.sh $REVERSI_USERNAME $REVERSI_DBNAME ../build/out/exact_solver_log-ffo-01_h.csv;
 SELECT gt_load_from_staging('T006','C_ES_SOLVER', 'Test data obtained by the C exact solver on position FFO-01.');
 VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT * FROM gt_check('T006', 0);
@@ -178,7 +187,7 @@ SELECT * FROM gt_check('T006', 0);
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s ifes -l build/out/ifes_solver_log-ffo-01
 --
-\! ./gt_load_file.sh ../build/out/ifes_solver_log-ffo-01_h.csv;
+\! ./gt_load_file.sh $REVERSI_USERNAME $REVERSI_DBNAME ../build/out/ifes_solver_log-ffo-01_h.csv;
 SELECT gt_load_from_staging('T007','C_IFES_SOLVER', 'Test data obtained by the C ifes solver on position FFO-01.');
 VACUUM(FULL, ANALYZE) game_tree_log;
 SELECT * FROM gt_check('T007', 0);
