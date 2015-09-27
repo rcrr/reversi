@@ -447,6 +447,11 @@ pve_dump_to_binary_file (const PVEnv *const pve,
 extern PVEnv *
 pve_load_from_binary_file (const char *const in_file_path);
 
+extern void
+pve_summary_from_binary_file_to_stream (const char *const in_file_path,
+                                        FILE *const stream);
+
+
 
 
 /**************************************************/
