@@ -85,15 +85,19 @@ static const gchar *program_documentation_string =
 
 /* Static variables. */
 
-static gchar    *input_file    = NULL;
-static uint64_t  internals     = 0;
-static gboolean  print_summary = FALSE;
+static gchar    *input_file      = NULL;
+static uint64_t  internals       = 0;
+static gboolean  print_summary   = FALSE;
+static gboolean  print_pv        = FALSE;
+static gboolean  check_invariant = FALSE;
 
 static const GOptionEntry entries[] =
   {
-    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name     - Mandatory", NULL },
-    { "internals",     'i', 0, G_OPTION_ARG_INT64,    &internals,     "Print PVE internals - Switches in hex form", NULL },
-    { "print-summary", 's', 0, G_OPTION_ARG_NONE,     &print_summary, "Print summary       - Reads only the file header and exits", NULL },
+    { "input-file",      'f', 0, G_OPTION_ARG_FILENAME, &input_file,      "Input file name     - Mandatory", NULL },
+    { "internals",       'i', 0, G_OPTION_ARG_INT64,    &internals,       "Print PVE internals - Switches in hex form", NULL },
+    { "print-summary",   's', 0, G_OPTION_ARG_NONE,     &print_summary,   "Print summary       - Reads only the file header and exits", NULL },
+    { "print-pv",        'p', 0, G_OPTION_ARG_NONE,     &print_pv,        "Print pv            - Prints human readable PV", NULL },
+    { "check-invariant", 'c', 0, G_OPTION_ARG_NONE,     &check_invariant, "Check PVE invariant - Stops execution if a violation is detected", NULL },
     { NULL }
   };
 
@@ -127,8 +131,8 @@ main (int argc, char *argv[])
     g_print("Option -f, --file is mandatory.\n");
     return -2;
   }
-  if (print_summary && internals) {
-    g_print("Option -f, --print-summary is not compatible with option -i, --internals.\n");
+  if (print_summary && (internals || check_invariant)) {
+    g_print("Option -s, --print-summary, is not compatible with options -i, or -c.\n");
     return -3;
   }
 
@@ -141,19 +145,25 @@ main (int argc, char *argv[])
   /* Loads the full PVE data structure. */
   PVEnv *pve = pve_load_from_binary_file(input_file);
 
+  /* Runs a complete check on PVE invariant. */
+  if (check_invariant) {
+    pve_error_code_t error_code = PVE_ERROR_CODE_OK;
+    if (!pve_is_invariant_satisfied(pve, &error_code, 0xFFFFFFFFFFFFFFFF)) {
+      printf("Running function pve_is_invariant_satisfied an error has been detected. Error code is: %d\n", error_code);
+      free(pve);
+      return -4;
+    }
+  }
+
   /* Prints selected internals depending on the specific option switches. */
   if (internals) {
     pve_internals_to_stream(pve, stdout, internals);
     return 0;
   }
 
-  pve_error_code_t error_code = PVE_ERROR_CODE_OK;
-  if (!pve_is_invariant_satisfied(pve, &error_code, 0xFF)) {
-    printf("error_code=%d\n", error_code);
-    return -3;
+  if (print_pv) {
+    pve_line_with_variants_to_stream(pve, (const PVCell **const) pve->root_line, stdout);
   }
-
-  pve_line_with_variants_to_stream(pve, (const PVCell **const ) pve->root_line, stdout);
 
   free(pve);
 

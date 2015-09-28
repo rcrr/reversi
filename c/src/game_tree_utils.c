@@ -1198,6 +1198,7 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
       goto variants;
     }
   }
+  fprintf(stream, "\n");
 }
 
 /**
