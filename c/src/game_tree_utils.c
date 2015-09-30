@@ -1137,10 +1137,10 @@ pve_line_internals_to_stream (const PVEnv *const pve,
 }
 
 /**
- * @brief Prints the `line` with variants into the returning string.
+ * @brief Prints the `line` with variants into the given stream.
  *
- * @param [in] pve  a pointer to the principal variation environment
- * @param [in] line the line to be printed
+ * @param [in] pve    a pointer to the principal variation environment
+ * @param [in] line   the line to be printed
  * @param [in] stream the stream collecting the output
  */
 void
@@ -1148,6 +1148,10 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
                                   const PVCell **const line,
                                   FILE *const stream)
 {
+  g_assert(pve);
+  g_assert(line);
+  g_assert(stream);
+
   int branches[128];
   int holes[128];
   PVCell **lines[128];
@@ -1158,11 +1162,11 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
 
  print_line:
   branches[idx] = 0;
-  int ind = 0;
+  size_t indentation = 0;
   for (int i = 0; i <= idx; i++) {
-    ind += holes[i];
+    indentation += holes[i];
   }
-  for (int i = 0; i < ind; i++) {
+  for (size_t i = 0; i < indentation; i++) {
     fprintf(stream, "    ");
   }
   for (const PVCell *c = *lines[idx]; c != NULL; c = c->next) {
@@ -1175,9 +1179,9 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
       if (c->next) fprintf(stream, "  ");
     }
   }
+  fprintf(stream, "\n");
  variants:
   if (branches[idx] > 0) {
-    fprintf(stream, "\n");
     int branch_count = branches[idx];
     int hole_count = 0;
     const PVCell *c = *lines[idx];
@@ -1198,7 +1202,6 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
       goto variants;
     }
   }
-  fprintf(stream, "\n");
 }
 
 /**
