@@ -402,14 +402,14 @@ static uint8_t **flip_stack = &(global_flip_stack[0]);
  * @brief Solves the game position defined by the `root` parameter,
  *        applying the ifes solver.
  *
- * The "Improved Fast Endgame Solver" is described by the module documentation.
+ *        The "Improved Fast Endgame Solver" is described by the module documentation.
  *
- * @invariant Parameters `root` must be not `NULL`.
- * The invariants are guarded by assertions.
+ * @invariant Parameters `root` and `env` must be not `NULL`.
+ *            The invariants are guarded by assertions.
  *
- * @param [in] root     the game position to be solved
- * @param [in] env      parameter envelope
- * @return              the exact solution is the collector for results
+ * @param [in] root the game position to be solved
+ * @param [in] env  parameter envelope
+ * @return          the exact solution is the collector for results
  */
 ExactSolution *
 game_position_ifes_solve (const GamePosition *const root,

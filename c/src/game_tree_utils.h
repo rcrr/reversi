@@ -117,7 +117,7 @@ typedef enum {
 typedef uint64_t switches_t;
 
 /**
- * @brief An exact solution is an entity that holds the result of a #game_position_solve run.
+ * @brief An exact solution is an entity that holds the result of a #endgame_solver_f run.
  */
 typedef struct {
   GamePosition *solved_game_position;        /**< @brief The game position given as input. */

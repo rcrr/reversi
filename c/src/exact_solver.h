@@ -2,7 +2,7 @@
  * @file
  *
  * @brief Exact solver module definitions.
- * @details This module defines the #game_position_solve function.
+ * @details This module defines the #game_position_es_solve function.
  *
  * @par exact_solver.h
  * <tt>

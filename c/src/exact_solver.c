@@ -154,8 +154,11 @@ static const bool pv_internals_to_stream = false;
 /**
  * @brief Solves the game position returning a new exact solution pointer.
  *
+ * @invariant Parameters `root` and `env` must be not `NULL`.
+ *             The invariants are guarded by assertions.
+ *
  * @param [in] root     the starting game position to be solved
- * @param [in] log_file if not null turns logging on the given file name
+ * @param [in] env      parameter envelope
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution *

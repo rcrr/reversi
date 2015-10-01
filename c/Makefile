@@ -215,8 +215,12 @@ $(TEST_BINDIR)/.dir_sentinel:
 
 .PHONY: doxygen
 doxygen: $(DOCDIR)
-	doxygen >build/doxygen.log
+	doxygen > build/doxygen.log
+
+.PHONY: doxygen_latex
+doxygen_latex: $(DOCDIR)
 	(cd build/doc/latex; make >make-stdout_and_stderr.log 2>&1)
+
 
 ABC_DIR = build/abc
 
