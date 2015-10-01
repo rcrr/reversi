@@ -436,6 +436,10 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
                                   FILE *const stream);
 
 extern void
+pve_root_line_as_table_to_stream (const PVEnv *const pve,
+                                  FILE *const stream);
+
+extern void
 pve_line_copy_to_exact_solution (const PVEnv *const pve,
                                  const PVCell **const line,
                                  ExactSolution *const es);

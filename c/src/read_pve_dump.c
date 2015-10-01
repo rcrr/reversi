@@ -85,19 +85,21 @@ static const gchar *program_documentation_string =
 
 /* Static variables. */
 
-static gchar    *input_file      = NULL;
-static uint64_t  internals       = 0;
-static gboolean  print_summary   = FALSE;
-static gboolean  print_pv        = FALSE;
-static gboolean  check_invariant = FALSE;
+static gchar    *input_file        = NULL;
+static uint64_t  internals         = 0;
+static gboolean  print_summary     = FALSE;
+static gboolean  print_pv          = FALSE;
+static gboolean  print_pv_as_table = FALSE;
+static gboolean  check_invariant   = FALSE;
 
 static const GOptionEntry entries[] =
   {
-    { "input-file",      'f', 0, G_OPTION_ARG_FILENAME, &input_file,      "Input file name     - Mandatory", NULL },
-    { "internals",       'i', 0, G_OPTION_ARG_INT64,    &internals,       "Print PVE internals - Switches in hex form", NULL },
-    { "print-summary",   's', 0, G_OPTION_ARG_NONE,     &print_summary,   "Print summary       - Reads only the file header and exits", NULL },
-    { "print-pv",        'p', 0, G_OPTION_ARG_NONE,     &print_pv,        "Print pv            - Prints human readable PV", NULL },
-    { "check-invariant", 'c', 0, G_OPTION_ARG_NONE,     &check_invariant, "Check PVE invariant - Stops execution if a violation is detected", NULL },
+    { "input-file",        'f', 0, G_OPTION_ARG_FILENAME, &input_file,        "Input file name     - Mandatory", NULL },
+    { "internals",         'i', 0, G_OPTION_ARG_INT64,    &internals,         "Print PVE internals - Switches in hex form", NULL },
+    { "print-summary",     's', 0, G_OPTION_ARG_NONE,     &print_summary,     "Print summary       - Reads only the file header and exits", NULL },
+    { "print-pv",          'p', 0, G_OPTION_ARG_NONE,     &print_pv,          "Print pv            - Prints human readable PV", NULL },
+    { "print-pv-as-table", 't', 0, G_OPTION_ARG_NONE,     &print_pv_as_table, "Print pv as table   - Prints PV as a csv file ready for an SQL loader", NULL },
+    { "check-invariant",   'c', 0, G_OPTION_ARG_NONE,     &check_invariant,   "Check PVE invariant - Stops execution if a violation is detected", NULL },
     { NULL }
   };
 
@@ -163,6 +165,10 @@ main (int argc, char *argv[])
 
   if (print_pv) {
     pve_line_with_variants_to_stream(pve, (const PVCell **const) pve->root_line, stdout);
+  }
+
+  if (print_pv_as_table) {
+    pve_root_line_as_table_to_stream(pve, stdout);
   }
 
   free(pve);
