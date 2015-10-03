@@ -1224,26 +1224,16 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
   static const size_t max_recursion_depth = 128;
 
   int branches[max_recursion_depth];
-  int holes[max_recursion_depth];
   PVCell **lines[max_recursion_depth];
   unsigned int levels[max_recursion_depth]; // levels and level have to substitute holes and hole_count. level can be removed ....
 
   int idx = 0;
-  holes[idx] = 0;
   lines[idx] = pve->root_line;
   levels[0] = 0;
 
  print_line:
   branches[idx] = 0;
-  size_t indentation = 0;
-  for (int i = 0; i <= idx; i++) {
-    indentation += holes[i];
-  }
-  if (indentation != levels[idx]) {
-    printf("indentation=%zu, idx=%d, levels[idx]=%u\n", indentation, idx, levels[idx]);
-    abort();
-  }
-  for (size_t i = 0; i < indentation; i++) {
+  for (size_t i = 0; i < levels[idx]; i++) {
     fprintf(stream, "    ");
   }
   for (const PVCell *c = *lines[idx]; c != NULL; c = c->next) {
@@ -1260,20 +1250,16 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
  variants:
   if (branches[idx] > 0) {
     int branch_count = branches[idx];
-    int hole_count = 0;
-    unsigned int level = levels[idx];
+    levels[idx + 1] = levels[idx];
     const PVCell *c = *lines[idx];
     for (;;) {
       if (c->variant) branch_count--;
       if (branch_count == 0) break;
-      hole_count++;
-      level++;
+      levels[idx + 1]++;
       c = c->next;
     }
     branches[idx]--;
     idx++;
-    holes[idx] = hole_count;
-    levels[idx] = level;
     lines[idx] = c->variant;
     goto print_line;
   } else {
