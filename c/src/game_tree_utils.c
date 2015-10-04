@@ -1223,23 +1223,25 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
    */
   static const size_t max_recursion_depth = 128;
 
-  int branches[max_recursion_depth];
-  PVCell **lines[max_recursion_depth];
-  unsigned int levels[max_recursion_depth]; // levels and level have to substitute holes and hole_count. level can be removed ....
+  struct row_t {
+    PVCell **line;
+    unsigned int variant_count;
+    unsigned int distance_from_root;
+  } rows[max_recursion_depth];
 
-  int idx = 0;
-  lines[idx] = pve->root_line;
-  levels[0] = 0;
+  struct row_t *row = &rows[0];
+  row->line = pve->root_line;
+  row->distance_from_root = 0;
 
  print_line:
-  branches[idx] = 0;
-  for (size_t i = 0; i < levels[idx]; i++) {
+  row->variant_count = 0;
+  for (size_t i = 0; i < row->distance_from_root; i++) {
     fprintf(stream, "    ");
   }
-  for (const PVCell *c = *lines[idx]; c != NULL; c = c->next) {
+  for (const PVCell *c = *(row->line); c != NULL; c = c->next) {
     fprintf(stream, "%s", square_as_move_to_string(c->move));
     if (c->variant) {
-      branches[idx]++;
+      row->variant_count++;
       fprintf(stream, ".");
       if (c->next) fprintf(stream, " ");
     } else {
@@ -1248,23 +1250,23 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
   }
   fprintf(stream, "\n");
  variants:
-  if (branches[idx] > 0) {
-    int branch_count = branches[idx];
-    levels[idx + 1] = levels[idx];
-    const PVCell *c = *lines[idx];
+  if (row->variant_count > 0) {
+    int branch_count = row->variant_count;
+    (row + 1)->distance_from_root = row->distance_from_root;
+    const PVCell *c = *(row->line);
     for (;;) {
       if (c->variant) branch_count--;
       if (branch_count == 0) break;
-      levels[idx + 1]++;
+      (row + 1)->distance_from_root++;
       c = c->next;
     }
-    branches[idx]--;
-    idx++;
-    lines[idx] = c->variant;
+    row->variant_count--;
+    row++;
+    row->line = c->variant;
     goto print_line;
   } else {
-    if (idx != 0) {
-      idx--;
+    if (row->line != pve->root_line) {
+      row--;
       goto variants;
     }
   }
