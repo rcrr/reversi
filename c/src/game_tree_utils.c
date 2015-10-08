@@ -2267,7 +2267,7 @@ pve_twa_eol_csv (const PVEnv *const pve,
                  FILE *const stream,
                  pve_row_t *const row)
 {
-  fprintf(stream, "\n");
+  ;
 }
 
 static void
@@ -2275,8 +2275,7 @@ pve_twa_bol_csv (const PVEnv *const pve,
                  FILE *const stream,
                  pve_row_t *const row)
 {
-  int64_t line_id = (int64_t) row->line;
-  fprintf(stream, "%zd", line_id);
+  ;
 }
 
 static void
@@ -2285,13 +2284,20 @@ pve_twa_cell_csv (const PVEnv *const pve,
                   pve_row_t *const row,
                   const PVCell *const cell)
 {
-  fprintf(stream, "%s", square_as_move_to_string(cell->move));
-  if (cell->variant) {
-    fprintf(stream, ".");
-    if (cell->next) fprintf(stream, " ");
-  } else {
-    if (cell->next) fprintf(stream, "  ");
-  }
+  int64_t line_id = (int64_t) row->line;
+  int64_t cell_id = (int64_t) cell;
+  int64_t variant_id = (int64_t) cell->variant;
+  int64_t next_id = (int64_t) cell->next;
+  unsigned int head_level = row->dist_lev_0;
+  unsigned int rel_level = 0; // has to be added to row ...
+  fprintf(stream, "%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%2s;%2u;%2u" "\n",
+          line_id,
+          cell_id,
+          variant_id,
+          next_id,
+          square_as_move_to_string(cell->move),
+          head_level,
+          rel_level);
 }
 
 
