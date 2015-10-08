@@ -123,15 +123,24 @@ pve_tree_walker (const PVEnv *const pve,
                                                 pve_row_t *const row),
                  void (* end_of_line_action) (const PVEnv *const pve,
                                               FILE *const stream,
-                                              pve_row_t *const row));
+                                              pve_row_t *const row),
+                 void (* cell_action) (const PVEnv *const pve,
+                                       FILE *const stream,
+                                       pve_row_t *const row,
+                                       const PVCell *const cell));
 
-static void pve_eol (const PVEnv *const pve,
-                     FILE *const stream,
-                     pve_row_t *const row);
+static void pve_twa_eol (const PVEnv *const pve,
+                         FILE *const stream,
+                         pve_row_t *const row);
 
-static void pve_bol (const PVEnv *const pve,
-                     FILE *const stream,
-                     pve_row_t *const row);
+static void pve_twa_bol (const PVEnv *const pve,
+                         FILE *const stream,
+                         pve_row_t *const row);
+
+static void pve_twa_cell (const PVEnv *const pve,
+                          FILE *const stream,
+                          pve_row_t *const row,
+                          const PVCell *const cell);
 
 
 
@@ -1248,7 +1257,7 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
   g_assert(pve);
   g_assert(stream);
 
-  pve_tree_walker(pve, stream, pve_bol, pve_eol);
+  pve_tree_walker(pve, stream, pve_twa_bol, pve_twa_eol, pve_twa_cell);
 }
 
 /**
@@ -2203,7 +2212,11 @@ pve_tree_walker (const PVEnv *const pve,
                                                 pve_row_t *const row),
                  void (* end_of_line_action) (const PVEnv *const pve,
                                               FILE *const stream,
-                                              pve_row_t *const row))
+                                              pve_row_t *const row),
+                 void (* cell_action) (const PVEnv *const pve,
+                                       FILE *const stream,
+                                       pve_row_t *const row,
+                                       const PVCell *const cell))
 {
   g_assert(pve);
   g_assert(stream);
@@ -2214,55 +2227,81 @@ pve_tree_walker (const PVEnv *const pve,
    */
   static const size_t max_recursion_depth = 128;
 
+  /* The stack of pve lines to be traversed, organized in a wrapper structure (pve_row_t). */
   pve_row_t row_stack[max_recursion_depth];
 
-  pve_row_t current_row_copy;
+  /* Initializes the first element in the row array. */
+  row_stack->line = pve->root_line;
+  row_stack->dist_lev_0 = 0;
 
-  pve_row_t *row_stack_header = row_stack;
+  /* Sets the header pointer on the second element. */
+  pve_row_t *row_stack_header = row_stack + 1;
 
-  pve_row_t *row = row_stack_header++;
-  row->line = pve->root_line;
-  row->dist_lev_0 = 0;
-
+  /* Loops until there are unprocessed lines on the stack. */
   while (row_stack_header > row_stack) {
-    current_row_copy.line = row->line;
-    current_row_copy.dist_lev_0 = row->dist_lev_0;
+    row_stack_header--;
+
+    /*
+     * Each iteration of the while loop works on a line.
+     * The current line cannot be a pointer on the row stack, becouse it can be overwritten
+     * during the iteration.
+     * The current row copy is set at the beginning of each iteration and is then used safely.
+     */
+    pve_row_t current_row_copy;
+
+    /* Copies the current row fields from the stack element just discarded.*/
+    current_row_copy.line = row_stack_header->line;
+    current_row_copy.dist_lev_0 = row_stack_header->dist_lev_0;
+
     if (begin_of_line_action) begin_of_line_action(pve, stream, &current_row_copy);
 
     unsigned int position = 0;
     for (const PVCell *c = *current_row_copy.line; c != NULL; c = c->next, position++) {
-      fprintf(stream, "%s", square_as_move_to_string(c->move));                  // --
+      if (cell_action) cell_action(pve, stream, &current_row_copy, c);
       if (c->variant) {
         pve_row_t *const v = row_stack_header++;
         v->line = c->variant;
         v->dist_lev_0 = current_row_copy.dist_lev_0 + position;
-        fprintf(stream, ".");                                                    // --
-        if (c->next) fprintf(stream, " ");                                       // --
-      } else {                                                                   // --
-        if (c->next) fprintf(stream, "  ");                                      // --
       }
     }
-    if (end_of_line_action) end_of_line_action(pve, stream, &current_row_copy);
 
-    row = --row_stack_header;
+    if (end_of_line_action) end_of_line_action(pve, stream, &current_row_copy);
   }
 }
 
-void pve_eol (const PVEnv *const pve,
-              FILE *const stream,
-              pve_row_t *const row)
+static void
+pve_twa_eol (const PVEnv *const pve,
+             FILE *const stream,
+             pve_row_t *const row)
 {
   fprintf(stream, "\n");
 }
 
-void pve_bol (const PVEnv *const pve,
-              FILE *const stream,
-              pve_row_t *const row)
+static void
+pve_twa_bol (const PVEnv *const pve,
+             FILE *const stream,
+             pve_row_t *const row)
 {
   for (size_t i = 0; i < row->dist_lev_0; i++) {
     fprintf(stream, "    ");
   }
 }
+
+static void
+pve_twa_cell (const PVEnv *const pve,
+              FILE *const stream,
+              pve_row_t *const row,
+              const PVCell *const cell)
+{
+  fprintf(stream, "%s", square_as_move_to_string(cell->move));
+  if (cell->variant) {
+    fprintf(stream, ".");
+    if (cell->next) fprintf(stream, " ");
+  } else {
+    if (cell->next) fprintf(stream, "  ");
+  }
+}
+
 
 
 /**
