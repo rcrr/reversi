@@ -65,6 +65,19 @@
       g_assert(!error_code);                                            \
     } while (0);
 
+
+
+/*
+ * Local types.
+ */
+
+typedef struct {
+  PVCell **line;
+  unsigned int dist_lev_0;
+} pve_row_t;
+
+
+
 /*
  * Prototypes for internal functions.
  */
@@ -101,6 +114,24 @@ pve_populate_segments_sorted_map (size_t *const segments_sorted_map,
                                   const size_t active_segments_count,
                                   const void **const unsorted_segments,
                                   const void **const sorted_segments);
+
+static void
+pve_tree_walker (const PVEnv *const pve,
+                 FILE *const stream,
+                 void (* begin_of_line_action) (const PVEnv *const pve,
+                                                FILE *const stream,
+                                                pve_row_t *const row),
+                 void (* end_of_line_action) (const PVEnv *const pve,
+                                              FILE *const stream,
+                                              pve_row_t *const row));
+
+static void pve_eol (const PVEnv *const pve,
+                     FILE *const stream,
+                     pve_row_t *const row);
+
+static void pve_bol (const PVEnv *const pve,
+                     FILE *const stream,
+                     pve_row_t *const row);
 
 
 
@@ -1217,46 +1248,7 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
   g_assert(pve);
   g_assert(stream);
 
-  /*
-   * The board has 64 squares, each move can have a pass, so
-   * keeping it simple, 128 is the theoretical upper bound.
-   */
-  static const size_t max_recursion_depth = 128;
-
-  struct row_t {
-    PVCell **line;
-    unsigned int dist_lev_0;
-  } row_stack[max_recursion_depth];
-
-  struct row_t *row_stack_header = row_stack;
-
-  struct row_t *row = row_stack_header++;
-  row->line = pve->root_line;
-  row->dist_lev_0 = 0;
-
-  while (row_stack_header > row_stack) {
-    PVCell **const line = row->line;
-    const unsigned int dist_lev_0 = row->dist_lev_0;
-    for (size_t i = 0; i < dist_lev_0; i++) {
-      fprintf(stream, "    ");
-    }
-    unsigned int position = 0;
-    for (const PVCell *c = *line; c != NULL; c = c->next, position++) {
-      fprintf(stream, "%s", square_as_move_to_string(c->move));                  // --
-      if (c->variant) {
-        struct row_t *const v = row_stack_header++;
-        v->line = c->variant;
-        v->dist_lev_0 = dist_lev_0 + position;
-        fprintf(stream, ".");                                                    // --
-        if (c->next) fprintf(stream, " ");                                       // --
-      } else {                                                                   // --
-        if (c->next) fprintf(stream, "  ");                                      // --
-      }
-    }
-    fprintf(stream, "\n");                                                       // --
-
-    row = --row_stack_header;
-  }
+  pve_tree_walker(pve, stream, pve_bol, pve_eol);
 }
 
 /**
@@ -2191,6 +2183,84 @@ pve_populate_segments_sorted_map (size_t *const segments_sorted_map,
         break;
       }
     }
+  }
+}
+
+
+/**
+ * @brief Traverses the PVE structure.
+ *
+ * @details All lines and cells are touches once.
+ *
+ * @param [in] pve    a pointer to the principal variation environment
+ * @param [in] stream the stream collecting the output
+ */
+static void
+pve_tree_walker (const PVEnv *const pve,
+                 FILE *const stream,
+                 void (* begin_of_line_action) (const PVEnv *const pve,
+                                                FILE *const stream,
+                                                pve_row_t *const row),
+                 void (* end_of_line_action) (const PVEnv *const pve,
+                                              FILE *const stream,
+                                              pve_row_t *const row))
+{
+  g_assert(pve);
+  g_assert(stream);
+
+  /*
+   * The board has 64 squares, each move can have a pass, so
+   * keeping it simple, 128 is the theoretical upper bound.
+   */
+  static const size_t max_recursion_depth = 128;
+
+  pve_row_t row_stack[max_recursion_depth];
+
+  pve_row_t current_row_copy;
+
+  pve_row_t *row_stack_header = row_stack;
+
+  pve_row_t *row = row_stack_header++;
+  row->line = pve->root_line;
+  row->dist_lev_0 = 0;
+
+  while (row_stack_header > row_stack) {
+    current_row_copy.line = row->line;
+    current_row_copy.dist_lev_0 = row->dist_lev_0;
+    if (begin_of_line_action) begin_of_line_action(pve, stream, &current_row_copy);
+
+    unsigned int position = 0;
+    for (const PVCell *c = *current_row_copy.line; c != NULL; c = c->next, position++) {
+      fprintf(stream, "%s", square_as_move_to_string(c->move));                  // --
+      if (c->variant) {
+        pve_row_t *const v = row_stack_header++;
+        v->line = c->variant;
+        v->dist_lev_0 = current_row_copy.dist_lev_0 + position;
+        fprintf(stream, ".");                                                    // --
+        if (c->next) fprintf(stream, " ");                                       // --
+      } else {                                                                   // --
+        if (c->next) fprintf(stream, "  ");                                      // --
+      }
+    }
+    if (end_of_line_action) end_of_line_action(pve, stream, &current_row_copy);
+
+    row = --row_stack_header;
+  }
+}
+
+void pve_eol (const PVEnv *const pve,
+              FILE *const stream,
+              pve_row_t *const row)
+{
+  fprintf(stream, "\n");
+}
+
+void pve_bol (const PVEnv *const pve,
+              FILE *const stream,
+              pve_row_t *const row)
+{
+  for (size_t i = 0; i < row->dist_lev_0; i++) {
+    fprintf(stream, "    ");
   }
 }
 
