@@ -1203,6 +1203,13 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
     }
   }
 }
+
+/**
+ * @brief Prints the `pve` root line with variants as a table into the given stream.
+ *
+ * @param [in] pve    a pointer to the principal variation environment
+ * @param [in] stream the stream collecting the output
+ */
 void
 pve_root_line_as_table_to_stream (const PVEnv *const pve,
                                   FILE *const stream)
@@ -1214,7 +1221,7 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
    * The board has 64 squares, each move can have a pass, so
    * keeping it simple, 128 is the theoretical upper bound.
    */
-  static const size_t max_recursion_depth = 16;
+  static const size_t max_recursion_depth = 128;
 
   struct row_t {
     PVCell **line;
@@ -1250,139 +1257,6 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
 
     row = --row_stack_header;
   }
-}
-
-
-/**
- * @brief Prints the `pve` root line with variants as a table into the given stream.
- *
- * @param [in] pve    a pointer to the principal variation environment
- * @param [in] stream the stream collecting the output
- */
-void
-pve_root_line_as_table_to_stream__ (const PVEnv *const pve,
-                                    FILE *const stream)
-{
-  g_assert(pve);
-  g_assert(stream);
-
-  /*
-   * The board has 64 squares, each move can have a pass, so
-   * keeping it simple, 128 is the theoretical upper bound.
-   */
-  static const size_t max_recursion_depth = 128;
-
-  PVCell **variant_stack[max_recursion_depth];
-  PVCell ***variant_stack_header = variant_stack;
-
-  struct row_t {
-    PVCell **line;
-    unsigned int variant_count;
-    unsigned int distance_from_root;
-  } rows[max_recursion_depth];
-
-  struct row_t *row = &rows[0];
-  row->line = pve->root_line;
-  row->distance_from_root = 0;
-
- print_line:
-  row->variant_count = 0;
-  for (size_t i = 0; i < row->distance_from_root; i++) {
-    fprintf(stream, "    ");
-  }
-  for (const PVCell *c = *(row->line); c != NULL; c = c->next) {
-    fprintf(stream, "%s", square_as_move_to_string(c->move));
-    if (c->variant) {
-      *variant_stack_header++ = c->variant;
-      row->variant_count++;
-      fprintf(stream, ".");
-      if (c->next) fprintf(stream, " ");
-    } else {
-      if (c->next) fprintf(stream, "  ");
-    }
-  }
-  fprintf(stream, "\n");
- variants:
-  if (row->variant_count > 0) {
-    unsigned int branch_count = row->variant_count;
-    row->variant_count--;
-    const PVCell *c = *(row->line);
-    row++;
-    row->distance_from_root = (row - 1)->distance_from_root;
-    for (;;) {
-      if (c->variant) branch_count--;
-      if (branch_count == 0) break;
-      row->distance_from_root++;
-      c = c->next;
-    }
-    variant_stack_header--;
-    g_assert(*variant_stack_header == c->variant);
-    row->line = c->variant;
-    goto print_line;
-  } else {
-    if (row->line != pve->root_line) {
-      row--;
-      goto variants;
-    }
-  }
-
-  /*
-
-  PVCell **line_stack[max_recursion_depth];
-  PVCell ***line_stack_header = line_stack;
-
-  struct row_t {
-    PVCell **line;
-    unsigned int variant_count;
-    unsigned int distance_from_root;
-  } rows[max_recursion_depth];
-
-  struct row_t *row = &rows[0];
-  row->line = pve->root_line;
-  row->distance_from_root = 0;
-
- print_line:
-  row->variant_count = 0;
-  for (size_t i = 0; i < row->distance_from_root; i++) {
-    fprintf(stream, "    ");
-  }
-  for (const PVCell *c = *(row->line); c != NULL; c = c->next) {
-    fprintf(stream, "%s", square_as_move_to_string(c->move));
-    if (c->variant) {
-      *line_stack_header = c->variant;
-      line_stack_header++;
-      row->variant_count++;
-      fprintf(stream, ".");
-      if (c->next) fprintf(stream, " ");
-    } else {
-      if (c->next) fprintf(stream, "  ");
-    }
-  }
-  fprintf(stream, "\n");
- variants:
-  if (row->variant_count > 0) {
-    unsigned int branch_count = row->variant_count;
-    row->variant_count--;
-    const PVCell *c = *(row->line);
-    row++;
-    row->distance_from_root = (row - 1)->distance_from_root;
-    for (;;) {
-      if (c->variant) branch_count--;
-      if (branch_count == 0) break;
-      row->distance_from_root++;
-      c = c->next;
-    }
-    line_stack_header--;
-    g_assert(*line_stack_header == c->variant);
-    row->line = c->variant;
-    goto print_line;
-  } else {
-    if (row->line != pve->root_line) {
-      row--;
-      goto variants;
-    }
-  }
-   */
 }
 
 /**
