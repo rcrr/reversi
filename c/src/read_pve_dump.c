@@ -164,10 +164,11 @@ main (int argc, char *argv[])
   }
 
   if (print_pv) {
-    pve_line_with_variants_to_stream(pve, (const PVCell **const) pve->root_line, stdout);
+    pve_line_with_variants_to_stream(pve, stdout);
   }
 
   if (print_pv_as_table) {
+    printf("LINE_ID\n");
     pve_root_line_as_table_to_stream(pve, stdout);
   }
 

@@ -142,6 +142,19 @@ static void pve_twa_cell (const PVEnv *const pve,
                           pve_row_t *const row,
                           const PVCell *const cell);
 
+static void pve_twa_eol_csv (const PVEnv *const pve,
+                             FILE *const stream,
+                             pve_row_t *const row);
+
+static void pve_twa_bol_csv (const PVEnv *const pve,
+                             FILE *const stream,
+                             pve_row_t *const row);
+
+static void pve_twa_cell_csv (const PVEnv *const pve,
+                              FILE *const stream,
+                              pve_row_t *const row,
+                              const PVCell *const cell);
+
 
 
 
@@ -1180,68 +1193,15 @@ pve_line_internals_to_stream (const PVEnv *const pve,
  * @brief Prints the `line` with variants into the given stream.
  *
  * @param [in] pve    a pointer to the principal variation environment
- * @param [in] line   the line to be printed
  * @param [in] stream the stream collecting the output
  */
 void
 pve_line_with_variants_to_stream (const PVEnv *const pve,
-                                  const PVCell **const line,
                                   FILE *const stream)
 {
   g_assert(pve);
-  g_assert(line);
   g_assert(stream);
-
-  int branches[128];
-  int holes[128];
-  PVCell **lines[128];
-
-  int idx = 0;
-  holes[idx] = 0;
-  lines[idx] = (PVCell **) line;
-
- print_line:
-  branches[idx] = 0;
-  size_t indentation = 0;
-  for (int i = 0; i <= idx; i++) {
-    indentation += holes[i];
-  }
-  for (size_t i = 0; i < indentation; i++) {
-    fprintf(stream, "    ");
-  }
-  for (const PVCell *c = *lines[idx]; c != NULL; c = c->next) {
-    fprintf(stream, "%s", square_as_move_to_string(c->move));
-    if (c->variant) {
-      branches[idx]++;
-      fprintf(stream, ".");
-      if (c->next) fprintf(stream, " ");
-    } else {
-      if (c->next) fprintf(stream, "  ");
-    }
-  }
-  fprintf(stream, "\n");
- variants:
-  if (branches[idx] > 0) {
-    int branch_count = branches[idx];
-    int hole_count = 0;
-    const PVCell *c = *lines[idx];
-    for (;;) {
-      if (c->variant) branch_count--;
-      if (branch_count == 0) break;
-      hole_count++;
-      c = c->next;
-    }
-    branches[idx]--;
-    idx++;
-    holes[idx] = hole_count;
-    lines[idx] = c->variant;
-    goto print_line;
-  } else {
-    if (idx != 0) {
-      idx--;
-      goto variants;
-    }
-  }
+  pve_tree_walker(pve, stream, pve_twa_bol, pve_twa_eol, pve_twa_cell);
 }
 
 /**
@@ -1257,7 +1217,7 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
   g_assert(pve);
   g_assert(stream);
 
-  pve_tree_walker(pve, stream, pve_twa_bol, pve_twa_eol, pve_twa_cell);
+  pve_tree_walker(pve, stream, pve_twa_bol_csv, pve_twa_eol_csv, pve_twa_cell_csv);
 }
 
 /**
@@ -2292,6 +2252,38 @@ pve_twa_cell (const PVEnv *const pve,
               FILE *const stream,
               pve_row_t *const row,
               const PVCell *const cell)
+{
+  fprintf(stream, "%s", square_as_move_to_string(cell->move));
+  if (cell->variant) {
+    fprintf(stream, ".");
+    if (cell->next) fprintf(stream, " ");
+  } else {
+    if (cell->next) fprintf(stream, "  ");
+  }
+}
+
+static void
+pve_twa_eol_csv (const PVEnv *const pve,
+                 FILE *const stream,
+                 pve_row_t *const row)
+{
+  fprintf(stream, "\n");
+}
+
+static void
+pve_twa_bol_csv (const PVEnv *const pve,
+                 FILE *const stream,
+                 pve_row_t *const row)
+{
+  int64_t line_id = (int64_t) row->line;
+  fprintf(stream, "%zd", line_id);
+}
+
+static void
+pve_twa_cell_csv (const PVEnv *const pve,
+                  FILE *const stream,
+                  pve_row_t *const row,
+                  const PVCell *const cell)
 {
   fprintf(stream, "%s", square_as_move_to_string(cell->move));
   if (cell->variant) {

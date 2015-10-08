@@ -214,7 +214,7 @@ game_position_es_solve (const GamePosition *const root,
 
   if (pv_full_recording && !env->pv_no_print) {
     printf("\n --- --- pve_line_with_variants_to_string() START --- ---\n");
-    pve_line_with_variants_to_stream(pve, (const PVCell **const ) pve->root_line, stdout);
+    pve_line_with_variants_to_stream(pve, stdout);
     printf("\n --- --- pve_line_with_variants_to_string() COMPLETED --- ---\n");
   }
 

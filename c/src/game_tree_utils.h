@@ -432,7 +432,6 @@ pve_line_internals_to_stream (const PVEnv *const pve,
 
 extern void
 pve_line_with_variants_to_stream (const PVEnv *const pve,
-                                  const PVCell **const line,
                                   FILE *const stream);
 
 extern void
