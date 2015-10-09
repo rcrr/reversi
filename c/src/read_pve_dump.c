@@ -168,18 +168,6 @@ main (int argc, char *argv[])
   }
 
   if (print_pv_as_table) {
-    fprintf(stdout, "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
-            "LINE_ID",
-            "MOVE_ID",
-            "VARIANT_ID",
-            "NEZT_ID",
-            "MOVE",
-            "HEAD_LEVEL",
-            "REL_LEVEL",
-            "GP_HASH",
-            "GP_B",
-            "GP_W",
-            "GP_P");
     pve_root_line_as_table_to_stream(pve, stdout);
   }
 

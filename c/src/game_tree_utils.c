@@ -1210,6 +1210,19 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
   g_assert(pve);
   g_assert(stream);
 
+  fprintf(stream, "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
+          "LINE_ID",
+          "MOVE_ID",
+          "VARIANT_ID",
+          "NEZT_ID",
+          "MOVE",
+          "HEAD_LEVEL",
+          "REL_LEVEL",
+          "GP_HASH",
+          "GP_B",
+          "GP_W",
+          "GP_P");
+
   pve_tree_walker(pve, stream, NULL, NULL, pve_twa_cell_csv);
 }
 
