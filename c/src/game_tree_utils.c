@@ -74,6 +74,7 @@
 typedef struct {
   PVCell **line;
   unsigned int dist_lev_0;
+  unsigned int rel_distance;
 } pve_row_t;
 
 
@@ -141,14 +142,6 @@ static void pve_twa_cell (const PVEnv *const pve,
                           FILE *const stream,
                           pve_row_t *const row,
                           const PVCell *const cell);
-
-static void pve_twa_eol_csv (const PVEnv *const pve,
-                             FILE *const stream,
-                             pve_row_t *const row);
-
-static void pve_twa_bol_csv (const PVEnv *const pve,
-                             FILE *const stream,
-                             pve_row_t *const row);
 
 static void pve_twa_cell_csv (const PVEnv *const pve,
                               FILE *const stream,
@@ -1217,7 +1210,7 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
   g_assert(pve);
   g_assert(stream);
 
-  pve_tree_walker(pve, stream, pve_twa_bol_csv, pve_twa_eol_csv, pve_twa_cell_csv);
+  pve_tree_walker(pve, stream, NULL, NULL, pve_twa_cell_csv);
 }
 
 /**
@@ -2212,16 +2205,16 @@ pve_tree_walker (const PVEnv *const pve,
     /* Copies the current row fields from the stack element just discarded.*/
     current_row_copy.line = row_stack_header->line;
     current_row_copy.dist_lev_0 = row_stack_header->dist_lev_0;
+    current_row_copy.rel_distance = 0;
 
     if (begin_of_line_action) begin_of_line_action(pve, stream, &current_row_copy);
 
-    unsigned int position = 0;
-    for (const PVCell *c = *current_row_copy.line; c != NULL; c = c->next, position++) {
+    for (const PVCell *c = *current_row_copy.line; c != NULL; c = c->next, current_row_copy.rel_distance++) {
       if (cell_action) cell_action(pve, stream, &current_row_copy, c);
       if (c->variant) {
         pve_row_t *const v = row_stack_header++;
         v->line = c->variant;
-        v->dist_lev_0 = current_row_copy.dist_lev_0 + position;
+        v->dist_lev_0 = current_row_copy.dist_lev_0 + current_row_copy.rel_distance;
       }
     }
 
@@ -2263,22 +2256,6 @@ pve_twa_cell (const PVEnv *const pve,
 }
 
 static void
-pve_twa_eol_csv (const PVEnv *const pve,
-                 FILE *const stream,
-                 pve_row_t *const row)
-{
-  ;
-}
-
-static void
-pve_twa_bol_csv (const PVEnv *const pve,
-                 FILE *const stream,
-                 pve_row_t *const row)
-{
-  ;
-}
-
-static void
 pve_twa_cell_csv (const PVEnv *const pve,
                   FILE *const stream,
                   pve_row_t *const row,
@@ -2289,7 +2266,7 @@ pve_twa_cell_csv (const PVEnv *const pve,
   int64_t variant_id = (int64_t) cell->variant;
   int64_t next_id = (int64_t) cell->next;
   unsigned int head_level = row->dist_lev_0;
-  unsigned int rel_level = 0; // has to be added to row ...
+  unsigned int rel_level = row->rel_distance;
   fprintf(stream, "%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%2s;%2u;%2u" "\n",
           line_id,
           cell_id,
