@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <glib.h>
 
@@ -75,6 +76,7 @@ typedef struct {
   PVCell **line;
   unsigned int dist_lev_0;
   unsigned int rel_distance;
+  GamePositionX gp;
 } pve_row_t;
 
 
@@ -119,6 +121,7 @@ pve_populate_segments_sorted_map (size_t *const segments_sorted_map,
 static void
 pve_tree_walker (const PVEnv *const pve,
                  FILE *const stream,
+                 const bool compute_game_positions,
                  void (* begin_of_line_action) (const PVEnv *const pve,
                                                 FILE *const stream,
                                                 pve_row_t *const row),
@@ -1194,7 +1197,7 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
 {
   g_assert(pve);
   g_assert(stream);
-  pve_tree_walker(pve, stream, pve_twa_bol, pve_twa_eol, pve_twa_cell);
+  pve_tree_walker(pve, stream, false, pve_twa_bol, pve_twa_eol, pve_twa_cell);
 }
 
 /**
@@ -1223,7 +1226,7 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
           "GP_W",
           "GP_P");
 
-  pve_tree_walker(pve, stream, NULL, NULL, pve_twa_cell_csv);
+  pve_tree_walker(pve, stream, true, NULL, NULL, pve_twa_cell_csv);
 }
 
 /**
@@ -2173,6 +2176,7 @@ pve_populate_segments_sorted_map (size_t *const segments_sorted_map,
 static void
 pve_tree_walker (const PVEnv *const pve,
                  FILE *const stream,
+                 const bool compute_game_positions,
                  void (* begin_of_line_action) (const PVEnv *const pve,
                                                 FILE *const stream,
                                                 pve_row_t *const row),
