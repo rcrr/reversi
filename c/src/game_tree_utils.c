@@ -1217,7 +1217,7 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
           "LINE_ID",
           "MOVE_ID",
           "VARIANT_ID",
-          "NEZT_ID",
+          "NEXT_ID",
           "MOVE",
           "HEAD_LEVEL",
           "REL_LEVEL",
@@ -2203,6 +2203,7 @@ pve_tree_walker (const PVEnv *const pve,
   /* Initializes the first element in the row array. */
   row_stack->line = pve->root_line;
   row_stack->dist_lev_0 = 0;
+  if (compute_game_positions) game_position_x_copy(pve->root_game_position, &row_stack->gp);
 
   /* Sets the header pointer on the second element. */
   pve_row_t *row_stack_header = row_stack + 1;
@@ -2223,16 +2224,20 @@ pve_tree_walker (const PVEnv *const pve,
     current_row_copy.line = row_stack_header->line;
     current_row_copy.dist_lev_0 = row_stack_header->dist_lev_0;
     current_row_copy.rel_distance = 0;
+    if (compute_game_positions) game_position_x_copy(&row_stack_header->gp, &current_row_copy.gp);
 
     if (begin_of_line_action) begin_of_line_action(pve, stream, &current_row_copy);
 
+    /* Cycles over the moves of the line. If the move has a variant it is pushed on the stack of rows. */
     for (const PVCell *c = *current_row_copy.line; c != NULL; c = c->next, current_row_copy.rel_distance++) {
-      if (cell_action) cell_action(pve, stream, &current_row_copy, c);
       if (c->variant) {
         pve_row_t *const v = row_stack_header++;
         v->line = c->variant;
         v->dist_lev_0 = current_row_copy.dist_lev_0 + current_row_copy.rel_distance;
+        if (compute_game_positions) game_position_x_copy(&current_row_copy.gp, &v->gp);
       }
+      if (compute_game_positions) game_position_x_make_move(&current_row_copy.gp, c->move, &current_row_copy.gp);
+      if (cell_action) cell_action(pve, stream, &current_row_copy, c);
     }
 
     if (end_of_line_action) end_of_line_action(pve, stream, &current_row_copy);
@@ -2284,14 +2289,22 @@ pve_twa_cell_csv (const PVEnv *const pve,
   int64_t next_id = (int64_t) cell->next;
   unsigned int head_level = row->dist_lev_0;
   unsigned int rel_level = row->rel_distance;
-  fprintf(stream, "%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%2s;%2u;%2u" "\n",
+  uint64_t gp_hash = game_position_x_hash(&row->gp);
+  uint64_t gp_b = row->gp.blacks;
+  uint64_t gp_w = row->gp.whites;
+  Player gp_p = row->gp.player;
+  fprintf(stream, "%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%2s;%2u;%2u;%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d\n",
           line_id,
           cell_id,
           variant_id,
           next_id,
           square_as_move_to_string(cell->move),
           head_level,
-          rel_level);
+          rel_level,
+          gp_hash,
+          gp_b,
+          gp_w,
+          gp_p);
 }
 
 

@@ -168,6 +168,7 @@ main (int argc, char *argv[])
   }
 
   if (print_pv_as_table) {
+    board_module_init();
     pve_root_line_as_table_to_stream(pve, stdout);
   }
 
