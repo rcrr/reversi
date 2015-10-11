@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2014 Roberto Corradini. All rights reserved.
+-- Copyright 2014, 2015 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -27,7 +27,7 @@
 --
 --
 -- This script has been tested with PostgreSQL.
--- Start psql by running: psql -U reversi -w -d reversi -h localhost
+-- Start psql by running: psql -U es -w -d es -h localhost
 -- Load the file by running the command: \i create_schema.sql
 --
 --
@@ -124,6 +124,25 @@ CREATE TYPE square AS ENUM (
   'A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7',
   'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8');
 
+
+
+--
+-- ENUM game_move
+-- This set is composed by 65 elements, the 64 squares, in the same order, and
+-- a 65th element representing the PASS_MOVE.
+--
+CREATE TYPE game_move AS ENUM (
+  'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
+  'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2',
+  'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3',
+  'A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4',
+  'A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5',
+  'A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6',
+  'A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7',
+  'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', '--');
+
+
+  
 --
 -- The square_info table holds all info related to squares.
 --
@@ -349,3 +368,21 @@ CREATE TABLE game_tree_solver (solver        CHAR(20)  PRIMARY KEY,
 INSERT INTO game_tree_solver (solver, function_name) VALUES
   ('SQL_MINIMAX_SOLVER',   'game_tree_minimax_solver_impl'),
   ('SQL_ALPHABETA_SOLVER', 'game_tree_alphabeta_solver_impl');
+
+
+
+--
+-- DROP TABLE IF EXISTS principal_variation_staging;
+--
+CREATE TABLE principal_variation_staging (line_id    BIGINT NOT NULL,
+                                          move_id    BIGINT NOT NULL,
+                                          variant_id BIGINT,
+                                          next_id    BIGINT,
+                                          game_move  game_move,
+                                          head_level INTEGER,
+                                          rel_level  INTEGER,
+                                          gp_hash    BIGINT,
+                                          gp_b       square_set,
+                                          gp_w       square_set,
+                                          gp_p       player,
+                                          PRIMARY KEY(move_id));

@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2014 Roberto Corradini. All rights reserved.
+-- Copyright 2014, 2015 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -27,7 +27,7 @@
 --
 --
 -- This script has been tested with PostgreSQL.
--- Start psql by running: psql -U reversi -w -d reversi -h localhost
+-- Start psql by running: psql -U es -w -d es -h localhost
 -- Load the file by running the command: \i load_game_tree_log_sets.sql
 --
 --
@@ -48,7 +48,7 @@ SELECT current_user AS reversi_username
 --
 -- File ../build/out/rab_solver_log-ffo-01-simplified-4_n3_h.csv is obtained by running
 -- the command:
--- $ make make endgame_log_files
+-- $ make endgame_log_files
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -n 3 -l build/out/rab_solver_log-ffo-01-simplified-4_n3_h.csv
 --
@@ -66,7 +66,7 @@ SELECT gt_check_rab('T000', 2);
 --
 -- File ../build/out/minimax_log-ffo-01-simplified-4_h.csv is obtained by running
 -- the command:
--- $ make make endgame_log_files
+-- $ make endgame_log_files
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s minimax -l build/out/minimax_log-ffo-01-simplified-4
 --
@@ -106,7 +106,7 @@ END $$;
 --
 -- File ../build/out/ab_solver_log-ffo-01-simplified-4_h.csv is obtained by running
 -- the command:
--- $ make make endgame_log_files
+-- $ make endgame_log_files
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s ab -l build/out/ab_solver_log-ffo-01-simplified-4
 --
@@ -146,7 +146,7 @@ END $$;
 --
 -- File ../build/out/random_game_sampler_log-t100_h.csv is obtained by running
 -- the command:
--- $ make make endgame_log_files
+-- $ make endgame_log_files
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-sample-games.txt -q initial -s rand -n 100 -l build/out/random_game_sampler_log-t100 
 --
@@ -171,7 +171,7 @@ END $$;
 --
 -- File ../build/out/exact_solver_log-ffo-01_h.csv is obtained by running
 -- the command:
--- $ make make endgame_log_files
+-- $ make endgame_log_files
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s es -l build/out/exact_solver_log-ffo-01
 --
@@ -183,7 +183,7 @@ SELECT * FROM gt_check('T006', 0);
 --
 -- File ../build/out/ifes_solver_log-ffo-01_h.csv is obtained by running
 -- the command:
--- $ make make endgame_log_files
+-- $ make endgame_log_files
 -- or directly calling:
 -- $ ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-01 -s ifes -l build/out/ifes_solver_log-ffo-01
 --

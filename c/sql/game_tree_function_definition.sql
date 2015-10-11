@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2014 Roberto Corradini. All rights reserved.
+-- Copyright 2014, 2015 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -27,7 +27,7 @@
 --
 --
 -- This script has been tested with PostgreSQL.
--- Start psql by running: psql -U reversi -w -d reversi -h localhost
+-- Start psql by running: psql -U es -w -d es -h localhost
 -- Load the file by running the command: \i function_definition.sql
 --
 --
@@ -39,14 +39,14 @@ SET search_path TO reversi;
 
 
 --
--- Loads everything from gtable game_tree_log_staging into game_tree_log under a freshly created new record in game_tree_log_header.
+-- Loads everything from table game_tree_log_staging into game_tree_log under a freshly created new record in game_tree_log_header.
 -- Returns the number of record loaded in game_tree_log and the run_id value inserted in game_tree_log_header.
 --
-CREATE OR REPLACE FUNCTION gt_load_from_staging(    run_label           CHAR(4),
-                                                    engine_id           CHAR(20),
-                                                    description         TEXT,
-                                                OUT new_run_id          INTEGER,
-                                                OUT record_loaded_count INTEGER)
+CREATE OR REPLACE FUNCTION gt_load_from_staging (    run_label           CHAR(4),
+                                                     engine_id           CHAR(20),
+                                                     description         TEXT,
+                                                 OUT new_run_id          INTEGER,
+                                                 OUT record_loaded_count INTEGER)
 AS $$
 BEGIN
   INSERT INTO game_tree_log_header (run_label, engine_id, run_date, description)
@@ -66,12 +66,12 @@ $$ LANGUAGE plpgsql VOLATILE;
 --
 -- Compares two game tree stored in the tables game_tree_log_header/game_tree_log for equality.
 --
-CREATE OR REPLACE FUNCTION gt_compare(    run_label_a           CHAR(4),
-                                          run_label_b           CHAR(4),
-                                      OUT are_equal             BOOLEAN,
-                                      OUT run_log_count_a       INTEGER,
-                                      OUT run_log_count_b       INTEGER,
-                                      OUT full_outer_join_count INTEGER)
+CREATE OR REPLACE FUNCTION gt_compare (    run_label_a           CHAR(4),
+                                            run_label_b           CHAR(4),
+                                       OUT are_equal             BOOLEAN,
+                                       OUT run_log_count_a       INTEGER,
+                                       OUT run_log_count_b       INTEGER,
+                                       OUT full_outer_join_count INTEGER)
 AS $$
 DECLARE
   run_id_a INTEGER;
@@ -152,14 +152,14 @@ $$ LANGUAGE plpgsql VOLATILE;
 --
 -- Checks a game tree stored in the tables game_tree_log_header/game_tree_log for consistency.
 --
-CREATE OR REPLACE FUNCTION gt_check(    run_label_in            CHAR(4),
-                                        sub_run_id_in           INTEGER,
-                                    OUT game_tree_node_count    INTEGER,
-                                    OUT distinct_game_positions INTEGER,
-                                    OUT distinct_hashes         INTEGER,
-                                    OUT distinct_rels           INTEGER,
-                                    OUT collision_count         INTEGER,
-                                    OUT duplicate_count         INTEGER)
+CREATE OR REPLACE FUNCTION gt_check (    run_label_in            CHAR(4),
+                                         sub_run_id_in           INTEGER,
+                                     OUT game_tree_node_count    INTEGER,
+                                     OUT distinct_game_positions INTEGER,
+                                     OUT distinct_hashes         INTEGER,
+                                     OUT distinct_rels           INTEGER,
+                                     OUT collision_count         INTEGER,
+                                     OUT duplicate_count         INTEGER)
 RETURNS RECORD AS $$
 DECLARE
   run_id_in               INTEGER;
@@ -202,8 +202,8 @@ $$ LANGUAGE plpgsql;
 --
 -- Checks a game tree of type C_RAB_SOLVER stored in the tables game_tree_log_header/game_tree_log for consistency.
 --
-CREATE OR REPLACE FUNCTION gt_check_rab(run_label_in  CHAR(4),
-                                        sub_run_id_in INTEGER)
+CREATE OR REPLACE FUNCTION gt_check_rab (run_label_in  CHAR(4),
+                                         sub_run_id_in INTEGER)
 RETURNS RECORD AS $$
 DECLARE
   rec RECORD;
@@ -221,9 +221,9 @@ $$ LANGUAGE plpgsql;
 
 --
 -- Converts a json array to a square[] type.
--- No checks is performed thta the array is composed by valid elements.
+-- No checks is performed that the array is composed by valid elements.
 --
-CREATE OR REPLACE FUNCTION gt_legal_moves_as_json_array_elem(elem JSON)
+CREATE OR REPLACE FUNCTION gt_legal_moves_as_json_array_elem (elem JSON)
 RETURNS square[] AS $$
 BEGIN
   RETURN array(SELECT trim(json_array_elements(elem)::TEXT, '"')::square);

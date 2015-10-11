@@ -289,3 +289,25 @@ endgame_log_files: $(ENDGAME_LOG_DIR)
 	./$(BINDIR)/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s minimax -l $(ENDGAME_LOG_DIR)/minimax_log-ffo-01-simplified-4
 	./$(BINDIR)/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s rab -n 3 -l $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3
 	./$(BINDIR)/endgame_solver -f db/gpdb-sample-games.txt -q ffo-01-simplified-4 -s ab -l $(ENDGAME_LOG_DIR)/ab_solver_log-ffo-01-simplified-4
+
+.PHONY: endgame_pv_files
+endgame_pv_files: $(ENDGAME_LOG_DIR)
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-01 -d $(ENDGAME_LOG_DIR)/pve-ffo-01.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-02 -d $(ENDGAME_LOG_DIR)/pve-ffo-02.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-03 -d $(ENDGAME_LOG_DIR)/pve-ffo-03.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-04 -d $(ENDGAME_LOG_DIR)/pve-ffo-04.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-05 -d $(ENDGAME_LOG_DIR)/pve-ffo-05.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-06 -d $(ENDGAME_LOG_DIR)/pve-ffo-06.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-07 -d $(ENDGAME_LOG_DIR)/pve-ffo-07.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-08 -d $(ENDGAME_LOG_DIR)/pve-ffo-08.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-09 -d $(ENDGAME_LOG_DIR)/pve-ffo-09.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-10 -d $(ENDGAME_LOG_DIR)/pve-ffo-10.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-11 -d $(ENDGAME_LOG_DIR)/pve-ffo-11.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-12 -d $(ENDGAME_LOG_DIR)/pve-ffo-12.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-13 -d $(ENDGAME_LOG_DIR)/pve-ffo-13.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-14 -d $(ENDGAME_LOG_DIR)/pve-ffo-14.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-15 -d $(ENDGAME_LOG_DIR)/pve-ffo-15.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-16 -d $(ENDGAME_LOG_DIR)/pve-ffo-16.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-17 -d $(ENDGAME_LOG_DIR)/pve-ffo-17.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-18 -d $(ENDGAME_LOG_DIR)/pve-ffo-18.dat
+	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-19 -d $(ENDGAME_LOG_DIR)/pve-ffo-19.dat

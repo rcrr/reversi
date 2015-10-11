@@ -5,7 +5,7 @@
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2014 Roberto Corradini. All rights reserved.
+-- Copyright 2014, 2015 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -27,7 +27,7 @@
 --
 --
 -- This script has been tested with PostgreSQL.
--- Start psql by running: psql -U reversi -w -d reversi -h localhost
+-- Start psql by running: psql -U es -w -d es -h localhost
 -- Load the file by running the command: \i test_function_definition.sql
 --
 --

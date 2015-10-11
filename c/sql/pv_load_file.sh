@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# gt_load_file.sh
+# pv_load_file.sh
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
 #
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
-# @copyright 2014, 2015 Roberto Corradini. All rights reserved.
+# @copyright 2015 Roberto Corradini. All rights reserved.
 #
 # License
 #
@@ -27,7 +27,7 @@
 
 if [ "$#" -ne 3 ]; then
   echo "PostgreSQL user, dabase, and filename arguments are required."
-  echo "Usage: $0 PSQL_USER PSQL_DATABASE FILE_TO_BE_LOADED"
+  echo "Usage: $0 PSQL_USER PSQL_DATABASE PVE_DUMP_FILE"
   exit 1
 fi
 
@@ -40,8 +40,9 @@ if [ ! -f $FILE_NAME ]; then
   echo "File $FILE_NAME does not exist."
 fi
 
-TABLE_NAME=game_tree_log_staging
-TABLE_NAME_AND_COLUMNS="$TABLE_NAME (sub_run_id, call_id, hash, parent_hash, blacks, whites, player, json_doc)"
+TABLE_NAME=principal_variation_staging
+TABLE_NAME_AND_COLUMNS="$TABLE_NAME (line_id, move_id, variant_id, next_id, game_move, head_level, rel_level, gp_hash, gp_b, gp_w, gp_p)"
+READ_PVE_DUMP="../build/bin/read_pve_dump"
 
 psql -U $PSQL_USER -w -d $PSQL_DB -h localhost <<EOF
 
@@ -53,7 +54,7 @@ SELECT COUNT(*) FROM $TABLE_NAME;
 
 TRUNCATE TABLE $TABLE_NAME;
 
-\COPY $TABLE_NAME_AND_COLUMNS FROM $FILE_NAME WITH (FORMAT CSV, DELIMITER ';', HEADER true);
+\COPY $TABLE_NAME_AND_COLUMNS FROM PROGRAM '$READ_PVE_DUMP -f $FILE_NAME -t' WITH (FORMAT CSV, DELIMITER ';', HEADER true);
 
 SELECT COUNT(*) FROM $TABLE_NAME;
 

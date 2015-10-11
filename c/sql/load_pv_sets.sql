@@ -1,11 +1,11 @@
 --
--- reload_everything.sql
+-- load_pv_sets.sql
 --
 -- This file is part of the reversi program
 -- http://github.com/rcrr/reversi
 --
 -- Author: Roberto Corradini mailto:rob_corradini@yahoo.it
--- Copyright 2014, 2015 Roberto Corradini. All rights reserved.
+-- Copyright 2015 Roberto Corradini. All rights reserved.
 --
 --
 -- License:
@@ -28,25 +28,31 @@
 --
 -- This script has been tested with PostgreSQL.
 -- Start psql by running: psql -U es -w -d es -h localhost
--- Load the file by running the command: \i reload_everything.sql
+-- Load the file by running the command: \i load_pv_sets.sql
 --
 --
--- This script creates the functions used by the reversi program.
+-- This script is work in progres ...
 --
 
 SET search_path TO reversi;
 
+SELECT current_database() AS reversi_dbname
+\gset
+\setenv REVERSI_DBNAME :reversi_dbname
+SELECT current_user AS reversi_username
+\gset
+\setenv REVERSI_USERNAME :reversi_username
 
-\set ON_ERROR_STOP
+--
+-- File ../out/pve-ffo-01.dat is obtained by running
+-- the command:
+-- $ make ...
+-- or directly calling:
+-- $ ./build/bin/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-01 -d ./build/out/pve-ffo-01.dat
+--
+\! ./pv_load_file.sh $REVERSI_USERNAME $REVERSI_DBNAME ../build/out/pve-ffo-01.dat;
 
-\i drop_schema.sql
-\i create_schema.sql
-\i function_definition.sql
-\i populate_service_tables.sql
-\i test_function_definition.sql
-\i game_tree_function_definition.sql
-\i test_data.sql
-\i execute_tests.sql
-\i load_game_tree_log_sets.sql
 
-\unset ON_ERROR_STOP
+--
+--
+--
