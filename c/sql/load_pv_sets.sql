@@ -56,3 +56,4 @@ SELECT current_user AS reversi_username
 --
 --
 --
+SELECT COUNT(gp_hash) AS row_count, COUNT(DISTINCT gp_hash) AS gp_hash_dist_count, COUNT(DISTINCT (gp_b, gp_w, gp_p)) AS gp_dist_count FROM principal_variation_staging;
