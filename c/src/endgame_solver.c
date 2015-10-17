@@ -13,28 +13,34 @@
  *       - [done] The pve_index_lines function has to be run on the real stack.
  *       - [done] Cells has to be converted as lines to segment management.
  *       - [done] The size of the cell stack has to be increased, line_delete has to take care of variants.
- *       - More optional checks could be added to pve_is_invariant_satisfied.
- *       - The ExactSolution object should have a PVE reference, not just a move array.
- *       - A couple of flags --pve_variants and --pve_variants_full should be added to drive the exact_solution_to_string function.
- *         A command line option asking to run the full analysis.
+ *       - [done] A couple of flags --pve_variants and --pve_variants_full should be added to drive the exact_solution_to_string function.
+ *         [done] A command line option asking to run the full analysis.
  *       - [done] The proper memory management for the pve structure.
- *       - Prepare a pve_pack function that shrink the structure.
- *       - Tests ....
- *       - Documentation.
- *       - Extract pve module from game_utils and make a new principal_variation module.
- *       - Distill the chunk memory allocator concept into an appropriate module (cma_ ...., having segments ...).
- *       - Refactor the new module merging the segment concept into one abstraction, then used for lines and cells.
- *       - Add game values computation and output for first level moves.
- *       - Add a function to compute PV hash code (it is useful for testing and database processing).
- *       - PV is a tree structure composed by cells and lines. Could be, I strongly believe so, that there is quite a bit of duplication:
- *         Investigate the statistics of this concept.
- *         If the analysis proves it to be worthwhile, improve the pve structure in order to exploit the duplication.
- *       - Prepare a new utility for PV dump/load to/from a binary file.
+ *       - [done] PV is a tree structure composed by cells and lines. Could be, I strongly believe so, that there is quite a bit of duplication:
+ *         [done] Investigate the statistics of this concept.
+ *         [done] If the analysis proves it to be worthwhile, improve the pve structure in order to exploit the duplication.
+ *       - [done] Prepare a new utility for PV dump/load to/from a binary file.
  *         [done] Write the root_game_position and read it. Add a paragraph for printing it.
  *         [done] Write a function for to-from-map creation. Purge printf statements ....
  *         [done] Add a flag for dumping the file at the end of the analysis..... Better adding an endgame_env having am open list of key-value pairs ....
- *         Test the new utility and run it for all the ffo game positions.
- *         Develop a dedicated output for SQL COPY function. Verify the "pve duplication" hypothesis!
+ *         [done] Test the new utility and run it for all the ffo game positions.
+ *         [done] Develop a dedicated output for SQL COPY function. Verify the "pve duplication" hypothesis!
+ *       - *** - *** -> PVE has to be fully reorganized (a major refactoring) into a module.
+ *                      A new module, block memory allocator, or bma, is required.
+ *                      PVE is composed by lines, cells, and a cell dictionary, the dictionary is implemented by a binary search tree.
+ *                      A new module, binary red-black tree, or rbt, is required. The first solution in my evaluation list is Ben Pfaff's avl library.
+ *                      Cells and lines leverage the bma module.
+ *                      Bma module allocates constant size blocks (no more exponetial size increases), and has a more space-efficient stack.
+ *                      The rbt based dictionary prevents game position duplications, transforming the tree in a DAG, reducing the pve required size.
+ *                      Moving to a DAG requires to keep track of ref count for cell.
+ *                      A pack function is required in order to achieve the stack space reduction.
+ *       - More optional checks could be added to pve_is_invariant_satisfied.
+ *       - Tests ....
+ *       - Documentation.
+ *       - Add game values computation and output for first level moves.
+ *       - Add a function to compute PV hash code (it is useful for testing and database processing).
+ *       - The ExactSolution object should be replaced by a PVE reference.
+ *
  *
  * @todo [done] Complete the random game player.
  *
@@ -109,6 +115,16 @@
  *       A complete rethinking of the index function is then needed.
  *
  * @todo Verify if it is possible to optimize the definition of bitboard_mask_for_all_directions removing squares that do not flip (inner frame).
+ *
+ * @todo Remove the dependency from GSL GNU library by replacing it with Mersenne Twister 64bit version foud at http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt64.html
+ *       The reason is to avoid the dependency, but more important to have a 64 bit generator (the gsl library has a 32 bit one).
+ *
+ * @todo Create a C extension to PostgreSQL that leverages the C game position functions.
+ *
+ * @todo Write a GUI using GTK+.
+ *
+ * @todo Write a wthor format reader. See: http://www.ffothello.org/wthor/Format_WThor.pdf and http://www.ffothello.org/informatique/la-base-wthor/
+ *
  *
  *
  * @brief Endgame Solver.
