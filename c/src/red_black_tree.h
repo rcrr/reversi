@@ -71,29 +71,29 @@ typedef void *rbt_copy_func (void *item,
  * @brief Color of a red-black node.
  */
 typedef enum rbt_color {
-  RBT_BLACK,                /**< Black. */
-  RBT_RED                   /**< Red. */
+  RBT_BLACK,                                      /**< Black. */
+  RBT_RED                                         /**< Red. */
 } rbt_color_t;
 
 /**
  * @brief A red-black tree node.
  */
 typedef struct rbt_node {
-  struct rbt_node *links[2];         /**< @brief Subtrees. */
-  void            *data;             /**< @brief Pointer to data. */
-  rbt_color_t      color;            /**< @brief Color. */
+  struct rbt_node *links[2];                      /**< @brief Subtrees. */
+  void            *data;                          /**< @brief Pointer to data. */
+  rbt_color_t      color;                         /**< @brief Color. */
 } rbt_node_t;
 
 /**
  * @brief Tree data structure.
  */
 typedef struct rbt_table {
-  rbt_node_t              *root;               /**< @brief Tree's root. */
-  rbt_comparison_func     *compare;            /**< @brief Comparison function. */
-  void                    *param;              /**< @brief Extra argument to compare function. */
-  struct libavl_allocator *alloc;              /**< @brief Memory allocator. */
-  size_t                   count;              /**< @brief Number of items in tree. */
-  unsigned long long       generation;         /**< @brief Generation number. */
+  rbt_node_t              *root;                  /**< @brief Tree's root. */
+  rbt_comparison_func     *compare;               /**< @brief Comparison function. */
+  void                    *param;                 /**< @brief Extra argument to compare function. */
+  struct libavl_allocator *alloc;                 /**< @brief Memory allocator. */
+  size_t                   count;                 /**< @brief Number of items in tree. */
+  unsigned long long       generation;            /**< @brief Generation number. */
 } rbt_table_t;
 
 /**
@@ -169,38 +169,39 @@ rb_t_init (rbt_traverser_t *trav,
            rbt_table_t *tree);
 
 extern void *
-rb_t_first (rbt_traverser_t *,
-            rbt_table_t *);
+rb_t_first (rbt_traverser_t *trav,
+            rbt_table_t *tree);
 
 extern void *
-rb_t_last (rbt_traverser_t *,
-           rbt_table_t *);
+rb_t_last (rbt_traverser_t *trav,
+           rbt_table_t *tree);
 
 extern void *
-rb_t_find (rbt_traverser_t *,
-           rbt_table_t *, void *);
+rb_t_find (rbt_traverser_t *trav,
+           rbt_table_t *tree,
+           void *item);
 
 extern void *
-rb_t_insert (rbt_traverser_t *,
-             rbt_table_t *,
-             void *);
+rb_t_insert (rbt_traverser_t *trav,
+             rbt_table_t *tree,
+             void *item);
 
 extern void *
-rb_t_copy (rbt_traverser_t *,
-           const rbt_traverser_t *);
+rb_t_copy (rbt_traverser_t *trav,
+           const rbt_traverser_t *src);
 
 extern void *
-rb_t_next (rbt_traverser_t *);
+rb_t_next (rbt_traverser_t *trav);
 
 extern void *
-rb_t_prev (rbt_traverser_t *);
+rb_t_prev (rbt_traverser_t *trav);
 
 extern void *
-rb_t_cur (rbt_traverser_t *);
+rb_t_cur (rbt_traverser_t *trav);
 
 extern void *
-rb_t_replace (rbt_traverser_t *,
-              void *);
+rb_t_replace (rbt_traverser_t *trav,
+              void *new);
 
 
 
