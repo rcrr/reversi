@@ -165,8 +165,8 @@ rb_assert_delete (rbt_table_t *,
 /**********************************************************/
 
 extern void
-rb_t_init (rbt_traverser_t *,
-           rbt_table_t *);
+rb_t_init (rbt_traverser_t *trav,
+           rbt_table_t *tree);
 
 extern void *
 rb_t_first (rbt_traverser_t *,

@@ -474,7 +474,8 @@ trav_refresh (rbt_traverser_t *trav)
 /* Initializes |trav| for use with |tree|
    and selects the null node. */
 void
-rb_t_init (rbt_traverser_t *trav, rbt_table_t *tree)
+rb_t_init (rbt_traverser_t *trav,
+           rbt_table_t *tree)
 {
   trav->table = tree;
   trav->node = NULL;
@@ -486,7 +487,8 @@ rb_t_init (rbt_traverser_t *trav, rbt_table_t *tree)
    and selects and returns a pointer to its least-valued item.
    Returns |NULL| if |tree| contains no nodes. */
 void *
-rb_t_first (rbt_traverser_t *trav, rbt_table_t *tree)
+rb_t_first (rbt_traverser_t *trav,
+            rbt_table_t *tree)
 {
   rbt_node_t *x;
 
@@ -513,7 +515,8 @@ rb_t_first (rbt_traverser_t *trav, rbt_table_t *tree)
    and selects and returns a pointer to its greatest-valued item.
    Returns |NULL| if |tree| contains no nodes. */
 void *
-rb_t_last (rbt_traverser_t *trav, rbt_table_t *tree)
+rb_t_last (rbt_traverser_t *trav,
+           rbt_table_t *tree)
 {
   rbt_node_t *x;
 
@@ -542,7 +545,9 @@ rb_t_last (rbt_traverser_t *trav, rbt_table_t *tree)
    If there is no matching item, initializes |trav| to the null item
    and returns |NULL|. */
 void *
-rb_t_find (rbt_traverser_t *trav, rbt_table_t *tree, void *item)
+rb_t_find (rbt_traverser_t *trav,
+           rbt_table_t *tree,
+           void *item)
 {
   rbt_node_t *p, *q;
 
@@ -581,7 +586,9 @@ rb_t_find (rbt_traverser_t *trav, rbt_table_t *tree, void *item)
    If a memory allocation failure occurs, |NULL| is returned and |trav|
    is initialized to the null item. */
 void *
-rb_t_insert (rbt_traverser_t *trav, rbt_table_t *tree, void *item)
+rb_t_insert (rbt_traverser_t *trav,
+             rbt_table_t *tree,
+             void *item)
 {
   void **p;
 
@@ -606,7 +613,8 @@ rb_t_insert (rbt_traverser_t *trav, rbt_table_t *tree, void *item)
 
 /* Initializes |trav| to have the same current node as |src|. */
 void *
-rb_t_copy (rbt_traverser_t *trav, const rbt_traverser_t *src)
+rb_t_copy (rbt_traverser_t *trav,
+           const rbt_traverser_t *src)
 {
   assert (trav != NULL && src != NULL);
 
@@ -745,7 +753,8 @@ rb_t_cur (rbt_traverser_t *trav)
    |trav| must not have the null item selected.
    The new item must not upset the ordering of the tree. */
 void *
-rb_t_replace (rbt_traverser_t *trav, void *new)
+rb_t_replace (rbt_traverser_t *trav,
+              void *new)
 {
   void *old;
 
