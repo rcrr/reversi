@@ -995,7 +995,7 @@ time_seed (void)
 }
 
 int
-main (int argc, char *argv[])
+main__ (int argc, char *argv[])
 {
   struct test_options opts;        /* Command-line options. */
   int *insert, *delete;                /* Insertion and deletion orders. */
