@@ -63,7 +63,7 @@ struct libavl_allocator
 /* Prints the structure of |node|,
    which is |level| levels from the top of the tree. */
 static void
-print_tree_structure (const struct rb_node *node, int level)
+print_tree_structure (const rbt_node_t *node, int level)
 {
   /* You can set the maximum level as high as you like.
      Most of the time, you'll want to debug code using small trees,
@@ -77,16 +77,16 @@ print_tree_structure (const struct rb_node *node, int level)
   if (node == NULL)
     return;
 
-  printf ("%d", *(int *) node->rb_data);
-  if (node->rb_link[0] != NULL || node->rb_link[1] != NULL)
+  printf ("%d", *(int *) node->data);
+  if (node->links[0] != NULL || node->links[1] != NULL)
     {
       putchar ('(');
 
-      print_tree_structure (node->rb_link[0], level + 1);
-      if (node->rb_link[1] != NULL)
+      print_tree_structure (node->links[0], level + 1);
+      if (node->links[1] != NULL)
         {
           putchar (',');
-          print_tree_structure (node->rb_link[1], level + 1);
+          print_tree_structure (node->links[1], level + 1);
         }
 
       putchar (')');
@@ -95,10 +95,10 @@ print_tree_structure (const struct rb_node *node, int level)
 
 /* Prints the entire structure of |tree| with the given |title|. */
 static void
-print_whole_tree (const struct rb_table *tree, const char *title)
+print_whole_tree (const rbt_table_t *tree, const char *title)
 {
   printf ("%s: ", title);
-  print_tree_structure (tree->rb_root, 0);
+  print_tree_structure (tree->root, 0);
   putchar ('\n');
 }
 
@@ -108,7 +108,7 @@ print_whole_tree (const struct rb_table *tree, const char *title)
    There should be |n| items in the tree numbered |0|@dots{}|n - 1|.
    Returns nonzero only if there is an error. */
 static int
-check_traverser (struct rb_traverser *trav, int i, int n, const char *label)
+check_traverser (rbt_traverser_t *trav, int i, int n, const char *label)
 {
   int okay = 1;
   int *cur, *prev, *next;
@@ -147,7 +147,7 @@ check_traverser (struct rb_traverser *trav, int i, int n, const char *label)
 /* Compares binary trees rooted at |a| and |b|,
    making sure that they are identical. */
 static int
-compare_trees (struct rb_node *a, struct rb_node *b)
+compare_trees (rbt_node_t *a, rbt_node_t *b)
 {
   int okay;
 
@@ -157,24 +157,24 @@ compare_trees (struct rb_node *a, struct rb_node *b)
       return 1;
     }
 
-  if (*(int *) a->rb_data != *(int *) b->rb_data
-      || ((a->rb_link[0] != NULL) != (b->rb_link[0] != NULL))
-      || ((a->rb_link[1] != NULL) != (b->rb_link[1] != NULL))
-      || a->rb_color != b->rb_color)
+  if (*(int *) a->data != *(int *) b->data
+      || ((a->links[0] != NULL) != (b->links[0] != NULL))
+      || ((a->links[1] != NULL) != (b->links[1] != NULL))
+      || a->color != b->color)
     {
       printf (" Copied nodes differ: a=%d%c b=%d%c a:",
-              *(int *) a->rb_data, a->rb_color == RB_RED ? 'r' : 'b',
-              *(int *) b->rb_data, b->rb_color == RB_RED ? 'r' : 'b');
+              *(int *) a->data, a->color == RBT_RED ? 'r' : 'b',
+              *(int *) b->data, b->color == RBT_RED ? 'r' : 'b');
 
-      if (a->rb_link[0] != NULL)
+      if (a->links[0] != NULL)
         printf ("l");
-      if (a->rb_link[1] != NULL)
+      if (a->links[1] != NULL)
         printf ("r");
 
       printf (" b:");
-      if (b->rb_link[0] != NULL)
+      if (b->links[0] != NULL)
         printf ("l");
-      if (b->rb_link[1] != NULL)
+      if (b->links[1] != NULL)
         printf ("r");
 
       printf ("\n");
@@ -182,10 +182,10 @@ compare_trees (struct rb_node *a, struct rb_node *b)
     }
 
   okay = 1;
-  if (a->rb_link[0] != NULL)
-    okay &= compare_trees (a->rb_link[0], b->rb_link[0]);
-  if (a->rb_link[1] != NULL)
-    okay &= compare_trees (a->rb_link[1], b->rb_link[1]);
+  if (a->links[0] != NULL)
+    okay &= compare_trees (a->links[0], b->links[0]);
+  if (a->links[1] != NULL)
+    okay &= compare_trees (a->links[1], b->links[1]);
   return okay;
 }
 
@@ -198,7 +198,7 @@ compare_trees (struct rb_node *a, struct rb_node *b)
    All the nodes in the tree are verified to be at least |min|
    but no greater than |max|. */
 static void
-recurse_verify_tree (struct rb_node *node, int *okay, size_t *count,
+recurse_verify_tree (rbt_node_t *node, int *okay, size_t *count,
                      int min, int max, int *bh)
 {
   int d;                /* Value of this node's data. */
@@ -211,7 +211,7 @@ recurse_verify_tree (struct rb_node *node, int *okay, size_t *count,
       *bh = 0;
       return;
     }
-  d = *(int *) node->rb_data;
+  d = *(int *) node->data;
 
   if (min > max)
     {
@@ -226,34 +226,34 @@ recurse_verify_tree (struct rb_node *node, int *okay, size_t *count,
       *okay = 0;
     }
 
-  recurse_verify_tree (node->rb_link[0], okay, &subcount[0],
+  recurse_verify_tree (node->links[0], okay, &subcount[0],
                        min, d - 1, &subbh[0]);
-  recurse_verify_tree (node->rb_link[1], okay, &subcount[1],
+  recurse_verify_tree (node->links[1], okay, &subcount[1],
                        d + 1, max, &subbh[1]);
   *count = 1 + subcount[0] + subcount[1];
-  *bh = (node->rb_color == RB_BLACK) + subbh[0];
+  *bh = (node->color == RBT_BLACK) + subbh[0];
 
-  if (node->rb_color != RB_RED && node->rb_color != RB_BLACK)
+  if (node->color != RBT_RED && node->color != RBT_BLACK)
     {
       printf (" Node %d is neither red nor black (%d).\n",
-              d, node->rb_color);
+              d, node->color);
       *okay = 0;
     }
 
   /* Verify compliance with rule 1. */
-  if (node->rb_color == RB_RED)
+  if (node->color == RBT_RED)
     {
-      if (node->rb_link[0] != NULL && node->rb_link[0]->rb_color == RB_RED)
+      if (node->links[0] != NULL && node->links[0]->color == RBT_RED)
         {
           printf (" Red node %d has red left child %d\n",
-                  d, *(int *) node->rb_link[0]->rb_data);
+                  d, *(int *) node->links[0]->data);
           *okay = 0;
         }
 
-      if (node->rb_link[1] != NULL && node->rb_link[1]->rb_color == RB_RED)
+      if (node->links[1] != NULL && node->links[1]->color == RBT_RED)
         {
           printf (" Red node %d has red right child %d\n",
-                  d, *(int *) node->rb_link[1]->rb_data);
+                  d, *(int *) node->links[1]->data);
           *okay = 0;
         }
     }
@@ -272,7 +272,7 @@ recurse_verify_tree (struct rb_node *node, int *okay, size_t *count,
    There must be |n| elements in |array[]| and |tree|.
    Returns nonzero only if no errors detected. */
 static int
-verify_tree (struct rb_table *tree, int array[], size_t n)
+verify_tree (rbt_table_t *tree, int array[], size_t n)
 {
   int okay = 1;
 
@@ -286,7 +286,7 @@ verify_tree (struct rb_table *tree, int array[], size_t n)
 
   if (okay)
     {
-      if (tree->rb_root != NULL && tree->rb_root->rb_color != RB_BLACK)
+      if (tree->root != NULL && tree->root->color != RBT_BLACK)
         {
           printf (" Tree's root is not black.\n");
           okay = 0;
@@ -299,7 +299,7 @@ verify_tree (struct rb_table *tree, int array[], size_t n)
       size_t count;
       int bh;
 
-      recurse_verify_tree (tree->rb_root, &okay, &count, 0, INT_MAX, &bh);
+      recurse_verify_tree (tree->root, &okay, &count, 0, INT_MAX, &bh);
       if (count != n)
         {
           printf (" Tree has %lu nodes, but should have %lu.\n",
@@ -324,7 +324,7 @@ verify_tree (struct rb_table *tree, int array[], size_t n)
   if (okay)
     {
       /* Check that |rb_t_first()| and |rb_t_next()| work properly. */
-      struct rb_traverser trav;
+      rbt_traverser_t trav;
       size_t i;
       int prev = -1;
       int *item;
@@ -353,7 +353,7 @@ verify_tree (struct rb_table *tree, int array[], size_t n)
   if (okay)
     {
       /* Check that |rb_t_last()| and |rb_t_prev()| work properly. */
-      struct rb_traverser trav;
+      rbt_traverser_t trav;
       size_t i;
       int next = INT_MAX;
       int *item;
@@ -382,7 +382,7 @@ verify_tree (struct rb_table *tree, int array[], size_t n)
   if (okay)
     {
       /* Check that |rb_t_init()| works properly. */
-      struct rb_traverser init, first, last;
+      rbt_traverser_t init, first, last;
       int *cur, *prev, *next;
 
       rb_t_init (&init, tree);
@@ -444,7 +444,7 @@ static int
 test_correctness (struct libavl_allocator *allocator,
                   int insert[], int delete[], int n, int verbosity)
 {
-  struct rb_table *tree;
+  rbt_table_t *tree;
   int okay = 1;
   int i;
 
@@ -487,7 +487,7 @@ test_correctness (struct libavl_allocator *allocator,
   /* Test RB traversal during modifications. */
   for (i = 0; i < n; i++)
     {
-      struct rb_traverser x, y, z;
+      rbt_traverser_t x, y, z;
       int *deleted;
 
       if (insert[i] == delete[i])
@@ -566,7 +566,7 @@ test_correctness (struct libavl_allocator *allocator,
 
       /* Copy the tree and make sure it's identical. */
       {
-        struct rb_table *copy = rb_copy (tree, NULL, NULL, NULL);
+        rbt_table_t *copy = rb_copy (tree, NULL, NULL, NULL);
         if (copy == NULL)
           {
             if (verbosity >= 0)
@@ -575,7 +575,7 @@ test_correctness (struct libavl_allocator *allocator,
             return 1;
           }
 
-        okay &= compare_trees (tree->rb_root, copy->rb_root);
+        okay &= compare_trees (tree->root, copy->root);
         rb_destroy (copy, NULL);
       }
     }
@@ -593,9 +593,9 @@ test_correctness (struct libavl_allocator *allocator,
 }
 
 static int
-test_bst_t_first (struct rb_table *tree, int n)
+test_bst_t_first (rbt_table_t *tree, int n)
 {
-  struct rb_traverser trav;
+  rbt_traverser_t trav;
   int *first;
 
   first = rb_t_first (&trav, tree);
@@ -610,9 +610,9 @@ test_bst_t_first (struct rb_table *tree, int n)
 }
 
 static int
-test_bst_t_last (struct rb_table *tree, int n)
+test_bst_t_last (rbt_table_t *tree, int n)
 {
-  struct rb_traverser trav;
+  rbt_traverser_t trav;
   int *last;
 
   last = rb_t_last (&trav, tree);
@@ -627,13 +627,13 @@ test_bst_t_last (struct rb_table *tree, int n)
 }
 
 static int
-test_bst_t_find (struct rb_table *tree, int n)
+test_bst_t_find (rbt_table_t *tree, int n)
 {
   int i;
 
   for (i = 0; i < n; i++)
     {
-      struct rb_traverser trav;
+      rbt_traverser_t trav;
       int *iter;
 
       iter = rb_t_find (&trav, tree, &i);
@@ -649,13 +649,13 @@ test_bst_t_find (struct rb_table *tree, int n)
 }
 
 static int
-test_bst_t_insert (struct rb_table *tree, int n)
+test_bst_t_insert (rbt_table_t *tree, int n)
 {
   int i;
 
   for (i = 0; i < n; i++)
     {
-      struct rb_traverser trav;
+      rbt_traverser_t trav;
       int *iter;
 
       iter = rb_t_insert (&trav, tree, &i);
@@ -671,9 +671,9 @@ test_bst_t_insert (struct rb_table *tree, int n)
 }
 
 static int
-test_bst_t_next (struct rb_table *tree, int n)
+test_bst_t_next (rbt_table_t *tree, int n)
 {
-  struct rb_traverser trav;
+  rbt_traverser_t trav;
   int i;
 
   rb_t_init (&trav, tree);
@@ -692,9 +692,9 @@ test_bst_t_next (struct rb_table *tree, int n)
 }
 
 static int
-test_bst_t_prev (struct rb_table *tree, int n)
+test_bst_t_prev (rbt_table_t *tree, int n)
 {
-  struct rb_traverser trav;
+  rbt_traverser_t trav;
   int i;
 
   rb_t_init (&trav, tree);
@@ -713,10 +713,10 @@ test_bst_t_prev (struct rb_table *tree, int n)
 }
 
 static int
-test_bst_copy (struct rb_table *tree, int n)
+test_bst_copy (rbt_table_t *tree, int n)
 {
-  struct rb_table *copy = rb_copy (tree, NULL, NULL, NULL);
-  int okay = compare_trees (tree->rb_root, copy->rb_root);
+  rbt_table_t *copy = rb_copy (tree, NULL, NULL, NULL);
+  int okay = compare_trees (tree->root, copy->root);
 
   rb_destroy (copy, NULL);
 
@@ -733,7 +733,7 @@ test_overflow (struct libavl_allocator *allocator,
                int order[], int n, int verbosity)
 {
   /* An overflow tester function. */
-  typedef int test_func (struct rb_table *, int n);
+  typedef int test_func (rbt_table_t *, int n);
 
   /* An overflow tester. */
   struct test
@@ -759,7 +759,7 @@ test_overflow (struct libavl_allocator *allocator,
   /* Run all the overflow testers. */
   for (i = test; i < test + sizeof test / sizeof *test; i++)
     {
-      struct rb_table *tree;
+      rbt_table_t *tree;
       int j;
 
       if (verbosity >= 2)

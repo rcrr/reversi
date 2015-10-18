@@ -37,6 +37,20 @@
 
 
 
+#ifndef LIBAVL_ALLOCATOR
+#define LIBAVL_ALLOCATOR
+/* Memory allocator. */
+struct libavl_allocator
+  {
+    void *(*libavl_malloc) (struct libavl_allocator *, size_t libavl_size);
+    void (*libavl_free) (struct libavl_allocator *, void *libavl_block);
+  };
+#endif
+
+/* Default memory allocator. */
+extern struct libavl_allocator rb_allocator_default;
+void *rb_malloc (struct libavl_allocator *, size_t);
+void rb_free (struct libavl_allocator *, void *);
 
 
 
