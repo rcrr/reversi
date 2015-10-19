@@ -45,7 +45,7 @@
 
 #include "block_memory_allocator.h"
 
-/* Maximum RBT height. */
+/* Maximum red-black tree height. */
 #define RBT_MAX_HEIGHT 48
 
 
@@ -114,49 +114,49 @@ typedef struct rbt_traverser {
 /************************************************/
 
 extern rbt_table_t *
-rb_create (rbt_comparison_func *,
-           void *,
-           struct libavl_allocator *);
+rbt_create (rbt_comparison_func *compare,
+            void *param,
+            struct libavl_allocator *allocator);
 
 extern rbt_table_t *
-rb_copy (const rbt_table_t *,
-         rbt_copy_func *,
-         rbt_item_func *,
-         struct libavl_allocator *);
+rbt_copy (const rbt_table_t *org,
+          rbt_copy_func *copy,
+          rbt_item_func *destroy,
+          struct libavl_allocator *allocator);
 
 extern void
-rb_destroy (rbt_table_t *,
-            rbt_item_func *);
+rbt_destroy (rbt_table_t *tree,
+             rbt_item_func *destroy);
 
 extern void **
-rb_probe (rbt_table_t *,
-          void *);
+rbt_probe (rbt_table_t *tree,
+           void *item);
 
 extern void *
-rb_insert (rbt_table_t *,
-           void *);
+rbt_insert (rbt_table_t *table,
+            void *item);
 
 extern void *
-rb_replace (rbt_table_t *,
-            void *);
+rbt_replace (rbt_table_t *table,
+             void *item);
 
 extern void *
-rb_delete (rbt_table_t *,
-           const void *);
+rbt_delete (rbt_table_t *tree,
+            const void *item);
 
 extern void *
-rb_find (const rbt_table_t *,
-         const void *);
+rbt_find (const rbt_table_t *tree,
+          const void *item);
 
 extern void
-rb_assert_insert (rbt_table_t *,
-                  void *);
+rbt_assert_insert (rbt_table_t *table,
+                   void *item);
 
 extern void *
-rb_assert_delete (rbt_table_t *,
-                  void *);
+rbt_assert_delete (rbt_table_t *table,
+                  void *item);
 
-#define rb_count(table) ((size_t) (table)->count)
+#define rbt_count(table) ((size_t) (table)->count)
 
 
 

@@ -49,9 +49,9 @@
    and memory allocator |allocator|.
    Returns |NULL| if memory allocation failed. */
 rbt_table_t *
-rb_create (rbt_comparison_func *compare,
-           void *param,
-           struct libavl_allocator *allocator)
+rbt_create (rbt_comparison_func *compare,
+            void *param,
+            struct libavl_allocator *allocator)
 {
   rbt_table_t *tree;
 
@@ -77,7 +77,8 @@ rb_create (rbt_comparison_func *compare,
 /* Search |tree| for an item matching |item|, and return it if found.
    Otherwise return |NULL|. */
 void *
-rb_find (const rbt_table_t *tree, const void *item)
+rbt_find (const rbt_table_t *tree,
+          const void *item)
 {
   const rbt_node_t *p;
 
@@ -102,7 +103,8 @@ rb_find (const rbt_table_t *tree, const void *item)
    returns a pointer to the duplicate without inserting |item|.
    Returns |NULL| in case of memory allocation failure. */
 void **
-rb_probe (rbt_table_t *tree, void *item)
+rbt_probe (rbt_table_t *tree,
+           void *item)
 {
   rbt_node_t *pa[RBT_MAX_HEIGHT]; /* Nodes on stack. */
   unsigned char da[RBT_MAX_HEIGHT];   /* Directions moved from stack nodes. */
@@ -219,9 +221,10 @@ rb_probe (rbt_table_t *tree, void *item)
    or if a memory allocation error occurred.
    Otherwise, returns the duplicate item. */
 void *
-rb_insert (rbt_table_t *table, void *item)
+rbt_insert (rbt_table_t *table,
+            void *item)
 {
-  void **p = rb_probe (table, item);
+  void **p = rbt_probe (table, item);
   return p == NULL || *p == item ? NULL : *p;
 }
 
@@ -230,9 +233,10 @@ rb_insert (rbt_table_t *table, void *item)
    or if a memory allocation error occurred.
    Otherwise, returns the item that was replaced. */
 void *
-rb_replace (rbt_table_t *table, void *item)
+rbt_replace (rbt_table_t *table,
+             void *item)
 {
-  void **p = rb_probe (table, item);
+  void **p = rbt_probe (table, item);
   if (p == NULL || *p == item)
     return NULL;
   else
@@ -246,7 +250,8 @@ rb_replace (rbt_table_t *table, void *item)
 /* Deletes from |tree| and returns an item matching |item|.
    Returns a null pointer if no matching item found. */
 void *
-rb_delete (rbt_table_t *tree, const void *item)
+rbt_delete (rbt_table_t *tree,
+            const void *item)
 {
   rbt_node_t *pa[RBT_MAX_HEIGHT]; /* Nodes on stack. */
   unsigned char da[RBT_MAX_HEIGHT];   /* Directions moved from stack nodes. */
@@ -594,7 +599,7 @@ rb_t_insert (rbt_traverser_t *trav,
 
   assert (trav != NULL && tree != NULL && item != NULL);
 
-  p = rb_probe (tree, item);
+  p = rbt_probe (tree, item);
   if (p != NULL)
     {
       trav->table = tree;
@@ -764,7 +769,7 @@ rb_t_replace (rbt_traverser_t *trav,
   return old;
 }
 
-/* Destroys |new| with |rb_destroy (new, destroy)|,
+/* Destroys |new| with |rbt_destroy (new, destroy)|,
    first setting right links of nodes in |stack| within |new|
    to null pointers to avoid touching uninitialized data. */
 static void
@@ -777,7 +782,7 @@ copy_error_recovery (rbt_node_t **stack,
 
   for (; height > 2; height -= 2)
     stack[height - 1]->links[1] = NULL;
-  rb_destroy (new, destroy);
+  rbt_destroy (new, destroy);
 }
 
 /* Copies |org| to a newly created tree, which is returned.
@@ -790,10 +795,10 @@ copy_error_recovery (rbt_node_t **stack,
    If |allocator != NULL|, it is used for allocation in the new tree.
    Otherwise, the same allocator used for |org| is used. */
 rbt_table_t *
-rb_copy (const rbt_table_t *org,
-         rbt_copy_func *copy,
-         rbt_item_func *destroy,
-         struct libavl_allocator *allocator)
+rbt_copy (const rbt_table_t *org,
+          rbt_copy_func *copy,
+          rbt_item_func *destroy,
+          struct libavl_allocator *allocator)
 {
   rbt_node_t *stack[2 * (RBT_MAX_HEIGHT + 1)];
   int height = 0;
@@ -803,7 +808,7 @@ rb_copy (const rbt_table_t *org,
   rbt_node_t *y;
 
   assert (org != NULL);
-  new = rb_create (org->compare, org->param,
+  new = rbt_create (org->compare, org->param,
                     allocator != NULL ? allocator : org->alloc);
   if (new == NULL)
     return NULL;
@@ -887,8 +892,8 @@ rb_copy (const rbt_table_t *org,
 /* Frees storage allocated for |tree|.
    If |destroy != NULL|, applies it to each data item in inorder. */
 void
-rb_destroy (rbt_table_t *tree,
-            rbt_item_func *destroy)
+rbt_destroy (rbt_table_t *tree,
+             rbt_item_func *destroy)
 {
   rbt_node_t *p, *q;
 
@@ -939,20 +944,22 @@ struct libavl_allocator rb_allocator_default =
 #undef NDEBUG
 #include <assert.h>
 
-/* Asserts that |rb_insert()| succeeds at inserting |item| into |table|. */
+/* Asserts that |rbt_insert()| succeeds at inserting |item| into |table|. */
 void
-(rb_assert_insert) (rbt_table_t *table, void *item)
+(rbt_assert_insert) (rbt_table_t *table,
+                     void *item)
 {
-  void **p = rb_probe (table, item);
+  void **p = rbt_probe (table, item);
   assert (p != NULL && *p == item);
 }
 
-/* Asserts that |rb_delete()| really removes |item| from |table|,
+/* Asserts that |rbt_delete()| really removes |item| from |table|,
    and returns the removed item. */
 void *
-(rb_assert_delete) (rbt_table_t *table, void *item)
+(rbt_assert_delete) (rbt_table_t *table,
+                    void *item)
 {
-  void *p = rb_delete (table, item);
+  void *p = rbt_delete (table, item);
   assert (p != NULL);
   return p;
 }

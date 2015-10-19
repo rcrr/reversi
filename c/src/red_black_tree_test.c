@@ -277,10 +277,10 @@ verify_tree (rbt_table_t *tree, int array[], size_t n)
   int okay = 1;
 
   /* Check |tree|'s bst_count against that supplied. */
-  if (rb_count (tree) != n)
+  if (rbt_count (tree) != n)
     {
       printf (" Tree count is %lu, but should be %lu.\n",
-              (unsigned long) rb_count (tree), (unsigned long) n);
+              (unsigned long) rbt_count (tree), (unsigned long) n);
       okay = 0;
     }
 
@@ -314,7 +314,7 @@ verify_tree (rbt_table_t *tree, int array[], size_t n)
       size_t i;
 
       for (i = 0; i < n; i++)
-        if (rb_find (tree, &array[i]) == NULL)
+        if (rbt_find (tree, &array[i]) == NULL)
           {
             printf (" Tree does not contain expected value %d.\n", array[i]);
             okay = 0;
@@ -449,7 +449,7 @@ test_correctness (struct libavl_allocator *allocator,
   int i;
 
   /* Test creating a RB and inserting into it. */
-  tree = rb_create (compare_ints, NULL, allocator);
+  tree = rbt_create (compare_ints, NULL, allocator);
   if (tree == NULL)
     {
       if (verbosity >= 0)
@@ -465,12 +465,12 @@ test_correctness (struct libavl_allocator *allocator,
 
       /* Add the |i|th element to the tree. */
       {
-        void **p = rb_probe (tree, &insert[i]);
+        void **p = rbt_probe (tree, &insert[i]);
         if (p == NULL)
           {
             if (verbosity >= 0)
               printf ("    Out of memory in insertion.\n");
-            rb_destroy (tree, NULL);
+            rbt_destroy (tree, NULL);
             return 1;
           }
         if (*p != &insert[i])
@@ -507,7 +507,7 @@ test_correctness (struct libavl_allocator *allocator,
       if (verbosity >= 3)
         printf ("    Deleting item %d.\n", delete[i]);
 
-      deleted = rb_delete (tree, &delete[i]);
+      deleted = rbt_delete (tree, &delete[i]);
       if (deleted == NULL || *deleted != delete[i])
         {
           okay = 0;
@@ -525,7 +525,7 @@ test_correctness (struct libavl_allocator *allocator,
         {
           if (verbosity >= 0)
             printf ("    Out of memory re-inserting item.\n");
-          rb_destroy (tree, NULL);
+          rbt_destroy (tree, NULL);
           return 1;
         }
 
@@ -545,7 +545,7 @@ test_correctness (struct libavl_allocator *allocator,
       if (verbosity >= 2)
         printf ("  Deleting %d...\n", delete[i]);
 
-      deleted = rb_delete (tree, &delete[i]);
+      deleted = rbt_delete (tree, &delete[i]);
       if (deleted == NULL || *deleted != delete[i])
         {
           okay = 0;
@@ -566,28 +566,28 @@ test_correctness (struct libavl_allocator *allocator,
 
       /* Copy the tree and make sure it's identical. */
       {
-        rbt_table_t *copy = rb_copy (tree, NULL, NULL, NULL);
+        rbt_table_t *copy = rbt_copy (tree, NULL, NULL, NULL);
         if (copy == NULL)
           {
             if (verbosity >= 0)
               printf ("  Out of memory in copy\n");
-            rb_destroy (tree, NULL);
+            rbt_destroy (tree, NULL);
             return 1;
           }
 
         okay &= compare_trees (tree->root, copy->root);
-        rb_destroy (copy, NULL);
+        rbt_destroy (copy, NULL);
       }
     }
 
-  if (rb_delete (tree, &insert[0]) != NULL)
+  if (rbt_delete (tree, &insert[0]) != NULL)
     {
       printf (" Deletion from empty tree succeeded.\n");
       okay = 0;
     }
 
   /* Test destroying the tree. */
-  rb_destroy (tree, NULL);
+  rbt_destroy (tree, NULL);
 
   return okay;
 }
@@ -715,10 +715,10 @@ test_bst_t_prev (rbt_table_t *tree, int n)
 static int
 test_bst_copy (rbt_table_t *tree, int n)
 {
-  rbt_table_t *copy = rb_copy (tree, NULL, NULL, NULL);
+  rbt_table_t *copy = rbt_copy (tree, NULL, NULL, NULL);
   int okay = compare_trees (tree->root, copy->root);
 
-  rb_destroy (copy, NULL);
+  rbt_destroy (copy, NULL);
 
   return okay;
 }
@@ -765,7 +765,7 @@ test_overflow (struct libavl_allocator *allocator,
       if (verbosity >= 2)
         printf ("  Running %s test...\n", i->name);
 
-      tree = rb_create (compare_ints, NULL, allocator);
+      tree = rbt_create (compare_ints, NULL, allocator);
       if (tree == NULL)
         {
           printf ("    Out of memory creating tree.\n");
@@ -774,14 +774,14 @@ test_overflow (struct libavl_allocator *allocator,
 
       for (j = 0; j < n; j++)
         {
-          void **p = rb_probe (tree, &order[j]);
+          void **p = rbt_probe (tree, &order[j]);
           if (p == NULL || *p != &order[j])
             {
               if (p == NULL && verbosity >= 0)
                 printf ("    Out of memory in insertion.\n");
               else if (p != NULL)
                 printf ("    Duplicate item in tree!\n");
-              rb_destroy (tree, NULL);
+              rbt_destroy (tree, NULL);
               return p == NULL;
             }
         }
@@ -791,7 +791,7 @@ test_overflow (struct libavl_allocator *allocator,
 
       if (verify_tree (tree, order, n) == 0)
         return 0;
-      rb_destroy (tree, NULL);
+      rbt_destroy (tree, NULL);
     }
 
   return 1;
