@@ -54,15 +54,15 @@
 /* Function types. */
 /*******************/
 
-typedef int rbt_comparison_func (const void *item_a,
-                                 const void *item_b,
-                                 void *param);
+typedef int rbt_comparison_f (const void *item_a,
+                              const void *item_b,
+                              void *param);
 
-typedef void rbt_item_func (void *item,
-                            void *param);
+typedef void rbt_item_f (void *item,
+                         void *param);
 
-typedef void *rbt_copy_func (void *item,
-                             void *param);
+typedef void *rbt_copy_f (void *item,
+                          void *param);
 
 
 
@@ -89,7 +89,7 @@ typedef struct rbt_node {
  */
 typedef struct rbt_table {
   rbt_node_t              *root;                  /**< @brief Tree's root. */
-  rbt_comparison_func     *compare;               /**< @brief Comparison function. */
+  rbt_comparison_f        *compare;               /**< @brief Comparison function. */
   void                    *param;                 /**< @brief Extra argument to compare function. */
   struct libavl_allocator *alloc;                 /**< @brief Memory allocator. */
   size_t                   count;                 /**< @brief Number of items in tree. */
@@ -114,19 +114,19 @@ typedef struct rbt_traverser {
 /************************************************/
 
 extern rbt_table_t *
-rbt_create (rbt_comparison_func *compare,
+rbt_create (rbt_comparison_f *compare,
             void *param,
             struct libavl_allocator *allocator);
 
 extern rbt_table_t *
 rbt_copy (const rbt_table_t *org,
-          rbt_copy_func *copy,
-          rbt_item_func *destroy,
+          rbt_copy_f *copy,
+          rbt_item_f *destroy,
           struct libavl_allocator *allocator);
 
 extern void
 rbt_destroy (rbt_table_t *tree,
-             rbt_item_func *destroy);
+             rbt_item_f *destroy);
 
 extern void **
 rbt_probe (rbt_table_t *tree,

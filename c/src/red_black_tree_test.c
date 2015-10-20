@@ -730,15 +730,17 @@ test_bst_copy (rbt_table_t *tree, int n)
    Use |verbosity| to set the level of chatter on |stdout|. */
 int
 test_overflow (struct libavl_allocator *allocator,
-               int order[], int n, int verbosity)
+               int order[],
+               int n,
+               int verbosity)
 {
   /* An overflow tester function. */
-  typedef int test_func (rbt_table_t *, int n);
+  typedef int test_f (rbt_table_t *, int n);
 
   /* An overflow tester. */
   struct test
     {
-      test_func *func;                  /* Tester function. */
+      test_f *func;                     /* Tester function. */
       const char *name;                 /* Test name. */
     };
 

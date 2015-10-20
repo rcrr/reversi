@@ -49,7 +49,7 @@
    and memory allocator |allocator|.
    Returns |NULL| if memory allocation failed. */
 rbt_table_t *
-rbt_create (rbt_comparison_func *compare,
+rbt_create (rbt_comparison_f *compare,
             void *param,
             struct libavl_allocator *allocator)
 {
@@ -459,7 +459,7 @@ trav_refresh (rbt_traverser_t *trav)
 
   if (trav->node != NULL)
     {
-      rbt_comparison_func *cmp = trav->table->compare;
+      rbt_comparison_f *cmp = trav->table->compare;
       void *param = trav->table->param;
       rbt_node_t *node = trav->node;
       rbt_node_t *i;
@@ -776,7 +776,7 @@ static void
 copy_error_recovery (rbt_node_t **stack,
                      int height,
                      rbt_table_t *new,
-                     rbt_item_func *destroy)
+                     rbt_item_f *destroy)
 {
   assert (stack != NULL && height >= 0 && new != NULL);
 
@@ -796,8 +796,8 @@ copy_error_recovery (rbt_node_t **stack,
    Otherwise, the same allocator used for |org| is used. */
 rbt_table_t *
 rbt_copy (const rbt_table_t *org,
-          rbt_copy_func *copy,
-          rbt_item_func *destroy,
+          rbt_copy_f *copy,
+          rbt_item_f *destroy,
           struct libavl_allocator *allocator)
 {
   rbt_node_t *stack[2 * (RBT_MAX_HEIGHT + 1)];
@@ -893,7 +893,7 @@ rbt_copy (const rbt_table_t *org,
    If |destroy != NULL|, applies it to each data item in inorder. */
 void
 rbt_destroy (rbt_table_t *tree,
-             rbt_item_func *destroy)
+             rbt_item_f *destroy)
 {
   rbt_node_t *p, *q;
 
