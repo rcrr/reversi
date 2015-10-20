@@ -113,7 +113,7 @@ check_traverser (rbt_traverser_t *trav, int i, int n, const char *label)
   int okay = 1;
   int *cur, *prev, *next;
 
-  prev = rb_t_prev (trav);
+  prev = rbt_t_prev (trav);
   if ((i == 0 && prev != NULL)
       || (i > 0 && (prev == NULL || *prev != i - 1)))
     {
@@ -121,9 +121,9 @@ check_traverser (rbt_traverser_t *trav, int i, int n, const char *label)
               label, prev != NULL ? *prev : -1, i == 0 ? -1 : i - 1);
       okay = 0;
     }
-  rb_t_next (trav);
+  rbt_t_next (trav);
 
-  cur = rb_t_cur (trav);
+  cur = rbt_t_cur (trav);
   if (cur == NULL || *cur != i)
     {
       printf ("   %s traverser at %d, but should be at %d.\n",
@@ -131,7 +131,7 @@ check_traverser (rbt_traverser_t *trav, int i, int n, const char *label)
       okay = 0;
     }
 
-  next = rb_t_next (trav);
+  next = rbt_t_next (trav);
   if ((i == n - 1 && next != NULL)
       || (i != n - 1 && (next == NULL || *next != i + 1)))
     {
@@ -139,7 +139,7 @@ check_traverser (rbt_traverser_t *trav, int i, int n, const char *label)
               label, next != NULL ? *next : -1, i == n - 1 ? -1 : i + 1);
       okay = 0;
     }
-  rb_t_prev (trav);
+  rbt_t_prev (trav);
 
   return okay;
 }
@@ -323,14 +323,14 @@ verify_tree (rbt_table_t *tree, int array[], size_t n)
 
   if (okay)
     {
-      /* Check that |rb_t_first()| and |rb_t_next()| work properly. */
+      /* Check that |rbt_t_first()| and |rbt_t_next()| work properly. */
       rbt_traverser_t trav;
       size_t i;
       int prev = -1;
       int *item;
 
-      for (i = 0, item = rb_t_first (&trav, tree); i < 2 * n && item != NULL;
-           i++, item = rb_t_next (&trav))
+      for (i = 0, item = rbt_t_first (&trav, tree); i < 2 * n && item != NULL;
+           i++, item = rbt_t_next (&trav))
         {
           if (*item <= prev)
             {
@@ -352,14 +352,14 @@ verify_tree (rbt_table_t *tree, int array[], size_t n)
 
   if (okay)
     {
-      /* Check that |rb_t_last()| and |rb_t_prev()| work properly. */
+      /* Check that |rbt_t_last()| and |rbt_t_prev()| work properly. */
       rbt_traverser_t trav;
       size_t i;
       int next = INT_MAX;
       int *item;
 
-      for (i = 0, item = rb_t_last (&trav, tree); i < 2 * n && item != NULL;
-           i++, item = rb_t_prev (&trav))
+      for (i = 0, item = rbt_t_last (&trav, tree); i < 2 * n && item != NULL;
+           i++, item = rbt_t_prev (&trav))
         {
           if (*item >= next)
             {
@@ -381,15 +381,15 @@ verify_tree (rbt_table_t *tree, int array[], size_t n)
 
   if (okay)
     {
-      /* Check that |rb_t_init()| works properly. */
+      /* Check that |rbt_t_init()| works properly. */
       rbt_traverser_t init, first, last;
       int *cur, *prev, *next;
 
-      rb_t_init (&init, tree);
-      rb_t_first (&first, tree);
-      rb_t_last (&last, tree);
+      rbt_t_init (&init, tree);
+      rbt_t_first (&first, tree);
+      rbt_t_last (&last, tree);
 
-      cur = rb_t_cur (&init);
+      cur = rbt_t_cur (&init);
       if (cur != NULL)
         {
           printf (" Inited traverser should be null, but is actually %d.\n",
@@ -397,23 +397,23 @@ verify_tree (rbt_table_t *tree, int array[], size_t n)
           okay = 0;
         }
 
-      next = rb_t_next (&init);
-      if (next != rb_t_cur (&first))
+      next = rbt_t_next (&init);
+      if (next != rbt_t_cur (&first))
         {
           printf (" Next after null should be %d, but is actually %d.\n",
-                  *(int *) rb_t_cur (&first), *next);
+                  *(int *) rbt_t_cur (&first), *next);
           okay = 0;
         }
-      rb_t_prev (&init);
+      rbt_t_prev (&init);
 
-      prev = rb_t_prev (&init);
-      if (prev != rb_t_cur (&last))
+      prev = rbt_t_prev (&init);
+      if (prev != rbt_t_cur (&last))
         {
           printf (" Previous before null should be %d, but is actually %d.\n",
-                  *(int *) rb_t_cur (&last), *prev);
+                  *(int *) rbt_t_cur (&last), *prev);
           okay = 0;
         }
-      rb_t_next (&init);
+      rbt_t_next (&init);
     }
 
   return okay;
@@ -496,7 +496,7 @@ test_correctness (struct libavl_allocator *allocator,
       if (verbosity >= 2)
         printf ("   Checking traversal from item %d...\n", insert[i]);
 
-      if (rb_t_find (&x, tree, &insert[i]) == NULL)
+      if (rbt_t_find (&x, tree, &insert[i]) == NULL)
         {
           printf ("    Can't find item %d in tree!\n", insert[i]);
           continue;
@@ -517,11 +517,11 @@ test_correctness (struct libavl_allocator *allocator,
             printf ("    Wrong node %d returned.\n", *deleted);
         }
 
-      rb_t_copy (&y, &x);
+      rbt_t_copy (&y, &x);
 
       if (verbosity >= 3)
         printf ("    Re-inserting item %d.\n", delete[i]);
-      if (rb_t_insert (&z, tree, &delete[i]) == NULL)
+      if (rbt_t_insert (&z, tree, &delete[i]) == NULL)
         {
           if (verbosity >= 0)
             printf ("    Out of memory re-inserting item.\n");
@@ -598,7 +598,7 @@ test_bst_t_first (rbt_table_t *tree, int n)
   rbt_traverser_t trav;
   int *first;
 
-  first = rb_t_first (&trav, tree);
+  first = rbt_t_first (&trav, tree);
   if (first == NULL || *first != 0)
     {
       printf ("    First item test failed: expected 0, got %d\n",
@@ -615,7 +615,7 @@ test_bst_t_last (rbt_table_t *tree, int n)
   rbt_traverser_t trav;
   int *last;
 
-  last = rb_t_last (&trav, tree);
+  last = rbt_t_last (&trav, tree);
   if (last == NULL || *last != n - 1)
     {
       printf ("    Last item test failed: expected %d, got %d\n",
@@ -636,7 +636,7 @@ test_bst_t_find (rbt_table_t *tree, int n)
       rbt_traverser_t trav;
       int *iter;
 
-      iter = rb_t_find (&trav, tree, &i);
+      iter = rbt_t_find (&trav, tree, &i);
       if (iter == NULL || *iter != i)
         {
           printf ("    Find item test failed: looked for %d, got %d\n",
@@ -658,7 +658,7 @@ test_bst_t_insert (rbt_table_t *tree, int n)
       rbt_traverser_t trav;
       int *iter;
 
-      iter = rb_t_insert (&trav, tree, &i);
+      iter = rbt_t_insert (&trav, tree, &i);
       if (iter == NULL || iter == &i || *iter != i)
         {
           printf ("    Insert item test failed: inserted dup %d, got %d\n",
@@ -676,10 +676,10 @@ test_bst_t_next (rbt_table_t *tree, int n)
   rbt_traverser_t trav;
   int i;
 
-  rb_t_init (&trav, tree);
+  rbt_t_init (&trav, tree);
   for (i = 0; i < n; i++)
     {
-      int *iter = rb_t_next (&trav);
+      int *iter = rbt_t_next (&trav);
       if (iter == NULL || *iter != i)
         {
           printf ("    Next item test failed: expected %d, got %d\n",
@@ -697,10 +697,10 @@ test_bst_t_prev (rbt_table_t *tree, int n)
   rbt_traverser_t trav;
   int i;
 
-  rb_t_init (&trav, tree);
+  rbt_t_init (&trav, tree);
   for (i = n - 1; i >= 0; i--)
     {
-      int *iter = rb_t_prev (&trav);
+      int *iter = rbt_t_prev (&trav);
       if (iter == NULL || *iter != i)
         {
           printf ("    Previous item test failed: expected %d, got %d\n",

@@ -165,43 +165,43 @@ rbt_assert_delete (rbt_table_t *table,
 /**********************************************************/
 
 extern void
-rb_t_init (rbt_traverser_t *trav,
-           rbt_table_t *tree);
-
-extern void *
-rb_t_first (rbt_traverser_t *trav,
+rbt_t_init (rbt_traverser_t *trav,
             rbt_table_t *tree);
 
 extern void *
-rb_t_last (rbt_traverser_t *trav,
-           rbt_table_t *tree);
+rbt_t_first (rbt_traverser_t *trav,
+             rbt_table_t *tree);
 
 extern void *
-rb_t_find (rbt_traverser_t *trav,
-           rbt_table_t *tree,
-           void *item);
+rbt_t_last (rbt_traverser_t *trav,
+            rbt_table_t *tree);
 
 extern void *
-rb_t_insert (rbt_traverser_t *trav,
-             rbt_table_t *tree,
-             void *item);
+rbt_t_find (rbt_traverser_t *trav,
+            rbt_table_t *tree,
+            void *item);
 
 extern void *
-rb_t_copy (rbt_traverser_t *trav,
-           const rbt_traverser_t *src);
+rbt_t_insert (rbt_traverser_t *trav,
+              rbt_table_t *tree,
+              void *item);
 
 extern void *
-rb_t_next (rbt_traverser_t *trav);
+rbt_t_copy (rbt_traverser_t *trav,
+            const rbt_traverser_t *src);
 
 extern void *
-rb_t_prev (rbt_traverser_t *trav);
+rbt_t_next (rbt_traverser_t *trav);
 
 extern void *
-rb_t_cur (rbt_traverser_t *trav);
+rbt_t_prev (rbt_traverser_t *trav);
 
 extern void *
-rb_t_replace (rbt_traverser_t *trav,
-              void *new);
+rbt_t_cur (rbt_traverser_t *trav);
+
+extern void *
+rbt_t_replace (rbt_traverser_t *trav,
+               void *new);
 
 
 

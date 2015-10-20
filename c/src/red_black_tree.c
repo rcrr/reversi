@@ -479,8 +479,8 @@ trav_refresh (rbt_traverser_t *trav)
 /* Initializes |trav| for use with |tree|
    and selects the null node. */
 void
-rb_t_init (rbt_traverser_t *trav,
-           rbt_table_t *tree)
+rbt_t_init (rbt_traverser_t *trav,
+            rbt_table_t *tree)
 {
   trav->table = tree;
   trav->node = NULL;
@@ -492,8 +492,8 @@ rb_t_init (rbt_traverser_t *trav,
    and selects and returns a pointer to its least-valued item.
    Returns |NULL| if |tree| contains no nodes. */
 void *
-rb_t_first (rbt_traverser_t *trav,
-            rbt_table_t *tree)
+rbt_t_first (rbt_traverser_t *trav,
+             rbt_table_t *tree)
 {
   rbt_node_t *x;
 
@@ -520,8 +520,8 @@ rb_t_first (rbt_traverser_t *trav,
    and selects and returns a pointer to its greatest-valued item.
    Returns |NULL| if |tree| contains no nodes. */
 void *
-rb_t_last (rbt_traverser_t *trav,
-           rbt_table_t *tree)
+rbt_t_last (rbt_traverser_t *trav,
+            rbt_table_t *tree)
 {
   rbt_node_t *x;
 
@@ -550,9 +550,9 @@ rb_t_last (rbt_traverser_t *trav,
    If there is no matching item, initializes |trav| to the null item
    and returns |NULL|. */
 void *
-rb_t_find (rbt_traverser_t *trav,
-           rbt_table_t *tree,
-           void *item)
+rbt_t_find (rbt_traverser_t *trav,
+            rbt_table_t *tree,
+            void *item)
 {
   rbt_node_t *p, *q;
 
@@ -591,9 +591,9 @@ rb_t_find (rbt_traverser_t *trav,
    If a memory allocation failure occurs, |NULL| is returned and |trav|
    is initialized to the null item. */
 void *
-rb_t_insert (rbt_traverser_t *trav,
-             rbt_table_t *tree,
-             void *item)
+rbt_t_insert (rbt_traverser_t *trav,
+              rbt_table_t *tree,
+              void *item)
 {
   void **p;
 
@@ -611,15 +611,15 @@ rb_t_insert (rbt_traverser_t *trav,
     }
   else
     {
-      rb_t_init (trav, tree);
+      rbt_t_init (trav, tree);
       return NULL;
     }
 }
 
 /* Initializes |trav| to have the same current node as |src|. */
 void *
-rb_t_copy (rbt_traverser_t *trav,
-           const rbt_traverser_t *src)
+rbt_t_copy (rbt_traverser_t *trav,
+            const rbt_traverser_t *src)
 {
   assert (trav != NULL && src != NULL);
 
@@ -643,7 +643,7 @@ rb_t_copy (rbt_traverser_t *trav,
    within the tree being traversed with |trav|,
    or if there are no more data items returns |NULL|. */
 void *
-rb_t_next (rbt_traverser_t *trav)
+rbt_t_next (rbt_traverser_t *trav)
 {
   rbt_node_t *x;
 
@@ -655,7 +655,7 @@ rb_t_next (rbt_traverser_t *trav)
   x = trav->node;
   if (x == NULL)
     {
-      return rb_t_first (trav, trav->table);
+      return rbt_t_first (trav, trav->table);
     }
   else if (x->links[1] != NULL)
     {
@@ -696,7 +696,7 @@ rb_t_next (rbt_traverser_t *trav)
    within the tree being traversed with |trav|,
    or if there are no more data items returns |NULL|. */
 void *
-rb_t_prev (rbt_traverser_t *trav)
+rbt_t_prev (rbt_traverser_t *trav)
 {
   rbt_node_t *x;
 
@@ -708,7 +708,7 @@ rb_t_prev (rbt_traverser_t *trav)
   x = trav->node;
   if (x == NULL)
     {
-      return rb_t_last (trav, trav->table);
+      return rbt_t_last (trav, trav->table);
     }
   else if (x->links[0] != NULL)
     {
@@ -747,7 +747,7 @@ rb_t_prev (rbt_traverser_t *trav)
 
 /* Returns |trav|'s current item. */
 void *
-rb_t_cur (rbt_traverser_t *trav)
+rbt_t_cur (rbt_traverser_t *trav)
 {
   assert (trav != NULL);
 
@@ -758,7 +758,7 @@ rb_t_cur (rbt_traverser_t *trav)
    |trav| must not have the null item selected.
    The new item must not upset the ordering of the tree. */
 void *
-rb_t_replace (rbt_traverser_t *trav,
+rbt_t_replace (rbt_traverser_t *trav,
               void *new)
 {
   void *old;
