@@ -45,8 +45,15 @@
 
 #include "block_memory_allocator.h"
 
-/* Maximum red-black tree height. */
+/**
+ * @brief Maximum red-black tree height.
+ */
 #define RBT_MAX_HEIGHT 48
+
+/**
+ * @brief Returns the number of items collected by `table`.
+ */
+#define rbt_count(table) ((size_t) (table)->count)
 
 
 
@@ -54,15 +61,60 @@
 /* Function types. */
 /*******************/
 
-typedef int rbt_comparison_f (const void *item_a,
-                              const void *item_b,
-                              void *param);
+/**
+ * @brief Compares `item_a` a with `item_b`.
+ *
+ * @details The implementer has to ensure that when the value refernced by `item_a`
+ *          is equal to the one addressed by `item_b`, than zero is returned.
+ *          When the value identified by `item_a` is greater than the one pointed by `item_b`,
+ *          than the return value has to be `+1`, and otherwise `-1`.
+ *
+ *          Pseudocode:
+ * @code
+ *  if (*item_a > *item_b) return +1;
+ *  else if (*item_a == *item_b) return 0;
+ *  else return -1;
+ * @endcode
+ *
+ * @param [in]     item_a a pointer to the first value
+ * @param [in]     item_b a pointer to the second value
+ * @param [in,out] param  a utility pointer used to exchange info to and from the function
+ * @return                result of comparing the values pointed by `item_a` and `item_b`
+ */
+typedef int
+rbt_item_compare_f (const void *item_a,
+                    const void *item_b,
+                    void *param);
 
-typedef void rbt_item_f (void *item,
-                         void *param);
+/**
+ * @brief Performs an action on table item
+ *
+ * @details During destruction, the table item function provided, if non-null, is called once
+ *          for every item in the table, in no particular order. The function, if provided,
+ *          must not invoke any table function or macro on the table being destroyed.
+ *
+ * @param [in]     item a pointer to the table item
+ * @param [in,out] param  a utility pointer used to exchange data to and from the function
+ */
+typedef void
+rbt_item_destroy_f (void *item,
+                    void *param);
 
-typedef void *rbt_copy_f (void *item,
-                          void *param);
+/**
+ * @brief Returns a copy of the `item` object
+ *
+ * @details During the execution of the copy table function, if a table copy function is
+ *          provided, then it is used to make a copy of each table item as it is inserted
+ *          into the new table, in no particular order (a deep copy). Otherwise, the `void ∗`
+ *          table items are copied verbatim (a shallow copy).
+ *
+ * @param [in]     item a pointer to the table item
+ * @param [in,out] param  a utility pointer used to exchange data to and from the function
+ * @return                a pointer to the newly created object
+ */
+typedef void *
+rbt_item_copy_f (void *item,
+                 void *param);
 
 
 
@@ -89,7 +141,7 @@ typedef struct rbt_node {
  */
 typedef struct rbt_table {
   rbt_node_t              *root;                  /**< @brief Tree's root. */
-  rbt_comparison_f        *compare;               /**< @brief Comparison function. */
+  rbt_item_compare_f      *compare;               /**< @brief Comparison function. */
   void                    *param;                 /**< @brief Extra argument to compare function. */
   struct libavl_allocator *alloc;                 /**< @brief Memory allocator. */
   size_t                   count;                 /**< @brief Number of items in tree. */
@@ -114,19 +166,19 @@ typedef struct rbt_traverser {
 /************************************************/
 
 extern rbt_table_t *
-rbt_create (rbt_comparison_f *compare,
+rbt_create (rbt_item_compare_f *compare,
             void *param,
             struct libavl_allocator *allocator);
 
 extern rbt_table_t *
 rbt_copy (const rbt_table_t *org,
-          rbt_copy_f *copy,
-          rbt_item_f *destroy,
+          rbt_item_copy_f *copy,
+          rbt_item_destroy_f *destroy,
           struct libavl_allocator *allocator);
 
 extern void
 rbt_destroy (rbt_table_t *tree,
-             rbt_item_f *destroy);
+             rbt_item_destroy_f *destroy);
 
 extern void **
 rbt_probe (rbt_table_t *tree,
@@ -155,8 +207,6 @@ rbt_assert_insert (rbt_table_t *table,
 extern void *
 rbt_assert_delete (rbt_table_t *table,
                   void *item);
-
-#define rbt_count(table) ((size_t) (table)->count)
 
 
 
