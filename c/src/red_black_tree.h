@@ -137,7 +137,7 @@ typedef struct rbt_node {
 } rbt_node_t;
 
 /**
- * @brief Tree data structure.
+ * @brief Red-black tree data structure.
  */
 typedef struct rbt_table {
   rbt_node_t              *root;                  /**< @brief Tree's root. */
@@ -149,7 +149,7 @@ typedef struct rbt_table {
 } rbt_table_t;
 
 /**
- * @brief RB traverser structure.
+ * @brief Red-black tree traverser structure.
  */
 typedef struct rbt_traverser {
   rbt_table_t        *table;                      /**< @brief Tree being traversed. */

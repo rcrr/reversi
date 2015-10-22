@@ -940,26 +940,3 @@ struct libavl_allocator rb_allocator_default =
     rb_malloc,
     rb_free
   };
-
-#undef NDEBUG
-#include <assert.h>
-
-/* Asserts that |rbt_insert()| succeeds at inserting |item| into |table|. */
-void
-(rbt_assert_insert) (rbt_table_t *table,
-                     void *item)
-{
-  void **p = rbt_probe (table, item);
-  assert (p != NULL && *p == item);
-}
-
-/* Asserts that |rbt_delete()| really removes |item| from |table|,
-   and returns the removed item. */
-void *
-(rbt_assert_delete) (rbt_table_t *table,
-                    void *item)
-{
-  void *p = rbt_delete (table, item);
-  assert (p != NULL);
-  return p;
-}
