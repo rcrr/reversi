@@ -49,8 +49,8 @@ struct libavl_allocator
 
 /* Default memory allocator. */
 extern struct libavl_allocator rb_allocator_default;
-void *rb_malloc (struct libavl_allocator *, size_t);
-void rb_free (struct libavl_allocator *, void *);
+extern void *rb_malloc (struct libavl_allocator *, size_t);
+extern void rb_free (struct libavl_allocator *, void *);
 
 
 
