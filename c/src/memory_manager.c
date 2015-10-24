@@ -42,22 +42,44 @@
 #include "memory_manager.h"
 
 
-/* Allocates |size| bytes of space using |malloc()|.
-   Returns a null pointer if allocation fails. */
+
+/* Default memory allocator that uses malloc() and free(). */
+mem_allocator_t mem_allocator_default = { mem_basic_malloc,
+                                          mem_basic_free };
+
+
+
+/**
+ * @brief Allocates `size` bytes of space using `malloc`.
+ *
+ * @details Returns a `NULL` pointer if allocation fails.
+ *
+ * @param [in] alloc a pointer to the #mem_allocator structure
+ * @param [in] size  number of bytes to allocate
+ * @return           a pointer to the allocated memory
+ */
 void *
-rb_malloc (mem_allocator_t *allocator, size_t size)
+mem_basic_malloc (mem_allocator_t *alloc,
+                  size_t size)
 {
-  assert (allocator != NULL && size > 0);
+  assert (alloc != NULL && size > 0);
   return malloc (size);
 }
 
-/* Frees |block|. */
+/**
+ * @brief Frees the memory space pointed to by `block`.
+ *
+ * @details The memory released must have been returned by a previous call to mem_basic_malloc().
+ *          Otherwise, or if mem_basic_free() has already been called before on `block`, undefined
+ *          behavior occurs.
+ *
+ * @param [in]     alloc a pointer to the #mem_allocator structure
+ * @param [in,out] block the pointer to the freed memory
+ */
 void
-rb_free (mem_allocator_t *allocator, void *block)
+mem_basic_free (mem_allocator_t *alloc,
+                void *block)
 {
-  assert (allocator != NULL && block != NULL);
+  assert (alloc != NULL && block != NULL);
   free (block);
 }
-
-/* Default memory allocator that uses |malloc()| and |free()|. */
-mem_allocator_t rb_allocator_default = { rb_malloc, rb_free };

@@ -123,40 +123,40 @@ rbt_item_copy_f (void *item,
  * @brief Color of a red-black node.
  */
 typedef enum rbt_color {
-  RBT_BLACK,                                      /**< Black. */
-  RBT_RED                                         /**< Red. */
+  RBT_BLACK,                                    /**< Black. */
+  RBT_RED                                       /**< Red. */
 } rbt_color_t;
 
 /**
  * @brief A red-black tree node.
  */
 typedef struct rbt_node {
-  struct rbt_node *links[2];                      /**< @brief Subtrees. */
-  void            *data;                          /**< @brief Pointer to data. */
-  rbt_color_t      color;                         /**< @brief Color. */
+  struct rbt_node *links[2];                    /**< @brief Subtrees. */
+  void            *data;                        /**< @brief Pointer to data. */
+  rbt_color_t      color;                       /**< @brief Color. */
 } rbt_node_t;
 
 /**
  * @brief Red-black tree data structure.
  */
 typedef struct rbt_table {
-  rbt_node_t              *root;                  /**< @brief Tree's root. */
-  rbt_item_compare_f      *compare;               /**< @brief Comparison function. */
-  void                    *param;                 /**< @brief Extra argument to compare function. */
-  struct mem_allocator    *alloc;                 /**< @brief Memory allocator. */
-  size_t                   count;                 /**< @brief Number of items in tree. */
-  unsigned long long       generation;            /**< @brief Generation number. */
+  rbt_node_t         *root;                     /**< @brief Tree's root. */
+  rbt_item_compare_f *compare;                  /**< @brief Comparison function. */
+  void               *param;                    /**< @brief Extra argument to compare function. */
+  mem_allocator_t    *alloc;                    /**< @brief Memory allocator. */
+  size_t              count;                    /**< @brief Number of items in tree. */
+  unsigned long long  generation;               /**< @brief Generation number. */
 } rbt_table_t;
 
 /**
  * @brief Red-black tree traverser structure.
  */
 typedef struct rbt_traverser {
-  rbt_table_t        *table;                      /**< @brief Tree being traversed. */
-  rbt_node_t         *node;                       /**< @brief Current node in tree. */
-  rbt_node_t         *stack[RBT_MAX_HEIGHT];      /**< @brief All the nodes above nodes. */
-  size_t              height;                     /**< @brief Number of nodes in stack. */
-  unsigned long long  generation;                 /**< @brief Generation number. */
+  rbt_table_t        *table;                    /**< @brief Tree being traversed. */
+  rbt_node_t         *node;                     /**< @brief Current node in tree. */
+  rbt_node_t         *stack[RBT_MAX_HEIGHT];    /**< @brief All the nodes above nodes. */
+  size_t              height;                   /**< @brief Number of nodes in stack. */
+  unsigned long long  generation;               /**< @brief Generation number. */
 } rbt_traverser_t;
 
 
@@ -168,13 +168,13 @@ typedef struct rbt_traverser {
 extern rbt_table_t *
 rbt_create (rbt_item_compare_f *compare,
             void *param,
-            struct mem_allocator *allocator);
+            mem_allocator_t *allocator);
 
 extern rbt_table_t *
 rbt_copy (const rbt_table_t *org,
           rbt_item_copy_f *copy,
           rbt_item_destroy_f *destroy,
-          struct mem_allocator *allocator);
+          mem_allocator_t *allocator);
 
 extern void
 rbt_destroy (rbt_table_t *tree,

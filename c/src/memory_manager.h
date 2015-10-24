@@ -1,9 +1,9 @@
 /**
  * @file
  *
- * @brief Block memory allocator module definitions.
+ * @brief Memory manager module definitions.
  *
- * @details This module defines the #bma_t entity.
+ * @details This module defines the #mem_allocator structure.
  *
  * @par memory_manager.h
  * <tt>
@@ -37,6 +37,45 @@
 
 
 
+/* Forward declaration for the allocator structure */
+typedef struct mem_allocator mem_allocator_t;
+
+
+
+/*******************/
+/* Function types. */
+/*******************/
+
+/**
+ * @brief Allocates `size` bytes and returns a pointer to the allocated memory.
+ *
+ * @details The returned memory is not initialized. If size is `0`, then the function
+ *          returns either `NULL`, or a unique pointer value that can later be successfully
+ *          passed to mem_free_f().
+ *
+ * @param [in] alloc a pointer to the #mem_allocator structure
+ * @param [in] size  number of bytes to allocate
+ * @return           a pointer to the allocated memory
+ */
+typedef void *
+mem_malloc_f (mem_allocator_t *alloc,
+              size_t size);
+
+/**
+ * @brief Frees the memory space pointed to by `block`.
+ *
+ * @details The memory released must have been returned by a previous call to mem_malloc_f(),
+ *          and the same `mem_allocator_t` object.
+ *          Otherwise, or if mem_free_f() has already been called before on `block`, undefined
+ *          behavior occurs. If `block` is `NULL`, no operation is performed.
+ *
+ * @param [in]     alloc a pointer to the #mem_allocator structure
+ * @param [in,out] block the pointer to the freed memory
+ */
+typedef void
+mem_free_f (mem_allocator_t *alloc,
+            void *block);
+
 /**********************************************/
 /* Type declarations.                         */
 /**********************************************/
@@ -45,19 +84,40 @@
  * @brief Memory allocator.
  *
  * @details This structure defines two function pointers that are used to allocate and free memory.
- *          The two functions have the definition consistent with the ANSI C `malloc` and `free`
- *          functions as defined in <stdlib.h>.
  */
-typedef struct mem_allocator {
-  void *(*libavl_malloc) (struct mem_allocator *alloc, size_t size);
-  void (*libavl_free) (struct mem_allocator *alloc, void *ptr);
-} mem_allocator_t;
+struct mem_allocator {
+  mem_malloc_f *malloc;   /**< @brief Memory allocation function pointer. */
+  mem_free_f   *free;     /**< @brief Memory de-allocation function pointer. */
+};
 
-/* Default memory allocator. */
-extern mem_allocator_t rb_allocator_default;
 
-extern void *rb_malloc (mem_allocator_t *, size_t);
-extern void rb_free (mem_allocator_t *, void *);
+
+/**********************************************/
+/* Global constants.                          */
+/**********************************************/
+
+/**
+ * @brief Default memory allocator.
+ *
+ * @details It is defined as a variable, but must not be modified.
+ *          It is a constant structure.
+ *          It is a front end for ANSI C `malloc` and `free` functions.
+ */
+extern mem_allocator_t mem_allocator_default;
+
+
+
+/****************************************************/
+/* Function prototypes for the allocator structure. */
+/****************************************************/
+
+extern void *
+mem_basic_malloc (mem_allocator_t *alloc,
+                  size_t size);
+
+extern void
+mem_basic_free (mem_allocator_t *alloc,
+                void *block);
 
 
 

@@ -945,8 +945,8 @@ mt_create (enum mt_policy policy, int arg[2], int verbosity)
 {
   struct mt_allocator *mt = xmalloc (sizeof *mt);
 
-  mt->allocator.libavl_malloc = mt_allocate;
-  mt->allocator.libavl_free = mt_free;
+  mt->allocator.malloc = mt_allocate;
+  mt->allocator.free = mt_free;
 
   mt->policy = policy;
   mt->arg[0] = arg[0];

@@ -58,9 +58,9 @@ rbt_create (rbt_item_compare_f *compare,
   assert (compare != NULL);
 
   if (allocator == NULL)
-    allocator = &rb_allocator_default;
+    allocator = &mem_allocator_default;
 
-  tree = allocator->libavl_malloc (allocator, sizeof *tree);
+  tree = allocator->malloc (allocator, sizeof *tree);
   if (tree == NULL)
     return NULL;
 
@@ -129,7 +129,7 @@ rbt_probe (rbt_table_t *tree,
     }
 
   n = pa[k - 1]->links[da[k - 1]] =
-    tree->alloc->libavl_malloc (tree->alloc, sizeof *n);
+    tree->alloc->malloc (tree->alloc, sizeof *n);
   if (n == NULL)
     return NULL;
 
@@ -442,7 +442,7 @@ rbt_delete (rbt_table_t *tree,
 
     }
 
-  tree->alloc->libavl_free (tree->alloc, p);
+  tree->alloc->free (tree->alloc, p);
   tree->count--;
   tree->generation++;
   return (void *) item;
@@ -825,7 +825,7 @@ rbt_copy (const rbt_table_t *org,
           assert (height < 2 * (RBT_MAX_HEIGHT + 1));
 
           y->links[0] =
-            new->alloc->libavl_malloc (new->alloc,
+            new->alloc->malloc (new->alloc,
                                            sizeof *y->links[0]);
           if (y->links[0] == NULL)
             {
@@ -865,7 +865,7 @@ rbt_copy (const rbt_table_t *org,
           if (x->links[1] != NULL)
             {
               y->links[1] =
-                new->alloc->libavl_malloc (new->alloc,
+                new->alloc->malloc (new->alloc,
                                                sizeof *y->links[1]);
               if (y->links[1] == NULL)
                 {
@@ -905,7 +905,7 @@ rbt_destroy (rbt_table_t *tree,
         q = p->links[1];
         if (destroy != NULL && p->data != NULL)
           destroy (p->data, tree->param);
-        tree->alloc->libavl_free (tree->alloc, p);
+        tree->alloc->free (tree->alloc, p);
       }
     else
       {
@@ -914,5 +914,5 @@ rbt_destroy (rbt_table_t *tree,
         q->links[1] = p;
       }
 
-  tree->alloc->libavl_free (tree->alloc, tree);
+  tree->alloc->free (tree->alloc, tree);
 }
