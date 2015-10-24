@@ -49,15 +49,6 @@
 
 #include "red_black_tree.h"
 
-#ifndef LIBAVL_ALLOCATOR
-#define LIBAVL_ALLOCATOR
-/* Memory allocator. */
-struct libavl_allocator
-  {
-    void *(*libavl_malloc) (struct libavl_allocator *, size_t libavl_size);
-    void (*libavl_free) (struct libavl_allocator *, void *libavl_block);
-  };
-#endif
 
 
 /* Prints the structure of |node|,
@@ -441,7 +432,7 @@ compare_ints (const void *pa, const void *pb, void *param)
    Uses |allocator| as the allocator for tree and node data.
    Higher values of |verbosity| produce more debug output. */
 static int
-test_correctness (struct libavl_allocator *allocator,
+test_correctness (mem_allocator_t *allocator,
                   int insert[], int delete[], int n, int verbosity)
 {
   rbt_table_t *tree;
@@ -729,7 +720,7 @@ test_bst_copy (rbt_table_t *tree, int n)
    Uses |allocator| as the allocator for tree and node data.
    Use |verbosity| to set the level of chatter on |stdout|. */
 int
-test_overflow (struct libavl_allocator *allocator,
+test_overflow (mem_allocator_t *allocator,
                int order[],
                int n,
                int verbosity)
@@ -930,7 +921,7 @@ enum mt_arg_index
 /* Memory tracking allocator. */
 struct mt_allocator
   {
-    struct libavl_allocator allocator;  /* Allocator.  Must be first member. */
+    mem_allocator_t allocator;     /* Allocator.  Must be first member. */
 
     /* Settings. */
     enum mt_policy policy;              /* Allocation policy. */
@@ -943,8 +934,8 @@ struct mt_allocator
     int block_cnt;                      /* Number of still-allocated blocks. */
   };
 
-static void *mt_allocate (struct libavl_allocator *, size_t);
-static void mt_free (struct libavl_allocator *, void *);
+static void *mt_allocate (mem_allocator_t *, size_t);
+static void mt_free (mem_allocator_t *, void *);
 
 /* Initializes the memory manager for use
    with allocation policy |policy| and policy arguments |arg[]|,
@@ -1002,7 +993,7 @@ mt_destroy (struct mt_allocator *mt)
   free (mt);
 }
 
-/* Returns the |struct libavl_allocator| associated with |mt|. */
+/* Returns the |mem_allocator_t| associated with |mt|. */
 static void *
 mt_allocator (struct mt_allocator *mt)
 {
@@ -1052,7 +1043,7 @@ reject_request (struct mt_allocator *mt, size_t size)
 
 /* Allocates and returns a block of |size| bytes. */
 static void *
-mt_allocate (struct libavl_allocator *allocator, size_t size)
+mt_allocate (mem_allocator_t *allocator, size_t size)
 {
   struct mt_allocator *mt = (struct mt_allocator *) allocator;
 
@@ -1112,7 +1103,7 @@ mt_allocate (struct libavl_allocator *allocator, size_t size)
 
 /* Releases |block| previously returned by |mt_allocate()|. */
 static void
-mt_free (struct libavl_allocator *allocator, void *block)
+mt_free (mem_allocator_t *allocator, void *block)
 {
   struct mt_allocator *mt = (struct mt_allocator *) allocator;
   struct block *iter, *prev;
@@ -1813,7 +1804,7 @@ main (int argc, char *argv[])
 
       {
         int okay;
-        struct libavl_allocator *a = mt_allocator (alloc);
+        mem_allocator_t *a = mt_allocator (alloc);
 
         switch (opts.test)
           {

@@ -37,20 +37,27 @@
 
 
 
-#ifndef LIBAVL_ALLOCATOR
-#define LIBAVL_ALLOCATOR
-/* Memory allocator. */
-struct libavl_allocator
-  {
-    void *(*libavl_malloc) (struct libavl_allocator *, size_t libavl_size);
-    void (*libavl_free) (struct libavl_allocator *, void *libavl_block);
-  };
-#endif
+/**********************************************/
+/* Type declarations.                         */
+/**********************************************/
+
+/**
+ * @brief Memory allocator.
+ *
+ * @details This structure defines two function pointers that are used to allocate and free memory.
+ *          The two functions have the definition consistent with the ANSI C `malloc` and `free`
+ *          functions as defined in <stdlib.h>.
+ */
+typedef struct mem_allocator {
+  void *(*libavl_malloc) (struct mem_allocator *alloc, size_t size);
+  void (*libavl_free) (struct mem_allocator *alloc, void *ptr);
+} mem_allocator_t;
 
 /* Default memory allocator. */
-extern struct libavl_allocator rb_allocator_default;
-extern void *rb_malloc (struct libavl_allocator *, size_t);
-extern void rb_free (struct libavl_allocator *, void *);
+extern mem_allocator_t rb_allocator_default;
+
+extern void *rb_malloc (mem_allocator_t *, size_t);
+extern void rb_free (mem_allocator_t *, void *);
 
 
 

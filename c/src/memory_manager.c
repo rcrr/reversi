@@ -45,7 +45,7 @@
 /* Allocates |size| bytes of space using |malloc()|.
    Returns a null pointer if allocation fails. */
 void *
-rb_malloc (struct libavl_allocator *allocator, size_t size)
+rb_malloc (mem_allocator_t *allocator, size_t size)
 {
   assert (allocator != NULL && size > 0);
   return malloc (size);
@@ -53,15 +53,11 @@ rb_malloc (struct libavl_allocator *allocator, size_t size)
 
 /* Frees |block|. */
 void
-rb_free (struct libavl_allocator *allocator, void *block)
+rb_free (mem_allocator_t *allocator, void *block)
 {
   assert (allocator != NULL && block != NULL);
   free (block);
 }
 
 /* Default memory allocator that uses |malloc()| and |free()|. */
-struct libavl_allocator rb_allocator_default =
-  {
-    rb_malloc,
-    rb_free
-  };
+mem_allocator_t rb_allocator_default = { rb_malloc, rb_free };

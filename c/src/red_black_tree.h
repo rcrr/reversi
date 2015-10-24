@@ -143,7 +143,7 @@ typedef struct rbt_table {
   rbt_node_t              *root;                  /**< @brief Tree's root. */
   rbt_item_compare_f      *compare;               /**< @brief Comparison function. */
   void                    *param;                 /**< @brief Extra argument to compare function. */
-  struct libavl_allocator *alloc;                 /**< @brief Memory allocator. */
+  struct mem_allocator    *alloc;                 /**< @brief Memory allocator. */
   size_t                   count;                 /**< @brief Number of items in tree. */
   unsigned long long       generation;            /**< @brief Generation number. */
 } rbt_table_t;
@@ -168,13 +168,13 @@ typedef struct rbt_traverser {
 extern rbt_table_t *
 rbt_create (rbt_item_compare_f *compare,
             void *param,
-            struct libavl_allocator *allocator);
+            struct mem_allocator *allocator);
 
 extern rbt_table_t *
 rbt_copy (const rbt_table_t *org,
           rbt_item_copy_f *copy,
           rbt_item_destroy_f *destroy,
-          struct libavl_allocator *allocator);
+          struct mem_allocator *allocator);
 
 extern void
 rbt_destroy (rbt_table_t *tree,

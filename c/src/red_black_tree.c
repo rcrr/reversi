@@ -51,7 +51,7 @@
 rbt_table_t *
 rbt_create (rbt_item_compare_f *compare,
             void *param,
-            struct libavl_allocator *allocator)
+            mem_allocator_t *allocator)
 {
   rbt_table_t *tree;
 
@@ -798,7 +798,7 @@ rbt_table_t *
 rbt_copy (const rbt_table_t *org,
           rbt_item_copy_f *copy,
           rbt_item_destroy_f *destroy,
-          struct libavl_allocator *allocator)
+          mem_allocator_t *allocator)
 {
   rbt_node_t *stack[2 * (RBT_MAX_HEIGHT + 1)];
   int height = 0;
