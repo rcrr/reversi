@@ -43,7 +43,7 @@
 
 #include <stddef.h>
 
-#include "block_memory_allocator.h"
+#include "memory_manager.h"
 
 /**
  * @brief Maximum red-black tree height.

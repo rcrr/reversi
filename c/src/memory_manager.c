@@ -8,7 +8,7 @@
  *
  *          All the symbols exported by the module adopt the `bma_` prefix.
  *
- * @par block_memory_allocator.c
+ * @par memory_manager.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -39,7 +39,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "block_memory_allocator.h"
+#include "memory_manager.h"
 
 
 /* Allocates |size| bytes of space using |malloc()|.

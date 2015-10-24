@@ -5,7 +5,7 @@
  *
  * @details This module defines the #bma_t entity.
  *
- * @par block_memory_allocator.h
+ * @par memory_manager.h
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -32,8 +32,8 @@
  * </tt>
  */
 
-#ifndef BLOCK_MEMORY_ALLOCATOR_H
-#define BLOCK_MEMORY_ALLOCATOR_H
+#ifndef MEMORY_MANAGER_H
+#define MEMORY_MANAGER_H
 
 
 
@@ -54,4 +54,4 @@ extern void rb_free (struct libavl_allocator *, void *);
 
 
 
-#endif /* BLOCK_MEMORY_ALLOCATOR_H */
+#endif /* MEMORY_MANAGER_H */
