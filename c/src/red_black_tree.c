@@ -3,11 +3,33 @@
  *
  * @brief Red black tree module.
  *
- * @details The module is a light rearrangement of a portion of the libavl library for manipulation of binary trees.
+ * @details This module defines the abstract concept of a table, also known as dictionary,
+ *          by means of an implementation realized by a red-black binary search tree.
+ *          The terms table, tree, dictionary, and associative array will be used interchangeably.
  *
- * The original work has been written by Ben Pfaff, who may be contacted at <blp@gnu.org> on the Internet,
- * or write to Ben Pfaff, Stanford University, Computer Science Dept., 353 Serra Mall, Stanford CA 94305, USA.
- * See also web site http://adtinfo.org/
+ * The purpose of a table is to keep track of a collection of items, all of the same type.
+ *    Items can be inserted into and deleted from a table, with no arbitrary limit on the number
+ *    of items in the table. We can also search in a table for items that match a given item.
+ *
+ * Other operations are supported, too. Traversal is the most important of these: all of
+ *   the items in a table can be visited, in sorted order from smallest to largest, or from largest
+ *   to smallest. Traversals can also start from an item in the middle, or a newly inserted item,
+ *   and move in either direction.
+ *
+ * The data in a table may be of any C type, but all the items in a table must be of the
+ *    same type. Structure types are common. Often, only part of each data item is used in item
+ *    lookup, with the rest for storage of auxiliary information. A table that contains two-part
+ *    data items like this is called a “dictionary” or an “associative array”. The part of table
+ *    data used for lookup, whether the table is a dictionary or not, is the key. In a dictionary,
+ *    the remainder is the value.
+ *
+ * Our tables cannot contain duplicates. An attempt to insert an item into a table that
+ *    already contains a matching item will fail.
+ *
+ * The module is a rearrangement of a portion of the libavl library for manipulation of binary trees.
+ *   The original work has been written by Ben Pfaff, who may be contacted at <blp@gnu.org> on the Internet,
+ *   or write to Ben Pfaff, Stanford University, Computer Science Dept., 353 Serra Mall, Stanford CA 94305, USA.
+ *   See also web site http://adtinfo.org/
  *
  * @par red_black_tree.c
  * <tt>
@@ -44,30 +66,46 @@
 #include <string.h>
 #include "red_black_tree.h"
 
-/* Creates and returns a new table
-   with comparison function |compare| using parameter |param|
-   and memory allocator |allocator|.
-   Returns |NULL| if memory allocation failed. */
+
+
+/*****************************************************/
+/* Function implementations for the table structure. */
+/*****************************************************/
+
+/**
+ * @brief Creates and returns a new, empty table.
+ *
+ * @details The table is associated with the given arguments.
+ *          The `param` argument is passed as the third argument to the comparison function
+ *          when it is called. If the allocator is a null pointer, then #mem_allocator_default is used.
+ *
+ * Returns `NULL` if memory allocation failed.
+ *
+ * @invariant The `compare` function pointer cannot be `NULL`.
+ *
+ * @param [in]     compare the comparison function for data table's items
+ * @param [in,out] param   passed to the comparison function
+ * @param [in,out] alloc   the memory allocation object to use
+ * @return                 a newly created table
+ */
 rbt_table_t *
 rbt_create (rbt_item_compare_f *compare,
             void *param,
-            mem_allocator_t *allocator)
+            mem_allocator_t *alloc)
 {
   rbt_table_t *tree;
 
-  assert (compare != NULL);
+  assert(compare != NULL);
 
-  if (allocator == NULL)
-    allocator = &mem_allocator_default;
+  if (alloc == NULL) alloc = &mem_allocator_default;
 
-  tree = allocator->malloc (allocator, sizeof *tree);
-  if (tree == NULL)
-    return NULL;
+  tree = alloc->malloc(alloc, sizeof *tree);
+  if (tree == NULL) return NULL;
 
   tree->root = NULL;
   tree->compare = compare;
   tree->param = param;
-  tree->alloc = allocator;
+  tree->alloc = alloc;
   tree->count = 0;
   tree->generation = 0;
 
@@ -77,23 +115,18 @@ rbt_create (rbt_item_compare_f *compare,
 /* Search |tree| for an item matching |item|, and return it if found.
    Otherwise return |NULL|. */
 void *
-rbt_find (const rbt_table_t *tree,
+rbt_find (const rbt_table_t *table,
           const void *item)
 {
   const rbt_node_t *p;
 
-  assert (tree != NULL && item != NULL);
-  for (p = tree->root; p != NULL; )
-    {
-      int cmp = tree->compare (item, p->data, tree->param);
-
-      if (cmp < 0)
-        p = p->links[0];
-      else if (cmp > 0)
-        p = p->links[1];
-      else /* |cmp == 0| */
-        return p->data;
-    }
+  assert (table != NULL && item != NULL);
+  for (p = table->root; p != NULL; ) {
+    const int cmp = table->compare(item, p->data, table->param);
+    if (cmp < 0) p = p->links[0];
+    else if (cmp > 0) p = p->links[1];
+    else return p->data;
+  }
 
   return NULL;
 }
@@ -792,13 +825,13 @@ copy_error_recovery (rbt_node_t **stack,
    On failure, destroys the partially created new tree,
    applying |destroy|, if non-null, to each item in the new tree so far,
    and returns |NULL|.
-   If |allocator != NULL|, it is used for allocation in the new tree.
-   Otherwise, the same allocator used for |org| is used. */
+   If |alloc != NULL|, it is used for allocation in the new tree.
+   Otherwise, the same alloc used for |org| is used. */
 rbt_table_t *
 rbt_copy (const rbt_table_t *org,
           rbt_item_copy_f *copy,
           rbt_item_destroy_f *destroy,
-          mem_allocator_t *allocator)
+          mem_allocator_t *alloc)
 {
   rbt_node_t *stack[2 * (RBT_MAX_HEIGHT + 1)];
   int height = 0;
@@ -809,7 +842,7 @@ rbt_copy (const rbt_table_t *org,
 
   assert (org != NULL);
   new = rbt_create (org->compare, org->param,
-                    allocator != NULL ? allocator : org->alloc);
+                    alloc != NULL ? alloc : org->alloc);
   if (new == NULL)
     return NULL;
   new->count = org->count;

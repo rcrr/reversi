@@ -3,7 +3,7 @@
  *
  * @brief Red black tree module definitions.
  *
- * @details The module is a light rearrangement of a portion of the libavl library for manipulation of binary trees.
+ * @details The module is a rearrangement of a portion of the libavl library for manipulation of binary trees.
  *
  * The original work has been written by Ben Pfaff, who may be contacted at <blp@gnu.org> on the Internet,
  * or write to Ben Pfaff, Stanford University, Computer Science Dept., 353 Serra Mall, Stanford CA 94305, USA.
@@ -197,7 +197,7 @@ rbt_delete (rbt_table_t *tree,
             const void *item);
 
 extern void *
-rbt_find (const rbt_table_t *tree,
+rbt_find (const rbt_table_t *table,
           const void *item);
 
 extern void

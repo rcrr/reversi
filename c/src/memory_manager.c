@@ -43,7 +43,13 @@
 
 
 
-/* Default memory allocator that uses malloc() and free(). */
+/**
+ * @brief Default memory allocator.
+ *
+ * @details It is defined as a variable, but must not be modified.
+ *          It is a constant structure.
+ *          It is a front end for ANSI C `malloc` and `free` functions.
+ */
 mem_allocator_t mem_allocator_default = { mem_basic_malloc,
                                           mem_basic_free };
 

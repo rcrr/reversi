@@ -96,12 +96,9 @@ struct mem_allocator {
 /* Global constants.                          */
 /**********************************************/
 
-/**
- * @brief Default memory allocator.
- *
- * @details It is defined as a variable, but must not be modified.
- *          It is a constant structure.
- *          It is a front end for ANSI C `malloc` and `free` functions.
+/*
+ * Default memory allocator that uses malloc() and free().
+ * It is a variable, but must be considered as a constant.
  */
 extern mem_allocator_t mem_allocator_default;
 
