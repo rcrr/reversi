@@ -64,7 +64,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "red_black_tree.h"
+
+
+/**
+ * @cond
+ */
+
+/*
+ * Prototypes for internal functions.
+ */
+
+static void
+copy_error_recovery (rbt_node_t **stack,
+                     int height,
+                     rbt_table_t *new,
+                     rbt_item_destroy_f *destroy);
+
+static void
+trav_refresh (rbt_traverser_t *trav);
+
+/**
+ * @endcond
+ */
 
 
 
@@ -112,139 +135,272 @@ rbt_create (rbt_item_compare_f *compare,
   return tree;
 }
 
-/* Search |tree| for an item matching |item|, and return it if found.
-   Otherwise return |NULL|. */
-void *
-rbt_find (const rbt_table_t *table,
-          const void *item)
+/**
+ * @brief Destroys a table.
+ *
+ * @details Frees storage allocated for `table`. If `destroy != NULL`, applies it
+ *          to each data item in inorder.
+ *          During destruction, the `destroy` function provided, if non-null, is called
+ *          once for every item in the table, in no particular order. The function,
+ *          if provided, must not invoke any table function or macro on the table
+ *          being destroyed.
+ *
+ * @invariant The `table` argument cannot be `NULL`.
+ *
+ * @param [in] table   the comparison function for data table's items
+ * @param [in] destroy passed to the comparison function
+ */
+void
+rbt_destroy (rbt_table_t *table,
+             rbt_item_destroy_f *destroy)
 {
-  const rbt_node_t *p;
+  rbt_node_t *p, *q;
 
-  assert (table != NULL && item != NULL);
-  for (p = table->root; p != NULL; ) {
-    const int cmp = table->compare(item, p->data, table->param);
-    if (cmp < 0) p = p->links[0];
-    else if (cmp > 0) p = p->links[1];
-    else return p->data;
-  }
+  assert(table != NULL);
 
-  return NULL;
+  for (p = table->root; p != NULL; p = q)
+    if (p->links[0] == NULL) {
+      q = p->links[1];
+      if (destroy != NULL && p->data != NULL)
+        destroy(p->data, table->param);
+      table->alloc->free(table->alloc, p);
+    } else {
+      q = p->links[0];
+      p->links[0] = q->links[1];
+      q->links[1] = p;
+    }
+
+  table->alloc->free(table->alloc, table);
 }
 
-/* Inserts |item| into |tree| and returns a pointer to |item|'s address.
-   If a duplicate item is found in the tree,
-   returns a pointer to the duplicate without inserting |item|.
-   Returns |NULL| in case of memory allocation failure. */
+/**
+ * @brief Copies `org` to a newly created table, which is returned.
+ *
+ * @details Creates and returns a new table with the same contents as the existing
+ *          table passed as its first argument.
+ *          Its other three arguments may all be null pointers.
+ *
+ * If a `rbt_item_copy_f` is provided, then it is used to make a copy of each table item as it is
+ *    inserted into the new table, in no particular order (a deep copy). Otherwise, the `void ∗`
+ *    table items are copied verbatim (a shallow copy).
+ *
+ * If the table copy fails, either due to memory allocation failure or a null pointer returned
+ *    by the `rbt_item_copy_f` function. In this case, any provided `rbt_item_destroy_f` function
+ *    is called once for each new item already copied, in no particular order.
+ *
+ * By default, the new table uses the same memory allocator as the existing one. If non-null,
+ *    the `mem_allocator_t ∗` given is used instead as the new memory allocator.
+ *    To use the `mem_allocator_default` allocator, specify `&mem_allocator_default` explicitly.
+ *
+ * @invariant The `org` argument cannot be `NULL`.
+ *
+ * @param [in] org     the original table
+ * @param [in] copy    function applied for a deep copy
+ * @param [in] destroy function applied in case of failure
+ * @param [in] alloc   memory allocator
+ * @return             a new table copied from `org`
+ */
+rbt_table_t *
+rbt_copy (const rbt_table_t *org,
+          rbt_item_copy_f *copy,
+          rbt_item_destroy_f *destroy,
+          mem_allocator_t *alloc)
+{
+  rbt_node_t *stack[2 * (RBT_MAX_HEIGHT + 1)];
+  int height = 0;
+
+  rbt_table_t *new;
+  const rbt_node_t *x;
+  rbt_node_t *y;
+
+  assert (org != NULL);
+  new = rbt_create(org->compare, org->param,
+                   alloc != NULL ? alloc : org->alloc);
+  if (new == NULL) return NULL;
+
+  new->count = org->count;
+  if (new->count == 0) return new;
+
+  x = (const rbt_node_t *) &org->root;
+  y = (rbt_node_t *) &new->root;
+  for (;;) {
+    while (x->links[0] != NULL) {
+      assert(height < 2 * (RBT_MAX_HEIGHT + 1));
+
+      y->links[0] = new->alloc->malloc(new->alloc, sizeof *y->links[0]);
+      if (y->links[0] == NULL) {
+        if (y != (rbt_node_t *) &new->root) {
+          y->data = NULL;
+          y->links[1] = NULL;
+        }
+        copy_error_recovery(stack, height, new, destroy);
+        return NULL;
+      }
+
+      stack[height++] = (rbt_node_t *) x;
+      stack[height++] = y;
+      x = x->links[0];
+      y = y->links[0];
+    }
+    y->links[0] = NULL;
+
+    for (;;) {
+      y->color = x->color;
+      if (copy == NULL)
+        y->data = x->data;
+      else {
+        y->data = copy(x->data, org->param);
+        if (y->data == NULL) {
+          y->links[1] = NULL;
+          copy_error_recovery(stack, height, new, destroy);
+          return NULL;
+        }
+      }
+
+      if (x->links[1] != NULL) {
+        y->links[1] = new->alloc->malloc(new->alloc, sizeof *y->links[1]);
+        if (y->links[1] == NULL) {
+          copy_error_recovery(stack, height, new, destroy);
+          return NULL;
+        }
+
+        x = x->links[1];
+        y = y->links[1];
+        break;
+      } else
+        y->links[1] = NULL;
+
+      if (height <= 2) return new;
+
+      y = stack[--height];
+      x = stack[--height];
+    }
+  }
+}
+
+/**
+ * @brief Inserts `item` into `table` and returns a pointer to `item`'s address.
+ *
+ * @details Searches in `table` for an element matching `item`.
+ *          If a duplicate item is found in the table,
+ *          returns a pointer to the duplicate without inserting `item`.
+ *
+ * Returns `NULL` in case of memory allocation failure.
+ *
+ * Occasionally it is convenient to insert one item into a table, then immediately replace
+ *    it by a different item that has identical key data. For instance, if there is a good chance
+ *    that a data item already exists within a table, then it might make sense to insert data
+ *    allocated as a local variable into a table, then replace it by a dynamically allocated
+ *    copy if it turned out that the item wasn’t already in the table. That way, we save the
+ *    time required to make an additional copy of the item to insert. The rbt_probe() function
+ *    allows for this kind of flexibility.
+ *
+ * The pointer returned can be used to replace the item found or inserted by a different item.
+ *    This must only be done if the replacement item has the same position relative
+ *    to the other items in the table as did the original item. That is, for existing item `e`,
+ *    replacement item `r`, and the table’s comparison function `f()`, the return values of
+ *    `f(e, x)` and `f(r, x)` must have the same sign for every other item `x` currently in the
+ *    table. Calling any other table function invalidates the pointer returned and it must
+ *    not be referenced subsequently.
+ *
+ * @invariant The `table` and `item` arguments cannot be `NULL`.
+ *
+ * @param [in,out] table the table
+ * @param [in]     item  the element to be inserterted
+ * @return               a pointer to `item`'s address
+ */
 void **
-rbt_probe (rbt_table_t *tree,
+rbt_probe (rbt_table_t *table,
            void *item)
 {
-  rbt_node_t *pa[RBT_MAX_HEIGHT]; /* Nodes on stack. */
+  rbt_node_t *pa[RBT_MAX_HEIGHT];     /* Nodes on stack. */
   unsigned char da[RBT_MAX_HEIGHT];   /* Directions moved from stack nodes. */
   int k;                              /* Stack height. */
 
   rbt_node_t *p; /* Traverses tree looking for insertion point. */
   rbt_node_t *n; /* Newly inserted node. */
 
-  assert (tree != NULL && item != NULL);
+  assert(table != NULL && item != NULL);
 
-  pa[0] = (rbt_node_t *) &tree->root;
+  pa[0] = (rbt_node_t *) &table->root;
   da[0] = 0;
   k = 1;
-  for (p = tree->root; p != NULL; p = p->links[da[k - 1]])
-    {
-      int cmp = tree->compare (item, p->data, tree->param);
-      if (cmp == 0)
-        return &p->data;
+  for (p = table->root; p != NULL; p = p->links[da[k - 1]]) {
+    int cmp = table->compare (item, p->data, table->param);
+    if (cmp == 0) return &p->data;
+    pa[k] = p;
+    da[k++] = cmp > 0;
+  }
 
-      pa[k] = p;
-      da[k++] = cmp > 0;
-    }
-
-  n = pa[k - 1]->links[da[k - 1]] =
-    tree->alloc->malloc (tree->alloc, sizeof *n);
-  if (n == NULL)
-    return NULL;
+  n = pa[k - 1]->links[da[k - 1]] = table->alloc->malloc(table->alloc, sizeof *n);
+  if (n == NULL) return NULL;
 
   n->data = item;
   n->links[0] = n->links[1] = NULL;
   n->color = RBT_RED;
-  tree->count++;
-  tree->generation++;
+  table->count++;
+  table->generation++;
 
-  while (k >= 3 && pa[k - 1]->color == RBT_RED)
-    {
-      if (da[k - 2] == 0)
-        {
-          rbt_node_t *y = pa[k - 2]->links[1];
-          if (y != NULL && y->color == RBT_RED)
-            {
-              pa[k - 1]->color = y->color = RBT_BLACK;
-              pa[k - 2]->color = RBT_RED;
-              k -= 2;
-            }
-          else
-            {
-              rbt_node_t *x;
+  while (k >= 3 && pa[k - 1]->color == RBT_RED) {
+    if (da[k - 2] == 0) {
+      rbt_node_t *y = pa[k - 2]->links[1];
+      if (y != NULL && y->color == RBT_RED) {
+        pa[k - 1]->color = y->color = RBT_BLACK;
+        pa[k - 2]->color = RBT_RED;
+        k -= 2;
+      } else {
+        rbt_node_t *x;
 
-              if (da[k - 1] == 0)
-                y = pa[k - 1];
-              else
-                {
-                  x = pa[k - 1];
-                  y = x->links[1];
-                  x->links[1] = y->links[0];
-                  y->links[0] = x;
-                  pa[k - 2]->links[0] = y;
-                }
-
-              x = pa[k - 2];
-              x->color = RBT_RED;
-              y->color = RBT_BLACK;
-
-              x->links[0] = y->links[1];
-              y->links[1] = x;
-              pa[k - 3]->links[da[k - 3]] = y;
-              break;
-            }
+        if (da[k - 1] == 0)
+          y = pa[k - 1];
+        else {
+          x = pa[k - 1];
+          y = x->links[1];
+          x->links[1] = y->links[0];
+          y->links[0] = x;
+          pa[k - 2]->links[0] = y;
         }
-      else
-        {
-          rbt_node_t *y = pa[k - 2]->links[0];
-          if (y != NULL && y->color == RBT_RED)
-            {
-              pa[k - 1]->color = y->color = RBT_BLACK;
-              pa[k - 2]->color = RBT_RED;
-              k -= 2;
-            }
-          else
-            {
-              rbt_node_t *x;
 
-              if (da[k - 1] == 1)
-                y = pa[k - 1];
-              else
-                {
-                  x = pa[k - 1];
-                  y = x->links[0];
-                  x->links[0] = y->links[1];
-                  y->links[1] = x;
-                  pa[k - 2]->links[1] = y;
-                }
+        x = pa[k - 2];
+        x->color = RBT_RED;
+        y->color = RBT_BLACK;
 
-              x = pa[k - 2];
-              x->color = RBT_RED;
-              y->color = RBT_BLACK;
+        x->links[0] = y->links[1];
+        y->links[1] = x;
+        pa[k - 3]->links[da[k - 3]] = y;
+        break;
+      }
+    } else {
+      rbt_node_t *y = pa[k - 2]->links[0];
+      if (y != NULL && y->color == RBT_RED) {
+        pa[k - 1]->color = y->color = RBT_BLACK;
+        pa[k - 2]->color = RBT_RED;
+        k -= 2;
+      } else {
+        rbt_node_t *x;
 
-              x->links[1] = y->links[0];
-              y->links[0] = x;
-              pa[k - 3]->links[da[k - 3]] = y;
-              break;
-            }
+        if (da[k - 1] == 1)
+          y = pa[k - 1];
+        else {
+          x = pa[k - 1];
+          y = x->links[0];
+          x->links[0] = y->links[1];
+          y->links[1] = x;
+          pa[k - 2]->links[1] = y;
         }
+
+        x = pa[k - 2];
+        x->color = RBT_RED;
+        y->color = RBT_BLACK;
+
+        x->links[1] = y->links[0];
+        y->links[0] = x;
+        pa[k - 3]->links[da[k - 3]] = y;
+        break;
+      }
     }
-  tree->root->color = RBT_BLACK;
-
+  }
+  table->root->color = RBT_BLACK;
 
   return &n->data;
 }
@@ -272,242 +428,213 @@ rbt_replace (rbt_table_t *table,
   void **p = rbt_probe (table, item);
   if (p == NULL || *p == item)
     return NULL;
-  else
-    {
-      void *r = *p;
-      *p = item;
-      return r;
-    }
+  else {
+    void *r = *p;
+    *p = item;
+    return r;
+  }
 }
 
-/* Deletes from |tree| and returns an item matching |item|.
+/* Deletes from |table| and returns an item matching |item|.
    Returns a null pointer if no matching item found. */
 void *
-rbt_delete (rbt_table_t *tree,
+rbt_delete (rbt_table_t *table,
             const void *item)
 {
-  rbt_node_t *pa[RBT_MAX_HEIGHT]; /* Nodes on stack. */
+  rbt_node_t *pa[RBT_MAX_HEIGHT];     /* Nodes on stack. */
   unsigned char da[RBT_MAX_HEIGHT];   /* Directions moved from stack nodes. */
   int k;                              /* Stack height. */
 
   rbt_node_t *p;    /* The node to delete, or a node part way to it. */
-  int cmp;              /* Result of comparison between |item| and |p|. */
+  int cmp;          /* Result of comparison between |item| and |p|. */
 
-  assert (tree != NULL && item != NULL);
+  assert(table != NULL && item != NULL);
 
   k = 0;
-  p = (rbt_node_t *) &tree->root;
-  for (cmp = -1; cmp != 0;
-       cmp = tree->compare (item, p->data, tree->param))
-    {
-      int dir = cmp > 0;
+  p = (rbt_node_t *) &table->root;
+  for (cmp = -1; cmp != 0; cmp = table->compare(item, p->data, table->param)) {
+    int dir = cmp > 0;
 
-      pa[k] = p;
-      da[k++] = dir;
+    pa[k] = p;
+    da[k++] = dir;
 
-      p = p->links[dir];
-      if (p == NULL)
-        return NULL;
-    }
+    p = p->links[dir];
+    if (p == NULL)
+      return NULL;
+  }
   item = p->data;
 
   if (p->links[1] == NULL)
     pa[k - 1]->links[da[k - 1]] = p->links[0];
-  else
-    {
-      rbt_color_t t;
-      rbt_node_t *r = p->links[1];
+  else {
+    rbt_color_t t;
+    rbt_node_t *r = p->links[1];
 
-      if (r->links[0] == NULL)
-        {
-          r->links[0] = p->links[0];
-          t = r->color;
-          r->color = p->color;
-          p->color = t;
-          pa[k - 1]->links[da[k - 1]] = r;
+    if (r->links[0] == NULL) {
+      r->links[0] = p->links[0];
+      t = r->color;
+      r->color = p->color;
+      p->color = t;
+      pa[k - 1]->links[da[k - 1]] = r;
+      da[k] = 1;
+      pa[k++] = r;
+    } else {
+      rbt_node_t *s;
+      int j = k++;
+
+      for (;;) {
+        da[k] = 0;
+        pa[k++] = r;
+        s = r->links[0];
+        if (s->links[0] == NULL)
+          break;
+
+        r = s;
+      }
+
+      da[j] = 1;
+      pa[j] = s;
+      pa[j - 1]->links[da[j - 1]] = s;
+
+      s->links[0] = p->links[0];
+      r->links[0] = s->links[1];
+      s->links[1] = p->links[1];
+
+      t = s->color;
+      s->color = p->color;
+      p->color = t;
+    }
+  }
+
+  if (p->color == RBT_BLACK) {
+    for (;;) {
+      rbt_node_t *x = pa[k - 1]->links[da[k - 1]];
+      if (x != NULL && x->color == RBT_RED) {
+        x->color = RBT_BLACK;
+        break;
+      }
+      if (k < 2)
+        break;
+
+      if (da[k - 1] == 0) {
+        rbt_node_t *w = pa[k - 1]->links[1];
+
+        if (w->color == RBT_RED) {
+          w->color = RBT_BLACK;
+          pa[k - 1]->color = RBT_RED;
+
+          pa[k - 1]->links[1] = w->links[0];
+          w->links[0] = pa[k - 1];
+          pa[k - 2]->links[da[k - 2]] = w;
+
+          pa[k] = pa[k - 1];
+          da[k] = 0;
+          pa[k - 1] = w;
+          k++;
+
+          w = pa[k - 1]->links[1];
+        }
+
+        if ((w->links[0] == NULL || w->links[0]->color == RBT_BLACK) &&
+            (w->links[1] == NULL || w->links[1]->color == RBT_BLACK))
+          w->color = RBT_RED;
+        else {
+          if (w->links[1] == NULL || w->links[1]->color == RBT_BLACK) {
+            rbt_node_t *y = w->links[0];
+            y->color = RBT_BLACK;
+            w->color = RBT_RED;
+            w->links[0] = y->links[1];
+            y->links[1] = w;
+            w = pa[k - 1]->links[1] = y;
+          }
+
+          w->color = pa[k - 1]->color;
+          pa[k - 1]->color = RBT_BLACK;
+          w->links[1]->color = RBT_BLACK;
+
+          pa[k - 1]->links[1] = w->links[0];
+          w->links[0] = pa[k - 1];
+          pa[k - 2]->links[da[k - 2]] = w;
+          break;
+        }
+      } else {
+        rbt_node_t *w = pa[k - 1]->links[0];
+
+        if (w->color == RBT_RED) {
+          w->color = RBT_BLACK;
+          pa[k - 1]->color = RBT_RED;
+
+          pa[k - 1]->links[0] = w->links[1];
+          w->links[1] = pa[k - 1];
+          pa[k - 2]->links[da[k - 2]] = w;
+
+          pa[k] = pa[k - 1];
           da[k] = 1;
-          pa[k++] = r;
+          pa[k - 1] = w;
+          k++;
+
+          w = pa[k - 1]->links[0];
         }
-      else
-        {
-          rbt_node_t *s;
-          int j = k++;
 
-          for (;;)
-            {
-              da[k] = 0;
-              pa[k++] = r;
-              s = r->links[0];
-              if (s->links[0] == NULL)
-                break;
+        if ((w->links[0] == NULL || w->links[0]->color == RBT_BLACK) &&
+            (w->links[1] == NULL || w->links[1]->color == RBT_BLACK))
+          w->color = RBT_RED;
+        else {
+          if (w->links[0] == NULL || w->links[0]->color == RBT_BLACK) {
+            rbt_node_t *y = w->links[1];
+            y->color = RBT_BLACK;
+            w->color = RBT_RED;
+            w->links[1] = y->links[0];
+            y->links[0] = w;
+            w = pa[k - 1]->links[0] = y;
+          }
 
-              r = s;
-            }
+          w->color = pa[k - 1]->color;
+          pa[k - 1]->color = RBT_BLACK;
+          w->links[0]->color = RBT_BLACK;
 
-          da[j] = 1;
-          pa[j] = s;
-          pa[j - 1]->links[da[j - 1]] = s;
-
-          s->links[0] = p->links[0];
-          r->links[0] = s->links[1];
-          s->links[1] = p->links[1];
-
-          t = s->color;
-          s->color = p->color;
-          p->color = t;
+          pa[k - 1]->links[0] = w->links[1];
+          w->links[1] = pa[k - 1];
+          pa[k - 2]->links[da[k - 2]] = w;
+          break;
         }
+      }
+
+      k--;
     }
 
-  if (p->color == RBT_BLACK)
-    {
-      for (;;)
-        {
-          rbt_node_t *x = pa[k - 1]->links[da[k - 1]];
-          if (x != NULL && x->color == RBT_RED)
-            {
-              x->color = RBT_BLACK;
-              break;
-            }
-          if (k < 2)
-            break;
+  }
 
-          if (da[k - 1] == 0)
-            {
-              rbt_node_t *w = pa[k - 1]->links[1];
-
-              if (w->color == RBT_RED)
-                {
-                  w->color = RBT_BLACK;
-                  pa[k - 1]->color = RBT_RED;
-
-                  pa[k - 1]->links[1] = w->links[0];
-                  w->links[0] = pa[k - 1];
-                  pa[k - 2]->links[da[k - 2]] = w;
-
-                  pa[k] = pa[k - 1];
-                  da[k] = 0;
-                  pa[k - 1] = w;
-                  k++;
-
-                  w = pa[k - 1]->links[1];
-                }
-
-              if ((w->links[0] == NULL
-                   || w->links[0]->color == RBT_BLACK)
-                  && (w->links[1] == NULL
-                      || w->links[1]->color == RBT_BLACK))
-                w->color = RBT_RED;
-              else
-                {
-                  if (w->links[1] == NULL
-                      || w->links[1]->color == RBT_BLACK)
-                    {
-                      rbt_node_t *y = w->links[0];
-                      y->color = RBT_BLACK;
-                      w->color = RBT_RED;
-                      w->links[0] = y->links[1];
-                      y->links[1] = w;
-                      w = pa[k - 1]->links[1] = y;
-                    }
-
-                  w->color = pa[k - 1]->color;
-                  pa[k - 1]->color = RBT_BLACK;
-                  w->links[1]->color = RBT_BLACK;
-
-                  pa[k - 1]->links[1] = w->links[0];
-                  w->links[0] = pa[k - 1];
-                  pa[k - 2]->links[da[k - 2]] = w;
-                  break;
-                }
-            }
-          else
-            {
-              rbt_node_t *w = pa[k - 1]->links[0];
-
-              if (w->color == RBT_RED)
-                {
-                  w->color = RBT_BLACK;
-                  pa[k - 1]->color = RBT_RED;
-
-                  pa[k - 1]->links[0] = w->links[1];
-                  w->links[1] = pa[k - 1];
-                  pa[k - 2]->links[da[k - 2]] = w;
-
-                  pa[k] = pa[k - 1];
-                  da[k] = 1;
-                  pa[k - 1] = w;
-                  k++;
-
-                  w = pa[k - 1]->links[0];
-                }
-
-              if ((w->links[0] == NULL
-                   || w->links[0]->color == RBT_BLACK)
-                  && (w->links[1] == NULL
-                      || w->links[1]->color == RBT_BLACK))
-                w->color = RBT_RED;
-              else
-                {
-                  if (w->links[0] == NULL
-                      || w->links[0]->color == RBT_BLACK)
-                    {
-                      rbt_node_t *y = w->links[1];
-                      y->color = RBT_BLACK;
-                      w->color = RBT_RED;
-                      w->links[1] = y->links[0];
-                      y->links[0] = w;
-                      w = pa[k - 1]->links[0] = y;
-                    }
-
-                  w->color = pa[k - 1]->color;
-                  pa[k - 1]->color = RBT_BLACK;
-                  w->links[0]->color = RBT_BLACK;
-
-                  pa[k - 1]->links[0] = w->links[1];
-                  w->links[1] = pa[k - 1];
-                  pa[k - 2]->links[da[k - 2]] = w;
-                  break;
-                }
-            }
-
-          k--;
-        }
-
-    }
-
-  tree->alloc->free (tree->alloc, p);
-  tree->count--;
-  tree->generation++;
+  table->alloc->free (table->alloc, p);
+  table->count--;
+  table->generation++;
   return (void *) item;
 }
 
-/* Refreshes the stack of parent pointers in |trav|
-   and updates its generation number. */
-static void
-trav_refresh (rbt_traverser_t *trav)
+/* Search |table| for an item matching |item|, and return it if found.
+   Otherwise return |NULL|. */
+void *
+rbt_find (const rbt_table_t *table,
+          const void *item)
 {
-  assert (trav != NULL);
+  const rbt_node_t *p;
 
-  trav->generation = trav->table->generation;
+  assert(table != NULL && item != NULL);
+  for (p = table->root; p != NULL; ) {
+    const int cmp = table->compare(item, p->data, table->param);
+    if (cmp < 0) p = p->links[0];
+    else if (cmp > 0) p = p->links[1];
+    else return p->data;
+  }
 
-  if (trav->node != NULL)
-    {
-      rbt_item_compare_f *cmp = trav->table->compare;
-      void *param = trav->table->param;
-      rbt_node_t *node = trav->node;
-      rbt_node_t *i;
-
-      trav->height = 0;
-      for (i = trav->table->root; i != node; )
-        {
-          assert (trav->height < RBT_MAX_HEIGHT);
-          assert (i != NULL);
-
-          trav->stack[trav->height++] = i;
-          i = i->links[cmp (node->data, i->data, param) > 0];
-        }
-    }
+  return NULL;
 }
+
+
+
+/*********************************************************/
+/* Function implementations for the ttaverser structure. */
+/*********************************************************/
 
 /* Initializes |trav| for use with |tree|
    and selects the null node. */
@@ -802,6 +929,17 @@ rbt_t_replace (rbt_traverser_t *trav,
   return old;
 }
 
+
+
+
+/**
+ * @cond
+ */
+
+/*
+ * Internal functions.
+ */
+
 /* Destroys |new| with |rbt_destroy (new, destroy)|,
    first setting right links of nodes in |stack| within |new|
    to null pointers to avoid touching uninitialized data. */
@@ -815,137 +953,35 @@ copy_error_recovery (rbt_node_t **stack,
 
   for (; height > 2; height -= 2)
     stack[height - 1]->links[1] = NULL;
-  rbt_destroy (new, destroy);
+  rbt_destroy(new, destroy);
 }
 
-/* Copies |org| to a newly created tree, which is returned.
-   If |copy != NULL|, each data item in |org| is first passed to |copy|,
-   and the return values are inserted into the tree,
-   with |NULL| return values taken as indications of failure.
-   On failure, destroys the partially created new tree,
-   applying |destroy|, if non-null, to each item in the new tree so far,
-   and returns |NULL|.
-   If |alloc != NULL|, it is used for allocation in the new tree.
-   Otherwise, the same alloc used for |org| is used. */
-rbt_table_t *
-rbt_copy (const rbt_table_t *org,
-          rbt_item_copy_f *copy,
-          rbt_item_destroy_f *destroy,
-          mem_allocator_t *alloc)
+/* Refreshes the stack of parent pointers in |trav|
+   and updates its generation number. */
+static void
+trav_refresh (rbt_traverser_t *trav)
 {
-  rbt_node_t *stack[2 * (RBT_MAX_HEIGHT + 1)];
-  int height = 0;
+  assert (trav != NULL);
 
-  rbt_table_t *new;
-  const rbt_node_t *x;
-  rbt_node_t *y;
+  trav->generation = trav->table->generation;
 
-  assert (org != NULL);
-  new = rbt_create (org->compare, org->param,
-                    alloc != NULL ? alloc : org->alloc);
-  if (new == NULL)
-    return NULL;
-  new->count = org->count;
-  if (new->count == 0)
-    return new;
+  if (trav->node != NULL) {
+    rbt_item_compare_f *cmp = trav->table->compare;
+    void *param = trav->table->param;
+    rbt_node_t *node = trav->node;
+    rbt_node_t *i;
 
-  x = (const rbt_node_t *) &org->root;
-  y = (rbt_node_t *) &new->root;
-  for (;;)
-    {
-      while (x->links[0] != NULL)
-        {
-          assert (height < 2 * (RBT_MAX_HEIGHT + 1));
+    trav->height = 0;
+    for (i = trav->table->root; i != node; ) {
+      assert (trav->height < RBT_MAX_HEIGHT);
+      assert (i != NULL);
 
-          y->links[0] =
-            new->alloc->malloc (new->alloc,
-                                           sizeof *y->links[0]);
-          if (y->links[0] == NULL)
-            {
-              if (y != (rbt_node_t *) &new->root)
-                {
-                  y->data = NULL;
-                  y->links[1] = NULL;
-                }
-
-              copy_error_recovery (stack, height, new, destroy);
-              return NULL;
-            }
-
-          stack[height++] = (rbt_node_t *) x;
-          stack[height++] = y;
-          x = x->links[0];
-          y = y->links[0];
-        }
-      y->links[0] = NULL;
-
-      for (;;)
-        {
-          y->color = x->color;
-          if (copy == NULL)
-            y->data = x->data;
-          else
-            {
-              y->data = copy (x->data, org->param);
-              if (y->data == NULL)
-                {
-                  y->links[1] = NULL;
-                  copy_error_recovery (stack, height, new, destroy);
-                  return NULL;
-                }
-            }
-
-          if (x->links[1] != NULL)
-            {
-              y->links[1] =
-                new->alloc->malloc (new->alloc,
-                                               sizeof *y->links[1]);
-              if (y->links[1] == NULL)
-                {
-                  copy_error_recovery (stack, height, new, destroy);
-                  return NULL;
-                }
-
-              x = x->links[1];
-              y = y->links[1];
-              break;
-            }
-          else
-            y->links[1] = NULL;
-
-          if (height <= 2)
-            return new;
-
-          y = stack[--height];
-          x = stack[--height];
-        }
+      trav->stack[trav->height++] = i;
+      i = i->links[cmp(node->data, i->data, param) > 0];
     }
+  }
 }
 
-/* Frees storage allocated for |tree|.
-   If |destroy != NULL|, applies it to each data item in inorder. */
-void
-rbt_destroy (rbt_table_t *tree,
-             rbt_item_destroy_f *destroy)
-{
-  rbt_node_t *p, *q;
-
-  assert (tree != NULL);
-
-  for (p = tree->root; p != NULL; p = q)
-    if (p->links[0] == NULL)
-      {
-        q = p->links[1];
-        if (destroy != NULL && p->data != NULL)
-          destroy (p->data, tree->param);
-        tree->alloc->free (tree->alloc, p);
-      }
-    else
-      {
-        q = p->links[0];
-        p->links[0] = q->links[1];
-        q->links[1] = p;
-      }
-
-  tree->alloc->free (tree->alloc, tree);
-}
+/**
+ * @endcond
+ */
