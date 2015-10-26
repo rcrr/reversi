@@ -41,9 +41,26 @@
 
 
 
+/**
+ * @brief To be documented.
+ */
+const int test_array[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+
+
 /* Test function prototypes. */
 
 static void dummy_test (void);
+static void creation_and_destruction_test (void);
+
+
+
+/* Helper function prototypes. */
+
+static int
+compare_int (const void *item_a,
+             const void *item_b,
+             void *param);
 
 
 
@@ -54,9 +71,38 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func("/red_black_tree/dummy", dummy_test);
+  g_test_add_func("/red_black_tree/creation_and_destruction_test", creation_and_destruction_test);
 
   return g_test_run();
 }
+
+
+
+/*
+ * Test functions.
+ */
+
+static void
+dummy_test (void)
+{
+  g_assert(TRUE);
+}
+
+static void
+creation_and_destruction_test (void)
+{
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  g_assert(table);
+  size_t count = rbt_count(table);
+  rbt_destroy(table, NULL);
+  g_assert(count == 0);
+}
+
+
+
+/*
+ * Internal functions.
+ */
 
 static int
 compare_int (const void *item_a,
@@ -71,16 +117,4 @@ compare_int (const void *item_a,
   if (*a > *b) return +1;
   else if (*a == *b) return 0;
   else return -1;
-}
-
-/*
- * Test functions.
- */
-
-static void
-dummy_test (void)
-{
-  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
-  rbt_destroy(table, NULL);
-  g_assert(TRUE);
 }
