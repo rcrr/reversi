@@ -125,7 +125,7 @@ probe_test (void)
   for (size_t i = 0; i < data_size; i++) {
     int *item = &data[i];
     int **item_ref = (int **) rbt_probe(table, item);
-    g_assert(rbt_count(table) == 10);
+    g_assert(rbt_count(table) == data_size);
     g_assert(*item_ref != NULL);
     g_assert(*item_ref == &data[i]);
     g_assert(**item_ref == i);
@@ -147,10 +147,7 @@ compare_int (const void *item_a,
 {
   assert(item_a);
   assert(item_b);
-  assert(param == NULL);
-  int *a = (int *) item_a;
-  int *b = (int *) item_b;
-  if (*a > *b) return +1;
-  else if (*a == *b) return 0;
-  else return -1;
+  const int *a = (int *) item_a;
+  const int *b = (int *) item_b;
+  return (*a > *b) - (*a < *b);
 }
