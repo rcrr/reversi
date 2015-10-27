@@ -405,10 +405,18 @@ rbt_probe (rbt_table_t *table,
   return &n->data;
 }
 
-/* Inserts |item| into |table|.
-   Returns |NULL| if |item| was successfully inserted
-   or if a memory allocation error occurred.
-   Otherwise, returns the duplicate item. */
+/**
+ * @brief Inserts `item` into `table`, but not if a matching item exists.
+ *
+ * @details Returns `NULL` if `item` was successfully inserted or if a memory allocation error occurred.
+ *          Otherwise, returns the duplicate item.
+ *
+ * @invariant The `table` and `item` arguments cannot be `NULL`.
+ *
+ * @param [in,out] table the table
+ * @param [in]     item  the element to be inserterted
+ * @return               `NULL` or a pointer to the duplicate item
+ */
 void *
 rbt_insert (rbt_table_t *table,
             void *item)
@@ -417,10 +425,18 @@ rbt_insert (rbt_table_t *table,
   return p == NULL || *p == item ? NULL : *p;
 }
 
-/* Inserts |item| into |table|, replacing any duplicate item.
-   Returns |NULL| if |item| was inserted without replacing a duplicate,
-   or if a memory allocation error occurred.
-   Otherwise, returns the item that was replaced. */
+/**
+ * @brief Inserts `item` into `table`, replacing any duplicate item.
+ *
+ * @details Returns `NULL` if `item` was inserted without replacing a duplicate, or if a memory
+ *          allocation error occurred. Otherwise, returns the item that was replaced.
+ *
+ * @invariant The `table` and `item` arguments cannot be `NULL`.
+ *
+ * @param [in,out] table the table
+ * @param [in]     item  the element to be inserterted
+ * @return               `NULL` or a pointer to the replaced `item`
+ */
 void *
 rbt_replace (rbt_table_t *table,
              void *item)
