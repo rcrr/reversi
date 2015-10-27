@@ -52,7 +52,7 @@ const int test_array[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 static void dummy_test (void);
 static void creation_and_destruction_test (void);
-
+static void probe_test (void);
 
 
 /* Helper function prototypes. */
@@ -72,6 +72,7 @@ main (int   argc,
 
   g_test_add_func("/red_black_tree/dummy", dummy_test);
   g_test_add_func("/red_black_tree/creation_and_destruction_test", creation_and_destruction_test);
+  g_test_add_func("/red_black_tree/probe_test", probe_test);
 
   return g_test_run();
 }
@@ -93,9 +94,44 @@ creation_and_destruction_test (void)
 {
   rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
   g_assert(table);
+
   size_t count = rbt_count(table);
-  rbt_destroy(table, NULL);
   g_assert(count == 0);
+
+  rbt_destroy(table, NULL);
+}
+
+static void
+probe_test (void)
+{
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  const size_t data_size = 10;
+
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  g_assert(table);
+
+  size_t count = rbt_count(table);
+  g_assert(count == 0);
+
+  for (size_t i = 0; i < data_size; i++) {
+    int *item = &data[i];
+    int **item_ref = (int **) rbt_probe(table, item);
+    g_assert(rbt_count(table) == i + 1);
+    g_assert(*item_ref != NULL);
+    g_assert(*item_ref == &data[i]);
+    g_assert(**item_ref == i);
+  }
+
+  for (size_t i = 0; i < data_size; i++) {
+    int *item = &data[i];
+    int **item_ref = (int **) rbt_probe(table, item);
+    g_assert(rbt_count(table) == 10);
+    g_assert(*item_ref != NULL);
+    g_assert(*item_ref == &data[i]);
+    g_assert(**item_ref == i);
+  }
+
+  rbt_destroy(table, NULL);
 }
 
 
