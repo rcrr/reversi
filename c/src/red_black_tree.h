@@ -200,14 +200,6 @@ extern void *
 rbt_find (const rbt_table_t *table,
           const void *item);
 
-extern void
-rbt_assert_insert (rbt_table_t *table,
-                   void *item);
-
-extern void *
-rbt_assert_delete (rbt_table_t *table,
-                  void *item);
-
 
 
 /**********************************************************/

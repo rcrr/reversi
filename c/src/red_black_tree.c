@@ -1,6 +1,27 @@
 /**
  * @file
  *
+ *
+ *
+ * @todo Complete the doxygen documentation for functions.
+ *
+ * @todo Remove not mandatory definitions from the header file (e.g. rbt_node_t)
+ *
+ * @todo Move module details to the header file.
+ *
+ * @todo Write some documentation into the code (for insert, delete, ... Case1, Case2, ....)
+ *
+ * @todo Complete all the tests and remove the file src/red_black_tree_tests.c
+ *
+ * @todo Write performance tests.
+ *
+ * @todo Write a merge function.
+ *
+ * @todo Add statistics.
+ *
+ *
+ *
+ *
  * @brief Red black tree module.
  *
  * @details This module defines the abstract concept of a table, also known as dictionary,
@@ -451,8 +472,17 @@ rbt_replace (rbt_table_t *table,
   }
 }
 
-/* Deletes from |table| and returns an item matching |item|.
-   Returns a null pointer if no matching item found. */
+/**
+ * @brief Deletes from `table` and returns an item matching `item`.
+ *
+ * @details Returns a null pointer if no matching item found.
+ *
+ * @invariant The `table` and `item` arguments cannot be `NULL`.
+ *
+ * @param [in,out] table the table
+ * @param [in]     item  the element to be inserterted
+ * @return               a pointer to the deleted `item` or `NULL`
+ */
 void *
 rbt_delete (rbt_table_t *table,
             const void *item)
@@ -461,8 +491,8 @@ rbt_delete (rbt_table_t *table,
   unsigned char da[RBT_MAX_HEIGHT];   /* Directions moved from stack nodes. */
   int k;                              /* Stack height. */
 
-  rbt_node_t *p;    /* The node to delete, or a node part way to it. */
-  int cmp;          /* Result of comparison between |item| and |p|. */
+  rbt_node_t *p;   /* The node to delete, or a node part way to it. */
+  int cmp;         /* Result of comparison between item and p. */
 
   assert(table != NULL && item != NULL);
 
@@ -627,8 +657,17 @@ rbt_delete (rbt_table_t *table,
   return (void *) item;
 }
 
-/* Search |table| for an item matching |item|, and return it if found.
-   Otherwise return |NULL|. */
+/**
+ * @brief Searches `table` for an item matching `item` and returns it if found.
+ *
+ * @details Returns a null pointer if no matching item exists in the table.
+ *
+ * @invariant The `table` and `item` arguments cannot be `NULL`.
+ *
+ * @param [in,out] table the table
+ * @param [in]     item  the element to be inserterted
+ * @return               a pointer to the matching `item` or `NULL`
+ */
 void *
 rbt_find (const rbt_table_t *table,
           const void *item)
