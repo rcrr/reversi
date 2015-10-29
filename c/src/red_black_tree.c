@@ -691,16 +691,26 @@ rbt_find (const rbt_table_t *table,
 /* Function implementations for the ttaverser structure. */
 /*********************************************************/
 
-/* Initializes |trav| for use with |tree|
-   and selects the null node. */
+/**
+ * @brief Initializes `trav' for use with `table` and selects the null node.
+ *
+ * @details Returns a null pointer if no matching item exists in the table.
+ *
+ * @invariant The `table` and `item` arguments cannot be `NULL`.
+ *
+ * @param [in,out] trav  the traverser to be initialized
+ * @param [in]     table the table for use with
+ */
 void
 rbt_t_init (rbt_traverser_t *trav,
-            rbt_table_t *tree)
+            rbt_table_t *table)
 {
-  trav->table = tree;
+  assert(table != NULL && trav != NULL);
+
+  trav->table = table;
   trav->node = NULL;
   trav->height = 0;
-  trav->generation = tree->generation;
+  trav->generation = table->generation;
 }
 
 /* Initializes |trav| for |tree|
@@ -708,24 +718,23 @@ rbt_t_init (rbt_traverser_t *trav,
    Returns |NULL| if |tree| contains no nodes. */
 void *
 rbt_t_first (rbt_traverser_t *trav,
-             rbt_table_t *tree)
+             rbt_table_t *table)
 {
   rbt_node_t *x;
 
-  assert (tree != NULL && trav != NULL);
+  assert(table != NULL && trav != NULL);
 
-  trav->table = tree;
+  trav->table = table;
   trav->height = 0;
-  trav->generation = tree->generation;
+  trav->generation = table->generation;
 
-  x = tree->root;
+  x = table->root;
   if (x != NULL)
-    while (x->links[0] != NULL)
-      {
-        assert (trav->height < RBT_MAX_HEIGHT);
-        trav->stack[trav->height++] = x;
-        x = x->links[0];
-      }
+    while (x->links[0] != NULL) {
+      assert(trav->height < RBT_MAX_HEIGHT);
+      trav->stack[trav->height++] = x;
+      x = x->links[0];
+    }
   trav->node = x;
 
   return x != NULL ? x->data : NULL;
@@ -736,24 +745,23 @@ rbt_t_first (rbt_traverser_t *trav,
    Returns |NULL| if |tree| contains no nodes. */
 void *
 rbt_t_last (rbt_traverser_t *trav,
-            rbt_table_t *tree)
+            rbt_table_t *table)
 {
   rbt_node_t *x;
 
-  assert (tree != NULL && trav != NULL);
+  assert(table != NULL && trav != NULL);
 
-  trav->table = tree;
+  trav->table = table;
   trav->height = 0;
-  trav->generation = tree->generation;
+  trav->generation = table->generation;
 
-  x = tree->root;
+  x = table->root;
   if (x != NULL)
-    while (x->links[1] != NULL)
-      {
-        assert (trav->height < RBT_MAX_HEIGHT);
-        trav->stack[trav->height++] = x;
-        x = x->links[1];
-      }
+    while (x->links[1] != NULL) {
+      assert(trav->height < RBT_MAX_HEIGHT);
+      trav->stack[trav->height++] = x;
+      x = x->links[1];
+    }
   trav->node = x;
 
   return x != NULL ? x->data : NULL;
@@ -766,32 +774,31 @@ rbt_t_last (rbt_traverser_t *trav,
    and returns |NULL|. */
 void *
 rbt_t_find (rbt_traverser_t *trav,
-            rbt_table_t *tree,
+            rbt_table_t *table,
             void *item)
 {
   rbt_node_t *p, *q;
 
-  assert (trav != NULL && tree != NULL && item != NULL);
-  trav->table = tree;
+  assert(trav != NULL && table != NULL && item != NULL);
+
+  trav->table = table;
   trav->height = 0;
-  trav->generation = tree->generation;
-  for (p = tree->root; p != NULL; p = q)
-    {
-      int cmp = tree->compare (item, p->data, tree->param);
+  trav->generation = table->generation;
+  for (p = table->root; p != NULL; p = q) {
+    int cmp = table->compare(item, p->data, table->param);
 
-      if (cmp < 0)
-        q = p->links[0];
-      else if (cmp > 0)
-        q = p->links[1];
-      else /* |cmp == 0| */
-        {
-          trav->node = p;
-          return p->data;
-        }
-
-      assert (trav->height < RBT_MAX_HEIGHT);
-      trav->stack[trav->height++] = p;
+    if (cmp < 0)
+      q = p->links[0];
+    else if (cmp > 0)
+      q = p->links[1];
+    else {
+      trav->node = p;
+      return p->data;
     }
+
+    assert(trav->height < RBT_MAX_HEIGHT);
+    trav->stack[trav->height++] = p;
+  }
 
   trav->height = 0;
   trav->node = NULL;
@@ -807,28 +814,23 @@ rbt_t_find (rbt_traverser_t *trav,
    is initialized to the null item. */
 void *
 rbt_t_insert (rbt_traverser_t *trav,
-              rbt_table_t *tree,
+              rbt_table_t *table,
               void *item)
 {
   void **p;
 
-  assert (trav != NULL && tree != NULL && item != NULL);
+  assert(trav != NULL && table != NULL && item != NULL);
 
-  p = rbt_probe (tree, item);
-  if (p != NULL)
-    {
-      trav->table = tree;
-      trav->node =
-        ((rbt_node_t *)
-         ((char *) p - offsetof (rbt_node_t, data)));
-      trav->generation = tree->generation - 1;
-      return *p;
-    }
-  else
-    {
-      rbt_t_init (trav, tree);
-      return NULL;
-    }
+  p = rbt_probe(table, item);
+  if (p != NULL) {
+    trav->table = table;
+    trav->node = ((rbt_node_t *) ((char *) p - offsetof(rbt_node_t, data)));
+    trav->generation = table->generation - 1;
+    return *p;
+  } else {
+    rbt_t_init(trav, table);
+    return NULL;
+  }
 }
 
 /* Initializes |trav| to have the same current node as |src|. */
@@ -836,20 +838,17 @@ void *
 rbt_t_copy (rbt_traverser_t *trav,
             const rbt_traverser_t *src)
 {
-  assert (trav != NULL && src != NULL);
+  assert(trav != NULL && src != NULL);
 
-  if (trav != src)
-    {
-      trav->table = src->table;
-      trav->node = src->node;
-      trav->generation = src->generation;
-      if (trav->generation == trav->table->generation)
-        {
-          trav->height = src->height;
-          memcpy (trav->stack, (const void *) src->stack,
-                  sizeof *trav->stack * trav->height);
-        }
+  if (trav != src) {
+    trav->table = src->table;
+    trav->node = src->node;
+    trav->generation = src->generation;
+    if (trav->generation == trav->table->generation) {
+      trav->height = src->height;
+      memcpy(trav->stack, (const void *) src->stack, sizeof *trav->stack * trav->height);
     }
+  }
 
   return trav->node != NULL ? trav->node->data : NULL;
 }
@@ -862,46 +861,37 @@ rbt_t_next (rbt_traverser_t *trav)
 {
   rbt_node_t *x;
 
-  assert (trav != NULL);
+  assert(trav != NULL);
 
   if (trav->generation != trav->table->generation)
-    trav_refresh (trav);
+    trav_refresh(trav);
 
   x = trav->node;
-  if (x == NULL)
-    {
-      return rbt_t_first (trav, trav->table);
-    }
-  else if (x->links[1] != NULL)
-    {
+  if (x == NULL) {
+    return rbt_t_first (trav, trav->table);
+  } else if (x->links[1] != NULL) {
+    assert(trav->height < RBT_MAX_HEIGHT);
+    trav->stack[trav->height++] = x;
+    x = x->links[1];
+
+    while (x->links[0] != NULL) {
       assert (trav->height < RBT_MAX_HEIGHT);
       trav->stack[trav->height++] = x;
-      x = x->links[1];
-
-      while (x->links[0] != NULL)
-        {
-          assert (trav->height < RBT_MAX_HEIGHT);
-          trav->stack[trav->height++] = x;
-          x = x->links[0];
-        }
+      x = x->links[0];
     }
-  else
-    {
-      rbt_node_t *y;
+  } else {
+    rbt_node_t *y;
 
-      do
-        {
-          if (trav->height == 0)
-            {
-              trav->node = NULL;
-              return NULL;
-            }
+    do {
+      if (trav->height == 0) {
+        trav->node = NULL;
+        return NULL;
+      }
 
-          y = x;
-          x = trav->stack[--trav->height];
-        }
-      while (y == x->links[1]);
-    }
+      y = x;
+      x = trav->stack[--trav->height];
+    }  while (y == x->links[1]);
+  }
   trav->node = x;
 
   return x->data;
@@ -915,46 +905,37 @@ rbt_t_prev (rbt_traverser_t *trav)
 {
   rbt_node_t *x;
 
-  assert (trav != NULL);
+  assert(trav != NULL);
 
   if (trav->generation != trav->table->generation)
     trav_refresh (trav);
 
   x = trav->node;
-  if (x == NULL)
-    {
-      return rbt_t_last (trav, trav->table);
-    }
-  else if (x->links[0] != NULL)
-    {
-      assert (trav->height < RBT_MAX_HEIGHT);
+  if (x == NULL) {
+    return rbt_t_last (trav, trav->table);
+  } else if (x->links[0] != NULL) {
+    assert (trav->height < RBT_MAX_HEIGHT);
+    trav->stack[trav->height++] = x;
+    x = x->links[0];
+
+    while (x->links[1] != NULL) {
+      assert(trav->height < RBT_MAX_HEIGHT);
       trav->stack[trav->height++] = x;
-      x = x->links[0];
-
-      while (x->links[1] != NULL)
-        {
-          assert (trav->height < RBT_MAX_HEIGHT);
-          trav->stack[trav->height++] = x;
-          x = x->links[1];
-        }
+      x = x->links[1];
     }
-  else
-    {
-      rbt_node_t *y;
+  } else {
+    rbt_node_t *y;
 
-      do
-        {
-          if (trav->height == 0)
-            {
-              trav->node = NULL;
-              return NULL;
-            }
+    do {
+      if (trav->height == 0) {
+        trav->node = NULL;
+        return NULL;
+      }
 
-          y = x;
-          x = trav->stack[--trav->height];
-        }
-      while (y == x->links[0]);
-    }
+      y = x;
+      x = trav->stack[--trav->height];
+    } while (y == x->links[0]);
+  }
   trav->node = x;
 
   return x->data;
@@ -964,7 +945,7 @@ rbt_t_prev (rbt_traverser_t *trav)
 void *
 rbt_t_cur (rbt_traverser_t *trav)
 {
-  assert (trav != NULL);
+  assert(trav != NULL);
 
   return trav->node != NULL ? trav->node->data : NULL;
 }
@@ -978,7 +959,8 @@ rbt_t_replace (rbt_traverser_t *trav,
 {
   void *old;
 
-  assert (trav != NULL && trav->node != NULL && new != NULL);
+  assert(trav != NULL && trav->node != NULL && new != NULL);
+
   old = trav->node->data;
   trav->node->data = new;
   return old;

@@ -254,11 +254,11 @@ rbt_copy (const rbt_table_t *org,
           mem_allocator_t *allocator);
 
 extern void
-rbt_destroy (rbt_table_t *tree,
+rbt_destroy (rbt_table_t *table,
              rbt_item_destroy_f *destroy);
 
 extern void **
-rbt_probe (rbt_table_t *tree,
+rbt_probe (rbt_table_t *table,
            void *item);
 
 extern void *
@@ -270,7 +270,7 @@ rbt_replace (rbt_table_t *table,
              void *item);
 
 extern void *
-rbt_delete (rbt_table_t *tree,
+rbt_delete (rbt_table_t *table,
             const void *item);
 
 extern void *
@@ -285,24 +285,24 @@ rbt_find (const rbt_table_t *table,
 
 extern void
 rbt_t_init (rbt_traverser_t *trav,
-            rbt_table_t *tree);
+            rbt_table_t *table);
 
 extern void *
 rbt_t_first (rbt_traverser_t *trav,
-             rbt_table_t *tree);
+             rbt_table_t *table);
 
 extern void *
 rbt_t_last (rbt_traverser_t *trav,
-            rbt_table_t *tree);
+            rbt_table_t *table);
 
 extern void *
 rbt_t_find (rbt_traverser_t *trav,
-            rbt_table_t *tree,
+            rbt_table_t *table,
             void *item);
 
 extern void *
 rbt_t_insert (rbt_traverser_t *trav,
-              rbt_table_t *tree,
+              rbt_table_t *table,
               void *item);
 
 extern void *
