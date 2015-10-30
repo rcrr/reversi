@@ -692,7 +692,7 @@ rbt_find (const rbt_table_t *table,
 /*********************************************************/
 
 /**
- * @brief Initializes `trav' for use with `table` and selects the null node.
+ * @brief Initializes `trav` for use with `table` and selects the null node.
  *
  * @details Returns a null pointer if no matching item exists in the table.
  *
@@ -713,9 +713,17 @@ rbt_t_init (rbt_traverser_t *trav,
   trav->generation = table->generation;
 }
 
-/* Initializes |trav| for |tree|
-   and selects and returns a pointer to its least-valued item.
-   Returns |NULL| if |tree| contains no nodes. */
+/**
+ * @brief Initializes `trav` for use with `table` and selects its least-valued item.
+ *
+ * @details Returns a null pointer if `table` contains no nodes.
+ *
+ * @invariant The `table` and `item` arguments cannot be `NULL`.
+ *
+ * @param [in,out] trav  the traverser to be initialized
+ * @param [in]     table the table for use with
+ * @return         a pointer to its least-valued item or `NULL`
+ */
 void *
 rbt_t_first (rbt_traverser_t *trav,
              rbt_table_t *table)
@@ -740,9 +748,17 @@ rbt_t_first (rbt_traverser_t *trav,
   return x != NULL ? x->data : NULL;
 }
 
-/* Initializes |trav| for |tree|
-   and selects and returns a pointer to its greatest-valued item.
-   Returns |NULL| if |tree| contains no nodes. */
+/**
+ * @brief Initializes `trav` for use with `table` and selects its greatest-valued item.
+ *
+ * @details Returns a null pointer if `table` contains no nodes.
+ *
+ * @invariant The `table` and `item` arguments cannot be `NULL`.
+ *
+ * @param [in,out] trav  the traverser to be initialized
+ * @param [in]     table the table for use with
+ * @return         a pointer to its greatest-valued item or `NULL`
+ */
 void *
 rbt_t_last (rbt_traverser_t *trav,
             rbt_table_t *table)
