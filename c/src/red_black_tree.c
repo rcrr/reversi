@@ -796,7 +796,7 @@ rbt_t_last (rbt_traverser_t *trav,
  *          initializes `trav` with it. If none is found, initializes `trav` to the null item.
  *          Returns the found item or `NULL` if there is no matching one.
  *
- * @invariant The `trav`, `table` and `item` arguments cannot be `NULL`.
+ * @invariant The `trav`, `table`, and `item` arguments cannot be `NULL`.
  *
  * @param [in,out] trav  the traverser to be initialized
  * @param [in]     table the table for use with
@@ -836,13 +836,21 @@ rbt_t_find (rbt_traverser_t *trav,
   return NULL;
 }
 
-/* Attempts to insert |item| into |tree|.
-   If |item| is inserted successfully, it is returned and |trav| is
-   initialized to its location.
-   If a duplicate is found, it is returned and |trav| is initialized to
-   its location.  No replacement of the item occurs.
-   If a memory allocation failure occurs, |NULL| is returned and |trav|
-   is initialized to the null item. */
+/**
+ * @brief Attempts to insert `item` into `table`.
+ *
+ * @details If `item` is inserted successfully, it is returned and `trav` is initialized to its location.
+ *          If a duplicate is found, it is returned and `trav` is initialized to its location.
+ *          No replacement of the item occurs.
+ *          If a memory allocation failure occurs, `NULL` is returned and `trav` is initialized to the null item.
+ *
+ * @invariant The `trav`, `table`, and `item` arguments cannot be `NULL`.
+ *
+ * @param [in,out] trav  the traverser to be initialized
+ * @param [in,out] table the table for use with
+ * @param [in]     item  the element to be inserted
+ * @return         a pointer to the inserted or duplicated item
+ */
 void *
 rbt_t_insert (rbt_traverser_t *trav,
               rbt_table_t *table,
@@ -864,7 +872,19 @@ rbt_t_insert (rbt_traverser_t *trav,
   }
 }
 
-/* Initializes |trav| to have the same current node as |src|. */
+/**
+ * @brief Initializes `trav` to have the same current node as `src`, a second valid traverser.
+ *
+ * @details Both arguments pointing to the same valid traverser is valid and causes no change
+ *          in either.
+ *          Returns a pointer to the current item.
+ *
+ * @invariant The `trav` and `src` arguments cannot be `NULL`.
+ *
+ * @param [in,out] trav the traverser to be initialized
+ * @param [in]     src  the second source traverser
+ * @return         a pointer to the current item
+ */
 void *
 rbt_t_copy (rbt_traverser_t *trav,
             const rbt_traverser_t *src)
