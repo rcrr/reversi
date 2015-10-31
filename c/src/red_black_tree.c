@@ -113,7 +113,9 @@ trav_refresh (rbt_traverser_t *trav);
 
 
 /*****************************************************/
+/*                                                   */
 /* Function implementations for the table structure. */
+/*                                                   */
 /*****************************************************/
 
 /**
@@ -687,9 +689,13 @@ rbt_find (const rbt_table_t *table,
 
 
 
-/*********************************************************/
-/* Function implementations for the ttaverser structure. */
-/*********************************************************/
+/********************************************************/
+/*                                                      */
+/* Function implementations for the taverser structure. */
+/*                                                      */
+/* Constructors.                                        */
+/*                                                      */
+/********************************************************/
 
 /**
  * @brief Initializes `trav` for use with `table` and selects the null node.
@@ -783,11 +789,20 @@ rbt_t_last (rbt_traverser_t *trav,
   return x != NULL ? x->data : NULL;
 }
 
-/* Searches for |item| in |tree|.
-   If found, initializes |trav| to the item found and returns the item
-   as well.
-   If there is no matching item, initializes |trav| to the null item
-   and returns |NULL|. */
+/**
+ * @brief Searches for `item` in `table`.
+ *
+ * @details Searches `table` for an item matching the one given. If one is found,
+ *          initializes `trav` with it. If none is found, initializes `trav` to the null item.
+ *          Returns the found item or `NULL` if there is no matching one.
+ *
+ * @invariant The `trav`, `table` and `item` arguments cannot be `NULL`.
+ *
+ * @param [in,out] trav  the traverser to be initialized
+ * @param [in]     table the table for use with
+ * @param [in]     item  the element to search for
+ * @return         a pointer to the found item or `NULL`
+ */
 void *
 rbt_t_find (rbt_traverser_t *trav,
             rbt_table_t *table,
@@ -868,6 +883,16 @@ rbt_t_copy (rbt_traverser_t *trav,
 
   return trav->node != NULL ? trav->node->data : NULL;
 }
+
+
+
+/********************************************************/
+/*                                                      */
+/* Function implementations for the taverser structure. */
+/*                                                      */
+/* Manipulators.                                        */
+/*                                                      */
+/********************************************************/
 
 /* Returns the next data item in inorder
    within the tree being traversed with |trav|,
