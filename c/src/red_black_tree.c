@@ -3,7 +3,7 @@
  *
  *
  *
- * @todo Complete the doxygen documentation for functions.
+ * @todo [done] Complete the doxygen documentation for functions.
  *
  * @todo Remove not mandatory definitions from the header file (e.g. rbt_node_t)
  *
@@ -689,13 +689,13 @@ rbt_find (const rbt_table_t *table,
 
 
 
-/********************************************************/
-/*                                                      */
-/* Function implementations for the taverser structure. */
-/*                                                      */
-/* Constructors.                                        */
-/*                                                      */
-/********************************************************/
+/*********************************************************/
+/*                                                       */
+/* Function implementations for the traverser structure. */
+/*                                                       */
+/* Constructors.                                         */
+/*                                                       */
+/*********************************************************/
 
 /**
  * @brief Initializes `trav` for use with `table` and selects the null node.
@@ -728,7 +728,7 @@ rbt_t_init (rbt_traverser_t *trav,
  *
  * @param [in,out] trav  the traverser to be initialized
  * @param [in]     table the table for use with
- * @return         a pointer to its least-valued item or `NULL`
+ * @return               a pointer to its least-valued item or `NULL`
  */
 void *
 rbt_t_first (rbt_traverser_t *trav,
@@ -763,7 +763,7 @@ rbt_t_first (rbt_traverser_t *trav,
  *
  * @param [in,out] trav  the traverser to be initialized
  * @param [in]     table the table for use with
- * @return         a pointer to its greatest-valued item or `NULL`
+ * @return               a pointer to its greatest-valued item or `NULL`
  */
 void *
 rbt_t_last (rbt_traverser_t *trav,
@@ -801,7 +801,7 @@ rbt_t_last (rbt_traverser_t *trav,
  * @param [in,out] trav  the traverser to be initialized
  * @param [in]     table the table for use with
  * @param [in]     item  the element to search for
- * @return         a pointer to the found item or `NULL`
+ * @return               a pointer to the found item or `NULL`
  */
 void *
 rbt_t_find (rbt_traverser_t *trav,
@@ -849,7 +849,7 @@ rbt_t_find (rbt_traverser_t *trav,
  * @param [in,out] trav  the traverser to be initialized
  * @param [in,out] table the table for use with
  * @param [in]     item  the element to be inserted
- * @return         a pointer to the inserted or duplicated item
+ * @return               a pointer to the inserted or duplicated item
  */
 void *
 rbt_t_insert (rbt_traverser_t *trav,
@@ -883,7 +883,7 @@ rbt_t_insert (rbt_traverser_t *trav,
  *
  * @param [in,out] trav the traverser to be initialized
  * @param [in]     src  the second source traverser
- * @return         a pointer to the current item
+ * @return              a pointer to the current item
  */
 void *
 rbt_t_copy (rbt_traverser_t *trav,
@@ -906,17 +906,28 @@ rbt_t_copy (rbt_traverser_t *trav,
 
 
 
-/********************************************************/
-/*                                                      */
-/* Function implementations for the taverser structure. */
-/*                                                      */
-/* Manipulators.                                        */
-/*                                                      */
-/********************************************************/
+/*********************************************************/
+/*                                                       */
+/* Function implementations for the traverser structure. */
+/*                                                       */
+/* Manipulators.                                         */
+/*                                                       */
+/*********************************************************/
 
-/* Returns the next data item in inorder
-   within the tree being traversed with |trav|,
-   or if there are no more data items returns |NULL|. */
+/**
+ * @brief Advances `trav` to the next larger item in its table, and returns it.
+ *
+ * @details Returns the next data item in inorder within the table being traversed with `trav`,
+ *          or if there are no more data items returns `NULL`.
+ *          If `trav` was at the null item in a nonempty table, then the smallest item in the table
+ *          becomes current. If `trav` was already at the greatest item in its table or the table is
+ *          empty, the null item becomes current.
+ *
+ * @invariant The `trav` argument cannot be `NULL`.
+ *
+ * @param [in,out] trav the traverser being manipulated
+ * @return              a pointer to the current item
+ */
 void *
 rbt_t_next (rbt_traverser_t *trav)
 {
@@ -958,9 +969,20 @@ rbt_t_next (rbt_traverser_t *trav)
   return x->data;
 }
 
-/* Returns the previous data item in inorder
-   within the tree being traversed with |trav|,
-   or if there are no more data items returns |NULL|. */
+/**
+ * @brief Advances `trav` to the next smaller item in its table, and returns it.
+ *
+ * @details Returns the previous data item in inorder within the table being traversed with `trav`,
+ *          or if there are no more data items returns `NULL`.
+ *          If `trav` was at the null item in a nonempty table, then the greatest item in the table
+ *          becomes current. If `trav` was already at the lowest item in its table or the table is
+ *          empty, the null item becomes current.
+ *
+ * @invariant The `trav` argument cannot be `NULL`.
+ *
+ * @param [in,out] trav the traverser being manipulated
+ * @return              a pointer to the current item
+ */
 void *
 rbt_t_prev (rbt_traverser_t *trav)
 {
@@ -1002,7 +1024,14 @@ rbt_t_prev (rbt_traverser_t *trav)
   return x->data;
 }
 
-/* Returns |trav|'s current item. */
+/**
+ * @brief Returns `trav`'s current item.
+ *
+ * @invariant The `trav` argument cannot be `NULL`.
+ *
+ * @param [in] trav the traverser being manipulated
+ * @return          a pointer to the current item
+ */
 void *
 rbt_t_cur (rbt_traverser_t *trav)
 {
@@ -1011,9 +1040,20 @@ rbt_t_cur (rbt_traverser_t *trav)
   return trav->node != NULL ? trav->node->data : NULL;
 }
 
-/* Replaces the current item in |trav| by |new| and returns the item replaced.
-   |trav| must not have the null item selected.
-   The new item must not upset the ordering of the tree. */
+/**
+ * @brief Replaces the current item in `trav` by `new` and returns the item replaced.
+ *
+ * @details Replaces the data item currently selected in `trav` by the one provided.
+ *          The replacement item is subject to the same restrictions as for the same replacement
+ *          using rbt_probe(). The item replaced is returned. If the null item is current, the behavior
+ *          is undefined.
+ *
+ * @invariant The `trav` and `new` arguments cannot be `NULL`, and `trav` must not have the null item selected.
+ *
+ * @param [in] trav the traverser being manipulated
+ * @param [in] new  the replacement for the selected item
+ * @return              a pointer to the current item
+ */
 void *
 rbt_t_replace (rbt_traverser_t *trav,
               void *new)

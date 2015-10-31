@@ -53,6 +53,7 @@ const int test_array[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 static void dummy_test (void);
 static void creation_and_destruction_test (void);
 static void probe_test (void);
+static void copy_test (void);
 
 
 /* Helper function prototypes. */
@@ -73,6 +74,7 @@ main (int   argc,
   g_test_add_func("/red_black_tree/dummy", dummy_test);
   g_test_add_func("/red_black_tree/creation_and_destruction_test", creation_and_destruction_test);
   g_test_add_func("/red_black_tree/probe_test", probe_test);
+  g_test_add_func("/red_black_tree/copy_test", copy_test);
 
   return g_test_run();
 }
@@ -104,34 +106,76 @@ creation_and_destruction_test (void)
 static void
 probe_test (void)
 {
+  /* Test data set is composed by an array of ten integers: [0..9]. */
   int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   const size_t data_size = 10;
 
+  /* Creates the new empty table. */
   rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
   g_assert(table);
 
-  size_t count = rbt_count(table);
-  g_assert(count == 0);
+  /* Count has to be zero. */
+  g_assert(rbt_count(table) == 0);
 
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
   for (size_t i = 0; i < data_size; i++) {
     int *item = &data[i];
     int **item_ref = (int **) rbt_probe(table, item);
-    g_assert(rbt_count(table) == i + 1);
+    g_assert(rbt_count(table) == i + 1);             /* Table count has to be equal to the number of inserted elements. */
+    g_assert(*item_ref != NULL);                     /* Item pointer has to be not null. */
+    g_assert(*item_ref == &data[i]);                 /* Item pointer has to reference the appropriate array element. */
+    g_assert(**item_ref == i);                       /* Item (**item_ref) has to be equal to the loop counter. */
+  }
+
+  /* Probes the table again with the same data set. Nothing has to happen. */
+  for (size_t i = 0; i < data_size; i++) {
+    int *item = &data[i];
+    int **item_ref = (int **) rbt_probe(table, item);
+    g_assert(rbt_count(table) == data_size);         /* Table count has to stay constat at data_size. */
     g_assert(*item_ref != NULL);
     g_assert(*item_ref == &data[i]);
     g_assert(**item_ref == i);
   }
 
-  for (size_t i = 0; i < data_size; i++) {
-    int *item = &data[i];
-    int **item_ref = (int **) rbt_probe(table, item);
-    g_assert(rbt_count(table) == data_size);
-    g_assert(*item_ref != NULL);
-    g_assert(*item_ref == &data[i]);
-    g_assert(**item_ref == i);
-  }
-
+  /* Frees the table. */
   rbt_destroy(table, NULL);
+}
+
+
+static void
+copy_test (void)
+{
+  /* Test data set is composed by an array of ten integers: [0..9]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  g_assert(table);
+
+  /* Inserts the [0..9] set of elements in the table. */
+  for (size_t i = 0; i < data_size; i++) {
+    int *item = &data[i];
+    rbt_probe(table, item);
+  }
+
+  /* We must have data_size elements in the table. */
+  g_assert(rbt_count(table) == data_size);
+
+  /* Copies table into a new tree. */
+  rbt_item_copy_f *copy = NULL;
+  rbt_item_destroy_f *destroy = NULL;
+  mem_allocator_t *alloc = NULL;
+  rbt_table_t *copied_table = rbt_copy(table, copy, destroy, alloc);
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+
+  /* We must have data_size elements in the table. */
+  g_assert(rbt_count(copied_table) == data_size);
+
+  /* Frees the table. */
+  rbt_destroy(copied_table, NULL);
 }
 
 
