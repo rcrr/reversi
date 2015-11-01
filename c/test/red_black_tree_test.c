@@ -38,6 +38,7 @@
 #include <glib.h>
 
 #include "red_black_tree.h"
+#include "random.h"
 
 
 
@@ -57,6 +58,7 @@ static void copy_test (void);
 static void insert_replace_and_find_test (void);
 static void delete_test (void);
 static void volume_test (void);
+static void random_key_volume_test (void);
 
 
 
@@ -81,6 +83,7 @@ main (int   argc,
   g_test_add_func("/red_black_tree/insert_replace_and_find_test", insert_replace_and_find_test);
   g_test_add_func("/red_black_tree/delete_test", delete_test);
   g_test_add_func("/red_black_tree/volume_test", volume_test);
+  g_test_add_func("/red_black_tree/random_key_volume_test", random_key_volume_test);
 
   return g_test_run();
 }
@@ -378,6 +381,66 @@ volume_test (void)
 
 }
 
+static void
+random_key_volume_test (void)
+{
+  /* Structure element for data array has key and val. */
+  struct element {
+    int key;
+    int val;
+  };
+
+  /* Data size. */
+  const size_t data_size = 2048;
+
+  /* Number of insertions. */
+  const size_t insertion_count = 4096;
+
+  /* Checksums. */
+  size_t element_count_checksum = 0;
+  size_t insertion_count_checksum = 0;
+
+  /* Data is initialized having key equal to the element index into the array, and val equal to zero. */
+  struct element data[data_size];
+  for (size_t i = 0; i < data_size; i++) {
+    data[i].key = i;
+    data[i].val = 0;
+  }
+
+  /* Sets up the RNG. */
+  const unsigned int seed = 20150801;
+  RandomNumberGenerator *rng = rng_new(seed);
+  g_assert(rng);
+
+  /* Creates the table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  g_assert(table);
+
+  /* Populates the table with random selection within the set. Element's val field is incremented on each probe. */
+  for (size_t k = 0; k < insertion_count; k++) {
+    const unsigned long index = rng_random_choice_from_finite_set(rng, data_size);
+    struct element **e = (struct element **) rbt_probe(table, &data[index]);
+    (*e)->val++;
+  }
+
+  /* Checks that the tree has the probed elements, and doesn't have the skipped ones. */
+  for (size_t i = 0; i < data_size; i++) {
+    const int key = i;
+    const int count = data[i].val;
+    insertion_count_checksum += count;
+    if (count) element_count_checksum++;
+    struct element *e = (struct element *) rbt_find(table, &key);
+    if (e) g_assert(count > 0);
+    else g_assert(count == 0);
+  }
+  g_assert(insertion_count_checksum == insertion_count);
+  g_assert(element_count_checksum == rbt_count(table));
+  g_assert(element_count_checksum == 1776);      /* Depends on RNG, seed, data_size, and insertion_count. */
+
+  /* Frees resources. */
+  rbt_destroy(table, NULL);
+  rng_free(rng);
+}
 
 
 /*
