@@ -54,6 +54,9 @@ static void dummy_test (void);
 static void creation_and_destruction_test (void);
 static void probe_test (void);
 static void copy_test (void);
+static void copy_test (void);
+static void insert_replace_and_find_test (void);
+
 
 
 /* Helper function prototypes. */
@@ -75,6 +78,7 @@ main (int   argc,
   g_test_add_func("/red_black_tree/creation_and_destruction_test", creation_and_destruction_test);
   g_test_add_func("/red_black_tree/probe_test", probe_test);
   g_test_add_func("/red_black_tree/copy_test", copy_test);
+  g_test_add_func("/red_black_tree/insert_replace_and_find_test", insert_replace_and_find_test);
 
   return g_test_run();
 }
@@ -141,7 +145,6 @@ probe_test (void)
   rbt_destroy(table, NULL);
 }
 
-
 static void
 copy_test (void)
 {
@@ -176,6 +179,102 @@ copy_test (void)
 
   /* Frees the table. */
   rbt_destroy(copied_table, NULL);
+}
+
+static void
+insert_replace_and_find_test (void)
+{
+  /* We need data with key and content to properly test the replace use case. */
+  struct element {
+    int key;
+    int content;
+  };
+
+  /* Values assigned to data. */
+  const int value_a = 0;
+  const int value_b = 1;
+
+  /* Test data set is composed by an array of ten element structure: [{0,0}..{9,0}]. */
+  struct element data_a[] = { {0, value_a},
+                              {1, value_a},
+                              {2, value_a},
+                              {3, value_a},
+                              {4, value_a},
+                              {5, value_a},
+                              {6, value_a},
+                              {7, value_a},
+                              {8, value_a},
+                              {9, value_a} };
+
+  /* Data size is dynamically computed. */
+  const size_t data_size = sizeof(data_a) / sizeof(data_a[0]);
+
+  /* A second array set is prepared, having the same size, and same keys, but different content. */
+  struct element data_b[data_size];
+  for (size_t i = 0; i < data_size; i++) {
+    data_b[i].key = data_a[i].key;
+    data_b[i].content = value_b;
+  }
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  g_assert(table);
+
+  /* Inserts the data_a set of elements in the table. */
+  for (size_t i = 0; i < data_size; i++) {
+    struct element *e = &data_a[i];
+    struct element *e_ref = (struct element *) rbt_insert(table, e);
+    g_assert(rbt_count(table) == i + 1);         /* Table count has to be equal to the number of inserted elements. */
+    g_assert(e_ref == NULL);                     /* Item pointer has to be null when insertion succeeds. */
+  }
+
+  /* We must have data_size elements in the table now. */
+  g_assert(rbt_count(table) == data_size);
+
+  /* Inserts the data_b set of elements in the table. Nothing has to happen. */
+  for (size_t i = 0; i < data_size; i++) {
+    struct element *e = &data_b[i];
+    struct element *e_ref = (struct element *) rbt_insert(table, e);
+    g_assert(rbt_count(table) == data_size);     /* Table count has to stay constant. */
+    g_assert(e_ref != NULL);                     /* Item pointer has to be not null. */
+    g_assert(e_ref == &data_a[i]);               /* Item pointer has to reference the appropriate array element. */
+    g_assert(e_ref->key == i);                   /* Item's key has to be equal to the loop counter. */
+    g_assert(e_ref->content == value_a);         /* Item's content has to be equal to value_a. */
+  }
+
+  /* We must have still data_size elements in the table. */
+  g_assert(rbt_count(table) == data_size);
+
+  /* Replaces elements using data_b set. All elements has to be replaced. */
+  for (size_t i = 0; i < data_size; i++) {
+    struct element *e = &data_b[i];
+    struct element *e_ref = (struct element *) rbt_replace(table, e);
+    g_assert(rbt_count(table) == data_size);     /* Table count has to stay constant. */
+    g_assert(e_ref != NULL);                     /* Item pointer has to be not null. */
+    g_assert(e_ref == &data_a[i]);               /* Item pointer has to reference the appropriate array element. */
+    g_assert(e_ref->key == i);                   /* Item's key has to be equal to the loop counter. */
+    g_assert(e_ref->content == value_a);         /* Item's content has to be equal to value_a. */
+  }
+
+  /* We must have still data_size elements in the table. */
+  g_assert(rbt_count(table) == data_size);
+
+  /* Searches all the ten elements, they must be found, and the contant has to be equal to value_b. */
+  for (size_t i = 0; i < data_size; i++) {
+    struct element *e = (struct element *) rbt_find(table, &i);
+    g_assert(e != NULL);
+    g_assert(e == &data_b[i]);
+    g_assert(e->key == i);
+    g_assert(e->content == value_b);
+  }
+
+  /* Searches for a missing key, result has to be null. */
+  int missing_key = -1;
+  struct element *missing = rbt_find(table, &missing_key);
+  g_assert(missing == NULL);
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
 }
 
 
