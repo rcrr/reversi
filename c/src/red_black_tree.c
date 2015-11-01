@@ -349,7 +349,7 @@ rbt_probe (rbt_table_t *table,
   da[0] = 0;
   k = 1;
   for (p = table->root; p != NULL; p = p->links[da[k - 1]]) {
-    int cmp = table->compare (item, p->data, table->param);
+    int cmp = table->compare(item, p->data, table->param);
     if (cmp == 0) return &p->data;
     pa[k] = p;
     da[k++] = cmp > 0;
@@ -444,7 +444,7 @@ void *
 rbt_insert (rbt_table_t *table,
             void *item)
 {
-  void **p = rbt_probe (table, item);
+  void **p = rbt_probe(table, item);
   return p == NULL || *p == item ? NULL : *p;
 }
 
@@ -464,7 +464,7 @@ void *
 rbt_replace (rbt_table_t *table,
              void *item)
 {
-  void **p = rbt_probe (table, item);
+  void **p = rbt_probe(table, item);
   if (p == NULL || *p == item)
     return NULL;
   else {
@@ -653,7 +653,7 @@ rbt_delete (rbt_table_t *table,
 
   }
 
-  table->alloc->free (table->alloc, p);
+  table->alloc->free(table->alloc, p);
   table->count--;
   table->generation++;
   return (void *) item;
@@ -940,14 +940,14 @@ rbt_t_next (rbt_traverser_t *trav)
 
   x = trav->node;
   if (x == NULL) {
-    return rbt_t_first (trav, trav->table);
+    return rbt_t_first(trav, trav->table);
   } else if (x->links[1] != NULL) {
     assert(trav->height < RBT_MAX_HEIGHT);
     trav->stack[trav->height++] = x;
     x = x->links[1];
 
     while (x->links[0] != NULL) {
-      assert (trav->height < RBT_MAX_HEIGHT);
+      assert(trav->height < RBT_MAX_HEIGHT);
       trav->stack[trav->height++] = x;
       x = x->links[0];
     }
@@ -991,13 +991,13 @@ rbt_t_prev (rbt_traverser_t *trav)
   assert(trav != NULL);
 
   if (trav->generation != trav->table->generation)
-    trav_refresh (trav);
+    trav_refresh(trav);
 
   x = trav->node;
   if (x == NULL) {
-    return rbt_t_last (trav, trav->table);
+    return rbt_t_last(trav, trav->table);
   } else if (x->links[0] != NULL) {
-    assert (trav->height < RBT_MAX_HEIGHT);
+    assert(trav->height < RBT_MAX_HEIGHT);
     trav->stack[trav->height++] = x;
     x = x->links[0];
 
@@ -1087,7 +1087,7 @@ copy_error_recovery (rbt_node_t **stack,
                      rbt_table_t *new,
                      rbt_item_destroy_f *destroy)
 {
-  assert (stack != NULL && height >= 0 && new != NULL);
+  assert(stack != NULL && height >= 0 && new != NULL);
 
   for (; height > 2; height -= 2)
     stack[height - 1]->links[1] = NULL;
@@ -1099,7 +1099,7 @@ copy_error_recovery (rbt_node_t **stack,
 static void
 trav_refresh (rbt_traverser_t *trav)
 {
-  assert (trav != NULL);
+  assert(trav != NULL);
 
   trav->generation = trav->table->generation;
 
@@ -1111,8 +1111,8 @@ trav_refresh (rbt_traverser_t *trav)
 
     trav->height = 0;
     for (i = trav->table->root; i != node; ) {
-      assert (trav->height < RBT_MAX_HEIGHT);
-      assert (i != NULL);
+      assert(trav->height < RBT_MAX_HEIGHT);
+      assert(i != NULL);
 
       trav->stack[trav->height++] = i;
       i = i->links[cmp(node->data, i->data, param) > 0];
