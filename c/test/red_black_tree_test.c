@@ -59,7 +59,7 @@ static void insert_replace_and_find_test (void);
 static void delete_test (void);
 static void volume_test (void);
 static void random_key_volume_test (void);
-
+static void traverser_basic_test (void);
 
 
 /* Helper function prototypes. */
@@ -85,13 +85,15 @@ main (int   argc,
   g_test_add_func("/red_black_tree/volume_test", volume_test);
   g_test_add_func("/red_black_tree/random_key_volume_test", random_key_volume_test);
 
+  g_test_add_func("/red_black_tree/traverser_basic_test", traverser_basic_test);
+
   return g_test_run();
 }
 
 
 
 /*
- * Test functions.
+ * Test functions for the table structure.
  */
 
 static void
@@ -441,6 +443,76 @@ random_key_volume_test (void)
   rbt_destroy(table, NULL);
   rng_free(rng);
 }
+
+
+
+/*
+ * Test functions for the traverser structure.
+ */
+
+static void
+traverser_basic_test (void)
+
+{
+  rbt_traverser_t traverser;
+  rbt_traverser_t *t = &traverser;
+  int *e;
+  int counter;
+
+  /* Test data set is composed by an array of ten integers: [0..9]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  g_assert(table);
+
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    rbt_probe(table, &data[i]);
+  }
+
+  /* Traverses the table clockwise starting from the null element. */
+  counter = 0;
+  rbt_t_init(t, table);
+  while ((e = rbt_t_next(t))) {
+    g_assert(*e == counter++);
+    g_assert(rbt_t_cur(t) == e);
+  }
+  g_assert(counter == data_size);
+  g_assert(rbt_t_cur(t) == NULL);
+
+  /* Traverses the table counterclockwise starting from the null element. */
+  counter = data_size;
+  rbt_t_init(t, table);
+  while ((e = rbt_t_prev(t))) {
+    g_assert(*e == --counter);
+    g_assert(rbt_t_cur(t) == e);
+  }
+  g_assert(counter == 0);
+  g_assert(rbt_t_cur(t) == NULL);
+
+  /* Traverses the table clockwise starting from the first element. */
+  for (e = rbt_t_first(t, table), counter = 0; e; e = rbt_t_next(t), counter++) {
+    g_assert(*e == counter);
+    g_assert(rbt_t_cur(t) == e);
+  }
+  g_assert(counter == data_size);
+  g_assert(rbt_t_cur(t) == NULL);
+
+  /* Traverses the table counterclockwise starting from the last element. */
+  for (e = rbt_t_last(t, table), counter = data_size - 1; e; e = rbt_t_prev(t), counter--) {
+    g_assert(*e == counter);
+    g_assert(rbt_t_cur(t) == e);
+  }
+  g_assert(counter == -1);
+  g_assert(rbt_t_cur(t) == NULL);
+
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+}
+
 
 
 /*
