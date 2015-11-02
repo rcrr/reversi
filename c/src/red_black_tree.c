@@ -16,6 +16,17 @@
  * @todo Write performance tests.
  *
  * @todo Write a merge function.
+ *       This is not as silly as it could be thought.
+ *       Two functions are needed: tree_to_vine, and vine_to_tree .... A vine is a linked-list build
+ *       using tree nodes, connected using always the same link (right or left subject to convention).
+ *       Merging two trees is done by transforming T1, and T2 to vines, merging them, and trasforming
+ *       back the result to the final tree.
+ *       The functions vine_to_tree and tree_to_vine can be coded O(n) in time and using O(1) space.
+ *       Merging the two vines (linked-list) is again O(n) in time, and O(1) in space. So combining
+ *       everything, the Union Set operation can be coded O(n) in time and O(1) in space requirements.
+ *       Having all these tools also "bulk loading" an array of elements can be coded O(n) in time when
+ *       it is already sorted, and O(n*log(n)) if not sorted.
+ *       This procedure can also transform the tree n "optimal" shape for searching.
  *
  * @todo Add statistics.
  *
