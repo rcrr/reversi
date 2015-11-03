@@ -60,6 +60,8 @@ static void delete_test (void);
 static void volume_test (void);
 static void random_key_volume_test (void);
 static void traverser_basic_test (void);
+static void traverser_find_test (void);
+
 
 
 /* Helper function prototypes. */
@@ -86,6 +88,7 @@ main (int   argc,
   g_test_add_func("/red_black_tree/random_key_volume_test", random_key_volume_test);
 
   g_test_add_func("/red_black_tree/traverser_basic_test", traverser_basic_test);
+  g_test_add_func("/red_black_tree/traverser_find_test", traverser_find_test);
 
   return g_test_run();
 }
@@ -513,6 +516,12 @@ traverser_basic_test (void)
   rbt_destroy(table, NULL);
 }
 
+static void
+traverser_find_test (void)
+
+{
+  ;
+}
 
 
 /*
