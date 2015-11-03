@@ -60,7 +60,7 @@ static void delete_test (void);
 static void volume_test (void);
 static void random_key_volume_test (void);
 static void traverser_basic_test (void);
-static void traverser_find_test (void);
+static void traverser_find_and_copy_test (void);
 
 
 
@@ -88,7 +88,7 @@ main (int   argc,
   g_test_add_func("/red_black_tree/random_key_volume_test", random_key_volume_test);
 
   g_test_add_func("/red_black_tree/traverser_basic_test", traverser_basic_test);
-  g_test_add_func("/red_black_tree/traverser_find_test", traverser_find_test);
+  g_test_add_func("/red_black_tree/traverser_find_and_copy_test", traverser_find_and_copy_test);
 
   return g_test_run();
 }
@@ -511,16 +511,50 @@ traverser_basic_test (void)
   g_assert(counter == -1);
   g_assert(rbt_t_cur(t) == NULL);
 
-
   /* Frees the table. */
   rbt_destroy(table, NULL);
 }
 
 static void
-traverser_find_test (void)
+traverser_find_and_copy_test (void)
 
 {
-  ;
+  rbt_traverser_t traverser_1, traverser_2;
+  rbt_traverser_t *t1 = &traverser_1;
+  rbt_traverser_t *t2 = &traverser_2;
+  int *e;
+
+  /* Test data set is composed by an array of ten integers: [0..16]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  g_assert(table);
+
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    rbt_probe(table, &data[i]);
+  }
+
+  for (int key = 0; key < data_size; key ++) {
+    e = (int *) rbt_t_find(t1, table, &key);
+    g_assert(*e == key);
+
+    e = rbt_t_copy(t2, t1);
+    g_assert(*e == key);
+
+    int *next = (int *) rbt_t_next(t1);
+    if (key == data_size - 1) g_assert(!next);
+    else g_assert(*next == key + 1);
+
+    int *prev = (int *) rbt_t_prev(t2);
+    if (key == 0) g_assert(!prev);
+    else g_assert(*prev == key - 1);
+  }
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
 }
 
 
