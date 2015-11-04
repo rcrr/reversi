@@ -61,7 +61,7 @@ static void volume_test (void);
 static void random_key_volume_test (void);
 static void traverser_basic_test (void);
 static void traverser_find_and_copy_test (void);
-
+static void traverser_insert_test (void);
 
 
 /* Helper function prototypes. */
@@ -89,6 +89,7 @@ main (int   argc,
 
   g_test_add_func("/red_black_tree/traverser_basic_test", traverser_basic_test);
   g_test_add_func("/red_black_tree/traverser_find_and_copy_test", traverser_find_and_copy_test);
+  g_test_add_func("/red_black_tree/traverser_insert_test", traverser_insert_test);
 
   return g_test_run();
 }
@@ -556,6 +557,55 @@ traverser_find_and_copy_test (void)
   /* Frees the table. */
   rbt_destroy(table, NULL);
 }
+
+static void
+traverser_insert_test (void)
+
+{
+  rbt_traverser_t traverser;
+  rbt_traverser_t *t = &traverser;
+  int *e;
+
+  /* Test data set is composed by an array of ten integers: [0..16]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+  const size_t missing_element = 13;
+  int *prev = &data[12];
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  g_assert(table);
+
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    if (i != 13) rbt_probe(table, &data[i]);
+  }
+
+  /* Table must have one element missing. */
+  g_assert(rbt_count(table) == data_size - 1);
+
+  /* Searches for the 12th element and verifies that the next is the 14th. */
+  e = (int *) rbt_t_find(t, table, prev);
+  g_assert(e && *e == 12);
+  e = rbt_t_next(t);
+  g_assert(e && *e == 14);
+
+  /* Inserts the missing elements and verifies it. */
+  e = (int *) rbt_t_insert(t, table, &data[missing_element]);
+  g_assert(e);
+  g_assert(*e == 13);
+  g_assert(rbt_count(table) == data_size);
+
+  /* Searches for the 12th element and verifies that the next is the 13th. */
+  e = (int *) rbt_t_find(t, table, prev);
+  g_assert(e && *e == 12);
+  e = rbt_t_next(t);
+  g_assert(e && *e == 13);
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+}
+
 
 
 /*
