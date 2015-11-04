@@ -62,6 +62,8 @@ static void random_key_volume_test (void);
 static void traverser_basic_test (void);
 static void traverser_find_and_copy_test (void);
 static void traverser_insert_test (void);
+static void traverser_replace_test (void);
+
 
 
 /* Helper function prototypes. */
@@ -90,6 +92,7 @@ main (int   argc,
   g_test_add_func("/red_black_tree/traverser_basic_test", traverser_basic_test);
   g_test_add_func("/red_black_tree/traverser_find_and_copy_test", traverser_find_and_copy_test);
   g_test_add_func("/red_black_tree/traverser_insert_test", traverser_insert_test);
+  g_test_add_func("/red_black_tree/traverser_replace_test", traverser_replace_test);
 
   return g_test_run();
 }
@@ -560,7 +563,6 @@ traverser_find_and_copy_test (void)
 
 static void
 traverser_insert_test (void)
-
 {
   rbt_traverser_t traverser;
   rbt_traverser_t *t = &traverser;
@@ -606,6 +608,71 @@ traverser_insert_test (void)
   rbt_destroy(table, NULL);
 }
 
+static void
+traverser_replace_test (void)
+{
+  rbt_traverser_t traverser;
+  rbt_traverser_t *t = &traverser;
+
+  /* We need data with key and content to properly test the replace use case. */
+  struct element {
+    int key;
+    int content;
+  };
+
+  /* Values assigned to data. */
+  const int value_a = 0;
+  const int value_b = 1;
+
+  /* Test data set is composed by an array of ten element structure: [{0,0}..{9,0}]. */
+  struct element data_a[] = { {0, value_a},
+                              {1, value_a},
+                              {2, value_a},
+                              {3, value_a},
+                              {4, value_a},
+                              {5, value_a},
+                              {6, value_a},
+                              {7, value_a},
+                              {8, value_a},
+                              {9, value_a} };
+
+  /* Data size is dynamically computed. */
+  const size_t data_size = sizeof(data_a) / sizeof(data_a[0]);
+
+  /* A second array set is prepared, having the same size, and same keys, but different content. */
+  struct element data_b[data_size];
+  for (size_t i = 0; i < data_size; i++) {
+    data_b[i].key = data_a[i].key;
+    data_b[i].content = value_b;
+  }
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  g_assert(table);
+
+  /* Inserts the data_a set of elements in the table. */
+  for (size_t i = 0; i < data_size; i++) {
+    struct element *e = &data_a[i];
+    rbt_insert(table, e);
+  }
+
+  size_t index = 3;
+  struct element *e = &data_a[index];
+  struct element *r = &data_b[index];
+  g_assert(e->key == r->key);
+
+  e = (struct element *) rbt_t_find(t, table, e);
+  g_assert(e && e->key == index && e->content == value_a);
+
+  rbt_t_replace(t, r);
+  e = (struct element *) rbt_t_next(t);
+  g_assert(e && e->key == index + 1 && e->content == value_a);
+  e = (struct element *) rbt_t_prev(t);
+  g_assert(e && e->key == index && e->content == value_b);
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+}
 
 
 /*
