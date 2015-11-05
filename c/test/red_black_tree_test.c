@@ -42,13 +42,6 @@
 
 
 
-/**
- * @brief To be documented.
- */
-const int test_array[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-
-
-
 /* Test function prototypes. */
 
 static void creation_and_destruction_test (void);
@@ -63,6 +56,8 @@ static void traverser_basic_test (void);
 static void traverser_find_and_copy_test (void);
 static void traverser_insert_test (void);
 static void traverser_replace_test (void);
+static void traverser_on_changing_table_test (void);
+static void performance_a_test (void);
 
 
 
@@ -93,6 +88,11 @@ main (int   argc,
   g_test_add_func("/red_black_tree/traverser_find_and_copy_test", traverser_find_and_copy_test);
   g_test_add_func("/red_black_tree/traverser_insert_test", traverser_insert_test);
   g_test_add_func("/red_black_tree/traverser_replace_test", traverser_replace_test);
+  g_test_add_func("/red_black_tree/traverser_on_changing_table_test", traverser_on_changing_table_test);
+
+  if (g_test_perf()) {
+    g_test_add_func("/red_black_tree/performance_a_test", performance_a_test);
+  }
 
   return g_test_run();
 }
@@ -672,6 +672,24 @@ traverser_replace_test (void)
 
   /* Frees the table. */
   rbt_destroy(table, NULL);
+}
+
+static void
+traverser_on_changing_table_test (void)
+{
+  ;
+}
+
+static void
+performance_a_test (void)
+{
+  g_test_timer_start();
+  ;
+  // execute the observed operation.
+  ;
+  const double elapsed_time = g_test_timer_elapsed();
+  if (g_test_perf())
+    g_test_minimized_result(elapsed_time, "elapsed_time = %-12.8gsec\n", elapsed_time);
 }
 
 
