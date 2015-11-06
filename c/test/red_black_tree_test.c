@@ -677,7 +677,47 @@ traverser_replace_test (void)
 static void
 traverser_on_changing_table_test (void)
 {
-  ;
+  rbt_traverser_t traverser;
+  rbt_traverser_t *t = &traverser;
+  int *e;
+
+  /* Test data set is composed by an array of ten integers: [0..31]. */
+  int data[] = {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+                 16, 17, 18, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+
+  size_t keys_0[] = { 1, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30 };
+  const size_t keys_0_size = sizeof(keys_0) / sizeof(keys_0[0]);
+  size_t keys_1[] = { 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30 };
+  const size_t keys_1_size = sizeof(keys_1) / sizeof(keys_1[0]);
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  g_assert(table);
+
+  /* Inserts the data set of elements identified by keys_0 in the table. */
+  for (size_t i = 0; i < keys_0_size; i++) {
+    e = &data[keys_0[i]];
+    int **e_ptr = (int **) rbt_probe(table, e);
+    g_assert(e_ptr);
+  }
+  g_assert(rbt_count(table) == keys_0_size);
+
+  e = (int *) rbt_t_last(t, table);
+  g_assert(e && *e == 30);
+
+  /* Inserts the data set of elements identified by keys_1 in the table. */
+  for (size_t i = 0; i < keys_1_size; i++) {
+    e = &data[keys_1[i]];
+    int **e_ptr = (int **) rbt_probe(table, e);
+    g_assert(e_ptr);
+  }
+  g_assert(rbt_count(table) == 21);
+
+  e = (int *) rbt_t_prev(t);
+  g_assert(e && *e == 28);
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
 }
 
 static void
