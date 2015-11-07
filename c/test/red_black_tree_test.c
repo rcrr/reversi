@@ -685,10 +685,17 @@ traverser_on_changing_table_test (void)
   int data[] = {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
                  16, 17, 18, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
 
+  /* Set 0. */
   size_t keys_0[] = { 1, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30 };
   const size_t keys_0_size = sizeof(keys_0) / sizeof(keys_0[0]);
+
+  /* Set 1. */
   size_t keys_1[] = { 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30 };
   const size_t keys_1_size = sizeof(keys_1) / sizeof(keys_1[0]);
+
+  /* Set 2. */
+  size_t keys_2[] = { 20, 21, 22, 23, 24, 25, 26, 27 };
+  const size_t keys_2_size = sizeof(keys_2) / sizeof(keys_2[0]);
 
   /* Creates the new empty table. */
   rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
@@ -702,6 +709,7 @@ traverser_on_changing_table_test (void)
   }
   g_assert(rbt_count(table) == keys_0_size);
 
+  /* The last element has to be 30. */
   e = (int *) rbt_t_last(t, table);
   g_assert(e && *e == 30);
 
@@ -713,8 +721,20 @@ traverser_on_changing_table_test (void)
   }
   g_assert(rbt_count(table) == 21);
 
+  /* Going back from element 30 we shoud find element 28. */
   e = (int *) rbt_t_prev(t);
   g_assert(e && *e == 28);
+
+  /* Removes the data set of elements identified by keys_2 from the table. */
+  for (size_t i = 0; i < keys_2_size; i++) {
+    e = &data[keys_2[i]];
+    rbt_delete(table, e);
+  }
+  g_assert(rbt_count(table) == 15);
+
+  /* Going back from element 28 we shoud find element 18. */
+  e = (int *) rbt_t_prev(t);
+  g_assert(e && *e == 18);
 
   /* Frees the table. */
   rbt_destroy(table, NULL);
