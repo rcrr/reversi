@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <glib.h>
 
@@ -45,6 +46,28 @@
 
 /* Time spec type definition. See sys/time.h for more details. */
 typedef struct timespec timespec_t;
+
+
+
+/* Static constants. */
+
+static const char *const program_documentation_string =
+  "Description:\n"
+  "Runs unit tests and performance tests for the red-black tree module.";
+
+static const char *const out_perf_log_file_name = "red_black_tree_test_perf_log.csv";
+
+
+
+/* Static variables. */
+
+static gchar *output_perf_log_dir = NULL;
+
+static const GOptionEntry entries[] =
+  {
+    { "output-perf-log-dir", 0, 0, G_OPTION_ARG_STRING, &output_perf_log_dir, "Directory for output performance log files.", NULL },
+    { NULL }
+  };
 
 
 
@@ -89,7 +112,18 @@ int
 main (int   argc,
       char *argv[])
 {
-  g_test_init (&argc, &argv, NULL);
+  g_test_init(&argc, &argv, NULL);
+
+  /* GLib command line options and argument parsing. */
+  GError *error = NULL;
+  GOptionContext *context = g_option_context_new("- Unit tests for the red-black tree module.");
+  g_option_context_add_main_entries(context, entries, NULL);
+  g_option_context_set_description(context, program_documentation_string);
+  g_option_context_set_ignore_unknown_options(context, TRUE);
+  if (!g_option_context_parse(context, &argc, &argv, &error)) {
+    g_print("Option parsing failed: %s\n", error->message);
+    return -1;
+  }
 
   g_test_add_func("/red_black_tree/creation_and_destruction_test", creation_and_destruction_test);
   g_test_add_func("/red_black_tree/probe_test", probe_test);
@@ -106,9 +140,30 @@ main (int   argc,
   g_test_add_func("/red_black_tree/traverser_on_changing_table_test", traverser_on_changing_table_test);
 
   if (g_test_perf()) {
+
+    char fname[512];
+    int access_check;
+    if (output_perf_log_dir) {
+      access_check = access(output_perf_log_dir, W_OK);
+      snprintf(fname, sizeof(fname), "%s/%s", output_perf_log_dir, out_perf_log_file_name);
+    } else {
+      access_check = access(".", W_OK);
+      snprintf(fname, sizeof(fname), "%s", out_perf_log_file_name);
+    }
+    if (access_check != 0) {
+      fprintf(stderr, "Directory doesn't exist, or access denied for file: %s\n", fname);
+      exit(1);
+    }
+    FILE *fp = fopen(fname, "w");
+    g_assert(fp);
+
     g_test_add_func("/red_black_tree/performance_a_test", performance_a_test);
+
+    int fclose_ret = fclose(fp);
+    g_assert(fclose_ret == 0);
   }
 
+  g_option_context_free(context);
   return g_test_run();
 }
 
