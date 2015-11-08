@@ -43,6 +43,11 @@
 
 
 
+/* Time spec type definition. See sys/time.h for more details. */
+typedef struct timespec timespec_t;
+
+
+
 /* Test function prototypes. */
 
 static void creation_and_destruction_test (void);
@@ -73,9 +78,10 @@ static int *
 prepare_data_array (const size_t len,
                     const int seed);
 
-struct timespec
-timespec_diff (struct timespec start,
-               struct timespec end);
+int
+timespec_diff (timespec_t *result,
+               const timespec_t *start,
+               const timespec_t *end);
 
 
 
@@ -753,10 +759,10 @@ static void
 performance_a_test (void)
 {
   int seed = 1898;
-  size_t len = 10000000;
+  size_t len = 1000000;
   int *data;
 
-  struct timespec time_0, time_1, time_diff;
+  timespec_t time_0, time_1, time_diff;
 
   data = prepare_data_array(len, seed);
 
@@ -779,7 +785,9 @@ performance_a_test (void)
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
 
   /* Computes the time taken. */
-  time_diff = timespec_diff(time_0, time_1);
+  int ret = 0;
+  ret = timespec_diff(&time_diff, &time_0, &time_1);
+  g_assert(!ret);
 
   printf("Time taken (sec):(nanoseconds): %ld:%09ld\n", time_diff.tv_sec, time_diff.tv_nsec);
 
@@ -788,14 +796,6 @@ performance_a_test (void)
 
   /* Frees the data array. */
   free(data);
-
-  g_test_timer_start();
-  ;
-  // execute the observed operation.
-  ;
-  const double elapsed_time = g_test_timer_elapsed();
-  if (g_test_perf())
-    g_test_minimized_result(elapsed_time, "elapsed_time = %-12.8gsec\n", elapsed_time);
 }
 
 
@@ -833,17 +833,48 @@ prepare_data_array (const size_t len,
   return a;
 }
 
-struct timespec
-timespec_diff (struct timespec start,
-               struct timespec end)
+/*
+ * The struct timespec structure represents an elapsed time. It is declared in time.h and has the following members:
+ *
+ * - time_t     tv_sec    This represents the number of whole seconds of elapsed time.
+ * - long int   tv_nsec   This is the rest of the elapsed time (a fraction of a second),
+ *                        represented as the number of nanoseconds. It is always less than one billion.
+ *
+ * The structure is also defined as:
+ *
+ *    typedef struct timespec timespec_t;
+ *
+ *
+ * A way of obtaining the timespec structure value is:
+ *
+ *    timespec_t time_0;
+ *    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+ *
+ *
+ * The function timespec_diff works as follow:
+ *
+ *    Subtracts the timespec_t values `start` and `end`,
+ *    storing the result in `result`.
+ *    Return 1 if the difference is negative, otherwise 0.
+ */
+int
+timespec_diff (timespec_t *const result,
+               const timespec_t *const start,
+               const timespec_t *const end)
 {
-  struct timespec temp;
-  if ((end.tv_nsec - start.tv_nsec) < 0) {
-    temp.tv_sec = end.tv_sec - start.tv_sec - 1;
-    temp.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
+  g_assert(result);
+  g_assert(start);
+  g_assert(end);
+  if ((end->tv_sec - start->tv_sec) < 0) return 1;
+  if ((end->tv_sec - start->tv_sec) == 0 &&
+      (end->tv_nsec - start->tv_nsec) < 0) return 1;
+
+  if ((end->tv_nsec - start->tv_nsec) < 0) {
+    result->tv_sec = end->tv_sec - start->tv_sec - 1;
+    result->tv_nsec = 1000000000 + end->tv_nsec - start->tv_nsec;
   } else {
-    temp.tv_sec = end.tv_sec - start.tv_sec;
-    temp.tv_nsec = end.tv_nsec - start.tv_nsec;
+    result->tv_sec = end->tv_sec - start->tv_sec;
+    result->tv_nsec = end->tv_nsec - start->tv_nsec;
   }
-  return temp;
+  return 0;
 }
