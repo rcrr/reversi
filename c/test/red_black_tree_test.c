@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <time.h>
 
 #include <glib.h>
 
@@ -67,6 +68,14 @@ static int
 compare_int (const void *item_a,
              const void *item_b,
              void *param);
+
+static int *
+prepare_data_array (const size_t len,
+                    const int seed);
+
+struct timespec
+timespec_diff (struct timespec start,
+               struct timespec end);
 
 
 
@@ -743,6 +752,43 @@ traverser_on_changing_table_test (void)
 static void
 performance_a_test (void)
 {
+  int seed = 1898;
+  size_t len = 10000000;
+  int *data;
+
+  struct timespec time_0, time_1, time_diff;
+
+  data = prepare_data_array(len, seed);
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  g_assert(table);
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+  /* Inserts the data set of elements in the table. */
+  for (size_t i = 0; i < len; i++) {
+    int *e = &data[i];
+    int **e_ptr = (int **) rbt_probe(table, e);
+    g_assert(e_ptr);
+  }
+  g_assert(rbt_count(table) == len);
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Computes the time taken. */
+  time_diff = timespec_diff(time_0, time_1);
+
+  printf("Time taken (sec):(nanoseconds): %ld:%09ld\n", time_diff.tv_sec, time_diff.tv_nsec);
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+
+  /* Frees the data array. */
+  free(data);
+
   g_test_timer_start();
   ;
   // execute the observed operation.
@@ -767,4 +813,37 @@ compare_int (const void *item_a,
   const int *a = (int *) item_a;
   const int *b = (int *) item_b;
   return (*a > *b) - (*a < *b);
+}
+
+static int *
+prepare_data_array (const size_t len,
+                    const int seed)
+{
+  int *a = (int *) malloc(len * sizeof(int));
+  g_assert(a);
+
+  for (size_t i = 0; i < len; i++) {
+    a[i] = i;
+  }
+
+  RandomNumberGenerator *rng = rng_new(seed);
+  rng_shuffle_array_int(rng, a, len);
+  rng_free(rng);
+
+  return a;
+}
+
+struct timespec
+timespec_diff (struct timespec start,
+               struct timespec end)
+{
+  struct timespec temp;
+  if ((end.tv_nsec - start.tv_nsec) < 0) {
+    temp.tv_sec = end.tv_sec - start.tv_sec - 1;
+    temp.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
+  } else {
+    temp.tv_sec = end.tv_sec - start.tv_sec;
+    temp.tv_nsec = end.tv_nsec - start.tv_nsec;
+  }
+  return temp;
 }
