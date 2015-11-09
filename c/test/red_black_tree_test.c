@@ -55,8 +55,6 @@ static const char *const program_documentation_string =
   "Description:\n"
   "Runs unit tests and performance tests for the red-black tree module.";
 
-static const char *const out_perf_log_file_name = "red_black_tree_test_perf_log.csv";
-
 
 
 /* Static variables. */
@@ -140,27 +138,7 @@ main (int   argc,
   g_test_add_func("/red_black_tree/traverser_on_changing_table_test", traverser_on_changing_table_test);
 
   if (g_test_perf()) {
-
-    char fname[512];
-    int access_check;
-    if (output_perf_log_dir) {
-      access_check = access(output_perf_log_dir, W_OK);
-      snprintf(fname, sizeof(fname), "%s/%s", output_perf_log_dir, out_perf_log_file_name);
-    } else {
-      access_check = access(".", W_OK);
-      snprintf(fname, sizeof(fname), "%s", out_perf_log_file_name);
-    }
-    if (access_check != 0) {
-      fprintf(stderr, "Directory doesn't exist, or access denied for file: %s\n", fname);
-      exit(1);
-    }
-    FILE *fp = fopen(fname, "w");
-    g_assert(fp);
-
     g_test_add_func("/red_black_tree/performance_a_test", performance_a_test);
-
-    int fclose_ret = fclose(fp);
-    g_assert(fclose_ret == 0);
   }
 
   g_option_context_free(context);
@@ -813,11 +791,30 @@ traverser_on_changing_table_test (void)
 static void
 performance_a_test (void)
 {
-  int seed = 1898;
-  size_t len = 1000000;
-  int *data;
+  const int seed = 1898;
+  const size_t len = 1000000;
+  const char *const out_perf_log_file_name = "rbt_performance_a_log.csv";
 
+  int *data;
   timespec_t time_0, time_1, time_diff;
+  FILE *fp;
+
+  /* Opens the log file. */
+  char fname[512];
+  int access_check;
+  if (output_perf_log_dir) {
+    access_check = access(output_perf_log_dir, W_OK);
+    snprintf(fname, sizeof(fname), "%s/%s", output_perf_log_dir, out_perf_log_file_name);
+  } else {
+    access_check = access(".", W_OK);
+    snprintf(fname, sizeof(fname), "%s", out_perf_log_file_name);
+  }
+  if (access_check != 0) {
+    fprintf(stderr, "Directory doesn't exist, or access denied for file: %s\n", fname);
+    exit(1);
+  }
+  fp = fopen(fname, "w");
+  g_assert(fp);
 
   data = prepare_data_array(len, seed);
 
@@ -844,13 +841,17 @@ performance_a_test (void)
   ret = timespec_diff(&time_diff, &time_0, &time_1);
   g_assert(!ret);
 
-  printf("Time taken (sec):(nanoseconds): %ld:%09ld\n", time_diff.tv_sec, time_diff.tv_nsec);
+  fprintf(fp, "Time taken (sec):(nanoseconds): %ld:%09ld\n", time_diff.tv_sec, time_diff.tv_nsec);
 
   /* Frees the table. */
   rbt_destroy(table, NULL);
 
   /* Frees the data array. */
   free(data);
+
+  /* Closes the log file. */
+  int fclose_ret = fclose(fp);
+  g_assert(fclose_ret == 0);
 }
 
 
