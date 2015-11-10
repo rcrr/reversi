@@ -798,6 +798,8 @@ performance_a_test (void)
   int *data;
   timespec_t time_0, time_1, time_diff;
   FILE *fp;
+  char *op_type;
+  size_t op_initial_count, op_final_count;
 
   /* Opens the log file. */
   char fname[512];
@@ -815,8 +817,13 @@ performance_a_test (void)
   }
   fp = fopen(fname, "w");
   g_assert(fp);
-  fprintf(fp, "%s;%s\n", "CPUTIME_SEC", "CPUTIME_NSEC");
-
+  fprintf(fp, "%s;%s;%s;%s;%s;%s\n",
+          "OP_TYPE",
+          "OP_SIZE",
+          "OP_INITIAL_COUNT",
+          "OP_FINAL_COUNT",
+          "CPUTIME_SEC",
+          "CPUTIME_NSEC");
 
   data = prepare_data_array(len, seed);
 
@@ -828,11 +835,14 @@ performance_a_test (void)
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
   /* Inserts the data set of elements in the table. */
+  op_type = "rnd_populate";
+  op_initial_count = rbt_count(table);
   for (size_t i = 0; i < len; i++) {
     int *e = &data[i];
     int **e_ptr = (int **) rbt_probe(table, e);
     g_assert(e_ptr);
   }
+  op_final_count = rbt_count(table);
   g_assert(rbt_count(table) == len);
 
   /* Stops the stop-watch. */
@@ -843,9 +853,12 @@ performance_a_test (void)
   ret = timespec_diff(&time_diff, &time_0, &time_1);
   g_assert(!ret);
 
-  //fprintf(fp, "Time taken (sec):(nanoseconds): %ld:%09ld\n", time_diff.tv_sec, time_diff.tv_nsec);
-
-  fprintf(fp, "%ld;%ld\n", time_diff.tv_sec, time_diff.tv_nsec);
+  fprintf(fp, "%s;%zu;%zu;%zu;%ld;%ld\n",
+          op_type, len,
+          op_initial_count,
+          op_final_count,
+          time_diff.tv_sec,
+          time_diff.tv_nsec);
 
   /* Frees the table. */
   rbt_destroy(table, NULL);
