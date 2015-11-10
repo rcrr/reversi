@@ -815,6 +815,8 @@ performance_a_test (void)
   }
   fp = fopen(fname, "w");
   g_assert(fp);
+  fprintf(fp, "%s;%s\n", "CPUTIME_SEC", "CPUTIME_NSEC");
+
 
   data = prepare_data_array(len, seed);
 
@@ -841,7 +843,9 @@ performance_a_test (void)
   ret = timespec_diff(&time_diff, &time_0, &time_1);
   g_assert(!ret);
 
-  fprintf(fp, "Time taken (sec):(nanoseconds): %ld:%09ld\n", time_diff.tv_sec, time_diff.tv_nsec);
+  //fprintf(fp, "Time taken (sec):(nanoseconds): %ld:%09ld\n", time_diff.tv_sec, time_diff.tv_nsec);
+
+  fprintf(fp, "%ld;%ld\n", time_diff.tv_sec, time_diff.tv_nsec);
 
   /* Frees the table. */
   rbt_destroy(table, NULL);
