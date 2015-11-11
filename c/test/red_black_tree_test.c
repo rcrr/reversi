@@ -792,7 +792,7 @@ static void
 performance_a_test (void)
 {
   const int seed = 1898;
-  const size_t len = 1000000;
+  const size_t len = 1000;
   const char *const out_perf_log_file_name = "rbt_performance_a_log.csv";
 
   int *data;
@@ -831,22 +831,24 @@ performance_a_test (void)
   rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
   g_assert(table);
 
+  /* Operation 1: populate the table. */
+  op_type = "rnd_populate";
+  op_initial_count = rbt_count(table);
+
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
   /* Inserts the data set of elements in the table. */
-  op_type = "rnd_populate";
-  op_initial_count = rbt_count(table);
   for (size_t i = 0; i < len; i++) {
-    int *e = &data[i];
-    int **e_ptr = (int **) rbt_probe(table, e);
-    g_assert(e_ptr);
+    rbt_probe(table, &data[i]);
   }
-  op_final_count = rbt_count(table);
-  g_assert(rbt_count(table) == len);
 
   /* Stops the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Verifies that the size of the table is equal to the count of inserted elements. */
+  op_final_count = rbt_count(table);
+  g_assert(op_final_count == len);
 
   /* Computes the time taken. */
   int ret = 0;
