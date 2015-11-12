@@ -800,6 +800,8 @@ performance_a_test (void)
   FILE *fp;
   char *op_type;
   size_t op_initial_count, op_final_count;
+  char ltime_to_s[64];
+  time_t ltime;
 
   /* Opens the log file. */
   char fname[512];
@@ -817,7 +819,8 @@ performance_a_test (void)
   }
   fp = fopen(fname, "w");
   g_assert(fp);
-  fprintf(fp, "%s;%s;%s;%s;%s;%s\n",
+  fprintf(fp, "%s;%s;%s;%s;%s;%s;%s\n",
+          "LTIME",
           "OP_TYPE",
           "OP_SIZE",
           "OP_INITIAL_COUNT",
@@ -834,6 +837,10 @@ performance_a_test (void)
   /* Operation 1: populate the table. */
   op_type = "rnd_populate";
   op_initial_count = rbt_count(table);
+
+  /* Takes initial time for operation. */
+  ltime = time(NULL);
+  strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
 
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
@@ -855,8 +862,10 @@ performance_a_test (void)
   ret = timespec_diff(&time_diff, &time_0, &time_1);
   g_assert(!ret);
 
-  fprintf(fp, "%s;%zu;%zu;%zu;%ld;%ld\n",
-          op_type, len,
+  fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+          ltime_to_s,
+          op_type,
+          len,
           op_initial_count,
           op_final_count,
           time_diff.tv_sec,
