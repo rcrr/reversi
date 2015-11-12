@@ -793,6 +793,8 @@ performance_a_test (void)
 {
   const int seed = 1898;
   const size_t len = 1000;
+  const size_t delta = 10;
+  const size_t repeats = 3;
   const char *const out_perf_log_file_name = "rbt_performance_a_log.csv";
 
   int *data;
@@ -802,6 +804,7 @@ performance_a_test (void)
   size_t op_initial_count, op_final_count;
   char ltime_to_s[64];
   time_t ltime;
+  int ret;
 
   /* Opens the log file. */
   char fname[512];
@@ -828,11 +831,16 @@ performance_a_test (void)
           "CPUTIME_SEC",
           "CPUTIME_NSEC");
 
-  data = prepare_data_array(len, seed);
+
+  size_t tlen = len + (repeats * delta);
+
+  /* Prepares the array of integers [0..tlen], then shuffled. */
+  data = prepare_data_array(tlen, seed);
 
   /* Creates the new empty table. */
   rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
   g_assert(table);
+
 
   /* Operation 1: populate the table. */
   op_type = "rnd_populate";
@@ -840,7 +848,7 @@ performance_a_test (void)
 
   /* Takes initial time for operation. */
   ltime = time(NULL);
-  strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+  strftime(ltime_to_s, sizeof(ltime_to_s), "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
 
   /* Starts the stop-watch. */
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
@@ -858,7 +866,6 @@ performance_a_test (void)
   g_assert(op_final_count == len);
 
   /* Computes the time taken. */
-  int ret = 0;
   ret = timespec_diff(&time_diff, &time_0, &time_1);
   g_assert(!ret);
 
@@ -866,6 +873,44 @@ performance_a_test (void)
           ltime_to_s,
           op_type,
           len,
+          op_initial_count,
+          op_final_count,
+          time_diff.tv_sec,
+          time_diff.tv_nsec);
+
+
+
+  /* Operation 2: inserts new elements in table. */
+  op_type = "rnd_insert_new_elm";
+  op_initial_count = rbt_count(table);
+
+  /* Takes initial time for operation. */
+  ltime = time(NULL);
+  strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+  /* Starts the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+  /* Inserts the data set of elements in the table. */
+  for (size_t i = 0; i < delta; i++) {
+    rbt_probe(table, &data[len + i]);
+  }
+
+  /* Stops the stop-watch. */
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+  /* Verifies that the size of the table is equal to the count of inserted elements. */
+  op_final_count = rbt_count(table);
+  g_assert(op_final_count == len + delta);
+
+  /* Computes the time taken. */
+  ret = timespec_diff(&time_diff, &time_0, &time_1);
+  g_assert(!ret);
+
+  fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+          ltime_to_s,
+          op_type,
+          delta,
           op_initial_count,
           op_final_count,
           time_diff.tv_sec,
