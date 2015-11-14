@@ -41,6 +41,7 @@
 
 #include "red_black_tree.h"
 #include "random.h"
+#include "sort_utils.h"
 
 
 
@@ -103,6 +104,10 @@ int
 timespec_diff (timespec_t *result,
                const timespec_t *start,
                const timespec_t *end);
+
+int
+sort_utils_element_cmp (const void *const a,
+                        const void *const b);
 
 
 
@@ -792,10 +797,11 @@ static void
 performance_a_test (void)
 {
   const size_t initial_len = 1000;
-  const size_t step_len = 1000;
-  const size_t steps = 1000;
+  const size_t step_len = 2000;
+  const size_t steps = 500;
   const size_t delta = 10;
-  const size_t repeats = 7;
+  const size_t repeats = 17;
+  g_assert(initial_len > delta * (repeats + 1));
 
   const int initial_seed = 1898;
   const int seed_increment = 37;
@@ -883,11 +889,14 @@ performance_a_test (void)
             time_diff.tv_sec,
             time_diff.tv_nsec);
 
+    /* End of operation 1. */
 
 
-    /* Operation 2: inserts delta new elements in table repeating repeats times. */
-    op_type = "rnd_insert_new_elm";
+    /* Repeats insert and delete sequences a number of times equal to repeats constant. */
     for (size_t j = 0; j < repeats; j++) {
+
+      /* Operation 2: inserts delta new elements in table. */
+      op_type = "rnd_insert_new_elm";
       op_initial_count = rbt_count(table);
 
       /* Takes initial time for operation. */
@@ -907,7 +916,7 @@ performance_a_test (void)
 
       /* Verifies that the size of the table is equal to the count of inserted elements. */
       op_final_count = rbt_count(table);
-      g_assert(op_final_count == len + (j + 1) * delta);
+      g_assert(op_final_count == len + delta);
 
       /* Computes the time taken. */
       ret = timespec_diff(&time_diff, &time_0, &time_1);
@@ -922,7 +931,229 @@ performance_a_test (void)
               time_diff.tv_sec,
               time_diff.tv_nsec);
 
-    } /* End of operation 2. */
+      /* End of operation 2. */
+
+
+      /* Operation 3: deletes delta elements from table. */
+      op_type = "rnd_remove_existing_elm";
+      op_initial_count = rbt_count(table);
+
+      /* Takes initial time for operation. */
+      ltime = time(NULL);
+      strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+      /* Starts the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+      /* Deletes the data set of elements from the table. */
+      for (size_t i = 0; i < delta; i++) {
+        rbt_delete(table, &data[delta * j + i]);
+      }
+
+      /* Stops the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+      /* Verifies that the size of the table is equal to the count of inserted elements. */
+      op_final_count = rbt_count(table);
+      g_assert(op_final_count == len);
+
+      /* Computes the time taken. */
+      ret = timespec_diff(&time_diff, &time_0, &time_1);
+      g_assert(!ret);
+
+      fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+              ltime_to_s,
+              op_type,
+              delta,
+              op_initial_count,
+              op_final_count,
+              time_diff.tv_sec,
+              time_diff.tv_nsec);
+
+      /* End of operation 3. */
+
+
+      /* Operation 4a: searches for existing elements. */
+      op_type = "find_existing_a_elm";
+      op_initial_count = rbt_count(table);
+
+      /* Takes initial time for operation. */
+      ltime = time(NULL);
+      strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+      /* Starts the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+      /* Searches for the first group of elements. */
+      for (size_t i = 0; i < delta; i++) {
+        int *e = (int *) rbt_find(table, &data[delta * (j + 1) + i]);
+        g_assert(e);
+      }
+
+      /* Stops the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+      /* Verifies that the size of the table is equal to the count of inserted elements. */
+      op_final_count = rbt_count(table);
+      g_assert(op_final_count == len);
+
+      /* Computes the time taken. */
+      ret = timespec_diff(&time_diff, &time_0, &time_1);
+      g_assert(!ret);
+
+      fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+              ltime_to_s,
+              op_type,
+              delta,
+              op_initial_count,
+              op_final_count,
+              time_diff.tv_sec,
+              time_diff.tv_nsec);
+
+      /* End of operation 4a. */
+
+
+      /* Operation 4z: searches for existing elements. */
+      op_type = "find_existing_z_elm";
+      op_initial_count = rbt_count(table);
+
+      /* Takes initial time for operation. */
+      ltime = time(NULL);
+      strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+      /* Starts the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+      /* Searches for the first group of elements. */
+      for (size_t i = 0; i < delta; i++) {
+        int *e = (int *) rbt_find(table, &data[len - delta * j + i]);
+        g_assert(e);
+      }
+
+      /* Stops the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+      /* Verifies that the size of the table is equal to the count of inserted elements. */
+      op_final_count = rbt_count(table);
+      g_assert(op_final_count == len);
+
+      /* Computes the time taken. */
+      ret = timespec_diff(&time_diff, &time_0, &time_1);
+      g_assert(!ret);
+
+      fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+              ltime_to_s,
+              op_type,
+              delta,
+              op_initial_count,
+              op_final_count,
+              time_diff.tv_sec,
+              time_diff.tv_nsec);
+
+      /* End of operation 4z. */
+
+
+      /* Operation 5: searches for missing elements. */
+      op_type = "find_missing_elm";
+      op_initial_count = rbt_count(table);
+
+      /* Takes initial time for operation. */
+      ltime = time(NULL);
+      strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+      /* Starts the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+      /* Searches for the elements just deleted. */
+      for (size_t i = 0; i < delta; i++) {
+        int *e = (int *) rbt_find(table, &data[delta * j + i]);
+        g_assert(!e);
+      }
+
+      /* Stops the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+      /* Verifies that the size of the table is equal to the count of inserted elements. */
+      op_final_count = rbt_count(table);
+      g_assert(op_final_count == len);
+
+      /* Computes the time taken. */
+      ret = timespec_diff(&time_diff, &time_0, &time_1);
+      g_assert(!ret);
+
+      fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+              ltime_to_s,
+              op_type,
+              delta,
+              op_initial_count,
+              op_final_count,
+              time_diff.tv_sec,
+              time_diff.tv_nsec);
+
+      /* End of operation 5. */
+
+
+    } /* End of repeat cicles. */
+
+
+    /*
+     * Operation 6:
+     * - Prepares an index of keys pointing to the portion of data contained in table.
+     * - Sorts the keys.
+     * - Verifies that the traverser provides the same sequence of pointers prepared in
+     *   the sorted index.
+     */
+    op_type = "traverse_table";
+    op_initial_count = rbt_count(table);
+
+    int **index = (int **) malloc(len * sizeof(int *));
+    g_assert(index);
+    for (size_t j = 0; j < len; j++) {
+      index[j] = &data[delta * repeats + j];
+    }
+    sort_utils_heapsort(index, len, sizeof(int *), sort_utils_element_cmp);
+    rbt_traverser_t trav;
+
+    /* Takes initial time for operation. */
+    ltime = time(NULL);
+    strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+    /* Starts the stop-watch. */
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+    /* Traverses the table. */
+    int *e = (int *) rbt_t_first(&trav, table);
+    size_t j = 0;
+    while (e) {
+      g_assert(*e == *index[j]);
+      e = (int *) rbt_t_next(&trav);
+      j++;
+    }
+
+    /* Stops the stop-watch. */
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+    /* Verifies that the size of the table is equal to the count of inserted elements. */
+    op_final_count = rbt_count(table);
+    g_assert(op_final_count == len);
+
+    /* Computes the time taken. */
+    ret = timespec_diff(&time_diff, &time_0, &time_1);
+    g_assert(!ret);
+
+    fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+            ltime_to_s,
+            op_type,
+            len,
+            op_initial_count,
+            op_final_count,
+            time_diff.tv_sec,
+            time_diff.tv_nsec);
+
+    free(index);
+
+    /* End of operation 6. */
+
 
     /* Frees the table. */
     rbt_destroy(table, NULL);
@@ -1016,4 +1247,13 @@ timespec_diff (timespec_t *const result,
     result->tv_nsec = end->tv_nsec - start->tv_nsec;
   }
   return 0;
+}
+
+int
+sort_utils_element_cmp (const void *const a,
+                        const void *const b)
+{
+  const int **const x = (const int **const) a;
+  const int **const y = (const int **const) b;
+  return (**x > **y) - (**x < **y);
 }
