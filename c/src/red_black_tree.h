@@ -1,23 +1,51 @@
 /**
  * @file
  *
- * @brief Red black tree module definitions.
+ * @brief A Red-black tree is a self-balancing binary search tree.
  *
- * @details The module is a rearrangement of a portion of the libavl library for manipulation of binary trees.
+ * @details This module defines the abstract concept of a table, also known as dictionary,
+ *          by means of an implementation realized by a red-black binary search tree.
+ *          The terms table, tree, dictionary, and associative array will be used interchangeably.
  *
- * The original work has been written by Ben Pfaff, who may be contacted at <blp@gnu.org> on the Internet,
- * or write to Ben Pfaff, Stanford University, Computer Science Dept., 353 Serra Mall, Stanford CA 94305, USA.
- * See also web site http://adtinfo.org/
+ * The purpose of a table is to keep track of a collection of items, all of the same type.
+ *    Items can be inserted into and deleted from a table, with no arbitrary limit on the number
+ *    of items in the table. We can also search in a table for items that match a given item.
+ *
+ * Other operations are supported, too. Traversal is the most important of these: all of
+ *   the items in a table can be visited, in sorted order from smallest to largest, or from largest
+ *   to smallest. Traversals can also start from an item in the middle, or a newly inserted item,
+ *   and move in either direction.
+ *
+ * The data in a table may be of any C type, but all the items in a table must be of the
+ *    same type. Structure types are common. Often, only part of each data item is used in item
+ *    lookup, with the rest for storage of auxiliary information. A table that contains two-part
+ *    data items like this is called a “dictionary” or an “associative array”. The part of table
+ *    data used for lookup, whether the table is a dictionary or not, is the key. In a dictionary,
+ *    the remainder is the value.
+ *
+ * Our tables cannot contain duplicates. An attempt to insert an item into a table that
+ *    already contains a matching item will fail.
+ *
+ * The module is a rearrangement of a portion of the libavl library for manipulation of binary trees.<br>
+ *   The original work has been written by Ben Pfaff, who may be contacted at <blp@gnu.org> on the Internet,
+ *   or write to Ben Pfaff, Stanford University, Computer Science Dept., 353 Serra Mall, Stanford CA 94305, USA.<br>
+ *   See also web site <a href="http://adtinfo.org" target="_blank"> adtinfo.org</a>.
+ *
+ *
+ * See:
+ * - the Wikipedia page: <a href="https://en.wikipedia.org/wiki/Red-black_tree" target="_blank"> Red-black tree</a>.
+ * - Cormen [et al.] (2009). Introduction to Algorithms, Third Edition. Cambridge, MA, USA: The MIT Press. ISBN 978-0-262-03384-8. pp. 308-338.
+ * - Sedgewick (1998) Algorithms in C, Parts 1-4, 3rd ed. Boston, MA, USA: Addison-Wesley. ISBN 0-201-31452-5. pp. 551-561.
  *
  * @par red_black_tree.h
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
  * </tt>
- * @author Ben Pfaff mailto:blp@gnu.org
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 1998-2002, 2004 Free Software Foundation, Inc.
+ * @author Ben Pfaff mailto:blp@gnu.org
  * @copyright 2015 Roberto Corradini. All rights reserved.
+ * @copyright 1998-2002, 2004 Free Software Foundation, Inc.
  *
  * @par License
  * <tt>
@@ -45,10 +73,30 @@
 
 #include "memory_manager.h"
 
+
+
+/****************************/
+/* Pre-processor constants. */
+/****************************/
+
+/**
+ * @cond
+ */
+
 /**
  * @brief Maximum red-black tree height.
  */
 #define RBT_MAX_HEIGHT 48
+
+/**
+ * @endcond
+ */
+
+
+
+/*************************/
+/* Pre-processor macros. */
+/*************************/
 
 /**
  * @brief Returns the number of items collected by `table`.
@@ -118,6 +166,13 @@ rbt_item_copy_f (void *item,
 
 
 
+/*********************/
+/* Type definitions. */
+/*********************/
+
+/**
+ * @cond
+ */
 
 /**
  * @brief Color of a red-black node.
@@ -135,6 +190,10 @@ typedef struct rbt_node {
   void            *data;                        /**< @brief Pointer to data. */
   rbt_color_t      color;                       /**< @brief Color. */
 } rbt_node_t;
+
+/**
+ * @endcond
+ */
 
 /**
  * @brief Red-black tree data structure.

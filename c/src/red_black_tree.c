@@ -5,15 +5,15 @@
  *
  * @todo [done] Complete the doxygen documentation for functions.
  *
- * @todo Remove not mandatory definitions from the header file (e.g. rbt_node_t)
+ * @todo [done] Remove not mandatory definitions from the header file (e.g. rbt_node_t)
  *
- * @todo Move module details to the header file.
+ * @todo [done] Move module details to the header file.
  *
  * @todo Write some documentation into the code (for insert, delete, ... Case1, Case2, ....)
  *
  * @todo Complete all the tests and remove the file src/red_black_tree_tests.c
  *
- * @todo Write performance tests.
+ * @todo [done] Write performance tests.
  *
  * @todo Write a merge function.
  *       This is not as silly as it could be thought.
@@ -33,46 +33,18 @@
  *
  *
  *
- * @brief Red black tree module.
- *
- * @details This module defines the abstract concept of a table, also known as dictionary,
- *          by means of an implementation realized by a red-black binary search tree.
- *          The terms table, tree, dictionary, and associative array will be used interchangeably.
- *
- * The purpose of a table is to keep track of a collection of items, all of the same type.
- *    Items can be inserted into and deleted from a table, with no arbitrary limit on the number
- *    of items in the table. We can also search in a table for items that match a given item.
- *
- * Other operations are supported, too. Traversal is the most important of these: all of
- *   the items in a table can be visited, in sorted order from smallest to largest, or from largest
- *   to smallest. Traversals can also start from an item in the middle, or a newly inserted item,
- *   and move in either direction.
- *
- * The data in a table may be of any C type, but all the items in a table must be of the
- *    same type. Structure types are common. Often, only part of each data item is used in item
- *    lookup, with the rest for storage of auxiliary information. A table that contains two-part
- *    data items like this is called a “dictionary” or an “associative array”. The part of table
- *    data used for lookup, whether the table is a dictionary or not, is the key. In a dictionary,
- *    the remainder is the value.
- *
- * Our tables cannot contain duplicates. An attempt to insert an item into a table that
- *    already contains a matching item will fail.
- *
- * The module is a rearrangement of a portion of the libavl library for manipulation of binary trees.
- *   The original work has been written by Ben Pfaff, who may be contacted at <blp@gnu.org> on the Internet,
- *   or write to Ben Pfaff, Stanford University, Computer Science Dept., 353 Serra Mall, Stanford CA 94305, USA.
- *   See also web site http://adtinfo.org/
+ * @brief Red black tree module implementation.
  *
  * @par red_black_tree.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
  * </tt>
- * @author Ben Pfaff mailto:blp@gnu.org
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 1998-2002, 2004 Free Software Foundation, Inc.
+ * @author Ben Pfaff mailto:blp@gnu.org
  * @copyright 2015 Roberto Corradini. All rights reserved.
- *
+ * @copyright 1998-2002, 2004 Free Software Foundation, Inc.
+*
  * @par License
  * <tt>
  * This program is free software; you can redistribute it and/or modify it
@@ -98,6 +70,7 @@
 #include <string.h>
 
 #include "red_black_tree.h"
+
 
 
 /**
