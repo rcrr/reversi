@@ -60,7 +60,7 @@ theme_bw() +
 layer(geom = "point") +
 ggtitle(opt_to_s)
 
-pdf("rbt_perf_plot.pdf")
+pdf("rbt_perf_plot.pdf", paper = "a4r")
 print(plt)
 dev.off()
 
