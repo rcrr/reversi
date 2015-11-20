@@ -178,6 +178,8 @@ creation_and_destruction_test (void)
   size_t count = rbt_count(table);
   g_assert(count == 0);
 
+  g_assert(verify_tree(table, NULL, 0));
+
   rbt_destroy(table, NULL);
 }
 
@@ -203,6 +205,7 @@ probe_test (void)
     g_assert(*item_ref != NULL);                     /* Item pointer has to be not null. */
     g_assert(*item_ref == &data[i]);                 /* Item pointer has to reference the appropriate array element. */
     g_assert(**item_ref == i);                       /* Item (**item_ref) has to be equal to the loop counter. */
+    g_assert(verify_tree(table, data, i + 1));       /* Runs the verify_tree procedure on the growing table. */
   }
 
   /* Probes the table again with the same data set. Nothing has to happen. */
@@ -214,6 +217,9 @@ probe_test (void)
     g_assert(*item_ref == &data[i]);
     g_assert(**item_ref == i);
   }
+
+  /* Finally the tree must be consistent. */
+  g_assert(verify_tree(table, data, data_size));
 
   /* Frees the table. */
   rbt_destroy(table, NULL);
@@ -250,6 +256,9 @@ copy_test (void)
 
   /* We must have data_size elements in the table. */
   g_assert(rbt_count(copied_table) == data_size);
+
+  /* The copied tree must be consistent, and complete. */
+  g_assert(verify_tree(copied_table, data, data_size));
 
   /* Frees the table. */
   rbt_destroy(copied_table, NULL);
@@ -367,7 +376,7 @@ delete_test (void)
   /* Count has to be zero. */
   g_assert(rbt_count(table) == 0);
 
-  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  /* Inserts the [0..47] set of elements in the table in sequential order. */
   for (size_t i = 0; i < data_size; i++) {
     int *item = &data[i];
     int **item_ref = (int **) rbt_probe(table, item);
@@ -381,7 +390,7 @@ delete_test (void)
   for (size_t i = 0; i < data_size; i++) {
     int *e = &data[i];
     int *e_ref = (int *) rbt_delete(table, e);
-    g_assert(rbt_count(table) == data_size - (i + 1));         /* Table count has to stay constat at data_size. */
+    g_assert(rbt_count(table) == data_size - (i + 1));         /* Table count has to decrease at each step. */
     g_assert(*e_ref == *e);
     for (size_t j = 0; j <= i; j++) {
       int *e1 = (int *) rbt_find(table, &j);
@@ -392,6 +401,7 @@ delete_test (void)
       g_assert(e1 != NULL);
       g_assert(*e1 == j);
     }
+    g_assert(verify_tree(table, &data[i + 1], data_size - (i + 1)));
   }
 
   /* Frees the table. */
@@ -430,6 +440,9 @@ volume_test (void)
 
     /* We must have k elements in the table. */
     g_assert(rbt_count(table) == k);
+
+    /* Final table has to be complete and consistent. */
+    g_assert(verify_tree(table, data, k));
 
     /* Searches for each element and checks it exists in the table. */
     for (size_t i = 0; i < k; i++) {
@@ -1390,7 +1403,7 @@ verify_tree (rbt_table_t *tree,
     size_t i;
 
     for (i = 0; i < n; i++)
-      if (rbt_find (tree, &array[i]) == NULL) {
+      if (rbt_find(tree, &array[i]) == NULL) {
         printf(" Tree does not contain expected value %d.\n", array[i]);
         okay = 0;
       }
