@@ -122,6 +122,12 @@ verify_tree (rbt_table_t *tree,
              int array[],
              size_t n);
 
+static int
+compare_trees (rbt_node_t *a,
+               rbt_node_t *b,
+               rbt_item_compare_f *compare,
+               void *param);
+
 
 
 int
@@ -250,6 +256,9 @@ copy_test (void)
   rbt_item_destroy_f *destroy = NULL;
   mem_allocator_t *alloc = NULL;
   rbt_table_t *copied_table = rbt_copy(table, copy, destroy, alloc);
+
+  /* Compares trees node by node. */
+  g_assert(compare_trees(table->root, copied_table->root, compare_int, NULL));
 
   /* Frees the table. */
   rbt_destroy(table, NULL);
@@ -1484,5 +1493,35 @@ verify_tree (rbt_table_t *tree,
     rbt_t_next(&init);
   }
 
+  return okay;
+}
+
+/*
+ * Compares binary trees rooted at a and b, making sure that they are identical.
+ */
+static int
+compare_trees (rbt_node_t *a,
+               rbt_node_t *b,
+               rbt_item_compare_f *compare,
+               void *param)
+{
+  int okay;
+
+  if (a == NULL || b == NULL) {
+    g_assert(a == NULL && b == NULL);
+    return 1;
+  }
+
+  if (compare(a->data, b->data, param) != 0
+      || ((a->links[0] != NULL) != (b->links[0] != NULL))
+      || ((a->links[1] != NULL) != (b->links[1] != NULL))
+      || a->color != b->color) {
+    printf("Copied nodes differ.\n");
+    return 0;
+  }
+
+  okay = 1;
+  if (a->links[0] != NULL) okay &= compare_trees(a->links[0], b->links[0], compare, param);
+  if (a->links[1] != NULL) okay &= compare_trees(a->links[1], b->links[1], compare, param);
   return okay;
 }
