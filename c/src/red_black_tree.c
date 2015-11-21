@@ -16,9 +16,11 @@
  *
  * @todo There is need of more sophisticated memory allocators.
  *
- * @todo Complete all the tests and remove the file src/red_black_tree_tests.c
- *       The file to be removed contains good samples that should be qualified more, and if appropriate be
- *       inserted in the unit test suite.
+ * @todo Values 2-3 time larger than expected during performance tests has to be analyzed more.
+ *       Overflow (hight grater than 48) is not tested properly. RBT_MAX_HIGHT has to be incremented to 64.
+ *       [done] Complete all the tests and remove the file src/red_black_tree_tests.c
+ *              The file to be removed contains good samples that should be qualified more, and if appropriate be
+ *              inserted in the unit test suite.
  *
  * @todo [done] Write performance tests.
  *
