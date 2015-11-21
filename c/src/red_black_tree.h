@@ -26,6 +26,26 @@
  * Our tables cannot contain duplicates. An attempt to insert an item into a table that
  *    already contains a matching item will fail.
  *
+ * Red-black trees, one particular type of balanced trees, were invented by R. Bayer and studied at length
+ *    by L. J. Guibas and R. Sedgewick.
+ *    To most clearly express the red-black balancing rule, we need a few new vocabulary
+ *    terms. First, define a non-branching node as a node that does not “branch” the binary tree
+ *    in different directions, i.e., a node with exactly zero or one children.
+ *    Second, a path is a list of one or more nodes in a binary tree where every node in the
+ *    list (except the last node, of course) is adjacent in the tree to the one after it. Two nodes
+ *    in a tree are considered to be adjacent for this purpose if one is the child of the other.
+ *    Furthermore, a simple path is a path that does not contain any given node more than once.
+ *    Finally, a node p is a descendant of a second node q if both p and q are the same node,
+ *    or if p is located in one of the subtrees of q.
+ *
+ * With these definitions in mind, a red-black tree is a binary search tree in which every
+ *    node has been labeled with a color, either “red” or “black”, with those colors distributed
+ *    according to these two simple rules, which are called the “red-black balancing rules” and
+ *    often referenced by number:
+ *    -# No red node has a red child.
+ *    -# Every simple path from a given node to one of its non-branching node descendants contains the
+ *       same number of black nodes.
+ *
  * The module is a rearrangement of a portion of the libavl library for manipulation of binary trees.<br>
  *   The original work has been written by Ben Pfaff, who may be contacted at <blp@gnu.org> on the Internet,
  *   or write to Ben Pfaff, Stanford University, Computer Science Dept., 353 Serra Mall, Stanford CA 94305, USA.<br>

@@ -138,7 +138,7 @@ rbt_create (rbt_item_compare_f *compare,
 
   if (alloc == NULL) alloc = &mem_allocator_default;
 
-  tree = alloc->malloc(alloc, sizeof *tree);
+  tree = alloc->malloc(alloc, sizeof(*tree));
   if (tree == NULL) return NULL;
 
   tree->root = NULL;
@@ -201,8 +201,9 @@ rbt_destroy (rbt_table_t *table,
  *    table items are copied verbatim (a shallow copy).
  *
  * If the table copy fails, either due to memory allocation failure or a null pointer returned
- *    by the `rbt_item_copy_f` function. In this case, any provided `rbt_item_destroy_f` function
- *    is called once for each new item already copied, in no particular order.
+ *    by the `rbt_item_copy_f` function, `NULL` is returned.
+ *    In this case, any provided `rbt_item_destroy_f` function is called once for each new item
+ *    already copied, in no particular order.
  *
  * By default, the new table uses the same memory allocator as the existing one. If non-null,
  *    the `mem_allocator_t ∗` given is used instead as the new memory allocator.
@@ -229,9 +230,8 @@ rbt_copy (const rbt_table_t *org,
   const rbt_node_t *x;
   rbt_node_t *y;
 
-  assert (org != NULL);
-  new = rbt_create(org->compare, org->param,
-                   alloc != NULL ? alloc : org->alloc);
+  assert(org != NULL);
+  new = rbt_create(org->compare, org->param, alloc != NULL ? alloc : org->alloc);
   if (new == NULL) return NULL;
 
   new->count = org->count;
@@ -243,7 +243,7 @@ rbt_copy (const rbt_table_t *org,
     while (x->links[0] != NULL) {
       assert(height < 2 * (RBT_MAX_HEIGHT + 1));
 
-      y->links[0] = new->alloc->malloc(new->alloc, sizeof *y->links[0]);
+      y->links[0] = new->alloc->malloc(new->alloc, sizeof(*y->links[0]));
       if (y->links[0] == NULL) {
         if (y != (rbt_node_t *) &new->root) {
           y->data = NULL;
@@ -274,7 +274,7 @@ rbt_copy (const rbt_table_t *org,
       }
 
       if (x->links[1] != NULL) {
-        y->links[1] = new->alloc->malloc(new->alloc, sizeof *y->links[1]);
+        y->links[1] = new->alloc->malloc(new->alloc, sizeof(*y->links[1]));
         if (y->links[1] == NULL) {
           copy_error_recovery(stack, height, new, destroy);
           return NULL;
@@ -338,29 +338,67 @@ rbt_probe (rbt_table_t *table,
 
   assert(table != NULL && item != NULL);
 
+  /*
+   * Step 1: Search
+   * The first thing to do is to search for the point to insert the new node. We keep a stack
+   * of nodes tracking the path followed to arrive at the insertion point, so that later we
+   * can move up the tree in rebalancing.
+   */
   pa[0] = (rbt_node_t *) &table->root;
   da[0] = 0;
-  k = 1;
-  for (p = table->root; p != NULL; p = p->links[da[k - 1]]) {
+  for (k = 1, p = table->root; p != NULL; p = p->links[da[k - 1]]) {
     int cmp = table->compare(item, p->data, table->param);
     if (cmp == 0) return &p->data;
     pa[k] = p;
     da[k++] = cmp > 0;
   }
 
-  n = pa[k - 1]->links[da[k - 1]] = table->alloc->malloc(table->alloc, sizeof *n);
+  /*
+   * Step 2: Insert
+   */
+  n = pa[k - 1]->links[da[k - 1]] = table->alloc->malloc(table->alloc, sizeof(*n));
   if (n == NULL) return NULL;
-
   n->data = item;
   n->links[0] = n->links[1] = NULL;
   n->color = RBT_RED;
   table->count++;
   table->generation++;
 
+  /*
+   * Step 3: Rebalance
+   * The code in step 2 that inserts a node always colors the new node red. This means that
+   * rule 2 is always satisfied afterward (as long as it was satisfied before we began). On the
+   * other hand, rule 1 is broken if the newly inserted node’s parent was red. In this latter case
+   * we must rearrange or recolor the BST so that it is again an RB tree.
+   *
+   * This is what rebalancing does. At each step in rebalancing, we have the invariant that
+   * we just colored a node p red and that p’s parent, the node at the top of the stack, is also red,
+   * a rule 1 violation. The rebalancing step may either clear up the violation entirely, without
+   * introducing any other violations, in which case we are done, or, if that is not possible, it
+   * reduces the violation to a similar violation of rule 1 higher up in the tree, in which case we
+   * go around again.
+   *
+   * In no case can we allow the rebalancing step to introduce a rule 2 violation, because
+   * the loop is not prepared to repair that kind of problem: it does not fit the invariant. If
+   * we allowed rule 2 violations to be introduced, we would have to write additional code to
+   * recognize and repair those violations. This extra code would be a waste of space, because
+   * we can do just fine without it. (Incidentally, there is nothing magical about using a rule
+   * 1 violation as our rebalancing invariant. We could use a rule 2 violation as our invariant
+   * instead, and in fact we will later write an alternate implementation that does that, in order
+   * to show how it would be done.)
+   *
+   * Here is the rebalancing loop. At each rebalancing step, it checks that we have a rule
+   * 1 violation by checking the color of pa[k − 1], the node on the top of the stack, and then
+   * divides into two cases, one for rebalancing an insertion in pa[k − 1]’s left subtree and a
+   * symmetric case for the right subtree. After rebalancing it recolors the root of the tree black
+   * just in case the loop changed it to red.
+   */
   while (k >= 3 && pa[k - 1]->color == RBT_RED) {
     if (da[k - 2] == 0) {
+      /* Left-side rebalancing after RB insertion. */
       rbt_node_t *y = pa[k - 2]->links[1];
       if (y != NULL && y->color == RBT_RED) {
+        /* Case 1 in left-side RB insertion rebalancing. */
         pa[k - 1]->color = y->color = RBT_BLACK;
         pa[k - 2]->color = RBT_RED;
         k -= 2;
@@ -370,6 +408,7 @@ rbt_probe (rbt_table_t *table,
         if (da[k - 1] == 0)
           y = pa[k - 1];
         else {
+          /* Case 3 in left-side RB insertion rebalancing. */
           x = pa[k - 1];
           y = x->links[1];
           x->links[1] = y->links[0];
@@ -377,6 +416,7 @@ rbt_probe (rbt_table_t *table,
           pa[k - 2]->links[0] = y;
         }
 
+        /* Case 2 in left-side RB insertion rebalancing. */
         x = pa[k - 2];
         x->color = RBT_RED;
         y->color = RBT_BLACK;
@@ -387,8 +427,10 @@ rbt_probe (rbt_table_t *table,
         break;
       }
     } else {
+      /* Right-side rebalancing after RB insertion. */
       rbt_node_t *y = pa[k - 2]->links[0];
       if (y != NULL && y->color == RBT_RED) {
+        /* Case 1 in right-side RB insertion rebalancing. */
         pa[k - 1]->color = y->color = RBT_BLACK;
         pa[k - 2]->color = RBT_RED;
         k -= 2;
@@ -398,6 +440,7 @@ rbt_probe (rbt_table_t *table,
         if (da[k - 1] == 1)
           y = pa[k - 1];
         else {
+          /* Case 3 in right-side RB insertion rebalancing. */
           x = pa[k - 1];
           y = x->links[0];
           x->links[0] = y->links[1];
@@ -405,6 +448,7 @@ rbt_probe (rbt_table_t *table,
           pa[k - 2]->links[1] = y;
         }
 
+        /* Case 2 in right-side RB insertion rebalancing. */
         x = pa[k - 2];
         x->color = RBT_RED;
         y->color = RBT_BLACK;
@@ -890,7 +934,7 @@ rbt_t_copy (rbt_traverser_t *trav,
     trav->generation = src->generation;
     if (trav->generation == trav->table->generation) {
       trav->height = src->height;
-      memcpy(trav->stack, (const void *) src->stack, sizeof *trav->stack * trav->height);
+      memcpy(trav->stack, (const void *) src->stack, sizeof(*trav->stack) * trav->height);
     }
   }
 
