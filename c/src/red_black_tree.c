@@ -9,10 +9,10 @@
  *
  * @todo [done] Move module details to the header file.
  *
- * @todo Write some documentation into the code (for insert, delete, ... Case1, Case2, ....)
+ * @todo [done] Write some documentation into the code (for insert, delete, ... Case1, Case2, ....)
  *
- * @todo Refactor, if possible and if there would be no impact on performances, the code in order
- *       to use rotate_left, rotate_right, ... functions.
+ * @todo [done] Refactor, if possible and if there would be no impact on performances, the code in order
+ *              to use rotate_left, rotate_right, ... functions.
  *
  * @todo There is need of more sophisticated memory allocators.
  *
@@ -535,20 +535,52 @@ rbt_delete (rbt_table_t *table,
 
   assert(table != NULL && item != NULL);
 
+  /*
+   * The process of deletion from an RB tree is very much in line with the other algorithms
+   * for balanced trees that we’ve looked at already. This time, the steps are:
+   *  -# Search for the item to delete.
+   *  -# Delete the item.
+   *  -# Rebalance the tree as necessary.
+   *  -# Finish up and return.
+   */
+
+  /*
+   * Step 1: Search
+   * Searches for the item to delete, returns null if not found.
+   */
   k = 0;
   p = (rbt_node_t *) &table->root;
   for (cmp = -1; cmp != 0; cmp = table->compare(item, p->data, table->param)) {
     int dir = cmp > 0;
-
     pa[k] = p;
     da[k++] = dir;
-
     p = p->links[dir];
-    if (p == NULL)
-      return NULL;
+    if (p == NULL) return NULL;
   }
   item = p->data;
 
+  /*
+   * Step 2: Delete
+   * At this point, p is the node to be deleted and the stack contains all of the nodes on the
+   * simple path from the tree’s root down to p. The immediate task is to delete p. We break
+   * deletion down into three cases, but before we dive into the code, let’s think about the situation.
+   *
+   * In red-black insertion, we were able to limit the kinds of violation that could occur to
+   * rule 1 or rule 2, at our option, by choosing the new node’s color. No such luxury is available
+   * in deletion, because colors have already been assigned to all of the nodes. In fact, a naive
+   * approach to deletion can lead to multiple violations in widely separated parts of a tree.
+   *
+   * When we replace the deleted node p by a different node
+   * q, we set q’s color to p’s. Besides that, as an implementation detail, we need to keep track
+   * of the color of the node that was moved, i.e., node q’s former color. We do this here by
+   * saving it temporarily in p. In other words, when we replace one node by another during
+   * deletion, we swap their colors.
+   *
+   * While reading this code, keep in mind that after deletion, regardless of the case selected,
+   * the stack contains a list of the nodes where rebalancing may be required, and da[k − 1] indicates
+   * the side of pa[k − 1] from which a node of color p->rb color was deleted. Here’s an outline of
+   * the meat of the code.
+   */
   if (p->links[1] == NULL)
     pa[k - 1]->links[da[k - 1]] = p->links[0];
   else {
@@ -591,6 +623,28 @@ rbt_delete (rbt_table_t *table,
     }
   }
 
+  /*
+   * Step 3: Rebalance
+   * At this point, node p has been removed from tree and p→rb color indicates the color of
+   * the node that was removed from the tree. Our first step is to handle one common special
+   * case: if we deleted a red node, no rebalancing is necessary, because deletion of a red node
+   * cannot violate either rule.
+   *
+   * On the other hand, if a black node was deleted, then we have more work to do. At
+   * the least, we have a violation of rule 2. If the deletion brought together two red nodes, as
+   * happened in the example in the previous section, there is also a violation of rule 1.
+   *
+   * We must now fix both of these problems by rebalancing. This time, the rebalancing loop
+   * invariant is that the black-height of pa[k − 1]’s subtree on side da[k − 1] is 1 less than the
+   * black-height of its other subtree, a rule 2 violation.
+   *
+   * There may also be a rule 2 violation, such pa[k − 1] and its child on side da[k − 1],
+   * which we will call x , are both red. (In the first iteration of the rebalancing loop, node x is
+   * the node labeled as such in the diagrams in the previous section.) If this is the case, then
+   * the fix for rule 2 is simple: just recolor x black. This increases the black-height and fixes
+   * any rule 1 violation as well. If we can do this, we’re all done. Otherwise, we have more
+   * work to do.
+   */
   if (p->color == RBT_BLACK) {
     for (;;) {
       rbt_node_t *x = pa[k - 1]->links[da[k - 1]];
@@ -602,9 +656,11 @@ rbt_delete (rbt_table_t *table,
         break;
 
       if (da[k - 1] == 0) {
+        /* Left-side rebalancing after RB deletion. */
         rbt_node_t *w = pa[k - 1]->links[1];
 
         if (w->color == RBT_RED) {
+          /* Ensure w is black in left-side RB deletion rebalancing. */
           w->color = RBT_BLACK;
           pa[k - 1]->color = RBT_RED;
 
@@ -622,9 +678,11 @@ rbt_delete (rbt_table_t *table,
 
         if ((w->links[0] == NULL || w->links[0]->color == RBT_BLACK) &&
             (w->links[1] == NULL || w->links[1]->color == RBT_BLACK))
+          /* Case 1 in left-side RB deletion rebalancing. */
           w->color = RBT_RED;
         else {
           if (w->links[1] == NULL || w->links[1]->color == RBT_BLACK) {
+            /* Transform left-side RB deletion rebalancing case 3 into case 2. */
             rbt_node_t *y = w->links[0];
             y->color = RBT_BLACK;
             w->color = RBT_RED;
@@ -633,6 +691,7 @@ rbt_delete (rbt_table_t *table,
             w = pa[k - 1]->links[1] = y;
           }
 
+          /* Case 2 in left-side RB deletion rebalancing. */
           w->color = pa[k - 1]->color;
           pa[k - 1]->color = RBT_BLACK;
           w->links[1]->color = RBT_BLACK;
@@ -643,9 +702,11 @@ rbt_delete (rbt_table_t *table,
           break;
         }
       } else {
+        /* Right-side rebalancing after RB deletion. */
         rbt_node_t *w = pa[k - 1]->links[0];
 
         if (w->color == RBT_RED) {
+          /* Ensure w is black in right-side RB deletion rebalancing. */
           w->color = RBT_BLACK;
           pa[k - 1]->color = RBT_RED;
 
@@ -663,9 +724,11 @@ rbt_delete (rbt_table_t *table,
 
         if ((w->links[0] == NULL || w->links[0]->color == RBT_BLACK) &&
             (w->links[1] == NULL || w->links[1]->color == RBT_BLACK))
+          /* Case 1 in right-side RB deletion rebalancing. */
           w->color = RBT_RED;
         else {
           if (w->links[0] == NULL || w->links[0]->color == RBT_BLACK) {
+            /* Transform right-side RB deletion rebalancing case 3 into case 2. */
             rbt_node_t *y = w->links[1];
             y->color = RBT_BLACK;
             w->color = RBT_RED;
@@ -674,6 +737,7 @@ rbt_delete (rbt_table_t *table,
             w = pa[k - 1]->links[0] = y;
           }
 
+          /* Case 2 in right-side RB deletion rebalancing. */
           w->color = pa[k - 1]->color;
           pa[k - 1]->color = RBT_BLACK;
           w->links[0]->color = RBT_BLACK;
@@ -690,6 +754,10 @@ rbt_delete (rbt_table_t *table,
 
   }
 
+  /*
+   * Step 4: Finish Up
+   * All that’s left to do is free the node, update counters, and return the deleted item.
+   */
   table->alloc->free(table->alloc, p);
   table->count--;
   table->generation++;
@@ -1115,9 +1183,11 @@ rbt_t_replace (rbt_traverser_t *trav,
  * Internal functions.
  */
 
-/* Destroys |new| with |rbt_destroy (new, destroy)|,
-   first setting right links of nodes in |stack| within |new|
-   to null pointers to avoid touching uninitialized data. */
+/*
+ * Destroys new with rbt_destroy(new, destroy),
+ * first setting right links of nodes in stack within new
+ * to null pointers to avoid touching uninitialized data.
+ */
 static void
 copy_error_recovery (rbt_node_t **stack,
                      int height,
@@ -1131,8 +1201,10 @@ copy_error_recovery (rbt_node_t **stack,
   rbt_destroy(new, destroy);
 }
 
-/* Refreshes the stack of parent pointers in |trav|
-   and updates its generation number. */
+/*
+ * Refreshes the stack of parent pointers in trav
+ * and updates its generation number.
+ */
 static void
 trav_refresh (rbt_traverser_t *trav)
 {
