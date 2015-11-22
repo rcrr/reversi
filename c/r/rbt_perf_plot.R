@@ -39,6 +39,7 @@
 
 
 
+library(scales)
 library(ggplot2)
 
 
@@ -93,7 +94,9 @@ rbt_plot_perf_data <- function(label = "", csv.data.fname) {
   
   ggplot(subset(rbt_perf_data, OP_TYPE==op[1]), aes_string(x = op[2], y = op[3])) +
     theme_bw() +
-    layer(geom = "point") +
+    ## ylim(0, 20000) + 
+    ## layer(geom = "point", shape = ".", colour = alpha("blue", 1/3)) +
+    layer(geom = "point", colour = alpha("blue", 1/9)) +
     ggtitle(op[4])
   
 }
