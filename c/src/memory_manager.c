@@ -68,8 +68,8 @@ void *
 mem_basic_malloc (mem_allocator_t *alloc,
                   size_t size)
 {
-  assert (alloc != NULL && size > 0);
-  return malloc (size);
+  assert(alloc != NULL && size > 0);
+  return malloc(size);
 }
 
 /**
@@ -86,6 +86,6 @@ void
 mem_basic_free (mem_allocator_t *alloc,
                 void *block)
 {
-  assert (alloc != NULL && block != NULL);
-  free (block);
+  assert(alloc != NULL && block != NULL);
+  free(block);
 }
