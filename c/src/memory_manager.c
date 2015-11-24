@@ -6,7 +6,7 @@
  * @details Memory management by mean of block allocation is a technique designed to
  *          have the flexibility of dynamic allocation togheter with a reduced speed penalty.
  *
- *          All the symbols exported by the module adopt the `bma_` prefix.
+ *          All the symbols exported by the module adopt the `mem_` prefix.
  *
  * @par memory_manager.c
  * <tt>
@@ -84,6 +84,35 @@ mem_basic_malloc (mem_allocator_t *alloc,
  */
 void
 mem_basic_free (mem_allocator_t *alloc,
+                void *block)
+{
+  assert(alloc != NULL && block != NULL);
+  free(block);
+}
+
+
+
+/*
+ * Block memory allocator.
+ *
+ */
+
+typedef struct {
+  size_t          o_size;                /**< @brief Object size as number of bytes consumed. */
+  size_t          block_size;            /**< @brief Block size. */
+  void          **blocks;                /**< @brief Linked list?. */
+} mem_block_alloc_t;
+
+void *
+mem_block_malloc (mem_allocator_t *alloc,
+                  size_t size)
+{
+  assert(alloc != NULL && size > 0);
+  return malloc(size);
+}
+
+void
+mem_block_free (mem_allocator_t *alloc,
                 void *block)
 {
   assert(alloc != NULL && block != NULL);
