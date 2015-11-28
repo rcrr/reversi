@@ -42,6 +42,7 @@
 #include "red_black_tree.h"
 #include "random.h"
 #include "sort_utils.h"
+#include "memory_manager.h"
 
 
 
@@ -85,8 +86,8 @@ static void traverser_find_and_copy_test (void);
 static void traverser_insert_test (void);
 static void traverser_replace_test (void);
 static void traverser_on_changing_table_test (void);
-static void performance_a_test (void);
-
+static void performance_test (void);
+static void allocator_test (void);
 
 
 /* Helper function prototypes. */
@@ -161,8 +162,10 @@ main (int   argc,
   g_test_add_func("/red_black_tree/traverser_replace_test", traverser_replace_test);
   g_test_add_func("/red_black_tree/traverser_on_changing_table_test", traverser_on_changing_table_test);
 
+  g_test_add_func("/red_black_tree/allocator_test", allocator_test);
+
   if (g_test_perf()) {
-    g_test_add_func("/red_black_tree/performance_a_test", performance_a_test);
+    g_test_add_func("/red_black_tree/performance_test", performance_test);
   }
 
   g_option_context_free(context);
@@ -829,7 +832,7 @@ traverser_on_changing_table_test (void)
 }
 
 static void
-performance_a_test (void)
+performance_test (void)
 {
   const size_t initial_len = 1000;
   const size_t step_len = 2000;
@@ -1204,6 +1207,7 @@ performance_a_test (void)
 }
 
 
+
 /*
  * Internal functions.
  */
@@ -1524,4 +1528,32 @@ compare_trees (rbt_node_t *a,
   if (a->links[0] != NULL) okay &= compare_trees(a->links[0], b->links[0], compare, param);
   if (a->links[1] != NULL) okay &= compare_trees(a->links[1], b->links[1], compare, param);
   return okay;
+}
+
+
+
+/*
+ * Test functions for advanced memory managers applyed to the table structure.
+ */
+
+static void
+allocator_test (void)
+{
+  int verbosity = 0;
+  int arg[2] = {0, 0};
+
+  mem_mt_allocator_t *mt = mem_mt_allocator_new(MEM_MT_TRACK, arg, verbosity);
+  mem_allocator_t * alloc = mem_mt_allocator(mt);
+
+  rbt_table_t *table = rbt_create(compare_int, NULL, alloc);
+  g_assert(table);
+
+  size_t count = rbt_count(table);
+  g_assert(count == 0);
+
+  g_assert(verify_tree(table, NULL, 0));
+
+  rbt_destroy(table, NULL);
+
+  mem_mt_allocator_free(mt);
 }

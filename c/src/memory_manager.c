@@ -95,119 +95,24 @@ mem_basic_free (mem_allocator_t *alloc,
 
 
 
-/*
- * Block memory allocator.
- *
- */
-
-typedef struct {
-  size_t          o_size;                /**< @brief Object size as number of bytes consumed. */
-  size_t          block_size;            /**< @brief Block size. */
-  void          **blocks;                /**< @brief Linked list?. */
-} mem_block_alloc_t;
-
-void *
-mem_block_malloc (mem_allocator_t *alloc,
-                  size_t size)
-{
-  assert(alloc != NULL && size > 0);
-  return malloc(size);
-}
-
-void
-mem_block_free (mem_allocator_t *alloc,
-                void *block)
-{
-  assert(alloc != NULL && block != NULL);
-  free(block);
-}
-
 /* **** **** **** **** */
 
-
-/*
- * Memory tracking policy.
- *
- * MT_TRACK and MT_NO_TRACK should be self-explanatory.
- * MT_FAIL_COUNT takes an
- * argument specifying after how many allocations further allocations should always fail.
- * MT_FAIL_PERCENT takes an argument specifying an integer percentage of allocations to
- * randomly fail.
- *
- * MT_SUBALLOC causes small blocks to be carved out of larger ones allocated with malloc().
- * This is a good idea for two reasons: malloc() can be slow and malloc() can waste a lot of
- * space dealing with the small blocks that Libavl uses for its node. Suballocation cannot be
- * implemented in an entirely portable way because of alignment issues, but the test program
- * here requires the user to specify the alignment needed, and its use is optional anyhow.
- */
-enum mt_policy {
-  MT_TRACK,         /* Track allocation for leak detection. */
-  MT_NO_TRACK,      /* No leak detection. */
-  MT_FAIL_COUNT,    /* Fail allocations after a while. */
-  MT_FAIL_PERCENT,  /* Fail allocations randomly. */
-  MT_SUBALLOC       /* Suballocate from larger blocks. */
-};
-
-/*
- * A memory block.
- *
- * The memory manager keeps track of allocated blocks using struct block.
- *
- * The next member of struct block is used to keep a linked list of all the currently allocated
- * blocks. Searching this list is inefficient, but there are at least two reasons to do it this way,
- * instead of using a more efficient data structure, such as a binary tree. First, this code is for
- * testing binary tree routines—using a binary tree data structure to do it is a strange idea!
- * Second, the ISO C standard says that, with few exceptions, using the relational operators
- * (<, <=, >, >=) to compare pointers that do not point inside the same array produces
- * undefined behavior, but allows use of the equality operators (==, !=) for a larger class of
- * pointers.
- *
- */
-struct block {
-  struct block *next;   /* Next in linked list. */
-  int idx;              /* Allocation order index number. */
-  size_t size;          /* Size in bytes. */
-  size_t used;          /* MT SUBALLOC: amount used so far. */
-  void *content;        /* Allocated region. */
-};
-
-/* Indexes into arg[] within struct mt_allocator. */
-enum mt_arg_index {
-  MT_COUNT = 0,         /* MT_FAIL_COUNT: Remaining successful allocations. */
-  MT_PERCENT = 0,       /* MT_FAIL_PERCENT: Failure percentage. */
-  MT_BLOCK_SIZE = 0,    /* MT_SUBALLOC: Size of block to suballocate. */
-  MT_ALIGN = 1          /* MT_SUBALLOC: Alignment of suballocated blocks. */
-};
-
-/* Memory tracking allocator. */
-struct mt_allocator {
-  struct mem_allocator allocator;    /* Allocator. Must be first member. */
-  /* Settings. */
-  enum mt_policy policy;             /* Allocation policy. */
-  int arg[2];                        /* Policy arguments. */
-  int verbosity;                     /* Message verbosity level. */
-  /* Current state. */
-  struct block *head, *tail;         /* Head and tail of block list. */
-  int alloc_idx;                     /* Number of allocations so far. */
-  int block_cnt;                     /* Number of still-allocated blocks. */
-};
-
-static void *mt_allocate (struct mem_allocator *, size_t);
-static void mt_free (struct mem_allocator *, void *);
-static void *xmalloc (size_t size);
+static void *mem_mt_allocate (mem_allocator_t *allocator, size_t size);
+static void mem_mt_deallocate (mem_allocator_t *allocator, void *block);
+static void *mem_malloc (size_t size);
 static void fail (const char *message, ...);
 
 /* Initializes the memory manager for use with allocation policy policy and policy arguments arg[],
  * at verbosity level verbosity, where 0 is a “normal” value.
  */
-struct mt_allocator *
-mt_create (enum mt_policy policy,
-           int arg[2],
-           int verbosity)
+mem_mt_allocator_t *
+mem_mt_allocator_new (mem_mt_policy_t policy,
+                      int arg[2],
+                      int verbosity)
 {
-  struct mt_allocator *mt = xmalloc (sizeof *mt);
-  mt->allocator.malloc = mt_allocate;
-  mt->allocator.free = mt_free;
+  mem_mt_allocator_t *mt = mem_malloc(sizeof(mem_mt_allocator_t));
+  mt->allocator.malloc = mem_mt_allocate;
+  mt->allocator.free = mem_mt_deallocate;
   mt->policy = policy;
   mt->arg[0] = arg[0];
   mt->arg[1] = arg[1];
@@ -220,17 +125,17 @@ mt_create (enum mt_policy policy,
 
 /* Frees and destroys memory tracker mt, reporting any memory leaks. */
 void
-mt_destroy (struct mt_allocator *mt)
+mem_mt_allocator_free (mem_mt_allocator_t *mt)
 {
   assert(mt != NULL);
   if (mt->block_cnt == 0) {
-    if (mt->policy != MT_NO_TRACK && mt->verbosity >= 1)
+    if (mt->policy != MEM_MT_NO_TRACK && mt->verbosity >= 1)
       printf(" No memory leaks.\n");
   } else {
-    struct block *iter , *next;
-    if (mt->policy != MT_SUBALLOC) printf (" Memory leaks detected:\n");
+    mem_mt_block_t *iter, *next;
+    if (mt->policy != MEM_MT_SUBALLOC) printf (" Memory leaks detected:\n");
     for (iter = mt->head; iter != NULL; iter = next) {
-      if (mt->policy != MT_SUBALLOC)
+      if (mt->policy != MEM_MT_SUBALLOC)
         printf("block #%d: %lu bytes\n", iter->idx , (unsigned long) iter->size);
       next = iter->next;
       free(iter->content);
@@ -240,42 +145,43 @@ mt_destroy (struct mt_allocator *mt)
   free(mt);
 }
 
-/* Returns the struct libavl allocator associated with mt. */
-void *
-mt_allocator (struct mt_allocator *mt)
+/* Returns the mem_allocator_t associated with mt. */
+mem_allocator_t *
+mem_mt_allocator (mem_mt_allocator_t *mt)
 {
   return &mt->allocator;
 }
 
-/* Creates a new struct block containing size bytes of content and returns a pointer to content. */
+/* Creates a new mem_mt_block_t containing size bytes of content and returns a pointer to content. */
 static void *
-new_block (struct mt_allocator *mt,
-           size_t size) {
-  struct block *new;
-  /* Allocate and initialize new struct block. */
-       new = xmalloc(sizeof *new);
-       new->next = NULL;
-       new->idx = mt->alloc_idx++;
-       new->size = size;
-       new->used = 0;
-       new->content = xmalloc(size);
-       /* Add block to linked list. */
-       if (mt->head == NULL)
-         mt->head = new;
-       else mt->tail->next = new;
-       mt->tail = new;
-       /* Alert user. */
-       if (mt->verbosity >= 3)
-         printf ("   block #%d: allocated %lu bytes\n", new->idx, (unsigned long) size);
-       /* Finish up and return. */
-       mt->block_cnt++;
-       return new->content;
+mem_mt_block_new (mem_mt_allocator_t *mt,
+                  size_t size)
+{
+  mem_mt_block_t *new;
+  /* Allocate and initialize new mem_mt_block_t. */
+  new = mem_malloc(sizeof(mem_mt_block_t));
+  new->next = NULL;
+  new->idx = mt->alloc_idx++;
+  new->size = size;
+  new->used = 0;
+  new->content = mem_malloc(size);
+  /* Add block to linked list. */
+  if (mt->head == NULL)
+    mt->head = new;
+  else mt->tail->next = new;
+  mt->tail = new;
+  /* Alert user. */
+  if (mt->verbosity >= 3)
+    printf ("   block #%d: allocated %lu bytes\n", new->idx, (unsigned long) size);
+  /* Finish up and return. */
+  mt->block_cnt++;
+  return new->content;
 }
 
 /* Prints a message about a rejected allocation if appropriate. */
 static void
-reject_request (struct mt_allocator *mt,
-                size_t size)
+mem_reject_request (mem_mt_allocator_t *mt,
+                    size_t size)
 {
   if (mt->verbosity >= 2)
     printf ("    block #%d: rejected request for %lu bytes\n", mt->alloc_idx++, (unsigned long) size);
@@ -283,41 +189,41 @@ reject_request (struct mt_allocator *mt,
 
 /* Allocates and returns a block of size bytes. */
 static void *
-mt_allocate (struct mem_allocator *allocator,
-             size_t size)
+mem_mt_allocate (mem_allocator_t *allocator,
+                 size_t size)
 {
-  struct mt_allocator *mt = (struct mt_allocator *) allocator;
+  mem_mt_allocator_t *mt = (mem_mt_allocator_t *) allocator;
   /* Special case. */
   if (size == 0)
     return NULL;
 
   switch (mt->policy) {
 
-  case MT_TRACK: return new_block(mt, size);
+  case MEM_MT_TRACK: return mem_mt_block_new(mt, size);
 
-  case MT_NO_TRACK: return xmalloc(size);
+  case MEM_MT_NO_TRACK: return mem_malloc(size);
 
-  case MT_FAIL_COUNT:
-    if (mt->arg[MT_COUNT] == 0) {
-      reject_request(mt, size);
+  case MEM_MT_FAIL_COUNT:
+    if (mt->arg[MEM_MT_COUNT] == 0) {
+      mem_reject_request(mt, size);
       return NULL;
     }
-    mt->arg[MT_COUNT]--;
-    return new_block(mt, size);
+    mt->arg[MEM_MT_COUNT]--;
+    return mem_mt_block_new(mt, size);
 
-  case MT_FAIL_PERCENT:
-    if (rand () / (RAND_MAX / 100 + 1) < mt->arg[MT_PERCENT]) {
-      reject_request(mt, size);
+  case MEM_MT_FAIL_PERCENT:
+    if (rand () / (RAND_MAX / 100 + 1) < mt->arg[MEM_MT_PERCENT]) {
+      mem_reject_request(mt, size);
       return NULL;
     }
-    else return new_block(mt, size);
+    else return mem_mt_block_new(mt, size);
 
-  case MT_SUBALLOC:
-    if (mt->tail == NULL || mt->tail->used + size > (size_t) mt->arg[MT_BLOCK_SIZE])
-      new_block(mt, mt->arg[MT_BLOCK_SIZE]);
-    if (mt->tail->used + size <= (size_t) mt->arg[MT_BLOCK_SIZE]) {
+  case MEM_MT_SUBALLOC:
+    if (mt->tail == NULL || mt->tail->used + size > (size_t) mt->arg[MEM_MT_BLOCK_SIZE])
+      mem_mt_block_new(mt, mt->arg[MEM_MT_BLOCK_SIZE]);
+    if (mt->tail->used + size <= (size_t) mt->arg[MEM_MT_BLOCK_SIZE]) {
       void *p = (char *) mt->tail->content + mt->tail->used;
-      size = ((size + mt->arg[MT_ALIGN] - 1) / mt->arg[MT_ALIGN] * mt->arg[MT_ALIGN]);
+      size = ((size + mt->arg[MEM_MT_ALIGN] - 1) / mt->arg[MEM_MT_ALIGN] * mt->arg[MEM_MT_ALIGN]);
       mt->tail->used += size;
       if (mt->verbosity >= 3)
         printf("    block #%d: suballocated %lu bytes\n", mt->tail->idx, (unsigned long) size);
@@ -330,23 +236,23 @@ mt_allocate (struct mem_allocator *allocator,
 
 /* Releases block previously returned by mt allocate(). */
 static void
-mt_free (struct mem_allocator *allocator,
-         void *block )
+mem_mt_deallocate (mem_allocator_t *allocator,
+                   void *block )
 {
-  struct mt_allocator *mt = (struct mt_allocator *) allocator;
-  struct block *iter, *prev;
+  mem_mt_allocator_t *mt = (mem_mt_allocator_t *) allocator;
+  mem_mt_block_t *iter, *prev;
   /* Special cases. */
-  if (block == NULL || mt->policy == MT_NO_TRACK) {
+  if (block == NULL || mt->policy == MEM_MT_NO_TRACK) {
     free(block);
     return;
   }
-  if (mt->policy == MT_SUBALLOC)
+  if (mt->policy == MEM_MT_SUBALLOC)
     return;
   /* Search for block within the list of allocated blocks. */
   for (prev = NULL, iter = mt->head; iter; prev = iter, iter = iter->next) {
     if (iter->content == block ) {
       /* Block found. Remove it from the list. */
-      struct block *next = iter->next;
+      mem_mt_block_t *next = iter->next;
       if (prev == NULL)
         mt->head = next;
       else prev->next = next;
@@ -368,7 +274,7 @@ mt_free (struct mem_allocator *allocator,
 
 /* Allocates and returns a pointer to size bytes of memory. Aborts if allocation fails. */
 static void *
-xmalloc (size_t size)
+mem_malloc (size_t size)
 {
   void *block = malloc(size);
   if (block == NULL && size != 0)
