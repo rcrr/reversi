@@ -104,9 +104,9 @@ extern mem_allocator_t mem_allocator_default;
 
 
 
-/****************************************************/
-/* Function prototypes for the allocator structure. */
-/****************************************************/
+/**********************************************************/
+/* Function prototypes for the basic allocator structure. */
+/**********************************************************/
 
 extern void *
 mem_basic_malloc (mem_allocator_t *alloc,
@@ -114,6 +114,20 @@ mem_basic_malloc (mem_allocator_t *alloc,
 
 extern void
 mem_basic_free (mem_allocator_t *alloc,
+                void *block);
+
+
+
+/**********************************************************/
+/* Function prototypes for the block allocator structure. */
+/**********************************************************/
+
+extern void *
+mem_block_malloc (mem_allocator_t *alloc,
+                  size_t size);
+
+extern void
+mem_block_free (mem_allocator_t *alloc,
                 void *block);
 
 
