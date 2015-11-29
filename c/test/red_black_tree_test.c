@@ -109,6 +109,10 @@ static void
 on_item_destroy_increment_param (void *item,
                                  void *param);
 
+static void *
+on_item_copy_increment_param (void *item,
+                              void *param);
+
 static int *
 prepare_data_array (const size_t len,
                     const int seed);
@@ -333,8 +337,11 @@ copy_test (void)
   int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   const size_t data_size = sizeof(data) / sizeof(data[0]);
 
+  /* Shared field passed as param to the rbt_item_copy_f function. */
+  unsigned long long int copy_cnt = 0;
+
   /* Creates the new empty table. */
-  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  rbt_table_t *table = rbt_create(compare_int, &copy_cnt, NULL);
   g_assert(table);
 
   /* Inserts the [0..9] set of elements in the table. */
@@ -347,10 +354,13 @@ copy_test (void)
   g_assert(rbt_count(table) == data_size);
 
   /* Copies table into a new tree. */
-  rbt_item_copy_f *copy = NULL;
+  rbt_item_copy_f *copy = on_item_copy_increment_param;
   rbt_item_destroy_f *destroy = NULL;
   mem_allocator_t *alloc = NULL;
   rbt_table_t *copied_table = rbt_copy(table, copy, destroy, alloc);
+
+  /* Function on_item_copy_increment_param has to be called data_size times. */
+  g_assert(copy_cnt == data_size);
 
   /* Compares trees node by node. */
   g_assert(compare_trees(table->root, copied_table->root, compare_int, NULL));
@@ -1380,6 +1390,21 @@ on_item_destroy_increment_param (void *item,
   assert(param);
   unsigned long long int *cnt_p = (unsigned long long int *) param;
   (*cnt_p)++;
+}
+
+/*
+ * Argument param is a pointer to an unsigned long long integer
+ * that is incremented each call.
+ */
+static void *
+on_item_copy_increment_param (void *item,
+                              void *param)
+{
+  assert(item);
+  assert(param);
+  unsigned long long int *cnt_p = (unsigned long long int *) param;
+  (*cnt_p)++;
+  return item;
 }
 
 /*

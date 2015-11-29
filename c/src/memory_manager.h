@@ -37,7 +37,13 @@
 
 
 
-/* Forward declaration for the allocator structure */
+/**
+ * @struct mem_allocator_t
+ * @brief Memory allocator.
+ *
+ * @details
+ * Forward declaration for the mem_allocator structure
+ */
 typedef struct mem_allocator mem_allocator_t;
 
 
@@ -53,7 +59,7 @@ typedef struct mem_allocator mem_allocator_t;
  *          returns either `NULL`, or a unique pointer value that can later be successfully
  *          passed to mem_free_f().
  *
- * @param [in] alloc a pointer to the #mem_allocator structure
+ * @param [in] alloc a pointer to the mem_allocator_t structure
  * @param [in] size  number of bytes to allocate
  * @return           a pointer to the allocated memory
  */
@@ -69,7 +75,7 @@ mem_malloc_f (mem_allocator_t *alloc,
  *          Otherwise, or if mem_free_f() has already been called before on `block`, undefined
  *          behavior occurs. If `block` is `NULL`, no operation is performed.
  *
- * @param [in]     alloc a pointer to the #mem_allocator structure
+ * @param [in]     alloc a pointer to the #mem_allocator_t structure
  * @param [in,out] block the pointer to the freed memory
  */
 typedef void
@@ -90,71 +96,85 @@ struct mem_allocator {
   mem_free_f   *free;     /**< @brief Memory de-allocation function pointer. */
 };
 
-/*
- * Memory tracking policy.
+/**
+ * @enum mem_mt_policy_t
+ * @brief Memory tracking policy.
  *
- * MEM_MT_TRACK and MEM_MT_NO_TRACK should be self-explanatory.
- * MEM_MT_FAIL_COUNT takes an
- * argument specifying after how many allocations further allocations should always fail.
- * MEM_MT_FAIL_PERCENT takes an argument specifying an integer percentage of allocations to
- * randomly fail.
+ * @details
+ * `MEM_MT_TRACK` and `MEM_MT_NO_TRACK` should be self-explanatory.<br>
+ *    `MEM_MT_FAIL_COUNT` takes an argument specifying after how many allocations
+ *    further allocations should always fail.<br>
+ *    `MEM_MT_FAIL_PERCENT` takes an argument specifying an integer percentage of
+ *    allocations to randomly fail.<br>
  *
- * MEM_MT_SUBALLOC causes small blocks to be carved out of larger ones allocated with malloc().
- * This is a good idea for two reasons: malloc() can be slow and malloc() can waste a lot of
- * space dealing with the small blocks that Libavl uses for its node. Suballocation cannot be
- * implemented in an entirely portable way because of alignment issues, but the test program
- * here requires the user to specify the alignment needed, and its use is optional anyhow.
+ * `MEM_MT_SUBALLOC` causes small blocks to be carved out of larger ones allocated with `malloc()`.<br>
+ *    This is a good idea for two reasons: `malloc()` can be slow and `malloc()` can waste a lot of
+ *    space dealing with the small blocks.<br>
+ *    Suballocation cannot be implemented in an entirely
+ *    portable way because of alignment issues, but the test program here requires the user
+ *    to specify the alignment needed, and its use is optional anyhow.
  */
 typedef enum {
-  MEM_MT_TRACK,         /* Track allocation for leak detection. */
-  MEM_MT_NO_TRACK,      /* No leak detection. */
-  MEM_MT_FAIL_COUNT,    /* Fail allocations after a while. */
-  MEM_MT_FAIL_PERCENT,  /* Fail allocations randomly. */
-  MEM_MT_SUBALLOC       /* Suballocate from larger blocks. */
+  MEM_MT_TRACK,         /**< Track allocation for leak detection. */
+  MEM_MT_NO_TRACK,      /**< No leak detection. */
+  MEM_MT_FAIL_COUNT,    /**< Fail allocations after a while. */
+  MEM_MT_FAIL_PERCENT,  /**< Fail allocations randomly. */
+  MEM_MT_SUBALLOC       /**< Suballocate from larger blocks. */
 } mem_mt_policy_t;
 
-/*
- * A memory block.
+/**
+ * @brief A memory block.
  *
+ * @details
  * The memory manager keeps track of allocated blocks using mem_mt_block_t.
  *
- * The next member of mem_mt_block_t is used to keep a linked list of all the currently allocated
- * blocks. Searching this list is inefficient, but there are at least two reasons to do it this way,
- * instead of using a more efficient data structure, such as a binary tree. First, this code is for
- * testing binary tree routines—using a binary tree data structure to do it is a strange idea!
- * Second, the ISO C standard says that, with few exceptions, using the relational operators
- * (<, <=, >, >=) to compare pointers that do not point inside the same array produces
- * undefined behavior, but allows use of the equality operators (==, !=) for a larger class of
- * pointers.
- *
+ * The next member of mem_mt_block_t is used to keep a linked list of all the currently allocated blocks.<br>
+ *    Searching this list is inefficient, but there are at least two reasons to do it this way,
+ *    instead of using a more efficient data structure, such as a binary tree.<br>
+ *    First, this code is for testing binary tree routines—using a binary tree data structure to do it is a strange idea!<br>
+ *    Second, the `ISO C` standard says that, with few exceptions, using the relational operators
+ *    `(<, <=, >, >=)` to compare pointers that do not point inside the same array produces
+ *    undefined behavior, but allows use of the equality operators `(==, !=)` for a larger class of
+ *    pointers.
  */
 typedef struct mem_mt_block {
-  struct mem_mt_block *next;   /* Next in linked list. */
-  int idx;                     /* Allocation order index number. */
-  size_t size;                 /* Size in bytes. */
-  size_t used;                 /* MEM_MT_SUBALLOC: amount used so far. */
-  void *content;               /* Allocated region. */
+  struct mem_mt_block *next;   /**< @brief Next in linked list. */
+  int idx;                     /**< @brief Allocation order index number. */
+  size_t size;                 /**< @brief Size in bytes. */
+  size_t used;                 /**< @brief `MEM_MT_SUBALLOC`: amount used so far. */
+  void *content;               /**< @brief Allocated region. */
 } mem_mt_block_t;
 
-/* Indexes into arg[] within mem_mt_allocator_t. */
+/**
+ * @enum mem_mt_arg_index_t
+ * @brief Indexes into `arg[]` within mem_mt_allocator_t.
+ *
+ * @details Used when calling mem_mt_allocator_new().
+ */
 typedef enum {
-  MEM_MT_COUNT = 0,         /* MEM_MT_FAIL_COUNT: Remaining successful allocations. */
-  MEM_MT_PERCENT = 0,       /* MEM_MT_FAIL_PERCENT: Failure percentage. */
-  MEM_MT_BLOCK_SIZE = 0,    /* MEM_MT_SUBALLOC: Size of block to suballocate. */
-  MEM_MT_ALIGN = 1          /* MEM_MT_SUBALLOC: Alignment of suballocated blocks. */
+  MEM_MT_COUNT = 0,         /**< `MEM_MT_FAIL_COUNT`: Remaining successful allocations. */
+  MEM_MT_PERCENT = 0,       /**< `MEM_MT_FAIL_PERCENT`: Failure percentage. */
+  MEM_MT_BLOCK_SIZE = 0,    /**< `MEM_MT_SUBALLOC`: Size of block to suballocate. */
+  MEM_MT_ALIGN = 1          /**< `MEM_MT_SUBALLOC`: Alignment of suballocated blocks. */
 } mem_mt_arg_index_t;
 
-/* Memory tracking allocator. */
+/**
+ * @brief Memory tracking allocator.
+ *
+ * @details
+ * A data structure to keep track of settings and a list of blocks.
+ */
 typedef struct mt_allocator {
-  mem_allocator_t allocator;         /* Allocator. Must be first member. */
+  mem_allocator_t allocator;         /**< @brief Allocator. Must be first member. */
   /* Settings. */
-  mem_mt_policy_t policy;            /* Allocation policy. */
-  int arg[2];                        /* Policy arguments. */
-  int verbosity;                     /* Message verbosity level. */
+  mem_mt_policy_t policy;            /**< @brief Allocation policy. */
+  int arg[2];                        /**< @brief Policy arguments. */
+  int verbosity;                     /**< @brief Message verbosity level. */
   /* Current state. */
-  mem_mt_block_t *head, *tail;       /* Head and tail of block list. */
-  int alloc_idx;                     /* Number of allocations so far. */
-  int block_cnt;                     /* Number of still-allocated blocks. */
+  mem_mt_block_t *head;              /**< @brief Head of block list. */
+  mem_mt_block_t *tail;              /**< @brief Tail of block list. */
+  int alloc_idx;                     /**< @brief Number of allocations so far. */
+  int block_cnt;                     /**< @brief Number of still-allocated blocks. */
 } mem_mt_allocator_t;
 
 
