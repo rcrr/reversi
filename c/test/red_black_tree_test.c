@@ -76,6 +76,7 @@ static const GOptionEntry entries[] =
 static void creation_and_destruction_test (void);
 static void probe_test (void);
 static void item_compare_f_test (void);
+static void item_destroy_f_test (void);
 static void copy_test (void);
 static void copy_test (void);
 static void insert_replace_and_find_test (void);
@@ -102,6 +103,10 @@ compare_int (const void *item_a,
 static int
 compare_int_and_increment_param (const void *item_a,
                                  const void *item_b,
+                                 void *param);
+
+static void
+on_item_destroy_increment_param (void *item,
                                  void *param);
 
 static int *
@@ -158,6 +163,7 @@ main (int   argc,
   g_test_add_func("/red_black_tree/creation_and_destruction_test", creation_and_destruction_test);
   g_test_add_func("/red_black_tree/probe_test", probe_test);
   g_test_add_func("/red_black_tree/item_compare_f_test", item_compare_f_test);
+  g_test_add_func("/red_black_tree/item_destroy_f_test", item_destroy_f_test);
   g_test_add_func("/red_black_tree/copy_test", copy_test);
   g_test_add_func("/red_black_tree/insert_replace_and_find_test", insert_replace_and_find_test);
   g_test_add_func("/red_black_tree/delete_test", delete_test);
@@ -280,6 +286,44 @@ item_compare_f_test (void)
 
   /* Final comparison count check. */
   g_assert(cnt == expected_comparison_cnt);
+}
+
+static void
+item_destroy_f_test (void)
+{
+  /* Test data set is composed by an array of ten integers: [0..9]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /*
+   * Parameter passed to the table initialization.
+   * The function compare_int_and_increment_param increment the parameter at each call.
+   */
+  unsigned long long int cnt = 0;
+  const unsigned long long int expected_destroy_cnt = data_size;
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, &cnt, NULL);
+  g_assert(table);
+
+  /* Count has to be zero. */
+  g_assert(rbt_count(table) == 0);
+
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    int *item = &data[i];
+    int **item_ref = (int **) rbt_probe(table, item);
+    g_assert(rbt_count(table) == i + 1);             /* Table count has to be equal to the number of inserted elements. */
+    g_assert(*item_ref != NULL);                     /* Item pointer has to be not null. */
+    g_assert(*item_ref == &data[i]);                 /* Item pointer has to reference the appropriate array element. */
+    g_assert(**item_ref == i);                       /* Item (**item_ref) has to be equal to the loop counter. */
+  }
+
+  /* Frees the table. */
+  rbt_destroy(table, on_item_destroy_increment_param);
+
+  /* Final comparison count check. */
+  g_assert(cnt == expected_destroy_cnt);
 }
 
 static void
@@ -1322,6 +1366,20 @@ compare_int_and_increment_param (const void *item_a,
   const int b = *(int *) item_b;
   (*cnt_p)++;
   return (a > b) - (a < b);
+}
+
+/*
+ * Argument param is a pointer to an unsigned long long integer
+ * that is incremented each call.
+ */
+static void
+on_item_destroy_increment_param (void *item,
+                                 void *param)
+{
+  assert(item);
+  assert(param);
+  unsigned long long int *cnt_p = (unsigned long long int *) param;
+  (*cnt_p)++;
 }
 
 /*
