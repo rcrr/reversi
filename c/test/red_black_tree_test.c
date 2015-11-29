@@ -75,6 +75,7 @@ static const GOptionEntry entries[] =
 
 static void creation_and_destruction_test (void);
 static void probe_test (void);
+static void item_compare_f_test (void);
 static void copy_test (void);
 static void copy_test (void);
 static void insert_replace_and_find_test (void);
@@ -87,7 +88,8 @@ static void traverser_insert_test (void);
 static void traverser_replace_test (void);
 static void traverser_on_changing_table_test (void);
 static void performance_test (void);
-static void allocator_test (void);
+static void creation_and_destruction_mt_test (void);
+
 
 
 /* Helper function prototypes. */
@@ -96,6 +98,11 @@ static int
 compare_int (const void *item_a,
              const void *item_b,
              void *param);
+
+static int
+compare_int_and_increment_param (const void *item_a,
+                                 const void *item_b,
+                                 void *param);
 
 static int *
 prepare_data_array (const size_t len,
@@ -150,6 +157,7 @@ main (int   argc,
 
   g_test_add_func("/red_black_tree/creation_and_destruction_test", creation_and_destruction_test);
   g_test_add_func("/red_black_tree/probe_test", probe_test);
+  g_test_add_func("/red_black_tree/item_compare_f_test", item_compare_f_test);
   g_test_add_func("/red_black_tree/copy_test", copy_test);
   g_test_add_func("/red_black_tree/insert_replace_and_find_test", insert_replace_and_find_test);
   g_test_add_func("/red_black_tree/delete_test", delete_test);
@@ -162,7 +170,7 @@ main (int   argc,
   g_test_add_func("/red_black_tree/traverser_replace_test", traverser_replace_test);
   g_test_add_func("/red_black_tree/traverser_on_changing_table_test", traverser_on_changing_table_test);
 
-  g_test_add_func("/red_black_tree/allocator_test", allocator_test);
+  g_test_add_func("/red_black_tree/creation_and_destruction_mt_test", creation_and_destruction_mt_test);
 
   if (g_test_perf()) {
     g_test_add_func("/red_black_tree/performance_test", performance_test);
@@ -232,6 +240,46 @@ probe_test (void)
 
   /* Frees the table. */
   rbt_destroy(table, NULL);
+}
+
+static void
+item_compare_f_test (void)
+{
+  /* Test data set is composed by an array of ten integers: [0..9]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /*
+   * Parameter passed to the table initialization.
+   * The function compare_int_and_increment_param increment the parameter at each call.
+   */
+  unsigned long long int cnt = 0;
+  const unsigned long long int expected_comparison_cnt = 27;
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int_and_increment_param, &cnt, NULL);
+  g_assert(table);
+
+  /* Count has to be zero. */
+  g_assert(rbt_count(table) == 0);
+
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    unsigned long long int tmp = cnt;
+    int *item = &data[i];
+    int **item_ref = (int **) rbt_probe(table, item);
+    g_assert(rbt_count(table) == i + 1);             /* Table count has to be equal to the number of inserted elements. */
+    g_assert(*item_ref != NULL);                     /* Item pointer has to be not null. */
+    g_assert(*item_ref == &data[i]);                 /* Item pointer has to reference the appropriate array element. */
+    g_assert(**item_ref == i);                       /* Item (**item_ref) has to be equal to the loop counter. */
+    g_assert(cnt >= tmp);
+  }
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+
+  /* Final comparison count check. */
+  g_assert(cnt == expected_comparison_cnt);
 }
 
 static void
@@ -1209,6 +1257,34 @@ performance_test (void)
 
 
 /*
+ * Test functions for advanced memory managers applyed to the table structure.
+ */
+
+static void
+creation_and_destruction_mt_test (void)
+{
+  int verbosity = 0;
+  int arg[2] = {0, 0};
+
+  mem_mt_allocator_t *mt = mem_mt_allocator_new(MEM_MT_TRACK, arg, verbosity);
+  mem_allocator_t * alloc = mem_mt_allocator(mt);
+
+  rbt_table_t *table = rbt_create(compare_int, NULL, alloc);
+  g_assert(table);
+
+  size_t count = rbt_count(table);
+  g_assert(count == 0);
+
+  g_assert(verify_tree(table, NULL, 0));
+
+  rbt_destroy(table, NULL);
+
+  mem_mt_allocator_free(mt);
+}
+
+
+
+/*
  * Internal functions.
  */
 
@@ -1223,9 +1299,29 @@ compare_int (const void *item_a,
 {
   assert(item_a);
   assert(item_b);
-  const int *a = (int *) item_a;
-  const int *b = (int *) item_b;
-  return (*a > *b) - (*a < *b);
+  const int a = *(int *) item_a;
+  const int b = *(int *) item_b;
+  return (a > b) - (a < b);
+}
+
+/*
+ * Compare function for integers.
+ * Argument param is a pointer to an unsigned long long integer
+ * that is incremented each call.
+ */
+static int
+compare_int_and_increment_param (const void *item_a,
+                                 const void *item_b,
+                                 void *param)
+{
+  assert(item_a);
+  assert(item_b);
+  assert(param);
+  unsigned long long int *cnt_p = (unsigned long long int *) param;
+  const int a = *(int *) item_a;
+  const int b = *(int *) item_b;
+  (*cnt_p)++;
+  return (a > b) - (a < b);
 }
 
 /*
@@ -1528,32 +1624,4 @@ compare_trees (rbt_node_t *a,
   if (a->links[0] != NULL) okay &= compare_trees(a->links[0], b->links[0], compare, param);
   if (a->links[1] != NULL) okay &= compare_trees(a->links[1], b->links[1], compare, param);
   return okay;
-}
-
-
-
-/*
- * Test functions for advanced memory managers applyed to the table structure.
- */
-
-static void
-allocator_test (void)
-{
-  int verbosity = 0;
-  int arg[2] = {0, 0};
-
-  mem_mt_allocator_t *mt = mem_mt_allocator_new(MEM_MT_TRACK, arg, verbosity);
-  mem_allocator_t * alloc = mem_mt_allocator(mt);
-
-  rbt_table_t *table = rbt_create(compare_int, NULL, alloc);
-  g_assert(table);
-
-  size_t count = rbt_count(table);
-  g_assert(count == 0);
-
-  g_assert(verify_tree(table, NULL, 0));
-
-  rbt_destroy(table, NULL);
-
-  mem_mt_allocator_free(mt);
 }
