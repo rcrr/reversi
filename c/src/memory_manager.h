@@ -37,6 +37,10 @@
 
 
 
+/*************************/
+/* Forward declarations. */
+/*************************/
+
 /**
  * @struct mem_allocator_t
  * @brief Memory allocator.
@@ -82,9 +86,11 @@ typedef void
 mem_free_f (mem_allocator_t *alloc,
             void *block);
 
-/**********************************************/
-/* Type declarations.                         */
-/**********************************************/
+
+
+/**************************************************/
+/* Type declarations for the allocator structure. */
+/**************************************************/
 
 /**
  * @brief Memory allocator.
@@ -95,6 +101,12 @@ struct mem_allocator {
   mem_malloc_f *malloc;   /**< @brief Memory allocation function pointer. */
   mem_free_f   *free;     /**< @brief Memory de-allocation function pointer. */
 };
+
+
+
+/**************************************************************/
+/* Type declarations for the memory tracker allocator family. */
+/**************************************************************/
 
 /**
  * @enum mem_mt_policy_t
