@@ -90,6 +90,7 @@ static void traverser_replace_test (void);
 static void traverser_on_changing_table_test (void);
 static void performance_test (void);
 static void creation_and_destruction_mt_test (void);
+static void probe_mt_test (void);
 
 
 
@@ -181,6 +182,7 @@ main (int   argc,
   g_test_add_func("/red_black_tree/traverser_on_changing_table_test", traverser_on_changing_table_test);
 
   g_test_add_func("/red_black_tree/creation_and_destruction_mt_test", creation_and_destruction_mt_test);
+  g_test_add_func("/red_black_tree/probe_mt_test", probe_mt_test);
 
   if (g_test_perf()) {
     g_test_add_func("/red_black_tree/performance_test", performance_test);
@@ -874,9 +876,9 @@ traverser_on_changing_table_test (void)
   rbt_traverser_t *t = &traverser;
   int *e;
 
-  /* Test data set is composed by an array of ten integers: [0..31]. */
+  /* Test data set is composed by an array of 32 integers: [0..31]. */
   int data[] = {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
-                 16, 17, 18, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+                 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
 
   /* Set 0. */
   size_t keys_0[] = { 1, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30 };
@@ -1334,6 +1336,66 @@ creation_and_destruction_mt_test (void)
   rbt_destroy(table, NULL);
 
   mem_mt_allocator_free(mt);
+}
+
+static void
+probe_mt_test (void)
+{
+  /* Test data set is composed by an array of 64 integers: [0..63]. */
+  int data[] = { 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+                 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+                 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48,
+                 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32};
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  struct mt_type {
+    char *desc;
+    mem_mt_policy_t policy;
+    int args[2];
+    int verbosity;
+  };
+
+  struct mt_type mtts[] = {
+    { "Untracked memory allocation", MEM_MT_NO_TRACK,     {0, 0}, 0 },
+    { "Tracked memory allocation",   MEM_MT_TRACK,        {0, 0}, 0 },
+    { "Block memory allocation",     MEM_MT_SUBALLOC, {1024, 64}, 0 }
+  };
+  const size_t mts_size = sizeof(mtts) / sizeof(mtts[0]);
+
+  for (size_t j = 0; j < mts_size; j++) {
+    struct mt_type *mttp = &mtts[j];
+
+    mem_mt_allocator_t *mt = mem_mt_allocator_new(mttp->policy, mttp->args, mttp->verbosity);
+    mem_allocator_t * alloc = mem_mt_allocator(mt);
+
+    /* Creates the new empty table. */
+    rbt_table_t *table = rbt_create(compare_int, NULL, alloc);
+    g_assert(table);
+
+    /* Count has to be zero. */
+    g_assert(rbt_count(table) == 0);
+
+    /* Inserts the [0..63] set of elements in the table in sequential order. */
+    for (size_t i = 0; i < data_size; i++) {
+      int *item = &data[i];
+      int **item_ref = (int **) rbt_probe(table, item);
+      g_assert(rbt_count(table) == i + 1);             /* Table count has to be equal to the number of inserted elements. */
+      g_assert(*item_ref != NULL);                     /* Item pointer has to be not null. */
+      g_assert(*item_ref == &data[i]);                 /* Item pointer has to reference the appropriate array element. */
+      g_assert(verify_tree(table, data, i + 1));       /* Runs the verify_tree procedure on the growing table. */
+    }
+
+    /* Finally the tree must be consistent. */
+    g_assert(verify_tree(table, data, data_size));
+
+    /* Frees the table. */
+    rbt_destroy(table, NULL);
+
+    /* Frees the memory tracker allocator. */
+    mem_mt_allocator_free(mt);
+
+  }
+
 }
 
 
