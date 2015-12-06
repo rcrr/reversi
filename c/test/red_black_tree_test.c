@@ -89,8 +89,8 @@ static void traverser_insert_test (void);
 static void traverser_replace_test (void);
 static void traverser_on_changing_table_test (void);
 static void performance_test (void);
-static void creation_and_destruction_mt_test (void);
-static void probe_mt_test (void);
+static void creation_and_destruction_mem_dbg_test (void);
+static void probe_mem_dbg_test (void);
 
 
 
@@ -181,8 +181,8 @@ main (int   argc,
   g_test_add_func("/red_black_tree/traverser_replace_test", traverser_replace_test);
   g_test_add_func("/red_black_tree/traverser_on_changing_table_test", traverser_on_changing_table_test);
 
-  g_test_add_func("/red_black_tree/creation_and_destruction_mt_test", creation_and_destruction_mt_test);
-  g_test_add_func("/red_black_tree/probe_mt_test", probe_mt_test);
+  g_test_add_func("/red_black_tree/creation_and_destruction_mem_dbg_test", creation_and_destruction_mem_dbg_test);
+  g_test_add_func("/red_black_tree/probe_mem_dbg_test", probe_mem_dbg_test);
 
   if (g_test_perf()) {
     g_test_add_func("/red_black_tree/performance_test", performance_test);
@@ -1317,13 +1317,13 @@ performance_test (void)
  */
 
 static void
-creation_and_destruction_mt_test (void)
+creation_and_destruction_mem_dbg_test (void)
 {
   int verbosity = 0;
   int arg[2] = {0, 0};
 
-  mem_mt_allocator_t *mt = mem_mt_allocator_new(MEM_MT_TRACK, arg, verbosity);
-  mem_allocator_t * alloc = mem_mt_allocator(mt);
+  mem_dbg_allocator_t *mt = mem_dbg_allocator_new(MEM_DBG_TRACK, arg, verbosity);
+  mem_allocator_t * alloc = mem_dbg_allocator(mt);
 
   rbt_table_t *table = rbt_create(compare_int, NULL, alloc);
   g_assert(table);
@@ -1335,11 +1335,11 @@ creation_and_destruction_mt_test (void)
 
   rbt_destroy(table, NULL);
 
-  mem_mt_allocator_free(mt);
+  mem_dbg_allocator_free(mt);
 }
 
 static void
-probe_mt_test (void)
+probe_mem_dbg_test (void)
 {
   /* Test data set is composed by an array of 64 integers: [0..63]. */
   int data[] = { 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
@@ -1350,23 +1350,23 @@ probe_mt_test (void)
 
   struct mt_type {
     char *desc;
-    mem_mt_policy_t policy;
+    mem_dbg_policy_t policy;
     int args[2];
     int verbosity;
   };
 
   struct mt_type mtts[] = {
-    { "Untracked memory allocation", MEM_MT_NO_TRACK,     {0, 0}, 0 },
-    { "Tracked memory allocation",   MEM_MT_TRACK,        {0, 0}, 0 },
-    { "Block memory allocation",     MEM_MT_SUBALLOC, {1024, 64}, 0 }
+    { "Untracked memory allocation", MEM_DBG_NO_TRACK,     {0, 0}, 0 },
+    { "Tracked memory allocation",   MEM_DBG_TRACK,        {0, 0}, 0 },
+    { "Block memory allocation",     MEM_DBG_SUBALLOC, {1024, 64}, 0 }
   };
   const size_t mts_size = sizeof(mtts) / sizeof(mtts[0]);
 
   for (size_t j = 0; j < mts_size; j++) {
     struct mt_type *mttp = &mtts[j];
 
-    mem_mt_allocator_t *mt = mem_mt_allocator_new(mttp->policy, mttp->args, mttp->verbosity);
-    mem_allocator_t * alloc = mem_mt_allocator(mt);
+    mem_dbg_allocator_t *mt = mem_dbg_allocator_new(mttp->policy, mttp->args, mttp->verbosity);
+    mem_allocator_t * alloc = mem_dbg_allocator(mt);
 
     /* Creates the new empty table. */
     rbt_table_t *table = rbt_create(compare_int, NULL, alloc);
@@ -1392,7 +1392,7 @@ probe_mt_test (void)
     rbt_destroy(table, NULL);
 
     /* Frees the memory tracker allocator. */
-    mem_mt_allocator_free(mt);
+    mem_dbg_allocator_free(mt);
 
   }
 

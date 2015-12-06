@@ -109,17 +109,17 @@ struct mem_allocator {
 /**************************************************************/
 
 /**
- * @enum mem_mt_policy_t
+ * @enum mem_dbg_policy_t
  * @brief Memory tracking policy.
  *
  * @details
- * `MEM_MT_TRACK` and `MEM_MT_NO_TRACK` should be self-explanatory.<br>
- *    `MEM_MT_FAIL_COUNT` takes an argument specifying after how many allocations
+ * `MEM_DBG_TRACK` and `MEM_DBG_NO_TRACK` should be self-explanatory.<br>
+ *    `MEM_DBG_FAIL_COUNT` takes an argument specifying after how many allocations
  *    further allocations should always fail.<br>
- *    `MEM_MT_FAIL_PERCENT` takes an argument specifying an integer percentage of
+ *    `MEM_DBG_FAIL_PERCENT` takes an argument specifying an integer percentage of
  *    allocations to randomly fail.<br>
  *
- * `MEM_MT_SUBALLOC` causes small blocks to be carved out of larger ones allocated with `malloc()`.<br>
+ * `MEM_DBG_SUBALLOC` causes small blocks to be carved out of larger ones allocated with `malloc()`.<br>
  *    This is a good idea for two reasons: `malloc()` can be slow and `malloc()` can waste a lot of
  *    space dealing with the small blocks.<br>
  *    Suballocation cannot be implemented in an entirely
@@ -127,20 +127,20 @@ struct mem_allocator {
  *    to specify the alignment needed, and its use is optional anyhow.
  */
 typedef enum {
-  MEM_MT_TRACK,         /**< Track allocation for leak detection. */
-  MEM_MT_NO_TRACK,      /**< No leak detection. */
-  MEM_MT_FAIL_COUNT,    /**< Fail allocations after a while. */
-  MEM_MT_FAIL_PERCENT,  /**< Fail allocations randomly. */
-  MEM_MT_SUBALLOC       /**< Suballocate from larger blocks. */
-} mem_mt_policy_t;
+  MEM_DBG_TRACK,         /**< Track allocation for leak detection. */
+  MEM_DBG_NO_TRACK,      /**< No leak detection. */
+  MEM_DBG_FAIL_COUNT,    /**< Fail allocations after a while. */
+  MEM_DBG_FAIL_PERCENT,  /**< Fail allocations randomly. */
+  MEM_DBG_SUBALLOC       /**< Suballocate from larger blocks. */
+} mem_dbg_policy_t;
 
 /**
  * @brief A memory block.
  *
  * @details
- * The memory manager keeps track of allocated blocks using mem_mt_block_t.
+ * The memory manager keeps track of allocated blocks using mem_dbg_block_t.
  *
- * The next member of mem_mt_block_t is used to keep a linked list of all the currently allocated blocks.<br>
+ * The next member of mem_dbg_block_t is used to keep a linked list of all the currently allocated blocks.<br>
  *    Searching this list is inefficient, but there are at least two reasons to do it this way,
  *    instead of using a more efficient data structure, such as a binary tree.<br>
  *    First, this code is for testing binary tree routines—using a binary tree data structure to do it is a strange idea!<br>
@@ -149,26 +149,26 @@ typedef enum {
  *    undefined behavior, but allows use of the equality operators `(==, !=)` for a larger class of
  *    pointers.
  */
-typedef struct mem_mt_block {
-  struct mem_mt_block *next;   /**< @brief Next in linked list. */
+typedef struct mem_dbg_block {
+  struct mem_dbg_block *next;   /**< @brief Next in linked list. */
   int idx;                     /**< @brief Allocation order index number. */
   size_t size;                 /**< @brief Size in bytes. */
-  size_t used;                 /**< @brief `MEM_MT_SUBALLOC`: amount used so far. */
+  size_t used;                 /**< @brief `MEM_DBG_SUBALLOC`: amount used so far. */
   void *content;               /**< @brief Allocated region. */
-} mem_mt_block_t;
+} mem_dbg_block_t;
 
 /**
- * @enum mem_mt_arg_index_t
- * @brief Indexes into `arg[]` within mem_mt_allocator_t.
+ * @enum mem_dbg_arg_index_t
+ * @brief Indexes into `arg[]` within mem_dbg_allocator_t.
  *
- * @details Used when calling mem_mt_allocator_new().
+ * @details Used when calling mem_dbg_allocator_new().
  */
 typedef enum {
-  MEM_MT_COUNT = 0,         /**< `MEM_MT_FAIL_COUNT`: Remaining successful allocations. */
-  MEM_MT_PERCENT = 0,       /**< `MEM_MT_FAIL_PERCENT`: Failure percentage. */
-  MEM_MT_BLOCK_SIZE = 0,    /**< `MEM_MT_SUBALLOC`: Size of block to suballocate. */
-  MEM_MT_ALIGN = 1          /**< `MEM_MT_SUBALLOC`: Alignment of suballocated blocks. */
-} mem_mt_arg_index_t;
+  MEM_DBG_COUNT = 0,         /**< `MEM_DBG_FAIL_COUNT`: Remaining successful allocations. */
+  MEM_DBG_PERCENT = 0,       /**< `MEM_DBG_FAIL_PERCENT`: Failure percentage. */
+  MEM_DBG_BLOCK_SIZE = 0,    /**< `MEM_DBG_SUBALLOC`: Size of block to suballocate. */
+  MEM_DBG_ALIGN = 1          /**< `MEM_DBG_SUBALLOC`: Alignment of suballocated blocks. */
+} mem_dbg_arg_index_t;
 
 /**
  * @brief Memory tracking allocator.
@@ -179,15 +179,15 @@ typedef enum {
 typedef struct mt_allocator {
   mem_allocator_t allocator;         /**< @brief Allocator. Must be first member. */
   /* Settings. */
-  mem_mt_policy_t policy;            /**< @brief Allocation policy. */
+  mem_dbg_policy_t policy;            /**< @brief Allocation policy. */
   int arg[2];                        /**< @brief Policy arguments. */
   int verbosity;                     /**< @brief Message verbosity level. */
   /* Current state. */
-  mem_mt_block_t *head;              /**< @brief Head of block list. */
-  mem_mt_block_t *tail;              /**< @brief Tail of block list. */
+  mem_dbg_block_t *head;              /**< @brief Head of block list. */
+  mem_dbg_block_t *tail;              /**< @brief Tail of block list. */
   int alloc_idx;                     /**< @brief Number of allocations so far. */
   int block_cnt;                     /**< @brief Number of still-allocated blocks. */
-} mem_mt_allocator_t;
+} mem_dbg_allocator_t;
 
 
 
@@ -221,16 +221,16 @@ mem_basic_free (mem_allocator_t *alloc,
 /* Function prototypes for the memory tracker allocator structure. */
 /*******************************************************************/
 
-extern mem_mt_allocator_t *
-mem_mt_allocator_new (mem_mt_policy_t policy,
+extern mem_dbg_allocator_t *
+mem_dbg_allocator_new (mem_dbg_policy_t policy,
                       int arg[2],
                       int verbosity);
 
 extern void
-mem_mt_allocator_free (mem_mt_allocator_t *mt);
+mem_dbg_allocator_free (mem_dbg_allocator_t *mt);
 
 extern mem_allocator_t *
-mem_mt_allocator (mem_mt_allocator_t *mt);
+mem_dbg_allocator (mem_dbg_allocator_t *mt);
 
 
 
