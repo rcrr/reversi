@@ -121,15 +121,15 @@ static void mem_dbg_fail (const char *message, ...);
  */
 mem_dbg_allocator_t *
 mem_dbg_allocator_new (mem_dbg_policy_t policy,
-                      int arg[2],
-                      int verbosity)
+                       int args[2],
+                       int verbosity)
 {
   mem_dbg_allocator_t *mt = mem_dbg_malloc(sizeof(mem_dbg_allocator_t));
   mt->allocator.malloc = mem_dbg_allocate;
   mt->allocator.free = mem_dbg_deallocate;
   mt->policy = policy;
-  mt->arg[0] = arg[0];
-  mt->arg[1] = arg[1];
+  mt->args[0] = args[0];
+  mt->args[1] = args[1];
   mt->verbosity = verbosity;
   mt->head = mt->tail = NULL;
   mt->alloc_idx = 0;
@@ -182,7 +182,7 @@ mem_dbg_allocator (mem_dbg_allocator_t *mt)
  */
 static void *
 mem_dbg_block_new (mem_dbg_allocator_t *mt,
-                  size_t size)
+                   size_t size)
 {
   mem_dbg_block_t *new;
   /* Allocate and initialize new mem_dbg_block_t. */
@@ -217,7 +217,7 @@ mem_reject_request (mem_dbg_allocator_t *mt,
 /* Allocates and returns a block of size bytes. */
 static void *
 mem_dbg_allocate (mem_allocator_t *allocator,
-                 size_t size)
+                  size_t size)
 {
   mem_dbg_allocator_t *mt = (mem_dbg_allocator_t *) allocator;
   /* Special case. */
@@ -231,26 +231,26 @@ mem_dbg_allocate (mem_allocator_t *allocator,
   case MEM_DBG_NO_TRACK: return mem_dbg_malloc(size);
 
   case MEM_DBG_FAIL_COUNT:
-    if (mt->arg[MEM_DBG_COUNT] == 0) {
+    if (mt->args[MEM_DBG_COUNT] == 0) {
       mem_reject_request(mt, size);
       return NULL;
     }
-    mt->arg[MEM_DBG_COUNT]--;
+    mt->args[MEM_DBG_COUNT]--;
     return mem_dbg_block_new(mt, size);
 
   case MEM_DBG_FAIL_PERCENT:
-    if (rand () / (RAND_MAX / 100 + 1) < mt->arg[MEM_DBG_PERCENT]) {
+    if (rand () / (RAND_MAX / 100 + 1) < mt->args[MEM_DBG_PERCENT]) {
       mem_reject_request(mt, size);
       return NULL;
     }
     else return mem_dbg_block_new(mt, size);
 
   case MEM_DBG_SUBALLOC:
-    if (mt->tail == NULL || mt->tail->used + size > (size_t) mt->arg[MEM_DBG_BLOCK_SIZE])
-      mem_dbg_block_new(mt, mt->arg[MEM_DBG_BLOCK_SIZE]);
-    if (mt->tail->used + size <= (size_t) mt->arg[MEM_DBG_BLOCK_SIZE]) {
+    if (mt->tail == NULL || mt->tail->used + size > (size_t) mt->args[MEM_DBG_BLOCK_SIZE])
+      mem_dbg_block_new(mt, mt->args[MEM_DBG_BLOCK_SIZE]);
+    if (mt->tail->used + size <= (size_t) mt->args[MEM_DBG_BLOCK_SIZE]) {
       void *p = (char *) mt->tail->content + mt->tail->used;
-      size = ((size + mt->arg[MEM_DBG_ALIGN] - 1) / mt->arg[MEM_DBG_ALIGN] * mt->arg[MEM_DBG_ALIGN]);
+      size = ((size + mt->args[MEM_DBG_ALIGN] - 1) / mt->args[MEM_DBG_ALIGN] * mt->args[MEM_DBG_ALIGN]);
       mt->tail->used += size;
       if (mt->verbosity >= 3)
         printf("    block #%d: suballocated %lu bytes\n", mt->tail->idx, (unsigned long) size);
@@ -268,7 +268,7 @@ mem_dbg_allocate (mem_allocator_t *allocator,
  */
 static void
 mem_dbg_deallocate (mem_allocator_t *allocator,
-                   void *block)
+                    void *block)
 {
   mem_dbg_allocator_t *mt = (mem_dbg_allocator_t *) allocator;
   mem_dbg_block_t *iter, *prev;

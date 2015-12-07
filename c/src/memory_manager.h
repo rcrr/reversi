@@ -151,10 +151,10 @@ typedef enum {
  */
 typedef struct mem_dbg_block {
   struct mem_dbg_block *next;   /**< @brief Next in linked list. */
-  int idx;                     /**< @brief Allocation order index number. */
-  size_t size;                 /**< @brief Size in bytes. */
-  size_t used;                 /**< @brief `MEM_DBG_SUBALLOC`: amount used so far. */
-  void *content;               /**< @brief Allocated region. */
+  int idx;                      /**< @brief Allocation order index number. */
+  size_t size;                  /**< @brief Size in bytes. */
+  size_t used;                  /**< @brief `MEM_DBG_SUBALLOC`: amount used so far. */
+  void *content;                /**< @brief Allocated region. */
 } mem_dbg_block_t;
 
 /**
@@ -179,12 +179,12 @@ typedef enum {
 typedef struct mt_allocator {
   mem_allocator_t allocator;         /**< @brief Allocator. Must be first member. */
   /* Settings. */
-  mem_dbg_policy_t policy;            /**< @brief Allocation policy. */
-  int arg[2];                        /**< @brief Policy arguments. */
+  mem_dbg_policy_t policy;           /**< @brief Allocation policy. */
+  int args[2];                       /**< @brief Policy arguments. */
   int verbosity;                     /**< @brief Message verbosity level. */
   /* Current state. */
-  mem_dbg_block_t *head;              /**< @brief Head of block list. */
-  mem_dbg_block_t *tail;              /**< @brief Tail of block list. */
+  mem_dbg_block_t *head;             /**< @brief Head of block list. */
+  mem_dbg_block_t *tail;             /**< @brief Tail of block list. */
   int alloc_idx;                     /**< @brief Number of allocations so far. */
   int block_cnt;                     /**< @brief Number of still-allocated blocks. */
 } mem_dbg_allocator_t;
