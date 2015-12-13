@@ -104,9 +104,41 @@ struct mem_allocator {
 
 
 
-/**************************************************************/
-/* Type declarations for the memory tracker allocator family. */
-/**************************************************************/
+/**********************************************/
+/* Global constants.                          */
+/**********************************************/
+
+/*
+ * Default memory allocator that uses malloc() and free().
+ * It is a variable, but must be considered as a constant.
+ */
+extern mem_allocator_t mem_allocator_default;
+
+
+
+/**********************************************************/
+/* Function prototypes for the basic allocator structure. */
+/**********************************************************/
+
+extern void *
+mem_basic_malloc (mem_allocator_t *alloc,
+                  size_t size);
+
+extern void
+mem_basic_free (mem_allocator_t *alloc,
+                void *block);
+
+
+
+/*
+ *
+ * Debug memory tracker.
+ *
+ */
+
+/************************************************************************/
+/* Type declarations for the debugging memory tracker allocator family. */
+/************************************************************************/
 
 /**
  * @enum mem_dbg_policy_t
@@ -191,39 +223,13 @@ typedef struct mt_allocator {
 
 
 
-/**********************************************/
-/* Global constants.                          */
-/**********************************************/
-
-/*
- * Default memory allocator that uses malloc() and free().
- * It is a variable, but must be considered as a constant.
- */
-extern mem_allocator_t mem_allocator_default;
-
-
-
-/**********************************************************/
-/* Function prototypes for the basic allocator structure. */
-/**********************************************************/
-
-extern void *
-mem_basic_malloc (mem_allocator_t *alloc,
-                  size_t size);
-
-extern void
-mem_basic_free (mem_allocator_t *alloc,
-                void *block);
-
-
-
 /*******************************************************************/
 /* Function prototypes for the memory tracker allocator structure. */
 /*******************************************************************/
 
 extern mem_dbg_allocator_t *
 mem_dbg_allocator_new (mem_dbg_policy_t policy,
-                      int arg[2],
+                      int args[2],
                       int verbosity);
 
 extern void
@@ -231,6 +237,69 @@ mem_dbg_allocator_free (mem_dbg_allocator_t *mt);
 
 extern mem_allocator_t *
 mem_dbg_allocator (mem_dbg_allocator_t *mt);
+
+
+
+/*
+ *
+ * Object memory tracker.
+ *
+ */
+
+/*********************************************************/
+/* Type declarations for the object allocator structure. */
+/*********************************************************/
+
+/**
+ * @brief Memory object allocator.
+ *
+ * @details This allocator provides block allocation for specific structures (objects).
+ */
+typedef struct mem_obj_allocator {
+  mem_allocator_t allocator;         /**< @brief Allocator. Must be first member. */
+  /* Settings. */
+  size_t object_size;                /**< @brief The object size in bytes. */
+  size_t segment_size;               /**< @brief The segment size in bytes. */
+  size_t stack_size;                 /**< @brief The stack size in bytes. */
+} mem_obj_allocator_t;
+
+typedef struct mem_obj_segment {
+  struct mem_obj_segment *next;      /**< @brief Next in linked list. */
+  void *content;                     /**< @brief Allocated region. */
+} mem_obj_segment_t;
+
+
+
+/*******************************************************************/
+/* Function prototypes for the memory tracker allocator structure. */
+/*******************************************************************/
+
+/*
+ * In order to have a stack size that is not as big as the allocated size, when
+ * we free "too much" we have to free a block.
+ * Freeing blocks requires to compact the data.
+ * Compacting the data has two requirements:
+ * - data (objects) are not referenced outside the module.
+ * - references to objects moved from one block to another has to be updated as well ...
+ *
+ * Taking as example the red-black tree, if we exchange a node we have to update the parent,
+ * and invalidate traversers.
+ * Updating the parent is at no cost having the child to parent link, otherwise we have to
+ * search for it.
+ *
+ * This is an open point ....
+ */
+
+extern mem_obj_allocator_t *
+mem_obj_allocator_new (const size_t object_size,
+                       const size_t objects_x_segment,
+                       const size_t segments_in_stack);
+
+extern void
+mem_obj_allocator_free (mem_obj_allocator_t *a);
+
+extern mem_allocator_t *
+mem_obj_allocator (mem_obj_allocator_t *a);
 
 
 
