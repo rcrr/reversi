@@ -25,14 +25,24 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 
-MAX_JOBS=8
+
+
+#
+# Runs: time ./perf_test.sh -j 4 --from 1 --to 30
+#
 
 TIME_CMD="/usr/bin/time -f 'Running %C, elapsed real time: %e'"
-#TIME_CMD="/usr/bin/time -v"
+PROGRAM="./build/bin/endgame_solver"
+ARG_F="-f db/gpdb-ffo.txt"
+ARG_S="-s es"
+ARGS="--pv-full-rec --pv-no-print"
+
+MIN_FFO_INDEX=1
+MAX_FFO_INDEX=79
 
 launch_when_not_busy()
 {
-    while [ $(jobs | wc -l) -ge $MAX_JOBS ]
+    while [ $(jobs -r | wc -l) -ge $CJOBS ]
     do
         # at least $MAX_JOBS are still running.
         sleep 1
@@ -40,36 +50,114 @@ launch_when_not_busy()
     eval "$@" &
 }
 
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-01 > out/tmp-01.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-02 > out/tmp-02.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-03 > out/tmp-03.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-04 > out/tmp-04.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-05 > out/tmp-05.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-06 > out/tmp-06.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-07 > out/tmp-07.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-08 > out/tmp-08.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-09 > out/tmp-09.txt
+is_an_integer()
+{
+    re='^[0-9]+$'
+    if [[ $1 =~ $re ]] ; then
+        return 0
+    else
+        return 1
+    fi
+}
 
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-10 > out/tmp-10.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-11 > out/tmp-11.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-12 > out/tmp-12.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-13 > out/tmp-13.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-14 > out/tmp-14.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-15 > out/tmp-15.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-16 > out/tmp-16.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-17 > out/tmp-17.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-18 > out/tmp-18.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-19 > out/tmp-19.txt
+#
+# Concurrent jobs
+#
+CJOBS=1 # default value
 
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-20 > out/tmp-20.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-21 > out/tmp-21.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-22 > out/tmp-22.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-23 > out/tmp-23.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-24 > out/tmp-24.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-25 > out/tmp-25.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-26 > out/tmp-26.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-27 > out/tmp-27.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-28 > out/tmp-28.txt
-launch_when_not_busy  $TIME_CMD ./build/bin/endgame_solver -f db/gpdb-ffo.txt -s es -q ffo-29 > out/tmp-29.txt
+#
+# First FFO game index to solve
+#
+FROM=0 # default value
+
+#
+# Last FFO game index to solve
+#
+TO=0 # default value
+
+# Use > 1 to consume two arguments per pass in the loop (e.g. each argument has a corresponding value to go with it).
+# Use > 0 to consume one or more arguments per pass in the loop (e.g. some arguments don't have a corresponding value
+# to go with it such as in the --default example).
+while [[ $# > 1 ]]
+do
+    key="$1"
+
+    case $key in
+        -j|--concurrent-jobs)
+            CJOBS="$2"
+            shift # past argument
+            ;;
+        -f|--from)
+            FROM="$2"
+            shift # past argument
+            ;;
+        -t|--to)
+            TO="$2"
+            shift # past argument
+            ;;
+        *)
+            # unknown option
+            OPT="$1"
+            echo "$0: option $1 is unknown."
+            exit 1
+            ;;
+    esac
+    shift # past argument or value
+done
+if [[ -n $1 ]]; then
+    echo "$0: Command line options are not complete, or have errors."
+    exit 1
+fi
+
+is_an_integer ${CJOBS};
+if [ $? -eq 1 ]; then
+    echo "$0: option -j must have an integer value."
+    exit 1
+fi
+if [ $CJOBS -lt 1 ]; then
+    echo "$0: option -j must be greater than zero."
+    exit 1
+fi
+
+is_an_integer ${FROM};
+if [ $? -eq 1 ]; then
+    echo "$0: option -f must have an integer value."
+    exit 1
+fi
+is_an_integer ${TO};
+if [ $? -eq 1 ]; then
+    echo "$0: option -t must have an integer value."
+    exit 1
+fi
+if [ $FROM -gt $TO ]; then
+    echo "$0: option -f cannot be greater than option -t."
+    exit 1
+fi
+if [ $FROM -lt $MIN_FFO_INDEX ]; then
+    echo "$0: option -f out of range. Range is [$MIN_FFO_INDEX..$MAX_FFO_INDEX]."
+    exit 1
+fi
+if [ $TO -gt $MAX_FFO_INDEX ]; then
+    echo "$0: option -t out of range. Range is [$MIN_FFO_INDEX..$MAX_FFO_INDEX]."
+    exit 1
+fi
+
+echo Solving FFO entries from index $FROM to index $TO with $CJOBS concurrents jobs.
+
+COUNTER=$FROM
+while [ $COUNTER -le $TO ]; do
+    COUNTER_AS_STRING="$COUNTER"
+    COUNTER_AS_STRING_SIZE=${#COUNTER_AS_STRING}
+    if [ $COUNTER_AS_STRING_SIZE -eq 1 ]; then
+        COUNTER_AS_STRING="0$COUNTER_AS_STRING"
+    fi
+    ARG_Q="-q ffo-$COUNTER_AS_STRING"
+    ARG_D="-d out/es-pve-ffo-$COUNTER_AS_STRING.dat"
+    OUT_FILE="out/es-stdout-ffo-$COUNTER_AS_STRING.txt"
+    
+    launch_when_not_busy $TIME_CMD $PROGRAM $ARG_F $ARG_S $ARG_Q $ARG_D $ARGS > $OUT_FILE
+    
+    let COUNTER=COUNTER+1
+done
 
 wait
