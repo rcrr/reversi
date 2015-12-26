@@ -61,6 +61,8 @@
 #include <glib.h>
 
 #include "board.h"
+#include "red_black_tree.h"
+
 
 
 /**
@@ -135,6 +137,8 @@ typedef struct {
 typedef struct PVCell_ {
   Square           move;           /**< @brief The current move. */
   gboolean         is_active;      /**< @brief True when the cell is used. */
+  GamePositionX    gpx;            /**< @brief Game position. */
+  size_t           ref_count;      /**< @brief Number of entries into the dictionary. */
   struct PVCell_  *next;           /**< @brief The next move. */
   struct PVCell_ **variant;        /**< @brief A variant move. */
 } PVCell;
@@ -181,6 +185,7 @@ typedef struct {
   size_t          line_delete_count;             /**< @brief The number of time the pve_line_delete() function has been called. */
   size_t          line_add_move_count;           /**< @brief The number of time the pve_line_add_move() function has been called. */
   size_t          line_release_cell_count;       /**< @brief The number of times a cell is released in the pve_line_delete() function. */
+  rbt_table_t    *gp_table;                      /**< @brief Collects the unique set of game positions touched by the principal variation. */
 } PVEnv;
 
 /**
@@ -413,7 +418,8 @@ pve_line_delete (PVEnv *pve,
 extern void
 pve_line_add_move (PVEnv *pve,
                    PVCell **line,
-                   Square move);
+                   Square move,
+                   GamePosition *gp);
 
 extern void
 pve_line_add_variant (PVEnv *pve,

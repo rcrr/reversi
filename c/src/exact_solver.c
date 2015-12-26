@@ -357,7 +357,7 @@ game_position_solve_impl (ExactSolution *const result,
       result->leaf_count++;
       node = search_node_new(pass_move, game_position_final_value(gp));
     }
-    pve_line_add_move(pve, pve_line, pass_move);
+    pve_line_add_move(pve, pve_line, pass_move, flipped_players);
     pve_line_delete(pve, *pve_parent_line_p);
     *pve_parent_line_p = pve_line;
     game_position_free(flipped_players);
@@ -372,26 +372,27 @@ game_position_solve_impl (ExactSolution *const result,
       GamePosition *gp2 = game_position_make_move(gp, move);
       pve_line = pve_line_create(pve);
       node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pve_line));
-      game_position_free(gp2);
       if (node2->value > node->value || (!branch_is_active && node2->value == node->value)) {
         branch_is_active = true;
         search_node_free(node);
         node = node2;
         node->move = move;
         node2 = NULL;
-        pve_line_add_move(pve, pve_line, move);
+        pve_line_add_move(pve, pve_line, move, gp2);
+        game_position_free(gp2);
         pve_line_delete(pve, *pve_parent_line_p);
         *pve_parent_line_p = pve_line;
         if (node->value > cutoff) goto out;
         if (!pv_full_recording && node->value == cutoff) goto out;
       } else {
         if (pv_full_recording && node2->value == node->value) {
-          pve_line_add_move(pve, pve_line, move);
+          pve_line_add_move(pve, pve_line, move, gp2);
           pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
         } else {
           pve_line_delete(pve, pve_line);
         }
         search_node_free(node2);
+        game_position_free(gp2);
       }
     }
   }

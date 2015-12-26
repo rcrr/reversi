@@ -115,7 +115,7 @@ static void mem_dbg_fail (const char *message, ...);
  *          where `0` is a “normal” value.
  *
  * @param [in] policy    type of allocator
- * @param [in] arg       addictional arguments
+ * @param [in] args      addictional arguments
  * @param [in] verbosity verbosity level
  * @return               a poiter to the new allocator
  */

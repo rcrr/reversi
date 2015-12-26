@@ -40,6 +40,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <inttypes.h>
 #include <stdbool.h>
 
@@ -151,6 +152,10 @@ static void pve_twa_cell_csv (const PVEnv *const pve,
                               pve_row_t *const row,
                               const PVCell *const cell);
 
+static int
+pve_compare_cells (const void *item_a,
+                   const void *item_b,
+                   void *param);
 
 
 
@@ -429,6 +434,9 @@ pve_new (const GamePositionX *const root_game_position)
   /* Creates the root line and assigns the reference to the dedicated field. */
   pve->root_line = pve_line_create(pve);
 
+  /* Prepares the game position table. */
+  pve->gp_table = rbt_create(pve_compare_cells, NULL, NULL);
+
   g_assert(pve_is_invariant_satisfied(pve, NULL, 0xFF));
 
   return pve;
@@ -473,6 +481,9 @@ pve_free (PVEnv *pve)
     free(pve->lines_segments_sorted);
 
     game_position_x_free(pve->root_game_position);
+
+    printf("pve_free: pve->gt_table->count = %zu\n", pve->gp_table->count);
+    rbt_destroy(pve->gp_table, NULL);
 
     free(pve);
   }
@@ -1080,6 +1091,38 @@ pve_line_create (PVEnv *pve)
   return line_p;
 }
 
+typedef struct pve_gp_table_entry {
+  size_t ref_count;
+  GamePositionX gpx;
+} pve_gp_table_entry_t;
+
+static pve_gp_table_entry_t *
+pve_gp_table_entry_new (const GamePositionX *gpx)
+{
+  assert(gpx);
+
+  pve_gp_table_entry_t *entry;
+  static const size_t size_of_entry = sizeof(pve_gp_table_entry_t);
+
+  entry = (pve_gp_table_entry_t *) malloc(size_of_entry);
+  assert(entry);
+
+  entry->ref_count = 0;
+  entry->gpx.blacks = gpx->blacks;
+  entry->gpx.whites = gpx->whites;
+  entry->gpx.player = gpx->player;
+
+  return entry;
+}
+
+static void
+pve_gp_table_entry_free (pve_gp_table_entry_t *entry)
+{
+  free(entry);
+}
+
+
+
 /**
  * @brief Adds the `move` to the given `line`.
  *
@@ -1093,11 +1136,13 @@ pve_line_create (PVEnv *pve)
  * @param [in,out] pve  a pointer to the principal variation environment
  * @param [in,out] line the line to be updated
  * @param [in]     move the move value to add to the line
+ * @param [in]     gp   the game position after the move
  */
 void
 pve_line_add_move (PVEnv *pve,
                    PVCell **line,
-                   Square move)
+                   Square move,
+                   GamePosition *gp)
 {
   pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
   pve->line_add_move_count++;
@@ -1109,7 +1154,21 @@ pve_line_add_move (PVEnv *pve,
   added_cell->move = move;
   added_cell->is_active = TRUE;
   added_cell->next = *line;
+  added_cell->ref_count = 0;
+  added_cell->gpx.blacks = gp->board->blacks;
+  added_cell->gpx.whites = gp->board->whites;
+  added_cell->gpx.player = gp->player;
   *line = added_cell;
+
+  pve_gp_table_entry_t table_entry;
+  table_entry.gpx.blacks = gp->board->blacks;
+  table_entry.gpx.whites = gp->board->whites;
+  table_entry.gpx.player = gp->player;
+  pve_gp_table_entry_t **entry_ref = (pve_gp_table_entry_t **) rbt_probe(pve->gp_table, &table_entry);
+  if (*entry_ref == &table_entry) {
+    *entry_ref = pve_gp_table_entry_new(&table_entry.gpx);
+  }
+  (*entry_ref)->ref_count++;
 }
 
 void
@@ -1142,6 +1201,17 @@ pve_line_delete (PVEnv *pve,
   pve->line_delete_count++;
   PVCell *cell = *line; // A poiter to the first cell, or null if the line is empty.
   while (cell) {
+    pve_gp_table_entry_t table_key;
+    table_key.gpx.blacks = cell->gpx.blacks;
+    table_key.gpx.whites = cell->gpx.whites;
+    table_key.gpx.player = cell->gpx.player;
+    pve_gp_table_entry_t *table_entry = (pve_gp_table_entry_t *) rbt_find(pve->gp_table, &table_key);
+    assert(table_entry);
+    table_entry->ref_count--;
+    if (table_entry->ref_count == 0) {
+      rbt_delete(pve->gp_table, &table_key);
+      pve_gp_table_entry_free(table_entry);
+    }
     PVCell **v_line = cell->variant;
     if (v_line) pve_line_delete(pve, v_line);
     pve->cells_stack_head--;
@@ -2305,6 +2375,18 @@ pve_twa_cell_csv (const PVEnv *const pve,
           gp_b,
           gp_w,
           gp_p);
+}
+
+static int
+pve_compare_cells (const void *item_a,
+                   const void *item_b,
+                   void *param)
+{
+  assert(item_a && item_a);
+  if (item_a == item_b) return 0;
+  const pve_gp_table_entry_t *a = (pve_gp_table_entry_t *) item_a;
+  const pve_gp_table_entry_t *b = (pve_gp_table_entry_t *) item_b;
+  return game_position_x_compare(&a->gpx, &b->gpx);
 }
 
 
