@@ -460,6 +460,8 @@ extern void
 pve_summary_from_binary_file_to_stream (const char *const in_file_path,
                                         FILE *const stream);
 
+extern void
+pve_transform_to_standard_form(PVEnv *const pve);
 
 
 

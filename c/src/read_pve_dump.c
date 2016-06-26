@@ -164,6 +164,7 @@ main (int argc, char *argv[])
   }
 
   if (print_pv) {
+    pve_transform_to_standard_form(pve);
     pve_line_with_variants_to_stream(pve, stdout);
   }
 

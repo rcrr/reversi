@@ -482,7 +482,6 @@ pve_free (PVEnv *pve)
 
     game_position_x_free(pve->root_game_position);
 
-    printf("pve_free: pve->gt_table->count = %zu\n", pve->gp_table->count);
     rbt_destroy(pve->gp_table, NULL);
 
     free(pve);
@@ -1805,6 +1804,105 @@ pve_summary_from_binary_file_to_stream (const char *const in_file_path,
   g_assert(fclose_ret == 0);
 }
 
+/**
+ * @brief Transforms the PV to standard form.
+ *
+ * @details All the variants are sorted in natural order, [A1, B1, C1...H8].
+ *
+ * @param [in,out] pve a pointer to the principal variation environment
+ */
+void
+pve_transform_to_standard_form(PVEnv *const pve)
+{
+  g_assert(pve);
+
+  pve_internals_to_stream(pve, stdout, 0x0020);
+
+  size_t count = 0;
+
+  /*
+   * The board has 64 squares, each move can have a pass, so
+   * keeping it simple, 128 is the theoretical upper bound.
+   */
+  static const size_t max_recursion_depth = 128;
+
+  /* The stack of pve lines to be traversed. */
+  PVCell **line_stack[max_recursion_depth];
+
+  /* Initializes the first element in the line array. */
+  line_stack[0] = pve->root_line;
+
+  /* Sets the header pointer on the second element. */
+  PVCell ***line_stack_header = line_stack + 1;
+
+  /* Loops until there are unprocessed lines on the stack. */
+  while (line_stack_header > line_stack) {
+    line_stack_header--;
+
+    /*
+     * Each iteration of the while loop works on a line.
+     * The current line cannot be a pointer on the line stack, becouse it can be overwritten
+     * during the iteration.
+     * The current line pointer is set at the beginning of each iteration and is then used safely.
+     */
+    PVCell **cp = *line_stack_header;
+
+    /* Cycles over the moves of the line. If the move has a variant it is pushed on the stack of lines. */
+    while (*cp) {
+      PVCell **next_cp = NULL;
+      if ((*cp)->variant) {
+
+        *line_stack_header++ = (*cp)->variant;
+
+        /*
+         * Picks the smaller value [A1, B1, ... H8] and exchange it with the current PVCell.
+         */
+
+        PVCell **firstp = cp;
+        PVCell **vp = cp;
+        while (vp) {
+          printf("%s  ", square_as_move_to_string((*vp)->move));
+          if ((*vp)->move < (*firstp)->move) firstp = vp;
+          vp = (*vp)->variant;
+        }
+        printf("----  %s", square_as_move_to_string((*firstp)->move));
+
+        if (*firstp != *cp) {
+          /* We need to exchange the next field of the cell pointing to c,
+           * or the line pointer when c is the first cell in the line, with
+           * the line pointer of the choosen variant.
+           * Tricky ... we need a further level of indirection .... YES ONE MORE!
+           *
+           * Moving firstp on behalf of cp is fine, but pushing the variant line on the stack needs to be aware of this.
+           */
+          printf(" -> swap (*cp)->move=%s AND (*firstp)->move=%s\n", square_as_move_to_string((*cp)->move), square_as_move_to_string((*firstp)->move));
+          printf("  ..  ..  cp=%p, firstp=%p, *cp=%p, *firstp=%p\n", (void *) cp, (void *) firstp, (void *) *cp, (void *) *firstp);
+
+          PVCell *tmp = *cp;
+          *cp = *firstp;
+          *firstp = tmp;
+
+          pve_internals_to_stream(pve, stdout, 0x0020);
+          printf("  ..  ..  cp=%p, firstp=%p, *cp=%p, *firstp=%p\n", (void *) cp, (void *) firstp, (void *) *cp, (void *) *firstp);
+          abort();
+
+          /*
+           * Variants has to be swapped!!!! !!!! !!! !! !
+           */
+
+        } else {
+          printf(" -> ok\n");
+        }
+
+      }
+      if (!next_cp) next_cp = &(*cp)->next;
+      cp = next_cp;
+      count++;
+    }
+  }
+
+  printf("count = %zu\n", count);
+}
 
 
 /*******************************************************/
@@ -2382,7 +2480,7 @@ pve_compare_cells (const void *item_a,
                    const void *item_b,
                    void *param)
 {
-  assert(item_a && item_a);
+  assert(item_a && item_b);
   if (item_a == item_b) return 0;
   const pve_gp_table_entry_t *a = (pve_gp_table_entry_t *) item_a;
   const pve_gp_table_entry_t *b = (pve_gp_table_entry_t *) item_b;
