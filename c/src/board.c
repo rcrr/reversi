@@ -38,6 +38,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <immintrin.h>
+
 #include <glib.h>
 
 #include "board.h"
@@ -64,11 +66,33 @@ direction_shift_back_square_set_by_amount (const Direction dir,
                                            const SquareSet squares,
                                            const int amount);
 
+static SquareSet
+board_legal_moves0 (const Board *const b,
+                    const Player p);
+
+static SquareSet
+board_legal_moves1 (const Board *const b,
+                    const Player p);
+
 
 
 /*
  * Internal variables and constants.
  */
+
+/**/
+static const Direction direction_opposites[] = { SE, S, SW, E, W, NE, N, NW };
+
+/**/
+static const SquareSet direction_wave_mask[] = { 0xFCFCFCFCFCFC0000,   // NW - North-West
+                                                 0xFFFFFFFFFFFF0000,   // N  - North
+                                                 0x3F3F3F3F3F3F0000,   // NE - North-East
+                                                 0xFCFCFCFCFCFCFCFC,   // W  - West
+                                                 0x3F3F3F3F3F3F3F3F,   // E  - East
+                                                 0x0000FCFCFCFCFCFC,   // SW - South-West
+                                                 0x0000FFFFFFFFFFFF,   // S  - South
+                                                 0x00003F3F3F3F3F3F }; // SE - South-Est
+
 
 /* Array used for conversion between square/move and its string representation. */
 static const gchar *const sq_to_s[66] = {
@@ -1081,6 +1105,42 @@ SquareSet
 board_legal_moves (const Board *const b,
                    const Player p)
 {
+
+  /*
+
+    The function board_legal_moves0 is the hystorical one. The new board_legal_moves1 has four changes here described.
+
+    Changes:
+    - RES  - Exclude result from next direction evaluation. A legal move in one direction doesn't need further verification.
+    - MASK - The board frame having two square thickness is removed (masked) from each specific direction verification.
+    - OPP  - The opposite direction has been transformed from a function call, relaying on a switch statement, to a static constant vector.
+    - CONT - When the survivors set is empty jump to the next iteration on directions.
+
+    Using ffo-35 as a benchmark, running several time each case, selecting the best performance, and combining all the previous improvements,
+    the timings are as follow:
+
+      CASE  Duration  Delta   Relative Improvement
+            secs      secs    perc
+    ________________________________________________
+
+    - BASE : 74.592 : 0.000 : 0.00%
+    - RES  : 72.590 : 2.002 : 2.68%
+    - MASK : 71.600 : 2.992 : 4.01%
+    - OPP  : 70.745 : 3.847 : 5.16%
+    - CONT : 69.708 : 4.884 : 6.55%
+
+   */
+
+  //SquareSet r0 = board_legal_moves0(b, p);
+  SquareSet r1 = board_legal_moves1(b, p);
+  //if (r0 != r1) abort();
+  return r1;
+}
+
+static SquareSet
+board_legal_moves0 (const Board *const b,
+                    const Player p)
+{
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
@@ -1096,6 +1156,37 @@ board_legal_moves (const Board *const b,
   for (Direction dir = NW; dir <= SE; dir++) {
     const Direction opposite = direction_opposite(dir);
     SquareSet wave = direction_shift_square_set(dir, empties) & o_bit_board;
+    int shift = 1;
+    while (wave != empty_square_set) {
+      wave = direction_shift_square_set(dir, wave);
+      shift++;
+      result |= direction_shift_back_square_set_by_amount(opposite, (wave & p_bit_board), shift);
+      wave &= o_bit_board;
+    }
+  }
+
+  return result;
+}
+
+static SquareSet
+board_legal_moves1 (const Board *const b,
+                    const Player p)
+{
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
+  SquareSet result = empty_square_set;
+
+  const Player o = player_opponent(p);
+  const SquareSet empties = board_empties(b);
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+
+  for (Direction dir = NW; dir <= SE; dir++) {
+    const SquareSet survivors = empties & direction_wave_mask[dir] & ~result;
+    if (!survivors) continue;
+    const Direction opposite = direction_opposites[dir];
+    SquareSet wave = direction_shift_square_set(dir, survivors) & o_bit_board;
     int shift = 1;
     while (wave != empty_square_set) {
       wave = direction_shift_square_set(dir, wave);

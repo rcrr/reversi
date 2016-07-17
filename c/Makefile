@@ -23,7 +23,7 @@
 #
 
 # Add all the programs that has a main and that will be compiled and linked as a bin executable.
-MAINS = endgame_solver gpdb_verify dump_bitrow_changes utest read_pve_dump
+MAINS = endgame_solver gpdb_verify dump_bitrow_changes utest read_pve_dump intel_intrinsics_trial
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
 TEST_PROGS = bit_works_test random_test sort_utils_test board_test game_position_db_test game_position_test \
@@ -43,11 +43,11 @@ CC = gcc
 #LDFLAGS =
 # add -pg for gprof execution.
 # add -DG_DISABLE_ASSERT to disable assertions
-CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mpopcnt
+CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mpopcnt -mavx2 -DG_DISABLE_ASSERT
 LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L
+ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mavx2
 LIBS = `pkg-config --libs glib-2.0` -lgsl -lgslcblas -lm
 TEST_LIBS =
 SRCDIR = src
