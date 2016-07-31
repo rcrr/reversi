@@ -95,10 +95,7 @@ board_legal_moves1 (const Board *const b,
 static const board_legal_moves_function blm_functions[] = { board_legal_moves0,
                                                             board_legal_moves1 };
 
-/**/
-static const Direction direction_opposites[] = { SE, S, SW, E, W, NE, N, NW };
-
-/**/
+/* Used in board_legal_moves0 to reduce the set of possible moves before computing a direction. */
 static const SquareSet direction_wave_mask[] = { 0xFCFCFCFCFCFC0000,   // NW - North-West
                                                  0xFFFFFFFFFFFF0000,   // N  - North
                                                  0x3F3F3F3F3F3F0000,   // NE - North-East
@@ -1105,12 +1102,23 @@ board_is_move_legal (const Board *const b,
   return FALSE;
 }
 
+/**
+ * @brief Returns the index of the current selected variant of the function `board_legal_moves`.
+ *
+ * @return the board legal moves option field
+ */
 int
 board_legal_moves_option_get (void)
 {
   return board_legal_moves_option;
 }
 
+/**
+ * @brief Changes the index value used for selection of the variant of the function `board_legal_moves`.
+ *        Returns the index of the previous selected variant of the function.
+ *
+ * @return the previus option value
+ */
 int
 board_legal_moves_option_set (const int option)
 {
@@ -1142,7 +1150,7 @@ board_legal_moves (const Board *const b,
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
   /* This chunk is for test reason. Turn it on n case of double checking! */
-  if (FALSE) {
+  if (TRUE) {
     const SquareSet r0 = board_legal_moves0(b, p);
     const SquareSet r1 = board_legal_moves1(b, p);
     if (r0 != r1) abort();
@@ -1175,10 +1183,10 @@ board_legal_moves0 (const Board *const b,
   const SquareSet o_bit_board = board_get_player(b, o);
 
   for (Direction dir = NW; dir <= SE; dir++) {
-    const SquareSet survivors = empties & direction_wave_mask[dir] & ~result;
-    if (!survivors) continue;
-    const Direction opposite = direction_opposites[dir];
-    SquareSet wave = direction_shift_square_set(dir, survivors) & o_bit_board;
+    SquareSet wave = empties & direction_wave_mask[dir] & ~result;
+    if (!wave) continue;
+    wave = direction_shift_square_set(dir, wave) & o_bit_board;
+    const Direction opposite = direction_opposite(dir);
     int shift = 1;
     while (wave != empty_square_set) {
       wave = direction_shift_square_set(dir, wave);
@@ -1651,17 +1659,9 @@ direction_opposite (const Direction dir)
 {
   g_assert(dir >= NW && dir <= SE);
 
-  switch (dir) {
-  case NW: return SE;
-  case N:  return S;
-  case NE: return SW;
-  case W:  return E;
-  case E:  return W;
-  case SW: return NE;
-  case S:  return N;
-  case SE: return NW;
-  default: abort();
-  }
+  static const Direction direction_opposites[] = { SE, S, SW, E, W, NE, N, NW };
+
+  return direction_opposites[dir];
 }
 
 /********************************************************/
