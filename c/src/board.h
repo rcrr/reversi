@@ -153,7 +153,7 @@ typedef enum {
  * @typedef SquareSet
  * @brief The set of sixtyfour squares held by the board.
  */
-typedef unsigned long long int SquareSet;
+typedef uint64_t SquareSet;
 
 /**
  * @brief A board is an entity that holds the state of a Reversi's gameboard.

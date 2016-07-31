@@ -84,6 +84,10 @@ static SquareSet
 board_legal_moves1 (const Board *const b,
                     const Player p);
 
+static SquareSet
+board_legal_moves2 (const Board *const b,
+                    const Player p);
+
 
 
 
@@ -93,7 +97,8 @@ board_legal_moves1 (const Board *const b,
 
 /* */
 static const board_legal_moves_function blm_functions[] = { board_legal_moves0,
-                                                            board_legal_moves1 };
+                                                            board_legal_moves1,
+                                                            board_legal_moves2 };
 
 /* Used in board_legal_moves0 to reduce the set of possible moves before computing a direction. */
 static const SquareSet direction_wave_mask[] = { 0xFCFCFCFCFCFC0000,   // NW - North-West
@@ -250,6 +255,7 @@ static const uint64_t zobrist_bitstrings[] = {
 void
 board_module_init (void)
 {
+  /* This should be moved in the main function. Be careful, that valgrind doesn't detect properly AVX2. */
   if (!arch_runtime_is_supported()) {
     printf("The underline architecture, meaning HW and OS, is not supporting the requested features.\n");
     abort();
@@ -1150,10 +1156,11 @@ board_legal_moves (const Board *const b,
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
   /* This chunk is for test reason. Turn it on n case of double checking! */
-  if (TRUE) {
+  if (FALSE) {
     const SquareSet r0 = board_legal_moves0(b, p);
     const SquareSet r1 = board_legal_moves1(b, p);
-    if (r0 != r1) abort();
+    const SquareSet r2 = board_legal_moves2(b, p);
+    if (r0 != r1 || r0 != r2) abort();
     return r0;
   }
 
@@ -1168,7 +1175,7 @@ board_legal_moves (const Board *const b,
  * This is the base implementation for the fuction board_legal_moves.
  * It uses only standard C operations.
  */
-SquareSet
+static SquareSet
 board_legal_moves0 (const Board *const b,
                     const Player p)
 {
@@ -1203,32 +1210,37 @@ board_legal_moves0 (const Board *const b,
  * This is the advanced implementation for the fuction board_legal_moves.
  * It uses Intel Intrinsics calls, based on AVX, AVX2 extensions.
  */
-SquareSet
+static SquareSet
 board_legal_moves1 (const Board *const b,
                     const Player p)
 {
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
-  const Player o = player_opponent(p);
+  static const SquareSet all_squares = 0xFFFFFFFFFFFFFFFF;
+
   const SquareSet empties = board_empties(b);
   const SquareSet p_bit_board = board_get_player(b, p);
-  const SquareSet o_bit_board = board_get_player(b, o);
+  const SquareSet o_bit_board = board_get_player(b, player_opponent(p));
 
-  const __m256i c0 = _mm256_set_epi64x(all_squares_except_column_h, all_squares_except_column_a, 0xFFFFFFFFFFFFFFFF, all_squares_except_column_h);
-  const __m256i c1 = _mm256_set_epi64x(all_squares_except_column_a, 0xFFFFFFFFFFFFFFFF, all_squares_except_column_h, all_squares_except_column_a);
+  const __m256i c0 = _mm256_set_epi64x(all_squares_except_column_h,
+                                       all_squares_except_column_a,
+                                       all_squares,
+                                       all_squares_except_column_h);
+  const __m256i c1 = _mm256_set_epi64x(all_squares_except_column_a,
+                                       all_squares,
+                                       all_squares_except_column_h,
+                                       all_squares_except_column_a);
 
   const __m256i pbb = _mm256_set_epi64x(p_bit_board, p_bit_board, p_bit_board, p_bit_board);
   const __m256i obb = _mm256_set_epi64x(o_bit_board, o_bit_board, o_bit_board, o_bit_board);
-
-  __m256i r0 = _mm256_setzero_si256();
-  __m256i r1 = _mm256_setzero_si256();
 
   __m256i w0 = _mm256_set_epi64x(empties, empties, empties, empties);
   __m256i w1 = _mm256_set_epi64x(empties, empties, empties, empties);
 
   const __m256i shift_f1_0 = _mm256_set_epi64x(1L, 7L, 8L, 9L);
   const __m256i shift_f1_1 = _mm256_set_epi64x(9L, 8L, 7L, 1L);
+
   w0 = _mm256_srlv_epi64(w0, shift_f1_0);
   w1 = _mm256_sllv_epi64(w1, shift_f1_1);
   w0 = _mm256_and_si256(w0, c0);
@@ -1236,26 +1248,19 @@ board_legal_moves1 (const Board *const b,
   w0 = _mm256_and_si256(w0, obb);
   w1 = _mm256_and_si256(w1, obb);
 
-  // shift = 2
-  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
-  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
-  w0 = _mm256_and_si256(w0, c0);
-  w1 = _mm256_and_si256(w1, c1);
-
-  /* The OR can be avoided and r0/r1 set here. */
+  /* shift = 2 */
+  w0 = _mm256_and_si256(_mm256_srlv_epi64(w0, shift_f1_0), c0);
+  w1 = _mm256_and_si256(_mm256_sllv_epi64(w1, shift_f1_1), c1);
   const __m256i shift_b2_0 = _mm256_set_epi64x( 2L, 14L, 16L, 18L);
   const __m256i shift_b2_1 = _mm256_set_epi64x(18L, 16L, 14L,  2L);
-  r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b2_0));
-  r1 = _mm256_or_si256(r1, _mm256_srlv_epi64(_mm256_and_si256(w1, pbb), shift_b2_1));
-
+  __m256i r0 = _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b2_0);
+  __m256i r1 = _mm256_srlv_epi64(_mm256_and_si256(w1, pbb), shift_b2_1);
   w0 = _mm256_and_si256(w0, obb);
   w1 = _mm256_and_si256(w1, obb);
 
-  // shift = 3
-  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
-  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
-  w0 = _mm256_and_si256(w0, c0);
-  w1 = _mm256_and_si256(w1, c1);
+  /* shift = 3 */
+  w0 = _mm256_and_si256(_mm256_srlv_epi64(w0, shift_f1_0), c0);
+  w1 = _mm256_and_si256(_mm256_sllv_epi64(w1, shift_f1_1), c1);
   const __m256i shift_b3_0 = _mm256_set_epi64x( 3L, 21L, 24L, 27L);
   const __m256i shift_b3_1 = _mm256_set_epi64x(27L, 24L, 21L,  3L);
   r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b3_0));
@@ -1263,12 +1268,9 @@ board_legal_moves1 (const Board *const b,
   w0 = _mm256_and_si256(w0, obb);
   w1 = _mm256_and_si256(w1, obb);
 
-
-  // shift = 4
-  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
-  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
-  w0 = _mm256_and_si256(w0, c0);
-  w1 = _mm256_and_si256(w1, c1);
+  /* shift = 4 */
+  w0 = _mm256_and_si256(_mm256_srlv_epi64(w0, shift_f1_0), c0);
+  w1 = _mm256_and_si256(_mm256_sllv_epi64(w1, shift_f1_1), c1);
   const __m256i shift_b4_0 = _mm256_set_epi64x( 4L, 28L, 32L, 36L);
   const __m256i shift_b4_1 = _mm256_set_epi64x(36L, 32L, 28L,  4L);
   r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b4_0));
@@ -1276,12 +1278,9 @@ board_legal_moves1 (const Board *const b,
   w0 = _mm256_and_si256(w0, obb);
   w1 = _mm256_and_si256(w1, obb);
 
-
-  // shift = 5
-  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
-  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
-  w0 = _mm256_and_si256(w0, c0);
-  w1 = _mm256_and_si256(w1, c1);
+  /* shift = 5 */
+  w0 = _mm256_and_si256(_mm256_srlv_epi64(w0, shift_f1_0), c0);
+  w1 = _mm256_and_si256(_mm256_sllv_epi64(w1, shift_f1_1), c1);
   const __m256i shift_b5_0 = _mm256_set_epi64x( 5L, 35L, 40L, 45L);
   const __m256i shift_b5_1 = _mm256_set_epi64x(45L, 40L, 35L,  5L);
   r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b5_0));
@@ -1289,12 +1288,9 @@ board_legal_moves1 (const Board *const b,
   w0 = _mm256_and_si256(w0, obb);
   w1 = _mm256_and_si256(w1, obb);
 
-
-  // shift = 6
-  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
-  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
-  w0 = _mm256_and_si256(w0, c0);
-  w1 = _mm256_and_si256(w1, c1);
+  /* shift = 6 */
+  w0 = _mm256_and_si256(_mm256_srlv_epi64(w0, shift_f1_0), c0);
+  w1 = _mm256_and_si256(_mm256_sllv_epi64(w1, shift_f1_1), c1);
   const __m256i shift_b6_0 = _mm256_set_epi64x( 6L, 42L, 48L, 54L);
   const __m256i shift_b6_1 = _mm256_set_epi64x(54L, 48L, 42L,  6L);
   r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b6_0));
@@ -1303,11 +1299,9 @@ board_legal_moves1 (const Board *const b,
   w1 = _mm256_and_si256(w1, obb);
 
 
-  // shift = 7
-  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
-  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
-  w0 = _mm256_and_si256(w0, c0);
-  w1 = _mm256_and_si256(w1, c1);
+  /* shift = 7 */
+  w0 = _mm256_and_si256(_mm256_srlv_epi64(w0, shift_f1_0), c0);
+  w1 = _mm256_and_si256(_mm256_sllv_epi64(w1, shift_f1_1), c1);
   const __m256i shift_b7_0 = _mm256_set_epi64x( 7L, 49L, 56L, 63L);
   const __m256i shift_b7_1 = _mm256_set_epi64x(63L, 56L, 49L,  7L);
   r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b7_0));
@@ -1318,6 +1312,83 @@ board_legal_moves1 (const Board *const b,
 
   SquareSet result = 0L;
   uint64_t r[8];
+  _mm256_store_si256((__m256i *) r,     r0);
+  _mm256_store_si256((__m256i *) r + 1, r1);
+  for (int i = 0; i < 8; i++) result |= r[i];
+
+  return result;
+}
+
+/*
+ * This is the advanced implementation for the fuction board_legal_moves.
+ * It uses Intel Intrinsics calls, based on AVX, AVX2 extensions.
+ *
+ * Version #2 is somehow ~23% slower than version #1. So it is here only for "documentation".
+ */
+static SquareSet
+board_legal_moves2 (const Board *const b,
+                    const Player p)
+{
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
+  static const SquareSet all_squares = 0xFFFFFFFFFFFFFFFF;
+
+  static const uint64_t shift_back[] = { 0,  0,  0,  0, 0, 0,  0,  0,
+                                         9,  8,  7,  1, 1, 7,  8,  9,
+                                         18, 16, 14, 2, 2, 14, 16, 18,
+                                         27, 24, 21, 3, 3, 21, 24, 27,
+                                         36, 32, 28, 4, 4, 28, 32, 36,
+                                         45, 40, 35, 5, 5, 35, 40, 45,
+                                         54, 48, 42, 6, 6, 42, 48, 54,
+                                         63, 56, 49, 7, 7, 49, 56, 63 };
+
+  const Player o = player_opponent(p);
+  const SquareSet empties = board_empties(b);
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+
+  const __m256i c0 = _mm256_set_epi64x(all_squares_except_column_h,
+                                       all_squares_except_column_a,
+                                       all_squares,
+                                       all_squares_except_column_h);
+  const __m256i c1 = _mm256_set_epi64x(all_squares_except_column_a,
+                                       all_squares,
+                                       all_squares_except_column_h,
+                                       all_squares_except_column_a);
+
+  const __m256i pbb = _mm256_set_epi64x(p_bit_board, p_bit_board, p_bit_board, p_bit_board);
+  const __m256i obb = _mm256_set_epi64x(o_bit_board, o_bit_board, o_bit_board, o_bit_board);
+
+  const __m256i shift_f1_0 = _mm256_load_si256( (__m256i *) shift_back + 2);
+  const __m256i shift_f1_1 = _mm256_load_si256( (__m256i *) shift_back + 3);
+
+  __m256i r0 = _mm256_setzero_si256();
+  __m256i r1 = _mm256_setzero_si256();
+
+  __m256i w0 = _mm256_set_epi64x(empties, empties, empties, empties);
+  __m256i w1 = _mm256_set_epi64x(empties, empties, empties, empties);
+
+  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
+  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
+  w0 = _mm256_and_si256(w0, c0);
+  w1 = _mm256_and_si256(w1, c1);
+  w0 = _mm256_and_si256(w0, obb);
+  w1 = _mm256_and_si256(w1, obb);
+
+  for (int shift = 2; shift < 8; shift++) {
+    const __m256i shift_back_0 = _mm256_load_si256( (__m256i *) shift_back + shift * 2);
+    const __m256i shift_back_1 = _mm256_load_si256( (__m256i *) shift_back + shift * 2 + 1);
+    w0 = _mm256_and_si256(_mm256_srlv_epi64(w0, shift_f1_0), c0);
+    w1 = _mm256_and_si256(_mm256_sllv_epi64(w1, shift_f1_1), c1);
+    r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_back_0));
+    r1 = _mm256_or_si256(r1, _mm256_srlv_epi64(_mm256_and_si256(w1, pbb), shift_back_1));
+    w0 = _mm256_and_si256(w0, obb);
+    w1 = _mm256_and_si256(w1, obb);
+  }
+
+  SquareSet result = 0L;
+  SquareSet r[8];
   _mm256_store_si256((__m256i *) r,     r0);
   _mm256_store_si256((__m256i *) r + 1, r1);
   for (int i = 0; i < 8; i++) result |= r[i];
@@ -1455,20 +1526,7 @@ board_get_player (const Board *const b,
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
-  SquareSet squares;
-
-  switch (p) {
-  case BLACK_PLAYER:
-    squares = b->blacks;
-    break;
-  case WHITE_PLAYER:
-    squares = b->whites;
-    break;
-  default:
-    abort();
-  }
-
-  return squares;
+  return *((SquareSet *) b + p);
 }
 
 /**
