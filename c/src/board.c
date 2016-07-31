@@ -14,7 +14,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -42,6 +42,7 @@
 
 #include <glib.h>
 
+#include "arch.h"
 #include "board.h"
 #include "random.h"
 
@@ -50,6 +51,15 @@
 /**
  * @cond
  */
+
+/* Board legal moves function signature. */
+typedef SquareSet
+(*board_legal_moves_function) (const Board *const b,
+                               const Player p);
+
+/* Selected function. */
+static int board_legal_moves_option = 1;
+
 
 /*
  * Prototypes for internal functions.
@@ -76,9 +86,14 @@ board_legal_moves1 (const Board *const b,
 
 
 
+
 /*
  * Internal variables and constants.
  */
+
+/* */
+static const board_legal_moves_function blm_functions[] = { board_legal_moves0,
+                                                            board_legal_moves1 };
 
 /**/
 static const Direction direction_opposites[] = { SE, S, SW, E, W, NE, N, NW };
@@ -238,6 +253,10 @@ static const uint64_t zobrist_bitstrings[] = {
 void
 board_module_init (void)
 {
+  if (!arch_runtime_is_supported()) {
+    printf("The underline architecture, meaning HW and OS, is not supporting the requested features.\n");
+    abort();
+  }
   board_initialize_bitrow_changes_for_player_array(bitrow_changes_for_player_array);
   board_initialize_shift_square_set_by_amount_mask_array(shift_square_set_by_amount_mask_array);
 }
@@ -1086,6 +1105,20 @@ board_is_move_legal (const Board *const b,
   return FALSE;
 }
 
+int
+board_legal_moves_option_get (void)
+{
+  return board_legal_moves_option;
+}
+
+int
+board_legal_moves_option_set (const int option)
+{
+  int tmp = board_legal_moves_option;
+  board_legal_moves_option = option;
+  return tmp;
+}
+
 /**
  * @brief Returns a list holding the legal moves that the player can do at the board position.
  *        When no moves are available to the player the method returns an empty list.
@@ -1105,71 +1138,30 @@ SquareSet
 board_legal_moves (const Board *const b,
                    const Player p)
 {
-
-  /*
-
-    The function board_legal_moves0 is the hystorical one. The new board_legal_moves1 has four changes here described.
-
-    Changes:
-    - RES  - Exclude result from next direction evaluation. A legal move in one direction doesn't need further verification.
-    - MASK - The board frame having two square thickness is removed (masked) from each specific direction verification.
-    - OPP  - The opposite direction has been transformed from a function call, relaying on a switch statement, to a static constant vector.
-    - CONT - When the survivors set is empty jump to the next iteration on directions.
-
-    Using ffo-35 as a benchmark, running several time each case, selecting the best performance, and combining all the previous improvements,
-    the timings are as follow:
-
-      CASE  Duration  Delta   Relative Improvement
-            secs      secs    perc
-    ________________________________________________
-
-    - BASE : 74.592 : 0.000 : 0.00%
-    - RES  : 72.590 : 2.002 : 2.68%
-    - MASK : 71.600 : 2.992 : 4.01%
-    - OPP  : 70.745 : 3.847 : 5.16%
-    - CONT : 69.708 : 4.884 : 6.55%
-
-   */
-
-  //SquareSet r0 = board_legal_moves0(b, p);
-  SquareSet r1 = board_legal_moves1(b, p);
-  //if (r0 != r1) abort();
-  return r1;
-}
-
-static SquareSet
-board_legal_moves0 (const Board *const b,
-                    const Player p)
-{
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
-  register SquareSet result;
-
-  result = empty_square_set;
-
-  const Player o = player_opponent(p);
-  const SquareSet empties = board_empties(b);
-  const SquareSet p_bit_board = board_get_player(b, p);
-  const SquareSet o_bit_board = board_get_player(b, o);
-
-  for (Direction dir = NW; dir <= SE; dir++) {
-    const Direction opposite = direction_opposite(dir);
-    SquareSet wave = direction_shift_square_set(dir, empties) & o_bit_board;
-    int shift = 1;
-    while (wave != empty_square_set) {
-      wave = direction_shift_square_set(dir, wave);
-      shift++;
-      result |= direction_shift_back_square_set_by_amount(opposite, (wave & p_bit_board), shift);
-      wave &= o_bit_board;
-    }
+  /* This chunk is for test reason. Turn it on n case of double checking! */
+  if (FALSE) {
+    const SquareSet r0 = board_legal_moves0(b, p);
+    const SquareSet r1 = board_legal_moves1(b, p);
+    if (r0 != r1) abort();
+    return r0;
   }
 
-  return result;
+  return blm_functions[board_legal_moves_option](b, p);
 }
 
-static SquareSet
-board_legal_moves1 (const Board *const b,
+/**
+ * @cond
+ */
+
+/*
+ * This is the base implementation for the fuction board_legal_moves.
+ * It uses only standard C operations.
+ */
+SquareSet
+board_legal_moves0 (const Board *const b,
                     const Player p)
 {
   g_assert(b);
@@ -1198,6 +1190,136 @@ board_legal_moves1 (const Board *const b,
 
   return result;
 }
+
+/*
+ * This is the advanced implementation for the fuction board_legal_moves.
+ * It uses Intel Intrinsics calls, based on AVX, AVX2 extensions.
+ */
+SquareSet
+board_legal_moves1 (const Board *const b,
+                    const Player p)
+{
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
+  const Player o = player_opponent(p);
+  const SquareSet empties = board_empties(b);
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+
+  const __m256i c0 = _mm256_set_epi64x(all_squares_except_column_h, all_squares_except_column_a, 0xFFFFFFFFFFFFFFFF, all_squares_except_column_h);
+  const __m256i c1 = _mm256_set_epi64x(all_squares_except_column_a, 0xFFFFFFFFFFFFFFFF, all_squares_except_column_h, all_squares_except_column_a);
+
+  const __m256i pbb = _mm256_set_epi64x(p_bit_board, p_bit_board, p_bit_board, p_bit_board);
+  const __m256i obb = _mm256_set_epi64x(o_bit_board, o_bit_board, o_bit_board, o_bit_board);
+
+  __m256i r0 = _mm256_setzero_si256();
+  __m256i r1 = _mm256_setzero_si256();
+
+  __m256i w0 = _mm256_set_epi64x(empties, empties, empties, empties);
+  __m256i w1 = _mm256_set_epi64x(empties, empties, empties, empties);
+
+  const __m256i shift_f1_0 = _mm256_set_epi64x(1L, 7L, 8L, 9L);
+  const __m256i shift_f1_1 = _mm256_set_epi64x(9L, 8L, 7L, 1L);
+  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
+  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
+  w0 = _mm256_and_si256(w0, c0);
+  w1 = _mm256_and_si256(w1, c1);
+  w0 = _mm256_and_si256(w0, obb);
+  w1 = _mm256_and_si256(w1, obb);
+
+  // shift = 2
+  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
+  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
+  w0 = _mm256_and_si256(w0, c0);
+  w1 = _mm256_and_si256(w1, c1);
+
+  /* The OR can be avoided and r0/r1 set here. */
+  const __m256i shift_b2_0 = _mm256_set_epi64x( 2L, 14L, 16L, 18L);
+  const __m256i shift_b2_1 = _mm256_set_epi64x(18L, 16L, 14L,  2L);
+  r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b2_0));
+  r1 = _mm256_or_si256(r1, _mm256_srlv_epi64(_mm256_and_si256(w1, pbb), shift_b2_1));
+
+  w0 = _mm256_and_si256(w0, obb);
+  w1 = _mm256_and_si256(w1, obb);
+
+  // shift = 3
+  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
+  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
+  w0 = _mm256_and_si256(w0, c0);
+  w1 = _mm256_and_si256(w1, c1);
+  const __m256i shift_b3_0 = _mm256_set_epi64x( 3L, 21L, 24L, 27L);
+  const __m256i shift_b3_1 = _mm256_set_epi64x(27L, 24L, 21L,  3L);
+  r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b3_0));
+  r1 = _mm256_or_si256(r1, _mm256_srlv_epi64(_mm256_and_si256(w1, pbb), shift_b3_1));
+  w0 = _mm256_and_si256(w0, obb);
+  w1 = _mm256_and_si256(w1, obb);
+
+
+  // shift = 4
+  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
+  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
+  w0 = _mm256_and_si256(w0, c0);
+  w1 = _mm256_and_si256(w1, c1);
+  const __m256i shift_b4_0 = _mm256_set_epi64x( 4L, 28L, 32L, 36L);
+  const __m256i shift_b4_1 = _mm256_set_epi64x(36L, 32L, 28L,  4L);
+  r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b4_0));
+  r1 = _mm256_or_si256(r1, _mm256_srlv_epi64(_mm256_and_si256(w1, pbb), shift_b4_1));
+  w0 = _mm256_and_si256(w0, obb);
+  w1 = _mm256_and_si256(w1, obb);
+
+
+  // shift = 5
+  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
+  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
+  w0 = _mm256_and_si256(w0, c0);
+  w1 = _mm256_and_si256(w1, c1);
+  const __m256i shift_b5_0 = _mm256_set_epi64x( 5L, 35L, 40L, 45L);
+  const __m256i shift_b5_1 = _mm256_set_epi64x(45L, 40L, 35L,  5L);
+  r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b5_0));
+  r1 = _mm256_or_si256(r1, _mm256_srlv_epi64(_mm256_and_si256(w1, pbb), shift_b5_1));
+  w0 = _mm256_and_si256(w0, obb);
+  w1 = _mm256_and_si256(w1, obb);
+
+
+  // shift = 6
+  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
+  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
+  w0 = _mm256_and_si256(w0, c0);
+  w1 = _mm256_and_si256(w1, c1);
+  const __m256i shift_b6_0 = _mm256_set_epi64x( 6L, 42L, 48L, 54L);
+  const __m256i shift_b6_1 = _mm256_set_epi64x(54L, 48L, 42L,  6L);
+  r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b6_0));
+  r1 = _mm256_or_si256(r1, _mm256_srlv_epi64(_mm256_and_si256(w1, pbb), shift_b6_1));
+  w0 = _mm256_and_si256(w0, obb);
+  w1 = _mm256_and_si256(w1, obb);
+
+
+  // shift = 7
+  w0 = _mm256_srlv_epi64(w0, shift_f1_0);
+  w1 = _mm256_sllv_epi64(w1, shift_f1_1);
+  w0 = _mm256_and_si256(w0, c0);
+  w1 = _mm256_and_si256(w1, c1);
+  const __m256i shift_b7_0 = _mm256_set_epi64x( 7L, 49L, 56L, 63L);
+  const __m256i shift_b7_1 = _mm256_set_epi64x(63L, 56L, 49L,  7L);
+  r0 = _mm256_or_si256(r0, _mm256_sllv_epi64(_mm256_and_si256(w0, pbb), shift_b7_0));
+  r1 = _mm256_or_si256(r1, _mm256_srlv_epi64(_mm256_and_si256(w1, pbb), shift_b7_1));
+  w0 = _mm256_and_si256(w0, obb);
+  w1 = _mm256_and_si256(w1, obb);
+
+
+  SquareSet result = 0L;
+  uint64_t r[8];
+  _mm256_store_si256((__m256i *) r,     r0);
+  _mm256_store_si256((__m256i *) r + 1, r1);
+  for (int i = 0; i < 8; i++) result |= r[i];
+
+  return result;
+}
+
+/**
+ * @endcond
+ */
 
 /**
  * @brief Returns `TRUE` if the board is not final.

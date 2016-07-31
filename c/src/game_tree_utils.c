@@ -1363,6 +1363,7 @@ pve_dump_to_binary_file (const PVEnv *const pve,
 
   int fclose_ret = fclose(fp);
   g_assert(fclose_ret == 0);
+  (void) fclose_ret; /* Suppress the warning "unused variable" rised when compiling without assertions. */
 }
 
 /**
@@ -1396,6 +1397,7 @@ pve_load_from_binary_file (const char *const in_file_path)
   /* Reads the pve structure from the file. */
   fread_result = fread(&from_file_pve, sizeof(PVEnv), 1, fp);
   g_assert(fread_result == 1);
+  (void) fread_result;
   g_assert(from_file_pve.cells_segments_size <= PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE);
 
   /* Computes usefull pve properties and dimensions. */
@@ -1739,6 +1741,7 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   int fclose_ret = fclose(fp);
   g_assert(fclose_ret == 0);
+  (void) fclose_ret;
 
   return pve;
 }
@@ -1768,6 +1771,7 @@ pve_summary_from_binary_file_to_stream (const char *const in_file_path,
   /* Reads the pve structure from the file. */
   fread_result = fread(&pve, sizeof(PVEnv), 1, fp);
   g_assert(fread_result == 1);
+  (void) fread_result;
 
   fprintf(stream, "# PVE STRUCTURE HEADER\n");
   fprintf(stream, "state:                         0x%016lx  --  The internal state of the structure.\n", pve.state);
@@ -1802,6 +1806,7 @@ pve_summary_from_binary_file_to_stream (const char *const in_file_path,
   /* Closes the input file. */
   int fclose_ret = fclose(fp);
   g_assert(fclose_ret == 0);
+  (void) fclose_ret;
 }
 
 /**

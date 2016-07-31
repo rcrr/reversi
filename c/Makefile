@@ -47,7 +47,7 @@ CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -
 LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mavx2
+ASMFLAGS = -std=c99 -pedantic-errors -Wall -O0 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mavx2 -DG_DISABLE_ASSERT
 LIBS = `pkg-config --libs glib-2.0` -lgsl -lgslcblas -lm
 TEST_LIBS =
 SRCDIR = src
