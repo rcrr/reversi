@@ -12,7 +12,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -84,5 +84,13 @@ bit_works_lowest_bit_set_32 (const uint32_t bit_sequence);
 
 extern uint8_t
 bit_works_lowest_bit_set_8 (const uint8_t bit_sequence);
+
+extern uint64_t
+bit_works_ror_64 (const uint64_t bit_sequence,
+                  const unsigned int shift);
+
+extern uint64_t
+bit_works_rol_64 (const uint64_t bit_sequence,
+                  const unsigned int shift);
 
 #endif /* BIT_WORKS_H */

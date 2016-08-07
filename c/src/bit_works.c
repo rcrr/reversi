@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -30,6 +30,10 @@
  * </tt>
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "board.h"
 #include "bit_works.h"
 
 /**
@@ -212,7 +216,23 @@ bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64_t bit_sequence)
 uint64_t
 bit_works_signed_left_shift (uint64_t bit_sequence, int shift)
 {
-  return shift >= 0 ? bit_sequence << shift : bit_sequence >> -shift;
+  uint64_t result = shift >= 0 ? bit_sequence << shift : bit_sequence >> -shift;
+  /*
+  // Why is the board full? It has to be investigated .....
+  unsigned int s = (64 + shift) % 64;
+  uint64_t tmp = bit_works_rol_64(bit_sequence, s);
+  if (tmp != result) {
+    printf("s            = %u\n", s);
+    printf("shift        = %d\n", shift);
+    printf("bit_sequence = 0x%016lx\n", bit_sequence);
+    printf("result       = 0x%016lx\n", result);
+    printf("tmp          = 0x%016lx\n", tmp);
+    char *b = board_print(board_new(bit_sequence, 0));
+    printf("\n%s\n", b);
+    abort();
+  }
+  */
+  return result;
 }
 
 /**
@@ -236,7 +256,7 @@ bit_works_highest_bit_set_32 (uint32_t bit_sequence)
     tmp >>= 16;
     result = 0x00010000;
   }
-  if  (tmp > 0x000000FF)                {
+  if  (tmp > 0x000000FF) {
     tmp >>=  8;
     result <<= 8;
   }
@@ -307,11 +327,11 @@ bit_works_bitscanMS1B_64 (const uint64_t bit_sequence)
     tmp >>= 32;
     result  = 32;
   }
-  if  (tmp > 0x000000000000FFFF)          {
+  if  (tmp > 0x000000000000FFFF) {
     tmp >>= 16;
     result |= 16;
   }
-  if  (tmp > 0x00000000000000FF)          {
+  if  (tmp > 0x00000000000000FF) {
     tmp >>=  8;
     result |=  8;
   }
@@ -392,4 +412,40 @@ uint8_t
 bit_works_lowest_bit_set_8 (const uint8_t bit_sequence)
 {
   return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
+}
+
+/**
+ * @brief Returns a bit sequence by operating a circular right shift
+ * on the `bit_sequence` parameter.
+ *
+ * The shift value has to be contained in the range `[0..64]`.
+ * Unexpected results can happen when shift is out of the permitted range.
+ *
+ * @param bit_sequence the input value
+ * @param shift        the amount to shift
+ * @return             the rotaded sequence
+ */
+uint64_t
+bit_works_ror_64 (const uint64_t bit_sequence,
+                  const unsigned int shift)
+{
+  return (bit_sequence >> shift) | (bit_sequence << (64 - shift));
+}
+
+/**
+ * @brief Returns a bit sequence by operating a circular left shift
+ * on the `bit_sequence` parameter.
+ *
+ * The shift value has to be contained in the range `[0..64]`.
+ * Unexpected results can happen when shift is out of the permitted range.
+ *
+ * @param bit_sequence the input value
+ * @param shift        the amount to shift
+ * @return             the rotaded sequence
+ */
+uint64_t
+bit_works_rol_64 (const uint64_t bit_sequence,
+                  const unsigned int shift)
+{
+  return (bit_sequence << shift) | (bit_sequence >> (64 - shift));
 }

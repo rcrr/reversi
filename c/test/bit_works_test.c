@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -55,6 +55,8 @@ static void bit_works_type_size_test (void);
 static void bit_works_bitscan_MS1B_to_base8_test (void);
 static void bit_works_popcount_test (void);
 static void bit_works_signed_left_shift_test (void);
+static void bit_works_ror_64_test (void);
+static void bit_works_rol_64_test (void);
 
 
 
@@ -77,6 +79,8 @@ main (int   argc,
   g_test_add_func("/bit_works/bit_works_popcount_test", bit_works_popcount_test);
   g_test_add_func("/bit_works/bit_works_type_size_test", bit_works_type_size_test);
   g_test_add_func("/bit_works/bit_works_bitscan_MS1B_to_base8_test", bit_works_bitscan_MS1B_to_base8_test);
+  g_test_add_func("/bit_works/bit_works_ror_64", bit_works_ror_64_test);
+  g_test_add_func("/bit_works/bit_works_rol_64", bit_works_rol_64_test);
 
   return g_test_run();
 }
@@ -282,3 +286,116 @@ bit_works_bitscan_MS1B_to_base8_test (void)
 
 }
 
+static void
+bit_works_ror_64_test (void)
+{
+  uint64_t bit_sequence, result;
+  unsigned int shift;
+
+  bit_sequence = 0ULL;
+  shift = 0;
+  result = bit_works_ror_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0xFFFFFFFFFFFFFFFF;
+  shift = 0;
+  result = bit_works_ror_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0x0F0F0F0F0F0F0F0F;
+  shift = 0;
+  result = bit_works_ror_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0ULL;
+  shift = 64;
+  result = bit_works_ror_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0xFFFFFFFFFFFFFFFF;
+  shift = 64;
+  result = bit_works_ror_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0x0F0F0F0F0F0F0F0F;
+  shift = 64;
+  result = bit_works_ror_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0x0000000000000001;
+  shift = 1;
+  result = bit_works_ror_64(bit_sequence, shift);
+  g_assert(0x8000000000000000 == result);
+
+  bit_sequence = 0x8000000000000000;
+  shift = 1;
+  result = bit_works_ror_64(bit_sequence, shift);
+  g_assert(0x4000000000000000 == result);
+
+  bit_sequence = 0x0F0F0F0F0F0F0F0F;
+  shift = 4;
+  result = bit_works_ror_64(bit_sequence, shift);
+  g_assert(0xF0F0F0F0F0F0F0F0 == result);
+
+  bit_sequence = 0xF0F0F0F0F0F0F0F0;
+  shift = 4;
+  result = bit_works_ror_64(bit_sequence, shift);
+  g_assert(0x0F0F0F0F0F0F0F0F == result);
+}
+
+static void
+bit_works_rol_64_test (void)
+{
+  uint64_t bit_sequence, result;
+  unsigned int shift;
+
+  bit_sequence = 0ULL;
+  shift = 0;
+  result = bit_works_rol_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0xFFFFFFFFFFFFFFFF;
+  shift = 0;
+  result = bit_works_rol_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0x0F0F0F0F0F0F0F0F;
+  shift = 0;
+  result = bit_works_rol_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0ULL;
+  shift = 64;
+  result = bit_works_rol_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0xFFFFFFFFFFFFFFFF;
+  shift = 64;
+  result = bit_works_rol_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0x0F0F0F0F0F0F0F0F;
+  shift = 64;
+  result = bit_works_rol_64(bit_sequence, shift);
+  g_assert(bit_sequence == result);
+
+  bit_sequence = 0x0000000000000001;
+  shift = 1;
+  result = bit_works_rol_64(bit_sequence, shift);
+  g_assert(0x0000000000000002 == result);
+
+  bit_sequence = 0x8000000000000000;
+  shift = 1;
+  result = bit_works_rol_64(bit_sequence, shift);
+  g_assert(0x0000000000000001 == result);
+
+  bit_sequence = 0x0F0F0F0F0F0F0F0F;
+  shift = 4;
+  result = bit_works_rol_64(bit_sequence, shift);
+  g_assert(0xF0F0F0F0F0F0F0F0 == result);
+
+  bit_sequence = 0xF0F0F0F0F0F0F0F0;
+  shift = 4;
+  result = bit_works_rol_64(bit_sequence, shift);
+  g_assert(0x0F0F0F0F0F0F0F0F == result);
+}
