@@ -88,6 +88,18 @@ static SquareSet
 board_legal_moves2 (const Board *const b,
                     const Player p);
 
+static GamePosition *
+game_position_make_move0 (const GamePosition *const gp,
+                          const Square move);
+
+static GamePosition *
+game_position_make_move1 (const GamePosition *const gp,
+                          const Square move);
+
+static GamePosition *
+game_position_make_move2 (const GamePosition *const gp,
+                          const Square move);
+
 
 
 
@@ -130,7 +142,10 @@ static const SquareSet all_squares_except_column_a = 0xFEFEFEFEFEFEFEFE;
 /* A square set being all set with the exception of column H. */
 static const SquareSet all_squares_except_column_h = 0x7F7F7F7F7F7F7F7F;
 
-/* A bitboard being set on column A. */
+/* A bitboard being set on row one, A1-H1. */
+static const SquareSet row_1 = 0x00000000000000FF;
+
+/* A bitboard being set on column A, A1-A8. */
 static const SquareSet column_a = 0x0101010101010101;
 
 /* A bitboard being set on diagonal A1-H8. */
@@ -195,6 +210,97 @@ static const SquareSet bitboard_mask_for_all_directions[] = {
   0xFE03050911214181, 0xFD070A1222428202, 0xFB0E152444840404, 0xF71C2A4988080808,
   0xEF38549211101010, 0xDF70A82422212020, 0xBFE0504844424140, 0x7FC0A09088848281
 };
+
+/*
+ * This array has sixtyfour x four entries, a total of 256 bit masks.
+ * Every four entries belongs to a square, and represents the squares that are reachable
+ * moving along one axis.
+ *
+ * Values do not change.
+ */
+static const SquareSet bitboard_mask_for_one_directions[] = {
+
+  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
+  0x00000000000000FF, 0x0101010101010101, 0x8040201008040201, 0x0000000000000001, // A1
+  0x00000000000000FF, 0x0202020202020202, 0x0080402010080402, 0x0000000000000102, // B1
+  0x00000000000000FF, 0x0404040404040404, 0x0000804020100804, 0x0000000000010204, // C1
+  0x00000000000000FF, 0x0808080808080808, 0x0000008040201008, 0x0000000001020408, // D1
+  0x00000000000000FF, 0x1010101010101010, 0x0000000080402010, 0x0000000102040810, // E1
+  0x00000000000000FF, 0x2020202020202020, 0x0000000000804020, 0x0000010204081020, // F1
+  0x00000000000000FF, 0x4040404040404040, 0x0000000000008040, 0x0001020408102040, // G1
+  0x00000000000000FF, 0x8080808080808080, 0x0000000000000080, 0x0102040810204080, // H1
+
+  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
+  0x000000000000FF00, 0x0101010101010101, 0x4020100804020100, 0x0000000000000102, // A2
+  0x000000000000FF00, 0x0202020202020202, 0x8040201008040201, 0x0000000000010204, // B2
+  0x000000000000FF00, 0x0404040404040404, 0x0080402010080402, 0x0000000001020408, // C2
+  0x000000000000FF00, 0x0808080808080808, 0x0000804020100804, 0x0000000102040810, // D2
+  0x000000000000FF00, 0x1010101010101010, 0x0000008040201008, 0x0000010204081020, // E2
+  0x000000000000FF00, 0x2020202020202020, 0x0000000080402010, 0x0001020408102040, // F2
+  0x000000000000FF00, 0x4040404040404040, 0x0000000000804020, 0x0102040810204080, // G2
+  0x000000000000FF00, 0x8080808080808080, 0x0000000000008040, 0x0204081020408000, // H2
+
+  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
+  0x0000000000FF0000, 0x0101010101010101, 0x2010080402010000, 0x0000000000010204, // A3
+  0x0000000000FF0000, 0x0202020202020202, 0x4020100804020100, 0x0000000001020408, // B3
+  0x0000000000FF0000, 0x0404040404040404, 0x8040201008040201, 0x0000000102040810, // C3
+  0x0000000000FF0000, 0x0808080808080808, 0x0080402010080402, 0x0000010204081020, // D3
+  0x0000000000FF0000, 0x1010101010101010, 0x0000804020100804, 0x0001020408102040, // E3
+  0x0000000000FF0000, 0x2020202020202020, 0x0000008040201008, 0x0102040810204080, // F3
+  0x0000000000FF0000, 0x4040404040404040, 0x0000000080402010, 0x0204081020408000, // G3
+  0x0000000000FF0000, 0x8080808080808080, 0x0000000000804020, 0x0408102040800000, // H3
+
+  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
+  0x00000000FF000000, 0x0101010101010101, 0x1008040201000000, 0x0000000001020408, // A4
+  0x00000000FF000000, 0x0202020202020202, 0x2010080402010000, 0x0000000102040810, // B4
+  0x00000000FF000000, 0x0404040404040404, 0x4020100804020100, 0x0000010204081020, // C4
+  0x00000000FF000000, 0x0808080808080808, 0x8040201008040201, 0x0001020408102040, // D4
+  0x00000000FF000000, 0x1010101010101010, 0x0080402010080402, 0x0102040810204080, // E4
+  0x00000000FF000000, 0x2020202020202020, 0x0000804020100804, 0x0204081020408000, // F4
+  0x00000000FF000000, 0x4040404040404040, 0x0000008040201008, 0x0408102040800000, // G4
+  0x00000000FF000000, 0x8080808080808080, 0x0000000080402010, 0x0810204080000000, // H4
+
+  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
+  0x000000FF00000000, 0x0101010101010101, 0x0804020100000000, 0x0000000102040810, // A5
+  0x000000FF00000000, 0x0202020202020202, 0x1008040201000000, 0x0000010204081020, // B5
+  0x000000FF00000000, 0x0404040404040404, 0x2010080402010000, 0x0001020408102040, // C5
+  0x000000FF00000000, 0x0808080808080808, 0x4020100804020100, 0x0102040810204080, // D5
+  0x000000FF00000000, 0x1010101010101010, 0x8040201008040201, 0x0204081020408000, // E5
+  0x000000FF00000000, 0x2020202020202020, 0x0080402010080402, 0x0408102040800000, // F5
+  0x000000FF00000000, 0x4040404040404040, 0x0000804020100804, 0x0810204080000000, // G5
+  0x000000FF00000000, 0x8080808080808080, 0x0000008040201008, 0x1020408000000000, // H5
+
+  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
+  0x0000FF0000000000, 0x0101010101010101, 0x0402010000000000, 0x0000010204081020, // A6
+  0x0000FF0000000000, 0x0202020202020202, 0x0804020100000000, 0x0001020408102040, // B6
+  0x0000FF0000000000, 0x0404040404040404, 0x1008040201000000, 0x0102040810204080, // C6
+  0x0000FF0000000000, 0x0808080808080808, 0x2010080402010000, 0x0204081020408000, // D6
+  0x0000FF0000000000, 0x1010101010101010, 0x4020100804020100, 0x0408102040800000, // E6
+  0x0000FF0000000000, 0x2020202020202020, 0x8040201008040201, 0x0810204080000000, // F6
+  0x0000FF0000000000, 0x4040404040404040, 0x0080402010080402, 0x1020408000000000, // G6
+  0x0000FF0000000000, 0x8080808080808080, 0x0000804020100804, 0x2040800000000000, // H6
+
+  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
+  0x00FF000000000000, 0x0101010101010101, 0x0201000000000000, 0x0001020408102040, // A7
+  0x00FF000000000000, 0x0202020202020202, 0x0402010000000000, 0x0102040810204080, // B7
+  0x00FF000000000000, 0x0404040404040404, 0x0804020100000000, 0x0204081020408000, // C7
+  0x00FF000000000000, 0x0808080808080808, 0x1008040201000000, 0x0408102040800000, // D7
+  0x00FF000000000000, 0x1010101010101010, 0x2010080402010000, 0x0810204080000000, // E7
+  0x00FF000000000000, 0x2020202020202020, 0x4020100804020100, 0x1020408000000000, // F7
+  0x00FF000000000000, 0x4040404040404040, 0x8040201008040201, 0x2040800000000000, // G7
+  0x00FF000000000000, 0x8080808080808080, 0x0080402010080402, 0x4080000000000000, // H7
+
+  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
+  0xFF00000000000000, 0x0101010101010101, 0x0100000000000000, 0x0102040810204080, // A8
+  0xFF00000000000000, 0x0202020202020202, 0x0201000000000000, 0x0204081020408000, // B8
+  0xFF00000000000000, 0x0404040404040404, 0x0402010000000000, 0x0408102040800000, // C8
+  0xFF00000000000000, 0x0808080808080808, 0x0804020100000000, 0x0810204080000000, // D8
+  0xFF00000000000000, 0x1010101010101010, 0x1008040201000000, 0x1020408000000000, // E8
+  0xFF00000000000000, 0x2020202020202020, 0x2010080402010000, 0x2040800000000000, // F8
+  0xFF00000000000000, 0x4040404040404040, 0x4020100804020100, 0x4080000000000000, // G8
+  0xFF00000000000000, 0x8080808080808080, 0x8040201008040201, 0x8000000000000000  // H8
+};
+
 
 /*
  * Zobrist bitstrings generated by the URANDOM Linux generator.
@@ -2047,6 +2153,37 @@ game_position_make_move (const GamePosition *const gp,
   g_assert(square_is_valid_move(move));
   g_assert(game_position_is_move_legal(gp, move));
 
+  GamePosition *gp1 = game_position_make_move1(gp, move);
+
+  if (FALSE) {
+    GamePosition *gp0 = game_position_make_move0(gp, move);
+    int comp = game_position_compare(gp0, gp1);
+    if (comp != 0) abort();
+    game_position_free(gp0);
+  }
+
+  if (FALSE) {
+    GamePosition *gp2 = game_position_make_move2(gp, move);
+    int comp = game_position_compare(gp2, gp1);
+    if (comp != 0) abort();
+    game_position_free(gp2);
+  }
+
+  return gp1;
+}
+
+/**
+ * @cond
+ */
+
+static GamePosition *
+game_position_make_move0 (const GamePosition *const gp,
+                          const Square move)
+{
+  g_assert(gp);
+  g_assert(square_is_valid_move(move));
+  g_assert(game_position_is_move_legal(gp, move));
+
   if (move == pass_move) {
     return game_position_pass(gp);
   }
@@ -2118,6 +2255,348 @@ game_position_make_move (const GamePosition *const gp,
 
   return game_position_new(board_new(new_bit_board[0], new_bit_board[1]), o);
 }
+
+static GamePosition *
+game_position_make_move1 (const GamePosition *const gp,
+                          const Square move)
+{
+  g_assert(gp);
+  g_assert(square_is_valid_move(move));
+  g_assert(game_position_is_move_legal(gp, move));
+
+  if (move == pass_move) {
+    return game_position_pass(gp);
+  }
+
+  const Player p = gp->player;
+  const Player o = player_opponent(p);
+  const Board *b = gp->board;
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+  const int column = move % 8;
+  const int row = move / 8;
+  const SquareSet unmodified_mask = ~bitboard_mask_for_all_directions[move];
+
+  SquareSet p_bit_board_new = p_bit_board & unmodified_mask;
+  SquareSet o_bit_board_new = o_bit_board & unmodified_mask;
+
+  __m256i mop = _mm256_setr_epi64x(column, row, column, column);
+  __m256i shd = _mm256_setr_epi64x(-row, -column, column - row, 7 - column - row);
+  __m256i shift_const = _mm256_setr_epi64x(3, 0, 3, 3);
+
+  shd = _mm256_sllv_epi64(shd, shift_const);
+
+  const __m256i c_63 = _mm256_setr_epi64x(63ULL, 63ULL, 63ULL, 63ULL);
+  const __m256i c_64 = _mm256_setr_epi64x(64ULL, 64ULL, 64ULL, 64ULL);
+  shd = _mm256_add_epi64(c_64, shd);
+  shd = _mm256_and_si256(c_63, shd);
+
+  __m256i p_bb = _mm256_setr_epi64x(p_bit_board, p_bit_board, p_bit_board, p_bit_board);
+  __m256i o_bb = _mm256_setr_epi64x(o_bit_board, o_bit_board, o_bit_board, o_bit_board);
+
+  const __m256i mask = _mm256_load_si256( (__m256i *) bitboard_mask_for_one_directions + move);
+  p_bb = _mm256_and_si256(mask, p_bb);
+  o_bb = _mm256_and_si256(mask, o_bb);
+
+  __m256i p_bb_rol_a = _mm256_sllv_epi64(p_bb, shd);
+  __m256i p_bb_rol_b = _mm256_srlv_epi64(p_bb, _mm256_sub_epi64(c_64, shd));
+  __m256i p_bb_rol = _mm256_or_si256(p_bb_rol_a, p_bb_rol_b);
+
+  __m256i o_bb_rol_a = _mm256_sllv_epi64(o_bb, shd);
+  __m256i o_bb_rol_b = _mm256_srlv_epi64(o_bb, _mm256_sub_epi64(c_64, shd));
+  __m256i o_bb_rol = _mm256_or_si256(o_bb_rol_a, o_bb_rol_b);
+
+  const __m256i main_bit_rows = _mm256_setr_epi64x(row_1, column_a, diagonal_a1_h8, diagonal_h1_a8);
+
+  const __m256i s0 = _mm256_setr_epi64x(0, 28, 32, 32);
+  const __m256i s1 = _mm256_setr_epi64x(0, 14, 16, 16);
+  const __m256i s2 = _mm256_setr_epi64x(0,  7,  8,  8);
+  const __m256i c0 = _mm256_setr_epi64x(0xFF, 0xFF, 0xFF, 0xFF);
+  __m256i p_bitrow_v = p_bb_rol;
+  __m256i o_bitrow_v = o_bb_rol;
+
+  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s0));
+  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s1));
+  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s2));
+  p_bitrow_v = _mm256_and_si256(p_bitrow_v, c0);
+
+  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s0));
+  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s1));
+  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s2));
+  o_bitrow_v = _mm256_and_si256(o_bitrow_v, c0);
+
+  /* This is for comparing .... and may be cannot be removed. Or it can ... ?*/
+  SquareSet o_bitrow_v_vec[4];
+  _mm256_store_si256((__m256i *) o_bitrow_v_vec, o_bitrow_v);
+
+  const __m256i array_index = _mm256_or_si256(p_bitrow_v,
+                                              _mm256_or_si256(_mm256_slli_epi64(o_bitrow_v, 8),
+                                                              _mm256_slli_epi64(mop, 16)));
+
+  /*
+   * Which one is faster?
+   *
+   * - _mm256_store_si256
+   * - _mm256_extract_epi64
+   *
+   * Has to be verified .....
+   */
+  //int64_t array_index_vec[4];
+  //_mm256_store_si256((__m256i *) array_index_vec, array_index);
+
+  uint8_t p_bitrow_v_dm[4];
+  uint8_t o_bitrow_v_dm[4];
+  for (Axis axis = HO; axis <= DU; axis++) {
+    const unsigned int index = _mm256_extract_epi64(array_index, axis);
+    //if (array_index_vec[axis] != index) abort();
+    p_bitrow_v_dm[axis] = bitrow_changes_for_player_array[index];
+    o_bitrow_v_dm[axis] = ((uint8_t) o_bitrow_v_vec[axis]) & ~p_bitrow_v_dm[axis];
+  }
+
+  __m256i p_tbfro = _mm256_setr_epi64x(p_bitrow_v_dm[0], p_bitrow_v_dm[1], p_bitrow_v_dm[2], p_bitrow_v_dm[3]);
+  __m256i o_tbfro = _mm256_setr_epi64x(o_bitrow_v_dm[0], o_bitrow_v_dm[1], o_bitrow_v_dm[2], o_bitrow_v_dm[3]);
+
+  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s2));
+  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s1));
+  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s0));
+  p_tbfro = _mm256_and_si256(p_tbfro, main_bit_rows);
+
+  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s2));
+  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s1));
+  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s0));
+  o_tbfro = _mm256_and_si256(o_tbfro, main_bit_rows);
+
+  __m256i p_bb_rol_back_a = _mm256_srlv_epi64(p_tbfro, shd);
+  __m256i p_bb_rol_back_b = _mm256_sllv_epi64(p_tbfro, _mm256_sub_epi64(c_64, shd));
+  __m256i p_bb_rol_back = _mm256_or_si256(p_bb_rol_back_a, p_bb_rol_back_b);
+
+  __m256i o_bb_rol_back_a = _mm256_srlv_epi64(o_tbfro, shd);
+  __m256i o_bb_rol_back_b = _mm256_sllv_epi64(o_tbfro, _mm256_sub_epi64(c_64, shd));
+  __m256i o_bb_rol_back = _mm256_or_si256(o_bb_rol_back_a, o_bb_rol_back_b);
+
+  /* This is for comparing .... and more ....*/
+  SquareSet p_bb_rol_back_vec[4];
+  _mm256_store_si256((__m256i *) p_bb_rol_back_vec, p_bb_rol_back);
+  SquareSet o_bb_rol_back_vec[4];
+  _mm256_store_si256((__m256i *) o_bb_rol_back_vec, o_bb_rol_back);
+
+  SquareSet p_bit_board_new_v = p_bit_board_new;
+  SquareSet o_bit_board_new_v = o_bit_board_new;
+  for (Axis axis = HO; axis <= DU; axis++) {
+    p_bit_board_new_v |= p_bb_rol_back_vec[axis];
+    o_bit_board_new_v |= o_bb_rol_back_vec[axis];
+  }
+
+  SquareSet blacks, whites;
+  if (o) {
+    blacks = p_bit_board_new_v;
+    whites = o_bit_board_new_v;
+  } else {
+    blacks = o_bit_board_new_v;
+    whites = p_bit_board_new_v;
+  }
+  return game_position_new(board_new(blacks, whites), o);
+}
+
+
+static GamePosition *
+game_position_make_move2 (const GamePosition *const gp,
+                          const Square move)
+{
+  g_assert(gp);
+  g_assert(square_is_valid_move(move));
+  g_assert(game_position_is_move_legal(gp, move));
+
+  if (move == pass_move) {
+    return game_position_pass(gp);
+  }
+
+  const Player p = gp->player;
+  const Player o = player_opponent(p);
+  const Board *b = gp->board;
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+  const int column = move % 8;
+  const int row = move / 8;
+  const SquareSet unmodified_mask = ~bitboard_mask_for_all_directions[move];
+
+  SquareSet p_bit_board_new = p_bit_board & unmodified_mask;
+  SquareSet o_bit_board_new = o_bit_board & unmodified_mask;
+
+  /*
+    HO Horizontal axis (W-E).
+    VE Vertical axis (N-S).
+    DD Diagonal Down axis (NW-SE), A1-H8.
+    DU Diagonal Up axis (NE-SW), A8-H1.
+  */
+
+  __m256i mop = _mm256_setr_epi64x(column, row, column, column);
+  __m256i shd = _mm256_setr_epi64x(-row, -column, column - row, 7 - column - row);
+  __m256i shift_const = _mm256_setr_epi64x(3, 0, 3, 3);
+
+  shd = _mm256_sllv_epi64(shd, shift_const);
+
+  /* This is for comparing .... */
+  int64_t shd0_vec[4];
+  _mm256_store_si256((__m256i *) shd0_vec, shd);
+
+  const __m256i c_63 = _mm256_setr_epi64x(63ULL, 63ULL, 63ULL, 63ULL);
+  const __m256i c_64 = _mm256_setr_epi64x(64ULL, 64ULL, 64ULL, 64ULL);
+  shd = _mm256_add_epi64(c_64, shd);
+  shd = _mm256_and_si256(c_63, shd);
+
+  /* This is for comparing .... */
+  int64_t shd1_vec[4];
+  _mm256_store_si256((__m256i *) shd1_vec, shd);
+
+  __m256i p_bb = _mm256_setr_epi64x(p_bit_board, p_bit_board, p_bit_board, p_bit_board);
+  __m256i o_bb = _mm256_setr_epi64x(o_bit_board, o_bit_board, o_bit_board, o_bit_board);
+
+  const __m256i mask = _mm256_load_si256( (__m256i *) bitboard_mask_for_one_directions + move);
+  p_bb = _mm256_and_si256(mask, p_bb);
+  o_bb = _mm256_and_si256(mask, o_bb);
+
+  __m256i p_bb_rol_a = _mm256_sllv_epi64(p_bb, shd);
+  __m256i p_bb_rol_b = _mm256_srlv_epi64(p_bb, _mm256_sub_epi64(c_64, shd));
+  __m256i p_bb_rol = _mm256_or_si256(p_bb_rol_a, p_bb_rol_b);
+
+  __m256i o_bb_rol_a = _mm256_sllv_epi64(o_bb, shd);
+  __m256i o_bb_rol_b = _mm256_srlv_epi64(o_bb, _mm256_sub_epi64(c_64, shd));
+  __m256i o_bb_rol = _mm256_or_si256(o_bb_rol_a, o_bb_rol_b);
+
+  /* This is for comparing .... */
+  const __m256i main_bit_rows = _mm256_setr_epi64x(row_1, column_a, diagonal_a1_h8, diagonal_h1_a8);
+  SquareSet mbr_vec[4];
+  _mm256_store_si256((__m256i *) mbr_vec, main_bit_rows);
+
+  /* This is for comparing .... */
+  SquareSet p_bb_rol_vec[4];
+  _mm256_store_si256((__m256i *) p_bb_rol_vec, p_bb_rol);
+
+  /* This is for comparing .... */
+  SquareSet o_bb_rol_vec[4];
+  _mm256_store_si256((__m256i *) o_bb_rol_vec, o_bb_rol);
+
+  const __m256i s0 = _mm256_setr_epi64x(0, 28, 32, 32);
+  const __m256i s1 = _mm256_setr_epi64x(0, 14, 16, 16);
+  const __m256i s2 = _mm256_setr_epi64x(0,  7,  8,  8);
+  const __m256i c0 = _mm256_setr_epi64x(0xFF, 0xFF, 0xFF, 0xFF);
+  __m256i p_bitrow_v = p_bb_rol;
+  __m256i o_bitrow_v = o_bb_rol;
+
+  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s0));
+  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s1));
+  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s2));
+  p_bitrow_v = _mm256_and_si256(p_bitrow_v, c0);
+
+  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s0));
+  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s1));
+  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s2));
+  o_bitrow_v = _mm256_and_si256(o_bitrow_v, c0);
+
+  /* This is for comparing .... */
+  SquareSet p_bitrow_v_vec[4];
+  _mm256_store_si256((__m256i *) p_bitrow_v_vec, p_bitrow_v);
+
+  /* This is for comparing .... */
+  SquareSet o_bitrow_v_vec[4];
+  _mm256_store_si256((__m256i *) o_bitrow_v_vec, o_bitrow_v);
+
+  const __m256i array_index = _mm256_or_si256(p_bitrow_v,
+                                              _mm256_or_si256(_mm256_slli_epi64(o_bitrow_v, 8),
+                                                              _mm256_slli_epi64(mop, 16)));
+
+  int64_t array_index_vec[4];
+  _mm256_store_si256((__m256i *) array_index_vec, array_index);
+
+  uint8_t p_bitrow_v_dm[4];
+  uint8_t o_bitrow_v_dm[4];
+  for (Axis axis = HO; axis <= DU; axis++) {
+    p_bitrow_v_dm[axis] = bitrow_changes_for_player_array[array_index_vec[axis]];
+    o_bitrow_v_dm[axis] = ((uint8_t) o_bitrow_v_vec[axis]) & ~p_bitrow_v_dm[axis];
+  }
+
+  __m256i p_tbfro = _mm256_setr_epi64x(p_bitrow_v_dm[0], p_bitrow_v_dm[1], p_bitrow_v_dm[2], p_bitrow_v_dm[3]);
+  __m256i o_tbfro = _mm256_setr_epi64x(o_bitrow_v_dm[0], o_bitrow_v_dm[1], o_bitrow_v_dm[2], o_bitrow_v_dm[3]);
+
+  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s2));
+  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s1));
+  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s0));
+  p_tbfro = _mm256_and_si256(p_tbfro, main_bit_rows);
+
+  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s2));
+  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s1));
+  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s0));
+  o_tbfro = _mm256_and_si256(o_tbfro, main_bit_rows);
+
+  /* This is for comparing .... */
+  SquareSet p_tbfro_vec[4];
+  _mm256_store_si256((__m256i *) p_tbfro_vec, p_tbfro);
+
+  /* This is for comparing .... */
+  SquareSet o_tbfro_vec[4];
+  _mm256_store_si256((__m256i *) o_tbfro_vec, o_tbfro);
+
+  __m256i p_bb_rol_back_a = _mm256_srlv_epi64(p_tbfro, shd);
+  __m256i p_bb_rol_back_b = _mm256_sllv_epi64(p_tbfro, _mm256_sub_epi64(c_64, shd));
+  __m256i p_bb_rol_back = _mm256_or_si256(p_bb_rol_back_a, p_bb_rol_back_b);
+
+  __m256i o_bb_rol_back_a = _mm256_srlv_epi64(o_tbfro, shd);
+  __m256i o_bb_rol_back_b = _mm256_sllv_epi64(o_tbfro, _mm256_sub_epi64(c_64, shd));
+  __m256i o_bb_rol_back = _mm256_or_si256(o_bb_rol_back_a, o_bb_rol_back_b);
+
+  /* This is for comparing .... and more ....*/
+  SquareSet p_bb_rol_back_vec[4];
+  _mm256_store_si256((__m256i *) p_bb_rol_back_vec, p_bb_rol_back);
+  SquareSet o_bb_rol_back_vec[4];
+  _mm256_store_si256((__m256i *) o_bb_rol_back_vec, o_bb_rol_back);
+
+  SquareSet p_bit_board_new_v = p_bit_board_new;
+  SquareSet o_bit_board_new_v = o_bit_board_new;
+  for (Axis axis = HO; axis <= DU; axis++) {
+    p_bit_board_new_v |= p_bb_rol_back_vec[axis];
+    o_bit_board_new_v |= o_bb_rol_back_vec[axis];
+  }
+
+  for (Axis axis = HO; axis <= DU; axis++) {
+    const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
+    const int shift_distance = axis_shift_distance(axis, column, row);
+    if (shift_distance != shd0_vec[axis]) abort();
+    const SquareSet pbb_sh = bit_works_signed_left_shift(p_bit_board, shift_distance);
+    if ((pbb_sh & mbr_vec[axis]) != p_bb_rol_vec[axis]) abort();
+    const SquareSet obb_sh = bit_works_signed_left_shift(o_bit_board, shift_distance);
+    if ((obb_sh & mbr_vec[axis]) != o_bb_rol_vec[axis]) abort();
+    uint8_t p_bitrow = axis_transform_to_row_one(axis, pbb_sh);
+    if ((uint8_t) p_bitrow_v_vec[axis] != p_bitrow) abort();
+    uint8_t o_bitrow = axis_transform_to_row_one(axis, obb_sh);
+    if ((uint8_t) o_bitrow_v_vec[axis] != o_bitrow) abort();
+    p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position);
+    if (p_bitrow_v_dm[axis] != p_bitrow) abort();
+    o_bitrow &= ~p_bitrow;
+    if (o_bitrow_v_dm[axis] != o_bitrow) abort();
+    p_bit_board_new |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, p_bitrow), -shift_distance);
+    o_bit_board_new |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, o_bitrow), -shift_distance);
+    if (p_tbfro_vec[axis] != axis_transform_back_from_row_one(axis, p_bitrow)) abort();
+    if (o_tbfro_vec[axis] != axis_transform_back_from_row_one(axis, o_bitrow)) abort();
+  }
+  if (p_bit_board_new_v != p_bit_board_new) abort();
+  if (o_bit_board_new_v != o_bit_board_new) abort();
+
+  SquareSet blacks, whites;
+  if (o) {
+    blacks = p_bit_board_new;
+    whites = o_bit_board_new;
+  } else {
+    blacks = o_bit_board_new;
+    whites = p_bit_board_new;
+  }
+  return game_position_new(board_new(blacks, whites), o);
+}
+
+/**
+ * @endcond
+ */
+
 
 /**
  * @brief Returns a new game position by passing the move.
