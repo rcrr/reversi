@@ -37,6 +37,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include <immintrin.h>
 
@@ -51,6 +52,11 @@
 /**
  * @cond
  */
+
+/* Game position make move function signature. */
+typedef GamePosition *
+(*game_position_make_move_function) (const GamePosition *const gp,
+                                     const Square move);
 
 /* Board legal moves function signature. */
 typedef SquareSet
@@ -96,11 +102,6 @@ static GamePosition *
 game_position_make_move1 (const GamePosition *const gp,
                           const Square move);
 
-static GamePosition *
-game_position_make_move2 (const GamePosition *const gp,
-                          const Square move);
-
-
 
 
 /*
@@ -111,6 +112,12 @@ game_position_make_move2 (const GamePosition *const gp,
 static const board_legal_moves_function blm_functions[] = { board_legal_moves0,
                                                             board_legal_moves1,
                                                             board_legal_moves2 };
+
+
+static const game_position_make_move_function gp_mm_functions[] = { game_position_make_move0,
+                                                                    game_position_make_move1 };
+
+static game_position_make_move_function game_position_make_move_option = game_position_make_move1;
 
 /* Used in board_legal_moves0 to reduce the set of possible moves before computing a direction. */
 static const SquareSet direction_wave_mask[] = { 0xFCFCFCFCFCFC0000,   // NW - North-West
@@ -362,7 +369,7 @@ void
 board_module_init (void)
 {
   /* This should be moved in the main function. Be careful, that valgrind doesn't detect properly AVX2. */
-  if (!arch_runtime_is_supported()) {
+  if (FALSE & !arch_runtime_is_supported()) {
     printf("The underline architecture, meaning HW and OS, is not supporting the requested features.\n");
     abort();
   }
@@ -2153,23 +2160,7 @@ game_position_make_move (const GamePosition *const gp,
   g_assert(square_is_valid_move(move));
   g_assert(game_position_is_move_legal(gp, move));
 
-  GamePosition *gp1 = game_position_make_move1(gp, move);
-
-  if (FALSE) {
-    GamePosition *gp0 = game_position_make_move0(gp, move);
-    int comp = game_position_compare(gp0, gp1);
-    if (comp != 0) abort();
-    game_position_free(gp0);
-  }
-
-  if (FALSE) {
-    GamePosition *gp2 = game_position_make_move2(gp, move);
-    int comp = game_position_compare(gp2, gp1);
-    if (comp != 0) abort();
-    game_position_free(gp2);
-  }
-
-  return gp1;
+  return game_position_make_move_option(gp, move);
 }
 
 /**
@@ -2277,311 +2268,136 @@ game_position_make_move1 (const GamePosition *const gp,
   const int row = move / 8;
   const SquareSet unmodified_mask = ~bitboard_mask_for_all_directions[move];
 
-  SquareSet p_bit_board_new = p_bit_board & unmodified_mask;
-  SquareSet o_bit_board_new = o_bit_board & unmodified_mask;
-
-  __m256i mop = _mm256_setr_epi64x(column, row, column, column);
-  __m256i shd = _mm256_setr_epi64x(-row, -column, column - row, 7 - column - row);
-  __m256i shift_const = _mm256_setr_epi64x(3, 0, 3, 3);
-
-  shd = _mm256_sllv_epi64(shd, shift_const);
-
-  const __m256i c_63 = _mm256_setr_epi64x(63ULL, 63ULL, 63ULL, 63ULL);
-  const __m256i c_64 = _mm256_setr_epi64x(64ULL, 64ULL, 64ULL, 64ULL);
-  shd = _mm256_add_epi64(c_64, shd);
-  shd = _mm256_and_si256(c_63, shd);
-
-  __m256i p_bb = _mm256_setr_epi64x(p_bit_board, p_bit_board, p_bit_board, p_bit_board);
-  __m256i o_bb = _mm256_setr_epi64x(o_bit_board, o_bit_board, o_bit_board, o_bit_board);
-
-  const __m256i mask = _mm256_load_si256( (__m256i *) bitboard_mask_for_one_directions + move);
-  p_bb = _mm256_and_si256(mask, p_bb);
-  o_bb = _mm256_and_si256(mask, o_bb);
-
-  __m256i p_bb_rol_a = _mm256_sllv_epi64(p_bb, shd);
-  __m256i p_bb_rol_b = _mm256_srlv_epi64(p_bb, _mm256_sub_epi64(c_64, shd));
-  __m256i p_bb_rol = _mm256_or_si256(p_bb_rol_a, p_bb_rol_b);
-
-  __m256i o_bb_rol_a = _mm256_sllv_epi64(o_bb, shd);
-  __m256i o_bb_rol_b = _mm256_srlv_epi64(o_bb, _mm256_sub_epi64(c_64, shd));
-  __m256i o_bb_rol = _mm256_or_si256(o_bb_rol_a, o_bb_rol_b);
-
-  const __m256i main_bit_rows = _mm256_setr_epi64x(row_1, column_a, diagonal_a1_h8, diagonal_h1_a8);
-
-  const __m256i s0 = _mm256_setr_epi64x(0, 28, 32, 32);
-  const __m256i s1 = _mm256_setr_epi64x(0, 14, 16, 16);
-  const __m256i s2 = _mm256_setr_epi64x(0,  7,  8,  8);
-  const __m256i c0 = _mm256_setr_epi64x(0xFF, 0xFF, 0xFF, 0xFF);
-  __m256i p_bitrow_v = p_bb_rol;
-  __m256i o_bitrow_v = o_bb_rol;
-
-  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s0));
-  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s1));
-  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s2));
-  p_bitrow_v = _mm256_and_si256(p_bitrow_v, c0);
-
-  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s0));
-  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s1));
-  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s2));
-  o_bitrow_v = _mm256_and_si256(o_bitrow_v, c0);
-
-  /* This is for comparing .... and may be cannot be removed. Or it can ... ?*/
-  SquareSet o_bitrow_v_vec[4];
-  _mm256_store_si256((__m256i *) o_bitrow_v_vec, o_bitrow_v);
-
-  const __m256i array_index = _mm256_or_si256(p_bitrow_v,
-                                              _mm256_or_si256(_mm256_slli_epi64(o_bitrow_v, 8),
-                                                              _mm256_slli_epi64(mop, 16)));
-
   /*
-   * Which one is faster?
-   *
-   * - _mm256_store_si256
-   * - _mm256_extract_epi64
-   *
-   * Has to be verified .....
+   * The ordinal position of the move in the lane.
    */
-  //int64_t array_index_vec[4];
-  //_mm256_store_si256((__m256i *) array_index_vec, array_index);
+  const __m256i move_ordinal_position = _mm256_setr_epi64x(column, row, column, column);
 
-  uint8_t p_bitrow_v_dm[4];
-  uint8_t o_bitrow_v_dm[4];
-  for (Axis axis = HO; axis <= DU; axis++) {
-    const unsigned int index = _mm256_extract_epi64(array_index, axis);
-    //if (array_index_vec[axis] != index) abort();
-    p_bitrow_v_dm[axis] = bitrow_changes_for_player_array[index];
-    o_bitrow_v_dm[axis] = ((uint8_t) o_bitrow_v_vec[axis]) & ~p_bitrow_v_dm[axis];
-  }
-
-  __m256i p_tbfro = _mm256_setr_epi64x(p_bitrow_v_dm[0], p_bitrow_v_dm[1], p_bitrow_v_dm[2], p_bitrow_v_dm[3]);
-  __m256i o_tbfro = _mm256_setr_epi64x(o_bitrow_v_dm[0], o_bitrow_v_dm[1], o_bitrow_v_dm[2], o_bitrow_v_dm[3]);
-
-  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s2));
-  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s1));
-  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s0));
-  p_tbfro = _mm256_and_si256(p_tbfro, main_bit_rows);
-
-  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s2));
-  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s1));
-  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s0));
-  o_tbfro = _mm256_and_si256(o_tbfro, main_bit_rows);
-
-  __m256i p_bb_rol_back_a = _mm256_srlv_epi64(p_tbfro, shd);
-  __m256i p_bb_rol_back_b = _mm256_sllv_epi64(p_tbfro, _mm256_sub_epi64(c_64, shd));
-  __m256i p_bb_rol_back = _mm256_or_si256(p_bb_rol_back_a, p_bb_rol_back_b);
-
-  __m256i o_bb_rol_back_a = _mm256_srlv_epi64(o_tbfro, shd);
-  __m256i o_bb_rol_back_b = _mm256_sllv_epi64(o_tbfro, _mm256_sub_epi64(c_64, shd));
-  __m256i o_bb_rol_back = _mm256_or_si256(o_bb_rol_back_a, o_bb_rol_back_b);
-
-  /* This is for comparing .... and more ....*/
-  SquareSet p_bb_rol_back_vec[4];
-  _mm256_store_si256((__m256i *) p_bb_rol_back_vec, p_bb_rol_back);
-  SquareSet o_bb_rol_back_vec[4];
-  _mm256_store_si256((__m256i *) o_bb_rol_back_vec, o_bb_rol_back);
-
-  SquareSet p_bit_board_new_v = p_bit_board_new;
-  SquareSet o_bit_board_new_v = o_bit_board_new;
-  for (Axis axis = HO; axis <= DU; axis++) {
-    p_bit_board_new_v |= p_bb_rol_back_vec[axis];
-    o_bit_board_new_v |= o_bb_rol_back_vec[axis];
-  }
-
-  SquareSet blacks, whites;
-  if (o) {
-    blacks = p_bit_board_new_v;
-    whites = o_bit_board_new_v;
-  } else {
-    blacks = o_bit_board_new_v;
-    whites = p_bit_board_new_v;
-  }
-  return game_position_new(board_new(blacks, whites), o);
-}
-
-
-static GamePosition *
-game_position_make_move2 (const GamePosition *const gp,
-                          const Square move)
-{
-  g_assert(gp);
-  g_assert(square_is_valid_move(move));
-  g_assert(game_position_is_move_legal(gp, move));
-
-  if (move == pass_move) {
-    return game_position_pass(gp);
-  }
-
-  const Player p = gp->player;
-  const Player o = player_opponent(p);
-  const Board *b = gp->board;
-  const SquareSet p_bit_board = board_get_player(b, p);
-  const SquareSet o_bit_board = board_get_player(b, o);
-  const int column = move % 8;
-  const int row = move / 8;
-  const SquareSet unmodified_mask = ~bitboard_mask_for_all_directions[move];
-
-  SquareSet p_bit_board_new = p_bit_board & unmodified_mask;
-  SquareSet o_bit_board_new = o_bit_board & unmodified_mask;
+  /* Constants used to compute the modulo 64 of negative shifts. */
+  const __m256i c_63 = _mm256_set1_epi64x(63);
+  const __m256i c_64 = _mm256_set1_epi64x(64);
 
   /*
-    HO Horizontal axis (W-E).
-    VE Vertical axis (N-S).
-    DD Diagonal Down axis (NW-SE), A1-H8.
-    DU Diagonal Up axis (NE-SW), A8-H1.
-  */
+   * Rol distance is the number of positions that by which the board has to be rolled left
+   * in order to bring the lanes on the principal ones.
+   */
+  const __m256i rol_distance = _mm256_and_si256(c_63,
+                                                  _mm256_add_epi64(c_64,
+                                                                   _mm256_sllv_epi64(_mm256_setr_epi64x(-row,
+                                                                                                        -column,
+                                                                                                        -row + column,
+                                                                                                        7 - row - column),
+                                                                                     _mm256_setr_epi64x(3, 0, 3, 3))));
+  /*
+   * Lanes are squares aligned on the board on one axis.
+   * Each square identifies four lanes, each associated with one axis.
+   */
+  const __m256i lane_mask = _mm256_load_si256( (__m256i *) bitboard_mask_for_one_directions + move);
 
-  __m256i mop = _mm256_setr_epi64x(column, row, column, column);
-  __m256i shd = _mm256_setr_epi64x(-row, -column, column - row, 7 - column - row);
-  __m256i shift_const = _mm256_setr_epi64x(3, 0, 3, 3);
+  /* Player and opponent lanes. */
+  const __m256i p_lanes = _mm256_and_si256(lane_mask, _mm256_set1_epi64x(p_bit_board));
+  const __m256i o_lanes = _mm256_and_si256(lane_mask, _mm256_set1_epi64x(o_bit_board));
 
-  shd = _mm256_sllv_epi64(shd, shift_const);
+  /* Player and opponent lanes rolled on the principal ones. */
+  const __m256i p_main_lanes = _mm256_or_si256(_mm256_sllv_epi64(p_lanes, rol_distance),
+                                               _mm256_srlv_epi64(p_lanes, _mm256_sub_epi64(c_64, rol_distance)));
+  const __m256i o_main_lanes = _mm256_or_si256(_mm256_sllv_epi64(o_lanes, rol_distance),
+                                               _mm256_srlv_epi64(o_lanes, _mm256_sub_epi64(c_64, rol_distance)));
 
-  /* This is for comparing .... */
-  int64_t shd0_vec[4];
-  _mm256_store_si256((__m256i *) shd0_vec, shd);
 
-  const __m256i c_63 = _mm256_setr_epi64x(63ULL, 63ULL, 63ULL, 63ULL);
-  const __m256i c_64 = _mm256_setr_epi64x(64ULL, 64ULL, 64ULL, 64ULL);
-  shd = _mm256_add_epi64(c_64, shd);
-  shd = _mm256_and_si256(c_63, shd);
-
-  /* This is for comparing .... */
-  int64_t shd1_vec[4];
-  _mm256_store_si256((__m256i *) shd1_vec, shd);
-
-  __m256i p_bb = _mm256_setr_epi64x(p_bit_board, p_bit_board, p_bit_board, p_bit_board);
-  __m256i o_bb = _mm256_setr_epi64x(o_bit_board, o_bit_board, o_bit_board, o_bit_board);
-
-  const __m256i mask = _mm256_load_si256( (__m256i *) bitboard_mask_for_one_directions + move);
-  p_bb = _mm256_and_si256(mask, p_bb);
-  o_bb = _mm256_and_si256(mask, o_bb);
-
-  __m256i p_bb_rol_a = _mm256_sllv_epi64(p_bb, shd);
-  __m256i p_bb_rol_b = _mm256_srlv_epi64(p_bb, _mm256_sub_epi64(c_64, shd));
-  __m256i p_bb_rol = _mm256_or_si256(p_bb_rol_a, p_bb_rol_b);
-
-  __m256i o_bb_rol_a = _mm256_sllv_epi64(o_bb, shd);
-  __m256i o_bb_rol_b = _mm256_srlv_epi64(o_bb, _mm256_sub_epi64(c_64, shd));
-  __m256i o_bb_rol = _mm256_or_si256(o_bb_rol_a, o_bb_rol_b);
-
-  /* This is for comparing .... */
-  const __m256i main_bit_rows = _mm256_setr_epi64x(row_1, column_a, diagonal_a1_h8, diagonal_h1_a8);
-  SquareSet mbr_vec[4];
-  _mm256_store_si256((__m256i *) mbr_vec, main_bit_rows);
-
-  /* This is for comparing .... */
-  SquareSet p_bb_rol_vec[4];
-  _mm256_store_si256((__m256i *) p_bb_rol_vec, p_bb_rol);
-
-  /* This is for comparing .... */
-  SquareSet o_bb_rol_vec[4];
-  _mm256_store_si256((__m256i *) o_bb_rol_vec, o_bb_rol);
-
+  /*
+   * This block computes p_row_one_lanes for player, and the same variable for the opponent.
+   * Main lanes are transposed on row one, ready to be used for the generation of the array_index.
+   */
   const __m256i s0 = _mm256_setr_epi64x(0, 28, 32, 32);
   const __m256i s1 = _mm256_setr_epi64x(0, 14, 16, 16);
   const __m256i s2 = _mm256_setr_epi64x(0,  7,  8,  8);
-  const __m256i c0 = _mm256_setr_epi64x(0xFF, 0xFF, 0xFF, 0xFF);
-  __m256i p_bitrow_v = p_bb_rol;
-  __m256i o_bitrow_v = o_bb_rol;
+  const __m256i r1 = _mm256_set1_epi64x(row_1);
+  __m256i p_tmp = p_main_lanes;
+  __m256i o_tmp = o_main_lanes;
 
-  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s0));
-  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s1));
-  p_bitrow_v = _mm256_or_si256(p_bitrow_v, _mm256_srlv_epi64(p_bitrow_v, s2));
-  p_bitrow_v = _mm256_and_si256(p_bitrow_v, c0);
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_srlv_epi64(p_tmp, s0));
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_srlv_epi64(p_tmp, s1));
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_srlv_epi64(p_tmp, s2));
+  p_tmp = _mm256_and_si256(p_tmp, r1);
 
-  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s0));
-  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s1));
-  o_bitrow_v = _mm256_or_si256(o_bitrow_v, _mm256_srlv_epi64(o_bitrow_v, s2));
-  o_bitrow_v = _mm256_and_si256(o_bitrow_v, c0);
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_srlv_epi64(o_tmp, s0));
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_srlv_epi64(o_tmp, s1));
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_srlv_epi64(o_tmp, s2));
+  o_tmp = _mm256_and_si256(o_tmp, r1);
 
-  /* This is for comparing .... */
-  SquareSet p_bitrow_v_vec[4];
-  _mm256_store_si256((__m256i *) p_bitrow_v_vec, p_bitrow_v);
+  const __m256i p_row_one_lanes = p_tmp;
+  const __m256i o_row_one_lanes = o_tmp;
 
-  /* This is for comparing .... */
-  SquareSet o_bitrow_v_vec[4];
-  _mm256_store_si256((__m256i *) o_bitrow_v_vec, o_bitrow_v);
+  /*
+   * Computes the index in order to access the array of bitrow changes for player.
+   */
+  const __m256i array_indexes = _mm256_or_si256(p_row_one_lanes,
+                                                _mm256_or_si256(_mm256_slli_epi64(o_row_one_lanes, 8),
+                                                                _mm256_slli_epi64(move_ordinal_position, 16)));
 
-  const __m256i array_index = _mm256_or_si256(p_bitrow_v,
-                                              _mm256_or_si256(_mm256_slli_epi64(o_bitrow_v, 8),
-                                                              _mm256_slli_epi64(mop, 16)));
+  /* Stores the YMM values in a memory vector in order to run the next scalar loop. */
+  SquareSet o_row_one_lanes_vec[4];
+  _mm256_store_si256((__m256i *) o_row_one_lanes_vec, o_row_one_lanes);
 
-  int64_t array_index_vec[4];
-  _mm256_store_si256((__m256i *) array_index_vec, array_index);
+  /* Stores the YMM values in a memory vector in order to run the next scalar loop. */
+  int64_t array_indexes_vec[4];
+  _mm256_store_si256((__m256i *) array_indexes_vec, array_indexes);
 
-  uint8_t p_bitrow_v_dm[4];
-  uint8_t o_bitrow_v_dm[4];
-  for (Axis axis = HO; axis <= DU; axis++) {
-    p_bitrow_v_dm[axis] = bitrow_changes_for_player_array[array_index_vec[axis]];
-    o_bitrow_v_dm[axis] = ((uint8_t) o_bitrow_v_vec[axis]) & ~p_bitrow_v_dm[axis];
+  /*
+   * Scalar loop on the four axis that computes the new bitrow (lanes on row one) for player and opponent.
+   */
+  uint8_t p_bitrows_new_vec[4];
+  uint8_t o_bitrows_new_vec[4];
+  for (Axis axis = 0; axis < 4; axis++) {
+    const unsigned int index = array_indexes_vec[axis];
+    p_bitrows_new_vec[axis] = bitrow_changes_for_player_array[index];
+    o_bitrows_new_vec[axis] = ((uint8_t) o_row_one_lanes_vec[axis]) & ~p_bitrows_new_vec[axis];
   }
 
-  __m256i p_tbfro = _mm256_setr_epi64x(p_bitrow_v_dm[0], p_bitrow_v_dm[1], p_bitrow_v_dm[2], p_bitrow_v_dm[3]);
-  __m256i o_tbfro = _mm256_setr_epi64x(o_bitrow_v_dm[0], o_bitrow_v_dm[1], o_bitrow_v_dm[2], o_bitrow_v_dm[3]);
+  /*
+   * New bitrows are mapped back to the respective main lanes.
+   */
+  const __m256i main_lane_mask = _mm256_setr_epi64x(row_1, column_a, diagonal_a1_h8, diagonal_h1_a8);
 
-  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s2));
-  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s1));
-  p_tbfro = _mm256_or_si256(p_tbfro, _mm256_sllv_epi64(p_tbfro, s0));
-  p_tbfro = _mm256_and_si256(p_tbfro, main_bit_rows);
+  p_tmp = _mm256_setr_epi64x(p_bitrows_new_vec[0], p_bitrows_new_vec[1], p_bitrows_new_vec[2], p_bitrows_new_vec[3]);
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_sllv_epi64(p_tmp, s2));
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_sllv_epi64(p_tmp, s1));
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_sllv_epi64(p_tmp, s0));
+  p_tmp = _mm256_and_si256(p_tmp, main_lane_mask);
 
-  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s2));
-  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s1));
-  o_tbfro = _mm256_or_si256(o_tbfro, _mm256_sllv_epi64(o_tbfro, s0));
-  o_tbfro = _mm256_and_si256(o_tbfro, main_bit_rows);
+  o_tmp = _mm256_setr_epi64x(o_bitrows_new_vec[0], o_bitrows_new_vec[1], o_bitrows_new_vec[2], o_bitrows_new_vec[3]);
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_sllv_epi64(o_tmp, s2));
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_sllv_epi64(o_tmp, s1));
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_sllv_epi64(o_tmp, s0));
+  o_tmp = _mm256_and_si256(o_tmp, main_lane_mask);
 
-  /* This is for comparing .... */
-  SquareSet p_tbfro_vec[4];
-  _mm256_store_si256((__m256i *) p_tbfro_vec, p_tbfro);
+  const __m256i p_main_lanes_new = p_tmp;
+  const __m256i o_main_lanes_new = o_tmp;
 
-  /* This is for comparing .... */
-  SquareSet o_tbfro_vec[4];
-  _mm256_store_si256((__m256i *) o_tbfro_vec, o_tbfro);
+  /*
+   * Lanes are rolled back from main ones to the move's specific one.
+   */
+  const __m256i p_lanes_new = _mm256_or_si256(_mm256_srlv_epi64(p_main_lanes_new, rol_distance),
+                                              _mm256_sllv_epi64(p_main_lanes_new, _mm256_sub_epi64(c_64, rol_distance)));
+  const __m256i o_lanes_new = _mm256_or_si256(_mm256_srlv_epi64(o_main_lanes_new, rol_distance),
+                                              _mm256_sllv_epi64(o_main_lanes_new, _mm256_sub_epi64(c_64, rol_distance)));
 
-  __m256i p_bb_rol_back_a = _mm256_srlv_epi64(p_tbfro, shd);
-  __m256i p_bb_rol_back_b = _mm256_sllv_epi64(p_tbfro, _mm256_sub_epi64(c_64, shd));
-  __m256i p_bb_rol_back = _mm256_or_si256(p_bb_rol_back_a, p_bb_rol_back_b);
+  /* Uusiliary vectors are copied from YMM registers in order to run the following scalar loop. */
+  SquareSet p_lanes_new_vec[4];
+  _mm256_store_si256((__m256i *) p_lanes_new_vec, p_lanes_new);
+  SquareSet o_lanes_new_vec[4];
+  _mm256_store_si256((__m256i *) o_lanes_new_vec, o_lanes_new);
 
-  __m256i o_bb_rol_back_a = _mm256_srlv_epi64(o_tbfro, shd);
-  __m256i o_bb_rol_back_b = _mm256_sllv_epi64(o_tbfro, _mm256_sub_epi64(c_64, shd));
-  __m256i o_bb_rol_back = _mm256_or_si256(o_bb_rol_back_a, o_bb_rol_back_b);
-
-  /* This is for comparing .... and more ....*/
-  SquareSet p_bb_rol_back_vec[4];
-  _mm256_store_si256((__m256i *) p_bb_rol_back_vec, p_bb_rol_back);
-  SquareSet o_bb_rol_back_vec[4];
-  _mm256_store_si256((__m256i *) o_bb_rol_back_vec, o_bb_rol_back);
-
-  SquareSet p_bit_board_new_v = p_bit_board_new;
-  SquareSet o_bit_board_new_v = o_bit_board_new;
-  for (Axis axis = HO; axis <= DU; axis++) {
-    p_bit_board_new_v |= p_bb_rol_back_vec[axis];
-    o_bit_board_new_v |= o_bb_rol_back_vec[axis];
+  /* New lanes are composed with the masked board. */
+  SquareSet p_bit_board_new = p_bit_board & unmodified_mask;
+  SquareSet o_bit_board_new = o_bit_board & unmodified_mask;
+  for (Axis axis = 0; axis < 4; axis++) {
+    p_bit_board_new |= p_lanes_new_vec[axis];
+    o_bit_board_new |= o_lanes_new_vec[axis];
   }
 
-  for (Axis axis = HO; axis <= DU; axis++) {
-    const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
-    const int shift_distance = axis_shift_distance(axis, column, row);
-    if (shift_distance != shd0_vec[axis]) abort();
-    const SquareSet pbb_sh = bit_works_signed_left_shift(p_bit_board, shift_distance);
-    if ((pbb_sh & mbr_vec[axis]) != p_bb_rol_vec[axis]) abort();
-    const SquareSet obb_sh = bit_works_signed_left_shift(o_bit_board, shift_distance);
-    if ((obb_sh & mbr_vec[axis]) != o_bb_rol_vec[axis]) abort();
-    uint8_t p_bitrow = axis_transform_to_row_one(axis, pbb_sh);
-    if ((uint8_t) p_bitrow_v_vec[axis] != p_bitrow) abort();
-    uint8_t o_bitrow = axis_transform_to_row_one(axis, obb_sh);
-    if ((uint8_t) o_bitrow_v_vec[axis] != o_bitrow) abort();
-    p_bitrow = board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position);
-    if (p_bitrow_v_dm[axis] != p_bitrow) abort();
-    o_bitrow &= ~p_bitrow;
-    if (o_bitrow_v_dm[axis] != o_bitrow) abort();
-    p_bit_board_new |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, p_bitrow), -shift_distance);
-    o_bit_board_new |= bit_works_signed_left_shift(axis_transform_back_from_row_one(axis, o_bitrow), -shift_distance);
-    if (p_tbfro_vec[axis] != axis_transform_back_from_row_one(axis, p_bitrow)) abort();
-    if (o_tbfro_vec[axis] != axis_transform_back_from_row_one(axis, o_bitrow)) abort();
-  }
-  if (p_bit_board_new_v != p_bit_board_new) abort();
-  if (o_bit_board_new_v != o_bit_board_new) abort();
-
+  /* Player's and opponents's boards are assigned to black and white according to player's value. */
   SquareSet blacks, whites;
   if (o) {
     blacks = p_bit_board_new;
@@ -2590,6 +2406,7 @@ game_position_make_move2 (const GamePosition *const gp,
     blacks = o_bit_board_new;
     whites = p_bit_board_new;
   }
+
   return game_position_new(board_new(blacks, whites), o);
 }
 
