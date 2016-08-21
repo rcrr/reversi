@@ -216,23 +216,7 @@ bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64_t bit_sequence)
 uint64_t
 bit_works_signed_left_shift (uint64_t bit_sequence, int shift)
 {
-  uint64_t result = shift >= 0 ? bit_sequence << shift : bit_sequence >> -shift;
-  /*
-  // Why is the board full? It has to be investigated .....
-  unsigned int s = (64 + shift) % 64;
-  uint64_t tmp = bit_works_rol_64(bit_sequence, s);
-  if (tmp != result) {
-    printf("s            = %u\n", s);
-    printf("shift        = %d\n", shift);
-    printf("bit_sequence = 0x%016lx\n", bit_sequence);
-    printf("result       = 0x%016lx\n", result);
-    printf("tmp          = 0x%016lx\n", tmp);
-    char *b = board_print(board_new(bit_sequence, 0));
-    printf("\n%s\n", b);
-    abort();
-  }
-  */
-  return result;
+  return shift >= 0 ? bit_sequence << shift : bit_sequence >> -shift;
 }
 
 /**
