@@ -64,7 +64,7 @@ typedef SquareSet
                                const Player p);
 
 /* Selected function. */
-static int board_legal_moves_option = 1;
+static int board_legal_moves_option = 4;
 
 
 /*
@@ -94,6 +94,14 @@ static SquareSet
 board_legal_moves2 (const Board *const b,
                     const Player p);
 
+static SquareSet
+board_legal_moves3 (const Board *const b,
+                    const Player p);
+
+static SquareSet
+board_legal_moves4 (const Board *const b,
+                    const Player p);
+
 static GamePosition *
 game_position_make_move0 (const GamePosition *const gp,
                           const Square move);
@@ -111,7 +119,9 @@ game_position_make_move1 (const GamePosition *const gp,
 /* */
 static const board_legal_moves_function blm_functions[] = { board_legal_moves0,
                                                             board_legal_moves1,
-                                                            board_legal_moves2 };
+                                                            board_legal_moves2,
+                                                            board_legal_moves3,
+                                                            board_legal_moves4 };
 
 
 static const game_position_make_move_function gp_mm_functions[] = { game_position_make_move0,
@@ -142,6 +152,9 @@ static const gchar *const sq_to_s[66] = {
   "A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8",
   "--", "NA"
 };
+
+/* A square set being all set. */
+static const SquareSet all_squares = 0xFFFFFFFFFFFFFFFF;
 
 /* A square set being all set with the exception of column A. */
 static const SquareSet all_squares_except_column_a = 0xFEFEFEFEFEFEFEFE;
@@ -1273,7 +1286,8 @@ board_legal_moves (const Board *const b,
     const SquareSet r0 = board_legal_moves0(b, p);
     const SquareSet r1 = board_legal_moves1(b, p);
     const SquareSet r2 = board_legal_moves2(b, p);
-    if (r0 != r1 || r0 != r2) abort();
+    const SquareSet r3 = board_legal_moves3(b, p);
+    if (r0 != r1 || r0 != r2 || r0 != r3) abort();
     return r0;
   }
 
@@ -1283,6 +1297,186 @@ board_legal_moves (const Board *const b,
 /**
  * @cond
  */
+
+/*
+ * Vectorized Kogge-Stone type algorithm.
+ */
+static SquareSet
+board_legal_moves4 (const Board *const b,
+                    const Player p)
+{
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
+  const Player o = player_opponent(p);
+  const SquareSet empties = board_empties(b);
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+
+  const __m256i p_bit_board_v = _mm256_set1_epi64x(p_bit_board);
+  const __m256i o_bit_board_v = _mm256_set1_epi64x(o_bit_board);
+  const __m256i empties_v = _mm256_set1_epi64x(empties);
+
+  const __m256i const_a0 = _mm256_setr_epi64x(all_squares_except_column_a,
+                                              all_squares_except_column_h,
+                                              all_squares,
+                                              all_squares_except_column_a);
+  const __m256i const_a1 = _mm256_setr_epi64x(all_squares_except_column_h,
+                                              all_squares_except_column_a,
+                                              all_squares,
+                                              all_squares_except_column_h);
+
+  const __m256i const_sh_a = _mm256_setr_epi64x(1,  7,  8,  9);
+  const __m256i const_sh_b = _mm256_setr_epi64x(2, 14, 16, 18);
+  const __m256i const_sh_c = _mm256_setr_epi64x(4, 28, 32, 36);
+
+  const __m256i const_b0 = _mm256_and_si256(empties_v, const_a0);
+  const __m256i const_b1 = _mm256_and_si256(empties_v, const_a1);
+
+  __m256i gen0 = p_bit_board_v;
+  __m256i gen1 = p_bit_board_v;
+  __m256i pro0 = _mm256_and_si256(o_bit_board_v, const_a0);
+  __m256i pro1 = _mm256_and_si256(o_bit_board_v, const_a1);
+
+  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_a)));
+  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_a)));
+  pro0 = _mm256_and_si256(pro0, _mm256_sllv_epi64(pro0, const_sh_a));
+  pro1 = _mm256_and_si256(pro1, _mm256_srlv_epi64(pro1, const_sh_a));
+
+  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_b)));
+  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_b)));
+  pro0 = _mm256_and_si256(pro0, _mm256_sllv_epi64(pro0, const_sh_b));
+  pro1 = _mm256_and_si256(pro1, _mm256_srlv_epi64(pro1, const_sh_b));
+
+  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_c)));
+  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_c)));
+
+  gen0 = _mm256_andnot_si256(p_bit_board_v, gen0);
+  gen1 = _mm256_andnot_si256(p_bit_board_v, gen1);
+
+  gen0 = _mm256_and_si256(const_b0, _mm256_sllv_epi64(gen0, const_sh_a));
+  gen1 = _mm256_and_si256(const_b1, _mm256_srlv_epi64(gen1, const_sh_a));
+
+  /*
+   * Cobines the eight set of legal moves, four DWORDS in gen0, and four in gen1, into the
+   * final result.
+   */
+  __m256i gen = _mm256_or_si256(gen0, gen1);
+  gen = _mm256_or_si256(gen, _mm256_permute4x64_epi64(gen, 0x4E));
+  gen = _mm256_or_si256(gen, _mm256_bsrli_epi128(gen, 8));
+
+  return _mm256_extract_epi64(gen, 0);
+}
+
+/*
+ * Kogge-Stone type algorithm.
+ */
+static SquareSet
+board_legal_moves3 (const Board *const b,
+                    const Player p)
+{
+  g_assert(b);
+  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+
+  SquareSet result = empty_square_set;
+
+  const Player o = player_opponent(p);
+  const SquareSet empties = board_empties(b);
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+
+  SquareSet g, r;
+
+  g = p_bit_board;
+  r = o_bit_board & all_squares_except_column_a;
+  g |= r & (g <<  9);
+  r &=     (r <<  9);
+  g |= r & (g << 18);
+  r &=     (r << 18);
+  g |= r & (g << 36);
+  g = g & ~p_bit_board;
+  g  = ((g << 9) & all_squares_except_column_a) & empties;
+  result |= g;
+
+  g = p_bit_board;
+  r = o_bit_board;
+  g |= r & (g <<  8);
+  r &=     (r <<  8);
+  g |= r & (g << 16);
+  r &=     (r << 16);
+  g |= r & (g << 32);
+  g = g & ~p_bit_board;
+  g = (g << 8) & empties;
+  result |= g;
+
+  g = p_bit_board;
+  r = o_bit_board & all_squares_except_column_h;
+  g |= r & (g <<  7);
+  r &=     (r <<  7);
+  g |= r & (g << 14);
+  r &=     (r << 14);
+  g |= r & (g << 28);
+  g = g & ~p_bit_board;
+  g = ((g << 7) & all_squares_except_column_h) & empties;
+  result |= g;
+
+  g = p_bit_board;
+  r = o_bit_board & all_squares_except_column_a;
+  g |= r & (g <<  1);
+  r &=     (r <<  1);
+  g |= r & (g <<  2);
+  r &=     (r <<  2);
+  g |= r & (g <<  4);
+  g = g & ~p_bit_board;
+  g = ((g << 1) & all_squares_except_column_a) & empties;
+  result |= g;
+
+  g = p_bit_board;
+  r = o_bit_board & all_squares_except_column_h;
+  g |= r & (g >>  9);
+  r &=     (r >>  9);
+  g |= r & (g >> 18);
+  r &=     (r >> 18);
+  g |= r & (g >> 36);
+  g = g & ~p_bit_board;
+  g = ((g >> 9) & all_squares_except_column_h) & empties;
+  result |= g;
+
+  g = p_bit_board;
+  r = o_bit_board;
+  g |= r & (g >>  8);
+  r &=     (r >>  8);
+  g |= r & (g >> 16);
+  r &=     (r >> 16);
+  g |= r & (g >> 32);
+  g = g & ~p_bit_board;
+  g = (g >> 8) & empties;
+  result |= g;
+
+  g = p_bit_board;
+  r = o_bit_board & all_squares_except_column_a;
+  g |= r & (g >>  7);
+  r &=     (r >>  7);
+  g |= r & (g >> 14);
+  r &=     (r >> 14);
+  g |= r & (g >> 28);
+  g = g & ~p_bit_board;
+  g = ((g >> 7) & all_squares_except_column_a) & empties;
+  result |= g;
+
+  g = p_bit_board;
+  r = o_bit_board & all_squares_except_column_h;
+  g |= r & (g >>  1);
+  r &=     (r >>  1);
+  g |= r & (g >>  2);
+  r &=     (r >>  2);
+  g |= r & (g >>  4);
+  g = g & ~p_bit_board;
+  g = ((g >> 1) & all_squares_except_column_h) & empties;
+  result |= g;
+
+  return result;
+}
 
 /*
  * This is the base implementation for the fuction board_legal_moves.

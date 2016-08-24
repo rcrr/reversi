@@ -65,9 +65,16 @@
  *
  * @todo [done] Refine and refactor the exact_solver implementation.
  *
+ * @todo [done] Write SIMD (AVX2) versions of make_move and legal_moves functions.
+ *       Arrange the documentation, the selection of alternatives, the testing of the aternatives in a more
+ *         modular way.
+ *
  * @todo [done] Solvers rab and ab share the same stack solution. Refactor it sharing
  *              the same utilities brougth to a dedicated module.
  *       The es solver should do the same.
+ *              2016-08-21: legal_moves and make_move functions have an AVX2 version.
+ *                          Now malloc/free functions are consuming the largest slice of the es solver.
+ *                          It is time to address this task.
  *
  * @todo Port the stack practice to all the other solver, refactor the structures used (Stack, NodeInfo, GamePositionX).
  *

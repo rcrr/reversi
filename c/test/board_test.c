@@ -784,11 +784,12 @@ board_legal_moves_test (void)
 
   b = board_new(0x0000000000000001, 0x0040201008040200);
 
+  char *bs = board_print(b);
+  printf("\n\n%s\n\n", bs);
+
   g_assert(0x8000000000000000 == board_legal_moves(b, BLACK_PLAYER));
 
-  int option = board_legal_moves_option_get();
-  g_assert(1 == option);
-  option = board_legal_moves_option_set(0);
+  int option = board_legal_moves_option_set(0);
   option = board_legal_moves_option_get();
   g_assert(0 == option);
   g_assert(0x8000000000000000 == board_legal_moves(b, BLACK_PLAYER));
