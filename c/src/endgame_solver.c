@@ -177,6 +177,7 @@
 #include "minimax_solver.h"
 #include "rab_solver.h"
 #include "ab_solver.h"
+#include "exact_solver2.h"
 
 
 
@@ -208,7 +209,8 @@ static const endgame_solver_t solvers[] =
     { .id = "rand",    .description = "random game sampler",          .function_name = "game_position_random_sampler", .fn = game_position_random_sampler },
     { .id = "minimax", .description = "minimax solver",               .function_name = "game_position_minimax_solve",  .fn = game_position_minimax_solve },
     { .id = "rab",     .description = "random alpha-beta solver",     .function_name = "game_position_rab_solve",      .fn = game_position_rab_solve },
-    { .id = "ab",      .description = "alpha-beta solver",            .function_name = "game_position_ab_solve",       .fn = game_position_ab_solve }
+    { .id = "ab",      .description = "alpha-beta solver",            .function_name = "game_position_ab_solve",       .fn = game_position_ab_solve },
+    { .id = "es2",     .description = "es rewritten ...",             .function_name = "game_position_es2_solve",      .fn = game_position_es2_solve }
   };
 
 static const int solvers_count = sizeof(solvers) / sizeof(solvers[0]);
@@ -428,6 +430,9 @@ main (int argc, char *argv[])
     break;
   case 5:
     solution = game_position_ab_solve(gp, &env);
+    break;
+  case 6:
+    solution = game_position_es2_solve(gp, &env);
     break;
   default:
     g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);
