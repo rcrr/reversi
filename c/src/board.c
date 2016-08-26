@@ -2577,7 +2577,7 @@ game_position_make_move1 (const GamePosition *const gp,
   const __m256i o_lanes_new = _mm256_or_si256(_mm256_srlv_epi64(o_main_lanes_new, rol_distance),
                                               _mm256_sllv_epi64(o_main_lanes_new, _mm256_sub_epi64(c_64, rol_distance)));
 
-  /* Uusiliary vectors are copied from YMM registers in order to run the following scalar loop. */
+  /* Auxiliary vectors are copied from YMM registers in order to run the following scalar loop. */
   SquareSet p_lanes_new_vec[4];
   _mm256_store_si256((__m256i *) p_lanes_new_vec, p_lanes_new);
   SquareSet o_lanes_new_vec[4];

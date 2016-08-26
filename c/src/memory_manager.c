@@ -258,7 +258,7 @@ mem_dbg_allocate (mem_allocator_t *allocator,
     }
     else mem_dbg_fail("blocksize %lu too small for %lubyte allocation", (unsigned long) mt->tail->size, (unsigned long) size);
 
-  default: assert(0);
+  default: assert(0); return NULL;
   }
 
 }
