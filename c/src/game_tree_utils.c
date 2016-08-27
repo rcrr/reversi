@@ -1171,6 +1171,39 @@ pve_line_add_move (PVEnv *pve,
 }
 
 void
+pve_line_add_move2 (PVEnv *pve,
+                    PVCell **line,
+                    Square move,
+                    GamePositionX *gpx)
+{
+  pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
+  pve->line_add_move_count++;
+  PVCell *added_cell = *(pve->cells_stack_head);
+  *(pve->cells_stack_head) = NULL; /* Set to NULL the stack element. */
+  pve->cells_stack_head++;
+  if (pve->cells_stack_head - pve->cells_stack > pve->cells_max_usage) pve->cells_max_usage++;
+  if (pve->cells_stack_head - pve->cells_stack == pve->cells_size) pve_double_cells_size(pve);
+  added_cell->move = move;
+  added_cell->is_active = TRUE;
+  added_cell->next = *line;
+  added_cell->ref_count = 0;
+  added_cell->gpx.blacks = gpx->blacks;
+  added_cell->gpx.whites = gpx->whites;
+  added_cell->gpx.player = gpx->player;
+  *line = added_cell;
+
+  pve_gp_table_entry_t table_entry;
+  table_entry.gpx.blacks = gpx->blacks;
+  table_entry.gpx.whites = gpx->whites;
+  table_entry.gpx.player = gpx->player;
+  pve_gp_table_entry_t **entry_ref = (pve_gp_table_entry_t **) rbt_probe(pve->gp_table, &table_entry);
+  if (*entry_ref == &table_entry) {
+    *entry_ref = pve_gp_table_entry_new(&table_entry.gpx);
+  }
+  (*entry_ref)->ref_count++;
+}
+
+void
 pve_line_add_variant (PVEnv *pve,
                       PVCell **line,
                       PVCell **line_variant)

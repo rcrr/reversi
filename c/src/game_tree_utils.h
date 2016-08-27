@@ -422,6 +422,12 @@ pve_line_add_move (PVEnv *pve,
                    GamePosition *gp);
 
 extern void
+pve_line_add_move2 (PVEnv *pve,
+                    PVCell **line,
+                    Square move,
+                    GamePositionX *gpx);
+
+extern void
 pve_line_add_variant (PVEnv *pve,
                       PVCell **line,
                       PVCell **line_variant);

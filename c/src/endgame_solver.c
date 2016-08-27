@@ -352,8 +352,8 @@ main (int argc, char *argv[])
     return -5;
   }
   const endgame_solver_t *const solver = &solvers[solver_index];
-  if (pv_full_rec && strcmp(solver->id, "es")) {
-    g_print("Option --pv-full-rec can be used only with solver \"es\".\n");
+  if (pv_full_rec && !(!strcmp(solver->id, "es") || !strcmp(solver->id, "es2"))) {
+    g_print("Option --pv-full-rec can be used only with solver \"es\" or \"es2\".\n");
     return -10;
   }
   if (pv_no_print && (strcmp(solver->id, "es") || !pv_full_rec)) {

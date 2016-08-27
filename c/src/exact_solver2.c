@@ -83,7 +83,8 @@ typedef struct {
 
 static void
 game_position_solve2_impl (ExactSolution *const result,
-                           GameTreeStack *const stack);
+                           GameTreeStack *const stack,
+                           PVCell ***pve_parent_line_p);
 
 static void
 sort_moves_by_mobility_count (MoveList *move_list,
@@ -105,6 +106,7 @@ move_list_init (MoveList *ml);
 
 /* Principal Variation Environmenat. */
 static PVEnv *pve = NULL;
+static PVEnv *pve2 = NULL;
 
 /* The logging environment structure. */
 static LogEnv *log_env = NULL;
@@ -181,12 +183,14 @@ game_position_es2_solve (const GamePosition *const root,
 
   log_env = game_tree_log_init(env->log_file);
 
+  GamePositionX *rootx = game_position_x_gp_to_gpx(root);
+
   /* es2 */
   GameTreeStack *stack = game_tree_stack_new();
   game_tree_stack_init(root, stack);
   NodeInfo *first_node_info = &stack->nodes[1];
+  pve2 = pve_new(rootx);
 
-  GamePositionX *rootx = game_position_x_gp_to_gpx(root);
   pve = pve_new(rootx);
   game_position_x_free(rootx);
 
@@ -264,7 +268,7 @@ game_position_es2_solve (const GamePosition *const root,
   }
 
   /* es2 */
-  game_position_solve2_impl(result, stack);
+  game_position_solve2_impl(result, stack, &(pve2->root_line));
 
   /* es2 */
   const int game_value = first_node_info->alpha;
@@ -272,6 +276,9 @@ game_position_es2_solve (const GamePosition *const root,
   game_tree_stack_free(stack);
   printf("es2: game_value=%d\n", game_value);
   printf("es2: best_move=%s\n", square_as_move_to_string(best_move));
+  printf("es2: pve2_to_stream ...\n");
+  pve_line_with_variants_to_stream (pve2, stdout);
+  pve_free(pve2);
 
   search_node_free(sn);
   pve_free(pve);
@@ -334,9 +341,11 @@ sort_moves_by_mobility_count (MoveList *move_list,
 
 static void
 game_position_solve2_impl (ExactSolution *const result,
-                           GameTreeStack *const stack)
+                           GameTreeStack *const stack,
+                           PVCell ***pve_parent_line_p)
 {
   result->node_count++;
+  PVCell **pve_line = NULL;
 
   const int current_fill_index = stack->fill_index;
   const int next_fill_index = current_fill_index + 1;
@@ -368,13 +377,14 @@ game_position_solve2_impl (ExactSolution *const result,
   }
 
   if (move_set == empty_square_set) {
+    pve_line = pve_line_create(pve2);
     const int previous_move_count = previous_node_info->move_count;
     const SquareSet empties = game_position_x_empties(current_gpx);
     if (empties != empty_square_set && previous_move_count != 0) {
       game_position_x_pass(current_gpx, next_gpx);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
-      game_position_solve2_impl(result, stack);
+      game_position_solve2_impl(result, stack, &pve_line);
       current_node_info->alpha = -next_node_info->alpha;
       current_node_info->best_move = next_node_info->best_move;
     } else {
@@ -382,17 +392,24 @@ game_position_solve2_impl (ExactSolution *const result,
       current_node_info->alpha = game_position_x_final_value(current_gpx);
       current_node_info->best_move = invalid_move;
     }
+    pve_line_add_move2(pve2, pve_line, pass_move, next_gpx);
+    pve_line_delete(pve2, *pve_parent_line_p);
+    *pve_parent_line_p = pve_line;
   } else {
     current_node_info->alpha = out_of_range_defeat_score;
     for (int i = 0; i < current_node_info->move_count; i++) {
       const Square move = * (current_node_info->head_of_legal_move_list + i);
       game_position_x_make_move(current_gpx, move, next_gpx);
+      pve_line = pve_line_create(pve2);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
-      game_position_solve2_impl(result, stack);
+      game_position_solve2_impl(result, stack, &pve_line);
       if (-next_node_info->alpha > current_node_info->alpha) {
         current_node_info->alpha = -next_node_info->alpha;
         current_node_info->best_move = move;
+        pve_line_add_move2(pve2, pve_line, move, next_gpx);
+        pve_line_delete(pve2, *pve_parent_line_p);
+        *pve_parent_line_p = pve_line;
         if (current_node_info->alpha >= current_node_info->beta) {
           goto out;
         }
