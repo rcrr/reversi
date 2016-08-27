@@ -410,8 +410,14 @@ game_position_solve2_impl (ExactSolution *const result,
         pve_line_add_move2(pve2, pve_line, move, next_gpx);
         pve_line_delete(pve2, *pve_parent_line_p);
         *pve_parent_line_p = pve_line;
-        if (current_node_info->alpha >= current_node_info->beta) {
-          goto out;
+        if (current_node_info->alpha > current_node_info->beta) goto out;
+        if (!pv_full_recording && current_node_info->alpha == current_node_info->beta) goto out;
+      } else {
+        if (pv_full_recording && -next_node_info->alpha == current_node_info->alpha) {
+          pve_line_add_move2(pve2, pve_line, move, next_gpx);
+          pve_line_add_variant(pve2, *pve_parent_line_p, pve_line);
+        } else {
+          pve_line_delete(pve2, pve_line);
         }
       }
     }
