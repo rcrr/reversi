@@ -174,7 +174,7 @@ game_position_es2_solve (const GamePosition *const root,
   g_assert(root);
   g_assert(env);
 
-  ExactSolution *result;
+  ExactSolution *result, *result2;
   SearchNode    *sn;
   int            alpha;
   int            beta;
@@ -190,6 +190,8 @@ game_position_es2_solve (const GamePosition *const root,
   game_tree_stack_init(root, stack);
   NodeInfo *first_node_info = &stack->nodes[1];
   pve2 = pve_new(rootx);
+  result2 = exact_solution_new();
+  result2->solved_game_position = game_position_clone(root);
 
   pve = pve_new(rootx);
   game_position_x_free(rootx);
@@ -268,7 +270,7 @@ game_position_es2_solve (const GamePosition *const root,
   }
 
   /* es2 */
-  game_position_solve2_impl(result, stack, &(pve2->root_line));
+  game_position_solve2_impl(result2, stack, &(pve2->root_line));
 
   /* es2 */
   const int game_value = first_node_info->alpha;
@@ -276,9 +278,13 @@ game_position_es2_solve (const GamePosition *const root,
   game_tree_stack_free(stack);
   printf("es2: game_value=%d\n", game_value);
   printf("es2: best_move=%s\n", square_as_move_to_string(best_move));
+  printf("es2: result2->node_count=%lu, result2->leaf_count=%lu]\n",
+         result2->node_count,
+         result2->leaf_count);
   printf("es2: pve2_to_stream ...\n");
   pve_line_with_variants_to_stream (pve2, stdout);
   pve_free(pve2);
+  exact_solution_free(result2);
 
   search_node_free(sn);
   pve_free(pve);
@@ -441,6 +447,9 @@ game_position_solve2_impl (ExactSolution *const result,
     current_node_info->alpha = out_of_range_defeat_score;
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
+      /* After running legal_move_list_from_set, a second function has to order the list ...
+       * The function should recorder the move_set, so avoiding to compute it again at the beginning of the function.
+       */
       //for (int i = 0; i < current_node_info->move_count; i++) {
       //const Square move = * (current_node_info->head_of_legal_move_list + i);
       game_position_x_make_move(current_gpx, move, next_gpx);
