@@ -110,6 +110,7 @@ static PVEnv *pve2 = NULL;
 
 /* The logging environment structure. */
 static LogEnv *log_env = NULL;
+static LogEnv *log_env2 = NULL;
 
 /* The total number of call to the recursive function that traverse the game DAG. */
 static uint64_t call_count = 0;
@@ -181,7 +182,7 @@ game_position_es2_solve (const GamePosition *const root,
 
   pv_full_recording = env->pv_full_recording;
 
-  log_env = game_tree_log_init(env->log_file);
+  log_env = game_tree_log_init(NULL);
 
   GamePositionX *rootx = game_position_x_gp_to_gpx(root);
 
@@ -270,6 +271,10 @@ game_position_es2_solve (const GamePosition *const root,
   }
 
   /* es2 */
+  log_env2 = game_tree_log_init(env->log_file);
+  if (log_env2->log_is_on) {
+    game_tree_log_open_h(log_env2);
+  }
   game_position_solve2_impl(result2, stack, &(pve2->root_line));
 
   /* es2 */
@@ -290,6 +295,10 @@ game_position_es2_solve (const GamePosition *const root,
   pve_free(pve);
 
   game_tree_log_close(log_env);
+
+  /* es2 */
+  game_tree_log_close(log_env2);
+
 
   return result;
 }
@@ -408,7 +417,7 @@ game_position_solve2_impl (ExactSolution *const result,
   const SquareSet move_set = game_position_x_legal_moves(current_gpx);
   legal_move_list_from_set(move_set, current_node_info, next_node_info);
 
-  if (log_env->log_is_on) {
+  if (log_env2->log_is_on) {
     LogDataH log_data;
     log_data.sub_run_id = sub_run_id;
     log_data.call_id = result->node_count;
@@ -418,7 +427,7 @@ game_position_solve2_impl (ExactSolution *const result,
     log_data.whites = current_gpx->whites;
     log_data.player = current_gpx->player;
     log_data.json_doc = "\"{}\"";
-    game_tree_log_write_h(log_env, &log_data);
+    game_tree_log_write_h(log_env2, &log_data);
   }
 
   if (move_set == empty_square_set) {
@@ -444,7 +453,12 @@ game_position_solve2_impl (ExactSolution *const result,
     MoveList move_list;
     move_list_init(&move_list);
     sort_moves_by_mobility_count2(&move_list, current_gpx);
-    current_node_info->alpha = out_of_range_defeat_score;
+    /* removing the alpha reset the number of leafs is OK. Nodes differ by a small amount (wrong).
+     * but full pv analysis aborts ....
+     * and the PV is not always corect.
+     * Everything has to be understood ......
+     */
+    //current_node_info->alpha = out_of_range_defeat_score;
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
       /* After running legal_move_list_from_set, a second function has to order the list ...
