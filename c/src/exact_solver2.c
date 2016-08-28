@@ -340,6 +340,45 @@ sort_moves_by_mobility_count (MoveList *move_list,
 }
 
 static void
+sort_moves_by_mobility_count2 (MoveList *move_list,
+                               const GamePositionX *const gpx)
+{
+  MoveListElement *curr = NULL;
+  int move_index = 0;
+  const SquareSet moves = game_position_x_legal_moves(gpx);
+  SquareSet moves_to_search = moves;
+  GamePositionX next_gpx_struct;
+  GamePositionX *next_gpx = &next_gpx_struct;
+  for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
+    moves_to_search = legal_moves_priority_mask[i] & moves;
+    while (moves_to_search) {
+      curr = &move_list->elements[move_index];
+      const Square move = bit_works_bitscanLS1B_64(moves_to_search);
+      moves_to_search &= ~(1ULL << move);
+      game_position_x_make_move(gpx, move, next_gpx);
+      const SquareSet next_moves = game_position_x_legal_moves(next_gpx);
+      const int next_move_count = bit_works_popcount(next_moves);
+      curr->sq = move;
+      curr->mobility = next_move_count;
+      for (MoveListElement *element = move_list->head.succ; element != NULL; element = element->succ) {
+        if (curr->mobility < element->mobility) { /* Insert current before element. */
+          MoveListElement *left  = element->pred;
+          MoveListElement *right = element;
+          curr->pred  = left;
+          curr->succ  = right;
+          left->succ  = curr;
+          right->pred = curr;
+          goto out;
+        }
+      }
+    out:
+      move_index++;
+    }
+  }
+  return;
+}
+
+static void
 game_position_solve2_impl (ExactSolution *const result,
                            GameTreeStack *const stack,
                            PVCell ***pve_parent_line_p)
@@ -396,9 +435,14 @@ game_position_solve2_impl (ExactSolution *const result,
     pve_line_delete(pve2, *pve_parent_line_p);
     *pve_parent_line_p = pve_line;
   } else {
+    MoveList move_list;
+    move_list_init(&move_list);
+    sort_moves_by_mobility_count2(&move_list, current_gpx);
     current_node_info->alpha = out_of_range_defeat_score;
-    for (int i = 0; i < current_node_info->move_count; i++) {
-      const Square move = * (current_node_info->head_of_legal_move_list + i);
+    for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
+      const Square move = element->sq;
+      //for (int i = 0; i < current_node_info->move_count; i++) {
+      //const Square move = * (current_node_info->head_of_legal_move_list + i);
       game_position_x_make_move(current_gpx, move, next_gpx);
       pve_line = pve_line_create(pve2);
       next_node_info->alpha = -current_node_info->beta;
