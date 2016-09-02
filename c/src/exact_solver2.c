@@ -190,6 +190,13 @@ game_position_es2_solve (const GamePosition *const root,
   GameTreeStack *stack = game_tree_stack_new();
   game_tree_stack_init(root, stack);
   NodeInfo *first_node_info = &stack->nodes[1];
+  if (pv_full_recording) {
+    first_node_info->alpha = out_of_range_defeat_score;
+    first_node_info->beta = out_of_range_win_score;
+  } else {
+    first_node_info->alpha = worst_score;
+    first_node_info->beta = best_score;
+  }
   pve2 = pve_new(rootx);
   result2 = exact_solution_new();
   result2->solved_game_position = game_position_clone(root);
@@ -434,7 +441,8 @@ game_position_solve2_impl (ExactSolution *const result,
     pve_line = pve_line_create(pve2);
     const int previous_move_count = previous_node_info->move_count;
     const SquareSet empties = game_position_x_empties(current_gpx);
-    if (empties != empty_square_set && previous_move_count != 0) {
+    //if (empties != empty_square_set && previous_move_count != 0) {
+    if (game_position_x_has_any_player_any_legal_move(current_gpx)) {
       game_position_x_pass(current_gpx, next_gpx);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
@@ -444,13 +452,14 @@ game_position_solve2_impl (ExactSolution *const result,
     } else {
       result->leaf_count++;
       current_node_info->alpha = game_position_x_final_value(current_gpx);
-      current_node_info->best_move = invalid_move;
+      current_node_info->best_move = pass_move;
     }
     pve_line_add_move2(pve2, pve_line, pass_move, next_gpx);
     pve_line_delete(pve2, *pve_parent_line_p);
     *pve_parent_line_p = pve_line;
   } else {
     MoveList move_list;
+    bool branch_is_active = false;
     move_list_init(&move_list);
     sort_moves_by_mobility_count2(&move_list, current_gpx);
     /* removing the alpha reset the number of leafs is OK. Nodes differ by a small amount (wrong).
@@ -459,6 +468,8 @@ game_position_solve2_impl (ExactSolution *const result,
      * Everything has to be understood ......
      */
     //current_node_info->alpha = out_of_range_defeat_score;
+    //current_node_info->alpha = - previous_node_info->beta;
+    if (pv_full_recording) current_node_info->alpha -= 1;
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
       /* After running legal_move_list_from_set, a second function has to order the list ...
@@ -471,7 +482,9 @@ game_position_solve2_impl (ExactSolution *const result,
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
       game_position_solve2_impl(result, stack, &pve_line);
-      if (-next_node_info->alpha > current_node_info->alpha) {
+      const int current_alpha = current_node_info->alpha;
+      if (-next_node_info->alpha > current_alpha || (!branch_is_active && -next_node_info->alpha == current_alpha)) {
+        branch_is_active = true;
         current_node_info->alpha = -next_node_info->alpha;
         current_node_info->best_move = move;
         pve_line_add_move2(pve2, pve_line, move, next_gpx);
@@ -480,7 +493,7 @@ game_position_solve2_impl (ExactSolution *const result,
         if (current_node_info->alpha > current_node_info->beta) goto out;
         if (!pv_full_recording && current_node_info->alpha == current_node_info->beta) goto out;
       } else {
-        if (pv_full_recording && -next_node_info->alpha == current_node_info->alpha) {
+        if (pv_full_recording && -next_node_info->alpha == current_alpha) {
           pve_line_add_move2(pve2, pve_line, move, next_gpx);
           pve_line_add_variant(pve2, *pve_parent_line_p, pve_line);
         } else {
@@ -548,8 +561,8 @@ game_position_solve_impl (ExactSolution *const result,
     sort_moves_by_mobility_count(&move_list, gp);
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
-      if (!node) node = search_node_new(move, (pv_full_recording) ? achievable - 1 : achievable);
       GamePosition *gp2 = game_position_make_move(gp, move);
+      if (!node) node = search_node_new(move, (pv_full_recording) ? achievable - 1 : achievable);
       pve_line = pve_line_create(pve);
       node2 = search_node_negated(game_position_solve_impl(result, gp2, -cutoff, -node->value, &pve_line));
       if (node2->value > node->value || (!branch_is_active && node2->value == node->value)) {

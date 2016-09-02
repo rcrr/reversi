@@ -1208,7 +1208,11 @@ pve_line_add_variant (PVEnv *pve,
                       PVCell **line,
                       PVCell **line_variant)
 {
+  g_assert(pve);
+  g_assert(line);
+  g_assert(*line);
   g_assert(line_variant);
+  g_assert(*line_variant);
   PVCell **tmp_line = (*line)->variant;
   (*line)->variant = line_variant;
   (*line_variant)->variant = tmp_line;
