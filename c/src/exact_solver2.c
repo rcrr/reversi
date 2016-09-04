@@ -433,8 +433,10 @@ game_position_solve2_impl (ExactSolution *const result,
     log_data.blacks = current_gpx->blacks;
     log_data.whites = current_gpx->whites;
     log_data.player = current_gpx->player;
-    log_data.json_doc = "\"{}\"";
+    gchar *json_doc = game_tree_log_data_h_json_doc2(current_fill_index, current_gpx);
+    log_data.json_doc = json_doc;
     game_tree_log_write_h(log_env2, &log_data);
+    g_free(json_doc);
   }
 
   if (move_set == empty_square_set) {
@@ -443,7 +445,6 @@ game_position_solve2_impl (ExactSolution *const result,
     //const SquareSet empties = game_position_x_empties(current_gpx);
     //if (empties != empty_square_set && previous_move_count != 0) {
     if (previous_move_count != 0) {
-    //if (game_position_x_has_any_player_any_legal_move(current_gpx)) {
       game_position_x_pass(current_gpx, next_gpx);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
@@ -463,13 +464,6 @@ game_position_solve2_impl (ExactSolution *const result,
     bool branch_is_active = false;
     move_list_init(&move_list);
     sort_moves_by_mobility_count2(&move_list, current_gpx);
-    /* removing the alpha reset the number of leafs is OK. Nodes differ by a small amount (wrong).
-     * but full pv analysis aborts ....
-     * and the PV is not always corect.
-     * Everything has to be understood ......
-     */
-    //current_node_info->alpha = out_of_range_defeat_score;
-    //current_node_info->alpha = - previous_node_info->beta;
     if (pv_full_recording) current_node_info->alpha -= 1;
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;

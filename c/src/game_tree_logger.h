@@ -78,31 +78,35 @@ typedef struct {
 
 
 /********************************************************/
-/* Function implementations for the GameTreeLog entity. */ 
+/* Function implementations for the GameTreeLog entity. */
 /********************************************************/
 
 extern void
-game_tree_log_open_h (LogEnv * const env);
+game_tree_log_open_h (LogEnv *const env);
 
 extern void
-game_tree_log_open_t (LogEnv * const env);
+game_tree_log_open_t (LogEnv *const env);
 
 extern void
-game_tree_log_write_h (const LogEnv   * const env,
-                       const LogDataH * const data);
+game_tree_log_write_h (const LogEnv *const env,
+                       const LogDataH *const data);
 
 extern void
-game_tree_log_write_t (const LogEnv   * const env,
-                       const LogDataT * const data);
+game_tree_log_write_t (const LogEnv *const env,
+                       const LogDataT *const data);
 
 extern void
-game_tree_log_close (LogEnv * const env);
+game_tree_log_close (LogEnv *const env);
 
 extern LogEnv *
-game_tree_log_init (const gchar * const file_name_prefix);
+game_tree_log_init (const gchar *const file_name_prefix);
 
 extern gchar *
-game_tree_log_data_h_json_doc (const int                  call_level,
-                               const GamePosition * const gp);
+game_tree_log_data_h_json_doc (const int call_level,
+                               const GamePosition *const gp);
+
+extern gchar *
+game_tree_log_data_h_json_doc2 (const int call_level,
+                                const GamePositionX *const gpx);
 
 #endif /* GAME_TREE_LOGGER_H */
