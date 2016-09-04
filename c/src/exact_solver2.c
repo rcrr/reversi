@@ -440,9 +440,10 @@ game_position_solve2_impl (ExactSolution *const result,
   if (move_set == empty_square_set) {
     pve_line = pve_line_create(pve2);
     const int previous_move_count = previous_node_info->move_count;
-    const SquareSet empties = game_position_x_empties(current_gpx);
+    //const SquareSet empties = game_position_x_empties(current_gpx);
     //if (empties != empty_square_set && previous_move_count != 0) {
-    if (game_position_x_has_any_player_any_legal_move(current_gpx)) {
+    if (previous_move_count != 0) {
+    //if (game_position_x_has_any_player_any_legal_move(current_gpx)) {
       game_position_x_pass(current_gpx, next_gpx);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;

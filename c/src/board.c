@@ -1171,6 +1171,8 @@ board_count_diff_winner_get_empties (const Board *const b,
   difference = pcount - ocount;
   empties = 64 - (pcount + ocount);
 
+  if (difference == 0) return 0;
+
   return difference + ((difference > 0) ? +empties : -empties);
 }
 
