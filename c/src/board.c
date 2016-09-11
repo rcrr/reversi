@@ -53,6 +53,12 @@
  * @cond
  */
 
+/* Game position x make move function signature. */
+typedef void
+(*game_position_x_make_move_function) (const GamePositionX *const current,
+                                       const Square move,
+                                       GamePositionX *const updated);
+
 /* Game position make move function signature. */
 typedef GamePosition *
 (*game_position_make_move_function) (const GamePosition *const gp,
@@ -110,6 +116,16 @@ static GamePosition *
 game_position_make_move1 (const GamePosition *const gp,
                           const Square move);
 
+static void
+game_position_x_make_move0 (const GamePositionX *const current,
+                            const Square move,
+                            GamePositionX *const updated);
+
+static void
+game_position_x_make_move1 (const GamePositionX *const current,
+                            const Square move,
+                            GamePositionX *const updated);
+
 
 
 /*
@@ -127,7 +143,12 @@ static const board_legal_moves_function blm_functions[] = { board_legal_moves0,
 static const game_position_make_move_function gp_mm_functions[] = { game_position_make_move0,
                                                                     game_position_make_move1 };
 
+static const game_position_x_make_move_function gpx_mm_functions[] = { game_position_x_make_move0,
+                                                                       game_position_x_make_move1 };
+
 static game_position_make_move_function game_position_make_move_option = game_position_make_move1;
+
+static game_position_x_make_move_function game_position_x_make_move_option = game_position_x_make_move1;
 
 /* Used in board_legal_moves0 to reduce the set of possible moves before computing a direction. */
 static const SquareSet direction_wave_mask[] = { 0xFCFCFCFCFCFC0000,   // NW - North-West
@@ -3211,34 +3232,11 @@ game_position_x_is_move_legal (const GamePositionX *const gpx,
   return board_is_move_legal(&board, move, gpx->player);
 }
 
-/**
- * @brief Executes a game move.
- *
- * @details The moving player places a disc in the square identified by the `move` parameter.
- *          The `current` position is unchanged, the new position is assigned to the structure
- *          pointed by the `updated` parameter.
- *
- * @invariant Parameter `current` must be not `NULL`.
- * Parameter `updated` must be not `NULL`.
- * Parameter `move` must be a value in the range defined by
- * the #square_is_valid_move function.
- * Parameter `move` must be legal.
- * Invariants are guarded by assertions.
- *
- * @param [in]  current the given game position x
- * @param [in]  move    the square where to put the new disk
- * @param [out] updated the updated game position x as a rusult of the move
- */
-void
-game_position_x_make_move (const GamePositionX *const current,
-                           const Square move,
-                           GamePositionX *const updated)
+static void
+game_position_x_make_move0 (const GamePositionX *const current,
+                            const Square move,
+                            GamePositionX *const updated)
 {
-  g_assert(current);
-  g_assert(updated);
-  g_assert(square_is_valid_move(move));
-  g_assert(game_position_x_is_move_legal(current, move));
-
   if (move == pass_move) {
     game_position_x_pass(current, updated);
     return;
@@ -3300,6 +3298,210 @@ game_position_x_make_move (const GamePositionX *const current,
   updated->player = o;
   updated->blacks = new_bit_board[0];
   updated->whites = new_bit_board[1];
+
+  return;
+}
+
+static void
+game_position_x_make_move1 (const GamePositionX *const current,
+                            const Square move,
+                            GamePositionX *const updated)
+{
+  g_assert(current);
+  g_assert(updated);
+  g_assert(square_is_valid_move(move));
+  g_assert(game_position_x_is_move_legal(current, move));
+
+  if (move == pass_move) {
+    game_position_x_pass(current, updated);
+    return;
+  }
+
+  const Player p = current->player;
+  const Player o = player_opponent(p);
+  const Board *b = (const Board *) current;
+  const SquareSet p_bit_board = board_get_player(b, p);
+  const SquareSet o_bit_board = board_get_player(b, o);
+  const int column = move % 8;
+  const int row = move / 8;
+  const SquareSet unmodified_mask = ~bitboard_mask_for_all_directions[move];
+
+  /*
+   * The ordinal position of the move in the lane.
+   */
+  const __m256i move_ordinal_position = _mm256_setr_epi64x(column, row, column, column);
+
+  /* Constants used to compute the modulo 64 of negative shifts. */
+  const __m256i c_63 = _mm256_set1_epi64x(63);
+  const __m256i c_64 = _mm256_set1_epi64x(64);
+
+  /*
+   * Rol distance is the number of positions that by which the board has to be rolled left
+   * in order to bring the lanes on the principal ones.
+   */
+  const __m256i rol_distance = _mm256_and_si256(c_63,
+                                                  _mm256_add_epi64(c_64,
+                                                                   _mm256_sllv_epi64(_mm256_setr_epi64x(-row,
+                                                                                                        -column,
+                                                                                                        -row + column,
+                                                                                                        7 - row - column),
+                                                                                     _mm256_setr_epi64x(3, 0, 3, 3))));
+  /*
+   * Lanes are squares aligned on the board on one axis.
+   * Each square identifies four lanes, each associated with one axis.
+   */
+  const __m256i lane_mask = _mm256_load_si256( (__m256i *) bitboard_mask_for_one_directions + move);
+
+  /* Player and opponent lanes. */
+  const __m256i p_lanes = _mm256_and_si256(lane_mask, _mm256_set1_epi64x(p_bit_board));
+  const __m256i o_lanes = _mm256_and_si256(lane_mask, _mm256_set1_epi64x(o_bit_board));
+
+  /* Player and opponent lanes rolled on the principal ones. */
+  const __m256i p_main_lanes = _mm256_or_si256(_mm256_sllv_epi64(p_lanes, rol_distance),
+                                               _mm256_srlv_epi64(p_lanes, _mm256_sub_epi64(c_64, rol_distance)));
+  const __m256i o_main_lanes = _mm256_or_si256(_mm256_sllv_epi64(o_lanes, rol_distance),
+                                               _mm256_srlv_epi64(o_lanes, _mm256_sub_epi64(c_64, rol_distance)));
+
+
+  /*
+   * This block computes p_row_one_lanes for player, and the same variable for the opponent.
+   * Main lanes are transposed on row one, ready to be used for the generation of the array_index.
+   */
+  const __m256i s0 = _mm256_setr_epi64x(0, 28, 32, 32);
+  const __m256i s1 = _mm256_setr_epi64x(0, 14, 16, 16);
+  const __m256i s2 = _mm256_setr_epi64x(0,  7,  8,  8);
+  const __m256i r1 = _mm256_set1_epi64x(row_1);
+  __m256i p_tmp = p_main_lanes;
+  __m256i o_tmp = o_main_lanes;
+
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_srlv_epi64(p_tmp, s0));
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_srlv_epi64(p_tmp, s1));
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_srlv_epi64(p_tmp, s2));
+  p_tmp = _mm256_and_si256(p_tmp, r1);
+
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_srlv_epi64(o_tmp, s0));
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_srlv_epi64(o_tmp, s1));
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_srlv_epi64(o_tmp, s2));
+  o_tmp = _mm256_and_si256(o_tmp, r1);
+
+  const __m256i p_row_one_lanes = p_tmp;
+  const __m256i o_row_one_lanes = o_tmp;
+
+  /*
+   * Computes the index in order to access the array of bitrow changes for player.
+   */
+  const __m256i array_indexes = _mm256_or_si256(p_row_one_lanes,
+                                                _mm256_or_si256(_mm256_slli_epi64(o_row_one_lanes, 8),
+                                                                _mm256_slli_epi64(move_ordinal_position, 16)));
+
+  /* Stores the YMM values in a memory vector in order to run the next scalar loop. */
+  SquareSet o_row_one_lanes_vec[4];
+  _mm256_store_si256((__m256i *) o_row_one_lanes_vec, o_row_one_lanes);
+
+  /* Stores the YMM values in a memory vector in order to run the next scalar loop. */
+  int64_t array_indexes_vec[4];
+  _mm256_store_si256((__m256i *) array_indexes_vec, array_indexes);
+
+  /*
+   * Scalar loop on the four axis that computes the new bitrow (lanes on row one) for player and opponent.
+   */
+  uint8_t p_bitrows_new_vec[4];
+  uint8_t o_bitrows_new_vec[4];
+  for (Axis axis = 0; axis < 4; axis++) {
+    const unsigned int index = array_indexes_vec[axis];
+    p_bitrows_new_vec[axis] = bitrow_changes_for_player_array[index];
+    o_bitrows_new_vec[axis] = ((uint8_t) o_row_one_lanes_vec[axis]) & ~p_bitrows_new_vec[axis];
+  }
+
+  /*
+   * New bitrows are mapped back to the respective main lanes.
+   */
+  const __m256i main_lane_mask = _mm256_setr_epi64x(row_1, column_a, diagonal_a1_h8, diagonal_h1_a8);
+
+  p_tmp = _mm256_setr_epi64x(p_bitrows_new_vec[0], p_bitrows_new_vec[1], p_bitrows_new_vec[2], p_bitrows_new_vec[3]);
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_sllv_epi64(p_tmp, s2));
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_sllv_epi64(p_tmp, s1));
+  p_tmp = _mm256_or_si256(p_tmp, _mm256_sllv_epi64(p_tmp, s0));
+  p_tmp = _mm256_and_si256(p_tmp, main_lane_mask);
+
+  o_tmp = _mm256_setr_epi64x(o_bitrows_new_vec[0], o_bitrows_new_vec[1], o_bitrows_new_vec[2], o_bitrows_new_vec[3]);
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_sllv_epi64(o_tmp, s2));
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_sllv_epi64(o_tmp, s1));
+  o_tmp = _mm256_or_si256(o_tmp, _mm256_sllv_epi64(o_tmp, s0));
+  o_tmp = _mm256_and_si256(o_tmp, main_lane_mask);
+
+  const __m256i p_main_lanes_new = p_tmp;
+  const __m256i o_main_lanes_new = o_tmp;
+
+  /*
+   * Lanes are rolled back from main ones to the move's specific one.
+   */
+  const __m256i p_lanes_new = _mm256_or_si256(_mm256_srlv_epi64(p_main_lanes_new, rol_distance),
+                                              _mm256_sllv_epi64(p_main_lanes_new, _mm256_sub_epi64(c_64, rol_distance)));
+  const __m256i o_lanes_new = _mm256_or_si256(_mm256_srlv_epi64(o_main_lanes_new, rol_distance),
+                                              _mm256_sllv_epi64(o_main_lanes_new, _mm256_sub_epi64(c_64, rol_distance)));
+
+  /* Auxiliary vectors are copied from YMM registers in order to run the following scalar loop. */
+  SquareSet p_lanes_new_vec[4];
+  _mm256_store_si256((__m256i *) p_lanes_new_vec, p_lanes_new);
+  SquareSet o_lanes_new_vec[4];
+  _mm256_store_si256((__m256i *) o_lanes_new_vec, o_lanes_new);
+
+  /* New lanes are composed with the masked board. */
+  SquareSet p_bit_board_new = p_bit_board & unmodified_mask;
+  SquareSet o_bit_board_new = o_bit_board & unmodified_mask;
+  for (Axis axis = 0; axis < 4; axis++) {
+    p_bit_board_new |= p_lanes_new_vec[axis];
+    o_bit_board_new |= o_lanes_new_vec[axis];
+  }
+
+  /* Player's and opponents's boards are assigned to black and white according to player's value. */
+  SquareSet blacks, whites;
+  if (o) {
+    blacks = p_bit_board_new;
+    whites = o_bit_board_new;
+  } else {
+    blacks = o_bit_board_new;
+    whites = p_bit_board_new;
+  }
+
+  updated->blacks = blacks;
+  updated->whites = whites;
+  updated->player = o;
+
+  return;
+}
+
+/**
+ * @brief Executes a game move.
+ *
+ * @details The moving player places a disc in the square identified by the `move` parameter.
+ *          The `current` position is unchanged, the new position is assigned to the structure
+ *          pointed by the `updated` parameter.
+ *
+ * @invariant Parameter `current` must be not `NULL`.
+ * Parameter `updated` must be not `NULL`.
+ * Parameter `move` must be a value in the range defined by
+ * the #square_is_valid_move function.
+ * Parameter `move` must be legal.
+ * Invariants are guarded by assertions.
+ *
+ * @param [in]  current the given game position x
+ * @param [in]  move    the square where to put the new disk
+ * @param [out] updated the updated game position x as a rusult of the move
+ */
+void
+game_position_x_make_move (const GamePositionX *const current,
+                           const Square move,
+                           GamePositionX *const updated)
+{
+  g_assert(current);
+  g_assert(updated);
+  g_assert(square_is_valid_move(move));
+  g_assert(game_position_x_is_move_legal(current, move));
+
+  game_position_x_make_move_option(current, move, updated);
+
   return;
 }
 
