@@ -2962,25 +2962,9 @@ game_position_x_get_square (const GamePositionX *const gpx,
 SquareSet
 game_position_x_legal_moves (const GamePositionX *const gpx)
 {
-  SquareSet result = empty_square_set;
-
-  const SquareSet empties = game_position_x_empties(gpx);
-  const SquareSet p_bit_board = game_position_x_get_player(gpx);
-  const SquareSet o_bit_board = game_position_x_get_opponent(gpx);
-
-  for (Direction dir = NW; dir <= SE; dir++) {
-    const Direction opposite = direction_opposite(dir);
-    SquareSet wave = direction_shift_square_set(dir, empties) & o_bit_board;
-    int shift = 1;
-    while (wave != empty_square_set) {
-      wave = direction_shift_square_set(dir, wave);
-      shift++;
-      result |= direction_shift_back_square_set_by_amount(opposite, (wave & p_bit_board), shift);
-      wave &= o_bit_board;
-    }
-  }
-
-  return result;
+  const Board *const b = (Board *const) gpx;
+  const Player p = gpx->player;
+  return board_legal_moves(b, p);
 }
 
 /**
