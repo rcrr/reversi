@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014, 2015 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -502,9 +502,9 @@ game_tree_stack_init (const GamePosition *const root,
                       GameTreeStack *const stack);
 
 extern void
-legal_move_list_from_set (const SquareSet legal_move_set,
-                          NodeInfo *const current_node_info,
-                          NodeInfo *const next_node_info);
+game_tree_move_list_from_set (const SquareSet move_set,
+                              NodeInfo *const current_node_info,
+                              NodeInfo *const next_node_info);
 
 
 

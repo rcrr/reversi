@@ -17,7 +17,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014, 2015 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -2065,19 +2065,19 @@ game_tree_stack_init (const GamePosition *const root,
 }
 
 /**
- * @brief Computes the legal move list given the set.
+ * @brief Computes the move list given the set.
  *
- * @param [in]  legal_move_set    the set of legal moves
+ * @param [in]  move_set          the set of legal moves
  * @param [out] current_node_info the node info updated with the compuetd list of legal moves
  * @param [out] next_node_info    the node info updated with the new head_of_legal_move_list poiter
  */
 void
-legal_move_list_from_set (const SquareSet legal_move_set,
-                          NodeInfo* const current_node_info,
-                          NodeInfo* const next_node_info)
+game_tree_move_list_from_set (const SquareSet move_set,
+                              NodeInfo* const current_node_info,
+                              NodeInfo* const next_node_info)
 {
   uint8_t *move_ptr = current_node_info->head_of_legal_move_list;
-  SquareSet remaining_moves = legal_move_set;
+  SquareSet remaining_moves = move_set;
   current_node_info->move_count = 0;
   while (remaining_moves) {
     const uint8_t move = bit_works_bitscanLS1B_64(remaining_moves);

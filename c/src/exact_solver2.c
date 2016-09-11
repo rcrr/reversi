@@ -316,7 +316,7 @@ game_position_solve_impl (ExactSolution *const result,
   GamePositionX *const next_gpx = &next_node_info->gpx;
   current_node_info->hash = game_position_x_hash(current_gpx);
   const SquareSet move_set = game_position_x_legal_moves(current_gpx);
-  legal_move_list_from_set(move_set, current_node_info, next_node_info);
+  game_tree_move_list_from_set(move_set, current_node_info, next_node_info);
 
   if (log_env->log_is_on) {
     LogDataH log_data;
@@ -361,7 +361,7 @@ game_position_solve_impl (ExactSolution *const result,
     if (pv_full_recording) current_node_info->alpha -= 1;
     for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
       const Square move = element->sq;
-      /* After running legal_move_list_from_set, a second function has to order the list ...
+      /* After running game_tree_move_list_from_set, a second function has to order the list ...
        * The function should recorder the move_set, so avoiding to compute it again at the beginning of the function.
        */
       //for (int i = 0; i < current_node_info->move_count; i++) {
