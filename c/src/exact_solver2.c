@@ -314,11 +314,11 @@ game_position_solve_impl (ExactSolution *const result,
   NodeInfo *const previous_node_info = &stack->nodes[previous_fill_index];
   const GamePositionX *const current_gpx = &current_node_info->gpx;
   GamePositionX *const next_gpx = &next_node_info->gpx;
-  current_node_info->hash = game_position_x_hash(current_gpx);
   const SquareSet move_set = game_position_x_legal_moves(current_gpx);
   game_tree_move_list_from_set(move_set, current_node_info, next_node_info);
 
   if (log_env->log_is_on) {
+    current_node_info->hash = game_position_x_hash(current_gpx);
     LogDataH log_data;
     log_data.sub_run_id = sub_run_id;
     log_data.call_id = result->node_count;
