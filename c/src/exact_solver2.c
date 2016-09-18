@@ -98,6 +98,9 @@ move_list_init (MoveList *ml);
  * Internal variables and constants.
  */
 
+/* Has to be turned into an argv parameter. */
+static const bool pv_computing = false;
+
 /* Principal Variation Environmenat. */
 static PVEnv *pve = NULL;
 
@@ -174,9 +177,11 @@ game_position_es2_solve (const GamePosition *const root,
     first_node_info->beta = best_score;
   }
 
-  GamePositionX *rootx = game_position_x_gp_to_gpx(root);
-  pve = pve_new(rootx);
-  game_position_x_free(rootx);
+  if (pv_computing) {
+    GamePositionX *rootx = game_position_x_gp_to_gpx(root);
+    pve = pve_new(rootx);
+    game_position_x_free(rootx);
+  }
 
   log_env = game_tree_log_init(env->log_file);
   if (log_env->log_is_on) {
@@ -185,14 +190,14 @@ game_position_es2_solve (const GamePosition *const root,
 
   game_position_solve_impl(result, stack, &(pve->root_line));
 
-  if (pv_full_recording && !env->pv_no_print) {
+  if (pv_computing && pv_full_recording && !env->pv_no_print) {
     printf("\n --- --- pve_line_with_variants_to_string() START --- ---\n");
     pve_line_with_variants_to_stream(pve, stdout);
     printf("\n --- --- pve_line_with_variants_to_string() COMPLETED --- ---\n");
   }
 
   /* This is for debugging. */
-  if (pv_internals_to_stream) {
+  if (pv_computing && pv_internals_to_stream) {
     printf("\nThe constant \"pv_internals_to_stream\", in source file \"exact_solver.c\", is TRUE. Printing PVE internals:\n");
     printf(" --- --- pve_is_invariant_satisfied() START --- ---\n");
     pve_error_code_t error_code = 0;
@@ -229,16 +234,16 @@ game_position_es2_solve (const GamePosition *const root,
 
   result->pv[0] = best_move;
   result->outcome = game_value;
-  pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve->root_line, result);
-  exact_solution_compute_final_board(result);
-
-  if (env->pve_dump_file) {
-    printf("\n --- --- pve_dump_to_binary_file() START --- ---\n");
-    pve_dump_to_binary_file(pve, env->pve_dump_file);
-    printf(" --- --- pve_dump_to_binary_file() COMPLETED --- ---\n");
+  if (pv_computing) {
+    pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve->root_line, result);
+    exact_solution_compute_final_board(result);
+    if (env->pve_dump_file) {
+      printf("\n --- --- pve_dump_to_binary_file() START --- ---\n");
+      pve_dump_to_binary_file(pve, env->pve_dump_file);
+      printf(" --- --- pve_dump_to_binary_file() COMPLETED --- ---\n");
+    }
+    pve_free(pve);
   }
-
-  pve_free(pve);
 
   game_tree_log_close(log_env);
 
@@ -334,7 +339,7 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
   if (move_set == empty_square_set) {
-    pve_line = pve_line_create(pve);
+    if (pv_computing) pve_line = pve_line_create(pve);
     const int previous_move_count = previous_node_info->move_count;
     //const SquareSet empties = game_position_x_empties(current_gpx);
     //if (empties != empty_square_set && previous_move_count != 0) {
@@ -350,9 +355,11 @@ game_position_solve_impl (ExactSolution *const result,
       current_node_info->alpha = game_position_x_final_value(current_gpx);
       current_node_info->best_move = pass_move;
     }
-    pve_line_add_move2(pve, pve_line, pass_move, next_gpx);
-    pve_line_delete(pve, *pve_parent_line_p);
-    *pve_parent_line_p = pve_line;
+    if (pv_computing) {
+      pve_line_add_move2(pve, pve_line, pass_move, next_gpx);
+      pve_line_delete(pve, *pve_parent_line_p);
+      *pve_parent_line_p = pve_line;
+    }
   } else {
     MoveList move_list;
     bool branch_is_active = false;
@@ -367,7 +374,7 @@ game_position_solve_impl (ExactSolution *const result,
       //for (int i = 0; i < current_node_info->move_count; i++) {
       //const Square move = * (current_node_info->head_of_legal_move_list + i);
       game_position_x_make_move(current_gpx, move, next_gpx);
-      pve_line = pve_line_create(pve);
+      if (pv_computing) pve_line = pve_line_create(pve);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
       game_position_solve_impl(result, stack, &pve_line);
@@ -376,17 +383,21 @@ game_position_solve_impl (ExactSolution *const result,
         branch_is_active = true;
         current_node_info->alpha = -next_node_info->alpha;
         current_node_info->best_move = move;
-        pve_line_add_move2(pve, pve_line, move, next_gpx);
-        pve_line_delete(pve, *pve_parent_line_p);
-        *pve_parent_line_p = pve_line;
+        if (pv_computing) {
+          pve_line_add_move2(pve, pve_line, move, next_gpx);
+          pve_line_delete(pve, *pve_parent_line_p);
+          *pve_parent_line_p = pve_line;
+        }
         if (current_node_info->alpha > current_node_info->beta) goto out;
         if (!pv_full_recording && current_node_info->alpha == current_node_info->beta) goto out;
       } else {
-        if (pv_full_recording && -next_node_info->alpha == current_alpha) {
-          pve_line_add_move2(pve, pve_line, move, next_gpx);
-          pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
-        } else {
-          pve_line_delete(pve, pve_line);
+        if (pv_computing) {
+          if (pv_full_recording && -next_node_info->alpha == current_alpha) {
+            pve_line_add_move2(pve, pve_line, move, next_gpx);
+            pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
+          } else {
+            pve_line_delete(pve, pve_line);
+          }
         }
       }
     }
