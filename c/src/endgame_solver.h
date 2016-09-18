@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2015 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -48,6 +48,7 @@ typedef struct {
   char *log_file;          /**< @brief When not NULL turns on logging. It defines the log file name prefix. */
   char *pve_dump_file;     /**< @brief PVE dump file name and path. */
   int   repeats;           /**< @brief The number of repetitions for the random sampler. */
+  bool  pv_recording;      /**< @brief Turns on the principal variation recording. */
   bool  pv_full_recording; /**< @brief Drives the logic governing game tree pruning to consider the branches with equal value. */
   bool  pv_no_print;       /**< @brief Turns off the PV variants printing when `pv_full_recording` is `true`. */
 } endgame_solver_env_t;

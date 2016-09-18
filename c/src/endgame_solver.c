@@ -145,7 +145,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2015 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2015, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -249,7 +249,7 @@ static const gchar *program_documentation_string =
   "Author:\n"
   "   Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2013, 2014, 2015 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2013, 2014, 2015, 2016 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
@@ -264,6 +264,7 @@ static gchar   *solver_id     = NULL;
 static gint     repeats       = 1;
 static gchar   *log_file      = NULL;
 static gchar   *pve_dump_file = NULL;
+static gboolean pv_rec        = FALSE;
 static gboolean pv_full_rec   = FALSE;
 static gboolean pv_no_print   = FALSE;
 
@@ -275,6 +276,7 @@ static const GOptionEntry entries[] =
     { "repeats",       'n', 0, G_OPTION_ARG_INT,      &repeats,       "N. of repetitions        - Used with the rand/rab solvers",                          NULL },
     { "log",           'l', 0, G_OPTION_ARG_FILENAME, &log_file,      "Turns logging on         - Requires a filename prefx",                               NULL },
     { "pve-dump",      'd', 0, G_OPTION_ARG_FILENAME, &pve_dump_file, "Dumps PV                 - Requires a filename path. Available only for es solver.", NULL },
+    { "pv-rec",          0, 0, G_OPTION_ARG_NONE,     &pv_rec,        "Collects PV info         - Available only for es solver.",                           NULL },
     { "pv-full-rec",     0, 0, G_OPTION_ARG_NONE,     &pv_full_rec,   "Analyzes all PV variants - Available only for es solver.",                           NULL },
     { "pv-no-print",     0, 0, G_OPTION_ARG_NONE,     &pv_no_print,   "Does't print PV variants - Available only in conjuction with option pv-full-rec.",   NULL },
     { NULL }
@@ -314,6 +316,7 @@ main (int argc, char *argv[])
     { .log_file = NULL,
       .pve_dump_file = NULL,
       .repeats = 0,
+      .pv_recording = false,
       .pv_full_recording = false,
       .pv_no_print = false
     };
@@ -352,6 +355,10 @@ main (int argc, char *argv[])
     return -5;
   }
   const endgame_solver_t *const solver = &solvers[solver_index];
+  if (pv_rec && !(!strcmp(solver->id, "es") || !strcmp(solver->id, "es2"))) {
+    g_print("Option --pv-rec can be used only with solver \"es\" or \"es2\".\n");
+    return -10;
+  }
   if (pv_full_rec && !(!strcmp(solver->id, "es") || !strcmp(solver->id, "es2"))) {
     g_print("Option --pv-full-rec can be used only with solver \"es\" or \"es2\".\n");
     return -10;
@@ -405,6 +412,7 @@ main (int argc, char *argv[])
   env.log_file = log_file;
   env.pve_dump_file = pve_dump_file;
   env.repeats = repeats;
+  env.pv_recording = pv_rec || pv_full_rec;
   env.pv_full_recording = pv_full_rec;
   env.pv_no_print = pv_no_print;
 
