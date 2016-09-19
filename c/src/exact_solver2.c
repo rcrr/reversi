@@ -261,6 +261,14 @@ game_position_es2_solve (const GamePosition *const root,
  * Internal functions.
  */
 
+/*
+ * What to try:
+ * - Save the new game position and the legal moves.
+ *   Use the info in the next iterations.
+ * - Is the function move_list_init needed?
+ * - Do we need a doubly linked list?
+ * - Is it possible to rewrite bitscanLS1B adopting AVX2 instructions?
+ */
 static void
 sort_moves_by_mobility_count (MoveList *move_list,
                               const GamePositionX *const gpx)
