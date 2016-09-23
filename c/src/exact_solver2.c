@@ -33,6 +33,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <string.h>
 #include <stdbool.h>
 
@@ -60,6 +61,7 @@
 typedef struct MoveListElement_ {
   Square                   sq;           /**< @brief The square field. */
   uint8_t                  mobility;     /**< @brief The mobility field. */
+  SquareSet                moves;        /**< @brief The move set. */
   struct MoveListElement_ *next;         /**< @brief A pointer to the successor element. */
 } MoveListElement;
 
@@ -70,7 +72,7 @@ typedef struct MoveListElement_ {
  */
 typedef struct {
   MoveListElement *head;                 /**< @brief Head element, it is not part of the list. */
-  MoveListElement elements[64];          /**< @brief Elements array. */
+  MoveListElement elements[32];          /**< @brief Elements array. */
 } MoveList;
 
 
@@ -82,11 +84,13 @@ typedef struct {
 static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack,
-                          PVCell ***pve_parent_line_p);
+                          PVCell ***pve_parent_line_p,
+                          MoveListElement *mle);
 
 static void
 sort_moves_by_mobility_count (MoveList *ml,
-                              const GamePositionX *const gpx);
+                              const GamePositionX *const gpx,
+                              const SquareSet moves);
 
 /*
  * Internal variables and constants.
@@ -152,8 +156,8 @@ ExactSolution *
 game_position_es2_solve (const GamePosition *const root,
                          const endgame_solver_env_t *const env)
 {
-  g_assert(root);
-  g_assert(env);
+  assert(root);
+  assert(env);
 
   ExactSolution *result = exact_solution_new();
   result->solved_game_position = game_position_clone(root);
@@ -183,7 +187,9 @@ game_position_es2_solve (const GamePosition *const root,
     game_tree_log_open_h(log_env);
   }
 
-  game_position_solve_impl(result, stack, &(pve->root_line));
+  MoveListElement root_mle;
+  root_mle.moves = game_position_x_legal_moves(game_position_x_gp_to_gpx(root));
+  game_position_solve_impl(result, stack, &(pve->root_line), &root_mle);
 
   if (pv_recording && pv_full_recording && !env->pv_no_print) {
     printf("\n --- --- pve_line_with_variants_to_string() START --- ---\n");
@@ -261,20 +267,22 @@ game_position_es2_solve (const GamePosition *const root,
  *   Use the info in the next iterations.
  * - Is it possible to rewrite bitscanLS1B adopting AVX2 instructions?
  * - Can we improve the construction of the list? A kind of mergesort?
+ * - Make a stack of moves with pointers ......
  */
 static void
 sort_moves_by_mobility_count (MoveList *ml,
-                              const GamePositionX *const gpx)
+                              const GamePositionX *const gpx,
+                              const SquareSet moves)
 {
-  ml->head = NULL;
-  int move_index = 0;
+  assert(game_position_x_legal_moves(gpx) == moves);
 
-  const SquareSet moves = game_position_x_legal_moves(gpx);
+  ml->head = NULL;
+  MoveListElement *e = ml->elements;
+
   SquareSet moves_to_search = moves;
   for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
     moves_to_search = legal_moves_priority_mask[i] & moves;
     while (moves_to_search) {
-      MoveListElement *e = &ml->elements[move_index];
       const Square move = bit_works_bitscanLS1B_64(moves_to_search);
       moves_to_search &= ~(1ULL << move);
       GamePositionX next_gpx_struct;
@@ -284,6 +292,7 @@ sort_moves_by_mobility_count (MoveList *ml,
       const int next_move_count = bit_works_popcount(next_moves);
       e->sq = move;
       e->mobility = next_move_count;
+      e->moves = next_moves;
 
       MoveListElement **epp = &(ml->head);
       if (!*epp) {
@@ -305,7 +314,7 @@ sort_moves_by_mobility_count (MoveList *ml,
         epp = &((*epp)->next);
       }
     out:
-      move_index++;
+      e++;
     }
   }
   return;
@@ -314,7 +323,8 @@ sort_moves_by_mobility_count (MoveList *ml,
 static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack,
-                          PVCell ***pve_parent_line_p)
+                          PVCell ***pve_parent_line_p,
+                          MoveListElement *mle)
 {
   result->node_count++;
   PVCell **pve_line = NULL;
@@ -331,7 +341,7 @@ game_position_solve_impl (ExactSolution *const result,
   NodeInfo *const previous_node_info = &stack->nodes[previous_fill_index];
   const GamePositionX *const current_gpx = &current_node_info->gpx;
   GamePositionX *const next_gpx = &next_node_info->gpx;
-  const SquareSet move_set = game_position_x_legal_moves(current_gpx);
+  const SquareSet move_set = mle->moves;
   game_tree_move_list_from_set(move_set, current_node_info, next_node_info);
 
   if (log_env->log_is_on) {
@@ -359,7 +369,9 @@ game_position_solve_impl (ExactSolution *const result,
       game_position_x_pass(current_gpx, next_gpx);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
-      game_position_solve_impl(result, stack, &pve_line);
+      MoveListElement next_mle;
+      next_mle.moves = game_position_x_legal_moves(next_gpx);
+      game_position_solve_impl(result, stack, &pve_line, &next_mle);
       current_node_info->alpha = -next_node_info->alpha;
       current_node_info->best_move = next_node_info->best_move;
     } else {
@@ -375,7 +387,7 @@ game_position_solve_impl (ExactSolution *const result,
   } else {
     MoveList ml;
     bool branch_is_active = false;
-    sort_moves_by_mobility_count(&ml, current_gpx);
+    sort_moves_by_mobility_count(&ml, current_gpx, move_set);
     if (pv_full_recording) current_node_info->alpha -= 1;
     for (MoveListElement *element = ml.head; element; element = element->next) {
       const Square move = element->sq;
@@ -383,7 +395,7 @@ game_position_solve_impl (ExactSolution *const result,
       if (pv_recording) pve_line = pve_line_create(pve);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
-      game_position_solve_impl(result, stack, &pve_line);
+      game_position_solve_impl(result, stack, &pve_line, element);
       const int current_alpha = current_node_info->alpha;
       if (-next_node_info->alpha > current_alpha || (!branch_is_active && -next_node_info->alpha == current_alpha)) {
         branch_is_active = true;
