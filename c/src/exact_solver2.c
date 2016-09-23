@@ -60,8 +60,7 @@
 typedef struct MoveListElement_ {
   Square                   sq;           /**< @brief The square field. */
   uint8_t                  mobility;     /**< @brief The mobility field. */
-  struct MoveListElement_ *pred;         /**< @brief A pointer to the predecesor element. */
-  struct MoveListElement_ *succ;         /**< @brief A pointer to the successor element. */
+  struct MoveListElement_ *next;         /**< @brief A pointer to the successor element. */
 } MoveListElement;
 
 /*
@@ -70,9 +69,8 @@ typedef struct MoveListElement_ {
  * Head and tail are not part of the list.
  */
 typedef struct {
+  MoveListElement *head;                 /**< @brief Head element, it is not part of the list. */
   MoveListElement elements[64];          /**< @brief Elements array. */
-  MoveListElement head;                  /**< @brief Head element, it is not part of the list. */
-  MoveListElement tail;                  /**< @brief Tail element, it is not part of the list. */
 } MoveList;
 
 
@@ -86,13 +84,9 @@ game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack,
                           PVCell ***pve_parent_line_p);
 
-
 static void
-sort_moves_by_mobility_count (MoveList *move_list,
+sort_moves_by_mobility_count (MoveList *ml,
                               const GamePositionX *const gpx);
-
-static void
-move_list_init (MoveList *ml);
 
 /*
  * Internal variables and constants.
@@ -265,41 +259,50 @@ game_position_es2_solve (const GamePosition *const root,
  * What to try:
  * - Save the new game position and the legal moves.
  *   Use the info in the next iterations.
- * - Is the function move_list_init needed?
- * - Do we need a doubly linked list?
  * - Is it possible to rewrite bitscanLS1B adopting AVX2 instructions?
+ * - Can we improve the construction of the list? A kind of mergesort?
  */
 static void
-sort_moves_by_mobility_count (MoveList *move_list,
+sort_moves_by_mobility_count (MoveList *ml,
                               const GamePositionX *const gpx)
 {
-  MoveListElement *curr = NULL;
+  ml->head = NULL;
   int move_index = 0;
+
   const SquareSet moves = game_position_x_legal_moves(gpx);
   SquareSet moves_to_search = moves;
-  GamePositionX next_gpx_struct;
-  GamePositionX *next_gpx = &next_gpx_struct;
   for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
     moves_to_search = legal_moves_priority_mask[i] & moves;
     while (moves_to_search) {
-      curr = &move_list->elements[move_index];
+      MoveListElement *e = &ml->elements[move_index];
       const Square move = bit_works_bitscanLS1B_64(moves_to_search);
       moves_to_search &= ~(1ULL << move);
+      GamePositionX next_gpx_struct;
+      GamePositionX *next_gpx = &next_gpx_struct;
       game_position_x_make_move(gpx, move, next_gpx);
       const SquareSet next_moves = game_position_x_legal_moves(next_gpx);
       const int next_move_count = bit_works_popcount(next_moves);
-      curr->sq = move;
-      curr->mobility = next_move_count;
-      for (MoveListElement *element = move_list->head.succ; element != NULL; element = element->succ) {
-        if (curr->mobility < element->mobility) { /* Insert current before element. */
-          MoveListElement *left  = element->pred;
-          MoveListElement *right = element;
-          curr->pred  = left;
-          curr->succ  = right;
-          left->succ  = curr;
-          right->pred = curr;
+      e->sq = move;
+      e->mobility = next_move_count;
+
+      MoveListElement **epp = &(ml->head);
+      if (!*epp) {
+        ml->head = e;
+        e->next = NULL;
+        goto out;
+      }
+      while (true) {
+        if (e->mobility < (*epp)->mobility) { /* Insert e before cursor. */
+          e->next = *epp;
+          *epp = e;
           goto out;
         }
+        if ((*epp)->next == NULL) {
+          (*epp)->next = e;
+          e->next = NULL;
+          goto out;
+        }
+        epp = &((*epp)->next);
       }
     out:
       move_index++;
@@ -370,18 +373,12 @@ game_position_solve_impl (ExactSolution *const result,
       *pve_parent_line_p = pve_line;
     }
   } else {
-    MoveList move_list;
+    MoveList ml;
     bool branch_is_active = false;
-    move_list_init(&move_list);
-    sort_moves_by_mobility_count(&move_list, current_gpx);
+    sort_moves_by_mobility_count(&ml, current_gpx);
     if (pv_full_recording) current_node_info->alpha -= 1;
-    for (MoveListElement *element = move_list.head.succ; element != &move_list.tail; element = element->succ) {
+    for (MoveListElement *element = ml.head; element; element = element->next) {
       const Square move = element->sq;
-      /* After running game_tree_move_list_from_set, a second function has to order the list ...
-       * The function should recorder the move_set, so avoiding to compute it again at the beginning of the function.
-       */
-      //for (int i = 0; i < current_node_info->move_count; i++) {
-      //const Square move = * (current_node_info->head_of_legal_move_list + i);
       game_position_x_make_move(current_gpx, move, next_gpx);
       if (pv_recording) pve_line = pve_line_create(pve);
       next_node_info->alpha = -current_node_info->beta;
@@ -414,28 +411,6 @@ game_position_solve_impl (ExactSolution *const result,
 out:
   stack->fill_index--;
   return;
-}
-
-/*
- * Initializes the move list.
- */
-static void
-move_list_init (MoveList *ml)
-{
-  for (int i = 0; i < 64; i++) {
-    ml->elements[i].sq = -1;
-    ml->elements[i].mobility = -1;
-    ml->elements[i].pred = NULL;
-    ml->elements[i].succ = NULL;
-  }
-  ml->head.sq = -1;
-  ml->head.mobility = -1;
-  ml->head.pred = NULL;
-  ml->head.succ = &ml->tail;
-  ml->tail.sq = -1;
-  ml->tail.mobility = -1;
-  ml->tail.pred = &ml->head;
-  ml->tail.succ = NULL;
 }
 
 /**

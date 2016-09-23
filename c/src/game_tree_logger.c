@@ -270,7 +270,7 @@ game_tree_log_data_h_json_doc (const int call_level,
  * @brief Returns the json_doc used in the head log by exact_solver and ifes solvers.
  *
  * @param [in] call_level call level value
- * @param [in] gp         the current game position
+ * @param [in] gpx        the current game position
  * @return                the newly constucted json string
  */
 gchar *
