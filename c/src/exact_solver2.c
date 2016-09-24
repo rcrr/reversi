@@ -62,6 +62,7 @@ typedef struct MoveListElement_ {
   Square                   sq;           /**< @brief The square field. */
   uint8_t                  mobility;     /**< @brief The mobility field. */
   SquareSet                moves;        /**< @brief The move set. */
+  GamePositionX            gpx;          /**< @brief The game position. */
   struct MoveListElement_ *next;         /**< @brief A pointer to the successor element. */
 } MoveListElement;
 
@@ -285,10 +286,8 @@ sort_moves_by_mobility_count (MoveList *ml,
     while (moves_to_search) {
       const Square move = bit_works_bitscanLS1B_64(moves_to_search);
       moves_to_search &= ~(1ULL << move);
-      GamePositionX next_gpx_struct;
-      GamePositionX *next_gpx = &next_gpx_struct;
-      game_position_x_make_move(gpx, move, next_gpx);
-      const SquareSet next_moves = game_position_x_legal_moves(next_gpx);
+      game_position_x_make_move(gpx, move, &e->gpx);
+      const SquareSet next_moves = game_position_x_legal_moves(&e->gpx);
       const int next_move_count = bit_works_popcount(next_moves);
       e->sq = move;
       e->mobility = next_move_count;
@@ -342,7 +341,7 @@ game_position_solve_impl (ExactSolution *const result,
   const GamePositionX *const current_gpx = &current_node_info->gpx;
   GamePositionX *const next_gpx = &next_node_info->gpx;
   const SquareSet move_set = mle->moves;
-  game_tree_move_list_from_set(move_set, current_node_info, next_node_info);
+  game_tree_move_list_from_set(move_set, current_node_info, next_node_info); // computes the legal move list stored into NodeInfo .... is it used, how, why?
 
   if (log_env->log_is_on) {
     current_node_info->hash = game_position_x_hash(current_gpx);
@@ -391,7 +390,7 @@ game_position_solve_impl (ExactSolution *const result,
     if (pv_full_recording) current_node_info->alpha -= 1;
     for (MoveListElement *element = ml.head; element; element = element->next) {
       const Square move = element->sq;
-      game_position_x_make_move(current_gpx, move, next_gpx);
+      game_position_x_copy(&element->gpx, next_gpx);
       if (pv_recording) pve_line = pve_line_create(pve);
       next_node_info->alpha = -current_node_info->beta;
       next_node_info->beta = -current_node_info->alpha;
