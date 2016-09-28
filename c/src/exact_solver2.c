@@ -347,7 +347,8 @@ game_position_solve_impl (ExactSolution *const result,
   const GamePositionX *const current_gpx = &current_node_info->gpx;
   GamePositionX *const next_gpx = &next_node_info->gpx;
   const SquareSet move_set = mle->moves;
-  game_tree_move_list_from_set(move_set, current_node_info, next_node_info); // TODO: computes the legal move list stored into NodeInfo .... is it used, how, why?
+  //game_tree_move_list_from_set(move_set, current_node_info, next_node_info); // TODO: computes the legal move list stored into NodeInfo .... is it used, how, why?
+  current_node_info->move_count = bit_works_popcount(move_set);
 
   if (log_env->log_is_on) {
     current_node_info->hash = game_position_x_hash(current_gpx);
