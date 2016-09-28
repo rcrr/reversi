@@ -263,12 +263,11 @@ game_position_es2_solve (const GamePosition *const root,
  */
 
 /*
+ * TODO
  * What to try:
- * - Save the new game position and the legal moves.
- *   Use the info in the next iterations.
  * - Is it possible to rewrite bitscanLS1B adopting AVX2 instructions?
  * - Can we improve the construction of the list? A kind of mergesort?
- * - Make a stack of moves with pointers ......
+ * - Make a stack of moves with pointers ...... integrated into the tree stack .....
  */
 static void
 sort_moves_by_mobility_count (MoveList *ml,
@@ -319,6 +318,13 @@ sort_moves_by_mobility_count (MoveList *ml,
   return;
 }
 
+
+/*
+ * TODO
+ * What to try:
+ * - Avoid recursion .... write a "compact" iterative function.
+ * - Avoid the special case of PASSING .....
+ */
 static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack,
@@ -341,7 +347,7 @@ game_position_solve_impl (ExactSolution *const result,
   const GamePositionX *const current_gpx = &current_node_info->gpx;
   GamePositionX *const next_gpx = &next_node_info->gpx;
   const SquareSet move_set = mle->moves;
-  game_tree_move_list_from_set(move_set, current_node_info, next_node_info); // computes the legal move list stored into NodeInfo .... is it used, how, why?
+  game_tree_move_list_from_set(move_set, current_node_info, next_node_info); // TODO: computes the legal move list stored into NodeInfo .... is it used, how, why?
 
   if (log_env->log_is_on) {
     current_node_info->hash = game_position_x_hash(current_gpx);
@@ -362,7 +368,7 @@ game_position_solve_impl (ExactSolution *const result,
   if (move_set == empty_square_set) {
     if (pv_recording) pve_line = pve_line_create(pve);
     const int previous_move_count = previous_node_info->move_count;
-    //const SquareSet empties = game_position_x_empties(current_gpx);
+    //const SquareSet empties = game_position_x_empties(current_gpx); // TODO:
     //if (empties != empty_square_set && previous_move_count != 0) {
     if (previous_move_count != 0) {
       game_position_x_pass(current_gpx, next_gpx);
