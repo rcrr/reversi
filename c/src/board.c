@@ -126,6 +126,11 @@ game_position_x_make_move1 (const GamePositionX *const current,
                             const Square move,
                             GamePositionX *const updated);
 
+static void
+game_position_x_make_move2 (const GamePositionX *const current,
+                            const Square move,
+                            GamePositionX *const updated);
+
 
 
 /*
@@ -144,11 +149,12 @@ static const game_position_make_move_function gp_mm_functions[] = { game_positio
                                                                     game_position_make_move1 };
 
 static const game_position_x_make_move_function gpx_mm_functions[] = { game_position_x_make_move0,
-                                                                       game_position_x_make_move1 };
+                                                                       game_position_x_make_move1,
+                                                                       game_position_x_make_move2 };
 
 static game_position_make_move_function game_position_make_move_option = game_position_make_move1;
 
-static game_position_x_make_move_function game_position_x_make_move_option = game_position_x_make_move1;
+static game_position_x_make_move_function game_position_x_make_move_option = game_position_x_make_move2;
 
 /* Used in board_legal_moves0 to reduce the set of possible moves before computing a direction. */
 static const SquareSet direction_wave_mask[] = { 0xFCFCFCFCFCFC0000,   // NW - North-West
@@ -3469,6 +3475,24 @@ game_position_x_make_move1 (const GamePositionX *const current,
   updated->whites = whites;
   updated->player = o;
 
+  return;
+}
+
+
+static void
+game_position_x_make_move2 (const GamePositionX *const current,
+                            const Square move,
+                            GamePositionX *const updated)
+{
+
+  /*
+   * TODO
+   * Develop a new make_move function, based on kogge-stone technology!
+   * Make it faster then ever!
+   */
+
+
+  game_position_x_make_move1(current, move, updated);
   return;
 }
 
