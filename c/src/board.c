@@ -3792,25 +3792,6 @@ kogge_stone_gpb (const SquareSet generator,
                  const SquareSet propagator,
                  const SquareSet blocker)
 {
-  /*
-  printf("\n\nKogge-Stone ...... \n");
-  Board b;
-  char *c;
-  b.whites = 0;
-
-  b.blacks = generator;
-  c = board_print(&b);
-  printf("generator:\n%s\n", c);
-
-  b.blacks = propagator;
-  c = board_print(&b);
-  printf("propagator:\n%s\n", c);
-
-  b.blacks = blocker;
-  c = board_print(&b);
-  printf("blocker:\n%s\n", c);
-  */
-
   const __m256i gen_v = _mm256_set1_epi64x(generator);
   const __m256i pro_v = _mm256_set1_epi64x(propagator);
   const __m256i blo_v = _mm256_set1_epi64x(blocker);
@@ -3841,171 +3822,26 @@ kogge_stone_gpb (const SquareSet generator,
   pro0 = _mm256_and_si256(pro0, _mm256_sllv_epi64(pro0, const_sh_a));
   pro1 = _mm256_and_si256(pro1, _mm256_srlv_epi64(pro1, const_sh_a));
 
-  /*
-  printf("\n\n########################### 1 ###\n");
-  b.blacks = _mm256_extract_epi64(gen0, 0);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 0, c);
-  b.blacks = _mm256_extract_epi64(gen0, 1);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 1, c);
-  b.blacks = _mm256_extract_epi64(gen0, 2);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 2, c);
-  b.blacks = _mm256_extract_epi64(gen0, 3);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 3, c);
-  b.blacks = _mm256_extract_epi64(gen1, 0);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 0, c);
-  b.blacks = _mm256_extract_epi64(gen1, 1);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 1, c);
-  b.blacks = _mm256_extract_epi64(gen1, 2);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 2, c);
-  b.blacks = _mm256_extract_epi64(gen1, 3);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 3, c);
-  */
-
-
   gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_b)));
   gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_b)));
   pro0 = _mm256_and_si256(pro0, _mm256_sllv_epi64(pro0, const_sh_b));
   pro1 = _mm256_and_si256(pro1, _mm256_srlv_epi64(pro1, const_sh_b));
 
-  /*
-  printf("\n\n########################### 2 ###\n");
-  b.blacks = _mm256_extract_epi64(gen0, 0);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 0, c);
-  b.blacks = _mm256_extract_epi64(gen0, 1);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 1, c);
-  b.blacks = _mm256_extract_epi64(gen0, 2);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 2, c);
-  b.blacks = _mm256_extract_epi64(gen0, 3);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 3, c);
-  b.blacks = _mm256_extract_epi64(gen1, 0);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 0, c);
-  b.blacks = _mm256_extract_epi64(gen1, 1);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 1, c);
-  b.blacks = _mm256_extract_epi64(gen1, 2);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 2, c);
-  b.blacks = _mm256_extract_epi64(gen1, 3);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 3, c);
-  */
-
   gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_c)));
   gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_c)));
-
-  /*
-  printf("\n\n########################### 3 ###\n");
-  b.blacks = _mm256_extract_epi64(gen0, 0);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 0, c);
-  b.blacks = _mm256_extract_epi64(gen0, 1);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 1, c);
-  b.blacks = _mm256_extract_epi64(gen0, 2);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 2, c);
-  b.blacks = _mm256_extract_epi64(gen0, 3);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 3, c);
-  b.blacks = _mm256_extract_epi64(gen1, 0);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 0, c);
-  b.blacks = _mm256_extract_epi64(gen1, 1);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 1, c);
-  b.blacks = _mm256_extract_epi64(gen1, 2);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 2, c);
-  b.blacks = _mm256_extract_epi64(gen1, 3);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 3, c);
-  */
 
   /* The generator plus the collected propagator. */
   const __m256i lan0 = gen0;
   const __m256i lan1 = gen1;
 
-
   gen0 = _mm256_andnot_si256(gen_v, gen0);
   gen1 = _mm256_andnot_si256(gen_v, gen1);
-
-  /*
-  printf("\n\n########################### FINAL -00- ###\n");
-  b.blacks = _mm256_extract_epi64(gen0, 0);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 0, c);
-  b.blacks = _mm256_extract_epi64(gen0, 1);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 1, c);
-  b.blacks = _mm256_extract_epi64(gen0, 2);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 2, c);
-  b.blacks = _mm256_extract_epi64(gen0, 3);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 3, c);
-  b.blacks = _mm256_extract_epi64(gen1, 0);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 0, c);
-  b.blacks = _mm256_extract_epi64(gen1, 1);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 1, c);
-  b.blacks = _mm256_extract_epi64(gen1, 2);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 2, c);
-  b.blacks = _mm256_extract_epi64(gen1, 3);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 3, c);
-  */
-
 
   gen0 = _mm256_and_si256(const_b0, _mm256_sllv_epi64(gen0, const_sh_a));
   gen1 = _mm256_and_si256(const_b1, _mm256_srlv_epi64(gen1, const_sh_a));
 
-  /*
-  printf("\n\n########################### FINAL -01- ###\n");
-  b.blacks = _mm256_extract_epi64(gen0, 0);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 0, c);
-  b.blacks = _mm256_extract_epi64(gen0, 1);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 1, c);
-  b.blacks = _mm256_extract_epi64(gen0, 2);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 2, c);
-  b.blacks = _mm256_extract_epi64(gen0, 3);
-  c = board_print(&b);
-  printf("gen0-%d:\n%s\n", 3, c);
-  b.blacks = _mm256_extract_epi64(gen1, 0);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 0, c);
-  b.blacks = _mm256_extract_epi64(gen1, 1);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 1, c);
-  b.blacks = _mm256_extract_epi64(gen1, 2);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 2, c);
-  b.blacks = _mm256_extract_epi64(gen1, 3);
-  c = board_print(&b);
-  printf("gen1-%d:\n%s\n", 3, c);
-  */
-
   __m256i res0 = _mm256_or_si256(gen0, lan0);
   __m256i res1 = _mm256_or_si256(gen1, lan1);
-
-  // _mm256_maskstore_epi64 (__int64* mem_addr, __m256i mask, __m256i a);
 
   SquareSet r[16];
   SquareSet *r0 = r;
@@ -4019,26 +3855,8 @@ kogge_stone_gpb (const SquareSet generator,
 
   SquareSet result = empty_square_set;
   for (int i = 0; i < 8; i++) {
-
-    /*
-    b.blacks = *(r0 + i);
-    c = board_print(&b);
-    printf("*(r0 + %d):\n%s\n", i, c);
-
-    b.blacks = *(m0 + i);
-    c = board_print(&b);
-    printf("*(m0 + %d):\n%s\n", i, c);
-    */
-
     if (*(m0 + i)) result |= *(r0 + i);
   }
-
-  /*
-  b.blacks = result;
-  c = board_print(&b);
-  printf("result:\n%s\n", c);
-  */
-
 
   return result;
 }
