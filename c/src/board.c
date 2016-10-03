@@ -3812,10 +3812,13 @@ kogge_stone_gpb (const SquareSet generator,
   const __m256i const_b0 = _mm256_and_si256(blo_v, const_a0);
   const __m256i const_b1 = _mm256_and_si256(blo_v, const_a1);
 
+  const __m256i pro_base0 = _mm256_and_si256(pro_v, const_a0);
+  const __m256i pro_base1 = _mm256_and_si256(pro_v, const_a1);
+
   __m256i gen0 = gen_v;
   __m256i gen1 = gen_v;
-  __m256i pro0 = _mm256_and_si256(pro_v, const_a0);
-  __m256i pro1 = _mm256_and_si256(pro_v, const_a1);
+  __m256i pro0 = pro_base0;
+  __m256i pro1 = pro_base1;
 
   gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_a)));
   gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_a)));
@@ -3830,37 +3833,37 @@ kogge_stone_gpb (const SquareSet generator,
   gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_c)));
   gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_c)));
 
-  /* The generator plus the collected propagator. */
-  const __m256i lan0 = gen0;
-  const __m256i lan1 = gen1;
-
   gen0 = _mm256_andnot_si256(gen_v, gen0);
   gen1 = _mm256_andnot_si256(gen_v, gen1);
 
   gen0 = _mm256_and_si256(const_b0, _mm256_sllv_epi64(gen0, const_sh_a));
   gen1 = _mm256_and_si256(const_b1, _mm256_srlv_epi64(gen1, const_sh_a));
 
-  __m256i res0 = _mm256_or_si256(gen0, lan0);
-  __m256i res1 = _mm256_or_si256(gen1, lan1);
+  pro0 = pro_base0;
+  pro1 = pro_base1;
 
-  SquareSet r[16];
-  SquareSet *r0 = r;
-  SquareSet *r1 = r +  4;
-  SquareSet *m0 = r +  8;
-  SquareSet *m1 = r + 12;
-  _mm256_store_si256((__m256i *) r0, res0);
-  _mm256_store_si256((__m256i *) r1, res1);
-  _mm256_store_si256((__m256i *) m0, gen0);
-  _mm256_store_si256((__m256i *) m1, gen1);
+  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_sllv_epi64(gen1, const_sh_a)));
+  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_srlv_epi64(gen0, const_sh_a)));
+  pro1 = _mm256_and_si256(pro1, _mm256_sllv_epi64(pro1, const_sh_a));
+  pro0 = _mm256_and_si256(pro0, _mm256_srlv_epi64(pro0, const_sh_a));
 
-  SquareSet result = empty_square_set;
-  for (int i = 0; i < 8; i++) {
-    if (*(m0 + i)) result |= *(r0 + i);
-  }
+  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_sllv_epi64(gen1, const_sh_b)));
+  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_srlv_epi64(gen0, const_sh_b)));
+  pro1 = _mm256_and_si256(pro1, _mm256_sllv_epi64(pro1, const_sh_b));
+  pro0 = _mm256_and_si256(pro0, _mm256_srlv_epi64(pro0, const_sh_b));
+
+  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_sllv_epi64(gen1, const_sh_c)));
+  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_srlv_epi64(gen0, const_sh_c)));
+
+  /* Cobines the eight sets, four DWORDS in gen0, and four in gen1, into the final result. */
+  __m256i res = _mm256_or_si256(gen0, gen1);
+  res = _mm256_or_si256(res, _mm256_permute4x64_epi64(res, 0x4E));
+  res = _mm256_or_si256(res, _mm256_bsrli_epi128(res, 8));
+
+  const SquareSet result = _mm256_extract_epi64(res, 0) | generator;
 
   return result;
 }
-
 
 /**
  * @endcond
