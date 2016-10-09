@@ -690,7 +690,7 @@ square_set_random_selection (RandomNumberGenerator *const rng,
 {
   g_assert(squares != empty_square_set);
   SquareSet s = squares;
-  const int square_count = bit_works_popcount(squares);
+  const int square_count = bit_works_bitcount_64(squares);
   const int square_index = rng_random_choice_from_finite_set(rng, square_count);
   for (int i = 0; i < square_count; i++) {
     if (i == square_index) break;
@@ -724,7 +724,7 @@ square_set_to_array (int *sq_count,
                      const SquareSet squares)
 {
   static const size_t size_of_square = sizeof(Square);
-  const int square_count = bit_works_popcount(squares);
+  const int square_count = bit_works_bitcount_64(squares);
   Square *array = (Square *) malloc(square_count * size_of_square);
   g_assert(array);
   SquareSet s = squares;
@@ -1137,7 +1137,7 @@ board_count_pieces (const Board *const b,
   g_assert(b);
   g_assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
 
-  return bit_works_popcount(board_get_color(b, color));
+  return bit_works_bitcount_64(board_get_color(b, color));
 }
 
 /**
@@ -2733,7 +2733,7 @@ game_position_final_value (const GamePosition *const gp)
 int
 game_position_empty_count (const GamePosition *const gp)
 {
-  return bit_works_popcount(board_empties(gp->board));
+  return bit_works_bitcount_64(board_empties(gp->board));
 }
 
 
@@ -3019,7 +3019,7 @@ game_position_x_legal_moves (const GamePositionX *const gpx)
 int
 game_position_x_count_difference (const GamePositionX *const gpx)
 {
-  const int square_difference = bit_works_popcount(gpx->blacks) - bit_works_popcount(gpx->whites);
+  const int square_difference = bit_works_bitcount_64(gpx->blacks) - bit_works_bitcount_64(gpx->whites);
   return (gpx->player == BLACK_PLAYER) ? square_difference : - square_difference;
 }
 
@@ -3139,8 +3139,8 @@ game_position_x_compare (const GamePositionX *const a,
 int
 game_position_x_final_value (const GamePositionX *const gpx)
 {
-  const int b_count = bit_works_popcount(gpx->blacks);
-  const int w_count = bit_works_popcount(gpx->whites);
+  const int b_count = bit_works_bitcount_64_popcnt(gpx->blacks);
+  const int w_count = bit_works_bitcount_64_popcnt(gpx->whites);
   const int difference = b_count - w_count;
   if (difference == 0) return 0;
   const int empties = 64 - (b_count + w_count);

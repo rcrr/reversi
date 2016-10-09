@@ -239,9 +239,9 @@ game_tree_log_data_h_json_doc (const int call_level,
   json_doc = g_string_sized_new(256);
   const gboolean is_leaf = !game_position_has_any_player_any_legal_move(gp);
   const SquareSet legal_moves = game_position_legal_moves(gp);
-  const int legal_move_count = bit_works_popcount(legal_moves);
+  const int legal_move_count = bit_works_bitcount_64(legal_moves);
   const SquareSet empties = board_empties(gp->board);
-  const int empty_count = bit_works_popcount(empties);
+  const int empty_count = bit_works_bitcount_64(empties);
   const int legal_move_count_adj = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0);
   gchar *legal_moves_pg_json_array = square_set_to_pg_json_array(legal_moves);
   /*
@@ -282,9 +282,9 @@ game_tree_log_data_h_json_doc2 (const int call_level,
   json_doc = g_string_sized_new(256);
   const gboolean is_leaf = !game_position_x_has_any_player_any_legal_move(gpx);
   const SquareSet legal_moves = game_position_x_legal_moves(gpx);
-  const int legal_move_count = bit_works_popcount(legal_moves);
+  const int legal_move_count = bit_works_bitcount_64(legal_moves);
   const SquareSet empties = game_position_x_empties(gpx);
-  const int empty_count = bit_works_popcount(empties);
+  const int empty_count = bit_works_bitcount_64(empties);
   const int legal_move_count_adj = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0);
   gchar *legal_moves_pg_json_array = square_set_to_pg_json_array(legal_moves);
   /*

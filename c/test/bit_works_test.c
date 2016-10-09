@@ -53,7 +53,7 @@ static void bit_works_highest_bit_set_8_test (void);
 static void bit_works_highest_bit_set_32_test (void);
 static void bit_works_type_size_test (void);
 static void bit_works_bitscan_MS1B_to_base8_test (void);
-static void bit_works_popcount_test (void);
+static void bit_works_bitcount_64_test (void);
 static void bit_works_signed_left_shift_test (void);
 static void bit_works_ror_64_test (void);
 static void bit_works_rol_64_test (void);
@@ -76,7 +76,7 @@ main (int   argc,
   g_test_add_func("/bit_works/bit_works_highest_bit_set_8_test", bit_works_highest_bit_set_8_test);
   g_test_add_func("/bit_works/bit_works_highest_bit_set_32_test", bit_works_highest_bit_set_32_test);
   g_test_add_func("/bit_works/bit_works_signed_left_shift_test", bit_works_signed_left_shift_test);
-  g_test_add_func("/bit_works/bit_works_popcount_test", bit_works_popcount_test);
+  g_test_add_func("/bit_works/bit_works_bitcount_64_test", bit_works_bitcount_64_test);
   g_test_add_func("/bit_works/bit_works_type_size_test", bit_works_type_size_test);
   g_test_add_func("/bit_works/bit_works_bitscan_MS1B_to_base8_test", bit_works_bitscan_MS1B_to_base8_test);
   g_test_add_func("/bit_works/bit_works_ror_64", bit_works_ror_64_test);
@@ -236,13 +236,13 @@ bit_works_signed_left_shift_test (void)
 }
 
 static void
-bit_works_popcount_test (void)
+bit_works_bitcount_64_test (void)
 {
-  g_assert(0  == bit_works_popcount(0x00ULL));
-  g_assert(1  == bit_works_popcount(0x01ULL));
-  g_assert(1  == bit_works_popcount(0x02ULL));
-  g_assert(2  == bit_works_popcount(0x03ULL));
-  g_assert(64 == bit_works_popcount(0xFFFFFFFFFFFFFFFFULL));
+  g_assert(0  == bit_works_bitcount_64(0x00ULL));
+  g_assert(1  == bit_works_bitcount_64(0x01ULL));
+  g_assert(1  == bit_works_bitcount_64(0x02ULL));
+  g_assert(2  == bit_works_bitcount_64(0x03ULL));
+  g_assert(64 == bit_works_bitcount_64(0xFFFFFFFFFFFFFFFFULL));
 }
 
 static void

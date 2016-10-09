@@ -44,11 +44,11 @@ CC = gcc
 # add -pg for gprof execution.
 # add -DG_DISABLE_ASSERT -DNDEBUG to disable assertions
 # add -fno-inline to prevent inlining
-CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mpopcnt -mavx2 -DG_DISABLE_ASSERT -DNDEBUG -fno-inline
+CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mpopcnt -mavx2 -DG_DISABLE_ASSERT -DNDEBUG
 LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mavx2 -DG_DISABLE_ASSERT -DNDEBUG
+ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mavx2 -DG_DISABLE_ASSERT -DNDEBUG -fno-inline
 LIBS = `pkg-config --libs glib-2.0` -lgsl -lgslcblas -lm
 TEST_LIBS =
 SRCDIR = src

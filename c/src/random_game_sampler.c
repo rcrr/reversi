@@ -185,7 +185,7 @@ game_position_random_sampler_impl (ExactSolution *const result,
   }
 
   const SquareSet legal_moves = game_position_legal_moves(gp);
-  const int legal_move_count = bit_works_popcount(legal_moves);
+  const int legal_move_count = bit_works_bitcount_64(legal_moves);
   if (game_position_has_any_player_any_legal_move(gp)) { // the game must go on
     if (legal_move_count == 0) { // player has to pass
       GamePosition *flipped_players = game_position_pass(gp);

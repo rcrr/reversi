@@ -92,40 +92,6 @@ static const int debruijn_64_shift_value = 58;
  * @endcond
  */
 
-
-
-/*
- * This is a naive implementation, shown for comparison,
- * and to help in understanding the better functions.
- * It uses 24 arithmetic operations (shift, add, and).
- *
-static int popcount_1(uint64_t x) {
-    x = (x & m1 ) + ((x >>  1) & m1 ); //put count of each  2 bits into those  2 bits
-    x = (x & m2 ) + ((x >>  2) & m2 ); //put count of each  4 bits into those  4 bits
-    x = (x & m4 ) + ((x >>  4) & m4 ); //put count of each  8 bits into those  8 bits
-    x = (x & m8 ) + ((x >>  8) & m8 ); //put count of each 16 bits into those 16 bits
-    x = (x & m16) + ((x >> 16) & m16); //put count of each 32 bits into those 32 bits
-    x = (x & m32) + ((x >> 32) & m32); //put count of each 64 bits into those 64 bits
-    return x;
-}
-*/
-
-/*
- * This uses fewer arithmetic operations than any other known
- * implementation on machines with slow multiplication.
- * It uses 17 arithmetic operations.
- *
-static int popcount_2(uint64_t x) {
-    x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
-    x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits
-    x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits
-    x += x >>  8;                   //put count of each 16 bits into their lowest 8 bits
-    x += x >> 16;                   //put count of each 32 bits into their lowest 8 bits
-    x += x >> 32;                   //put count of each 64 bits into their lowest 8 bits
-    return x & 0x7f;
-}
-*/
-
 /**
  * @brief Returns the count of the bit set to 1 in the `x` argument.
  *
@@ -136,32 +102,17 @@ static int popcount_2(uint64_t x) {
  * @param [in] x the set that has to be counted
  * @return       the count of bit set in the `x` parameter
  */
-int
-bit_works_popcount (uint64_t x)
+unsigned int
+bit_works_bitcount_64 (uint64_t x)
 {
-#ifdef X86_POPCNT
-  long long int out;
-  __asm__ __volatile__ ("popcnt %1, %0" : "=g" (out) : "g" (x));
-  return (int) out;
-#else
   x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
   x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits
   x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits
   return (x * h01) >> 56;         //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
-#endif
 }
 
-/*
- * This is better when most bits in x are 0
- * It uses 3 arithmetic operations and one comparison/branch per "1" bit in x.
- *
-static int popcount_4(uint64_t x) {
-    int count;
-    for (count=0; x; count++)
-        x &= x-1;
-    return count;
-}
-*/
+extern unsigned int
+bit_works_bitcount_64_popcnt (uint64_t x);
 
 /**
  * @brief Returns an HiLo struct of two int collecting the octal representation of the position of
@@ -358,6 +309,12 @@ bit_works_bitscanLS1B_64 (const uint64_t bit_sequence)
   const uint64_t mask = bit_sequence & (-bit_sequence);
   return debruijn_64_index[(mask * debruijn_64_magic_constant) >> debruijn_64_shift_value];
 }
+
+/**
+ *
+ */
+extern uint8_t
+bit_works_bitscanLS1B_64_bsf (const uint64_t bit_sequence);
 
 /**
  * @brief Returns a bit sequence having one bit set, the lowest found

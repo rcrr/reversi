@@ -46,8 +46,17 @@ typedef struct {
   unsigned char hi;   /**< @brief The high digit. */
 } HiLo;
 
-extern int
-bit_works_popcount (uint64_t x);
+extern unsigned int
+bit_works_bitcount_64 (uint64_t x);
+
+__attribute__((always_inline))
+inline unsigned int
+bit_works_bitcount_64_popcnt (uint64_t x)
+{
+  uint64_t out;
+  __asm__ __volatile__ ("popcnt %1, %0" : "=g" (out) : "g" (x));
+  return (int) out;
+}
 
 extern void
 bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64_t bit_sequence);
@@ -75,6 +84,15 @@ bit_works_bitscanMS1B_8 (const uint8_t bit_sequence);
 
 extern uint8_t
 bit_works_bitscanLS1B_64 (const uint64_t bit_sequence);
+
+__attribute__((always_inline))
+inline uint8_t
+bit_works_bitscanLS1B_64_bsf (const uint64_t bit_sequence)
+{
+  uint64_t out;
+  __asm__ __volatile__ ("bsf %1, %0" : "=g" (out) : "g" (bit_sequence));
+  return (uint8_t) out;
+}
 
 extern uint64_t
 bit_works_lowest_bit_set_64 (const uint64_t bit_sequence);

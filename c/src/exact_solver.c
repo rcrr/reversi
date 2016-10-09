@@ -293,7 +293,7 @@ sort_moves_by_mobility_count (MoveList *move_list,
       GamePosition *next_gp = game_position_make_move(gp, move);
       const SquareSet next_moves = game_position_legal_moves(next_gp);
       game_position_free(next_gp);
-      const int next_move_count = bit_works_popcount(next_moves);
+      const int next_move_count = bit_works_bitcount_64(next_moves);
       curr->sq = move;
       curr->mobility = next_move_count;
       for (MoveListElement *element = move_list->head.succ; element != NULL; element = element->succ) {
