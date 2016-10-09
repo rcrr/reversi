@@ -37,9 +37,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-//#include <glib.h>
-//#include <glib/gstdio.h>
-
 #include "game_tree_logger.h"
 #include "game_tree_utils.h"
 
@@ -154,17 +151,19 @@ static const bool pv_internals_to_stream = false;
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_es2_solve (const GamePosition *const root,
+game_position_es2_solve (const GamePositionX *const root,
                          const endgame_solver_env_t *const env)
 {
   assert(root);
   assert(env);
 
+  const GamePosition *const root_gp = game_position_x_gpx_to_gp(root);
+
   ExactSolution *result = exact_solution_new();
-  result->solved_game_position = game_position_clone(root);
+  result->solved_game_position = game_position_clone(root_gp);
 
   GameTreeStack *stack = game_tree_stack_new();
-  game_tree_stack_init(root, stack);
+  game_tree_stack_init(root_gp, stack);
   NodeInfo *first_node_info = &stack->nodes[1];
 
   pv_recording = env->pv_recording;
@@ -178,9 +177,9 @@ game_position_es2_solve (const GamePosition *const root,
   }
 
   if (pv_recording) {
-    GamePositionX *rootx = game_position_x_gp_to_gpx(root);
-    pve = pve_new(rootx);
-    game_position_x_free(rootx);
+    //GamePositionX *rootx = game_position_x_gp_to_gpx(root);
+    pve = pve_new(root);
+    //game_position_x_free(rootx);
   }
 
   log_env = game_tree_log_init(env->log_file);
@@ -189,7 +188,7 @@ game_position_es2_solve (const GamePosition *const root,
   }
 
   MoveListElement root_mle;
-  root_mle.moves = game_position_x_legal_moves(game_position_x_gp_to_gpx(root));
+  root_mle.moves = game_position_x_legal_moves(root);
   game_position_solve_impl(result, stack, &(pve->root_line), &root_mle);
 
   if (pv_recording && pv_full_recording && !env->pv_no_print) {

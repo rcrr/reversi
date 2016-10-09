@@ -47,7 +47,7 @@
 /*********************************************************/
 
 extern ExactSolution *
-game_position_es2_solve (const GamePosition *const root,
+game_position_es2_solve (const GamePositionX *const root,
                          const endgame_solver_env_t *const env);
 
 

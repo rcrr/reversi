@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -92,18 +92,20 @@ static const int sub_run_id = 0;
  * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_minimax_solve (const GamePosition *const root,
+game_position_minimax_solve (const GamePositionX *const root,
                              const endgame_solver_env_t *const env)
 {
   g_assert(root);
   g_assert(env);
 
+  const GamePosition *const root_gp = game_position_x_gpx_to_gp(root);
+
   log_env = game_tree_log_init(env->log_file);
 
   if (log_env->log_is_on) {
-    GamePosition *ground = game_position_new(board_new(root->board->blacks,
-                                                       root->board->whites),
-                                             player_opponent(root->player));
+    GamePosition *ground = game_position_new(board_new(root_gp->board->blacks,
+                                                       root_gp->board->whites),
+                                             player_opponent(root_gp->player));
     gp_hash_stack[0] = game_position_hash(ground);
     game_position_free(ground);
     game_tree_log_open_h(log_env);
@@ -111,7 +113,7 @@ game_position_minimax_solve (const GamePosition *const root,
 
   ExactSolution *result = exact_solution_new();
 
-  result->solved_game_position = game_position_clone(root);
+  result->solved_game_position = game_position_clone(root_gp);
 
   SearchNode *sn = game_position_solve_impl(result, result->solved_game_position);
 

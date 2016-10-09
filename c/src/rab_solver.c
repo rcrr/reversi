@@ -11,7 +11,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -84,11 +84,13 @@ static LogEnv *log_env = NULL;
  * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_rab_solve (const GamePosition *const root,
+game_position_rab_solve (const GamePositionX *const root,
                          const endgame_solver_env_t *const env)
 {
   g_assert(root);
   g_assert(env);
+
+  const GamePosition *const root_gp = game_position_x_gpx_to_gp(root);
 
   ExactSolution* result = NULL;
   int n;
@@ -113,11 +115,11 @@ game_position_rab_solve (const GamePosition *const root,
   for (int sub_run_id = 0; sub_run_id < n; sub_run_id++) {
     GameTreeStack* stack = game_tree_stack_new();
 
-    game_tree_stack_init(root, stack);
+    game_tree_stack_init(root_gp, stack);
     NodeInfo* first_node_info = &stack->nodes[1];
 
     result = exact_solution_new();
-    result->solved_game_position = game_position_clone(root);
+    result->solved_game_position = game_position_clone(root_gp);
 
     game_position_solve_impl(result, stack, sub_run_id);
 

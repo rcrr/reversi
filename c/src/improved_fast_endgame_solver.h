@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -38,7 +38,7 @@
 #include "exact_solver.h"
 
 extern ExactSolution *
-game_position_ifes_solve (const GamePosition *const root,
+game_position_ifes_solve (const GamePositionX *const root,
                           const endgame_solver_env_t *const env);
 
 #endif /* IMPROVED_FAST_ENDGAME_SOLVER_H */

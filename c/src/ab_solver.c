@@ -82,11 +82,13 @@ static LogEnv *log_env = NULL;
  * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_ab_solve (const GamePosition *const root,
+game_position_ab_solve (const GamePositionX *const root,
                         const endgame_solver_env_t *const env)
 {
   g_assert(root);
   g_assert(env);
+
+  const GamePosition *const root_gp = game_position_x_gpx_to_gp(root);
 
   ExactSolution *result = NULL;
 
@@ -101,11 +103,11 @@ game_position_ab_solve (const GamePosition *const root,
 
   GameTreeStack *stack = game_tree_stack_new();
 
-  game_tree_stack_init(root, stack);
+  game_tree_stack_init(root_gp, stack);
   NodeInfo *first_node_info = &stack->nodes[1];
 
   result = exact_solution_new();
-  result->solved_game_position = game_position_clone(root);
+  result->solved_game_position = game_position_clone(root_gp);
 
   game_position_solve_impl(result, stack);
 

@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -43,7 +43,7 @@
 /*********************************************************/
 
 extern ExactSolution *
-game_position_random_sampler (const GamePosition *const root,
+game_position_random_sampler (const GamePositionX *const root,
                               const endgame_solver_env_t *const env);
 
 #endif /* RANDOM_GAME_SAMPLER_H */

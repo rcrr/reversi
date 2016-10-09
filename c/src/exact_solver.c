@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -162,7 +162,7 @@ static const bool pv_internals_to_stream = false;
  * @return              a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_es_solve (const GamePosition *const root,
+game_position_es_solve (const GamePositionX *const root,
                         const endgame_solver_env_t *const env)
 {
   g_assert(root);
@@ -177,9 +177,9 @@ game_position_es_solve (const GamePosition *const root,
 
   log_env = game_tree_log_init(env->log_file);
 
-  GamePositionX *rootx = game_position_x_gp_to_gpx(root);
-  pve = pve_new(rootx);
-  game_position_x_free(rootx);
+  //GamePositionX *rootx = game_position_x_gp_to_gpx(root);
+  pve = pve_new(root);
+  //game_position_x_free(rootx);
 
   if (log_env->log_is_on) {
     gp_hash_stack[0] = 0;
@@ -196,7 +196,7 @@ game_position_es_solve (const GamePosition *const root,
 
   result = exact_solution_new();
 
-  result->solved_game_position = game_position_clone(root);
+  result->solved_game_position = game_position_clone(game_position_x_gpx_to_gp(root));
 
   sn = game_position_solve_impl(result,
                                 result->solved_game_position,

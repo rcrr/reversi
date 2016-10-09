@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -412,7 +412,7 @@ static uint8_t **flip_stack = &(global_flip_stack[0]);
  * @return          the exact solution is the collector for results
  */
 ExactSolution *
-game_position_ifes_solve (const GamePosition *const root,
+game_position_ifes_solve (const GamePositionX *const root,
                           const endgame_solver_env_t *const env)
 {
   ExactSolution *result;    /* The solution structure returned by the function. */
@@ -424,6 +424,8 @@ game_position_ifes_solve (const GamePosition *const root,
   g_assert(root);
   g_assert(env);
 
+  const GamePosition *const root_gp = game_position_x_gpx_to_gp(root);
+
   log_env = game_tree_log_init(env->log_file);
 
   if (log_env->log_is_on) {
@@ -432,11 +434,11 @@ game_position_ifes_solve (const GamePosition *const root,
   }
 
   result = exact_solution_new();
-  result->solved_game_position = game_position_clone(root);
+  result->solved_game_position = game_position_clone(root_gp);
 
-  game_position_to_ifes_board(root, board, &emp, &wc, &bc);
+  game_position_to_ifes_board(root_gp, board, &emp, &wc, &bc);
 
-  IFES_SquareState player = game_position_get_ifes_player(root);
+  IFES_SquareState player = game_position_get_ifes_player(root_gp);
 
   discdiff = player == IFES_BLACK ? bc - wc : wc - bc;
 

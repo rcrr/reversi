@@ -417,10 +417,11 @@ main (int argc, char *argv[])
   env.pv_no_print = pv_no_print;
 
   /* Solves the position. */
-  GamePosition *gp = entry->game_position;
+  //GamePosition *gp = entry->game_position;
+  GamePositionX *gpx = game_position_x_gp_to_gpx(entry->game_position);
   ExactSolution *solution = NULL;
   g_print("Solving game position %s, from source %s, using solver %s (%s) ...\n", entry->id, input_file, solver->id, solver->description);
-  solution = solver->fn(gp, &env);
+  solution = solver->fn(gpx, &env);
 
   /* Prints results. */
   gchar *solution_to_string = exact_solution_to_string(solution);
@@ -434,6 +435,7 @@ main (int argc, char *argv[])
     gpdb_syntax_error_log_free(syntax_error_log);
   g_option_context_free(context);
   exact_solution_free(solution);
+  free(gpx);
 
   return 0;
 }

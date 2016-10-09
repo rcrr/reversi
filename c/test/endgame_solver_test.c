@@ -260,7 +260,7 @@ get_gp_from_db (GamePositionDb *db,
 static void
 run_test_case_array (GamePositionDb *db,
                      const TestCase tca[],
-                     ExactSolution* (*solver)(const GamePosition *const gp,
+                     ExactSolution* (*solver)(const GamePositionX *const gpx,
                                               const endgame_solver_env_t *const env));
 
 static void
@@ -491,7 +491,7 @@ get_gp_from_db (GamePositionDb *db,
 static void
 run_test_case_array (GamePositionDb *db,
                      const TestCase tca[],
-                     ExactSolution* (*solver)(const GamePosition *const gp,
+                     ExactSolution* (*solver)(const GamePositionX *const gpx,
                                               const endgame_solver_env_t *const env))
 {
   endgame_solver_env_t endgame_solver_env =
@@ -509,14 +509,16 @@ run_test_case_array (GamePositionDb *db,
       printf("Test #%3d: data[position=%s, expected_value=%+03d, expected_best_moves={%s}]; ", i, tc->gpdb_label, tc->outcome, moves_to_s);
       g_free(moves_to_s);
     }
-    const GamePosition * const gp = get_gp_from_db(db, tc->gpdb_label);
-    ExactSolution * const solution = (*solver)(gp, &endgame_solver_env);
+    const GamePosition *const gp = get_gp_from_db(db, tc->gpdb_label);
+    GamePositionX *const gpx = game_position_x_gp_to_gpx(gp);
+    ExactSolution *const solution = (*solver)(gpx, &endgame_solver_env);
     if (g_test_verbose()) {
       printf("result[outcome=%+03d, move=%s]\n", solution->outcome, square_to_string(solution->pv[0]));
     }
     g_assert_cmpint(tc->outcome, ==, solution->outcome);
     assert_move_is_part_of_array(solution->pv[0], tc->best_move, tc->best_move_count);
     exact_solution_free(solution);
+    free(gpx);
   }
 }
 
