@@ -57,7 +57,7 @@ typedef struct {
  * @brief Function pointer type for solving a game position.
  *
  * @details This prototype receives a game position and a set of
- *          arguments collected by the env parameter..
+ *          arguments collected by the env parameter.
  *
  * @param [in] gp  the position to solve
  * @param [in] env arguments and parameters for the solver

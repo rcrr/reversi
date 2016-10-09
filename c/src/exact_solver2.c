@@ -37,8 +37,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include <glib.h>
-#include <glib/gstdio.h>
+//#include <glib.h>
+//#include <glib/gstdio.h>
 
 #include "game_tree_logger.h"
 #include "game_tree_utils.h"

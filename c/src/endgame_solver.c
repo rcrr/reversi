@@ -420,32 +420,7 @@ main (int argc, char *argv[])
   GamePosition *gp = entry->game_position;
   ExactSolution *solution = NULL;
   g_print("Solving game position %s, from source %s, using solver %s (%s) ...\n", entry->id, input_file, solver->id, solver->description);
-  switch (solver_index) {
-  case 0:
-    solution = game_position_es_solve(gp, &env);
-    break;
-  case 1:
-    solution = game_position_ifes_solve(gp, &env);
-    break;
-  case 2:
-    solution = game_position_random_sampler(gp, &env);
-    break;
-  case 3:
-    solution = game_position_minimax_solve(gp, &env);
-    break;
-  case 4:
-    solution = game_position_rab_solve(gp, &env);
-    break;
-  case 5:
-    solution = game_position_ab_solve(gp, &env);
-    break;
-  case 6:
-    solution = game_position_es2_solve(gp, &env);
-    break;
-  default:
-    g_print("This should never happen! solver_index = %d. Aborting ...\n", solver_index);
-    return -101;
-  }
+  solution = solver->fn(gp, &env);
 
   /* Prints results. */
   gchar *solution_to_string = exact_solution_to_string(solution);
