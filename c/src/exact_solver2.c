@@ -266,7 +266,6 @@ game_position_es2_solve (const GamePosition *const root,
  * TODO
  * What to try:
  * - Is it possible to rewrite bitscanLS1B adopting AVX2 instructions?
- * - Can we improve the construction of the list? A kind of mergesort?
  * - Make a stack of moves with pointers ...... integrated into the tree stack .....
  */
 static void
@@ -315,6 +314,7 @@ sort_moves_by_mobility_count (MoveList *ml,
       e++;
     }
   }
+
   return;
 }
 
