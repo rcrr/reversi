@@ -53,6 +53,10 @@ static SearchNode *
 game_position_solve_impl (ExactSolution *const result,
                           const GamePosition *const gp);
 
+static SearchNode *
+game_position_solve_impl2 (ExactSolution *const result,
+                           const GamePositionX *const gpx);
+
 
 
 /*
@@ -136,6 +140,15 @@ game_position_minimax_solve (const GamePositionX *const root,
 /*
  * Internal functions.
  */
+
+static SearchNode *
+game_position_solve_impl2 (ExactSolution *const result,
+                           const GamePositionX *const gpx)
+{
+  SearchNode *node  = NULL;
+  ;
+  return node;
+}
 
 /**
  * @brief Recursive function used to traverse the game tree.
