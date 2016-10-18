@@ -141,6 +141,15 @@ game_position_minimax_solve (const GamePositionX *const root,
  * Internal functions.
  */
 
+/*
+ * TODO:
+ * - Remove every dependency on GamePosition and Board objects.
+ * - Remove pass special case.
+ * - Avoid malloc/free calls.
+ * - Use the game_tree_utils stack.
+ * - Use the most advanced Kogge-Stone routines.
+ * - Transform the code from recursion to iteration.
+ */
 static SearchNode *
 game_position_solve_impl2 (ExactSolution *const result,
                            const GamePositionX *const gpx)
