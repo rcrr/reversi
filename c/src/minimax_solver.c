@@ -33,6 +33,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include <glib.h>
 
@@ -55,7 +56,8 @@ game_position_solve_impl (ExactSolution *const result,
 
 static SearchNode *
 game_position_solve_impl2 (ExactSolution *const result,
-                           const GamePositionX *const gpx);
+                           const GamePositionX *const gpx,
+                           const Square prev_move);
 
 
 
@@ -126,6 +128,26 @@ game_position_minimax_solve (const GamePositionX *const root,
   result->outcome = sn->value;
   search_node_free(sn);
 
+
+  // --- 1
+
+  ExactSolution *result2 = exact_solution_new();
+
+  /* Has to be fixed .... */
+  GamePosition *const root_gp2 = game_position_x_gpx_to_gp(root);
+  result2->solved_game_position = game_position_clone(root_gp2);
+  free(root_gp2);
+
+  SearchNode *sn2 = game_position_solve_impl2(result2, root, invalid_move);
+
+  result2->pv[0] = sn2->move;
+  result2->outcome = sn2->value;
+  search_node_free(sn2);
+
+  printf("result2->pv[0]=%s, result2->outcome=%d\n", square_as_move_to_string(result2->pv[0]), result2->outcome);
+
+  // --- 2
+
   game_tree_log_close(log_env);
 
   return result;
@@ -141,6 +163,34 @@ game_position_minimax_solve (const GamePositionX *const root,
  * Internal functions.
  */
 
+static void
+generate_move_array (int *move_count,
+                     Square *moves,
+                     SquareSet* move_set,
+                     const GamePositionX *const gpx)
+{
+  Square *move = moves;
+  SquareSet remaining_moves = game_position_x_legal_moves(gpx);
+  *move_set = remaining_moves;
+  if (!remaining_moves) {
+    *move++ = pass_move;
+  }
+  while (remaining_moves) {
+    const Square m = bit_works_bitscanLS1B_64(remaining_moves);
+    remaining_moves ^= 1ULL << m;
+    *move++ = m;
+  }
+  *move_count = move - moves;
+}
+
+static bool
+is_terminal_node (const Square prev_move,
+                  const SquareSet move_set)
+{
+  if (!move_set && (prev_move == pass_move)) return true;
+  return false;
+}
+
 /*
  * TODO:
  * - Remove every dependency on GamePosition and Board objects.
@@ -152,10 +202,55 @@ game_position_minimax_solve (const GamePositionX *const root,
  */
 static SearchNode *
 game_position_solve_impl2 (ExactSolution *const result,
-                           const GamePositionX *const gpx)
+                           const GamePositionX *const gpx,
+                           const Square prev_move)
 {
-  SearchNode *node  = NULL;
-  ;
+  /*
+   *
+   *   01 function negamax(node, depth, color)
+   *   02     if depth = 0 or node is a terminal node
+   *   03         return color * the heuristic value of node
+   *
+   *   04     bestValue := −∞
+   *   05     foreach child of node
+   *   06         v := −negamax(child, depth − 1, −color)
+   *   07         bestValue := max( bestValue, v )
+   *   08     return bestValue
+   *
+   */
+
+  Square *move;
+  SquareSet move_set;
+  int move_count;
+  Square moves[32];
+  GamePositionX child_gpx;
+
+  result->node_count++;
+  SearchNode *node = search_node_new(invalid_move, out_of_range_defeat_score);
+
+  generate_move_array(&move_count, moves, &move_set, gpx);
+
+  if (is_terminal_node(prev_move, move_set)) {
+    node->value = game_position_x_final_value(gpx);
+    return node;
+  }
+
+  for (move = moves; move - moves < move_count; move++) {
+    if (*move == pass_move) {
+      game_position_x_pass(gpx, &child_gpx);
+    } else {
+      game_position_x_make_move(gpx, *move, &child_gpx);
+    }
+    SearchNode *tmp_node = search_node_negated(game_position_solve_impl2(result, &child_gpx, *move));
+    if (tmp_node->value > node->value) {
+      search_node_free(node);
+      node = tmp_node;
+      node->move = *move;
+      tmp_node = NULL;
+    } else {
+      search_node_free(tmp_node);
+    }
+  }
   return node;
 }
 
@@ -205,10 +300,21 @@ game_position_solve_impl (ExactSolution *const result,
     }
     game_position_free(flipped_players);
   } else {
+    // -- to be removed -start 1
+    SquareSet move_set;
+    int move_count;
+    Square move_array[32];
+    GamePositionX *gpx = game_position_x_gp_to_gpx(gp);
+    generate_move_array(&move_count, move_array, &move_set, gpx);
+    Square *move_2 = move_array;
+    if (move_set != moves) abort();
+    if (bit_works_bitcount_64_popcnt(moves) != move_count) abort();
+    // -- to be removed -end 1
     node = search_node_new(-1, -65);
     SquareSet remaining_moves = moves;
     while (remaining_moves) {
       const Square move = bit_works_bitscanLS1B_64(remaining_moves);
+      if (move != *move_2++) abort(); // -- to be removed 2
       remaining_moves ^= 1ULL << move;
       GamePosition *gp2 = game_position_make_move(gp, move);
       node2 = search_node_negated(game_position_solve_impl(result, gp2));
