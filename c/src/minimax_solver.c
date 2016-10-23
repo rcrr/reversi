@@ -144,7 +144,10 @@ game_position_minimax_solve (const GamePositionX *const root,
   result2->outcome = sn2->value;
   search_node_free(sn2);
 
+  printf("\n");
   printf("result2->pv[0]=%s, result2->outcome=%d\n", square_as_move_to_string(result2->pv[0]), result2->outcome);
+  printf("result2->node_count=%zu, result2->leaf_count=%zu\n", result2->node_count, result2->leaf_count);
+  printf("\n");
 
   // --- 2
 
@@ -170,15 +173,16 @@ generate_move_array (int *move_count,
                      const GamePositionX *const gpx)
 {
   Square *move = moves;
-  SquareSet remaining_moves = game_position_x_legal_moves(gpx);
-  *move_set = remaining_moves;
+  *move_set = game_position_x_legal_moves(gpx);
+  SquareSet remaining_moves = *move_set;
   if (!remaining_moves) {
     *move++ = pass_move;
-  }
-  while (remaining_moves) {
-    const Square m = bit_works_bitscanLS1B_64(remaining_moves);
-    remaining_moves ^= 1ULL << m;
-    *move++ = m;
+  } else {
+    while (remaining_moves) {
+      const Square m = bit_works_bitscanLS1B_64(remaining_moves);
+      remaining_moves ^= 1ULL << m;
+      *move++ = m;
+    }
   }
   *move_count = move - moves;
 }
@@ -231,6 +235,7 @@ game_position_solve_impl2 (ExactSolution *const result,
   generate_move_array(&move_count, moves, &move_set, gpx);
 
   if (is_terminal_node(prev_move, move_set)) {
+    result->leaf_count++;
     node->value = game_position_x_final_value(gpx);
     return node;
   }
@@ -246,7 +251,7 @@ game_position_solve_impl2 (ExactSolution *const result,
       search_node_free(node);
       node = tmp_node;
       node->move = *move;
-      tmp_node = NULL;
+      //tmp_node = NULL;
     } else {
       search_node_free(tmp_node);
     }
