@@ -54,7 +54,7 @@ static SearchNode *
 game_position_solve_impl (ExactSolution *const result,
                           const GamePosition *const gp);
 
-static SearchNode *
+static int
 game_position_solve_impl2 (ExactSolution *const result,
                            Square *move,
                            const GamePositionX *const gpx,
@@ -140,12 +140,10 @@ game_position_minimax_solve (const GamePositionX *const root,
   free(root_gp2);
 
   Square best_move;
-  SearchNode *sn2 = game_position_solve_impl2(result2, &best_move, root, invalid_move);
-  if (best_move != sn2->move) abort();
+  int v = game_position_solve_impl2(result2, &best_move, root, invalid_move);
 
-  result2->pv[0] = sn2->move;
-  result2->outcome = sn2->value;
-  search_node_free(sn2);
+  result2->pv[0] = best_move;
+  result2->outcome = v;
 
   printf("\n");
   printf("result2->pv[0]=%s, result2->outcome=%d\n", square_as_move_to_string(result2->pv[0]), result2->outcome);
@@ -198,6 +196,18 @@ is_terminal_node (const Square prev_move,
   return false;
 }
 
+static void
+make_move (const GamePositionX *const current,
+           const Square move,
+           GamePositionX *const updated)
+{
+  if (move == pass_move) {
+    game_position_x_pass(current, updated);
+  } else {
+    game_position_x_make_move(current, move, updated);
+  }
+}
+
 /*
  * TODO:
  * - Remove every dependency on GamePosition and Board objects.
@@ -207,62 +217,41 @@ is_terminal_node (const Square prev_move,
  * - Use the most advanced Kogge-Stone routines.
  * - Transform the code from recursion to iteration.
  */
-static SearchNode *
+static int
 game_position_solve_impl2 (ExactSolution *const result,
                            Square *move,
                            const GamePositionX *const gpx,
                            const Square prev_move)
 {
-  /*
-   *
-   *   01 function negamax(node, depth, color)
-   *   02     if depth = 0 or node is a terminal node
-   *   03         return color * the heuristic value of node
-   *
-   *   04     bestValue := −∞
-   *   05     foreach child of node
-   *   06         v := −negamax(child, depth − 1, −color)
-   *   07         bestValue := max( bestValue, v )
-   *   08     return bestValue
-   *
-   */
-
   Square *m;
-  Square best_move;
+  Square moves[32];
+  Square best_move, a_move;
+  int best_value, v;
   SquareSet move_set;
   int move_count;
-  Square moves[32];
   GamePositionX child_gpx;
 
   result->node_count++;
-  SearchNode *node = search_node_new(invalid_move, out_of_range_defeat_score);
 
   generate_move_array(&move_count, moves, &move_set, gpx);
 
   if (is_terminal_node(prev_move, move_set)) {
     result->leaf_count++;
-    node->value = game_position_x_final_value(gpx);
-    return node;
+    return game_position_x_final_value(gpx);
   }
 
+  best_value = out_of_range_defeat_score;
   for (m = moves; m - moves < move_count; m++) {
-    if (*m == pass_move) {
-      game_position_x_pass(gpx, &child_gpx);
-    } else {
-      game_position_x_make_move(gpx, *m, &child_gpx);
-    }
-    SearchNode *tmp_node = search_node_negated(game_position_solve_impl2(result, &best_move, &child_gpx, *m));
-    if (tmp_node->value > node->value) {
-      search_node_free(node);
-      node = tmp_node;
-      node->move = *m;
-      *move = *m;
-      //tmp_node = NULL;
-    } else {
-      search_node_free(tmp_node);
+    make_move(gpx, *m, &child_gpx);
+    v = - game_position_solve_impl2(result, &a_move, &child_gpx, *m);
+    if (v > best_value) {
+      best_move = *m;
+      best_value = v;
     }
   }
-  return node;
+
+  *move = best_move;
+  return best_value;
 }
 
 /**
