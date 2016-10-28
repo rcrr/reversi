@@ -56,6 +56,7 @@ game_position_solve_impl (ExactSolution *const result,
 
 static SearchNode *
 game_position_solve_impl2 (ExactSolution *const result,
+                           Square *move,
                            const GamePositionX *const gpx,
                            const Square prev_move);
 
@@ -138,7 +139,9 @@ game_position_minimax_solve (const GamePositionX *const root,
   result2->solved_game_position = game_position_clone(root_gp2);
   free(root_gp2);
 
-  SearchNode *sn2 = game_position_solve_impl2(result2, root, invalid_move);
+  Square best_move;
+  SearchNode *sn2 = game_position_solve_impl2(result2, &best_move, root, invalid_move);
+  if (best_move != sn2->move) abort();
 
   result2->pv[0] = sn2->move;
   result2->outcome = sn2->value;
@@ -206,6 +209,7 @@ is_terminal_node (const Square prev_move,
  */
 static SearchNode *
 game_position_solve_impl2 (ExactSolution *const result,
+                           Square *move,
                            const GamePositionX *const gpx,
                            const Square prev_move)
 {
@@ -223,7 +227,8 @@ game_position_solve_impl2 (ExactSolution *const result,
    *
    */
 
-  Square *move;
+  Square *m;
+  Square best_move;
   SquareSet move_set;
   int move_count;
   Square moves[32];
@@ -240,17 +245,18 @@ game_position_solve_impl2 (ExactSolution *const result,
     return node;
   }
 
-  for (move = moves; move - moves < move_count; move++) {
-    if (*move == pass_move) {
+  for (m = moves; m - moves < move_count; m++) {
+    if (*m == pass_move) {
       game_position_x_pass(gpx, &child_gpx);
     } else {
-      game_position_x_make_move(gpx, *move, &child_gpx);
+      game_position_x_make_move(gpx, *m, &child_gpx);
     }
-    SearchNode *tmp_node = search_node_negated(game_position_solve_impl2(result, &child_gpx, *move));
+    SearchNode *tmp_node = search_node_negated(game_position_solve_impl2(result, &best_move, &child_gpx, *m));
     if (tmp_node->value > node->value) {
       search_node_free(node);
       node = tmp_node;
-      node->move = *move;
+      node->move = *m;
+      *move = *m;
       //tmp_node = NULL;
     } else {
       search_node_free(tmp_node);
