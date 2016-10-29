@@ -116,9 +116,9 @@ game_position_minimax_solve (const GamePositionX *const root,
     game_tree_log_open_h(log_env);
   }
 
+  /*
   ExactSolution *result = exact_solution_new();
 
-  /* Has to be fixed .... */
   GamePosition *const root_gp = game_position_x_gpx_to_gp(root);
   result->solved_game_position = game_position_clone(root_gp);
   free(root_gp);
@@ -128,7 +128,7 @@ game_position_minimax_solve (const GamePositionX *const root,
   result->pv[0] = sn->move;
   result->outcome = sn->value;
   search_node_free(sn);
-
+  */
 
   // --- 1
 
@@ -145,16 +145,11 @@ game_position_minimax_solve (const GamePositionX *const root,
   result2->pv[0] = best_move;
   result2->outcome = v;
 
-  printf("\n");
-  printf("result2->pv[0]=%s, result2->outcome=%d\n", square_as_move_to_string(result2->pv[0]), result2->outcome);
-  printf("result2->node_count=%zu, result2->leaf_count=%zu\n", result2->node_count, result2->leaf_count);
-  printf("\n");
-
   // --- 2
 
   game_tree_log_close(log_env);
 
-  return result;
+  return result2;
 }
 
 
@@ -241,6 +236,7 @@ game_position_solve_impl2 (ExactSolution *const result,
   }
 
   best_value = out_of_range_defeat_score;
+  best_move = invalid_move;
   for (m = moves; m - moves < move_count; m++) {
     make_move(gpx, *m, &child_gpx);
     v = - game_position_solve_impl2(result, &a_move, &child_gpx, *m);
