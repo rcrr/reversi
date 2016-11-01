@@ -391,6 +391,10 @@ exact_solution_to_string (const ExactSolution *const es);
 extern void
 exact_solution_compute_final_board (ExactSolution *const es);
 
+extern void
+exact_solution_set_solved_game_position_x (ExactSolution *const es,
+                                           const GamePositionX *const gpx);
+
 
 
 /*********************************************/

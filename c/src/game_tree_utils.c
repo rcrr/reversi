@@ -287,6 +287,23 @@ exact_solution_compute_final_board (ExactSolution *const es)
   game_position_free(gp);
 }
 
+/**
+ * @brief Assigns the `solved_game_position` field.
+ *
+ * @details Executes all the moves stored into the pv field up the the final
+ *          board configuration, then stores it into the final_board field.
+ *
+ * @param [in,out] es  a pointer to the exact solution structure
+ * @param [in]     gpx a pointer to the game position structure
+ */
+void
+exact_solution_set_solved_game_position_x (ExactSolution *const es,
+                                           const GamePositionX *const gpx)
+{
+  GamePosition *gp = game_position_x_gpx_to_gp(gpx);
+  es->solved_game_position = gp;
+}
+
 
 
 /**************************************************/
