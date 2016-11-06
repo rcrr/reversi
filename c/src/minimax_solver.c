@@ -178,16 +178,8 @@ generate_move_array (int *move_count,
 }
 
 static bool
-is_terminal_node (const Square prev_move,
+is_terminal_node (const GamePositionX *const current,
                   const SquareSet move_set)
-{
-  if (!move_set && (prev_move == pass_move)) return true;
-  return false;
-}
-
-static bool
-is_terminal_node2 (const GamePositionX *const current,
-                   const SquareSet move_set)
 {
   if (move_set) return false;
   const SquareSet empties = ~(current->blacks | current->whites);
@@ -259,14 +251,7 @@ game_position_solve_impl2 (ExactSolution *const result,
   best_value = out_of_range_defeat_score;
   best_move = invalid_move;
 
-  /*
-  if (is_terminal_node(prev_move, move_set)) {
-    result->leaf_count++;
-    best_value = game_position_x_final_value(gpx);
-    goto end;
-  }
-  */
-  if (is_terminal_node2(gpx, move_set)) {
+  if (is_terminal_node(gpx, move_set)) {
     result->leaf_count++;
     best_value = game_position_x_final_value(gpx);
     goto end;
