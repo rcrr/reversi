@@ -67,7 +67,7 @@ $$ LANGUAGE plpgsql VOLATILE;
 -- Compares two game tree stored in the tables game_tree_log_header/game_tree_log for equality.
 --
 CREATE OR REPLACE FUNCTION gt_compare (    run_label_a           CHAR(4),
-                                            run_label_b           CHAR(4),
+                                           run_label_b           CHAR(4),
                                        OUT are_equal             BOOLEAN,
                                        OUT run_log_count_a       INTEGER,
                                        OUT run_log_count_b       INTEGER,
@@ -150,6 +150,45 @@ $$ LANGUAGE plpgsql VOLATILE;
 
 
 --
+-- Node frequency analysis.
+--
+CREATE OR REPLACE FUNCTION gt_nfa ( run_label_in  CHAR(4),
+                                    sub_run_id_in INTEGER)
+RETURNS TABLE (cnt BIGINT,
+               frq BIGINT)
+AS $$
+DECLARE
+  run_id_in INTEGER;
+  gt_exists BOOLEAN;
+BEGIN
+
+  SELECT EXISTS (SELECT 1 FROM game_tree_log_header WHERE run_label = run_label_in) INTO STRICT gt_exists;
+  IF gt_exists IS TRUE THEN
+    SELECT gtlh.run_id INTO STRICT run_id_in FROM game_tree_log_header AS gtlh  WHERE gtlh.run_label = run_label_in;
+  ELSE
+    RETURN;
+  END IF;
+
+  SELECT EXISTS (SELECT 1 FROM game_tree_log WHERE run_id = run_id_in AND sub_run_id = sub_run_id_in) INTO STRICT gt_exists;
+  IF gt_exists IS NOT TRUE THEN
+    RETURN;
+  END IF;
+
+  RETURN QUERY WITH a AS (
+    SELECT hash        AS a_hash,
+           COUNT(hash) AS a_cnt
+    FROM game_tree_log WHERE run_id = run_id_in AND sub_run_id = sub_run_id_in
+    GROUP BY a_hash
+    ORDER BY a_cnt
+    DESC
+  ) SELECT a_cnt AS cnt, COUNT(a_cnt) AS frq FROM a GROUP BY cnt ORDER BY frq ASC;
+
+END
+$$ LANGUAGE plpgsql;
+
+
+
+--
 -- Checks a game tree stored in the tables game_tree_log_header/game_tree_log for consistency.
 --
 CREATE OR REPLACE FUNCTION gt_check (    run_label_in            CHAR(4),
@@ -159,7 +198,10 @@ CREATE OR REPLACE FUNCTION gt_check (    run_label_in            CHAR(4),
                                      OUT distinct_hashes         INTEGER,
                                      OUT distinct_rels           INTEGER,
                                      OUT collision_count         INTEGER,
-                                     OUT duplicate_count         INTEGER)
+                                     OUT duplicate_count         INTEGER,
+                                     OUT hash_error_count        INTEGER,
+                                     OUT root_count              INTEGER,
+                                     OUT leaf_count              INTEGER)
 RETURNS RECORD AS $$
 DECLARE
   run_id_in               INTEGER;
@@ -167,6 +209,7 @@ DECLARE
   collision_partial_count INTEGER;
   gt_exists               BOOLEAN;
   node                    RECORD;
+  dkk                     INTEGER;
 BEGIN
   SELECT EXISTS (SELECT 1 FROM game_tree_log_header WHERE run_label = run_label_in) INTO STRICT gt_exists;
   IF gt_exists IS TRUE THEN
@@ -186,14 +229,27 @@ BEGIN
   SELECT COUNT(DISTINCT hash)                     INTO distinct_hashes         FROM game_tree_log AS gtl WHERE gtl.run_id = run_id_in AND gtl.sub_run_id = sub_run_id_in;
   SELECT COUNT(DISTINCT (hash, parent_hash))      INTO distinct_rels           FROM game_tree_log AS gtl WHERE gtl.run_id = run_id_in AND gtl.sub_run_id = sub_run_id_in;
 
-  collision_count := 0;
-  duplicate_count := 0;
-  FOR node IN SELECT DISTINCT hash FROM game_tree_log AS gtl WHERE gtl.run_id = run_id_in AND gtl.sub_run_id = sub_run_id_in LOOP
-    SELECT COUNT(hash) INTO duplicate_partial_count FROM game_tree_log AS gtl WHERE gtl.run_id = run_id_in AND gtl.sub_run_id = sub_run_id_in AND node.hash = gtl.hash;
-    SELECT COUNT(DISTINCT (blacks, whites, player)) INTO collision_partial_count FROM game_tree_log AS gtl WHERE gtl.run_id = run_id_in AND gtl.sub_run_id = sub_run_id_in AND node.hash = gtl.hash;
-    collision_count := collision_count + collision_partial_count - 1;
-    duplicate_count := duplicate_count + duplicate_partial_count - collision_partial_count;
-  END LOOP;
+  duplicate_count := game_tree_node_count - distinct_game_positions;
+  collision_count := distinct_game_positions - distinct_hashes;
+
+  -- Equal game positions must have the same hash.
+  SELECT COUNT(DISTINCT (hash, blacks, whites, player)) INTO dkk FROM game_tree_log AS gtl WHERE gtl.run_id = run_id_in AND gtl.sub_run_id = sub_run_id_in;
+  hash_error_count := dkk - distinct_game_positions;
+
+  WITH game_tree AS (
+    SELECT hash, parent_hash
+    FROM game_tree_log
+    WHERE run_id = run_id_in AND sub_run_id = sub_run_id_in
+    ), lone_parents AS (
+    SELECT hash, parent_hash
+    FROM game_tree
+    WHERE parent_hash NOT IN (SELECT DISTINCT(hash) FROM game_tree)
+    ) SELECT COUNT(*) INTO STRICT root_count FROM lone_parents;
+
+  WITH game_tree AS (
+    SELECT hash, parent_hash FROM game_tree_log WHERE run_id = run_id_in AND sub_run_id = sub_run_id_in
+  ) SELECT COUNT(*) INTO STRICT leaf_count FROM game_tree WHERE hash NOT IN (SELECT DISTINCT(parent_hash) FROM game_tree);
+
 END;
 $$ LANGUAGE plpgsql;
 
