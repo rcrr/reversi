@@ -104,11 +104,8 @@ game_position_minimax_solve (const GamePositionX *const root,
   log_env = game_tree_log_init(env->log_file);
 
   if (log_env->log_is_on) {
-    GamePosition *ground = game_position_new(board_new(root->blacks,
-                                                       root->whites),
-                                             player_opponent(root->player));
-    gp_hash_stack[0] = game_position_hash(ground);
-    game_position_free(ground);
+    GamePositionX ground = { .blacks = root->blacks, .whites = root->whites, .player = player_opponent(root->player) };
+    gp_hash_stack[0] = game_position_x_hash(&ground);
     game_tree_log_open_h(log_env);
   }
 
