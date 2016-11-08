@@ -52,9 +52,8 @@
 
 static int
 game_position_solve_impl (ExactSolution *const result,
-                          Square *move,
-                          const GamePositionX *const gpx,
-                          const Square prev_move);
+                          Square *best_move,
+                          const GamePositionX *const gpx);
 
 
 
@@ -109,12 +108,11 @@ game_position_minimax_solve (const GamePositionX *const root,
     game_tree_log_open_h(log_env);
   }
 
-  ExactSolution *result = NULL;
+  ExactSolution *result = exact_solution_new();
 
-  result = exact_solution_new();
   exact_solution_set_solved_game_position_x(result, root);
   Square best_move;
-  int v = game_position_solve_impl(result, &best_move, root, invalid_move);
+  int v = game_position_solve_impl(result, &best_move, root);
   result->pv[0] = best_move;
   result->outcome = v;
 
@@ -191,13 +189,12 @@ make_move (const GamePositionX *const current,
  */
 static int
 game_position_solve_impl (ExactSolution *const result,
-                          Square *move,
-                          const GamePositionX *const gpx,
-                          const Square prev_move)
+                          Square *best_move,
+                          const GamePositionX *const gpx)
 {
   Square *m;
   Square moves[32];
-  Square best_move, a_move;
+  Square child_best_move;
   int best_value, v;
   SquareSet move_set;
   int move_count;
@@ -226,7 +223,7 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
   best_value = out_of_range_defeat_score;
-  best_move = invalid_move;
+  *best_move = invalid_move;
 
   if (is_terminal_node(gpx, move_set)) {
     result->leaf_count++;
@@ -236,9 +233,9 @@ game_position_solve_impl (ExactSolution *const result,
 
   for (m = moves; m - moves < move_count; m++) {
     make_move(gpx, *m, &child_gpx);
-    v = - game_position_solve_impl(result, &a_move, &child_gpx, *m);
+    v = - game_position_solve_impl(result, &child_best_move, &child_gpx);
     if (v > best_value) {
-      best_move = *m;
+      *best_move = *m;
       best_value = v;
     }
   }
@@ -247,7 +244,6 @@ game_position_solve_impl (ExactSolution *const result,
   if (log_env->log_is_on) {
     gp_hash_stack_fill_point--;
   }
-  *move = best_move;
   return best_value;
 }
 
