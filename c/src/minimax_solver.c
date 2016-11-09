@@ -64,9 +64,6 @@ game_position_solve_impl (ExactSolution *const result,
 /* The logging environment structure. */
 static LogEnv *log_env = NULL;
 
-/* The total number of call to the recursive function that traverse the game DAG. */
-static uint64_t call_count = 0;
-
 /* The predecessor-successor array of game position hash values. */
 static uint64_t gp_hash_stack[128];
 
@@ -205,11 +202,10 @@ game_position_solve_impl (ExactSolution *const result,
   generate_move_array(&move_count, moves, &move_set, gpx);
 
   if (log_env->log_is_on) {
-    call_count++;
     gp_hash_stack_fill_point++;
     LogDataH log_data;
-    log_data.sub_run_id = 0;
-    log_data.call_id = call_count;
+    log_data.sub_run_id = sub_run_id;
+    log_data.call_id = result->node_count;
     log_data.hash = game_position_x_hash(gpx);
     gp_hash_stack[gp_hash_stack_fill_point] = log_data.hash;
     log_data.parent_hash = gp_hash_stack[gp_hash_stack_fill_point - 1];
