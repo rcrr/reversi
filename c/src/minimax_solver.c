@@ -1,6 +1,28 @@
 /**
  * @file
  *
+ *
+ * @todo [done] Remove every dependency on GamePosition and Board objects.
+ *
+ * @todo [done] Remove pass special case.
+ *
+ * @todo [done] Avoid malloc/free calls.
+ *
+ * @todo        Use the game_tree_utils stack.
+ *
+ * @todo [done] Use the most advanced Kogge-Stone routines.
+ *
+ * @todo        Transform the code from recursion to iteration.
+ *
+ * @todo        Refactor the logging system:
+ *              - Remove the costly json generation.
+ *              - Trasform logging from ASCI to binary.
+ *                Write a postprocessor that generate the ASCI/csv from the binary file.
+ *                Add the json generation to the postprocessor.
+ *
+ * @todo        Write a new hash algorithm that prepares the delta_hash between two game positions.
+ *
+ *
  * @brief Minimax solver module implementation.
  * @details It searches the end of the game for an exact outcome using the MINIMAX algorithm.
  *
@@ -78,10 +100,6 @@ static const int sub_run_id = 0;
  */
 
 
-
-/*********************************************************/
-/* Function implementations for the GamePosition entity. */
-/*********************************************************/
 
 /**
  * @brief Solves the game position returning a new exact solution pointer.
@@ -175,15 +193,6 @@ make_move (const GamePositionX *const current,
   }
 }
 
-/*
- * TODO:
- * -        Remove every dependency on GamePosition and Board objects.
- * - [done] Remove pass special case.
- * - [done] Avoid malloc/free calls.
- * -        Use the game_tree_utils stack.
- * - [done] Use the most advanced Kogge-Stone routines.
- * -        Transform the code from recursion to iteration.
- */
 static int
 game_position_solve_impl (ExactSolution *const result,
                           Square *best_move,
