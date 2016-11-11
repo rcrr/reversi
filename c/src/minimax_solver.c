@@ -21,6 +21,8 @@
  *                Add the json generation to the postprocessor.
  *
  * @todo        Write a new hash algorithm that prepares the delta_hash between two game positions.
+ *              An option could be to use the PEXT assembly instruction that corresponds to the intrinsics:
+ *              c = _pext_u64(uint64_t src, uint64_t mask)
  *
  *
  * @brief Minimax solver module implementation.

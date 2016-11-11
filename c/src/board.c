@@ -78,6 +78,9 @@ static int board_legal_moves_option = 4;
  */
 
 static void
+board_initialize_zobrist_flip_bitstrings (void);
+
+static void
 board_initialize_bitrow_changes_for_player_array (uint8_t *array);
 
 static void
@@ -398,6 +401,11 @@ static const uint64_t zobrist_bitstrings[] = {
   0xEEBD5772D344846F, 0x1E972C3F168BBF7F, 0x0C72560FAD1EC422, 0xD85B15F5DBCD19B9
 };
 
+/*
+ * Computed by the function board_initialize_zobrist_flip_bitstrings().
+ */
+static uint64_t zobrist_flip_bitstrings[64];
+
 /**
  * @endcond
  */
@@ -425,6 +433,7 @@ board_module_init (void)
   }
   board_initialize_bitrow_changes_for_player_array(bitrow_changes_for_player_array);
   board_initialize_shift_square_set_by_amount_mask_array(shift_square_set_by_amount_mask_array);
+  board_initialize_zobrist_flip_bitstrings();
 }
 
 
@@ -3576,6 +3585,17 @@ game_position_x_make_move (const GamePositionX *const current,
 /*
  * Internal functions.
  */
+
+/*
+ *
+ */
+static void
+board_initialize_zobrist_flip_bitstrings (void)
+{
+  for (int i = 0; i < 64; i++) {
+    zobrist_flip_bitstrings[i] = zobrist_bitstrings[i] ^ zobrist_bitstrings[i + 64];
+  }
+}
 
 /*
  * Used to initialize the `bitrow_changes_for_player_array`.
