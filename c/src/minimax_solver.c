@@ -21,8 +21,6 @@
  *                Add the json generation to the postprocessor.
  *
  * @todo        Write a new hash algorithm that prepares the delta_hash between two game positions.
- *              An option could be to use the PEXT assembly instruction that corresponds to the intrinsics:
- *              c = _pext_u64(uint64_t src, uint64_t mask)
  *
  *
  * @brief Minimax solver module implementation.
@@ -89,10 +87,10 @@ game_position_solve_impl (ExactSolution *const result,
 static LogEnv *log_env = NULL;
 
 /* The predecessor-successor array of game position hash values. */
-static uint64_t gp_hash_stack[128];
+static uint64_t gpx_hash_stack[128];
 
-/* The index of the last entry into gp_hash_stack. */
-static int gp_hash_stack_fill_point = 0;
+/* The index of the last entry into gpx_hash_stack. */
+static uint64_t *gpx_hash = gpx_hash_stack;
 
 /* The sub_run_id used for logging. */
 static const int sub_run_id = 0;
@@ -117,11 +115,12 @@ game_position_minimax_solve (const GamePositionX *const root,
   g_assert(root);
   g_assert(env);
 
+  GamePositionX ground = { .blacks = root->blacks, .whites = root->whites, .player = player_opponent(root->player) };
+  *gpx_hash++ = game_position_x_hash(&ground);
+
   log_env = game_tree_log_init(env->log_file);
 
   if (log_env->log_is_on) {
-    GamePositionX ground = { .blacks = root->blacks, .whites = root->whites, .player = player_opponent(root->player) };
-    gp_hash_stack[0] = game_position_x_hash(&ground);
     game_tree_log_open_h(log_env);
   }
 
@@ -212,18 +211,18 @@ game_position_solve_impl (ExactSolution *const result,
 
   generate_move_array(&move_count, moves, &move_set, gpx);
 
+  *gpx_hash++ = game_position_x_hash(gpx);
+
   if (log_env->log_is_on) {
-    gp_hash_stack_fill_point++;
     LogDataH log_data;
     log_data.sub_run_id = sub_run_id;
     log_data.call_id = result->node_count;
-    log_data.hash = game_position_x_hash(gpx);
-    gp_hash_stack[gp_hash_stack_fill_point] = log_data.hash;
-    log_data.parent_hash = gp_hash_stack[gp_hash_stack_fill_point - 1];
+    log_data.hash = *(gpx_hash - 1);
+    log_data.parent_hash = *(gpx_hash - 2);
     log_data.blacks = gpx->blacks;
     log_data.whites = gpx->whites;
     log_data.player = gpx->player;
-    gchar *json_doc = game_tree_log_data_h_json_doc2(gp_hash_stack_fill_point, gpx);
+    gchar *json_doc = game_tree_log_data_h_json_doc2(gpx_hash - gpx_hash_stack - 1, gpx);
     log_data.json_doc = json_doc;
     game_tree_log_write_h(log_env, &log_data);
     g_free(json_doc);
@@ -248,9 +247,7 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
  end:
-  if (log_env->log_is_on) {
-    gp_hash_stack_fill_point--;
-  }
+  gpx_hash--;
   return best_value;
 }
 
