@@ -33,6 +33,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #include <glib.h>
 
@@ -100,6 +101,7 @@ static void game_position_x_gpx_to_gp_test (void);
 static void game_position_x_copy_from_gp_test (void);
 static void game_position_x_pass_test (void);
 static void game_position_x_hash_test (void);
+static void game_position_x_delta_hash_test (void);
 static void game_position_x_final_value_test (void);
 static void game_position_x_has_any_legal_move_test (void);
 static void game_position_x_has_any_player_any_legal_move_test (void);
@@ -171,6 +173,7 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_copy_from_gp_test", game_position_x_copy_from_gp_test);
   g_test_add_func("/board/game_position_x_pass_test", game_position_x_pass_test);
   g_test_add_func("/board/game_position_x_hash_test", game_position_x_hash_test);
+  g_test_add_func("/board/game_position_x_delta_hash_test", game_position_x_delta_hash_test);
   g_test_add_func("/board/game_position_x_final_value_test", game_position_x_final_value_test);
   g_test_add_func("/board/game_position_x_has_any_legal_move_test", game_position_x_has_any_legal_move_test);
   g_test_add_func("/board/game_position_x_has_any_player_any_legal_move_test", game_position_x_has_any_player_any_legal_move_test);
@@ -1251,6 +1254,46 @@ game_position_x_hash_test (void)
   gpx = game_position_x_new(blacks, whites, player);
   g_assert(~expected == game_position_x_hash(gpx));
   game_position_x_free(gpx);
+}
+
+static void
+game_position_x_delta_hash_test (void)
+{
+  const GamePositionX a = { 4ULL, 2ULL, BLACK_PLAYER};
+  const GamePositionX b = { 7ULL, 0ULL, WHITE_PLAYER};
+  const uint64_t hash_a = game_position_x_hash(&a);
+  const uint64_t hash_b = game_position_x_hash(&b);
+
+  const Square flips[] = { A1, B1 };
+  const int flip_count = 2;
+
+  const uint64_t computed = game_position_x_delta_hash(hash_a, flips, flip_count, b.player);
+  const uint64_t expected =hash_b;
+
+  g_assert(expected == computed);
+
+  /*
+  printf("\n\ngame_position_x_delta_hash_test\n\n");
+
+  printf("flip_count = %d\n", flip_count);
+  for (int i = 0; i < flip_count; i++) {
+    printf("flips[%2d] = %d\n", i, flips[i]);
+  }
+
+  char *as = game_position_x_print(&a);
+  printf("\na:\n%s\n", as);
+
+  char *bs = game_position_x_print(&b);
+  printf("\nb:\n%s\n", bs);
+
+  printf("hash_a   = 0x%016" PRIX64 "\n", hash_a);
+  printf("hash_b   = 0x%016" PRIX64 "\n", hash_b);
+
+  printf("computed = 0x%016" PRIX64 "\n", computed);
+
+  printf("\n\n");
+  */
+
 }
 
 static void

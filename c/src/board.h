@@ -545,6 +545,12 @@ game_position_x_pass (const GamePositionX *const current,
 extern uint64_t
 game_position_x_hash (const GamePositionX *const gpx);
 
+extern uint64_t
+game_position_x_delta_hash (const uint64_t old_hash,
+                            const Square *const flips,
+                            const int flip_count,
+                            const Player new_p);
+
 extern int
 game_position_x_final_value (const GamePositionX *const gpx);
 

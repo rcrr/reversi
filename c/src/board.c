@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <inttypes.h>
 
 #include <immintrin.h>
 
@@ -2934,6 +2935,49 @@ game_position_x_hash (const GamePositionX *const gpx)
   return hash;
 }
 
+uint64_t
+game_position_x_delta_hash (const uint64_t old_hash,
+                            const Square *const flips,
+                            const int flip_count,
+                            const Player new_p)
+{
+  const Square move = *flips;
+  if (move == pass_move) return ~old_hash;
+
+  /*
+  printf("\n\ngame_position_x_delta_hash\n");
+  printf("old_hash=%+20" PRId64 " - 0x%16" PRIX64 "\n", (int64_t) old_hash, old_hash);
+  */
+
+  SquareSet new_hash = old_hash ^ zobrist_bitstrings[move + 64 * (1 - new_p)];
+
+  /*
+  printf("move + 64 * (1 - new_p)=%d\n", move + 64 * (1 - new_p));
+  printf("zobrist_bitstrings[move + 64 * (1 - new_p)])=0x%16" PRIX64 "\n", zobrist_bitstrings[move + 64 * (1 - new_p)]);
+  printf("new_hash=%+20" PRId64 " - 0x%16" PRIX64 "\n", (int64_t) new_hash, new_hash);
+  */
+
+  for (int i = 1; i < flip_count; i++) {
+    new_hash ^= zobrist_flip_bitstrings[flips[i]];
+    /*
+    printf("i=%d, flips[i]=%2d, zobrist_flip_bitstrings[flips[i]=0x%016" PRIX64 " (0x%016" PRIX64 " , 0x%016" PRIX64 ")\n",
+           i, flips[i], zobrist_flip_bitstrings[flips[i]], zobrist_bitstrings[flips[i]], zobrist_bitstrings[flips[i] + 64]);
+    */
+  }
+
+  /*
+  printf("\n");
+  for (int i = 0; i < 3; i++) {
+    uint64_t zob = zobrist_bitstrings[i];
+    uint64_t zow = zobrist_bitstrings[i + 64];
+    uint64_t zof = zobrist_flip_bitstrings[i];
+    printf("--- (b, w, f): (0x%016" PRIX64 ", 0x%016" PRIX64 ", 0x%016" PRIX64 ")\n", zob, zow, zof);
+  }
+  */
+
+  return ~new_hash;
+}
+
 /**
  * @brief Returns the set of empty squares in the game position.
  *
@@ -2955,11 +2999,7 @@ game_position_x_empties (const GamePositionX *const gpx)
 SquareSet
 game_position_x_get_player (const GamePositionX *const gpx)
 {
-  if (gpx->player == BLACK_PLAYER) {
-    return gpx->blacks;
-  } else {
-    return gpx->whites;
-  }
+  return *((SquareSet *) gpx + gpx->player);
 }
 
 /**
@@ -2971,11 +3011,7 @@ game_position_x_get_player (const GamePositionX *const gpx)
 SquareSet
 game_position_x_get_opponent (const GamePositionX *const gpx)
 {
-  if (gpx->player == BLACK_PLAYER) {
-    return gpx->whites;
-  } else {
-    return gpx->blacks;
-  }
+  return *((SquareSet *) gpx + (1 - gpx->player));
 }
 
 /**

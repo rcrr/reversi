@@ -317,6 +317,25 @@ extern uint8_t
 bit_works_bitscanLS1B_64_bsf (const uint64_t bit_sequence);
 
 /**
+ * @brief Returns all bits from `bit_sequence`, and reset (set to 0)
+ * the bit that corresponds to the lowest bit set.
+ *
+ * @param bit_sequence the input value
+ * @return             the filtered sequence
+ */
+uint64_t
+bit_works_reset_lowest_bit_set_64 (const uint64_t bit_sequence)
+{
+  return (bit_sequence - 1) & bit_sequence;
+}
+
+/**
+ *
+ */
+extern uint64_t
+bit_works_reset_lowest_bit_set_64_blsr (const uint64_t bit_sequence);
+
+/**
  * @brief Returns a bit sequence having one bit set, the lowest found
  * in the `bit_sequence` parameter.
  *

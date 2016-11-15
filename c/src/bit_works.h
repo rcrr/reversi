@@ -95,6 +95,18 @@ bit_works_bitscanLS1B_64_bsf (const uint64_t bit_sequence)
 }
 
 extern uint64_t
+bit_works_reset_lowest_bit_set_64 (const uint64_t bit_sequence);
+
+__attribute__((always_inline))
+inline uint64_t
+bit_works_reset_lowest_bit_set_64_blsr (const uint64_t bit_sequence)
+{
+  uint64_t out;
+  __asm__ __volatile__ ("blsr %1, %0" : "=g" (out) : "g" (bit_sequence));
+  return (uint64_t) out;
+}
+
+extern uint64_t
 bit_works_lowest_bit_set_64 (const uint64_t bit_sequence);
 
 extern uint32_t
