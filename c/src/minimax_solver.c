@@ -99,6 +99,9 @@ static Square flips[20];
 /* Number of flips plus one. */
 static int flip_count;
 
+/* True when has has to be computed. */
+static bool compute_hash = false;
+
 /* The sub_run_id used for logging. */
 static const int sub_run_id = 0;
 
@@ -131,6 +134,7 @@ game_position_minimax_solve (const GamePositionX *const root,
 
   if (log_env->log_is_on) {
     game_tree_log_open_h(log_env);
+    compute_hash = true;
   }
 
   ExactSolution *result = exact_solution_new();
@@ -202,14 +206,16 @@ make_move (const GamePositionX *const current,
     game_position_x_pass(current, updated);
   } else {
     game_position_x_make_move(current, move, updated);
-    const SquareSet bitmove = 1ULL << move;
-    const SquareSet cu_p = game_position_x_get_player(current);
-    const SquareSet up_o = game_position_x_get_opponent(updated);
-    SquareSet flip_set = up_o & ~(cu_p | bitmove);
-    while (flip_set) {
-      const Square f = bit_works_bitscanLS1B_64_bsf(flip_set);
-      flip_set ^= 1ULL << f;
-      flips[flip_count++] = f;
+    if (compute_hash) {
+      const SquareSet bitmove = 1ULL << move;
+      const SquareSet cu_p = game_position_x_get_player(current);
+      const SquareSet up_o = game_position_x_get_opponent(updated);
+      SquareSet flip_set = up_o & ~(cu_p | bitmove);
+      while (flip_set) {
+        const Square f = bit_works_bitscanLS1B_64_bsf(flip_set);
+        flip_set ^= 1ULL << f;
+        flips[flip_count++] = f;
+      }
     }
   }
 }
@@ -231,35 +237,10 @@ game_position_solve_impl (ExactSolution *const result,
 
   generate_move_array(&move_count, moves, &move_set, gpx);
 
-  //*gpx_hash++ = game_position_x_hash(gpx);
-  //uint64_t new_hash = game_position_x_delta_hash(*(gpx_hash - 2), flips, flip_count, gpx->player);
-
-  *gpx_hash = game_position_x_delta_hash(*(gpx_hash - 1), flips, flip_count, gpx->player);
-  gpx_hash++;
-
-  /*
-  if (new_hash != *(gpx_hash - 1)) {
-    printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-    printf("result->node_count=%" PRIu64 "\n", result->node_count);
-    char *gpx_string = game_position_x_print(gpx);
-    printf("\ngpx_string:\n%s\n", gpx_string);
-    printf("gpx->blacks=%+20" PRId64 "\n", (int64_t) gpx->blacks);
-    printf("gpx->whites=%+20" PRId64 "\n", (int64_t) gpx->whites);
-
-    printf("*(gpx_hash - 2)=%+20" PRId64 " - 0x%016" PRIX64 "\n", (int64_t) *(gpx_hash - 2), *(gpx_hash - 2));
-    printf("*(gpx_hash - 1)=%+20" PRId64 " - 0x%016" PRIX64 "\n", (int64_t) *(gpx_hash - 1), *(gpx_hash - 1));
-    printf("*(gpx_hash - 0)=%+20" PRId64 " - 0x%016" PRIX64 "\n", (int64_t) *(gpx_hash - 0), *(gpx_hash - 0));
-    printf("\n");
-    printf("flip_count=%d\n", flip_count);
-    for (int i = 0; i < flip_count; i++) {
-      printf("flips[%d]=%d\n", i, flips[i]);
-    }
-    printf("\n");
-    printf("new_hash=%+20" PRId64 " - 0x%016" PRIX64 "\n", (int64_t) new_hash, new_hash);
-    printf("\n");
-    abort();
+  if (compute_hash) {
+    *gpx_hash = game_position_x_delta_hash(*(gpx_hash - 1), flips, flip_count, gpx->player);
+    gpx_hash++;
   }
-  */
 
   if (log_env->log_is_on) {
     LogDataH log_data;
@@ -295,7 +276,7 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
  end:
-  gpx_hash--;
+  if (compute_hash) gpx_hash--;
   return best_value;
 }
 
