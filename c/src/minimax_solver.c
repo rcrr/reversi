@@ -20,7 +20,7 @@
  *                Write a postprocessor that generate the ASCI/csv from the binary file.
  *                Add the json generation to the postprocessor.
  *
- * @todo        Write a new hash algorithm that prepares the delta_hash between two game positions.
+ * @todo [done] Write a new hash algorithm that prepares the delta_hash between two game positions.
  *
  *
  * @brief Minimax solver module implementation.
@@ -243,18 +243,20 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
   if (log_env->log_is_on) {
-    LogDataH log_data;
-    log_data.sub_run_id = sub_run_id;
-    log_data.call_id = result->node_count;
-    log_data.hash = *(gpx_hash - 1);
-    log_data.parent_hash = *(gpx_hash - 2);
-    log_data.blacks = gpx->blacks;
-    log_data.whites = gpx->whites;
-    log_data.player = gpx->player;
     gchar *json_doc = game_tree_log_data_h_json_doc2(gpx_hash - gpx_hash_stack - 1, gpx);
-    log_data.json_doc = json_doc;
+    LogDataH log_data =
+      { .sub_run_id  = sub_run_id,
+        .call_id     = result->node_count,
+        .hash        = *(gpx_hash - 1),
+        .parent_hash = *(gpx_hash - 2),
+        .blacks      = gpx->blacks,
+        .whites      = gpx->whites,
+        .player      = gpx->player,
+        .json_doc    = json_doc,
+        .call_level  = gpx_hash - gpx_hash_stack - 1 };
     game_tree_log_write_h(log_env, &log_data);
     g_free(json_doc);
+    game_tree_log_write_dat_h(log_env, &log_data);
   }
 
   best_value = out_of_range_defeat_score;

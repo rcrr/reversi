@@ -150,6 +150,23 @@ game_tree_log_write_h (const LogEnv *const env,
 }
 
 /**
+ * @brief Writes one record to the head logging binary file.
+ *
+ * @invariant Parameter `env` must not be empty.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] env  a pointer to the logging environment
+ * @param [in] data a pointer to the log record
+ */
+void
+game_tree_log_write_dat_h (const LogEnv *const env,
+                           const LogDataH *const data)
+{
+  g_assert(env && env->h_dat_file);
+  fwrite(data, sizeof(LogDataH), 1, env->h_dat_file);
+}
+
+/**
  * @brief Writes one record to the tail logging file.
  *
  * @invariant Parameter `env` must not be empty.

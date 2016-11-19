@@ -66,6 +66,7 @@ typedef struct {
   SquareSet  whites;      /**< @brief Whites field part of the game position. */
   Player     player;      /**< @brief Player field part of the game position. */
   gchar     *json_doc;    /**< @brief Json field. */
+  uint8_t    call_level;
 } LogDataH;
 
 /**
@@ -92,6 +93,10 @@ game_tree_log_open_t (LogEnv *const env);
 extern void
 game_tree_log_write_h (const LogEnv *const env,
                        const LogDataH *const data);
+
+extern void
+game_tree_log_write_dat_h (const LogEnv *const env,
+                           const LogDataH *const data);
 
 extern void
 game_tree_log_write_t (const LogEnv *const env,
