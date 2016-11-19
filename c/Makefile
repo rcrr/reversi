@@ -137,7 +137,7 @@ test_perf: $(TEST_BINS)
 .PHONY: test_report
 test_report: $(BTESTDIR)/gtester-log.html
 
-.PHONY: test
+.PHONY: utest
 utest: $(UTEST_BINS)
 	./build/bin/utest --verbose -s=/utest/fail -s=/utest/abort -s=/utest/exit -s=/utest/assert_false $(UTEST_BINS)
 
