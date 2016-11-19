@@ -96,6 +96,9 @@ game_tree_log_open_h (LogEnv *const env)
             "WHITES",
             "PLAYER",
             "JSON_DOC");
+
+    game_tree_log_filename_check(env->h_dat_file_name);
+    env->h_dat_file = fopen(env->h_dat_file_name, "w");
   }
 }
 
@@ -182,9 +185,11 @@ game_tree_log_close (LogEnv *const env)
     g_free(env->file_name_prefix);
     g_free(env->h_file_name);
     g_free(env->t_file_name);
+    g_free(env->h_dat_file_name);
   }
   if (env->h_file) fclose(env->h_file);
   if (env->t_file) fclose(env->t_file);
+  if (env->h_dat_file) fclose(env->h_dat_file);
   free(env);
 }
 
@@ -205,19 +210,22 @@ game_tree_log_init (const gchar *const file_name_prefix)
 
   gchar* file_name_prefix_copy = g_strdup(file_name_prefix);
 
-  env->h_file = NULL;
-  env->t_file = NULL;
+  env->h_file     = NULL;
+  env->t_file     = NULL;
+  env->h_dat_file = NULL;
 
   if (file_name_prefix_copy) {
     env->log_is_on = TRUE;
     env->file_name_prefix = file_name_prefix_copy;
-    env->h_file_name = g_strconcat(file_name_prefix_copy, "_h.csv", NULL);
-    env->t_file_name = g_strconcat(file_name_prefix_copy, "_t.csv", NULL);
+    env->h_file_name      = g_strconcat(file_name_prefix_copy, "_h.csv", NULL);
+    env->t_file_name      = g_strconcat(file_name_prefix_copy, "_t.csv", NULL);
+    env->h_dat_file_name  = g_strconcat(file_name_prefix_copy, "_h.dat", NULL);
   } else {
     env->log_is_on        = FALSE;
     env->file_name_prefix = NULL;
     env->h_file_name      = NULL;
     env->t_file_name      = NULL;
+    env->h_dat_file_name  = NULL;
   }
 
   return env;

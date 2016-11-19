@@ -46,10 +46,12 @@
 typedef struct {
   gboolean   log_is_on;        /**< @brief True when logging is turned on. */
   gchar     *file_name_prefix; /**< @brief The log file name prefix received by the caller. */
-  gchar     *h_file_name;      /**< @brief The complete nmae for the head file. */
+  gchar     *h_file_name;      /**< @brief The complete name for the head file. */
   gchar     *t_file_name;      /**< @brief The complete name for the tail file. */
   FILE      *h_file;           /**< @brief Head file. */
   FILE      *t_file;           /**< @brief Tail file. */
+  gchar     *h_dat_file_name;  /**< @brief The complete name for the binary data head file. */
+  FILE      *h_dat_file;       /**< @brief Head binary data file. */
 } LogEnv;
 
 /**
