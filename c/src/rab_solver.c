@@ -187,6 +187,7 @@ game_position_solve_impl (ExactSolution* const result,
     log_data.player = current_gpx->player;
     log_data.json_doc = "\"{}\"";
     game_tree_log_write_h(log_env, &log_data);
+    game_tree_log_write_dat_h(log_env, &log_data);
   }
 
   if (move_set == empty_square_set) {

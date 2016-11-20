@@ -81,6 +81,17 @@ typedef struct {
 
 
 
+/**********************************************/
+/* Global constants.                          */
+/**********************************************/
+
+/**
+ * @brief The empty square set.
+ */
+static const size_t game_tree_log_max_json_doc_len = 4096;
+
+
+
 /********************************************************/
 /* Function implementations for the GameTreeLog entity. */
 /********************************************************/

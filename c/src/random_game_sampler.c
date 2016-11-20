@@ -70,10 +70,13 @@ static LogEnv *log_env = NULL;
 static uint64_t call_count = 0;
 
 /* The predecessor-successor array of game position hash values. */
-static uint64_t gp_hash_stack[128];
+static uint64_t gpx_hash_stack[128];
 
-/* The index of the last entry into gp_hash_stack. */
-static int gp_hash_stack_fill_point = 0;
+/* True when has has to be computed. */
+static bool compute_hash = false;
+
+/* The index of the last entry into gpx_hash_stack. */
+static uint64_t *gpx_hash = gpx_hash_stack;
 
 /* The sub_run_id used for logging. */
 static int sub_run_id = 0;
@@ -121,9 +124,10 @@ game_position_random_sampler (const GamePositionX *const root,
     GamePosition *ground = game_position_new(board_new(root_gp->board->blacks,
                                                        root_gp->board->whites),
                                              player_opponent(root_gp->player));
-    gp_hash_stack[0] = game_position_hash(ground);
+    *gpx_hash++ = game_position_hash(ground);
     game_position_free(ground);
     game_tree_log_open_h(log_env);
+    compute_hash = true;
   }
 
   RandomNumberGenerator *rng = rng_new(rng_random_seed());
@@ -168,8 +172,34 @@ game_position_random_sampler_impl (ExactSolution *const result,
   result->node_count++;
   SearchNode *node = NULL;
 
+  if (compute_hash) {
+    *gpx_hash = game_position_hash(gp);
+    gpx_hash++;
+  }
+
   if (log_env->log_is_on) {
+    GamePositionX gpx_structure = { .blacks = gp->board->blacks, .whites = gp->board->whites, .player = gp->player };
+    GamePositionX *gpx = &gpx_structure;
     call_count++;
+    char json_doc[game_tree_log_max_json_doc_len];
+    const size_t json_doc_len = game_tree_log_data_h_json_doc3(json_doc, gpx_hash - gpx_hash_stack - 1, gpx);
+    LogDataH log_data =
+      { .sub_run_id   = sub_run_id,
+        .call_id      = result->node_count,
+        .hash         = *(gpx_hash - 1),
+        .parent_hash  = *(gpx_hash - 2),
+        .blacks       = gpx->blacks,
+        .whites       = gpx->whites,
+        .player       = gpx->player,
+        .json_doc     = json_doc,
+        .json_doc_len = json_doc_len,
+        .call_level   = gpx_hash - gpx_hash_stack - 1 };
+    game_tree_log_write_h(log_env, &log_data);
+    log_data.json_doc = NULL;
+    game_tree_log_write_dat_h(log_env, &log_data);
+
+
+    /*
     gp_hash_stack_fill_point++;
     LogDataH log_data;
     log_data.sub_run_id = sub_run_id;
@@ -184,6 +214,7 @@ game_position_random_sampler_impl (ExactSolution *const result,
     log_data.json_doc = json_doc;
     game_tree_log_write_h(log_env, &log_data);
     g_free(json_doc);
+    */
   }
 
   const SquareSet legal_moves = game_position_legal_moves(gp);
@@ -204,9 +235,7 @@ game_position_random_sampler_impl (ExactSolution *const result,
     node = search_node_new(pass_move, game_position_final_value(gp));
   }
 
-  if (log_env->log_is_on) {
-    gp_hash_stack_fill_point--;
-  }
+  if (compute_hash) gpx_hash--;
 
   return node;
 }

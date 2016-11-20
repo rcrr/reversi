@@ -46,8 +46,6 @@
 
 /* Static constants. */
 
-static const size_t max_json_doc_len = 4096;
-
 static const gchar *program_documentation_string =
   "Description:\n"
   "Read Game Tree Log dump is a program that loads a binary dump file representation of a game tree log, and output it as a table.\n"
@@ -85,7 +83,7 @@ int
 main (int argc, char *argv[])
 {
   LogDataH record;
-  char json_doc[max_json_doc_len];
+  char json_doc[game_tree_log_max_json_doc_len];
 
   /* GLib command line options and argument parsing. */
   GError *error = NULL;
@@ -125,7 +123,7 @@ main (int argc, char *argv[])
     if (!record.json_doc) {
       GamePositionX gpx = { .blacks = record.blacks, .whites = record.whites, .player = record.player };
       const int json_doc_len  = game_tree_log_data_h_json_doc3(json_doc, record.call_level, &gpx);
-      if (json_doc_len > max_json_doc_len) abort();
+      if (json_doc_len > game_tree_log_max_json_doc_len) abort();
     } else {
       size_t len = fread(json_doc, record.json_doc_len + 1, 1, fp);
       if (len != 1) abort();
