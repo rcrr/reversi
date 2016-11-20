@@ -58,15 +58,16 @@ typedef struct {
  * @brief It is collecting the info logged into a record by the head write function.
  */
 typedef struct {
-  int        sub_run_id;  /**< @brief Sub run id field. */
-  uint64_t   call_id;     /**< @brief Call id. */
-  uint64_t   hash;        /**< @brief Game position hash. */
-  uint64_t   parent_hash; /**< @brief Parent game position hash. */
-  SquareSet  blacks;      /**< @brief Blacks field part of the game position. */
-  SquareSet  whites;      /**< @brief Whites field part of the game position. */
-  Player     player;      /**< @brief Player field part of the game position. */
-  gchar     *json_doc;    /**< @brief Json field. */
-  uint8_t    call_level;
+  int        sub_run_id;     /**< @brief Sub run id field. */
+  uint64_t   call_id;        /**< @brief Call id. */
+  uint64_t   hash;           /**< @brief Game position hash. */
+  uint64_t   parent_hash;    /**< @brief Parent game position hash. */
+  SquareSet  blacks;         /**< @brief Blacks field part of the game position. */
+  SquareSet  whites;         /**< @brief Whites field part of the game position. */
+  Player     player;         /**< @brief Player field part of the game position. */
+  char      *json_doc;       /**< @brief Json field. */
+  size_t     json_doc_len;   /**< @brief Json field length. */
+  uint8_t    call_level;     /**< @brief Call level, or depth. */
 } LogDataH;
 
 /**
@@ -115,5 +116,11 @@ game_tree_log_data_h_json_doc (const int call_level,
 extern gchar *
 game_tree_log_data_h_json_doc2 (const int call_level,
                                 const GamePositionX *const gpx);
+
+extern int
+game_tree_log_data_h_json_doc3 (char *const json_doc,
+                                const int call_level,
+                                const GamePositionX *const gpx);
+
 
 #endif /* GAME_TREE_LOGGER_H */

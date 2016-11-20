@@ -46,6 +46,8 @@
 
 /* Static constants. */
 
+static const size_t max_json_doc_len = 4096;
+
 static const gchar *program_documentation_string =
   "Description:\n"
   "Read Game Tree Log dump is a program that loads a binary dump file representation of a game tree log, and output it as a table.\n"
@@ -82,8 +84,8 @@ static const GOptionEntry entries[] =
 int
 main (int argc, char *argv[])
 {
-  size_t fread_result;
   LogDataH record;
+  char json_doc[max_json_doc_len];
 
   /* GLib command line options and argument parsing. */
   GError *error = NULL;
@@ -119,10 +121,15 @@ main (int argc, char *argv[])
           "PLAYER",
           "JSON_DOC");
 
-  while ((fread_result = fread(&record, sizeof(LogDataH), 1, fp))) {
-    GamePositionX gpx = { .blacks = record.blacks, .whites = record.whites, .player = record.player };
-    gchar *json_doc = game_tree_log_data_h_json_doc2(record.call_level, &gpx);
-    record.json_doc = json_doc;
+  while (fread(&record, sizeof(LogDataH), 1, fp)) {
+    if (!record.json_doc) {
+      GamePositionX gpx = { .blacks = record.blacks, .whites = record.whites, .player = record.player };
+      const int json_doc_len  = game_tree_log_data_h_json_doc3(json_doc, record.call_level, &gpx);
+      if (json_doc_len > max_json_doc_len) abort();
+    } else {
+      size_t len = fread(json_doc, record.json_doc_len + 1, 1, fp);
+      if (len != 1) abort();
+    }
     fprintf(stdout, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%s\n",
             record.sub_run_id,
             record.call_id,
@@ -131,8 +138,7 @@ main (int argc, char *argv[])
             (int64_t) record.blacks,
             (int64_t) record.whites,
             record.player,
-            record.json_doc);
-    g_free(json_doc);
+            json_doc);
   }
 
   fclose(fp);

@@ -33,6 +33,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <inttypes.h>
 
@@ -164,6 +165,9 @@ game_tree_log_write_dat_h (const LogEnv *const env,
 {
   g_assert(env && env->h_dat_file);
   fwrite(data, sizeof(LogDataH), 1, env->h_dat_file);
+  if (data->json_doc) {
+    fwrite(data->json_doc, data->json_doc_len + 1, 1, env->h_dat_file);
+  }
 }
 
 /**
@@ -332,6 +336,45 @@ game_tree_log_data_h_json_doc2 (const int call_level,
   ret = json_doc->str;
   g_string_free(json_doc, FALSE);
   return ret;
+}
+
+/**
+ * @brief Returns the json_doc used in the head log by exact_solver and ifes solvers.
+ *
+ * @param [out] json_doc   the newly constucted json string
+ * @param [in]  call_level call level value
+ * @param [in]  gpx        the current game position
+ * @return                 the length of the json_doc string
+ */
+int
+game_tree_log_data_h_json_doc3 (char *const json_doc,
+                                const int call_level,
+                                const GamePositionX *const gpx)
+{
+  const gboolean is_leaf = !game_position_x_has_any_player_any_legal_move(gpx);
+  const SquareSet legal_moves = game_position_x_legal_moves(gpx);
+  const int legal_move_count = bit_works_bitcount_64(legal_moves);
+  const SquareSet empties = game_position_x_empties(gpx);
+  const int empty_count = bit_works_bitcount_64(empties);
+  const int legal_move_count_adj = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0);
+  gchar *legal_moves_pg_json_array = square_set_to_pg_json_array(legal_moves);
+  /*
+   * cl:   call level
+   * ec:   empty count
+   * il:   is leaf
+   * lmc:  legal move count
+   * lmca: legal move count adjusted
+   * lma:  legal move array ([""A1"", ""B4"", ""H8""])
+   */
+  const int len = sprintf(json_doc,
+                          "\"{ \"\"cl\"\": %2d, \"\"ec\"\": %2d, \"\"il\"\": %s, \"\"lmc\"\": %2d, \"\"lmca\"\": %2d, \"\"lma\"\": %s }\"",
+                          call_level,
+                          empty_count,
+                          is_leaf ? "true" : "false",
+                          legal_move_count,
+                          legal_move_count_adj,
+                          legal_moves_pg_json_array);
+  return len;
 }
 
 
