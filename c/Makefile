@@ -45,11 +45,12 @@ CC = gcc
 # add -pg for gprof execution.
 # add -DG_DISABLE_ASSERT -DNDEBUG to disable assertions
 # add -fno-inline to prevent inlining
-CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mpopcnt -mavx2 -DG_DISABLE_ASSERT -DNDEBUG -fno-inline
+ARCH_FLAGS = -mpopcnt -mavx2
+CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS) -DG_DISABLE_ASSERT -DNDEBUG -fno-inline
 LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L -mavx2 -DG_DISABLE_ASSERT -DNDEBUG -fno-inline
+ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS) -DG_DISABLE_ASSERT -DNDEBUG -fno-inline
 LIBS = `pkg-config --libs glib-2.0` -lgsl -lgslcblas -lm
 TEST_LIBS =
 SRCDIR = src
@@ -69,6 +70,7 @@ HDRS = $(wildcard $(SRCDIR)/*.h)
 OBJS = $(addsuffix .o,$(basename $(subst $(SRCDIR),$(OBJDIR),$(SRCS))))
 ASMS = $(addsuffix .asm,$(basename $(subst $(SRCDIR),$(ASMDIR),$(SRCS))))
 BINS = $(addprefix $(BINDIR)/,$(MAINS))
+DEPS = $(addsuffix .d,$(basename $(subst $(SRCDIR),$(OBJDIR),$(SRCS))))
 
 OBJS_WITH_MAIN = $(addsuffix .o,$(addprefix $(OBJDIR)/,$(MAINS)))
 OBJS_NO_MAIN = $(filter-out $(OBJS_WITH_MAIN),$(OBJS))
@@ -86,6 +88,14 @@ UTEST_OBJS_WITH_MAIN = $(addsuffix .o,$(addprefix $(TEST_OBJDIR)/,$(UTEST_PROGS)
 
 ALL_TEST_OBJS_WITH_MAIN = $(TEST_OBJS_WITH_MAIN) $(UTEST_OBJS_WITH_MAIN)
 TEST_OBJS_NO_MAIN = $(filter-out $(ALL_TEST_OBJS_WITH_MAIN),$(TEST_OBJS))
+
+#.PHONY: deps
+#deps: $(DEPS)
+#
+#$(DEPS): $(OBJDIR)/%.d: $(SRCDIR)/%.c | $(OBJDIR)
+#	$(CC) $(ARCH_FLAGS) -MM $< -o $@
+#
+#include $(DEPS)
 
 all: $(BINS) $(TEST_BINS) $(UTEST_BINS) $(OUTDIR)
 
@@ -258,6 +268,7 @@ info:
 	@echo "HDRS = "$(HDRS)
 	@echo "OBJS = "$(OBJS)
 	@echo "BINS = "$(BINS)
+	@echo "DEPS = "$(DEPS)
 	@echo "OBJS_WITH_MAIN = "$(OBJS_WITH_MAIN)
 	@echo "OBJS_NO_MAIN = "$(OBJS_NO_MAIN)
 	@echo "TEST_SRCS = "$(TEST_SRCS)
