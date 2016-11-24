@@ -238,7 +238,7 @@ game_tree_log_init (const gchar *const file_name_prefix)
   if (file_name_prefix_copy) {
     env->log_is_on = TRUE;
     env->file_name_prefix = file_name_prefix_copy;
-    env->h_file_name      = g_strconcat(file_name_prefix_copy, "_h.csv", NULL);
+    env->h_file_name      = g_strconcat(file_name_prefix_copy, "_h.old", NULL);
     env->t_file_name      = g_strconcat(file_name_prefix_copy, "_t.csv", NULL);
     env->h_dat_file_name  = g_strconcat(file_name_prefix_copy, "_h.dat", NULL);
   } else {

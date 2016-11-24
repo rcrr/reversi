@@ -326,7 +326,11 @@ endgame_pv_files: $(ENDGAME_LOG_DIR)
 	./$(BINDIR)/endgame_solver -f db/gpdb-ffo.txt --pv-full-rec --pv-no-print -s es -q ffo-19 -d $(ENDGAME_LOG_DIR)/pve-ffo-19.dat
 
 # _2 has to be removed ....
+.PHONY: dat2csv 
 dat2csv:
-	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100_h.dat > $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100_h_2.csv
-	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/minimax_log-ffo-01-simplified-4_h.dat > $(ENDGAME_LOG_DIR)/minimax_log-ffo-01-simplified-4_h_2.csv
-	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3_h.dat > $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3_h_2.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/ab_solver_log-ffo-01-simplified-4_h.dat >     $(ENDGAME_LOG_DIR)/ab_solver_log-ffo-01-simplified-4_h.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/exact_solver_log-ffo-01_h.dat >               $(ENDGAME_LOG_DIR)/exact_solver_log-ffo-01_h.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/ifes_solver_log-ffo-01_h.dat >                $(ENDGAME_LOG_DIR)/ifes_solver_log-ffo-01_h.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/minimax_log-ffo-01-simplified-4_h.dat >       $(ENDGAME_LOG_DIR)/minimax_log-ffo-01-simplified-4_h.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3_h.dat > $(ENDGAME_LOG_DIR)/rab_solver_log-ffo-01-simplified-4_n3_h.csv
+	./$(BINDIR)/read_game_tree_log -f $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100_h.dat >          $(ENDGAME_LOG_DIR)/random_game_sampler_log-t100_h.csv
