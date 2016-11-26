@@ -256,7 +256,7 @@ game_position_solve_impl (ExactSolution *const result,
         .json_doc     = json_doc,
         .json_doc_len = json_doc_len,
         .call_level   = gpx_hash - gpx_hash_stack - 1 };
-    game_tree_log_write_h(log_env, &log_data);
+    //game_tree_log_write_h(log_env, &log_data);
     log_data.json_doc = NULL;
     game_tree_log_write_dat_h(log_env, &log_data);
   }

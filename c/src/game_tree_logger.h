@@ -102,9 +102,11 @@ game_tree_log_open_h (LogEnv *const env);
 extern void
 game_tree_log_open_t (LogEnv *const env);
 
+/*
 extern void
 game_tree_log_write_h (const LogEnv *const env,
                        const LogDataH *const data);
+*/
 
 extern void
 game_tree_log_write_dat_h (const LogEnv *const env,

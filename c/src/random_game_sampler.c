@@ -194,27 +194,9 @@ game_position_random_sampler_impl (ExactSolution *const result,
         .json_doc     = json_doc,
         .json_doc_len = json_doc_len,
         .call_level   = gpx_hash - gpx_hash_stack - 1 };
-    game_tree_log_write_h(log_env, &log_data);
+    //game_tree_log_write_h(log_env, &log_data);
     log_data.json_doc = NULL;
     game_tree_log_write_dat_h(log_env, &log_data);
-
-
-    /*
-    gp_hash_stack_fill_point++;
-    LogDataH log_data;
-    log_data.sub_run_id = sub_run_id;
-    log_data.call_id = call_count;
-    log_data.hash = game_position_hash(gp);
-    gp_hash_stack[gp_hash_stack_fill_point] = log_data.hash;
-    log_data.parent_hash = gp_hash_stack[gp_hash_stack_fill_point - 1];
-    log_data.blacks = (gp->board)->blacks;
-    log_data.whites = (gp->board)->whites;
-    log_data.player = gp->player;
-    gchar *json_doc = game_tree_log_data_h_json_doc(gp_hash_stack_fill_point, gp);
-    log_data.json_doc = json_doc;
-    game_tree_log_write_h(log_env, &log_data);
-    g_free(json_doc);
-    */
   }
 
   const SquareSet legal_moves = game_position_legal_moves(gp);
