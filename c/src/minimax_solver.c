@@ -254,7 +254,7 @@ game_position_solve_impl (ExactSolution *const result,
         .json_doc     = NULL,
         .json_doc_len = 0,
         .call_level   = gpx_hash - gpx_hash_stack - 1 };
-    game_tree_log_write_dat_h(log_env, &log_data);
+    game_tree_log_write_h(log_env, &log_data);
   }
 
   best_value = out_of_range_defeat_score;

@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -45,13 +45,11 @@
  */
 typedef struct {
   gboolean   log_is_on;        /**< @brief True when logging is turned on. */
-  gchar     *file_name_prefix; /**< @brief The log file name prefix received by the caller. */
-  gchar     *h_file_name;      /**< @brief The complete name for the head file. */
-  gchar     *t_file_name;      /**< @brief The complete name for the tail file. */
-  FILE      *h_file;           /**< @brief Head file. */
+  char      *file_name_prefix; /**< @brief The log file name prefix received by the caller. */
+  char      *t_file_name;      /**< @brief The complete name for the tail file. */
   FILE      *t_file;           /**< @brief Tail file. */
-  gchar     *h_dat_file_name;  /**< @brief The complete name for the binary data head file. */
-  FILE      *h_dat_file;       /**< @brief Head binary data file. */
+  char      *h_file_name;      /**< @brief The complete name for the binary data head file. */
+  FILE      *h_file;           /**< @brief Head binary data file. */
 } LogEnv;
 
 /**
@@ -103,8 +101,8 @@ extern void
 game_tree_log_open_t (LogEnv *const env);
 
 extern void
-game_tree_log_write_dat_h (const LogEnv *const env,
-                           const LogDataH *const data);
+game_tree_log_write_h (const LogEnv *const env,
+                       const LogDataH *const data);
 
 extern void
 game_tree_log_write_t (const LogEnv *const env,

@@ -190,7 +190,7 @@ game_position_solve_impl (ExactSolution* const result,
       .json_doc_len = 4,
       .call_level = stack->fill_index - 1
     };
-    game_tree_log_write_dat_h(log_env, &log_data);
+    game_tree_log_write_h(log_env, &log_data);
   }
 
   if (move_set == empty_square_set) {

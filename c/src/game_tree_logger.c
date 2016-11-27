@@ -11,7 +11,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2016 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -74,7 +74,7 @@ game_tree_log_dirname_recursive_check (const gchar * const filename);
 /********************************************************/
 
 /**
- * @brief Opens the head file for logging and writes the header.
+ * @brief Opens the head file for logging.
  *
  * @invariant Parameter `env` must not be empty.
  * The invariant is guarded by an assertion.
@@ -88,18 +88,6 @@ game_tree_log_open_h (LogEnv *const env)
   if (env->log_is_on) {
     game_tree_log_filename_check(env->h_file_name);
     env->h_file = fopen(env->h_file_name, "w");
-    fprintf(env->h_file, "%s;%s;%s;%s;%s;%s;%s;%s\n",
-            "SUB_RUN_ID",
-            "CALL_ID",
-            "HASH",
-            "PARENT_HASH",
-            "BLACKS",
-            "WHITES",
-            "PLAYER",
-            "JSON_DOC");
-
-    game_tree_log_filename_check(env->h_dat_file_name);
-    env->h_dat_file = fopen(env->h_dat_file_name, "w");
   }
 }
 
@@ -118,10 +106,6 @@ game_tree_log_open_t (LogEnv *const env)
   if (env->log_is_on) {
     game_tree_log_filename_check(env->t_file_name);
     env->t_file = fopen(env->t_file_name, "w");
-    fprintf(env->t_file, "%s;%s;%s\n",
-            "SUB_RUN_ID",
-            "CALL_ID",
-            "JSON_DOC");
   }
 }
 
@@ -135,13 +119,13 @@ game_tree_log_open_t (LogEnv *const env)
  * @param [in] data a pointer to the log record
  */
 void
-game_tree_log_write_dat_h (const LogEnv *const env,
-                           const LogDataH *const data)
+game_tree_log_write_h (const LogEnv *const env,
+                       const LogDataH *const data)
 {
-  g_assert(env && env->h_dat_file);
-  fwrite(data, sizeof(LogDataH), 1, env->h_dat_file);
+  g_assert(env && env->h_file);
+  fwrite(data, sizeof(LogDataH), 1, env->h_file);
   if (data->json_doc) {
-    fwrite(data->json_doc, data->json_doc_len + 1, 1, env->h_dat_file);
+    fwrite(data->json_doc, data->json_doc_len + 1, 1, env->h_file);
   }
 }
 
@@ -181,11 +165,9 @@ game_tree_log_close (LogEnv *const env)
     g_free(env->file_name_prefix);
     g_free(env->h_file_name);
     g_free(env->t_file_name);
-    g_free(env->h_dat_file_name);
   }
   if (env->h_file) fclose(env->h_file);
   if (env->t_file) fclose(env->t_file);
-  if (env->h_dat_file) fclose(env->h_dat_file);
   free(env);
 }
 
@@ -206,22 +188,19 @@ game_tree_log_init (const gchar *const file_name_prefix)
 
   gchar* file_name_prefix_copy = g_strdup(file_name_prefix);
 
-  env->h_file     = NULL;
-  env->t_file     = NULL;
-  env->h_dat_file = NULL;
+  env->t_file = NULL;
+  env->h_file = NULL;
 
   if (file_name_prefix_copy) {
     env->log_is_on = TRUE;
     env->file_name_prefix = file_name_prefix_copy;
-    env->h_file_name      = g_strconcat(file_name_prefix_copy, "_h.old", NULL);
-    env->t_file_name      = g_strconcat(file_name_prefix_copy, "_t.csv", NULL);
-    env->h_dat_file_name  = g_strconcat(file_name_prefix_copy, "_h.dat", NULL);
+    env->h_file_name      = g_strconcat(file_name_prefix_copy, "_h.dat", NULL);
+    env->t_file_name      = g_strconcat(file_name_prefix_copy, "_t.dat", NULL);
   } else {
     env->log_is_on        = FALSE;
     env->file_name_prefix = NULL;
     env->h_file_name      = NULL;
     env->t_file_name      = NULL;
-    env->h_dat_file_name  = NULL;
   }
 
   return env;
