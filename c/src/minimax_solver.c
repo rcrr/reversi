@@ -243,8 +243,6 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
   if (log_env->log_is_on) {
-    char json_doc[game_tree_log_max_json_doc_len];
-    const size_t json_doc_len = game_tree_log_data_h_json_doc3(json_doc, gpx_hash - gpx_hash_stack - 1, gpx);
     LogDataH log_data =
       { .sub_run_id   = sub_run_id,
         .call_id      = result->node_count,
@@ -253,11 +251,9 @@ game_position_solve_impl (ExactSolution *const result,
         .blacks       = gpx->blacks,
         .whites       = gpx->whites,
         .player       = gpx->player,
-        .json_doc     = json_doc,
-        .json_doc_len = json_doc_len,
+        .json_doc     = NULL,
+        .json_doc_len = 0,
         .call_level   = gpx_hash - gpx_hash_stack - 1 };
-    //game_tree_log_write_h(log_env, &log_data);
-    log_data.json_doc = NULL;
     game_tree_log_write_dat_h(log_env, &log_data);
   }
 

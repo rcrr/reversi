@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <glib.h>
 
@@ -177,16 +178,18 @@ game_position_solve_impl (ExactSolution* const result,
   random_shuffle_array_uint8(current_node_info->head_of_legal_move_list, current_node_info->move_count);
 
   if (log_env->log_is_on) {
-    LogDataH log_data;
-    log_data.sub_run_id = sub_run_id;
-    log_data.call_id = result->node_count;
-    log_data.hash = current_node_info->hash;
-    log_data.parent_hash = previous_node_info->hash;
-    log_data.blacks = current_gpx->blacks;
-    log_data.whites = current_gpx->whites;
-    log_data.player = current_gpx->player;
-    log_data.json_doc = "\"{}\"";
-    //game_tree_log_write_h(log_env, &log_data);
+    LogDataH log_data = {
+      .sub_run_id = sub_run_id,
+      .call_id = result->node_count,
+      .hash = current_node_info->hash,
+      .parent_hash = previous_node_info->hash,
+      .blacks = current_gpx->blacks,
+      .whites = current_gpx->whites,
+      .player = current_gpx->player,
+      .json_doc = "\"{}\"",
+      .json_doc_len = 4,
+      .call_level = stack->fill_index - 1
+    };
     game_tree_log_write_dat_h(log_env, &log_data);
   }
 
