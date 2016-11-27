@@ -1,13 +1,23 @@
-To be updated.
-
 Reversi is a suite of programs to play the Reversi (Othello) board game.
 
-The source code is written in Common Lisp, Clojure, Java.
-The three versions share the underlaing logic and AI, taken from the PAIP book.
+The source code is written in Common Lisp, Clojure, Java, C and PL/pgSQL.
+The CL, Clojure, and Java versions share the underlaing logic and AI, taken from the PAIP book.
 The CL version is the original source code plus a very limited set of adaptations.
 The Clojure version is a complete rewrite that follows one by one the steps given by the text.
 The Java version is a complete refactoring of the algorithms given by the CL version. On top
 of it the Java version has a Graphic UI.
+
+The C utilities are centered around the point of solving an endgame position, these utils have a complete
+new implementation, fully departing from the PAIP design.
+Since three years all the effort is dedicated to this objective.
+The game machinery, that is identified by the two tasks of computing legal moves and updating the
+board after a move, are redesigned around Intel AVX2 new instructions.
+The list of todo enhancement is huge and embedded into the source.
+There is no detailed description of all the features and functions provided by the C implementation.
+The principal variation (PV) computation is not working when the solution has a huge number of variations.
+This has to be fixed before a final refactoring that might close the software release. From there new
+directions of evolution will probably be iterative deepening, trasposition table, and MTD(f) algorithm,
+following directions that are already common practice.
 
 The program is distributed under the GNU GPLv3 license.
 
@@ -60,12 +70,6 @@ The steps so far completed are:
 
  (4) Future lines of development that currently are appealing, could be:
 
-      - Profile the Java, CL and Clojure versions. Optimize for speed the critical components.
-      - Port the program to more languages (Scala, Jython, JRuby).
-      - Refactor the graphical Java Swing UI, write the test suite.
-      - Redesign the Clojure implementation to be fully functional.
       - Develop a complete game analysis suite.
       - Further enhance advanced strategies, following the paper written by Rosenbloom, Lee & Mahajan, Buro.
-      - Make the program leverage the multi core processors thru a redesign for parallel computing.
-      - Prepare a client/server game version.
       - Write the software documentation and publish it on GitHub and as PDF documents.
