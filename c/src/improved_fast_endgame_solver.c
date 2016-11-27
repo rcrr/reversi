@@ -1281,7 +1281,6 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     gchar *json_doc = game_tree_log_data_h_json_doc(gp_hash_stack_fill_point, gp);
     log_data.json_doc = json_doc;
     log_data.json_doc_len = strlen(json_doc);
-    //game_tree_log_write_h(log_env, &log_data);
     game_tree_log_write_dat_h(log_env, &log_data);
     g_free(json_doc);
   }

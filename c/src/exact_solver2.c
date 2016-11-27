@@ -360,7 +360,6 @@ game_position_solve_impl (ExactSolution *const result,
     gchar *json_doc = game_tree_log_data_h_json_doc2(current_fill_index, current_gpx);
     log_data.json_doc = json_doc;
     log_data.json_doc_len = strlen(json_doc);
-    //game_tree_log_write_h(log_env, &log_data);
     game_tree_log_write_dat_h(log_env, &log_data);
     g_free(json_doc);
   }
