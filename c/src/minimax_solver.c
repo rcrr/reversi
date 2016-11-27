@@ -14,7 +14,7 @@
  *
  * @todo        Transform the code from recursion to iteration.
  *
- * @todo        Refactor the logging system:
+ * @todo [done] Refactor the logging system:
  *              - Remove the costly json generation.
  *              - Trasform logging from ASCI to binary.
  *                Write a postprocessor that generate the ASCI/csv from the binary file.
@@ -76,7 +76,8 @@
 static int
 game_position_solve_impl (ExactSolution *const result,
                           Square *best_move,
-                          const GamePositionX *const gpx);
+                          const GamePositionX *const gpx,
+                          GameTreeStack *const stack);
 
 
 
@@ -137,13 +138,20 @@ game_position_minimax_solve (const GamePositionX *const root,
     compute_hash = true;
   }
 
-  ExactSolution *result = exact_solution_new();
+  int game_value = out_of_range_defeat_score;
+  Square best_move = invalid_move;
 
+  GameTreeStack *stack = game_tree_stack_new();
+
+  ExactSolution *result = exact_solution_new();
   exact_solution_set_solved_game_position_x(result, root);
-  Square best_move;
-  int v = game_position_solve_impl(result, &best_move, root);
+
+  game_value = game_position_solve_impl(result, &best_move, root, stack);
+
   result->pv[0] = best_move;
-  result->outcome = v;
+  result->outcome = game_value;
+
+  game_tree_stack_free(stack);
 
   game_tree_log_close(log_env);
 
@@ -223,7 +231,8 @@ make_move (const GamePositionX *const current,
 static int
 game_position_solve_impl (ExactSolution *const result,
                           Square *best_move,
-                          const GamePositionX *const gpx)
+                          const GamePositionX *const gpx,
+                          GameTreeStack *const stack)
 {
   Square *m;
   Square moves[32];
@@ -268,7 +277,7 @@ game_position_solve_impl (ExactSolution *const result,
 
   for (m = moves; m - moves < move_count; m++) {
     make_move(gpx, *m, &child_gpx);
-    v = - game_position_solve_impl(result, &child_best_move, &child_gpx);
+    v = - game_position_solve_impl(result, &child_best_move, &child_gpx, stack);
     if (v > best_value) {
       *best_move = *m;
       best_value = v;

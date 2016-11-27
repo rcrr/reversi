@@ -90,8 +90,6 @@ game_position_ab_solve (const GamePositionX *const root,
 
   const GamePosition *const root_gp = game_position_x_gpx_to_gp(root);
 
-  ExactSolution *result = NULL;
-
   log_env = game_tree_log_init(env->log_file);
 
   if (log_env->log_is_on) {
@@ -106,7 +104,7 @@ game_position_ab_solve (const GamePositionX *const root,
   game_tree_stack_init(root_gp, stack);
   NodeInfo *first_node_info = &stack->nodes[1];
 
-  result = exact_solution_new();
+  ExactSolution *result = exact_solution_new();
   result->solved_game_position = game_position_clone(root_gp);
 
   game_position_solve_impl(result, stack);
@@ -114,12 +112,13 @@ game_position_ab_solve (const GamePositionX *const root,
   best_move = first_node_info->best_move;
   game_value = first_node_info->alpha;
 
+  result->pv[0] = best_move;
+  result->outcome = game_value;
+
   game_tree_stack_free(stack);
 
   game_tree_log_close(log_env);
 
-  result->pv[0] = best_move;
-  result->outcome = game_value;
   return result;
 }
 
