@@ -126,31 +126,6 @@ game_tree_log_open_t (LogEnv *const env)
 }
 
 /**
- * @brief Writes one record to the head logging file.
- *
- * @invariant Parameter `env` must not be empty.
- * The invariant is guarded by an assertion.
- *
- * @param [in] env  a pointer to the logging environment
- * @param [in] data a pointer to the log record
- */
-void
-game_tree_log_write_h (const LogEnv *const env,
-                       const LogDataH *const data)
-{
-  g_assert(env && env->h_file);
-  fprintf(env->h_file, "%6d;%8" PRIu64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%+20" PRId64 ";%1d;%s\n",
-          data->sub_run_id,
-          data->call_id,
-          (int64_t) data->hash,
-          (int64_t) data->parent_hash,
-          (int64_t) data->blacks,
-          (int64_t) data->whites,
-          data->player,
-          data->json_doc);
-}
-
-/**
  * @brief Writes one record to the head logging binary file.
  *
  * @invariant Parameter `env` must not be empty.
