@@ -34,6 +34,8 @@
 #ifndef GAME_TREE_LOGGER_H
 #define GAME_TREE_LOGGER_H
 
+#include <stdbool.h>
+
 #include <glib.h>
 
 #include "board.h"
@@ -44,7 +46,7 @@
  * @brief Environment in wich the logger operates.
  */
 typedef struct {
-  gboolean   log_is_on;        /**< @brief True when logging is turned on. */
+  bool       log_is_on;        /**< @brief True when logging is turned on. */
   char      *file_name_prefix; /**< @brief The log file name prefix received by the caller. */
   char      *t_file_name;      /**< @brief The complete name for the tail file. */
   FILE      *t_file;           /**< @brief Tail file. */
@@ -74,7 +76,7 @@ typedef struct {
 typedef struct {
   int        sub_run_id;  /**< @brief Sub run id field. */
   uint64_t   call_id;     /**< @brief Call id. */
-  gchar     *json_doc;    /**< @brief Json field. */
+  char      *json_doc;    /**< @brief Json field. */
 } LogDataT;
 
 
@@ -87,6 +89,11 @@ typedef struct {
  * @brief The empty square set.
  */
 static const size_t game_tree_log_max_json_doc_len = 4096;
+
+/**
+ * @brief The empty square set.
+ */
+static const int game_tree_log_def_sub_run_id = 0;
 
 
 
@@ -112,7 +119,7 @@ extern void
 game_tree_log_close (LogEnv *const env);
 
 extern LogEnv *
-game_tree_log_init (const gchar *const file_name_prefix);
+game_tree_log_init (const char *const file_name_prefix);
 
 extern gchar *
 game_tree_log_data_h_json_doc (const int call_level,

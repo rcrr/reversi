@@ -58,7 +58,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#include <glib.h>
+//#include <glib.h>
 
 #include "game_tree_logger.h"
 #include "minimax_solver.h"
@@ -102,9 +102,6 @@ static int flip_count;
 
 /* True when has has to be computed. */
 static bool compute_hash = false;
-
-/* The sub_run_id used for logging. */
-static const int sub_run_id = 0;
 
 /**
  * @endcond
@@ -253,7 +250,7 @@ game_position_solve_impl (ExactSolution *const result,
 
   if (log_env->log_is_on) {
     LogDataH log_data =
-      { .sub_run_id   = sub_run_id,
+      { .sub_run_id   = game_tree_log_def_sub_run_id,
         .call_id      = result->node_count,
         .hash         = *(gpx_hash - 1),
         .parent_hash  = *(gpx_hash - 2),
