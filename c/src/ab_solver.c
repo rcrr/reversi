@@ -145,7 +145,6 @@ game_position_solve_impl (ExactSolution *const result,
   const int current_fill_index = stack->fill_index;
   const int next_fill_index = current_fill_index + 1;
   const int previous_fill_index = current_fill_index - 1;
-  const int sub_run_id = 0;
 
   stack->fill_index++;
 
@@ -160,7 +159,7 @@ game_position_solve_impl (ExactSolution *const result,
 
   if (log_env->log_is_on) {
     LogDataH log_data = {
-      .sub_run_id = sub_run_id,
+      .sub_run_id = game_tree_log_def_sub_run_id,
       .call_id = result->node_count,
       .hash = current_node_info->hash,
       .parent_hash = previous_node_info->hash,
