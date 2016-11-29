@@ -116,7 +116,7 @@ game_position_rab_solve (const GamePositionX *const root,
   for (int sub_run_id = 0; sub_run_id < n; sub_run_id++) {
     GameTreeStack* stack = game_tree_stack_new();
 
-    game_tree_stack_init(root_gp, stack);
+    game_tree_stack_init(root, stack);
     NodeInfo* first_node_info = &stack->nodes[1];
 
     result = exact_solution_new();

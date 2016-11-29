@@ -163,7 +163,7 @@ game_position_es2_solve (const GamePositionX *const root,
   result->solved_game_position = game_position_clone(root_gp);
 
   GameTreeStack *stack = game_tree_stack_new();
-  game_tree_stack_init(root_gp, stack);
+  game_tree_stack_init(root, stack);
   NodeInfo *first_node_info = &stack->nodes[1];
 
   pv_recording = env->pv_recording;

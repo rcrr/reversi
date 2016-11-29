@@ -58,8 +58,6 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-//#include <glib.h>
-
 #include "game_tree_logger.h"
 #include "minimax_solver.h"
 
@@ -139,6 +137,8 @@ game_position_minimax_solve (const GamePositionX *const root,
   Square best_move = invalid_move;
 
   GameTreeStack *stack = game_tree_stack_new();
+
+  game_tree_stack_init(root, stack);
 
   ExactSolution *result = exact_solution_new();
   exact_solution_set_solved_game_position_x(result, root);

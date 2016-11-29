@@ -502,7 +502,7 @@ extern void
 game_tree_stack_free (GameTreeStack *stack);
 
 extern void
-game_tree_stack_init (const GamePosition *const root,
+game_tree_stack_init (const GamePositionX *const root,
                       GameTreeStack *const stack);
 
 extern void

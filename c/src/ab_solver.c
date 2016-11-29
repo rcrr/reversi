@@ -101,7 +101,7 @@ game_position_ab_solve (const GamePositionX *const root,
 
   GameTreeStack *stack = game_tree_stack_new();
 
-  game_tree_stack_init(root_gp, stack);
+  game_tree_stack_init(root, stack);
   NodeInfo *first_node_info = &stack->nodes[1];
 
   ExactSolution *result = exact_solution_new();

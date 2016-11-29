@@ -2883,7 +2883,7 @@ game_position_x_copy (const GamePositionX *const from,
  * @param [out] to   the game position x to copy to
  */
 void
-game_position_x_copy_from_gp  (const GamePosition   *const from,
+game_position_x_copy_from_gp  (const GamePosition *const from,
                                GamePositionX *const to)
 {
   to->blacks = from->board->blacks;
