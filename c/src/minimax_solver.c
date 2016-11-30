@@ -8,7 +8,7 @@
  *
  * @todo [done] Avoid malloc/free calls.
  *
- * @todo        Use the game_tree_utils stack.
+ * @todo [done] Use the game_tree_utils stack.
  *
  * @todo [done] Use the most advanced Kogge-Stone routines.
  *
@@ -73,7 +73,6 @@
 
 static int
 game_position_solve_impl (ExactSolution *const result,
-                          Square *best_move,
                           GameTreeStack *const stack);
 
 
@@ -125,7 +124,6 @@ game_position_minimax_solve (const GamePositionX *const root,
   }
 
   int game_value = out_of_range_defeat_score;
-  Square best_move = invalid_move;
 
   GameTreeStack *stack = game_tree_stack_new();
 
@@ -134,9 +132,9 @@ game_position_minimax_solve (const GamePositionX *const root,
   ExactSolution *result = exact_solution_new();
   exact_solution_set_solved_game_position_x(result, root);
 
-  game_value = game_position_solve_impl(result, &best_move, stack);
+  game_value = game_position_solve_impl(result, stack);
 
-  result->pv[0] = best_move;
+  result->pv[0] = stack->nodes[1].alpha;
   result->outcome = game_value;
 
   game_tree_stack_free(stack);
@@ -218,12 +216,10 @@ make_move (const GamePositionX *const current,
 
 static int
 game_position_solve_impl (ExactSolution *const result,
-                          Square *best_move,
                           GameTreeStack *const stack)
 {
   Square *m;
   Square moves[32];
-  Square child_best_move;
   int best_value, v;
   SquareSet move_set;
   int move_count;
@@ -262,7 +258,7 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
   best_value = out_of_range_defeat_score;
-  *best_move = invalid_move;
+  current_node_info->alpha = invalid_move;
 
   if (is_terminal_node(&current_node_info->gpx, move_set)) {
     result->leaf_count++;
@@ -272,9 +268,9 @@ game_position_solve_impl (ExactSolution *const result,
 
   for (m = moves; m - moves < move_count; m++) {
     make_move(&current_node_info->gpx, *m, &next_node_info->gpx);
-    v = - game_position_solve_impl(result, &child_best_move, stack);
+    v = - game_position_solve_impl(result, stack);
     if (v > best_value) {
-      *best_move = *m;
+      current_node_info->alpha = *m;
       best_value = v;
     }
   }
