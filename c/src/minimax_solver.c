@@ -74,7 +74,6 @@
 static int
 game_position_solve_impl (ExactSolution *const result,
                           Square *best_move,
-                          const GamePositionX *const gpx,
                           GameTreeStack *const stack);
 
 
@@ -135,7 +134,7 @@ game_position_minimax_solve (const GamePositionX *const root,
   ExactSolution *result = exact_solution_new();
   exact_solution_set_solved_game_position_x(result, root);
 
-  game_value = game_position_solve_impl(result, &best_move, root, stack);
+  game_value = game_position_solve_impl(result, &best_move, stack);
 
   result->pv[0] = best_move;
   result->outcome = game_value;
@@ -220,7 +219,6 @@ make_move (const GamePositionX *const current,
 static int
 game_position_solve_impl (ExactSolution *const result,
                           Square *best_move,
-                          const GamePositionX *const gpx,
                           GameTreeStack *const stack)
 {
   Square *m;
@@ -229,7 +227,6 @@ game_position_solve_impl (ExactSolution *const result,
   int best_value, v;
   SquareSet move_set;
   int move_count;
-  GamePositionX child_gpx;
 
   result->node_count++;
 
@@ -243,10 +240,10 @@ game_position_solve_impl (ExactSolution *const result,
   NodeInfo *const next_node_info = &stack->nodes[next_fill_index];
   NodeInfo *const previous_node_info = &stack->nodes[previous_fill_index];
 
-  generate_move_array(&move_count, moves, &move_set, gpx);
+  generate_move_array(&move_count, moves, &move_set, &current_node_info->gpx);
 
   if (compute_hash) {
-    current_node_info->hash = game_position_x_delta_hash(previous_node_info->hash, flips, flip_count, gpx->player);
+    current_node_info->hash = game_position_x_delta_hash(previous_node_info->hash, flips, flip_count, current_node_info->gpx.player);
   }
 
   if (log_env->log_is_on) {
@@ -255,9 +252,9 @@ game_position_solve_impl (ExactSolution *const result,
         .call_id      = result->node_count,
         .hash         = current_node_info->hash,
         .parent_hash  = previous_node_info->hash,
-        .blacks       = gpx->blacks,
-        .whites       = gpx->whites,
-        .player       = gpx->player,
+        .blacks       = current_node_info->gpx.blacks,
+        .whites       = current_node_info->gpx.whites,
+        .player       = current_node_info->gpx.player,
         .json_doc     = NULL,
         .json_doc_len = 0,
         .call_level   = current_fill_index };
@@ -267,15 +264,15 @@ game_position_solve_impl (ExactSolution *const result,
   best_value = out_of_range_defeat_score;
   *best_move = invalid_move;
 
-  if (is_terminal_node(gpx, move_set)) {
+  if (is_terminal_node(&current_node_info->gpx, move_set)) {
     result->leaf_count++;
-    best_value = game_position_x_final_value(gpx);
+    best_value = game_position_x_final_value(&current_node_info->gpx);
     goto end;
   }
 
   for (m = moves; m - moves < move_count; m++) {
-    make_move(gpx, *m, &child_gpx);
-    v = - game_position_solve_impl(result, &child_best_move, &child_gpx, stack);
+    make_move(&current_node_info->gpx, *m, &next_node_info->gpx);
+    v = - game_position_solve_impl(result, &child_best_move, stack);
     if (v > best_value) {
       *best_move = *m;
       best_value = v;
