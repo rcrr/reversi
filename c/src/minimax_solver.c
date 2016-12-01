@@ -71,7 +71,7 @@
  * Prototypes for internal functions.
  */
 
-static int
+static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack);
 
@@ -123,22 +123,18 @@ game_position_minimax_solve (const GamePositionX *const root,
     compute_hash = true;
   }
 
-  int game_value = out_of_range_defeat_score;
-
   GameTreeStack *stack = game_tree_stack_new();
-
   game_tree_stack_init(root, stack);
 
   ExactSolution *result = exact_solution_new();
   exact_solution_set_solved_game_position_x(result, root);
 
-  game_value = game_position_solve_impl(result, stack);
+  game_position_solve_impl(result, stack);
 
-  result->pv[0] = stack->nodes[1].alpha;
-  result->outcome = game_value;
+  result->pv[0] = stack->nodes[1].best_move;
+  result->outcome = stack->nodes[1].alpha;
 
   game_tree_stack_free(stack);
-
   game_tree_log_close(log_env);
 
   return result;
@@ -214,13 +210,12 @@ make_move (const GamePositionX *const current,
   }
 }
 
-static int
+static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack)
 {
   Square *m;
   Square moves[32];
-  int best_value, v;
   SquareSet move_set;
   int move_count;
 
@@ -257,27 +252,28 @@ game_position_solve_impl (ExactSolution *const result,
     game_tree_log_write_h(log_env, &log_data);
   }
 
-  best_value = out_of_range_defeat_score;
-  current_node_info->alpha = invalid_move;
+  current_node_info->alpha = out_of_range_defeat_score;
+  current_node_info->best_move = invalid_move;
 
   if (is_terminal_node(&current_node_info->gpx, move_set)) {
     result->leaf_count++;
-    best_value = game_position_x_final_value(&current_node_info->gpx);
+    current_node_info->alpha = game_position_x_final_value(&current_node_info->gpx);
     goto end;
   }
 
   for (m = moves; m - moves < move_count; m++) {
     make_move(&current_node_info->gpx, *m, &next_node_info->gpx);
-    v = - game_position_solve_impl(result, stack);
-    if (v > best_value) {
-      current_node_info->alpha = *m;
-      best_value = v;
+    game_position_solve_impl(result, stack);
+    const int value = - next_node_info->alpha;
+    if (value > current_node_info->alpha) {
+      current_node_info->best_move = *m;
+      current_node_info->alpha = value;
     }
   }
 
  end:
   stack->fill_index--;
-  return best_value;
+  return;
 }
 
 /**
