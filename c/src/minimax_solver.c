@@ -209,8 +209,6 @@ game_position_solve_impl (ExactSolution *const result,
 {
   Square *m;
   Square moves[32];
-  SquareSet move_set;
-  int move_count;
 
   result->node_count++;
 
@@ -224,7 +222,7 @@ game_position_solve_impl (ExactSolution *const result,
   NodeInfo *const next_node_info = &stack->nodes[next_fill_index];
   NodeInfo *const previous_node_info = &stack->nodes[previous_fill_index];
 
-  generate_move_array(&move_count, moves, &move_set, &current_node_info->gpx);
+  generate_move_array(&current_node_info->move_count, moves, &current_node_info->move_set, &current_node_info->gpx);
 
   if (compute_hash) {
     current_node_info->hash = game_position_x_delta_hash(previous_node_info->hash,
@@ -251,13 +249,13 @@ game_position_solve_impl (ExactSolution *const result,
   current_node_info->alpha = out_of_range_defeat_score;
   current_node_info->best_move = invalid_move;
 
-  if (is_terminal_node(&current_node_info->gpx, move_set)) {
+  if (is_terminal_node(&current_node_info->gpx, current_node_info->move_set)) {
     result->leaf_count++;
     current_node_info->alpha = game_position_x_final_value(&current_node_info->gpx);
     goto end;
   }
 
-  for (m = moves; m - moves < move_count; m++) {
+  for (m = moves; m - moves < current_node_info->move_count; m++) {
     make_move(&current_node_info->gpx, *m, &next_node_info->gpx, stack->flips, &stack->flip_count);
     game_position_solve_impl(result, stack);
     const int value = - next_node_info->alpha;
