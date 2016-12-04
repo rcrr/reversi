@@ -206,17 +206,17 @@ static const SquareSet empty_square_set = 0;
 /**
  * @brief The pass move.
  */
-static const Square pass_move = (Square) -1;
+static const Square pass_move = (Square) 64;
 
 /**
  * @brief The invalid move.
  */
-static const Square invalid_move = (Square) -2;
+static const Square invalid_move = (Square) 65;
 
 /**
  * @brief The invalid square.
  */
-static const Square invalid_square = (Square) -2;
+static const Square invalid_square = (Square) 65;
 
 
 

@@ -142,14 +142,13 @@ game_position_minimax_solve (const GamePositionX *const root,
  */
 
 static void
-generate_move_array (int *move_count,
-                     Square *moves,
-                     SquareSet *move_set,
-                     const GamePositionX *const gpx)
+generate_moves (NodeInfo* const c)
 {
-  Square *move = moves;
-  *move_set = game_position_x_legal_moves(gpx);
-  SquareSet remaining_moves = *move_set;
+  c->move_set = game_position_x_legal_moves(&c->gpx);
+  NodeInfo* const n = c + 1;
+  uint8_t *move = c->head_of_legal_move_list;
+  SquareSet remaining_moves = c->move_set;
+  c->move_count = 0;
   if (!remaining_moves) {
     *move++ = pass_move;
   } else {
@@ -159,7 +158,8 @@ generate_move_array (int *move_count,
       remaining_moves = bit_works_reset_lowest_bit_set_64_blsr(remaining_moves);
     }
   }
-  *move_count = move - moves;
+  c->move_count = move - c->head_of_legal_move_list;
+  n->head_of_legal_move_list = move;
 }
 
 static bool
@@ -207,9 +207,6 @@ static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack)
 {
-  Square *m;
-  Square moves[32];
-
   result->node_count++;
 
   const int current_fill_index = stack->fill_index;
@@ -222,7 +219,7 @@ game_position_solve_impl (ExactSolution *const result,
   NodeInfo *const next_node_info = &stack->nodes[next_fill_index];
   NodeInfo *const previous_node_info = &stack->nodes[previous_fill_index];
 
-  generate_move_array(&current_node_info->move_count, moves, &current_node_info->move_set, &current_node_info->gpx);
+  generate_moves(current_node_info);
 
   if (compute_hash) {
     current_node_info->hash = game_position_x_delta_hash(previous_node_info->hash,
@@ -255,12 +252,13 @@ game_position_solve_impl (ExactSolution *const result,
     goto end;
   }
 
-  for (m = moves; m - moves < current_node_info->move_count; m++) {
-    make_move(&current_node_info->gpx, *m, &next_node_info->gpx, stack->flips, &stack->flip_count);
+  for (int i = 0; i < current_node_info->move_count; i++) {
+    Square move = *(current_node_info->head_of_legal_move_list + i);
+    make_move(&current_node_info->gpx, move, &next_node_info->gpx, stack->flips, &stack->flip_count);
     game_position_solve_impl(result, stack);
     const int value = - next_node_info->alpha;
     if (value > current_node_info->alpha) {
-      current_node_info->best_move = *m;
+      current_node_info->best_move = move;
       current_node_info->alpha = value;
     }
   }

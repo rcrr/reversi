@@ -208,7 +208,7 @@ square_to_string_test (void)
   g_assert_cmpstr("D5", ==, square_to_string(D5));
   g_assert_cmpstr("A1", ==, square_to_string(A1));
   g_assert_cmpstr("H8", ==, square_to_string(H8));
-  g_assert_cmpstr("NA", ==, square_to_string((Square) 64));
+  g_assert_cmpstr("NA", ==, square_to_string((Square) invalid_move));
   //! [square_to_string usage]
 }
 

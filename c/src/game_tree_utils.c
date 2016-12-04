@@ -2089,7 +2089,6 @@ game_tree_stack_init (const GamePositionX *const root,
  *
  * @param [in]  move_set          the set of legal moves
  * @param [out] current_node_info the node info updated with the compuetd list of legal moves
- * @param [out] next_node_info    the node info updated with the new head_of_legal_move_list poiter
  */
 void
 game_tree_move_list_from_set (const SquareSet move_set,
