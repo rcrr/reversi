@@ -509,8 +509,7 @@ game_tree_stack_init (const GamePositionX *const root,
 
 extern void
 game_tree_move_list_from_set (const SquareSet move_set,
-                              NodeInfo *const current_node_info,
-                              NodeInfo *const next_node_info);
+                              NodeInfo *const current_node_info);
 
 
 

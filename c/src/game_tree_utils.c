@@ -2093,9 +2093,9 @@ game_tree_stack_init (const GamePositionX *const root,
  */
 void
 game_tree_move_list_from_set (const SquareSet move_set,
-                              NodeInfo* const current_node_info,
-                              NodeInfo* const next_node_info)
+                              NodeInfo* const current_node_info)
 {
+  NodeInfo* const next_node_info = current_node_info + 1;
   uint8_t *move_ptr = current_node_info->head_of_legal_move_list;
   SquareSet remaining_moves = move_set;
   current_node_info->move_count = 0;
