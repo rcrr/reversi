@@ -85,7 +85,7 @@ game_position_solve_impl (ExactSolution *const result,
 static LogEnv *log_env = NULL;
 
 /* True when hash has to be computed. */
-static bool compute_hash = false;
+static bool hash_is_on = false;
 
 /**
  * @endcond
@@ -111,7 +111,7 @@ game_position_minimax_solve (const GamePositionX *const root,
 
   if (log_env->log_is_on) {
     game_tree_log_open_h(log_env);
-    compute_hash = true;
+    hash_is_on = true;
   }
 
   GameTreeStack *stack = game_tree_stack_new();
@@ -163,9 +163,10 @@ generate_moves (NodeInfo* const c)
 }
 
 static bool
-is_terminal_node (const GamePositionX *const current,
-                  const SquareSet move_set)
+is_terminal_node (NodeInfo* const c)
 {
+  const GamePositionX *const current = &c->gpx;
+  const SquareSet move_set =  c->move_set;
   if (move_set) return false;
   const SquareSet empties = ~(current->blacks | current->whites);
   if (!empties) return true;
@@ -189,7 +190,7 @@ make_move (const GamePositionX *const current,
     game_position_x_pass(current, updated);
   } else {
     game_position_x_make_move(current, move, updated);
-    if (compute_hash) {
+    if (hash_is_on) {
       const SquareSet bitmove = 1ULL << move;
       const SquareSet cu_p = game_position_x_get_player(current);
       const SquareSet up_o = game_position_x_get_opponent(updated);
@@ -204,6 +205,35 @@ make_move (const GamePositionX *const current,
 }
 
 static void
+compute_hash (NodeInfo* const c,
+              const GameTreeStack *const stack)
+{
+  c->hash = game_position_x_delta_hash((c - 1)->hash,
+                                       stack->flips,
+                                       stack->flip_count,
+                                       c->gpx.player);
+}
+
+static void
+do_log (const ExactSolution *const result,
+        const NodeInfo* const node,
+        const GameTreeStack *const stack)
+{
+  LogDataH log_data =
+    { .sub_run_id   = game_tree_log_def_sub_run_id,
+      .call_id      = result->node_count,
+      .hash         = node->hash,
+      .parent_hash  = (node - 1)->hash,
+      .blacks       = node->gpx.blacks,
+      .whites       = node->gpx.whites,
+      .player       = node->gpx.player,
+      .json_doc     = NULL,
+      .json_doc_len = 0,
+      .call_level   = stack->fill_index - 1 };
+  game_tree_log_write_h(log_env, &log_data);
+}
+
+static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack)
 {
@@ -213,38 +243,20 @@ game_position_solve_impl (ExactSolution *const result,
 
   generate_moves(c);
 
-  if (compute_hash) {
-    c->hash = game_position_x_delta_hash((c - 1)->hash,
-                                         stack->flips,
-                                         stack->flip_count,
-                                         c->gpx.player);
-  }
+  if (hash_is_on) compute_hash(c, stack);
 
-  if (log_env->log_is_on) {
-    LogDataH log_data =
-      { .sub_run_id   = game_tree_log_def_sub_run_id,
-        .call_id      = result->node_count,
-        .hash         = c->hash,
-        .parent_hash  = (c - 1)->hash,
-        .blacks       = c->gpx.blacks,
-        .whites       = c->gpx.whites,
-        .player       = c->gpx.player,
-        .json_doc     = NULL,
-        .json_doc_len = 0,
-        .call_level   = stack->fill_index - 1 };
-    game_tree_log_write_h(log_env, &log_data);
-  }
+  if (log_env->log_is_on) do_log(result, c, stack);
 
   c->alpha = out_of_range_defeat_score;
   c->best_move = invalid_move;
 
-  if (is_terminal_node(&c->gpx, c->move_set)) {
+  if (is_terminal_node(c)) {
     result->leaf_count++;
     c->alpha = game_position_x_final_value(&c->gpx);
     goto end;
   }
 
-  for (int i = 0; i < c->move_count; i++) {
+  for (size_t i = 0; i < c->move_count; i++) {
     const Square move = *(c->head_of_legal_move_list + i);
     make_move(&c->gpx, move, &(c + 1)->gpx, stack->flips, &stack->flip_count);
     game_position_solve_impl(result, stack);
