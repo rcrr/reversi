@@ -203,9 +203,9 @@ typedef struct {
   GamePositionX  gpx;                         /**< @brief The game position related to the game tree node. */
   uint64_t       hash;                        /**< @brief The hash value of the game position. */
   SquareSet      move_set;                    /**< @brief The set of legal moves. */
-  int            move_count;                  /**< @brief The count of legal moves. */
-  uint8_t       *head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
   Square         best_move;                   /**< @brief The best move for the node. */
+  uint8_t        move_count;                  /**< @brief The count of legal moves. */
+  uint8_t       *head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
   int            alpha;                       /**< @brief The node value. */
   int            beta;                        /**< @brief The node cutoff value. */
 } NodeInfo;
@@ -216,7 +216,7 @@ typedef struct {
  * @details The stack uses 5 kbytes of memory.
  */
 typedef struct {
-  int        fill_index;                                     /**< @brief The index of the current entry into the stack, at the beginning of game_position_solve_impl. */
+  size_t     fill_index;                                     /**< @brief The index of the current entry into the stack, at the beginning of game_position_solve_impl. */
   NodeInfo   nodes[GAME_TREE_MAX_DEPTH];                     /**< @brief The stack of node info. */
   uint8_t    legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];   /**< @brief The stack hosting the legal moves for each node. */
   uint8_t    flip_count;                                     /**< @brief Number of flips plus one. */

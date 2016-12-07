@@ -209,57 +209,49 @@ game_position_solve_impl (ExactSolution *const result,
 {
   result->node_count++;
 
-  const int current_fill_index = stack->fill_index;
-  const int next_fill_index = current_fill_index + 1;
-  const int previous_fill_index = current_fill_index - 1;
+  NodeInfo *const c = stack->nodes + stack->fill_index++;
 
-  stack->fill_index++;
-
-  NodeInfo *const current_node_info = &stack->nodes[current_fill_index];
-  NodeInfo *const next_node_info = &stack->nodes[next_fill_index];
-  NodeInfo *const previous_node_info = &stack->nodes[previous_fill_index];
-
-  generate_moves(current_node_info);
+  generate_moves(c);
 
   if (compute_hash) {
-    current_node_info->hash = game_position_x_delta_hash(previous_node_info->hash,
-                                                         stack->flips,
-                                                         stack->flip_count,
-                                                         current_node_info->gpx.player);
+    c->hash = game_position_x_delta_hash((c - 1)->hash,
+                                         stack->flips,
+                                         stack->flip_count,
+                                         c->gpx.player);
   }
 
   if (log_env->log_is_on) {
     LogDataH log_data =
       { .sub_run_id   = game_tree_log_def_sub_run_id,
         .call_id      = result->node_count,
-        .hash         = current_node_info->hash,
-        .parent_hash  = previous_node_info->hash,
-        .blacks       = current_node_info->gpx.blacks,
-        .whites       = current_node_info->gpx.whites,
-        .player       = current_node_info->gpx.player,
+        .hash         = c->hash,
+        .parent_hash  = (c - 1)->hash,
+        .blacks       = c->gpx.blacks,
+        .whites       = c->gpx.whites,
+        .player       = c->gpx.player,
         .json_doc     = NULL,
         .json_doc_len = 0,
-        .call_level   = current_fill_index };
+        .call_level   = stack->fill_index - 1 };
     game_tree_log_write_h(log_env, &log_data);
   }
 
-  current_node_info->alpha = out_of_range_defeat_score;
-  current_node_info->best_move = invalid_move;
+  c->alpha = out_of_range_defeat_score;
+  c->best_move = invalid_move;
 
-  if (is_terminal_node(&current_node_info->gpx, current_node_info->move_set)) {
+  if (is_terminal_node(&c->gpx, c->move_set)) {
     result->leaf_count++;
-    current_node_info->alpha = game_position_x_final_value(&current_node_info->gpx);
+    c->alpha = game_position_x_final_value(&c->gpx);
     goto end;
   }
 
-  for (int i = 0; i < current_node_info->move_count; i++) {
-    Square move = *(current_node_info->head_of_legal_move_list + i);
-    make_move(&current_node_info->gpx, move, &next_node_info->gpx, stack->flips, &stack->flip_count);
+  for (int i = 0; i < c->move_count; i++) {
+    const Square move = *(c->head_of_legal_move_list + i);
+    make_move(&c->gpx, move, &(c + 1)->gpx, stack->flips, &stack->flip_count);
     game_position_solve_impl(result, stack);
-    const int value = - next_node_info->alpha;
-    if (value > current_node_info->alpha) {
-      current_node_info->best_move = move;
-      current_node_info->alpha = value;
+    const int value = - (c + 1)->alpha;
+    if (value > c->alpha) {
+      c->best_move = move;
+      c->alpha = value;
     }
   }
 
