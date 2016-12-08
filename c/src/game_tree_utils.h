@@ -206,6 +206,7 @@ typedef struct {
   Square         best_move;                   /**< @brief The best move for the node. */
   uint8_t        move_count;                  /**< @brief The count of legal moves. */
   uint8_t       *head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
+  uint8_t       *move_cursor;                 /**< @brief Legal move iterator. */
   int            alpha;                       /**< @brief The node value. */
   int            beta;                        /**< @brief The node cutoff value. */
 } NodeInfo;

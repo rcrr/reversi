@@ -144,22 +144,22 @@ game_position_minimax_solve (const GamePositionX *const root,
 static void
 generate_moves (NodeInfo* const c)
 {
+  uint8_t *const holml = c->head_of_legal_move_list;
   c->move_set = game_position_x_legal_moves(&c->gpx);
-  NodeInfo* const n = c + 1;
-  uint8_t *move = c->head_of_legal_move_list;
+  c->move_cursor = holml;
   SquareSet remaining_moves = c->move_set;
   c->move_count = 0;
   if (!remaining_moves) {
-    *move++ = pass_move;
+    *(c->move_cursor)++ = pass_move;
   } else {
     while (remaining_moves) {
-      const Square m = bit_works_bitscanLS1B_64_bsf(remaining_moves);
-      *move++ = m;
+      *(c->move_cursor)++ = bit_works_bitscanLS1B_64_bsf(remaining_moves);
       remaining_moves = bit_works_reset_lowest_bit_set_64_blsr(remaining_moves);
     }
   }
-  c->move_count = move - c->head_of_legal_move_list;
-  n->head_of_legal_move_list = move;
+  c->move_count = c->move_cursor - holml;
+  (c + 1)->head_of_legal_move_list = c->move_cursor;
+  c->move_cursor = holml;
 }
 
 static bool
@@ -256,8 +256,8 @@ game_position_solve_impl (ExactSolution *const result,
     goto end;
   }
 
-  for (size_t i = 0; i < c->move_count; i++) {
-    const Square move = *(c->head_of_legal_move_list + i);
+  for ( ; c->move_cursor < (c + 1)->head_of_legal_move_list; c->move_cursor++) {
+    const Square move = *(c->move_cursor);
     make_move(&c->gpx, move, &(c + 1)->gpx, stack->flips, &stack->flip_count);
     game_position_solve_impl(result, stack);
     const int value = - (c + 1)->alpha;
