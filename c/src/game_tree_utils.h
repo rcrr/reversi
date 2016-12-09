@@ -217,6 +217,7 @@ typedef struct {
  * @details The stack uses 5 kbytes of memory.
  */
 typedef struct {
+  NodeInfo  *active_node;                                    /**< @brief The active node on the stack. */
   size_t     fill_index;                                     /**< @brief The index of the current entry into the stack, at the beginning of game_position_solve_impl. */
   NodeInfo   nodes[GAME_TREE_MAX_DEPTH];                     /**< @brief The stack of node info. */
   uint8_t    legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];   /**< @brief The stack hosting the legal moves for each node. */

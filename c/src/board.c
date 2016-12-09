@@ -1362,63 +1362,7 @@ board_legal_moves4 (const Board *const b,
   const SquareSet p_bit_board = board_get_player(b, p);
   const SquareSet o_bit_board = board_get_player(b, o);
 
-  const __m256i p_bit_board_v = _mm256_set1_epi64x(p_bit_board);
-  const __m256i o_bit_board_v = _mm256_set1_epi64x(o_bit_board);
-  const __m256i empties_v = _mm256_set1_epi64x(empties);
-
-  const __m256i const_a0 = _mm256_setr_epi64x(all_squares_except_column_a,
-                                              all_squares_except_column_h,
-                                              all_squares,
-                                              all_squares_except_column_a);
-  const __m256i const_a1 = _mm256_setr_epi64x(all_squares_except_column_h,
-                                              all_squares_except_column_a,
-                                              all_squares,
-                                              all_squares_except_column_h);
-
-  const __m256i const_sh_a = _mm256_setr_epi64x(1,  7,  8,  9);
-  const __m256i const_sh_b = _mm256_setr_epi64x(2, 14, 16, 18);
-  const __m256i const_sh_c = _mm256_setr_epi64x(4, 28, 32, 36);
-
-  const __m256i const_b0 = _mm256_and_si256(empties_v, const_a0);
-  const __m256i const_b1 = _mm256_and_si256(empties_v, const_a1);
-
-  __m256i gen0 = p_bit_board_v;
-  __m256i gen1 = p_bit_board_v;
-  __m256i pro0 = _mm256_and_si256(o_bit_board_v, const_a0);
-  __m256i pro1 = _mm256_and_si256(o_bit_board_v, const_a1);
-
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_a)));
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_a)));
-  pro0 = _mm256_and_si256(pro0, _mm256_sllv_epi64(pro0, const_sh_a));
-  pro1 = _mm256_and_si256(pro1, _mm256_srlv_epi64(pro1, const_sh_a));
-
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_b)));
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_b)));
-  pro0 = _mm256_and_si256(pro0, _mm256_sllv_epi64(pro0, const_sh_b));
-  pro1 = _mm256_and_si256(pro1, _mm256_srlv_epi64(pro1, const_sh_b));
-
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_c)));
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_c)));
-
-  gen0 = _mm256_andnot_si256(p_bit_board_v, gen0);
-  gen1 = _mm256_andnot_si256(p_bit_board_v, gen1);
-
-  gen0 = _mm256_and_si256(const_b0, _mm256_sllv_epi64(gen0, const_sh_a));
-  gen1 = _mm256_and_si256(const_b1, _mm256_srlv_epi64(gen1, const_sh_a));
-
-  /*
-   * Cobines the eight set of legal moves, four DWORDS in gen0, and four in gen1, into the
-   * final result.
-   */
-  __m256i gen = _mm256_or_si256(gen0, gen1);
-  gen = _mm256_or_si256(gen, _mm256_permute4x64_epi64(gen, 0x4E));
-  gen = _mm256_or_si256(gen, _mm256_bsrli_epi128(gen, 8));
-
-  const SquareSet result = _mm256_extract_epi64(gen, 0);
-
-  const SquareSet result2 = kogge_stone_b(p_bit_board, o_bit_board, empties);
-
-  if (result != result2) abort();
+  const SquareSet result = kogge_stone_b(p_bit_board, o_bit_board, empties);
 
   return result;
 }

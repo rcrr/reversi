@@ -229,7 +229,7 @@ do_log (const ExactSolution *const result,
       .player       = node->gpx.player,
       .json_doc     = NULL,
       .json_doc_len = 0,
-      .call_level   = stack->fill_index - 1 };
+      .call_level   = stack->active_node - stack->nodes };
   game_tree_log_write_h(log_env, &log_data);
 }
 
@@ -237,9 +237,13 @@ static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack)
 {
+  NodeInfo *c;
+  const NodeInfo *const root = stack->active_node;
+
+ begin:
   result->node_count++;
 
-  NodeInfo *const c = stack->nodes + stack->fill_index++;
+  c = ++stack->active_node;
 
   generate_moves(c);
 
@@ -257,19 +261,19 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
   for ( ; c->move_cursor < (c + 1)->head_of_legal_move_list; c->move_cursor++) {
-    const Square move = *(c->move_cursor);
-    make_move(&c->gpx, move, &(c + 1)->gpx, stack->flips, &stack->flip_count);
-    game_position_solve_impl(result, stack);
-    const int value = - (c + 1)->alpha;
-    if (value > c->alpha) {
-      c->best_move = move;
-      c->alpha = value;
+    make_move(&c->gpx, *(c->move_cursor), &(c + 1)->gpx, stack->flips, &stack->flip_count);
+    goto begin;
+  entry:
+    if (- (c + 1)->alpha > c->alpha) {
+      c->best_move = *(c->move_cursor);
+      c->alpha = - (c + 1)->alpha;
     }
   }
 
  end:
-  stack->fill_index--;
-  return;
+  c = --stack->active_node;
+  if (stack->active_node == root) return;
+  goto entry;
 }
 
 /**
