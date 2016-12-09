@@ -332,16 +332,12 @@ game_position_solve_impl (ExactSolution *const result,
   result->node_count++;
   PVCell **pve_line = NULL;
 
-  const int current_fill_index = stack->fill_index;
-  const int next_fill_index = current_fill_index + 1;
-  const int previous_fill_index = current_fill_index - 1;
+  NodeInfo *const current_node_info = ++stack->active_node;
+  NodeInfo *const next_node_info = current_node_info + 1;
+  NodeInfo *const previous_node_info = current_node_info - 1;
+
   const int sub_run_id = 0;
 
-  stack->fill_index++;
-
-  NodeInfo *const current_node_info = &stack->nodes[current_fill_index];
-  NodeInfo *const next_node_info = &stack->nodes[next_fill_index];
-  NodeInfo *const previous_node_info = &stack->nodes[previous_fill_index];
   const GamePositionX *const current_gpx = &current_node_info->gpx;
   GamePositionX *const next_gpx = &next_node_info->gpx;
   const SquareSet move_set = mle->moves;
@@ -357,7 +353,7 @@ game_position_solve_impl (ExactSolution *const result,
     log_data.blacks = current_gpx->blacks;
     log_data.whites = current_gpx->whites;
     log_data.player = current_gpx->player;
-    gchar *json_doc = game_tree_log_data_h_json_doc2(current_fill_index, current_gpx);
+    gchar *json_doc = game_tree_log_data_h_json_doc2(stack->active_node - stack->nodes, current_gpx);
     log_data.json_doc = json_doc;
     log_data.json_doc_len = strlen(json_doc);
     game_tree_log_write_h(log_env, &log_data);
@@ -424,8 +420,8 @@ game_position_solve_impl (ExactSolution *const result,
       }
     }
   }
-out:
-  stack->fill_index--;
+ out:
+  stack->active_node--;
   return;
 }
 

@@ -2078,7 +2078,6 @@ game_tree_stack_init (const GamePositionX *const root,
   first_node_info->alpha = worst_score;
   first_node_info->beta = best_score;
 
-  stack->fill_index = 1;
   stack->active_node = ground_node_info;
 
   stack->flips[0] = pass_move;
