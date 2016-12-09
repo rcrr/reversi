@@ -142,15 +142,10 @@ game_position_solve_impl (ExactSolution *const result,
 {
   result->node_count++;
 
-  const int current_fill_index = stack->fill_index;
-  const int next_fill_index = current_fill_index + 1;
-  const int previous_fill_index = current_fill_index - 1;
+  NodeInfo *const current_node_info = ++stack->active_node;
+  NodeInfo *const next_node_info = current_node_info + 1;
+  NodeInfo *const previous_node_info = current_node_info - 1;
 
-  stack->fill_index++;
-
-  NodeInfo *const current_node_info = &stack->nodes[current_fill_index];
-  NodeInfo *const next_node_info = &stack->nodes[next_fill_index];
-  NodeInfo *const previous_node_info = &stack->nodes[previous_fill_index];
   const GamePositionX *const current_gpx = &current_node_info->gpx;
   GamePositionX *const next_gpx = &next_node_info->gpx;
   current_node_info->hash = game_position_x_hash(current_gpx);
@@ -168,7 +163,7 @@ game_position_solve_impl (ExactSolution *const result,
       .player = current_gpx->player,
       .json_doc = "\"{}\"",
       .json_doc_len = 4,
-      .call_level = stack->fill_index - 1
+      .call_level = stack->active_node - stack->nodes
     };
     game_tree_log_write_h(log_env, &log_data);
   }
@@ -205,8 +200,8 @@ game_position_solve_impl (ExactSolution *const result,
       }
     }
   }
-out:
-  stack->fill_index--;
+ out:
+  stack->active_node--;
   return;
 }
 
