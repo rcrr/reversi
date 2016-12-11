@@ -2082,6 +2082,8 @@ game_tree_stack_init (const GamePositionX *const root,
 
   stack->flips[0] = pass_move;
   stack->flip_count = 1;
+
+  stack->hash_is_on = false;
 }
 
 /**
