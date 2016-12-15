@@ -138,6 +138,7 @@ game_position_minimax_solve (const GamePositionX *const root,
  * Internal functions.
  */
 
+/*
 static void
 generate_moves (GameTreeStack *const stack)
 {
@@ -159,7 +160,9 @@ generate_moves (GameTreeStack *const stack)
   (c + 1)->head_of_legal_move_list = c->move_cursor;
   c->move_cursor = holml;
 }
+*/
 
+/*
 static bool
 is_terminal_node (GameTreeStack *const stack)
 {
@@ -173,7 +176,9 @@ is_terminal_node (GameTreeStack *const stack)
   if ((c + 1)->move_set) return false;
   return true;
 }
+*/
 
+/*
 static void
 make_move (GameTreeStack *const stack)
 {
@@ -193,7 +198,9 @@ make_move (GameTreeStack *const stack)
     stack->flip_count = flip_cursor - stack->flips;
   }
 }
+*/
 
+/*
 static void
 compute_hash (const GameTreeStack *const stack)
 {
@@ -203,6 +210,7 @@ compute_hash (const GameTreeStack *const stack)
                                        stack->flip_count,
                                        c->gpx.player);
 }
+*/
 
 static void
 do_log (const ExactSolution *const result,
@@ -233,12 +241,12 @@ game_position_solve_impl (ExactSolution *const result,
  begin:
   result->node_count++;
   c = ++stack->active_node;
-  generate_moves(stack);
-  if (stack->hash_is_on) compute_hash(stack);
+  gts_generate_moves(stack);
+  if (stack->hash_is_on) gts_compute_hash(stack);
   if (log_env->log_is_on) do_log(result, stack);
   c->alpha = out_of_range_defeat_score;
 
-  if (is_terminal_node(stack)) {
+  if (gts_is_terminal_node(stack)) {
     result->leaf_count++;
     c->best_move = invalid_move;
     c->alpha = game_position_x_final_value(&c->gpx);
@@ -253,7 +261,7 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
   for ( ; c->move_cursor < (c + 1)->head_of_legal_move_list; c->move_cursor++) {
-    make_move(stack);
+    gts_make_move(stack);
     goto begin;
   entry:
     if (- (c + 1)->alpha > c->alpha) {

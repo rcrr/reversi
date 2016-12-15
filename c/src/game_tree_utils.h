@@ -513,6 +513,72 @@ extern void
 game_tree_move_list_from_set (const SquareSet move_set,
                               NodeInfo *const current_node_info);
 
+inline static bool
+gts_is_terminal_node (GameTreeStack *const stack)
+{
+  NodeInfo* const c = stack->active_node;
+  if (c->move_set) return false;
+  const GamePositionX *const current_gpx = &c->gpx;
+  const SquareSet empties = ~(current_gpx->blacks | current_gpx->whites);
+  if (!empties) return true;
+  game_position_x_pass(current_gpx, &(c + 1)->gpx);
+  (c + 1)->move_set = game_position_x_legal_moves(&(c + 1)->gpx);
+  if ((c + 1)->move_set) return false;
+  return true;
+}
+
+inline static void
+gts_compute_hash (const GameTreeStack *const stack)
+{
+  NodeInfo* const c = stack->active_node;
+  c->hash = game_position_x_delta_hash((c - 1)->hash,
+                                       stack->flips,
+                                       stack->flip_count,
+                                       c->gpx.player);
+}
+
+inline static void
+gts_make_move (GameTreeStack *const stack)
+{
+  NodeInfo* const c = stack->active_node;
+  Square *flip_cursor = stack->flips;
+  *flip_cursor++ = *c->move_cursor;
+  game_position_x_make_move(&c->gpx, *c->move_cursor, &(c + 1)->gpx);
+  if (stack->hash_is_on) {
+    const SquareSet bitmove = 1ULL << *c->move_cursor;
+    const SquareSet cu_p = game_position_x_get_player(&c->gpx);
+    const SquareSet up_o = game_position_x_get_opponent(&(c + 1)->gpx);
+    SquareSet flip_set = up_o & ~(cu_p | bitmove);
+    while (flip_set) {
+      *flip_cursor++ = bit_works_bitscanLS1B_64_bsf(flip_set);
+      flip_set = bit_works_reset_lowest_bit_set_64_blsr(flip_set);
+    }
+    stack->flip_count = flip_cursor - stack->flips;
+  }
+}
+
+inline static void
+gts_generate_moves (GameTreeStack *const stack)
+{
+  NodeInfo* const c = stack->active_node;
+  uint8_t *const holml = c->head_of_legal_move_list;
+  c->move_set = game_position_x_legal_moves(&c->gpx);
+  c->move_cursor = holml;
+  SquareSet remaining_moves = c->move_set;
+  c->move_count = 0;
+  if (!remaining_moves) {
+    *(c->move_cursor)++ = pass_move;
+  } else {
+    while (remaining_moves) {
+      *(c->move_cursor)++ = bit_works_bitscanLS1B_64_bsf(remaining_moves);
+      remaining_moves = bit_works_reset_lowest_bit_set_64_blsr(remaining_moves);
+    }
+  }
+  c->move_count = c->move_cursor - holml;
+  (c + 1)->head_of_legal_move_list = c->move_cursor;
+  c->move_cursor = holml;
+}
+
 
 
 #endif /* GAME_TREE_UTILS_H */

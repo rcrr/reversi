@@ -2111,6 +2111,31 @@ game_tree_move_list_from_set (const SquareSet move_set,
   return;
 }
 
+/**
+ * To be documented.
+ */
+extern bool
+gts_is_terminal_node (GameTreeStack *const stack);
+
+/**
+ * To be documented.
+ */
+extern void
+gts_compute_hash (const GameTreeStack *const stack);
+
+/**
+ * To be documented.
+ */
+extern void
+gts_make_move (GameTreeStack *const stack);
+
+
+/**
+ * To be documented.
+ */
+extern void
+gts_generate_moves (GameTreeStack *const stack);
+
 
 
 /**

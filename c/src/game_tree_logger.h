@@ -36,8 +36,6 @@
 
 #include <stdbool.h>
 
-#include <glib.h>
-
 #include "board.h"
 
 
