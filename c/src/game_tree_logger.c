@@ -331,6 +331,26 @@ game_tree_log_data_h_json_doc3 (char *const json_doc,
   return len;
 }
 
+void
+do_log (const ExactSolution *const result,
+        const GameTreeStack *const stack,
+        const LogEnv *const log_env)
+{
+  const NodeInfo* const c = stack->active_node;
+  LogDataH log_data =
+    { .sub_run_id   = game_tree_log_def_sub_run_id,
+      .call_id      = result->node_count,
+      .hash         = c->hash,
+      .parent_hash  = (c - 1)->hash,
+      .blacks       = c->gpx.blacks,
+      .whites       = c->gpx.whites,
+      .player       = c->gpx.player,
+      .json_doc     = NULL,
+      .json_doc_len = 0,
+      .call_level   = c - stack->nodes };
+  game_tree_log_write_h(log_env, &log_data);
+}
+
 
 
 /**

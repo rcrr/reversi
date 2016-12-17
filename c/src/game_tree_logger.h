@@ -37,6 +37,8 @@
 #include <stdbool.h>
 
 #include "board.h"
+#include "endgame_solver.h"
+#include "exact_solver.h"
 
 
 
@@ -131,6 +133,12 @@ extern int
 game_tree_log_data_h_json_doc3 (char *const json_doc,
                                 const int call_level,
                                 const GamePositionX *const gpx);
+
+extern void
+do_log (const ExactSolution *const result,
+        const GameTreeStack *const stack,
+        const LogEnv *const log_env);
+
 
 
 #endif /* GAME_TREE_LOGGER_H */
