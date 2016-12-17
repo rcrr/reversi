@@ -1122,7 +1122,6 @@ END;
 $$ LANGUAGE plpgsql VOLATILE;
 
 
-
 CREATE OR REPLACE FUNCTION game_tree_alphabeta_solver_impl(    gp                          game_position,
                                                                log                         BOOLEAN,
                                                                parent_hash                 BIGINT,
@@ -1148,19 +1147,29 @@ DECLARE
   node_child            search_node;
   gp_child              game_position;
   hash                  BIGINT;
+  is_leaf               BOOLEAN;
 BEGIN
   IF log THEN
     hash := game_position_hash(gp);
     INSERT INTO game_tree_log_staging (sub_run_id, call_id, hash, parent_hash, blacks, whites, player)
       VALUES (0, nextval('call_id_seq'), hash, parent_hash, gp.blacks, gp.whites, gp.player);
   END IF;
+  is_leaf := FALSE;
   IF moves = empty_square_set THEN
-    IF (game_position_empties(gp) <> empty_square_set AND previuos_position_has_moves) THEN
+    IF game_position_empties(gp) = empty_square_set THEN
+      is_leaf := TRUE;
+    ELSE
       flipped_players := game_position_pass(gp);
+      flipped_players_moves := game_position_legal_moves(flipped_players);
+      IF flipped_players_moves = empty_square_set THEN
+        is_leaf := TRUE;
+      END IF;
+    END IF;    
+    IF is_leaf THEN
+      node := (NULL, game_position_final_value(gp));
+    ELSE
       node_tmp := game_tree_alphabeta_solver_impl(flipped_players, log, hash, -beta, -alpha, FALSE);
       node := (node_tmp.game_move, -node_tmp.game_value);
-    ELSE
-      node := (NULL, game_position_final_value(gp));
     END IF;
   ELSE
     node := (NULL, out_of_range_defeat_score);
