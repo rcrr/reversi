@@ -22,6 +22,12 @@
  *
  * @todo [done] Write a new hash algorithm that prepares the delta_hash between two game positions.
  *
+ * @todo [done] Inline some of game_position_x_... calls:
+ *              - game_position_x_pass
+ *              - game_position_x_final_value
+ *              - game_position_x_get_player
+ *              - game_position_x_get_opponent
+ *
  *
  * @brief Minimax solver module implementation.
  * @details It searches the end of the game for an exact outcome using the MINIMAX algorithm.

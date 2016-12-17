@@ -1330,16 +1330,6 @@ board_legal_moves (const Board *const b,
   g_assert(b);
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
 
-  /* This chunk is for test reason. Turn it on n case of double checking! */
-  if (FALSE) {
-    const SquareSet r0 = board_legal_moves0(b, p);
-    const SquareSet r1 = board_legal_moves1(b, p);
-    const SquareSet r2 = board_legal_moves2(b, p);
-    const SquareSet r3 = board_legal_moves3(b, p);
-    if (r0 != r1 || r0 != r2 || r0 != r3) abort();
-    return r0;
-  }
-
   return blm_functions[board_legal_moves_option](b, p);
 }
 
@@ -2843,14 +2833,9 @@ game_position_x_copy_from_gp  (const GamePosition *const from,
  * @param [in]  current the current game position x
  * @param [out] next    the updated game position x after passing
  */
-void
-game_position_x_pass  (const GamePositionX *const current,
-                       GamePositionX *const next)
-{
-  next->blacks = current->blacks;
-  next->whites = current->whites;
-  next->player = 1 - current->player;
-}
+extern void
+game_position_x_pass (const GamePositionX *const current,
+                      GamePositionX *const next);
 
 /**
  * @brief Returns the hash value for the game position x.
@@ -2915,11 +2900,8 @@ game_position_x_empties (const GamePositionX *const gpx)
  * @param [in] gpx a pointer to the game position structure
  * @return         the set of squares in the board belonging to the given player
  */
-SquareSet
-game_position_x_get_player (const GamePositionX *const gpx)
-{
-  return *((SquareSet *) gpx + gpx->player);
-}
+extern SquareSet
+game_position_x_get_player (const GamePositionX *const gpx);
 
 /**
  * @brief Returns the square set belonging to the opponent player.
@@ -2927,11 +2909,8 @@ game_position_x_get_player (const GamePositionX *const gpx)
  * @param [in] gpx a pointer to the game position structure
  * @return         the set of squares in the board belonging to the opponent
  */
-SquareSet
-game_position_x_get_opponent (const GamePositionX *const gpx)
-{
-  return *((SquareSet *) gpx + (1 - gpx->player));
-}
+extern SquareSet
+game_position_x_get_opponent (const GamePositionX *const gpx);
 
 /**
  * @brief Returns the SquareState value for the given game position's square.
@@ -3100,17 +3079,8 @@ game_position_x_compare (const GamePositionX *const a,
  * @param [in] gpx a pointer to the game position x structure
  * @return         the game score according to the WOF rules
  */
-int
-game_position_x_final_value (const GamePositionX *const gpx)
-{
-  const int b_count = bit_works_bitcount_64_popcnt(gpx->blacks);
-  const int w_count = bit_works_bitcount_64_popcnt(gpx->whites);
-  const int difference = b_count - w_count;
-  if (difference == 0) return 0;
-  const int empties = 64 - (b_count + w_count);
-  const int delta = (difference > 0) ? difference + empties : difference - empties;
-  return (gpx->player == BLACK_PLAYER) ? +delta : -delta;
-}
+extern int
+game_position_x_final_value (const GamePositionX *const gpx);
 
 /**
  * @brief Returns a formatted string showing a 2d graphical represention of the game position x.

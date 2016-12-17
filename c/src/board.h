@@ -514,11 +514,17 @@ game_position_x_copy_from_gp (const GamePosition *const from,
 extern SquareSet
 game_position_x_empties (const GamePositionX *const gpx);
 
-extern SquareSet
-game_position_x_get_player (const GamePositionX *const gpx);
+inline static SquareSet
+game_position_x_get_player (const GamePositionX *const gpx)
+{
+  return *((SquareSet *) gpx + gpx->player);
+}
 
-extern SquareSet
-game_position_x_get_opponent (const GamePositionX *const gpx);
+inline static SquareSet
+game_position_x_get_opponent (const GamePositionX *const gpx)
+{
+  return *((SquareSet *) gpx + (1 - gpx->player));
+}
 
 extern SquareState
 game_position_x_get_square (const GamePositionX *const gpx,
@@ -538,9 +544,14 @@ extern int
 game_position_x_compare (const GamePositionX *const a,
                          const GamePositionX *const b);
 
-extern void
+inline static void
 game_position_x_pass (const GamePositionX *const current,
-                      GamePositionX *const next);
+                      GamePositionX *const next)
+{
+  next->blacks = current->blacks;
+  next->whites = current->whites;
+  next->player = 1 - current->player;
+}
 
 extern uint64_t
 game_position_x_hash (const GamePositionX *const gpx);
@@ -551,8 +562,17 @@ game_position_x_delta_hash (const uint64_t old_hash,
                             const int flip_count,
                             const Player new_p);
 
-extern int
-game_position_x_final_value (const GamePositionX *const gpx);
+inline static int
+game_position_x_final_value (const GamePositionX *const gpx)
+{
+  const int b_count = bit_works_bitcount_64_popcnt(gpx->blacks);
+  const int w_count = bit_works_bitcount_64_popcnt(gpx->whites);
+  const int difference = b_count - w_count;
+  if (difference == 0) return 0;
+  const int empties = 64 - (b_count + w_count);
+  const int delta = (difference > 0) ? difference + empties : difference - empties;
+  return (gpx->player == BLACK_PLAYER) ? +delta : -delta;
+}
 
 extern gchar *
 game_position_x_print (const GamePositionX *const gpx);
