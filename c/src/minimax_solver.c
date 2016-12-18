@@ -185,10 +185,12 @@ game_position_solve_impl (ExactSolution *const result,
  begin:
   result->node_count++;
   c = ++stack->active_node;
+  if (alpha_beta_pruning) { c->alpha = - (c - 1)->beta; c->beta = - (c - 1)->alpha; }
+  else c->alpha = out_of_range_defeat_score;
+
   gts_generate_moves(stack);
   if (stack->hash_is_on) gts_compute_hash(stack);
   if (log_env->log_is_on) do_log(result, stack, log_env);
-  if (!alpha_beta_pruning) c->alpha = out_of_range_defeat_score;
 
   if (gts_is_terminal_node(stack)) {
     result->leaf_count++;
@@ -201,13 +203,11 @@ game_position_solve_impl (ExactSolution *const result,
       stack->flip_count = 1;
       *stack->flips = pass_move;
     }
-    if (alpha_beta_pruning) { (c + 1)->alpha = - c->beta; (c + 1)->beta = - c->alpha; }
     goto begin;
   }
 
   for ( ; c->move_cursor < (c + 1)->head_of_legal_move_list; c->move_cursor++) {
     gts_make_move(stack);
-    if (alpha_beta_pruning) { (c + 1)->alpha = - c->beta; (c + 1)->beta = - c->alpha; }
     goto begin;
   entry:
     if (- (c + 1)->alpha > c->alpha) {

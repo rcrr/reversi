@@ -2075,8 +2075,8 @@ game_tree_stack_init (const GamePositionX *const root,
   NodeInfo* first_node_info  = &stack->nodes[1];
   game_position_x_copy(root, &first_node_info->gpx);
   first_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
-  first_node_info->alpha = worst_score;
-  first_node_info->beta = best_score;
+  first_node_info->alpha = out_of_range_defeat_score;
+  first_node_info->beta = - out_of_range_defeat_score;
 
   stack->active_node = ground_node_info;
 
