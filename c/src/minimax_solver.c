@@ -80,7 +80,14 @@
 static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack,
-                          const LogEnv *const log_env);
+                          const LogEnv *const log_env,
+                          const bool alpha_beta_pruning);
+
+static
+ExactSolution *
+game_position_mab_solve (const GamePositionX *const root,
+                         const endgame_solver_env_t *const env,
+                         const bool alpha_beta_pruning);
 
 
 
@@ -94,18 +101,50 @@ game_position_solve_impl (ExactSolution *const result,
  * @endcond
  */
 
-
-
 /**
  * @brief Solves the game position returning a new exact solution pointer.
  *
  * @param [in] root the starting game position to be solved
- * @param [in] env      parameter envelope
+ * @param [in] env  parameter envelope
  * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
 game_position_minimax_solve (const GamePositionX *const root,
                              const endgame_solver_env_t *const env)
+{
+  const bool ab_pruning = false;
+  return game_position_mab_solve(root, env, ab_pruning);
+}
+
+/**
+ * @brief Solves the game position returning a new exact solution pointer.
+ *
+ * @param [in] root the starting game position to be solved
+ * @param [in] env  parameter envelope
+ * @return          a pointer to a new exact solution structure
+ */
+ExactSolution *
+game_position_ab_solve (const GamePositionX *const root,
+                        const endgame_solver_env_t *const env)
+{
+  const bool ab_pruning = true;
+  return game_position_mab_solve(root, env, ab_pruning);
+}
+
+
+
+/**
+ * @cond
+ */
+
+/*
+ * Internal functions.
+ */
+
+ExactSolution *
+game_position_mab_solve (const GamePositionX *const root,
+                         const endgame_solver_env_t *const env,
+                         const bool alpha_beta_pruning)
 {
   g_assert(root);
   g_assert(env);
@@ -123,7 +162,7 @@ game_position_minimax_solve (const GamePositionX *const root,
   ExactSolution *result = exact_solution_new();
   exact_solution_set_solved_game_position_x(result, root);
 
-  game_position_solve_impl(result, stack, log_env);
+  game_position_solve_impl(result, stack, log_env, alpha_beta_pruning);
 
   result->pv[0] = stack->nodes[1].best_move;
   result->outcome = stack->nodes[1].alpha;
@@ -134,22 +173,11 @@ game_position_minimax_solve (const GamePositionX *const root,
   return result;
 }
 
-
-
-/**
- * @cond
- */
-
-/*
- * Internal functions.
- */
-
-static bool alpha_beta_pruning = false;
-
 static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack,
-                          const LogEnv *const log_env)
+                          const LogEnv *const log_env,
+                          const bool alpha_beta_pruning)
 {
   NodeInfo *c;
   const NodeInfo *const root = stack->active_node;

@@ -82,8 +82,8 @@ static LogEnv *log_env = NULL;
  * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_ab_solve (const GamePositionX *const root,
-                        const endgame_solver_env_t *const env)
+game_position_ab_solve__ (const GamePositionX *const root,
+                          const endgame_solver_env_t *const env)
 {
   g_assert(root);
   g_assert(env);
@@ -169,9 +169,6 @@ game_position_solve_impl (ExactSolution *const result,
   }
 
   if (move_set == empty_square_set) {
-    //const int previous_move_count = previous_node_info->move_count;
-    //const SquareSet empties = game_position_x_empties(current_gpx);
-    //if (empties != empty_square_set && previous_move_count != 0) {
     if (game_position_x_has_any_player_any_legal_move(current_gpx)) {
       game_position_x_pass(current_gpx, next_gpx);
       next_node_info->alpha = -current_node_info->beta;
@@ -185,7 +182,6 @@ game_position_solve_impl (ExactSolution *const result,
       current_node_info->best_move = invalid_move;
     }
   } else {
-    //current_node_info->alpha = out_of_range_defeat_score;
     for (int i = 0; i < current_node_info->move_count; i++) {
       const Square move = * (current_node_info->head_of_legal_move_list + i);
       game_position_x_make_move(current_gpx, move, next_gpx);

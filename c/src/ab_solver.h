@@ -44,8 +44,8 @@
 /*********************************************************/
 
 extern ExactSolution *
-game_position_ab_solve (const GamePositionX *const root,
-                        const endgame_solver_env_t *const env);
+game_position_ab_solve__ (const GamePositionX *const root,
+                          const endgame_solver_env_t *const env);
 
 
 #endif /* AB_SOLVER_H */
