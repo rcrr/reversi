@@ -42,7 +42,6 @@
 #include "exact_solver.h"
 #include "improved_fast_endgame_solver.h"
 #include "minimax_solver.h"
-#include "ab_solver.h"
 
 
 /**
