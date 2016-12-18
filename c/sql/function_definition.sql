@@ -1172,7 +1172,8 @@ BEGIN
       node := (node_tmp.game_move, -node_tmp.game_value);
     END IF;
   ELSE
-    node := (NULL, out_of_range_defeat_score);
+    -- node := (NULL, out_of_range_defeat_score);
+    node := (NULL, alpha);
     remaining_move_array := square_set_to_array(moves);
     <<moves_loop>>
     FOREACH game_move IN ARRAY remaining_move_array LOOP

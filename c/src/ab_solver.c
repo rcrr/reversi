@@ -185,7 +185,7 @@ game_position_solve_impl (ExactSolution *const result,
       current_node_info->best_move = invalid_move;
     }
   } else {
-    current_node_info->alpha = out_of_range_defeat_score;
+    //current_node_info->alpha = out_of_range_defeat_score;
     for (int i = 0; i < current_node_info->move_count; i++) {
       const Square move = * (current_node_info->head_of_legal_move_list + i);
       game_position_x_make_move(current_gpx, move, next_gpx);
