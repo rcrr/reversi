@@ -110,6 +110,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "prng.h"
+
 #define NN 312
 #define MM 156
 
@@ -182,7 +184,7 @@ prng_mt19937_get_uint64 (void)
     }
     for ( ; i < NN - 1; i++) {
       x = (mt[i] & um) | (mt[i + 1] & lm);
-      mt[i] = mt[i + (MM -NN)] ^ (x >> 1) ^ mag01[(int) (x & 1ULL)];
+      mt[i] = mt[i + (MM - NN)] ^ (x >> 1) ^ mag01[(int) (x & 1ULL)];
     }
     x = (mt[NN - 1] & um) | (mt[0] & lm);
     mt[NN - 1] = mt[MM - 1] ^ (x >> 1) ^ mag01[(int) (x & 1ULL)];
@@ -219,23 +221,4 @@ double
 prng_mt19937_get_double_in_o0_o1 (void)
 {
   return ((prng_mt19937_get_uint64() >> 12) + 0.5) * (1.0 / 4503599627370496.0);
-}
-
-
-int main (void)
-{
-  int i;
-  uint64_t init[4] = { 0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL }, length = 4;
-  prng_mt19937_init_by_array(init, length);
-  printf("1000 outputs of genrand64_int64()\n");
-  for (i = 0; i < 1000; i++) {
-    printf("%20zu ", prng_mt19937_get_uint64());
-    if (i % 5 == 4) printf("\n");
-  }
-  printf("\n1000 outputs of genrand64_real2()\n");
-  for (i = 0; i < 1000; i++) {
-    printf("%10.8f ", prng_mt19937_get_double_in_c0_o1());
-    if (i % 5 == 4) printf("\n");
-  }
-  return 0;
 }
