@@ -144,8 +144,8 @@ prng_mt19937_init_by_seed (uint64_t seed)
  * key_length is its length
 */
 void
-prng_mt19937_init_by_array (uint64_t init_key[],
-                            uint64_t key_length)
+prng_mt19937_init_by_array (const uint64_t init_key[],
+                            const size_t key_length)
 {
   uint64_t i, j, k;
   prng_mt19937_init_by_seed(19650218ULL);

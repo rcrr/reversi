@@ -41,8 +41,8 @@ extern void
 prng_mt19937_init_by_seed (uint64_t seed);
 
 extern void
-prng_mt19937_init_by_array (uint64_t init_key[],
-                            uint64_t key_length);
+prng_mt19937_init_by_array (const uint64_t init_key[],
+                            const size_t key_length);
 
 extern uint64_t
 prng_mt19937_get_uint64 (void);
