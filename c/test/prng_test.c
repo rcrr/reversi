@@ -138,11 +138,13 @@ basic_test (void)
   const size_t e2_length = sizeof(expected_double_head) / sizeof(expected_double_head[0]);
   const size_t e3_length = sizeof(expected_double_tail) / sizeof(expected_double_tail[0]);
 
-  prng_mt19937_init_by_array(init_key, key_length);
+  prng_mt19937_t *prng = prng_mt19937_new();
+
+  prng_mt19937_init_by_array(prng, init_key, key_length);
 
   uint64_t *prand_uint64_array = (uint64_t *) malloc(prand_array_length * sizeof(uint64_t));
   for (size_t i = 0; i < prand_array_length; i++) {
-    prand_uint64_array[i] = prng_mt19937_get_uint64();
+    prand_uint64_array[i] = prng_mt19937_get_uint64(prng);
   }
 
   for (size_t i = 0; i < e0_length; i++) {
@@ -155,7 +157,7 @@ basic_test (void)
 
   double *prand_double_array = (double *) malloc(prand_array_length * sizeof(double));
   for (size_t i = 0; i < prand_array_length; i++) {
-    prand_double_array[i] = prng_mt19937_get_double_in_c0_o1();
+    prand_double_array[i] = prng_mt19937_get_double_in_c0_o1(prng);
   }
 
   for (size_t i = 0; i < e2_length; i++) {
@@ -166,6 +168,7 @@ basic_test (void)
     g_assert(fabs(prand_double_array[(prand_array_length - e3_length) + i] - expected_double_tail[i]) < epsilon);
   }
 
+  prng_mt19937_free(prng);
   free(prand_uint64_array);
   free(prand_double_array);
 }

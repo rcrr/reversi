@@ -108,91 +108,172 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
+#include <assert.h>
 
 #include "prng.h"
 
-#define NN 312
-#define MM 156
 
 
-
+static const size_t nn = 312;
+static const size_t mm = 156;
 static const uint64_t um = 0xFFFFFFFF80000000ULL; /* Most significant 33 bits */
 static const uint64_t lm = 0x000000007FFFFFFFULL; /* Least significant 31 bits */
-
 static const uint64_t mag01[2] = { 0ULL, 0xB5026F5AA96619E9ULL };
 
 
-/* The array for the state vector */
-static uint64_t mt[NN];
 
-/* mti == NN + 1 means mt[NN] is not initialized */
-static int mti = NN + 1;
-
-/* initializes mt[NN] with a seed */
-void
-prng_mt19937_init_by_seed (uint64_t seed)
+/**
+ * @brief prng_mt19937_t structure constructor.
+ *
+ * @return a pointer to a new mt19937 pseudo-random number generator structure
+ */
+prng_mt19937_t *
+prng_mt19937_new (void)
 {
-  mt[0] = seed;
-  for (mti = 1; mti < NN; mti++)
-    mt[mti] =  (6364136223846793005ULL * (mt[mti - 1] ^ (mt[mti - 1] >> 62)) + mti);
+  prng_mt19937_t *st = (prng_mt19937_t *) malloc(sizeof(prng_mt19937_t));
+  assert(st);
+
+  st->mt = (uint64_t *) malloc(nn * sizeof(uint64_t));
+  assert(st->mt);
+
+  /* mti == nn + 1 means that the mt array is not initialized. */
+  st->mti = nn + 1;
+
+  return st;
 }
 
-/*
- * initialize by an array with array-length
- * init_key is the array for initializing keys
- * key_length is its length
-*/
+/**
+ * @brief Deallocates the memory previously allocated by a call to #prng_mt19937_new.
+ *
+ * @details If a null pointer is passed as argument, no action occurs.
+ *
+ * @param [in,out] st the pointer to be deallocated
+ */
 void
-prng_mt19937_init_by_array (const uint64_t init_key[],
+prng_mt19937_free (prng_mt19937_t *st)
+{
+  if (st) {
+    free(st->mt);
+    free(st);
+  }
+}
+
+/**
+ * @brief Initializes the `st` structure with a seed.
+ *
+ * @details The status of the MT-19937 PRNG, previously allocated by a call
+ * to #prng_mt19937_new, is reset.
+ *
+ * @invariant Parameter `st` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [out] st   the MT-19937 prng status
+ * @param [in]  seed the seed number
+ */
+void
+prng_mt19937_init_by_seed (prng_mt19937_t *st,
+                           const uint64_t seed)
+{
+  assert(st);
+  assert(st->mt);
+
+  st->mt[0] = seed;
+  for (st->mti = 1; st->mti < nn; st->mti++)
+    st->mt[st->mti] = (6364136223846793005ULL * (st->mt[st->mti - 1] ^ (st->mt[st->mti - 1] >> 62)) + st->mti);
+}
+
+/**
+ * @brief Initializes the `st` structure with an array.
+ *
+ * @details The status of the MT-19937 PRNG, previously allocated by a call
+ * to #prng_mt19937_new, is reset.
+ *
+ * @invariant Parameter `st` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `init_key` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [out] st         the MT-19937 prng status
+ * @param [in]  init_key   the array of values used to initialize the prng
+ * @param [in]  key_length the number of elements in the array
+ */
+void
+prng_mt19937_init_by_array (prng_mt19937_t *st,
+                            const uint64_t init_key[],
                             const size_t key_length)
 {
-  uint64_t i, j, k;
-  prng_mt19937_init_by_seed(19650218ULL);
-  i=1; j=0;
-  k = (NN > key_length ? NN : key_length);
+  assert(st);
+  assert(st->mt);
+  assert(init_key);
+
+  uint64_t i = 1;
+  uint64_t j = 0;
+  uint64_t k = (nn > key_length ? nn : key_length);
+
+  prng_mt19937_init_by_seed(st, 19650218ULL);
+
   for (; k; k--) {
-    mt[i] = (mt[i] ^ ((mt[i - 1] ^ (mt[i - 1] >> 62)) * 3935559000370003845ULL)) + init_key[j] + j; /* non linear */
+    st->mt[i] = (st->mt[i] ^ ((st->mt[i - 1] ^ (st->mt[i - 1] >> 62)) * 3935559000370003845ULL)) + init_key[j] + j; /* non linear */
     i++; j++;
-    if (i >= NN) { mt[0] = mt[NN - 1]; i = 1; }
+    if (i >= nn) { st->mt[0] = st->mt[nn - 1]; i = 1; }
     if (j >= key_length) j = 0;
   }
-  for (k = NN - 1; k; k--) {
-    mt[i] = (mt[i] ^ ((mt[i - 1] ^ (mt[i - 1] >> 62)) * 2862933555777941757ULL)) - i; /* non linear */
+
+  for (k = nn - 1; k; k--) {
+    st->mt[i] = (st->mt[i] ^ ((st->mt[i - 1] ^ (st->mt[i - 1] >> 62)) * 2862933555777941757ULL)) - i; /* non linear */
     i++;
-    if (i >= NN) { mt[0] = mt[NN - 1]; i = 1; }
+    if (i >= nn) { st->mt[0] = st->mt[nn - 1]; i = 1; }
   }
 
-  mt[0] = 1ULL << 63; /* MSB is 1; assuring non-zero initial array */
+  st->mt[0] = 1ULL << 63; /* MSB is 1; assuring non-zero initial array */
 }
 
-/* generates a random number on [0, 2^64-1]-interval */
+/**
+ * @brief Generates a random number on `[0, 2^64 - 1]-interval`.
+ *
+ * @details The status of the MT-19937 PRNG is altered; a new
+ * pseudo-random number is then returned.
+ *
+ * @invariant Parameter `st` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] st the MT-19937 prng status
+ * @return            next pseudo-random number from the sequence
+ */
 uint64_t
-prng_mt19937_get_uint64 (void)
+prng_mt19937_get_uint64 (prng_mt19937_t *st)
 {
+  assert(st);
+  assert(st->mt);
+
   int i;
   uint64_t x;
 
-  if (mti >= NN) { /* generate NN words at one time */
+  if (st->mti >= nn) { /* generate nn words at one time */
 
-    /* if init_genrand64() has not been called, a default initial seed is used */
-    if (mti == NN + 1) prng_mt19937_init_by_seed(5489ULL);
+    /* If prng_mt19937_init_by_seed has not been called, a default initial seed is used. */
+    if (st->mti == nn + 1) prng_mt19937_init_by_seed(st, 5489ULL);
 
-    for (i = 0; i < NN - MM; i++) {
-      x = (mt[i] & um) | (mt[i + 1] & lm);
-      mt[i] = mt[i + MM] ^ (x >> 1) ^ mag01[(int) (x & 1ULL)];
+    for (i = 0; i < nn - mm; i++) {
+      x = (st->mt[i] & um) | (st->mt[i + 1] & lm);
+      st->mt[i] = st->mt[i + mm] ^ (x >> 1) ^ mag01[(int) (x & 1ULL)];
     }
-    for ( ; i < NN - 1; i++) {
-      x = (mt[i] & um) | (mt[i + 1] & lm);
-      mt[i] = mt[i + (MM - NN)] ^ (x >> 1) ^ mag01[(int) (x & 1ULL)];
-    }
-    x = (mt[NN - 1] & um) | (mt[0] & lm);
-    mt[NN - 1] = mt[MM - 1] ^ (x >> 1) ^ mag01[(int) (x & 1ULL)];
 
-    mti = 0;
+    for ( ; i < nn - 1; i++) {
+      x = (st->mt[i] & um) | (st->mt[i + 1] & lm);
+      st->mt[i] = st->mt[i + (mm - nn)] ^ (x >> 1) ^ mag01[(int) (x & 1ULL)];
+    }
+
+    x = (st->mt[nn - 1] & um) | (st->mt[0] & lm);
+    st->mt[nn - 1] = st->mt[mm - 1] ^ (x >> 1) ^ mag01[(int) (x & 1ULL)];
+
+    st->mti = 0;
   }
 
-  x = mt[mti++];
+  x = st->mt[st->mti++];
 
   x ^= (x >> 29) & 0x5555555555555555ULL;
   x ^= (x << 17) & 0x71D67FFFEDA60000ULL;
@@ -202,23 +283,56 @@ prng_mt19937_get_uint64 (void)
   return x;
 }
 
-/* generates a random number on [0, 1]-real-interval */
+/**
+ * @brief Generates a random number on `[0, 1]-real-interval`.
+ *
+ * @details The status of the MT-19937 PRNG is altered; a new
+ * pseudo-random number is then returned.
+ *
+ * @invariant Parameter `st` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] st the MT-19937 prng status
+ * @return            next pseudo-random number from the sequence
+ */
 double
-prng_mt19937_get_double_in_c0_c1 (void)
+prng_mt19937_get_double_in_c0_c1 (prng_mt19937_t *st)
 {
-  return (prng_mt19937_get_uint64() >> 11) * (1.0 / 9007199254740991.0);
+  return (prng_mt19937_get_uint64(st) >> 11) * (1.0 / 9007199254740991.0);
 }
 
-/* generates a random number on [0, 1)-real-interval */
+/**
+ * @brief Generates a random number on `[0, 1)-real-interval`.
+ *
+ * @details The status of the MT-19937 PRNG is altered; a new
+ * pseudo-random number is then returned.
+ *
+ * @invariant Parameter `st` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] st the MT-19937 prng status
+ * @return            next pseudo-random number from the sequence
+ */
 double
-prng_mt19937_get_double_in_c0_o1 (void)
+prng_mt19937_get_double_in_c0_o1 (prng_mt19937_t *st)
 {
-  return (prng_mt19937_get_uint64() >> 11) * (1.0 / 9007199254740992.0);
+  return (prng_mt19937_get_uint64(st) >> 11) * (1.0 / 9007199254740992.0);
 }
 
-/* generates a random number on (0, 1)-real-interval */
+/**
+ * @brief Generates a random number on `(0, 1)-real-interval`.
+ *
+ * @details The status of the MT-19937 PRNG is altered; a new
+ * pseudo-random number is then returned.
+ *
+ * @invariant Parameter `st` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] st the MT-19937 prng status
+ * @return            next pseudo-random number from the sequence
+ */
 double
-prng_mt19937_get_double_in_o0_o1 (void)
+prng_mt19937_get_double_in_o0_o1 (prng_mt19937_t *st)
 {
-  return ((prng_mt19937_get_uint64() >> 12) + 0.5) * (1.0 / 4503599627370496.0);
+  return ((prng_mt19937_get_uint64(st) >> 12) + 0.5) * (1.0 / 4503599627370496.0);
 }

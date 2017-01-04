@@ -37,24 +37,47 @@
 
 
 
-extern void
-prng_mt19937_init_by_seed (uint64_t seed);
+/**
+ * @brief It holds the state of a Mersenne Twister Pseudo-Random generator.
+ *
+ * @details The Mersenne Twister 19937 algorithm is a 64-bit implementation of
+ * a 623-Dimensionally Equidistributed Uniform Pseudo-Random Number Generator.
+ *
+ * The structure must be initialized before usage.
+ */
+typedef struct {
+  uint64_t *mt;   /**< @brief A pointer to the Mersenne Twister working area. */
+  size_t   mti;   /**< @brief The working index on the `mt` array. */
+} prng_mt19937_t;
+
+
+
+extern prng_mt19937_t *
+prng_mt19937_new (void);
 
 extern void
-prng_mt19937_init_by_array (const uint64_t init_key[],
+prng_mt19937_free (prng_mt19937_t *st);
+
+extern void
+prng_mt19937_init_by_seed (prng_mt19937_t *st,
+                           const uint64_t seed);
+
+extern void
+prng_mt19937_init_by_array (prng_mt19937_t *st,
+                            const uint64_t init_key[],
                             const size_t key_length);
 
 extern uint64_t
-prng_mt19937_get_uint64 (void);
+prng_mt19937_get_uint64 (prng_mt19937_t *st);
 
 extern double
-prng_mt19937_get_double_in_c0_c1 (void);
+prng_mt19937_get_double_in_c0_c1 (prng_mt19937_t *st);
 
 extern double
-prng_mt19937_get_double_in_c0_o1 (void);
+prng_mt19937_get_double_in_c0_o1 (prng_mt19937_t *st);
 
 extern double
-prng_mt19937_get_double_in_o0_o1 (void);
+prng_mt19937_get_double_in_o0_o1 (prng_mt19937_t *st);
 
 
 
