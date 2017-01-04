@@ -52,6 +52,9 @@ typedef struct {
 
 
 
+extern unsigned long int
+prng_uint64_from_clock_random_seed (void);
+
 extern prng_mt19937_t *
 prng_mt19937_new (void);
 
@@ -78,6 +81,10 @@ prng_mt19937_get_double_in_c0_o1 (prng_mt19937_t *st);
 
 extern double
 prng_mt19937_get_double_in_o0_o1 (prng_mt19937_t *st);
+
+extern uint64_t
+prng_mt19937_random_choice_from_finite_set (prng_mt19937_t *prng,
+                                            const unsigned long int k);
 
 
 

@@ -110,6 +110,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <time.h>
+#include <math.h>
 #include <assert.h>
 
 #include "prng.h"
@@ -123,6 +125,19 @@ static const uint64_t lm = 0x000000007FFFFFFFULL; /* Least significant 31 bits *
 static const uint64_t mag01[2] = { 0ULL, 0xB5026F5AA96619E9ULL };
 
 
+
+/**
+ * @brief Generates a seed, used by the random functions, obtained from the internal clock.
+ *
+ * @return an almost unexpected unsigned integer
+ */
+unsigned long int
+prng_uint64_from_clock_random_seed (void)
+{
+  struct timespec t;
+  clock_gettime(CLOCK_REALTIME, &t);
+  return (unsigned long int) t.tv_nsec;
+}
 
 /**
  * @brief prng_mt19937_t structure constructor.
@@ -335,4 +350,51 @@ double
 prng_mt19937_get_double_in_o0_o1 (prng_mt19937_t *st)
 {
   return ((prng_mt19937_get_uint64(st) >> 12) + 0.5) * (1.0 / 4503599627370496.0);
+}
+
+
+/**
+ * @brief Returns a random integer uniformly distributed between `0` and `k - 1` included.
+ *
+ * @details It get a random value from U[0..k). The function is built
+ * on the GNU GSL library, applying the `gsl_rng_mt19937` function.
+ *
+ * When the parameter `k` is equal to `1` the function returns `0` without consuming a
+ * value from the rng sequence.
+ *
+ * The argument `rng` must be obtained calling #rng_new.
+ *
+ * Taking an extract from the GSL documentation:
+ *
+ * The MT19937 generator of Makoto Matsumoto and Takuji Nishimura is a variant
+ * of the twisted generalized feedback shift-register algorithm, and is known as
+ * the “Mersenne Twister” generator. It has a Mersenne prime period of 2^19937 - 1 (about 10^6000)
+ * and is equi-distributed in 623 dimensions. It has passed the DIEHARD statistical tests.
+ *
+ * For more information see,
+ *
+ * <em>
+ * Makoto Matsumoto and Takuji Nishimura, “Mersenne Twister: A 623-dimensionally equidistributed
+ * uniform pseudorandom number generator”.
+ * ACM Transactions on Modeling and Computer Simulation, Vol. 8, No. 1 (Jan. 1998), Pages 3–30
+ * </em>
+ *
+ * @invariant Parameter `k` cannot be `0`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] prng the pseudo-random number generator to use
+ * @param [in] k        the size of the set to select from
+ * @return              an integer in the range `[0..k)`
+ */
+uint64_t
+prng_mt19937_random_choice_from_finite_set (prng_mt19937_t *prng,
+                                            const unsigned long int k)
+{
+  assert(prng);
+  assert(prng->mt);
+  assert(k != 0);
+  if (k == 1) return 0;
+  const double r = prng_mt19937_get_double_in_c0_o1(prng);
+  const uint64_t c = (uint64_t) floor(r * k);
+  return c;
 }

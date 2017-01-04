@@ -45,7 +45,9 @@
 /* Test function prototypes. */
 
 static void dummy_test (void);
-static void basic_test (void);
+static void prng_uint64_from_clock_random_seed_test (void);
+static void basic_mt19937_test (void);
+static void prng_mt19937_random_choice_from_finite_set_test (void);
 
 
 
@@ -62,7 +64,9 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func("/prng/dummy", dummy_test);
-  g_test_add_func("/prng/basic", basic_test);
+  g_test_add_func("/prng/prng_uint64_from_clock_random_seed_test", prng_uint64_from_clock_random_seed_test);
+  g_test_add_func("/prng/basic_mt19937_test", basic_mt19937_test);
+  g_test_add_func("/prng/prng_mt19937_random_choice_from_finite_set", prng_mt19937_random_choice_from_finite_set_test);
 
   return g_test_run();
 }
@@ -80,7 +84,19 @@ dummy_test (void)
 }
 
 static void
-basic_test (void)
+prng_uint64_from_clock_random_seed_test (void)
+{
+  unsigned long int u = 0;
+  for (int i = 0; i < 10; i++) {
+    u = prng_uint64_from_clock_random_seed();
+    if (u) break;
+  }
+  /* It is really unlikely that u is taken ten times always zero !!! */
+  g_assert(u);
+}
+
+static void
+basic_mt19937_test (void)
 {
   const uint64_t init_key[] = { 0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL };
 
@@ -171,4 +187,30 @@ basic_test (void)
   prng_mt19937_free(prng);
   free(prand_uint64_array);
   free(prand_double_array);
+}
+
+static void
+prng_mt19937_random_choice_from_finite_set_test (void)
+{
+  prng_mt19937_t *prng = prng_mt19937_new();
+  prng_mt19937_init_by_seed(prng, 17056359524ULL);
+
+  const int k = 7;
+  const int selections = 1000;
+  uint64_t results[] = { 0, 0, 0, 0, 0, 0, 0 };
+  uint64_t expected[] = { 139, 155, 126, 145, 137, 160, 138 };
+
+  for (int i = 0; i < selections; i++) {
+    size_t choice = prng_mt19937_random_choice_from_finite_set(prng, k);
+    //printf("%zu\n", choice);
+    results[choice]++;
+  }
+  uint64_t cumulated = 0;
+  for (int i = 0; i < k; i++) {
+    g_assert(results[i] == expected[i]);
+    cumulated += results[i];
+  }
+  g_assert(cumulated == selections);
+
+  prng_mt19937_free(prng);
 }
