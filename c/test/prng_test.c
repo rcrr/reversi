@@ -46,7 +46,7 @@
 
 static void dummy_test (void);
 static void prng_uint64_from_clock_random_seed_test (void);
-static void basic_mt19937_test (void);
+static void prng_mt19937_basic_test (void);
 static void prng_mt19937_random_choice_from_finite_set_test (void);
 
 
@@ -65,7 +65,7 @@ main (int   argc,
 
   g_test_add_func("/prng/dummy", dummy_test);
   g_test_add_func("/prng/prng_uint64_from_clock_random_seed_test", prng_uint64_from_clock_random_seed_test);
-  g_test_add_func("/prng/basic_mt19937_test", basic_mt19937_test);
+  g_test_add_func("/prng/prng_mt19937_basic_test", prng_mt19937_basic_test);
   g_test_add_func("/prng/prng_mt19937_random_choice_from_finite_set", prng_mt19937_random_choice_from_finite_set_test);
 
   return g_test_run();
@@ -96,7 +96,7 @@ prng_uint64_from_clock_random_seed_test (void)
 }
 
 static void
-basic_mt19937_test (void)
+prng_mt19937_basic_test (void)
 {
   const uint64_t init_key[] = { 0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL };
 

@@ -352,7 +352,6 @@ prng_mt19937_get_double_in_o0_o1 (prng_mt19937_t *st)
   return ((prng_mt19937_get_uint64(st) >> 12) + 0.5) * (1.0 / 4503599627370496.0);
 }
 
-
 /**
  * @brief Returns a random integer uniformly distributed between `0` and `k - 1` included.
  *
@@ -385,4 +384,169 @@ prng_mt19937_random_choice_from_finite_set (prng_mt19937_t *prng,
   const double r = prng_mt19937_get_double_in_c0_o1(prng);
   const uint64_t c = (uint64_t) floor(r * k);
   return c;
+}
+
+/**
+ * @brief Shuffles the given array of `uint8_t` elements.
+ *
+ * @details Arrange in place the `n` elements of `array` in random order.
+ *
+ * See:
+ * - the Wikipedia page: <a href="http://en.wikipedia.org/wiki/Knuth_shuffle" target="_blank">
+ *   Fisher–Yates shuffle</a>.
+ * - Knuth (1998). Seminumerical algorithms. The Art of Computer Programming 2 (3rd ed.). Boston: Addison–Wesley. pp. 145–146.
+ *
+ * When `n` is equal to `0` or to `1 no random number is consumed from the prng sequence.
+ *
+ * The argument `prng` must be obtained calling #prng_mt19937_new, and then it must be initialized once.
+ *
+ * @invariant Parameter `prng` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `array` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] prng the random number generator to use
+ * @param [in,out] array the array to be shuffled
+ * @param [in]     n     the number of elements in the array
+ */
+void
+prng_mt19937_shuffle_array_uint8 (prng_mt19937_t *prng,
+                                  uint8_t *const array,
+                                  const size_t n)
+{
+  assert(prng);
+  assert(array);
+  if (n > 1) {
+    for (size_t i = n - 1; i > 0; i--) {
+      size_t j = prng_mt19937_random_choice_from_finite_set(prng, i + 1);
+      const uint8_t t = *(array + j);
+      *(array + j) = *(array + i);
+      *(array + i) = t;
+    }
+  }
+}
+
+/**
+ * @brief Shuffles the given array of pointers.
+ *
+ * @details Arrange in place the `n` elements of `array` in random order.
+ *
+ * See:
+ * - the Wikipedia page: <a href="http://en.wikipedia.org/wiki/Knuth_shuffle" target="_blank">
+ *   Fisher–Yates shuffle</a>.
+ * - Knuth (1998). Seminumerical algorithms. The Art of Computer Programming 2 (3rd ed.). Boston: Addison–Wesley. pp. 145–146.
+ *
+ * When `n` is equal to `0` or to `1 no random number is consumed from the prng sequence.
+ *
+ * The argument `prng` must be obtained calling #prng_mt19937_new, and then it must be initialized once.
+ *
+ * @invariant Parameter `prng` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `array` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] prng the random number generator to use
+ * @param [in,out] array the array to be shuffled
+ * @param [in]     n     the number of elements in the array
+ */
+void
+prng_mt19937_shuffle_array_p (prng_mt19937_t *prng,
+                              void **const array,
+                              const size_t n)
+{
+  assert(prng);
+  assert(array);
+  if (n > 1) {
+    for (size_t i = n - 1; i > 0; i--) {
+      size_t j = prng_mt19937_random_choice_from_finite_set(prng, i + 1);
+      void *const t = *(array + j);
+      *(array + j) = *(array + i);
+      *(array + i) = t;
+    }
+  }
+}
+
+
+/**
+ * @brief Shuffles the given array of doubles.
+ *
+ * @details Arrange in place the `n` elements of `array` in random order.
+ *
+ * See:
+ * - the Wikipedia page: <a href="http://en.wikipedia.org/wiki/Knuth_shuffle" target="_blank">
+ *   Fisher–Yates shuffle</a>.
+ * - Knuth (1998). Seminumerical algorithms. The Art of Computer Programming 2 (3rd ed.). Boston: Addison–Wesley. pp. 145–146.
+ *
+ * When `n` is equal to `0` or to `1 no random number is consumed from the prng sequence.
+ *
+ * The argument `prng` must be obtained calling #prng_mt19937_new, and then it must be initialized once.
+ *
+ * @invariant Parameter `prng` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `array` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] prng the random number generator to use
+ * @param [in,out] array the array to be shuffled
+ * @param [in]     n     the number of elements in the array
+ */
+void
+prng_mt19937_shuffle_array_double (prng_mt19937_t *prng,
+                                   double *const array,
+                                   const size_t n)
+{
+  assert(prng);
+  assert(array);
+  if (n > 1) {
+    for (size_t i = n - 1; i > 0; i--) {
+      size_t j = prng_mt19937_random_choice_from_finite_set(prng, i + 1);
+      const double t = *(array + j);
+      *(array + j) = *(array + i);
+      *(array + i) = t;
+    }
+  }
+}
+
+/**
+ * @brief Shuffles the given array of integers.
+ *
+ * @details Arrange in place the `n` elements of `array` in random order.
+ *
+ * See:
+ * - the Wikipedia page: <a href="http://en.wikipedia.org/wiki/Knuth_shuffle" target="_blank">
+ *   Fisher–Yates shuffle</a>.
+ * - Knuth (1998). Seminumerical algorithms. The Art of Computer Programming 2 (3rd ed.). Boston: Addison–Wesley. pp. 145–146.
+ *
+ * When `n` is equal to `0` or to `1 no random number is consumed from the prng sequence.
+ *
+ * The argument `prng` must be obtained calling #prng_mt19937_new, and then it must be initialized once.
+ *
+ * @invariant Parameter `prng` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `array` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] prng the random number generator to use
+ * @param [in,out] array the array to be shuffled
+ * @param [in]     n     the number of elements in the array
+ */
+void
+prng_mt19937_shuffle_array_int (prng_mt19937_t *prng,
+                                int *const array,
+                                const size_t n)
+{
+  assert(prng);
+  assert(array);
+  if (n > 1) {
+    for (size_t i = n - 1; i > 0; i--) {
+      size_t j = prng_mt19937_random_choice_from_finite_set(prng, i + 1);
+      const int t = *(array + j);
+      *(array + j) = *(array + i);
+      *(array + i) = t;
+    }
+  }
 }

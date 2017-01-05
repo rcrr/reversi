@@ -86,6 +86,26 @@ extern uint64_t
 prng_mt19937_random_choice_from_finite_set (prng_mt19937_t *prng,
                                             const uint64_t k);
 
+extern void
+prng_mt19937_shuffle_array_uint8 (prng_mt19937_t *prng,
+                                  uint8_t *const array,
+                                  const size_t n);
+
+extern void
+prng_mt19937_shuffle_array_p (prng_mt19937_t *prng,
+                              void **const array,
+                              const size_t n);
+
+extern void
+prng_mt19937_shuffle_array_double (prng_mt19937_t *prng,
+                                   double *const array,
+                                   const size_t n);
+
+extern void
+prng_mt19937_shuffle_array_int (prng_mt19937_t *prng,
+                                int *const array,
+                                const size_t n);
+
 
 
 #endif /* PRNG_H */
