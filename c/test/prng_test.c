@@ -195,14 +195,13 @@ prng_mt19937_random_choice_from_finite_set_test (void)
   prng_mt19937_t *prng = prng_mt19937_new();
   prng_mt19937_init_by_seed(prng, 17056359524ULL);
 
-  const int k = 7;
-  const int selections = 1000;
+  const unsigned int k = 7;
+  const unsigned int selections = 1000;
   uint64_t results[] = { 0, 0, 0, 0, 0, 0, 0 };
   uint64_t expected[] = { 139, 155, 126, 145, 137, 160, 138 };
 
   for (int i = 0; i < selections; i++) {
     size_t choice = prng_mt19937_random_choice_from_finite_set(prng, k);
-    //printf("%zu\n", choice);
     results[choice]++;
   }
   uint64_t cumulated = 0;
