@@ -126,6 +126,91 @@ static const uint64_t mag01[2] = { 0ULL, 0xB5026F5AA96619E9ULL };
 
 
 
+
+/**
+ * @brief Initializes the seed used by the random functions.
+ *
+ * @details Set a new seed taken in a not repeatable way from the `time()` function.
+ */
+void
+prng_stdlib_init_seed (void)
+{
+  srand(time(NULL));
+}
+
+/**
+ * @brief Initializes the seed used by the random functions with the given value.
+ *
+ * @param seed the value used to initialize the random generator
+ */
+void
+prng_stdlib_init_seed_with_value (const unsigned int seed)
+{
+  srand(seed);
+}
+
+/**
+ * @brief Returns a random integer selected in the window between
+ * the `low` and `high` function parameters, having the two boundaries
+ * in the valid range for the returned value.
+ *
+ * @invariant Parameter `high` cannot be lower then parameter `low`.
+ * The invariant is guarded by an assertion.
+ *
+ * @details When `low == high` the function returns the `low` value
+ * without consuming a position from the random sequence.
+ *
+ * The implementations is build upon the standard `random()` function,
+ * see UNIX/Linux manpages for help.
+ *
+ * Calling the function #prng_stdlib_init_seed set a new seed taken in a not
+ * repeatable way from the `time()` function.
+ *
+ * @param [in] low  the lower bound
+ * @param [in] high the upper bound
+ * @return          a random value in the range U[low..high]
+ */
+int
+prng_stdlib_get_number_in_range (const int low,
+                                 const int high)
+{
+  assert (low <= high);
+  if (low == high) return low;
+  int upper_range_boundary = high - low + 1;
+  int random = (int) ((double) upper_range_boundary * (rand() / (RAND_MAX + 1.0)));
+  return random + low;
+  /*
+   * Call example:
+   * args: low=3, high=10
+   * upper_range_boundary: 8
+   * rand: U[0..7]
+   * return: U[3..10]
+   */
+}
+
+/**
+ * @brief Shuffles the given array.
+ *
+ * @details Arrange the `n` elements of `array` in random order.
+ * Only effective if `n` is much smaller than `RAND_MAX`.
+ *
+ * @param [in,out] array the array to be shuffled
+ * @param [in]     n     the number of elements in the array
+ */
+void
+prng_stdlib_shuffle_array_uint8 (uint8_t *const array,
+                                 const int n)
+{
+  if (n > 1) {
+    for (int i = 0; i < n - 1; i++) {
+      int j = i + (double) rand() * (n - i) / RAND_MAX;
+      const uint8_t t = *(array + j);
+      *(array + j) = *(array + i);
+      *(array + i) = t;
+    }
+  }
+}
+
 /**
  * @brief Generates a seed, used by the random functions, obtained from the internal clock.
  *

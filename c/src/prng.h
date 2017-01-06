@@ -51,6 +51,19 @@ typedef struct {
 } prng_mt19937_t;
 
 
+extern void
+prng_stdlib_init_seed (void);
+
+extern void
+prng_stdlib_init_seed_with_value (const unsigned int seed);
+
+extern int
+prng_stdlib_get_number_in_range (const int low,
+                                 const int high);
+
+extern void
+prng_stdlib_shuffle_array_uint8 (uint8_t *const array,
+                                 const int n);
 
 extern unsigned long int
 prng_uint64_from_clock_random_seed (void);
