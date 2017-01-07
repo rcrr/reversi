@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -36,8 +36,8 @@
 
 #include <glib.h>
 
-#include "random.h"
 #include "board.h"
+#include "prng.h"
 #include "exact_solver.h"
 #include "game_tree_logger.h"
 #include "random_game_sampler.h"
@@ -55,7 +55,7 @@
 static SearchNode *
 game_position_random_sampler_impl (ExactSolution *const result,
                                    const GamePosition  *const gp,
-                                   RandomNumberGenerator *const rng);
+                                   prng_mt19937_t *const prng);
 
 
 
@@ -130,7 +130,8 @@ game_position_random_sampler (const GamePositionX *const root,
     compute_hash = true;
   }
 
-  RandomNumberGenerator *rng = rng_new(rng_random_seed());
+  prng_mt19937_t *prng = prng_mt19937_new();
+  prng_mt19937_init_by_seed(prng, prng_uint64_from_clock_random_seed());
 
   result = exact_solution_new();
   result->solved_game_position = game_position_clone(root_gp);
@@ -140,7 +141,7 @@ game_position_random_sampler (const GamePositionX *const root,
       sub_run_id = repetition;
       call_count = 0;
     }
-    sn = game_position_random_sampler_impl(result, result->solved_game_position, rng);
+    sn = game_position_random_sampler_impl(result, result->solved_game_position, prng);
     if (sn) {
       result->pv[0] = sn->move;
       result->outcome = sn->value;
@@ -149,7 +150,7 @@ game_position_random_sampler (const GamePositionX *const root,
   }
 
   game_tree_log_close(log_env);
-  rng_free(rng);
+  prng_mt19937_free(prng);
 
   return result;
 }
@@ -167,7 +168,7 @@ game_position_random_sampler (const GamePositionX *const root,
 static SearchNode *
 game_position_random_sampler_impl (ExactSolution *const result,
                                    const GamePosition  *const gp,
-                                   RandomNumberGenerator *const rng)
+                                   prng_mt19937_t *const prng)
 {
   result->node_count++;
   SearchNode *node = NULL;
@@ -200,12 +201,12 @@ game_position_random_sampler_impl (ExactSolution *const result,
   if (game_position_has_any_player_any_legal_move(gp)) { // the game must go on
     if (legal_move_count == 0) { // player has to pass
       GamePosition *flipped_players = game_position_pass(gp);
-      node = search_node_negated(game_position_random_sampler_impl(result, flipped_players, rng));
+      node = search_node_negated(game_position_random_sampler_impl(result, flipped_players, prng));
       game_position_free(flipped_players);
     } else { // regular move
-      const Square random_move = square_set_random_selection(rng, legal_moves);
+      const Square random_move = square_set_random_selection(prng, legal_moves);
       GamePosition *next_gp = game_position_make_move(gp, random_move);
-      node = search_node_negated(game_position_random_sampler_impl(result, next_gp, rng));
+      node = search_node_negated(game_position_random_sampler_impl(result, next_gp, prng));
       game_position_free(next_gp);
     }
   } else { // game-over

@@ -12,7 +12,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -39,7 +39,7 @@
 #include <glib.h>
 
 #include "bit_works.h"
-#include "random.h"
+#include "prng.h"
 
 
 
@@ -265,8 +265,9 @@ square_set_to_pg_json_array (const SquareSet squares);
 extern gchar *
 square_set_to_string (const SquareSet squares);
 
+
 extern Square
-square_set_random_selection (RandomNumberGenerator *const rng,
+square_set_random_selection (prng_mt19937_t *const prng,
                              const SquareSet squares);
 
 extern void

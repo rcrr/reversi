@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -307,14 +307,16 @@ square_set_random_selection_test (void)
 {
   //! [square_set_random_selection usage]
   const unsigned int seed = 1739;
-  RandomNumberGenerator *rng = rng_new(seed);
+  prng_mt19937_t *prng = prng_mt19937_new();
+  prng_mt19937_init_by_seed(prng, seed);
   const SquareSet squares = (SquareSet) 7; // 7 is {A1, B1, C1}
-  const Square sq = square_set_random_selection(rng, squares);
+  const Square sq = square_set_random_selection(prng, squares);
   g_assert(sq == A1 || sq == B1 || sq == C1);
-  rng_free(rng);
+  prng_mt19937_free(prng);
   //! [square_set_random_selection usage]
 
-  RandomNumberGenerator *rng1 = rng_new(17598);
+  prng_mt19937_t *prng1 = prng_mt19937_new();
+  prng_mt19937_init_by_seed(prng, 17598);
 
   const int max_iteration_count = 1000000;
   unsigned long int observations[square_cardinality];
@@ -322,7 +324,7 @@ square_set_random_selection_test (void)
     observations[i] = 0;
   }
   for (int j = 0; j < max_iteration_count; j++) {
-    const Square sq = square_set_random_selection(rng1, (SquareSet) 0xFFFFFFFFFFFFFFFF);
+    const Square sq = square_set_random_selection(prng1, (SquareSet) 0xFFFFFFFFFFFFFFFF);
     g_assert(sq >= A1 || sq <= H8);
     observations[sq]++;
     int touched_count = 0;
@@ -335,16 +337,16 @@ square_set_random_selection_test (void)
  out:
 
   for (int i = 0; i < 1000; i++) {
-    const Square sq = square_set_random_selection(rng1, (SquareSet) 5);
+    const Square sq = square_set_random_selection(prng1, (SquareSet) 5);
     g_assert(sq == A1 || sq == C1);
   }
 
   for (int i = 0; i < 100; i++) {
-    const Square sq = square_set_random_selection(rng1, (SquareSet) 2);
+    const Square sq = square_set_random_selection(prng1, (SquareSet) 2);
     g_assert(sq == B1);
   }
 
-  rng_free(rng1);
+  prng_mt19937_free(prng1);
 }
 
 static void

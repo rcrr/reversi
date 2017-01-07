@@ -14,7 +14,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -46,7 +46,6 @@
 
 #include "arch.h"
 #include "board.h"
-#include "random.h"
 
 
 
@@ -683,6 +682,9 @@ square_set_to_string (const SquareSet squares)
 /**
  * @brief Returns a random square among the given set.
  *
+ * @invariant Parameter `prng` must not be null.
+ * The invariant is guarded by an assertion.
+ *
  * @invariant Parameter `squares` must not be empty.
  * The invariant is guarded by an assertion.
  *
@@ -690,19 +692,20 @@ square_set_to_string (const SquareSet squares)
  *
  * @snippet board_test.c square_set_random_selection usage
  *
- * @param [in,out] rng the random number generator instance
- * @param [in]         squares a square set
- * @return             one square selected among the set
+ * @param [in,out] prng the random number generator instance
+ * @param [in]          squares a square set
+ * @return              one square selected among the set
  */
 Square
-square_set_random_selection (RandomNumberGenerator *const rng,
+square_set_random_selection (prng_mt19937_t *const prng,
                              const SquareSet squares)
 {
-  g_assert(squares != empty_square_set);
+  assert(prng);
+  assert(squares != empty_square_set);
   SquareSet s = squares;
-  const int square_count = bit_works_bitcount_64(squares);
-  const int square_index = rng_random_choice_from_finite_set(rng, square_count);
-  for (int i = 0; i < square_count; i++) {
+  const unsigned int square_count = bit_works_bitcount_64(squares);
+  const unsigned int square_index = prng_mt19937_random_choice_from_finite_set(prng, square_count);
+  for (unsigned int i = 0; i < square_count; i++) {
     if (i == square_index) break;
     s ^= bit_works_lowest_bit_set_64(s);
   }
