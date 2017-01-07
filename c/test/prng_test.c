@@ -76,6 +76,10 @@ static void prng_uint64_from_clock_random_seed_test (void);
 static void prng_mt19937_basic_test (void);
 static void prng_mt19937_random_choice_from_finite_set_test (void);
 
+static void prng_mt19937_get_double_in_c0_c1_test (void);
+static void prng_mt19937_get_double_in_c0_o1_test (void);
+static void prng_mt19937_get_double_in_o0_o1_test (void);
+
 static void prng_mt19937_random_choice_from_finite_set_2_test (void);
 static void prng_mt19937_random_choice_from_finite_set_5_test (void);
 static void prng_mt19937_random_choice_from_finite_set_9_test (void);
@@ -83,6 +87,9 @@ static void prng_mt19937_shuffle_array_uint8_2_test (void);
 static void prng_mt19937_shuffle_array_uint8_5_test (void);
 static void prng_mt19937_shuffle_array_uint8_9_test (void);
 
+static void prng_mt19937_shuffle_array_p_test (void);
+static void prng_mt19937_shuffle_array_double_test (void);
+static void prng_mt19937_shuffle_array_int_test (void);
 
 /* Helper function prototypes. */
 
@@ -129,10 +136,14 @@ main (int   argc,
 
   g_test_add_func("/prng/dummy", dummy_test);
 
-  g_test_add_func("/random/prng_stdlib_seed_test", prng_stdlib_seed_test);
-  g_test_add_func("/random/prng_stdlib_get_number_in_range_test", prng_stdlib_get_number_in_range_test);
-  g_test_add_func("/random/prng_stdlib_shuffle_array_uint8_2_test", prng_stdlib_shuffle_array_uint8_2_test);
-  g_test_add_func("/random/prng_stdlib_shuffle_array_uint8_5_test", prng_stdlib_shuffle_array_uint8_5_test);
+  g_test_add_func("/prng/prng_stdlib_seed_test", prng_stdlib_seed_test);
+  g_test_add_func("/prng/prng_stdlib_get_number_in_range_test", prng_stdlib_get_number_in_range_test);
+  g_test_add_func("/prng/prng_stdlib_shuffle_array_uint8_2_test", prng_stdlib_shuffle_array_uint8_2_test);
+  g_test_add_func("/prng/prng_stdlib_shuffle_array_uint8_5_test", prng_stdlib_shuffle_array_uint8_5_test);
+
+  g_test_add_func("/prng/prng_mt19937_get_double_in_c0_c1_test", prng_mt19937_get_double_in_c0_c1_test);
+  g_test_add_func("/prng/prng_mt19937_get_double_in_c0_o1_test", prng_mt19937_get_double_in_c0_o1_test);
+  g_test_add_func("/prng/prng_mt19937_get_double_in_o0_o1_test", prng_mt19937_get_double_in_o0_o1_test);
 
   g_test_add_func("/prng/prng_uint64_from_clock_random_seed_test", prng_uint64_from_clock_random_seed_test);
   g_test_add_func("/prng/prng_mt19937_basic_test", prng_mt19937_basic_test);
@@ -143,6 +154,10 @@ main (int   argc,
   g_test_add_func("/prng/prng_mt19937_shuffle_array_uint8_2_test", prng_mt19937_shuffle_array_uint8_2_test);
   g_test_add_func("/prng/prng_mt19937_shuffle_array_uint8_5_test", prng_mt19937_shuffle_array_uint8_5_test);
   g_test_add_func("/prng/prng_mt19937_shuffle_array_uint8_9_test", prng_mt19937_shuffle_array_uint8_9_test);
+
+  g_test_add_func("/prng/prng_mt19937_shuffle_array_p_test", prng_mt19937_shuffle_array_p_test);
+  g_test_add_func("/prng/prng_mt19937_shuffle_array_double_test", prng_mt19937_shuffle_array_double_test);
+  g_test_add_func("/prng/prng_mt19937_shuffle_array_int_test", prng_mt19937_shuffle_array_int_test);
 
   return g_test_run();
 }
@@ -328,6 +343,116 @@ prng_stdlib_shuffle_array_uint8_5_test (void)
     g_assert_cmpfloat(fabs(chi_square_t - expected_chi_square_transposed[i]), <=, epsilon);
   }
 
+}
+
+
+
+static void
+prng_mt19937_get_double_in_c0_c1_test (void)
+{
+  const int repeats = 10000;
+
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, prng_uint64_from_clock_random_seed());
+
+  for (int i = 0; i < repeats; i++) {
+    const double r = prng_mt19937_get_double_in_c0_c1(g);
+    g_assert_cmpfloat(r, >=, 0.0);
+    g_assert_cmpfloat(r, <=, 1.0);
+  }
+
+  prng_mt19937_free(g);
+
+  /*
+   * The function definition is very simple:
+   *
+   * return (prng_mt19937_get_uint64(st) >> 11) * (1.0 / 9007199254740991.0);
+   *
+   *
+   * Here we check that the shift and the float constant are appropriate...
+   */
+  const double magic_const = 9007199254740991.0;
+  const uint64_t a = 0ULL;
+  const uint64_t b = 0xFFFFFFFFFFFFFFFF;
+
+  const double c0 = (a >> 11) * (1.0 / magic_const);
+  const double c1 = (b >> 11) * (1.0 / magic_const);
+
+  g_assert(c0 == 0.0);
+  g_assert(c1 == 1.0);
+}
+
+static void
+prng_mt19937_get_double_in_c0_o1_test (void)
+{
+  const int repeats = 10000;
+
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, prng_uint64_from_clock_random_seed());
+
+  for (int i = 0; i < repeats; i++) {
+    const double r = prng_mt19937_get_double_in_c0_o1(g);
+    g_assert_cmpfloat(r, >=, 0.0);
+    g_assert_cmpfloat(r, <,  1.0);
+  }
+
+  prng_mt19937_free(g);
+
+  /*
+   * The function definition is very simple:
+   *
+   * return (prng_mt19937_get_uint64(st) >> 11) * (1.0 / 9007199254740992.0);
+   *
+   *
+   * Here we check that the shift and the float constant are appropriate...
+   */
+  const double magic_const = 9007199254740992.0;
+  const uint64_t a = 0ULL;
+  const uint64_t b = 0xFFFFFFFFFFFFFFFF;
+
+  const double c0 = (a >> 11) * (1.0 / magic_const);
+  const double c1 = (b >> 11) * (1.0 / magic_const);
+
+  g_assert(c0 == 0.0);
+  g_assert_cmpfloat(c1, >=, 0.9999999999999999); // 16 nines ....
+  g_assert_cmpfloat(c1, <,  1.0);
+}
+
+static void
+prng_mt19937_get_double_in_o0_o1_test (void)
+{
+  const int repeats = 10000;
+
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, prng_uint64_from_clock_random_seed());
+
+  for (int i = 0; i < repeats; i++) {
+    const double r = prng_mt19937_get_double_in_o0_o1(g);
+    g_assert_cmpfloat(r, >, 0.0);
+    g_assert_cmpfloat(r, <, 1.0);
+  }
+
+  prng_mt19937_free(g);
+
+  /*
+   * The function definition is very simple:
+   *
+   * return ((prng_mt19937_get_uint64(st) >> 12) + 0.5) * (1.0 / 4503599627370496.0);
+   *
+   *
+   * Here we check that the shift and the float constant are appropriate...
+   */
+  const double magic_const = 4503599627370496.0;
+  const uint64_t a = 0ULL;
+  const uint64_t b = 0xFFFFFFFFFFFFFFFF;
+
+  const double c0 = ((a >> 12) + 0.5) * (1.0 / magic_const);
+  const double c1 = ((b >> 12) + 0.5) * (1.0 / magic_const);
+
+  g_assert_cmpfloat(c0, >,  0.0);
+  g_assert_cmpfloat(c0, <=, 0.000000000000001);
+  g_assert_cmpfloat(c1, >=, 0.999999999999999); // 15 nines ....
+  g_assert_cmpfloat(c1, <,  1.0);
 }
 
 
@@ -574,6 +699,107 @@ prng_mt19937_shuffle_array_uint8_9_test (void)
                                    10481,     /* seed */
                                    expected_chi_square,
                                    expected_chi_square_transposed);
+}
+
+static void
+prng_mt19937_shuffle_array_p_test (void)
+{
+  const size_t a_length = 10;
+  void *a[a_length];
+  for (size_t i = 0; i < a_length; i++) {
+    a[i] = &a[i];
+  }
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, 37);
+  prng_mt19937_shuffle_array_p(g, a, a_length);
+  prng_mt19937_free(g);
+
+  /*
+    printf("\n\nindex;address;value\n");
+    for (int i = 0; i < a_length; i++) {
+    printf("%2d;%p;%p\n", i, (void *) &a[i], a[i]);
+    }
+    index;address;value
+    0;0x7ffe05106520;0x7ffe05106558
+    1;0x7ffe05106528;0x7ffe05106540
+    2;0x7ffe05106530;0x7ffe05106538
+    3;0x7ffe05106538;0x7ffe05106528
+    4;0x7ffe05106540;0x7ffe05106520
+    5;0x7ffe05106548;0x7ffe05106560
+    6;0x7ffe05106550;0x7ffe05106550
+    7;0x7ffe05106558;0x7ffe05106548
+    8;0x7ffe05106560;0x7ffe05106530
+    9;0x7ffe05106568;0x7ffe05106568
+   */
+  g_assert((void **) a[0] - (void **) a == 7);
+}
+
+static void
+prng_mt19937_shuffle_array_double_test (void)
+{
+  const size_t a_length = 10;
+  double a[a_length];
+  for (size_t i = 0; i < a_length; i++) {
+    a[i] = i;
+  }
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, 675009821247ULL);
+  prng_mt19937_shuffle_array_double(g, a, a_length);
+  prng_mt19937_free(g);
+
+  /*
+  printf("\n\nindex;value\n");
+  for (int i = 0; i < a_length; i++) {
+    printf("%2d;%f\n", i, a[i]);
+  }
+  index;value
+  0;4.000000
+  1;7.000000
+  2;9.000000
+  3;6.000000
+  4;0.000000
+  5;1.000000
+  6;8.000000
+  7;3.000000
+  8;5.000000
+  9;2.000000
+  */
+
+  g_assert(a[9] == 2.0);
+}
+
+static void
+prng_mt19937_shuffle_array_int_test (void)
+{
+  const size_t a_length = 10;
+  int a[a_length];
+  for (size_t i = 0; i < a_length; i++) {
+    a[i] = i;
+  }
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, 1010909804562ULL);
+  prng_mt19937_shuffle_array_int(g, a, a_length);
+  prng_mt19937_free(g);
+
+  /*
+  printf("\n\nindex;value\n");
+  for (int i = 0; i < a_length; i++) {
+    printf("%2d;%d\n", i, a[i]);
+  }
+  index;value
+  0;6
+  1;3
+  2;8
+  3;2
+  4;7
+  5;5
+  6;1
+  7;4
+  8;9
+  9;0
+  */
+
+  g_assert(a[4] == 7);
 }
 
 
