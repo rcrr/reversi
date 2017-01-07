@@ -35,6 +35,8 @@
 #ifndef PRNG_H
 #define PRNG_H
 
+#include <stdint.h>
+
 
 
 /**

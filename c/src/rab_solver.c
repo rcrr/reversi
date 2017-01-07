@@ -11,7 +11,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -38,7 +38,7 @@
 
 #include <glib.h>
 
-#include "random.h"
+#include "prng.h"
 #include "game_tree_logger.h"
 
 #include "rab_solver.h"
@@ -108,7 +108,7 @@ game_position_rab_solve (const GamePositionX *const root,
     game_tree_log_open_h(log_env);
   }
 
-  random_init_seed();
+  prng_stdlib_init_seed();
 
   int game_value = out_of_range_defeat_score;
   Square best_move = invalid_move;
@@ -170,7 +170,7 @@ game_position_solve_impl (ExactSolution* const result,
   current_node_info->hash = game_position_x_hash(current_gpx);
   const SquareSet move_set = game_position_x_legal_moves(current_gpx);
   game_tree_move_list_from_set(move_set, current_node_info);
-  random_shuffle_array_uint8(current_node_info->head_of_legal_move_list, current_node_info->move_count);
+  prng_stdlib_shuffle_array_uint8(current_node_info->head_of_legal_move_list, current_node_info->move_count);
 
   if (log_env->log_is_on) {
     LogDataH log_data = {
