@@ -66,18 +66,18 @@ static const double chi_square_distribution_table[][CHI_SQUARE_CATEGORIES_THRESH
 
 static void dummy_test (void);
 
-static void random_seed_test (void);
-static void random_get_number_in_range_test (void);
-static void random_shuffle_array_uint8_2_test (void);
-static void random_shuffle_array_uint8_5_test (void);
+static void random_seed_test (void);                         // ok - ported
+static void random_get_number_in_range_test (void);          // ok - ported
+static void random_shuffle_array_uint8_2_test (void);        // ok - ported
+static void random_shuffle_array_uint8_5_test (void);        // ok - ported
 
-static void rng_random_seed_test (void);
-static void rng_random_choice_from_finite_set_2_test (void);
-static void rng_random_choice_from_finite_set_5_test (void);
-static void rng_random_choice_from_finite_set_9_test (void);
-static void rng_shuffle_array_uint8_2_test (void);
-static void rng_shuffle_array_uint8_5_test (void);
-static void rng_shuffle_array_uint8_9_test (void);
+static void rng_random_seed_test (void);                     // ok - ported
+static void rng_random_choice_from_finite_set_2_test (void); // ok - ported
+static void rng_random_choice_from_finite_set_5_test (void); // ok - ported
+static void rng_random_choice_from_finite_set_9_test (void); // ok - ported
+static void rng_shuffle_array_uint8_2_test (void);           // ok - ported
+static void rng_shuffle_array_uint8_5_test (void);           // ok - ported
+static void rng_shuffle_array_uint8_9_test (void);           // ok - ported
 static void rng_shuffle_array_p_test (void);
 
 
