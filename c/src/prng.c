@@ -5,16 +5,48 @@
  * @details This module provides random utilities and an underline pseudo
  * random number generator.
  *
- * Description of the functions ....
  *
- * Description of the usage ...
+ * There are two groups of functions and a few spare utilities. The first, very simple is just
+ * a wrapper for the C standard library. It collects:
+ *
+ *  - #prng_stdlib_init_seed()
+ *  - #prng_stdlib_init_seed_with_value()
+ *  - #prng_stdlib_get_number_in_range()
+ *  - #prng_stdlib_shuffle_array_uint8()
+ *
+ * The second group is build around the Mersenne Twister Pseudo Random Number Generator and the
+ * original implementation by Makoto Matsumoto and Takuji Nishimura.
+ * Belonging to it there are the following functions:
+ *
+ *  - #prng_mt19937_new()
+ *  - #prng_mt19937_free()
+ *  - #prng_mt19937_init_by_seed()
+ *  - #prng_mt19937_init_by_array()
+ *  - #prng_mt19937_get_uint64()
+ *  - #prng_mt19937_get_double_in_c0_c1()
+ *  - #prng_mt19937_get_double_in_c0_o1()
+ *  - #prng_mt19937_get_double_in_o0_o1()
+ *  - #prng_mt19937_random_choice_from_finite_set()
+ *  - #prng_mt19937_shuffle_array_uint8()
+ *  - #prng_mt19937_shuffle_array_p()
+ *  - #prng_mt19937_shuffle_array_double()
+ *  - #prng_mt19937_shuffle_array_int()
+ *
+ * A useful function that the module provide is #prng_uint64_from_clock_random_seed(). It generates useful "random"
+ * seed from the system clock.
+ *
+ * A common usage scenario is to generate the PRNG status, contained into an object of type #prng_mt19937_t, calling
+ * the constructor function #prng_mt19937_new(). Then initialize it by means of either #prng_mt19937_init_by_seed(),
+ * or #prng_mt19937_init_by_array(), and after having used it, release the memory calling #prng_mt19937_free().
+ * The main function used to generate new elements of the pseudo-random sequence is #prng_mt19937_get_uint64(), it
+ * is called by all the other methods.
  *
  * The MT19937 generator of Makoto Matsumoto and Takuji Nishimura is a variant
  * of the twisted generalized feedback shift-register algorithm, and is known as
  * the “Mersenne Twister” generator. It has a Mersenne prime period of 2^19937 - 1 (about 10^6000)
  * and is equi-distributed in 623 dimensions. It has passed the DIE-HARD statistical tests.
  *
- * For more information see,
+ * For more information see:
  *
  * <em>
  * Makoto Matsumoto and Takuji Nishimura, “Mersenne Twister: A 623-dimensionally equidistributed
@@ -109,7 +141,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <time.h>
 #include <math.h>
 #include <assert.h>
