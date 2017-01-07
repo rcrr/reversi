@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2015 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -40,7 +40,7 @@
 #include <glib.h>
 
 #include "red_black_tree.h"
-#include "random.h"
+#include "prng.h"
 #include "sort_utils.h"
 #include "memory_manager.h"
 
@@ -613,8 +613,9 @@ random_key_volume_test (void)
 
   /* Sets up the RNG. */
   const unsigned int seed = 20150801;
-  RandomNumberGenerator *rng = rng_new(seed);
-  g_assert(rng);
+  prng_mt19937_t *prng = prng_mt19937_new();
+  g_assert(prng);
+  prng_mt19937_init_by_seed(prng, seed);
 
   /* Creates the table. */
   rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
@@ -622,7 +623,7 @@ random_key_volume_test (void)
 
   /* Populates the table with random selection within the set. Element's val field is incremented on each probe. */
   for (size_t k = 0; k < insertion_count; k++) {
-    const unsigned long index = rng_random_choice_from_finite_set(rng, data_size);
+    const unsigned long index = prng_mt19937_random_choice_from_finite_set(prng, data_size);
     struct element **e = (struct element **) rbt_probe(table, &data[index]);
     (*e)->val++;
   }
@@ -639,11 +640,11 @@ random_key_volume_test (void)
   }
   g_assert(insertion_count_checksum == insertion_count);
   g_assert(element_count_checksum == rbt_count(table));
-  g_assert(element_count_checksum == 1776);      /* Depends on RNG, seed, data_size, and insertion_count. */
+  g_assert(element_count_checksum == 1767);      /* Depends on PRNG, seed, data_size, and insertion_count. */
 
   /* Frees resources. */
   rbt_destroy(table, NULL);
-  rng_free(rng);
+  prng_mt19937_free(prng);
 }
 
 
@@ -1496,9 +1497,11 @@ prepare_data_array (const size_t len,
     a[i] = i;
   }
 
-  RandomNumberGenerator *rng = rng_new(seed);
-  rng_shuffle_array_int(rng, a, len);
-  rng_free(rng);
+  prng_mt19937_t *prng = prng_mt19937_new();
+  g_assert(prng);
+  prng_mt19937_init_by_seed(prng, seed);
+  prng_mt19937_shuffle_array_int(prng, a, len);
+  prng_mt19937_free(prng);
 
   return a;
 }

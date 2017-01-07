@@ -11,7 +11,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014, 2015 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -39,7 +39,7 @@
 #include <glib.h>
 
 #include "sort_utils.h"
-#include "random.h"
+#include "prng.h"
 
 
 
@@ -1845,9 +1845,10 @@ hlp_run_sort_d_random_test (const sort_double_fun sort_fun,
       a[i] = i;
     }
 
-    RandomNumberGenerator *rng = rng_new(seed);
-    rng_shuffle_array_double(rng, a, len);
-    rng_free(rng);
+    prng_mt19937_t *prng = prng_mt19937_new();
+    prng_mt19937_init_by_seed(prng, seed);
+    prng_mt19937_shuffle_array_double(prng, a, len);
+    prng_mt19937_free(prng);
 
     g_test_timer_start();
     sort_fun(a, len);
@@ -1917,17 +1918,18 @@ hlp_organpipe_int64_new (const size_t n,
     }
   }
 
-  RandomNumberGenerator *rng = rng_new(seed);
+  prng_mt19937_t *prng = prng_mt19937_new();
+  prng_mt19937_init_by_seed(prng, seed);
   for (int k = 0; k < swaps; k++) {
-    unsigned long int i = rng_random_choice_from_finite_set(rng, 2 * n);
-    unsigned long int j = rng_random_choice_from_finite_set(rng, 2 * n);
+    unsigned long int i = prng_mt19937_random_choice_from_finite_set(prng, 2 * n);
+    unsigned long int j = prng_mt19937_random_choice_from_finite_set(prng, 2 * n);
     if (i != j) {
       const size_t tmp = *(el + i);
       *(el + i) = *(el + j);
       *(el + j) = tmp;
     }
   }
-  rng_free(rng);
+  prng_mt19937_free(prng);
 
   tc->test_label = desc;
   tc->versus = versus;
