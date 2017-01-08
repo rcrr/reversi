@@ -85,8 +85,8 @@ static LogEnv *log_env = NULL;
  * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_rab_solve (const GamePositionX *const root,
-                         const endgame_solver_env_t *const env)
+game_position_rab_solve__ (const GamePositionX *const root,
+                           const endgame_solver_env_t *const env)
 {
   g_assert(root);
   g_assert(env);

@@ -90,11 +90,6 @@ typedef struct {
  */
 static const size_t game_tree_log_max_json_doc_len = 4096;
 
-/**
- * @brief The empty square set.
- */
-static const int game_tree_log_def_sub_run_id = 0;
-
 
 
 /********************************************************/
@@ -137,6 +132,7 @@ game_tree_log_data_h_json_doc3 (char *const json_doc,
 extern void
 do_log (const ExactSolution *const result,
         const GameTreeStack *const stack,
+        const unsigned long int sub_run_id,
         const LogEnv *const log_env);
 
 

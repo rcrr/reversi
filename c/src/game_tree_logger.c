@@ -334,11 +334,12 @@ game_tree_log_data_h_json_doc3 (char *const json_doc,
 void
 do_log (const ExactSolution *const result,
         const GameTreeStack *const stack,
+        const unsigned long int sub_run_id,
         const LogEnv *const log_env)
 {
   const NodeInfo* const c = stack->active_node;
   LogDataH log_data =
-    { .sub_run_id   = game_tree_log_def_sub_run_id,
+    { .sub_run_id   = sub_run_id,
       .call_id      = result->node_count,
       .hash         = c->hash,
       .parent_hash  = (c - 1)->hash,

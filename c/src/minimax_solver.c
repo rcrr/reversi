@@ -63,6 +63,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <inttypes.h>
+#include <assert.h>
 
 #include "game_tree_logger.h"
 #include "minimax_solver.h"
@@ -81,13 +82,17 @@ static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack,
                           const LogEnv *const log_env,
-                          const bool alpha_beta_pruning);
+                          const bool alpha_beta_pruning,
+                          const bool randomize_move_order,
+                          prng_mt19937_t *const prng,
+                          const unsigned long int sub_run_id);
 
 static
 ExactSolution *
 game_position_mab_solve (const GamePositionX *const root,
                          const endgame_solver_env_t *const env,
-                         const bool alpha_beta_pruning);
+                         const bool alpha_beta_pruning,
+                         const bool randomize_move_order);
 
 
 
@@ -112,8 +117,12 @@ ExactSolution *
 game_position_minimax_solve (const GamePositionX *const root,
                              const endgame_solver_env_t *const env)
 {
+  assert(root);
+  assert(env);
+
   const bool ab_pruning = false;
-  return game_position_mab_solve(root, env, ab_pruning);
+  const bool randomize_move_order = false;
+  return game_position_mab_solve(root, env, ab_pruning, randomize_move_order);
 }
 
 /**
@@ -127,8 +136,31 @@ ExactSolution *
 game_position_ab_solve (const GamePositionX *const root,
                         const endgame_solver_env_t *const env)
 {
+  assert(root);
+  assert(env);
+
   const bool ab_pruning = true;
-  return game_position_mab_solve(root, env, ab_pruning);
+  const bool randomize_move_order = false;
+  return game_position_mab_solve(root, env, ab_pruning, randomize_move_order);
+}
+
+/**
+ * @brief Solves the game position returning a new exact solution pointer.
+ *
+ * @param [in] root the starting game position to be solved
+ * @param [in] env  parameter envelope
+ * @return          a pointer to a new exact solution structure
+ */
+ExactSolution *
+game_position_rab_solve (const GamePositionX *const root,
+                         const endgame_solver_env_t *const env)
+{
+  assert(root);
+  assert(env);
+
+  const bool ab_pruning = true;
+  const bool randomize_move_order = true;
+  return game_position_mab_solve(root, env, ab_pruning, randomize_move_order);
 }
 
 
@@ -144,29 +176,47 @@ game_position_ab_solve (const GamePositionX *const root,
 ExactSolution *
 game_position_mab_solve (const GamePositionX *const root,
                          const endgame_solver_env_t *const env,
-                         const bool alpha_beta_pruning)
+                         const bool alpha_beta_pruning,
+                         const bool randomize_move_order)
 {
   g_assert(root);
   g_assert(env);
 
-  GameTreeStack *stack = game_tree_stack_new();
-  game_tree_stack_init(root, stack);
-
   LogEnv *const log_env = game_tree_log_init(env->log_file);
 
-  if (log_env->log_is_on) {
-    game_tree_log_open_h(log_env);
-    stack->hash_is_on = true;
+  if (log_env->log_is_on) game_tree_log_open_h(log_env);
+
+  prng_mt19937_t *prng = NULL;
+  unsigned long int n_run = 1;
+  if (randomize_move_order) {
+    prng = prng_mt19937_new();
+    prng_mt19937_init_by_seed(prng, prng_uint64_from_clock_random_seed());
+    if (env->repeats < 1) {
+      n_run = 1;
+    } else {
+      n_run = env->repeats;
+    }
   }
 
-  ExactSolution *result = exact_solution_new();
-  exact_solution_set_solved_game_position_x(result, root);
+  ExactSolution *result = NULL;
+  GameTreeStack *stack = game_tree_stack_new();
+  for (unsigned long int sub_run_id = 0; sub_run_id < n_run; sub_run_id++) {
 
-  game_position_solve_impl(result, stack, log_env, alpha_beta_pruning);
+    game_tree_stack_init(root, stack);
+    if (log_env->log_is_on) stack->hash_is_on = true;
 
-  result->pv[0] = stack->nodes[1].best_move;
-  result->outcome = stack->nodes[1].alpha;
+    result = exact_solution_new();
+    exact_solution_set_solved_game_position_x(result, root);
 
+    game_position_solve_impl(result, stack, log_env, alpha_beta_pruning, randomize_move_order, prng, sub_run_id);
+
+    result->pv[0] = stack->nodes[1].best_move;
+    result->outcome = stack->nodes[1].alpha;
+
+    if (sub_run_id != n_run - 1) exact_solution_free(result);
+  }
+
+  if (randomize_move_order) prng_mt19937_free(prng);
   game_tree_stack_free(stack);
   game_tree_log_close(log_env);
 
@@ -177,7 +227,10 @@ static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack,
                           const LogEnv *const log_env,
-                          const bool alpha_beta_pruning)
+                          const bool alpha_beta_pruning,
+                          const bool randomize_move_order,
+                          prng_mt19937_t *const prng,
+                          const unsigned long int sub_run_id)
 {
   NodeInfo *c;
   const NodeInfo *const root = stack->active_node;
@@ -189,8 +242,9 @@ game_position_solve_impl (ExactSolution *const result,
   else c->alpha = out_of_range_defeat_score;
 
   gts_generate_moves(stack);
+  if (randomize_move_order) prng_mt19937_shuffle_array_uint8(prng, c->head_of_legal_move_list, c->move_count);
   if (stack->hash_is_on) gts_compute_hash(stack);
-  if (log_env->log_is_on) do_log(result, stack, log_env);
+  if (log_env->log_is_on) do_log(result, stack, sub_run_id, log_env);
 
   if (gts_is_terminal_node(stack)) {
     result->leaf_count++;
