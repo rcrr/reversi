@@ -1,6 +1,54 @@
 
 This is a diary of the performance evolution of the endgame solver.
 
+Date: January 22nd, 2017
+      git commit 9c225b72458e49b253b6a77cfa1d8b640e5f7b93
+
+A lot of time has passed since I wrote an entry into this diary. But running the command:
+
+rcrr@hypnotic:~/base/prj/reversi$ git log 16936be7a2c6533c7e5f741db3f3cebf5fb12c2a..9c225b72458e49b253b6a77cfa1d8b640e5f7b93 --pretty=oneline | wc -l
+
+returns 699 commits done in between. Several changes has been realized, where the most relevant are the PVE env,
+the AVX2 game mechanics, and a complete redesign of the alpha-beta implementation.
+The codebase is really a work in progress, before having a solid endgame solver, there are quite a few points
+to address: PVE code is a mess, the memory allocation is far too complex, the code is not working for position 39.
+The board module has too many types (GamePosition, Board, GamePositionX) and has far too duplicated functions.
+Exact_solver does not have a clean implementation like alpha-beta. The code searches without iterative-deepening,
+and without an hashtable.
+
+Anyhow I just purchased a new PC, and here you find the comparison among the two:
+
+hypnotic:
+CPU:     Intel(R) Core(TM) i7-4700HQ CPU @ 2.40GHz
+RAM:    
+  Size:  16384 MB
+  Type:  DDR3
+  Speed: 1600 MHz
+KERNEL:  Linux hypnotic 3.13.0-107-generic #154-Ubuntu SMP Tue Dec 20 09:57:27 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
+GCC:     4.8.4
+
+vilya:
+CPU:     Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
+RAM:
+  Size:  4096 MB
+  Type:  DDR4
+  Speed: 2133 MHz
+KERNEL:  Linux vilya 4.4.0-59-generic #80-Ubuntu SMP Fri Jan 6 17:47:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
+GCC:     5.4.0
+
+Position ffo-42 has been selected as the benchmark, running:
+
+rcrr@hypnotic:~/base/prj/reversi/c$ time ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-42 -s es2
+
+on the two systems, where the result: [node_count=586695875, leaf_count=109953274] - Final outcome: best move=G2, position value=6)
+is the same, the running times are:
+
+hypnotic: 33.658s -> 17,431,097 nodes per second
+vilya:    23.006s -> 25,501,864 "
+
+giving a 32% performance improvement.
+
+
 Date: July 20th, 2014
       git commit 16936be7a2c6533c7e5f741db3f3cebf5fb12c2a
 
@@ -361,7 +409,7 @@ Comparing the performances with another solver, taken from the Andersson Gunnar'
 and compiled on my environment give these result:
 
 DATE             PROGRAM        PROBLEM  NODES             LEAFS            TIME         NPS         Notes
-July 26, 2013    endgame        FFO_40           858,417          475,315       11.857      72,397   None
+July  26, 2013   endgame        FFO_40           858,417          475,315       11.857      72,397   None
 August 4, 2013   endgame        FFO_41         7,550,222	4,784,508       83.716      90,189   *
 August 4, 2013   endgame        FFO_42         5,471,816        2,999,282       69.344      78,908   *
 
