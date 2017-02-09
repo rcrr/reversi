@@ -1,6 +1,16 @@
 
 This is a diary of the performance evolution of the endgame solver.
 
+
+Date: January 28st, 2017
+
+Having substituted the RAM to vilya (64GB - 4x16 - G.Skill Tridentz F4-3200C16-16GTZKW) the time to run:
+
+rcrr@vilya:~/base/prj/reversi/c$ time ./build/bin/endgame_solver -f db/gpdb-ffo.txt -q ffo-42 -s es2
+
+has decreased to: 21.875s
+
+
 Date: January 22nd, 2017
       git commit 9c225b72458e49b253b6a77cfa1d8b640e5f7b93
 

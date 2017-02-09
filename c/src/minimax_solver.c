@@ -38,7 +38,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -87,8 +87,7 @@ game_position_solve_impl (ExactSolution *const result,
                           prng_mt19937_t *const prng,
                           const unsigned long int sub_run_id);
 
-static
-ExactSolution *
+static ExactSolution *
 game_position_mab_solve (const GamePositionX *const root,
                          const endgame_solver_env_t *const env,
                          const bool alpha_beta_pruning,
@@ -100,10 +99,14 @@ game_position_mab_solve (const GamePositionX *const root,
  * Internal variables and constants.
  */
 
-
-
 /**
  * @endcond
+ */
+
+
+
+/*
+ * Public functions.
  */
 
 /**

@@ -52,10 +52,12 @@
  * Prototypes for internal functions.
  */
 
-static SearchNode *
-game_position_random_sampler_impl (ExactSolution *const result,
-                                   const GamePosition  *const gp,
-                                   prng_mt19937_t *const prng);
+static void
+game_position_random_sammpler_impl (ExactSolution *const result,
+                                    GameTreeStack *const stack,
+                                    const LogEnv *const log_env,
+                                    prng_mt19937_t *const prng,
+                                    const unsigned long int sub_run_id);
 
 
 
@@ -63,33 +65,15 @@ game_position_random_sampler_impl (ExactSolution *const result,
  * Internal variables and constants.
  */
 
-/* The logging environment structure. */
-static LogEnv *log_env = NULL;
-
-/* The total number of call to the recursive function that traverse the game DAG. */
-static uint64_t call_count = 0;
-
-/* The predecessor-successor array of game position hash values. */
-static uint64_t gpx_hash_stack[128];
-
-/* True when has has to be computed. */
-static bool compute_hash = false;
-
-/* The index of the last entry into gpx_hash_stack. */
-static uint64_t *gpx_hash = gpx_hash_stack;
-
-/* The sub_run_id used for logging. */
-static int sub_run_id = 0;
-
 /**
  * @endcond
  */
 
 
 
-/*********************************************************/
-/* Function implementations for the GamePosition entity. */
-/*********************************************************/
+/*
+ * Public functions.
+ */
 
 /**
  * @brief Runs a sequence of random games for number of times equal
@@ -106,51 +90,40 @@ game_position_random_sampler (const GamePositionX *const root,
   g_assert(root);
   g_assert(env);
 
-  ExactSolution *result;
-  SearchNode    *sn;
-  int            n;
+  LogEnv *const log_env = game_tree_log_init(env->log_file);
 
-  const GamePosition *const root_gp = game_position_x_gpx_to_gp(root);
-
-  if (env->repeats < 1) {
-    n = 1;
-  } else {
-    n = env->repeats;
-  }
-
-  log_env = game_tree_log_init(env->log_file);
-
-  if (log_env->log_is_on) {
-    GamePosition *ground = game_position_new(board_new(root_gp->board->blacks,
-                                                       root_gp->board->whites),
-                                             player_opponent(root_gp->player));
-    *gpx_hash++ = game_position_hash(ground);
-    game_position_free(ground);
-    game_tree_log_open_h(log_env);
-    compute_hash = true;
-  }
+  if (log_env->log_is_on) game_tree_log_open_h(log_env);
 
   prng_mt19937_t *prng = prng_mt19937_new();
+  unsigned long int n_run = 1;
   prng_mt19937_init_by_seed(prng, prng_uint64_from_clock_random_seed());
-
-  result = exact_solution_new();
-  result->solved_game_position = game_position_clone(root_gp);
-
-  for (int repetition = 0; repetition < n; repetition++) {
-    if (log_env->log_is_on) {
-      sub_run_id = repetition;
-      call_count = 0;
-    }
-    sn = game_position_random_sampler_impl(result, result->solved_game_position, prng);
-    if (sn) {
-      result->pv[0] = sn->move;
-      result->outcome = sn->value;
-    }
-    search_node_free(sn);
+  if (env->repeats < 1) {
+    n_run = 1;
+  } else {
+    n_run = env->repeats;
   }
 
-  game_tree_log_close(log_env);
+  ExactSolution *result = NULL;
+  GameTreeStack *stack = game_tree_stack_new();
+  for (unsigned long int sub_run_id = 0; sub_run_id < n_run; sub_run_id++) {
+
+    game_tree_stack_init(root, stack);
+    if (log_env->log_is_on) stack->hash_is_on = true;
+
+    result = exact_solution_new();
+    exact_solution_set_solved_game_position_x(result, root);
+
+    game_position_random_sammpler_impl(result, stack, log_env, prng, sub_run_id);
+
+    result->pv[0] = stack->nodes[1].best_move;
+    result->outcome = stack->nodes[1].alpha;
+
+    if (sub_run_id != n_run - 1) exact_solution_free(result);
+  }
+
   prng_mt19937_free(prng);
+  game_tree_stack_free(stack);
+  game_tree_log_close(log_env);
 
   return result;
 }
@@ -165,58 +138,47 @@ game_position_random_sampler (const GamePositionX *const root,
  * Internal functions.
  */
 
-static SearchNode *
-game_position_random_sampler_impl (ExactSolution *const result,
-                                   const GamePosition  *const gp,
-                                   prng_mt19937_t *const prng)
+static void
+game_position_random_sammpler_impl (ExactSolution *const result,
+                                    GameTreeStack *const stack,
+                                    const LogEnv *const log_env,
+                                    prng_mt19937_t *const prng,
+                                    const unsigned long int sub_run_id)
 {
+  NodeInfo *c;
+  const NodeInfo *const root = stack->active_node;
+
+ begin:
   result->node_count++;
-  SearchNode *node = NULL;
+  c = ++stack->active_node;
 
-  if (compute_hash) {
-    *gpx_hash = game_position_hash(gp);
-    gpx_hash++;
-  }
+  gts_generate_moves(stack);
+  prng_mt19937_shuffle_array_uint8(prng, c->head_of_legal_move_list, c->move_count);
+  if (stack->hash_is_on) gts_compute_hash(stack);
+  if (log_env->log_is_on) do_log(result, stack, sub_run_id, log_env);
 
-  if (log_env->log_is_on) {
-    GamePositionX gpx_structure = { .blacks = gp->board->blacks, .whites = gp->board->whites, .player = gp->player };
-    GamePositionX *gpx = &gpx_structure;
-    call_count++;
-    LogDataH log_data =
-      { .sub_run_id   = sub_run_id,
-        .call_id      = call_count,
-        .hash         = *(gpx_hash - 1),
-        .parent_hash  = *(gpx_hash - 2),
-        .blacks       = gpx->blacks,
-        .whites       = gpx->whites,
-        .player       = gpx->player,
-        .json_doc     = NULL,
-        .json_doc_len = 0,
-        .call_level   = gpx_hash - gpx_hash_stack - 1 };
-    game_tree_log_write_h(log_env, &log_data);
-  }
-
-  const SquareSet legal_moves = game_position_legal_moves(gp);
-  const int legal_move_count = bit_works_bitcount_64(legal_moves);
-  if (game_position_has_any_player_any_legal_move(gp)) { // the game must go on
-    if (legal_move_count == 0) { // player has to pass
-      GamePosition *flipped_players = game_position_pass(gp);
-      node = search_node_negated(game_position_random_sampler_impl(result, flipped_players, prng));
-      game_position_free(flipped_players);
-    } else { // regular move
-      const Square random_move = square_set_random_selection(prng, legal_moves);
-      GamePosition *next_gp = game_position_make_move(gp, random_move);
-      node = search_node_negated(game_position_random_sampler_impl(result, next_gp, prng));
-      game_position_free(next_gp);
-    }
-  } else { // game-over
+  if (gts_is_terminal_node(stack)) {
     result->leaf_count++;
-    node = search_node_new(pass_move, game_position_final_value(gp));
+    c->best_move = invalid_move;
+    c->alpha = game_position_x_final_value(&c->gpx);
+    goto end;
+  }
+  if (!c->move_set) {
+    if (stack->hash_is_on) {
+      stack->flip_count = 1;
+      *stack->flips = pass_move;
+    }
+    goto begin;
   }
 
-  if (compute_hash) gpx_hash--;
+  gts_make_move(stack);
+  goto begin;
 
-  return node;
+ end:
+  c = --stack->active_node;
+  if (stack->active_node == root) return;
+  c->alpha = - (c + 1)->alpha;
+  goto end;
 }
 
 /**
