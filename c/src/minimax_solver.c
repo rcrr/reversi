@@ -87,11 +87,19 @@ game_position_solve_impl (ExactSolution *const result,
                           prng_mt19937_t *const prng,
                           const unsigned long int sub_run_id);
 
+static void
+game_position_random_sammpler_impl (ExactSolution *const result,
+                                    GameTreeStack *const stack,
+                                    const LogEnv *const log_env,
+                                    prng_mt19937_t *const prng,
+                                    const unsigned long int sub_run_id);
+
 static ExactSolution *
 game_position_mab_solve (const GamePositionX *const root,
                          const endgame_solver_env_t *const env,
                          const bool alpha_beta_pruning,
-                         const bool randomize_move_order);
+                         const bool randomize_move_order,
+                         const bool random_sampler);
 
 
 
@@ -125,7 +133,8 @@ game_position_minimax_solve (const GamePositionX *const root,
 
   const bool ab_pruning = false;
   const bool randomize_move_order = false;
-  return game_position_mab_solve(root, env, ab_pruning, randomize_move_order);
+  const bool random_sampler = false;
+  return game_position_mab_solve(root, env, ab_pruning, randomize_move_order, random_sampler);
 }
 
 /**
@@ -144,7 +153,8 @@ game_position_ab_solve (const GamePositionX *const root,
 
   const bool ab_pruning = true;
   const bool randomize_move_order = false;
-  return game_position_mab_solve(root, env, ab_pruning, randomize_move_order);
+  const bool random_sampler = false;
+  return game_position_mab_solve(root, env, ab_pruning, randomize_move_order, random_sampler);
 }
 
 /**
@@ -163,9 +173,30 @@ game_position_rab_solve (const GamePositionX *const root,
 
   const bool ab_pruning = true;
   const bool randomize_move_order = true;
-  return game_position_mab_solve(root, env, ab_pruning, randomize_move_order);
+  const bool random_sampler = false;
+  return game_position_mab_solve(root, env, ab_pruning, randomize_move_order, random_sampler);
 }
 
+/**
+ * @brief Runs a sequence of random games for number of times equal
+ * to the `repeats` parameter, starting from the `root` game position.
+ *
+ * @param [in] root the starting game position to be solved
+ * @param [in] env  parameter envelope
+ * @return          a pointer to a new exact solution structure
+ */
+ExactSolution *
+game_position_random_sampler (const GamePositionX *const root,
+                              const endgame_solver_env_t *const env)
+{
+  assert(root);
+  assert(env);
+
+  const bool ab_pruning = true;
+  const bool randomize_move_order = true;
+  const bool random_sampler = true;
+  return game_position_mab_solve(root, env, ab_pruning, randomize_move_order, random_sampler);
+}
 
 
 /**
@@ -180,7 +211,8 @@ ExactSolution *
 game_position_mab_solve (const GamePositionX *const root,
                          const endgame_solver_env_t *const env,
                          const bool alpha_beta_pruning,
-                         const bool randomize_move_order)
+                         const bool randomize_move_order,
+                         const bool random_sampler)
 {
   g_assert(root);
   g_assert(env);
@@ -211,7 +243,11 @@ game_position_mab_solve (const GamePositionX *const root,
     result = exact_solution_new();
     exact_solution_set_solved_game_position_x(result, root);
 
-    game_position_solve_impl(result, stack, log_env, alpha_beta_pruning, randomize_move_order, prng, sub_run_id);
+    if (random_sampler) {
+      game_position_random_sammpler_impl(result, stack, log_env, prng, sub_run_id);
+    } else {
+      game_position_solve_impl(result, stack, log_env, alpha_beta_pruning, randomize_move_order, prng, sub_run_id);
+    }
 
     result->pv[0] = stack->nodes[1].best_move;
     result->outcome = stack->nodes[1].alpha;
@@ -278,6 +314,48 @@ game_position_solve_impl (ExactSolution *const result,
   c = --stack->active_node;
   if (stack->active_node == root) return;
   goto entry;
+}
+
+static void
+game_position_random_sammpler_impl (ExactSolution *const result,
+                                    GameTreeStack *const stack,
+                                    const LogEnv *const log_env,
+                                    prng_mt19937_t *const prng,
+                                    const unsigned long int sub_run_id)
+{
+  NodeInfo *c;
+  const NodeInfo *const root = stack->active_node;
+
+  while (true) {
+    result->node_count++;
+    c = ++stack->active_node;
+
+    gts_generate_moves(stack);
+    prng_mt19937_shuffle_array_uint8(prng, c->head_of_legal_move_list, c->move_count);
+    if (stack->hash_is_on) gts_compute_hash(stack);
+    if (log_env->log_is_on) do_log(result, stack, sub_run_id, log_env);
+
+    if (gts_is_terminal_node(stack)) {
+      result->leaf_count++;
+      c->best_move = invalid_move;
+      c->alpha = game_position_x_final_value(&c->gpx);
+      goto unroll;
+    } else if (!c->move_set) {
+      if (stack->hash_is_on) {
+        stack->flip_count = 1;
+        *stack->flips = pass_move;
+      }
+    } else {
+      gts_make_move(stack);
+    }
+  }
+
+ unroll:
+  while (true) {
+    c = --stack->active_node;
+    if (stack->active_node == root) return;
+    c->alpha = - (c + 1)->alpha;
+  }
 }
 
 /**

@@ -84,8 +84,8 @@ game_position_random_sammpler_impl (ExactSolution *const result,
  * @return          a pointer to a new exact solution structure
  */
 ExactSolution *
-game_position_random_sampler (const GamePositionX *const root,
-                              const endgame_solver_env_t *const env)
+game_position_random_sampler__ (const GamePositionX *const root,
+                                const endgame_solver_env_t *const env)
 {
   g_assert(root);
   g_assert(env);
@@ -148,37 +148,36 @@ game_position_random_sammpler_impl (ExactSolution *const result,
   NodeInfo *c;
   const NodeInfo *const root = stack->active_node;
 
- begin:
-  result->node_count++;
-  c = ++stack->active_node;
+  while (true) {
+    result->node_count++;
+    c = ++stack->active_node;
 
-  gts_generate_moves(stack);
-  prng_mt19937_shuffle_array_uint8(prng, c->head_of_legal_move_list, c->move_count);
-  if (stack->hash_is_on) gts_compute_hash(stack);
-  if (log_env->log_is_on) do_log(result, stack, sub_run_id, log_env);
+    gts_generate_moves(stack);
+    prng_mt19937_shuffle_array_uint8(prng, c->head_of_legal_move_list, c->move_count);
+    if (stack->hash_is_on) gts_compute_hash(stack);
+    if (log_env->log_is_on) do_log(result, stack, sub_run_id, log_env);
 
-  if (gts_is_terminal_node(stack)) {
-    result->leaf_count++;
-    c->best_move = invalid_move;
-    c->alpha = game_position_x_final_value(&c->gpx);
-    goto end;
-  }
-  if (!c->move_set) {
-    if (stack->hash_is_on) {
-      stack->flip_count = 1;
-      *stack->flips = pass_move;
+    if (gts_is_terminal_node(stack)) {
+      result->leaf_count++;
+      c->best_move = invalid_move;
+      c->alpha = game_position_x_final_value(&c->gpx);
+      goto unroll;
+    } else if (!c->move_set) {
+      if (stack->hash_is_on) {
+        stack->flip_count = 1;
+        *stack->flips = pass_move;
+      }
+    } else {
+      gts_make_move(stack);
     }
-    goto begin;
   }
 
-  gts_make_move(stack);
-  goto begin;
-
- end:
-  c = --stack->active_node;
-  if (stack->active_node == root) return;
-  c->alpha = - (c + 1)->alpha;
-  goto end;
+ unroll:
+  while (true) {
+    c = --stack->active_node;
+    if (stack->active_node == root) return;
+    c->alpha = - (c + 1)->alpha;
+  }
 }
 
 /**

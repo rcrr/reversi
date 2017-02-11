@@ -55,6 +55,10 @@ extern ExactSolution *
 game_position_rab_solve (const GamePositionX *const root,
                          const endgame_solver_env_t *const env);
 
+extern ExactSolution *
+game_position_random_sampler (const GamePositionX *const root,
+                              const endgame_solver_env_t *const env);
+
 
 
 #endif /* MINIMAX_SOLVER_H */
