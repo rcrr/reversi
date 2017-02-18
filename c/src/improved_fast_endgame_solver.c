@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -77,19 +77,20 @@ typedef struct {
  * Prototypes for internal functions.
  */
 
-static GamePosition *
-ifes_game_position_translation (uint8_t *board,
+static void
+ifes_game_position_translation (GamePositionX *const gpx,
+                                uint8_t *board,
                                 int color);
 
 static void
-game_position_to_ifes_board (const GamePosition *const gp,
+game_position_to_ifes_board (const GamePositionX *const gpx,
                              uint8_t *b,
                              int *p_emp,
                              int *p_wc,
                              int *p_bc);
 
 static IFES_SquareState
-game_position_get_ifes_player (const GamePosition *const gp);
+game_position_get_ifes_player (const GamePositionX *const gpx);
 
 inline static void
 directional_flips (uint8_t *sq, int inc, int color, int oppcol);
@@ -395,10 +396,6 @@ static uint8_t **flip_stack = &(global_flip_stack[0]);
 
 
 
-/*********************************************************/
-/* Function implementations for the GamePosition entity. */
-/*********************************************************/
-
 /**
  * @brief Solves the game position defined by the `root` parameter,
  *        applying the ifes solver.
@@ -425,8 +422,6 @@ game_position_ifes_solve (const GamePositionX *const root,
   g_assert(root);
   g_assert(env);
 
-  const GamePosition *const root_gp = game_position_x_gpx_to_gp(root);
-
   log_env = game_tree_log_init(env->log_file);
 
   if (log_env->log_is_on) {
@@ -435,11 +430,11 @@ game_position_ifes_solve (const GamePositionX *const root,
   }
 
   result = exact_solution_new();
-  result->solved_game_position = game_position_clone(root_gp);
+  exact_solution_set_solved_game_position_x(result, root);
 
-  game_position_to_ifes_board(root_gp, board, &emp, &wc, &bc);
+  game_position_to_ifes_board(root, board, &emp, &wc, &bc);
 
-  IFES_SquareState player = game_position_get_ifes_player(root_gp);
+  IFES_SquareState player = game_position_get_ifes_player(root);
 
   discdiff = player == IFES_BLACK ? bc - wc : wc - bc;
 
@@ -491,10 +486,10 @@ game_position_ifes_solve (const GamePositionX *const root,
  * @return        the player having the move
  */
 static IFES_SquareState
-game_position_get_ifes_player (const GamePosition *const gp)
+game_position_get_ifes_player (const GamePositionX *const gpx)
 {
   IFES_SquareState ifes_player;
-  ifes_player = gp->player == BLACK_PLAYER ? IFES_BLACK : IFES_WHITE;
+  ifes_player = gpx->player == BLACK_PLAYER ? IFES_BLACK : IFES_WHITE;
   return ifes_player;
 }
 
@@ -509,7 +504,7 @@ game_position_get_ifes_player (const GamePosition *const gp)
  *
  */
 static void
-game_position_to_ifes_board (const GamePosition * const gp, uint8_t *b, int *p_emp, int *p_wc, int *p_bc)
+game_position_to_ifes_board (const GamePositionX *const gpx, uint8_t *b, int *p_emp, int *p_wc, int *p_bc)
 {
   /* Sets to IFES_DUMMY all the board squares. */
   for (int board_index = 0; board_index < 91; board_index++) b[board_index] = IFES_DUMMY;
@@ -521,8 +516,8 @@ game_position_to_ifes_board (const GamePosition * const gp, uint8_t *b, int *p_e
     const int column = square_index & 7;
     const int row = (square_index >> 3) & 7;
     const int board_index = column + 10 + 9 * row;
-    if      ((gp->board->whites & (1ULL << square_index)) != 0ULL) { b[board_index] = IFES_WHITE; wc++; }
-    else if ((gp->board->blacks & (1ULL << square_index)) != 0ULL) { b[board_index] = IFES_BLACK; bc++; }
+    if      ((gpx->whites & (1ULL << square_index)) != 0ULL) { b[board_index] = IFES_WHITE; wc++; }
+    else if ((gpx->blacks & (1ULL << square_index)) != 0ULL) { b[board_index] = IFES_BLACK; bc++; }
     else                                                           { b[board_index] = IFES_EMPTY; emp++; }
   }
 
@@ -539,8 +534,9 @@ game_position_to_ifes_board (const GamePosition * const gp, uint8_t *b, int *p_e
  * @param [in] color a color
  * @return           the equivalent game position
  */
-static GamePosition *
-ifes_game_position_translation (uint8_t *board,
+static void
+ifes_game_position_translation (GamePositionX *const gpx,
+                                uint8_t *board,
                                 int color)
 {
   SquareSet blacks = 0ULL;
@@ -563,7 +559,9 @@ ifes_game_position_translation (uint8_t *board,
       break;
     }
   }
-  return game_position_new(board_new(blacks, whites), p);
+  gpx->blacks = blacks;
+  gpx->whites = whites;
+  gpx->player = p;
 }
 
 /**
@@ -1268,17 +1266,18 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
   if (log_env->log_is_on) {
     call_count++;
     gp_hash_stack_fill_point++;
-    GamePosition *gp = ifes_game_position_translation(board, color);
+    GamePositionX gpx;
+    ifes_game_position_translation(&gpx, board, color);
     LogDataH log_data;
     log_data.sub_run_id = 0;
     log_data.call_id = call_count;
-    log_data.hash = game_position_hash(gp);
+    log_data.hash = game_position_x_hash(&gpx);
     gp_hash_stack[gp_hash_stack_fill_point] = log_data.hash;
     log_data.parent_hash = gp_hash_stack[gp_hash_stack_fill_point - 1];
-    log_data.blacks = (gp->board)->blacks;
-    log_data.whites = (gp->board)->whites;
-    log_data.player = gp->player;
-    gchar *json_doc = game_tree_log_data_h_json_doc(gp_hash_stack_fill_point, gp);
+    log_data.blacks = (&gpx)->blacks;
+    log_data.whites = (&gpx)->whites;
+    log_data.player = (&gpx)->player;
+    gchar *json_doc = game_tree_log_data_h_json_doc2(gp_hash_stack_fill_point, &gpx);
     log_data.json_doc = json_doc;
     log_data.json_doc_len = strlen(json_doc);
     game_tree_log_write_h(log_env, &log_data);
