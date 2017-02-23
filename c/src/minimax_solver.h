@@ -34,14 +34,9 @@
 #ifndef MINIMAX_SOLVER_H
 #define MINIMAX_SOLVER_H
 
-#include "endgame_solver.h"
 #include "exact_solver.h"
 
 
-
-/*********************************************************/
-/* Function implementations for the GamePosition entity. */
-/*********************************************************/
 
 extern ExactSolution *
 game_position_minimax_solve (const GamePositionX *const root,

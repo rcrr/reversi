@@ -1,34 +1,6 @@
 /**
  * @file
  *
- *
- * @todo [done] Remove every dependency on GamePosition and Board objects.
- *
- * @todo [done] Remove pass special case.
- *
- * @todo [done] Avoid malloc/free calls.
- *
- * @todo [done] Use the game_tree_utils stack.
- *
- * @todo [done] Use the most advanced Kogge-Stone routines.
- *
- * @todo [done] Transform the code from recursion to iteration.
- *
- * @todo [done] Refactor the logging system:
- *              - Remove the costly json generation.
- *              - Trasform logging from ASCI to binary.
- *                Write a postprocessor that generate the ASCI/csv from the binary file.
- *                Add the json generation to the postprocessor.
- *
- * @todo [done] Write a new hash algorithm that prepares the delta_hash between two game positions.
- *
- * @todo [done] Inline some of game_position_x_... calls:
- *              - game_position_x_pass
- *              - game_position_x_final_value
- *              - game_position_x_get_player
- *              - game_position_x_get_opponent
- *
- *
  * @brief Minimax solver module implementation.
  * @details It searches the end of the game for an exact outcome using the MINIMAX algorithm.
  *
