@@ -1863,6 +1863,83 @@ pve_summary_from_binary_file_to_stream (const char *const in_file_path,
   (void) fclose_ret;
 }
 
+void
+pve_transform_to_standard_form(PVEnv *const pve)
+{
+
+  /*
+   * The board has 64 squares, each move can have a pass, so
+   * keeping it simple, 128 is the theoretical upper bound.
+   */
+  static const size_t max_recursion_depth = 128;
+
+  /* The stack of pve lines to be traversed. */
+  PVCell **line_stack[max_recursion_depth];
+
+  /* Initializes the first element in the line array. */
+  line_stack[0] = pve->root_line;
+
+  /* Sets the header pointer on the second element. */
+  PVCell ***line_stack_header = line_stack + 1;
+
+  /* Loops until there are unprocessed lines on the stack. */
+  while (line_stack_header > line_stack) {
+    PVCell **l = *--line_stack_header;
+    PVCell **p = l;
+
+    int move_count = 0;
+    int pass_move_at_tail_count = 0;
+
+    while (*p) {
+
+      PVCell *c = *p;
+
+      move_count++;
+      if (c->move == pass_move) pass_move_at_tail_count++;
+      else pass_move_at_tail_count = 0;
+
+      if (c->variant) {
+        Square min = c->move;
+        PVCell ***variant_ref = NULL;
+        PVCell *cv0 = c;
+        PVCell *cv1 = c;
+        while (cv0->variant) {
+          PVCell **lv = cv0->variant;
+          cv0 = *lv;
+          if (cv0->move < min) {
+            min = cv0->move;
+            variant_ref = &(cv1->variant);
+          }
+          cv1 = cv0;
+        }
+        if (variant_ref) {
+          PVCell *c0 = c;
+          PVCell *c1 = **variant_ref;
+          PVCell **l = *variant_ref;
+          c0->variant = c1->variant;
+          c1->variant = l;
+          *l = c0;
+          c = c1;
+          *p = c;
+        }
+        *line_stack_header++ = c->variant;
+      }
+      p = &(c->next);
+    }
+
+    /*
+     * Removes trailing pass moves.
+     * Cells are just dereferenced and not returned to the stack.
+     */
+    p = l;
+    for (int i = 0; i < move_count - pass_move_at_tail_count - 1; i++) {
+      p = &((*p)->next);
+    }
+    (*p)->next = NULL;
+
+  }
+}
+
 /**
  * @brief Transforms the PV to standard form.
  *
@@ -1871,7 +1948,7 @@ pve_summary_from_binary_file_to_stream (const char *const in_file_path,
  * @param [in,out] pve a pointer to the principal variation environment
  */
 void
-pve_transform_to_standard_form(PVEnv *const pve)
+pve_transform_to_standard_form___(PVEnv *const pve)
 {
   g_assert(pve);
 
@@ -1943,6 +2020,7 @@ pve_transform_to_standard_form(PVEnv *const pve)
 
           pve_internals_to_stream(pve, stdout, 0x0020);
           printf("  ..  ..  cp=%p, firstp=%p, *cp=%p, *firstp=%p\n", (void *) cp, (void *) firstp, (void *) *cp, (void *) *firstp);
+          printf("YES, I am here!\n");
           abort();
 
           /*
