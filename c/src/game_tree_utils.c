@@ -1863,6 +1863,13 @@ pve_summary_from_binary_file_to_stream (const char *const in_file_path,
   (void) fclose_ret;
 }
 
+/**
+ * @brief Transforms the PV to standard form.
+ *
+ * @details All the variants are sorted in natural order, [A1, B1, C1...H8].
+ *
+ * @param [in,out] pve a pointer to the principal variation environment
+ */
 void
 pve_transform_to_standard_form(PVEnv *const pve)
 {
@@ -1927,119 +1934,27 @@ pve_transform_to_standard_form(PVEnv *const pve)
       p = &(c->next);
     }
 
-    /*
-     * Removes trailing pass moves.
-     * Cells are just dereferenced and not returned to the stack.
-     */
+    /* Removes trailing pass moves. */
     p = l;
     for (int i = 0; i < move_count - pass_move_at_tail_count - 1; i++) {
       p = &((*p)->next);
     }
+    PVCell *c = (*p)->next;
     (*p)->next = NULL;
-
-  }
-}
-
-/**
- * @brief Transforms the PV to standard form.
- *
- * @details All the variants are sorted in natural order, [A1, B1, C1...H8].
- *
- * @param [in,out] pve a pointer to the principal variation environment
- */
-void
-pve_transform_to_standard_form___(PVEnv *const pve)
-{
-  g_assert(pve);
-
-  pve_internals_to_stream(pve, stdout, 0x0020);
-
-  size_t count = 0;
-
-  /*
-   * The board has 64 squares, each move can have a pass, so
-   * keeping it simple, 128 is the theoretical upper bound.
-   */
-  static const size_t max_recursion_depth = 128;
-
-  /* The stack of pve lines to be traversed. */
-  PVCell **line_stack[max_recursion_depth];
-
-  /* Initializes the first element in the line array. */
-  line_stack[0] = pve->root_line;
-
-  /* Sets the header pointer on the second element. */
-  PVCell ***line_stack_header = line_stack + 1;
-
-  /* Loops until there are unprocessed lines on the stack. */
-  while (line_stack_header > line_stack) {
-    line_stack_header--;
-
-    /*
-     * Each iteration of the while loop works on a line.
-     * The current line cannot be a pointer on the line stack, becouse it can be overwritten
-     * during the iteration.
-     * The current line pointer is set at the beginning of each iteration and is then used safely.
-     */
-    PVCell **cp = *line_stack_header;
-
-    /* Cycles over the moves of the line. If the move has a variant it is pushed on the stack of lines. */
-    while (*cp) {
-      PVCell **next_cp = NULL;
-      if ((*cp)->variant) {
-
-        *line_stack_header++ = (*cp)->variant;
-
-        /*
-         * Picks the smaller value [A1, B1, ... H8] and exchange it with the current PVCell.
-         */
-
-        PVCell **firstp = cp;
-        PVCell **vp = cp;
-        while (vp) {
-          printf("%s  ", square_as_move_to_string((*vp)->move));
-          if ((*vp)->move < (*firstp)->move) firstp = vp;
-          vp = (*vp)->variant;
-        }
-        printf("----  %s", square_as_move_to_string((*firstp)->move));
-
-        if (*firstp != *cp) {
-          /* We need to exchange the next field of the cell pointing to c,
-           * or the line pointer when c is the first cell in the line, with
-           * the line pointer of the choosen variant.
-           * Tricky ... we need a further level of indirection .... YES ONE MORE!
-           *
-           * Moving firstp on behalf of cp is fine, but pushing the variant line on the stack needs to be aware of this.
-           */
-          printf(" -> swap (*cp)->move=%s AND (*firstp)->move=%s\n", square_as_move_to_string((*cp)->move), square_as_move_to_string((*firstp)->move));
-          printf("  ..  ..  cp=%p, firstp=%p, *cp=%p, *firstp=%p\n", (void *) cp, (void *) firstp, (void *) *cp, (void *) *firstp);
-
-          PVCell *tmp = *cp;
-          *cp = *firstp;
-          *firstp = tmp;
-
-          pve_internals_to_stream(pve, stdout, 0x0020);
-          printf("  ..  ..  cp=%p, firstp=%p, *cp=%p, *firstp=%p\n", (void *) cp, (void *) firstp, (void *) *cp, (void *) *firstp);
-          printf("YES, I am here!\n");
-          abort();
-
-          /*
-           * Variants has to be swapped!!!! !!!! !!! !! !
-           */
-
-        } else {
-          printf(" -> ok\n");
-        }
-
-      }
-      if (!next_cp) next_cp = &(*cp)->next;
-      cp = next_cp;
-      count++;
+    while (c) {
+      pve->cells_stack_head--;
+      *(pve->cells_stack_head) = c;
+      c->is_active = FALSE;
+      c->variant = NULL;
+      pve->line_release_cell_count++;
+      c->move = invalid_move;
+      PVCell *n = c->next;
+      c->next = NULL;
+      c = n;
     }
   }
-
-  printf("count = %zu\n", count);
 }
+
 
 
 /*******************************************************/
