@@ -1871,7 +1871,7 @@ pve_summary_from_binary_file_to_stream (const char *const in_file_path,
  * @param [in,out] pve a pointer to the principal variation environment
  */
 void
-pve_transform_to_standard_form(PVEnv *const pve)
+pve_transform_to_standard_form (PVEnv *const pve)
 {
 
   /*
@@ -2478,7 +2478,7 @@ pve_tree_walker (const PVEnv *const pve,
     if (begin_of_line_action) begin_of_line_action(pve, stream, &current_row_copy);
 
     /* Cycles over the moves of the line. If the move has a variant it is pushed on the stack of rows. */
-    for (const PVCell *c = *current_row_copy.line; c != NULL; c = c->next, current_row_copy.rel_distance++) {
+    for (const PVCell *c = *current_row_copy.line; c != NULL; c = c->next) {
       if (c->variant) {
         pve_row_t *const v = row_stack_header++;
         v->line = c->variant;
@@ -2487,6 +2487,7 @@ pve_tree_walker (const PVEnv *const pve,
       }
       if (compute_game_positions) game_position_x_make_move(&current_row_copy.gp, c->move, &current_row_copy.gp);
       if (cell_action) cell_action(pve, stream, &current_row_copy, c);
+      if (c->move != pass_move) current_row_copy.rel_distance++;
     }
 
     if (end_of_line_action) end_of_line_action(pve, stream, &current_row_copy);
@@ -2517,12 +2518,19 @@ pve_twa_cell (const PVEnv *const pve,
               pve_row_t *const row,
               const PVCell *const cell)
 {
+  if (cell->move == pass_move) return;
   fprintf(stream, "%s", square_as_move_to_string(cell->move));
-  if (cell->variant) {
-    fprintf(stream, ".");
-    if (cell->next) fprintf(stream, " ");
+  const PVCell *const next = cell->next;
+  if (next) {
+    if (next->move == pass_move) {
+      if (cell->variant) fprintf(stream, ".-");
+      else fprintf(stream, "--");
+    } else {
+      if (cell->variant) fprintf(stream, ". ");
+      else fprintf(stream, "  ");
+    }
   } else {
-    if (cell->next) fprintf(stream, "  ");
+    if (cell->variant) fprintf(stream, ".");
   }
 }
 
