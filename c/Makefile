@@ -4,7 +4,7 @@
 #  This file is part of the reversi program
 #  http://github.com/rcrr/reversi
 #
-#  Copyright (c) 2013, 2014, 2016 Roberto Corradini. All rights reserved.
+#  Copyright (c) 2013, 2014, 2016, 2017 Roberto Corradini. All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -27,8 +27,8 @@ MAINS = endgame_solver gpdb_verify dump_bitrow_changes utest read_pve_dump intel
         read_game_tree_log
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
-TEST_PROGS = bit_works_test prng_test sort_utils_test red_black_tree_test board_test game_position_db_test game_position_test \
-             game_tree_utils_test endgame_solver_test
+TEST_PROGS = bit_works_test prng_test sha3_test sort_utils_test red_black_tree_test board_test game_position_db_test \
+             game_position_test game_tree_utils_test endgame_solver_test
 
 UTEST_PROGS = utest_test llist_test
 
@@ -46,11 +46,11 @@ CC = gcc
 # add -DG_DISABLE_ASSERT -DNDEBUG to disable assertions
 # add -fno-inline to prevent inlining
 ARCH_FLAGS = -mpopcnt -mavx2
-CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS) -DG_DISABLE_ASSERT -DNDEBUG
+CFLAGS = -std=c99 -pedantic-errors -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS =
-CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L
+CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L
 LDFLAGS_TEST =
-ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS) -DG_DISABLE_ASSERT -DNDEBUG
+ASMFLAGS = -std=c99 -pedantic-errors -Wall -O0 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS) -DG_DISABLE_ASSERT -DNDEBUG
 LIBS = `pkg-config --libs glib-2.0` -lm
 TEST_LIBS =
 SRCDIR = src
