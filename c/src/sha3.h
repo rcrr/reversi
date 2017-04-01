@@ -54,11 +54,11 @@
 
 // state context
 typedef struct {
-    union {                                 // state:
-        uint8_t b[200];                     // 8-bit bytes
-        uint64_t q[25];                     // 64-bit words
-    } st;
-    int pt, rsiz, mdlen;                    // these don't overflow
+  union {                               // state:
+    uint8_t b[200];                     // 8-bit bytes
+    uint64_t q[25];                     // 64-bit words
+  } st;
+  int pt, rsiz, mdlen;                  // these don't overflow
 } sha3_ctx_t;
 
 // Compression function.
