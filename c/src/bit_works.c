@@ -385,12 +385,9 @@ bit_works_lowest_bit_set_8 (const uint8_t bit_sequence)
  * @param shift        the amount to shift
  * @return             the rotaded sequence
  */
-uint64_t
+extern uint64_t
 bit_works_ror_64 (const uint64_t bit_sequence,
-                  const unsigned int shift)
-{
-  return (bit_sequence >> shift) | (bit_sequence << (64 - shift));
-}
+                  const unsigned int shift);
 
 /**
  * @brief Returns a bit sequence by operating a circular left shift
@@ -403,9 +400,6 @@ bit_works_ror_64 (const uint64_t bit_sequence,
  * @param shift        the amount to shift
  * @return             the rotaded sequence
  */
-uint64_t
+extern uint64_t
 bit_works_rol_64 (const uint64_t bit_sequence,
-                  const unsigned int shift)
-{
-  return (bit_sequence << shift) | (bit_sequence >> (64 - shift));
-}
+                  const unsigned int shift);

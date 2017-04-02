@@ -44,6 +44,10 @@
 /* Test function prototypes. */
 
 static void dummy_test (void);
+static void sha3_224_test (void);
+static void sha3_256_test (void);
+static void sha3_384_test (void);
+static void sha3_512_test (void);
 static void sha3_256_abc_test (void);
 static void sha3_512_abc_test (void);
 static void sha3_256_empty_string_test (void);
@@ -63,6 +67,10 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func("/sha3/dummy", dummy_test);
+  g_test_add_func("/sha3/sha3_224_test", sha3_224_test);
+  g_test_add_func("/sha3/sha3_256_test", sha3_256_test);
+  g_test_add_func("/sha3/sha3_384_test", sha3_384_test);
+  g_test_add_func("/sha3/sha3_512_test", sha3_512_test);
   g_test_add_func("/sha3/sha3_256_abc_test", sha3_256_abc_test);
   g_test_add_func("/sha3/sha3_512_abc_test", sha3_512_abc_test);
   g_test_add_func("/sha3/sha3_256_empty_string_test", sha3_256_empty_string_test);
@@ -92,6 +100,96 @@ dummy_test (void)
 }
 
 static void
+sha3_224_test (void)
+{
+  const size_t msg_digest_len = 28; // SHA3-256 are 28 bytes.
+
+  char *msg = "abc";
+  char *expected_msg_digest_as_string =
+    "e642824c3f8cf24a" "d09234ee7d3c766f" "c9a3a5168d0c94ad" "73b46fdf";
+
+  char msg_digest[msg_digest_len];
+  char msg_digest_as_string[msg_digest_len * 2 + 1]; // Two hex digit per byte plus string termination.
+  size_t msg_len = strlen(msg);
+
+  sha3_224(msg_digest, msg, msg_len);
+
+  char *c = msg_digest_as_string;
+  for (int i = 0; i < msg_digest_len; i++)
+    c += sprintf(c, "%02hhx", msg_digest[i]);
+
+  g_assert(strcmp(expected_msg_digest_as_string, msg_digest_as_string) == 0);
+}
+
+static void
+sha3_256_test (void)
+{
+  const size_t msg_digest_len = 32; // SHA3-256 are 32 bytes.
+
+  char *msg = "abc";
+  char *expected_msg_digest_as_string =
+    "3a985da74fe225b2" "045c172d6bd390bd" "855f086e3e9d525b" "46bfe24511431532";
+
+  char msg_digest[msg_digest_len];
+  char msg_digest_as_string[msg_digest_len * 2 + 1]; // Two hex digit per byte plus string termination.
+  size_t msg_len = strlen(msg);
+
+  sha3_256(msg_digest, msg, msg_len);
+
+  char *c = msg_digest_as_string;
+  for (int i = 0; i < msg_digest_len; i++)
+    c += sprintf(c, "%02hhx", msg_digest[i]);
+
+  g_assert(strcmp(expected_msg_digest_as_string, msg_digest_as_string) == 0);
+}
+
+static void
+sha3_384_test (void)
+{
+  const size_t msg_digest_len = 48; // SHA3-256 are 48 bytes.
+
+  char *msg = "abc";
+  char *expected_msg_digest_as_string =
+    "ec01498288516fc9" "26459f58e2c6ad8d" "f9b473cb0fc08c25" "96da7cf0e49be4b2"
+    "98d88cea927ac7f5" "39f1edf228376d25";
+
+  char msg_digest[msg_digest_len];
+  char msg_digest_as_string[msg_digest_len * 2 + 1]; // Two hex digit per byte plus string termination.
+  size_t msg_len = strlen(msg);
+
+  sha3_384(msg_digest, msg, msg_len);
+
+  char *c = msg_digest_as_string;
+  for (int i = 0; i < msg_digest_len; i++)
+    c += sprintf(c, "%02hhx", msg_digest[i]);
+
+  g_assert(strcmp(expected_msg_digest_as_string, msg_digest_as_string) == 0);
+}
+
+static void
+sha3_512_test (void)
+{
+  const size_t msg_digest_len = 64; // SHA3-256 are 64 bytes.
+
+  char *msg = "abc";
+  char *expected_msg_digest_as_string =
+    "b751850b1a57168a" "5693cd924b6b096e" "08f621827444f70d" "884f5d0240d2712e"
+    "10e116e9192af3c9" "1a7ec57647e39340" "57340b4cf408d5a5" "6592f8274eec53f0";
+
+  char msg_digest[msg_digest_len];
+  char msg_digest_as_string[msg_digest_len * 2 + 1]; // Two hex digit per byte plus string termination.
+  size_t msg_len = strlen(msg);
+
+  sha3_512(msg_digest, msg, msg_len);
+
+  char *c = msg_digest_as_string;
+  for (int i = 0; i < msg_digest_len; i++)
+    c += sprintf(c, "%02hhx", msg_digest[i]);
+
+  g_assert(strcmp(expected_msg_digest_as_string, msg_digest_as_string) == 0);
+}
+
+static void
 sha3_256_abc_test (void)
 {
   char msg[] = { "abc" };
@@ -106,7 +204,7 @@ sha3_256_abc_test (void)
 
   sha3_init(&ctx, msg_digest_len);
   sha3_update(&ctx, msg, msg_len - 1);
-  sha3_final(sha, &ctx);
+  sha3_final(&ctx, sha);
 
   char *c = msg_digest;
   for (int i = 0; i < msg_digest_len; i++)
@@ -133,7 +231,7 @@ sha3_512_abc_test (void)
 
   sha3_init(&ctx, msg_digest_len);
   sha3_update(&ctx, msg, msg_len - 1);
-  sha3_final(sha, &ctx);
+  sha3_final(&ctx, sha);
 
   char *c = msg_digest;
   for (int i = 0; i < msg_digest_len; i++)
@@ -157,7 +255,7 @@ sha3_256_empty_string_test (void)
 
   sha3_init(&ctx, msg_digest_len);
   sha3_update(&ctx, msg, msg_len - 1);
-  sha3_final(sha, &ctx);
+  sha3_final(&ctx, sha);
 
   char *c = msg_digest;
   for (int i = 0; i < msg_digest_len; i++)
@@ -184,7 +282,7 @@ sha3_512_empty_string_test (void)
 
   sha3_init(&ctx, msg_digest_len);
   sha3_update(&ctx, msg, msg_len - 1);
-  sha3_final(sha, &ctx);
+  sha3_final(&ctx, sha);
 
   char *c = msg_digest;
   for (int i = 0; i < msg_digest_len; i++)
@@ -208,7 +306,7 @@ sha3_256_empty_896_bits_test (void)
 
   sha3_init(&ctx, msg_digest_len);
   sha3_update(&ctx, msg, msg_len - 1);
-  sha3_final(sha, &ctx);
+  sha3_final(&ctx, sha);
 
   char *c = msg_digest;
   for (int i = 0; i < msg_digest_len; i++)
@@ -236,7 +334,7 @@ sha3_256_empty_1M_a_test (void)
 
   sha3_init(&ctx, msg_digest_len);
   sha3_update(&ctx, msg, msg_len - 1);
-  sha3_final(sha, &ctx);
+  sha3_final(&ctx, sha);
 
   char *c = msg_digest;
   for (int i = 0; i < msg_digest_len; i++)
@@ -275,7 +373,7 @@ sha3_256_extremely_long_message_test (void)
 
   sha3_init(&ctx, msg_digest_len);
   sha3_update(&ctx, msg, msg_len - 1);
-  sha3_final(sha, &ctx);
+  sha3_final(&ctx, sha);
 
   free(msg);
 

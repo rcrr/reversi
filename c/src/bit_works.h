@@ -115,12 +115,22 @@ bit_works_lowest_bit_set_32 (const uint32_t bit_sequence);
 extern uint8_t
 bit_works_lowest_bit_set_8 (const uint8_t bit_sequence);
 
-extern uint64_t
+__attribute__((always_inline))
+inline uint64_t
 bit_works_ror_64 (const uint64_t bit_sequence,
-                  const unsigned int shift);
+                  const unsigned int shift)
+{
+  return (bit_sequence >> shift) | (bit_sequence << (64 - shift));
+}
 
-extern uint64_t
+__attribute__((always_inline))
+inline static uint64_t
 bit_works_rol_64 (const uint64_t bit_sequence,
-                  const unsigned int shift);
+                  const unsigned int shift)
+{
+  return (bit_sequence << shift) | (bit_sequence >> (64 - shift));
+}
+
+
 
 #endif /* BIT_WORKS_H */

@@ -44,33 +44,54 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifndef KECCAKF_ROUNDS
-#define KECCAKF_ROUNDS 24
-#endif
-
-#ifndef ROTL64
-#define ROTL64(x, y) (((x) << (y)) | ((x) >> (64 - (y))))
-#endif
-
-// state context
+/**
+ * @brief State context for SHA-3 algorithms.
+ *
+ * @details As described in the document page 7 section 3.
+ */
 typedef struct {
-  union {                               // state:
-    uint8_t b[200];                     // 8-bit bytes
-    uint64_t q[25];                     // 64-bit words
-  } st;
-  int pt, rsiz, mdlen;                  // these don't overflow
+  union {
+    uint8_t b[200];                     /**< @brief State array viewed as 200 bytes. */
+    uint64_t q[25];                     /**< @brief State array viewed as 25 QWORDs. */
+  } st;                                 /**< @brief State array formed by 1600 bits. */
+  int pt;                               /**< @brief An index that moves in circle in [0..rsiz) for each byte processed in the message. */
+  int rsiz;                             /**< @brief A costant equal to `200 - (2 * mdlen)`. */
+  int mdlen;                            /**< @brief Message digest length in bytes */
 } sha3_ctx_t;
 
-// Compression function.
-void sha3_keccakf(uint64_t st[25]);
+extern void
+sha3_224 (void *const md,
+          const void *const msg,
+          const size_t msg_len);
+
+extern void
+sha3_256 (void *const md,
+          const void *const msg,
+          const size_t msg_len);
+
+extern void
+sha3_384 (void *const md,
+          const void *const msg,
+          const size_t msg_len);
+
+extern void
+sha3_512 (void *const md,
+          const void *const msg,
+          const size_t msg_len);
 
 // OpenSSL - like interfece
-int sha3_init(sha3_ctx_t *c, int mdlen);    // mdlen = hash output in bytes
-int sha3_update(sha3_ctx_t *c, const void *data, size_t len);
-int sha3_final(void *md, sha3_ctx_t *c);    // digest goes to md
+extern void
+sha3_init (sha3_ctx_t *const c,
+           const int mdlen);
 
-// compute a sha3 hash (md) of given byte length from "in"
-void *sha3(const void *in, size_t inlen, void *md, int mdlen);
+extern void
+sha3_update (sha3_ctx_t *const c,
+             const void *const msg_chunk,
+             const size_t len);
+
+extern void
+sha3_final (sha3_ctx_t *const c,
+            void *md);
 
 // SHAKE128 and SHAKE256 extensible-output functions
 #define shake128_init(c) sha3_init(c, 16)
