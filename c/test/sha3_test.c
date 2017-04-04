@@ -102,21 +102,17 @@ dummy_test (void)
 static void
 sha3_224_test (void)
 {
-  const size_t msg_digest_len = 28; // SHA3-256 are 28 bytes.
-
-  char *msg = "abc";
-  char *expected_msg_digest_as_string =
+  const char *const msg = "abc";
+  const char *const expected_msg_digest_as_string =
     "e642824c3f8cf24a" "d09234ee7d3c766f" "c9a3a5168d0c94ad" "73b46fdf";
 
-  char msg_digest[msg_digest_len];
-  char msg_digest_as_string[msg_digest_len * 2 + 1]; // Two hex digit per byte plus string termination.
-  size_t msg_len = strlen(msg);
+  char msg_digest[sha3_224_digest_lenght];
+  char msg_digest_as_string[sha3_224_digest_lenght * 2 + 1]; // Two hex digit per byte plus string termination.
+  const size_t msg_len = strlen(msg);
 
   sha3_224(msg_digest, msg, msg_len);
 
-  char *c = msg_digest_as_string;
-  for (int i = 0; i < msg_digest_len; i++)
-    c += sprintf(c, "%02hhx", msg_digest[i]);
+  sha3_msg_digest_to_string(msg_digest_as_string, msg_digest, sha3_224_digest_lenght);
 
   g_assert(strcmp(expected_msg_digest_as_string, msg_digest_as_string) == 0);
 }
@@ -146,7 +142,7 @@ sha3_256_test (void)
 static void
 sha3_384_test (void)
 {
-  const size_t msg_digest_len = 48; // SHA3-256 are 48 bytes.
+  const size_t msg_digest_len = 48; // SHA3-384 are 48 bytes.
 
   char *msg = "abc";
   char *expected_msg_digest_as_string =
@@ -169,7 +165,7 @@ sha3_384_test (void)
 static void
 sha3_512_test (void)
 {
-  const size_t msg_digest_len = 64; // SHA3-256 are 64 bytes.
+  const size_t msg_digest_len = 64; // SHA3-512 are 64 bytes.
 
   char *msg = "abc";
   char *expected_msg_digest_as_string =

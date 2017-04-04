@@ -69,6 +69,9 @@
  * </tt>
  */
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include "sha3.h"
 #include "bit_works.h"
 
@@ -280,6 +283,15 @@ shake_out (sha3_ctx_t *c,
   c->pt = j;
 }
 
+void
+sha3_msg_digest_to_string (char *const msg_digest_as_string,
+                           const char *const msg_digest,
+                           const size_t msg_digest_len)
+{
+  char *c = msg_digest_as_string;
+  for (int i = 0; i < msg_digest_len; i++)
+    c += sprintf(c, "%02hhx", msg_digest[i]);
+}
 
 
 /**

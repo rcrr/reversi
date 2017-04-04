@@ -44,6 +44,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+
+
 /**
  * @brief State context for SHA-3 algorithms.
  *
@@ -58,6 +60,34 @@ typedef struct {
   int rsiz;                             /**< @brief A costant equal to `200 - (2 * mdlen)`. */
   int mdlen;                            /**< @brief Message digest length in bytes */
 } sha3_ctx_t;
+
+
+
+/**********************************************/
+/* Global constants.                          */
+/**********************************************/
+
+/**
+ * @brief SHA3-224 digest lenght in bytes.
+ */
+static const size_t sha3_224_digest_lenght = 28;
+
+/**
+ * @brief SHA3-256 digest lenght in bytes.
+ */
+static const size_t sha3_256_digest_lenght = 32;
+
+/**
+ * @brief SHA3-384 digest lenght in bytes.
+ */
+static const size_t sha3_384_digest_lenght = 48;
+
+/**
+ * @brief SHA3-512 digest lenght in bytes.
+ */
+static const size_t sha3_512_digest_lenght = 64;
+
+
 
 extern void
 sha3_224 (void *const md,
@@ -100,5 +130,11 @@ sha3_final (sha3_ctx_t *const c,
 
 void shake_xof(sha3_ctx_t *c);
 void shake_out(sha3_ctx_t *c, void *out, size_t len);
+
+extern void
+sha3_msg_digest_to_string (char *const msg_digest_as_string,
+                           const char *const msg_digest,
+                           const size_t msg_digest_len);
+
 
 #endif
