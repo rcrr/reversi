@@ -52,9 +52,11 @@ static void sha3_256_abc_test (void);
 static void sha3_512_abc_test (void);
 static void sha3_256_empty_string_test (void);
 static void sha3_512_empty_string_test (void);
-static void sha3_256_empty_896_bits_test (void);
-static void sha3_256_empty_1M_a_test (void);
-static void sha3_256_extremely_long_message_test (void);
+static void sha3_256_896_bits_test (void);
+static void sha3_256_1M_a_0_test (void);
+static void sha3_256_1M_a_1_test (void);
+static void sha3_256_extremely_long_message_0_test (void);
+static void sha3_256_extremely_long_message_1_test (void);
 static void shake128_variable_output_test (void);
 static void shake256_variable_output_test (void);
 
@@ -75,13 +77,15 @@ main (int   argc,
   g_test_add_func("/sha3/sha3_512_abc_test", sha3_512_abc_test);
   g_test_add_func("/sha3/sha3_256_empty_string_test", sha3_256_empty_string_test);
   g_test_add_func("/sha3/sha3_512_empty_string_test", sha3_512_empty_string_test);
-  g_test_add_func("/sha3/sha3_256_empty_896_bits_test", sha3_256_empty_896_bits_test);
-  g_test_add_func("/sha3/sha3_256_empty_1M_a_test", sha3_256_empty_1M_a_test);
+  g_test_add_func("/sha3/sha3_256_896_bits_test", sha3_256_896_bits_test);
+  g_test_add_func("/sha3/sha3_256_1M_a_0_test", sha3_256_1M_a_0_test);
+  g_test_add_func("/sha3/sha3_256_1M_a_1_test", sha3_256_1M_a_1_test);
   g_test_add_func("/sha3/shake128_variable_output_test", shake128_variable_output_test);
   g_test_add_func("/sha3/shake256_variable_output_test", shake256_variable_output_test);
 
   if (g_test_slow()) {
-    g_test_add_func("/sha3/sha3_256_extremely_long_message_test", sha3_256_extremely_long_message_test);
+    g_test_add_func("/sha3/sha3_256_extremely_long_message_0_test", sha3_256_extremely_long_message_0_test);
+    g_test_add_func("/sha3/sha3_256_extremely_long_message_1_test", sha3_256_extremely_long_message_1_test);
   }
 
   return g_test_run();
@@ -264,7 +268,7 @@ sha3_512_empty_string_test (void)
 }
 
 static void
-sha3_256_empty_896_bits_test (void)
+sha3_256_896_bits_test (void)
 {
   const char *const msg = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu";
   const char *const expected_msg_digest_as_string =
@@ -286,7 +290,7 @@ sha3_256_empty_896_bits_test (void)
 }
 
 static void
-sha3_256_empty_1M_a_test (void)
+sha3_256_1M_a_0_test (void)
 {
   char msg[1000000 + 1];
   for (int i = 0; i < 1000000; i++) {
@@ -312,7 +316,34 @@ sha3_256_empty_1M_a_test (void)
 }
 
 static void
-sha3_256_extremely_long_message_test (void)
+sha3_256_1M_a_1_test (void)
+{
+  char msg[1000 + 1];
+  for (int i = 0; i < 1000; i++) {
+    msg[i] = 'a';
+  }
+  msg[1000] = '\0';
+  const char *const expected_msg_digest_as_string =
+    "5c8875ae474a3634" "ba4fd55ec85bffd6" "61f32aca75c6d699" "d0cdcb6c115891c1";
+
+  char msg_digest[sha3_256_digest_lenght];
+  char msg_digest_as_string[sha3_256_digest_lenght * 2 + 1]; // Two hex digit per byte plus string termination.
+  size_t msg_len = strlen(msg);
+
+  sha3_ctx_t ctx;
+
+  sha3_init(&ctx, sha3_256_digest_lenght);
+  for (int i = 0; i < 1000; i++)
+    sha3_update(&ctx, msg, msg_len);
+  sha3_final(&ctx, msg_digest);
+
+  sha3_msg_digest_to_string(msg_digest_as_string, msg_digest, sha3_256_digest_lenght);
+
+  g_assert(strcmp(expected_msg_digest_as_string, msg_digest_as_string) == 0);
+}
+
+static void
+sha3_256_extremely_long_message_0_test (void)
 {
   const char *const pattern = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno";
 
@@ -343,6 +374,33 @@ sha3_256_extremely_long_message_test (void)
   sha3_final(&ctx, msg_digest);
 
   free(msg);
+
+  sha3_msg_digest_to_string(msg_digest_as_string, msg_digest, sha3_256_digest_lenght);
+
+  g_assert(strcmp(expected_msg_digest_as_string, msg_digest_as_string) == 0);
+}
+
+static void
+sha3_256_extremely_long_message_1_test (void)
+{
+  const char *const pattern = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno";
+
+  const size_t repeats = 16777216;
+  const size_t pattern_len = strlen(pattern);
+
+  const char *const expected_msg_digest_as_string =
+    "ecbbc42cbf296603" "acb2c6bc0410ef43" "78bafb24b710357f" "12df607758b33e2b";
+
+  char msg_digest[sha3_256_digest_lenght];
+  char msg_digest_as_string[sha3_256_digest_lenght * 2 + 1]; // Two hex digit per byte plus string termination.
+
+  sha3_ctx_t ctx;
+
+  sha3_init(&ctx, sha3_256_digest_lenght);
+  for (int i = 0; i < repeats; i++) {
+    sha3_update(&ctx, pattern, pattern_len);
+  }
+  sha3_final(&ctx, msg_digest);
 
   sha3_msg_digest_to_string(msg_digest_as_string, msg_digest, sha3_256_digest_lenght);
 
