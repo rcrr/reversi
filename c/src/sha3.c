@@ -21,6 +21,16 @@
  *
  * The code is designed and limited to little endian systems.
  *
+ * @par Verbatim reference taken from the Fips 202 document:
+ * A hash function is a function on binary data (i.e., bit strings) for which the length of the output is
+ * fixed. The input to a hash function is called the message, and the output is called the (message)
+ * digest or hash value. The digest often serves as a condensed representation of the message. The
+ * four SHA-3 hash functions are named SHA3-224, SHA3-256, SHA3-384, and SHA3-512; in
+ * each case, the suffix after the dash indicates the fixed length of the digest, e.g., SHA3-256
+ * produces 256-bit digests. The SHA-2 functions, i.e., SHA-224, SHA-256, SHA-384 SHA-512,
+ * SHA-512/224, and SHA-512/256, offer the same set of digest lengths. Thus, the SHA-3 hash
+ * functions can be implemented as alternatives to the SHA-2 functions, or vice versa.
+ *
  * A first group of functions implements the four
  * SHA3 functions as described in `FIPS 202, paragraph 6, page 20`:
  *
@@ -38,6 +48,77 @@
  *
  * sha3_256(digest, msg, strlen(msg));
  * @endcode
+ *
+ * A second group of functions enable to build the digest in multiple
+ * iterations. Here we find:
+ *
+ *  - #sha3_init()
+ *  - #sha3_update()
+ *  - #sha3_final()
+ *
+ * A sample usage is here exemplified:
+ *
+ * @code
+ * const char *const msg0 = "Per me si va ne la citta' dolente,\n";
+ * const char *const msg1 = "per me si va ne l'etterno dolore,\n";
+ * const char *const msg2 = "per me si va tra la perduta gente.";
+ *
+ * char msg_digest[sha3_256_digest_lenght];
+ *
+ * sha3_ctx_t ctx;
+ *
+ * sha3_init(&ctx, sha3_256_digest_lenght);
+ *
+ * sha3_update(&ctx, msg0, strlen(msg0_len));
+ * sha3_update(&ctx, msg1, strlen(msg1_len));
+ * sha3_update(&ctx, msg2, strlen(msg2_len));
+ *
+ * sha3_final(&ctx, msg_digest);
+ * @endcode
+ *
+ * @par Verbatim reference taken from the Fips 202 document:
+ * An extendable-output function (XOF) is a function on bit strings (also called messages) in which
+ * the output can be extended to any desired length. The two SHA-3 XOFs are named SHAKE128
+ * and SHAKE256. 3 The suffixes “128” and “256” indicate the security strengths that these two
+ * functions can generally 4 support, in contrast to the suffixes for the hash functions, which indicate
+ * the digest lengths. SHAKE128 and SHAKE256 are the first XOFs that NIST has standardized.
+ *
+ * SHAKE functions compose a third group of functions, here we find:
+ *
+ *  - #sha3_shake128_init()
+ *  - #sha3_shake256_init()
+ *  - #sha3_shake_update()
+ *  - #sha3_shake_xof()
+ *  - #sha3_shake_out()
+ *
+ * A sample usage is here exemplified:
+ *
+ * @code
+ * const char *const msg0 = "Per me si va ne la citta' dolente,\n";
+ * const char *const msg1 = "per me si va ne l'etterno dolore,\n";
+ * const char *const msg2 = "per me si va tra la perduta gente.";
+ *
+ * const size_t output_len = 40;
+ *
+ * char msg_digest[output_len];
+ * char msg_digest_as_string[output_len * 2 + 1];
+ *
+ * sha3_ctx_t ctx;
+ *
+ * sha3_shake256_init(&ctx);
+ *
+ * sha3_shake_update(&ctx, msg0, strlen(msg0));
+ * sha3_shake_update(&ctx, msg1, strlen(msg1));
+ * sha3_shake_update(&ctx, msg2, strlen(msg2));
+ *
+ * sha3_shake_xof(&ctx);
+ * sha3_shake_out(&ctx, msg_digest, output_len);
+ * @endcode
+ *
+ * Comparing the SHA-3 and the SHAKE functions, we notice a change in the finalization process,
+ * SHAKE procedure has two steps instead of just one. This can be useful when multiple digests
+ * of different lenght are needed. In this case after calling #sha3_shake_xof a safe copy of the
+ * context must be mantained.
  *
  *
  * @par sha3.c
@@ -71,6 +152,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "sha3.h"
 #include "bit_works.h"
@@ -106,21 +188,36 @@ static const size_t keccakf_rounds = 24;
 /**
  * @brief Initializes the context for SHA3.
  *
- * @details Common values for parameter `mdlen` are:
- *            - 16 for SHA3-256
- *            - 32 for SHA3-512
+ * @details Permitted values for parameter `md_len` are:
+ *            - 18 for SHA3-224
+ *            - 32 for SHA3-256
+ *            - 48 for SHA3-384
+ *            - 64 for SHA3-512
  *
- * @param [in,out] c     sha3 context
- * @param [in]     mdlen message digest output length in bytes
+ * @invariant Parameter `c` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `md_len` must be in the proper range.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] c      sha3 context
+ * @param [in]     md_len message digest output length in bytes
  */
 void
 sha3_init (sha3_ctx_t *const c,
-           const int mdlen)
+           const int md_len)
 {
+  assert(c);
+  assert(md_len == sha3_224_digest_lenght ||
+         md_len == sha3_256_digest_lenght ||
+         md_len == sha3_384_digest_lenght ||
+         md_len == sha3_512_digest_lenght ||
+         md_len == 16); // 16 is used for shake128.
+
   for (int i = 0; i < 25; i++)
     c->st.q[i] = 0;
-  c->mdlen = mdlen;
-  c->rsiz = 200 - 2 * mdlen;
+  c->md_len = md_len;
+  c->rsiz = 200 - 2 * md_len;
   c->pt = 0;
 }
 
@@ -131,17 +228,26 @@ sha3_init (sha3_ctx_t *const c,
  *          The data has to come to this function in chunks of any size,
  *          in the correct sequence, and being complete.
  *
- * @param [in,out] c         sha3 context
- * @param [in]     msg_chunk a chunk of data taken sequentially from the message
- * @param [in]     len       message chunk length in bytes
+ * @invariant Parameter `c` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `msg_chunk` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] c             sha3 context
+ * @param [in]     msg_chunk     a chunk of data taken sequentially from the message
+ * @param [in]     msg_chunk_len message chunk length in bytes
  */
 void
 sha3_update (sha3_ctx_t *const c,
              const void *const msg_chunk,
-             const size_t len)
+             const size_t msg_chunk_len)
 {
+  assert(c);
+  assert(msg_chunk);
+
   int j = c->pt;
-  for (size_t i = 0; i < len; i++) {
+  for (size_t i = 0; i < msg_chunk_len; i++) {
     c->st.b[j++] ^= ((const uint8_t *) msg_chunk)[i];
     if (j >= c->rsiz) {
       sha3_keccakf(c->st.q);
@@ -157,6 +263,12 @@ sha3_update (sha3_ctx_t *const c,
  * @details The SHA3 context is updated and finalized.
  *          The message digest is copied to the `md` buffer.
  *
+ * @invariant Parameter `c` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `md` must not be null.
+ * The invariant is guarded by an assertion.
+ *
  * @param [in,out] c  sha3 context
  * @param [out]    md the output buffer that receives the digest
  */
@@ -164,11 +276,14 @@ void
 sha3_final (sha3_ctx_t *const c,
             void *const md)
 {
+  assert(c);
+  assert(md);
+
   c->st.b[c->pt] ^= 0x06;
   c->st.b[c->rsiz - 1] ^= 0x80;
   sha3_keccakf(c->st.q);
 
-  for (int i = 0; i < c->mdlen; i++) {
+  for (int i = 0; i < c->md_len; i++) {
     ((uint8_t *) md)[i] = c->st.b[i];
   }
 }
@@ -177,6 +292,12 @@ sha3_final (sha3_ctx_t *const c,
  * @brief Computes the SHA3-224 hash.
  *
  * @details The SHA-3 hash function that produces 224-bit digests.
+ *
+ * @invariant Parameter `md` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `msg` must not be null.
+ * The invariant is guarded by an assertion.
  *
  * @param [out] md      the output buffer that receives the digest
  * @param [in]  msg     the message
@@ -187,6 +308,9 @@ sha3_224 (void *const md,
           const void *const msg,
           const size_t msg_len)
 {
+  assert(md);
+  assert(msg);
+
   sha3_ctx_t sha3;
   sha3_init(&sha3, 28);
   sha3_update(&sha3, msg, msg_len);
@@ -198,6 +322,12 @@ sha3_224 (void *const md,
  *
  * @details The SHA-3 hash function that produces 256-bit digests.
  *
+ * @invariant Parameter `md` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `msg` must not be null.
+ * The invariant is guarded by an assertion.
+ *
  * @param [out] md      the output buffer that receives the digest
  * @param [in]  msg     the message
  * @param [in]  msg_len the lenght of the message in bytes
@@ -207,6 +337,9 @@ sha3_256 (void *const md,
           const void *const msg,
           const size_t msg_len)
 {
+  assert(md);
+  assert(msg);
+
   sha3_ctx_t sha3;
   sha3_init(&sha3, 32);
   sha3_update(&sha3, msg, msg_len);
@@ -218,6 +351,12 @@ sha3_256 (void *const md,
  *
  * @details The SHA-3 hash function that produces 384-bit digests.
  *
+ * @invariant Parameter `md` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `msg` must not be null.
+ * The invariant is guarded by an assertion.
+ *
  * @param [out] md      the output buffer that receives the digest
  * @param [in]  msg     the message
  * @param [in]  msg_len the lenght of the message in bytes
@@ -227,6 +366,9 @@ sha3_384 (void *const md,
           const void *const msg,
           const size_t msg_len)
 {
+  assert(md);
+  assert(msg);
+
   sha3_ctx_t sha3;
   sha3_init(&sha3, 48);
   sha3_update(&sha3, msg, msg_len);
@@ -238,6 +380,12 @@ sha3_384 (void *const md,
  *
  * @details The SHA-3 hash function that produces 512-bit digests.
  *
+ * @invariant Parameter `md` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `msg` must not be null.
+ * The invariant is guarded by an assertion.
+ *
  * @param [out] md      the output buffer that receives the digest
  * @param [in]  msg     the message
  * @param [in]  msg_len the lenght of the message in bytes
@@ -247,6 +395,9 @@ sha3_512 (void *const md,
           const void *const msg,
           const size_t msg_len)
 {
+  assert(md);
+  assert(msg);
+
   sha3_ctx_t sha3;
   sha3_init(&sha3, 64);
   sha3_update(&sha3, msg, msg_len);
@@ -255,42 +406,136 @@ sha3_512 (void *const md,
 
 // SHAKE128 and SHAKE256 extensible-output functionality
 
+/**
+ * @brief Initializes the context for SHAKE128.
+ *
+ * @invariant Parameter `c` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] c shake128 context
+ */
+extern void
+sha3_shake128_init (sha3_ctx_t *const c);
+
+/**
+ * @brief Initializes the context for SHAKE256.
+ *
+ * @invariant Parameter `c` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] c shake256 context
+ */
+extern void
+sha3_shake256_init (sha3_ctx_t *const c);
+
+/**
+ * @brief Updates state with more data.
+ *
+ * @details The SHAKE context is updated based on the new data received.
+ *          The data has to come to this function in chunks of any size,
+ *          in the correct sequence, and being complete.
+ *
+ * @invariant Parameter `c` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `msg_chunk` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] c             shake context
+ * @param [in]     msg_chunk     a chunk of data taken sequentially from the message
+ * @param [in]     msg_chunk_len message chunk length in bytes
+ */
+extern void
+sha3_shake_update (sha3_ctx_t *const c,
+                   const void *const msg_chunk,
+                   const size_t msg_chunk_len);
+
+/**
+ * @brief Finalizes the SHAKE context.
+ *
+ * @details The SHAKE context is updated and finalized.
+ *          No more data from the message can be further appended.
+ *
+ * @invariant Parameter `c` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] c shake context
+ */
 void
-shake_xof (sha3_ctx_t *c)
+sha3_shake_xof (sha3_ctx_t *const c)
 {
+  assert(c);
+
   c->st.b[c->pt] ^= 0x1F;
   c->st.b[c->rsiz - 1] ^= 0x80;
   sha3_keccakf(c->st.q);
   c->pt = 0;
 }
 
+/**
+ * @brief Outputs the message digest.
+ *
+ * @details The SHAKE context is updated and finalized subject to
+ *          the digest lenght.
+ *          The message digest is copied to the `md` buffer.
+ *
+ * @invariant Parameter `c` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `md` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] c  shake context
+ * @param [out]    md the output buffer that receives the digest
+ * @param [in]     md_len the lenght of the message digest in bytes
+ */
 void
-shake_out (sha3_ctx_t *c,
-           void *out,
-           size_t len)
+sha3_shake_out (sha3_ctx_t *const c,
+                void *const md,
+                size_t md_len)
 {
-  size_t i;
-  int j;
+  assert(c);
+  assert(md);
 
-  j = c->pt;
-  for (i = 0; i < len; i++) {
+  int j = c->pt;
+  for (size_t i = 0; i < md_len; i++) {
     if (j >= c->rsiz) {
       sha3_keccakf(c->st.q);
       j = 0;
     }
-    ((uint8_t *) out)[i] = c->st.b[j++];
+    ((uint8_t *) md)[i] = c->st.b[j++];
   }
   c->pt = j;
 }
 
+/**
+ * @brief Outputs the message digest as string.
+ *
+ * @details The digest is turned into a lowercase hex representation.
+ * The lenght of the string must be twice the `md_len`, so the `char`
+ * buffer must have size `2 * md_len + 1`, where plus one is for termination.
+ *
+ * @invariant Parameter `md_as_string` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `md` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [out] md_as_string the string representing the digest
+ * @param [in]  md           the message digest
+ * @param [in]  md_len       the lenght of the message digest in bytes
+ */
 void
-sha3_msg_digest_to_string (char *const msg_digest_as_string,
-                           const char *const msg_digest,
-                           const size_t msg_digest_len)
+sha3_msg_digest_to_string (char *const md_as_string,
+                           const char *const md,
+                           const size_t md_len)
 {
-  char *c = msg_digest_as_string;
-  for (int i = 0; i < msg_digest_len; i++)
-    c += sprintf(c, "%02hhx", msg_digest[i]);
+  assert(md_as_string);
+  assert(md);
+
+  char *c = md_as_string;
+  for (int i = 0; i < md_len; i++)
+    c += sprintf(c, "%02hhx", md[i]);
 }
 
 

@@ -57,8 +57,8 @@ typedef struct {
     uint64_t q[25];                     /**< @brief State array viewed as 25 QWORDs. */
   } st;                                 /**< @brief State array formed by 1600 bits. */
   int pt;                               /**< @brief An index that moves in circle in [0..rsiz) for each byte processed in the message. */
-  int rsiz;                             /**< @brief A costant equal to `200 - (2 * mdlen)`. */
-  int mdlen;                            /**< @brief Message digest length in bytes */
+  int rsiz;                             /**< @brief A costant equal to `200 - (2 * md_len)`. */
+  int md_len;                           /**< @brief Message digest length in bytes */
 } sha3_ctx_t;
 
 
@@ -109,32 +109,51 @@ sha3_512 (void *const md,
           const void *const msg,
           const size_t msg_len);
 
-// OpenSSL - like interfece
 extern void
 sha3_init (sha3_ctx_t *const c,
-           const int mdlen);
+           const int md_len);
 
 extern void
 sha3_update (sha3_ctx_t *const c,
              const void *const msg_chunk,
-             const size_t len);
+             const size_t msg_chunk_len);
 
 extern void
 sha3_final (sha3_ctx_t *const c,
             void *md);
 
-// SHAKE128 and SHAKE256 extensible-output functions
-#define shake128_init(c) sha3_init(c, 16)
-#define shake256_init(c) sha3_init(c, 32)
-#define shake_update sha3_update
+inline static void
+sha3_shake128_init (sha3_ctx_t *const c)
+{
+  sha3_init(c, 16);
+}
 
-void shake_xof(sha3_ctx_t *c);
-void shake_out(sha3_ctx_t *c, void *out, size_t len);
+inline static void
+sha3_shake256_init (sha3_ctx_t *const c)
+{
+  sha3_init(c, 32);
+}
+
+inline static void
+sha3_shake_update (sha3_ctx_t *const c,
+                   const void *const msg_chunk,
+                   const size_t msg_chunk_len)
+{
+  sha3_update(c, msg_chunk, msg_chunk_len);
+}
 
 extern void
-sha3_msg_digest_to_string (char *const msg_digest_as_string,
-                           const char *const msg_digest,
-                           const size_t msg_digest_len);
+sha3_shake_xof (sha3_ctx_t *c);
+
+extern void
+sha3_shake_out (sha3_ctx_t *const c,
+                void *const md,
+                const size_t md_len);
+
+extern void
+sha3_msg_digest_to_string (char *const md_as_string,
+                           const char *const md,
+                           const size_t md_len);
 
 
 #endif

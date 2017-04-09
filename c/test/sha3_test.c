@@ -57,8 +57,9 @@ static void sha3_256_1M_a_0_test (void);
 static void sha3_256_1M_a_1_test (void);
 static void sha3_256_extremely_long_message_0_test (void);
 static void sha3_256_extremely_long_message_1_test (void);
-static void shake128_variable_output_test (void);
-static void shake256_variable_output_test (void);
+static void sha3_shake128_variable_output_test (void);
+static void sha3_shake256_variable_output_0_test (void);
+static void sha3_shake256_variable_output_1_test (void);
 
 
 
@@ -80,8 +81,9 @@ main (int   argc,
   g_test_add_func("/sha3/sha3_256_896_bits_test", sha3_256_896_bits_test);
   g_test_add_func("/sha3/sha3_256_1M_a_0_test", sha3_256_1M_a_0_test);
   g_test_add_func("/sha3/sha3_256_1M_a_1_test", sha3_256_1M_a_1_test);
-  g_test_add_func("/sha3/shake128_variable_output_test", shake128_variable_output_test);
-  g_test_add_func("/sha3/shake256_variable_output_test", shake256_variable_output_test);
+  g_test_add_func("/sha3/sha3_shake128_variable_output_test", sha3_shake128_variable_output_test);
+  g_test_add_func("/sha3/sha3_shake256_variable_output_0_test", sha3_shake256_variable_output_0_test);
+  g_test_add_func("/sha3/sha3_shake256_variable_output_1_test", sha3_shake256_variable_output_1_test);
 
   if (g_test_slow()) {
     g_test_add_func("/sha3/sha3_256_extremely_long_message_0_test", sha3_256_extremely_long_message_0_test);
@@ -408,7 +410,7 @@ sha3_256_extremely_long_message_1_test (void)
 }
 
 static void
-shake128_variable_output_test (void)
+sha3_shake128_variable_output_test (void)
 {
   const char *const msg = "e9474a9e7a8bd81dbcca534d8c78267a";
   const char *const expected_msg_digest_as_string = "7ad49919b30fea6c3acdd6100d883e41f3";
@@ -420,10 +422,10 @@ shake128_variable_output_test (void)
 
   sha3_ctx_t ctx;
 
-  shake128_init(&ctx);
-  shake_update(&ctx, msg, msg_len);
-  shake_xof(&ctx);
-  shake_out(&ctx, msg_digest, output_len);
+  sha3_shake128_init(&ctx);
+  sha3_shake_update(&ctx, msg, msg_len);
+  sha3_shake_xof(&ctx);
+  sha3_shake_out(&ctx, msg_digest, output_len);
 
   sha3_msg_digest_to_string(msg_digest_as_string, msg_digest, output_len);
 
@@ -431,7 +433,7 @@ shake128_variable_output_test (void)
 }
 
 static void
-shake256_variable_output_test (void)
+sha3_shake256_variable_output_0_test (void)
 {
   const char *const msg =
     "Per me si va ne la citta' dolente,\n"
@@ -449,10 +451,44 @@ shake256_variable_output_test (void)
 
   sha3_ctx_t ctx;
 
-  shake256_init(&ctx);
-  shake_update(&ctx, msg, msg_len);
-  shake_xof(&ctx);
-  shake_out(&ctx, msg_digest, output_len);
+  sha3_shake256_init(&ctx);
+  sha3_shake_update(&ctx, msg, msg_len);
+  sha3_shake_xof(&ctx);
+  sha3_shake_out(&ctx, msg_digest, output_len);
+
+  sha3_msg_digest_to_string(msg_digest_as_string, msg_digest, output_len);
+
+  g_assert(strcmp(expected_msg_digest_as_string, msg_digest_as_string) == 0);
+}
+
+static void
+sha3_shake256_variable_output_1_test (void)
+{
+  const char *const msg0 =
+    "Per me si va ne la citta' dolente,\n";
+  const char *const msg1 =
+    "per me si va ne l'etterno dolore,\n";
+  const char *const msg2 =
+    "per me si va tra la perduta gente.";
+
+  const char *const expected_msg_digest_as_string =
+    "eeab2b4561d6d512ec5cdb10ab50a8d04de78f4018346c1efc166a55efe9e4f063b193e746b9e6c2";
+
+  const size_t output_len = 40;
+
+  char msg_digest[output_len];
+  char msg_digest_as_string[output_len * 2 + 1];
+
+  sha3_ctx_t ctx;
+
+  sha3_shake256_init(&ctx);
+
+  sha3_shake_update(&ctx, msg0, strlen(msg0));
+  sha3_shake_update(&ctx, msg1, strlen(msg1));
+  sha3_shake_update(&ctx, msg2, strlen(msg2));
+
+  sha3_shake_xof(&ctx);
+  sha3_shake_out(&ctx, msg_digest, output_len);
 
   sha3_msg_digest_to_string(msg_digest_as_string, msg_digest, output_len);
 
