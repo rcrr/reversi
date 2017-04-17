@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -33,6 +33,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include <glib.h>
 
@@ -262,10 +263,10 @@ run_test_case_array (GamePositionDb *db,
                      ExactSolution* (*solver)(const GamePositionX *const gpx,
                                               const endgame_solver_env_t *const env));
 
-static void
-assert_move_is_part_of_array (const Square move,
-                              const Square move_array[],
-                              const int move_array_length);
+static bool
+is_move_part_of_array (const Square move,
+                       const Square move_array[],
+                       const int move_array_length);
 
 
 
@@ -510,24 +511,25 @@ run_test_case_array (GamePositionDb *db,
     }
     const GamePosition *const gp = get_gp_from_db(db, tc->gpdb_label);
     GamePositionX *const gpx = game_position_x_gp_to_gpx(gp);
-    ExactSolution *const solution = (*solver)(gpx, &endgame_solver_env);
-    if (g_test_verbose()) {
-      printf("result[outcome=%+03d, move=%s]\n", solution->outcome, square_to_string(solution->pv[0]));
-    }
-    g_assert_cmpint(tc->outcome, ==, solution->outcome);
-    assert_move_is_part_of_array(solution->pv[0], tc->best_move, tc->best_move_count);
+    ExactSolution *const solution = solver(gpx, &endgame_solver_env);
+    if (g_test_verbose())
+      printf("result[outcome=%+03d, move=%s]", solution->outcome, square_to_string(solution->pv[0]));
+    const bool ok_value = tc->outcome == solution->outcome;
+    const bool ok_move = is_move_part_of_array(solution->pv[0], tc->best_move, tc->best_move_count);
+    if (!ok_value || !ok_move) g_test_fail();
     exact_solution_free(solution);
     free(gpx);
+    if (g_test_verbose()) printf(": %s\n", (ok_value && ok_move) ? "OK": "KO");
   }
 }
 
-static void
-assert_move_is_part_of_array (const Square move,
-                              const Square move_array[],
-                              const int move_array_length)
+static bool
+is_move_part_of_array (const Square move,
+                       const Square move_array[],
+                       const int move_array_length)
 {
   for (int i = 0; i < move_array_length; i++) {
-    if (move == move_array[i]) return;
+    if (move == move_array[i]) return true;
   }
-  g_test_fail();
+  return false;
 }
