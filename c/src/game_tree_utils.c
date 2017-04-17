@@ -196,6 +196,7 @@ exact_solution_new (void)
   es->final_board = NULL;
   es->node_count = 0;
   es->leaf_count = 0;
+  es->pve = NULL;
 
   return es;
 }
@@ -213,6 +214,7 @@ exact_solution_free (ExactSolution *es)
   if (es) {
     if (es->solved_game_position) game_position_free(es->solved_game_position);
     if (es->final_board) board_free(es->final_board);
+    if (es->pve) pve_free(es->pve);
     free(es);
   }
 }

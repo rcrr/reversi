@@ -177,10 +177,6 @@ game_position_es_solve (const GamePositionX *const root,
 
   log_env = game_tree_log_init(env->log_file);
 
-  //GamePositionX *rootx = game_position_x_gp_to_gpx(root);
-  pve = pve_new(root);
-  //game_position_x_free(rootx);
-
   if (log_env->log_is_on) {
     gp_hash_stack[0] = 0;
     game_tree_log_open_h(log_env);
@@ -195,6 +191,8 @@ game_position_es_solve (const GamePositionX *const root,
   }
 
   result = exact_solution_new();
+  pve = pve_new(root);
+  result->pve = pve;
 
   result->solved_game_position = game_position_clone(game_position_x_gpx_to_gp(root));
 
@@ -256,7 +254,6 @@ game_position_es_solve (const GamePositionX *const root,
   }
 
   search_node_free(sn);
-  pve_free(pve);
 
   game_tree_log_close(log_env);
 

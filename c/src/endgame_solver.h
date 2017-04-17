@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2015, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -59,7 +59,7 @@ typedef struct {
  * @details This prototype receives a game position and a set of
  *          arguments collected by the env parameter.
  *
- * @param [in] gp  the position to solve
+ * @param [in] gpx the position to solve
  * @param [in] env arguments and parameters for the solver
  */
 typedef ExactSolution *

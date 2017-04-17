@@ -28,7 +28,7 @@ MAINS = endgame_solver gpdb_verify dump_bitrow_changes utest read_pve_dump intel
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
 TEST_PROGS = bit_works_test prng_test sha3_test sort_utils_test red_black_tree_test board_test game_position_db_test \
-             game_position_test game_tree_utils_test endgame_solver_test
+             game_position_test game_tree_utils_test endgame_solver_test es_pv_test
 
 UTEST_PROGS = utest_test llist_test
 
@@ -62,6 +62,9 @@ BINDIR   = $(BUILDDIR)/bin
 DOCDIR   = $(BUILDDIR)/doc
 BTESTDIR = $(BUILDDIR)/test
 ASMDIR   = $(BUILDDIR)/asm
+TMPDIR   = $(BUILDDIR)/tmp
+
+ENDGAME_LOG_DIR = $(BUILDDIR)/out
 
 OUTDIR = out
 
@@ -89,15 +92,10 @@ UTEST_OBJS_WITH_MAIN = $(addsuffix .o,$(addprefix $(TEST_OBJDIR)/,$(UTEST_PROGS)
 ALL_TEST_OBJS_WITH_MAIN = $(TEST_OBJS_WITH_MAIN) $(UTEST_OBJS_WITH_MAIN)
 TEST_OBJS_NO_MAIN = $(filter-out $(ALL_TEST_OBJS_WITH_MAIN),$(TEST_OBJS))
 
-#.PHONY: deps
-#deps: $(DEPS)
-#
-#$(DEPS): $(OBJDIR)/%.d: $(SRCDIR)/%.c | $(OBJDIR)
-#	$(CC) $(ARCH_FLAGS) -MM $< -o $@
-#
-#include $(DEPS)
+all: $(BINS) $(TEST_BINS) $(UTEST_BINS) $(OUTDIR) build_dirs
 
-all: $(BINS) $(TEST_BINS) $(UTEST_BINS) $(OUTDIR)
+.PHONY: build_dirs
+build_dirs: $(BUILDDIR) $(OBJDIR) $(BINDIR) $(DOCDIR) $(BTESTDIR) $(ASMDIR) $(TMPDIR) $(ENDGAME_LOG_DIR)
 
 $(BINS): $(OBJS) | $(BINDIR)
 	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(BINDIR),$(OBJDIR),$@))))
@@ -168,14 +166,12 @@ $(OUTDIR)/.dir_sentinel:
 	mkdir -p $(OUTDIR)
 	touch $(OUTDIR)/.dir_sentinel
 
-
 .PHONY: $(OBJDIR)
 $(OBJDIR): $(OBJDIR)/.dir_sentinel | $(BUILDDIR)
 
 $(OBJDIR)/.dir_sentinel:
 	mkdir -p $(OBJDIR)
 	touch $(OBJDIR)/.dir_sentinel
-
 
 .PHONY: $(BINDIR)
 $(BINDIR): $(BINDIR)/.dir_sentinel | $(BUILDDIR)
@@ -184,7 +180,6 @@ $(BINDIR)/.dir_sentinel:
 	mkdir -p $(BINDIR)
 	touch $(BINDIR)/.dir_sentinel
 
-
 .PHONY: $(DOCDIR)
 $(DOCDIR): $(DOCDIR)/.dir_sentinel | $(BUILDDIR)
 
@@ -192,13 +187,20 @@ $(DOCDIR)/.dir_sentinel:
 	mkdir -p $(DOCDIR)
 	touch $(DOCDIR)/.dir_sentinel
 
-
 .PHONY: $(ASMDIR)
 $(ASMDIR): $(ASMDIR)/.dir_sentinel | $(BUILDDIR)
 
 $(ASMDIR)/.dir_sentinel:
 	mkdir -p $(ASMDIR)
 	touch $(ASMDIR)/.dir_sentinel
+
+.PHONY: $(TMPDIR)
+$(TMPDIR): $(TMPDIR)/.dir_sentinel | $(BUILDDIR)
+
+$(TMPDIR)/.dir_sentinel:
+	mkdir -p $(TMPDIR)
+	touch $(TMPDIR)/.dir_sentinel
+
 
 
 .PHONY: $(BTESTDIR)
@@ -284,15 +286,13 @@ info:
 	@echo "TEST_OBJS_NO_MAIN = "$(TEST_OBJS_NO_MAIN)
 
 
-
-ENDGAME_LOG_DIR = $(BUILDDIR)/out
-
 .PHONY: $(ENDGAME_LOG_DIR)
 $(ENDGAME_LOG_DIR): $(ENDGAME_LOG_DIR)/.dir_sentinel | $(BUILDDIR)
 
 $(ENDGAME_LOG_DIR)/.dir_sentinel:
 	mkdir -p $(ENDGAME_LOG_DIR)
 	touch $(ENDGAME_LOG_DIR)/.dir_sentinel
+
 
 .PHONY: endgame_log_files
 endgame_log_files: $(ENDGAME_LOG_DIR)

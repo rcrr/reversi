@@ -119,19 +119,6 @@ typedef enum {
 typedef uint64_t switches_t;
 
 /**
- * @brief An exact solution is an entity that holds the result of a #endgame_solver_f run.
- */
-typedef struct {
-  GamePosition *solved_game_position;        /**< @brief The game position given as input. */
-  int           outcome;                     /**< @brief The final endgame score. */
-  Square        pv[PV_MAX_LENGTH];           /**< @brief The sequence of best moves, or principal variation. */
-  int           pv_length;                   /**< @brief The number of moves in the principal variation line. */
-  Board        *final_board;                 /**< @brief The final board state. */
-  uint64_t      leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
-  uint64_t      node_count;                  /**< @brief The count of all nodes touched by the solver. */
-} ExactSolution;
-
-/**
  * @brief A principal variation cell.
  */
 typedef struct PVCell_ {
@@ -187,6 +174,20 @@ typedef struct {
   size_t          line_release_cell_count;       /**< @brief The number of times a cell is released in the pve_line_delete() function. */
   rbt_table_t    *gp_table;                      /**< @brief Collects the unique set of game positions touched by the principal variation. */
 } PVEnv;
+
+/**
+ * @brief An exact solution is an entity that holds the result of a #endgame_solver_f run.
+ */
+typedef struct {
+  GamePosition *solved_game_position;        /**< @brief The game position given as input. */
+  int           outcome;                     /**< @brief The final endgame score. */
+  Square        pv[PV_MAX_LENGTH];           /**< @brief The sequence of best moves, or principal variation. */
+  int           pv_length;                   /**< @brief The number of moves in the principal variation line. */
+  Board        *final_board;                 /**< @brief The final board state. */
+  uint64_t      leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
+  uint64_t      node_count;                  /**< @brief The count of all nodes touched by the solver. */
+  PVEnv        *pve;                         /**< @brief A reference to the principal variation env. */
+} ExactSolution;
 
 /**
  * @brief A search node is the most simple structure returned by the implementations of the search function.

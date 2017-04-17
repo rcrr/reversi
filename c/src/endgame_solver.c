@@ -71,12 +71,12 @@
  *
  * @todo [done] Solvers rab and ab share the same stack solution. Refactor it sharing
  *              the same utilities brougth to a dedicated module.
- *       The es solver should do the same.
+ *       [done] The es solver should do the same.
  *              2016-08-21: legal_moves and make_move functions have an AVX2 version.
  *                          Now malloc/free functions are consuming the largest slice of the es solver.
  *                          It is time to address this task.
  *
- * @todo Port the stack practice to all the other solver, refactor the structures used (Stack, NodeInfo, GamePositionX).
+ * @todo [done] Port the stack practice to all the other solver, refactor the structures used (Stack, NodeInfo, GamePositionX).
  *
  * @todo [done] Write a test suite that solves a selection of the FFO test cases.
  *
@@ -118,13 +118,15 @@
  *
  * @todo Introduce the node cache by means of a shared hashtable.
  *
- * @todo Optimize (better saying improve) the bitrow_changes_for_player array .... the number of entries is ten times the required ones.
- *       A complete rethinking of the index function is then needed.
+ * @todo [no longer relevant] Optimize (better saying improve) the bitrow_changes_for_player array .... the number of entries is ten times the required ones.
+ *                            A complete rethinking of the index function is then needed.
+ *                            The AVX2 implementation makes this improvement useless.
  *
- * @todo Verify if it is possible to optimize the definition of bitboard_mask_for_all_directions removing squares that do not flip (inner frame).
+ * @todo [no longer relevant] Verify if it is possible to optimize the definition of bitboard_mask_for_all_directions removing squares that do not flip (inner frame).
+ *                            The AVX2 implementation makes this improvement useless.
  *
- * @todo Remove the dependency from GSL GNU library by replacing it with Mersenne Twister 64bit version foud at http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt64.html
- *       The reason is to avoid the dependency, but more important to have a 64 bit generator (the gsl library has a 32 bit one).
+ * @todo [done] Remove the dependency from GSL GNU library by replacing it with Mersenne Twister 64bit version foud at http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt64.html
+ *              The reason is to avoid the dependency, but more important to have a 64 bit generator (the gsl library has a 32 bit one).
  *
  * @todo Create a C extension to PostgreSQL that leverages the C game position functions.
  *

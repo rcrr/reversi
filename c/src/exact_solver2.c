@@ -243,7 +243,7 @@ game_position_es2_solve (const GamePositionX *const root,
       pve_dump_to_binary_file(pve, env->pve_dump_file);
       printf(" --- --- pve_dump_to_binary_file() COMPLETED --- ---\n");
     }
-    pve_free(pve);
+    //pve_free(pve);
   }
 
   game_tree_log_close(log_env);
