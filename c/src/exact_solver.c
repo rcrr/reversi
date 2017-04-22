@@ -153,10 +153,8 @@ game_position_es_solve (const GamePositionX *const root,
   assert(root);
   assert(env);
 
-  const GamePosition *const root_gp = game_position_x_gpx_to_gp(root);
-
   ExactSolution *result = exact_solution_new();
-  result->solved_game_position = game_position_clone(root_gp);
+  exact_solution_set_solved_game_position_x(result, root);
 
   GameTreeStack *stack = game_tree_stack_new();
   game_tree_stack_init(root, stack);
