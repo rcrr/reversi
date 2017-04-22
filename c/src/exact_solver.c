@@ -340,11 +340,12 @@ game_position_solve_impl (ExactSolution *const result,
     log_data.blacks = current_gpx->blacks;
     log_data.whites = current_gpx->whites;
     log_data.player = current_gpx->player;
-    gchar *json_doc = game_tree_log_data_h_json_doc2(stack->active_node - stack->nodes, current_gpx);
+    char json_doc[game_tree_log_max_json_doc_len];
+    const int json_doc_len  = game_tree_log_data_h_json_doc3(json_doc, stack->active_node - stack->nodes, current_gpx);
+    assert(json_doc_len <= game_tree_log_max_json_doc_len);
     log_data.json_doc = json_doc;
-    log_data.json_doc_len = strlen(json_doc);
+    log_data.json_doc_len = json_doc_len;
     game_tree_log_write_h(log_env, &log_data);
-    g_free(json_doc);
   }
 
   if (move_set == empty_square_set) {

@@ -114,10 +114,6 @@ game_tree_log_close (LogEnv *const env);
 extern LogEnv *
 game_tree_log_init (const char *const file_name_prefix);
 
-extern gchar *
-game_tree_log_data_h_json_doc2 (const int call_level,
-                                const GamePositionX *const gpx);
-
 extern int
 game_tree_log_data_h_json_doc3 (char *const json_doc,
                                 const int call_level,
