@@ -215,9 +215,9 @@ game_tree_log_init (const gchar *const file_name_prefix)
  * @return                 the length of the json_doc string
  */
 int
-game_tree_log_data_h_json_doc3 (char *const json_doc,
-                                const int call_level,
-                                const GamePositionX *const gpx)
+game_tree_log_data_h_json_doc (char *const json_doc,
+                               const int call_level,
+                               const GamePositionX *const gpx)
 {
   const gboolean is_leaf = !game_position_x_has_any_player_any_legal_move(gpx);
   const SquareSet legal_moves = game_position_x_legal_moves(gpx);

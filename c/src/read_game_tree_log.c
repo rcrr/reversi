@@ -122,7 +122,7 @@ main (int argc, char *argv[])
   while (fread(&record, sizeof(LogDataH), 1, fp)) {
     if (!record.json_doc) {
       GamePositionX gpx = { .blacks = record.blacks, .whites = record.whites, .player = record.player };
-      const int json_doc_len  = game_tree_log_data_h_json_doc3(json_doc, record.call_level, &gpx);
+      const int json_doc_len  = game_tree_log_data_h_json_doc(json_doc, record.call_level, &gpx);
       if (json_doc_len > game_tree_log_max_json_doc_len) abort();
     } else {
       size_t len = fread(json_doc, record.json_doc_len + 1, 1, fp);

@@ -1279,7 +1279,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     log_data.whites = (&gpx)->whites;
     log_data.player = (&gpx)->player;
     char json_doc[game_tree_log_max_json_doc_len];
-    const int json_doc_len  = game_tree_log_data_h_json_doc3(json_doc, gp_hash_stack_fill_point, &gpx);
+    const int json_doc_len  = game_tree_log_data_h_json_doc(json_doc, gp_hash_stack_fill_point, &gpx);
     assert(json_doc_len <= game_tree_log_max_json_doc_len);
     log_data.json_doc = json_doc;
     log_data.json_doc_len = json_doc_len;

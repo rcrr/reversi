@@ -115,9 +115,9 @@ extern LogEnv *
 game_tree_log_init (const char *const file_name_prefix);
 
 extern int
-game_tree_log_data_h_json_doc3 (char *const json_doc,
-                                const int call_level,
-                                const GamePositionX *const gpx);
+game_tree_log_data_h_json_doc (char *const json_doc,
+                               const int call_level,
+                               const GamePositionX *const gpx);
 
 extern void
 do_log (const ExactSolution *const result,
