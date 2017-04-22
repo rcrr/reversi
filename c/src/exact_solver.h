@@ -31,8 +31,8 @@
  * </tt>
  */
 
-#ifndef EXACT_SOLVER_H
-#define EXACT_SOLVER_H
+#ifndef EXACT_SOLVER2_H
+#define EXACT_SOLVER2_H
 
 #include <glib.h>
 
@@ -42,13 +42,9 @@
 
 
 
-/*********************************************************/
-/* Function implementations for the GamePosition entity. */
-/*********************************************************/
-
 extern ExactSolution *
 game_position_es_solve (const GamePositionX *const root,
                         const endgame_solver_env_t *const env);
 
 
-#endif /* EXACT_SOLVER_H */
+#endif /* EXACT_SOLVER2_H */

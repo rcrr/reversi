@@ -36,9 +36,7 @@
 
 #include <stdbool.h>
 
-#include "board.h"
 #include "endgame_solver.h"
-#include "exact_solver.h"
 
 
 

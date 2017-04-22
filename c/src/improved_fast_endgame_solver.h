@@ -35,7 +35,6 @@
 #define IMPROVED_FAST_ENDGAME_SOLVER_H
 
 #include "endgame_solver.h"
-#include "exact_solver.h"
 
 extern ExactSolution *
 game_position_ifes_solve (const GamePositionX *const root,

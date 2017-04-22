@@ -1875,6 +1875,7 @@ pve_summary_from_binary_file_to_stream (const char *const in_file_path,
 void
 pve_transform_to_standard_form (PVEnv *const pve)
 {
+  assert(pve);
 
   /*
    * The board has 64 squares, each move can have a pass, so

@@ -34,7 +34,7 @@
 #ifndef MINIMAX_SOLVER_H
 #define MINIMAX_SOLVER_H
 
-#include "exact_solver.h"
+#include "endgame_solver.h"
 
 
 

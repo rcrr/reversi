@@ -174,10 +174,9 @@
 
 #include "endgame_solver.h"
 #include "game_position_db.h"
-#include "exact_solver.h"
 #include "improved_fast_endgame_solver.h"
 #include "minimax_solver.h"
-#include "exact_solver2.h"
+#include "exact_solver.h"
 
 
 
@@ -209,8 +208,7 @@ static const endgame_solver_t solvers[] =
     { .id = "rand",    .description = "random game sampler",          .function_name = "game_position_random_sampler", .fn = game_position_random_sampler },
     { .id = "minimax", .description = "minimax solver",               .function_name = "game_position_minimax_solve",  .fn = game_position_minimax_solve },
     { .id = "rab",     .description = "random alpha-beta solver",     .function_name = "game_position_rab_solve",      .fn = game_position_rab_solve },
-    { .id = "ab",      .description = "alpha-beta solver",            .function_name = "game_position_ab_solve",       .fn = game_position_ab_solve },
-    { .id = "es2",     .description = "es rewritten ...",             .function_name = "game_position_es2_solve",      .fn = game_position_es2_solve }
+    { .id = "ab",      .description = "alpha-beta solver",            .function_name = "game_position_ab_solve",       .fn = game_position_ab_solve }
   };
 
 static const int solvers_count = sizeof(solvers) / sizeof(solvers[0]);
@@ -355,12 +353,12 @@ main (int argc, char *argv[])
     return -5;
   }
   const endgame_solver_t *const solver = &solvers[solver_index];
-  if (pv_rec && !(!strcmp(solver->id, "es") || !strcmp(solver->id, "es2"))) {
-    g_print("Option --pv-rec can be used only with solver \"es\" or \"es2\".\n");
+  if (pv_rec && (strcmp(solver->id, "es") != 0)) {
+    g_print("Option --pv-rec can be used only with solver \"es\".\n");
     return -10;
   }
-  if (pv_full_rec && !(!strcmp(solver->id, "es") || !strcmp(solver->id, "es2"))) {
-    g_print("Option --pv-full-rec can be used only with solver \"es\" or \"es2\".\n");
+  if (pv_full_rec && (strcmp(solver->id, "es") != 0)) {
+    g_print("Option --pv-full-rec can be used only with solver \"es\".\n");
     return -10;
   }
   if (pv_no_print && (strcmp(solver->id, "es") || !pv_full_rec)) {
@@ -417,7 +415,6 @@ main (int argc, char *argv[])
   env.pv_no_print = pv_no_print;
 
   /* Solves the position. */
-  //GamePosition *gp = entry->game_position;
   GamePositionX *gpx = game_position_x_gp_to_gpx(entry->game_position);
   ExactSolution *solution = NULL;
   g_print("Solving game position %s, from source %s, using solver %s (%s) ...\n", entry->id, input_file, solver->id, solver->description);
