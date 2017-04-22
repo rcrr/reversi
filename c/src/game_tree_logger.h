@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -113,10 +113,6 @@ game_tree_log_close (LogEnv *const env);
 
 extern LogEnv *
 game_tree_log_init (const char *const file_name_prefix);
-
-extern gchar *
-game_tree_log_data_h_json_doc (const int call_level,
-                               const GamePosition *const gp);
 
 extern gchar *
 game_tree_log_data_h_json_doc2 (const int call_level,
