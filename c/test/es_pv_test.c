@@ -375,12 +375,12 @@ run_test_case_array (GamePositionDb *db,
     (void) fclose_ret; /* Suppress the warning "unused variable" raised when compiling without assertions. */
 
     const bool ok_value = tc->outcome == solution->outcome;
-    const bool ok_move = is_move_part_of_array(solution->pv[0], tc->best_move, tc->best_move_count);
+    const bool ok_move = is_move_part_of_array(solution->best_move, tc->best_move, tc->best_move_count);
     const bool ok_pv = strcmp(tc->pv_sha3_256, pv_digest_as_string) == 0;
     if (!ok_value || !ok_move || !ok_pv) g_test_fail();
 
     if (g_test_verbose()) {
-      printf("result[outcome=%+03d, move=%s, sha=%s]", solution->outcome, square_to_string(solution->pv[0]), pv_digest_as_string);
+      printf("result[outcome=%+03d, move=%s, sha=%s]", solution->outcome, square_to_string(solution->best_move), pv_digest_as_string);
       printf(": %s\n", (ok_value && ok_move && ok_pv) ? "OK": "KO");
     }
 

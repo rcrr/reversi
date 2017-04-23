@@ -226,10 +226,9 @@ game_position_es_solve (const GamePositionX *const root,
   const Square best_move = first_node_info->best_move;
   game_tree_stack_free(stack);
 
-  result->pv[0] = best_move;
+  result->best_move = best_move;
   result->outcome = game_value;
   if (pv_recording) {
-    pve_line_copy_to_exact_solution(pve, (const PVCell **const) pve->root_line, result);
     exact_solution_compute_final_board(result);
     if (env->pve_dump_file) {
       printf("\n --- --- pve_dump_to_binary_file() START --- ---\n");

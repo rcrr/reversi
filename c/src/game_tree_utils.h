@@ -181,8 +181,7 @@ typedef struct {
 typedef struct {
   GamePosition *solved_game_position;        /**< @brief The game position given as input. */
   int           outcome;                     /**< @brief The final endgame score. */
-  Square        pv[PV_MAX_LENGTH];           /**< @brief The sequence of best moves, or principal variation. */
-  int           pv_length;                   /**< @brief The number of moves in the principal variation line. */
+  Square        best_move;                   /**< @brief The first move of the main principal variation. */
   Board        *final_board;                 /**< @brief The final board state. */
   uint64_t      leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
   uint64_t      node_count;                  /**< @brief The count of all nodes touched by the solver. */
@@ -452,11 +451,6 @@ pve_line_with_variants_to_stream (const PVEnv *const pve,
 extern void
 pve_root_line_as_table_to_stream (const PVEnv *const pve,
                                   FILE *const stream);
-
-extern void
-pve_line_copy_to_exact_solution (const PVEnv *const pve,
-                                 const PVCell **const line,
-                                 ExactSolution *const es);
 
 extern void
 pve_dump_to_binary_file (const PVEnv *const pve,

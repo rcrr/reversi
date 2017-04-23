@@ -513,9 +513,9 @@ run_test_case_array (GamePositionDb *db,
     GamePositionX *const gpx = game_position_x_gp_to_gpx(gp);
     ExactSolution *const solution = solver(gpx, &endgame_solver_env);
     if (g_test_verbose())
-      printf("result[outcome=%+03d, move=%s]", solution->outcome, square_to_string(solution->pv[0]));
+      printf("result[outcome=%+03d, move=%s]", solution->outcome, square_to_string(solution->best_move));
     const bool ok_value = tc->outcome == solution->outcome;
-    const bool ok_move = is_move_part_of_array(solution->pv[0], tc->best_move, tc->best_move_count);
+    const bool ok_move = is_move_part_of_array(solution->best_move, tc->best_move, tc->best_move_count);
     if (!ok_value || !ok_move) g_test_fail();
     exact_solution_free(solution);
     free(gpx);

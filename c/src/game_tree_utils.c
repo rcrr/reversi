@@ -189,10 +189,7 @@ exact_solution_new (void)
 
   es->solved_game_position = NULL;
   es->outcome = invalid_outcome;
-  for (int i = 0; i < PV_MAX_LENGTH; i++) {
-    es->pv[i] = invalid_move;
-  }
-  es->pv_length = 0;
+  es->best_move = invalid_move;
   es->final_board = NULL;
   es->node_count = 0;
   es->leaf_count = 0;
@@ -245,18 +242,22 @@ exact_solution_to_string (const ExactSolution *const es)
                          es->node_count,
                          es->leaf_count);
   g_string_append_printf(tmp, "Final outcome: best move=%s, position value=%d\n",
-                         square_as_move_to_string(es->pv[0]),
+                         square_as_move_to_string(es->best_move),
                          es->outcome);
 
-  if (es->pv_length != 0) {
-    gchar *pv_to_s = square_as_move_array_to_string(es->pv, es->pv_length);
-    g_string_append_printf(tmp, "PV: %s\n", pv_to_s);
-    g_free(pv_to_s);
+  if (es->pve) {
+    PVCell **rl  = es->pve->root_line;
+    assert (rl);
+    g_string_append_printf(tmp, "PV: ");
+    for (PVCell *c = *rl; c != NULL; c = c->next) {
+      g_string_append_printf(tmp, "%s ", square_as_move_to_string(c->move));
+    }
+    g_string_append_printf(tmp, "\n");
   }
 
   if (es->final_board) {
     gchar *b_to_s = board_print(es->final_board);
-    g_string_append_printf(tmp, "\nFinal board configuration:\n%s\n", b_to_s);
+    g_string_append_printf(tmp, "\nFinal board configuration playing main PV:\n%s\n", b_to_s);
     g_free(b_to_s);
   }
 
@@ -276,17 +277,25 @@ exact_solution_to_string (const ExactSolution *const es)
 void
 exact_solution_compute_final_board (ExactSolution *const es)
 {
-  g_assert(es);
+  assert(es);
+  assert(es->solved_game_position);
 
-  int i;
-  GamePosition *gp, *gp_next;
-  for (i = 0, gp = game_position_clone(es->solved_game_position); i < es->pv_length; i++) {
-    gp_next = game_position_make_move(gp, es->pv[i]);
-    game_position_free(gp);
-    gp = gp_next;
+  if (!es->pve) return;
+
+  GamePositionX t = {
+    .whites = es->solved_game_position->board->whites,
+    .blacks = es->solved_game_position->board->blacks,
+    .player = es->solved_game_position->player
+  };
+
+  PVCell **rl  = es->pve->root_line;
+  assert (rl);
+
+  for (PVCell *c = *rl; c != NULL; c = c->next) {
+    game_position_x_make_move(&t, c->move, &t);
   }
-  es->final_board = board_clone(gp->board);
-  game_position_free(gp);
+
+  es->final_board = board_new(t.blacks, t.whites);
 }
 
 /**
@@ -1319,28 +1328,6 @@ pve_root_line_as_table_to_stream (const PVEnv *const pve,
           "GP_P");
 
   pve_tree_walker(pve, stream, true, NULL, NULL, pve_twa_cell_csv);
-}
-
-/**
- * @brief Copies the pve line into the exact solution structure.
- *
- * @details Exact solution `es` must have an empty pv field. The assumption is
- *          checked assuring that the pv_length field is equal to zero.
- *          The assumption is guarded by an assertion.
- *
- * @param [in]     pve  a pointer to the principal variation environment
- * @param [in]     line the line to be copied
- * @param [in,out] es   the exact solution to be updated
- */
-void
-pve_line_copy_to_exact_solution (const PVEnv *const pve,
-                                 const PVCell **const line,
-                                 ExactSolution *const es)
-{
-  g_assert(es->pv_length == 0);
-  for (const PVCell *c = *line; c != NULL; c = c->next) {
-    es->pv[(es->pv_length)++] = c->move;
-  }
 }
 
 /**

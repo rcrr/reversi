@@ -221,7 +221,7 @@ game_position_mab_solve (const GamePositionX *const root,
       game_position_solve_impl(result, stack, log_env, alpha_beta_pruning, randomize_move_order, prng, sub_run_id);
     }
 
-    result->pv[0] = stack->nodes[1].best_move;
+    result->best_move = stack->nodes[1].best_move;
     result->outcome = stack->nodes[1].alpha;
 
     if (sub_run_id != n_run - 1) exact_solution_free(result);
