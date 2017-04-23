@@ -1154,46 +1154,13 @@ pve_gp_table_entry_free (pve_gp_table_entry_t *entry)
  * @param [in,out] pve  a pointer to the principal variation environment
  * @param [in,out] line the line to be updated
  * @param [in]     move the move value to add to the line
- * @param [in]     gp   the game position after the move
+ * @param [in]     gpx  the game position after the move
  */
 void
 pve_line_add_move (PVEnv *pve,
                    PVCell **line,
                    Square move,
-                   GamePosition *gp)
-{
-  pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
-  pve->line_add_move_count++;
-  PVCell *added_cell = *(pve->cells_stack_head);
-  *(pve->cells_stack_head) = NULL; /* Set to NULL the stack element. */
-  pve->cells_stack_head++;
-  if (pve->cells_stack_head - pve->cells_stack > pve->cells_max_usage) pve->cells_max_usage++;
-  if (pve->cells_stack_head - pve->cells_stack == pve->cells_size) pve_double_cells_size(pve);
-  added_cell->move = move;
-  added_cell->is_active = TRUE;
-  added_cell->next = *line;
-  added_cell->ref_count = 0;
-  added_cell->gpx.blacks = gp->board->blacks;
-  added_cell->gpx.whites = gp->board->whites;
-  added_cell->gpx.player = gp->player;
-  *line = added_cell;
-
-  pve_gp_table_entry_t table_entry;
-  table_entry.gpx.blacks = gp->board->blacks;
-  table_entry.gpx.whites = gp->board->whites;
-  table_entry.gpx.player = gp->player;
-  pve_gp_table_entry_t **entry_ref = (pve_gp_table_entry_t **) rbt_probe(pve->gp_table, &table_entry);
-  if (*entry_ref == &table_entry) {
-    *entry_ref = pve_gp_table_entry_new(&table_entry.gpx);
-  }
-  (*entry_ref)->ref_count++;
-}
-
-void
-pve_line_add_move2 (PVEnv *pve,
-                    PVCell **line,
-                    Square move,
-                    GamePositionX *gpx)
+                   GamePositionX *gpx)
 {
   pve_verify_invariant(PVE_VERIFY_INVARIANT_MASK);
   pve->line_add_move_count++;

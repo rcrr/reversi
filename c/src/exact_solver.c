@@ -368,7 +368,7 @@ game_position_solve_impl (ExactSolution *const result,
       current_node_info->best_move = pass_move;
     }
     if (pv_recording) {
-      pve_line_add_move2(pve, pve_line, pass_move, next_gpx);
+      pve_line_add_move(pve, pve_line, pass_move, next_gpx);
       pve_line_delete(pve, *pve_parent_line_p);
       *pve_parent_line_p = pve_line;
     }
@@ -390,7 +390,7 @@ game_position_solve_impl (ExactSolution *const result,
         current_node_info->alpha = -next_node_info->alpha;
         current_node_info->best_move = move;
         if (pv_recording) {
-          pve_line_add_move2(pve, pve_line, move, next_gpx);
+          pve_line_add_move(pve, pve_line, move, next_gpx);
           pve_line_delete(pve, *pve_parent_line_p);
           *pve_parent_line_p = pve_line;
         }
@@ -399,7 +399,7 @@ game_position_solve_impl (ExactSolution *const result,
       } else {
         if (pv_recording) {
           if (pv_full_recording && -next_node_info->alpha == current_alpha) {
-            pve_line_add_move2(pve, pve_line, move, next_gpx);
+            pve_line_add_move(pve, pve_line, move, next_gpx);
             pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
           } else {
             pve_line_delete(pve, pve_line);
