@@ -2124,44 +2124,6 @@ game_position_clone (const GamePosition *const gp)
 }
 
 /**
- * @brief Compares game positions `a` and `b`.
- *
- * When the two game position are equal it returns `0`, when `a` is greather then `b` it
- * returns `+1`, otherwise `-1`.
- *
- * Game positions are equals when have the same board and player.
- *
- * @invariant Parameters `a` and `b` must be not `NULL`.
- * Invariants are guarded by assertions.
- *
- * @param [in] a a pointer to a game position structure
- * @param [in] b a pointer to a second structure
- * @return       `-1` when `a < b`, `+1` when `a > b`, or `0` when the two game position are equal
- */
-int
-game_position_compare (const GamePosition *const a,
-                       const GamePosition *const b)
-{
-  g_assert(a);
-  g_assert(b);
-
-  if (a == b) return 0;
-
-  const int board_comp = board_compare(a->board, b->board);
-  if (board_comp != 0) {
-    return board_comp;
-  } else {
-    if (a->player < b->player) {
-      return -1;
-    } else if (a->player > b->player) {
-      return +1;
-    } else {
-      return 0;             /* Players are equal, and so are a and b. */
-    }
-  }
-}
-
-/**
  * @brief Returns a formatted string showing a 2d graphical represention of the game position.
  *
  * The returned string has a dynamic extent set by a call to malloc. It must then properly
