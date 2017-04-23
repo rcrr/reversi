@@ -79,7 +79,6 @@ static void board_print_test (void);
 static void board_is_move_legal_test (void);
 static void board_legal_moves_test (void);
 
-static void game_position_print_test (void);
 static void game_position_to_string_test (void);
 static void game_position_count_difference_test (void);
 static void game_position_hash_test (void);
@@ -89,6 +88,7 @@ static void game_position_x_get_player_test (void);
 static void game_position_x_get_opponent_test (void);
 static void game_position_x_legal_moves_test (void);
 static void game_position_x_count_difference_test (void);
+static void game_position_x_print_test (void);
 static void game_position_x_to_string_test (void);
 static void game_position_x_get_square_test (void);
 static void game_position_x_compare_test (void);
@@ -150,7 +150,6 @@ main (int   argc,
   g_test_add_func("/board/board_is_move_legal_test", board_is_move_legal_test);
   g_test_add_func("/board/board_legal_moves_test", board_legal_moves_test);
 
-  g_test_add_func("/board/game_position_print_test", game_position_print_test);
   g_test_add_func("/board/game_position_to_string_test", game_position_to_string_test);
   g_test_add_func("/board/game_position_count_difference_test", game_position_count_difference_test);
   g_test_add_func("/board/game_position_hash_test", game_position_hash_test);
@@ -161,6 +160,7 @@ main (int   argc,
   g_test_add_func("/board/game_position_x_legal_moves_test", game_position_x_legal_moves_test);
   g_test_add_func("/board/game_position_x_count_difference_test", game_position_x_count_difference_test);
   g_test_add_func("/board/game_position_x_to_string_test", game_position_x_to_string_test);
+  g_test_add_func("/board/game_position_x_print_test", game_position_x_print_test);
   g_test_add_func("/board/game_position_x_get_square_test", game_position_x_get_square_test);
   g_test_add_func("/board/game_position_x_compare_test", game_position_x_compare_test);
   g_test_add_func("/board/game_position_x_clone_test", game_position_x_clone_test);
@@ -694,21 +694,19 @@ board_print_test (void)
 }
 
 static void
-game_position_print_test (void)
+game_position_x_print_test (void)
 {
-  Board        *b;
-  Player        p;
-  GamePosition *gp;
-  char         *gp_to_string;
-  GString      *expected;
+  GamePositionX gpx_struct = {
+    .blacks = 1,
+    .whites = 4,
+    .player = WHITE_PLAYER
+  };
+  GamePositionX *gpx = &gpx_struct;
 
-  b = board_new(1, 4);
-  p = WHITE_PLAYER;
-  gp = game_position_new(b, p);
+  char *gpx_to_string = game_position_x_print(gpx);
 
-  gp_to_string = game_position_print(gp);
+  GString *expected = g_string_sized_new(220);
 
-  expected = g_string_sized_new(220);
   g_string_append(expected, "    a b c d e f g h \n");
   g_string_append(expected, " 1  @ . O . . . . . \n");
   g_string_append(expected, " 2  . . . . . . . . \n");
@@ -720,10 +718,9 @@ game_position_print_test (void)
   g_string_append(expected, " 8  . . . . . . . . \n");
   g_string_append(expected, "Player to move: WHITE\n");
 
-  g_assert(g_strcmp0(expected->str, gp_to_string) == 0);
+  g_assert(g_strcmp0(expected->str, gpx_to_string) == 0);
 
-  game_position_free(gp);
-  g_free(gp_to_string);
+  g_free(gpx_to_string);
   g_string_free(expected, TRUE);
 }
 
@@ -1233,29 +1230,6 @@ game_position_x_delta_hash_test (void)
   const uint64_t expected =hash_b;
 
   g_assert(expected == computed);
-
-  /*
-  printf("\n\ngame_position_x_delta_hash_test\n\n");
-
-  printf("flip_count = %d\n", flip_count);
-  for (int i = 0; i < flip_count; i++) {
-    printf("flips[%2d] = %d\n", i, flips[i]);
-  }
-
-  char *as = game_position_x_print(&a);
-  printf("\na:\n%s\n", as);
-
-  char *bs = game_position_x_print(&b);
-  printf("\nb:\n%s\n", bs);
-
-  printf("hash_a   = 0x%016" PRIX64 "\n", hash_a);
-  printf("hash_b   = 0x%016" PRIX64 "\n", hash_b);
-
-  printf("computed = 0x%016" PRIX64 "\n", computed);
-
-  printf("\n\n");
-  */
-
 }
 
 static void

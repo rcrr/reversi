@@ -2124,42 +2124,6 @@ game_position_clone (const GamePosition *const gp)
 }
 
 /**
- * @brief Returns a formatted string showing a 2d graphical represention of the game position.
- *
- * The returned string has a dynamic extent set by a call to malloc. It must then properly
- * garbage collected by a call to free when no more referenced.
- *
- * @invariant Parameter `gp` must be not `NULL`.
- * Invariants are guarded by assertions.
- *
- * @param [in] gp a pointer to the game position structure
- * @return        a string being a 2d representation of the game position
- */
-gchar *
-game_position_print (const GamePosition *const gp)
-{
-  g_assert(gp);
-
-  const gchar *separator = NULL;
-
-  gchar *gp_to_string;
-  gchar *b_to_string;
-
-  b_to_string = board_print(gp->board);
-
-  gp_to_string = g_strjoin(separator,
-                           b_to_string,
-                           "Player to move: ",
-                           (gp->player == BLACK_PLAYER) ? "BLACK" : "WHITE",
-                           "\n",
-                           NULL);
-
-  g_free(b_to_string);
-
-  return gp_to_string;
-}
-
-/**
  * @brief Returns a string representation of the game position.
  *
  * @invariant Parameter `gp` must be not `NULL`.
@@ -3059,14 +3023,38 @@ game_position_x_final_value (const GamePositionX *const gpx);
  * @param [in] gpx a pointer to the game position x structure
  * @return         a string being a 2d representation of the game position
  */
-gchar *
+char *
 game_position_x_print (const GamePositionX *const gpx)
 {
   g_assert(gpx);
-  GamePosition *gp = game_position_x_gpx_to_gp(gpx);
-  gchar *result = game_position_print(gp);
-  game_position_free(gp);
-  return result;
+
+  const char *separator = NULL;
+
+  char *gp_to_string;
+  char *b_to_string;
+  GString *bs;
+
+  bs = g_string_sized_new(220);
+  g_string_append(bs, "    a b c d e f g h ");
+  for (int row = 0; row < 8; row++) {
+    g_string_append_printf(bs, "\n %1d  ", row + 1);
+    for (int col = 0; col < 8; col++) {
+      g_string_append_printf(bs, "%c ", square_state_symbol(board_get_square((Board *) gpx, (8 * row) + col)));
+    }
+  }
+  g_string_append(bs, "\n");
+  b_to_string = bs->str;
+  g_string_free(bs, FALSE);
+  gp_to_string = g_strjoin(separator,
+                           b_to_string,
+                           "Player to move: ",
+                           (gpx->player == BLACK_PLAYER) ? "BLACK" : "WHITE",
+                           "\n",
+                           NULL);
+
+  g_free(b_to_string);
+
+  return gp_to_string;
 }
 
 /**

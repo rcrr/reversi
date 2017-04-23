@@ -440,9 +440,6 @@ extern GamePosition *
 game_position_clone (const GamePosition *const gp);
 
 extern gchar *
-game_position_print (const GamePosition *const gp);
-
-extern gchar *
 game_position_to_string (const GamePosition *const gp);
 
 extern int
@@ -571,7 +568,7 @@ game_position_x_final_value (const GamePositionX *const gpx)
   return (gpx->player == BLACK_PLAYER) ? +delta : -delta;
 }
 
-extern gchar *
+extern char *
 game_position_x_print (const GamePositionX *const gpx);
 
 extern gboolean
