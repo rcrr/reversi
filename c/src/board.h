@@ -439,9 +439,6 @@ game_position_free (GamePosition *gp);
 extern GamePosition *
 game_position_clone (const GamePosition *const gp);
 
-extern gchar *
-game_position_to_string (const GamePosition *const gp);
-
 extern int
 game_position_count_difference (const GamePosition *gp);
 

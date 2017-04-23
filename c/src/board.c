@@ -2124,45 +2124,6 @@ game_position_clone (const GamePosition *const gp)
 }
 
 /**
- * @brief Returns a string representation of the game position.
- *
- * @invariant Parameter `gp` must be not `NULL`.
- * Invariants are guarded by assertions.
- *
- * @param [in] gp the given game position
- * @return        a string representing the game position
- */
-gchar *
-game_position_to_string (const GamePosition *const gp)
-{
-  g_assert(gp);
-
-  const Board  *b = gp->board;
-  const Player  p = gp->player;
-
-  gchar *gp_to_string;
-  GString *s;
-
-  s = g_string_sized_new(66); // 64 for the boards + 1 for the player + the final NULL termination
-  for (int pos = 0; pos < 64; pos++) {
-    const SquareSet sq = (SquareSet) 1 << pos;
-    char color = '.';
-    if (sq & b->blacks) {
-      color = 'b';
-    } else if (sq & b->whites) {
-      color = 'w';
-    }
-    g_string_append_printf(s, "%c", color);
-  }
-  g_string_append_printf(s, "%c", (p == BLACK_PLAYER) ? 'b' : 'w');
-
-  gp_to_string = s->str;
-  g_string_free(s, FALSE);
-
-  return gp_to_string;
-}
-
-/**
  * @brief Returns the disk difference between the player and her opponent.
  *
  * @invariant Parameter `gp` must be not `NULL`.
