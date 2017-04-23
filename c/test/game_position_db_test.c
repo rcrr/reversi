@@ -13,7 +13,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -201,9 +201,9 @@ gpdb_load_test (void)
   g_assert(entry);
   g_assert(!g_strcmp0("all-black", entry->id));
   g_assert(!g_strcmp0("A full black board", entry->desc));
-  g_assert(BLACK_PLAYER == entry->game_position->player);
-  g_assert(0xFFFFFFFFFFFFFFFFULL == entry->game_position->board->blacks);
-  g_assert(0x0000000000000000ULL == entry->game_position->board->whites);
+  g_assert(BLACK_PLAYER == entry->gpx->player);
+  g_assert(0xFFFFFFFFFFFFFFFFULL == entry->gpx->blacks);
+  g_assert(0x0000000000000000ULL == entry->gpx->whites);
 
   /* Verifies that the entry all-white has been properly loaded. */
   entry = NULL;
@@ -211,9 +211,9 @@ gpdb_load_test (void)
   g_assert(entry);
   g_assert(!g_strcmp0("all-white", entry->id));
   g_assert(!g_strcmp0("A full white board", entry->desc));
-  g_assert(WHITE_PLAYER == entry->game_position->player);
-  g_assert(0x0000000000000000ULL == entry->game_position->board->blacks);
-  g_assert(0xFFFFFFFFFFFFFFFFULL == entry->game_position->board->whites);
+  g_assert(WHITE_PLAYER == entry->gpx->player);
+  g_assert(0x0000000000000000ULL == entry->gpx->blacks);
+  g_assert(0xFFFFFFFFFFFFFFFFULL == entry->gpx->whites);
 
   /* Verifies that the duplicate entry has not been overwritten. */
   entry = NULL;
@@ -221,9 +221,9 @@ gpdb_load_test (void)
   g_assert(entry);
   g_assert(!g_strcmp0("duplicate-entry", entry->id));
   g_assert(!g_strcmp0("Test inserting a position twice: first time", entry->desc));
-  g_assert(WHITE_PLAYER == entry->game_position->player);
-  g_assert(0x0000000000000000ULL == entry->game_position->board->blacks);
-  g_assert(0x0000000000000000ULL == entry->game_position->board->whites);
+  g_assert(WHITE_PLAYER == entry->gpx->player);
+  g_assert(0x0000000000000000ULL == entry->gpx->blacks);
+  g_assert(0x0000000000000000ULL == entry->gpx->whites);
 
   /* Removes the tmp file, frees the resources. */
   g_free(error);

@@ -77,9 +77,9 @@ static void
 gpdb_fixture_teardown (GamePositionDbFixture *fixture,
                        gconstpointer test_data);
 
-static GamePosition *
-get_gp_from_db (GamePositionDb *db,
-                gchar *id);
+static GamePositionX *
+get_gpx_from_db (GamePositionDb *db,
+                 gchar *id);
 
 
 
@@ -136,23 +136,23 @@ game_position_legal_moves_test (GamePositionDbFixture *fixture,
 
   GamePositionDb *db = fixture->db;
 
-  legal_moves_to_string = square_set_to_string(game_position_legal_moves(get_gp_from_db(db, "initial")));
+  legal_moves_to_string = square_set_to_string(game_position_x_legal_moves(get_gpx_from_db(db, "initial")));
   g_assert_cmpstr("D3 C4 F5 E6", ==, legal_moves_to_string);
   g_free(legal_moves_to_string);
 
-  legal_moves_to_string = square_set_to_string(game_position_legal_moves(get_gp_from_db(db, "early-game-b-9-moves")));
+  legal_moves_to_string = square_set_to_string(game_position_x_legal_moves(get_gpx_from_db(db, "early-game-b-9-moves")));
   g_assert_cmpstr("C3 C6", ==, legal_moves_to_string);
   g_free(legal_moves_to_string);
 
-  legal_moves_to_string = square_set_to_string(game_position_legal_moves(get_gp_from_db(db, "black-has-to-pass")));
+  legal_moves_to_string = square_set_to_string(game_position_x_legal_moves(get_gpx_from_db(db, "black-has-to-pass")));
   g_assert_cmpstr("", ==, legal_moves_to_string);
   g_free(legal_moves_to_string);
 
-  legal_moves_to_string = square_set_to_string(game_position_legal_moves(get_gp_from_db(db, "early-game-c-12-moves")));
+  legal_moves_to_string = square_set_to_string(game_position_x_legal_moves(get_gpx_from_db(db, "early-game-c-12-moves")));
   g_assert_cmpstr("H2 A4 C4 G4 A5 F5 B6 E6 G7", ==, legal_moves_to_string);
   g_free(legal_moves_to_string);
 
-  legal_moves_to_string = square_set_to_string(game_position_legal_moves(get_gp_from_db(db, "final-b37-w27")));
+  legal_moves_to_string = square_set_to_string(game_position_x_legal_moves(get_gpx_from_db(db, "final-b37-w27")));
   g_assert_cmpstr("", ==, legal_moves_to_string);
   g_free(legal_moves_to_string);
 
@@ -164,11 +164,11 @@ game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
 {
   GamePositionDb *db = fixture->db;
 
-  g_assert(TRUE  == game_position_has_any_legal_move(get_gp_from_db(db, "initial")));
-  g_assert(TRUE  == game_position_has_any_legal_move(get_gp_from_db(db, "early-game-b-9-moves")));
-  g_assert(FALSE == game_position_has_any_legal_move(get_gp_from_db(db, "black-has-to-pass")));
-  g_assert(TRUE  == game_position_has_any_legal_move(get_gp_from_db(db, "early-game-c-12-moves")));
-  g_assert(FALSE == game_position_has_any_legal_move(get_gp_from_db(db, "final-b37-w27")));
+  g_assert(TRUE  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "initial")));
+  g_assert(TRUE  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "early-game-b-9-moves")));
+  g_assert(FALSE == game_position_x_has_any_legal_move(get_gpx_from_db(db, "black-has-to-pass")));
+  g_assert(TRUE  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "early-game-c-12-moves")));
+  g_assert(FALSE == game_position_x_has_any_legal_move(get_gpx_from_db(db, "final-b37-w27")));
 }
 
 static void
@@ -177,11 +177,11 @@ game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture
 {
   GamePositionDb *db = fixture->db;
 
-  g_assert(TRUE  == game_position_has_any_player_any_legal_move(get_gp_from_db(db, "initial")));
-  g_assert(TRUE  == game_position_has_any_player_any_legal_move(get_gp_from_db(db, "early-game-b-9-moves")));
-  g_assert(TRUE  == game_position_has_any_player_any_legal_move(get_gp_from_db(db, "black-has-to-pass")));
-  g_assert(TRUE  == game_position_has_any_player_any_legal_move(get_gp_from_db(db, "early-game-c-12-moves")));
-  g_assert(FALSE == game_position_has_any_player_any_legal_move(get_gp_from_db(db, "final-b37-w27")));
+  g_assert(TRUE  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "initial")));
+  g_assert(TRUE  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "early-game-b-9-moves")));
+  g_assert(TRUE  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "black-has-to-pass")));
+  g_assert(TRUE  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "early-game-c-12-moves")));
+  g_assert(FALSE == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "final-b37-w27")));
 }
 
 static void
@@ -190,54 +190,48 @@ game_position_make_move_test (GamePositionDbFixture *fixture,
 {
   GamePositionDb *db = fixture->db;
 
-  GamePosition *after_make_move;
+  GamePositionX after_make_move_struct;
+  GamePositionX *after_make_move = &after_make_move_struct;
 
 
-  GamePosition *initial = get_gp_from_db(db, "initial");
-  after_make_move = game_position_make_move(initial, D3);
-  GamePosition *first_move_d3 = get_gp_from_db(db, "first-move-d3");
-  g_assert(0 == game_position_compare(first_move_d3, after_make_move));
-  game_position_free(after_make_move);
+  GamePositionX *initial = get_gpx_from_db(db, "initial");
+  game_position_x_make_move(initial, D3, after_make_move);
+  GamePositionX *first_move_d3 = get_gpx_from_db(db, "first-move-d3");
+  g_assert(0 == game_position_x_compare(first_move_d3, after_make_move));
 
 
-  GamePosition *early_game_b_9_moves = get_gp_from_db(db, "early-game-b-9-moves");
-  after_make_move = game_position_make_move(early_game_b_9_moves, C3);
-  GamePosition *early_game_bc3_10_moves = get_gp_from_db(db, "early-game-bc3-10-moves");
-  g_assert(0 == game_position_compare(early_game_bc3_10_moves, after_make_move));
-  game_position_free(after_make_move);
+  GamePositionX *early_game_b_9_moves = get_gpx_from_db(db, "early-game-b-9-moves");
+  game_position_x_make_move(early_game_b_9_moves, C3, after_make_move);
+  GamePositionX *early_game_bc3_10_moves = get_gpx_from_db(db, "early-game-bc3-10-moves");
+  g_assert(0 == game_position_x_compare(early_game_bc3_10_moves, after_make_move));
 
-  after_make_move = game_position_make_move(early_game_b_9_moves, C6);
-  GamePosition *early_game_bc6_10_moves = get_gp_from_db(db, "early-game-bc6-10-moves");
-  g_assert(0 == game_position_compare(early_game_bc6_10_moves, after_make_move));
-  game_position_free(after_make_move);
+  game_position_x_make_move(early_game_b_9_moves, C6, after_make_move);
+  GamePositionX *early_game_bc6_10_moves = get_gpx_from_db(db, "early-game-bc6-10-moves");
+  g_assert(0 == game_position_x_compare(early_game_bc6_10_moves, after_make_move));
 
 
-  GamePosition *before;
-  GamePosition *expected;
+  GamePositionX *before;
+  GamePositionX *expected;
 
-  before = get_gp_from_db(db, "make-move-test-case-a-before");
-  after_make_move = game_position_make_move(before, D4);
-  expected = get_gp_from_db(db, "make-move-test-case-a-after");
-  g_assert(0 == game_position_compare(expected, after_make_move));
-  game_position_free(after_make_move);
+  before = get_gpx_from_db(db, "make-move-test-case-a-before");
+  game_position_x_make_move(before, D4, after_make_move);
+  expected = get_gpx_from_db(db, "make-move-test-case-a-after");
+  g_assert(0 == game_position_x_compare(expected, after_make_move));
 
-  before = get_gp_from_db(db, "make-move-test-case-b-before");
-  after_make_move = game_position_make_move(before, D4);
-  expected = get_gp_from_db(db, "make-move-test-case-b-after");
-  g_assert(0 == game_position_compare(expected, after_make_move));
-  game_position_free(after_make_move);
+  before = get_gpx_from_db(db, "make-move-test-case-b-before");
+  game_position_x_make_move(before, D4, after_make_move);
+  expected = get_gpx_from_db(db, "make-move-test-case-b-after");
+  g_assert(0 == game_position_x_compare(expected, after_make_move));
 
-  before = get_gp_from_db(db, "make-move-test-case-c-before");
-  after_make_move = game_position_make_move(before, D4);
-  expected = get_gp_from_db(db, "make-move-test-case-c-after");
-  g_assert(0 == game_position_compare(expected, after_make_move));
-  game_position_free(after_make_move);
+  before = get_gpx_from_db(db, "make-move-test-case-c-before");
+  game_position_x_make_move(before, D4, after_make_move);
+  expected = get_gpx_from_db(db, "make-move-test-case-c-after");
+  g_assert(0 == game_position_x_compare(expected, after_make_move));
 
-  before = get_gp_from_db(db, "make-move-test-case-d-before");
-  after_make_move = game_position_make_move(before, B4);
-  expected = get_gp_from_db(db, "make-move-test-case-d-after");
-  g_assert(0 == game_position_compare(expected, after_make_move));
-  game_position_free(after_make_move);
+  before = get_gpx_from_db(db, "make-move-test-case-d-before");
+  game_position_x_make_move(before, B4, after_make_move);
+  expected = get_gpx_from_db(db, "make-move-test-case-d-after");
+  g_assert(0 == game_position_x_compare(expected, after_make_move));
 }
 
 
@@ -287,9 +281,9 @@ gpdb_fixture_teardown (GamePositionDbFixture *fixture,
   gpdb_free(fixture->db, TRUE);
 }
 
-GamePosition *
-get_gp_from_db (GamePositionDb *db,
-                gchar *id)
+GamePositionX *
+get_gpx_from_db (GamePositionDb *db,
+                 gchar *id)
 {
   GamePositionDbEntry *entry = gpdb_lookup(db, id);
   if (!entry) {
@@ -297,5 +291,5 @@ get_gp_from_db (GamePositionDb *db,
     g_test_fail();
   }
   g_assert(entry);
-  return entry->game_position;
+  return gpdb_get_gpx(entry);
 }

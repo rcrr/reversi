@@ -1,7 +1,7 @@
 /**
  * @file
  *
- * @brief Data Base utilities and programs for `GamePosition` structures.
+ * @brief Data Base utilities and programs for `GamePositionX` structures.
  * @details This executable read and write game position db.
  *
  * @par game_position_db.c
@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -668,7 +668,7 @@ gpdb_entry_free (GamePositionDbEntry *entry,
   if (entry) {
     if (free_segment) {
       g_free(entry->id);
-      game_position_free(entry->game_position);
+      game_position_x_free(entry->gpx);
       g_free(entry->desc);
     }
     g_free(entry);
@@ -691,7 +691,7 @@ gpdb_entry_print (GamePositionDbEntry *entry)
   GString *msg;
   gchar   *game_position_to_string;
 
-  game_position_to_string = game_position_print(entry->game_position);
+  game_position_to_string = game_position_x_print(entry->gpx);
 
   msg = g_string_new("");
 
@@ -705,6 +705,22 @@ gpdb_entry_print (GamePositionDbEntry *entry)
   g_string_free(msg, FALSE);
 
   return result;
+}
+
+/**
+ * @brief Returns a newly allocated game position corresponding to the database entry.
+ *
+ * The returned structure has a dynamic extent set by a call to malloc.
+ * It must then properly garbage collected by a call to free when no more referenced.
+ *
+ * @param [in] entry a pointer to the game position db entry structure
+ * @return           the game position relative to the given db entry
+ */
+GamePositionX *
+gpdb_get_gpx (GamePositionDbEntry *entry)
+{
+  g_assert(entry);
+  return game_position_x_clone(entry->gpx);
 }
 
 
@@ -767,6 +783,10 @@ gpdb_extract_entry_from_line (gchar                           *line,
   GString             *error_msg;
   GamePositionDbEntry *entry;
   Board               *board;
+  SquareSet            blacks;
+  SquareSet            whites;
+  Player               player;
+
 
   /* If line is null return. */
   if (!line)
@@ -834,8 +854,8 @@ gpdb_extract_entry_from_line (gchar                           *line,
       entry = NULL;
       return EXIT_FAILURE;
     }
-    SquareSet blacks = 0ULL;
-    SquareSet whites = 0ULL;
+    blacks = 0ULL;
+    whites = 0ULL;
     for (int i = 0; i < 64; i++) {
       c = cp0[i];
       switch (c) {
@@ -899,14 +919,13 @@ gpdb_extract_entry_from_line (gchar                           *line,
       entry = NULL;
       return EXIT_FAILURE;
     }
-    Player p;
     c = *cp0;
     switch (c) {
     case 'b':
-      p = BLACK_PLAYER;
+      player = BLACK_PLAYER;
       break;
     case 'w':
-      p = WHITE_PLAYER;
+      player = WHITE_PLAYER;
       break;
     default:
       error_msg = g_string_new("");
@@ -924,7 +943,7 @@ gpdb_extract_entry_from_line (gchar                           *line,
       entry = NULL;
       return EXIT_FAILURE;
     }
-    entry->game_position = game_position_new(board, p);
+    entry->gpx = game_position_x_new(blacks, whites, player);
   } else {
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated player field.");
@@ -956,7 +975,7 @@ gpdb_extract_entry_from_line (gchar                           *line,
                                                   line,
                                                   error_msg->str);
     g_free(entry->id);
-    game_position_free(entry->game_position);
+    game_position_x_free(entry->gpx);
     g_free(entry);
     g_free(record);
     g_string_free(error_msg, FALSE);

@@ -179,9 +179,9 @@ static void
 gpdb_fixture_teardown (GamePositionDbFixture *fixture,
                        gconstpointer test_data);
 
-static GamePosition *
-get_gp_from_db (GamePositionDb *db,
-                gchar *id);
+static GamePositionX *
+get_gpx_from_db (GamePositionDb *db,
+                 gchar *id);
 
 static void
 run_test_case_array (GamePositionDb *db,
@@ -298,17 +298,17 @@ gpdb_fixture_teardown (GamePositionDbFixture *fixture,
   gpdb_free(fixture->db, TRUE);
 }
 
-static GamePosition *
-get_gp_from_db (GamePositionDb *db,
-                gchar *id)
+static GamePositionX *
+get_gpx_from_db (GamePositionDb *db,
+                 gchar *id)
 {
   GamePositionDbEntry *entry = gpdb_lookup(db, id);
   if (!entry) {
     g_test_message("The entry \"%s\" is missing from game position database.\n", id);
     g_test_fail();
   }
-  g_assert(entry);
-  return entry->game_position;
+  //g_assert(entry);
+  return gpdb_get_gpx(entry);
 }
 
 static void
@@ -348,8 +348,7 @@ run_test_case_array (GamePositionDb *db,
       g_free(moves_to_s);
     }
 
-    const GamePosition *const gp = get_gp_from_db(db, tc->gpdb_label);
-    GamePositionX *const gpx = game_position_x_gp_to_gpx(gp);
+    GamePositionX *const gpx = get_gpx_from_db(db, tc->gpdb_label);
     ExactSolution *const solution = solver(gpx, &endgame_solver_env);
 
     pve_transform_to_standard_form(solution->pve);

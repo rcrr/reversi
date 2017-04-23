@@ -415,7 +415,7 @@ main (int argc, char *argv[])
   env.pv_no_print = pv_no_print;
 
   /* Solves the position. */
-  GamePositionX *gpx = game_position_x_gp_to_gpx(entry->game_position);
+  GamePositionX *gpx = gpdb_get_gpx(entry);
   ExactSolution *solution = NULL;
   g_print("Solving game position %s, from source %s, using solver %s (%s) ...\n", entry->id, input_file, solver->id, solver->description);
   solution = solver->fn(gpx, &env);

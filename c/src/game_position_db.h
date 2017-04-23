@@ -76,14 +76,14 @@ typedef struct {
 } GamePositionDbEntrySyntaxError;
 
 /**
- * @brief An `Entry` collects the #GamePosition data with a description and an unique key.
+ * @brief An `Entry` collects the #GamePositionX data with a description and an unique key.
  *
  * @details Fields must be kept private, the #gpdb_entry_free function frees them all.
  */
 typedef struct {
-  gchar        *id;                /**< @brief It is a string used as key in the dictionary. */
-  GamePosition *game_position;     /**< @brief The game position for this entry. */
-  gchar        *desc;              /**< @brief A description of this entry. */
+  char          *id;                /**< @brief It is a string used as key in the dictionary. */
+  GamePositionX *gpx;               /**< @brief The game position for this entry. */
+  char          *desc;              /**< @brief A description of this entry. */
 } GamePositionDbEntry;
 
 /**
@@ -160,6 +160,9 @@ gpdb_free (GamePositionDb *db,
 extern GamePositionDbEntry *
 gpdb_lookup (GamePositionDb *db,
              gchar *entry_id);
+
+extern GamePositionX *
+gpdb_get_gpx (GamePositionDbEntry *entry);
 
 extern gchar *
 gpdb_print (GamePositionDb *db);
