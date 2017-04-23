@@ -154,7 +154,7 @@ game_position_es_solve (const GamePositionX *const root,
   assert(env);
 
   ExactSolution *result = exact_solution_new();
-  exact_solution_set_solved_game_position_x(result, root);
+  exact_solution_set_root(result, root);
 
   GameTreeStack *stack = game_tree_stack_new();
   game_tree_stack_init(root, stack);

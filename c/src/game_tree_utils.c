@@ -17,7 +17,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014, 2015, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -187,7 +187,6 @@ exact_solution_new (void)
   es = (ExactSolution*) malloc(size_of_exact_solution);
   g_assert(es);
 
-  es->solved_game_position = NULL;
   es->outcome = invalid_outcome;
   es->best_move = invalid_move;
   es->final_board = NULL;
@@ -209,7 +208,6 @@ void
 exact_solution_free (ExactSolution *es)
 {
   if (es) {
-    if (es->solved_game_position) game_position_free(es->solved_game_position);
     if (es->final_board) board_free(es->final_board);
     if (es->pve) pve_free(es->pve);
     free(es);
@@ -237,7 +235,7 @@ exact_solution_to_string (const ExactSolution *const es)
   GString *tmp = g_string_sized_new(32);
 
   g_string_append_printf(tmp, "%s\n",
-                         game_position_print(es->solved_game_position));
+                         game_position_x_print(&es->root_gpx));
   g_string_append_printf(tmp, "[node_count=%" PRIu64 ", leaf_count=%" PRIu64 "]\n",
                          es->node_count,
                          es->leaf_count);
@@ -278,14 +276,13 @@ void
 exact_solution_compute_final_board (ExactSolution *const es)
 {
   assert(es);
-  assert(es->solved_game_position);
 
   if (!es->pve) return;
 
   GamePositionX t = {
-    .whites = es->solved_game_position->board->whites,
-    .blacks = es->solved_game_position->board->blacks,
-    .player = es->solved_game_position->player
+    .blacks = es->root_gpx.blacks,
+    .whites = es->root_gpx.whites,
+    .player = es->root_gpx.player
   };
 
   PVCell **rl  = es->pve->root_line;
@@ -299,20 +296,18 @@ exact_solution_compute_final_board (ExactSolution *const es)
 }
 
 /**
- * @brief Assigns the `solved_game_position` field.
- *
- * @details Executes all the moves stored into the pv field up the the final
- *          board configuration, then stores it into the final_board field.
+ * @brief Assigns the `root_gpx` field.
  *
  * @param [in,out] es  a pointer to the exact solution structure
  * @param [in]     gpx a pointer to the game position structure
  */
 void
-exact_solution_set_solved_game_position_x (ExactSolution *const es,
-                                           const GamePositionX *const gpx)
+exact_solution_set_root (ExactSolution *const es,
+                         const GamePositionX *const gpx)
 {
-  GamePosition *gp = game_position_x_gpx_to_gp(gpx);
-  es->solved_game_position = gp;
+  es->root_gpx.blacks = gpx->blacks;
+  es->root_gpx.whites = gpx->whites;
+  es->root_gpx.player = gpx->player;
 }
 
 

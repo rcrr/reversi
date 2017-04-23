@@ -179,13 +179,13 @@ typedef struct {
  * @brief An exact solution is an entity that holds the result of a #endgame_solver_f run.
  */
 typedef struct {
-  GamePosition *solved_game_position;        /**< @brief The game position given as input. */
-  int           outcome;                     /**< @brief The final endgame score. */
-  Square        best_move;                   /**< @brief The first move of the main principal variation. */
-  Board        *final_board;                 /**< @brief The final board state. */
-  uint64_t      leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
-  uint64_t      node_count;                  /**< @brief The count of all nodes touched by the solver. */
-  PVEnv        *pve;                         /**< @brief A reference to the principal variation env. */
+  GamePositionX  root_gpx;                    /**< @brief The game position to be solved. */
+  int            outcome;                     /**< @brief The final endgame score. */
+  Square         best_move;                   /**< @brief The first move of the main principal variation. */
+  Board         *final_board;                 /**< @brief The final board state. */
+  uint64_t       leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
+  uint64_t       node_count;                  /**< @brief The count of all nodes touched by the solver. */
+  PVEnv         *pve;                         /**< @brief A reference to the principal variation env. */
 } ExactSolution;
 
 /**
@@ -396,8 +396,8 @@ extern void
 exact_solution_compute_final_board (ExactSolution *const es);
 
 extern void
-exact_solution_set_solved_game_position_x (ExactSolution *const es,
-                                           const GamePositionX *const gpx);
+exact_solution_set_root (ExactSolution *const es,
+                         const GamePositionX *const gpx);
 
 
 

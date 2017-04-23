@@ -431,7 +431,7 @@ game_position_ifes_solve (const GamePositionX *const root,
   }
 
   result = exact_solution_new();
-  exact_solution_set_solved_game_position_x(result, root);
+  exact_solution_set_root(result, root);
 
   game_position_to_ifes_board(root, board, &emp, &wc, &bc);
 

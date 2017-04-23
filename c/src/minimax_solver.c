@@ -213,7 +213,7 @@ game_position_mab_solve (const GamePositionX *const root,
     if (log_env->log_is_on) stack->hash_is_on = true;
 
     result = exact_solution_new();
-    exact_solution_set_solved_game_position_x(result, root);
+    exact_solution_set_root(result, root);
 
     if (random_sampler) {
       game_position_random_sammpler_impl(result, stack, log_env, prng, sub_run_id);
