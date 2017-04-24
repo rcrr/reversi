@@ -449,9 +449,6 @@ game_position_make_move (const GamePosition *const gp,
 extern GamePosition *
 game_position_pass (const GamePosition *const gp);
 
-extern uint64_t
-game_position_hash (const GamePosition *const gp);
-
 
 
 /*****************************************************/

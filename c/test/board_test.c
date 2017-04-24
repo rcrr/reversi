@@ -79,8 +79,6 @@ static void board_print_test (void);
 static void board_is_move_legal_test (void);
 static void board_legal_moves_test (void);
 
-static void game_position_hash_test (void);
-
 static void game_position_x_empties_test (void);
 static void game_position_x_get_player_test (void);
 static void game_position_x_get_opponent_test (void);
@@ -147,8 +145,6 @@ main (int   argc,
   g_test_add_func("/board/board_print_test", board_print_test);
   g_test_add_func("/board/board_is_move_legal_test", board_is_move_legal_test);
   g_test_add_func("/board/board_legal_moves_test", board_legal_moves_test);
-
-  g_test_add_func("/board/game_position_hash_test", game_position_hash_test);
 
   g_test_add_func("/board/game_position_x_empties_test", game_position_x_empties_test);
   g_test_add_func("/board/game_position_x_get_player_test", game_position_x_get_player_test);
@@ -765,54 +761,6 @@ board_legal_moves_test (void)
   g_assert(1 == option);
 
   board_free(b);
-}
-
-static void
-game_position_hash_test (void)
-{
-  GamePosition *gp;
-  Board        *b;
-  SquareSet     blacks;
-  SquareSet     whites;
-  Player        p;
-  uint64_t      expected;
-
-  blacks = 0x0000000000000000;
-  whites = 0x0000000000000000;
-  b = board_new(blacks, whites);
-  p = BLACK_PLAYER;
-  gp = game_position_new(b, p);
-  g_assert(game_position_hash(gp) == 0);
-  game_position_free(gp);
-
-  blacks = 0x0000000000000000;
-  whites = 0x0000000000000000;
-  b = board_new(blacks, whites);
-  p = WHITE_PLAYER;
-  gp = game_position_new(b, p);
-  g_assert(game_position_hash(gp) == 0xFFFFFFFFFFFFFFFF);
-  game_position_free(gp);
-
-  expected = 0x4689879C5E2B6C8D ^ 0x1C10E0B05C7B3C49;
-  blacks = 0x0000000000000002;
-  whites = 0x0000000000000004;
-  b = board_new(blacks, whites);
-  p = BLACK_PLAYER;
-  gp = game_position_new(b, p);
-  g_assert(game_position_hash(gp) == expected);
-  game_position_free(gp);
-
-  /*
-   * The hash of two game position A, and B having the same board but different player satisfy
-   * this property:
-   * hash(A) & hash(B) == 0;
-   */
-  p = WHITE_PLAYER;
-  b = board_new(blacks, whites);
-  gp = game_position_new(b, p);
-  g_assert(game_position_hash(gp) == ~expected);
-  game_position_free(gp);
-
 }
 
 static void

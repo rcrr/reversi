@@ -2430,33 +2430,6 @@ game_position_pass (const GamePosition *const gp)
                            player_opponent(gp->player));
 }
 
-/**
- * @brief Returns the hash value for the game position.
- *
- * The hash is computed by mean of a zobrist technique.
- *
- * @param [in] gp the current game position
- * @return        the hash value for the game position
- */
-uint64_t
-game_position_hash (const GamePosition *const gp)
-{
-  const SquareSet whites = gp->board->whites;
-  const SquareSet blacks = gp->board->blacks;
-  const Player p = gp->player;
-
-  uint64_t hash = 0;
-
-  for (int i = 0; i < 64; i++) {
-    const uint64_t mask = (uint64_t) 1 << i;
-    if (blacks & mask) hash ^= zobrist_bitstrings[i];
-    if (whites & mask) hash ^= zobrist_bitstrings[i + 64];
-  }
-  if (p) hash = ~hash; /* In this way passing doesn't require a full new hash. */
-
-  return hash;
-}
-
 
 
 /**********************************************************/
