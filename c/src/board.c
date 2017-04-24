@@ -87,6 +87,11 @@ direction_shift_back_square_set_by_amount (const Direction dir,
                                            const int amount);
 
 static SquareSet
+kogge_stone_b_scalar (const SquareSet generator,
+                      const SquareSet propagator,
+                      const SquareSet blocker);
+
+static SquareSet
 kogge_stone_b (const SquareSet generator,
                const SquareSet propagator,
                const SquareSet blocker);
@@ -1336,7 +1341,12 @@ board_legal_moves4 (const Board *const b,
   const SquareSet p_bit_board = board_get_player(b, p);
   const SquareSet o_bit_board = board_get_player(b, o);
 
-  const SquareSet result = kogge_stone_b(p_bit_board, o_bit_board, empties);
+  const SquareSet result = kogge_stone_b_scalar(p_bit_board, o_bit_board, empties);
+
+  /*
+  const SquareSet r1 = kogge_stone_b_scalar(p_bit_board, o_bit_board, empties);
+  if (result != r1) abort();
+  */
 
   return result;
 }
@@ -2982,6 +2992,68 @@ direction_shift_back_square_set_by_amount (const Direction dir,
   case SE: return squares << (9 * amount);
   default: abort();
   }
+}
+
+
+
+/*
+ *
+ */
+static SquareSet
+kogge_stone_b_scalar (const SquareSet generator,
+                      const SquareSet propagator,
+                      const SquareSet blocker)
+{
+  SquareSet const_b0[4], const_b1[4];
+  SquareSet g0, g1, p0, p1, result;
+
+  const SquareSet const_a0[] = { all_squares_except_column_a,
+                                 all_squares_except_column_h,
+                                 all_squares,
+                                 all_squares_except_column_a };
+  const SquareSet const_a1[] = { all_squares_except_column_h,
+                                 all_squares_except_column_a,
+                                 all_squares,
+                                 all_squares_except_column_h };
+
+  const SquareSet const_sh_a[] = { 1,  7,  8,  9 };
+  const SquareSet const_sh_b[] = { 2, 14, 16, 18 };
+  const SquareSet const_sh_c[] = { 4, 28, 32, 36 };
+
+  result = 0ULL;
+
+  for (int i = 0; i < 4; i++) {
+    const_b0[i] = blocker & const_a0[i];
+    const_b1[i] = blocker & const_a1[i];
+
+    g0 = generator;
+    g1 = generator;
+    p0 = propagator & const_a0[i];
+    p1 = propagator & const_a1[i];
+
+    g0 |= p0 & (g0 << const_sh_a[i]);
+    g1 |= p1 & (g1 >> const_sh_a[i]);
+    p0 &=      (p0 << const_sh_a[i]);
+    p1 &=      (p1 >> const_sh_a[i]);
+
+    g0 |= p0 & (g0 << const_sh_b[i]);
+    g1 |= p1 & (g1 >> const_sh_b[i]);
+    p0 &=      (p0 << const_sh_b[i]);
+    p1 &=      (p1 >> const_sh_b[i]);
+
+    g0 |= p0 & (g0 << const_sh_c[i]);
+    g1 |= p1 & (g1 >> const_sh_c[i]);
+
+    g0 = ~generator & g0;
+    g1 = ~generator & g1;
+
+    g0 = const_b0[i] & (g0 << const_sh_a[i]);
+    g1 = const_b1[i] & (g1 >> const_sh_a[i]);
+
+    result |= (g0 | g1);
+  }
+
+  return result;
 }
 
 /*
