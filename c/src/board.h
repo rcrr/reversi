@@ -453,19 +453,9 @@ game_position_x_free (GamePositionX *gpx);
 extern GamePositionX *
 game_position_x_clone (const GamePositionX *const gpx);
 
-extern GamePositionX *
-game_position_x_gp_to_gpx (const GamePosition *const gp);
-
-extern GamePosition *
-game_position_x_gpx_to_gp (const GamePositionX *const gpx);
-
 extern void
 game_position_x_copy (const GamePositionX *const from,
                       GamePositionX *const to);
-
-void
-game_position_x_copy_from_gp (const GamePosition *const from,
-                              GamePositionX *const to);
 
 extern SquareSet
 game_position_x_empties (const GamePositionX *const gpx);

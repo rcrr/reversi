@@ -2159,48 +2159,6 @@ game_position_x_clone (const GamePositionX *const gpx)
 }
 
 /**
- * @brief Returns a new `GamePositionX` structure cloning `gp`.
- *
- * @invariant Parameter `gp` cannot be null.
- * The invariant is guarded by an assertion.
- *
- * @param [in] gp the game position to convert
- * @return        a pointer to a new game position x structure
- */
-GamePositionX *
-game_position_x_gp_to_gpx (const GamePosition *const gp)
-{
-  g_assert(gp);
-
-  GamePositionX *gpx;
-  gpx = game_position_x_new(gp->board->blacks,
-                            gp->board->whites,
-                            gp->player);
-  return gpx;
-}
-
-/**
- * @brief Returns a new `GamePosition` structure cloning `gpx`.
- *
- * @invariant Parameter `gpx` cannot be null.
- * The invariant is guarded by an assertion.
- *
- * @param [in] gpx the game position x to convert
- * @return         a pointer to a new game position structure
- */
-GamePosition *
-game_position_x_gpx_to_gp (const GamePositionX *const gpx)
-{
-  g_assert(gpx);
-
-  GamePosition *gp;
-  gp = game_position_new(board_new(gpx->blacks,
-                                   gpx->whites),
-                         gpx->player);
-  return gp;
-}
-
-/**
  * @brief Copies a `GamePositionX` structure.
  *
  * @param [in]  from the game position x to copy from
@@ -2212,21 +2170,6 @@ game_position_x_copy (const GamePositionX *const from,
 {
   to->blacks = from->blacks;
   to->whites = from->whites;
-  to->player = from->player;
-}
-
-/**
- * @brief Copies a `GamePosition` structure into a `GamePositionX` one.
- *
- * @param [in]  from the game position to copy from
- * @param [out] to   the game position x to copy to
- */
-void
-game_position_x_copy_from_gp  (const GamePosition *const from,
-                               GamePositionX *const to)
-{
-  to->blacks = from->board->blacks;
-  to->whites = from->board->whites;
   to->player = from->player;
 }
 
