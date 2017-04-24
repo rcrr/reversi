@@ -442,10 +442,6 @@ game_position_clone (const GamePosition *const gp);
 extern SquareSet
 game_position_legal_moves (const GamePosition *position);
 
-extern GamePosition *
-game_position_make_move (const GamePosition *const gp,
-                         const Square move);
-
 
 
 /*****************************************************/
