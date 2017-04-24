@@ -3,7 +3,7 @@
  *
  * @brief Board module definitions.
  * @details This module defines the #Player, #SquareState,
- * #Square, #SquareSet, #Board, #GamePosition, #Direction entities,
+ * #Square, #SquareSet, #Board, #GamePositionX, #Direction entities,
  * and the function prototypes that operate on them.
  *
  * @par board.h
@@ -166,14 +166,6 @@ typedef struct {
   SquareSet blacks;   /**< @brief The set of squares occupied by blank discs. */
   SquareSet whites;   /**< @brief The set of squares occupied by white discs. */
 } Board;
-
-/**
- * @brief A game position is a value object joining the board and the moving player.
- */
-typedef struct {
-  Board *board;   /**< @brief Member board contains a pointer to a `Board` structure. */
-  Player player;  /**< @brief Member player contains the next to move. */
-} GamePosition;
 
 /**
  * @brief A game position variant where instead of the board pointer its field are directly collected.
