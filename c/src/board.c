@@ -2104,23 +2104,6 @@ game_position_clone (const GamePosition *const gp)
                            gp->player);
 }
 
-/**
- * @brief Returns a list holding the legal moves for the game position.
- *
- * @invariant Parameter `gp` must be not `NULL`.
- * Invariants are guarded by assertions.
- *
- * @param [in] gp the given game position
- * @return        a square set holding the legal moves
- */
-SquareSet
-game_position_legal_moves (const GamePosition *gp)
-{
-  g_assert(gp);
-
-  return board_legal_moves(gp->board, gp->player);
-}
-
 
 
 /**********************************************************/
