@@ -2174,7 +2174,9 @@ game_position_make_move0 (const GamePosition *const gp,
   g_assert(square_is_valid_move(move));
 
   if (move == pass_move) {
-    return game_position_pass(gp);
+    return game_position_new(board_new(gp->board->blacks,
+                                       gp->board->whites),
+                             player_opponent(gp->player));
   }
 
   const Player p = gp->player;
@@ -2253,7 +2255,9 @@ game_position_make_move1 (const GamePosition *const gp,
   g_assert(square_is_valid_move(move));
 
   if (move == pass_move) {
-    return game_position_pass(gp);
+    return game_position_new(board_new(gp->board->blacks,
+                                       gp->board->whites),
+                             player_opponent(gp->player));
   }
 
   const Player p = gp->player;
@@ -2411,24 +2415,6 @@ game_position_make_move1 (const GamePosition *const gp,
  * @endcond
  */
 
-
-/**
- * @brief Returns a new game position by passing the move.
- *
- * The function doesn't check that the current player has to pass.
- *
- * @param [in] gp the current game position
- * @return     a new game position computed by passing the move
- */
-GamePosition *
-game_position_pass (const GamePosition *const gp)
-{
-  g_assert(gp);
-
-  return game_position_new(board_new(gp->board->blacks,
-                                     gp->board->whites),
-                           player_opponent(gp->player));
-}
 
 
 

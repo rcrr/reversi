@@ -446,9 +446,6 @@ extern GamePosition *
 game_position_make_move (const GamePosition *const gp,
                          const Square move);
 
-extern GamePosition *
-game_position_pass (const GamePosition *const gp);
-
 
 
 /*****************************************************/
