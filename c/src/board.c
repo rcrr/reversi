@@ -2175,23 +2175,6 @@ game_position_has_any_legal_move (const GamePosition *const gp)
 }
 
 /**
- * @brief Returns `TRUE` if the game position is not final.
- *
- * @invariant Parameter `gp` must be not `NULL`.
- * Invariants are guarded by assertions.
- *
- * @param [in] gp the given game position
- * @return        true if the game state admit a legal move for at last one player
- */
-gboolean
-game_position_has_any_player_any_legal_move (const GamePosition *const gp)
-{
-  g_assert(gp);
-
-  return board_has_any_player_any_legal_move(gp->board);
-}
-
-/**
  * @brief Returns true if the `move` is legal for the game position.
  *
  * @invariant Parameter `gp` must be not `NULL`.

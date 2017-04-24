@@ -449,9 +449,6 @@ extern gboolean
 game_position_has_any_legal_move (const GamePosition *const gp);
 
 extern gboolean
-game_position_has_any_player_any_legal_move (const GamePosition *const gp);
-
-extern gboolean
 game_position_is_move_legal (const GamePosition *const gp,
                              const Square move);
 
