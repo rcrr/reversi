@@ -2030,63 +2030,6 @@ square_state_symbol (const SquareState color)
 
 
 
-/*********************************************************/
-/* Function implementations for the GamePosition entity. */
-/*********************************************************/
-
-/**
- * @brief GamePosition structure constructor.
- *
- * An assertion checks that the received pointer to the allocated
- * game position structure is not `NULL`.
- *
- * @invariant Parameter `b` cannot be null.
- * The invariant is guarded by an assertion.
- *
- * @invariant Parameter `p` must belong to the `Player` enum set.
- * The invariant is guarded by an assertion.
- *
- * @param [in] b the board field
- * @param [in] p the player field
- * @return       a pointer to a new game position structure
- */
-GamePosition *
-game_position_new (Board *b,
-                   Player p)
-{
-  g_assert(b);
-  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
-
-  GamePosition *gp;
-  static const size_t size_of_game_position = sizeof(GamePosition);
-
-  gp = (GamePosition *) malloc(size_of_game_position);
-  g_assert(gp);
-
-  gp->board = b;
-  gp->player = p;
-
-  return gp;
-}
-
-/**
- * @brief Deallocates the memory previously allocated by a call to #game_position_new.
- *
- * @details If a null pointer is passed as argument, no action occurs.
- *
- * @param [in,out] gp the pointer to be deallocated
- */
-void
-game_position_free (GamePosition *gp)
-{
-  if (gp) {
-    board_free(gp->board);
-    g_free(gp);
-  }
-}
-
-
-
 /**********************************************************/
 /* Function implementations for the GamePositionX entity. */
 /**********************************************************/

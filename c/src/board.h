@@ -425,19 +425,6 @@ extern char square_state_symbol (const SquareState color);
 
 
 
-/****************************************************/
-/* Function prototypes for the GamePosition entity. */
-/****************************************************/
-
-extern GamePosition *
-game_position_new (Board *b,
-                   Player p);
-
-extern void
-game_position_free (GamePosition *gp);
-
-
-
 /*****************************************************/
 /* Function prototypes for the GamePositionX entity. */
 /*****************************************************/
