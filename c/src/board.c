@@ -2158,28 +2158,6 @@ game_position_legal_moves (const GamePosition *gp)
 }
 
 /**
- * @brief Returns true if the `move` is legal for the game position.
- *
- * @invariant Parameter `gp` must be not `NULL`.
- * Parameter `move` must be a value in the range defined by
- * the #square_is_valid_move function.
- * Invariants are guarded by assertions.
- *
- * @param [in] gp   the given game position
- * @param [in] move the square where to put the new disk
- * @return          true if the move is legal
- */
-gboolean
-game_position_is_move_legal (const GamePosition *const gp,
-                             const Square move)
-{
-  g_assert(gp);
-  g_assert(square_is_valid_move(move));
-
-  return board_is_move_legal(gp->board, move, gp->player);
-}
-
-/**
  * @brief Executes a game move on the given position.
  *
  * @invariant Parameter `gp` must be not `NULL`.
@@ -2197,7 +2175,6 @@ game_position_make_move (const GamePosition *const gp,
 {
   g_assert(gp);
   g_assert(square_is_valid_move(move));
-  g_assert(game_position_is_move_legal(gp, move));
 
   return game_position_make_move_option(gp, move);
 }
@@ -2212,7 +2189,6 @@ game_position_make_move0 (const GamePosition *const gp,
 {
   g_assert(gp);
   g_assert(square_is_valid_move(move));
-  g_assert(game_position_is_move_legal(gp, move));
 
   if (move == pass_move) {
     return game_position_pass(gp);
@@ -2292,7 +2268,6 @@ game_position_make_move1 (const GamePosition *const gp,
 {
   g_assert(gp);
   g_assert(square_is_valid_move(move));
-  g_assert(game_position_is_move_legal(gp, move));
 
   if (move == pass_move) {
     return game_position_pass(gp);

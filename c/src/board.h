@@ -445,10 +445,6 @@ game_position_count_difference (const GamePosition *gp);
 extern SquareSet
 game_position_legal_moves (const GamePosition *position);
 
-extern gboolean
-game_position_is_move_legal (const GamePosition *const gp,
-                             const Square move);
-
 extern GamePosition *
 game_position_make_move (const GamePosition *const gp,
                          const Square move);
