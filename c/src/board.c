@@ -2475,30 +2475,6 @@ game_position_hash (const GamePosition *const gp)
 }
 
 /**
- * @brief Used for the score at the end of the game.
- *
- * @details Returns the disk difference between the player and her opponent,
- * assigning the empty squares to the player having most discs.
- *
- * From the web site of the World Othello Federation,
- * World Othello Chanpionship Rules, scoring:<br>
- * <em>"At the end of the game, if both players have completed their moves in
- * the allowed time, the winner is the player with the greater number of
- * discs of his colour on the board at the end. The official score of the
- * game will be determined by counting up the discs of each colour on the
- * board, counting empty squares for the winner. In the event of a draw,
- * the score will always be 32-32"</em>.
- *
- * @param [in] gp a pointer to the game position structure
- * @return        the game score according to the WOF rules
- */
-int
-game_position_final_value (const GamePosition *const gp)
-{
-  return board_count_diff_winner_get_empties(gp->board, gp->player);
-}
-
-/**
  * @brief Returns the count of empty discs.
  *
  * @param [in] gp a pointer to the game position structure

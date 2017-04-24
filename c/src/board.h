@@ -456,9 +456,6 @@ extern uint64_t
 game_position_hash (const GamePosition *const gp);
 
 extern int
-game_position_final_value (const GamePosition *const gp);
-
-extern int
 game_position_empty_count (const GamePosition *const gp);
 
 
