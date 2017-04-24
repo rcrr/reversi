@@ -436,9 +436,6 @@ game_position_new (Board *b,
 extern void
 game_position_free (GamePosition *gp);
 
-extern GamePosition *
-game_position_clone (const GamePosition *const gp);
-
 
 
 /*****************************************************/
