@@ -2158,23 +2158,6 @@ game_position_legal_moves (const GamePosition *gp)
 }
 
 /**
- * @brief Returns if the game state admit one or more legal moves.
- *
- * @invariant Parameter `gp` must be not `NULL`.
- * Invariants are guarded by assertions.
- *
- * @param [in] gp the given game position
- * @return        true if the game state admit a legal move
- */
-gboolean
-game_position_has_any_legal_move (const GamePosition *const gp)
-{
-  g_assert(gp);
-
-  return (empty_square_set == game_position_legal_moves(gp)) ? FALSE : TRUE;
-}
-
-/**
  * @brief Returns true if the `move` is legal for the game position.
  *
  * @invariant Parameter `gp` must be not `NULL`.
@@ -2483,7 +2466,6 @@ GamePosition *
 game_position_pass (const GamePosition *const gp)
 {
   g_assert(gp);
-  g_assert(TRUE != game_position_has_any_legal_move(gp));
 
   return game_position_new(board_new(gp->board->blacks,
                                      gp->board->whites),
