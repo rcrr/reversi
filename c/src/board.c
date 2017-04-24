@@ -2457,18 +2457,6 @@ game_position_hash (const GamePosition *const gp)
   return hash;
 }
 
-/**
- * @brief Returns the count of empty discs.
- *
- * @param [in] gp a pointer to the game position structure
- * @return        the empty count
- */
-int
-game_position_empty_count (const GamePosition *const gp)
-{
-  return bit_works_bitcount_64(board_empties(gp->board));
-}
-
 
 
 /**********************************************************/
