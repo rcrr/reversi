@@ -96,16 +96,6 @@ kogge_stone_gpb_scalar (const SquareSet generator,
                         const SquareSet blocker);
 
 static SquareSet
-kogge_stone_b (const SquareSet generator,
-               const SquareSet propagator,
-               const SquareSet blocker);
-
-static SquareSet
-kogge_stone_gpb (const SquareSet generator,
-                 const SquareSet propagator,
-                 const SquareSet blocker);
-
-static SquareSet
 board_legal_moves0 (const Board *const b,
                     const Player p);
 
@@ -1346,11 +1336,6 @@ board_legal_moves4 (const Board *const b,
   const SquareSet o_bit_board = board_get_player(b, o);
 
   const SquareSet result = kogge_stone_b_scalar(p_bit_board, o_bit_board, empties);
-
-  /*
-  const SquareSet r1 = kogge_stone_b_scalar(p_bit_board, o_bit_board, empties);
-  if (result != r1) abort();
-  */
 
   return result;
 }
@@ -2783,11 +2768,6 @@ game_position_x_make_move2 (const GamePositionX *const current,
 
   const SquareSet f_set = kogge_stone_gpb_scalar(m_set, o_set, p_set);
 
-  /*
-  const SquareSet f_set_1 = kogge_stone_gpb_scalar(m_set, o_set, p_set);
-  if (f_set_1 != f_set) abort();
-  */
-
   const SquareSet p_set_n = p_set |  f_set;
   const SquareSet o_set_n = o_set & ~f_set;
 
@@ -3064,6 +3044,7 @@ kogge_stone_b_scalar (const SquareSet generator,
 
   return result;
 }
+
 /*
  *
  */
@@ -3142,147 +3123,6 @@ kogge_stone_gpb_scalar (const SquareSet generator,
   }
 
   return result | generator;
-}
-
-/*
- *
- */
-static SquareSet
-kogge_stone_b (const SquareSet generator,
-               const SquareSet propagator,
-               const SquareSet blocker)
-{
-  const __m256i gen_v = _mm256_set1_epi64x(generator);
-  const __m256i pro_v = _mm256_set1_epi64x(propagator);
-  const __m256i blo_v = _mm256_set1_epi64x(blocker);
-
-  const __m256i const_a0 = _mm256_setr_epi64x(all_squares_except_column_a,
-                                              all_squares_except_column_h,
-                                              all_squares,
-                                              all_squares_except_column_a);
-  const __m256i const_a1 = _mm256_setr_epi64x(all_squares_except_column_h,
-                                              all_squares_except_column_a,
-                                              all_squares,
-                                              all_squares_except_column_h);
-
-  const __m256i const_sh_a = _mm256_setr_epi64x(1,  7,  8,  9);
-  const __m256i const_sh_b = _mm256_setr_epi64x(2, 14, 16, 18);
-  const __m256i const_sh_c = _mm256_setr_epi64x(4, 28, 32, 36);
-
-  const __m256i const_b0 = _mm256_and_si256(blo_v, const_a0);
-  const __m256i const_b1 = _mm256_and_si256(blo_v, const_a1);
-
-  __m256i gen0 = gen_v;
-  __m256i gen1 = gen_v;
-  __m256i pro0 = _mm256_and_si256(pro_v, const_a0);
-  __m256i pro1 = _mm256_and_si256(pro_v, const_a1);
-
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_a)));
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_a)));
-  pro0 = _mm256_and_si256(pro0, _mm256_sllv_epi64(pro0, const_sh_a));
-  pro1 = _mm256_and_si256(pro1, _mm256_srlv_epi64(pro1, const_sh_a));
-
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_b)));
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_b)));
-  pro0 = _mm256_and_si256(pro0, _mm256_sllv_epi64(pro0, const_sh_b));
-  pro1 = _mm256_and_si256(pro1, _mm256_srlv_epi64(pro1, const_sh_b));
-
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_c)));
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_c)));
-
-  gen0 = _mm256_andnot_si256(gen_v, gen0);
-  gen1 = _mm256_andnot_si256(gen_v, gen1);
-
-  gen0 = _mm256_and_si256(const_b0, _mm256_sllv_epi64(gen0, const_sh_a));
-  gen1 = _mm256_and_si256(const_b1, _mm256_srlv_epi64(gen1, const_sh_a));
-
-  /* Cobines the eight sets, four DWORDS in gen0, and four in gen1, into the final result. */
-  __m256i res = _mm256_or_si256(gen0, gen1);
-  res = _mm256_or_si256(res, _mm256_permute4x64_epi64(res, 0x4E));
-  res = _mm256_or_si256(res, _mm256_bsrli_epi128(res, 8));
-
-  return _mm256_extract_epi64(res, 0);
-}
-
-/*
- *
- */
-static SquareSet
-kogge_stone_gpb (const SquareSet generator,
-                 const SquareSet propagator,
-                 const SquareSet blocker)
-{
-  const __m256i gen_v = _mm256_set1_epi64x(generator);
-  const __m256i pro_v = _mm256_set1_epi64x(propagator);
-  const __m256i blo_v = _mm256_set1_epi64x(blocker);
-
-  const __m256i const_a0 = _mm256_setr_epi64x(all_squares_except_column_a,
-                                              all_squares_except_column_h,
-                                              all_squares,
-                                              all_squares_except_column_a);
-  const __m256i const_a1 = _mm256_setr_epi64x(all_squares_except_column_h,
-                                              all_squares_except_column_a,
-                                              all_squares,
-                                              all_squares_except_column_h);
-
-  const __m256i const_sh_a = _mm256_setr_epi64x(1,  7,  8,  9);
-  const __m256i const_sh_b = _mm256_setr_epi64x(2, 14, 16, 18);
-  const __m256i const_sh_c = _mm256_setr_epi64x(4, 28, 32, 36);
-
-  const __m256i const_b0 = _mm256_and_si256(blo_v, const_a0);
-  const __m256i const_b1 = _mm256_and_si256(blo_v, const_a1);
-
-  const __m256i pro_base0 = _mm256_and_si256(pro_v, const_a0);
-  const __m256i pro_base1 = _mm256_and_si256(pro_v, const_a1);
-
-  __m256i gen0 = gen_v;
-  __m256i gen1 = gen_v;
-  __m256i pro0 = pro_base0;
-  __m256i pro1 = pro_base1;
-
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_a)));
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_a)));
-  pro0 = _mm256_and_si256(pro0, _mm256_sllv_epi64(pro0, const_sh_a));
-  pro1 = _mm256_and_si256(pro1, _mm256_srlv_epi64(pro1, const_sh_a));
-
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_b)));
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_b)));
-  pro0 = _mm256_and_si256(pro0, _mm256_sllv_epi64(pro0, const_sh_b));
-  pro1 = _mm256_and_si256(pro1, _mm256_srlv_epi64(pro1, const_sh_b));
-
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_sllv_epi64(gen0, const_sh_c)));
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_srlv_epi64(gen1, const_sh_c)));
-
-  gen0 = _mm256_andnot_si256(gen_v, gen0);
-  gen1 = _mm256_andnot_si256(gen_v, gen1);
-
-  gen0 = _mm256_and_si256(const_b0, _mm256_sllv_epi64(gen0, const_sh_a));
-  gen1 = _mm256_and_si256(const_b1, _mm256_srlv_epi64(gen1, const_sh_a));
-
-  pro0 = pro_base0;
-  pro1 = pro_base1;
-
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_sllv_epi64(gen1, const_sh_a)));
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_srlv_epi64(gen0, const_sh_a)));
-  pro1 = _mm256_and_si256(pro1, _mm256_sllv_epi64(pro1, const_sh_a));
-  pro0 = _mm256_and_si256(pro0, _mm256_srlv_epi64(pro0, const_sh_a));
-
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_sllv_epi64(gen1, const_sh_b)));
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_srlv_epi64(gen0, const_sh_b)));
-  pro1 = _mm256_and_si256(pro1, _mm256_sllv_epi64(pro1, const_sh_b));
-  pro0 = _mm256_and_si256(pro0, _mm256_srlv_epi64(pro0, const_sh_b));
-
-  gen1 = _mm256_or_si256(gen1, _mm256_and_si256(pro1, _mm256_sllv_epi64(gen1, const_sh_c)));
-  gen0 = _mm256_or_si256(gen0, _mm256_and_si256(pro0, _mm256_srlv_epi64(gen0, const_sh_c)));
-
-  /* Cobines the eight sets, four DWORDS in gen0, and four in gen1, into the final result. */
-  __m256i res = _mm256_or_si256(gen0, gen1);
-  res = _mm256_or_si256(res, _mm256_permute4x64_epi64(res, 0x4E));
-  res = _mm256_or_si256(res, _mm256_bsrli_epi128(res, 8));
-
-  const SquareSet result = _mm256_extract_epi64(res, 0) | generator;
-
-  return result;
 }
 
 /**
