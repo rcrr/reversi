@@ -164,11 +164,11 @@ game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
 {
   GamePositionDb *db = fixture->db;
 
-  g_assert(TRUE  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "initial")));
-  g_assert(TRUE  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "early-game-b-9-moves")));
-  g_assert(FALSE == game_position_x_has_any_legal_move(get_gpx_from_db(db, "black-has-to-pass")));
-  g_assert(TRUE  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "early-game-c-12-moves")));
-  g_assert(FALSE == game_position_x_has_any_legal_move(get_gpx_from_db(db, "final-b37-w27")));
+  g_assert(true  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "initial")));
+  g_assert(true  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "early-game-b-9-moves")));
+  g_assert(false == game_position_x_has_any_legal_move(get_gpx_from_db(db, "black-has-to-pass")));
+  g_assert(true  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "early-game-c-12-moves")));
+  g_assert(false == game_position_x_has_any_legal_move(get_gpx_from_db(db, "final-b37-w27")));
 }
 
 static void
@@ -177,11 +177,11 @@ game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture
 {
   GamePositionDb *db = fixture->db;
 
-  g_assert(TRUE  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "initial")));
-  g_assert(TRUE  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "early-game-b-9-moves")));
-  g_assert(TRUE  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "black-has-to-pass")));
-  g_assert(TRUE  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "early-game-c-12-moves")));
-  g_assert(FALSE == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "final-b37-w27")));
+  g_assert(true  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "initial")));
+  g_assert(true  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "early-game-b-9-moves")));
+  g_assert(true  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "black-has-to-pass")));
+  g_assert(true  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "early-game-c-12-moves")));
+  g_assert(false == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "final-b37-w27")));
 }
 
 static void

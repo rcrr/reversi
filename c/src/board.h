@@ -36,6 +36,8 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+#include <stdbool.h>
+
 #include <glib.h>
 
 #include "bit_works.h"
@@ -239,10 +241,10 @@ extern gchar *
 square_as_move_array_to_string (const Square mova[],
                                 const int length);
 
-extern gboolean
+extern bool
 square_belongs_to_enum_set (const Square sq);
 
-extern gboolean
+extern bool
 square_is_valid_move (const Square move);
 
 
@@ -474,13 +476,13 @@ game_position_x_final_value (const GamePositionX *const gpx)
 extern char *
 game_position_x_print (const GamePositionX *const gpx);
 
-extern gboolean
+extern bool
 game_position_x_has_any_legal_move (const GamePositionX *const gpx);
 
-extern gboolean
+extern bool
 game_position_x_has_any_player_any_legal_move (const GamePositionX *const gpx);
 
-extern gboolean
+extern bool
 game_position_x_is_move_legal (const GamePositionX *const gpx,
                                const Square move);
 

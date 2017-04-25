@@ -549,7 +549,7 @@ square_as_move_array_to_string (const Square mova[],
  * @param [in] sq the given square
  * @return        true if the square is in the valid range
  */
-gboolean
+bool
 square_belongs_to_enum_set (const Square sq)
 {
   return sq >= A1 && sq <= H8;
@@ -569,7 +569,7 @@ square_belongs_to_enum_set (const Square sq)
  * @param [in] move the given move
  * @return          true if the move is in the valid range
  */
-gboolean
+bool
 square_is_valid_move (const Square move)
 {
   return square_belongs_to_enum_set(move) || move == pass_move;
@@ -605,7 +605,7 @@ square_set_to_pg_json_array (const SquareSet squares)
   GString *tmp = g_string_sized_new(10);
   g_string_append_printf(tmp, "[");
   Square move = 0;
-  gboolean passed = FALSE;
+  bool passed = FALSE;
   for (SquareSet cursor = 1; cursor != 0; cursor <<= 1) {
     if ((cursor & squares) != empty_square_set) {
       const char row = '1' + (move / 8);
@@ -641,7 +641,7 @@ square_set_to_string (const SquareSet squares)
 {
   GString *tmp = g_string_sized_new(10);
   Square move = 0;
-  gboolean passed = FALSE;
+  bool passed = FALSE;
   for (SquareSet cursor = 1; cursor != 0; cursor <<= 1) {
     if ((cursor & squares) != empty_square_set) {
       const char row = '1' + (move / 8);
@@ -2203,12 +2203,12 @@ game_position_x_print (const GamePositionX *const gpx)
  * @param [in] gpx the given game position x
  * @return         true if the game state admit a legal move
  */
-gboolean
+bool
 game_position_x_has_any_legal_move (const GamePositionX *const gpx)
 {
   g_assert(gpx);
 
-  return (empty_square_set == game_position_x_legal_moves(gpx)) ? FALSE : TRUE;
+  return (empty_square_set == game_position_x_legal_moves(gpx)) ? false : true;
 }
 
 /**
@@ -2220,7 +2220,7 @@ game_position_x_has_any_legal_move (const GamePositionX *const gpx)
  * @param [in] gpx the given game position x
  * @return         true if one of the player has one or more legal moves
  */
-gboolean
+bool
 game_position_x_has_any_player_any_legal_move (const GamePositionX *const gpx)
 {
   g_assert(gpx);
@@ -2264,7 +2264,7 @@ game_position_x_has_any_player_any_legal_move (const GamePositionX *const gpx)
  * @param [in] move the square where to put the new disk
  * @return          true if the move is legal
  */
-gboolean
+bool
 game_position_x_is_move_legal (const GamePositionX *const gpx,
                                const Square move)
 {
