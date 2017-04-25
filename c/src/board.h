@@ -345,10 +345,6 @@ board_legal_moves_option_get (void);
 extern int
 board_legal_moves_option_set (const int option);
 
-extern SquareSet
-board_get_color (const Board *const b,
-                 const SquareState color);
-
 extern uint8_t
 board_bitrow_changes_for_player (int player_row,
                                  int opponent_row,

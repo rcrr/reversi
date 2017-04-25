@@ -1604,44 +1604,6 @@ board_empties (const Board *const b)
 
 /**
  * @brief Returns the #SquareSet of the #Board addressed by `b`
- * corresponding to the #SquareState identified by `color`.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * Parameter `color` must belong to the #SquareState enum.
- * Invariants are guarded by assertions.
- *
- * @param [in] b     a pointer to the board structure
- * @param [in] color a given color
- * @return           the set of squares in the board having the given color
- */
-SquareSet
-board_get_color (const Board *const b,
-                 const SquareState color)
-{
-  g_assert(b);
-  g_assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
-
-  SquareSet squares;
-
-  switch (color) {
-  case EMPTY_SQUARE:
-    squares = board_empties(b);
-    break;
-  case BLACK_SQUARE:
-    squares = b->blacks;
-    break;
-  case WHITE_SQUARE:
-    squares = b->whites;
-    break;
-  default:
-    abort();
-  }
-
-  return squares;
-}
-
-/**
- * @brief Returns the #SquareSet of the #Board addressed by `b`
  * corresponding to the #Player identified by `p`.
  *
  * @invariant Parameter `b` must be not `NULL`.
