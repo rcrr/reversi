@@ -1162,51 +1162,6 @@ board_count_difference (const Board *const b,
 }
 
 /**
- * @brief Used for the score at the end of the game.
- *
- * @details Returns the disk difference between the player and her opponent,
- * assigning the empty squares to the player having most discs.
- *
- * From the web site of the World Othello Federation,
- * World Othello Chanpionship Rules, scoring:<br>
- * <em>"At the end of the game, if both players have completed their moves in
- * the allowed time, the winner is the player with the greater number of
- * discs of his colour on the board at the end. The official score of the
- * game will be determined by counting up the discs of each colour on the
- * board, counting empty squares for the winner. In the event of a draw,
- * the score will always be 32-32"</em>.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * Parameter `p` must be a value belonging to the `Player` enum.
- * Both invariants are guarded by assertions.
- *
- * @param [in] b a pointer to the board structure
- * @param [in] p the player for whom the difference is computed
- * @return       the game score according to the WOF rules
- */
-int
-board_count_diff_winner_get_empties (const Board *const b,
-                                     const Player p)
-{
-  g_assert(b);
-  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
-
-  int pcount, ocount, difference, empties;
-  Player o;
-
-  o = player_opponent(p);
-  pcount = board_count_pieces(b, player_color(p));
-  ocount = board_count_pieces(b, player_color(o));
-
-  difference = pcount - ocount;
-  empties = 64 - (pcount + ocount);
-
-  if (difference == 0) return 0;
-
-  return difference + ((difference > 0) ? +empties : -empties);
-}
-
-/**
  * @brief Returns 1 if the move, done by the specified player, is legal,
  * otherwise 0.
  *
