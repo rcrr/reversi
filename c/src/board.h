@@ -331,10 +331,6 @@ board_get_square (const Board *const b,
                   const Square sq);
 
 extern int
-board_count_pieces (const Board *const b,
-                    const SquareState color);
-
-extern int
 board_is_move_legal (const Board *const b,
                      const Square move,
                      const Player p);

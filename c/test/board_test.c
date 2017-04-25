@@ -71,7 +71,6 @@ static void axis_transform_to_row_one_test (void);
 static void axis_transform_back_from_row_one_test (void);
 
 static void board_get_square_test (void);
-static void board_count_pieces_test (void);
 static void board_new_test (void);
 static void board_print_test (void);
 static void board_is_move_legal_test (void);
@@ -133,7 +132,6 @@ main (int   argc,
   g_test_add_func("/board/axis_transform_back_from_row_one_test", axis_transform_back_from_row_one_test);
 
   g_test_add_func("/board/board_get_square_test", board_get_square_test);
-  g_test_add_func("/board/board_count_pieces_test", board_count_pieces_test);
   g_test_add_func("/board/board_new_test", board_new_test);
   g_test_add_func("/board/board_print_test", board_print_test);
   g_test_add_func("/board/board_is_move_legal_test", board_is_move_legal_test);
@@ -562,18 +560,6 @@ board_get_square_test (void)
   g_assert(board_get_square(b, A1) == BLACK_SQUARE);
   g_assert(board_get_square(b, B1) == WHITE_SQUARE);
   g_assert(board_get_square(b, C1) == EMPTY_SQUARE);
-
-  board_free(b);
-}
-
-static void
-board_count_pieces_test (void)
-{
-  Board *b = board_new(1, 2);
-
-  g_assert(board_count_pieces(b, BLACK_SQUARE) ==  1);
-  g_assert(board_count_pieces(b, WHITE_SQUARE) ==  1);
-  g_assert(board_count_pieces(b, EMPTY_SQUARE) == 62);
 
   board_free(b);
 }

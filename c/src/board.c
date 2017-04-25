@@ -1113,27 +1113,6 @@ board_get_square (const Board *const b,
 }
 
 /**
- * @brief Returns the disk count for the color.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * Parameter `color` must belongs to the `SquareState` enum.
- * Both invariants are guarded by assertions.
- *
- * @param [in] b     a pointer to the board structure
- * @param [in] color the square color
- * @return           the piece count for the given color
- */
-int
-board_count_pieces (const Board *const b,
-                    const SquareState color)
-{
-  g_assert(b);
-  g_assert(color == EMPTY_SQUARE || color == BLACK_SQUARE || color == WHITE_SQUARE);
-
-  return bit_works_bitcount_64(board_get_color(b, color));
-}
-
-/**
  * @brief Returns 1 if the move, done by the specified player, is legal,
  * otherwise 0.
  *
