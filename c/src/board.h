@@ -361,12 +361,6 @@ board_get_player (const Board *const b,
 extern SquareSet
 board_empties (const Board *const b);
 
-extern SquareSet
-board_blacks (const Board *const b);
-
-extern SquareSet
-board_whites (const Board *const b);
-
 extern char *
 board_print (const Board *const b);
 

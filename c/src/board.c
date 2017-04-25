@@ -1603,40 +1603,6 @@ board_empties (const Board *const b)
 }
 
 /**
- * @brief Returns the set of black squares in the board.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @param [in] b a pointer to the board structure
- * @return       the set of black squares
- */
-SquareSet
-board_blacks (const Board *const b)
-{
-  g_assert(b);
-
-  return b->blacks;
-}
-
-/**
- * @brief Returns the set of white squares in the board.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @param [in] b a pointer to the board structure
- * @return       the set of white squares
- */
-SquareSet
-board_whites (const Board *const b)
-{
-  g_assert(b);
-
-  return b->whites;
-}
-
-/**
  * @brief Returns the #SquareSet of the #Board addressed by `b`
  * corresponding to the #SquareState identified by `color`.
  *
