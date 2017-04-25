@@ -90,6 +90,10 @@ static SquareSet
 kogge_stone_b_scalar (const SquareSet generator,
                       const SquareSet propagator,
                       const SquareSet blocker);
+static SquareSet
+kogge_stone_gpb_scalar (const SquareSet generator,
+                        const SquareSet propagator,
+                        const SquareSet blocker);
 
 static SquareSet
 kogge_stone_b (const SquareSet generator,
@@ -2777,7 +2781,12 @@ game_position_x_make_move2 (const GamePositionX *const current,
   const SquareSet p_set = board_get_player(b, p);
   const SquareSet o_set = board_get_player(b, o);
 
-  const SquareSet f_set = kogge_stone_gpb(m_set, o_set, p_set);
+  const SquareSet f_set = kogge_stone_gpb_scalar(m_set, o_set, p_set);
+
+  /*
+  const SquareSet f_set_1 = kogge_stone_gpb_scalar(m_set, o_set, p_set);
+  if (f_set_1 != f_set) abort();
+  */
 
   const SquareSet p_set_n = p_set |  f_set;
   const SquareSet o_set_n = o_set & ~f_set;
@@ -3054,6 +3063,85 @@ kogge_stone_b_scalar (const SquareSet generator,
   }
 
   return result;
+}
+/*
+ *
+ */
+static SquareSet
+kogge_stone_gpb_scalar (const SquareSet generator,
+                        const SquareSet propagator,
+                        const SquareSet blocker)
+{
+  SquareSet const_b0[4], const_b1[4];
+  SquareSet pro_base0[4], pro_base1[4];
+  SquareSet g0, g1, p0, p1, result;
+
+  const SquareSet const_a0[] = { all_squares_except_column_a,
+                                 all_squares_except_column_h,
+                                 all_squares,
+                                 all_squares_except_column_a };
+  const SquareSet const_a1[] = { all_squares_except_column_h,
+                                 all_squares_except_column_a,
+                                 all_squares,
+                                 all_squares_except_column_h };
+
+  const SquareSet const_sh_a[] = { 1,  7,  8,  9 };
+  const SquareSet const_sh_b[] = { 2, 14, 16, 18 };
+  const SquareSet const_sh_c[] = { 4, 28, 32, 36 };
+
+  result = 0ULL;
+
+  for (int i = 0; i < 4; i++) {
+    const_b0[i] = blocker & const_a0[i];
+    const_b1[i] = blocker & const_a1[i];
+
+    pro_base0[i] = propagator & const_a0[i];
+    pro_base1[i] = propagator & const_a1[i];
+
+    g0 = generator;
+    g1 = generator;
+    p0 = pro_base0[i];
+    p1 = pro_base1[i];
+
+    g0 |= p0 & (g0 << const_sh_a[i]);
+    g1 |= p1 & (g1 >> const_sh_a[i]);
+    p0 &=      (p0 << const_sh_a[i]);
+    p1 &=      (p1 >> const_sh_a[i]);
+
+    g0 |= p0 & (g0 << const_sh_b[i]);
+    g1 |= p1 & (g1 >> const_sh_b[i]);
+    p0 &=      (p0 << const_sh_b[i]);
+    p1 &=      (p1 >> const_sh_b[i]);
+
+    g0 |= p0 & (g0 << const_sh_c[i]);
+    g1 |= p1 & (g1 >> const_sh_c[i]);
+
+    g0 = ~generator & g0;
+    g1 = ~generator & g1;
+
+    g0 = const_b0[i] & (g0 << const_sh_a[i]);
+    g1 = const_b1[i] & (g1 >> const_sh_a[i]);
+
+    p0 = pro_base0[i];
+    p1 = pro_base1[i];
+
+    g0 |= p0 & (g0 >> const_sh_a[i]);
+    g1 |= p1 & (g1 << const_sh_a[i]);
+    p0 &=      (p0 >> const_sh_a[i]);
+    p1 &=      (p1 << const_sh_a[i]);
+
+    g0 |= p0 & (g0 >> const_sh_b[i]);
+    g1 |= p1 & (g1 << const_sh_b[i]);
+    p0 &=      (p0 >> const_sh_b[i]);
+    p1 &=      (p1 << const_sh_b[i]);
+
+    g0 |= p0 & (g0 >> const_sh_c[i]);
+    g1 |= p1 & (g1 << const_sh_c[i]);
+
+    result |= (g0 | g1);
+  }
+
+  return result | generator;
 }
 
 /*
