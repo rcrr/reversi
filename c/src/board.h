@@ -386,9 +386,6 @@ extern int
 board_compare (const Board *const a,
                const Board *const b);
 
-extern gboolean
-board_has_any_player_any_legal_move (const Board *const b);
-
 
 
 /*************************************************/
@@ -413,7 +410,8 @@ direction_opposite (const Direction dir);
 /* Function prototypes for the SquareState entity. */
 /***************************************************/
 
-extern char square_state_symbol (const SquareState color);
+extern char
+square_state_symbol (const SquareState color);
 
 
 

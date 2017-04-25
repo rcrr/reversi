@@ -1680,24 +1680,6 @@ board_legal_moves2 (const Board *const b,
  */
 
 /**
- * @brief Returns `TRUE` if the board is not final.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * All invariants are guarded by assertions.
- *
- * @param [in] b the given board
- * @return       true if one of the player has one or more legal moves
- */
-gboolean
-board_has_any_player_any_legal_move (const Board *const b)
-{
-  g_assert(b);
-
-  return (empty_square_set == board_legal_moves(b, BLACK_PLAYER) &&
-          empty_square_set == board_legal_moves(b, WHITE_PLAYER)) ? FALSE : TRUE;
-}
-
-/**
  * @brief Returns the set of empty squares in the board.
  *
  * @invariant Parameter `b` must be not `NULL`.
