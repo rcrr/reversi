@@ -1134,34 +1134,6 @@ board_count_pieces (const Board *const b,
 }
 
 /**
- * @brief Returns the disk difference between the player and her opponent.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * Parameter `p` must be a value belonging to the `Player` enum.
- * Both invariants are guarded by assertions.
- *
- * @param [in] b a pointer to the board structure
- * @param [in] p the player for whom the difference is computed
- * @return       the disc count difference
- */
-int
-board_count_difference (const Board *const b,
-                        const Player p)
-{
-  g_assert(b);
-  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
-
-  int pcount, ocount;
-  Player o;
-
-  o = player_opponent(p);
-  pcount = board_count_pieces(b, player_color(p));
-  ocount = board_count_pieces(b, player_color(o));
-
-  return pcount - ocount;
-}
-
-/**
  * @brief Returns 1 if the move, done by the specified player, is legal,
  * otherwise 0.
  *
