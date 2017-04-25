@@ -137,11 +137,11 @@ game_position_x_make_move2 (const GamePositionX *const current,
  */
 
 /* */
-static const board_legal_moves_function blm_functions[] = { board_legal_moves0,
-                                                            board_legal_moves1,
-                                                            board_legal_moves2,
-                                                            board_legal_moves3,
-                                                            board_legal_moves4 };
+static const board_legal_moves_function blm_functions[] = { board_legal_moves0,    // wave based.
+                                                            board_legal_moves1,    // AVX2 translation of the wave algorithm.
+                                                            board_legal_moves2,    // AVX2 wave algo with loop.
+                                                            board_legal_moves3,    // Kogge - Stone scalar ...
+                                                            board_legal_moves4 };  // Kogge - Stone ... vectorizable ...
 
 static const game_position_x_make_move_function gpx_mm_functions[] = { game_position_x_make_move0,
                                                                        game_position_x_make_move1,
@@ -1996,7 +1996,7 @@ game_position_x_get_square (const GamePositionX *const gpx,
   g_assert(gpx);
   g_assert(square_belongs_to_enum_set(sq));
 
-  SquareSet bitsquare = (SquareSet) 1 << sq;
+  const SquareSet bitsquare = (SquareSet) 1 << sq;
   if (bitsquare & gpx->blacks)
     return BLACK_SQUARE;
   else if (bitsquare & gpx->whites)
@@ -2016,7 +2016,14 @@ game_position_x_legal_moves (const GamePositionX *const gpx)
 {
   const Board *const b = (Board *const) gpx;
   const Player p = gpx->player;
-  return board_legal_moves(b, p);
+
+  const SquareSet result = board_legal_moves(b, p);
+
+  // ---
+  // TODO: remove dependency from board_legal_moves.
+  // ---
+
+  return result;
 }
 
 /**
@@ -2275,7 +2282,13 @@ game_position_x_is_move_legal (const GamePositionX *const gpx,
   board.blacks = gpx->blacks;
   board.whites = gpx->whites;
 
-  return board_is_move_legal(&board, move, gpx->player);
+  const bool result = board_is_move_legal(&board, move, gpx->player);
+
+  // ---
+  // TODO: remove dependency from board_is_move_legal.
+  // ---
+
+  return result;
 }
 
 static void
