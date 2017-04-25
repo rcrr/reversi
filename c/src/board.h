@@ -382,10 +382,6 @@ board_whites (const Board *const b);
 extern char *
 board_print (const Board *const b);
 
-extern int
-board_compare (const Board *const a,
-               const Board *const b);
-
 
 
 /*************************************************/

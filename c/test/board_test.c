@@ -72,7 +72,6 @@ static void axis_transform_back_from_row_one_test (void);
 
 static void board_get_square_test (void);
 static void board_count_difference_test (void);
-static void board_compare_test (void);
 static void board_count_pieces_test (void);
 static void board_new_test (void);
 static void board_print_test (void);
@@ -136,7 +135,6 @@ main (int   argc,
 
   g_test_add_func("/board/board_get_square_test", board_get_square_test);
   g_test_add_func("/board/board_count_difference_test", board_count_difference_test);
-  g_test_add_func("/board/board_compare_test", board_compare_test);
   g_test_add_func("/board/board_count_pieces_test", board_count_pieces_test);
   g_test_add_func("/board/board_new_test", board_new_test);
   g_test_add_func("/board/board_print_test", board_print_test);
@@ -581,49 +579,6 @@ board_count_difference_test (void)
   g_assert(board_count_difference(b, BLACK_PLAYER) == +64);
   g_assert(board_count_difference(b, WHITE_PLAYER) == -64);
 
-  board_free(b);
-}
-
-static void
-board_compare_test (void)
-{
-  Board *a;
-  Board *b;
-
-  a = board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000);
-  b = board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000);
-  g_assert(board_compare(a, b) == 0);
-  board_free(a);
-  board_free(b);
-
-  a = board_new(0xFFFFFFFFFFFFFFFF, 0x0000000000000000);
-  b = board_new(0x0000000000000000, 0x0000000000000000);
-  g_assert(board_compare(a, b) == +1);
-  board_free(a);
-  board_free(b);
-
-  a = board_new(0x0000000000000000, 0x0000000000000000);
-  b = board_new(0x0000000000000001, 0x0000000000000000);
-  g_assert(board_compare(a, b) == -1);
-  board_free(a);
-  board_free(b);
-
-  a = board_new(0x0000000000000007, 0x0000000000000000);
-  b = board_new(0x0000000000000007, 0x0000000000000000);
-  g_assert(board_compare(a, b) == 0);
-  board_free(a);
-  board_free(b);
-
-  a = board_new(0x0000000000000007, 0x0100000000000000);
-  b = board_new(0x0000000000000007, 0x0000000000000000);
-  g_assert(board_compare(a, b) == +1);
-  board_free(a);
-  board_free(b);
-
-  a = board_new(0x0000000000000007, 0x0000000000000000);
-  b = board_new(0x0000000000000007, 0x0100000000000000);
-  g_assert(board_compare(a, b) == -1);
-  board_free(a);
   board_free(b);
 }
 

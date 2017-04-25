@@ -87,13 +87,13 @@ direction_shift_back_square_set_by_amount (const Direction dir,
                                            const int amount);
 
 static SquareSet
-kogge_stone_b_scalar (const SquareSet generator,
-                      const SquareSet propagator,
-                      const SquareSet blocker);
+kogge_stone_b (const SquareSet generator,
+               const SquareSet propagator,
+               const SquareSet blocker);
 static SquareSet
-kogge_stone_gpb_scalar (const SquareSet generator,
-                        const SquareSet propagator,
-                        const SquareSet blocker);
+kogge_stone_gpb (const SquareSet generator,
+                 const SquareSet propagator,
+                 const SquareSet blocker);
 
 static SquareSet
 board_legal_moves0 (const Board *const b,
@@ -1335,7 +1335,7 @@ board_legal_moves4 (const Board *const b,
   const SquareSet p_bit_board = board_get_player(b, p);
   const SquareSet o_bit_board = board_get_player(b, o);
 
-  const SquareSet result = kogge_stone_b_scalar(p_bit_board, o_bit_board, empties);
+  const SquareSet result = kogge_stone_b(p_bit_board, o_bit_board, empties);
 
   return result;
 }
@@ -1824,46 +1824,6 @@ board_print (const Board *const b)
   g_string_free(bs, FALSE);
 
   return b_to_string;
-}
-
-/**
- * @brief Compares board `a` and board `b`.
- *
- * When the two board are equal it returns `0`, when `a` is greather then `b` it
- * returns `+1`, otherwise `-1`.
- *
- * Boards are equals when have the same square configuration.
- *
- * The returned string has a dynamic extent set by a call to malloc. It must then properly
- * garbage collected by a call to free when no more referenced.
- *
- * @invariant Parameters `a` and `b` must be not `NULL`.
- * Invariants are guarded by assertions.
- *
- * @param [in] a a pointer to a board structure
- * @param [in] b a pointer to another board structure
- * @return       `-1` when `a < b`, `+1` when `a > b`, or `0` when the two boards are equal
- */
-int
-board_compare (const Board *const a,
-               const Board *const b)
-{
-  g_assert(a);
-  g_assert(b);
-
-  if (a->blacks < b->blacks) {
-    return -1;
-  } else if (a->blacks > b->blacks) {
-    return +1;
-  } else {          /* Blacks are equal. */
-    if (a->whites < b->whites) {
-      return -1;
-    } else if (a->whites > b->whites) {
-      return +1;
-    } else {        /* Also whites are equal, and so are a and b boards. */
-      return  0;
-    }
-  }
 }
 
 /**
@@ -2748,7 +2708,7 @@ game_position_x_make_move2 (const GamePositionX *const current,
   const SquareSet p_set = board_get_player(b, p);
   const SquareSet o_set = board_get_player(b, o);
 
-  const SquareSet f_set = kogge_stone_gpb_scalar(m_set, o_set, p_set);
+  const SquareSet f_set = kogge_stone_gpb(m_set, o_set, p_set);
 
   const SquareSet p_set_n = p_set |  f_set;
   const SquareSet o_set_n = o_set & ~f_set;
@@ -2965,15 +2925,28 @@ direction_shift_back_square_set_by_amount (const Direction dir,
   }
 }
 
-
-
 /*
+ * See Wikipedia page https://en.wikipedia.org/wiki/Kogge-Stone_adder
+ *
+ * This variant of the Kogge-Stone algorithm takes three bitboard as imput:
+ *
+ *  - generator
+ *  - propagator
+ *  - blocker
+ *
+ * and returns the bitboard obtained by the blocker subset that is formed by
+ * the blockers hit by the rays, in the eight directions, obtained from the generators
+ * traveling along the propagators.
+ *
+ * Passing as generator the player square set, as propagator the opponent square set,
+ * and as blocker the empty square set, the returned value is a square set of the
+ * legal moves.
  *
  */
 static SquareSet
-kogge_stone_b_scalar (const SquareSet generator,
-                      const SquareSet propagator,
-                      const SquareSet blocker)
+kogge_stone_b (const SquareSet generator,
+               const SquareSet propagator,
+               const SquareSet blocker)
 {
   SquareSet const_b0[4], const_b1[4];
   SquareSet g0, g1, p0, p1, result;
@@ -3028,16 +3001,39 @@ kogge_stone_b_scalar (const SquareSet generator,
 }
 
 /*
+ * See Wikipedia page https://en.wikipedia.org/wiki/Kogge-Stone_adder
+ *
+ * This variant of the Kogge-Stone algorithm takes three bitboard as imput:
+ *
+ *  - generator
+ *  - propagator
+ *  - blocker
+ *
+ * and returns the bitboard obtained by summing up:
+ *
+ *  - the generators;
+ *  - the rays, in the eight directions, obtained from the generators
+ *    traveling along the propagators, hitting a blocker;
+ *  - the hit blockers.
+ *
+ * Passing as generator the bitboard having a single square, the move,
+ * as propagator the opponent square set, and as blocker the player square
+ * set, the returned value is a square set that:
+ *
+ *  - added to the player square set
+ *  - subtracted from the opponent square set
+ *
+ * enables the computation of the new game position obtained by moving.
  *
  */
 static SquareSet
-kogge_stone_gpb_scalar (const SquareSet generator,
-                        const SquareSet propagator,
-                        const SquareSet blocker)
+kogge_stone_gpb (const SquareSet generator,
+                 const SquareSet propagator,
+                 const SquareSet blocker)
 {
   SquareSet const_b0[4], const_b1[4];
   SquareSet pro_base0[4], pro_base1[4];
-  SquareSet g0, g1, p0, p1, result;
+  SquareSet g0, g1, p0, p1, accumulator;
 
   const SquareSet const_a0[] = { all_squares_except_column_a,
                                  all_squares_except_column_h,
@@ -3052,7 +3048,7 @@ kogge_stone_gpb_scalar (const SquareSet generator,
   const SquareSet const_sh_b[] = { 2, 14, 16, 18 };
   const SquareSet const_sh_c[] = { 4, 28, 32, 36 };
 
-  result = 0ULL;
+  accumulator = 0ULL;
 
   for (int i = 0; i < 4; i++) {
     const_b0[i] = blocker & const_a0[i];
@@ -3101,10 +3097,10 @@ kogge_stone_gpb_scalar (const SquareSet generator,
     g0 |= p0 & (g0 >> const_sh_c[i]);
     g1 |= p1 & (g1 << const_sh_c[i]);
 
-    result |= (g0 | g1);
+    accumulator |= (g0 | g1);
   }
 
-  return result | generator;
+  return accumulator | generator;
 }
 
 /**
