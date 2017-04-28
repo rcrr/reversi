@@ -666,19 +666,8 @@ static void
 board_legal_moves_test (void)
 {
   Board *b;
-
   b = board_new(0x0000000000000001, 0x0040201008040200);
-
   g_assert(0x8000000000000000 == board_legal_moves(b, BLACK_PLAYER));
-
-  int option = board_legal_moves_option_set(0);
-  option = board_legal_moves_option_get();
-  g_assert(0 == option);
-  g_assert(0x8000000000000000 == board_legal_moves(b, BLACK_PLAYER));
-  option = board_legal_moves_option_set(1);
-  option = board_legal_moves_option_get();
-  g_assert(1 == option);
-
   board_free(b);
 }
 

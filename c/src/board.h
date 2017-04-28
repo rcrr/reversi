@@ -341,17 +341,6 @@ extern SquareSet
 board_legal_moves (const Board *const b,
                    const Player p);
 
-extern int
-board_legal_moves_option_get (void);
-
-extern int
-board_legal_moves_option_set (const int option);
-
-extern uint8_t
-board_bitrow_changes_for_player (int player_row,
-                                 int opponent_row,
-                                 int move_position);
-
 extern SquareSet
 board_get_player (const Board *const b,
                   const Player p);
