@@ -997,38 +997,6 @@ board_clone (const Board *const b)
 }
 
 /**
- * @brief Returns a list holding the legal moves that the player can do at the board position.
- *        When no moves are available to the player the method returns an empty list.
- *
- * Implements the legal moves call by waveing the potential legal moves up to the bracketing
- * pieces. Directions are computed one by one, squares work in parallel.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * Parameter `p` must be a value belonging to the `Player` enum.
- * All invariants are guarded by assertions.
- *
- * @param [in] b the given board
- * @param [in] p the player that has to move
- * @return       legal moves for the player
- */
-SquareSet
-board_legal_moves (const Board *const b,
-                   const Player p)
-{
-  g_assert(b);
-  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
-
-  const Player o = player_opponent(p);
-  const SquareSet empties = board_empties(b);
-  const SquareSet p_bit_board = board_get_player(b, p);
-  const SquareSet o_bit_board = board_get_player(b, o);
-
-  const SquareSet result = kogge_stone_b(p_bit_board, o_bit_board, empties);
-
-  return result;
-}
-
-/**
  * @brief Returns the set of empty squares in the board.
  *
  * @invariant Parameter `b` must be not `NULL`.
