@@ -328,9 +328,6 @@ board_free (Board *b);
 extern Board *
 board_clone (const Board *const b);
 
-extern SquareSet
-board_empties (const Board *const b);
-
 
 
 /*************************************************/

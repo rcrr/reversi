@@ -985,23 +985,6 @@ board_clone (const Board *const b)
   return board_new(b->blacks, b->whites);
 }
 
-/**
- * @brief Returns the set of empty squares in the board.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * The invariant is guarded by an assertion.
- *
- * @param [in] b a pointer to the board structure
- * @return       the set of empty squares
- */
-SquareSet
-board_empties (const Board *const b)
-{
-  g_assert(b);
-
-  return ~(b->blacks | b->whites);
-}
-
 
 
 /******************************************************/
