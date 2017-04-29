@@ -229,7 +229,7 @@ game_position_es_solve (const GamePositionX *const root,
   result->best_move = best_move;
   result->outcome = game_value;
   if (pv_recording) {
-    exact_solution_compute_final_board(result);
+    exact_solution_compute_final_state(result);
     if (env->pve_dump_file) {
       printf("\n --- --- pve_dump_to_binary_file() START --- ---\n");
       pve_dump_to_binary_file(pve, env->pve_dump_file);

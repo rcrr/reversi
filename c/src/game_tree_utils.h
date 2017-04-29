@@ -182,7 +182,7 @@ typedef struct {
   GamePositionX  root_gpx;                    /**< @brief The game position to be solved. */
   int            outcome;                     /**< @brief The final endgame score. */
   Square         best_move;                   /**< @brief The first move of the main principal variation. */
-  Board         *final_board;                 /**< @brief The final board state. */
+  GamePositionX  final_state;                 /**< @brief The final board state. */
   uint64_t       leaf_count;                  /**< @brief The count of leaf nodes searched by the solver. */
   uint64_t       node_count;                  /**< @brief The count of all nodes touched by the solver. */
   PVEnv         *pve;                         /**< @brief A reference to the principal variation env. */
@@ -393,7 +393,7 @@ extern char *
 exact_solution_to_string (const ExactSolution *const es);
 
 extern void
-exact_solution_compute_final_board (ExactSolution *const es);
+exact_solution_compute_final_state (ExactSolution *const es);
 
 extern void
 exact_solution_set_root (ExactSolution *const es,

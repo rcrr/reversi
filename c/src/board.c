@@ -1210,42 +1210,6 @@ board_get_player (const Board *const b,
 }
 
 /**
- * @brief Returns a formatted string showing a 2d graphical represention of the board.
- *
- * The returned string has a dynamic extent. It must then properly
- * garbage collected by a call to `g_free` when no more referenced.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * Invariants are guarded by assertions.
- *
- * @param [in] b a pointer to the board structure
- * @return       a string being a 2d representation of the board
- */
-gchar *
-board_print (const Board *const b)
-{
-  g_assert(b);
-
-  char *b_to_string;
-  GString *bs;
-
-  bs = g_string_sized_new(220);
-  g_string_append(bs, "    a b c d e f g h ");
-  for (int row = 0; row < 8; row++) {
-    g_string_append_printf(bs, "\n %1d  ", row + 1);
-    for (int col = 0; col < 8; col++) {
-      g_string_append_printf(bs, "%c ", square_state_symbol(board_get_square(b, (8 * row) + col)));
-    }
-  }
-  g_string_append(bs, "\n");
-
-  b_to_string = bs->str;
-  g_string_free(bs, FALSE);
-
-  return b_to_string;
-}
-
-/**
  * Returns an 8-bit row representation of the player pieces after applying the move.
  *
  * @param [in] player_row    8-bit bitboard corrosponding to player pieces

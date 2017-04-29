@@ -72,7 +72,6 @@ static void axis_transform_back_from_row_one_test (void);
 
 static void board_get_square_test (void);
 static void board_new_test (void);
-static void board_print_test (void);
 static void board_is_move_legal_test (void);
 static void board_legal_moves_test (void);
 
@@ -133,7 +132,6 @@ main (int   argc,
 
   g_test_add_func("/board/board_get_square_test", board_get_square_test);
   g_test_add_func("/board/board_new_test", board_new_test);
-  g_test_add_func("/board/board_print_test", board_print_test);
   g_test_add_func("/board/board_is_move_legal_test", board_is_move_legal_test);
   g_test_add_func("/board/board_legal_moves_test", board_legal_moves_test);
 
@@ -574,34 +572,6 @@ board_new_test (void)
   g_assert(empty_board != NULL);
 
   board_free(empty_board);
-}
-
-static void
-board_print_test (void)
-{
-  Board *b;
-  char *b_to_string;
-  GString *expected;
-
-  b = board_new(1, 2);
-  b_to_string = board_print(b);
-
-  expected = g_string_sized_new(220);
-  g_string_append(expected, "    a b c d e f g h \n");
-  g_string_append(expected, " 1  @ O . . . . . . \n");
-  g_string_append(expected, " 2  . . . . . . . . \n");
-  g_string_append(expected, " 3  . . . . . . . . \n");
-  g_string_append(expected, " 4  . . . . . . . . \n");
-  g_string_append(expected, " 5  . . . . . . . . \n");
-  g_string_append(expected, " 6  . . . . . . . . \n");
-  g_string_append(expected, " 7  . . . . . . . . \n");
-  g_string_append(expected, " 8  . . . . . . . . \n");
-
-  g_assert(g_strcmp0(expected->str, b_to_string) == 0);
-
-  board_free(b);
-  g_free(b_to_string);
-  g_string_free(expected, TRUE);
 }
 
 static void

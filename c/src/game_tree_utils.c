@@ -189,7 +189,6 @@ exact_solution_new (void)
 
   es->outcome = invalid_outcome;
   es->best_move = invalid_move;
-  es->final_board = NULL;
   es->node_count = 0;
   es->leaf_count = 0;
   es->pve = NULL;
@@ -208,7 +207,6 @@ void
 exact_solution_free (ExactSolution *es)
 {
   if (es) {
-    if (es->final_board) board_free(es->final_board);
     if (es->pve) pve_free(es->pve);
     free(es);
   }
@@ -253,9 +251,9 @@ exact_solution_to_string (const ExactSolution *const es)
     g_string_append_printf(tmp, "\n");
   }
 
-  if (es->final_board) {
-    gchar *b_to_s = board_print(es->final_board);
-    g_string_append_printf(tmp, "\nFinal board configuration playing main PV:\n%s\n", b_to_s);
+  if (es->pve) {
+    gchar *b_to_s = game_position_x_print(&es->final_state);
+    g_string_append_printf(tmp, "\nFinal state configuration playing main PV:\n%s\n", b_to_s);
     g_free(b_to_s);
   }
 
@@ -273,26 +271,20 @@ exact_solution_to_string (const ExactSolution *const es)
  * @param [in] es a pointer to the exact solution structure
  */
 void
-exact_solution_compute_final_board (ExactSolution *const es)
+exact_solution_compute_final_state (ExactSolution *const es)
 {
   assert(es);
 
   if (!es->pve) return;
 
-  GamePositionX t = {
-    .blacks = es->root_gpx.blacks,
-    .whites = es->root_gpx.whites,
-    .player = es->root_gpx.player
-  };
+  game_position_x_copy(&es->root_gpx, &es->final_state);
 
   PVCell **rl  = es->pve->root_line;
   assert (rl);
 
   for (PVCell *c = *rl; c != NULL; c = c->next) {
-    game_position_x_make_move(&t, c->move, &t);
+    game_position_x_make_move(&es->final_state, c->move, &es->final_state);
   }
-
-  es->final_board = board_new(t.blacks, t.whites);
 }
 
 /**
