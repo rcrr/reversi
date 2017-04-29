@@ -79,17 +79,6 @@ kogge_stone_gpb (const SquareSet generator,
  * Internal variables and constants.
  */
 
-/* Used in board_legal_moves0 to reduce the set of possible moves before computing a direction. */
-static const SquareSet direction_wave_mask[] = { 0xFCFCFCFCFCFC0000,   // NW - North-West
-                                                 0xFFFFFFFFFFFF0000,   // N  - North
-                                                 0x3F3F3F3F3F3F0000,   // NE - North-East
-                                                 0xFCFCFCFCFCFCFCFC,   // W  - West
-                                                 0x3F3F3F3F3F3F3F3F,   // E  - East
-                                                 0x0000FCFCFCFCFCFC,   // SW - South-West
-                                                 0x0000FFFFFFFFFFFF,   // S  - South
-                                                 0x00003F3F3F3F3F3F }; // SE - South-Est
-
-
 /* Array used for conversion between square/move and its string representation. */
 static const gchar *const sq_to_s[] = {
   "A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1",
@@ -1587,31 +1576,12 @@ game_position_x_has_any_player_any_legal_move (const GamePositionX *const gpx)
 {
   g_assert(gpx);
 
-  const SquareSet empties = game_position_x_empties(gpx);
-  const SquareSet blacks = gpx->blacks;
-  const SquareSet whites = gpx->whites;
+  GamePositionX pass;
 
-  for (Direction dir = NW; dir <= SE; dir++) {
-    SquareSet wave;
-    int shift;
-    wave = direction_shift_square_set(dir, empties) & whites;
-    shift = 1;
-    while (wave != empty_square_set) {
-      wave = direction_shift_square_set(dir, wave);
-      shift++;
-      if ((wave & blacks) != empty_square_set) return TRUE;
-      wave &= whites;
-    }
-    wave = direction_shift_square_set(dir, empties) & blacks;
-    shift = 1;
-    while (wave != empty_square_set) {
-      wave = direction_shift_square_set(dir, wave);
-      shift++;
-      if ((wave & whites) != empty_square_set) return TRUE;
-      wave &= blacks;
-    }
-  }
-  return FALSE;
+  if (game_position_x_legal_moves(gpx)) return true;
+  game_position_x_pass(gpx, &pass);
+  if (game_position_x_legal_moves(&pass)) return true;
+  return false;
 }
 
 /**
