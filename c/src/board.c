@@ -1507,14 +1507,11 @@ game_position_x_get_square (const GamePositionX *const gpx,
 SquareSet
 game_position_x_legal_moves (const GamePositionX *const gpx)
 {
-  const Board *const b = (Board *const) gpx;
-  const Player p = gpx->player;
+  const SquareSet e_set = game_position_x_empties(gpx);
+  const SquareSet p_set = game_position_x_get_player(gpx);
+  const SquareSet o_set = game_position_x_get_opponent(gpx);
 
-  const SquareSet result = board_legal_moves(b, p);
-
-  // ---
-  // TODO: remove dependency from board_legal_moves.
-  // ---
+  const SquareSet result = kogge_stone_b(p_set, o_set, e_set);
 
   return result;
 }
