@@ -70,8 +70,6 @@ static void axis_move_ordinal_position_in_bitrow_test (void);
 static void axis_transform_to_row_one_test (void);
 static void axis_transform_back_from_row_one_test (void);
 
-static void board_new_test (void);
-
 static void game_position_x_empties_test (void);
 static void game_position_x_get_player_test (void);
 static void game_position_x_get_opponent_test (void);
@@ -126,8 +124,6 @@ main (int   argc,
   g_test_add_func("/board/axis_move_ordinal_position_in_bitrow_test", axis_move_ordinal_position_in_bitrow_test);
   g_test_add_func("/board/axis_transform_to_row_one_test", axis_transform_to_row_one_test);
   g_test_add_func("/board/axis_transform_back_from_row_one_test", axis_transform_back_from_row_one_test);
-
-  g_test_add_func("/board/board_new_test", board_new_test);
 
   g_test_add_func("/board/game_position_x_empties_test", game_position_x_empties_test);
   g_test_add_func("/board/game_position_x_get_player_test", game_position_x_get_player_test);
@@ -542,18 +538,6 @@ direction_shift_square_set_by_amount_test (void)
   g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 5) == 0x0000000000E0E0E0);
   g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 6) == 0x000000000000C0C0);
   g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 7) == 0x0000000000000080);
-}
-
-static void
-board_new_test (void)
-{
-  const SquareSet b = 0;
-  const SquareSet w = 0;
-
-  Board *empty_board = board_new(b, w);
-  g_assert(empty_board != NULL);
-
-  board_free(empty_board);
 }
 
 static void

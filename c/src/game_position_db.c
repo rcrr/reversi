@@ -782,7 +782,6 @@ gpdb_extract_entry_from_line (gchar                           *line,
   gchar               *cp1;
   GString             *error_msg;
   GamePositionDbEntry *entry;
-  Board               *board;
   SquareSet            blacks;
   SquareSet            whites;
   Player               player;
@@ -797,8 +796,6 @@ gpdb_extract_entry_from_line (gchar                           *line,
   record_length = 0;
   cp0 = NULL;
   cp1 = NULL;
-
-  board = NULL;
 
   /* Computes the record_length, removing everything following a dash. */
   while ((c = line[record_length])) {
@@ -883,7 +880,6 @@ gpdb_extract_entry_from_line (gchar                           *line,
         return EXIT_FAILURE;
       }
     }
-    board = board_new(blacks, whites);
   } else {
     error_msg = g_string_new("");
     g_string_append_printf(error_msg, "The record doesn't have a proper terminated board field.");
@@ -912,7 +908,6 @@ gpdb_extract_entry_from_line (gchar                           *line,
                                                     line,
                                                     error_msg->str);
       g_free(entry->id);
-      board_free(board);
       g_free(entry);
       g_free(record);
       g_string_free(error_msg, FALSE);
@@ -936,7 +931,6 @@ gpdb_extract_entry_from_line (gchar                           *line,
                                                     line,
                                                     error_msg->str);
       g_free(entry->id);
-      board_free(board);
       g_free(entry);
       g_free(record);
       g_string_free(error_msg, FALSE);
@@ -953,7 +947,6 @@ gpdb_extract_entry_from_line (gchar                           *line,
                                                   line,
                                                   error_msg->str);
     g_free(entry->id);
-    board_free(board);
     g_free(entry);
     g_free(record);
     g_string_free(error_msg, FALSE);

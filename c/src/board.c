@@ -919,55 +919,6 @@ axis_transform_back_from_row_one (const Axis axis,
   }
 }
 
-/**************************************************/
-/* Function implementations for the Board entity. */
-/**************************************************/
-
-/**
- * @brief Board structure constructor.
- *
- * An assertion checks that the received pointer to the allocated
- * board structure is not `NULL`.
- *
- * @invariant Parameters `b` and `w` cannot have common square set.
- * The invariant is guarded by an assertion.
- * It means that a square cannot have a white and a black disc set together.
- *
- * @param [in] b the set of black squares
- * @param [in] w the set of white squares
- * @return       a pointer to a new board structure
- */
-Board *
-board_new (const SquareSet b,
-           const SquareSet w)
-{
-  g_assert((w & b) == empty_square_set);
-
-  Board *board;
-  static const size_t size_of_board = sizeof(Board);
-
-  board = (Board *) malloc(size_of_board);
-  g_assert(board);
-
-  board->blacks = b;
-  board->whites = w;
-
-  return board;
-}
-
-/**
- * @brief Deallocates the memory previously allocated by a call to #board_new.
- *
- * @details If a null pointer is passed as argument, no action occurs.
- *
- * @param [in,out] b the pointer to be deallocated
- */
-void
-board_free (Board *b)
-{
-  free(b);
-}
-
 
 
 /******************************************************/
