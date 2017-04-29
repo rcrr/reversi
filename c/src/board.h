@@ -328,11 +328,6 @@ board_free (Board *b);
 extern Board *
 board_clone (const Board *const b);
 
-extern int
-board_is_move_legal (const Board *const b,
-                     const Square move,
-                     const Player p);
-
 extern SquareSet
 board_legal_moves (const Board *const b,
                    const Player p);

@@ -75,6 +75,7 @@ static SquareSet
 kogge_stone_b (const SquareSet generator,
                const SquareSet propagator,
                const SquareSet blocker);
+
 static SquareSet
 kogge_stone_gpb (const SquareSet generator,
                  const SquareSet propagator,
@@ -1020,66 +1021,6 @@ board_clone (const Board *const b)
   g_assert(b);
 
   return board_new(b->blacks, b->whites);
-}
-
-/**
- * @brief Returns 1 if the move, done by the specified player, is legal,
- * otherwise 0.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * Parameter `move` must be a value in the range defined by
- * the #square_is_valid_move function.
- * Parameter `p` must be a value belonging to the `Player` enum.
- * All invariants are guarded by assertions.
- *
- * @param [in] b    a pointer to the board structure
- * @param [in] move the square where to put the new disk
- * @param [in] p    the player moving
- * @return          1 if the move is legal, otherwise 0
- */
-int
-board_is_move_legal (const Board *const b,
-                     const Square move,
-                     const Player p)
-{
-  g_assert(b);
-  g_assert(square_is_valid_move(move));
-  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
-
-  if (move == pass_move) {
-    if (board_empties(b) == 0) {
-      return TRUE;
-    } else if (board_legal_moves(b, p) == 0) {
-      return TRUE;
-    } else {
-      return FALSE;
-    }
-  }
-
-  SquareSet bit_move = (SquareSet) 1 << move;
-
-  if ((board_empties(b) & bit_move) == empty_square_set) return FALSE;
-
-  SquareSet p_bit_board = board_get_player(b, p);
-  SquareSet o_bit_board = board_get_player(b, player_opponent(p));
-
-  HiLo xy;
-  bit_works_bitscan_MS1B_to_base8(&xy, bit_move);
-  uint8_t column = xy.lo;
-  uint8_t row    = xy.hi;
-
-  for (Axis axis = HO; axis <= DU; axis++) {
-    const int move_ordinal_position = axis_move_ordinal_position_in_bitrow(axis, column, row);
-    const int shift_distance = axis_shift_distance(axis, column, row);
-    const uint8_t p_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(p_bit_board, shift_distance));
-    const uint8_t o_bitrow = axis_transform_to_row_one(axis, bit_works_signed_left_shift(o_bit_board, shift_distance));
-    if (board_bitrow_changes_for_player(p_bitrow, o_bitrow, move_ordinal_position) != p_bitrow) {
-      return TRUE;
-    }
-  }
-
-  /* If no capture on the four directions happens, return false. */
-  return FALSE;
 }
 
 /**

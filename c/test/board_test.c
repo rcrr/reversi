@@ -71,7 +71,6 @@ static void axis_transform_to_row_one_test (void);
 static void axis_transform_back_from_row_one_test (void);
 
 static void board_new_test (void);
-static void board_is_move_legal_test (void);
 static void board_legal_moves_test (void);
 
 static void game_position_x_empties_test (void);
@@ -130,7 +129,6 @@ main (int   argc,
   g_test_add_func("/board/axis_transform_back_from_row_one_test", axis_transform_back_from_row_one_test);
 
   g_test_add_func("/board/board_new_test", board_new_test);
-  g_test_add_func("/board/board_is_move_legal_test", board_is_move_legal_test);
   g_test_add_func("/board/board_legal_moves_test", board_legal_moves_test);
 
   g_test_add_func("/board/game_position_x_empties_test", game_position_x_empties_test);
@@ -589,33 +587,6 @@ game_position_x_print_test (void)
 
   g_free(gpx_to_string);
   g_string_free(expected, TRUE);
-}
-
-static void
-board_is_move_legal_test (void)
-{
-  Board *b;
-
-  b = board_new(1, 2);
-  g_assert(FALSE == board_is_move_legal(b, A1, WHITE_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, A1, BLACK_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, B1, WHITE_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, B1, BLACK_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, C1, WHITE_PLAYER));
-  g_assert(TRUE  == board_is_move_legal(b, C1, BLACK_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, D1, WHITE_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, D1, BLACK_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, A2, WHITE_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, A2, BLACK_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, B2, WHITE_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, B2, BLACK_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, C2, WHITE_PLAYER));
-  g_assert(FALSE == board_is_move_legal(b, C2, BLACK_PLAYER));
-  board_free(b);
-
-  b = board_new(0x0000000000000001, 0x0040201008040200);
-  g_assert(TRUE == board_is_move_legal(b, H8, BLACK_PLAYER));
-  board_free(b);
 }
 
 static void
