@@ -1768,15 +1768,21 @@ game_position_x_is_move_legal (const GamePositionX *const gpx,
   g_assert(gpx);
   g_assert(square_is_valid_move(move));
 
-  Board board;
-  board.blacks = gpx->blacks;
-  board.whites = gpx->whites;
+  bool result = false;
 
-  const bool result = board_is_move_legal(&board, move, gpx->player);
-
-  // ---
-  // TODO: remove dependency from board_is_move_legal.
-  // ---
+  if (move == pass_move) {
+    if (game_position_x_empties(gpx) == empty_square_set) {
+      return true;
+    } else if (game_position_x_legal_moves(gpx) == empty_square_set) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    const SquareSet bit_move = (SquareSet) 1 << move;
+    const SquareSet legal_moves = game_position_x_legal_moves(gpx);
+    result = legal_moves & bit_move;
+  }
 
   return result;
 }
