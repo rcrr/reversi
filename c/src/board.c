@@ -1052,33 +1052,6 @@ board_clone (const Board *const b)
 }
 
 /**
- * @brief Returns the SquareState value for the given board's square.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * Parameter `sq` must belongs to the `Square` enum.
- * Invariants are both guarded by assetions.
- *
- * @param [in] b  a pointer to the board structure
- * @param [in] sq the square to query for
- * @return        the color of the given square
- */
-SquareState
-board_get_square (const Board *const b,
-                  const Square sq)
-{
-  g_assert(b);
-  g_assert(square_belongs_to_enum_set(sq));
-
-  SquareSet bitsquare = (SquareSet) 1 << sq;
-  if (bitsquare & b->blacks)
-    return BLACK_SQUARE;
-  else if (bitsquare & b->whites)
-    return WHITE_SQUARE;
-  else
-    return EMPTY_SQUARE;
-}
-
-/**
  * @brief Returns 1 if the move, done by the specified player, is legal,
  * otherwise 0.
  *
@@ -1732,7 +1705,7 @@ game_position_x_print (const GamePositionX *const gpx)
   for (int row = 0; row < 8; row++) {
     g_string_append_printf(bs, "\n %1d  ", row + 1);
     for (int col = 0; col < 8; col++) {
-      g_string_append_printf(bs, "%c ", square_state_symbol(board_get_square((Board *) gpx, (8 * row) + col)));
+      g_string_append_printf(bs, "%c ", square_state_symbol(game_position_x_get_square(gpx, (8 * row) + col)));
     }
   }
   g_string_append(bs, "\n");

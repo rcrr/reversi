@@ -70,7 +70,6 @@ static void axis_move_ordinal_position_in_bitrow_test (void);
 static void axis_transform_to_row_one_test (void);
 static void axis_transform_back_from_row_one_test (void);
 
-static void board_get_square_test (void);
 static void board_new_test (void);
 static void board_is_move_legal_test (void);
 static void board_legal_moves_test (void);
@@ -130,7 +129,6 @@ main (int   argc,
   g_test_add_func("/board/axis_transform_to_row_one_test", axis_transform_to_row_one_test);
   g_test_add_func("/board/axis_transform_back_from_row_one_test", axis_transform_back_from_row_one_test);
 
-  g_test_add_func("/board/board_get_square_test", board_get_square_test);
   g_test_add_func("/board/board_new_test", board_new_test);
   g_test_add_func("/board/board_is_move_legal_test", board_is_move_legal_test);
   g_test_add_func("/board/board_legal_moves_test", board_legal_moves_test);
@@ -548,18 +546,6 @@ direction_shift_square_set_by_amount_test (void)
   g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 5) == 0x0000000000E0E0E0);
   g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 6) == 0x000000000000C0C0);
   g_assert(direction_shift_square_set_by_amount(NE, 0xFFFFFFFFFFFFFFFF, 7) == 0x0000000000000080);
-}
-
-static void
-board_get_square_test (void)
-{
-  Board *b = board_new(1, 2);
-
-  g_assert(board_get_square(b, A1) == BLACK_SQUARE);
-  g_assert(board_get_square(b, B1) == WHITE_SQUARE);
-  g_assert(board_get_square(b, C1) == EMPTY_SQUARE);
-
-  board_free(b);
 }
 
 static void

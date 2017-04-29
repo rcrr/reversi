@@ -328,10 +328,6 @@ board_free (Board *b);
 extern Board *
 board_clone (const Board *const b);
 
-extern SquareState
-board_get_square (const Board *const b,
-                  const Square sq);
-
 extern int
 board_is_move_legal (const Board *const b,
                      const Square move,
