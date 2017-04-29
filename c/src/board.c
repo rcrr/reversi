@@ -61,15 +61,7 @@ static void
 board_initialize_zobrist_flip_bitstrings (void);
 
 static void
-board_initialize_bitrow_changes_for_player_array (uint8_t *array);
-
-static void
 board_initialize_shift_square_set_by_amount_mask_array (SquareSet *array);
-
-static uint8_t
-board_bitrow_changes_for_player (int player_row,
-                                 int opponent_row,
-                                 int move_position);
 
 static SquareSet
 kogge_stone_b (const SquareSet generator,
@@ -134,24 +126,6 @@ static const SquareSet diagonal_h1_a8 = 0x0102040810204080;
 
 /* A bitboard having set squares B1 F1 A2 E2. */
 static const SquareSet squares_b1_f1_a2_e2 = 0x1122;
-
-/*
- * This array is an implementation of the precomputed table that contains the effects of moving
- * a piece in any of the eigth squares in a row.
- * The size is so computed:
- *  - there are 256 arrangments of player discs,
- *  - and 256 arrangements of opponent pieces,
- *  - the potential moves are 8.
- * So the array size is 256 * 256 * 8 = 524,288 Bytes = 512kB.
- * Not all the entries are legal! The first set of eigth bits and the second one (opponent row)
- * must not set the same position.
- *
- * The index of the array is computed by this formula:
- * index = playerRow | (opponentRow << 8) | (movePosition << 16);
- *
- * After initialization the array is never changed.
- */
-static uint8_t bitrow_changes_for_player_array[256 * 256 * 8];
 
 /*
  * This array is a precomputed table used by the direction_shift_square_set_by_amount function.
@@ -349,7 +323,6 @@ board_module_init (void)
     printf("The underline architecture, meaning HW and OS, is not supporting the requested features.\n");
     abort();
   }
-  board_initialize_bitrow_changes_for_player_array(bitrow_changes_for_player_array);
   board_initialize_shift_square_set_by_amount_mask_array(shift_square_set_by_amount_mask_array);
   board_initialize_zobrist_flip_bitstrings();
 }
@@ -1094,23 +1067,6 @@ board_get_player (const Board *const b,
   return *((SquareSet *) b + p);
 }
 
-/**
- * Returns an 8-bit row representation of the player pieces after applying the move.
- *
- * @param [in] player_row    8-bit bitboard corrosponding to player pieces
- * @param [in] opponent_row  8-bit bitboard corrosponding to opponent pieces
- * @param [in] move_position square to move
- * @return                   the new player's row index after making the move
- */
-uint8_t
-board_bitrow_changes_for_player (int player_row,
-                                 int opponent_row,
-                                 int move_position)
-{
-  const int array_index = player_row | (opponent_row << 8) | (move_position << 16);
-  return bitrow_changes_for_player_array[array_index];
-}
-
 
 
 /******************************************************/
@@ -1802,92 +1758,6 @@ board_initialize_zobrist_flip_bitstrings (void)
 {
   for (int i = 0; i < 64; i++) {
     zobrist_flip_bitstrings[i] = zobrist_bitstrings[i] ^ zobrist_bitstrings[i + 64];
-  }
-}
-
-/*
- * Used to initialize the `bitrow_changes_for_player_array`.
- *
- * array a uint8_t array having the row changes for the given index value
- */
-static void
-board_initialize_bitrow_changes_for_player_array (uint8_t *array)
-{
-  for (int player_row_count = 0; player_row_count < 256; player_row_count++) {
-    const uint8_t player_row = (uint8_t) player_row_count;
-    for (int opponent_row_count = 0; opponent_row_count < 256; opponent_row_count++) {
-      const uint8_t opponent_row = (uint8_t) opponent_row_count;
-      const uint8_t filled_in_row = player_row | opponent_row;
-      const uint8_t empties_in_row = ~filled_in_row;
-      for (uint8_t move_position = 0; move_position < 8; move_position++) {
-        const uint8_t move = 1 << move_position;
-        const int array_index = player_row
-                                | (opponent_row << 8)
-                                | (move_position << 16);
-
-        uint8_t player_row_after_move;
-
-        /*
-         * It checks two conditions that cannot happen because are illegal.
-         * First player and opponent cannot have overlapping discs.
-         * Second the move cannot overlap existing discs.
-         * When either one of the two condition applies the result is set being equal
-         * to the player row index. Otherwise when black and white do not overlap,
-         * and the move is on an empy square it procede with the else block.
-         */
-        if (((player_row & opponent_row) != 0) || ((move & filled_in_row) != 0)) {
-          player_row_after_move = player_row;
-        } else {
-
-          /* The square of the move is added to the player configuration of the row after the move. */
-          player_row_after_move = player_row | move;
-
-          /*
-           * The potential bracketing disc on the right is the first player disc found moving
-           * on the left starting from the square of the move.
-           */
-          const uint8_t potential_bracketing_disc_on_the_left = bit_works_highest_bit_set_8(player_row & (move - 1));
-
-          /*
-           * The left rank is the sequence of adiacent discs that start from the bracketing disc and end
-           * with the move disc.
-           */
-          const uint8_t left_rank = bit_works_fill_in_between(potential_bracketing_disc_on_the_left | move);
-
-          /*
-           * If the rank contains empy squares, this is a fake flip, and it doesn't do anything.
-           * If the rank is full, it cannot be full of anything different than opponent discs, so
-           * it adds the discs to the after move player configuration.
-           */
-          if ((left_rank & empties_in_row) == 0x00) {
-            player_row_after_move |= left_rank;
-          }
-
-          /* Here it does the same procedure computed on the left also on the right. */
-          const uint8_t potential_bracketing_disc_on_the_right = bit_works_lowest_bit_set_8(player_row & ~(move - 1));
-          const uint8_t right_rank = bit_works_fill_in_between(potential_bracketing_disc_on_the_right | move);
-          if ((right_rank & empties_in_row) == 0x00) {
-            player_row_after_move |= right_rank;
-          }
-
-          /*
-           * It checks that the after move configuration is different from
-           * the starting one for the player.
-           * This case can happen because it never checked that
-           * the bracketing piece was not adjacent to the move disc,
-           * on such a case, on both side, the move is illegal, and it is recorded setting
-           * the result configuation appropriately.
-           */
-          if (player_row_after_move == (player_row | move)) {
-            player_row_after_move = player_row;
-          }
-        }
-
-        /* Assigns the computed player row to the proper array position. */
-        array[array_index] = player_row_after_move;
-
-      }
-    }
   }
 }
 
