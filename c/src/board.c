@@ -1002,28 +1002,6 @@ board_empties (const Board *const b)
   return ~(b->blacks | b->whites);
 }
 
-/**
- * @brief Returns the #SquareSet of the #Board addressed by `b`
- * corresponding to the #Player identified by `p`.
- *
- * @invariant Parameter `b` must be not `NULL`.
- * Parameter `p` must belong to the #Player enum.
- * Invariants are guarded by assertions.
- *
- * @param [in] b a pointer to the board structure
- * @param [in] p a given player
- * @return       the set of squares in the board belonging to the given player
- */
-SquareSet
-board_get_player (const Board *const b,
-                  const Player p)
-{
-  g_assert(b);
-  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
-
-  return *((SquareSet *) b + p);
-}
-
 
 
 /******************************************************/
