@@ -1817,13 +1817,12 @@ game_position_x_make_move (const GamePositionX *const current,
     return;
   }
 
-  const Board *const b = (const Board const*) current;
   const Player p = current->player;
   const Player o = player_opponent(p);
 
   const SquareSet m_set = 1ULL << move;
-  const SquareSet p_set = board_get_player(b, p);
-  const SquareSet o_set = board_get_player(b, o);
+  const SquareSet p_set = game_position_x_get_player(current);
+  const SquareSet o_set = game_position_x_get_opponent(current);
 
   const SquareSet f_set = kogge_stone_gpb(m_set, o_set, p_set);
 
