@@ -3,7 +3,7 @@
  *
  * @brief Board module definitions.
  * @details This module defines the #Player, #SquareState,
- * #Square, #SquareSet, #Board, #GamePositionX, #Direction entities,
+ * #Square, #SquareSet, #GamePositionX, #Direction entities,
  * and the function prototypes that operate on them.
  *
  * @par board.h
@@ -156,18 +156,6 @@ typedef enum {
  * @brief The set of sixtyfour squares held by the board.
  */
 typedef uint64_t SquareSet;
-
-/**
- * @brief A board is an entity that holds the state of a Reversi's gameboard.
- *
- * @details The state is expressed as the combination of the individual state of each board's square.
- * It is the state that a board has regardless of the player
- * that has to move or the time spent or remaining to each player.
- */
-typedef struct {
-  SquareSet blacks;   /**< @brief The set of squares occupied by blank discs. */
-  SquareSet whites;   /**< @brief The set of squares occupied by white discs. */
-} Board;
 
 /**
  * @brief A game position variant where instead of the board pointer its field are directly collected.

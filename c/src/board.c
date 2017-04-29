@@ -6,7 +6,7 @@
  *
  * @brief Board module implementation.
  * @details This module defines functions for the #Player, #SquareState,
- * #Square, #SquareSet, #Board, #GamePositionX, #Direction entities.
+ * #Square, #SquareSet, #GamePositionX, #Direction entities.
  *
  * @par board.c
  * <tt>
