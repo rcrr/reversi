@@ -325,9 +325,6 @@ board_new (const SquareSet b,
 extern void
 board_free (Board *b);
 
-extern Board *
-board_clone (const Board *const b);
-
 
 
 /*************************************************/

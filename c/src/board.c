@@ -968,23 +968,6 @@ board_free (Board *b)
   free(b);
 }
 
-/**
- * @brief Clones a Board structure.
- *
- * @invariant Parameter `b` cannot be null.
- * The invariant is guarded by an assertion.
- *
- * @param [in] b the board to clone
- * @return     a pointer to a new board structure
- */
-Board *
-board_clone (const Board *const b)
-{
-  g_assert(b);
-
-  return board_new(b->blacks, b->whites);
-}
-
 
 
 /******************************************************/
