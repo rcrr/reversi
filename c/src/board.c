@@ -238,37 +238,34 @@ square_as_move_to_string (const Square move)
 }
 
 /**
- * @brief Returns a string that represents the square array.
+ * @brief Prepares a string that represents the square array.
  *
- * @details The returned string has to be freed by the caller.
+ * @details The `to_string` buffer needs to have enough space to
+ * accomodate the generated string. At a minimum termination is
+ * needed for the empy string (one byte) when the array is empty.
+ * Otherwise three bytes for each element in the array are needed.
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
  * @snippet board_test.c square_array_to_string usage
  * A sample call is here exemplified:
  *
- * @param [in] sqa    the square array to convert
- * @param [in] length the count of elements in the array
- * @return            a string representation for the square array
+ * @param [out] to_string a string representation for the square array
+ * @param [in] sqa        the square array to convert
+ * @param [in] length     the count of elements in the array
+ * @return                the length of the string
  */
-char *
-square_array_to_string (const Square sqa[],
+size_t
+square_array_to_string (char *const to_string,
+                        const Square sqa[],
                         const int length)
 {
-  char *squares_to_string;
-  GString *tmp;
-
-  tmp = g_string_sized_new(10);
-
+  char *c = to_string;
   for (int i = 0; i < length; i++) {
-    g_string_append_printf(tmp, "%s", square_to_string(sqa[i]));
-    if (length - i > 1) g_string_append_printf(tmp, " ");
+    c += sprintf(c, "%s", square_to_string(sqa[i]));
+    if (length - i > 1) c += sprintf(c, " ");
   }
-
-  squares_to_string = tmp->str;
-  g_string_free(tmp, FALSE);
-
-  return squares_to_string;
+  return c - to_string;
 }
 
 /**
@@ -391,32 +388,6 @@ square_set_to_pg_json_array (char *const to_string,
   }
   c += sprintf(c, "]");
   return c - to_string;
-
-  /*
-  GString *tmp = g_string_sized_new(10);
-  g_string_append_printf(tmp, "[");
-  Square move = 0;
-  bool passed = FALSE;
-  for (SquareSet cursor = 1; cursor != 0; cursor <<= 1) {
-    if ((cursor & squares) != empty_square_set) {
-      const char row = '1' + (move / 8);
-      const char col = 'A' + (move % 8);
-      if (passed) {
-        g_string_append_printf(tmp, ", ");
-      }
-      g_string_append_printf(tmp, "\"\"%c%c\"\"", col, row);
-      passed = TRUE;
-    }
-    move++;
-  }
-  g_string_append_printf(tmp, "]");
-  char *squares_to_string = tmp->str;
-  g_string_free(tmp, FALSE);
-
-  if (0 != strcmp(to_string, squares_to_string)) abort();
-
-  return squares_to_string;
-  */
 }
 
 /**

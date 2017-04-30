@@ -174,11 +174,13 @@ static void
 square_array_to_string_test (void)
 {
   //! [square_array_to_string usage]
+  char to_string[256];
+  size_t s_length;
   const Square sqa[] = {A1, D7, H8};
   const int length = 3;
-  char *expected = square_array_to_string(sqa, length);
-  g_assert_cmpstr(expected, ==, "A1 D7 H8");
-  g_free(expected);
+  s_length = square_array_to_string(to_string, sqa, length);
+  g_assert_cmpstr(to_string, ==, "A1 D7 H8");
+  g_assert(s_length == 8);
   //! [square_array_to_string usage]
 }
 

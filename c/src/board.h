@@ -186,8 +186,9 @@ square_to_string (const Square sq);
 extern const char *
 square_as_move_to_string (const Square move);
 
-extern char *
-square_array_to_string (const Square sqa[],
+extern size_t
+square_array_to_string (char *const to_string,
+                        const Square sqa[],
                         const int length);
 
 extern char *
@@ -207,7 +208,7 @@ square_is_valid_move (const Square move);
 /*************************************************/
 
 extern size_t
-square_set_to_pg_json_array (char *buf,
+square_set_to_pg_json_array (char *const to_string,
                              const SquareSet squares);
 
 extern char *

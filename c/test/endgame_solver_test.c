@@ -484,7 +484,6 @@ get_gpx_from_db (GamePositionDb *db,
     g_test_message("The entry \"%s\" is missing from game position database.\n", id);
     g_test_fail();
   }
-  //g_assert(entry);
   return gpdb_get_gpx(entry);
 }
 
@@ -500,14 +499,15 @@ run_test_case_array (GamePositionDb *db,
       .repeats = 0
     };
 
+  char moves_to_s[256];
+
   const TestCase *tc = NULL;
   for (int i = 0;; i++) {
     tc = &tca[i];
     if (tc->gpdb_label == NULL) break;
     if (g_test_verbose()) {
-      gchar *moves_to_s = square_array_to_string(tc->best_move, tc->best_move_count);
+      square_array_to_string(moves_to_s, tc->best_move, tc->best_move_count);
       printf("Test #%3d: data[position=%s, expected_value=%+03d, expected_best_moves={%s}]; ", i, tc->gpdb_label, tc->outcome, moves_to_s);
-      g_free(moves_to_s);
     }
     GamePositionX *gpx = get_gpx_from_db(db, tc->gpdb_label);
     ExactSolution *const solution = solver(gpx, &endgame_solver_env);
