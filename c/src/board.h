@@ -119,18 +119,6 @@ typedef enum {
 } Square;
 
 /**
- * @enum Axis
- * @brief The axes are the lines that pass throw a square, a general
- * square has four axes.
- */
-typedef enum {
-  HO,   /**< Horizontal axis (W-E). */
-  VE,   /**< Vertical axis (N-S). */
-  DD,   /**< Diagonal Down axis (NW-SE), A1-H8. */
-  DU    /**< Diagonal Up axis (NE-SW), A8-H1. */
-} Axis;
-
-/**
  * @typedef SquareSet
  * @brief The set of sixtyfour squares held by the board.
  */
@@ -239,30 +227,6 @@ square_set_to_array (int *sq_count,
 extern SquareSet
 square_set_from_array (const Square sq_array[],
                        const int sq_count);
-
-
-
-/********************************************/
-/* Function prototypes for the Axis entity. */
-/********************************************/
-
-extern int
-axis_shift_distance (const Axis axis,
-                     const uint8_t column,
-                     const uint8_t row);
-
-extern uint8_t
-axis_move_ordinal_position_in_bitrow (const Axis axis,
-                                      const uint8_t column,
-                                      const uint8_t row);
-
-extern uint8_t
-axis_transform_to_row_one (const Axis axis,
-                           const SquareSet squares);
-
-extern SquareSet
-axis_transform_back_from_row_one (const Axis axis,
-                                  const uint32_t bitrow);
 
 
 
