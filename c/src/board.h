@@ -191,8 +191,9 @@ square_array_to_string (char *const to_string,
                         const Square sqa[],
                         const int length);
 
-extern char *
-square_as_move_array_to_string (const Square mova[],
+extern size_t
+square_as_move_array_to_string (char *const to_string,
+                                const Square mova[],
                                 const int length);
 
 extern bool

@@ -188,11 +188,13 @@ static void
 square_as_move_array_to_string_test (void)
 {
   //! [square_as_move_array_to_string usage]
+  char to_string[512];
+  size_t s_length;
   const Square mova[] = {A1, D7, H8, pass_move};
   const int length = 4;
-  char *expected = square_as_move_array_to_string(mova, length);
-  g_assert_cmpstr(expected, ==, "A1 D7 H8 --");
-  g_free(expected);
+  s_length = square_as_move_array_to_string(to_string, mova, length);
+  g_assert_cmpstr(to_string, ==, "A1 D7 H8 --");
+  g_assert(s_length == 11);
   //! [square_as_move_array_to_string usage]
 }
 

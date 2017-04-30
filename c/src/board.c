@@ -251,8 +251,8 @@ square_as_move_to_string (const Square move)
  * A sample call is here exemplified:
  *
  * @param [out] to_string a string representation for the square array
- * @param [in] sqa        the square array to convert
- * @param [in] length     the count of elements in the array
+ * @param [in]  sqa       the square array to convert
+ * @param [in]  length    the count of elements in the array
  * @return                the length of the string
  */
 size_t
@@ -269,36 +269,33 @@ square_array_to_string (char *const to_string,
 }
 
 /**
- * @brief Returns a string that represents the move array.
+ * @brief Prepares a string that represents the move array.
  *
- * @details The returned string has to be freed by the caller.
+ * @details The `to_string` buffer needs to have enough space to
+ * accomodate the generated string. At a minimum termination is
+ * needed for the empy string (one byte) when the array is empty.
+ * Otherwise three bytes for each element in the array are needed.
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
  * @snippet board_test.c square_as_move_array_to_string usage
  *
- * @param [in] mova   the move array to convert
- * @param [in] length the count of elements in the array
- * @return            a string representation for the move array
+ * @param [out] to_string a string representation for the move array
+ * @param [in]  mova      the move array to convert
+ * @param [in]  length    the count of elements in the array
+ * @return                the length of the string
  */
-char *
-square_as_move_array_to_string (const Square mova[],
+size_t
+square_as_move_array_to_string (char *const to_string,
+                                const Square mova[],
                                 const int length)
 {
-  char *moves_to_string;
-  GString *tmp;
-
-  tmp = g_string_sized_new(10);
-
+  char *c = to_string;
   for (int i = 0; i < length; i++) {
-    g_string_append_printf(tmp, "%s", square_as_move_to_string(mova[i]));
-    if (length - i > 1) g_string_append_printf(tmp, " ");
+    c += sprintf(c, "%s", square_as_move_to_string(mova[i]));
+    if (length - i > 1) c += sprintf(c, " ");
   }
-
-  moves_to_string = tmp->str;
-  g_string_free(tmp, FALSE);
-
-  return moves_to_string;
+  return c - to_string;
 }
 
 /**
