@@ -3,7 +3,7 @@
  *
  * @brief Board module definitions.
  * @details This module defines the #Player, #SquareState,
- * #Square, #SquareSet, #GamePositionX, #Direction entities,
+ * #Square, #SquareSet, #GamePositionX entities,
  * and the function prototypes that operate on them.
  *
  * @par board.h
@@ -117,27 +117,6 @@ typedef enum {
   A7, B7, C7, D7, E7, F7, G7, H7,
   A8, B8, C8, D8, E8, F8, G8, H8
 } Square;
-
-/**
- * @enum Direction
- * @brief The directions that are available in a regular board's square are
- * eight, Up, Down, Left, Right, and the four diagonal between them.
- *
- * Each regular `Square` has eight neighbor ones,
- * each identified by the proper direction. Boundary squares have fewer neighbors.
- *
- * The `Direction` enum is represented by the respective cardinal point literal.
- */
-typedef enum {
-  NW,   /**< North-West direction. */
-  N,    /**< North direction. */
-  NE,   /**< North-East direction. */
-  W,    /**< West direction. */
-  E,    /**< East direction. */
-  SW,   /**< South-West direction. */
-  S,    /**< South direction. */
-  SE    /**< South-Est direction. */
-} Direction;
 
 /**
  * @enum Axis
@@ -299,24 +278,6 @@ player_description (const Player p);
 
 extern Player
 player_opponent (const Player p);
-
-
-
-/*************************************************/
-/* Function prototypes for the Direction entity. */
-/*************************************************/
-
-extern SquareSet
-direction_shift_square_set (const Direction dir,
-                            const SquareSet squares);
-
-extern SquareSet
-direction_shift_square_set_by_amount (const Direction dir,
-                                      const SquareSet squares,
-                                      const int amount);
-
-extern Direction
-direction_opposite (const Direction dir);
 
 
 

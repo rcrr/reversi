@@ -6,7 +6,7 @@
  *
  * @brief Board module implementation.
  * @details This module defines functions for the #Player, #SquareState,
- * #Square, #SquareSet, #GamePositionX, #Direction entities.
+ * #Square, #SquareSet, #GamePositionX entities.
  *
  * @par board.c
  * <tt>
@@ -60,9 +60,6 @@
 static void
 board_initialize_zobrist_flip_bitstrings (void);
 
-static void
-board_initialize_shift_square_set_by_amount_mask_array (SquareSet *array);
-
 static SquareSet
 kogge_stone_b (const SquareSet generator,
                const SquareSet propagator,
@@ -115,133 +112,6 @@ static const SquareSet diagonal_h1_a8 = 0x0102040810204080;
 
 /* A bitboard having set squares B1 F1 A2 E2. */
 static const SquareSet squares_b1_f1_a2_e2 = 0x1122;
-
-/*
- * This array is a precomputed table used by the direction_shift_square_set_by_amount function.
- * It has an entry for each couple Direction-Amount, amount having as range 0..7.
- *
- * The index of the array is computed by this formula:
- * index = amount | (direction << 3)
- */
-static SquareSet shift_square_set_by_amount_mask_array[8 * 8];
-
-/*
- * This array has sixtyfour entries. The index, having range 0-63, represent one of the squares
- * of the table. Each entry is a bitboard mask having set all the squares that are
- * reachable moving along the eigth directions, when starting from the square identified by
- * the index itself.
- *
- * Values do not change.
- */
-static const SquareSet bitboard_mask_for_all_directions[] = {
-  0x81412111090503FE, 0x02824222120A07FD, 0x0404844424150EFB, 0x08080888492A1CF7,
-  0x10101011925438EF, 0x2020212224A870DF, 0x404142444850E0BF, 0x8182848890A0C07F,
-  0x412111090503FE03, 0x824222120A07FD07, 0x04844424150EFB0E, 0x080888492A1CF71C,
-  0x101011925438EF38, 0x20212224A870DF70, 0x4142444850E0BFE0, 0x82848890A0C07FC0,
-  0x2111090503FE0305, 0x4222120A07FD070A, 0x844424150EFB0E15, 0x0888492A1CF71C2A,
-  0x1011925438EF3854, 0x212224A870DF70A8, 0x42444850E0BFE050, 0x848890A0C07FC0A0,
-  0x11090503FE030509, 0x22120A07FD070A12, 0x4424150EFB0E1524, 0x88492A1CF71C2A49,
-  0x11925438EF385492, 0x2224A870DF70A824, 0x444850E0BFE05048, 0x8890A0C07FC0A090,
-  0x090503FE03050911, 0x120A07FD070A1222, 0x24150EFB0E152444, 0x492A1CF71C2A4988,
-  0x925438EF38549211, 0x24A870DF70A82422, 0x4850E0BFE0504844, 0x90A0C07FC0A09088,
-  0x0503FE0305091121, 0x0A07FD070A122242, 0x150EFB0E15244484, 0x2A1CF71C2A498808,
-  0x5438EF3854921110, 0xA870DF70A8242221, 0x50E0BFE050484442, 0xA0C07FC0A0908884,
-  0x03FE030509112141, 0x07FD070A12224282, 0x0EFB0E1524448404, 0x1CF71C2A49880808,
-  0x38EF385492111010, 0x70DF70A824222120, 0xE0BFE05048444241, 0xC07FC0A090888482,
-  0xFE03050911214181, 0xFD070A1222428202, 0xFB0E152444840404, 0xF71C2A4988080808,
-  0xEF38549211101010, 0xDF70A82422212020, 0xBFE0504844424140, 0x7FC0A09088848281
-};
-
-/*
- * This array has sixtyfour x four entries, a total of 256 bit masks.
- * Every four entries belongs to a square, and represents the squares that are reachable
- * moving along one axis.
- *
- * Values do not change.
- */
-static const SquareSet bitboard_mask_for_one_directions[] = {
-
-  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
-  0x00000000000000FF, 0x0101010101010101, 0x8040201008040201, 0x0000000000000001, // A1
-  0x00000000000000FF, 0x0202020202020202, 0x0080402010080402, 0x0000000000000102, // B1
-  0x00000000000000FF, 0x0404040404040404, 0x0000804020100804, 0x0000000000010204, // C1
-  0x00000000000000FF, 0x0808080808080808, 0x0000008040201008, 0x0000000001020408, // D1
-  0x00000000000000FF, 0x1010101010101010, 0x0000000080402010, 0x0000000102040810, // E1
-  0x00000000000000FF, 0x2020202020202020, 0x0000000000804020, 0x0000010204081020, // F1
-  0x00000000000000FF, 0x4040404040404040, 0x0000000000008040, 0x0001020408102040, // G1
-  0x00000000000000FF, 0x8080808080808080, 0x0000000000000080, 0x0102040810204080, // H1
-
-  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
-  0x000000000000FF00, 0x0101010101010101, 0x4020100804020100, 0x0000000000000102, // A2
-  0x000000000000FF00, 0x0202020202020202, 0x8040201008040201, 0x0000000000010204, // B2
-  0x000000000000FF00, 0x0404040404040404, 0x0080402010080402, 0x0000000001020408, // C2
-  0x000000000000FF00, 0x0808080808080808, 0x0000804020100804, 0x0000000102040810, // D2
-  0x000000000000FF00, 0x1010101010101010, 0x0000008040201008, 0x0000010204081020, // E2
-  0x000000000000FF00, 0x2020202020202020, 0x0000000080402010, 0x0001020408102040, // F2
-  0x000000000000FF00, 0x4040404040404040, 0x0000000000804020, 0x0102040810204080, // G2
-  0x000000000000FF00, 0x8080808080808080, 0x0000000000008040, 0x0204081020408000, // H2
-
-  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
-  0x0000000000FF0000, 0x0101010101010101, 0x2010080402010000, 0x0000000000010204, // A3
-  0x0000000000FF0000, 0x0202020202020202, 0x4020100804020100, 0x0000000001020408, // B3
-  0x0000000000FF0000, 0x0404040404040404, 0x8040201008040201, 0x0000000102040810, // C3
-  0x0000000000FF0000, 0x0808080808080808, 0x0080402010080402, 0x0000010204081020, // D3
-  0x0000000000FF0000, 0x1010101010101010, 0x0000804020100804, 0x0001020408102040, // E3
-  0x0000000000FF0000, 0x2020202020202020, 0x0000008040201008, 0x0102040810204080, // F3
-  0x0000000000FF0000, 0x4040404040404040, 0x0000000080402010, 0x0204081020408000, // G3
-  0x0000000000FF0000, 0x8080808080808080, 0x0000000000804020, 0x0408102040800000, // H3
-
-  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
-  0x00000000FF000000, 0x0101010101010101, 0x1008040201000000, 0x0000000001020408, // A4
-  0x00000000FF000000, 0x0202020202020202, 0x2010080402010000, 0x0000000102040810, // B4
-  0x00000000FF000000, 0x0404040404040404, 0x4020100804020100, 0x0000010204081020, // C4
-  0x00000000FF000000, 0x0808080808080808, 0x8040201008040201, 0x0001020408102040, // D4
-  0x00000000FF000000, 0x1010101010101010, 0x0080402010080402, 0x0102040810204080, // E4
-  0x00000000FF000000, 0x2020202020202020, 0x0000804020100804, 0x0204081020408000, // F4
-  0x00000000FF000000, 0x4040404040404040, 0x0000008040201008, 0x0408102040800000, // G4
-  0x00000000FF000000, 0x8080808080808080, 0x0000000080402010, 0x0810204080000000, // H4
-
-  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
-  0x000000FF00000000, 0x0101010101010101, 0x0804020100000000, 0x0000000102040810, // A5
-  0x000000FF00000000, 0x0202020202020202, 0x1008040201000000, 0x0000010204081020, // B5
-  0x000000FF00000000, 0x0404040404040404, 0x2010080402010000, 0x0001020408102040, // C5
-  0x000000FF00000000, 0x0808080808080808, 0x4020100804020100, 0x0102040810204080, // D5
-  0x000000FF00000000, 0x1010101010101010, 0x8040201008040201, 0x0204081020408000, // E5
-  0x000000FF00000000, 0x2020202020202020, 0x0080402010080402, 0x0408102040800000, // F5
-  0x000000FF00000000, 0x4040404040404040, 0x0000804020100804, 0x0810204080000000, // G5
-  0x000000FF00000000, 0x8080808080808080, 0x0000008040201008, 0x1020408000000000, // H5
-
-  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
-  0x0000FF0000000000, 0x0101010101010101, 0x0402010000000000, 0x0000010204081020, // A6
-  0x0000FF0000000000, 0x0202020202020202, 0x0804020100000000, 0x0001020408102040, // B6
-  0x0000FF0000000000, 0x0404040404040404, 0x1008040201000000, 0x0102040810204080, // C6
-  0x0000FF0000000000, 0x0808080808080808, 0x2010080402010000, 0x0204081020408000, // D6
-  0x0000FF0000000000, 0x1010101010101010, 0x4020100804020100, 0x0408102040800000, // E6
-  0x0000FF0000000000, 0x2020202020202020, 0x8040201008040201, 0x0810204080000000, // F6
-  0x0000FF0000000000, 0x4040404040404040, 0x0080402010080402, 0x1020408000000000, // G6
-  0x0000FF0000000000, 0x8080808080808080, 0x0000804020100804, 0x2040800000000000, // H6
-
-  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
-  0x00FF000000000000, 0x0101010101010101, 0x0201000000000000, 0x0001020408102040, // A7
-  0x00FF000000000000, 0x0202020202020202, 0x0402010000000000, 0x0102040810204080, // B7
-  0x00FF000000000000, 0x0404040404040404, 0x0804020100000000, 0x0204081020408000, // C7
-  0x00FF000000000000, 0x0808080808080808, 0x1008040201000000, 0x0408102040800000, // D7
-  0x00FF000000000000, 0x1010101010101010, 0x2010080402010000, 0x0810204080000000, // E7
-  0x00FF000000000000, 0x2020202020202020, 0x4020100804020100, 0x1020408000000000, // F7
-  0x00FF000000000000, 0x4040404040404040, 0x8040201008040201, 0x2040800000000000, // G7
-  0x00FF000000000000, 0x8080808080808080, 0x0080402010080402, 0x4080000000000000, // H7
-
-  //   Horizontal HO         Vertical VE    D. Down A1-H8 DD      D. Up A8-H1 DU
-  0xFF00000000000000, 0x0101010101010101, 0x0100000000000000, 0x0102040810204080, // A8
-  0xFF00000000000000, 0x0202020202020202, 0x0201000000000000, 0x0204081020408000, // B8
-  0xFF00000000000000, 0x0404040404040404, 0x0402010000000000, 0x0408102040800000, // C8
-  0xFF00000000000000, 0x0808080808080808, 0x0804020100000000, 0x0810204080000000, // D8
-  0xFF00000000000000, 0x1010101010101010, 0x1008040201000000, 0x1020408000000000, // E8
-  0xFF00000000000000, 0x2020202020202020, 0x2010080402010000, 0x2040800000000000, // F8
-  0xFF00000000000000, 0x4040404040404040, 0x4020100804020100, 0x4080000000000000, // G8
-  0xFF00000000000000, 0x8080808080808080, 0x8040201008040201, 0x8000000000000000  // H8
-};
-
 
 /*
  * Zobrist bitstrings generated by the URANDOM Linux generator.
@@ -312,7 +182,6 @@ board_module_init (void)
     printf("The underline architecture, meaning HW and OS, is not supporting the requested features.\n");
     abort();
   }
-  board_initialize_shift_square_set_by_amount_mask_array(shift_square_set_by_amount_mask_array);
   board_initialize_zobrist_flip_bitstrings();
 }
 
@@ -921,104 +790,6 @@ axis_transform_back_from_row_one (const Axis axis,
 
 
 
-/******************************************************/
-/* Function implementations for the Direction entity. */
-/******************************************************/
-
-/**
- * @brief Returns a new #SquareSet value by shifting the
- * `squares` parameter by one position on the board.
- *
- * @invariant Parameter `dir` must belong to the #Direction enum.
- * The invariant is guarded by an assertion.
- *
- * @param [in] dir     the direction to shift to
- * @param [in] squares the squares set on the bitboard
- * @return             the shifted squares
-*/
-SquareSet
-direction_shift_square_set (const Direction dir,
-                            const SquareSet squares)
-{
-  g_assert(dir >= NW && dir <= SE);
-
-  switch (dir) {
-  case NW: return (squares >> 9) & all_squares_except_column_h;
-  case N:  return (squares >> 8);
-  case NE: return (squares >> 7) & all_squares_except_column_a;
-  case W:  return (squares >> 1) & all_squares_except_column_h;
-  case E:  return (squares << 1) & all_squares_except_column_a;
-  case SW: return (squares << 7) & all_squares_except_column_h;
-  case S:  return (squares << 8);
-  case SE: return (squares << 9) & all_squares_except_column_a;
-  default: abort();
-  }
-}
-
-/**
- * @brief Returns a new #SquareSet value by shifting the `squares` parameter
- * by a number of positions as given by the `amount` parameter.
- *
- * Amount must be in the 0..7 range, meaning that 0 is equal to no shift, 1 is
- * on position, and so on.
- *
- * @invariant Parameter `dir` must belong to the #Direction enum.
- * The invariant is guarded by an assertion.
- *
- * @invariant Parameter `amount` must be in the range 0..7 enum.
- * The invariant is guarded by an assertion.
- *
- * @param [in] dir     the direction to shift to
- * @param [in] squares the squares set on the bitboard
- * @param [in] amount  the amount to shift
- * @return             the shifted squares
-*/
-SquareSet
-direction_shift_square_set_by_amount (const Direction dir,
-                                      const SquareSet squares,
-                                      const int       amount)
-{
-  g_assert(dir >= NW && dir <= SE);
-  g_assert(amount >= 0 && amount <= 7);
-
-  SquareSet ret;
-
-  const int index = amount | (dir << 3);
-
-  switch (dir) {
-  case NW: ret = squares >> (9 * amount); break;
-  case N:  ret = squares >> (8 * amount); break;
-  case NE: ret = squares >> (7 * amount); break;
-  case W:  ret = squares >> (1 * amount); break;
-  case E:  ret = squares << (1 * amount); break;
-  case SW: ret = squares << (7 * amount); break;
-  case S:  ret = squares << (8 * amount); break;
-  case SE: ret = squares << (9 * amount); break;
-  default: abort();
-  }
-  ret = ret & shift_square_set_by_amount_mask_array[index];
-  return ret;
-}
-
-/**
- * @brief Returns the opposite direction of the one given by the `dir` parameter.
- *
- * @invariant Parameter `dir` must belong to the #Direction enum.
- * The invariant is guarded by an assertion.
- *
- * @param [in] dir the given direction
- * @return         the opposite direction
- */
-Direction
-direction_opposite (const Direction dir)
-{
-  g_assert(dir >= NW && dir <= SE);
-
-  static const Direction direction_opposites[] = { SE, S, SW, E, W, NE, N, NW };
-
-  return direction_opposites[dir];
-}
-
 /********************************************************/
 /* Function implementations for the SquareState entity. */
 /********************************************************/
@@ -1591,28 +1362,6 @@ board_initialize_zobrist_flip_bitstrings (void)
 {
   for (int i = 0; i < 64; i++) {
     zobrist_flip_bitstrings[i] = zobrist_bitstrings[i] ^ zobrist_bitstrings[i + 64];
-  }
-}
-
-/*
- * @brief Used to initialize the `shift_square_set_by_amount_mask_array`.
- *
- * @param array a SquareSet array having the board mask for the given index value
- */
-static void
-board_initialize_shift_square_set_by_amount_mask_array (SquareSet *array)
-{
-  const SquareSet full_board = 0xFFFFFFFFFFFFFFFF;
-  for (Direction dir = NW; dir <= SE; dir++) {
-    const int i_dir = dir;
-    for (int amount = 0; amount < 8; amount++) {
-      const int array_index = amount | (i_dir << 3);
-      SquareSet mask = full_board;
-      for (int i = 0; i < amount; i++) {
-        mask = direction_shift_square_set(dir, mask);
-      }
-      array[array_index] = mask;
-    }
   }
 }
 
