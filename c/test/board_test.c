@@ -227,14 +227,17 @@ static void
 square_set_to_pg_json_array_test (void)
 {
   //! [square_set_to_pg_json_array usage]
-  char *pg_json_string;
-  pg_json_string = square_set_to_pg_json_array((SquareSet) 0);
+  size_t length;
+  char pg_json_string[513];
+  length = square_set_to_pg_json_array(pg_json_string, (SquareSet) 0);
   g_assert_cmpstr(pg_json_string, ==, "[]");
-  g_free(pg_json_string);
-  pg_json_string = square_set_to_pg_json_array((SquareSet) 5);
+  g_assert(length == 2);
+  length = square_set_to_pg_json_array(pg_json_string, (SquareSet) 5);
   g_assert_cmpstr(pg_json_string, ==, "[\"\"A1\"\", \"\"C1\"\"]");
-  g_free(pg_json_string);
+  g_assert(length == 16);
   //! [square_set_to_pg_json_array usage]
+  length = square_set_to_pg_json_array(pg_json_string, (SquareSet) 0xFFFFFFFFFFFFFFFF);
+  g_assert(length == 512);
 }
 
 static void

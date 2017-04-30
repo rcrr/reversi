@@ -219,13 +219,14 @@ game_tree_log_data_h_json_doc (char *const json_doc,
                                const int call_level,
                                const GamePositionX *const gpx)
 {
+  char legal_moves_pg_json_array[513];
   const gboolean is_leaf = !game_position_x_has_any_player_any_legal_move(gpx);
   const SquareSet legal_moves = game_position_x_legal_moves(gpx);
   const int legal_move_count = bit_works_bitcount_64(legal_moves);
   const SquareSet empties = game_position_x_empties(gpx);
   const int empty_count = bit_works_bitcount_64(empties);
   const int legal_move_count_adj = legal_move_count + ((legal_moves == 0 && !is_leaf) ? 1 : 0);
-  gchar *legal_moves_pg_json_array = square_set_to_pg_json_array(legal_moves);
+  square_set_to_pg_json_array(legal_moves_pg_json_array, legal_moves);
   /*
    * cl:   call level
    * ec:   empty count

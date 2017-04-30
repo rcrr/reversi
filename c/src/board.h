@@ -38,8 +38,6 @@
 
 #include <stdbool.h>
 
-//#include <glib.h>
-
 #include "bit_works.h"
 #include "prng.h"
 
@@ -208,8 +206,9 @@ square_is_valid_move (const Square move);
 /* Function prototypes for the SquareSet entity. */
 /*************************************************/
 
-extern char *
-square_set_to_pg_json_array (const SquareSet squares);
+extern size_t
+square_set_to_pg_json_array (char *buf,
+                             const SquareSet squares);
 
 extern char *
 square_set_to_string (const SquareSet squares);

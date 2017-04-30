@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include <glib.h>
 
@@ -348,10 +349,13 @@ square_is_valid_move (const Square move)
 /******************************************************/
 
 /**
- * @brief Returns a string representation for the square set used
+ * @brief Prepares a string representation for the square set used
  * to load a json array by postgresql command COPY.
  *
- * @details The returned string has to be freed by the caller.
+ * @details The character buffer pointed by `to_string` must have the
+ * apppropriate space. The needed space is eight char for each square
+ * in the set, when the set is full the buffer must have 512 + 1 (for
+ * termination) bytes of space. The minimum is 2 + 1.
  *
  * PostgreSQL command COPY requires that the json array elements are
  * "double quoted", so to obtain a db field equal to `["A1", "C1"]`,
@@ -361,13 +365,34 @@ square_is_valid_move (const Square move)
  *
  * @snippet board_test.c square_set_to_pg_json_array usage
  *
- * @param [in] squares the square set to be converted into a string
- * @return             a string having the given squares represented
- *                     as a postgresql json array
+ * @param [out] to_string a string having the given squares represented
+ *                        as a postgresql json array
+ * @param [in]  squares   the square set to be converted into a string
+ * @return                the number of characters in the returned string
  */
-char *
-square_set_to_pg_json_array (const SquareSet squares)
+size_t
+square_set_to_pg_json_array (char *const to_string,
+                             const SquareSet squares)
 {
+  char *c = to_string;
+  c += sprintf(c, "[");
+  Square m = A1;
+  bool is_not_first = false;
+  for (SquareSet cursor = 1; cursor != 0; cursor <<= 1, m++) {
+    if ((cursor & squares) != empty_square_set) {
+      const char row = '1' + (m / 8);
+      const char col = 'A' + (m % 8);
+      if (is_not_first) {
+        c += sprintf(c, ", ");
+      }
+      c += sprintf(c, "\"\"%c%c\"\"", col, row);
+      is_not_first = true;
+    }
+  }
+  c += sprintf(c, "]");
+  return c - to_string;
+
+  /*
   GString *tmp = g_string_sized_new(10);
   g_string_append_printf(tmp, "[");
   Square move = 0;
@@ -387,7 +412,11 @@ square_set_to_pg_json_array (const SquareSet squares)
   g_string_append_printf(tmp, "]");
   char *squares_to_string = tmp->str;
   g_string_free(tmp, FALSE);
+
+  if (0 != strcmp(to_string, squares_to_string)) abort();
+
   return squares_to_string;
+  */
 }
 
 /**
