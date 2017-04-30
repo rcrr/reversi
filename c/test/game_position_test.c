@@ -132,30 +132,30 @@ static void
 game_position_legal_moves_test (GamePositionDbFixture *fixture,
                                 gconstpointer test_data)
 {
-  gchar *legal_moves_to_string;
-
   GamePositionDb *db = fixture->db;
 
-  legal_moves_to_string = square_set_to_string(game_position_x_legal_moves(get_gpx_from_db(db, "initial")));
-  g_assert_cmpstr("D3 C4 F5 E6", ==, legal_moves_to_string);
-  g_free(legal_moves_to_string);
+  char to_string[512];
+  size_t length;
 
-  legal_moves_to_string = square_set_to_string(game_position_x_legal_moves(get_gpx_from_db(db, "early-game-b-9-moves")));
-  g_assert_cmpstr("C3 C6", ==, legal_moves_to_string);
-  g_free(legal_moves_to_string);
+  length = square_set_to_string(to_string, game_position_x_legal_moves(get_gpx_from_db(db, "initial")));
+  g_assert_cmpstr("D3 C4 F5 E6", ==, to_string);
+  g_assert(length == 11);
 
-  legal_moves_to_string = square_set_to_string(game_position_x_legal_moves(get_gpx_from_db(db, "black-has-to-pass")));
-  g_assert_cmpstr("", ==, legal_moves_to_string);
-  g_free(legal_moves_to_string);
+  length = square_set_to_string(to_string, game_position_x_legal_moves(get_gpx_from_db(db, "early-game-b-9-moves")));
+  g_assert_cmpstr("C3 C6", ==, to_string);
+  g_assert(length == 5);
 
-  legal_moves_to_string = square_set_to_string(game_position_x_legal_moves(get_gpx_from_db(db, "early-game-c-12-moves")));
-  g_assert_cmpstr("H2 A4 C4 G4 A5 F5 B6 E6 G7", ==, legal_moves_to_string);
-  g_free(legal_moves_to_string);
+  length = square_set_to_string(to_string, game_position_x_legal_moves(get_gpx_from_db(db, "black-has-to-pass")));
+  g_assert_cmpstr("", ==, to_string);
+  g_assert(length == 0);
 
-  legal_moves_to_string = square_set_to_string(game_position_x_legal_moves(get_gpx_from_db(db, "final-b37-w27")));
-  g_assert_cmpstr("", ==, legal_moves_to_string);
-  g_free(legal_moves_to_string);
+  length = square_set_to_string(to_string, game_position_x_legal_moves(get_gpx_from_db(db, "early-game-c-12-moves")));
+  g_assert_cmpstr("H2 A4 C4 G4 A5 F5 B6 E6 G7", ==, to_string);
+  g_assert(length == 26);
 
+  length = square_set_to_string(to_string, game_position_x_legal_moves(get_gpx_from_db(db, "final-b37-w27")));
+  g_assert_cmpstr("", ==, to_string);
+  g_assert(length == 0);
 }
 
 static void

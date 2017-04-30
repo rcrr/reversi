@@ -212,8 +212,9 @@ extern size_t
 square_set_to_pg_json_array (char *const to_string,
                              const SquareSet squares);
 
-extern char *
-square_set_to_string (const SquareSet squares);
+extern size_t
+square_set_to_string (char *const to_string,
+                      const SquareSet squares);
 
 
 extern Square

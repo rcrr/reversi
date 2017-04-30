@@ -248,13 +248,14 @@ static void
 square_set_to_string_test (void)
 {
   //! [square_set_to_string usage]
-  char *ss_to_string;
-  ss_to_string = square_set_to_string((SquareSet) 0);
-  g_assert_cmpstr(ss_to_string, ==, "");
-  g_free(ss_to_string);
-  ss_to_string = square_set_to_string((SquareSet) 5);
-  g_assert_cmpstr(ss_to_string, ==, "A1 C1");
-  g_free(ss_to_string);
+  char to_string[512];
+  size_t s_length;
+  s_length = square_set_to_string(to_string, (SquareSet) 0);
+  g_assert_cmpstr(to_string, ==, "");
+  g_assert(s_length == 0);
+  s_length = square_set_to_string(to_string, (SquareSet) 9);
+  g_assert_cmpstr(to_string, ==, "A1 D1");
+  g_assert(s_length == 5);
   //! [square_set_to_string usage]
 }
 
