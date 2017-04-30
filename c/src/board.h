@@ -38,7 +38,7 @@
 
 #include <stdbool.h>
 
-#include <glib.h>
+//#include <glib.h>
 
 #include "bit_works.h"
 #include "prng.h"
@@ -182,17 +182,17 @@ board_module_init (void);
 /* Function prototypes for the Square entity. */
 /**********************************************/
 
-extern const gchar *
+extern const char *
 square_to_string (const Square sq);
 
-extern const gchar *
+extern const char *
 square_as_move_to_string (const Square move);
 
-extern gchar *
+extern char *
 square_array_to_string (const Square sqa[],
                         const int length);
 
-extern gchar *
+extern char *
 square_as_move_array_to_string (const Square mova[],
                                 const int length);
 
@@ -208,10 +208,10 @@ square_is_valid_move (const Square move);
 /* Function prototypes for the SquareSet entity. */
 /*************************************************/
 
-extern gchar *
+extern char *
 square_set_to_pg_json_array (const SquareSet squares);
 
-extern gchar *
+extern char *
 square_set_to_string (const SquareSet squares);
 
 

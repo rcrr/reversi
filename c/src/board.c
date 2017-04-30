@@ -74,7 +74,7 @@ kogge_stone_gpb (const SquareSet generator,
  */
 
 /* Array used for conversion between square/move and its string representation. */
-static const gchar *const sq_to_s[] = {
+static const char *const sq_to_s[] = {
   "A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1",
   "A2", "B2", "C2", "D2", "E2", "F2", "G2", "H2",
   "A3", "B3", "C3", "D3", "E3", "F3", "G3", "H3",
@@ -202,7 +202,7 @@ board_module_init (void)
  * @param [in] sq the square to be converted
  * @return        a string of two chars representing the square
  */
-const gchar *
+const char *
 square_to_string (const Square sq)
 {
   if (square_belongs_to_enum_set(sq)) {
@@ -226,7 +226,7 @@ square_to_string (const Square sq)
  * @param [in] move the move to be converted
  * @return          a string of two chars representing the move
  */
-const gchar *
+const char *
 square_as_move_to_string (const Square move)
 {
   if (move == pass_move) {
@@ -250,11 +250,11 @@ square_as_move_to_string (const Square move)
  * @param [in] length the count of elements in the array
  * @return            a string representation for the square array
  */
-gchar *
+char *
 square_array_to_string (const Square sqa[],
                         const int length)
 {
-  gchar *squares_to_string;
+  char *squares_to_string;
   GString *tmp;
 
   tmp = g_string_sized_new(10);
@@ -283,11 +283,11 @@ square_array_to_string (const Square sqa[],
  * @param [in] length the count of elements in the array
  * @return            a string representation for the move array
  */
-gchar *
+char *
 square_as_move_array_to_string (const Square mova[],
                                 const int length)
 {
-  gchar *moves_to_string;
+  char *moves_to_string;
   GString *tmp;
 
   tmp = g_string_sized_new(10);
@@ -365,7 +365,7 @@ square_is_valid_move (const Square move)
  * @return             a string having the given squares represented
  *                     as a postgresql json array
  */
-gchar *
+char *
 square_set_to_pg_json_array (const SquareSet squares)
 {
   GString *tmp = g_string_sized_new(10);
@@ -385,7 +385,7 @@ square_set_to_pg_json_array (const SquareSet squares)
     move++;
   }
   g_string_append_printf(tmp, "]");
-  gchar *squares_to_string = tmp->str;
+  char *squares_to_string = tmp->str;
   g_string_free(tmp, FALSE);
   return squares_to_string;
 }
@@ -402,7 +402,7 @@ square_set_to_pg_json_array (const SquareSet squares)
  * @param [in] squares the square set to be converted into a string
  * @return             a string having the squares sorted as the `Square` enum
  */
-gchar *
+char *
 square_set_to_string (const SquareSet squares)
 {
   GString *tmp = g_string_sized_new(10);
@@ -420,7 +420,7 @@ square_set_to_string (const SquareSet squares)
     }
     move++;
   }
-  gchar *squares_to_string = tmp->str;
+  char *squares_to_string = tmp->str;
   g_string_free(tmp, FALSE);
   return squares_to_string;
 }
@@ -564,7 +564,7 @@ player_color (const Player p)
  * @param [in] p the player
  * @return       the player's description
  */
-gchar *
+char *
 player_description (const Player p)
 {
   g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);

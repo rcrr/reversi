@@ -176,7 +176,7 @@ square_array_to_string_test (void)
   //! [square_array_to_string usage]
   const Square sqa[] = {A1, D7, H8};
   const int length = 3;
-  gchar *expected = square_array_to_string(sqa, length);
+  char *expected = square_array_to_string(sqa, length);
   g_assert_cmpstr(expected, ==, "A1 D7 H8");
   g_free(expected);
   //! [square_array_to_string usage]
@@ -188,7 +188,7 @@ square_as_move_array_to_string_test (void)
   //! [square_as_move_array_to_string usage]
   const Square mova[] = {A1, D7, H8, pass_move};
   const int length = 4;
-  gchar *expected = square_as_move_array_to_string(mova, length);
+  char *expected = square_as_move_array_to_string(mova, length);
   g_assert_cmpstr(expected, ==, "A1 D7 H8 --");
   g_free(expected);
   //! [square_as_move_array_to_string usage]
@@ -227,7 +227,7 @@ static void
 square_set_to_pg_json_array_test (void)
 {
   //! [square_set_to_pg_json_array usage]
-  gchar *pg_json_string;
+  char *pg_json_string;
   pg_json_string = square_set_to_pg_json_array((SquareSet) 0);
   g_assert_cmpstr(pg_json_string, ==, "[]");
   g_free(pg_json_string);
@@ -241,7 +241,7 @@ static void
 square_set_to_string_test (void)
 {
   //! [square_set_to_string usage]
-  gchar *ss_to_string;
+  char *ss_to_string;
   ss_to_string = square_set_to_string((SquareSet) 0);
   g_assert_cmpstr(ss_to_string, ==, "");
   g_free(ss_to_string);
