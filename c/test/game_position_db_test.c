@@ -236,8 +236,14 @@ static void
 gpdb_entry_syntax_error_print_test (void)
 {
   GamePositionDbEntrySyntaxError *syntax_error;
-  gchar                          *msg;
-  GString                        *expected;
+  char *msg;
+
+  char expected[] =
+    "Error type:    The id field is not correctly assigned.\n"
+    "Error message: error-message\n"
+    "Source label:  dummy-source\n"
+    "Line number:   123\n"
+    "Line:          a-record-line\n";
 
   syntax_error = gpdb_entry_syntax_error_new(GPDB_ENTRY_SYNTAX_ERROR_ON_ID,
                                              g_strdup("dummy-source"),
@@ -245,16 +251,10 @@ gpdb_entry_syntax_error_print_test (void)
                                              g_strdup("a-record-line"),
                                              g_strdup("error-message"));
   msg = gpdb_entry_syntax_error_print(syntax_error);
-  expected = g_string_new("Error type:    The id field is not correctly assigned.\n"
-                          "Error message: error-message\n"
-                          "Source label:  dummy-source\n"
-                          "Line number:   123\n"
-                          "Line:          a-record-line\n");
 
-  g_assert_cmpstr(expected->str, ==, msg);
+  g_assert_cmpstr(expected, ==, msg);
 
   g_free(msg);
-  g_string_free(expected, TRUE);
   gpdb_entry_syntax_error_free(syntax_error);
 }
 

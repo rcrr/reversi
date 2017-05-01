@@ -414,28 +414,27 @@ game_position_x_print_test (void)
   };
   GamePositionX *gpx = &gpx_struct;
 
+  char expected[256];
+  char *s = expected;
+
   char gpx_to_string[256];
   size_t length;
 
   length = game_position_x_print(gpx_to_string, gpx);
   g_assert(length == 211);
 
-  GString *expected = g_string_sized_new(220);
+  s += sprintf(s, "    a b c d e f g h \n");
+  s += sprintf(s, " 1  @ . O . . . . . \n");
+  s += sprintf(s, " 2  . . . . . . . . \n");
+  s += sprintf(s, " 3  . . . . . . . . \n");
+  s += sprintf(s, " 4  . . . . . . . . \n");
+  s += sprintf(s, " 5  . . . . . . . . \n");
+  s += sprintf(s, " 6  . . . . . . . . \n");
+  s += sprintf(s, " 7  . . . . . . . . \n");
+  s += sprintf(s, " 8  . . . . . . . . \n");
+  s += sprintf(s, "Player to move: WHITE\n");
 
-  g_string_append(expected, "    a b c d e f g h \n");
-  g_string_append(expected, " 1  @ . O . . . . . \n");
-  g_string_append(expected, " 2  . . . . . . . . \n");
-  g_string_append(expected, " 3  . . . . . . . . \n");
-  g_string_append(expected, " 4  . . . . . . . . \n");
-  g_string_append(expected, " 5  . . . . . . . . \n");
-  g_string_append(expected, " 6  . . . . . . . . \n");
-  g_string_append(expected, " 7  . . . . . . . . \n");
-  g_string_append(expected, " 8  . . . . . . . . \n");
-  g_string_append(expected, "Player to move: WHITE\n");
-
-  g_assert(g_strcmp0(expected->str, gpx_to_string) == 0);
-
-  g_string_free(expected, TRUE);
+  g_assert(g_strcmp0(expected, gpx_to_string) == 0);
 }
 
 static void
