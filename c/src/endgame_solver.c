@@ -3,6 +3,18 @@
  *
  * @todo Unit tests are far behind, a complete check is needed to ensure all functions have the appropriate testing.
  *
+ * @todo Dependency from glib shall be removed from sources:
+ *       - game_tree_logger has file and directory tools based on glib
+ *       - all the main programs have args managed by mean of glib
+ *       - game_position_db module is heavily based on glib
+ *
+ * @todo Dependency from glib shall be removed from unit tests. This requires to complete the utest module.
+ *
+ * @todo Checks all the programs for memory leaks.
+ *
+ * @todo Remove GamePositionX and add board_t and game_position_t, where game_position_t has a bitboard for player and one for the opponent.
+ *       board_t has also the player moving next.
+ *
  * @todo Add a way to check a PV for variants. - Priority 1 -
  *       The PV code is quite OK. What is missing now are a few improvements:
  *       - [done] I mean, add moves to the structure when the value is equal to the one of the move recorded in the principal tree.
@@ -35,11 +47,9 @@
  *                      Moving to a DAG requires to keep track of ref count for cell.
  *                      A pack function is required in order to achieve the stack space reduction.
  *       - More optional checks could be added to pve_is_invariant_satisfied.
- *       - Tests ....
- *       - Documentation.
  *       - Add game values computation and output for first level moves.
- *       - Add a function to compute PV hash code (it is useful for testing and database processing).
- *       - The ExactSolution object should be replaced by a PVE reference.
+ *       - [done] Add a function to compute PV hash code (it is useful for testing and database processing).
+ *       - [done] The ExactSolution object should be replaced by a PVE reference.
  *
  *
  * @todo [done] Complete the random game player.
@@ -66,8 +76,6 @@
  * @todo [done] Refine and refactor the exact_solver implementation.
  *
  * @todo [done] Write SIMD (AVX2) versions of make_move and legal_moves functions.
- *       Arrange the documentation, the selection of alternatives, the testing of the aternatives in a more
- *         modular way.
  *
  * @todo [done] Solvers rab and ab share the same stack solution. Refactor it sharing
  *              the same utilities brougth to a dedicated module.
