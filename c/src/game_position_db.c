@@ -36,8 +36,6 @@
 #include <assert.h>
 #include <string.h>
 
-#include <glib.h>
-
 #include "game_position_db.h"
 
 

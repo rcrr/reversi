@@ -186,8 +186,8 @@ game_position_mab_solve (const GamePositionX *const root,
                          const bool randomize_move_order,
                          const bool random_sampler)
 {
-  g_assert(root);
-  g_assert(env);
+  assert(root);
+  assert(env);
 
   LogEnv *const log_env = game_tree_log_init(env->log_file);
 

@@ -64,7 +64,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014, 2015 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -88,9 +88,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
+#include <stddef.h>
+#include <stdbool.h>
 #include <math.h>
-
-#include <glib.h>
 
 #include "sort_utils.h"
 
@@ -582,13 +583,13 @@ bnr_sort_from_ordered_initial_run  (void *const a,
                                     const size_t element_size,
                                     const sort_utils_compare_function cmp)
 {
-  g_assert(count >= 0);
-  g_assert(start >= 0 && start <= count);
+  assert(count >= 0);
+  assert(start >= 0 && start <= count);
   if (count < 2) return;
   const size_t es = element_size;
   char *ca = (char *) a;
   for (size_t i = 1; i < start; i++) {
-    g_assert(cmp(ca + i * es, ca + (i - 1) * es) >= 0);
+    assert(cmp(ca + i * es, ca + (i - 1) * es) >= 0);
   }
   char *tmp = malloc(es * sizeof(char));
   for (size_t i = start; i < count; i++) {
@@ -753,7 +754,7 @@ hps_sift_down (void *const a,
  *
  * @details The vector `a` having length equal to `count` is sorted
  *          in place applying the heap-sort algorithm.
- *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *          The compare function is a predicate and must return `true` or `false`.
  *
  * @param [in,out] a            the array to be sorted
  * @param [in]     count        the number of element in array
@@ -1029,7 +1030,7 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
  *
  * @details The vector `a` having length equal to `count` is sorted
  *          in place applying the smooth-sort algorithm.
- *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *          The compare function is a predicate and must return `true` or `false`.
  *
  *          Adapted from Dijkstra's paper: http://www.enterag.ch/hartwig/order/smoothsort.pdf
  *          See also: http://en.wikipedia.org/wiki/Smoothsort
@@ -1470,7 +1471,7 @@ sort_utils_quicksort_dsc_i (int *const a,
  *
  * @details The vector `a` having length equal to `count` is sorted
  *          in place applying the shell-sort algorithm.
- *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *          The compare function is a predicate and must return `true` or `false`.
  *
  * See:
  *
@@ -1523,12 +1524,12 @@ sort_utils_shellsort (void *const a,
                                                     13073233321, 29414774973, 66183243690, 148912298303 };
 
   /* This code is here for documentation purposes, it computes the gap sequence. */
-  if (FALSE) {
+  if (false) {
     for (int k = 0; k < 32; k++) {
       unsigned long long int h = ceil((pow(9, k + 1) - pow(4, k + 1)) / (5 * pow(4, k)));
       printf("h[%2d] = %12llu\n", k, h);
     }
-    if (TRUE) return;
+    if (true) return;
   }
 
   if (count < 2) return;
@@ -1633,7 +1634,7 @@ sort_utils_shellsort_dsc_i (int *const a,
  *
  * @details The vector `a` having length equal to `count` is sorted
  *          using auxiliary space applying the merge-sort algorithm.
- *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *          The compare function is a predicate and must return `true` or `false`.
  *
  * @param [in,out] a            the array to be sorted
  * @param [in]     count        the number of element in array
@@ -1656,7 +1657,7 @@ sort_utils_mergesort (void *const a,
  *
  * @details The vector `a` having length equal to `count` is sorted
  *          using auxiliary space applying the merge-sort algorithm.
- *          The compare function is a predicate and must return `TRUE` or `FALSE`.
+ *          The compare function is a predicate and must return `true` or `false`.
  *          The auxiliary space must have the same size of the `a` array or larger,
  *          the content of it when the function returns is garbage.
  *
@@ -1915,7 +1916,7 @@ tms_gallop_left (const void *const key,
                  const size_t hint,
                  const sort_utils_compare_function cmp)
 {
-  g_assert(len > 0 && hint >= 0 && hint < len);
+  assert(len > 0 && hint >= 0 && hint < len);
   char *ca = (char *) a;
   long long int last_ofs = 0;
   long long int ofs = 1;
@@ -1951,7 +1952,7 @@ tms_gallop_left (const void *const key,
     last_ofs = hint - ofs;
     ofs = hint - tmp;
   }
-  g_assert(-1 <= last_ofs && last_ofs < ofs && ofs <= len);
+  assert(-1 <= last_ofs && last_ofs < ofs && ofs <= len);
 
   /*
    * Now a[base + last_ofs] < key <= a[base + ofs], so key belongs somewhere
@@ -1966,7 +1967,7 @@ tms_gallop_left (const void *const key,
     else
       ofs = m;           // key <= a[base + m]
   }
-  g_assert(last_ofs == ofs); // so a[base + ofs - 1] < key <= a[base + ofs]
+  assert(last_ofs == ofs); // so a[base + ofs - 1] < key <= a[base + ofs]
   return ofs;
 }
 
@@ -1993,7 +1994,7 @@ tms_gallop_right (const void *const key,
                   const size_t hint,
                   const sort_utils_compare_function cmp)
 {
-  g_assert(len > 0 && hint >= 0 && hint < len);
+  assert(len > 0 && hint >= 0 && hint < len);
   char *ca = (char *) a;
 
   long long int ofs = 1;
@@ -2030,7 +2031,7 @@ tms_gallop_right (const void *const key,
     last_ofs += hint;
     ofs += hint;
   }
-  g_assert(-1 <= last_ofs && last_ofs < ofs && ofs <= len);
+  assert(-1 <= last_ofs && last_ofs < ofs && ofs <= len);
 
   /*
    * Now a[b + last_ofs] <= key < a[b + ofs], so key belongs somewhere to
@@ -2046,7 +2047,7 @@ tms_gallop_right (const void *const key,
     else
       last_ofs = m + 1;  // a[b + m] <= key
   }
-  g_assert(last_ofs == ofs);    // so a[b + ofs - 1] <= key < a[b + ofs]
+  assert(last_ofs == ofs);    // so a[b + ofs - 1] <= key < a[b + ofs]
   return ofs;
 }
 
@@ -2074,7 +2075,7 @@ tms_merge_lo (TimSort *const ts,
               const size_t base2,
               size_t len2)
 {
-  g_assert(len1 > 0 && len2 > 0 && base1 + len1 == base2 && len1 <= len2);
+  assert(len1 > 0 && len2 > 0 && base1 + len1 == base2 && len1 <= len2);
 
   /* Copy first run into temp array. */
   char *ca = (char *) ts->a;
@@ -2101,7 +2102,7 @@ tms_merge_lo (TimSort *const ts,
   const sort_utils_compare_function cmp = ts->cmp;
   long long int  min_gallop = ts->min_gallop;
 
-  while (TRUE) {
+  while (true) {
     size_t count1 = 0; // Number of times in a row that first run won
     size_t count2 = 0; // Number of times in a row that second run won
 
@@ -2110,7 +2111,7 @@ tms_merge_lo (TimSort *const ts,
      * winning consistently.
      */
     do {
-      g_assert(len1 > 1 && len2 > 0);
+      assert(len1 > 1 && len2 > 0);
       if (cmp(ca + cursor2 * es, tmp + cursor1 * es) < 0) {
         copy(ca + dest++ * es, ca + cursor2++ * es, es);
         count2++;
@@ -2132,7 +2133,7 @@ tms_merge_lo (TimSort *const ts,
      * neither run appears to be winning consistently anymore.
      */
     do {
-      g_assert(len1 > 1 && len2 > 0);
+      assert(len1 > 1 && len2 > 0);
       count1 = tms_gallop_right(ca + cursor2 * es, tmp, es, cursor1, len1, 0, cmp);
       if (count1 != 0) {
         memcpy(ca + dest * es, tmp + cursor1 * es, count1 * es);
@@ -2168,15 +2169,15 @@ tms_merge_lo (TimSort *const ts,
   ts->min_gallop = min_gallop < 1 ? 1 : min_gallop; // Write back to field
 
   if (len1 == 1) {
-    g_assert(len2 > 0);
+    assert(len2 > 0);
     memmove(ca + dest * es, ca + cursor2 * es, len2 * es);
     copy(ca + (dest + len2) * es, tmp + cursor1 * es, es); // Last elt of run 1 to end of merge
   } else if (len1 == 0) {
     /* Comparison function violates its general contract! */
-    g_assert(FALSE);
+    assert(false);
   } else {
-    g_assert(len2 == 0);
-    g_assert(len1 > 1);
+    assert(len2 == 0);
+    assert(len1 > 1);
     memcpy(ca + dest * es, tmp + cursor1 * es, len1 * es);
   }
 }
@@ -2201,7 +2202,7 @@ tms_merge_hi (TimSort *const ts,
               const size_t base2,
               size_t len2)
 {
-  g_assert(len1 > 0 && len2 > 0 && base1 + len1 == base2 && len1 >= len2);
+  assert(len1 > 0 && len2 > 0 && base1 + len1 == base2 && len1 >= len2);
 
   /* Copy first run into temp array. */
   char *ca = (char *) ts->a;
@@ -2230,7 +2231,7 @@ tms_merge_hi (TimSort *const ts,
   const sort_utils_compare_function cmp = ts->cmp;
   long long int  min_gallop = ts->min_gallop;
 
-  while (TRUE) {
+  while (true) {
     size_t count1 = 0; // Number of times in a row that first run won
     size_t count2 = 0; // Number of times in a row that second run won
 
@@ -2239,7 +2240,7 @@ tms_merge_hi (TimSort *const ts,
      * appears to win consistently.
      */
     do {
-      g_assert(len1 > 0 && len2 > 1);
+      assert(len1 > 0 && len2 > 1);
       if (cmp(tmp + cursor2 * es, ca + cursor1 * es) < 0) {
         copy(ca + dest-- * es, ca + cursor1-- * es, es);
         count1++;
@@ -2261,7 +2262,7 @@ tms_merge_hi (TimSort *const ts,
      * neither run appears to be winning consistently anymore.
      */
     do {
-      g_assert(len1 > 0 && len2 > 1);
+      assert(len1 > 0 && len2 > 1);
       count1 = len1 - tms_gallop_right(tmp + cursor2 * es, ca, es, base1, len1, len1 - 1, cmp);
       if (count1 != 0) {
         dest -= count1;
@@ -2297,17 +2298,17 @@ tms_merge_hi (TimSort *const ts,
   ts->min_gallop = min_gallop < 1 ? 1 : min_gallop; // Write back to field
 
   if (len2 == 1) {
-    g_assert(len1 > 0);
+    assert(len1 > 0);
     dest -= len1;
     cursor1 -= len1;
     memmove(ca + (dest + 1) * es, ca + (cursor1 + 1) * es, len1 * es);
     copy(ca + dest * es, tmp + cursor2 * es, es); // Move first elt of run2 to front of merge
   } else if (len2 == 0) {
     /* Comparison method violates its general contract! */
-    g_assert(FALSE);
+    assert(false);
   } else {
-    g_assert(len1 == 0);
-    g_assert(len2 > 0);
+    assert(len1 == 0);
+    assert(len2 > 0);
     memcpy(ca + (dest - (len2 - 1)) * es, tmp, len2 * es);
   }
 }
@@ -2325,9 +2326,9 @@ static void
 tms_merge_at (TimSort *const ts,
               const size_t i)
 {
-  g_assert(ts->stack_size >= 2);
-  g_assert(i >= 0);
-  g_assert(i == ts->stack_size - 2 || i == ts->stack_size - 3);
+  assert(ts->stack_size >= 2);
+  assert(i >= 0);
+  assert(i == ts->stack_size - 2 || i == ts->stack_size - 3);
 
   char *ca = (char *) ts-> a;
   const size_t es = ts->element_size;
@@ -2336,8 +2337,8 @@ tms_merge_at (TimSort *const ts,
   size_t len1 = ts->run_len[i];
   size_t base2 = ts->run_base[i + 1];
   size_t len2 = ts->run_len[i + 1];
-  g_assert(len1 > 0 && len2 > 0);
-  g_assert(base1 + len1 == base2);
+  assert(len1 > 0 && len2 > 0);
+  assert(base1 + len1 == base2);
 
   /*
    * Record the length of the combined runs; if i is the 3rd-last
@@ -2356,7 +2357,7 @@ tms_merge_at (TimSort *const ts,
    * in run1 can be ignored (because they're already in place).
    */
   const size_t k = tms_gallop_right(ca + base2 * es, ca, es, base1, len1, 0, ts->cmp);
-  g_assert(k >= 0);
+  assert(k >= 0);
   base1 += k;
   len1 -= k;
   if (len1 == 0)
@@ -2367,7 +2368,7 @@ tms_merge_at (TimSort *const ts,
    * in run2 can be ignored (because they're already in place).
    */
   len2 = tms_gallop_left(ca + (base1 + len1 - 1) * es, ca, es, base2, len2, len2 - 1, ts->cmp);
-  g_assert(len2 >= 0);
+  assert(len2 >= 0);
   if (len2 == 0)
     return;
 
@@ -2462,7 +2463,7 @@ tim_sort_new (void *const a,
   static const size_t stack_len = 85;
 
   ts = (TimSort *) malloc(size_of_ts);
-  g_assert(ts);
+  assert(ts);
 
   ts->a = a;
   ts->count = count;
@@ -2530,7 +2531,7 @@ tms_push_run (TimSort *const ts,
  */
 static size_t
 tms_min_run_length (size_t n) {
-  g_assert(n >= 0);
+  assert(n >= 0);
   size_t r = 0;      // Becomes 1 if any 1 bits are shifted off
   while (n >= tms_min_merge) {
     r |= (n & 1);
@@ -2590,7 +2591,7 @@ tms_count_run_and_make_ascending (void *const a,
                                   const size_t es,
                                   const sort_utils_compare_function cmp)
 {
-  g_assert(count > 0);
+  assert(count > 0);
   if (count == 1) return 1;
 
   char *const ca = (char *) a;
@@ -2656,9 +2657,9 @@ sort_utils_timsort (void *const a,
                     const size_t element_size,
                     const sort_utils_compare_function cmp)
 {
-  g_assert(a);
-  g_assert(element_size > 0);
-  g_assert(cmp);
+  assert(a);
+  assert(element_size > 0);
+  assert(cmp);
 
   if (count < 2) return;
 
@@ -2682,7 +2683,7 @@ sort_utils_timsort (void *const a,
   const size_t min_run = tms_min_run_length(n_remaining);
   do {
     /* Identify next run. */
-    g_assert(lo + n_remaining == count);
+    assert(lo + n_remaining == count);
     size_t run_len = tms_count_run_and_make_ascending(ca + lo * es, n_remaining, es, cmp);
 
     // If run is short, extend to min(min_run, n_remaining)
@@ -2702,9 +2703,9 @@ sort_utils_timsort (void *const a,
   } while (n_remaining != 0);
 
   /* Merge all remaining runs to complete sort. */
-  g_assert(lo == count);
+  assert(lo == count);
   tms_merge_force_collapse(ts);
-  g_assert(ts->stack_size == 1);
+  assert(ts->stack_size == 1);
 
   tim_sort_free(ts);
 }

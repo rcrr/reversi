@@ -34,8 +34,6 @@
 #ifndef EXACT_SOLVER2_H
 #define EXACT_SOLVER2_H
 
-#include <glib.h>
-
 #include "endgame_solver.h"
 #include "game_tree_utils.h"
 #include "board.h"

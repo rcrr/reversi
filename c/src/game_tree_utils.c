@@ -43,8 +43,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stdbool.h>
-
-//#include <glib.h>
+#include <time.h>
 
 #include "game_tree_utils.h"
 #include "sort_utils.h"
@@ -58,7 +57,7 @@
 #define PVE_LOAD_DUMP_LINES_SEGMENTS_SIZE 64
 #define PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE 64
 
-#define PVE_VERIFY_INVARIANT FALSE
+#define PVE_VERIFY_INVARIANT false
 #define PVE_VERIFY_INVARIANT_MASK 0xFFFF
 #define pve_verify_invariant(chk_mask)                                  \
   if (PVE_VERIFY_INVARIANT) do {                                        \
@@ -378,7 +377,7 @@ pve_new (const GamePositionX *const root_game_position)
   pve->cells_segments_head++;
   for (size_t i = 0; i < cells_first_size; i++) {
     (cells + i)->move = invalid_move;
-    (cells + i)->is_active = FALSE;
+    (cells + i)->is_active = false;
     (cells + i)->next = NULL;
     (cells + i)->variant = NULL;
   }
@@ -536,40 +535,40 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
   if (pve_chk_inv_lines_basic & checked_invariants) {
     if (pve->lines_segments_size != PVE_LINES_SEGMENTS_SIZE) {
       if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_SIZE_IS_INCORRECT;
-      return FALSE;
+      return false;
     }
     if (pve->lines_first_size != PVE_LINES_FIRST_SIZE) {
       if (error_code) *error_code = PVE_ERROR_CODE_LINES_FIRST_SIZE_IS_INCORRECT;
-      return FALSE;
+      return false;
     }
     if (!pve->lines_segments_head) {
       if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HEAD_IS_NULL;
-      return FALSE;
+      return false;
     }
     if (!pve->lines_segments) {
       if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_IS_NULL;
-      return FALSE;
+      return false;
     }
     if (active_lines_segments_count < 0) {
       if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HEADS_PRECEDES_ARRAY_INDEX_0;
-      return FALSE;
+      return false;
     }
     if (active_lines_segments_count > pve->lines_segments_size) {
       if (error_code) *error_code = PVE_ERROR_CODE_ACTIVE_LINES_SEGMENTS_COUNT_EXCEEDS_BOUND;
-      return FALSE;
+      return false;
     }
     const size_t expected_lines_size = (size_t) (active_lines_segments_count == 0
                                                  ? 0 : (1ULL << (active_lines_segments_count - 1)) * PVE_LINES_FIRST_SIZE);
     if (expected_lines_size != pve->lines_size) {
       if (error_code) *error_code = PVE_ERROR_CODE_LINES_SIZE_MISMATCH;
-      return FALSE;
+      return false;
     }
 
     for (size_t i = 0; i < active_lines_segments_count; i++) {
       PVCell **ls = *(pve->lines_segments + i);
       if (!ls) {
         if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NULL_VALUE;
-        return FALSE;
+        return false;
       }
     }
 
@@ -577,13 +576,13 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
       PVCell **ls = *(pve->lines_segments + i);
       if (ls) {
         if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_HAS_AN_INVALID_NOT_NULL_VALUE;
-        return FALSE;
+        return false;
       }
     }
 
     size_t cumulated_lines_size_from_sorted_segments = 0;
-    bool ls_p0_found = FALSE;
-    bool ls_p1_found = FALSE;
+    bool ls_p0_found = false;
+    bool ls_p1_found = false;
     PVCell **ls_position_0 = *(pve->lines_segments + 0);
     PVCell **ls_position_1 = *(pve->lines_segments + 1);
     for (size_t i = 0; i < active_lines_segments_count; i++) {
@@ -593,24 +592,24 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
       const size_t ls_index = bit_works_bitscanMS1B_64((size_t) (segment_size / PVE_LINES_FIRST_SIZE)) + 1;
       if (ls_index > active_lines_segments_count) {
         if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENT_COMPUTED_INDEX_OUT_OF_RANGE;
-        return FALSE;
+        return false;
       }
       if (ls_index == 1) {
         if (!ls_p0_found && ls == ls_position_0) {
-          ls_p0_found = TRUE;
+          ls_p0_found = true;
           goto positions_1_and_2_found;
         }
         if (!ls_p1_found && ls == ls_position_1) {
-          ls_p1_found = TRUE;
+          ls_p1_found = true;
           goto positions_1_and_2_found;
         }
         if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_POS_0_AND_1_ANOMALY;
-        return FALSE;
+        return false;
       } else {
         PVCell **ls_unsorted = *(pve->lines_segments + ls_index);
         if (ls != ls_unsorted) {
           if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_SORTED_AND_UNSORTED_DO_NOT_MATCH;
-          return FALSE;
+          return false;
         }
       }
     positions_1_and_2_found:
@@ -619,28 +618,28 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
         ls_prec++;
         if (ls <= ls_prec) {
           if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_ARE_NOT_PROPERLY_SORTED;
-          return FALSE;
+          return false;
         }
       }
     }
     if (expected_lines_size != cumulated_lines_size_from_sorted_segments) {
       if (error_code) *error_code = PVE_ERROR_CODE_LINES_SIZE_DOESNT_MATCH_WITH_CUMULATED;
-      return FALSE;
+      return false;
     }
     if (active_lines_segments_count == 1 && !ls_p0_found) {
       if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENT_POSITION_0_NOT_FOUND;
-      return FALSE;
+      return false;
     }
     if (active_lines_segments_count > 1 && !ls_p0_found && !ls_p1_found) {
       if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENT_POSITION_0_OR_1_NOT_FOUND;
-      return FALSE;
+      return false;
     }
 
     for (size_t i = active_lines_segments_count; i < pve->lines_segments_size; i++) {
       const size_t segment_size = *(pve->lines_segments_sorted_sizes + i);
       if (segment_size != 0) {
         if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENTS_UNUSED_SEGMENT_HAS_SIZE;
-        return FALSE;
+        return false;
       }
     }
   }
@@ -652,20 +651,20 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
   /* Lines stack pointers are in the proper range. */
   if (!pve->lines_stack_head) {
     if (error_code) *error_code = 1001;
-    return FALSE;
+    return false;
   }
   if (!pve->lines_stack) {
     if (error_code) *error_code = 1002;
-    return FALSE;
+    return false;
   }
   const size_t used_lines_count = pve->lines_stack_head - pve->lines_stack;
   if (used_lines_count < 0) {
     if (error_code) *error_code = 1003;
-    return FALSE;
+    return false;
   }
   if (used_lines_count > pve->lines_size) {
     if (error_code) *error_code = 1004;
-    return FALSE;
+    return false;
   }
 
   /* Verifies that the line reference is contained into a segment. */
@@ -678,11 +677,11 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
       if (*lines_stack_cursor == NULL) {
         if (error_code) *error_code = 1005;
         printf("lines_stack_cursor=%p\n", (void *) lines_stack_cursor);
-        return FALSE;
+        return false;
       } else {
         if (lines_stack_cursor_prev && *lines_stack_cursor <= *lines_stack_cursor_prev) {
           if (error_code) *error_code = 1006;
-          return FALSE;
+          return false;
         }
         lines_stack_cursor_prev = lines_stack_cursor;
       }
@@ -693,11 +692,11 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
       if (*lines_stack_cursor == NULL) {
         if (error_code) *error_code = 1007;
         printf("lines_stack_cursor=%p\n", (void *) lines_stack_cursor);
-        return FALSE;
+        return false;
       } else {
         if (lines_stack_cursor_prev && *lines_stack_cursor <= *lines_stack_cursor_prev) {
           if (error_code) *error_code = 1008;
-          return FALSE;
+          return false;
         }
         lines_stack_cursor_prev = lines_stack_cursor;
       }
@@ -707,7 +706,7 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
       const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
       if (line) {
         if (error_code) *error_code = 1009;
-        return FALSE;
+        return false;
       }
     }
 
@@ -715,7 +714,7 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
       const PVCell **line = (const PVCell **) *(pve->lines_stack + i);
       if (!line) {
         if (error_code) *error_code = 1010;
-        return FALSE;
+        return false;
       }
       // Moving on lines_segments is linear, a bisection approach would be better, but a lot more sophisticated .....
       for (size_t lsi = active_lines_segments_count - 1; ; lsi--) { // lsi: lines_segment_index
@@ -725,12 +724,12 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
             break;
           } else {
             if (error_code) *error_code = 1011;
-            return FALSE;
+            return false;
           }
         }
         if (lsi == 0) {
           if (error_code) *error_code = 1012;
-          return FALSE;
+          return false;
         }
       }
     }
@@ -738,17 +737,17 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
 
   if (pve->line_create_count - pve->line_delete_count != used_lines_count) {
     if (error_code) *error_code = 1100;
-    return FALSE;
+    return false;
   }
 
   const size_t used_cells_count = pve->cells_stack_head - pve->cells_stack;
 
   if (pve->line_add_move_count - pve->line_release_cell_count != used_cells_count) {
     if (error_code) *error_code = 1101;
-    return FALSE;
+    return false;
   }
 
-  return TRUE;
+  return true;
 }
 
 /**
@@ -1169,7 +1168,7 @@ pve_line_add_move (PVEnv *pve,
   if (pve->cells_stack_head - pve->cells_stack > pve->cells_max_usage) pve->cells_max_usage++;
   if (pve->cells_stack_head - pve->cells_stack == pve->cells_size) pve_double_cells_size(pve);
   added_cell->move = move;
-  added_cell->is_active = TRUE;
+  added_cell->is_active = true;
   added_cell->next = *line;
   added_cell->ref_count = 0;
   added_cell->gpx.blacks = gpx->blacks;
@@ -1237,7 +1236,7 @@ pve_line_delete (PVEnv *pve,
     if (v_line) pve_line_delete(pve, v_line);
     pve->cells_stack_head--;
     *(pve->cells_stack_head) = cell;
-    cell->is_active = FALSE;
+    cell->is_active = false;
     cell->variant = NULL;
     pve->line_release_cell_count++;
     cell->move = invalid_move;
@@ -1891,7 +1890,7 @@ pve_transform_to_standard_form (PVEnv *const pve)
     while (c) {
       pve->cells_stack_head--;
       *(pve->cells_stack_head) = c;
-      c->is_active = FALSE;
+      c->is_active = false;
       c->variant = NULL;
       pve->line_release_cell_count++;
       c->move = invalid_move;
@@ -2115,7 +2114,7 @@ pve_double_cells_size (PVEnv *const pve)
   pve->cells_size += cells_size_extension;
   for (size_t i = 0; i < cells_size_extension; i++) {
     (cells_extension + i)->move = invalid_move;
-    (cells_extension + i)->is_active = FALSE;
+    (cells_extension + i)->is_active = false;
     (cells_extension + i)->next = NULL;
     (cells_extension + i)->variant = NULL;
   }

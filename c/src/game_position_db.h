@@ -37,6 +37,8 @@
 #ifndef GAME_POSITION_DB_H
 #define GAME_POSITION_DB_H
 
+#include <glib.h>
+
 #include "board.h"
 
 /**

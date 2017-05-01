@@ -37,6 +37,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "game_tree_logger.h"
 #include "improved_fast_endgame_solver.h"
@@ -420,8 +421,8 @@ game_position_ifes_solve (const GamePositionX *const root,
   int            discdiff;  /* Disc difference between player and opponent. */
   Node           n;         /* Best node returned by the search. */
 
-  g_assert(root);
-  g_assert(env);
+  assert(root);
+  assert(env);
 
   log_env = game_tree_log_init(env->log_file);
 
@@ -442,7 +443,7 @@ game_position_ifes_solve (const GamePositionX *const root,
   prepare_to_solve(board);
 
   /** Debug info **/
-  if (FALSE) {
+  if (false) {
     printf("\nEmpty Square Doubly linked List debug info:\n");
     printf("em_head: address=%p [square=%2d (%s), hole_id=%" PRIu64 "] pred=%p succ=%p\n",
            (void*) &em_head, em_head.square, ifes_square_to_string(em_head.square), em_head.hole_id,
