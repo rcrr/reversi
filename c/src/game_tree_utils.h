@@ -389,8 +389,9 @@ exact_solution_new (void);
 extern void
 exact_solution_free (ExactSolution *es);
 
-extern char *
-exact_solution_to_string (const ExactSolution *const es);
+extern void
+exact_solution_to_stream (FILE *const fp,
+                          const ExactSolution *const es);
 
 extern void
 exact_solution_compute_final_state (ExactSolution *const es);

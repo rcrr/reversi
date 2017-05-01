@@ -421,9 +421,9 @@ main (int argc, char *argv[])
   solution = solver->fn(gpx, &env);
 
   /* Prints results. */
-  gchar *solution_to_string = exact_solution_to_string(solution);
-  printf("\n%s\n", solution_to_string);
-  g_free(solution_to_string);
+  printf("\n");
+  exact_solution_to_stream(stdout, solution);
+  printf("\n");
 
   /* Frees the resources. */
   g_free(error);

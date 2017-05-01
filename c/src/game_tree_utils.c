@@ -213,61 +213,52 @@ exact_solution_free (ExactSolution *es)
 }
 
 /**
- * @brief Returns a formatted string describing the exact solution structure.
+ * @brief Outputs to `fp` a formatted string describing the exact solution structure.
  *
- * @details The returned string has a dynamic extent set by a call to malloc.
- *          It must then properly garbage collected by a call to free when no more referenced.
+ * @invariant Parameter `fp` must be not `NULL`.
+ *            Invariant is guarded by an assertion.
  *
  * @invariant Parameter `es` must be not `NULL`.
- *            Invariants are guarded by assertions.
+ *            Invariant is guarded by an assertion.
  *
- * @param [in] es a pointer to the exact solution structure
- * @return        a string being a representation of the structure
+ * @param [out] fp a file pointer
+ * @param [in]  es a pointer to the exact solution structure
  */
-char *
-exact_solution_to_string (const ExactSolution *const es)
+void
+exact_solution_to_stream (FILE *const fp,
+                          const ExactSolution *const es)
 {
-  g_assert(es);
+  assert(fp);
+  assert(es);
 
-  char root_gpx_to_string[512];
-  char final_gpx_to_string[512];
-  size_t length;
+  char buf[512];
+  size_t buf_len;
 
-  gchar *es_to_string;
-  GString *tmp = g_string_sized_new(32);
+  buf_len = game_position_x_print(buf, &es->root_gpx);
+  assert(buf_len < 512);
+  (void) buf_len;
 
-  length = game_position_x_print(root_gpx_to_string, &es->root_gpx);
-  assert(length < 512);
-  (void) length;
-
-
-  g_string_append_printf(tmp, "%s\n",root_gpx_to_string);
-  g_string_append_printf(tmp, "[node_count=%" PRIu64 ", leaf_count=%" PRIu64 "]\n",
-                         es->node_count,
-                         es->leaf_count);
-  g_string_append_printf(tmp, "Final outcome: best move=%s, position value=%d\n",
-                         square_as_move_to_string(es->best_move),
-                         es->outcome);
+  fprintf(fp, "%s\n", buf);
+  fprintf(fp, "[node_count=%" PRIu64 ", leaf_count=%" PRIu64 "]\n",
+          es->node_count,
+          es->leaf_count);
+  fprintf(fp, "Final outcome: best move=%s, position value=%d\n",
+          square_as_move_to_string(es->best_move),
+          es->outcome);
 
   if (es->pve) {
     PVCell **rl  = es->pve->root_line;
-    assert (rl);
-    g_string_append_printf(tmp, "PV: ");
+    assert(rl);
+    fprintf(fp, "PV: ");
     for (PVCell *c = *rl; c != NULL; c = c->next) {
-      g_string_append_printf(tmp, "%s ", square_as_move_to_string(c->move));
+      fprintf(fp, "%s ", square_as_move_to_string(c->move));
     }
-    g_string_append_printf(tmp, "\n");
-  }
+    fprintf(fp, "\n");
 
-  if (es->pve) {
-    length = game_position_x_print(final_gpx_to_string, &es->final_state);
-    assert(length < 512);
-    g_string_append_printf(tmp, "\nFinal state configuration playing main PV:\n%s\n", final_gpx_to_string);
+    buf_len = game_position_x_print(buf, &es->final_state);
+    assert(buf_len < 512);
+    fprintf(fp, "\nFinal state configuration playing main PV:\n%s\n", buf);
   }
-
-  es_to_string = tmp->str;
-  g_string_free(tmp, FALSE);
-  return es_to_string;
 }
 
 /**
