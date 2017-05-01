@@ -58,6 +58,7 @@
 #define MAX_LEGAL_MOVE_STACK_COUNT 1024
 
 #include <stdbool.h>
+#include <stdbool.h>
 #include <glib.h>
 
 #include "board.h"
@@ -123,7 +124,7 @@ typedef uint64_t switches_t;
  */
 typedef struct PVCell_ {
   Square           move;           /**< @brief The current move. */
-  gboolean         is_active;      /**< @brief True when the cell is used. */
+  bool             is_active;      /**< @brief True when the cell is used. */
   GamePositionX    gpx;            /**< @brief Game position. */
   size_t           ref_count;      /**< @brief Number of entries into the dictionary. */
   struct PVCell_  *next;           /**< @brief The next move. */

@@ -44,7 +44,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <glib.h>
+//#include <glib.h>
 
 #include "game_tree_utils.h"
 #include "sort_utils.h"
@@ -64,7 +64,7 @@
   if (PVE_VERIFY_INVARIANT) do {                                        \
       pve_error_code_t error_code = 0;                                  \
       pve_is_invariant_satisfied(pve, &error_code, chk_mask);           \
-      g_assert(!error_code);                                            \
+      assert(!error_code);                                              \
     } while (0);
 
 
@@ -185,7 +185,7 @@ exact_solution_new (void)
   static const size_t size_of_exact_solution = sizeof(ExactSolution);
 
   es = (ExactSolution*) malloc(size_of_exact_solution);
-  g_assert(es);
+  assert(es);
 
   es->outcome = invalid_outcome;
   es->best_move = invalid_move;
@@ -345,7 +345,7 @@ pve_new (const GamePositionX *const root_game_position)
 
   /* Allocates the PVE structure. */
   PVEnv *const pve = (PVEnv*) malloc(sizeof(PVEnv));
-  g_assert(pve);
+  assert(pve);
 
   /*
    * Clones the game position structure into a newly allocated one, and assigns the reference
@@ -364,7 +364,7 @@ pve_new (const GamePositionX *const root_game_position)
   pve->cells_segments_size = cells_segments_size;
   pve->cells_first_size = cells_first_size;
   pve->cells_segments = (PVCell **) malloc(sizeof(PVCell *) * cells_segments_size);
-  g_assert(pve->cells_segments);
+  assert(pve->cells_segments);
   for (size_t i = 0; i < cells_segments_size; i++) {
     *(pve->cells_segments + i) = NULL;
   }
@@ -373,7 +373,7 @@ pve_new (const GamePositionX *const root_game_position)
   /* Prepares the first segment of cells. */
   pve->cells_size = cells_first_size;
   PVCell *cells = (PVCell *) malloc(cells_first_size * sizeof(PVCell));
-  g_assert(cells);
+  assert(cells);
   *(pve->cells_segments_head) = cells;
   pve->cells_segments_head++;
   for (size_t i = 0; i < cells_first_size; i++) {
@@ -395,7 +395,7 @@ pve_new (const GamePositionX *const root_game_position)
 
   /* Creates the cells stack and load it with the cells held in the first segment. */
   pve->cells_stack = (PVCell **) malloc(cells_first_size * sizeof(PVCell *));
-  g_assert(pve->cells_stack);
+  assert(pve->cells_stack);
   for (size_t i = 0; i < cells_first_size; i++) {
     *(pve->cells_stack + i) = cells + i;
   }
@@ -405,7 +405,7 @@ pve_new (const GamePositionX *const root_game_position)
   pve->lines_segments_size = lines_segments_size;
   pve->lines_first_size = lines_first_size;
   pve->lines_segments = (PVCell ***) malloc(sizeof(PVCell **) * lines_segments_size);
-  g_assert(pve->lines_segments);
+  assert(pve->lines_segments);
   for (size_t i = 0; i < lines_segments_size; i++) {
     *(pve->lines_segments + i) = NULL;
   }
@@ -414,7 +414,7 @@ pve_new (const GamePositionX *const root_game_position)
   /* Prepares the first segment of lines. */
   pve->lines_size = lines_first_size;
   PVCell **lines = (PVCell **) malloc(lines_first_size * sizeof(PVCell *));
-  g_assert(lines);
+  assert(lines);
   *(pve->lines_segments_head) = lines;
   pve->lines_segments_head++;
   for (size_t i = 0; i < lines_first_size; i++) {
@@ -433,7 +433,7 @@ pve_new (const GamePositionX *const root_game_position)
 
   /* Creates the lines stack and load it with the lines held in the first segment. */
   pve->lines_stack = (PVCell ***) malloc(lines_first_size * sizeof(PVCell **));
-  g_assert(pve->lines_stack);
+  assert(pve->lines_stack);
   for (size_t i = 0; i < lines_first_size; i++) {
     *(pve->lines_stack + i) = lines + i;
   }
@@ -451,7 +451,7 @@ pve_new (const GamePositionX *const root_game_position)
   /* Prepares the game position table. */
   pve->gp_table = rbt_create(pve_compare_cells, NULL, NULL);
 
-  g_assert(pve_is_invariant_satisfied(pve, NULL, 0xFF));
+  assert(pve_is_invariant_satisfied(pve, NULL, 0xFF));
 
   return pve;
 }
@@ -802,7 +802,7 @@ pve_internals_to_stream (PVEnv *const pve,
                          FILE *const stream,
                          const switches_t shown_sections)
 {
-  g_assert(pve);
+  assert(pve);
 
   if (shown_sections & pve_internals_header_section) {
     time_t current_time = (time_t) -1;
@@ -810,11 +810,11 @@ pve_internals_to_stream (PVEnv *const pve,
 
     /* Obtain current time as seconds elapsed since the Epoch. */
     current_time = time(NULL);
-    g_assert(current_time != ((time_t) -1));
+    assert(current_time != ((time_t) -1));
 
     /* Convert to local time format. */
     c_time_string = ctime(&current_time);
-    g_assert(c_time_string);
+    assert(c_time_string);
 
     fprintf(stream, "# PVE HEADER\n");
 
@@ -886,10 +886,10 @@ pve_internals_to_stream (PVEnv *const pve,
     fprintf(stream, "\n");
   }
 
-  g_assert(pve->cells_segments_head >= pve->cells_segments);
-  g_assert(pve->lines_segments_head >= pve->lines_segments);
-  g_assert(pve->cells_stack_head >= pve->cells_stack);
-  g_assert(pve->lines_stack_head >= pve->lines_stack);
+  assert(pve->cells_segments_head >= pve->cells_segments);
+  assert(pve->lines_segments_head >= pve->lines_segments);
+  assert(pve->cells_stack_head >= pve->cells_stack);
+  assert(pve->lines_stack_head >= pve->lines_stack);
   const size_t lines_in_use_count = pve->lines_stack_head - pve->lines_stack;
   const size_t cells_in_use_count = pve->cells_stack_head - pve->cells_stack;
   const size_t lines_segments_in_use_count = pve->lines_segments_head - pve->lines_segments;
@@ -1193,11 +1193,11 @@ pve_line_add_variant (PVEnv *pve,
                       PVCell **line,
                       PVCell **line_variant)
 {
-  g_assert(pve);
-  g_assert(line);
-  g_assert(*line);
-  g_assert(line_variant);
-  g_assert(*line_variant);
+  assert(pve);
+  assert(line);
+  assert(*line);
+  assert(line_variant);
+  assert(*line_variant);
   PVCell **tmp_line = (*line)->variant;
   (*line)->variant = line_variant;
   (*line_variant)->variant = tmp_line;
@@ -1286,8 +1286,8 @@ void
 pve_line_with_variants_to_stream (const PVEnv *const pve,
                                   FILE *const stream)
 {
-  g_assert(pve);
-  g_assert(stream);
+  assert(pve);
+  assert(stream);
   pve_tree_walker(pve, stream, false, pve_twa_bol, pve_twa_eol, pve_twa_cell);
 }
 
@@ -1301,8 +1301,8 @@ void
 pve_root_line_as_table_to_stream (const PVEnv *const pve,
                                   FILE *const stream)
 {
-  g_assert(pve);
-  g_assert(stream);
+  assert(pve);
+  assert(stream);
 
   fprintf(stream, "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
           "LINE_ID",
@@ -1332,11 +1332,11 @@ void
 pve_dump_to_binary_file (const PVEnv *const pve,
                          const char *const out_file_path)
 {
-  g_assert(pve);
-  g_assert(out_file_path);
+  assert(pve);
+  assert(out_file_path);
 
   FILE *fp = fopen(out_file_path, "w");
-  g_assert(fp);
+  assert(fp);
 
   fwrite(pve, sizeof(PVEnv), 1, fp);
   fwrite(pve->root_game_position, sizeof(GamePositionX), 1, fp);
@@ -1362,7 +1362,7 @@ pve_dump_to_binary_file (const PVEnv *const pve,
   fwrite(pve->lines_stack, sizeof(PVCell ***), pve->lines_size, fp);
 
   int fclose_ret = fclose(fp);
-  g_assert(fclose_ret == 0);
+  assert(fclose_ret == 0);
   (void) fclose_ret; /* Suppress the warning "unused variable" rised when compiling without assertions. */
 }
 
@@ -1377,7 +1377,7 @@ pve_dump_to_binary_file (const PVEnv *const pve,
 PVEnv *
 pve_load_from_binary_file (const char *const in_file_path)
 {
-  g_assert(in_file_path);
+  assert(in_file_path);
 
   int fread_result;
   PVEnv from_file_pve;
@@ -1392,13 +1392,13 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   /* Opens the binary file for reading. */
   FILE *fp = fopen(in_file_path, "r");
-  g_assert(fp);
+  assert(fp);
 
   /* Reads the pve structure from the file. */
   fread_result = fread(&from_file_pve, sizeof(PVEnv), 1, fp);
-  g_assert(fread_result == 1);
+  assert(fread_result == 1);
   (void) fread_result;
-  g_assert(from_file_pve.cells_segments_size <= PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE);
+  assert(from_file_pve.cells_segments_size <= PVE_LOAD_DUMP_CELLS_SEGMENTS_SIZE);
 
   /* Computes usefull pve properties and dimensions. */
   const ptrdiff_t active_cells_segments_count = from_file_pve.cells_segments_head - from_file_pve.cells_segments;
@@ -1408,7 +1408,7 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   /* Allocates the space for the new pve structure. */
   PVEnv *const pve = (PVEnv *) malloc(sizeof(PVEnv));
-  g_assert(pve);
+  assert(pve);
 
   /* Sets fields from the read structure. */
   pve->state = from_file_pve.state;
@@ -1428,11 +1428,11 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   /* Allocates the space for the new game position structure. */
   pve->root_game_position = (GamePositionX *) malloc(sizeof(GamePositionX));
-  g_assert(pve->root_game_position);
+  assert(pve->root_game_position);
 
   /* Reads the root_game_position structure. */
   fread_result = fread(pve->root_game_position, sizeof(GamePositionX), 1, fp);
-  g_assert(fread_result == 1);
+  assert(fread_result == 1);
 
   /*
    * *************************************************************************
@@ -1446,11 +1446,11 @@ pve_load_from_binary_file (const char *const in_file_path)
    * Finally it reads the cells segments sorted sizes array from the file.
    */
   fread_result = fread(&from_file_cells_segments, sizeof(PVCell *), pve->cells_segments_size, fp);
-  g_assert(fread_result == pve->cells_segments_size);
+  assert(fread_result == pve->cells_segments_size);
   fread_result = fread(&from_file_cells_segments_sorted, sizeof(PVCell *), pve->cells_segments_size, fp);
-  g_assert(fread_result == pve->cells_segments_size);
+  assert(fread_result == pve->cells_segments_size);
   fread_result = fread(&from_file_cells_segments_sorted_sizes, sizeof(size_t), pve->cells_segments_size, fp);
-  g_assert(fread_result == pve->cells_segments_size);
+  assert(fread_result == pve->cells_segments_size);
 
   /*
    * - Allocates space for the cells segments array.
@@ -1460,16 +1460,16 @@ pve_load_from_binary_file (const char *const in_file_path)
    * - Sets the the cells segments element to point to the segment, or null if unsused.
    */
   pve->cells_segments = (PVCell **) malloc(sizeof(PVCell *) * pve->cells_segments_size);
-  g_assert(pve->cells_segments);
+  assert(pve->cells_segments);
   pve->cells_segments_head = pve->cells_segments;
   for (size_t i = 0; i < pve->cells_segments_size; i++) {
     PVCell *segment = NULL;
     if (i < active_cells_segments_count) {
       size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size);
       segment = (PVCell *) malloc(segment_size * sizeof(PVCell));
-      g_assert(segment);
+      assert(segment);
       fread_result = fread(segment, sizeof(PVCell), segment_size, fp);
-      g_assert(fread_result == segment_size);
+      assert(fread_result == segment_size);
       pve->cells_segments_head++;
     }
     *(pve->cells_segments + i) = segment;
@@ -1477,9 +1477,9 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   /* Prepares the sorted cells segments and the sorted sizes. */
   pve->cells_segments_sorted_sizes = (size_t *) malloc(sizeof(size_t) * pve->cells_segments_size);
-  g_assert(pve->cells_segments_sorted_sizes);
+  assert(pve->cells_segments_sorted_sizes);
   pve->cells_segments_sorted = (PVCell **) malloc(sizeof(PVCell *) * pve->cells_segments_size);
-  g_assert(pve->cells_segments_sorted);
+  assert(pve->cells_segments_sorted);
   for (size_t i = 0; i < pve->cells_segments_size; i++) {
     *(pve->cells_segments_sorted_sizes + i) = 0;
     *(pve->cells_segments_sorted + i) = NULL;
@@ -1490,9 +1490,9 @@ pve_load_from_binary_file (const char *const in_file_path)
    * Allocates the cells stack and load it with the cells read from file.
    */
   pve->cells_stack = (PVCell **) malloc(pve->cells_size * sizeof(PVCell *));
-  g_assert(pve->cells_stack);
+  assert(pve->cells_stack);
   fread_result = fread(pve->cells_stack, sizeof(PVCell *), pve->cells_size, fp);
-  g_assert(fread_result == pve->cells_size);
+  assert(fread_result == pve->cells_size);
   pve->cells_stack_head = pve->cells_stack + cells_in_use_count;
 
   /*
@@ -1513,11 +1513,11 @@ pve_load_from_binary_file (const char *const in_file_path)
    * Finally it reads the lines segments sorted sizes array from the file.
    */
   fread_result = fread(&from_file_lines_segments, sizeof(PVCell **), pve->lines_segments_size, fp);
-  g_assert(fread_result == pve->lines_segments_size);
+  assert(fread_result == pve->lines_segments_size);
   fread_result = fread(&from_file_lines_segments_sorted, sizeof(PVCell **), pve->lines_segments_size, fp);
-  g_assert(fread_result == pve->lines_segments_size);
+  assert(fread_result == pve->lines_segments_size);
   fread_result = fread(&from_file_lines_segments_sorted_sizes, sizeof(size_t), pve->lines_segments_size, fp);
-  g_assert(fread_result == pve->lines_segments_size);
+  assert(fread_result == pve->lines_segments_size);
 
   /*
    * - Allocates space for the lines segments array.
@@ -1527,16 +1527,16 @@ pve_load_from_binary_file (const char *const in_file_path)
    * - Sets the the lines segments element to point to the segment, or null if unsused.
    */
   pve->lines_segments = (PVCell ***) malloc(sizeof(PVCell **) * pve->lines_segments_size);
-  g_assert(pve->lines_segments);
+  assert(pve->lines_segments);
   pve->lines_segments_head = pve->lines_segments;
   for (size_t i = 0; i < pve->lines_segments_size; i++) {
     PVCell **segment = NULL;
     if (i < active_lines_segments_count) {
       size_t segment_size = (size_t) (((i == 0) ? 1 : (1ULL << (i - 1))) * pve->lines_first_size);
       segment = (PVCell **) malloc(segment_size * sizeof(PVCell *));
-      g_assert(segment);
+      assert(segment);
       fread_result = fread(segment, sizeof(PVCell *), segment_size, fp);
-      g_assert(fread_result == segment_size);
+      assert(fread_result == segment_size);
       pve->lines_segments_head++;
     }
     *(pve->lines_segments + i) = segment;
@@ -1544,9 +1544,9 @@ pve_load_from_binary_file (const char *const in_file_path)
 
   /* Prepares the sorted lines segments and the sorted sizes. */
   pve->lines_segments_sorted_sizes = (size_t *) malloc(sizeof(size_t) * pve->lines_segments_size);
-  g_assert(pve->lines_segments_sorted_sizes);
+  assert(pve->lines_segments_sorted_sizes);
   pve->lines_segments_sorted = (PVCell ***) malloc(sizeof(PVCell **) * pve->lines_segments_size);
-  g_assert(pve->lines_segments_sorted);
+  assert(pve->lines_segments_sorted);
   for (size_t i = 0; i < pve->lines_segments_size; i++) {
     *(pve->lines_segments_sorted_sizes + i) = 0;
     *(pve->lines_segments_sorted + i) = NULL;
@@ -1557,9 +1557,9 @@ pve_load_from_binary_file (const char *const in_file_path)
    * Allocates the lines stack and load it with the lines read from file.
    */
   pve->lines_stack = (PVCell ***) malloc(pve->lines_size * sizeof(PVCell **));
-  g_assert(pve->lines_stack);
+  assert(pve->lines_stack);
   fread_result = fread(pve->lines_stack, sizeof(PVCell **), pve->lines_size, fp);
-  g_assert(fread_result == pve->lines_size);
+  assert(fread_result == pve->lines_size);
   pve->lines_stack_head = pve->lines_stack + lines_in_use_count;
 
   /*
@@ -1627,7 +1627,7 @@ pve_load_from_binary_file (const char *const in_file_path)
     const size_t segment_size = ((i == 0) ? 1 : (1ULL << (i - 1))) * pve->cells_first_size;
     for (size_t j = 0; j < segment_size; j++) {
       PVCell *c = segment + j;
-      g_assert(c);
+      assert(c);
       if (c->next) {
         PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
                                                        from_file_cells_segments_sorted_sizes,
@@ -1670,7 +1670,7 @@ pve_load_from_binary_file (const char *const in_file_path)
     const size_t segment_size = ((i == 0) ? 1 : (1ULL << (i - 1))) * pve->lines_first_size;
     for (size_t j = 0; j < segment_size; j++) {
       PVCell **line = segment + j;
-      g_assert(line);
+      assert(line);
       if (*line) {
         PVCell *translated_element = pve_translate_ref(active_cells_segments_count,
                                                        from_file_cells_segments_sorted_sizes,
@@ -1740,7 +1740,7 @@ pve_load_from_binary_file (const char *const in_file_path)
    */
 
   int fclose_ret = fclose(fp);
-  g_assert(fclose_ret == 0);
+  assert(fclose_ret == 0);
   (void) fclose_ret;
 
   return pve;
@@ -1759,18 +1759,18 @@ void
 pve_summary_from_binary_file_to_stream (const char *const in_file_path,
                                         FILE *const stream)
 {
-  g_assert(in_file_path);
+  assert(in_file_path);
 
   int fread_result;
   PVEnv pve;
 
   /* Opens the binary file for reading. */
   FILE *fp = fopen(in_file_path, "r");
-  g_assert(fp);
+  assert(fp);
 
   /* Reads the pve structure from the file. */
   fread_result = fread(&pve, sizeof(PVEnv), 1, fp);
-  g_assert(fread_result == 1);
+  assert(fread_result == 1);
   (void) fread_result;
 
   fprintf(stream, "# PVE STRUCTURE HEADER\n");
@@ -1805,7 +1805,7 @@ pve_summary_from_binary_file_to_stream (const char *const in_file_path,
 
   /* Closes the input file. */
   int fclose_ret = fclose(fp);
-  g_assert(fclose_ret == 0);
+  assert(fclose_ret == 0);
   (void) fclose_ret;
 }
 
@@ -1922,7 +1922,7 @@ search_node_new (const Square move, const int value)
   static const size_t size_of_search_node = sizeof(SearchNode);
 
   sn = (SearchNode*) malloc(size_of_search_node);
-  g_assert(sn);
+  assert(sn);
 
   sn->move = move;
   sn->value = value;
@@ -1976,7 +1976,7 @@ game_tree_stack_new (void)
   static const size_t size_of_stack = sizeof(GameTreeStack);
 
   stack = (GameTreeStack*) malloc(size_of_stack);
-  g_assert(stack);
+  assert(stack);
 
   return stack;
 }
@@ -2094,21 +2094,21 @@ gts_generate_moves (GameTreeStack *const stack);
 static void
 pve_double_cells_size (PVEnv *const pve)
 {
-  g_assert(pve);
+  assert(pve);
 
   /* Doubleing cells_size can occur only if the stack is fully used. */
-  g_assert(pve->cells_size == pve->cells_stack_head - pve->cells_stack);
+  assert(pve->cells_size == pve->cells_stack_head - pve->cells_stack);
 
   /* The number of cells segments cannot grow further than the limit. */
   size_t cells_segments_used = pve->cells_segments_head - pve->cells_segments;
-  g_assert(pve->cells_segments_size > cells_segments_used);
+  assert(pve->cells_segments_size > cells_segments_used);
 
   const size_t actual_cells_size = pve->cells_size;
   const size_t cells_size_extension = pve->cells_size;
 
   /* Prepares the extension segment of cells. */
   PVCell *cells_extension = (PVCell *) malloc(cells_size_extension * sizeof(PVCell));
-  g_assert(cells_extension);
+  assert(cells_extension);
   *(pve->cells_segments_head) = cells_extension;
   pve->cells_segments_head++;
   cells_segments_used++;
@@ -2122,7 +2122,7 @@ pve_double_cells_size (PVEnv *const pve)
 
   /* Creates the new cells stack and load it with the cells held in the extension segment. */
   PVCell **new_cells_stack = (PVCell **) malloc(pve->cells_size * sizeof(PVCell *));
-  g_assert(new_cells_stack);
+  assert(new_cells_stack);
   free(pve->cells_stack);
   pve->cells_stack = new_cells_stack;
   for (size_t i = 0; i < actual_cells_size; i++) {
@@ -2145,21 +2145,21 @@ pve_double_cells_size (PVEnv *const pve)
 static void
 pve_double_lines_size (PVEnv *const pve)
 {
-  g_assert(pve);
+  assert(pve);
 
   /* Doubleing lines_size can occur only if the stack is fully used. */
-  g_assert(pve->lines_size == pve->lines_stack_head - pve->lines_stack);
+  assert(pve->lines_size == pve->lines_stack_head - pve->lines_stack);
 
   /* The number of lines segments cannot grow further than the limit. */
   size_t lines_segments_used = pve->lines_segments_head - pve->lines_segments;
-  g_assert(pve->lines_segments_size > lines_segments_used);
+  assert(pve->lines_segments_size > lines_segments_used);
 
   const size_t actual_lines_size = pve->lines_size;
   const size_t lines_size_extension = pve->lines_size;
 
   /* Prepares the extension segment of lines. */
   PVCell **lines_extension = (PVCell **) malloc(lines_size_extension * sizeof(PVCell *));
-  g_assert(lines_extension);
+  assert(lines_extension);
   *(pve->lines_segments_head) = lines_extension;
   pve->lines_segments_head++;
   lines_segments_used++;
@@ -2170,7 +2170,7 @@ pve_double_lines_size (PVEnv *const pve)
 
   /* Creates the new lines stack and load it with the lines held in the extension segment. */
   PVCell ***new_lines_stack = (PVCell ***) malloc(pve->lines_size * sizeof(PVCell **));
-  g_assert(new_lines_stack);
+  assert(new_lines_stack);
   free(pve->lines_stack);
   pve->lines_stack = new_lines_stack;
   for (size_t i = 0; i < actual_lines_size; i++) {
@@ -2315,9 +2315,9 @@ pve_translate_ref (size_t active_segments_count,
                    void **to_segments,
                    void *from_element)
 {
-  g_assert(from_segments);
-  g_assert(to_segments);
-  g_assert(from_element);
+  assert(from_segments);
+  assert(to_segments);
+  assert(from_element);
 
   for (size_t k1 = active_segments_count; k1 > 0; k1--) {
     const size_t k = k1 - 1;
@@ -2384,8 +2384,8 @@ pve_tree_walker (const PVEnv *const pve,
                                        pve_row_t *const row,
                                        const PVCell *const cell))
 {
-  g_assert(pve);
-  g_assert(stream);
+  assert(pve);
+  assert(stream);
 
   /*
    * The board has 64 squares, each move can have a pass, so
