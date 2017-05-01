@@ -37,8 +37,6 @@
 #include <assert.h>
 #include <string.h>
 
-#include <glib.h>
-
 #include "arch.h"
 #include "board.h"
 
@@ -173,7 +171,7 @@ void
 board_module_init (void)
 {
   /* This should be moved in the main function. Be careful, that valgrind doesn't detect properly AVX2. */
-  if (FALSE & !arch_runtime_is_supported()) {
+  if (false & !arch_runtime_is_supported()) {
     printf("The underline architecture, meaning HW and OS, is not supporting the requested features.\n");
     abort();
   }
@@ -486,7 +484,7 @@ square_set_to_array (int *sq_count,
   static const size_t size_of_square = sizeof(Square);
   const int square_count = bit_works_bitcount_64(squares);
   Square *array = (Square *) malloc(square_count * size_of_square);
-  g_assert(array);
+  assert(array);
   SquareSet s = squares;
   for (int i = 0; i < square_count; i++) {
     const Square sq = bit_works_bitscanLS1B_64(s);
@@ -518,11 +516,11 @@ SquareSet
 square_set_from_array (const Square sq_array[],
                        const int sq_count)
 {
-  g_assert(sq_count >= 0);
+  assert(sq_count >= 0);
   SquareSet squares = 0;
   for (int i = 0; i < sq_count; i++) {
     const Square sq = sq_array[i];
-    g_assert(square_belongs_to_enum_set(sq));
+    assert(square_belongs_to_enum_set(sq));
     squares |= (SquareSet) 1 << sq;
   }
   return squares;
@@ -548,7 +546,7 @@ square_set_from_array (const Square sq_array[],
 SquareState
 player_color (const Player p)
 {
-  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
   return (p == BLACK_PLAYER) ? BLACK_SQUARE : WHITE_SQUARE;
 }
 
@@ -568,7 +566,7 @@ player_color (const Player p)
 char *
 player_description (const Player p)
 {
-  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
   return (p == BLACK_PLAYER) ? "The Black player" : "The White player";
 }
 
@@ -588,7 +586,7 @@ player_description (const Player p)
 Player
 player_opponent (const Player p)
 {
-  g_assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
+  assert(p == BLACK_PLAYER || p == WHITE_PLAYER);
   return 1 - p;
 }
 
@@ -610,7 +608,7 @@ player_opponent (const Player p)
 char
 square_state_symbol (const SquareState color)
 {
-  g_assert(color >= EMPTY_SQUARE && color <= WHITE_SQUARE);
+  assert(color >= EMPTY_SQUARE && color <= WHITE_SQUARE);
 
   switch (color) {
   case EMPTY_SQUARE: return '.';
@@ -646,13 +644,13 @@ game_position_x_new (const SquareSet b,
                      const SquareSet w,
                      const Player p)
 {
-  g_assert((w & b) == empty_square_set);
+  assert((w & b) == empty_square_set);
 
   GamePositionX *gpx;
   static const size_t size_of_game_position_x = sizeof(GamePositionX);
 
   gpx = (GamePositionX *) malloc(size_of_game_position_x);
-  g_assert(gpx);
+  assert(gpx);
 
   gpx->blacks = b;
   gpx->whites = w;
@@ -686,7 +684,7 @@ game_position_x_free (GamePositionX *gpx)
 GamePositionX *
 game_position_x_clone (const GamePositionX *const gpx)
 {
-  g_assert(gpx);
+  assert(gpx);
 
   return game_position_x_new(gpx->blacks,
                              gpx->whites,
@@ -810,8 +808,8 @@ SquareState
 game_position_x_get_square (const GamePositionX *const gpx,
                             const Square sq)
 {
-  g_assert(gpx);
-  g_assert(square_belongs_to_enum_set(sq));
+  assert(gpx);
+  assert(square_belongs_to_enum_set(sq));
 
   const SquareSet bitsquare = (SquareSet) 1 << sq;
   if (bitsquare & gpx->blacks)
@@ -871,7 +869,7 @@ game_position_x_count_difference (const GamePositionX *const gpx)
  *
  * game_position_x_to_string(gpx, gpx_to_string);
  *
- * g_assert(g_strcmp0("bbbbbbbbwwwwwwww........................................wwwwwwwww", gpx_to_string) == 0);
+ * assert(g_strcmp0("bbbbbbbbwwwwwwww........................................wwwwwwwww", gpx_to_string) == 0);
  * @endcode
  *
  * @invariant Parameters `gpx` and `out` must be not `NULL`.
@@ -886,8 +884,8 @@ void
 game_position_x_to_string (const GamePositionX const *gpx,
                            char *out)
 {
-  g_assert(gpx);
-  g_assert(out);
+  assert(gpx);
+  assert(out);
 
   for (int pos = 0; pos < 64; pos++) {
     const SquareSet sq = (SquareSet) 1 << pos;
@@ -922,8 +920,8 @@ int
 game_position_x_compare (const GamePositionX *const a,
                          const GamePositionX *const b)
 {
-  g_assert(a);
-  g_assert(b);
+  assert(a);
+  assert(b);
 
   if (a == b) return 0;
 
@@ -1018,7 +1016,7 @@ game_position_x_print (char *const to_string,
 bool
 game_position_x_has_any_legal_move (const GamePositionX *const gpx)
 {
-  g_assert(gpx);
+  assert(gpx);
 
   return (empty_square_set == game_position_x_legal_moves(gpx)) ? false : true;
 }
@@ -1035,7 +1033,7 @@ game_position_x_has_any_legal_move (const GamePositionX *const gpx)
 bool
 game_position_x_has_any_player_any_legal_move (const GamePositionX *const gpx)
 {
-  g_assert(gpx);
+  assert(gpx);
 
   GamePositionX pass;
 
@@ -1061,8 +1059,8 @@ bool
 game_position_x_is_move_legal (const GamePositionX *const gpx,
                                const Square move)
 {
-  g_assert(gpx);
-  g_assert(square_is_valid_move(move));
+  assert(gpx);
+  assert(square_is_valid_move(move));
 
   bool result = false;
 
@@ -1106,10 +1104,10 @@ game_position_x_make_move (const GamePositionX *const current,
                            const Square move,
                            GamePositionX *const updated)
 {
-  g_assert(current);
-  g_assert(updated);
-  g_assert(square_is_valid_move(move));
-  g_assert(game_position_x_is_move_legal(current, move));
+  assert(current);
+  assert(updated);
+  assert(square_is_valid_move(move));
+  assert(game_position_x_is_move_legal(current, move));
 
   if (move == pass_move) {
     game_position_x_pass(current, updated);
