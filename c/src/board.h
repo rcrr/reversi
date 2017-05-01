@@ -338,8 +338,9 @@ game_position_x_final_value (const GamePositionX *const gpx)
   return (gpx->player == BLACK_PLAYER) ? +delta : -delta;
 }
 
-extern char *
-game_position_x_print (const GamePositionX *const gpx);
+extern size_t
+game_position_x_print (char *const to_string,
+                       const GamePositionX *const gpx);
 
 extern bool
 game_position_x_has_any_legal_move (const GamePositionX *const gpx);

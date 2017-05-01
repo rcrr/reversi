@@ -229,11 +229,19 @@ exact_solution_to_string (const ExactSolution *const es)
 {
   g_assert(es);
 
+  char root_gpx_to_string[512];
+  char final_gpx_to_string[512];
+  size_t length;
+
   gchar *es_to_string;
   GString *tmp = g_string_sized_new(32);
 
-  g_string_append_printf(tmp, "%s\n",
-                         game_position_x_print(&es->root_gpx));
+  length = game_position_x_print(root_gpx_to_string, &es->root_gpx);
+  assert(length < 512);
+  (void) length;
+
+
+  g_string_append_printf(tmp, "%s\n",root_gpx_to_string);
   g_string_append_printf(tmp, "[node_count=%" PRIu64 ", leaf_count=%" PRIu64 "]\n",
                          es->node_count,
                          es->leaf_count);
@@ -252,9 +260,9 @@ exact_solution_to_string (const ExactSolution *const es)
   }
 
   if (es->pve) {
-    gchar *b_to_s = game_position_x_print(&es->final_state);
-    g_string_append_printf(tmp, "\nFinal state configuration playing main PV:\n%s\n", b_to_s);
-    g_free(b_to_s);
+    length = game_position_x_print(final_gpx_to_string, &es->final_state);
+    assert(length < 512);
+    g_string_append_printf(tmp, "\nFinal state configuration playing main PV:\n%s\n", final_gpx_to_string);
   }
 
   es_to_string = tmp->str;
@@ -1073,11 +1081,15 @@ pve_internals_to_stream (PVEnv *const pve,
     fprintf(stream, "\n");
   }
 
+  char root_game_position_to_string[512];
+  size_t length;
+
   if (shown_sections & pve_internals_root_game_position) {
     fprintf(stream, "# PVE ROOT GAME POSITION\n");
-    char *gpx_to_s = game_position_x_print(pve->root_game_position);
-    fprintf(stream, "\n%s\n", gpx_to_s);
-    free(gpx_to_s);
+    length = game_position_x_print(root_game_position_to_string, pve->root_game_position);
+    assert(length < 512);
+    (void) length;
+    fprintf(stream, "\n%s\n", root_game_position_to_string);
   }
 }
 

@@ -1,9 +1,6 @@
 /**
  * @file
  *
- * @todo Axis functions are used only internally. Should be removed from the public interface.
- *       But tests has to be mantained ..... (including the board.c file?).
- *
  * @brief Board module implementation.
  * @details This module defines functions for the #Player, #SquareState,
  * #Square, #SquareSet, #GamePositionX entities.
@@ -973,49 +970,40 @@ extern int
 game_position_x_final_value (const GamePositionX *const gpx);
 
 /**
- * @brief Returns a formatted string showing a 2d graphical represention of the game position x.
+ * @brief Prepares a formatted string showing a 2d graphical represention of the game position x.
  *
- * The returned string has a dynamic extent set by a call to malloc. It must then properly
- * garbage collected by a call to free when no more referenced.
+ * @details The `to_string` buffer needs to have enough space to
+ * accomodate the generated string. The size of the buffer must be larger
+ * than 212 bytes.
+ *
+ * @invariant Parameter `to_string` must be not `NULL`.
+ * The invariant is guarded by an assertion.
  *
  * @invariant Parameter `gpx` must be not `NULL`.
- * Invariants are guarded by assertions.
+ * The invariant is guarded by an assertion.
  *
- * @param [in] gpx a pointer to the game position x structure
- * @return         a string being a 2d representation of the game position
+ * @param [out] to_string a string being a 2d representation of the game position
+ * @param [in]  gpx       a pointer to the game position x structure
+ * @return                the length of the string
  */
-char *
-game_position_x_print (const GamePositionX *const gpx)
+size_t
+game_position_x_print (char *const to_string,
+                       const GamePositionX *const gpx)
 {
-  g_assert(gpx);
+  assert(to_string);
+  assert(gpx);
 
-  const char *separator = NULL;
-
-  char *gp_to_string;
-  char *b_to_string;
-  GString *bs;
-
-  bs = g_string_sized_new(220);
-  g_string_append(bs, "    a b c d e f g h ");
+  char *c = to_string;
+  *c = 0;
+  c += sprintf(c, "    a b c d e f g h ");
   for (int row = 0; row < 8; row++) {
-    g_string_append_printf(bs, "\n %1d  ", row + 1);
+    c += sprintf(c, "\n %1d  ", row + 1);
     for (int col = 0; col < 8; col++) {
-      g_string_append_printf(bs, "%c ", square_state_symbol(game_position_x_get_square(gpx, (8 * row) + col)));
+      c += sprintf(c, "%c ", square_state_symbol(game_position_x_get_square(gpx, (8 * row) + col)));
     }
   }
-  g_string_append(bs, "\n");
-  b_to_string = bs->str;
-  g_string_free(bs, FALSE);
-  gp_to_string = g_strjoin(separator,
-                           b_to_string,
-                           "Player to move: ",
-                           (gpx->player == BLACK_PLAYER) ? "BLACK" : "WHITE",
-                           "\n",
-                           NULL);
-
-  g_free(b_to_string);
-
-  return gp_to_string;
+  c += sprintf(c, "\nPlayer to move: %s\n", (gpx->player == BLACK_PLAYER) ? "BLACK" : "WHITE");
+  return c - to_string;
 }
 
 /**

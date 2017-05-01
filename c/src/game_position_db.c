@@ -33,6 +33,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <string.h>
 
 #include <glib.h>
@@ -689,17 +690,20 @@ gpdb_entry_print (GamePositionDbEntry *entry)
 {
   gchar   *result;
   GString *msg;
-  gchar   *game_position_to_string;
 
-  game_position_to_string = game_position_x_print(entry->gpx);
+  char game_position_to_string[512];
+  size_t length;
+
+  length = game_position_x_print(game_position_to_string, entry->gpx);
+
+  assert(length < 512);
+  (void) length;
 
   msg = g_string_new("");
 
   g_string_append_printf(msg, "Entry id:    %s\n", entry->id);
   g_string_append_printf(msg, "Description: %s\n", entry->desc);
   g_string_append_printf(msg, "Game Position:\n%s\n", game_position_to_string);
-
-  g_free(game_position_to_string);
 
   result = msg->str;
   g_string_free(msg, FALSE);

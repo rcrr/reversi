@@ -414,7 +414,11 @@ game_position_x_print_test (void)
   };
   GamePositionX *gpx = &gpx_struct;
 
-  char *gpx_to_string = game_position_x_print(gpx);
+  char gpx_to_string[256];
+  size_t length;
+
+  length = game_position_x_print(gpx_to_string, gpx);
+  g_assert(length == 211);
 
   GString *expected = g_string_sized_new(220);
 
@@ -431,7 +435,6 @@ game_position_x_print_test (void)
 
   g_assert(g_strcmp0(expected->str, gpx_to_string) == 0);
 
-  g_free(gpx_to_string);
   g_string_free(expected, TRUE);
 }
 
