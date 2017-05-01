@@ -242,6 +242,27 @@ square_set_from_array_t (ut_test_t *const t)
   ut_assert(t, (SquareSet) 0 == computed_2);
 }
 
+static void
+player_color_t (ut_test_t *const t)
+{
+  ut_assert(t, BLACK_SQUARE == player_color(BLACK_PLAYER));
+  ut_assert(t, WHITE_SQUARE == player_color(WHITE_PLAYER));
+}
+
+static void
+player_description_t (ut_test_t *const t)
+{
+  ut_assert(t, strcmp(player_description(BLACK_PLAYER), "The Black player") == 0);
+  ut_assert(t, strcmp(player_description(WHITE_PLAYER), "The White player") == 0);
+}
+
+static void
+player_opponent_t (ut_test_t *const t)
+{
+  ut_assert(t, BLACK_PLAYER == player_opponent(WHITE_PLAYER));
+  ut_assert(t, WHITE_PLAYER == player_opponent(BLACK_PLAYER));
+}
+
 
 
 /**
@@ -270,6 +291,10 @@ main (int argc,
   ut_suite_add_simple_test(s, "square_set_random_selection", square_set_random_selection_t);
   ut_suite_add_simple_test(s, "square_set_to_array", square_set_to_array_t);
   ut_suite_add_simple_test(s, "square_set_from_array", square_set_from_array_t);
+
+  ut_suite_add_simple_test(s, "player_color", player_color_t);
+  ut_suite_add_simple_test(s, "player_description", player_description_t);
+  ut_suite_add_simple_test(s, "player_opponent", player_opponent_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
