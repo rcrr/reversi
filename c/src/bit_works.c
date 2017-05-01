@@ -9,7 +9,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -113,48 +113,6 @@ bit_works_bitcount_64 (uint64_t x)
 
 extern unsigned int
 bit_works_bitcount_64_popcnt (uint64_t x);
-
-/**
- * @brief Returns an HiLo struct of two int collecting the octal representation of the position of
- * the most significant bit set in the `bit_sequence` parameter.
- *
- * The method does not verify that the `bit_sequence` parameter must be different from `0ULL`.
- * When this happens it returns a value equal to `{hi=0, lo=0}` that is the expected
- * value when the parameter is equal to `1ULL`.
- *
- * @param [out] result       a reference to the result struct
- * @param [in]  bit_sequence a long value different from 0L
- * @return                   the octal value of the position of the most significant bit set
- *                           collected in a two cells struct
- */
-void
-bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64_t bit_sequence)
-{
-  uint32_t tmp;
-  uint8_t  hi;
-
-  hi = 0;
-
-  if ((bit_sequence & 0xFFFFFFFF00000000) != 0ULL) {
-    tmp = (uint32_t) (bit_sequence >> 32);
-    hi += 4;
-  } else {
-    tmp = (uint32_t) bit_sequence;
-  }
-
-  if ((tmp & 0xFFFF0000) != 0) {
-    tmp >>= 16;
-    hi += 2;
-  }
-  if ((tmp & 0x0000FF00) != 0) {
-    tmp >>=  8;
-    hi += 1;
-  }
-
-  result->hi = hi;
-  result->lo = log2_array[tmp];
-  return;
-}
 
 /**
  * @brief Returns a value computed shifting the `bit_sequence` parameter

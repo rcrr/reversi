@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -52,7 +52,6 @@ static void bit_works_bitscanLS1B_64_test (void);
 static void bit_works_highest_bit_set_8_test (void);
 static void bit_works_highest_bit_set_32_test (void);
 static void bit_works_type_size_test (void);
-static void bit_works_bitscan_MS1B_to_base8_test (void);
 static void bit_works_bitcount_64_test (void);
 static void bit_works_signed_left_shift_test (void);
 static void bit_works_ror_64_test (void);
@@ -78,7 +77,6 @@ main (int   argc,
   g_test_add_func("/bit_works/bit_works_signed_left_shift_test", bit_works_signed_left_shift_test);
   g_test_add_func("/bit_works/bit_works_bitcount_64_test", bit_works_bitcount_64_test);
   g_test_add_func("/bit_works/bit_works_type_size_test", bit_works_type_size_test);
-  g_test_add_func("/bit_works/bit_works_bitscan_MS1B_to_base8_test", bit_works_bitscan_MS1B_to_base8_test);
   g_test_add_func("/bit_works/bit_works_ror_64", bit_works_ror_64_test);
   g_test_add_func("/bit_works/bit_works_rol_64", bit_works_rol_64_test);
 
@@ -251,39 +249,6 @@ bit_works_type_size_test (void)
   g_assert(8 == sizeof(uint64_t));
   g_assert(4 == sizeof(uint32_t));
   g_assert(1 == sizeof(uint8_t));
-}
-
-static void
-bit_works_bitscan_MS1B_to_base8_test (void)
-{
-  HiLo ret;
-  uint64_t bit_sequence;
-
-  ret = (HiLo) { .hi = 0, .lo = 0 };
-  bit_sequence = 1ULL << 0;
-  bit_works_bitscan_MS1B_to_base8 (&ret, bit_sequence);
-  g_assert((0 == ret.hi) && (0 == ret.lo));
-
-  ret = (HiLo) { .hi = 0, .lo = 0 };
-  bit_sequence = 1ULL << 1;
-  bit_works_bitscan_MS1B_to_base8 (&ret, bit_sequence);
-  g_assert((0 == ret.hi) && (1 == ret.lo));
-
-  ret = (HiLo) { .hi = 0, .lo = 0 };
-  bit_sequence = 1ULL << 7;
-  bit_works_bitscan_MS1B_to_base8 (&ret, bit_sequence);
-  g_assert((0 == ret.hi) && (7 == ret.lo));
-
-  ret = (HiLo) { .hi = 0, .lo = 0 };
-  bit_sequence = 1ULL << 8;
-  bit_works_bitscan_MS1B_to_base8 (&ret, bit_sequence);
-  g_assert((1 == ret.hi) && (0 == ret.lo));
-
-  ret = (HiLo) { .hi = 0, .lo = 0 };
-  bit_sequence = 1ULL << 63;
-  bit_works_bitscan_MS1B_to_base8 (&ret, bit_sequence);
-  g_assert((7 == ret.hi) && (7 == ret.lo));
-
 }
 
 static void

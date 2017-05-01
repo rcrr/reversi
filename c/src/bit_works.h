@@ -12,7 +12,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -38,14 +38,6 @@
 
 #include <stdint.h>
 
-/**
- * @brief Used to return a two digit representation on a given base, for an integer.
- */
-typedef struct {
-  unsigned char lo;   /**< @brief The low digit. */
-  unsigned char hi;   /**< @brief The high digit. */
-} HiLo;
-
 extern unsigned int
 bit_works_bitcount_64 (uint64_t x);
 
@@ -57,9 +49,6 @@ bit_works_bitcount_64_popcnt (uint64_t x)
   __asm__ __volatile__ ("popcnt %1, %0" : "=g" (out) : "g" (x));
   return (int) out;
 }
-
-extern void
-bit_works_bitscan_MS1B_to_base8 (HiLo *result, uint64_t bit_sequence);
 
 extern uint64_t
 bit_works_signed_left_shift (uint64_t bit_sequence, int shift);
