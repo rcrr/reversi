@@ -263,6 +263,201 @@ player_opponent_t (ut_test_t *const t)
   ut_assert(t, WHITE_PLAYER == player_opponent(BLACK_PLAYER));
 }
 
+static void
+game_position_x_print_t (ut_test_t *const t)
+{
+  GamePositionX gpx_struct = {
+    .blacks = 1,
+    .whites = 4,
+    .player = WHITE_PLAYER
+  };
+  GamePositionX *gpx = &gpx_struct;
+
+  char expected[256];
+  char *s = expected;
+
+  char gpx_to_string[256];
+  size_t length;
+
+  length = game_position_x_print(gpx_to_string, gpx);
+  ut_assert(t, 211 == length);
+
+  s += sprintf(s, "    a b c d e f g h \n");
+  s += sprintf(s, " 1  @ . O . . . . . \n");
+  s += sprintf(s, " 2  . . . . . . . . \n");
+  s += sprintf(s, " 3  . . . . . . . . \n");
+  s += sprintf(s, " 4  . . . . . . . . \n");
+  s += sprintf(s, " 5  . . . . . . . . \n");
+  s += sprintf(s, " 6  . . . . . . . . \n");
+  s += sprintf(s, " 7  . . . . . . . . \n");
+  s += sprintf(s, " 8  . . . . . . . . \n");
+  s += sprintf(s, "Player to move: WHITE\n");
+
+  ut_assert(t, strcmp(expected, gpx_to_string) == 0);
+}
+
+static void
+game_position_x_empties_t (ut_test_t *const t)
+{
+  GamePositionX gpx;
+
+  gpx.blacks = 0x0000000000000000;
+  gpx.whites = 0x0000000000000000;
+  gpx.player = BLACK_PLAYER;
+  ut_assert(t, 0xFFFFFFFFFFFFFFFF == game_position_x_empties(&gpx));
+
+  gpx.blacks = 0x0000000000000000;
+  gpx.whites = 0x0000000000000001;
+  gpx.player = BLACK_PLAYER;
+  ut_assert(t, 0xFFFFFFFFFFFFFFFE == game_position_x_empties(&gpx));
+
+  gpx.blacks = 0xFF00000000000001;
+  gpx.whites = 0x00FF000000000002;
+  gpx.player = WHITE_PLAYER;
+  ut_assert(t, 0x0000FFFFFFFFFFFC == game_position_x_empties(&gpx));
+}
+
+static void
+game_position_x_get_player_t (ut_test_t *const t)
+{
+  GamePositionX gpx;
+
+  gpx.blacks = 0x00000000000000FF;
+  gpx.whites = 0x000000000000FF00;
+  gpx.player = BLACK_PLAYER;
+  ut_assert(t, 0x00000000000000FF == game_position_x_get_player(&gpx));
+
+  gpx.blacks = 0x00000000000000FF;
+  gpx.whites = 0x000000000000FF00;
+  gpx.player = WHITE_PLAYER;
+  ut_assert(t, 0x000000000000FF00 == game_position_x_get_player(&gpx));
+}
+
+static void
+game_position_x_get_opponent_t (ut_test_t *const t)
+{
+  GamePositionX gpx;
+
+  gpx.blacks = 0x00000000000000FF;
+  gpx.whites = 0x000000000000FF00;
+  gpx.player = BLACK_PLAYER;
+  ut_assert(t, 0x000000000000FF00 == game_position_x_get_opponent(&gpx));
+
+  gpx.blacks = 0x00000000000000FF;
+  gpx.whites = 0x000000000000FF00;
+  gpx.player = WHITE_PLAYER;
+  ut_assert(t, 0x00000000000000FF == game_position_x_get_opponent(&gpx));
+}
+
+static void
+game_position_x_legal_moves_t (ut_test_t *const t)
+{
+  GamePositionX gpx;
+
+  gpx.blacks = 0x0000000000000001;
+  gpx.whites = 0x0040201008040200;
+  gpx.player = BLACK_PLAYER;
+  ut_assert(t, 0x8000000000000000 == game_position_x_legal_moves(&gpx));
+}
+
+static void
+game_position_x_count_difference_t (ut_test_t *const t)
+{
+  GamePositionX gpx;
+
+  gpx.blacks = 0x00000000000000FF;
+  gpx.whites = 0x000000000000FF00;
+  gpx.player = BLACK_PLAYER;
+  ut_assert(t, 0 == game_position_x_count_difference(&gpx));
+
+  gpx.blacks = 0x00000000000000FF;
+  gpx.whites = 0x000000000000FF00;
+  gpx.player = WHITE_PLAYER;
+  ut_assert(t, 0 == game_position_x_count_difference(&gpx));
+
+  gpx.blacks = 0x0000000000000000;
+  gpx.whites = 0x000000000000FF00;
+  gpx.player = BLACK_PLAYER;
+  ut_assert(t, -8 == game_position_x_count_difference(&gpx));
+
+  gpx.blacks = 0x0000000000000000;
+  gpx.whites = 0x000000000000FF00;
+  gpx.player = WHITE_PLAYER;
+  ut_assert(t, +8 == game_position_x_count_difference(&gpx));
+}
+
+static void
+game_position_x_to_string_t (ut_test_t *const t)
+{
+  GamePositionX gpx;
+  char gpx_to_string[66];
+
+  gpx.blacks = 0x00000000000000FF;
+  gpx.whites = 0x000000000000FF00;
+  gpx.player = BLACK_PLAYER;
+  game_position_x_to_string(&gpx, gpx_to_string);
+  ut_assert(t, strcmp("bbbbbbbbwwwwwwww................................................b",
+                      gpx_to_string) == 0);
+
+  gpx.blacks = 0x00000000000000FF;
+  gpx.whites = 0xFF0000000000FF00;
+  gpx.player = WHITE_PLAYER;
+  game_position_x_to_string(&gpx, gpx_to_string);
+  ut_assert(t, strcmp("bbbbbbbbwwwwwwww........................................wwwwwwwww",
+                      gpx_to_string) == 0);
+}
+
+static void
+game_position_x_get_square_t (ut_test_t *const t)
+{
+  GamePositionX gpx;
+
+  gpx.blacks = 0x0000000000000001;
+  gpx.whites = 0x0000000000000002;
+  gpx.player = BLACK_PLAYER;
+
+  ut_assert(t, BLACK_SQUARE == game_position_x_get_square(&gpx, A1));
+  ut_assert(t, WHITE_SQUARE == game_position_x_get_square(&gpx, B1));
+  ut_assert(t, EMPTY_SQUARE == game_position_x_get_square(&gpx, C1));
+}
+static void
+game_position_x_compare_t (ut_test_t *const t)
+{
+  GamePositionX a, b;
+
+  a.blacks = 0x0000000000000001;
+  a.whites = 0x0000000000000002;
+  a.player = BLACK_PLAYER;
+  b.blacks = 0x0000000000000001;
+  b.whites = 0x0000000000000002;
+  b.player = BLACK_PLAYER;
+  ut_assert(t, 0 == game_position_x_compare(&a, &b));
+
+  a.blacks = 0x0000000000000001;
+  a.whites = 0x0000000000000002;
+  a.player = BLACK_PLAYER;
+  b.blacks = 0x0000000000000001;
+  b.whites = 0x0000000000000002;
+  b.player = WHITE_PLAYER;
+  ut_assert(t, -1 == game_position_x_compare(&a, &b));
+
+  a.blacks = 0x0000000000000001;
+  a.whites = 0x0000000000000002;
+  a.player = WHITE_PLAYER;
+  b.blacks = 0x0000000000000001;
+  b.whites = 0x0000000000000002;
+  b.player = BLACK_PLAYER;
+  ut_assert(t, +1 == game_position_x_compare(&a, &b));
+
+  a.blacks = 0x0000000000000001;
+  a.whites = 0x0000000000000002;
+  a.player = BLACK_PLAYER;
+  b.blacks = 0x0000000000000004;
+  b.whites = 0x0000000000000002;
+  b.player = BLACK_PLAYER;
+  ut_assert(t, -1 == game_position_x_compare(&a, &b));
+}
+
 
 
 /**
@@ -295,6 +490,16 @@ main (int argc,
   ut_suite_add_simple_test(s, "player_color", player_color_t);
   ut_suite_add_simple_test(s, "player_description", player_description_t);
   ut_suite_add_simple_test(s, "player_opponent", player_opponent_t);
+
+  ut_suite_add_simple_test(s, "game_position_x_print", game_position_x_print_t);
+  ut_suite_add_simple_test(s, "game_position_x_empties", game_position_x_empties_t);
+  ut_suite_add_simple_test(s, "game_position_x_get_player", game_position_x_get_player_t);
+  ut_suite_add_simple_test(s, "game_position_x_get_opponent", game_position_x_get_opponent_t);
+  ut_suite_add_simple_test(s, "game_position_x_legal_moves", game_position_x_legal_moves_t);
+  ut_suite_add_simple_test(s, "game_position_x_count_difference", game_position_x_count_difference_t);
+  ut_suite_add_simple_test(s, "game_position_x_to_string", game_position_x_to_string_t);
+  ut_suite_add_simple_test(s, "game_position_x_get_square", game_position_x_get_square_t);
+  ut_suite_add_simple_test(s, "game_position_x_compare", game_position_x_compare_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
