@@ -458,6 +458,61 @@ game_position_x_compare_t (ut_test_t *const t)
   ut_assert(t, -1 == game_position_x_compare(&a, &b));
 }
 
+static void
+game_position_x_clone_t (ut_test_t *const t)
+{
+  GamePositionX a;
+  GamePositionX *b;
+  a.blacks = 0x0000000000000001;
+  a.whites = 0x0000000000000002;
+  a.player = BLACK_PLAYER;
+  b = game_position_x_clone(&a);
+  ut_assert(t, 0 == game_position_x_compare(&a, b));
+  game_position_x_free(b);
+}
+
+static void
+game_position_x_copy_t (ut_test_t *const t)
+{
+  GamePositionX *a;
+  GamePositionX *b;
+  a = game_position_x_new(0x0000000000000001,
+                          0x0000000000000002,
+                          BLACK_PLAYER);
+  b = game_position_x_new(0x00000000000000FF,
+                          0x0000000000000000,
+                          WHITE_PLAYER);
+  ut_assert(t, 0 != game_position_x_compare(a, b));
+  game_position_x_copy(a, b);
+  ut_assert(t, 0 == game_position_x_compare(a, b));
+  game_position_x_free(a);
+  game_position_x_free(b);
+}
+
+static void
+game_position_x_pass_t (ut_test_t *const t)
+{
+  GamePositionX *current;
+  GamePositionX *next;
+
+  current = game_position_x_new(0x0000000000000001,
+                                0x0000000000000002,
+                                BLACK_PLAYER);
+
+  next = game_position_x_new(0x0000000000000000,
+                             0x0000000000000000,
+                             BLACK_PLAYER);
+
+  game_position_x_pass(current, next);
+
+  ut_assert(t, 0x0000000000000001 == next->blacks);
+  ut_assert(t, 0x0000000000000002 == next->whites);
+  ut_assert(t, WHITE_PLAYER == next->player);
+
+  game_position_x_free(current);
+  game_position_x_free(next);
+}
+
 
 
 /**
@@ -500,6 +555,9 @@ main (int argc,
   ut_suite_add_simple_test(s, "game_position_x_to_string", game_position_x_to_string_t);
   ut_suite_add_simple_test(s, "game_position_x_get_square", game_position_x_get_square_t);
   ut_suite_add_simple_test(s, "game_position_x_compare", game_position_x_compare_t);
+  ut_suite_add_simple_test(s, "game_position_x_clone", game_position_x_clone_t);
+  ut_suite_add_simple_test(s, "game_position_x_copy", game_position_x_copy_t);
+  ut_suite_add_simple_test(s, "game_position_x_pass", game_position_x_pass_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
