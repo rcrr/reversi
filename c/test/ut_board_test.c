@@ -513,6 +513,67 @@ game_position_x_pass_t (ut_test_t *const t)
   game_position_x_free(next);
 }
 
+static void
+game_position_x_hash_t (ut_test_t *const t)
+{
+  GamePositionX *gpx;
+  SquareSet      blacks;
+  SquareSet      whites;
+  Player         player;
+  uint64_t       expected;
+
+  expected = 0;
+  blacks = 0x0000000000000000;
+  whites = 0x0000000000000000;
+  player = BLACK_PLAYER;
+  gpx = game_position_x_new(blacks, whites, player);
+  ut_assert(t, expected == game_position_x_hash(gpx));
+  game_position_x_free(gpx);
+
+  expected = 0xFFFFFFFFFFFFFFFF;
+  blacks = 0x0000000000000000;
+  whites = 0x0000000000000000;
+  player = WHITE_PLAYER;
+  gpx = game_position_x_new(blacks, whites, player);
+  ut_assert(t, expected == game_position_x_hash(gpx));
+  game_position_x_free(gpx);
+
+  expected = 0x4689879C5E2B6C8D ^ 0x1C10E0B05C7B3C49;
+  blacks = 0x0000000000000002;
+  whites = 0x0000000000000004;
+  player = BLACK_PLAYER;
+  gpx = game_position_x_new(blacks, whites, player);
+  ut_assert(t, expected == game_position_x_hash(gpx));
+  game_position_x_free(gpx);
+
+  /*
+   * The hash of two game position A, and B having the same board but different player satisfy
+   * this property:
+   * hash(A) & hash(B) == 0;
+   */
+  player = WHITE_PLAYER;
+  gpx = game_position_x_new(blacks, whites, player);
+  ut_assert(t, ~expected == game_position_x_hash(gpx));
+  game_position_x_free(gpx);
+}
+
+static void
+game_position_x_delta_hash_t (ut_test_t *const t)
+{
+  const GamePositionX a = { 4ULL, 2ULL, BLACK_PLAYER };
+  const GamePositionX b = { 7ULL, 0ULL, WHITE_PLAYER };
+  const uint64_t hash_a = game_position_x_hash(&a);
+  const uint64_t hash_b = game_position_x_hash(&b);
+
+  const Square flips[] = { A1, B1 };
+  const int flip_count = 2;
+
+  const uint64_t computed = game_position_x_delta_hash(hash_a, flips, flip_count, b.player);
+  const uint64_t expected =hash_b;
+
+  ut_assert(t, expected == computed);
+}
+
 
 
 /**
@@ -558,6 +619,8 @@ main (int argc,
   ut_suite_add_simple_test(s, "game_position_x_clone", game_position_x_clone_t);
   ut_suite_add_simple_test(s, "game_position_x_copy", game_position_x_copy_t);
   ut_suite_add_simple_test(s, "game_position_x_pass", game_position_x_pass_t);
+  ut_suite_add_simple_test(s, "game_position_x_hash", game_position_x_hash_t);
+  ut_suite_add_simple_test(s, "game_position_x_delta_hash", game_position_x_delta_hash_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
