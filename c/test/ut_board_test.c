@@ -573,6 +573,147 @@ game_position_x_delta_hash_t (ut_test_t *const t)
 
   ut_assert(t, expected == computed);
 }
+static void
+game_position_x_final_value_t (ut_test_t *const t)
+{
+  GamePositionX *gpx;
+
+  gpx = game_position_x_new(0xFFFFFFFFFFFFFFFF,
+                            0x0000000000000000,
+                            BLACK_PLAYER);
+  ut_assert(t, 64 == game_position_x_final_value(gpx));
+  game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x0000000000000001,
+                            0x0000000000000002,
+                            BLACK_PLAYER);
+  ut_assert(t, 0 == game_position_x_final_value(gpx));
+  game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x0000000000000001,
+                            0x0000000000000002,
+                            WHITE_PLAYER);
+  ut_assert(t, 0 == game_position_x_final_value(gpx));
+  game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x0000000000000001,
+                            0x0000000000000000,
+                            BLACK_PLAYER);
+  ut_assert(t, 64 == game_position_x_final_value(gpx));
+  game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x0000000000000001,
+                            0x0000000000000000,
+                            WHITE_PLAYER);
+  ut_assert(t, -64 == game_position_x_final_value(gpx));
+  game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x00FF000000000001,
+                            0xFF00000000000000,
+                            BLACK_PLAYER);
+  ut_assert(t, 48 == game_position_x_final_value(gpx));
+  game_position_x_free(gpx);
+}
+
+static void
+game_position_x_has_any_legal_move_t (ut_test_t *const t)
+{
+  GamePositionX *gpx;
+
+  gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
+                            0x8000000000000000,
+                            WHITE_PLAYER);
+  ut_assert(t, true == game_position_x_has_any_legal_move(gpx));
+  game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0xFFFFFFFFFFFFFFFE,
+                            0x0000000000000000,
+                            WHITE_PLAYER);
+  ut_assert(t, false == game_position_x_has_any_legal_move(gpx));
+  game_position_x_free(gpx);
+}
+
+static void
+game_position_x_has_any_player_any_legal_move_t (ut_test_t *const t)
+{
+  GamePositionX *gpx;
+
+  gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
+                            0x8000000000000000,
+                            WHITE_PLAYER);
+  ut_assert(t, true == game_position_x_has_any_player_any_legal_move(gpx));
+  game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
+                            0x8000000000000000,
+                            BLACK_PLAYER);
+  ut_assert(t, true == game_position_x_has_any_player_any_legal_move(gpx));
+  game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0xFFFFFFFFFFFFFFFE,
+                            0x0000000000000000,
+                            WHITE_PLAYER);
+  ut_assert(t, false == game_position_x_has_any_player_any_legal_move(gpx));
+  game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0xFFFFFFFFFFFFFFFE,
+                            0x0000000000000000,
+                            BLACK_PLAYER);
+  ut_assert(t, false == game_position_x_has_any_player_any_legal_move(gpx));
+  game_position_x_free(gpx);
+}
+
+static void
+game_position_x_is_move_legal_t (ut_test_t *const t)
+{
+  GamePositionX *gpx;
+
+  gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
+                            0x8000000000000000,
+                            WHITE_PLAYER);
+  ut_assert(t, true == game_position_x_is_move_legal(gpx, 0));
+  game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
+                            0x8000000000000000,
+                            WHITE_PLAYER);
+  ut_assert(t, false == game_position_x_is_move_legal(gpx, 1));
+  game_position_x_free(gpx);
+
+  gpx = game_position_x_new(0x7FFFFFFFFFFFFFFE,
+                            0x0000000000000000,
+                            WHITE_PLAYER);
+  ut_assert(t, false == game_position_x_is_move_legal(gpx, 0));
+  game_position_x_free(gpx);
+}
+
+static void
+game_position_x_make_move_t (ut_test_t *const t)
+{
+  GamePositionX *current;
+  GamePositionX *updated;
+  GamePositionX *expected;
+
+  current = game_position_x_new(0x0000000000000002,
+                                0x0000000000000004,
+                                WHITE_PLAYER);
+
+  updated = game_position_x_new(0x0000000000000000,
+                                0x0000000000000000,
+                                WHITE_PLAYER);
+
+  expected = game_position_x_new(0x0000000000000000,
+                                 0x0000000000000007,
+                                 BLACK_PLAYER);
+
+  ut_assert(t, true == game_position_x_is_move_legal(current, 0));
+  game_position_x_make_move(current, 0, updated);
+  ut_assert(t, 0 == game_position_x_compare(expected, updated));
+
+  game_position_x_free(current);
+  game_position_x_free(updated);
+  game_position_x_free(expected);
+}
 
 
 
@@ -621,6 +762,11 @@ main (int argc,
   ut_suite_add_simple_test(s, "game_position_x_pass", game_position_x_pass_t);
   ut_suite_add_simple_test(s, "game_position_x_hash", game_position_x_hash_t);
   ut_suite_add_simple_test(s, "game_position_x_delta_hash", game_position_x_delta_hash_t);
+  ut_suite_add_simple_test(s, "game_position_x_final_value", game_position_x_final_value_t);
+  ut_suite_add_simple_test(s, "game_position_x_has_any_legal_move", game_position_x_has_any_legal_move_t);
+  ut_suite_add_simple_test(s, "game_position_x_has_any_player_any_legal_move", game_position_x_has_any_player_any_legal_move_t);
+  ut_suite_add_simple_test(s, "game_position_x_is_move_legal", game_position_x_is_move_legal_t);
+  ut_suite_add_simple_test(s, "game_position_x_make_move", game_position_x_make_move_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
