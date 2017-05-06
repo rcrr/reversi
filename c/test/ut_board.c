@@ -4,7 +4,7 @@
  * @brief Board module unit test suite.
  * @details Collects tests and helper methods for the board module.
  *
- * @par ut_board_test.c
+ * @par ut_board.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi

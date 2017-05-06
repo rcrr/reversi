@@ -4,13 +4,13 @@
  * @brief Linked list utils unit test suite.
  * @details Collects tests and helper methods for the linked list module.
  *
- * @par llist_test.c
+ * @par ut_llist.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2015 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -53,7 +53,7 @@ aux_print_elements (d, aux)
   printf("%d\n", *ip);
 }
 
-void
+static void
 aux_add_elements (d, aux)
      void *const d;
      void *const aux;
@@ -65,7 +65,7 @@ aux_add_elements (d, aux)
   *sum += *value;
 }
 
-void
+static void
 aux_count_elements (d, aux)
      void *const d;
      void *const aux;
@@ -75,7 +75,7 @@ aux_count_elements (d, aux)
   (*count)++;
 }
 
-int
+static int
 aux_int_cmp (const void *const a,
              const void *const b)
 {
@@ -91,7 +91,7 @@ aux_int_cmp (const void *const a,
  */
 
 static void
-llist_new_free_test (ut_test_t *const t)
+llist_new_free_t (ut_test_t *const t)
 {
   llist_t *l = llist_new(NULL);
   ut_assert(t, l != NULL);
@@ -99,7 +99,7 @@ llist_new_free_test (ut_test_t *const t)
 }
 
 static void
-llist_add_remove_foreach_test (ut_test_t *const t)
+llist_add_remove_foreach_t (ut_test_t *const t)
 {
   int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
@@ -198,7 +198,7 @@ llist_add_remove_foreach_test (ut_test_t *const t)
 }
 
 static void
-llist_length_test (ut_test_t *const t)
+llist_length_t (ut_test_t *const t)
 {
   int count;
   llist_t *l = llist_new(NULL);
@@ -232,7 +232,7 @@ llist_length_test (ut_test_t *const t)
 }
 
 static void
-llist_find_test (ut_test_t *const t)
+llist_find_t (ut_test_t *const t)
 {
   int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   int data_size = 10;
@@ -258,7 +258,7 @@ llist_find_test (ut_test_t *const t)
 }
 
 static void
-llist_nth_test (ut_test_t *const t)
+llist_nth_t (ut_test_t *const t)
 {
   int data[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
   int data_size = 10;
@@ -279,7 +279,7 @@ llist_nth_test (ut_test_t *const t)
 }
 
 static void
-llist_nth_data_test (ut_test_t *const t)
+llist_nth_data_t (ut_test_t *const t)
 {
   int data[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
   int data_size = 10;
@@ -299,7 +299,7 @@ llist_nth_data_test (ut_test_t *const t)
 }
 
 static void
-llist_insert_at_position_test (ut_test_t *const t)
+llist_insert_at_position_t (ut_test_t *const t)
 {
   int data[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
   int data_size = 10;
@@ -320,7 +320,7 @@ llist_insert_at_position_test (ut_test_t *const t)
 }
 
 static void
-llist_insert_after_elm_test (ut_test_t *const t)
+llist_insert_after_elm_t (ut_test_t *const t)
 {
   int data[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
   int data_size = 10;
@@ -346,7 +346,7 @@ llist_insert_after_elm_test (ut_test_t *const t)
 }
 
 static void
-llist_insert_before_elm_test (ut_test_t *const t)
+llist_insert_before_elm_t (ut_test_t *const t)
 {
   int data[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
   int data_size = 10;
@@ -372,7 +372,7 @@ llist_insert_before_elm_test (ut_test_t *const t)
 }
 
 static void
-llist_last_elm_test (ut_test_t *const t)
+llist_last_elm_t (ut_test_t *const t)
 {
   int data[] = {0, 1, 2, 3};
   int data_size = 4;
@@ -391,7 +391,7 @@ llist_last_elm_test (ut_test_t *const t)
 }
 
 static void
-llist_reverse_test (ut_test_t *const t)
+llist_reverse_t (ut_test_t *const t)
 {
   int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   int data_size = 10;
@@ -419,7 +419,7 @@ llist_reverse_test (ut_test_t *const t)
 }
 
 static void
-llist_insertion_sort_test (ut_test_t *const t)
+llist_insertion_sort_t (ut_test_t *const t)
 {
   int data[] = {4, 2, 6, 1, 3, 0, 8, 9, 7, 5};
   int data_size = 10;
@@ -440,7 +440,7 @@ llist_insertion_sort_test (ut_test_t *const t)
 }
 
 static void
-llist_adv_insertion_sort_test (ut_test_t *const t)
+llist_adv_insertion_sort_t (ut_test_t *const t)
 {
   int data[] = {4, 2, 6, 1, 3, 0, 8, 9, 7, 5};
   //int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -464,7 +464,7 @@ llist_adv_insertion_sort_test (ut_test_t *const t)
 }
 
 static void
-llist_merge_sort__0_test (ut_test_t *const t)
+llist_merge_sort__0_t (ut_test_t *const t)
 {
   int data_size = 31;
   int data[] = {4, 25, 10,  1, 12, 18,  8, 21,
@@ -488,7 +488,7 @@ llist_merge_sort__0_test (ut_test_t *const t)
 }
 
 static void
-llist_merge_sort__1_test (ut_test_t *const t)
+llist_merge_sort__1_t (ut_test_t *const t)
 {
   const int sizes = 512;
   int data[sizes];
@@ -528,21 +528,21 @@ main (argc, argv)
 
   ut_suite_t *const s = ut_suite_new("llist");
 
-  ut_suite_add_simple_test(s, "new-free", llist_new_free_test);
-  ut_suite_add_simple_test(s, "add-remove-foreach", llist_add_remove_foreach_test);
-  ut_suite_add_simple_test(s, "length", llist_length_test);
-  ut_suite_add_simple_test(s, "find", llist_find_test);
-  ut_suite_add_simple_test(s, "nth", llist_nth_test);
-  ut_suite_add_simple_test(s, "nth_data", llist_nth_data_test);
-  ut_suite_add_simple_test(s, "insert_at_position", llist_insert_at_position_test);
-  ut_suite_add_simple_test(s, "insert_after_elm", llist_insert_after_elm_test);
-  ut_suite_add_simple_test(s, "insert_before_elm", llist_insert_before_elm_test);
-  ut_suite_add_simple_test(s, "last_elm", llist_last_elm_test);
-  ut_suite_add_simple_test(s, "reverse", llist_reverse_test);
-  ut_suite_add_simple_test(s, "insertion_sort", llist_insertion_sort_test);
-  ut_suite_add_simple_test(s, "adv_insertion_sort", llist_adv_insertion_sort_test);
-  ut_suite_add_simple_test(s, "merge_sort__0", llist_merge_sort__0_test);
-  ut_suite_add_simple_test(s, "merge_sort__1", llist_merge_sort__1_test);
+  ut_suite_add_simple_test(s, "new-free", llist_new_free_t);
+  ut_suite_add_simple_test(s, "add-remove-foreach", llist_add_remove_foreach_t);
+  ut_suite_add_simple_test(s, "length", llist_length_t);
+  ut_suite_add_simple_test(s, "find", llist_find_t);
+  ut_suite_add_simple_test(s, "nth", llist_nth_t);
+  ut_suite_add_simple_test(s, "nth_data", llist_nth_data_t);
+  ut_suite_add_simple_test(s, "insert_at_position", llist_insert_at_position_t);
+  ut_suite_add_simple_test(s, "insert_after_elm", llist_insert_after_elm_t);
+  ut_suite_add_simple_test(s, "insert_before_elm", llist_insert_before_elm_t);
+  ut_suite_add_simple_test(s, "last_elm", llist_last_elm_t);
+  ut_suite_add_simple_test(s, "reverse", llist_reverse_t);
+  ut_suite_add_simple_test(s, "insertion_sort", llist_insertion_sort_t);
+  ut_suite_add_simple_test(s, "adv_insertion_sort", llist_adv_insertion_sort_t);
+  ut_suite_add_simple_test(s, "merge_sort__0", llist_merge_sort__0_t);
+  ut_suite_add_simple_test(s, "merge_sort__1", llist_merge_sort__1_t);
 
   int failure_count = ut_suite_run(s);
 

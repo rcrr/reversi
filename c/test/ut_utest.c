@@ -4,13 +4,13 @@
  * @brief Utest unit test suite.
  * @details Collects tests and helper methods for the utest program.
  *
- * @par utest_test.c
+ * @par ut_utest.c
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2015 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
