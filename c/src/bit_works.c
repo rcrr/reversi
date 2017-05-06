@@ -145,20 +145,6 @@ extern unsigned int
 bit_works_bitcount_64 (uint64_t x);
 
 /**
- * @brief Returns a value computed shifting the `bit_sequence` parameter
- * to left by a signed amount given by the `shift` parameter.
- *
- * @param bit_sequence the value that will be shifted
- * @param shift        the number of position to shift
- * @return             the shifted value
- */
-uint64_t
-bit_works_signed_left_shift (uint64_t bit_sequence, int shift)
-{
-  return shift >= 0 ? bit_sequence << shift : bit_sequence >> -shift;
-}
-
-/**
  * @brief Returns an int value having all the bit set in `bit_sequence` turned to `0`
  * except the most significant one.
  *

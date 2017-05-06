@@ -71,12 +71,6 @@ bit_works_bitcount_64 (uint64_t x)
 #endif
 }
 
-extern uint64_t
-bit_works_signed_left_shift (uint64_t bit_sequence, int shift);
-
-extern uint64_t
-bit_works_signed_left_shift (uint64_t bit_sequence, int shift);
-
 extern uint32_t
 bit_works_highest_bit_set_32 (uint32_t bit_sequence);
 

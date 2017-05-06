@@ -53,7 +53,6 @@ static void bit_works_highest_bit_set_8_test (void);
 static void bit_works_highest_bit_set_32_test (void);
 static void bit_works_type_size_test (void);
 static void bit_works_bitcount_64_test (void);
-static void bit_works_signed_left_shift_test (void);
 static void bit_works_ror_64_test (void);
 static void bit_works_rol_64_test (void);
 
@@ -74,7 +73,6 @@ main (int   argc,
   g_test_add_func("/bit_works/bit_works_bitscanLS1B_64_test", bit_works_bitscanLS1B_64_test);
   g_test_add_func("/bit_works/bit_works_highest_bit_set_8_test", bit_works_highest_bit_set_8_test);
   g_test_add_func("/bit_works/bit_works_highest_bit_set_32_test", bit_works_highest_bit_set_32_test);
-  g_test_add_func("/bit_works/bit_works_signed_left_shift_test", bit_works_signed_left_shift_test);
   g_test_add_func("/bit_works/bit_works_bitcount_64_test", bit_works_bitcount_64_test);
   g_test_add_func("/bit_works/bit_works_type_size_test", bit_works_type_size_test);
   g_test_add_func("/bit_works/bit_works_ror_64", bit_works_ror_64_test);
@@ -220,17 +218,6 @@ bit_works_highest_bit_set_32_test (void)
   g_assert(0x00000002 == bit_works_highest_bit_set_32(0x00000002));
   g_assert(0x00000002 == bit_works_highest_bit_set_32(0x00000003));
   g_assert(0x80000000 == bit_works_highest_bit_set_32(0xFFFFFFFF));
-}
-
-static void
-bit_works_signed_left_shift_test (void)
-{
-  /* Sanity check. */
-  g_assert(0x0000000000000000 == bit_works_signed_left_shift(0x0000000000000000,  0));
-  g_assert(0x0000000000000001 == bit_works_signed_left_shift(0x0000000000000001,  0));
-  g_assert(0xFFFFFFFFFFFFFFFF == bit_works_signed_left_shift(0xFFFFFFFFFFFFFFFF,  0));
-  g_assert(0xFFFFFFFFFFFFFF00 == bit_works_signed_left_shift(0xFFFFFFFFFFFFFFFF, +8));
-  g_assert(0x00FFFFFFFFFFFFFF == bit_works_signed_left_shift(0xFFFFFFFFFFFFFFFF, -8));
 }
 
 static void
