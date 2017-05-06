@@ -43,6 +43,12 @@
  * Auxiliary functions.
  */
 
+static void
+aux_dummy (void)
+{
+  return;
+}
+
 
 
 /*
@@ -50,31 +56,38 @@
  */
 
 static void
-utest_pass_test (ut_test_t *const t)
+dummy_t (ut_test_t *const t)
+{
+  aux_dummy();
+  ut_assert(t, true);
+}
+
+static void
+utest_pass_t (ut_test_t *const t)
 {
   ut_assert(t, true);
 }
 
 static void
-utest_fail_test (ut_test_t *const t)
+utest_fail_t (ut_test_t *const t)
 {
   ut_assert(t, false);
 }
 
 static void
-utest_abort_test (ut_test_t *const t)
+utest_abort_t (ut_test_t *const t)
 {
   abort();
 }
 
 static void
-utest_exit_test (ut_test_t *const t)
+utest_exit_t (ut_test_t *const t)
 {
   exit(7);
 }
 
 static void
-utest_assert_false_test (ut_test_t *const t)
+utest_assert_false_t (ut_test_t *const t)
 {
   assert(false);
 }
@@ -92,11 +105,13 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new("utest");
 
-  ut_suite_add_simple_test(s, "pass", utest_pass_test);
-  ut_suite_add_simple_test(s, "fail", utest_fail_test);
-  ut_suite_add_simple_test(s, "abort", utest_abort_test);
-  ut_suite_add_simple_test(s, "exit", utest_exit_test);
-  ut_suite_add_simple_test(s, "assert_false", utest_assert_false_test);
+  ut_suite_add_simple_test(s, "dummy", dummy_t);
+
+  ut_suite_add_simple_test(s, "pass", utest_pass_t);
+  ut_suite_add_simple_test(s, "fail", utest_fail_t);
+  ut_suite_add_simple_test(s, "abort", utest_abort_t);
+  ut_suite_add_simple_test(s, "exit", utest_exit_t);
+  ut_suite_add_simple_test(s, "assert_false", utest_assert_false_t);
 
   int failure_count = ut_suite_run(s);
 

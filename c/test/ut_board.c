@@ -45,24 +45,11 @@
  * Auxiliary functions.
  */
 
-static void
-aux_dummy (void)
-{
-  return;
-}
-
 
 
 /*
  * Test functions.
  */
-
-static void
-dummy_t (ut_test_t *const t)
-{
-  aux_dummy();
-  ut_assert(t, true);
-}
 
 static void
 square_to_string_t (ut_test_t *const t)
@@ -728,8 +715,6 @@ main (int argc,
   ut_suite_t *const s = ut_suite_new("board");
 
   board_module_init();
-
-  ut_suite_add_simple_test(s, "dummy", dummy_t);
 
   ut_suite_add_simple_test(s, "square_to_string", square_to_string_t);
   ut_suite_add_simple_test(s, "square_as_move_to_string", square_as_move_to_string_t);

@@ -46,8 +46,8 @@ inline unsigned int
 bit_works_bitcount_64_popcnt (uint64_t x)
 {
   uint64_t out;
-  __asm__ __volatile__ ("popcnt %1, %0" : "=g" (out) : "g" (x));
-  return (int) out;
+  __asm__ __volatile__ ("popcnt %1, %0;" : "=r" (out) : "r" (x));
+  return (unsigned int) out;
 }
 
 extern uint64_t
