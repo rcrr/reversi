@@ -30,7 +30,7 @@ MAINS = endgame_solver gpdb_verify utest read_pve_dump intel_intrinsics_trial \
 TEST_PROGS = bit_works_test prng_test sha3_test sort_utils_test red_black_tree_test board_test game_position_db_test \
              game_position_test game_tree_utils_test endgame_solver_test es_pv_test
 
-UTEST_PROGS = utest_test llist_test ut_board_test
+UTEST_PROGS = utest_test llist_test ut_bit_works ut_board_test
 
 #
 # No changes from here to the end, unless a structurar change of the build process happens.
