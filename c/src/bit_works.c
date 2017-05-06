@@ -92,18 +92,13 @@ static const int debruijn_64_shift_value = 58;
  * @endcond
  */
 
+
 /**
- * @brief Returns the count of the bit set to 1 in the `x` argument.
- *
- * This uses fewer arithmetic operations than any other known
- * implementation on machines with fast multiplication.
- * It uses 12 arithmetic operations, one of which is a multiply.
- *
- * @param [in] x the set that has to be counted
- * @return       the count of bit set in the `x` parameter
+ * @cond
  */
+
 unsigned int
-bit_works_bitcount_64 (uint64_t x)
+bit_works_bitcount_64_plain (uint64_t x)
 {
   x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
   x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits
@@ -111,8 +106,43 @@ bit_works_bitcount_64 (uint64_t x)
   return (x * h01) >> 56;         //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
 }
 
+#ifdef __POPCNT__
 extern unsigned int
 bit_works_bitcount_64_popcnt (uint64_t x);
+#endif
+
+/**
+ * @endcond
+ */
+
+/**
+ * @brief Returns the count of the bit set to `1` in the `x` argument.
+ *
+ * This function has two distinct implementations:
+ * - `bit_works_bitcount_64_plain`
+ * - `bit_works_bitcount_64_popcnt`
+ *
+ * Depending on the "compile time" value of the macro `__POPCNT__`, it
+ * resolves to one of the two variants.
+ *
+ * The first implementation is plain `C` code, and should work on any
+ * platform. It uses fewer arithmetic operations than any other known
+ * implementation on machines with fast multiplication.
+ * It uses 12 arithmetic operations, one of which is a multiply.
+ *
+ * The second implementation works on `x86` architecture that implements the `popcnt`
+ * assembler instruction. The function call reduces to one ASM instruction
+ * and it is always inlined.
+ * This variant is always inlined.
+ *
+ * It is possible to call directly the two function underneath, this is usefull
+ * for testing purposes, but it should be never done otherwise.
+ *
+ * @param [in] x the set that has to be counted
+ * @return       the count of bit set in the `x` parameter
+ */
+extern unsigned int
+bit_works_bitcount_64 (uint64_t x);
 
 /**
  * @brief Returns a value computed shifting the `bit_sequence` parameter

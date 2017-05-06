@@ -236,11 +236,11 @@ bit_works_signed_left_shift_test (void)
 static void
 bit_works_bitcount_64_test (void)
 {
-  g_assert(0  == bit_works_bitcount_64(0x00ULL));
-  g_assert(1  == bit_works_bitcount_64(0x01ULL));
-  g_assert(1  == bit_works_bitcount_64(0x02ULL));
-  g_assert(2  == bit_works_bitcount_64(0x03ULL));
-  g_assert(64 == bit_works_bitcount_64(0xFFFFFFFFFFFFFFFFULL));
+  g_assert(0  == bit_works_bitcount_64_plain(0x00ULL));
+  g_assert(1  == bit_works_bitcount_64_plain(0x01ULL));
+  g_assert(1  == bit_works_bitcount_64_plain(0x02ULL));
+  g_assert(2  == bit_works_bitcount_64_plain(0x03ULL));
+  g_assert(64 == bit_works_bitcount_64_plain(0xFFFFFFFFFFFFFFFFULL));
 }
 
 static void

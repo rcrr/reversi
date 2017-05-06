@@ -270,7 +270,7 @@ sort_moves_by_mobility_count (MoveList *ml,
       moves_to_search &= ~(1ULL << move);
       game_position_x_make_move(gpx, move, &e->gpx);
       const SquareSet next_moves = game_position_x_legal_moves(&e->gpx);
-      const int next_move_count = bit_works_bitcount_64_popcnt(next_moves);
+      const int next_move_count = bit_works_bitcount_64(next_moves);
       e->sq = move;
       e->mobility = next_move_count;
       e->moves = next_moves;
@@ -327,7 +327,7 @@ game_position_solve_impl (ExactSolution *const result,
   const GamePositionX *const current_gpx = &current_node_info->gpx;
   GamePositionX *const next_gpx = &next_node_info->gpx;
   const SquareSet move_set = mle->moves;
-  current_node_info->move_count = bit_works_bitcount_64_popcnt(move_set);
+  current_node_info->move_count = bit_works_bitcount_64(move_set);
 
   if (log_env->log_is_on) {
     current_node_info->hash = game_position_x_hash(current_gpx);

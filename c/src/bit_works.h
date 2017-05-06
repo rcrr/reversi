@@ -38,9 +38,14 @@
 
 #include <stdint.h>
 
-extern unsigned int
-bit_works_bitcount_64 (uint64_t x);
+/**
+ * @cond
+ */
 
+extern unsigned int
+bit_works_bitcount_64_plain (uint64_t x);
+
+#ifdef __POPCNT__
 __attribute__((always_inline))
 inline unsigned int
 bit_works_bitcount_64_popcnt (uint64_t x)
@@ -48,6 +53,22 @@ bit_works_bitcount_64_popcnt (uint64_t x)
   uint64_t out;
   __asm__ __volatile__ ("popcnt %1, %0;" : "=r" (out) : "r" (x));
   return (unsigned int) out;
+}
+#endif
+
+/**
+ * @endcond
+ */
+
+__attribute__((always_inline))
+inline unsigned int
+bit_works_bitcount_64 (uint64_t x)
+{
+#ifdef __POPCNT__
+  return bit_works_bitcount_64_popcnt(x);
+#else
+  return bit_works_bitcount_64_plain(x);
+#endif
 }
 
 extern uint64_t
