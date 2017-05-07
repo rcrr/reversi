@@ -27,7 +27,7 @@ MAINS = endgame_solver gpdb_verify utest read_pve_dump intel_intrinsics_trial \
         read_game_tree_log
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
-TEST_PROGS = bit_works_test prng_test sha3_test sort_utils_test red_black_tree_test board_test game_position_db_test \
+TEST_PROGS = prng_test sha3_test sort_utils_test red_black_tree_test board_test game_position_db_test \
              game_position_test game_tree_utils_test endgame_solver_test es_pv_test
 
 UTEST_PROGS = ut_utest ut_llist ut_bit_works ut_board
