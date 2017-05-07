@@ -329,8 +329,8 @@ game_position_x_delta_hash (const uint64_t old_hash,
 inline static int
 game_position_x_final_value (const GamePositionX *const gpx)
 {
-  const uint8_t b_count = bit_works_bitcount_64(gpx->blacks);
-  const uint8_t w_count = bit_works_bitcount_64(gpx->whites);
+  const uint8_t b_count = bit_works_bit_count_64(gpx->blacks);
+  const uint8_t w_count = bit_works_bit_count_64(gpx->whites);
   const int8_t difference = b_count - w_count;
   if (difference == 0) return 0;
   const uint8_t empties = 64 - (b_count + w_count);

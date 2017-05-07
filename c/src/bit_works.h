@@ -48,17 +48,17 @@
  * @cond
  */
 
-extern unsigned int
-bit_works_bitcount_64_plain (uint64_t bit_set);
+extern uint8_t
+bit_works_bit_count_64_plain (uint64_t bit_set);
 
 #ifdef __POPCNT__
 __attribute__((always_inline))
-inline unsigned int
-bit_works_bitcount_64_popcnt (uint64_t bit_set)
+inline uint8_t
+bit_works_bit_count_64_popcnt (uint64_t bit_set)
 {
   uint64_t result;
   __asm__ __volatile__ ("popcnt %1, %0;" : "=r" (result) : "r" (bit_set));
-  return (unsigned int) result;
+  return (uint8_t) result;
 }
 #endif
 
@@ -67,13 +67,13 @@ bit_works_bitcount_64_popcnt (uint64_t bit_set)
  */
 
 __attribute__((always_inline))
-inline unsigned int
-bit_works_bitcount_64 (uint64_t bit_set)
+inline uint8_t
+bit_works_bit_count_64 (uint64_t bit_set)
 {
 #ifdef __POPCNT__
-  return bit_works_bitcount_64_popcnt(bit_set);
+  return bit_works_bit_count_64_popcnt(bit_set);
 #else
-  return bit_works_bitcount_64_plain(bit_set);
+  return bit_works_bit_count_64_plain(bit_set);
 #endif
 }
 

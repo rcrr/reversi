@@ -95,8 +95,8 @@ static const int debruijn_64_shift_value = 58;
  * @cond
  */
 
-unsigned int
-bit_works_bitcount_64_plain (uint64_t bit_set)
+uint8_t
+bit_works_bit_count_64_plain (uint64_t bit_set)
 {
   bit_set -= (bit_set >> 1) & m1;                    // puts count of each 2 bits into those 2 bits
   bit_set  = (bit_set & m2) + ((bit_set >> 2) & m2); // puts count of each 4 bits into those 4 bits
@@ -105,8 +105,8 @@ bit_works_bitcount_64_plain (uint64_t bit_set)
 }
 
 #ifdef __POPCNT__
-extern unsigned int
-bit_works_bitcount_64_popcnt (uint64_t bit_set);
+extern uint8_t
+bit_works_bit_count_64_popcnt (uint64_t bit_set);
 #endif
 
 /**
@@ -117,8 +117,8 @@ bit_works_bitcount_64_popcnt (uint64_t bit_set);
  * @brief Returns the count of the bit set to `1` in the `bit_set` argument.
  *
  * This function has two distinct implementations:
- * - `bit_works_bitcount_64_plain`
- * - `bit_works_bitcount_64_popcnt`
+ * - `bit_works_bit_count_64_plain`
+ * - `bit_works_bit_count_64_popcnt`
  *
  * Depending on the "compile time" value of the macro `__POPCNT__`, it
  * resolves to one of the two variants.
@@ -139,8 +139,8 @@ bit_works_bitcount_64_popcnt (uint64_t bit_set);
  * @param [in] bit_set the set that has to be counted
  * @return             the count of bit set in the `bit_set` parameter
  */
-extern unsigned int
-bit_works_bitcount_64 (uint64_t bit_set);
+extern uint8_t
+bit_works_bit_count_64 (uint64_t bit_set);
 
 
 
