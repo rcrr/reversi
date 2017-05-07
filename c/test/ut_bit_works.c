@@ -52,7 +52,7 @@
  */
 
 static void
-bit_works_type_size_checks (ut_test_t *const t)
+bitw_type_size_checks (ut_test_t *const t)
 {
   ut_assert(t, 8 == sizeof(uint64_t));
   ut_assert(t, 4 == sizeof(uint32_t));
@@ -61,7 +61,7 @@ bit_works_type_size_checks (ut_test_t *const t)
 }
 
 static void
-bit_works_int_size_definition_checks (ut_test_t *const t)
+bitw_int_size_definition_checks (ut_test_t *const t)
 {
   uint8_t  ui8;
   uint16_t ui16;
@@ -106,333 +106,333 @@ bit_works_int_size_definition_checks (ut_test_t *const t)
 }
 
 static void
-bit_works_bit_count_64_plain_t (ut_test_t *const t)
+bitw_bit_count_64_plain_t (ut_test_t *const t)
 {
-  ut_assert(t,  0 == bit_works_bit_count_64_plain(0x00ULL));
-  ut_assert(t,  1 == bit_works_bit_count_64_plain(0x01ULL));
-  ut_assert(t,  1 == bit_works_bit_count_64_plain(0x02ULL));
-  ut_assert(t,  2 == bit_works_bit_count_64_plain(0x03ULL));
-  ut_assert(t, 64 == bit_works_bit_count_64_plain(0xFFFFFFFFFFFFFFFFULL));
-  ut_assert(t, 32 == bit_works_bit_count_64_plain(0xAAAAAAAAAAAAAAAAULL));
-  ut_assert(t, 32 == bit_works_bit_count_64_plain(0x5555555555555555ULL));
-  ut_assert(t,  4 == bit_works_bit_count_64_plain(0xF000000000000000ULL));
-  ut_assert(t,  4 == bit_works_bit_count_64_plain(0x000000000000000FULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_plain(0xFF00000000000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_plain(0x00FF000000000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_plain(0x0000FF0000000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_plain(0x000000FF00000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_plain(0x00000000FF000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_plain(0x0000000000FF0000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_plain(0x000000000000FF00ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_plain(0x00000000000000FFULL));
+  ut_assert(t,  0 == bitw_bit_count_64_plain(0x00ULL));
+  ut_assert(t,  1 == bitw_bit_count_64_plain(0x01ULL));
+  ut_assert(t,  1 == bitw_bit_count_64_plain(0x02ULL));
+  ut_assert(t,  2 == bitw_bit_count_64_plain(0x03ULL));
+  ut_assert(t, 64 == bitw_bit_count_64_plain(0xFFFFFFFFFFFFFFFFULL));
+  ut_assert(t, 32 == bitw_bit_count_64_plain(0xAAAAAAAAAAAAAAAAULL));
+  ut_assert(t, 32 == bitw_bit_count_64_plain(0x5555555555555555ULL));
+  ut_assert(t,  4 == bitw_bit_count_64_plain(0xF000000000000000ULL));
+  ut_assert(t,  4 == bitw_bit_count_64_plain(0x000000000000000FULL));
+  ut_assert(t,  8 == bitw_bit_count_64_plain(0xFF00000000000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_plain(0x00FF000000000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_plain(0x0000FF0000000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_plain(0x000000FF00000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_plain(0x00000000FF000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_plain(0x0000000000FF0000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_plain(0x000000000000FF00ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_plain(0x00000000000000FFULL));
 }
 
 #ifdef __POPCNT__
 static void
-bit_works_bit_count_64_popcnt_t (ut_test_t *const t)
+bitw_bit_count_64_popcnt_t (ut_test_t *const t)
 {
-  ut_assert(t,  0 == bit_works_bit_count_64_popcnt(0x00ULL));
-  ut_assert(t,  1 == bit_works_bit_count_64_popcnt(0x01ULL));
-  ut_assert(t,  1 == bit_works_bit_count_64_popcnt(0x02ULL));
-  ut_assert(t,  2 == bit_works_bit_count_64_popcnt(0x03ULL));
-  ut_assert(t, 64 == bit_works_bit_count_64_popcnt(0xFFFFFFFFFFFFFFFFULL));
-  ut_assert(t, 32 == bit_works_bit_count_64_popcnt(0xAAAAAAAAAAAAAAAAULL));
-  ut_assert(t, 32 == bit_works_bit_count_64_popcnt(0x5555555555555555ULL));
-  ut_assert(t,  4 == bit_works_bit_count_64_popcnt(0xF000000000000000ULL));
-  ut_assert(t,  4 == bit_works_bit_count_64_popcnt(0x000000000000000FULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_popcnt(0xFF00000000000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_popcnt(0x00FF000000000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_popcnt(0x0000FF0000000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_popcnt(0x000000FF00000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_popcnt(0x00000000FF000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_popcnt(0x0000000000FF0000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_popcnt(0x000000000000FF00ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64_popcnt(0x00000000000000FFULL));
+  ut_assert(t,  0 == bitw_bit_count_64_popcnt(0x00ULL));
+  ut_assert(t,  1 == bitw_bit_count_64_popcnt(0x01ULL));
+  ut_assert(t,  1 == bitw_bit_count_64_popcnt(0x02ULL));
+  ut_assert(t,  2 == bitw_bit_count_64_popcnt(0x03ULL));
+  ut_assert(t, 64 == bitw_bit_count_64_popcnt(0xFFFFFFFFFFFFFFFFULL));
+  ut_assert(t, 32 == bitw_bit_count_64_popcnt(0xAAAAAAAAAAAAAAAAULL));
+  ut_assert(t, 32 == bitw_bit_count_64_popcnt(0x5555555555555555ULL));
+  ut_assert(t,  4 == bitw_bit_count_64_popcnt(0xF000000000000000ULL));
+  ut_assert(t,  4 == bitw_bit_count_64_popcnt(0x000000000000000FULL));
+  ut_assert(t,  8 == bitw_bit_count_64_popcnt(0xFF00000000000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_popcnt(0x00FF000000000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_popcnt(0x0000FF0000000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_popcnt(0x000000FF00000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_popcnt(0x00000000FF000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_popcnt(0x0000000000FF0000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_popcnt(0x000000000000FF00ULL));
+  ut_assert(t,  8 == bitw_bit_count_64_popcnt(0x00000000000000FFULL));
 }
 #endif
 
 static void
-bit_works_bit_count_64_t (ut_test_t *const t)
+bitw_bit_count_64_t (ut_test_t *const t)
 {
-  ut_assert(t,  0 == bit_works_bit_count_64(0x00ULL));
-  ut_assert(t,  1 == bit_works_bit_count_64(0x01ULL));
-  ut_assert(t,  1 == bit_works_bit_count_64(0x02ULL));
-  ut_assert(t,  2 == bit_works_bit_count_64(0x03ULL));
-  ut_assert(t, 64 == bit_works_bit_count_64(0xFFFFFFFFFFFFFFFFULL));
-  ut_assert(t, 32 == bit_works_bit_count_64(0xAAAAAAAAAAAAAAAAULL));
-  ut_assert(t, 32 == bit_works_bit_count_64(0x5555555555555555ULL));
-  ut_assert(t,  4 == bit_works_bit_count_64(0xF000000000000000ULL));
-  ut_assert(t,  4 == bit_works_bit_count_64(0x000000000000000FULL));
-  ut_assert(t,  8 == bit_works_bit_count_64(0xFF00000000000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64(0x00FF000000000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64(0x0000FF0000000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64(0x000000FF00000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64(0x00000000FF000000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64(0x0000000000FF0000ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64(0x000000000000FF00ULL));
-  ut_assert(t,  8 == bit_works_bit_count_64(0x00000000000000FFULL));
+  ut_assert(t,  0 == bitw_bit_count_64(0x00ULL));
+  ut_assert(t,  1 == bitw_bit_count_64(0x01ULL));
+  ut_assert(t,  1 == bitw_bit_count_64(0x02ULL));
+  ut_assert(t,  2 == bitw_bit_count_64(0x03ULL));
+  ut_assert(t, 64 == bitw_bit_count_64(0xFFFFFFFFFFFFFFFFULL));
+  ut_assert(t, 32 == bitw_bit_count_64(0xAAAAAAAAAAAAAAAAULL));
+  ut_assert(t, 32 == bitw_bit_count_64(0x5555555555555555ULL));
+  ut_assert(t,  4 == bitw_bit_count_64(0xF000000000000000ULL));
+  ut_assert(t,  4 == bitw_bit_count_64(0x000000000000000FULL));
+  ut_assert(t,  8 == bitw_bit_count_64(0xFF00000000000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64(0x00FF000000000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64(0x0000FF0000000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64(0x000000FF00000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64(0x00000000FF000000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64(0x0000000000FF0000ULL));
+  ut_assert(t,  8 == bitw_bit_count_64(0x000000000000FF00ULL));
+  ut_assert(t,  8 == bitw_bit_count_64(0x00000000000000FFULL));
 }
 
 static void
-bit_works_bit_scan_reverse_64_plain_t (ut_test_t *const t)
+bitw_bit_scan_reverse_64_plain_t (ut_test_t *const t)
 {
-  ut_assert(t,  0 == bit_works_bit_scan_reverse_64_plain(0x0000000000000001));
-  ut_assert(t,  4 == bit_works_bit_scan_reverse_64_plain(0x0000000000000010));
-  ut_assert(t, 63 == bit_works_bit_scan_reverse_64_plain(0x8000000000000000));
-  ut_assert(t, 63 == bit_works_bit_scan_reverse_64_plain(0xFFFFFFFFFFFFFFFF));
-  ut_assert(t,  1 == bit_works_bit_scan_reverse_64_plain(0x0000000000000003));
+  ut_assert(t,  0 == bitw_bit_scan_reverse_64_plain(0x0000000000000001));
+  ut_assert(t,  4 == bitw_bit_scan_reverse_64_plain(0x0000000000000010));
+  ut_assert(t, 63 == bitw_bit_scan_reverse_64_plain(0x8000000000000000));
+  ut_assert(t, 63 == bitw_bit_scan_reverse_64_plain(0xFFFFFFFFFFFFFFFF));
+  ut_assert(t,  1 == bitw_bit_scan_reverse_64_plain(0x0000000000000003));
 
-  bit_works_bit_scan_reverse_64_plain(0);
+  bitw_bit_scan_reverse_64_plain(0);
   ut_assert(t, true);
 }
 
 #ifdef __x86_64__
 static void
-bit_works_bit_scan_reverse_64_bsr_t (ut_test_t *const t)
+bitw_bit_scan_reverse_64_bsr_t (ut_test_t *const t)
 {
-  ut_assert(t,  0 == bit_works_bit_scan_reverse_64_bsr(0x0000000000000001));
-  ut_assert(t,  4 == bit_works_bit_scan_reverse_64_bsr(0x0000000000000010));
-  ut_assert(t, 63 == bit_works_bit_scan_reverse_64_bsr(0x8000000000000000));
-  ut_assert(t, 63 == bit_works_bit_scan_reverse_64_bsr(0xFFFFFFFFFFFFFFFF));
-  ut_assert(t,  1 == bit_works_bit_scan_reverse_64_bsr(0x0000000000000003));
+  ut_assert(t,  0 == bitw_bit_scan_reverse_64_bsr(0x0000000000000001));
+  ut_assert(t,  4 == bitw_bit_scan_reverse_64_bsr(0x0000000000000010));
+  ut_assert(t, 63 == bitw_bit_scan_reverse_64_bsr(0x8000000000000000));
+  ut_assert(t, 63 == bitw_bit_scan_reverse_64_bsr(0xFFFFFFFFFFFFFFFF));
+  ut_assert(t,  1 == bitw_bit_scan_reverse_64_bsr(0x0000000000000003));
 
-  bit_works_bit_scan_reverse_64_bsr(0);
+  bitw_bit_scan_reverse_64_bsr(0);
   ut_assert(t, true);
 }
 #endif
 
 static void
-bit_works_bit_scan_reverse_64_t (ut_test_t *const t)
+bitw_bit_scan_reverse_64_t (ut_test_t *const t)
 {
-  ut_assert(t,  0 == bit_works_bit_scan_reverse_64(0x0000000000000001));
-  ut_assert(t,  4 == bit_works_bit_scan_reverse_64(0x0000000000000010));
-  ut_assert(t, 63 == bit_works_bit_scan_reverse_64(0x8000000000000000));
-  ut_assert(t, 63 == bit_works_bit_scan_reverse_64(0xFFFFFFFFFFFFFFFF));
-  ut_assert(t,  1 == bit_works_bit_scan_reverse_64(0x0000000000000003));
+  ut_assert(t,  0 == bitw_bit_scan_reverse_64(0x0000000000000001));
+  ut_assert(t,  4 == bitw_bit_scan_reverse_64(0x0000000000000010));
+  ut_assert(t, 63 == bitw_bit_scan_reverse_64(0x8000000000000000));
+  ut_assert(t, 63 == bitw_bit_scan_reverse_64(0xFFFFFFFFFFFFFFFF));
+  ut_assert(t,  1 == bitw_bit_scan_reverse_64(0x0000000000000003));
 
-  bit_works_bit_scan_reverse_64(0);
+  bitw_bit_scan_reverse_64(0);
   ut_assert(t, true);
 }
 
 static void
-bit_works_bit_scan_forward_64_plain_t (ut_test_t *const t)
+bitw_bit_scan_forward_64_plain_t (ut_test_t *const t)
 {
-  ut_assert(t,  0 == bit_works_bit_scan_forward_64_plain(0x0000000000000001));
-  ut_assert(t,  4 == bit_works_bit_scan_forward_64_plain(0x0000000000000010));
-  ut_assert(t, 63 == bit_works_bit_scan_forward_64_plain(0x8000000000000000));
-  ut_assert(t,  0 == bit_works_bit_scan_forward_64_plain(0xFFFFFFFFFFFFFFFF));
-  ut_assert(t,  0 == bit_works_bit_scan_forward_64_plain(0x0000000000000003));
+  ut_assert(t,  0 == bitw_bit_scan_forward_64_plain(0x0000000000000001));
+  ut_assert(t,  4 == bitw_bit_scan_forward_64_plain(0x0000000000000010));
+  ut_assert(t, 63 == bitw_bit_scan_forward_64_plain(0x8000000000000000));
+  ut_assert(t,  0 == bitw_bit_scan_forward_64_plain(0xFFFFFFFFFFFFFFFF));
+  ut_assert(t,  0 == bitw_bit_scan_forward_64_plain(0x0000000000000003));
 
-  bit_works_bit_scan_forward_64_plain(0);
+  bitw_bit_scan_forward_64_plain(0);
   ut_assert(t, true);
 }
 
 #ifdef __x86_64__
 static void
-bit_works_bit_scan_forward_64_bsf_t (ut_test_t *const t)
+bitw_bit_scan_forward_64_bsf_t (ut_test_t *const t)
 {
-  ut_assert(t,  0 == bit_works_bit_scan_forward_64_bsf(0x0000000000000001));
-  ut_assert(t,  4 == bit_works_bit_scan_forward_64_bsf(0x0000000000000010));
-  ut_assert(t, 63 == bit_works_bit_scan_forward_64_bsf(0x8000000000000000));
-  ut_assert(t,  0 == bit_works_bit_scan_forward_64_bsf(0xFFFFFFFFFFFFFFFF));
-  ut_assert(t,  0 == bit_works_bit_scan_forward_64_bsf(0x0000000000000003));
+  ut_assert(t,  0 == bitw_bit_scan_forward_64_bsf(0x0000000000000001));
+  ut_assert(t,  4 == bitw_bit_scan_forward_64_bsf(0x0000000000000010));
+  ut_assert(t, 63 == bitw_bit_scan_forward_64_bsf(0x8000000000000000));
+  ut_assert(t,  0 == bitw_bit_scan_forward_64_bsf(0xFFFFFFFFFFFFFFFF));
+  ut_assert(t,  0 == bitw_bit_scan_forward_64_bsf(0x0000000000000003));
 
-  bit_works_bit_scan_forward_64_bsf(0);
+  bitw_bit_scan_forward_64_bsf(0);
   ut_assert(t, true);
 }
 #endif
 
 static void
-bit_works_bit_scan_forward_64_t (ut_test_t *const t)
+bitw_bit_scan_forward_64_t (ut_test_t *const t)
 {
-  ut_assert(t,  0 == bit_works_bit_scan_forward_64(0x0000000000000001));
-  ut_assert(t,  4 == bit_works_bit_scan_forward_64(0x0000000000000010));
-  ut_assert(t, 63 == bit_works_bit_scan_forward_64(0x8000000000000000));
-  ut_assert(t,  0 == bit_works_bit_scan_forward_64(0xFFFFFFFFFFFFFFFF));
-  ut_assert(t,  0 == bit_works_bit_scan_forward_64(0x0000000000000003));
+  ut_assert(t,  0 == bitw_bit_scan_forward_64(0x0000000000000001));
+  ut_assert(t,  4 == bitw_bit_scan_forward_64(0x0000000000000010));
+  ut_assert(t, 63 == bitw_bit_scan_forward_64(0x8000000000000000));
+  ut_assert(t,  0 == bitw_bit_scan_forward_64(0xFFFFFFFFFFFFFFFF));
+  ut_assert(t,  0 == bitw_bit_scan_forward_64(0x0000000000000003));
 
-  bit_works_bit_scan_forward_64(0);
+  bitw_bit_scan_forward_64(0);
   ut_assert(t, true);
 }
 
 static void
-bit_works_reset_lowest_set_bit_64_plain_t (ut_test_t *const t)
+bitw_reset_lowest_set_bit_64_plain_t (ut_test_t *const t)
 {
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64_plain(0x0000000000000001));
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64_plain(0x0000000000000002));
-  ut_assert(t, 0x0000000000000002 == bit_works_reset_lowest_set_bit_64_plain(0x0000000000000003));
-  ut_assert(t, 0xFFFFFFFFFFFFFFFE == bit_works_reset_lowest_set_bit_64_plain(0xFFFFFFFFFFFFFFFF));
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64_plain(0x8000000000000000));
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64_plain(0x0000000000000000));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64_plain(0x0000000000000001));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64_plain(0x0000000000000002));
+  ut_assert(t, 0x0000000000000002 == bitw_reset_lowest_set_bit_64_plain(0x0000000000000003));
+  ut_assert(t, 0xFFFFFFFFFFFFFFFE == bitw_reset_lowest_set_bit_64_plain(0xFFFFFFFFFFFFFFFF));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64_plain(0x8000000000000000));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64_plain(0x0000000000000000));
 }
 
 #ifdef __x86_64__
 static void
-bit_works_reset_lowest_set_bit_64_blsr_t (ut_test_t *const t)
+bitw_reset_lowest_set_bit_64_blsr_t (ut_test_t *const t)
 {
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64_blsr(0x0000000000000001));
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64_blsr(0x0000000000000002));
-  ut_assert(t, 0x0000000000000002 == bit_works_reset_lowest_set_bit_64_blsr(0x0000000000000003));
-  ut_assert(t, 0xFFFFFFFFFFFFFFFE == bit_works_reset_lowest_set_bit_64_blsr(0xFFFFFFFFFFFFFFFF));
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64_blsr(0x8000000000000000));
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64_blsr(0x0000000000000000));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64_blsr(0x0000000000000001));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64_blsr(0x0000000000000002));
+  ut_assert(t, 0x0000000000000002 == bitw_reset_lowest_set_bit_64_blsr(0x0000000000000003));
+  ut_assert(t, 0xFFFFFFFFFFFFFFFE == bitw_reset_lowest_set_bit_64_blsr(0xFFFFFFFFFFFFFFFF));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64_blsr(0x8000000000000000));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64_blsr(0x0000000000000000));
 }
 #endif
 
 static void
-bit_works_reset_lowest_set_bit_64_t (ut_test_t *const t)
+bitw_reset_lowest_set_bit_64_t (ut_test_t *const t)
 {
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64(0x0000000000000001));
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64(0x0000000000000002));
-  ut_assert(t, 0x0000000000000002 == bit_works_reset_lowest_set_bit_64(0x0000000000000003));
-  ut_assert(t, 0xFFFFFFFFFFFFFFFE == bit_works_reset_lowest_set_bit_64(0xFFFFFFFFFFFFFFFF));
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64(0x8000000000000000));
-  ut_assert(t, 0x0000000000000000 == bit_works_reset_lowest_set_bit_64(0x0000000000000000));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64(0x0000000000000001));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64(0x0000000000000002));
+  ut_assert(t, 0x0000000000000002 == bitw_reset_lowest_set_bit_64(0x0000000000000003));
+  ut_assert(t, 0xFFFFFFFFFFFFFFFE == bitw_reset_lowest_set_bit_64(0xFFFFFFFFFFFFFFFF));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64(0x8000000000000000));
+  ut_assert(t, 0x0000000000000000 == bitw_reset_lowest_set_bit_64(0x0000000000000000));
 }
 
 static void
-bit_works_lowest_set_bit_64_t (ut_test_t *const t)
+bitw_lowest_set_bit_64_t (ut_test_t *const t)
 {
- ut_assert(t, 0x01 == bit_works_lowest_set_bit_64(0xFF));
- ut_assert(t, 0x02 == bit_works_lowest_set_bit_64(0xFE));
- ut_assert(t, 0x80 == bit_works_lowest_set_bit_64(0x80));
- ut_assert(t, 0x40 == bit_works_lowest_set_bit_64(0xC0));
+ ut_assert(t, 0x01 == bitw_lowest_set_bit_64(0xFF));
+ ut_assert(t, 0x02 == bitw_lowest_set_bit_64(0xFE));
+ ut_assert(t, 0x80 == bitw_lowest_set_bit_64(0x80));
+ ut_assert(t, 0x40 == bitw_lowest_set_bit_64(0xC0));
 
- ut_assert(t, 0x0000000000000000 == bit_works_lowest_set_bit_64(0x0000000000000000));
- ut_assert(t, 0x1000000000000000 == bit_works_lowest_set_bit_64(0xF000000000000000));
- ut_assert(t, 0x0000000000000001 == bit_works_lowest_set_bit_64(0x000000000000000F));
- ut_assert(t, 0x0000000000000001 == bit_works_lowest_set_bit_64(0xFFFFFFFFFFFFFFFF));
- ut_assert(t, 0x8000000000000000 == bit_works_lowest_set_bit_64(0x8000000000000000));
+ ut_assert(t, 0x0000000000000000 == bitw_lowest_set_bit_64(0x0000000000000000));
+ ut_assert(t, 0x1000000000000000 == bitw_lowest_set_bit_64(0xF000000000000000));
+ ut_assert(t, 0x0000000000000001 == bitw_lowest_set_bit_64(0x000000000000000F));
+ ut_assert(t, 0x0000000000000001 == bitw_lowest_set_bit_64(0xFFFFFFFFFFFFFFFF));
+ ut_assert(t, 0x8000000000000000 == bitw_lowest_set_bit_64(0x8000000000000000));
 }
 
 static void
-bit_works_highest_set_bit_64_t (ut_test_t *const t)
+bitw_highest_set_bit_64_t (ut_test_t *const t)
 {
- ut_assert(t, 0x80 == bit_works_highest_set_bit_64(0xFF));
- ut_assert(t, 0x80 == bit_works_highest_set_bit_64(0xFE));
- ut_assert(t, 0x80 == bit_works_highest_set_bit_64(0x80));
- ut_assert(t, 0x40 == bit_works_highest_set_bit_64(0x7F));
+ ut_assert(t, 0x80 == bitw_highest_set_bit_64(0xFF));
+ ut_assert(t, 0x80 == bitw_highest_set_bit_64(0xFE));
+ ut_assert(t, 0x80 == bitw_highest_set_bit_64(0x80));
+ ut_assert(t, 0x40 == bitw_highest_set_bit_64(0x7F));
 
- ut_assert(t, 0x0000000000000000 == bit_works_highest_set_bit_64(0x0000000000000000));
- ut_assert(t, 0x8000000000000000 == bit_works_highest_set_bit_64(0xF000000000000000));
- ut_assert(t, 0x0000000000000008 == bit_works_highest_set_bit_64(0x000000000000000F));
- ut_assert(t, 0x8000000000000000 == bit_works_highest_set_bit_64(0xFFFFFFFFFFFFFFFF));
- ut_assert(t, 0x8000000000000000 == bit_works_highest_set_bit_64(0x8000000000000000));
- ut_assert(t, 0x8000000000000000 == bit_works_highest_set_bit_64(0x8000000000000001));
- ut_assert(t, 0x0000000000000001 == bit_works_highest_set_bit_64(0x0000000000000001));
+ ut_assert(t, 0x0000000000000000 == bitw_highest_set_bit_64(0x0000000000000000));
+ ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0xF000000000000000));
+ ut_assert(t, 0x0000000000000008 == bitw_highest_set_bit_64(0x000000000000000F));
+ ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0xFFFFFFFFFFFFFFFF));
+ ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0x8000000000000000));
+ ut_assert(t, 0x8000000000000000 == bitw_highest_set_bit_64(0x8000000000000001));
+ ut_assert(t, 0x0000000000000001 == bitw_highest_set_bit_64(0x0000000000000001));
 }
 
 static void
-bit_works_ror_64_t (ut_test_t *const t)
+bitw_ror_64_t (ut_test_t *const t)
 {
   uint64_t bit_sequence, result;
   unsigned int shift;
 
   bit_sequence = 0ULL;
   shift = 0;
-  result = bit_works_ror_64(bit_sequence, shift);
+  result = bitw_ror_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0xFFFFFFFFFFFFFFFF;
   shift = 0;
-  result = bit_works_ror_64(bit_sequence, shift);
+  result = bitw_ror_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0x0F0F0F0F0F0F0F0F;
   shift = 0;
-  result = bit_works_ror_64(bit_sequence, shift);
+  result = bitw_ror_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0ULL;
   shift = 64;
-  result = bit_works_ror_64(bit_sequence, shift);
+  result = bitw_ror_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0xFFFFFFFFFFFFFFFF;
   shift = 64;
-  result = bit_works_ror_64(bit_sequence, shift);
+  result = bitw_ror_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0x0F0F0F0F0F0F0F0F;
   shift = 64;
-  result = bit_works_ror_64(bit_sequence, shift);
+  result = bitw_ror_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0x0000000000000001;
   shift = 1;
-  result = bit_works_ror_64(bit_sequence, shift);
+  result = bitw_ror_64(bit_sequence, shift);
   ut_assert(t, 0x8000000000000000 == result);
 
   bit_sequence = 0x8000000000000000;
   shift = 1;
-  result = bit_works_ror_64(bit_sequence, shift);
+  result = bitw_ror_64(bit_sequence, shift);
   ut_assert(t, 0x4000000000000000 == result);
 
   bit_sequence = 0x0F0F0F0F0F0F0F0F;
   shift = 4;
-  result = bit_works_ror_64(bit_sequence, shift);
+  result = bitw_ror_64(bit_sequence, shift);
   ut_assert(t, 0xF0F0F0F0F0F0F0F0 == result);
 
   bit_sequence = 0xF0F0F0F0F0F0F0F0;
   shift = 4;
-  result = bit_works_ror_64(bit_sequence, shift);
+  result = bitw_ror_64(bit_sequence, shift);
   ut_assert(t, 0x0F0F0F0F0F0F0F0F == result);
 }
 
 static void
-bit_works_rol_64_t (ut_test_t *const t)
+bitw_rol_64_t (ut_test_t *const t)
 {
   uint64_t bit_sequence, result;
   unsigned int shift;
 
   bit_sequence = 0ULL;
   shift = 0;
-  result = bit_works_rol_64(bit_sequence, shift);
+  result = bitw_rol_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0xFFFFFFFFFFFFFFFF;
   shift = 0;
-  result = bit_works_rol_64(bit_sequence, shift);
+  result = bitw_rol_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0x0F0F0F0F0F0F0F0F;
   shift = 0;
-  result = bit_works_rol_64(bit_sequence, shift);
+  result = bitw_rol_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0ULL;
   shift = 64;
-  result = bit_works_rol_64(bit_sequence, shift);
+  result = bitw_rol_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0xFFFFFFFFFFFFFFFF;
   shift = 64;
-  result = bit_works_rol_64(bit_sequence, shift);
+  result = bitw_rol_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0x0F0F0F0F0F0F0F0F;
   shift = 64;
-  result = bit_works_rol_64(bit_sequence, shift);
+  result = bitw_rol_64(bit_sequence, shift);
   ut_assert(t, bit_sequence == result);
 
   bit_sequence = 0x0000000000000001;
   shift = 1;
-  result = bit_works_rol_64(bit_sequence, shift);
+  result = bitw_rol_64(bit_sequence, shift);
   ut_assert(t, 0x0000000000000002 == result);
 
   bit_sequence = 0x8000000000000000;
   shift = 1;
-  result = bit_works_rol_64(bit_sequence, shift);
+  result = bitw_rol_64(bit_sequence, shift);
   ut_assert(t, 0x0000000000000001 == result);
 
   bit_sequence = 0x0F0F0F0F0F0F0F0F;
   shift = 4;
-  result = bit_works_rol_64(bit_sequence, shift);
+  result = bitw_rol_64(bit_sequence, shift);
   ut_assert(t, 0xF0F0F0F0F0F0F0F0 == result);
 
   bit_sequence = 0xF0F0F0F0F0F0F0F0;
   shift = 4;
-  result = bit_works_rol_64(bit_sequence, shift);
+  result = bitw_rol_64(bit_sequence, shift);
   ut_assert(t, 0x0F0F0F0F0F0F0F0F == result);
 }
 
@@ -448,38 +448,38 @@ main (int argc,
   ut_init(&argc, &argv);
   ut_suite_t *const s = ut_suite_new("bit_works");
 
-  ut_suite_add_simple_test(s, "bit_works_type_size_checks", bit_works_type_size_checks);
-  ut_suite_add_simple_test(s, "bit_works_int_size_definition_checks", bit_works_int_size_definition_checks);
+  ut_suite_add_simple_test(s, "bitw_type_size_checks", bitw_type_size_checks);
+  ut_suite_add_simple_test(s, "bitw_int_size_definition_checks", bitw_int_size_definition_checks);
 
-  ut_suite_add_simple_test(s, "bit_works_bit_count_64_plain", bit_works_bit_count_64_plain_t);
+  ut_suite_add_simple_test(s, "bitw_bit_count_64_plain", bitw_bit_count_64_plain_t);
 #ifdef __POPCNT__
-  ut_suite_add_simple_test(s, "bit_works_bit_count_64_popcnt", bit_works_bit_count_64_popcnt_t);
+  ut_suite_add_simple_test(s, "bitw_bit_count_64_popcnt", bitw_bit_count_64_popcnt_t);
 #endif
-  ut_suite_add_simple_test(s, "bit_works_bit_count_64", bit_works_bit_count_64_t);
+  ut_suite_add_simple_test(s, "bitw_bit_count_64", bitw_bit_count_64_t);
 
-  ut_suite_add_simple_test(s, "bit_works_bit_scan_reverse_64_plain",  bit_works_bit_scan_reverse_64_plain_t);
+  ut_suite_add_simple_test(s, "bitw_bit_scan_reverse_64_plain",  bitw_bit_scan_reverse_64_plain_t);
 #ifdef __x86_64__
-  ut_suite_add_simple_test(s, "bit_works_bit_scan_reverse_64_bsr",  bit_works_bit_scan_reverse_64_bsr_t);
+  ut_suite_add_simple_test(s, "bitw_bit_scan_reverse_64_bsr",  bitw_bit_scan_reverse_64_bsr_t);
 #endif
-  ut_suite_add_simple_test(s, "bit_works_bit_scan_reverse_64",  bit_works_bit_scan_reverse_64_t);
+  ut_suite_add_simple_test(s, "bitw_bit_scan_reverse_64",  bitw_bit_scan_reverse_64_t);
 
-  ut_suite_add_simple_test(s, "bit_works_bit_scan_forward_64_plain",  bit_works_bit_scan_forward_64_plain_t);
+  ut_suite_add_simple_test(s, "bitw_bit_scan_forward_64_plain",  bitw_bit_scan_forward_64_plain_t);
 #ifdef __x86_64__
-  ut_suite_add_simple_test(s, "bit_works_bit_scan_forward_64_bsf",  bit_works_bit_scan_forward_64_bsf_t);
+  ut_suite_add_simple_test(s, "bitw_bit_scan_forward_64_bsf",  bitw_bit_scan_forward_64_bsf_t);
 #endif
-  ut_suite_add_simple_test(s, "bit_works_bit_scan_forward_64",  bit_works_bit_scan_forward_64_t);
+  ut_suite_add_simple_test(s, "bitw_bit_scan_forward_64",  bitw_bit_scan_forward_64_t);
 
-  ut_suite_add_simple_test(s, "bit_works_reset_lowest_set_bit_64_plain",  bit_works_reset_lowest_set_bit_64_plain_t);
+  ut_suite_add_simple_test(s, "bitw_reset_lowest_set_bit_64_plain",  bitw_reset_lowest_set_bit_64_plain_t);
 #ifdef __x86_64__
-  ut_suite_add_simple_test(s, "bit_works_reset_lowest_set_bit_64_blsr",  bit_works_reset_lowest_set_bit_64_blsr_t);
+  ut_suite_add_simple_test(s, "bitw_reset_lowest_set_bit_64_blsr",  bitw_reset_lowest_set_bit_64_blsr_t);
 #endif
-  ut_suite_add_simple_test(s, "bit_works_reset_lowest_set_bit_64",  bit_works_reset_lowest_set_bit_64_t);
+  ut_suite_add_simple_test(s, "bitw_reset_lowest_set_bit_64",  bitw_reset_lowest_set_bit_64_t);
 
-  ut_suite_add_simple_test(s, "bit_works_lowest_set_bit_64",  bit_works_lowest_set_bit_64_t);
-  ut_suite_add_simple_test(s, "bit_works_highest_set_bit_64",  bit_works_highest_set_bit_64_t);
+  ut_suite_add_simple_test(s, "bitw_lowest_set_bit_64",  bitw_lowest_set_bit_64_t);
+  ut_suite_add_simple_test(s, "bitw_highest_set_bit_64",  bitw_highest_set_bit_64_t);
 
-  ut_suite_add_simple_test(s, "bit_works_ror_64_t",  bit_works_ror_64_t);
-  ut_suite_add_simple_test(s, "bit_works_rol_64_t",  bit_works_rol_64_t);
+  ut_suite_add_simple_test(s, "bitw_ror_64_t",  bitw_ror_64_t);
+  ut_suite_add_simple_test(s, "bitw_rol_64_t",  bitw_rol_64_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

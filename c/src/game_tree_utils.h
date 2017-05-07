@@ -539,8 +539,8 @@ gts_make_move (GameTreeStack *const stack)
     const SquareSet up_o = game_position_x_get_opponent(&(c + 1)->gpx);
     SquareSet flip_set = up_o & ~(cu_p | bitmove);
     while (flip_set) {
-      *flip_cursor++ = bit_works_bit_scan_forward_64(flip_set);
-      flip_set = bit_works_reset_lowest_set_bit_64(flip_set);
+      *flip_cursor++ = bitw_bit_scan_forward_64(flip_set);
+      flip_set = bitw_reset_lowest_set_bit_64(flip_set);
     }
     stack->flip_count = flip_cursor - stack->flips;
   }
@@ -559,8 +559,8 @@ gts_generate_moves (GameTreeStack *const stack)
     *(c->move_cursor)++ = pass_move;
   } else {
     while (remaining_moves) {
-      *(c->move_cursor)++ = bit_works_bit_scan_forward_64_bsf(remaining_moves);
-      remaining_moves = bit_works_reset_lowest_set_bit_64(remaining_moves);
+      *(c->move_cursor)++ = bitw_bit_scan_forward_64_bsf(remaining_moves);
+      remaining_moves = bitw_reset_lowest_set_bit_64(remaining_moves);
     }
   }
   c->move_count = c->move_cursor - holml;

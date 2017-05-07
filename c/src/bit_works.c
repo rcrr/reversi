@@ -96,7 +96,7 @@ static const int debruijn_64_shift_value = 58;
  */
 
 uint8_t
-bit_works_bit_count_64_plain (uint64_t bit_set)
+bitw_bit_count_64_plain (uint64_t bit_set)
 {
   bit_set -= (bit_set >> 1) & m1;                    // puts count of each 2 bits into those 2 bits
   bit_set  = (bit_set & m2) + ((bit_set >> 2) & m2); // puts count of each 4 bits into those 4 bits
@@ -106,7 +106,7 @@ bit_works_bit_count_64_plain (uint64_t bit_set)
 
 #ifdef __POPCNT__
 extern uint8_t
-bit_works_bit_count_64_popcnt (uint64_t bit_set);
+bitw_bit_count_64_popcnt (uint64_t bit_set);
 #endif
 
 /**
@@ -117,8 +117,8 @@ bit_works_bit_count_64_popcnt (uint64_t bit_set);
  * @brief Returns the count of the bit set to `1` in the `bit_set` argument.
  *
  * This function has two distinct implementations:
- * - `bit_works_bit_count_64_plain`
- * - `bit_works_bit_count_64_popcnt`
+ * - `bitw_bit_count_64_plain`
+ * - `bitw_bit_count_64_popcnt`
  *
  * Depending on the "compile time" value of the macro `__POPCNT__`, it
  * resolves to one of the two variants.
@@ -140,7 +140,7 @@ bit_works_bit_count_64_popcnt (uint64_t bit_set);
  * @return             the count of bit set in the `bit_set` parameter
  */
 extern uint8_t
-bit_works_bit_count_64 (uint64_t bit_set);
+bitw_bit_count_64 (uint64_t bit_set);
 
 
 
@@ -153,7 +153,7 @@ bit_works_bit_count_64 (uint64_t bit_set);
  */
 
 uint8_t
-bit_works_bit_scan_reverse_64_plain (const uint64_t bit_sequence)
+bitw_bit_scan_reverse_64_plain (const uint64_t bit_sequence)
 {
   uint64_t tmp = bit_sequence;
   uint8_t result = 0x00;
@@ -175,7 +175,7 @@ bit_works_bit_scan_reverse_64_plain (const uint64_t bit_sequence)
 
 #ifdef __x86_64__
 extern uint8_t
-bit_works_bit_scan_reverse_64_bsr (const uint64_t bit_sequence);
+bitw_bit_scan_reverse_64_bsr (const uint64_t bit_sequence);
 #endif
 
 /**
@@ -188,8 +188,8 @@ bit_works_bit_scan_reverse_64_bsr (const uint64_t bit_sequence);
  * If the content of `bit_sequence` is 0, the result is undefined.
  *
  * This function has two distinct implementations:
- * - `bit_works_bit_scan_reverse_64_plain`
- * - `bit_works_bit_scan_reverse_64_bsr`
+ * - `bitw_bit_scan_reverse_64_plain`
+ * - `bitw_bit_scan_reverse_64_bsr`
  *
  * Depending on the "compile time" value of the macro `__x86_64__`, it
  * resolves to one of the two variants.
@@ -208,7 +208,7 @@ bit_works_bit_scan_reverse_64_bsr (const uint64_t bit_sequence);
  * @return             the index `[0..63]` of the most significant bit set
  */
 extern uint8_t
-bit_works_bit_scan_reverse_64 (const uint64_t bit_sequence);
+bitw_bit_scan_reverse_64 (const uint64_t bit_sequence);
 
 
 
@@ -221,7 +221,7 @@ bit_works_bit_scan_reverse_64 (const uint64_t bit_sequence);
  */
 
 uint8_t
-bit_works_bit_scan_forward_64_plain (const uint64_t bit_sequence)
+bitw_bit_scan_forward_64_plain (const uint64_t bit_sequence)
 {
   const uint64_t mask = bit_sequence & (-bit_sequence);
   return debruijn_64_index[(mask * debruijn_64_magic_constant) >> debruijn_64_shift_value];
@@ -229,7 +229,7 @@ bit_works_bit_scan_forward_64_plain (const uint64_t bit_sequence)
 
 #ifdef __x86_64__
 extern uint8_t
-bit_works_bit_scan_forward_64_bsf (const uint64_t bit_sequence);
+bitw_bit_scan_forward_64_bsf (const uint64_t bit_sequence);
 #endif
 
 /**
@@ -242,8 +242,8 @@ bit_works_bit_scan_forward_64_bsf (const uint64_t bit_sequence);
  * If the content of `bit_sequence` is 0, the result is undefined.
  *
  * This function has two distinct implementations:
- * - `bit_works_bit_scan_forward_64_plain`
- * - `bit_works_bit_scan_forward_64_bsf`
+ * - `bitw_bit_scan_forward_64_plain`
+ * - `bitw_bit_scan_forward_64_bsf`
  *
  * Depending on the "compile time" value of the macro `__x86_64__`, it
  * resolves to one of the two variants.
@@ -262,7 +262,7 @@ bit_works_bit_scan_forward_64_bsf (const uint64_t bit_sequence);
  * @return             the index `[0..63]` of the least significant bit set
  */
 extern uint8_t
-bit_works_bit_scan_forward_64 (const uint64_t bit_sequence);
+bitw_bit_scan_forward_64 (const uint64_t bit_sequence);
 
 
 
@@ -275,14 +275,14 @@ bit_works_bit_scan_forward_64 (const uint64_t bit_sequence);
  */
 
 uint64_t
-bit_works_reset_lowest_set_bit_64_plain (const uint64_t bit_sequence)
+bitw_reset_lowest_set_bit_64_plain (const uint64_t bit_sequence)
 {
   return (bit_sequence - 1) & bit_sequence;
 }
 
 #ifdef __x86_64__
 extern uint64_t
-bit_works_reset_lowest_set_bit_64_blsr (const uint64_t bit_sequence);
+bitw_reset_lowest_set_bit_64_blsr (const uint64_t bit_sequence);
 #endif
 
 /**
@@ -296,8 +296,8 @@ bit_works_reset_lowest_set_bit_64_blsr (const uint64_t bit_sequence);
  * If the content of `bit_sequence` is 0, the result is undefined.
  *
  * This function has two distinct implementations:
- * - `bit_works_reset_lowest_set_bit_64_plain`
- * - `bit_works_reset_lowest_set_bit_64_blsr`
+ * - `bitw_reset_lowest_set_bit_64_plain`
+ * - `bitw_reset_lowest_set_bit_64_blsr`
  *
  * Depending on the "compile time" value of the macro `__x86_64__`, it
  * resolves to one of the two variants.
@@ -316,7 +316,7 @@ bit_works_reset_lowest_set_bit_64_blsr (const uint64_t bit_sequence);
  * @return             the filtered sequence
  */
 extern uint64_t
-bit_works_reset_lowest_set_bit_64 (const uint64_t bit_sequence);
+bitw_reset_lowest_set_bit_64 (const uint64_t bit_sequence);
 
 
 
@@ -328,7 +328,7 @@ bit_works_reset_lowest_set_bit_64 (const uint64_t bit_sequence);
  * @return             the filtered sequence
  */
 uint64_t
-bit_works_lowest_set_bit_64 (const uint64_t bit_sequence)
+bitw_lowest_set_bit_64 (const uint64_t bit_sequence)
 {
   return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
 }
@@ -343,10 +343,10 @@ bit_works_lowest_set_bit_64 (const uint64_t bit_sequence)
  * @return             an value having set the bit most significative found in bit_sequence
  */
 uint64_t
-bit_works_highest_set_bit_64 (uint64_t bit_sequence)
+bitw_highest_set_bit_64 (uint64_t bit_sequence)
 {
   if (!bit_sequence) return 0;
-  const uint8_t index = bit_works_bit_scan_reverse_64(bit_sequence);
+  const uint8_t index = bitw_bit_scan_reverse_64(bit_sequence);
   return (uint64_t) 1 << index;
 }
 
@@ -362,8 +362,8 @@ bit_works_highest_set_bit_64 (uint64_t bit_sequence)
  * @return             the rotaded sequence
  */
 extern uint64_t
-bit_works_ror_64 (const uint64_t bit_sequence,
-                  const unsigned int shift);
+bitw_ror_64 (const uint64_t bit_sequence,
+             const unsigned int shift);
 
 /**
  * @brief Returns a bit sequence by operating a circular left shift
@@ -377,5 +377,5 @@ bit_works_ror_64 (const uint64_t bit_sequence,
  * @return             the rotaded sequence
  */
 extern uint64_t
-bit_works_rol_64 (const uint64_t bit_sequence,
-                  const unsigned int shift);
+bitw_rol_64 (const uint64_t bit_sequence,
+             const unsigned int shift);

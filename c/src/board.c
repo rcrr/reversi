@@ -448,13 +448,13 @@ square_set_random_selection (prng_mt19937_t *const prng,
   assert(prng);
   assert(squares != empty_square_set);
   SquareSet s = squares;
-  const uint8_t square_count = bit_works_bit_count_64(squares);
+  const uint8_t square_count = bitw_bit_count_64(squares);
   const uint8_t square_index = prng_mt19937_random_choice_from_finite_set(prng, square_count);
   for (uint8_t i = 0; i < square_count; i++) {
     if (i == square_index) break;
-    s ^= bit_works_lowest_set_bit_64(s);
+    s ^= bitw_lowest_set_bit_64(s);
   }
-  return (Square) bit_works_bit_scan_forward_64(s);
+  return (Square) bitw_bit_scan_forward_64(s);
 }
 
 /**
@@ -482,12 +482,12 @@ square_set_to_array (int *sq_count,
                      const SquareSet squares)
 {
   static const size_t size_of_square = sizeof(Square);
-  const uint8_t square_count = bit_works_bit_count_64(squares);
+  const uint8_t square_count = bitw_bit_count_64(squares);
   Square *array = (Square *) malloc(square_count * size_of_square);
   assert(array);
   SquareSet s = squares;
   for (int i = 0; i < square_count; i++) {
-    const Square sq = bit_works_bit_scan_forward_64(s);
+    const Square sq = bitw_bit_scan_forward_64(s);
     *(array + i) = sq;
     s ^= (SquareSet) 1 << sq;
   }
@@ -847,7 +847,7 @@ game_position_x_legal_moves (const GamePositionX *const gpx)
 int
 game_position_x_count_difference (const GamePositionX *const gpx)
 {
-  const int square_difference = bit_works_bit_count_64(gpx->blacks) - bit_works_bit_count_64(gpx->whites);
+  const int square_difference = bitw_bit_count_64(gpx->blacks) - bitw_bit_count_64(gpx->whites);
   return (gpx->player == BLACK_PLAYER) ? square_difference : - square_difference;
 }
 

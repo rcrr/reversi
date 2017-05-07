@@ -591,7 +591,7 @@ sha3_keccakf (uint64_t st[25])
       bc[i] = st[i] ^ st[i + 5] ^ st[i + 10] ^ st[i + 15] ^ st[i + 20];
 
     for (i = 0; i < 5; i++) {
-      t = bc[(i + 4) % 5] ^ bit_works_rol_64(bc[(i + 1) % 5], 1);
+      t = bc[(i + 4) % 5] ^ bitw_rol_64(bc[(i + 1) % 5], 1);
       for (j = 0; j < 25; j += 5)
         st[j + i] ^= t;
     }
@@ -601,7 +601,7 @@ sha3_keccakf (uint64_t st[25])
     for (i = 0; i < 24; i++) {
       j = keccakf_piln[i];
       bc[0] = st[j];
-      st[j] = bit_works_rol_64(t, keccakf_rotc[i]);
+      st[j] = bitw_rol_64(t, keccakf_rotc[i]);
       t = bc[0];
     }
 
