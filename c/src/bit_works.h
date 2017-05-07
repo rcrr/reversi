@@ -157,6 +157,45 @@ bit_works_bit_scan_forward_64 (uint64_t bit_sequence)
 
 
 
+/*
+ * Reset lowest set bit functions.
+ */
+
+/**
+ * @cond
+ */
+
+extern uint64_t
+bit_works_reset_lowest_set_bit_plain (uint64_t bit_sequence);
+
+#ifdef __x86_64__
+__attribute__((always_inline))
+inline uint64_t
+bit_works_reset_lowest_set_bit_blsr (uint64_t bit_sequence)
+{
+  uint64_t result;
+  __asm__ __volatile__ ("blsr %1, %0;" : "=r" (result) : "r" (bit_sequence));
+  return (uint64_t) result;
+}
+#endif
+
+/**
+ * @endcond
+ */
+
+__attribute__((always_inline))
+inline uint64_t
+bit_works_reset_lowest_set_bit (uint64_t bit_sequence)
+{
+#ifdef __x86_64__
+  return bit_works_reset_lowest_set_bit_blsr(bit_sequence);
+#else
+  return bit_works_reset_lowest_set_bit_plain(bit_sequence);
+#endif
+}
+
+
+
 extern uint32_t
 bit_works_highest_bit_set_32 (uint32_t bit_sequence);
 
@@ -165,18 +204,6 @@ bit_works_highest_bit_set_8 (uint8_t bit_sequence);
 
 extern uint8_t
 bit_works_fill_in_between (uint8_t bit_sequence);
-
-extern uint64_t
-bit_works_reset_lowest_bit_set_64 (const uint64_t bit_sequence);
-
-__attribute__((always_inline))
-inline uint64_t
-bit_works_reset_lowest_bit_set_64_blsr (const uint64_t bit_sequence)
-{
-  uint64_t out;
-  __asm__ __volatile__ ("blsr %1, %0;" : "=r" (out) : "r" (bit_sequence));
-  return (uint64_t) out;
-}
 
 extern uint64_t
 bit_works_lowest_bit_set_64 (const uint64_t bit_sequence);

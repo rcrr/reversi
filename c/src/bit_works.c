@@ -272,24 +272,59 @@ bit_works_bit_scan_forward_64 (const uint64_t bit_sequence);
 
 
 
-/**
- * @brief Returns all bits from `bit_sequence`, and reset (set to 0)
- * the bit that corresponds to the lowest bit set.
- *
- * @param bit_sequence the input value
- * @return             the filtered sequence
+/*
+ * Reset lowest set bit functions.
  */
+
+/**
+ * @cond
+ */
+
 uint64_t
-bit_works_reset_lowest_bit_set_64 (const uint64_t bit_sequence)
+bit_works_reset_lowest_set_bit_plain (const uint64_t bit_sequence)
 {
   return (bit_sequence - 1) & bit_sequence;
 }
 
+#ifdef __x86_64__
+extern uint64_t
+bit_works_reset_lowest_set_bit_blsr (const uint64_t bit_sequence);
+#endif
+
 /**
+ * @endcond
+ */
+
+/**
+ * @brief Returns all bits from `bit_sequence`, and reset (set to 0)
+ * the bit that corresponds to the lowest bit set.
  *
+ * If the content of `bit_sequence` is 0, the result is undefined.
+ *
+ * This function has two distinct implementations:
+ * - `bit_works_reset_lowest_set_bit_plain`
+ * - `bit_works_reset_lowest_set_bit_blsr`
+ *
+ * Depending on the "compile time" value of the macro `__x86_64__`, it
+ * resolves to one of the two variants.
+ *
+ * The first implementation is plain `C` code, and should work on any
+ * platform.
+ *
+ * The second implementation works on `x86` architecture that implements the `blsr`
+ * assembler instruction. The function call reduces to one ASM instruction
+ * and it is always inlined. This variant is always inlined.
+ *
+ * It is possible to call directly the two function underneath, this is usefull
+ * for testing purposes, but it should be never done otherwise.
+ *
+ * @param bit_sequence the input value
+ * @return             the filtered sequence
  */
 extern uint64_t
-bit_works_reset_lowest_bit_set_64_blsr (const uint64_t bit_sequence);
+bit_works_reset_lowest_set_bit (const uint64_t bit_sequence);
+
+
 
 /**
  * @brief Returns a bit sequence having one bit set, the lowest found
