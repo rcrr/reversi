@@ -38,21 +38,27 @@
 
 #include <stdint.h>
 
+
+
+/*
+ * Bit count functions.
+ */
+
 /**
  * @cond
  */
 
 extern unsigned int
-bit_works_bitcount_64_plain (uint64_t x);
+bit_works_bitcount_64_plain (uint64_t bit_set);
 
 #ifdef __POPCNT__
 __attribute__((always_inline))
 inline unsigned int
-bit_works_bitcount_64_popcnt (uint64_t x)
+bit_works_bitcount_64_popcnt (uint64_t bit_set)
 {
-  uint64_t out;
-  __asm__ __volatile__ ("popcnt %1, %0;" : "=r" (out) : "r" (x));
-  return (unsigned int) out;
+  uint64_t result;
+  __asm__ __volatile__ ("popcnt %1, %0;" : "=r" (result) : "r" (bit_set));
+  return (unsigned int) result;
 }
 #endif
 
@@ -62,14 +68,94 @@ bit_works_bitcount_64_popcnt (uint64_t x)
 
 __attribute__((always_inline))
 inline unsigned int
-bit_works_bitcount_64 (uint64_t x)
+bit_works_bitcount_64 (uint64_t bit_set)
 {
 #ifdef __POPCNT__
-  return bit_works_bitcount_64_popcnt(x);
+  return bit_works_bitcount_64_popcnt(bit_set);
 #else
-  return bit_works_bitcount_64_plain(x);
+  return bit_works_bitcount_64_plain(bit_set);
 #endif
 }
+
+
+
+/*
+ * Bit scan reverse functions.
+ */
+
+/**
+ * @cond
+ */
+
+extern uint8_t
+bit_works_bit_scan_reverse_64_plain (uint64_t bit_sequence);
+
+#ifdef __x86_64__
+__attribute__((always_inline))
+inline uint8_t
+bit_works_bit_scan_reverse_64_bsr (uint64_t bit_sequence)
+{
+  uint64_t result;
+  __asm__ __volatile__ ("bsr %1, %0;" : "=r" (result) : "r" (bit_sequence));
+  return (uint8_t) result;
+}
+#endif
+
+/**
+ * @endcond
+ */
+
+__attribute__((always_inline))
+inline uint8_t
+bit_works_bit_scan_reverse_64 (uint64_t bit_sequence)
+{
+#ifdef __x86_64__
+  return bit_works_bit_scan_reverse_64_bsr(bit_sequence);
+#else
+  return bit_works_bit_scan_reverse_64_plain(bit_sequence);
+#endif
+}
+
+
+
+/*
+ * Bit scan forward functions.
+ */
+
+/**
+ * @cond
+ */
+
+extern uint8_t
+bit_works_bit_scan_forward_64_plain (uint64_t bit_sequence);
+
+#ifdef __x86_64__
+__attribute__((always_inline))
+inline uint8_t
+bit_works_bit_scan_forward_64_bsf (uint64_t bit_sequence)
+{
+  uint64_t result;
+  __asm__ __volatile__ ("bsf %1, %0;" : "=r" (result) : "r" (bit_sequence));
+  return (uint8_t) result;
+}
+#endif
+
+/**
+ * @endcond
+ */
+
+__attribute__((always_inline))
+inline uint8_t
+bit_works_bit_scan_forward_64 (uint64_t bit_sequence)
+{
+#ifdef __x86_64__
+  return bit_works_bit_scan_forward_64_bsf(bit_sequence);
+#else
+  return bit_works_bit_scan_forward_64_plain(bit_sequence);
+#endif
+}
+
+
 
 extern uint32_t
 bit_works_highest_bit_set_32 (uint32_t bit_sequence);
@@ -80,24 +166,6 @@ bit_works_highest_bit_set_8 (uint8_t bit_sequence);
 extern uint8_t
 bit_works_fill_in_between (uint8_t bit_sequence);
 
-extern uint8_t
-bit_works_bitscanMS1B_64 (const uint64_t bit_sequence);
-
-extern uint8_t
-bit_works_bitscanMS1B_8 (const uint8_t bit_sequence);
-
-extern uint8_t
-bit_works_bitscanLS1B_64 (const uint64_t bit_sequence);
-
-__attribute__((always_inline))
-inline uint8_t
-bit_works_bitscanLS1B_64_bsf (const uint64_t bit_sequence)
-{
-  uint64_t out;
-  __asm__ __volatile__ ("bsf %1, %0" : "=g" (out) : "g" (bit_sequence));
-  return (uint8_t) out;
-}
-
 extern uint64_t
 bit_works_reset_lowest_bit_set_64 (const uint64_t bit_sequence);
 
@@ -106,7 +174,7 @@ inline uint64_t
 bit_works_reset_lowest_bit_set_64_blsr (const uint64_t bit_sequence)
 {
   uint64_t out;
-  __asm__ __volatile__ ("blsr %1, %0" : "=g" (out) : "g" (bit_sequence));
+  __asm__ __volatile__ ("blsr %1, %0;" : "=r" (out) : "r" (bit_sequence));
   return (uint64_t) out;
 }
 

@@ -454,7 +454,7 @@ square_set_random_selection (prng_mt19937_t *const prng,
     if (i == square_index) break;
     s ^= bit_works_lowest_bit_set_64(s);
   }
-  return (Square) bit_works_bitscanLS1B_64(s);
+  return (Square) bit_works_bit_scan_forward_64(s);
 }
 
 /**
@@ -487,7 +487,7 @@ square_set_to_array (int *sq_count,
   assert(array);
   SquareSet s = squares;
   for (int i = 0; i < square_count; i++) {
-    const Square sq = bit_works_bitscanLS1B_64(s);
+    const Square sq = bit_works_bit_scan_forward_64(s);
     *(array + i) = sq;
     s ^= (SquareSet) 1 << sq;
   }

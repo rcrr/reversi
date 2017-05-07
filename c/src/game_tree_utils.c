@@ -589,7 +589,7 @@ pve_is_invariant_satisfied (const PVEnv *const pve,
       const size_t segment_size = (size_t) *(pve->lines_segments_sorted_sizes + i);
       cumulated_lines_size_from_sorted_segments += segment_size;
       PVCell **ls = *(pve->lines_segments_sorted + i);
-      const size_t ls_index = bit_works_bitscanMS1B_64((size_t) (segment_size / PVE_LINES_FIRST_SIZE)) + 1;
+      const size_t ls_index = bit_works_bit_scan_reverse_64((size_t) (segment_size / PVE_LINES_FIRST_SIZE)) + 1;
       if (ls_index > active_lines_segments_count) {
         if (error_code) *error_code = PVE_ERROR_CODE_LINES_SEGMENT_COMPUTED_INDEX_OUT_OF_RANGE;
         return false;
@@ -2040,7 +2040,7 @@ game_tree_move_list_from_set (const SquareSet move_set,
   SquareSet remaining_moves = move_set;
   current_node_info->move_count = 0;
   while (remaining_moves) {
-    const uint8_t move = bit_works_bitscanLS1B_64(remaining_moves);
+    const uint8_t move = bit_works_bit_scan_forward_64(remaining_moves);
     *move_ptr = move;
     move_ptr++;
     current_node_info->move_count++;

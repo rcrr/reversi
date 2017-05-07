@@ -33,7 +33,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "board.h"
 #include "bit_works.h"
 
 /**
@@ -93,22 +92,27 @@ static const int debruijn_64_shift_value = 58;
  */
 
 
+
+/*
+ * Bit count functions.
+ */
+
 /**
  * @cond
  */
 
 unsigned int
-bit_works_bitcount_64_plain (uint64_t x)
+bit_works_bitcount_64_plain (uint64_t bit_set)
 {
-  x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
-  x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits
-  x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits
-  return (x * h01) >> 56;         //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
+  bit_set -= (bit_set >> 1) & m1;                    //put count of each 2 bits into those 2 bits
+  bit_set  = (bit_set & m2) + ((bit_set >> 2) & m2); //put count of each 4 bits into those 4 bits
+  bit_set  = (bit_set + (bit_set >> 4)) & m4;        //put count of each 8 bits into those 8 bits
+  return (bit_set * h01) >> 56;                      //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
 }
 
 #ifdef __POPCNT__
 extern unsigned int
-bit_works_bitcount_64_popcnt (uint64_t x);
+bit_works_bitcount_64_popcnt (uint64_t bit_set);
 #endif
 
 /**
@@ -116,7 +120,7 @@ bit_works_bitcount_64_popcnt (uint64_t x);
  */
 
 /**
- * @brief Returns the count of the bit set to `1` in the `x` argument.
+ * @brief Returns the count of the bit set to `1` in the `bit_set` argument.
  *
  * This function has two distinct implementations:
  * - `bit_works_bitcount_64_plain`
@@ -138,97 +142,24 @@ bit_works_bitcount_64_popcnt (uint64_t x);
  * It is possible to call directly the two function underneath, this is usefull
  * for testing purposes, but it should be never done otherwise.
  *
- * @param [in] x the set that has to be counted
- * @return       the count of bit set in the `x` parameter
+ * @param [in] bit_set the set that has to be counted
+ * @return             the count of bit set in the `bit_set` parameter
  */
 extern unsigned int
-bit_works_bitcount_64 (uint64_t x);
+bit_works_bitcount_64 (uint64_t bit_set);
+
+
+
+/*
+ * Bit scan reverse functions.
+ */
 
 /**
- * @brief Returns an int value having all the bit set in `bit_sequence` turned to `0`
- * except the most significant one.
- *
- * When parameter `bit_sequence` is equal to `0` it returns `0`.
- *
- * @param bit_sequence the value analyzed
- * @return             an value having set the bit most significative found in bit_sequence
+ * @cond
  */
-uint32_t
-bit_works_highest_bit_set_32 (uint32_t bit_sequence)
-{
-  if (bit_sequence == 0x00000000) {
-    return 0x00000000;
-  }
-  uint32_t result = 0x00000001;
-  uint32_t tmp = bit_sequence;
-  if ((tmp & 0xFFFF0000) != 0x00000000) {
-    tmp >>= 16;
-    result = 0x00010000;
-  }
-  if  (tmp > 0x000000FF) {
-    tmp >>=  8;
-    result <<= 8;
-  }
-  result <<= log2_array[tmp];
-  return result;
-}
 
-/**
- * @brief Returns an int value having all the bit set in `bit_sequence` turned to `0`
- * except the most significant one.
- *
- * When parameter `bit_sequence` is equal to `0` it returns `0`.
- *
- * @param bit_sequence the value analyzed
- * @return             an value having set the bit most significative found in bit_sequence
- */
 uint8_t
-bit_works_highest_bit_set_8 (uint8_t bit_sequence)
-{
-  if (bit_sequence == 0x00) {
-    return 0x00;
-  }
-  uint8_t result = 0x01;
-  result <<= log2_array[bit_sequence];
-  return result;
-}
-
-/**
- * @brief The `bitsequence` parameter must have one or two bits set.
- * Returns a bit sequence having set the bits between the two, or zero
- * when only one bit is set.
- *
- * For example: `00100010` returns `00011100`.
- *
- * When the input data doesn't meet the requirements the result is unpredictable.
- *
- * @param [in] bit_sequence the value to be scanned
- * @return                  a bit sequence having the internal bits set
- */
-uint8_t
-bit_works_fill_in_between (uint8_t bit_sequence)
-{
-  return ((0x01 << bit_works_bitscanMS1B_8(bit_sequence)) - 0x01)
-         & ((~bit_sequence & 0xFF) ^ (bit_sequence - 0x01));
-}
-
-/**
- * @brief Returns the index of the most significant bit set in the `bit_sequence` parameter.
- *
- * Parameter `bit_sequence` must be different from `0`.
- * If no bit set is found, meaning that `bit_sequence` is equal to `0`, `0` is
- * returned, that is clearly a wrong value.
- *
- * The proposed technique does three divide and conqueror steps, then makes a lookup in a table
- * hosting the log2 value for integers up to 255.
- *
- * So far it is the preferred choice for the reversi implementation.
- *
- * @param bit_sequence uint64_t value that is scanned
- * @return             the index `(0..63)` of the most significant bit set
- */
-uint8_t
-bit_works_bitscanMS1B_64 (const uint64_t bit_sequence)
+bit_works_bit_scan_reverse_64_plain (const uint64_t bit_sequence)
 {
   uint64_t tmp = bit_sequence;
   uint8_t result = 0x00;
@@ -248,47 +179,98 @@ bit_works_bitscanMS1B_64 (const uint64_t bit_sequence)
   return result;
 }
 
+#ifdef __x86_64__
+extern uint8_t
+bit_works_bit_scan_reverse_64_bsr (const uint64_t bit_sequence);
+#endif
+
+/**
+ * @endcond
+ */
+
 /**
  * @brief Returns the index of the most significant bit set in the `bit_sequence` parameter.
  *
- * @param bit_sequence uint8_t value that is scanned
- * @return             the index (0..7) of the most significant bit set
- */
-uint8_t
-bit_works_bitscanMS1B_8 (const uint8_t bit_sequence)
-{
-  uint8_t result = 0x00;
-  result |= log2_array[(int) bit_sequence];
-  return result;
-}
-
-/**
- * @brief Returns the index of the least significant bit set in the `bit_sequence` parameter
- * via de Bruijn's perfect hashing.
+ * If the content of `bit_sequence` is 0, the result is undefined.
  *
- * Parameter `bit_sequence` must be different from {@code 0L}.
- * If no bit set is found, meaning that `bit_sequence` is equal to `0ULL`, `63` is
- * returned, that is clearly a wrong value.
+ * This function has two distinct implementations:
+ * - `bit_works_bit_scan_reverse_64_plain`
+ * - `bit_works_bit_scan_reverse_64_bsr`
  *
- * See: <a href="https://chessprogramming.wikispaces.com/Bitscan#DeBruijnMultiplation" target="_blank">
- *      de Bruijn multiplication</a>
+ * Depending on the "compile time" value of the macro `__x86_64__`, it
+ * resolves to one of the two variants.
+ *
+ * The first implementation is plain `C` code, and should work on any
+ * platform.
+ *
+ * The second implementation works on `x86` architecture that implements the `bsr`
+ * assembler instruction. The function call reduces to one ASM instruction
+ * and it is always inlined. This variant is always inlined.
+ *
+ * It is possible to call directly the two function underneath, this is usefull
+ * for testing purposes, but it should be never done otherwise.
  *
  * @param bit_sequence value that is scanned
- * @return             the index of the least significant bit set
+ * @return             the index `(0..63)` of the most significant bit set
  */
+extern uint8_t
+bit_works_bit_scan_reverse_64 (const uint64_t bit_sequence);
+
+
+
+/*
+ * Bit scan forward functions.
+ */
+
+/**
+ * @cond
+ */
+
 uint8_t
-bit_works_bitscanLS1B_64 (const uint64_t bit_sequence)
+bit_works_bit_scan_forward_64_plain (const uint64_t bit_sequence)
 {
-  /** mask isolates the least significant one bit (LS1B). */
   const uint64_t mask = bit_sequence & (-bit_sequence);
   return debruijn_64_index[(mask * debruijn_64_magic_constant) >> debruijn_64_shift_value];
 }
 
+#ifdef __x86_64__
+extern uint8_t
+bit_works_bit_scan_forward_64_bsf (const uint64_t bit_sequence);
+#endif
+
 /**
+ * @endcond
+ */
+
+/**
+ * @brief Returns the index of the least significant bit set in the `bit_sequence` parameter.
  *
+ * If the content of `bit_sequence` is 0, the result is undefined.
+ *
+ * This function has two distinct implementations:
+ * - `bit_works_bit_scan_forward_64_plain`
+ * - `bit_works_bit_scan_forward_64_bsf`
+ *
+ * Depending on the "compile time" value of the macro `__x86_64__`, it
+ * resolves to one of the two variants.
+ *
+ * The first implementation is plain `C` code, and should work on any
+ * platform.
+ *
+ * The second implementation works on `x86` architecture that implements the `bsf`
+ * assembler instruction. The function call reduces to one ASM instruction
+ * and it is always inlined. This variant is always inlined.
+ *
+ * It is possible to call directly the two function underneath, this is usefull
+ * for testing purposes, but it should be never done otherwise.
+ *
+ * @param bit_sequence value that is scanned
+ * @return             the index `(0..63)` of the least significant bit set
  */
 extern uint8_t
-bit_works_bitscanLS1B_64_bsf (const uint64_t bit_sequence);
+bit_works_bit_scan_forward_64 (const uint64_t bit_sequence);
+
+
 
 /**
  * @brief Returns all bits from `bit_sequence`, and reset (set to 0)
@@ -377,3 +359,71 @@ bit_works_ror_64 (const uint64_t bit_sequence,
 extern uint64_t
 bit_works_rol_64 (const uint64_t bit_sequence,
                   const unsigned int shift);
+
+/**
+ * @brief Returns an int value having all the bit set in `bit_sequence` turned to `0`
+ * except the most significant one.
+ *
+ * When parameter `bit_sequence` is equal to `0` it returns `0`.
+ *
+ * @param bit_sequence the value analyzed
+ * @return             an value having set the bit most significative found in bit_sequence
+ */
+uint32_t
+bit_works_highest_bit_set_32 (uint32_t bit_sequence)
+{
+  if (bit_sequence == 0x00000000) {
+    return 0x00000000;
+  }
+  uint32_t result = 0x00000001;
+  uint32_t tmp = bit_sequence;
+  if ((tmp & 0xFFFF0000) != 0x00000000) {
+    tmp >>= 16;
+    result = 0x00010000;
+  }
+  if  (tmp > 0x000000FF) {
+    tmp >>=  8;
+    result <<= 8;
+  }
+  result <<= log2_array[tmp];
+  return result;
+}
+
+/**
+ * @brief Returns an int value having all the bit set in `bit_sequence` turned to `0`
+ * except the most significant one.
+ *
+ * When parameter `bit_sequence` is equal to `0` it returns `0`.
+ *
+ * @param bit_sequence the value analyzed
+ * @return             an value having set the bit most significative found in bit_sequence
+ */
+uint8_t
+bit_works_highest_bit_set_8 (uint8_t bit_sequence)
+{
+  if (bit_sequence == 0x00) {
+    return 0x00;
+  }
+  uint8_t result = 0x01;
+  result <<= log2_array[bit_sequence];
+  return result;
+}
+
+/**
+ * @brief The `bitsequence` parameter must have one or two bits set.
+ * Returns a bit sequence having set the bits between the two, or zero
+ * when only one bit is set.
+ *
+ * For example: `00100010` returns `00011100`.
+ *
+ * When the input data doesn't meet the requirements the result is unpredictable.
+ *
+ * @param [in] bit_sequence the value to be scanned
+ * @return                  a bit sequence having the internal bits set
+ */
+uint8_t
+bit_works_fill_in_between (uint8_t bit_sequence)
+{
+  return ((0x01 << (uint8_t) bit_works_bit_scan_reverse_64(bit_sequence)) - 0x01)
+         & ((~bit_sequence & 0xFF) ^ (bit_sequence - 0x01));
+}

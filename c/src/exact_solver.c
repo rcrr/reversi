@@ -266,7 +266,7 @@ sort_moves_by_mobility_count (MoveList *ml,
   for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
     moves_to_search = legal_moves_priority_mask[i] & moves;
     while (moves_to_search) {
-      const Square move = bit_works_bitscanLS1B_64_bsf(moves_to_search);
+      const Square move = bit_works_bit_scan_forward_64(moves_to_search);
       moves_to_search &= ~(1ULL << move);
       game_position_x_make_move(gpx, move, &e->gpx);
       const SquareSet next_moves = game_position_x_legal_moves(&e->gpx);
