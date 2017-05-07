@@ -41,7 +41,7 @@
 
 
 /*
- * Bit count functions.
+ * Bit count functions - Section begin.
  */
 
 /**
@@ -77,10 +77,12 @@ bit_works_bitcount_64 (uint64_t bit_set)
 #endif
 }
 
+/* Bit count functions - Section end. */
+
 
 
 /*
- * Bit scan reverse functions.
+ * Bit scan reverse functions - Section begin.
  */
 
 /**
@@ -116,10 +118,12 @@ bit_works_bit_scan_reverse_64 (uint64_t bit_sequence)
 #endif
 }
 
+/* Bit scan reverse functions - Section end. */
+
 
 
 /*
- * Bit scan forward functions.
+ * Bit scan forward functions - Section begin.
  */
 
 /**
@@ -155,10 +159,12 @@ bit_works_bit_scan_forward_64 (uint64_t bit_sequence)
 #endif
 }
 
+/* Bit scan forward functions - Secion end. */
+
 
 
 /*
- * Reset lowest set bit functions.
+ * Reset lowest set bit functions - Section begin.
  */
 
 /**
@@ -194,25 +200,18 @@ bit_works_reset_lowest_set_bit (uint64_t bit_sequence)
 #endif
 }
 
+/* Reset lowest set bit functions - Section end. */
 
 
-extern uint32_t
-bit_works_highest_bit_set_32 (uint32_t bit_sequence);
 
-extern uint8_t
-bit_works_highest_bit_set_8 (uint8_t bit_sequence);
+extern uint64_t
+bit_works_lowest_set_bit (const uint64_t bit_sequence);
+
+extern uint64_t
+bit_works_highest_set_bit (uint64_t bit_sequence);
 
 extern uint8_t
 bit_works_fill_in_between (uint8_t bit_sequence);
-
-extern uint64_t
-bit_works_lowest_bit_set_64 (const uint64_t bit_sequence);
-
-extern uint32_t
-bit_works_lowest_bit_set_32 (const uint32_t bit_sequence);
-
-extern uint8_t
-bit_works_lowest_bit_set_8 (const uint8_t bit_sequence);
 
 __attribute__((always_inline))
 inline uint64_t

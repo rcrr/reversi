@@ -44,10 +44,7 @@
 
 static void dummy_test (void);
 static void bit_works_int_size_definition_checks (void);
-static void bit_works_lowest_bit_set_8_test (void);
-static void bit_works_fill_in_between_test (void);
-static void bit_works_highest_bit_set_8_test (void);
-static void bit_works_highest_bit_set_32_test (void);
+static void bit_works_lowest_set_bit_test (void);
 static void bit_works_type_size_test (void);
 static void bit_works_bitcount_64_test (void);
 static void bit_works_ror_64_test (void);
@@ -63,10 +60,7 @@ main (int   argc,
 
   g_test_add_func("/bit_works/dummy", dummy_test);
   g_test_add_func("/bit_works/bit_works_int_size_definition_checks", bit_works_int_size_definition_checks);
-  g_test_add_func("/bit_works/bit_works_lowest_bit_set_8_test", bit_works_lowest_bit_set_8_test);
-  g_test_add_func("/bit_works/bit_works_fill_in_between_test", bit_works_fill_in_between_test);
-  g_test_add_func("/bit_works/bit_works_highest_bit_set_8_test", bit_works_highest_bit_set_8_test);
-  g_test_add_func("/bit_works/bit_works_highest_bit_set_32_test", bit_works_highest_bit_set_32_test);
+  g_test_add_func("/bit_works/bit_works_lowest_set_bit_test", bit_works_lowest_set_bit_test);
   g_test_add_func("/bit_works/bit_works_bitcount_64_test", bit_works_bitcount_64_test);
   g_test_add_func("/bit_works/bit_works_type_size_test", bit_works_type_size_test);
   g_test_add_func("/bit_works/bit_works_ror_64", bit_works_ror_64_test);
@@ -133,54 +127,12 @@ bit_works_int_size_definition_checks (void)
 }
 
 static void
-bit_works_lowest_bit_set_8_test (void)
+bit_works_lowest_set_bit_test (void)
 {
- g_assert(0x01 == bit_works_lowest_bit_set_8(0xFF));
- g_assert(0x02 == bit_works_lowest_bit_set_8(0xFE));
- g_assert(0x80 == bit_works_lowest_bit_set_8(0x80));
- g_assert(0x40 == bit_works_lowest_bit_set_8(0xC0));
-}
-
-static void
-bit_works_fill_in_between_test (void)
-{
-  g_assert(0x02 == bit_works_fill_in_between(0x05));
-  g_assert(0x06 == bit_works_fill_in_between(0x09));
-  g_assert(0x0E == bit_works_fill_in_between(0x11));
-  g_assert(0x1E == bit_works_fill_in_between(0x21));
-  g_assert(0x3E == bit_works_fill_in_between(0x41));
-  g_assert(0x7E == bit_works_fill_in_between(0x81));
-
-  g_assert(0x60 == bit_works_fill_in_between(0x90));
-
-  g_assert(0x00 == bit_works_fill_in_between(0x01));
-  g_assert(0x00 == bit_works_fill_in_between(0x02));
-  g_assert(0x00 == bit_works_fill_in_between(0x04));
-  g_assert(0x00 == bit_works_fill_in_between(0x08));
-  g_assert(0x00 == bit_works_fill_in_between(0x10));
-  g_assert(0x00 == bit_works_fill_in_between(0x20));
-  g_assert(0x00 == bit_works_fill_in_between(0x40));
-  g_assert(0x00 == bit_works_fill_in_between(0x80));
-}
-
-static void
-bit_works_highest_bit_set_8_test (void)
-{
-  g_assert(0x00 == bit_works_highest_bit_set_8(0x00));
-  g_assert(0x01 == bit_works_highest_bit_set_8(0x01));
-  g_assert(0x02 == bit_works_highest_bit_set_8(0x02));
-  g_assert(0x02 == bit_works_highest_bit_set_8(0x03));
-  g_assert(0x80 == bit_works_highest_bit_set_8(0xFF));
-}
-
-static void
-bit_works_highest_bit_set_32_test (void)
-{
-  g_assert(0x00000000 == bit_works_highest_bit_set_32(0x00000000));
-  g_assert(0x00000001 == bit_works_highest_bit_set_32(0x00000001));
-  g_assert(0x00000002 == bit_works_highest_bit_set_32(0x00000002));
-  g_assert(0x00000002 == bit_works_highest_bit_set_32(0x00000003));
-  g_assert(0x80000000 == bit_works_highest_bit_set_32(0xFFFFFFFF));
+ g_assert(0x01 == bit_works_lowest_set_bit(0xFF));
+ g_assert(0x02 == bit_works_lowest_set_bit(0xFE));
+ g_assert(0x80 == bit_works_lowest_set_bit(0x80));
+ g_assert(0x40 == bit_works_lowest_set_bit(0xC0));
 }
 
 static void

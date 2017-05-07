@@ -39,23 +39,17 @@
  * @cond
  */
 
-/* When defined leverages the intel POPCNT instruction. */
-#define X86_POPCNT
-
-
-
 /*
- * Internal constants.
+ * INTERNAL constants.
  */
 
-static const uint64_t m1  = 0x5555555555555555; //binary: 0101...
-static const uint64_t m2  = 0x3333333333333333; //binary: 00110011..
-static const uint64_t m4  = 0x0f0f0f0f0f0f0f0f; //binary:  4 zeros,  4 ones ...
-static const uint64_t m8  = 0x00ff00ff00ff00ff; //binary:  8 zeros,  8 ones ...
-static const uint64_t m16 = 0x0000ffff0000ffff; //binary: 16 zeros, 16 ones ...
-static const uint64_t m32 = 0x00000000ffffffff; //binary: 32 zeros, 32 ones
-static const uint64_t hff = 0xffffffffffffffff; //binary: all ones
-static const uint64_t h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,3...
+static const uint64_t m1  = 0x5555555555555555; // binary: 0101...
+static const uint64_t m2  = 0x3333333333333333; // binary: 00110011..
+static const uint64_t m4  = 0x0f0f0f0f0f0f0f0f; // binary:  4 zeros,  4 ones ...
+static const uint64_t m8  = 0x00ff00ff00ff00ff; // binary:  8 zeros,  8 ones ...
+static const uint64_t m16 = 0x0000ffff0000ffff; // binary: 16 zeros, 16 ones ...
+static const uint64_t m32 = 0x00000000ffffffff; // binary: 32 zeros, 32 ones
+static const uint64_t h01 = 0x0101010101010101; // the sum of 256 to the power of 0,1,2,3...
 
 /* Log 2 array */
 static const uint8_t log2_array[] = {
@@ -104,10 +98,10 @@ static const int debruijn_64_shift_value = 58;
 unsigned int
 bit_works_bitcount_64_plain (uint64_t bit_set)
 {
-  bit_set -= (bit_set >> 1) & m1;                    //put count of each 2 bits into those 2 bits
-  bit_set  = (bit_set & m2) + ((bit_set >> 2) & m2); //put count of each 4 bits into those 4 bits
-  bit_set  = (bit_set + (bit_set >> 4)) & m4;        //put count of each 8 bits into those 8 bits
-  return (bit_set * h01) >> 56;                      //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
+  bit_set -= (bit_set >> 1) & m1;                    // puts count of each 2 bits into those 2 bits
+  bit_set  = (bit_set & m2) + ((bit_set >> 2) & m2); // puts count of each 4 bits into those 4 bits
+  bit_set  = (bit_set + (bit_set >> 4)) & m4;        // puts count of each 8 bits into those 8 bits
+  return (bit_set * h01) >> 56;                      // returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
 }
 
 #ifdef __POPCNT__
@@ -334,35 +328,26 @@ bit_works_reset_lowest_set_bit (const uint64_t bit_sequence);
  * @return             the filtered sequence
  */
 uint64_t
-bit_works_lowest_bit_set_64 (const uint64_t bit_sequence)
+bit_works_lowest_set_bit (const uint64_t bit_sequence)
 {
   return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
 }
 
 /**
- * @brief Returns a bit sequence having one bit set, the lowest found
- * in the `bit_sequence` parameter.
+ * @brief Returns a value having all the bit set in `bit_sequence` turned to `0`
+ * except the most significant one.
  *
- * @param bit_sequence the input value
- * @return             the filtered sequence
- */
-uint32_t
-bit_works_lowest_bit_set_32 (const uint32_t bit_sequence)
-{
-  return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
-}
-
-/**
- * @brief Returns a bit sequence having one bit set, the lowest found
- * in the `bit_sequence` parameter.
+ * When parameter `bit_sequence` is equal to `0` it returns `0`.
  *
- * @param bit_sequence the input value
- * @return             the filtered sequence
+ * @param bit_sequence the value analyzed
+ * @return             an value having set the bit most significative found in bit_sequence
  */
-uint8_t
-bit_works_lowest_bit_set_8 (const uint8_t bit_sequence)
+uint64_t
+bit_works_highest_set_bit (uint64_t bit_sequence)
 {
-  return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
+  if (!bit_sequence) return 0;
+  const uint8_t index = bit_works_bit_scan_reverse_64(bit_sequence);
+  return (uint64_t) 1 << index;
 }
 
 /**
@@ -394,71 +379,3 @@ bit_works_ror_64 (const uint64_t bit_sequence,
 extern uint64_t
 bit_works_rol_64 (const uint64_t bit_sequence,
                   const unsigned int shift);
-
-/**
- * @brief Returns an int value having all the bit set in `bit_sequence` turned to `0`
- * except the most significant one.
- *
- * When parameter `bit_sequence` is equal to `0` it returns `0`.
- *
- * @param bit_sequence the value analyzed
- * @return             an value having set the bit most significative found in bit_sequence
- */
-uint32_t
-bit_works_highest_bit_set_32 (uint32_t bit_sequence)
-{
-  if (bit_sequence == 0x00000000) {
-    return 0x00000000;
-  }
-  uint32_t result = 0x00000001;
-  uint32_t tmp = bit_sequence;
-  if ((tmp & 0xFFFF0000) != 0x00000000) {
-    tmp >>= 16;
-    result = 0x00010000;
-  }
-  if  (tmp > 0x000000FF) {
-    tmp >>=  8;
-    result <<= 8;
-  }
-  result <<= log2_array[tmp];
-  return result;
-}
-
-/**
- * @brief Returns an int value having all the bit set in `bit_sequence` turned to `0`
- * except the most significant one.
- *
- * When parameter `bit_sequence` is equal to `0` it returns `0`.
- *
- * @param bit_sequence the value analyzed
- * @return             an value having set the bit most significative found in bit_sequence
- */
-uint8_t
-bit_works_highest_bit_set_8 (uint8_t bit_sequence)
-{
-  if (bit_sequence == 0x00) {
-    return 0x00;
-  }
-  uint8_t result = 0x01;
-  result <<= log2_array[bit_sequence];
-  return result;
-}
-
-/**
- * @brief The `bitsequence` parameter must have one or two bits set.
- * Returns a bit sequence having set the bits between the two, or zero
- * when only one bit is set.
- *
- * For example: `00100010` returns `00011100`.
- *
- * When the input data doesn't meet the requirements the result is unpredictable.
- *
- * @param [in] bit_sequence the value to be scanned
- * @return                  a bit sequence having the internal bits set
- */
-uint8_t
-bit_works_fill_in_between (uint8_t bit_sequence)
-{
-  return ((0x01 << (uint8_t) bit_works_bit_scan_reverse_64(bit_sequence)) - 0x01)
-         & ((~bit_sequence & 0xFF) ^ (bit_sequence - 0x01));
-}
