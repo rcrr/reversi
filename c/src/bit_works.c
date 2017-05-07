@@ -275,14 +275,14 @@ bit_works_bit_scan_forward_64 (const uint64_t bit_sequence);
  */
 
 uint64_t
-bit_works_reset_lowest_set_bit_plain (const uint64_t bit_sequence)
+bit_works_reset_lowest_set_bit_64_plain (const uint64_t bit_sequence)
 {
   return (bit_sequence - 1) & bit_sequence;
 }
 
 #ifdef __x86_64__
 extern uint64_t
-bit_works_reset_lowest_set_bit_blsr (const uint64_t bit_sequence);
+bit_works_reset_lowest_set_bit_64_blsr (const uint64_t bit_sequence);
 #endif
 
 /**
@@ -296,8 +296,8 @@ bit_works_reset_lowest_set_bit_blsr (const uint64_t bit_sequence);
  * If the content of `bit_sequence` is 0, the result is undefined.
  *
  * This function has two distinct implementations:
- * - `bit_works_reset_lowest_set_bit_plain`
- * - `bit_works_reset_lowest_set_bit_blsr`
+ * - `bit_works_reset_lowest_set_bit_64_plain`
+ * - `bit_works_reset_lowest_set_bit_64_blsr`
  *
  * Depending on the "compile time" value of the macro `__x86_64__`, it
  * resolves to one of the two variants.
@@ -316,7 +316,7 @@ bit_works_reset_lowest_set_bit_blsr (const uint64_t bit_sequence);
  * @return             the filtered sequence
  */
 extern uint64_t
-bit_works_reset_lowest_set_bit (const uint64_t bit_sequence);
+bit_works_reset_lowest_set_bit_64 (const uint64_t bit_sequence);
 
 
 
@@ -328,7 +328,7 @@ bit_works_reset_lowest_set_bit (const uint64_t bit_sequence);
  * @return             the filtered sequence
  */
 uint64_t
-bit_works_lowest_set_bit (const uint64_t bit_sequence)
+bit_works_lowest_set_bit_64 (const uint64_t bit_sequence)
 {
   return (bit_sequence & (bit_sequence - 1)) ^ bit_sequence;
 }
@@ -343,7 +343,7 @@ bit_works_lowest_set_bit (const uint64_t bit_sequence)
  * @return             an value having set the bit most significative found in bit_sequence
  */
 uint64_t
-bit_works_highest_set_bit (uint64_t bit_sequence)
+bit_works_highest_set_bit_64 (uint64_t bit_sequence)
 {
   if (!bit_sequence) return 0;
   const uint8_t index = bit_works_bit_scan_reverse_64(bit_sequence);

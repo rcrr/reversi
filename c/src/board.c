@@ -452,7 +452,7 @@ square_set_random_selection (prng_mt19937_t *const prng,
   const unsigned int square_index = prng_mt19937_random_choice_from_finite_set(prng, square_count);
   for (unsigned int i = 0; i < square_count; i++) {
     if (i == square_index) break;
-    s ^= bit_works_lowest_set_bit(s);
+    s ^= bit_works_lowest_set_bit_64(s);
   }
   return (Square) bit_works_bit_scan_forward_64(s);
 }

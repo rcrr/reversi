@@ -44,7 +44,7 @@
 
 static void dummy_test (void);
 static void bit_works_int_size_definition_checks (void);
-static void bit_works_lowest_set_bit_test (void);
+static void bit_works_lowest_set_bit_64_test (void);
 static void bit_works_type_size_test (void);
 static void bit_works_bitcount_64_test (void);
 static void bit_works_ror_64_test (void);
@@ -60,7 +60,7 @@ main (int   argc,
 
   g_test_add_func("/bit_works/dummy", dummy_test);
   g_test_add_func("/bit_works/bit_works_int_size_definition_checks", bit_works_int_size_definition_checks);
-  g_test_add_func("/bit_works/bit_works_lowest_set_bit_test", bit_works_lowest_set_bit_test);
+  g_test_add_func("/bit_works/bit_works_lowest_set_bit_64_test", bit_works_lowest_set_bit_64_test);
   g_test_add_func("/bit_works/bit_works_bitcount_64_test", bit_works_bitcount_64_test);
   g_test_add_func("/bit_works/bit_works_type_size_test", bit_works_type_size_test);
   g_test_add_func("/bit_works/bit_works_ror_64", bit_works_ror_64_test);
@@ -127,12 +127,12 @@ bit_works_int_size_definition_checks (void)
 }
 
 static void
-bit_works_lowest_set_bit_test (void)
+bit_works_lowest_set_bit_64_test (void)
 {
- g_assert(0x01 == bit_works_lowest_set_bit(0xFF));
- g_assert(0x02 == bit_works_lowest_set_bit(0xFE));
- g_assert(0x80 == bit_works_lowest_set_bit(0x80));
- g_assert(0x40 == bit_works_lowest_set_bit(0xC0));
+ g_assert(0x01 == bit_works_lowest_set_bit_64(0xFF));
+ g_assert(0x02 == bit_works_lowest_set_bit_64(0xFE));
+ g_assert(0x80 == bit_works_lowest_set_bit_64(0x80));
+ g_assert(0x40 == bit_works_lowest_set_bit_64(0xC0));
 }
 
 static void
