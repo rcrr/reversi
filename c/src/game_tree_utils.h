@@ -58,7 +58,6 @@
 #define MAX_LEGAL_MOVE_STACK_COUNT 1024
 
 #include <stdbool.h>
-#include <stdbool.h>
 
 #include "board.h"
 #include "red_black_tree.h"

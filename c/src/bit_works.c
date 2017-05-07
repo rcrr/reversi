@@ -211,7 +211,7 @@ bit_works_bit_scan_reverse_64_bsr (const uint64_t bit_sequence);
  * for testing purposes, but it should be never done otherwise.
  *
  * @param bit_sequence value that is scanned
- * @return             the index `(0..63)` of the most significant bit set
+ * @return             the index `[0..63]` of the most significant bit set
  */
 extern uint8_t
 bit_works_bit_scan_reverse_64 (const uint64_t bit_sequence);
@@ -265,7 +265,7 @@ bit_works_bit_scan_forward_64_bsf (const uint64_t bit_sequence);
  * for testing purposes, but it should be never done otherwise.
  *
  * @param bit_sequence value that is scanned
- * @return             the index `(0..63)` of the least significant bit set
+ * @return             the index `[0..63]` of the least significant bit set
  */
 extern uint8_t
 bit_works_bit_scan_forward_64 (const uint64_t bit_sequence);

@@ -38,8 +38,6 @@
 #include <stdbool.h>
 
 #include "game_tree_logger.h"
-#include "game_tree_utils.h"
-
 #include "exact_solver.h"
 
 

@@ -34,7 +34,6 @@
 #define ENDGAME_SOLVER_H
 
 #include "game_tree_utils.h"
-#include "board.h"
 
 
 /**
