@@ -63,6 +63,40 @@ compare_int (const void *item_a,
 }
 
 /*
+ * Compare function for integers.
+ * Argument param is a pointer to an unsigned long long integer
+ * that is incremented each call.
+ */
+static int
+compare_int_and_increment_param (const void *item_a,
+                                 const void *item_b,
+                                 void *param)
+{
+  assert(item_a);
+  assert(item_b);
+  assert(param);
+  unsigned long long int *cnt_p = (unsigned long long int *) param;
+  const int a = *(int *) item_a;
+  const int b = *(int *) item_b;
+  (*cnt_p)++;
+  return (a > b) - (a < b);
+}
+
+/*
+ * Argument param is a pointer to an unsigned long long integer
+ * that is incremented each call.
+ */
+static void
+on_item_destroy_increment_param (void *item,
+                                 void *param)
+{
+  assert(item);
+  assert(param);
+  unsigned long long int *cnt_p = (unsigned long long int *) param;
+  (*cnt_p)++;
+}
+
+/*
  * Examines the binary tree rooted at node.
  * Zeroes *okay if an error occurs.
  * Otherwise, does not modify *okay.
@@ -254,6 +288,51 @@ verify_tree (rbt_table_t *tree,
   return okay;
 }
 
+/*
+ * Argument param is a pointer to an unsigned long long integer
+ * that is incremented each call.
+ */
+static void *
+on_item_copy_increment_param (void *item,
+                              void *param)
+{
+  assert(item);
+  assert(param);
+  unsigned long long int *cnt_p = (unsigned long long int *) param;
+  (*cnt_p)++;
+  return item;
+}
+
+/*
+ * Compares binary trees rooted at a and b, making sure that they are identical.
+ */
+static int
+compare_trees (rbt_node_t *a,
+               rbt_node_t *b,
+               rbt_item_compare_f *compare,
+               void *param)
+{
+  int okay;
+
+  if (a == NULL || b == NULL) {
+    assert(a == NULL && b == NULL);
+    return 1;
+  }
+
+  if (compare(a->data, b->data, param) != 0
+      || ((a->links[0] != NULL) != (b->links[0] != NULL))
+      || ((a->links[1] != NULL) != (b->links[1] != NULL))
+      || a->color != b->color) {
+    printf("Copied nodes differ.\n");
+    return 0;
+  }
+
+  okay = 1;
+  if (a->links[0] != NULL) okay &= compare_trees(a->links[0], b->links[0], compare, param);
+  if (a->links[1] != NULL) okay &= compare_trees(a->links[1], b->links[1], compare, param);
+  return okay;
+}
+
 
 
 /*
@@ -316,6 +395,337 @@ probe_t (ut_test_t *const t)
   rbt_destroy(table, NULL);
 }
 
+static void
+item_compare_f_t (ut_test_t *const t)
+{
+  /* Tests that the data set is composed by an array of ten integers: [0..9]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /*
+   * Parameter passed to the table initialization.
+   * The function compare_int_and_increment_param increment the parameter at each call.
+   */
+  unsigned long long int cnt = 0;
+  const unsigned long long int expected_comparison_cnt = 27;
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int_and_increment_param, &cnt, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Count has to be zero. */
+  ut_assert(t, rbt_count(table) == 0);
+
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    unsigned long long int tmp = cnt;
+    int *item = &data[i];
+    int **item_ref = (int **) rbt_probe(table, item);
+    ut_assert(t, rbt_count(table) == i + 1);             /* Table count has to be equal to the number of inserted elements. */
+    ut_assert(t, *item_ref != NULL);                     /* Item pointer has to be not null. */
+    ut_assert(t, *item_ref == &data[i]);                 /* Item pointer has to reference the appropriate array element. */
+    ut_assert(t, **item_ref == i);                       /* Item (**item_ref) has to be equal to the loop counter. */
+    ut_assert(t, cnt >= tmp);
+  }
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+
+  /* Final comparison count check. */
+  ut_assert(t, cnt == expected_comparison_cnt);
+}
+
+static void
+item_destroy_f_t (ut_test_t *const t)
+{
+  /* Test data set is composed by an array of ten integers: [0..9]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /*
+   * Parameter passed to the table initialization.
+   * The function compare_int_and_increment_param increment the parameter at each call.
+   */
+  unsigned long long int cnt = 0;
+  const unsigned long long int expected_destroy_cnt = data_size;
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, &cnt, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Count has to be zero. */
+  ut_assert(t, rbt_count(table) == 0);
+
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    int *item = &data[i];
+    int **item_ref = (int **) rbt_probe(table, item);
+    ut_assert(t, rbt_count(table) == i + 1);             /* Table count has to be equal to the number of inserted elements. */
+    ut_assert(t, *item_ref != NULL);                     /* Item pointer has to be not null. */
+    ut_assert(t, *item_ref == &data[i]);                 /* Item pointer has to reference the appropriate array element. */
+    ut_assert(t, **item_ref == i);                       /* Item (**item_ref) has to be equal to the loop counter. */
+  }
+
+  /* Frees the table. */
+  rbt_destroy(table, on_item_destroy_increment_param);
+
+  /* Final comparison count check. */
+  ut_assert(t, cnt == expected_destroy_cnt);
+}
+
+static void
+copy_t (ut_test_t *const t)
+{
+  /* Test data set is composed by an array of ten integers: [0..9]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /* Shared field passed as param to the rbt_item_copy_f function. */
+  unsigned long long int copy_cnt = 0;
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, &copy_cnt, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Inserts the [0..9] set of elements in the table. */
+  for (size_t i = 0; i < data_size; i++) {
+    int *item = &data[i];
+    rbt_probe(table, item);
+  }
+
+  /* We must have data_size elements in the table. */
+  ut_assert(t, rbt_count(table) == data_size);
+
+  /* Copies table into a new tree. */
+  rbt_item_copy_f *copy = on_item_copy_increment_param;
+  rbt_item_destroy_f *destroy = NULL;
+  mem_allocator_t *alloc = NULL;
+  rbt_table_t *copied_table = rbt_copy(table, copy, destroy, alloc);
+
+  /* Function on_item_copy_increment_param has to be called data_size times. */
+  ut_assert(t, copy_cnt == data_size);
+
+  /* Compares trees node by node. */
+  ut_assert(t, compare_trees(table->root, copied_table->root, compare_int, NULL));
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+
+  /* We must have data_size elements in the table. */
+  ut_assert(t, rbt_count(copied_table) == data_size);
+
+  /* The copied tree must be consistent, and complete. */
+  ut_assert(t, verify_tree(copied_table, data, data_size));
+
+  /* Frees the table. */
+  rbt_destroy(copied_table, NULL);
+}
+
+static void
+insert_replace_and_find_t (ut_test_t *const t)
+{
+  /* We need data with key and content to properly test the replace use case. */
+  struct element {
+    int key;
+    int content;
+  };
+
+  /* Values assigned to data. */
+  const int value_a = 0;
+  const int value_b = 1;
+
+  /* Test data set is composed by an array of ten element structure: [{0,0}..{9,0}]. */
+  struct element data_a[] = { {0, value_a},
+                              {1, value_a},
+                              {2, value_a},
+                              {3, value_a},
+                              {4, value_a},
+                              {5, value_a},
+                              {6, value_a},
+                              {7, value_a},
+                              {8, value_a},
+                              {9, value_a} };
+
+  /* Data size is dynamically computed. */
+  const size_t data_size = sizeof(data_a) / sizeof(data_a[0]);
+
+  /* A second array set is prepared, having the same size, and same keys, but different content. */
+  struct element data_b[data_size];
+  for (size_t i = 0; i < data_size; i++) {
+    data_b[i].key = data_a[i].key;
+    data_b[i].content = value_b;
+  }
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Inserts the data_a set of elements in the table. */
+  for (size_t i = 0; i < data_size; i++) {
+    struct element *e = &data_a[i];
+    struct element *e_ref = (struct element *) rbt_insert(table, e);
+    ut_assert(t, rbt_count(table) == i + 1);         /* Table count has to be equal to the number of inserted elements. */
+    ut_assert(t, e_ref == NULL);                     /* Item pointer has to be null when insertion succeeds. */
+  }
+
+  /* We must have data_size elements in the table now. */
+  ut_assert(t, rbt_count(table) == data_size);
+
+  /* Inserts the data_b set of elements in the table. Nothing has to happen. */
+  for (size_t i = 0; i < data_size; i++) {
+    struct element *e = &data_b[i];
+    struct element *e_ref = (struct element *) rbt_insert(table, e);
+    ut_assert(t, rbt_count(table) == data_size);     /* Table count has to stay constant. */
+    ut_assert(t, e_ref != NULL);                     /* Item pointer has to be not null. */
+    ut_assert(t, e_ref == &data_a[i]);               /* Item pointer has to reference the appropriate array element. */
+    ut_assert(t, e_ref->key == i);                   /* Item's key has to be equal to the loop counter. */
+    ut_assert(t, e_ref->content == value_a);         /* Item's content has to be equal to value_a. */
+  }
+
+  /* We must have still data_size elements in the table. */
+  ut_assert(t, rbt_count(table) == data_size);
+
+  /* Replaces elements using data_b set. All elements has to be replaced. */
+  for (size_t i = 0; i < data_size; i++) {
+    struct element *e = &data_b[i];
+    struct element *e_ref = (struct element *) rbt_replace(table, e);
+    ut_assert(t, rbt_count(table) == data_size);     /* Table count has to stay constant. */
+    ut_assert(t, e_ref != NULL);                     /* Item pointer has to be not null. */
+    ut_assert(t, e_ref == &data_a[i]);               /* Item pointer has to reference the appropriate array element. */
+    ut_assert(t, e_ref->key == i);                   /* Item's key has to be equal to the loop counter. */
+    ut_assert(t, e_ref->content == value_a);         /* Item's content has to be equal to value_a. */
+  }
+
+  /* We must have still data_size elements in the table. */
+  ut_assert(t, rbt_count(table) == data_size);
+
+  /* Searches all the ten elements, they must be found, and the contant has to be equal to value_b. */
+  for (size_t i = 0; i < data_size; i++) {
+    struct element *e = (struct element *) rbt_find(table, &i);
+    ut_assert(t, e != NULL);
+    ut_assert(t, e == &data_b[i]);
+    ut_assert(t, e->key == i);
+    ut_assert(t, e->content == value_b);
+  }
+
+  /* Searches for a missing key, result has to be null. */
+  int missing_key = -1;
+  struct element *missing = rbt_find(table, &missing_key);
+  ut_assert(t, missing == NULL);
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+}
+
+static void
+delete_t (ut_test_t *const t)
+{
+  /* Test data set is composed by an array of 48 integers: [0..47]. */
+  int data[] = {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+                 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+                 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Count has to be zero. */
+  ut_assert(t, rbt_count(table) == 0);
+
+  /* Inserts the [0..47] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    int *item = &data[i];
+    int **item_ref = (int **) rbt_probe(table, item);
+    ut_assert(t, rbt_count(table) == i + 1);             /* Table count has to be equal to the number of inserted elements. */
+    ut_assert(t, *item_ref != NULL);                     /* Item pointer has to be not null. */
+    ut_assert(t, *item_ref == &data[i]);                 /* Item pointer has to reference the appropriate array element. */
+    ut_assert(t, **item_ref == i);                       /* Item (**item_ref) has to be equal to the loop counter. */
+  }
+
+  /* Deletes all elements one by one. */
+  for (size_t i = 0; i < data_size; i++) {
+    int *e = &data[i];
+    int *e_ref = (int *) rbt_delete(table, e);
+    ut_assert(t, rbt_count(table) == data_size - (i + 1));         /* Table count has to decrease at each step. */
+    ut_assert(t, *e_ref == *e);
+    for (size_t j = 0; j <= i; j++) {
+      int *e1 = (int *) rbt_find(table, &j);
+      ut_assert(t, e1 == NULL);
+    }
+    for (size_t j = i + 1; j < data_size; j++) {
+      int *e1 = (int *) rbt_find(table, &j);
+      ut_assert(t, e1 != NULL);
+      ut_assert(t, *e1 == j);
+    }
+    ut_assert(t, verify_tree(table, &data[i + 1], data_size - (i + 1)));
+  }
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+}
+
+static void
+volume_t (ut_test_t *const t)
+{
+  int *data;
+  mem_allocator_t *alloc = &mem_allocator_default;
+
+  const size_t max_size = 1024;
+
+  for (size_t k = 1; k < max_size; k++) {
+
+    data = alloc->malloc(alloc, sizeof(int) * k);
+    for (size_t i = 0; i < k; i++) {
+      data[i] = i;
+    }
+
+    rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+    ut_assert(t, table != NULL);
+
+    ut_assert(t, rbt_count(table) == 0);
+
+    /* Inserts elements sequentially. */
+    for (size_t i = 0; i < k; i++) {
+      int *e = &data[i];
+      int **e_ref = (int **) rbt_probe(table, e);
+      ut_assert(t, rbt_count(table) == i + 1);         /* Table count has to be equal to the number of inserted elements. */
+      ut_assert(t, *e_ref != NULL);                    /* Item pointer has to be not null. */
+      ut_assert(t, *e_ref == &data[i]);                /* Item pointer has to reference the appropriate array element. */
+      ut_assert(t, **e_ref == i);                      /* Item (**e_ref) has to be equal to the loop counter. */
+    }
+
+    /* We must have k elements in the table. */
+    ut_assert(t, rbt_count(table) == k);
+
+    /* Final table has to be complete and consistent. */
+    ut_assert(t, verify_tree(table, data, k));
+
+    /* Searches for each element and checks it exists in the table. */
+    for (size_t i = 0; i < k; i++) {
+      int *e = (int *) rbt_find(table, &i);
+      ut_assert(t, e != NULL);
+      ut_assert(t, *e == i);
+    }
+
+    /* Deletes odd element and checks it exists in the table. */
+    for (size_t i = 0; i < (k + 1) / 2; i++) {
+      int i2 = i * 2;
+      int *e = (int *) rbt_delete(table, &i2);
+      ut_assert(t, e != NULL);
+      ut_assert(t, *e == i2);
+    }
+
+    /* Final count has to be half of the number of inserted elements. */
+    ut_assert(t, rbt_count(table) == (size_t)(k / 2));
+
+    rbt_destroy(table, NULL);
+
+    alloc->free(alloc, data);
+  }
+
+}
+
 
 
 /**
@@ -329,9 +739,14 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new("red_black_tree");
 
-  //ut_suite_add_simple_test(s, "creation_and_destruction", creation_and_destruction_t);
   ut_suite_add_simple_test(s, "creation_and_destruction", creation_and_destruction_t);
   ut_suite_add_simple_test(s, "probe", probe_t);
+  ut_suite_add_simple_test(s, "item_compare_f", item_compare_f_t);
+  ut_suite_add_simple_test(s, "item_destroy_f", item_destroy_f_t);
+  ut_suite_add_simple_test(s, "copy", copy_t);
+  ut_suite_add_simple_test(s, "insert_replace_and_find", insert_replace_and_find_t);
+  ut_suite_add_simple_test(s, "delete", delete_t);
+  ut_suite_add_simple_test(s, "volume", volume_t);
 
   int failure_count = ut_suite_run(s);
 

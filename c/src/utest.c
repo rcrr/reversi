@@ -109,9 +109,8 @@ print_program_info (void)
 
 
 static void
-parse_args (argc_p, argv_p)
-     int *argc_p;
-     char ***argv_p;
+parse_args (int *argc_p,
+            char ***argv_p)
 {
   int argc = *argc_p;
   char **argv = *argv_p;
@@ -232,7 +231,7 @@ parse_args (argc_p, argv_p)
 
 
 static char **
-prepare_args()
+prepare_args (void)
 {
   int argc;
 
@@ -298,9 +297,8 @@ prepare_args()
  * @brief Main entry for the utest program.
  */
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc,
+      char **argv)
 {
   parse_args(&argc, &argv);
 

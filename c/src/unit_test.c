@@ -96,10 +96,9 @@ ut_suite_full_path_max_length (ut_suite_t *s);
  * @return a pointer to a new test structure
  */
 ut_test_t *
-ut_test_new (label, tfun, s)
-     char *label;
-     ut_simple_test_f tfun;
-     ut_suite_t *s;
+ut_test_new (char *label,
+             ut_simple_test_f tfun,
+             ut_suite_t *s)
 {
   ut_test_t *t;
   static const size_t size_of_t = sizeof(ut_test_t);
@@ -121,8 +120,7 @@ ut_test_new (label, tfun, s)
  * @param [in,out] t the pointer to be deallocated
  */
 void
-ut_test_free (t)
-     ut_test_t *t;
+ut_test_free (ut_test_t *t)
 {
   free(t);
 }
@@ -147,8 +145,7 @@ static const size_t array_alloc_chunk_size = 2;
  * @return a pointer to a new suite structure
  */
 ut_suite_t *
-ut_suite_new (label)
-     char *label;
+ut_suite_new (char *label)
 {
   ut_suite_t *s;
   static const size_t size_of_t = sizeof(ut_suite_t);
@@ -171,8 +168,7 @@ ut_suite_new (label)
  * @param [in,out] s the pointer to be deallocated
  */
 void
-ut_suite_free (s)
-     ut_suite_t *s;
+ut_suite_free (ut_suite_t *s)
 {
   for (int i = 0; i < s->count; i++) {
     ut_test_t **tests_p = s->tests + i;
@@ -190,10 +186,9 @@ ut_suite_free (s)
  * @param [in]     tfun  the the test function
  */
 void
-ut_suite_add_simple_test (s, label, tfun)
-     ut_suite_t *s;
-     char *label;
-     ut_simple_test_f tfun;
+ut_suite_add_simple_test (ut_suite_t *s,
+                          char *label,
+                          ut_simple_test_f tfun)
 {
   assert(s);
   assert(label);
@@ -219,8 +214,7 @@ ut_suite_add_simple_test (s, label, tfun)
  * @return           the count of failed tests
  */
 int
-ut_suite_run (s)
-     ut_suite_t *s;
+ut_suite_run (ut_suite_t *s)
 {
   if (!s) return 0;
 
@@ -291,9 +285,8 @@ ut_suite_run (s)
  * @param [in,out] assertion the result of the assertion
  */
 void
-ut_assert (t, assertion)
-     ut_test_t *t;
-     int assertion;
+ut_assert (ut_test_t *t,
+           int assertion)
 {
   t->assertion_count++;
   if (!assertion) t->failure_count++;
@@ -310,9 +303,8 @@ ut_assert (t, assertion)
  * @param [in,out] argv_p address of the argv parameter of the main() function.
  */
 void
-ut_init (argc_p, argv_p)
-     int *argc_p;
-     char ***argv_p;
+ut_init (int *argc_p,
+         char ***argv_p)
 {
   parse_args(argc_p, argv_p);
   return;
@@ -325,9 +317,8 @@ ut_init (argc_p, argv_p)
 /********************************************/
 
 static void
-parse_args (argc_p, argv_p)
-     int *argc_p;
-     char ***argv_p;
+parse_args (int *argc_p,
+            char ***argv_p)
 {
   int argc = *argc_p;
   char **argv = *argv_p;
@@ -434,8 +425,7 @@ parse_args (argc_p, argv_p)
 }
 
 static unsigned long
-ut_suite_full_path_max_length (s)
-     ut_suite_t *s;
+ut_suite_full_path_max_length (ut_suite_t *s)
 {
   unsigned long max_label_len = 0;
   unsigned long full_path_len = 2 + strlen(s->label);
