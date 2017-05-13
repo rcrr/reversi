@@ -224,11 +224,11 @@ ut_suite_run (s)
 {
   if (!s) return 0;
 
-  const unsigned long res_msg_def_print_column = 60;
+  const unsigned long res_msg_def_print_column = 80;
   const unsigned long len = ut_suite_full_path_max_length(s);
   const unsigned long res_msg_print_column = (res_msg_def_print_column > len) ? res_msg_def_print_column : len;
 
-  char *full_path = (char *) malloc(len * sizeof(char));
+  char *full_path = (char *) malloc((len + 1) * sizeof(char));
   assert(full_path);
 
   for (int i = 0; i < s->count; i++) {
@@ -266,7 +266,7 @@ ut_suite_run (s)
           s->failed_test_count++;
           fprintf(stdout, "%*cFAILED - Failure count = %d\n", (int)(res_msg_print_column - strlen(full_path)), ' ', t->failure_count);
         } else {
-          fprintf(stdout, "%*cOK\n", (int)(res_msg_print_column- strlen(full_path)), ' ');
+          fprintf(stdout, "%*cOK\n", (int)(res_msg_print_column - strlen(full_path)), ' ');
         }
       }
     }
