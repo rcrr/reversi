@@ -274,6 +274,48 @@ creation_and_destruction_t (ut_test_t *const t)
   rbt_destroy(table, NULL);
 }
 
+static void
+probe_t (ut_test_t *const t)
+{
+  /* Test data set is composed by an array of ten integers: [0..9]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Count has to be zero. */
+  ut_assert(t, rbt_count(table) == 0);
+
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    int *item = &data[i];
+    int **item_ref = (int **) rbt_probe(table, item);
+    ut_assert(t, rbt_count(table) == i + 1);             /* Table count has to be equal to the number of inserted elements. */
+    ut_assert(t, *item_ref != NULL);                     /* Item pointer has to be not null. */
+    ut_assert(t, *item_ref == &data[i]);                 /* Item pointer has to reference the appropriate array element. */
+    ut_assert(t, **item_ref == i);                       /* Item (**item_ref) has to be equal to the loop counter. */
+    ut_assert(t, verify_tree(table, data, i + 1));       /* Runs the verify_tree procedure on the growing table. */
+  }
+
+  /* Probes the table again with the same data set. Nothing has to happen. */
+  for (size_t i = 0; i < data_size; i++) {
+    int *item = &data[i];
+    int **item_ref = (int **) rbt_probe(table, item);
+    ut_assert(t, rbt_count(table) == data_size);         /* Table count has to stay constat at data_size. */
+    ut_assert(t, *item_ref != NULL);
+    ut_assert(t, *item_ref == &data[i]);
+    ut_assert(t, **item_ref == i);
+  }
+
+  /* Finally the tree must be consistent. */
+  ut_assert(t, verify_tree(table, data, data_size));
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+}
+
 
 
 /**
@@ -287,7 +329,9 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new("red_black_tree");
 
+  //ut_suite_add_simple_test(s, "creation_and_destruction", creation_and_destruction_t);
   ut_suite_add_simple_test(s, "creation_and_destruction", creation_and_destruction_t);
+  ut_suite_add_simple_test(s, "probe", probe_t);
 
   int failure_count = ut_suite_run(s);
 
