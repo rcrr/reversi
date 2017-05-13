@@ -310,6 +310,17 @@ ut_init (int *argc_p,
   return;
 }
 
+/**
+ * @brief Returns true when performance tests are included in the run.
+ *
+ * @return true if test is in performance mode.
+ */
+bool
+ut_is_mode_equal_to_perf (void)
+{
+  return arg_config.mode == UT_MODE_PERF ? true : false;
+}
+
 
 
 /********************************************/

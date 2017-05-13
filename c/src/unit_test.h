@@ -184,6 +184,8 @@ extern void
 ut_init (int *argc_p,
          char ***argv_p);
 
+extern bool
+ut_is_mode_equal_to_perf (void);
 
 
 #endif /* UNIT_TEST_H */

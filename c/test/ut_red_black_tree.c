@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2017 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -34,17 +34,59 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <time.h>
+#include <unistd.h>
 #include <assert.h>
+#include <string.h>
 
 #include "unit_test.h"
 
 #include "red_black_tree.h"
+#include "prng.h"
+#include "sort_utils.h"
+//#include "memory_manager.h"
+
+
+/* Time spec type definition. See sys/time.h for more details. */
+typedef struct timespec timespec_t;
+
+
+
+/* Static variables. */
+
+static char *output_perf_log_dir = NULL;
+
 
 
 
 /*
  * Auxiliary functions.
  */
+
+/*
+ * it is used by the main function.
+ */
+static void
+local_parse_args (int *argc_p,
+                  char ***argv_p)
+{
+  int argc = *argc_p;
+  char **argv = *argv_p;
+
+  /* Parses known args. */
+  for (int i = 1; i < argc; i++) {
+    if (strcmp("--output-perf-log-dir", argv[i]) == 0) {
+      if (i + 1 < argc) {
+        argv[i++] = NULL;
+        output_perf_log_dir = argv[i];
+      } else {
+        fprintf(stderr, "%s: missing PATH value after --output-perf-log-dir flag.\n", argv[0]);
+        exit(EXIT_FAILURE);
+      }
+      argv[i] = NULL;
+    }
+  }
+}
 
 /*
  * Compare function for integers.
@@ -80,6 +122,19 @@ compare_int_and_increment_param (const void *item_a,
   const int b = *(int *) item_b;
   (*cnt_p)++;
   return (a > b) - (a < b);
+}
+
+/*
+ * Compare function for pointers to integer.
+ * It is used for sorting the array that compares to the tree's traverser.
+ */
+static int
+sort_utils_element_cmp (const void *const a,
+                        const void *const b)
+{
+  const int **const x = (const int **const) a;
+  const int **const y = (const int **const) b;
+  return (**x > **y) - (**x < **y);
 }
 
 /*
@@ -333,10 +388,85 @@ compare_trees (rbt_node_t *a,
   return okay;
 }
 
+/*
+ * Allocates and returns an array of shuffled integers.
+ */
+static int *
+prepare_data_array (const size_t len,
+                    const int seed)
+{
+  int *a = (int *) malloc(len * sizeof(int));
+  assert(a);
+
+  for (size_t i = 0; i < len; i++) {
+    a[i] = i;
+  }
+
+  prng_mt19937_t *prng = prng_mt19937_new();
+  assert(prng);
+  prng_mt19937_init_by_seed(prng, seed);
+  prng_mt19937_shuffle_array_int(prng, a, len);
+  prng_mt19937_free(prng);
+
+  return a;
+}
+
+/*
+ * The struct timespec structure represents an elapsed time. It is declared in time.h and has the following members:
+ *
+ * - time_t     tv_sec    This represents the number of whole seconds of elapsed time.
+ * - long int   tv_nsec   This is the rest of the elapsed time (a fraction of a second),
+ *                        represented as the number of nanoseconds. It is always less than one billion.
+ *
+ * The structure is also defined as:
+ *
+ *    typedef struct timespec timespec_t;
+ *
+ *
+ * A way of obtaining the timespec structure value is:
+ *
+ *    timespec_t time_0;
+ *    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+ *
+ *
+ * The function timespec_diff works as follow:
+ *
+ *    Subtracts the timespec_t values `start` and `end`,
+ *    storing the result in `result`.
+ *    Return 1 if the difference is negative, otherwise 0.
+ */
+static int
+timespec_diff (timespec_t *const result,
+               const timespec_t *const start,
+               const timespec_t *const end)
+{
+  assert(result);
+  assert(start);
+  assert(end);
+  if ((end->tv_sec - start->tv_sec) < 0) return 1;
+  if ((end->tv_sec - start->tv_sec) == 0 &&
+      (end->tv_nsec - start->tv_nsec) < 0) return 1;
+
+  if ((end->tv_nsec - start->tv_nsec) < 0) {
+    result->tv_sec = end->tv_sec - start->tv_sec - 1;
+    result->tv_nsec = 1000000000 + end->tv_nsec - start->tv_nsec;
+  } else {
+    result->tv_sec = end->tv_sec - start->tv_sec;
+    result->tv_nsec = end->tv_nsec - start->tv_nsec;
+  }
+  return 0;
+}
+
 
 
 /*
  * Test functions.
+ */
+
+
+
+/*
+ * Test functions for the table structure.
  */
 
 static void
@@ -726,6 +856,732 @@ volume_t (ut_test_t *const t)
 
 }
 
+static void
+random_key_volume_t (ut_test_t *const t)
+{
+  /* Structure element for data array has key and val. */
+  struct element {
+    int key;
+    int val;
+  };
+
+  /* Data size. */
+  const size_t data_size = 2048;
+
+  /* Number of insertions. */
+  const size_t insertion_count = 4096;
+
+  /* Checksums. */
+  size_t element_count_checksum = 0;
+  size_t insertion_count_checksum = 0;
+
+  /* Data is initialized having key equal to the element index into the array, and val equal to zero. */
+  struct element data[data_size];
+  for (size_t i = 0; i < data_size; i++) {
+    data[i].key = i;
+    data[i].val = 0;
+  }
+
+  /* Sets up the RNG. */
+  const unsigned int seed = 20150801;
+  prng_mt19937_t *prng = prng_mt19937_new();
+  ut_assert(t, prng != NULL);
+  prng_mt19937_init_by_seed(prng, seed);
+
+  /* Creates the table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Populates the table with random selection within the set. Element's val field is incremented on each probe. */
+  for (size_t k = 0; k < insertion_count; k++) {
+    const unsigned long index = prng_mt19937_random_choice_from_finite_set(prng, data_size);
+    struct element **e = (struct element **) rbt_probe(table, &data[index]);
+    (*e)->val++;
+  }
+
+  /* Checks that the tree has the probed elements, and doesn't have the skipped ones. */
+  for (size_t i = 0; i < data_size; i++) {
+    const int key = i;
+    const int count = data[i].val;
+    insertion_count_checksum += count;
+    if (count) element_count_checksum++;
+    struct element *e = (struct element *) rbt_find(table, &key);
+    if (e) ut_assert(t, count > 0);
+    else ut_assert(t, count == 0);
+  }
+  ut_assert(t, insertion_count_checksum == insertion_count);
+  ut_assert(t, element_count_checksum == rbt_count(table));
+  ut_assert(t, element_count_checksum == 1767);      /* Depends on PRNG, seed, data_size, and insertion_count. */
+
+  /* Frees resources. */
+  rbt_destroy(table, NULL);
+  prng_mt19937_free(prng);
+}
+
+
+
+/*
+ * Test functions for the traverser structure.
+ */
+
+static void
+traverser_basic_t (ut_test_t *const t)
+
+{
+  rbt_traverser_t traverser;
+  rbt_traverser_t *tr = &traverser;
+  int *e;
+  int counter;
+
+  /* Test data set is composed by an array of ten integers: [0..9]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    rbt_probe(table, &data[i]);
+  }
+
+  /* Traverses the table clockwise starting from the null element. */
+  counter = 0;
+  rbt_t_init(tr, table);
+  while ((e = rbt_t_next(tr))) {
+    ut_assert(t, *e == counter++);
+    ut_assert(t, rbt_t_cur(tr) == e);
+  }
+  ut_assert(t, counter == data_size);
+  ut_assert(t, rbt_t_cur(tr) == NULL);
+
+  /* Traverses the table counterclockwise starting from the null element. */
+  counter = data_size;
+  rbt_t_init(tr, table);
+  while ((e = rbt_t_prev(tr))) {
+    ut_assert(t, *e == --counter);
+    ut_assert(t, rbt_t_cur(tr) == e);
+  }
+  ut_assert(t, counter == 0);
+  ut_assert(t, rbt_t_cur(tr) == NULL);
+
+  /* Traverses the table clockwise starting from the first element. */
+  for (e = rbt_t_first(tr, table), counter = 0; e; e = rbt_t_next(tr), counter++) {
+    ut_assert(t, *e == counter);
+    ut_assert(t, rbt_t_cur(tr) == e);
+  }
+  ut_assert(t, counter == data_size);
+  ut_assert(t, rbt_t_cur(tr) == NULL);
+
+  /* Traverses the table counterclockwise starting from the last element. */
+  for (e = rbt_t_last(tr, table), counter = data_size - 1; e; e = rbt_t_prev(tr), counter--) {
+    ut_assert(t, *e == counter);
+    ut_assert(t, rbt_t_cur(tr) == e);
+  }
+  ut_assert(t, counter == -1);
+  ut_assert(t, rbt_t_cur(tr) == NULL);
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+}
+
+static void
+traverser_find_and_copy_t (ut_test_t *const t)
+
+{
+  rbt_traverser_t traverser_1, traverser_2;
+  rbt_traverser_t *tr1 = &traverser_1;
+  rbt_traverser_t *tr2 = &traverser_2;
+  int *e;
+
+  /* Test data set is composed by an array of ten integers: [0..16]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    rbt_probe(table, &data[i]);
+  }
+
+  for (int key = 0; key < data_size; key ++) {
+    e = (int *) rbt_t_find(tr1, table, &key);
+    ut_assert(t, *e == key);
+
+    e = rbt_t_copy(tr2, tr1);
+    ut_assert(t, *e == key);
+
+    int *next = (int *) rbt_t_next(tr1);
+    if (key == data_size - 1) ut_assert(t, next == NULL);
+    else ut_assert(t, *next == key + 1);
+
+    int *prev = (int *) rbt_t_prev(tr2);
+    if (key == 0) ut_assert(t, prev == NULL);
+    else ut_assert(t, *prev == key - 1);
+  }
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+}
+
+static void
+traverser_insert_t (ut_test_t *const t)
+{
+  rbt_traverser_t traverser;
+  rbt_traverser_t *tr = &traverser;
+  int *e;
+
+  /* Test data set is composed by an array of ten integers: [0..16]. */
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+  const size_t data_size = sizeof(data) / sizeof(data[0]);
+  const size_t missing_element = 13;
+  int *prev = &data[12];
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Inserts the [0..9] set of elements in the table in sequential order. */
+  for (size_t i = 0; i < data_size; i++) {
+    if (i != 13) rbt_probe(table, &data[i]);
+  }
+
+  /* Table must have one element missing. */
+  ut_assert(t, rbt_count(table) == data_size - 1);
+
+  /* Searches for the 12th element and verifies that the next is the 14th. */
+  e = (int *) rbt_t_find(tr, table, prev);
+  ut_assert(t, e && *e == 12);
+  e = rbt_t_next(tr);
+  ut_assert(t, e && *e == 14);
+
+  /* Inserts the missing elements and verifies it. */
+  e = (int *) rbt_t_insert(tr, table, &data[missing_element]);
+  ut_assert(t, e != NULL);
+  ut_assert(t, *e == 13);
+  ut_assert(t, rbt_count(table) == data_size);
+
+  /* Searches for the 12th element and verifies that the next is the 13th. */
+  e = (int *) rbt_t_find(tr, table, prev);
+  ut_assert(t, e && *e == 12);
+  e = rbt_t_next(tr);
+  ut_assert(t, e && *e == 13);
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+}
+
+static void
+traverser_replace_t (ut_test_t *const t)
+{
+  rbt_traverser_t traverser;
+  rbt_traverser_t *tr = &traverser;
+
+  /* We need data with key and content to properly test the replace use case. */
+  struct element {
+    int key;
+    int content;
+  };
+
+  /* Values assigned to data. */
+  const int value_a = 0;
+  const int value_b = 1;
+
+  /* Test data set is composed by an array of ten element structure: [{0,0}..{9,0}]. */
+  struct element data_a[] = { {0, value_a},
+                              {1, value_a},
+                              {2, value_a},
+                              {3, value_a},
+                              {4, value_a},
+                              {5, value_a},
+                              {6, value_a},
+                              {7, value_a},
+                              {8, value_a},
+                              {9, value_a} };
+
+  /* Data size is dynamically computed. */
+  const size_t data_size = sizeof(data_a) / sizeof(data_a[0]);
+
+  /* A second array set is prepared, having the same size, and same keys, but different content. */
+  struct element data_b[data_size];
+  for (size_t i = 0; i < data_size; i++) {
+    data_b[i].key = data_a[i].key;
+    data_b[i].content = value_b;
+  }
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Inserts the data_a set of elements in the table. */
+  for (size_t i = 0; i < data_size; i++) {
+    struct element *e = &data_a[i];
+    rbt_insert(table, e);
+  }
+
+  size_t index = 3;
+  struct element *e = &data_a[index];
+  struct element *r = &data_b[index];
+  ut_assert(t, e->key == r->key);
+
+  e = (struct element *) rbt_t_find(tr, table, e);
+  ut_assert(t, e && e->key == index && e->content == value_a);
+
+  rbt_t_replace(tr, r);
+  e = (struct element *) rbt_t_next(tr);
+  ut_assert(t, e && e->key == index + 1 && e->content == value_a);
+  e = (struct element *) rbt_t_prev(tr);
+  ut_assert(t, e && e->key == index && e->content == value_b);
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+}
+
+static void
+traverser_on_changing_table_t (ut_test_t *const t)
+{
+  rbt_traverser_t traverser;
+  rbt_traverser_t *tr = &traverser;
+  int *e;
+
+  /* Test data set is composed by an array of 32 integers: [0..31]. */
+  int data[] = {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+                 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+
+  /* Set 0. */
+  size_t keys_0[] = { 1, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30 };
+  const size_t keys_0_size = sizeof(keys_0) / sizeof(keys_0[0]);
+
+  /* Set 1. */
+  size_t keys_1[] = { 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30 };
+  const size_t keys_1_size = sizeof(keys_1) / sizeof(keys_1[0]);
+
+  /* Set 2. */
+  size_t keys_2[] = { 20, 21, 22, 23, 24, 25, 26, 27 };
+  const size_t keys_2_size = sizeof(keys_2) / sizeof(keys_2[0]);
+
+  /* Creates the new empty table. */
+  rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+  ut_assert(t, table != NULL);
+
+  /* Inserts the data set of elements identified by keys_0 in the table. */
+  for (size_t i = 0; i < keys_0_size; i++) {
+    e = &data[keys_0[i]];
+    int **e_ptr = (int **) rbt_probe(table, e);
+    ut_assert(t, e_ptr != NULL);
+  }
+  ut_assert(t, rbt_count(table) == keys_0_size);
+
+  /* The last element has to be 30. */
+  e = (int *) rbt_t_last(tr, table);
+  ut_assert(t, e && *e == 30);
+
+  /* Inserts the data set of elements identified by keys_1 in the table. */
+  for (size_t i = 0; i < keys_1_size; i++) {
+    e = &data[keys_1[i]];
+    int **e_ptr = (int **) rbt_probe(table, e);
+    ut_assert(t, e_ptr != NULL);
+  }
+  ut_assert(t, rbt_count(table) == 21);
+
+  /* Going back from element 30 we shoud find element 28. */
+  e = (int *) rbt_t_prev(tr);
+  ut_assert(t, e && *e == 28);
+
+  /* Removes the data set of elements identified by keys_2 from the table. */
+  for (size_t i = 0; i < keys_2_size; i++) {
+    e = &data[keys_2[i]];
+    rbt_delete(table, e);
+  }
+  ut_assert(t, rbt_count(table) == 15);
+
+  /* Going back from element 28 we shoud find element 18. */
+  e = (int *) rbt_t_prev(tr);
+  ut_assert(t, e && *e == 18);
+
+  /* Frees the table. */
+  rbt_destroy(table, NULL);
+}
+
+static void
+performance_t (ut_test_t *const t)
+{
+  const size_t initial_len = 1000;
+  const size_t step_len = 4000;
+  const size_t steps = 100;
+  const size_t delta = 10;
+  const size_t repeats = 13;
+  assert(initial_len > delta * (repeats + 1));
+
+  const int initial_seed = 1898;
+  const int seed_increment = 37;
+  const char *const out_perf_log_file_name = "rbt_performance_a_log.csv";
+
+  int *data;
+  timespec_t time_0, time_1, time_diff;
+  FILE *fp;
+  char *op_type;
+  size_t op_initial_count, op_final_count;
+  char ltime_to_s[64];
+  time_t ltime;
+  int ret;
+
+  /* Opens the log file. */
+  char fname[512];
+  int access_check;
+  if (output_perf_log_dir) {
+    access_check = access(output_perf_log_dir, W_OK);
+    snprintf(fname, sizeof(fname), "%s/%s", output_perf_log_dir, out_perf_log_file_name);
+  } else {
+    access_check = access(".", W_OK);
+    snprintf(fname, sizeof(fname), "%s", out_perf_log_file_name);
+  }
+  if (access_check != 0) {
+    fprintf(stderr, "Directory doesn't exist, or access denied for file: %s\n", fname);
+    exit(1);
+  }
+  fp = fopen(fname, "w");
+  ut_assert(t, fp != NULL);
+  fprintf(fp, "%s;%s;%s;%s;%s;%s;%s\n",
+          "LTIME",
+          "OP_TYPE",
+          "OP_SIZE",
+          "OP_INITIAL_COUNT",
+          "OP_FINAL_COUNT",
+          "CPUTIME_SEC",
+          "CPUTIME_NSEC");
+
+  for (size_t k = 0; k < steps; k++) {
+    size_t len = initial_len + k * step_len;
+    size_t tlen = len + (repeats * delta);
+    int seed = initial_seed + k * seed_increment;
+
+    /* Prepares the array of integers [0..tlen], then shuffled. */
+    data = prepare_data_array(tlen, seed);
+
+    /* Creates the new empty table. */
+    rbt_table_t *table = rbt_create(compare_int, NULL, NULL);
+    ut_assert(t, table != NULL);
+
+    /* Operation 1: populate the table. */
+    op_type = "rnd_populate";
+    op_initial_count = rbt_count(table);
+
+    /* Takes initial time for operation. */
+    ltime = time(NULL);
+    strftime(ltime_to_s, sizeof(ltime_to_s), "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+    /* Starts the stop-watch. */
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+    /* Inserts the data set of elements in the table. */
+    for (size_t i = 0; i < len; i++) {
+      rbt_probe(table, &data[i]);
+    }
+
+    /* Stops the stop-watch. */
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+    /* Verifies that the size of the table is equal to the count of inserted elements. */
+    op_final_count = rbt_count(table);
+    ut_assert(t, op_final_count == len);
+
+    /* Computes the time taken. */
+    ret = timespec_diff(&time_diff, &time_0, &time_1);
+    ut_assert(t, ret == 0);
+
+    fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+            ltime_to_s,
+            op_type,
+            len,
+            op_initial_count,
+            op_final_count,
+            time_diff.tv_sec,
+            time_diff.tv_nsec);
+
+    /* End of operation 1. */
+
+
+    /* Repeats insert and delete sequences a number of times equal to repeats constant. */
+    for (size_t j = 0; j < repeats; j++) {
+
+      /* Operation 2: inserts delta new elements in table. */
+      op_type = "rnd_insert_new_elm";
+      op_initial_count = rbt_count(table);
+
+      /* Takes initial time for operation. */
+      ltime = time(NULL);
+      strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+      /* Starts the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+      /* Inserts the data set of elements in the table. */
+      for (size_t i = 0; i < delta; i++) {
+        rbt_probe(table, &data[len + delta * j + i]);
+      }
+
+      /* Stops the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+      /* Verifies that the size of the table is equal to the count of inserted elements. */
+      op_final_count = rbt_count(table);
+      ut_assert(t, op_final_count == len + delta);
+
+      /* Computes the time taken. */
+      ret = timespec_diff(&time_diff, &time_0, &time_1);
+      ut_assert(t, ret == 0);
+
+      fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+              ltime_to_s,
+              op_type,
+              delta,
+              op_initial_count,
+              op_final_count,
+              time_diff.tv_sec,
+              time_diff.tv_nsec);
+
+      /* End of operation 2. */
+
+
+      /* Operation 3: deletes delta elements from table. */
+      op_type = "rnd_remove_existing_elm";
+      op_initial_count = rbt_count(table);
+
+      /* Takes initial time for operation. */
+      ltime = time(NULL);
+      strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+      /* Starts the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+      /* Deletes the data set of elements from the table. */
+      for (size_t i = 0; i < delta; i++) {
+        rbt_delete(table, &data[delta * j + i]);
+      }
+
+      /* Stops the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+      /* Verifies that the size of the table is equal to the count of inserted elements. */
+      op_final_count = rbt_count(table);
+      ut_assert(t, op_final_count == len);
+
+      /* Computes the time taken. */
+      ret = timespec_diff(&time_diff, &time_0, &time_1);
+      ut_assert(t, ret == 0);
+
+      fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+              ltime_to_s,
+              op_type,
+              delta,
+              op_initial_count,
+              op_final_count,
+              time_diff.tv_sec,
+              time_diff.tv_nsec);
+
+      /* End of operation 3. */
+
+
+      /* Operation 4a: searches for existing elements. */
+      op_type = "find_existing_a_elm";
+      op_initial_count = rbt_count(table);
+
+      /* Takes initial time for operation. */
+      ltime = time(NULL);
+      strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+      /* Starts the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+      /* Searches for the first group of elements. */
+      for (size_t i = 0; i < delta; i++) {
+        int *e = (int *) rbt_find(table, &data[delta * (j + 1) + i]);
+        ut_assert(t, e != NULL);
+      }
+
+      /* Stops the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+      /* Verifies that the size of the table is equal to the count of inserted elements. */
+      op_final_count = rbt_count(table);
+      ut_assert(t, op_final_count == len);
+
+      /* Computes the time taken. */
+      ret = timespec_diff(&time_diff, &time_0, &time_1);
+      ut_assert(t, ret == 0);
+
+      fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+              ltime_to_s,
+              op_type,
+              delta,
+              op_initial_count,
+              op_final_count,
+              time_diff.tv_sec,
+              time_diff.tv_nsec);
+
+      /* End of operation 4a. */
+
+
+      /* Operation 4z: searches for existing elements. */
+      op_type = "find_existing_z_elm";
+      op_initial_count = rbt_count(table);
+
+      /* Takes initial time for operation. */
+      ltime = time(NULL);
+      strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+      /* Starts the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+      /* Searches for the first group of elements. */
+      for (size_t i = 0; i < delta; i++) {
+        int *e = (int *) rbt_find(table, &data[len - delta * j + i]);
+        ut_assert(t, e != NULL);
+      }
+
+      /* Stops the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+      /* Verifies that the size of the table is equal to the count of inserted elements. */
+      op_final_count = rbt_count(table);
+      ut_assert(t, op_final_count == len);
+
+      /* Computes the time taken. */
+      ret = timespec_diff(&time_diff, &time_0, &time_1);
+      ut_assert(t, ret == 0);
+
+      fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+              ltime_to_s,
+              op_type,
+              delta,
+              op_initial_count,
+              op_final_count,
+              time_diff.tv_sec,
+              time_diff.tv_nsec);
+
+      /* End of operation 4z. */
+
+
+      /* Operation 5: searches for missing elements. */
+      op_type = "find_missing_elm";
+      op_initial_count = rbt_count(table);
+
+      /* Takes initial time for operation. */
+      ltime = time(NULL);
+      strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+      /* Starts the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+      /* Searches for the elements just deleted. */
+      for (size_t i = 0; i < delta; i++) {
+        int *e = (int *) rbt_find(table, &data[delta * j + i]);
+        ut_assert(t, e == NULL);
+      }
+
+      /* Stops the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+      /* Verifies that the size of the table is equal to the count of inserted elements. */
+      op_final_count = rbt_count(table);
+      ut_assert(t, op_final_count == len);
+
+      /* Computes the time taken. */
+      ret = timespec_diff(&time_diff, &time_0, &time_1);
+      ut_assert(t, ret == 0);
+
+      fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+              ltime_to_s,
+              op_type,
+              delta,
+              op_initial_count,
+              op_final_count,
+              time_diff.tv_sec,
+              time_diff.tv_nsec);
+
+      /* End of operation 5. */
+
+
+    } /* End of repeat cicles. */
+
+
+    /*
+     * Operation 6:
+     * - Prepares an index of keys pointing to the portion of data contained in table.
+     * - Sorts the keys.
+     * - Verifies that the traverser provides the same sequence of pointers prepared in
+     *   the sorted index.
+     */
+    op_type = "traverse_table";
+    op_initial_count = rbt_count(table);
+
+    int **index = (int **) malloc(len * sizeof(int *));
+    ut_assert(t, index != NULL);
+    for (size_t j = 0; j < len; j++) {
+      index[j] = &data[delta * repeats + j];
+    }
+    sort_utils_heapsort(index, len, sizeof(int *), sort_utils_element_cmp);
+    rbt_traverser_t trav;
+
+    /* Takes initial time for operation. */
+    ltime = time(NULL);
+    strftime(ltime_to_s, 64, "%Y%m%d-%H:%M:%S-%Z", localtime(&ltime));
+
+    /* Starts the stop-watch. */
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+    /* Traverses the table. */
+    int *e = (int *) rbt_t_first(&trav, table);
+    size_t j = 0;
+    while (e) {
+      ut_assert(t, *e == *index[j]);
+      e = (int *) rbt_t_next(&trav);
+      j++;
+    }
+
+    /* Stops the stop-watch. */
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+    /* Verifies that the size of the table is equal to the count of inserted elements. */
+    op_final_count = rbt_count(table);
+    ut_assert(t, op_final_count == len);
+
+    /* Computes the time taken. */
+    ret = timespec_diff(&time_diff, &time_0, &time_1);
+    ut_assert(t, ret == 0);
+
+    fprintf(fp, "%s;%s;%zu;%zu;%zu;%ld;%ld\n",
+            ltime_to_s,
+            op_type,
+            len,
+            op_initial_count,
+            op_final_count,
+            time_diff.tv_sec,
+            time_diff.tv_nsec);
+
+    free(index);
+
+    /* End of operation 6. */
+
+
+    /* Frees the table. */
+    rbt_destroy(table, NULL);
+
+    /* Frees the data array. */
+    free(data);
+
+  } /* End of steps loop. */
+
+  /* Closes the log file. */
+  int fclose_ret = fclose(fp);
+  ut_assert(t, fclose_ret == 0);
+}
+
 
 
 /**
@@ -737,6 +1593,8 @@ main (int argc,
 {
   ut_init(&argc, &argv);
 
+  local_parse_args(&argc, &argv);
+
   ut_suite_t *const s = ut_suite_new("red_black_tree");
 
   ut_suite_add_simple_test(s, "creation_and_destruction", creation_and_destruction_t);
@@ -747,6 +1605,16 @@ main (int argc,
   ut_suite_add_simple_test(s, "insert_replace_and_find", insert_replace_and_find_t);
   ut_suite_add_simple_test(s, "delete", delete_t);
   ut_suite_add_simple_test(s, "volume", volume_t);
+  ut_suite_add_simple_test(s, "random_key_volume", random_key_volume_t);
+  ut_suite_add_simple_test(s, "traverser_basic", traverser_basic_t);
+  ut_suite_add_simple_test(s, "traverser_find_and_copy", traverser_find_and_copy_t);
+  ut_suite_add_simple_test(s, "traverser_insert", traverser_insert_t);
+  ut_suite_add_simple_test(s, "traverser_replace", traverser_replace_t);
+  ut_suite_add_simple_test(s, "traverser_on_changing_table", traverser_on_changing_table_t);
+
+  if (ut_is_mode_equal_to_perf()) {
+    ut_suite_add_simple_test(s, "performance", performance_t);
+  }
 
   int failure_count = ut_suite_run(s);
 
