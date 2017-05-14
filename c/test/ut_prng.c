@@ -40,6 +40,29 @@
 
 #include "prng.h"
 
+#define CHI_SQUARE_CATEGORIES_COUNT 8
+#define CHI_SQUARE_CATEGORIES_THRESHOLD_COUNT 7
+#define CHI_SQUARE_DEGREE_OF_FREEDOM_RANGE_LO 0
+#define CHI_SQUARE_DEGREE_OF_FREEDOM_RANGE_HI 9
+
+
+
+/*
+ * See: Donald E. Knuth, The Art of Computer Programming, Volume 2, Seminumarical Algorithms.
+ * Paragraph 3.3.1 - General Test Procedures for Studying Random Data, Table 1.
+ */
+static const double chi_square_distribution_table[][CHI_SQUARE_CATEGORIES_THRESHOLD_COUNT]
+/*     p=1%,    p=5%,  p=25%,  p=50%,  p=75%,  p=95%,  p=99% */
+= {{0.00016, 0.00393, 0.1015, 0.4549,  1.323,  3.841,  6.635}, /* v=1 */
+   {0.02010, 0.1026,  0.5754, 1.386,   2.773,  5.991,  9.210}, /* v=2 */
+   {0.1148,  0.3518,  1.213,  2.366,   4.108,  7.815, 11.34},  /* v=3 */
+   {0.2971,  0.7107,  1.923,  3.357,   5.385,  9.488, 13.28},  /* v=4 */
+   {0.5543,  1.1455,  2.675,  4.351,   6.626, 11.07,  15.09},  /* v=5 */
+   {0.8721,  1.635,   3.455,  5.348,   7.841, 12.59,  16.81},  /* v=6 */
+   {1.239,   2.167,   4.255,  6.346,   9.037, 14.07,  18.48},  /* v=7 */
+   {1.646,   2.733,   5.071,  7.344,  10.22,  15.51,  20.09},  /* v=8 */
+   {2.088,   3.325,   5.899,  8.343,  11.39,  16.92,  21.67}}; /* v=9 */
+
 
 
 /*
@@ -80,6 +103,139 @@ hlp_chi_square (const unsigned long int *category_observations,
     chi_square += (z * z) / x;
   }
   return chi_square;
+}
+
+/**
+ * @brief Assigns the given chi_square value to a category.
+ *
+ * @details The value is computed according to the explanation given in TAOCP.
+ * See: Donald E. Knuth, The Art of Compuer Programming, Volume 2, Seminumarical Algorithms, 3rd ed.
+ * Paragraph 3.3.1 - General Test Procedures for Studying Random Data, pp 42-47.
+ *
+ * The `dof` parameter must be positive and has to be in the range minus one of the
+ * row count of the `chi_square_distribution_table` 2d array.
+ *
+ * @param t          utest reference
+ * @param chi_square the chi square value to bi classified
+ * @param dof        degrees of freedom of the model
+ * @return           the index of the category to assign to
+ */
+static int
+hlp_chi_square_assign_to_category (ut_test_t *const t,
+                                   const double chi_square,
+                                   const int dof)
+{
+  ut_assert(t, dof >= CHI_SQUARE_DEGREE_OF_FREEDOM_RANGE_LO);
+  ut_assert(t, dof <= CHI_SQUARE_DEGREE_OF_FREEDOM_RANGE_HI);
+  for (int k = 0; k < CHI_SQUARE_CATEGORIES_COUNT - 1; k++) {
+    if (chi_square < chi_square_distribution_table[dof - 1][k]) return k;
+  }
+  return CHI_SQUARE_CATEGORIES_COUNT - 1;
+}
+
+/**
+ * @brief Runs statistical test on selecting from a finite set at random.
+ *
+ * @details The test is dedicated to verify the statistical properties of the random
+ * generator function when used to simulate the random selection of a value among
+ * a given set of equi-probable ones.
+ *
+ * The helper function  uses a new `RandomNumberGenerator` for each test, running a `number_of_test` times.
+ * Each test has a `sample_size` number of selections, taken from the RNG sequence.
+ * The RNG is initialized using the `seed` parameter plus an integer computed using the iteration
+ * counter and the `a_prime_number` parameter. It means that the random generator function is
+ * called a number of times equal to the product of `sample_size` an `number_of_test` parameters.
+ *
+ * For each test the chi_square value of the sample is computed.
+ * Tests, starting from the first (position `0`), and ending with the position
+ * identified by `number_of_chi_square_comparisons - 1` are compared with the expected results
+ * held into the `expected_chi_square` array.
+ * If the absolute difference is larger than `epsilon` the test fails.
+ *
+ * Each computed chi_square value is then classified into eight categories, being [0..1)%,
+ * [1..5)%, [5..25)%, [25..50)%, [50..75)%, [75..95)%, [95..99)%, and [99..100], representing
+ * the probability of extracting the associated set from the random equi-distributed selection.
+ * The resulting observed class frequencies are then compared wit the expected, collected in the
+ * `chi_square_category_expected_observations` parameter.
+ * If the expected values are different from the computed the test fails.
+ *
+ * @param t                                         utest reference
+ * @param s_size                                    the size of the set from which we sample
+ * @param number_of_tests                           the number of test to run
+ * @param seed                                      used to initialize the random generator
+ * @param a_prime_number                            used by the formula that updated the seed each test
+ * @param sample_size                               the number of samples for each test
+ * @param number_of_chi_square_comparisons          the number of tests for which we verify that the computed
+ *                                                  chi_square is equal to the expected one
+ * @param epsilon                                   the delta used to compare expected and computed chi_square
+ * @param expected_chi_square                       an array holding the expected chi_square values
+ * @param chi_square_category_expected_observations an array holding the expected occurrences
+ *                                                  of competed chi_square in the probability ranges
+ */
+static void
+hlp_rng_random_choice_from_finite_set_t (ut_test_t *const t,
+                                         const bool just_log,
+                                         const unsigned int s_size,
+                                         const int number_of_tests,
+                                         const unsigned int seed,
+                                         const unsigned long int a_prime_number,
+                                         const int sample_size,
+                                         const int number_of_chi_square_comparisons,
+                                         const double epsilon,
+                                         const double expected_chi_square[],
+                                         const unsigned long int chi_square_category_expected_observations[])
+{
+  assert(s_size > 1);
+  assert(number_of_tests > 0);
+  assert(sample_size > 1);
+  assert(number_of_chi_square_comparisons > 0);
+  assert(epsilon > 0.);
+
+  double s_probabilities[s_size];
+  for (int i = 0; i < s_size; i++) {
+    s_probabilities[i] = 1.0 / s_size;
+  }
+
+  unsigned long int chi_square_category_observations[CHI_SQUARE_CATEGORIES_COUNT];
+  for (int k = 0; k < CHI_SQUARE_CATEGORIES_COUNT; k++) {
+    chi_square_category_observations[k] = 0;
+  }
+
+  for (int j = 0; j < number_of_tests; j++) {
+    prng_mt19937_t *prng = prng_mt19937_new();
+    prng_mt19937_init_by_seed(prng, seed + a_prime_number * j);
+
+    unsigned long int s_observations[s_size];
+    for (int i = 0; i < s_size; i++) {
+      s_observations[i] = 0;
+    }
+
+    for (int i = 0; i < sample_size; i++) {
+      uint64_t rn = prng_mt19937_random_choice_from_finite_set(prng, s_size);
+      ut_assert(t, rn < s_size);
+      s_observations[rn]++;
+    }
+
+    const double chi_square = hlp_chi_square(s_observations, s_probabilities, s_size, sample_size);
+    if (j < number_of_chi_square_comparisons) {
+      if (just_log) {
+        printf("chi_square=%f\n", chi_square);
+      } else {
+        ut_assert(t, fabs(expected_chi_square[j] - chi_square) <= epsilon);
+      }
+    }
+    chi_square_category_observations[hlp_chi_square_assign_to_category(t, chi_square, s_size - 1)]++;
+
+    prng_mt19937_free(prng);
+  }
+
+  for (int k = 0; k < CHI_SQUARE_CATEGORIES_COUNT; k++) {
+    if (just_log) {
+      printf("chi_square_category_observations[%d]=%lu\n", k, chi_square_category_observations[k]);
+    } else {
+      ut_assert(t, chi_square_category_expected_observations[k] == chi_square_category_observations[k]);
+    }
+  }
 }
 
 
@@ -257,6 +413,165 @@ prng_stdlib_shuffle_array_uint8_5_t (ut_test_t *const t)
 
 }
 
+static void
+prng_uint64_from_clock_random_seed_t (ut_test_t *const t)
+{
+  unsigned long int u = 0;
+  for (int i = 0; i < 10; i++) {
+    u = prng_uint64_from_clock_random_seed();
+    if (u) break;
+  }
+  /* It is really unlikely that u is taken ten times always zero !!! */
+  ut_assert(t, u != 0);
+}
+
+static void
+prng_mt19937_basic_t (ut_test_t *const t)
+{
+  const uint64_t init_key[] = { 0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL };
+
+  const size_t prand_array_length = 1000;
+
+  const uint64_t expected_uint64_head[] = { 0x64D79B552A559D7F,
+                                            0x44A572665A6EE240,
+                                            0xEB2BF6DC3D72135C,
+                                            0xE3836981F9F82EA0,
+                                            0x43A38212350EE392,
+                                            0xCE77502BFFCACF8B,
+                                            0x5D8A82D90126F0E7,
+                                            0xC0510C6F402C1E3C,
+                                            0x48D895BF8B69F77B,
+                                            0x8D9FBB371F1DE07F };
+
+  const uint64_t expected_uint64_tail[] = { 0x77C8DA91B5313675,
+                                            0x4CDB66AD515E0717,
+                                            0x2EC4712B0BFDFCD6,
+                                            0x6C6F5767FFF27330,
+                                            0x071083B972D80C0C,
+                                            0x8D8325E82C4FDCDC,
+                                            0xB47A658DAD8E13A4,
+                                            0x88710BF005FDA027,
+                                            0x69BD3EDAF7111200,
+                                            0x0DCCDD0C65C810FF };
+
+  const double epsilon = 0.00000001;
+
+  const double expected_double_head[] = { 0.35252031,
+                                          0.51052342,
+                                          0.79771733,
+                                          0.39300273,
+                                          0.27216673,
+                                          0.72151068,
+                                          0.43144703,
+                                          0.38522290,
+                                          0.20270676,
+                                          0.58227313 };
+
+  const double expected_double_tail[] = { 0.47863741,
+                                          0.68796498,
+                                          0.31526949,
+                                          0.41180883,
+                                          0.23022147,
+                                          0.82342139,
+                                          0.83003381,
+                                          0.53571829,
+                                          0.41081533,
+                                          0.48600142 };
+
+  const size_t key_length = sizeof(init_key) / sizeof(init_key[0]);
+  const size_t e0_length = sizeof(expected_uint64_head) / sizeof(expected_uint64_head[0]);
+  const size_t e1_length = sizeof(expected_uint64_tail) / sizeof(expected_uint64_tail[0]);
+  const size_t e2_length = sizeof(expected_double_head) / sizeof(expected_double_head[0]);
+  const size_t e3_length = sizeof(expected_double_tail) / sizeof(expected_double_tail[0]);
+
+  prng_mt19937_t *prng = prng_mt19937_new();
+
+  prng_mt19937_init_by_array(prng, init_key, key_length);
+
+  uint64_t *prand_uint64_array = (uint64_t *) malloc(prand_array_length * sizeof(uint64_t));
+  for (size_t i = 0; i < prand_array_length; i++) {
+    prand_uint64_array[i] = prng_mt19937_get_uint64(prng);
+  }
+
+  for (size_t i = 0; i < e0_length; i++) {
+    ut_assert(t, prand_uint64_array[i] == expected_uint64_head[i]);
+  }
+
+  for (size_t i = 0; i < e1_length; i++) {
+    ut_assert(t, prand_uint64_array[(prand_array_length - e1_length) + i] == expected_uint64_tail[i]);
+  }
+
+  double *prand_double_array = (double *) malloc(prand_array_length * sizeof(double));
+  for (size_t i = 0; i < prand_array_length; i++) {
+    prand_double_array[i] = prng_mt19937_get_double_in_c0_o1(prng);
+  }
+
+  for (size_t i = 0; i < e2_length; i++) {
+    ut_assert(t, fabs(prand_double_array[i] - expected_double_head[i]) < epsilon);
+  }
+
+  for (size_t i = 0; i < e3_length; i++) {
+    ut_assert(t, fabs(prand_double_array[(prand_array_length - e3_length) + i] - expected_double_tail[i]) < epsilon);
+  }
+
+  prng_mt19937_free(prng);
+  free(prand_uint64_array);
+  free(prand_double_array);
+}
+
+static void
+prng_mt19937_random_choice_from_finite_set_t (ut_test_t *const t)
+{
+  prng_mt19937_t *prng = prng_mt19937_new();
+  prng_mt19937_init_by_seed(prng, 17056359524ULL);
+
+  const unsigned int k = 7;
+  const unsigned int selections = 1000;
+  uint64_t results[] = { 0, 0, 0, 0, 0, 0, 0 };
+  uint64_t expected[] = { 139, 155, 126, 145, 137, 160, 138 };
+
+  for (int i = 0; i < selections; i++) {
+    size_t choice = prng_mt19937_random_choice_from_finite_set(prng, k);
+    results[choice]++;
+  }
+  uint64_t cumulated = 0;
+  for (int i = 0; i < k; i++) {
+    ut_assert(t, results[i] == expected[i]);
+    cumulated += results[i];
+  }
+  ut_assert(t, cumulated == selections);
+
+  prng_mt19937_free(prng);
+}
+
+static void
+prng_mt19937_random_choice_from_finite_set_2_t (ut_test_t *const t)
+{
+  /*
+   * The first ten chi_square values in the sequence are checked one by one.
+   */
+  double expected_chi_square[] = {0.2704, 0.6724, 4.3264, 0.5476, 3.0276, 0.0100, 6.8644, 0.7744, 0.0004, 0.0400};
+
+  /*
+   * The distribution depends on the RNG, the seed, the increment of the seed, the sample size, and
+   * it depends on the size of the set on which we are sampling.
+   * Anyhow the distribution appears really credible!
+   */
+  unsigned long int chi_square_category_expected_observations[] =  {7, 52, 182, 266, 256, 177, 48, 12};
+
+  hlp_rng_random_choice_from_finite_set_t(t,
+                                          false,    /* just_log */
+                                          2,        /* s_size */
+                                          1000,     /* number_of_tests */
+                                          123,      /* seed */
+                                          17,       /* a_prime_number */
+                                          10000,    /* sample_size */
+                                          10,       /* number_of_chi_square_comparisons */
+                                          0.000001, /* epsilon */
+                                          expected_chi_square,
+                                          chi_square_category_expected_observations);
+}
+
 
 
 /**
@@ -274,6 +589,12 @@ main (int argc,
   ut_suite_add_simple_test(s, "prng_stdlib_get_number_in_range", prng_stdlib_get_number_in_range_t);
   ut_suite_add_simple_test(s, "prng_stdlib_shuffle_array_uint8_2", prng_stdlib_shuffle_array_uint8_2_t);
   ut_suite_add_simple_test(s, "prng_stdlib_shuffle_array_uint8_5", prng_stdlib_shuffle_array_uint8_5_t);
+
+  ut_suite_add_simple_test(s, "prng_uint64_from_clock_random_seed", prng_uint64_from_clock_random_seed_t);
+
+  ut_suite_add_simple_test(s, "prng_mt19937_basic", prng_mt19937_basic_t);
+  ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set", prng_mt19937_random_choice_from_finite_set_t);
+  ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set_2", prng_mt19937_random_choice_from_finite_set_2_t);
 
   int failure_count = ut_suite_run(s);
 
