@@ -145,17 +145,116 @@ prng_stdlib_get_number_in_range_t (ut_test_t *const t)
 
     for (int i = 0; i < sample_size; i++) {
       int r = prng_stdlib_get_number_in_range(range_lo, range_hi);
-      //g_assert_cmpint(r, >=, range_lo);
       ut_assert(t, r >= range_lo);
-      //g_assert_cmpint(r, <=, range_hi);
       ut_assert(t, r <= range_hi);
       s_observations[r - range_lo]++;
     }
 
     double chi_square = hlp_chi_square(s_observations, s_probabilities, s_size, sample_size);
-    //g_assert_cmpfloat(fabs(chi_square - expected_chi_square[j]), <=, epsilon);
     ut_assert(t, fabs(chi_square - expected_chi_square[j]) <= epsilon);
   }
+}
+
+static void
+prng_stdlib_shuffle_array_uint8_2_t (ut_test_t *const t)
+{
+  const int sample_size = 1000;
+  const double epsilon = 0.000001;
+
+  const unsigned int seed = 775533;
+  prng_stdlib_init_seed_with_value(seed);
+
+  const double expected_chi_square = 1.444000;
+
+  const int s_size = 2;
+  const int s_sum = 1;
+  uint8_t s[] = {0, 1};
+
+  unsigned long s_observations[2][2] = {{0, 0}, {0, 0}};
+  double s_probabilities[2][2] = {{0.5, 0.5}, {0.5, 0.5}};
+
+  for (int i = 0; i < sample_size; i++) {
+    int sum = 0;
+    for (int j = 0; j < s_size; j++) {
+      s[j] = j;
+    }
+    prng_stdlib_shuffle_array_uint8(s, s_size);
+    for (int j = 0; j < s_size; j++) {
+      ut_assert(t, s[j] >= 0 && s[j] <= s_size - 1);
+      sum += s[j];
+      s_observations[j][s[j]]++;
+    }
+    ut_assert(t, sum == s_sum);
+  }
+
+  for (int i = 0; i < s_size; i++) {
+    double chi_square = hlp_chi_square(&s_observations[i][0], &s_probabilities[i][0], s_size, sample_size);
+    ut_assert(t, fabs(chi_square - expected_chi_square) <= epsilon);
+  }
+
+}
+
+static void
+prng_stdlib_shuffle_array_uint8_5_t (ut_test_t *const t)
+{
+  const int sample_size = 1000;
+  const double epsilon = 0.000001;
+
+  const unsigned int seed = 775533;
+  prng_stdlib_init_seed_with_value(seed);
+
+  /*
+   * Values has to be compared with the chi-square table selecting line v=4 (four degree of freedom).
+   * All the value are in a quite good range.
+   */
+  const double expected_chi_square[]            = {6.73, 0.97, 0.73, 2.25, 6.98};
+  const double expected_chi_square_transposed[] = {4.84, 4.03, 0.83, 6.17, 1.79};
+
+  const int s_size = 5;
+  const int s_sum = 10;
+  uint8_t s[] = {0, 1, 2, 3, 4};
+
+  unsigned long s_observations[5][5] = {{0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0}};
+
+  unsigned long s_observations_transposed[5][5];
+
+  double s_probabilities[5][5] = {{.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2},
+                                  {.2, .2, .2, .2, .2}};
+
+  for (int i = 0; i < sample_size; i++) {
+    int sum = 0;
+    for (int j = 0; j < s_size; j++) {
+      s[j] = j;
+    }
+    prng_stdlib_shuffle_array_uint8(s, s_size);
+    for (int j = 0; j < s_size; j++) {
+      ut_assert(t, s[j] >= 0 && s[j] <= s_size - 1);
+      sum += s[j];
+      s_observations[j][s[j]]++;
+    }
+    ut_assert(t, sum == s_sum);
+  }
+
+  for (int i = 0; i < s_size; i++) {
+    for (int j = 0; j < s_size; j++) {
+      s_observations_transposed[i][j] = s_observations[j][i];
+    }
+  }
+
+  for (int i = 0; i < s_size; i++) {
+    double chi_square = hlp_chi_square(&s_observations[i][0], &s_probabilities[i][0], s_size, sample_size);
+    ut_assert(t, fabs(chi_square - expected_chi_square[i]) <= epsilon);
+    double chi_square_t = hlp_chi_square(&s_observations_transposed[i][0], &s_probabilities[i][0], s_size, sample_size);
+    ut_assert(t, fabs(chi_square_t - expected_chi_square_transposed[i]) <= epsilon);
+  }
+
 }
 
 
@@ -173,6 +272,8 @@ main (int argc,
 
   ut_suite_add_simple_test(s, "prng_stdlib_seed", prng_stdlib_seed_t);
   ut_suite_add_simple_test(s, "prng_stdlib_get_number_in_range", prng_stdlib_get_number_in_range_t);
+  ut_suite_add_simple_test(s, "prng_stdlib_shuffle_array_uint8_2", prng_stdlib_shuffle_array_uint8_2_t);
+  ut_suite_add_simple_test(s, "prng_stdlib_shuffle_array_uint8_5", prng_stdlib_shuffle_array_uint8_5_t);
 
   int failure_count = ut_suite_run(s);
 
