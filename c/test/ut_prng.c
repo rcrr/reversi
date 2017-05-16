@@ -238,6 +238,104 @@ hlp_rng_random_choice_from_finite_set_t (ut_test_t *const t,
   }
 }
 
+/**
+ * @brief Helper function used to generalize tests on the #rng_shuffle_array_uint8 function.
+ *
+ * @details Runs `sample_size` times the shuffle function on a set of size `s_size`.
+ * Observations are accumulated into a square matrix of size `s_size`.
+ * Two vector of size `s_size` are filled with the chi_square values computed on rows and
+ * columns of the matrix.
+ * Chi_square values are compared with the two given `expected_chi_square` and
+ * `expected_chi_square_transposed` array parameters.
+ * If chi_square computed and expected values differs for less then `epsilon` the test is passed,
+ * otherwise it fails.
+ * Parameter `seed` initializes the random number generator according to #rng_vew documentation.
+ *
+ * @param t                                  utest reference
+ * @param just_log                           disable chi_square assertions when true
+ * @param s_size                             the size of the set to shuffle
+ * @param sample_size                        the number of samples for each test
+ * @param epsilon                            the delta used to compare expected and computed chi_square
+ * @param seed                               used to initialize the random generator
+ * @param expected_chi_square                array of expected chi_square for rows of the observations matrix
+ * @param expected_chi_square_transposed     array of expected chi_square for columns of the observations matrix
+ */
+static void
+hlp_rng_shuffle_array_uint8_t (ut_test_t *const t,
+                               const bool just_log,
+                               const int s_size,
+                               const int sample_size,
+                               const double epsilon,
+                               const unsigned long int seed,
+                               const double expected_chi_square[],
+                               const double expected_chi_square_transposed[])
+{
+  static const size_t size_of_ulong = sizeof(unsigned long int);
+  static const size_t size_of_double = sizeof(double);
+
+  uint8_t s[s_size];
+  int s_sum = 0;
+  for (int j = 0; j < s_size; j++) {
+    s[j] = j;
+    s_sum += j;
+  }
+
+  prng_mt19937_t *prng = prng_mt19937_new();
+  prng_mt19937_init_by_seed(prng, seed);
+
+  unsigned long int (*s_observations)[s_size] = malloc(size_of_ulong * s_size * s_size);
+  for (int i = 0; i < s_size; i++) {
+    for (int j = 0; j < s_size; j++) {
+      s_observations[i][j] = 0;
+    }
+  }
+
+  double (*s_probabilities)[s_size] = malloc(size_of_double * s_size * s_size);
+  for (int i = 0; i < s_size; i++) {
+    for (int j = 0; j < s_size; j++) {
+      s_probabilities[i][j] = (double) (1. / s_size);
+    }
+  }
+
+  unsigned long int (*s_observations_transposed)[s_size] = malloc(size_of_ulong * s_size * s_size);
+
+  for (int i = 0; i < sample_size; i++) {
+    int sum = 0;
+    for (int j = 0; j < s_size; j++) {
+      s[j] = j;
+    }
+    prng_mt19937_shuffle_array_uint8(prng, s, s_size);
+    for (int j = 0; j < s_size; j++) {
+      ut_assert(t, s[j] >= 0 && s[j] <= s_size - 1);
+      sum += s[j];
+      s_observations[j][s[j]]++;
+    }
+    ut_assert(t, sum == s_sum);
+  }
+
+  for (int i = 0; i < s_size; i++) {
+    for (int j = 0; j < s_size; j++) {
+      s_observations_transposed[i][j] = s_observations[j][i];
+    }
+  }
+
+  for (int i = 0; i < s_size; i++) {
+    double chi_square = hlp_chi_square(&s_observations[i][0], &s_probabilities[i][0], s_size, sample_size);
+    double chi_square_t = hlp_chi_square(&s_observations_transposed[i][0], &s_probabilities[i][0], s_size, sample_size);
+    if (just_log) {
+      printf("[%d], chi_square=%f, chi_square_t=%f\n", i, chi_square, chi_square_t);
+    } else {
+      ut_assert(t, fabs(chi_square - expected_chi_square[i]) <= epsilon);
+      ut_assert(t, fabs(chi_square_t - expected_chi_square_transposed[i]) <= epsilon);
+    }
+  }
+
+  prng_mt19937_free(prng);
+  free(s_observations);
+  free(s_observations_transposed);
+  free(s_probabilities);
+}
+
 
 
 /*
@@ -573,6 +671,99 @@ prng_mt19937_random_choice_from_finite_set_2_t (ut_test_t *const t)
 }
 
 
+static void
+prng_mt19937_random_choice_from_finite_set_5_t (ut_test_t *const t)
+{
+  double expected_chi_square[] = {11.030714, 2.139286, 2.082143, 3.359286, 3.552143, 5.862857, 3.500000, 2.835000, 3.017857, 5.248571};
+
+  unsigned long int chi_square_category_expected_observations[] = {8, 39, 187, 267, 287, 171, 33, 8};
+
+  hlp_rng_random_choice_from_finite_set_t(t,
+                                          false,    /* just_log */
+                                          5,        /* s_size */
+                                          1000,     /* number_of_tests */
+                                          991,      /* seed */
+                                          7,        /* a_prime_number */
+                                          14000,    /* sample_size */
+                                          10,       /* number_of_chi_square_comparisons */
+                                          0.000001, /* epsilon */
+                                          expected_chi_square,
+                                          chi_square_category_expected_observations);
+}
+
+static void
+prng_mt19937_random_choice_from_finite_set_9_t (ut_test_t *const t)
+{
+  double expected_chi_square[] = {7.208, 5.498, 2.726, 3.752, 9.980, 7.856, 3.140, 9.530, 8.864, 5.768};
+
+  unsigned long int chi_square_category_expected_observations[] = {9, 49, 213, 248, 251, 190, 29, 11};
+
+  hlp_rng_random_choice_from_finite_set_t(t,
+                                          false,    /* just_log */
+                                          9,        /* s_size */
+                                          1000,     /* number_of_tests */
+                                          23,       /* seed */
+                                          11,       /* a_prime_number */
+                                          1000,     /* sample_size */
+                                          10,       /* number_of_chi_square_comparisons */
+                                          0.000001, /* epsilon */
+                                          expected_chi_square,
+                                          chi_square_category_expected_observations);
+}
+
+
+static void
+prng_mt19937_shuffle_array_uint8_2_t (ut_test_t *const t)
+{
+  /* Values has to be compared with the chi-square table selecting line v=1 (one degree of freedom). */
+  const double expected_chi_square[]            = {0.08836, 0.08836};
+  const double expected_chi_square_transposed[] = {0.08836, 0.08836};
+
+   hlp_rng_shuffle_array_uint8_t(t,
+                                false,     /* just_log */
+                                2,         /* s_size */
+                                100000,    /* sample_size */
+                                0.000001,  /* epsilon */
+                                852901,    /* seed */
+                                expected_chi_square,
+                                expected_chi_square_transposed);
+}
+
+static void
+prng_mt19937_shuffle_array_uint8_5_t (ut_test_t *const t)
+{
+  /* Values has to be compared with the chi-square table selecting line v=4 (four degree of freedom). */
+  const double expected_chi_square[]            = {4.07, 3.35, 6.37, 2.84, 1.48};
+  const double expected_chi_square_transposed[] = {3.59, 1.15, 2.45, 3.67, 7.25};
+
+  hlp_rng_shuffle_array_uint8_t(t,
+                                false,     /* just_log */
+                                5,         /* s_size */
+                                1000,      /* sample_size */
+                                0.000001,  /* epsilon */
+                                775533,    /* seed */
+                                expected_chi_square,
+                                expected_chi_square_transposed);
+}
+
+static void
+prng_mt19937_shuffle_array_uint8_9_t (ut_test_t *const t)
+{
+  /* Values has to be compared with the chi-square table selecting line v=8 (eight degree of freedom). */
+  const double expected_chi_square[]            = {1.442420, 4.677560, 5.108300, 6.413660,  5.253020, 19.148480, 23.308100, 6.124940, 2.474360};
+  const double expected_chi_square_transposed[] = {5.816060, 5.010020, 5.073200, 7.101080, 14.774480,  7.824320, 14.347520, 4.683500, 9.320660};
+
+  hlp_rng_shuffle_array_uint8_t(t,
+                                false,     /* just_log */
+                                9,         /* s_size */
+                                100000,    /* sample_size */
+                                0.000001,  /* epsilon */
+                                10481,     /* seed */
+                                expected_chi_square,
+                                expected_chi_square_transposed);
+}
+
+
 
 /**
  * @brief Runs the test suite.
@@ -595,6 +786,11 @@ main (int argc,
   ut_suite_add_simple_test(s, "prng_mt19937_basic", prng_mt19937_basic_t);
   ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set", prng_mt19937_random_choice_from_finite_set_t);
   ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set_2", prng_mt19937_random_choice_from_finite_set_2_t);
+  ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set_5", prng_mt19937_random_choice_from_finite_set_5_t);
+  ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set_9", prng_mt19937_random_choice_from_finite_set_9_t);
+  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_uint8_2", prng_mt19937_shuffle_array_uint8_2_t);
+  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_uint8_5", prng_mt19937_shuffle_array_uint8_5_t);
+  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_uint8_9", prng_mt19937_shuffle_array_uint8_9_t);
 
   int failure_count = ut_suite_run(s);
 
