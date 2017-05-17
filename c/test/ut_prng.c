@@ -763,6 +763,114 @@ prng_mt19937_shuffle_array_uint8_9_t (ut_test_t *const t)
                                 expected_chi_square_transposed);
 }
 
+static void
+prng_mt19937_get_double_in_c0_c1_t (ut_test_t *const t)
+{
+  const int repeats = 10000;
+
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, prng_uint64_from_clock_random_seed());
+
+  for (int i = 0; i < repeats; i++) {
+    const double r = prng_mt19937_get_double_in_c0_c1(g);
+    ut_assert(t, r >= 0.0);
+    ut_assert(t, r <= 1.0);
+  }
+
+  prng_mt19937_free(g);
+
+  /*
+   * The function definition is very simple:
+   *
+   * return (prng_mt19937_get_uint64(st) >> 11) * (1.0 / 9007199254740991.0);
+   *
+   *
+   * Here we check that the shift and the float constant are appropriate...
+   */
+  const double magic_const = 9007199254740991.0;
+  const uint64_t a = 0ULL;
+  const uint64_t b = 0xFFFFFFFFFFFFFFFF;
+
+  const double c0 = (a >> 11) * (1.0 / magic_const);
+  const double c1 = (b >> 11) * (1.0 / magic_const);
+
+  ut_assert(t, c0 == 0.0);
+  ut_assert(t, c1 == 1.0);
+}
+
+static void
+prng_mt19937_get_double_in_c0_o1_t (ut_test_t *const t)
+{
+  const int repeats = 10000;
+
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, prng_uint64_from_clock_random_seed());
+
+  for (int i = 0; i < repeats; i++) {
+    const double r = prng_mt19937_get_double_in_c0_o1(g);
+    ut_assert(t, r >= 0.0);
+    ut_assert(t, r <  1.0);
+  }
+
+  prng_mt19937_free(g);
+
+  /*
+   * The function definition is very simple:
+   *
+   * return (prng_mt19937_get_uint64(st) >> 11) * (1.0 / 9007199254740992.0);
+   *
+   *
+   * Here we check that the shift and the float constant are appropriate...
+   */
+  const double magic_const = 9007199254740992.0;
+  const uint64_t a = 0ULL;
+  const uint64_t b = 0xFFFFFFFFFFFFFFFF;
+
+  const double c0 = (a >> 11) * (1.0 / magic_const);
+  const double c1 = (b >> 11) * (1.0 / magic_const);
+
+  ut_assert(t, c0 == 0.0);
+  ut_assert(t, c1 >= 0.9999999999999999); // 16 nines ....
+  ut_assert(t, c1 <  1.0);
+}
+
+static void
+prng_mt19937_get_double_in_o0_o1_t (ut_test_t *const t)
+{
+  const int repeats = 10000;
+
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, prng_uint64_from_clock_random_seed());
+
+  for (int i = 0; i < repeats; i++) {
+    const double r = prng_mt19937_get_double_in_o0_o1(g);
+    ut_assert(t, r > 0.0);
+    ut_assert(t, r < 1.0);
+  }
+
+  prng_mt19937_free(g);
+
+  /*
+   * The function definition is very simple:
+   *
+   * return ((prng_mt19937_get_uint64(st) >> 12) + 0.5) * (1.0 / 4503599627370496.0);
+   *
+   *
+   * Here we check that the shift and the float constant are appropriate...
+   */
+  const double magic_const = 4503599627370496.0;
+  const uint64_t a = 0ULL;
+  const uint64_t b = 0xFFFFFFFFFFFFFFFF;
+
+  const double c0 = ((a >> 12) + 0.5) * (1.0 / magic_const);
+  const double c1 = ((b >> 12) + 0.5) * (1.0 / magic_const);
+
+  ut_assert(t, c0 >  0.0);
+  ut_assert(t, c0 <= 0.000000000000001);
+  ut_assert(t, c1 >= 0.999999999999999); // 15 nines ....
+  ut_assert(t, c1 <  1.0);
+}
+
 
 
 /**
@@ -785,6 +893,11 @@ main (int argc,
 
   ut_suite_add_simple_test(s, "prng_mt19937_basic", prng_mt19937_basic_t);
   ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set", prng_mt19937_random_choice_from_finite_set_t);
+
+  ut_suite_add_simple_test(s, "prng_mt19937_get_double_in_c0_c1", prng_mt19937_get_double_in_c0_c1_t);
+  ut_suite_add_simple_test(s, "prng_mt19937_get_double_in_c0_o1", prng_mt19937_get_double_in_c0_o1_t);
+  ut_suite_add_simple_test(s, "prng_mt19937_get_double_in_o0_o1", prng_mt19937_get_double_in_o0_o1_t);
+
   ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set_2", prng_mt19937_random_choice_from_finite_set_2_t);
   ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set_5", prng_mt19937_random_choice_from_finite_set_5_t);
   ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set_9", prng_mt19937_random_choice_from_finite_set_9_t);
