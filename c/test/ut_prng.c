@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <stddef.h>
 #include <assert.h>
 
 #include "unit_test.h"
@@ -871,6 +872,66 @@ prng_mt19937_get_double_in_o0_o1_t (ut_test_t *const t)
   ut_assert(t, c1 <  1.0);
 }
 
+static void
+prng_mt19937_shuffle_array_p_t (ut_test_t *const t)
+{
+  const size_t a_length = 10;
+  void *a[a_length];
+  for (size_t i = 0; i < a_length; i++) {
+    a[i] = &a[i];
+  }
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, 37);
+  prng_mt19937_shuffle_array_p(g, a, a_length);
+  prng_mt19937_free(g);
+
+  const  ptrdiff_t expected[] = { 7, 4, 3, 1, 0, 8, 6, 5, 2, 9 };
+
+  for (int i = 0; i < a_length; i++) {
+    ut_assert(t, expected[i] == (void **) a[i] - (void **) a);
+  }
+}
+
+static void
+prng_mt19937_shuffle_array_double_t (ut_test_t *const t)
+{
+  const size_t a_length = 10;
+  double a[a_length];
+  for (size_t i = 0; i < a_length; i++) {
+    a[i] = i;
+  }
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, 675009821247ULL);
+  prng_mt19937_shuffle_array_double(g, a, a_length);
+  prng_mt19937_free(g);
+
+  const double expected[] = { 4.0, 7.0, 9.0, 6.0, 0.0, 1.0, 8.0, 3.0, 5.0, 2.0 };
+
+  for (int i = 0; i < a_length; i++) {
+    ut_assert(t, expected[i] == a[i]);
+  }
+}
+
+static void
+prng_mt19937_shuffle_array_int_t (ut_test_t *const t)
+{
+  const size_t a_length = 10;
+  int a[a_length];
+  for (size_t i = 0; i < a_length; i++) {
+    a[i] = i;
+  }
+  prng_mt19937_t *g = prng_mt19937_new();
+  prng_mt19937_init_by_seed(g, 1010909804562ULL);
+  prng_mt19937_shuffle_array_int(g, a, a_length);
+  prng_mt19937_free(g);
+
+  const int expected[] = { 6, 3, 8, 2, 7, 5, 1, 4, 9, 0 };
+
+  for (int i = 0; i < a_length; i++) {
+    ut_assert(t, expected[i] == a[i]);
+  }
+}
+
 
 
 /**
@@ -890,7 +951,6 @@ main (int argc,
   ut_suite_add_simple_test(s, "prng_stdlib_shuffle_array_uint8_5", prng_stdlib_shuffle_array_uint8_5_t);
 
   ut_suite_add_simple_test(s, "prng_uint64_from_clock_random_seed", prng_uint64_from_clock_random_seed_t);
-
   ut_suite_add_simple_test(s, "prng_mt19937_basic", prng_mt19937_basic_t);
   ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set", prng_mt19937_random_choice_from_finite_set_t);
 
@@ -904,6 +964,10 @@ main (int argc,
   ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_uint8_2", prng_mt19937_shuffle_array_uint8_2_t);
   ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_uint8_5", prng_mt19937_shuffle_array_uint8_5_t);
   ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_uint8_9", prng_mt19937_shuffle_array_uint8_9_t);
+
+  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_p", prng_mt19937_shuffle_array_p_t);
+  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_double", prng_mt19937_shuffle_array_double_t);
+  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_int", prng_mt19937_shuffle_array_int_t);
 
   int failure_count = ut_suite_run(s);
 
