@@ -57,5 +57,9 @@ timespec_diff (timespec_t *const result,
                const timespec_t *const start,
                const timespec_t *const end);
 
+extern void
+timespec_set (timespec_t *const ts,
+              const time_t  seconds,
+              const long nanoseconds);
 
 #endif /* TIME_UTILS_H */

@@ -79,3 +79,12 @@ timespec_diff (timespec_t *const result,
   }
   return 0;
 }
+
+void
+timespec_set (timespec_t *const ts,
+              const time_t  seconds,
+              const long nanoseconds)
+{
+  ts->tv_sec = seconds;
+  ts->tv_nsec = nanoseconds;
+}

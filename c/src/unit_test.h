@@ -37,6 +37,7 @@
 #include <stdbool.h>
 
 #include "linked_list.h"
+#include "time_utils.h"
 
 
 
@@ -100,6 +101,7 @@ typedef struct ut_test_t_ {
   int failure_count;          /**< @brief The number of assertion failures. */
   int assertion_count;        /**< @brief The number of assertions. */
   ut_quickness_t speed;       /**< @brief The speed class of the test. */
+  timespec_t duration;        /**< @brief Test elapsed time duration. */
 } ut_test_t;
 
 /**

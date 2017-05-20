@@ -109,6 +109,8 @@ ut_test_new (char *label,
   t->label = label;
   t->test = tfun;
   t->suite = s;
+  t->speed = UT_QUICKNESS_0;
+  timespec_set(&t->duration, 0, 0);
   return t;
 }
 
@@ -218,6 +220,9 @@ ut_suite_run (ut_suite_t *s)
 {
   if (!s) return 0;
 
+  timespec_t time_0, time_1;
+  int ret;
+
   const unsigned long res_msg_def_print_column = 80;
   const unsigned long len = ut_suite_full_path_max_length(s);
   const unsigned long res_msg_print_column = (res_msg_def_print_column > len) ? res_msg_def_print_column : len;
@@ -255,12 +260,26 @@ ut_suite_run (ut_suite_t *s)
       } else { /* Runs the test. */
         if (arg_config.utest) fprintf(stdout, "  ");
         fprintf(stdout, "%s: ", full_path);
+
+        /* Starts the stop-watch. */
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
         t->test(t);
+
+        /* Stops the stop-watch. */
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+        /* Computes the time taken, and updates the test duration. */
+        ret = timespec_diff(&t->duration, &time_0, &time_1);
+        assert(ret == 0);
+
+        fprintf(stdout, "%*c", (int)(res_msg_print_column - strlen(full_path)), ' ');
+        fprintf(stdout, " [%6lld.%9ld] ", (long long) t->duration.tv_sec, t->duration.tv_nsec);
         if (t->failure_count) {
           s->failed_test_count++;
-          fprintf(stdout, "%*cFAILED - Failure count = %d\n", (int)(res_msg_print_column - strlen(full_path)), ' ', t->failure_count);
+          fprintf(stdout, "FAILED - Failure count = %d\n", t->failure_count);
         } else {
-          fprintf(stdout, "%*cOK\n", (int)(res_msg_print_column - strlen(full_path)), ' ');
+          fprintf(stdout, "OK\n");
         }
       }
     }
