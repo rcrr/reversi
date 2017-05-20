@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2015 Roberto Corradini. All rights reserved.
+ * @copyright 2015, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -78,6 +78,19 @@ typedef void
 /**********************************************/
 
 /**
+ * @enum ut_quickness_t
+ * @brief The time approximately required to complete the test.
+ */
+typedef enum {
+  UT_QUICKNESS_0,   /**< An almost instantaneous test. */
+  UT_QUICKNESS_1,   /**< A test running in less than 0.1 seconds. */
+  UT_QUICKNESS_2,   /**< A test running in less than 1 second. */
+  UT_QUICKNESS_3,   /**< A test running in less than 10 second. */
+  UT_QUICKNESS_4,   /**< A test running in less than 100 second. */
+  UT_QUICKNESS_5    /**< A test running in more than 100 second. */
+} ut_quickness_t;
+
+/**
  * @brief A unit test.
  */
 typedef struct ut_test_t_ {
@@ -86,6 +99,7 @@ typedef struct ut_test_t_ {
   ut_simple_test_f test;      /**< @brief The test function. */
   int failure_count;          /**< @brief The number of assertion failures. */
   int assertion_count;        /**< @brief The number of assertions. */
+  ut_quickness_t speed;       /**< @brief The speed class of the test. */
 } ut_test_t;
 
 /**

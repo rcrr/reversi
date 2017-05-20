@@ -141,11 +141,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <math.h>
 #include <assert.h>
 
 #include "prng.h"
+#include "time_utils.h"
 
 
 
@@ -250,7 +250,7 @@ prng_stdlib_shuffle_array_uint8 (uint8_t *const array,
 unsigned long int
 prng_uint64_from_clock_random_seed (void)
 {
-  struct timespec t;
+  timespec_t t;
   clock_gettime(CLOCK_REALTIME, &t);
   return (unsigned long int) t.tv_nsec;
 }

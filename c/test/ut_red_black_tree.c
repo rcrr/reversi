@@ -34,7 +34,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
-#include <time.h>
 #include <unistd.h>
 #include <assert.h>
 #include <string.h>
@@ -42,13 +41,9 @@
 #include "unit_test.h"
 
 #include "red_black_tree.h"
+#include "time_utils.h"
 #include "prng.h"
 #include "sort_utils.h"
-
-
-
-/* Time spec type definition. See sys/time.h for more details. */
-typedef struct timespec timespec_t;
 
 
 
@@ -413,59 +408,11 @@ prepare_data_array (const size_t len,
   return a;
 }
 
-/*
- * The struct timespec structure represents an elapsed time. It is declared in time.h and has the following members:
- *
- * - time_t     tv_sec    This represents the number of whole seconds of elapsed time.
- * - long int   tv_nsec   This is the rest of the elapsed time (a fraction of a second),
- *                        represented as the number of nanoseconds. It is always less than one billion.
- *
- * The structure is also defined as:
- *
- *    typedef struct timespec timespec_t;
- *
- *
- * A way of obtaining the timespec structure value is:
- *
- *    timespec_t time_0;
- *    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
- *
- *
- * The function timespec_diff works as follow:
- *
- *    Subtracts the timespec_t values `start` and `end`,
- *    storing the result in `result`.
- *    Return 1 if the difference is negative, otherwise 0.
- */
-static int
-timespec_diff (timespec_t *const result,
-               const timespec_t *const start,
-               const timespec_t *const end)
-{
-  assert(result);
-  assert(start);
-  assert(end);
-  if ((end->tv_sec - start->tv_sec) < 0) return 1;
-  if ((end->tv_sec - start->tv_sec) == 0 &&
-      (end->tv_nsec - start->tv_nsec) < 0) return 1;
-
-  if ((end->tv_nsec - start->tv_nsec) < 0) {
-    result->tv_sec = end->tv_sec - start->tv_sec - 1;
-    result->tv_nsec = 1000000000 + end->tv_nsec - start->tv_nsec;
-  } else {
-    result->tv_sec = end->tv_sec - start->tv_sec;
-    result->tv_nsec = end->tv_nsec - start->tv_nsec;
-  }
-  return 0;
-}
-
 
 
 /*
  * Test functions.
  */
-
-
 
 /*
  * Test functions for the table structure.

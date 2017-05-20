@@ -43,10 +43,10 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stdbool.h>
-#include <time.h>
 
 #include "game_tree_utils.h"
 #include "sort_utils.h"
+#include "time_utils.h"
 
 
 
