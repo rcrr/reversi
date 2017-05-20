@@ -468,6 +468,13 @@ main (int argc,
   ut_suite_add_simple_test(s, "sha3_256_1M_a_0", sha3_256_1M_a_0_t);
   ut_suite_add_simple_test(s, "sha3_256_1M_a_1", sha3_256_1M_a_1_t);
 
+  ut_suite_add_simple_test(s, "sha3_256_extremely_long_message_0", sha3_256_extremely_long_message_0_t);
+  ut_suite_add_simple_test(s, "sha3_256_extremely_long_message_1", sha3_256_extremely_long_message_1_t);
+
+  ut_suite_add_simple_test(s, "sha3_shake128_variable_output", sha3_shake128_variable_output_t);
+  ut_suite_add_simple_test(s, "sha3_shake256_variable_output_0", sha3_shake256_variable_output_0_t);
+  ut_suite_add_simple_test(s, "sha3_shake256_variable_output_1", sha3_shake256_variable_output_1_t);
+
   int failure_count = ut_suite_run(s);
 
   ut_suite_free(s);
