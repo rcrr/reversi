@@ -66,6 +66,7 @@ timespec_diff (timespec_t *const result,
   assert(result);
   assert(start);
   assert(end);
+
   if ((end->tv_sec - start->tv_sec) < 0) return 1;
   if ((end->tv_sec - start->tv_sec) == 0 &&
       (end->tv_nsec - start->tv_nsec) < 0) return 1;
@@ -80,11 +81,78 @@ timespec_diff (timespec_t *const result,
   return 0;
 }
 
+/**
+ * @brief Gets the value from the seconds field.
+ *
+ * @param [in] ts a pointer to the timespec structure
+ * @return        the value from the seconds field
+ */
+time_t
+timespec_get_sec (const timespec_t *const ts)
+{
+  return ts->tv_sec;
+}
+
+/**
+ * @brief Gets the value from the nanoseconds field.
+ *
+ * @param [in] ts a pointer to the timespec structure
+ * @return        the value from the nanoseconds field
+ */
+long
+timespec_get_nsec (const timespec_t *const ts)
+{
+  return ts->tv_nsec;
+}
+
+/**
+ * @brief Sets `ts` values.
+ *
+ * @invariant Parameter `ts` must be not `NULL`.
+ * @invariant Parameter `seconds` must be not negative.
+ * @invariant Parameter `nanoseconds` must be not negative.
+ * The invariants are guarded by assertions.
+ *
+ * @param [out] ts           a pointer to the timespec structure
+ * @param [in]  seconds      value for the `tv_sec` field
+ * @param [in]  nanoseconds  value for the `tv_nsec` field
+ */
 void
 timespec_set (timespec_t *const ts,
-              const time_t  seconds,
+              const time_t seconds,
               const long nanoseconds)
 {
+  assert(ts);
+  assert(seconds >= 0);
+  assert(nanoseconds >= 0);
+
   ts->tv_sec = seconds;
   ts->tv_nsec = nanoseconds;
+}
+
+/**
+ * @brief Compares timespec_t values pointed by `a` and `b`.
+ *
+ * @details Compare function that returns:
+ *          - `+1` when `a` is greater than `b`
+ *          - ` 0` when `a` is equal to `b`
+ *          - `-1` when `a` is less then `b`
+ *
+ * @invariant Parameters `a` and `b` must be not `NULL`.
+ * The invariants are guarded by assertions.
+ *
+ * @param [in] a a pointer to the first value
+ * @param [in] b a pointer to the second value
+ * @return       a value in `{-1, 0, +1}` based on the comparison of `a` and `b`
+ */
+int
+timespec_cmp (const timespec_t *const a,
+              const timespec_t *const b)
+{
+  assert(a);
+  assert(b);
+
+  if (a->tv_sec > b->tv_sec) return +1;
+  if (a->tv_sec < b->tv_sec) return -1;
+  return (a->tv_nsec > b->tv_nsec) - (a->tv_nsec < b->tv_nsec);
 }

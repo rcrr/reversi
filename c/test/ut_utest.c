@@ -101,116 +101,116 @@ ut_quickness_range_t (ut_test_t *const t)
 
   /* UT_QUICKNESS_0001 */
 
-  ts.tv_sec = 0; ts.tv_nsec = 0;
+  timespec_set(&ts, 0, 0);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_0001);
 
-  ts.tv_sec = 0; ts.tv_nsec = 999999;
+  timespec_set(&ts, 0, 999999);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_0001);
 
 
   /* UT_QUICKNESS_001 */
 
-  ts.tv_sec = 0; ts.tv_nsec = 1000000;
+  timespec_set(&ts, 0, 1000000);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_001);
 
-  ts.tv_sec = 0; ts.tv_nsec = 1000001;
+  timespec_set(&ts, 0, 1000001);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_001);
 
-  ts.tv_sec = 0; ts.tv_nsec = 9999999;
+  timespec_set(&ts, 0, 9999999);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_001);
 
 
   /* UT_QUICKNESS_01 */
 
-  ts.tv_sec = 0; ts.tv_nsec = 10000000;
+  timespec_set(&ts, 0, 10000000);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_01);
 
-  ts.tv_sec = 0; ts.tv_nsec = 10000001;
+  timespec_set(&ts, 0, 10000001);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_01);
 
-  ts.tv_sec = 0; ts.tv_nsec = 99999999;
+  timespec_set(&ts, 0, 99999999);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_01);
 
 
   /* UT_QUICKNESS_1 */
 
-  ts.tv_sec = 0; ts.tv_nsec = 100000000;
+  timespec_set(&ts, 0, 100000000);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_1);
 
-  ts.tv_sec = 0; ts.tv_nsec = 100000001;
+  timespec_set(&ts, 0, 100000001);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_1);
 
-  ts.tv_sec = 0; ts.tv_nsec = 999999999;
+  timespec_set(&ts, 0, 999999999);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_1);
 
 
   /* UT_QUICKNESS_10 */
 
-  ts.tv_sec = 1; ts.tv_nsec = 0;
+  timespec_set(&ts, 1, 0);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_10);
 
-  ts.tv_sec = 1; ts.tv_nsec = 1;
+  timespec_set(&ts, 1, 1);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_10);
 
-  ts.tv_sec = 9; ts.tv_nsec = 999999999;
+  timespec_set(&ts, 9, 999999999);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_10);
 
 
   /* UT_QUICKNESS_100 */
 
-  ts.tv_sec = 10; ts.tv_nsec = 0;
+  timespec_set(&ts, 10, 0);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_100);
 
-  ts.tv_sec = 10; ts.tv_nsec = 1;
+  timespec_set(&ts, 10, 1);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_100);
 
-  ts.tv_sec = 99; ts.tv_nsec = 999999999;
+  timespec_set(&ts, 99, 999999999);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_100);
 
 
   /* UT_QUICKNESS_1000 */
 
-  ts.tv_sec = 100; ts.tv_nsec = 0;
+  timespec_set(&ts, 100, 0);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_1000);
 
-  ts.tv_sec = 100; ts.tv_nsec = 1;
+  timespec_set(&ts, 100, 1);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_1000);
 
-  ts.tv_sec = 999; ts.tv_nsec = 999999999;
+  timespec_set(&ts, 999, 999999999);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_1000);
 
 
   /* UT_QUICKNESS_OUT_OF_RANGE */
 
-  ts.tv_sec = 1000; ts.tv_nsec = 0;
+  timespec_set(&ts, 1000, 0);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_OUT_OF_RANGE);
 
-  ts.tv_sec = 1000; ts.tv_nsec = 1;
+  timespec_set(&ts, 1000, 1);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_OUT_OF_RANGE);
 
-  ts.tv_sec = 9999; ts.tv_nsec = 999999999;
+  timespec_set(&ts, 3153599999, 999999999);
   r = ut_quickness_range(&ts);
   ut_assert(t, r == UT_QUICKNESS_OUT_OF_RANGE);
 }

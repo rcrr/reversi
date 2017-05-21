@@ -1249,8 +1249,8 @@ performance_t (ut_test_t *const t)
             len,
             op_initial_count,
             op_final_count,
-            time_diff.tv_sec,
-            time_diff.tv_nsec);
+            timespec_get_sec(&time_diff),
+            timespec_get_nsec(&time_diff));
 
     /* End of operation 1. */
 
@@ -1291,8 +1291,8 @@ performance_t (ut_test_t *const t)
               delta,
               op_initial_count,
               op_final_count,
-              time_diff.tv_sec,
-              time_diff.tv_nsec);
+              timespec_get_sec(&time_diff),
+              timespec_get_nsec(&time_diff));
 
       /* End of operation 2. */
 
@@ -1330,8 +1330,8 @@ performance_t (ut_test_t *const t)
               delta,
               op_initial_count,
               op_final_count,
-              time_diff.tv_sec,
-              time_diff.tv_nsec);
+              timespec_get_sec(&time_diff),
+              timespec_get_nsec(&time_diff));
 
       /* End of operation 3. */
 
@@ -1370,8 +1370,8 @@ performance_t (ut_test_t *const t)
               delta,
               op_initial_count,
               op_final_count,
-              time_diff.tv_sec,
-              time_diff.tv_nsec);
+              timespec_get_sec(&time_diff),
+              timespec_get_nsec(&time_diff));
 
       /* End of operation 4a. */
 
@@ -1410,8 +1410,8 @@ performance_t (ut_test_t *const t)
               delta,
               op_initial_count,
               op_final_count,
-              time_diff.tv_sec,
-              time_diff.tv_nsec);
+              timespec_get_sec(&time_diff),
+              timespec_get_nsec(&time_diff));
 
       /* End of operation 4z. */
 
@@ -1450,8 +1450,8 @@ performance_t (ut_test_t *const t)
               delta,
               op_initial_count,
               op_final_count,
-              time_diff.tv_sec,
-              time_diff.tv_nsec);
+              timespec_get_sec(&time_diff),
+              timespec_get_nsec(&time_diff));
 
       /* End of operation 5. */
 
@@ -1510,8 +1510,8 @@ performance_t (ut_test_t *const t)
             len,
             op_initial_count,
             op_final_count,
-            time_diff.tv_sec,
-            time_diff.tv_nsec);
+            timespec_get_sec(&time_diff),
+            timespec_get_nsec(&time_diff));
 
     free(index);
 

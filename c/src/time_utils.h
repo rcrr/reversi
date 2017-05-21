@@ -57,9 +57,19 @@ timespec_diff (timespec_t *const result,
                const timespec_t *const start,
                const timespec_t *const end);
 
+extern time_t
+timespec_get_sec (const timespec_t *const ts);
+
+extern long
+timespec_get_nsec (const timespec_t *const ts);
+
 extern void
 timespec_set (timespec_t *const ts,
               const time_t  seconds,
               const long nanoseconds);
+
+extern int
+timespec_cmp (const timespec_t *const a,
+              const timespec_t *const b);
 
 #endif /* TIME_UTILS_H */

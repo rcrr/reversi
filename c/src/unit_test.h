@@ -160,6 +160,9 @@ typedef struct ut_prog_arg_config_t_ {
 extern ut_quickness_t
 ut_quickness_range (const timespec_t *const ts);
 
+extern timespec_t
+ut_quickness_boundary (const ut_quickness_t q);
+
 
 
 /*************************************************/

@@ -252,7 +252,7 @@ prng_uint64_from_clock_random_seed (void)
 {
   timespec_t t;
   clock_gettime(CLOCK_REALTIME, &t);
-  return (unsigned long int) t.tv_nsec;
+  return (unsigned long int) timespec_get_nsec(&t);
 }
 
 /**

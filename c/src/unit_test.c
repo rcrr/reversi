@@ -63,6 +63,22 @@
 
 
 /******************************************************/
+/* Internal static constant declarations.             */
+/******************************************************/
+
+static const timespec_t ut_quickness_ranges[] =
+  {
+    {          0,   1000000 }, // UT_QUICKNESS_0001
+    {          0,  10000000 }, // UT_QUICKNESS_001
+    {          0, 100000000 }, // UT_QUICKNESS_01
+    {          1,         0 }, // UT_QUICKNESS_1
+    {         10,         0 }, // UT_QUICKNESS_10
+    {        100,         0 }, // UT_QUICKNESS_100
+    {       1000,         0 }, // UT_QUICKNESS_1000
+    { 3153600000,         0 }  // UT_QUICKNESS_OUT_OF_RANGE - 100 years
+  };
+
+/******************************************************/
 /* Internal static variable declarations.             */
 /******************************************************/
 
@@ -101,23 +117,24 @@ ut_quickness_range (const timespec_t *const ts)
 {
   assert(ts);
 
-  const timespec_t range[] = { {    0,   1000000 }, // UT_QUICKNESS_0001
-                               {    0,  10000000 }, // UT_QUICKNESS_001
-                               {    0, 100000000 }, // UT_QUICKNESS_01
-                               {    1,         0 }, // UT_QUICKNESS_1
-                               {   10,         0 }, // UT_QUICKNESS_10
-                               {  100,         0 }, // UT_QUICKNESS_100
-                               { 1000,         0 }, // UT_QUICKNESS_1000
-                               {    0,         0 } }; // not really used.
+  const timespec_t *const r = ut_quickness_ranges;
 
   int rc = 0; //range_class
 
   for (; rc < UT_QUICKNESS_OUT_OF_RANGE; rc++) {
-    if (ts->tv_sec <  range[rc].tv_sec) break;
-    if (ts->tv_sec == range[rc].tv_sec && ts->tv_nsec < range[rc].tv_nsec) break;
+    if (timespec_get_sec(ts) <  timespec_get_sec(&r[rc])) break;
+    if (timespec_get_sec(ts) == timespec_get_sec(&r[rc]) && timespec_get_nsec(ts) < timespec_get_nsec(&r[rc])) break;
   }
 
   return rc;
+}
+
+timespec_t
+ut_quickness_boundary (const ut_quickness_t q)
+{
+  assert(q >= 0);
+  assert(q <= UT_QUICKNESS_OUT_OF_RANGE);
+  return ut_quickness_ranges[q];
 }
 
 
@@ -317,10 +334,10 @@ ut_suite_run (ut_suite_t *s)
 
         /* Computes the time taken, and updates the test duration. */
         ret = timespec_diff(&t->duration, &time_0, &time_1);
-        assert(ret == 0);
+        (void) ret; assert(ret == 0);
 
         fprintf(stdout, "%*c", (int)(res_msg_print_column - strlen(full_path)), ' ');
-        fprintf(stdout, " [%6lld.%9ld] ", (long long) t->duration.tv_sec, t->duration.tv_nsec);
+        fprintf(stdout, " [%6lld.%9ld] ", (long long) timespec_get_sec(&t->duration), timespec_get_nsec(&t->duration));
         if (t->failure_count) {
           s->failed_test_count++;
           fprintf(stdout, "FAILED - Failure count = %d\n", t->failure_count);
