@@ -750,7 +750,7 @@ volume_t (ut_test_t *const t)
   int *data;
   mem_allocator_t *alloc = &mem_allocator_default;
 
-  const size_t max_size = 1024;
+  const size_t max_size = 512;
 
   for (size_t k = 1; k < max_size; k++) {
 
@@ -1641,7 +1641,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "copy", copy_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "insert_replace_and_find", insert_replace_and_find_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "delete", delete_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "volume", volume_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "volume", volume_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "random_key_volume", random_key_volume_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "traverser_basic", traverser_basic_t);

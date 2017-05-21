@@ -323,6 +323,7 @@ ut_suite_run (ut_suite_t *s)
       } else { /* Runs the test. */
         if (arg_config.utest) fprintf(stdout, "  ");
         fprintf(stdout, "%s: ", full_path);
+        fflush(stdout);
 
         /* Starts the stop-watch. */
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
@@ -337,7 +338,13 @@ ut_suite_run (ut_suite_t *s)
         (void) ret; assert(ret == 0);
 
         fprintf(stdout, "%*c", (int)(res_msg_print_column - strlen(full_path)), ' ');
-        fprintf(stdout, " [%6lld.%9ld] ", (long long) timespec_get_sec(&t->duration), timespec_get_nsec(&t->duration));
+        fprintf(stdout, "[%6lld.%9ld] ", (long long) timespec_get_sec(&t->duration), timespec_get_nsec(&t->duration));
+        const ut_quickness_t actual_speed = ut_quickness_range(&t->duration);
+        const int time_perf = (actual_speed > t->speed) - (actual_speed < t->speed);
+        char time_perf_c = ' ';
+        if (time_perf > 0) time_perf_c = '+';
+        if (time_perf < 0) time_perf_c = '-';
+        fprintf(stdout, "[%d.%d]%c ", t->speed, actual_speed, time_perf_c);
         if (t->failure_count) {
           s->failed_test_count++;
           fprintf(stdout, "FAILED - Failure count = %d\n", t->failure_count);

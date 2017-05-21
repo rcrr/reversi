@@ -542,7 +542,7 @@ main (argc, argv)
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "insertion_sort", llist_insertion_sort_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "adv_insertion_sort", llist_adv_insertion_sort_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "merge_sort__0", llist_merge_sort__0_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "merge_sort__1", llist_merge_sort__1_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "merge_sort__1", llist_merge_sort__1_t);
 
   int failure_count = ut_suite_run(s);
 
