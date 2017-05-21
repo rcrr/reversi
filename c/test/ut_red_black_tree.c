@@ -1634,27 +1634,27 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new("red_black_tree");
 
-  ut_suite_add_simple_test(s, "creation_and_destruction", creation_and_destruction_t);
-  ut_suite_add_simple_test(s, "probe", probe_t);
-  ut_suite_add_simple_test(s, "item_compare_f", item_compare_f_t);
-  ut_suite_add_simple_test(s, "item_destroy_f", item_destroy_f_t);
-  ut_suite_add_simple_test(s, "copy", copy_t);
-  ut_suite_add_simple_test(s, "insert_replace_and_find", insert_replace_and_find_t);
-  ut_suite_add_simple_test(s, "delete", delete_t);
-  ut_suite_add_simple_test(s, "volume", volume_t);
-  ut_suite_add_simple_test(s, "random_key_volume", random_key_volume_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "creation_and_destruction", creation_and_destruction_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "probe", probe_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "item_compare_f", item_compare_f_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "item_destroy_f", item_destroy_f_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "copy", copy_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "insert_replace_and_find", insert_replace_and_find_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "delete", delete_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "volume", volume_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "random_key_volume", random_key_volume_t);
 
-  ut_suite_add_simple_test(s, "traverser_basic", traverser_basic_t);
-  ut_suite_add_simple_test(s, "traverser_find_and_copy", traverser_find_and_copy_t);
-  ut_suite_add_simple_test(s, "traverser_insert", traverser_insert_t);
-  ut_suite_add_simple_test(s, "traverser_replace", traverser_replace_t);
-  ut_suite_add_simple_test(s, "traverser_on_changing_table", traverser_on_changing_table_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "traverser_basic", traverser_basic_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "traverser_find_and_copy", traverser_find_and_copy_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "traverser_insert", traverser_insert_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "traverser_replace", traverser_replace_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "traverser_on_changing_table", traverser_on_changing_table_t);
 
-  ut_suite_add_simple_test(s, "creation_and_destruction_mem_dbg", creation_and_destruction_mem_dbg_t);
-  ut_suite_add_simple_test(s, "probe_mem_dbg", probe_mem_dbg_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "creation_and_destruction_mem_dbg", creation_and_destruction_mem_dbg_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "probe_mem_dbg", probe_mem_dbg_t);
 
   if (ut_is_mode_equal_to_perf()) {
-    ut_suite_add_simple_test(s, "performance", performance_t);
+    ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "performance", performance_t);
   }
 
   int failure_count = ut_suite_run(s);

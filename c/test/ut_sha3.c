@@ -454,26 +454,26 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new("sha3");
 
-  ut_suite_add_simple_test(s, "sha3_224", sha3_224_t);
-  ut_suite_add_simple_test(s, "sha3_256", sha3_256_t);
-  ut_suite_add_simple_test(s, "sha3_384", sha3_384_t);
-  ut_suite_add_simple_test(s, "sha3_512", sha3_512_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_224", sha3_224_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_256", sha3_256_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_384", sha3_384_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_512", sha3_512_t);
 
-  ut_suite_add_simple_test(s, "sha3_256_abc", sha3_256_abc_t);
-  ut_suite_add_simple_test(s, "sha3_512_abc", sha3_512_abc_t);
-  ut_suite_add_simple_test(s, "sha3_256_empty_string", sha3_256_empty_string_t);
-  ut_suite_add_simple_test(s, "sha3_512_empty_string", sha3_512_empty_string_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_256_abc", sha3_256_abc_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_512_abc", sha3_512_abc_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_256_empty_string", sha3_256_empty_string_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_512_empty_string", sha3_512_empty_string_t);
 
-  ut_suite_add_simple_test(s, "sha3_256_896_bits", sha3_256_896_bits_t);
-  ut_suite_add_simple_test(s, "sha3_256_1M_a_0", sha3_256_1M_a_0_t);
-  ut_suite_add_simple_test(s, "sha3_256_1M_a_1", sha3_256_1M_a_1_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_256_896_bits", sha3_256_896_bits_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_256_1M_a_0", sha3_256_1M_a_0_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_256_1M_a_1", sha3_256_1M_a_1_t);
 
-  ut_suite_add_simple_test(s, "sha3_256_extremely_long_message_0", sha3_256_extremely_long_message_0_t);
-  ut_suite_add_simple_test(s, "sha3_256_extremely_long_message_1", sha3_256_extremely_long_message_1_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_256_extremely_long_message_0", sha3_256_extremely_long_message_0_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_256_extremely_long_message_1", sha3_256_extremely_long_message_1_t);
 
-  ut_suite_add_simple_test(s, "sha3_shake128_variable_output", sha3_shake128_variable_output_t);
-  ut_suite_add_simple_test(s, "sha3_shake256_variable_output_0", sha3_shake256_variable_output_0_t);
-  ut_suite_add_simple_test(s, "sha3_shake256_variable_output_1", sha3_shake256_variable_output_1_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_shake128_variable_output", sha3_shake128_variable_output_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_shake256_variable_output_0", sha3_shake256_variable_output_0_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_shake256_variable_output_1", sha3_shake256_variable_output_1_t);
 
   int failure_count = ut_suite_run(s);
 

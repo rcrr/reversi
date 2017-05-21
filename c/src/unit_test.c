@@ -83,6 +83,45 @@ ut_suite_full_path_max_length (ut_suite_t *s);
 
 
 
+/***********************************************************/
+/* Function implementations for the ut_quickness_t entity. */
+/***********************************************************/
+
+/**
+ * @brief Returns the proper speed class.
+ *
+ * @invariant Parameter `ts` must be not `NULL`.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in] ts the value to be categorized
+ * @return        the proper quickness class
+ */
+ut_quickness_t
+ut_quickness_range (const timespec_t *const ts)
+{
+  assert(ts);
+
+  const timespec_t range[] = { {    0,   1000000 }, // UT_QUICKNESS_0001
+                               {    0,  10000000 }, // UT_QUICKNESS_001
+                               {    0, 100000000 }, // UT_QUICKNESS_01
+                               {    1,         0 }, // UT_QUICKNESS_1
+                               {   10,         0 }, // UT_QUICKNESS_10
+                               {  100,         0 }, // UT_QUICKNESS_100
+                               { 1000,         0 }, // UT_QUICKNESS_1000
+                               {    0,         0 } }; // not really used.
+
+  int rc = 0; //range_class
+
+  for (; rc < UT_QUICKNESS_OUT_OF_RANGE; rc++) {
+    if (ts->tv_sec <  range[rc].tv_sec) break;
+    if (ts->tv_sec == range[rc].tv_sec && ts->tv_nsec < range[rc].tv_nsec) break;
+  }
+
+  return rc;
+}
+
+
+
 /******************************************************/
 /* Function implementations for the ut_test_t entity. */
 /******************************************************/
@@ -98,6 +137,8 @@ ut_suite_full_path_max_length (ut_suite_t *s);
 ut_test_t *
 ut_test_new (char *label,
              ut_simple_test_f tfun,
+             ut_mode_t mode,
+             ut_quickness_t speed,
              ut_suite_t *s)
 {
   ut_test_t *t;
@@ -109,7 +150,8 @@ ut_test_new (char *label,
   t->label = label;
   t->test = tfun;
   t->suite = s;
-  t->speed = UT_QUICKNESS_0;
+  t->mode = mode;
+  t->speed = speed;
   timespec_set(&t->duration, 0, 0);
   return t;
 }
@@ -184,11 +226,15 @@ ut_suite_free (ut_suite_t *s)
  * @brief Adds a simple test to the suite.
  *
  * @param [in,out] s     the test suite
+ * @param [in]     mode  the test mode
+ * @param [in]     speed the test expected quickness
  * @param [in]     label the test label
  * @param [in]     tfun  the the test function
  */
 void
 ut_suite_add_simple_test (ut_suite_t *s,
+                          ut_mode_t mode,
+                          ut_quickness_t speed,
                           char *label,
                           ut_simple_test_f tfun)
 {
@@ -196,7 +242,7 @@ ut_suite_add_simple_test (ut_suite_t *s,
   assert(label);
   assert(tfun);
 
-  ut_test_t *const t = ut_test_new(label, tfun, s);
+  ut_test_t *const t = ut_test_new(label, tfun, mode, speed, s);
 
   if (s->count == s->size) {
     s->size += array_alloc_chunk_size;
@@ -337,7 +383,7 @@ ut_init (int *argc_p,
 bool
 ut_is_mode_equal_to_perf (void)
 {
-  return arg_config.mode == UT_MODE_PERF ? true : false;
+  return arg_config.mode >= UT_MODE_PERF_0 ? true : false;
 }
 
 
@@ -377,7 +423,7 @@ parse_args (int *argc_p,
         fprintf(stderr, "%s: missing mode value after -m flag.\n", argv[0]);
         exit(EXIT_FAILURE);
       }
-      if (strcmp(mode, "perf") == 0) arg_config.mode = UT_MODE_PERF;
+      if (strcmp(mode, "perf") == 0) arg_config.mode = UT_MODE_PERF_0;
       else if (strcmp(mode, "standard") == 0) arg_config.mode = UT_MODE_STND;
       else {
         fprintf(stderr, "%s: mode value \"%s\" is invalid.\n", argv[0], mode);

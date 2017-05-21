@@ -945,29 +945,29 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new("prng");
 
-  ut_suite_add_simple_test(s, "prng_stdlib_seed", prng_stdlib_seed_t);
-  ut_suite_add_simple_test(s, "prng_stdlib_get_number_in_range", prng_stdlib_get_number_in_range_t);
-  ut_suite_add_simple_test(s, "prng_stdlib_shuffle_array_uint8_2", prng_stdlib_shuffle_array_uint8_2_t);
-  ut_suite_add_simple_test(s, "prng_stdlib_shuffle_array_uint8_5", prng_stdlib_shuffle_array_uint8_5_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_stdlib_seed", prng_stdlib_seed_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_stdlib_get_number_in_range", prng_stdlib_get_number_in_range_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_stdlib_shuffle_array_uint8_2", prng_stdlib_shuffle_array_uint8_2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_stdlib_shuffle_array_uint8_5", prng_stdlib_shuffle_array_uint8_5_t);
 
-  ut_suite_add_simple_test(s, "prng_uint64_from_clock_random_seed", prng_uint64_from_clock_random_seed_t);
-  ut_suite_add_simple_test(s, "prng_mt19937_basic", prng_mt19937_basic_t);
-  ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set", prng_mt19937_random_choice_from_finite_set_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_uint64_from_clock_random_seed", prng_uint64_from_clock_random_seed_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_basic", prng_mt19937_basic_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_random_choice_from_finite_set", prng_mt19937_random_choice_from_finite_set_t);
 
-  ut_suite_add_simple_test(s, "prng_mt19937_get_double_in_c0_c1", prng_mt19937_get_double_in_c0_c1_t);
-  ut_suite_add_simple_test(s, "prng_mt19937_get_double_in_c0_o1", prng_mt19937_get_double_in_c0_o1_t);
-  ut_suite_add_simple_test(s, "prng_mt19937_get_double_in_o0_o1", prng_mt19937_get_double_in_o0_o1_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_get_double_in_c0_c1", prng_mt19937_get_double_in_c0_c1_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_get_double_in_c0_o1", prng_mt19937_get_double_in_c0_o1_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_get_double_in_o0_o1", prng_mt19937_get_double_in_o0_o1_t);
 
-  ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set_2", prng_mt19937_random_choice_from_finite_set_2_t);
-  ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set_5", prng_mt19937_random_choice_from_finite_set_5_t);
-  ut_suite_add_simple_test(s, "prng_mt19937_random_choice_from_finite_set_9", prng_mt19937_random_choice_from_finite_set_9_t);
-  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_uint8_2", prng_mt19937_shuffle_array_uint8_2_t);
-  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_uint8_5", prng_mt19937_shuffle_array_uint8_5_t);
-  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_uint8_9", prng_mt19937_shuffle_array_uint8_9_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_random_choice_from_finite_set_2", prng_mt19937_random_choice_from_finite_set_2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_random_choice_from_finite_set_5", prng_mt19937_random_choice_from_finite_set_5_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_random_choice_from_finite_set_9", prng_mt19937_random_choice_from_finite_set_9_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_shuffle_array_uint8_2", prng_mt19937_shuffle_array_uint8_2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_shuffle_array_uint8_5", prng_mt19937_shuffle_array_uint8_5_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_shuffle_array_uint8_9", prng_mt19937_shuffle_array_uint8_9_t);
 
-  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_p", prng_mt19937_shuffle_array_p_t);
-  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_double", prng_mt19937_shuffle_array_double_t);
-  ut_suite_add_simple_test(s, "prng_mt19937_shuffle_array_int", prng_mt19937_shuffle_array_int_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_shuffle_array_p", prng_mt19937_shuffle_array_p_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_shuffle_array_double", prng_mt19937_shuffle_array_double_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_shuffle_array_int", prng_mt19937_shuffle_array_int_t);
 
   int failure_count = ut_suite_run(s);
 

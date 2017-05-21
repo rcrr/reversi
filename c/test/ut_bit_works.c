@@ -448,38 +448,38 @@ main (int argc,
   ut_init(&argc, &argv);
   ut_suite_t *const s = ut_suite_new("bit_works");
 
-  ut_suite_add_simple_test(s, "bitw_type_size_checks", bitw_type_size_checks);
-  ut_suite_add_simple_test(s, "bitw_int_size_definition_checks", bitw_int_size_definition_checks);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_type_size_checks", bitw_type_size_checks);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_int_size_definition_checks", bitw_int_size_definition_checks);
 
-  ut_suite_add_simple_test(s, "bitw_bit_count_64_plain", bitw_bit_count_64_plain_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_count_64_plain", bitw_bit_count_64_plain_t);
 #ifdef __POPCNT__
-  ut_suite_add_simple_test(s, "bitw_bit_count_64_popcnt", bitw_bit_count_64_popcnt_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_count_64_popcnt", bitw_bit_count_64_popcnt_t);
 #endif
-  ut_suite_add_simple_test(s, "bitw_bit_count_64", bitw_bit_count_64_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_count_64", bitw_bit_count_64_t);
 
-  ut_suite_add_simple_test(s, "bitw_bit_scan_reverse_64_plain",  bitw_bit_scan_reverse_64_plain_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_scan_reverse_64_plain",  bitw_bit_scan_reverse_64_plain_t);
 #ifdef __x86_64__
-  ut_suite_add_simple_test(s, "bitw_bit_scan_reverse_64_bsr",  bitw_bit_scan_reverse_64_bsr_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_scan_reverse_64_bsr",  bitw_bit_scan_reverse_64_bsr_t);
 #endif
-  ut_suite_add_simple_test(s, "bitw_bit_scan_reverse_64",  bitw_bit_scan_reverse_64_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_scan_reverse_64",  bitw_bit_scan_reverse_64_t);
 
-  ut_suite_add_simple_test(s, "bitw_bit_scan_forward_64_plain",  bitw_bit_scan_forward_64_plain_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_scan_forward_64_plain",  bitw_bit_scan_forward_64_plain_t);
 #ifdef __x86_64__
-  ut_suite_add_simple_test(s, "bitw_bit_scan_forward_64_bsf",  bitw_bit_scan_forward_64_bsf_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_scan_forward_64_bsf",  bitw_bit_scan_forward_64_bsf_t);
 #endif
-  ut_suite_add_simple_test(s, "bitw_bit_scan_forward_64",  bitw_bit_scan_forward_64_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_bit_scan_forward_64",  bitw_bit_scan_forward_64_t);
 
-  ut_suite_add_simple_test(s, "bitw_reset_lowest_set_bit_64_plain",  bitw_reset_lowest_set_bit_64_plain_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_reset_lowest_set_bit_64_plain",  bitw_reset_lowest_set_bit_64_plain_t);
 #ifdef __x86_64__
-  ut_suite_add_simple_test(s, "bitw_reset_lowest_set_bit_64_blsr",  bitw_reset_lowest_set_bit_64_blsr_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_reset_lowest_set_bit_64_blsr",  bitw_reset_lowest_set_bit_64_blsr_t);
 #endif
-  ut_suite_add_simple_test(s, "bitw_reset_lowest_set_bit_64",  bitw_reset_lowest_set_bit_64_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_reset_lowest_set_bit_64",  bitw_reset_lowest_set_bit_64_t);
 
-  ut_suite_add_simple_test(s, "bitw_lowest_set_bit_64",  bitw_lowest_set_bit_64_t);
-  ut_suite_add_simple_test(s, "bitw_highest_set_bit_64",  bitw_highest_set_bit_64_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_lowest_set_bit_64",  bitw_lowest_set_bit_64_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_highest_set_bit_64",  bitw_highest_set_bit_64_t);
 
-  ut_suite_add_simple_test(s, "bitw_ror_64_t",  bitw_ror_64_t);
-  ut_suite_add_simple_test(s, "bitw_rol_64_t",  bitw_rol_64_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_ror_64_t",  bitw_ror_64_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_rol_64_t",  bitw_rol_64_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);

@@ -528,21 +528,21 @@ main (argc, argv)
 
   ut_suite_t *const s = ut_suite_new("llist");
 
-  ut_suite_add_simple_test(s, "new-free", llist_new_free_t);
-  ut_suite_add_simple_test(s, "add-remove-foreach", llist_add_remove_foreach_t);
-  ut_suite_add_simple_test(s, "length", llist_length_t);
-  ut_suite_add_simple_test(s, "find", llist_find_t);
-  ut_suite_add_simple_test(s, "nth", llist_nth_t);
-  ut_suite_add_simple_test(s, "nth_data", llist_nth_data_t);
-  ut_suite_add_simple_test(s, "insert_at_position", llist_insert_at_position_t);
-  ut_suite_add_simple_test(s, "insert_after_elm", llist_insert_after_elm_t);
-  ut_suite_add_simple_test(s, "insert_before_elm", llist_insert_before_elm_t);
-  ut_suite_add_simple_test(s, "last_elm", llist_last_elm_t);
-  ut_suite_add_simple_test(s, "reverse", llist_reverse_t);
-  ut_suite_add_simple_test(s, "insertion_sort", llist_insertion_sort_t);
-  ut_suite_add_simple_test(s, "adv_insertion_sort", llist_adv_insertion_sort_t);
-  ut_suite_add_simple_test(s, "merge_sort__0", llist_merge_sort__0_t);
-  ut_suite_add_simple_test(s, "merge_sort__1", llist_merge_sort__1_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "new-free", llist_new_free_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "add-remove-foreach", llist_add_remove_foreach_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "length", llist_length_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "find", llist_find_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "nth", llist_nth_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "nth_data", llist_nth_data_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "insert_at_position", llist_insert_at_position_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "insert_after_elm", llist_insert_after_elm_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "insert_before_elm", llist_insert_before_elm_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "last_elm", llist_last_elm_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "reverse", llist_reverse_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "insertion_sort", llist_insertion_sort_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "adv_insertion_sort", llist_adv_insertion_sort_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "merge_sort__0", llist_merge_sort__0_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "merge_sort__1", llist_merge_sort__1_t);
 
   int failure_count = ut_suite_run(s);
 

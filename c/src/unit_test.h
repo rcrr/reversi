@@ -79,16 +79,39 @@ typedef void
 /**********************************************/
 
 /**
+ * @enum ut_mode_t
+ * @brief The mode for running the group of tests.
+ */
+typedef enum {
+  UT_MODE_STND = 0,   /**< Standard mode. */
+  UT_MODE_PERF_0,     /**< Performance mode, fast. */
+  UT_MODE_PERF_1,     /**< Performance mode, medium speed. */
+  UT_MODE_PERF_2      /**< Performance mode, slow. */
+} ut_mode_t;
+
+/**
+ * @enum ut_verbosity_t
+ * @brief The mode for running the group of tests.
+ */
+typedef enum {
+  UT_VEROSITY_LOW,     /**< Low verbosity. */
+  UT_VEROSITY_STND,    /**< Standard verbosity. */
+  UT_VEROSITY_HIGHT    /**< Hight verbosity. */
+} ut_verbosity_t;
+
+/**
  * @enum ut_quickness_t
  * @brief The time approximately required to complete the test.
  */
 typedef enum {
-  UT_QUICKNESS_0,   /**< An almost instantaneous test. */
-  UT_QUICKNESS_1,   /**< A test running in less than 0.1 seconds. */
-  UT_QUICKNESS_2,   /**< A test running in less than 1 second. */
-  UT_QUICKNESS_3,   /**< A test running in less than 10 second. */
-  UT_QUICKNESS_4,   /**< A test running in less than 100 second. */
-  UT_QUICKNESS_5    /**< A test running in more than 100 second. */
+  UT_QUICKNESS_0001 = 0,    /**< An almost instantaneous test, running in less than 0.001 seconds. */
+  UT_QUICKNESS_001,         /**< A test running in less than 0.01 seconds. */
+  UT_QUICKNESS_01,          /**< A test running in less than 0.1 seconds. */
+  UT_QUICKNESS_1,           /**< A test running in less than 1 second. */
+  UT_QUICKNESS_10,          /**< A test running in less than 10 second. */
+  UT_QUICKNESS_100,         /**< A test running in less than 100 second. */
+  UT_QUICKNESS_1000,        /**< A test running in less than 1000 second. */
+  UT_QUICKNESS_OUT_OF_RANGE /**< A test running in more than 1000 second. */
 } ut_quickness_t;
 
 /**
@@ -100,6 +123,7 @@ typedef struct ut_test_t_ {
   ut_simple_test_f test;      /**< @brief The test function. */
   int failure_count;          /**< @brief The number of assertion failures. */
   int assertion_count;        /**< @brief The number of assertions. */
+  ut_mode_t mode;             /**< @brief Standard vs performance test. */
   ut_quickness_t speed;       /**< @brief The speed class of the test. */
   timespec_t duration;        /**< @brief Test elapsed time duration. */
 } ut_test_t;
@@ -116,25 +140,6 @@ typedef struct ut_suite_t_ {
 } ut_suite_t;
 
 /**
- * @enum ut_mode_t
- * @brief The mode for running the group of tests.
- */
-typedef enum {
-  UT_MODE_STND,   /**< Standard mode. */
-  UT_MODE_PERF    /**< Performance mode. */
-} ut_mode_t;
-
-/**
- * @enum ut_verbosity_t
- * @brief The mode for running the group of tests.
- */
-typedef enum {
-  UT_VEROSITY_LOW,     /**< Low verbosity. */
-  UT_VEROSITY_STND,    /**< Standard verbosity. */
-  UT_VEROSITY_HIGHT    /**< Hight verbosity. */
-} ut_verbosity_t;
-
-/**
  * @brief Program argument configuration.
  */
 typedef struct ut_prog_arg_config_t_ {
@@ -148,6 +153,15 @@ typedef struct ut_prog_arg_config_t_ {
 
 
 
+/******************************************************/
+/* Function prototypes for the ut_quickness_t entity. */
+/******************************************************/
+
+extern ut_quickness_t
+ut_quickness_range (const timespec_t *const ts);
+
+
+
 /*************************************************/
 /* Function prototypes for the ut_test_t entity. */
 /*************************************************/
@@ -155,6 +169,8 @@ typedef struct ut_prog_arg_config_t_ {
 extern ut_test_t *
 ut_test_new (char *label,
              ut_simple_test_f tfun,
+             ut_mode_t mode,
+             ut_quickness_t speed,
              ut_suite_t *s);
 
 extern void
@@ -174,6 +190,8 @@ ut_suite_free (ut_suite_t *s);
 
 extern void
 ut_suite_add_simple_test (ut_suite_t *s,
+                          ut_mode_t mode,
+                          ut_quickness_t speed,
                           char *label,
                           ut_simple_test_f tfun);
 

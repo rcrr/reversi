@@ -716,42 +716,42 @@ main (int argc,
 
   board_module_init();
 
-  ut_suite_add_simple_test(s, "square_to_string", square_to_string_t);
-  ut_suite_add_simple_test(s, "square_as_move_to_string", square_as_move_to_string_t);
-  ut_suite_add_simple_test(s, "square_array_to_string", square_array_to_string_t);
-  ut_suite_add_simple_test(s, "square_as_move_array_to_string", square_as_move_array_to_string_t);
-  ut_suite_add_simple_test(s, "square_belongs_to_enum_set", square_belongs_to_enum_set_t);
-  ut_suite_add_simple_test(s, "square_is_valid_move", square_is_valid_move_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_to_string", square_to_string_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_as_move_to_string", square_as_move_to_string_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_array_to_string", square_array_to_string_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_as_move_array_to_string", square_as_move_array_to_string_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_belongs_to_enum_set", square_belongs_to_enum_set_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_is_valid_move", square_is_valid_move_t);
 
-  ut_suite_add_simple_test(s, "square_set_to_pg_json_array", square_set_to_pg_json_array_t);
-  ut_suite_add_simple_test(s, "square_set_to_string", square_set_to_string_t);
-  ut_suite_add_simple_test(s, "square_set_random_selection", square_set_random_selection_t);
-  ut_suite_add_simple_test(s, "square_set_to_array", square_set_to_array_t);
-  ut_suite_add_simple_test(s, "square_set_from_array", square_set_from_array_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_set_to_pg_json_array", square_set_to_pg_json_array_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_set_to_string", square_set_to_string_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_set_random_selection", square_set_random_selection_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_set_to_array", square_set_to_array_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "square_set_from_array", square_set_from_array_t);
 
-  ut_suite_add_simple_test(s, "player_color", player_color_t);
-  ut_suite_add_simple_test(s, "player_description", player_description_t);
-  ut_suite_add_simple_test(s, "player_opponent", player_opponent_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "player_color", player_color_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "player_description", player_description_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "player_opponent", player_opponent_t);
 
-  ut_suite_add_simple_test(s, "game_position_x_print", game_position_x_print_t);
-  ut_suite_add_simple_test(s, "game_position_x_empties", game_position_x_empties_t);
-  ut_suite_add_simple_test(s, "game_position_x_get_player", game_position_x_get_player_t);
-  ut_suite_add_simple_test(s, "game_position_x_get_opponent", game_position_x_get_opponent_t);
-  ut_suite_add_simple_test(s, "game_position_x_legal_moves", game_position_x_legal_moves_t);
-  ut_suite_add_simple_test(s, "game_position_x_count_difference", game_position_x_count_difference_t);
-  ut_suite_add_simple_test(s, "game_position_x_to_string", game_position_x_to_string_t);
-  ut_suite_add_simple_test(s, "game_position_x_get_square", game_position_x_get_square_t);
-  ut_suite_add_simple_test(s, "game_position_x_compare", game_position_x_compare_t);
-  ut_suite_add_simple_test(s, "game_position_x_clone", game_position_x_clone_t);
-  ut_suite_add_simple_test(s, "game_position_x_copy", game_position_x_copy_t);
-  ut_suite_add_simple_test(s, "game_position_x_pass", game_position_x_pass_t);
-  ut_suite_add_simple_test(s, "game_position_x_hash", game_position_x_hash_t);
-  ut_suite_add_simple_test(s, "game_position_x_delta_hash", game_position_x_delta_hash_t);
-  ut_suite_add_simple_test(s, "game_position_x_final_value", game_position_x_final_value_t);
-  ut_suite_add_simple_test(s, "game_position_x_has_any_legal_move", game_position_x_has_any_legal_move_t);
-  ut_suite_add_simple_test(s, "game_position_x_has_any_player_any_legal_move", game_position_x_has_any_player_any_legal_move_t);
-  ut_suite_add_simple_test(s, "game_position_x_is_move_legal", game_position_x_is_move_legal_t);
-  ut_suite_add_simple_test(s, "game_position_x_make_move", game_position_x_make_move_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_print", game_position_x_print_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_empties", game_position_x_empties_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_get_player", game_position_x_get_player_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_get_opponent", game_position_x_get_opponent_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_legal_moves", game_position_x_legal_moves_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_count_difference", game_position_x_count_difference_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_to_string", game_position_x_to_string_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_get_square", game_position_x_get_square_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_compare", game_position_x_compare_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_clone", game_position_x_clone_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_copy", game_position_x_copy_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_pass", game_position_x_pass_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_hash", game_position_x_hash_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_delta_hash", game_position_x_delta_hash_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_final_value", game_position_x_final_value_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_has_any_legal_move", game_position_x_has_any_legal_move_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_has_any_player_any_legal_move", game_position_x_has_any_player_any_legal_move_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_is_move_legal", game_position_x_is_move_legal_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "game_position_x_make_move", game_position_x_make_move_t);
 
   int failure_count = ut_suite_run(s);
   ut_suite_free(s);
