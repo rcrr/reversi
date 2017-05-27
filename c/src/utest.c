@@ -302,6 +302,8 @@ main (int argc,
 {
   parse_args(&argc, &argv);
 
+  int err_count = 0;
+
   for (int i = 1; i < argc; i++) {
     char *test_program_name = argv[i];
     bool test_pass = false;
@@ -340,12 +342,16 @@ main (int argc,
       int status;
       wait(&status);
       const int exit_value = WEXITSTATUS(status);
-      char exit_msg[16] = {'\0'};
+      char exit_msg[32] = {'\0'};
       if (WIFSIGNALED(status)) {
         fprintf(stdout, "\nKILLED - Killed by signal %d\n", WTERMSIG(status));
+        if (WTERMSIG(status) == SIGABRT) sprintf(exit_msg, " program aborted (SIGABRT).");
+        err_count++;
       } else {
         if (!exit_value) test_pass = true;
         sprintf(exit_msg, " exit code: %d", exit_value);
+        if (exit_value > 0) err_count += exit_value;
+        if (exit_value < 0) err_count++;
       }
       char *pass_or_fail_string = (test_pass) ? "PASS" : "FAIL";
       fprintf(stdout, "%s - %s: test program %s, child process ( pid = %zu )%s\n",
@@ -353,5 +359,6 @@ main (int argc,
     }
   }
 
-  return 0;
+  if (err_count != 0) fprintf(stdout, "ERROR: utest encountered one or more errors or failing tests.\n");
+  return err_count;
 }

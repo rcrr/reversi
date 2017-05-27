@@ -60,6 +60,9 @@ dummy_t (ut_test_t *const t)
 {
   aux_dummy();
   ut_assert(t, true);
+
+  ut_assert(t, true);
+  ut_assert(t, 1 == 34);
 }
 
 static void

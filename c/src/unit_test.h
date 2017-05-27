@@ -208,8 +208,8 @@ ut_suite_run (ut_suite_t *s);
 /**************************************************/
 
 extern void
-ut_assert (ut_test_t *t,
-           int assertion);
+ut_assert__ (ut_test_t *t,
+             int assertion);
 
 
 
@@ -223,6 +223,26 @@ ut_init (int *argc_p,
 
 extern bool
 ut_is_mode_equal_to_perf (void);
+
+
+
+/**************************************************/
+/* Module's macros.                               */
+/**************************************************/
+
+#define ut_assert(t, expr) do {                                         \
+    if (expr)                                                           \
+      t->assertion_count++;                                             \
+    else {                                                              \
+      t->failure_count++;                                               \
+      fprintf(stdout,                                                   \
+              "\nERROR:%s:%d:%s:_assertion_failed_(%s)\n",              \
+              __FILE__, __LINE__, __FUNCTION__, #expr);                 \
+      fflush(stdout);                                                   \
+      abort();                                                          \
+    }                                                                   \
+  } while (0)
+
 
 
 #endif /* UNIT_TEST_H */

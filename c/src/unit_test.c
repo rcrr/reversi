@@ -374,8 +374,8 @@ ut_suite_run (ut_suite_t *s)
  * @param [in,out] assertion the result of the assertion
  */
 void
-ut_assert (ut_test_t *t,
-           int assertion)
+ut_assert__ (ut_test_t *t,
+             int assertion)
 {
   t->assertion_count++;
   if (!assertion) t->failure_count++;
