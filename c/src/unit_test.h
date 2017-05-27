@@ -125,7 +125,9 @@ typedef struct ut_test_t_ {
   int assertion_count;        /**< @brief The number of assertions. */
   ut_mode_t mode;             /**< @brief Standard vs performance test. */
   ut_quickness_t speed;       /**< @brief The speed class of the test. */
-  timespec_t duration;        /**< @brief Test elapsed time duration. */
+  timespec_t start_time;      /**< @brief Test start time duration. */
+  timespec_t end_time;        /**< @brief Test end time duration. */
+  timespec_t cpu_time;        /**< @brief Test cpu process consumption. */
 } ut_test_t;
 
 /**
@@ -178,6 +180,9 @@ ut_test_new (char *label,
 
 extern void
 ut_test_free (ut_test_t *t);
+
+extern void
+ut_test_fail (ut_test_t *t);
 
 
 

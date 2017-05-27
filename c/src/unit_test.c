@@ -169,7 +169,7 @@ ut_test_new (char *label,
   t->suite = s;
   t->mode = mode;
   t->speed = speed;
-  timespec_set(&t->duration, 0, 0);
+  timespec_set(&t->cpu_time, 0, 0);
   return t;
 }
 
@@ -184,6 +184,19 @@ void
 ut_test_free (ut_test_t *t)
 {
   free(t);
+}
+
+/**
+ * @brief Raises the failure count for the test.
+ *
+ * @details If a null pointer is passed as argument, no action occurs.
+ *
+ * @param [in,out] t the pointer to the test
+ */
+void
+ut_test_fail (ut_test_t *t)
+{
+  if (t) t->failure_count++;
 }
 
 
@@ -325,6 +338,9 @@ ut_suite_run (ut_suite_t *s)
         fprintf(stdout, "%s: ", full_path);
         fflush(stdout);
 
+        /* Sets the test start time. */
+        clock_gettime(CLOCK_REALTIME, &t->start_time);
+
         /* Starts the stop-watch. */
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
@@ -333,13 +349,16 @@ ut_suite_run (ut_suite_t *s)
         /* Stops the stop-watch. */
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
 
-        /* Computes the time taken, and updates the test duration. */
-        ret = timespec_diff(&t->duration, &time_0, &time_1);
+        /* Sets the test end time. */
+        clock_gettime(CLOCK_REALTIME, &t->end_time);
+
+        /* Computes the time taken, and updates the test cpu_time. */
+        ret = timespec_diff(&t->cpu_time, &time_0, &time_1);
         (void) ret; assert(ret == 0);
 
         fprintf(stdout, "%*c", (int)(res_msg_print_column - strlen(full_path)), ' ');
-        fprintf(stdout, "[%6lld.%9ld] ", (long long) timespec_get_sec(&t->duration), timespec_get_nsec(&t->duration));
-        const ut_quickness_t actual_speed = ut_quickness_range(&t->duration);
+        fprintf(stdout, "[%6lld.%9ld] ", (long long) timespec_get_sec(&t->cpu_time), timespec_get_nsec(&t->cpu_time));
+        const ut_quickness_t actual_speed = ut_quickness_range(&t->cpu_time);
         const int time_perf = (actual_speed > t->speed) - (actual_speed < t->speed);
         char time_perf_c = ' ';
         if (time_perf > 0) time_perf_c = '+';
