@@ -204,16 +204,6 @@ ut_suite_run (ut_suite_t *s);
 
 
 /**************************************************/
-/* Function prototypes for assertions.            */
-/**************************************************/
-
-extern void
-ut_assert__ (ut_test_t *t,
-             int assertion);
-
-
-
-/**************************************************/
 /* Prototypes for module's functions.             */
 /**************************************************/
 
@@ -230,7 +220,16 @@ ut_is_mode_equal_to_perf (void);
 /* Module's macros.                               */
 /**************************************************/
 
+/**
+ * @brief When `expr` is not true, the program is ended with an abortion.
+ *
+ * @details Parameter `t` mast be a valid pointer to a `ut_test_t` type.
+ *
+ * @param [out] t    the test case
+ * @param [in]  expr the expression to test, it must be an integer type
+ */
 #define ut_assert(t, expr) do {                                         \
+    assert(t);                                                          \
     if (expr)                                                           \
       t->assertion_count++;                                             \
     else {                                                              \

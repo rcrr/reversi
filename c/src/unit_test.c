@@ -364,24 +364,6 @@ ut_suite_run (ut_suite_t *s)
 
 
 /********************************************/
-/* Assertion implementations.               */
-/********************************************/
-
-/**
- * @brief When assertion is not true, the count of failures fot the test is increased.
- *
- * @param [in,out] t         the test case
- * @param [in,out] assertion the result of the assertion
- */
-void
-ut_assert__ (ut_test_t *t,
-             int assertion)
-{
-  t->assertion_count++;
-  if (!assertion) t->failure_count++;
-}
-
-/********************************************/
 /* Module functions.                        */
 /********************************************/
 
