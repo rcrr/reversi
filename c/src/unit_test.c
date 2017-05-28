@@ -239,11 +239,16 @@ ut_test_free (ut_test_t *t)
  * @param [in,out] t the pointer to the test
  */
 void
-ut_test_fail (ut_test_t *t)
+ut_test_fail (ut_test_t *const t)
 {
   if (t) t->failure_count++;
 }
 
+bool
+ut_test_is_simple (const ut_test_t *const t)
+{
+  return t->simple_test ? true : false;
+}
 
 
 /*******************************************************/
@@ -333,11 +338,14 @@ ut_suite_add_simple_test (ut_suite_t *s,
 /**
  * @brief Adds a test to the suite.
  *
- * @param [in,out] s         the test suite
- * @param [in]     mode      the test mode
- * @param [in]     qck_class the test expected quickness
- * @param [in]     label     the test label
- * @param [in]     tfun      the the test function
+ * @param [in,out] s             the test suite
+ * @param [in]     mode          the test mode
+ * @param [in]     qck_class     the test expected quickness
+ * @param [in]     label         the test label
+ * @param [in]     provided_data the user provided data
+ * @param [in]     setup         the setup function
+ * @param [in]     tfun          the test function
+ * @param [in]     teardown      the teardown function
  */
 void
 ut_suite_add_regular_test (ut_suite_t *s,
@@ -425,7 +433,8 @@ ut_suite_run (ut_suite_t *s)
         /* Starts the stop-watch. */
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
-        t->simple_test(t);
+        if (ut_test_is_simple(t))
+          t->simple_test(t);
 
         /* Stops the stop-watch. */
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);

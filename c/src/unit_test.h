@@ -83,7 +83,7 @@ typedef void
 typedef void
 (*ut_regular_test_f) (struct ut_test_t_ *t,
                       void *const fixture,
-                      const void *const provided_data );
+                      const void *const provided_data);
 
 /**
  * @brief Prepares the fixture for the test.
@@ -95,7 +95,7 @@ typedef void
  */
 typedef void
 (*ut_fixture_setup_f) (void *const fixture,
-                       const void *const provided_data );
+                       const void *const provided_data);
 
 /**
  * @brief Teardowns the fixture formerly prepared for the test.
@@ -105,7 +105,7 @@ typedef void
  */
 typedef void
 (*ut_fixture_teardown_f) (void *const fixture,
-                          const void *const provided_data );
+                          const void *const provided_data);
 
 
 
@@ -221,7 +221,10 @@ extern void
 ut_test_free (ut_test_t *t);
 
 extern void
-ut_test_fail (ut_test_t *t);
+ut_test_fail (ut_test_t *const t);
+
+extern bool
+ut_test_is_simple (const ut_test_t *const t);
 
 
 
@@ -241,6 +244,16 @@ ut_suite_add_simple_test (ut_suite_t *s,
                           ut_quickness_t speed,
                           char *label,
                           ut_simple_test_f tfun);
+
+extern void
+ut_suite_add_regular_test (ut_suite_t *s,
+                           ut_mode_t mode,
+                           ut_quickness_t qck_class,
+                           char *label,
+                           const void *const provided_data,
+                           ut_fixture_setup_f setup,
+                           ut_regular_test_f tfun,
+                           ut_fixture_teardown_f teardown);
 
 extern int
 ut_suite_run (ut_suite_t *s);
