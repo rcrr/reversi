@@ -237,19 +237,93 @@ const tests_with_sorting_function_t twsf_double_base_qsort =
 static void
 fixture_setup (ut_test_t *const t)
 {
-  printf("fixture_setup\n");
+  const tests_with_sorting_function_t *const twsf = (tests_with_sorting_function_t *) t->provided_data;
+  const test_case_t *const test_defs = (test_case_t *) twsf->tests;
+
+  fixture_t *fixture = (fixture_t *) malloc(sizeof(fixture_t));
+  fixture->tests_count = 0;
+  for (int i = 0;; i++) {
+    const test_case_t *td = &test_defs[i];
+    if (td->test_label == NULL) {
+      fixture->tests_count = i;
+      break;
+    }
+  }
+  t->fixture = fixture;
+
+  test_case_t *tests = (test_case_t *) malloc(fixture->tests_count * sizeof(test_case_t));
+  for (int i = 0; i < fixture->tests_count; i++) {
+    const test_case_t *td = &test_defs[i];
+    test_case_t *tc = &tests[i];
+    tc->test_label = td->test_label;
+    tc->versus = td->versus;
+    tc->element_size = td->element_size;
+    tc->elements_count = td->elements_count;
+    const size_t size_of_elements_array = td->elements_count * td->element_size;
+    tc->elements = malloc(size_of_elements_array);
+    memcpy(tc->elements, td->elements, size_of_elements_array);
+    tc->expected_sorted_sequence = td->expected_sorted_sequence;
+  }
+  fixture->tests = tests;
 }
 
 static void
 fixture_teardown (ut_test_t *const t)
 {
-  printf("fixture_teardown\n");
+  fixture_t *fixture = (fixture_t *) t->fixture;
+
+  test_case_t *tests = (test_case_t *) fixture->tests;
+  for (int i = 0; i < fixture->tests_count; i++) {
+    free(tests[i].elements);
+  }
+  free(fixture->tests);
+  free(fixture);
 }
 
 static void
 hlp_run_tests_with_sorting_function (ut_test_t *const t)
 {
-  printf("hlp_run_tests_with_sorting_function\n");
+  fixture_t *fixture = (fixture_t *) t->fixture;
+  const tests_with_sorting_function_t *const twsf = (tests_with_sorting_function_t *) t->provided_data;
+
+  assert(fixture);
+  assert(twsf);
+
+  test_case_t *tests = fixture->tests;
+  assert(tests);
+
+  const sort_utils_compare_function cmp_asc = twsf->cmp_asc;
+  assert(cmp_asc);
+  const sort_utils_compare_function cmp_dsc = twsf->cmp_dsc;
+  assert(cmp_dsc);
+  const sort_utils_sort_function sort = twsf->sort;
+  assert(sort);
+  const size_t es = twsf->element_size;
+
+  for (int i = 0; i < fixture->tests_count; i++) {
+    const test_case_t *tc = &tests[i];
+    sort_utils_compare_function cmp;
+    switch (tc->versus) {
+    case ASC:
+      cmp = cmp_asc;
+      break;
+    case DSC:
+      cmp = cmp_dsc;
+      break;
+    default:
+      ut_test_fail(t);
+      return;
+    }
+
+    sort(tc->elements, tc->elements_count, es, cmp);
+
+    for (int j = 0; j < tc->elements_count; j++) {
+      const void *computed = (char *) tc->elements + j * es;
+      const void *expected = (char *) tc->expected_sorted_sequence + j * es;
+      ut_assert(t, cmp_asc(expected, computed) == 0);
+
+    }
+  }
 }
 
 
