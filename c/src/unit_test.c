@@ -104,7 +104,7 @@ ut_suite_full_path_max_length (ut_suite_t *s);
 /***********************************************************/
 
 /**
- * @brief Returns the proper speed class.
+ * @brief Returns the proper quickness class.
  *
  * @invariant Parameter `ts` must be not `NULL`.
  * The invariant is guarded by an assertion.
@@ -152,29 +152,74 @@ ut_quickness_boundary (const ut_quickness_t q)
  * @return a pointer to a new test structure
  */
 ut_test_t *
-ut_test_new (char *label,
-             ut_simple_test_f tfun,
-             ut_mode_t mode,
-             ut_quickness_t speed,
-             ut_suite_t *s)
+ut_test_regular_new (char *label,
+                     const void *const provided_data,
+                     ut_fixture_setup_f setup,
+                     ut_regular_test_f tfun,
+                     ut_fixture_teardown_f teardown,
+                     ut_mode_t mode,
+                     ut_quickness_t qck_class,
+                     ut_suite_t *s)
 {
   ut_test_t *t;
   static const size_t size_of_t = sizeof(ut_test_t);
   t = (ut_test_t *) malloc(size_of_t);
   assert(t);
+  t->suite = s;
+  t->label = label;
+  t->simple_test = NULL;
+  t->regular_test = tfun;
+  t->setup = setup;
+  t->teardown = teardown;
+  t->provided_data = (void *) provided_data;
   t->failure_count = 0;
   t->assertion_count = 0;
-  t->label = label;
-  t->test = tfun;
-  t->suite = s;
   t->mode = mode;
-  t->speed = speed;
+  t->quickness_class = qck_class;
+  timespec_set(&t->start_time, 0, 0);
+  timespec_set(&t->end_time, 0, 0);
   timespec_set(&t->cpu_time, 0, 0);
   return t;
 }
 
 /**
- * @brief Deallocates the memory previously allocated by a call to #ut_test_new.
+ * @brief Test structure constructor.
+ *
+ * An assertion checks that the received pointer to the allocated
+ * test structure is not `NULL`.
+ *
+ * @return a pointer to a new test structure
+ */
+ut_test_t *
+ut_test_simple_new (char *label,
+                    ut_simple_test_f tfun,
+                    ut_mode_t mode,
+                    ut_quickness_t qck_class,
+                    ut_suite_t *s)
+{
+  ut_test_t *t;
+  static const size_t size_of_t = sizeof(ut_test_t);
+  t = (ut_test_t *) malloc(size_of_t);
+  assert(t);
+  t->suite = s;
+  t->label = label;
+  t->simple_test = tfun;
+  t->regular_test = NULL;
+  t->setup = NULL;
+  t->teardown = NULL;
+  t->provided_data = NULL;
+  t->failure_count = 0;
+  t->assertion_count = 0;
+  t->mode = mode;
+  t->quickness_class = qck_class;
+  timespec_set(&t->start_time, 0, 0);
+  timespec_set(&t->end_time, 0, 0);
+  timespec_set(&t->cpu_time, 0, 0);
+  return t;
+}
+
+/**
+ * @brief Deallocates the memory previously allocated by a call to #ut_test_simple_new.
  *
  * @details If a null pointer is passed as argument, no action occurs.
  *
@@ -255,16 +300,16 @@ ut_suite_free (ut_suite_t *s)
 /**
  * @brief Adds a simple test to the suite.
  *
- * @param [in,out] s     the test suite
- * @param [in]     mode  the test mode
- * @param [in]     speed the test expected quickness
- * @param [in]     label the test label
- * @param [in]     tfun  the the test function
+ * @param [in,out] s         the test suite
+ * @param [in]     mode      the test mode
+ * @param [in]     qck_class the test expected quickness
+ * @param [in]     label     the test label
+ * @param [in]     tfun      the the test function
  */
 void
 ut_suite_add_simple_test (ut_suite_t *s,
                           ut_mode_t mode,
-                          ut_quickness_t speed,
+                          ut_quickness_t qck_class,
                           char *label,
                           ut_simple_test_f tfun)
 {
@@ -272,7 +317,43 @@ ut_suite_add_simple_test (ut_suite_t *s,
   assert(label);
   assert(tfun);
 
-  ut_test_t *const t = ut_test_new(label, tfun, mode, speed, s);
+  ut_test_t *const t = ut_test_simple_new(label, tfun, mode, qck_class, s);
+
+  if (s->count == s->size) {
+    s->size += array_alloc_chunk_size;
+    s->tests = (void *) realloc(s->tests, s->size * sizeof(void *));
+    assert(s->tests);
+  }
+
+  ut_test_t **tests_p = s->tests + s->count;
+  *tests_p = t;
+  s->count++;
+}
+
+/**
+ * @brief Adds a test to the suite.
+ *
+ * @param [in,out] s         the test suite
+ * @param [in]     mode      the test mode
+ * @param [in]     qck_class the test expected quickness
+ * @param [in]     label     the test label
+ * @param [in]     tfun      the the test function
+ */
+void
+ut_suite_add_regular_test (ut_suite_t *s,
+                           ut_mode_t mode,
+                           ut_quickness_t qck_class,
+                           char *label,
+                           const void *const provided_data,
+                           ut_fixture_setup_f setup,
+                           ut_regular_test_f tfun,
+                           ut_fixture_teardown_f teardown)
+{
+  assert(s);
+  assert(label);
+  assert(tfun);
+
+  ut_test_t *const t = ut_test_regular_new(label, provided_data, setup, tfun, teardown, mode, qck_class, s);
 
   if (s->count == s->size) {
     s->size += array_alloc_chunk_size;
@@ -344,7 +425,7 @@ ut_suite_run (ut_suite_t *s)
         /* Starts the stop-watch. */
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
-        t->test(t);
+        t->simple_test(t);
 
         /* Stops the stop-watch. */
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
@@ -358,12 +439,12 @@ ut_suite_run (ut_suite_t *s)
 
         fprintf(stdout, "%*c", (int)(res_msg_print_column - strlen(full_path)), ' ');
         fprintf(stdout, "[%6lld.%9ld] ", (long long) timespec_get_sec(&t->cpu_time), timespec_get_nsec(&t->cpu_time));
-        const ut_quickness_t actual_speed = ut_quickness_range(&t->cpu_time);
-        const int time_perf = (actual_speed > t->speed) - (actual_speed < t->speed);
+        const ut_quickness_t actual_qck_class = ut_quickness_range(&t->cpu_time);
+        const int time_perf = (actual_qck_class > t->quickness_class) - (actual_qck_class < t->quickness_class);
         char time_perf_c = ' ';
         if (time_perf > 0) time_perf_c = '+';
         if (time_perf < 0) time_perf_c = '-';
-        fprintf(stdout, "[%d.%d]%c ", t->speed, actual_speed, time_perf_c);
+        fprintf(stdout, "[%d.%d]%c ", t->quickness_class, actual_qck_class, time_perf_c);
         if (t->failure_count) {
           s->failed_test_count++;
           fprintf(stdout, "FAILED - Failure count = %d\n", t->failure_count);
