@@ -227,6 +227,7 @@ ut_suite_free (ut_suite_t *s)
  * @param [in]     qck_class the test expected quickness
  * @param [in]     label     the test label
  * @param [in]     tfun      the the test function
+ * @return                       the newly created test
  */
 ut_test_t *
 ut_suite_add_simple_test (ut_suite_t *s,
@@ -265,6 +266,7 @@ ut_suite_add_simple_test (ut_suite_t *s,
  * @param [in]     setup         the setup function
  * @param [in]     tfun          the test function
  * @param [in]     teardown      the teardown function
+ * @return                       the newly created test
  */
 ut_test_t *
 ut_suite_add_regular_test (ut_suite_t *s,
@@ -336,6 +338,8 @@ ut_suite_run (ut_suite_t *s)
         fprintf(stdout, "%s: ", full_path);
         fflush(stdout);
 
+        if (t->setup) t->setup(t);
+
         /* Sets the test start time. */
         clock_gettime(CLOCK_REALTIME, &t->start_time);
 
@@ -349,6 +353,8 @@ ut_suite_run (ut_suite_t *s)
 
         /* Sets the test end time. */
         clock_gettime(CLOCK_REALTIME, &t->end_time);
+
+        if (t->teardown) t->teardown(t);
 
         /* Computes the time taken, and updates the test cpu_time. */
         ret = timespec_diff(&t->cpu_time, &time_0, &time_1);
