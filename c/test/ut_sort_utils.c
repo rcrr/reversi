@@ -54,56 +54,55 @@
 
 
 
-/**
- * @enum SortingVersus
- * @brief The sorting versus.
+/*
+ * The sorting versus.
  *
  * Ascending means that a lesser element precede a greater one, descending
  * is the opposite.
  */
 typedef enum {
-  DSC,   /**< Ascending. */
-  ASC    /**< Descending. */
+  DSC,                                             /* Ascending. */
+  ASC                                              /* Descending. */
 } sorting_versus_t;
 
-/**
- * @brief A test case collects a set of elements and the expected sorted sequence.
+/*
+ * A test case collects a set of elements and the expected sorted sequence.
  */
 typedef struct {
-  char             *test_label;                    /**< @brief Test label. */
-  sorting_versus_t  versus;                        /**< @brief 0 for descending, and 1 for ascending. */
-  size_t            element_size;                  /**< @brief Number of bytes needed by one element. */
-  int               elements_count;                /**< @brief The size of the array to be sorted. */
-  void             *elements;                      /**< @brief The data to be sorted. */
-  void             *expected_sorted_sequence;      /**< @brief The expected sequence. */
+  char             *test_label;                    /* Test label. */
+  sorting_versus_t  versus;                        /* 0 for descending, and 1 for ascending. */
+  size_t            element_size;                  /* Number of bytes needed by one element. */
+  int               elements_count;                /* The size of the array to be sorted. */
+  void             *elements;                      /* The data to be sorted. */
+  void             *expected_sorted_sequence;      /* The expected sequence. */
 } test_case_t;
 
-/**
- * @brief Tests with sorting function structure merges a list of test cases with a sorting implementation.
+/*
+ * Tests with sorting function structure merges a list of test cases with a sorting implementation.
  */
 typedef struct {
-  void                        *tests;            /**< @brief An array of test cases. */
-  sort_utils_compare_function  cmp_asc;          /**< @brief Compare function for ascending cases. */
-  sort_utils_compare_function  cmp_dsc;          /**< @brief Compare function for descending cases. */
-  sort_utils_sort_function     sort;             /**< @brief Sorting function. */
-  size_t                       element_size;     /**< @brief Number of bytes needed by one element. */
+  const test_case_t           *tests;            /* An array of test cases. */
+  sort_utils_compare_function  cmp_asc;          /* Compare function for ascending cases. */
+  sort_utils_compare_function  cmp_dsc;          /* Compare function for descending cases. */
+  sort_utils_sort_function     sort;             /* Sorting function. */
+  size_t                       element_size;     /* Number of bytes needed by one element. */
 } tests_with_sorting_function_t;
 
-/**
- * @brief Fixtures are prepared by the #fixture_setup function by linking or
- *        deep-copying the #TestsWithSortingFunction structure.
+/*
+ * Fixtures are prepared by the fixture_setup() function by linking or
+ * deep-copying the tests_with_sorting_function_t structure.
  */
 typedef struct {
-  int   tests_count;                            /**< @brief Number of tests in the test case. */
-  void *tests;                                  /**< @brief An array of test cases. */
+  int   tests_count;                            /* Number of tests in the test case. */
+  void *tests;                                  /* An array of test cases. */
 } fixture_t;
 
 
 
-/**
- * @brief Sorting test cases for simple arrays of double: base cases.
+/*
+ * Sorting test cases for simple arrays of double: base cases.
  */
-const test_case_t tc_double_base[] =
+static const test_case_t tc_double_base[] =
   {
     { "A simple array of ten elements must be sorted in ascending order.",
       ASC, sizeof(double), 10,
@@ -208,6 +207,191 @@ const test_case_t tc_double_base[] =
     { NULL, ASC, sizeof(double), 1, (double []) {0}, (double []) {0} }
   };
 
+/*
+ * Sorting test cases for simple arrays of int: base cases.
+ */
+static const test_case_t tc_int_base[] =
+  {
+    { "A simple array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 7, 3, 9, 0, 1, 5, 2, 8, 4, 6 },
+      (int []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+
+    { "A simple array of ten elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) { 7, 3, 9, 0, 1, 5, 2, 8, 4, 6 },
+      (int []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 } },
+
+    { "An ascending sorted array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
+      (int []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+
+    { "An ascending sorted array of ten elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
+      (int []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 } },
+
+    { "A descending sorted array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+      (int []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+
+    { "A descending sorted array of ten elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+      (int []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 } },
+
+    { "An array of ten equal elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+
+    { "An array of ten equal elements must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+
+    { "An ascending sorted array of ten negative elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) { -9, -8, -7, -6, -5, -4, -3, -2, -1,  0 },
+      (int []) {  0, -1, -2, -3, -4, -5, -6, -7, -8, -9 } },
+
+    { "A descending sorted array of ten negative elements must be sorted in descending order.",
+      DSC, sizeof(int), 10,
+      (int []) {  0, -1, -2, -3, -4, -5, -6, -7, -8, -9 },
+      (int []) {  0, -1, -2, -3, -4, -5, -6, -7, -8, -9 } },
+
+    { "An ascending sorted array of ten negative elements must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { -9, -8, -7, -6, -5, -4, -3, -2, -1,  0 },
+      (int []) { -9, -8, -7, -6, -5, -4, -3, -2, -1,  0 } },
+
+    { "An array of ten elements, nine zeros and a one, must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 },
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } },
+
+    { "An array of ten elements, seven zeros and three ones, must be sorted in ascending order.",
+      ASC, sizeof(int), 10,
+      (int []) { 1, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
+      (int []) { 0, 0, 0, 0, 0, 0, 0, 1, 1, 1 } },
+
+    { "An array of two elements, must be sorted in ascending order.",
+      ASC, sizeof(int), 2,
+      (int []) { 1, 0 },
+      (int []) { 0, 1 } },
+
+    { "An array of two elements, must be sorted in ascending order.",
+      ASC, sizeof(int), 2,
+      (int []) { 0, 1 },
+      (int []) { 0, 1 } },
+
+    { "An array of two elements, must be sorted in ascending order.",
+      ASC, sizeof(int), 2,
+      (int []) { 0, 0 },
+      (int []) { 0, 0 } },
+
+    { "An array of one element, must be sorted in ascending order.",
+      ASC, sizeof(int), 1,
+      (int []) { 0 },
+      (int []) { 0 } },
+
+    { "An empty array, must be sorted in ascending order.",
+      ASC, sizeof(int), 0,
+      (int []) { 0 },
+      (int []) { 0 } },
+
+    { "An array of seven elements, five zeros and two ones, must be sorted in ascending order.",
+      ASC, sizeof(int), 7,
+      (int []) { 1, 0, 0, 0, 0, 0, 1 },
+      (int []) { 0, 0, 0, 0, 0, 1, 1 } },
+
+    { "An array of sixtyfour elements, must be sorted in ascending order.",
+      ASC, sizeof(int), 64,
+      (int []) { 0 , 52,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 61, 14, 15,
+                 16, 17,  1, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 13, 30, 31,
+                 32, 33, 34, 18, 36, 37, 38, 39, 40, 41, 42, 43, 44, 29, 46, 47,
+                 48, 49, 50, 51, 35, 53, 54, 55, 56, 57, 58, 59, 60, 45, 62, 63 },
+      (int []) { 0 ,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+                 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+                 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+                 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63 } },
+
+    { "An array of nintysix elements, must be sorted in ascending order.",
+      ASC, sizeof(int), 96,
+      (int []) { 93, 52,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 61, 14, 15,
+                 16, 17,  1, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 13, 30, 31,
+                 32, 33, 34, 18, 36, 37, 38, 39, 40, 41, 42, 43, 44, 29, 46, 47,
+                 48, 49, 50, 51, 35, 53, 54, 55, 56, 57, 58, 59, 60, 45, 62, 63,
+                 81, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+                 80, 64, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92,  0, 94, 95 },
+      (int []) { 0 ,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+                 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+                 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+                 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+                 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+                 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95 } },
+
+    { NULL, ASC, sizeof(int), 1, (int []) {0}, (int []) {0} }
+  };
+
+/*
+ * Sorting test cases for simple arrays of uint64_t: base cases.
+ */
+static const test_case_t tc_uint64_t_base[] =
+  {
+    { "A simple array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(uint64_t), 10,
+      (uint64_t []) { 7, 3, 9, 0, 1, 5, 2, 8, 4, 6 },
+      (uint64_t []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+
+    { "A simple array of ten elements must be sorted in descending order.",
+      DSC, sizeof(uint64_t), 10,
+      (uint64_t []) { 7, 3, 9, 0, 1, 5, 2, 8, 4, 6 },
+      (uint64_t []) { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 } },
+
+    { "An array of three elements, min_uint64, 0, max_uint64, must be sorted in ascending order.",
+      ASC, sizeof(uint64_t), 4,
+      (uint64_t []) { MIN_UINT64, 1, LARGE_UINT64, MAX_UINT64 },
+      (uint64_t []) { MIN_UINT64, 1, LARGE_UINT64, MAX_UINT64 } },
+
+    { "An array of three elements, min_uint64, 0, max_uint64, must be sorted in descending order.",
+      DSC, sizeof(uint64_t), 4,
+      (uint64_t []) { MIN_UINT64, 1, LARGE_UINT64, MAX_UINT64 },
+      (uint64_t []) { MAX_UINT64, LARGE_UINT64, 1, MIN_UINT64 } },
+
+    { NULL, ASC, sizeof(uint64_t), 1, (uint64_t []) {0}, (uint64_t []) {0} }
+  };
+
+/*
+ * Sorting test cases for simple arrays of int64_t: base cases.
+ */
+static const test_case_t tc_int64_t_base[] =
+  {
+    { "A simple array of ten elements must be sorted in ascending order.",
+      ASC, sizeof(int64_t), 10,
+      (int64_t []) { 7, 3, 9, 0, 1, 5, 2, 8, 4, 6 },
+      (int64_t []) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+
+    { "A simple array of ten elements must be sorted in descending order.",
+      DSC, sizeof(int64_t), 10,
+      (int64_t []) { -7,  3,  9,  0,  1,  5, -2,  8,  4,  6 },
+      (int64_t []) {  9,  8,  6,  5,  4,  3,  1,  0, -2, -7 } },
+
+    { "An array of three elements, min_uint64, 0, max_uint64, must be sorted in ascending order.",
+      ASC, sizeof(int64_t), 5,
+      (int64_t []) { MIN_INT64, SMALL_INT64, 1, LARGE_INT64, MAX_INT64 },
+      (int64_t []) { MIN_INT64, SMALL_INT64, 1, LARGE_INT64, MAX_INT64 } },
+
+    { "An array of three elements, min_uint64, 0, max_uint64, must be sorted in descending order.",
+      DSC, sizeof(int64_t), 5,
+      (int64_t []) { MIN_INT64, SMALL_INT64, 1, LARGE_INT64, MAX_INT64 },
+      (int64_t []) { MAX_INT64, LARGE_INT64, 1, SMALL_INT64, MIN_INT64 } },
+
+    { NULL, ASC, sizeof(uint64_t), 1, (int64_t []) {0}, (int64_t []) {0} }
+  };
+
 
 
 /*
@@ -216,16 +400,52 @@ const test_case_t tc_double_base[] =
 
 /* Qsort */
 
-/**
- * @brief Qsort is applied to the double base test case.
+/*
+ * Qsort is applied to the double base test case.
  */
-const tests_with_sorting_function_t twsf_double_base_qsort =
+static const tests_with_sorting_function_t twsf_double_base_qsort =
   {
-    (void *) tc_double_base,
+    tc_double_base,
     sort_utils_double_cmp,
     sort_utils_double_icmp,
     qsort,
     sizeof(double),
+  };
+
+/*
+ * Qsort is applied to the int base test case.
+ */
+static const tests_with_sorting_function_t twsf_int_base_qsort =
+  {
+    tc_int_base,
+    sort_utils_int_cmp,
+    sort_utils_int_icmp,
+    qsort,
+    sizeof(int),
+  };
+
+/*
+ * Qsort is applied to the uint64_t base test case.
+ */
+static const tests_with_sorting_function_t twsf_uint64_t_base_qsort =
+  {
+    tc_uint64_t_base,
+    sort_utils_uint64_t_cmp,
+    sort_utils_uint64_t_icmp,
+    qsort,
+    sizeof(uint64_t),
+  };
+
+/*
+ * Qsort is applied to the int64_t base test case.
+ */
+static const tests_with_sorting_function_t twsf_int64_t_base_qsort =
+  {
+    tc_int64_t_base,
+    sort_utils_int64_t_cmp,
+    sort_utils_int64_t_icmp,
+    qsort,
+    sizeof(int64_t),
   };
 
 
@@ -469,6 +689,26 @@ main (int argc,
                             hlp_run_tests_with_sorting_function,
                             fixture_teardown);
 
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int_base_qsort",
+                            &twsf_int_base_qsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "uint64_t_base_qsort",
+                            &twsf_uint64_t_base_qsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int64_t_base_qsort",
+                            &twsf_int64_t_base_qsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
 
   int failure_count = ut_suite_run(s);
 
