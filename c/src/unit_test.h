@@ -69,43 +69,25 @@ struct ut_suite_t_;
  * @param t the unit test
  */
 typedef void
-(*ut_simple_test_f) (struct ut_test_t_ *t);
-
-/**
- * @brief Regular test function.
- *
- * @details A test functions with data.
- *
- * @param t              the unit test
- * @param fixture        data used or consumed by the test
- * @param provaided_data data given when registering the test
- */
-typedef void
-(*ut_regular_test_f) (struct ut_test_t_ *t,
-                      void *const fixture,
-                      const void *const provided_data);
+(*ut_test_f) (struct ut_test_t_ *t);
 
 /**
  * @brief Prepares the fixture for the test.
  *
  * @details Using the data provided by the user, construts the fixture.
  *
- * @param [out] fixture       data used or consumed by the test
- * @param [in]  provided_data data given when registering the test
+ * @param t the unit test
  */
 typedef void
-(*ut_fixture_setup_f) (void *const fixture,
-                       const void *const provided_data);
+(*ut_fixture_setup_f) (struct ut_test_t_ *t);
 
 /**
  * @brief Teardowns the fixture formerly prepared for the test.
  *
- * @param [in] fixture       data used or consumed by the test
- * @param [in] provided_data data given when registering the test
+ * @param t the unit test
  */
 typedef void
-(*ut_fixture_teardown_f) (void *const fixture,
-                          const void *const provided_data);
+(*ut_fixture_teardown_f) (struct ut_test_t_ *t);
 
 
 
@@ -155,11 +137,11 @@ typedef enum {
 typedef struct ut_test_t_ {
   struct ut_suite_t_ *suite;      /**< @brief The parent suite. */
   char *label;                    /**< @brief The test label. */
-  ut_simple_test_f simple_test;   /**< @brief The test function, when it is a simple test. */
-  ut_regular_test_f regular_test; /**< @brief The test function. when it is a regular test. */
+  ut_test_f test;                 /**< @brief The test function, when it is a simple test. */
   ut_fixture_setup_f setup;       /**< @brief Setup function. */
   ut_fixture_teardown_f teardown; /**< @brief Teardown function. */
   void *provided_data;            /**< @brief User provided data. */
+  void *fixture;                  /**< @brief Test fixture. */
   int failure_count;              /**< @brief The number of assertion failures. */
   int assertion_count;            /**< @brief The number of assertions. */
   ut_mode_t mode;                 /**< @brief Standard vs performance test. */
@@ -212,9 +194,9 @@ ut_quickness_boundary (const ut_quickness_t q);
 
 extern ut_test_t *
 ut_test_simple_new (char *label,
-                    ut_simple_test_f tfun,
+                    ut_test_f tfun,
                     ut_mode_t mode,
-                    ut_quickness_t speed,
+                    ut_quickness_t qck_class,
                     ut_suite_t *s);
 
 extern void
@@ -222,9 +204,6 @@ ut_test_free (ut_test_t *t);
 
 extern void
 ut_test_fail (ut_test_t *const t);
-
-extern bool
-ut_test_is_simple (const ut_test_t *const t);
 
 
 
@@ -241,9 +220,9 @@ ut_suite_free (ut_suite_t *s);
 extern void
 ut_suite_add_simple_test (ut_suite_t *s,
                           ut_mode_t mode,
-                          ut_quickness_t speed,
+                          ut_quickness_t qck_class,
                           char *label,
-                          ut_simple_test_f tfun);
+                          ut_test_f tfun);
 
 extern void
 ut_suite_add_regular_test (ut_suite_t *s,
@@ -252,7 +231,7 @@ ut_suite_add_regular_test (ut_suite_t *s,
                            char *label,
                            const void *const provided_data,
                            ut_fixture_setup_f setup,
-                           ut_regular_test_f tfun,
+                           ut_test_f tfun,
                            ut_fixture_teardown_f teardown);
 
 extern int

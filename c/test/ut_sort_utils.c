@@ -235,28 +235,21 @@ const tests_with_sorting_function_t twsf_double_base_qsort =
  */
 
 static void
-fixture_setup (void *const fixture,
-               const void *const provided_data)
+fixture_setup (ut_test_t *const t)
 {
-  ;
+  printf("fixture_setup\n");
 }
 
 static void
-fixture_teardown (void *const fixture,
-                  const void *const provided_data)
+fixture_teardown (ut_test_t *const t)
 {
-  ;
+  printf("fixture_teardown\n");
 }
 
 static void
-hlp_run_tests_with_sorting_function (ut_test_t *const t,
-                                     void *const fixture,
-                                     const void *const provided_data)
+hlp_run_tests_with_sorting_function (ut_test_t *const t)
 {
-  assert(fixture);
-  assert(provided_data);
-
-  ;
+  printf("hlp_run_tests_with_sorting_function\n");
 }
 
 

@@ -155,7 +155,7 @@ ut_test_t *
 ut_test_regular_new (char *label,
                      const void *const provided_data,
                      ut_fixture_setup_f setup,
-                     ut_regular_test_f tfun,
+                     ut_test_f tfun,
                      ut_fixture_teardown_f teardown,
                      ut_mode_t mode,
                      ut_quickness_t qck_class,
@@ -167,8 +167,7 @@ ut_test_regular_new (char *label,
   assert(t);
   t->suite = s;
   t->label = label;
-  t->simple_test = NULL;
-  t->regular_test = tfun;
+  t->test = tfun;
   t->setup = setup;
   t->teardown = teardown;
   t->provided_data = (void *) provided_data;
@@ -192,7 +191,7 @@ ut_test_regular_new (char *label,
  */
 ut_test_t *
 ut_test_simple_new (char *label,
-                    ut_simple_test_f tfun,
+                    ut_test_f tfun,
                     ut_mode_t mode,
                     ut_quickness_t qck_class,
                     ut_suite_t *s)
@@ -203,11 +202,11 @@ ut_test_simple_new (char *label,
   assert(t);
   t->suite = s;
   t->label = label;
-  t->simple_test = tfun;
-  t->regular_test = NULL;
+  t->test = tfun;
   t->setup = NULL;
   t->teardown = NULL;
   t->provided_data = NULL;
+  t->fixture = NULL;
   t->failure_count = 0;
   t->assertion_count = 0;
   t->mode = mode;
@@ -242,12 +241,6 @@ void
 ut_test_fail (ut_test_t *const t)
 {
   if (t) t->failure_count++;
-}
-
-bool
-ut_test_is_simple (const ut_test_t *const t)
-{
-  return t->simple_test ? true : false;
 }
 
 
@@ -316,7 +309,7 @@ ut_suite_add_simple_test (ut_suite_t *s,
                           ut_mode_t mode,
                           ut_quickness_t qck_class,
                           char *label,
-                          ut_simple_test_f tfun)
+                          ut_test_f tfun)
 {
   assert(s);
   assert(label);
@@ -354,7 +347,7 @@ ut_suite_add_regular_test (ut_suite_t *s,
                            char *label,
                            const void *const provided_data,
                            ut_fixture_setup_f setup,
-                           ut_regular_test_f tfun,
+                           ut_test_f tfun,
                            ut_fixture_teardown_f teardown)
 {
   assert(s);
@@ -433,8 +426,7 @@ ut_suite_run (ut_suite_t *s)
         /* Starts the stop-watch. */
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
 
-        if (ut_test_is_simple(t))
-          t->simple_test(t);
+        t->test(t);
 
         /* Stops the stop-watch. */
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
