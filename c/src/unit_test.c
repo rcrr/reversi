@@ -97,6 +97,17 @@ parse_args (int *argc_p,
 static unsigned long
 ut_suite_full_path_max_length (ut_suite_t *s);
 
+static ut_test_t *
+ut_test_new (char *label,
+             ut_test_f tfun,
+             ut_mode_t mode,
+             ut_quickness_t qck_class,
+             ut_suite_t *s);
+
+static void
+ut_test_free (ut_test_t *t);
+
+
 
 
 /***********************************************************/
@@ -142,93 +153,6 @@ ut_quickness_boundary (const ut_quickness_t q)
 /******************************************************/
 /* Function implementations for the ut_test_t entity. */
 /******************************************************/
-
-/**
- * @brief Test structure constructor.
- *
- * An assertion checks that the received pointer to the allocated
- * test structure is not `NULL`.
- *
- * @return a pointer to a new test structure
- */
-ut_test_t *
-ut_test_regular_new (char *label,
-                     const void *const provided_data,
-                     ut_fixture_setup_f setup,
-                     ut_test_f tfun,
-                     ut_fixture_teardown_f teardown,
-                     ut_mode_t mode,
-                     ut_quickness_t qck_class,
-                     ut_suite_t *s)
-{
-  ut_test_t *t;
-  static const size_t size_of_t = sizeof(ut_test_t);
-  t = (ut_test_t *) malloc(size_of_t);
-  assert(t);
-  t->suite = s;
-  t->label = label;
-  t->test = tfun;
-  t->setup = setup;
-  t->teardown = teardown;
-  t->provided_data = (void *) provided_data;
-  t->failure_count = 0;
-  t->assertion_count = 0;
-  t->mode = mode;
-  t->quickness_class = qck_class;
-  timespec_set(&t->start_time, 0, 0);
-  timespec_set(&t->end_time, 0, 0);
-  timespec_set(&t->cpu_time, 0, 0);
-  return t;
-}
-
-/**
- * @brief Test structure constructor.
- *
- * An assertion checks that the received pointer to the allocated
- * test structure is not `NULL`.
- *
- * @return a pointer to a new test structure
- */
-ut_test_t *
-ut_test_simple_new (char *label,
-                    ut_test_f tfun,
-                    ut_mode_t mode,
-                    ut_quickness_t qck_class,
-                    ut_suite_t *s)
-{
-  ut_test_t *t;
-  static const size_t size_of_t = sizeof(ut_test_t);
-  t = (ut_test_t *) malloc(size_of_t);
-  assert(t);
-  t->suite = s;
-  t->label = label;
-  t->test = tfun;
-  t->setup = NULL;
-  t->teardown = NULL;
-  t->provided_data = NULL;
-  t->fixture = NULL;
-  t->failure_count = 0;
-  t->assertion_count = 0;
-  t->mode = mode;
-  t->quickness_class = qck_class;
-  timespec_set(&t->start_time, 0, 0);
-  timespec_set(&t->end_time, 0, 0);
-  timespec_set(&t->cpu_time, 0, 0);
-  return t;
-}
-
-/**
- * @brief Deallocates the memory previously allocated by a call to #ut_test_simple_new.
- *
- * @details If a null pointer is passed as argument, no action occurs.
- *
- * @param [in,out] t the pointer to be deallocated
- */
-void
-ut_test_free (ut_test_t *t)
-{
-  free(t);
-}
 
 /**
  * @brief Raises the failure count for the test.
@@ -304,7 +228,7 @@ ut_suite_free (ut_suite_t *s)
  * @param [in]     label     the test label
  * @param [in]     tfun      the the test function
  */
-void
+ut_test_t *
 ut_suite_add_simple_test (ut_suite_t *s,
                           ut_mode_t mode,
                           ut_quickness_t qck_class,
@@ -315,7 +239,7 @@ ut_suite_add_simple_test (ut_suite_t *s,
   assert(label);
   assert(tfun);
 
-  ut_test_t *const t = ut_test_simple_new(label, tfun, mode, qck_class, s);
+  ut_test_t *const t = ut_test_new(label, tfun, mode, qck_class, s);
 
   if (s->count == s->size) {
     s->size += array_alloc_chunk_size;
@@ -326,6 +250,8 @@ ut_suite_add_simple_test (ut_suite_t *s,
   ut_test_t **tests_p = s->tests + s->count;
   *tests_p = t;
   s->count++;
+
+  return t;
 }
 
 /**
@@ -340,7 +266,7 @@ ut_suite_add_simple_test (ut_suite_t *s,
  * @param [in]     tfun          the test function
  * @param [in]     teardown      the teardown function
  */
-void
+ut_test_t *
 ut_suite_add_regular_test (ut_suite_t *s,
                            ut_mode_t mode,
                            ut_quickness_t qck_class,
@@ -350,21 +276,11 @@ ut_suite_add_regular_test (ut_suite_t *s,
                            ut_test_f tfun,
                            ut_fixture_teardown_f teardown)
 {
-  assert(s);
-  assert(label);
-  assert(tfun);
-
-  ut_test_t *const t = ut_test_regular_new(label, provided_data, setup, tfun, teardown, mode, qck_class, s);
-
-  if (s->count == s->size) {
-    s->size += array_alloc_chunk_size;
-    s->tests = (void *) realloc(s->tests, s->size * sizeof(void *));
-    assert(s->tests);
-  }
-
-  ut_test_t **tests_p = s->tests + s->count;
-  *tests_p = t;
-  s->count++;
+  ut_test_t *const t = ut_suite_add_simple_test(s, mode, qck_class, label, tfun);
+  t->setup = setup;
+  t->teardown = teardown;
+  t->provided_data = (void *) provided_data;
+  return t;
 }
 
 /**
@@ -498,6 +414,40 @@ ut_is_mode_equal_to_perf (void)
 /********************************************/
 /* Internal functions.                      */
 /********************************************/
+
+static ut_test_t *
+ut_test_new (char *label,
+             ut_test_f tfun,
+             ut_mode_t mode,
+             ut_quickness_t qck_class,
+             ut_suite_t *s)
+{
+  ut_test_t *t;
+  static const size_t size_of_t = sizeof(ut_test_t);
+  t = (ut_test_t *) malloc(size_of_t);
+  assert(t);
+  t->suite = s;
+  t->label = label;
+  t->test = tfun;
+  t->setup = NULL;
+  t->teardown = NULL;
+  t->provided_data = NULL;
+  t->fixture = NULL;
+  t->failure_count = 0;
+  t->assertion_count = 0;
+  t->mode = mode;
+  t->quickness_class = qck_class;
+  timespec_set(&t->start_time, 0, 0);
+  timespec_set(&t->end_time, 0, 0);
+  timespec_set(&t->cpu_time, 0, 0);
+  return t;
+}
+
+static void
+ut_test_free (ut_test_t *t)
+{
+  free(t);
+}
 
 static void
 parse_args (int *argc_p,

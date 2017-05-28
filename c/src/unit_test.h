@@ -192,16 +192,6 @@ ut_quickness_boundary (const ut_quickness_t q);
 /* Function prototypes for the ut_test_t entity. */
 /*************************************************/
 
-extern ut_test_t *
-ut_test_simple_new (char *label,
-                    ut_test_f tfun,
-                    ut_mode_t mode,
-                    ut_quickness_t qck_class,
-                    ut_suite_t *s);
-
-extern void
-ut_test_free (ut_test_t *t);
-
 extern void
 ut_test_fail (ut_test_t *const t);
 
@@ -217,14 +207,14 @@ ut_suite_new (char *label);
 extern void
 ut_suite_free (ut_suite_t *s);
 
-extern void
+extern ut_test_t *
 ut_suite_add_simple_test (ut_suite_t *s,
                           ut_mode_t mode,
                           ut_quickness_t qck_class,
                           char *label,
                           ut_test_f tfun);
 
-extern void
+extern ut_test_t *
 ut_suite_add_regular_test (ut_suite_t *s,
                            ut_mode_t mode,
                            ut_quickness_t qck_class,
