@@ -54,22 +54,27 @@
 static void
 square_to_string_t (ut_test_t *const t)
 {
+  //! [square_to_string usage]
   ut_assert(t, strcmp("D5", square_to_string(D5)) == 0);
   ut_assert(t, strcmp("A1", square_to_string(A1)) == 0);
   ut_assert(t, strcmp("H8", square_to_string(H8)) == 0);
   ut_assert(t, strcmp("NA", square_to_string((Square) invalid_move)) == 0);
+  //! [square_to_string usage]
 }
 
 static void
 square_as_move_to_string_t (ut_test_t *const t)
 {
+  //! [square_as_move_to_string usage]
   ut_assert(t, strcmp("--", square_as_move_to_string(pass_move)) == 0);
   ut_assert(t, strcmp("D5", square_as_move_to_string(D5)) == 0);
+  //! [square_as_move_to_string usage]
 }
 
 static void
 square_array_to_string_t (ut_test_t *const t)
 {
+  //! [square_array_to_string usage]
   char to_string[32];
   size_t s_length;
   const Square sqa[] = {A1, D7, H8};
@@ -77,11 +82,13 @@ square_array_to_string_t (ut_test_t *const t)
   s_length = square_array_to_string(to_string, sqa, length);
   ut_assert(t, strcmp("A1 D7 H8", to_string) == 0);
   ut_assert(t, 8 == s_length);
+  //! [square_array_to_string usage]
 }
 
 static void
 square_as_move_array_to_string_t (ut_test_t *const t)
 {
+  //! [square_as_move_array_to_string usage]
   char to_string[32];
   size_t s_length;
   const Square mova[] = {A1, D7, H8, pass_move};
@@ -89,30 +96,36 @@ square_as_move_array_to_string_t (ut_test_t *const t)
   s_length = square_as_move_array_to_string(to_string, mova, length);
   ut_assert(t, strcmp("A1 D7 H8 --", to_string) == 0);
   ut_assert(t, 11 == s_length);
+  //! [square_as_move_array_to_string usage]
 }
 
 static void
 square_belongs_to_enum_set_t (ut_test_t *const t)
 {
+  //! [square_belongs_to_enum_set usage]
   ut_assert(t, square_belongs_to_enum_set(A1));
   ut_assert(t, square_belongs_to_enum_set(D3));
   ut_assert(t, square_belongs_to_enum_set(H8));
   ut_assert(t, !square_belongs_to_enum_set(invalid_square));
+  //! [square_belongs_to_enum_set usage]
 }
 
 static void
 square_is_valid_move_t (ut_test_t *const t)
 {
+  //! [square_is_valid_move usage]
   ut_assert(t, square_is_valid_move(A1));
   ut_assert(t, square_is_valid_move(D3));
   ut_assert(t, square_is_valid_move(H8));
   ut_assert(t, square_is_valid_move(pass_move));
   ut_assert(t, !square_is_valid_move(invalid_move));
+  //! [square_is_valid_move usage]
 }
 
 static void
 square_set_to_pg_json_array_t (ut_test_t *const t)
 {
+  //! [square_set_to_pg_json_array usage]
   size_t length;
   char pg_json_string[513];
   length = square_set_to_pg_json_array(pg_json_string, (SquareSet) 0);
@@ -121,6 +134,7 @@ square_set_to_pg_json_array_t (ut_test_t *const t)
   length = square_set_to_pg_json_array(pg_json_string, (SquareSet) 5);
   ut_assert(t, strcmp("[\"\"A1\"\", \"\"C1\"\"]", pg_json_string) == 0);
   ut_assert(t, 16 == length);
+  //! [square_set_to_pg_json_array usage]
   length = square_set_to_pg_json_array(pg_json_string, (SquareSet) 0xFFFFFFFFFFFFFFFF);
   ut_assert(t, 512 == length);
 }
@@ -128,6 +142,7 @@ square_set_to_pg_json_array_t (ut_test_t *const t)
 static void
 square_set_to_string_t (ut_test_t *const t)
 {
+  //! [square_set_to_string usage]
   char to_string[32];
   size_t s_length;
   s_length = square_set_to_string(to_string, (SquareSet) 0);
@@ -136,11 +151,13 @@ square_set_to_string_t (ut_test_t *const t)
   s_length = square_set_to_string(to_string, (SquareSet) 9);
   ut_assert(t, strcmp("A1 D1", to_string) == 0);
   ut_assert(t, 5 == s_length);
+  //! [square_set_to_string usage]
 }
 
 static void
 square_set_random_selection_t (ut_test_t *const t)
 {
+  //! [square_set_random_selection usage]
   const unsigned int seed = 1739;
   prng_mt19937_t *prng = prng_mt19937_new();
   prng_mt19937_init_by_seed(prng, seed);
@@ -148,6 +165,7 @@ square_set_random_selection_t (ut_test_t *const t)
   const Square sq = square_set_random_selection(prng, squares);
   ut_assert(t, sq == A1 || sq == B1 || sq == C1);
   prng_mt19937_free(prng);
+  //! [square_set_random_selection usage]
 
   prng_mt19937_t *prng1 = prng_mt19937_new();
   prng_mt19937_init_by_seed(prng, 17598);
@@ -186,6 +204,7 @@ square_set_random_selection_t (ut_test_t *const t)
 static void
 square_set_to_array_t (ut_test_t *const t)
 {
+  //! [square_set_to_array usage]
   int sq_count;
   Square *sq_array;
   square_set_to_array(&sq_count, &sq_array, (SquareSet) 5);
@@ -193,6 +212,7 @@ square_set_to_array_t (ut_test_t *const t)
   ut_assert(t, sq_array[0] == A1);
   ut_assert(t, sq_array[1] == C1);
   free(sq_array);
+  //! [square_set_to_array usage]
 
   square_set_to_array(&sq_count, &sq_array, (SquareSet) 0);
   ut_assert(t, sq_count == 0);
@@ -213,10 +233,12 @@ square_set_to_array_t (ut_test_t *const t)
 static void
 square_set_from_array_t (ut_test_t *const t)
 {
+  //! [square_set_from_array usage]
   const Square sq_array_0[] = {A1, C1};
   const int sq_count_0 = 2;
   const SquareSet computed_0 = square_set_from_array(sq_array_0, sq_count_0);
   ut_assert(t, (SquareSet) 5 == computed_0);
+  //! [square_set_from_array usage]
 
   const Square sq_array_1[] = {A1, C1, A1};
   const int sq_count_1 = 3;
@@ -232,22 +254,28 @@ square_set_from_array_t (ut_test_t *const t)
 static void
 player_color_t (ut_test_t *const t)
 {
+  //! [player_color usage]
   ut_assert(t, BLACK_SQUARE == player_color(BLACK_PLAYER));
   ut_assert(t, WHITE_SQUARE == player_color(WHITE_PLAYER));
+  //! [player_color usage]
 }
 
 static void
 player_description_t (ut_test_t *const t)
 {
+  //! [player_description usage]
   ut_assert(t, strcmp(player_description(BLACK_PLAYER), "The Black player") == 0);
   ut_assert(t, strcmp(player_description(WHITE_PLAYER), "The White player") == 0);
+  //! [player_description usage]
 }
 
 static void
 player_opponent_t (ut_test_t *const t)
 {
+  //! [player_opponent usage]
   ut_assert(t, BLACK_PLAYER == player_opponent(WHITE_PLAYER));
   ut_assert(t, WHITE_PLAYER == player_opponent(BLACK_PLAYER));
+  //! [player_opponent usage]
 }
 
 static void

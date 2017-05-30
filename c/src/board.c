@@ -193,7 +193,7 @@ board_module_init (void)
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c square_to_string usage
+ * @snippet ut_board.c square_to_string usage
  *
  * @param [in] sq the square to be converted
  * @return        a string of two chars representing the square
@@ -217,7 +217,7 @@ square_to_string (const Square sq)
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c square_as_move_to_string usage
+ * @snippet ut_board.c square_as_move_to_string usage
  *
  * @param [in] move the move to be converted
  * @return          a string of two chars representing the move
@@ -242,7 +242,7 @@ square_as_move_to_string (const Square move)
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c square_array_to_string usage
+ * @snippet ut_board.c square_array_to_string usage
  * A sample call is here exemplified:
  *
  * @param [out] to_string a string representation for the square array
@@ -274,7 +274,7 @@ square_array_to_string (char *const to_string,
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c square_as_move_array_to_string usage
+ * @snippet ut_board.c square_as_move_array_to_string usage
  *
  * @param [out] to_string a string representation for the move array
  * @param [in]  mova      the move array to convert
@@ -302,7 +302,7 @@ square_as_move_array_to_string (char *const to_string,
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c square_belongs_to_enum_set usage
+ * @snippet ut_board.c square_belongs_to_enum_set usage
  *
  * @param [in] sq the given square
  * @return        true if the square is in the valid range
@@ -322,7 +322,7 @@ square_belongs_to_enum_set (const Square sq)
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c square_is_valid_move usage
+ * @snippet ut_board.c square_is_valid_move usage
  *
  * @param [in] move the given move
  * @return          true if the move is in the valid range
@@ -354,7 +354,7 @@ square_is_valid_move (const Square move)
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c square_set_to_pg_json_array usage
+ * @snippet ut_board.c square_set_to_pg_json_array usage
  *
  * @param [out] to_string a string having the given squares represented
  *                        as a postgresql json array
@@ -396,7 +396,7 @@ square_set_to_pg_json_array (char *const to_string,
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c square_set_to_string usage
+ * @snippet ut_board.c square_set_to_string usage
  *
  * @param [out] to_string a string having the given squares sorted as the `Square` enum
  * @param [in]  squares   the square set to be converted into a string
@@ -435,7 +435,7 @@ square_set_to_string (char *const to_string,
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c square_set_random_selection usage
+ * @snippet ut_board.c square_set_random_selection usage
  *
  * @param [in,out] prng the random number generator instance
  * @param [in]          squares a square set
@@ -470,7 +470,7 @@ square_set_random_selection (prng_mt19937_t *const prng,
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c square_set_to_array usage
+ * @snippet ut_board.c square_set_to_array usage
  *
  * @param [out] sq_count the size of the returned array
  * @param [out] sq_array a pointer to the allocated new array
@@ -506,7 +506,7 @@ square_set_to_array (int *sq_count,
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c square_set_from_array usage
+ * @snippet ut_board.c square_set_from_array usage
  *
  * @param sq_array the array to be converted
  * @param sq_count the number of squares in the array
@@ -538,7 +538,7 @@ square_set_from_array (const Square sq_array[],
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c player_color usage
+ * @snippet ut_board.c player_color usage
  *
  * @param [in] p the player
  * @return       the square state of the player
@@ -558,7 +558,7 @@ player_color (const Player p)
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c player_description usage
+ * @snippet ut_board.c player_description usage
  *
  * @param [in] p the player
  * @return       the player's description
@@ -578,7 +578,7 @@ player_description (const Player p)
  *
  * A sample usage scenario taken from unit tests is here exemplified:
  *
- * @snippet board_test.c player_opponent usage
+ * @snippet ut_board.c player_opponent usage
  *
  * @param [in] p the player
  * @return       the player's opponent
