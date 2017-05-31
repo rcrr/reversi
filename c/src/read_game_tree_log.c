@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <assert.h>
 
 #include <glib.h>
 
@@ -48,14 +49,14 @@
 
 /* Static constants. */
 
-static const gchar *program_documentation_string =
+static const char *program_documentation_string =
   "Description:\n"
   "Read Game Tree Log dump is a program that loads a binary dump file representation of a game tree log, and output it as a table.\n"
   "\n"
   "Author:\n"
   "   Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
-  "Copyright (c) 2016 Roberto Corradini. All rights reserved.\n"
+  "Copyright (c) 2016, 2017 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
@@ -64,7 +65,7 @@ static const gchar *program_documentation_string =
 
 /* Static variables. */
 
-static gchar *input_file = NULL;
+static char *input_file = NULL;
 
 static const GOptionEntry entries[] =
   {
@@ -95,13 +96,13 @@ main (int argc, char *argv[])
   g_option_context_add_group(context, option_group);
   g_option_context_set_description(context, program_documentation_string);
   if (!g_option_context_parse (context, &argc, &argv, &error)) {
-    g_print("Option parsing failed: %s\n", error->message);
+    fprintf(stderr, "Option parsing failed: %s\n", error->message);
     return -1;
   }
 
   /* Checks command line options for consistency. */
   if (!input_file) {
-    g_print("Option -f, --file is mandatory.\n");
+    fprintf(stderr, "Option -f, --file is mandatory.\n");
     return -2;
   }
 
@@ -109,7 +110,7 @@ main (int argc, char *argv[])
 
   /* Opens the binary file for reading. */
   FILE *fp = fopen(input_file, "r");
-  g_assert(fp);
+  assert(fp);
 
   fprintf(stdout, "%s;%s;%s;%s;%s;%s;%s;%s\n",
           "SUB_RUN_ID",
