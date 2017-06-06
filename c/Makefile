@@ -30,7 +30,8 @@ MAINS = endgame_solver gpdb_verify utest read_pve_dump intel_intrinsics_trial \
 TEST_PROGS = sort_utils_test game_position_db_test \
              game_position_test game_tree_utils_test endgame_solver_test es_pv_test
 
-UTEST_PROGS = ut_utest ut_llist ut_bit_works ut_sha3 ut_prng ut_sort_utils ut_red_black_tree ut_board
+UTEST_PROGS = ut_utest ut_llist ut_main_option_parse ut_bit_works ut_sha3 ut_prng ut_sort_utils ut_red_black_tree \
+              ut_board
 
 #
 # No changes from here to the end, unless a structurar change of the build process happens.
@@ -48,7 +49,7 @@ CC = gcc
 ARCH_FLAGS = -mpopcnt -mavx2
 CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS =
-CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
+CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O0 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS_TEST =
 ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS) -DG_DISABLE_ASSERT -DNDEBUG -fno-inline
 LIBS = `pkg-config --libs glib-2.0` -lm
