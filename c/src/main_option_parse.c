@@ -282,7 +282,7 @@ mop_parse (mop_options_t *options,
  *
  * @param [in]  options   a pointer to a structure initialized by a call to `mop_init()`
  * @param [in]  longopts  a long format option string
- * @param [out] longindex a reference wher is saved the next option index
+ * @param [out] longindex a reference where is saved the option index in `longopts`
  */
 int
 mop_parse_long (mop_options_t *options,
@@ -483,11 +483,10 @@ mop_long_fallback (mop_options_t *options,
   char optstring[96 * 3 + 1]; /* 96 ASCII printable characters */
   mop_from_long(longopts, optstring);
   result = mop_parse(options, optstring);
-  if (longindex != 0) {
+  if (longindex != NULL) {
     *longindex = -1;
     if (result != -1) {
-      int i;
-      for (i = 0; !mop_longopts_end(longopts, i); i++)
+      for (int i = 0; !mop_longopts_end(longopts, i); i++)
         if (longopts[i].shortname == options->optopt)
           *longindex = i;
     }
