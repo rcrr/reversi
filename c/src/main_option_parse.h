@@ -41,13 +41,14 @@
  * @brief Collects all the info required for parsing.
  */
 typedef struct {
-    char **argv;              /**< @brief . */
-    bool permute;             /**< @brief . */
-    int optind;               /**< @brief . */
-    int optopt;               /**< @brief . */
-    char *optarg;             /**< @brief . */
-    char errmsg[64];          /**< @brief . */
-    int subopt;               /**< @brief . */
+  int argc;                 /**< @brief . */
+  char **argv;              /**< @brief . */
+  bool permute;             /**< @brief . */
+  int optind;               /**< @brief . */
+  int optopt;               /**< @brief . */
+  char *optarg;             /**< @brief . */
+  char errmsg[64];          /**< @brief . */
+  int subopt;               /**< @brief . */
 } mop_options_t;
 
 /**
@@ -59,6 +60,16 @@ typedef enum {
   MOP_REQUIRED,
   MOP_OPTIONAL
 } mop_argtype_t;
+
+/**
+ * @enum mop_errtype_t
+ * @brief Error type.
+ */
+typedef enum {
+  MOP_ERR_INVALID,
+  MOP_ERR_MISSING,
+  MOP_ERR_TOO_MANY
+} mop_errtype_t;
 
 /**
  * @brief Collects the parsing rules for the long parser.
@@ -73,6 +84,7 @@ typedef struct {
 
 extern void
 mop_init (mop_options_t *options,
+          int argc,
           char **argv);
 
 extern int

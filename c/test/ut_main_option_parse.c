@@ -60,14 +60,15 @@ print_argv (char **argv)
 }
 
 static void
-try_optparse (char **argv)
+try_optparse (int argc,
+              char **argv)
 {
   int opt;
   char *arg;
   mop_options_t options;
 
   print_argv(argv);
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   while ((opt = mop_parse(&options, "abc:d::")) != -1) {
     if (opt == '?')
       printf("%s: %s\n", argv[0], options.errmsg);
@@ -79,7 +80,8 @@ try_optparse (char **argv)
 }
 
 static void
-try_optparse_long (char **argv)
+try_optparse_long (int argc,
+                   char **argv)
 {
   char *arg;
   int opt, longindex;
@@ -93,7 +95,7 @@ try_optparse_long (char **argv)
   };
 
   print_argv(argv);
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   while ((opt = mop_parse_long(&options, longopts, &longindex)) != -1) {
     if (opt == '?')
       printf("%s: %s\n", argv[0], options.errmsg);
@@ -125,9 +127,11 @@ base_t (ut_test_t *const t)
     "./prog", "--amend", "-b", "--color", "red", "--delay=22",
     "subcommand", "example.txt", "--amend", NULL
   };
+  int long_argc = sizeof(long_argv) / sizeof(long_argv[0]);
+
 
   printf("\nOPTPARSE\n");
-  try_optparse(long_argv);
+  try_optparse(long_argc, long_argv);
 
   ut_assert(t, true);
 }
@@ -139,38 +143,10 @@ base_long_t (ut_test_t *const t)
     "./prog", "--amend", "-b", "--color", "red", "--delay=22",
     "subcommand", "example.txt", "--amend", NULL
   };
+  int long_argc = sizeof(long_argv) / sizeof(long_argv[0]);
 
   printf("\nOPTPARSE LONG\n");
-  try_optparse_long(long_argv);
-
-  ut_assert(t, true);
-}
-
-static void
-abc_t (ut_test_t *const t)
-{
-  int opt;
-  mop_options_t options;
-  char *arg;
-
-  char *test_argv[] = {
-    "./prog_name", "--amend", "-b", "--color", "red", "--delay=22",
-    "subcommand", "example.txt", "--amend", NULL
-  };
-
-  char *optionstring = "abc:d::";
-
-  printf("\n\n");
-  print_argv(test_argv);
-  mop_init(&options, test_argv);
-  while ((opt = mop_parse(&options, optionstring)) != -1) {
-    if (opt == '?')
-      printf("%s: %s\n", test_argv[0], options.errmsg);
-    printf("%c (%d) = '%s'\n", opt, options.optind, options.optarg);
-  }
-  printf("optind = %d\n", options.optind);
-  while ((arg = mop_arg(&options)))
-    printf("argument: %s\n", arg);
+  try_optparse_long(long_argc, long_argv);
 
   ut_assert(t, true);
 }
@@ -181,23 +157,24 @@ a00_t (ut_test_t *const t)
   mop_options_t options;
 
   char *argv[] = { "./prog_name", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
 
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   ut_assert(t, options.optind == 1);
 }
 
 static void
 a01_t (ut_test_t *const t)
 {
-  int opt;
   mop_options_t options;
 
   char *argv[] = { "./prog_name", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
   char *optionstring = "";
 
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   ut_assert(t, options.optind == 1);
-  opt = mop_parse(&options, optionstring);
+  const int opt = mop_parse(&options, optionstring);
   ut_assert(t, options.optind == 1);
   ut_assert(t, opt == -1);
 }
@@ -205,15 +182,15 @@ a01_t (ut_test_t *const t)
 static void
 a02_t (ut_test_t *const t)
 {
-  int opt;
   mop_options_t options;
 
   char *argv[] = { "./prog_name", "foo", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
   char *optionstring = "";
 
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   ut_assert(t, options.optind == 1);
-  opt = mop_parse(&options, optionstring);
+  const int opt = mop_parse(&options, optionstring);
   ut_assert(t, options.optind == 1);
   ut_assert(t, opt == -1);
 }
@@ -221,15 +198,15 @@ a02_t (ut_test_t *const t)
 static void
 a03_t (ut_test_t *const t)
 {
-  int opt;
   mop_options_t options;
 
   char *argv[] = { "./prog_name", "foo", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
   char *optionstring = "f";
 
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   ut_assert(t, options.optind == 1);
-  opt = mop_parse(&options, optionstring);
+  const int opt = mop_parse(&options, optionstring);
   ut_assert(t, options.optind == 1);
   ut_assert(t, opt == -1);
 }
@@ -237,15 +214,15 @@ a03_t (ut_test_t *const t)
 static void
 a04_t (ut_test_t *const t)
 {
-  int opt;
   mop_options_t options;
 
   char *argv[] = { "./prog_name", "-f", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
   char *optionstring = "g";
 
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   ut_assert(t, options.optind == 1);
-  opt = mop_parse(&options, optionstring);
+  const int opt = mop_parse(&options, optionstring);
   ut_assert(t, options.optind == 2);
   ut_assert(t, options.optopt == 'f');
   ut_assert(t, strcmp(options.errmsg, "invalid option -- 'f'") == 0);
@@ -255,15 +232,15 @@ a04_t (ut_test_t *const t)
 static void
 a05_t (ut_test_t *const t)
 {
-  int opt;
   mop_options_t options;
 
   char *argv[] = { "./prog_name", "-f", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
   char *optionstring = "f";
 
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   ut_assert(t, options.optind == 1);
-  opt = mop_parse(&options, optionstring);
+  const int opt = mop_parse(&options, optionstring);
   ut_assert(t, options.optind == 2);
   ut_assert(t, opt == 'f');
 }
@@ -271,95 +248,152 @@ a05_t (ut_test_t *const t)
 static void
 a06_t (ut_test_t *const t)
 {
-  int opt;
   mop_options_t options;
 
   char *argv[] = { "./prog_name", "-f", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
   char *optionstring = "f:";
 
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   ut_assert(t, options.optind == 1);
-  opt = mop_parse(&options, optionstring);
+  const int opt = mop_parse(&options, optionstring);
   ut_assert(t, options.optind == 2);
   ut_assert(t, options.optopt == 'f');
   ut_assert(t, strcmp(options.errmsg, "option requires an argument -- 'f'") == 0);
-  ut_assert(t, opt == '?');
+  ut_assert(t, opt == ':');
 }
 
 static void
 a07_t (ut_test_t *const t)
 {
-  int opt;
   mop_options_t options;
 
-  char *argv[] = { "./prog_name", "-f", NULL };
-  char *optionstring = ":f:";
+  char *argv[] = { "./prog_name", "-f", "arg", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
+  char *optionstring = "f:";
 
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   ut_assert(t, options.optind == 1);
-  opt = mop_parse(&options, optionstring);
-  ut_assert(t, options.optind == 2);
-  ut_assert(t, options.optopt == 'f');
-  ut_assert(t, strcmp(options.errmsg, "option requires an argument -- 'f'") == 0);
-  ut_assert(t, opt == '?');
+  const int opt = mop_parse(&options, optionstring);
+  ut_assert(t, options.optind == 3);
+  ut_assert(t, opt == 'f');
+  ut_assert(t, strcmp(options.optarg, "arg") == 0);
 }
 
 static void
 a08_t (ut_test_t *const t)
 {
-  int opt;
   mop_options_t options;
 
-  char *argv[] = { "./prog_name", "-f", "argument-for-the-f-option", NULL };
-  char *optionstring = "f:";
+  char *argv[] = { "./prog_name", "-farg", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
+  char *optionstring = "f::";
 
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   ut_assert(t, options.optind == 1);
-  opt = mop_parse(&options, optionstring);
-  ut_assert(t, options.optind == 3);
+  const int opt = mop_parse(&options, optionstring);
+  ut_assert(t, options.optind == 2);
   ut_assert(t, opt == 'f');
-  ut_assert(t, strcmp(options.optarg, "argument-for-the-f-option") == 0);
+  ut_assert(t, strcmp(options.optarg, "arg") == 0);
 }
 
 static void
 a09_t (ut_test_t *const t)
 {
-  int opt;
   mop_options_t options;
 
-  char *argv[] = { "./prog_name", "-farg", "argument-for-the-f-option", NULL };
+  char *argv[] = { "./prog_name", "-f", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
   char *optionstring = "f::";
 
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   ut_assert(t, options.optind == 1);
-  opt = mop_parse(&options, optionstring);
-  printf("\n\n\nopt=%d, opt_as_char=%c\n", opt, (char) opt);
-  printf("options.errmsg=%s\n", options.errmsg);
-  printf("options.optind=%d\n", options.optind);
+  const int opt = mop_parse(&options, optionstring);
   ut_assert(t, options.optind == 2);
   ut_assert(t, opt == 'f');
-  printf("options.optarg=%s\n", options.optarg);
-  ut_assert(t, strcmp(options.optarg, "arg") == 0);
+  ut_assert(t, options.optarg == NULL);
 }
 
 static void
 a10_t (ut_test_t *const t)
 {
-  int opt;
   mop_options_t options;
 
-  char *argv[] = { "./prog_name", "-f", NULL };
+  char *argv[] = { "./prog_name", "-f", "-b", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
   char *optionstring = "f::";
 
-  mop_init(&options, argv);
+  mop_init(&options, argc, argv);
   ut_assert(t, options.optind == 1);
-  opt = mop_parse(&options, optionstring);
-  printf("\n\n\nopt=%d, opt_as_char=%c\n", opt, (char) opt);
-  printf("options.errmsg=%s\n", options.errmsg);
-  printf("options.optind=%d\n", options.optind);
+  const int opt = mop_parse(&options, optionstring);
   ut_assert(t, options.optind == 2);
   ut_assert(t, opt == 'f');
   ut_assert(t, options.optarg == NULL);
+}
+
+static void
+a11_t (ut_test_t *const t)
+{
+  mop_options_t options;
+  int opt;
+  bool a_flag, b_flag, d_flag, f_flag, g_flag;
+  char *f_arg, *g_arg;
+
+  char *argv[] = { "./prog_name", "-f", "arg", "-b", "-c", "-a", "-g", NULL };
+  int argc = sizeof(argv) / sizeof(argv[0]);
+  char *optionstring = "abdf:g:";
+
+  a_flag = false;
+  b_flag = false;
+  d_flag = false;
+  f_flag = false;
+  f_arg  = NULL;
+  g_flag = false;
+  g_arg  = NULL;
+
+  mop_init(&options, argc, argv);
+
+  while ((opt = mop_parse(&options, optionstring)) != -1) {
+    switch (opt) {
+    case 'a':
+      a_flag = true;
+      break;
+    case 'b':
+      b_flag = true;
+      break;
+    case 'd':
+      b_flag = true;
+      break;
+    case 'f':
+      f_flag = true;
+      f_arg = options.optarg;
+      break;
+    case 'g':
+      g_flag = true;
+      g_arg = options.optarg;
+      break;
+    case ':':
+      ut_assert(t, options.optopt == 'g');
+      break;
+    case '?':
+      ut_assert(t, options.optind == 5);
+      ut_assert(t, options.optopt == 'c');
+      ut_assert(t, strcmp(options.errmsg, "invalid option -- 'c'") == 0);
+      ut_assert(t, opt == '?');
+      break;
+    default:
+      printf("--------------------- opt=%c\n", opt);
+      ut_assert(t, false);
+    }
+  }
+
+  ut_assert(t, a_flag == true);
+  ut_assert(t, b_flag == true);
+  ut_assert(t, d_flag == false);
+  ut_assert(t, f_flag == true);
+  ut_assert(t, strcmp(f_arg, "arg") == 0);
+  ut_assert(t, g_flag == false);
+  ut_assert(t, g_arg == NULL);
 }
 
 
@@ -379,7 +413,6 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "base", base_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "base_long", base_long_t);
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "abc", abc_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "a00", a00_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "a01", a01_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "a02", a02_t);
@@ -391,6 +424,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "a08", a08_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "a09", a09_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "a10", a10_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "a11", a11_t);
 
   int failure_count = ut_suite_run(s);
 

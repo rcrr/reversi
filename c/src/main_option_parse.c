@@ -77,7 +77,7 @@
 
 static int
 mop_error (mop_options_t *options,
-           const char *msg,
+           const mop_errtype_t et,
            const char *data);
 
 static int
@@ -142,8 +142,10 @@ static const char *const mop_msg_toomany = "option takes no arguments";
  */
 void
 mop_init (mop_options_t *options,
+          int argc,
           char **argv)
 {
+  options->argc = argc;
   options->argv = argv;
   options->permute = true;
   options->optind = 1;
@@ -234,7 +236,7 @@ mop_parse (mop_options_t *options,
     char str[2] = {0, 0};
     str[0] = option[0];
     options->optind++;
-    return mop_error(options, mop_msg_invalid, str);
+    return mop_error(options, MOP_ERR_INVALID, str);
   }
   case MOP_NONE:
     if (option[1]) {
@@ -256,12 +258,10 @@ mop_parse (mop_options_t *options,
       char str[2] = {0, 0};
       str[0] = option[0];
       options->optarg = NULL;
-      return mop_error(options, mop_msg_missing, str);
+      return mop_error(options, MOP_ERR_MISSING, str);
     }
     return option[0];
   case MOP_OPTIONAL:
-    //printf("BANZAIIII...\n");
-    //printf("option=%s\n", option);
     options->subopt = 0;
     options->optind++;
     if (option[1])
@@ -324,18 +324,18 @@ mop_parse_long (mop_options_t *options,
       options->optopt = longopts[i].shortname;
       arg = mop_longopts_arg(option);
       if (longopts[i].argtype == MOP_NONE && arg != 0) {
-        return mop_error(options, mop_msg_toomany, name);
+        return mop_error(options, MOP_ERR_TOO_MANY, name);
       } if (arg != 0) {
         options->optarg = arg;
       } else if (longopts[i].argtype == MOP_REQUIRED) {
         options->optarg = options->argv[options->optind++];
         if (options->optarg == NULL)
-          return mop_error(options, mop_msg_missing, name);
+          return mop_error(options, MOP_ERR_MISSING, name);
       }
       return options->optopt;
     }
   }
-  return mop_error(options, mop_msg_invalid, option);
+  return mop_error(options, MOP_ERR_INVALID, option);
 }
 
 /**
@@ -350,11 +350,31 @@ mop_parse_long (mop_options_t *options,
 
 static int
 mop_error (mop_options_t *options,
-           const char *msg,
+           const mop_errtype_t et,
            const char *data)
 {
   unsigned p = 0;
   const char *sep = " -- '";
+  char *msg;
+  char ret;
+
+  switch (et) {
+  case MOP_ERR_INVALID:
+    msg = (char *) mop_msg_invalid;
+    ret = '?';
+    break;
+  case MOP_ERR_MISSING:
+    msg = (char *) mop_msg_missing;
+    ret = ':';
+    break;
+  case MOP_ERR_TOO_MANY:
+    msg = (char *) mop_msg_toomany;
+    ret = '?';
+    break;
+  default:
+    abort();
+  }
+
   while (*msg)
     options->errmsg[p++] = *msg++;
   while (*sep)
@@ -363,7 +383,8 @@ mop_error (mop_options_t *options,
     options->errmsg[p++] = *data++;
   options->errmsg[p++] = '\'';
   options->errmsg[p++] = '\0';
-  return '?';
+
+  return ret;
 }
 
 static int
