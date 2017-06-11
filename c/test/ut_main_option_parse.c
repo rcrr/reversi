@@ -293,6 +293,11 @@ a11_t (ut_test_t *const t)
   ut_assert(t, strcmp(f_arg, "arg") == 0);
   ut_assert(t, g_flag == false);
   ut_assert(t, g_arg == NULL);
+
+  while ((mop_arg(&options))) {
+    ut_assert(t, false);
+  }
+
 }
 
 static void
@@ -302,10 +307,14 @@ a12_t (ut_test_t *const t)
   int opt;
   bool a_flag, b_flag, d_flag, f_flag, g_flag;
   char *f_arg, *g_arg;
+  char *arg;
+  int i;
 
   char *argv[] = { "./prog_name", "-f", "arg", "-b", "--", "-c", "-a", "-g", NULL };
   int argc = sizeof(argv) / sizeof(argv[0]);
   char *optionstring = "abdf:g:";
+
+  char *expected_args[] = { "-c", "-a", "-g" };
 
   a_flag = false;
   b_flag = false;
@@ -352,6 +361,13 @@ a12_t (ut_test_t *const t)
   ut_assert(t, strcmp(f_arg, "arg") == 0);
   ut_assert(t, g_flag == false);
   ut_assert(t, g_arg == NULL);
+
+  i = 0;
+  while ((arg = mop_arg(&options))) {
+    ut_assert(t, strcmp(arg, expected_args[i]) == 0);
+    i++;
+  }
+
 }
 
 static void
