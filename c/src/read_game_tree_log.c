@@ -37,9 +37,8 @@
 #include <inttypes.h>
 #include <assert.h>
 
-#include <glib.h>
-
 #include "game_tree_logger.h"
+#include "main_option_parse.h"
 
 
 
@@ -49,29 +48,41 @@
 
 /* Static constants. */
 
-static const char *program_documentation_string =
+
+
+/* Static variables. */
+
+static mop_options_t options;
+
+static int h_flag = false;
+
+static int f_flag = false;
+static char *f_arg = NULL;
+
+static mop_options_long_t olist[] = {
+  {"help",       'h', MOP_NONE},
+  {"input-file", 'f', MOP_REQUIRED},
+  {0, 0, 0}
+};
+
+static const char *documentation =
+  "Usage:\n"
+  "read_game_tree_log [OPTION...] - Loads a Game Tree Log dump file\n"
+  "\n"
+  "Options:\n"
+  "-h, --help           Show help options\n"
+  "-f, --input-file     Input file name - Mandatory\n"
+  "\n"
   "Description:\n"
   "Read Game Tree Log dump is a program that loads a binary dump file representation of a game tree log, and output it as a table.\n"
   "\n"
   "Author:\n"
-  "   Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
+  "Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
   "\n"
   "Copyright (c) 2016, 2017 Roberto Corradini. All rights reserved.\n"
   "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
   "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
   ;
-
-
-
-/* Static variables. */
-
-static char *input_file = NULL;
-
-static const GOptionEntry entries[] =
-  {
-    { "input-file",        'f', 0, G_OPTION_ARG_FILENAME, &input_file,        "Input file name - Mandatory", NULL },
-    { NULL }
-  };
 
 /**
  * @endcond
@@ -87,29 +98,47 @@ main (int argc, char *argv[])
 {
   LogDataH record;
   char json_doc[game_tree_log_max_json_doc_len];
+  int opt;
+  int oindex = -1;
 
-  /* GLib command line options and argument parsing. */
-  GError *error = NULL;
-  GOptionGroup *option_group = g_option_group_new("name", "description", "help_description", NULL, NULL);
-  GOptionContext *context = g_option_context_new("- Loads a Game Tree Log dump file");
-  g_option_context_add_main_entries(context, entries, NULL);
-  g_option_context_add_group(context, option_group);
-  g_option_context_set_description(context, program_documentation_string);
-  if (!g_option_context_parse (context, &argc, &argv, &error)) {
-    fprintf(stderr, "Option parsing failed: %s\n", error->message);
-    return -1;
+  mop_init(&options, argc, argv);
+  while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
+    switch (opt) {
+    case 'h':
+      h_flag = true;
+      break;
+    case 'f':
+      f_flag = true;
+      f_arg = options.optarg;
+      break;
+    case ':':
+      fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
+      return -1;
+    case '?':
+      fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
+      return -2;
+    default:
+      fprintf(stderr, "Unexpectd error. Aborting ...\n");
+      abort();
+    }
+  }
+
+  /* Prints documentation and returns, when help option is active. */
+  if (h_flag) {
+    fprintf(stderr, "%s", documentation);
+    return 0;
   }
 
   /* Checks command line options for consistency. */
-  if (!input_file) {
+  if (!f_arg) {
     fprintf(stderr, "Option -f, --file is mandatory.\n");
-    return -2;
+    return -3;
   }
 
   board_module_init();
 
   /* Opens the binary file for reading. */
-  FILE *fp = fopen(input_file, "r");
+  FILE *fp = fopen(f_arg, "r");
   assert(fp);
 
   fprintf(stdout, "%s;%s;%s;%s;%s;%s;%s;%s\n",
