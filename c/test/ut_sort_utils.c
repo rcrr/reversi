@@ -54,6 +54,9 @@
 
 
 
+/**/
+typedef void (*sort_double_fun) (double *const a, const int count);
+
 /*
  * The sorting versus.
  *
@@ -546,6 +549,73 @@ hlp_run_tests_with_sorting_function (ut_test_t *const t)
   }
 }
 
+static void
+hlp_run_sort_d_random_test (ut_test_t *const t,
+                            const sort_double_fun sort_fun,
+                            const int array_length,
+                            const int repetitions,
+                            const int factor,
+                            const int seed,
+                            const sorting_versus_t v)
+{
+  assert(array_length > 0);
+  //double ttime;
+  static const size_t size_of_double = sizeof(double);
+  int len = array_length;
+
+  for (int i = 0; i < repetitions; i++) {
+    double *a = (double *) malloc(len * size_of_double);
+    assert(a);
+
+    for (int i = 0; i < len; i++) {
+      a[i] = i;
+    }
+
+    prng_mt19937_t *prng = prng_mt19937_new();
+    prng_mt19937_init_by_seed(prng, seed);
+    prng_mt19937_shuffle_array_double(prng, a, len);
+    prng_mt19937_free(prng);
+
+    //g_test_timer_start();
+    sort_fun(a, len);
+    //ttime = g_test_timer_elapsed();
+    //if (g_test_perf())
+    //  g_test_minimized_result(ttime, "Sorting %10u items: %-12.8gsec", len, ttime);
+
+    for (int i = 0; i < len; i++) {
+      switch (v) {
+      case ASC:
+        ut_assert(t, a[i] == i);
+        break;
+      case DSC:
+        ut_assert(t, a[i] == len - (1 + i));
+        break;
+      default:
+        ut_test_fail(t);
+      return;
+      }
+    }
+
+    free(a);
+
+    len = len * factor;
+  }
+}
+
+static void
+sort_utils_qsort_asc_d (double *const a,
+                        const int count)
+{
+  qsort(a, count, sizeof(double), sort_utils_double_cmp);
+}
+
+static void
+sort_utils_qsort_dsc_d (double *const a,
+                        const int count)
+{
+  qsort(a, count, sizeof(double), sort_utils_double_icmp);
+}
+
 
 
 /*
@@ -666,6 +736,46 @@ sort_utils_int64_t_compare_t (ut_test_t *const t)
 
 
 
+/********************************************/
+/* Unit tests for stdlib.h qsort algorithm. */
+/********************************************/
+
+static void
+sort_utils_qsort_asc_d_1_rand_t (ut_test_t *const t)
+{
+  hlp_run_sort_d_random_test(t, sort_utils_qsort_asc_d, 1024, 1, 0, 654, ASC);
+}
+
+static void
+sort_utils_qsort_dsc_d_1_rand_t (ut_test_t *const t)
+{
+  hlp_run_sort_d_random_test(t, sort_utils_qsort_dsc_d, 1024, 1, 0, 870, DSC);
+}
+
+static void
+sort_utils_qsort_asc_d_n_rand_t (ut_test_t *const t)
+{
+  hlp_run_sort_d_random_test(t, sort_utils_qsort_asc_d, 1024, 3, 2, 103, ASC);
+  hlp_run_sort_d_random_test(t, sort_utils_qsort_asc_d, 1023, 3, 2,  55, ASC);
+  hlp_run_sort_d_random_test(t, sort_utils_qsort_asc_d, 1025, 3, 2, 870, ASC);
+}
+
+static void
+sort_utils_qsort_dsc_d_n_rand_t (ut_test_t *const t)
+{
+  hlp_run_sort_d_random_test(t, sort_utils_qsort_dsc_d, 1024, 3, 2, 253, DSC);
+  hlp_run_sort_d_random_test(t, sort_utils_qsort_dsc_d, 1023, 3, 2, 763, DSC);
+  hlp_run_sort_d_random_test(t, sort_utils_qsort_dsc_d, 1025, 3, 2, 894, DSC);
+}
+
+static void
+sort_utils_qsort_asc_d_rand_perf_t (ut_test_t *const t)
+{
+  hlp_run_sort_d_random_test(t, sort_utils_qsort_asc_d, 1024, 15, 2, 175, ASC);
+}
+
+
+
 /**
  * @brief Runs the test suite.
  */
@@ -709,6 +819,14 @@ main (int argc,
                             fixture_setup,
                             hlp_run_tests_with_sorting_function,
                             fixture_teardown);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_qsort_asc_d_1_rand", sort_utils_qsort_asc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_qsort_dsc_d_1_rand", sort_utils_qsort_dsc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_qsort_asc_d_n_rand", sort_utils_qsort_asc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_qsort_dsc_d_n_rand", sort_utils_qsort_dsc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_qsort_asc_d_rand_perf", sort_utils_qsort_asc_d_rand_perf_t);
+
+
 
   int failure_count = ut_suite_run(s);
 
