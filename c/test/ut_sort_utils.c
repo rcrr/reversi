@@ -453,6 +453,58 @@ static const tests_with_sorting_function_t twsf_int64_t_base_qsort =
 
 
 
+/* Insertion-sort */
+
+/*
+ * Insertion-sort is applied to the double base test case.
+ */
+const tests_with_sorting_function_t twsf_double_base_insertionsort =
+  {
+    tc_double_base,
+    sort_utils_double_cmp,
+    sort_utils_double_icmp,
+    sort_utils_insertionsort,
+    sizeof(double),
+  };
+
+/*
+ * Insertion-sort is applied to the int base test case.
+ */
+const tests_with_sorting_function_t twsf_int_base_insertionsort =
+  {
+    tc_int_base,
+    sort_utils_int_cmp,
+    sort_utils_int_icmp,
+    sort_utils_insertionsort,
+    sizeof(int),
+  };
+
+/*
+ * Insertion-sort is applied to the uint64_t base test case.
+ */
+const tests_with_sorting_function_t twsf_uint64_t_base_insertionsort =
+  {
+    tc_uint64_t_base,
+    sort_utils_uint64_t_cmp,
+    sort_utils_uint64_t_icmp,
+    sort_utils_insertionsort,
+    sizeof(uint64_t),
+  };
+
+/*
+ * Insertion-sort is applied to the int64_t base test case.
+ */
+static const tests_with_sorting_function_t twsf_int64_t_base_insertionsort =
+  {
+    tc_int64_t_base,
+    sort_utils_int64_t_cmp,
+    sort_utils_int64_t_icmp,
+    sort_utils_insertionsort,
+    sizeof(int64_t),
+  };
+
+
+
 /*
  * Auxiliary functions.
  */
@@ -776,6 +828,46 @@ sort_utils_qsort_asc_d_rand_perf_t (ut_test_t *const t)
 
 
 
+/********************************************/
+/* Unit tests for insertion-sort algorithm. */
+/********************************************/
+
+static void
+sort_utils_insertionsort_asc_d_1_rand_t (ut_test_t *const t)
+{
+  hlp_run_sort_d_random_test(t, sort_utils_insertionsort_asc_d, 1024, 1, 0, 175, ASC);
+}
+
+static void
+sort_utils_insertionsort_dsc_d_1_rand_t (ut_test_t *const t)
+{
+  hlp_run_sort_d_random_test(t, sort_utils_insertionsort_dsc_d, 1024, 1, 0, 175, DSC);
+}
+
+static void
+sort_utils_insertionsort_asc_d_n_rand_t (ut_test_t *const t)
+{
+  hlp_run_sort_d_random_test(t, sort_utils_insertionsort_asc_d, 1024, 3, 2, 322, ASC);
+  hlp_run_sort_d_random_test(t, sort_utils_insertionsort_asc_d, 1023, 3, 2, 655, ASC);
+  hlp_run_sort_d_random_test(t, sort_utils_insertionsort_asc_d, 1025, 3, 2, 983, ASC);
+}
+
+static void
+sort_utils_insertionsort_dsc_d_n_rand_t (ut_test_t *const t)
+{
+  hlp_run_sort_d_random_test(t, sort_utils_insertionsort_dsc_d, 1024, 3, 2, 114, DSC);
+  hlp_run_sort_d_random_test(t, sort_utils_insertionsort_dsc_d, 1023, 3, 2, 563, DSC);
+  hlp_run_sort_d_random_test(t, sort_utils_insertionsort_dsc_d, 1025, 3, 2, 940, DSC);
+}
+
+static void
+sort_utils_insertionsort_asc_d_rand_perf_t (ut_test_t *const t)
+{
+  hlp_run_sort_d_random_test(t, sort_utils_insertionsort_asc_d, 1024, 8, 2, 175, ASC);
+}
+
+
+
 /**
  * @brief Runs the test suite.
  */
@@ -792,6 +884,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_uint64_t_compare", sort_utils_uint64_t_compare_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_int64_t_compare", sort_utils_int64_t_compare_t);
 
+  /* Qsort */
   ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
                             "double_base_qsort",
                             &twsf_double_base_qsort,
@@ -820,11 +913,49 @@ main (int argc,
                             hlp_run_tests_with_sorting_function,
                             fixture_teardown);
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_qsort_asc_d_1_rand", sort_utils_qsort_asc_d_1_rand_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_qsort_dsc_d_1_rand", sort_utils_qsort_dsc_d_1_rand_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_qsort_asc_d_n_rand", sort_utils_qsort_asc_d_n_rand_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_qsort_dsc_d_n_rand", sort_utils_qsort_dsc_d_n_rand_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_qsort_asc_d_rand_perf", sort_utils_qsort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_qsort_asc_d_1_rand", sort_utils_qsort_asc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_qsort_dsc_d_1_rand", sort_utils_qsort_dsc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_qsort_asc_d_n_rand", sort_utils_qsort_asc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_qsort_dsc_d_n_rand", sort_utils_qsort_dsc_d_n_rand_t);
+
+  /* Insertion sort */
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "double_base_insertionsort",
+                            &twsf_double_base_insertionsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int_base_insertionsort",
+                            &twsf_int_base_insertionsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "uint64_t_base_insertionsort",
+                            &twsf_uint64_t_base_insertionsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int64_t_base_insertionsort",
+                            &twsf_int64_t_base_insertionsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_insertionsort_asc_d_1_rand", sort_utils_insertionsort_asc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_insertionsort_dsc_d_1_rand", sort_utils_insertionsort_dsc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_01,   "sort_utils_insertionsort_asc_d_n_rand", sort_utils_insertionsort_asc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_01,   "sort_utils_insertionsort_dsc_d_n_rand", sort_utils_insertionsort_dsc_d_n_rand_t);
+
+
+  /* Performance tests. */
+  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_qsort_asc_d_rand_perf", sort_utils_qsort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_insertionsort_asc_d_rand_perf", sort_utils_insertionsort_asc_d_rand_perf_t);
 
 
 
