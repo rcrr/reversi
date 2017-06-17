@@ -595,6 +595,18 @@ const tests_with_sorting_function_t twsf_uint64_t_base_heapsort =
     sizeof(uint64_t),
   };
 
+/*
+ * Heap-sort is applied to the int64_t base test case.
+ */
+static const tests_with_sorting_function_t twsf_int64_t_base_heapsort =
+  {
+    tc_int64_t_base,
+    sort_utils_int64_t_cmp,
+    sort_utils_int64_t_icmp,
+    sort_utils_heapsort,
+    sizeof(int64_t),
+  };
+
 
 
 /* Smooth-sort */
@@ -635,11 +647,23 @@ const tests_with_sorting_function_t twsf_uint64_t_base_smoothsort =
     sizeof(uint64_t),
   };
 
+/*
+ * Smooth-sort is applied to the int64_t base test case.
+ */
+static const tests_with_sorting_function_t twsf_int64_t_base_smoothsort =
+  {
+    tc_int64_t_base,
+    sort_utils_int64_t_cmp,
+    sort_utils_int64_t_icmp,
+    sort_utils_smoothsort,
+    sizeof(int64_t),
+  };
+
 
 
 /* Quick-sort */
 
-/**
+/*
  * Quick-sort is applied to the double base test case.
  */
 const tests_with_sorting_function_t twsf_double_base_quicksort =
@@ -673,6 +697,18 @@ const tests_with_sorting_function_t twsf_uint64_t_base_quicksort =
     sort_utils_uint64_t_icmp,
     sort_utils_quicksort,
     sizeof(uint64_t),
+  };
+
+/*
+ * Quick-sort is applied to the int64_t base test case.
+ */
+static const tests_with_sorting_function_t twsf_int64_t_base_quicksort =
+  {
+    tc_int64_t_base,
+    sort_utils_int64_t_cmp,
+    sort_utils_int64_t_icmp,
+    sort_utils_quicksort,
+    sizeof(int64_t),
   };
 
 
@@ -715,6 +751,18 @@ const tests_with_sorting_function_t twsf_uint64_t_base_shellsort =
     sizeof(uint64_t),
   };
 
+/*
+ * Shell-sort is applied to the int64_t base test case.
+ */
+static const tests_with_sorting_function_t twsf_int64_t_base_shellsort =
+  {
+    tc_int64_t_base,
+    sort_utils_int64_t_cmp,
+    sort_utils_int64_t_icmp,
+    sort_utils_shellsort,
+    sizeof(int64_t),
+  };
+
 
 
 /* Merge-sort */
@@ -755,6 +803,18 @@ const tests_with_sorting_function_t twsf_uint64_t_base_mergesort =
     sizeof(uint64_t),
   };
 
+/*
+ * Merge-sort is applied to the int64_t base test case.
+ */
+static const tests_with_sorting_function_t twsf_int64_t_base_mergesort =
+  {
+    tc_int64_t_base,
+    sort_utils_int64_t_cmp,
+    sort_utils_int64_t_icmp,
+    sort_utils_mergesort,
+    sizeof(int64_t),
+  };
+
 
 
 /* Tim-sort */
@@ -793,6 +853,18 @@ const tests_with_sorting_function_t twsf_uint64_t_base_timsort =
     sort_utils_uint64_t_icmp,
     sort_utils_timsort,
     sizeof(uint64_t),
+  };
+
+/*
+ * Tim-sort is applied to the int64_t base test case.
+ */
+static const tests_with_sorting_function_t twsf_int64_t_base_timsort =
+  {
+    tc_int64_t_base,
+    sort_utils_int64_t_cmp,
+    sort_utils_int64_t_icmp,
+    sort_utils_timsort,
+    sizeof(int64_t),
   };
 
 
@@ -1555,22 +1627,223 @@ main (int argc,
 
   ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_binarysort_asc_d_1_rand", sort_utils_binarysort_asc_d_1_rand_t);
   ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_binarysort_dsc_d_1_rand", sort_utils_binarysort_dsc_d_1_rand_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_01,   "sort_utils_binarysort_asc_d_n_rand", sort_utils_binarysort_asc_d_n_rand_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_01,   "sort_utils_binarysort_dsc_d_n_rand", sort_utils_binarysort_dsc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_binarysort_asc_d_n_rand", sort_utils_binarysort_asc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_binarysort_dsc_d_n_rand", sort_utils_binarysort_dsc_d_n_rand_t);
 
   /* Heap sort. */
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "double_base_heapsort",
+                            &twsf_double_base_heapsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int_base_heapsort",
+                            &twsf_int_base_heapsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "uint64_t_base_heapsort",
+                            &twsf_uint64_t_base_heapsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int64_t_base_heapsort",
+                            &twsf_int64_t_base_heapsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_heapsort_asc_d_1_rand", sort_utils_heapsort_asc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_heapsort_dsc_d_1_rand", sort_utils_heapsort_dsc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_heapsort_asc_d_n_rand", sort_utils_heapsort_asc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_heapsort_dsc_d_n_rand", sort_utils_heapsort_dsc_d_n_rand_t);
+
   /* Smooth sort. */
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "double_base_smoothsort",
+                            &twsf_double_base_smoothsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int_base_smoothsort",
+                            &twsf_int_base_smoothsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "uint64_t_base_smoothsort",
+                            &twsf_uint64_t_base_smoothsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int64_t_base_smoothsort",
+                            &twsf_int64_t_base_smoothsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_smoothsort_asc_d_1_rand", sort_utils_smoothsort_asc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_smoothsort_dsc_d_1_rand", sort_utils_smoothsort_dsc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_smoothsort_asc_d_n_rand", sort_utils_smoothsort_asc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_smoothsort_dsc_d_n_rand", sort_utils_smoothsort_dsc_d_n_rand_t);
+
   /* Quick sort. */
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "double_base_quicksort",
+                            &twsf_double_base_quicksort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int_base_quicksort",
+                            &twsf_int_base_quicksort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "uint64_t_base_quicksort",
+                            &twsf_uint64_t_base_quicksort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int64_t_base_quicksort",
+                            &twsf_int64_t_base_quicksort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_quicksort_asc_d_1_rand", sort_utils_quicksort_asc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_quicksort_dsc_d_1_rand", sort_utils_quicksort_dsc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_quicksort_asc_d_n_rand", sort_utils_quicksort_asc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_quicksort_dsc_d_n_rand", sort_utils_quicksort_dsc_d_n_rand_t);
+
   /* Shell sort. */
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "double_base_shellsort",
+                            &twsf_double_base_shellsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int_base_shellsort",
+                            &twsf_int_base_shellsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "uint64_t_base_shellsort",
+                            &twsf_uint64_t_base_shellsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int64_t_base_shellsort",
+                            &twsf_int64_t_base_shellsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_shellsort_asc_d_1_rand", sort_utils_shellsort_asc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_shellsort_dsc_d_1_rand", sort_utils_shellsort_dsc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_shellsort_asc_d_n_rand", sort_utils_shellsort_asc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_shellsort_dsc_d_n_rand", sort_utils_shellsort_dsc_d_n_rand_t);
+
   /* Merge sort. */
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "double_base_mergesort",
+                            &twsf_double_base_mergesort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int_base_mergesort",
+                            &twsf_int_base_mergesort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "uint64_t_base_mergesort",
+                            &twsf_uint64_t_base_mergesort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int64_t_base_mergesort",
+                            &twsf_int64_t_base_mergesort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_mergesort_asc_d_1_rand", sort_utils_mergesort_asc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_mergesort_dsc_d_1_rand", sort_utils_mergesort_dsc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_mergesort_asc_d_n_rand", sort_utils_mergesort_asc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_mergesort_dsc_d_n_rand", sort_utils_mergesort_dsc_d_n_rand_t);
+
   /* Tim sort. */
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "double_base_timsort",
+                            &twsf_double_base_timsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int_base_timsort",
+                            &twsf_int_base_timsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "uint64_t_base_timsort",
+                            &twsf_uint64_t_base_timsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "int64_t_base_timsort",
+                            &twsf_int64_t_base_timsort,
+                            fixture_setup,
+                            hlp_run_tests_with_sorting_function,
+                            fixture_teardown);
+
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_timsort_asc_d_1_rand", sort_utils_timsort_asc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_0001, "sort_utils_timsort_dsc_d_1_rand", sort_utils_timsort_dsc_d_1_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_timsort_asc_d_n_rand", sort_utils_timsort_asc_d_n_rand_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_timsort_dsc_d_n_rand", sort_utils_timsort_dsc_d_n_rand_t);
 
   /* Performance tests. */
   ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_qsort_asc_d_rand_perf", sort_utils_qsort_asc_d_rand_perf_t);
   ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_insertionsort_asc_d_rand_perf", sort_utils_insertionsort_asc_d_rand_perf_t);
   ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_binarysort_asc_d_rand_perf", sort_utils_binarysort_asc_d_rand_perf_t);
-
-
+  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_heapsort_asc_d_rand_perf", sort_utils_heapsort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_smoothsort_asc_d_rand_perf", sort_utils_smoothsort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_quicksort_asc_d_rand_perf", sort_utils_quicksort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_shellsort_asc_d_rand_perf", sort_utils_shellsort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_mergesort_asc_d_rand_perf", sort_utils_mergesort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_timsort_asc_d_rand_perf", sort_utils_timsort_asc_d_rand_perf_t);
 
   int failure_count = ut_suite_run(s);
 
