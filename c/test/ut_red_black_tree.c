@@ -1654,7 +1654,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "probe_mem_dbg", probe_mem_dbg_t);
 
   if (ut_is_mode_equal_to_perf()) {
-    ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "performance", performance_t);
+    ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "performance", performance_t);
   }
 
   int failure_count = ut_suite_run(s);

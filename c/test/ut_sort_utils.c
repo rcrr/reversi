@@ -1835,15 +1835,15 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND,   UT_QUICKNESS_001,  "sort_utils_timsort_dsc_d_n_rand", sort_utils_timsort_dsc_d_n_rand_t);
 
   /* Performance tests. */
-  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_qsort_asc_d_rand_perf", sort_utils_qsort_asc_d_rand_perf_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_insertionsort_asc_d_rand_perf", sort_utils_insertionsort_asc_d_rand_perf_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_binarysort_asc_d_rand_perf", sort_utils_binarysort_asc_d_rand_perf_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_heapsort_asc_d_rand_perf", sort_utils_heapsort_asc_d_rand_perf_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_smoothsort_asc_d_rand_perf", sort_utils_smoothsort_asc_d_rand_perf_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_quicksort_asc_d_rand_perf", sort_utils_quicksort_asc_d_rand_perf_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_shellsort_asc_d_rand_perf", sort_utils_shellsort_asc_d_rand_perf_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_mergesort_asc_d_rand_perf", sort_utils_mergesort_asc_d_rand_perf_t);
-  ut_suite_add_simple_test(s, UT_MODE_PERF_0, UT_QUICKNESS_0001, "sort_utils_timsort_asc_d_rand_perf", sort_utils_timsort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_qsort_asc_d_rand_perf", sort_utils_qsort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_insertionsort_asc_d_rand_perf", sort_utils_insertionsort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_binarysort_asc_d_rand_perf", sort_utils_binarysort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_heapsort_asc_d_rand_perf", sort_utils_heapsort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_smoothsort_asc_d_rand_perf", sort_utils_smoothsort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_quicksort_asc_d_rand_perf", sort_utils_quicksort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_shellsort_asc_d_rand_perf", sort_utils_shellsort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_mergesort_asc_d_rand_perf", sort_utils_mergesort_asc_d_rand_perf_t);
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_timsort_asc_d_rand_perf", sort_utils_timsort_asc_d_rand_perf_t);
 
   int failure_count = ut_suite_run(s);
 

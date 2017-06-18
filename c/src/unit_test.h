@@ -101,9 +101,8 @@ typedef void
  */
 typedef enum {
   UT_MODE_STND = 0,   /**< Standard mode. */
-  UT_MODE_PERF_0,     /**< Performance mode, fast. */
-  UT_MODE_PERF_1,     /**< Performance mode, medium speed. */
-  UT_MODE_PERF_2      /**< Performance mode, slow. */
+  UT_MODE_PERF,       /**< Performance mode. */
+  UT_MODE_ALL         /**< Everything. */
 } ut_mode_t;
 
 /**

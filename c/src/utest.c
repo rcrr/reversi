@@ -138,8 +138,9 @@ parse_args (int *argc_p,
         fprintf(stderr, "%s: missing MODE value after -m flag.\n", argv[0]);
         exit(EXIT_FAILURE);
       }
-      if (strcmp(mode, "perf") == 0) arg_config.mode = UT_MODE_PERF_0;
+      if (strcmp(mode, "perf") == 0) arg_config.mode = UT_MODE_PERF;
       else if (strcmp(mode, "standard") == 0) arg_config.mode = UT_MODE_STND;
+      else if (strcmp(mode, "all") == 0) arg_config.mode = UT_MODE_ALL;
       else {
         fprintf(stderr, "%s: MODE value \"%s\" is invalid.\n", argv[0], mode);
         exit(EXIT_FAILURE);
@@ -257,7 +258,8 @@ prepare_args (void)
   argv[0] = "TBD";
   argv[1] = "-m";
   if (arg_config.mode == UT_MODE_STND) argv[2] = "standard";
-  else if (arg_config.mode >= UT_MODE_PERF_0) argv[2] = "perf";
+  else if (arg_config.mode >= UT_MODE_PERF) argv[2] = "perf";
+  else if (arg_config.mode >= UT_MODE_ALL) argv[2] = "all";
   else {
     fprintf(stderr, "Invalid arg_config.mode \"%d\" option.\n", arg_config.mode);
     abort();

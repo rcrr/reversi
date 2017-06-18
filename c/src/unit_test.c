@@ -329,6 +329,39 @@ ut_suite_run (ut_suite_t *s)
       }
     }
 
+    /* Checks mode. */
+    switch (arg_config.mode) {
+    case UT_MODE_STND:
+      switch (t->mode) {
+      case UT_MODE_STND:
+        ; // do-nothing
+        break;
+      case UT_MODE_PERF:
+        selected = false;
+        break;
+      default:
+        abort();
+      }
+      break;
+    case UT_MODE_PERF:
+      switch (t->mode) {
+      case UT_MODE_STND:
+        selected = false;
+        break;
+      case UT_MODE_PERF:
+        ; // do-nothing
+        break;
+      default:
+        abort();
+      }
+      break;
+    case UT_MODE_ALL:
+      ; // do-nothing
+      break;
+    default:
+      abort();
+    }
+
     if (selected) {
       if (arg_config.print_test_list) { /* Lists the test. */
         if (arg_config.utest) fprintf(stdout, "  ");
@@ -412,7 +445,7 @@ ut_init (int *argc_p,
 bool
 ut_is_mode_equal_to_perf (void)
 {
-  return arg_config.mode >= UT_MODE_PERF_0 ? true : false;
+  return arg_config.mode >= UT_MODE_PERF ? true : false;
 }
 
 
@@ -428,6 +461,12 @@ ut_test_new (char *label,
              ut_quickness_t qck_class,
              ut_suite_t *s)
 {
+  assert(label);
+  assert(tfun);
+  assert(mode >= UT_MODE_STND && mode <= UT_MODE_PERF);
+  assert(qck_class >= UT_QUICKNESS_0001 && qck_class <= UT_QUICKNESS_OUT_OF_RANGE);
+  assert(s);
+
   ut_test_t *t;
   static const size_t size_of_t = sizeof(ut_test_t);
   t = (ut_test_t *) malloc(size_of_t);
@@ -486,8 +525,9 @@ parse_args (int *argc_p,
         fprintf(stderr, "%s: missing mode value after -m flag.\n", argv[0]);
         exit(EXIT_FAILURE);
       }
-      if (strcmp(mode, "perf") == 0) arg_config.mode = UT_MODE_PERF_0;
+      if (strcmp(mode, "perf") == 0) arg_config.mode = UT_MODE_PERF;
       else if (strcmp(mode, "standard") == 0) arg_config.mode = UT_MODE_STND;
+      else if (strcmp(mode, "all") == 0) arg_config.mode = UT_MODE_ALL;
       else {
         fprintf(stderr, "%s: mode value \"%s\" is invalid.\n", argv[0], mode);
         exit(EXIT_FAILURE);
@@ -540,7 +580,7 @@ parse_args (int *argc_p,
               "  -h, --help                  Show help options\n\n"
               "Test Options:\n"
               "  -l                          List test cases available in a test executable\n"
-              "  -m {perf|standard}          Execute tests according to mode\n"
+              "  -m {perf|standard|all}      Execute tests according to mode\n"
               "  -p TESTPATH                 Only start test cases matching TESTPATH\n"
               "  -s TESTPATH                 Skip all tests matching TESTPATH\n"
               "  -q, --quiet                 Run tests quietly\n"
