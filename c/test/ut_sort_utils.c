@@ -104,6 +104,41 @@ typedef struct {
 
 
 /*
+ * Sorting functions.
+ */
+static const sort_utils_sort_function sort_functions[] =
+  {
+    sort_utils_insertionsort,
+    sort_utils_binarysort,
+    sort_utils_heapsort,
+    sort_utils_smoothsort,
+    sort_utils_quicksort,
+    sort_utils_shellsort,
+    sort_utils_mergesort,
+    sort_utils_timsort
+  };
+
+/*
+ * Names of sorting functions.
+ */
+static const char *sort_function_names[] =
+  {
+    "insertion-sort",
+    "binary-sort",
+    "heap-sort",
+    "smooth-sort",
+    "quick-sort",
+    "shell-sort",
+    "merge-sort",
+    "tim-sort"
+  };
+
+/*
+ * Count for sorting functions.
+ */
+static const int sort_function_count = sizeof(sort_functions) / sizeof(sort_functions[0]);
+
+/*
  * Sorting test cases for simple arrays of double: base cases.
  */
 static const test_case_t tc_double_base[] =
@@ -980,7 +1015,6 @@ hlp_run_sort_d_random_test (ut_test_t *const t,
   timespec_t start_time, end_time, cpu_time, time_0, time_1;
   int ret;
 
-  //double ttime;
   static const size_t size_of_double = sizeof(double);
   int len = array_length;
 
@@ -1038,6 +1072,92 @@ hlp_run_sort_d_random_test (ut_test_t *const t,
     free(a);
 
     len = len * factor;
+  }
+}
+
+static test_case_t *
+hlp_organpipe_int64_new (const size_t n,
+                         const double jitters,
+                         const int seed,
+                         const sorting_versus_t versus)
+{
+  assert(0. <= jitters && jitters <= 1.);
+
+  const size_t swaps = n * jitters;
+
+  test_case_t *tc = (test_case_t *) malloc(sizeof(test_case_t));
+  assert(tc);
+
+  char *desc = malloc(128 * sizeof(char));
+  assert(desc);
+  sprintf(desc, "Organ pipe int64_t test case: n=%zu, jitters=%3.3f, seed=%d, versus=%s",
+          n, jitters, seed, versus == ASC ? "ASC" : "DSC");
+
+  int64_t *el = (int64_t *) malloc(2 * n * sizeof(int64_t));
+  assert(el);
+
+  int64_t *ex = (int64_t *) malloc(2 * n * sizeof(int64_t));
+  assert(ex);
+
+  for (int64_t k = n; k > 0; k--) {
+    el[n - k]     = n - k;
+    el[n + k - 1] = n - k;
+  }
+
+  if (versus == ASC) {
+    for (int64_t k = 0; k < n; k++) {
+      ex[2 * k]     = k;
+      ex[2 * k + 1] = k;
+    }
+  } else {
+    for (int64_t k = 0; k < n; k++) {
+      ex[2 * k]     = n - k - 1;
+      ex[2 * k + 1] = n - k - 1;
+    }
+  }
+
+  prng_mt19937_t *prng = prng_mt19937_new();
+  prng_mt19937_init_by_seed(prng, seed);
+  for (int k = 0; k < swaps; k++) {
+    unsigned long int i = prng_mt19937_random_choice_from_finite_set(prng, 2 * n);
+    unsigned long int j = prng_mt19937_random_choice_from_finite_set(prng, 2 * n);
+    if (i != j) {
+      const size_t tmp = *(el + i);
+      *(el + i) = *(el + j);
+      *(el + j) = tmp;
+    }
+  }
+  prng_mt19937_free(prng);
+
+  tc->test_label = desc;
+  tc->versus = versus;
+  tc->element_size = sizeof(int64_t);
+  tc->elements_count = 2 * n;
+  tc->elements = el;
+  tc->expected_sorted_sequence = ex;
+
+  return tc;
+}
+
+static void
+test_case_free (test_case_t *tc)
+{
+  if (tc->test_label)
+    free(tc->test_label);
+  if (tc->elements)
+    free(tc->elements);
+  if (tc->expected_sorted_sequence)
+    free(tc->expected_sorted_sequence);
+  free(tc);
+}
+
+static void
+test_case_verify_result (ut_test_t *const t,
+                         const test_case_t *const tc,
+                         const sort_utils_compare_function cmp)
+{
+  for (int i = 0; i < tc->elements_count; i++) {
+    ut_assert(t, cmp(tc->expected_sorted_sequence, tc->elements) == 0);
   }
 }
 
@@ -1533,6 +1653,70 @@ sort_utils_timsort_asc_d_rand_perf_t (ut_test_t *const t)
   hlp_run_sort_d_random_test(t, sort_utils_timsort_asc_d, 1024, 15, 2, 175, ASC);
 }
 
+static void
+abc_perf_t (ut_test_t *const t)
+{
+  assert(sort_function_count == (sizeof(sort_function_names) / sizeof(sort_function_names[0])));
+
+  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  int ret;
+
+  const size_t n_base = 10000;
+  const size_t step = 1;
+  const size_t growth = 1;
+  const size_t iterations = 64;
+
+  const double jitters = 0.001;
+  const int seed_base = 589;
+  const int seed_increment = 7;
+
+  const sorting_versus_t versus = ASC;
+
+  for (int i = 0; i < sort_function_count; i++) {
+    if (ut_run_time_is_verbose(t)) {
+      fprintf(stdout, "  Function [%d]: %20s\n", i, sort_function_names[i]);
+    }
+    const sort_utils_sort_function sort = sort_functions[i];
+
+    size_t n = n_base;
+    int seed = seed_base;
+    for (int i = 1; i <= iterations; i++) {
+
+      test_case_t *tc = hlp_organpipe_int64_new(n, jitters, seed, versus);
+
+      /* Sets the test start time. */
+      clock_gettime(CLOCK_REALTIME, &start_time);
+      (void) start_time;
+
+      /* Starts the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
+      sort(tc->elements, tc->elements_count, tc->element_size, sort_utils_int64_t_cmp);
+
+      /* Stops the stop-watch. */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+      /* Sets the test end time. */
+      clock_gettime(CLOCK_REALTIME, &end_time);
+      (void) end_time;
+
+      /* Computes the time taken, and updates the test cpu_time. */
+      ret = timespec_diff(&cpu_time, &time_0, &time_1);
+      (void) ret; assert(ret == 0);
+
+      if (ut_run_time_is_verbose(t)) {
+        fprintf(stdout, "  Sorting %10u items: [%6lld.%9ld]\n", tc->elements_count, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+      }
+
+      test_case_verify_result(t, tc, sort_utils_int64_t_cmp);
+      test_case_free(tc);
+
+      n = (n * growth) + step;
+      seed += seed_increment;
+    }
+  }
+}
+
 
 
 /**
@@ -1868,6 +2052,8 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_shellsort_asc_d_rand_perf", sort_utils_shellsort_asc_d_rand_perf_t);
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_mergesort_asc_d_rand_perf", sort_utils_mergesort_asc_d_rand_perf_t);
   ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "sort_utils_timsort_asc_d_rand_perf", sort_utils_timsort_asc_d_rand_perf_t);
+
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "abc_perf", abc_perf_t);
 
   int failure_count = ut_suite_run(s);
 

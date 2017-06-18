@@ -1,11 +1,11 @@
 /**
  * @file
  *
- * @todo Implement the -v (verbose) and -q (quiet) modes.
+ * @todo [done] Implement the -v (verbose) and -q (quiet) modes.
  *
- * @todo Implement the -m flag standard|perf.
+ * @todo [done] Implement the -m flag standard|perf.
  *
- * @todo Implement the standard test, having the data pointer, and the fixture
+ * @todo [done] Implement the standard test, having the data pointer, and the fixture
  *       prepare and terdown functions.
  *
  * @todo Verify that tests behave correctly when assertions fails or the program aborts.
