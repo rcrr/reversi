@@ -524,9 +524,10 @@ main (argc, argv)
      int argc;
      char **argv;
 {
-  ut_init (&argc, &argv);
+  ut_prog_arg_config_t config;
+  ut_init(&config, &argc, &argv);
 
-  ut_suite_t *const s = ut_suite_new("llist");
+  ut_suite_t *const s = ut_suite_new(&config, "llist");
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "new-free", llist_new_free_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "add-remove-foreach", llist_add_remove_foreach_t);

@@ -445,8 +445,10 @@ int
 main (int argc,
       char **argv)
 {
-  ut_init(&argc, &argv);
-  ut_suite_t *const s = ut_suite_new("bit_works");
+  ut_prog_arg_config_t config;
+  ut_init(&config, &argc, &argv);
+
+  ut_suite_t *const s = ut_suite_new(&config, "bit_works");
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_type_size_checks", bitw_type_size_checks);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "bitw_int_size_definition_checks", bitw_int_size_definition_checks);

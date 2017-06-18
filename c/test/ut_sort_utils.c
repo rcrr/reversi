@@ -39,6 +39,7 @@
 #include "unit_test.h"
 
 #include "sort_utils.h"
+#include "time_utils.h"
 #include "prng.h"
 
 
@@ -975,6 +976,10 @@ hlp_run_sort_d_random_test (ut_test_t *const t,
                             const sorting_versus_t v)
 {
   assert(array_length > 0);
+
+  timespec_t start_time, end_time, cpu_time, time_0, time_1;
+  int ret;
+
   //double ttime;
   static const size_t size_of_double = sizeof(double);
   int len = array_length;
@@ -992,11 +997,29 @@ hlp_run_sort_d_random_test (ut_test_t *const t,
     prng_mt19937_shuffle_array_double(prng, a, len);
     prng_mt19937_free(prng);
 
-    //g_test_timer_start();
+    /* Sets the test start time. */
+    clock_gettime(CLOCK_REALTIME, &start_time);
+    (void) start_time;
+
+    /* Starts the stop-watch. */
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_0);
+
     sort_fun(a, len);
-    //ttime = g_test_timer_elapsed();
-    //if (g_test_perf())
-    //  g_test_minimized_result(ttime, "Sorting %10u items: %-12.8gsec", len, ttime);
+
+    /* Stops the stop-watch. */
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time_1);
+
+    /* Sets the test end time. */
+    clock_gettime(CLOCK_REALTIME, &end_time);
+    (void) end_time;
+
+    /* Computes the time taken, and updates the test cpu_time. */
+    ret = timespec_diff(&cpu_time, &time_0, &time_1);
+    (void) ret; assert(ret == 0);
+
+    if (ut_run_time_is_verbose(t)) {
+      fprintf(stdout, "  Sorting %10u items: [%6lld.%9ld]\n", len, (long long) timespec_get_sec(&cpu_time), timespec_get_nsec(&cpu_time));
+    }
 
     for (int i = 0; i < len; i++) {
       switch (v) {
@@ -1519,9 +1542,10 @@ int
 main (int argc,
       char **argv)
 {
-  ut_init(&argc, &argv);
+  ut_prog_arg_config_t config;
+  ut_init(&config, &argc, &argv);
 
-  ut_suite_t *const s = ut_suite_new("sort_utils");
+  ut_suite_t *const s = ut_suite_new(&config, "sort_utils");
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_double_compare", sort_utils_double_compare_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sort_utils_int_compare", sort_utils_int_compare_t);

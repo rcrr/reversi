@@ -940,9 +940,10 @@ int
 main (int argc,
       char **argv)
 {
-  ut_init(&argc, &argv);
+  ut_prog_arg_config_t config;
+  ut_init(&config, &argc, &argv);
 
-  ut_suite_t *const s = ut_suite_new("prng");
+  ut_suite_t *const s = ut_suite_new(&config, "prng");
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_stdlib_seed", prng_stdlib_seed_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_001,  "prng_stdlib_get_number_in_range", prng_stdlib_get_number_in_range_t);

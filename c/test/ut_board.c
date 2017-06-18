@@ -739,8 +739,10 @@ int
 main (int argc,
       char **argv)
 {
-  ut_init(&argc, &argv);
-  ut_suite_t *const s = ut_suite_new("board");
+  ut_prog_arg_config_t config;
+  ut_init(&config, &argc, &argv);
+
+  ut_suite_t *const s = ut_suite_new(&config, "board");
 
   board_module_init();
 

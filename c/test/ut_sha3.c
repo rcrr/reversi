@@ -450,9 +450,10 @@ int
 main (int argc,
       char **argv)
 {
-  ut_init(&argc, &argv);
+  ut_prog_arg_config_t config;
+  ut_init(&config, &argc, &argv);
 
-  ut_suite_t *const s = ut_suite_new("sha3");
+  ut_suite_t *const s = ut_suite_new(&config, "sha3");
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_224", sha3_224_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "sha3_256", sha3_256_t);

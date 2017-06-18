@@ -82,8 +82,6 @@ static const timespec_t ut_quickness_ranges[] =
 /* Internal static variable declarations.             */
 /******************************************************/
 
-static ut_prog_arg_config_t arg_config;
-
 
 
 /******************************************************/
@@ -91,7 +89,8 @@ static ut_prog_arg_config_t arg_config;
 /******************************************************/
 
 static void
-parse_args (int *argc_p,
+parse_args (ut_prog_arg_config_t *config,
+            int *argc_p,
             char ***argv_p);
 
 static unsigned long
@@ -175,7 +174,7 @@ ut_test_fail (ut_test_t *const t)
 /**
  * @brief The array reallocation increase.
  */
-static const size_t array_alloc_chunk_size = 2;
+static const size_t array_alloc_chunk_size = 16;
 
 /**
  * @brief Suite structure constructor.
@@ -183,15 +182,19 @@ static const size_t array_alloc_chunk_size = 2;
  * An assertion checks that the received pointer to the allocated
  * suite structure is not `NULL`.
  *
- * @return a pointer to a new suite structure
+ * @param [in] config program runtime configuration
+ * @param [in] label  suite label
+ * @return            a pointer to a new suite structure
  */
 ut_suite_t *
-ut_suite_new (char *label)
+ut_suite_new (ut_prog_arg_config_t *config,
+              char *label)
 {
   ut_suite_t *s;
   static const size_t size_of_t = sizeof(ut_suite_t);
   s = (ut_suite_t *) malloc(size_of_t);
   assert(s);
+  s->config = config;
   s->label = label;
   s->count = 0;
   s->size = array_alloc_chunk_size;
@@ -311,8 +314,8 @@ ut_suite_run (ut_suite_t *s)
 
     sprintf(full_path, "/%s/%s", s->label, t->label);
     bool selected = false;
-    if (llist_length(arg_config.test_paths) == 0) selected = true;
-    for (llist_elm_t *e = arg_config.test_paths->head; e; e = e->next) {
+    if (llist_length(s->config->test_paths) == 0) selected = true;
+    for (llist_elm_t *e = s->config->test_paths->head; e; e = e->next) {
       char *test_path = (char *)(e->data);
       char *match = strstr(full_path, test_path);
       if (match == full_path) {
@@ -320,7 +323,7 @@ ut_suite_run (ut_suite_t *s)
         break;
       }
     }
-    for (llist_elm_t *e = arg_config.skip_paths->head; e; e = e->next) {
+    for (llist_elm_t *e = s->config->skip_paths->head; e; e = e->next) {
       char *skip_path = (char *)(e->data);
       char *match = strstr(full_path, skip_path);
       if (match == full_path) {
@@ -330,7 +333,7 @@ ut_suite_run (ut_suite_t *s)
     }
 
     /* Checks mode. */
-    switch (arg_config.mode) {
+    switch (s->config->mode) {
     case UT_MODE_STND:
       switch (t->mode) {
       case UT_MODE_STND:
@@ -363,13 +366,16 @@ ut_suite_run (ut_suite_t *s)
     }
 
     if (selected) {
-      if (arg_config.print_test_list) { /* Lists the test. */
-        if (arg_config.utest) fprintf(stdout, "  ");
+      if (s->config->print_test_list) { /* Lists the test. */
+        if (s->config->utest) fprintf(stdout, "  ");
         fprintf(stdout, "%s\n", full_path);
       } else { /* Runs the test. */
-        if (arg_config.utest) fprintf(stdout, "  ");
-        fprintf(stdout, "%s: ", full_path);
-        fflush(stdout);
+        if (!ut_run_time_is_quiet(t)) {
+          if (s->config->utest) fprintf(stdout, "  ");
+          fprintf(stdout, "%s: ", full_path);
+          fflush(stdout);
+        }
+        if (ut_run_time_is_verbose(t)) fprintf(stdout, "\n");
 
         if (t->setup) t->setup(t);
 
@@ -393,19 +399,26 @@ ut_suite_run (ut_suite_t *s)
         ret = timespec_diff(&t->cpu_time, &time_0, &time_1);
         (void) ret; assert(ret == 0);
 
-        fprintf(stdout, "%*c", (int)(res_msg_print_column - strlen(full_path)), ' ');
-        fprintf(stdout, "[%6lld.%9ld] ", (long long) timespec_get_sec(&t->cpu_time), timespec_get_nsec(&t->cpu_time));
-        const ut_quickness_t actual_qck_class = ut_quickness_range(&t->cpu_time);
-        const int time_perf = (actual_qck_class > t->quickness_class) - (actual_qck_class < t->quickness_class);
-        char time_perf_c = ' ';
-        if (time_perf > 0) time_perf_c = '+';
-        if (time_perf < 0) time_perf_c = '-';
-        fprintf(stdout, "[%d.%d]%c ", t->quickness_class, actual_qck_class, time_perf_c);
-        if (t->failure_count) {
-          s->failed_test_count++;
-          fprintf(stdout, "FAILED - Failure count = %d\n", t->failure_count);
-        } else {
-          fprintf(stdout, "OK\n");
+        if (!ut_run_time_is_quiet(t)) {
+          if (ut_run_time_is_verbose(t)) {
+            if (s->config->utest) fprintf(stdout, "  ");
+            fprintf(stdout, "%s: ", full_path);
+          }
+          fprintf(stdout, "%*c", (int)(res_msg_print_column - strlen(full_path)), ' ');
+          fprintf(stdout, "[%6lld.%9ld] ", (long long) timespec_get_sec(&t->cpu_time), timespec_get_nsec(&t->cpu_time));
+          const ut_quickness_t actual_qck_class = ut_quickness_range(&t->cpu_time);
+          const int time_perf = (actual_qck_class > t->quickness_class) - (actual_qck_class < t->quickness_class);
+          char time_perf_c = ' ';
+          if (time_perf > 0) time_perf_c = '+';
+          if (time_perf < 0) time_perf_c = '-';
+          fprintf(stdout, "[%d.%d]%c ", t->quickness_class, actual_qck_class, time_perf_c);
+          if (t->failure_count) {
+            s->failed_test_count++;
+            fprintf(stdout, "FAILED - Failure count = %d\n", t->failure_count);
+          } else {
+            fprintf(stdout, "OK\n");
+          }
+          if (ut_run_time_is_verbose(t)) fprintf(stdout, "\n");
         }
       }
     }
@@ -426,28 +439,47 @@ ut_suite_run (ut_suite_t *s)
 /**
  * @brief Has to be called by main as the first step for running the test suite.
  *
+ * @details The `config` structures is initialized parsing the argument list.
+ *
+ * @param [out]    config a reference to a configuration structure
  * @param [in]     argc_p address of the argc parameter of the main() function.
  * @param [in,out] argv_p address of the argv parameter of the main() function.
  */
 void
-ut_init (int *argc_p,
+ut_init (ut_prog_arg_config_t *config,
+         int *argc_p,
          char ***argv_p)
 {
-  parse_args(argc_p, argv_p);
+  parse_args(config, argc_p, argv_p);
   return;
 }
 
-/**
- * @brief Returns true when performance tests are included in the run.
- *
- * @return true if test is in performance mode.
- */
 bool
-ut_is_mode_equal_to_perf (void)
+ut_run_time_is_verbose (const ut_test_t *const t)
 {
-  return arg_config.mode >= UT_MODE_PERF ? true : false;
+  assert(t);
+  assert(t->suite);
+  assert(t->suite->config);
+  return t->suite->config->verb == UT_VEROSITY_HIGHT ? true : false;
 }
 
+bool
+ut_run_time_is_quiet (const ut_test_t *const t)
+{
+  assert(t);
+  assert(t->suite);
+  assert(t->suite->config);
+  return t->suite->config->verb == UT_VEROSITY_LOW ? true : false;
+}
+
+ut_verbosity_t
+ut_run_time_verbosity (const ut_test_t *const t)
+{
+  assert(t);
+  assert(t->suite);
+  assert(t->suite->config);
+  return t->suite->config->verb;
+}
 
 
 /********************************************/
@@ -495,23 +527,24 @@ ut_test_free (ut_test_t *t)
 }
 
 static void
-parse_args (int *argc_p,
+parse_args (ut_prog_arg_config_t *config,
+            int *argc_p,
             char ***argv_p)
 {
   int argc = *argc_p;
   char **argv = *argv_p;
 
-  arg_config.print_test_list = false;
-  arg_config.mode = UT_MODE_STND;
-  arg_config.test_paths = llist_new(NULL);
-  arg_config.skip_paths = llist_new(NULL);
-  arg_config.verb = UT_VEROSITY_STND;
-  arg_config.utest = false;
+  config->print_test_list = false;
+  config->mode = UT_MODE_STND;
+  config->test_paths = llist_new(NULL);
+  config->skip_paths = llist_new(NULL);
+  config->verb = UT_VEROSITY_STND;
+  config->utest = false;
 
   /* Parses known args. */
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-l") == 0) {
-      arg_config.print_test_list = true;
+      config->print_test_list = true;
       argv[i] = NULL;
     } else if (strcmp("-m", argv[i]) == 0 || strncmp("-m=", argv[i], 3) == 0) {
       char *equal = argv[i] + 2;
@@ -525,9 +558,9 @@ parse_args (int *argc_p,
         fprintf(stderr, "%s: missing mode value after -m flag.\n", argv[0]);
         exit(EXIT_FAILURE);
       }
-      if (strcmp(mode, "perf") == 0) arg_config.mode = UT_MODE_PERF;
-      else if (strcmp(mode, "standard") == 0) arg_config.mode = UT_MODE_STND;
-      else if (strcmp(mode, "all") == 0) arg_config.mode = UT_MODE_ALL;
+      if (strcmp(mode, "perf") == 0) config->mode = UT_MODE_PERF;
+      else if (strcmp(mode, "standard") == 0) config->mode = UT_MODE_STND;
+      else if (strcmp(mode, "all") == 0) config->mode = UT_MODE_ALL;
       else {
         fprintf(stderr, "%s: mode value \"%s\" is invalid.\n", argv[0], mode);
         exit(EXIT_FAILURE);
@@ -546,7 +579,7 @@ parse_args (int *argc_p,
         exit(EXIT_FAILURE);
       }
       argv[i] = NULL;
-      if (test_path) llist_add(arg_config.test_paths, test_path);
+      if (test_path) llist_add(config->test_paths, test_path);
     } else if (strcmp("-s", argv[i]) == 0 || strncmp ("-s=", argv[i], 3) == 0) {
       char *equal = argv[i] + 2;
       char *skip_path = NULL;
@@ -560,15 +593,15 @@ parse_args (int *argc_p,
         exit(EXIT_FAILURE);
       }
       argv[i] = NULL;
-      if (skip_path) llist_add(arg_config.skip_paths, skip_path);
+      if (skip_path) llist_add(config->skip_paths, skip_path);
     } else if (strcmp("-q", argv[i]) == 0 || strcmp("--quiet", argv[i]) == 0) {
-      arg_config.verb = UT_VEROSITY_LOW;
+      config->verb = UT_VEROSITY_LOW;
       argv[i] = NULL;
     } else if (strcmp("-v", argv[i]) == 0 || strcmp("--verbose", argv[i]) == 0) {
-      arg_config.verb = UT_VEROSITY_HIGHT;
+      config->verb = UT_VEROSITY_HIGHT;
       argv[i] = NULL;
     } else if (strcmp("--utest", argv[i]) == 0) {
-      arg_config.utest = true;
+      config->utest = true;
       argv[i] = NULL;
     } else if (strcmp("-?", argv[i]) == 0 ||
                strcmp("-h", argv[i]) == 0 ||

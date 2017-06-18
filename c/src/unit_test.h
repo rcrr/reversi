@@ -134,31 +134,32 @@ typedef enum {
  * @brief A unit test.
  */
 typedef struct ut_test_t_ {
-  struct ut_suite_t_ *suite;      /**< @brief The parent suite. */
-  char *label;                    /**< @brief The test label. */
-  ut_test_f test;                 /**< @brief The test function, when it is a simple test. */
-  ut_fixture_setup_f setup;       /**< @brief Setup function. */
-  ut_fixture_teardown_f teardown; /**< @brief Teardown function. */
-  void *provided_data;            /**< @brief User provided data. */
-  void *fixture;                  /**< @brief Test fixture. */
-  int failure_count;              /**< @brief The number of assertion failures. */
-  int assertion_count;            /**< @brief The number of assertions. */
-  ut_mode_t mode;                 /**< @brief Standard vs performance test. */
-  ut_quickness_t quickness_class; /**< @brief The quickness class of the test. */
-  timespec_t start_time;          /**< @brief Test start time duration. */
-  timespec_t end_time;            /**< @brief Test end time duration. */
-  timespec_t cpu_time;            /**< @brief Test cpu process consumption. */
+  struct ut_suite_t_ *suite;             /**< @brief The parent suite. */
+  char *label;                           /**< @brief The test label. */
+  ut_test_f test;                        /**< @brief The test function, when it is a simple test. */
+  ut_fixture_setup_f setup;              /**< @brief Setup function. */
+  ut_fixture_teardown_f teardown;        /**< @brief Teardown function. */
+  void *provided_data;                   /**< @brief User provided data. */
+  void *fixture;                         /**< @brief Test fixture. */
+  int failure_count;                     /**< @brief The number of assertion failures. */
+  int assertion_count;                   /**< @brief The number of assertions. */
+  ut_mode_t mode;                        /**< @brief Standard vs performance test. */
+  ut_quickness_t quickness_class;        /**< @brief The quickness class of the test. */
+  timespec_t start_time;                 /**< @brief Test start time duration. */
+  timespec_t end_time;                   /**< @brief Test end time duration. */
+  timespec_t cpu_time;                   /**< @brief Test cpu process consumption. */
 } ut_test_t;
 
 /**
  * @brief A test suite.
  */
 typedef struct ut_suite_t_ {
-  char *label;                /**< @brief The suite label. */
-  size_t count;               /**< @brief Number of tests in the array. */
-  size_t size;                /**< @brief Size of the array. */
-  ut_test_t **tests;          /**< @brief An array of pointers to tests. */
-  int failed_test_count;      /**> @brief Count of failed tests. */
+  char *label;                           /**< @brief The suite label. */
+  struct ut_prog_arg_config_t_ *config;  /**< @brief The runtime configutration taken from the program arguments. */
+  size_t count;                          /**< @brief Number of tests in the array. */
+  size_t size;                           /**< @brief Size of the array. */
+  ut_test_t **tests;                     /**< @brief An array of pointers to tests. */
+  int failed_test_count;                 /**> @brief Count of failed tests. */
 } ut_suite_t;
 
 /**
@@ -201,7 +202,8 @@ ut_test_fail (ut_test_t *const t);
 /**************************************************/
 
 extern ut_suite_t *
-ut_suite_new (char *label);
+ut_suite_new (ut_prog_arg_config_t *config,
+              char *label);
 
 extern void
 ut_suite_free (ut_suite_t *s);
@@ -233,11 +235,18 @@ ut_suite_run (ut_suite_t *s);
 /**************************************************/
 
 extern void
-ut_init (int *argc_p,
+ut_init (ut_prog_arg_config_t *config,
+         int *argc_p,
          char ***argv_p);
 
 extern bool
-ut_is_mode_equal_to_perf (void);
+ut_run_time_is_verbose (const ut_test_t *const t);
+
+extern bool
+ut_run_time_is_quiet (const ut_test_t *const t);
+
+extern ut_verbosity_t
+ut_run_time_verbosity (const ut_test_t *const t);
 
 
 

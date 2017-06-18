@@ -1628,11 +1628,12 @@ int
 main (int argc,
       char **argv)
 {
-  ut_init(&argc, &argv);
+  ut_prog_arg_config_t config;
+  ut_init(&config, &argc, &argv);
 
   local_parse_args(&argc, &argv);
 
-  ut_suite_t *const s = ut_suite_new("red_black_tree");
+  ut_suite_t *const s = ut_suite_new(&config, "red_black_tree");
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "creation_and_destruction", creation_and_destruction_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "probe", probe_t);
@@ -1653,9 +1654,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "creation_and_destruction_mem_dbg", creation_and_destruction_mem_dbg_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "probe_mem_dbg", probe_mem_dbg_t);
 
-  if (ut_is_mode_equal_to_perf()) {
-    ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "performance", performance_t);
-  }
+  ut_suite_add_simple_test(s, UT_MODE_PERF, UT_QUICKNESS_0001, "performance", performance_t);
 
   int failure_count = ut_suite_run(s);
 
