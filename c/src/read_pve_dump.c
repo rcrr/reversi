@@ -107,7 +107,8 @@ static int c_flag = false;
 static mop_options_long_t olist[] = {
   {"help",              'h', MOP_NONE},
   {"input-file",        'f', MOP_REQUIRED},
-  {"print-summary",     's', MOP_REQUIRED},
+  {"internals",         'i', MOP_REQUIRED},
+  {"print-summary",     's', MOP_NONE},
   {"print-pv",          'p', MOP_NONE},
   {"print-pv-as-table", 't', MOP_NONE},
   {"check-invariant",   'c', MOP_NONE},
@@ -243,6 +244,10 @@ main (int argc, char *argv[])
   if (!f_arg) {
     fprintf(stderr, "Option -f, --file is mandatory.\n");
     return -3;
+  }
+  if (s_flag && (i_flag || c_flag)) {
+    g_print("Option -s, --print-summary, is not compatible with options -i, or -c.\n");
+    return -4;
   }
 
   /* GLib command line options and argument parsing. */
