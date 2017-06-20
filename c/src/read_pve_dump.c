@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include <glib.h>
 
@@ -181,6 +182,17 @@ static const GOptionEntry entries[] =
     { NULL }
   };
 
+static bool
+file_exists (const char *const file_name)
+{
+  FILE *f;
+  if ((f = fopen(file_name, "r"))) {
+    fclose(f);
+    return true;
+  }
+  return false;
+}
+
 /**
  * @endcond
  */
@@ -241,13 +253,25 @@ main (int argc, char *argv[])
   }
 
   /* Checks command line options for consistency. */
-  if (!f_arg) {
+  if (!f_flag) {
     fprintf(stderr, "Option -f, --file is mandatory.\n");
     return -3;
+  } else {
+    if (!file_exists(f_arg)) {
+      fprintf(stderr, "Argument for option -f: file %s does not exist.\n", f_arg);
+    return -4;
+    }
   }
+
   if (s_flag && (i_flag || c_flag)) {
     g_print("Option -s, --print-summary, is not compatible with options -i, or -c.\n");
-    return -4;
+    return -5;
+  }
+
+  /* Prints summary when the specific option is on. */
+  if (s_flag) {
+    pve_summary_from_binary_file_to_stream(f_arg, stdout);
+    return 0;
   }
 
   /* GLib command line options and argument parsing. */
