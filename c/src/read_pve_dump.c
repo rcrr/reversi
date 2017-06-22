@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <glib.h>
 
@@ -239,11 +240,17 @@ main (int argc, char *argv[])
 
   /* Prints selected internals depending on the specific option switches. */
   if (i_flag) {
-    // transform i_arg to int
-    // use ... long int strtol(const char *str, char **endptr, int base)
-    // pve_internals_to_stream(pve, stdout, internals);
-    printf("To be implemented!!!\n");
-    return 0;
+    char *endptr;
+    long int i_arg_to_int = strtol(i_arg, &endptr, 10);
+    if (endptr - i_arg != strlen(i_arg)) {
+      printf("Argument for option -i: %s is invalid.\n", i_arg);
+      return -7;
+    }
+    if (i_arg_to_int < 0) {
+      printf("Argument for option -i is %ld, it must be a non negative integer.\n", i_arg_to_int);
+      return -8;
+    }
+    pve_internals_to_stream(pve, stdout, i_arg_to_int);
   }
 
   if (p_flag) {
