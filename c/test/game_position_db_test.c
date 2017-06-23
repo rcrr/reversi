@@ -55,13 +55,13 @@ static void gpdb_entry_syntax_error_print_test (void);
 /* Helper function prototypes. */
 
 static int
-contains_error (GamePositionDbSyntaxErrorLog       *syntax_error_log,
-                char                               *line,
-                GamePositionDbEntrySyntaxErrorType  error_type);
+contains_error (GamePositionDbSyntaxErrorLog *syntax_error_log,
+                char *line,
+                gpdb_entry_syntax_error_type_t error_type);
 
 static void
-assert_gpdb_load_logs_error (char                               *line,
-                             GamePositionDbEntrySyntaxErrorType  error_type);
+assert_gpdb_load_logs_error (char *line,
+                             gpdb_entry_syntax_error_type_t error_type);
 
 
 
@@ -265,9 +265,9 @@ gpdb_entry_syntax_error_print_test (void)
  */
 
 static int
-contains_error (GamePositionDbSyntaxErrorLog       *syntax_error_log,
-                char                               *line,
-                GamePositionDbEntrySyntaxErrorType  error_type)
+contains_error (GamePositionDbSyntaxErrorLog *syntax_error_log,
+                char *line,
+                gpdb_entry_syntax_error_type_t error_type)
 {
   int len;
 
@@ -282,8 +282,8 @@ contains_error (GamePositionDbSyntaxErrorLog       *syntax_error_log,
 }
 
 static void
-assert_gpdb_load_logs_error (char                               *line,
-                             GamePositionDbEntrySyntaxErrorType  error_type)
+assert_gpdb_load_logs_error (char *line,
+                             gpdb_entry_syntax_error_type_t error_type)
 {
   int                           tmp_file_handle;
   gchar                        *tmp_file_name;

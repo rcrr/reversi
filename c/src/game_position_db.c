@@ -215,7 +215,7 @@ gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
  * @return                   a pointer to a new game position database syntax error structure
  */
 GamePositionDbEntrySyntaxError *
-gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
+gpdb_entry_syntax_error_new (gpdb_entry_syntax_error_type_t error_type,
                              char *source,
                              int line_number,
                              char *line,
@@ -301,7 +301,7 @@ gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *synta
     return result;
   }
 
-  GamePositionDbEntrySyntaxErrorType et = syntax_error->error_type;
+  gpdb_entry_syntax_error_type_t et = syntax_error->error_type;
 
   gchar *em = syntax_error->error_message;
   if (!em)

@@ -4,7 +4,7 @@
  * @brief GamePositionDb module definitions.
  * @details This module defines the #GamePositionDb, and #GamePositionDbEntry entities,
  * and the errors entities arising from parsing a database source file, like
- * #GamePositionDbSyntaxErrorLog, #GamePositionDbEntrySyntaxError and #GamePositionDbEntrySyntaxErrorType.
+ * #GamePositionDbSyntaxErrorLog, #GamePositionDbEntrySyntaxError and #gpdb_entry_syntax_error_type_t.
  * This header also defines all the function prototypes that operate on them.
  *
  * @par game_position_db.h
@@ -13,7 +13,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2013, 2014 Roberto Corradini. All rights reserved.
+ * @copyright 2013, 2014, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -49,7 +49,7 @@
 typedef GSList GamePositionDbSyntaxErrorLog;
 
 /**
- * @enum GamePositionDbEntrySyntaxErrorType
+ * @enum gpdb_entry_syntax_error_type_t
  * @brief The classification of errors thta can be found parsing a database entry record.
  */
 typedef enum {
@@ -62,7 +62,7 @@ typedef enum {
   GPDB_ENTRY_SYNTAX_ERROR_PLAYER_FIELD_IS_INVALID, /**< Error on parsing the player field. */
   GPDB_ENTRY_SYNTAX_ERROR_DESC_FIELD_IS_INVALID,   /**< Error on parsing the description field. */
   GPDB_ENTRY_SYNTAX_ERROR_DUPLICATE_ENTRY_KEY      /**< Duplicate key error. */
-} GamePositionDbEntrySyntaxErrorType;
+} gpdb_entry_syntax_error_type_t;
 
 /**
  * @brief A syntax error in processing entries in a game position database.
@@ -70,11 +70,11 @@ typedef enum {
  * @details Fields must be kept private, the #gpdb_entry_syntax_error_free function frees them all.
  */
 typedef struct {
-  GamePositionDbEntrySyntaxErrorType  error_type;      /**< @brief The type of the error. */
-  gchar                              *source;          /**< @brief A string describing the input stream that is the source of he error. */
-  int                                 line_number;     /**< @brief The line number in the input stream that generated the error. */
-  gchar                              *line;            /**< @brief A string holding the incorrect line. */
-  gchar                              *error_message;   /**< @brief A detailed error message. */
+  gpdb_entry_syntax_error_type_t  error_type;      /**< @brief The type of the error. */
+  gchar                          *source;          /**< @brief A string describing the input stream that is the source of he error. */
+  int                             line_number;     /**< @brief The line number in the input stream that generated the error. */
+  gchar                          *line;            /**< @brief A string holding the incorrect line. */
+  gchar                          *error_message;   /**< @brief A detailed error message. */
 } GamePositionDbEntrySyntaxError;
 
 /**
@@ -109,7 +109,7 @@ typedef struct {
 /**********************************************************************/
 
 extern GamePositionDbEntrySyntaxError *
-gpdb_entry_syntax_error_new (GamePositionDbEntrySyntaxErrorType  error_type,
+gpdb_entry_syntax_error_new (gpdb_entry_syntax_error_type_t error_type,
                              char *source,
                              int line_number,
                              char *line,
