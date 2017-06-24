@@ -49,8 +49,8 @@
  */
 typedef struct {
   char *id;              /**< @brief It is a string used as key in the dictionary. */
-  GamePositionX gpx;     /**< @brief The game position for this entry. */
   char *description;     /**< @brief A description of this entry. */
+  GamePositionX gpx;     /**< @brief The game position for this entry. */
 } gpdb2_entry_t;
 
 /**
@@ -93,7 +93,9 @@ gpdb2_dictionary_set_description (gpdb2_dictionary_t *const db,
 /****************************************************/
 
 extern gpdb2_entry_t *
-gpdb2_entry_new (void);
+gpdb2_entry_new (const char *const id,
+                 const char *const description,
+                 const GamePositionX *const gpx);
 
 extern void
 gpdb2_entry_free (gpdb2_entry_t *entry);

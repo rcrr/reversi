@@ -82,13 +82,32 @@ gpdb2_tree_item_destroy_function (void *item,
 /*********************************************************/
 
 gpdb2_entry_t *
-gpdb2_entry_new (void)
+gpdb2_entry_new (const char *const id,
+                 const char *const description,
+                 const GamePositionX *const gpx)
 {
+  assert(id);
+  assert(gpx);
+  assert(description);
+
+  int len;
+
   gpdb2_entry_t *entry = (gpdb2_entry_t *) malloc(sizeof(gpdb2_entry_t));
   assert(entry);
 
-  entry->id = NULL;
-  entry->description = NULL;
+  len = strlen(id);
+  entry->id = malloc(len + 1);
+  assert(entry->id);
+  strcpy(entry->id, id);
+
+  len = strlen(description);
+  entry->description = malloc(len + 1);
+  assert(entry->description);
+  strcpy(entry->description, description);
+
+  entry->gpx.blacks = gpx->blacks;
+  entry->gpx.whites = gpx->whites;
+  entry->gpx.player = gpx->player;
 
   return entry;
 }
