@@ -200,25 +200,43 @@ main (int argc,
   gpdb2_dictionary_set_description(db, "changed!");
   fprintf(stdout, "Game position dictionary, description: %s\n",gpdb2_dictionary_get_description(db));
 
-  gpdb2_entry_t *e, *r, *a, *b;
+  gpdb2_entry_t *e, *r, *a, *b, *c;
+  size_t count;
 
   GamePositionX gpx1 = {0, 0, BLACK_PLAYER};
-  GamePositionX gpx2 = {0, 0, BLACK_PLAYER};
+  GamePositionX gpx2 = {0, 1, BLACK_PLAYER};
+  GamePositionX gpx3 = {0, 3, BLACK_PLAYER};
   e = gpdb2_entry_new("one", "The first entry", &gpx1);
   a = gpdb2_entry_new("one", "A duplicate, but distinct", &gpx1);
   b = gpdb2_entry_new("two", "A second entry", &gpx2);
+  c = gpdb2_entry_new("three", "A third entry", &gpx3);
 
-  r = gpdb2_dictionary_add_or_replace_entry (db, e);
+  r = gpdb2_dictionary_add_or_replace_entry(db, e);
   assert(!r);
 
-  r = gpdb2_dictionary_add_or_replace_entry (db, e);
+  r = gpdb2_dictionary_add_or_replace_entry(db, e);
   assert(!r);
 
-  r = gpdb2_dictionary_add_or_replace_entry (db, a);
+  r = gpdb2_dictionary_add_or_replace_entry(db, a);
   assert(r == e);
 
-  r = gpdb2_dictionary_add_or_replace_entry (db, b);
+  r = gpdb2_dictionary_add_or_replace_entry(db, b);
   assert(!r);
+
+  count = gpdb2_dictionary_entry_count(db);
+  fprintf(stdout, "count=%zu\n", count);
+
+  r = gpdb2_dictionary_delete_entry(db, c);
+  assert(!r);
+
+  count = gpdb2_dictionary_entry_count(db);
+  fprintf(stdout, "count=%zu\n", count);
+
+  r = gpdb2_dictionary_delete_entry(db, e);
+  assert(r);
+
+  count = gpdb2_dictionary_entry_count(db);
+  fprintf(stdout, "count=%zu\n", count);
 
   gpdb2_dictionary_free(db);
 

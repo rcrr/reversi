@@ -90,6 +90,13 @@ extern gpdb2_entry_t *
 gpdb2_dictionary_add_or_replace_entry (gpdb2_dictionary_t *const db,
                                        gpdb2_entry_t *entry);
 
+extern size_t
+gpdb2_dictionary_entry_count (const gpdb2_dictionary_t *const db);
+
+extern gpdb2_entry_t *
+gpdb2_dictionary_delete_entry (gpdb2_dictionary_t *const db,
+                               const gpdb2_entry_t *const entry);
+
 
 
 /****************************************************/

@@ -190,6 +190,25 @@ gpdb2_dictionary_add_or_replace_entry (gpdb2_dictionary_t *const db,
   return replaced;
 }
 
+gpdb2_entry_t *
+gpdb2_dictionary_delete_entry (gpdb2_dictionary_t *const db,
+                               const gpdb2_entry_t *const entry)
+{
+  assert(db);
+  assert(entry);
+
+  gpdb2_entry_t *deleted = rbt_delete(db->table, entry);
+
+  return deleted;
+}
+
+size_t
+gpdb2_dictionary_entry_count (const gpdb2_dictionary_t *const db)
+{
+  assert(db);
+  return rbt_count(db->table);
+}
+
 
 
 /*
