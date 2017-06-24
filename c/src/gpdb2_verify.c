@@ -200,6 +200,26 @@ main (int argc,
   gpdb2_dictionary_set_description(db, "changed!");
   fprintf(stdout, "Game position dictionary, description: %s\n",gpdb2_dictionary_get_description(db));
 
+  gpdb2_entry_t *e, *r, *a, *b;
+
+  GamePositionX gpx1 = {0, 0, BLACK_PLAYER};
+  GamePositionX gpx2 = {0, 0, BLACK_PLAYER};
+  e = gpdb2_entry_new("one", "The first entry", &gpx1);
+  a = gpdb2_entry_new("one", "A duplicate, but distinct", &gpx1);
+  b = gpdb2_entry_new("two", "A second entry", &gpx2);
+
+  r = gpdb2_dictionary_add_or_replace_entry (db, e);
+  assert(!r);
+
+  r = gpdb2_dictionary_add_or_replace_entry (db, e);
+  assert(!r);
+
+  r = gpdb2_dictionary_add_or_replace_entry (db, a);
+  assert(r == e);
+
+  r = gpdb2_dictionary_add_or_replace_entry (db, b);
+  assert(!r);
+
   gpdb2_dictionary_free(db);
 
   fprintf(stdout, "GPDB2: good bye user!\n");

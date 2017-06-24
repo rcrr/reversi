@@ -178,6 +178,18 @@ gpdb2_dictionary_set_description (gpdb2_dictionary_t *const db,
   }
 }
 
+gpdb2_entry_t *
+gpdb2_dictionary_add_or_replace_entry (gpdb2_dictionary_t *const db,
+                                       gpdb2_entry_t *entry)
+{
+  assert(db);
+  assert(entry);
+
+  gpdb2_entry_t *replaced = rbt_replace(db->table, entry);
+
+  return replaced;
+}
+
 
 
 /*

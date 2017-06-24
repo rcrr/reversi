@@ -86,6 +86,10 @@ extern void
 gpdb2_dictionary_set_description (gpdb2_dictionary_t *const db,
                                   const char *const description);
 
+extern gpdb2_entry_t *
+gpdb2_dictionary_add_or_replace_entry (gpdb2_dictionary_t *const db,
+                                       gpdb2_entry_t *entry);
+
 
 
 /****************************************************/
