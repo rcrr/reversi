@@ -57,6 +57,15 @@ static const char field_separator = ';';
  * Prototypes for internal functions.
  */
 
+static int
+gpdb2_compare_entries (const void *item_a,
+                       const void *item_b,
+                       void *param);
+
+static void
+gpdb2_tree_item_destroy_function (void *item,
+                                  void *param);
+
 
 /**
  * @endcond
@@ -68,8 +77,36 @@ static const char field_separator = ';';
  * Public functions.
  */
 
+/*********************************************************/
+/* Function implementations for the gpdb2_entry_t entity. */
+/*********************************************************/
+
+gpdb2_entry_t *
+gpdb2_entry_new (void)
+{
+  gpdb2_entry_t *entry = (gpdb2_entry_t *) malloc(sizeof(gpdb2_entry_t));
+  assert(entry);
+
+  entry->id = NULL;
+  entry->description = NULL;
+
+  return entry;
+}
+
+void
+gpdb2_entry_free (gpdb2_entry_t *entry)
+{
+  if (entry) {
+    free(entry->id);
+    free(entry->description);
+    free(entry);
+  }
+}
+
+
+
 /**************************************************************/
-/* Function implementations for the gpdb_dictionary_t entity. */
+/* Function implementations for the gpdb2_dictionary_t entity. */
 /**************************************************************/
 
 gpdb2_dictionary_t *
@@ -78,8 +115,15 @@ gpdb2_dictionary_new (const char *const description)
   gpdb2_dictionary_t *db = (gpdb2_dictionary_t*) malloc(sizeof(gpdb2_dictionary_t));
   assert(db);
 
+  /* Sets description. */
   db->description = NULL;
   gpdb2_dictionary_set_description(db, description);
+
+  /* Creates a new empty table. */
+  rbt_item_compare_f *cmp = gpdb2_compare_entries;
+  void *cmp_param = NULL;
+  mem_allocator_t *alloc = NULL; // when NULL default allocator is used.
+  db->table = rbt_create(cmp, cmp_param, alloc);
 
   return db;
 }
@@ -89,6 +133,7 @@ gpdb2_dictionary_free (gpdb2_dictionary_t *db)
 {
   if (db) {
     if (db->description) free(db->description);
+    rbt_destroy(db->table, gpdb2_tree_item_destroy_function);
     free(db);
   }
 }
@@ -112,4 +157,31 @@ gpdb2_dictionary_set_description (gpdb2_dictionary_t *const db,
   } else {
     db->description = NULL;
   }
+}
+
+
+
+/*
+ * Internal functions.
+ */
+
+static int
+gpdb2_compare_entries (const void *item_a,
+                       const void *item_b,
+                       void *param)
+{
+  assert(item_a && item_b);
+  const gpdb2_entry_t *a = (gpdb2_entry_t *) item_a;
+  const gpdb2_entry_t *b = (gpdb2_entry_t *) item_b;
+  assert(a->id && b->id);
+
+  return strcmp(a->id, b->id);
+}
+
+static void
+gpdb2_tree_item_destroy_function (void *item,
+                                  void *param)
+{
+  gpdb2_entry_t *entry = (gpdb2_entry_t *) item;
+  gpdb2_entry_free(entry);
 }

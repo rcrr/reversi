@@ -37,9 +37,21 @@
 #ifndef GAME_POSITION_DB2_H
 #define GAME_POSITION_DB2_H
 
+#include "red_black_tree.h"
 #include "board.h"
 
 
+
+/**
+ * @brief An `Entry` collects the #GamePositionX data with a description and an unique key.
+ *
+ * @details Fields must be kept private, the #gpdb_entry_free function frees them all.
+ */
+typedef struct {
+  char *id;              /**< @brief It is a string used as key in the dictionary. */
+  GamePositionX gpx;     /**< @brief The game position for this entry. */
+  char *description;     /**< @brief A description of this entry. */
+} gpdb2_entry_t;
 
 /**
  * @brief A database of #gpdb2_entry_t.
@@ -51,8 +63,8 @@
  * Fields must be kept private, the #gpdb2_free function frees them all.
  */
 typedef struct {
-  //GTree  *tree;         /**< @brief The underlaying tree structure. */
-  char  *description;     /**< @brief The description of the datatbase. */
+  rbt_table_t *table;    /**< @brief The underlaying tree structure. */
+  char *description;     /**< @brief The description of the datatbase. */
 } gpdb2_dictionary_t;
 
 
@@ -73,6 +85,18 @@ gpdb2_dictionary_get_description (const gpdb2_dictionary_t *const db);
 extern void
 gpdb2_dictionary_set_description (gpdb2_dictionary_t *const db,
                                   const char *const description);
+
+
+
+/****************************************************/
+/* Function prototypes for the gpdb2_entry_t entity. */
+/****************************************************/
+
+extern gpdb2_entry_t *
+gpdb2_entry_new (void);
+
+extern void
+gpdb2_entry_free (gpdb2_entry_t *entry);
 
 
 
