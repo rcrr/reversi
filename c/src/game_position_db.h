@@ -2,7 +2,7 @@
  * @file
  *
  * @brief GamePositionDb module definitions.
- * @details This module defines the #GamePositionDb, and #GamePositionDbEntry entities,
+ * @details This module defines the #GamePositionDb, and #gpdb_entry_t entities,
  * and the errors entities arising from parsing a database source file, like
  * #gpdb_syntax_error_log_t, #gpdb_entry_syntax_error_t and #gpdb_entry_syntax_error_type_t.
  * This header also defines all the function prototypes that operate on them.
@@ -86,10 +86,10 @@ typedef struct {
   char          *id;                /**< @brief It is a string used as key in the dictionary. */
   GamePositionX *gpx;               /**< @brief The game position for this entry. */
   char          *desc;              /**< @brief A description of this entry. */
-} GamePositionDbEntry;
+} gpdb_entry_t;
 
 /**
- * @brief A database of #GamePositionDbEntry.
+ * @brief A database of #gpdb_entry_t.
  *
  * @details Entries are organized in a dictionary having has key the id field of each entry.
  * Duplicated keys are not allowed. Trying to insert a key already loaded generates
@@ -159,12 +159,12 @@ extern void
 gpdb_free (GamePositionDb *db,
            gboolean free_segment);
 
-extern GamePositionDbEntry *
+extern gpdb_entry_t *
 gpdb_lookup (GamePositionDb *db,
              gchar *entry_id);
 
 extern GamePositionX *
-gpdb_get_gpx (GamePositionDbEntry *entry);
+gpdb_get_gpx (gpdb_entry_t *entry);
 
 extern gchar *
 gpdb_print (GamePositionDb *db);
@@ -176,18 +176,18 @@ extern int
 gpdb_length (GamePositionDb *db);
 
 /***********************************************************/
-/* Function prototypes for the GamePositionDbEntry entity. */
+/* Function prototypes for the gpdb_entry_t entity. */
 /***********************************************************/
 
-extern GamePositionDbEntry *
+extern gpdb_entry_t *
 gpdb_entry_new (void);
 
 extern void
-gpdb_entry_free (GamePositionDbEntry *entry,
+gpdb_entry_free (gpdb_entry_t *entry,
                  gboolean free_segment);
 
 extern gchar *
-gpdb_entry_print (GamePositionDbEntry *entry);
+gpdb_entry_print (gpdb_entry_t *entry);
 
 
 #endif /* GAME_POSITION_DB_H */

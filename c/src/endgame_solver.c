@@ -315,7 +315,7 @@ main (int argc, char *argv[])
   gpdb_syntax_error_log_t *syntax_error_log;
   FILE *fp;
 
-  GamePositionDbEntry *entry = NULL;
+  gpdb_entry_t *entry = NULL;
   int solver_index = -1;
 
   endgame_solver_env_t env =

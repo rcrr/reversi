@@ -158,16 +158,16 @@ gpdb_load_returned_errors_test (void)
 static void
 gpdb_load_test (void)
 {
-  GamePositionDb               *db;
+  GamePositionDb *db;
   gpdb_syntax_error_log_t *syntax_error_log;
-  FILE                         *fp;
-  GError                       *error;
-  gchar                        *source;
-  int                           db_length;
-  int                           error_log_length;
-  int                           expected_db_length;
-  int                           expected_error_log_length;
-  GamePositionDbEntry          *entry;
+  FILE *fp;
+  GError *error;
+  gchar *source;
+  int db_length;
+  int error_log_length;
+  int expected_db_length;
+  int expected_error_log_length;
+  gpdb_entry_t *entry;
 
 
   source = g_strdup("db/gpdb-test-db.txt");

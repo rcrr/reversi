@@ -61,7 +61,7 @@ static gint
 gpdb_extract_entry_from_line (gchar *line,
                               int line_number,
                               gchar *source,
-                              GamePositionDbEntry **p_entry,
+                              gpdb_entry_t **p_entry,
                               gpdb_entry_syntax_error_t **p_syntax_error);
 
 static gint
@@ -81,7 +81,7 @@ gpdb_syntax_error_log_destroy_function (gpointer data);
 
 static gboolean
 gpdb_print_entry_helper_fn (gchar *key,
-                            GamePositionDbEntry *entry,
+                            gpdb_entry_t *entry,
                             GString **p_msg);
 
 /**
@@ -441,14 +441,14 @@ gpdb_free (GamePositionDb *db,
  * @param [in] entry_id the entry key to search for
  * @return              the matching db entry or null when the query fails
  */
-GamePositionDbEntry *
+gpdb_entry_t *
 gpdb_lookup (GamePositionDb *db,
              gchar *entry_id)
 {
   g_assert(db);
 
-  GamePositionDbEntry *entry;
-  entry = (GamePositionDbEntry *) g_tree_lookup(db->tree, entry_id);
+  gpdb_entry_t *entry;
+  entry = (gpdb_entry_t *) g_tree_lookup(db->tree, entry_id);
   return entry;
 }
 
@@ -500,7 +500,7 @@ gpdb_load (FILE *fp,
     }
 
     gpdb_entry_syntax_error_t *syntax_error = NULL;
-    GamePositionDbEntry *entry = NULL;
+    gpdb_entry_t *entry = NULL;
     gpdb_extract_entry_from_line(line, line_number, source, &entry, &syntax_error);
     if (entry) {
       if (g_tree_lookup(tree, entry->id)) {
@@ -629,7 +629,7 @@ gpdb_length (GamePositionDb *db)
 
 
 /****************************************************************/
-/* Function implementations for the GamePositionDbEntry entity. */
+/* Function implementations for the gpdb_entry_t entity. */
 /****************************************************************/
 
 /**
@@ -640,13 +640,13 @@ gpdb_length (GamePositionDb *db)
  *
  * @return a pointer to a new empty game position database entry structure
  */
-GamePositionDbEntry *
+gpdb_entry_t *
 gpdb_entry_new (void)
 {
-  GamePositionDbEntry *entry;
-  static const size_t size_of_entry = sizeof(GamePositionDbEntry);
+  gpdb_entry_t *entry;
+  static const size_t size_of_entry = sizeof(gpdb_entry_t);
 
-  entry = (GamePositionDbEntry *) g_malloc0(size_of_entry);
+  entry = (gpdb_entry_t *) g_malloc0(size_of_entry);
   g_assert(entry);
 
   return entry;
@@ -661,7 +661,7 @@ gpdb_entry_new (void)
  * @param [in]     free_segment if yes also frees the data stored in the db
  */
 void
-gpdb_entry_free (GamePositionDbEntry *entry,
+gpdb_entry_free (gpdb_entry_t *entry,
                  gboolean free_segment)
 {
   if (entry) {
@@ -684,7 +684,7 @@ gpdb_entry_free (GamePositionDbEntry *entry,
  * @return           a message describing the entry structure
  */
 gchar *
-gpdb_entry_print (GamePositionDbEntry *entry)
+gpdb_entry_print (gpdb_entry_t *entry)
 {
   gchar   *result;
   GString *msg;
@@ -719,7 +719,7 @@ gpdb_entry_print (GamePositionDbEntry *entry)
  * @return           the game position relative to the given db entry
  */
 GamePositionX *
-gpdb_get_gpx (GamePositionDbEntry *entry)
+gpdb_get_gpx (gpdb_entry_t *entry)
 {
   g_assert(entry);
   return game_position_x_clone(entry->gpx);
@@ -774,7 +774,7 @@ static gint
 gpdb_extract_entry_from_line (gchar                           *line,
                               int                              line_number,
                               gchar                           *source,
-                              GamePositionDbEntry            **p_entry,
+                              gpdb_entry_t            **p_entry,
                               gpdb_entry_syntax_error_t **p_syntax_error)
 {
   gchar               *record;
@@ -783,7 +783,7 @@ gpdb_extract_entry_from_line (gchar                           *line,
   gchar               *cp0;
   gchar               *cp1;
   GString             *error_msg;
-  GamePositionDbEntry *entry;
+  gpdb_entry_t *entry;
   SquareSet            blacks;
   SquareSet            whites;
   Player               player;
@@ -994,7 +994,7 @@ gpdb_extract_entry_from_line (gchar                           *line,
 static void
 gpdb_tree_value_destroy_function (gpointer data)
 {
-  GamePositionDbEntry *entry = (GamePositionDbEntry *) data;
+  gpdb_entry_t *entry = (gpdb_entry_t *) data;
   gpdb_entry_free(entry, TRUE);
 }
 
@@ -1041,7 +1041,7 @@ gpdb_syntax_error_log_destroy_function (gpointer data)
  */
 static gboolean
 gpdb_print_entry_helper_fn (gchar *key,
-                            GamePositionDbEntry *entry,
+                            gpdb_entry_t *entry,
                             GString **p_msg)
 {
   GString *msg;

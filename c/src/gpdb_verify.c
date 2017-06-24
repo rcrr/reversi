@@ -144,7 +144,7 @@ main (int argc, char *argv[])
 
   /* Lookup for a given key. */
   if (lookup_entry) {
-    GamePositionDbEntry *entry = gpdb_lookup(db, lookup_entry);
+    gpdb_entry_t *entry = gpdb_lookup(db, lookup_entry);
     if (entry) {
       gchar *tmp = gpdb_entry_print(entry);
       g_print("%s", tmp);
