@@ -423,10 +423,10 @@ game_position_ab_solve_test (GamePositionDbFixture *fixture,
 static GamePositionDb *
 gpdb_setup (gchar *source)
 {
-  GamePositionDb               *db;
-  GamePositionDbSyntaxErrorLog *syntax_error_log;
-  FILE                         *fp;
-  GError                       *error;
+  GamePositionDb *db;
+  gpdb_syntax_error_log_t *syntax_error_log;
+  FILE *fp;
+  GError *error;
 
   /* Loads the game position database. */
   fp = fopen(source, "r");

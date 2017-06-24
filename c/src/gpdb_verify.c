@@ -72,15 +72,15 @@ static GOptionEntry entries[] =
 int
 main (int argc, char *argv[])
 {
-  GamePositionDb               *db;
-  GamePositionDbSyntaxErrorLog *syntax_error_log;
-  FILE                         *fp;
-  GError                       *error;
-  gchar                        *source;
-  int                           number_of_errors;
+  GamePositionDb *db;
+  gpdb_syntax_error_log_t *syntax_error_log;
+  FILE *fp;
+  GError *error;
+  gchar *source;
+  int number_of_errors;
 
   GOptionContext *context;
-  GOptionGroup   *option_group;
+  GOptionGroup *option_group;
 
   error = NULL;
 

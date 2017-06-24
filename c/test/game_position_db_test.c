@@ -55,7 +55,7 @@ static void gpdb_entry_syntax_error_print_test (void);
 /* Helper function prototypes. */
 
 static int
-contains_error (GamePositionDbSyntaxErrorLog *syntax_error_log,
+contains_error (gpdb_syntax_error_log_t *syntax_error_log,
                 char *line,
                 gpdb_entry_syntax_error_type_t error_type);
 
@@ -159,7 +159,7 @@ static void
 gpdb_load_test (void)
 {
   GamePositionDb               *db;
-  GamePositionDbSyntaxErrorLog *syntax_error_log;
+  gpdb_syntax_error_log_t *syntax_error_log;
   FILE                         *fp;
   GError                       *error;
   gchar                        *source;
@@ -265,7 +265,7 @@ gpdb_entry_syntax_error_print_test (void)
  */
 
 static int
-contains_error (GamePositionDbSyntaxErrorLog *syntax_error_log,
+contains_error (gpdb_syntax_error_log_t *syntax_error_log,
                 char *line,
                 gpdb_entry_syntax_error_type_t error_type)
 {
@@ -291,7 +291,7 @@ assert_gpdb_load_logs_error (char *line,
   GIOChannel                   *channel;
   gsize                         bytes_written;
   GamePositionDb               *db;
-  GamePositionDbSyntaxErrorLog *syntax_error_log;
+  gpdb_syntax_error_log_t *syntax_error_log;
   FILE                         *tmp_fp;
 
   /* Prepare the new tmp file. */

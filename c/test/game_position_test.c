@@ -246,10 +246,10 @@ gpdb_fixture_setup (GamePositionDbFixture *fixture,
 {
   gchar *source = g_strdup("db/gpdb-sample-games.txt");
 
-  GamePositionDb               *db;
-  GamePositionDbSyntaxErrorLog *syntax_error_log;
-  FILE                         *fp;
-  GError                       *error;
+  GamePositionDb *db;
+  gpdb_syntax_error_log_t *syntax_error_log;
+  FILE *fp;
+  GError *error;
 
   /* Loads the game position database. */
   fp = fopen(source, "r");

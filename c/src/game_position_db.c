@@ -95,7 +95,7 @@ gpdb_print_entry_helper_fn (gchar *key,
  */
 
 /*************************************************************************/
-/* Function implementations for the GamePositionDbSyntaxErrorLog entity. */
+/* Function implementations for the gpdb_syntax_error_log_t entity. */
 /*************************************************************************/
 
 /**
@@ -106,10 +106,10 @@ gpdb_print_entry_helper_fn (gchar *key,
  *
  * @return a pointer to a new syntax error log
  */
-GamePositionDbSyntaxErrorLog *
+gpdb_syntax_error_log_t *
 gpdb_syntax_error_log_new (void)
 {
-  GamePositionDbSyntaxErrorLog *syntax_error_log;
+  gpdb_syntax_error_log_t *syntax_error_log;
   syntax_error_log = NULL;
   return syntax_error_log;
 }
@@ -125,7 +125,7 @@ gpdb_syntax_error_log_new (void)
  * @param [in,out] syntax_error_log the pointer to be deallocated
  */
 void
-gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log)
+gpdb_syntax_error_log_free (gpdb_syntax_error_log_t *syntax_error_log)
 {
   if (syntax_error_log) {
     g_slist_free_full(syntax_error_log, (GDestroyNotify) gpdb_syntax_error_log_destroy_function);
@@ -144,7 +144,7 @@ gpdb_syntax_error_log_free (GamePositionDbSyntaxErrorLog *syntax_error_log)
  * @return                      a message describing the error log structure
  */
 gchar *
-gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
+gpdb_syntax_error_log_print (gpdb_syntax_error_log_t *syntax_error_log)
 {
   gchar   *result;
   GString *msg;
@@ -180,7 +180,7 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
  * @return                      the length of the error log
  */
 int
-gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
+gpdb_syntax_error_log_length (gpdb_syntax_error_log_t *syntax_error_log)
 {
   return g_slist_length(syntax_error_log);
 }
@@ -469,7 +469,7 @@ int
 gpdb_load (FILE *fp,
            gchar *source,
            GamePositionDb *db,
-           GamePositionDbSyntaxErrorLog **p_syntax_error_log,
+           gpdb_syntax_error_log_t **p_syntax_error_log,
            GError **p_e)
 {
   GIOChannel *channel;

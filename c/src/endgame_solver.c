@@ -312,7 +312,7 @@ int
 main (int argc, char *argv[])
 {
   GamePositionDb *db;
-  GamePositionDbSyntaxErrorLog *syntax_error_log;
+  gpdb_syntax_error_log_t *syntax_error_log;
   FILE *fp;
 
   GamePositionDbEntry *entry = NULL;
