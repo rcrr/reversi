@@ -75,8 +75,7 @@ llist_new (llist_compare_f cmp)
  * @param [in,out] l the pointer to be deallocated
  */
 void
-llist_free (l)
-     llist_t *l;
+llist_free (llist_t *l)
 {
   if (!l) return;
   llist_elm_t *e = l->head;
@@ -94,8 +93,7 @@ llist_free (l)
  * @param [in] l the list
  */
 size_t
-llist_length (l)
-     const llist_t *const l;
+llist_length (const llist_t *const l)
 {
   return l->length;
 }
@@ -114,9 +112,8 @@ llist_length (l)
  * @param [in]     d the data referenced by the added element
  */
 void
-llist_add (l, d)
-     llist_t *const l;
-     void *const d;
+llist_add (llist_t *const l,
+           void *const d)
 {
   assert(l);
   llist_elm_t *const e = llist_elm_new();
@@ -136,9 +133,8 @@ llist_add (l, d)
  * @param [in]     d the data of the element to remove
  */
 void
-llist_remove (l, d)
-     llist_t *const l;
-     void *const d;
+llist_remove (llist_t *const l,
+              void *const d)
 {
   assert(l);
   llist_elm_t **e = &(l->head);
@@ -166,11 +162,10 @@ llist_remove (l, d)
  * @param [in,out] aux_data shared auxiliary data
  */
 void
-llist_foreach (l, fn, aux_data)
-     llist_t *const l;
-     void (* fn) (void *const elm_data,
-                  void *const aux_data);
-     void *const aux_data;
+llist_foreach (llist_t *const l,
+               void (* fn) (void *const elm_data,
+                            void *const aux_data),
+               void *const aux_data)
 {
   assert(l);
   for (llist_elm_t *e = l->head; e; e = e->next) {
@@ -187,9 +182,8 @@ llist_foreach (l, fn, aux_data)
  * @return           the element, or NULL when n is off the end of the list
  */
 llist_elm_t *
-llist_nth (l, n)
-     llist_t *const l;
-     const size_t n;
+llist_nth (llist_t *const l,
+           const size_t n)
 {
   assert(l);
   if (n > l->length) return NULL;
@@ -209,9 +203,8 @@ llist_nth (l, n)
  * @return           the element's data, or NULL when n is off the end of the list
  */
 void *
-llist_nth_data (l, n)
-     llist_t *const l;
-     const size_t n;
+llist_nth_data (llist_t *const l,
+                const size_t n)
 {
   assert(l);
   if (n > l->length) return NULL;
@@ -239,10 +232,9 @@ llist_nth_data (l, n)
  * @return           the found element or NULL
  */
 llist_elm_t *
-llist_find (l, d, i)
-     llist_t *const l;
-     void *const d;
-     size_t *i;
+llist_find (llist_t *const l,
+            void *const d,
+            size_t *i)
 {
   assert(l);
   llist_elm_t *e;
@@ -267,10 +259,9 @@ llist_find (l, d, i)
  * @param [in]     i the position to insert the element
  */
 void
-llist_insert_at_position (l, d, i)
-     llist_t *const l;
-     void *const d;
-     const size_t i;
+llist_insert_at_position (llist_t *const l,
+                          void *const d,
+                          const size_t i)
 {
   assert(l);
   const size_t position = (i > l->length) ? l->length : i;
@@ -294,10 +285,9 @@ llist_insert_at_position (l, d, i)
  * @param [in]     d the data to insert
  */
 void
-llist_insert_after_elm (l, p, d)
-     llist_t *const l;
-     llist_elm_t *const p;
-     void *const d;
+llist_insert_after_elm (llist_t *const l,
+                        llist_elm_t *const p,
+                        void *const d)
 {
   assert(l);
   for (llist_elm_t *e = l->head; e; e = e->next) {
@@ -323,10 +313,9 @@ llist_insert_after_elm (l, p, d)
  * @param [in]     d the data to insert
  */
 void
-llist_insert_before_elm (l, n, d)
-     llist_t *const l;
-     llist_elm_t *const n;
-     void *const d;
+llist_insert_before_elm (llist_t *const l,
+                         llist_elm_t *const n,
+                         void *const d)
 {
   assert(l);
   for (llist_elm_t **e = &(l->head); *e; e = &((*e)->next)) {
@@ -369,9 +358,8 @@ llist_last_elm (l)
  * @param [in,out] lb the second linked list
  */
 void
-llist_concat (la, lb)
-     llist_t *const la;
-     llist_t *const lb;
+llist_concat (llist_t *const la,
+              llist_t *const lb)
 {
   assert(la);
   if (!lb) return;
@@ -391,8 +379,7 @@ llist_concat (la, lb)
  * @param [in,out] l the linked list
  */
 void
-llist_reverse (l)
-     llist_t *const l;
+llist_reverse (llist_t *const l)
 {
   assert(l);
   llist_elm_t *next;
@@ -415,8 +402,7 @@ llist_reverse (l)
  * @param [in,out] l the linked list
  */
 void
-llist_insertion_sort (l)
-     llist_t *const l;
+llist_insertion_sort (llist_t *const l)
 {
   assert(l);
   assert(l->cmp);
@@ -449,8 +435,7 @@ llist_insertion_sort (l)
  * @param [in,out] l the linked list
  */
 void
-llist_adv_insertion_sort (l)
-     llist_t *const l;
+llist_adv_insertion_sort (llist_t *const l)
 {
   assert(l);
   assert(l->cmp);
@@ -508,8 +493,7 @@ llist_adv_insertion_sort (l)
  * @param [in,out] l the linked list
  */
 void
-llist_merge_sort (l)
-     llist_t *const l;
+llist_merge_sort (llist_t *const l)
 {
   assert(l);
   assert(l->cmp);
