@@ -38,8 +38,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <glib.h>
-
 #include "game_tree_utils.h"
 #include "main_option_parse.h"
 
@@ -215,7 +213,7 @@ main (int argc, char *argv[])
   }
 
   if (s_flag && (i_flag || c_flag)) {
-    g_print("Option -s, --print-summary, is not compatible with options -i, or -c.\n");
+    fprintf(stderr, "Option -s, --print-summary, is not compatible with options -i, or -c.\n");
     return -5;
   }
 
