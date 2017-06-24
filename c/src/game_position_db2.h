@@ -40,4 +40,40 @@
 #include "board.h"
 
 
+
+/**
+ * @brief A database of #gpdb2_entry_t.
+ *
+ * @details Entries are organized in a dictionary having has key the id field of each entry.
+ * Duplicated keys are not allowed. Trying to insert a key already loaded generates
+ * an error added to the log.
+ *
+ * Fields must be kept private, the #gpdb2_free function frees them all.
+ */
+typedef struct {
+  //GTree  *tree;         /**< @brief The underlaying tree structure. */
+  char  *description;     /**< @brief The description of the datatbase. */
+} gpdb2_dictionary_t;
+
+
+
+/*********************************************************/
+/* Function prototypes for the gpdb_dictionary_t entity. */
+/*********************************************************/
+
+extern gpdb2_dictionary_t *
+gpdb2_dictionary_new (const char *const description);
+
+extern void
+gpdb2_dictionary_free (gpdb2_dictionary_t *db);
+
+extern char *
+gpdb2_dictionary_get_description (const gpdb2_dictionary_t *const db);
+
+extern void
+gpdb2_dictionary_set_description (gpdb2_dictionary_t *const db,
+                                  const char *const description);
+
+
+
 #endif /* GAME_POSITION_DB2_H */

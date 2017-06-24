@@ -67,3 +67,49 @@ static const char field_separator = ';';
 /*
  * Public functions.
  */
+
+/**************************************************************/
+/* Function implementations for the gpdb_dictionary_t entity. */
+/**************************************************************/
+
+gpdb2_dictionary_t *
+gpdb2_dictionary_new (const char *const description)
+{
+  gpdb2_dictionary_t *db = (gpdb2_dictionary_t*) malloc(sizeof(gpdb2_dictionary_t));
+  assert(db);
+
+  db->description = NULL;
+  gpdb2_dictionary_set_description(db, description);
+
+  return db;
+}
+
+void
+gpdb2_dictionary_free (gpdb2_dictionary_t *db)
+{
+  if (db) {
+    if (db->description) free(db->description);
+    free(db);
+  }
+}
+
+char *
+gpdb2_dictionary_get_description (const gpdb2_dictionary_t *const db)
+{
+  return db->description;
+}
+
+void
+gpdb2_dictionary_set_description (gpdb2_dictionary_t *const db,
+                                  const char *const description)
+{
+  if (db->description) free(db->description);
+  if (description) {
+    int len = strlen(description);
+    db->description = malloc(len + 1);
+    assert(db->description);
+    strcpy(db->description, description);
+  } else {
+    db->description = NULL;
+  }
+}

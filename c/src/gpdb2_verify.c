@@ -130,6 +130,8 @@ int
 main (int argc,
       char *argv[])
 {
+  FILE *fp;
+
   int opt;
   int oindex = -1;
 
@@ -186,6 +188,21 @@ main (int argc,
   }
 
   fprintf(stdout, "GPDB2: hello user!\n");
+
+  /* Opens the source file for reading. */
+  fp = fopen(f_arg, "r");
+
+  gpdb2_dictionary_t *db = gpdb2_dictionary_new(f_arg);
+
+  fclose(fp);
+
+  fprintf(stdout, "Game position dictionary, description: %s\n",gpdb2_dictionary_get_description(db));
+  gpdb2_dictionary_set_description(db, "changed!");
+  fprintf(stdout, "Game position dictionary, description: %s\n",gpdb2_dictionary_get_description(db));
+
+  gpdb2_dictionary_free(db);
+
+  fprintf(stdout, "GPDB2: good bye user!\n");
 
   return 0;
 }
