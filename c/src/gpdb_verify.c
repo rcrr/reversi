@@ -34,31 +34,88 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <glib.h>
 
 #include "game_position_db.h"
+#include "main_option_parse.h"
 
 
 /**
  * @cond
  */
 
-static gchar    *input_file    = NULL;
-static gboolean  print_summary = FALSE;
-static gboolean  log_entries   = FALSE;
-static gboolean  log_errors    = FALSE;
-static gchar    *lookup_entry  = NULL;
+/* Static constants. */
 
-static GOptionEntry entries[] =
-  {
-    { "file",          'f', 0, G_OPTION_ARG_FILENAME, &input_file,    "Input file name", NULL },
-    { "print-summary", 'p', 0, G_OPTION_ARG_NONE,     &print_summary, "Print summary",   NULL },
-    { "log-entries",   'l', 0, G_OPTION_ARG_NONE,     &log_entries,   "Log entries",     NULL },
-    { "log-errors",    'e', 0, G_OPTION_ARG_NONE,     &log_errors,    "Log errors",      NULL },
-    { "lookup-entry",  'q', 0, G_OPTION_ARG_STRING,   &lookup_entry,  "Lookup entry",    NULL },
-    { NULL }
-  };
+static const mop_options_long_t olist[] = {
+  {"help",              'h', MOP_NONE},
+  {"file",              'f', MOP_REQUIRED},
+  {"print-summary",     'p', MOP_NONE},
+  {"log-entries",       'l', MOP_NONE},
+  {"log-errors",        'e', MOP_NONE},
+  {"lookup-entry",      'q', MOP_REQUIRED},
+  {0, 0, 0}
+};
+
+static const char *documentation =
+  "Usage:\n"
+  "  gpdb_verify [OPTION...] - Verify a database of game positions\n"
+  "\n"
+  "Options:\n"
+  "  -h, --help              Show help options\n"
+  "  -f, --file              Input file name   - Mandatory\n"
+  "  -p, --print-summary     Print summary     - Reports entry count, errors, and file description\n"
+  "  -l, --log-entries       Log entries       - Logs all entries\n"
+  "  -e, --log-errors        Log errors        - Logs syntax errors\n"
+  "  -q, --lookup-entry      Lookup entry      - Displays an entry when it is found\n"
+  "\n"
+  "Description:\n"
+  "  Reads, verifies the proper format of, and quaries game position database files.\n"
+  "\n"
+  "Author:\n"
+  "   Written by Roberto Corradini <rob_corradini@yahoo.it>\n"
+  "\n"
+  "Copyright (c) 2013, 2014, 2017 Roberto Corradini. All rights reserved.\n"
+  "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
+  "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n"
+  ;
+
+
+
+/* Static variables. */
+
+static mop_options_t options;
+
+static int h_flag = false;
+
+static int f_flag = false;
+static char *f_arg = NULL;
+
+static int p_flag = false;
+static int l_flag = false;
+static int e_flag = false;
+
+static int q_flag = false;
+static char *q_arg = NULL;
+
+
+
+/* Static functions. */
+
+static bool
+file_exists (const char *const file_name)
+{
+  FILE *f;
+  if ((f = fopen(file_name, "r"))) {
+    fclose(f);
+    return true;
+  }
+  return false;
+}
 
 /**
  * @endcond
@@ -76,52 +133,80 @@ main (int argc, char *argv[])
   gpdb_syntax_error_log_t *syntax_error_log;
   FILE *fp;
   GError *error;
-  gchar *source;
   int number_of_errors;
 
-  GOptionContext *context;
-  GOptionGroup *option_group;
+  int opt;
+  int oindex = -1;
 
-  error = NULL;
+  mop_init(&options, argc, argv);
+  while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
+    switch (opt) {
+    case 'h':
+      h_flag = true;
+      break;
+    case 'f':
+      f_flag = true;
+      f_arg = options.optarg;
+      break;
+    case 'p':
+      p_flag = true;
+      break;
+    case 'l':
+      l_flag = true;
+      break;
+    case 'e':
+      e_flag = true;
+      break;
+    case 'q':
+      q_flag = true;
+      q_arg = options.optarg;
+      break;
+    case ':':
+      fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
+      return -1;
+    case '?':
+      fprintf(stderr, "Option parsing failed: %s\n", options.errmsg);
+      return -2;
+    default:
+      fprintf(stderr, "Unexpectd error. Aborting ...\n");
+      abort();
+    }
+  }
 
-  /* GLib command line options and argument parsing. */
-  option_group = g_option_group_new("name", "description", "help_description", NULL, NULL);
-  context = g_option_context_new ("- Verify a database of game positions");
-  g_option_context_add_main_entries (context, entries, NULL);
-  g_option_context_add_group (context, option_group);
-  if (!g_option_context_parse (context, &argc, &argv, &error)) {
-    g_print("Option parsing failed: %s\n", error->message);
-    return -1;
+  /* Prints documentation and returns, when help option is active. */
+  if (h_flag) {
+    fprintf(stderr, "%s", documentation);
+    return 0;
   }
 
   /* Checks command line options for consistency. */
-  if (input_file) {
-    source = g_strdup(input_file);
+  if (!f_flag) {
+    fprintf(stderr, "Option -f, --file is mandatory.\n");
+    return -3;
   } else {
-    g_print("Option -f, --file is mandatory.\n.");
-    return -2;
+    if (!file_exists(f_arg)) {
+      fprintf(stderr, "Argument for option -f: file %s does not exist.\n", f_arg);
+    return -4;
+    }
   }
 
   /* Opens the source file for reading. */
-  fp = fopen(source, "r");
-  if (!fp) {
-    g_print("Unable to open database resource for reading, file \"%s\" does not exist.\n.", source);
-    return -3;
-  }
+  fp = fopen(f_arg, "r");
+  char *input_file_name = g_strdup(f_arg);
+
 
   /* Loads the game position database. */
-  db = gpdb_new(g_strdup(source));
+  db = gpdb_new(input_file_name);
   syntax_error_log = NULL;
   error = NULL;
-  gpdb_load(fp, source, db, &syntax_error_log, &error);
-  g_free(source);
+  gpdb_load(fp, input_file_name, db, &syntax_error_log, &error);
   fclose(fp);
 
   /* Compute the number of errors logged. */
   number_of_errors = gpdb_syntax_error_log_length(syntax_error_log);
 
   /* Prints the database summary if the OPTION -p is turned on. */
-  if (print_summary) {
+  if (p_flag) {
     gchar *summary = gpdb_print_summary(db);
     g_print("%s", summary);
     g_free(summary);
@@ -129,22 +214,22 @@ main (int argc, char *argv[])
   }
 
   /* Prints the error log if the OPTION -e is turned on. */
-  if (log_errors) {
+  if (e_flag) {
     gchar *syntax_error_log_to_string = gpdb_syntax_error_log_print(syntax_error_log);
     g_print("%s", syntax_error_log_to_string);
     g_free(syntax_error_log_to_string);
   }
 
   /* Prints the entry list if the OPTION -l is turned on. */
-  if (log_entries) {
+  if (l_flag) {
     gchar *gpdb_to_string = gpdb_print(db);
     g_print("%s", gpdb_to_string);
     g_free(gpdb_to_string);
   }
 
   /* Lookup for a given key. */
-  if (lookup_entry) {
-    gpdb_entry_t *entry = gpdb_lookup(db, lookup_entry);
+  if (q_flag) {
+    gpdb_entry_t *entry = gpdb_lookup(db, q_arg);
     if (entry) {
       gchar *tmp = gpdb_entry_print(entry);
       g_print("%s", tmp);
@@ -157,8 +242,6 @@ main (int argc, char *argv[])
   gpdb_free(db, TRUE);
   if (syntax_error_log)
     gpdb_syntax_error_log_free(syntax_error_log);
-
-  g_option_context_free(context);
 
   return 0;
 }
