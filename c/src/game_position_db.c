@@ -146,9 +146,9 @@ gpdb_syntax_error_log_free (gpdb_syntax_error_log_t *syntax_error_log)
 gchar *
 gpdb_syntax_error_log_print (gpdb_syntax_error_log_t *syntax_error_log)
 {
-  gchar   *result;
+  gchar *result;
   GString *msg;
-  GSList  *element;
+  gpdb_syntax_error_log_t *element;
 
   msg = g_string_new("");
   element = syntax_error_log;
@@ -473,13 +473,13 @@ gpdb_load (FILE *fp,
            GError **p_e)
 {
   GIOChannel *channel;
-  GIOStatus   ret;
-  GError     *err;
-  gchar      *line;
-  gsize       line_len;
-  GTree      *tree;
-  int         line_number;
-  GSList     *tmp_syntax_error_log;
+  GIOStatus ret;
+  GError *err;
+  gchar *line;
+  gsize line_len;
+  GTree *tree;
+  int line_number;
+  gpdb_syntax_error_log_t *tmp_syntax_error_log;
 
   if (!db)
     return EXIT_FAILURE;

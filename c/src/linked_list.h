@@ -99,6 +99,7 @@ llist_length (const llist_t *const l);
 extern void
 llist_add (llist_t *const l,
            void *const d);
+
 extern void
 llist_remove (llist_t *const l,
               void *const d);
