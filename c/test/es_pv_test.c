@@ -48,11 +48,11 @@
 
 
 /**
- * @brief GamePositionDb fixture
+ * @brief gpdb_dictionary_t fixture
  */
 typedef struct {
-  GamePositionDb *db;
-} GamePositionDbFixture;
+  gpdb_dictionary_t *db;
+} gpdb_fixture_t;
 
 /**
  * @brief A test case is used to automate the execution of a set of test game position.
@@ -161,30 +161,30 @@ const TestCase ffo_20_29[] =
 /* Test function prototypes. */
 
 static void
-game_position_es_solve_test (GamePositionDbFixture *fixture,
+game_position_es_solve_test (gpdb_fixture_t *fixture,
                              gconstpointer test_data);
 
 
 
 /* Helper function prototypes. */
 
-static GamePositionDb *
+static gpdb_dictionary_t *
 gpdb_setup (gchar *source);
 
 static void
-gpdb_ffo_fixture_setup (GamePositionDbFixture *fixture,
+gpdb_ffo_fixture_setup (gpdb_fixture_t *fixture,
                         gconstpointer test_data);
 
 static void
-gpdb_fixture_teardown (GamePositionDbFixture *fixture,
+gpdb_fixture_teardown (gpdb_fixture_t *fixture,
                        gconstpointer test_data);
 
 static GamePositionX *
-get_gpx_from_db (GamePositionDb *db,
+get_gpx_from_db (gpdb_dictionary_t *db,
                  gchar *id);
 
 static void
-run_test_case_array (GamePositionDb *db,
+run_test_case_array (gpdb_dictionary_t *db,
                      const TestCase tca[],
                      ExactSolution* (*solver)(const GamePositionX *const gpx,
                                               const endgame_solver_env_t *const env));
@@ -205,7 +205,7 @@ main (int   argc,
   board_module_init();
 
   g_test_add("/es_pv/ffo_05",
-             GamePositionDbFixture,
+             gpdb_fixture_t,
              (gconstpointer) ffo_05,
              gpdb_ffo_fixture_setup,
              game_position_es_solve_test,
@@ -213,14 +213,14 @@ main (int   argc,
 
   if (g_test_slow ()) {
     g_test_add("/es_pv/ffo_01_19",
-               GamePositionDbFixture,
+               gpdb_fixture_t,
                (gconstpointer) ffo_01_19,
                gpdb_ffo_fixture_setup,
                game_position_es_solve_test,
                gpdb_fixture_teardown);
 
     g_test_add("/es_pv/ffo_20_29",
-               GamePositionDbFixture,
+               gpdb_fixture_t,
                (gconstpointer) ffo_20_29,
                gpdb_ffo_fixture_setup,
                game_position_es_solve_test,
@@ -237,10 +237,10 @@ main (int   argc,
  */
 
 static void
-game_position_es_solve_test (GamePositionDbFixture *fixture,
+game_position_es_solve_test (gpdb_fixture_t *fixture,
                              gconstpointer test_data)
 {
-  GamePositionDb *db = fixture->db;
+  gpdb_dictionary_t *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
   run_test_case_array(db, tcap, game_position_es_solve);
 }
@@ -251,10 +251,10 @@ game_position_es_solve_test (GamePositionDbFixture *fixture,
  * Internal functions.
  */
 
-static GamePositionDb *
+static gpdb_dictionary_t *
 gpdb_setup (gchar *source)
 {
-  GamePositionDb *db;
+  gpdb_dictionary_t *db;
   gpdb_syntax_error_log_t *syntax_error_log;
   FILE *fp;
   GError *error;
@@ -283,7 +283,7 @@ gpdb_setup (gchar *source)
 }
 
 static void
-gpdb_ffo_fixture_setup (GamePositionDbFixture *fixture,
+gpdb_ffo_fixture_setup (gpdb_fixture_t *fixture,
                         gconstpointer test_data)
 {
   gchar *source = g_strdup("db/gpdb-ffo.txt");
@@ -291,7 +291,7 @@ gpdb_ffo_fixture_setup (GamePositionDbFixture *fixture,
 }
 
 static void
-gpdb_fixture_teardown (GamePositionDbFixture *fixture,
+gpdb_fixture_teardown (gpdb_fixture_t *fixture,
                        gconstpointer test_data)
 {
   g_assert(fixture->db != NULL);
@@ -299,7 +299,7 @@ gpdb_fixture_teardown (GamePositionDbFixture *fixture,
 }
 
 static GamePositionX *
-get_gpx_from_db (GamePositionDb *db,
+get_gpx_from_db (gpdb_dictionary_t *db,
                  gchar *id)
 {
   gpdb_entry_t *entry = gpdb_lookup(db, id);
@@ -307,12 +307,11 @@ get_gpx_from_db (GamePositionDb *db,
     g_test_message("The entry \"%s\" is missing from game position database.\n", id);
     g_test_fail();
   }
-  //g_assert(entry);
   return gpdb_get_gpx(entry);
 }
 
 static void
-run_test_case_array (GamePositionDb *db,
+run_test_case_array (gpdb_dictionary_t *db,
                      const TestCase tca[],
                      ExactSolution* (*solver)(const GamePositionX *const gpx,
                                               const endgame_solver_env_t *const env))

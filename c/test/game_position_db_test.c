@@ -158,7 +158,7 @@ gpdb_load_returned_errors_test (void)
 static void
 gpdb_load_test (void)
 {
-  GamePositionDb *db;
+  gpdb_dictionary_t *db;
   gpdb_syntax_error_log_t *syntax_error_log;
   FILE *fp;
   GError *error;
@@ -285,14 +285,14 @@ static void
 assert_gpdb_load_logs_error (char *line,
                              gpdb_entry_syntax_error_type_t error_type)
 {
-  int                           tmp_file_handle;
-  gchar                        *tmp_file_name;
-  GError                       *error;
-  GIOChannel                   *channel;
-  gsize                         bytes_written;
-  GamePositionDb               *db;
+  int tmp_file_handle;
+  gchar *tmp_file_name;
+  GError *error;
+  GIOChannel *channel;
+  gsize bytes_written;
+  gpdb_dictionary_t *db;
   gpdb_syntax_error_log_t *syntax_error_log;
-  FILE                         *tmp_fp;
+  FILE *tmp_fp;
 
   /* Prepare the new tmp file. */
   error = NULL;

@@ -1,8 +1,8 @@
 /**
  * @file
  *
- * @brief GamePositionDb module definitions.
- * @details This module defines the #GamePositionDb, and #gpdb_entry_t entities,
+ * @brief Game Position Database module definitions.
+ * @details This module defines the #gpdb_dictionary_t, and #gpdb_entry_t entities,
  * and the errors entities arising from parsing a database source file, like
  * #gpdb_syntax_error_log_t, #gpdb_entry_syntax_error_t and #gpdb_entry_syntax_error_type_t.
  * This header also defines all the function prototypes that operate on them.
@@ -100,13 +100,13 @@ typedef struct {
 typedef struct {
   GTree  *tree;     /**< @brief The underlaying tree structure. */
   gchar  *desc;     /**< @brief The description of the datatbase. */
-} GamePositionDb;
+} gpdb_dictionary_t;
 
 
 
-/**********************************************************************/
+/*****************************************************************/
 /* Function prototypes for the gpdb_entry_syntax_error_t entity. */
-/**********************************************************************/
+/*****************************************************************/
 
 extern gpdb_entry_syntax_error_t *
 gpdb_entry_syntax_error_new (gpdb_entry_syntax_error_type_t error_type,
@@ -123,9 +123,9 @@ gpdb_entry_syntax_error_print (const gpdb_entry_syntax_error_t const *syntax_err
 
 
 
-/********************************************************************/
+/***************************************************************/
 /* Function prototypes for the gpdb_syntax_error_log_t entity. */
-/********************************************************************/
+/***************************************************************/
 
 extern gpdb_syntax_error_log_t *
 gpdb_syntax_error_log_new (void);
@@ -141,43 +141,43 @@ gpdb_syntax_error_log_length (gpdb_syntax_error_log_t *syntax_error_log);
 
 
 
-/******************************************************/
-/* Function prototypes for the GamePositionDb entity. */
-/******************************************************/
+/*********************************************************/
+/* Function prototypes for the gpdb_dictionary_t entity. */
+/*********************************************************/
 
 extern int
 gpdb_load (FILE *fp,
            gchar *source,
-           GamePositionDb *db,
+           gpdb_dictionary_t *db,
            gpdb_syntax_error_log_t **p_syntax_error_log,
            GError **p_e);
 
-extern GamePositionDb *
+extern gpdb_dictionary_t *
 gpdb_new (char *desc);
 
 extern void
-gpdb_free (GamePositionDb *db,
+gpdb_free (gpdb_dictionary_t *db,
            gboolean free_segment);
 
 extern gpdb_entry_t *
-gpdb_lookup (GamePositionDb *db,
+gpdb_lookup (gpdb_dictionary_t *db,
              gchar *entry_id);
 
 extern GamePositionX *
 gpdb_get_gpx (gpdb_entry_t *entry);
 
 extern gchar *
-gpdb_print (GamePositionDb *db);
+gpdb_print (gpdb_dictionary_t *db);
 
 extern gchar *
-gpdb_print_summary (GamePositionDb *db);
+gpdb_print_summary (gpdb_dictionary_t *db);
 
 extern int
-gpdb_length (GamePositionDb *db);
+gpdb_length (gpdb_dictionary_t *db);
 
-/***********************************************************/
+/****************************************************/
 /* Function prototypes for the gpdb_entry_t entity. */
-/***********************************************************/
+/****************************************************/
 
 extern gpdb_entry_t *
 gpdb_entry_new (void);

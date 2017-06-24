@@ -311,7 +311,7 @@ egs_select_solver (const char *const id);
 int
 main (int argc, char *argv[])
 {
-  GamePositionDb *db;
+  gpdb_dictionary_t *db;
   gpdb_syntax_error_log_t *syntax_error_log;
   FILE *fp;
 

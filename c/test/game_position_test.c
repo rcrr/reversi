@@ -40,29 +40,29 @@
 #include "game_position_db.h"
 
 
-/* GamePositionDb fixture */
+/* gpdb_dictionary_t fixture */
 typedef struct {
-  GamePositionDb *db;
-} GamePositionDbFixture;
+  gpdb_dictionary_t *db;
+} gpdb_fixture_t;
 
 
 
 /* Test function prototypes. */
 
 static void
-game_position_legal_moves_test (GamePositionDbFixture *fixture,
+game_position_legal_moves_test (gpdb_fixture_t *fixture,
                                 gconstpointer test_data);
 
 static void
-game_position_make_move_test (GamePositionDbFixture *fixture,
+game_position_make_move_test (gpdb_fixture_t *fixture,
                               gconstpointer test_data);
 
 static void
-game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
+game_position_has_any_legal_move_test (gpdb_fixture_t *fixture,
                                        gconstpointer test_data);
 
 static void
-game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture,
+game_position_has_any_player_any_legal_move_test (gpdb_fixture_t *fixture,
                                                   gconstpointer test_data);
 
 
@@ -70,15 +70,15 @@ game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture
 /* Helper function prototypes. */
 
 static void
-gpdb_fixture_setup (GamePositionDbFixture *fixture,
+gpdb_fixture_setup (gpdb_fixture_t *fixture,
                     gconstpointer test_data);
 
 static void
-gpdb_fixture_teardown (GamePositionDbFixture *fixture,
+gpdb_fixture_teardown (gpdb_fixture_t *fixture,
                        gconstpointer test_data);
 
 static GamePositionX *
-get_gpx_from_db (GamePositionDb *db,
+get_gpx_from_db (gpdb_dictionary_t *db,
                  gchar *id);
 
 
@@ -92,28 +92,28 @@ main (int   argc,
   board_module_init();
 
   g_test_add ("/game_position/game_position_legal_moves_test",
-              GamePositionDbFixture,
+              gpdb_fixture_t,
               (gconstpointer) NULL,
               gpdb_fixture_setup,
               game_position_legal_moves_test,
               gpdb_fixture_teardown);
 
   g_test_add ("/game_position/game_position_has_any_legal_move_test",
-              GamePositionDbFixture,
+              gpdb_fixture_t,
               (gconstpointer) NULL,
               gpdb_fixture_setup,
               game_position_has_any_legal_move_test,
               gpdb_fixture_teardown);
 
   g_test_add ("/game_position/game_position_has_any_player_any_legal_move_test",
-              GamePositionDbFixture,
+              gpdb_fixture_t,
               (gconstpointer) NULL,
               gpdb_fixture_setup,
               game_position_has_any_player_any_legal_move_test,
               gpdb_fixture_teardown);
 
   g_test_add ("/game_position/game_position_make_move_test",
-              GamePositionDbFixture,
+              gpdb_fixture_t,
               (gconstpointer) NULL,
               gpdb_fixture_setup,
               game_position_make_move_test,
@@ -129,10 +129,10 @@ main (int   argc,
  */
 
 static void
-game_position_legal_moves_test (GamePositionDbFixture *fixture,
+game_position_legal_moves_test (gpdb_fixture_t *fixture,
                                 gconstpointer test_data)
 {
-  GamePositionDb *db = fixture->db;
+  gpdb_dictionary_t *db = fixture->db;
 
   char to_string[512];
   size_t length;
@@ -159,10 +159,10 @@ game_position_legal_moves_test (GamePositionDbFixture *fixture,
 }
 
 static void
-game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
+game_position_has_any_legal_move_test (gpdb_fixture_t *fixture,
                                        gconstpointer test_data)
 {
-  GamePositionDb *db = fixture->db;
+  gpdb_dictionary_t *db = fixture->db;
 
   g_assert(true  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "initial")));
   g_assert(true  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "early-game-b-9-moves")));
@@ -172,10 +172,10 @@ game_position_has_any_legal_move_test (GamePositionDbFixture *fixture,
 }
 
 static void
-game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture,
+game_position_has_any_player_any_legal_move_test (gpdb_fixture_t *fixture,
                                                   gconstpointer test_data)
 {
-  GamePositionDb *db = fixture->db;
+  gpdb_dictionary_t *db = fixture->db;
 
   g_assert(true  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "initial")));
   g_assert(true  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "early-game-b-9-moves")));
@@ -185,10 +185,10 @@ game_position_has_any_player_any_legal_move_test (GamePositionDbFixture *fixture
 }
 
 static void
-game_position_make_move_test (GamePositionDbFixture *fixture,
+game_position_make_move_test (gpdb_fixture_t *fixture,
                               gconstpointer test_data)
 {
-  GamePositionDb *db = fixture->db;
+  gpdb_dictionary_t *db = fixture->db;
 
   GamePositionX after_make_move_struct;
   GamePositionX *after_make_move = &after_make_move_struct;
@@ -241,12 +241,12 @@ game_position_make_move_test (GamePositionDbFixture *fixture,
  */
 
 static void
-gpdb_fixture_setup (GamePositionDbFixture *fixture,
+gpdb_fixture_setup (gpdb_fixture_t *fixture,
                     gconstpointer test_data)
 {
   gchar *source = g_strdup("db/gpdb-sample-games.txt");
 
-  GamePositionDb *db;
+  gpdb_dictionary_t *db;
   gpdb_syntax_error_log_t *syntax_error_log;
   FILE *fp;
   GError *error;
@@ -274,7 +274,7 @@ gpdb_fixture_setup (GamePositionDbFixture *fixture,
 }
 
 static void
-gpdb_fixture_teardown (GamePositionDbFixture *fixture,
+gpdb_fixture_teardown (gpdb_fixture_t *fixture,
                        gconstpointer test_data)
 {
   g_assert(fixture->db != NULL);
@@ -282,7 +282,7 @@ gpdb_fixture_teardown (GamePositionDbFixture *fixture,
 }
 
 GamePositionX *
-get_gpx_from_db (GamePositionDb *db,
+get_gpx_from_db (gpdb_dictionary_t *db,
                  gchar *id)
 {
   gpdb_entry_t *entry = gpdb_lookup(db, id);

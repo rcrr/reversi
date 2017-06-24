@@ -94,9 +94,9 @@ gpdb_print_entry_helper_fn (gchar *key,
  * Public functions.
  */
 
-/*************************************************************************/
+/********************************************************************/
 /* Function implementations for the gpdb_syntax_error_log_t entity. */
-/*************************************************************************/
+/********************************************************************/
 
 /**
  * @brief Game position database syntax error log constructor.
@@ -187,9 +187,9 @@ gpdb_syntax_error_log_length (gpdb_syntax_error_log_t *syntax_error_log)
 
 
 
-/***************************************************************************/
+/**********************************************************************/
 /* Function implementations for the gpdb_entry_syntax_error_t entity. */
-/***************************************************************************/
+/**********************************************************************/
 
 /**
  * @brief Game position database syntax error structure constructor.
@@ -374,9 +374,9 @@ gpdb_entry_syntax_error_print (const gpdb_entry_syntax_error_t const *syntax_err
 
 
 
-/***********************************************************/
-/* Function implementations for the GamePositionDb entity. */
-/***********************************************************/
+/**************************************************************/
+/* Function implementations for the gpdb_dictionary_t entity. */
+/**************************************************************/
 
 /**
  * @brief Game position database structure constructor.
@@ -387,13 +387,13 @@ gpdb_entry_syntax_error_print (const gpdb_entry_syntax_error_t const *syntax_err
  * @param [in] desc a string descibing the database
  * @return          a pointer to a new game position database structure
  */
-GamePositionDb *
+gpdb_dictionary_t *
 gpdb_new (char *desc)
 {
-  GamePositionDb *db;
-  static const size_t size_of_db = sizeof(GamePositionDb);
+  gpdb_dictionary_t *db;
+  static const size_t size_of_db = sizeof(gpdb_dictionary_t);
 
-  db = (GamePositionDb*) g_malloc(size_of_db);
+  db = (gpdb_dictionary_t*) g_malloc(size_of_db);
   g_assert(db);
 
   gpointer compare_entries_data = NULL;
@@ -415,7 +415,7 @@ gpdb_new (char *desc)
  * @param [in]     free_segment if yes also frees the data stored in the db
  */
 void
-gpdb_free (GamePositionDb *db,
+gpdb_free (gpdb_dictionary_t *db,
            gboolean free_segment)
 {
   if (db) {
@@ -442,7 +442,7 @@ gpdb_free (GamePositionDb *db,
  * @return              the matching db entry or null when the query fails
  */
 gpdb_entry_t *
-gpdb_lookup (GamePositionDb *db,
+gpdb_lookup (gpdb_dictionary_t *db,
              gchar *entry_id)
 {
   g_assert(db);
@@ -468,7 +468,7 @@ gpdb_lookup (GamePositionDb *db,
 int
 gpdb_load (FILE *fp,
            gchar *source,
-           GamePositionDb *db,
+           gpdb_dictionary_t *db,
            gpdb_syntax_error_log_t **p_syntax_error_log,
            GError **p_e)
 {
@@ -554,7 +554,7 @@ gpdb_load (FILE *fp,
  * @return        a message describing the db structure
  */
 gchar *
-gpdb_print (GamePositionDb *db)
+gpdb_print (gpdb_dictionary_t *db)
 {
   g_assert(db);
 
@@ -586,7 +586,7 @@ gpdb_print (GamePositionDb *db)
  * @return        a short message describing the db structure
  */
 gchar *
-gpdb_print_summary (GamePositionDb *db)
+gpdb_print_summary (gpdb_dictionary_t *db)
 {
   g_assert(db);
 
@@ -620,7 +620,7 @@ gpdb_print_summary (GamePositionDb *db)
  * @return        the number of entries in the db
  */
 int
-gpdb_length (GamePositionDb *db)
+gpdb_length (gpdb_dictionary_t *db)
 {
   g_assert(db);
   return g_tree_nnodes(db->tree);
@@ -628,9 +628,9 @@ gpdb_length (GamePositionDb *db)
 
 
 
-/****************************************************************/
+/*********************************************************/
 /* Function implementations for the gpdb_entry_t entity. */
-/****************************************************************/
+/*********************************************************/
 
 /**
  * @brief Game position database entry structure constructor.
@@ -750,7 +750,7 @@ gpdb_get_gpx (gpdb_entry_t *entry)
 static gint
 gpdb_compare_entries (gconstpointer pa,
                       gconstpointer pb,
-                      gpointer      user_data)
+                      gpointer user_data)
 {
   g_assert(pa && pb);
 
@@ -771,22 +771,22 @@ gpdb_compare_entries (gconstpointer pa,
  * @return                     the status of the operation
  */
 static gint
-gpdb_extract_entry_from_line (gchar                           *line,
-                              int                              line_number,
-                              gchar                           *source,
-                              gpdb_entry_t            **p_entry,
+gpdb_extract_entry_from_line (gchar *line,
+                              int line_number,
+                              gchar *source,
+                              gpdb_entry_t **p_entry,
                               gpdb_entry_syntax_error_t **p_syntax_error)
 {
-  gchar               *record;
-  int                  record_length;
-  gchar                c;
-  gchar               *cp0;
-  gchar               *cp1;
-  GString             *error_msg;
+  gchar *record;
+  int record_length;
+  gchar c;
+  gchar *cp0;
+  gchar *cp1;
+  GString *error_msg;
   gpdb_entry_t *entry;
-  SquareSet            blacks;
-  SquareSet            whites;
-  Player               player;
+  SquareSet blacks;
+  SquareSet whites;
+  Player player;
 
 
   /* If line is null return. */
