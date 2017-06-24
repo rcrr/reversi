@@ -62,7 +62,7 @@ gpdb_extract_entry_from_line (gchar *line,
                               int line_number,
                               gchar *source,
                               GamePositionDbEntry **p_entry,
-                              GamePositionDbEntrySyntaxError **p_syntax_error);
+                              gpdb_entry_syntax_error_t **p_syntax_error);
 
 static gint
 gpdb_compare_entries (gconstpointer pa,
@@ -157,7 +157,7 @@ gpdb_syntax_error_log_print (GamePositionDbSyntaxErrorLog *syntax_error_log)
     msg = g_string_append(msg, "No errors detected.\n");
   } else {
     do {
-      GamePositionDbEntrySyntaxError *syntax_error = (GamePositionDbEntrySyntaxError *) element->data;
+      gpdb_entry_syntax_error_t *syntax_error = (gpdb_entry_syntax_error_t *) element->data;
       if (syntax_error != NULL) {
         gchar *s = gpdb_entry_syntax_error_print(syntax_error);
         msg = g_string_append(msg, s);
@@ -188,7 +188,7 @@ gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
 
 
 /***************************************************************************/
-/* Function implementations for the GamePositionDbEntrySyntaxError entity. */
+/* Function implementations for the gpdb_entry_syntax_error_t entity. */
 /***************************************************************************/
 
 /**
@@ -214,7 +214,7 @@ gpdb_syntax_error_log_length (GamePositionDbSyntaxErrorLog *syntax_error_log)
  * @param [in] error_message a detailed error message
  * @return                   a pointer to a new game position database syntax error structure
  */
-GamePositionDbEntrySyntaxError *
+gpdb_entry_syntax_error_t *
 gpdb_entry_syntax_error_new (gpdb_entry_syntax_error_type_t error_type,
                              char *source,
                              int line_number,
@@ -224,12 +224,12 @@ gpdb_entry_syntax_error_new (gpdb_entry_syntax_error_type_t error_type,
   g_assert(error_type >= GPDB_ENTRY_SYNTAX_ERROR_ON_ID &&
            error_type <= GPDB_ENTRY_SYNTAX_ERROR_DUPLICATE_ENTRY_KEY);
 
-  GamePositionDbEntrySyntaxError *e;
+  gpdb_entry_syntax_error_t *e;
 
-  static const size_t size_of_e = sizeof(GamePositionDbEntrySyntaxError);
+  static const size_t size_of_e = sizeof(gpdb_entry_syntax_error_t);
   static const gchar *NA = "N/A";
 
-  e = (GamePositionDbEntrySyntaxError*) g_malloc(size_of_e);
+  e = (gpdb_entry_syntax_error_t*) g_malloc(size_of_e);
   g_assert(e);
 
   e->error_type = error_type;
@@ -265,7 +265,7 @@ gpdb_entry_syntax_error_new (gpdb_entry_syntax_error_type_t error_type,
  * @param [in,out] error the pointer to be deallocated
  */
 void
-gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *error)
+gpdb_entry_syntax_error_free (gpdb_entry_syntax_error_t *error)
 {
   if (error) {
     g_free(error->source);
@@ -287,7 +287,7 @@ gpdb_entry_syntax_error_free (GamePositionDbEntrySyntaxError *error)
  * @return                  a message describing the error structure
  */
 gchar *
-gpdb_entry_syntax_error_print (const GamePositionDbEntrySyntaxError const *syntax_error)
+gpdb_entry_syntax_error_print (const gpdb_entry_syntax_error_t const *syntax_error)
 {
   gchar *result;
 
@@ -499,7 +499,7 @@ gpdb_load (FILE *fp,
       return EXIT_FAILURE;
     }
 
-    GamePositionDbEntrySyntaxError *syntax_error = NULL;
+    gpdb_entry_syntax_error_t *syntax_error = NULL;
     GamePositionDbEntry *entry = NULL;
     gpdb_extract_entry_from_line(line, line_number, source, &entry, &syntax_error);
     if (entry) {
@@ -775,7 +775,7 @@ gpdb_extract_entry_from_line (gchar                           *line,
                               int                              line_number,
                               gchar                           *source,
                               GamePositionDbEntry            **p_entry,
-                              GamePositionDbEntrySyntaxError **p_syntax_error)
+                              gpdb_entry_syntax_error_t **p_syntax_error)
 {
   gchar               *record;
   int                  record_length;
@@ -1025,7 +1025,7 @@ gpdb_tree_key_destroy_function (gpointer data)
 static void
 gpdb_syntax_error_log_destroy_function (gpointer data)
 {
-  GamePositionDbEntrySyntaxError *e = (GamePositionDbEntrySyntaxError *) data;
+  gpdb_entry_syntax_error_t *e = (gpdb_entry_syntax_error_t *) data;
   if (e)
     gpdb_entry_syntax_error_free(e);
 }

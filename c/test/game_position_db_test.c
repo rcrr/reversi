@@ -235,7 +235,7 @@ gpdb_load_test (void)
 static void
 gpdb_entry_syntax_error_print_test (void)
 {
-  GamePositionDbEntrySyntaxError *syntax_error;
+  gpdb_entry_syntax_error_t *syntax_error;
   char *msg;
 
   char expected[] =
@@ -274,7 +274,7 @@ contains_error (GamePositionDbSyntaxErrorLog *syntax_error_log,
   len = g_slist_length(syntax_error_log);
 
     for (int i = 0; i < len; i++) {
-      GamePositionDbEntrySyntaxError *error = (GamePositionDbEntrySyntaxError *) g_slist_nth_data(syntax_error_log, i);
+      gpdb_entry_syntax_error_t *error = (gpdb_entry_syntax_error_t *) g_slist_nth_data(syntax_error_log, i);
       if (error && (strcmp(error->line, line) == 0) && (error->error_type == error_type))
         return TRUE;
     }
