@@ -67,6 +67,31 @@ typedef struct {
   char *description;     /**< @brief The description of the datatbase. */
 } gpdb2_dictionary_t;
 
+/**
+ * @enum gpdb2_entry_syntax_error_type_t
+ * @brief The classification of errors that can be found parsing a database entry record.
+ */
+typedef enum {
+  GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY,        /**< Error on field count. */
+  GPDB2_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64,    /**< Error on the size of the board field. */
+  GPDB2_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID,  /**< Error on the board field, one square char is out of range. */
+  GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR,  /**< Error on player field, it must be composed by one char. */
+  GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID,  /**< Error on player field, it must be either b or w. */
+  GPDB2_SYNTAX_ERR_DUPLICATE_ENTRY_KEY,     /**< Duplicate key error. */
+  GPDB2_SYNTAX_ERR_COUNT                    /**< Syntax error type cardinality. */
+} gpdb2_syntax_err_type_t;
+
+/**
+ * @brief A syntax error in processing entries in a game position database.
+ */
+typedef struct {
+  char *file_name;                         /**< @brief A string describing the input stream that is the source of he error. */
+  size_t line_number;                      /**< @brief The line number in the input stream that generated the error. */
+  char *line;                              /**< @brief A string holding the incorrect line. */
+  gpdb2_syntax_err_type_t type;            /**< @brief The type of the error. */
+  char *message;                           /**< @brief A detailed error message. */
+} gpdb2_syntax_err_t;
+
 
 
 /*********************************************************/
@@ -97,6 +122,17 @@ extern gpdb2_entry_t *
 gpdb2_dictionary_delete_entry (gpdb2_dictionary_t *const db,
                                const gpdb2_entry_t *const entry);
 
+extern gpdb2_entry_t *
+gpdb2_dictionary_entry_find (gpdb2_dictionary_t *const db,
+                             const char *const id);
+
+extern size_t
+gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
+                       char *file_name,
+                       bool duplicates_are_errors,
+                       bool replace_duplicates,
+                       bool stop_on_error);
+
 
 
 /****************************************************/
@@ -110,6 +146,22 @@ gpdb2_entry_new (const char *const id,
 
 extern void
 gpdb2_entry_free (gpdb2_entry_t *entry);
+
+
+
+/*********************************************************/
+/* Function prototypes for the gpdb2_syntax_err_t entity. */
+/*********************************************************/
+
+extern gpdb2_syntax_err_t *
+gpdb2_syntax_err_new (const char *const file_name,
+                      const size_t line_number,
+                      const char *const line,
+                      const gpdb2_syntax_err_type_t type,
+                      const char *const message);
+
+extern void
+gpdb2_syntax_err_free (gpdb2_syntax_err_t *error);
 
 
 

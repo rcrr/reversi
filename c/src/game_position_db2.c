@@ -35,8 +35,12 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <errno.h>
 
 #include "game_position_db2.h"
+
+/* Used for file reading, it contains also string termination. */
+#define MAX_LINE_LENGTH 4096
 
 
 
@@ -48,14 +52,14 @@
  * Internal variables and constants.
  */
 
-/* Field separator for records in the game position db. */
-static const char field_separator = ';';
-
 
 
 /*
  * Prototypes for internal functions.
  */
+
+static bool
+file_exists (const char *const file_name);
 
 static int
 gpdb2_compare_entries (const void *item_a,
@@ -66,6 +70,14 @@ static void
 gpdb2_tree_item_destroy_function (void *item,
                                   void *param);
 
+static int
+gpdb2_parse_line (char *line,
+                  char *file_name,
+                  size_t line_number,
+                  char *entry_id,
+                  char *entry_description,
+                  GamePositionX *entry_gpx,
+                  gpdb2_syntax_err_t **err);
 
 /**
  * @endcond
@@ -87,8 +99,8 @@ gpdb2_entry_new (const char *const id,
                  const GamePositionX *const gpx)
 {
   assert(id);
-  assert(gpx);
   assert(description);
+  assert(gpx);
 
   int len;
 
@@ -209,11 +221,136 @@ gpdb2_dictionary_entry_count (const gpdb2_dictionary_t *const db)
   return rbt_count(db->table);
 }
 
+gpdb2_entry_t *
+gpdb2_dictionary_entry_find (gpdb2_dictionary_t *const db,
+                             const char *const id)
+{
+  assert(db);
+  if (!id) return NULL;
+
+  gpdb2_entry_t key = { .id = (char *) id };
+
+  gpdb2_entry_t *selected = (gpdb2_entry_t *) rbt_find(db->table, &key);
+
+  return selected;
+}
+
+size_t
+gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
+                       char *file_name,
+                       bool duplicates_are_errors,
+                       bool replace_duplicates,
+                       bool stop_on_error)
+{
+  assert(db);
+  assert(file_name);
+
+  FILE *fp;
+  gpdb2_syntax_err_t *err;
+
+  size_t insertions = 0;
+  size_t line_number = 0;
+
+  if (!file_exists(file_name)) return insertions;
+
+  /* Opens the source file for reading. */
+  fp = fopen(file_name, "r");
+
+  char line[MAX_LINE_LENGTH] = ""; /* Initialize all line elements to 0 ('\0'). */
+  char entry_id[MAX_LINE_LENGTH] = "";
+  char entry_description[MAX_LINE_LENGTH] = "";
+  GamePositionX gpx;
+
+  while (fgets(line, sizeof(line), fp)) {
+    err = NULL;
+    entry_id[0] = '\0';
+    gpdb2_parse_line(line, file_name,line_number, entry_id, entry_description, &gpx, &err);
+    if (err) printf("err->message=%s\n", err->message);
+    else if (entry_id[0] != '\0') {
+      printf("entry_id=%s, entry_description=%s\n", entry_id, entry_description);
+      gpdb2_entry_new(entry_id, entry_description, &gpx); // DA COMPLETARE
+    }
+
+    line_number++;
+  }
+  if (ferror(fp)) fprintf(stderr, "Error reading input file: %s\n", strerror(errno));
+
+  fclose(fp);
+
+  return insertions;
+}
+
+
+
+/**************************************************************/
+/* Function implementations for the gpdb2_syntax_err_t entity. */
+/**************************************************************/
+
+gpdb2_syntax_err_t *
+gpdb2_syntax_err_new (const char *const file_name,
+                      const size_t line_number,
+                      const char *const line,
+                      const gpdb2_syntax_err_type_t type,
+                      const char *const message)
+{
+  assert(file_name);
+  assert(line);
+  assert(message);
+  assert(type >= 0 && type < GPDB2_SYNTAX_ERR_COUNT);
+
+  int len;
+
+  gpdb2_syntax_err_t *e = (gpdb2_syntax_err_t *) malloc(sizeof(gpdb2_syntax_err_t));
+  assert(e);
+
+  len = strlen(file_name);
+  e->file_name = malloc(len + 1);
+  assert(e->file_name);
+  strcpy(e->file_name, file_name);
+
+  e->line_number = line_number;
+
+  len = strlen(line);
+  e->line = malloc(len + 1);
+  assert(e->line);
+  strcpy(e->line, line);
+
+  e->type = type;
+
+  len = strlen(message);
+  e->message = malloc(len + 1);
+  assert(e->message);
+  strcpy(e->message, message);
+
+  return e;
+}
+
+void
+gpdb2_syntax_err_free (gpdb2_syntax_err_t *error)
+{
+  if (error) {
+    free(error->file_name);
+    free(error->line);
+    free(error->message);
+    free(error);
+  }
+}
 
 
 /*
  * Internal functions.
  */
+
+static bool
+file_exists (const char *const file_name)
+{
+  FILE *f;
+  if ((f = fopen(file_name, "r"))) {
+    fclose(f);
+    return true;
+  }
+  return false;
+}
 
 static int
 gpdb2_compare_entries (const void *item_a,
@@ -234,4 +371,151 @@ gpdb2_tree_item_destroy_function (void *item,
 {
   gpdb2_entry_t *entry = (gpdb2_entry_t *) item;
   gpdb2_entry_free(entry);
+}
+
+static int
+gpdb2_parse_line (char *line,
+                  char *file_name,
+                  size_t line_number,
+                  char *entry_id,
+                  char *entry_description,
+                  GamePositionX *entry_gpx,
+                  gpdb2_syntax_err_t **err)
+{
+  static const size_t record_field_count = 4;
+
+  char *record_separators[record_field_count];
+  size_t field_count;
+  size_t record_length;
+  char c;
+  char error_message[1024];
+  bool line_is_an_entry;
+  size_t len;
+  char *cursor;
+
+  /* If line is null return. */
+  if (!line) return EXIT_SUCCESS;
+
+  /* Variable initialization. */
+  record_length = 0;
+  field_count = 0;
+  line_is_an_entry = false;
+  for (int i = 0; i < record_field_count; i++) record_separators[i] = NULL;
+
+  /* Computes the record_length, removing everything following a dash. */
+  while ((c = line[record_length])) {
+    switch (c) {
+    case '#':
+      goto line_scan_completed;
+    case '\n':
+      goto line_scan_completed;
+    case ';':
+      record_separators[field_count++] = line + record_length;
+      if (field_count >= record_field_count) goto line_scan_completed;
+    default:
+      line_is_an_entry = true;
+    }
+    record_length++;
+  }
+
+ line_scan_completed:
+  ;
+
+  printf("%04zu: rl=%04zu, field_count=%zu", line_number, record_length, field_count);
+  for (int i = 0; i < field_count; i++) {
+    printf("%c", *record_separators[i]);
+  }
+  printf("\n");
+
+  /* The line doesn't contain a record. */
+  if (!line_is_an_entry) return EXIT_SUCCESS;
+
+  if (field_count != record_field_count) {
+    sprintf(error_message, "The line has an incomplete record. The number of fields is %zu", field_count);
+    *err = gpdb2_syntax_err_new(file_name,
+                                line_number,
+                                line,
+                                GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY,
+                                error_message);
+    return EXIT_FAILURE;
+  }
+
+  /* The line is a record and has four fields. */
+
+  /* Prepares the id field. */
+  len = record_separators[0] - line;
+  memcpy(entry_id, line, len);
+  entry_id[len] = '\0';
+
+  /* Prepares the board field. */
+  cursor = record_separators[0] + 1;
+  len = record_separators[1] - cursor;
+  if (len != 64) {
+    sprintf(error_message, "The board field has %zu squares, length must be 64", len);
+    *err = gpdb2_syntax_err_new(file_name,
+                                line_number,
+                                line,
+                                GPDB2_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64,
+                                error_message);
+    return EXIT_FAILURE;
+  }
+  for (int i = 0; i < 64; i++) {
+    c = *(cursor + i);
+    switch (c) {
+    case 'b':
+      entry_gpx->blacks |= 1ULL << i;
+      break;
+    case 'w':
+      entry_gpx->whites |= 1ULL << i;
+      break;
+    case '.':
+      break;
+    default:
+      sprintf(error_message, "Board pieces must be in the character set [bw.]. Found %c", c);
+      *err = gpdb2_syntax_err_new(file_name,
+                                  line_number,
+                                  line,
+                                  GPDB2_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID,
+                                  error_message);
+      return EXIT_FAILURE;
+    }
+  }
+
+  /* Prepares the player field. */
+  cursor = record_separators[1] + 1;
+  len = record_separators[2] - cursor;
+  if (len != 1) {
+    sprintf(error_message, "The player field has %zu characters, length must be 1", len);
+    *err = gpdb2_syntax_err_new(file_name,
+                                line_number,
+                                line,
+                                GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR,
+                                error_message);
+    return EXIT_FAILURE;
+  }
+  c = *cursor;
+  switch (c) {
+  case 'b':
+    entry_gpx->player = BLACK_PLAYER;
+    break;
+  case 'w':
+    entry_gpx->player = WHITE_PLAYER;
+    break;
+  default:
+    sprintf(error_message, "Player must be in the character set [bw]. Found %c", c);
+    *err = gpdb2_syntax_err_new(file_name,
+                                line_number,
+                                line,
+                                GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID,
+                                error_message);
+    return EXIT_FAILURE;
+  }
+
+  /* Prepares the description field. */
+  cursor = record_separators[2] + 1;
+  len = record_separators[3] - cursor;
+  memcpy(entry_description, cursor, len);
+  entry_description[len] = '\0';
+
+  return EXIT_SUCCESS;
 }

@@ -773,7 +773,7 @@ rbt_delete (rbt_table_t *table,
  * @invariant The `table` and `item` arguments cannot be `NULL`.
  *
  * @param [in,out] table the table
- * @param [in]     item  the element to be inserterted
+ * @param [in]     item  an item having key equal to one searched for
  * @return               a pointer to the matching `item` or `NULL`
  */
 void *

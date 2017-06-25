@@ -172,7 +172,7 @@ gpdb_load_test (void)
 
   source = g_strdup("db/gpdb-test-db.txt");
   expected_db_length = 6;
-  expected_error_log_length = 2;
+  expected_error_log_length = 11;
 
   /* Loads the game position database. */
   fp = fopen(source, "r");

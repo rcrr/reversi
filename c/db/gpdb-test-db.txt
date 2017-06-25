@@ -23,7 +23,7 @@
 #
 #
 # The db has 6 entries.
-# The log of errors has 2 items.
+# The log of errors has 11 items.
 # Adding or changing entries or errors REQUIRES that the game_position_db_test unit suite has to be updated. 
 #
 #
@@ -45,3 +45,24 @@ duplicate-entry;b...............................................................
 all-black;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;b;A full black board;
 all-white;wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww;w;A full white board;
 all-empty;................................................................;b;An empy board, black has to move;
+#
+#
+#
+incomplete-entry-a
+incomplete-entry-b;
+incomplete-entry-c;................................................................;
+incomplete-entry-d;................................................................;b;
+#
+#
+#
+sixty-square-board;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;b;A board having only 60 squares;
+#
+#
+#
+wrong-square;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbxbbbbbbbbbb;b;A board having a wrong char;
+#
+#
+#
+wrong-player-a;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;c;An entry having a wrong player;
+wrong-player-b;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;;An entry having a wrong player;
+wrong-player-c;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb;bb;An entry having a wrong player;

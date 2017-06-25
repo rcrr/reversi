@@ -130,7 +130,6 @@ int
 main (int argc,
       char *argv[])
 {
-  FILE *fp;
 
   int opt;
   int oindex = -1;
@@ -189,12 +188,7 @@ main (int argc,
 
   fprintf(stdout, "GPDB2: hello user!\n");
 
-  /* Opens the source file for reading. */
-  fp = fopen(f_arg, "r");
-
   gpdb2_dictionary_t *db = gpdb2_dictionary_new(f_arg);
-
-  fclose(fp);
 
   fprintf(stdout, "Game position dictionary, description: %s\n",gpdb2_dictionary_get_description(db));
   gpdb2_dictionary_set_description(db, "changed!");
@@ -226,6 +220,12 @@ main (int argc,
   count = gpdb2_dictionary_entry_count(db);
   fprintf(stdout, "count=%zu\n", count);
 
+  r = gpdb2_dictionary_entry_find (db, "four");
+  assert(!r);
+
+  r = gpdb2_dictionary_entry_find (db, "one");
+  assert(r == a);
+
   r = gpdb2_dictionary_delete_entry(db, c);
   assert(!r);
 
@@ -237,6 +237,18 @@ main (int argc,
 
   count = gpdb2_dictionary_entry_count(db);
   fprintf(stdout, "count=%zu\n", count);
+
+  const bool duplicates_are_errors = true;
+  const bool replace_duplicates = false;
+  const bool stop_on_error = false;
+
+  size_t insertions =  gpdb2_dictionary_load(db,
+                                             f_arg,
+                                             duplicates_are_errors,
+                                             replace_duplicates,
+                                             stop_on_error);
+
+  fprintf(stdout, "insertions=%zu\n", insertions);
 
   gpdb2_dictionary_free(db);
 
