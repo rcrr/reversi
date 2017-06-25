@@ -240,7 +240,8 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
                        char *file_name,
                        bool duplicates_are_errors,
                        bool replace_duplicates,
-                       bool stop_on_error)
+                       bool stop_on_error,
+                       gpdb2_syntax_err_log_t *elog)
 {
   assert(db);
   assert(file_name);
@@ -262,18 +263,25 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
   GamePositionX gpx;
 
   while (fgets(line, sizeof(line), fp)) {
+    if (strlen(line) == MAX_LINE_LENGTH - 1) {
+      fprintf(stderr, "Input line %zu, in file %s is longer than MAX_LINE_LENGTH - 1 (%d). Aborting ...\n",
+              line_number, file_name, MAX_LINE_LENGTH - 1);
+      abort();
+    }
     err = NULL;
     entry_id[0] = '\0';
     gpdb2_parse_line(line, file_name,line_number, entry_id, entry_description, &gpx, &err);
-    if (err) printf("err->message=%s\n", err->message);
-    else if (entry_id[0] != '\0') {
+    if (err) {
+      printf("err->message=%s\n", err->message);
+      gpdb2_syntax_err_log_add(elog, err);
+    } else if (entry_id[0] != '\0') {
       printf("entry_id=%s, entry_description=%s\n", entry_id, entry_description);
-      gpdb2_entry_new(entry_id, entry_description, &gpx); // DA COMPLETARE
+      gpdb2_entry_new(entry_id, entry_description, &gpx);
+      // DA COMPLETARE
     }
 
     line_number++;
   }
-  if (ferror(fp)) fprintf(stderr, "Error reading input file: %s\n", strerror(errno));
 
   fclose(fp);
 
@@ -334,6 +342,50 @@ gpdb2_syntax_err_free (gpdb2_syntax_err_t *error)
     free(error->message);
     free(error);
   }
+}
+
+
+
+/******************************************************************/
+/* Function implementations for the gpdb2_syntax_err_log_t entity. */
+/******************************************************************/
+
+gpdb2_syntax_err_log_t *
+gpdb2_syntax_err_log_new (void)
+{
+  gpdb2_syntax_err_log_t *log = (gpdb2_syntax_err_log_t *) malloc(sizeof(gpdb2_syntax_err_log_t));
+  assert(log);
+
+  llist_compare_f cmp = NULL;
+  log->list = llist_new(cmp);
+
+  return log;
+}
+
+void
+gpdb2_syntax_err_log_free (gpdb2_syntax_err_log_t *log)
+{
+  if (log) {
+    llist_free(log->list);
+    free(log);
+  }
+}
+
+void
+gpdb2_syntax_err_log_add (gpdb2_syntax_err_log_t *log,
+                          gpdb2_syntax_err_t *err)
+{
+  assert(log);
+  if (err) {
+    llist_add(log->list, err);
+  }
+}
+
+size_t
+gpdb2_syntax_err_log_length (gpdb2_syntax_err_log_t *log)
+{
+  assert(log);
+  return llist_length(log->list);
 }
 
 

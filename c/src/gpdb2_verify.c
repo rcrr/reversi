@@ -238,6 +238,11 @@ main (int argc,
   count = gpdb2_dictionary_entry_count(db);
   fprintf(stdout, "count=%zu\n", count);
 
+
+
+  gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
+  assert(elog);
+
   const bool duplicates_are_errors = true;
   const bool replace_duplicates = false;
   const bool stop_on_error = false;
@@ -246,11 +251,14 @@ main (int argc,
                                              f_arg,
                                              duplicates_are_errors,
                                              replace_duplicates,
-                                             stop_on_error);
+                                             stop_on_error,
+                                             elog);
 
   fprintf(stdout, "insertions=%zu\n", insertions);
+  fprintf(stdout, "gpdb2_syntax_err_log_length(elog)=%zu\n", gpdb2_syntax_err_log_length(elog));
 
   gpdb2_dictionary_free(db);
+  gpdb2_syntax_err_log_free(elog);
 
   fprintf(stdout, "GPDB2: good bye user!\n");
 
