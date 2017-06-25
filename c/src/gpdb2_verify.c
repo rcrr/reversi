@@ -257,6 +257,8 @@ main (int argc,
   fprintf(stdout, "insertions=%zu\n", insertions);
   fprintf(stdout, "gpdb2_syntax_err_log_length(elog)=%zu\n", gpdb2_syntax_err_log_length(elog));
 
+  gpdb2_syntax_err_log_print(elog, stdout);
+
   gpdb2_dictionary_free(db);
   gpdb2_syntax_err_log_free(elog);
 

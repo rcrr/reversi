@@ -172,6 +172,9 @@ gpdb2_syntax_err_new (const char *const file_name,
 extern void
 gpdb2_syntax_err_free (gpdb2_syntax_err_t *error);
 
+extern void
+gpdb2_syntax_err_print (const gpdb2_syntax_err_t *const error,
+                        FILE *const stream);
 
 
 /******************************************************************/
@@ -190,6 +193,10 @@ gpdb2_syntax_err_log_add (gpdb2_syntax_err_log_t *log,
 
 extern size_t
 gpdb2_syntax_err_log_length (gpdb2_syntax_err_log_t *log);
+
+extern void
+gpdb2_syntax_err_log_print (const gpdb2_syntax_err_log_t *const log,
+                            FILE *const stream);
 
 
 

@@ -58,6 +58,10 @@
  * Prototypes for internal functions.
  */
 
+static void
+gpdb2_syntax_err_print_proxy (void *const element,
+                              void *const aux);
+
 static bool
 file_exists (const char *const file_name);
 
@@ -344,6 +348,13 @@ gpdb2_syntax_err_free (gpdb2_syntax_err_t *error)
   }
 }
 
+void
+gpdb2_syntax_err_print (const gpdb2_syntax_err_t *const error,
+                        FILE *const stream)
+{
+  fprintf(stream, "To be completed\n");
+}
+
 
 
 /******************************************************************/
@@ -388,10 +399,28 @@ gpdb2_syntax_err_log_length (gpdb2_syntax_err_log_t *log)
   return llist_length(log->list);
 }
 
+void
+gpdb2_syntax_err_log_print (const gpdb2_syntax_err_log_t *const log,
+                            FILE *const stream)
+{
+  assert(log);
+  llist_foreach(log->list, gpdb2_syntax_err_print_proxy, (void *) stream);
+}
+
+
 
 /*
  * Internal functions.
  */
+
+static void
+gpdb2_syntax_err_print_proxy (void *const element,
+                                  void *const aux)
+{
+  const gpdb2_syntax_err_t *const error = (const gpdb2_syntax_err_t *const) element;
+  FILE *const stream = (FILE *const) aux;
+  gpdb2_syntax_err_print(error, stream);
+}
 
 static bool
 file_exists (const char *const file_name)
