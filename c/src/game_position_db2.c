@@ -352,7 +352,40 @@ void
 gpdb2_syntax_err_print (const gpdb2_syntax_err_t *const error,
                         FILE *const stream)
 {
-  fprintf(stream, "To be completed\n");
+  assert(error);
+
+  fprintf(stream, "\n");
+  fprintf(stream, "Line number: %zu\n", error->line_number);
+  fprintf(stream, "Line:        %s", error->line);
+
+  fprintf(stream, "Error type:  ");
+  switch (error->type) {
+  case GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY:
+    fprintf(stream, "GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY - There are less than four fields.");
+    break;
+  case GPDB2_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64:
+    fprintf(stream, "GPDB2_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64 - The board field doesn't have sixty-four characters.");
+    break;
+  case GPDB2_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID:
+    fprintf(stream, "GPDB2_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID - In the board field, one or more characters are out of range.");
+    break;
+  case GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR:
+    fprintf(stream, "GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR - Player field doesn't have a single character.");
+    break;
+  case GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID:
+    fprintf(stream, "GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID - Out of range character for player.");
+    break;
+  case GPDB2_SYNTAX_ERR_DUPLICATE_ENTRY_KEY:
+    fprintf(stream, "GPDB2_SYNTAX_ERR_DUPLICATE_ENTRY_KEY - Duplicate key.");
+    break;
+  default:
+    fprintf(stderr, "Error type is out of range. Aborting ...\n");
+    abort();
+    break;
+  }
+  fprintf(stream, "\n");
+
+  fprintf(stream, "Message:     %s\n", error->message);
 }
 
 
