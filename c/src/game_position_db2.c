@@ -252,6 +252,7 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
 
   FILE *fp;
   gpdb2_syntax_err_t *err;
+  gpdb2_entry_t *entry;
 
   size_t insertions = 0;
   size_t line_number = 0;
@@ -280,8 +281,13 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
       gpdb2_syntax_err_log_add(elog, err);
     } else if (entry_id[0] != '\0') {
       printf("entry_id=%s, entry_description=%s\n", entry_id, entry_description);
-      gpdb2_entry_new(entry_id, entry_description, &gpx);
-      // DA COMPLETARE
+      entry = gpdb2_dictionary_entry_find (db, entry_id);
+      if (entry) {
+        ; // DA COMPLETARE
+      } else {
+        entry = gpdb2_entry_new(entry_id, entry_description, &gpx);
+        gpdb2_dictionary_add_or_replace_entry(db, entry);
+      }
     }
 
     line_number++;
