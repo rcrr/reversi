@@ -85,19 +85,117 @@ basic_t (ut_test_t *const t)
 }
 
 static void
-basic2_t (ut_test_t *const t)
+find_t (ut_test_t *const t)
 {
   gpdb2_entry_t *e, *r;
 
   GamePositionX gpx = {0, 0, BLACK_PLAYER};
   e = gpdb2_entry_new("one", "The first entry", &gpx);
 
-  const char *const db_description = "Test database";
+  gpdb2_dictionary_t *db = gpdb2_dictionary_new(NULL);
 
-  gpdb2_dictionary_t *db = gpdb2_dictionary_new(db_description);
+  r = gpdb2_dictionary_add_or_replace_entry(db, e);
+
+  r = NULL;
+  r = gpdb2_dictionary_entry_find(db, "one");
+  ut_assert(t, e == r);
+
+  r = NULL;
+  r = gpdb2_dictionary_entry_find(db, "two");
+  ut_assert(t, NULL == r);
+
+  gpdb2_dictionary_free(db);
+}
+
+static void
+delete_t (ut_test_t *const t)
+{
+  gpdb2_entry_t *e, *r;
+  size_t count;
+
+  GamePositionX gpx = {0, 0, BLACK_PLAYER};
+  e = gpdb2_entry_new("one", "The first entry", &gpx);
+
+  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Test db");
 
   r = gpdb2_dictionary_add_or_replace_entry(db, e);
   ut_assert(t, r == NULL);
+
+  count = gpdb2_dictionary_entry_count(db);
+  ut_assert(t, 1 == count);
+
+  gpdb2_dictionary_delete_entry(db, e);
+
+  count = gpdb2_dictionary_entry_count(db);
+  ut_assert(t, 0 == count);
+
+  gpdb2_dictionary_free(db);
+}
+
+static void
+replace_t (ut_test_t *const t)
+{
+  gpdb2_entry_t *e0, *e1, *e2, *r;
+  size_t count;
+
+  GamePositionX gpx0 = {0, 0, BLACK_PLAYER};
+  e0 = gpdb2_entry_new("one", "The first entry", &gpx0);
+
+  GamePositionX gpx1 = {1, 0, BLACK_PLAYER};
+  e1 = gpdb2_entry_new("one", "A replacement for the first entry", &gpx1);
+
+  GamePositionX gpx2 = {2, 0, BLACK_PLAYER};
+  e2 = gpdb2_entry_new("two", "A second entry", &gpx2);
+
+  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Test db");
+
+  r = gpdb2_dictionary_add_or_replace_entry(db, e0);
+  ut_assert(t, r == NULL);
+
+  r = gpdb2_dictionary_add_or_replace_entry(db, e2);
+  ut_assert(t, r == NULL);
+
+  count = gpdb2_dictionary_entry_count(db);
+  ut_assert(t, 2 == count);
+
+  r = gpdb2_dictionary_add_or_replace_entry(db, e1);
+  ut_assert(t, r == e0);
+
+  count = gpdb2_dictionary_entry_count(db);
+  ut_assert(t, 2 == count);
+
+  r = NULL;
+  r = gpdb2_dictionary_entry_find(db, "one");
+  ut_assert(t, e1 == r);
+
+  r = NULL;
+  r = gpdb2_dictionary_entry_find(db, "two");
+  ut_assert(t, e2 == r);
+
+  gpdb2_dictionary_free(db);
+}
+
+static void
+basic2_t (ut_test_t *const t)
+{
+  gpdb2_entry_t *e, *r;
+  size_t count;
+
+  GamePositionX gpx = {0, 0, BLACK_PLAYER};
+  e = gpdb2_entry_new("one", "The first entry", &gpx);
+
+  gpdb2_dictionary_t *db = gpdb2_dictionary_new(NULL);
+
+  r = gpdb2_dictionary_add_or_replace_entry(db, e);
+  ut_assert(t, r == NULL);
+
+  count = gpdb2_dictionary_entry_count(db);
+  ut_assert(t, 1 == count);
+
+  gpdb2_dictionary_delete_entry(db, e);
+
+  count = gpdb2_dictionary_entry_count(db);
+  ut_assert(t, 0 == count);
 
   gpdb2_dictionary_free(db);
 
@@ -168,6 +266,9 @@ main (int argc,
   ut_suite_t *const s = ut_suite_new(&config, "game_position_db2");
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "basic", basic_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "find", find_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "delete", delete_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "replace", replace_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "basic2", basic2_t);
 
   int failure_count = ut_suite_run(s);
