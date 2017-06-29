@@ -220,11 +220,11 @@ main (int argc,
 
   /* Loads the game position database. */
   gpdb2_dictionary_load(db,
+                        elog,
                         f_arg,
                         !o_flag,
                         r_flag,
-                        s_flag,
-                        elog);
+                        s_flag);
 
   /* Prints the database summary if the OPTION -p is turned on. */
   if (p_flag) {

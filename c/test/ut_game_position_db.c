@@ -177,6 +177,48 @@ replace_t (ut_test_t *const t)
   gpdb2_dictionary_free(db);
 }
 
+static void
+load_t (ut_test_t *const t)
+{
+  size_t insertions;
+  size_t error_count;
+  size_t entry_count;
+
+  size_t expected_insertions = 6;
+  size_t expected_error_count = 11;
+  size_t expected_entry_count = 6;
+
+  const char *const file_name = "db/gpdb-test-db.txt";
+
+  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Test db from file: db/gpdb-test-db.txt");
+  assert(db);
+
+  gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
+  assert(elog);
+
+  const bool duplicates_are_errors = true;
+  const bool replace_duplicates = false;
+  const bool stop_on_error = false;
+
+  insertions = gpdb2_dictionary_load(db,
+                                     elog,
+                                     file_name,
+                                     duplicates_are_errors,
+                                     replace_duplicates,
+                                     stop_on_error);
+
+  ut_assert(t, insertions == expected_insertions);
+
+  error_count = gpdb2_syntax_err_log_length(elog);
+  ut_assert(t, error_count == expected_error_count);
+
+  entry_count = gpdb2_dictionary_entry_count(db);
+  ut_assert(t, entry_count == expected_entry_count);
+
+  gpdb2_dictionary_free(db);
+  gpdb2_syntax_err_log_free(elog);
+}
+
 
 
 /**
@@ -195,6 +237,7 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "find", find_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "delete", delete_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "replace", replace_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "load", load_t);
 
   int failure_count = ut_suite_run(s);
 

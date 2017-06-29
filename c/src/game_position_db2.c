@@ -80,7 +80,7 @@ gpdb2_tree_item_destroy_function (void *item,
 
 static int
 gpdb2_parse_line (char *line,
-                  char *file_name,
+                  const char *const file_name,
                   size_t line_number,
                   char *entry_id,
                   char *entry_description,
@@ -276,13 +276,14 @@ gpdb2_dictionary_find_entry (gpdb2_dictionary_t *const db,
 
 size_t
 gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
-                       char *file_name,
-                       bool duplicates_are_errors,
-                       bool replace_duplicates,
-                       bool stop_on_error,
-                       gpdb2_syntax_err_log_t *elog)
+                       gpdb2_syntax_err_log_t *const elog,
+                       const char *const file_name,
+                       const bool duplicates_are_errors,
+                       const bool replace_duplicates,
+                       const bool stop_on_error)
 {
   assert(db);
+  assert(elog);
   assert(file_name);
 
   FILE *fp;
@@ -335,6 +336,7 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
             entry = gpdb2_entry_new(entry_id, entry_description, &gpx);
             entry = gpdb2_dictionary_add_or_replace_entry(db, entry);
             gpdb2_entry_free(entry);
+            insertions++;
           } else {
             /* Does nothing. */
             ;
@@ -344,6 +346,7 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
         /* Entry is new. */
         entry = gpdb2_entry_new(entry_id, entry_description, &gpx);
         gpdb2_dictionary_add_or_replace_entry(db, entry);
+        insertions++;
       }
     }
     line_number++;
@@ -599,7 +602,7 @@ gpdb2_tree_item_destroy_function (void *item,
 
 static int
 gpdb2_parse_line (char *line,
-                  char *file_name,
+                  const char *const file_name,
                   size_t line_number,
                   char *entry_id,
                   char *entry_description,

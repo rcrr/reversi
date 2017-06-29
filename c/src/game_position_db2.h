@@ -136,11 +136,11 @@ gpdb2_dictionary_find_entry (gpdb2_dictionary_t *const db,
 
 extern size_t
 gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
-                       char *file_name,
-                       bool duplicates_are_errors,
-                       bool replace_duplicates,
-                       bool stop_on_error,
-                       gpdb2_syntax_err_log_t *elog);
+                       gpdb2_syntax_err_log_t *const elog,
+                       const char *const file_name,
+                       const bool duplicates_are_errors,
+                       const bool replace_duplicates,
+                       const bool stop_on_error);
 
 extern void
 gpdb2_dictionary_print (const gpdb2_dictionary_t *const db,
