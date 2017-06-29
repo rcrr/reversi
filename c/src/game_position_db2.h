@@ -147,6 +147,11 @@ gpdb2_dictionary_print (const gpdb2_dictionary_t *const db,
                         FILE *const stream,
                         const bool verbose);
 
+extern void
+gpdb2_dictionary_print_summary (const gpdb2_dictionary_t *const db,
+                                const gpdb2_syntax_err_log_t *const elog,
+                                FILE *const stream);
+
 
 
 /****************************************************/
@@ -202,7 +207,7 @@ gpdb2_syntax_err_log_add (gpdb2_syntax_err_log_t *log,
                           gpdb2_syntax_err_t *err);
 
 extern size_t
-gpdb2_syntax_err_log_length (gpdb2_syntax_err_log_t *log);
+gpdb2_syntax_err_log_length (const gpdb2_syntax_err_log_t *const log);
 
 extern void
 gpdb2_syntax_err_log_print (const gpdb2_syntax_err_log_t *const log,

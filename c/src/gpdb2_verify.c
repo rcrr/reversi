@@ -206,16 +206,16 @@ main (int argc,
   const bool stop_on_error = false;
 
   /* Loads the game position database. */
-  size_t insertions =  gpdb2_dictionary_load(db,
-                                             f_arg,
-                                             duplicates_are_errors,
-                                             replace_duplicates,
-                                             stop_on_error,
-                                             elog);
+  gpdb2_dictionary_load(db,
+                        f_arg,
+                        duplicates_are_errors,
+                        replace_duplicates,
+                        stop_on_error,
+                        elog);
 
   /* Prints the database summary if the OPTION -p is turned on. */
   if (p_flag) {
-    fprintf(stdout, "SUMMARY ---- to be completed ---- insertions=%zu\n", insertions);
+    gpdb2_dictionary_print_summary(db, elog, stdout);
   }
 
   /* Prints the error log if the OPTION -e is turned on. */

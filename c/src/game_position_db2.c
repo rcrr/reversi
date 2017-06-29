@@ -297,6 +297,8 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
   char entry_id[MAX_LINE_LENGTH] = "";
   char entry_description[MAX_LINE_LENGTH] = "";
   GamePositionX gpx;
+  char error_message[1024];
+
 
   while (fgets(line, sizeof(line), fp)) {
     if (strlen(line) == MAX_LINE_LENGTH - 1) {
@@ -309,17 +311,35 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
     gpdb2_parse_line(line, file_name, line_number, entry_id, entry_description, &gpx, &err);
     if (err) {
       gpdb2_syntax_err_log_add(elog, err);
-    } else if (entry_id[0] != '\0') {
+      if (stop_on_error) goto out;
+    } else if (entry_id[0] != '\0') { // The line is not a comment.
       entry = gpdb2_dictionary_find_entry(db, entry_id);
       if (entry) {
-        ; // DA COMPLETARE
+        /* Entry is a duplicate. */
+        if (duplicates_are_errors) {
+          sprintf(error_message, "The line has a duplicate key, duplications are considered as errors. Key is: \"%s\"", entry_id);
+          err = gpdb2_syntax_err_new(file_name,
+                                     line_number,
+                                     line,
+                                     GPDB2_SYNTAX_ERR_DUPLICATE_ENTRY_KEY,
+                                     error_message);
+          gpdb2_syntax_err_log_add(elog, err);
+          if (stop_on_error) goto out;
+        } else {
+          /* Replaces entry. */
+          entry = gpdb2_entry_new(entry_id, entry_description, &gpx);
+          entry = gpdb2_dictionary_add_or_replace_entry(db, entry);
+          gpdb2_entry_free(entry);
+        }
       } else {
+        /* Entry is new. */
         entry = gpdb2_entry_new(entry_id, entry_description, &gpx);
         gpdb2_dictionary_add_or_replace_entry(db, entry);
       }
     }
     line_number++;
   }
+ out:
 
   fclose(fp);
 
@@ -342,6 +362,25 @@ gpdb2_dictionary_print (const gpdb2_dictionary_t *const db,
 
   while ((entry = rbt_t_next(tr))) {
     gpdb2_entry_print(entry, stream, verbose);
+  }
+}
+
+void
+gpdb2_dictionary_print_summary (const gpdb2_dictionary_t *const db,
+                                const gpdb2_syntax_err_log_t *const elog,
+                                FILE *const stream)
+{
+  assert(db);
+
+  const size_t entry_count = gpdb2_dictionary_entry_count(db);
+
+  fprintf(stream, "The Game Position Database has %zu entr%s.\n",
+          entry_count, (entry_count == 1) ? "y" : "ies");
+  fprintf(stream, "Database Description: %s\n", gpdb2_dictionary_get_description(db));
+
+  if (elog) {
+    const size_t error_count = gpdb2_syntax_err_log_length(elog);
+    fprintf(stream, "Number of errors: %zu\n", error_count);
   }
 }
 
@@ -479,7 +518,7 @@ gpdb2_syntax_err_log_add (gpdb2_syntax_err_log_t *log,
 }
 
 size_t
-gpdb2_syntax_err_log_length (gpdb2_syntax_err_log_t *log)
+gpdb2_syntax_err_log_length (const gpdb2_syntax_err_log_t *const log)
 {
   assert(log);
   return llist_length(log->list);
