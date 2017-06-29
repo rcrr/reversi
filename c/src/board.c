@@ -875,7 +875,7 @@ game_position_x_count_difference (const GamePositionX *const gpx)
  * @invariant Parameters `gpx` and `out` must be not `NULL`.
  * The invariants are guarded by assertions.
  * Moreover it is responsibility of the caller to garantee that the `out`
- * pointer refers to a `char` vector thta has `66` positions ore more.
+ * pointer refers to a `char` vector that has `66` positions or more.
  *
  * @param [in]  gpx the given game position
  * @param [out] out the string written by the function

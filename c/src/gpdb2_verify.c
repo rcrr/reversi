@@ -190,6 +190,7 @@ main (int argc,
 
   gpdb2_dictionary_t *db = gpdb2_dictionary_new(f_arg);
 
+  /*
   fprintf(stdout, "Game position dictionary, description: %s\n",gpdb2_dictionary_get_description(db));
   gpdb2_dictionary_set_description(db, "changed!");
   fprintf(stdout, "Game position dictionary, description: %s\n",gpdb2_dictionary_get_description(db));
@@ -238,6 +239,7 @@ main (int argc,
   count = gpdb2_dictionary_entry_count(db);
   fprintf(stdout, "count=%zu\n", count);
 
+  */
 
 
   gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
@@ -258,6 +260,9 @@ main (int argc,
   fprintf(stdout, "gpdb2_syntax_err_log_length(elog)=%zu\n", gpdb2_syntax_err_log_length(elog));
 
   gpdb2_syntax_err_log_print(elog, stdout);
+
+  gpdb2_dictionary_print(db, stdout, true);
+  gpdb2_dictionary_print(db, stdout, false);
 
   gpdb2_dictionary_free(db);
   gpdb2_syntax_err_log_free(elog);

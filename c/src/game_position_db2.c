@@ -138,6 +138,37 @@ gpdb2_entry_free (gpdb2_entry_t *entry)
   }
 }
 
+void
+gpdb2_entry_print (const gpdb2_entry_t *const entry,
+                   FILE *const stream,
+                   const bool verbose)
+{
+  assert(entry);
+
+  char buf[256]; // see game_position_x_print documentation ...
+
+  if (verbose) {
+    game_position_x_print(buf, &entry->gpx);
+    fprintf(stream, "Entry id: %s\n", entry->id);
+    fprintf(stream, "Description: %s\n", entry->description);
+    fprintf(stream, "Game Position:\n%s\n", buf);
+  } else {
+    fprintf(stream, "%s;", entry->id);
+    for (int pos = 0; pos < 64; pos++) {
+      const SquareSet sq = (SquareSet) 1 << pos;
+      char color = '.';
+      if (sq & entry->gpx.blacks) {
+        color = 'b';
+      } else if (sq & entry->gpx.whites) {
+        color = 'w';
+      }
+      fprintf(stream, "%c", color);
+    }
+    fprintf(stream, ";%c;", (entry->gpx.player == BLACK_PLAYER) ? 'b' : 'w');
+    fprintf(stream, "%s;\n", entry->description);
+  }
+}
+
 
 
 /**************************************************************/
@@ -275,12 +306,10 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
     }
     err = NULL;
     entry_id[0] = '\0';
-    gpdb2_parse_line(line, file_name,line_number, entry_id, entry_description, &gpx, &err);
+    gpdb2_parse_line(line, file_name, line_number, entry_id, entry_description, &gpx, &err);
     if (err) {
-      printf("err->message=%s\n", err->message);
       gpdb2_syntax_err_log_add(elog, err);
     } else if (entry_id[0] != '\0') {
-      printf("entry_id=%s, entry_description=%s\n", entry_id, entry_description);
       entry = gpdb2_dictionary_entry_find (db, entry_id);
       if (entry) {
         ; // DA COMPLETARE
@@ -289,13 +318,31 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
         gpdb2_dictionary_add_or_replace_entry(db, entry);
       }
     }
-
     line_number++;
   }
 
   fclose(fp);
 
   return insertions;
+}
+
+void
+gpdb2_dictionary_print (const gpdb2_dictionary_t *const db,
+                        FILE *const stream,
+                        const bool verbose)
+{
+  assert(db);
+
+  gpdb2_entry_t *entry;
+
+  rbt_traverser_t traverser;
+  rbt_traverser_t *tr = &traverser;
+
+  rbt_t_init(tr, db->table);
+
+  while ((entry = rbt_t_next(tr))) {
+    gpdb2_entry_print(entry, stream, verbose);
+  }
 }
 
 
@@ -517,12 +564,14 @@ gpdb2_parse_line (char *line,
   if (!line) return EXIT_SUCCESS;
 
   /* Variable initialization. */
+  entry_gpx->blacks = empty_square_set;
+  entry_gpx->whites = empty_square_set;
   record_length = 0;
   field_count = 0;
   line_is_an_entry = false;
   for (int i = 0; i < record_field_count; i++) record_separators[i] = NULL;
 
-  /* Computes the record_length, removing everything following a dash. */
+  /* Finds the positions of all field separators. */
   while ((c = line[record_length])) {
     switch (c) {
     case '#':
@@ -540,12 +589,6 @@ gpdb2_parse_line (char *line,
 
  line_scan_completed:
   ;
-
-  printf("%04zu: rl=%04zu, field_count=%zu", line_number, record_length, field_count);
-  for (int i = 0; i < field_count; i++) {
-    printf("%c", *record_separators[i]);
-  }
-  printf("\n");
 
   /* The line doesn't contain a record. */
   if (!line_is_an_entry) return EXIT_SUCCESS;

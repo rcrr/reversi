@@ -142,6 +142,11 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
                        bool stop_on_error,
                        gpdb2_syntax_err_log_t *elog);
 
+extern void
+gpdb2_dictionary_print (const gpdb2_dictionary_t *const db,
+                        FILE *const stream,
+                        const bool verbose);
+
 
 
 /****************************************************/
@@ -155,6 +160,11 @@ gpdb2_entry_new (const char *const id,
 
 extern void
 gpdb2_entry_free (gpdb2_entry_t *entry);
+
+extern void
+gpdb2_entry_print (const gpdb2_entry_t *const entry,
+                   FILE *const stream,
+                   const bool verbose);
 
 
 
