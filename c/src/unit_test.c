@@ -194,12 +194,13 @@ ut_suite_new (ut_prog_arg_config_t *config,
   static const size_t size_of_t = sizeof(ut_suite_t);
   s = (ut_suite_t *) malloc(size_of_t);
   assert(s);
-  s->config = config;
   s->label = label;
+  s->config = config;
   s->count = 0;
   s->size = array_alloc_chunk_size;
   s->tests = (void *) malloc(s->size * sizeof(void *));
   assert(s->tests);
+  s->failed_test_count = 0;
   return s;
 }
 
@@ -214,12 +215,18 @@ ut_suite_new (ut_prog_arg_config_t *config,
 void
 ut_suite_free (ut_suite_t *s)
 {
-  for (int i = 0; i < s->count; i++) {
-    ut_test_t **tests_p = s->tests + i;
-    ut_test_free(*tests_p);
+  if (s) {
+    for (int i = 0; i < s->count; i++) {
+      ut_test_t **tests_p = s->tests + i;
+      ut_test_free(*tests_p);
+    }
+    free(s->tests);
+    if (s->config) {
+      if (s->config->test_paths) llist_free(s->config->test_paths);
+      if (s->config->skip_paths) llist_free(s->config->skip_paths);
+    }
+    free(s);
   }
-  free(s->tests);
-  free(s);
 }
 
 /**

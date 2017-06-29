@@ -59,6 +59,10 @@
  */
 
 static void
+gpdb2_syntax_err_free_proxy (void *const element,
+                             void *const aux);
+
+static void
 gpdb2_syntax_err_print_proxy (void *const element,
                               void *const aux);
 
@@ -507,6 +511,7 @@ void
 gpdb2_syntax_err_log_free (gpdb2_syntax_err_log_t *log)
 {
   if (log) {
+    llist_foreach(log->list, gpdb2_syntax_err_free_proxy, NULL);
     llist_free(log->list);
     free(log);
   }
@@ -542,6 +547,14 @@ gpdb2_syntax_err_log_print (const gpdb2_syntax_err_log_t *const log,
 /*
  * Internal functions.
  */
+
+static void
+gpdb2_syntax_err_free_proxy (void *const element,
+                             void *const aux)
+{
+  gpdb2_syntax_err_t *error = (gpdb2_syntax_err_t *) element;
+  gpdb2_syntax_err_free(error);
+}
 
 static void
 gpdb2_syntax_err_print_proxy (void *const element,

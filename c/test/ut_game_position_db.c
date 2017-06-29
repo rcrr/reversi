@@ -129,6 +129,7 @@ delete_t (ut_test_t *const t)
   count = gpdb2_dictionary_entry_count(db);
   ut_assert(t, 0 == count);
 
+  gpdb2_entry_free(e);
   gpdb2_dictionary_free(db);
 }
 
@@ -160,6 +161,7 @@ replace_t (ut_test_t *const t)
 
   r = gpdb2_dictionary_add_or_replace_entry(db, e1);
   ut_assert(t, r == e0);
+  gpdb2_entry_free(r);
 
   count = gpdb2_dictionary_entry_count(db);
   ut_assert(t, 2 == count);
