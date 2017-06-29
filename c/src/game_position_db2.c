@@ -257,7 +257,7 @@ gpdb2_dictionary_entry_count (const gpdb2_dictionary_t *const db)
 }
 
 gpdb2_entry_t *
-gpdb2_dictionary_entry_find (gpdb2_dictionary_t *const db,
+gpdb2_dictionary_find_entry (gpdb2_dictionary_t *const db,
                              const char *const id)
 {
   assert(db);
@@ -310,7 +310,7 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
     if (err) {
       gpdb2_syntax_err_log_add(elog, err);
     } else if (entry_id[0] != '\0') {
-      entry = gpdb2_dictionary_entry_find (db, entry_id);
+      entry = gpdb2_dictionary_find_entry(db, entry_id);
       if (entry) {
         ; // DA COMPLETARE
       } else {

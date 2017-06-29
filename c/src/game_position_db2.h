@@ -131,7 +131,7 @@ gpdb2_dictionary_delete_entry (gpdb2_dictionary_t *const db,
                                const gpdb2_entry_t *const entry);
 
 extern gpdb2_entry_t *
-gpdb2_dictionary_entry_find (gpdb2_dictionary_t *const db,
+gpdb2_dictionary_find_entry (gpdb2_dictionary_t *const db,
                              const char *const id);
 
 extern size_t
