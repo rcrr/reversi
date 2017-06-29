@@ -54,6 +54,7 @@
 static const mop_options_long_t olist[] = {
   {"help",              'h', MOP_NONE},
   {"file",              'f', MOP_REQUIRED},
+  {"verbose",           'v', MOP_NONE},
   {"print-summary",     'p', MOP_NONE},
   {"log-entries",       'l', MOP_NONE},
   {"log-errors",        'e', MOP_NONE},
@@ -68,6 +69,7 @@ static const char *documentation =
   "Options:\n"
   "  -h, --help              Show help options\n"
   "  -f, --file              Input file name   - Mandatory\n"
+  "  -v, --verbose           Verbose           - Displays entries on multiple lines, presenting the board in a more readable format\n"
   "  -p, --print-summary     Print summary     - Reports entry count, errors, and file description\n"
   "  -l, --log-entries       Log entries       - Logs all entries\n"
   "  -e, --log-errors        Log errors        - Logs syntax errors\n"
@@ -95,6 +97,7 @@ static int h_flag = false;
 static int f_flag = false;
 static char *f_arg = NULL;
 
+static int v_flag = false;
 static int p_flag = false;
 static int l_flag = false;
 static int e_flag = false;
@@ -144,6 +147,9 @@ main (int argc,
       f_flag = true;
       f_arg = options.optarg;
       break;
+    case 'v':
+      v_flag = true;
+      break;
     case 'p':
       p_flag = true;
       break;
@@ -186,18 +192,20 @@ main (int argc,
     }
   }
 
-  fprintf(stdout, "GPDB2: hello user!\n");
-
+  /* Loads the game position database. */
   gpdb2_dictionary_t *db = gpdb2_dictionary_new(f_arg);
+  assert(db);
 
-
+  /* Prepares and error log structure. */
   gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
   assert(elog);
 
+  /* Loader settings. */
   const bool duplicates_are_errors = true;
   const bool replace_duplicates = false;
   const bool stop_on_error = false;
 
+  /* Loads the game position database. */
   size_t insertions =  gpdb2_dictionary_load(db,
                                              f_arg,
                                              duplicates_are_errors,
@@ -205,18 +213,31 @@ main (int argc,
                                              stop_on_error,
                                              elog);
 
-  fprintf(stdout, "insertions=%zu\n", insertions);
-  fprintf(stdout, "gpdb2_syntax_err_log_length(elog)=%zu\n", gpdb2_syntax_err_log_length(elog));
+  /* Prints the database summary if the OPTION -p is turned on. */
+  if (p_flag) {
+    fprintf(stdout, "SUMMARY ---- to be completed ---- insertions=%zu\n", insertions);
+  }
 
-  gpdb2_syntax_err_log_print(elog, stdout);
+  /* Prints the error log if the OPTION -e is turned on. */
+  if (e_flag) {
+    gpdb2_syntax_err_log_print(elog, stdout);
+  }
 
-  gpdb2_dictionary_print(db, stdout, true);
-  gpdb2_dictionary_print(db, stdout, false);
+  /* Prints the entry list if the OPTION -l is turned on. */
+  if (l_flag) {
+    gpdb2_dictionary_print(db, stdout, v_flag);
+  }
+
+  /* Lookups for a given key. */
+  if (q_flag) {
+    gpdb2_entry_t *entry = gpdb2_dictionary_find_entry(db, q_arg);
+    if (entry) {
+      gpdb2_entry_print(entry, stdout, v_flag);
+    }
+  }
 
   gpdb2_dictionary_free(db);
   gpdb2_syntax_err_log_free(elog);
-
-  fprintf(stdout, "GPDB2: good bye user!\n");
 
   return 0;
 }
