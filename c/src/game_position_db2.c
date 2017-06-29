@@ -326,10 +326,15 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
           gpdb2_syntax_err_log_add(elog, err);
           if (stop_on_error) goto out;
         } else {
-          /* Replaces entry. */
-          entry = gpdb2_entry_new(entry_id, entry_description, &gpx);
-          entry = gpdb2_dictionary_add_or_replace_entry(db, entry);
-          gpdb2_entry_free(entry);
+          if (replace_duplicates) {
+            /* Replaces entry. */
+            entry = gpdb2_entry_new(entry_id, entry_description, &gpx);
+            entry = gpdb2_dictionary_add_or_replace_entry(db, entry);
+            gpdb2_entry_free(entry);
+          } else {
+            /* Does nothing. */
+            ;
+          }
         }
       } else {
         /* Entry is new. */
