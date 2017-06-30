@@ -32,17 +32,18 @@
  */
 
 #include <stdlib.h>
+#include <assert.h>
 #include <stdio.h>
 
 #include <glib.h>
 
 #include "board.h"
-#include "game_position_db.h"
+#include "game_position_db2.h"
 
 
 /* gpdb_dictionary_t fixture */
 typedef struct {
-  gpdb_dictionary_t *db;
+  gpdb2_dictionary_t *db;
 } gpdb_fixture_t;
 
 
@@ -78,7 +79,7 @@ gpdb_fixture_teardown (gpdb_fixture_t *fixture,
                        gconstpointer test_data);
 
 static GamePositionX *
-get_gpx_from_db (gpdb_dictionary_t *db,
+get_gpx_from_db (gpdb2_dictionary_t *db,
                  gchar *id);
 
 
@@ -132,7 +133,7 @@ static void
 game_position_legal_moves_test (gpdb_fixture_t *fixture,
                                 gconstpointer test_data)
 {
-  gpdb_dictionary_t *db = fixture->db;
+  gpdb2_dictionary_t *db = fixture->db;
 
   char to_string[512];
   size_t length;
@@ -162,7 +163,7 @@ static void
 game_position_has_any_legal_move_test (gpdb_fixture_t *fixture,
                                        gconstpointer test_data)
 {
-  gpdb_dictionary_t *db = fixture->db;
+  gpdb2_dictionary_t *db = fixture->db;
 
   g_assert(true  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "initial")));
   g_assert(true  == game_position_x_has_any_legal_move(get_gpx_from_db(db, "early-game-b-9-moves")));
@@ -175,7 +176,7 @@ static void
 game_position_has_any_player_any_legal_move_test (gpdb_fixture_t *fixture,
                                                   gconstpointer test_data)
 {
-  gpdb_dictionary_t *db = fixture->db;
+  gpdb2_dictionary_t *db = fixture->db;
 
   g_assert(true  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "initial")));
   g_assert(true  == game_position_x_has_any_player_any_legal_move(get_gpx_from_db(db, "early-game-b-9-moves")));
@@ -188,7 +189,7 @@ static void
 game_position_make_move_test (gpdb_fixture_t *fixture,
                               gconstpointer test_data)
 {
-  gpdb_dictionary_t *db = fixture->db;
+  gpdb2_dictionary_t *db = fixture->db;
 
   GamePositionX after_make_move_struct;
   GamePositionX *after_make_move = &after_make_move_struct;
@@ -244,33 +245,30 @@ static void
 gpdb_fixture_setup (gpdb_fixture_t *fixture,
                     gconstpointer test_data)
 {
-  gchar *source = g_strdup("db/gpdb-sample-games.txt");
+  const char *const file_name = "db/gpdb-sample-games.txt";
 
-  gpdb_dictionary_t *db;
-  gpdb_syntax_error_log_t *syntax_error_log;
-  FILE *fp;
-  GError *error;
+  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Test db from file: db/gpdb-sample-games.txt");
+  assert(db);
 
-  /* Loads the game position database. */
-  fp = fopen(source, "r");
-  if (!fp) {
-    printf("Unable to open database test file \"%s\" for reading.\n", source);
-    g_test_fail();
-  }
-  db = gpdb_new(g_strdup("Testing Database"));
-  syntax_error_log = NULL;
-  error = NULL;
-  gpdb_load(fp, source, db, &syntax_error_log, &error);
-  fclose(fp);
-  g_free(source);
+  gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
+  assert(elog);
 
-  /* Removes the tmp file, frees the resources. */
-  g_free(error);
-  if (syntax_error_log)
-    gpdb_syntax_error_log_free(syntax_error_log);
+  const bool duplicates_are_errors = true;
+  const bool replace_duplicates = false;
+  const bool stop_on_error = false;
+
+  gpdb2_dictionary_load(db,
+                        elog,
+                        file_name,
+                        duplicates_are_errors,
+                        replace_duplicates,
+                        stop_on_error);
+
+  g_assert(0 == gpdb2_syntax_err_log_length(elog));
+
+  gpdb2_syntax_err_log_free(elog);
 
   fixture->db = db;
-  g_assert (fixture->db != NULL);
 }
 
 static void
@@ -278,18 +276,18 @@ gpdb_fixture_teardown (gpdb_fixture_t *fixture,
                        gconstpointer test_data)
 {
   g_assert(fixture->db != NULL);
-  gpdb_free(fixture->db, TRUE);
+  gpdb2_dictionary_free(fixture->db);
 }
 
 GamePositionX *
-get_gpx_from_db (gpdb_dictionary_t *db,
+get_gpx_from_db (gpdb2_dictionary_t *db,
                  gchar *id)
 {
-  gpdb_entry_t *entry = gpdb_lookup(db, id);
+  gpdb2_entry_t *entry = gpdb2_dictionary_find_entry(db, id);
   if (!entry) {
     g_test_message("The entry \"%s\" is missing from game position database.\n", id);
     g_test_fail();
   }
   g_assert(entry);
-  return gpdb_get_gpx(entry);
+  return &entry->gpx;
 }
