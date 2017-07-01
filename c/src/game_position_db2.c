@@ -87,6 +87,9 @@ gpdb2_parse_line (char *line,
                   GamePositionX *entry_gpx,
                   gpdb2_syntax_err_t **err);
 
+static void
+gpdb2_syntax_err_log_reverse (gpdb2_syntax_err_log_t *log);
+
 /**
  * @endcond
  */
@@ -354,6 +357,8 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
  out:
 
   fclose(fp);
+
+  gpdb2_syntax_err_log_reverse(elog);
 
   return insertions;
 }
@@ -741,4 +746,11 @@ gpdb2_parse_line (char *line,
   entry_description[len] = '\0';
 
   return EXIT_SUCCESS;
+}
+
+static void
+gpdb2_syntax_err_log_reverse (gpdb2_syntax_err_log_t *log)
+{
+  assert(log);
+  llist_reverse(log->list);
 }
