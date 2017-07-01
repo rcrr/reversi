@@ -39,7 +39,7 @@
 #include <glib.h>
 
 #include "board.h"
-#include "game_position_db2.h"
+#include "game_position_db.h"
 
 #include "exact_solver.h"
 #include "improved_fast_endgame_solver.h"

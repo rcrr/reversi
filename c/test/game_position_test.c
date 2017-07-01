@@ -38,7 +38,7 @@
 #include <glib.h>
 
 #include "board.h"
-#include "game_position_db2.h"
+#include "game_position_db.h"
 
 
 /* gpdb_dictionary_t fixture */

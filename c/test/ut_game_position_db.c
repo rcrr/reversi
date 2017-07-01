@@ -37,7 +37,7 @@
 #include <assert.h>
 
 #include "unit_test.h"
-#include "game_position_db2.h"
+#include "game_position_db.h"
 #include "linked_list.h"
 
 

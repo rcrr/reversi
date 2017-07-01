@@ -41,7 +41,7 @@
 #include <glib.h>
 
 #include "board.h"
-#include "game_position_db2.h"
+#include "game_position_db.h"
 #include "sha3.h"
 
 #include "exact_solver.h"

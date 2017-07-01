@@ -183,7 +183,7 @@
 #include <glib.h>
 
 #include "endgame_solver.h"
-#include "game_position_db2.h"
+#include "game_position_db.h"
 #include "improved_fast_endgame_solver.h"
 #include "minimax_solver.h"
 #include "exact_solver.h"

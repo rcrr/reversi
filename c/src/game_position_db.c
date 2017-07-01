@@ -37,7 +37,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "game_position_db2.h"
+#include "game_position_db.h"
 
 /* Used for file reading, it contains also string termination. */
 #define MAX_LINE_LENGTH 4096
