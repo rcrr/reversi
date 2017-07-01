@@ -48,10 +48,10 @@
 
 
 /**
- * @brief gpdb2_dictionary_t fixture
+ * @brief gpdb_dictionary_t fixture
  */
 typedef struct {
-  gpdb2_dictionary_t *db;
+  gpdb_dictionary_t *db;
 } gpdb_fixture_t;
 
 /**
@@ -177,11 +177,11 @@ gpdb_fixture_teardown (gpdb_fixture_t *fixture,
                        gconstpointer test_data);
 
 static GamePositionX *
-get_gpx_from_db (gpdb2_dictionary_t *db,
+get_gpx_from_db (gpdb_dictionary_t *db,
                  char *id);
 
 static void
-run_test_case_array (gpdb2_dictionary_t *db,
+run_test_case_array (gpdb_dictionary_t *db,
                      const TestCase tca[],
                      ExactSolution* (*solver)(const GamePositionX *const gpx,
                                               const endgame_solver_env_t *const env));
@@ -237,7 +237,7 @@ static void
 game_position_es_solve_test (gpdb_fixture_t *fixture,
                              gconstpointer test_data)
 {
-  gpdb2_dictionary_t *db = fixture->db;
+  gpdb_dictionary_t *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
   run_test_case_array(db, tcap, game_position_es_solve);
 }
@@ -254,26 +254,26 @@ gpdb_fixture_setup (gpdb_fixture_t *fixture,
 {
   const char *const file_name = "db/gpdb-ffo.txt";
 
-  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Db from file: db/gpdb-ffo.txt");
+  gpdb_dictionary_t *db = gpdb_dictionary_new("Db from file: db/gpdb-ffo.txt");
   assert(db);
 
-  gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
+  gpdb_syntax_err_log_t *elog = gpdb_syntax_err_log_new();
   assert(elog);
 
   const bool duplicates_are_errors = true;
   const bool replace_duplicates = false;
   const bool stop_on_error = false;
 
-  gpdb2_dictionary_load(db,
-                        elog,
-                        file_name,
-                        duplicates_are_errors,
-                        replace_duplicates,
-                        stop_on_error);
+  gpdb_dictionary_load(db,
+                       elog,
+                       file_name,
+                       duplicates_are_errors,
+                       replace_duplicates,
+                       stop_on_error);
 
-  g_assert(0 == gpdb2_syntax_err_log_length(elog));
+  g_assert(0 == gpdb_syntax_err_log_length(elog));
 
-  gpdb2_syntax_err_log_free(elog);
+  gpdb_syntax_err_log_free(elog);
 
   fixture->db = db;
 }
@@ -284,24 +284,24 @@ gpdb_fixture_teardown (gpdb_fixture_t *fixture,
 {
   g_assert(fixture);
   g_assert(fixture->db);
-  gpdb2_dictionary_free(fixture->db);
+  gpdb_dictionary_free(fixture->db);
 }
 
 static GamePositionX *
-get_gpx_from_db (gpdb2_dictionary_t *db,
+get_gpx_from_db (gpdb_dictionary_t *db,
                  char *id)
 {
-  gpdb2_entry_t *entry = gpdb2_dictionary_find_entry(db, id);
+  gpdb_entry_t *entry = gpdb_dictionary_find_entry(db, id);
   if (!entry) {
     g_test_message("The entry \"%s\" is missing from game position database.\n", id);
     g_test_fail();
   }
   g_assert(entry);
-  return gpdb2_entry_get_gpx(entry);
+  return gpdb_entry_get_gpx(entry);
 }
 
 static void
-run_test_case_array (gpdb2_dictionary_t *db,
+run_test_case_array (gpdb_dictionary_t *db,
                      const TestCase tca[],
                      ExactSolution* (*solver)(const GamePositionX *const gpx,
                                               const endgame_solver_env_t *const env))

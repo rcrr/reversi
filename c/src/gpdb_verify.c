@@ -206,51 +206,51 @@ main (int argc,
   } else {
     if (!file_exists(f_arg)) {
       fprintf(stderr, "Argument for option -f: file %s does not exist.\n", f_arg);
-    return -4;
+      return -4;
     }
   }
 
   /* Loads the game position database. */
-  gpdb2_dictionary_t *db = gpdb2_dictionary_new(f_arg);
+  gpdb_dictionary_t *db = gpdb_dictionary_new(f_arg);
   assert(db);
 
   /* Prepares and error log structure. */
-  gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
+  gpdb_syntax_err_log_t *elog = gpdb_syntax_err_log_new();
   assert(elog);
 
   /* Loads the game position database. */
-  gpdb2_dictionary_load(db,
-                        elog,
-                        f_arg,
-                        !o_flag,
-                        r_flag,
-                        s_flag);
+  gpdb_dictionary_load(db,
+                       elog,
+                       f_arg,
+                       !o_flag,
+                       r_flag,
+                       s_flag);
 
   /* Prints the database summary if the OPTION -p is turned on. */
   if (p_flag) {
-    gpdb2_dictionary_print_summary(db, elog, stdout);
+    gpdb_dictionary_print_summary(db, elog, stdout);
   }
 
   /* Prints the error log if the OPTION -e is turned on. */
   if (e_flag) {
-    gpdb2_syntax_err_log_print(elog, stdout);
+    gpdb_syntax_err_log_print(elog, stdout);
   }
 
   /* Prints the entry list if the OPTION -l is turned on. */
   if (l_flag) {
-    gpdb2_dictionary_print(db, stdout, v_flag);
+    gpdb_dictionary_print(db, stdout, v_flag);
   }
 
   /* Lookups for a given key. */
   if (q_flag) {
-    gpdb2_entry_t *entry = gpdb2_dictionary_find_entry(db, q_arg);
+    gpdb_entry_t *entry = gpdb_dictionary_find_entry(db, q_arg);
     if (entry) {
-      gpdb2_entry_print(entry, stdout, v_flag);
+      gpdb_entry_print(entry, stdout, v_flag);
     }
   }
 
-  gpdb2_dictionary_free(db);
-  gpdb2_syntax_err_log_free(elog);
+  gpdb_dictionary_free(db);
+  gpdb_syntax_err_log_free(elog);
 
   return 0;
 }

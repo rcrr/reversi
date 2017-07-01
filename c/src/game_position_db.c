@@ -59,36 +59,36 @@
  */
 
 static void
-gpdb2_syntax_err_free_proxy (void *const element,
-                             void *const aux);
+gpdb_syntax_err_free_proxy (void *const element,
+                            void *const aux);
 
 static void
-gpdb2_syntax_err_print_proxy (void *const element,
-                              void *const aux);
+gpdb_syntax_err_print_proxy (void *const element,
+                             void *const aux);
 
 static bool
 file_exists (const char *const file_name);
 
 static int
-gpdb2_compare_entries (const void *item_a,
-                       const void *item_b,
-                       void *param);
+gpdb_compare_entries (const void *item_a,
+                      const void *item_b,
+                      void *param);
 
 static void
-gpdb2_tree_item_destroy_function (void *item,
-                                  void *param);
+gpdb_tree_item_destroy_function (void *item,
+                                 void *param);
 
 static int
-gpdb2_parse_line (char *line,
-                  const char *const file_name,
-                  size_t line_number,
-                  char *entry_id,
-                  char *entry_description,
-                  GamePositionX *entry_gpx,
-                  gpdb2_syntax_err_t **err);
+gpdb_parse_line (char *line,
+                 const char *const file_name,
+                 size_t line_number,
+                 char *entry_id,
+                 char *entry_description,
+                 GamePositionX *entry_gpx,
+                 gpdb_syntax_err_t **err);
 
 static void
-gpdb2_syntax_err_log_reverse (gpdb2_syntax_err_log_t *log);
+gpdb_syntax_err_log_reverse (gpdb_syntax_err_log_t *log);
 
 /**
  * @endcond
@@ -101,13 +101,13 @@ gpdb2_syntax_err_log_reverse (gpdb2_syntax_err_log_t *log);
  */
 
 /*********************************************************/
-/* Function implementations for the gpdb2_entry_t entity. */
+/* Function implementations for the gpdb_entry_t entity. */
 /*********************************************************/
 
-gpdb2_entry_t *
-gpdb2_entry_new (const char *const id,
-                 const char *const description,
-                 const GamePositionX *const gpx)
+gpdb_entry_t *
+gpdb_entry_new (const char *const id,
+                const char *const description,
+                const GamePositionX *const gpx)
 {
   assert(id);
   assert(description);
@@ -115,7 +115,7 @@ gpdb2_entry_new (const char *const id,
 
   int len;
 
-  gpdb2_entry_t *entry = (gpdb2_entry_t *) malloc(sizeof(gpdb2_entry_t));
+  gpdb_entry_t *entry = (gpdb_entry_t *) malloc(sizeof(gpdb_entry_t));
   assert(entry);
 
   len = strlen(id);
@@ -136,7 +136,7 @@ gpdb2_entry_new (const char *const id,
 }
 
 void
-gpdb2_entry_free (gpdb2_entry_t *entry)
+gpdb_entry_free (gpdb_entry_t *entry)
 {
   if (entry) {
     free(entry->id);
@@ -146,30 +146,30 @@ gpdb2_entry_free (gpdb2_entry_t *entry)
 }
 
 char *
-gpdb2_entry_get_id (gpdb2_entry_t *const entry)
+gpdb_entry_get_id (gpdb_entry_t *const entry)
 {
   assert(entry);
   return entry->id;
 }
 
 char *
-gpdb2_entry_get_description (gpdb2_entry_t *const entry)
+gpdb_entry_get_description (gpdb_entry_t *const entry)
 {
   assert(entry);
   return entry->description;
 }
 
 GamePositionX *
-gpdb2_entry_get_gpx (gpdb2_entry_t *const entry)
+gpdb_entry_get_gpx (gpdb_entry_t *const entry)
 {
   assert(entry);
   return &entry->gpx;
 }
 
 void
-gpdb2_entry_print (const gpdb2_entry_t *const entry,
-                   FILE *const stream,
-                   const bool verbose)
+gpdb_entry_print (const gpdb_entry_t *const entry,
+                  FILE *const stream,
+                  const bool verbose)
 {
   assert(entry);
 
@@ -200,21 +200,21 @@ gpdb2_entry_print (const gpdb2_entry_t *const entry,
 
 
 /**************************************************************/
-/* Function implementations for the gpdb2_dictionary_t entity. */
+/* Function implementations for the gpdb_dictionary_t entity. */
 /**************************************************************/
 
-gpdb2_dictionary_t *
-gpdb2_dictionary_new (const char *const description)
+gpdb_dictionary_t *
+gpdb_dictionary_new (const char *const description)
 {
-  gpdb2_dictionary_t *db = (gpdb2_dictionary_t*) malloc(sizeof(gpdb2_dictionary_t));
+  gpdb_dictionary_t *db = (gpdb_dictionary_t*) malloc(sizeof(gpdb_dictionary_t));
   assert(db);
 
   /* Sets description. */
   db->description = NULL;
-  gpdb2_dictionary_set_description(db, description);
+  gpdb_dictionary_set_description(db, description);
 
   /* Creates a new empty table. */
-  rbt_item_compare_f *cmp = gpdb2_compare_entries;
+  rbt_item_compare_f *cmp = gpdb_compare_entries;
   void *cmp_param = NULL;
   mem_allocator_t *alloc = NULL; // when NULL default allocator is used.
   db->table = rbt_create(cmp, cmp_param, alloc);
@@ -223,24 +223,24 @@ gpdb2_dictionary_new (const char *const description)
 }
 
 void
-gpdb2_dictionary_free (gpdb2_dictionary_t *db)
+gpdb_dictionary_free (gpdb_dictionary_t *db)
 {
   if (db) {
     if (db->description) free(db->description);
-    rbt_destroy(db->table, gpdb2_tree_item_destroy_function);
+    rbt_destroy(db->table, gpdb_tree_item_destroy_function);
     free(db);
   }
 }
 
 char *
-gpdb2_dictionary_get_description (const gpdb2_dictionary_t *const db)
+gpdb_dictionary_get_description (const gpdb_dictionary_t *const db)
 {
   return db->description;
 }
 
 void
-gpdb2_dictionary_set_description (gpdb2_dictionary_t *const db,
-                                  const char *const description)
+gpdb_dictionary_set_description (gpdb_dictionary_t *const db,
+                                 const char *const description)
 {
   if (db->description) free(db->description);
   if (description) {
@@ -253,66 +253,66 @@ gpdb2_dictionary_set_description (gpdb2_dictionary_t *const db,
   }
 }
 
-gpdb2_entry_t *
-gpdb2_dictionary_add_or_replace_entry (gpdb2_dictionary_t *const db,
-                                       gpdb2_entry_t *entry)
+gpdb_entry_t *
+gpdb_dictionary_add_or_replace_entry (gpdb_dictionary_t *const db,
+                                      gpdb_entry_t *entry)
 {
   assert(db);
   assert(entry);
 
-  gpdb2_entry_t *replaced = rbt_replace(db->table, entry);
+  gpdb_entry_t *replaced = rbt_replace(db->table, entry);
 
   return replaced;
 }
 
-gpdb2_entry_t *
-gpdb2_dictionary_delete_entry (gpdb2_dictionary_t *const db,
-                               const gpdb2_entry_t *const entry)
+gpdb_entry_t *
+gpdb_dictionary_delete_entry (gpdb_dictionary_t *const db,
+                              const gpdb_entry_t *const entry)
 {
   assert(db);
   assert(entry);
 
-  gpdb2_entry_t *deleted = rbt_delete(db->table, entry);
+  gpdb_entry_t *deleted = rbt_delete(db->table, entry);
 
   return deleted;
 }
 
 size_t
-gpdb2_dictionary_entry_count (const gpdb2_dictionary_t *const db)
+gpdb_dictionary_entry_count (const gpdb_dictionary_t *const db)
 {
   assert(db);
   return rbt_count(db->table);
 }
 
-gpdb2_entry_t *
-gpdb2_dictionary_find_entry (gpdb2_dictionary_t *const db,
-                             const char *const id)
+gpdb_entry_t *
+gpdb_dictionary_find_entry (gpdb_dictionary_t *const db,
+                            const char *const id)
 {
   assert(db);
   if (!id) return NULL;
 
-  gpdb2_entry_t key = { .id = (char *) id };
+  gpdb_entry_t key = { .id = (char *) id };
 
-  gpdb2_entry_t *selected = (gpdb2_entry_t *) rbt_find(db->table, &key);
+  gpdb_entry_t *selected = (gpdb_entry_t *) rbt_find(db->table, &key);
 
   return selected;
 }
 
 size_t
-gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
-                       gpdb2_syntax_err_log_t *const elog,
-                       const char *const file_name,
-                       const bool duplicates_are_errors,
-                       const bool replace_duplicates,
-                       const bool stop_on_error)
+gpdb_dictionary_load (gpdb_dictionary_t *const db,
+                      gpdb_syntax_err_log_t *const elog,
+                      const char *const file_name,
+                      const bool duplicates_are_errors,
+                      const bool replace_duplicates,
+                      const bool stop_on_error)
 {
   assert(db);
   assert(elog);
   assert(file_name);
 
   FILE *fp;
-  gpdb2_syntax_err_t *err;
-  gpdb2_entry_t *entry;
+  gpdb_syntax_err_t *err;
+  gpdb_entry_t *entry;
 
   size_t insertions = 0;
   size_t line_number = 0;
@@ -337,29 +337,29 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
     }
     err = NULL;
     entry_id[0] = '\0';
-    gpdb2_parse_line(line, file_name, line_number, entry_id, entry_description, &gpx, &err);
+    gpdb_parse_line(line, file_name, line_number, entry_id, entry_description, &gpx, &err);
     if (err) {
-      gpdb2_syntax_err_log_add(elog, err);
+      gpdb_syntax_err_log_add(elog, err);
       if (stop_on_error) goto out;
     } else if (entry_id[0] != '\0') { // The line is not a comment.
-      entry = gpdb2_dictionary_find_entry(db, entry_id);
+      entry = gpdb_dictionary_find_entry(db, entry_id);
       if (entry) {
         /* Entry is a duplicate. */
         if (duplicates_are_errors) {
           sprintf(error_message, "The line has a duplicate key, duplications are considered as errors. Key is: \"%s\"", entry_id);
-          err = gpdb2_syntax_err_new(file_name,
-                                     line_number,
-                                     line,
-                                     GPDB2_SYNTAX_ERR_DUPLICATE_ENTRY_KEY,
-                                     error_message);
-          gpdb2_syntax_err_log_add(elog, err);
+          err = gpdb_syntax_err_new(file_name,
+                                    line_number,
+                                    line,
+                                    GPDB_SYNTAX_ERR_DUPLICATE_ENTRY_KEY,
+                                    error_message);
+          gpdb_syntax_err_log_add(elog, err);
           if (stop_on_error) goto out;
         } else {
           if (replace_duplicates) {
             /* Replaces entry. */
-            entry = gpdb2_entry_new(entry_id, entry_description, &gpx);
-            entry = gpdb2_dictionary_add_or_replace_entry(db, entry);
-            gpdb2_entry_free(entry);
+            entry = gpdb_entry_new(entry_id, entry_description, &gpx);
+            entry = gpdb_dictionary_add_or_replace_entry(db, entry);
+            gpdb_entry_free(entry);
             insertions++;
           } else {
             /* Does nothing. */
@@ -368,8 +368,8 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
         }
       } else {
         /* Entry is new. */
-        entry = gpdb2_entry_new(entry_id, entry_description, &gpx);
-        gpdb2_dictionary_add_or_replace_entry(db, entry);
+        entry = gpdb_entry_new(entry_id, entry_description, &gpx);
+        gpdb_dictionary_add_or_replace_entry(db, entry);
         insertions++;
       }
     }
@@ -379,19 +379,19 @@ gpdb2_dictionary_load (gpdb2_dictionary_t *const db,
 
   fclose(fp);
 
-  gpdb2_syntax_err_log_reverse(elog);
+  gpdb_syntax_err_log_reverse(elog);
 
   return insertions;
 }
 
 void
-gpdb2_dictionary_print (const gpdb2_dictionary_t *const db,
-                        FILE *const stream,
-                        const bool verbose)
+gpdb_dictionary_print (const gpdb_dictionary_t *const db,
+                       FILE *const stream,
+                       const bool verbose)
 {
   assert(db);
 
-  gpdb2_entry_t *entry;
+  gpdb_entry_t *entry;
 
   rbt_traverser_t traverser;
   rbt_traverser_t *tr = &traverser;
@@ -399,25 +399,25 @@ gpdb2_dictionary_print (const gpdb2_dictionary_t *const db,
   rbt_t_init(tr, db->table);
 
   while ((entry = rbt_t_next(tr))) {
-    gpdb2_entry_print(entry, stream, verbose);
+    gpdb_entry_print(entry, stream, verbose);
   }
 }
 
 void
-gpdb2_dictionary_print_summary (const gpdb2_dictionary_t *const db,
-                                const gpdb2_syntax_err_log_t *const elog,
-                                FILE *const stream)
+gpdb_dictionary_print_summary (const gpdb_dictionary_t *const db,
+                               const gpdb_syntax_err_log_t *const elog,
+                               FILE *const stream)
 {
   assert(db);
 
-  const size_t entry_count = gpdb2_dictionary_entry_count(db);
+  const size_t entry_count = gpdb_dictionary_entry_count(db);
 
   fprintf(stream, "The Game Position Database has %zu entr%s.\n",
           entry_count, (entry_count == 1) ? "y" : "ies");
-  fprintf(stream, "Database Description: %s\n", gpdb2_dictionary_get_description(db));
+  fprintf(stream, "Database Description: %s\n", gpdb_dictionary_get_description(db));
 
   if (elog) {
-    const size_t error_count = gpdb2_syntax_err_log_length(elog);
+    const size_t error_count = gpdb_syntax_err_log_length(elog);
     fprintf(stream, "Number of errors: %zu\n", error_count);
   }
 }
@@ -425,24 +425,24 @@ gpdb2_dictionary_print_summary (const gpdb2_dictionary_t *const db,
 
 
 /**************************************************************/
-/* Function implementations for the gpdb2_syntax_err_t entity. */
+/* Function implementations for the gpdb_syntax_err_t entity. */
 /**************************************************************/
 
-gpdb2_syntax_err_t *
-gpdb2_syntax_err_new (const char *const file_name,
-                      const size_t line_number,
-                      const char *const line,
-                      const gpdb2_syntax_err_type_t type,
-                      const char *const message)
+gpdb_syntax_err_t *
+gpdb_syntax_err_new (const char *const file_name,
+                     const size_t line_number,
+                     const char *const line,
+                     const gpdb_syntax_err_type_t type,
+                     const char *const message)
 {
   assert(file_name);
   assert(line);
   assert(message);
-  assert(type >= 0 && type < GPDB2_SYNTAX_ERR_COUNT);
+  assert(type >= 0 && type < GPDB_SYNTAX_ERR_COUNT);
 
   int len;
 
-  gpdb2_syntax_err_t *e = (gpdb2_syntax_err_t *) malloc(sizeof(gpdb2_syntax_err_t));
+  gpdb_syntax_err_t *e = (gpdb_syntax_err_t *) malloc(sizeof(gpdb_syntax_err_t));
   assert(e);
 
   len = strlen(file_name);
@@ -468,7 +468,7 @@ gpdb2_syntax_err_new (const char *const file_name,
 }
 
 void
-gpdb2_syntax_err_free (gpdb2_syntax_err_t *error)
+gpdb_syntax_err_free (gpdb_syntax_err_t *error)
 {
   if (error) {
     free(error->file_name);
@@ -479,43 +479,43 @@ gpdb2_syntax_err_free (gpdb2_syntax_err_t *error)
 }
 
 char *
-gpdb2_syntax_err_get_file_name (gpdb2_syntax_err_t *const error)
+gpdb_syntax_err_get_file_name (gpdb_syntax_err_t *const error)
 {
   assert(error);
   return error->file_name;
 }
 
 size_t
-gpdb2_syntax_err_get_line_number (gpdb2_syntax_err_t *const error)
+gpdb_syntax_err_get_line_number (gpdb_syntax_err_t *const error)
 {
   assert(error);
   return error->line_number;
 }
 
 char *
-gpdb2_syntax_err_get_line (gpdb2_syntax_err_t *const error)
+gpdb_syntax_err_get_line (gpdb_syntax_err_t *const error)
 {
   assert(error);
   return error->line;
 }
 
-gpdb2_syntax_err_type_t
-gpdb2_syntax_err_get_type (gpdb2_syntax_err_t *const error)
+gpdb_syntax_err_type_t
+gpdb_syntax_err_get_type (gpdb_syntax_err_t *const error)
 {
   assert(error);
   return error->type;
 }
 
 char *
-gpdb2_syntax_err_get_message (gpdb2_syntax_err_t *const error)
+gpdb_syntax_err_get_message (gpdb_syntax_err_t *const error)
 {
   assert(error);
   return error->message;
 }
 
 void
-gpdb2_syntax_err_print (const gpdb2_syntax_err_t *const error,
-                        FILE *const stream)
+gpdb_syntax_err_print (const gpdb_syntax_err_t *const error,
+                       FILE *const stream)
 {
   assert(error);
 
@@ -525,23 +525,23 @@ gpdb2_syntax_err_print (const gpdb2_syntax_err_t *const error,
 
   fprintf(stream, "Error type:  ");
   switch (error->type) {
-  case GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY:
-    fprintf(stream, "GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY - There are less than four fields.");
+  case GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY:
+    fprintf(stream, "GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY - There are less than four fields.");
     break;
-  case GPDB2_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64:
-    fprintf(stream, "GPDB2_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64 - The board field doesn't have sixty-four characters.");
+  case GPDB_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64:
+    fprintf(stream, "GPDB_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64 - The board field doesn't have sixty-four characters.");
     break;
-  case GPDB2_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID:
-    fprintf(stream, "GPDB2_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID - In the board field, one or more characters are out of range.");
+  case GPDB_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID:
+    fprintf(stream, "GPDB_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID - In the board field, one or more characters are out of range.");
     break;
-  case GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR:
-    fprintf(stream, "GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR - Player field doesn't have a single character.");
+  case GPDB_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR:
+    fprintf(stream, "GPDB_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR - Player field doesn't have a single character.");
     break;
-  case GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID:
-    fprintf(stream, "GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID - Out of range character for player.");
+  case GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID:
+    fprintf(stream, "GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID - Out of range character for player.");
     break;
-  case GPDB2_SYNTAX_ERR_DUPLICATE_ENTRY_KEY:
-    fprintf(stream, "GPDB2_SYNTAX_ERR_DUPLICATE_ENTRY_KEY - Duplicate key.");
+  case GPDB_SYNTAX_ERR_DUPLICATE_ENTRY_KEY:
+    fprintf(stream, "GPDB_SYNTAX_ERR_DUPLICATE_ENTRY_KEY - Duplicate key.");
     break;
   default:
     fprintf(stderr, "Error type is out of range. Aborting ...\n");
@@ -556,13 +556,13 @@ gpdb2_syntax_err_print (const gpdb2_syntax_err_t *const error,
 
 
 /******************************************************************/
-/* Function implementations for the gpdb2_syntax_err_log_t entity. */
+/* Function implementations for the gpdb_syntax_err_log_t entity. */
 /******************************************************************/
 
-gpdb2_syntax_err_log_t *
-gpdb2_syntax_err_log_new (void)
+gpdb_syntax_err_log_t *
+gpdb_syntax_err_log_new (void)
 {
-  gpdb2_syntax_err_log_t *log = (gpdb2_syntax_err_log_t *) malloc(sizeof(gpdb2_syntax_err_log_t));
+  gpdb_syntax_err_log_t *log = (gpdb_syntax_err_log_t *) malloc(sizeof(gpdb_syntax_err_log_t));
   assert(log);
 
   llist_compare_f cmp = NULL;
@@ -572,18 +572,18 @@ gpdb2_syntax_err_log_new (void)
 }
 
 void
-gpdb2_syntax_err_log_free (gpdb2_syntax_err_log_t *log)
+gpdb_syntax_err_log_free (gpdb_syntax_err_log_t *log)
 {
   if (log) {
-    llist_foreach(log->list, gpdb2_syntax_err_free_proxy, NULL);
+    llist_foreach(log->list, gpdb_syntax_err_free_proxy, NULL);
     llist_free(log->list);
     free(log);
   }
 }
 
 void
-gpdb2_syntax_err_log_add (gpdb2_syntax_err_log_t *log,
-                          gpdb2_syntax_err_t *err)
+gpdb_syntax_err_log_add (gpdb_syntax_err_log_t *log,
+                         gpdb_syntax_err_t *err)
 {
   assert(log);
   if (err) {
@@ -592,22 +592,22 @@ gpdb2_syntax_err_log_add (gpdb2_syntax_err_log_t *log,
 }
 
 size_t
-gpdb2_syntax_err_log_length (const gpdb2_syntax_err_log_t *const log)
+gpdb_syntax_err_log_length (const gpdb_syntax_err_log_t *const log)
 {
   assert(log);
   return llist_length(log->list);
 }
 
 void
-gpdb2_syntax_err_log_print (const gpdb2_syntax_err_log_t *const log,
-                            FILE *const stream)
+gpdb_syntax_err_log_print (const gpdb_syntax_err_log_t *const log,
+                           FILE *const stream)
 {
   assert(log);
-  llist_foreach(log->list, gpdb2_syntax_err_print_proxy, (void *) stream);
+  llist_foreach(log->list, gpdb_syntax_err_print_proxy, (void *) stream);
 }
 
 llist_t *
-gpdb2_syntax_err_log_get_list (gpdb2_syntax_err_log_t *const log)
+gpdb_syntax_err_log_get_list (gpdb_syntax_err_log_t *const log)
 {
   assert(log);
   return log->list;
@@ -619,20 +619,20 @@ gpdb2_syntax_err_log_get_list (gpdb2_syntax_err_log_t *const log)
  */
 
 static void
-gpdb2_syntax_err_free_proxy (void *const element,
-                             void *const aux)
+gpdb_syntax_err_free_proxy (void *const element,
+                            void *const aux)
 {
-  gpdb2_syntax_err_t *error = (gpdb2_syntax_err_t *) element;
-  gpdb2_syntax_err_free(error);
+  gpdb_syntax_err_t *error = (gpdb_syntax_err_t *) element;
+  gpdb_syntax_err_free(error);
 }
 
 static void
-gpdb2_syntax_err_print_proxy (void *const element,
-                                  void *const aux)
+gpdb_syntax_err_print_proxy (void *const element,
+                             void *const aux)
 {
-  const gpdb2_syntax_err_t *const error = (const gpdb2_syntax_err_t *const) element;
+  const gpdb_syntax_err_t *const error = (const gpdb_syntax_err_t *const) element;
   FILE *const stream = (FILE *const) aux;
-  gpdb2_syntax_err_print(error, stream);
+  gpdb_syntax_err_print(error, stream);
 }
 
 static bool
@@ -647,34 +647,34 @@ file_exists (const char *const file_name)
 }
 
 static int
-gpdb2_compare_entries (const void *item_a,
-                       const void *item_b,
-                       void *param)
+gpdb_compare_entries (const void *item_a,
+                      const void *item_b,
+                      void *param)
 {
   assert(item_a && item_b);
-  const gpdb2_entry_t *a = (gpdb2_entry_t *) item_a;
-  const gpdb2_entry_t *b = (gpdb2_entry_t *) item_b;
+  const gpdb_entry_t *a = (gpdb_entry_t *) item_a;
+  const gpdb_entry_t *b = (gpdb_entry_t *) item_b;
   assert(a->id && b->id);
 
   return strcmp(a->id, b->id);
 }
 
 static void
-gpdb2_tree_item_destroy_function (void *item,
-                                  void *param)
+gpdb_tree_item_destroy_function (void *item,
+                                 void *param)
 {
-  gpdb2_entry_t *entry = (gpdb2_entry_t *) item;
-  gpdb2_entry_free(entry);
+  gpdb_entry_t *entry = (gpdb_entry_t *) item;
+  gpdb_entry_free(entry);
 }
 
 static int
-gpdb2_parse_line (char *line,
-                  const char *const file_name,
-                  size_t line_number,
-                  char *entry_id,
-                  char *entry_description,
-                  GamePositionX *entry_gpx,
-                  gpdb2_syntax_err_t **err)
+gpdb_parse_line (char *line,
+                 const char *const file_name,
+                 size_t line_number,
+                 char *entry_id,
+                 char *entry_description,
+                 GamePositionX *entry_gpx,
+                 gpdb_syntax_err_t **err)
 {
   static const size_t record_field_count = 4;
 
@@ -722,11 +722,11 @@ gpdb2_parse_line (char *line,
 
   if (field_count != record_field_count) {
     sprintf(error_message, "The line has an incomplete record. The number of fields is %zu", field_count);
-    *err = gpdb2_syntax_err_new(file_name,
-                                line_number,
-                                line,
-                                GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY,
-                                error_message);
+    *err = gpdb_syntax_err_new(file_name,
+                               line_number,
+                               line,
+                               GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY,
+                               error_message);
     return EXIT_FAILURE;
   }
 
@@ -742,11 +742,11 @@ gpdb2_parse_line (char *line,
   len = record_separators[1] - cursor;
   if (len != 64) {
     sprintf(error_message, "The board field has %zu squares, length must be 64", len);
-    *err = gpdb2_syntax_err_new(file_name,
-                                line_number,
-                                line,
-                                GPDB2_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64,
-                                error_message);
+    *err = gpdb_syntax_err_new(file_name,
+                               line_number,
+                               line,
+                               GPDB_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64,
+                               error_message);
     return EXIT_FAILURE;
   }
   for (int i = 0; i < 64; i++) {
@@ -762,11 +762,11 @@ gpdb2_parse_line (char *line,
       break;
     default:
       sprintf(error_message, "Board pieces must be in the character set [bw.]. Found %c", c);
-      *err = gpdb2_syntax_err_new(file_name,
-                                  line_number,
-                                  line,
-                                  GPDB2_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID,
-                                  error_message);
+      *err = gpdb_syntax_err_new(file_name,
+                                 line_number,
+                                 line,
+                                 GPDB_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID,
+                                 error_message);
       return EXIT_FAILURE;
     }
   }
@@ -776,11 +776,11 @@ gpdb2_parse_line (char *line,
   len = record_separators[2] - cursor;
   if (len != 1) {
     sprintf(error_message, "The player field has %zu characters, length must be 1", len);
-    *err = gpdb2_syntax_err_new(file_name,
-                                line_number,
-                                line,
-                                GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR,
-                                error_message);
+    *err = gpdb_syntax_err_new(file_name,
+                               line_number,
+                               line,
+                               GPDB_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR,
+                               error_message);
     return EXIT_FAILURE;
   }
   c = *cursor;
@@ -793,11 +793,11 @@ gpdb2_parse_line (char *line,
     break;
   default:
     sprintf(error_message, "Player must be in the character set [bw]. Found %c", c);
-    *err = gpdb2_syntax_err_new(file_name,
-                                line_number,
-                                line,
-                                GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID,
-                                error_message);
+    *err = gpdb_syntax_err_new(file_name,
+                               line_number,
+                               line,
+                               GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID,
+                               error_message);
     return EXIT_FAILURE;
   }
 
@@ -811,7 +811,7 @@ gpdb2_parse_line (char *line,
 }
 
 static void
-gpdb2_syntax_err_log_reverse (gpdb2_syntax_err_log_t *log)
+gpdb_syntax_err_log_reverse (gpdb_syntax_err_log_t *log)
 {
   assert(log);
   llist_reverse(log->list);

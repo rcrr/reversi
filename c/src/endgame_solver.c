@@ -313,11 +313,11 @@ egs_select_solver (const char *const id);
 int
 main (int argc, char *argv[])
 {
-  gpdb2_dictionary_t *db;
-  gpdb2_syntax_err_log_t *syntax_error_log;
+  gpdb_dictionary_t *db;
+  gpdb_syntax_err_log_t *syntax_error_log;
   FILE *fp;
 
-  gpdb2_entry_t *entry = NULL;
+  gpdb_entry_t *entry = NULL;
   int solver_index = -1;
 
   endgame_solver_env_t env =
@@ -385,13 +385,13 @@ main (int argc, char *argv[])
   fclose(fp);
 
   /* Loads the game position database. */
-  db = gpdb2_dictionary_new(input_file);
-  syntax_error_log = gpdb2_syntax_err_log_new();
-  gpdb2_dictionary_load(db, syntax_error_log, input_file, true, false, true);
+  db = gpdb_dictionary_new(input_file);
+  syntax_error_log = gpdb_syntax_err_log_new();
+  gpdb_dictionary_load(db, syntax_error_log, input_file, true, false, true);
 
   /* Compute the number of errors logged. */
-  const int number_of_errors = gpdb2_syntax_err_log_length(syntax_error_log);
-  gpdb2_syntax_err_log_free(syntax_error_log);
+  const int number_of_errors = gpdb_syntax_err_log_length(syntax_error_log);
+  gpdb_syntax_err_log_free(syntax_error_log);
   if (number_of_errors != 0) {
     g_print("The database resource, file \"%s\" contains errors, debug it using the gpdb_verify utility.\n", input_file);
     return -4;
@@ -399,9 +399,9 @@ main (int argc, char *argv[])
 
   /* Lookup for a given key. */
   if (lookup_entry) {
-    entry = gpdb2_dictionary_find_entry(db, lookup_entry);
+    entry = gpdb_dictionary_find_entry(db, lookup_entry);
     if (entry) {
-      gpdb2_entry_print(entry, stdout, true);
+      gpdb_entry_print(entry, stdout, true);
     } else {
       printf("Entry %s not found in file %s.\n", lookup_entry, input_file);
       return -6;
@@ -423,7 +423,7 @@ main (int argc, char *argv[])
   env.pv_no_print = pv_no_print;
 
   /* Solves the position. */
-  GamePositionX *gpx = gpdb2_entry_get_gpx(entry);
+  GamePositionX *gpx = gpdb_entry_get_gpx(entry);
   ExactSolution *solution = NULL;
   g_print("Solving game position %s, from source %s, using solver %s (%s) ...\n", entry->id, input_file, solver->id, solver->description);
   solution = solver->fn(gpx, &env);
@@ -435,7 +435,7 @@ main (int argc, char *argv[])
 
   /* Frees the resources. */
   g_free(error);
-  gpdb2_dictionary_free(db);
+  gpdb_dictionary_free(db);
   g_option_context_free(context);
   exact_solution_free(solution);
 

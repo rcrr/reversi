@@ -55,138 +55,138 @@
 static void
 basic_t (ut_test_t *const t)
 {
-  gpdb2_entry_t *e, *r;
+  gpdb_entry_t *e, *r;
   size_t count;
   char *id;
   char *desc;
   GamePositionX *g;
 
   GamePositionX gpx = {0, 0, BLACK_PLAYER};
-  e = gpdb2_entry_new("one", "The first entry", &gpx);
+  e = gpdb_entry_new("one", "The first entry", &gpx);
 
-  id = gpdb2_entry_get_id(e);
+  id = gpdb_entry_get_id(e);
   ut_assert(t, strcmp("one", id) == 0);
 
-  desc = gpdb2_entry_get_description(e);
+  desc = gpdb_entry_get_description(e);
   ut_assert(t, strcmp("The first entry", desc) == 0);
 
-  g = gpdb2_entry_get_gpx(e);
+  g = gpdb_entry_get_gpx(e);
   ut_assert(t, game_position_x_compare(g, &gpx) == 0);
 
   const char *const db_description = "Test database";
 
-  gpdb2_dictionary_t *db = gpdb2_dictionary_new(db_description);
+  gpdb_dictionary_t *db = gpdb_dictionary_new(db_description);
 
-  desc = gpdb2_dictionary_get_description(db);
+  desc = gpdb_dictionary_get_description(db);
   ut_assert(t, strcmp(db_description, desc) == 0);
 
-  count = gpdb2_dictionary_entry_count(db);
+  count = gpdb_dictionary_entry_count(db);
   ut_assert(t, 0 == count);
 
-  r = gpdb2_dictionary_add_or_replace_entry(db, e);
+  r = gpdb_dictionary_add_or_replace_entry(db, e);
   ut_assert(t, r == NULL);
 
-  count = gpdb2_dictionary_entry_count(db);
+  count = gpdb_dictionary_entry_count(db);
   ut_assert(t, 1 == count);
 
-  gpdb2_dictionary_set_description(db, "Changed description");
-  desc = gpdb2_dictionary_get_description(db);
+  gpdb_dictionary_set_description(db, "Changed description");
+  desc = gpdb_dictionary_get_description(db);
   ut_assert(t, strcmp("Changed description", desc) == 0);
 
-  gpdb2_dictionary_free(db);
+  gpdb_dictionary_free(db);
 }
 
 static void
 find_t (ut_test_t *const t)
 {
-  gpdb2_entry_t *e, *r;
+  gpdb_entry_t *e, *r;
 
   GamePositionX gpx = {0, 0, BLACK_PLAYER};
-  e = gpdb2_entry_new("one", "The first entry", &gpx);
+  e = gpdb_entry_new("one", "The first entry", &gpx);
 
-  gpdb2_dictionary_t *db = gpdb2_dictionary_new(NULL);
+  gpdb_dictionary_t *db = gpdb_dictionary_new(NULL);
 
-  r = gpdb2_dictionary_add_or_replace_entry(db, e);
+  r = gpdb_dictionary_add_or_replace_entry(db, e);
 
   r = NULL;
-  r = gpdb2_dictionary_find_entry(db, "one");
+  r = gpdb_dictionary_find_entry(db, "one");
   ut_assert(t, e == r);
 
   r = NULL;
-  r = gpdb2_dictionary_find_entry(db, "two");
+  r = gpdb_dictionary_find_entry(db, "two");
   ut_assert(t, NULL == r);
 
-  gpdb2_dictionary_free(db);
+  gpdb_dictionary_free(db);
 }
 
 static void
 delete_t (ut_test_t *const t)
 {
-  gpdb2_entry_t *e, *r;
+  gpdb_entry_t *e, *r;
   size_t count;
 
   GamePositionX gpx = {0, 0, BLACK_PLAYER};
-  e = gpdb2_entry_new("one", "The first entry", &gpx);
+  e = gpdb_entry_new("one", "The first entry", &gpx);
 
-  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Test db");
+  gpdb_dictionary_t *db = gpdb_dictionary_new("Test db");
 
-  r = gpdb2_dictionary_add_or_replace_entry(db, e);
+  r = gpdb_dictionary_add_or_replace_entry(db, e);
   ut_assert(t, r == NULL);
 
-  count = gpdb2_dictionary_entry_count(db);
+  count = gpdb_dictionary_entry_count(db);
   ut_assert(t, 1 == count);
 
-  gpdb2_dictionary_delete_entry(db, e);
+  gpdb_dictionary_delete_entry(db, e);
 
-  count = gpdb2_dictionary_entry_count(db);
+  count = gpdb_dictionary_entry_count(db);
   ut_assert(t, 0 == count);
 
-  gpdb2_entry_free(e);
-  gpdb2_dictionary_free(db);
+  gpdb_entry_free(e);
+  gpdb_dictionary_free(db);
 }
 
 static void
 replace_t (ut_test_t *const t)
 {
-  gpdb2_entry_t *e0, *e1, *e2, *r;
+  gpdb_entry_t *e0, *e1, *e2, *r;
   size_t count;
 
   GamePositionX gpx0 = {0, 0, BLACK_PLAYER};
-  e0 = gpdb2_entry_new("one", "The first entry", &gpx0);
+  e0 = gpdb_entry_new("one", "The first entry", &gpx0);
 
   GamePositionX gpx1 = {1, 0, BLACK_PLAYER};
-  e1 = gpdb2_entry_new("one", "A replacement for the first entry", &gpx1);
+  e1 = gpdb_entry_new("one", "A replacement for the first entry", &gpx1);
 
   GamePositionX gpx2 = {2, 0, BLACK_PLAYER};
-  e2 = gpdb2_entry_new("two", "A second entry", &gpx2);
+  e2 = gpdb_entry_new("two", "A second entry", &gpx2);
 
-  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Test db");
+  gpdb_dictionary_t *db = gpdb_dictionary_new("Test db");
 
-  r = gpdb2_dictionary_add_or_replace_entry(db, e0);
+  r = gpdb_dictionary_add_or_replace_entry(db, e0);
   ut_assert(t, r == NULL);
 
-  r = gpdb2_dictionary_add_or_replace_entry(db, e2);
+  r = gpdb_dictionary_add_or_replace_entry(db, e2);
   ut_assert(t, r == NULL);
 
-  count = gpdb2_dictionary_entry_count(db);
+  count = gpdb_dictionary_entry_count(db);
   ut_assert(t, 2 == count);
 
-  r = gpdb2_dictionary_add_or_replace_entry(db, e1);
+  r = gpdb_dictionary_add_or_replace_entry(db, e1);
   ut_assert(t, r == e0);
-  gpdb2_entry_free(r);
+  gpdb_entry_free(r);
 
-  count = gpdb2_dictionary_entry_count(db);
+  count = gpdb_dictionary_entry_count(db);
   ut_assert(t, 2 == count);
 
   r = NULL;
-  r = gpdb2_dictionary_find_entry(db, "one");
+  r = gpdb_dictionary_find_entry(db, "one");
   ut_assert(t, e1 == r);
 
   r = NULL;
-  r = gpdb2_dictionary_find_entry(db, "two");
+  r = gpdb_dictionary_find_entry(db, "two");
   ut_assert(t, e2 == r);
 
-  gpdb2_dictionary_free(db);
+  gpdb_dictionary_free(db);
 }
 
 static void
@@ -206,54 +206,54 @@ load_a_t (ut_test_t *const t)
 
   const struct {
     size_t line_number;
-    gpdb2_syntax_err_type_t error_type;
+    gpdb_syntax_err_type_t error_type;
   } expected_errors[] = {
-    { 35, GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
-    { 40, GPDB2_SYNTAX_ERR_DUPLICATE_ENTRY_KEY },
-    { 50, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 51, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 52, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 53, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 57, GPDB2_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64 },
-    { 61, GPDB2_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID },
-    { 65, GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
-    { 66, GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR },
-    { 67, GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR }
+    { 35, GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
+    { 40, GPDB_SYNTAX_ERR_DUPLICATE_ENTRY_KEY },
+    { 50, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 51, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 52, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 53, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 57, GPDB_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64 },
+    { 61, GPDB_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID },
+    { 65, GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
+    { 66, GPDB_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR },
+    { 67, GPDB_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR }
   };
 
   const char *const file_name = "db/gpdb-test-db.txt";
 
-  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Test db from file: db/gpdb-test-db.txt");
+  gpdb_dictionary_t *db = gpdb_dictionary_new("Test db from file: db/gpdb-test-db.txt");
   assert(db);
 
-  gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
+  gpdb_syntax_err_log_t *elog = gpdb_syntax_err_log_new();
   assert(elog);
 
-  insertions = gpdb2_dictionary_load(db,
-                                     elog,
-                                     file_name,
-                                     duplicates_are_errors,
-                                     replace_duplicates,
-                                     stop_on_error);
+  insertions = gpdb_dictionary_load(db,
+                                    elog,
+                                    file_name,
+                                    duplicates_are_errors,
+                                    replace_duplicates,
+                                    stop_on_error);
 
   ut_assert(t, insertions == expected_insertions);
 
-  error_count = gpdb2_syntax_err_log_length(elog);
+  error_count = gpdb_syntax_err_log_length(elog);
   ut_assert(t, error_count == expected_error_count);
 
-  entry_count = gpdb2_dictionary_entry_count(db);
+  entry_count = gpdb_dictionary_entry_count(db);
   ut_assert(t, entry_count == expected_entry_count);
 
-  llist_t *l = gpdb2_syntax_err_log_get_list(elog);
+  llist_t *l = gpdb_syntax_err_log_get_list(elog);
   for (int i = 0; i < expected_error_count; i++) {
-    gpdb2_syntax_err_t *error = llist_nth_data(l, i);
+    gpdb_syntax_err_t *error = llist_nth_data(l, i);
     ut_assert(t, error);
-    ut_assert(t, expected_errors[i].line_number == gpdb2_syntax_err_get_line_number(error));
-    ut_assert(t, expected_errors[i].error_type == gpdb2_syntax_err_get_type(error));
+    ut_assert(t, expected_errors[i].line_number == gpdb_syntax_err_get_line_number(error));
+    ut_assert(t, expected_errors[i].error_type == gpdb_syntax_err_get_type(error));
   }
 
-  gpdb2_dictionary_free(db);
-  gpdb2_syntax_err_log_free(elog);
+  gpdb_dictionary_free(db);
+  gpdb_syntax_err_log_free(elog);
 }
 
 static void
@@ -273,57 +273,57 @@ load_b_t (ut_test_t *const t)
 
   const struct {
     size_t line_number;
-    gpdb2_syntax_err_type_t error_type;
+    gpdb_syntax_err_type_t error_type;
   } expected_errors[] = {
-    { 35, GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
-    { 50, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 51, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 52, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 53, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 57, GPDB2_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64 },
-    { 61, GPDB2_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID },
-    { 65, GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
-    { 66, GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR },
-    { 67, GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR }
+    { 35, GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
+    { 50, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 51, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 52, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 53, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 57, GPDB_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64 },
+    { 61, GPDB_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID },
+    { 65, GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
+    { 66, GPDB_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR },
+    { 67, GPDB_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR }
   };
 
   const char *const file_name = "db/gpdb-test-db.txt";
 
-  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Test db from file: db/gpdb-test-db.txt");
+  gpdb_dictionary_t *db = gpdb_dictionary_new("Test db from file: db/gpdb-test-db.txt");
   assert(db);
 
-  gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
+  gpdb_syntax_err_log_t *elog = gpdb_syntax_err_log_new();
   assert(elog);
 
-  insertions = gpdb2_dictionary_load(db,
-                                     elog,
-                                     file_name,
-                                     duplicates_are_errors,
-                                     replace_duplicates,
-                                     stop_on_error);
+  insertions = gpdb_dictionary_load(db,
+                                    elog,
+                                    file_name,
+                                    duplicates_are_errors,
+                                    replace_duplicates,
+                                    stop_on_error);
 
   ut_assert(t, insertions == expected_insertions);
 
-  error_count = gpdb2_syntax_err_log_length(elog);
+  error_count = gpdb_syntax_err_log_length(elog);
   ut_assert(t, error_count == expected_error_count);
 
-  entry_count = gpdb2_dictionary_entry_count(db);
+  entry_count = gpdb_dictionary_entry_count(db);
   ut_assert(t, entry_count == expected_entry_count);
 
-  llist_t *l = gpdb2_syntax_err_log_get_list(elog);
+  llist_t *l = gpdb_syntax_err_log_get_list(elog);
   for (int i = 0; i < expected_error_count; i++) {
-    gpdb2_syntax_err_t *error = llist_nth_data(l, i);
+    gpdb_syntax_err_t *error = llist_nth_data(l, i);
     ut_assert(t, error);
-    ut_assert(t, expected_errors[i].line_number == gpdb2_syntax_err_get_line_number(error));
-    ut_assert(t, expected_errors[i].error_type == gpdb2_syntax_err_get_type(error));
+    ut_assert(t, expected_errors[i].line_number == gpdb_syntax_err_get_line_number(error));
+    ut_assert(t, expected_errors[i].error_type == gpdb_syntax_err_get_type(error));
   }
 
-  gpdb2_entry_t *r = gpdb2_dictionary_find_entry(db, "duplicate-entry");
+  gpdb_entry_t *r = gpdb_dictionary_find_entry(db, "duplicate-entry");
   ut_assert(t, r);
-  ut_assert(t, strcmp("Test inserting a position twice: first time", gpdb2_entry_get_description(r)) == 0);
+  ut_assert(t, strcmp("Test inserting a position twice: first time", gpdb_entry_get_description(r)) == 0);
 
-  gpdb2_dictionary_free(db);
-  gpdb2_syntax_err_log_free(elog);
+  gpdb_dictionary_free(db);
+  gpdb_syntax_err_log_free(elog);
 }
 
 static void
@@ -343,44 +343,44 @@ load_c_t (ut_test_t *const t)
 
   const struct {
     size_t line_number;
-    gpdb2_syntax_err_type_t error_type;
+    gpdb_syntax_err_type_t error_type;
   } expected_errors[] = {
-    { 35, GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID }
+    { 35, GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID }
   };
 
   const char *const file_name = "db/gpdb-test-db.txt";
 
-  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Test db from file: db/gpdb-test-db.txt");
+  gpdb_dictionary_t *db = gpdb_dictionary_new("Test db from file: db/gpdb-test-db.txt");
   assert(db);
 
-  gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
+  gpdb_syntax_err_log_t *elog = gpdb_syntax_err_log_new();
   assert(elog);
 
-  insertions = gpdb2_dictionary_load(db,
-                                     elog,
-                                     file_name,
-                                     duplicates_are_errors,
-                                     replace_duplicates,
-                                     stop_on_error);
+  insertions = gpdb_dictionary_load(db,
+                                    elog,
+                                    file_name,
+                                    duplicates_are_errors,
+                                    replace_duplicates,
+                                    stop_on_error);
 
   ut_assert(t, insertions == expected_insertions);
 
-  error_count = gpdb2_syntax_err_log_length(elog);
+  error_count = gpdb_syntax_err_log_length(elog);
   ut_assert(t, error_count == expected_error_count);
 
-  entry_count = gpdb2_dictionary_entry_count(db);
+  entry_count = gpdb_dictionary_entry_count(db);
   ut_assert(t, entry_count == expected_entry_count);
 
-  llist_t *l = gpdb2_syntax_err_log_get_list(elog);
+  llist_t *l = gpdb_syntax_err_log_get_list(elog);
   for (int i = 0; i < expected_error_count; i++) {
-    gpdb2_syntax_err_t *error = llist_nth_data(l, i);
+    gpdb_syntax_err_t *error = llist_nth_data(l, i);
     ut_assert(t, error);
-    ut_assert(t, expected_errors[i].line_number == gpdb2_syntax_err_get_line_number(error));
-    ut_assert(t, expected_errors[i].error_type == gpdb2_syntax_err_get_type(error));
+    ut_assert(t, expected_errors[i].line_number == gpdb_syntax_err_get_line_number(error));
+    ut_assert(t, expected_errors[i].error_type == gpdb_syntax_err_get_type(error));
   }
 
-  gpdb2_dictionary_free(db);
-  gpdb2_syntax_err_log_free(elog);
+  gpdb_dictionary_free(db);
+  gpdb_syntax_err_log_free(elog);
 }
 
 static void
@@ -400,57 +400,57 @@ load_d_t (ut_test_t *const t)
 
   const struct {
     size_t line_number;
-    gpdb2_syntax_err_type_t error_type;
+    gpdb_syntax_err_type_t error_type;
   } expected_errors[] = {
-    { 35, GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
-    { 50, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 51, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 52, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 53, GPDB2_SYNTAX_ERR_INCOMPLETE_ENTRY },
-    { 57, GPDB2_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64 },
-    { 61, GPDB2_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID },
-    { 65, GPDB2_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
-    { 66, GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR },
-    { 67, GPDB2_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR }
+    { 35, GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
+    { 50, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 51, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 52, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 53, GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY },
+    { 57, GPDB_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64 },
+    { 61, GPDB_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID },
+    { 65, GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID },
+    { 66, GPDB_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR },
+    { 67, GPDB_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR }
   };
 
   const char *const file_name = "db/gpdb-test-db.txt";
 
-  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Test db from file: db/gpdb-test-db.txt");
+  gpdb_dictionary_t *db = gpdb_dictionary_new("Test db from file: db/gpdb-test-db.txt");
   assert(db);
 
-  gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
+  gpdb_syntax_err_log_t *elog = gpdb_syntax_err_log_new();
   assert(elog);
 
-  insertions = gpdb2_dictionary_load(db,
-                                     elog,
-                                     file_name,
-                                     duplicates_are_errors,
-                                     replace_duplicates,
-                                     stop_on_error);
+  insertions = gpdb_dictionary_load(db,
+                                    elog,
+                                    file_name,
+                                    duplicates_are_errors,
+                                    replace_duplicates,
+                                    stop_on_error);
 
   ut_assert(t, insertions == expected_insertions);
 
-  error_count = gpdb2_syntax_err_log_length(elog);
+  error_count = gpdb_syntax_err_log_length(elog);
   ut_assert(t, error_count == expected_error_count);
 
-  entry_count = gpdb2_dictionary_entry_count(db);
+  entry_count = gpdb_dictionary_entry_count(db);
   ut_assert(t, entry_count == expected_entry_count);
 
-  llist_t *l = gpdb2_syntax_err_log_get_list(elog);
+  llist_t *l = gpdb_syntax_err_log_get_list(elog);
   for (int i = 0; i < expected_error_count; i++) {
-    gpdb2_syntax_err_t *error = llist_nth_data(l, i);
+    gpdb_syntax_err_t *error = llist_nth_data(l, i);
     ut_assert(t, error);
-    ut_assert(t, expected_errors[i].line_number == gpdb2_syntax_err_get_line_number(error));
-    ut_assert(t, expected_errors[i].error_type == gpdb2_syntax_err_get_type(error));
+    ut_assert(t, expected_errors[i].line_number == gpdb_syntax_err_get_line_number(error));
+    ut_assert(t, expected_errors[i].error_type == gpdb_syntax_err_get_type(error));
   }
 
-  gpdb2_entry_t *r = gpdb2_dictionary_find_entry(db, "duplicate-entry");
+  gpdb_entry_t *r = gpdb_dictionary_find_entry(db, "duplicate-entry");
   ut_assert(t, r);
-  ut_assert(t, strcmp("Test inserting a position twice: second time", gpdb2_entry_get_description(r)) == 0);
+  ut_assert(t, strcmp("Test inserting a position twice: second time", gpdb_entry_get_description(r)) == 0);
 
-  gpdb2_dictionary_free(db);
-  gpdb2_syntax_err_log_free(elog);
+  gpdb_dictionary_free(db);
+  gpdb_syntax_err_log_free(elog);
 }
 
 
