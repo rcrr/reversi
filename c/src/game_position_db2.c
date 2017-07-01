@@ -145,6 +145,27 @@ gpdb2_entry_free (gpdb2_entry_t *entry)
   }
 }
 
+char *
+gpdb2_entry_get_id (gpdb2_entry_t *const entry)
+{
+  assert(entry);
+  return entry->id;
+}
+
+char *
+gpdb2_entry_get_description (gpdb2_entry_t *const entry)
+{
+  assert(entry);
+  return entry->description;
+}
+
+GamePositionX *
+gpdb2_entry_get_gpx (gpdb2_entry_t *const entry)
+{
+  assert(entry);
+  return &entry->gpx;
+}
+
 void
 gpdb2_entry_print (const gpdb2_entry_t *const entry,
                    FILE *const stream,
@@ -457,6 +478,41 @@ gpdb2_syntax_err_free (gpdb2_syntax_err_t *error)
   }
 }
 
+char *
+gpdb2_syntax_err_get_file_name (gpdb2_syntax_err_t *const error)
+{
+  assert(error);
+  return error->file_name;
+}
+
+size_t
+gpdb2_syntax_err_get_line_number (gpdb2_syntax_err_t *const error)
+{
+  assert(error);
+  return error->line_number;
+}
+
+char *
+gpdb2_syntax_err_get_line (gpdb2_syntax_err_t *const error)
+{
+  assert(error);
+  return error->line;
+}
+
+gpdb2_syntax_err_type_t
+gpdb2_syntax_err_get_type (gpdb2_syntax_err_t *const error)
+{
+  assert(error);
+  return error->type;
+}
+
+char *
+gpdb2_syntax_err_get_message (gpdb2_syntax_err_t *const error)
+{
+  assert(error);
+  return error->message;
+}
+
 void
 gpdb2_syntax_err_print (const gpdb2_syntax_err_t *const error,
                         FILE *const stream)
@@ -550,6 +606,12 @@ gpdb2_syntax_err_log_print (const gpdb2_syntax_err_log_t *const log,
   llist_foreach(log->list, gpdb2_syntax_err_print_proxy, (void *) stream);
 }
 
+llist_t *
+gpdb2_syntax_err_log_get_list (gpdb2_syntax_err_log_t *const log)
+{
+  assert(log);
+  return log->list;
+}
 
 
 /*

@@ -289,5 +289,5 @@ get_gpx_from_db (gpdb2_dictionary_t *db,
     g_test_fail();
   }
   g_assert(entry);
-  return &entry->gpx;
+  return gpdb2_entry_get_gpx(entry);
 }

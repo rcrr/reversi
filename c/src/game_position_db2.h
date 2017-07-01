@@ -166,6 +166,15 @@ gpdb2_entry_new (const char *const id,
 extern void
 gpdb2_entry_free (gpdb2_entry_t *entry);
 
+extern char *
+gpdb2_entry_get_id (gpdb2_entry_t *const entry);
+
+extern char *
+gpdb2_entry_get_description (gpdb2_entry_t *const entry);
+
+extern GamePositionX *
+gpdb2_entry_get_gpx (gpdb2_entry_t *const entry);
+
 extern void
 gpdb2_entry_print (const gpdb2_entry_t *const entry,
                    FILE *const stream,
@@ -186,6 +195,21 @@ gpdb2_syntax_err_new (const char *const file_name,
 
 extern void
 gpdb2_syntax_err_free (gpdb2_syntax_err_t *error);
+
+extern char *
+gpdb2_syntax_err_get_file_name (gpdb2_syntax_err_t *const error);
+
+extern size_t
+gpdb2_syntax_err_get_line_number (gpdb2_syntax_err_t *const error);
+
+extern char *
+gpdb2_syntax_err_get_line (gpdb2_syntax_err_t *const error);
+
+extern gpdb2_syntax_err_type_t
+gpdb2_syntax_err_get_type (gpdb2_syntax_err_t *const error);
+
+extern char *
+gpdb2_syntax_err_get_message (gpdb2_syntax_err_t *const error);
 
 extern void
 gpdb2_syntax_err_print (const gpdb2_syntax_err_t *const error,
@@ -212,6 +236,9 @@ gpdb2_syntax_err_log_length (const gpdb2_syntax_err_log_t *const log);
 extern void
 gpdb2_syntax_err_log_print (const gpdb2_syntax_err_log_t *const log,
                             FILE *const stream);
+
+extern llist_t *
+gpdb2_syntax_err_log_get_list (gpdb2_syntax_err_log_t *const log);
 
 
 
