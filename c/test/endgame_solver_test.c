@@ -34,11 +34,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include <glib.h>
 
 #include "board.h"
-#include "game_position_db.h"
+#include "game_position_db2.h"
 
 #include "exact_solver.h"
 #include "improved_fast_endgame_solver.h"
@@ -46,17 +47,17 @@
 
 
 /**
- * @brief gpdb_dictionary_t fixture
+ * @brief gpdb2_dictionary_t fixture
  */
 typedef struct {
-  gpdb_dictionary_t *db;
+  gpdb2_dictionary_t *db;
 } gpdb_fixture_t;
 
 /**
  * @brief A test case is used to automate the execution of a set of test game position.
  */
 typedef struct {
-  gchar *gpdb_label;       /**< @brief The game position label used to acces the gpdb database. */
+  char  *gpdb_label;       /**< @brief The game position label used to acces the gpdb database. */
   int    best_move_count;  /**< @brief The count of best moves. */
   int    outcome;          /**< @brief The expected game position value. */
   Square best_move[64];    /**< @brief The expected best move array. */
@@ -238,12 +239,12 @@ game_position_ab_solve_test (gpdb_fixture_t *fixture,
 
 /* Helper function prototypes. */
 
-static gpdb_dictionary_t *
-gpdb_setup (gchar *source);
+static gpdb2_dictionary_t *
+gpdb_setup (char *file_name);
 
 static void
-gpdb_ffo_fixture_setup (gpdb_fixture_t *fixture,
-                        gconstpointer test_data);
+gpdb_fixture_setup (gpdb_fixture_t *fixture,
+                    gconstpointer test_data);
 
 static void
 gpdb_sample_games_fixture_setup (gpdb_fixture_t *fixture,
@@ -254,11 +255,11 @@ gpdb_fixture_teardown (gpdb_fixture_t *fixture,
                        gconstpointer test_data);
 
 static GamePositionX *
-get_gpx_from_db (gpdb_dictionary_t *db,
-                 gchar *id);
+get_gpx_from_db (gpdb2_dictionary_t *db,
+                 char *id);
 
 static void
-run_test_case_array (gpdb_dictionary_t *db,
+run_test_case_array (gpdb2_dictionary_t *db,
                      const TestCase tca[],
                      ExactSolution* (*solver)(const GamePositionX *const gpx,
                                               const endgame_solver_env_t *const env));
@@ -281,14 +282,14 @@ main (int   argc,
   g_test_add("/es/ffo_05",
              gpdb_fixture_t,
              (gconstpointer) ffo_05,
-             gpdb_ffo_fixture_setup,
+             gpdb_fixture_setup,
              game_position_es_solve_test,
              gpdb_fixture_teardown);
 
   g_test_add("/ifes/ffo_05",
              gpdb_fixture_t,
              (gconstpointer) ffo_05,
-             gpdb_ffo_fixture_setup,
+             gpdb_fixture_setup,
              game_position_ifes_solve_test,
              gpdb_fixture_teardown);
 
@@ -302,7 +303,7 @@ main (int   argc,
   g_test_add("/ab/ffo_05",
              gpdb_fixture_t,
              (gconstpointer) ffo_05,
-             gpdb_ffo_fixture_setup,
+             gpdb_fixture_setup,
              game_position_ab_solve_test,
              gpdb_fixture_teardown);
 
@@ -310,61 +311,61 @@ main (int   argc,
     g_test_add("/minimax/ffo_05",
                gpdb_fixture_t,
                (gconstpointer) ffo_05,
-               gpdb_ffo_fixture_setup,
+               gpdb_fixture_setup,
                game_position_minimax_solve_test,
                gpdb_fixture_teardown);
     g_test_add("/es/ffo_01_19",
                gpdb_fixture_t,
                (gconstpointer) ffo_01_19,
-               gpdb_ffo_fixture_setup,
+               gpdb_fixture_setup,
                game_position_es_solve_test,
                gpdb_fixture_teardown);
     g_test_add("/ifes/ffo_01_19",
                gpdb_fixture_t,
                (gconstpointer) ffo_01_19,
-               gpdb_ffo_fixture_setup,
+               gpdb_fixture_setup,
                game_position_ifes_solve_test,
                gpdb_fixture_teardown);
     g_test_add("/ab/ffo_01_19",
                gpdb_fixture_t,
                (gconstpointer) ffo_01_19,
-               gpdb_ffo_fixture_setup,
+               gpdb_fixture_setup,
                game_position_ab_solve_test,
                gpdb_fixture_teardown);
     g_test_add("/es/ffo_20_29",
                gpdb_fixture_t,
                (gconstpointer) ffo_20_29,
-               gpdb_ffo_fixture_setup,
+               gpdb_fixture_setup,
                game_position_es_solve_test,
                gpdb_fixture_teardown);
     g_test_add("/ifes/ffo_20_29",
                gpdb_fixture_t,
                (gconstpointer) ffo_20_29,
-               gpdb_ffo_fixture_setup,
+               gpdb_fixture_setup,
                game_position_ifes_solve_test,
                gpdb_fixture_teardown);
     g_test_add("/es/ffo_30_39",
                gpdb_fixture_t,
                (gconstpointer) ffo_30_39,
-               gpdb_ffo_fixture_setup,
+               gpdb_fixture_setup,
                game_position_es_solve_test,
                gpdb_fixture_teardown);
     g_test_add("/ifes/ffo_30_39",
                gpdb_fixture_t,
                (gconstpointer) ffo_30_39,
-               gpdb_ffo_fixture_setup,
+               gpdb_fixture_setup,
                game_position_ifes_solve_test,
                gpdb_fixture_teardown);
     g_test_add("/es/ffo_40_49",
                 gpdb_fixture_t,
                (gconstpointer) ffo_40_49,
-               gpdb_ffo_fixture_setup,
+               gpdb_fixture_setup,
                game_position_es_solve_test,
                gpdb_fixture_teardown);
     g_test_add("/ifes/ffo_40_49",
                gpdb_fixture_t,
                (gconstpointer) ffo_40_49,
-               gpdb_ffo_fixture_setup,
+               gpdb_fixture_setup,
                game_position_ifes_solve_test,
                gpdb_fixture_teardown);
   }
@@ -382,7 +383,7 @@ static void
 game_position_es_solve_test (gpdb_fixture_t *fixture,
                              gconstpointer test_data)
 {
-  gpdb_dictionary_t *db = fixture->db;
+  gpdb2_dictionary_t *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
   run_test_case_array(db, tcap, game_position_es_solve);
 }
@@ -391,7 +392,7 @@ static void
 game_position_ifes_solve_test (gpdb_fixture_t *fixture,
                                gconstpointer test_data)
 {
-  gpdb_dictionary_t *db = fixture->db;
+  gpdb2_dictionary_t *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
   run_test_case_array(db, tcap, game_position_ifes_solve);
 }
@@ -400,7 +401,7 @@ static void
 game_position_minimax_solve_test (gpdb_fixture_t *fixture,
                                   gconstpointer test_data)
 {
-  gpdb_dictionary_t *db = fixture->db;
+  gpdb2_dictionary_t *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
   run_test_case_array(db, tcap, game_position_minimax_solve);
 }
@@ -409,7 +410,7 @@ static void
 game_position_ab_solve_test (gpdb_fixture_t *fixture,
                              gconstpointer test_data)
 {
-  gpdb_dictionary_t *db = fixture->db;
+  gpdb2_dictionary_t *db = fixture->db;
   TestCase *tcap = (TestCase *) test_data;
   run_test_case_array(db, tcap, game_position_ab_solve);
 }
@@ -420,75 +421,72 @@ game_position_ab_solve_test (gpdb_fixture_t *fixture,
  * Internal functions.
  */
 
-static gpdb_dictionary_t *
-gpdb_setup (gchar *source)
+static gpdb2_dictionary_t *
+gpdb_setup (char *file_name)
 {
-  gpdb_dictionary_t *db;
-  gpdb_syntax_error_log_t *syntax_error_log;
-  FILE *fp;
-  GError *error;
+  gpdb2_dictionary_t *db = gpdb2_dictionary_new("Db from file");
+  assert(db);
 
-  /* Loads the game position database. */
-  fp = fopen(source, "r");
-  if (!fp) {
-    g_test_message("Unable to open database test file \"%s\" for reading.\n", source);
-    g_test_fail();
-  }
-  g_assert(fp);
-  db = gpdb_new(g_strdup(source));
-  syntax_error_log = NULL;
-  error = NULL;
-  gpdb_load(fp, source, db, &syntax_error_log, &error);
-  fclose(fp);
-  g_free(source);
+  gpdb2_syntax_err_log_t *elog = gpdb2_syntax_err_log_new();
+  assert(elog);
 
-  /* Removes the tmp file, frees the resources. */
-  g_free(error);
-  if (syntax_error_log)
-    gpdb_syntax_error_log_free(syntax_error_log);
+  const bool duplicates_are_errors = true;
+  const bool replace_duplicates = false;
+  const bool stop_on_error = false;
+
+  gpdb2_dictionary_load(db,
+                        elog,
+                        file_name,
+                        duplicates_are_errors,
+                        replace_duplicates,
+                        stop_on_error);
+
+  g_assert(0 == gpdb2_syntax_err_log_length(elog));
+
+  gpdb2_syntax_err_log_free(elog);
 
   g_assert (db);
   return db;
 }
 
 static void
-gpdb_ffo_fixture_setup (gpdb_fixture_t *fixture,
-                        gconstpointer test_data)
+gpdb_fixture_setup (gpdb_fixture_t *fixture,
+                    gconstpointer test_data)
 {
-  gchar *source = g_strdup("db/gpdb-ffo.txt");
-  fixture->db = gpdb_setup(source);
+  fixture->db = gpdb_setup("db/gpdb-ffo.txt");
 }
 
 static void
 gpdb_sample_games_fixture_setup (gpdb_fixture_t *fixture,
                                  gconstpointer test_data)
 {
-  gchar *source = g_strdup("db/gpdb-sample-games.txt");
-  fixture->db = gpdb_setup(source);
+  fixture->db = gpdb_setup("db/gpdb-sample-games.txt");
 }
 
 static void
 gpdb_fixture_teardown (gpdb_fixture_t *fixture,
                        gconstpointer test_data)
 {
-  g_assert(fixture->db != NULL);
-  gpdb_free(fixture->db, TRUE);
+  g_assert(fixture);
+  g_assert(fixture->db);
+  gpdb2_dictionary_free(fixture->db);
 }
 
 static GamePositionX *
-get_gpx_from_db (gpdb_dictionary_t *db,
-                 gchar *id)
+get_gpx_from_db (gpdb2_dictionary_t *db,
+                 char *id)
 {
-  gpdb_entry_t *entry = gpdb_lookup(db, id);
+  gpdb2_entry_t *entry = gpdb2_dictionary_find_entry(db, id);
   if (!entry) {
     g_test_message("The entry \"%s\" is missing from game position database.\n", id);
     g_test_fail();
   }
-  return gpdb_get_gpx(entry);
+  g_assert(entry);
+  return gpdb2_entry_get_gpx(entry);
 }
 
 static void
-run_test_case_array (gpdb_dictionary_t *db,
+run_test_case_array (gpdb2_dictionary_t *db,
                      const TestCase tca[],
                      ExactSolution* (*solver)(const GamePositionX *const gpx,
                                               const endgame_solver_env_t *const env))
@@ -517,7 +515,6 @@ run_test_case_array (gpdb_dictionary_t *db,
     const bool ok_move = is_move_part_of_array(solution->best_move, tc->best_move, tc->best_move_count);
     if (!ok_value || !ok_move) g_test_fail();
     exact_solution_free(solution);
-    free(gpx);
     if (g_test_verbose()) printf(": %s\n", (ok_value && ok_move) ? "OK": "KO");
   }
 }
