@@ -279,7 +279,7 @@ gpdb_fixture_teardown (gpdb_fixture_t *fixture,
   gpdb2_dictionary_free(fixture->db);
 }
 
-GamePositionX *
+static GamePositionX *
 get_gpx_from_db (gpdb2_dictionary_t *db,
                  gchar *id)
 {
