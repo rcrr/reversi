@@ -41,14 +41,14 @@
  * @brief Collects all the info required for parsing.
  */
 typedef struct {
-  int argc;                 /**< @brief . */
-  char **argv;              /**< @brief . */
-  bool permute;             /**< @brief . */
-  int optind;               /**< @brief . */
-  int optopt;               /**< @brief . */
-  char *optarg;             /**< @brief . */
-  char errmsg[64];          /**< @brief . */
-  int subopt;               /**< @brief . */
+  int argc;                   /**< @brief To be defined. */
+  char **argv;                /**< @brief To be defined. */
+  bool permute;               /**< @brief To be defined. */
+  int optind;                 /**< @brief To be defined. */
+  int optopt;                 /**< @brief To be defined. */
+  char *optarg;               /**< @brief To be defined. */
+  char errmsg[64];            /**< @brief To be defined. */
+  int subopt;                 /**< @brief To be defined. */
 } mop_options_t;
 
 /**
@@ -56,9 +56,9 @@ typedef struct {
  * @brief The argument type specifies if not requested, mandatory, or optional.
  */
 typedef enum {
-  MOP_NONE,
-  MOP_REQUIRED,
-  MOP_OPTIONAL
+  MOP_NONE,                   /**< @brief To be defined. */
+  MOP_REQUIRED,               /**< @brief To be defined. */
+  MOP_OPTIONAL                /**< @brief To be defined. */
 } mop_argtype_t;
 
 /**
@@ -66,18 +66,18 @@ typedef enum {
  * @brief Error type.
  */
 typedef enum {
-  MOP_ERR_INVALID,
-  MOP_ERR_MISSING,
-  MOP_ERR_TOO_MANY
+  MOP_ERR_INVALID,            /**< @brief To be defined. */
+  MOP_ERR_MISSING,            /**< @brief To be defined. */
+  MOP_ERR_TOO_MANY            /**< @brief To be defined. */
 } mop_errtype_t;
 
 /**
  * @brief Collects the parsing rules for the long parser.
  */
 typedef struct {
-    const char *longname;     /**< @brief . */
-    int shortname;            /**< @brief . */
-    mop_argtype_t argtype;    /**< @brief . */
+    const char *longname;     /**< @brief To be defined. */
+    int shortname;            /**< @brief To be defined. */
+    mop_argtype_t argtype;    /**< @brief To be defined. */
 } mop_options_long_t;
 
 

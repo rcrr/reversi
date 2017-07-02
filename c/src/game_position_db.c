@@ -1,8 +1,8 @@
 /**
  * @file
  *
- * @brief Data Base utilities and programs for `GamePositionX` structures.
- * @details This executable read and write game position db.
+ * @brief Data Base utilities for reading game positions from files.
+ * @details This module introduces four entities ...
  *
  * @par game_position_db.c
  * <tt>
@@ -39,14 +39,14 @@
 
 #include "game_position_db.h"
 
-/* Used for file reading, it contains also string termination. */
-#define MAX_LINE_LENGTH 4096
-
 
 
 /**
  * @cond
  */
+
+/* Used for file reading, it contains also string termination. */
+#define MAX_LINE_LENGTH 4096
 
 /*
  * Internal variables and constants.
@@ -104,6 +104,25 @@ gpdb_syntax_err_log_reverse (gpdb_syntax_err_log_t *log);
 /* Function implementations for the gpdb_entry_t entity. */
 /*********************************************************/
 
+/**
+ * @brief Game position database entry structure constructor.
+ *
+ * @details The constructor allocates memory for the entry structure and then for the
+ *          `id` and `description` fields.
+ *          This memory is then released when the entry is freed by a call to #gpdb_entry_free().
+ *          No dependency is left on the data referenced by the three arguments.
+ *
+ *          An assertion checks that the received pointer to the allocated
+ *          game position database entry structure is not `NULL`.
+ *
+ * @invariant Parameters `id`, `description` and `gpx` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] id          entry unique key
+ * @param [in] description entry description
+ * @param [in] gpx         the game position associated to the entry
+ * @return                 a pointer to a new empty game position database entry structure
+ */
 gpdb_entry_t *
 gpdb_entry_new (const char *const id,
                 const char *const description,
@@ -135,6 +154,13 @@ gpdb_entry_new (const char *const id,
   return entry;
 }
 
+/**
+ * @brief Deallocates the memory previously allocated by a call to #gpdb_entry_new().
+ *
+ * @details If a null pointer is passed as argument, no action occurs.
+ *
+ * @param [in,out] entry the pointer to be deallocated
+ */
 void
 gpdb_entry_free (gpdb_entry_t *entry)
 {
@@ -145,6 +171,12 @@ gpdb_entry_free (gpdb_entry_t *entry)
   }
 }
 
+/**
+ * @brief Gets the `id` field.
+ *
+ * @param [in] entry reference to the object
+ * @return           the value of the `id` field
+ */
 char *
 gpdb_entry_get_id (gpdb_entry_t *const entry)
 {
@@ -152,6 +184,15 @@ gpdb_entry_get_id (gpdb_entry_t *const entry)
   return entry->id;
 }
 
+/**
+ * @brief Gets the `description` field.
+ *
+ * @invariant Parameter `entry` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] entry reference to the object
+ * @return           the value of the `description` field
+ */
 char *
 gpdb_entry_get_description (gpdb_entry_t *const entry)
 {
@@ -159,6 +200,15 @@ gpdb_entry_get_description (gpdb_entry_t *const entry)
   return entry->description;
 }
 
+/**
+ * @brief Gets a `gpx` reference.
+ *
+ * @invariant Parameter `entry` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] entry reference to the object
+ * @return           a pointer to the `gpx` structure
+ */
 GamePositionX *
 gpdb_entry_get_gpx (gpdb_entry_t *const entry)
 {
@@ -166,6 +216,21 @@ gpdb_entry_get_gpx (gpdb_entry_t *const entry)
   return &entry->gpx;
 }
 
+/**
+ * @brief Prints to the given `stream` a text representation of `entry`.
+ *
+ * @details When `verbose` is `false` the output stays on one line and
+ *          it has the format of the record stored in game position db files.
+ *          When `verbose` is `true` the output is multiline, and the
+ *          game position is represented as a two dimensions 8x8 board.
+ *
+ * @invariant Parameter `entry` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] entry   reference to the object
+ * @param [in] stream  reference to the object
+ * @param [in] verbose reference to the object
+ */
 void
 gpdb_entry_print (const gpdb_entry_t *const entry,
                   FILE *const stream,
@@ -203,6 +268,21 @@ gpdb_entry_print (const gpdb_entry_t *const entry,
 /* Function implementations for the gpdb_dictionary_t entity. */
 /**************************************************************/
 
+/**
+ * @brief Dictionary (a data base of game positions) structure constructor.
+ *
+ * @details The parameter `description` must be a pointer to a well
+ *          formed string. The string is copied into freshly allocated
+ *          memory. The parameter can be `NULL`.
+ *          This memory is then released when the dictionary is freed by a call to #gpdb_dictionary_free().
+ *          No dependency is left on the data referenced by the argument.
+ *
+ *          An assertion checks that the received pointer to the allocated
+ *          game position database structure is not `NULL`.
+ *
+ * @param [in] description a string describing the database
+ * @return                 a pointer to a new dictionary structure
+ */
 gpdb_dictionary_t *
 gpdb_dictionary_new (const char *const description)
 {
@@ -222,6 +302,13 @@ gpdb_dictionary_new (const char *const description)
   return db;
 }
 
+/**
+ * @brief Deallocates the memory previously allocated by a call to #gpdb_dictionary_new().
+ *
+ * @details If a null pointer is passed as argument, no action occurs.
+ *
+ * @param [in,out] db the pointer to be deallocated
+ */
 void
 gpdb_dictionary_free (gpdb_dictionary_t *db)
 {
@@ -232,16 +319,37 @@ gpdb_dictionary_free (gpdb_dictionary_t *db)
   }
 }
 
+/**
+ * @brief Gets the `description` field.
+ *
+ * @invariant Parameter `db` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] db reference to the object
+ * @return        the value of the `description` field
+ */
 char *
 gpdb_dictionary_get_description (const gpdb_dictionary_t *const db)
 {
+  assert(db);
   return db->description;
 }
 
+/**
+ * @brief Sets the `description` field.
+ *
+ * @invariant Parameter `db` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in,out] db          reference to the object
+ * @param [in]     description new value for the field
+ */
 void
 gpdb_dictionary_set_description (gpdb_dictionary_t *const db,
                                  const char *const description)
 {
+  assert(db);
+
   if (db->description) free(db->description);
   if (description) {
     int len = strlen(description);

@@ -4,7 +4,7 @@
  * @brief Game Position Database module definitions.
  * @details This module defines the #gpdb_dictionary_t, and #gpdb_entry_t entities,
  * and the errors entities arising from parsing a database source file, like
- * #gpdb_syntax_error_log_t, #gpdb_entry_syntax_error_t and #gpdb_entry_syntax_error_type_t.
+ * #gpdb_syntax_err_log_t, #gpdb_syntax_err_t and #gpdb_syntax_err_type_t.
  * This header also defines all the function prototypes that operate on them.
  *
  * @par game_position_db.h
@@ -61,7 +61,7 @@ typedef struct {
  * Duplicated keys are not allowed. Trying to insert a key already loaded generates
  * an error added to the log.
  *
- * Fields must be kept private, the #gpdb_free function frees them all.
+ * Fields must be kept private, the #gpdb_entry_free() function frees them all.
  */
 typedef struct {
   rbt_table_t *table;    /**< @brief The underlaying tree structure. */
@@ -69,17 +69,17 @@ typedef struct {
 } gpdb_dictionary_t;
 
 /**
- * @enum gpdb_entry_syntax_error_type_t
+ * @enum gpdb_syntax_err_type_t
  * @brief The classification of errors that can be found parsing a database entry record.
  */
 typedef enum {
-  GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY,        /**< Error on field count. */
-  GPDB_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64,    /**< Error on the size of the board field. */
-  GPDB_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID,  /**< Error on the board field, one square char is out of range. */
-  GPDB_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR,  /**< Error on player field, it must be composed by one char. */
-  GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID,  /**< Error on player field, it must be either b or w. */
-  GPDB_SYNTAX_ERR_DUPLICATE_ENTRY_KEY,     /**< Duplicate key error. */
-  GPDB_SYNTAX_ERR_COUNT                    /**< Syntax error type cardinality. */
+  GPDB_SYNTAX_ERR_INCOMPLETE_ENTRY,        /**< @brief Error on field count. */
+  GPDB_SYNTAX_ERR_BOARD_SIZE_IS_NOT_64,    /**< @brief Error on the size of the board field. */
+  GPDB_SYNTAX_ERR_SQUARE_CHAR_IS_INVALID,  /**< @brief Error on the board field, one square char is out of range. */
+  GPDB_SYNTAX_ERR_PLAYER_IS_NOT_ONE_CHAR,  /**< @brief Error on player field, it must be composed by one char. */
+  GPDB_SYNTAX_ERR_PLAYER_CHAR_IS_INVALID,  /**< @brief Error on player field, it must be either b or w. */
+  GPDB_SYNTAX_ERR_DUPLICATE_ENTRY_KEY,     /**< @brief Duplicate key error. */
+  GPDB_SYNTAX_ERR_COUNT                    /**< @brief Syntax error type cardinality. */
 } gpdb_syntax_err_type_t;
 
 /**

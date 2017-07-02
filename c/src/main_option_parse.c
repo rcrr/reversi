@@ -138,7 +138,8 @@ static const char *const mop_msg_toomany = "option takes no arguments";
  * @brief Initializes the parser state.
  *
  * @param [out] options a pointer to a structure that shall be initialized
- * @param [in]  argv    the vector od arguments
+ * @param [in]  argc    arguments count
+ * @param [in]  argv    the vector of arguments
  */
 void
 mop_init (mop_options_t *options,
