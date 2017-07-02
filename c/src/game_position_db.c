@@ -227,9 +227,9 @@ gpdb_entry_get_gpx (gpdb_entry_t *const entry)
  * @invariant Parameter `entry` cannot be `NULL`.
  *            The invariant is guarded by an assertion.
  *
- * @param [in] entry   reference to the object
- * @param [in] stream  reference to the object
- * @param [in] verbose reference to the object
+ * @param [in] entry   reference to the entry
+ * @param [in] stream  the target of the output
+ * @param [in] verbose true for more output
  */
 void
 gpdb_entry_print (const gpdb_entry_t *const entry,
@@ -361,6 +361,18 @@ gpdb_dictionary_set_description (gpdb_dictionary_t *const db,
   }
 }
 
+/**
+ * @brief Inserts `entry` into `db`, replacing any duplicate item.
+ *
+ * @details Returns `NULL` if `entry` was inserted without replacing a duplicate, or if a memory
+ *          allocation error occurred. Otherwise, returns the item that was replaced.
+ *
+ * @invariant The `db` and `entry` arguments cannot be `NULL`.
+ *
+ * @param [in,out] db     the dictionary
+ * @param [in]     entry  the element to be inserterted
+ * @return               `NULL` or a pointer to the replaced `entry`
+ */
 gpdb_entry_t *
 gpdb_dictionary_add_or_replace_entry (gpdb_dictionary_t *const db,
                                       gpdb_entry_t *entry)
@@ -373,6 +385,17 @@ gpdb_dictionary_add_or_replace_entry (gpdb_dictionary_t *const db,
   return replaced;
 }
 
+/**
+ * @brief Deletes from `db` and returns an entry matching `entry`.
+ *
+ * @details Returns a null pointer if no matching entry found.
+ *
+ * @invariant The `db` and `entry` arguments cannot be `NULL`.
+ *
+ * @param [in,out] db     the dictionary
+ * @param [in]     entry  the element to be inserterted
+ * @return                 a pointer to the deleted `entry` or `NULL`
+ */
 gpdb_entry_t *
 gpdb_dictionary_delete_entry (gpdb_dictionary_t *const db,
                               const gpdb_entry_t *const entry)
@@ -385,6 +408,14 @@ gpdb_dictionary_delete_entry (gpdb_dictionary_t *const db,
   return deleted;
 }
 
+/**
+ * @brief Returns the number of entries collected by `db`.
+ *
+ * @invariant The `db` argument cannot be `NULL`.
+ *
+ * @param [in] db the dictionary
+ * @return        dictionary entry count
+ */
 size_t
 gpdb_dictionary_entry_count (const gpdb_dictionary_t *const db)
 {
@@ -392,6 +423,17 @@ gpdb_dictionary_entry_count (const gpdb_dictionary_t *const db)
   return rbt_count(db->table);
 }
 
+/**
+ * @brief Searches `db` for an entry having the key matching `id` and returns it if found.
+ *
+ * @details Returns a null pointer if no matching entry exists in the dictionary.
+ *
+ * @invariant The `db` argument cannot be `NULL`.
+ *
+ * @param [in] db the dictionary
+ * @param [in] id the key searched for
+ * @return        a pointer to the matching  entry or `NULL`
+ */
 gpdb_entry_t *
 gpdb_dictionary_find_entry (gpdb_dictionary_t *const db,
                             const char *const id)
@@ -406,6 +448,56 @@ gpdb_dictionary_find_entry (gpdb_dictionary_t *const db,
   return selected;
 }
 
+/**
+ * @brief Inserts the entries found in file `file_name` into the `db` dictionary.
+ *
+ * @details The function loads entries into the dictionary reading the file line by line.
+ *          Lines can be an entry record or a comment.
+ *          Comments are signaled by a line beginning with a `#` character.
+ *          Well formed records are loaded, on the contrary syntax errors are logged
+ *          in the `elog` list.
+ *
+ *          A well formed record has four fields separated by the `;` character:
+ *          - id
+ *          - squares
+ *          - player
+ *          - description
+ *
+ *          Everything coming after the `;` following the description is ignored.
+ *
+ *          The id field is a string, it is used as the entry's `id`. All characters
+ *          are accepted with the exception of `;` and `#`.
+ *
+ *          The squares field must be a string of sixty-four characters. Accepted values
+ *          are `w` for white, `b` for black, or `.` for empty.
+ *
+ *          The player field must be a string of one character. Accepted values
+ *          are `w` for white, or `b` for black.
+ *
+ *          Fields squares and player are combined to define the game position contained
+ *          into the loaded entry.
+ *
+ *          The description field is a string, it is used as the entry's `description`.
+ *          All characters are accepted with the exception of `;` and `#`.
+ *
+ *          Arguments `duplicates_are_errors` and `replace_duplicates` define the behavior
+ *          of the loader when a valid record has a key that is already part of the `db`.
+ *          When `duplicates_are_errors` is `true` a specific error is logged and the record
+ *          is discarded. When it is `false` the argument `replace_duplicates` specifies
+ *          if the newly encountered record has to replace the already loaded one, or not.
+ *          When replacement occurs, the existing entry is deallocated.
+ *
+ * @invariant Parameters `db`, `elog` and `file_name` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in,out] db                    a pointer to the dictionary that is updated
+ * @param [in,out] elog                  a pointer to the error log
+ * @param [in]     file_name             file name that is loaded
+ * @param [in]     duplicates_are_errors duplicate keys are logged as errors
+ * @param [in]     replace_duplicates    duplicate entries are replaced
+ * @param [in]     stop_on_error         stops loading on first error
+ * @return                               count of loaded entries
+ */
 size_t
 gpdb_dictionary_load (gpdb_dictionary_t *const db,
                       gpdb_syntax_err_log_t *const elog,
@@ -492,6 +584,20 @@ gpdb_dictionary_load (gpdb_dictionary_t *const db,
   return insertions;
 }
 
+/**
+ * @brief Prints to the given `stream` a text representation of `db`.
+ *
+ * @details Prints all the entries in the `db`, one by one in the
+ *          lexicographic order of the keys.
+ *          For each entry prints the output obtained calling #gpdb_entry_print().
+ *
+ * @invariant Parameter `db` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] db      reference to the dictionary
+ * @param [in] stream  the target of the output
+ * @param [in] verbose true for more output
+ */
 void
 gpdb_dictionary_print (const gpdb_dictionary_t *const db,
                        FILE *const stream,
