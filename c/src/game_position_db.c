@@ -174,6 +174,9 @@ gpdb_entry_free (gpdb_entry_t *entry)
 /**
  * @brief Gets the `id` field.
  *
+ * @invariant Parameter `entry` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
  * @param [in] entry reference to the object
  * @return           the value of the `id` field
  */
@@ -585,7 +588,7 @@ gpdb_dictionary_load (gpdb_dictionary_t *const db,
 }
 
 /**
- * @brief Prints to the given `stream` a text representation of `db`.
+ * @brief Prints to `stream` a text representation of `db`.
  *
  * @details Prints all the entries in the `db`, one by one in the
  *          lexicographic order of the keys.
@@ -617,6 +620,25 @@ gpdb_dictionary_print (const gpdb_dictionary_t *const db,
   }
 }
 
+/**
+ * @brief Prints to `stream` a formatted summary holding a short represention of the `db`.
+ *
+ * @details The printed message has the form:
+ *
+ * @code
+ * The Game Position Database has 37 entries.
+ * Database Description: This describe the database of positions.
+ * Number of errors: 0
+ * @endcode
+ *
+ * @invariant Parameter `db` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] db     pointer to the db
+ * @param [in] elog   pointer to the error log
+ * @param [in] stream the target of the output
+ * @return        a short message describing the db structure
+ */
 void
 gpdb_dictionary_print_summary (const gpdb_dictionary_t *const db,
                                const gpdb_syntax_err_log_t *const elog,
@@ -642,6 +664,30 @@ gpdb_dictionary_print_summary (const gpdb_dictionary_t *const db,
 /* Function implementations for the gpdb_syntax_err_t entity. */
 /**************************************************************/
 
+/**
+ * @brief Game position database syntax error structure constructor.
+ *
+ * @details The constructor allocates memory for the syntax error structure and then for the
+ *          `file_name`, `line`, and `message` fields.
+ *          This memory is then released when the entry is freed by a call to #gpdb_syntax_err_free().
+ *          No dependency is left on the data referenced by the three arguments.
+ *
+ *          An assertion checks that the received pointer to the allocated
+ *          game position database syntax error structure is not `NULL`.
+ *
+ * @invariant Parameters `file_name`, `line` and `message` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @invariant Parameters `type` must be in the range defined by #gpdb_syntax_err_type_t enum.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] file_name   file name
+ * @param [in] line_number line number
+ * @param [in] line        line text
+ * @param [in] type        error type
+ * @param [in] message     error message
+ * @return                 a pointer to a new empty game position database syntax error structure
+ */
 gpdb_syntax_err_t *
 gpdb_syntax_err_new (const char *const file_name,
                      const size_t line_number,
@@ -681,6 +727,13 @@ gpdb_syntax_err_new (const char *const file_name,
   return e;
 }
 
+/**
+ * @brief Deallocates the memory previously allocated by a call to #gpdb_syntax_err_new().
+ *
+ * @details If a null pointer is passed as argument, no action occurs.
+ *
+ * @param [in,out] error the pointer to be deallocated
+ */
 void
 gpdb_syntax_err_free (gpdb_syntax_err_t *error)
 {
@@ -692,6 +745,15 @@ gpdb_syntax_err_free (gpdb_syntax_err_t *error)
   }
 }
 
+/**
+ * @brief Gets the `file_name` field.
+ *
+ * @invariant Parameter `error` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] error reference to the object
+ * @return           the value of the `file_name` field
+ */
 char *
 gpdb_syntax_err_get_file_name (gpdb_syntax_err_t *const error)
 {
@@ -699,6 +761,15 @@ gpdb_syntax_err_get_file_name (gpdb_syntax_err_t *const error)
   return error->file_name;
 }
 
+/**
+ * @brief Gets the `line_number` field.
+ *
+ * @invariant Parameter `error` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] error reference to the object
+ * @return           the value of the `line_number` field
+ */
 size_t
 gpdb_syntax_err_get_line_number (gpdb_syntax_err_t *const error)
 {
@@ -706,6 +777,15 @@ gpdb_syntax_err_get_line_number (gpdb_syntax_err_t *const error)
   return error->line_number;
 }
 
+/**
+ * @brief Gets the `line` field.
+ *
+ * @invariant Parameter `error` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] error reference to the object
+ * @return           the value of the `line` field
+ */
 char *
 gpdb_syntax_err_get_line (gpdb_syntax_err_t *const error)
 {
@@ -713,6 +793,15 @@ gpdb_syntax_err_get_line (gpdb_syntax_err_t *const error)
   return error->line;
 }
 
+/**
+ * @brief Gets the `type` field.
+ *
+ * @invariant Parameter `error` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] error reference to the object
+ * @return           the value of the `type` field
+ */
 gpdb_syntax_err_type_t
 gpdb_syntax_err_get_type (gpdb_syntax_err_t *const error)
 {
@@ -720,6 +809,15 @@ gpdb_syntax_err_get_type (gpdb_syntax_err_t *const error)
   return error->type;
 }
 
+/**
+ * @brief Gets the `message` field.
+ *
+ * @invariant Parameter `error` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] error reference to the object
+ * @return           the value of the `message` field
+ */
 char *
 gpdb_syntax_err_get_message (gpdb_syntax_err_t *const error)
 {
@@ -773,6 +871,17 @@ gpdb_syntax_err_print (const gpdb_syntax_err_t *const error,
 /* Function implementations for the gpdb_syntax_err_log_t entity. */
 /******************************************************************/
 
+/**
+ * @brief Syntax error log constructor.
+ *
+ * @details The memory allocated is then released when the log is freed by a call to #gpdb_syntax_err_log_free().
+ *          No dependency is left on the data referenced by the argument.
+ *
+ *          An assertion checks that the received pointer to the allocated
+ *          log is not `NULL`.
+ *
+ * @return a pointer to a new syntax error log
+ */
 gpdb_syntax_err_log_t *
 gpdb_syntax_err_log_new (void)
 {
@@ -785,6 +894,13 @@ gpdb_syntax_err_log_new (void)
   return log;
 }
 
+/**
+ * @brief Deallocates the memory previously allocated by a call to #gpdb_syntax_err_log_new().
+ *
+ * @details If a null pointer is passed as argument, no action occurs.
+ *
+ * @param [in,out] entry the pointer to be deallocated
+ */
 void
 gpdb_syntax_err_log_free (gpdb_syntax_err_log_t *log)
 {
@@ -820,6 +936,15 @@ gpdb_syntax_err_log_print (const gpdb_syntax_err_log_t *const log,
   llist_foreach(log->list, gpdb_syntax_err_print_proxy, (void *) stream);
 }
 
+/**
+ * @brief Gets the `list` field.
+ *
+ * @invariant Parameter `log` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] log reference to the object
+ * @return         the value of the `list` field
+ */
 llist_t *
 gpdb_syntax_err_log_get_list (gpdb_syntax_err_log_t *const log)
 {
@@ -830,6 +955,10 @@ gpdb_syntax_err_log_get_list (gpdb_syntax_err_log_t *const log)
 
 /*
  * Internal functions.
+ */
+
+/**
+ * @cond
  */
 
 static void
@@ -1030,3 +1159,7 @@ gpdb_syntax_err_log_reverse (gpdb_syntax_err_log_t *log)
   assert(log);
   llist_reverse(log->list);
 }
+
+/**
+ * @endcond
+ */
