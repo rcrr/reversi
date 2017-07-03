@@ -88,9 +88,10 @@ llist_free (llist_t *l)
 }
 
 /**
- * @brief Returns the length of the list..
+ * @brief Returns the length of the list.
  *
  * @param [in] l the list
+ * @return       the length of the list
  */
 size_t
 llist_length (const llist_t *const l)

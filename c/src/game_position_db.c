@@ -899,7 +899,7 @@ gpdb_syntax_err_log_new (void)
  *
  * @details If a null pointer is passed as argument, no action occurs.
  *
- * @param [in,out] entry the pointer to be deallocated
+ * @param [in,out] log the pointer to be deallocated
  */
 void
 gpdb_syntax_err_log_free (gpdb_syntax_err_log_t *log)
@@ -911,6 +911,17 @@ gpdb_syntax_err_log_free (gpdb_syntax_err_log_t *log)
   }
 }
 
+/**
+ * @brief Adds a new element at the beginning of the log.
+ *
+ * @details When `err` is `NULL` nothing happens.
+ *
+ * @invariant Parameter `log` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in,out] log syntax error log
+ * @param [in]     err syntax error
+ */
 void
 gpdb_syntax_err_log_add (gpdb_syntax_err_log_t *log,
                          gpdb_syntax_err_t *err)
@@ -921,6 +932,12 @@ gpdb_syntax_err_log_add (gpdb_syntax_err_log_t *log,
   }
 }
 
+/**
+ * @brief Returns the number of errors within the log.
+ *
+ * @param [in] log syntax error log
+ * @return         the length of the log
+ */
 size_t
 gpdb_syntax_err_log_length (const gpdb_syntax_err_log_t *const log)
 {
@@ -928,6 +945,18 @@ gpdb_syntax_err_log_length (const gpdb_syntax_err_log_t *const log)
   return llist_length(log->list);
 }
 
+/**
+ * @brief Prints to `stream` a text representation of `log`.
+ *
+ * @details Prints all the entries in the `log`, one by one.
+ *          For each entry prints the output obtained calling #gpdb_syntax_err_print().
+ *
+ * @invariant Parameter `log` cannot be `NULL`.
+ *            The invariant is guarded by an assertion.
+ *
+ * @param [in] log     reference to the syntax error log
+ * @param [in] stream  the target of the output
+ */
 void
 gpdb_syntax_err_log_print (const gpdb_syntax_err_log_t *const log,
                            FILE *const stream)
