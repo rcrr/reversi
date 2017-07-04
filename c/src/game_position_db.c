@@ -2,7 +2,50 @@
  * @file
  *
  * @brief Data Base utilities for reading game positions from files.
- * @details This module introduces four entities ...
+ *
+ * @details This module introduces five entities:
+ *          - #gpdb_dictionary_t
+ *          - #gpdb_entry_t
+ *          - #gpdb_syntax_err_log_t
+ *          - #gpdb_syntax_err_t
+ *          - #gpdb_syntax_err_type_t
+ *
+ * #gpdb_dictionary_t is a table (sorted set) of entries.
+ *
+ * #gpdb_entry_t is an element of the dictionary, defined by three fields, a key (id), a
+ *               description, and a game position.
+ *
+ * The dictionary can be populated by reading a database file by mean of
+ * the function #gpdb_dictionary_load(). A sample usage scenario is:
+ *
+ * @code
+ *
+ * const bool duplicates_are_errors = true;
+ * const bool replace_duplicates = false;
+ * const bool stop_on_error = false;
+ *
+ * const char *const file_name = "db/gpdb-test-db.txt";
+ * const char *const db_desc = "Test game position database";
+ *
+ * gpdb_dictionary_t *db = gpdb_dictionary_new(db_desc);
+ *
+ * gpdb_syntax_err_log_t *elog = gpdb_syntax_err_log_new();
+ *
+ * insertions = gpdb_dictionary_load(db,
+ *                                   elog,
+ *                                   file_name,
+ *                                   duplicates_are_errors,
+ *                                   replace_duplicates,
+ *                                   stop_on_error);
+ *
+ * // Use the syntax error log.
+ * gpdb_syntax_err_log_free(elog);
+ *
+ * // Use the dictionary and hits entries.
+ * gpdb_dictionary_free(db);
+ *
+ * @endcode
+ *
  *
  * @par game_position_db.c
  * <tt>
