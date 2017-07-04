@@ -772,9 +772,9 @@ rbt_delete (rbt_table_t *table,
  *
  * @invariant The `table` and `item` arguments cannot be `NULL`.
  *
- * @param [in,out] table the table
- * @param [in]     item  an item having key equal to one searched for
- * @return               a pointer to the matching `item` or `NULL`
+ * @param [in] table the table
+ * @param [in] item  an item having key equal to one searched for
+ * @return           a pointer to the matching `item` or `NULL`
  */
 void *
 rbt_find (const rbt_table_t *table,

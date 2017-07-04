@@ -39,8 +39,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <glib.h>
-
 #include "game_position_db.h"
 #include "main_option_parse.h"
 
