@@ -121,6 +121,11 @@ prng_mt19937_shuffle_array_int (prng_mt19937_t *prng,
                                 int *const array,
                                 const size_t n);
 
+extern void
+prng_mt19937_random_string_az (prng_mt19937_t *prng,
+                               char *const rs,
+                               const size_t n);
+
 
 
 #endif /* PRNG_H */

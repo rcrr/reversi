@@ -31,6 +31,7 @@
  *  - #prng_mt19937_shuffle_array_p()
  *  - #prng_mt19937_shuffle_array_double()
  *  - #prng_mt19937_shuffle_array_int()
+ *  - #prng_mt19937_random_string_az()
  *
  * A useful function that the module provide is #prng_uint64_from_clock_random_seed(). It generates useful "random"
  * seed from the system clock.
@@ -665,4 +666,43 @@ prng_mt19937_shuffle_array_int (prng_mt19937_t *prng,
       *(array + i) = t;
     }
   }
+}
+
+/**
+ * @brief Prepares a random string.
+ *
+ * @details `rs` receives a sequence of `n` random characters in the range `[a..z]`.
+ *
+ * The argument `prng` must be obtained calling #prng_mt19937_new, and then it must be initialized once.
+ * Buffer `rs` must be large enought to receive the characters and the termination, so it must be
+ * `n + 1` long or more.
+ *
+ * @invariant Parameter `prng` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @invariant Parameter `rs` must not be null.
+ * The invariant is guarded by an assertion.
+ *
+ * @param [in,out] prng the random number generator to use
+ * @param [out]    rs   the generated random string
+ * @param [in]     n    the number of characters n the string
+ */
+void
+prng_mt19937_random_string_az (prng_mt19937_t *prng,
+                               char *const rs,
+                               const size_t n)
+{
+  assert(prng);
+  assert(rs);
+
+  const char a = 'a';
+  const char z = 'z';
+  const unsigned int range = z - a;
+
+  for (size_t i = 0; i < n; i++) {
+    const unsigned int shift = prng_mt19937_random_choice_from_finite_set(prng, range);
+    const char c = a + shift;
+    rs[i] = c;
+  }
+  rs[n] = '\0';
 }
