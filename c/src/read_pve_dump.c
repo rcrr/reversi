@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "file_utils.h"
 #include "game_tree_utils.h"
 #include "main_option_parse.h"
 
@@ -131,17 +132,6 @@ static int c_flag = false;
 
 /* Static functions. */
 
-static bool
-file_exists (const char *const file_name)
-{
-  FILE *f;
-  if ((f = fopen(file_name, "r"))) {
-    fclose(f);
-    return true;
-  }
-  return false;
-}
-
 /**
  * @endcond
  */
@@ -206,7 +196,7 @@ main (int argc, char *argv[])
     fprintf(stderr, "Option -f, --file is mandatory.\n");
     return -3;
   } else {
-    if (!file_exists(f_arg)) {
+    if (!fut_file_exists(f_arg)) {
       fprintf(stderr, "Argument for option -f: file %s does not exist.\n", f_arg);
     return -4;
     }

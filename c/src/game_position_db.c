@@ -80,6 +80,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include "file_utils.h"
 #include "game_position_db.h"
 
 
@@ -108,9 +109,6 @@ gpdb_syntax_err_free_proxy (void *const element,
 static void
 gpdb_syntax_err_print_proxy (void *const element,
                              void *const aux);
-
-static bool
-file_exists (const char *const file_name);
 
 static int
 gpdb_compare_entries (const void *item_a,
@@ -563,7 +561,7 @@ gpdb_dictionary_load (gpdb_dictionary_t *const db,
   size_t insertions = 0;
   size_t line_number = 0;
 
-  if (!file_exists(file_name)) return insertions;
+  if (!fut_file_exists(file_name)) return insertions;
 
   /* Opens the source file for reading. */
   fp = fopen(file_name, "r");
@@ -1048,17 +1046,6 @@ gpdb_syntax_err_print_proxy (void *const element,
   const gpdb_syntax_err_t *const error = (const gpdb_syntax_err_t *const) element;
   FILE *const stream = (FILE *const) aux;
   gpdb_syntax_err_print(error, stream);
-}
-
-static bool
-file_exists (const char *const file_name)
-{
-  FILE *f;
-  if ((f = fopen(file_name, "r"))) {
-    fclose(f);
-    return true;
-  }
-  return false;
 }
 
 static int
