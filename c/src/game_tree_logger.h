@@ -114,6 +114,9 @@ gtl_close (gtl_log_env_t *const env);
 extern gtl_log_env_t *
 gtl_init (const char *const file_name_prefix);
 
+extern bool
+gtl_touch_files (const char *const file_name_prefix);
+
 extern int
 gtl_data_h_json_doc (char *const json_doc,
                      const int call_level,

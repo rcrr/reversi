@@ -61,3 +61,21 @@ fut_file_exists (const char *const filepath)
   }
   return false;
 }
+
+bool
+fut_touch_file (const char *const filepath)
+{
+  FILE *f;
+  bool res;
+
+  f = fopen(filepath, "w+");
+
+  if (f) {
+    fclose(f);
+    res = true;
+  } else {
+    res = false;
+  }
+
+  return res;
+}

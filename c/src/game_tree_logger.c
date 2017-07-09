@@ -38,6 +38,7 @@
 #include <inttypes.h>
 #include <assert.h>
 
+#include "file_utils.h"
 #include "game_tree_logger.h"
 
 
@@ -208,6 +209,37 @@ gtl_init (const char *const file_name_prefix)
   }
 
   return env;
+}
+
+bool
+gtl_touch_files (const char *const file_name_prefix)
+{
+  static const size_t buf_size = 4096;
+
+  char buf[buf_size];
+  bool res_h, res_t;
+
+  const char *h_suffix = "_h.dat";
+  const char *t_suffix = "_t.dat";
+
+  const size_t p_len = strlen(file_name_prefix);
+  const size_t h_len = strlen(h_suffix);
+  const size_t t_len = strlen(t_suffix);
+
+  if (p_len + h_len +t_len + 1 > buf_size) {
+    fprintf(stderr, "buf_size of %zu is too small in function game_tree_logger.c:gtl_touch_files(). Aborting ...\n", buf_size);
+    abort();
+  }
+
+  strcpy(buf, file_name_prefix);
+  strcat(buf, h_suffix);
+  res_h = fut_touch_file(buf);
+
+  strcpy(buf, file_name_prefix);
+  strcat(buf, t_suffix);
+  res_t = fut_touch_file(buf);
+
+  return (res_h && res_t);
 }
 
 /**

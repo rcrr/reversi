@@ -42,6 +42,9 @@
 extern bool
 fut_file_exists (const char *const filepath);
 
+extern bool
+fut_touch_file (const char *const filepath);
+
 
 
 #endif /* FILE_UTLS_H */
