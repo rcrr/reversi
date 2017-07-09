@@ -450,8 +450,8 @@ main (int argc,
   }
 
   if (n_flag) {
-    if (strcmp("rand", solver->id) != 0) {
-      fprintf(stderr, "Option -n, --repeats can be used only with solver \"rand\".\n");
+    if ((strcmp("rand", solver->id) != 0) && (strcmp("rab", solver->id) != 0)) { // solver is not rab or rand ...
+      fprintf(stderr, "Option -n, --repeats can be used only with solvers \"rab\" or \"rand\".\n");
       return -7;
     }
     char *endptr;

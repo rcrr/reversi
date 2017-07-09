@@ -23,7 +23,7 @@
 #
 
 # Add all the programs that has a main and that will be compiled and linked as a bin executable.
-MAINS = endgame_solver2 utest read_pve_dump intel_intrinsics_trial \
+MAINS = endgame_solver utest read_pve_dump intel_intrinsics_trial \
         read_game_tree_log gpdb_verify
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
