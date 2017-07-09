@@ -23,7 +23,7 @@
 #
 
 # Add all the programs that has a main and that will be compiled and linked as a bin executable.
-MAINS = endgame_solver endgame_solver2 utest read_pve_dump intel_intrinsics_trial \
+MAINS = endgame_solver2 utest read_pve_dump intel_intrinsics_trial \
         read_game_tree_log gpdb_verify
 
 # Add all the test programs that has a main and that will be compiled and linked as a bin executable.
@@ -46,7 +46,7 @@ CC = gcc
 # add -DG_DISABLE_ASSERT -DNDEBUG to disable assertions
 # add -fno-inline to prevent inlining
 ARCH_FLAGS = -mpopcnt -mavx2
-CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
+CFLAGS = -std=c99 -pedantic-errors -Wall -g -O3 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS =
 CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS_TEST =
