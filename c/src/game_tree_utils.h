@@ -188,14 +188,6 @@ typedef struct {
 } ExactSolution;
 
 /**
- * @brief A search node is the most simple structure returned by the implementations of the search function.
- */
-typedef struct {
-  Square move;       /**< @brief The move to play. */
-  int    value;      /**< @brief The move's value. */
-} SearchNode;
-
-/**
  * @brief The info collected on each node.
  */
 typedef struct {
@@ -465,22 +457,6 @@ pve_summary_from_binary_file_to_stream (const char *const in_file_path,
 
 extern void
 pve_transform_to_standard_form(PVEnv *const pve);
-
-
-
-/**************************************************/
-/* Function prototypes for the SearchNode entity. */
-/**************************************************/
-
-extern SearchNode *
-search_node_new (const Square move,
-                 const int value);
-
-extern void
-search_node_free (SearchNode *sn);
-
-extern SearchNode *
-search_node_negated (SearchNode *sn);
 
 
 

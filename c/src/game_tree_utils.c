@@ -1903,62 +1903,6 @@ pve_transform_to_standard_form (PVEnv *const pve)
 
 
 
-/*******************************************************/
-/* Function implementations for the SearchNode entity. */
-/*******************************************************/
-
-/**
- * @brief Search node structure constructor.
- *
- * @param [in] move  the move field
- * @param [in] value the value field
- * @return           a pointer to a new search node structure
- */
-SearchNode *
-search_node_new (const Square move, const int value)
-{
-  SearchNode * sn;
-  static const size_t size_of_search_node = sizeof(SearchNode);
-
-  sn = (SearchNode*) malloc(size_of_search_node);
-  assert(sn);
-
-  sn->move = move;
-  sn->value = value;
-
-  return sn;
-}
-
-/**
- * @brief Deallocates the memory previously allocated by a call to #search_node_new.
- *
- * @details If a null pointer is passed as argument, no action occurs.
- *
- * @param [in,out] sn the pointer to be deallocated
- */
-void
-search_node_free (SearchNode *sn)
-{
-  free(sn);
-}
-
-/**
- * @brief Negate the value of the node.
- *
- * @param sn the search node to be negated
- * @return   a new node having the negated value
- */
-SearchNode *
-search_node_negated (SearchNode *sn)
-{
-  SearchNode *result;
-  result = search_node_new(sn->move, -sn->value);
-  search_node_free(sn);
-  return result;
-}
-
-
-
 /**********************************************************/
 /* Function implementations for the GameTreeStack entity. */
 /**********************************************************/
