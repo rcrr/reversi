@@ -40,7 +40,7 @@
 
 
 extern bool
-fut_file_exists (const char *const file_name);
+fut_file_exists (const char *const filepath);
 
 
 

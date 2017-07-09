@@ -36,9 +36,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <inttypes.h>
-
-#include <glib.h>
-#include <glib/gstdio.h>
+#include <assert.h>
 
 #include "game_tree_logger.h"
 
@@ -50,12 +48,6 @@
 /*
  * Prototypes for internal functions.
  */
-
-static void
-game_tree_log_filename_check (const gchar * const filename);
-
-static void
-game_tree_log_dirname_recursive_check (const gchar * const filename);
 
 
 
@@ -82,12 +74,12 @@ game_tree_log_dirname_recursive_check (const gchar * const filename);
  * @param [in] env a pointer to the logging environment
  */
 void
-game_tree_log_open_h (LogEnv *const env)
+gtl_open_h (gtl_log_env_t *const env)
 {
-  g_assert(env);
+  assert(env);
   if (env->log_is_on) {
-    game_tree_log_filename_check(env->h_file_name);
     env->h_file = fopen(env->h_file_name, "w");
+    assert(env->h_file);
   }
 }
 
@@ -100,12 +92,12 @@ game_tree_log_open_h (LogEnv *const env)
  * @param [in] env a pointer to the logging environment
  */
 void
-game_tree_log_open_t (LogEnv *const env)
+gtl_open_t (gtl_log_env_t *const env)
 {
-  g_assert(env);
+  assert(env);
   if (env->log_is_on) {
-    game_tree_log_filename_check(env->t_file_name);
     env->t_file = fopen(env->t_file_name, "w");
+    assert(env->t_file);
   }
 }
 
@@ -119,11 +111,11 @@ game_tree_log_open_t (LogEnv *const env)
  * @param [in] data a pointer to the log record
  */
 void
-game_tree_log_write_h (const LogEnv *const env,
-                       const LogDataH *const data)
+gtl_write_h (const gtl_log_env_t *const env,
+             const gtl_log_data_h_t *const data)
 {
-  g_assert(env && env->h_file);
-  fwrite(data, sizeof(LogDataH), 1, env->h_file);
+  assert(env && env->h_file);
+  fwrite(data, sizeof(gtl_log_data_h_t), 1, env->h_file);
   if (data->json_doc) {
     fwrite(data->json_doc, data->json_doc_len + 1, 1, env->h_file);
   }
@@ -139,10 +131,10 @@ game_tree_log_write_h (const LogEnv *const env,
  * @param [in] data a pointer to the log record
  */
 void
-game_tree_log_write_t (const LogEnv *const env,
-                       const LogDataT *const data)
+gtl_write_t (const gtl_log_env_t *const env,
+             const gtl_log_data_t_t *const data)
 {
-  g_assert(env && env->t_file);
+  assert(env && env->t_file);
   fprintf(env->t_file, "%6d;%8" PRIu64 ";x%s\n",
           data->sub_run_id,
           data->call_id,
@@ -158,13 +150,13 @@ game_tree_log_write_t (const LogEnv *const env,
  * @param env the logging environment
  */
 void
-game_tree_log_close (LogEnv *const env)
+gtl_close (gtl_log_env_t *const env)
 {
-  g_assert(env);
+  assert(env);
   if (env->log_is_on) {
-    g_free(env->file_name_prefix);
-    g_free(env->h_file_name);
-    g_free(env->t_file_name);
+    free(env->file_name_prefix);
+    free(env->h_file_name);
+    free(env->t_file_name);
   }
   if (env->h_file) fclose(env->h_file);
   if (env->t_file) fclose(env->t_file);
@@ -177,30 +169,42 @@ game_tree_log_close (LogEnv *const env)
  * @param [in] file_name_prefix the prefix for the file names
  * @return                      the newly constructed log env
  */
-LogEnv *
-game_tree_log_init (const gchar *const file_name_prefix)
+gtl_log_env_t *
+gtl_init (const char *const file_name_prefix)
 {
-  LogEnv *env;
-  static const size_t size_of_log_env = sizeof(LogEnv);
+  gtl_log_env_t *env;
+  static const size_t size_of_log_env = sizeof(gtl_log_env_t);
 
-  env = (LogEnv*) malloc(size_of_log_env);
-  g_assert(env);
+  const char *h_suffix = "_h.dat";
+  const char *t_suffix = "_t.dat";
 
-  gchar* file_name_prefix_copy = g_strdup(file_name_prefix);
+  env = (gtl_log_env_t*) malloc(size_of_log_env);
+  assert(env);
 
   env->t_file = NULL;
   env->h_file = NULL;
 
-  if (file_name_prefix_copy) {
-    env->log_is_on = TRUE;
-    env->file_name_prefix = file_name_prefix_copy;
-    env->h_file_name      = g_strconcat(file_name_prefix_copy, "_h.dat", NULL);
-    env->t_file_name      = g_strconcat(file_name_prefix_copy, "_t.dat", NULL);
+  if (file_name_prefix) {
+    env->log_is_on = true;
+    const size_t p_len = strlen(file_name_prefix);
+    const size_t h_len = strlen(h_suffix);
+    const size_t t_len = strlen(t_suffix);
+    env->file_name_prefix = malloc(p_len + 1);
+    assert(env->file_name_prefix);
+    env->h_file_name = malloc(p_len + h_len + 1);
+    assert(env->h_file_name);
+    env->t_file_name = malloc(p_len + t_len + 1);
+    assert(env->t_file_name);
+    strcpy(env->file_name_prefix, file_name_prefix);
+    strcpy(env->h_file_name, file_name_prefix);
+    strcat(env->h_file_name, h_suffix);
+    strcpy(env->t_file_name, file_name_prefix);
+    strcat(env->t_file_name, t_suffix);
   } else {
-    env->log_is_on        = FALSE;
+    env->log_is_on = false;
     env->file_name_prefix = NULL;
-    env->h_file_name      = NULL;
-    env->t_file_name      = NULL;
+    env->h_file_name = NULL;
+    env->t_file_name = NULL;
   }
 
   return env;
@@ -215,12 +219,12 @@ game_tree_log_init (const gchar *const file_name_prefix)
  * @return                 the length of the json_doc string
  */
 int
-game_tree_log_data_h_json_doc (char *const json_doc,
-                               const int call_level,
-                               const GamePositionX *const gpx)
+gtl_data_h_json_doc (char *const json_doc,
+                     const int call_level,
+                     const GamePositionX *const gpx)
 {
   char legal_moves_pg_json_array[513];
-  const gboolean is_leaf = !game_position_x_has_any_player_any_legal_move(gpx);
+  const bool is_leaf = !game_position_x_has_any_player_any_legal_move(gpx);
   const SquareSet legal_moves = game_position_x_legal_moves(gpx);
   const uint8_t legal_move_count = bitw_bit_count_64(legal_moves);
   const SquareSet empties = game_position_x_empties(gpx);
@@ -247,78 +251,22 @@ game_tree_log_data_h_json_doc (char *const json_doc,
 }
 
 void
-do_log (const ExactSolution *const result,
-        const GameTreeStack *const stack,
-        const unsigned long int sub_run_id,
-        const LogEnv *const log_env)
+gtl_do_log (const ExactSolution *const result,
+            const GameTreeStack *const stack,
+            const unsigned long int sub_run_id,
+            const gtl_log_env_t *const log_env)
 {
   const NodeInfo* const c = stack->active_node;
-  LogDataH log_data =
-    { .sub_run_id   = sub_run_id,
-      .call_id      = result->node_count,
-      .hash         = c->hash,
-      .parent_hash  = (c - 1)->hash,
-      .blacks       = c->gpx.blacks,
-      .whites       = c->gpx.whites,
-      .player       = c->gpx.player,
-      .json_doc     = NULL,
+  gtl_log_data_h_t log_data =
+    { .sub_run_id = sub_run_id,
+      .call_id = result->node_count,
+      .hash = c->hash,
+      .parent_hash = (c - 1)->hash,
+      .blacks = c->gpx.blacks,
+      .whites = c->gpx.whites,
+      .player = c->gpx.player,
+      .json_doc = NULL,
       .json_doc_len = 0,
-      .call_level   = c - stack->nodes };
-  game_tree_log_write_h(log_env, &log_data);
+      .call_level = c - stack->nodes };
+  gtl_write_h(log_env, &log_data);
 }
-
-
-
-/**
- * @cond
- */
-
-/*
- * Internal functions.
- */
-
-/**
- * @brief Verifies the filename.
- *
- * @param [in] filename the logging file name
- */
-static void
-game_tree_log_filename_check (const gchar *const filename)
-{
-  const gchar * const dirname  = g_path_get_dirname(filename);
-  if (!g_file_test(filename, G_FILE_TEST_EXISTS)) {
-    game_tree_log_dirname_recursive_check(dirname);
-  } else {
-    if (g_file_test(filename, G_FILE_TEST_IS_REGULAR)) {
-      printf("Logging regular file \"%s\" does exist, overwriting it.\n", filename);
-    } else {
-      printf("Logging file \"%s\" does exist, but it is a directory! Exiting with status -101.\n", filename);
-      exit(-101);
-    }
-  }
-}
-
-/**
- * @brief Utility function used by game_tree_log_filename_check.
- * It recursively checks the subdirs in the filename path and creates them if are missing.
- *
- * @param [in] filename the directory path to be checked
- */
-static void
-game_tree_log_dirname_recursive_check (const gchar * const filename)
-{
-  const gchar * const dirname  = g_path_get_dirname(filename);
-  if (!g_file_test(filename, G_FILE_TEST_EXISTS)) {
-    game_tree_log_dirname_recursive_check(dirname);
-    g_mkdir(filename, 0755);
-  } else {
-    if (g_file_test(filename, G_FILE_TEST_IS_REGULAR)) {
-      printf("The given \"%s\" path contains an existing file! Exiting with status -102.\n", filename);
-      exit(-102);
-    }
-  }
-}
-
-/**
- * @endcond
- */

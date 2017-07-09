@@ -52,10 +52,10 @@
  */
 
 bool
-fut_file_exists (const char *const file_name)
+fut_file_exists (const char *const filepath)
 {
   FILE *f;
-  if ((f = fopen(file_name, "r"))) {
+  if ((f = fopen(filepath, "r"))) {
     fclose(f);
     return true;
   }

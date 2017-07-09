@@ -96,8 +96,8 @@ static const char *documentation =
 int
 main (int argc, char *argv[])
 {
-  LogDataH record;
-  char json_doc[game_tree_log_max_json_doc_len];
+  gtl_log_data_h_t record;
+  char json_doc[gtl_max_json_doc_len];
   int opt;
   int oindex = -1;
 
@@ -151,11 +151,11 @@ main (int argc, char *argv[])
           "PLAYER",
           "JSON_DOC");
 
-  while (fread(&record, sizeof(LogDataH), 1, fp)) {
+  while (fread(&record, sizeof(gtl_log_data_h_t), 1, fp)) {
     if (!record.json_doc) {
       GamePositionX gpx = { .blacks = record.blacks, .whites = record.whites, .player = record.player };
-      const int json_doc_len  = game_tree_log_data_h_json_doc(json_doc, record.call_level, &gpx);
-      if (json_doc_len > game_tree_log_max_json_doc_len) abort();
+      const int json_doc_len  = gtl_data_h_json_doc(json_doc, record.call_level, &gpx);
+      if (json_doc_len > gtl_max_json_doc_len) abort();
     } else {
       size_t len = fread(json_doc, record.json_doc_len + 1, 1, fp);
       if (len != 1) abort();

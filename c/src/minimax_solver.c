@@ -53,7 +53,7 @@
 static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack,
-                          const LogEnv *const log_env,
+                          const gtl_log_env_t *const log_env,
                           const bool alpha_beta_pruning,
                           const bool randomize_move_order,
                           prng_mt19937_t *const prng,
@@ -62,7 +62,7 @@ game_position_solve_impl (ExactSolution *const result,
 static void
 game_position_random_sammpler_impl (ExactSolution *const result,
                                     GameTreeStack *const stack,
-                                    const LogEnv *const log_env,
+                                    const gtl_log_env_t *const log_env,
                                     prng_mt19937_t *const prng,
                                     const unsigned long int sub_run_id);
 
@@ -189,9 +189,9 @@ game_position_mab_solve (const GamePositionX *const root,
   assert(root);
   assert(env);
 
-  LogEnv *const log_env = game_tree_log_init(env->log_file);
+  gtl_log_env_t *const log_env = gtl_init(env->log_file);
 
-  if (log_env->log_is_on) game_tree_log_open_h(log_env);
+  if (log_env->log_is_on) gtl_open_h(log_env);
 
   prng_mt19937_t *prng = NULL;
   unsigned long int n_run = 1;
@@ -229,7 +229,7 @@ game_position_mab_solve (const GamePositionX *const root,
 
   if (randomize_move_order) prng_mt19937_free(prng);
   game_tree_stack_free(stack);
-  game_tree_log_close(log_env);
+  gtl_close(log_env);
 
   return result;
 }
@@ -237,7 +237,7 @@ game_position_mab_solve (const GamePositionX *const root,
 static void
 game_position_solve_impl (ExactSolution *const result,
                           GameTreeStack *const stack,
-                          const LogEnv *const log_env,
+                          const gtl_log_env_t *const log_env,
                           const bool alpha_beta_pruning,
                           const bool randomize_move_order,
                           prng_mt19937_t *const prng,
@@ -255,7 +255,7 @@ game_position_solve_impl (ExactSolution *const result,
   gts_generate_moves(stack);
   if (randomize_move_order) prng_mt19937_shuffle_array_uint8(prng, c->head_of_legal_move_list, c->move_count);
   if (stack->hash_is_on) gts_compute_hash(stack);
-  if (log_env->log_is_on) do_log(result, stack, sub_run_id, log_env);
+  if (log_env->log_is_on) gtl_do_log(result, stack, sub_run_id, log_env);
 
   if (gts_is_terminal_node(stack)) {
     result->leaf_count++;
@@ -291,7 +291,7 @@ game_position_solve_impl (ExactSolution *const result,
 static void
 game_position_random_sammpler_impl (ExactSolution *const result,
                                     GameTreeStack *const stack,
-                                    const LogEnv *const log_env,
+                                    const gtl_log_env_t *const log_env,
                                     prng_mt19937_t *const prng,
                                     const unsigned long int sub_run_id)
 {
@@ -305,7 +305,7 @@ game_position_random_sammpler_impl (ExactSolution *const result,
     gts_generate_moves(stack);
     prng_mt19937_shuffle_array_uint8(prng, c->head_of_legal_move_list, c->move_count);
     if (stack->hash_is_on) gts_compute_hash(stack);
-    if (log_env->log_is_on) do_log(result, stack, sub_run_id, log_env);
+    if (log_env->log_is_on) gtl_do_log(result, stack, sub_run_id, log_env);
 
     if (gts_is_terminal_node(stack)) {
       result->leaf_count++;

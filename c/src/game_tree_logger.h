@@ -50,7 +50,7 @@ typedef struct {
   FILE      *t_file;           /**< @brief Tail file. */
   char      *h_file_name;      /**< @brief The complete name for the binary data head file. */
   FILE      *h_file;           /**< @brief Head binary data file. */
-} LogEnv;
+} gtl_log_env_t;
 
 /**
  * @brief It is collecting the info logged into a record by the head write function.
@@ -66,7 +66,7 @@ typedef struct {
   char      *json_doc;       /**< @brief Json field. */
   size_t     json_doc_len;   /**< @brief Json field length. */
   uint8_t    call_level;     /**< @brief Call level, or depth. */
-} LogDataH;
+} gtl_log_data_h_t;
 
 /**
  * @brief It is collecting the info logged into a record by the tail write function.
@@ -75,7 +75,7 @@ typedef struct {
   int        sub_run_id;  /**< @brief Sub run id field. */
   uint64_t   call_id;     /**< @brief Call id. */
   char      *json_doc;    /**< @brief Json field. */
-} LogDataT;
+} gtl_log_data_t_t;
 
 
 
@@ -86,7 +86,7 @@ typedef struct {
 /**
  * @brief The empty square set.
  */
-static const size_t game_tree_log_max_json_doc_len = 4096;
+static const size_t gtl_max_json_doc_len = 4096;
 
 
 
@@ -95,35 +95,35 @@ static const size_t game_tree_log_max_json_doc_len = 4096;
 /********************************************************/
 
 extern void
-game_tree_log_open_h (LogEnv *const env);
+gtl_open_h (gtl_log_env_t *const env);
 
 extern void
-game_tree_log_open_t (LogEnv *const env);
+gtl_open_t (gtl_log_env_t *const env);
 
 extern void
-game_tree_log_write_h (const LogEnv *const env,
-                       const LogDataH *const data);
+gtl_write_h (const gtl_log_env_t *const env,
+             const gtl_log_data_h_t *const data);
 
 extern void
-game_tree_log_write_t (const LogEnv *const env,
-                       const LogDataT *const data);
+gtl_write_t (const gtl_log_env_t *const env,
+             const gtl_log_data_t_t *const data);
 
 extern void
-game_tree_log_close (LogEnv *const env);
+gtl_close (gtl_log_env_t *const env);
 
-extern LogEnv *
-game_tree_log_init (const char *const file_name_prefix);
+extern gtl_log_env_t *
+gtl_init (const char *const file_name_prefix);
 
 extern int
-game_tree_log_data_h_json_doc (char *const json_doc,
-                               const int call_level,
-                               const GamePositionX *const gpx);
+gtl_data_h_json_doc (char *const json_doc,
+                     const int call_level,
+                     const GamePositionX *const gpx);
 
 extern void
-do_log (const ExactSolution *const result,
-        const GameTreeStack *const stack,
-        const unsigned long int sub_run_id,
-        const LogEnv *const log_env);
+gtl_do_log (const ExactSolution *const result,
+            const GameTreeStack *const stack,
+            const unsigned long int sub_run_id,
+            const gtl_log_env_t *const log_env);
 
 
 

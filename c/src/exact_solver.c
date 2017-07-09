@@ -96,7 +96,7 @@ sort_moves_by_mobility_count (MoveList *ml,
 static PVEnv *pve = NULL;
 
 /* The logging environment structure. */
-static LogEnv *log_env = NULL;
+static gtl_log_env_t *log_env = NULL;
 
 /* Drives the PV recording. */
 static bool pv_recording = false;
@@ -173,9 +173,9 @@ game_position_es_solve (const GamePositionX *const root,
     result->pve = pve;
   }
 
-  log_env = game_tree_log_init(env->log_file);
+  log_env = gtl_init(env->log_file);
   if (log_env->log_is_on) {
-    game_tree_log_open_h(log_env);
+    gtl_open_h(log_env);
   }
 
   MoveListElement root_mle;
@@ -235,7 +235,7 @@ game_position_es_solve (const GamePositionX *const root,
     }
   }
 
-  game_tree_log_close(log_env);
+  gtl_close(log_env);
 
   return result;
 }
@@ -329,7 +329,7 @@ game_position_solve_impl (ExactSolution *const result,
 
   if (log_env->log_is_on) {
     current_node_info->hash = game_position_x_hash(current_gpx);
-    LogDataH log_data;
+    gtl_log_data_h_t log_data;
     log_data.sub_run_id = sub_run_id;
     log_data.call_id = result->node_count;
     log_data.hash = current_node_info->hash;
@@ -337,19 +337,17 @@ game_position_solve_impl (ExactSolution *const result,
     log_data.blacks = current_gpx->blacks;
     log_data.whites = current_gpx->whites;
     log_data.player = current_gpx->player;
-    char json_doc[game_tree_log_max_json_doc_len];
-    const int json_doc_len  = game_tree_log_data_h_json_doc(json_doc, stack->active_node - stack->nodes, current_gpx);
-    assert(json_doc_len <= game_tree_log_max_json_doc_len);
+    char json_doc[gtl_max_json_doc_len];
+    const int json_doc_len  = gtl_data_h_json_doc(json_doc, stack->active_node - stack->nodes, current_gpx);
+    assert(json_doc_len <= gtl_max_json_doc_len);
     log_data.json_doc = json_doc;
     log_data.json_doc_len = json_doc_len;
-    game_tree_log_write_h(log_env, &log_data);
+    gtl_write_h(log_env, &log_data);
   }
 
   if (move_set == empty_square_set) {
     if (pv_recording) pve_line = pve_line_create(pve);
     const int previous_move_count = previous_node_info->move_count;
-    //const SquareSet empties = game_position_x_empties(current_gpx); // TODO:
-    //if (empties != empty_square_set && previous_move_count != 0) {
     if (previous_move_count != 0) {
       game_position_x_pass(current_gpx, next_gpx);
       next_node_info->alpha = -current_node_info->beta;

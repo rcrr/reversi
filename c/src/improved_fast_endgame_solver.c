@@ -317,7 +317,7 @@ static const uint8_t flipping_dir_mask_table[91] =
  */
 
 /* The logging environment structure. */
-static LogEnv *log_env = NULL;
+static gtl_log_env_t *log_env = NULL;
 
 /* The total number of call to the recursive function that traverse the game DAG. */
 static uint64_t call_count = 0;
@@ -424,11 +424,11 @@ game_position_ifes_solve (const GamePositionX *const root,
   assert(root);
   assert(env);
 
-  log_env = game_tree_log_init(env->log_file);
+  log_env = gtl_init(env->log_file);
 
   if (log_env->log_is_on) {
     gp_hash_stack[0] = 0;
-    game_tree_log_open_h(log_env);
+    gtl_open_h(log_env);
   }
 
   result = exact_solution_new();
@@ -466,7 +466,7 @@ game_position_ifes_solve (const GamePositionX *const root,
   result->outcome = n.value;
   result->best_move = ifes_square_to_square(n.square);
 
-  game_tree_log_close(log_env);
+  gtl_close(log_env);
 
   return result;
 }
@@ -1270,7 +1270,7 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     gp_hash_stack_fill_point++;
     GamePositionX gpx;
     ifes_game_position_translation(&gpx, board, color);
-    LogDataH log_data;
+    gtl_log_data_h_t log_data;
     log_data.sub_run_id = 0;
     log_data.call_id = call_count;
     log_data.hash = game_position_x_hash(&gpx);
@@ -1279,12 +1279,12 @@ fastest_first_end_solve (ExactSolution *solution, uint8_t *board, int alpha, int
     log_data.blacks = (&gpx)->blacks;
     log_data.whites = (&gpx)->whites;
     log_data.player = (&gpx)->player;
-    char json_doc[game_tree_log_max_json_doc_len];
-    const int json_doc_len  = game_tree_log_data_h_json_doc(json_doc, gp_hash_stack_fill_point, &gpx);
-    assert(json_doc_len <= game_tree_log_max_json_doc_len);
+    char json_doc[gtl_max_json_doc_len];
+    const int json_doc_len  = gtl_data_h_json_doc(json_doc, gp_hash_stack_fill_point, &gpx);
+    assert(json_doc_len <= gtl_max_json_doc_len);
     log_data.json_doc = json_doc;
     log_data.json_doc_len = json_doc_len;
-    game_tree_log_write_h(log_env, &log_data);
+    gtl_write_h(log_env, &log_data);
   }
 
   if (moves != 0) {
