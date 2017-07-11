@@ -141,6 +141,79 @@ game_position_legal_moves_t (ut_test_t *const t)
   ut_assert(t, length == 0);
 }
 
+static void
+game_position_has_any_legal_move_t (ut_test_t *const t)
+{
+  gpdb_dictionary_t *db = (gpdb_dictionary_t *) t->fixture;
+
+  ut_assert(t, true  == game_position_x_has_any_legal_move(aux_get_gpx_from_db(t, db, "initial")));
+  ut_assert(t, true  == game_position_x_has_any_legal_move(aux_get_gpx_from_db(t, db, "early-game-b-9-moves")));
+  ut_assert(t, false == game_position_x_has_any_legal_move(aux_get_gpx_from_db(t, db, "black-has-to-pass")));
+  ut_assert(t, true  == game_position_x_has_any_legal_move(aux_get_gpx_from_db(t, db, "early-game-c-12-moves")));
+  ut_assert(t, false == game_position_x_has_any_legal_move(aux_get_gpx_from_db(t, db, "final-b37-w27")));
+}
+
+static void
+game_position_has_any_player_any_legal_move_t (ut_test_t *const t)
+{
+  gpdb_dictionary_t *db = (gpdb_dictionary_t *) t->fixture;
+
+  ut_assert(t, true  == game_position_x_has_any_player_any_legal_move(aux_get_gpx_from_db(t, db, "initial")));
+  ut_assert(t, true  == game_position_x_has_any_player_any_legal_move(aux_get_gpx_from_db(t, db, "early-game-b-9-moves")));
+  ut_assert(t, true  == game_position_x_has_any_player_any_legal_move(aux_get_gpx_from_db(t, db, "black-has-to-pass")));
+  ut_assert(t, true  == game_position_x_has_any_player_any_legal_move(aux_get_gpx_from_db(t, db, "early-game-c-12-moves")));
+  ut_assert(t, false == game_position_x_has_any_player_any_legal_move(aux_get_gpx_from_db(t, db, "final-b37-w27")));
+}
+
+static void
+game_position_make_move_t (ut_test_t *const t)
+{
+  gpdb_dictionary_t *db = (gpdb_dictionary_t *) t->fixture;
+
+  GamePositionX after_make_move_struct;
+  GamePositionX *after_make_move = &after_make_move_struct;
+
+
+  GamePositionX *initial = aux_get_gpx_from_db(t, db, "initial");
+  game_position_x_make_move(initial, D3, after_make_move);
+  GamePositionX *first_move_d3 = aux_get_gpx_from_db(t, db, "first-move-d3");
+  ut_assert(t, 0 == game_position_x_compare(first_move_d3, after_make_move));
+
+
+  GamePositionX *early_game_b_9_moves = aux_get_gpx_from_db(t, db, "early-game-b-9-moves");
+  game_position_x_make_move(early_game_b_9_moves, C3, after_make_move);
+  GamePositionX *early_game_bc3_10_moves = aux_get_gpx_from_db(t, db, "early-game-bc3-10-moves");
+  ut_assert(t, 0 == game_position_x_compare(early_game_bc3_10_moves, after_make_move));
+
+  game_position_x_make_move(early_game_b_9_moves, C6, after_make_move);
+  GamePositionX *early_game_bc6_10_moves = aux_get_gpx_from_db(t, db, "early-game-bc6-10-moves");
+  ut_assert(t, 0 == game_position_x_compare(early_game_bc6_10_moves, after_make_move));
+
+
+  GamePositionX *before;
+  GamePositionX *expected;
+
+  before = aux_get_gpx_from_db(t, db, "make-move-test-case-a-before");
+  game_position_x_make_move(before, D4, after_make_move);
+  expected = aux_get_gpx_from_db(t, db, "make-move-test-case-a-after");
+  ut_assert(t, 0 == game_position_x_compare(expected, after_make_move));
+
+  before = aux_get_gpx_from_db(t, db, "make-move-test-case-b-before");
+  game_position_x_make_move(before, D4, after_make_move);
+  expected = aux_get_gpx_from_db(t, db, "make-move-test-case-b-after");
+  ut_assert(t, 0 == game_position_x_compare(expected, after_make_move));
+
+  before = aux_get_gpx_from_db(t, db, "make-move-test-case-c-before");
+  game_position_x_make_move(before, D4, after_make_move);
+  expected = aux_get_gpx_from_db(t, db, "make-move-test-case-c-after");
+  ut_assert(t, 0 == game_position_x_compare(expected, after_make_move));
+
+  before = aux_get_gpx_from_db(t, db, "make-move-test-case-d-before");
+  game_position_x_make_move(before, B4, after_make_move);
+  expected = aux_get_gpx_from_db(t, db, "make-move-test-case-d-after");
+  ut_assert(t, 0 == game_position_x_compare(expected, after_make_move));
+}
+
 
 
 /**
@@ -162,6 +235,27 @@ main (int argc,
                             NULL,
                             aux_fixture_setup,
                             game_position_legal_moves_t,
+                            aux_fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "game_position_has_any_legal_move",
+                            NULL,
+                            aux_fixture_setup,
+                            game_position_has_any_legal_move_t,
+                            aux_fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "game_position_has_any_player_any_legal_move",
+                            NULL,
+                            aux_fixture_setup,
+                            game_position_has_any_player_any_legal_move_t,
+                            aux_fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+                            "game_position_make_move",
+                            NULL,
+                            aux_fixture_setup,
+                            game_position_make_move_t,
                             aux_fixture_teardown);
 
   int failure_count = ut_suite_run(s);
