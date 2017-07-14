@@ -398,32 +398,108 @@ main (int argc,
   ut_suite_t *const s = ut_suite_new(&config, "endgame_solver");
 
   ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_001,
-                            "/es/ffo_05",
+                            "es/ffo_05",
                             ffo_05,
                             gpdb_fixture_setup,
                             game_position_es_solve_t,
                             gpdb_fixture_teardown);
 
   ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_001,
-                            "/ifes/ffo_05",
+                            "ifes/ffo_05",
                             ffo_05,
                             gpdb_fixture_setup,
                             game_position_ifes_solve_t,
                             gpdb_fixture_teardown);
 
   ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
-                            "/minimax/ffo_01_simplified_4",
+                            "minimax/ffo_01_simplified_4",
                             ffo_01_simplified_4,
                             gpdb_sample_games_fixture_setup,
                             game_position_minimax_solve_t,
                             gpdb_fixture_teardown);
 
   ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_01,
-                            "/ab/ffo_05",
+                            "ab/ffo_05",
                             ffo_05,
                             gpdb_fixture_setup,
                             game_position_ab_solve_t,
                             gpdb_fixture_teardown);
+
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_10,
+                            "minimax/ffo_05",
+                            ffo_05,
+                            gpdb_fixture_setup,
+                            game_position_minimax_solve_t,
+                            gpdb_fixture_teardown);
+
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_1,
+                            "es/ffo_01_19",
+                            ffo_01_19,
+                            gpdb_fixture_setup,
+                            game_position_es_solve_t,
+                            gpdb_fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_10,
+                            "ifes/ffo_01_19",
+                            ffo_01_19,
+                            gpdb_fixture_setup,
+                            game_position_ifes_solve_t,
+                            gpdb_fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_100,
+                            "ab/ffo_01_19",
+                            ffo_01_19,
+                            gpdb_fixture_setup,
+                            game_position_ab_solve_t,
+                            gpdb_fixture_teardown);
+
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_100,
+                            "es/ffo_20_29",
+                            ffo_20_29,
+                            gpdb_fixture_setup,
+                            game_position_es_solve_t,
+                            gpdb_fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_100,
+                            "ifes/ffo_20_29",
+                            ffo_20_29,
+                            gpdb_fixture_setup,
+                            game_position_ifes_solve_t,
+                            gpdb_fixture_teardown);
+
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_1000,
+                            "es/ffo_30_39",
+                            ffo_30_39,
+                            gpdb_fixture_setup,
+                            game_position_es_solve_t,
+                            gpdb_fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_1000,
+                            "ifes/ffo_30_39",
+                            ffo_30_39,
+                            gpdb_fixture_setup,
+                            game_position_ifes_solve_t,
+                            gpdb_fixture_teardown);
+
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_OUT_OF_RANGE,
+                            "es/ffo_40_49",
+                            ffo_40_49,
+                            gpdb_fixture_setup,
+                            game_position_es_solve_t,
+                            gpdb_fixture_teardown);
+
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_OUT_OF_RANGE,
+                            "ifes/ffo_40_49",
+                            ffo_40_49,
+                            gpdb_fixture_setup,
+                            game_position_ifes_solve_t,
+                            gpdb_fixture_teardown);
+
 
   int failure_count = ut_suite_run(s);
 
