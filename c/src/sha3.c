@@ -167,7 +167,7 @@
  * Prototypes for internal functions.
  */
 
-void
+static void
 sha3_keccakf (uint64_t st[25]);
 
 
@@ -554,7 +554,7 @@ sha3_msg_digest_to_string (char *const md_as_string,
  *
  * @param [in,out] st the internal state
  */
-void
+static void
 sha3_keccakf (uint64_t st[25])
 {
   /* Constants. */

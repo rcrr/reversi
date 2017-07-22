@@ -168,10 +168,19 @@ typedef struct ut_suite_t_ {
 typedef struct ut_prog_arg_config_t_ {
   bool print_test_list;                  /**< @brief Print test list. */
   ut_mode_t mode;                        /**< @brief Running mode. */
+  ut_quickness_t max_quickness;          /**< @brief Max quickness allowed. */
   llist_t *test_paths;                   /**< @brief Only start test cases matching a path in the list. */
   llist_t *skip_paths;                   /**< @brief Skip all tests matching a path in the list. */
   ut_verbosity_t verb;                   /**< @brief Output verbosity. */
   bool utest;                            /**< @brief Called by utest program. */
+  char *desc;                            /**< @brief Program description string. */
+  const char *prog_name;                 /**< @brief Program name. */
+  const char *prog_version;              /**< @brief Program version. */
+  const char *prog_description;          /**< @brief Program description. */
+  const char *prog_copyright;            /**< @brief Program copyright. */
+  const char *prog_long_desc;            /**< @brief Program long description. */
+  const char *prog_license;              /**< @brief Program license. */
+  const char *prog_author;               /**< @brief Program author. */
 } ut_prog_arg_config_t;
 
 
@@ -230,6 +239,72 @@ ut_suite_run (ut_suite_t *s);
 
 
 
+/************************************************************/
+/* Function prototypes for the ut_prog_arg_config_t entity. */
+/************************************************************/
+
+extern void
+ut_prog_arg_config_init (ut_prog_arg_config_t *const config,
+                         const bool utest);
+
+extern void
+ut_prog_arg_config_set_desc (ut_prog_arg_config_t *const config,
+                             char *const desc);
+
+extern char *
+ut_prog_arg_config_get_desc (const ut_prog_arg_config_t *const config);
+
+extern void
+ut_prog_arg_config_set_prog_name (ut_prog_arg_config_t *const config,
+                                  const char *const name);
+
+extern const char *
+ut_prog_arg_config_get_prog_name (const ut_prog_arg_config_t *const config);
+
+extern void
+ut_prog_arg_config_set_prog_version (ut_prog_arg_config_t *const config,
+                                     const char *const version);
+
+extern const char *
+ut_prog_arg_config_get_prog_version (const ut_prog_arg_config_t *const config);
+
+extern void
+ut_prog_arg_config_set_prog_description (ut_prog_arg_config_t *const config,
+                                         const char *const description);
+
+extern const char *
+ut_prog_arg_config_get_prog_description (const ut_prog_arg_config_t *const config);
+
+extern void
+ut_prog_arg_config_set_prog_copyright (ut_prog_arg_config_t *const config,
+                                       const char *const copyright);
+
+extern const char *
+ut_prog_arg_config_get_prog_copyright (const ut_prog_arg_config_t *const config);
+
+extern void
+ut_prog_arg_config_set_prog_long_desc (ut_prog_arg_config_t *const config,
+                                       const char *const long_desc);
+
+extern const char *
+ut_prog_arg_config_get_prog_long_desc (const ut_prog_arg_config_t *const config);
+
+extern void
+ut_prog_arg_config_set_prog_license (ut_prog_arg_config_t *const config,
+                                     const char *const license);
+
+extern const char *
+ut_prog_arg_config_get_prog_license (const ut_prog_arg_config_t *const config);
+
+extern void
+ut_prog_arg_config_set_prog_author (ut_prog_arg_config_t *const config,
+                                     const char *const author);
+
+extern const char *
+ut_prog_arg_config_get_prog_author (const ut_prog_arg_config_t *const config);
+
+
+
 /**************************************************/
 /* Prototypes for module's functions.             */
 /**************************************************/
@@ -238,6 +313,13 @@ extern void
 ut_init (ut_prog_arg_config_t *config,
          int *argc_p,
          char ***argv_p);
+
+extern int
+ut_parse_args (ut_prog_arg_config_t *config,
+               FILE *stream,
+               int *argc_p,
+               char ***argv_p,
+               int *next_arg_index);
 
 extern bool
 ut_run_time_is_verbose (const ut_test_t *const t);

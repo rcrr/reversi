@@ -58,6 +58,7 @@
 #include <assert.h>
 #include <string.h>
 
+#include "main_option_parse.h"
 #include "unit_test.h"
 
 
@@ -87,11 +88,6 @@ static const timespec_t ut_quickness_ranges[] =
 /******************************************************/
 /* Internal function declarations.                    */
 /******************************************************/
-
-static void
-parse_args (ut_prog_arg_config_t *config,
-            int *argc_p,
-            char ***argv_p);
 
 static unsigned long
 ut_suite_full_path_max_length (ut_suite_t *s);
@@ -165,6 +161,7 @@ ut_test_fail (ut_test_t *const t)
 {
   if (t) t->failure_count++;
 }
+
 
 
 /*******************************************************/
@@ -372,7 +369,7 @@ ut_suite_run (ut_suite_t *s)
       abort();
     }
 
-    if (selected) {
+    if (selected && s->config->max_quickness >= t->quickness_class) {
       if (s->config->print_test_list) { /* Lists the test. */
         if (s->config->utest) fprintf(stdout, "  ");
         fprintf(stdout, "%s\n", full_path);
@@ -443,6 +440,221 @@ ut_suite_run (ut_suite_t *s)
 /* Module functions.                        */
 /********************************************/
 
+static const mop_options_long_t olist[] = {
+  {"help",          'h', MOP_NONE},
+  {"list",          'l', MOP_NONE},
+  {"mode",          'm', MOP_REQUIRED},
+  {"path",          'p', MOP_REQUIRED},
+  {"skip",          's', MOP_REQUIRED},
+  {"max-quickness", 'k', MOP_REQUIRED},
+  {"verbose",       'v', MOP_NONE},
+  {"quiet",         'q', MOP_NONE},
+  {"utest",         'u', MOP_NONE},
+  {0, 0, 0}
+};
+
+static void
+ut_documentation_to_stream (FILE *stream,
+                            const char *const prog_name,
+                            const ut_prog_arg_config_t *const config)
+{
+  assert(stream);
+  assert(prog_name);
+  assert(config);
+
+  const char *usage_generic =
+    "[OPTION]...";
+  const char *usage_utest =
+    "[OPTION]... [FILE]...";
+
+  if (config->prog_description) {
+    fprintf(stream, "Description:\n");
+    if (config->prog_name) fprintf(stream, "  %s - ", config->prog_name);
+    fprintf(stream, "%s\n\n", config->prog_description);
+  }
+
+  fprintf(stream,
+          "Usage:\n"
+          "  %s %s\n\n",
+          prog_name,
+          config->utest ? usage_utest : usage_generic);
+
+  fprintf(stream,
+          "Options:\n"
+          "  -h, --help                       Show help options\n"
+          "  -l, --list                       List test cases available in a test executable\n"
+          "  -m, --mode {perf|standard|all}   Execute tests according to mode\n"
+          "  -p, --path TESTPATH              Only start test cases matching TESTPATH\n"
+          "  -s, --skip TESTPATH              Skip all tests matching TESTPATH\n"
+          "  -k, --max-quickness              Cap value for quickness class\n"
+          "  -q, --quiet                      Run tests quietly\n"
+          "  -v, --verbose                    Run tests verbosely\n");
+
+  if (config->prog_long_desc) fprintf(stream,
+                                      "\nDetails:\n"
+                                      "%s\n", config->prog_long_desc);
+
+  if (config->prog_author) fprintf(stream,
+                                   "\nAuthor:\n"
+                                   "%s\n", config->prog_author);
+
+  if (config->prog_copyright || config->prog_license) fprintf(stream, "\n");
+  if (config->prog_copyright) fprintf(stream, "%s\n", config->prog_copyright);
+  if (config->prog_license) fprintf(stream, "%s\n", config->prog_license);
+}
+
+/**
+ * @brief Parses standard args.
+ *
+ * @details Returns `0` when everithing is ok, `1` when option `-h` is active,
+ *          and a negative value on invalid options.
+ *
+ * @param [out] config the program argument configuration
+ * @param [in]  argc_p a pointer to argc
+ * @param [in]  argv_p a pointer to argv
+ * @return             parsing status
+ */
+int
+ut_parse_args (ut_prog_arg_config_t *config,
+               FILE *stream,
+               int *argc_p,
+               char ***argv_p,
+               int *next_arg_index)
+{
+  mop_options_t options;
+  int opt;
+
+  int oindex = -1;
+  int argc = *argc_p;
+  char **argv = *argv_p;
+
+  /* help */
+  int h_flag = false;
+
+  /* list */
+  int l_flag = false;
+
+  /* mode */
+  int m_flag = false;
+  char *m_arg = NULL;
+
+  /* path */
+  int p_flag = false;
+  char *p_arg = NULL;
+
+  /* skip */
+  int s_flag = false;
+  char *s_arg = NULL;
+
+  /* max-quickness */
+  int k_flag = false;
+  char *k_arg = NULL;
+
+  /* verbose */
+  int v_flag = false;
+
+  /* quiet */
+  int q_flag = false;
+
+  /* utest */
+  int u_flag = false;
+
+  mop_init(&options, argc, argv);
+  while ((opt = mop_parse_long(&options, olist, &oindex)) != -1) {
+    switch (opt) {
+    case 'h':
+      h_flag = true;
+      break;
+    case 'l':
+      l_flag = true;
+      break;
+    case 'm':
+      m_flag = true;
+      m_arg = options.optarg;
+      break;
+    case 'p':
+      p_flag = true;
+      p_arg = options.optarg;
+      break;
+    case 's':
+      s_flag = true;
+      s_arg = options.optarg;
+      break;
+    case 'k':
+      k_flag = true;
+      k_arg = options.optarg;
+      break;
+    case 'v':
+      v_flag = true;
+      break;
+    case 'q':
+      q_flag = true;
+      break;
+    case 'u':
+      u_flag = true;
+      break;
+    case ':':
+      fprintf(stream, "Option parsing failed: %s\n", options.errmsg);
+      return -1;
+    case '?':
+      fprintf(stream, "Option parsing failed: %s\n", options.errmsg);
+      return -2;
+    default:
+      fprintf(stream, "Unexpectd error. Aborting ...\n");
+      abort();
+    }
+
+    if (u_flag) config->utest = true;
+
+    /* Prints documentation and returns when help option is detected. */
+    if (h_flag) {
+      ut_documentation_to_stream(stream, argv[0], config);
+      return 1;
+    }
+
+    if (l_flag) config->print_test_list = true;
+
+    if (m_flag) {
+      if (strcmp(m_arg, "perf") == 0) config->mode = UT_MODE_PERF;
+      else if (strcmp(m_arg, "standard") == 0) config->mode = UT_MODE_STND;
+      else if (strcmp(m_arg, "all") == 0) config->mode = UT_MODE_ALL;
+      else {
+        fprintf(stream, "%s: mode value \"%s\" is invalid.\n", argv[0], m_arg);
+        return -3;
+      }
+    }
+
+    if (p_flag) llist_add(config->test_paths, p_arg);
+
+    if (s_flag) llist_add(config->skip_paths, s_arg);
+
+    if (k_flag) {
+      char *endptr;
+      long int max_quickness = strtol(k_arg, &endptr, 10);
+      if (endptr - k_arg != strlen(k_arg)) {
+        fprintf(stream, "Argument for option -k: %s is invalid.\n", k_arg);
+        return -4;
+      }
+      if (max_quickness < 0) {
+        fprintf(stream, "Argument for option -k is %ld, it must be a non negative integer.\n", max_quickness);
+        return -5;
+      }
+      config->max_quickness = max_quickness;
+    }
+
+    if (v_flag) config->verb = UT_VEROSITY_HIGHT;
+
+    if (q_flag) config->verb = UT_VEROSITY_LOW;
+
+    if (u_flag) config->utest = true;
+
+  } // end while loop.
+
+  if (next_arg_index) *next_arg_index = options.optind;
+
+  return 0;
+}
+
 /**
  * @brief Has to be called by main as the first step for running the test suite.
  *
@@ -457,7 +669,11 @@ ut_init (ut_prog_arg_config_t *config,
          int *argc_p,
          char ***argv_p)
 {
-  parse_args(config, argc_p, argv_p);
+  ut_prog_arg_config_init(config, false);
+
+  int status = ut_parse_args(config, stdout, argc_p, argv_p, NULL);
+  if (status == 1) exit(EXIT_SUCCESS);
+  if (status < 0) exit(EXIT_FAILURE);
   return;
 }
 
@@ -487,6 +703,154 @@ ut_run_time_verbosity (const ut_test_t *const t)
   assert(t->suite->config);
   return t->suite->config->verb;
 }
+
+
+
+/*****************************************************************/
+/* Function implementations for the ut_prog_arg_config_t entity. */
+/*****************************************************************/
+
+void
+ut_prog_arg_config_init (ut_prog_arg_config_t *const config,
+                         const bool utest)
+{
+  config->print_test_list = false;
+  config->mode = UT_MODE_STND;
+  config->test_paths = llist_new(NULL);
+  config->skip_paths = llist_new(NULL);
+  config->verb = UT_VEROSITY_STND;
+  config->utest = utest;
+
+  config->prog_name = NULL;
+  config->prog_description = NULL;
+  config->prog_version = NULL;
+  config->prog_copyright = NULL;
+  config->prog_long_desc = NULL;
+  config->prog_license = NULL;
+  config->prog_author = NULL;
+}
+
+void
+ut_prog_arg_config_set_desc (ut_prog_arg_config_t *const config,
+                             char *const desc)
+{
+  assert(config);
+  config->desc = desc;
+}
+
+char *
+ut_prog_arg_config_get_desc (const ut_prog_arg_config_t *const config)
+{
+  assert(config);
+  return config->desc;
+}
+
+void
+ut_prog_arg_config_set_prog_name (ut_prog_arg_config_t *const config,
+                                  const char *const name)
+{
+  assert(config);
+  config->prog_name = name;
+}
+
+
+const char *
+ut_prog_arg_config_get_prog_name (const ut_prog_arg_config_t *const config)
+{
+  assert(config);
+  return config->prog_name;
+}
+
+void
+ut_prog_arg_config_set_prog_version (ut_prog_arg_config_t *const config,
+                                     const char *const version)
+{
+  assert(config);
+  config->prog_version = version;
+}
+
+const char *
+ut_prog_arg_config_get_prog_version (const ut_prog_arg_config_t *const config)
+{
+  assert(config);
+  return config->prog_version;
+}
+
+void
+ut_prog_arg_config_set_prog_description (ut_prog_arg_config_t *const config,
+                                         const char *const description)
+{
+  assert(config);
+  config->prog_description = description;
+}
+
+const char *
+ut_prog_arg_config_get_prog_description (const ut_prog_arg_config_t *const config)
+{
+  assert(config);
+  return config->prog_description;
+}
+
+void
+ut_prog_arg_config_set_prog_copyright (ut_prog_arg_config_t *const config,
+                                       const char *const copyright)
+{
+  assert(config);
+  config->prog_copyright = copyright;
+}
+
+const char *
+ut_prog_arg_config_get_prog_copyright (const ut_prog_arg_config_t *const config)
+{
+  assert(config);
+  return config->prog_copyright;
+}
+
+void
+ut_prog_arg_config_set_prog_long_desc (ut_prog_arg_config_t *const config,
+                                       const char *const long_desc)
+{
+  assert(config);
+  config->prog_long_desc = long_desc;
+}
+
+const char *
+ut_prog_arg_config_get_prog_long_desc (const ut_prog_arg_config_t *const config)
+{
+  assert(config);
+  return config->prog_long_desc;
+}
+
+void
+ut_prog_arg_config_set_prog_license (ut_prog_arg_config_t *const config,
+                                     const char *const license)
+{
+  assert(config);
+  config->prog_license = license;
+}
+
+const char *
+ut_prog_arg_config_get_prog_license (const ut_prog_arg_config_t *const config)
+{
+  assert(config);
+  return config->prog_license;
+}
+
+void
+ut_prog_arg_config_set_prog_author (ut_prog_arg_config_t *const config,
+                                    const char *const author)
+{
+  assert(config);
+  config->prog_author = author;
+}
+
+const char *
+ut_prog_arg_config_get_prog_author (const ut_prog_arg_config_t *const config)
+{
+  assert(config);
+  return config->prog_author;
+}
+
 
 
 /********************************************/
@@ -531,116 +895,6 @@ static void
 ut_test_free (ut_test_t *t)
 {
   free(t);
-}
-
-static void
-parse_args (ut_prog_arg_config_t *config,
-            int *argc_p,
-            char ***argv_p)
-{
-  int argc = *argc_p;
-  char **argv = *argv_p;
-
-  config->print_test_list = false;
-  config->mode = UT_MODE_STND;
-  config->test_paths = llist_new(NULL);
-  config->skip_paths = llist_new(NULL);
-  config->verb = UT_VEROSITY_STND;
-  config->utest = false;
-
-  /* Parses known args. */
-  for (int i = 1; i < argc; i++) {
-    if (strcmp(argv[i], "-l") == 0) {
-      config->print_test_list = true;
-      argv[i] = NULL;
-    } else if (strcmp("-m", argv[i]) == 0 || strncmp("-m=", argv[i], 3) == 0) {
-      char *equal = argv[i] + 2;
-      char *mode = NULL;
-      if (*equal == '=')
-        mode = equal + 1;
-      else if (i + 1 < argc) {
-        argv[i++] = NULL;
-        mode = argv[i];
-      } else {
-        fprintf(stderr, "%s: missing mode value after -m flag.\n", argv[0]);
-        exit(EXIT_FAILURE);
-      }
-      if (strcmp(mode, "perf") == 0) config->mode = UT_MODE_PERF;
-      else if (strcmp(mode, "standard") == 0) config->mode = UT_MODE_STND;
-      else if (strcmp(mode, "all") == 0) config->mode = UT_MODE_ALL;
-      else {
-        fprintf(stderr, "%s: mode value \"%s\" is invalid.\n", argv[0], mode);
-        exit(EXIT_FAILURE);
-      }
-      argv[i] = NULL;
-    } else if (strcmp("-p", argv[i]) == 0 || strncmp ("-p=", argv[i], 3) == 0) {
-      char *equal = argv[i] + 2;
-      char *test_path = NULL;
-      if (*equal == '=')
-        test_path = equal + 1;
-      else if (i + 1 < argc) {
-        argv[i++] = NULL;
-        test_path = argv[i];
-      } else {
-        fprintf(stderr, "%s: missing TESTPATH value after -p flag.\n", argv[0]);
-        exit(EXIT_FAILURE);
-      }
-      argv[i] = NULL;
-      if (test_path) llist_add(config->test_paths, test_path);
-    } else if (strcmp("-s", argv[i]) == 0 || strncmp ("-s=", argv[i], 3) == 0) {
-      char *equal = argv[i] + 2;
-      char *skip_path = NULL;
-      if (*equal == '=')
-        skip_path = equal + 1;
-      else if (i + 1 < argc) {
-        argv[i++] = NULL;
-        skip_path = argv[i];
-      } else {
-        fprintf(stderr, "%s: missing TESTPATH value after -s flag.\n", argv[0]);
-        exit(EXIT_FAILURE);
-      }
-      argv[i] = NULL;
-      if (skip_path) llist_add(config->skip_paths, skip_path);
-    } else if (strcmp("-q", argv[i]) == 0 || strcmp("--quiet", argv[i]) == 0) {
-      config->verb = UT_VEROSITY_LOW;
-      argv[i] = NULL;
-    } else if (strcmp("-v", argv[i]) == 0 || strcmp("--verbose", argv[i]) == 0) {
-      config->verb = UT_VEROSITY_HIGHT;
-      argv[i] = NULL;
-    } else if (strcmp("--utest", argv[i]) == 0) {
-      config->utest = true;
-      argv[i] = NULL;
-    } else if (strcmp("-?", argv[i]) == 0 ||
-               strcmp("-h", argv[i]) == 0 ||
-               strcmp("--help", argv[i]) == 0) {
-      fprintf(stdout,
-              "Usage:\n"
-              "  %s [OPTION...]\n\n"
-              "Help Options:\n"
-              "  -h, --help                  Show help options\n\n"
-              "Test Options:\n"
-              "  -l                          List test cases available in a test executable\n"
-              "  -m {perf|standard|all}      Execute tests according to mode\n"
-              "  -p TESTPATH                 Only start test cases matching TESTPATH\n"
-              "  -s TESTPATH                 Skip all tests matching TESTPATH\n"
-              "  -q, --quiet                 Run tests quietly\n"
-              "  -v, --verbose               Run tests verbosely\n",
-              argv[0]);
-      exit(0);
-    }
-  }
-
-  /* Packs argv removing null values. */
-  int count = 1;
-  for (int i = 1; i < argc; i++) {
-    if (argv[i]) {
-      argv[count++] = argv[i];
-      if (i >= count)
-        argv[i] = NULL;
-    }
-  }
-  *argc_p = count;
-
 }
 
 static unsigned long

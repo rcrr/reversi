@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <unistd.h>
 #include <sys/wait.h>
 
@@ -41,257 +42,44 @@
 
 
 
-/******************************************************/
-/* Internal static variable declarations.             */
-/******************************************************/
+/**
+ * @cond
+ */
+
+/*
+ * Prototypes for internal functions.
+ */
+
+static char **
+prepare_args (char *prog_name);
+
+
+
+/*
+ * Internal variables and constants.
+ */
 
 static ut_prog_arg_config_t arg_config;
 
 static const char const* program_name = "utest";
-static const char const* program_version = "0.1";
-static const char const* program_description = "Unit test runner.";
-static const char const* program_copyright = "Copyright (c) 2015, 2017 Roberto Corradini. All rights reserved.";
+static const char const* program_version = "1.0";
+static const char const* program_description = "Unit test runner";
 static const char const* program_long_description =
-  "The utest executable is part of the Reversi program.\n"
-  "This program is designed to run a test suite.\n"
-  "Type utest -h to learn how to use it.\n"
-  "Visit the web site http://github.com/rcrr/reversi for more info, and to obtain the source code.";
+  "  The utest executable is part of the Reversi program.\n"
+  "  This program is designed to run a test suite.\n"
+  "  Type utest -h to learn how to use it.\n"
+  "  Visit the web site http://github.com/rcrr/reversi for more info, and to obtain the source code.";
+static const char const* program_author =
+  "  Written by Roberto Corradini <rob_corradini@yahoo.it>";
+static const char const* program_copyright =
+  "Copyright (c) 2015, 2017 Roberto Corradini. All rights reserved.";
 static const char const* program_license =
-  "This program is free software; you can redistribute it and/or modify it\n"
-  "under the terms of the GNU General Public License as published by the\n"
-  "Free Software Foundation; either version 3, or (at your option) any\n"
-  "later version.\n"
-  "\n"
-  "This program is distributed in the hope that it will be useful,\n"
-  "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-  "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
-  "GNU General Public License for more details.\n"
-  "\n"
-  "You should have received a copy of the GNU General Public License\n"
-  "along with this program; if not, write to the Free Software\n"
-  "Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA\n"
-  "or visit the site <http://www.gnu.org/licenses/>.";
+  "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
+  "This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.\n";
 
-
-
-static void
-print_program_version (void)
-{
-  fprintf(stdout, "%s version %s\n", program_name, program_version);
-}
-
-
-
-static void
-print_program_license (void)
-{
-  fprintf(stdout, "%s\n", program_license);
-}
-
-
-
-static void
-print_program_copyright (void)
-{
-  fprintf(stdout, "%s\n", program_copyright);
-}
-
-
-
-static void
-print_program_info (void)
-{
-  fprintf(stdout, "%s version %s - %s\n", program_name, program_version, program_description);
-  fprintf(stdout, "%s\n", program_copyright);
-  fprintf(stdout, "%s\n", program_long_description);
-}
-
-
-
-static void
-parse_args (int *argc_p,
-            char ***argv_p)
-{
-  int argc = *argc_p;
-  char **argv = *argv_p;
-
-  arg_config.print_test_list = false;
-  arg_config.mode = UT_MODE_STND;
-  arg_config.test_paths = llist_new(NULL);
-  arg_config.skip_paths = llist_new(NULL);
-  arg_config.verb = UT_VEROSITY_STND;
-
-  /* Parses known args. */
-  for (int i = 1; i < argc; i++) {
-    if (strcmp(argv[i], "-l") == 0) {
-      arg_config.print_test_list = true;
-      argv[i] = NULL;
-    } else if (strcmp("-m", argv[i]) == 0 || strncmp("-m=", argv[i], 3) == 0) {
-      char *equal = argv[i] + 2;
-      char *mode = NULL;
-      if (*equal == '=')
-        mode = equal + 1;
-      else if (i + 1 < argc) {
-        argv[i++] = NULL;
-        mode = argv[i];
-      } else {
-        fprintf(stderr, "%s: missing MODE value after -m flag.\n", argv[0]);
-        exit(EXIT_FAILURE);
-      }
-      if (strcmp(mode, "perf") == 0) arg_config.mode = UT_MODE_PERF;
-      else if (strcmp(mode, "standard") == 0) arg_config.mode = UT_MODE_STND;
-      else if (strcmp(mode, "all") == 0) arg_config.mode = UT_MODE_ALL;
-      else {
-        fprintf(stderr, "%s: MODE value \"%s\" is invalid.\n", argv[0], mode);
-        exit(EXIT_FAILURE);
-      }
-      argv[i] = NULL;
-    } else if (strcmp("-p", argv[i]) == 0 || strncmp("-p=", argv[i], 3) == 0) {
-      char *equal = argv[i] + 2;
-      char *test_path = NULL;
-      if (*equal == '=')
-        test_path = equal + 1;
-      else if (i + 1 < argc) {
-        argv[i++] = NULL;
-        test_path = argv[i];
-      } else {
-        fprintf(stderr, "%s: missing TESTPATH value after -l flag.\n", argv[0]);
-        exit(EXIT_FAILURE);
-      }
-      argv[i] = NULL;
-      if (test_path) llist_add(arg_config.test_paths, test_path);
-    } else if (strcmp("-s", argv[i]) == 0 || strncmp("-s=", argv[i], 3) == 0) {
-      char *equal = argv[i] + 2;
-      char *skip_path = NULL;
-      if (*equal == '=')
-        skip_path = equal + 1;
-      else if (i + 1 < argc) {
-        argv[i++] = NULL;
-        skip_path = argv[i];
-      } else {
-        fprintf(stderr, "%s: missing TESTPATH value after -s flag.\n", argv[0]);
-        exit(EXIT_FAILURE);
-      }
-      argv[i] = NULL;
-      if (skip_path) llist_add(arg_config.skip_paths, skip_path);
-    } else if (strcmp("-q", argv[i]) == 0 || strcmp("--quiet", argv[i]) == 0) {
-      arg_config.verb = UT_VEROSITY_LOW;
-      argv[i] = NULL;
-    } else if (strcmp("-v", argv[i]) == 0 || strcmp("--verbose", argv[i]) == 0) {
-      arg_config.verb = UT_VEROSITY_HIGHT;
-      argv[i] = NULL;
-    } else if (strcmp("--license", argv[i]) == 0) {
-      print_program_license();
-      argv[i] = NULL;
-    } else if (strcmp("--version", argv[i]) == 0) {
-      print_program_version();
-      argv[i] = NULL;
-    } else if (strcmp("--copyright", argv[i]) == 0) {
-      print_program_copyright();
-      argv[i] = NULL;
-    } else if (strcmp("--info", argv[i]) == 0) {
-      print_program_info();
-      argv[i] = NULL;
-    } else if (strcmp("-?", argv[i]) == 0 ||
-               strcmp("-h", argv[i]) == 0 ||
-               strcmp("--help", argv[i]) == 0) {
-      printf("Usage:\n"
-             "  %s [OPTIONS] testprogram...\n\n"
-             "Help Options:\n"
-             "  -h, --help                  Show help options\n\n"
-             "Info Options:\n"
-             "  --license                   Show software license\n"
-             "  --version                   Show software version\n"
-             "  --copyright                 Show software copyright\n"
-             "  --info                      Show software info\n\n"
-             "Test Options:\n"
-             "  -l                          List test cases available in a test executable\n"
-             "  -m {perf|standard}          Execute tests according to mode\n"
-             "  -p TESTPATH                 Only start test cases matching TESTPATH\n"
-             "  -s TESTPATH                 Skip all tests matching TESTPATH\n"
-             "  -q, --quiet                 Run tests quietly\n"
-             "  -v, --verbose               Run tests verbosely\n",
-             argv[0]);
-      exit(0);
-    }
-  }
-
-  /* Packs argv removing null values. */
-  int count = 1;
-  for (int i = 1; i < argc; i++) {
-    if (argv[i]) {
-      argv[count++] = argv[i];
-      if (i >= count)
-        argv[i] = NULL;
-    }
-  }
-  *argc_p = count;
-
-}
-
-
-
-static char **
-prepare_args (void)
-{
-  int argc;
-
-  if (arg_config.print_test_list) {
-    argc = 2;
-    char **argv = (char **) malloc((argc + 1) * sizeof(char *));
-    argv[0] = "TBD";
-    argv[1] = "-l";
-    argv[2] = NULL;
-    return argv;
-  }
-
-  /*
-   * argc = program_name + 2 * MODE  + UTEST_FLAG + 2 * test_paths + 2 * skip_paths
-   *      = 4 + 2 * (test_paths + skip_paths)
-   * argc++ if (-v or -q flags are turned on);
-   */
-  argc = 4 + 2 * (llist_length(arg_config.test_paths) + llist_length(arg_config.skip_paths));
-  if (arg_config.verb != UT_VEROSITY_STND) argc++;
-
-  char **argv = (char **) malloc((argc + 1) * sizeof(char *));
-
-  argv[0] = "TBD";
-  argv[1] = "-m";
-  if (arg_config.mode == UT_MODE_STND) argv[2] = "standard";
-  else if (arg_config.mode >= UT_MODE_PERF) argv[2] = "perf";
-  else if (arg_config.mode >= UT_MODE_ALL) argv[2] = "all";
-  else {
-    fprintf(stderr, "Invalid arg_config.mode \"%d\" option.\n", arg_config.mode);
-    abort();
-  }
-
-  argv[3] = "--utest";
-
-  int index = 4;
-  if (arg_config.verb != UT_VEROSITY_STND) {
-    if (arg_config.verb == UT_VEROSITY_LOW) argv[index++] = "-q";
-    else if (arg_config.verb == UT_VEROSITY_HIGHT) argv[index++] = "-v";
-    else {
-      fprintf(stderr, "Invalid arg_config.verb \"%d\" option.\n", arg_config.verb);
-      abort();
-    }
-  }
-
-  for (llist_elm_t *e = (arg_config.test_paths)->head; e; e = e->next) {
-    char *path = (char *) e->data;
-    argv[index++] = "-p";
-    argv[index++] = path;
-  }
-
-  for (llist_elm_t *e = (arg_config.skip_paths)->head; e; e = e->next) {
-    char *path = (char *) e->data;
-    argv[index++] = "-s";
-    argv[index++] = path;
-  }
-
-  argv[index] = NULL;
-  return argv;
-}
+/**
+ * @endcond
+ */
 
 
 
@@ -302,11 +90,24 @@ int
 main (int argc,
       char **argv)
 {
-  parse_args(&argc, &argv);
+  ut_prog_arg_config_init(&arg_config, true);
+  ut_prog_arg_config_set_prog_name(&arg_config, program_name);
+  ut_prog_arg_config_set_prog_version(&arg_config, program_version);
+  ut_prog_arg_config_set_prog_description(&arg_config, program_description);
+  ut_prog_arg_config_set_prog_copyright(&arg_config, program_copyright);
+  ut_prog_arg_config_set_prog_long_desc(&arg_config, program_long_description);
+  ut_prog_arg_config_set_prog_license(&arg_config, program_license);
+  ut_prog_arg_config_set_prog_author(&arg_config, program_author);
+
+  int next_arg_index = 0;
+  int parse_status = ut_parse_args(&arg_config, stdout, &argc, &argv, &next_arg_index);
+
+  if (parse_status < 0) return parse_status;
+  if (parse_status == 1) return 0;
 
   int err_count = 0;
 
-  for (int i = 1; i < argc; i++) {
+  for (int i = next_arg_index; i < argc; i++) {
     char *test_program_name = argv[i];
     bool test_pass = false;
     if (access(test_program_name, F_OK) == -1 ) {
@@ -326,7 +127,7 @@ main (int argc,
       fprintf(stderr, "%s, fork failed.", argv[0]);
       exit(EXIT_FAILURE);
     } else if (child_pid == 0) {
-      char **argv_tprog = prepare_args();
+      char **argv_tprog = prepare_args(test_program_name);
       argv_tprog[0] = test_program_name;
       int ret = execv(test_program_name, argv_tprog);
       if (ret == -1) {
@@ -364,3 +165,85 @@ main (int argc,
   if (err_count != 0) fprintf(stdout, "ERROR: utest encountered one or more errors or failing tests.\n");
   return err_count;
 }
+
+
+
+/**
+ * @cond
+ */
+
+/*
+ * Internal functions.
+ */
+
+static char **
+prepare_args (char *prog_name)
+{
+  static char max_quickness_s[2];
+  int argc;
+
+  if (arg_config.print_test_list) {
+    argc = 2;
+    char **argv = (char **) malloc((argc + 1) * sizeof(char *));
+    argv[0] = prog_name;
+    argv[1] = "-l";
+    argv[2] = NULL;
+    return argv;
+  }
+
+  /*
+   * argc = program_name + 2 * MODE  + UTEST_FLAG + 2 * test_paths + 2 * skip_paths + 2
+   *      = 6 + 2 * (test_paths + skip_paths)
+   * argc++ if (-v or -q flags are turned on);
+   */
+  argc = 6 + 2 * (llist_length(arg_config.test_paths) + llist_length(arg_config.skip_paths));
+  if (arg_config.verb != UT_VEROSITY_STND) argc++;
+
+  char **argv = (char **) malloc((argc + 1) * sizeof(char *));
+
+  argv[0] = prog_name;
+  argv[1] = "-m";
+  if (arg_config.mode == UT_MODE_STND) argv[2] = "standard";
+  else if (arg_config.mode >= UT_MODE_PERF) argv[2] = "perf";
+  else if (arg_config.mode >= UT_MODE_ALL) argv[2] = "all";
+  else {
+    fprintf(stderr, "Invalid arg_config.mode \"%d\" option.\n", arg_config.mode);
+    abort();
+  }
+
+  argv[3] = "--utest";
+
+  int index = 4;
+  if (arg_config.verb != UT_VEROSITY_STND) {
+    if (arg_config.verb == UT_VEROSITY_LOW) argv[index++] = "-q";
+    else if (arg_config.verb == UT_VEROSITY_HIGHT) argv[index++] = "-v";
+    else {
+      fprintf(stderr, "Invalid arg_config.verb \"%d\" option.\n", arg_config.verb);
+      abort();
+    }
+  }
+
+  for (llist_elm_t *e = (arg_config.test_paths)->head; e; e = e->next) {
+    char *path = (char *) e->data;
+    argv[index++] = "-p";
+    argv[index++] = path;
+  }
+
+  for (llist_elm_t *e = (arg_config.skip_paths)->head; e; e = e->next) {
+    char *path = (char *) e->data;
+    argv[index++] = "-s";
+    argv[index++] = path;
+  }
+
+  sprintf(max_quickness_s, "%d", arg_config.max_quickness);
+  argv[index++] = "-k";
+  argv[index++] = max_quickness_s;
+
+  assert(index == argc);
+  argv[index] = NULL;
+  return argv;
+}
+
+/**
+ * @endcond
+ */
