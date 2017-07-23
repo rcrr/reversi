@@ -26,9 +26,6 @@
 MAINS = endgame_solver utest read_pve_dump intel_intrinsics_trial \
         read_game_tree_log gpdb_verify
 
-# Add all the test programs that has a main and that will be compiled and linked as a bin executable.
-TEST_PROGS = es_pv_test
-
 UTEST_PROGS = ut_utest ut_llist ut_main_option_parse ut_bit_works ut_sha3 ut_prng ut_file_utils ut_sort_utils ut_red_black_tree \
               ut_board ut_game_position_db ut_game_tree_utils ut_game_position ut_endgame_solver ut_es_pv
 
@@ -40,7 +37,7 @@ UTEST_PROGS = ut_utest ut_llist ut_main_option_parse ut_bit_works ut_sha3 ut_prn
 # Add -pg to CFLAGS and DFLAGS to profile.
 
 CC = gcc 
-#CFLAGS = -std=c99 -pedantic -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_SOURCE
+#CFLAGS = -std=c99 -pedantic -Wall -g -O3 -D_POSIX_SOURCE
 #LDFLAGS =
 # add -pg for gprof execution.
 # add -DG_DISABLE_ASSERT -DNDEBUG to disable assertions
@@ -48,10 +45,10 @@ CC = gcc
 ARCH_FLAGS = -mpopcnt -mavx2
 CFLAGS = -std=c99 -D_POSIX_C_SOURCE=200112L -pedantic-errors -Wall -g -O3 $(ARCH_FLAGS)
 LDFLAGS =
-CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 `pkg-config --cflags glib-2.0` -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
+CFLAGS_TEST = -std=c99 -pedantic-errors -Wall -g -O3 -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS)
 LDFLAGS_TEST =
 ASMFLAGS = -std=c99 -pedantic-errors -Wall -O3 -masm=intel -D_POSIX_C_SOURCE=200112L $(ARCH_FLAGS) -DG_DISABLE_ASSERT -DNDEBUG -fno-inline
-LIBS = `pkg-config --libs glib-2.0` -lm
+LIBS = -lm
 TEST_LIBS =
 SRCDIR = src
 TESTDIR = test
@@ -82,17 +79,15 @@ TEST_OBJDIR  = $(BTESTDIR)/obj
 TEST_BINDIR  = $(BTESTDIR)/bin
 TEST_SRCS    = $(wildcard $(TESTDIR)/*.c)
 TEST_OBJS    = $(addsuffix .o,$(basename $(subst $(TESTDIR)/,$(TEST_OBJDIR)/,$(TEST_SRCS))))
-TEST_BINS    = $(addprefix $(TEST_BINDIR)/,$(TEST_PROGS))
 UTEST_BINS    = $(addprefix $(TEST_BINDIR)/,$(UTEST_PROGS))
 TEST_INCLUDE = -I./src
 
-TEST_OBJS_WITH_MAIN = $(addsuffix .o,$(addprefix $(TEST_OBJDIR)/,$(TEST_PROGS)))
 UTEST_OBJS_WITH_MAIN = $(addsuffix .o,$(addprefix $(TEST_OBJDIR)/,$(UTEST_PROGS)))
 
 ALL_TEST_OBJS_WITH_MAIN = $(TEST_OBJS_WITH_MAIN) $(UTEST_OBJS_WITH_MAIN)
 TEST_OBJS_NO_MAIN = $(filter-out $(ALL_TEST_OBJS_WITH_MAIN),$(TEST_OBJS))
 
-all: $(BINS) $(TEST_BINS) $(UTEST_BINS) $(OUTDIR) build_dirs
+all: $(BINS) $(UTEST_BINS) $(OUTDIR) build_dirs
 
 .PHONY: build_dirs
 build_dirs: $(BUILDDIR) $(OBJDIR) $(BINDIR) $(DOCDIR) $(BTESTDIR) $(ASMDIR) $(TMPDIR) $(ENDGAME_LOG_DIR)
@@ -116,41 +111,16 @@ test_obj: $(TEST_OBJS)
 $(TEST_OBJS): $(TEST_OBJDIR)/%.o: $(TESTDIR)/%.c | $(TEST_OBJDIR)
 	$(CC) $(CFLAGS_TEST) -c $< -o $@ $(TEST_INCLUDE)
 
-.PHONY: test_bin
-test_bin: $(OBJS) $(TEST_OBJS) $(TEST_BINS)
-
-$(TEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
-	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(TEST_BINDIR),$(TEST_OBJDIR),$@))))
-	$(CC) $(LDFLAGS_TEST) $(OBJECT) $(TEST_OBJS_NO_MAIN) $(OBJS_NO_MAIN) $(LIBS) $(TEST_LIBS) -o $@
-
-.PHONY: test_bin
+.PHONY: utest_bin
 utest_bin: $(OBJS) $(TEST_OBJS) $(UTEST_BINS)
 
 $(UTEST_BINS): $(TEST_OBJS) $(OBJS) | $(TEST_BINDIR)
 	$(eval OBJECT = $(addsuffix .o,$(basename $(subst $(TEST_BINDIR),$(TEST_OBJDIR),$@))))
 	$(CC) $(LDFLAGS_TEST) $(OBJECT) $(TEST_OBJS_NO_MAIN) $(OBJS_NO_MAIN) $(LIBS) $(TEST_LIBS) -o $@
 
-.PHONY: test
-test: $(TEST_BINS)
-	gtester --verbose -k -m=quick -o $(BTESTDIR)/gtester-log.xml $(TEST_BINS)
-
-.PHONY: test_slow
-test_slow: $(TEST_BINS)
-	gtester --verbose -k -m=slow -o $(BTESTDIR)/gtester-log.xml $(TEST_BINS)
-
-.PHONY: test_perf
-test_perf: $(TEST_BINS)
-	gtester --verbose -k -m=perf -o $(BTESTDIR)/gtester-log.xml $(TEST_BINS)
-
-.PHONY: test_report
-test_report: $(BTESTDIR)/gtester-log.html
-
 .PHONY: utest
 utest: $(UTEST_BINS)
 	./build/bin/utest -s=/utest/fail -s=/utest/abort -s=/utest/exit -s=/utest/assert_false $(UTEST_BINS)
-
-$(BTESTDIR)/gtester-log.html: $(BTESTDIR)/gtester-log.xml
-	gtester-report $(BTESTDIR)/gtester-log.xml > $(BTESTDIR)/gtester-log.html
 
 .PHONY: $(BUILDDIR)
 $(BUILDDIR): $(BUILDDIR)/.dir_sentinel
@@ -275,7 +245,6 @@ info:
 	@echo "OBJS_NO_MAIN = "$(OBJS_NO_MAIN)
 	@echo "TEST_SRCS = "$(TEST_SRCS)
 	@echo "TEST_OBJS = "$(TEST_OBJS)
-	@echo "TEST_BINS = "$(TEST_BINS)
 	@echo "UTEST_BINS = "$(UTEST_BINS)
 	@echo "TEST_OBJDIR = "$(TEST_OBJDIR)
 	@echo "TESTDIR = "$(TESTDIR)
