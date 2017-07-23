@@ -43,12 +43,6 @@
  * Auxiliary functions.
  */
 
-static void
-aux_dummy (void)
-{
-  return;
-}
-
 
 
 /*
@@ -56,43 +50,9 @@ aux_dummy (void)
  */
 
 static void
-dummy_t (ut_test_t *const t)
-{
-  aux_dummy();
-  ut_assert(t, true);
-
-  ut_assert(t, true);
-  ut_assert(t, 1 == 34);
-}
-
-static void
 utest_pass_t (ut_test_t *const t)
 {
   ut_assert(t, true);
-}
-
-static void
-utest_fail_t (ut_test_t *const t)
-{
-  ut_assert(t, false);
-}
-
-static void
-utest_abort_t (ut_test_t *const t)
-{
-  abort();
-}
-
-static void
-utest_exit_t (ut_test_t *const t)
-{
-  exit(7);
-}
-
-static void
-utest_assert_false_t (ut_test_t *const t)
-{
-  assert(false);
 }
 
 static void
@@ -231,13 +191,7 @@ main (int argc,
 
   ut_suite_t *const s = ut_suite_new(&config, "utest");
 
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "dummy", dummy_t);
-
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "pass", utest_pass_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "fail", utest_fail_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "abort", utest_abort_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "exit", utest_exit_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "assert_false", utest_assert_false_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "ut_quickness_range", ut_quickness_range_t);
 
