@@ -961,9 +961,9 @@ main (int argc,
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "prng_mt19937_random_choice_from_finite_set_2", prng_mt19937_random_choice_from_finite_set_2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "prng_mt19937_random_choice_from_finite_set_5", prng_mt19937_random_choice_from_finite_set_5_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_01,   "prng_mt19937_random_choice_from_finite_set_9", prng_mt19937_random_choice_from_finite_set_9_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_shuffle_array_uint8_2", prng_mt19937_shuffle_array_uint8_2_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_001,  "prng_mt19937_shuffle_array_uint8_2", prng_mt19937_shuffle_array_uint8_2_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_shuffle_array_uint8_5", prng_mt19937_shuffle_array_uint8_5_t);
-  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_shuffle_array_uint8_9", prng_mt19937_shuffle_array_uint8_9_t);
+  ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_001,  "prng_mt19937_shuffle_array_uint8_9", prng_mt19937_shuffle_array_uint8_9_t);
 
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_shuffle_array_p", prng_mt19937_shuffle_array_p_t);
   ut_suite_add_simple_test(s, UT_MODE_STND, UT_QUICKNESS_0001, "prng_mt19937_shuffle_array_double", prng_mt19937_shuffle_array_double_t);

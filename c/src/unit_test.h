@@ -173,14 +173,13 @@ typedef struct ut_prog_arg_config_t_ {
   llist_t *skip_paths;                   /**< @brief Skip all tests matching a path in the list. */
   ut_verbosity_t verb;                   /**< @brief Output verbosity. */
   bool utest;                            /**< @brief Called by utest program. */
-  char *desc;                            /**< @brief Program description string. */
-  const char *prog_name;                 /**< @brief Program name. */
-  const char *prog_version;              /**< @brief Program version. */
-  const char *prog_description;          /**< @brief Program description. */
-  const char *prog_copyright;            /**< @brief Program copyright. */
-  const char *prog_long_desc;            /**< @brief Program long description. */
-  const char *prog_license;              /**< @brief Program license. */
-  const char *prog_author;               /**< @brief Program author. */
+  const char *prog_name;                 /**< @brief Program name string. */
+  const char *prog_version;              /**< @brief Program version string. */
+  const char *prog_description;          /**< @brief Program description string. */
+  const char *prog_copyright;            /**< @brief Program copyright string. */
+  const char *prog_long_desc;            /**< @brief Program long description string. */
+  const char *prog_license;              /**< @brief Program license string. */
+  const char *prog_author;               /**< @brief Program author string. */
 } ut_prog_arg_config_t;
 
 
@@ -246,13 +245,6 @@ ut_suite_run (ut_suite_t *s);
 extern void
 ut_prog_arg_config_init (ut_prog_arg_config_t *const config,
                          const bool utest);
-
-extern void
-ut_prog_arg_config_set_desc (ut_prog_arg_config_t *const config,
-                             char *const desc);
-
-extern char *
-ut_prog_arg_config_get_desc (const ut_prog_arg_config_t *const config);
 
 extern void
 ut_prog_arg_config_set_prog_name (ut_prog_arg_config_t *const config,

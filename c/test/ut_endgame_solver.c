@@ -411,7 +411,7 @@ main (int argc,
                             game_position_ifes_solve_t,
                             gpdb_fixture_teardown);
 
-  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_0001,
+  ut_suite_add_regular_test(s, UT_MODE_STND, UT_QUICKNESS_001,
                             "minimax/ffo_01_simplified_4",
                             ffo_01_simplified_4,
                             gpdb_sample_games_fixture_setup,
@@ -499,7 +499,6 @@ main (int argc,
                             gpdb_fixture_setup,
                             game_position_ifes_solve_t,
                             gpdb_fixture_teardown);
-
 
   int failure_count = ut_suite_run(s);
 

@@ -716,33 +716,19 @@ ut_prog_arg_config_init (ut_prog_arg_config_t *const config,
 {
   config->print_test_list = false;
   config->mode = UT_MODE_STND;
+  config->max_quickness = UT_QUICKNESS_01;
   config->test_paths = llist_new(NULL);
   config->skip_paths = llist_new(NULL);
   config->verb = UT_VEROSITY_STND;
   config->utest = utest;
 
   config->prog_name = NULL;
-  config->prog_description = NULL;
   config->prog_version = NULL;
+  config->prog_description = NULL;
   config->prog_copyright = NULL;
   config->prog_long_desc = NULL;
   config->prog_license = NULL;
   config->prog_author = NULL;
-}
-
-void
-ut_prog_arg_config_set_desc (ut_prog_arg_config_t *const config,
-                             char *const desc)
-{
-  assert(config);
-  config->desc = desc;
-}
-
-char *
-ut_prog_arg_config_get_desc (const ut_prog_arg_config_t *const config)
-{
-  assert(config);
-  return config->desc;
 }
 
 void
