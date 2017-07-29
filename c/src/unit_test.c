@@ -509,10 +509,12 @@ ut_documentation_to_stream (FILE *stream,
  * @details Returns `0` when everithing is ok, `1` when option `-h` is active,
  *          and a negative value on invalid options.
  *
- * @param [out] config the program argument configuration
- * @param [in]  argc_p a pointer to argc
- * @param [in]  argv_p a pointer to argv
- * @return             parsing status
+ * @param [out] config         the program argument configuration
+ * @param [in]  stream         file output pointer
+ * @param [in]  argc_p         a pointer to argc
+ * @param [in]  argv_p         a pointer to argv
+ * @param [out] next_arg_index when not NULL returns the next argument to process
+ * @return                     parsing status
  */
 int
 ut_parse_args (ut_prog_arg_config_t *config,
