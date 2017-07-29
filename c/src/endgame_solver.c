@@ -3,12 +3,12 @@
  *
  * @todo Unit tests are far behind, a complete check is needed to ensure all functions have the appropriate testing.
  *
- * @todo Dependency from glib shall be removed from sources:
- *       - game_tree_logger has file and directory tools based on glib
- *       - all the main programs have args managed by mean of glib
- *       - game_position_db module is heavily based on glib
+ * @todo [done] Dependency from glib shall be removed from sources:
+ *       - [done] game_tree_logger has file and directory tools based on glib
+ *       - [done] all the main programs have args managed by mean of glib
+ *       - [done] game_position_db module is heavily based on glib
  *
- * @todo Dependency from glib shall be removed from unit tests. This requires to complete the utest module.
+ * @todo [done] Dependency from glib shall be removed from unit tests. This requires to complete the utest module.
  *
  * @todo Checks all the programs for memory leaks.
  *

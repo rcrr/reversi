@@ -168,7 +168,7 @@ square_set_random_selection_t (ut_test_t *const t)
   //! [square_set_random_selection usage]
 
   prng_mt19937_t *prng1 = prng_mt19937_new();
-  prng_mt19937_init_by_seed(prng, 17598);
+  prng_mt19937_init_by_seed(prng1, 17598);
 
   const int max_iteration_count = 1000000;
   unsigned long int observations[square_cardinality];
