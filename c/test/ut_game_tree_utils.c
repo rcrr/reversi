@@ -66,6 +66,8 @@ pve_create_t (ut_test_t *const t)
   pve_free(pve);
 
   ut_assert(t, true);
+
+  game_position_x_free(dummy_gpx);
 }
 
 static void
@@ -85,6 +87,8 @@ pve_internals_to_stream_t (ut_test_t *const t)
   fclose(fp);
 
   ut_assert(t, true);
+
+  game_position_x_free(dummy_gpx);
 }
 
 static void
@@ -226,6 +230,8 @@ pve_is_invariant_satisfied_t (ut_test_t *const t)
   is_consistent = pve_is_invariant_satisfied(pve, &error_code, check_mask);
   ut_assert(t, !is_consistent && (error_code == 1009));
   pve_free(pve);
+
+  game_position_x_free(dummy_gpx);
 }
 
 
