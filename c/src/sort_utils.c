@@ -1035,6 +1035,11 @@ sms_semitrinkle (const sort_utils_compare_function cmp,
  *          Adapted from Dijkstra's paper: http://www.enterag.ch/hartwig/order/smoothsort.pdf
  *          See also: http://en.wikipedia.org/wiki/Smoothsort
  *
+ *          Quoting Dijkstra himself:<br>
+ *          <em>"Like Heapsort —which inspired it— smoothsort is an algorithm for sorting in situ. It is of
+ *          order `N·log N` in the worst case, but of order `N` in the best case, with a smooth transition between
+ *          the two. (Hence its name.)"</em>
+ *
  * @param [in,out] a            the array to be sorted
  * @param [in]     count        the number of element in array
  * @param [in]     element_size the number of bytes used by one element
@@ -1046,6 +1051,8 @@ sort_utils_smoothsort (void *const a,
                        const size_t element_size,
                        const sort_utils_compare_function cmp)
 {
+  if (count < 2) return;
+
   static const size_t size_of_char = sizeof(char);
   char *r = a;
   unsigned long long int c = 1;
@@ -1057,9 +1064,11 @@ sort_utils_smoothsort (void *const a,
 
   unsigned long long int q = 1;
 
+  char *r1;
+
   /* Building tree. */
   while (q < count) {
-    char *r1 = r;
+    r1 = r;
     if ((p & 7) == 3) {
       b1 = b;
       c1 = c;
@@ -1086,7 +1095,7 @@ sort_utils_smoothsort (void *const a,
     q++;
     r += element_size;
   }
-  char *r1 = r;
+  r1 = r;
   sms_trinkle(cmp, element_size, r1, tmp, p, b, c, &b1, &c1);
 
   /* Building sorted array. */
