@@ -171,7 +171,6 @@ typedef struct {
   size_t          line_delete_count;             /**< @brief The number of time the pve_line_delete() function has been called. */
   size_t          line_add_move_count;           /**< @brief The number of time the pve_line_add_move() function has been called. */
   size_t          line_release_cell_count;       /**< @brief The number of times a cell is released in the pve_line_delete() function. */
-  rbt_table_t    *gp_table;                      /**< @brief Collects the unique set of game positions touched by the principal variation. */
 } PVEnv;
 
 /**
