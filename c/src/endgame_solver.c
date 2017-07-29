@@ -10,7 +10,7 @@
  *
  * @todo [done] Dependency from glib shall be removed from unit tests. This requires to complete the utest module.
  *
- * @todo Checks all the programs for memory leaks.
+ * @todo [done] Checks all the programs for memory leaks.
  *
  * @todo Remove GamePositionX and add board_t and game_position_t, where game_position_t has a bitboard for player and one for the opponent.
  *       board_t has also the player moving next.
