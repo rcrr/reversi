@@ -1879,22 +1879,32 @@ game_tree_stack_free (GameTreeStack *stack)
  */
 void
 game_tree_stack_init (const GamePositionX *const root,
-                      GameTreeStack* const stack)
+                      GameTreeStack *const stack)
 {
+  for (int i = 0; i < MAX_LEGAL_MOVE_STACK_COUNT; i++) {
+    stack->legal_move_stack2[i] = &stack->legal_move_array2[i];
+  }
+
   NodeInfo* ground_node_info = &stack->nodes[0];
   game_position_x_copy(root, &ground_node_info->gpx);
   ground_node_info->gpx.player = player_opponent(ground_node_info->gpx.player);
   ground_node_info->hash = game_position_x_hash(&ground_node_info->gpx);
   ground_node_info->move_set = 0ULL;
+  ground_node_info->best_move = invalid_move;
   ground_node_info->move_count = 0;
   ground_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
-  ground_node_info->best_move = invalid_move;
+  ground_node_info->move_cursor = NULL;
+  ground_node_info->head_of_legal_move_list2 = &stack->legal_move_stack2[0];
+  ground_node_info->move_cursor2 = NULL;
   ground_node_info->alpha = out_of_range_defeat_score;
   ground_node_info->beta = - out_of_range_defeat_score;
 
   NodeInfo* first_node_info  = &stack->nodes[1];
   game_position_x_copy(root, &first_node_info->gpx);
   first_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
+  first_node_info->move_cursor = NULL;
+  first_node_info->head_of_legal_move_list2 = &stack->legal_move_stack2[0];
+  first_node_info->move_cursor2 = NULL;
   first_node_info->alpha = out_of_range_defeat_score;
   first_node_info->beta = - out_of_range_defeat_score;
 
@@ -1955,6 +1965,9 @@ gts_make_move (GameTreeStack *const stack);
  */
 extern void
 gts_generate_moves (GameTreeStack *const stack);
+
+extern void
+gts_generate_moves2 (GameTreeStack *const stack);
 
 
 
