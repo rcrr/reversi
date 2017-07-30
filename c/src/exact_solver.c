@@ -329,6 +329,93 @@ game_position_solve_impl (ExactSolution *const result,
 
   if (log_env->log_is_on) {
     current_node_info->hash = game_position_x_hash(current_gpx);
+    gtl_do_log(result, stack, sub_run_id, log_env);
+  }
+
+  if (move_set == empty_square_set) {
+    if (pv_recording) pve_line = pve_line_create(pve);
+    const int previous_move_count = previous_node_info->move_count;
+    if (previous_move_count != 0) {
+      game_position_x_pass(current_gpx, next_gpx);
+      next_node_info->alpha = -current_node_info->beta;
+      next_node_info->beta = -current_node_info->alpha;
+      MoveListElement next_mle;
+      next_mle.moves = game_position_x_legal_moves(next_gpx);
+      game_position_solve_impl(result, stack, &pve_line, &next_mle);
+      current_node_info->alpha = -next_node_info->alpha;
+      current_node_info->best_move = next_node_info->best_move;
+    } else {
+      result->leaf_count++;
+      current_node_info->alpha = game_position_x_final_value(current_gpx);
+      current_node_info->best_move = pass_move;
+    }
+    if (pv_recording) {
+      pve_line_add_move(pve, pve_line, pass_move, next_gpx);
+      pve_line_delete(pve, *pve_parent_line_p);
+      *pve_parent_line_p = pve_line;
+    }
+  } else {
+    MoveList ml;
+    bool branch_is_active = false;
+    sort_moves_by_mobility_count(&ml, current_gpx, move_set);
+    if (pv_full_recording) current_node_info->alpha -= 1;
+    for (MoveListElement *element = ml.head; element; element = element->next) {
+      const Square move = element->sq;
+      game_position_x_copy(&element->gpx, next_gpx);
+      if (pv_recording) pve_line = pve_line_create(pve);
+      next_node_info->alpha = -current_node_info->beta;
+      next_node_info->beta = -current_node_info->alpha;
+      game_position_solve_impl(result, stack, &pve_line, element);
+      const int current_alpha = current_node_info->alpha;
+      if (-next_node_info->alpha > current_alpha || (!branch_is_active && -next_node_info->alpha == current_alpha)) {
+        branch_is_active = true;
+        current_node_info->alpha = -next_node_info->alpha;
+        current_node_info->best_move = move;
+        if (pv_recording) {
+          pve_line_add_move(pve, pve_line, move, next_gpx);
+          pve_line_delete(pve, *pve_parent_line_p);
+          *pve_parent_line_p = pve_line;
+        }
+        if (current_node_info->alpha > current_node_info->beta) goto out;
+        if (!pv_full_recording && current_node_info->alpha == current_node_info->beta) goto out;
+      } else {
+        if (pv_recording) {
+          if (pv_full_recording && -next_node_info->alpha == current_alpha) {
+            pve_line_add_move(pve, pve_line, move, next_gpx);
+            pve_line_add_variant(pve, *pve_parent_line_p, pve_line);
+          } else {
+            pve_line_delete(pve, pve_line);
+          }
+        }
+      }
+    }
+  }
+ out:
+  stack->active_node--;
+  return;
+}
+static void
+game_position_solve_impl___ (ExactSolution *const result,
+                             GameTreeStack *const stack,
+                             PVCell ***pve_parent_line_p,
+                             MoveListElement *mle)
+{
+  result->node_count++;
+  PVCell **pve_line = NULL;
+
+  NodeInfo *const current_node_info = ++stack->active_node;
+  NodeInfo *const next_node_info = current_node_info + 1;
+  NodeInfo *const previous_node_info = current_node_info - 1;
+
+  const int sub_run_id = 0;
+
+  const GamePositionX *const current_gpx = &current_node_info->gpx;
+  GamePositionX *const next_gpx = &next_node_info->gpx;
+  const SquareSet move_set = mle->moves;
+  current_node_info->move_count = bitw_bit_count_64(move_set);
+
+  if (log_env->log_is_on) {
+    current_node_info->hash = game_position_x_hash(current_gpx);
     gtl_log_data_h_t log_data;
     log_data.sub_run_id = sub_run_id;
     log_data.call_id = result->node_count;
