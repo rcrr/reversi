@@ -567,7 +567,9 @@ gts_generate_moves2 (GameTreeStack *const stack)
   SquareSet remaining_moves = c->move_set;
   c->move_count = 0;
   if (!remaining_moves) {
-    *(c->move_cursor)++ = pass_move;
+    gts_mle_t *e = *(c->move_cursor2);
+    e->sq = pass_move;
+    (c->move_cursor2)++;
   } else {
     while (remaining_moves) {
       Square move = bitw_bit_scan_forward_64_bsf(remaining_moves);
