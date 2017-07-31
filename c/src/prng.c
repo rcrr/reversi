@@ -570,7 +570,7 @@ prng_mt19937_shuffle_array_uint8 (prng_mt19937_t *prng,
  */
 void
 prng_mt19937_shuffle_array_p (prng_mt19937_t *prng,
-                              void **const array,
+                              void **array,
                               const size_t n)
 {
   assert(prng);

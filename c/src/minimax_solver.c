@@ -255,6 +255,7 @@ game_position_solve_impl (ExactSolution *const result,
   gts_generate_moves(stack);
   gts_generate_moves2(stack);
   if (randomize_move_order) prng_mt19937_shuffle_array_uint8(prng, c->head_of_legal_move_list, c->move_count);
+  if (randomize_move_order) prng_mt19937_shuffle_array_p(prng, (void **) c->head_of_legal_move_list2, c->move_count);
   if (stack->hash_is_on) gts_compute_hash(stack);
   if (log_env->log_is_on) gtl_do_log(result, stack, sub_run_id, log_env);
 
