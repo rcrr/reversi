@@ -10,7 +10,7 @@
  * http://github.com/rcrr/reversi
  * </tt>
  * @author Roberto Corradini mailto:rob_corradini@yahoo.it
- * @copyright 2014, 2015, 2016 Roberto Corradini. All rights reserved.
+ * @copyright 2014, 2015, 2016, 2017 Roberto Corradini. All rights reserved.
  *
  * @par License
  * <tt>
@@ -205,10 +205,8 @@ typedef struct NodeInfo_ {
   SquareSet       move_set;                    /**< @brief The set of legal moves. */
   Square          best_move;                   /**< @brief The best move for the node. */
   uint8_t         move_count;                  /**< @brief The count of legal moves. */
-  uint8_t        *head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
-  uint8_t        *move_cursor;                 /**< @brief Legal move iterator. */
-  gts_mle_t     **head_of_legal_move_list2;    /**< @brief A poiter to the first legal move. */
-  gts_mle_t     **move_cursor2;                /**< @brief Legal move iterator. */
+  gts_mle_t     **head_of_legal_move_list;     /**< @brief A poiter to the first legal move. */
+  gts_mle_t     **move_cursor;                 /**< @brief Legal move iterator. */
   int             alpha;                       /**< @brief The node value. */
   int             beta;                        /**< @brief The node cutoff value. */
 } NodeInfo;
@@ -221,7 +219,6 @@ typedef struct NodeInfo_ {
 typedef struct {
   NodeInfo  *active_node;                                       /**< @brief The active node on the stack. */
   NodeInfo   nodes[GAME_TREE_MAX_DEPTH];                        /**< @brief The stack of node info. */
-  uint8_t    legal_move_stack[MAX_LEGAL_MOVE_STACK_COUNT];      /**< @brief The stack hosting the legal moves for each node. */
   gts_mle_t  legal_move_array2[MAX_LEGAL_MOVE_STACK_COUNT];     /**< @brief The array hosting the legal moves for each node. */
   gts_mle_t *legal_move_stack2[MAX_LEGAL_MOVE_STACK_COUNT];     /**< @brief The stack hosting the legal moves for each node. */
   uint8_t    flip_count;                                        /**< @brief Number of flips plus one. */
@@ -487,10 +484,6 @@ extern void
 game_tree_stack_init (const GamePositionX *const root,
                       GameTreeStack *const stack);
 
-extern void
-game_tree_move_list_from_set (const SquareSet move_set,
-                              NodeInfo *const current_node_info);
-
 inline static bool
 gts_is_terminal_node (GameTreeStack *const stack)
 {
@@ -520,10 +513,11 @@ gts_make_move (GameTreeStack *const stack)
 {
   NodeInfo* const c = stack->active_node;
   Square *flip_cursor = stack->flips;
-  *flip_cursor++ = *c->move_cursor;
-  game_position_x_make_move(&c->gpx, *c->move_cursor, &(c + 1)->gpx);
+  const Square move = (*c->move_cursor)->sq;
+  *flip_cursor++ = move;
+  game_position_x_make_move(&c->gpx, move, &(c + 1)->gpx);
   if (stack->hash_is_on) {
-    const SquareSet bitmove = 1ULL << *c->move_cursor;
+    const SquareSet bitmove = 1ULL << move;
     const SquareSet cu_p = game_position_x_get_player(&c->gpx);
     const SquareSet up_o = game_position_x_get_opponent(&(c + 1)->gpx);
     SquareSet flip_set = up_o & ~(cu_p | bitmove);
@@ -538,63 +532,28 @@ gts_make_move (GameTreeStack *const stack)
 inline static void
 gts_generate_moves (GameTreeStack *const stack)
 {
-  NodeInfo* const c = stack->active_node;
-  uint8_t *const holml = c->head_of_legal_move_list;
+  NodeInfo *const c = stack->active_node;
+  gts_mle_t **holml = c->head_of_legal_move_list;
   c->move_set = game_position_x_legal_moves(&c->gpx);
   c->move_cursor = holml;
   SquareSet remaining_moves = c->move_set;
   c->move_count = 0;
   if (!remaining_moves) {
-    *(c->move_cursor)++ = pass_move;
+    gts_mle_t *e = *(c->move_cursor);
+    e->sq = pass_move;
+    (c->move_cursor)++;
   } else {
     while (remaining_moves) {
-      *(c->move_cursor)++ = bitw_bit_scan_forward_64_bsf(remaining_moves);
+      Square move = bitw_bit_scan_forward_64_bsf(remaining_moves);
       remaining_moves = bitw_reset_lowest_set_bit_64(remaining_moves);
+      gts_mle_t *e = *(c->move_cursor);
+      e->sq = move;
+      (c->move_cursor)++;
     }
   }
   c->move_count = c->move_cursor - holml;
   (c + 1)->head_of_legal_move_list = c->move_cursor;
   c->move_cursor = holml;
-}
-
-inline static void
-gts_generate_moves2 (GameTreeStack *const stack)
-{
-  NodeInfo *const c = stack->active_node;
-  gts_mle_t **holml = c->head_of_legal_move_list2;
-  c->move_set = game_position_x_legal_moves(&c->gpx);
-  c->move_cursor2 = holml;
-  SquareSet remaining_moves = c->move_set;
-  c->move_count = 0;
-  if (!remaining_moves) {
-    gts_mle_t *e = *(c->move_cursor2);
-    e->sq = pass_move;
-    (c->move_cursor2)++;
-  } else {
-    while (remaining_moves) {
-      Square move = bitw_bit_scan_forward_64_bsf(remaining_moves);
-      remaining_moves = bitw_reset_lowest_set_bit_64(remaining_moves);
-      gts_mle_t *e = *(c->move_cursor2);
-      e->sq = move;
-      (c->move_cursor2)++;
-    }
-  }
-  c->move_count = c->move_cursor2 - holml;
-  (c + 1)->head_of_legal_move_list2 = c->move_cursor2;
-  c->move_cursor2 = holml;
-
-  // check!
-  int n = c->move_count;
-  uint8_t    *cursor_1 = c->head_of_legal_move_list;
-  gts_mle_t **cursor_2 = c->head_of_legal_move_list2;
-  for (int i = 0; i < n; i++) {
-    if (*cursor_1 != (*cursor_2)->sq) {
-      abort();
-    }
-    cursor_1++;
-    cursor_2++;
-  }
-
 }
 
 

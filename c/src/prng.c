@@ -570,17 +570,18 @@ prng_mt19937_shuffle_array_uint8 (prng_mt19937_t *prng,
  */
 void
 prng_mt19937_shuffle_array_p (prng_mt19937_t *prng,
-                              void **array,
+                              void *array,
                               const size_t n)
 {
   assert(prng);
   assert(array);
+  void **a = (void **) array;
   if (n > 1) {
     for (size_t i = n - 1; i > 0; i--) {
       size_t j = prng_mt19937_random_choice_from_finite_set(prng, i + 1);
-      void *const t = *(array + j);
-      *(array + j) = *(array + i);
-      *(array + i) = t;
+      void *const t = *(a + j);
+      *(a + j) = *(a + i);
+      *(a + i) = t;
     }
   }
 }

@@ -108,7 +108,7 @@ prng_mt19937_shuffle_array_uint8 (prng_mt19937_t *prng,
 
 extern void
 prng_mt19937_shuffle_array_p (prng_mt19937_t *prng,
-                              void **array,
+                              void *array,
                               const size_t n);
 
 extern void

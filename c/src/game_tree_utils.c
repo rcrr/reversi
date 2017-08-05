@@ -1892,19 +1892,15 @@ game_tree_stack_init (const GamePositionX *const root,
   ground_node_info->move_set = 0ULL;
   ground_node_info->best_move = invalid_move;
   ground_node_info->move_count = 0;
-  ground_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
+  ground_node_info->head_of_legal_move_list = &stack->legal_move_stack2[0];
   ground_node_info->move_cursor = NULL;
-  ground_node_info->head_of_legal_move_list2 = &stack->legal_move_stack2[0];
-  ground_node_info->move_cursor2 = NULL;
   ground_node_info->alpha = out_of_range_defeat_score;
   ground_node_info->beta = - out_of_range_defeat_score;
 
   NodeInfo* first_node_info  = &stack->nodes[1];
   game_position_x_copy(root, &first_node_info->gpx);
-  first_node_info->head_of_legal_move_list = &stack->legal_move_stack[0];
+  first_node_info->head_of_legal_move_list = &stack->legal_move_stack2[0];
   first_node_info->move_cursor = NULL;
-  first_node_info->head_of_legal_move_list2 = &stack->legal_move_stack2[0];
-  first_node_info->move_cursor2 = NULL;
   first_node_info->alpha = out_of_range_defeat_score;
   first_node_info->beta = - out_of_range_defeat_score;
 
@@ -1914,31 +1910,6 @@ game_tree_stack_init (const GamePositionX *const root,
   stack->flip_count = 1;
 
   stack->hash_is_on = false;
-}
-
-/**
- * @brief Computes the move list given the set.
- *
- * @param [in]  move_set          the set of legal moves
- * @param [out] current_node_info the node info updated with the compuetd list of legal moves
- */
-void
-game_tree_move_list_from_set (const SquareSet move_set,
-                              NodeInfo* const current_node_info)
-{
-  NodeInfo* const next_node_info = current_node_info + 1;
-  uint8_t *move_ptr = current_node_info->head_of_legal_move_list;
-  SquareSet remaining_moves = move_set;
-  current_node_info->move_count = 0;
-  while (remaining_moves) {
-    const uint8_t move = bitw_bit_scan_forward_64(remaining_moves);
-    *move_ptr = move;
-    move_ptr++;
-    current_node_info->move_count++;
-    remaining_moves ^= 1ULL << move;
-  }
-  next_node_info->head_of_legal_move_list = move_ptr;
-  return;
 }
 
 /**
@@ -1965,9 +1936,6 @@ gts_make_move (GameTreeStack *const stack);
  */
 extern void
 gts_generate_moves (GameTreeStack *const stack);
-
-extern void
-gts_generate_moves2 (GameTreeStack *const stack);
 
 
 

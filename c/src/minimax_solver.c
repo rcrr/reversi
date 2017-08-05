@@ -253,9 +253,7 @@ game_position_solve_impl (ExactSolution *const result,
   else c->alpha = out_of_range_defeat_score;
 
   gts_generate_moves(stack);
-  gts_generate_moves2(stack);
-  if (randomize_move_order) prng_mt19937_shuffle_array_uint8(prng, c->head_of_legal_move_list, c->move_count);
-  if (randomize_move_order) prng_mt19937_shuffle_array_p(prng, (void **) c->head_of_legal_move_list2, c->move_count);
+  if (randomize_move_order) prng_mt19937_shuffle_array_p(prng, c->head_of_legal_move_list, c->move_count);
   if (stack->hash_is_on) gts_compute_hash(stack);
   if (log_env->log_is_on) gtl_do_log(result, stack, sub_run_id, log_env);
 
@@ -278,7 +276,7 @@ game_position_solve_impl (ExactSolution *const result,
     goto begin;
   entry:
     if (- (c + 1)->alpha > c->alpha) {
-      c->best_move = *(c->move_cursor);
+      c->best_move = (*c->move_cursor)->sq;
       c->alpha = - (c + 1)->alpha;
       if (alpha_beta_pruning) if (c->alpha >= c->beta) goto end;
     }
@@ -305,7 +303,7 @@ game_position_random_sammpler_impl (ExactSolution *const result,
     c = ++stack->active_node;
 
     gts_generate_moves(stack);
-    prng_mt19937_shuffle_array_uint8(prng, c->head_of_legal_move_list, c->move_count);
+    prng_mt19937_shuffle_array_p(prng, c->head_of_legal_move_list, c->move_count);
     if (stack->hash_is_on) gts_compute_hash(stack);
     if (log_env->log_is_on) gtl_do_log(result, stack, sub_run_id, log_env);
 
