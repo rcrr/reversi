@@ -1095,6 +1095,7 @@ gpdb_parse_line (char *line,
   /* Variable initialization. */
   entry_gpx->blacks = empty_square_set;
   entry_gpx->whites = empty_square_set;
+  entry_gpx->player = BLACK_PLAYER;
   record_length = 0;
   field_count = 0;
   line_is_an_entry = false;
