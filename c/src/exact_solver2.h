@@ -2,9 +2,9 @@
  * @file
  *
  * @brief Exact solver module definitions.
- * @details This module defines the #game_position_es_solve function.
+ * @details This module defines the #game_position_es2_solve function.
  *
- * @par exact_solver.h
+ * @par exact_solver2.h
  * <tt>
  * This file is part of the reversi program
  * http://github.com/rcrr/reversi
@@ -31,16 +31,16 @@
  * </tt>
  */
 
-#ifndef EXACT_SOLVER_H
-#define EXACT_SOLVER_H
+#ifndef EXACT_SOLVER2_H
+#define EXACT_SOLVER2_H
 
 #include "endgame_solver.h"
 
 
 
 extern ExactSolution *
-game_position_es_solve (const GamePositionX *const root,
-                        const endgame_solver_env_t *const env);
+game_position_es2_solve (const GamePositionX *const root,
+                         const endgame_solver_env_t *const env);
 
 
-#endif /* EXACT_SOLVER_H */
+#endif /* EXACT_SOLVER2_H */

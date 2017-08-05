@@ -190,6 +190,7 @@
 #include "improved_fast_endgame_solver.h"
 #include "minimax_solver.h"
 #include "exact_solver.h"
+#include "exact_solver2.h"
 
 
 
@@ -285,6 +286,7 @@ static const char *documentation =
 static const endgame_solver_t solvers[] =
   {
     { .id = "es",      .description = "exact solver",                 .function_name = "game_position_es_solve",       .fn = game_position_es_solve },
+    { .id = "es2",     .description = "exact solver 2",               .function_name = "game_position_es2_solve",       .fn = game_position_es2_solve },
     { .id = "ifes",    .description = "improved fast endgame solver", .function_name = "game_position_ifes_solve",     .fn = game_position_ifes_solve },
     { .id = "rand",    .description = "random game sampler",          .function_name = "game_position_random_sampler", .fn = game_position_random_sampler },
     { .id = "minimax", .description = "minimax solver",               .function_name = "game_position_minimax_solve",  .fn = game_position_minimax_solve },
@@ -489,7 +491,7 @@ main (int argc,
   }
 
   if (R_flag) {
-    if (strcmp("es", solver->id) != 0) {
+    if (!(strcmp("es", solver->id) == 0 || strcmp("es2", solver->id) == 0)) {
       fprintf(stderr, "Option -R, --pv-rec can be used only with solver \"es\".\n");
       return -12;
     }
@@ -497,7 +499,7 @@ main (int argc,
   }
 
   if (F_flag) {
-    if (strcmp("es", solver->id) != 0) {
+    if (!(strcmp("es", solver->id) == 0 || strcmp("es2", solver->id) == 0)) {
       fprintf(stderr, "Option -F, --pv-full-rec can be used only with solver \"es\".\n");
       return -13;
     }
@@ -509,7 +511,7 @@ main (int argc,
   }
 
   if (N_flag) {
-    if (strcmp("es", solver->id) || !pv_full_rec) {
+    if (!(strcmp("es", solver->id) == 0 || strcmp("es2", solver->id) == 0) || !pv_full_rec) {
       fprintf(stderr, "Option -N, --pv-no-print can be used only with solver \"es\", and when option -F, --pv-full-rec is turned on.\n");
       return -15;
     }
