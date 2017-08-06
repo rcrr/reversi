@@ -556,6 +556,9 @@ gts_generate_moves (GameTreeStack *const stack)
   c->move_cursor = holml;
 }
 
+extern void
+gts_sort_moves_by_mobility_count (GameTreeStack *const stack);
+
 
 
 #endif /* GAME_TREE_UTILS_H */
