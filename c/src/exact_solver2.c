@@ -294,8 +294,32 @@ sort_moves_by_mobility_count (GameTreeStack *const stack,
       e++;
     }
   }
+  assert(c->move_count == e - ml->elements);
 
   // ---
+
+  gts_mle_t **mle = c->head_of_legal_move_list;
+
+  for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
+    SquareSet moves_to_search = c->move_set & legal_moves_priority_mask[i];
+    while (moves_to_search) {
+      (*mle)->move = bitw_bit_scan_forward_64(moves_to_search);
+      moves_to_search &= ~(1ULL << (*mle)->move);
+      game_position_x_make_move(&c->gpx, (*mle)->move, &(*mle)->res_position);
+      (*mle)->res_move_set = game_position_x_legal_moves(&(*mle)->res_position);
+      (*mle)->res_move_count = bitw_bit_count_64((*mle)->res_move_set);
+      mle++;
+    }
+  }
+  c->move_cursor = c->head_of_legal_move_list;
+  (c + 1)->head_of_legal_move_list = mle;
+  assert(c->move_count == mle - c->head_of_legal_move_list);
+
+  // Sort the pointers !!!
+
+  // Two invariants has to be checked:
+  // - after sorting the two move lists have to be equal
+  // - the list is in the right place ... sum of move count must be equal to where we are ...
 
   return;
 }
@@ -341,6 +365,7 @@ game_position_solve_impl (ExactSolution *const result,
       MoveListElement next_mle;
       next_mle.moves = game_position_x_legal_moves(next_gpx);
       (c + 1)->move_set = next_mle.moves;
+      (c + 1)->head_of_legal_move_list = c->head_of_legal_move_list + 1;
       game_position_solve_impl(result, stack, &pve_line, &next_mle);
       c->alpha = - (c + 1)->alpha;
       c->best_move = (c + 1)->best_move;
@@ -366,6 +391,7 @@ game_position_solve_impl (ExactSolution *const result,
       const Square move = element->sq;
       game_position_x_copy(&element->gpx, next_gpx);
       (c + 1)->move_set = element->moves;
+      (c + 1)->head_of_legal_move_list = c->head_of_legal_move_list + element->mobility;
       if (pv_recording) pve_line = pve_line_create(pve);
       (c + 1)->alpha = -c->beta;
       (c + 1)->beta = -c->alpha;

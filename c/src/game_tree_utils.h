@@ -188,12 +188,14 @@ typedef struct {
 
 /**
  * @brief Move List Element.
+ *
+ * @details The element represent a legal move from the current position.
  */
 typedef struct {
-  Square        sq;           /**< @brief The square field. */
-  uint8_t       mobility;     /**< @brief The mobility field. */
-  SquareSet     moves;        /**< @brief The move set. */
-  GamePositionX gpx;          /**< @brief The game position. */
+  Square        move;               /**< @brief One legal move available. */
+  GamePositionX res_position;       /**< @brief The resulting position executing the move. */
+  SquareSet     res_move_set;       /**< @brief The move set associated with the resulting position. */
+  uint8_t       res_move_count;     /**< @brief The move count of the resulting position. */
 } gts_mle_t;
 
 /**
@@ -513,7 +515,7 @@ gts_make_move (GameTreeStack *const stack)
 {
   NodeInfo* const c = stack->active_node;
   Square *flip_cursor = stack->flips;
-  const Square move = (*c->move_cursor)->sq;
+  const Square move = (*c->move_cursor)->move;
   *flip_cursor++ = move;
   game_position_x_make_move(&c->gpx, move, &(c + 1)->gpx);
   if (stack->hash_is_on) {
@@ -540,14 +542,14 @@ gts_generate_moves (GameTreeStack *const stack)
   c->move_count = 0;
   if (!remaining_moves) {
     gts_mle_t *e = *(c->move_cursor);
-    e->sq = pass_move;
+    e->move = pass_move;
     (c->move_cursor)++;
   } else {
     while (remaining_moves) {
       Square move = bitw_bit_scan_forward_64_bsf(remaining_moves);
       remaining_moves = bitw_reset_lowest_set_bit_64(remaining_moves);
       gts_mle_t *e = *(c->move_cursor);
-      e->sq = move;
+      e->move = move;
       (c->move_cursor)++;
     }
   }

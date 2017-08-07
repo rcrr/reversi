@@ -276,7 +276,7 @@ game_position_solve_impl (ExactSolution *const result,
     goto begin;
   entry:
     if (- (c + 1)->alpha > c->alpha) {
-      c->best_move = (*c->move_cursor)->sq;
+      c->best_move = (*c->move_cursor)->move;
       c->alpha = - (c + 1)->alpha;
       if (alpha_beta_pruning) if (c->alpha >= c->beta) goto end;
     }
