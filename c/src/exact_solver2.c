@@ -85,9 +85,7 @@ game_position_solve_impl (ExactSolution *const result,
 
 static void
 sort_moves_by_mobility_count (GameTreeStack *const stack,
-                              MoveList *ml,
-                              const GamePositionX *const gpx,
-                              const SquareSet moves);
+                              MoveList *ml);
 
 /*
  * Internal variables and constants.
@@ -181,6 +179,7 @@ game_position_es2_solve (const GamePositionX *const root,
 
   MoveListElement root_mle;
   root_mle.moves = game_position_x_legal_moves(root);
+  first_node_info->move_set = root_mle.moves;
   game_position_solve_impl(result, stack, &(pve->root_line), &root_mle);
 
   if (pv_recording && pv_full_recording && !env->pv_no_print) {
@@ -253,22 +252,19 @@ game_position_es2_solve (const GamePositionX *const root,
 
 static void
 sort_moves_by_mobility_count (GameTreeStack *const stack,
-                              MoveList *ml,
-                              const GamePositionX *const gpx,
-                              const SquareSet moves)
+                              MoveList *ml)
 {
-  assert(game_position_x_legal_moves(gpx) == moves);
+  NodeInfo *const c = stack->active_node;
 
   ml->head = NULL;
   MoveListElement *e = ml->elements;
 
-  SquareSet moves_to_search = moves;
   for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
-    moves_to_search = legal_moves_priority_mask[i] & moves;
+    SquareSet moves_to_search = legal_moves_priority_mask[i] & c->move_set;
     while (moves_to_search) {
       const Square move = bitw_bit_scan_forward_64(moves_to_search);
       moves_to_search &= ~(1ULL << move);
-      game_position_x_make_move(gpx, move, &e->gpx);
+      game_position_x_make_move(&c->gpx, move, &e->gpx);
       const SquareSet next_moves = game_position_x_legal_moves(&e->gpx);
       const uint8_t next_move_count = bitw_bit_count_64(next_moves);
       e->sq = move;
@@ -300,10 +296,6 @@ sort_moves_by_mobility_count (GameTreeStack *const stack,
   }
 
   // ---
-
-  NodeInfo *const c = stack->active_node;
-  int cmp = game_position_x_compare(gpx, &c->gpx);
-  if (cmp != 0) abort();
 
   return;
 }
@@ -348,6 +340,7 @@ game_position_solve_impl (ExactSolution *const result,
       (c + 1)->beta = - c->alpha;
       MoveListElement next_mle;
       next_mle.moves = game_position_x_legal_moves(next_gpx);
+      (c + 1)->move_set = next_mle.moves;
       game_position_solve_impl(result, stack, &pve_line, &next_mle);
       c->alpha = - (c + 1)->alpha;
       c->best_move = (c + 1)->best_move;
@@ -364,7 +357,7 @@ game_position_solve_impl (ExactSolution *const result,
   } else {
     MoveList ml;
     bool branch_is_active = false;
-    sort_moves_by_mobility_count(stack, &ml, current_gpx, move_set);
+    sort_moves_by_mobility_count(stack, &ml);
     // --i--
     gts_sort_moves_by_mobility_count(stack);
     // --e--
@@ -372,6 +365,7 @@ game_position_solve_impl (ExactSolution *const result,
     for (MoveListElement *element = ml.head; element; element = element->next) {
       const Square move = element->sq;
       game_position_x_copy(&element->gpx, next_gpx);
+      (c + 1)->move_set = element->moves;
       if (pv_recording) pve_line = pve_line_create(pve);
       (c + 1)->alpha = -c->beta;
       (c + 1)->beta = -c->alpha;
