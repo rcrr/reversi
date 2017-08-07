@@ -37,6 +37,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "sort_utils.h"
+
 #include "game_tree_logger.h"
 #include "exact_solver2.h"
 
@@ -250,6 +252,37 @@ game_position_es2_solve (const GamePositionX *const root,
  * Internal functions.
  */
 
+static int
+gts_mle_cmp (const void *a,
+             const void *b)
+{
+  int r;
+  gts_mle_t **x, **y;
+
+  x = (gts_mle_t **) a;
+  y = (gts_mle_t **) b;
+
+  r = (((*x)->res_move_count > (*y)->res_move_count) - ((*x)->res_move_count < (*y)->res_move_count));
+  /*
+  if (r == 0) {
+    SquareSet xss = 1ULL << x->move;
+    SquareSet yss = 1ULL << y->move;
+    for (int i = 0; i < legal_moves_priority_cluster_count; i++) {
+      bool x_match = xss & legal_moves_priority_mask[i];
+      bool y_match = yss & legal_moves_priority_mask[i];
+    }
+  }
+  */
+  return r;
+}
+
+void
+sort_move_pointers (gts_mle_t ** moves,
+                    const size_t count)
+{
+  sort_utils_insertionsort(moves, count, sizeof(gts_mle_t *), gts_mle_cmp);
+}
+
 static void
 sort_moves_by_mobility_count (GameTreeStack *const stack,
                               MoveList *ml)
@@ -316,11 +349,33 @@ sort_moves_by_mobility_count (GameTreeStack *const stack,
   assert(c->move_count == mle - c->head_of_legal_move_list);
 
   // Sort the pointers !!!
+  sort_move_pointers(c->head_of_legal_move_list, c->move_count);
 
   // Two invariants has to be checked:
-  // - after sorting the two move lists have to be equal
-  // - the list is in the right place ... sum of move count must be equal to where we are ...
+  // - after sorting the two move lists have to be equal DONE!!!
+  // - the list is in the right place ... sum of move count must be equal to where we are ... TO BE DONE !!!
 
+  c->move_cursor = c->head_of_legal_move_list;
+  for (MoveListElement *e = ml->head; e; e = e->next) {
+    gts_mle_t *en = *(c->move_cursor++);
+    if (e->sq != en->move) {
+      printf("\n");
+      printf("old: [ ");
+      for (MoveListElement *e = ml->head; e; e = e->next) {
+        printf("(%s, %02d) ", square_as_move_to_string(e->sq), e->mobility);
+      }
+      printf("]\nnew: [ ");
+      c->move_cursor = c->head_of_legal_move_list;
+      for ( ; c->move_cursor < (c + 1)->head_of_legal_move_list; c->move_cursor++) {
+        gts_mle_t *e = *(c->move_cursor);
+        printf("(%s, %02d) ", square_as_move_to_string(e->move), e->res_move_count);
+      }
+      printf("]\n");
+      abort();
+    }
+  }
+
+  c->move_cursor = c->head_of_legal_move_list;
   return;
 }
 
